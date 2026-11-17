@@ -49,6 +49,43 @@ test('secondary card waits for catalog options without delaying the transcript, 
   assert.equal(h.ids.get('replyText').value,'Current draft');assertNoMutations(h);
 });
 
+for(const mobile of [false,true])for(const status of [200,500])test('ready catalog renders the card before held filter options, mobile='+mobile+', status='+status,async()=>{
+  const h=createHarness({inbox:true,mobile}),held=deferred(),cards=[],renders=[];
+  h.window.WorkspaceV2Filters={bind(){},render(options={}){renders.push(options);}};
+  h.window.WorkspaceV2LeadCard.render=(lead,conversation)=>cards.push({lead,conversation,stages:h.W.S.pipeline.stages});
+  h.setHook((url,r)=>{
+    if(r.action==='catalog')return response({ok:true,stages:[{stage_key:'working',display_name:'Working catalog'}],tags:[{id:1,display_name:'Family'}],outcomes:{open:'Open'}});
+    if(r.action==='filter_options')return held.promise;
+    if(r.action==='list')return response({ok:true,conversations:liveRows(2)});
+    return null;
+  });
+  await within(h.start());await new Promise(setImmediate);
+  assert.equal(cards.length,1,'The already-authorized card must not wait for Inbox filter options');
+  assert.equal(cards[0].conversation.id,101);assert.equal(cards[0].stages[0].stage_key,'working');
+  assert.equal(h.W.S.filterOptionsReady,false);assert.equal(renders.length,1);assert.equal(renders[0].pending,true);
+  await h.draft('Exact unsent reply before filters');const file={name:'retained-card.txt'};h.setFile(file);
+  const card=cards[0],listCount=h.calls.filter(r=>r.action==='list').length,detailCount=h.calls.filter(r=>r.action==='detail').length;
+  held.resolve(response(status===200?{ok:true,filters:{projects:[],sources:[],managers:[]}}:{ok:false},status));await new Promise(setImmediate);
+  assert.equal(cards.length,1);assert.equal(cards[0],card);assert.equal(renders.length,2);
+  assert.equal(h.W.S.filterOptionsReady,status===200);assert.equal(h.ids.get('replyText').value,'Exact unsent reply before filters');assert.equal(h.getFile(),file);
+  assert.equal(h.calls.filter(r=>r.action==='list').length,listCount);assert.equal(h.calls.filter(r=>r.action==='detail').length,detailCount);
+  for(const action of ['catalog','filter_options'])assert.equal(h.calls.filter(r=>r.action===action).length,1);
+  assert.equal(hidden(h),false);assertNoMutations(h);
+});
+
+test('early filter options keep one reconciliation after the card catalog becomes ready',async()=>{
+  const h=createHarness({inbox:true}),held=deferred(),cards=[],renders=[];
+  h.window.WorkspaceV2Filters={bind(){},render(options={}){renders.push(options);}};
+  h.window.WorkspaceV2LeadCard.render=(lead,conversation)=>cards.push({lead,conversation,stages:h.W.S.pipeline.stages});
+  h.setHook((url,r)=>r.action==='catalog'?held.promise:null);
+  await within(h.start());await new Promise(setImmediate);
+  assert.equal(cards.length,0);assert.equal(h.W.S.filterOptionsReady,false);assert.equal(renders.length,1);
+  held.resolve(response({ok:true,stages:[{stage_key:'working',display_name:'Working catalog'}]}));await new Promise(setImmediate);
+  assert.equal(cards.length,1);assert.equal(cards[0].stages[0].stage_key,'working');assert.equal(h.W.S.filterOptionsReady,true);assert.equal(renders.length,2);
+  for(const action of ['catalog','filter_options'])assert.equal(h.calls.filter(r=>r.action===action).length,1);
+  assertNoMutations(h);
+});
+
 test('a previously initialized core without the optional catalog signal still opens an authorized transcript',async()=>{
   const h=createHarness({inbox:true});await h.start({open:false});delete h.W.whenCatalogReady;
   await within(h.C.open(101));assert.equal(h.W.S.current,101);assert.equal(hidden(h),false);assertNoMutations(h);
