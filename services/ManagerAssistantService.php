@@ -275,10 +275,25 @@ final class ManagerAssistantService
         // If no current input can be proven, retain the old exact behavior.
         $source = ManagerPreparationEligibility::input(ConversationDb::connection(),$id);
         $profilePin = self::profileDecisionPin($snapshot);
-        $decisionKey = $source === null || $profilePin === null ? $revision : hash('sha256', json_encode([
-            'manager_assistant_decision_source_v2',(string)($snapshot['project_key'] ?? $project ?? ProjectConfig::projectId()),
-            $id,$source,$profilePin,$proposal['next_action'],
-        ],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+        // A post-reply review is a strictly nonbinding suggestion grounded in a
+        // source-authenticated manager message, never proof of non-delivery.
+        $reviewEvidence = self::postReplyEvidence($proposal,$snapshot);
+        $internalReview = $reviewEvidence === null ? null : [
+            'kind'=>$reviewEvidence['kind'],'state'=>'needs_review',
+            'source_message_id'=>$reviewEvidence['source_message_id'],
+        ];
+        if ($reviewEvidence !== null) {
+            $decisionKey = hash('sha256',json_encode([
+                'manager_assistant_review_v1',(string)($snapshot['project_key'] ?? $project ?? ProjectConfig::projectId()),
+                $id,$source,$reviewEvidence['kind'],$reviewEvidence['source_message_id'],
+                $reviewEvidence['source_message_revision'],$reviewEvidence['trip_id'],$reviewEvidence['profile_sha256'],
+            ],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+        } else {
+            $decisionKey = $source === null || $profilePin === null ? $revision : hash('sha256', json_encode([
+                'manager_assistant_decision_source_v2',(string)($snapshot['project_key'] ?? $project ?? ProjectConfig::projectId()),
+                $id,$source,$profilePin,$proposal['next_action'],
+            ],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+        }
         return ['revision'=>$revision, 'decision_key'=>$decisionKey, 'context_revision'=>$prepared['revision'], 'instruction_revision'=>$instruction,
             'latest_message_id'=>(int)$prepared['latest_message_id'], 'prepared_at'=>$prepared['prepared_at'], 'expires_at'=>$prepared['expires_at'],
             'next_action'=>$proposal['next_action'], 'reason'=>$proposal['reason'], 'checks'=>$proposal['checks'],
@@ -286,7 +301,48 @@ final class ManagerAssistantService
             // body through prepared_preview before it may offer insertion.
             'should_draft'=>$proposal['should_draft'], 'draft'=>$proposal['should_draft'] ? $proposal['draft'] : null,
             'history_incomplete'=>$proposal['history_incomplete'],
-            'evidence_message_ids'=>$proposal['evidence_message_ids']];
+            'evidence_message_ids'=>$proposal['evidence_message_ids'],
+            'internal_review'=>$internalReview];
+    }
+
+    /**
+     * Only a source-validated model candidate may become an optional internal
+     * review suggestion. The candidate means "check whether it was done",
+     * NOT an active obligation, overdue task, or request to message a customer.
+     * This reuses the already prepared open-chat result; no new generator.
+     */
+    private static function postReplyEvidence(array $proposal,array $snapshot): ?array
+    {
+        if (($proposal['next_action'] ?? null) !== 'no_contact'
+            || ($proposal['should_draft'] ?? null) !== false
+            || !is_array($proposal['manager_promises'] ?? null)
+            || $proposal['manager_promises'] === []) return null;
+        try {
+            return self::verifiedReviewProjection(ManagerPromiseCandidates::project($proposal,$snapshot));
+        } catch (Throwable $ignored) { return null; }
+    }
+
+    /** Pure strict gate for normalized, already source-authenticated candidates. */
+    private static function verifiedReviewProjection(array $rows): ?array
+    {
+        if (count($rows) > 3) return null;
+        foreach ($rows as $candidate) {
+            if (!is_array($candidate)
+                || !in_array($candidate['kind'] ?? null,['send_calculation','send_selection'],true)
+                || ($candidate['profile_status'] ?? null) !== 'fresh'
+                || !is_int($candidate['source_message_id'] ?? null)
+                || $candidate['source_message_id'] <= 0
+                || !is_string($candidate['source_message_revision'] ?? null)
+                || !self::revision($candidate['source_message_revision'])
+                || !is_string($candidate['trip_id'] ?? null)
+                || preg_match('/\\A[a-f0-9]{32}\\z/D',$candidate['trip_id']) !== 1
+                || !is_string($candidate['profile_sha256'] ?? null)
+                || !self::revision($candidate['profile_sha256'])) continue;
+            return array_intersect_key($candidate,array_flip([
+                'kind','source_message_id','source_message_revision','trip_id','profile_sha256'
+            ]));
+        }
+        return null;
     }
 
     /**

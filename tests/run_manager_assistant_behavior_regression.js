@@ -81,6 +81,36 @@ test('My Plan removes and restores a suggestion without a secondary task or repl
   await h.click('[data-assistant-list-decision="101"]');assert.equal(h.data.get(101).recommendation.decision,'open');
   assert.equal(h.calls.filter(x=>x.action==='decision').length,2);assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);
 });
+test('post-reply AI suggestion grounded in manager source appears as optional review, never a client send',async()=>{
+  const h=harness(),initial=h.item(101).recommendation;
+  h.data.set(101,h.item(101,{recommendation:{...initial,
+    next_action:'no_contact',should_draft:false,draft:null,
+    reason:'Сейчас повторно писать клиенту не нужно.',
+    internal_review:{kind:'send_calculation',state:'needs_review',source_message_id:25}}}));
+  h.A.activate(7);await h.A.openPlan();
+  const client=h.$('assistantList').querySelector('[data-assistant-client="101"]');
+  assert.ok(client);assert.match(client.textContent,/Проверить статус расчёта/);
+  assert.ok(h.$('assistantList').querySelector('[data-assistant-direct="101"]'));
+  assert.equal(h.$('assistantList').querySelector('[data-assistant-direct="101"]').textContent,'Открыть');
+  assert.ok(h.$('assistantList').querySelector('[data-assistant-list-decision="101"]'));
+  assert.equal(h.$('assistantList').querySelector('[data-assistant-client="101"]').parentElement.querySelector('.assistantPlanDraft'),null);
+  await h.click('[data-assistant-direct="101"]');
+  assert.equal(h.opened.length,1);assert.equal(h.prepared.length,0);
+  assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
+});
+test('post-reply suggestion may be removed and restored without creating a task or contact',async()=>{
+  const h=harness(),r=h.item(101).recommendation;
+  h.data.set(101,h.item(101,{recommendation:{...r,next_action:'no_contact',should_draft:false,draft:null,internal_review:{kind:'send_selection',state:'needs_review',source_message_id:44}}}));
+  h.A.activate(7);await h.A.openPlan();
+  assert.match(h.$('assistantList').textContent,/Проверить отправку подборки/);
+  await h.click('[data-assistant-list-decision="101"]');
+  assert.equal(h.data.get(101).recommendation.decision,'irrelevant');
+  await h.click('[data-assistant-filter="done"]');
+  await h.click('[data-assistant-list-decision="101"]');
+  assert.equal(h.data.get(101).recommendation.decision,'open');
+  assert.equal(h.calls.filter(x=>x.action==='decision').length,2);
+  assert.equal(h.prepared.length,0);assert.equal(h.$('replyFile').file,h.file);
+});
 test('My Plan opens an existing no-contact task without manufacturing a client draft',async()=>{
   const h=harness();h.data.set(101,h.item(101,{recommendation:{...h.item().recommendation,next_action:'no_contact',should_draft:false,draft:null},tasks:[{id:31,title:'Проверить актуальность расчёта',status:'open',due_state:'unscheduled'}]}));
   h.A.activate(7);await h.A.openPlan();

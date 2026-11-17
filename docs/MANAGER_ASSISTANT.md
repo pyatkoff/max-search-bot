@@ -311,3 +311,24 @@ the list nor the detail asks the manager to dismiss it. Existing manual tasks
 remain accessible. A verified actionable internal next step is still a separate
 future contract, not inferred from `no_contact` wording. The visual test must
 not expect “Выполнено” after a real irrelevant (“Убрать”) decision.
+
+### Optional post-manager review from an already prepared chat result
+
+A canonical opened-chat preparation can already be generated after the manager
+responds. The same immutable cached proposal may include a model-suggested
+`manager_promises` candidate. The existing source validator verifies the
+exact manager-authored message, same curated trip and message revision.
+For a `no_contact` / no-draft proposal only, a valid current-trip candidate
+may now yield one `needs_review` card: **check whether the calculation or
+selection was sent**. This is not proof of an active/unfulfilled obligation,
+and does not create or complete a manual task. It offers **Open** and
+**Dismiss/Restore**, never **Reply** or **Send**.
+
+The suggestion gets a private decision source key pinned to original authored
+message/revision and curated trip/profile; regenerated model wording cannot
+resurrect an identical suggestion. If the authored source or trip cannot be
+validated, the extra review is omitted and ordinary no-contact stays neutral.
+No AI run is initiated by reading My Plan; no cron/backfill/budget changes are
+introduced. This only covers conversations with an existing current prepared
+open-chat result; automatic proactive coverage after every manager reply is
+**not implemented**.

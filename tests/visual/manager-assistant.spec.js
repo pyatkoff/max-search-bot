@@ -521,6 +521,32 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
   await page.locator('[data-assistant-client="11"]').click();await expect(page.locator('#assistantDetail')).toContainText('Светлана');await expect(page.locator('.assistantRecommendation')).toBeVisible();await expect(page.locator('#assistantMainAction')).toHaveText('Открыть');await expect(page.locator('#assistantReply')).toHaveCount(0);await expect(page.locator('[data-assistant-decision],#assistantPlan')).toHaveCount(0);await bounded(page);await capture(page,browserName,viewport.width,'owner-detail-'+viewport.height);await page.locator('#assistantClose').click();await expect(page.locator('#replyText')).toHaveValue('Сохранить мой незаконченный ответ');await expect(page.locator('#mediaSelection')).toContainText('owner-kept.txt');clean(s);
 });
 
+for(const width of [390,1440])test('review-only advice after manager reply is optional, visible in My Plan and never sends '+width,async({page})=>{
+  await page.setViewportSize({width,height:900});const s=await setupAssistant(page);
+  const r=s.items.get(12).recommendation;
+  s.items.get(12).recommendation={...r,next_action:'no_contact',should_draft:false,draft:null,
+    internal_review:{kind:'send_selection',state:'needs_review',source_message_id:25}};
+  await openConversationForAssistantTest(page,11);
+  await page.locator('#replyText').fill('Неотправленный текст менеджера');
+  await page.locator('#replyFile').setInputFiles({name:'manager-keep.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic File')});
+  const media=await settledMediaSelectionText(page);
+  if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();
+  await page.locator('[data-m2-nav="tasks"]').click();
+  await expect(page.locator('[data-assistant-client="12"]')).toContainText('Проверить отправку подборки');
+  await expect(page.locator('[data-assistant-direct="12"]')).toHaveText('Открыть');
+  await expect(page.locator('[data-assistant-client="12"]').locator('..').locator('.assistantPlanDraft')).toHaveCount(0);
+  await expect(page.locator('[data-assistant-list-decision="12"]')).toHaveText('Убрать');
+  await page.locator('[data-assistant-list-decision="12"]').click();
+  await expect(page.locator('[data-assistant-client="12"]')).toHaveCount(0);
+  await page.locator('[data-assistant-filter="done"]').click();
+  await expect(page.locator('[data-assistant-list-decision="12"]')).toHaveText('Вернуть');
+  await page.locator('[data-assistant-list-decision="12"]').click();
+  expect(s.calls.filter(c=>c.action==='decision')).toHaveLength(2);
+  await expect(page.locator('#replyText')).toHaveValue('Неотправленный текст менеджера');
+  await expect(page.locator('#mediaSelection')).toHaveText(media);
+  clean(s);
+});
+
 for(const width of [390,430,768,1440])test('primary My Plan combines actions with advice and retains reply and attachment '+width,async({page,browserName})=>{
   await page.setViewportSize({width,height:900});const s=await setupAssistant(page);await openConversationForAssistantTest(page,11);await page.locator('#replyText').fill('Мой ответ остаётся моим');await page.locator('#replyFile').setInputFiles({name:'keep-plan.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment')});
   const media=await settledMediaSelectionText(page);if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();

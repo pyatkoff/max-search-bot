@@ -146,6 +146,20 @@ try {
         && $profilePin->invoke(null,array_replace($same,['status'=>'source_changed']))===null
         && $profilePin->invoke(null,null)===['no_saved_profile']);
 
+    $reviewGate=new ReflectionMethod(ManagerAssistantService::class,'verifiedReviewProjection');
+    $reviewCandidate=['kind'=>'send_calculation','source_message_id'=>13,
+        'source_message_revision'=>str_repeat('a',64),'trip_id'=>str_repeat('b',32),
+        'profile_sha256'=>str_repeat('c',64),'profile_status'=>'fresh'];
+    $confirmed=$reviewGate->invoke(null,[$reviewCandidate]);
+    assistantCheck('source-authenticated manager quote may offer review without claiming a fulfilled or open task',
+        $confirmed!==null && $confirmed['kind']==='send_calculation'
+        && $confirmed['source_message_id']===13 && !isset($confirmed['quote'],$confirmed['profile_status']));
+    assistantCheck('unconfirmed changed-trip, missing proof and forged source cannot create post-reply review',
+        $reviewGate->invoke(null,[array_replace($reviewCandidate,['profile_status'=>'needs_review'])])===null
+        && $reviewGate->invoke(null,[array_replace($reviewCandidate,['source_message_revision'=>'invalid'])])===null
+        && $reviewGate->invoke(null,[array_replace($reviewCandidate,['source_message_id'=>0])])===null
+        && $reviewGate->invoke(null,[])===null);
+
     $pdo=assistantFixture(); [, $proposal]=assistantPrepare();
     $before=assistantBusinessState($pdo); $writes=$pdo->privateWrites;
     $detail=ManagerAssistantService::detail(1,1); $item=$detail['item']??[]; $recommendation=$item['recommendation']??[];
