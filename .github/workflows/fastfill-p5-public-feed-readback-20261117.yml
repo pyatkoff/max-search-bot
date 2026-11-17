@@ -1,0 +1,47 @@
+name: One-shot FASTFILL P5 public feed readback only
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/fastfill-p5-public-feed-readback-20261117.yml']
+permissions:
+  contents: read
+jobs:
+  public-feeds-read-only:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '42ca64b55f3671f37f3d23fb1e24a43c3b13107a' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Read the three existing public XML files; never write routes or feeds
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import collections,hashlib,json,pathlib,urllib.request,xml.etree.ElementTree as E
+          names=['hotel-posts-telegram.xml','hotel-posts-max.xml','hotel-posts-all.xml']
+          new=[12120,64957,76029,66198,49750,123247,48184,32322,28272,7458,2490,2458,113544,73477,2588,2611,2612,2610,2931,78456,4283,52337,64648,78669,60788,2435,2481,24744,50261,78006,26043,2922,64130,42647,2457]
+          out={'mode':'PUBLIC_FEED_READ_ONLY','writes':0,'feeds':[]}
+          for n in names:
+              u='https://app.anytoour.ru/feed/'+n
+              with urllib.request.urlopen(urllib.request.Request(u,headers={'User-Agent':'AnyTour-approved-feed-readback/1.0'}),timeout=60) as r:
+                  assert r.status==200
+                  b=r.read()
+              e=E.fromstring(b);offers=e.findall('.//offer');ids=[o.attrib.get('id') for o in offers]
+              duplicates=[i for i,c in collections.Counter(ids).items() if c>1]
+              assert not duplicates
+              counts=dict(collections.Counter(i.split('_',1)[0] for i in ids))
+              present=[h for h in new if ('max_'+str(h) in ids if 'max' in n else 'tg_'+str(h) in ids if 'telegram' in n else 'max_'+str(h) in ids and 'tg_'+str(h) in ids)]
+              out['feeds'].append({'name':n,'url':u,'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest(),'offers':len(ids),'by_platform':counts,'duplicate_ids':duplicates,'new_scope_present_ids':present,'new_scope_present':len(present)})
+          pathlib.Path('feed-readback').mkdir()
+          pathlib.Path('feed-readback/result.json').write_text(json.dumps(out,indent=2)+'\n')
+          print('PUBLIC_FEED_READBACK_JSON '+json.dumps(out,separators=(',',':')))
+          PY
+      - name: Preserve exact bounded public observation
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fastfill-p5-public-feed-readback-20261117
+          path: feed-readback/result.json
+          retention-days: 30
