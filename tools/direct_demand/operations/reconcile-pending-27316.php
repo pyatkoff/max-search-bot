@@ -492,7 +492,7 @@ try {
         && count($global['pending']['child_failure'])===2
         && ($global['pending']['child_failure']['exit_code']??null)===2
         && ($global['pending']['child_failure']['error']??null)==='max_button_outcome_not_confirmed'
-        && !isset($global['completed'][RECONCILE_TV]), 'reconcile_original_pending_changed');
+        && ($global['completed'][RECONCILE_TV]['operation']??null)==='commercial-monitor-price-h27316-73871d808f646687f94862c74b7dfb78cc7b0c1cee07b74e63690ad16957198f', 'reconcile_original_pending_changed');
     [$journalLock,$journalRaw] = reconcile_open(RECONCILE_ROOT.'/'.RECONCILE_OPERATION.'/receipt.jsonl',10000000,$apply,$locks);
     $state = reconcile_prefix_guard($journalRaw,RECONCILE_ORIGINAL_SHA,40405,4); $maxPlan = reconcile_original_state($state);
     $originalSnapshot=$state['monitor_snapshot'];
@@ -682,7 +682,8 @@ try {
         $out['feed_evidence']=['operation'=>$feedOperation,'files'=>$feedFiles,'local_and_public_hashes_verified'=>true,
             'verification_owner'=>'frozen_hook_finish_feed','additional_public_gets'=>0,'appended_global_states_sha256'=>hash('sha256',$appended)];
         $remaining=$global['completed']; unset($remaining[RECONCILE_TV]);
-        reconcile_need($global['pending']===null&&$remaining===$initialCompleted&&($global['holds']??[])===$initialHolds
+        $unchangedOtherHotels=$initialCompleted;unset($unchangedOtherHotels[RECONCILE_TV]);
+        reconcile_need($global['pending']===null&&$remaining===$unchangedOtherHotels&&($global['holds']??[])===$initialHolds
             &&($global['completed'][RECONCILE_TV]['operation']??null)===RECONCILE_OPERATION, 'reconcile_unrelated_global_state_changed');
         reconcile_assert_prefix($journalLock,$journalRaw); reconcile_assert_global_prefix($globalLock);
         $completedJournal=hook_journal(RECONCILE_OPERATION);
@@ -691,7 +692,7 @@ try {
         $out['ok']=true; $out['updated_pairs']=1; $out['updates']=[['tourvisor_hotel_id'=>RECONCILE_TV,'operation'=>RECONCILE_OPERATION,
             'price'=>$context['price']['price'],'record_id'=>RECONCILE_RECORD,'posts'=>[$state['posts']['max:'.RECONCILE_KEY]['receipt'],$tgReceipt],
             'feed_operation'=>$global['completed'][RECONCILE_TV]['feed_operation']]];
-        $out['original_prefix_preserved']=true; $out['completed_operations_preserved']=count($initialCompleted); $out['pending_cleared']=true;
+        $out['original_prefix_preserved']=true; $out['other_hotel_completed_entries_preserved']=count($initialCompleted)-1; $out['completed_count_unchanged']=count($global['completed'])===count($initialCompleted); $out['pending_cleared']=true;
         $out['original_journal_complete']=true;
         $out['original_manifest_preserved']=true; $out['original_monitor_snapshot_preserved']=true; $out['pending']=null;
         $out['completed_original_operation']=$global['completed'][RECONCILE_TV];
