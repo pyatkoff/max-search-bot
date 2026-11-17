@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "state": "editorial_and_visual_review_complete",
+  "owner_issue": "1566",
+  "photo_preview_run_id": 44179714212,
+  "photo_review_artifact_id": 14372210778,
+  "source_intake_commit": "bf79c52e5ddbe904c46d75e896cbf8a4c6e2031b",
+  "publication_allowed": false,
+  "rows": [
+    {
+      "hotel_id": 52409,
+      "name": "Cocoon Maldives",
+      "location": "атолл Лавияни, Мальдивы",
+      "body": "Днём можно устроить пикник на песчаной косе, а вечером поужинать при свечах у лагуны в Manta. У отеля есть и пляжные, и водные виллы, так что удобно выбрать между садом у берега и террасой над водой.",
+      "official_sources": [
+        "https://www.cocoonmaldives.com/",
+        "https://www.cocoonmaldives.com/dining"
+      ],
+      "aliases": [
+        "COCOON MALDIVES",
+        "Cocoon Maldives"
+      ],
+      "caption": "✈️ Туры в Cocoon Maldives\n📍 атолл Лавияни, Мальдивы.\n\nДнём можно устроить пикник на песчаной косе, а вечером поужинать при свечах у лагуны в Manta. У отеля есть и пляжные, и водные виллы, так что удобно выбрать между садом у берега и террасой над водой.\n\nПодберём тур на ваши даты.",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=52409"
+    },
+    {
+      "hotel_id": 76458,
+      "name": "Cora Cora Maldives",
+      "location": "атолл Раа, Мальдивы",
+      "body": "На острове есть музей Dutch Onion с находками со всего архипелага. Между купаниями можно прогуляться по открытой части музея и посмотреть, что археологи нашли на самом острове. Подойдёт тем, кому за поездку хочется узнать о Мальдивах больше, чем видно с пляжа.",
+      "official_sources": [
+        "https://coracoraresorts.com/experiences/dutch-onion-museum/",
+        "https://visitmaldives.com/en/resorts/cora-cora-maldives"
+      ],
+      "aliases": [
+        "CORA CORA MALDIVES",
+        "Cora Cora Maldives"
+      ],
+      "caption": "✈️ Туры в Cora Cora Maldives\n📍 атолл Раа, Мальдивы.\n\nНа острове есть музей Dutch Onion с находками со всего архипелага. Между купаниями можно прогуляться по открытой части музея и посмотреть, что археологи нашли на самом острове. Подойдёт тем, кому за поездку хочется узнать о Мальдивах больше, чем видно с пляжа.\n\nПодберём тур на ваши даты.",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76458"
+    },
+    {
+      "hotel_id": 82538,
+      "name": "Avani+ Fares Maldives Resort",
+      "location": "атолл Баа, Мальдивы",
+      "body": "С маской можно отправиться к домашнему рифу, а для первого знакомства с ним взять экскурсию с инструктором. На берегу есть детский и подростковый клубы. Удобный выбор для семьи, где взрослым хочется поплавать у рифа, а детям нужны свои занятия на острове.",
+      "official_sources": [
+        "https://www.avanihotels.com/en/fares-maldives",
+        "https://www.avanihotels.com/uploads/minor/avani/documents/vfar/things_to_do/aquafanatics_ebrochure_avani_plus_fares_maldives_resort_sep_2025.pdf"
+      ],
+      "aliases": [
+        "AVANI+ FARES MALDIVES RESORT",
+        "Avani+ Fares Maldives Resort"
+      ],
+      "caption": "✈️ Туры в Avani+ Fares Maldives Resort\n📍 атолл Баа, Мальдивы.\n\nС маской можно отправиться к домашнему рифу, а для первого знакомства с ним взять экскурсию с инструктором. На берегу есть детский и подростковый клубы. Удобный выбор для семьи, где взрослым хочется поплавать у рифа, а детям нужны свои занятия на острове.\n\nПодберём тур на ваши даты.",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82538"
+    },
+    {
+      "hotel_id": 2572,
+      "name": "Hilton Dubai Jumeirah",
+      "location": "Дубай, ОАЭ",
+      "body": "Утро можно провести на частном пляже, а вечером выйти из отеля прямо на бульвар The Walk. Детский клуб и игровая комната пригодятся, если захочется сделать паузу между морем и прогулками по JBR.",
+      "official_sources": [
+        "https://www.hilton.com/en/hotels/dxbjbhi-hilton-dubai-jumeirah/"
+      ],
+      "aliases": [
+        "HILTON DUBAI JUMEIRAH BEACH",
+        "Hilton Dubai Jumeirah"
+      ],
+      "caption": "✈️ Туры в Hilton Dubai Jumeirah\n📍 Дубай, ОАЭ.\n\nУтро можно провести на частном пляже, а вечером выйти из отеля прямо на бульвар The Walk. Детский клуб и игровая комната пригодятся, если захочется сделать паузу между морем и прогулками по JBR.\n\nПодберём тур на ваши даты.",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2572"
+    },
+    {
+      "hotel_id": 2593,
+      "name": "Khalidiya Palace Rayhaan by Rotana",
+      "location": "Абу-Даби, ОАЭ",
+      "body": "Отель подойдёт для поездки с детьми в Абу-Даби. У воды есть собственный пляж, большой бассейн и детский клуб. Можно провести день у залива, а в другой день выехать посмотреть дворцы и набережную столицы.",
+      "official_sources": [
+        "https://www.rotana.com/rayhaanhotelandresorts/unitedarabemirates/abudhabi/khalidiyapalacerayhaanbyrotana/activities"
+      ],
+      "aliases": [
+        "KHALIDIYA PALACE RAYHAAN BY ROTANA",
+        "Khalidiya Palace Rayhaan by Rotana"
+      ],
+      "caption": "✈️ Туры в Khalidiya Palace Rayhaan by Rotana\n📍 Абу-Даби, ОАЭ.\n\nОтель подойдёт для поездки с детьми в Абу-Даби. У воды есть собственный пляж, большой бассейн и детский клуб. Можно провести день у залива, а в другой день выехать посмотреть дворцы и набережную столицы.\n\nПодберём тур на ваши даты.",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2593"
+    },
+    {
+      "hotel_id": 2601,
+      "name": "Le Méridien Al Aqah Beach Resort",
+      "location": "Эль-Ака, ОАЭ",
+      "body": "За отелем поднимаются горы Хаджар, а перед ним открывается пляж Фуджейры. Здесь легко устроить спокойный день у воды всей семьёй и провести вечер на берегу, глядя на горы.",
+      "official_sources": [
+        "https://www.marriott.com/en-us/hotels/fjrmd-le-meridien-al-aqah-beach-resort/overview/"
+      ],
+      "aliases": [
+        "LE MERIDIEN AL AQAH BEACH RESORT",
+        "Le Méridien Al Aqah Beach Resort"
+      ],
+      "caption": "✈️ Туры в Le Méridien Al Aqah Beach Resort\n📍 Эль-Ака, ОАЭ.\n\nЗа отелем поднимаются горы Хаджар, а перед ним открывается пляж Фуджейры. Здесь легко устроить спокойный день у воды всей семьёй и провести вечер на берегу, глядя на горы.\n\nПодберём тур на ваши даты.",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2601"
+    },
+    {
+      "hotel_id": 4546,
+      "name": "Secrets Royal Beach Punta Cana",
+      "location": "Пунта-Кана, Доминикана",
+      "body": "Отель для взрослых на песчаном берегу Пунта-Каны. Можно начать день купанием у пальм, а вечером выбрать ресторан и устроить ужин вдвоём. У размещения Preferred Club есть отдельный бассейн с ленивой рекой.",
+      "official_sources": [
+        "https://www.hyattinclusivecollection.com/en/resorts-hotels/secrets/dominican-republic/royal-beach-punta-cana/",
+        "https://www.hyattinclusivecollection.com/en/resorts-hotels/secrets/dominican-republic/royal-beach-punta-cana/activities"
+      ],
+      "aliases": [
+        "SECRETS ROYAL BEACH PUNTA CANA",
+        "Secrets Royal Beach Punta Cana"
+      ],
+      "caption": "✈️ Туры в Secrets Royal Beach Punta Cana\n📍 Пунта-Кана, Доминикана.\n\nОтель для взрослых на песчаном берегу Пунта-Каны. Можно начать день купанием у пальм, а вечером выбрать ресторан и устроить ужин вдвоём. У размещения Preferred Club есть отдельный бассейн с ленивой рекой.\n\nПодберём тур на ваши даты.",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4546"
+    },
+    {
+      "hotel_id": 13890,
+      "name": "Courtyard by Marriott Bali Nusa Dua Resort",
+      "location": "Нуса-Дуа, Индонезия",
+      "body": "Для семейного отдыха здесь есть большой бассейн-лагуна, ленивая река и детский клуб. Можно отвести целый день на купание и игры у воды, а на следующий выбраться к пляжу Нуса-Дуа.",
+      "official_sources": [
+        "https://www.marriott.com/en-us/hotels/dpscy-courtyard-bali-nusa-dua-resort/overview/"
+      ],
+      "aliases": [
+        "COURTYARD BY MARRIOTT BALI NUSA DUA RESORT",
+        "Courtyard by Marriott Bali Nusa Dua Resort"
+      ],
+      "caption": "✈️ Туры в Courtyard by Marriott Bali Nusa Dua Resort\n📍 Нуса-Дуа, Индонезия.\n\nДля семейного отдыха здесь есть большой бассейн-лагуна, ленивая река и детский клуб. Можно отвести целый день на купание и игры у воды, а на следующий выбраться к пляжу Нуса-Дуа.\n\nПодберём тур на ваши даты.",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=13890"
+    },
+    {
+      "hotel_id": 28400,
+      "name": "Sofitel Bali Nusa Dua Beach Resort",
+      "location": "Нуса-Дуа, Индонезия",
+      "body": "Бассейны-лагуны проходят через тропический сад к зоне отдыха у пляжа. У категории с выходом к бассейну есть своя терраса у воды. Удобно для тех, кто хочет начинать день с купания прямо у номера.",
+      "official_sources": [
+        "https://all.accor.com/hotel/9078/index.en.shtml",
+        "https://sofitel.accor.com/en/hotels/9078/wellness-pool.html"
+      ],
+      "aliases": [
+        "SOFITEL BALI NUSA DUA BEACH RESORT",
+        "Sofitel Bali Nusa Dua Beach Resort"
+      ],
+      "caption": "✈️ Туры в Sofitel Bali Nusa Dua Beach Resort\n📍 Нуса-Дуа, Индонезия.\n\nБассейны-лагуны проходят через тропический сад к зоне отдыха у пляжа. У категории с выходом к бассейну есть своя терраса у воды. Удобно для тех, кто хочет начинать день с купания прямо у номера.\n\nПодберём тур на ваши даты.",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=28400"
+    },
+    {
+      "hotel_id": 2776,
+      "name": "Punta Cana Princess All Suites Resort & Spa",
+      "location": "Пунта-Кана, Доминикана",
+      "body": "Курорт 18+ с выходом на пляж Баваро. Днём можно отдыхать на берегу, а вечером выбирать между ресторанами с разной кухней. Для поездки вдвоём есть отдельная категория Honeymoon Suite с гидромассажной ванной.",
+      "official_sources": [
+        "https://www.princess-hotels.com/en/punta-cana/punta-cana-princess/",
+        "https://www.princess-hotels.com/files/punta-cana-princess-ft-26-en.pdf"
+      ],
+      "aliases": [
+        "PUNTA CANA PRINCESS ALL SUITES RESORT & SPA ADULTS ONLY",
+        "Punta Cana Princess All Suites Resort & Spa"
+      ],
+      "caption": "✈️ Туры в Punta Cana Princess All Suites Resort & Spa\n📍 Пунта-Кана, Доминикана.\n\nКурорт 18+ с выходом на пляж Баваро. Днём можно отдыхать на берегу, а вечером выбирать между ресторанами с разной кухней. Для поездки вдвоём есть отдельная категория Honeymoon Suite с гидромассажной ванной.\n\nПодберём тур на ваши даты.",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2776"
+    }
+  ]
+}
