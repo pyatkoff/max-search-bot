@@ -14,6 +14,11 @@ final class ModeledConversionValueContract
     public const MAX_VALUE_RUB=ModeledConversionDealValue::CAP;
     public const BASE=25000;
     public const VALUES=[1=>1250,2=>2083,3=>4167,4=>8333,5=>12500,6=>25000];
+    // Last installed producer before native message metadata was passed to the predictor (71d5ae9).
+    private const PREVIOUS_ADAPTER_SHA256='a4345e27853b63d30313485134a7a2b2ce92ec11eec860fdc2f79f804f4d46e5';
+    private const PREVIOUS_MODEL_SHA256='a5f3a1500da36dc34ad05a7961928ad237687930c1f8322bffe298bf5dcf17e6';
+    private const PREVIOUS_DEAL_VERSION='early_deal_commission_7pct_v3';
+    private const PREVIOUS_EXTRACTOR_SHA256='8ba3388f157887d97813dde8100cce153e76f16e70379736252f27d377cdfe06';
     public const STAGES=[1=>'interest',2=>'specific_request',3=>'offer_discussion',4=>'purchase_intent',5=>'agency_choice',6=>'payment_report'];
     public static function key(int $rank):string
     {
@@ -47,9 +52,20 @@ final class ModeledConversionValueContract
         $s=$wrapper['contextual_signals']??[];
         if(($s['version']??null)!==ModeledConversionEarlyForecast::VERSION
             ||!is_array($s['events']??null)||count($s['events'])>1000)return null;
+        $p=$wrapper['semantic_prediction']??null;
+        $previousProducer=false;
         if(!$history){
-            if(($s['extractor_sha256']??null)!==hash_file('sha256',__DIR__.'/ArchiveResearchSemanticExtractor.php')
-                ||($s['adapter_sha256']??null)!==hash_file('sha256',__DIR__.'/ModeledConversionEarlyForecast.php'))return null;
+            if(($s['extractor_sha256']??null)!==hash_file('sha256',__DIR__.'/ArchiveResearchSemanticExtractor.php'))return null;
+            $previousProducer=($s['adapter_sha256']??null)!==hash_file('sha256',__DIR__.'/ModeledConversionEarlyForecast.php');
+            if($previousProducer){
+                if(($s['adapter_sha256']??null)!==self::PREVIOUS_ADAPTER_SHA256
+                    ||$s['extractor_sha256']!==self::PREVIOUS_EXTRACTOR_SHA256
+                    ||($p['model_sha256']??null)!==self::PREVIOUS_MODEL_SHA256
+                    ||($p['mode']??null)!=='contextual_advertising_v1'
+                    ||($wrapper['deal_value_prediction']['version']??null)!==self::PREVIOUS_DEAL_VERSION
+                    ||($p['frozen_at']??null)!==($s['frozen_at']??null)
+                    ||($p['input_cutoff_at']??null)!==($s['input_cutoff_at']??null))return null;
+            }
         }else{
             if(($s['extractor_version']??null)!==ArchiveResearchSemanticExtractor::VERSION
                 ||!in_array($wrapper['adapter']['version']??null,['admitted_journal_profile_v1_1','admitted_journal_profile_v1_2','admitted_journal_profile_v1_3','admitted_journal_profile_v1_4','admitted_journal_profile_v1_5'],true)
@@ -85,10 +101,10 @@ final class ModeledConversionValueContract
             if($best===null||$rank>$best['rank'])$best=['rank'=>$rank,'stage'=>self::STAGES[$rank],'value'=>self::VALUES[$rank],
                 'event_unix'=>$history?$now:$frozen,'evidence_at'=>$r['at'],'evidence_available_at'=>$r['available'],'source_ref'=>$event['source_ref']];
         }
-        $p=$wrapper['semantic_prediction']??null;
-        $checked=$history?ModeledConversionValueRegistry::predictionFields($wrapper):null;
+        $checked=$history||$previousProducer?ModeledConversionValueRegistry::predictionFields($wrapper):null;
+        if($previousProducer&&($checked['semantic_prediction']['availability']??null)!=='available')return null;
         if(is_array($p)&&($p['status']??null)==='predicted'&&self::sameSubject($p['subject']??null,$subject)
-            &&($history?($checked['semantic_prediction']['availability']??null)==='available':($p['model_sha256']??null)===hash_file('sha256',__DIR__.'/ModeledConversionSemanticPrediction.php'))
+            &&($checked!==null?($checked['semantic_prediction']['availability']??null)==='available':($p['model_sha256']??null)===hash_file('sha256',__DIR__.'/ModeledConversionSemanticPrediction.php'))
             &&ModeledConversionSemanticPrediction::digestMatches($p)){
             $rank=['substantive_dialogue'=>1,'concrete_request'=>2,'exact_offer_discussion'=>3,
                 'general_purchase_intent'=>4,'agency_purchase_intent'=>5][$p['stage']??'']??null;
@@ -107,7 +123,7 @@ final class ModeledConversionValueContract
                 if($money['payment_hold_observed'])return null;
                 $best['value']=$money['full_value_base_rub'];$best['prediction_value']=true;
             }elseif(is_array($p)&&($p['mode']??null)==='contextual_advertising_v1'&&($p['status']??null)==='predicted'){
-                $verified=ModeledConversionValueRegistry::predictionFields($wrapper);
+                $verified=$checked??ModeledConversionValueRegistry::predictionFields($wrapper);
                 if(($verified['semantic_prediction']['availability']??null)!=='available'||$money['status']!=='estimated')return null;
                 $rank=['substantive_dialogue'=>1,'concrete_request'=>2,'exact_offer_discussion'=>3,'general_purchase_intent'=>4,'agency_purchase_intent'=>5][$p['stage']]??null;
                 $anchor=$p['current_request_anchor'];$r=$refs[$anchor]??null;
