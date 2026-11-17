@@ -13,8 +13,8 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event_name == 'push' &&
-      github.event.before == 'fbe7877ed23715ea8487b95eaccb56cbd036bcdd' &&
-      github.event.head_commit.message == 'diagnostics(anytour): saved source equivalence read once' &&
+      github.event.before == '963caf6e1e549136db1c98173813f6b811559928' &&
+      github.event.head_commit.message == 'diagnostics(anytour): saved source equivalence read scoped' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = fbe7877ed23715ea8487b95eaccb56cbd036bcdd
+          test "$(git rev-parse HEAD^)" = 963caf6e1e549136db1c98173813f6b811559928
           test "$(git hash-object tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php)" = 71eae82282831c21e5ac3443d135a3549d55d3b9
           echo ONE_SHOT_ORIGINAL_JOURNAL_PIN_OK
       - name: Pinned existing SSH host and private runner-only key
@@ -71,7 +71,8 @@ jobs:
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         run: |
           set -euo pipefail
-          ssh -i "$RUNNER_TEMP/price660-key" -o BatchMode=yes -o ConnectTimeout=12 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/price660-known-hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'php' > "$RUNNER_TEMP/price660-saved-proof.json" <<'REMOTE_PHP'
+          remote_status=0
+          ssh -i "$RUNNER_TEMP/price660-key" -o BatchMode=yes -o ConnectTimeout=12 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/price660-known-hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'php' > "$RUNNER_TEMP/price660-saved-proof.json" <<'REMOTE_PHP' || remote_status=$?
           <?php
           declare(strict_types=1);
           ini_set('display_errors','0');ini_set('log_errors','0');
@@ -102,7 +103,7 @@ jobs:
             stop_if(is_array($original)&&($original['item']['tourvisorHotelId']??null)===27316&&is_array($original['item']['offers']??null),'saved_original_missing');
             $scope=$original['scope'];
             $ids=$scope['tourvisorHotelIds']??[];
-            stop_if($ids===[27316]&&($scope['departureId']??null)===1,'original_scope_changed');
+            stop_if(is_array($ids)&&in_array(27316,$ids,true)&&($scope['departureId']??null)===1,'original_scope_changed');
             $q=['tourvisorHotelIds'=>[27316],'departureId'=>1,'dateFrom'=>$scope['dateFrom'],'dateTo'=>$scope['dateTo']];
             $url='https://anytoour.ru/data/hotel-monitor-prices-read-v1.php?'.http_build_query($q,'','&',PHP_QUERY_RFC3986);
             $curl=curl_init($url);curl_setopt_array($curl,[CURLOPT_RETURNTRANSFER=>true,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_CONNECTTIMEOUT=>10,CURLOPT_TIMEOUT=>20,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2]);
