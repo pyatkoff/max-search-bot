@@ -1,0 +1,2125 @@
+[
+  {
+    "id": 22718,
+    "name": "AVANI+ MAI KHAO PHUKET SUITES & VILLAS",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 8,
+      "name": "Пхукет"
+    },
+    "subRegion": {
+      "id": 166,
+      "name": "Май Кхао"
+    },
+    "category": 5,
+    "rating": 4.9,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Avani&countryId=2&limit=20",
+    "queries": [
+      "Avani"
+    ]
+  },
+  {
+    "id": 128320,
+    "name": "VILLA ESCAPE BURASARI",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 8,
+      "name": "Пхукет"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.9,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cape&countryId=2&limit=20",
+    "queries": [
+      "Cape"
+    ]
+  },
+  {
+    "id": 541,
+    "name": "AMARI OCEAN PATTAYA (EX. AMARI ORCHID OCEAN TOWER)",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 7,
+      "name": "Паттайя"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.6,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Amari&countryId=2&limit=20",
+    "queries": [
+      "Amari"
+    ]
+  },
+  {
+    "id": 2006,
+    "name": "CENTARA GRAND BEACH RESORT PHUKET",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 8,
+      "name": "Пхукет"
+    },
+    "subRegion": {
+      "id": 72,
+      "name": "Карон"
+    },
+    "category": 5,
+    "rating": 4.4,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Centara&countryId=2&limit=20",
+    "queries": [
+      "Centara"
+    ]
+  },
+  {
+    "id": 9385,
+    "name": "CAPE DARA RESORT",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 7,
+      "name": "Паттайя"
+    },
+    "subRegion": {
+      "id": 438,
+      "name": "Наклуа"
+    },
+    "category": 5,
+    "rating": 4.4,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cape&countryId=2&limit=20",
+    "queries": [
+      "Cape"
+    ]
+  },
+  {
+    "id": 3006,
+    "name": "ANGSANA VILLAS RESORT PHUKET (EX. OUTRIGGER LAGUNA RESORT AND VILLA)",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 8,
+      "name": "Пхукет"
+    },
+    "subRegion": {
+      "id": 70,
+      "name": "Банг Тао"
+    },
+    "category": 5,
+    "rating": 4.3,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Angsana&countryId=2&limit=20",
+    "queries": [
+      "Angsana"
+    ]
+  },
+  {
+    "id": 82422,
+    "name": "AVANI CHAWENG SAMUI HOTEL & BEACH CLUB ADULTS ONLY",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 9,
+      "name": "Самуи"
+    },
+    "subRegion": {
+      "id": 82,
+      "name": "Чавенг"
+    },
+    "category": 5,
+    "rating": 4.2,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Avani&countryId=2&limit=20",
+    "queries": [
+      "Avani"
+    ]
+  },
+  {
+    "id": 81140,
+    "name": "SAII KOH SAMUI VILLAS ADULTS ONLY 12+ (EX. SAII KOH SAMUI CHOENGMON)",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 9,
+      "name": "Самуи"
+    },
+    "subRegion": {
+      "id": 79,
+      "name": "Бопхут"
+    },
+    "category": 5,
+    "rating": 4,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=SAii&countryId=2&limit=20",
+    "queries": [
+      "SAii"
+    ]
+  },
+  {
+    "id": 8020,
+    "name": "THE LAMAI SAMUI (EX. LE MERIDIEN KOH SAMUI RESORT & SPA)",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 9,
+      "name": "Самуи"
+    },
+    "subRegion": {
+      "id": 80,
+      "name": "Ламаи"
+    },
+    "category": 5,
+    "rating": 3.8,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Le+Meridien&countryId=2&limit=20",
+    "queries": [
+      "Le Meridien"
+    ]
+  },
+  {
+    "id": 51931,
+    "name": "AMARI BANGSAEN (EX. TIDE RESORT)",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 7,
+      "name": "Паттайя"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Amari&countryId=2&limit=20",
+    "queries": [
+      "Amari"
+    ]
+  },
+  {
+    "id": 120118,
+    "name": "MARRIOTT VACATION CLUB KHAO LAK BEACH RESORT (EX. JW MARRIOTT KHAO LAK RESORT SUITES)",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 90,
+      "name": "Као Лак"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marriott&countryId=2&limit=20",
+    "queries": [
+      "Marriott"
+    ]
+  },
+  {
+    "id": 66375,
+    "name": "CAPE FAHN HOTEL",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 9,
+      "name": "Самуи"
+    },
+    "subRegion": {
+      "id": 79,
+      "name": "Бопхут"
+    },
+    "category": 5,
+    "rating": 5,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cape&countryId=2&limit=20",
+    "queries": [
+      "Cape"
+    ]
+  },
+  {
+    "id": 797,
+    "name": "SIX SENSES YAO NOI",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 90,
+      "name": "Као Лак"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.9,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Six+Senses&countryId=2&limit=20",
+    "queries": [
+      "Six Senses"
+    ]
+  },
+  {
+    "id": 839,
+    "name": "TRISARA",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 8,
+      "name": "Пхукет"
+    },
+    "subRegion": {
+      "id": 168,
+      "name": "Най Тхон"
+    },
+    "category": 5,
+    "rating": 4.9,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Trisara&countryId=2&limit=20",
+    "queries": [
+      "Trisara"
+    ]
+  },
+  {
+    "id": 7897,
+    "name": "CENTARA GRAND & BCC AT CENTRAL WORLD",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 62,
+      "name": "Бангкок"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.9,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Centara&countryId=2&limit=20",
+    "queries": [
+      "Centara"
+    ]
+  },
+  {
+    "id": 8094,
+    "name": "PHULAY BAY, A RITZ-CARLTON RESERVE",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 60,
+      "name": "Краби"
+    },
+    "subRegion": {
+      "id": 83,
+      "name": "Краби"
+    },
+    "category": 5,
+    "rating": 4.9,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Ritz&countryId=2&limit=20",
+    "queries": [
+      "Ritz"
+    ]
+  },
+  {
+    "id": 660,
+    "name": "MELIA KOH SAMUI (EX. IMPERIAL BOAT HOUSE)",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 9,
+      "name": "Самуи"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.8,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Melia&countryId=2&limit=20",
+    "queries": [
+      "Melia"
+    ]
+  },
+  {
+    "id": 2074,
+    "name": "THE RACHA",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 8,
+      "name": "Пхукет"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.8,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Racha&countryId=2&limit=20",
+    "queries": [
+      "Racha"
+    ]
+  },
+  {
+    "id": 2075,
+    "name": "THE SHORE AT KATATHANI ADULTS ONLY",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 8,
+      "name": "Пхукет"
+    },
+    "subRegion": {
+      "id": 73,
+      "name": "Ката"
+    },
+    "category": 5,
+    "rating": 4.8,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=The+Shore&countryId=2&limit=20",
+    "queries": [
+      "The Shore"
+    ]
+  },
+  {
+    "id": 4262,
+    "name": "CONRAD KOH SAMUI",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 9,
+      "name": "Самуи"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.8,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Conrad&countryId=2&limit=20",
+    "queries": [
+      "Conrad"
+    ]
+  },
+  {
+    "id": 4446,
+    "name": "BANYAN TREE SAMUI",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 9,
+      "name": "Самуи"
+    },
+    "subRegion": {
+      "id": 80,
+      "name": "Ламаи"
+    },
+    "category": 5,
+    "rating": 4.8,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Banyan+Tree&countryId=2&limit=20",
+    "queries": [
+      "Banyan Tree"
+    ]
+  },
+  {
+    "id": 7935,
+    "name": "DUSIT THANI HUA HIN",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 63,
+      "name": "Хуа Хин"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.8,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Dusit&countryId=2&limit=20",
+    "queries": [
+      "Dusit"
+    ]
+  },
+  {
+    "id": 8117,
+    "name": "RAYAVADEE",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 60,
+      "name": "Краби"
+    },
+    "subRegion": {
+      "id": 83,
+      "name": "Краби"
+    },
+    "category": 5,
+    "rating": 4.8,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Rayavadee&countryId=2&limit=20",
+    "queries": [
+      "Rayavadee"
+    ]
+  },
+  {
+    "id": 12201,
+    "name": "HYATT REGENCY HUA HIN",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 63,
+      "name": "Хуа Хин"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.8,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hyatt&countryId=2&limit=20",
+    "queries": [
+      "Hyatt"
+    ]
+  },
+  {
+    "id": 45733,
+    "name": "GRAND HYATT ERAWAN",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 62,
+      "name": "Бангкок"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.8,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hyatt&countryId=2&limit=20",
+    "queries": [
+      "Hyatt"
+    ]
+  },
+  {
+    "id": 57720,
+    "name": "AVISTA GRANDE PHUKET KARON M GALLERY BY SOFITEL",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 8,
+      "name": "Пхукет"
+    },
+    "subRegion": {
+      "id": 72,
+      "name": "Карон"
+    },
+    "category": 5,
+    "rating": 4.8,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sofitel&countryId=2&limit=20",
+    "queries": [
+      "Sofitel"
+    ]
+  },
+  {
+    "id": 74940,
+    "name": "BANYAN TREE KRABI",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 60,
+      "name": "Краби"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.8,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Banyan+Tree&countryId=2&limit=20",
+    "queries": [
+      "Banyan Tree"
+    ]
+  },
+  {
+    "id": 82673,
+    "name": "MINOR VACATION CLUB MAI KHAO PHUKET(EX. ANANTARA VACATION)",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 8,
+      "name": "Пхукет"
+    },
+    "subRegion": {
+      "id": 166,
+      "name": "Май Кхао"
+    },
+    "category": 5,
+    "rating": 4.8,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Anantara&countryId=2&limit=20",
+    "queries": [
+      "Anantara"
+    ]
+  },
+  {
+    "id": 630,
+    "name": "BARAQUDA PATTAYA BY HEETON (EX. DUSIT D2 BARAQUDA)",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 7,
+      "name": "Паттайя"
+    },
+    "subRegion": {
+      "id": 69,
+      "name": "Центральная Паттайя"
+    },
+    "category": 5,
+    "rating": 4.7,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Dusit&countryId=2&limit=20",
+    "queries": [
+      "Dusit"
+    ]
+  },
+  {
+    "id": 766,
+    "name": "ROYAL CLIFF GRAND",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 7,
+      "name": "Паттайя"
+    },
+    "subRegion": {
+      "id": 440,
+      "name": "Пратамнак Хилл"
+    },
+    "category": 5,
+    "rating": 4.7,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Royal+Cliff&countryId=2&limit=20",
+    "queries": [
+      "Royal Cliff"
+    ]
+  },
+  {
+    "id": 8127,
+    "name": "ROYAL WING SUITES & SPA (EX. ROYAL CLIFF WING SUITES & SPA)",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 7,
+      "name": "Паттайя"
+    },
+    "subRegion": {
+      "id": 440,
+      "name": "Пратамнак Хилл"
+    },
+    "category": 5,
+    "rating": 4.7,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Royal+Cliff&countryId=2&limit=20",
+    "queries": [
+      "Royal Cliff"
+    ]
+  },
+  {
+    "id": 43827,
+    "name": "KEEMALA",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 8,
+      "name": "Пхукет"
+    },
+    "subRegion": {
+      "id": 71,
+      "name": "Камала"
+    },
+    "category": 5,
+    "rating": 4.7,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Keemala&countryId=2&limit=20",
+    "queries": [
+      "Keemala"
+    ]
+  },
+  {
+    "id": 44661,
+    "name": "MOVENPICK SIAM HOTEL PATTAYA",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 7,
+      "name": "Паттайя"
+    },
+    "subRegion": {
+      "id": 437,
+      "name": "На Джомтьен"
+    },
+    "category": 5,
+    "rating": 4.7,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Movenpick&countryId=2&limit=20",
+    "queries": [
+      "Movenpick"
+    ]
+  },
+  {
+    "id": 56478,
+    "name": "THE RITZ-CARLTON KOH SAMUI",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 9,
+      "name": "Самуи"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.7,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Ritz&countryId=2&limit=20",
+    "queries": [
+      "Ritz"
+    ]
+  },
+  {
+    "id": 57867,
+    "name": "ROSEWOOD PHUKET",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 8,
+      "name": "Пхукет"
+    },
+    "subRegion": {
+      "id": 75,
+      "name": "Патонг"
+    },
+    "category": 5,
+    "rating": 4.7,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Rosewood&countryId=2&limit=20",
+    "queries": [
+      "Rosewood"
+    ]
+  },
+  {
+    "id": 58088,
+    "name": "CAPE KUDU",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 8,
+      "name": "Пхукет"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.7,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cape&countryId=2&limit=20",
+    "queries": [
+      "Cape"
+    ]
+  },
+  {
+    "id": 80057,
+    "name": "HYATT REGENCY KOH SAMUI",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 9,
+      "name": "Самуи"
+    },
+    "subRegion": {
+      "id": 82,
+      "name": "Чавенг"
+    },
+    "category": 5,
+    "rating": 4.7,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hyatt&countryId=2&limit=20",
+    "queries": [
+      "Hyatt"
+    ]
+  },
+  {
+    "id": 574,
+    "name": "BANYAN TREE PHUKET",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 8,
+      "name": "Пхукет"
+    },
+    "subRegion": {
+      "id": 70,
+      "name": "Банг Тао"
+    },
+    "category": 5,
+    "rating": 4.6,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Banyan+Tree&countryId=2&limit=20",
+    "queries": [
+      "Banyan Tree"
+    ]
+  },
+  {
+    "id": 595,
+    "name": "CAPE PANWA HOTEL",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 8,
+      "name": "Пхукет"
+    },
+    "subRegion": {
+      "id": 74,
+      "name": "Панва"
+    },
+    "category": 5,
+    "rating": 4.6,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cape&countryId=2&limit=20",
+    "queries": [
+      "Cape"
+    ]
+  },
+  {
+    "id": 632,
+    "name": "DUSIT THANI PATTAYA",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 7,
+      "name": "Паттайя"
+    },
+    "subRegion": {
+      "id": 435,
+      "name": "Северная Паттайя"
+    },
+    "category": 5,
+    "rating": 4.6,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Dusit&countryId=2&limit=20",
+    "queries": [
+      "Dusit"
+    ]
+  },
+  {
+    "id": 12184,
+    "name": "AMARI PATTAYA",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 7,
+      "name": "Паттайя"
+    },
+    "subRegion": {
+      "id": 435,
+      "name": "Северная Паттайя"
+    },
+    "category": 5,
+    "rating": 4.6,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Amari&countryId=2&limit=20",
+    "queries": [
+      "Amari"
+    ]
+  },
+  {
+    "id": 126428,
+    "name": "MELIA PATTAYA HOTEL",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 7,
+      "name": "Паттайя"
+    },
+    "subRegion": {
+      "id": 69,
+      "name": "Центральная Паттайя"
+    },
+    "category": 5,
+    "rating": 4.6,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Melia&countryId=2&limit=20",
+    "queries": [
+      "Melia"
+    ]
+  },
+  {
+    "id": 2968,
+    "name": "CAPE NIDHRA HOTEL",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 63,
+      "name": "Хуа Хин"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.5,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cape&countryId=2&limit=20",
+    "queries": [
+      "Cape"
+    ]
+  },
+  {
+    "id": 3018,
+    "name": "ROYAL ORCHID SHERATON HOTEL & TOWERS",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 62,
+      "name": "Бангкок"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.5,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sheraton&countryId=2&limit=20",
+    "queries": [
+      "Sheraton"
+    ]
+  },
+  {
+    "id": 13110,
+    "name": "AVISTA HIDEAWAY PHUKET PATONG MGALLERY BY SOFITEL",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 8,
+      "name": "Пхукет"
+    },
+    "subRegion": {
+      "id": 75,
+      "name": "Патонг"
+    },
+    "category": 5,
+    "rating": 4.5,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sofitel&countryId=2&limit=20",
+    "queries": [
+      "Sofitel"
+    ]
+  },
+  {
+    "id": 796,
+    "name": "SIX SENSES SAMUI",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 9,
+      "name": "Самуи"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.3,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Six+Senses&countryId=2&limit=20",
+    "queries": [
+      "Six Senses"
+    ]
+  },
+  {
+    "id": 42509,
+    "name": "SO SOFITEL HUA HIN (EX. HOTEL DE LA PAIX)",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 63,
+      "name": "Хуа Хин"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.3,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sofitel&countryId=2&limit=20",
+    "queries": [
+      "Sofitel"
+    ]
+  },
+  {
+    "id": 47574,
+    "name": "AMARI RESIDENCES",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 7,
+      "name": "Паттайя"
+    },
+    "subRegion": {
+      "id": 440,
+      "name": "Пратамнак Хилл"
+    },
+    "category": 5,
+    "rating": 4.1,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Amari&countryId=2&limit=20",
+    "queries": [
+      "Amari"
+    ]
+  },
+  {
+    "id": 66861,
+    "name": "MOVENPICK MYTH HOTEL PATONG PHUKET",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 8,
+      "name": "Пхукет"
+    },
+    "subRegion": {
+      "id": 75,
+      "name": "Патонг"
+    },
+    "category": 5,
+    "rating": 4,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Movenpick&countryId=2&limit=20",
+    "queries": [
+      "Movenpick"
+    ]
+  },
+  {
+    "id": 4408,
+    "name": "SIX SENSES SANCTUARY",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 8,
+      "name": "Пхукет"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Six+Senses&countryId=2&limit=20",
+    "queries": [
+      "Six Senses"
+    ]
+  },
+  {
+    "id": 7879,
+    "name": "BANYAN TREE SPA SANCTUARY",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 8,
+      "name": "Пхукет"
+    },
+    "subRegion": {
+      "id": 70,
+      "name": "Банг Тао"
+    },
+    "category": 5,
+    "rating": 0,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Banyan+Tree&countryId=2&limit=20",
+    "queries": [
+      "Banyan Tree"
+    ]
+  },
+  {
+    "id": 45232,
+    "name": "MARRIOTT EXECUTIVE APARTMENTS SATHORN VISTA",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 62,
+      "name": "Бангкок"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marriott&countryId=2&limit=20",
+    "queries": [
+      "Marriott"
+    ]
+  },
+  {
+    "id": 47213,
+    "name": "CHIANG MAI MARRIOTT (EX. LE MERIDIEN CHIANG MAI)",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 519,
+      "name": "Чианг Май"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Le+Meridien&countryId=2&limit=20",
+    "queries": [
+      "Le Meridien"
+    ]
+  },
+  {
+    "id": 67911,
+    "name": "ANANTARA CHIANG MAI SERVICED SUITES",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 519,
+      "name": "Чианг Май"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Anantara&countryId=2&limit=20",
+    "queries": [
+      "Anantara"
+    ]
+  },
+  {
+    "id": 77818,
+    "name": "MELIA PHUKET MAI KHAO",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 8,
+      "name": "Пхукет"
+    },
+    "subRegion": {
+      "id": 166,
+      "name": "Май Кхао"
+    },
+    "category": 5,
+    "rating": 0,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Melia&countryId=2&limit=20",
+    "queries": [
+      "Melia"
+    ]
+  },
+  {
+    "id": 79674,
+    "name": "LAYAN RESIDENCES BY ANANTARA",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 8,
+      "name": "Пхукет"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Anantara&countryId=2&limit=20",
+    "queries": [
+      "Anantara"
+    ]
+  },
+  {
+    "id": 82631,
+    "name": "MELIA CHIANG MAI",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 519,
+      "name": "Чианг Май"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Melia&countryId=2&limit=20",
+    "queries": [
+      "Melia"
+    ]
+  },
+  {
+    "id": 102191,
+    "name": "KIMPTON KITALAY SAMUI AN IHG HOTEL",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 9,
+      "name": "Самуи"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Kimpton&countryId=2&limit=20",
+    "queries": [
+      "Kimpton"
+    ]
+  },
+  {
+    "id": 104056,
+    "name": "HYATT REGENCY HUA HIN & THE BARAI",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 63,
+      "name": "Хуа Хин"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hyatt&countryId=2&limit=20",
+    "queries": [
+      "Hyatt"
+    ]
+  },
+  {
+    "id": 112772,
+    "name": "CAPE RACHA HOTEL",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 7,
+      "name": "Паттайя"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cape&countryId=2&limit=20",
+    "queries": [
+      "Cape",
+      "Racha"
+    ]
+  },
+  {
+    "id": 116451,
+    "name": "INTERCONTINENTAL CHIANG MAI THE MAE PING",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 519,
+      "name": "Чианг Май"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Intercontinental&countryId=2&limit=20",
+    "queries": [
+      "Intercontinental"
+    ]
+  },
+  {
+    "id": 119793,
+    "name": "OAKWOOD HOTEL AND RESIDENCE SRI RACHA",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 7,
+      "name": "Паттайя"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Racha&countryId=2&limit=20",
+    "queries": [
+      "Racha"
+    ]
+  },
+  {
+    "id": 127812,
+    "name": "RACHAMANKHA CHIANGMAI",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 519,
+      "name": "Чианг Май"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Racha&countryId=2&limit=20",
+    "queries": [
+      "Racha"
+    ]
+  },
+  {
+    "id": 128830,
+    "name": "COASTAL ESCAPE NATAI",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 90,
+      "name": "Као Лак"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cape&countryId=2&limit=20",
+    "queries": [
+      "Cape"
+    ]
+  },
+  {
+    "id": 149886,
+    "name": "CAPE LAEM SOR ESTATE",
+    "country": {
+      "id": 2,
+      "name": "Таиланд"
+    },
+    "region": {
+      "id": 9,
+      "name": "Самуи"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "TH",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cape&countryId=2&limit=20",
+    "queries": [
+      "Cape"
+    ]
+  },
+  {
+    "id": 103063,
+    "name": "VILLA LE CORAIL A GRAN MELIA HOTEL NHA TRANG",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 87,
+      "name": "Нячанг"
+    },
+    "subRegion": {
+      "id": 570,
+      "name": "Нячанг - центр"
+    },
+    "category": 5,
+    "rating": 4.6,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Melia&countryId=16&limit=20",
+    "queries": [
+      "Melia"
+    ]
+  },
+  {
+    "id": 46569,
+    "name": "FUSION SUITES DANANG BEACH",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 103,
+      "name": "Дананг"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.5,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Fusion&countryId=16&limit=20",
+    "queries": [
+      "Fusion"
+    ]
+  },
+  {
+    "id": 78203,
+    "name": "MOVENPICK VILLAS & RESIDENCES PHU QUOC",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 104,
+      "name": "Фукуок"
+    },
+    "subRegion": {
+      "id": 577,
+      "name": "Центр"
+    },
+    "category": 5,
+    "rating": 4.2,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Movenpick&countryId=16&limit=20",
+    "queries": [
+      "Movenpick"
+    ]
+  },
+  {
+    "id": 68194,
+    "name": "ALBA WELLNESS RESORT BY FUSION",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 103,
+      "name": "Дананг"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Fusion&countryId=16&limit=20",
+    "queries": [
+      "Fusion"
+    ]
+  },
+  {
+    "id": 125105,
+    "name": "BEST WESTERN PREMIER SONASEA VILLAS",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 104,
+      "name": "Фукуок"
+    },
+    "subRegion": {
+      "id": 577,
+      "name": "Центр"
+    },
+    "category": 5,
+    "rating": 0,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Premier&countryId=16&limit=20",
+    "queries": [
+      "Premier"
+    ]
+  },
+  {
+    "id": 126101,
+    "name": "RADISSON BLU RESORT HOI AN",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 105,
+      "name": "Хой Ан"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Radisson&countryId=16&limit=20",
+    "queries": [
+      "Radisson"
+    ]
+  },
+  {
+    "id": 136396,
+    "name": "INTERCONTINENTAL HALONG BAY RESORT",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 269,
+      "name": "Ханой"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Intercontinental&countryId=16&limit=20",
+    "queries": [
+      "Intercontinental"
+    ]
+  },
+  {
+    "id": 153824,
+    "name": "MELIA SERENITY CAM RANH BEACH RESORT",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 700,
+      "name": "Камрань"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Melia&countryId=16&limit=20",
+    "queries": [
+      "Melia"
+    ]
+  },
+  {
+    "id": 68663,
+    "name": "VINPEARL LUXURY LANDMARK 81",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 245,
+      "name": "Хошимин"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 5,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Vinpearl&countryId=16&limit=20",
+    "queries": [
+      "Vinpearl"
+    ]
+  },
+  {
+    "id": 69130,
+    "name": "MELIA HO TRAM",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 134,
+      "name": "Вунг Тау"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 5,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Melia&countryId=16&limit=20",
+    "queries": [
+      "Melia"
+    ]
+  },
+  {
+    "id": 82751,
+    "name": "THE ANAM MUI NE",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 88,
+      "name": "Фантьет"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 5,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Anam&countryId=16&limit=20",
+    "queries": [
+      "Anam"
+    ]
+  },
+  {
+    "id": 156371,
+    "name": "MELIA AUREA NHA TRANG HOTEL",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 87,
+      "name": "Нячанг"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 5,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Melia&countryId=16&limit=20",
+    "queries": [
+      "Melia"
+    ]
+  },
+  {
+    "id": 23723,
+    "name": "BANYAN TREE LANG CO",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 103,
+      "name": "Дананг"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.9,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Banyan+Tree&countryId=16&limit=20",
+    "queries": [
+      "Banyan Tree"
+    ]
+  },
+  {
+    "id": 66681,
+    "name": "FOUR POINTS BY SHERATON DANANG",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 103,
+      "name": "Дананг"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.9,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sheraton&countryId=16&limit=20",
+    "queries": [
+      "Sheraton"
+    ]
+  },
+  {
+    "id": 80225,
+    "name": "REGENT PHU QUOC",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 104,
+      "name": "Фукуок"
+    },
+    "subRegion": {
+      "id": 577,
+      "name": "Центр"
+    },
+    "category": 5,
+    "rating": 4.9,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Regent&countryId=16&limit=20",
+    "queries": [
+      "Regent"
+    ]
+  },
+  {
+    "id": 80955,
+    "name": "RADISSON HOTEL DANANG",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 103,
+      "name": "Дананг"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.9,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Radisson&countryId=16&limit=20",
+    "queries": [
+      "Radisson"
+    ]
+  },
+  {
+    "id": 98713,
+    "name": "BEST WESTERN PREMIER MARVELLA NHA TRANG",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 87,
+      "name": "Нячанг"
+    },
+    "subRegion": {
+      "id": 570,
+      "name": "Нячанг - центр"
+    },
+    "category": 5,
+    "rating": 4.9,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Premier&countryId=16&limit=20",
+    "queries": [
+      "Premier"
+    ]
+  },
+  {
+    "id": 104973,
+    "name": "MELIA VINPEARL DANANG RIVERFRONT",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 103,
+      "name": "Дананг"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.9,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Vinpearl&countryId=16&limit=20",
+    "queries": [
+      "Vinpearl",
+      "Melia"
+    ]
+  },
+  {
+    "id": 111414,
+    "name": "ANGSANA HO TRAM",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 134,
+      "name": "Вунг Тау"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.9,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Angsana&countryId=16&limit=20",
+    "queries": [
+      "Angsana"
+    ]
+  },
+  {
+    "id": 4090,
+    "name": "VINPEARL LUXURY NHA TRANG",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 87,
+      "name": "Нячанг"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.8,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Vinpearl&countryId=16&limit=20",
+    "queries": [
+      "Vinpearl"
+    ]
+  },
+  {
+    "id": 22785,
+    "name": "NOVOTEL DA NANG PREMIER HAN RIVER",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 103,
+      "name": "Дананг"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.8,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Premier&countryId=16&limit=20",
+    "queries": [
+      "Premier"
+    ]
+  },
+  {
+    "id": 22789,
+    "name": "SIX SENSES CON DAO",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 134,
+      "name": "Вунг Тау"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.8,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Six+Senses&countryId=16&limit=20",
+    "queries": [
+      "Six Senses"
+    ]
+  },
+  {
+    "id": 23721,
+    "name": "ANGSANA LANG CO",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 103,
+      "name": "Дананг"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.8,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Angsana&countryId=16&limit=20",
+    "queries": [
+      "Angsana"
+    ]
+  },
+  {
+    "id": 82067,
+    "name": "MELIA VINPEARL PHU QUOC",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 104,
+      "name": "Фукуок"
+    },
+    "subRegion": {
+      "id": 576,
+      "name": "Север"
+    },
+    "category": 5,
+    "rating": 4.8,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Vinpearl&countryId=16&limit=20",
+    "queries": [
+      "Vinpearl",
+      "Melia"
+    ]
+  },
+  {
+    "id": 4076,
+    "name": "SHERATON NHA TRANG",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 87,
+      "name": "Нячанг"
+    },
+    "subRegion": {
+      "id": 570,
+      "name": "Нячанг - центр"
+    },
+    "category": 5,
+    "rating": 4.7,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sheraton&countryId=16&limit=20",
+    "queries": [
+      "Sheraton"
+    ]
+  },
+  {
+    "id": 4077,
+    "name": "SIX SENSES NINH VAN BAY",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 87,
+      "name": "Нячанг"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.7,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Six+Senses&countryId=16&limit=20",
+    "queries": [
+      "Six Senses"
+    ]
+  },
+  {
+    "id": 131884,
+    "name": "COURTYARD BY MARRIOTT DANANG HAN RIVER",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 103,
+      "name": "Дананг"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.7,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marriott&countryId=16&limit=20",
+    "queries": [
+      "Marriott"
+    ]
+  },
+  {
+    "id": 70778,
+    "name": "VINPEARL SEALINK NHA TRANG",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 87,
+      "name": "Нячанг"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.6,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Vinpearl&countryId=16&limit=20",
+    "queries": [
+      "Vinpearl"
+    ]
+  },
+  {
+    "id": 126417,
+    "name": "RADISSON RED DANANG HOTEL",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 103,
+      "name": "Дананг"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.6,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Radisson&countryId=16&limit=20",
+    "queries": [
+      "Radisson"
+    ]
+  },
+  {
+    "id": 52256,
+    "name": "PULLMAN VUNG TAU",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 134,
+      "name": "Вунг Тау"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 4.5,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Pullman&countryId=16&limit=20",
+    "queries": [
+      "Pullman"
+    ]
+  },
+  {
+    "id": 65253,
+    "name": "VINPEARL WONDERWORLD PHU QUOC (EX. VINPEARL DISCOVERY 1)",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 104,
+      "name": "Фукуок"
+    },
+    "subRegion": {
+      "id": 576,
+      "name": "Север"
+    },
+    "category": 5,
+    "rating": 4.5,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Vinpearl&countryId=16&limit=20",
+    "queries": [
+      "Vinpearl"
+    ]
+  },
+  {
+    "id": 15862,
+    "name": "INTERCONTINENTAL GRAND HO TRAM (EX. THE GRAND HO TRAM STRIP)",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 134,
+      "name": "Вунг Тау"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Intercontinental&countryId=16&limit=20",
+    "queries": [
+      "Intercontinental"
+    ]
+  },
+  {
+    "id": 23730,
+    "name": "FUSION ALYA",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 105,
+      "name": "Хой Ан"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Fusion&countryId=16&limit=20",
+    "queries": [
+      "Fusion"
+    ]
+  },
+  {
+    "id": 41494,
+    "name": "AMANOI",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 244,
+      "name": "Пхан Ранг"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Amanoi&countryId=16&limit=20",
+    "queries": [
+      "Amanoi"
+    ]
+  },
+  {
+    "id": 61610,
+    "name": "VINPEARL DA NANG RIVERFRONT SUITES",
+    "country": {
+      "id": 16,
+      "name": "Вьетнам"
+    },
+    "region": {
+      "id": 103,
+      "name": "Дананг"
+    },
+    "subRegion": null,
+    "category": 5,
+    "rating": 0,
+    "country_code": "VN",
+    "source_catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Vinpearl&countryId=16&limit=20",
+    "queries": [
+      "Vinpearl"
+    ]
+  }
+]
