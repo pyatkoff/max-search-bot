@@ -6,7 +6,7 @@ require_once __DIR__ . '/ManagerCallbackPresentationService.php';
 
 class ManagerMessageMediaService
 {
-    /** Selected metadata must belong to the caller's already-authorized message page. */
+    /** Selected metadata may cover part of the caller's already-authorized message page. */
     public static function hydrate(array $messages, ?array $selectedMediaRows = null): array
     {
         $ids = array_values(array_filter(array_map(static function ($message) {
@@ -14,13 +14,19 @@ class ManagerMessageMediaService
         }, $messages)));
         if (!$ids) return $messages;
 
-        if ($selectedMediaRows === null) {
-            if (!ConversationDb::isConfigured()) return $messages;
+        $loadedIds=[];
+        foreach($selectedMediaRows??[] as $row)$loadedIds[(int)($row['id']??0)]=true;
+        $missingIds=$selectedMediaRows===null?$ids:array_values(array_filter($ids,static fn(int $id):bool=>!isset($loadedIds[$id])));
+        if ($missingIds) {
+            if (!ConversationDb::isConfigured()) {
+                if($selectedMediaRows===null)return $messages;
+                throw new RuntimeException('message_media_metadata_unavailable');
+            }
             $pdo = ConversationDb::connection();
-            $sql = 'SELECT id,channel,direction,metadata_json FROM messages WHERE id IN (' . implode(',', array_fill(0, count($ids), '?')) . ')';
+            $sql = 'SELECT id,channel,direction,metadata_json FROM messages WHERE id IN (' . implode(',', array_fill(0, count($missingIds), '?')) . ')';
             $q = $pdo->prepare($sql);
-            $q->execute($ids);
-            $selectedMediaRows = $q->fetchAll();
+            $q->execute($missingIds);
+            $selectedMediaRows = array_merge($selectedMediaRows??[], $q->fetchAll());
         }
         $mediaById = [];
         $recordedById = [];

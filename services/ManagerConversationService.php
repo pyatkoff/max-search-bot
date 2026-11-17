@@ -18,6 +18,8 @@ require_once __DIR__ . '/ManagerMessageMaterials.php';
 
 class ManagerConversationService
 {
+    private const MESSAGE_MEDIA_PRELOAD_BYTES = 4096;
+
     /** Display only; stored text and server-side search remain unchanged. */
     private static function lastMessageAction(array $row): ?array
     {
@@ -415,7 +417,12 @@ class ManagerConversationService
         $replyQueue=$beforeId===0?ManagerReplyQueueService::snapshot($managerId,$conversationId):null;
         $supervisorRead=(int)($conversation['manager_id']??0)!==$managerId&&ManagerSupervisorAccessService::canRead($managerId,$conversation);
         $pdo=ConversationDb::connection();
-        $messageColumns='id,direction,sender_type,text,created_at,sender_id'.($captureMedia?',channel,metadata_json':'');
+        $messageColumns='id,direction,sender_type,text,created_at,sender_id';
+        if($captureMedia){
+            $metadataBytes=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'OCTET_LENGTH(metadata_json)':'LENGTH(CAST(metadata_json AS BLOB))';
+            $metadataLoaded='(metadata_json IS NULL OR '.$metadataBytes.'<='.self::MESSAGE_MEDIA_PRELOAD_BYTES.')';
+            $messageColumns.=',channel,CASE WHEN '.$metadataLoaded.' THEN metadata_json ELSE NULL END AS metadata_json,CASE WHEN '.$metadataLoaded.' THEN 1 ELSE 0 END AS metadata_loaded';
+        }
         $sql='SELECT '.$messageColumns.' FROM messages WHERE conversation_id=?'.($beforeId>0?' AND id<?':'').' ORDER BY id DESC LIMIT '.($limit+1);
         $q=$pdo->prepare($sql);$q->execute($beforeId>0?[$conversationId,$beforeId]:[$conversationId]);$messages=$q->fetchAll();
         $hasMore=count($messages)>$limit;if($hasMore)array_pop($messages);$messages=array_reverse($messages);
@@ -443,8 +450,8 @@ class ManagerConversationService
         $selectedMediaRows=[];
         if($captureMedia){
             foreach($messages as &$message){
-                $selectedMediaRows[]=['id'=>$message['id'],'channel'=>$message['channel'],'direction'=>$message['direction'],'metadata_json'=>$message['metadata_json']];
-                unset($message['channel'],$message['metadata_json']);
+                if((int)$message['metadata_loaded']===1)$selectedMediaRows[]=['id'=>$message['id'],'channel'=>$message['channel'],'direction'=>$message['direction'],'metadata_json'=>$message['metadata_json']];
+                unset($message['channel'],$message['metadata_json'],$message['metadata_loaded']);
             }
             unset($message);
         }
