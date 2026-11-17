@@ -1,0 +1,2299 @@
+[
+  {
+    "native_tourvisor_id": 37172,
+    "name": "TITANIC BUSINESS KARTAL",
+    "country": "TR",
+    "country_id": 4,
+    "region_id": 277,
+    "region_name": "Стамбул",
+    "category": 5,
+    "rating": 5,
+    "queries": [
+      "Titanic"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": -7,
+    "work_id": "W2R_001",
+    "tourvisor_id": 37172,
+    "expected_name": "TITANIC BUSINESS KARTAL",
+    "provider_name": "TITANIC BUSINESS KARTAL",
+    "provider_country": "Турция",
+    "hotel": "Titanic Business Kartal",
+    "region": "Стамбул",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=37172",
+    "aliases": [
+      "Titanic Business Kartal",
+      "TITANIC BUSINESS KARTAL"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-business-kartal-8296941.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-business-kartal-8296900.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-business-kartal-8296901.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-business-kartal-8296902.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-business-kartal-8296903.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-business-kartal-8296904.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-business-kartal-8296905.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-business-kartal-8296906.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 17683,
+    "name": "TITANIC PORT HOTEL BAKIRKOY",
+    "country": "TR",
+    "country_id": 4,
+    "region_id": 277,
+    "region_name": "Стамбул",
+    "category": 5,
+    "rating": 4.7,
+    "queries": [
+      "Titanic"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": -7.5,
+    "work_id": "W2R_002",
+    "tourvisor_id": 17683,
+    "expected_name": "TITANIC PORT HOTEL BAKIRKOY",
+    "provider_name": "TITANIC PORT HOTEL BAKIRKOY",
+    "provider_country": "Турция",
+    "hotel": "Titanic Port Bakirkoy",
+    "region": "Стамбул",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=17683",
+    "aliases": [
+      "Titanic Port Bakirkoy",
+      "TITANIC PORT HOTEL BAKIRKOY"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-port-hotel-bakirkoy-49804403.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-port-hotel-bakirkoy-49804400.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-port-hotel-bakirkoy-49804401.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-port-hotel-bakirkoy-49804402.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-port-hotel-bakirkoy-49804404.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-port-hotel-bakirkoy-49804405.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-port-hotel-bakirkoy-49804406.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-port-hotel-bakirkoy-49804407.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 28662,
+    "name": "TITANIC BUSINESS GOLDEN HORN (EX. TITANIC BUSINESS BAYRAMPASA)",
+    "country": "TR",
+    "country_id": 4,
+    "region_id": 277,
+    "region_name": "Стамбул",
+    "category": 5,
+    "rating": 4.7,
+    "queries": [
+      "Titanic"
+    ],
+    "old_brand_alias_risk": true,
+    "weak_brand_match": false,
+    "priority_score": -10.5,
+    "work_id": "W2R_003",
+    "tourvisor_id": 28662,
+    "expected_name": "TITANIC BUSINESS GOLDEN HORN (EX. TITANIC BUSINESS BAYRAMPASA)",
+    "provider_name": "TITANIC BUSINESS GOLDEN HORN (EX. TITANIC BUSINESS BAYRAMPASA)",
+    "provider_country": "Турция",
+    "hotel": "Titanic Business Golden Horn",
+    "region": "Стамбул",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=28662",
+    "aliases": [
+      "Titanic Business Golden Horn",
+      "TITANIC BUSINESS GOLDEN HORN",
+      "TITANIC BUSINESS BAYRAMPASA"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-business-bayrampasa-2110018.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-business-bayrampasa-2110000.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-business-bayrampasa-2110001.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-business-bayrampasa-2110002.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-business-bayrampasa-2110003.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-business-bayrampasa-2110004.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-business-bayrampasa-2110005.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/titanic-business-bayrampasa-2110006.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 83059,
+    "name": "SELECTUM CITY ATASEHIR",
+    "country": "TR",
+    "country_id": 4,
+    "region_id": 277,
+    "region_name": "Стамбул",
+    "category": 5,
+    "rating": 4,
+    "queries": [
+      "Selectum"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": -8.6,
+    "work_id": "W2R_004",
+    "tourvisor_id": 83059,
+    "expected_name": "SELECTUM CITY ATASEHIR",
+    "provider_name": "SELECTUM CITY ATASEHIR",
+    "provider_country": "Турция",
+    "hotel": "Selectum City Atasehir",
+    "region": "Стамбул",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=83059",
+    "aliases": [
+      "Selectum City Atasehir",
+      "SELECTUM CITY ATASEHIR"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/selectum-city-atasehir-57712205.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/selectum-city-atasehir-57712200.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/selectum-city-atasehir-57712201.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/selectum-city-atasehir-57712202.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/selectum-city-atasehir-57712203.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/selectum-city-atasehir-57712204.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/selectum-city-atasehir-57712206.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/selectum-city-atasehir-57712207.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 17681,
+    "name": "TITANIC BUSINESS HOTEL ISTANBUL EUROPE",
+    "country": "TR",
+    "country_id": 4,
+    "region_id": 277,
+    "region_name": "Стамбул",
+    "category": 5,
+    "rating": 0,
+    "queries": [
+      "Titanic"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": -29,
+    "work_id": "W2R_005",
+    "tourvisor_id": 17681,
+    "expected_name": "TITANIC BUSINESS HOTEL ISTANBUL EUROPE",
+    "provider_name": "TITANIC BUSINESS HOTEL ISTANBUL EUROPE",
+    "provider_country": "Турция",
+    "hotel": "Titanic Business Istanbul Europe",
+    "region": "Стамбул",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=17681",
+    "aliases": [
+      "Titanic Business Istanbul Europe",
+      "TITANIC BUSINESS HOTEL ISTANBUL EUROPE"
+    ],
+    "editorial_hold": "parent_or_related_property_identity_requires_separate_admission"
+  },
+  {
+    "native_tourvisor_id": 70452,
+    "name": "MEDWORLD CLINIC HEALTH & HOLIDAY RIXOS",
+    "country": "TR",
+    "country_id": 4,
+    "region_id": 20,
+    "region_name": "Анталья",
+    "category": 5,
+    "rating": 0,
+    "queries": [
+      "Rixos"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": -15,
+    "work_id": "W2R_006",
+    "tourvisor_id": 70452,
+    "expected_name": "MEDWORLD CLINIC HEALTH & HOLIDAY RIXOS",
+    "provider_name": "MEDWORLD CLINIC HEALTH & HOLIDAY RIXOS",
+    "provider_country": "Турция",
+    "hotel": "Medworld Clinic Health & Holiday Rixos",
+    "region": "Анталья",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=70452",
+    "aliases": [
+      "Medworld Clinic Health & Holiday Rixos",
+      "MEDWORLD CLINIC HEALTH & HOLIDAY RIXOS"
+    ],
+    "editorial_hold": "parent_or_related_property_identity_requires_separate_admission"
+  },
+  {
+    "native_tourvisor_id": 136702,
+    "name": "COSMOS CLINIC HEALTH & HOLIDAY NIRVANA",
+    "country": "TR",
+    "country_id": 4,
+    "region_id": 20,
+    "region_name": "Анталья",
+    "category": 5,
+    "rating": 0,
+    "queries": [
+      "Nirvana"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": -15,
+    "work_id": "W2R_007",
+    "tourvisor_id": 136702,
+    "expected_name": "COSMOS CLINIC HEALTH & HOLIDAY NIRVANA",
+    "provider_name": "COSMOS CLINIC HEALTH & HOLIDAY NIRVANA",
+    "provider_country": "Турция",
+    "hotel": "Cosmos Clinic Health & Holiday Nirvana",
+    "region": "Анталья",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=136702",
+    "aliases": [
+      "Cosmos Clinic Health & Holiday Nirvana",
+      "COSMOS CLINIC HEALTH & HOLIDAY NIRVANA"
+    ],
+    "editorial_hold": "parent_or_related_property_identity_requires_separate_admission"
+  },
+  {
+    "native_tourvisor_id": 124513,
+    "name": "RIXOS MONTAZA ALEXANDRIA",
+    "country": "EG",
+    "country_id": 1,
+    "region_id": 702,
+    "region_name": "Александрия",
+    "category": 5,
+    "rating": 4.9,
+    "queries": [
+      "Rixos"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 19.8,
+    "work_id": "W2R_008",
+    "tourvisor_id": 124513,
+    "expected_name": "RIXOS MONTAZA ALEXANDRIA",
+    "provider_name": "RIXOS MONTAZA ALEXANDRIA",
+    "provider_country": "Египет",
+    "hotel": "Rixos Montaza Alexandria",
+    "region": "Александрия",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=124513",
+    "aliases": [
+      "Rixos Montaza Alexandria",
+      "RIXOS MONTAZA ALEXANDRIA"
+    ],
+    "editorial_hold": "parent_or_related_property_identity_requires_separate_admission"
+  },
+  {
+    "native_tourvisor_id": 75658,
+    "name": "STEIGENBERGER PYRAMIDS CAIRO",
+    "country": "EG",
+    "country_id": 1,
+    "region_id": 611,
+    "region_name": "Каир",
+    "category": 5,
+    "rating": 4.7,
+    "queries": [
+      "Steigenberger"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 19.5,
+    "work_id": "W2R_009",
+    "tourvisor_id": 75658,
+    "expected_name": "STEIGENBERGER PYRAMIDS CAIRO",
+    "provider_name": "STEIGENBERGER PYRAMIDS CAIRO",
+    "provider_country": "Египет",
+    "hotel": "Steigenberger Pyramids Cairo",
+    "region": "Каир",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75658",
+    "aliases": [
+      "Steigenberger Pyramids Cairo",
+      "STEIGENBERGER PYRAMIDS CAIRO"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/steigenberger-pyramids-cairo-508500.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/steigenberger-pyramids-cairo-508501.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/steigenberger-pyramids-cairo-508504.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/steigenberger-pyramids-cairo-508507.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/steigenberger-pyramids-cairo-508508.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/steigenberger-pyramids-cairo-508511.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/steigenberger-pyramids-cairo-508512.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/steigenberger-pyramids-cairo-508513.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 126001,
+    "name": "RIXOS MONTAZA NARIMAN",
+    "country": "EG",
+    "country_id": 1,
+    "region_id": 702,
+    "region_name": "Александрия",
+    "category": 5,
+    "rating": 0,
+    "queries": [
+      "Rixos"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 10,
+    "work_id": "W2R_010",
+    "tourvisor_id": 126001,
+    "expected_name": "RIXOS MONTAZA NARIMAN",
+    "provider_name": "RIXOS MONTAZA NARIMAN",
+    "provider_country": "Египет",
+    "hotel": "Rixos Montaza Nariman",
+    "region": "Александрия",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126001",
+    "aliases": [
+      "Rixos Montaza Nariman",
+      "RIXOS MONTAZA NARIMAN"
+    ],
+    "editorial_hold": "parent_or_related_property_identity_requires_separate_admission"
+  },
+  {
+    "native_tourvisor_id": 126002,
+    "name": "RIXOS MONTAZA SALAMLEK PALACE",
+    "country": "EG",
+    "country_id": 1,
+    "region_id": 702,
+    "region_name": "Александрия",
+    "category": 5,
+    "rating": 0,
+    "queries": [
+      "Rixos"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 10,
+    "work_id": "W2R_011",
+    "tourvisor_id": 126002,
+    "expected_name": "RIXOS MONTAZA SALAMLEK PALACE",
+    "provider_name": "RIXOS MONTAZA SALAMLEK PALACE",
+    "provider_country": "Египет",
+    "hotel": "Rixos Montaza Salamlek Palace",
+    "region": "Александрия",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126002",
+    "aliases": [
+      "Rixos Montaza Salamlek Palace",
+      "RIXOS MONTAZA SALAMLEK PALACE"
+    ],
+    "editorial_hold": "parent_or_related_property_identity_requires_separate_admission"
+  },
+  {
+    "native_tourvisor_id": 126004,
+    "name": "RIXOS MONTAZA KING FOUAD LODGES (ADULTS ONLY 18+)",
+    "country": "EG",
+    "country_id": 1,
+    "region_id": 702,
+    "region_name": "Александрия",
+    "category": 5,
+    "rating": 0,
+    "queries": [
+      "Rixos"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 15,
+    "work_id": "W2R_012",
+    "tourvisor_id": 126004,
+    "expected_name": "RIXOS MONTAZA KING FOUAD LODGES (ADULTS ONLY 18+)",
+    "provider_name": "RIXOS MONTAZA KING FOUAD LODGES (ADULTS ONLY 18+)",
+    "provider_country": "Египет",
+    "hotel": "Rixos Montaza King Fouad Lodges 18+",
+    "region": "Александрия",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126004",
+    "aliases": [
+      "Rixos Montaza King Fouad Lodges 18+",
+      "RIXOS MONTAZA KING FOUAD LODGES (ADULTS ONLY 18+)"
+    ],
+    "editorial_hold": "parent_or_related_property_identity_requires_separate_admission"
+  },
+  {
+    "native_tourvisor_id": 126005,
+    "name": "RIXOS MONTAZA CLEOPATRA FOREST",
+    "country": "EG",
+    "country_id": 1,
+    "region_id": 702,
+    "region_name": "Александрия",
+    "category": 5,
+    "rating": 0,
+    "queries": [
+      "Rixos"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 10,
+    "work_id": "W2R_013",
+    "tourvisor_id": 126005,
+    "expected_name": "RIXOS MONTAZA CLEOPATRA FOREST",
+    "provider_name": "RIXOS MONTAZA CLEOPATRA FOREST",
+    "provider_country": "Египет",
+    "hotel": "Rixos Montaza Cleopatra Forest",
+    "region": "Александрия",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126005",
+    "aliases": [
+      "Rixos Montaza Cleopatra Forest",
+      "RIXOS MONTAZA CLEOPATRA FOREST"
+    ],
+    "editorial_hold": "parent_or_related_property_identity_requires_separate_admission"
+  },
+  {
+    "native_tourvisor_id": 133370,
+    "name": "RIXOS MONTAZA PARADISE HOTEL",
+    "country": "EG",
+    "country_id": 1,
+    "region_id": 702,
+    "region_name": "Александрия",
+    "category": 5,
+    "rating": 0,
+    "queries": [
+      "Rixos"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 10,
+    "work_id": "W2R_014",
+    "tourvisor_id": 133370,
+    "expected_name": "RIXOS MONTAZA PARADISE HOTEL",
+    "provider_name": "RIXOS MONTAZA PARADISE HOTEL",
+    "provider_country": "Египет",
+    "hotel": "Rixos Montaza Paradise",
+    "region": "Александрия",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=133370",
+    "aliases": [
+      "Rixos Montaza Paradise",
+      "RIXOS MONTAZA PARADISE HOTEL"
+    ],
+    "editorial_hold": "parent_or_related_property_identity_requires_separate_admission"
+  },
+  {
+    "native_tourvisor_id": 60787,
+    "name": "STEIGENBERGER TAHRIR",
+    "country": "EG",
+    "country_id": 1,
+    "region_id": 611,
+    "region_name": "Каир",
+    "category": 4,
+    "rating": 4.9,
+    "queries": [
+      "Steigenberger"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 12.8,
+    "work_id": "W2R_015",
+    "tourvisor_id": 60787,
+    "expected_name": "STEIGENBERGER TAHRIR",
+    "provider_name": "STEIGENBERGER TAHRIR",
+    "provider_country": "Египет",
+    "hotel": "Steigenberger Tahrir",
+    "region": "Каир",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=60787",
+    "aliases": [
+      "Steigenberger Tahrir",
+      "STEIGENBERGER TAHRIR"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/60787-56399400.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/60787-56399501.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/60787-56399502.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/60787-56399503.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/60787-56399604.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/60787-56399605.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/60787-56399606.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/60787-56399607.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 2592,
+    "name": "KEMPINSKI MALL OF THE EMIRATES",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 5,
+    "rating": 4.9,
+    "queries": [
+      "Kempinski"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 27.8,
+    "work_id": "W2R_016",
+    "tourvisor_id": 2592,
+    "expected_name": "KEMPINSKI MALL OF THE EMIRATES",
+    "provider_name": "KEMPINSKI MALL OF THE EMIRATES",
+    "provider_country": "ОАЭ",
+    "hotel": "Kempinski Mall of the Emirates",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2592",
+    "aliases": [
+      "Kempinski Mall of the Emirates",
+      "KEMPINSKI MALL OF THE EMIRATES"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-mall-of-the-emirates-2408001.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-mall-of-the-emirates-2408002.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-mall-of-the-emirates-2408003.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-mall-of-the-emirates-2408004.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-mall-of-the-emirates-2408005.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-mall-of-the-emirates-2408006.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-mall-of-the-emirates-2408007.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-mall-of-the-emirates-2408008.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 2681,
+    "name": "KEMPINSKI CENTRAL AVENUE DUBAI (EX. THE ADDRESS DUBAI MALL)",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 5,
+    "rating": 4.9,
+    "queries": [
+      "Kempinski"
+    ],
+    "old_brand_alias_risk": true,
+    "weak_brand_match": false,
+    "priority_score": 24.8,
+    "work_id": "W2R_017",
+    "tourvisor_id": 2681,
+    "expected_name": "KEMPINSKI CENTRAL AVENUE DUBAI (EX. THE ADDRESS DUBAI MALL)",
+    "provider_name": "KEMPINSKI CENTRAL AVENUE DUBAI (EX. THE ADDRESS DUBAI MALL)",
+    "provider_country": "ОАЭ",
+    "hotel": "Kempinski Central Avenue Dubai",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2681",
+    "aliases": [
+      "Kempinski Central Avenue Dubai",
+      "KEMPINSKI CENTRAL AVENUE DUBAI",
+      "THE ADDRESS DUBAI MALL"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-dubai-mall-314100.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-dubai-mall-314101.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-dubai-mall-314103.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-dubai-mall-314104.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-dubai-mall-314105.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-dubai-mall-314106.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-dubai-mall-314107.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-dubai-mall-314108.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 49850,
+    "name": "KEMPINSKI THE BOULEVARD DUBAI (EX. THE ADDRESS BOULEVARD DUBAI)",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 5,
+    "rating": 4.9,
+    "queries": [
+      "Kempinski"
+    ],
+    "old_brand_alias_risk": true,
+    "weak_brand_match": false,
+    "priority_score": 24.8,
+    "work_id": "W2R_018",
+    "tourvisor_id": 49850,
+    "expected_name": "KEMPINSKI THE BOULEVARD DUBAI (EX. THE ADDRESS BOULEVARD DUBAI)",
+    "provider_name": "KEMPINSKI THE BOULEVARD DUBAI (EX. THE ADDRESS BOULEVARD DUBAI)",
+    "provider_country": "ОАЭ",
+    "hotel": "Kempinski The Boulevard Dubai",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=49850",
+    "aliases": [
+      "Kempinski The Boulevard Dubai",
+      "KEMPINSKI THE BOULEVARD DUBAI",
+      "THE ADDRESS BOULEVARD DUBAI"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/49850-82034600.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/49850-82034701.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/49850-82034702.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/49850-82034703.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/49850-82034804.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/49850-82034805.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/49850-82034806.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/49850-82034907.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 65031,
+    "name": "RAFFLES THE PALM DUBAI (EX. EMERALD PALACE KEMPINSKI DUBAI)",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 5,
+    "rating": 4.9,
+    "queries": [
+      "Kempinski"
+    ],
+    "old_brand_alias_risk": true,
+    "weak_brand_match": false,
+    "priority_score": 32.8,
+    "work_id": "W2R_019",
+    "tourvisor_id": 65031,
+    "expected_name": "RAFFLES THE PALM DUBAI (EX. EMERALD PALACE KEMPINSKI DUBAI)",
+    "provider_name": "RAFFLES THE PALM DUBAI (EX. EMERALD PALACE KEMPINSKI DUBAI)",
+    "provider_country": "ОАЭ",
+    "hotel": "Raffles The Palm Dubai",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=65031",
+    "aliases": [
+      "Raffles The Palm Dubai",
+      "RAFFLES THE PALM DUBAI",
+      "EMERALD PALACE KEMPINSKI DUBAI"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/emerald-palace-kempinski-dubai-102407480.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/emerald-palace-kempinski-dubai-102407481.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/emerald-palace-kempinski-dubai-102407482.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/emerald-palace-kempinski-dubai-102407483.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/emerald-palace-kempinski-dubai-102407484.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/emerald-palace-kempinski-dubai-102407485.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/emerald-palace-kempinski-dubai-102407486.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/emerald-palace-kempinski-dubai-102407487.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 4522,
+    "name": "CROWNE PLAZA DUBAI JUMEIRAH (EX. RAMADA BY WYNDHAM JUMEIRAH)",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 5,
+    "rating": 4.8,
+    "queries": [
+      "Jumeirah"
+    ],
+    "old_brand_alias_risk": true,
+    "weak_brand_match": false,
+    "priority_score": 32.7,
+    "work_id": "W2R_020",
+    "tourvisor_id": 4522,
+    "expected_name": "CROWNE PLAZA DUBAI JUMEIRAH (EX. RAMADA BY WYNDHAM JUMEIRAH)",
+    "provider_name": "CROWNE PLAZA DUBAI JUMEIRAH (EX. RAMADA BY WYNDHAM JUMEIRAH)",
+    "provider_country": "ОАЭ",
+    "hotel": "Crowne Plaza Dubai Jumeirah",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4522",
+    "aliases": [
+      "Crowne Plaza Dubai Jumeirah",
+      "CROWNE PLAZA DUBAI JUMEIRAH",
+      "RAMADA BY WYNDHAM JUMEIRAH"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/ramada-jumeirah-hotel-102211550.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/ramada-jumeirah-hotel-102211551.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/ramada-jumeirah-hotel-102211552.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/ramada-jumeirah-hotel-102211553.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/ramada-jumeirah-hotel-102211554.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/ramada-jumeirah-hotel-102211555.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/ramada-jumeirah-hotel-102211556.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/ramada-jumeirah-hotel-102211557.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 8916,
+    "name": "CONRAD ABU DHABI ETIHAD TOWERS (EX. JUMEIRAH AT ETIHAD TOWERS ABU DHABI)",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 43,
+    "region_name": "Абу-Даби",
+    "category": 5,
+    "rating": 4.8,
+    "queries": [
+      "Jumeirah"
+    ],
+    "old_brand_alias_risk": true,
+    "weak_brand_match": false,
+    "priority_score": 32.7,
+    "work_id": "W2R_021",
+    "tourvisor_id": 8916,
+    "expected_name": "CONRAD ABU DHABI ETIHAD TOWERS (EX. JUMEIRAH AT ETIHAD TOWERS ABU DHABI)",
+    "provider_name": "CONRAD ABU DHABI ETIHAD TOWERS (EX. JUMEIRAH AT ETIHAD TOWERS ABU DHABI)",
+    "provider_country": "ОАЭ",
+    "hotel": "Conrad Abu Dhabi Etihad Towers",
+    "region": "Абу-Даби",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8916",
+    "aliases": [
+      "Conrad Abu Dhabi Etihad Towers",
+      "CONRAD ABU DHABI ETIHAD TOWERS",
+      "JUMEIRAH AT ETIHAD TOWERS ABU DHABI"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-at-etihad-towers-abu-dhabi-102506190.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-at-etihad-towers-abu-dhabi-102506191.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-at-etihad-towers-abu-dhabi-102506192.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-at-etihad-towers-abu-dhabi-102506193.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-at-etihad-towers-abu-dhabi-102506194.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-at-etihad-towers-abu-dhabi-102506195.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-at-etihad-towers-abu-dhabi-102506196.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-at-etihad-towers-abu-dhabi-102506197.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 13840,
+    "name": "THE CREEKSIDE HOTEL DUBAI AN ACCOR HOTEL (EX. JUMEIRAH CREEKSIDE)",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 5,
+    "rating": 4.8,
+    "queries": [
+      "Jumeirah"
+    ],
+    "old_brand_alias_risk": true,
+    "weak_brand_match": false,
+    "priority_score": 32.7,
+    "work_id": "W2R_022",
+    "tourvisor_id": 13840,
+    "expected_name": "THE CREEKSIDE HOTEL DUBAI AN ACCOR HOTEL (EX. JUMEIRAH CREEKSIDE)",
+    "provider_name": "THE CREEKSIDE HOTEL DUBAI AN ACCOR HOTEL (EX. JUMEIRAH CREEKSIDE)",
+    "provider_country": "ОАЭ",
+    "hotel": "The Creekside Hotel Dubai",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=13840",
+    "aliases": [
+      "The Creekside Hotel Dubai",
+      "THE CREEKSIDE HOTEL DUBAI AN ACCOR HOTEL",
+      "JUMEIRAH CREEKSIDE"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-creekside-1314400.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-creekside-1314401.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-creekside-1314402.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-creekside-1314403.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-creekside-1314404.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-creekside-1314405.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-creekside-1314406.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-creekside-1314408.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 43564,
+    "name": "LOAMA MAAMIGILI RESORT & SPA",
+    "country": "MV",
+    "country_id": 8,
+    "region_id": 42,
+    "region_name": "Мальдивы",
+    "category": 5,
+    "rating": 5,
+    "queries": [
+      "Gili"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 3,
+    "work_id": "W2R_023",
+    "tourvisor_id": 43564,
+    "expected_name": "LOAMA MAAMIGILI RESORT & SPA",
+    "provider_name": "LOAMA MAAMIGILI RESORT & SPA",
+    "provider_country": "Мальдивы",
+    "hotel": "Loama Maamigili Resort & Spa",
+    "region": "Мальдивы",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43564",
+    "aliases": [
+      "Loama Maamigili Resort & Spa",
+      "LOAMA MAAMIGILI RESORT & SPA"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/loama-maamigili-resort-spa-102402560.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/loama-maamigili-resort-spa-102402561.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/loama-maamigili-resort-spa-102402562.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/loama-maamigili-resort-spa-102402563.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/loama-maamigili-resort-spa-102402574.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/loama-maamigili-resort-spa-102402575.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/loama-maamigili-resort-spa-102402576.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/loama-maamigili-resort-spa-102402577.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 99319,
+    "name": "REGNUM ESCANA BOUTIQUE HOTEL",
+    "country": "TR",
+    "country_id": 4,
+    "region_id": 24,
+    "region_name": "Бодрум",
+    "category": 2,
+    "rating": 0,
+    "queries": [
+      "Regnum"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": -3,
+    "work_id": "W2R_024",
+    "tourvisor_id": 99319,
+    "expected_name": "REGNUM ESCANA BOUTIQUE HOTEL",
+    "provider_name": "REGNUM ESCANA BOUTIQUE HOTEL",
+    "provider_country": "Турция",
+    "hotel": "Regnum Escana Boutique Hotel",
+    "region": "Бодрум",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=99319",
+    "aliases": [
+      "Regnum Escana Boutique Hotel",
+      "REGNUM ESCANA BOUTIQUE HOTEL"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/phpbl5BzV.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/phpnqy4vY.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/phpuI69s1.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/php7Xe2t4.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/phpG4s8p7.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/phpseBXua.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/phpjaRjXd.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/phpV7hwch.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 110940,
+    "name": "GLORIA AIRPORT HOTEL",
+    "country": "TR",
+    "country_id": 4,
+    "region_id": 277,
+    "region_name": "Стамбул",
+    "category": 2,
+    "rating": 0,
+    "queries": [
+      "Gloria"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": -30,
+    "work_id": "W2R_025",
+    "tourvisor_id": 110940,
+    "expected_name": "GLORIA AIRPORT HOTEL",
+    "provider_name": "GLORIA AIRPORT HOTEL",
+    "provider_country": "Турция",
+    "hotel": "Gloria Airport Hotel",
+    "region": "Стамбул",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=110940",
+    "aliases": [
+      "Gloria Airport Hotel",
+      "GLORIA AIRPORT HOTEL"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/php3VAUnN.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/phpof9aEO.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/phpSiDV3P.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/phpkGWIwR.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/php0iqI0S.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/phpiVSmpU.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/phpSXkwPV.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/phpPkXZiX.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 165596,
+    "name": "GLORIA SUITES OLD CITY",
+    "country": "TR",
+    "country_id": 4,
+    "region_id": 277,
+    "region_name": "Стамбул",
+    "category": 3,
+    "rating": 0,
+    "queries": [
+      "Gloria"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": -9,
+    "work_id": "W2R_026",
+    "tourvisor_id": 165596,
+    "expected_name": "GLORIA SUITES OLD CITY",
+    "provider_name": "GLORIA SUITES OLD CITY",
+    "provider_country": "Турция",
+    "hotel": "Gloria Suites Old City",
+    "region": "Стамбул",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=165596",
+    "aliases": [
+      "Gloria Suites Old City",
+      "GLORIA SUITES OLD CITY"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": []
+  },
+  {
+    "native_tourvisor_id": 102527,
+    "name": "NIRVANA APART HOTEL",
+    "country": "TR",
+    "country_id": 4,
+    "region_id": 26,
+    "region_name": "Мармарис",
+    "category": 0,
+    "rating": 0,
+    "queries": [
+      "Nirvana"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": -3,
+    "work_id": "W2R_027",
+    "tourvisor_id": 102527,
+    "expected_name": "NIRVANA APART HOTEL",
+    "provider_name": "NIRVANA APART HOTEL",
+    "provider_country": "Турция",
+    "hotel": "Nirvana Apart Hotel",
+    "region": "Мармарис",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=102527",
+    "aliases": [
+      "Nirvana Apart Hotel",
+      "NIRVANA APART HOTEL"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/phpq1R0vX.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/phpkdq7CY.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/phpAZmNRZ.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/phpiXZV60.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/phpZf7mc2.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/phpRYDkg3.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/php1selG4.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/phpnLrU65.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 100396,
+    "name": "NIRVANA BOUTIQUE HOUSE",
+    "country": "TR",
+    "country_id": 4,
+    "region_id": 586,
+    "region_name": "Кайсери",
+    "category": 2,
+    "rating": 0,
+    "queries": [
+      "Nirvana"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": -3,
+    "work_id": "W2R_028",
+    "tourvisor_id": 100396,
+    "expected_name": "NIRVANA BOUTIQUE HOUSE",
+    "provider_name": "NIRVANA BOUTIQUE HOUSE",
+    "provider_country": "Турция",
+    "hotel": "Nirvana Boutique House",
+    "region": "Кайсери",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=100396",
+    "aliases": [
+      "Nirvana Boutique House",
+      "NIRVANA BOUTIQUE HOUSE"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/4/phprdIuBp.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 115347,
+    "name": "CHAKRA SUITES BESIKTAS",
+    "country": "TR",
+    "country_id": 4,
+    "region_id": 277,
+    "region_name": "Стамбул",
+    "category": 3,
+    "rating": 0,
+    "queries": [
+      "Akra"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": -9,
+    "work_id": "W2R_029",
+    "tourvisor_id": 115347,
+    "expected_name": "CHAKRA SUITES BESIKTAS",
+    "provider_name": "CHAKRA SUITES BESIKTAS",
+    "provider_country": "Турция",
+    "hotel": "Chakra Suites Besiktas",
+    "region": "Стамбул",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=115347",
+    "aliases": [
+      "Chakra Suites Besiktas",
+      "CHAKRA SUITES BESIKTAS"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": []
+  },
+  {
+    "native_tourvisor_id": 142368,
+    "name": "SAKRAN",
+    "country": "TR",
+    "country_id": 4,
+    "region_id": 306,
+    "region_name": "Измир",
+    "category": 0,
+    "rating": 0,
+    "queries": [
+      "Akra"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": true,
+    "priority_score": -55,
+    "work_id": "W2R_030",
+    "tourvisor_id": 142368,
+    "expected_name": "SAKRAN",
+    "provider_name": "SAKRAN",
+    "provider_country": "Турция",
+    "hotel": "Sakran",
+    "region": "Измир",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=142368",
+    "aliases": [
+      "Sakran",
+      "SAKRAN"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": []
+  },
+  {
+    "native_tourvisor_id": 128133,
+    "name": "RIXOS TOWER PYRAMIDS VIEW",
+    "country": "EG",
+    "country_id": 1,
+    "region_id": 611,
+    "region_name": "Каир",
+    "category": 3,
+    "rating": 0,
+    "queries": [
+      "Rixos"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": -3,
+    "work_id": "W2R_031",
+    "tourvisor_id": 128133,
+    "expected_name": "RIXOS TOWER PYRAMIDS VIEW",
+    "provider_name": "RIXOS TOWER PYRAMIDS VIEW",
+    "provider_country": "Египет",
+    "hotel": "Rixos Tower Pyramids View",
+    "region": "Каир",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=128133",
+    "aliases": [
+      "Rixos Tower Pyramids View",
+      "RIXOS TOWER PYRAMIDS VIEW"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": []
+  },
+  {
+    "native_tourvisor_id": 103272,
+    "name": "STEIGENBERGER CECIL HOTEL",
+    "country": "EG",
+    "country_id": 1,
+    "region_id": 702,
+    "region_name": "Александрия",
+    "category": 4,
+    "rating": 0,
+    "queries": [
+      "Steigenberger"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 13,
+    "work_id": "W2R_032",
+    "tourvisor_id": 103272,
+    "expected_name": "STEIGENBERGER CECIL HOTEL",
+    "provider_name": "STEIGENBERGER CECIL HOTEL",
+    "provider_country": "Египет",
+    "hotel": "Steigenberger Cecil Alexandria",
+    "region": "Александрия",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=103272",
+    "aliases": [
+      "Steigenberger Cecil Alexandria",
+      "STEIGENBERGER CECIL HOTEL"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/steigenberger-cecil-hotel-19094103.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/steigenberger-cecil-hotel-19094101.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/steigenberger-cecil-hotel-19094102.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/steigenberger-cecil-hotel-19094104.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/steigenberger-cecil-hotel-19094105.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/steigenberger-cecil-hotel-19094106.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/steigenberger-cecil-hotel-19094107.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/1/steigenberger-cecil-hotel-19094108.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 2633,
+    "name": "ONE & ONLY ROYAL MIRAGE RESIDENCE & SPA",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 5,
+    "rating": 0,
+    "queries": [
+      "One"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 28,
+    "work_id": "W2R_033",
+    "tourvisor_id": 2633,
+    "expected_name": "ONE & ONLY ROYAL MIRAGE RESIDENCE & SPA",
+    "provider_name": "ONE & ONLY ROYAL MIRAGE RESIDENCE & SPA",
+    "provider_country": "ОАЭ",
+    "hotel": "One&Only Royal Mirage Residence & Spa",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2633",
+    "aliases": [
+      "One&Only Royal Mirage Residence & Spa",
+      "ONE & ONLY ROYAL MIRAGE RESIDENCE & SPA"
+    ],
+    "editorial_hold": "parent_or_related_property_identity_requires_separate_admission"
+  },
+  {
+    "native_tourvisor_id": 81730,
+    "name": "ONE TO ONE CLOVER HOTEL & SUITES",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 46,
+    "region_name": "Рас-эль-Хайма",
+    "category": 3,
+    "rating": 0,
+    "queries": [
+      "One"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": true,
+    "priority_score": -55,
+    "work_id": "W2R_034",
+    "tourvisor_id": 81730,
+    "expected_name": "ONE TO ONE CLOVER HOTEL & SUITES",
+    "provider_name": "ONE TO ONE CLOVER HOTEL & SUITES",
+    "provider_country": "ОАЭ",
+    "hotel": "One to One Clover Hotel & Suites",
+    "region": "Рас-эль-Хайма",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=81730",
+    "aliases": [
+      "One to One Clover Hotel & Suites",
+      "ONE TO ONE CLOVER HOTEL & SUITES"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": []
+  },
+  {
+    "native_tourvisor_id": 32226,
+    "name": "ONE TO ONE HOTEL & RESORT AIN AL FAIDA",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 43,
+    "region_name": "Абу-Даби",
+    "category": 4,
+    "rating": 0,
+    "queries": [
+      "One"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": true,
+    "priority_score": -47,
+    "work_id": "W2R_035",
+    "tourvisor_id": 32226,
+    "expected_name": "ONE TO ONE HOTEL & RESORT AIN AL FAIDA",
+    "provider_name": "ONE TO ONE HOTEL & RESORT AIN AL FAIDA",
+    "provider_country": "ОАЭ",
+    "hotel": "One to One Ain Al Faida",
+    "region": "Абу-Даби",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=32226",
+    "aliases": [
+      "One to One Ain Al Faida",
+      "ONE TO ONE HOTEL & RESORT AIN AL FAIDA"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-hotel-resort-ain-al-faida-2.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-hotel-resort-ain-al-faida-0.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-hotel-resort-ain-al-faida-1.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-hotel-resort-ain-al-faida-3.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-hotel-resort-ain-al-faida-4.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-hotel-resort-ain-al-faida-5.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-hotel-resort-ain-al-faida-6.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-hotel-resort-ain-al-faida-7.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 69179,
+    "name": "STUDIO ONE HOTEL",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 4,
+    "rating": 5,
+    "queries": [
+      "One"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": true,
+    "priority_score": -39,
+    "work_id": "W2R_036",
+    "tourvisor_id": 69179,
+    "expected_name": "STUDIO ONE HOTEL",
+    "provider_name": "STUDIO ONE HOTEL",
+    "provider_country": "ОАЭ",
+    "hotel": "Studio One Hotel",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=69179",
+    "aliases": [
+      "Studio One Hotel",
+      "STUDIO ONE HOTEL"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/69179-5615000.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/69179-5615001.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/69179-5615102.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/69179-5615203.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/69179-5615204.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/69179-5615205.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/69179-5615306.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/69179-5615307.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 112603,
+    "name": "SIRO ONE ZA ABEEL",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 5,
+    "rating": 4.8,
+    "queries": [
+      "One"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": true,
+    "priority_score": -24.3,
+    "work_id": "W2R_037",
+    "tourvisor_id": 112603,
+    "expected_name": "SIRO ONE ZA ABEEL",
+    "provider_name": "SIRO ONE ZA ABEEL",
+    "provider_country": "ОАЭ",
+    "hotel": "SIRO One Zaabeel",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=112603",
+    "aliases": [
+      "SIRO One Zaabeel",
+      "SIRO ONE ZA ABEEL"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/siro-one-za-abeel-2709100.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/siro-one-za-abeel-2709101.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/siro-one-za-abeel-2709102.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/siro-one-za-abeel-2709103.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/siro-one-za-abeel-2709104.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/siro-one-za-abeel-2709105.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/siro-one-za-abeel-2709106.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/siro-one-za-abeel-2709107.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 77942,
+    "name": "25HOURS DUBAI ONE CENTRAL",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 5,
+    "rating": 4.7,
+    "queries": [
+      "One"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": true,
+    "priority_score": -32.5,
+    "work_id": "W2R_038",
+    "tourvisor_id": 77942,
+    "expected_name": "25HOURS DUBAI ONE CENTRAL",
+    "provider_name": "25HOURS DUBAI ONE CENTRAL",
+    "provider_country": "ОАЭ",
+    "hotel": "25hours Hotel Dubai One Central",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=77942",
+    "aliases": [
+      "25hours Hotel Dubai One Central",
+      "25HOURS DUBAI ONE CENTRAL"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/77942-84062701.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/77942-84062700.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/77942-84062802.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/77942-84062803.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/77942-84062804.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/77942-84062905.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/77942-84062906.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/77942-84062907.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 46724,
+    "name": "IBIS ONE CENTRAL",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 3,
+    "rating": 4.6,
+    "queries": [
+      "One"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": true,
+    "priority_score": -47.6,
+    "work_id": "W2R_039",
+    "tourvisor_id": 46724,
+    "expected_name": "IBIS ONE CENTRAL",
+    "provider_name": "IBIS ONE CENTRAL",
+    "provider_country": "ОАЭ",
+    "hotel": "ibis One Central",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=46724",
+    "aliases": [
+      "ibis One Central",
+      "IBIS ONE CENTRAL"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/46724-23304600.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/46724-23304701.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/46724-23304702.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/46724-23304803.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/46724-23304804.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/46724-23304805.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/46724-23304806.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/46724-23304807.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 13996,
+    "name": "MEDIA ONE HOTEL",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 4,
+    "rating": 4.6,
+    "queries": [
+      "One"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": true,
+    "priority_score": -39.6,
+    "work_id": "W2R_040",
+    "tourvisor_id": 13996,
+    "expected_name": "MEDIA ONE HOTEL",
+    "provider_name": "MEDIA ONE HOTEL",
+    "provider_country": "ОАЭ",
+    "hotel": "Media One Hotel",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=13996",
+    "aliases": [
+      "Media One Hotel",
+      "MEDIA ONE HOTEL"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/media-one-hotel-515100.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/media-one-hotel-515100.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/media-one-hotel-515101.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/media-one-hotel-515102.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/media-one-hotel-515103.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/media-one-hotel-515104.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/media-one-hotel-515105.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/media-one-hotel-515106.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 63901,
+    "name": "MUGHAL SUITES (EX. ONE TO ONE MUGHAL SUITES)",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 46,
+    "region_name": "Рас-эль-Хайма",
+    "category": 4,
+    "rating": 4.3,
+    "queries": [
+      "One"
+    ],
+    "old_brand_alias_risk": true,
+    "weak_brand_match": true,
+    "priority_score": -43.1,
+    "work_id": "W2R_041",
+    "tourvisor_id": 63901,
+    "expected_name": "MUGHAL SUITES (EX. ONE TO ONE MUGHAL SUITES)",
+    "provider_name": "MUGHAL SUITES (EX. ONE TO ONE MUGHAL SUITES)",
+    "provider_country": "ОАЭ",
+    "hotel": "Mughal Suites",
+    "region": "Рас-эль-Хайма",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=63901",
+    "aliases": [
+      "Mughal Suites",
+      "MUGHAL SUITES",
+      "ONE TO ONE MUGHAL SUITES"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-mughal-suites-512100.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-mughal-suites-512101.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-mughal-suites-512102.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-mughal-suites-512103.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-mughal-suites-512104.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-mughal-suites-512105.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-mughal-suites-512106.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-mughal-suites-512107.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 13845,
+    "name": "VILLAGGIO HOTEL ABU DHABI (EX. ONE TO ONE HOTEL THE VILLAGE)",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 43,
+    "region_name": "Абу-Даби",
+    "category": 4,
+    "rating": 4.3,
+    "queries": [
+      "One"
+    ],
+    "old_brand_alias_risk": true,
+    "weak_brand_match": true,
+    "priority_score": -43.1,
+    "work_id": "W2R_042",
+    "tourvisor_id": 13845,
+    "expected_name": "VILLAGGIO HOTEL ABU DHABI (EX. ONE TO ONE HOTEL THE VILLAGE)",
+    "provider_name": "VILLAGGIO HOTEL ABU DHABI (EX. ONE TO ONE HOTEL THE VILLAGE)",
+    "provider_country": "ОАЭ",
+    "hotel": "Villaggio Hotel Abu Dhabi",
+    "region": "Абу-Даби",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=13845",
+    "aliases": [
+      "Villaggio Hotel Abu Dhabi",
+      "VILLAGGIO HOTEL ABU DHABI",
+      "ONE TO ONE HOTEL THE VILLAGE"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-hotel-the-village-102507101.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-hotel-the-village-102507100.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-hotel-the-village-102507102.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-hotel-the-village-102507103.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-hotel-the-village-102507104.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-hotel-the-village-102507105.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-hotel-the-village-102507106.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/one-to-one-hotel-the-village-102507107.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 45287,
+    "name": "NUMBER ONE TOWER SUITES",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 4,
+    "rating": 4.1,
+    "queries": [
+      "One"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": true,
+    "priority_score": -40.4,
+    "work_id": "W2R_043",
+    "tourvisor_id": 45287,
+    "expected_name": "NUMBER ONE TOWER SUITES",
+    "provider_name": "NUMBER ONE TOWER SUITES",
+    "provider_country": "ОАЭ",
+    "hotel": "Number One Tower Suites",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=45287",
+    "aliases": [
+      "Number One Tower Suites",
+      "NUMBER ONE TOWER SUITES"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/number-one-tower-suites-102607581.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/number-one-tower-suites-102607580.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/number-one-tower-suites-102607582.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/number-one-tower-suites-102607583.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/number-one-tower-suites-102607584.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/number-one-tower-suites-102607585.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/number-one-tower-suites-102607586.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/number-one-tower-suites-102607587.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 44984,
+    "name": "MILESTONE APARTMENT",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 3,
+    "rating": 4,
+    "queries": [
+      "One"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": true,
+    "priority_score": -48.6,
+    "work_id": "W2R_044",
+    "tourvisor_id": 44984,
+    "expected_name": "MILESTONE APARTMENT",
+    "provider_name": "MILESTONE APARTMENT",
+    "provider_country": "ОАЭ",
+    "hotel": "Milestone Hotel Apartments",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=44984",
+    "aliases": [
+      "Milestone Hotel Apartments",
+      "MILESTONE APARTMENT"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/milestone-apartment-3.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/milestone-apartment-0.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/milestone-apartment-1.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/milestone-apartment-2.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/milestone-apartment-4.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/milestone-apartment-5.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/milestone-apartment-6.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/milestone-apartment-7.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 23290,
+    "name": "WESCOTT PLAZA HOTEL APARTMENTS (EX. WEST ZONE)",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 4,
+    "rating": 4,
+    "queries": [
+      "One"
+    ],
+    "old_brand_alias_risk": true,
+    "weak_brand_match": true,
+    "priority_score": -43.6,
+    "work_id": "W2R_045",
+    "tourvisor_id": 23290,
+    "expected_name": "WESCOTT PLAZA HOTEL APARTMENTS (EX. WEST ZONE)",
+    "provider_name": "WESCOTT PLAZA HOTEL APARTMENTS (EX. WEST ZONE)",
+    "provider_country": "ОАЭ",
+    "hotel": "Wescott Plaza Hotel Apartments",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23290",
+    "aliases": [
+      "Wescott Plaza Hotel Apartments",
+      "WESCOTT PLAZA HOTEL APARTMENTS",
+      "WEST ZONE"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/winchester-deluxe-hotel-apartments-1712100.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/winchester-deluxe-hotel-apartments-1712101.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/winchester-deluxe-hotel-apartments-1712102.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/winchester-deluxe-hotel-apartments-1712103.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/winchester-deluxe-hotel-apartments-1712104.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/winchester-deluxe-hotel-apartments-1712105.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/winchester-deluxe-hotel-apartments-1712106.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/winchester-deluxe-hotel-apartments-1712107.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 38640,
+    "name": "PEARL SWISS HOTEL (EX. BLACK STONE HOTEL)",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 4,
+    "rating": 3.8,
+    "queries": [
+      "One"
+    ],
+    "old_brand_alias_risk": true,
+    "weak_brand_match": true,
+    "priority_score": -43.9,
+    "work_id": "W2R_046",
+    "tourvisor_id": 38640,
+    "expected_name": "PEARL SWISS HOTEL (EX. BLACK STONE HOTEL)",
+    "provider_name": "PEARL SWISS HOTEL (EX. BLACK STONE HOTEL)",
+    "provider_country": "ОАЭ",
+    "hotel": "Pearl Swiss Hotel",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=38640",
+    "aliases": [
+      "Pearl Swiss Hotel",
+      "PEARL SWISS HOTEL",
+      "BLACK STONE HOTEL"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/bluebay-black-stone-hotel-81374900.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/bluebay-black-stone-hotel-81374901.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/bluebay-black-stone-hotel-81374902.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/bluebay-black-stone-hotel-81374903.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/bluebay-black-stone-hotel-81374904.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/bluebay-black-stone-hotel-81374905.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/bluebay-black-stone-hotel-81374906.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/bluebay-black-stone-hotel-81374907.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 113312,
+    "name": "BLACKSTONE BLUBAY HOTEL",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 1,
+    "rating": 0,
+    "queries": [
+      "One"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": true,
+    "priority_score": -55,
+    "work_id": "W2R_047",
+    "tourvisor_id": 113312,
+    "expected_name": "BLACKSTONE BLUBAY HOTEL",
+    "provider_name": "BLACKSTONE BLUBAY HOTEL",
+    "provider_country": "ОАЭ",
+    "hotel": "Blackstone Blubay Hotel",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=113312",
+    "aliases": [
+      "Blackstone Blubay Hotel",
+      "BLACKSTONE BLUBAY HOTEL"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": []
+  },
+  {
+    "native_tourvisor_id": 128487,
+    "name": "MANDARIN ORIENTAL DOWNTOWN",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 5,
+    "rating": 0,
+    "queries": [
+      "Mandarin"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 28,
+    "work_id": "W2R_048",
+    "tourvisor_id": 128487,
+    "expected_name": "MANDARIN ORIENTAL DOWNTOWN",
+    "provider_name": "MANDARIN ORIENTAL DOWNTOWN",
+    "provider_country": "ОАЭ",
+    "hotel": "Mandarin Oriental Downtown Dubai",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=128487",
+    "aliases": [
+      "Mandarin Oriental Downtown Dubai",
+      "MANDARIN ORIENTAL DOWNTOWN"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/mandarin-oriental-downtown-95830000.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/mandarin-oriental-downtown-95830001.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/mandarin-oriental-downtown-95830002.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/mandarin-oriental-downtown-95830003.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/mandarin-oriental-downtown-95830004.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/mandarin-oriental-downtown-95830005.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/mandarin-oriental-downtown-95830007.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/mandarin-oriental-downtown-95830008.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 126277,
+    "name": "JUMEIRAH RESIDENCES MARSA AL ARAB",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 5,
+    "rating": 0,
+    "queries": [
+      "Jumeirah"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 28,
+    "work_id": "W2R_049",
+    "tourvisor_id": 126277,
+    "expected_name": "JUMEIRAH RESIDENCES MARSA AL ARAB",
+    "provider_name": "JUMEIRAH RESIDENCES MARSA AL ARAB",
+    "provider_country": "ОАЭ",
+    "hotel": "Jumeirah Residences Marsa Al Arab",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126277",
+    "aliases": [
+      "Jumeirah Residences Marsa Al Arab",
+      "JUMEIRAH RESIDENCES MARSA AL ARAB"
+    ],
+    "editorial_hold": "parent_or_related_property_identity_requires_separate_admission"
+  },
+  {
+    "native_tourvisor_id": 68939,
+    "name": "HYATT PLACE DUBAI JUMEIRAH",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 4,
+    "rating": 4.9,
+    "queries": [
+      "Jumeirah"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 28.8,
+    "work_id": "W2R_050",
+    "tourvisor_id": 68939,
+    "expected_name": "HYATT PLACE DUBAI JUMEIRAH",
+    "provider_name": "HYATT PLACE DUBAI JUMEIRAH",
+    "provider_country": "ОАЭ",
+    "hotel": "Hyatt Place Dubai Jumeirah",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=68939",
+    "aliases": [
+      "Hyatt Place Dubai Jumeirah",
+      "HYATT PLACE DUBAI JUMEIRAH"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/hyatt-place-dubai-jumeirah-813300.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/hyatt-place-dubai-jumeirah-813301.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/hyatt-place-dubai-jumeirah-813302.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/hyatt-place-dubai-jumeirah-813303.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/hyatt-place-dubai-jumeirah-813304.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/hyatt-place-dubai-jumeirah-813305.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/hyatt-place-dubai-jumeirah-813306.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/hyatt-place-dubai-jumeirah-813307.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 77515,
+    "name": "THE FIRST COLLECTION AT JUMEIRAH VILLAGE CIRCLE",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 4,
+    "rating": 4.9,
+    "queries": [
+      "Jumeirah"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 28.8,
+    "work_id": "W2R_051",
+    "tourvisor_id": 77515,
+    "expected_name": "THE FIRST COLLECTION AT JUMEIRAH VILLAGE CIRCLE",
+    "provider_name": "THE FIRST COLLECTION AT JUMEIRAH VILLAGE CIRCLE",
+    "provider_country": "ОАЭ",
+    "hotel": "The First Collection at Jumeirah Village Circle",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=77515",
+    "aliases": [
+      "The First Collection at Jumeirah Village Circle",
+      "THE FIRST COLLECTION AT JUMEIRAH VILLAGE CIRCLE"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/the-first-collection-at-jumeirah-village-circle-46207200.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/the-first-collection-at-jumeirah-village-circle-46207201.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/the-first-collection-at-jumeirah-village-circle-46207202.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/the-first-collection-at-jumeirah-village-circle-46207203.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/the-first-collection-at-jumeirah-village-circle-46207204.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/the-first-collection-at-jumeirah-village-circle-46207205.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/the-first-collection-at-jumeirah-village-circle-46207206.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/the-first-collection-at-jumeirah-village-circle-46207207.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 69774,
+    "name": "WALDORF ASTORIA DUBAI INTERNATIONAL FINANCIAL CENTRE",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 5,
+    "rating": 0,
+    "queries": [
+      "Waldorf"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 28,
+    "work_id": "W2R_052",
+    "tourvisor_id": 69774,
+    "expected_name": "WALDORF ASTORIA DUBAI INTERNATIONAL FINANCIAL CENTRE",
+    "provider_name": "WALDORF ASTORIA DUBAI INTERNATIONAL FINANCIAL CENTRE",
+    "provider_country": "ОАЭ",
+    "hotel": "Waldorf Astoria Dubai International Financial Centre",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=69774",
+    "aliases": [
+      "Waldorf Astoria Dubai International Financial Centre",
+      "WALDORF ASTORIA DUBAI INTERNATIONAL FINANCIAL CENTRE"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/waldorf-astoria-dubai-international-financial-centre-1113300.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/waldorf-astoria-dubai-international-financial-centre-1113301.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/waldorf-astoria-dubai-international-financial-centre-1113302.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/waldorf-astoria-dubai-international-financial-centre-1113303.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/waldorf-astoria-dubai-international-financial-centre-1113304.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/waldorf-astoria-dubai-international-financial-centre-1113305.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/waldorf-astoria-dubai-international-financial-centre-1113306.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/waldorf-astoria-dubai-international-financial-centre-1113307.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 143734,
+    "name": "FAIRMONT HERITAGE PLACE THE PALM",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 0,
+    "rating": 0,
+    "queries": [
+      "Fairmont"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 13,
+    "work_id": "W2R_053",
+    "tourvisor_id": 143734,
+    "expected_name": "FAIRMONT HERITAGE PLACE THE PALM",
+    "provider_name": "FAIRMONT HERITAGE PLACE THE PALM",
+    "provider_country": "ОАЭ",
+    "hotel": "Fairmont Heritage Place The Palm",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=143734",
+    "aliases": [
+      "Fairmont Heritage Place The Palm",
+      "FAIRMONT HERITAGE PLACE THE PALM"
+    ],
+    "editorial_hold": "parent_or_related_property_identity_requires_separate_admission"
+  },
+  {
+    "native_tourvisor_id": 129002,
+    "name": "FAIRMONT MARINA RESIDENCES ABU DHABI",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 43,
+    "region_name": "Абу-Даби",
+    "category": 5,
+    "rating": 0,
+    "queries": [
+      "Fairmont"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 28,
+    "work_id": "W2R_054",
+    "tourvisor_id": 129002,
+    "expected_name": "FAIRMONT MARINA RESIDENCES ABU DHABI",
+    "provider_name": "FAIRMONT MARINA RESIDENCES ABU DHABI",
+    "provider_country": "ОАЭ",
+    "hotel": "Fairmont Marina Residences Abu Dhabi",
+    "region": "Абу-Даби",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=129002",
+    "aliases": [
+      "Fairmont Marina Residences Abu Dhabi",
+      "FAIRMONT MARINA RESIDENCES ABU DHABI"
+    ],
+    "editorial_hold": "parent_or_related_property_identity_requires_separate_admission"
+  },
+  {
+    "native_tourvisor_id": 23283,
+    "name": "RIXOS BAB AL BAHR",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 46,
+    "region_name": "Рас-эль-Хайма",
+    "category": 5,
+    "rating": 4.5,
+    "queries": [
+      "Rixos"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 35.2,
+    "work_id": "W2R_055",
+    "tourvisor_id": 23283,
+    "expected_name": "RIXOS BAB AL BAHR",
+    "provider_name": "RIXOS BAB AL BAHR",
+    "provider_country": "ОАЭ",
+    "hotel": "Rixos Bab Al Bahr",
+    "region": "Рас-эль-Хайма",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23283",
+    "aliases": [
+      "Rixos Bab Al Bahr",
+      "RIXOS BAB AL BAHR"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-bab-al-bahr-102304040.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-bab-al-bahr-102304041.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-bab-al-bahr-102304042.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-bab-al-bahr-102304043.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-bab-al-bahr-102304044.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-bab-al-bahr-102304045.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-bab-al-bahr-102304046.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-bab-al-bahr-102304057.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 126830,
+    "name": "ANANTARA AL JABAL",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 4,
+    "rating": 0,
+    "queries": [
+      "Anantara"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 21,
+    "work_id": "W2R_056",
+    "tourvisor_id": 126830,
+    "expected_name": "ANANTARA AL JABAL",
+    "provider_name": "ANANTARA AL JABAL",
+    "provider_country": "ОАЭ",
+    "hotel": "Anantara Al Jabal",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126830",
+    "aliases": [
+      "Anantara Al Jabal",
+      "ANANTARA AL JABAL"
+    ],
+    "editorial_hold": "country_brand_identity_requires_primary_confirmation"
+  },
+  {
+    "native_tourvisor_id": 112016,
+    "name": "ANANTARA RESIDENCES BEACHFRONT PRIVATE BEACH AND LAGOON POOL",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 1,
+    "rating": 0,
+    "queries": [
+      "Anantara"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 13,
+    "work_id": "W2R_057",
+    "tourvisor_id": 112016,
+    "expected_name": "ANANTARA RESIDENCES BEACHFRONT PRIVATE BEACH AND LAGOON POOL",
+    "provider_name": "ANANTARA RESIDENCES BEACHFRONT PRIVATE BEACH AND LAGOON POOL",
+    "provider_country": "ОАЭ",
+    "hotel": "Anantara Residences Beachfront",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=112016",
+    "aliases": [
+      "Anantara Residences Beachfront",
+      "ANANTARA RESIDENCES BEACHFRONT PRIVATE BEACH AND LAGOON POOL"
+    ],
+    "editorial_hold": "parent_or_related_property_identity_requires_separate_admission"
+  },
+  {
+    "native_tourvisor_id": 127815,
+    "name": "EDENS DUBAI ANANTARA THE PALM RESIDENCES",
+    "country": "AE",
+    "country_id": 9,
+    "region_id": 45,
+    "region_name": "Дубай",
+    "category": 4,
+    "rating": 0,
+    "queries": [
+      "Anantara"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 21,
+    "work_id": "W2R_058",
+    "tourvisor_id": 127815,
+    "expected_name": "EDENS DUBAI ANANTARA THE PALM RESIDENCES",
+    "provider_name": "EDENS DUBAI ANANTARA THE PALM RESIDENCES",
+    "provider_country": "ОАЭ",
+    "hotel": "Edens Dubai Anantara The Palm Residences",
+    "region": "Дубай",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=127815",
+    "aliases": [
+      "Edens Dubai Anantara The Palm Residences",
+      "EDENS DUBAI ANANTARA THE PALM RESIDENCES"
+    ],
+    "editorial_hold": "parent_or_related_property_identity_requires_separate_admission"
+  },
+  {
+    "native_tourvisor_id": 76032,
+    "name": "KUDA VILLINGILI RESORT",
+    "country": "MV",
+    "country_id": 8,
+    "region_id": 42,
+    "region_name": "Мальдивы",
+    "category": 5,
+    "rating": 4.6,
+    "queries": [
+      "Gili"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 27.4,
+    "work_id": "W2R_059",
+    "tourvisor_id": 76032,
+    "expected_name": "KUDA VILLINGILI RESORT",
+    "provider_name": "KUDA VILLINGILI RESORT",
+    "provider_country": "Мальдивы",
+    "hotel": "Kuda Villingili Resort Maldives",
+    "region": "Мальдивы",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76032",
+    "aliases": [
+      "Kuda Villingili Resort Maldives",
+      "KUDA VILLINGILI RESORT"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/76032-46054727.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/76032-46054200.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/76032-46054201.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/76032-46054202.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/76032-46054303.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/76032-46054304.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/76032-46054305.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/76032-46054306.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 2478,
+    "name": "SHANGRI-LA'S VILLINGILI RESORT & SPA",
+    "country": "MV",
+    "country_id": 8,
+    "region_id": 42,
+    "region_name": "Мальдивы",
+    "category": 5,
+    "rating": 4.5,
+    "queries": [
+      "Gili"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 27.2,
+    "work_id": "W2R_060",
+    "tourvisor_id": 2478,
+    "expected_name": "SHANGRI-LA'S VILLINGILI RESORT & SPA",
+    "provider_name": "SHANGRI-LA'S VILLINGILI RESORT & SPA",
+    "provider_country": "Мальдивы",
+    "hotel": "Shangri-La Villingili Resort & Spa",
+    "region": "Мальдивы",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2478",
+    "aliases": [
+      "Shangri-La Villingili Resort & Spa",
+      "SHANGRI-LA'S VILLINGILI RESORT & SPA"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/shangri-las-villingili-resort-spa-102203030.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/shangri-las-villingili-resort-spa-102203031.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/shangri-las-villingili-resort-spa-102203032.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/shangri-las-villingili-resort-spa-102203033.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/shangri-las-villingili-resort-spa-102203034.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/shangri-las-villingili-resort-spa-102203035.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/shangri-las-villingili-resort-spa-102203036.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/shangri-las-villingili-resort-spa-102203037.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 74197,
+    "name": "THE CHEDI KUDAVILINGILI",
+    "country": "MV",
+    "country_id": 8,
+    "region_id": 42,
+    "region_name": "Мальдивы",
+    "category": 5,
+    "rating": 4.3,
+    "queries": [
+      "Gili"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 26.9,
+    "work_id": "W2R_061",
+    "tourvisor_id": 74197,
+    "expected_name": "THE CHEDI KUDAVILINGILI",
+    "provider_name": "THE CHEDI KUDAVILINGILI",
+    "provider_country": "Мальдивы",
+    "hotel": "The Chedi Kudavillingili",
+    "region": "Мальдивы",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=74197",
+    "aliases": [
+      "The Chedi Kudavillingili",
+      "THE CHEDI KUDAVILINGILI"
+    ],
+    "editorial_hold": "parent_or_related_property_identity_requires_separate_admission"
+  },
+  {
+    "native_tourvisor_id": 132068,
+    "name": "RAH GILI MALDIVES",
+    "country": "MV",
+    "country_id": 8,
+    "region_id": 42,
+    "region_name": "Мальдивы",
+    "category": 5,
+    "rating": 3,
+    "queries": [
+      "Gili"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 24.8,
+    "work_id": "W2R_062",
+    "tourvisor_id": 132068,
+    "expected_name": "RAH GILI MALDIVES",
+    "provider_name": "RAH GILI MALDIVES",
+    "provider_country": "Мальдивы",
+    "hotel": "RAH GILI Maldives",
+    "region": "Мальдивы",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=132068",
+    "aliases": [
+      "RAH GILI Maldives",
+      "RAH GILI MALDIVES"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/132068-64703200.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/132068-64703301.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/132068-64703302.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/132068-64703303.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/132068-64703404.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/132068-64703405.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/132068-64703406.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/132068-64703407.jpg"
+    ]
+  },
+  {
+    "native_tourvisor_id": 160353,
+    "name": "KOIMALA MAAMIGILI",
+    "country": "MV",
+    "country_id": 8,
+    "region_id": 42,
+    "region_name": "Мальдивы",
+    "category": 3,
+    "rating": 0,
+    "queries": [
+      "Gili"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 5,
+    "work_id": "W2R_063",
+    "tourvisor_id": 160353,
+    "expected_name": "KOIMALA MAAMIGILI",
+    "provider_name": "KOIMALA MAAMIGILI",
+    "provider_country": "Мальдивы",
+    "hotel": "Koimala Maamigili",
+    "region": "Мальдивы",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=160353",
+    "aliases": [
+      "Koimala Maamigili",
+      "KOIMALA MAAMIGILI"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": []
+  },
+  {
+    "native_tourvisor_id": 149890,
+    "name": "SALA OMAGILI",
+    "country": "MV",
+    "country_id": 8,
+    "region_id": 42,
+    "region_name": "Мальдивы",
+    "category": 4,
+    "rating": 0,
+    "queries": [
+      "Gili"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 13,
+    "work_id": "W2R_064",
+    "tourvisor_id": 149890,
+    "expected_name": "SALA OMAGILI",
+    "provider_name": "SALA OMAGILI",
+    "provider_country": "Мальдивы",
+    "hotel": "Sala Omagili",
+    "region": "Мальдивы",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=149890",
+    "aliases": [
+      "Sala Omagili",
+      "SALA OMAGILI"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": []
+  },
+  {
+    "native_tourvisor_id": 158417,
+    "name": "COCOMO MALDIVES",
+    "country": "MV",
+    "country_id": 8,
+    "region_id": 42,
+    "region_name": "Мальдивы",
+    "category": 4,
+    "rating": 0,
+    "queries": [
+      "Como"
+    ],
+    "old_brand_alias_risk": false,
+    "weak_brand_match": false,
+    "priority_score": 33,
+    "work_id": "W2R_065",
+    "tourvisor_id": 158417,
+    "expected_name": "COCOMO MALDIVES",
+    "provider_name": "COCOMO MALDIVES",
+    "provider_country": "Мальдивы",
+    "hotel": "Cocomo Maldives",
+    "region": "Мальдивы",
+    "source_api_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=158417",
+    "aliases": [
+      "Cocomo Maldives",
+      "COCOMO MALDIVES"
+    ],
+    "editorial_hold": null,
+    "first_photo_urls": [
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/158417-34066009.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/158417-34065600.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/158417-34065701.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/158417-34065702.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/158417-34065703.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/158417-34065704.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/158417-34065805.jpg",
+      "https://static.tourvisor.ru/hotel_pics/verybig/8/158417-34065806.jpg"
+    ]
+  }
+]
