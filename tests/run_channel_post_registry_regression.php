@@ -241,5 +241,7 @@ foreach ($pilotBindings as $platform => [$channelId, $mid, $origin, $source, $co
         && $update['version_id'] !== $published['version_id'] && $manager['version_id'] === $published['version_id']
         && $manager['text'] === $draft['publication']['caption'] && $manager['source_key'] === $source);
 }
+require_once __DIR__.'/fixtures/channel_post_zero_write_recovery.php';
+runChannelPostZeroWriteRecoveryChecks($pdo, 'postCheck');
 echo 'OK ' . $passed . " channel post registry checks\n";
 

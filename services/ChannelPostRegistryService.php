@@ -411,6 +411,114 @@ final class ChannelPostRegistryService
         });
     }
 
+    /** Explicit single-post repair only; ordinary queue admission stays unchanged. */
+    public static function telegramReadFailureRecoveryEligible(array $publication): bool
+    {
+        $snapshot = $publication['snapshot'] ?? [];
+        $media = $snapshot['attachments'] ?? [];
+        $receipt = $publication['receipt'] ?? [];
+        $reads = $receipt['http_results'] ?? [];
+        $mid = (string)($publication['external_message_id'] ?? '');
+        if (($publication['platform'] ?? '') !== 'telegram' || ($publication['state'] ?? '') !== 'requires_attention'
+            || ($publication['error_reason'] ?? '') !== 'provider_read_failed'
+            || ($publication['write_attempts'] ?? -1) !== 0 || ($publication['attempt_count'] ?? -1) !== 1
+            || ($publication['claim_token'] ?? null) !== null || ($publication['claimed_at'] ?? null) !== null
+            || ($publication['content_hash'] ?? '') !== ChannelPostIncomingAdapter::contentFingerprint($snapshot)
+            || isset($receipt['recovery_kind']) || !preg_match('/\A[1-9][0-9]{0,19}\z/D', $mid)
+            || ($snapshot['metadata']['capability'] ?? '') !== 'supported'
+            || ($snapshot['metadata']['observation_kind'] ?? '') !== 'provider_send_response'
+            || (string)($snapshot['metadata']['actual_message_id'] ?? '') !== $mid
+            || !empty($snapshot['metadata']['media_group_id']) || !empty($snapshot['keyboard'])
+            || !is_array($media) || count($media) !== 1 || ($media[0]['type'] ?? '') !== 'image'
+            || ($media[0]['provider'] ?? '') !== 'telegram' || empty($media[0]['file_unique_id'])
+            || ($receipt['write_attempts'] ?? -1) !== 0 || !in_array($receipt['request_count'] ?? 0, [1, 2], true)
+            || !is_array($reads) || !array_is_list($reads) || count($reads) < 1
+            || count($reads) > $receipt['request_count']) return false;
+        $allowed = array_slice(['bot_identity', 'channel_rights'], 0, $receipt['request_count']);
+        $previous = -1;
+        foreach ($reads as $read) {
+            if (!is_array($read)) return false;
+            $index = array_search($read['operation'] ?? '', $allowed, true);
+            if ($index === false || $index <= $previous) return false;
+            $previous = $index;
+        }
+        // Historical sanitization could omit successful reads, never the failed
+        // transport result. Require that exact final pre-write network failure.
+        $last = $reads[count($reads) - 1];
+        if (($last['operation'] ?? '') !== $allowed[count($allowed) - 1]
+            || ($last['http'] ?? -1) !== 0 || ($last['transport_error'] ?? 0) !== 1) return false;
+        $raw = $snapshot['raw_body'] ?? [];
+        $observed = is_array($raw) ? ChannelPostIncomingAdapter::telegramSnapshot($raw) : null;
+        return $observed !== null && (string)($raw['message_id'] ?? '') === $mid
+            && (string)($raw['chat']['id'] ?? '') === (string)($publication['channel_id'] ?? '')
+            && ($raw['chat']['type'] ?? '') === 'channel'
+            && ChannelPostIncomingAdapter::contentFingerprint($snapshot) === ChannelPostIncomingAdapter::contentFingerprint($observed);
+    }
+
+    /** Full immutable preview binding, including original failure and configuration. */
+    public static function telegramReadFailureRecoveryDigest(array $publication): string
+    {
+        return hash('sha256', self::json($publication));
+    }
+
+    /**
+     * Authorized caller supplies a fresh read-only capability proof. Claim the
+     * exact failed version directly, preserving its failure before any edit.
+     * No pending reset, new version, token, snapshot or global drain is allowed.
+     */
+    public function claimTelegramReadFailure(array $expected, array $proof, bool $apply = false): array
+    {
+        $check = function () use ($expected, $proof, $apply): array {
+            $channel = $this->channel((string)($expected['project_key'] ?? ''), 'telegram',
+                (string)($expected['bot_key'] ?? ''), (string)($expected['channel_id'] ?? ''), true, $apply);
+            if (!$channel || $channel !== ($expected['channel'] ?? null)) throw new RuntimeException('channel_configuration_changed');
+            $id = (int)($expected['publication_id'] ?? 0);
+            $versionId = (int)($expected['version_id'] ?? 0);
+            if ($apply) $this->fetch('SELECT id FROM post_publications WHERE id=?' . $this->lock(), [$id]);
+            $version = $this->fetch('SELECT * FROM post_versions WHERE id=? AND publication_id=?' . ($apply ? $this->lock() : ''), [$versionId, $id]);
+            $current = $this->publication($id);
+            if (!$version || !$current || $current !== $expected) throw new RuntimeException('target_publication_changed');
+            if (!self::telegramReadFailureRecoveryEligible($current)) throw new RuntimeException('read_failure_recovery_not_eligible');
+            $receipt = $proof['receipt'] ?? [];
+            $reads = $receipt['http_results'] ?? [];
+            if (($proof['state'] ?? '') !== 'ready' || ($proof['reason'] ?? '') !== 'capability_verified'
+                || ($receipt['write_attempts'] ?? -1) !== 0 || ($receipt['request_count'] ?? -1) !== 3
+                || !is_array($reads) || array_column($reads, 'operation') !== ['bot_identity', 'channel_rights', 'channel_type'])
+                throw new RuntimeException('fresh_read_only_capability_required');
+            foreach ($reads as $read) if (($read['http'] ?? 0) !== 200 || !empty($read['transport_error']))
+                throw new RuntimeException('fresh_read_only_capability_required');
+            if (!$apply) return $current;
+            foreach ($receipt['http_results'] as &$read) $read['transport_error'] = 0;
+            unset($read);
+            $history = [
+                'recovery_kind' => 'telegram_zero_write_read_failure',
+                'previous_failure' => [
+                    'state' => (string)$version['state'], 'reason' => (string)$version['error_reason'],
+                    'attempt_count' => (int)$version['attempt_count'], 'write_attempts' => (int)$version['write_attempts'],
+                    'receipt_json' => (string)$version['receipt_json'], 'updated_at' => (string)$version['updated_at'],
+                ],
+                'recovery_preflight' => self::receipt($receipt),
+            ];
+            $claim = bin2hex(random_bytes(16));
+            $now = self::now();
+            $saved = $this->execute("UPDATE post_versions SET state='claimed',claim_token=?,claimed_at=?,attempt_count=attempt_count+1,receipt_json=?,updated_at=? WHERE id=? AND publication_id=? AND state='requires_attention' AND error_reason='provider_read_failed' AND write_attempts=0 AND claim_token IS NULL AND claimed_at IS NULL",
+                [$claim, $now, self::json($history), $now, $versionId, $id]);
+            if ($saved !== 1) throw new RuntimeException('target_publication_changed');
+            return $this->publication($id) ?? throw new RuntimeException('target_publication_changed');
+        };
+        return $apply ? $this->transaction($check) : $check();
+    }
+
+    /** Only registry-created recovery history survives subsequent canonical outcomes. */
+    private static function retainTelegramRecoveryHistory(array $stored, array $receipt): array
+    {
+        if (($stored['recovery_kind'] ?? '') === 'telegram_zero_write_read_failure') {
+            foreach (['recovery_kind', 'previous_failure', 'recovery_preflight'] as $key)
+                if (array_key_exists($key, $stored)) $receipt[$key] = $stored[$key];
+        }
+        return $receipt;
+    }
+
     public function markExternalWriteStarted(int $publicationId, int $versionId, string $claimToken): bool
     {
         return $this->transaction(function () use ($publicationId, $versionId, $claimToken): bool {
@@ -430,6 +538,7 @@ final class ChannelPostRegistryService
         return $this->transaction(function () use ($publicationId, $versionId, $claimToken, $state, $reason, $receipt): bool {
             $this->fetch('SELECT id FROM post_publications WHERE id=?' . $this->lock(), [$publicationId]);
             $written = $this->fetch('SELECT * FROM post_versions WHERE id=? AND publication_id=?', [$versionId, $publicationId]);
+            $receipt = self::retainTelegramRecoveryHistory(json_decode((string)($written['receipt_json'] ?? ''), true) ?: [], $receipt);
             $extra = $state === 'pending' ? " AND write_attempts=0 AND state='claimed'" : " AND state IN ('claimed','write_started')";
             $saved = $this->execute('UPDATE post_versions SET state=?,claim_token=NULL,claimed_at=NULL,error_reason=?,receipt_json=?,updated_at=? WHERE id=? AND publication_id=? AND claim_token=?' . $extra, [$state, $reason, self::json($receipt), self::now(), $versionId, $publicationId, $claimToken]) === 1;
             if (!$saved || !$written || (int)$written['write_attempts'] === 0 || $state === 'pending') return $saved;
@@ -452,7 +561,7 @@ final class ChannelPostRegistryService
     {
         $publication = $this->publication($publicationId);
         if (!$publication || $publication['version_id'] !== $versionId) return false;
-        return $this->execute("UPDATE post_versions SET state='sent',claim_token=NULL,claimed_at=NULL,error_reason='',receipt_json=?,updated_at=? WHERE id=? AND publication_id=? AND state IN ('pending','claimed','write_started','unknown')", [self::json(self::receipt($receipt)), self::now(), $versionId, $publicationId]) === 1;
+        return $this->execute("UPDATE post_versions SET state='sent',claim_token=NULL,claimed_at=NULL,error_reason='',receipt_json=?,updated_at=? WHERE id=? AND publication_id=? AND state IN ('pending','claimed','write_started','unknown')", [self::json(self::retainTelegramRecoveryHistory((array)$publication['receipt'], self::receipt($receipt))), self::now(), $versionId, $publicationId]) === 1;
     }
 
     /** This opt-in confirmation cannot make a rejected job claimable again. */

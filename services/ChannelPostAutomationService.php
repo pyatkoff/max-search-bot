@@ -103,6 +103,44 @@ final class ChannelPostAutomationService
         }
     }
 
+    /** One exact, explicitly selected zero-write Telegram failure; preview is read-only. */
+    public function recoverTelegramReadFailure(array $identity, string $channelId, string $messageId,
+        int $publicationId, int $versionId, int $configVersion, string $expectedHash,
+        string $expectedDigest = '', bool $apply = false): array
+    {
+        $claimed = false;
+        try {
+            if (($identity['platform'] ?? '') !== 'telegram' || $publicationId <= 0 || $versionId <= 0 || $configVersion <= 0
+                || !preg_match('/\A[a-f0-9]{64}\z/D', $expectedHash)
+                || ($apply && !preg_match('/\A[a-f0-9]{64}\z/D', $expectedDigest)))
+                throw new RuntimeException('exact_recovery_target_required');
+            $registry = $this->registry();
+            $publication = $registry->publication($publicationId);
+            if (!$publication || $publication['project_key'] !== ($identity['project_key'] ?? '')
+                || $publication['platform'] !== 'telegram' || $publication['bot_key'] !== ($identity['bot_key'] ?? '')
+                || $publication['channel_id'] !== $channelId || $publication['external_message_id'] !== $messageId
+                || (int)$publication['version_id'] !== $versionId
+                || (int)$publication['channel']['config_version'] !== $configVersion
+                || !hash_equals($expectedHash, ChannelPostIncomingAdapter::contentFingerprint($publication['snapshot'])))
+                throw new RuntimeException('target_publication_changed');
+            if (!ChannelPostRegistryService::telegramReadFailureRecoveryEligible($publication))
+                throw new RuntimeException('read_failure_recovery_not_eligible');
+            $digest = ChannelPostRegistryService::telegramReadFailureRecoveryDigest($publication);
+            if ($apply && !hash_equals($digest, $expectedDigest)) throw new RuntimeException('recovery_preview_changed');
+            $proof = $this->transport->verifyChannel($publication['channel']);
+            $claim = $registry->claimTelegramReadFailure($publication, $proof, $apply);
+            if (!$apply) return ['ok'=>true, 'state'=>'preview', 'publication_id'=>$publicationId,
+                'version_id'=>$versionId, 'config_version'=>$configVersion, 'content_hash'=>$expectedHash,
+                'recovery_digest'=>$digest, 'receipt'=>$proof['receipt']];
+            $claimed = true;
+            $result = $this->processClaimedOperation($claim, false, true);
+            return ['ok'=>$result['state']==='sent'] + $result;
+        } catch (Throwable $e) {
+            $reason = preg_match('/\A[a-z_]{1,96}\z/D', $e->getMessage()) ? $e->getMessage() : 'recovery_unavailable';
+            return ['ok'=>false, 'state'=>$claimed ? 'unknown' : 'requires_attention', 'reason'=>$reason];
+        }
+    }
+
     private function processOperation(array $publication): ?array
     {
         $registry = $this->registry();
@@ -122,11 +160,27 @@ final class ChannelPostAutomationService
         $reconcile = ($publication['state'] ?? '') === 'unknown' || !empty($publication['write_attempted']);
         $claim = $registry->claimPublication($id, $version, $reconcile);
         if (!$claim) return null;
+        // A crashed explicit repair with no write must never become an automatic
+        // retry after the ordinary lease expires. Written outcomes remain UNKNOWN.
+        if (!$reconcile && ($claim['receipt']['recovery_kind'] ?? '') === 'telegram_zero_write_read_failure') {
+            $saved = $registry->finishPublication($id, $version, (string)$claim['claim_token'],
+                'requires_attention', 'explicit_recovery_required');
+            return ['publication_id'=>$id, 'version_id'=>$version, 'state'=>$saved ? 'requires_attention' : 'unknown',
+                'reason'=>$saved ? 'explicit_recovery_required' : 'receipt_storage_failed', 'reconcile_only'=>false, 'receipt'=>[]];
+        }
+        return $this->processClaimedOperation($claim, $reconcile);
+    }
+
+    private function processClaimedOperation(array $claim, bool $reconcile, bool $explicitRecovery = false): array
+    {
+        $registry = $this->registry();
+        $id = (int)$claim['publication_id']; $version = (int)$claim['version_id'];
         $claimToken = (string)$claim['claim_token'];
-        $beforeWrite = static function () use ($registry, $claim, $id, $version, $claimToken): bool {
+        $beforeWrite = static function () use ($registry, $claim, $id, $version, $claimToken, $explicitRecovery): bool {
             $fresh = $registry->publication($id);
             if (!$fresh || (int)$fresh['version_id'] !== $version
                 || ($fresh['claim_token'] ?? '') !== $claimToken
+                || ($explicitRecovery && $fresh['channel'] !== $claim['channel'])
                 || self::configurationFingerprint((array)$fresh['channel']) !== self::configurationFingerprint((array)$claim['channel'])) return false;
             return $registry->markExternalWriteStarted($id, $version, $claimToken);
         };

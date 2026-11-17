@@ -347,3 +347,50 @@ available to the manager. Known dates, departure, party and budget are preserved
 A chosen hotel does not confirm the advert's price, availability, departure, dates
 or composition. The existing canonical qualification/handoff produces the next
 step; this feature does not invent a quote or send a customer test message.
+
+## Explicit Telegram recovery after a pre-write transport failure
+
+The normal worker still refuses requires_attention. The CLI-only
+tools/recover_telegram_channel_post.php adds an explicit, single-publication
+repair for the first failed attempt on one Telegram photo whose authenticated
+provider_send_response is already retained. Eligibility requires the exact
+numeric message, current publication/version/configuration, unchanged content,
+no claim, zero recorded provider writes and a retained final pre-write HTTP0
+transport failure in the bot-identity/channel-rights prefix. Other reasons,
+albums, missing evidence, consumed recoveries, written outcomes and UNKNOWN
+are refused. The registry never resets the version to pending.
+
+The authorized operator pins the installed clean application SHA, channel,
+message, publication, version, config version and content fingerprint. A default
+preview performs only fresh bot, rights and channel-type reads and returns a
+digest of the complete current target, including its original failure. Apply
+requires that exact digest and repeats the capability reads. The registry locks
+the channel, publication and version, compares the full pre-read target, and
+directly claims the same failed version once. It preserves the original state,
+reason, counters, raw receipt JSON and failure timestamp durably before an edit.
+
+The call path is CLI -> ChannelPostAutomationService::recoverTelegramReadFailure
+-> ChannelPostRegistryService::claimTelegramReadFailure -> the existing claimed
+operation/ChannelPostButtonTransport. The provider operation is only the existing
+editMessageReplyMarkup, with the canonical before-write fence and native returned
+message/content/button verification. The source snapshot, opaque token, caption,
+photo, publication and version are unchanged. A configuration revision during
+transport also refuses the edit. There is no webhook fabrication, original-send
+replay, direct SQL rearm, API route, schedule or global queue drain.
+
+Canonical finish and authenticated observed-button confirmation retain
+recovery_kind, previous_failure and recovery_preflight from the registry-owned
+receipt. If a zero-write recovery claim expires, an ordinary worker can only
+finish it as requires_attention/explicit_recovery_required, never edit it.
+A lost edit acknowledgement stays UNKNOWN and follows the existing authentic
+edited_channel_post reconciliation; a second edit is forbidden. Another fresh
+read failure after consumption remains held for investigation.
+
+The same canonical fixtures run inside the existing SQLite registry regression
+and mandatory native MySQL lane, including competing connections, selector and
+configuration changes, no-write preview, lease expiry, one-edit success, original
+failure retention, changed returned content and lost acknowledgement. Ordinary
+workers, original sender contracts and MAX confirmation are unchanged. Source
+pins used by a separate publication package require its normal compatibility
+review after this installation; this CLI does not bypass them. Rollback is a
+normal checked release and must not cross an active recovery claim.
