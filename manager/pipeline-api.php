@@ -75,8 +75,28 @@ if($promiseAction){
     }catch(Throwable $ignored){ManagerHttp::respond(['ok'=>false,'error'=>'storage_unavailable'],503);}
 }
 
-if($action==='catalog')ManagerHttp::respond(['ok'=>true,'stages'=>SalesPipelineService::stages(true),'tags'=>SalesPipelineService::tags(true),'outcomes'=>SalesPipelineService::outcomeOptions(),'close_reasons'=>SalesPipelineService::closeReasonOptions(true)]);
-if($action==='filter_options')ManagerHttp::respond(['ok'=>true,'filters'=>ManagerWorkspaceFilterService::snapshot((int)$m['id'])]);
+if ($action === 'catalog' || $action === 'filter_options') {
+    $actor = (int)$m['id'];
+    // Chat requests use the same session. Release it while building the startup directories.
+    session_write_close();
+    if ($action === 'catalog') {
+        $directory = [
+            'stages' => SalesPipelineService::stages(true),
+            'tags' => SalesPipelineService::tags(true),
+            'outcomes' => SalesPipelineService::outcomeOptions(),
+            'close_reasons' => SalesPipelineService::closeReasonOptions(true),
+        ];
+    } else {
+        $directory = ['filters' => ManagerWorkspaceFilterService::snapshot($actor)];
+    }
+
+    if (!session_start(['read_and_close' => true])
+        || ManagerHttp::managerId() !== $actor
+        || !ManagerHttp::validCsrf((string)$data['csrf'])) {
+        ManagerHttp::respond(['ok' => false, 'error' => 'unauthorized'], 401);
+    }
+    ManagerHttp::respond(['ok' => true] + $directory);
+}
 if($action==='admin_catalog'){ManagerHttp::requireAdmin($m);ManagerHttp::respond(['ok'=>true,'catalog'=>SalesPipelineCatalogAdminService::snapshot()]);}
 if($action==='save_stage'){ManagerHttp::requireAdmin($m);$r=SalesPipelineCatalogAdminService::saveStage($data,(int)$m['id']);ManagerHttp::respond($r,pipelineCatalogSaveStatus($r));}
 if($action==='save_tag'){ManagerHttp::requireAdmin($m);$r=SalesPipelineCatalogAdminService::saveTag($data,(int)$m['id']);ManagerHttp::respond($r,pipelineCatalogSaveStatus($r));}
