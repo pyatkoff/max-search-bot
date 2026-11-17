@@ -1,0 +1,119 @@
+name: One-shot remaining70 native duplicate screen, read only
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/fastfill-remaining70-native-screen-20261117.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  screen-existing-publications:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '6ab4f6872a07d9d2394375fda11aea1cdc217a1e' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Prepare the exact remaining70 read-only input
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,json,pathlib
+          data=r'''[{"hotel_id":59118,"logical_id":"commercial-hotel-59118-v1","aliases":["RIXOS PREMIUM BODRUM VILLAS"]},{"hotel_id":56002,"logical_id":"commercial-hotel-56002-v1","aliases":["CLUB PRIVE BY RIXOS GOCEK"]},{"hotel_id":55750,"logical_id":"commercial-hotel-55750-v1","aliases":["CLUB PRIVE BY RIXOS BELEK"]},{"hotel_id":165997,"logical_id":"commercial-hotel-165997-v1","aliases":["BAYOU ANDA SUITES & VILLAS BY BARUT"]},{"hotel_id":1595,"logical_id":"commercial-hotel-1595-v1","aliases":["VOYAGE GOLTURKBUKU","HILTON BODRUM TURKBUKU RESORT & SPA"]},{"hotel_id":1028,"logical_id":"commercial-hotel-1028-v1","aliases":["SELECTUM COLOURS RESORT SIDE","EUPHORIA BARBAROSS BEACH RESORT"]},{"hotel_id":1071,"logical_id":"commercial-hotel-1071-v1","aliases":["SELECTUM NOA BELEK","CESARS BELEK"]},{"hotel_id":76393,"logical_id":"commercial-hotel-76393-v1","aliases":["FORTUNE BARUT SIDE"]},{"hotel_id":1149,"logical_id":"commercial-hotel-1149-v1","aliases":["QVOR KIRMAN PREMIUM"]},{"hotel_id":1563,"logical_id":"commercial-hotel-1563-v1","aliases":["RIXOS BELDIBI ADULTS ONLY 16+","TUI MAGIC LIFE RIXOS BELDIBI"]},{"hotel_id":1633,"logical_id":"commercial-hotel-1633-v1","aliases":["VOYAGE TURKBUKU"]},{"hotel_id":81233,"logical_id":"commercial-hotel-81233-v1","aliases":["RIXOS SUNGATE CLUB DIAMOND"]},{"hotel_id":28460,"logical_id":"commercial-hotel-28460-v1","aliases":["AKRA V","BARUT AKRA PARK"]},{"hotel_id":112391,"logical_id":"commercial-hotel-112391-v1","aliases":["RIXOS TERSANE ISTANBUL HOTEL"]},{"hotel_id":114913,"logical_id":"commercial-hotel-114913-v1","aliases":["THE NIRVANAS"]},{"hotel_id":127009,"logical_id":"commercial-hotel-127009-v1","aliases":["CHAKRA SPECIAL CAVES"]},{"hotel_id":17603,"logical_id":"commercial-hotel-17603-v1","aliases":["RIXOS PERA HOTEL"]},{"hotel_id":17682,"logical_id":"commercial-hotel-17682-v1","aliases":["TITANIC CITY HOTEL TAKSIM"]},{"hotel_id":66450,"logical_id":"commercial-hotel-66450-v1","aliases":["CHAKRA SUITES LEVENT HOTEL"]},{"hotel_id":37470,"logical_id":"commercial-hotel-37470-v1","aliases":["GLORIA SPORTS ARENA"]},{"hotel_id":99608,"logical_id":"commercial-hotel-99608-v1","aliases":["GLORIA TIBI HOTEL GUMBET"]},{"hotel_id":102321,"logical_id":"commercial-hotel-102321-v1","aliases":["CHAKRA BEACH KABAK"]},{"hotel_id":165597,"logical_id":"commercial-hotel-165597-v1","aliases":["GLORIA TIBI BIZIMTEPE AKYARLAR"]},{"hotel_id":37165,"logical_id":"commercial-hotel-37165-v1","aliases":["TITANIC COMFORT SISLI"]},{"hotel_id":72910,"logical_id":"commercial-hotel-72910-v1","aliases":["DELPHIN APART HOTEL"]},{"hotel_id":82106,"logical_id":"commercial-hotel-82106-v1","aliases":["RIXOS PREMIUM ALAMEIN","REGAL HEIGHTS"]},{"hotel_id":75593,"logical_id":"commercial-hotel-75593-v1","aliases":["RIXOS MAKADI BAY"]},{"hotel_id":110287,"logical_id":"commercial-hotel-110287-v1","aliases":["RIXOS RADAMIS BLUE PLANET HOTEL"]},{"hotel_id":110288,"logical_id":"commercial-hotel-110288-v1","aliases":["RIXOS RADAMIS TIRANA HOTEL"]},{"hotel_id":131935,"logical_id":"commercial-hotel-131935-v1","aliases":["RIXOS PREMIUM ALAMEIN ADULTS ONLY"]},{"hotel_id":152750,"logical_id":"commercial-hotel-152750-v1","aliases":["RIXOS PREMIUM MAGAWISH BAY VIEW"]},{"hotel_id":133426,"logical_id":"commercial-hotel-133426-v1","aliases":["RIXOS RADAMIS BEACH HOTEL"]},{"hotel_id":103273,"logical_id":"commercial-hotel-103273-v1","aliases":["STEIGENBERGER RESORT ACHTI LUXOR"]},{"hotel_id":496,"logical_id":"commercial-hotel-496-v1","aliases":["SUNRISE REMAL RESORT","MELTON TIRAN RESORT"]},{"hotel_id":1980,"logical_id":"commercial-hotel-1980-v1","aliases":["ROYAL SAVOY ADULTS ONLY"]},{"hotel_id":76638,"logical_id":"commercial-hotel-76638-v1","aliases":["ROYAL SAVOY VILLAS"]},{"hotel_id":266,"logical_id":"commercial-hotel-266-v1","aliases":["LIDO SHARM","IBEROTEL LIDO"]},{"hotel_id":159,"logical_id":"commercial-hotel-159-v1","aliases":["SUNRISE JUMAN HOTEL","CORAL BEACH RESORT (MANAGED BY SUNRISE"]},{"hotel_id":344,"logical_id":"commercial-hotel-344-v1","aliases":["SUNRISE CARDINA RESORT","AURORA BAY"]},{"hotel_id":116691,"logical_id":"commercial-hotel-116691-v1","aliases":["RIXOS PREMIUM ALAMEIN RESIDENCE TOWERS"]},{"hotel_id":125550,"logical_id":"commercial-hotel-125550-v1","aliases":["RIXOS MONTAZA ALEXANDRIA ADULTS ONLY 18+"]},{"hotel_id":143790,"logical_id":"commercial-hotel-143790-v1","aliases":["JAZ VIVA CASA MAZA","JAZ NEO CASA MAZA"]},{"hotel_id":76208,"logical_id":"commercial-hotel-76208-v1","aliases":["BARON HOTEL HELIOPOLIS"]},{"hotel_id":169957,"logical_id":"commercial-hotel-169957-v1","aliases":["BARON CASCADES"]},{"hotel_id":104626,"logical_id":"commercial-hotel-104626-v1","aliases":["SUNRISE ALEX AVENUE HOTEL ALEXANDRIA"]},{"hotel_id":2523,"logical_id":"commercial-hotel-2523-v1","aliases":["BEIT AL BAHAR VILLAS THE JUMEIRAH BEACH HOTEL"]},{"hotel_id":4498,"logical_id":"commercial-hotel-4498-v1","aliases":["JUMEIRAH ZABEEL SARAY ROYAL RESIDENCE"]},{"hotel_id":77792,"logical_id":"commercial-hotel-77792-v1","aliases":["CLUB PRIVE BY RIXOS SAADIYAT ISLAND"]},{"hotel_id":2554,"logical_id":"commercial-hotel-2554-v1","aliases":["FAIRMONT HOTEL DUBAI"]},{"hotel_id":2632,"logical_id":"commercial-hotel-2632-v1","aliases":["ONE & ONLY ROYAL MIRAGE THE PALACE"]},{"hotel_id":65170,"logical_id":"commercial-hotel-65170-v1","aliases":["MANDARIN ORIENTAL JUMEIRA DUBAI"]},{"hotel_id":80397,"logical_id":"commercial-hotel-80397-v1","aliases":["MARRIOTT RESORT PALM JUMEIRAH"]},{"hotel_id":82023,"logical_id":"commercial-hotel-82023-v1","aliases":["ATLANTIS THE ROYAL"]},{"hotel_id":2549,"logical_id":"commercial-hotel-2549-v1","aliases":["EMIRATES PALACE MANDARIN ORIENTAL ABU DHABI"]},{"hotel_id":2553,"logical_id":"commercial-hotel-2553-v1","aliases":["FAIRMONT BAB AL BAHR"]},{"hotel_id":2631,"logical_id":"commercial-hotel-2631-v1","aliases":["ONE & ONLY ROYAL MIRAGE ARABIAN COURT"]},{"hotel_id":8917,"logical_id":"commercial-hotel-8917-v1","aliases":["JUMEIRAH EMIRATES TOWERS"]},{"hotel_id":8999,"logical_id":"commercial-hotel-8999-v1","aliases":["WALDORF ASTORIA RAS AL KHAIMAH"]},{"hotel_id":13835,"logical_id":"commercial-hotel-13835-v1","aliases":["EASTERN MANGROVES HOTEL & SPA BY ANANTARA"]},{"hotel_id":56236,"logical_id":"commercial-hotel-56236-v1","aliases":["RIXOS PREMIUM DUBAI"]},{"hotel_id":110597,"logical_id":"commercial-hotel-110597-v1","aliases":["ONE & ONLY ONE ZA ABEEL"]},{"hotel_id":2519,"logical_id":"commercial-hotel-2519-v1","aliases":["ATLANTIS THE PALM"]},{"hotel_id":2591,"logical_id":"commercial-hotel-2591-v1","aliases":["KEMPINSKI HOTEL & RESIDENCES PALM JUMEIRAH"]},{"hotel_id":2936,"logical_id":"commercial-hotel-2936-v1","aliases":["ONE & ONLY THE PALM"]},{"hotel_id":8945,"logical_id":"commercial-hotel-8945-v1","aliases":["ONE & ONLY ROYAL MIRAGE"]},{"hotel_id":13837,"logical_id":"commercial-hotel-13837-v1","aliases":["FAIRMONT THE PALM"]},{"hotel_id":77684,"logical_id":"commercial-hotel-77684-v1","aliases":["ANANTARA WORLD ISLANDS DUBAI RESORT"]},{"hotel_id":80431,"logical_id":"commercial-hotel-80431-v1","aliases":["RIXOS MARINA ABU DHABI"]},{"hotel_id":78845,"logical_id":"commercial-hotel-78845-v1","aliases":["JUMEIRAH LIVING MARINA GATE"]},{"hotel_id":8918,"logical_id":"commercial-hotel-8918-v1","aliases":["JUMEIRAH LIVING WORLD TRADE CENTRE RESIDENCE"]}]'''.encode()
+          body=r'''<?php
+          declare(strict_types=1);
+          ini_set('display_errors','0');ini_set('log_errors','0');
+          if(PHP_SAPI!=='cli'||trim((string)shell_exec('git rev-parse HEAD'))!=='fd9b28dab2147f13f3b0d0f7f856b14392b141d2')exit(2);
+          $rows=json_decode(base64_decode(INPUT_B64,true),true,64,JSON_THROW_ON_ERROR);
+          if(count($rows)!==70||count(array_unique(array_column($rows,'hotel_id')))!==70)exit(2);
+          ob_start();require getcwd().'/config.php';require_once getcwd().'/services/ChannelPostRuntime.php';ob_end_clean();
+          $pdo=ConversationDb::connection();$pdo->exec('SET SESSION TRANSACTION READ ONLY');$pdo->beginTransaction();
+          $out=['mode'=>'READ_ONLY_REMAINING70_EXISTING_PUBLICATION_SCREEN','db_writes'=>0,'provider_calls'=>0,'sender_calls'=>0,'inspected_hotel_ids'=>array_column($rows,'hotel_id'),'matches'=>[]];
+          try{
+          foreach(['telegram'=>10,'max'=>9] as $platform=>$cid){
+          $q=$pdo->prepare('SELECT pp.id,pp.current_version_id,v.snapshot_json FROM post_publications pp JOIN post_versions v ON v.id=pp.current_version_id WHERE pp.post_channel_id=? ORDER BY pp.id LIMIT 2000');$q->execute([$cid]);$existing=$q->fetchAll(PDO::FETCH_ASSOC);
+          foreach($rows as $row){foreach($existing as $e){
+          $s=json_decode($e['snapshot_json'],true,64,JSON_THROW_ON_ERROR);$text=(string)($s['text']??'');$meta=(array)($s['metadata']??[]);
+          $reasons=[];$aliases=[];$first=explode("\n",$text,2)[0];
+          if(($meta['logical_id']??'')===$row['logical_id'])$reasons[]='logical_id';
+          if((int)($meta['hotel_catalog_id']??0)===(int)$row['hotel_id'])$reasons[]='native_id';
+          foreach($row['aliases'] as $a)if($a!==''&&mb_strpos(mb_strtolower($first,'UTF-8'),mb_strtolower($a,'UTF-8'),0,'UTF-8')!==false){$reasons[]='alias';$aliases[]=$a;}
+          if($reasons)$out['matches'][]=['hotel_id'=>$row['hotel_id'],'platform'=>$platform,'publication_id'=>(int)$e['id'],'version_id'=>(int)$e['current_version_id'],'source_native_hotel_id'=>$meta['hotel_catalog_id']??null,'first_lines'=>mb_substr($text,0,550,'UTF-8'),'post_url'=>$s['post_url']??null,'matched_by'=>array_values(array_unique($reasons)),'matched_aliases'=>$aliases];
+          }}
+          }
+          $out['matched_hotel_ids']=array_values(array_unique(array_column($out['matches'],'hotel_id')));$out['ok']=true;
+          }finally{$pdo->rollBack();}
+          echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          '''
+          body=body.replace("declare(strict_types=1);","declare(strict_types=1);\nconst INPUT_B64='"+base64.b64encode(data).decode()+"';",1)
+          pathlib.Path('pub').mkdir();pathlib.Path('pub/remaining70-readonly.php').write_text(body)
+          PY
+          php -l pub/remaining70-readonly.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read-only current production application HEAD and clean tracked files
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = fd9b28dab2147f13f3b0d0f7f856b14392b141d2
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" -o ServerAliveInterval=15 -o ServerAliveCountMax=2)
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0; app=/var/www/anytoour/data/www/app.anytoour.ru; test -d "$app/.git" && test ! -L "$app"; cd "$app"; test "$(git rev-parse HEAD)" = fd9b28dab2147f13f3b0d0f7f856b14392b141d2; test -z "$(git status --porcelain --untracked-files=no)"; command -v php >/dev/null; printf "CURRENT_PRODUCTION_SOURCE_VERIFIED\\n"' > pub/preflight.txt
+          grep -Fx 'CURRENT_PRODUCTION_SOURCE_VERIFIED' pub/preflight.txt
+      - name: Screen all70 with a read-only rolled-back transaction; no provider calls
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php' < pub/remaining70-readonly.php > pub/remaining70-screen.json
+          cat pub/remaining70-screen.json
+      - name: Preserve exact duplicate screening
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fastfill-remaining70-native-screen-20261117
+          path: pub/remaining70-screen.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Remove runner-only credentials
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/remaining70-readonly.php
