@@ -383,7 +383,10 @@ async function verifyReleaseSlot() {
 
   const negativeWave=async(change,read,code,description)=>{
     const sample=copy(mixed);change?.(sample);
-    await rejects(()=>selectReleaseRuns(sample,c,read||proofRead),code,description);
+    await rejects(async()=>{
+      const selected=await selectReleaseRuns(sample,c,read||proofRead);
+      gateState(selected.runs,c);
+    },code,description);
   };
   await negativeWave(sample=>{sample.workflow_runs.splice(sample.workflow_runs.findIndex(r=>r.id===oldChildren[0].id),1);sample.total_count--;},null,
     'incomplete_previous_wave','missing old gate cannot be treated as a full skipped wave');
