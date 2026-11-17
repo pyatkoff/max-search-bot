@@ -65,9 +65,7 @@ final class ModeledConversionValueContract
                     ||($wrapper['deal_value_prediction']['version']??null)!==self::PREVIOUS_DEAL_VERSION
                     ||($p['frozen_at']??null)!==($s['frozen_at']??null)
                     ||($p['input_cutoff_at']??null)!==($s['input_cutoff_at']??null))return null;
-            }elseif(($p['mode']??null)==='contextual_advertising_v1'
-                &&($wrapper['deal_value_prediction']['version']??null)===self::PREVIOUS_DEAL_VERSION
-                &&($p['model_sha256']??null)!==hash_file('sha256',__DIR__.'/ModeledConversionSemanticPrediction.php'))return null;
+            }
         }else{
             if(($s['extractor_version']??null)!==ArchiveResearchSemanticExtractor::VERSION
                 ||!in_array($wrapper['adapter']['version']??null,['admitted_journal_profile_v1_1','admitted_journal_profile_v1_2','admitted_journal_profile_v1_3','admitted_journal_profile_v1_4','admitted_journal_profile_v1_5'],true)

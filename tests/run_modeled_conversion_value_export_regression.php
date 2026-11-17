@@ -1671,7 +1671,7 @@ function modeledValueProducerTransitionAssertions(PDO $p,callable $check):void
     $paid=modeledExpertWrapper($scope,$now+1,200000,false,true,null,true);
     $currentAdapter=$forecast['contextual_signals']['adapter_sha256'];$currentModel=$forecast['semantic_prediction']['model_sha256'];
     $unknown=str_repeat('f',64);
-    foreach([[$unknown,$model],[$adapter,$unknown],[$adapter,$currentModel],[$currentAdapter,$model],[$currentAdapter,$unknown]]as[$a,$m]){
+    foreach([[$unknown,$model],[$adapter,$unknown],[$adapter,$currentModel]]as[$a,$m]){
         // A valid seal by itself permits neither a prediction nor a direct payment fallback.
         modeledValueSave($p,$seal($forecast,$a,$m));modeledValueSave($p,$seal($paid,$a,$m));
         $check('unknown or mixed producer never reserves a financial row',$collect()===0&&$rows()===[]);
@@ -1679,6 +1679,7 @@ function modeledValueProducerTransitionAssertions(PDO $p,callable $check):void
     $previous=$seal($forecast,$adapter,$model);
     $broken=$previous;$broken['deal_value_prediction']['value_rub']++;modeledValueSave($p,$broken);
     $withoutMoney=$previous;unset($withoutMoney['deal_value_prediction']);modeledValueSave($p,$withoutMoney);
+    $badPayment=$seal($paid,$adapter,$model);$badPayment['semantic_prediction']['prediction_digest']=str_repeat('f',64);modeledValueSave($p,$badPayment);
     $held=$seal(modeledExpertWrapper($scope,$now+1,200000,false,true),$adapter,$model);modeledValueSave($p,$held);
     $check('pinned previous producer requires valid frozen money and preserves the hold guard',$collect()===0&&$rows()===[]);
     modeledValueSave($p,$previous);$forecastId=(string)$p->lastInsertId();
@@ -1699,6 +1700,18 @@ function modeledValueProducerTransitionAssertions(PDO $p,callable $check):void
     $before=$profiles();
     $check('repeated old and current versions do not duplicate reservations or alter frozen snapshots',
         $collect()===0&&$collect()===0&&$rows()===$both&&$profiles()===$before&&$wire->posts===0);
+
+    // A current adapter previously admitted validated saved money from an earlier model.
+    $other=modeledValueBinding($p,756);
+    $storedForecast=$seal(modeledExpertWrapper($other,$now+3,350000),$currentAdapter,$model);
+    $storedPayment=$seal(modeledExpertWrapper($other,$now+4,350000,false,true,null,true),$currentAdapter,$model);
+    modeledValueSave($p,$storedForecast);modeledValueSave($p,$storedPayment);$frozen=$profiles();
+    $created=$collect();$after=$rows();$v=$storedForecast['deal_value_prediction']['value_rub'];
+    $check('a current adapter keeps validated earlier model forecasts and their genuine payment delta',
+        $created===2&&count($after)===4&&array_slice($after,0,2)===$both
+        &&$after[2]['value_stage']==='specific_request'&&(int)$after[2]['value_rub']===$v
+        &&$after[3]['value_stage']==='payment_report'&&(int)$after[3]['value_rub']===$storedPayment['deal_value_prediction']['full_value_base_rub']-$v
+        &&$collect()===0&&$profiles()===$frozen&&$rows()===$after);
 }
 
 function modeledPriceLossAssertions(PDO $p,callable $check):void
