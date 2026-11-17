@@ -1,0 +1,2062 @@
+{
+  "schema_version": 1,
+  "state": "ALL50_PAIRED_HOTELS_100_POSTS_NATIVE_VERIFIED",
+  "native_id_namespace": "Tourvisor",
+  "baseline_unique_pairs": 1020,
+  "added_unique_pairs": 50,
+  "total_unique_pairs": 1070,
+  "native_run_id": 44196967967,
+  "native_job_id": 134440841127,
+  "native_run_attempt": 1,
+  "actual_verified_at_utc": "2026-11-17T23:17:03Z",
+  "native_artifact_id": 14379896859,
+  "native_archive_digest": "sha256:7eda1965cc6d729b6356c7bb9889ee7530c5ee04f00e9cd2090ff9285482ae8d",
+  "native_verified_file_sha256": "d3cdda65d3d6d6bb4f2b2eacd19e4f61b5bb15279fca76dd2f5bff8160d46384",
+  "expected_app_sha": "cc017ee5bb669f4c7c13efc91d5c5812a50e55f2",
+  "photo_freeze_commit": "ad1c3e08e53b0310239e7cd6a6e2cba93ac2f31c",
+  "feed_rows_added_by_this_operation": 0,
+  "groups": [
+    {
+      "number": 44,
+      "operation": "commercial-hotel-batch-20261118-44-v1",
+      "hotel_ids": [
+        52409,
+        76458,
+        82538,
+        2572,
+        2593,
+        2601,
+        4546,
+        13890,
+        28400,
+        2776
+      ],
+      "verified_at_utc": "2026-11-17T23:11:51Z",
+      "native_output_sha256": "8ce8e4737c359536c77659d744137e113b09649020d76b70fdc7820abbb28f5c"
+    },
+    {
+      "number": 45,
+      "operation": "commercial-hotel-batch-20261118-45-v1",
+      "hotel_ids": [
+        82504,
+        64918,
+        11791,
+        26844,
+        2522,
+        1703,
+        11753,
+        2721,
+        77685,
+        15910
+      ],
+      "verified_at_utc": "2026-11-17T23:13:08Z",
+      "native_output_sha256": "6666050ce66f347e18d6ffe2ddd26126f7ca1cacff481347c3a361b74d4e8823"
+    },
+    {
+      "number": 46,
+      "operation": "commercial-hotel-batch-20261118-46-v1",
+      "hotel_ids": [
+        331,
+        2794,
+        33531,
+        330,
+        11847,
+        11851,
+        17608,
+        43743,
+        76288,
+        77810
+      ],
+      "verified_at_utc": "2026-11-17T23:14:27Z",
+      "native_output_sha256": "da153d0d6e6913e5dd1340d679a7cf56d9d14bb5854d98182dcec2688c11a45d"
+    },
+    {
+      "number": 47,
+      "operation": "commercial-hotel-batch-20261118-47-v1",
+      "hotel_ids": [
+        5545,
+        4549,
+        64110,
+        69424,
+        2635,
+        8923,
+        11792,
+        59548,
+        73995,
+        78210
+      ],
+      "verified_at_utc": "2026-11-17T23:15:44Z",
+      "native_output_sha256": "efbf0e0b6518305fb4769192bcb9c000ffd76e6e428b49545fb2bf5de70bb13c"
+    },
+    {
+      "number": 48,
+      "operation": "commercial-hotel-batch-20261118-48-v1",
+      "hotel_ids": [
+        2680,
+        66299,
+        17513,
+        74644,
+        1321,
+        2750,
+        8420,
+        33549,
+        77595,
+        2766
+      ],
+      "verified_at_utc": "2026-11-17T23:17:02Z",
+      "native_output_sha256": "5eef8940a1f22cd3a77ae04715adf632356472441ad8f13acf89f4a55d70727d"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 52409,
+      "name": "Cocoon Maldives",
+      "verified_at_utc": "2026-11-17T23:11:51Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 52409,
+          "logical_id": "commercial-hotel-52409-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1035",
+          "button_url": "https://t.me/anyru_bot?start=p_RcNTUjkBmYZaYAZNEugVscOG",
+          "publication_id": 2224,
+          "version_id": 7753,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1035",
+          "body_photo_button_verified": true,
+          "photo_sha256": "b4369fd63a6aaddfe745d864ff8618953b8d3956512e7bc547eab6ecce7572c9",
+          "text_sha256": "b2fc9dac77aab5daa2caa8e42b34d382f0b1688e5cb41a8d549d3fe2271e3d84",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 52409,
+          "logical_id": "commercial-hotel-52409-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrx5K0Ybg",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_XGwBiyGI15K_iOrFzvzNx6fP",
+          "publication_id": 2234,
+          "version_id": 7763,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc792b461b8",
+          "body_photo_button_verified": true,
+          "photo_sha256": "b4369fd63a6aaddfe745d864ff8618953b8d3956512e7bc547eab6ecce7572c9",
+          "text_sha256": "b2fc9dac77aab5daa2caa8e42b34d382f0b1688e5cb41a8d549d3fe2271e3d84",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 76458,
+      "name": "Cora Cora Maldives",
+      "verified_at_utc": "2026-11-17T23:11:51Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 76458,
+          "logical_id": "commercial-hotel-76458-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1036",
+          "button_url": "https://t.me/anyru_bot?start=p_aBIwjlFiEh79le9zycEFhBFP",
+          "publication_id": 2225,
+          "version_id": 7754,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1036",
+          "body_photo_button_verified": true,
+          "photo_sha256": "63ba198ca0123cf670403fbf026efe45c125652489280710b91a5bb7a9682f4c",
+          "text_sha256": "7c7325f68664f92ae20e74698f783f74d485d7b88cad0677234c223224c598bb",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 76458,
+          "logical_id": "commercial-hotel-76458-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrx5vscLo",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_RNl6fH_u4fuq9jExLH8UFw9m",
+          "publication_id": 2235,
+          "version_id": 7764,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc79bec70ba",
+          "body_photo_button_verified": true,
+          "photo_sha256": "63ba198ca0123cf670403fbf026efe45c125652489280710b91a5bb7a9682f4c",
+          "text_sha256": "7c7325f68664f92ae20e74698f783f74d485d7b88cad0677234c223224c598bb",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 82538,
+      "name": "Avani+ Fares Maldives Resort",
+      "verified_at_utc": "2026-11-17T23:11:51Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 82538,
+          "logical_id": "commercial-hotel-82538-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1037",
+          "button_url": "https://t.me/anyru_bot?start=p_xQmT7snmWiUJM0PN7Q_c67BW",
+          "publication_id": 2226,
+          "version_id": 7755,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1037",
+          "body_photo_button_verified": true,
+          "photo_sha256": "2ebe1b1a9938a887a1622a292eddeeaa6c4e09d5fc654a42f503428601a0dff1",
+          "text_sha256": "4a243b793643cd3b457b51c2a1601bb820ccb46a1d85e20b55cdbdae0b6aa199",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 82538,
+          "logical_id": "commercial-hotel-82538-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrx6U6OYY",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_hUu_7EbHtEGGTDLWDh-9UtpK",
+          "publication_id": 2236,
+          "version_id": 7765,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc7a53a3986",
+          "body_photo_button_verified": true,
+          "photo_sha256": "2ebe1b1a9938a887a1622a292eddeeaa6c4e09d5fc654a42f503428601a0dff1",
+          "text_sha256": "4a243b793643cd3b457b51c2a1601bb820ccb46a1d85e20b55cdbdae0b6aa199",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 2572,
+      "name": "Hilton Dubai Jumeirah",
+      "verified_at_utc": "2026-11-17T23:11:51Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 2572,
+          "logical_id": "commercial-hotel-2572-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1038",
+          "button_url": "https://t.me/anyru_bot?start=p_ytD3779GzhRxaSqKHbXrdXbG",
+          "publication_id": 2227,
+          "version_id": 7756,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1038",
+          "body_photo_button_verified": true,
+          "photo_sha256": "6b9a861d4d52fbade2931591b9d564ffa9fe7d0285ec9d94b04285a824da2d80",
+          "text_sha256": "cb67808e5206d277458851f804960960c3a9bdbf64b0f83f3b9cee58a1d37d55",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 2572,
+          "logical_id": "commercial-hotel-2572-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrx66_cLk",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_RN0U6LDiyFIQjVl3hQ-7BnmZ",
+          "publication_id": 2237,
+          "version_id": 7766,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc7aebf70b9",
+          "body_photo_button_verified": true,
+          "photo_sha256": "6b9a861d4d52fbade2931591b9d564ffa9fe7d0285ec9d94b04285a824da2d80",
+          "text_sha256": "cb67808e5206d277458851f804960960c3a9bdbf64b0f83f3b9cee58a1d37d55",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 2593,
+      "name": "Khalidiya Palace Rayhaan by Rotana",
+      "verified_at_utc": "2026-11-17T23:11:51Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 2593,
+          "logical_id": "commercial-hotel-2593-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1039",
+          "button_url": "https://t.me/anyru_bot?start=p_bHRBh6eoUKXo-T5dAUDcJsY-",
+          "publication_id": 2228,
+          "version_id": 7757,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1039",
+          "body_photo_button_verified": true,
+          "photo_sha256": "3eeeb7ebaffc9d38143594f1cfbdf6c540c2cea1e6056a55d491f3e088b3fda1",
+          "text_sha256": "fbdb6e9d0d1ed191aea4fa7184b4133a209c9ba5040e72913f42ea28a842a08a",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 2593,
+          "logical_id": "commercial-hotel-2593-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrx7hMdJA",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_szensTA3P_9wtKioA9xu1cfx",
+          "publication_id": 2238,
+          "version_id": 7767,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc7b84c7490",
+          "body_photo_button_verified": true,
+          "photo_sha256": "3eeeb7ebaffc9d38143594f1cfbdf6c540c2cea1e6056a55d491f3e088b3fda1",
+          "text_sha256": "fbdb6e9d0d1ed191aea4fa7184b4133a209c9ba5040e72913f42ea28a842a08a",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 2601,
+      "name": "Le Méridien Al Aqah Beach Resort",
+      "verified_at_utc": "2026-11-17T23:11:51Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 2601,
+          "logical_id": "commercial-hotel-2601-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1040",
+          "button_url": "https://t.me/anyru_bot?start=p_3EatKsziRzljj1RjIBk8BtJE",
+          "publication_id": 2229,
+          "version_id": 7758,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1040",
+          "body_photo_button_verified": true,
+          "photo_sha256": "c811bd13f9d0a142f0b0cff8c6900ec1b0dd9fdafdf5584df761817597995c64",
+          "text_sha256": "f593b77d97c4fbed94753be16fc50ce9fee22fc1073f2da31b7ae2e007dd6e02",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 2601,
+          "logical_id": "commercial-hotel-2601-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrx8HLOdM",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_4PI6o2P7J2P4T2v6tOMr3JtP",
+          "publication_id": 2239,
+          "version_id": 7768,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc7c1cb39d3",
+          "body_photo_button_verified": true,
+          "photo_sha256": "c811bd13f9d0a142f0b0cff8c6900ec1b0dd9fdafdf5584df761817597995c64",
+          "text_sha256": "f593b77d97c4fbed94753be16fc50ce9fee22fc1073f2da31b7ae2e007dd6e02",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 4546,
+      "name": "Secrets Royal Beach Punta Cana",
+      "verified_at_utc": "2026-11-17T23:11:51Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 4546,
+          "logical_id": "commercial-hotel-4546-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1041",
+          "button_url": "https://t.me/anyru_bot?start=p_2RgPIVjD2JKuOG7Ddpp4kSOs",
+          "publication_id": 2230,
+          "version_id": 7759,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1041",
+          "body_photo_button_verified": true,
+          "photo_sha256": "3fd9937a347227ba227598824d54b37f2b4c9e618ca1a57428ccec3404c6080e",
+          "text_sha256": "f067649cbf09fe89a6907483809d2a5e3fb81ca4997077b2499f3555d27f18ee",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 4546,
+          "logical_id": "commercial-hotel-4546-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrx8sVPMQ",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_1PXAEdf5RB6Ey1lgoHwnH9qx",
+          "publication_id": 2240,
+          "version_id": 7769,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc7cb153cc4",
+          "body_photo_button_verified": true,
+          "photo_sha256": "3fd9937a347227ba227598824d54b37f2b4c9e618ca1a57428ccec3404c6080e",
+          "text_sha256": "f067649cbf09fe89a6907483809d2a5e3fb81ca4997077b2499f3555d27f18ee",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 13890,
+      "name": "Courtyard by Marriott Bali Nusa Dua Resort",
+      "verified_at_utc": "2026-11-17T23:11:51Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 13890,
+          "logical_id": "commercial-hotel-13890-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1042",
+          "button_url": "https://t.me/anyru_bot?start=p_jHGJoPUtkw7RHnBa_85Ru-0N",
+          "publication_id": 2231,
+          "version_id": 7760,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1042",
+          "body_photo_button_verified": true,
+          "photo_sha256": "f12f1e9b2d823883292d1953beaee2ffe5d990ae2d3f62ad0a51128c063ebb2f",
+          "text_sha256": "a204cc795e38a1909bc9de99803524d8523843d2a0c9dee08a4eb2ccca100519",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 13890,
+          "logical_id": "commercial-hotel-13890-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrx9Rsb44",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_jJCoChf3E3PuJ8jH1_gyDiAc",
+          "publication_id": 2241,
+          "version_id": 7770,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc7d46c6f8e",
+          "body_photo_button_verified": true,
+          "photo_sha256": "f12f1e9b2d823883292d1953beaee2ffe5d990ae2d3f62ad0a51128c063ebb2f",
+          "text_sha256": "a204cc795e38a1909bc9de99803524d8523843d2a0c9dee08a4eb2ccca100519",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 28400,
+      "name": "Sofitel Bali Nusa Dua Beach Resort",
+      "verified_at_utc": "2026-11-17T23:11:51Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 28400,
+          "logical_id": "commercial-hotel-28400-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1043",
+          "button_url": "https://t.me/anyru_bot?start=p_JRzmFxabBLbQdagw3q9r7s_P",
+          "publication_id": 2232,
+          "version_id": 7761,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1043",
+          "body_photo_button_verified": true,
+          "photo_sha256": "9505cc4ae9f5b6cb1085fff3ab644754af08c8eb384b1fc0035f43d90e105f44",
+          "text_sha256": "1b0c21b9ccd4d6fc8ee4c9ca0f36c11ebd514ec249c36fccf61a9aab6d31598e",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 28400,
+          "logical_id": "commercial-hotel-28400-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrx93ZD4g",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_UB_BdkZiKV9b98CnNCxkj2Ts",
+          "publication_id": 2242,
+          "version_id": 7771,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc7ddd90f88",
+          "body_photo_button_verified": true,
+          "photo_sha256": "9505cc4ae9f5b6cb1085fff3ab644754af08c8eb384b1fc0035f43d90e105f44",
+          "text_sha256": "1b0c21b9ccd4d6fc8ee4c9ca0f36c11ebd514ec249c36fccf61a9aab6d31598e",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 2776,
+      "name": "Punta Cana Princess All Suites Resort & Spa",
+      "verified_at_utc": "2026-11-17T23:11:51Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 2776,
+          "logical_id": "commercial-hotel-2776-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1044",
+          "button_url": "https://t.me/anyru_bot?start=p_vN1XmN7-t6-VzGy9rzFt7JIV",
+          "publication_id": 2233,
+          "version_id": 7762,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1044",
+          "body_photo_button_verified": true,
+          "photo_sha256": "5fe5f96c15fef4113fed01652fd5100f04472299e01c8fedf1948029ad2ad9bf",
+          "text_sha256": "10c98ece8e2f1826b3b970f8fe5cacb1e4a8ca3e9c95ed7261e8012fd8bcc2bf",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 2776,
+          "logical_id": "commercial-hotel-2776-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrx-dnJwU",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_v8G5HVwUr9EqDLY-FW65YcNq",
+          "publication_id": 2243,
+          "version_id": 7772,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc7e7672705",
+          "body_photo_button_verified": true,
+          "photo_sha256": "5fe5f96c15fef4113fed01652fd5100f04472299e01c8fedf1948029ad2ad9bf",
+          "text_sha256": "10c98ece8e2f1826b3b970f8fe5cacb1e4a8ca3e9c95ed7261e8012fd8bcc2bf",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 82504,
+      "name": "Madifushi Private Island",
+      "verified_at_utc": "2026-11-17T23:13:08Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 82504,
+          "logical_id": "commercial-hotel-82504-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1045",
+          "button_url": "https://t.me/anyru_bot?start=p_rloWsDMoz3C9sm1XgpNKpUmn",
+          "publication_id": 2244,
+          "version_id": 7773,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1045",
+          "body_photo_button_verified": true,
+          "photo_sha256": "271bdd2281361dd77f203c1d81473c252a9a9ae6c57bce46efe771e70b76a29a",
+          "text_sha256": "d65f55db898937ac285bb96b4ea31f8bd84837e87127558b604c1bfe14154a24",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 82504,
+          "logical_id": "commercial-hotel-82504-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryL5vM3o",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_hXEF_y27gnc_LsUlVu7CRcER",
+          "publication_id": 2254,
+          "version_id": 7783,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc8be6f337a",
+          "body_photo_button_verified": true,
+          "photo_sha256": "271bdd2281361dd77f203c1d81473c252a9a9ae6c57bce46efe771e70b76a29a",
+          "text_sha256": "d65f55db898937ac285bb96b4ea31f8bd84837e87127558b604c1bfe14154a24",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 64918,
+      "name": "You & Me Maldives",
+      "verified_at_utc": "2026-11-17T23:13:08Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 64918,
+          "logical_id": "commercial-hotel-64918-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1046",
+          "button_url": "https://t.me/anyru_bot?start=p_T_omJOnQiZ_AeUl9I1q_I6RE",
+          "publication_id": 2245,
+          "version_id": 7774,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1046",
+          "body_photo_button_verified": true,
+          "photo_sha256": "8f75c8855c15ae82aca8b4e1e1705086c6169ee56e4fff588cfe892f5fae19d7",
+          "text_sha256": "692e904ed5a837fd983b0b2fbd8306f3643ab4680b8227787a43d865c5789eac",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 64918,
+          "logical_id": "commercial-hotel-64918-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryMfSWo0",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_454T2Z-MHx2CxORy69weH_Q-",
+          "publication_id": 2255,
+          "version_id": 7784,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc8c7d25a8d",
+          "body_photo_button_verified": true,
+          "photo_sha256": "8f75c8855c15ae82aca8b4e1e1705086c6169ee56e4fff588cfe892f5fae19d7",
+          "text_sha256": "692e904ed5a837fd983b0b2fbd8306f3643ab4680b8227787a43d865c5789eac",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 11791,
+      "name": "Sofitel Mauritius L’Impérial Resort & Spa",
+      "verified_at_utc": "2026-11-17T23:13:08Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 11791,
+          "logical_id": "commercial-hotel-11791-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1047",
+          "button_url": "https://t.me/anyru_bot?start=p_6kTd2R9yQ8ZsaxiWhw1RwSdd",
+          "publication_id": 2246,
+          "version_id": 7775,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1047",
+          "body_photo_button_verified": true,
+          "photo_sha256": "241c0ad613812b8ed261931269bdd3c164fc1a163e0766fe58311892cf08c5e2",
+          "text_sha256": "6dcdf7cefdb8c0c4de5b605b23fb093e4b9534c1d67cfd0de12af5db0ea40611",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 11791,
+          "logical_id": "commercial-hotel-11791-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryNICXpg",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_OvcIYtXO3Z5D5hgWDusXyydl",
+          "publication_id": 2256,
+          "version_id": 7785,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc8d2025e98",
+          "body_photo_button_verified": true,
+          "photo_sha256": "241c0ad613812b8ed261931269bdd3c164fc1a163e0766fe58311892cf08c5e2",
+          "text_sha256": "6dcdf7cefdb8c0c4de5b605b23fb093e4b9534c1d67cfd0de12af5db0ea40611",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 26844,
+      "name": "OUTRIGGER Mauritius Beach Resort",
+      "verified_at_utc": "2026-11-17T23:13:08Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 26844,
+          "logical_id": "commercial-hotel-26844-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1048",
+          "button_url": "https://t.me/anyru_bot?start=p_rkYCujPYEyuJQU7AA320COK9",
+          "publication_id": 2247,
+          "version_id": 7776,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1048",
+          "body_photo_button_verified": true,
+          "photo_sha256": "afdbdcb60a51798851eaa9da37eda52db663c348184d3f824b88354dfe2285b3",
+          "text_sha256": "6fa46ff040db85fa2f33adce2e461097b7cba731a1814778055c1c3344ae66f2",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 26844,
+          "logical_id": "commercial-hotel-26844-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryNtrBug",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_7mGoVFUlTaFxqkEKKU62AP8s",
+          "publication_id": 2257,
+          "version_id": 7786,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc8db6b06e8",
+          "body_photo_button_verified": true,
+          "photo_sha256": "afdbdcb60a51798851eaa9da37eda52db663c348184d3f824b88354dfe2285b3",
+          "text_sha256": "6fa46ff040db85fa2f33adce2e461097b7cba731a1814778055c1c3344ae66f2",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 2522,
+      "name": "Beach Rotana",
+      "verified_at_utc": "2026-11-17T23:13:08Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 2522,
+          "logical_id": "commercial-hotel-2522-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1049",
+          "button_url": "https://t.me/anyru_bot?start=p_R6uuEJ0Wlu6SYInzciWIcWBr",
+          "publication_id": 2248,
+          "version_id": 7777,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1049",
+          "body_photo_button_verified": true,
+          "photo_sha256": "a44f50ce07f439708ec217ff337815331c901acde409c0169cb2bd5111b2e624",
+          "text_sha256": "51d77e5e203fbaeab5b0e17c431b460b4b9c9ec761baf03f5c267e690dd8f8f8",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 2522,
+          "logical_id": "commercial-hotel-2522-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryOR8K-k",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_HbjZaxWco-9GzwxOHIRGtJh6",
+          "publication_id": 2258,
+          "version_id": 7787,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc8e47c2be9",
+          "body_photo_button_verified": true,
+          "photo_sha256": "a44f50ce07f439708ec217ff337815331c901acde409c0169cb2bd5111b2e624",
+          "text_sha256": "51d77e5e203fbaeab5b0e17c431b460b4b9c9ec761baf03f5c267e690dd8f8f8",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 1703,
+      "name": "Royal Asarlık Beach Hotel & Spa",
+      "verified_at_utc": "2026-11-17T23:13:08Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 1703,
+          "logical_id": "commercial-hotel-1703-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1050",
+          "button_url": "https://t.me/anyru_bot?start=p_yx8tRwNSUdjtzkHCRCgzdB00",
+          "publication_id": 2249,
+          "version_id": 7778,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1050",
+          "body_photo_button_verified": true,
+          "photo_sha256": "e40912b2dbddb1bdf60acf72476c4c5a2d0d5868fcac9727c973b080b8460e56",
+          "text_sha256": "41d079fc4f18ceacfbd11637aa16f7f39658e26de73d38fc94967b0e3063198b",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 1703,
+          "logical_id": "commercial-hotel-1703-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryO4tMO0",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_QP49d-eHkrN9PkmBg1Lf78rK",
+          "publication_id": 2259,
+          "version_id": 7788,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc8ee2d30ed",
+          "body_photo_button_verified": true,
+          "photo_sha256": "e40912b2dbddb1bdf60acf72476c4c5a2d0d5868fcac9727c973b080b8460e56",
+          "text_sha256": "41d079fc4f18ceacfbd11637aa16f7f39658e26de73d38fc94967b0e3063198b",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 11753,
+      "name": "InterContinental Resort Mauritius",
+      "verified_at_utc": "2026-11-17T23:13:08Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 11753,
+          "logical_id": "commercial-hotel-11753-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1051",
+          "button_url": "https://t.me/anyru_bot?start=p_kj0wg5I_G8K0TtW5A9Zk2xSH",
+          "publication_id": 2250,
+          "version_id": 7779,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1051",
+          "body_photo_button_verified": true,
+          "photo_sha256": "627bba78b4438a72c41f5126afd6c1ce2889a34c3d9a579924cd5773fd6ca64b",
+          "text_sha256": "0dea3fbf84d0be62d43a103aaf80fcdaa898ef1781f31101f7ac3919ade46e05",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 11753,
+          "logical_id": "commercial-hotel-11753-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryPd4AI4",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_yEV9u1vXG4cJbuHSBVhL67nx",
+          "publication_id": 2260,
+          "version_id": 7789,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc8f778008e",
+          "body_photo_button_verified": true,
+          "photo_sha256": "627bba78b4438a72c41f5126afd6c1ce2889a34c3d9a579924cd5773fd6ca64b",
+          "text_sha256": "0dea3fbf84d0be62d43a103aaf80fcdaa898ef1781f31101f7ac3919ade46e05",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 2721,
+      "name": "Paradisus Varadero Resort & Spa",
+      "verified_at_utc": "2026-11-17T23:13:08Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 2721,
+          "logical_id": "commercial-hotel-2721-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1052",
+          "button_url": "https://t.me/anyru_bot?start=p_Y3PXpbjsU8TRcGNgAD6i0Fp9",
+          "publication_id": 2251,
+          "version_id": 7780,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1052",
+          "body_photo_button_verified": true,
+          "photo_sha256": "c5bc810b156067ce612cd9a986d8e224e13b22f76451788a6f05500a74091577",
+          "text_sha256": "405132e073ced734bd081a45b2ad4f876681ecb941a652456ee074bb8070d8fa",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 2721,
+          "logical_id": "commercial-hotel-2721-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryQEifWQ",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_UIPM9Q5cW9iH_kaGDPv8hxVP",
+          "publication_id": 2261,
+          "version_id": 7790,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc901227d64",
+          "body_photo_button_verified": true,
+          "photo_sha256": "c5bc810b156067ce612cd9a986d8e224e13b22f76451788a6f05500a74091577",
+          "text_sha256": "405132e073ced734bd081a45b2ad4f876681ecb941a652456ee074bb8070d8fa",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 77685,
+      "name": "Hilton Dubai Palm Jumeirah",
+      "verified_at_utc": "2026-11-17T23:13:08Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 77685,
+          "logical_id": "commercial-hotel-77685-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1053",
+          "button_url": "https://t.me/anyru_bot?start=p_CzmfyxzlY5gId4nEgx99cuvl",
+          "publication_id": 2252,
+          "version_id": 7781,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1053",
+          "body_photo_button_verified": true,
+          "photo_sha256": "f976b0883977aa436627953d3eb84d167f26c874fec0b7f1e5468cfb8ae1742b",
+          "text_sha256": "fbbdca6e1a932aa7b839ff20cd24f2c3e2078818dbb5de14efa3258c4ff69445",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 77685,
+          "logical_id": "commercial-hotel-77685-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryQszDN8",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_5k1PFg1aDUUPVAqBhGfiFivZ",
+          "publication_id": 2262,
+          "version_id": 7791,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc90b330cdf",
+          "body_photo_button_verified": true,
+          "photo_sha256": "f976b0883977aa436627953d3eb84d167f26c874fec0b7f1e5468cfb8ae1742b",
+          "text_sha256": "fbbdca6e1a932aa7b839ff20cd24f2c3e2078818dbb5de14efa3258c4ff69445",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 15910,
+      "name": "Azure Villas by Cornelia",
+      "verified_at_utc": "2026-11-17T23:13:08Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 15910,
+          "logical_id": "commercial-hotel-15910-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1054",
+          "button_url": "https://t.me/anyru_bot?start=p_2yigP_6A9ZaRRGs1UWA86ZM5",
+          "publication_id": 2253,
+          "version_id": 7782,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1054",
+          "body_photo_button_verified": true,
+          "photo_sha256": "0535828c14c404f17337ff493815d0f4ccd32ef079c8052619b6d2abf2f9ba45",
+          "text_sha256": "0fc2a10b417c9171b5d23a7a475baff42d92ae14993715fb285f0c00751d026b",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 15910,
+          "logical_id": "commercial-hotel-15910-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryRTpGfc",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_lwadKeqViNuhDt67llEe77T2",
+          "publication_id": 2263,
+          "version_id": 7792,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc914e919f7",
+          "body_photo_button_verified": true,
+          "photo_sha256": "0535828c14c404f17337ff493815d0f4ccd32ef079c8052619b6d2abf2f9ba45",
+          "text_sha256": "0fc2a10b417c9171b5d23a7a475baff42d92ae14993715fb285f0c00751d026b",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 331,
+      "name": "Mövenpick Resort El Quseir",
+      "verified_at_utc": "2026-11-17T23:14:27Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 331,
+          "logical_id": "commercial-hotel-331-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1055",
+          "button_url": "https://t.me/anyru_bot?start=p_KYvsYlPpnsJZ81m8NC_T4zr2",
+          "publication_id": 2264,
+          "version_id": 7793,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1055",
+          "body_photo_button_verified": true,
+          "photo_sha256": "2bb318695652df951f274f1e632d18e4992c46f021325a4a94edcc62986dd1de",
+          "text_sha256": "e8e617c2e3f25535dc18ae69c8edfc70a22d68edda5795d8a4b01bf6e8cddc9f",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 331,
+          "logical_id": "commercial-hotel-331-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryeoXTB8",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_wjn5eO9IBnlJFysgAEvVvPFV",
+          "publication_id": 2274,
+          "version_id": 7803,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc9ea174c1f",
+          "body_photo_button_verified": true,
+          "photo_sha256": "2bb318695652df951f274f1e632d18e4992c46f021325a4a94edcc62986dd1de",
+          "text_sha256": "e8e617c2e3f25535dc18ae69c8edfc70a22d68edda5795d8a4b01bf6e8cddc9f",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 2794,
+      "name": "Cinnamon Bentota Beach",
+      "verified_at_utc": "2026-11-17T23:14:27Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 2794,
+          "logical_id": "commercial-hotel-2794-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1056",
+          "button_url": "https://t.me/anyru_bot?start=p_B_3ZYP-JVJC4QshbC29XcexI",
+          "publication_id": 2265,
+          "version_id": 7794,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1056",
+          "body_photo_button_verified": true,
+          "photo_sha256": "7c78176df1e91d7a571d0c6a0e7cc057fe4d49732388cc4a225ae6b1988a78f0",
+          "text_sha256": "aa38cc43bdb9aa3c55f1aabad93ae9bbcedf3c8919c0ca9e1f597a6cd80caf51",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 2794,
+          "logical_id": "commercial-hotel-2794-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryfPyPm8",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_RJ75w6wi3StJl5SmExklbBZs",
+          "publication_id": 2275,
+          "version_id": 7804,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc9f3f23e6f",
+          "body_photo_button_verified": true,
+          "photo_sha256": "7c78176df1e91d7a571d0c6a0e7cc057fe4d49732388cc4a225ae6b1988a78f0",
+          "text_sha256": "aa38cc43bdb9aa3c55f1aabad93ae9bbcedf3c8919c0ca9e1f597a6cd80caf51",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 33531,
+      "name": "Savoy Seychelles Resort & Spa",
+      "verified_at_utc": "2026-11-17T23:14:27Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 33531,
+          "logical_id": "commercial-hotel-33531-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1057",
+          "button_url": "https://t.me/anyru_bot?start=p_QWrFQS08r7cJvTfxSnRmKspY",
+          "publication_id": 2266,
+          "version_id": 7795,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1057",
+          "body_photo_button_verified": true,
+          "photo_sha256": "aa86bac4c20a3ac029a24d39dd2915b13a8a565bc501151c81a28b6967c7d71e",
+          "text_sha256": "ed9367443aa93a5b82964acdc35e77a3a4bd9dbd63962d0eab6154f573f1baa6",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 33531,
+          "logical_id": "commercial-hotel-33531-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryf1LGsY",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_enrP1SFJeO1Yi9uZm2mKZElZ",
+          "publication_id": 2276,
+          "version_id": 7805,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebc9fd4b1ac6",
+          "body_photo_button_verified": true,
+          "photo_sha256": "aa86bac4c20a3ac029a24d39dd2915b13a8a565bc501151c81a28b6967c7d71e",
+          "text_sha256": "ed9367443aa93a5b82964acdc35e77a3a4bd9dbd63962d0eab6154f573f1baa6",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 330,
+      "name": "Mövenpick Resort Taba",
+      "verified_at_utc": "2026-11-17T23:14:27Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 330,
+          "logical_id": "commercial-hotel-330-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1058",
+          "button_url": "https://t.me/anyru_bot?start=p_REDipgpLxRTrEE62yM4WxEAw",
+          "publication_id": 2267,
+          "version_id": 7796,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1058",
+          "body_photo_button_verified": true,
+          "photo_sha256": "fc454a103d958fc609e2ae9943abd726269b5bb009d9a63be4eebd8ffbb2925b",
+          "text_sha256": "796ca9e5c4391fd4b494df065e05b97e2da14c61b4c06aa063f8601a44260a9c",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 330,
+          "logical_id": "commercial-hotel-330-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrygaVah8",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_8Xci6HQAssmM8y7ysuMWh-Df",
+          "publication_id": 2277,
+          "version_id": 7806,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebca06956a1f",
+          "body_photo_button_verified": true,
+          "photo_sha256": "fc454a103d958fc609e2ae9943abd726269b5bb009d9a63be4eebd8ffbb2925b",
+          "text_sha256": "796ca9e5c4391fd4b494df065e05b97e2da14c61b4c06aa063f8601a44260a9c",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 11847,
+      "name": "Hilton Seychelles Northolme Resort & Spa",
+      "verified_at_utc": "2026-11-17T23:14:27Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 11847,
+          "logical_id": "commercial-hotel-11847-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1059",
+          "button_url": "https://t.me/anyru_bot?start=p_wQPUO2n9ELTD2kv8d70Du_du",
+          "publication_id": 2268,
+          "version_id": 7797,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1059",
+          "body_photo_button_verified": true,
+          "photo_sha256": "a039eb92cfd32a31f34b5c899f08ce932d00d0cdf1b9932593772c01ea4e7034",
+          "text_sha256": "4f333ef88f0d038c3b21621542f3496c573b6c7301256000ce286745bd86a022",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 11847,
+          "logical_id": "commercial-hotel-11847-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryhBQBrA",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_9YX6EBZcvvWnBOOO3Y_5rGUo",
+          "publication_id": 2278,
+          "version_id": 7807,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebca105006b0",
+          "body_photo_button_verified": true,
+          "photo_sha256": "a039eb92cfd32a31f34b5c899f08ce932d00d0cdf1b9932593772c01ea4e7034",
+          "text_sha256": "4f333ef88f0d038c3b21621542f3496c573b6c7301256000ce286745bd86a022",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 11851,
+      "name": "Kempinski Seychelles Resort Baie Lazare",
+      "verified_at_utc": "2026-11-17T23:14:27Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 11851,
+          "logical_id": "commercial-hotel-11851-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1060",
+          "button_url": "https://t.me/anyru_bot?start=p_G6a8BusWG7mO5pwq9Riq53EN",
+          "publication_id": 2269,
+          "version_id": 7798,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1060",
+          "body_photo_button_verified": true,
+          "photo_sha256": "301677137e250133afede3500a87e59536ee8706163c36333308a9a682c4fa57",
+          "text_sha256": "bff5c213a634d29345d31e365d77c4433b6d9b49ad10c45bdc9e545322f523b8",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 11851,
+          "logical_id": "commercial-hotel-11851-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryhveIY4",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_VBknJ7Cv1Z3WnfQC7w_O9JLf",
+          "publication_id": 2279,
+          "version_id": 7808,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebca1bde218e",
+          "body_photo_button_verified": true,
+          "photo_sha256": "301677137e250133afede3500a87e59536ee8706163c36333308a9a682c4fa57",
+          "text_sha256": "bff5c213a634d29345d31e365d77c4433b6d9b49ad10c45bdc9e545322f523b8",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 17608,
+      "name": "Royal Atlantis Spa & Resort",
+      "verified_at_utc": "2026-11-17T23:14:27Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 17608,
+          "logical_id": "commercial-hotel-17608-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1061",
+          "button_url": "https://t.me/anyru_bot?start=p_iYfGvv2IpdeIkalAC3TySg01",
+          "publication_id": 2270,
+          "version_id": 7799,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1061",
+          "body_photo_button_verified": true,
+          "photo_sha256": "3c14172ef01fb630978fa4ae71f756de4586330d225f8ce309f5e6fbd48906e3",
+          "text_sha256": "95865f7bfccae416063deb8bd4c5bc076be4cbaf3afae7d110744461cb967ef7",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 17608,
+          "logical_id": "commercial-hotel-17608-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryiUrDVM",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_pULHOg2T__p-906oW7LW977z",
+          "publication_id": 2280,
+          "version_id": 7809,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebca252b0d53",
+          "body_photo_button_verified": true,
+          "photo_sha256": "3c14172ef01fb630978fa4ae71f756de4586330d225f8ce309f5e6fbd48906e3",
+          "text_sha256": "95865f7bfccae416063deb8bd4c5bc076be4cbaf3afae7d110744461cb967ef7",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 43743,
+      "name": "The Villa Bentota",
+      "verified_at_utc": "2026-11-17T23:14:27Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 43743,
+          "logical_id": "commercial-hotel-43743-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1062",
+          "button_url": "https://t.me/anyru_bot?start=p_bSh-Bsc82OUmYuoSuiMlW0wz",
+          "publication_id": 2271,
+          "version_id": 7800,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1062",
+          "body_photo_button_verified": true,
+          "photo_sha256": "77f97921ccf86e97a049917ec73fef0d6cb30e7ae32d820cb55cbb54dc473a24",
+          "text_sha256": "43013b99f88bd182226d2fbad85727f61db00b7446fe4d61ba34804bcdd33086",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 43743,
+          "logical_id": "commercial-hotel-43743-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryi7eHb4",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_rBaa_xTBrgB0OaWgT6y-XiCE",
+          "publication_id": 2281,
+          "version_id": 7810,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebca2ede1dbe",
+          "body_photo_button_verified": true,
+          "photo_sha256": "77f97921ccf86e97a049917ec73fef0d6cb30e7ae32d820cb55cbb54dc473a24",
+          "text_sha256": "43013b99f88bd182226d2fbad85727f61db00b7446fe4d61ba34804bcdd33086",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 76288,
+      "name": "Mango House Seychelles",
+      "verified_at_utc": "2026-11-17T23:14:27Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 76288,
+          "logical_id": "commercial-hotel-76288-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1063",
+          "button_url": "https://t.me/anyru_bot?start=p_BMqKyB5fNDVAzTyHKbNQb_Yd",
+          "publication_id": 2272,
+          "version_id": 7801,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1063",
+          "body_photo_button_verified": true,
+          "photo_sha256": "9096ff2393aeaa91a7dff7c02625e0196b8e26ce252b79a5227aca600fcde5fd",
+          "text_sha256": "0494ad1f96e82608ee3d16ba4cbc28be7bb1397086032126d4683a8e13c3f528",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 76288,
+          "logical_id": "commercial-hotel-76288-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryjhHSms",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_-wRJimsxc4Y10ikcYGc2DyJk",
+          "publication_id": 2282,
+          "version_id": 7811,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebca38474a6b",
+          "body_photo_button_verified": true,
+          "photo_sha256": "9096ff2393aeaa91a7dff7c02625e0196b8e26ce252b79a5227aca600fcde5fd",
+          "text_sha256": "0494ad1f96e82608ee3d16ba4cbc28be7bb1397086032126d4683a8e13c3f528",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 77810,
+      "name": "Mövenpick Resort El Sokhna",
+      "verified_at_utc": "2026-11-17T23:14:27Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 77810,
+          "logical_id": "commercial-hotel-77810-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1064",
+          "button_url": "https://t.me/anyru_bot?start=p_ilOpjpDlFIFVurProoMsU4Er",
+          "publication_id": 2273,
+          "version_id": 7802,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1064",
+          "body_photo_button_verified": true,
+          "photo_sha256": "e2137930f1cf22eb091dbc77738a8f98a16cf9ab994115503a3eaa28a304af2b",
+          "text_sha256": "b19745fb40c1dac511fdd0c801c8f2bb332b364168c6690eb77fc6642e84f596",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 77810,
+          "logical_id": "commercial-hotel-77810-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrykN5UiI",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_XhUgHn0oJQQ_7YgIEA1QHvMr",
+          "publication_id": 2283,
+          "version_id": 7812,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebca43795222",
+          "body_photo_button_verified": true,
+          "photo_sha256": "e2137930f1cf22eb091dbc77738a8f98a16cf9ab994115503a3eaa28a304af2b",
+          "text_sha256": "b19745fb40c1dac511fdd0c801c8f2bb332b364168c6690eb77fc6642e84f596",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 5545,
+      "name": "Royal Alhambra Palace",
+      "verified_at_utc": "2026-11-17T23:15:44Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 5545,
+          "logical_id": "commercial-hotel-5545-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1065",
+          "button_url": "https://t.me/anyru_bot?start=p_iRUYutQuswGqETpcA_W7MlXd",
+          "publication_id": 2284,
+          "version_id": 7813,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1065",
+          "body_photo_button_verified": true,
+          "photo_sha256": "42d2dbc05e25c60fb38b39eecf732ddc39ef58c0decdcceea4e4cb24b2e929d4",
+          "text_sha256": "3db091d43ee685643486b4b623391261a6cc4c9213b2fd3dca707934c9c3fcdc",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 5545,
+          "logical_id": "commercial-hotel-5545-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryyDYPxc",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_Kuop8pZx2l1GsGUlMucQF7oh",
+          "publication_id": 2294,
+          "version_id": 7823,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebcb20d83f17",
+          "body_photo_button_verified": true,
+          "photo_sha256": "42d2dbc05e25c60fb38b39eecf732ddc39ef58c0decdcceea4e4cb24b2e929d4",
+          "text_sha256": "3db091d43ee685643486b4b623391261a6cc4c9213b2fd3dca707934c9c3fcdc",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 4549,
+      "name": "Zoëtry Agua Punta Cana",
+      "verified_at_utc": "2026-11-17T23:15:44Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 4549,
+          "logical_id": "commercial-hotel-4549-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1066",
+          "button_url": "https://t.me/anyru_bot?start=p_6p6w7lbhMV5Y_x11nNgZ2kcX",
+          "publication_id": 2285,
+          "version_id": 7814,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1066",
+          "body_photo_button_verified": true,
+          "photo_sha256": "63d88dba760dadcc03e7abfc85c890e524b20e1ddcdcf35871e2ad292929896a",
+          "text_sha256": "ea22950432ffce78c1d6cbc0a68ca9099af41350959519dfb8dd477febd5cbb0",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 4549,
+          "logical_id": "commercial-hotel-4549-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryyryXZo",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_dhKldFVsiTMbhgCfu8uastPd",
+          "publication_id": 2295,
+          "version_id": 7824,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebcb2af25d9a",
+          "body_photo_button_verified": true,
+          "photo_sha256": "63d88dba760dadcc03e7abfc85c890e524b20e1ddcdcf35871e2ad292929896a",
+          "text_sha256": "ea22950432ffce78c1d6cbc0a68ca9099af41350959519dfb8dd477febd5cbb0",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 64110,
+      "name": "C Mauritius",
+      "verified_at_utc": "2026-11-17T23:15:44Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 64110,
+          "logical_id": "commercial-hotel-64110-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1067",
+          "button_url": "https://t.me/anyru_bot?start=p_DqGZGjKCBdx75puUUCXQ3geH",
+          "publication_id": 2286,
+          "version_id": 7815,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1067",
+          "body_photo_button_verified": true,
+          "photo_sha256": "e201a97e0b9e568b2e24ed4d2f51980d233e052e2aa367c16b4f4bd5adf60b27",
+          "text_sha256": "dd7de51a72041eda40e62a12514db96439a58b428a486355d04d5a2e42f4254e",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 64110,
+          "logical_id": "commercial-hotel-64110-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryzSiUsg",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_WaBEHbQMi_y852gbQVkhshps",
+          "publication_id": 2296,
+          "version_id": 7825,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebcb34a252c8",
+          "body_photo_button_verified": true,
+          "photo_sha256": "e201a97e0b9e568b2e24ed4d2f51980d233e052e2aa367c16b4f4bd5adf60b27",
+          "text_sha256": "dd7de51a72041eda40e62a12514db96439a58b428a486355d04d5a2e42f4254e",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 69424,
+      "name": "Selectum Hacienda Punta Cana",
+      "verified_at_utc": "2026-11-17T23:15:44Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 69424,
+          "logical_id": "commercial-hotel-69424-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1068",
+          "button_url": "https://t.me/anyru_bot?start=p_Kl5vY01gYvtSRCLevuSQQBdL",
+          "publication_id": 2287,
+          "version_id": 7816,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1068",
+          "body_photo_button_verified": true,
+          "photo_sha256": "ff6dd07d59701ae1b45841494bdca5f8997f546dbf72cd95594a8553e2ffac71",
+          "text_sha256": "eba4ac6d48b9544f276aa3c0dffeb613d667771eb30860405d57c9b6bf8ab94b",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 69424,
+          "logical_id": "commercial-hotel-69424-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHryz4vOdc",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_Ou0wpDIwJOA1yvL9Usge4gAj",
+          "publication_id": 2297,
+          "version_id": 7826,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebcb3e2f39d7",
+          "body_photo_button_verified": true,
+          "photo_sha256": "ff6dd07d59701ae1b45841494bdca5f8997f546dbf72cd95594a8553e2ffac71",
+          "text_sha256": "eba4ac6d48b9544f276aa3c0dffeb613d667771eb30860405d57c9b6bf8ab94b",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 2635,
+      "name": "Park Rotana",
+      "verified_at_utc": "2026-11-17T23:15:44Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 2635,
+          "logical_id": "commercial-hotel-2635-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1069",
+          "button_url": "https://t.me/anyru_bot?start=p_zIy4yl4hF5f1t66mf1XpnCur",
+          "publication_id": 2288,
+          "version_id": 7817,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1069",
+          "body_photo_button_verified": true,
+          "photo_sha256": "d54e93f0abcdd3c21ea4f58948a1cb7a652bdbe08b04543e263da6f39e95d558",
+          "text_sha256": "fec142f7b5833a007d0dd06c0d13496bbeca75d3684b60826b360e9366f491fd",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 2635,
+          "logical_id": "commercial-hotel-2635-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHry0d7ZhM",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_2diaV1BuYl0EjeWnUTy5x-ym",
+          "publication_id": 2298,
+          "version_id": 7827,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebcb477b6613",
+          "body_photo_button_verified": true,
+          "photo_sha256": "d54e93f0abcdd3c21ea4f58948a1cb7a652bdbe08b04543e263da6f39e95d558",
+          "text_sha256": "fec142f7b5833a007d0dd06c0d13496bbeca75d3684b60826b360e9366f491fd",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 8923,
+      "name": "Le Méridien Dubai Hotel & Conference Centre",
+      "verified_at_utc": "2026-11-17T23:15:44Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 8923,
+          "logical_id": "commercial-hotel-8923-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1070",
+          "button_url": "https://t.me/anyru_bot?start=p_wFOF7dARTfJVLGTCmJZwVCyL",
+          "publication_id": 2289,
+          "version_id": 7818,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1070",
+          "body_photo_button_verified": true,
+          "photo_sha256": "ae75ebbc02147fff30f84f8588761b64be3ca6c47b035373b331f3ffb03ad6b5",
+          "text_sha256": "ec65c57ff11de94954e9954722833b6b2f74912545d91a07f7eeb1a375f05c9a",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 8923,
+          "logical_id": "commercial-hotel-8923-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHry1DZOl4",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_NGdtmZ3nbaLd7NCoyWr6XS35",
+          "publication_id": 2299,
+          "version_id": 7828,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebcb50d93a5e",
+          "body_photo_button_verified": true,
+          "photo_sha256": "ae75ebbc02147fff30f84f8588761b64be3ca6c47b035373b331f3ffb03ad6b5",
+          "text_sha256": "ec65c57ff11de94954e9954722833b6b2f74912545d91a07f7eeb1a375f05c9a",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 11792,
+      "name": "SO Sofitel Mauritius",
+      "verified_at_utc": "2026-11-17T23:15:44Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 11792,
+          "logical_id": "commercial-hotel-11792-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1071",
+          "button_url": "https://t.me/anyru_bot?start=p_9BxSMFI0ypmxZORRq9HYFbpZ",
+          "publication_id": 2290,
+          "version_id": 7819,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1071",
+          "body_photo_button_verified": true,
+          "photo_sha256": "b218c8be9fcffdeea8a90885c071991488ba69fa69f0e6d2a25ab5f13aff7565",
+          "text_sha256": "00e02b9ad41707041060a76a53860e6d02a54b3933d2e64502d4f74beb358a10",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 11792,
+          "logical_id": "commercial-hotel-11792-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHry1qJT9w",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_Dss3dRelEg9tbfm_70I-momo",
+          "publication_id": 2300,
+          "version_id": 7829,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebcb5a894fdc",
+          "body_photo_button_verified": true,
+          "photo_sha256": "b218c8be9fcffdeea8a90885c071991488ba69fa69f0e6d2a25ab5f13aff7565",
+          "text_sha256": "00e02b9ad41707041060a76a53860e6d02a54b3933d2e64502d4f74beb358a10",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 59548,
+      "name": "Al Bandar Arjaan by Rotana",
+      "verified_at_utc": "2026-11-17T23:15:44Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 59548,
+          "logical_id": "commercial-hotel-59548-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1072",
+          "button_url": "https://t.me/anyru_bot?start=p_h3ggXIbb_2ZCsSNBSdLNN9TW",
+          "publication_id": 2291,
+          "version_id": 7820,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1072",
+          "body_photo_button_verified": true,
+          "photo_sha256": "289df012338ef05608f283a2129a1a6d360b5352bcec70aa6ea1752e2b459e37",
+          "text_sha256": "5679bf0b0a080e29cab50480637084cfcbe1c79d516f7d6b79e2d11f717283b0",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 59548,
+          "logical_id": "commercial-hotel-59548-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHry2QTNOM",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_JgWeWn9UExycOXsSwBMFyFgj",
+          "publication_id": 2301,
+          "version_id": 7830,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebcb641334e3",
+          "body_photo_button_verified": true,
+          "photo_sha256": "289df012338ef05608f283a2129a1a6d360b5352bcec70aa6ea1752e2b459e37",
+          "text_sha256": "5679bf0b0a080e29cab50480637084cfcbe1c79d516f7d6b79e2d11f717283b0",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 73995,
+      "name": "Al Jaddaf Rotana Suite Hotel",
+      "verified_at_utc": "2026-11-17T23:15:44Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 73995,
+          "logical_id": "commercial-hotel-73995-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1073",
+          "button_url": "https://t.me/anyru_bot?start=p_iyESQEeHCs_-ebc-Ub4knNTP",
+          "publication_id": 2292,
+          "version_id": 7821,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1073",
+          "body_photo_button_verified": true,
+          "photo_sha256": "a7ab27f12ed58b14bf9656ed1929d8024c12951c4802241650df7d5c8d94d1bb",
+          "text_sha256": "827c03a570ed77f7c28d06c2b76d4680e1001fa2fd05dea86d1d09d25d046dcf",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 73995,
+          "logical_id": "commercial-hotel-73995-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHry22hcX8",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_dfPIOBQ6QmXmAUQJ3HTRMkNb",
+          "publication_id": 2302,
+          "version_id": 7831,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebcb6da1717f",
+          "body_photo_button_verified": true,
+          "photo_sha256": "a7ab27f12ed58b14bf9656ed1929d8024c12951c4802241650df7d5c8d94d1bb",
+          "text_sha256": "827c03a570ed77f7c28d06c2b76d4680e1001fa2fd05dea86d1d09d25d046dcf",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 78210,
+      "name": "The WB Abu Dhabi, Curio Collection by Hilton",
+      "verified_at_utc": "2026-11-17T23:15:44Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 78210,
+          "logical_id": "commercial-hotel-78210-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1074",
+          "button_url": "https://t.me/anyru_bot?start=p_SUBclakTgP30meZf8oTzU2VO",
+          "publication_id": 2293,
+          "version_id": 7822,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1074",
+          "body_photo_button_verified": true,
+          "photo_sha256": "cf170d39c339f24d15e85bb9b0b0b372435b73ea8a05097565a66f063868c2c5",
+          "text_sha256": "dd972a5b846650e1cf909036b0515f1df54c01cd4691fa0d84fd57f0a9534f2d",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 78210,
+          "logical_id": "commercial-hotel-78210-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHry3baQbI",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_rszQpxK-W3-V9mgUPCpS4TbA",
+          "publication_id": 2303,
+          "version_id": 7832,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebcb76da41b2",
+          "body_photo_button_verified": true,
+          "photo_sha256": "cf170d39c339f24d15e85bb9b0b0b372435b73ea8a05097565a66f063868c2c5",
+          "text_sha256": "dd972a5b846650e1cf909036b0515f1df54c01cd4691fa0d84fd57f0a9534f2d",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 2680,
+      "name": "Address Downtown",
+      "verified_at_utc": "2026-11-17T23:17:02Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 2680,
+          "logical_id": "commercial-hotel-2680-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1075",
+          "button_url": "https://t.me/anyru_bot?start=p_Whw0m1DoGRHKWmkMC5la_d1K",
+          "publication_id": 2304,
+          "version_id": 7833,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1075",
+          "body_photo_button_verified": true,
+          "photo_sha256": "b49b641f9d602bdc2de22e6793b2d3a329b538a5611361dfbb58c22aad5b49ad",
+          "text_sha256": "fbdd40b504a0d52f5dedad699b3ee7af4ececf9c88a5f9bdbf56f9aab95a16e3",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 2680,
+          "logical_id": "commercial-hotel-2680-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrzE4QS8o",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_uqNFViH6LgcJ9V9xL3ymej0J",
+          "publication_id": 2314,
+          "version_id": 7843,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebcc4e104bca",
+          "body_photo_button_verified": true,
+          "photo_sha256": "b49b641f9d602bdc2de22e6793b2d3a329b538a5611361dfbb58c22aad5b49ad",
+          "text_sha256": "fbdd40b504a0d52f5dedad699b3ee7af4ececf9c88a5f9bdbf56f9aab95a16e3",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 66299,
+      "name": "Address Sky View",
+      "verified_at_utc": "2026-11-17T23:17:02Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 66299,
+          "logical_id": "commercial-hotel-66299-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1076",
+          "button_url": "https://t.me/anyru_bot?start=p_vgpthaJhyexNvIoH8hBoY612",
+          "publication_id": 2305,
+          "version_id": 7834,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1076",
+          "body_photo_button_verified": true,
+          "photo_sha256": "49c88edb6c4ae38c497c0d0bab07fea171f7fd92fbb2d585671d9906ce6096b5",
+          "text_sha256": "a9b015a37ad9299054ff259c2292afe8880d4a75e09486355cc357ce106961bc",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 66299,
+          "logical_id": "commercial-hotel-66299-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrzFfDFbg",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_d95d3jv3tIj5n7gFzs_Ta5gA",
+          "publication_id": 2315,
+          "version_id": 7844,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebcc57c315b8",
+          "body_photo_button_verified": true,
+          "photo_sha256": "49c88edb6c4ae38c497c0d0bab07fea171f7fd92fbb2d585671d9906ce6096b5",
+          "text_sha256": "a9b015a37ad9299054ff259c2292afe8880d4a75e09486355cc357ce106961bc",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 17513,
+      "name": "Liberty Lykia Adults Only",
+      "verified_at_utc": "2026-11-17T23:17:02Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 17513,
+          "logical_id": "commercial-hotel-17513-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1077",
+          "button_url": "https://t.me/anyru_bot?start=p_R5soWCQJH2FOgY_qwy3vjpxH",
+          "publication_id": 2306,
+          "version_id": 7835,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1077",
+          "body_photo_button_verified": true,
+          "photo_sha256": "2de08e5e77785e530e2da70c8cbdeb4c077e6f716a3cc844b96f9856d4720b07",
+          "text_sha256": "4ba601b1367d68a6af23b4bbb8d587f9d222c38f4c89153ac11468e0f702eb1b",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 17513,
+          "logical_id": "commercial-hotel-17513-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrzGGUQas",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_EOCkNWTXchwpBfy0cz1JoaZs",
+          "publication_id": 2316,
+          "version_id": 7845,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebcc619441ab",
+          "body_photo_button_verified": true,
+          "photo_sha256": "2de08e5e77785e530e2da70c8cbdeb4c077e6f716a3cc844b96f9856d4720b07",
+          "text_sha256": "4ba601b1367d68a6af23b4bbb8d587f9d222c38f4c89153ac11468e0f702eb1b",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 74644,
+      "name": "Al Bandar Rotana",
+      "verified_at_utc": "2026-11-17T23:17:02Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 74644,
+          "logical_id": "commercial-hotel-74644-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1078",
+          "button_url": "https://t.me/anyru_bot?start=p_hE2RHzjMp7Uw9bwXYdjpcZ-s",
+          "publication_id": 2307,
+          "version_id": 7836,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1078",
+          "body_photo_button_verified": true,
+          "photo_sha256": "9a7d33a8f140625cd5b644b54fe6d533d27e8628dcb9888ab0eda08baff9b6de",
+          "text_sha256": "7b6699ca97bc83b1912ebc4266e176374003a3f16b36581fa3ff5b033f4b7b90",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 74644,
+          "logical_id": "commercial-hotel-74644-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrzGsVBK0",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_kfYPKQ2cyyUJ8dio0joKtIIS",
+          "publication_id": 2317,
+          "version_id": 7846,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebcc6b1504ad",
+          "body_photo_button_verified": true,
+          "photo_sha256": "9a7d33a8f140625cd5b644b54fe6d533d27e8628dcb9888ab0eda08baff9b6de",
+          "text_sha256": "7b6699ca97bc83b1912ebc4266e176374003a3f16b36581fa3ff5b033f4b7b90",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 1321,
+      "name": "Liberty Lara",
+      "verified_at_utc": "2026-11-17T23:17:02Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 1321,
+          "logical_id": "commercial-hotel-1321-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1079",
+          "button_url": "https://t.me/anyru_bot?start=p_YdyM7y7ldn8ekKz0AujR04-x",
+          "publication_id": 2308,
+          "version_id": 7837,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1079",
+          "body_photo_button_verified": true,
+          "photo_sha256": "edbf74be1a5f510fbad0262b6aec88ab5bf7138f5fb479a437859e23b4ad95ce",
+          "text_sha256": "750b65627e95a6b403918e64e59dfcd06c3ddb66a20aac25ffd0e525d401f486",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 1321,
+          "logical_id": "commercial-hotel-1321-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrzHRWCyg",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_CzxkSkBFQ9RlWgxEDHErvQDn",
+          "publication_id": 2318,
+          "version_id": 7847,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebcc74560b28",
+          "body_photo_button_verified": true,
+          "photo_sha256": "edbf74be1a5f510fbad0262b6aec88ab5bf7138f5fb479a437859e23b4ad95ce",
+          "text_sha256": "750b65627e95a6b403918e64e59dfcd06c3ddb66a20aac25ffd0e525d401f486",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 2750,
+      "name": "Excellence Punta Cana",
+      "verified_at_utc": "2026-11-17T23:17:02Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 2750,
+          "logical_id": "commercial-hotel-2750-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1080",
+          "button_url": "https://t.me/anyru_bot?start=p_zLPhLYCGB0WbPCUldi8syXs3",
+          "publication_id": 2309,
+          "version_id": 7838,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1080",
+          "body_photo_button_verified": true,
+          "photo_sha256": "be6ce1a2e5c34d5eedd75bb91f374e2351796aca8a962fc9840abe83f722bc6b",
+          "text_sha256": "97d8c4e93a7fdbb49a177a96c5b5a165745773dbee79a5e9506c2e579771a4dc",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 2750,
+          "logical_id": "commercial-hotel-2750-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrzH4LN7M",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_-knFkTqpR1F6qCGM71JRZXag",
+          "publication_id": 2319,
+          "version_id": 7848,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebcc7e0b37b3",
+          "body_photo_button_verified": true,
+          "photo_sha256": "be6ce1a2e5c34d5eedd75bb91f374e2351796aca8a962fc9840abe83f722bc6b",
+          "text_sha256": "97d8c4e93a7fdbb49a177a96c5b5a165745773dbee79a5e9506c2e579771a4dc",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 8420,
+      "name": "Tortuga Bay Hotel",
+      "verified_at_utc": "2026-11-17T23:17:02Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 8420,
+          "logical_id": "commercial-hotel-8420-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1081",
+          "button_url": "https://t.me/anyru_bot?start=p_Ya00nK5RIfBdX6rCNeAdfjuy",
+          "publication_id": 2310,
+          "version_id": 7839,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1081",
+          "body_photo_button_verified": true,
+          "photo_sha256": "e6b1f54e69cb23c2357c7d062ee9a307af051e38b8c122df891dc8475c48682d",
+          "text_sha256": "fb101e0e187b70fc5dc8b14f52677803475bb448c9f51bc0c03b5297e9af0116",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 8420,
+          "logical_id": "commercial-hotel-8420-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrzIf7Pl0",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_vLTOsSDGqoxZE9l_QYE8DZJw",
+          "publication_id": 2320,
+          "version_id": 7849,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebcc87fb3e5d",
+          "body_photo_button_verified": true,
+          "photo_sha256": "e6b1f54e69cb23c2357c7d062ee9a307af051e38b8c122df891dc8475c48682d",
+          "text_sha256": "fb101e0e187b70fc5dc8b14f52677803475bb448c9f51bc0c03b5297e9af0116",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 33549,
+      "name": "Royalton CHIC Punta Cana",
+      "verified_at_utc": "2026-11-17T23:17:02Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 33549,
+          "logical_id": "commercial-hotel-33549-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1082",
+          "button_url": "https://t.me/anyru_bot?start=p_nimpqdpi4tBqo14mi6unWY-Q",
+          "publication_id": 2311,
+          "version_id": 7840,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1082",
+          "body_photo_button_verified": true,
+          "photo_sha256": "e64a90b8bba9a4454bb8b7682c614bfce7eaa604087e1f031769cc5dc4e106c0",
+          "text_sha256": "582aaf2c475dc58251712d48ada0d72c30f553e6ebe0d3c9cba1929ca8a40e27",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 33549,
+          "logical_id": "commercial-hotel-33549-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrzJFkKY8",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_tVPK-8SdZSHa2VwNBhkI10Uu",
+          "publication_id": 2321,
+          "version_id": 7850,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebcc9164298f",
+          "body_photo_button_verified": true,
+          "photo_sha256": "e64a90b8bba9a4454bb8b7682c614bfce7eaa604087e1f031769cc5dc4e106c0",
+          "text_sha256": "582aaf2c475dc58251712d48ada0d72c30f553e6ebe0d3c9cba1929ca8a40e27",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 77595,
+      "name": "Sundia Exclusive by Liberty Fethiye",
+      "verified_at_utc": "2026-11-17T23:17:02Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 77595,
+          "logical_id": "commercial-hotel-77595-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1083",
+          "button_url": "https://t.me/anyru_bot?start=p_wOO-vcbNqWa9bHjP2WSpHHDb",
+          "publication_id": 2312,
+          "version_id": 7841,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1083",
+          "body_photo_button_verified": true,
+          "photo_sha256": "57756af5ee0e3f5ae3e0d92f35ed98966c872ebe0c2e9fe65f9b993eae52f3b6",
+          "text_sha256": "3b23afa180eeeb0cec9c90562796437b2515a998b602a3e9b64a7fbc235e3f88",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 77595,
+          "logical_id": "commercial-hotel-77595-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrzJqxcrE",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_SVS5UclhXi9a6HuVKPsgEq5_",
+          "publication_id": 2322,
+          "version_id": 7851,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebcc9ab172b1",
+          "body_photo_button_verified": true,
+          "photo_sha256": "57756af5ee0e3f5ae3e0d92f35ed98966c872ebe0c2e9fe65f9b993eae52f3b6",
+          "text_sha256": "3b23afa180eeeb0cec9c90562796437b2515a998b602a3e9b64a7fbc235e3f88",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    },
+    {
+      "hotel_id": 2766,
+      "name": "Majestic Elegance Punta Cana",
+      "verified_at_utc": "2026-11-17T23:17:02Z",
+      "platforms": {
+        "telegram": {
+          "hotel_id": 2766,
+          "logical_id": "commercial-hotel-2766-v1",
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/1084",
+          "button_url": "https://t.me/anyru_bot?start=p_lNcYruyda7muclIwq6B4E1wV",
+          "publication_id": 2313,
+          "version_id": 7842,
+          "source_key": "tg_anytour_msk",
+          "message_id": "1084",
+          "body_photo_button_verified": true,
+          "photo_sha256": "63d537aada8230cfbcdbe46f76c3dcc940a53a3264e0adaf7442cba566c5511f",
+          "text_sha256": "712fe8ba6b0d3caf7fa59112d2f6d0bc701c1cbc94c46467485d043c7a2bc92f",
+          "state": "sent",
+          "reused": false
+        },
+        "max": {
+          "hotel_id": 2766,
+          "logical_id": "commercial-hotel-2766-v1",
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaHrzKbbEko",
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_S8cj2HsJ2FfpYj7RXx-d08Ds",
+          "publication_id": 2323,
+          "version_id": 7852,
+          "source_key": "max_anytour_msk1",
+          "message_id": "mid.ffffb6caf0606fed01a1ebcca6db124a",
+          "body_photo_button_verified": true,
+          "photo_sha256": "63d537aada8230cfbcdbe46f76c3dcc940a53a3264e0adaf7442cba566c5511f",
+          "text_sha256": "712fe8ba6b0d3caf7fa59112d2f6d0bc701c1cbc94c46467485d043c7a2bc92f",
+          "state": "sent",
+          "reused": false
+        }
+      }
+    }
+  ]
+}
