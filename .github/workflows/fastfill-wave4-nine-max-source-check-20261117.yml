@@ -1,0 +1,174 @@
+name: One-shot W4 nine existing TG receipts and new MAX source acceptance
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/fastfill-wave4-nine-max-source-check-20261117.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  source-only:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == 'c1b84a4ca10558b770c2a1d5ca293c60dae9d55f' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+          sparse-checkout: |
+            tools/direct_demand/operations
+            .github/traffic-publish/commercial-wave4-100-20261117
+      - name: Reuse original unchanged publisher preparation controls
+        run: python3 tools/direct_demand/operations/check-commercial-batch-preparation.py
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read-only installed application and clean tracked files; no deployment
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p pub
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" -o ServerAliveInterval=15 -o ServerAliveCountMax=2)
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0; app=/var/www/anytoour/data/www/app.anytoour.ru; test -d "$app/.git" && test ! -L "$app"; cd "$app"; test -z "$(git status --porcelain --untracked-files=no)"; git rev-parse HEAD' > pub/runtime-readonly.txt
+          cat pub/runtime-readonly.txt
+      - name: Accept same nine captions/photos; exact existing TG reuse and nine new MAX, no sends
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = c1b84a4ca10558b770c2a1d5ca293c60dae9d55f
+          python3 - <<'PY'
+          import base64,hashlib,io,json,pathlib,re,runpy,subprocess,zipfile
+          PHOTO='e53eede2df5dbc5da5f72b04c0ac8777819cd8dc';PREFIX='.github/traffic-publish/commercial-wave4-100-20261117/';EXPECTED_APP='3ffab7f2e2d01c8cd35144fba621897e4ad75e5d'
+          INPUT=json.loads(r'''[{"hotel_id":22718,"hotel":"Avani+ Mai Khao Phuket Suites & Villas","aliases":["Avani+ Mai Khao Phuket Suites & Villas","AVANI+ MAI KHAO PHUKET SUITES & VILLAS"],"text":"✈️ Туры в Avani+ Mai Khao Phuket Suites & Villas\n📍 Пхукет, Таиланд.\n\nПросторные сьюты и виллы для семейного Пхукета: бассейн среди зелени, детский клуб и рестораны. В сьютах есть оборудованная кухня, а до песчаного Май Као около 300 метров через дорогу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=22718","sources":["https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=22718","https://www.avanihotels.com/uploads/minor/avani/documents/vmai/hotel-info/avani-mai-khao-phuket-suites-and-villa-fact-sheet.pdf?la=en"],"photo_blob_sha":"f00e3a9303903786e7f0eb46f9f4748b2990b3f9"},{"hotel_id":541,"hotel":"Amari Pattaya","aliases":["Amari Pattaya","AMARI OCEAN PATTAYA","AMARI ORCHID OCEAN TOWER","Amari Ocean Pattaya"],"text":"✈️ Туры в Amari Pattaya\n📍 Паттайя, Таиланд.\n\nСемейная Паттайя с бассейнами, водными развлечениями и детским клубом. Рестораны и спа помогут отдохнуть между прогулками, а городской песчаный пляж находится примерно в 150 метрах через дорогу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=541","sources":["https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=541","https://www.amari.com/pattaya"],"photo_blob_sha":"f0c7188df2088907d0b8a1460d4ec22b786a2fba"},{"hotel_id":2006,"hotel":"Centara Grand Beach Resort Phuket","aliases":["Centara Grand Beach Resort Phuket","CENTARA GRAND BEACH RESORT PHUKET"],"text":"✈️ Туры в Centara Grand Beach Resort Phuket\n📍 Пхукет, Таиланд.\n\nКарон для ярких семейных каникул: пляж перед отелем, бассейны и аквапарк с ленивой рекой. Пока дети заняты в клубе и на игровых площадках, взрослые могут выбрать спа или ужин у моря.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2006","sources":["https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2006"],"photo_blob_sha":"9c495e72c2642f9c7b992915d513423e979dc8f6"},{"hotel_id":9385,"hotel":"Cape Dara Resort","aliases":["Cape Dara Resort","CAPE DARA RESORT"],"text":"✈️ Туры в Cape Dara Resort\n📍 Паттайя, Таиланд.\n\nМорские панорамы северной Паттайи, два бассейна и рестораны для красивого отпуска. Есть детский клуб и спа-процедуры. У отеля галечный берег, поэтому бассейны особенно кстати.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=9385","sources":["https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=9385"],"photo_blob_sha":"1b2f5bd76d9cb6683f56494b0bfda2811fda86d7"},{"hotel_id":3006,"hotel":"Angsana Villas Resort Phuket","aliases":["Angsana Villas Resort Phuket","ANGSANA VILLAS RESORT PHUKET","OUTRIGGER LAGUNA RESORT AND VILLA"],"text":"✈️ Туры в Angsana Villas Resort Phuket\n📍 Пхукет, Таиланд.\n\nПросторные сьюты и виллы в районе Лагуна для отдыха семьёй или своей компанией. Два бассейна, детский клуб и возможность пользоваться шаттлом по комплексу помогут провести отпуск в спокойном ритме.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=3006","sources":["https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=3006","https://www.angsana.com/contact-us"],"photo_blob_sha":"65f3bc7d9e1988b5095ebf638b13cd9119dbf0e1"},{"hotel_id":82422,"hotel":"Avani Chaweng Samui Hotel & Beach Club","aliases":["Avani Chaweng Samui Hotel & Beach Club","AVANI CHAWENG SAMUI HOTEL & BEACH CLUB ADULTS ONLY"],"text":"✈️ Туры в Avani Chaweng Samui Hotel & Beach Club\n📍 Самуи, Таиланд.\n\nСамуи для гостей от 18 лет: бассейн, пляжный клуб SEEN и песчаный Чавенг. Подойдёт для отпуска вдвоём или с друзьями, когда хочется совместить море и оживлённую курортную атмосферу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82422","sources":["https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82422"],"photo_blob_sha":"6d1be05d864b08e209da946b4061a2ad74dbdcd2"},{"hotel_id":81140,"hotel":"SAii Koh Samui Villas 12+","aliases":["SAii Koh Samui Villas 12+","SAII KOH SAMUI VILLAS ADULTS ONLY 12+","SAII KOH SAMUI CHOENGMON"],"text":"✈️ Туры в SAii Koh Samui Villas 12+\n📍 Самуи, Таиланд.\n\nВиллы с собственными бассейнами и тропический сад для гостей от 12 лет. Спокойный Самуи, спа и пляжный клуб у бассейна; на природном пляже каменистый вход в море.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=81140","sources":["https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=81140"],"photo_blob_sha":"0ca9d5f7f178c5728805a40c3ba6882545d037de"},{"hotel_id":8020,"hotel":"The Lamai Samui","aliases":["The Lamai Samui","THE LAMAI SAMUI","LE MERIDIEN KOH SAMUI RESORT & SPA"],"text":"✈️ Туры в The Lamai Samui\n📍 Самуи, Таиланд.\n\nТропический сад у пляжа Ламай, бассейн, рестораны и спа для спокойного Самуи. Можно выбрать сьют или виллу и проводить дни между морем, отдыхом у воды и тайскими ужинами.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8020","sources":["https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8020"],"photo_blob_sha":"d453391b2971810f188ed534829c2fbf35d773cf"},{"hotel_id":51931,"hotel":"Amari Bangsaen","aliases":["Amari Bangsaen","AMARI BANGSAEN","TIDE RESORT"],"text":"✈️ Туры в Amari Bangsaen\n📍 Банг Саен, Таиланд.\n\nБанг Саен для спокойных дней у моря и прогулок по местным кафе. Отель расположен напротив пляжа; бассейн, спа и детский клуб помогут устроить короткий отпуск или семейные каникулы.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=51931","sources":["https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=51931","https://www.amari.com/bangsaen/location","https://jp.amari.com/bangsaen/about-us"],"photo_blob_sha":"d1ea27578d3040788a3f4e612bb2841cebc82727"}]''')
+          def api(p):return json.loads(subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+p],timeout=60))
+
+          r=api('actions/runs/44135479839');assert r['conclusion']=='success' and r['run_attempt']==1 and r['head_sha']=='1ae1426be5140e830aac037b5a192a64f1260f07'
+          zraw=subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/actions/artifacts/14352400936/zip'],timeout=90)
+          assert hashlib.sha256(zraw).hexdigest()=='68b6b7b15b785452bff436893c754d2434e574d2686188e2c8cc02364c9c3ce9'
+          with zipfile.ZipFile(io.BytesIO(zraw)) as z:
+              assert z.testzip() is None
+              oldmanifest=z.read('manifest.json');obs=json.loads(z.read('result.json'))
+          assert hashlib.sha256(oldmanifest).hexdigest()=='0582a2a09439fae97b810f1a6ba3317e54facf0632cbc95a84633494d79f37fb'
+          oldrows={x['hotel_id']:x for x in json.loads(oldmanifest)['rows']}
+          for row in INPUT:
+              old=oldrows[row['hotel_id']]
+              assert row['text']==old['text'] and row['aliases']==old['aliases'] and row['sources']==old['sources'] and row['hotel_id']!=66375
+              got=next(x for x in obs['publications'] if x['platform']=='telegram' and x['hotel_id']==row['hotel_id'])
+              p=got['current_publication'];assert p['state']=='sent' and p['text_sha256']==old['text_sha256'] and got['saved_photo_sha256']==old['photo_sha256']
+              assert got['saved_state']=='confirmed' and got['saved_receipt']['body_photo_button_verified']
+              assert p['receipt']['button_verified'] and p['receipt']['content_preserved']
+          assert all(not x['file_exists'] for x in obs['publications'] if x['platform']=='max')
+
+          prior=api('actions/runs/44128332213');assert prior['conclusion']=='success' and prior['run_attempt']==1 and prior['head_sha']=='62c19a4113b894e1901046de73620749b9c977cc'
+          correction=api('actions/runs/44131495535');assert correction['conclusion']=='success' and correction['run_attempt']==1 and correction['head_sha']=='4d73bc465e7ccd550351077cb8902e90e4ca764e'
+          artifact=api('actions/artifacts/14349510612');assert not artifact['expired'] and artifact['workflow_run']['id']==44128332213 and artifact['digest']=='sha256:81f83bd3975d4b7f3d27b3e002f4ca4afceadc66ac9eca47826e185883effc01'
+          screenzip=subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/actions/artifacts/14349510612/zip'],timeout=90)
+          assert hashlib.sha256(screenzip).hexdigest()=='81f83bd3975d4b7f3d27b3e002f4ca4afceadc66ac9eca47826e185883effc01'
+          with zipfile.ZipFile(io.BytesIO(screenzip)) as z:
+              assert z.testzip() is None and z.namelist()==['wave4-100-screen.json']
+              screenbytes=z.read('wave4-100-screen.json');screen=json.loads(screenbytes)
+          assert screen['ok'] and screen['matches']==screen['matched_hotel_ids']==[] and len(screen['inspected_hotel_ids'])==100
+          assert screen['sender_calls']==screen['db_writes']==screen['provider_calls']==0 and screen['trusted_component_files']==22
+          APP=pathlib.Path('pub/runtime-readonly.txt').read_text().strip();assert APP==EXPECTED_APP
+          MAIN=api('git/ref/heads/main')['object']['sha']
+          source=pathlib.Path('tools/direct_demand/operations')
+          template=(source/'commercial-batch-template-20261102.php').read_text()
+          assert hashlib.sha256(template.encode()).hexdigest()=='4c4aaa2e50155a69e8bd8b9f460777026735b0c51c3b2fc253cf0b7556e53ed5'
+          assert subprocess.check_output(['git','hash-object',str(source/'prepare-commercial-batch.py')],text=True).strip()=='8df7a35474b138364b6e6c010af4fa484e350ddb'
+          pairs=[('f0e04e9b4e0ed6859ced96279cbf0619931596e6','1982ff7368763edf8b7238c3142e3cc28579e991'),('db8181426091a685a79ee55991cde22671f0d9dd','7304af19cc19666f00ca4ead1b04c2bdce719646')]
+          protected=re.findall(r'"([^"]+)"=>"([a-f0-9]{40})"',template);assert len(protected)==22
+          for commit in set([APP,MAIN]):
+              tree=api('git/trees/'+commit+'?recursive=1');assert not tree['truncated']
+              actual={e['path']:e['sha'] for e in tree['tree']}
+              for path,sha in protected:assert actual[path]==dict(pairs).get(sha,sha),('publisher_surface_drift',commit,path)
+          phototree=api('git/trees/'+PHOTO+'?recursive=1');assert not phototree['truncated'];photoblobs={e['path']:e['sha'] for e in phototree['tree']}
+          rec=json.loads(pathlib.Path(PREFIX+'cover-receipt.json').read_bytes())
+          assert len(rec['rows'])==100 and rec['prepared_count']==81 and rec['held_count']==19 and rec['sender_calls']==rec['feed_writes']==0
+          correction_receipt=pathlib.Path(PREFIX+'photo-correction-receipt.json').read_bytes()
+          assert subprocess.check_output(['git','hash-object',PREFIX+'photo-correction-receipt.json'],text=True).strip()=='8f67d127c52f2427b6c827e89d1b37996bfec760'
+          assert set(c['id'] for c in json.loads(correction_receipt)['changes'])=={22718,47213}
+          assert len(INPUT)==len(set(r['hotel_id'] for r in INPUT))==9 and 136396 not in [r['hotel_id'] for r in INPUT]
+          assert set(r['hotel_id'] for r in INPUT).issubset(set(screen['inspected_hotel_ids']))
+          prepare=runpy.run_path(str(source/'prepare-commercial-batch.py'))['prepare']
+          out=pathlib.Path('wave4-nine-max-accepted-source');out.mkdir();files={};batches=[]
+          for i in range(0,len(INPUT),10):
+              batch=35+i//10;items=INPUT[i:i+10]
+              manifest={'schema_version':1,'operation':'commercial-hotel-batch-20261117-'+str(batch)+'-v1','state':'PREPARED_NOT_SENT','button_text':'✈️ Узнать стоимость тура','expected_new_full_pairs':len(items),'photo_freeze_commit':PHOTO,'native_id_namespace':'Tourvisor','rows':[]}
+              for row in items:
+                  hid=row['hotel_id'];receipt=next(x for x in rec['rows'] if x['id']==hid)
+                  assert receipt['status']=='prepared_needs_visual_acceptance' and not receipt['send_allowed']
+                  name=PREFIX+str(hid)+'.png';b=pathlib.Path(name).read_bytes()
+                  assert photoblobs[name]==row['photo_blob_sha']==hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()
+                  assert hashlib.sha256(b).hexdigest()==receipt['png_sha256'] and len(receipt['photo_sources'])==3
+                  assert len(row['text'].encode('utf-16-le'))//2<=1024 and len(row['text'])>150
+                  assert row['text'].startswith('✈️ Туры в '+row['hotel']+'\n📍 ') and 'Подберём тур на ваши даты.' in row['text']
+                  manifest['rows'].append({'hotel_id':hid,'logical_id':'commercial-hotel-'+str(hid)+'-v1','aliases':row['aliases'],'text':row['text'],'text_sha256':hashlib.sha256(row['text'].encode()).hexdigest(),'photo_url':'https://raw.githubusercontent.com/pyatkoff/max-search-bot/'+PHOTO+'/'+name,'photo_sha256':receipt['png_sha256'],'media_state':'REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED','sources':row['sources']})
+              raw=(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n').encode()
+              approval={'schema_version':1,'operation':manifest['operation'],'expected_installed_sha':APP,'hotel_ids':[r['hotel_id'] for r in items],'manifest_sha256':hashlib.sha256(raw).hexdigest()}
+              php,report=prepare(template,raw,approval)
+              for a,b in pairs:
+                  assert php.count(a)==1 and php.count(b)==0;php=php.replace(a,b)
+              files['p'+str(batch)+'-manifest.json']=raw;files['p'+str(batch)+'-approval.json']=(json.dumps(approval,ensure_ascii=False,indent=2)+'\n').encode();files['p'+str(batch)+'-publisher-unexecuted.php']=php.encode()
+              batches.append({'batch':batch,'operation':manifest['operation'],'ids':approval['hotel_ids'],'rows':len(items),'publisher_sha256':hashlib.sha256(php.encode()).hexdigest()})
+          files['provider-facts.json']=pathlib.Path(PREFIX+'provider-facts.json').read_bytes();files['cover-receipt-original.json']=pathlib.Path(PREFIX+'cover-receipt.json').read_bytes()
+          files['runtime-readonly.txt']=pathlib.Path('pub/runtime-readonly.txt').read_bytes();files['native-screen-original.json']=screenbytes
+          files['photo-correction-receipt.json']=correction_receipt
+          held=json.loads(r'''[{"id":128320,"name":"Villa Escape Burasari","reason":"related_villas_vs_existing_island_escape70051_requires_separate_admission"},{"id":120118,"name":"Marriott Vacation Club Khao Lak Beach Resort","reason":"related_vacation_club_vs_existing_jw4309_requires_separate_admission"},{"id":82673,"name":"Minor Vacation Club Mai Khao Phuket","reason":"vacation_club_related_identity_requires_separate_admission"},{"id":12184,"name":"Amari Pattaya","reason":"potential_duplicate_current_amari_pattaya_vs541"},{"id":47574,"name":"Amari Residences Pattaya","reason":"old_brand_current_operating_identity_unconfirmed"},{"id":4408,"name":"Six Senses Sanctuary","reason":"legacy_six_senses_sanctuary_current_operation_unconfirmed"},{"id":7879,"name":"Banyan Tree Spa Sanctuary","reason":"related_spa_sanctuary_vs_banyan_tree574_requires_separate_admission"},{"id":67911,"name":"Anantara Chiang Mai Serviced Suites","reason":"serviced_suites_parent_property_requires_separate_admission"},{"id":79674,"name":"Layan Residences by Anantara","reason":"related_residences_vs_existing_layan28272_requires_separate_admission"},{"id":104056,"name":"Hyatt Regency Hua Hin & The Barai","reason":"spa_wing_vs_current_hyatt12201_not_separate_hotel_admitted"},{"id":119793,"name":"Oakwood Hotel & Residence Sri Racha","reason":"AssertionError:no_paid_provider_photo_source"},{"id":127812,"name":"Rachamankha Chiang Mai","reason":"AssertionError:no_paid_provider_photo_source"},{"id":149886,"name":"Cape Laem Sor Estate","reason":"AssertionError:no_paid_provider_photo_source"},{"id":78203,"name":"Mövenpick Villas & Residences Phu Quoc","reason":"related_villas_residences_vs_existing_waverly71241_requires_separate_admission"},{"id":125105,"name":"Best Western Premier Sonasea Villas","reason":"related_villas_parent_sonasea_requires_separate_admission"},{"id":153824,"name":"Meliá Serenity Cam Ranh Beach Resort","reason":"AssertionError:fewer_than_three_valid_source_images"},{"id":156371,"name":"Meliá Aurea Nha Trang","reason":"AssertionError:fewer_than_three_valid_source_images"},{"id":23730,"name":"Fusion Alya","reason":"legacy_project_no_current_primary_operating_identity"},{"id":61610,"name":"Vinpearl Danang Riverfront Suites","reason":"old_brand_alias_of_current_melia_danang_riverfront104973"},{"hotel_id":136396,"reason":"hero_appears_architectural_render; require real photographic source before commercial publication"}]''')
+          files['held-editorial.json']=(json.dumps(held,ensure_ascii=False,indent=2)+'\n').encode()
+          for n,b in files.items():(out/n).write_bytes(b)
+          receipt={'state':'WAVE4_NINE_MAX_EXISTING_TG_REUSE_SOURCE_ONLY','runtime_sha':APP,'main_sha':MAIN,'cover_commit':PHOTO,'protected_surfaces':22,'modified_hash_pins':2,'send_attempts':0,'feed_writes':0,'total_rows':9,'expected_reused_telegram':9,'expected_new_max':9,'failed_p27_preserved':True,'held_telegram_publication':1947,'all_hundred_classified':True,'held_before_visual':19,'additionally_excluded':[136396],'visual_qa_sheets':7,'corrected_visual_ids':[22718,47213],'screen_run_id':44128332213,'screen_artifact_sha256':'81f83bd3975d4b7f3d27b3e002f4ca4afceadc66ac9eca47826e185883effc01','batches':batches,'files':{n:hashlib.sha256(b).hexdigest() for n,b in files.items()}}
+          (out/'receipt.json').write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+'\n')
+          print('WAVE4_NINE_MAX_ACCEPTED_SOURCE_RECEIPT_JSON '+json.dumps(receipt,separators=(',',':')))
+          PY
+          for p in wave4-nine-max-accepted-source/*-publisher-unexecuted.php; do php -l "$p"; done
+      - name: Preserve exact accepted inputs and unexecuted original publisher
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fastfill-wave4-nine-max-accepted-source-20261117
+          path: wave4-nine-max-accepted-source/*
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Remove runner-only authentication
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
