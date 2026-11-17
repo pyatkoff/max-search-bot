@@ -1,0 +1,149 @@
+name: One-shot FASTFILL reserve18 editorial and unchanged publisher source acceptance
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/fastfill-reserve18-source-rebind-20261117.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  source-only:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '150ffa31ce3412c257f4ec4d9c18db0afdbac41e' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+          sparse-checkout: |
+            tools/direct_demand/operations
+            .github/traffic-publish/commercial-wave2-reserve65-20261117
+      - name: Reuse original unchanged publisher preparation controls
+        run: python3 tools/direct_demand/operations/check-commercial-batch-preparation.py
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read-only installed application and clean tracked files; no deployment
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p pub
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = cece6e7bd9b1d1b8984a14df2910c8a1d36e900f
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" -o ServerAliveInterval=15 -o ServerAliveCountMax=2)
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0; app=/var/www/anytoour/data/www/app.anytoour.ru; test -d "$app/.git" && test ! -L "$app"; cd "$app"; test -z "$(git status --porcelain --untracked-files=no)"; git rev-parse HEAD' > pub/runtime-readonly.txt
+          cat pub/runtime-readonly.txt
+      - name: Accept all reviewed captions and covers; generate only bounded source files
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = 150ffa31ce3412c257f4ec4d9c18db0afdbac41e
+          python3 - <<'PY'
+          import base64,hashlib,json,pathlib,re,runpy,subprocess
+          MAIN='cece6e7bd9b1d1b8984a14df2910c8a1d36e900f';BASE='13d8ee014dd3d59aca038ec50cfde340b2ee062a'
+          PREFIX='.github/traffic-publish/commercial-wave2-reserve65-20261117/'
+          INPUT=json.loads(r'''[{"hotel_id":77942,"hotel":"25hours Hotel Dubai One Central","aliases":["25hours Hotel Dubai One Central","25HOURS DUBAI ONE CENTRAL"],"text":"✈️ Туры в 25hours Hotel Dubai One Central\n📍 Дубай, ОАЭ.\n\nНеобычный дизайнерский Дубай рядом со Всемирным торговым центром. Бассейн, рестораны, библиотека и спа для отпуска с яркой атмосферой и городскими открытиями.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=77942","extra_sources":[],"photo_blob_sha":"c79a4a3c3223d91b2e45458119689e1d868a4880"},{"hotel_id":46724,"hotel":"ibis One Central","aliases":["ibis One Central","IBIS ONE CENTRAL"],"text":"✈️ Туры в ibis One Central\n📍 Дубай, ОАЭ.\n\nДубай для самостоятельных прогулок: метро World Trade Centre в пешей доступности. Ресторан, фитнес-зал и доступ к бассейну соседнего Novotel WTC дополняют городской отдых.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=46724","extra_sources":[],"photo_blob_sha":"997f510a62cbd1470f65f2544a66399b309d4c15"},{"hotel_id":13996,"hotel":"Media One Hotel","aliases":["Media One Hotel","MEDIA ONE HOTEL"],"text":"✈️ Туры в Media One Hotel\n📍 Дубай, ОАЭ.\n\nСовременный Дубай в районе Media City: бассейн, рестораны и виды на город. Подойдёт для активного отпуска, в котором хочется сочетать прогулки с приятными вечерами в отеле.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=13996","extra_sources":[],"photo_blob_sha":"93b9f98bd0b7a50fdec2e26892510a9207a62fb9"},{"hotel_id":63901,"hotel":"Mughal Suites","aliases":["Mughal Suites","MUGHAL SUITES","ONE TO ONE MUGHAL SUITES"],"text":"✈️ Туры в Mughal Suites\n📍 Рас-эль-Хайма, ОАЭ.\n\nПросторные апартаменты с одной, двумя и тремя спальнями для семейного отпуска. Бассейн, детская площадка и общественный песчаный пляж в нескольких минутах ходьбы.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=63901","extra_sources":[],"photo_blob_sha":"418bf1cbc47ef524f3c203ab78647bb727d8760e"},{"hotel_id":13845,"hotel":"Villaggio Hotel Abu Dhabi","aliases":["Villaggio Hotel Abu Dhabi","VILLAGGIO HOTEL ABU DHABI","ONE TO ONE HOTEL THE VILLAGE"],"text":"✈️ Туры в Villaggio Hotel Abu Dhabi\n📍 Абу-Даби, ОАЭ.\n\nУютная городская атмосфера Абу-Даби с зеленью и невысокими корпусами. Рестораны, спа и детская игровая площадка для спокойных дней между прогулками и экскурсиями.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=13845","extra_sources":[],"photo_blob_sha":"b140d67d4d0457fa1f7d169b0c38158c75c826db"},{"hotel_id":45287,"hotel":"Number One Tower Suites","aliases":["Number One Tower Suites","NUMBER ONE TOWER SUITES"],"text":"✈️ Туры в Number One Tower Suites\n📍 Дубай, ОАЭ.\n\nГородской Дубай с комфортным возвращением после прогулок и шопинга. Бассейн, сауна, фитнес-центр и ресторан помогут провести отпуск в удобном ритме.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=45287","extra_sources":[],"photo_blob_sha":"5bee6531dc378aed70bd7f605faaf09ef5251a4b"},{"hotel_id":44984,"hotel":"Milestone Hotel Apartments","aliases":["Milestone Hotel Apartments","MILESTONE APARTMENT"],"text":"✈️ Туры в Milestone Hotel Apartments\n📍 Дубай, ОАЭ.\n\nАпартаменты в Дубае для тех, кому хочется больше домашнего комфорта в путешествии. Бассейн, фитнес-центр и детский клуб дополняют отдых всей семьёй.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=44984","extra_sources":[],"photo_blob_sha":"e7e77b1f18e1f98f6764fefc08e547feab66a27a"},{"hotel_id":23290,"hotel":"Wescott Plaza Hotel Apartments","aliases":["Wescott Plaza Hotel Apartments","WESCOTT PLAZA HOTEL APARTMENTS","WEST ZONE"],"text":"✈️ Туры в Wescott Plaza Hotel Apartments\n📍 Дубай, ОАЭ.\n\nАпартаменты для городского отпуска в Дубае. Пространство для отдыха, ресторан и кафе подойдут тем, кто планирует много гулять и возвращаться в уютную обстановку.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23290","extra_sources":[],"photo_blob_sha":"3467618e54528f2a4b0f35d2334dca73b9897529"},{"hotel_id":38640,"hotel":"Pearl Swiss Hotel","aliases":["Pearl Swiss Hotel","PEARL SWISS HOTEL","BLACK STONE HOTEL"],"text":"✈️ Туры в Pearl Swiss Hotel\n📍 Дубай, ОАЭ.\n\nДубай в районе Дейра с открытым бассейном и рестораном. Комфортные номера и фитнес-центр для отдыха между прогулками по городу и новыми впечатлениями.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=38640","extra_sources":[],"photo_blob_sha":"90b180c4206ab85ef52c7be41222ca579992ef47"},{"hotel_id":128487,"hotel":"Mandarin Oriental Downtown Dubai","aliases":["Mandarin Oriental Downtown Dubai","MANDARIN ORIENTAL DOWNTOWN"],"text":"✈️ Туры в Mandarin Oriental Downtown Dubai\n📍 Дубай, ОАЭ.\n\nДубай с высоты и элегантным комфортом Mandarin Oriental. Бассейн на террасе, рестораны разных кухонь и двухэтажный спа для особенного городского отпуска.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=128487","extra_sources":[],"photo_blob_sha":"e42f267032e8ec3f4cbedb74de86301665aa051a"},{"hotel_id":68939,"hotel":"Hyatt Place Dubai Jumeirah","aliases":["Hyatt Place Dubai Jumeirah","HYATT PLACE DUBAI JUMEIRAH"],"text":"✈️ Туры в Hyatt Place Dubai Jumeirah\n📍 Дубай, ОАЭ.\n\nГородской отдых в Дубае с бассейном, садом и террасой для загара. Рестораны, спа и детский бассейн подойдут для спокойных дней между поездками и прогулками.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=68939","extra_sources":[],"photo_blob_sha":"cc6b8c13782fb01b6dbf81c90d8d5b62d9e72573"},{"hotel_id":77515,"hotel":"The First Collection at Jumeirah Village Circle","aliases":["The First Collection at Jumeirah Village Circle","THE FIRST COLLECTION AT JUMEIRAH VILLAGE CIRCLE"],"text":"✈️ Туры в The First Collection at Jumeirah Village Circle\n📍 Дубай, ОАЭ.\n\nСовременный Дубай в районе Jumeirah Village Circle. Бассейн, рестораны и спа для комфортного отпуска, в котором хочется чередовать городские открытия с отдыхом у воды.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=77515","extra_sources":[],"photo_blob_sha":"edbdcd6d0f3814cb67c1a4c516f7afbb2d1cf8b2"},{"hotel_id":69774,"hotel":"Waldorf Astoria Dubai International Financial Centre","aliases":["Waldorf Astoria Dubai International Financial Centre","WALDORF ASTORIA DUBAI INTERNATIONAL FINANCIAL CENTRE"],"text":"✈️ Туры в Waldorf Astoria Dubai International Financial Centre\n📍 Дубай, ОАЭ.\n\nЭлегантный городской отдых в деловом центре DIFC. Просторные номера и люксы, спа и трансфер в Dubai Mall для тех, кто ценит комфорт и любит открывать Дубай.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=69774","extra_sources":[],"photo_blob_sha":"b7936e9709a1ce5306b725a7723d6c4efc52ee78"},{"hotel_id":23283,"hotel":"Rixos Bab Al Bahr","aliases":["Rixos Bab Al Bahr","RIXOS BAB AL BAHR"],"text":"✈️ Туры в Rixos Bab Al Bahr\n📍 Рас-эль-Хайма, ОАЭ.\n\nСемейный курорт на острове Аль-Марджан с собственным песчаным пляжем. Бассейны, водные горки и детские клубы для каникул, в которых каждому найдётся занятие.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23283","extra_sources":[],"photo_blob_sha":"c52fdaac9a05dd76a72eac5f575dedde29343b4e"},{"hotel_id":76032,"hotel":"Kuda Villingili Resort Maldives","aliases":["Kuda Villingili Resort Maldives","KUDA VILLINGILI RESORT"],"text":"✈️ Туры в Kuda Villingili Resort Maldives\n📍 Северный Мале, Мальдивы.\n\nВиллы у океана на острове Северного Мале и большой бассейн длиной 150 метров. Рестораны, детский клуб и серфинг у Chicken’s Break для яркого мальдивского отпуска.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76032","extra_sources":[],"photo_blob_sha":"fe89cfbd30b224fbcb38412c25071c3a9a09f9ad"},{"hotel_id":2478,"hotel":"Shangri-La Villingili Resort & Spa","aliases":["Shangri-La Villingili Resort & Spa","SHANGRI-LA'S VILLINGILI RESORT & SPA"],"text":"✈️ Туры в Shangri-La Villingili Resort & Spa\n📍 Атолл Адду, Мальдивы.\n\nУединённые виллы с собственными бассейнами на тропическом острове в атолле Адду. Курорт вновь принимает гостей, инфраструктура открывается поэтапно.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2478","extra_sources":["https://www.shangri-la.com/en/landing/maldives-first-guests/","https://www.shangri-la.com/male/villingiliresort/"],"photo_blob_sha":"e7d201e2a1191f6c6a8abfe4b98c3a15b817369f"},{"hotel_id":132068,"hotel":"RAH GILI Maldives","aliases":["RAH GILI Maldives","RAH GILI MALDIVES"],"text":"✈️ Туры в RAH GILI Maldives\n📍 Южный Мале, Мальдивы.\n\nВиллы с частными бассейнами на острове Южного Мале. Домашний риф, спа и детский клуб для красивого отдыха вдвоём или всей семьёй среди океанских пейзажей.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=132068","extra_sources":["https://rahgili.com/media-centre/press-releases/rah-gili-maldives-set-to-redefine-luxury-with-six-private-islands-debut"],"photo_blob_sha":"9043016e4c165d528b02e969cfb93b2e95e46133"},{"hotel_id":158417,"hotel":"Cocomo Maldives","aliases":["Cocomo Maldives","COCOMO MALDIVES"],"text":"✈️ Туры в Cocomo Maldives\n📍 Остров Химмафуши, Мальдивы.\n\nОтдых на локальном острове Химмафуши для тех, кто хочет познакомиться с Мальдивами ближе. Открытый бассейн, ресторан и бикини-пляж примерно в 100 метрах от отеля.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.","source":"https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=158417","extra_sources":[],"photo_blob_sha":"6002d3a43bf9e17513ae1022ba1eded29cd5893a"}]''')
+          def api(p):return json.loads(subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+p],timeout=60))
+          assert api('git/ref/heads/main')['object']['sha']==MAIN
+          prior=api('actions/runs/44108174063')
+          assert prior['conclusion']=='success' and prior['run_attempt']==1 and prior['head_sha']=='0bf0dfceaeee0b7b0bb9b5b3ab117ba3c7d104df'
+          APP=pathlib.Path('pub/runtime-readonly.txt').read_text().strip()
+          assert APP in ['fd9b28dab2147f13f3b0d0f7f856b14392b141d2',MAIN],('unexpected_runtime',APP)
+          source=pathlib.Path('tools/direct_demand/operations')
+          template=(source/'commercial-batch-template-20261102.php').read_text()
+          assert hashlib.sha256(template.encode()).hexdigest()=='4c4aaa2e50155a69e8bd8b9f460777026735b0c51c3b2fc253cf0b7556e53ed5'
+          assert subprocess.check_output(['git','hash-object',str(source/'prepare-commercial-batch.py')],text=True).strip()=='8df7a35474b138364b6e6c010af4fa484e350ddb'
+          pairs=[('f0e04e9b4e0ed6859ced96279cbf0619931596e6','1982ff7368763edf8b7238c3142e3cc28579e991'),('db8181426091a685a79ee55991cde22671f0d9dd','7304af19cc19666f00ca4ead1b04c2bdce719646')]
+          protected=re.findall(r'"([^"]+)"=>"([a-f0-9]{40})"',template);assert len(protected)==22
+          for commit in set([APP,MAIN]):
+              tree=api('git/trees/'+commit+'?recursive=1');assert not tree['truncated']
+              actual={e['path']:e['sha'] for e in tree['tree']}
+              for path,sha in protected:assert actual[path]==dict(pairs).get(sha,sha),('publisher_surface_drift',commit,path)
+          rec=json.loads(pathlib.Path(PREFIX+'cover-receipt.json').read_bytes())
+          assert len(rec['rows'])==65 and rec['prepared_count']==39 and rec['held_count']==26 and rec['sender_calls']==rec['feed_writes']==0
+          assert len(INPUT)==18 and 43564 not in [r['hotel_id'] for r in INPUT]
+          prepare=runpy.run_path(str(source/'prepare-commercial-batch.py'))['prepare']
+          out=pathlib.Path('reserve18-accepted-source');out.mkdir()
+          files={};batches=[]
+          for i in range(0,len(INPUT),10):
+              batch=16+i//10;items=INPUT[i:i+10]
+              manifest={'schema_version':1,'operation':'commercial-hotel-batch-20261117-'+str(batch)+'-v1','state':'PREPARED_NOT_SENT','button_text':'✈️ Узнать стоимость тура','expected_new_full_pairs':len(items),'photo_freeze_commit':BASE,'native_id_namespace':'Tourvisor','rows':[]}
+              for row in items:
+                  hid=row['hotel_id'];receipt=next(x for x in rec['rows'] if x['id']==hid)
+                  assert receipt['status']=='prepared_needs_visual_acceptance' and not receipt['send_allowed']
+                  b=pathlib.Path(PREFIX+str(hid)+'.png').read_bytes()
+                  assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==row['photo_blob_sha']
+                  assert hashlib.sha256(b).hexdigest()==receipt['png_sha256']
+                  assert len(row['text'].encode('utf-16-le'))//2<=1024 and len(row['text'])>150
+                  assert row['text'].startswith('✈️ Туры в '+row['hotel']+'\n📍 ') and 'Подберём тур на ваши даты.' in row['text']
+                  manifest['rows'].append({'hotel_id':hid,'logical_id':'commercial-hotel-'+str(hid)+'-v1','aliases':row['aliases'],'text':row['text'],'text_sha256':hashlib.sha256(row['text'].encode()).hexdigest(),'photo_url':'https://raw.githubusercontent.com/pyatkoff/max-search-bot/'+BASE+'/'+PREFIX+str(hid)+'.png','photo_sha256':receipt['png_sha256'],'media_state':'REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED','sources':[row['source']]+row.get('extra_sources',[])})
+              raw=(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n').encode()
+              approval={'schema_version':1,'operation':manifest['operation'],'expected_installed_sha':APP,'hotel_ids':[r['hotel_id'] for r in items],'manifest_sha256':hashlib.sha256(raw).hexdigest()}
+              php,report=prepare(template,raw,approval)
+              for old,new in pairs:
+                  assert php.count(old)==1 and php.count(new)==0
+                  php=php.replace(old,new)
+              files['p'+str(batch)+'-manifest.json']=raw
+              files['p'+str(batch)+'-approval.json']=(json.dumps(approval,ensure_ascii=False,indent=2)+'\n').encode()
+              files['p'+str(batch)+'-publisher-unexecuted.php']=php.encode()
+              batches.append({'batch':batch,'operation':manifest['operation'],'ids':approval['hotel_ids'],'rows':len(items),'publisher_sha256':hashlib.sha256(php.encode()).hexdigest()})
+          files['provider-facts.json']=pathlib.Path(PREFIX+'provider-facts.json').read_bytes()
+          files['cover-receipt-original.json']=pathlib.Path(PREFIX+'cover-receipt.json').read_bytes()
+          files['runtime-readonly.txt']=pathlib.Path('pub/runtime-readonly.txt').read_bytes()
+          for name,b in files.items():(out/name).write_bytes(b)
+          receipt={'state':'EIGHTEEN_EDITORIAL_ACCEPTED_EXISTING_PUBLISHER_SOURCE_ONLY','runtime_sha':APP,'main_sha':MAIN,'cover_commit':BASE,'protected_surfaces':22,'modified_hash_pins':2,'send_attempts':0,'feed_writes':0,'total_rows':18,'all_sixtyfive_classified':True,'held_before_visual':26,'additionally_excluded':[{'hotel_id':43564,'reason':'old_brand_island_matches_existing_cora_cora74509_requires_no_duplicate'}],'batches':batches,'files':{n:hashlib.sha256(b).hexdigest() for n,b in files.items()}}
+          (out/'receipt.json').write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+'\n')
+          print('RESERVE18_ACCEPTED_SOURCE_RECEIPT_JSON '+json.dumps(receipt,separators=(',',':')))
+          
+          PY
+          for p in reserve18-accepted-source/*-publisher-unexecuted.php; do php -l "$p"; done
+      - name: Preserve exact accepted inputs and unexecuted original publisher
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fastfill-reserve18-accepted-source-20261117
+          path: reserve18-accepted-source/*
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Remove runner-only authentication
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
