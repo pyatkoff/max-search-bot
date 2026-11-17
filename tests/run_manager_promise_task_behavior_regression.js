@@ -320,6 +320,7 @@ test('planner respects fresh ACL, foreign tasks, failed reads, scope changes, an
 
 test('two-field labels are limited to Manager2 and legacy task inputs keep their original markup',async()=>{
   const h=await setup();assert.match(h.taskRoot.innerHTML,/class="taskCreateField"/);
+  assert.match(h.taskRoot.innerHTML,/<input id="leadTaskTitle" maxlength="255" placeholder="Например: перезвонить клиенту">/);
   h.document.body.classList.remove('manager2');h.window.WorkspaceV2Tasks.render(h.taskRoot,{tasks:[],canEdit:true,conversationId:101});
   assert.doesNotMatch(h.taskRoot.innerHTML,/taskCreateField/);
   assert.match(h.taskRoot.innerHTML,/<div class="taskCreate"><input id="leadTaskTitle" maxlength="255" placeholder="Например: перезвонить туристу"><input id="leadTaskDue" type="datetime-local">/);
