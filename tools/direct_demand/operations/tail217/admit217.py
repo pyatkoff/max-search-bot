@@ -28,7 +28,7 @@ def main():
  for g in intent['groups']:need(sha((root/('p%02d'%g['batch'])/'read.php').read_bytes())==g['reader_sha256'],'reader_changed')
  checks=[]
  for status in ['in_progress','queued','waiting','pending','requested']:
-  for repo,path,self_allowed in [('max-search-bot','actions/runs?branch=audit%2Fprice660-27316-resume-readiness-20261117',True),('tour-max','actions/runs?branch=audit%2Fanytour-hotel-feed-routing-20261104',False),('max-search-bot','actions/runs?head_sha='+c['runtime_sha'],False),('poisk-turov-test','actions/workflows/346454799/runs?',False)]:
+  for repo,path,self_allowed in [('max-search-bot','actions/runs?branch=audit%2Fprice660-27316-resume-readiness-20261117',True),('max-search-bot','actions/runs?branch=audit%2Fcontent100-bot-publication-20261101',False),('tour-max','actions/runs?branch=audit%2Fanytour-hotel-feed-routing-20261104',False),('max-search-bot','actions/runs?head_sha='+c['runtime_sha'],False),('poisk-turov-test','actions/workflows/346454799/runs?',False)]:
    sep='' if path.endswith('?') else '&';d=api(repo,path+sep+'status='+status+'&per_page=100')
    need(len(d['workflow_runs'])==d['total_count'] and d['total_count']<=100,'ambiguous_active_list')
    other=[r for r in d['workflow_runs'] if not(self_allowed and str(r['id'])==os.environ['GITHUB_RUN_ID'] and r['head_sha']==head)]

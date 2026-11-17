@@ -1,41 +1,59 @@
 {
   "schema_version": 1,
-  "parent_sha": "f68b3fcfc9e2decf190ee26fbd6dc0ea118f5f98",
+  "parent_sha": "ba8ff55f36f72075c935fa3a35596700c140e2a5",
   "claim_id": 6955557921,
   "claim_body_sha256": "2bf2b31ac05eeb249d9f173b03575b473cd2cd0b41b42950cd66288a2b067f82",
-  "runtime_sha": "3ffab7f2e2d01c8cd35144fba621897e4ad75e5d",
+  "runtime_sha": "8281b387f258932601439eb789560f6b2cbabd4d",
   "accepted_runs": [
     {
-      "run_id": 44126948688,
-      "head_sha": "3ffab7f2e2d01c8cd35144fba621897e4ad75e5d",
+      "run_id": 44139041068,
+      "head_sha": "8281b387f258932601439eb789560f6b2cbabd4d",
       "kind": "deployment"
     },
     {
-      "run_id": 44129588149,
-      "head_sha": "3ffab7f2e2d01c8cd35144fba621897e4ad75e5d",
+      "run_id": 44141549562,
+      "head_sha": "8281b387f258932601439eb789560f6b2cbabd4d",
+      "kind": "native"
+    },
+    {
+      "run_id": 44141549551,
+      "head_sha": "8281b387f258932601439eb789560f6b2cbabd4d",
+      "kind": "native"
+    },
+    {
+      "run_id": 44141549666,
+      "head_sha": "8281b387f258932601439eb789560f6b2cbabd4d",
       "kind": "native"
     }
   ],
-  "intent_sha256": "6abc634b72d141a13669ca320be8fdce6f40757dc8da1dadac214e72bc8cafe9",
+  "intent_sha256": "014f77384b3561941e04e8784c3a3ebe08db30580c5135f53e9255565dd000ae",
   "source_sha256": {
     "run217.py": "275db813c0117d6376302410e887cc72e7dad0b4d8b5cc4bdb370d588c908ef3",
-    "admit217.py": "7479202d03fae764c09d00b19ab03d2925f2eb96160bd91d22e934150c66a67e",
+    "admit217.py": "8d05ddc6d794b7c3b9d36750a76d09dcc863eb0d9e1b2b0d0a0da6e8349910b7",
     "namespace-provenance.json": "8f6aece606fe58991d82d534c354645769063b404d40e92b9e2f5f668b2efc43"
   },
   "takeover_claim_id": 6955394658,
   "takeover_claim_body_sha256": "51cc2d3531118e2aba6146515946dc2efad9a78130864d5fd45a03789ce6c37a",
   "accepted_jobs": [
     {
-      "run_id": 44126948688,
-      "job_id": 134199654461
+      "run_id": 44139041068,
+      "job_id": 134243075953
     },
     {
-      "run_id": 44126948688,
-      "job_id": 134201701432
+      "run_id": 44139041068,
+      "job_id": 134244566651
     },
     {
-      "run_id": 44129588149,
-      "job_id": 134202641377
+      "run_id": 44141549562,
+      "job_id": 134245373589
+    },
+    {
+      "run_id": 44141549551,
+      "job_id": 134245374239
+    },
+    {
+      "run_id": 44141549666,
+      "job_id": 134245373763
     }
   ]
 }
