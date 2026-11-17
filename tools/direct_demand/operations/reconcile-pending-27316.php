@@ -163,59 +163,130 @@ function reconcile_identity(array $p, string $platform, array $proof, array $row
 }
 /** Rebuild the original canonical manifest with the exact old MAX version and untouched Telegram. */
 function reconcile_context(ChannelPostRegistryService $registry, array $state, array $maxPlan): array {
-    $roster = json_decode(gzdecode(base64_decode(HOOK_ROSTER_GZIP_B64, true)), true, 64, JSON_THROW_ON_ERROR)['rows'];
-    $matches = array_values(array_filter($roster, static fn($r): bool => ($r['tourvisor_hotel_id'] ?? null) === RECONCILE_TV));
-    reconcile_need(count($roster) === 660 && count($matches) === 1, 'reconcile_frozen_roster_changed'); $row = $matches[0];
-    reconcile_need($row['key'] === RECONCILE_KEY && $row['logical_id'] === RECONCILE_KEY
-        && $row['feed_binding'] === $state['feed_binding'], 'reconcile_frozen_binding_changed');
-    $price = monitor_price_observation($state['monitor_snapshot'], RECONCILE_TV, time(), false);
-    reconcile_need($price === $maxPlan['monitor_price'], 'reconcile_original_price_changed');
-    $publications = []; $old = []; $proofs = [];
-    foreach (['max','telegram'] as $platform) {
-        $file = RECONCILE_ROOT . '/' . $row['original_publication_operation'] . '/' . $platform . '-' . $row['logical_id'] . '-approved.json';
-        $original = json_decode(hook_read($file, 1048576), true, 64, JSON_THROW_ON_ERROR); $proof = $original['receipt'] ?? [];
-        reconcile_need(($original['state'] ?? null) === 'confirmed' && ($original['text_sha256'] ?? null) === $row['original_text_sha256']
-            && ($original['photo_sha256'] ?? null) === $row['cover_sha256'] && ($proof['logical_id'] ?? null) === $row['logical_id']
-            && (int)($proof['hotel_id'] ?? 0) === $row['hotel_id'] && ($proof['platform'] ?? null) === $platform
-            && ($proof['post_url'] ?? null) === $row['posts'][$platform] && ($proof['body_photo_button_verified'] ?? null) === true,
+    $roster = json_decode(gzdecode(base64_decode(HOOK_ROSTER_GZIP_B64,true)),true,64,JSON_THROW_ON_ERROR)['rows'];
+    $found = array_values(array_filter($roster,static fn($r):bool=>($r['tourvisor_hotel_id']??null)===RECONCILE_TV));
+    reconcile_need(count($roster)===660&&count($found)===1,'reconcile_frozen_roster_changed');
+    $row=$found[0];
+    reconcile_need(($row['key']??null)===RECONCILE_KEY&&($row['logical_id']??null)===RECONCILE_KEY
+        &&($row['feed_binding']??null)===($state['feed_binding']??null)
+        &&($row['posts']['max']??null)==='https://max.ru/channel_anytour/AaGjuI2pXao'
+        &&($row['posts']['telegram']??null)==='https://t.me/any_toour/156'
+        &&hash('sha256',reconcile_json($row))==='d172b122038978379ea66408fdcc2496f7ac0a9e4be9803c8984b3fffe1424b1',
+        'reconcile_frozen_binding_changed');
+    $price=monitor_price_observation($state['monitor_snapshot'],RECONCILE_TV,time(),false);
+    reconcile_need($price===$maxPlan['monitor_price'],'reconcile_original_price_changed');
+    $priorOp='commercial-monitor-price-h27316-73871d808f646687f94862c74b7dfb78cc7b0c1cee07b74e63690ad16957198f';
+    $priorRaw=hook_read(RECONCILE_ROOT.'/'.$priorOp.'/receipt.jsonl',300000);
+    reconcile_need(strlen($priorRaw)===132335
+        &&hash('sha256',$priorRaw)==='2f6ad68708da0b3cafdc166f292e82f158ac275ad63f8c41210d0e215f21d29b',
+        'reconcile_prior_price_receipt_changed');
+    $prior=monitor_hook_parse_journal($priorRaw,$priorOp);
+    reconcile_need(($prior['operation']??null)===$priorOp&&($prior['complete']??null)===true
+        &&($prior['feed_binding']??null)===$state['feed_binding'],'reconcile_prior_price_not_completed');
+    $priorPost=[];
+    foreach(['max'=>[400,4199],'telegram'=>[395,4200]] as $platform=>$expected){
+        $post=$prior['posts'][$platform.':'.RECONCILE_KEY]??null;
+        reconcile_need(is_array($post)&&($post['state']??null)==='confirmed'
+            &&($post['receipt']['state']??null)==='sent'
+            &&($post['receipt']['platform']??null)===$platform
+            &&($post['receipt']['publication_id']??null)===$expected[0]
+            &&($post['receipt']['version_id']??null)===$expected[1]
+            &&is_string($post['receipt']['text_sha256']??null)
+            &&hash('sha256',(string)($post['receipt']['text']??''))===$post['receipt']['text_sha256'],
+            'reconcile_prior_'.$platform.'_receipt_invalid');
+        $priorPost[$platform]=$post['receipt'];
+    }
+    $publications=[];$old=[];$proofs=[];
+    foreach(['max','telegram'] as $platform){
+        $file=RECONCILE_ROOT.'/'.$row['original_publication_operation'].'/'.$platform.'-'.$row['logical_id'].'-approved.json';
+        $original=json_decode(hook_read($file,1048576),true,64,JSON_THROW_ON_ERROR);
+        $proof=$original['receipt']??[];
+        reconcile_need(($original['state']??null)==='confirmed'
+            &&($original['text_sha256']??null)===$row['original_text_sha256']
+            &&($original['photo_sha256']??null)===$row['cover_sha256']
+            &&($proof['logical_id']??null)===$row['logical_id']
+            &&($proof['hotel_id']??null)===$row['hotel_id']
+            &&($proof['platform']??null)===$platform
+            &&($proof['post_url']??null)===$row['posts'][$platform]
+            &&($proof['body_photo_button_verified']??null)===true,
             'reconcile_original_publication_receipt_changed');
-        $p = $registry->publication((int)$proof['publication_id']);
-        reconcile_need(is_array($p), 'reconcile_publication_missing'); reconcile_identity($p, $platform, $proof, $row);
-        $publications[$platform] = $p; $proofs[$platform] = $proof;
-        if ($platform === 'max') {
-            reconcile_need((int)$p['publication_id'] === RECONCILE_MAX_ID && (int)$p['version_id'] === RECONCILE_MAX_OLD_VERSION
-                && hash('sha256', $p['snapshot']['text']) === RECONCILE_MAX_OLD_TEXT_SHA
-                && hash_equals($maxPlan['token'], $p['start_payload']) && photoSignature($p['snapshot']) === $maxPlan['photo_signature'],
-                'reconcile_max_registry_not_original_old_version');
-            $v = $registry->versionForPublication(RECONCILE_MAX_ID, RECONCILE_MAX_OLD_VERSION);
-            reconcile_need(is_array($v) && $v['project_key'] === 'anytour' && $v['platform'] === 'max' && $v['bot_key'] === 'id9704048781_1_bot'
-                && $v['channel_id'] === '-80492244209683' && $v['external_message_id'] === RECONCILE_MAX_MID
-                && hash('sha256', $v['snapshot']['text']) === RECONCILE_MAX_OLD_TEXT_SHA, 'reconcile_old_max_snapshot_changed');
-            $old[$platform] = ['version_id' => RECONCILE_MAX_OLD_VERSION, 'snapshot' => $v['snapshot']];
-        } else {
-            reconcile_need($p['external_message_id'] === '156' && $row['posts']['telegram'] === 'https://t.me/any_toour/156', 'reconcile_telegram_target_changed');
-            $old[$platform] = ['version_id' => (int)$p['version_id'], 'snapshot' => $p['snapshot']];
+        $p=$registry->publication((int)$proof['publication_id']);
+        reconcile_need(is_array($p),'reconcile_publication_missing');
+        $publications[$platform]=$p;$proofs[$platform]=$proof;
+        if($platform==='max'){
+            reconcile_need(($p['project_key']??null)==='anytour'&&($p['platform']??null)==='max'
+                &&($p['publication_id']??null)===RECONCILE_MAX_ID
+                &&($p['version_id']??null)===7024
+                &&($p['state']??null)==='requires_attention'
+                &&($p['error_reason']??null)==='provider_read_failed'
+                &&($p['write_attempts']??null)===0&&empty($p['claim_token'])&&empty($p['claimed_at'])
+                &&($p['bot_key']??null)==='id9704048781_1_bot'
+                &&($p['channel_id']??null)==='-80492244209683'
+                &&($p['source_key']??null)==='max_anytour_msk1'
+                &&($p['external_message_id']??null)===RECONCILE_MAX_MID
+                &&($p['snapshot']['post_url']??null)===$row['posts']['max']
+                &&($p['snapshot']['metadata']['monitor_price_record_id']??null)===RECONCILE_RECORD
+                &&($p['snapshot']['metadata']['source_revision_ms']??null)===(string)RECONCILE_REQUEST_START_MS
+                &&($p['channel']['id']??null)===9
+                &&($p['channel']['config_version']??null)===2
+                &&($p['channel']['button_text']??null)==='✈️ Узнать стоимость тура'
+                &&hash_equals($maxPlan['token'],$p['start_payload']),
+                'reconcile_current_max_failed_version_changed');
+            $oldMax=$registry->versionForPublication(RECONCILE_MAX_ID,RECONCILE_MAX_OLD_VERSION);
+            reconcile_need(is_array($oldMax)&&($oldMax['project_key']??null)==='anytour'
+                &&($oldMax['platform']??null)==='max'
+                &&($oldMax['external_message_id']??null)===RECONCILE_MAX_MID
+                &&($oldMax['version_id']??null)===RECONCILE_MAX_OLD_VERSION
+                &&hash('sha256',(string)($oldMax['snapshot']['text']??''))===$priorPost['max']['text_sha256']
+                &&photoSignature($oldMax['snapshot'])===$maxPlan['photo_signature']
+                &&($oldMax['snapshot']['post_url']??null)===$row['posts']['max'],
+                'reconcile_old_max_snapshot_changed');
+            $old['max']=['version_id'=>RECONCILE_MAX_OLD_VERSION,'snapshot'=>$oldMax['snapshot']];
+            reconcile_need(($p['snapshot']['text']??null)===$maxPlan['text']
+                &&photoSignature($p['snapshot'])===$maxPlan['photo_signature'],
+                'reconcile_current_max_caption_changed');
+        }else{
+            reconcile_identity($p,'telegram',$proof,$row);
+            reconcile_need(($p['publication_id']??null)===395&&($p['version_id']??null)===4200
+                &&($p['external_message_id']??null)==='156'
+                &&($p['write_attempts']??null)===0&&empty($p['claim_token'])&&empty($p['claimed_at'])
+                &&hash('sha256',(string)($p['snapshot']['text']??''))===$priorPost['telegram']['text_sha256']
+                &&($p['snapshot']['metadata']['monitor_price_record_id']??null)==='73871d808f646687f94862c74b7dfb78cc7b0c1cee07b74e63690ad16957198f'
+                &&($p['snapshot']['post_url']??null)==='https://t.me/any_toour/156',
+                'reconcile_telegram_original_version_changed');
+            $old['telegram']=['version_id'=>4200,'snapshot'=>$p['snapshot']];
         }
     }
-    $r = array_intersect_key($row, array_flip(['key','hotel_id','tourvisor_hotel_id','logical_id','original_publication_operation','cover_sha256']));
-    $r['channel_texts'] = [];
-    foreach (['max','telegram'] as $platform) {
-        $text = monitor_hook_draft($row['templates'][$platform], $price); $before = $old[$platform]['snapshot']['text'];
-        $r['channel_texts'][$platform] = ['old_text' => $before, 'old_text_sha256' => hash('sha256', $before),
-            'new_text' => $text, 'new_text_sha256' => hash('sha256', $text), 'original_text_sha256' => $row['original_text_sha256'],
-            'expected_version_id' => $old[$platform]['version_id'], 'expected_post_url' => $row['posts'][$platform]];
+    $r=array_intersect_key($row,array_flip(['key','hotel_id','tourvisor_hotel_id','logical_id','original_publication_operation','cover_sha256']));
+    $r['channel_texts']=[];
+    foreach(['max','telegram'] as $platform){
+        $text=monitor_hook_draft($row['templates'][$platform],$price);
+        $before=$old[$platform]['snapshot']['text'];
+        $r['channel_texts'][$platform]=[
+            'old_text'=>$before,'old_text_sha256'=>hash('sha256',$before),
+            'new_text'=>$text,'new_text_sha256'=>hash('sha256',$text),
+            'original_text_sha256'=>$row['original_text_sha256'],
+            'expected_version_id'=>$old[$platform]['version_id'],
+            'expected_post_url'=>$row['posts'][$platform],
+        ];
     }
-    $payload = ['operation' => RECONCILE_OPERATION, 'price_basis' => 'scheduled_monitor_result', 'monitor_snapshot' => $state['monitor_snapshot'],
-        'button_text' => '✈️ Узнать стоимость тура', 'feed_binding' => $row['feed_binding'], 'rows' => [$r]];
-    reconcile_need(hash('sha256', reconcile_json($payload)) === RECONCILE_MANIFEST, 'reconcile_exact_original_manifest_not_reconstructed');
-    reconcile_need($r['channel_texts']['max']['new_text'] === $maxPlan['text'], 'reconcile_original_max_target_changed');
-    $tg = $publications['telegram']; $tgText = $r['channel_texts']['telegram']['new_text'];
-    $tgPlan = ['platform' => 'telegram', 'key' => $row['key'], 'logical_id' => $row['logical_id'], 'message_id' => $tg['external_message_id'],
-        'publication_id' => (int)$tg['publication_id'], 'old_version_id' => (int)$tg['version_id'], 'token' => $tg['start_payload'],
-        'post_url' => $tg['snapshot']['post_url'], 'photo_signature' => photoSignature($tg['snapshot']), 'text' => $tgText,
-        'update_text' => $tgText !== $tg['snapshot']['text'], 'monitor_price' => $price];
-    reconcile_need($tgPlan['update_text'] === true, 'reconcile_telegram_not_first_caption_change');
-    return ['row' => $row, 'price' => $price, 'payload' => $payload, 'publications' => $publications, 'proofs' => $proofs, 'telegram_plan' => $tgPlan];
+    $payload=['operation'=>RECONCILE_OPERATION,'price_basis'=>'scheduled_monitor_result',
+        'monitor_snapshot'=>$state['monitor_snapshot'],
+        'button_text'=>'✈️ Узнать стоимость тура','feed_binding'=>$row['feed_binding'],'rows'=>[$r]];
+    reconcile_need(hash('sha256',reconcile_json($payload))===RECONCILE_MANIFEST,
+        'reconcile_exact_original_manifest_not_reconstructed');
+    reconcile_need($r['channel_texts']['max']['new_text']===$maxPlan['text'],
+        'reconcile_original_max_target_changed');
+    $tg=$publications['telegram'];$tgText=$r['channel_texts']['telegram']['new_text'];
+    $tgPlan=['platform'=>'telegram','key'=>$row['key'],'logical_id'=>$row['logical_id'],
+        'message_id'=>$tg['external_message_id'],'publication_id'=>(int)$tg['publication_id'],
+        'old_version_id'=>(int)$tg['version_id'],'token'=>$tg['start_payload'],
+        'post_url'=>$tg['snapshot']['post_url'],'photo_signature'=>photoSignature($tg['snapshot']),
+        'text'=>$tgText,'update_text'=>$tgText!==$tg['snapshot']['text'],'monitor_price'=>$price];
+    reconcile_need($tgPlan['update_text']===true,'reconcile_telegram_not_first_caption_change');
+    return ['row'=>$row,'price'=>$price,'payload'=>$payload,
+        'publications'=>$publications,'proofs'=>$proofs,'telegram_plan'=>$tgPlan,
+        'old_max'=>$old['max'],'prior_complete_sha256'=>hash('sha256',$priorRaw)];
 }
 function reconcile_read_max(array $plan, array $publication, array &$out): array {
     $out['max_gets']++;
