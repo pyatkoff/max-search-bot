@@ -1,0 +1,445 @@
+{
+  "schema_version": "anytour_expansion100_content42_legacy_photo_source_read_v1",
+  "date": "2026-11-17",
+  "kind": "read_only_legacy_presentation_source_photos_not_rights_authority",
+  "source": {
+    "canonical_gap_report_git_blob": "fcb2e03b5a538095bbc93a5952b9283e43e685dd",
+    "reader": "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?hotelIds[]"
+  },
+  "summary": {
+    "requested": 42,
+    "source_items_returned": 42,
+    "source_image_candidates": 2,
+    "source_rich_descriptions": 1,
+    "approved_licenses": 0,
+    "published_messages": 0
+  },
+  "limits": [
+    "Source image URLs may be low resolution or fail on read. Do not claim suitability or licensing from the URI alone.",
+    "A local cached image is not an approved photo for a commercial post; independent photo rights, gallery match, version and readback required.",
+    "Missing hotel in this DTO does not imply missing Tourvisor hotel or unavailable travel packages.",
+    "Only public read-only preview GETs performed. No new supplier search or edit."
+  ],
+  "rows": [
+    {
+      "work_id": "EXP002",
+      "tourvisor_id": 12120,
+      "found": true,
+      "source_name": "ANANTARA KIHAVAH VILLAS",
+      "description_chars": 0,
+      "primary_image": "https://static.tourvisor.ru/hotel_pics/main400/12120.jpg",
+      "number_images": 1,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP032",
+      "tourvisor_id": 64957,
+      "found": true,
+      "source_name": "KUDADOO MALDIVES PRIVATE ISLAND",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP058",
+      "tourvisor_id": 76029,
+      "found": true,
+      "source_name": "THE RITZ CARLTON MALDIVES FARI ISLANDS",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP069",
+      "tourvisor_id": 66198,
+      "found": true,
+      "source_name": "WALDORF ASTORIA MALDIVES ITHAAFUSHI",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP072",
+      "tourvisor_id": 49750,
+      "found": true,
+      "source_name": "SONEVA JANI RESORT",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP092",
+      "tourvisor_id": 123247,
+      "found": true,
+      "source_name": "JUMEIRAH MARSA AL ARAB",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP095",
+      "tourvisor_id": 48184,
+      "found": true,
+      "source_name": "JUMEIRAH AL NASEEM (EX. MADINAT JUMEIRAH AL NASEEM)",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP023",
+      "tourvisor_id": 8951,
+      "found": true,
+      "source_name": "QASR AL SARAB DESERT RESORT BY ANANTARA",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP083",
+      "tourvisor_id": 32322,
+      "found": true,
+      "source_name": "FOUR SEASONS RESORT DUBAI AT JUMEIRAH BEACH",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP015",
+      "tourvisor_id": 28272,
+      "found": true,
+      "source_name": "ANANTARA PHUKET LAYAN RESORT & SPA",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP081",
+      "tourvisor_id": 7458,
+      "found": true,
+      "source_name": "FOUR SEASONS THE NAM HAI",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP037",
+      "tourvisor_id": 128957,
+      "found": true,
+      "source_name": "NALA MALDIVES BY JAWAKARA (ADULTS ONLY 12+)",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP039",
+      "tourvisor_id": 2490,
+      "found": true,
+      "source_name": "VILAMENDHOO ISLAND RESORT",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP019",
+      "tourvisor_id": 2925,
+      "found": true,
+      "source_name": "DESERT ISLAND RESORT & SPA BY ANANTARA",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP006",
+      "tourvisor_id": 7831,
+      "found": true,
+      "source_name": "ANANTARA BANGKOK RIVERSIDE RESORT & SPA",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP007",
+      "tourvisor_id": 4283,
+      "found": true,
+      "source_name": "ANANTARA SIAM BANGKOK (EX. FOUR SEASONS HOTEL BANGKOK)",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP085",
+      "tourvisor_id": 97001,
+      "found": true,
+      "source_name": "FOUR SEASONS HOTEL ALEXANDRIA AT SAN STEFANO",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP086",
+      "tourvisor_id": 74509,
+      "found": true,
+      "source_name": "FOUR SEASONS HOTEL CAIRO AT NILE PLAZA",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP041",
+      "tourvisor_id": 2458,
+      "found": true,
+      "source_name": "KOMANDOO ISLAND RESORT",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP024",
+      "tourvisor_id": 113544,
+      "found": true,
+      "source_name": "ANANTARA SANTORINI ABU DHABI RETREAT",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP082",
+      "tourvisor_id": 52337,
+      "found": true,
+      "source_name": "FOUR SEASONS HOTEL ABU DHABI AT AL MARYAH ISLAND",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP008",
+      "tourvisor_id": 47217,
+      "found": true,
+      "source_name": "ANANTARA CHIANG MAI RESORT & SPA",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP010",
+      "tourvisor_id": 2948,
+      "found": true,
+      "source_name": "ANANTARA RESORT & SPA HUA HIN",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP028",
+      "tourvisor_id": 57536,
+      "found": true,
+      "source_name": "AL BALEED RESORT SALALAH BY ANANTARA",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP029",
+      "tourvisor_id": 61241,
+      "found": true,
+      "source_name": "ANANTARA AL JABAL AL AKHDAR RESORT",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP054",
+      "tourvisor_id": 73477,
+      "found": true,
+      "source_name": "SIYAM WORLD",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP084",
+      "tourvisor_id": 64648,
+      "found": true,
+      "source_name": "FOUR SEASONS DUBAI INTERNATIONAL FINANCIAL CENTRE",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP093",
+      "tourvisor_id": 2588,
+      "found": true,
+      "source_name": "JUMEIRAH BEACH HOTEL",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP094",
+      "tourvisor_id": 2611,
+      "found": true,
+      "source_name": "JUMEIRAH AL QASR (EX. MADINAT JUMEIRAH AL QASR)",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP013",
+      "tourvisor_id": 4210,
+      "found": true,
+      "source_name": "ANANTARA PHANGAN RASANANDA RESORT & SPA",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP089",
+      "tourvisor_id": 17424,
+      "found": true,
+      "source_name": "FOUR SEASONS HOTEL ISTANBUL AT THE BOSPHORUS",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP090",
+      "tourvisor_id": 17423,
+      "found": true,
+      "source_name": "FOUR SEASONS AT SULTANAHMET",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP025",
+      "tourvisor_id": 23718,
+      "found": true,
+      "source_name": "ANANTARA HOI AN RESORT (EX. LIFE HERITAGE RESORT)",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP073",
+      "tourvisor_id": 108165,
+      "found": true,
+      "source_name": "SONEVA SECRET",
+      "description_chars": 417,
+      "primary_image": "https://static.tourvisor.ru/hotel_pics/verybig/8/soneva-secret-813500.jpg",
+      "number_images": 8,
+      "details_available": true
+    },
+    {
+      "work_id": "EXP076",
+      "tourvisor_id": 121382,
+      "found": true,
+      "source_name": "FOUR SEASONS PRIVATE ISLAND AT VOAVAH",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP096",
+      "tourvisor_id": 2612,
+      "found": true,
+      "source_name": "JUMEIRAH MINA AL SALAM (EX. MADINAT JUMEIRAH MINA A SALAM HOTEL)",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP097",
+      "tourvisor_id": 2610,
+      "found": true,
+      "source_name": "JUMEIRAH DAR AL MASYAF",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP098",
+      "tourvisor_id": 2931,
+      "found": true,
+      "source_name": "JUMEIRAH ZABEEL SARAY",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP077",
+      "tourvisor_id": 78669,
+      "found": true,
+      "source_name": "FOUR SEASONS HOTEL BANGKOK AT CHAO PHRAYA RIVER",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP078",
+      "tourvisor_id": 45845,
+      "found": true,
+      "source_name": "FOUR SEASONS RESORT",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP087",
+      "tourvisor_id": 60788,
+      "found": true,
+      "source_name": "FOUR SEASONS HOTEL CAIRO AT THE FIRST RESIDENCE",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    },
+    {
+      "work_id": "EXP100",
+      "tourvisor_id": 78456,
+      "found": true,
+      "source_name": "JUMEIRAH MUSCAT BAY",
+      "description_chars": 0,
+      "primary_image": null,
+      "number_images": 0,
+      "details_available": false
+    }
+  ]
+}
