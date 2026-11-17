@@ -1,0 +1,55 @@
+{
+  "schema_version": "anytour_expansion100_missing_one_official_copy_v1",
+  "date": "2026-11-17",
+  "purpose": "complete prepared copy for the 44 candidate expansion slots excluding commercial-HOLD Burj Al Arab",
+  "original_task": "https://github.com/pyatkoff/max-search-bot/issues/1566",
+  "summary": {
+    "new_drafts": 1,
+    "prepared_copy_total_original_exp100": 43,
+    "remaining_copy_commercial_hold": 1,
+    "photo_rights_accepted": 0,
+    "new_publications": 0
+  },
+  "row": {
+    "work_id": "EXP017",
+    "batch": 2,
+    "tourvisor_candidate_id": 22940,
+    "canonical_anytour_id": 10334,
+    "canonical_revision": 1,
+    "official_name": "Anantara Sir Bani Yas Island Al Yamm Villa Resort",
+    "country": "AE",
+    "local_native_query": "https://anytoour.ru/data/hotel-search-v1.php?q=AL%20YAMM&countryId=9&limit=20",
+    "sources": [
+      "https://www.anantara.com/en/al-yamm-sir-bani-yas",
+      "https://www.anantara.com/en/al-yamm-sir-bani-yas/villas",
+      "https://www.anantara.com/en/united-arab-emirates/sir-bani-yas-abu-dhabi"
+    ],
+    "official_media_kit": "https://media.minorhotels.com/en-GLO/assets/232214/",
+    "facts": [
+      "Расположен на острове Сир-Бани-Яс, на уединённом пляже Абу-Даби",
+      "Курорт примерно из 30 вилл, вдохновлённых традиционной эмиратской рыбацкой деревней",
+      "Есть виллы с приватными бассейнами, видами на море или мангровую лагуну",
+      "На острове находятся три разных курорта Anantara, этот — прибрежный Al Yamm"
+    ],
+    "draft": "🏝 Anantara Sir Bani Yas Island Al Yamm Villa Resort\n📍 ОАЭ, остров Сир-Бани-Яс\nУединённый пляжный курорт с 30 виллами в стиле традиционной эмиратской деревни.\n🌊 Море и мангровая лагуна рядом\n💦 Виллы с приватными бассейнами и просторными террасами\n✨ Спокойный отдых вдали от городской суеты",
+    "cautions": [
+      "Al Yamm (TV22940) IS NOT Anantara Al Sahel (TV27481); two separate resorts on same island, different features and published feed identities.",
+      "Only room-category-specific private pool/sea view claims; do not promise same inclusions for every package.",
+      "Neither current package price nor beach services availability was checked.",
+      "Canonical legacyID22940→AnyTour10334 active; direct local-tv TV22940 missing, legacy presentation only identity. Property photos not present in cached sources.",
+      "Official Minor press gallery lists four JPG photos, but commercial redistribution rights NOT independently confirmed."
+    ],
+    "source_review_status": "official_current_site_read_done_independent_acceptance_pending",
+    "identity_accepted": false,
+    "photo_ready": false,
+    "photo_rights_verified": false,
+    "caption_approved": false,
+    "public_post_sent": false,
+    "proposed_single_bot_button": "В этот отель"
+  },
+  "guard": [
+    "Do not send a new post or add paid feed offers before accepted source ID, photo license, exact current Site aliases and two-platform operation checks.",
+    "Do not count this prep as a new published hotel.",
+    "Burj Al Arab EXP091 remains separate commercial HOLD, no dummy post to inflate totals."
+  ]
+}
