@@ -12,6 +12,7 @@ const RECONCILE_MANIFEST = '94ca6dd9be5c0fb66f0bf3ee6a09ca4e7d8319bb1cd1e3ae2f8a
 const RECONCILE_GLOBAL_SHA = '6a381375a03566c2853f31a4f57d4177df17e0ac950bf91ad7b43edc9734474d';
 const RECONCILE_ORIGINAL_SHA = '010c6ecfbdae1156a772160bbadb5fec4cbd84555e14acf10baa791c36da2988';
 const RECONCILE_KEY = 'regnum-carya-belek';
+const RECONCILE_LOGICAL_ID = 'commercial-regnum-carya-belek-27316-v1';
 const RECONCILE_MAX_ID = 400;
 const RECONCILE_MAX_OLD_VERSION = 4199;
 const RECONCILE_MAX_MID = 'mid.ffffb6caf0606fed01a1a3b88da95daa';
@@ -78,7 +79,7 @@ function reconcile_original_state(array $state): array {
     $parts=[
         'platform'=>($plan['platform']??null)==='max',
         'key'=>($plan['key']??null)===RECONCILE_KEY,
-        'logical_id'=>($plan['logical_id']??null)===RECONCILE_KEY,
+        'logical_id'=>($plan['logical_id']??null)===RECONCILE_LOGICAL_ID,
         'publication_id'=>($plan['publication_id']??null)===RECONCILE_MAX_ID,
         'old_version_id'=>($plan['old_version_id']??null)===RECONCILE_MAX_OLD_VERSION,
         'message_id'=>($plan['message_id']??null)===RECONCILE_MAX_MID,
@@ -229,7 +230,7 @@ function reconcile_context(ChannelPostRegistryService $registry, array $state, a
     $found = array_values(array_filter($roster,static fn($r):bool=>($r['tourvisor_hotel_id']??null)===RECONCILE_TV));
     reconcile_need(count($roster)===660&&count($found)===1,'reconcile_frozen_roster_changed');
     $row=$found[0];
-    reconcile_need(($row['key']??null)===RECONCILE_KEY&&($row['logical_id']??null)===RECONCILE_KEY
+    reconcile_need(($row['key']??null)===RECONCILE_KEY&&($row['logical_id']??null)===RECONCILE_LOGICAL_ID
         &&($row['feed_binding']??null)===($state['feed_binding']??null)
         &&($row['posts']['max']??null)==='https://max.ru/channel_anytour/AaGjuI2pXao'
         &&($row['posts']['telegram']??null)==='https://t.me/any_toour/156'
@@ -442,7 +443,7 @@ function reconcile_self_test(): void {
         try{$fn();}catch(Throwable $e){$cases++;return;}
         throw new RuntimeException('selftest_unsafe_admitted_'.$reason);
     };
-    $plan=['platform'=>'max','key'=>RECONCILE_KEY,'logical_id'=>RECONCILE_KEY,
+    $plan=['platform'=>'max','key'=>RECONCILE_KEY,'logical_id'=>RECONCILE_LOGICAL_ID,
         'publication_id'=>400,'old_version_id'=>4199,'message_id'=>RECONCILE_MAX_MID,
         'post_url'=>'https://max.ru/channel_anytour/AaGjuI2pXao',
         'photo_signature'=>'max:49106363656','update_text'=>true,
@@ -465,6 +466,7 @@ function reconcile_self_test(): void {
         ]]];
     $ok(reconcile_original_state($state)===$plan,'exact_original_max_intent');
     $mutations=[
+        ['logical_id_is_not_key',static function(array $state):array {$state['posts']['max:'.RECONCILE_KEY]['plan']['logical_id']=RECONCILE_KEY;return $state;}],
         ['stage',static function(array $state):array {$state['posts']['max:'.RECONCILE_KEY]['state']='unknown';return $state;}],
         ['provider',static function(array $state):array {$state['posts']['max:'.RECONCILE_KEY]['provider_edit_returned']=false;return $state;}],
         ['wrong_button_reason',static function(array $state):array {$state['posts']['max:'.RECONCILE_KEY]['button_result']['reason']='provider_rejected';return $state;}],
@@ -716,7 +718,7 @@ try {
         $binding=$state['feed_binding']+['operation'=>RECONCILE_OPERATION,'manifest_hash'=>RECONCILE_MANIFEST];
         monitor_price_confirmed_journal($state,$binding,time());
         $out['feed_resume_calls']++;
-        reconcile_need(hook_finish_feed($global,$globalLock,$installed)==='feed_completed', 'reconcile_original_feed_not_completed');
+        reconcile_need(hook_finish_feed($global,$globalLock,$installed,$out)==='feed_completed', 'reconcile_original_feed_not_completed');
         reconcile_need(fseek($globalLock,443818242,SEEK_SET)===0,'reconcile_feed_evidence_seek_failed');
         $appended=stream_get_contents($globalLock,1000001);
         reconcile_need(is_string($appended)&&strlen($appended)<=1000000&&str_ends_with($appended,"\n"),'reconcile_feed_evidence_read_failed');
