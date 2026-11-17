@@ -15,4 +15,4 @@ assert source.startswith(prefix)
 result=helpers+b'\n'+source[len(prefix):]
 assert b"$apply = getenv('ANYTOUR_MONITOR_27316_APPLY')" not in result
 with pathlib.Path(sys.argv[2]).open('xb') as f:f.write(result)
-print(json.dumps({'sha256':hashlib.sha256(result).hexdigest(),'bytes':len(result),'mode':'read_only_verifier','recovery_driver_included':False,'hook_driver_included':False}))
+print(json.dumps({'sha256':hashlib.sha256(result).hexdigest(),'bytes':len(result),'mode':'helper_only_bundle','recovery_driver_included':False,'hook_driver_included':False}))
