@@ -86,7 +86,12 @@ mfqCheck('fresh start boundary can offer optional budget again', count($m->sent)
 
 mfqCheck('named-month interval requests an agreed departure, not an endpoint',
     MissingFieldQuestionService::question('date',['ambiguous_range'=>true]),
-    'Вы указали период поездки. Какую дату вылета взять для поиска? Укажите число и месяц.');
+    'Поняла, подходят даты в указанном диапазоне. Не буду выбирать день за вас. Для первого просмотра на сайте напишите удобное число из диапазона; для сравнения дат — «Позвать менеджера».');
+mfqCheck('flexible month offers approximate start without claiming exact departure',
+    MissingFieldQuestionService::question('date',['flexible_month'=>true]),
+    'Поняла, подойдёт любой день указанного месяца. Для первого просмотра на сайте нужна ориентировочная дата, а не окончательное ограничение поездки. Напишите «начало», «середина» или «конец» месяца. Для сравнения цен за весь месяц — «Позвать менеджера».');
+mfqCheck('range copy does not invent the user-selected day',
+    str_contains(MissingFieldQuestionService::question('date',['ambiguous_range'=>true]),'Вы выбрали'), false);
 
 IntegrationRegistry::resetForTests();
 ProjectConfig::resetForTests(null);
