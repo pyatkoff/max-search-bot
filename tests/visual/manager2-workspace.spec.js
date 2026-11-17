@@ -706,7 +706,10 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
     if(action==='filter_options'){
       await expect(page.locator('#leadStage option')).toHaveCount(stages.length);
       await expect(page.locator('#leadStage')).toHaveValue('working');
-      await showCard(page);await page.locator('#leadOutcomeNote').fill(note);
+      await showCard(page);
+      const saleDetails=page.locator('#leadCard .m2SaleDetails');
+      if(await saleDetails.getAttribute('open')===null)await saleDetails.locator(':scope > summary').click();
+      await expect(saleDetails).toHaveAttribute('open','');await page.locator('#leadOutcomeNote').fill(note);
       expect(s.metadataPending()).toBe(1);await noOverflow(page);
       await capture(page,browserName,viewport.width,'card-before-filters-'+viewport.height);await showChat(page);
     }
