@@ -13,8 +13,8 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event_name == 'push' &&
-      github.event.before == '2d667c45c3586e20c08dac3d6129e3509fd57ae0' &&
-      github.event.head_commit.message == 'diagnostics(anytour): exact original MAX child and Telegram capability read preview' &&
+      github.event.before == '60ecb2a43efe337ab9fc0537339b1d410b639855' &&
+      github.event.head_commit.message == 'diagnostics(anytour): strict failed MAX button read receipt no replay preview' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = 2d667c45c3586e20c08dac3d6129e3509fd57ae0
+          test "$(git rev-parse HEAD^)" = 60ecb2a43efe337ab9fc0537339b1d410b639855
           test "$(git hash-object tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php)" = 71eae82282831c21e5ac3443d135a3549d55d3b9
           echo ONE_SHOT_ORIGINAL_JOURNAL_PIN_OK
       - name: Pinned existing SSH host and private runner-only key
