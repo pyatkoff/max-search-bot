@@ -162,7 +162,7 @@ try {
     pcCheck('source group restriction is rechecked despite prior authorized read',$read(101,$cookie)['status']===404);
     $db->exec('INSERT INTO manager_group_members VALUES (7,20)');pcCheck('fresh source membership restores exactly the permitted context',$read(101,$cookie)['status']===200);
     $db->exec("UPDATE conversations SET status='waiting_manager' WHERE id=101;UPDATE managers SET is_working=0 WHERE id=7");
-    pcCheck('out-of-shift manager cannot read waiting source context',$read(101,$cookie)['status']===404);
+    pcCheck('out-of-shift manager can read waiting source context with the same project/source ACL',$read(101,$cookie)['status']===200);
     $db->exec("UPDATE conversations SET status='manager' WHERE id=101;UPDATE managers SET is_working=1 WHERE id=7");
     $db->exec('UPDATE managers SET is_active=0 WHERE id=7');pcCheck('disabled account is rejected before reading stored post',$read(101,$cookie)['status']===401);$db->exec('UPDATE managers SET is_active=1 WHERE id=7');
     foreach ([0,-1,'101',[],null] as $badId) { $bad=$read(101,$cookie,['conversation_id'=>$badId]);pcCheck('malformed conversation identifier rejected '.json_encode($badId),$bad['status']===422); }

@@ -144,6 +144,11 @@ class ManagerPushService
         foreach(['project_key','channel']as$field)if((string)($current[$field]??'')!==(string)($expected[$field]??''))return false;
         if(!$taskReminder&&(string)$current['status']!==(string)$expected['status'])return false;
         $managerId=(int)($sub['manager_id']??0);
+        // The final send-time fence must remain even if the shift changed after recipient selection.
+        if(!$taskReminder&&(string)$current['status']==='waiting_manager'){
+            $actor=\ManagerAuthService::byId($managerId);
+            if(!$actor||(!\ManagerAuthService::isAdmin($actor)&&!\ManagerAuthService::isWorking($actor)))return false;
+        }
         if(!($taskReminder?RoutingAccessService::canNotifyTaskOwner($managerId,$current):RoutingAccessService::canSeeConversation($managerId,$current)))return false;
         return ManagerPushConnectionService::isCurrent($pdo,$sub);
     }

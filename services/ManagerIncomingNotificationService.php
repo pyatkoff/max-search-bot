@@ -18,10 +18,12 @@ final class ManagerIncomingNotificationService
         ProjectAccessService::initializeReadOnly();
         $manager=ManagerAuthService::byId($managerId);
         $projects=(array)($manager['projects']??[]);
+        $notifyUnassigned=ManagerAuthService::isAdmin($manager)||ManagerAuthService::isWorking($manager);
         return self::collect(
             ConversationDb::connection(), $managerId,
             array_column($projects, 'project_key'), $cursor,
-            static fn(array $row): bool => ManagerConversationAccessPolicy::canView($managerId, $row),
+            static fn(array $row): bool => ($notifyUnassigned || (string)($row['status']??'')!=='waiting_manager')
+                && ManagerConversationAccessPolicy::canView($managerId, $row),
             ManagerAuthService::isAdmin($manager)?null:$projects
         );
     }
@@ -44,7 +46,7 @@ final class ManagerIncomingNotificationService
         $in = implode(',', array_fill(0, count($keys), '?'));
         // Use the Inbox's canonical gate before the bounded window. Other
         // regions must not consume this manager's limit; canView still checks
-        // current source, shift, project and receipt access after selection.
+        // current source, project and receipt access after selection; poll() gates notification shift separately.
         $regionalArgs=[];
         $regionalSql=$regionalProjects===null?'1=1':RegionalRoutingScopeService::candidatePredicate($managerId,'c',$regionalArgs,$regionalProjects);
         $sql = "SELECT m.id AS message_id,m.metadata_json,c.id AS conversation_id,c.project_key,c.source_id,c.status,c.manager_id,c.started_at,c.last_message_at "

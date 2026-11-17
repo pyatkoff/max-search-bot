@@ -246,7 +246,7 @@ foreach ([['city','country','adults','children','nights','date'], ['date']] as $
 MaxSearchApi::$missing = [];
 dvCheck('multi-month clarification does not claim one known month',
     MissingFieldQuestionService::question('date', ['ambiguous_months'=>true]),
-    'Вы указали период в разных месяцах. Какую конкретную дату вылета взять для поиска?');
+    'Поняла, подходят разные месяцы. Для первого поиска на сайте напишите, с какого месяца начать, или «Позвать менеджера», чтобы сравнить варианты.');
 
 IntegrationRegistry::resetForTests();
 ProjectConfig::resetForTests(null);

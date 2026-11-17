@@ -458,6 +458,64 @@ PHP
                     [(int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id={$id} AND event_type='manager_request'")->fetchColumn(),
                      count(array_slice($sent,$sentBefore)),str_contains(implode(' ',array_column(array_slice($sent,$sentBefore),'text')),'Какая ориентировочная дата вылета')],[1,1,false]);
             }
+
+            // Organic MAX and Telegram: explicit flexibility is not a date
+            // selection or permission to substitute an invented departure.
+            foreach (['max', 'telegram'] as $index=>$platform) {
+                $user=$chatBase+920+$index;
+                $chat=$platform==='max' ? -$user : $user;
+                $chats[]=$chat;
+                $enter($platform, $user);
+                $seed=[65=>'4',66=>'1',67=>'2',68=>'0',70=>'4',71=>'7',72=>'8'];
+                MaxSearchApi::$needs[$chat]=$seed;
+                MaxSearchApi::$statuses[$chat]=MaxSearchApi::$statusAi;
+                AiInvocationService::$calls=[];
+                $before=count($sent);
+                $native($platform,$user,970000+$index*100,'Февраль 2030, любой день');
+                $check($platform.' flexible month asks for approximate search anchor, not an exact commitment',
+                    array_column(array_slice($sent,$before),'text'),
+                    [MissingFieldQuestionService::question('date',['flexible_month'=>true])]);
+                $check($platform.' flexible month preserves previously accepted needs',MaxSearchApi::getSavedData($chat),$seed);
+                $check($platform.' flexible month stores no made-up date',
+                    [MaxSearchApi::getAiSearchContext($chat)['date']??null,PendingMonthStore::get($chat)],
+                    [null,['month'=>2,'year'=>2030]]);
+                $check($platform.' flexible month never invokes model',count(AiInvocationService::$calls),0);
+                $before=count($sent);
+                $native($platform,$user,970001+$index*100,'Без разницы');
+                $check($platform.' repeated flexibility does not trigger the old date loop',
+                    array_column(array_slice($sent,$before),'text'),
+                    [MissingFieldQuestionService::question('date',['flexible_month'=>true])]);
+                $check($platform.' repeated flexibility still has no date',
+                    MaxSearchApi::getAiSearchContext($chat)['date']??null,null);
+                $native($platform,$user,970002+$index*100,'середина');
+                $check($platform.' accepted approximate date uses the remembered month',
+                    MaxSearchApi::getAiSearchContext($chat)['date']??null,'15.02.2030');
+                $check($platform.' accepted approximate date clears pending month',
+                    PendingMonthStore::get($chat),[]);
+                MaxSearchApi::$needs[$chat]=$seed;
+                MaxSearchApi::$statuses[$chat]=MaxSearchApi::$statusAi;
+                PendingMonthStore::clear($chat);
+                AiInvocationService::$calls=[];
+                $before=count($sent);
+                $native($platform,$user,970010+$index*100,'с 5 по 7 июля 2030');
+                $check($platform.' date interval offers selected-day or manager comparison',
+                    array_column(array_slice($sent,$before),'text'),
+                    [MissingFieldQuestionService::question('date',['ambiguous_range'=>true])]);
+                $check($platform.' date interval preserves needs and no date',
+                    MaxSearchApi::getSavedData($chat),$seed);
+                $check($platform.' date interval retains scoped clarification',
+                    PendingMonthStore::get($chat),['month'=>7,'year'=>2030,'requires_clarification'=>true]);
+                $before=count($sent);
+                $native($platform,$user,970011+$index*100,'Без разницы');
+                $check($platform.' range flexibility retains accurate recovery',
+                    array_column(array_slice($sent,$before),'text'),
+                    [MissingFieldQuestionService::question('date',['ambiguous_range'=>true])]);
+                $native($platform,$user,970012+$index*100,'6');
+                $check($platform.' named range accepts an explicitly chosen day',
+                    MaxSearchApi::getAiSearchContext($chat)['date']??null,'06.07.2030');
+                $check($platform.' range does not invoke the model or invent a manager handoff',
+                    count(AiInvocationService::$calls),0);
+            }
         } elseif ($redundantOverlapOnly) {
             require_once $tmp . '/tests/fixtures/channel_post_entry_fixture.php';
             [$pdo, $registry, $publications] = createChannelPostEntryFixture();
@@ -913,6 +971,47 @@ PHP
                     in_array($recovery, array_column(array_slice($sent, $sentBefore), 'text'), true), false);
                 TravelDirectoryRepository::$includeMinsk = false;
             }
+            // Organic (non-hotel-source) intake must not turn a named unsupported
+            // departure into Moscow when the bot is collecting the departure.
+            foreach (['max', 'telegram'] as $index => $platform) {
+                $user = $chatBase + 680 + $index;
+                $chat = $platform === 'max' ? -$user : $user;
+                $chats[] = $chat;
+                $enter($platform, $user);
+                MaxSearchApi::$needs[$chat] = [
+                    66=>'4', 67=>'2', 68=>'0', 70=>'4', 71=>'7', 72=>'9-10', 73=>'05.04.'.$year,
+                ];
+                MaxSearchApi::$statuses[$chat] = MaxSearchApi::$statusAi;
+                TravelDirectoryRepository::$includeMinsk = false;
+                AiInvocationService::$answer = ['intent'=>'search', 'parameters'=>[]];
+                AiInvocationService::$calls = [];
+                $before = MaxSearchApi::getAiSearchContext($chat);
+                $beforeSent = count($sent);
+                $native($platform, $user, 920000 + $index * 100, 'Минск');
+                $check($platform.' ordinary unresolved city tells the customer how to recover',
+                    array_column(array_slice($sent, $beforeSent), 'text'), [$recovery]);
+                $check($platform.' ordinary unresolved city never becomes Moscow',
+                    MaxSearchApi::getAiSearchContext($chat), $before);
+                $check($platform.' ordinary unresolved city stays the only missing field',
+                    MaxSearchApi::getAiMissingFields($chat), ['city']);
+                $check($platform.' ordinary unresolved city does not invoke the model',
+                    count(AiInvocationService::$calls), 0);
+                $beforeSent = count($sent);
+                $native($platform, $user, 920001 + $index * 100, 'Самара');
+                $check($platform.' subsequently confirmed active departure is used',
+                    MaxSearchApi::getAiSearchContext($chat)['city'] ?? null, 'Самара');
+                $check($platform.' confirmed departure avoids unsupported-city warning',
+                    in_array($recovery, array_column(array_slice($sent, $beforeSent), 'text'), true), false);
+                $check($platform.' simple city answers never invoke the model',
+                    count(AiInvocationService::$calls), 0);
+            }
+            $check('bare city-like answer recognized', DepartureCityResolver::isUnresolvedCityLikeAnswer('Минск'), true);
+            $check('unsupported explicit departure recognized', DepartureCityResolver::isUnresolvedCityLikeAnswer('из Минска'), true);
+            $check('greeting is not a city answer', DepartureCityResolver::isUnresolvedCityLikeAnswer('Здравствуйте'), false);
+            $check('month is not a city answer', DepartureCityResolver::isUnresolvedCityLikeAnswer('Февраль'), false);
+            $check('inflected month is not a city answer', DepartureCityResolver::isUnresolvedCityLikeAnswer('Декабря'), false);
+            $check('free-form correction is not a city answer', DepartureCityResolver::isUnresolvedCityLikeAnswer('Перенесём поездку'), false);
+            $check('compound trip is not a bare city', DepartureCityResolver::isUnresolvedCityLikeAnswer('Минск на 7 ночей'), false);
         } elseif ($jointHandoff) {
             require_once $tmp . '/tests/fixtures/channel_post_entry_fixture.php';
             require_once $tmp . '/services/ManagerHandoffContextService.php';
