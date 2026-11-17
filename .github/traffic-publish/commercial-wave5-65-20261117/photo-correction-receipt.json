@@ -1,0 +1,262 @@
+{
+  "state": "FOUR_RECOMPOSED_COVERS_PENDING_FINAL_VISUAL_ACCEPTANCE",
+  "original_profile_cover_commit": "5386a79f00f2b7ead9380e436bc69351ceced2b7",
+  "original_cover_receipt_git_blob": "baf8f31b4430e4bf95d6e911f433ce71883d505f",
+  "gallery_review_run": 44143307403,
+  "changes": [
+    {
+      "id": 4235,
+      "original_png_sha256": "1b30f593475c6e7373acb23551754274e1791a9ce7d0a3a76cd137e323c74fa9",
+      "selected_original_gallery_indices": [
+        7,
+        3,
+        6
+      ],
+      "original_photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502070.jpg",
+          "bytes": 227277,
+          "sha256": "f69d71634f9eac56fe469904128f25e122b8e8dbc22af40cfe9b88aa4126019a",
+          "width": 901,
+          "height": 1200,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502071.jpg",
+          "bytes": 241328,
+          "sha256": "0f3310e57cbf4906561427501940146b1f17400e90e7ece23ccb207c419befc0",
+          "width": 1200,
+          "height": 821,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502072.jpg",
+          "bytes": 333781,
+          "sha256": "136c4c20b403e8535e1ef5bff2a2b169b9f040d9e28f3396dae9f6b2036b4a39",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        }
+      ],
+      "corrected_png_sha256": "d0b801dac69ed8abe71696e1e078e14a459ae6605db2d385f60ea6e7f83e48f4",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502077.jpg",
+          "bytes": 359180,
+          "sha256": "3b39b7bed729b524ccea1707e2870c650e09c3e3f214a2182648be44705ad82f",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502073.jpg",
+          "bytes": 307151,
+          "sha256": "3c3d367cf412c9b1608992364395a4cd392cd2e58d4cb6f3ada3754bd6ea0e24",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502076.jpg",
+          "bytes": 478810,
+          "sha256": "055da6c39e591d34e2d0c929022f0ebce3ce72b96ed62cfeef4411d60522151c",
+          "width": 1200,
+          "height": 801,
+          "mime": "image/jpeg"
+        }
+      ],
+      "reason": "replace dark facade with clear city terrace and property interiors"
+    },
+    {
+      "id": 43494,
+      "original_png_sha256": "089665d517c96d9b36ac14c53ff328de2fe36c954d1d2d4abf03cc9f737c1010",
+      "selected_original_gallery_indices": [
+        5,
+        2,
+        3
+      ],
+      "original_photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-0.jpg",
+          "bytes": 143949,
+          "sha256": "c44aa1573b2b308492153497785475c36fd0f8e3cf47985fdbda554436f80f5a",
+          "width": 800,
+          "height": 532,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-1.jpg",
+          "bytes": 53889,
+          "sha256": "2e5f4270cbb208c308527f98c07363ea3d0e8e5b9f7a97a9ff7e845d11457331",
+          "width": 550,
+          "height": 365,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-2.jpg",
+          "bytes": 82919,
+          "sha256": "69ab1286e59f370affc608ab0a2458c209400fe36988429be4e8376b0f669ddc",
+          "width": 550,
+          "height": 365,
+          "mime": "image/jpeg"
+        }
+      ],
+      "corrected_png_sha256": "86bff1f194af1b5ead63af4f30b908e38347137c0df9156a7f00439d2d5534bd",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-5.jpg",
+          "bytes": 101410,
+          "sha256": "734e2c19718f3fb83c7310f6e9468f123dc6d2f34fa3dadac9788fbe7e81bcc1",
+          "width": 800,
+          "height": 532,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-2.jpg",
+          "bytes": 82919,
+          "sha256": "69ab1286e59f370affc608ab0a2458c209400fe36988429be4e8376b0f669ddc",
+          "width": 550,
+          "height": 365,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-3.jpg",
+          "bytes": 33666,
+          "sha256": "baa8d26462a7f54cdcb416b1b4d6a4a395aa72f2e5248d04e6b3a95286a2c2d2",
+          "width": 550,
+          "height": 365,
+          "mime": "image/jpeg"
+        }
+      ],
+      "reason": "remove previous Anantara signage; keep exact same-property room, pool and suite photos"
+    },
+    {
+      "id": 110848,
+      "original_png_sha256": "da8d68a2408a9455b8a83e0e70703918d124eabeb2995fe6243c277c00928e75",
+      "selected_original_gallery_indices": [
+        4,
+        7,
+        5
+      ],
+      "original_photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpK74S46.jpg",
+          "bytes": 30268,
+          "sha256": "dda8563255a67774be2da93d21ace9e41a244fec9683a2e329fcda01a5294578",
+          "width": 800,
+          "height": 533,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpGv3er8.jpg",
+          "bytes": 42153,
+          "sha256": "f2a69dd88ac360ac3596c242c6f609c80c0e936b0c153d7828f9c7b279505c61",
+          "width": 800,
+          "height": 533,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpUf15H9.jpg",
+          "bytes": 46787,
+          "sha256": "70a618d6ec58f7d84abdacc0f6a80ebe3a7566d06e1d50e2313445b5f1601b53",
+          "width": 800,
+          "height": 533,
+          "mime": "image/jpeg"
+        }
+      ],
+      "corrected_png_sha256": "fa79a689b43288b58b5868e19073e25f7d64929f88e5bdd83d8ac8fd8162daab",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpWz73jc.jpg",
+          "bytes": 61269,
+          "sha256": "b2400582ea8f6cf83fc46406e083b72661e662d42a47c4f9b283fcc8fa969d33",
+          "width": 800,
+          "height": 479,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpzkU1mg.jpg",
+          "bytes": 56330,
+          "sha256": "f4d2e74e3ea6c707180b814520dcb889cd8e6ade08f7fbd15141790341acbfff",
+          "width": 800,
+          "height": 533,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpInS5Ed.jpg",
+          "bytes": 37637,
+          "sha256": "90f8f5dc8a43c71dc1ee2d3f28cdcfd00cb04b369df175cab6dab07bd7dc8c97",
+          "width": 800,
+          "height": 533,
+          "mime": "image/jpeg"
+        }
+      ],
+      "reason": "replace abstract dark object hero with a clear bedroom, sitting room and bathroom"
+    },
+    {
+      "id": 115812,
+      "original_png_sha256": "b9eb0d8cd097d7cd7cd17739faf420468765c203cb93fc4e6e9e93ef5d5ff550",
+      "selected_original_gallery_indices": [
+        5,
+        4,
+        6
+      ],
+      "original_photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009027.jpg",
+          "bytes": 136060,
+          "sha256": "beba42b7a923099e80476c010a5a1efa004354aeee5823f3a62cfc0a5fc4d98a",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009000.jpg",
+          "bytes": 112831,
+          "sha256": "728a68ae21e1319aac36fcf23aec5afb84d89be5a4d5c39ccbac29823b141a1c",
+          "width": 512,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009001.jpg",
+          "bytes": 128703,
+          "sha256": "3ceffbf1efe26637c1e4da09630432ce9f69e7d21929d1fce3080af839e5fa3e",
+          "width": 1024,
+          "height": 679,
+          "mime": "image/jpeg"
+        }
+      ],
+      "corrected_png_sha256": "8ec23d710494b0416aeb0863ccf2313b02e98758cf548e17050207bf133e964d",
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009004.jpg",
+          "bytes": 111063,
+          "sha256": "dd50b60e0cd197cd3aae404f9e5a07d3191cf6656c99f76a23bb6a535a44e8eb",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009003.jpg",
+          "bytes": 201313,
+          "sha256": "ef95130a5f3354de35a251394eca945e80032777a4f608213c504b1fdbb705fd",
+          "width": 1024,
+          "height": 634,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009005.jpg",
+          "bytes": 117973,
+          "sha256": "93d120496d4eaf802d92505f0c0221ef72edf2885633f336b3387b9ec1d64bf0",
+          "width": 1024,
+          "height": 631,
+          "mime": "image/jpeg"
+        }
+      ],
+      "reason": "use clear room and indoor pool photos instead of visually uncertain exterior images"
+    }
+  ],
+  "provider_profile_calls": 0,
+  "native_sends": 0
+}
