@@ -1,0 +1,40 @@
+name: PRICE27316 one-shot source-only readiness self-test
+on:
+  push:
+    branches: ['audit/price660-27316-resume-readiness-20261117']
+    paths: ['.github/workflows/price660-27316-readiness-ci-once.yml']
+permissions:
+  contents: read
+jobs:
+  pure-test:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.event_name == 'push' &&
+      github.event.before == '3725e1c52fda2670f27eefbb583a0cf561205764' &&
+      github.event.head_commit.message == 'test(price660): run pure 27316 readiness self-check once' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 2
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Source-only exact scope and PHP self-tests (no host, no secrets)
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = 3725e1c52fda2670f27eefbb583a0cf561205764
+          test ! -f .github/workflows/price660-27316-readiness-ci-once.yml.disabled
+          p=tools/direct_demand/operations/price660-27316-resume-readiness-source-only.php
+          php -l "$p"
+          php "$p" --self-test
+          test "$(grep -c 'database_or_journal_writes_authorized.*false' "$p")" = 1
+          if grep -Ein 'curl|file_get_contents|fopen|flock|PDO|MaxTransport::request|--apply|workflow_dispatch|supplier_call\(' "$p"; then
+            echo 'SIDE_EFFECT_SURFACE_PRESENT' >&2; exit 2
+          fi
+          echo 'PRICE27316_SOURCE_ONLY_VALIDATED'
