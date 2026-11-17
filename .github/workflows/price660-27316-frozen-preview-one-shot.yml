@@ -1,7 +1,7 @@
 name: Price660 27316 original frozen reconciler live read-only PREVIEW
 on:
   push:
-    branches: ['audit/price660-27316-readonly-20261117']
+    branches: ['audit/price660-27316-resume-readiness-20261117']
     paths: ['.github/workflows/price660-27316-frozen-preview-one-shot.yml']
 permissions:
   contents: read
@@ -13,8 +13,8 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event_name == 'push' &&
-      github.event.before == 'e7164498d56daab51f518b94b321ea4d981fc180' &&
-      github.event.head_commit.message == 'diagnostics(anytour): bound original 660 27316 live preview no apply' &&
+      github.event.before == 'a558a5762f665878668300a5d1c896a196feb697' &&
+      github.event.head_commit.message == 'diagnostics(anytour): correct read-only preview branch and original parent' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = e7164498d56daab51f518b94b321ea4d981fc180
+          test "$(git rev-parse HEAD^)" = a558a5762f665878668300a5d1c896a196feb697
           test "$(git hash-object tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php)" = 71eae82282831c21e5ac3443d135a3549d55d3b9
           echo ONE_SHOT_ORIGINAL_JOURNAL_PIN_OK
       - name: Pinned existing SSH host and private runner-only key
