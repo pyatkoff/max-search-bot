@@ -403,7 +403,58 @@ function reconcile_final_receipt(ChannelPostRegistryService $registry, array $p,
 }
 
 function reconcile_self_test(): void {
-    throw new RuntimeException('price27316_self_test_not_yet_proven');
+    $cases=0;
+    $ok=static function(bool $condition,string $reason)use(&$cases):void{
+        reconcile_need($condition,'selftest_'.$reason);$cases++;
+    };
+    $refuse=static function(callable $fn,string $reason)use(&$cases):void{
+        try{$fn();}catch(Throwable $e){$cases++;return;}
+        throw new RuntimeException('selftest_unsafe_admitted_'.$reason);
+    };
+    $plan=['platform'=>'max','key'=>RECONCILE_KEY,'logical_id'=>RECONCILE_KEY,
+        'publication_id'=>400,'old_version_id'=>4199,'message_id'=>RECONCILE_MAX_MID,
+        'post_url'=>'https://max.ru/channel_anytour/AaGjuI2pXao',
+        'photo_signature'=>'max:49106363656','update_text'=>true,
+        'text'=>'fixture-verified-original-new-text',
+        'token'=>'p_'.str_repeat('x',24),
+        'monitor_price'=>['record_id'=>RECONCILE_RECORD]];
+    $state=['operation'=>RECONCILE_OPERATION,'manifest_hash'=>RECONCILE_MANIFEST,
+        'configs'=>[],'posts'=>['max:'.RECONCILE_KEY=>[
+            'state'=>'text_edit_returned','provider_edit_returned'=>true,
+            'edit_request_start_ms'=>RECONCILE_REQUEST_START_MS,'plan'=>$plan]]];
+    $ok(reconcile_original_state($state)===$plan,'exact_original_max_intent');
+    $mutations=[
+        ['stage',static function(array $state):array {$state['posts']['max:'.RECONCILE_KEY]['state']='unknown';return $state;}],
+        ['provider',static function(array $state):array {$state['posts']['max:'.RECONCILE_KEY]['provider_edit_returned']=false;return $state;}],
+        ['time',static function(array $state):array {$state['posts']['max:'.RECONCILE_KEY]['edit_request_start_ms']++;return $state;}],
+        ['new_version',static function(array $state):array {$state['posts']['max:'.RECONCILE_KEY]['plan']['old_version_id']=7024;return $state;}],
+        ['new_message',static function(array $state):array {$state['posts']['max:'.RECONCILE_KEY]['plan']['message_id']='mid.unexpected';return $state;}],
+        ['other_post',static function(array $state):array {$state['posts']['telegram:'.RECONCILE_KEY]=['state'=>'edit_started'];return $state;}],
+        ['prefix_loss',static function(array $state):array {$state['operation']='different';return $state;}],
+        ['hash_changed',static function(array $state):array {$state['manifest_hash']=str_repeat('f',64);return $state;}],
+        ['photo_changed',static function(array $state):array {$state['posts']['max:'.RECONCILE_KEY]['plan']['photo_signature']='max:123';return $state;}],
+        ['post_url_changed',static function(array $state):array {$state['posts']['max:'.RECONCILE_KEY]['plan']['post_url']='https://max.ru/wrong';return $state;}],
+        ['record_changed',static function(array $state):array {$state['posts']['max:'.RECONCILE_KEY]['plan']['monitor_price']['record_id']=str_repeat('a',64);return $state;}],
+        ['token_changed',static function(array $state):array {$state['posts']['max:'.RECONCILE_KEY]['plan']['token']='wrong';return $state;}],
+    ];
+    foreach($mutations as [$reason,$modify])$refuse(static fn()=>reconcile_original_state($modify($state)),$reason);
+    $url='https://t.me/anyru_bot?start=p_'.str_repeat('A',24);
+    $caption="✈️ Туры в REGNUM CARYA\n🌴 Белек\n\n💰 От 1 108 872 ₽ за двоих\n✈️ Вылет из Москвы 21.11.2026 · 5 ночей\n👥 2 взрослых\n🛏 sapphire villa\n🍽 Ultra All Inclusive\n\nЦена найдена мониторингом 17.11.2026, 09:55 МСК. Стоимость и наличие могут измениться.\n\nУзнать стоимость тура";
+    $link=monitorEditorPriceLink($caption,'telegram',$url);
+    $ok(count($link['telegram_entities']??[])===1
+        &&($link['telegram_entities'][0]['type']??null)==='text_link'
+        &&($link['telegram_entities'][0]['url']??null)===$url,
+        'existing_telegram_price_link');
+    $replaced=preg_replace('/От 1 108 872 ₽/u','От 1 108 873 ₽',$caption);
+    $refuse(static fn()=>monitorEditorPriceLink($replaced,'telegram','https://t.me/wrong_bot?start=abc'),
+        'changed_telegram_bot_url');
+    $source=file_get_contents(__FILE__);
+    reconcile_need(is_string($source),'selftest_source_unavailable');
+    $ok(substr_count($source,"tg('editMessageCaption'")===1,'only_one_telegram_first_edit_call');
+    $ok(substr_count($source,'confirmReadFailure(')===2,'built_in_max_preview_and_one_cas');
+    $ok(!str_contains($source,"MaxTransport::request(")&&!str_contains($source,"tg('sendMessage'"),
+        'no_provider_max_put_or_new_post');
+    echo 'MONITOR_PENDING_27316_SELFTEST_OK cases='.$cases.' no_network=1 no_write=1 no_replay=1',"\n";
 }
 
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
@@ -412,6 +463,7 @@ if (!defined('HOOK_EDITOR_B64') || !function_exists('safeResult') || !function_e
 }
 if (count($argv) === 2 && $argv[1] === '--self-test') { reconcile_self_test(); exit(0); }
 $apply = getenv('ANYTOUR_MONITOR_27316_APPLY') === '1';
+if ($apply) { fwrite(STDERR, "PRICE27316_APPLY_DISABLED_UNTIL_REVIEWED\n"); exit(2); }
 $out = ['ok'=>false, 'operation'=>RECONCILE_OPERATION, 'mode'=>$apply?'apply_original_pending_only':'inspect_original_pending_only',
     'checked_at'=>gmdate('c'),'driver_sha256'=>RECONCILE_DRIVER_SHA256,'embedded_prefix_sha256'=>RECONCILE_EMBEDDED_PREFIX_SHA256,
     'max_puts'=>0,'max_gets'=>0,'saved_monitor_gets'=>0,'telegram_edit_attempts'=>0,'new_posts'=>0,'supplier_calls'=>0,
