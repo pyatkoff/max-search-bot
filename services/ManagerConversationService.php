@@ -401,15 +401,23 @@ class ManagerConversationService
             'post_url'=>$url ?? '', 'reply'=>['state'=>$intent['state'],'text'=>$intent['text']]];
     }
 
-    public static function detail(int $conversationId,int $managerId,int $beforeId=0,int $limit=200,bool $markRead=false,bool $openUnread=false): ?array
+    public static function detail(int $conversationId,int $managerId,int $beforeId=0,int $limit=200,bool $markRead=false,bool $openUnread=false,bool $reuseQueueContext=false): ?array
     {
         if($beforeId<0)throw new InvalidArgumentException('invalid_history_cursor');
         $limit=max(1,min(200,$limit));
         ManagerReadService::ensureSchema();
-        $conversation=self::visibleConversation($conversationId,$managerId,true);if(!$conversation)return null;
         // Capture the displayed action's frontier BEFORE fetching the transcript:
         // an inbound arriving between reads must never be silently resolved.
-        $replyQueue=$beforeId===0?ManagerReplyQueueService::snapshot($managerId,$conversationId):null;
+        if($reuseQueueContext&&$beforeId===0){
+            $conversationContext=[];
+            $replyQueue=ManagerReplyQueueService::snapshot($managerId,$conversationId,$conversationContext);
+            // A queue denial may still allow the existing read-only supervisor view.
+            $conversation=!empty($replyQueue['ok'])?$conversationContext:self::visibleConversation($conversationId,$managerId,true);
+            if(!$conversation)return null;
+        }else{
+            $conversation=self::visibleConversation($conversationId,$managerId,true);if(!$conversation)return null;
+            $replyQueue=$beforeId===0?ManagerReplyQueueService::snapshot($managerId,$conversationId):null;
+        }
         $supervisorRead=(int)($conversation['manager_id']??0)!==$managerId&&ManagerSupervisorAccessService::canRead($managerId,$conversation);
         $pdo=ConversationDb::connection();
         $sql='SELECT id,direction,sender_type,text,created_at,sender_id FROM messages WHERE conversation_id=?'.($beforeId>0?' AND id<?':'').' ORDER BY id DESC LIMIT '.($limit+1);
