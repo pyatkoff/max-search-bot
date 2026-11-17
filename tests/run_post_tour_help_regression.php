@@ -160,6 +160,43 @@ foreach (['Какая цена и поменять дату', 'Цена до 200
     helpCheck('mixed or broader check text receives generic guidance', helpDispatch($phrase), true);
     helpCheck('mixed or broader text does not get price claim', strpos($messenger->sent[0]['text'] ?? '', 'актуальные цены') === false, true);
 }
+
+// Completed check: asking for price or identifying a named hotel is not a
+// request to edit conditions. Both messengers must give a useful next action.
+foreach (['max', 'telegram'] as $platform) {
+    foreach (['Хочу узнать стоимость', 'Уточните стоимость', 'Сколько стоит', 'Какая стоимость?'] as $phrase) {
+        helpCheck('substantive price classifier', DialogueController::isCheckPriceQuestion($phrase), true);
+        helpCheck('substantive price inquiry is handled', helpDispatch($phrase,74,$platform), true);
+        helpCheck('substantive price has one response', count($messenger->sent), 1);
+        helpCheck('substantive price points to original tours action',
+            str_contains($messenger->sent[0]['text']??'', 'Показать туры'), true);
+        helpCheck('substantive price preserves status', MaxSearchApi::$status, 74);
+        helpCheck('substantive price invents no price, URL, or new action',
+            [str_contains($messenger->sent[0]['text']??'','₽'),str_contains($messenger->sent[0]['text']??'','http'),$messenger->sent[0]['buttons']??null],
+            [false,false,[]]);
+    }
+    foreach (['Отель Джаз Фанера', 'Интересует этот отель', 'Гостиница Hailan'] as $phrase) {
+        helpCheck('named hotel classifier', DialogueController::isCheckHotelInterest($phrase), true);
+        helpCheck('named hotel check response handled', helpDispatch($phrase,74,$platform), true);
+        helpCheck('named hotel receives one response', count($messenger->sent), 1);
+        helpCheck('named hotel points to existing manager choice',
+            str_contains($messenger->sent[0]['text']??'','Подобрать с менеджером'), true);
+        helpCheck('named hotel does not guarantee availability',
+            str_contains($messenger->sent[0]['text']??'','наличие этого отеля пока не подтверждено'), true);
+        helpCheck('named hotel creates no phone action or new callback', $messenger->sent[0]['buttons']??null, []);
+        helpCheck('named hotel preserves status', MaxSearchApi::$status, 74);
+    }
+}
+foreach (['Цена до 200 тысяч','Какая цена и поменять дату','Хотим в ОАЭ'] as $phrase) {
+    helpCheck('mixed correction remains outside pure price classifier', DialogueController::isCheckPriceQuestion($phrase), false);
+}
+helpCheck('bare brand has no assumed identity', DialogueController::isCheckHotelInterest('Hailan'), false);
+helpCheck('mixed hotel and new duration must remain on explicit edit path', DialogueController::isCheckHotelInterest('Отель Джаз Фанера на 7 ночей'), false);
+helpCheck('bare brand receives useful neutral check advice', helpDispatch('Hailan'), true);
+helpCheck('neutral advice points to existing results and manager actions',
+    str_contains($messenger->sent[0]['text']??'','Показать туры')
+    && str_contains($messenger->sent[0]['text']??'','Подобрать с менеджером'), true);
+
 helpCheck('blank check text remains harmless', helpDispatch('   '), true);
 helpCheck('blank check text sends nothing', $messenger->sent, []);
 

@@ -29,7 +29,8 @@ mvCheck('admin manager filter is optional',strpos($service,"if(\$isAdmin && \$qu
 mvCheck('admin unassigned filter exists',strpos($service,"\$managerFilter==='unassigned'")!==false);
 mvCheck('admin mine filter exists',strpos($service,"\$managerFilter==='mine'")!==false);
 mvCheck('api forwards manager filter only for admin',strpos($api,"\$isAdmin?(string)(\$data['manager_filter']??''):''")!==false);
-mvCheck('off-shift all queue falls back to mine only',strpos($api,"!\$isAdmin&&\$queue==='all'&&!ManagerAvailabilityService::isWorking")!==false);
+mvCheck('off-shift All keeps the same project-scoped conversation list',strpos($api,"!\$isAdmin&&\$queue==='all'&&!ManagerAvailabilityService::isWorking")===false);
+mvCheck('off-shift manual take is not gated by notification shift',strpos($api,"!\$isAdmin&&!ManagerAvailabilityService::isWorking")===false);
 mvCheck('off-shift waiting queue is not forcibly emptied',strpos($api,"\$counts['waiting']=['count'=>0,'unread'=>0]")===false);
 mvCheck('waiting queue includes taken conversations awaiting first reply',strpos($service,"\$queue==='attention'||\$queue==='waiting'")!==false && strpos($service,"awaitingFirstReplySql('c')")!==false);
 mvCheck('awaiting first reply requires manager outbound after latest request',strpos($service,"mr.sender_type='manager'")!==false && strpos($service,"mr.created_at>=")!==false);
@@ -101,7 +102,7 @@ $badTimes=$mine;$badTimes[0]['last_message_at']='';
 mvCheck('malformed page timestamps cannot excuse missing rows',ManagerVisibilityHealth::assess($working,$badTimes,$mine,[$row(401,null,'2026-09-20 10:00:00')])['ok']===false);
 mvCheck('malformed sample IDs fail closed',ManagerVisibilityHealth::assess($working,[['id'=>0]],[],[])['ok']===false);
 mvCheck('duplicate sample IDs fail closed',ManagerVisibilityHealth::assess($working,[$row(1,7),$row(1,7)],[],[])['ok']===false);
-mvCheck('off-shift expectation remains unchanged',ManagerVisibilityHealth::assess(['is_working'=>false],[],[],[$row(1,null)])['ok']===true);
+mvCheck('off-shift missing waiting conversation remains a visibility defect',ManagerVisibilityHealth::assess(['is_working'=>false],[],[],[$row(1,null)])['ok']===false);
 $before=[$all,$mine,$waiting];ManagerVisibilityHealth::assess($working,$all,$mine,$waiting);
 mvCheck('assessment never mutates source lists',$before===[$all,$mine,$waiting]);
 mvCheck('assessment returns only aggregate evidence',!str_contains(json_encode($check),'manager_id')&&!str_contains(json_encode($check),'last_message_at'));

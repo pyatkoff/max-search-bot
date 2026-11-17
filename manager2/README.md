@@ -217,9 +217,8 @@ uses the new path.
 ## Ordinary conversation actions and uncertain outcomes
 
 Take/release/close/reopen use structured results from the existing canonical
-conversation service; its bool callers remain compatible. Existing eligibility,
-ownership, off-shift take guard, admin exception, locks and provider/event order
-are unchanged. Known refusals have stable reasons; missing and inaccessible
+conversation service; its bool callers remain compatible. Existing project/source/ownership eligibility, admin exception, locks and provider/event order
+are unchanged. Notification shift controls alerts, not manual take or inbox visibility. Known refusals have stable reasons; missing and inaccessible
 conversations remain indistinguishable. No extra query explains a refusal.
 
 A transport error, timeout, malformed/legacy response or server error is not a

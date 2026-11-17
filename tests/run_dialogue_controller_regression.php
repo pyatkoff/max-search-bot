@@ -458,6 +458,64 @@ PHP
                     [(int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id={$id} AND event_type='manager_request'")->fetchColumn(),
                      count(array_slice($sent,$sentBefore)),str_contains(implode(' ',array_column(array_slice($sent,$sentBefore),'text')),'Какая ориентировочная дата вылета')],[1,1,false]);
             }
+
+            // Organic MAX and Telegram: explicit flexibility is not a date
+            // selection or permission to substitute an invented departure.
+            foreach (['max', 'telegram'] as $index=>$platform) {
+                $user=$chatBase+920+$index;
+                $chat=$platform==='max' ? -$user : $user;
+                $chats[]=$chat;
+                $enter($platform, $user);
+                $seed=[65=>'4',66=>'1',67=>'2',68=>'0',70=>'4',71=>'7',72=>'8'];
+                MaxSearchApi::$needs[$chat]=$seed;
+                MaxSearchApi::$statuses[$chat]=MaxSearchApi::$statusAi;
+                AiInvocationService::$calls=[];
+                $before=count($sent);
+                $native($platform,$user,970000+$index*100,'Февраль 2030, любой день');
+                $check($platform.' flexible month asks for approximate search anchor, not an exact commitment',
+                    array_column(array_slice($sent,$before),'text'),
+                    [MissingFieldQuestionService::question('date',['flexible_month'=>true])]);
+                $check($platform.' flexible month preserves previously accepted needs',MaxSearchApi::getSavedData($chat),$seed);
+                $check($platform.' flexible month stores no made-up date',
+                    [MaxSearchApi::getAiSearchContext($chat)['date']??null,PendingMonthStore::get($chat)],
+                    [null,['month'=>2,'year'=>2030]]);
+                $check($platform.' flexible month never invokes model',count(AiInvocationService::$calls),0);
+                $before=count($sent);
+                $native($platform,$user,970001+$index*100,'Без разницы');
+                $check($platform.' repeated flexibility does not trigger the old date loop',
+                    array_column(array_slice($sent,$before),'text'),
+                    [MissingFieldQuestionService::question('date',['flexible_month'=>true])]);
+                $check($platform.' repeated flexibility still has no date',
+                    MaxSearchApi::getAiSearchContext($chat)['date']??null,null);
+                $native($platform,$user,970002+$index*100,'середина');
+                $check($platform.' accepted approximate date uses the remembered month',
+                    MaxSearchApi::getAiSearchContext($chat)['date']??null,'15.02.2030');
+                $check($platform.' accepted approximate date clears pending month',
+                    PendingMonthStore::get($chat),[]);
+                MaxSearchApi::$needs[$chat]=$seed;
+                MaxSearchApi::$statuses[$chat]=MaxSearchApi::$statusAi;
+                PendingMonthStore::clear($chat);
+                AiInvocationService::$calls=[];
+                $before=count($sent);
+                $native($platform,$user,970010+$index*100,'с 5 по 7 июля 2030');
+                $check($platform.' date interval offers selected-day or manager comparison',
+                    array_column(array_slice($sent,$before),'text'),
+                    [MissingFieldQuestionService::question('date',['ambiguous_range'=>true])]);
+                $check($platform.' date interval preserves needs and no date',
+                    MaxSearchApi::getSavedData($chat),$seed);
+                $check($platform.' date interval retains scoped clarification',
+                    PendingMonthStore::get($chat),['month'=>7,'year'=>2030,'requires_clarification'=>true]);
+                $before=count($sent);
+                $native($platform,$user,970011+$index*100,'Без разницы');
+                $check($platform.' range flexibility retains accurate recovery',
+                    array_column(array_slice($sent,$before),'text'),
+                    [MissingFieldQuestionService::question('date',['ambiguous_range'=>true])]);
+                $native($platform,$user,970012+$index*100,'6');
+                $check($platform.' named range accepts an explicitly chosen day',
+                    MaxSearchApi::getAiSearchContext($chat)['date']??null,'06.07.2030');
+                $check($platform.' range does not invoke the model or invent a manager handoff',
+                    count(AiInvocationService::$calls),0);
+            }
         } elseif ($redundantOverlapOnly) {
             require_once $tmp . '/tests/fixtures/channel_post_entry_fixture.php';
             [$pdo, $registry, $publications] = createChannelPostEntryFixture();
@@ -629,6 +687,89 @@ PHP
                 AiInvocationService::$duringInvoke=static function()use($native,$mid):void { $native($mid+7,'3'); };
                 $native($mid+6,'Есть ли бассейн?');
                 $check($platform.' delayed FAQ remains outside the no-fact search guard',array_column(array_slice($sent,$sentBefore),'text'),[MissingFieldQuestionService::question('children'),'Описание бассейна можно уточнить у менеджера.']);
+
+                // Separate, fully synthetic source-qualified conversation:
+                // the terminal manager handoff must not alter the pre-existing
+                // overlap fixture's dialogue or its later negative controls.
+                // Use explicit nights; the observed "7 days" is not permission
+                // to assume seven nights.
+                $quickUser=$user+10000;
+                $quickChat=$platform==='max' ? -$quickUser : $quickUser;
+                $chats[]=$quickChat;
+                $enter($platform,$quickUser,$publications[$platform]['start_payload']);
+                $query=$pdo->prepare('SELECT id FROM conversations WHERE channel=? AND external_chat_id=? ORDER BY id DESC LIMIT 1');
+                $query->execute([$platform,(string)$quickChat]);
+                $quickId=(int)$query->fetchColumn();
+                $quickIntent=SourceHotelIntentService::current($quickId);
+                (new IncomingUpdateDispatcher())->dispatch(['platform'=>$platform,'type'=>'callback',
+                    'callback_data'=>'hotel_intent_same:'.($quickIntent['token']??''),
+                    'callback_id'=>'quick-children.'.$quickUser,
+                    'user'=>['chat_id'=>$quickChat,'external_user_id'=>$quickUser]]);
+                $quickNative=static function(int $msgId,string $text)use($quickUser,$platform,$maxMessenger,$telegramMessenger):void {
+                    IntegrationRegistry::useMessenger($platform==='max'?$maxMessenger:$telegramMessenger);
+                    if ($platform==='max') {
+                        (new IncomingUpdateDispatcher())->dispatch(MaxIncomingAdapter::fromUpdate([
+                            'update_type'=>'message_created',
+                            'message'=>['sender'=>['user_id'=>$quickUser],
+                                'body'=>['mid'=>(string)$msgId,'text'=>$text]],
+                        ]));
+                    } else {
+                        TelegramWebhookHandler::dispatchUpdate(['update_id'=>$msgId,'message'=>[
+                            'message_id'=>$msgId,'from'=>['id'=>$quickUser],
+                            'chat'=>['id'=>$quickUser,'type'=>'private'],'text'=>$text,
+                        ]],null,$telegramMessenger);
+                    }
+                };
+                $quickNeeds=$seedNeeds;
+                $quickNeeds[67]=2;
+                unset($quickNeeds[68],$quickNeeds[72]);
+                $quickMid=$mid+300;
+                MaxSearchApi::$needs[$quickChat]=$quickNeeds;
+                MaxSearchApi::$statuses[$quickChat]=MaxSearchApi::$statusAi;
+                AiInvocationService::$calls=[];
+                AiInvocationService::$answer=['intent'=>'search','parameters'=>['nights'=>'7']];
+                AiInvocationService::$duringInvoke=null;
+                $ordinaryBefore=count($sent);
+                $quickNative($quickMid,'7 ночей');
+                $check($platform.' ordinary child question remains without newer input',
+                    array_column(array_slice($sent,$ordinaryBefore),'text'),
+                    [MissingFieldQuestionService::question('children')]);
+
+                MaxSearchApi::$needs[$quickChat]=$quickNeeds;
+                MaxSearchApi::$statuses[$quickChat]=MaxSearchApi::$statusAi;
+                $queuedChild=IncomingMessage::text($platform,$quickUser,$quickChat,(string)($quickMid+2),'Дети нет');
+                $queuedRecorded=false;
+                AiInvocationService::$answer=['intent'=>'search','parameters'=>['nights'=>'7']];
+                AiInvocationService::$calls=[];
+                AiInvocationService::$duringInvoke=static function()use($queuedChild,&$queuedRecorded):void {
+                    $queuedRecorded=ConversationRecorder::inbound($queuedChild);
+                };
+                $beforeQuestion=count($sent);
+                $eventsBefore=(int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id={$quickId} AND event_type='manager_request'")->fetchColumn();
+                $quickNative($quickMid+1,'7 ночей');
+                $check($platform.' newer child input recorded during older model boundary',$queuedRecorded,true);
+                $check($platform.' old duration response suppresses stale child question',
+                    array_column(array_slice($sent,$beforeQuestion),'text'),[]);
+                $quickContext=MaxSearchApi::getAiSearchContext($quickChat);
+                $check($platform.' older turn leaves queued child input unapplied',
+                    [$quickContext['nights']??null,$quickContext['children']??null],['7',null]);
+                $check($platform.' queued child input does not prematurely hand off',
+                    (int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id={$quickId} AND event_type='manager_request'")->fetchColumn(),$eventsBefore);
+
+                // Resume exactly this already recorded native message; no replay
+                // of the recorder or second customer-message insertion.
+                AiInvocationService::$answer=['intent'=>'search','parameters'=>[]];
+                SourceHandlingService::handle($queuedChild);
+                (new DialogueController())->handleIncomingMessage($queuedChild);
+                $quickContext=MaxSearchApi::getAiSearchContext($quickChat);
+                $check($platform.' newer answer retains nights, date and zero children',
+                    [$quickContext['nights']??null,$quickContext['date']??null,$quickContext['children']??null],
+                    ['7','05.04.'.((int)date('Y')+1),0]);
+                $quickReplies=array_column(array_slice($sent,$beforeQuestion),'text');
+                $check($platform.' no stale child question around single handoff',
+                    [count($quickReplies),str_contains(implode(' ',$quickReplies),'Будут дети?')],[1,false]);
+                $check($platform.' newer child answer hands off once',
+                    (int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id={$quickId} AND event_type='manager_request'")->fetchColumn(),$eventsBefore+1);
 
                 // Two native messages can overlap after the first inserts a value
                 // row and before its collector restores the free-text boundary.

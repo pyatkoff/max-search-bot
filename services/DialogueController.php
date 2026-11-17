@@ -113,6 +113,10 @@ class DialogueController
         if ($status == MaxSearchApi::$statusCheck && self::isCheckPriceQuestion($plainText)) {
             return DialogueView::checkPriceGuidance($chatId);
         }
+        // A named hotel after completed check is an inquiry, not a silent edit.
+        if ($status == MaxSearchApi::$statusCheck && self::isCheckHotelInterest($plainText)) {
+            return DialogueView::checkHotelInterestGuidance($chatId);
+        }
         if ($status == MaxSearchApi::$statusCheck
             && preg_match('/\Aгор(?:ящие|ячие)\s+туры[.!?…]*\z/ui', $plainText) === 1) {
             return DialogueView::checkTourGuidance($chatId);
@@ -244,7 +248,16 @@ class DialogueController
 
     public static function isCheckPriceQuestion(string $text): bool
     {
-        return preg_match('/^(?:цена|какая\s+цена)[.!?… ]*$/ui', trim($text)) === 1;
+        // A whole, bounded price inquiry is not permission to amend saved needs.
+        return preg_match('/\A(?:цена|какая\s+цена|стоимость|какая\s+стоимость|сколько\s+стоит(?:\s+(?:этот\s+)?отель)?|(?:хочу\s+узнать|подскажите|уточните)\s+(?:цену|стоимость)(?:\s+(?:тура|отеля))?)[.!?… ]*\z/ui', trim($text)) === 1;
+    }
+
+    public static function isCheckHotelInterest(string $text): bool
+    {
+        $text = trim($text);
+        if ($text === '' || strlen($text) > 160 || preg_match('/\d/u', $text)) return false;
+        return preg_match('/\A(?:отель|гостиница)\s+[\p{L}][\p{L}\s\'"().-]{1,90}[.!?… ]*\z/ui', $text) === 1
+            || preg_match('/\A(?:интересует|хочу|можно|покажите|рассмотрите|посмотрите)\s+(?:именно\s+)?(?:этот|данный|конкретный)\s+отель[.!?… ]*\z/ui', $text) === 1;
     }
 
     private static function resetDialogueSafe($chatId, string $platform): void

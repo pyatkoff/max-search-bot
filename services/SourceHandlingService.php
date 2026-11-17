@@ -269,6 +269,46 @@ class SourceHandlingService
             &&self::$qualificationTurn['project_key']===ProjectConfig::projectId();
     }
 
+    /**
+     * An earlier hotel-qualification turn must not ask about children after a
+     * later, separately recorded native customer answer is already in the queue.
+     * This is read-only: the newer turn still owns parsing, application and
+     * handoff. Unmatched/ambiguous inputs and DB failures retain normal prompts.
+     */
+    public static function newerQueuedChildAnswer($chatId): bool
+    {
+        if (!self::qualifyingTurn($chatId)) return false;
+        $turn = self::$qualificationTurn;
+        $incoming = (array)$turn['incoming'];
+        $platform = (string)($incoming['platform'] ?? '');
+        $externalId = trim((string)($incoming['message_id'] ?? ''));
+        if (($incoming['type'] ?? '') !== 'message' || $externalId === ''
+            || !in_array($platform, ['max', 'telegram'], true)) return false;
+        $conversationId = (int)($turn['conversation_id'] ?? 0);
+        if ($conversationId < 1) return false;
+        try {
+            $pdo = ConversationDb::connection();
+            $q = $pdo->prepare("SELECT id,text FROM messages WHERE conversation_id=? AND channel=? AND direction='inbound' AND sender_type='customer' AND external_message_id=? ORDER BY id DESC LIMIT 2");
+            $q->execute([$conversationId, $platform, $externalId]);
+            $rows = $q->fetchAll(PDO::FETCH_ASSOC);
+            if (count($rows) !== 1 || (string)$rows[0]['text'] !== (string)($incoming['text'] ?? '')) return false;
+
+            $q = $pdo->prepare("SELECT text,metadata_json FROM messages WHERE conversation_id=? AND channel=? AND direction='inbound' AND sender_type='customer' AND id>? ORDER BY id ASC LIMIT 3");
+            $q->execute([$conversationId, $platform, (int)$rows[0]['id']]);
+            require_once __DIR__ . '/NeedValueResolver.php';
+            foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $newer) {
+                $text = trim((string)$newer['text']);
+                if ($text === '' || strlen($text) > 160) continue;
+                $metadata = json_decode((string)$newer['metadata_json'], true);
+                if (!is_array($metadata) || ($metadata['type'] ?? '') !== 'message') continue;
+                if (!empty(NeedValueResolver::resolve('children', $text)['recognized'])) return true;
+            }
+        } catch (Throwable $ignored) {
+            // Missing or uncertain proof never hides an ordinary question.
+        }
+        return false;
+    }
+
     /** A confirmed current hotel supplies handoff intent, never a search country ID. */
     public static function qualificationMissingFields($chatId,array $missing): array
     {

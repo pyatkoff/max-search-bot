@@ -47,6 +47,12 @@ nvrCheck('children none phrase recognized', $childrenNone['recognized'], true);
 nvrCheck('children none canonical value', $childrenNone['value'], 0);
 nvrCheck('children source is deterministic', $childrenNone['source'], 'deterministic:children_parser');
 nvrCheck('children deterministic confidence', $childrenNone['confidence'], 1.0);
+$childrenReply = NeedValueResolver::resolve('children', 'Дети нет');
+nvrCheck('natural reversed negative child wording recognized', $childrenReply['recognized'], true);
+nvrCheck('natural reversed negative child wording means zero', $childrenReply['value'], 0);
+nvrCheck('natural reversed negative child wording has deterministic provenance', $childrenReply['source'], 'deterministic:children_parser');
+nvrCheck('unrelated child question cannot become a negative count',
+    NeedValueResolver::resolve('children', 'Дети есть?')['recognized'], false);
 $childrenWord = NeedValueResolver::resolve('children', 'двое');
 nvrCheck('children word value retained', $childrenWord['value'], 2);
 $childrenSuffix = NeedValueResolver::resolve('children', '3 детей');
