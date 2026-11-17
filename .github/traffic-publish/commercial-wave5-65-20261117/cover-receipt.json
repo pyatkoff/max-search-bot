@@ -1,0 +1,2534 @@
+{
+  "state": "WAVE5_65_CLASSIFIED_SOURCE_ONLY_NO_SEND",
+  "rows": [
+    {
+      "id": 64764,
+      "work_id": "W5_001",
+      "name": "Vinpearl Hue Hotel",
+      "aliases": [
+        "Vinpearl Hue Hotel",
+        "VINPEARL HUE HOTEL"
+      ],
+      "region": "Дананг",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64764",
+      "status": "held",
+      "reason": "legacy_vinpearl_hue_vs_current_melia_vinpearl113553_requires_reuse",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 74110,
+      "work_id": "W5_002",
+      "name": "Meliá Ba Vi Mountain Retreat",
+      "aliases": [
+        "Meliá Ba Vi Mountain Retreat",
+        "MELIA BA VI MOUNTAIN RETREAT"
+      ],
+      "region": "Ханой",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=74110",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "f00e16f7e5db02f24db438e0bda505730f1940020677bafecc2b0dfc29d26cee",
+      "bytes": 565573,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/melia-ba-vi-mountain-retreat-414333.jpg",
+          "bytes": 95456,
+          "sha256": "4db4d15169c7157b8c7b6d0aae6110de36fd62b2e61eefa670bf5e9b55cc4f93",
+          "width": 800,
+          "height": 449,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/melia-ba-vi-mountain-retreat-414302.jpg",
+          "bytes": 60696,
+          "sha256": "19819b868ffae906373f23a4f9a061a27c64c600e401e7f41297af0618f290f6",
+          "width": 800,
+          "height": 534,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/melia-ba-vi-mountain-retreat-414303.jpg",
+          "bytes": 137189,
+          "sha256": "8ab08b25aae4e6b0f15d7d0a98a39da9b348785b828cd94d1c9b8af8959e2446",
+          "width": 800,
+          "height": 534,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 78858,
+      "work_id": "W5_003",
+      "name": "Vinpearl Discovery Golflink Nha Trang",
+      "aliases": [
+        "Vinpearl Discovery Golflink Nha Trang",
+        "VINPEARL DISCOVERY GOLFLINK NHA TRANG"
+      ],
+      "region": "Нячанг",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=78858",
+      "status": "held",
+      "reason": "legacy_discovery_golflink_related_hon_tre_identity_requires_separate_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 111948,
+      "work_id": "W5_004",
+      "name": "Vinpearl Landmark 81, Autograph Collection",
+      "aliases": [
+        "Vinpearl Landmark 81, Autograph Collection",
+        "VINPEARL LANDMARK 81 AUTOGRAPH COLLECTION"
+      ],
+      "region": "Хошимин",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=111948",
+      "status": "held",
+      "reason": "existing_native_or_alias_publication",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 113553,
+      "work_id": "W5_005",
+      "name": "Meliá Vinpearl Hue",
+      "aliases": [
+        "Meliá Vinpearl Hue",
+        "MELIA VINPEARL HUE",
+        "Vinpearl Hue Hotel",
+        "VINPEARL HUE HOTEL"
+      ],
+      "region": "Дананг",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=113553",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "df45e3b381223634bab22c856078952bb46a8e9ac34797f1bf55adadccb6970a",
+      "bytes": 540420,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/melia-vinpearl-hue-2113400.jpg",
+          "bytes": 188624,
+          "sha256": "d62eae385fa10267f3c0cad405b59847a176760ef6c11f5436077d603f3cd494",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/melia-vinpearl-hue-2113401.jpg",
+          "bytes": 173987,
+          "sha256": "7e86f1069436f0296ad2f8fcd5df99f6aa954c8cce8a9490fc95a36f1d8a7696",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/melia-vinpearl-hue-2113402.jpg",
+          "bytes": 221102,
+          "sha256": "9d76d28ad118342999e57059f6fe9eddce5cdb5f04870635b75b8706d4429af4",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 115812,
+      "work_id": "W5_006",
+      "name": "Radisson Blu Hotel Ha Long Bay",
+      "aliases": [
+        "Radisson Blu Hotel Ha Long Bay",
+        "RADISSON BLU HOTEL HALONG",
+        "SEA STARS"
+      ],
+      "region": "Ханой",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=115812",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "b9eb0d8cd097d7cd7cd17739faf420468765c203cb93fc4e6e9e93ef5d5ff550",
+      "bytes": 308777,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009027.jpg",
+          "bytes": 136060,
+          "sha256": "beba42b7a923099e80476c010a5a1efa004354aeee5823f3a62cfc0a5fc4d98a",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009000.jpg",
+          "bytes": 112831,
+          "sha256": "728a68ae21e1319aac36fcf23aec5afb84d89be5a4d5c39ccbac29823b141a1c",
+          "width": 512,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-stars-hotel-halong-3009001.jpg",
+          "bytes": 128703,
+          "sha256": "3ceffbf1efe26637c1e4da09630432ce9f69e7d21929d1fce3080af839e5fa3e",
+          "width": 1024,
+          "height": 679,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 121699,
+      "work_id": "W5_007",
+      "name": "Best Western Premier Sapphire Ha Long",
+      "aliases": [
+        "Best Western Premier Sapphire Ha Long",
+        "BEST WESTERN PREMIER SAPPHIRE HA LONG"
+      ],
+      "region": "Ханой",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=121699",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "f40a8df1f443818b8fdbf59d818cd8900e6dc0cd5d760aaafe706be990947796",
+      "bytes": 474134,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/best-western-premier-sapphire-ha-long-57234100.jpg",
+          "bytes": 208794,
+          "sha256": "5ebd8185bc10c8094a53d5d9e2d9bac6b3f73ba39891b7c25ebf0c639a727cd8",
+          "width": 1024,
+          "height": 575,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/best-western-premier-sapphire-ha-long-57234101.jpg",
+          "bytes": 148129,
+          "sha256": "5f0931bddc2b85dbaf177a63c25e9f5075ac267f2f8451c418246858641c5e85",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/best-western-premier-sapphire-ha-long-57234102.jpg",
+          "bytes": 212623,
+          "sha256": "ac2a94499566e633360aa7cefe34a62cf6a10f56137313feba885da265d91c26",
+          "width": 1024,
+          "height": 665,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 123000,
+      "work_id": "W5_008",
+      "name": "Four Points by Sheraton Lang Son",
+      "aliases": [
+        "Four Points by Sheraton Lang Son",
+        "FOUR POINTS BY SHERATON LANG SON"
+      ],
+      "region": "Ханой",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=123000",
+      "status": "held",
+      "reason": "AssertionError:no_paid_provider_photo_source",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 126643,
+      "work_id": "W5_009",
+      "name": "Ixora Ho Tram By Fusion",
+      "aliases": [
+        "Ixora Ho Tram By Fusion",
+        "IXORA HO TRAM BY FUSION"
+      ],
+      "region": "Вунг Тау",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126643",
+      "status": "held",
+      "reason": "related_ixora_within_existing_grand_ho_tram15862_requires_separate_property_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 129437,
+      "work_id": "W5_010",
+      "name": "Intercontinental Residences Nha Trang By Ihg",
+      "aliases": [
+        "Intercontinental Residences Nha Trang By Ihg",
+        "INTERCONTINENTAL RESIDENCES NHA TRANG BY IHG"
+      ],
+      "region": "Нячанг",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=129437",
+      "status": "held",
+      "reason": "related_residences_vs_existing_intercontinental_nha_trang_requires_separate_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 131851,
+      "work_id": "W5_011",
+      "name": "Pullman Hai Phong Grand",
+      "aliases": [
+        "Pullman Hai Phong Grand",
+        "PULLMAN HAI PHONG GRAND"
+      ],
+      "region": "Ханой",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=131851",
+      "status": "held",
+      "reason": "AssertionError:no_paid_provider_photo_source",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 140013,
+      "work_id": "W5_012",
+      "name": "Hyatt Regency Nha Trang",
+      "aliases": [
+        "Hyatt Regency Nha Trang",
+        "HYATT REGENCY NHA TRANG"
+      ],
+      "region": "Нячанг",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=140013",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "0a1427ce6a9e29a86848daec3cb6887a620a15aafa6ddb317ef410b59f26aeba",
+      "bytes": 362789,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/hyatt-regency-nha-trang-98970000.jpg",
+          "bytes": 116645,
+          "sha256": "b7404f551fae92d5a60e9e422c4d625622ea4a5aec97d2f65257b1bac366536e",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/hyatt-regency-nha-trang-98970001.jpg",
+          "bytes": 135841,
+          "sha256": "96c9bc34850e42351877875d6455672470e25f30b74842e15f885a4871eae623",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/hyatt-regency-nha-trang-98970002.jpg",
+          "bytes": 118110,
+          "sha256": "71b4170b2122b162191064017f35be0df00611e78b3a7a11a41cef4dc009f4c7",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 142314,
+      "work_id": "W5_013",
+      "name": "Sheraton Can Tho",
+      "aliases": [
+        "Sheraton Can Tho",
+        "SHERATON CAN THO"
+      ],
+      "region": "Хошимин",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=142314",
+      "status": "held",
+      "reason": "AssertionError:no_paid_provider_photo_source",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 143372,
+      "work_id": "W5_014",
+      "name": "Four Points by Sheraton Nha Trang",
+      "aliases": [
+        "Four Points by Sheraton Nha Trang",
+        "FOUR POINTS BY SHERATON NHA TRANG"
+      ],
+      "region": "Нячанг",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=143372",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "2dd5b81c242d3cfd5a55fe13e3df479cc572597e70af7c2fe259bfa4d5a35342",
+      "bytes": 469408,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/four-points-by-sheraton-nha-trang-77259834.jpg",
+          "bytes": 209627,
+          "sha256": "e0096c53dd7c305922de581a4736d54dd3944138fa6788d65bfc1b00e9194f2c",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/four-points-by-sheraton-nha-trang-77259800.jpg",
+          "bytes": 181257,
+          "sha256": "544ab56b52c5166e0bd56afb7975b3576ab2773ff4c77e1265759420810ef3cd",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/four-points-by-sheraton-nha-trang-77259802.jpg",
+          "bytes": 104400,
+          "sha256": "edce85ec7160a9ddea5791f1045a7a83aa8c5fc4170c9b974f26570ff95dbe91",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 155460,
+      "work_id": "W5_015",
+      "name": "Best Western Premier Imperial Dalat",
+      "aliases": [
+        "Best Western Premier Imperial Dalat",
+        "BEST WESTERN PREMIER IMPERIAL DALAT"
+      ],
+      "region": "Далат",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=155460",
+      "status": "held",
+      "reason": "AssertionError:no_paid_provider_photo_source",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 159699,
+      "work_id": "W5_016",
+      "name": "Pullman Ninh Binh",
+      "aliases": [
+        "Pullman Ninh Binh",
+        "PULLMAN NINH BINH"
+      ],
+      "region": "Ханой",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=159699",
+      "status": "held",
+      "reason": "AssertionError:no_paid_provider_photo_source",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 162521,
+      "work_id": "W5_017",
+      "name": "Meliá Vinpearl Tay Ninh",
+      "aliases": [
+        "Meliá Vinpearl Tay Ninh",
+        "MELIA VINPEARL TAY NINH"
+      ],
+      "region": "Хошимин",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=162521",
+      "status": "held",
+      "reason": "AssertionError:no_paid_provider_photo_source",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 164863,
+      "work_id": "W5_018",
+      "name": "Sofitel Central Hua Hin",
+      "aliases": [
+        "Sofitel Central Hua Hin",
+        "SOFITEL CENTRAL HUA HIN"
+      ],
+      "region": "Хуа Хин",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=164863",
+      "status": "held",
+      "reason": "old_sofitel_central_hua_hin_vs_published_centara_grand8127_requires_reuse",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 168069,
+      "work_id": "W5_019",
+      "name": "Park Hyatt Phu Quoc",
+      "aliases": [
+        "Park Hyatt Phu Quoc",
+        "PARK HYATT PHU QUOC"
+      ],
+      "region": "Фукуок",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=168069",
+      "status": "held",
+      "reason": "current_operating_status_and_real_photo_source_not_accepted_opening_status_requires_confirmation",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 15852,
+      "work_id": "W5_020",
+      "name": "Sheraton Hanoi Hotel",
+      "aliases": [
+        "Sheraton Hanoi Hotel",
+        "SHERATON HANOI"
+      ],
+      "region": "Ханой",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=15852",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "2024c82b503ef12f5fa4de55a0f4047eaa5688f727c6deb3ae9856f82068e814",
+      "bytes": 464679,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sheraton-hanoi-200.jpg",
+          "bytes": 74510,
+          "sha256": "999e1501052312bc6d6e759e0d2b2c6fc8f8c8d8f969f3a88ea4d9f6e527607b",
+          "width": 800,
+          "height": 503,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sheraton-hanoi-201.jpg",
+          "bytes": 54963,
+          "sha256": "900a7f4f036b8bb1049b7b96a7713231762405ddceb16ee594c9b96e089ebb45",
+          "width": 800,
+          "height": 550,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sheraton-hanoi-202.jpg",
+          "bytes": 116254,
+          "sha256": "77823f8332f234e0e3b4136e3344ef6227c42e0a99d4768d2b6fc3a90e622463",
+          "width": 800,
+          "height": 534,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 2986,
+      "work_id": "W5_021",
+      "name": "InterContinental Bangkok",
+      "aliases": [
+        "InterContinental Bangkok",
+        "INTERCONTINENTAL BANGKOK",
+        "INTERCONTINENTAL BANGKOK PHLOEN CHIT"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2986",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "717c24c7f1052bb0dac7f6b5086a2b37b8dfec9dbe5e4eef01da940bd974c7a0",
+      "bytes": 481020,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/intercontinental-bangkok-0.jpg",
+          "bytes": 113745,
+          "sha256": "69bd2b6697830111d5406974ea92909b251ac9eadb92c860bad11e535d8b0097",
+          "width": 800,
+          "height": 450,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/intercontinental-bangkok-1.jpg",
+          "bytes": 91885,
+          "sha256": "851d2bdc40ee86f9747bbef3bc9e0ba9ceb2c94b49a4bb68d3686ee7cce48ceb",
+          "width": 800,
+          "height": 534,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/intercontinental-bangkok-2.jpg",
+          "bytes": 138998,
+          "sha256": "7dfb336976eb54cdc7b0bf57df04cfd15ab3bc3f9327314fcfc00f629ca87edd",
+          "width": 800,
+          "height": 513,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 4203,
+      "work_id": "W5_022",
+      "name": "Amari Bangkok",
+      "aliases": [
+        "Amari Bangkok",
+        "AMARI BANGKOK",
+        "AMARI WATERGATE BANGKOK"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4203",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "79813a0edd5649b804fcf51f9475228908125140fb3fbc3e37e77acb8d253742",
+      "bytes": 410362,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/amari-watergate-hotel-spa-7363900.jpg",
+          "bytes": 113766,
+          "sha256": "71b56a99abb073275ebe1904bf37c7265d97535684d96afca12bd72de18c61a3",
+          "width": 1024,
+          "height": 610,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/amari-watergate-hotel-spa-7363901.jpg",
+          "bytes": 186564,
+          "sha256": "ceb2d6450888a1b9da3c06dc218f9bba399dd6842e5295577584d3d6fdc020b3",
+          "width": 1024,
+          "height": 676,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/amari-watergate-hotel-spa-7363902.jpg",
+          "bytes": 179097,
+          "sha256": "11c62dfb7eebe111222e137fcdb54419ba3bec8b93f2cfadd3cc9f4b780c632a",
+          "width": 1024,
+          "height": 698,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 4269,
+      "work_id": "W5_023",
+      "name": "Dusit Thani Bangkok",
+      "aliases": [
+        "Dusit Thani Bangkok",
+        "DUSIT THANI BANGKOK"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4269",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "6965f7b7b02afeb9b5eed015a1825659ce66041a64aec6f2e2abd95875e045b4",
+      "bytes": 417610,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/dusit-thani-bangkok-0.jpg",
+          "bytes": 87577,
+          "sha256": "6adc9d02004f63bc7cad3bd6c1dea4b6635a389eacfde12c204010adc65e8b03",
+          "width": 800,
+          "height": 533,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/dusit-thani-bangkok-1.jpg",
+          "bytes": 111047,
+          "sha256": "4f7714349a4edddd93dc8a4798e82538c38631959b8a2337bf85c085a10fe42c",
+          "width": 800,
+          "height": 520,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/dusit-thani-bangkok-2.jpg",
+          "bytes": 104795,
+          "sha256": "237cdb96bb4c4d7687a4d7a6dbe766d2c0656f4484f86971f5ea1a65bb704806",
+          "width": 800,
+          "height": 523,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 4403,
+      "work_id": "W5_024",
+      "name": "Sheraton Grande Sukhumvit",
+      "aliases": [
+        "Sheraton Grande Sukhumvit",
+        "SHERATON GRANDE SUKHUMVIT"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4403",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "4237b39bcb37b54c590914b24123f4cffa2f376b24f7ffb46023fcbd7edf5571",
+      "bytes": 605407,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sheraton-grande-sukhumvit-0.jpg",
+          "bytes": 237867,
+          "sha256": "cec7deb2b09393a91c0764a61c92c6cd0c6791bf05dce06c39a77d7a628c0707",
+          "width": 900,
+          "height": 665,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sheraton-grande-sukhumvit-1.jpg",
+          "bytes": 152439,
+          "sha256": "88d22021d265ec75c3981fc3270a56e2a1318cf1a27afda93266ca8ec7cadd95",
+          "width": 900,
+          "height": 597,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sheraton-grande-sukhumvit-3.jpg",
+          "bytes": 218946,
+          "sha256": "fa617afc1e496eac37359082c91c75a4582d3ee36b0cba031c3e934bd892bba5",
+          "width": 900,
+          "height": 600,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 8105,
+      "work_id": "W5_025",
+      "name": "Pullman Bangkok King Power",
+      "aliases": [
+        "Pullman Bangkok King Power",
+        "PULLMAN BANGKOK KING POWER"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8105",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "e49a852904388877007e125dad7fb65d4c2cbb239852e7e6db797c00fe780fa0",
+      "bytes": 571084,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/pullman-bangkok-king-power-1212500.jpg",
+          "bytes": 251913,
+          "sha256": "e1743557fd2c3f5959f39285099003223e22d1172bf7a51ef49c310782b60222",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/pullman-bangkok-king-power-1212501.jpg",
+          "bytes": 189120,
+          "sha256": "7382cecfebb800f041206cd27e22f75743374005529ece1e5c80f976e68996e5",
+          "width": 1024,
+          "height": 681,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/pullman-bangkok-king-power-1212502.jpg",
+          "bytes": 373660,
+          "sha256": "b23551b67a3ca39b9c285535d72b82c394b104d67e4be50c6e4726abffd79957",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 8169,
+      "work_id": "W5_026",
+      "name": "Sofitel Bangkok Sukhumvit",
+      "aliases": [
+        "Sofitel Bangkok Sukhumvit",
+        "SOFITEL BANGKOK SUKHUMVIT",
+        "SOFITEL SUKHUMVIT"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8169",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "ac52b3f364995ef0fd4c1415b6cb2890f5dc8227220709d96773228b847c2a67",
+      "bytes": 501531,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sofitel-bangkok-sukhumvit-102505110.jpg",
+          "bytes": 360308,
+          "sha256": "4d2790afc8fd4f27f06cdad256c73ad3601f1f0377027ca340d551aac131baea",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sofitel-bangkok-sukhumvit-102505111.jpg",
+          "bytes": 372631,
+          "sha256": "cefba5fa987f7aa5e8ebaa6c137b7a5a83eee62d9693d2d1c768f423421445b5",
+          "width": 1200,
+          "height": 763,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sofitel-bangkok-sukhumvit-102505112.jpg",
+          "bytes": 232221,
+          "sha256": "432a78fdf032f2d0ba4df9829068e02bcb8b6a906e86e51676b283604bd1a47d",
+          "width": 1200,
+          "height": 803,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 15857,
+      "work_id": "W5_027",
+      "name": "Sheraton Saigon Grand Opera Hotel",
+      "aliases": [
+        "Sheraton Saigon Grand Opera Hotel",
+        "SHERATON SAIGON HOTEL & TOWERS"
+      ],
+      "region": "Хошимин",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=15857",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "photo_errors": [
+        "ValueError:photo_dimensions_invalid"
+      ],
+      "country_id": 16,
+      "png_sha256": "98f37e7b88ae4d2f593deddb9cd6dc3441f1cb8f8658238925fb18a2aa696db1",
+      "bytes": 422834,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sheraton-saigon-hotel-towers-0.jpg",
+          "bytes": 138003,
+          "sha256": "c4752babfdce95f6b6095a285aacad02d1401ddb837009e165e2974691cf441a",
+          "width": 900,
+          "height": 550,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sheraton-saigon-hotel-towers-2.jpg",
+          "bytes": 120078,
+          "sha256": "4ef951789bff4d97fccebd3cf0d19ce0b6503ae3241410263656e2dd650fc7e3",
+          "width": 900,
+          "height": 600,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sheraton-saigon-hotel-towers-3.jpg",
+          "bytes": 101062,
+          "sha256": "e800e0967403981e66664195028f322cab374656abc74980ecaad1aa35f2420c",
+          "width": 900,
+          "height": 565,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 23264,
+      "work_id": "W5_028",
+      "name": "JW Marriott Hotel Bangkok",
+      "aliases": [
+        "JW Marriott Hotel Bangkok",
+        "JW MARRIOTT HOTEL BANGKOK"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23264",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "7b69990d7d43641ec55c51b408e2fdb9540ee68802c0684e978da6a4350fb77c",
+      "bytes": 587391,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/jw-marriott-hotel-bangkok-0.jpg",
+          "bytes": 139544,
+          "sha256": "ec2788abac4ab3802f492ba0bf6127bf8493ce3e798af20f79a65d5d9f697322",
+          "width": 800,
+          "height": 533,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/jw-marriott-hotel-bangkok-1.jpg",
+          "bytes": 148209,
+          "sha256": "e4f6dd999a4e0e8489ec45290319809230f8c37d2f6342836be6fbb8d451dceb",
+          "width": 533,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/jw-marriott-hotel-bangkok-2.jpg",
+          "bytes": 131069,
+          "sha256": "293974e1fac642a40a32a084e895c831afb31ec697d2df9f887b861d9b1d7346",
+          "width": 800,
+          "height": 450,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 23738,
+      "work_id": "W5_029",
+      "name": "InterContinental Hanoi Westlake",
+      "aliases": [
+        "InterContinental Hanoi Westlake",
+        "INTERCONTINENTAL HANOI WESTLAKE"
+      ],
+      "region": "Ханой",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23738",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "c07fb5ce434d332dff42370b3cab36554fce697d0ad2bbdf9b1dcf20b1c82113",
+      "bytes": 436423,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/intercontinental-hanoi-westlake-1315300.jpg",
+          "bytes": 179923,
+          "sha256": "8d469e052dd90c9ceaf0575dd1fae1ee1b131b4d9f7eb078afcb92f29c97130e",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/intercontinental-hanoi-westlake-1315301.jpg",
+          "bytes": 130789,
+          "sha256": "a1c3e7c1a244d473c92b6e2408eb8e7a24c4a7b2ca9b151cdeb3ee77f2c0ecbb",
+          "width": 1024,
+          "height": 698,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/intercontinental-hanoi-westlake-1315302.jpg",
+          "bytes": 309749,
+          "sha256": "f5d6e540ce7906350d47f59b73f836aee76494b8be2f1606108e29c71a74a771",
+          "width": 1024,
+          "height": 713,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 23755,
+      "work_id": "W5_030",
+      "name": "Mövenpick Hotel Hanoi Centre",
+      "aliases": [
+        "Mövenpick Hotel Hanoi Centre",
+        "MOVENPICK HOTEL HANOI"
+      ],
+      "region": "Ханой",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23755",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "7f04086a23e34a931d8b066b7a63e8c8cf493674a792ff732509c4d6c1874f5a",
+      "bytes": 547448,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/moevenpick-hotel-hanoi-420400.jpg",
+          "bytes": 246683,
+          "sha256": "03c0a282d2fd4320bfcb659a60834c3c7bb5517203806d0bb7ef536c227ea963",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/moevenpick-hotel-hanoi-420401.jpg",
+          "bytes": 294263,
+          "sha256": "56ac162ad3d690e3aeefae81a88fd3222f9696d786ebebbadf0a0458c71103de",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/moevenpick-hotel-hanoi-420402.jpg",
+          "bytes": 252688,
+          "sha256": "63eceaf6084a6775b14acc3d6c479a8a7321864f7f24923160a24a524eb5e5d4",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 70050,
+      "work_id": "W5_031",
+      "name": "Mövenpick BDMS Wellness Resort Bangkok",
+      "aliases": [
+        "Mövenpick BDMS Wellness Resort Bangkok",
+        "MOVENPICK BDMS WELLNESS RESORT BANGKOK"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=70050",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "27c37942034562a4dd09a7c97488db99a5f56ebd76164a2762b55ac3a71e9407",
+      "bytes": 761615,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/movenpick-bdms-wellness-resort-bangkok-102509390.jpg",
+          "bytes": 516204,
+          "sha256": "d2c0e8f91518eca874629d6e3de0de482f90c00db8b0143caabdfd687972d088",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/movenpick-bdms-wellness-resort-bangkok-102509391.jpg",
+          "bytes": 547443,
+          "sha256": "b4dd07578117e34bde3f2d66fb134a909332095a93cfcb8fc1a156cbd137d5ad",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/movenpick-bdms-wellness-resort-bangkok-102509392.jpg",
+          "bytes": 520299,
+          "sha256": "30b5da8ed291ec453a61d9ae3232c79975025369c7419b62defbbf8278d9a5f9",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 23737,
+      "work_id": "W5_032",
+      "name": "Intercontinental Asiana Saigon",
+      "aliases": [
+        "Intercontinental Asiana Saigon",
+        "INTERCONTINENTAL ASIANA SAIGON"
+      ],
+      "region": "Хошимин",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23737",
+      "status": "held",
+      "reason": "former_intercontinental_asiana_saigon_vs_current_jw127988_requires_reuse",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 4235,
+      "work_id": "W5_033",
+      "name": "Banyan Tree Bangkok",
+      "aliases": [
+        "Banyan Tree Bangkok",
+        "BANYAN TREE HOTEL BANGKOK"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4235",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "1b30f593475c6e7373acb23551754274e1791a9ce7d0a3a76cd137e323c74fa9",
+      "bytes": 438869,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502070.jpg",
+          "bytes": 227277,
+          "sha256": "f69d71634f9eac56fe469904128f25e122b8e8dbc22af40cfe9b88aa4126019a",
+          "width": 901,
+          "height": 1200,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502071.jpg",
+          "bytes": 241328,
+          "sha256": "0f3310e57cbf4906561427501940146b1f17400e90e7ece23ccb207c419befc0",
+          "width": 1200,
+          "height": 821,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/banyan-tree-hotel-bangkok-102502072.jpg",
+          "bytes": 333781,
+          "sha256": "136c4c20b403e8535e1ef5bff2a2b169b9f040d9e28f3396dae9f6b2036b4a39",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 8170,
+      "work_id": "W5_034",
+      "name": "Centara Grand at Central Plaza Ladprao Bangkok",
+      "aliases": [
+        "Centara Grand at Central Plaza Ladprao Bangkok",
+        "CENTARA GRAND AT CENTRAL PLAZA LADPRAO BANGKOK"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8170",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "a6e17675d4ccfac10f9199f7a45ced7365d505fa1a1992e094e99169bb79e725",
+      "bytes": 405835,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sofitel-centara-grand-bangkok-57473404.jpg",
+          "bytes": 218247,
+          "sha256": "69b193c1a96549701f3d6d5b9519a7f9ff3a351f9f16f3e71fdd820215910b5f",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sofitel-centara-grand-bangkok-57473401.jpg",
+          "bytes": 97049,
+          "sha256": "5a512e4a29c0ed00561fcef51f4c625cfebfd33b729f9d5dee8376b3271b7150",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sofitel-centara-grand-bangkok-57473402.jpg",
+          "bytes": 161936,
+          "sha256": "a6d49f05055aeda0419ff4cbfcd5158737dba9902ff2524d05f8133c8f3f833e",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 22777,
+      "work_id": "W5_035",
+      "name": "Pullman Bangkok Hotel G",
+      "aliases": [
+        "Pullman Bangkok Hotel G",
+        "PULLMAN BANGKOK HOTEL G"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=22777",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "d3297ee2defe30a8fb14edf78e882ed4eed55e286458e6d01c139001e864efb9",
+      "bytes": 508935,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/pullman-bangkok-hotel-g-49367903.jpg",
+          "bytes": 318746,
+          "sha256": "2dc5549da10dcfc315ef3a722e5d5db70bfa21528de2d75c00340b03b62b80c1",
+          "width": 940,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/pullman-bangkok-hotel-g-49367900.jpg",
+          "bytes": 110241,
+          "sha256": "58141c249f14adfbb2c2660013fd00c5ea50d86c944f998c2b0be50710655f13",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/pullman-bangkok-hotel-g-49367901.jpg",
+          "bytes": 105083,
+          "sha256": "0577079351eacb93193ede3083ac903414ecd5852282525d9399551fcf37ea78",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 22845,
+      "work_id": "W5_036",
+      "name": "SO/ Bangkok",
+      "aliases": [
+        "SO/ Bangkok",
+        "SO BANGKOK",
+        "SOFITEL SO BANGKOK"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=22845",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "7e670368f646285959aa1ab10dd2e82c0b669c23455e6c72f99c2cc9724f55fc",
+      "bytes": 463597,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sofitel-so-bangkok-3007200.jpg",
+          "bytes": 85529,
+          "sha256": "e8826e9c2a81ff065669978f45102d25342b907693a2c395290024740108e296",
+          "width": 800,
+          "height": 600,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sofitel-so-bangkok-3007202.jpg",
+          "bytes": 49072,
+          "sha256": "759c44b1d63f38631041002550beb7ef1401a36afdfb480490318b7bf2417283",
+          "width": 800,
+          "height": 534,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sofitel-so-bangkok-3007203.jpg",
+          "bytes": 54992,
+          "sha256": "26b00ae98aff5aa6a46594e550ea7b150d1284dd85aed027c95f0c08816aea4f",
+          "width": 800,
+          "height": 494,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 8019,
+      "work_id": "W5_037",
+      "name": "Le Méridien Bangkok",
+      "aliases": [
+        "Le Méridien Bangkok",
+        "LE MERIDIEN BANGKOK"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8019",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "photo_errors": [
+        "ValueError:photo_dimensions_invalid"
+      ],
+      "country_id": 2,
+      "png_sha256": "3d9873d2ca4f38e09edfae1986d5fdfd2354acc8732c0adb81e17cbc4c6faf9b",
+      "bytes": 595281,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-bangkok-3.jpg",
+          "bytes": 177968,
+          "sha256": "ef96550a17e6591f73afd948cf086f87f2c3b7a4d428d2a2e2681ac30d655183",
+          "width": 719,
+          "height": 800,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-bangkok-1.jpg",
+          "bytes": 138972,
+          "sha256": "babe976ce669f78d483c96d43316ec29105153aabbeb7d3748fbce1048487ca3",
+          "width": 800,
+          "height": 541,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/le-meridien-bangkok-2.jpg",
+          "bytes": 130656,
+          "sha256": "ef395ec7e88cf3db694202c1df19362171626cdd48c41598f19aa99ab963ef9e",
+          "width": 800,
+          "height": 466,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 13935,
+      "work_id": "W5_038",
+      "name": "Park Hyatt Saigon",
+      "aliases": [
+        "Park Hyatt Saigon",
+        "PARK HYATT SAIGON"
+      ],
+      "region": "Хошимин",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=13935",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "04f504347be4b0f236a7e15f1455a468a3f7c53c476add844a7357d20444668c",
+      "bytes": 380048,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/park-hyatt-saigon-0.jpg",
+          "bytes": 51890,
+          "sha256": "a87bba2c0b4dcc3dc595f90373eaf9890694a20d7ff66ecd19ea3e25d2af49d1",
+          "width": 550,
+          "height": 371,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/park-hyatt-saigon-1.jpg",
+          "bytes": 185713,
+          "sha256": "1ae178a97e5162c3dd4674b6f330e9765e27b1f36e7fb7ede4cbf1db33c51b7c",
+          "width": 900,
+          "height": 600,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/park-hyatt-saigon-2.jpg",
+          "bytes": 185696,
+          "sha256": "e06e2b06018c3184edbfd0aadcdb4dc11ed7c100a724ba2ce139ebb1695133b1",
+          "width": 900,
+          "height": 638,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 47185,
+      "work_id": "W5_039",
+      "name": "Pullman Hanoi",
+      "aliases": [
+        "Pullman Hanoi",
+        "PULLMAN HANOI"
+      ],
+      "region": "Ханой",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=47185",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "52aa0164eebe6178161ba31e8ec2e9c78ece9afbb22098110eda30167e19e26a",
+      "bytes": 526633,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/pullman-hanoi-3.jpg",
+          "bytes": 461031,
+          "sha256": "cb598c59eec6b1b698775fa52722493a5ac82885c6e1c49181605122b4fe2996",
+          "width": 900,
+          "height": 675,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/pullman-hanoi-0.jpg",
+          "bytes": 118813,
+          "sha256": "37dd506930c74afcfac0c23d93cdab6c7f6cc2a905b2ce87df7581870e9188d1",
+          "width": 840,
+          "height": 460,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/pullman-hanoi-1.jpg",
+          "bytes": 318751,
+          "sha256": "257cb9dd1fa59a787a5a426822956d23da3a261bb49afac67d5de061c0440ff6",
+          "width": 900,
+          "height": 675,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 49176,
+      "work_id": "W5_040",
+      "name": "Bangkok Marriott Hotel Sukhumvit",
+      "aliases": [
+        "Bangkok Marriott Hotel Sukhumvit",
+        "BANGKOK MARRIOTT HOTEL SUKHUMVIT"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=49176",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "69e1481ff728acd8226e22a640c304271bf9ba5dd4489adad3e21f4b6dede584",
+      "bytes": 506862,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/bangkok-marriott-hotel-sukhumvit-102.jpg",
+          "bytes": 90461,
+          "sha256": "0e3781086025bb5fa43d88cdc18c95f4c809f335844d9b0eea766fd17ade3298",
+          "width": 800,
+          "height": 438,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/bangkok-marriott-hotel-sukhumvit-100.jpg",
+          "bytes": 56345,
+          "sha256": "cb2c4ac56fb4354275dafc70539958105699ad88a4ac417a19c38de4165910b7",
+          "width": 800,
+          "height": 438,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/bangkok-marriott-hotel-sukhumvit-101.jpg",
+          "bytes": 47472,
+          "sha256": "512190a84a74de750b16220c8aa20d5954c8db7336463e00ca3161f5663b5e39",
+          "width": 800,
+          "height": 438,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 49287,
+      "work_id": "W5_041",
+      "name": "Conrad Bangkok",
+      "aliases": [
+        "Conrad Bangkok",
+        "CONRAD BANGKOK"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=49287",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "93d6ef471a3df0e857dcca732f64955375ce26cc954993f23b798f1db3b74684",
+      "bytes": 576518,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/conrad-bangkok-1.jpg",
+          "bytes": 236685,
+          "sha256": "9c0120647360fbc288c6bdada8a3b9241efb30b64eca16a69eab4960b74ebf76",
+          "width": 840,
+          "height": 460,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/conrad-bangkok-0.jpg",
+          "bytes": 180095,
+          "sha256": "a23eee6329d55ca9809c4921785bd4366d06888c6febd01495b7e6683c54a870",
+          "width": 840,
+          "height": 460,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/conrad-bangkok-2.jpg",
+          "bytes": 200232,
+          "sha256": "64ecc94879cfd167383947254fbf7edc8eb7c8cf8d56a38a670a05bf2a348a39",
+          "width": 840,
+          "height": 460,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 55570,
+      "work_id": "W5_042",
+      "name": "Mövenpick Hotel Sukhumvit 15 Bangkok",
+      "aliases": [
+        "Mövenpick Hotel Sukhumvit 15 Bangkok",
+        "MOVENPICK HOTEL SUKHUMVIT 15 BANGKOK"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=55570",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "5347c80f3303dc7247ae2b327d6117a7bb4e871e4048472ed87bcd70a747bfa5",
+      "bytes": 594536,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/movenpick-hotel-sukhumvit-15-bangkok-102303050.jpg",
+          "bytes": 411622,
+          "sha256": "98f89cf84463b778bc0f364c52e25757dd651961b5b8236d7d98a9aa804901fe",
+          "width": 1200,
+          "height": 675,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/movenpick-hotel-sukhumvit-15-bangkok-102303061.jpg",
+          "bytes": 290941,
+          "sha256": "904f3a34d68660e7b25466bd11bdc43e2f08bb31dfb81248e3cb209830910392",
+          "width": 1200,
+          "height": 801,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/movenpick-hotel-sukhumvit-15-bangkok-102303062.jpg",
+          "bytes": 277994,
+          "sha256": "c2f22fd21f2c1f35de76a2ca945cce79df84907f85cc8e1c7bcd1db433bbdcbc",
+          "width": 1200,
+          "height": 800,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 53706,
+      "work_id": "W5_043",
+      "name": "Meliá Hanoi",
+      "aliases": [
+        "Meliá Hanoi",
+        "MELIA HANOI"
+      ],
+      "region": "Ханой",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=53706",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "34a950245ac70d55e5b4f0c9c815c18cced2c935d82ebbfef3fb07b59d05c105",
+      "bytes": 487809,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/melia-hanoi-100.jpg",
+          "bytes": 84789,
+          "sha256": "0785fb2fe9902c8c5f08d355913017a26cca823a36c922e5d54e9e8d2f82dd5a",
+          "width": 512,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/melia-hanoi-101.jpg",
+          "bytes": 84590,
+          "sha256": "7f89eba28f269c35e108912fac05ac8542dd4e7274133d78da1ba8555992ee87",
+          "width": 800,
+          "height": 534,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/melia-hanoi-102.jpg",
+          "bytes": 62780,
+          "sha256": "197a62e10dbdbf0d53c66da6f7b5d453f492b0cb55db5caaa2e8b5ca94ecc34e",
+          "width": 800,
+          "height": 425,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 23756,
+      "work_id": "W5_044",
+      "name": "Eastin Grand Hotel Saigon",
+      "aliases": [
+        "Eastin Grand Hotel Saigon",
+        "EASTIN GRAND SAIGON",
+        "MOVENPICK SAIGON"
+      ],
+      "region": "Хошимин",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23756",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "2bf9fce6942f2324d84f59c3d9a5cd082e92982519fd96f45664c64ebfa8bf09",
+      "bytes": 496639,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/moevenpick-hotel-saigon-313318.jpg",
+          "bytes": 230076,
+          "sha256": "3a0c158ed2edce87a83b1a1249839aa103144a3be3bf2c7e2a19f2feb18f1023",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/moevenpick-hotel-saigon-313300.jpg",
+          "bytes": 148169,
+          "sha256": "97ba9e3c412ec278755fe83bcabcf4d4cad228750293692f9a317ab6d9585ea0",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/moevenpick-hotel-saigon-313301.jpg",
+          "bytes": 162208,
+          "sha256": "eda7899534f718e67cebc9d8d3f7cc241f757c9d8c3c56fa0f07ef0104f0c779",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 40895,
+      "work_id": "W5_045",
+      "name": "Hilton Bangkok Grande Asoke",
+      "aliases": [
+        "Hilton Bangkok Grande Asoke",
+        "HILTON BANGKOK GRANDE ASOKE",
+        "PULLMAN BANGKOK GRANDE SUKHUMVIT"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=40895",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "photo_errors": [
+        "ValueError:photo_dimensions_invalid"
+      ],
+      "country_id": 2,
+      "png_sha256": "58ee458fee6b7d95fb73898cbeebcfdf4def2e12209dc477221a6bb29e27cdc6",
+      "bytes": 444487,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/grand-millennium-sukhumvit-0.jpg",
+          "bytes": 132064,
+          "sha256": "ac14e6d082579726d89e51d74e6f573fa667ee0ea8ac6c54a258e533edad486a",
+          "width": 760,
+          "height": 427,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/grand-millennium-sukhumvit-1.jpg",
+          "bytes": 119459,
+          "sha256": "2ac98826c3b412f70a59b72d252ff228fe70f1cf41ce34d021b5ed9419aff131",
+          "width": 400,
+          "height": 600,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/grand-millennium-sukhumvit-2.jpg",
+          "bytes": 151880,
+          "sha256": "7413495a429c51a9505e999c0c4d36895f386cda991a772f2bd89e5d9db83a52",
+          "width": 756,
+          "height": 427,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 43494,
+      "work_id": "W5_046",
+      "name": "Dusit Suites Ratchadamri Bangkok",
+      "aliases": [
+        "Dusit Suites Ratchadamri Bangkok",
+        "DUSIT SUITES RATCHADAMRI BANGKOK",
+        "ANANTARA BAAN RAJPRASONG SERVICED SUITES"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43494",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "089665d517c96d9b36ac14c53ff328de2fe36c954d1d2d4abf03cc9f737c1010",
+      "bytes": 500243,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-0.jpg",
+          "bytes": 143949,
+          "sha256": "c44aa1573b2b308492153497785475c36fd0f8e3cf47985fdbda554436f80f5a",
+          "width": 800,
+          "height": 532,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-1.jpg",
+          "bytes": 53889,
+          "sha256": "2e5f4270cbb208c308527f98c07363ea3d0e8e5b9f7a97a9ff7e845d11457331",
+          "width": 550,
+          "height": 365,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-baan-rajprasong-serviced-suites-2.jpg",
+          "bytes": 82919,
+          "sha256": "69ab1286e59f370affc608ab0a2458c209400fe36988429be4e8376b0f669ddc",
+          "width": 550,
+          "height": 365,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 52090,
+      "work_id": "W5_047",
+      "name": "Avani+ Riverside Bangkok Hotel",
+      "aliases": [
+        "Avani+ Riverside Bangkok Hotel",
+        "AVANI+ RIVERSIDE BANGKOK"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=52090",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "c00d39fd2b8d469e07a4fdf57ca2f196653843ce9395e13e6b9f938b3aba9846",
+      "bytes": 292027,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/avani-riverside-bangkok-hotel-1910122.jpg",
+          "bytes": 72030,
+          "sha256": "11391695c5b7e7aedd6092ba9fcab01567677b1032d0c3a31415df98b5185ec3",
+          "width": 800,
+          "height": 570,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/avani-riverside-bangkok-hotel-1910100.jpg",
+          "bytes": 65811,
+          "sha256": "f5a14a78c11cb133af1a4c26804b2270daacc9a9f1a19f16c7f345615caf6475",
+          "width": 800,
+          "height": 534,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/avani-riverside-bangkok-hotel-1910101.jpg",
+          "bytes": 50037,
+          "sha256": "ef2ca291f3a1aa5868893fc017744fd2e7a0d91dd32db04b4ff1be6dfec1d3ee",
+          "width": 800,
+          "height": 563,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 66666,
+      "work_id": "W5_048",
+      "name": "Fusion Suites Saigon",
+      "aliases": [
+        "Fusion Suites Saigon",
+        "FUSION SUITES SAIGON"
+      ],
+      "region": "Хошимин",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=66666",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "86c857b34603697f8f52df9c239f4b5213ddf0938cfa1382f506483d78f30751",
+      "bytes": 386264,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/fusion-suites-saigon-1714407.jpg",
+          "bytes": 89647,
+          "sha256": "a47c2510864231b435bb2edfa0cf8bf7941e822a3f147780a7b710a10f9eab2c",
+          "width": 800,
+          "height": 578,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/fusion-suites-saigon-1714400.jpg",
+          "bytes": 75466,
+          "sha256": "5ce30200e2bc9519c7bee6fd1fd982817ab239862611768b5ff0e64db1d37933",
+          "width": 800,
+          "height": 534,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/fusion-suites-saigon-1714401.jpg",
+          "bytes": 51237,
+          "sha256": "8470e45cc9e19bd6bb74638a975b3e45e38c6763e5efcd08e2134109ea83a648",
+          "width": 800,
+          "height": 533,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 68971,
+      "work_id": "W5_049",
+      "name": "Rosewood Bangkok",
+      "aliases": [
+        "Rosewood Bangkok",
+        "ROSEWOOD BANGKOK"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=68971",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "c389b9fc1a9ec860616afba01184ee1dc2ab071d6fc8486a5069546e2d2809bc",
+      "bytes": 509560,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/rosewood-bangkok-2814300.jpg",
+          "bytes": 93319,
+          "sha256": "da71a5f6e25e720f6861aa9bbad879f69795810ac605199a764a7d4961864be9",
+          "width": 800,
+          "height": 600,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/rosewood-bangkok-2814301.jpg",
+          "bytes": 90138,
+          "sha256": "b3b8b8c4248d79464b4db2f5ec10dd88cd963677b7f7cd308790f5c54ecb7460",
+          "width": 800,
+          "height": 594,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/rosewood-bangkok-2814302.jpg",
+          "bytes": 92678,
+          "sha256": "bab137484ba96e5314f656673de5528abfe1cc5dc52d4369fa9c6817eee1231c",
+          "width": 800,
+          "height": 555,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 74114,
+      "work_id": "W5_050",
+      "name": "JW Marriott Hotel Hanoi",
+      "aliases": [
+        "JW Marriott Hotel Hanoi",
+        "JW MARRIOTT HOTEL HANOI"
+      ],
+      "region": "Ханой",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=74114",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "83614f8957887dcd9721f51f7d607427529027f983ecc9a435ed40c8c704d1f5",
+      "bytes": 465133,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/jw-marriott-hotel-hanoi-1611000.jpg",
+          "bytes": 75221,
+          "sha256": "7d99ca303eabde3951d5f638b1837f23490a47603c967cf4cfe0332987c4fb96",
+          "width": 800,
+          "height": 534,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/jw-marriott-hotel-hanoi-1611001.jpg",
+          "bytes": 107056,
+          "sha256": "39be921896841773f997c1010ca4a1b222cec469ed7f9e701ec6ecaa384c30d2",
+          "width": 800,
+          "height": 599,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/jw-marriott-hotel-hanoi-1611003.jpg",
+          "bytes": 61260,
+          "sha256": "98181ee0b6fa7fbc5e44f2e2a6f9c0f077a202d164d42234854413d0ffcc2139",
+          "width": 800,
+          "height": 534,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 79323,
+      "work_id": "W5_051",
+      "name": "Capella Bangkok",
+      "aliases": [
+        "Capella Bangkok",
+        "CAPELLA BANGKOK"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=79323",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "07b02f820ed94a2fb280002474f08d009c6e733c3d3079c7480b44641b96316f",
+      "bytes": 616041,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/capella-bangkok-2309000.jpg",
+          "bytes": 105211,
+          "sha256": "e51d827c556c2959c882ab2d986c05083a90daa5056a3f87a132bf26f1b3d47e",
+          "width": 800,
+          "height": 519,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/capella-bangkok-2309002.jpg",
+          "bytes": 86083,
+          "sha256": "76a7d2ae952a12d890e37320b1787d546086d796754f496d997f5fdf542e3dbc",
+          "width": 800,
+          "height": 534,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/capella-bangkok-2309003.jpg",
+          "bytes": 73602,
+          "sha256": "b9c5180d5511f726f6e3a105b48b9869f3b49bdb9087fb79d530f9b79dfe3897",
+          "width": 800,
+          "height": 534,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 79954,
+      "work_id": "W5_052",
+      "name": "Park Hyatt Bangkok",
+      "aliases": [
+        "Park Hyatt Bangkok",
+        "PARK HYATT BANGKOK"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=79954",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "7ed0c62b8fd880c4ecb2e362da05cd937a1575949cf4607729ddaa845dc3e1eb",
+      "bytes": 473379,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/park-hyatt-bangkok-1707400.jpg",
+          "bytes": 82425,
+          "sha256": "95064475b846b6dab8b5395e9768096b894a3cff63ca7e03eaab48afadcd3480",
+          "width": 800,
+          "height": 491,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/park-hyatt-bangkok-1707401.jpg",
+          "bytes": 58017,
+          "sha256": "71f25329ce9344d7cb3af2bbdfdd34fc3c1dc549f17656e2fcdfa802cb014083",
+          "width": 800,
+          "height": 427,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/park-hyatt-bangkok-1707402.jpg",
+          "bytes": 72213,
+          "sha256": "d8617b2c4e57c8652a99d0ea615ed30f660b8b622ac1d6ed37d81f43152eea15",
+          "width": 800,
+          "height": 498,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 80233,
+      "work_id": "W5_053",
+      "name": "Avani Sukhumvit Bangkok Hotel",
+      "aliases": [
+        "Avani Sukhumvit Bangkok Hotel",
+        "AVANI SUKHUMVIT BANGKOK"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=80233",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "499260959f5d1f796d6ffdd4722c71764df36fd185b3dc9a2dd9681d9b60befe",
+      "bytes": 445358,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/avani-sukhumvit-bangkok-1409213.jpg",
+          "bytes": 81321,
+          "sha256": "35858eabb69582dca71ad0ebff30e2a37d1bcf8e77a50b6841941c08359b1148",
+          "width": 800,
+          "height": 534,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/avani-sukhumvit-bangkok-1409202.jpg",
+          "bytes": 70613,
+          "sha256": "7fd2e98d4eac74cd0de03dddb5c1bf459659a958df26d9def612f6e7e88af402",
+          "width": 800,
+          "height": 534,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/avani-sukhumvit-bangkok-1409203.jpg",
+          "bytes": 66659,
+          "sha256": "11b5b4d00ccadcc125b8c2eae4eb8645856095d16c7c5c7a98606556f5ef7506",
+          "width": 800,
+          "height": 534,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 107086,
+      "work_id": "W5_054",
+      "name": "Hyatt Regency West Hanoi",
+      "aliases": [
+        "Hyatt Regency West Hanoi",
+        "HYATT REGENCY WEST HANOI HOTEL"
+      ],
+      "region": "Ханой",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=107086",
+      "status": "held",
+      "reason": "AssertionError:no_paid_provider_photo_source",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 108097,
+      "work_id": "W5_055",
+      "name": "Sofitel Sukhumvit",
+      "aliases": [
+        "Sofitel Sukhumvit",
+        "SOFITEL SUKHUMVIT"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=108097",
+      "status": "held",
+      "reason": "potential_duplicate_sofitel_sukhumvit_vs8169_requires_reuse",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 110848,
+      "work_id": "W5_056",
+      "name": "Kimpton Maa Lai Bangkok",
+      "aliases": [
+        "Kimpton Maa Lai Bangkok",
+        "KIMPTON MAA LAI BANGKOK AN IHG HOTEL"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=110848",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "da8d68a2408a9455b8a83e0e70703918d124eabeb2995fe6243c277c00928e75",
+      "bytes": 277997,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpK74S46.jpg",
+          "bytes": 30268,
+          "sha256": "dda8563255a67774be2da93d21ace9e41a244fec9683a2e329fcda01a5294578",
+          "width": 800,
+          "height": 533,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpGv3er8.jpg",
+          "bytes": 42153,
+          "sha256": "f2a69dd88ac360ac3596c242c6f609c80c0e936b0c153d7828f9c7b279505c61",
+          "width": 800,
+          "height": 533,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/phpUf15H9.jpg",
+          "bytes": 46787,
+          "sha256": "70a618d6ec58f7d84abdacc0f6a80ebe3a7566d06e1d50e2313445b5f1601b53",
+          "width": 800,
+          "height": 533,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 111489,
+      "work_id": "W5_057",
+      "name": "Fusion Original Saigon Centre",
+      "aliases": [
+        "Fusion Original Saigon Centre",
+        "FUSION ORIGINAL SAIGON CENTRE HO CHI MINH"
+      ],
+      "region": "Хошимин",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=111489",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "e2e2b3f02b4fc372b2667a8e75e64dc8d58f204374af6df5d6c28eea9cb6a00f",
+      "bytes": 530076,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/fusion-original-saigon-centre-ho-chi-minh-97031700.jpg",
+          "bytes": 229693,
+          "sha256": "09d2504d012a1e8eb85be7416238c0a084a64959304acc9ebc02da063e29e142",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/fusion-original-saigon-centre-ho-chi-minh-97031701.jpg",
+          "bytes": 150634,
+          "sha256": "d08bbf40c4a0785e4e642b433b94993a767774f246c4b506e3cf96d48970c868",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/fusion-original-saigon-centre-ho-chi-minh-97031702.jpg",
+          "bytes": 191780,
+          "sha256": "4362463ab06da7ccfb234ed803f39408ca0c422cea020d5c22a03ff5e11d8e67",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 111949,
+      "work_id": "W5_058",
+      "name": "Intercontinental Saigon An Ihg Hotel",
+      "aliases": [
+        "Intercontinental Saigon An Ihg Hotel",
+        "INTERCONTINENTAL SAIGON AN IHG HOTEL"
+      ],
+      "region": "Хошимин",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=111949",
+      "status": "held",
+      "reason": "former_intercontinental_saigon_vs_current_jw127988_requires_reuse",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 111954,
+      "work_id": "W5_059",
+      "name": "Intercontinental Residences Saigon An Ihg Hotel",
+      "aliases": [
+        "Intercontinental Residences Saigon An Ihg Hotel",
+        "INTERCONTINENTAL RESIDENCES SAIGON AN IHG HOTEL"
+      ],
+      "region": "Хошимин",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=111954",
+      "status": "held",
+      "reason": "related_intercontinental_residences_saigon_vs_jw127988_requires_separate_admission",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 112556,
+      "work_id": "W5_060",
+      "name": "InterContinental Hanoi Landmark72",
+      "aliases": [
+        "InterContinental Hanoi Landmark72",
+        "INTERCONTINENTAL HANOI LANDMARK72 AN IHG HOTEL"
+      ],
+      "region": "Ханой",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=112556",
+      "status": "held",
+      "reason": "AssertionError:no_paid_provider_photo_source",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 118713,
+      "work_id": "W5_061",
+      "name": "InterContinental Bangkok Sukhumvit",
+      "aliases": [
+        "InterContinental Bangkok Sukhumvit",
+        "INTERCONTINENTAL BANGKOK SUKHUMVIT"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=118713",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "a1fa3fce58af5bc42d8ed93cff1340e11a8e603fbd9116468c8d075c6582b2c9",
+      "bytes": 529466,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/intercontinental-bangkok-sukhumvit-2114032.jpg",
+          "bytes": 216434,
+          "sha256": "5be8565a6bb84358a3da142f0915fefa40013c6afb49e2a762c38d03ddd0956d",
+          "width": 965,
+          "height": 768,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/intercontinental-bangkok-sukhumvit-2114000.jpg",
+          "bytes": 203074,
+          "sha256": "dc46d092d172b932b3029ba8a837ecd838eb99f1bdb5415908b32fb1e053a565",
+          "width": 1024,
+          "height": 640,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/intercontinental-bangkok-sukhumvit-2114001.jpg",
+          "bytes": 268388,
+          "sha256": "2a33eb47e052e8ed23dbc2cbe4298c9284079653b92e9bcd3f5800f0c81b7a3c",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 119052,
+      "work_id": "W5_062",
+      "name": "Hyatt Regency Bangkok Sukhumvit",
+      "aliases": [
+        "Hyatt Regency Bangkok Sukhumvit",
+        "HYATT REGENCY BANGKOK SUKHUMVIT"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=119052",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 2,
+      "png_sha256": "b94219868e63fb237437d2fa8ab85167c4726835429d2d0d41fafd3198033240",
+      "bytes": 515259,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/hyatt-regency-bangkok-sukhumvit-82487403.jpg",
+          "bytes": 214569,
+          "sha256": "b45041e07bc00f114f33b035893a7fc03fea981bcee07a6e36212f7c50b4473d",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/hyatt-regency-bangkok-sukhumvit-82487404.jpg",
+          "bytes": 103785,
+          "sha256": "057b4fe1e4e62f5599c3e777ab37e75581c9bfe310aeb71b2e4034a62033be97",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/hyatt-regency-bangkok-sukhumvit-82487405.jpg",
+          "bytes": 286830,
+          "sha256": "0953f70035201485722cd5bdd74c23b0dc01ed880f8a1a51a317b037293821f9",
+          "width": 1024,
+          "height": 768,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 127988,
+      "work_id": "W5_063",
+      "name": "JW Marriott Hotel & Suites Saigon",
+      "aliases": [
+        "JW Marriott Hotel & Suites Saigon",
+        "JW MARRIOTT HOTEL & SUITES SAIGON",
+        "InterContinental Saigon",
+        "INTERCONTINENTAL ASIANA SAIGON",
+        "INTERCONTINENTAL SAIGON AN IHG HOTEL"
+      ],
+      "region": "Хошимин",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=127988",
+      "status": "prepared_needs_visual_acceptance",
+      "reason": null,
+      "send_allowed": false,
+      "visual_approval": false,
+      "country_id": 16,
+      "png_sha256": "b313ad4a33685288f3711f0de47f770739b789d628e3c97a226d069f01c040df",
+      "bytes": 506865,
+      "photo_sources": [
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/jw-marriott-hotel-suites-saigon-57523904.jpg",
+          "bytes": 258874,
+          "sha256": "275c49d7c9a5165928b8939a1d0908076331e6e51f7db6ccdf293acc598323da",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/jw-marriott-hotel-suites-saigon-57523900.jpg",
+          "bytes": 140033,
+          "sha256": "4c4dbd76b41c5d1561a39f444c44446ef02f44bb7a07e61746961fa72107ac07",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        },
+        {
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/jw-marriott-hotel-suites-saigon-57523901.jpg",
+          "bytes": 145269,
+          "sha256": "57d63c9aa854f1102511064e47a60be38f8dfed85115c2301989a5c33ddf917a",
+          "width": 1024,
+          "height": 683,
+          "mime": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "id": 142814,
+      "work_id": "W5_064",
+      "name": "Dusit Le Palais Tu Hoa Hanoi",
+      "aliases": [
+        "Dusit Le Palais Tu Hoa Hanoi",
+        "DUSIT LE PALAIS TU HOA HANOI"
+      ],
+      "region": "Ханой",
+      "country": "VN",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=142814",
+      "status": "held",
+      "reason": "AssertionError:no_paid_provider_photo_source",
+      "send_allowed": false,
+      "visual_approval": false
+    },
+    {
+      "id": 163057,
+      "work_id": "W5_065",
+      "name": "Intercontinental Bangkok Phloen Chit",
+      "aliases": [
+        "Intercontinental Bangkok Phloen Chit",
+        "INTERCONTINENTAL BANGKOK PHLOEN CHIT"
+      ],
+      "region": "Бангкок",
+      "country": "TH",
+      "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=163057",
+      "status": "held",
+      "reason": "potential_duplicate_phloen_chit_vs_intercontinental_bangkok2986_requires_identity_confirmation",
+      "send_allowed": false,
+      "visual_approval": false
+    }
+  ],
+  "prepared_count": 44,
+  "held_count": 21,
+  "sender_calls": 0,
+  "feed_writes": 0,
+  "qa_sheets": [
+    {
+      "path": ".github/traffic-publish/commercial-wave5-65-20261117/qa-sheet-1.jpg",
+      "ids": [
+        74110,
+        113553,
+        115812,
+        121699,
+        140013,
+        143372,
+        15852,
+        2986,
+        4203,
+        4269,
+        4403,
+        8105
+      ]
+    },
+    {
+      "path": ".github/traffic-publish/commercial-wave5-65-20261117/qa-sheet-2.jpg",
+      "ids": [
+        8169,
+        15857,
+        23264,
+        23738,
+        23755,
+        70050,
+        4235,
+        8170,
+        22777,
+        22845,
+        8019,
+        13935
+      ]
+    },
+    {
+      "path": ".github/traffic-publish/commercial-wave5-65-20261117/qa-sheet-3.jpg",
+      "ids": [
+        47185,
+        49176,
+        49287,
+        55570,
+        53706,
+        23756,
+        40895,
+        43494,
+        52090,
+        66666,
+        68971,
+        74114
+      ]
+    },
+    {
+      "path": ".github/traffic-publish/commercial-wave5-65-20261117/qa-sheet-4.jpg",
+      "ids": [
+        79323,
+        79954,
+        80233,
+        110848,
+        111489,
+        118713,
+        119052,
+        127988
+      ]
+    }
+  ],
+  "native_screen": {
+    "installed_sha": "8281b387f258932601439eb789560f6b2cbabd4d",
+    "trusted_component_files": 22,
+    "mode": "READ_ONLY_WAVE5_65_EXISTING_PUBLICATION_SCREEN",
+    "db_writes": 0,
+    "provider_calls": 0,
+    "sender_calls": 0,
+    "inspected_hotel_ids": [
+      64764,
+      74110,
+      78858,
+      111948,
+      113553,
+      115812,
+      121699,
+      123000,
+      126643,
+      129437,
+      131851,
+      140013,
+      142314,
+      143372,
+      155460,
+      159699,
+      162521,
+      164863,
+      168069,
+      15852,
+      2986,
+      4203,
+      4269,
+      4403,
+      8105,
+      8169,
+      15857,
+      23264,
+      23738,
+      23755,
+      70050,
+      23737,
+      4235,
+      8170,
+      22777,
+      22845,
+      8019,
+      13935,
+      47185,
+      49176,
+      49287,
+      55570,
+      53706,
+      23756,
+      40895,
+      43494,
+      52090,
+      66666,
+      68971,
+      74114,
+      79323,
+      79954,
+      80233,
+      107086,
+      108097,
+      110848,
+      111489,
+      111949,
+      111954,
+      112556,
+      118713,
+      119052,
+      127988,
+      142814,
+      163057
+    ],
+    "matches": [
+      {
+        "hotel_id": 111948,
+        "platform": "telegram",
+        "publication_id": 2034,
+        "version_id": 7563,
+        "source_native_hotel_id": 68663,
+        "first_lines": "✈️ Туры в Vinpearl Landmark 81, Autograph Collection\n📍 Хошимин, Вьетнам.\n\nХошимин с высоты Landmark 81: панорамы города и реки, просторные номера и инфинити-бассейн. Рестораны и спа для тех, кто хочет увидеть Сайгон с особенного ракурса.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+        "post_url": "https://t.me/any_toour/948",
+        "matched_by": [
+          "alias"
+        ],
+        "matched_aliases": [
+          "Vinpearl Landmark 81, Autograph Collection"
+        ]
+      },
+      {
+        "hotel_id": 111948,
+        "platform": "max",
+        "publication_id": 2044,
+        "version_id": 7573,
+        "source_native_hotel_id": null,
+        "first_lines": "✈️ Туры в Vinpearl Landmark 81, Autograph Collection\n📍 Хошимин, Вьетнам.\n\nХошимин с высоты Landmark 81: панорамы города и реки, просторные номера и инфинити-бассейн. Рестораны и спа для тех, кто хочет увидеть Сайгон с особенного ракурса.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+        "post_url": "https://max.ru/channel_anytour/AaHqlHYORtI",
+        "matched_by": [
+          "alias"
+        ],
+        "matched_aliases": [
+          "Vinpearl Landmark 81, Autograph Collection"
+        ]
+      }
+    ],
+    "held_cape_fahn_current": {
+      "observed_at": "2026-11-17T17:54:41+00:00",
+      "publication_id": 1947,
+      "version_id": 7476,
+      "state": "requires_attention",
+      "reason": "provider_read_failed",
+      "write_attempted": false,
+      "write_attempts": 0,
+      "claim_token_present": false
+    },
+    "matched_hotel_ids": [
+      111948
+    ],
+    "ok": true
+  }
+}
