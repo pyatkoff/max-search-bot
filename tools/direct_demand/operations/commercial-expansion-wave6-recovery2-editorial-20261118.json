@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "state": "RECOVERY2_CAPTIONS_CHECKED_AWAITING_SOURCE_ACCEPTANCE",
+  "published_baseline": 1083,
+  "rows": [
+    {
+      "hotel_id": 16318,
+      "name": "Amarterra Villas Resort Bali Nusa Dua, Autograph Collection",
+      "location": "Нуса-Дуа, Индонезия",
+      "caption": "✈️ Туры в Amarterra Villas Resort Bali Nusa Dua, Autograph Collection\n📍 Нуса-Дуа, Индонезия.\n\nВ Нуса-Дуа можно устроить отпуск на вилле с собственным бассейном. Утром приятно поплавать в тишине, днём заглянуть в спа, а вечером выбрать блюда с местными и международными вкусами в ресторане Maja.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "AMARTERRA MGALLERY BALI NUSA DUA",
+        "Amarterra Villas Resort Bali Nusa Dua, Autograph Collection"
+      ],
+      "cover_sha256": "cdf617f65df355f4591e012830c56b74791723eab58b38a97380ac8d7a8968e3",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=16318",
+      "official_sources": [
+        "https://www.marriott.com/en-us/hotels/dpsav-amarterra-villas-resort-bali-nusa-dua-autograph-collection/overview/"
+      ],
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2763,
+      "name": "Iberostar Waves Punta Cana",
+      "location": "Баваро, Доминикана",
+      "caption": "✈️ Туры в Iberostar Waves Punta Cana\n📍 Баваро, Доминикана.\n\nОтель стоит у пляжа Баваро среди тропических садов. Дети могут провести часть дня за играми в Star Camp, а взрослые выбрать пляж, спа или сыграть в гольф на 18-луночном поле. Подойдёт для семейной поездки, когда каждому хочется своего ритма.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "IBEROSTAR WAVES PUNTA CANA",
+        "Iberostar Waves Punta Cana"
+      ],
+      "cover_sha256": "52186718bfa7b4d79943643890284e153c22cc67aae195771d9992683b6421e3",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2763",
+      "official_sources": [
+        "https://www.iberostar.com/en/hotels/punta-cana/iberostar-waves-punta-cana/"
+      ],
+      "publication_allowed": false
+    }
+  ],
+  "existing_registry_run": 44180890584,
+  "corrected_gallery_run": 44200705356,
+  "published_here": 0
+}
