@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-17",
+  "operation": "commercial-expansion100-fourth5-caption-cover-input-only",
+  "state": "EDITORIAL_AND_TOURVISOR_PHOTO_SOURCES_REVIEWABLE_NOT_SENT",
+  "source_blob": "911b3c6d59ef8b319a7a323385b03325a08863ff",
+  "button_text": "✈️ Узнать стоимость тура",
+  "destination": [
+    "main MAX AnyTour",
+    "main Telegram AnyTour"
+  ],
+  "summary": {
+    "rows": 5,
+    "linked_to_anytour": 5,
+    "vendor_photo_source_rows": 5,
+    "real_png_frozen": 0,
+    "posts_sent": 0
+  },
+  "guard": "No publisher send permission; excludes all prior 30 and exact Soneva Secret commercial HOLD, gallery identity and final dedup required.",
+  "rows": [
+    {
+      "work_id": "EXP007",
+      "hotel_id": 4283,
+      "anytour_canonical_id": 4679,
+      "hotel": "Anantara Siam Bangkok Hotel",
+      "logical_id": "commercial-hotel-4283-v1",
+      "text": "✈️ Туры в Anantara Siam Bangkok Hotel\n📍 Центр Бангкока, Таиланд.\n\nЭлегантный городской отель для знакомства со столицей.\n🏊 Открытый бассейн и спа для отдыха после прогулок.\n🛍 Рядом торговые кварталы и городские достопримечательности.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4283",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/four-seasons-hotel-bangkok-3109012.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/four-seasons-hotel-bangkok-3109000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/four-seasons-hotel-bangkok-3109001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/four-seasons-hotel-bangkok-3109002.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура"
+    },
+    {
+      "work_id": "EXP082",
+      "hotel_id": 52337,
+      "anytour_canonical_id": 12248,
+      "hotel": "Four Seasons Hotel Abu Dhabi at Al Maryah Island",
+      "logical_id": "commercial-hotel-52337-v1",
+      "text": "✈️ Туры в Four Seasons Hotel Abu Dhabi at Al Maryah Island\n📍 Абу-Даби, ОАЭ.\n\nСтильный городской отель на набережной острова Аль-Марья.\n🛍 Рядом торговые галереи и рестораны.\n🏊 Бассейн и wellness-пространство для отдыха.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=52337",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/four-seasons-hotel-abu-dhabi-at-al-maryah-island-100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/four-seasons-hotel-abu-dhabi-at-al-maryah-island-101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/four-seasons-hotel-abu-dhabi-at-al-maryah-island-102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/four-seasons-hotel-abu-dhabi-at-al-maryah-island-103.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура"
+    },
+    {
+      "work_id": "EXP084",
+      "hotel_id": 64648,
+      "anytour_canonical_id": 13066,
+      "hotel": "Four Seasons Hotel Dubai International Financial Centre",
+      "logical_id": "commercial-hotel-64648-v1",
+      "text": "✈️ Туры в Four Seasons Hotel Dubai International Financial Centre\n📍 DIFC, Дубай, ОАЭ.\n\nКамерный городской отель в деловом и ресторанном квартале Дубая.\n🏙 Бассейн на крыше с видом на город.\n🍽 Рестораны и удобный доступ к центру.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64648",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/four-seasons-dubai-international-financial-centre-1712003.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/four-seasons-dubai-international-financial-centre-1712000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/four-seasons-dubai-international-financial-centre-1712001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/four-seasons-dubai-international-financial-centre-1712002.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура"
+    },
+    {
+      "work_id": "EXP077",
+      "hotel_id": 78669,
+      "anytour_canonical_id": 14029,
+      "hotel": "Four Seasons Hotel Bangkok at Chao Phraya River",
+      "logical_id": "commercial-hotel-78669-v1",
+      "text": "✈️ Туры в Four Seasons Hotel Bangkok at Chao Phraya River\n📍 Бангкок, Таиланд.\n\nСовременный премиальный отель на берегу Чаупхрая.\n🏊 Бассейны с видом на реку.\n🍽 Рестораны и прогулки вдоль набережной.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=78669",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/four-seasons-hotel-bangkok-at-chao-phraya-river-2109308.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/four-seasons-hotel-bangkok-at-chao-phraya-river-2109300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/four-seasons-hotel-bangkok-at-chao-phraya-river-2109301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/four-seasons-hotel-bangkok-at-chao-phraya-river-2109302.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура"
+    },
+    {
+      "work_id": "EXP087",
+      "hotel_id": 60788,
+      "anytour_canonical_id": 12816,
+      "hotel": "Four Seasons Hotel Cairo at The First Residence",
+      "logical_id": "commercial-hotel-60788-v1",
+      "text": "✈️ Туры в Four Seasons Hotel Cairo at The First Residence\n📍 Гиза, Каир, Египет.\n\nЭлегантный городской отель на западном берегу Нила.\n🌆 В отдельных категориях — виды на реку или пирамиды.\n🍽 Рестораны и бассейн для отдыха.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "tourvisor_photo_source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=60788",
+      "photo_urls": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/60788-8929006.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/60788-8928800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/60788-8928801.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/60788-8928902.jpg"
+      ],
+      "media_state": "SOURCE_PHOTOS_AVAILABLE_COVER_NOT_FROZEN",
+      "commercial_send_allowed": false,
+      "thumbnail_reviewed": false,
+      "bot_cta": "✈️ Узнать стоимость тура"
+    }
+  ]
+}
