@@ -11,8 +11,8 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event_name == 'push' &&
-      github.event.before == '7f2659f8f0c9a2efade1c0df598f120919be3593' &&
-      github.event.head_commit.message == 'test(price660): offline frozen original 660 recovery syntax and rejection' &&
+      github.event.before == '5b56c0e5644de74b667dfa0f80151cd8b2137436' &&
+      github.event.head_commit.message == 'test(price660): prove revised source only frozen selftest and apply refusal' &&
       github.run_attempt == 1
     runs-on: ubuntu-24.04
     timeout-minutes: 7
@@ -33,7 +33,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = 7f2659f8f0c9a2efade1c0df598f120919be3593
+          test "$(git rev-parse HEAD^)" = 5b56c0e5644de74b667dfa0f80151cd8b2137436
           umask 077
           mkdir -p "$RUNNER_TEMP/price27316"
           python3 - <<'PY'
