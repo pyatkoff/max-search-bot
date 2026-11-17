@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-11-17T11:17:48+00:00",
+    "generated_at": "2026-11-17T12:18:03+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
@@ -13,36 +13,34 @@
             "resolved": 24,
             "unresolved": 0
         },
-        "started": 22,
-        "needs_collected": 3,
-        "tours_opened": 3,
+        "started": 21,
+        "needs_collected": 4,
+        "tours_opened": 4,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 17,
-        "manager_replied": 15,
-        "customer_replied_after_manager": 8,
+        "manager_requested": 14,
+        "manager_replied": 9,
+        "customer_replied_after_manager": 6,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
-            "answered_after_90s": 15,
+            "answered_after_90s": 9,
             "still_unanswered": 0,
-            "measured_responses": 15,
-            "avg_seconds": 18617,
+            "measured_responses": 9,
+            "avg_seconds": 14439,
             "max_seconds": 51133
         },
         "drop_points": {
-            "customer_replied_after_manager": 8,
-            "manager_replied": 7,
-            "collecting_needs": 5,
-            "manager_requested": 2,
-            "started_only": 2
+            "collecting_needs": 7,
+            "customer_replied_after_manager": 6,
+            "manager_requested": 5,
+            "manager_replied": 3,
+            "started_only": 3
         },
-        "flags": {
-            "repeated_callback_input": 1
-        }
+        "flags": []
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-17T11:17:48Z",
+        "sampled_at": "2026-11-17T12:18:03Z",
         "available": true,
         "error": null,
         "mode": "send",
@@ -61,6 +59,6 @@
         },
         "queue_total": 58
     },
-    "since_utc": "2026-11-17 10:17:48",
+    "since_utc": "2026-11-17 11:18:03",
     "public_redacted": true
 }
