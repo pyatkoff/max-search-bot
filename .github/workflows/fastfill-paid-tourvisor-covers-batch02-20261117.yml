@@ -1,0 +1,93 @@
+name: One-shot AnyTour FASTFILL photo covers batch02 (no posts)
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths:
+      - '.github/workflows/fastfill-paid-tourvisor-covers-batch02-20261117.yml'
+permissions:
+  contents: read
+concurrency:
+  group: anytour-fastfill-covers-batch02-20261117
+  cancel-in-progress: false
+jobs:
+  prepare-covers:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event_name == 'push' &&
+      github.event.before == '411be436afb0f20abafc205b491ec0249e7a0dda' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Pin single reviewed input, code, test, and original AnyTour logo
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = 411be436afb0f20abafc205b491ec0249e7a0dda
+          d=tools/direct_demand/operations
+          test "$(git hash-object "$d/prepare-paid-tourvisor-cover-batch-20261117.py")" = 7e6a25519abcf5c796b8e59f700043f98257a5b3
+          test "$(git hash-object "$d/test_paid_tourvisor_cover_batch_20261117.py")" = adcbd5f26378aeca1919bd18583d6b414d99667d
+          test "$(git hash-object "$d/commercial-expansion100-next10-publisher-caption-input-20261117.json")" = afd2eba9b971019ff0599df3084ecd1e33e225c7
+          test "$(sha256sum .github/traffic-publish/brand/anytour-logo-white.png | cut -d' ' -f1)" = b27cda894047b1ecb4125eea2ecf0db9d1e1674472cad62f70edf1ef1a6c968f
+          python3 - <<'PY'
+          import json,pathlib
+          p=pathlib.Path('tools/direct_demand/operations/commercial-expansion100-next10-publisher-caption-input-20261117.json')
+          j=json.loads(p.read_text())
+          ids=[2490,2458,113544,73477,2588,2611,2612,2610,2931,78456]
+          assert j['state']=='EDITORIAL_AND_TOURVISOR_PHOTO_SOURCES_REVIEWABLE_NOT_SENT'
+          assert [r['hotel_id'] for r in j['rows']]==ids
+          assert all(not r['commercial_send_allowed'] for r in j['rows'])
+          assert all(len(r['photo_urls'])==4 for r in j['rows'])
+          print('FASTFILL_FIXED_SOURCE_INPUT_OK_10')
+          PY
+      - name: Install image-only preparation requirements
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check --no-cache-dir pillow==11.3.0 requests==2.32.5
+      - name: Run original source-only regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd tools/direct_demand/operations
+          python3 -m unittest -v test_paid_tourvisor_cover_batch_20261117
+      - name: Build original-photo covers and immutable-content receipts, no publisher
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          d=tools/direct_demand/operations
+          out=fastfill-covers-batch02-20261117
+          mkdir -p "$out"
+          python3 "$d/prepare-paid-tourvisor-cover-batch-20261117.py" \
+            --input "$d/commercial-expansion100-next10-publisher-caption-input-20261117.json" \
+            --logo ".github/traffic-publish/brand/anytour-logo-white.png" \
+            --out "$out" \
+            --expected-input-git-blob "afd2eba9b971019ff0599df3084ecd1e33e225c7"
+          python3 - "$out" <<'PY'
+          import hashlib,json,pathlib,sys
+          base=pathlib.Path(sys.argv[1])
+          r=json.loads((base/'cover-preparation-receipt.json').read_text())
+          assert r['state']=='PHOTO_RENDERER_ONLY_NO_PUBLICATION'
+          assert r['sender_calls']==r['feed_writes']==r['actual_posts']==0
+          assert len(r['rows'])==10 and r['prepared']<=10
+          for h in r['rows']:
+            if h['status']!='prepared_needs_visual_acceptance': continue
+            photo=base/h['path'];raw=photo.read_bytes()
+            assert len(raw)==h['png_bytes'] and hashlib.sha256(raw).hexdigest()==h['png_sha256']
+            assert h['width']==h['height']==1080 and h['publication_allowed'] is False
+          print('PHOTO_COVER_PREVIEW_RECEIPT_OK prepared='+str(r['prepared'])+' held='+str(10-r['prepared'])+' SENDS_ZERO')
+          PY
+      - name: Retain reviewable covers and source receipts (no channel calls)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fastfill-tourvisor-covers-20261117-one-shot
+          path: fastfill-covers-batch02-20261117/*
+          retention-days: 30
+          if-no-files-found: warn
