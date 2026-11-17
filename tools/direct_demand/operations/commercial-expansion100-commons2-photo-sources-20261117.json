@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "prepared_date": "2026-11-17",
+  "purpose": "DATA-ONLY: two exact-property reusable-source photo candidates to unblock Hotel/CONTENT43 publication in existing FASTFILL lane; no sends or image downloads",
+  "original_handoff": "tools/direct_demand/operations/commercial-expansion100-content43-single-owner-handoff-20261117.json",
+  "source_license": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "source_license_rights": "Commercial redistribution may be permitted by CC BY-SA 4.0, subject to attribution, license link, modification notice and ShareAlike on adaptations; verify image bytes, publisher transport, original source version, subject identity and caption credit before accepted_photo=true.",
+  "rows": [
+    {
+      "work_id": "EXP002",
+      "tourvisor_id": 12120,
+      "title": "Anantara Kihavah Maldives Villas",
+      "anytour_canonical_id": 5371,
+      "media_source_page": "https://commons.wikimedia.org/wiki/File:Anantara_Kihavah_-_Aerial_Hero_Shot_2024.jpg",
+      "description": "Aerial photo of actual Anantara Kihavah property and lagoon",
+      "author": "Matheenfaiz / Matheen Faiz",
+      "license": "CC BY-SA 4.0",
+      "source_reported_original_sha1": "4f985fcaa0a8b480ce24d0ed8516c4f0a4c3a74f",
+      "source_reported_size_bytes": 3711592,
+      "caption_credit": "Фото: Matheenfaiz, CC BY-SA 4.0. Источник: Wikimedia Commons; https://creativecommons.org/licenses/by-sa/4.0/",
+      "source_page_checked": true,
+      "source_declares_license": true,
+      "original_bytes_checked": false,
+      "photo_identity_final_reviewed": false,
+      "channel_caption_with_credit_approved": false,
+      "ready_for_sender": false,
+      "next_step": "Check original bytes and property identity; approve final credited post/photo and exact Site/CTA under existing Hotel/CONTENT owner."
+    },
+    {
+      "work_id": "EXP023",
+      "tourvisor_id": 8951,
+      "title": "Qasr Al Sarab Desert Resort by Anantara",
+      "anytour_canonical_id": null,
+      "media_source_page": "https://commons.wikimedia.org/wiki/File:Qasr_Al_Sarab_-_Hotel_in_the_area.jpg",
+      "description": "Photo explicitly identified as the Anantara Qasr Al Sarab property",
+      "author": "Florian Kriechbaumer",
+      "license": "CC BY-SA 4.0",
+      "source_reported_original_sha1": "28916848d62b71a476c977c5662acebee0069453",
+      "source_reported_size_bytes": 1269246,
+      "caption_credit": "Фото: Florian Kriechbaumer, CC BY-SA 4.0. Источник: Wikimedia Commons; https://creativecommons.org/licenses/by-sa/4.0/",
+      "source_page_checked": true,
+      "source_declares_license": true,
+      "original_bytes_checked": false,
+      "photo_identity_final_reviewed": false,
+      "channel_caption_with_credit_approved": false,
+      "ready_for_sender": false,
+      "next_step": "Resolve missing AnyTour canonical ID/alias first; check image bytes and exact image content; approve final credited post under same publisher."
+    }
+  ],
+  "new_live_pairs": 0,
+  "media_rights_accepted_by_project": 0
+}
