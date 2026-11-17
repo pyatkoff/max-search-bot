@@ -1,32 +1,32 @@
 {
   "schema_version": 1,
-  "parent_sha": "216df1858b16c193a2382f0f294b3b6599c82df7",
+  "parent_sha": "8adb2cb5281c6e17b05e90062abfff8d3278629f",
   "claim_id": 6955557921,
   "claim_body_sha256": "2bf2b31ac05eeb249d9f173b03575b473cd2cd0b41b42950cd66288a2b067f82",
-  "runtime_sha": "71d5ae937c59b953d762bcca520af97291081a2d",
+  "runtime_sha": "f8c9a48625c599090c826c25e1480864e136f4e7",
   "accepted_runs": [
     {
-      "run_id": 44164717290,
-      "head_sha": "71d5ae937c59b953d762bcca520af97291081a2d",
+      "run_id": 44177455495,
+      "head_sha": "f8c9a48625c599090c826c25e1480864e136f4e7",
       "kind": "deployment"
     },
     {
-      "run_id": 44167142526,
-      "head_sha": "71d5ae937c59b953d762bcca520af97291081a2d",
+      "run_id": 44179979652,
+      "head_sha": "f8c9a48625c599090c826c25e1480864e136f4e7",
       "kind": "native"
     },
     {
-      "run_id": 44167142422,
-      "head_sha": "71d5ae937c59b953d762bcca520af97291081a2d",
+      "run_id": 44179979513,
+      "head_sha": "f8c9a48625c599090c826c25e1480864e136f4e7",
       "kind": "native"
     },
     {
-      "run_id": 44167142622,
-      "head_sha": "71d5ae937c59b953d762bcca520af97291081a2d",
+      "run_id": 44179979213,
+      "head_sha": "f8c9a48625c599090c826c25e1480864e136f4e7",
       "kind": "native"
     }
   ],
-  "intent_sha256": "ff77558248659832f5f8be9d1e275fbfc0aa2f2fe25dd5ca1be5f40362ea05eb",
+  "intent_sha256": "a0d5d5686e3861c2e66a0f1ef6c86af842237168d8f38afb5313fcbb0737ccd4",
   "source_sha256": {
     "run217.py": "275db813c0117d6376302410e887cc72e7dad0b4d8b5cc4bdb370d588c908ef3",
     "admit217.py": "9a8e16bb43bc00c9f77ecb878762d9344ffd2d8471609fc3d6e37f5e6a0618f0",
@@ -36,24 +36,24 @@
   "takeover_claim_body_sha256": "51cc2d3531118e2aba6146515946dc2efad9a78130864d5fd45a03789ce6c37a",
   "accepted_jobs": [
     {
-      "run_id": 44164717290,
-      "job_id": 134333875952
+      "run_id": 44177455495,
+      "job_id": 134378619276
     },
     {
-      "run_id": 44164717290,
-      "job_id": 134335440057
+      "run_id": 44177455495,
+      "job_id": 134380723835
     },
     {
-      "run_id": 44167142526,
-      "job_id": 134336114859
+      "run_id": 44179979652,
+      "job_id": 134381398407
     },
     {
-      "run_id": 44167142422,
-      "job_id": 134336114497
+      "run_id": 44179979513,
+      "job_id": 134381395861
     },
     {
-      "run_id": 44167142622,
-      "job_id": 134336116082
+      "run_id": 44179979213,
+      "job_id": 134381393810
     }
   ],
   "external_route_coordination": {
@@ -69,7 +69,7 @@
       "pending": 0,
       "requested": 0
     },
-    "observed_at": "2026-11-17T20:16:54.423Z",
+    "observed_at": "2026-11-17T21:31:30.078Z",
     "route_head_sha": "bbef3101f8c8f6eae15355c0d6fa4b8c1848dfa2"
   }
 }

@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == '216df1858b16c193a2382f0f294b3b6599c82df7'
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == '8adb2cb5281c6e17b05e90062abfff8d3278629f'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -21,6 +21,18 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 2
+      - name: Lint exact24 runtime-only readers before credentials
+        run: |
+          python3 - <<'PYLINT'
+          import json,pathlib,subprocess,hashlib
+          root=pathlib.Path('tools/direct_demand/operations/tail217')
+          intent=json.loads((root/'intent.json').read_bytes())
+          assert len(intent['groups'])==24
+          for group in intent['groups']:
+              path=root/f"p{group['batch']:02d}"/'read.php'
+              assert hashlib.sha256(path.read_bytes()).hexdigest()==group['reader_sha256']
+              subprocess.run(['php','-n','-l',str(path)],check=True,timeout=30)
+          PYLINT
       - name: Prepare unchanged server connection and host pin
         env:
           KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
