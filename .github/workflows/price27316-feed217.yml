@@ -1,0 +1,491 @@
+# REVIEW PROPOSAL ONLY. Closed config literal and exact parent/claim/source admission gate execution.
+name: Exact published217 feed extension via unchanged native writer
+on:
+  push:
+    branches: ['audit/price660-27316-resume-readiness-20261117']
+    paths: ['.github/workflows/price27316-feed217.yml']
+permissions:
+  contents: read
+  actions: read
+  issues: read
+concurrency:
+  group: anytour-authorized-channel-publication
+  cancel-in-progress: false
+jobs:
+  inspect:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == 'd8c40388f5112a6bdfe70decb997b894685b1c52'
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Verify independently reviewed immutable config before credentials
+        run: |
+          python3 - <<'PYCODE'
+          import hashlib, pathlib, re, sys
+          sys.path.insert(0,'tools/direct_demand/operations')
+          import finite_feed217 as runner
+          raw=pathlib.Path('tools/direct_demand/operations/feed217-reviewed-config.json').read_bytes()
+          assert re.fullmatch('[a-f0-9]{64}',runner.REVIEWED_CONFIG_SHA256)
+          assert hashlib.sha256(raw).hexdigest()==runner.REVIEWED_CONFIG_SHA256
+          PYCODE
+      - name: Prepare unchanged server connection and host pin
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER'];assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-') and re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35);matches=[]
+          for line in scan.stdout.splitlines():
+            f=line.split()
+            if len(f)<3 or f[0].startswith('#'):continue
+            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(f[2])).digest()).decode().rstrip('=')
+            except Exception:continue
+            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
+          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP';pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+          PY
+      - name: Prepare sanitized root-coordinated finite plan (no writes)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json prepare
+      - name: Publish sanitized plan artifact while job is running
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-plan-${{ github.run_id }}
+          path: ${{ runner.temp }}/feed217/deliver-plan/
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 1
+        id: batch01
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 0
+      - name: Publish bounded progress for batch 1 while job is running
+        if: ${{ always() && (steps.batch01.outcome == 'success' || steps.batch01.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p01-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p01/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 2
+        id: batch02
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 1
+      - name: Publish bounded progress for batch 2 while job is running
+        if: ${{ always() && (steps.batch02.outcome == 'success' || steps.batch02.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p02-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p02/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 3
+        id: batch03
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 2
+      - name: Publish bounded progress for batch 3 while job is running
+        if: ${{ always() && (steps.batch03.outcome == 'success' || steps.batch03.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p03-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p03/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 4
+        id: batch04
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 3
+      - name: Publish bounded progress for batch 4 while job is running
+        if: ${{ always() && (steps.batch04.outcome == 'success' || steps.batch04.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p04-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p04/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 5
+        id: batch05
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 4
+      - name: Publish bounded progress for batch 5 while job is running
+        if: ${{ always() && (steps.batch05.outcome == 'success' || steps.batch05.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p05-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p05/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 6
+        id: batch06
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 5
+      - name: Publish bounded progress for batch 6 while job is running
+        if: ${{ always() && (steps.batch06.outcome == 'success' || steps.batch06.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p06-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p06/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 8
+        id: batch08
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 6
+      - name: Publish bounded progress for batch 8 while job is running
+        if: ${{ always() && (steps.batch08.outcome == 'success' || steps.batch08.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p08-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p08/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 9
+        id: batch09
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 7
+      - name: Publish bounded progress for batch 9 while job is running
+        if: ${{ always() && (steps.batch09.outcome == 'success' || steps.batch09.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p09-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p09/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 10
+        id: batch10
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 8
+      - name: Publish bounded progress for batch 10 while job is running
+        if: ${{ always() && (steps.batch10.outcome == 'success' || steps.batch10.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p10-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p10/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 11
+        id: batch11
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 9
+      - name: Publish bounded progress for batch 11 while job is running
+        if: ${{ always() && (steps.batch11.outcome == 'success' || steps.batch11.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p11-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p11/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 12
+        id: batch12
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 10
+      - name: Publish bounded progress for batch 12 while job is running
+        if: ${{ always() && (steps.batch12.outcome == 'success' || steps.batch12.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p12-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p12/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 13
+        id: batch13
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 11
+      - name: Publish bounded progress for batch 13 while job is running
+        if: ${{ always() && (steps.batch13.outcome == 'success' || steps.batch13.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p13-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p13/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 14
+        id: batch14
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 12
+      - name: Publish bounded progress for batch 14 while job is running
+        if: ${{ always() && (steps.batch14.outcome == 'success' || steps.batch14.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p14-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p14/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 15
+        id: batch15
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 13
+      - name: Publish bounded progress for batch 15 while job is running
+        if: ${{ always() && (steps.batch15.outcome == 'success' || steps.batch15.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p15-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p15/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 18
+        id: batch18
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 14
+      - name: Publish bounded progress for batch 18 while job is running
+        if: ${{ always() && (steps.batch18.outcome == 'success' || steps.batch18.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p18-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p18/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 17
+        id: batch17
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 15
+      - name: Publish bounded progress for batch 17 while job is running
+        if: ${{ always() && (steps.batch17.outcome == 'success' || steps.batch17.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p17-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p17/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 19
+        id: batch19
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 16
+      - name: Publish bounded progress for batch 19 while job is running
+        if: ${{ always() && (steps.batch19.outcome == 'success' || steps.batch19.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p19-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p19/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 20
+        id: batch20
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 17
+      - name: Publish bounded progress for batch 20 while job is running
+        if: ${{ always() && (steps.batch20.outcome == 'success' || steps.batch20.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p20-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p20/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 21
+        id: batch21
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 18
+      - name: Publish bounded progress for batch 21 while job is running
+        if: ${{ always() && (steps.batch21.outcome == 'success' || steps.batch21.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p21-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p21/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 22
+        id: batch22
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 19
+      - name: Publish bounded progress for batch 22 while job is running
+        if: ${{ always() && (steps.batch22.outcome == 'success' || steps.batch22.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p22-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p22/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 23
+        id: batch23
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 20
+      - name: Publish bounded progress for batch 23 while job is running
+        if: ${{ always() && (steps.batch23.outcome == 'success' || steps.batch23.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p23-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p23/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 24
+        id: batch24
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 21
+      - name: Publish bounded progress for batch 24 while job is running
+        if: ${{ always() && (steps.batch24.outcome == 'success' || steps.batch24.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p24-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p24/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 25
+        id: batch25
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 22
+      - name: Publish bounded progress for batch 25 while job is running
+        if: ${{ always() && (steps.batch25.outcome == 'success' || steps.batch25.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p25-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p25/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 26
+        id: batch26
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 23
+      - name: Publish bounded progress for batch 26 while job is running
+        if: ${{ always() && (steps.batch26.outcome == 'success' || steps.batch26.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-progress-p26-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed217/progress/p26/
+            ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Preserve bounded failure metadata
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed217-stop-${{ github.run_id }}
+          path: ${{ runner.temp }}/feed217/failure.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Cleanup original connection material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
