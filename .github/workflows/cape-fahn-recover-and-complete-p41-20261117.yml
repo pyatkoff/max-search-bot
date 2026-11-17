@@ -1,0 +1,146 @@
+{
+  "name": "Single Cape Fahn Telegram repair and first MAX P41; no replay",
+  "on": {
+    "push": {
+      "branches": [
+        "audit/content100-bot-publication-20261101"
+      ],
+      "paths": [
+        ".github/workflows/cape-fahn-recover-and-complete-p41-20261117.yml"
+      ]
+    }
+  },
+  "permissions": {
+    "contents": "read",
+    "actions": "read",
+    "pull-requests": "read",
+    "issues": "read"
+  },
+  "concurrency": {
+    "group": "anytour-authorized-channel-publication",
+    "cancel-in-progress": false
+  },
+  "jobs": {
+    "recover-one-then-first-max-once": {
+      "if": "github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == '56cda96b16668e6df1af477fa9f86562a081b103' && github.run_attempt == 1",
+      "runs-on": "ubuntu-latest",
+      "timeout-minutes": 25,
+      "steps": [
+        {
+          "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "with": {
+            "ref": "96765e518d7cdc0d7db95a49628994de28f01c4d",
+            "persist-credentials": false,
+            "sparse-checkout": "tools"
+          }
+        },
+        {
+          "name": "Authenticate accepted installation using unchanged canonical resolver",
+          "env": {
+            "GITHUB_TOKEN": "${{ github.token }}"
+          },
+          "shell": "bash",
+          "run": "set -euo pipefail\ntest \"$(git rev-parse HEAD)\" = 96765e518d7cdc0d7db95a49628994de28f01c4d\ntest \"$(git hash-object tools/deployment_release.js)\" = 250bd3d8fdf144a0cbdec3db3fc6b6a718cb3166\nmkdir pub\nnode <<'JS' > pub/release-admission.json\nconst R=require('./tools/deployment_release.js');\n(async()=>{\n const api=R.makeReadApi(process.env.GITHUB_TOKEN);api.transientReads=false;\n const location=await R.readRecord(api);\n const r=await R.resolveCurrent(api,{sha:'96765e518d7cdc0d7db95a49628994de28f01c4d'},location);\n if(!r.ready||r.application_sha!=='96765e518d7cdc0d7db95a49628994de28f01c4d'||r.repository_sha!==r.application_sha)throw Error('release_not_accepted');\n if((await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha!==r.repository_sha)throw Error('main_changed');\n console.log(JSON.stringify({ok:true,resolution:r,record_digest:location.record_digest,diagnostics_commit:location.commit}));\n})().catch(e=>{console.error(e.message);process.exitCode=1;});\nJS\ncat pub/release-admission.json\n"
+        },
+        {
+          "name": "Authenticate exact accepted source packet without regeneration",
+          "env": {
+            "GH_TOKEN": "${{ github.token }}"
+          },
+          "shell": "bash",
+          "run": "set -euo pipefail\numask 077\npython3 - <<'PY'\nimport hashlib,io,json,pathlib,subprocess,zipfile\ndef api(p):return json.loads(subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+p],timeout=30))\nrun=api('actions/runs/44158646142')\nassert run['run_attempt']==1 and run['conclusion']=='success' and run['head_sha']=='56cda96b16668e6df1af477fa9f86562a081b103'\nmeta=api('actions/artifacts/14362287033')\nassert not meta['expired'] and meta['workflow_run']['id']==44158646142\nassert meta['digest']=='sha256:07bce4932f2e456c3cfee73c90430c15cbac423230ad2d3bfc934c8269cda811'\nraw=subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/actions/artifacts/14362287033/zip'],timeout=60)\nassert hashlib.sha256(raw).hexdigest()==meta['digest'][7:] and len(raw)==meta['size_in_bytes']\nexpected={'manifest.json':'875b7d4d912c3cc157fd6b5b7dbc22e71f0486b2e8d2edd234b5ab4f3332721d','approval.json':'8c3e0cbb37f14db425137336a6dbee8aa708e92db93fbb5b525abf16688ea5d8','publisher-unexecuted.php':'d97f3cca5c724ff329321447fa65a7e2d78eefa317aaf7c45e792a57095bf05a','original-p27-manifest.json':'0582a2a09439fae97b810f1a6ba3317e54facf0632cbc95a84633494d79f37fb','protected-pins.json':'fda6b7ffecc25b1c1403db5941eb4565e410bb92c2ab5e89ac60e0293775ac7f'}\nwith zipfile.ZipFile(io.BytesIO(raw)) as z:\n assert z.testzip() is None\n for name,sha in expected.items():\n  names=[n for n in z.namelist() if pathlib.PurePosixPath(n).name==name];assert len(names)==1\n  b=z.read(names[0]);assert hashlib.sha256(b).hexdigest()==sha\n  (pathlib.Path('pub')/name).write_bytes(b)\n names=[n for n in z.namelist() if pathlib.PurePosixPath(n).name=='receipt.json'];assert len(names)==1\n receipt=json.loads(z.read(names[0]));assert receipt['files']==expected and receipt['sender_calls']==0\n assert receipt['runtime_sha']=='96765e518d7cdc0d7db95a49628994de28f01c4d'\n pathlib.Path('pub/source-receipt.json').write_bytes(z.read(names[0]))\nprint('EXACT_SOURCE_VERIFIED_0_REGENERATION_0_PROVIDER_CALLS')\nPY\n"
+        },
+        {
+          "name": "Prepare and syntax-check read-only evidence helpers",
+          "shell": "bash",
+          "run": "set -euo pipefail\npython3 - <<'PY'\nimport json,pathlib\nhelpers=json.loads(r'''{\"read-before.php\":\"<?php\\ndeclare(strict_types=1);\\nini_set('display_errors','0');\\nif(PHP_SAPI!=='cli')exit(2);\\nrequire getcwd().'/config.php';\\nrequire_once getcwd().'/services/ChannelPostRuntime.php';\\nfunction must(bool $ok):void{if(!$ok)throw new RuntimeException('exact_cape_fahn_target_changed');}\\n$pdo=ConversationDb::connection();\\n$pdo->exec('SET SESSION TRANSACTION READ ONLY');\\n$pdo->beginTransaction();\\ntry{\\n $r=new ChannelPostRegistryService($pdo);$p=$r->publication(1947);\\n must(is_array($p)&&$p['project_key']==='anytour'&&$p['platform']==='telegram'&&$p['bot_key']==='anyru_bot');\\n must($p['channel_id']==='-1002262666616'&&$p['external_message_id']==='901'&&$p['source_key']==='tg_anytour_msk');\\n must($p['version_id']===7476&&(int)$p['channel']['config_version']===2);\\n must(hash('sha256',$p['snapshot']['text'])==='b2caf990b6bdcdb7ab0dc0e5d7f1951d9d677aba806ad4f0e3b5022431929599');\\n must(ChannelPostRegistryService::telegramReadFailureRecoveryEligible($p));\\n $old='/var/www/anytoour/data/channel-post-operations/commercial-hotel-batch-20261117-27-v1/telegram-commercial-hotel-66375-v1-approved.json';\\n must(is_file($old)&&!is_link($old));$saved=json_decode(file_get_contents($old),true,64,JSON_THROW_ON_ERROR);\\n must($saved['state']==='button_attempted'&&(int)$saved['publication_id']===1947&&(int)$saved['version_id']===7476);\\n must($saved['text_sha256']==='b2caf990b6bdcdb7ab0dc0e5d7f1951d9d677aba806ad4f0e3b5022431929599');\\n must($saved['photo_sha256']==='68d923a5d5e8709d747ea2da78a60dea0f9c8e4269d2c048144a79d98adb4046');\\n $q=$pdo->prepare('SELECT receipt_json FROM post_versions WHERE id=? AND publication_id=?');$q->execute([7476,1947]);$failure=(string)$q->fetchColumn();\\n must(json_decode($failure,true,64,JSON_THROW_ON_ERROR)===$p['receipt']);\\n echo json_encode(['ok'=>true,'state'=>'EXACT_ORIGINAL_ZERO_WRITE_FAILURE','publication_id'=>1947,'version_id'=>7476,\\n  'config_version'=>2,'message_id'=>'901','text_sha256'=>hash('sha256',$p['snapshot']['text']),\\n  'content_hash'=>$p['content_hash'],'snapshot_sha256'=>hash('sha256',json_encode($p['snapshot'],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)),\\n  'token_sha256'=>hash('sha256',$p['start_payload']),'failure_receipt_sha256'=>hash('sha256',$failure),\\n  'original_p27_file_sha256'=>hash_file('sha256',$old),'recovery_digest'=>ChannelPostRegistryService::telegramReadFailureRecoveryDigest($p),\\n  'db_writes'=>0,'provider_calls'=>0],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).PHP_EOL;\\n}finally{if($pdo->inTransaction())$pdo->rollBack();}\\n\",\"read-after.php\":\"<?php\\ndeclare(strict_types=1);\\nini_set('display_errors','0');\\nif(PHP_SAPI!=='cli')exit(2);\\nrequire getcwd().'/config.php';\\nrequire_once getcwd().'/services/ChannelPostRuntime.php';\\nfunction must(bool $ok):void{if(!$ok)throw new RuntimeException('cape_fahn_recovery_not_verified');}\\n$pdo=ConversationDb::connection();$pdo->exec('SET SESSION TRANSACTION READ ONLY');$pdo->beginTransaction();\\ntry{\\n $r=new ChannelPostRegistryService($pdo);$p=$r->publication(1947);\\n must(is_array($p)&&$p['project_key']==='anytour'&&$p['platform']==='telegram'&&$p['bot_key']==='anyru_bot');\\n must($p['channel_id']==='-1002262666616'&&$p['external_message_id']==='901'&&$p['source_key']==='tg_anytour_msk');\\n must($p['version_id']===7476&&(int)$p['channel']['config_version']===2&&$p['state']==='sent');\\n must($p['write_attempts']===1&&$p['attempt_count']===2&&$p['claim_token']===null&&$p['claimed_at']===null);\\n $receipt=$p['receipt'];$previous=$receipt['previous_failure']??[];\\n must(($receipt['recovery_kind']??'')==='telegram_zero_write_read_failure');\\n must(($receipt['content_preserved']??null)===true&&($receipt['button_verified']??null)===true);\\n must(($previous['state']??'')==='requires_attention'&&($previous['reason']??'')==='provider_read_failed');\\n must(($previous['write_attempts']??-1)===0&&($previous['attempt_count']??-1)===1&&is_string($previous['receipt_json']??null));\\n $old='/var/www/anytoour/data/channel-post-operations/commercial-hotel-batch-20261117-27-v1/telegram-commercial-hotel-66375-v1-approved.json';\\n echo json_encode(['ok'=>true,'state'=>'SAME_TELEGRAM_MESSAGE_BUTTON_VERIFIED','publication_id'=>1947,'version_id'=>7476,\\n  'config_version'=>2,'message_id'=>'901','post_url'=>$p['snapshot']['post_url'],\\n  'text_sha256'=>hash('sha256',$p['snapshot']['text']),'content_hash'=>$p['content_hash'],\\n  'snapshot_sha256'=>hash('sha256',json_encode($p['snapshot'],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)),\\n  'token_sha256'=>hash('sha256',$p['start_payload']),'failure_receipt_sha256'=>hash('sha256',$previous['receipt_json']),\\n  'original_p27_file_sha256'=>hash_file('sha256',$old),'write_attempts'=>$p['write_attempts'],\\n  'button_verified'=>true,'content_preserved'=>true,'db_writes'=>0,'provider_calls'=>0],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).PHP_EOL;\\n}finally{if($pdo->inTransaction())$pdo->rollBack();}\\n\"}''')\nfor name,content in helpers.items():(pathlib.Path('pub')/name).write_text(content)\nPY\nphp -l pub/read-before.php\nphp -l pub/read-after.php\nphp -l pub/publisher-unexecuted.php\n"
+        },
+        {
+          "name": "Pin established SSH host and authentication identity",
+          "env": {
+            "HOST_VALUE": "${{ secrets.STANDBY_DEPLOY_HOST }}",
+            "USER_VALUE": "${{ secrets.STANDBY_DEPLOY_USER }}",
+            "KEY_VALUE": "${{ secrets.STANDBY_DEPLOY_SSH_KEY }}"
+          },
+          "shell": "bash",
+          "run": "set -euo pipefail\numask 077\npython3 - <<'PY'\nimport os,re\nassert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')\nassert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')\nPY\nif [[ \"$KEY_VALUE\" == *\"PRIVATE KEY\"* ]]; then\n  if [[ \"$KEY_VALUE\" == *'\\n'* ]]; then printf '%b\\n' \"$KEY_VALUE\" | tr -d '\\r' > \"$RUNNER_TEMP/channel_key\"; else printf '%s\\n' \"$KEY_VALUE\" | tr -d '\\r' > \"$RUNNER_TEMP/channel_key\"; fi\nelse printf '%s' \"$KEY_VALUE\" | base64 --decode > \"$RUNNER_TEMP/channel_key\"; fi\nchmod 600 \"$RUNNER_TEMP/channel_key\"\nssh-keygen -y -f \"$RUNNER_TEMP/channel_key\" >/dev/null\npython3 - <<'PY'\nimport base64,hashlib,os,pathlib,subprocess\nscan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]\nfor s in scan.stdout.splitlines():\n    q=s.split()\n    if len(q)<3 or q[0].startswith('#'):continue\n    try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')\n    except Exception:continue\n    if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)\nassert found,'HOST_PIN_MISMATCH_STOP'\npathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\\n'.join(found)+'\\n')\nprint('ESTABLISHED_HOST_PIN_VERIFIED')\nPY\n"
+        },
+        {
+          "name": "Read exact original zero-write failure; no writes",
+          "env": {
+            "HOST_VALUE": "${{ secrets.STANDBY_DEPLOY_HOST }}",
+            "USER_VALUE": "${{ secrets.STANDBY_DEPLOY_USER }}"
+          },
+          "shell": "bash",
+          "run": "set -euo pipefail\nremote='set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"$(git rev-parse HEAD)\" = 96765e518d7cdc0d7db95a49628994de28f01c4d; test -z \"$(git status --porcelain --untracked-files=no)\"; php'\nssh -i \"$RUNNER_TEMP/channel_key\" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=\"$RUNNER_TEMP/channel_known_hosts\" -o ServerAliveInterval=15 -o ServerAliveCountMax=2 \"$USER_VALUE@$HOST_VALUE\" \"$remote\" < pub/read-before.php > pub/cape-before.json\npython3 - <<'PY'\nimport json,pathlib,re,os\np=json.loads(pathlib.Path('pub/cape-before.json').read_text())\nassert p['ok'] and p['state']=='EXACT_ORIGINAL_ZERO_WRITE_FAILURE'\nassert p['publication_id']==1947 and p['version_id']==7476 and p['config_version']==2 and p['message_id']=='901'\nassert p['db_writes']==p['provider_calls']==0\nassert all(re.fullmatch('[a-f0-9]{64}',p[k]) for k in ['content_hash','recovery_digest','snapshot_sha256','token_sha256','failure_receipt_sha256','original_p27_file_sha256'])\nwith open(os.environ['GITHUB_ENV'],'a') as f:\n f.write('CAPE_CONTENT_HASH='+p['content_hash']+'\\n')\n f.write('CAPE_PREVIEW_DIGEST='+p['recovery_digest']+'\\n')\nprint('CAPE_ZERO_WRITE_TARGET_PROVEN '+json.dumps(p,separators=(',',':')))\nPY\n"
+        },
+        {
+          "name": "Installed canonical preview; three capability reads, zero writes",
+          "env": {
+            "HOST_VALUE": "${{ secrets.STANDBY_DEPLOY_HOST }}",
+            "USER_VALUE": "${{ secrets.STANDBY_DEPLOY_USER }}"
+          },
+          "shell": "bash",
+          "run": "set -euo pipefail\nprefix='set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"$(git rev-parse HEAD)\" = 96765e518d7cdc0d7db95a49628994de28f01c4d; test -z \"$(git status --porcelain --untracked-files=no)\";'\nssh -i \"$RUNNER_TEMP/channel_key\" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=\"$RUNNER_TEMP/channel_known_hosts\" -o ServerAliveInterval=15 -o ServerAliveCountMax=2 \"$USER_VALUE@$HOST_VALUE\" \"$prefix php tools/recover_telegram_channel_post.php --expected-sha=96765e518d7cdc0d7db95a49628994de28f01c4d --channel-id=-1002262666616 --message-id=901 --publication-id=1947 --expected-version-id=7476 --expected-config-version=2 --content-hash=$CAPE_CONTENT_HASH\" > pub/cape-preview.json\npython3 - <<'PY'\nimport json,pathlib,os\np=json.loads(pathlib.Path('pub/cape-preview.json').read_text())\nassert p['ok'] and p['state']=='preview' and p['publication_id']==1947 and p['version_id']==7476 and p['config_version']==2\nassert p['installed_sha']=='96765e518d7cdc0d7db95a49628994de28f01c4d'\nassert p['content_hash']==os.environ['CAPE_CONTENT_HASH'] and p['recovery_digest']==os.environ['CAPE_PREVIEW_DIGEST']\nr=p['receipt'];assert r['request_count']==3 and r['write_attempts']==0\nassert [x['operation'] for x in r['http_results']]==['bot_identity','channel_rights','channel_type']\nassert all(x['http']==200 and not x['transport_error'] for x in r['http_results'])\nprint('CAPE_CANONICAL_PREVIEW_VERIFIED_0_WRITES')\nPY\n"
+        },
+        {
+          "name": "Fence and invoke installed canonical recovery ONCE; no retry",
+          "env": {
+            "HOST_VALUE": "${{ secrets.STANDBY_DEPLOY_HOST }}",
+            "USER_VALUE": "${{ secrets.STANDBY_DEPLOY_USER }}"
+          },
+          "shell": "bash",
+          "run": "set -euo pipefail\nprefix='set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"$(git rev-parse HEAD)\" = 96765e518d7cdc0d7db95a49628994de28f01c4d; test -z \"$(git status --porcelain --untracked-files=no)\"; op=/var/www/anytoour/data/channel-post-operations/cape-fahn-tg-zero-write-recovery-20261117-v1; test ! -e \"$op\"; mkdir \"$op\"; chmod 700 \"$op\";'\ncommand=\"$prefix set +e; php tools/recover_telegram_channel_post.php --expected-sha=96765e518d7cdc0d7db95a49628994de28f01c4d --channel-id=-1002262666616 --message-id=901 --publication-id=1947 --expected-version-id=7476 --expected-config-version=2 --content-hash=$CAPE_CONTENT_HASH --recovery-digest=$CAPE_PREVIEW_DIGEST --apply\"\nrc=0\nssh -i \"$RUNNER_TEMP/channel_key\" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=\"$RUNNER_TEMP/channel_known_hosts\" -o ServerAliveInterval=15 -o ServerAliveCountMax=2 \"$USER_VALUE@$HOST_VALUE\" \"$command\"' > \"$op/original-apply.json\"; rc=$?; printf \"%s\\n\" \"$rc\" > \"$op/original-exit.txt\"; cat \"$op/original-apply.json\"; exit \"$rc\"' > pub/cape-original-apply.json || rc=$?\nprintf '%s\\n' \"$rc\" > pub/cape-original-exit.txt\ncat pub/cape-original-apply.json\nexit \"$rc\"\n"
+        },
+        {
+          "name": "Verify same Telegram post, version, content and retained original failure",
+          "env": {
+            "HOST_VALUE": "${{ secrets.STANDBY_DEPLOY_HOST }}",
+            "USER_VALUE": "${{ secrets.STANDBY_DEPLOY_USER }}"
+          },
+          "shell": "bash",
+          "run": "set -euo pipefail\nremote='set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"$(git rev-parse HEAD)\" = 96765e518d7cdc0d7db95a49628994de28f01c4d; test -z \"$(git status --porcelain --untracked-files=no)\"; php'\nssh -i \"$RUNNER_TEMP/channel_key\" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=\"$RUNNER_TEMP/channel_known_hosts\" -o ServerAliveInterval=15 -o ServerAliveCountMax=2 \"$USER_VALUE@$HOST_VALUE\" \"$remote\" < pub/read-after.php > pub/cape-after.json\npython3 - <<'PY'\nimport json,pathlib\np=pathlib.Path('pub');b=json.loads((p/'cape-before.json').read_text());a=json.loads((p/'cape-after.json').read_text())\nresult=json.loads((p/'cape-original-apply.json').read_text())\nassert (p/'cape-original-exit.txt').read_text().strip()=='0' and result['ok'] and result['state']=='sent'\nassert result['receipt']['write_attempts']==1 and result['receipt']['content_preserved'] and result['receipt']['button_verified']\nassert a['ok'] and a['write_attempts']==1 and a['post_url']=='https://t.me/any_toour/901'\nfor key in ['publication_id','version_id','config_version','message_id','text_sha256','content_hash','snapshot_sha256','token_sha256','failure_receipt_sha256','original_p27_file_sha256']:\n assert a[key]==b[key],('original_changed',key)\nprint('CAPE_TG901_BUTTON_RECOVERY_VERIFIED '+json.dumps(a,separators=(',',':')))\nPY\n"
+        },
+        {
+          "name": "P41 fresh first-execution admission",
+          "env": {
+            "HOST_VALUE": "${{ secrets.STANDBY_DEPLOY_HOST }}",
+            "USER_VALUE": "${{ secrets.STANDBY_DEPLOY_USER }}"
+          },
+          "shell": "bash",
+          "run": "set -euo pipefail\nremote='set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"$(git rev-parse HEAD)\" = 96765e518d7cdc0d7db95a49628994de28f01c4d; test -z \"$(git status --porcelain --untracked-files=no)\"; test ! -e /var/www/anytoour/data/channel-post-operations/commercial-hotel-batch-20261117-41-v1; printf \"P41_FIRST_EXECUTION_ADMITTED\\n\"'\nssh -i \"$RUNNER_TEMP/channel_key\" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=\"$RUNNER_TEMP/channel_known_hosts\" -o ServerAliveInterval=15 -o ServerAliveCountMax=2 \"$USER_VALUE@$HOST_VALUE\" \"$remote\" > pub/p41-preflight.txt\ngrep -Fx 'P41_FIRST_EXECUTION_ADMITTED' pub/p41-preflight.txt\n"
+        },
+        {
+          "name": "P41 invoke accepted original one-row publisher ONCE; no retry",
+          "env": {
+            "HOST_VALUE": "${{ secrets.STANDBY_DEPLOY_HOST }}",
+            "USER_VALUE": "${{ secrets.STANDBY_DEPLOY_USER }}"
+          },
+          "shell": "bash",
+          "run": "set -euo pipefail\nremote='set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"$(git rev-parse HEAD)\" = 96765e518d7cdc0d7db95a49628994de28f01c4d; test -z \"$(git status --porcelain --untracked-files=no)\"; php'\nrc=0\nssh -i \"$RUNNER_TEMP/channel_key\" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=\"$RUNNER_TEMP/channel_known_hosts\" -o ServerAliveInterval=15 -o ServerAliveCountMax=2 \"$USER_VALUE@$HOST_VALUE\" \"$remote\" < pub/publisher-unexecuted.php > pub/p41-original-native-output.jsonl || rc=$?\nprintf '%s\\n' \"$rc\" > pub/p41-original-exit.txt\ncat pub/p41-original-native-output.jsonl\nexit \"$rc\"\n"
+        },
+        {
+          "name": "Verify complete Cape Fahn pair from original native receipts",
+          "shell": "bash",
+          "run": "set -euo pipefail\npython3 - <<'PY'\nimport hashlib,json,pathlib,re\np=pathlib.Path('pub');assert (p/'p41-original-exit.txt').read_text().strip()=='0'\nlines=[json.loads(x) for x in (p/'p41-original-native-output.jsonl').read_text().splitlines() if x.strip().startswith('{')]\nassert lines\nr=lines[-1];assert r['ok'] and r['operation']=='commercial-hotel-batch-20261117-41-v1'\nassert r['installed_sha']=='96765e518d7cdc0d7db95a49628994de28f01c4d'\nassert r['new_posts']==r['post_write_attempts']==r['reused']==1 and len(r['posts'])==2\nassert {x['platform'] for x in r['posts']}=={'telegram','max'}\nfor x in r['posts']:\n assert x['hotel_id']==66375 and x['logical_id']=='commercial-hotel-66375-v1'\n assert x['state']=='sent' and x['body_photo_button_verified']\n assert x['text_sha256']=='b2caf990b6bdcdb7ab0dc0e5d7f1951d9d677aba806ad4f0e3b5022431929599'\n assert x['photo_sha256']=='68d923a5d5e8709d747ea2da78a60dea0f9c8e4269d2c048144a79d98adb4046'\n if x['platform']=='telegram':\n  assert x['reused'] and x['message_id']=='901' and x['publication_id']==1947 and x['version_id']==7476\n  assert x['post_url']=='https://t.me/any_toour/901' and x['channel_id']=='-1002262666616'\n  assert x['source_key']=='tg_anytour_msk' and x['button_url'].startswith('https://t.me/anyru_bot?start=p_')\n else:\n  assert not x['reused'] and x['channel_id']=='-80492244209683' and x['source_key']=='max_anytour_msk1'\n  assert re.fullmatch(r'https://max\\.ru/(?:channel_anytour|c/-80492244209683)/[A-Za-z0-9_-]{1,100}',x['post_url'])\n  assert x['button_url'].startswith('https://max.ru/id9704048781_1_bot?start=p_')\nout={'state':'CAPE_FAHN_PAIR_NATIVE_VERIFIED','previous_paired_hotels':999,'paired_hotels':1000,\n 'new_max_posts':1,'reused_telegram_posts':1,'recovered_button_edits':1,'telegram_message':'901',\n 'original_failed_p27_run':44133796626,'original_failed_p27_not_replayed':True,\n 'feed_writes':0,'price_writes':0,'application_installs':0,'posts':r['posts'],\n 'files':{n:hashlib.sha256((p/n).read_bytes()).hexdigest() for n in ['cape-before.json','cape-preview.json','cape-original-apply.json','cape-after.json','p41-original-native-output.jsonl','manifest.json','approval.json','source-receipt.json','release-admission.json']}}\n(p/'terminal-verified.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\\n')\nprint('CAPE_PAIR_TERMINAL_JSON '+json.dumps(out,separators=(',',':')))\nPY\n"
+        },
+        {
+          "name": "Retain original one-attempt outcomes including any UNKNOWN",
+          "if": "always()",
+          "uses": "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+          "with": {
+            "name": "cape-fahn-recovery-and-p41-one-attempt-20261117",
+            "path": "pub/*.json\npub/*.jsonl\npub/*exit.txt\npub/p41-preflight.txt",
+            "retention-days": 30,
+            "if-no-files-found": "warn"
+          }
+        },
+        {
+          "name": "Remove runner-only authentication",
+          "if": "always()",
+          "run": "rm -f \"$RUNNER_TEMP/channel_key\" \"$RUNNER_TEMP/channel_known_hosts\""
+        }
+      ]
+    }
+  }
+}
