@@ -46,7 +46,7 @@ module.exports = async function verifyPublisherAdmission(check = assert.equal) {
     check(options.method || 'GET', 'GET', 'publisher continuation performs no mutation');
     check(options.redirect, 'error', 'publisher proof does not follow redirects');
     if (url.endsWith('/git/ref/heads/main')) { mainReads++; return response({ object: { sha: base } }); }
-    if (url.includes('/pulls?')) return response([target, other]);
+    if (url.includes('/pulls?state=open')) return response([target, other]);
     if (url.endsWith('/issues/comments/648')) return response(comment);
     if (url.endsWith('/pulls/1438')) return response(freshTarget || target);
     if (!previous) previous = await acceptedPrevious();
