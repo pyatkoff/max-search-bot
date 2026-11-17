@@ -1,0 +1,112 @@
+name: Price 660 pending original journal read-only one-shot
+on:
+  push:
+    branches: ['audit/price660-27316-readonly-20261117']
+    paths: ['.github/workflows/price660-27316-inspect-once.yml']
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: anytour-price660-readonly-27316-20261117
+  cancel-in-progress: false
+jobs:
+  read-only-pending:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.event_name == 'push' &&
+      github.event.before == 'a1dc3f6712dc74d97bf90ab46a747ed3b2db4e68' &&
+      github.event.head_commit.message == 'diagnostics(anytour): one-shot read only pending 27316' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Validate exact immutable read-only inspector, no execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = a1dc3f6712dc74d97bf90ab46a747ed3b2db4e68
+          test "$(git hash-object tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php)" = 71eae82282831c21e5ac3443d135a3549d55d3b9
+          php -l tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php >/dev/null
+          echo READONLY_INSPECTOR_SOURCE_VERIFIED
+      - name: Prepare pinned existing SSH credentials on runner only
+        shell: bash
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          test -n "$KEY_VALUE" && test -n "$DEPLOY_HOST" && test -n "$DEPLOY_USER"
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/price660-key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/price660-key"; fi
+          else
+            printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/price660-key"
+          fi
+          chmod 600 "$RUNNER_TEMP/price660-key"
+          ssh-keygen -y -f "$RUNNER_TEMP/price660-key" >/dev/null
+          python3 - <<'PY'
+          import os,re,hashlib,base64,subprocess,pathlib
+          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
+          matches=[]
+          for line in scan.stdout.splitlines():
+              f=line.split()
+              if len(f)<3 or f[0].startswith('#'): continue
+              try: fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(f[2])).digest()).decode().rstrip('=')
+              except Exception: continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0': matches.append(line)
+          assert matches, 'PINNED_SSH_HOST_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/price660-known-hosts').write_text('\n'.join(matches)+'\n')
+          print('PINNED_EXISTING_HOST_VERIFIED')
+          PY
+      - name: Single original read-only journal snapshot under shared nonblocking locks
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/price660-key" -o BatchMode=yes -o ConnectTimeout=12 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/price660-known-hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; GIT_OPTIONAL_LOCKS=0 php' < tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php > "$RUNNER_TEMP/price660-raw.json"
+          python3 - <<'PY'
+          import json,pathlib,os
+          path=pathlib.Path(os.environ['RUNNER_TEMP'])/'price660-raw.json'
+          r=json.loads(path.read_text())
+          expected={'mode':'read_only_pending_price_operation','server_writes':0,'post_writes':0,'feed_writes':0,'supplier_calls':0,'customer_messages':0}
+          assert all(r.get(k)==v for k,v in expected.items()),'READ_ONLY_CONTRACT_INVALID'
+          p=r.get('pending')
+          entries=(r.get('child_journal') or {}).get('entries') or []
+          summary={
+              'ok':r.get('ok'),
+              'checked_at':r.get('checked_at'),
+              'error':r.get('error'),
+              'runtime':r.get('runtime'),
+              'journal':{k:(r.get('global_journal') or {}).get(k) for k in ['size','last_line_sha256','last_line_offset','last_line_bytes']},
+              'pending':p,
+              'pending_keys':r.get('pending_keys'),
+              'pending_matches_tv27316':isinstance(p,dict) and p.get('tourvisor_hotel_id')==27316,
+              'nightly_cycle':r.get('nightly_cycle'),
+              'completed_hotels':r.get('completed_hotels'),
+              'held_hotels':r.get('held_hotels'),
+              'child':{k:(r.get('child_journal') or {}).get(k) for k in ['sha256','bytes','records']},
+              'child_entries_tail':entries[-6:],
+              'post_urls':r.get('post_urls'),
+              'pending_feed_files':r.get('pending_feed_files'),
+              'writes':0,
+              'supplier_calls':0,
+              'provider_get_calls':0,
+          }
+          print('PRICE660_READONLY_INSPECTION='+json.dumps(summary,ensure_ascii=False,separators=(',',':')))
+          assert r.get('ok') is True,'READ_ONLY_PROBE_FAILED_CLOSED'
+          PY
+      - name: Remove runner-only credentials and raw private record
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/price660-key" "$RUNNER_TEMP/price660-known-hosts" "$RUNNER_TEMP/price660-raw.json"
