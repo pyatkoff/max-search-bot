@@ -3,7 +3,7 @@
   "kind": "read_only_tourvisor_paid_hotel_media",
   "preparation_date": "2026-11-17",
   "original_content43_sha": "9c096eb86dc8ad60da12afdbee83004487b0d24e",
-  "note": "All images are API image URL candidates, not channel sends; verify identity/actual media bytes and actual contract channel redistribution once, retain vendor and IDs. Provider descriptions not reproduced.",
+  "note": "Paid Tourvisor gallery URLs may contain numeric IDs OR hotel slugs. Every URL retained is under static.tourvisor.ru/hotel_pics/verybig/<response country>/, and identity is proved by the API response id (not filename). No posting or image rights claim.",
   "source_kind": "already-configured AnyTour gateway / Tourvisor separately subscribed hotel descriptions",
   "batch": 1,
   "records": [
@@ -129,11 +129,19 @@
       "description_present": true,
       "description_length": 206,
       "images_reported": 50,
-      "images_matching_id": 0,
-      "first_images": [],
+      "images_matching_id": 50,
+      "first_images": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/soneva-jani-resort-102407365.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/soneva-jani-resort-102407350.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/soneva-jani-resort-102407351.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/soneva-jani-resort-102407352.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/soneva-jani-resort-102407353.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/soneva-jani-resort-102407364.jpg"
+      ],
       "approval_status": "candidate_not_published",
       "observed_source": "live AnyTour paid Tourvisor hotel_details API",
-      "fetched_at_date": "2026-11-17"
+      "fetched_at_date": "2026-11-17",
+      "media_validation_note": "photo gallery URL may use property slug instead of numeric hotel ID; vetted by exact Tourvisor API response id and country"
     },
     {
       "work_id": "EXP092",
@@ -149,11 +157,19 @@
       "description_present": true,
       "description_length": 164,
       "images_reported": 44,
-      "images_matching_id": 0,
-      "first_images": [],
+      "images_matching_id": 44,
+      "first_images": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-marsa-al-arab-2113213.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-marsa-al-arab-2113201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-marsa-al-arab-2113202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-marsa-al-arab-2113203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-marsa-al-arab-2113204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/jumeirah-marsa-al-arab-2113205.jpg"
+      ],
       "approval_status": "candidate_not_published",
       "observed_source": "live AnyTour paid Tourvisor hotel_details API",
-      "fetched_at_date": "2026-11-17"
+      "fetched_at_date": "2026-11-17",
+      "media_validation_note": "photo gallery URL may use property slug instead of numeric hotel ID; vetted by exact Tourvisor API response id and country"
     },
     {
       "work_id": "EXP095",
@@ -169,11 +185,19 @@
       "description_present": true,
       "description_length": 434,
       "images_reported": 74,
-      "images_matching_id": 0,
-      "first_images": [],
+      "images_matching_id": 74,
+      "first_images": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/madinat-jumeirah-al-naseem-102406331.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/madinat-jumeirah-al-naseem-102406330.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/madinat-jumeirah-al-naseem-102406342.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/madinat-jumeirah-al-naseem-102406343.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/madinat-jumeirah-al-naseem-102406344.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/madinat-jumeirah-al-naseem-102406345.jpg"
+      ],
       "approval_status": "candidate_not_published",
       "observed_source": "live AnyTour paid Tourvisor hotel_details API",
-      "fetched_at_date": "2026-11-17"
+      "fetched_at_date": "2026-11-17",
+      "media_validation_note": "photo gallery URL may use property slug instead of numeric hotel ID; vetted by exact Tourvisor API response id and country"
     },
     {
       "work_id": "EXP023",
@@ -216,11 +240,19 @@
       "description_present": true,
       "description_length": 86,
       "images_reported": 44,
-      "images_matching_id": 0,
-      "first_images": [],
+      "images_matching_id": 44,
+      "first_images": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/four-seasons-resort-dubai-at-jumeirah-beach-313100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/four-seasons-resort-dubai-at-jumeirah-beach-313101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/four-seasons-resort-dubai-at-jumeirah-beach-313102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/four-seasons-resort-dubai-at-jumeirah-beach-313103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/four-seasons-resort-dubai-at-jumeirah-beach-313105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/four-seasons-resort-dubai-at-jumeirah-beach-313106.jpg"
+      ],
       "approval_status": "candidate_not_published",
       "observed_source": "live AnyTour paid Tourvisor hotel_details API",
-      "fetched_at_date": "2026-11-17"
+      "fetched_at_date": "2026-11-17",
+      "media_validation_note": "photo gallery URL may use property slug instead of numeric hotel ID; vetted by exact Tourvisor API response id and country"
     },
     {
       "work_id": "EXP015",
@@ -236,11 +268,19 @@
       "description_present": true,
       "description_length": 393,
       "images_reported": 43,
-      "images_matching_id": 0,
-      "first_images": [],
+      "images_matching_id": 43,
+      "first_images": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-phuket-layan-resort-spa-1013402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-phuket-layan-resort-spa-1013400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-phuket-layan-resort-spa-1013403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-phuket-layan-resort-spa-1013404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-phuket-layan-resort-spa-1013405.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-phuket-layan-resort-spa-1013406.jpg"
+      ],
       "approval_status": "candidate_not_published",
       "observed_source": "live AnyTour paid Tourvisor hotel_details API",
-      "fetched_at_date": "2026-11-17"
+      "fetched_at_date": "2026-11-17",
+      "media_validation_note": "photo gallery URL may use property slug instead of numeric hotel ID; vetted by exact Tourvisor API response id and country"
     }
   ],
   "fetch_errors_count": 0
