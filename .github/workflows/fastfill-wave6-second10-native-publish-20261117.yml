@@ -1,0 +1,212 @@
+name: Publish the verified next ten hotel pairs once
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/fastfill-wave6-second10-native-publish-20261117.yml']
+permissions:
+  actions: read
+  contents: read
+concurrency:
+  group: anytour-authorized-channel-publication
+  cancel-in-progress: false
+jobs:
+  publish-second-ten-once:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '6b3b1b989f5db47c582b0198b993f33298c53cab' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Verify the signed-off input and all ten immutable public covers
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import base64
+          import hashlib
+          import io
+          import json
+          import pathlib
+          import subprocess
+          import zipfile
+          
+          REPO = 'pyatkoff/max-search-bot'
+          APP = 'f47fe6cff229bbec1e998f17896d1a858ce5a3d9'
+          FROZEN = '6b3b1b989f5db47c582b0198b993f33298c53cab'
+          IDS = [73082,2603,78834,79460,109586,2404,2602,11751,11775,12126]
+          OPERATION = 'commercial-hotel-batch-20261117-43-v1'
+          EXPECTED = json.loads(r'''{"approval.json":"7b01011bcafb70f0fe60f6bda85d5107353403e094aeabbb8652d77f9d655b45","image-receipt.json":"aa364e57608e73f0f793ff3edc8c05fe7132a654a7a20aed257066019889312b","manifest.json":"2bcd1d0903a86aa06ff26fb6fad61275ef10febe2cb531119f6aa1981091cd7e","publisher-unexecuted.php":"3b1968d00333b4713ac7c7ee396fe27b0eda159db2123fea8af08ecb287deb5b","registry-receipt.json":"9e7689ec65a28f606af7e0b106d80dc0176b267e52cd179beaad91db6bd77003","source-receipt.json":"ba12d1517a5ab40b82b7a92dcace9a4e07ead700b2b04ea0d1a359f77f6deac9"}''')
+          
+          def gh(path):
+              return subprocess.check_output(['gh','api',f'repos/{REPO}/{path}'],timeout=65)
+          
+          def response(path):
+              return json.loads(gh(path))
+          
+          def sha(content):
+              return hashlib.sha256(content).hexdigest()
+          
+          assert response('git/ref/heads/main')['object']['sha'] == APP
+          d = json.loads(base64.b64decode(response('contents/deploy_status.json?ref=diagnostics')['content']))
+          release = d['repository_release']
+          assert release['kind'] == 'installed' and d['sha'] == release['application_sha'] == release['repository_sha'] == APP
+          assert str(release['release']['run_id']) == '44182823894'
+          assert all(stage['result']=='success' for stage in release['stages'].values())
+          gates = {gate['path'].rsplit('/',1)[-1]: gate for gate in release['closure']['gates']}
+          required = {'deploy.yml', 'retired-domain-guard.yml', 'max-tls-preflight.yml', 'max-production-health.yml',
+                      'telegram-production-health.yml', 'publish-conversation-diagnostics.yml', 'live-session-diagnostics.yml',
+                      'tour-selection-host.yml', 'modeled-conversion-monitor.yml'}
+          assert required <= gates.keys()
+          assert all(gates[name]['conclusion']=='success' and gates[name]['head_sha']==APP and gates[name]['run_attempt']==1 for name in required)
+          result = response('actions/runs/44183784369')
+          assert result['status']=='completed' and result['conclusion']=='success' and result['run_attempt']==1 and result['head_sha']=='453b2a4783014f5ff69aa5822d902950a2763a1f'
+          a = response('actions/artifacts/14373781015')
+          assert not a['expired'] and a['workflow_run']['id']==44183784369 and a['digest']=='sha256:3ec9b7821fe3f43716ce8934238edf82bdc18bebf67db332da28b6a2cd99e98b'
+          raw = gh('actions/artifacts/14373781015/zip')
+          assert sha(raw)=='3ec9b7821fe3f43716ce8934238edf82bdc18bebf67db332da28b6a2cd99e98b'
+          out = pathlib.Path('pub/p43')
+          out.mkdir(parents=True)
+          with zipfile.ZipFile(io.BytesIO(raw)) as source:
+              assert set(source.namelist()) == set(EXPECTED)
+              for name in EXPECTED:
+                  content = source.read(name)
+                  assert sha(content) == EXPECTED[name]
+                  (out/name).write_bytes(content)
+          
+          manifest=json.loads((out/'manifest.json').read_bytes())
+          approval=json.loads((out/'approval.json').read_bytes())
+          assert manifest['operation']==approval['operation']==OPERATION and manifest['photo_freeze_commit']==FROZEN
+          assert [x['hotel_id'] for x in manifest['rows']]==approval['hotel_ids']==IDS and len(IDS)==len(set(IDS))==10
+          assert approval['expected_installed_sha']==APP and approval['manifest_sha256']==EXPECTED['manifest.json']
+          assert manifest['state']=='PREPARED_NOT_SENT' and manifest['button_text']=='✈️ Узнать стоимость тура'
+          links=manifest['rows']
+          for row in links:
+              photo_url = row['photo_url']
+              assert photo_url == f"https://raw.githubusercontent.com/{REPO}/{FROZEN}/.github/traffic-publish/commercial-wave6-second10-20261117/{row['hotel_id']}.png"
+              content=subprocess.check_output(['curl','--fail','--silent','--show-error','--max-time','15',photo_url],timeout=20)
+              assert sha(content)==row['photo_sha256']
+          
+          verified=json.loads((out/'source-receipt.json').read_bytes())
+          assert verified['state']=='SECOND_TEN_SOURCE_VERIFIED_COVERS_STAGED'
+          assert verified['expected_app_sha']==APP and verified['operation']==OPERATION
+          (out/'publisher-unexecuted.php').rename(out/'wave2-once.php')
+          PY
+          php -l pub/p43/wave2-once.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: P43 fresh read-only admission for exactly 10 hotels
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,subprocess
+          base='repos/pyatkoff/max-search-bot'
+          def data(path):
+              return json.loads(subprocess.check_output(['gh','api',base+'/'+path],timeout=40))
+          assert data('git/ref/heads/main')['object']['sha']=='f47fe6cff229bbec1e998f17896d1a858ce5a3d9'
+          feed=data('actions/runs?branch=audit%2Fprice660-27316-resume-readiness-20261117&per_page=4')
+          active=[x['id'] for x in feed['workflow_runs'] if x['status'] in {'requested','queued','in_progress','waiting','pending'}]
+          if active:
+              raise SystemExit('Current feed owner has an active operation: '+str(active))
+          PY
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" -o ServerAliveInterval=15 -o ServerAliveCountMax=2)
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0; app=/var/www/anytoour/data/www/app.anytoour.ru; test -d "$app/.git" && test ! -L "$app"; cd "$app"; test "$(git rev-parse HEAD)" = f47fe6cff229bbec1e998f17896d1a858ce5a3d9; test -z "$(git status --porcelain --untracked-files=no)"; test ! -e /var/www/anytoour/data/channel-post-operations/commercial-hotel-batch-20261117-43-v1; command -v php >/dev/null; printf "CURRENT_PRODUCTION_SOURCE_VERIFIED\\n"' > pub/p43/preflight.txt
+          grep -Fx 'CURRENT_PRODUCTION_SOURCE_VERIFIED' pub/p43/preflight.txt
+      - name: P43 invoke original bounded publisher ONCE; no retry
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" -o ServerAliveInterval=15 -o ServerAliveCountMax=2)
+          rc=0
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/p43/wave2-once.php > pub/p43/original-native-output.jsonl || rc=$?
+          printf '%s\n' "$rc" > pub/p43/original-exit.txt
+          cat pub/p43/original-native-output.jsonl
+          exit "$rc"
+      - name: P43 verify all 20 actual posts before the next original operation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import collections,hashlib,json,pathlib
+          p=pathlib.Path('pub/p43')
+          lines=[json.loads(l) for l in (p/'original-native-output.jsonl').read_text().splitlines() if l.strip().startswith('{')]
+          assert (p/'original-exit.txt').read_text().strip()=='0' and lines
+          r=lines[-1];assert r['ok'] and r['operation']=='commercial-hotel-batch-20261117-43-v1' and r['installed_sha']=='f47fe6cff229bbec1e998f17896d1a858ce5a3d9'
+          assert r['new_posts']==r['post_write_attempts']==20 and r['reused']==0 and len(r['posts'])==20
+          expected=set([73082,2603,78834,79460,109586,2404,2602,11751,11775,12126]);manifest=json.loads((p/'manifest.json').read_bytes());rows={x['hotel_id']:x for x in manifest['rows']}
+          by=collections.defaultdict(set)
+          for x in r['posts']:
+              assert x['state']=='sent' and x['body_photo_button_verified'] and not x['reused']
+              assert x['hotel_id'] in expected and x['platform'] in ['max','telegram']
+              assert x['button_text']=='✈️ Узнать стоимость тура'
+              assert all(x[k]==rows[x['hotel_id']][k] for k in ['logical_id','text_sha256','photo_sha256','photo_url'])
+              assert x['source_key']==('max_anytour_msk1' if x['platform']=='max' else 'tg_anytour_msk')
+              assert x['channel_id']==('-80492244209683' if x['platform']=='max' else '-1002262666616')
+              assert x['post_url'].startswith('https://max.ru/channel_anytour/' if x['platform']=='max' else 'https://t.me/any_toour/')
+              assert x['button_url'].startswith('https://max.ru/id9704048781_1_bot?start=p_' if x['platform']=='max' else 'https://t.me/anyru_bot?start=p_')
+              by[x['platform']].add(x['hotel_id'])
+          assert by['max']==by['telegram']==expected and len(set(x['post_url'] for x in r['posts']))==20
+          out={'state':'20_NATIVE_POSTS_VERIFIED','unique_new_hotels':10,'telegram':10,'max':10,'operation':r['operation'],'original_output_sha256':hashlib.sha256((p/'original-native-output.jsonl').read_bytes()).hexdigest(),'feed_rows_added':0,'posts':r['posts']}
+          (p/'terminal-verified.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n')
+          print('P43_NATIVE_POSTS_VERIFIED '+json.dumps({'hotels':10,'original_output_sha256':out['original_output_sha256']},separators=(',',':')))
+          PY
+      - name: P43 preserve original one-attempt outcome including UNKNOWN
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fastfill-p43-native-one-attempt-20261117
+          path: |
+            pub/p43/preflight.txt
+            pub/p43/original-native-output.jsonl
+            pub/p43/original-exit.txt
+            pub/p43/terminal-verified.json
+            pub/p43/manifest.json
+            pub/p43/approval.json
+            pub/p43/source-receipt.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Remove runner-only key and publisher input
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/p43/wave2-once.php
