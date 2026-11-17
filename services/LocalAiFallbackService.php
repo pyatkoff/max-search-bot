@@ -95,7 +95,8 @@ class LocalAiFallbackService
 
         if (
             strpos($localText, 'без детей') !== false ||
-            strpos($localText, 'детей нет') !== false
+            strpos($localText, 'детей нет') !== false ||
+            strpos($localText, 'дети нет') !== false
         ) {
             $params['children'] = 0;
         } elseif (preg_match('/(?:^|[\s,+])([0-3])\s*(?:реб[её]нок|реб[её]нка|реб[её]нков|дет(?:ей|и))\b/ui', $userText, $m)) {

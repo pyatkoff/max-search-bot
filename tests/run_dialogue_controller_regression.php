@@ -688,6 +688,64 @@ PHP
                 $native($mid+6,'Есть ли бассейн?');
                 $check($platform.' delayed FAQ remains outside the no-fact search guard',array_column(array_slice($sent,$sentBefore),'text'),[MissingFieldQuestionService::question('children'),'Описание бассейна можно уточнить у менеджера.']);
 
+                // A newer child answer can be recorded while the earlier
+                // duration interpretation is still in flight, before the newer
+                // handler applies its own value. Never send the earlier stale
+                // child question; the queued message owns the final handoff.
+                $quickNeeds=$seedNeeds;
+                $quickNeeds[67]=2;
+                unset($quickNeeds[68],$quickNeeds[72]);
+                $quickMid=$mid+300;
+                MaxSearchApi::$needs[$chat]=$quickNeeds;
+                MaxSearchApi::$statuses[$chat]=MaxSearchApi::$statusAi;
+                AiInvocationService::$calls=[];
+                AiInvocationService::$answer=['intent'=>'search','parameters'=>['nights'=>'7']];
+                AiInvocationService::$duringInvoke=null;
+                $ordinaryBefore=count($sent);
+                $native($quickMid,'7 дней');
+                $check($platform.' ordinary pending child question still appears without newer input',
+                    array_column(array_slice($sent,$ordinaryBefore),'text'),
+                    [MissingFieldQuestionService::question('children')]);
+
+                MaxSearchApi::$needs[$chat]=$quickNeeds;
+                MaxSearchApi::$statuses[$chat]=MaxSearchApi::$statusAi;
+                $queuedChild=IncomingMessage::text($platform,$user,$chat,(string)($quickMid+2),'Дети нет');
+                $queuedRecorded=false;
+                AiInvocationService::$answer=['intent'=>'search','parameters'=>['nights'=>'7']];
+                AiInvocationService::$calls=[];
+                AiInvocationService::$duringInvoke=static function()use($queuedChild,&$queuedRecorded):void {
+                    $queuedRecorded=ConversationRecorder::inbound($queuedChild);
+                };
+                $beforeQuestion=count($sent);
+                $eventsBefore=(int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id={$id} AND event_type='manager_request'")->fetchColumn();
+                $native($quickMid+1,'7 дней');
+                $check($platform.' second native child input was recorded before first interpretation returned',
+                    $queuedRecorded,true);
+                $check($platform.' earlier duration response defers its now stale child question',
+                    array_column(array_slice($sent,$beforeQuestion),'text'),[]);
+                $quickContext=MaxSearchApi::getAiSearchContext($chat);
+                $check($platform.' queued child answer is not prematurely applied by the older turn',
+                    [$quickContext['nights']??null,$quickContext['children']??null],['7',null]);
+                $check($platform.' queued child answer does not trigger premature manager handoff',
+                    (int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id={$id} AND event_type='manager_request'")->fetchColumn(),$eventsBefore);
+
+                // Resume the exact already recorded input without inserting a
+                // duplicate. Each native transport uses the same controller.
+                AiInvocationService::$answer=['intent'=>'search','parameters'=>[]];
+                SourceHandlingService::handle($queuedChild);
+                (new DialogueController())->handleIncomingMessage($queuedChild);
+                $quickContext=MaxSearchApi::getAiSearchContext($chat);
+                $check($platform.' newer message preserves duration, date and accepted zero children',
+                    [$quickContext['nights']??null,$quickContext['date']??null,$quickContext['children']??null],
+                    ['7','05.04.'.((int)date('Y')+1),0]);
+                $quickReplies=array_column(array_slice($sent,$beforeQuestion),'text');
+                $check($platform.' no stale child question is emitted around the single handoff',
+                    [count($quickReplies),str_contains(implode(' ', $quickReplies),'Будут дети?')],
+                    [1,false]);
+                $check($platform.' newer child message enters exactly one handoff',
+                    (int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id={$id} AND event_type='manager_request'")->fetchColumn(),
+                    $eventsBefore+1);
+
                 // Two native messages can overlap after the first inserts a value
                 // row and before its collector restores the free-text boundary.
                 MaxSearchApi::$exposeInsertedNeedStatus=true;
