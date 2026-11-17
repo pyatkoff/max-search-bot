@@ -1,0 +1,97 @@
+{
+  "state": "SOURCE_ONLY_ROOM_PHOTO_REVIEW_NOT_PUBLISHED",
+  "id": 110940,
+  "prior": {
+    "id": 110940,
+    "work_id": "W2R_025",
+    "name": "Gloria Airport Hotel",
+    "aliases": [
+      "Gloria Airport Hotel",
+      "GLORIA AIRPORT HOTEL"
+    ],
+    "region": "Стамбул",
+    "country": "TR",
+    "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=110940",
+    "status": "prepared_needs_visual_acceptance",
+    "reason": null,
+    "send_allowed": false,
+    "visual_approval": false,
+    "country_id": 4,
+    "png_sha256": "38537f0a319c6d20f3d2742e46f480141e5e9699c7ab1ce39986852464d46608",
+    "bytes": 333431,
+    "photo_sources": [
+      {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/php3VAUnN.jpg",
+        "bytes": 28872,
+        "sha256": "b015520ea0971a2bb0a5d7744cd5f5a66bdaa0103a6cc093f9f64d4271107847",
+        "width": 375,
+        "height": 500,
+        "mime": "image/jpeg"
+      },
+      {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/phpof9aEO.jpg",
+        "bytes": 43146,
+        "sha256": "8a7a30667785271b8f27f1f0ca7938c4c42e8a999dfe73a11c748607f0bc2a9d",
+        "width": 800,
+        "height": 533,
+        "mime": "image/jpeg"
+      },
+      {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/phpSiDV3P.jpg",
+        "bytes": 37784,
+        "sha256": "638e9831ef94bfbdd7158755dd40015bc7d2f3b989595f53deccdc7a9bd83878",
+        "width": 800,
+        "height": 533,
+        "mime": "image/jpeg"
+      }
+    ]
+  },
+  "updated": {
+    "id": 110940,
+    "work_id": "W2R_025",
+    "name": "Gloria Airport Hotel",
+    "aliases": [
+      "Gloria Airport Hotel",
+      "GLORIA AIRPORT HOTEL"
+    ],
+    "region": "Стамбул",
+    "country": "TR",
+    "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=110940",
+    "status": "prepared_needs_visual_acceptance",
+    "reason": null,
+    "send_allowed": false,
+    "visual_approval": false,
+    "country_id": 4,
+    "png_sha256": "46c821b0421356ce97f0e3ae6535c16175172b4e292cf319c493260412522163",
+    "bytes": 301903,
+    "photo_sources": [
+      {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/phpof9aEO.jpg",
+        "bytes": 43146,
+        "sha256": "8a7a30667785271b8f27f1f0ca7938c4c42e8a999dfe73a11c748607f0bc2a9d",
+        "width": 800,
+        "height": 533,
+        "mime": "image/jpeg"
+      },
+      {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/phpSiDV3P.jpg",
+        "bytes": 37784,
+        "sha256": "638e9831ef94bfbdd7158755dd40015bc7d2f3b989595f53deccdc7a9bd83878",
+        "width": 800,
+        "height": 533,
+        "mime": "image/jpeg"
+      },
+      {
+        "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/phpkGWIwR.jpg",
+        "bytes": 48645,
+        "sha256": "7787ccec52f3396277fce3b6e6f4ce836c3f9d1397b47ad9b426a7a88666fc1f",
+        "width": 800,
+        "height": 533,
+        "mime": "image/jpeg"
+      }
+    ],
+    "photo_revision_reason": "room_photo_as_primary_instead_of_wardrobe"
+  },
+  "sender_calls": 0,
+  "feed_writes": 0
+}
