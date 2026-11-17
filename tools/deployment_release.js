@@ -1104,10 +1104,227 @@ async function acceptedBaseline(api,location) {
     'baseline_runtime_mismatch');
   return baseline;
 }
+// One finite forward release after PR1600 failed before acquiring credentials.
+// No retry, dispatch, installation receipt or publisher mutation is performed here.
+const UNSTARTED_FORWARD = {
+  sha:"970e1bab10e44b2ab8148e609840be8630f5d5db",
+  head_sha:"c1d34ae37aca71377c4b63541f0f92e137b3e296",
+  pr:1600,
+  deploy:"44100865685",
+  comment_id:6928374515,
+  owner_id:226193297,
+  updated_at:"2026-11-17T14:13:31Z",
+  workflow_blob:"ea398626670c37c70f4eace3c503f813cc3d2c18",
+  application_sha:"fd9b28dab2147f13f3b0d0f7f856b14392b141d2",
+  commit:"876c980f329b01b6720dc7272ce5f36434b8ad41",
+  blob:"4e8fc7a4d6fd0cab85dfb830428a0cdbaaaf5a4f",
+  record_digest:"1399ed7731510e27878ccadf4f375d6bb2bea990d7bc86543356e1252054ae7e",
+  jobs: [
+    {id:134100184310,name:"verify-inventory",conclusion:"success",steps:[
+      ["Set up job","success"],
+      ["Checkout exact verification SHA","success"],
+      ["Setup PHP","success"],
+      ["Verify required inventory and architecture","success"],
+      ["Post Checkout exact verification SHA","success"],
+      ["Complete job","success"],
+    ]},
+    {id:134100184973,name:"verify-syntax",conclusion:"success",steps:[
+      ["Set up job","success"],
+      ["Checkout exact verification SHA","success"],
+      ["Setup PHP","success"],
+      ["PHP syntax check","success"],
+      ["Post Checkout exact verification SHA","success"],
+      ["Complete job","success"],
+    ]},
+    {id:134104653686,name:"verify / diagnostics",conclusion:"success",steps:[
+      ["Set up job","success"],
+      ["Checkout exact verification SHA","success"],
+      ["Setup PHP","success"],
+      ["Run every required group in this lane","success"],
+      ["Post Checkout exact verification SHA","success"],
+      ["Complete job","success"],
+    ]},
+    {id:134104653810,name:"verify / application",conclusion:"failure",steps:[
+      ["Set up job","success"],
+      ["Checkout exact verification SHA","success"],
+      ["Setup PHP","success"],
+      ["Run every required group in this lane","failure"],
+      ["Post Checkout exact verification SHA","success"],
+      ["Complete job","success"],
+    ]},
+    {id:134106119021,name:"deploy",conclusion:"failure",steps:[
+      ["Set up job","success"],
+      ["Require the complete deployment verification","failure"],
+      ["Checkout exact deployment SHA","skipped"],
+      ["Verify deployment SHA is current main","skipped"],
+      ["Resolve original accepted installation and complete release intent","skipped"],
+      ["Prepare canonical SSH private key","skipped"],
+      ["Select installation or prove the unchanged application without mutation","skipped"],
+      ["Build exact deployment bundle","skipped"],
+      ["Sync canonical production checkout","skipped"],
+      ["Apply database migrations and fence the old hotel contour","skipped"],
+      ["Reconcile canonical MAX webhook ownership","skipped"],
+      ["Ensure Metrika offline uploader cron","skipped"],
+      ["Apply profile and retain exact diagnostic snapshot","skipped"],
+      ["Fail failed installation","failure"],
+      ["Complete job","success"],
+    ]},
+    {id:134106202492,name:"verify",conclusion:"skipped",steps:[
+    ]},
+  ],
+  children: [
+    {"id":44102603173,"path":".github/workflows/modeled-pipeline-monitor-activation.yml","title":"monitor-proof:v1:44102585963:1"},
+    {"id":44102586106,"path":".github/workflows/max-tls-preflight.yml","title":"deploy-proof:v1:44100865685:1"},
+    {"id":44102585970,"path":".github/workflows/telegram-production-health.yml","title":"deploy-proof:v1:44100865685:1"},
+    {"id":44102586115,"path":".github/workflows/tour-selection-host.yml","title":"deploy-proof:v1:44100865685:1"},
+    {"id":44102585963,"path":".github/workflows/modeled-conversion-monitor.yml","title":"deploy-proof:v1:44100865685:1"},
+    {"id":44102585935,"path":".github/workflows/live-session-diagnostics.yml","title":"deploy-proof:v1:44100865685:1"},
+    {"id":44102586276,"path":".github/workflows/modeled-conversion-value-export.yml","title":"deploy-proof:v1:44100865685:1"},
+    {"id":44102586451,"path":".github/workflows/publish-conversation-diagnostics.yml","title":"deploy-proof:v1:44100865685:1"},
+    {"id":44102585942,"path":".github/workflows/max-production-health.yml","title":"deploy-proof:v1:44100865685:1"},
+  ],
+};
+function forwardMarker(pr,head) {
+  const body=pr?.body;
+  requireValue(typeof body==='string'&&body.length<=65536,'invalid_forward_marker');
+  const matches=[...body.matchAll(/<!-- release-forward-unstarted:v1 (\{[^\r\n]*\}) -->/g)];
+  requireValue((body.match(/<!--\s*release-forward-unstarted:/g)||[]).length===1&&matches.length===1,
+    'invalid_forward_marker');
+  let m;try{m=JSON.parse(matches[0][1]);}catch{throw new Refusal('invalid_forward_marker');}
+  const p=UNSTARTED_FORWARD;
+  requireValue(keys(m,['previous_pr','previous_sha','previous_run_id','head_sha'])&&m.previous_pr===p.pr
+    &&m.previous_sha===p.sha&&m.previous_run_id===p.deploy&&sha(head)&&m.head_sha===head,
+    'invalid_forward_marker');return m;
+}
+async function proveUnstartedDeployment(api) {
+  const p=UNSTARTED_FORWARD,get=path=>api('GET',API_ROOT+path);
+  const old=await get('/actions/runs/'+p.deploy);
+  runIdentity(old,{id:p.deploy,attempt:1,head:p.sha,workflow:DEPLOY,event:'push',conclusion:'failure'});
+  requireValue(old.head_commit?.id===p.sha,'forward_original_changed');
+  requireValue((await get('/contents/'+DEPLOY+'?ref='+p.sha))?.sha===p.workflow_blob,'forward_source_changed');
+  const jobs=boundedList(await get('/actions/runs/'+p.deploy+'/jobs?filter=all&per_page=100'),'jobs','forward_jobs_incomplete');
+  requireValue(jobs.length===p.jobs.length&&new Set(jobs.map(j=>j.id)).size===jobs.length,'forward_jobs_incomplete');
+  for(const expected of p.jobs){
+    const j=jobs.find(j=>j.id===expected.id);
+    requireValue(j&&j.name===expected.name&&j.run_id===Number(p.deploy)&&j.run_attempt===1
+      &&j.head_sha===p.sha&&j.status==='completed'&&j.conclusion===expected.conclusion&&Array.isArray(j.steps)
+      &&j.steps.every(s=>s.status==='completed')&&same(j.steps.map(s=>[s.name,s.conclusion]),expected.steps),
+      'forward_installation_not_unstarted');
+  }
+  const artifacts=boundedList(await get('/actions/runs/'+p.deploy+'/artifacts?per_page=100'),'artifacts','forward_artifacts_incomplete');
+  requireValue(artifacts.length===0,'forward_original_published');
+  const runs=boundedList(await get('/actions/runs?head_sha='+p.sha+'&per_page=100'),'workflow_runs','forward_runs_incomplete');
+  requireValue(new Set(runs.map(r=>r.id)).size===runs.length,'forward_runs_incomplete');
+  const deploys=runs.filter(r=>r.path===DEPLOY);
+  requireValue(deploys.length===1&&deploys[0].id===Number(p.deploy)&&deploys[0].run_attempt===1
+    &&deploys[0].status==='completed'&&deploys[0].conclusion==='failure','forward_deploy_replayed');
+  const children=runs.filter(r=>r.event==='workflow_run');
+  requireValue(children.length===p.children.length,'forward_tail_incomplete');
+  const childNames={
+    'max-tls-preflight.yml':['strict-tls-preflight'],'max-production-health.yml':['inspect'],
+    'telegram-production-health.yml':['inspect'],'publish-conversation-diagnostics.yml':['publish'],
+    'live-session-diagnostics.yml':['publish'],'tour-selection-host.yml':['host','independent-editor'],
+    'modeled-conversion-monitor.yml':['monitor'],'modeled-pipeline-monitor-activation.yml':['activate'],
+    'modeled-conversion-value-export.yml':['configure','release-slot','release-slot-recovery']};
+  for(const expected of p.children){
+    const r=children.find(r=>r.id===expected.id);
+    runIdentity(r,{id:String(expected.id),attempt:1,head:p.sha,workflow:expected.path,event:'workflow_run',conclusion:'skipped'});
+    requireValue(r.head_commit?.id===p.sha&&r.display_title===expected.title,'forward_tail_changed');
+    const js=boundedList(await get('/actions/runs/'+r.id+'/attempts/1/jobs?per_page=100'),'jobs','forward_tail_jobs_incomplete');
+    const names=childNames[expected.path.slice(PREFIX.length)];
+    requireValue(js.length===names.length&&same(js.map(j=>j.name).sort(),[...names].sort())
+      &&new Set(js.map(j=>j.id)).size===js.length&&js.every(j=>positive(j.id)&&j.run_id===r.id&&j.run_attempt===1
+        &&j.head_sha===p.sha&&j.status==='completed'&&j.conclusion==='skipped'&&Array.isArray(j.steps)&&j.steps.length===0),
+      'forward_tail_executed');
+  }
+  return {previous_pr:p.pr,previous_sha:p.sha,previous_run_id:p.deploy,installation:'not_started'};
+}
+async function proveUnstartedForward({api,pr,head,phase,source}) {
+  const p=UNSTARTED_FORWARD,C=require('./release_slot_close'),get=path=>api('GET',API_ROOT+path);
+  requireValue(['before_handoff','after_handoff','installation'].includes(phase)&&positive(pr)&&pr!==p.pr&&sha(head),
+    'invalid_forward_context');
+  const installation=phase==='installation',main=installation?source:p.sha;
+  requireValue(sha(main)&&(await get('/git/ref/heads/main'))?.object?.sha===main,'main_changed');
+  const target=await get('/pulls/'+pr);
+  requireValue(target?.number===pr&&target.head?.sha===head&&target.head?.repo?.full_name===REPOSITORY
+    &&target.base?.ref==='main'&&target.base.repo?.full_name===REPOSITORY
+    &&(installation?target.merged===true&&target.state==='closed'&&target.merge_commit_sha===source:
+      target.state==='open'&&target.draft===false&&target.base.sha===p.sha),'forward_pull_changed');
+  forwardMarker(target,head);
+  const original=C.binding(await get('/pulls/'+p.pr),p.sha);
+  requireValue(original&&same(C.bindingSnapshot(original),{pr:p.pr,head_sha:p.head_sha,comment_id:p.comment_id,
+    owner_id:p.owner_id,updated_at:p.updated_at}),'forward_original_binding_changed');
+  let binding=original;
+  if(phase!=='before_handoff'){
+    // Open forward PR uses the identical canonical binding parser without claiming it is merged.
+    binding=C.binding(installation?target:{...target,merged:true,state:'closed',merge_commit_sha:p.sha},main);
+    requireValue(binding&&binding.comment_id===p.comment_id&&binding.owner_id===p.owner_id
+      &&Date.parse(binding.updated_at)>Date.parse(p.updated_at),'forward_owner_changed');
+  }
+  requireValue(C.recordState(await get('/issues/comments/'+p.comment_id),binding)==='active','forward_publisher_changed');
+  if(installation){
+    const commit=await get('/commits/'+source);
+    requireValue(commit?.sha===source&&Array.isArray(commit.parents)&&commit.parents.length===2
+      &&commit.parents[0]?.sha===p.sha&&commit.parents[1]?.sha===head,'forward_not_direct_successor');
+  }
+  const evidence=await proveUnstartedDeployment(api);
+  const location=await readRecord(api);
+  requireValue(location.blob===p.blob&&location.record_digest===p.record_digest,
+    'forward_accepted_record_changed');
+  await requireAncestry(api,p.commit,location.commit);
+  const accepted=await resolveCurrent(api,{sha:p.application_sha},location);
+  await requireOps(api,p.application_sha);
+  requireValue(accepted.ready===true&&accepted.perform_actions===true&&accepted.application_sha===p.application_sha,
+    'forward_original_application_unaccepted');
+  requireValue((await get('/git/ref/heads/main'))?.object?.sha===main,'main_changed');
+  requireValue(C.recordState(await get('/issues/comments/'+p.comment_id),binding)==='active','forward_publisher_changed');
+  const freshTarget=await get('/pulls/'+pr);
+  const snapshot=pr=>({number:pr.number,state:pr.state,merged:pr.merged,draft:pr.draft??null,merge_commit_sha:pr.merge_commit_sha??null,
+    head:{sha:pr.head?.sha??null,repository:pr.head?.repo?.full_name??null},
+    base:{ref:pr.base?.ref??null,sha:pr.base?.sha??null,repository:pr.base?.repo?.full_name??null}});
+  requireValue(same(snapshot(freshTarget),snapshot(target))&&same(forwardMarker(freshTarget,head),forwardMarker(target,head)),
+    'forward_pull_changed');
+  const freshOriginal=C.binding(await get('/pulls/'+p.pr),p.sha);
+  requireValue(same(C.bindingSnapshot(freshOriginal),C.bindingSnapshot(original)),'forward_original_binding_changed');
+  if(phase!=='before_handoff'){
+    const freshBinding=C.binding(installation?freshTarget:{...freshTarget,merged:true,state:'closed',merge_commit_sha:p.sha},main);
+    requireValue(same(C.bindingSnapshot(freshBinding),C.bindingSnapshot(binding)),'forward_owner_changed');
+  }
+  runIdentity(await get('/actions/runs/'+p.deploy),{id:p.deploy,attempt:1,head:p.sha,workflow:DEPLOY,event:'push',conclusion:'failure'});
+  const latest=await readRecord(api);
+  requireValue(latest.blob===p.blob&&latest.record_digest===p.record_digest,'forward_accepted_record_changed');
+  await requireAncestry(api,p.commit,latest.commit);
+  requireValue((await get('/git/ref/heads/main'))?.object?.sha===main,'main_changed');
+  requireValue(C.recordState(await get('/issues/comments/'+p.comment_id),binding)==='active','forward_publisher_changed');
+  return {...evidence,phase,head_sha:head,binding:C.bindingSnapshot(binding),application_sha:accepted.application_sha};
+}
+async function admitForwardInstallation(api,c,event) {
+  const get=path=>api('GET',API_ROOT+path),p=UNSTARTED_FORWARD;
+  const commit=await get('/commits/'+c.sha);
+  requireValue(commit?.sha===c.sha&&Array.isArray(commit.parents)&&commit.parents.length>=1&&commit.parents.length<=2
+    &&commit.parents.every(parent=>sha(parent.sha)),'forward_source_unconfirmed');
+  // Only the immediate successor of the fixed failed source is in scope.
+  if(!commit.parents.some(parent=>parent.sha===p.sha)){
+    requireValue(event.before!==p.sha,'forward_not_direct_successor');return;
+  }
+  requireValue(c.event==='push'&&c.attempt===1&&event.forced===false&&event.before===p.sha
+    &&event.after===c.sha,'untrusted_forward_installation');
+  const pulls=await get('/commits/'+c.sha+'/pulls?per_page=100');
+  requireValue(Array.isArray(pulls)&&pulls.length<100,'incomplete_pulls');
+  const selected=pulls.filter(pr=>pr.merge_commit_sha===c.sha&&pr.state==='closed');
+  requireValue(selected.length===1,'ambiguous_pull');
+  const runs=boundedList(await get('/actions/runs?head_sha='+c.sha+'&per_page=100'),'workflow_runs','forward_runs_incomplete');
+  const deploys=runs.filter(r=>r.path===DEPLOY);
+  requireValue(deploys.length===1&&String(deploys[0].id)===c.id&&deploys[0].run_attempt===1,
+    'forward_deploy_replayed');
+  return proveUnstartedForward({api,pr:selected[0].number,head:selected[0].head.sha,phase:'installation',source:c.sha});
+}
+
 async function planDeployment({env,event,api,repository=process.cwd(),compare=v2}) {
   const c=await sourceContext(env,event,api,DEPLOY);
   requireValue(c.attempt===1&&c.job==='deploy'&&['push','workflow_dispatch'].includes(c.event),'untrusted_deployment_context');
   if(c.event==='push')requireValue(event.ref==='refs/heads/main'&&event.after===c.sha&&typeof event.forced==='boolean','untrusted_push');
+  await admitForwardInstallation(api,c,event);
   const location=await readRecord(api),result={schema:1,protocol:'anytour-deployment-plan-v1',repository:REPOSITORY,
     repository_sha:c.sha,run_id:c.id,run_attempt:1,event:c.event,plan:'install',application_sha:c.sha,
     source:{commit:location.commit,blob:location.blob,record_digest:location.record_digest},
@@ -1394,7 +1611,7 @@ function argumentsOf(argv,commands) {
 }
 function outputs(value){for(const [key,v]of Object.entries(value)){
   requireValue(/^[a-z_]+$/.test(key)&&!/[\r\n]/.test(String(v)),'invalid_output');process.stdout.write(key+'='+String(v)+'\n');}}
-module.exports={REPOSITORY,API_ROOT,PREFIX,DEPLOY,CLOSER,HOST,RECORD_PATH,PUBLICATION_FILE,PUBLICATION_PROTOCOL,
+module.exports={UNSTARTED_FORWARD,forwardMarker,proveUnstartedDeployment,proveUnstartedForward,admitForwardInstallation,REPOSITORY,API_ROOT,PREFIX,DEPLOY,CLOSER,HOST,RECORD_PATH,PUBLICATION_FILE,PUBLICATION_PROTOCOL,
   TERMINAL_RECOVERY,GATE_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY,PRIOR_WAVE_RECOVERY,
   priorWaveRecovery,failedPriorWaveTerminal,terminalRecovery,gateRecovery,
   unpublishedTerminalRecovery,recoveryBranch,failedUnpublishedTerminal,authenticateFailedTerminal,

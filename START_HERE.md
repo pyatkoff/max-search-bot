@@ -6,6 +6,39 @@ Roadmap/checkpoint thread: GitHub issue [#55](https://github.com/pyatkoff/max-se
 
 Primary language with the user: Russian.
 
+## Bounded PR1600 forward repair after an unstarted installer — 2026-11-17
+
+PR1596/1597 metadata recovery completed through native run44099272903 and the
+accepted original application remains fd9b28dab2147f13f3b0d0f7f856b14392b141d2.
+PR1600 merged as970e1bab10e44b2ab8148e609840be8630f5d5db, but original
+Deploy44100865685/attempt1 failed its application source check. Installer
+134106119021 failed its first aggregate; all11protected stages were skipped,
+final verification never ran and all9native downstream children skipped on that
+old SHA. This is **not an installed or accepted PR1600**.
+
+One checked forward repair may continue the same held publisher6928374515 and
+owner226193297. `proveUnstartedForward` is read-only, with phases
+`before_handoff`, `after_handoff` and `installation`. It pins the old source,
+complete native job/step history, zero artifacts and zero-step downstream jobs;
+it also authenticates the exact accepted1597 receipt through the canonical
+resolver and checks its operations diagnostics. The forward PR carries exactly
+one `release-forward-unstarted:v1` JSON marker naming previous_pr1600,
+previous_sha970e1bab10e44b2ab8148e609840be8630f5d5db,
+previous_run_id44100865685 and its actual `head_sha`.
+
+Only after required source CI and fresh proof, the existing owner can transfer
+that same record directly from PR1600 BUSY to forward-PR BUSY, without FREE or a
+second record. Read back its new timestamp and bind it to the forward PR before
+fresh priority admission and expected-head merge. Unknown writes stop without
+retry; refusal retains ownership. Record PR1600 honestly as installation not
+started, superseded by this repair, in the forward PR history, never installed.
+The existing deployment plan repeats authentication before credentials for the
+exact direct successor. Original new push/attempt1, canonical merged binding and
+a single Deploy are mandatory. No rerun, dispatch, classifier broadening,
+workflow, coordination queue or fabricated installation receipt is introduced.
+The new release must finish its ordinary installation and mandatory technical
+checks before the ordinary closer frees that publisher.
+
 ## Owner-transferred PR1596/1597 metadata recovery — 2026-11-17
 
 Pavel moved this work out of the full Manager2 conversation and requested recovery
