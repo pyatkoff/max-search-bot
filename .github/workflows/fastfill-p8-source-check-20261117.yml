@@ -1,0 +1,80 @@
+name: One-shot P8 independent nine-hotel source acceptance; P7 remains unsent
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/fastfill-p8-source-check-20261117.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  source-only:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '22ffa09f987f701694a99745ce1023e13d997c8c' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+          sparse-checkout: tools/direct_demand/operations
+      - name: Accept original no-write duplicate diagnosis and exact nine independent rows; never replay P7
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,io,json,pathlib,re,runpy,subprocess,zipfile
+          APP='fd9b28dab2147f13f3b0d0f7f856b14392b141d2'
+          def api(p):return json.loads(subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+p],timeout=60))
+          assert api('git/ref/heads/main')['object']['sha']==APP
+          prior=api('actions/runs/44094454269')
+          assert prior['conclusion']=='success' and prior['run_attempt']==1 and prior['head_sha']=='22ffa09f987f701694a99745ce1023e13d997c8c'
+          diag_raw=subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/actions/artifacts/14331969663/zip'],timeout=60)
+          assert hashlib.sha256(diag_raw).hexdigest()=='d595a46dc96067d1499e1ec4df962505e9cd9844b08cac12fd8a130afec1b05c'
+          with zipfile.ZipFile(io.BytesIO(diag_raw)) as z:
+              assert z.testzip() is None and z.namelist()==['duplicate-readonly-result.json']
+              d=json.loads(z.read('duplicate-readonly-result.json'))
+          assert d['ok'] and d['original_result']=={'ok':False,'error':'hotel_already_in_registry_no_duplicate','post_write_attempts':0}
+          assert d['original_send_or_upload_state_files']==[] and len(d['rows'])==1 and d['rows'][0]['hotel_id']==319
+          source_raw=subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/actions/artifacts/14331649887/zip'],timeout=90)
+          assert hashlib.sha256(source_raw).hexdigest()=='405dff0e21bb3afd2ac8e31bb1a5482257f59c1a50cb546536c1f27c0bfebd1f'
+          with zipfile.ZipFile(io.BytesIO(source_raw)) as z:
+              old=z.read('p7-manifest.json');facts=z.read('provider-facts.json')
+          assert hashlib.sha256(old).hexdigest()=='5494dab3ec6d522b2922648595df649f3b5b1608aebf38171f7b5e796a23e966'
+          m=json.loads(old);m['rows']=[r for r in m['rows'] if r['hotel_id']!=319]
+          ids=[40222,306,83106,113,108,133,123365,76125,76121]
+          assert [r['hotel_id'] for r in m['rows']]==ids and len(m['rows'])==9
+          m['operation']='commercial-hotel-batch-20261117-8-v1';m['expected_new_full_pairs']=9
+          raw=(json.dumps(m,ensure_ascii=False,indent=2)+'\n').encode()
+          a={'schema_version':1,'operation':m['operation'],'expected_installed_sha':APP,'hotel_ids':ids,'manifest_sha256':hashlib.sha256(raw).hexdigest()}
+          s=pathlib.Path('tools/direct_demand/operations')
+          template=(s/'commercial-batch-template-20261102.php').read_text()
+          prepare=runpy.run_path(str(s/'prepare-commercial-batch.py'))['prepare'];php,report=prepare(template,raw,a)
+          pairs=[('f0e04e9b4e0ed6859ced96279cbf0619931596e6','1982ff7368763edf8b7238c3142e3cc28579e991'),('db8181426091a685a79ee55991cde22671f0d9dd','7304af19cc19666f00ca4ead1b04c2bdce719646')]
+          tree=api('git/trees/'+APP+'?recursive=1');assert not tree['truncated'];actual={e['path']:e['sha'] for e in tree['tree']}
+          pins=re.findall(r'"([^"]+)"=>"([a-f0-9]{40})"',template);assert len(pins)==22
+          for p,h in pins:assert actual[p]==dict(pairs).get(h,h)
+          for old,new in pairs:
+              assert php.count(old)==1 and php.count(new)==0
+              php=php.replace(old,new)
+          out=pathlib.Path('p8-source-only');out.mkdir()
+          files={'p8-manifest.json':raw,'p8-approval.json':(json.dumps(a,ensure_ascii=False,indent=2)+'\n').encode(),'p8-publisher-unexecuted.php':php.encode(),'provider-facts.json':facts}
+          for n,b in files.items():(out/n).write_bytes(b)
+          r={'state':'NINE_EDITORIAL_ACCEPTED_EXISTING_PUBLISHER_SOURCE_ONLY','runtime_sha':APP,'protected_surfaces':22,'modified_hash_pins':2,'send_attempts':0,'feed_writes':0,'excluded_existing_hotel_id':319,'batches':[{'batch':8,'operation':m['operation'],'ids':ids,'rows':9,'publisher_sha256':hashlib.sha256(php.encode()).hexdigest()}],'files':{n:hashlib.sha256(b).hexdigest() for n,b in files.items()}}
+          (out/'receipt.json').write_text(json.dumps(r,indent=2)+'\n')
+          print('P8_ACCEPTED_SOURCE_RECEIPT_JSON '+json.dumps(r,separators=(',',':')))
+          PY
+          php -l p8-source-only/p8-publisher-unexecuted.php
+      - name: Preserve exact source-only P8 input and unexecuted publisher
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fastfill-p8-nine-accepted-source-20261117
+          path: p8-source-only/*
+          retention-days: 30
+          if-no-files-found: warn
