@@ -150,7 +150,7 @@ for(const [screen,id,mode] of [['conversation',101,'none'],['conversation',102,'
 
 test('workspace owner sees team identity and cannot change another manager decision',async()=>{
   const h=harness();h.S.manager.role='admin';h.data.set(101,h.item(101,{project_name:'AnyTour',manager_name:'Другой менеджер',manager_id:9,can_decide:false}));h.A.activate(7);await h.A.open(101);
-  assert.match(h.$('assistantTitle').textContent,/владельца/);assert.match(h.$('assistantSubtitle').textContent,/всей команды/);assert.match(h.$('assistantDetail').textContent,/Другой менеджер/);assert.equal(h.$('assistantDetail').querySelector('[data-assistant-decision]'),null);assert.equal(h.$('assistantPlan'),null);h.onlyReads();
+  assert.match(h.$('assistantTitle').textContent,/владельца/);assert.match(h.$('assistantSubtitle').textContent,/всей команды/);assert.match(h.$('assistantDetail').textContent,/Другой менеджер/);assert.equal(h.$('assistantDetail').querySelector('[data-assistant-decision]'),null);assert.equal(h.$('assistantPlan'),null);assert.equal(h.$('assistantMainAction').textContent,'Открыть');await h.click('#assistantMainAction');assert.equal(h.opened.length,1);assert.equal(h.opened[0].id,101);assert.equal(h.prepared.length,0);h.onlyReads();
 });
 
 test('entry review binding keeps the canonical reply helper and creates no duplicate menu launcher',async()=>{
