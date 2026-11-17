@@ -89,10 +89,6 @@ if($action==='save_source'){
 if($action==='list'){
     require_once $baseDir.'/services/ManagerAiInboxStatusService.php';
     $queue=(string)($data['queue']??'waiting');
-    if(!$isAdmin&&$queue==='all'&&!ManagerAvailabilityService::isWorking((int)$m['id'])) {
-        $rows=ManagerConversationService::list((int)$m['id'],'mine',100,(string)($data['project_key']??'*'));
-        out(['ok'=>true,'conversations'=>ManagerConversationService::displayRows(ManagerAiInboxStatusService::decorate($rows,(int)$m['id']))]);
-    }
     $rows=ManagerConversationService::list((int)$m['id'],$queue,100,(string)($data['project_key']??'*'),$isAdmin?(string)($data['manager_filter']??''):'');
     $rows=ManagerQueueProjectionService::actionableRows($queue,$rows);
     out(['ok'=>true,'conversations'=>ManagerConversationService::displayRows(ManagerAiInboxStatusService::decorate($rows,(int)$m['id']))]);
@@ -242,7 +238,6 @@ if(in_array($action,['reply_queue_resolve','reply_queue_undo','reply_queue_recei
     out($result,!empty($result['ok'])?200:($error==='forbidden'?403:(in_array($error,['invalid_request','operation_mismatch'],true)?422:409)));
 }
 if($action==='take'){
-    if(!$isAdmin&&!ManagerAvailabilityService::isWorking((int)$m['id'])) out(['ok'=>false,'error'=>'not_working','error_message'=>'Смена выключена. Начните смену, чтобы взять диалог.'],409);
     out(ManagerConversationService::takeResult((int)($data['conversation_id']??0),(int)$m['id']));
 }
 if($action==='reassign_manager'){

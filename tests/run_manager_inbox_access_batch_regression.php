@@ -124,9 +124,9 @@ batchAccessCheck('delayed fallback opens at the exact boundary',$boundary->invok
 batchAccessCheck('delayed fallback remains closed one second before the boundary',$boundary->invoke(null,$atBoundary,false,true,$sources,[102=>true],$now-1)===false);
 
 $offShift=[batchAccessRow(1,['status'=>'waiting_manager']),batchAccessRow(2)];$pdo->manager['is_working']=0;
-batchAccessCheck('off-shift gate hides waiting but preserves assigned dialogue',ManagerConversationAccessPolicy::visibleRows(7,$offShift)===[$offShift[1]]);
+batchAccessCheck('off-shift view retains both waiting and assigned dialogue',ManagerConversationAccessPolicy::visibleRows(7,$offShift)===$offShift);
 $pdo->manager['is_working']=1;
-batchAccessCheck('next batch sees the updated shift',ManagerConversationAccessPolicy::visibleRows(7,$offShift)===$offShift);
+batchAccessCheck('enabling notifications does not change visible dialogues',ManagerConversationAccessPolicy::visibleRows(7,$offShift)===$offShift);
 $memberRow=batchAccessRow(1,['source_id'=>1]);$pdo->groups=[];
 batchAccessCheck('next batch sees revoked membership',ManagerConversationAccessPolicy::visibleRows(7,[$memberRow])===[]);
 $pdo->groups=[101];

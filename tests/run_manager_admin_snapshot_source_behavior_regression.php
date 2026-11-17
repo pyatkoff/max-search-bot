@@ -76,7 +76,7 @@ $sourceColumns=array_column($pdo->query('PRAGMA table_info(conversation_sources)
 snapshotCheck('canonical source ownership is project_id, never an invented project_key',[in_array('project_id',$sourceColumns,true),in_array('project_key',$sourceColumns,true)],[true,false]);
 snapshotCheck('fixture follows the canonical migration source foreign key',array_column($pdo->query('PRAGMA foreign_key_list(conversation_sources)')->fetchAll(),'from'),['fallback_group_id','primary_group_id','project_id']);
 $before=directoryRows($pdo);$routingBefore=routingChecks();
-snapshotCheck('actual current role/group/fallback policy is exercised',$routingBefore,['primary'=>true,'fallback_before'=>false,'fallback_after'=>true,'wrong_project'=>false,'off_shift'=>false,'admin'=>true,'immediate_fallback'=>true]);
+snapshotCheck('current source-group/fallback policy is enforced independently of notification shift',$routingBefore,['primary'=>true,'fallback_before'=>false,'fallback_after'=>true,'wrong_project'=>false,'off_shift'=>true,'admin'=>true,'immediate_fallback'=>true]);
 
 try{$snapshot=AdminDirectoryService::snapshot();}
 catch(Throwable $e){snapshotCheck('actual admin snapshot executes against the canonical migrated schema',get_class($e).': '.$e->getMessage(),'success');echo "TOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";exit(1);}
