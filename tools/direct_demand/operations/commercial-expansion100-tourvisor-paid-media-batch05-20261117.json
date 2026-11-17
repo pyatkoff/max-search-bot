@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "kind": "read_only_tourvisor_paid_hotel_media",
+  "preparation_date": "2026-11-17",
+  "original_content43_sha": "9c096eb86dc8ad60da12afdbee83004487b0d24e",
+  "source_kind": "AnyTour configured Tourvisor hotel_details paid API",
+  "batch": 5,
+  "note": "Exact source images; publication and contract reuse needs acceptance under existing sender.",
+  "records": [
+    {
+      "work_id": "EXP087",
+      "tourvisor_id": 60788,
+      "expected_title": "Four Seasons Hotel Cairo at The First Residence",
+      "country": "EG",
+      "anytour_canonical_id": 12816,
+      "source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=60788",
+      "status": "source_read",
+      "provider_name": "FOUR SEASONS HOTEL CAIRO AT THE FIRST RESIDENCE",
+      "provider_country_id": 1,
+      "provider_country_name": "Египет",
+      "description_present": true,
+      "description_length": 36,
+      "images_reported": 62,
+      "images_matching_host_country": 62,
+      "first_images": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/60788-8929006.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/60788-8928800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/60788-8928801.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/60788-8928902.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/60788-8928903.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/60788-8928904.jpg"
+      ],
+      "approval_status": "candidate_not_published"
+    },
+    {
+      "work_id": "EXP100",
+      "tourvisor_id": 78456,
+      "expected_title": "Jumeirah Muscat Bay",
+      "country": "OM",
+      "anytour_canonical_id": 14013,
+      "source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=78456",
+      "status": "source_read",
+      "provider_name": "JUMEIRAH MUSCAT BAY",
+      "provider_country_id": 64,
+      "provider_country_name": "Оман",
+      "description_present": true,
+      "description_length": 41,
+      "images_reported": 60,
+      "images_matching_host_country": 60,
+      "first_images": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/64/jumeirah-muscat-98583700.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/64/jumeirah-muscat-98583701.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/64/jumeirah-muscat-98583702.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/64/jumeirah-muscat-98583703.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/64/jumeirah-muscat-98583704.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/64/jumeirah-muscat-98583705.jpg"
+      ],
+      "approval_status": "candidate_not_published"
+    },
+    {
+      "work_id": "EXP017",
+      "tourvisor_id": 22940,
+      "expected_title": "Anantara Sir Bani Yas Island Al Yamm Villa Resort",
+      "country": "AE",
+      "anytour_canonical_id": 10334,
+      "source_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=22940",
+      "status": "source_read",
+      "provider_name": "ANANTARA SIR BANI YAS ISLAND AL YAMM VILLA RESORT",
+      "provider_country_id": 9,
+      "provider_country_name": "ОАЭ",
+      "description_present": true,
+      "description_length": 303,
+      "images_reported": 29,
+      "images_matching_host_country": 29,
+      "first_images": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/22940-52086900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/22940-52087001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/22940-52087002.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/22940-52087003.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/22940-52087104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/22940-52087105.jpg"
+      ],
+      "approval_status": "candidate_not_published"
+    }
+  ],
+  "fetch_errors_count": 0
+}
