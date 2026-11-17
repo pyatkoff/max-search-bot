@@ -528,7 +528,9 @@ funnelCheck('Apple saved start joins an existing funnel entry without a false di
     $read['intake']['counts']['bot_start_recorded']===1
     &&$read['intake']['counts']['reviewed_start_recorded']===1
     &&$read['intake']['counts']['reviewed_start_without_entry']===0
-    &&$read['intake']['counts']['no_saved_bot_start']===0);
+    &&$read['intake']['counts']['no_saved_bot_start']===0
+    &&$read['intake']['counts']['latest_start_recognized']===1
+    &&$read['intake']['counts']['latest_recognized_funnel_recorded']===1);
 
 [$missingEntryDb,$missingEntrySettings,$missingEntryConversation,$missingEntryNow]=funnelStatusFixture();
 $missingEntryDb->exec("DELETE FROM conversation_events WHERE event_type='project_funnel_entry'");
@@ -539,6 +541,8 @@ funnelCheck('a saved reviewed bot start without its funnel event is reported, no
     &&$missingEntryRead['intake']['counts']['reviewed_start_recorded']===1
     &&$missingEntryRead['intake']['counts']['reviewed_start_without_entry']===1
     &&$missingEntryRead['intake']['counts']['entry_recorded']===0
+    &&$missingEntryRead['intake']['counts']['latest_start_recognized']===1
+    &&$missingEntryRead['intake']['counts']['latest_recognized_funnel_recorded']===1
     &&funnelStatusDatabase($missingEntryDb)===$missingEntryBefore);
 
 [$directOnlyDb,$directOnlySettings,$directOnlyConversation,$directOnlyNow]=funnelStatusFixture();
@@ -549,6 +553,20 @@ funnelCheck('no recorded bot start is distinct from lost reviewed attribution',
     &&$directOnlyRead['intake']['counts']['bot_start_recorded']===0
     &&$directOnlyRead['intake']['counts']['reviewed_start_recorded']===0
     &&$directOnlyRead['intake']['counts']['reviewed_start_without_entry']===0);
+
+[$historicalDb,$historicalSettings,$historicalConversation,$historicalNow]=funnelStatusFixture();
+$historicalEvent=$historicalDb->query("SELECT id,payload_json FROM conversation_events WHERE event_type='bot_started' LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+$historicalPayload=json_decode($historicalEvent['payload_json'],true);
+unset($historicalPayload['repair_start_class'],$historicalPayload['repair_funnel_attempt']);
+$historicalDb->prepare('UPDATE conversation_events SET payload_json=? WHERE id=?')->execute([
+    json_encode($historicalPayload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),$historicalEvent['id']]);
+$historicalRead=funnelStatusRead($historicalDb,$historicalSettings,$historicalNow);
+funnelCheck('legacy native entry remains honestly unclassified instead of being labeled paid or lost',
+    $historicalRead['intake']['counts']['reviewed_start_recorded']===1
+    &&$historicalRead['intake']['counts']['latest_start_historical']===1
+    &&$historicalRead['intake']['counts']['latest_start_recognized']===0
+    &&$historicalRead['intake']['counts']['latest_recognized_funnel_writer_error']===0
+    &&$historicalRead['intake']['counts']['latest_recognized_funnel_recorded']===0);
 
 [$replyOnlyDb,$replyOnlySettings,$replyOnlyConversation,$replyOnlyNow]=funnelStatusFixture();
 $replyOnlyDb->prepare("INSERT INTO messages(conversation_id,direction,sender_type,channel,metadata_json) VALUES(?,'outbound','manager','max','{}')")->execute([$replyOnlyConversation['id']]);
