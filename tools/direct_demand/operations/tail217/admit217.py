@@ -4,6 +4,17 @@ sha=lambda b:hashlib.sha256(b).hexdigest()
 def need(v,m):
  if not v:raise ValueError(m)
 def api(repo,path):return json.loads(subprocess.check_output(['gh','api','--method','GET','repos/pyatkoff/'+repo+'/'+path],timeout=40))
+def validate_route_attestation(c,now):
+ a=c.get('external_route_coordination',{})
+ need(a.get('kind')=='root_connector_read_only_coordination' and a.get('repository')=='pyatkoff/tour-max' and a.get('branch')=='audit/anytour-hotel-feed-routing-20261104','external_route_attestation_missing')
+ need(a.get('claim_id')==c['claim_id'] and a.get('claim_body_sha256')==c['claim_body_sha256'],'external_route_claim_changed')
+ need(re.fullmatch('[a-f0-9]{40}',a.get('route_head_sha','')) is not None,'external_route_head_missing')
+ need(a.get('nonterminal_counts')=={s:0 for s in ['in_progress','queued','waiting','pending','requested']},'external_route_not_idle')
+ try:observed=datetime.datetime.fromisoformat(a['observed_at'].replace('Z','+00:00'))
+ except (KeyError,ValueError,TypeError):raise ValueError('external_route_timestamp_invalid')
+ need(observed.tzinfo is not None,'external_route_timestamp_timezone_missing')
+ age=(now-observed).total_seconds();need(0<=age<=600,'external_route_attestation_expired_or_future')
+ return a
 def main():
  root=pathlib.Path(sys.argv[1]);output=pathlib.Path(sys.argv[2]);c=json.loads((root/'admission-config.json').read_bytes());raw=(root/'intent.json').read_bytes();intent=json.loads(raw)
  need(c['schema_version']==1 and c['runtime_sha']==intent['expected_installed_sha'],'config_runtime')
@@ -26,12 +37,14 @@ def main():
   need(sha((root/name).read_bytes())==digest,'source_changed:'+name)
  need({'run217.py','admit217.py'}<=set(c['source_sha256']),'runner_guard_missing')
  for g in intent['groups']:need(sha((root/('p%02d'%g['batch'])/'read.php').read_bytes())==g['reader_sha256'],'reader_changed')
+ route_attestation=validate_route_attestation(c,datetime.datetime.now(datetime.timezone.utc))
  checks=[]
  for status in ['in_progress','queued','waiting','pending','requested']:
-  for repo,path,self_allowed in [('max-search-bot','actions/runs?branch=audit%2Fprice660-27316-resume-readiness-20261117',True),('max-search-bot','actions/runs?branch=audit%2Fcontent100-bot-publication-20261101',False),('tour-max','actions/runs?branch=audit%2Fanytour-hotel-feed-routing-20261104',False),('max-search-bot','actions/runs?head_sha='+c['runtime_sha'],False),('poisk-turov-test','actions/workflows/346454799/runs?',False)]:
+  for repo,path,self_allowed in [('max-search-bot','actions/runs?branch=audit%2Fprice660-27316-resume-readiness-20261117',True),('max-search-bot','actions/runs?branch=audit%2Fcontent100-bot-publication-20261101',False),('max-search-bot','actions/runs?head_sha='+c['runtime_sha'],False),('poisk-turov-test','actions/workflows/346454799/runs?',False)]:
    sep='' if path.endswith('?') else '&';d=api(repo,path+sep+'status='+status+'&per_page=100')
    need(len(d['workflow_runs'])==d['total_count'] and d['total_count']<=100,'ambiguous_active_list')
    other=[r for r in d['workflow_runs'] if not(self_allowed and str(r['id'])==os.environ['GITHUB_RUN_ID'] and r['head_sha']==head)]
    need(not other,'competing_current_run:'+repo+':'+status);checks.append({'repository':repo,'path':path,'status':status,'other_count':0})
- output.write_text(json.dumps({'state':'FRESH_READ_ONLY_ADMISSION','intent_sha256':sha(raw),'expected_installed_sha':c['runtime_sha'],'source_acceptance_verified':True,'owner_and_concurrency_verified':True,'observed_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'checks':checks})+'\n')
+ validate_route_attestation(c,datetime.datetime.now(datetime.timezone.utc))
+ output.write_text(json.dumps({'state':'FRESH_READ_ONLY_ADMISSION','intent_sha256':sha(raw),'expected_installed_sha':c['runtime_sha'],'source_acceptance_verified':True,'owner_and_concurrency_verified':True,'observed_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'checks':checks,'external_route_coordination':route_attestation})+'\n')
 if __name__=='__main__':main()

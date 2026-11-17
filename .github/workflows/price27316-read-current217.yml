@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == 'ba8ff55f36f72075c935fa3a35596700c140e2a5'
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == '659660b0e810a86c128d0e7626f3d16836483b75'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:

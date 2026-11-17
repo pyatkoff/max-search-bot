@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "parent_sha": "ba8ff55f36f72075c935fa3a35596700c140e2a5",
+  "parent_sha": "659660b0e810a86c128d0e7626f3d16836483b75",
   "claim_id": 6955557921,
   "claim_body_sha256": "2bf2b31ac05eeb249d9f173b03575b473cd2cd0b41b42950cd66288a2b067f82",
   "runtime_sha": "8281b387f258932601439eb789560f6b2cbabd4d",
@@ -29,7 +29,7 @@
   "intent_sha256": "014f77384b3561941e04e8784c3a3ebe08db30580c5135f53e9255565dd000ae",
   "source_sha256": {
     "run217.py": "275db813c0117d6376302410e887cc72e7dad0b4d8b5cc4bdb370d588c908ef3",
-    "admit217.py": "8d05ddc6d794b7c3b9d36750a76d09dcc863eb0d9e1b2b0d0a0da6e8349910b7",
+    "admit217.py": "9a8e16bb43bc00c9f77ecb878762d9344ffd2d8471609fc3d6e37f5e6a0618f0",
     "namespace-provenance.json": "8f6aece606fe58991d82d534c354645769063b404d40e92b9e2f5f668b2efc43"
   },
   "takeover_claim_id": 6955394658,
@@ -55,5 +55,21 @@
       "run_id": 44141549666,
       "job_id": 134245373763
     }
-  ]
+  ],
+  "external_route_coordination": {
+    "kind": "root_connector_read_only_coordination",
+    "repository": "pyatkoff/tour-max",
+    "branch": "audit/anytour-hotel-feed-routing-20261104",
+    "route_head_sha": "0a905f1e04ab5f534d5359e15dd1c9dd03df7ef9",
+    "observed_at": "2026-11-17T17:59:03.784Z",
+    "claim_id": 6955557921,
+    "claim_body_sha256": "2bf2b31ac05eeb249d9f173b03575b473cd2cd0b41b42950cd66288a2b067f82",
+    "nonterminal_counts": {
+      "in_progress": 0,
+      "queued": 0,
+      "waiting": 0,
+      "pending": 0,
+      "requested": 0
+    }
+  }
 }
