@@ -1,0 +1,225 @@
+{
+  "kind": "ROOT_AUTHENTICATED_EXACT_8281_TO_F8C9_READ_COMPATIBILITY",
+  "from_runtime": "8281b387f258932601439eb789560f6b2cbabd4d",
+  "to_runtime": "f8c9a48625c599090c826c25e1480864e136f4e7",
+  "component_pins": {
+    "integrations/ChannelPostApiTransport.php": {
+      "old": "300634d77cb9fddf51adf9869974f956cca6e3f9",
+      "new": "300634d77cb9fddf51adf9869974f956cca6e3f9"
+    },
+    "migrations/033_channel_post_context.sql": {
+      "old": "0530458030a4bfe6b6cc55d1e5e441745c29b947",
+      "new": "0530458030a4bfe6b6cc55d1e5e441745c29b947"
+    },
+    "migrations/036_channel_post_member_delivery.sql": {
+      "old": "1bda463e52b33130ad12752ddef4ee5c92699c05",
+      "new": "1bda463e52b33130ad12752ddef4ee5c92699c05"
+    },
+    "migrations/040_channel_post_reconciliation.sql": {
+      "old": "0f24b838eacd45333c5ade9a2991d060488c6035",
+      "new": "0f24b838eacd45333c5ade9a2991d060488c6035"
+    },
+    "services/ChannelPostAdminService.php": {
+      "old": "b80eefc801054bfe6fdb58ec345ecdf687b2e89a",
+      "new": "b80eefc801054bfe6fdb58ec345ecdf687b2e89a"
+    },
+    "services/ChannelPostAutomationService.php": {
+      "old": "f5975ab95de5f45e087eb7a0f768f566c5bca648",
+      "new": "c6386e155d42bc83970edc95f35b3ebeb5140533"
+    },
+    "services/ChannelPostButtonTransport.php": {
+      "old": "7b6711f1de63000346d8e5789f2dbb7f725535b8",
+      "new": "7b6711f1de63000346d8e5789f2dbb7f725535b8"
+    },
+    "services/ChannelPostEntryService.php": {
+      "old": "1982ff7368763edf8b7238c3142e3cc28579e991",
+      "new": "1982ff7368763edf8b7238c3142e3cc28579e991"
+    },
+    "services/ChannelPostMaxAlbumRecovery.php": {
+      "old": "de266cd068587cc3b2ff83f308a966ea66887a04",
+      "new": "de266cd068587cc3b2ff83f308a966ea66887a04"
+    },
+    "services/ChannelPostMediaService.php": {
+      "old": "f794efd0f6f24df916e18909ff6281b0bc928433",
+      "new": "f794efd0f6f24df916e18909ff6281b0bc928433"
+    },
+    "services/ChannelPostMemberDeliveryService.php": {
+      "old": "20c1d7984898b2a5996a5f9e20e4d2d8c20b4778",
+      "new": "20c1d7984898b2a5996a5f9e20e4d2d8c20b4778"
+    },
+    "services/ChannelPostReconciliationService.php": {
+      "old": "43133f576845c14446102dedfffb7f0de2d4ba1c",
+      "new": "43133f576845c14446102dedfffb7f0de2d4ba1c"
+    },
+    "services/ChannelPostReconciliationState.php": {
+      "old": "d9583ceca80d1424a44ade3561c21282a23a52f0",
+      "new": "d9583ceca80d1424a44ade3561c21282a23a52f0"
+    },
+    "services/ChannelPostRegistryService.php": {
+      "old": "7304af19cc19666f00ca4ead1b04c2bdce719646",
+      "new": "94fb1988ac8caf90dc5103aa23c58e7aad6ea691"
+    },
+    "services/ChannelPostRuntime.php": {
+      "old": "2f1dd9b77474fdbaa92f0402f3b0aa170c595474",
+      "new": "2f1dd9b77474fdbaa92f0402f3b0aa170c595474"
+    },
+    "services/ChannelPostTelegramAlbum.php": {
+      "old": "faa1a14bc279a4af33936282126bf0d46e343040",
+      "new": "faa1a14bc279a4af33936282126bf0d46e343040"
+    },
+    "services/ChannelPostWebhookConfigService.php": {
+      "old": "d5fdcb056088f1e3a541b4046325d97eef6417d9",
+      "new": "d5fdcb056088f1e3a541b4046325d97eef6417d9"
+    },
+    "services/ConversationDb.php": {
+      "old": "bb6281faf55aca7beeae7f8a57389d19751936f7",
+      "new": "bb6281faf55aca7beeae7f8a57389d19751936f7"
+    },
+    "services/MaxTlsConfig.php": {
+      "old": "032c0211ee3f39c6f0d27c669abd5b467e321dea",
+      "new": "032c0211ee3f39c6f0d27c669abd5b467e321dea"
+    },
+    "services/MaxTransport.php": {
+      "old": "2cb4f8786b4704a8e62a3a9c40dc2cc73dad6159",
+      "new": "2cb4f8786b4704a8e62a3a9c40dc2cc73dad6159"
+    },
+    "services/ProjectConfig.php": {
+      "old": "63c17c8103412f8cff8cdcc4bbb062e744106af9",
+      "new": "63c17c8103412f8cff8cdcc4bbb062e744106af9"
+    },
+    "services/ProjectConfiguration.php": {
+      "old": "07019d473c588e3386ace42977db93092e8112e3",
+      "new": "07019d473c588e3386ace42977db93092e8112e3"
+    }
+  },
+  "read_call_closure_sha256": "de021851707c565ee90033a201644b1443f00a6287895f7d9038b67a70dc5cb7",
+  "accepted_context": {
+    "runtime_acceptance": {
+      "state": "DEPLOYED_AND_NATIVE_ACCEPTED",
+      "head_sha": "f8c9a48625c599090c826c25e1480864e136f4e7",
+      "deploy_run_id": 44177455495,
+      "native_acceptance_sha256": "1f8b9912f854355a1c40c6e3b585eb555b9e5c8646cc894eac4ed344b5e13273",
+      "native_read_run_id": 44181445588,
+      "native_read_source_head_sha": "55113f07d45e2aa73e3ab288f57b30d3092d715f"
+    },
+    "runtime_native_artifact": {
+      "repository": "pyatkoff/max-search-bot",
+      "run_id": 44181445588,
+      "head_sha": "55113f07d45e2aa73e3ab288f57b30d3092d715f",
+      "artifact_id": 14371702936,
+      "archive_sha256": "a3ca3d3c089c0abba2e997787afa11c0861e7eb3b3fb8e5b993dc5af4b970ba7",
+      "members": {
+        "p01.stdout.json": {
+          "path": "native-runtime.json",
+          "sha256": "1f8b9912f854355a1c40c6e3b585eb555b9e5c8646cc894eac4ed344b5e13273"
+        }
+      }
+    },
+    "original_read_artifact": {
+      "repository": "pyatkoff/max-search-bot",
+      "run_id": 44143486101,
+      "head_sha": "d8c40388f5112a6bdfe70decb997b894685b1c52",
+      "artifact_id": 14355586924,
+      "archive_sha256": "8d672983dc73b04ca2342e1cec68f937589c853c4a62334b3b3c91ac8f63b176",
+      "members": {
+        "p01.stdout.json": {
+          "path": "p01.stdout.json",
+          "sha256": "8dcdfa1d28e24b07390856f49331aa109a1976e03e9b41be90ecc52dbf3dd7f5"
+        },
+        "p02.stdout.json": {
+          "path": "p02.stdout.json",
+          "sha256": "e89c1d4956eab92b058ff444c5868972863c30555055a1fbcae399e359a06c78"
+        },
+        "p03.stdout.json": {
+          "path": "p03.stdout.json",
+          "sha256": "d9f92c9fc9ed3f7f63afac25caa7d2b9d840dfa210b8fe0235792a0fdb72742a"
+        },
+        "p04.stdout.json": {
+          "path": "p04.stdout.json",
+          "sha256": "f9b343af6b2d351ec33a005059a20553b2cfb28ce4cf835bac1faf9fbbec9b56"
+        },
+        "p05.stdout.json": {
+          "path": "p05.stdout.json",
+          "sha256": "28c27c65954fb1da74ee553e19579ce1e63a887097d2b4370c2b9f5fa7043fc4"
+        },
+        "p06.stdout.json": {
+          "path": "p06.stdout.json",
+          "sha256": "e96191ba6abe9ddf2a500cf4372a24d769adef0e98a025816a8cab130e0bfc26"
+        },
+        "p08.stdout.json": {
+          "path": "p08.stdout.json",
+          "sha256": "c7b4ab8fa5f41ea23a2b6bc4bf264bdbb506a1efce289548a739a1c66a4d4e93"
+        },
+        "p09.stdout.json": {
+          "path": "p09.stdout.json",
+          "sha256": "62056df8ddef1609f4ae0fab581301ba6cc6ab92fa394a51163c237d2abd8f7d"
+        },
+        "p10.stdout.json": {
+          "path": "p10.stdout.json",
+          "sha256": "54efddad84d7ce8282db8cb55b23a19f2aee09ec55f3e7cd4f5bb9c9a12d435f"
+        },
+        "p11.stdout.json": {
+          "path": "p11.stdout.json",
+          "sha256": "53263d7c1cdff350248981a812adf0eb5f3944d2c60330f0935c5cddae8e3d57"
+        },
+        "p12.stdout.json": {
+          "path": "p12.stdout.json",
+          "sha256": "d98b0ae8d728c6252db024a0b0f0bd62f460b0dfd7650b5bb101da757ce77726"
+        },
+        "p13.stdout.json": {
+          "path": "p13.stdout.json",
+          "sha256": "36f4d396bd07d47755c5ef2de99525c46fe142e75641e21d80e9e28d5f5c1f3c"
+        },
+        "p14.stdout.json": {
+          "path": "p14.stdout.json",
+          "sha256": "ef557fcadd6a66fad174b0a583bcbfb576fbdd72786c80a9a53f1237efdfbb1a"
+        },
+        "p15.stdout.json": {
+          "path": "p15.stdout.json",
+          "sha256": "f600493db3b03c9829ea2e90c180a5100817c4768d779713de92a93252c0df18"
+        },
+        "p18.stdout.json": {
+          "path": "p18.stdout.json",
+          "sha256": "b28ac77cc7a5cbe180841f58435dab3d8ccfc57f064e91d69475d9dcbe9e7a08"
+        },
+        "p17.stdout.json": {
+          "path": "p17.stdout.json",
+          "sha256": "2fae6ec2999ccd48dea71f4f93b49edf8ed25b29ade0b8c70c5f8e59968e21b2"
+        },
+        "p19.stdout.json": {
+          "path": "p19.stdout.json",
+          "sha256": "f8d5fe4bbb9e28d571c1dc504fba282c849fef400223f72d2450ec46342aa11e"
+        },
+        "p20.stdout.json": {
+          "path": "p20.stdout.json",
+          "sha256": "2bf740370fb05c2400ec84542f935e049cebed73b92cbef782175f0bc7425e63"
+        },
+        "p21.stdout.json": {
+          "path": "p21.stdout.json",
+          "sha256": "c34e642427fed128f0b7762285262dc9a812f70e0bc1892c718af29ce052fa13"
+        },
+        "p22.stdout.json": {
+          "path": "p22.stdout.json",
+          "sha256": "045159431b323d5cddfeec2dcfcb37acdbe63616bc7abeaef898b5517417d295"
+        },
+        "p23.stdout.json": {
+          "path": "p23.stdout.json",
+          "sha256": "fc9c3052f2b2f0bf7df84e505e4ab3cd84771083b09fae69d6f12ab88940df1f"
+        },
+        "p24.stdout.json": {
+          "path": "p24.stdout.json",
+          "sha256": "5b8af2769cb517a721501a018e67d64a119cfef8dec9c0417d6ef03cd949d927"
+        },
+        "p25.stdout.json": {
+          "path": "p25.stdout.json",
+          "sha256": "5ba8ad8a38995799126f97f0ba08a06158095272fac9d04fc78d9dc044d45db0"
+        },
+        "p26.stdout.json": {
+          "path": "p26.stdout.json",
+          "sha256": "7cc345a780adfbaa8c4ce4b050a8340e7a9cd826177b3d5e714898ffb342609b"
+        }
+      }
+    },
+    "root_projection_sha256": "1f9677f64fc7b89ac9a0f7d22cdeb93a67b388421b815da7d4701afe1588f87b"
+  }
+}

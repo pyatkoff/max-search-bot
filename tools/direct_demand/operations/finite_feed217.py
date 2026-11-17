@@ -9,7 +9,7 @@ from route_read_lineage import rebind
 import reconstruct_inventory217 as reconstruct
 import nonwriting_queued217_guard as nonwriting
 from immutable_source_cache import cached_api
-REVIEWED_CONFIG_SHA256='13a716d5d7424e33bd3cb70edfafc77e626d59e624437f4e8ffb3622c85b0ea4'
+REVIEWED_CONFIG_SHA256='7f20b57b2ecb98a528ccc025120f2da4cd1571dbcd2cdfe7b71f82459fb202f2'
 MAX_WAIT_SECONDS=120
 MAX_POLLS_PER_STEP=12
 MAX_CHAIN_POLL_READS=144
@@ -28,10 +28,14 @@ def rate_snapshot():
 
 def public_exclusive(c):
  execution=e.origin(c);current=int(os.environ['GITHUB_RUN_ID'])
- e.pin(pathlib.Path(__file__).with_name('nonwriting_queued217_guard.py'),'3182833f9db0cdd994d099fa5aaa7a339b6b7b7d54af037ca7d1c9b1af2581ca')
+ e.pin(pathlib.Path(__file__).with_name('nonwriting_queued217_guard.py'),'5fa9881727735a875b9c6ae53343443d01ec7ec7bac09530e7cfd25353e2b349')
  for status in gate.STATUSES:
   for repo,path in [('pyatkoff/max-search-bot','actions/runs?'),('pyatkoff/poisk-turov-test','actions/workflows/346454799/runs?')]:
-   d=e.api(repo,path+'status='+status+'&per_page=100');e.need(d['total_count']==len(d['workflow_runs']) and d['total_count']<=100,'ambiguous_public_runs')
+   d=e.api(repo,path+'status='+status+'&per_page=100')
+   if not (d['total_count']==len(d['workflow_runs']) and d['total_count']<=100):
+    diagnostic={'reason':'ambiguous_public_runs','observed_at':e.now(),'repository':repo,'queried_status':status,'total_count':d['total_count'],'returned_count':len(d['workflow_runs']),'page_limit':100}
+    diagnostic_root=pathlib.Path(os.environ['RUNNER_TEMP'])/'feed217';diagnostic_root.mkdir(mode=0o700,parents=True,exist_ok=True);e.save(diagnostic_root/'blocked-guard.json',diagnostic)
+   e.need(d['total_count']==len(d['workflow_runs']) and d['total_count']<=100,'ambiguous_public_runs')
    for r in d['workflow_runs']:
     allowed=repo=='pyatkoff/max-search-bot' and (r['id']==current or e.stale_deploy.allowed(r,c['runtime_acceptance']['head_sha'],lambda short,path:e.api('pyatkoff/'+short,path)) or nonwriting.allowed(r,c['runtime_acceptance']['head_sha'],lambda short,path:e.api('pyatkoff/'+short,path)))
     if not allowed:

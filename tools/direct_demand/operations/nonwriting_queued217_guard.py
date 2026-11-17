@@ -25,6 +25,12 @@ MERGE_REFERENCES_BY_RUN[44172612168]=[{'path': 'pyatkoff/max-search-bot/.github/
 # Exact independently reviewed PR1613 successor only.
 NEW_REVIEWED[44175365089]={'id': 44175365089, 'head_sha': 'b198212244649c04c8c7e360a3ec056993272a26', 'path': '.github/workflows/regression-tests.yml', 'event': 'pull_request', 'workflow_id': 340550044, 'head_branch': 'fix/modeled-quoted-package-price-followup-20261117', 'workflow_sha256': '317c2cbd9f597414a3207d7181beb8661cb881c98e1f85aaa32a793166e43b2e'}
 MERGE_REFERENCES_BY_RUN[44175365089]=[{'path': 'pyatkoff/max-search-bot/.github/workflows/ci-change-scope.yml@4ae8a09f735242c46f47f472ddabd19da03e5346', 'sha': '4ae8a09f735242c46f47f472ddabd19da03e5346', 'ref': 'refs/pull/1613/merge'}]
+# Independently reviewed exact non-production CI only.
+NEW_REVIEWED[44178638600]={'id': 44178638600, 'head_sha': 'f0689190422ecc90502473770cac0ca60084c28a', 'path': '.github/workflows/workspace-v2-visual-qa.yml', 'event': 'pull_request', 'workflow_id': 343986842, 'head_branch': 'perf/manager2-directory-session-6961054984', 'workflow_sha256': '2a3d3613ccc558314cdd1b532533657557dea417da6609eaae931c62fb0004c9'}
+MERGE_REFERENCES_BY_RUN[44178638600]=[{'path': 'pyatkoff/max-search-bot/.github/workflows/ci-change-scope.yml@1452987de326df158d1fcfe4c925c232c7ebd1c9', 'sha': '1452987de326df158d1fcfe4c925c232c7ebd1c9', 'ref': 'refs/pull/1614/merge'}]
+# Independently reviewed exact non-production CI only.
+NEW_REVIEWED[44180745431]={'id': 44180745431, 'head_sha': '069907e2e56455bf8231cfae49eea518f674165c', 'path': '.github/workflows/regression-tests.yml', 'event': 'pull_request', 'workflow_id': 340550044, 'head_branch': 'ai/sol-62-medium-bot-and-drafts', 'workflow_sha256': '317c2cbd9f597414a3207d7181beb8661cb881c98e1f85aaa32a793166e43b2e'}
+MERGE_REFERENCES_BY_RUN[44180745431]=[{'path': 'pyatkoff/max-search-bot/.github/workflows/ci-change-scope.yml@8e838bffebce67ecc09be8c9d7eecae1cfaff052', 'sha': '8e838bffebce67ecc09be8c9d7eecae1cfaff052', 'ref': 'refs/pull/1615/merge'}]
 def allowed(run,current_main,api):
  fresh_ci=run.get('id') in NEW_REVIEWED
  expected=NEW_REVIEWED.get(run.get('id')) if fresh_ci else next((x for x in REVIEWED if x['id']==run.get('id')),None)
