@@ -9,7 +9,7 @@ from route_read_lineage import rebind
 import reconstruct_inventory217 as reconstruct
 import nonwriting_queued217_guard as nonwriting
 from immutable_source_cache import cached_api
-REVIEWED_CONFIG_SHA256='d2cb9a6c8aaed34f4e8921f1ff680d580c2ba3cc9c0a15100c64bd469210758c'
+REVIEWED_CONFIG_SHA256='d9b4d4dac41618789808f437b4761c482106c72915ac751a4106d6f99627d3c8'
 MAX_WAIT_SECONDS=120
 MAX_POLLS_PER_STEP=12
 MAX_CHAIN_POLL_READS=144
@@ -66,6 +66,12 @@ def prepare(c,raw):
  # Source/config-pinned root projection is public-safe, verified by root against actual
  # private maps/receipts beforehand. This workflow does NOT authenticate private API access.
  packet_raw=e.pin(e.safe(pathlib.Path.cwd(),c['route_projection_packet']['path']),c['route_projection_packet']['sha256']);packet=json.loads(packet_raw)
+ transition_raw=None;transition_context=None
+ if 'runtime_transition' in c:
+  td=c['runtime_transition'];e.need(set(td)=={'path','sha256'} and c['source_sha256'].get(td['path'])==td['sha256'],'runtime_transition_not_source_pinned')
+  transition_raw=e.pin(e.safe(pathlib.Path.cwd(),td['path']),td['sha256'])
+  transition_context={k:c[k] for k in ['runtime_acceptance','runtime_native_artifact','original_read_artifact']}
+  transition_context['root_projection_sha256']=e.sha(packet_raw)
  e.need(packet['source']==c['root_verified_route_source'] and packet.get('root_verified_actual_private_artifact') is True and [g['batch'] for g in packet['groups']]==e.ORDER,'root_projection_scope_changed')
  # Accepted unchanged refresh runner. Its own native read_at_utc is kept, not normalized.
  e.exclusive=public_exclusive
@@ -74,7 +80,7 @@ def prepare(c,raw):
  ad={'schema_version':1,'state':'AUTHENTICATED_TAIL217_FEED_COMPILATION_ONLY','inventory_sha256':e.compiler.INVENTORY_SHA,'expected_installed_sha':c['runtime_acceptance']['head_sha'],'runtime_acceptance':c['runtime_acceptance'],'execution':execution,'original_batches':e.ORDER,'hotels':217,'previous_pairs':660,'final_pairs':877,'current_read':e.local_evidence(execution,(root/'read-refresh-proof.json').read_bytes(),refresh['started_at']),'route_install':dict(packet['source']),'preimage_read':e.local_evidence(execution,(preimages/'probe-result.json').read_bytes(),pr['observed_at']),'previous_feed_sha256':{f['name']:f['sha256'] for f in pr['files']},'groups':[],'current_registry_receipts_verified':True,'old660_routes_preserved':True,'monitor_pending_null':True,'installed_hook_sha256':e.probe.HOOK_SHA,'feed_date':c['feed_date'],'public_label_overrides':{str(k):v for k,v in e.compiler.PUBLIC_LABELS.items()},'public_label_originals':{str(k):v for k,v in e.compiler.PUBLIC_LABEL_ORIGINALS.items()}}
  ad['preimage_read']['local_public_verified']=True
  for item in packet['groups']:
-  b=item['batch'];old=e.pin(e.safe(original_reads,item['original_read_file']),item['proof']['bound_read_sha256']);new=(reads/f'p{b:02d}.stdout.json').read_bytes();proofraw=json.dumps(item['proof'],ensure_ascii=False,separators=(',',':')).encode();derived,record=rebind(proofraw,old,new)
+  b=item['batch'];old=e.pin(e.safe(original_reads,item['original_read_file']),item['proof']['bound_read_sha256']);new=(reads/f'p{b:02d}.stdout.json').read_bytes();proofraw=json.dumps(item['proof'],ensure_ascii=False,separators=(',',':')).encode();derived,record=rebind(proofraw,old,new,transition_raw,transition_context)
   d=routes/f'p{b:02d}';d.mkdir(mode=0o700)
   blobs={'route-receipt.json':item['receipt_utf8'].encode(),'route-manifest.json':item['manifest_projection_utf8'].encode(),'route-proof.json':derived,'original-root-proof.json':proofraw,'original-read.json':old,'fresh-read.json':new,'read-proof-lineage.json':json.dumps(record).encode()}
   for name,data in blobs.items():(d/name).write_bytes(data)
