@@ -168,17 +168,25 @@ function reconcile_assert_prefix($stream, string $prefix): void {
     $read = stream_get_contents($stream, strlen($prefix));
     reconcile_need($read === $prefix, 'reconcile_original_prefix_not_preserved');
 }
-function reconcile_runtime(): void {
-    reconcile_need(realpath(RECONCILE_RUNTIME) === RECONCILE_RUNTIME && chdir(RECONCILE_RUNTIME), 'reconcile_runtime_path_changed');
-    reconcile_need(trim((string)shell_exec('git rev-parse --verify HEAD')) === RECONCILE_RUNTIME_SHA
-        && trim((string)shell_exec('git --no-optional-locks status --porcelain --untracked-files=no')) === '', 'reconcile_runtime_changed');
-    $pins = json_decode(base64_decode(HOOK_RUNTIME_PINS_B64, true), true, 32, JSON_THROW_ON_ERROR);
-    reconcile_need(count($pins) === 23, 'reconcile_runtime_pin_count_changed');
-    foreach ($pins as $file => $expected) {
-        reconcile_need(preg_match('~\A(?:services|integrations|migrations)/[A-Za-z0-9_.-]+\z~D', $file) === 1
-            && !is_link($file) && is_file($file), 'reconcile_runtime_file_invalid');
-        reconcile_need(trim((string)shell_exec('git hash-object -- ' . escapeshellarg($file))) === $expected, 'reconcile_runtime_pin_changed');
+/** Exactly the installed hook's publisher safety surface, not unrelated dialogue HEAD. */
+function reconcile_runtime(): string {
+    reconcile_need(realpath(RECONCILE_RUNTIME)===RECONCILE_RUNTIME
+        &&chdir(RECONCILE_RUNTIME),'reconcile_runtime_path_changed');
+    $head=trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false rev-parse --verify HEAD 2>/dev/null'));
+    $dirty=trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false status --porcelain --untracked-files=no 2>/dev/null'));
+    reconcile_need(preg_match('/\A[a-f0-9]{40}\z/D',$head)===1&&$dirty==='',
+        'reconcile_runtime_changed');
+    $base=trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git merge-base '.escapeshellarg(RECONCILE_RUNTIME_SHA).' '.escapeshellarg($head).' 2>/dev/null'));
+    reconcile_need($base===RECONCILE_RUNTIME_SHA,'reconcile_runtime_not_accepted_descendant');
+    $pins=json_decode(base64_decode(HOOK_RUNTIME_PINS_B64,true),true,32,JSON_THROW_ON_ERROR);
+    reconcile_need(is_array($pins)&&count($pins)===23,'reconcile_runtime_pin_count_changed');
+    foreach($pins as $path=>$expected){
+        reconcile_need(preg_match('~\A(?:services|integrations|migrations)/[A-Za-z0-9_.-]+\z~D',$path)===1
+            &&!is_link($path)&&is_file($path),'reconcile_runtime_file_invalid');
+        $hash=trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git hash-object -- '.escapeshellarg($path).' 2>/dev/null'));
+        reconcile_need($hash===$expected,'reconcile_runtime_pin_changed');
     }
+    return $head;
 }
 function reconcile_identity(array $p, string $platform, array $proof, array $row): void {
     $targets = ['max' => ['id9704048781_1_bot','-80492244209683','max_anytour_msk1'], 'telegram' => ['anyru_bot','-1002262666616','tg_anytour_msk']];
@@ -473,7 +481,7 @@ $out = ['ok'=>false, 'operation'=>RECONCILE_OPERATION, 'mode'=>$apply?'apply_ori
 $locks = []; $pdo = null;
 try {
     reconcile_need(count($argv) === 1 && in_array(getenv('ANYTOUR_MONITOR_27316_APPLY'), [false,'','1'], true), 'reconcile_arguments_invalid');
-    reconcile_runtime(); $out['runtime_sha'] = RECONCILE_RUNTIME_SHA;
+    $installed=reconcile_runtime(); $out['runtime_sha']=$installed;
     reconcile_need(!is_link(RECONCILE_ROOT) && realpath(RECONCILE_ROOT) === RECONCILE_ROOT, 'reconcile_private_root_changed');
     [$globalLock] = reconcile_open(RECONCILE_ROOT.'/monitor-price-after-collection-v1.jsonl',500000000,$apply,$locks,true);
     $global = reconcile_global_state($globalLock);
@@ -527,7 +535,7 @@ try {
         $rights=(new ChannelPostButtonTransport())->verifyChannel($context['publications']['telegram']['channel']);
         $out['telegram_capability_read']=reconcile_capability_evidence($rights);
         reconcile_capability_admission($rights);
-        reconcile_runtime();
+        reconcile_need(reconcile_runtime()===$installed,'reconcile_runtime_changed_during_operation');
         $maxBefore=$registry->publication(RECONCILE_MAX_ID);
         reconcile_need(is_array($maxBefore)
             &&(int)$maxBefore['publication_id']===400
@@ -556,7 +564,7 @@ try {
             &&($preview['receipt']['request_count']??null)===3
             &&($preview['receipt']['write_attempts']??null)===0,
             'reconcile_max_preview_no_longer_admitted');
-        reconcile_runtime();
+        reconcile_need(reconcile_runtime()===$installed,'reconcile_runtime_changed_during_operation');
         // One exact CAS only; never issue a MAX PUT. A lost DB acknowledgement
         // is UNKNOWN and must not be retried by an automated runner.
         $out['database_write_calls']++;
@@ -603,7 +611,7 @@ try {
         reconcile_identity($tgBefore,'telegram',$context['proofs']['telegram'],$context['row']);
         reconcile_need(!isset($state['posts']['telegram:'.RECONCILE_KEY]), 'reconcile_telegram_intent_already_exists');
         // Strict current validation is required immediately before this first Telegram intent.
-        reconcile_runtime();
+        reconcile_need(reconcile_runtime()===$installed,'reconcile_runtime_changed_during_operation');
         reconcile_price_admission($state['monitor_snapshot'],$fresh,time());
         monitor_price_validate_text($tgPlan['text'],$context['price']);
         $out['fresh_admission']['validated_before_telegram_intent_at']=gmdate('c');
@@ -652,7 +660,7 @@ try {
         $binding=$state['feed_binding']+['operation'=>RECONCILE_OPERATION,'manifest_hash'=>RECONCILE_MANIFEST];
         monitor_price_confirmed_journal($state,$binding,time());
         $out['feed_resume_calls']++;
-        reconcile_need(hook_finish_feed($global,$globalLock,RECONCILE_RUNTIME_SHA)==='feed_completed', 'reconcile_original_feed_not_completed');
+        reconcile_need(hook_finish_feed($global,$globalLock,$installed)==='feed_completed', 'reconcile_original_feed_not_completed');
         reconcile_need(fseek($globalLock,443818242,SEEK_SET)===0,'reconcile_feed_evidence_seek_failed');
         $appended=stream_get_contents($globalLock,1000001);
         reconcile_need(is_string($appended)&&strlen($appended)<=1000000&&str_ends_with($appended,"\n"),'reconcile_feed_evidence_read_failed');
