@@ -109,7 +109,8 @@ for(const width of [390,430,768,1440])test.describe('Source publication at '+wid
   s.contexts.set(11,{current:null,history:[],repair:{event_id:51,model:'iPhone 15 Pro Max',service:'Замена аккумулятора',post_url:url,
    reply:{state:'delivered',text:'Здравствуйте! Это AppleService39.\nЗамена аккумулятора — iPhone 15 Pro Max.\nСохранённая при переходе стоимость: 6 500 ₽.\n<b>Текст сохранён без исполнения разметки.</b>'}}});
   await openLead(page);const host=page.locator('#conversationPostContext');await expect(host).toHaveAttribute('data-state','ready');
-  await expect(host.locator('.postContextTeaser')).toHaveText('iPhone 15 Pro Max · Замена аккумулятора');
+  await expect(host.locator('.postContextTeaser')).toHaveText('Источник: iPhone 15 Pro Max · Замена аккумулятора');
+   await expect(host.locator('.postContextQuickLink')).toHaveAttribute('href',url);
   await page.locator('#replyText').fill('Уточню удобное время записи.');const before=await conversationCapacity(page);await openPostOverlay(page);
   await expect(host.locator('.postContextOverlayTitle')).toHaveText('Контекст ремонта');
   await expect(host.locator('.postContextOriginal')).toHaveAttribute('href',url);await expect(host).toContainText('Отправка подтверждена');
@@ -123,7 +124,17 @@ for(const width of [390,430,768,1440])test.describe('Source publication at '+wid
   await openLead(page,12);await expect(host.locator('.postContextTeaser')).toHaveText('Египет — отдых у моря');await openPostOverlay(page);
   await expect(host.locator('.postContextOverlayTitle')).toHaveText('Исходный пост');await expect(host).not.toContainText(/iPhone|6 500|ответ бота/);clean(s);
  });
- test('published unpriced Rixos post keeps its original link and explicit source',async({page,browserName})=>{
+ test('Apple direct entry without a confirmed publication is visible as unknown, never a paid click',async({page,browserName})=>{
+   const s=await setup(page,{repairEntry:true});
+   s.contexts.set(11,{current:null,history:[]});
+   await openLead(page);const host=page.locator('#conversationPostContext');
+   await expect(host).toHaveAttribute('data-state','unknown');
+   await expect(host.locator('.postContextTeaser')).toHaveText('Источник обращения не определён');
+   await expect(host.locator('.postContextQuickLink')).toBeHidden();
+   await expect(page.locator('#replyText')).toBeEnabled();
+   await bounded(page);await capture(page,browserName,width,'apple-unknown');clean(s);
+  });
+  test('published unpriced Rixos post keeps its original link and explicit source',async({page,browserName})=>{
   const s=await setup(page),url='https://max.ru/channel_anytour/AaF5iOyMXHU';
   s.contexts.set(11,{current:post(11,101,{publication_id:70,version_id:82,title:'Rixos Premium Magawish Suites & Villas',post_url:url,source_name:'AnyTour Москва',source_key:'max_anytour_msk1',text:'Rixos Premium Magawish Suites & Villas\nЕгипет · Хургада\n\nПросторные сьюты и виллы, песчаный пляж и «ультра всё включено» — для отдыха семьёй или вдвоём.\n\nОтель для семей и пар.'}),history:[]});
   await openLead(page);await openPostOverlay(page);const host=page.locator('#conversationPostContext');

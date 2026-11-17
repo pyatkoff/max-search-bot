@@ -7,3 +7,10 @@
 @media(max-width:740px){.postContext{flex-basis:44px;height:44px;min-height:44px;max-height:44px}.postContextToggle{padding:0 12px;gap:7px}.postContextLabel{font-size:11px}.postContextTeaser{font-size:12px}.postContextOverlay{left:6px;right:6px}.postContextOverlayHead{padding-left:12px;min-height:48px}.postContextClose{width:40px;height:40px;flex-basis:40px}.postContextOverlayContent{padding:12px}.postContextHead{gap:8px}.postContextOriginal{min-height:40px;padding:0 8px;font-size:11px}.postContextTitle{font-size:12px}.postContextMeta{font-size:10px;line-height:1.4}.postContextDisclosure>summary{min-height:40px;font-size:11px}.postContextText{font-size:13px;padding:9px 10px}.postContextHistoryList{gap:10px}}
 @media(max-height:650px){.postContextText{max-height:180px}.manager2 .conversationZone:has(>#conversationSearchPanel:not(.hidden))>.postContext{display:none}}
 @media(prefers-reduced-motion:reduce){.postContextDisclosure>summary:before{transition:none}}
+/* AppleService39: direct, verified post link stays visible beside the source preview. */
+.postContextQuickLink[hidden]{display:none!important}
+.postContext[data-has-quick-link="true"]{display:flex;align-items:center}
+.postContext[data-has-quick-link="true"] .postContextToggle{flex:1 1 auto;width:auto}
+.postContextQuickLink{display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;min-height:30px;margin-right:12px;padding:0 9px;border:1px solid #dce7d7;border-radius:7px;background:#fff;color:#356149;text-decoration:none;font-size:11px;font-weight:600;white-space:nowrap}
+.postContextQuickLink:hover{background:#edf4e7}.postContextQuickLink:focus-visible{outline:2px solid #477351;outline-offset:2px}
+@media(max-width:740px){.postContextQuickLink{min-height:36px;margin-right:8px;padding:0 8px}}

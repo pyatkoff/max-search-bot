@@ -2,7 +2,7 @@
   'use strict';
   let W=null,S=null,$=null;
   let host=null,endpoint='post-context-api.php',active=null,sequence=0,bound=false;
-  let trigger=null,overlay=null,content=null,closeButton=null,teaser=null,photoHint=null;
+  let trigger=null,overlay=null,content=null,closeButton=null,teaser=null,photoHint=null,sourceLink=null;
   const disclosures=new Map();
   function runtime(){W=window.WorkspaceV2;if(!W)return false;S=W.S;$=W.$;return !!S&&typeof $==='function'}
   function node(tag,className,text){const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=String(text);return el}
@@ -110,7 +110,9 @@
     overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','false');overlay.setAttribute('aria-labelledby','conversationPostContextDialogTitle');
     const head=node('div','postContextOverlayHead'),title=node('strong','postContextOverlayTitle','Исходный пост');title.id='conversationPostContextDialogTitle';head.appendChild(title);
     closeButton=node('button','postContextClose','×');closeButton.type='button';closeButton.setAttribute('aria-label','Закрыть пост клиента');head.appendChild(closeButton);
-    content=node('div','postContextOverlayContent');overlay.appendChild(head);overlay.appendChild(content);host.replaceChildren(trigger,overlay);
+    content=node('div','postContextOverlayContent');overlay.appendChild(head);overlay.appendChild(content);
+    sourceLink=node('a','postContextQuickLink','Открыть пост');sourceLink.hidden=true;sourceLink.target='_blank';sourceLink.rel='noopener noreferrer';
+    host.replaceChildren(trigger,sourceLink,overlay);
     trigger.addEventListener('click',()=>{if(overlay.hidden)openOverlay();else closeOverlay()});
     closeButton.addEventListener('click',()=>closeOverlay());
   }
@@ -129,6 +131,7 @@
   function notice(text,kind){
     if(!host)return;
     ensureFrame();labels(false);
+    sourceLink.hidden=true;sourceLink.href='';host.dataset.hasQuickLink='false';
     host.hidden=false;host.dataset.state=kind;host.setAttribute('aria-busy',kind==='loading'?'true':'false');
     const status=node('div','postContextNotice'+(kind==='error'?' isError':''),text);status.setAttribute('role','status');
     teaser.textContent=kind==='loading'?'Загрузка…':text;photoHint.hidden=true;
@@ -138,8 +141,8 @@
   function clear({forget=false}={}){
     sequence++;rememberDisclosures();active=null;
     if(forget)disclosures.clear();
-    if(host){if(host.children.length)host.replaceChildren();host.hidden=true;host.removeAttribute('aria-busy');host.dataset.state='idle'}
-    trigger=overlay=content=closeButton=teaser=photoHint=null;
+    if(host){if(host.children.length)host.replaceChildren();host.hidden=true;host.removeAttribute('aria-busy');host.dataset.state='idle';host.dataset.hasQuickLink='false'}
+    trigger=overlay=content=closeButton=teaser=photoHint=sourceLink=null;
   }
   function entryMarkup(entry,context,previous=false){
     const card=node('section',previous?'postContextPrevious':'postContextCard');
@@ -202,13 +205,23 @@
   function render(context,payload){
     if(!host||!current(context))return;
     rememberDisclosures();ensureFrame();host.hidden=false;host.dataset.state='ready';host.setAttribute('aria-busy','false');
+    // Only the authorized project detail identifies a repair business. Never infer it from a name or message.
+    const apple=!!document.body.classList.contains('manager2')&&S.detail?.conversation?.project_key==='appleservice39';
     const latest=payload?.current,history=Array.isArray(payload.history)?payload.history.slice(0,4):[],repair=repairContext(payload?.repair);
     const funnel=payload?.funnel&&safePostUrl(payload.funnel.post_url,'max')?payload.funnel:null;
     labels(!!repair);
     if(!latest&&!history.length&&!repair&&!funnel){
+      if(apple){
+        // A missing trusted entry is a real state for a repair manager, not a hidden blank area.
+        // It does not imply an organic visit, an advertising click, or a broken provider link.
+        host.dataset.state='unknown';sourceLink.hidden=true;sourceLink.href='';host.dataset.hasQuickLink='false';
+        teaser.textContent='Источник обращения не определён';trigger.title=teaser.textContent;photoHint.hidden=true;
+        replaceContent(node('div','postContextNotice','Исходный пост этого обращения не подтверждён. Рекламный визит не установлен.'));
+        overlay.hidden=active.viewOpen!==true;trigger.setAttribute('aria-expanded',overlay.hidden?'false':'true');sizeOverlay();return;
+      }
       // Ordinary/legacy dialogues have no publication entry. Keep the optional
       // panel absent without discarding the completed read/deduplication key.
-      host.replaceChildren();host.hidden=true;host.dataset.state='empty';trigger=overlay=content=closeButton=teaser=photoHint=null;active.viewOpen=false;return;
+      host.replaceChildren();host.hidden=true;host.dataset.state='empty';trigger=overlay=content=closeButton=teaser=photoHint=sourceLink=null;active.viewOpen=false;return;
     }
     const items=[];
     if(funnel){
@@ -228,7 +241,17 @@
     const available=latest&&latest.unavailable!==true&&latest.available!==false;
     const title=available?String(latest.title||'').trim():'';
     const snippet=available?String(latest.text||'').replace(/\s+/g,' ').trim():'';
-    teaser.textContent=repair?repairTitle(repair):funnel?String(funnel.title||'Публикация клиента'):available?(title&&title!=='Публикация'?title:snippet||'Открыть условия публикации'):'Последний пост недоступен';
+    const description=repair?repairTitle(repair):funnel?String(funnel.title||'Публикация клиента'):available?(title&&title!=='Публикация'?title:snippet||'Открыть условия публикации'):'Последний пост недоступен';
+    if(apple){
+      // A permalink is shown only when the protected endpoint returned a verified publication.
+      // Native post context and paid advertising attribution are never treated as synonyms.
+      const url=repair?safePostUrl(repair.post_url,'max'):funnel?safePostUrl(funnel.post_url,'max'):
+        available?safePostUrl(latest.post_url,latest.platform):'';
+      sourceLink.hidden=!url;sourceLink.href=url||'';host.dataset.hasQuickLink=url?'true':'false';
+      teaser.textContent=(repair||funnel||available)?(url?'Источник: ':'Контекст входа: ')+description:'Источник обращения не определён';
+    }else{
+      sourceLink.hidden=true;sourceLink.href='';host.dataset.hasQuickLink='false';teaser.textContent=description;
+    }
     trigger.title=teaser.textContent;photoHint.hidden=!(available&&Number(latest.media_count||0)>0);
     replaceContent(...items);
     overlay.hidden=active.viewOpen!==true;trigger.setAttribute('aria-expanded',overlay.hidden?'false':'true');hydratePhotos();sizeOverlay();
