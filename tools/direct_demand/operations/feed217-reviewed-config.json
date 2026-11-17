@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "state": "REVIEWED_FINITE_FEED217_EXACT_ROOT_PERMIT_CHAIN",
-  "parent_sha": "ff6b461aa5161ea0941629350e7ff70b7f587ce7",
+  "parent_sha": "76bfa1517818af8d458e9e227fd18ab45e3ff6fc",
   "claim_id": 6955394658,
   "claim_body_sha256": "51cc2d3531118e2aba6146515946dc2efad9a78130864d5fd45a03789ce6c37a",
   "permit_comment_id": 6957283506,
@@ -211,7 +211,8 @@
         "source_path": "tools/direct_demand/operations/tail217/p26/read.php",
         "sha256": "2bdbaf57277bd69e2eec9fee6e59e777bab13ec1b90b6706cdd288d3ec7434a8"
       }
-    }
+    },
+    "source_mode": "PINNED_CHECKOUT_IDENTICAL_TO_ACCEPTED_READER"
   },
   "original_read_artifact": {
     "repository": "pyatkoff/max-search-bot",
@@ -336,11 +337,11 @@
     "head_sha": "bbef3101f8c8f6eae15355c0d6fa4b8c1848dfa2"
   },
   "source_sha256": {
-    ".github/workflows/price27316-feed217.yml": "74176372ecb7227356df78b4d2736e649ba1a2c8d5eec1066afeb96a107a648a",
-    "tools/direct_demand/operations/execute_feed217.py": "27ba3ab06c13bc692c0bc7c4327ae4b61946ee39f8c268fe515f022387e77ae7",
+    ".github/workflows/price27316-feed217.yml": "61fc9f760bd624556d1d54ae93aa4a61b497b895d4bf3d69e366289deb922713",
+    "tools/direct_demand/operations/execute_feed217.py": "933c792565e843724a0e99ff06a8deb4d0b542ea5689dc514e6b5eac20b64564",
     "tools/direct_demand/operations/immutable_source_cache.py": "4fb4c879469877c612d2d101eba89214806563a026c9e2e38905875dd95a99f0",
     "tools/direct_demand/operations/inventory217-provenance.json": "69d6813bd7a3a06ad7f62f6a13baa33c8f13ab62f12ca5d57899fb329609fb88",
-    "tools/direct_demand/operations/nonwriting_queued217_guard.py": "593727bb767afab6f25109ab4f7a35fc87701bbd7c8a708069dec3fa8dd48d91",
+    "tools/direct_demand/operations/nonwriting_queued217_guard.py": "c05802074eea620d8b1a6337b5e9dd1aff053a0863b83b252cabec10aec9cefe",
     "tools/direct_demand/operations/original_acceptance217.py": "dfb560453ed9cd56218cd3ad80594012485f35551abf308266cd582e861808d3",
     "tools/direct_demand/operations/owner_permit_gate.py": "dc17ee04783f0198f2c6887432b3367e58a2bd270b9906a3ebbf1cba821a1f3c",
     "tools/direct_demand/operations/prepare_feed217.py": "5a2144916be7af58c23dd62453276976f3151c21c775d993b44a42b7bf8de74b",

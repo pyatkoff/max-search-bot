@@ -55,9 +55,31 @@ def materialize_artifact(desc,out):
    info=z.getinfo(member);need(not info.is_dir() and info.file_size<=20000000 and not ((info.external_attr>>16)&0o170000)==0o120000,'artifact_member_invalid');b=z.read(member);need(sha(b)==item['sha256'],'artifact_member_changed');p=safe(out,item['path']);p.parent.mkdir(mode=0o700,parents=True,exist_ok=True);need(not p.exists(),'duplicate_output');p.write_bytes(b)
  return out
 
+def pinned_checkout_reader(p):
+ files=p.get('files',{});names={'intent.json','run217.py','admission-config.json','namespace-provenance.json'}|{f'p{b:02d}/read.php' for b in ORDER}
+ need(set(files)==names and not p.get('artifact'),'local_reader_exact28_scope')
+ need(re.fullmatch('[a-f0-9]{40}',p.get('source_commit','')) is not None,'immutable_reader_source_missing')
+ root=pathlib.Path.cwd();blobs={}
+ for name,item in files.items():
+  rel=item['source_path'];need(rel=='tools/direct_demand/operations/tail217/'+name,'local_reader_source_path_changed')
+  parts=pathlib.PurePosixPath(rel).parts;need('..' not in parts and not pathlib.PurePosixPath(rel).is_absolute(),'local_reader_path_escape')
+  cursor=root
+  for part in parts:
+   cursor=cursor/part;need(not cursor.is_symlink(),'local_reader_symlink')
+  need(cursor.is_file() and cursor.stat().st_size<=2000000,'local_reader_missing_or_oversize')
+  need(re.fullmatch('[a-f0-9]{64}',item.get('sha256','')) is not None,'local_reader_digest_missing')
+  blobs[name]=pin(cursor,item['sha256'])
+ return blobs
+
 def reader_packet(c,out):
- p=c['reader_packet'];accepted_run('pyatkoff/max-search-bot',p['accepted_run_id'],p['source_commit']);need(p['runtime_sha']==c['runtime_acceptance']['head_sha'],'reader_runtime_mismatch_no_rebind')
- if p.get('artifact'):materialize_artifact(p['artifact'],out)
+ p=c['reader_packet'];mode=p.get('source_mode','IMMUTABLE_GITHUB_CONTENTS')
+ need(mode in ('IMMUTABLE_GITHUB_CONTENTS','PINNED_CHECKOUT_IDENTICAL_TO_ACCEPTED_READER'),'unknown_reader_source_mode')
+ accepted_run('pyatkoff/max-search-bot',p['accepted_run_id'],p['source_commit']);need(p['runtime_sha']==c['runtime_acceptance']['head_sha'],'reader_runtime_mismatch_no_rebind')
+ if mode=='PINNED_CHECKOUT_IDENTICAL_TO_ACCEPTED_READER':
+  blobs=pinned_checkout_reader(p);out.mkdir(mode=0o700)
+  for name,raw in blobs.items():
+   dest=safe(out,name);dest.parent.mkdir(parents=True,exist_ok=True,mode=0o700);dest.write_bytes(raw)
+ elif p.get('artifact'):materialize_artifact(p['artifact'],out)
  else:
   out.mkdir(mode=0o700)
   for path,item in p['files'].items():

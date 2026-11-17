@@ -19,6 +19,9 @@ MERGE_REFERENCES_BY_RUN[44154342422]=[{'path':'pyatkoff/max-search-bot/.github/w
 # Independently reviewed PR1613 regression: exact immutable run/source, no production capabilities.
 NEW_REVIEWED[44170196448]={'id': 44170196448, 'head_sha': 'e07bbb67103fa638178f9b22d28336ea351bbe32', 'path': '.github/workflows/regression-tests.yml', 'event': 'pull_request', 'workflow_id': 340550044, 'head_branch': 'fix/modeled-quoted-package-price-followup-20261117', 'workflow_sha256': '317c2cbd9f597414a3207d7181beb8661cb881c98e1f85aaa32a793166e43b2e'}
 MERGE_REFERENCES_BY_RUN[44170196448]=[{'path': 'pyatkoff/max-search-bot/.github/workflows/ci-change-scope.yml@a33d72e8f3e7b489514b9729764cd920c4f442e5', 'sha': 'a33d72e8f3e7b489514b9729764cd920c4f442e5', 'ref': 'refs/pull/1613/merge'}]
+# Exact independently reviewed PR1613 successor only.
+NEW_REVIEWED[44172612168]={'id': 44172612168, 'head_sha': 'c935e6cd4dcb4bb13643aa43070a96a17b1ebde7', 'path': '.github/workflows/regression-tests.yml', 'event': 'pull_request', 'workflow_id': 340550044, 'head_branch': 'fix/modeled-quoted-package-price-followup-20261117', 'workflow_sha256': '317c2cbd9f597414a3207d7181beb8661cb881c98e1f85aaa32a793166e43b2e'}
+MERGE_REFERENCES_BY_RUN[44172612168]=[{'path': 'pyatkoff/max-search-bot/.github/workflows/ci-change-scope.yml@bf4c4b3ae859eb245fdc97593832fff97cf33fb9', 'sha': 'bf4c4b3ae859eb245fdc97593832fff97cf33fb9', 'ref': 'refs/pull/1613/merge'}]
 def allowed(run,current_main,api):
  fresh_ci=run.get('id') in NEW_REVIEWED
  expected=NEW_REVIEWED.get(run.get('id')) if fresh_ci else next((x for x in REVIEWED if x['id']==run.get('id')),None)

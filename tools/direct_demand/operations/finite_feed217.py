@@ -9,7 +9,7 @@ from route_read_lineage import rebind
 import reconstruct_inventory217 as reconstruct
 import nonwriting_queued217_guard as nonwriting
 from immutable_source_cache import cached_api
-REVIEWED_CONFIG_SHA256='7ceb17bc764c4b33feae7de3d4a941787f1651c540cd453712096657c6034896'
+REVIEWED_CONFIG_SHA256='3c8ec9741365ecd71728ee219e7c13ea4342f24727cebb019624313b720d2df4'
 MAX_WAIT_SECONDS=120
 MAX_POLLS_PER_STEP=12
 MAX_CHAIN_POLL_READS=144
@@ -28,7 +28,7 @@ def rate_snapshot():
 
 def public_exclusive(c):
  execution=e.origin(c);current=int(os.environ['GITHUB_RUN_ID'])
- e.pin(pathlib.Path(__file__).with_name('nonwriting_queued217_guard.py'),'593727bb767afab6f25109ab4f7a35fc87701bbd7c8a708069dec3fa8dd48d91')
+ e.pin(pathlib.Path(__file__).with_name('nonwriting_queued217_guard.py'),'c05802074eea620d8b1a6337b5e9dd1aff053a0863b83b252cabec10aec9cefe')
  for status in gate.STATUSES:
   for repo,path in [('pyatkoff/max-search-bot','actions/runs?'),('pyatkoff/poisk-turov-test','actions/workflows/346454799/runs?')]:
    d=e.api(repo,path+'status='+status+'&per_page=100');e.need(d['total_count']==len(d['workflow_runs']) and d['total_count']<=100,'ambiguous_public_runs')
@@ -116,7 +116,10 @@ def prepare(c,raw):
  e.need([g['batch'] for g in plan['groups']]==e.ORDER[1:] and not (root/'compiled'/'p01').exists(),'prefix_writer_must_not_exist')
  plan_sha=e.sha((root/'compiled'/'intent.json').read_bytes());progress=root/'progress';progress.mkdir(mode=0o700)
  e.save(root/'state.json',{'next_index':0,'previous_native_receipt_sha256':prefix['previous_native_receipt_sha256'],'pairs':670,'expected_feeds':ad['previous_feed_sha256'],'plan_sha256':plan_sha,'root_projection_sha256':e.sha(packet_raw),'read_started_at':refresh['started_at'],'original_read_root':str(reads),'completed':[],'resume_prefix':prefix,'poll_reads_used':0,'permit_guards_used':0,'read_refreshes':0,'first_writer_budget_checked':False})
- after_rate=rate_snapshot();e.need(after_rate['reset']==before_rate['reset'] and 0<=after_rate['used']-before_rate['used']<=PREPARE_GET_CAP,'prepare_rate_window_or_budget_changed')
+ after_rate=rate_snapshot()
+ # Persist only bounded numeric evidence BEFORE the unchanged safety predicate.
+ e.save(root/'prepare-rate-diagnostic.json',{'stage':'AFTER_COMPILATION_BEFORE_PREPARE_BUDGET_GATE','before':{k:before_rate[k] for k in ('used','reset','remaining')},'after':{k:after_rate[k] for k in ('used','reset','remaining')},'used_delta':after_rate['used']-before_rate['used'],'same_reset_window':after_rate['reset']==before_rate['reset'],'prepare_cap':PREPARE_GET_CAP})
+ e.need(after_rate['reset']==before_rate['reset'] and 0<=after_rate['used']-before_rate['used']<=PREPARE_GET_CAP,'prepare_rate_window_or_budget_changed')
  e.save(root/'prepare-rate-budget.json',{'before':before_rate,'after':after_rate,'conservative_prepare_cap':PREPARE_GET_CAP,'writer_suffix_cap':682,'reserved_margin':100})
  # Only hash/operation/count metadata for live root coordination, never raw reads/maps.
  deliver=root/'deliver-plan';deliver.mkdir(mode=0o700);e.save(deliver/'plan.json',{'execution':execution,'plan_sha256':plan_sha,'root_projection_sha256':e.sha(packet_raw),'groups':[{k:g[k] for k in ['batch','operation','hotels','script_sha256','files']} for g in plan['groups']],'initial_preimages':ad['previous_feed_sha256'],'execution_mode':c['execution_mode'],'resume_prefix':prefix,'initial_pairs':670,'hotels':207,'permit_comment_id':c['permit_comment_id'],'claim_id':c['claim_id'],'private_branch_sha':c['root_verified_route_source']['head_sha'],'permit_ttl_seconds':60,'permit_nonce_encoding':'SHA256 of sorted compact UTF8 expected object excluding permit_comment_id and nonce','api_budget':{'prepare_cap':200,'suffix_cap':682,'margin':100,'per_step_polls':12,'chain_poll_cap':144,'chain_guard_cap':26,'refresh_cap':2},'root_private_checks_required_before_every_write':True});print('FINITE_FEED_PLAN_READY_NO_WRITES')
@@ -198,6 +201,9 @@ if __name__=='__main__':
   if root.is_dir():
    failure={'ok':False,'state':'STOP_NO_RETRY','mode':sys.argv[2] if len(sys.argv)>2 else None,'step':sys.argv[3] if len(sys.argv)>3 else None,'error_class':type(ex).__name__}
    if (root/'blocked-guard.json').is_file():failure['guard_diagnostic']=json.loads((root/'blocked-guard.json').read_bytes())
+   if (root/'prepare-rate-diagnostic.json').is_file():
+    diagnostic=json.loads((root/'prepare-rate-diagnostic.json').read_bytes())
+    failure['prepare_rate_budget']={'stage':'AFTER_COMPILATION_BEFORE_PREPARE_BUDGET_GATE','before':{k:diagnostic['before'][k] for k in ('used','reset','remaining') if type(diagnostic.get('before',{}).get(k)) is int},'after':{k:diagnostic['after'][k] for k in ('used','reset','remaining') if type(diagnostic.get('after',{}).get(k)) is int},'prepare_cap':PREPARE_GET_CAP}
    if (root/'first-writer-rate-budget.json').is_file():
     budget=json.loads((root/'first-writer-rate-budget.json').read_bytes());failure['first_writer_rate_budget']={k:budget[k] for k in ('remaining','used','reset') if type(budget.get(k)) is int}
    e.save(root/'failure.json',failure)
