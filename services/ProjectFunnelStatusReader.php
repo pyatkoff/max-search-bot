@@ -189,14 +189,28 @@ final class ProjectFunnelStatusReader
     {
         $rows=$this->rows("SELECT c.project_key,c.channel,c.is_test,CASE WHEN LENGTH(c.metadata_json)<=4096 THEN c.metadata_json ELSE NULL END AS metadata_json,
             CASE WHEN EXISTS(SELECT 1 FROM conversation_events e WHERE e.conversation_id=c.id AND e.event_type='project_funnel_entry') THEN 1 ELSE 0 END AS entry_recorded,
-            CASE WHEN EXISTS(SELECT 1 FROM conversation_events e WHERE e.conversation_id=c.id AND e.event_type='waiting_manager') THEN 1 ELSE 0 END AS handoff_recorded
+            CASE WHEN EXISTS(SELECT 1 FROM conversation_events e WHERE e.conversation_id=c.id AND e.event_type='waiting_manager') THEN 1 ELSE 0 END AS handoff_recorded,
+            CASE WHEN EXISTS(SELECT 1 FROM conversation_events e WHERE e.conversation_id=c.id AND e.event_type='bot_started') THEN 1 ELSE 0 END AS bot_start_recorded,
+            CASE WHEN EXISTS(SELECT 1 FROM conversation_events e WHERE e.conversation_id=c.id AND e.event_type='bot_started'
+                AND INSTR(e.payload_json, '\"repair_entry_reply\":')>0) THEN 1 ELSE 0 END AS reviewed_start_recorded,
+            CASE WHEN EXISTS(SELECT 1 FROM messages m WHERE m.conversation_id=c.id AND m.direction='outbound' AND m.sender_type='manager') THEN 1 ELSE 0 END AS manager_reply_recorded
             FROM conversations c WHERE c.project_key=? AND HEX(c.project_key)=HEX(?) AND c.channel='max' ORDER BY c.id DESC LIMIT 101",[self::PROJECT,self::PROJECT]);
-        $complete=count($rows)<=self::ROW_LIMIT;$counts=['unmarked_test_conversations'=>0,'marked_test_conversations'=>0,'entry_recorded'=>0,'handoff_recorded'=>0,'unconfirmed_scope'=>0];
+        // Bounded, privacy-safe diagnosis: a reviewed bot start without a funnel event
+        // needs investigation, not retroactive attribution or a fabricated conversion.
+        $complete=count($rows)<=self::ROW_LIMIT;$counts=['unmarked_test_conversations'=>0,'marked_test_conversations'=>0,
+            'entry_recorded'=>0,'handoff_recorded'=>0,'bot_start_recorded'=>0,'reviewed_start_recorded'=>0,
+            'reviewed_start_without_entry'=>0,'no_saved_bot_start'=>0,'manager_reply_recorded'=>0,'unconfirmed_scope'=>0];
         foreach(array_slice($rows,0,self::ROW_LIMIT)as$row){
             $meta=is_string($row['metadata_json'])?json_decode($row['metadata_json'],true):null;
             if($row['project_key']!==self::PROJECT||$row['channel']!=='max'||!is_array($meta)||($meta['max_bot_key']??null)!==self::BOT){$counts['unconfirmed_scope']++;continue;}
             if((string)$row['is_test']!=='0'){$counts['marked_test_conversations']++;continue;}
             $counts['unmarked_test_conversations']++;$counts['entry_recorded']+=(int)$row['entry_recorded'];$counts['handoff_recorded']+=(int)$row['handoff_recorded'];
+            $start=(int)$row['bot_start_recorded']===1;$reviewed=(int)$row['reviewed_start_recorded']===1;$funnel=(int)$row['entry_recorded']===1;
+            $counts['bot_start_recorded']+=(int)$start;
+            $counts['reviewed_start_recorded']+=(int)$reviewed;
+            $counts['reviewed_start_without_entry']+=(int)($reviewed&&!$funnel);
+            $counts['no_saved_bot_start']+=(int)!$start;
+            $counts['manager_reply_recorded']+=(int)((int)$row['manager_reply_recorded']===1);
         }
         return ['available'=>true,'complete'=>$complete,'reason'=>$complete?null:'row_limit','examined'=>min(count($rows),self::ROW_LIMIT),'limit'=>self::ROW_LIMIT,
             'population'=>'is_test_zero_only_not_organic_evidence','counts'=>$complete?$counts:null];

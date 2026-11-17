@@ -224,9 +224,18 @@ fixed reasons. The reader does not inspect or publish the source of an override.
 `outbox` separates allowlisted saved states under the approved policy from other
 historical policies. Its population includes marked-test rows, before receipt
 validation. `intake` reports marked and unmarked conversations separately;
-`is_test = 0` means only that no test mark is present. `observations` counts scoped
-observation rows and recorded ClientID presence, not distinct visitors or
-send-eligible forecasts. None of these counts proves organic traffic or a sale.
+`is_test = 0` means only that no test mark is present. It also counts saved
+`bot_started` events, starts whose trusted server-side reply context was
+captured, those reviewed starts lacking `project_funnel_entry`, conversations
+with no stored bot start, and recorded human replies. Each count is bounded to
+the same recent Apple/MAX conversation cohort, contains no identifiers or
+customer text and is read without changing the source. A reviewed start without
+a funnel event warrants a scoped investigation of the entry writer; it does
+**not** prove a paid click or authorize a retroactive conversion. An absent
+saved start cannot be labelled organic without further evidence.
+`observations` counts scoped observation rows and recorded ClientID presence,
+not distinct visitors or send-eligible forecasts. None of these counts proves
+organic traffic or a sale.
 
 `first_saved_forecast` selects the earliest saved Apple predictive row by ID
 before checking policy, conversation scope, test marks or outcome. An orphan,
