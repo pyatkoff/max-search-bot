@@ -287,6 +287,14 @@ class DialogueView
         );
     }
 
+    public static function sourceEarlyPriceGuidance($chatId): bool
+    {
+        return (bool)IntegrationRegistry::messenger()->send(
+            $chatId,
+            'Чтобы проверить стоимость тура, нужны дата вылета, город вылета, продолжительность и состав туристов. Наличие и цена конкретного отеля пока не подтверждены. Можно ответить на предыдущий вопрос и продолжить подбор или написать «Позвать менеджера» для проверки вариантов.'
+        );
+    }
+
     public static function checkPriceGuidance($chatId): bool
     {
         return (bool)IntegrationRegistry::messenger()->send(
