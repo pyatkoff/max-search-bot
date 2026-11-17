@@ -1,0 +1,338 @@
+{
+  "schema_version": 1,
+  "state": "TAIL_CAPTIONS_CHECKED_AWAITING_SOURCE_ACCEPTANCE",
+  "published_baseline": 1070,
+  "rows": [
+    {
+      "hotel_id": 33574,
+      "name": "The Westin Puntacana Resort",
+      "location": "Плая-Бланка, Доминикана",
+      "caption": "✈️ Туры в The Westin Puntacana Resort\n📍 Плая-Бланка, Доминикана.\n\nКурорт стоит на песчаном берегу Плая-Бланка. Можно отвести утро на море, а после обеда сыграть в гольф на прибрежном поле. Хороший выбор для поездки вдвоём, если хочется совмещать пляж и активный отдых.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "THE WESTIN PUNTA CANA RESORT & CLUB",
+        "The Westin Puntacana Resort"
+      ],
+      "official_sources": [
+        "https://www.marriott.com/en-us/hotels/pujwi-the-westin-puntacana-resort/experiences/",
+        "https://www.marriott.com/en-us/hotels/pujwi-the-westin-puntacana-resort-and-club/golf/"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=33574",
+      "publication_allowed": false,
+      "cover_sha256": "470a88d36ca8b15f445a4eecbef5b67fe4d87fbd6e7f93d3671f44046aa4dd7d"
+    },
+    {
+      "hotel_id": 2511,
+      "name": "Al Raha Beach Resort & Spa",
+      "location": "Абу-Даби, ОАЭ",
+      "caption": "✈️ Туры в Al Raha Beach Resort & Spa\n📍 Абу-Даби, ОАЭ.\n\nМожно провести день на песчаном пляже или у панорамного бассейна главного корпуса. После купания удобно остаться на территории и отдохнуть в спа. Подойдёт для спокойной поездки к морю в Абу-Даби.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "AL RAHA BEACH HOTEL",
+        "Al Raha Beach Resort & Spa"
+      ],
+      "official_sources": [
+        "https://www.danathotels.com/abudhabi/alrahabeach",
+        "https://www.danathotels.com/abudhabi/alrahabeach/recreation"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2511",
+      "publication_allowed": false,
+      "cover_sha256": "0c7a7e16b8257c77ea13633497313ce78fe3421f3620836e1b080e2b6667c8de"
+    },
+    {
+      "hotel_id": 2357,
+      "name": "Nusa Dua Beach Hotel & Spa",
+      "location": "Нуса-Дуа, Индонезия",
+      "caption": "✈️ Туры в Nusa Dua Beach Hotel & Spa\n📍 Нуса-Дуа, Индонезия.\n\nОтель на пляже Нуса-Дуа с балийской дворцовой архитектурой. По пути к морю можно прогуляться среди резных ворот и садов. Подойдёт для семейного отдыха, если хочется жить у берега и чувствовать, что вы именно на Бали.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "NUSA DUA BEACH HOTEL & SPA",
+        "Nusa Dua Beach Hotel & Spa"
+      ],
+      "official_sources": [
+        "https://all.accor.com/hotel/C150/index.en.shtml"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2357",
+      "publication_allowed": false,
+      "cover_sha256": "e62ee504865d12f3f337334683b03114218d4cb5d19fbfaad8a94818bbbfcefe"
+    },
+    {
+      "hotel_id": 135441,
+      "name": "Beach Rotana All Suites",
+      "location": "Абу-Даби, ОАЭ",
+      "caption": "✈️ Туры в Beach Rotana All Suites\n📍 Абу-Даби, ОАЭ.\n\nДля долгой поездки или отдыха семьёй здесь можно выбрать апартаменты с двумя или тремя спальнями, мини-кухней и гостиной. За покупками удобно ходить в соседний Абу-Даби Молл, а купаться можно в пляжном клубе Beach Rotana.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "BEACH ROTANA ALL SUITES",
+        "Beach Rotana All Suites"
+      ],
+      "official_sources": [
+        "https://www.rotana.com/rotanahotelandresorts/unitedarabemirates/abudhabi/beachrotanaallsuites/",
+        "https://www.rotana.com/rotanahotelandresorts/unitedarabemirates/abudhabi/beachrotanaallsuites/accommodation"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=135441",
+      "publication_allowed": false,
+      "cover_sha256": "d6dccbe539c78524e1aafcc739cbb6fbc28d2c2ce2955df425356153f52d593f"
+    },
+    {
+      "hotel_id": 2495,
+      "name": "JA Manafaru",
+      "location": "атолл Хаа-Алифу, Мальдивы",
+      "caption": "✈️ Туры в JA Manafaru\n📍 атолл Хаа-Алифу, Мальдивы.\n\nВодная вилла с собственным бассейном подойдёт для отдыха вдвоём. Утром можно спуститься с террасы прямо в океан, а вечером побыть у воды без спешки. Для семей на острове есть и отдельный детский бассейн.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "JA MANAFARU DELUXE",
+        "JA Manafaru"
+      ],
+      "official_sources": [
+        "https://source.jaresortshotels.com/offer-detail/couples-luxury-escape-in-maldives",
+        "https://www.jaresortshotels.com/leisure-detail/swimming-pools-manafaru"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2495",
+      "publication_allowed": false,
+      "cover_sha256": "81739c8a02eb37b84a9462629f4246f95ae5fe1b87684b9a6d0be72f386a9655"
+    },
+    {
+      "hotel_id": 2497,
+      "name": "Al Ain Rotana",
+      "location": "Эль-Айн, ОАЭ",
+      "caption": "✈️ Туры в Al Ain Rotana\n📍 Эль-Айн, ОАЭ.\n\nДнём можно отдохнуть всей семьёй у бассейна среди пальм. В спа есть хаммам, сауна и кабинет для пар, а вечером можно остаться на ужин в отеле. Удобная база для поездки в Эль-Айн.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "AL AIN ROTANA HOTEL",
+        "Al Ain Rotana"
+      ],
+      "official_sources": [
+        "https://www.rotana.com/rotanahotelandresorts/unitedarabemirates/alain/alainrotana",
+        "https://www.rotana.com/rotanahotelandresorts/unitedarabemirates/alain/alainrotana/fitness/zenthespa"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2497",
+      "publication_allowed": false,
+      "cover_sha256": "e2988665fda5e1d452d5acd94f1dee7b5fa7f5c648a78640be2fa5809df17a29"
+    },
+    {
+      "hotel_id": 2600,
+      "name": "Le Méridien Abu Dhabi Resort",
+      "location": "Абу-Даби, ОАЭ",
+      "caption": "✈️ Туры в Le Méridien Abu Dhabi Resort\n📍 Абу-Даби, ОАЭ.\n\nПляжный курорт в городе. Утром можно искупаться на собственном пляже, а после прогулок по Абу-Даби вернуться к бассейну или сходить в спа с марокканским хаммамом.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "LE MERIDIEN ABU DHABI HOTEL",
+        "Le Méridien Abu Dhabi Resort"
+      ],
+      "official_sources": [
+        "https://www.marriott.com/en-us/hotels/auhmd-le-meridien-abu-dhabi-resort/overview/"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2600",
+      "publication_allowed": false,
+      "cover_sha256": "7ff5f7f22b79f08db0c499ceb9b8d8bb1d026791e804fb8e0c99f2fa7e5c3361"
+    },
+    {
+      "hotel_id": 2765,
+      "name": "Majestic Colonial Punta Cana",
+      "location": "Пунта-Кана, Доминикана",
+      "caption": "✈️ Туры в Majestic Colonial Punta Cana\n📍 Пунта-Кана, Доминикана.\n\nМежду садом и пляжем тянется 400-метровый бассейн с семейной зоной. Удобно отдыхать с детьми: утром можно купаться у берега, а после обеда проводить время у воды на территории.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "MAJESTIC COLONIAL PUNTA CANA",
+        "Majestic Colonial Punta Cana"
+      ],
+      "official_sources": [
+        "https://www.majestic-resorts.com/punta-cana/resorts/majestic-colonial-punta-cana/inclusions"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2765",
+      "publication_allowed": false,
+      "cover_sha256": "d93ae382edd86f16bb646843e2ab91027375fe90275d043c8c484259cf4789d5"
+    },
+    {
+      "hotel_id": 4542,
+      "name": "Hard Rock Hotel & Casino Punta Cana",
+      "location": "Пунта-Кана, Доминикана",
+      "caption": "✈️ Туры в Hard Rock Hotel & Casino Punta Cana\n📍 Пунта-Кана, Доминикана.\n\nНа территории есть аквапарк Rockaway Bay с 26 горками. С детьми можно провести день на горках, а на следующий выбрать пляж или один из бассейнов. Подойдёт для активных семейных каникул.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "HARD ROCK HOTEL & CASINO PUNTA CANA",
+        "Hard Rock Hotel & Casino Punta Cana"
+      ],
+      "official_sources": [
+        "https://hotel.hardrock.com/punta-cana/rockaway-bay-water-park.aspx",
+        "https://hotel.hardrock.com/punta-cana/family-amenities.aspx"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4542",
+      "publication_allowed": false,
+      "cover_sha256": "61acce3291f6dc276b80e8d997f61e2fb3abd38b995a99cad771db1b43c33b07"
+    },
+    {
+      "hotel_id": 50834,
+      "name": "Hilton Dubai Al Habtoor City",
+      "location": "Дубай, ОАЭ",
+      "caption": "✈️ Туры в Hilton Dubai Al Habtoor City\n📍 Дубай, ОАЭ.\n\nОтель стоит у Дубайского водного канала, рядом с театром La Perle. Днём можно смотреть город, а вечером дойти пешком на шоу и вернуться без поездки на такси. Удобный вариант для городского уикенда.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "HILTON DUBAI AL HABTOOR CITY",
+        "Hilton Dubai Al Habtoor City"
+      ],
+      "official_sources": [
+        "https://www.hilton.com/en/hotels/dxbahhi-hilton-dubai-al-habtoor-city/"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=50834",
+      "publication_allowed": false,
+      "cover_sha256": "2f0da9e394118a12d6b2af44f8658fc2f0080ac1ad44f3a05f754dbe540ab788"
+    },
+    {
+      "hotel_id": 4533,
+      "name": "Address Montgomerie",
+      "location": "Дубай, ОАЭ",
+      "caption": "✈️ Туры в Address Montgomerie\n📍 Дубай, ОАЭ.\n\nИз открытого бассейна видно 18-ю лунку и клубный дом. Если едете ради гольфа, удобно жить прямо у поля. А тем, кто не играет, здесь подойдут спокойные дни у воды с видом на зелень Emirates Hills.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "THE ADDRESS MONTGOMERIE DUBAI",
+        "Address Montgomerie"
+      ],
+      "official_sources": [
+        "https://www.addresshotels.com/en/hotels/address-montgomerie/",
+        "https://www.addresshotels.com/en/hotels/address-montgomerie/amenities/"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4533",
+      "publication_allowed": false,
+      "cover_sha256": "6d694ac83fe514b163c393d5a0817af309b66620e42258703b0e53a0e7ed2a14"
+    },
+    {
+      "hotel_id": 113978,
+      "name": "TUI BLUE Olhuveli Romance",
+      "location": "атолл Южный Мале, Мальдивы",
+      "caption": "✈️ Туры в TUI BLUE Olhuveli Romance\n📍 атолл Южный Мале, Мальдивы.\n\nНа острове Romance у Sun Siyam Olhuveli отдыхают гости от 16 лет. Здесь можно выбрать водную виллу или виллу на пляже, проводить день у лагуны и встречать вечер вдвоём на террасе.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "SUN SIYAM OLHUVELI ROMANCE ADULTS ONLY 16+",
+        "TUI BLUE Olhuveli Romance"
+      ],
+      "official_sources": [
+        "https://www.tui-blue.com/en/en/hotels/tui-blue-olhuveli-romance/",
+        "https://www.sunsiyam.com/media/2klhppvf/factsheet-olhuveli-2026.pdf"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=113978",
+      "publication_allowed": false,
+      "cover_sha256": "58d4db4d710960f8e085a93ca7b4850ddae9c909e1b83a4b24f0c9974bbc5699"
+    },
+    {
+      "hotel_id": 80748,
+      "name": "Mövenpick Hotel Cairo-Media City",
+      "location": "Гиза, Египет",
+      "caption": "✈️ Туры в Mövenpick Hotel Cairo-Media City\n📍 Гиза, Египет.\n\nПосле экскурсионного дня можно вернуться к открытым бассейнам и зелени. На террасе ресторана La Terrazza видно бассейны и аквапарк, а напротив отеля находится Mall of Egypt. Удобный вариант для поездки с детьми в Гизу.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "MOVENPICK CAIRO MEDIA CITY",
+        "Mövenpick Hotel Cairo-Media City"
+      ],
+      "official_sources": [
+        "https://movenpick.accor.com/en/hotels/cairo/B4L4/restaurants/R002.html",
+        "https://movenpick.accor.com/en/hotels/cairo/B4L4/restaurants/B002.html"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=80748",
+      "publication_allowed": false,
+      "cover_sha256": "23dd105f6ec797b80c7ab584e0845775fae537432aaf5750a8d9068149b8b0f7"
+    }
+  ],
+  "holds": [
+    {
+      "hotel_id": 15773,
+      "catalogue_name": "THE RITZ-CARLTON ABU DHABI GRAND CANAL",
+      "reason": "Beach works. Reopen after the hotel confirms normal access.",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 329,
+      "catalogue_name": "MOVENPICK RESORT & SPA NABQ",
+      "reason": "The licensed gallery is insufficient for the approved cover.",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2573,
+      "catalogue_name": "HILTON FUJAIRAH RESORT",
+      "reason": "Legacy Hilton name. Verify current trading status.",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 82626,
+      "catalogue_name": "SELECTUM FAMILY RESORT VARADERO",
+      "reason": "The Selectum management contract ended. Confirm current operation and the new name.",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 76955,
+      "catalogue_name": "MOVENPICK RESORT VILLAS",
+      "reason": "The chain lists the villas as part of Mövenpick Sharm El Sheikh. Separate product identity is unverified.",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 123125,
+      "catalogue_name": "ASTOVE ATOLL BLUE SAFARI SEYCHELLES",
+      "reason": "The authorized supplier gallery is empty.",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2502,
+      "catalogue_name": "HILTON AL HAMRA BEACH & GOLF RESORT",
+      "reason": "The catalogue still uses an old Hilton name. Confirm current identity.",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 60808,
+      "catalogue_name": "LONG BEACH HARMONY HOTEL",
+      "reason": "Resolve the common Long Beach Alanya / Harmony registration before publishing.",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 1343,
+      "catalogue_name": "LONG BEACH",
+      "reason": "Resolve Long Beach Alanya / Harmony and other generic Long Beach title matches.",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 102032,
+      "catalogue_name": "MOVENPICK RESORT ASWAN",
+      "reason": "The chain page remains unavailable after a reported renovation. Verify reopening.",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 121805,
+      "catalogue_name": "SUNSCAPE COCO PUNTA CANA",
+      "reason": "The authorized supplier gallery is empty.",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 16318,
+      "catalogue_name": "AMARTERRA MGALLERY BALI NUSA DUA",
+      "reason": "Autograph Collection is the current brand. The available cover still has MGallery.",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 157001,
+      "catalogue_name": "ALBATROS MAKADI CLUB",
+      "reason": "The chain describes Albatros Makadi Resort. A separate Club identity is unconfirmed.",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 4913,
+      "catalogue_name": "HILTON AL AIN",
+      "reason": "The legacy Hilton Al Ain name needs re-identification.",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2763,
+      "catalogue_name": "IBEROSTAR WAVES PUNTA CANA",
+      "reason": "The current gallery includes a resort map in the branded cover. Select a clean photo set.",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 83785,
+      "catalogue_name": "GRAND ASTON VARADERO",
+      "reason": "Archipelago ended Cuban hotel operations. Confirm the new operator and operating status.",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 45868,
+      "catalogue_name": "VILUXER VEYLI & DIVING",
+      "reason": "Recheck the current registration, operator and lodging category.",
+      "publication_allowed": false
+    }
+  ],
+  "publication_design": {
+    "one_run": true,
+    "groups": [
+      10,
+      3
+    ],
+    "source_only": true,
+    "existing_gallery_run": 44179714212,
+    "registry_snapshot_run": 44180890584
+  }
+}
