@@ -1,0 +1,79 @@
+name: One-shot W5 correct4 reviewed covers with original composer; no sends
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/fastfill-wave5-cover-adjust-20261117.yml']
+permissions:
+  contents: write
+jobs:
+  original-source-cover-adjust:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' &&
+      github.event.before == '314a81acb79ebd828b7fc51eb41616aab789602d' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tools/direct_demand/operations
+            .github/traffic-publish/brand
+      - run: python3 -m pip install --disable-pip-version-check --no-cache-dir pillow==11.3.0 requests==2.32.5
+      - name: Recompose only four exact same-property covers; do not call publisher
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,hashlib,io,json,os,pathlib,runpy,subprocess
+          from PIL import Image,ImageDraw
+          CHOICES=json.loads(r'''[{"id":4235,"indices":[7,3,6],"reason":"replace dark facade with clear city terrace and property interiors"},{"id":43494,"indices":[5,2,3],"reason":"remove previous Anantara signage; keep exact same-property room, pool and suite photos"},{"id":110848,"indices":[4,7,5],"reason":"replace abstract dark object hero with a clear bedroom, sitting room and bathroom"},{"id":115812,"indices":[5,4,6],"reason":"use clear room and indoor pool photos instead of visually uncertain exterior images"}]''')
+          HEAD=os.environ['GITHUB_SHA'];REPO='pyatkoff/max-search-bot';PREFIX='.github/traffic-publish/commercial-wave5-65-20261117/'
+          def api(method,path,obj=None):
+              c=['gh','api','--method',method,'repos/'+REPO+'/'+path]
+              if obj is not None:c+=['--input','-']
+              return json.loads(subprocess.check_output(c,input=None if obj is None else json.dumps(obj).encode(),timeout=60))
+          intake_raw=base64.b64decode(api('GET','git/blobs/af1a040fa6784dbc1d8b3d6e5c2ada9443f80015')['content'])
+          assert hashlib.sha1(b'blob '+str(len(intake_raw)).encode()+b'\0'+intake_raw).hexdigest()=='af1a040fa6784dbc1d8b3d6e5c2ada9443f80015'
+          intake={r['tourvisor_id']:r for r in json.loads(intake_raw)}
+          for c in CHOICES:c['row']=intake[c['id']]
+          raw=base64.b64decode(api('GET','git/blobs/baf8f31b4430e4bf95d6e911f433ce71883d505f')['content'])
+          assert hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()=='baf8f31b4430e4bf95d6e911f433ce71883d505f'
+          rec=json.loads(raw);assert rec['prepared_count']==44 and rec['held_count']==21 and len(rec['rows'])==65
+          source='tools/direct_demand/operations/prepare-wave2-native-tourvisor-covers-20261117.py'
+          assert subprocess.check_output(['git','hash-object',source],text=True).strip()=='1d084059cd9ed24783fa7355acde9fddba992559'
+          m=runpy.run_path(source);logo_raw=pathlib.Path('.github/traffic-publish/brand/anytour-logo-white.png').read_bytes();assert hashlib.sha256(logo_raw).hexdigest()==m['LOGO_SHA256']
+          logo=Image.open(io.BytesIO(logo_raw)).convert('RGBA');root=pathlib.Path('cover-adjust');root.mkdir();changes=[]
+          canvas=Image.new('RGB',(1080,1160),'white');draw=ImageDraw.Draw(canvas)
+          for n,c in enumerate(CHOICES):
+              r=c['row'];hid=c['id'];prior=next(x for x in rec['rows'] if x['id']==hid);assert prior['status']=='prepared_needs_visual_acceptance' and not prior['send_allowed']
+              assert len(c['indices'])==len(set(c['indices']))==3;images=[];sources=[]
+              for i in c['indices']:
+                  url=r['first_photo_urls'][i];assert m['check_photo_url'](url)==r['country_id']
+                  im,proof=m['download_photo'](url);images.append(im);sources.append(proof)
+              b=m['encode_png'](m['draw_cover'](r['hotel'],images,logo.copy()));(root/(str(hid)+'.png')).write_bytes(b)
+              change={'id':hid,'original_png_sha256':prior['png_sha256'],'selected_original_gallery_indices':c['indices'],'original_photo_sources':prior['photo_sources'],'corrected_png_sha256':hashlib.sha256(b).hexdigest(),'photo_sources':sources,'reason':c['reason']}
+              prior['png_sha256']=change['corrected_png_sha256'];prior['bytes']=len(b);prior['photo_sources']=sources;prior['visual_source_correction']=change;changes.append(change)
+              draw.text(((n%2)*540+7,(n//2)*580+7),'TV'+str(hid)+' CORRECTED',font=m['font'](18),fill='black')
+              with Image.open(io.BytesIO(b)) as im:canvas.paste(im.convert('RGB').resize((540,540),Image.Resampling.LANCZOS),((n%2)*540,(n//2)*580+32))
+          canvas.save(root/'qa-corrected-4.jpg',quality=94)
+          rec['qa_corrections']=[{'path':PREFIX+'qa-corrected-4.jpg','ids':[c['id'] for c in CHOICES]}]
+          (root/'cover-receipt.json').write_text(json.dumps(rec,ensure_ascii=False,indent=2)+'\n')
+          (root/'photo-correction-receipt.json').write_text(json.dumps({'state':'FOUR_RECOMPOSED_COVERS_PENDING_FINAL_VISUAL_ACCEPTANCE','original_profile_cover_commit':'5386a79f00f2b7ead9380e436bc69351ceced2b7','original_cover_receipt_git_blob':'baf8f31b4430e4bf95d6e911f433ce71883d505f','gallery_review_run':44143307403,'changes':changes,'provider_profile_calls':0,'native_sends':0},ensure_ascii=False,indent=2)+'\n')
+          assert api('GET','git/ref/heads/audit/content100-bot-publication-20261101')['object']['sha']==HEAD
+          parent=api('GET','git/commits/'+HEAD);entries=[]
+          for f in root.iterdir():
+              b=f.read_bytes();blob=api('POST','git/blobs',{'content':base64.b64encode(b).decode(),'encoding':'base64'});entries.append({'path':PREFIX+f.name,'mode':'100644','type':'blob','sha':blob['sha']})
+          tree=api('POST','git/trees',{'base_tree':parent['tree']['sha'],'tree':entries})
+          commit=api('POST','git/commits',{'message':'HOTEL W5: recompose4 exact licensed same-property covers after visual review; no posts','tree':tree['sha'],'parents':[HEAD]})
+          print('W5_COVER_ADJUST_STAGE_JSON '+json.dumps({'source_commit':HEAD,'staged_commit':commit['sha'],'files':entries,'corrected_ids':[c['id'] for c in CHOICES],'prepared_count':44,'held_count':21,'native_sends':0},separators=(',',':')))
+          PY
+      - name: Preserve exact correction evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fastfill-wave5-four-corrected-covers-20261117
+          path: cover-adjust/*
+          retention-days: 30
+          if-no-files-found: warn
