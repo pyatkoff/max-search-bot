@@ -1,0 +1,82 @@
+name: One-shot reserve65 exact room photo improvement only
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/fastfill-reserve65-photo-review-20261117.yml']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  source-photo-only:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '878c51d3116bbd07fffc92d9cc654195be8804a8' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tools/direct_demand/operations
+            .github/traffic-publish/brand
+            .github/traffic-publish/commercial-wave2-reserve65-20261117
+      - run: python3 -m pip install --disable-pip-version-check --no-cache-dir pillow==11.3.0 requests==2.32.5
+      - name: Preserve source photo identity and replace only the wardrobe hero
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,hashlib,io,json,os,pathlib,runpy,subprocess,urllib.request
+          from PIL import Image
+          REPO='pyatkoff/max-search-bot';BRANCH='audit/content100-bot-publication-20261101';HEAD=os.environ['GITHUB_SHA']
+          PREFIX='.github/traffic-publish/commercial-wave2-reserve65-20261117/'
+          def api(method,path,obj=None):
+              c=['gh','api','--method',method,'repos/'+REPO+'/'+path]
+              if obj is not None:c+=['--input','-']
+              return json.loads(subprocess.check_output(c,input=None if obj is None else json.dumps(obj).encode(),timeout=90))
+          p=pathlib.Path(PREFIX);rec=json.loads((p/'cover-receipt.json').read_bytes());rows=json.loads((p/'intake-input.json').read_bytes());r=next(r for r in rows if r['tourvisor_id']==110940)
+          source=pathlib.Path('tools/direct_demand/operations/prepare-wave2-native-tourvisor-covers-20261117.py')
+          assert subprocess.check_output(['git','hash-object',str(source)],text=True).strip()=='1d084059cd9ed24783fa7355acde9fddba992559'
+          m=runpy.run_path(str(source));logo_raw=pathlib.Path('.github/traffic-publish/brand/anytour-logo-white.png').read_bytes()
+          assert hashlib.sha256(logo_raw).hexdigest()==m['LOGO_SHA256']
+          urls=r['first_photo_urls'][1:4];assert len(urls)==3
+          with urllib.request.urlopen(r['source_api_url'],timeout=40) as q:data=json.load(q)
+          assert data['id']==110940 and data['name']==r['provider_name'] and data['country']['id']==4
+          imgs=[];sources=[]
+          for u in urls:
+              assert u.rsplit('/',1)[1] in json.dumps(data['images']) and m['check_photo_url'](u)==4
+              im,pr=m['download_photo'](u);imgs.append(im);sources.append(pr)
+          b=m['encode_png'](m['draw_cover'](r['hotel'],imgs,Image.open(io.BytesIO(logo_raw)).convert('RGBA')))
+          out=pathlib.Path('photo-review');out.mkdir();(out/'110940.png').write_bytes(b)
+          old=next(x for x in rec['rows'] if x['id']==110940)
+          prior=dict(old)
+          old.update({'png_sha256':hashlib.sha256(b).hexdigest(),'bytes':len(b),'photo_sources':sources,'photo_revision_reason':'room_photo_as_primary_instead_of_wardrobe'})
+          receipt=(json.dumps(rec,ensure_ascii=False,indent=2)+'\n').encode()
+          fix={'state':'SOURCE_ONLY_ROOM_PHOTO_REVIEW_NOT_PUBLISHED','id':110940,'prior':prior,'updated':old,'sender_calls':0,'feed_writes':0}
+          files={PREFIX+'110940.png':b,PREFIX+'cover-receipt.json':receipt,PREFIX+'110940-photo-revision.json':(json.dumps(fix,ensure_ascii=False,indent=2)+'\n').encode()}
+          assert api('GET','git/ref/heads/'+BRANCH)['object']['sha']==HEAD
+          parent=api('GET','git/commits/'+HEAD);entries=[]
+          for path,raw in files.items():
+              blob=api('POST','git/blobs',{'content':base64.b64encode(raw).decode(),'encoding':'base64'})
+              entries.append({'path':path,'mode':'100644','type':'blob','sha':blob['sha']})
+          tree=api('POST','git/trees',{'base_tree':parent['tree']['sha'],'tree':entries})
+          commit=api('POST','git/commits',{'message':'HOTEL: improve airport hotel hero with three exact paid-source room photos; no send','tree':tree['sha'],'parents':[HEAD]})
+          assert api('GET','git/ref/heads/'+BRANCH)['object']['sha']==HEAD
+          result={'state':'PHOTO_REVISION_UNREFERENCED_NOT_SENT','source_commit':HEAD,'staged_commit':commit['sha'],'files':entries,'png_sha256':hashlib.sha256(b).hexdigest(),'sender_calls':0,'feed_writes':0}
+          (out/'receipt.json').write_text(json.dumps(result,indent=2)+'\n')
+          print('PHOTO_REVISION_STAGE_JSON '+json.dumps(result,separators=(',',':')))
+          
+          PY
+      - name: Preserve reviewable exact new cover
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fastfill-reserve65-one-cover-review-20261117
+          path: photo-review/*
+          retention-days: 30
+          if-no-files-found: warn
