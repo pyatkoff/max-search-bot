@@ -766,10 +766,8 @@ async function sendReply(reconcileAction='send_receipt'){
         const refreshing=open(target,{stickToBottom:true,mobileHistory:'none',preserveAttachment:true,preserveHistory:true,...(calculation?.media||calculationAttempt(attempt)?{protectTaskDraft:true}:{})});
         refreshGeneration=openSeq;refreshed=await refreshing;
       }catch(e){}
-      if(sameTarget()&&openSeq===refreshGeneration){
-        setReplyStatus(refreshed?'Отправлено':'Отправлено. Переписку пока не удалось обновить.','success');
-        if(refreshed&&Number(S.detail?.conversation?.manager_id)===manager&&S.detail?.conversation?.status==='manager')confirmedReadGeneration=refreshGeneration;
-      }
+      if(sameTarget()&&openSeq===refreshGeneration)setReplyStatus(refreshed?'Отправлено':'Отправлено. Переписку пока не удалось обновить.','success');
+      if(refreshed&&sameTarget()&&openSeq===refreshGeneration&&Number(S.detail?.conversation?.manager_id)===manager&&S.detail?.conversation?.status==='manager')confirmedReadGeneration=refreshGeneration;
     }
     // Inbox owns its refresh errors; they are not message-delivery failures.
     if(sameSession())try{await window.WorkspaceV2Inbox?.load({preserveScroll:true})}catch(e){}
