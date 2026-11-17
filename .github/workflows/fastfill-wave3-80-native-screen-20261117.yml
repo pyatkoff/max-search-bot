@@ -1,0 +1,121 @@
+name: One-shot wave3 native and alias screen80 read-only
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/fastfill-wave3-80-native-screen-20261117.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  readonly-native-screen:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '44e366d701e65013752e067943135ae0ae337490' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Prepare the exact wave3-80 read-only input
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,json,pathlib
+          data=r'''[{"hotel_id":15722,"logical_id":"commercial-hotel-15722-v1","aliases":["Marriott's Phuket Beach Club","MARRIOTT PHUKET BEACH CLUB"]},{"hotel_id":22740,"logical_id":"commercial-hotel-22740-v1","aliases":["Avani+ Samui","AVANI PLUS SAMUI","ELEMENTS BOUTIQUE RESORT & SPA"]},{"hotel_id":78200,"logical_id":"commercial-hotel-78200-v1","aliases":["Avani+ Khao Lak Resort","AVANI+ KHAO LAK RESORT"]},{"hotel_id":538,"logical_id":"commercial-hotel-538-v1","aliases":["Amari Phuket","AMARI PHUKET","AMARI CORAL BEACH PHUKET"]},{"hotel_id":792,"logical_id":"commercial-hotel-792-v1","aliases":["InterContinental Pattaya Resort","INTERCONTINENTAL PATTAYA RESORT","SHERATON PATTAYA RESORT"]},{"hotel_id":2984,"logical_id":"commercial-hotel-2984-v1","aliases":["Hua Hin Marriott Resort & Spa","HUA HIN MARRIOTT RESORT & SPA"]},{"hotel_id":4202,"logical_id":"commercial-hotel-4202-v1","aliases":["Amari Vogue Krabi","AMARI VOGUE RESORT"]},{"hotel_id":7898,"logical_id":"commercial-hotel-7898-v1","aliases":["Centara Grand Beach Resort & Villas Hua Hin","CENTARA GRAND BEACH RESORT & VILLA HUA HIN"]},{"hotel_id":66860,"logical_id":"commercial-hotel-66860-v1","aliases":["InterContinental Phuket Resort","INTERCONTINENTAL PHUKET RESORT"]},{"hotel_id":598,"logical_id":"commercial-hotel-598-v1","aliases":["Centara Reserve Samui","CENTARA RESERVE SAMUI","Centara Grand Beach Resort Samui","Centara Grand Beach Samui"]},{"hotel_id":669,"logical_id":"commercial-hotel-669-v1","aliases":["JW Marriott Phuket Resort & Spa","JW MARRIOTT PHUKET RESORT & SPA"]},{"hotel_id":3022,"logical_id":"commercial-hotel-3022-v1","aliases":["Dusit Thani Krabi Beach Resort","DUSIT THANI KRABI BEACH RESORT","SHERATON KRABI BEACH RESORT"]},{"hotel_id":4294,"logical_id":"commercial-hotel-4294-v1","aliases":["Le Méridien Phuket Mai Khao Beach Resort","LE MERIDIEN PHUKET MAI KHAO BEACH RESORT"]},{"hotel_id":4309,"logical_id":"commercial-hotel-4309-v1","aliases":["JW Marriott Khao Lak Resort & Spa","JW MARRIOTT KHAO LAK RESORT & SPA"]},{"hotel_id":4343,"logical_id":"commercial-hotel-4343-v1","aliases":["Mövenpick Resort Bangtao Beach Phuket","MOVENPICK RESORT BANGTAO BEACH"]},{"hotel_id":7856,"logical_id":"commercial-hotel-7856-v1","aliases":["Mövenpick Asara Resort & Spa Hua Hin","MOVENPICK ASARA RESORT & SPA HUA HIN"]},{"hotel_id":8171,"logical_id":"commercial-hotel-8171-v1","aliases":["Sofitel Krabi Phokeethra Golf & Spa Resort","SOFITEL KRABI PHOKEETHRA GOLF & SPA RESORT"]},{"hotel_id":9395,"logical_id":"commercial-hotel-9395-v1","aliases":["InterContinental Koh Samui Resort","INTERCONTINENTAL KOH SAMUI RESORT"]},{"hotel_id":12159,"logical_id":"commercial-hotel-12159-v1","aliases":["Anantara Si Kao Resort & Spa","ANANTARA SI KAO RESORT & SPA"]},{"hotel_id":12170,"logical_id":"commercial-hotel-12170-v1","aliases":["InterContinental Hua Hin Resort","INTERCONTINENTAL HUA HIN RESORT"]},{"hotel_id":12194,"logical_id":"commercial-hotel-12194-v1","aliases":["DoublePool Villas by Banyan Tree","DOUBLEPOOL VILLAS BANYAN TREE"]},{"hotel_id":22757,"logical_id":"commercial-hotel-22757-v1","aliases":["Marriott's Mai Khao Beach","MARRIOTT MAI KHAO BEACH"]},{"hotel_id":526,"logical_id":"commercial-hotel-526-v1","aliases":["Phuket Marriott Resort & Spa Nai Yang Beach","PHUKET MARRIOTT RESORT AND SPA NAI YANG BEACH"]},{"hotel_id":599,"logical_id":"commercial-hotel-599-v1","aliases":["Centara Grand Mirage Beach Resort Pattaya","CENTARA GRAND MIRAGE BEACH RESORT PATTAYA"]},{"hotel_id":685,"logical_id":"commercial-hotel-685-v1","aliases":["SAii Laguna Phuket","SAII LAGUNA PHUKET","OUTRIGGER LAGUNA PHUKET BEACH RESORT"]},{"hotel_id":689,"logical_id":"commercial-hotel-689-v1","aliases":["Le Méridien Phuket Beach Resort","LE MERIDIEN PHUKET BEACH RESORT"]},{"hotel_id":697,"logical_id":"commercial-hotel-697-v1","aliases":["Avani Pattaya Resort","AVANI PATTAYA RESORT & SPA","PATTAYA MARRIOTT RESORT & SPA"]},{"hotel_id":761,"logical_id":"commercial-hotel-761-v1","aliases":["Pullman Phuket Panwa Beach Resort","PULLMAN PHUKET PANWA BEACH RESORT","RADISSON PLAZA RESORT PANWA BEACH"]},{"hotel_id":791,"logical_id":"commercial-hotel-791-v1","aliases":["Angsana Laguna Phuket","ANGSANA LAGUNA PHUKET"]},{"hotel_id":3021,"logical_id":"commercial-hotel-3021-v1","aliases":["Sheraton Hua Hin Resort & Spa","SHERATON HUA HIN RESORT & SPA"]},{"hotel_id":22836,"logical_id":"commercial-hotel-22836-v1","aliases":["Rayong Marriott Resort & Spa","RAYONG MARRIOTT RESORT & SPA"]},{"hotel_id":33310,"logical_id":"commercial-hotel-33310-v1","aliases":["Hyatt Regency Phuket Resort","HYATT REGENCY PHUKET RESORT"]},{"hotel_id":57466,"logical_id":"commercial-hotel-57466-v1","aliases":["Avani+ Hua Hin Resort","AVANI+ HUA HIN RESORT","ANANDA HUA HIN RESORT & SPA"]},{"hotel_id":70051,"logical_id":"commercial-hotel-70051-v1","aliases":["Island Escape by Burasari","ISLAND ESCAPE BY BURASARI"]},{"hotel_id":542,"logical_id":"commercial-hotel-542-v1","aliases":["Amari Koh Samui","AMARI KOH SAMUI","AMARI PALM REEF RESORT"]},{"hotel_id":596,"logical_id":"commercial-hotel-596-v1","aliases":["Cape Sienna Gourmet Hotel & Villas","CAPE SIENNA GOURMET HOTEL & VILLAS"]},{"hotel_id":649,"logical_id":"commercial-hotel-649-v1","aliases":["Pullman Phuket Karon Beach Resort","PULLMAN PHUKET KARON BEACH RESORT","HILTON PHUKET ARCADIA RESORT & SPA"]},{"hotel_id":706,"logical_id":"commercial-hotel-706-v1","aliases":["Paradox Resort Phuket","PARADOX RESORT PHUKET","MOVENPICK RESORT & SPA KARON BEACH"]},{"hotel_id":765,"logical_id":"commercial-hotel-765-v1","aliases":["Royal Cliff Beach Hotel","ROYAL CLIFF BEACH"]},{"hotel_id":768,"logical_id":"commercial-hotel-768-v1","aliases":["Royal Cliff Beach Terrace","ROYAL CLIFF BEACH TERRACE"]},{"hotel_id":825,"logical_id":"commercial-hotel-825-v1","aliases":["Sheraton Samui Resort","SHERATON SAMUI RESORT","IMPERIAL SAMUI"]},{"hotel_id":4270,"logical_id":"commercial-hotel-4270-v1","aliases":["Dusit Thani Laguna Phuket","DUSIT THANI LAGUNA PHUKET"]},{"hotel_id":9404,"logical_id":"commercial-hotel-9404-v1","aliases":["Pullman Phuket Arcadia Naithon Beach","PULLMAN PHUKET ARCADIA NAITHON BEACH"]},{"hotel_id":35036,"logical_id":"commercial-hotel-35036-v1","aliases":["Sheraton Hua Hin Pranburi Villas","SHERATON HUA HIN PRANBURI VILLAS"]},{"hotel_id":77358,"logical_id":"commercial-hotel-77358-v1","aliases":["Pullman Khao Lak Resort","PULLMAN KHAO LAK RESORT"]},{"hotel_id":60433,"logical_id":"commercial-hotel-60433-v1","aliases":["Premier Village Phu Quoc Resort","PREMIER VILLAGE PHU QUOC RESORT"]},{"hotel_id":61611,"logical_id":"commercial-hotel-61611-v1","aliases":["Vinpearl Resort & Golf Nam Hoi An","VINPEARL RESORT & GOLF NAM HOI AN"]},{"hotel_id":126119,"logical_id":"commercial-hotel-126119-v1","aliases":["Fusion Resort & Villas Da Nang","FUSION RESORT & VILLAS DA NANG"]},{"hotel_id":126601,"logical_id":"commercial-hotel-126601-v1","aliases":["Danang Marriott Resort & Spa Non Nuoc Beach Villas","DANANG MARRIOTT RESORT & SPA NON NUOC BEACH VILLAS","Vinpearl Danang Ocean Resort & Villas"]},{"hotel_id":9230,"logical_id":"commercial-hotel-9230-v1","aliases":["Pullman Danang Beach Resort","PULLMAN DANANG BEACH RESORT"]},{"hotel_id":32341,"logical_id":"commercial-hotel-32341-v1","aliases":["Salinda Resort Phu Quoc","SALINDA RESORT PHU QUOC ISLAND"]},{"hotel_id":32412,"logical_id":"commercial-hotel-32412-v1","aliases":["Premier Village Danang Resort","PREMIER VILLAGE DANANG RESORT"]},{"hotel_id":36437,"logical_id":"commercial-hotel-36437-v1","aliases":["Furama Villas Danang","FURAMA VILLAS DANANG"]},{"hotel_id":41498,"logical_id":"commercial-hotel-41498-v1","aliases":["Almanity Hoi An Resort & Spa","ALMANITY HOI AN RESORT & SPA","ALMA COURTYARD HOI AN"]},{"hotel_id":52251,"logical_id":"commercial-hotel-52251-v1","aliases":["Fusion Resort Phu Quoc","FUSION RESORT"]},{"hotel_id":57025,"logical_id":"commercial-hotel-57025-v1","aliases":["Meliá Vinpearl Cam Ranh Beach Resort","MELIA VINPEARL CAM RANH BEACH RESORT","VINPEARL RESORT & SPA LONG BEACH NHA TRANG"]},{"hotel_id":61623,"logical_id":"commercial-hotel-61623-v1","aliases":["InterContinental Phu Quoc Long Beach Resort","INTERCONTINENTAL PHU QUOC LONG BEACH RESORT"]},{"hotel_id":73257,"logical_id":"commercial-hotel-73257-v1","aliases":["Pullman Phu Quoc Beach Resort","PULLMAN PHU QUOC BEACH RESORT"]},{"hotel_id":4966,"logical_id":"commercial-hotel-4966-v1","aliases":["La Veranda Resort Phu Quoc MGallery","LA VERANDA RESORT PHU QUOC MGALLERY COLLECTION"]},{"hotel_id":61615,"logical_id":"commercial-hotel-61615-v1","aliases":["Sheraton Grand Danang Resort","SHERATON GRAND DANANG RESORT"]},{"hotel_id":65164,"logical_id":"commercial-hotel-65164-v1","aliases":["Vinpearl Beachfront Nha Trang","VINPEARL BEACHFRONT NHA TRANG"]},{"hotel_id":132294,"logical_id":"commercial-hotel-132294-v1","aliases":["JW Marriott Cam Ranh Bay Resort & Spa","JW MARRIOTT CAM RANH BAY RESORT & SPA"]},{"hotel_id":7443,"logical_id":"commercial-hotel-7443-v1","aliases":["TIA Wellness Resort","TIA WELLNESS RESORT","FUSION MAIA DANANG RESORT"]},{"hotel_id":43689,"logical_id":"commercial-hotel-43689-v1","aliases":["Fusion Resort Cam Ranh","FUSION RESORT CAM RANH"]},{"hotel_id":54914,"logical_id":"commercial-hotel-54914-v1","aliases":["The Anam Cam Ranh","THE ANAM RESORT"]},{"hotel_id":57672,"logical_id":"commercial-hotel-57672-v1","aliases":["JW Marriott Phu Quoc Emerald Bay Resort & Spa","JW MARRIOTT PHU QUOC EMERALD BAY RESORT & SPA"]},{"hotel_id":61583,"logical_id":"commercial-hotel-61583-v1","aliases":["Dusit Princess Moonrise Beach Resort","DUSIT PRINCESS MOONRISE BEACH RESORT"]},{"hotel_id":14130,"logical_id":"commercial-hotel-14130-v1","aliases":["InterContinental Danang Sun Peninsula Resort","INTERCONTINENTAL DANANG SUN PENINSULA RESORT","INTERCONTINENTAL DANANG"]},{"hotel_id":46747,"logical_id":"commercial-hotel-46747-v1","aliases":["Meliá Danang Beach Resort","MELIA DANANG BEACH RESORT"]},{"hotel_id":71241,"logical_id":"commercial-hotel-71241-v1","aliases":["Mövenpick Resort Waverly Phu Quoc","MOVENPICK RESORT WAVERLY PHU QUOC"]},{"hotel_id":108234,"logical_id":"commercial-hotel-108234-v1","aliases":["Nha Trang Marriott Resort & Spa Hon Tre Island","NHA TRANG MARRIOTT RESORT & SPA HON TRE ISLAND","Vinpearl Discovery Rockside Nha Trang"]},{"hotel_id":4919,"logical_id":"commercial-hotel-4919-v1","aliases":["Furama Resort Danang","FURAMA RESORT"]},{"hotel_id":82212,"logical_id":"commercial-hotel-82212-v1","aliases":["Mövenpick Resort Phan Thiet","MOVENPICK RESORT PHAN THIET"]},{"hotel_id":7449,"logical_id":"commercial-hotel-7449-v1","aliases":["Hyatt Regency Danang Resort & Spa","HYATT REGENCY DANANG RESORT & SPA"]},{"hotel_id":69260,"logical_id":"commercial-hotel-69260-v1","aliases":["Radisson Blu Resort Cam Ranh","RADISSON BLU RESORT CAM RANH"]},{"hotel_id":104035,"logical_id":"commercial-hotel-104035-v1","aliases":["Danang Marriott Resort & Spa","DANANG MARRIOTT RESORT & SPA","VINPEARL LUXURY DA NANG"]},{"hotel_id":47460,"logical_id":"commercial-hotel-47460-v1","aliases":["Vinpearl Resort & Spa Ha Long","VINPEARL RESORT & SPA HA LONG"]},{"hotel_id":56537,"logical_id":"commercial-hotel-56537-v1","aliases":["Vinpearl Hoi An Resort & Villas","VINPEARL HOI AN RESORT & VILLAS"]},{"hotel_id":57060,"logical_id":"commercial-hotel-57060-v1","aliases":["Vinpearl Danang Ocean Resort & Villas","VINPEARL DANANG OCEAN RESORT & VILLAS"]},{"hotel_id":64775,"logical_id":"commercial-hotel-64775-v1","aliases":["Oceanami Villas & Beach Club","OCEANAMI VILLAS & BEACH CLUB"]}]'''.encode()
+          body=r'''<?php
+          declare(strict_types=1);
+          ini_set('display_errors','0');ini_set('log_errors','0');
+          $readonlyObservedAppSha=trim((string)shell_exec('git rev-parse HEAD'));
+          if(PHP_SAPI!=='cli'||!in_array($readonlyObservedAppSha,['7ccf7de26dca8f5be70ecff2c6f956f6fe5c13cd','edf17765cdf6e1d97d2922ba676bf68f6e91c445'],true))exit(2);
+          $readonlyPins=['integrations/ChannelPostApiTransport.php'=>'300634d77cb9fddf51adf9869974f956cca6e3f9','migrations/033_channel_post_context.sql'=>'0530458030a4bfe6b6cc55d1e5e441745c29b947','migrations/036_channel_post_member_delivery.sql'=>'1bda463e52b33130ad12752ddef4ee5c92699c05','migrations/040_channel_post_reconciliation.sql'=>'0f24b838eacd45333c5ade9a2991d060488c6035','services/ChannelPostAdminService.php'=>'b80eefc801054bfe6fdb58ec345ecdf687b2e89a','services/ChannelPostAutomationService.php'=>'f5975ab95de5f45e087eb7a0f768f566c5bca648','services/ChannelPostButtonTransport.php'=>'7b6711f1de63000346d8e5789f2dbb7f725535b8','services/ChannelPostEntryService.php'=>'1982ff7368763edf8b7238c3142e3cc28579e991','services/ChannelPostMaxAlbumRecovery.php'=>'de266cd068587cc3b2ff83f308a966ea66887a04','services/ChannelPostMediaService.php'=>'f794efd0f6f24df916e18909ff6281b0bc928433','services/ChannelPostMemberDeliveryService.php'=>'20c1d7984898b2a5996a5f9e20e4d2d8c20b4778','services/ChannelPostReconciliationService.php'=>'43133f576845c14446102dedfffb7f0de2d4ba1c','services/ChannelPostReconciliationState.php'=>'d9583ceca80d1424a44ade3561c21282a23a52f0','services/ChannelPostRegistryService.php'=>'7304af19cc19666f00ca4ead1b04c2bdce719646','services/ChannelPostRuntime.php'=>'2f1dd9b77474fdbaa92f0402f3b0aa170c595474','services/ChannelPostTelegramAlbum.php'=>'faa1a14bc279a4af33936282126bf0d46e343040','services/ChannelPostWebhookConfigService.php'=>'d5fdcb056088f1e3a541b4046325d97eef6417d9','services/ConversationDb.php'=>'bb6281faf55aca7beeae7f8a57389d19751936f7','services/MaxTlsConfig.php'=>'032c0211ee3f39c6f0d27c669abd5b467e321dea','services/MaxTransport.php'=>'2cb4f8786b4704a8e62a3a9c40dc2cc73dad6159','services/ProjectConfig.php'=>'63c17c8103412f8cff8cdcc4bbb062e744106af9','services/ProjectConfiguration.php'=>'07019d473c588e3386ace42977db93092e8112e3'];
+          foreach($readonlyPins as $path=>$blob)if(trim((string)shell_exec('git hash-object -- '.escapeshellarg($path)))!==$blob)exit(2);
+          $rows=json_decode(base64_decode(INPUT_B64,true),true,64,JSON_THROW_ON_ERROR);
+          if(count($rows)!==80||count(array_unique(array_column($rows,'hotel_id')))!==80)exit(2);
+          ob_start();require getcwd().'/config.php';require_once getcwd().'/services/ChannelPostRuntime.php';ob_end_clean();
+          $pdo=ConversationDb::connection();$pdo->exec('SET SESSION TRANSACTION READ ONLY');$pdo->beginTransaction();
+          $out=['installed_sha'=>$readonlyObservedAppSha,'trusted_component_files'=>count($readonlyPins),'mode'=>'READ_ONLY_WAVE3_80_EXISTING_PUBLICATION_SCREEN','db_writes'=>0,'provider_calls'=>0,'sender_calls'=>0,'inspected_hotel_ids'=>array_column($rows,'hotel_id'),'matches'=>[]];
+          try{
+          foreach(['telegram'=>10,'max'=>9] as $platform=>$cid){
+          $q=$pdo->prepare('SELECT pp.id,pp.current_version_id,v.snapshot_json FROM post_publications pp JOIN post_versions v ON v.id=pp.current_version_id WHERE pp.post_channel_id=? ORDER BY pp.id LIMIT 2000');$q->execute([$cid]);$existing=$q->fetchAll(PDO::FETCH_ASSOC);
+          foreach($rows as $row){foreach($existing as $e){
+          $s=json_decode($e['snapshot_json'],true,64,JSON_THROW_ON_ERROR);$text=(string)($s['text']??'');$meta=(array)($s['metadata']??[]);
+          $reasons=[];$aliases=[];$first=explode("\n",$text,2)[0];
+          if(($meta['logical_id']??'')===$row['logical_id'])$reasons[]='logical_id';
+          if((int)($meta['hotel_catalog_id']??0)===(int)$row['hotel_id'])$reasons[]='native_id';
+          foreach($row['aliases'] as $a)if($a!==''&&mb_strpos(mb_strtolower($first,'UTF-8'),mb_strtolower($a,'UTF-8'),0,'UTF-8')!==false){$reasons[]='alias';$aliases[]=$a;}
+          if($reasons)$out['matches'][]=['hotel_id'=>$row['hotel_id'],'platform'=>$platform,'publication_id'=>(int)$e['id'],'version_id'=>(int)$e['current_version_id'],'source_native_hotel_id'=>$meta['hotel_catalog_id']??null,'first_lines'=>mb_substr($text,0,550,'UTF-8'),'post_url'=>$s['post_url']??null,'matched_by'=>array_values(array_unique($reasons)),'matched_aliases'=>$aliases];
+          }}
+          }
+          $out['matched_hotel_ids']=array_values(array_unique(array_column($out['matches'],'hotel_id')));$out['ok']=true;
+          }finally{$pdo->rollBack();}
+          echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          '''
+          body=body.replace("declare(strict_types=1);","declare(strict_types=1);\nconst INPUT_B64='"+base64.b64encode(data).decode()+"';",1)
+          pathlib.Path('pub').mkdir();pathlib.Path('pub/wave3-80-readonly.php').write_text(body)
+          PY
+          php -l pub/wave3-80-readonly.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read-only current production application HEAD and clean tracked files
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" -o ServerAliveInterval=15 -o ServerAliveCountMax=2)
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0; app=/var/www/anytoour/data/www/app.anytoour.ru; test -d "$app/.git" && test ! -L "$app"; cd "$app"; case "$(git rev-parse HEAD)" in 7ccf7de26dca8f5be70ecff2c6f956f6fe5c13cd|edf17765cdf6e1d97d2922ba676bf68f6e91c445) ;; *) exit 2;; esac; test -z "$(git status --porcelain --untracked-files=no)"; command -v php >/dev/null; printf "CURRENT_PRODUCTION_SOURCE_VERIFIED\\n"' > pub/preflight.txt
+          grep -Fx 'CURRENT_PRODUCTION_SOURCE_VERIFIED' pub/preflight.txt
+      - name: Screen all80 with a read-only rolled-back transaction; no provider calls
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php' < pub/wave3-80-readonly.php > pub/wave3-80-screen.json
+          cat pub/wave3-80-screen.json
+      - name: Preserve exact duplicate screening
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fastfill-wave3-80-bulk-prepare-20261117
+          path: pub/wave3-80-screen.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Remove runner-only authentication
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/wave3-80-readonly.php
