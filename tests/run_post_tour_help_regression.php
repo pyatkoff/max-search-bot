@@ -139,6 +139,39 @@ helpCheck('known budget decline is not acknowledged as a budget skip', strpos($m
 helpCheck('unrelated retraction is not treated as budget skip', helpDispatch('Не важно',74,'max',[]), true);
 helpCheck('unrelated retraction keeps generic check guidance', strpos($messenger->sent[0]['text'] ?? '', 'Параметры пока не изменены') !== false, true);
 
+// A source-post qualifying request may be waiting for the departure/date facts
+// when a customer asks only for the price. Do not classify that inquiry as a city.
+$qualifyingTurnProperty = new ReflectionProperty(SourceHandlingService::class, 'qualificationTurn');
+$qualifyingTurnBefore = $qualifyingTurnProperty->getValue();
+$qualifyingTurnProperty->setValue(null, [
+    'incoming'=>['user'=>['chat_id'=>501]],
+    'project_key'=>ProjectConfig::projectId(),
+]);
+try {
+    foreach (['max','telegram'] as $platform) {
+        foreach (['Цена','Сколько стоит','Какая стоимость?'] as $phrase) {
+            helpCheck('early source price inquiry handled', helpDispatch($phrase,76,$platform), true);
+            helpCheck('early source price sends exactly one response', count($messenger->sent), 1);
+            $sent = $messenger->sent[0] ?? [];
+            helpCheck('early source price asks for actual trip facts',
+                str_contains($sent['text']??'', 'город вылета')
+                && str_contains($sent['text']??'', 'дата вылета'), true);
+            helpCheck('early source price offers only existing manager phrase',
+                str_contains($sent['text']??'', 'Позвать менеджера'), true);
+            helpCheck('early source price invents no offer, URL, or new callback',
+                [str_contains($sent['text']??'','₽'),str_contains($sent['text']??'','http'),$sent['buttons']??null],
+                [false,false,[]]);
+            helpCheck('early source price preserves AI wizard status', MaxSearchApi::$status, 76);
+        }
+    }
+    helpCheck('completed check remains owned by its prior price guidance',
+        helpDispatch('Цена',74,'max'), true);
+    helpCheck('completed check still points to results control',
+        str_contains($messenger->sent[0]['text']??'', 'Показать туры'), true);
+} finally {
+    $qualifyingTurnProperty->setValue(null, $qualifyingTurnBefore);
+}
+
 // Fresh production evidence: in the completed check state, "Цена" and
 // "Какая цена" received generic parameter-edit guidance. Point only these
 // bounded questions to the existing results control; never start the search.
