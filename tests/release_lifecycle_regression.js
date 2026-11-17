@@ -150,7 +150,7 @@ async function verifyReleasePriority() {
 
 
 async function verifyReleaseSlot() {
-  const { REQUIRED, CLOSER, ACTIVATION, context, binding, gateState, recordState, verifyTelemetry,
+  const { REQUIRED, CLOSER, ACTIVATION, context, binding, gateState, selectPreviousFailedWave, selectReleaseRuns, recordState, verifyTelemetry,
     verifyConfigure, closeRelease, makeApi } = require('../tools/release_slot_close');
   const repository = 'pyatkoff/max-search-bot';
   const prefix = '/repos/' + repository;
@@ -299,6 +299,193 @@ async function verifyReleaseSlot() {
   let taggedFixture=fixture(({path})=>path.includes('/actions/runs?')?copy(tagged):undefined);
   check(await closeRelease(taggedFixture.options),'released','release slot: actual tagged API closes through complete normal path');
   check(taggedFixture.writes(),1,'release slot: tagged API still writes only the bound publisher once');
+
+
+  // GitHub's real 1596→1597 incident: two workflow_run waves on the new SHA.
+  // Only a preceding failed Deploy with exactly seven skipped, zero-step children
+  // may be excluded. This test neither creates a release nor sends anything.
+  const oldSha='c'.repeat(40),oldTag='deploy-proof:v1:900:1';
+  const waveGates=REQUIRED.filter(([file,event])=>event==='workflow_run'&&file!==ACTIVATION.file);
+  check(waveGates.length,7,'release slot: original skipped-wave scope is seven gates');
+  const previousParent={...copy(runs[0]),id:900,head_sha:oldSha,
+    head_commit:{id:oldSha},created_at:'2026-11-03T18:40:00Z',
+    updated_at:'2026-11-03T18:59:00Z',status:'completed',conclusion:'failure'};
+  const denialSteps=['Prepare canonical SSH private key','Verify installed production checks',
+    'Download exact installed diagnostic snapshot','Publish verification stage status',
+    'Remove acknowledged diagnostic snapshot'];
+  const previousJobs={total_count:6,jobs:[
+    ...['verify-syntax','verify-inventory','verify / application',
+      'verify / diagnostics','deploy'].map((name,i)=>({id:9000+i,name,run_id:900,
+      run_attempt:1,head_sha:oldSha,status:'completed',conclusion:'success',steps:[]})),
+    {id:9005,name:'verify',run_id:900,run_attempt:1,head_sha:oldSha,
+      status:'completed',conclusion:'failure',steps:[
+        {name:'Admit only unfinished verification without installation',conclusion:'failure'},
+        {name:'Require complete installed verification',conclusion:'failure'},
+        ...denialSteps.map(name=>({name,conclusion:'skipped'}))]}]};
+  const oldChildren=waveGates.map(([file],i)=>({
+    ...copy(tagged.workflow_runs.find(r=>r.path.endsWith('/'+file))),
+    id:700+i,name:oldTag,display_title:oldTag,
+    head_commit:{id:source},created_at:'2026-11-03T19:01:00Z',
+    updated_at:'2026-11-03T19:01:01Z',status:'completed',conclusion:'skipped'
+  }));
+  const oldMonitor=oldChildren.find(r=>r.path.endsWith('/modeled-conversion-monitor.yml'));
+  const oldCloser={...copy(tagged.workflow_runs.find(r=>r.path===CLOSER)),
+    id:707,name:oldTag,display_title:oldTag,head_commit:{id:source},
+    created_at:'2026-11-03T19:01:02Z',status:'completed',conclusion:'skipped'};
+  const oldActivationTag='monitor-proof:v1:'+oldMonitor.id+':1';
+  const oldActivation={...copy(tagged.workflow_runs.find(r=>r.path.endsWith('/'+ACTIVATION.file))),
+    id:708,name:oldActivationTag,display_title:oldActivationTag,head_commit:{id:source},
+    created_at:'2026-11-03T19:01:03Z',status:'completed',conclusion:'skipped'};
+  const previousChildren=[...oldChildren,oldCloser,oldActivation];
+  const mixed={total_count:tagged.total_count+previousChildren.length,
+    workflow_runs:[...copy(tagged.workflow_runs),...previousChildren]};
+  const childNames={
+    'max-tls-preflight.yml':['strict-tls-preflight'],
+    'max-production-health.yml':['inspect'],
+    'telegram-production-health.yml':['inspect'],
+    'publish-conversation-diagnostics.yml':['publish'],
+    'live-session-diagnostics.yml':['publish'],
+    'tour-selection-host.yml':['host','independent-editor'],
+    'modeled-conversion-monitor.yml':['monitor'],
+    'modeled-conversion-value-export.yml':['configure','release-slot','release-slot-recovery'],
+    [ACTIVATION.file]:['activate']
+  };
+  const proofRead=async resource=>{
+    if(resource==='/actions/runs/900')return copy(previousParent);
+    if(resource==='/compare/'+oldSha+'...'+source)return {
+      status:'ahead',merge_base_commit:{sha:oldSha},ahead_by:2,behind_by:0};
+    if(resource==='/actions/runs/900/attempts/1/jobs?per_page=100')return copy(previousJobs);
+    const match=/^\/actions\/runs\/(7[0-9][0-9])\/attempts\/1\/jobs\?per_page=100$/.exec(resource);
+    if(match){
+      const child=previousChildren.find(r=>r.id===Number(match[1]));
+      if(!child)throw Error('unexpected child');
+      const names=childNames[child.path.slice('.github/workflows/'.length)];
+      return {total_count:names.length,jobs:names.map((name,i)=>({
+        id:10000+child.id*10+i,run_id:child.id,run_attempt:1,
+        head_sha:source,name,status:'completed',conclusion:'skipped',steps:[]}))};
+    }
+    throw Error('unclassified metadata lookup: '+resource);
+  };
+  const filtered=await selectPreviousFailedWave(mixed,c,proofRead);
+  check(filtered.total_count,tagged.total_count,
+    'release slot: authenticated previous skipped wave excluded without touching current gates');
+  check(gateState(filtered,c),'ready','release slot: current exact wave retains all required gates');
+  const complete=await selectReleaseRuns(mixed,c,proofRead);
+  check(complete.waiting,false,'release slot: authenticated two-wave snapshot has no pending gate');
+  check(complete.runs.total_count,tagged.total_count,
+    'release slot: full release selector removes all nine old native zero-step children');
+  check(gateState(complete.runs,c),'ready',
+    'release slot: current gates plus closer and activation stay ready');
+  check(await selectPreviousFailedWave(tagged,c,async()=>{throw Error('unexpected read');}),
+    tagged,'release slot: no duplicate does not invoke extra network reads');
+  check(await selectPreviousFailedWave(mixed,{...c,recovery:{}},async()=>{throw Error('unexpected read');}),
+    mixed,'release slot: same-source attempt2 keeps its separate existing classifier');
+
+  const negativeWave=async(change,read,code,description)=>{
+    const sample=copy(mixed);change?.(sample);
+    await rejects(async()=>{
+      const selected=await selectReleaseRuns(sample,c,read||proofRead);
+      gateState(selected.runs,c);
+    },code,description);
+  };
+  await negativeWave(sample=>{sample.workflow_runs.splice(sample.workflow_runs.findIndex(r=>r.id===oldChildren[0].id),1);sample.total_count--;},null,
+    'incomplete_previous_wave','missing old gate cannot be treated as a full skipped wave');
+  await negativeWave(sample=>{sample.workflow_runs.at(-1).id=sample.workflow_runs.at(-2).id;},null,
+    'incomplete_runs','duplicate run IDs never authorize exclusion');
+  await negativeWave(sample=>{sample.workflow_runs.find(r=>r.id===oldChildren.at(-1).id).conclusion='success';},null,
+    'previous_wave_executed','a successful old child cannot be ignored');
+  await negativeWave(sample=>{sample.workflow_runs.find(r=>r.id===oldChildren.at(-1).id).display_title='deploy-proof:v1:901:1';},null,
+    'ambiguous_previous_wave','different old parents cannot be mixed');
+  await negativeWave(sample=>{sample.workflow_runs.find(r=>r.id===oldChildren.at(-1).id).display_title='untrusted';},null,
+    'ambiguous_previous_wave','unknown old origin cannot be laundered');
+  await negativeWave(sample=>{sample.workflow_runs.find(r=>r.id===oldChildren.at(-1).id).head_sha=oldSha;},null,
+    'untrusted_run','prior wave with a foreign code SHA stops');
+  await negativeWave(null,async p=>p==='/actions/runs/900'?{...previousParent,conclusion:'success'}:proofRead(p),
+    'untrusted_previous_deploy','only a failed original parent may be excluded');
+  await negativeWave(null,async p=>p.startsWith('/compare/')?{
+    status:'diverged',merge_base_commit:{sha:oldSha},ahead_by:2,behind_by:1}:proofRead(p),
+    'previous_deploy_not_ancestor','unrelated source cannot prove old wave');
+  await negativeWave(null,async p=>{
+    if(p==='/actions/runs/900/attempts/1/jobs?per_page=100'){
+      const bad=copy(previousJobs);bad.jobs.at(-1).steps.find(s=>
+        s.name==='Verify installed production checks').conclusion='success';return bad;
+    }
+    return proofRead(p);
+  },'previous_verification_executed','previous verification with protected execution cannot be skipped');
+  await negativeWave(null,async p=>{
+    const result=await proofRead(p);
+    if(/\/actions\/runs\/70[0-6]\/attempts\/1\/jobs\?/.test(p)){
+      result.jobs[0].steps=[{name:'protected work',conclusion:'success'}];
+    }
+    return result;
+  },'previous_wave_executed','a skipped child with any executed step stops');
+
+  // The exact old closer and activation are not covered by the original seven.
+  const removeChild=(sample,id)=>{
+    sample.workflow_runs.splice(sample.workflow_runs.findIndex(r=>r.id===id),1);
+    sample.total_count--;
+  };
+  await negativeWave(sample=>removeChild(sample,oldCloser.id),null,
+    'incomplete_previous_closer','old closer missing is a release hold');
+  await negativeWave(sample=>removeChild(sample,oldActivation.id),null,
+    'incomplete_previous_activation','old activation missing is a release hold');
+  await negativeWave(sample=>{sample.workflow_runs.find(r=>r.id===oldCloser.id).conclusion='success';},
+    null,'previous_closer_executed','older closer may not have executed');
+  await negativeWave(sample=>{sample.workflow_runs.find(r=>r.id===oldActivation.id).conclusion='success';},
+    null,'previous_activation_executed','older activation may not have executed');
+  await negativeWave(sample=>{sample.workflow_runs.find(r=>r.id===oldActivation.id).head_sha=oldSha;},
+    null,'untrusted_run','old activation must be on exact newer source');
+  await negativeWave(sample=>{sample.workflow_runs.find(r=>r.id===oldActivation.id).name='monitor-proof:v1:999:1';},
+    null,'untrusted_run','old activation cannot reference foreign monitor name');
+  await negativeWave(sample=>{sample.workflow_runs.find(r=>r.id===oldActivation.id).display_title='unknown';},
+    null,'incomplete_previous_activation','unknown old activation origin never filtered');
+  await negativeWave(null,async p=>p.includes('/actions/runs/707/attempts/1/jobs?')
+    ?{total_count:0,jobs:[]}:proofRead(p),
+    'previous_closer_jobs_incomplete','all three original closer jobs required');
+  await negativeWave(null,async p=>{
+    const result=await proofRead(p);
+    if(p.includes('/actions/runs/707/attempts/1/jobs?'))
+      result.jobs[0].steps=[{name:'protected write',conclusion:'success'}];
+    return result;
+  },'previous_closer_executed','executed closer step never filtered');
+  await negativeWave(null,async p=>{
+    const result=await proofRead(p);
+    if(p.includes('/actions/runs/708/attempts/1/jobs?'))
+      result.jobs[0].steps=[{name:'executed activation',conclusion:'success'}];
+    return result;
+  },'previous_activation_executed','executed old activation step never filtered');
+  await negativeWave(sample=>{
+    sample.workflow_runs.push({...copy(tagged.workflow_runs.find(r=>r.path===CLOSER)),id:999});
+    sample.total_count++;
+  },null,'ambiguous_closer','duplicate current closer remains invalid');
+  await negativeWave(sample=>{
+    sample.workflow_runs.push({...copy(tagged.workflow_runs.find(r=>r.path.endsWith('/'+ACTIVATION.file))),id:998});
+    sample.total_count++;
+  },null,'ambiguous_activation_origin','duplicate current activation remains invalid');
+
+  // Unrelated scheduled activation still uses its independent allowlist and
+  // native zero-step job, not the previous failed Deploy exclusion.
+  const scheduledParent={...copy(taggedMonitor),id:950,event:'schedule',
+    name:'Monitor modeled conversion delivery',head_commit:{id:source},
+    status:'completed',conclusion:'success'};
+  const scheduledTag='monitor-proof:v1:950:1';
+  const scheduledChild={...copy(tagged.workflow_runs.find(r=>r.path.endsWith('/'+ACTIVATION.file))),
+    id:951,name:scheduledTag,display_title:scheduledTag,
+    created_at:'2026-11-03T19:02:00Z',status:'completed',conclusion:'skipped'};
+  const scheduledMixed={total_count:mixed.total_count+1,
+    workflow_runs:[...copy(mixed.workflow_runs),scheduledChild]};
+  const scheduledRead=async path=>{
+    if(path==='/actions/runs/950')return copy(scheduledParent);
+    if(path==='/actions/runs/951/attempts/1/jobs?per_page=100')return {
+      total_count:1,jobs:[{id:9510,name:'activate',run_id:951,run_attempt:1,
+        head_sha:source,status:'completed',conclusion:'skipped',steps:[]}]};
+    return proofRead(path);
+  };
+  const scheduledResult=await selectReleaseRuns(scheduledMixed,c,scheduledRead);
+  check(scheduledResult.runs.total_count,tagged.total_count,
+    'release slot: independently scheduled zero-step activation stays separately classified');
+  check(gateState(scheduledResult.runs,c),'ready',
+    'release slot: current activation survives scheduling and prior skipped wave');
 
   let f=fixture();
   check(await closeRelease(f.options),'released','release slot: successful original path closes');
