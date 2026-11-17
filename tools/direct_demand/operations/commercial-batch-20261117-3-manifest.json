@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261117-3-v1",
+  "state": "PREPARED_NOT_SENT",
+  "button_text": "✈️ Узнать стоимость тура",
+  "expected_new_full_pairs": 10,
+  "photo_freeze_commit": "15657918ecdb586d462232ef704e2f1306116a7f",
+  "source_photo_artifact": 14321779168,
+  "preparation_note": "10 actual Tourvisor branded photo PNGs, source captions and unchanged publisher; real channel send requires current production preflight and no replay. Historical Soneva Secret hold excluded.",
+  "rows": [
+    {
+      "hotel_id": 7831,
+      "logical_id": "commercial-hotel-7831-v1",
+      "aliases": [
+        "Anantara Riverside Bangkok Resort"
+      ],
+      "text": "✈️ Туры в Anantara Riverside Bangkok Resort\n📍 Бангкок, Таиланд.\n\nЗелёный курорт прямо у реки Чаупхрая — ощущение тропического отдыха посреди большого города.\n🚤 Прогулки и лодочные маршруты по реке.\n🏊 Бассейн, сад и семейный отдых.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "d8a41a04ebaa0e9eba8279c694826dde6cc9528259c08a6d996a5dc94c668b69",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15657918ecdb586d462232ef704e2f1306116a7f/.github/traffic-publish/commercial-expansion100-20261117-third10/7831.png",
+      "photo_sha256": "abfda324bbcfa33db5a3989caf0f634dc69bb8e8fae3d3933ece016f1fa89b9b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=7831"
+      ]
+    },
+    {
+      "hotel_id": 2948,
+      "logical_id": "commercial-hotel-2948-v1",
+      "aliases": [
+        "Anantara Hua Hin Resort"
+      ],
+      "text": "✈️ Туры в Anantara Hua Hin Resort\n📍 Хуахин, Таиланд.\n\nПляжный курорт среди тропических садов.\n🏊 Бассейны и зелёные зоны для отдыха.\n👨‍👩‍👧 Подходит для спокойного семейного отпуска.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "4daff7e3afd6c2118782d23630a43f39bfe2d613726994c1c7d9b10c31d32a9a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15657918ecdb586d462232ef704e2f1306116a7f/.github/traffic-publish/commercial-expansion100-20261117-third10/2948.png",
+      "photo_sha256": "18a38f360665e4923b1901056b5d74070275afa30f862fbe1163988ad727fd7c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2948"
+      ]
+    },
+    {
+      "hotel_id": 57536,
+      "logical_id": "commercial-hotel-57536-v1",
+      "aliases": [
+        "Al Baleed Resort Salalah by Anantara"
+      ],
+      "text": "✈️ Туры в Al Baleed Resort Salalah by Anantara\n📍 Салала, Оман.\n\nКурорт между песчаным пляжем и пресноводной лагуной.\n🏡 Есть виллы с собственными бассейнами.\n🌿 Природа Омана и исторические достопримечательности неподалёку.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "04f49863f2769e554b29fdb96fb40f1d71a795de0d89207df7612a8a0af8889e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15657918ecdb586d462232ef704e2f1306116a7f/.github/traffic-publish/commercial-expansion100-20261117-third10/57536.png",
+      "photo_sha256": "eb58891529c83ae870aaa46beb44dd058eaa7a55bf9bbb763ff931b9e97af180",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=57536"
+      ]
+    },
+    {
+      "hotel_id": 61241,
+      "logical_id": "commercial-hotel-61241-v1",
+      "aliases": [
+        "Anantara Al Jabal Al Akhdar Resort"
+      ],
+      "text": "✈️ Туры в Anantara Al Jabal Al Akhdar Resort\n📍 Джебель-Ахдар, Оман.\n\nПремиальный горный курорт над величественным каньоном.\n🌄 Панорамные виды и горные маршруты.\n🏡 Есть виллы с бассейнами, спа и спокойная горная атмосфера.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "d767747f29a5a551c1460e60d4382a4f9d3b3475a4a33b71116a97b9057ce9a9",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15657918ecdb586d462232ef704e2f1306116a7f/.github/traffic-publish/commercial-expansion100-20261117-third10/61241.png",
+      "photo_sha256": "aaa5237908bde7fad5a212e408e741a858c1a6a894547a042cb2bfcbd0351cc0",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=61241"
+      ]
+    },
+    {
+      "hotel_id": 17424,
+      "logical_id": "commercial-hotel-17424-v1",
+      "aliases": [
+        "Four Seasons Hotel Istanbul at the Bosphorus"
+      ],
+      "text": "✈️ Туры в Four Seasons Hotel Istanbul at the Bosphorus\n📍 Босфор, Стамбул, Турция.\n\nИсторический дворец на берегу Босфора.\n🌊 Прогулки у пролива и роскошные интерьеры.\n🧘 Спа, турецкий хаммам и бассейны.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "a6f85f55253d63a58f3ed7f8c0eed29df3391f1da2a341fa73fc18c1f849a933",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15657918ecdb586d462232ef704e2f1306116a7f/.github/traffic-publish/commercial-expansion100-20261117-third10/17424.png",
+      "photo_sha256": "18fcece55bae85a50656db4c5b218ece1877986b222e1c9f568f03a29f276f0f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=17424"
+      ]
+    },
+    {
+      "hotel_id": 17423,
+      "logical_id": "commercial-hotel-17423-v1",
+      "aliases": [
+        "Four Seasons Hotel Istanbul at Sultanahmet"
+      ],
+      "text": "✈️ Туры в Four Seasons Hotel Istanbul at Sultanahmet\n📍 Султанахмет, Стамбул, Турция.\n\nАтмосферный отель в самом сердце исторического города.\n🕌 Рядом Айя-София и Голубая мечеть.\n🌿 Уютный внутренний двор и рестораны.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "851f21f621ae0694ea8ad782a4e5eb5687617ad75e94e966ebe015a5156f1d54",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15657918ecdb586d462232ef704e2f1306116a7f/.github/traffic-publish/commercial-expansion100-20261117-third10/17423.png",
+      "photo_sha256": "2275b60ec12a382774ccae0b17953623a78b5f501ef50477278ef8ad3fe0f9a9",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=17423"
+      ]
+    },
+    {
+      "hotel_id": 23718,
+      "logical_id": "commercial-hotel-23718-v1",
+      "aliases": [
+        "Anantara Hoi An Resort"
+      ],
+      "text": "✈️ Туры в Anantara Hoi An Resort\n📍 Хойан, Вьетнам.\n\nЗелёный бутик-курорт у реки Тхубон недалеко от старого города.\n🏮 Прогулки по историческим улочкам Хойана.\n🏊 Бассейн и речные экскурсии.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "d6a9c68c84981f39b0d17b9fc7773d54dceac916689c8e8c5b1b4e269f22fa09",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15657918ecdb586d462232ef704e2f1306116a7f/.github/traffic-publish/commercial-expansion100-20261117-third10/23718.png",
+      "photo_sha256": "92dd7c48147eb2bc6c4f590d73c92fa93c74b39cb8f5c15cae1ebfbdf2c3fa02",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23718"
+      ]
+    },
+    {
+      "hotel_id": 22940,
+      "logical_id": "commercial-hotel-22940-v1",
+      "aliases": [
+        "Anantara Sir Bani Yas Island Al Yamm Villa Resort"
+      ],
+      "text": "✈️ Туры в Anantara Sir Bani Yas Island Al Yamm Villa Resort\n📍 Остров Сир-Бани-Яс, ОАЭ.\n\nУединённый пляжный курорт с 30 виллами в стиле традиционной эмиратской деревни.\n🌊 Море и мангровая лагуна рядом\n💦 Виллы с приватными бассейнами и просторными террасами\n✨ Спокойный отдых вдали от городской суеты\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "1cf0bfdd039d051f05374b66d78f2bcac0089f14834c6188f41c384fe7908089",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15657918ecdb586d462232ef704e2f1306116a7f/.github/traffic-publish/commercial-expansion100-20261117-third10/22940.png",
+      "photo_sha256": "ac4501749ad479b349c86d56c9017efcc1df933cd1239a81840c433dcf17f834",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=22940"
+      ]
+    },
+    {
+      "hotel_id": 97001,
+      "logical_id": "commercial-hotel-97001-v1",
+      "aliases": [
+        "Four Seasons Hotel Alexandria at San Stefano"
+      ],
+      "text": "✈️ Туры в Four Seasons Hotel Alexandria at San Stefano\n📍 Александрия, Египет.\n\nЭлегантный отель у Средиземного моря с морскими панорамами.\n🍽 Рестораны и прогулки по Александрии.\n✨ Комфортный городской отдых с атмосферой курорта.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "444f97ec90bb7086847e2e5706a6c61c42690ea9b967beb2eff9d9bb70d500e4",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15657918ecdb586d462232ef704e2f1306116a7f/.github/traffic-publish/commercial-expansion100-20261117-third10/97001.png",
+      "photo_sha256": "4ae057c289e98d686cbe7fa1136b84b79a40e9ee2698df30a7add1a8e18c2ab4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=97001"
+      ]
+    },
+    {
+      "hotel_id": 74509,
+      "logical_id": "commercial-hotel-74509-v1",
+      "aliases": [
+        "Four Seasons Hotel Cairo at Nile Plaza"
+      ],
+      "text": "✈️ Туры в Four Seasons Hotel Cairo at Nile Plaza\n📍 Каир, Египет.\n\nПремиальный городской отель на берегу Нила.\n🌅 В отдельных номерах открываются панорамы реки.\n🧘 Бассейны и спа для отдыха после насыщенного дня.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "48c292c551a1ecee8d658eab9518c327fbd65b10b0723d90f0cac23e642383ab",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15657918ecdb586d462232ef704e2f1306116a7f/.github/traffic-publish/commercial-expansion100-20261117-third10/74509.png",
+      "photo_sha256": "1de557f2041ff9efd1f37d3ec384d3cfd5e9c9251298dbf24365867b986c2154",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=74509"
+      ]
+    }
+  ]
+}
