@@ -20,10 +20,11 @@ const cases=[];function test(name,run){cases.push({name,run})}
 test('unassigned dialogue can be taken while the manager shift is off',async()=>{
   const h=createHarness();await h.start();
   h.W.S.manager.role='manager';h.W.S.manager.is_working=false;
-  h.W.S.detail={...h.W.S.detail,conversation:{...h.conversation,status:'waiting_manager',manager_id:null}};
-  const source=require('node:fs').readFileSync(require('node:path').join(__dirname,'../manager/assets/workspace-v2-conversation.js'),'utf8');
-  assert.match(source,/canTake=\(c\.status==='waiting_manager'\|\|c\.status==='ai'\)&&!c\.manager_id\s*[,;]/);
-  assert.doesNotMatch(source,/canTake=[^;\n]*S\.manager\.is_working/);
+  const waiting={...h.conversation,status:'waiting_manager',manager_id:null};
+  h.C.renderHeader(waiting);
+  const actions=h.ids.get('conversationActions').children;
+  assert.equal(actions.some(button=>button.textContent==='Взять'&&!button.disabled),true);
+  assert.equal(h.ids.get('composer').classList.contains('hidden'),true);
   assertNoMutations(h);
 });
 
