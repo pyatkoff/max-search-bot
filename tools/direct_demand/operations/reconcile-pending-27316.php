@@ -436,6 +436,7 @@ try {
         require RECONCILE_RUNTIME.'/config.php'; require_once RECONCILE_RUNTIME.'/services/ChannelPostRuntime.php';
         require_once RECONCILE_RUNTIME.'/services/ChannelPostAdminService.php'; require_once RECONCILE_RUNTIME.'/services/ChannelPostEntryService.php';
         require_once RECONCILE_RUNTIME.'/integrations/ChannelPostApiTransport.php'; require_once RECONCILE_RUNTIME.'/services/ChannelPostButtonTransport.php';
+        require_once RECONCILE_RUNTIME.'/services/ChannelPostReconciliationService.php';
     } finally { ob_end_clean(); }
     foreach (['max'=>'id9704048781_1_bot','telegram'=>'anyru_bot'] as $platform=>$bot) {
         $identity=ChannelPostRuntime::identity($platform); reconcile_need(is_array($identity)&&$identity['project_key']==='anytour'&&$identity['bot_key']===$bot,'reconcile_runtime_bot_changed');
@@ -475,32 +476,73 @@ try {
         reconcile_capability_admission($rights);
         reconcile_runtime();
         $maxBefore=$registry->publication(RECONCILE_MAX_ID);
-        reconcile_need(is_array($maxBefore)&&(int)$maxBefore['version_id']===RECONCILE_MAX_OLD_VERSION&&$maxBefore['state']==='sent'
-            &&hash('sha256',$maxBefore['snapshot']['text'])===RECONCILE_MAX_CURRENT_TEXT_SHA&&hash_equals($maxPlan['token'],$maxBefore['start_payload']), 'reconcile_max_changed_before_adoption');
-        reconcile_identity($maxBefore,'max',$context['proofs']['max'],$context['row']);
-        reconcile_need(snapshotMatches($maxBefore,$maxSnapshot,$maxPlan),'reconcile_max_context_changed_before_adoption');
+        reconcile_need(is_array($maxBefore)
+            &&(int)$maxBefore['publication_id']===400
+            &&(int)$maxBefore['version_id']===7024
+            &&($maxBefore['state']??null)==='requires_attention'
+            &&($maxBefore['error_reason']??null)==='provider_read_failed'
+            &&(int)($maxBefore['write_attempts']??-1)===0
+            &&empty($maxBefore['claim_token'])&&empty($maxBefore['claimed_at'])
+            &&hash('sha256',(string)$maxBefore['snapshot']['text'])===RECONCILE_MAX_CURRENT_TEXT_SHA
+            &&hash_equals($maxPlan['token'],(string)$maxBefore['start_payload']),
+            'reconcile_max_current_requires_attention_changed');
+        reconcile_need(snapshotMatches($maxBefore,$maxSnapshot,$maxPlan),
+            'reconcile_max_snapshot_changed_before_confirmation');
         reconcile_price_admission($state['monitor_snapshot'],$fresh,time());
-        $maxSnapshot['content_hash']=ChannelPostIncomingAdapter::contentFingerprint($maxSnapshot,'',(string)$maxBefore['channel']['bot_url']);
-        $maxSnapshot['metadata']=array_replace($maxBefore['snapshot']['metadata']??[],$maxSnapshot['metadata']??[]);
-        $maxSnapshot['metadata']=priceObservationMetadata($maxSnapshot['metadata'],$context['payload'],$context['price']);
-        $maxEvent=RECONCILE_OPERATION.':max:'.RECONCILE_KEY;
-        $maxSnapshot['metadata']['source_event_id']=$maxEvent;
-        $maxSnapshot['metadata']['observation_kind']='authorized_admin_content_edit';
-        $maxSnapshot['metadata']['operation_observed_at_ms']=(string)(int)floor(microtime(true)*1000);
-        $maxSnapshot['metadata']['source_revision_ms']=(string)RECONCILE_REQUEST_START_MS;
-        $maxSnapshot['metadata']['revision_clock_origin']='authorized_edit_request_start';
+        $identity=ChannelPostRuntime::identity('max');
+        reconcile_need(is_array($identity)&&$identity['project_key']==='anytour'
+            &&$identity['bot_key']==='id9704048781_1_bot','reconcile_max_identity_changed');
+        $contentHash='9e189b1293ff17c0598d801e87aa93c538f82b2ef6fc9b8b9687ba291fdce7a1';
+        reconcile_need(hash_equals($contentHash,ChannelPostIncomingAdapter::contentFingerprint($maxBefore['snapshot'])),
+            'reconcile_max_content_hash_changed');
+        $service=new ChannelPostReconciliationService($pdo);
+        $preview=$service->confirmReadFailure($identity,'-80492244209683',400,7024,2,$contentHash,false);
+        reconcile_need(($preview['ok']??null)===true&&($preview['state']??null)==='preview'
+            &&($preview['reason']??null)==='already_present'
+            &&($preview['provider_writes']??null)===0&&($preview['database_writes']??null)===0
+            &&($preview['receipt']['request_count']??null)===3
+            &&($preview['receipt']['write_attempts']??null)===0,
+            'reconcile_max_preview_no_longer_admitted');
+        reconcile_runtime();
+        // One exact CAS only; never issue a MAX PUT. A lost DB acknowledgement
+        // is UNKNOWN and must not be retried by an automated runner.
         $out['database_write_calls']++;
-        $maxCurrent=$registry->registerPublication('anytour','max','id9704048781_1_bot','-80492244209683',RECONCILE_MAX_MID,$maxSnapshot);
-        reconcile_need(is_array($maxCurrent)&&(int)$maxCurrent['publication_id']===RECONCILE_MAX_ID
-            &&(int)$maxCurrent['version_id']>RECONCILE_MAX_OLD_VERSION&&empty($maxCurrent['stale_observation'])&&empty($maxCurrent['duplicate_event']), 'reconcile_max_adoption_not_new_exact_version');
-        $out['database_write_calls']++;
-        $maxCurrent=reconcile_confirm_observed($pdo,$registry,$maxCurrent,$maxSnapshot,$maxPlan,$maxEvent);
+        $out['max_confirm_calls']++;
+        $confirmed=$service->confirmReadFailure($identity,'-80492244209683',400,7024,2,$contentHash,true);
+        reconcile_need(($confirmed['ok']??null)===true&&($confirmed['state']??null)==='sent'
+            &&($confirmed['reason']??null)==='already_present'
+            &&($confirmed['database_writes']??null)===1
+            &&($confirmed['provider_writes']??null)===0
+            &&($confirmed['publication_id']??null)===400
+            &&($confirmed['version_id']??null)===7024,
+            'reconcile_max_cas_unconfirmed_stop');
+        $maxCurrent=$registry->publication(RECONCILE_MAX_ID);
+        reconcile_need(is_array($maxCurrent)
+            &&(int)$maxCurrent['version_id']===7024&&$maxCurrent['state']==='sent'
+            &&hash_equals($maxPlan['token'],(string)$maxCurrent['start_payload'])
+            &&($maxCurrent['snapshot']['metadata']['monitor_price_record_id']??null)===RECONCILE_RECORD,
+            'reconcile_max_readback_after_cas_changed');
         $maxReceipt=reconcile_final_receipt($registry,$maxCurrent,$maxPlan);
-        $state['posts']['max:'.RECONCILE_KEY]['state']='confirmed'; $state['posts']['max:'.RECONCILE_KEY]['receipt']=$maxReceipt;
-        $state['reconciliation']=['kind'=>'original_admin_edit_readback_and_first_telegram_edit','original_prefix_sha256'=>RECONCILE_ORIGINAL_SHA,
-            'original_manifest_sha256'=>RECONCILE_MANIFEST,'max_puts'=>0,'max_readback'=>$out['max_target_readback'],
-            'fresh_source_attestation'=>['validated_at'=>gmdate('c'),'snapshot_sha256'=>hash('sha256',reconcile_json($fresh)),'snapshot'=>$fresh]];
-        durable($journalLock,$state); $out['journal_appends']++;
+        $state['posts']['max:'.RECONCILE_KEY]['state']='confirmed';
+        $state['posts']['max:'.RECONCILE_KEY]['receipt']=$maxReceipt;
+        $state['reconciliation']=[
+            'kind'=>'original_provider_observed_max_cas_then_first_telegram_edit',
+            'original_prefix_sha256'=>RECONCILE_ORIGINAL_SHA,
+            'original_manifest_sha256'=>RECONCILE_MANIFEST,
+            'max_puts'=>0,'max_confirm_calls'=>1,
+            'new_posts'=>0,'telegram_first_edit_attempts'=>0,
+            'max_readback'=>$out['max_target_readback'],
+            'max_confirmation'=>[
+                'publication_id'=>400,'version_id'=>7024,
+                'confirmation_kind'=>'max_observed_after_read_failure',
+                'content_hash'=>$contentHash,'provider_writes'=>0,'db_writes'=>1,
+            ],
+            'fresh_source_attestation'=>[
+                'validated_at'=>gmdate('c'),'snapshot_sha256'=>hash('sha256',reconcile_json($fresh)),
+                'snapshot'=>$fresh,
+            ],
+        ];
+        durable($journalLock,$state);$out['journal_appends']++;
         $tgBefore=$registry->publication($tgPlan['publication_id']);
         reconcile_need(is_array($tgBefore)&&(int)$tgBefore['version_id']===$tgPlan['old_version_id']&&$tgBefore['state']==='sent'
             &&$tgBefore['snapshot']['text']===$context['payload']['rows'][0]['channel_texts']['telegram']['old_text']
@@ -513,12 +555,20 @@ try {
         monitor_price_validate_text($tgPlan['text'],$context['price']);
         $out['fresh_admission']['validated_before_telegram_intent_at']=gmdate('c');
         $out['write_admission_complete']=true;
+        $state['reconciliation']['telegram_first_edit_attempts']=1;
         $state['posts']['telegram:'.RECONCILE_KEY]=['state'=>'edit_started','plan'=>$tgPlan,'edit_request_start_ms'=>(int)floor(microtime(true)*1000),
             'fresh_attestation_sha256'=>hash('sha256',reconcile_json($fresh))];
         durable($journalLock,$state); $out['journal_appends']++;
         $out['telegram_edit_attempts']++;
-        $response=tg('editMessageCaption',['chat_id'=>'-1002262666616','message_id'=>$tgPlan['message_id'],'caption'=>$tgPlan['text'],
-            'reply_markup'=>reconcile_json(['inline_keyboard'=>[[['text'=>'✈️ Узнать стоимость тура','url'=>ChannelPostButtonTransport::buttonUrl($tgBefore)]]]])]);
+        $tgLink=monitorEditorPriceLink($tgPlan['text'],'telegram',ChannelPostButtonTransport::buttonUrl($tgBefore));
+        $response=tg('editMessageCaption',[
+            'chat_id'=>'-1002262666616',
+            'message_id'=>$tgPlan['message_id'],
+            'caption'=>$tgPlan['text'],
+            'caption_entities'=>reconcile_json($tgLink['telegram_entities']),
+            'reply_markup'=>reconcile_json(['inline_keyboard'=>[[['text'=>'✈️ Узнать стоимость тура',
+                'url'=>ChannelPostButtonTransport::buttonUrl($tgBefore)]]]]),
+        ]);
         $state['posts']['telegram:'.RECONCILE_KEY]['provider_response']=$response;
         $state['posts']['telegram:'.RECONCILE_KEY]['state']='provider_response_recorded'; durable($journalLock,$state); $out['journal_appends']++;
         reconcile_need($response['http']===200&&($response['data']['ok']??null)===true&&is_array($response['data']['result']??null), 'reconcile_telegram_outcome_unknown_no_retry');
@@ -527,6 +577,8 @@ try {
             &&(string)($message['message_id']??'')===$tgPlan['message_id'], 'reconcile_telegram_response_identity_changed');
         $tgSnapshot=ChannelPostIncomingAdapter::telegramSnapshot($message);
         reconcile_need(is_array($tgSnapshot)&&($tgSnapshot['metadata']['capability']??null)==='supported'&&snapshotMatches($tgBefore,$tgSnapshot,$tgPlan), 'reconcile_telegram_target_not_proven');
+        reconcile_need(monitorEditorPriceLinkVerified('telegram',$message,$tgPlan['text'],$tgLink),
+            'reconcile_telegram_inline_price_not_verified_no_retry');
         $tgSnapshot['content_hash']=ChannelPostIncomingAdapter::contentFingerprint($tgSnapshot,'',(string)$tgBefore['channel']['bot_url']);
         $tgSnapshot['metadata']=array_replace($tgBefore['snapshot']['metadata']??[],$tgSnapshot['metadata']??[]);
         $tgSnapshot['metadata']=priceObservationMetadata($tgSnapshot['metadata'],$context['payload'],$context['price']);
@@ -578,6 +630,9 @@ try {
         $out['original_journal_complete']=true;
         $out['original_manifest_preserved']=true; $out['original_monitor_snapshot_preserved']=true; $out['pending']=null;
         $out['completed_original_operation']=$global['completed'][RECONCILE_TV];
+        $out['original_cycle_interrupted']=true;
+        $out['global_cycle_closure_pending']=true;
+        $out['all_660_completed']=false;
     }
     $out['completed_at']=gmdate('c');
 } catch (Throwable $e) {
