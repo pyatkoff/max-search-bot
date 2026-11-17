@@ -16,7 +16,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
       github.event_name == 'push' &&
-      github.event.before == '7ab5e0fd282035620601ddfe5f2e7dd42ef7dc53' &&
+      github.event.before == 'ebc1cbba3803c3a40e66f670587bcf98c14604a3' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -31,7 +31,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = 7ab5e0fd282035620601ddfe5f2e7dd42ef7dc53
+          test "$(git rev-parse HEAD^)" = ebc1cbba3803c3a40e66f670587bcf98c14604a3
           test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = 6d3da4fb7602de9e6dcd7ba3af06f70749606f1f
           python3 - <<'PY'
           import json,subprocess
@@ -63,7 +63,7 @@ jobs:
           python3 - "$RUNNER_TEMP/third10-current-php.php" <<'PY'
           import hashlib,pathlib,sys,json
           p=pathlib.Path(sys.argv[1]);raw=p.read_bytes()
-          assert len(raw)>25000 and raw.startswith(b'<?php\n') and b'commercial-hotel-batch-20261117-2-v1' in raw
+          assert len(raw)>25000 and raw.startswith(b'<?php\n') and b'commercial-hotel-batch-20261117-3-v1' in raw
           source=raw.decode()
           pins=[
             ('f0e04e9b4e0ed6859ced96279cbf0619931596e6','1982ff7368763edf8b7238c3142e3cc28579e991'),
