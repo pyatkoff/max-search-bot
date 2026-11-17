@@ -13,8 +13,8 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event_name == 'push' &&
-      github.event.before == '8ba5c8e4e5b20966b9e2a7a59843823d09795d29' &&
-      github.event.head_commit.message == 'diagnostics(anytour): max preview bounded failure readback' &&
+      github.event.before == '6832f22cc82ede6007b44116a5a0d338ac428507' &&
+      github.event.head_commit.message == 'diagnostics(anytour): exact MAX preview receipt mode' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = 8ba5c8e4e5b20966b9e2a7a59843823d09795d29
+          test "$(git rev-parse HEAD^)" = 6832f22cc82ede6007b44116a5a0d338ac428507
           test "$(git hash-object tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php)" = 71eae82282831c21e5ac3443d135a3549d55d3b9
           echo ONE_SHOT_ORIGINAL_JOURNAL_PIN_OK
       - name: Pinned existing SSH host and private runner-only key
@@ -207,7 +207,7 @@ jobs:
           python3 - <<'PY'
           import json,pathlib,os
           obj=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'price660-preview.json').read_text())
-          assert obj.get('mode')=='price660_exact_registry_receipt_readonly'
+          assert obj.get('mode')=='price660_max_confirmation_preview_readonly'
           assert all(obj.get(k)==0 for k in ['server_writes','db_writes','post_writes','feed_writes','supplier_calls'])
           if obj.get('ok'): assert obj.get('provider_get_calls')==3 and obj.get('preview',{}).get('provider_writes')==0
           print('PRICE660_CONFIRM_PREVIEW='+json.dumps(obj,ensure_ascii=False,separators=(',',':')))
