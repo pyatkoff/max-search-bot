@@ -6,6 +6,67 @@ Roadmap/checkpoint thread: GitHub issue [#55](https://github.com/pyatkoff/max-se
 
 Primary language with the user: Russian.
 
+## Bounded PR1600 forward repair after an unstarted installer — 2026-11-17
+
+PR1596/1597 metadata recovery completed through native run44099272903 and the
+accepted original application remains fd9b28dab2147f13f3b0d0f7f856b14392b141d2.
+PR1600 merged as970e1bab10e44b2ab8148e609840be8630f5d5db, but original
+Deploy44100865685/attempt1 failed its application source check. Installer
+134106119021 failed its first aggregate; all11protected stages were skipped,
+final verification never ran and all9native downstream children skipped on that
+old SHA. This is **not an installed or accepted PR1600**.
+
+One checked forward repair may continue the same held publisher6928374515 and
+owner226193297. `proveUnstartedForward` is read-only, with phases
+`before_handoff`, `after_handoff` and `installation`. It pins the old source,
+complete native job/step history, zero artifacts and zero-step downstream jobs;
+it also authenticates the exact accepted1597 receipt through the canonical
+resolver and checks its operations diagnostics. The forward PR carries exactly
+one `release-forward-unstarted:v1` JSON marker naming previous_pr1600,
+previous_sha970e1bab10e44b2ab8148e609840be8630f5d5db,
+previous_run_id44100865685 and its actual `head_sha`.
+
+Only after required source CI and fresh proof, the existing owner can transfer
+that same record directly from PR1600 BUSY to forward-PR BUSY, without FREE or a
+second record. Read back its new timestamp and bind it to the forward PR before
+fresh priority admission and expected-head merge. Unknown writes stop without
+retry; refusal retains ownership. Record PR1600 honestly as installation not
+started, superseded by this repair, in the forward PR history, never installed.
+The existing deployment plan repeats authentication before credentials for the
+exact direct successor. Original new push/attempt1, canonical merged binding and
+a single Deploy are mandatory. No rerun, dispatch, classifier broadening,
+workflow, coordination queue or fabricated installation receipt is introduced.
+The new release must finish its ordinary installation and mandatory technical
+checks before the ordinary closer frees that publisher.
+
+## Owner-transferred PR1596/1597 metadata recovery — 2026-11-17
+
+Pavel moved this work out of the full Manager2 conversation and requested recovery
+here. Preserve PR1600's existing source branch and independently accepted native
+nine-child classifier; do not start another installer or change either held record
+by hand. The current application remains fd9b28dab2147f13f3b0d0f7f856b14392b141d2.
+
+After exact-source required CI and independent review, one genuine initial push of
+`ops/recover-pr1597-terminal-20261117` at that checked source may enter only the
+existing serialized metadata recovery job. It authenticates original PR1597
+installation 44079440323, failed closer 44081722753/job134033721866 and the immutable
+pending record af7ee5c9aad44951cda9fd6b3f61f7947c232d44. All original gates, nine
+old skipped/zero-step children, both original PR bindings and same-owner versions
+must be proved. PR1596 Deploy44077678956/verify134026179047 remains failed
+`main_changed`; later PR1597 is a successor, not a successful old verification.
+
+The new `prior_failed_wave_v1` lineage records this distinction. The last native
+step first reconciles PR1596 as superseded, reads it back, then releases PR1597
+and reads it back. This is ordered, not atomic: any uncertain or partial write
+stops without retry and cannot produce an accepted current terminal. Main, live
+configuration, financial sends, customer messages and server installation are
+untouched. Optional runtime remains unobserved. Both original failures remain.
+
+Do not report closure from a JSON record alone: require the new original native
+proof upload and successful terminal step, canonical reader acceptance and both
+publisher readbacks. After this, ordinary admission of the prospective protocol
+correction is still separate; old consumers do not understand the new lineage.
+
 ## Owner-authorised PR1529 terminal publication recovery — 2026-11-13
 
 The owner explicitly approved a one-time recovery of PR1529's technical

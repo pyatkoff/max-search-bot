@@ -1,5 +1,24 @@
 # Ready release priority
 
+## Fixed reconciliation of overlapping PR1596 and PR1597
+
+The owner transferred the blocked work from the full Manager2 chat. The fixed
+`ops/recover-pr1597-terminal-20261117` initial push is a metadata-only continuation,
+not a deployment retry or general permission to free another publisher. Its
+`prior_failed_wave_v1` record authenticates exact original failures, pending
+installation receipt, nine skipped old children, current mandatory gates and both
+unchanged bindings. Native source CI and independent review precede its only run.
+
+PR1596 is explicitly superseded with its original verification incomplete; it is
+never labelled installed-and-verified. The final existing recovery step updates
+that record and reads it back before updating PR1597. Unknown or partial writes
+stop without replay. A complete terminal requires both actual readbacks and the
+successful native final step; the source records and failed runs are immutable.
+Consumers validate the saved lineage rather than demanding that reused publisher
+comments remain unchanged forever. Neither this continuation nor the future-wave
+classifier authorizes moving main while the existing publisher is still held.
+
+
 ## Explicit continuation of the PR1505 pre-write read refusal
 
 The original PR1505 installation and every original required gate succeeded.
