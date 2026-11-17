@@ -606,14 +606,51 @@ function preparedReplyPostReplyLane(): void
         $cursor=(int)$pdo->query("SELECT after_id FROM manager_preparation_cursors WHERE lane='post_reply'")->fetchColumn();
         preparedReplyCheck('forwarded or quoted outgoing message is never AI source',
             !empty($ignored['ok'])&&$cursor===4&&($ignored['requested']??-1)===0);
+        $media=json_encode(ConversationRecordClock::stamp(['type'=>'message',
+            'attachments'=>[['type'=>'photo','name'=>'synthetic.jpg']]]),JSON_THROW_ON_ERROR);
         $pdo->guard=false;
-        $q=$pdo->prepare("INSERT INTO messages VALUES(5,101,'outbound','manager','Не подтверждено',?,'telegram',?,'1',NULL)");
+        $q=$pdo->prepare("INSERT INTO messages VALUES(5,101,'outbound','manager','Прикреплена фотография',?,'telegram',?,'1','native-5')");
+        $q->execute([gmdate('Y-m-d H:i:s'),$media]);$pdo->guard=true;
+        $ignored=ManagerPostReplyPreparation::collect($pdo,'anytour',[1,2]);
+        $cursor=(int)$pdo->query("SELECT after_id FROM manager_preparation_cursors WHERE lane='post_reply'")->fetchColumn();
+        preparedReplyCheck('confirmed media never becomes an authored promise or touches real File data',
+            !empty($ignored['ok'])&&$cursor===5&&($ignored['requested']??-1)===0
+            &&(int)$pdo->query("SELECT COUNT(*) FROM manager_prepared_replies WHERE purpose='open_chat'")->fetchColumn()===1);
+        $pdo->guard=false;
+        $q=$pdo->prepare("INSERT INTO messages VALUES(6,101,'outbound','manager','Не подтверждено',?,'telegram',?,'1',NULL)");
         $q->execute([gmdate('Y-m-d H:i:s'),$meta]);$pdo->guard=true;
         $uncertain=ManagerPostReplyPreparation::collect($pdo,'anytour',[1,2]);
         $cursor=(int)$pdo->query("SELECT after_id FROM manager_preparation_cursors WHERE lane='post_reply'")->fetchColumn();
         preparedReplyCheck('missing native receipt blocks replay cursor without inventing a prepared reply',
-            ($uncertain['state']??'')==='unverified_source'&&$cursor===4
+            ($uncertain['state']??'')==='unverified_source'&&$cursor===5
             &&(int)$pdo->query("SELECT COUNT(*) FROM manager_prepared_replies WHERE purpose='open_chat'")->fetchColumn()===1);
+
+        $race=preparedReplyFixture();
+        ManagerPostReplyPreparation::collect($race,'anytour',[1,2]);
+        $race->guard=false;
+        $q=$race->prepare("INSERT INTO messages VALUES(3,101,'outbound','manager','Подтверждённый ответ',?,'telegram',?,'1','native-race')");
+        $q->execute([gmdate('Y-m-d H:i:s'),$meta]);$race->guard=true;
+        $race->beforeCursorUpdate=static function(PreparedReplyPdo $pdo): void {
+            $pdo->mutate("UPDATE manager_preparation_cursors SET after_id=99,version=version+1 WHERE lane='post_reply'");
+        };
+        $conflict=ManagerPostReplyPreparation::collect($race,'anytour',[1,2]);
+        preparedReplyCheck('overlapping post-reply tick cannot move a newer cursor backwards',
+            empty($conflict['ok'])&&($conflict['state']??'')==='cursor_conflict'
+            &&(int)$race->query("SELECT after_id FROM manager_preparation_cursors WHERE lane='post_reply'")->fetchColumn()===99
+            &&$race->sourceWriteAttempts===0);
+
+        $stale=preparedReplyFixture();
+        ManagerPostReplyPreparation::collect($stale,'anytour',[1,2]);
+        $stale->guard=false;
+        $q=$stale->prepare("INSERT INTO messages VALUES(3,101,'outbound','manager','Отправлю расчёт',?,'telegram',?,'1','native-stale')");
+        $q->execute([gmdate('Y-m-d H:i:s'),$meta]);
+        $q=$stale->prepare("INSERT INTO messages VALUES(4,101,'inbound','customer','Новый запрос',?,'telegram',?,'customer','native-customer')");
+        $q->execute([gmdate('Y-m-d H:i:s'),$meta]);$stale->guard=true;
+        $superseded=ManagerPostReplyPreparation::collect($stale,'anytour',[1,2]);
+        preparedReplyCheck('newer inbound prevents stale outbound from queueing an AI response',
+            !empty($superseded['ok'])&&($superseded['requested']??-1)===0
+            &&(int)$stale->query("SELECT after_id FROM manager_preparation_cursors WHERE lane='post_reply'")->fetchColumn()===3
+            &&(int)$stale->query("SELECT COUNT(*) FROM manager_prepared_replies")->fetchColumn()===0);
     } finally {
         putenv($original===false?'MANAGER_POST_REPLY_PREPARATION':'MANAGER_POST_REPLY_PREPARATION='.$original);
     }

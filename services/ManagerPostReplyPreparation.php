@@ -66,7 +66,8 @@ final class ManagerPostReplyPreparation
                 }
                 $raw=(string)($row['metadata']??'');$meta=json_decode($raw,true,32);
                 if (!is_array($meta) || strlen($raw)>8192) {$state='unverified_source';break;}
-                if (self::quotation($meta)) {$last=$id;continue;}
+                // An attachment preview is not an authored message. Keep the real File untouched.
+                if (self::quotation($meta) || !empty($meta['attachments'])) {$last=$id;continue;}
                 $source=ManagerRequestProfileService::messageSource($row);
                 $evidence=ManagerPromiseTaskService::sourceEvidence($row,
                     ['channel'=>$row['conversation_channel']],$source,$row['known_author']!==null);
