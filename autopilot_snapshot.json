@@ -1,16 +1,16 @@
 {
     "ok": true,
     "schema_version": 1,
-    "generated_at": "2026-11-17T21:28:50+00:00",
+    "generated_at": "2026-11-17T21:58:46+00:00",
     "production": {
-        "sha": "f8c9a48625c599090c826c25e1480864e136f4e7",
+        "sha": "f47fe6cff229bbec1e998f17896d1a858ce5a3d9",
         "branch": "main"
     },
     "manager_mcp_discovery": {
         "sampled_count": 20,
         "recent_attempts": [
             {
-                "at": "2026-11-18T00:26:50+03:00",
+                "at": "2026-11-18T00:56:51+03:00",
                 "surface": "hotels",
                 "http_method": "POST",
                 "credential_header": "bearer",
@@ -24,7 +24,7 @@
                 "rpc_error": -32001
             },
             {
-                "at": "2026-11-18T00:26:49+03:00",
+                "at": "2026-11-18T00:56:51+03:00",
                 "surface": "replies",
                 "http_method": "POST",
                 "credential_header": "bearer",
@@ -38,7 +38,7 @@
                 "rpc_error": -32001
             },
             {
-                "at": "2026-11-18T00:26:49+03:00",
+                "at": "2026-11-18T00:56:51+03:00",
                 "surface": "development",
                 "http_method": "POST",
                 "credential_header": "bearer",
@@ -52,7 +52,7 @@
                 "rpc_error": -32001
             },
             {
-                "at": "2026-11-18T00:26:49+03:00",
+                "at": "2026-11-18T00:56:51+03:00",
                 "surface": "legacy",
                 "http_method": "POST",
                 "credential_header": "bearer",
@@ -66,7 +66,7 @@
                 "rpc_error": -32001
             },
             {
-                "at": "2026-11-18T00:25:51+03:00",
+                "at": "2026-11-18T00:55:28+03:00",
                 "surface": "legacy",
                 "http_method": "POST",
                 "credential_header": "bearer",
@@ -80,7 +80,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-11-18T00:25:51+03:00",
+                "at": "2026-11-18T00:55:21+03:00",
                 "surface": "legacy",
                 "http_method": "POST",
                 "credential_header": "bearer",
@@ -94,7 +94,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-11-18T00:25:50+03:00",
+                "at": "2026-11-18T00:55:20+03:00",
                 "surface": "legacy",
                 "http_method": "POST",
                 "credential_header": "bearer",
@@ -108,7 +108,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-11-18T00:25:49+03:00",
+                "at": "2026-11-18T00:55:20+03:00",
                 "surface": "legacy",
                 "http_method": "POST",
                 "credential_header": "bearer",
@@ -122,7 +122,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-11-18T00:25:41+03:00",
+                "at": "2026-11-18T00:55:19+03:00",
                 "surface": "legacy",
                 "http_method": "POST",
                 "credential_header": "bearer",
@@ -136,7 +136,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-11-18T00:25:40+03:00",
+                "at": "2026-11-18T00:51:03+03:00",
                 "surface": "legacy",
                 "http_method": "POST",
                 "credential_header": "bearer",
@@ -150,7 +150,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-11-18T00:21:27+03:00",
+                "at": "2026-11-18T00:50:21+03:00",
                 "surface": "legacy",
                 "http_method": "POST",
                 "credential_header": "bearer",
@@ -164,7 +164,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-11-18T00:21:26+03:00",
+                "at": "2026-11-18T00:50:20+03:00",
                 "surface": "legacy",
                 "http_method": "POST",
                 "credential_header": "bearer",
@@ -178,7 +178,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-11-18T00:21:25+03:00",
+                "at": "2026-11-18T00:50:20+03:00",
                 "surface": "legacy",
                 "http_method": "POST",
                 "credential_header": "bearer",
@@ -192,7 +192,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-11-18T00:21:25+03:00",
+                "at": "2026-11-18T00:50:19+03:00",
                 "surface": "legacy",
                 "http_method": "POST",
                 "credential_header": "bearer",
@@ -206,7 +206,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-11-18T00:21:25+03:00",
+                "at": "2026-11-18T00:49:40+03:00",
                 "surface": "legacy",
                 "http_method": "POST",
                 "credential_header": "bearer",
@@ -220,7 +220,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-11-18T00:21:25+03:00",
+                "at": "2026-11-18T00:49:11+03:00",
                 "surface": "legacy",
                 "http_method": "POST",
                 "credential_header": "bearer",
@@ -234,7 +234,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-11-18T00:19:03+03:00",
+                "at": "2026-11-18T00:49:11+03:00",
                 "surface": "legacy",
                 "http_method": "POST",
                 "credential_header": "bearer",
@@ -248,7 +248,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-11-18T00:14:12+03:00",
+                "at": "2026-11-18T00:49:11+03:00",
                 "surface": "legacy",
                 "http_method": "POST",
                 "credential_header": "bearer",
@@ -262,7 +262,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-11-18T00:14:12+03:00",
+                "at": "2026-11-18T00:49:11+03:00",
                 "surface": "legacy",
                 "http_method": "POST",
                 "credential_header": "bearer",
@@ -276,7 +276,7 @@
                 "rpc_error": null
             },
             {
-                "at": "2026-11-18T00:14:12+03:00",
+                "at": "2026-11-18T00:49:10+03:00",
                 "surface": "legacy",
                 "http_method": "POST",
                 "credential_header": "bearer",
@@ -295,16 +295,16 @@
         "tick": {
             "available": true,
             "stale": false,
-            "age_seconds": 3,
+            "age_seconds": 9,
             "state": "ok",
             "stage": "complete",
-            "last_started_at": "2026-11-17T21:28:02Z",
-            "last_finished_at": "2026-11-17T21:28:03Z",
-            "last_success_at": "2026-11-17T21:28:03Z",
+            "last_started_at": "2026-11-17T21:58:01Z",
+            "last_finished_at": "2026-11-17T21:58:02Z",
+            "last_success_at": "2026-11-17T21:58:02Z",
             "last_error_at": "2026-10-21T16:39:01Z",
             "last_error_stage": "bootstrap",
             "counts": {
-                "candidates": 12,
+                "candidates": 14,
                 "captured": 0,
                 "inserted": 0,
                 "existing": 0,
@@ -374,7 +374,7 @@
             "pending_count": 17,
             "overdue_count": 17,
             "stuck_count": 17,
-            "oldest_wait_seconds": 3092760,
+            "oldest_wait_seconds": 3094565,
             "routing_blocked_count": 0
         },
         "push": {
@@ -406,9 +406,9 @@
                 "waiting": 12,
                 "assigned_to_others": 72,
                 "load_ms": {
-                    "all": 343,
-                    "mine": 124.8,
-                    "waiting": 113.9
+                    "all": 294.8,
+                    "mine": 97.7,
+                    "waiting": 94.8
                 },
                 "sample_check": {
                     "ok": true,
@@ -428,9 +428,9 @@
                 "waiting": 13,
                 "assigned_to_others": 72,
                 "load_ms": {
-                    "all": 335.5,
-                    "mine": 12.7,
-                    "waiting": 60.6
+                    "all": 304.1,
+                    "mine": 11.9,
+                    "waiting": 53.1
                 },
                 "sample_check": {
                     "ok": true,
@@ -450,9 +450,9 @@
                 "waiting": 15,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 88.2,
-                    "mine": 96.4,
-                    "waiting": 111.8
+                    "all": 83.8,
+                    "mine": 95.6,
+                    "waiting": 108.5
                 },
                 "sample_check": {
                     "ok": true,
@@ -472,9 +472,9 @@
                 "waiting": 12,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 216.7,
-                    "mine": 1284,
-                    "waiting": 1525.4
+                    "all": 242.7,
+                    "mine": 1482.2,
+                    "waiting": 1522.6
                 },
                 "sample_check": {
                     "ok": true,
@@ -494,9 +494,9 @@
                 "waiting": 12,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 104.6,
-                    "mine": 96.3,
-                    "waiting": 76.3
+                    "all": 109.4,
+                    "mine": 98.6,
+                    "waiting": 80.2
                 },
                 "sample_check": {
                     "ok": true,
@@ -516,9 +516,9 @@
                 "waiting": 16,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 87.9,
-                    "mine": 42.7,
-                    "waiting": 85.6
+                    "all": 87.6,
+                    "mine": 43.6,
+                    "waiting": 88
                 },
                 "sample_check": {
                     "ok": true,
@@ -538,9 +538,9 @@
                 "waiting": 13,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 237.4,
-                    "mine": 649.3,
-                    "waiting": 404.3
+                    "all": 222.2,
+                    "mine": 814.2,
+                    "waiting": 529.4
                 },
                 "sample_check": {
                     "ok": true,
@@ -560,9 +560,9 @@
                 "waiting": 12,
                 "assigned_to_others": 72,
                 "load_ms": {
-                    "all": 298.1,
-                    "mine": 10,
-                    "waiting": 52.8
+                    "all": 341.4,
+                    "mine": 9.9,
+                    "waiting": 53.8
                 },
                 "sample_check": {
                     "ok": true,
@@ -582,9 +582,9 @@
                 "waiting": 0,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 150.4,
-                    "mine": 9.5,
-                    "waiting": 22.9
+                    "all": 154.9,
+                    "mine": 8.6,
+                    "waiting": 23.3
                 },
                 "sample_check": {
                     "ok": true,
@@ -604,9 +604,9 @@
                 "waiting": 0,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 186.5,
-                    "mine": 8.3,
-                    "waiting": 21.1
+                    "all": 186,
+                    "mine": 7.9,
+                    "waiting": 23.6
                 },
                 "sample_check": {
                     "ok": true,
@@ -626,8 +626,8 @@
                 "waiting": 0,
                 "assigned_to_others": 0,
                 "load_ms": {
-                    "all": 15.2,
-                    "mine": 14.1,
+                    "all": 17.2,
+                    "mine": 15.8,
                     "waiting": 10.7
                 },
                 "sample_check": {
@@ -653,39 +653,39 @@
     },
     "live": {
         "window_hours": 1,
-        "since_utc": "2026-11-17 20:28:27",
+        "since_utc": "2026-11-17 20:58:31",
         "summary": {
-            "sessions": 19,
-            "raw_sessions": 19,
+            "sessions": 16,
+            "raw_sessions": 16,
             "explicit_test_sessions": 0,
             "source_resolution": {
-                "resolved": 18,
+                "resolved": 15,
                 "unresolved": 1
             },
-            "started": 13,
+            "started": 11,
             "needs_collected": 1,
             "tours_opened": 1,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
-            "manager_requested": 11,
+            "manager_requested": 9,
             "manager_replied": 0,
             "customer_replied_after_manager": 0,
             "phone_received": 0,
             "manager_response": {
                 "answered_in_90s": 0,
                 "answered_after_90s": 0,
-                "still_unanswered": 10,
+                "still_unanswered": 8,
                 "measured_responses": 0,
                 "avg_seconds": null,
                 "max_seconds": null
             },
             "drop_points": {
-                "manager_requested": 11,
-                "started_only": 6,
+                "manager_requested": 9,
+                "started_only": 5,
                 "collecting_needs": 2
             },
             "flags": {
-                "manager_requested_no_reply": 10,
+                "manager_requested_no_reply": 8,
                 "repeated_same_input": 1
             }
         }
@@ -695,7 +695,7 @@
         "summary": []
     },
     "ops": {
-        "sha": "f8c9a48625c599090c826c25e1480864e136f4e7",
+        "sha": "f47fe6cff229bbec1e998f17896d1a858ce5a3d9",
         "migration": "success",
         "snapshot": "success",
         "live_sessions": "success",
@@ -704,7 +704,7 @@
         "architecture_inventory": "success",
         "website_smoke": "success",
         "health": "success",
-        "reported_at": "2026-11-17T21:28:50Z"
+        "reported_at": "2026-11-17T21:58:46Z"
     },
     "artifacts": {
         "ops": "ops_status.json",
@@ -712,7 +712,7 @@
     },
     "paid_daily": {
         "ok": true,
-        "generated_at": "2026-11-17T21:28:06+00:00",
+        "generated_at": "2026-11-17T21:58:11+00:00",
         "timezone": "Europe/Kaliningrad",
         "channel": "max",
         "attribution_basis": "current_saved_traffic_yclid",
@@ -794,9 +794,9 @@
             {
                 "date": "2026-11-17",
                 "partial": true,
-                "all_new": 70,
+                "all_new": 73,
                 "paid_new": 0,
-                "without_saved_yclid": 70,
+                "without_saved_yclid": 73,
                 "needs_collected": 0,
                 "tours_opened": 0,
                 "site_opened": 0,
@@ -807,7 +807,7 @@
     },
     "channel_daily": {
         "ok": true,
-        "generated_at": "2026-11-17T21:28:06+00:00",
+        "generated_at": "2026-11-17T21:58:11+00:00",
         "timezone": "Europe/Kaliningrad",
         "basis": "recorded_conversation_activity",
         "reply_basis": "any_recorded_outbound_manager_message_in_day",
@@ -1105,15 +1105,15 @@
                 "date": "2026-11-17",
                 "partial": true,
                 "since_utc": "2026-11-16 22:00:00",
-                "until_utc": "2026-11-17 21:28:06",
+                "until_utc": "2026-11-17 21:58:11",
                 "channels": [
                     {
                         "channel": "max",
-                        "active_conversations": 94,
-                        "new_conversations": 70,
+                        "active_conversations": 97,
+                        "new_conversations": 73,
                         "continued_conversations": 24,
-                        "inbound_conversations": 60,
-                        "manager_requested_conversations": 33,
+                        "inbound_conversations": 62,
+                        "manager_requested_conversations": 35,
                         "manager_replied_conversations": 21,
                         "missing_source_conversations": 0
                     },
@@ -1124,7 +1124,7 @@
                         "continued_conversations": 3,
                         "inbound_conversations": 8,
                         "manager_requested_conversations": 6,
-                        "manager_replied_conversations": 5,
+                        "manager_replied_conversations": 6,
                         "missing_source_conversations": 0
                     },
                     {
@@ -1157,10 +1157,10 @@
         "draft_limit_reached": false,
         "message_limit_reached": false,
         "error": null,
-        "generated_at": "2026-11-17T21:28:06Z",
+        "generated_at": "2026-11-17T21:58:11Z",
         "window": {
-            "since": "2026-11-10 21:28:06",
-            "until": "2026-11-17 21:28:06",
+            "since": "2026-11-10 21:58:11",
+            "until": "2026-11-17 21:58:11",
             "timezone": "UTC",
             "days": 7,
             "basis": "persisted_generation_cohort"
@@ -1187,9 +1187,9 @@
             "prepared_same_messages": 0,
             "prepared_changed_messages": 0,
             "edited_messages": 0,
-            "manager_message_rows": 510,
-            "manager_text_messages": 509,
-            "unlinked_manager_text_messages": 508,
+            "manager_message_rows": 511,
+            "manager_text_messages": 510,
+            "unlinked_manager_text_messages": 509,
             "unresolved_reference_messages": 0,
             "invalid_reference_messages": 0,
             "unclassifiable_message_rows": 0,
@@ -1250,7 +1250,7 @@
         }
     },
     "architecture": {
-        "generated_at": "2026-11-17T21:28:46+00:00",
+        "generated_at": "2026-11-17T21:58:43+00:00",
         "areas": {
             "handlers": {
                 "files": 11,
@@ -1264,8 +1264,8 @@
             },
             "services": {
                 "files": 453,
-                "bytes": 5895558,
-                "code_lines": 82531
+                "bytes": 5895454,
+                "code_lines": 82530
             },
             "integrations": {
                 "files": 19,
@@ -1294,12 +1294,12 @@
             },
             "tests": {
                 "files": 681,
-                "bytes": 13954261,
+                "bytes": 13954286,
                 "code_lines": 134108
             },
             "tools": {
                 "files": 135,
-                "bytes": 1563507,
+                "bytes": 1563517,
                 "code_lines": 14157
             }
         },
