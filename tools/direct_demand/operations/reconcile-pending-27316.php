@@ -75,14 +75,23 @@ function reconcile_original_state(array $state): array {
               ['operation'=>'channel_rights','http'=>200,'transport_error'=>false],
               ['operation'=>'current_post','http'=>0,'transport_error'=>true],
             ], 'reconcile_max_intent_changed');
-    reconcile_need(($plan['platform'] ?? null) === 'max' && ($plan['key'] ?? null) === RECONCILE_KEY
-        && ($plan['logical_id'] ?? null) === RECONCILE_KEY && ($plan['publication_id'] ?? null) === RECONCILE_MAX_ID
-        && ($plan['old_version_id'] ?? null) === RECONCILE_MAX_OLD_VERSION && ($plan['message_id'] ?? null) === RECONCILE_MAX_MID
-        && ($plan['post_url'] ?? null) === 'https://max.ru/channel_anytour/AaGjuI2pXao'
-        && ($plan['photo_signature'] ?? null) === 'max:49106363656' && ($plan['update_text'] ?? null) === true
-        && is_string($plan['text'] ?? null) && $plan['text'] !== ''
-        && is_string($plan['token'] ?? null) && preg_match('/\Ap_[A-Za-z0-9_-]{24}\z/D', $plan['token']) === 1
-        && ($plan['monitor_price']['record_id'] ?? null) === RECONCILE_RECORD, 'reconcile_max_plan_changed');
+    $parts=[
+        'platform'=>($plan['platform']??null)==='max',
+        'key'=>($plan['key']??null)===RECONCILE_KEY,
+        'logical_id'=>($plan['logical_id']??null)===RECONCILE_KEY,
+        'publication_id'=>($plan['publication_id']??null)===RECONCILE_MAX_ID,
+        'old_version_id'=>($plan['old_version_id']??null)===RECONCILE_MAX_OLD_VERSION,
+        'message_id'=>($plan['message_id']??null)===RECONCILE_MAX_MID,
+        'post_url'=>($plan['post_url']??null)==='https://max.ru/channel_anytour/AaGjuI2pXao',
+        'photo_signature'=>($plan['photo_signature']??null)==='max:49106363656',
+        'update_text'=>($plan['update_text']??null)===true,
+        'text'=>is_string($plan['text']??null)&&$plan['text']!=='',
+        'token'=>is_string($plan['token']??null)
+            &&preg_match('/\Ap_[A-Za-z0-9_-]{24}\z/D',$plan['token'])===1,
+        'monitor_record_id'=>($plan['monitor_price']['record_id']??null)===RECONCILE_RECORD,
+    ];
+    foreach($parts as $name=>$matched)
+        reconcile_need($matched,'reconcile_max_plan_'.$name.'_changed');
     return $plan;
 }
 function reconcile_prefix_guard(string $raw, string $expected, int $bytes, int $lines): array {
