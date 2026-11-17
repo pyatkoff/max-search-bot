@@ -1,0 +1,137 @@
+name: Price 660 27316 prior completed journal read only
+on:
+  push:
+    branches: ['audit/price660-27316-readonly-20261117']
+    paths: ['.github/workflows/price660-27316-prior-journal-once.yml']
+permissions:
+  contents: read
+concurrency:
+  group: anytour-price660-confirm-current-27316-20261117
+  cancel-in-progress: false
+jobs:
+  bounded-max-get:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.event_name == 'push' &&
+      github.event.before == 'dfdedacb8769bfbb13b0ece5c2d95f20e98514b9' &&
+      github.event.head_commit.message == 'diagnostics(anytour): prior monitor journal read once' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Check one-time parent and no mutations in code
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = dfdedacb8769bfbb13b0ece5c2d95f20e98514b9
+          test "$(git hash-object tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php)" = 71eae82282831c21e5ac3443d135a3549d55d3b9
+          echo ONE_SHOT_ORIGINAL_JOURNAL_PIN_OK
+      - name: Pinned existing SSH host and private runner-only key
+        shell: bash
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          test -n "$KEY_VALUE" && test -n "$DEPLOY_HOST" && test -n "$DEPLOY_USER"
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/price660-key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/price660-key"; fi
+          else
+            printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/price660-key"
+          fi
+          chmod 600 "$RUNNER_TEMP/price660-key"
+          ssh-keygen -y -f "$RUNNER_TEMP/price660-key" >/dev/null
+          python3 - <<'PY'
+          import os,re,hashlib,base64,subprocess,pathlib
+          h=os.environ['DEPLOY_HOST'];u=os.environ['DEPLOY_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',h) and not h.startswith('-') and re.fullmatch(r'[A-Za-z0-9_-]+',u)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',h],capture_output=True,text=True,timeout=35)
+          lines=[]
+          for x in scan.stdout.splitlines():
+              t=x.split()
+              if len(t)<3 or t[0].startswith('#'):continue
+              try: fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(t[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':lines.append(x)
+          assert lines,'HOST_PIN_CHANGED_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/price660-known-hosts').write_text('\n'.join(lines)+'\n')
+          print('HOST_PIN_OK')
+          PY
+      - name: Read previous confirmed price journal and current exact pending, no writes
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/price660-key" -o BatchMode=yes -o ConnectTimeout=12 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/price660-known-hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'php' > "$RUNNER_TEMP/price660-prior.json" <<'REMOTE_PHP'
+          <?php
+          declare(strict_types=1);
+          ini_set('display_errors','0');ini_set('log_errors','0');
+          $out=['ok'=>false,'mode'=>'price660_27316_previous_completed_price_readonly','checked_at'=>gmdate('c'),
+                'db_writes'=>0,'post_writes'=>0,'feed_writes'=>0,'supplier_calls'=>0,'provider_gets'=>0];
+          function need(bool $v,string $why):void{if(!$v)throw new RuntimeException($why);}
+          function readf(string $path,int $max=10000000):array{
+            need(!is_link($path)&&is_file($path)&&realpath($path)===$path,'journal_missing');
+            $f=fopen($path,'rb');need(is_resource($f)&&flock($f,LOCK_SH|LOCK_NB),'journal_busy_stop');
+            try{
+              $st=fstat($f);$named=lstat($path);
+              need(is_array($st)&&is_array($named)&&$st['dev']===$named['dev']&&$st['ino']===$named['ino']&&$st['size']<=$max&&$st['size']>0,'journal_identity_changed');
+              $raw=stream_get_contents($f,$max+1);need(is_string($raw)&&strlen($raw)===$st['size']&&str_ends_with($raw,"\n"),'journal_incomplete');
+              clearstatcache(true,$path);$end=fstat($f);$named=lstat($path);
+              foreach(['size','ino','dev','mtime','ctime'] as $k)need(($end[$k]??null)===($st[$k]??null)&&($named[$k]??null)===($st[$k]??null),'journal_changed');
+              $last=json_decode(explode("\n",substr($raw,0,-1))[substr_count($raw,"\n")-1],true,64,JSON_THROW_ON_ERROR);
+              return ['last'=>$last,'sha256'=>hash('sha256',$raw),'bytes'=>strlen($raw),'lines'=>substr_count($raw,"\n")];
+            }finally{flock($f,LOCK_UN);fclose($f);}
+          }
+          try{
+            $root='/var/www/anytoour/data/channel-post-operations';
+            need(realpath($root)===$root,'private_root_changed');
+            $new='commercial-monitor-price-h27316-7627b206ea11237db2e1fb365e98be5c1ff11a439b3939637fee633dee1b83d4';
+            $old='commercial-monitor-price-h27316-73871d808f646687f94862c74b7dfb78cc7b0c1cee07b74e63690ad16957198f';
+            $newRecord=readf($root.'/'.$new.'/receipt.jsonl');
+            need($newRecord['bytes']===40405&&$newRecord['sha256']==='010c6ecfbdae1156a772160bbadb5fec4cbd84555e14acf10baa791c36da2988','new_child_changed_stop');
+            $parent=$newRecord['last'];
+            need(($parent['complete']??false)===false&&($parent['operation']??null)===$new,'parent_now_complete_stop');
+            $oldRecord=readf($root.'/'.$old.'/receipt.jsonl');
+            $oldLast=$oldRecord['last'];
+            $out['prior']=['operation'=>$old,'sha256'=>$oldRecord['sha256'],'bytes'=>$oldRecord['bytes'],'lines'=>$oldRecord['lines'],
+              'operation_matches'=>($oldLast['operation']??null)===$old,
+              'complete'=>($oldLast['complete']??false)===true,
+              'same_feed_binding'=>($oldLast['feed_binding']??null)===($parent['feed_binding']??null),
+              'posts_confirmed'=>[], 'post_receipt_versions'=>[], 'post_receipt_message_ids'=>[]];
+            foreach(['max','telegram'] as $platform){
+              $matches=[];
+              foreach(($oldLast['posts']??[]) as $post)if(($post['receipt']['platform']??null)===$platform){$matches[]=$post;}
+              $out['prior']['posts_confirmed'][$platform]=count($matches)===1&&($matches[0]['state']??null)==='confirmed'&&($matches[0]['receipt']['state']??null)==='sent';
+              $out['prior']['post_receipt_versions'][$platform]=count($matches)===1?($matches[0]['receipt']['version_id']??null):null;
+              $out['prior']['post_receipt_message_ids'][$platform]=count($matches)===1?($matches[0]['receipt']['message_id']??null):null;
+            }
+            $out['safe_prior_for_recapture']=$out['prior']['complete']&&$out['prior']['operation_matches']&&$out['prior']['same_feed_binding']
+              &&$out['prior']['posts_confirmed']['max']&&$out['prior']['posts_confirmed']['telegram']
+              &&$out['prior']['post_receipt_versions']['telegram']===4200
+              &&$out['prior']['post_receipt_versions']['max']===4199
+              &&(string)$out['prior']['post_receipt_message_ids']['telegram']==='156';
+            $out['ok']=true;
+          }catch(Throwable $e){$out['error']=preg_match('/\A[a-z0-9_]+\z/D',$e->getMessage())?$e->getMessage():'read_failed';}
+          echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),"\n";
+          exit($out['ok']?0:2);
+          REMOTE_PHP
+          python3 - <<'PY'
+          import pathlib,json,os
+          x=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'price660-prior.json').read_text())
+          assert x.get('mode')=='price660_27316_previous_completed_price_readonly'
+          assert all(x.get(k)==0 for k in ['db_writes','post_writes','feed_writes','supplier_calls','provider_gets'])
+          print('PRICE660_PRIOR_JOURNAL='+json.dumps(x,ensure_ascii=False,separators=(',',':')))
+          assert x.get('ok') is True,'PREVIOUS_JOURNAL_NOT_READ'
+          PY
+      - name: Erase runner-only SSH credentials and result
+        if: always()
+        run: rm -f "$RUNNER_TEMP/price660-key" "$RUNNER_TEMP/price660-known-hosts" "$RUNNER_TEMP/price660-prior.json"
