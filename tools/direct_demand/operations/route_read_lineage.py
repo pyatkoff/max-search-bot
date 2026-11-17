@@ -7,9 +7,9 @@ No API calls, writes, runtime installation, permit or execution authorization.
 import hashlib,json,re
 sha=lambda b:hashlib.sha256(b).hexdigest()
 FROM_RUNTIME='8281b387f258932601439eb789560f6b2cbabd4d'
-TO_RUNTIME='96765e518d7cdc0d7db95a49628994de28f01c4d'
-EXPECTED_CLOSURE_PROOF_SHA256='566e633e44cca95c2f5db9f509564b47215ed5fa50a816f5ed7b41873e87e5f7'
-REVIEWED_TRANSITION_SHA256='d62c3df7c6f36d12bed80553a34b99cded533ab38896fe1155e9fab188d43348'
+TO_RUNTIME='71d5ae937c59b953d762bcca520af97291081a2d'
+EXPECTED_CLOSURE_PROOF_SHA256='9675e440e0d81e73975304dc99c89c17addf2d618151fa6ead89fe32596c7474'
+REVIEWED_TRANSITION_SHA256='5eb201e5ad482424bf60faba794956f85ca19dc758245adb3e3b0f6ffdb8c206'
 EXPECTED_OLD_PINS_SHA256='ee0b66909813c6b3374511ed3786b686a7cb29a00dde8d0c7c7c3d249ec83224'
 EXPECTED_CHANGED_PINS={
  'services/ChannelPostRegistryService.php':('7304af19cc19666f00ca4ead1b04c2bdce719646','94fb1988ac8caf90dc5103aa23c58e7aad6ea691'),
@@ -22,11 +22,11 @@ def transition_check(raw,context,old_runtime,new_runtime):
  need(isinstance(raw,bytes) and REVIEWED_TRANSITION_SHA256 is not None and sha(raw)==REVIEWED_TRANSITION_SHA256,'closed_runtime_transition_gate')
  t=json.loads(raw)
  need(set(t)=={'kind','from_runtime','to_runtime','component_pins','read_call_closure_sha256','accepted_context'},'transition_fields_changed')
- need(t['kind']=='ROOT_AUTHENTICATED_EXACT_8281_TO_96765_READ_COMPATIBILITY' and t['from_runtime']==old_runtime==FROM_RUNTIME and t['to_runtime']==new_runtime==TO_RUNTIME,'unreviewed_runtime_pair')
+ need(t['kind']=='ROOT_AUTHENTICATED_EXACT_8281_TO_71D5_READ_COMPATIBILITY' and t['from_runtime']==old_runtime==FROM_RUNTIME and t['to_runtime']==new_runtime==TO_RUNTIME,'unreviewed_runtime_pair')
  need(isinstance(context,dict) and canonical(context)==canonical(t['accepted_context']),'authenticated_runtime_context_changed')
  need(set(context)=={'runtime_acceptance','runtime_native_artifact','original_read_artifact','root_projection_sha256'},'runtime_context_scope_changed')
  a=context['runtime_acceptance'];n=context['runtime_native_artifact'];o=context['original_read_artifact']
- need(a['state']=='DEPLOYED_AND_NATIVE_ACCEPTED' and a['head_sha']==TO_RUNTIME and a['deploy_run_id']==44157731738,'new_deployment_acceptance_changed')
+ need(a['state']=='DEPLOYED_AND_NATIVE_ACCEPTED' and a['head_sha']==TO_RUNTIME and a['deploy_run_id']==44164717290,'new_deployment_acceptance_changed')
  need(n['repository']==o['repository']=='pyatkoff/max-search-bot' and n['run_id']!=o['run_id'] and n['artifact_id']!=o['artifact_id'],'native_evidence_must_be_distinct')
  need(o['run_id']==44143486101 and o['head_sha']=='d8c40388f5112a6bdfe70decb997b894685b1c52' and o['artifact_id']==14355586924 and o['archive_sha256']=='8d672983dc73b04ca2342e1cec68f937589c853c4a62334b3b3c91ac8f63b176','historical_native_evidence_changed')
  need(context['root_projection_sha256']=='1f9677f64fc7b89ac9a0f7d22cdeb93a67b388421b815da7d4701afe1588f87b','historical_route_projection_changed')
