@@ -53,6 +53,33 @@ project, bot, channel, source and verified original create receipt are checked.
 
 ## Launch, attribution and manager
 
+### Paid page address before counter initialization
+
+Owner correction, 17 November 2026: AppleService39 must keep the original
+`yclid` decoded from MAX `startapp`, plus its region/campaign values, in the
+actual miniapp page URL before ordinary Metrika initialization. The address
+remains the branded `/new/appleservice39/` page (or the existing application
+entrypoint when opened directly). A synthetic analytics-only URL is not a
+substitute for retaining the advertising parameters in that real address.
+
+The client captures launch data in memory, then replaces the paid page address
+with its analytics-safe URL: original YCLID/region/campaign retained, raw MAX
+initData/user/signature and launch hints excluded. Only then does it initialize
+the existing counter for its automatic pageview and obtain ClientID through
+that counter's callback. No `defer:true`, manual pageview hit, extra goal,
+reload, second visit writer or counter change is introduced. The authenticated
+POST retains its existing endpoint and exact signed launch body; only its
+acknowledged durable receipt permits the existing exact-post redirect.
+
+AnyTour keeps its separate MAX2 receiver and is not migrated by this correction.
+Tests prove the real address and ordering at initialization, large YCLID strings,
+branded routing, raw-signature privacy, signed context precedence, conflict
+refusal, blocked analytics and exact native destinations. Those source fixtures
+do not prove actual Direct attribution. Metrika page-goal totals, Direct-linked
+goal totals, stored observations and conversation attribution remain distinct
+acceptance results. The observed URL-contract defect is not by itself proof of
+the sole cause of Direct's reported zero.
+
 MAX initData uses the official two-step WebAppData HMAC, a one-hour age bound
 and 60-second future tolerance. Duplicate signed keys, conflicting starts,
 another bot, unknown post/offer and arbitrary destinations are rejected. The
