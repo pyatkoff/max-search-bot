@@ -489,9 +489,24 @@ try {
         && ($global['pending']['tourvisor_hotel_id']??null)===RECONCILE_TV && ($global['pending']['operation']??null)===RECONCILE_OPERATION
         && ($global['pending']['phase']??null)==='post_started'
         && is_array($global['pending']['child_failure']??null)
-        && count($global['pending']['child_failure'])===2
+        && count($global['pending']['child_failure'])===3
         && ($global['pending']['child_failure']['exit_code']??null)===2
         && ($global['pending']['child_failure']['error']??null)==='max_button_outcome_not_confirmed'
+        && is_array($global['pending']['child_failure']['channel_preflight']??null)
+        && count($global['pending']['child_failure']['channel_preflight'])===9
+        && ($global['pending']['child_failure']['channel_preflight']['platform']??null)==='telegram'
+        && ($global['pending']['child_failure']['channel_preflight']['state']??null)==='ready'
+        && ($global['pending']['child_failure']['channel_preflight']['reason']??null)==='capability_verified'
+        && ($global['pending']['child_failure']['channel_preflight']['request_count']??null)===3
+        && ($global['pending']['child_failure']['channel_preflight']['write_attempts']??null)===0
+        && ($global['pending']['child_failure']['channel_preflight']['http_results_truncated']??null)===false
+        && ($global['pending']['child_failure']['channel_preflight']['receipt_valid']??null)===true
+        && ($global['pending']['child_failure']['channel_preflight']['error']??'non_null')===null
+        && ($global['pending']['child_failure']['channel_preflight']['http_results']??null)===[
+            ['operation'=>'bot_identity','http'=>200,'transport_error'=>false],
+            ['operation'=>'channel_rights','http'=>200,'transport_error'=>false],
+            ['operation'=>'channel_type','http'=>200,'transport_error'=>false],
+        ]
         && ($global['completed'][RECONCILE_TV]['operation']??null)==='commercial-monitor-price-h27316-73871d808f646687f94862c74b7dfb78cc7b0c1cee07b74e63690ad16957198f', 'reconcile_original_pending_changed');
     [$journalLock,$journalRaw] = reconcile_open(RECONCILE_ROOT.'/'.RECONCILE_OPERATION.'/receipt.jsonl',10000000,$apply,$locks);
     $state = reconcile_prefix_guard($journalRaw,RECONCILE_ORIGINAL_SHA,40405,4); $maxPlan = reconcile_original_state($state);
