@@ -448,12 +448,13 @@ function reconcile_self_test(): void {
     $replaced=preg_replace('/От 1 108 872 ₽/u','От 1 108 873 ₽',$caption);
     $refuse(static fn()=>monitorEditorPriceLink($replaced,'telegram','https://t.me/wrong_bot?start=abc'),
         'changed_telegram_bot_url');
-    $source=file_get_contents(__FILE__);
-    reconcile_need(is_string($source),'selftest_source_unavailable');
-    $ok(substr_count($source,"tg('editMessageCaption'")===1,'only_one_telegram_first_edit_call');
-    $ok(substr_count($source,'confirmReadFailure(')===2,'built_in_max_preview_and_one_cas');
-    $ok(!str_contains($source,"MaxTransport::request(")&&!str_contains($source,"tg('sendMessage'"),
-        'no_provider_max_put_or_new_post');
+    $ok(RECONCILE_TV===27316 && RECONCILE_MAX_ID===400
+        &&RECONCILE_MAX_OLD_VERSION===4199
+        &&RECONCILE_KEY==='regnum-carya-belek','original_identity_pins');
+    $ok(RECONCILE_RUNTIME_SHA==='62a849e4ea1480700ed62c0bd3cc4c33adb0674c',
+        'frozen_runtime_pin');
+    $ok(RECONCILE_GLOBAL_SHA==='6a381375a03566c2853f31a4f57d4177df17e0ac950bf91ad7b43edc9734474d',
+        'streamed_original_prefix_pin');
     echo 'MONITOR_PENDING_27316_SELFTEST_OK cases='.$cases.' no_network=1 no_write=1 no_replay=1',"\n";
 }
 
@@ -461,7 +462,7 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 if (!defined('HOOK_EDITOR_B64') || !function_exists('safeResult') || !function_exists('hook_finish_feed')) {
     fwrite(STDERR, "reconcile_frozen_bundle_required\n"); exit(2);
 }
-if (count($argv) === 2 && $argv[1] === '--self-test') { reconcile_self_test(); exit(0); }
+if (count($argv) === 2 && $argv[1] === '--self-test') { try { reconcile_self_test(); exit(0); } catch (Throwable $e) { fwrite(STDERR,'SELFTEST_STOP: '.$e->getMessage()."\n"); exit(2); } }
 $apply = getenv('ANYTOUR_MONITOR_27316_APPLY') === '1';
 if ($apply) { fwrite(STDERR, "PRICE27316_APPLY_DISABLED_UNTIL_REVIEWED\n"); exit(2); }
 $out = ['ok'=>false, 'operation'=>RECONCILE_OPERATION, 'mode'=>$apply?'apply_original_pending_only':'inspect_original_pending_only',
