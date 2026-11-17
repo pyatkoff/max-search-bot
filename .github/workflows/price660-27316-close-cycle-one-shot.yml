@@ -1,0 +1,145 @@
+name: Price27316 install reader and close recovered cycle
+on:
+  push:
+    branches: ['audit/price660-27316-resume-readiness-20261117']
+    paths: ['.github/workflows/price660-27316-close-cycle-one-shot.yml']
+permissions:
+  contents: read
+concurrency:
+  group: anytour-price27316-close-cycle
+  cancel-in-progress: false
+jobs:
+  bounded-max-get:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.event_name == 'push' &&
+      github.event.before == '3fb8d21ed51a49e69327d200fdc83cfa20d4891f' &&
+      github.event.head_commit.message == 'fix(price27316): install exact reader and close interrupted cycle' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Check one-time parent and no mutations in code
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = 3fb8d21ed51a49e69327d200fdc83cfa20d4891f
+          test "$(git hash-object tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php)" = 71eae82282831c21e5ac3443d135a3549d55d3b9
+          echo ONE_SHOT_ORIGINAL_JOURNAL_PIN_OK
+      - name: Pinned existing SSH host and private runner-only key
+        shell: bash
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          test -n "$KEY_VALUE" && test -n "$DEPLOY_HOST" && test -n "$DEPLOY_USER"
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/price660-key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/price660-key"; fi
+          else
+            printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/price660-key"
+          fi
+          chmod 600 "$RUNNER_TEMP/price660-key"
+          ssh-keygen -y -f "$RUNNER_TEMP/price660-key" >/dev/null
+          python3 - <<'PY'
+          import os,re,hashlib,base64,subprocess,pathlib
+          h=os.environ['DEPLOY_HOST'];u=os.environ['DEPLOY_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',h) and not h.startswith('-') and re.fullmatch(r'[A-Za-z0-9_-]+',u)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',h],capture_output=True,text=True,timeout=35)
+          lines=[]
+          for x in scan.stdout.splitlines():
+              t=x.split()
+              if len(t)<3 or t[0].startswith('#'):continue
+              try: fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(t[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':lines.append(x)
+          assert lines,'HOST_PIN_CHANGED_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/price660-known-hosts').write_text('\n'.join(lines)+'\n')
+          print('HOST_PIN_OK')
+          PY
+      - name: Rehydrate independently verified frozen original module, no production writes
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p "$RUNNER_TEMP/price660-27316"
+          python3 - <<'PY'
+          import subprocess,hashlib,zipfile,io,os,pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'price660-27316'
+          raw=subprocess.check_output(['gh','api','--method','GET','repos/pyatkoff/max-search-bot/actions/artifacts/14268746215/zip'],timeout=65)
+          assert hashlib.sha256(raw).hexdigest()=='aa742bf4ee787e5a9cee6695b4c937f9c8e2c9a5d801b75cd2c2cc54ed8921b0'
+          with zipfile.ZipFile(io.BytesIO(raw)) as zip:
+              assert zip.testzip() is None
+              body=zip.read('monitor-price-hook.php')
+          assert len(body)==613581 and hashlib.sha256(body).hexdigest()=='41e9f0151f97691f91258ebb37714090ba0798c76db18c3870ff93bcc23d0c9a'
+          (p/'hook.php').write_bytes(body)
+          print('FROZEN_ORIGINAL_HOOK_660_VERIFIED')
+          PY
+          python3 tools/direct_demand/operations/build-close-price27316-and-install-hook.py "$RUNNER_TEMP/price660-27316/hook.php" tools/direct_demand/operations/monitor-price-hook-contract.php "$RUNNER_TEMP/price660-27316/preview.php"
+          php -l "$RUNNER_TEMP/price660-27316/preview.php"
+          test "$(sha256sum "$RUNNER_TEMP/price660-27316/preview.php" | cut -d' ' -f1)" = 20b93fa9b846ef8fd03b942dfd9c93a8119321822a68be12eb9d63852b1aa081
+          php "$RUNNER_TEMP/price660-27316/preview.php" --self-test
+          php tools/direct_demand/operations/test-monitor-price-27316-cycle.php
+          php tools/direct_demand/operations/test-monitor-price-hook.php
+          sha256sum "$RUNNER_TEMP/price660-27316/preview.php"
+          echo 'FROZEN_RECONCILER_DIGEST_VERIFIED'
+      - name: Read only original MAX/TG and saved quote through exact frozen 660 module
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          result_rc=0
+          ssh -i "$RUNNER_TEMP/price660-key" -o BatchMode=yes -o ConnectTimeout=12 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/price660-known-hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; GIT_OPTIONAL_LOCKS=0 ANYTOUR_PRICE27316_CLOSE_APPLY=1 php' < "$RUNNER_TEMP/price660-27316/preview.php" > "$RUNNER_TEMP/price660-27316/result.txt" || result_rc=$?
+          PREVIEW_EXIT="$result_rc" python3 - <<'PY'
+          import json,os,pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'price660-27316/result.txt'
+          lines=p.read_text().splitlines()
+          candidates=[x for x in lines if x.startswith('{')]
+          assert len(candidates)==1
+          r=json.loads(candidates[0])
+          keep={k:r.get(k) for k in ['ok','mode','runtime_sha','driver_sha256','hook_installed','journal_appended','provider_writes','feed_writes','upgraded_hook_sha256','backup_created','all_660_completed','error']}
+          keep['cycle_state']=r.get('terminal_cycle',{}).get('state')
+          keep['collector_run_id']=r.get('terminal_cycle',{}).get('collector_run_id')
+          print('PRICE27316_INSTALLED_CYCLE_CLOSURE='+json.dumps(keep,separators=(',',':')))
+          assert os.environ['PREVIEW_EXIT']=='0' and r.get('ok') is True,'CLOSURE_STOP_NO_RETRY'
+          assert r.get('hook_installed') is True and r.get('journal_appended') is True
+          assert r.get('provider_writes')==0 and r.get('feed_writes')==0 and r.get('all_660_completed') is False
+          assert r['terminal_cycle']['state']=='interrupted_reconciled'
+          PY
+      - name: Independently verify existing posts tokens and three public feeds
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          python3 tools/direct_demand/operations/build-verify-price27316-completed.py "$RUNNER_TEMP/price660-27316/hook.php" "$RUNNER_TEMP/price660-27316/verified.php"
+          test "$(sha256sum "$RUNNER_TEMP/price660-27316/verified.php" | cut -d' ' -f1)" = 7790116485e97557e40782a3c1d8659c19b37c7006803590c9c26f9ea1105af1
+          ssh -i "$RUNNER_TEMP/price660-key" -o BatchMode=yes -o ConnectTimeout=12 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/price660-known-hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; GIT_OPTIONAL_LOCKS=0 php' < "$RUNNER_TEMP/price660-27316/verified.php" > "$RUNNER_TEMP/price660-27316/verified.txt"
+          python3 - <<'PYVERIFY'
+          import json,os,pathlib
+          lines=(pathlib.Path(os.environ['RUNNER_TEMP'])/'price660-27316/verified.txt').read_text().splitlines()
+          rows=[x for x in lines if x.startswith('PRICE27316_COMPLETED_VERIFICATION=')];assert len(rows)==1
+          r=json.loads(rows[0].split('=',1)[1]);keep={k:v for k,v in r.items() if k not in ['current_receipts','max_target_readback']}
+          keep['posts']=[{k:p.get(k) for k in ['platform','publication_id','version_id','message_id','post_url','body_photo_button_verified','price_link_verified']} for p in r.get('current_receipts',{}).values()]
+          print('PRICE27316_INDEPENDENT_READBACK='+json.dumps(keep,separators=(',',':')))
+          assert r.get('ok') is True and r.get('pending_cleared') is True and r.get('previous_hotels_preserved')==588
+          assert all(r.get(k)==0 for k in ['max_puts','new_posts','supplier_calls','database_write_calls','journal_appends','feed_resume_calls','telegram_edit_attempts'])
+          assert r.get('nightly_cycle_state')=='interrupted_reconciled'
+          PYVERIFY
+      - name: Remove runner-only credentials and frozen code/result
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/price660-key" "$RUNNER_TEMP/price660-known-hosts"
+          rm -rf "$RUNNER_TEMP/price660-27316"
