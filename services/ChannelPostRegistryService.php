@@ -423,6 +423,7 @@ final class ChannelPostRegistryService
             || ($publication['error_reason'] ?? '') !== 'provider_read_failed'
             || ($publication['write_attempts'] ?? -1) !== 0 || ($publication['attempt_count'] ?? -1) !== 1
             || ($publication['claim_token'] ?? null) !== null || ($publication['claimed_at'] ?? null) !== null
+            || ($publication['content_hash'] ?? '') !== ChannelPostIncomingAdapter::contentFingerprint($snapshot)
             || isset($receipt['recovery_kind']) || !preg_match('/\A[1-9][0-9]{0,19}\z/D', $mid)
             || ($snapshot['metadata']['capability'] ?? '') !== 'supported'
             || ($snapshot['metadata']['observation_kind'] ?? '') !== 'provider_send_response'

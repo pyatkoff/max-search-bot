@@ -46,6 +46,7 @@ function runChannelPostZeroWriteRecoveryChecks(PDO $pdo, callable $check, ?PDO $
             'caption'=>"  Holiday\nOriginal caption  ",
             'photo'=>[['file_id'=>'private-photo','file_unique_id'=>'stable-photo','width'=>1000,'height'=>1000]]];
         $snapshot = ChannelPostIncomingAdapter::telegramSnapshot($message);
+        $snapshot['content_hash'] = ChannelPostIncomingAdapter::contentFingerprint($snapshot);
         $snapshot['metadata']['observation_kind'] = 'provider_send_response';
         $snapshot['metadata']['source_event_id'] = 'recovery-fixture:'.$counter;
         $post = $registry->registerPublication('post_recovery_test','telegram','recovery_bot','-10099887766',(string)$counter,$snapshot);
@@ -113,6 +114,9 @@ function runChannelPostZeroWriteRecoveryChecks(PDO $pdo, callable $check, ?PDO $
         $check('unsafe failure cannot enter recovery: '.$name,
             !ChannelPostRegistryService::telegramReadFailureRecoveryEligible(array_replace($post,$change)));
     }
+    $changed = $post; $changed['content_hash'] = str_repeat('0',64);
+    $check('legacy or mismatched stored content hashes are ineligible',
+        !ChannelPostRegistryService::telegramReadFailureRecoveryEligible($changed));
     $changed = $post; $changed['snapshot']['text'] .= ' different';
     $check('snapshot must match the authenticated provider send response',
         !ChannelPostRegistryService::telegramReadFailureRecoveryEligible($changed));
