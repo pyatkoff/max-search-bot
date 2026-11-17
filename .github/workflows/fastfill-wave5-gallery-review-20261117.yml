@@ -1,0 +1,69 @@
+name: One-shot W5 same-gallery visual review for4 rows; no sends
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/fastfill-wave5-gallery-review-20261117.yml']
+permissions:
+  contents: write
+jobs:
+  source-gallery-review:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' &&
+      github.event.before == '5386a79f00f2b7ead9380e436bc69351ceced2b7' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tools/direct_demand/operations
+            .github/traffic-publish/commercial-wave5-65-20261117
+      - run: python3 -m pip install --disable-pip-version-check --no-cache-dir pillow==11.3.0 requests==2.32.5
+      - name: Inspect already-bound gallery frames without paid profile or publisher calls
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,concurrent.futures,hashlib,io,json,math,os,pathlib,runpy,subprocess
+          from PIL import Image,ImageDraw
+          intake=pathlib.Path('.github/traffic-publish/commercial-wave5-65-20261117/intake-input.json')
+          assert subprocess.check_output(['git','hash-object',str(intake)],text=True).strip()=='af1a040fa6784dbc1d8b3d6e5c2ada9443f80015'
+          ROWS=[r for r in json.loads(intake.read_bytes()) if r['tourvisor_id'] in [43494,4235,110848,115812]]
+          assert len(ROWS)==4 and all(3<=len(r['first_photo_urls'])<=8 for r in ROWS)
+          HEAD=os.environ['GITHUB_SHA'];REPO='pyatkoff/max-search-bot';PREFIX='.github/traffic-publish/commercial-wave5-65-20261117/'
+          def api(method,path,obj=None):
+              c=['gh','api','--method',method,'repos/'+REPO+'/'+path]
+              if obj is not None:c+=['--input','-']
+              return json.loads(subprocess.check_output(c,input=None if obj is None else json.dumps(obj).encode(),timeout=60))
+          source='tools/direct_demand/operations/prepare-wave2-native-tourvisor-covers-20261117.py'
+          assert subprocess.check_output(['git','hash-object',source],text=True).strip()=='1d084059cd9ed24783fa7355acde9fddba992559'
+          m=runpy.run_path(source);canvases={r['tourvisor_id']:Image.new('RGB',(1440,776),'white') for r in ROWS};recs=[]
+          def get(p):
+              ri,j,r,u=p
+              assert m['check_photo_url'](u)==r['country_id']
+              try:
+                  im,receipt=m['download_photo'](u);return ri,j,r,u,im,receipt,None
+              except Exception as e:return ri,j,r,u,None,None,str(e)[:160]
+          jobs=[(ri,j,r,u) for ri,r in enumerate(ROWS) for j,u in enumerate(r['first_photo_urls'])]
+          with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:out=list(pool.map(get,jobs))
+          for ri,j,r,u,im,receipt,error in out:
+              canvas=canvases[r['tourvisor_id']];draw=ImageDraw.Draw(canvas)
+              x=(j%4)*360;y=(j//4)*388
+              draw.text((x+7,y+5),'TV'+str(r['tourvisor_id'])+' image '+str(j),font=m['font'](15),fill='black')
+              if im is not None:
+                  thumb=Image.new('RGB',(360,360),'#eeeeee');im=im.convert('RGB');im.thumbnail((360,360))
+                  thumb.paste(im,((360-im.width)//2,(360-im.height)//2));canvas.paste(thumb,(x,y+28))
+              else:draw.text((x+7,y+50),'unavailable',font=m['font'](18),fill='red')
+              recs.append({'id':r['tourvisor_id'],'index':j,'url':u,'receipt':receipt,'error':error})
+          root=pathlib.Path('gallery-review');root.mkdir()
+          for hid,canvas in canvases.items():canvas.save(root/('gallery-review-'+str(hid)+'.jpg'),quality=94)
+          (root/'gallery-review-receipt.json').write_text(json.dumps({'mode':'EXACT_PREVIOUSLY_BOUND_GALLERY_REVIEW_ONLY','profile_freeze':'5386a79f00f2b7ead9380e436bc69351ceced2b7','rows':recs,'sender_calls':0,'provider_profile_calls':0},ensure_ascii=False,indent=2)+'\n')
+          parent=api('GET','git/commits/'+HEAD);entries=[]
+          for f in root.iterdir():
+              b=f.read_bytes();blob=api('POST','git/blobs',{'content':base64.b64encode(b).decode(),'encoding':'base64'});entries.append({'path':PREFIX+f.name,'mode':'100644','type':'blob','sha':blob['sha']})
+          tree=api('POST','git/trees',{'base_tree':parent['tree']['sha'],'tree':entries})
+          commit=api('POST','git/commits',{'message':'HOTEL W5: review exact same-provider gallery alternatives for4 reviewed visual issues; no posts','tree':tree['sha'],'parents':[HEAD]})
+          print('W5_GALLERY_STAGE_JSON '+json.dumps({'source_commit':HEAD,'staged_commit':commit['sha'],'files':entries,'native_sends':0},separators=(',',':')))
+          PY
