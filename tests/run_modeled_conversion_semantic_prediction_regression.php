@@ -454,6 +454,10 @@ $tests['same-conditions price question after original manager package continues 
         [$request,$reply],[$request,$quote,['text'=>'Да.']],[$request,$quote,['text'=>'Есть что-нибудь дешевле?']],
         [$request,$quote,['text'=>'Есть туда же вариант дешевле на другой срок?']],
         [$request,$quote,['text'=>'Можно найти билет туда же на тот же срок дешевле?']],
+        [$request,$quote,['text'=>'Есть аренда авто туда же на тот же срок дешевле?']],
+        [$request,$quote,['text'=>'Есть полис туда же на тот же срок дешевле?']],
+        [$request,$quote,['text'=>'Можно подобрать визу туда же на тот же срок дешевле?']],
+        [$request,$quote,['text'=>'Найдётся тур туда же на тот же срок у другого агентства дешевле?']],
         [$request,$quote,['text'=>'Если полетим, есть в ту же страну на тот же срок дешевле?']],
         [$request,$quote,['text'=>'«Найдётся в ту же страну на тот же срок дешевле?»']],
         [$request,$quote,['text'=>'Напишите позже.'],$reply],[$request,$quote,['role'=>'manager','text'=>'Сменим тему.'],$reply],
@@ -462,6 +466,37 @@ $tests['same-conditions price question after original manager package continues 
         [$request,$quote,['text'=>'unavailable','admitted'=>false],$reply],[$quote,$reply],
     ]as$messages){
         semanticPredictionAssert(!$run($messages)['semantic_prediction']['features']['price_alternative_continued_search'],'unbound price question');
+    }
+    foreach(['matching','foreign','unknown']as$receipt){
+        [$case,$wrapper,$document]=semanticPredictionFreezeFixture([$request,$quote,['text'=>'receipt','admitted'=>false],$reply],'max');
+        foreach($case['rows']as&$row){
+            if($row['journal_id']!=='3')continue;
+            $row['source_kind']=$row['snapshot']['source_kind']='event';
+            $snapshot=&$row['snapshot'];
+            $snapshot['source_timestamp_basis']='canonical_recording_unix_v1';
+            if($receipt==='foreign')$snapshot['conversation_id']='22';
+            $payload=ConversationRecordClock::stamp(['project_key'=>'anytour','channel'=>'max'],$snapshot['source_created_at_unix']);
+            $snapshot['payload']=['event_type'=>$receipt==='unknown'?'unrecognized_receipt':'manager_message',
+                'actor_type'=>'manager','payload_json'=>json_encode($payload,JSON_THROW_ON_ERROR)];
+            unset($snapshot);
+        }
+        unset($row);
+        $result=ModeledConversionEarlyForecast::freeze($case,$wrapper,$document,null,strtotime($document['requested_at'])+1,null,true);
+        $signal=$result['semantic_prediction'];
+        semanticPredictionAssert($signal['features']['price_alternative_continued_search']===($receipt==='matching'),'package receipt scope: '.$receipt);
+        if($receipt==='matching'){
+            semanticPredictionAssert($signal['current_request_anchor']==='journal:1'
+                &&in_array('journal:4',array_column($signal['evidence'],'source_ref'),true),'service receipt changed customer evidence');
+        }
+    }
+    foreach([2,3]as$linked){
+        foreach(['{"type":"message","linked_message":{"type":"reply"}}','invalid']as$raw){
+            [$case,$wrapper,$document]=semanticPredictionFreezeFixture([$request,$quote,$reply],'max');
+            foreach($case['rows']as&$row)if((int)$row['journal_id']===$linked)$row['snapshot']['payload']['metadata_json']=$raw;
+            unset($row);
+            $result=ModeledConversionEarlyForecast::freeze($case,$wrapper,$document,null,strtotime($document['requested_at'])+1,null,true);
+            semanticPredictionAssert(!$result['semantic_prediction']['features']['price_alternative_continued_search'],'linked or opaque source metadata');
+        }
     }
     foreach([-10,86401]as$shift){
         $parts=semanticPredictionFreezeFixture([$request,$quote,$reply],'max');

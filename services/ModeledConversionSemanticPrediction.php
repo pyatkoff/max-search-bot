@@ -85,7 +85,7 @@ final class ModeledConversionSemanticPrediction
     }
 
     public function observeMessage(string $role,string $redactedText,string $ref,int $occurred,
-        int $available,int $sourceVersion,array $canonicalSemanticResult):void
+        int $available,int $sourceVersion,array $canonicalSemanticResult,bool $originalUnlinked=false):void
     {
         $meta=$this->metadata($ref,$occurred,$available,$sourceVersion);
         if($this->lastQuestionnaireAt!==null&&($occurred<$this->lastQuestionnaireAt
@@ -133,7 +133,7 @@ final class ModeledConversionSemanticPrediction
         // The quote alone never supplies criteria, price, or an offer identity.
         $previousQuote=$this->pendingManagerQuote;
         $this->pendingManagerQuote=null;
-        if($this->advertisingV1&&$role==='manager'&&$sourceVersion===1&&!$unsafe
+        if($originalUnlinked&&$this->advertisingV1&&$role==='manager'&&$sourceVersion===1&&!$unsafe
             &&$this->anchor!==null&&$this->canPreserveCustomerContext($occurred)
             &&self::isManagerPackageQuote($redactedText)){
             $this->pendingManagerQuote=['occurred'=>$occurred,'available'=>$available];
@@ -162,7 +162,7 @@ final class ModeledConversionSemanticPrediction
         $families=$directCustomer?$textSignals['criteria_families']:[];
         $comp=$directCustomer&&$textSignals['explicit_comparison'];
         $modify=$directCustomer&&$textSignals['explicit_modification'];
-        $packageFollowup=$directCustomer&&$previousQuote!==null&&$sourceVersion===1
+        $packageFollowup=$originalUnlinked&&$directCustomer&&$previousQuote!==null&&$sourceVersion===1
             &&($flags['other_payment_product']??false)!==true
             &&$occurred>$previousQuote['occurred']&&$occurred-$previousQuote['occurred']<=86400
             &&$previousQuote['available']<=$available&&$this->canPreserveCustomerContext($occurred)
@@ -225,13 +225,16 @@ final class ModeledConversionSemanticPrediction
 
     private static function asksForCheaperSameTrip(string $text):bool
     {
-        if(strlen($text)>600||!self::hit('\A[^.!?？\r\n]+[?？]\s*\z',$text)
-            ||self::hit('(?<!\pL)(?:авиа)?билет\pL*|(?<!\pL)перел[её]т\pL*|(?<!\pL)номер\pL*',$text))return false;
-        $sameDestination='(?<!\pL)(?:туда\s+же|в\s+(?:то\s+же\s+направление|ту\s+же\s+страну)|по\s+тому\s+же\s+направлению)(?!\pL)';
-        $sameDuration='(?<!\pL)(?:столько\s+же\s+(?:дней|суток|ночей)|(?:тот|такой)\s+же\s+срок|(?:ту|такую)\s+же\s+продолжительность|то\s+же\s+количество\s+(?:ночей|дней))(?!\pL)';
-        return self::hit('(?<!\pL)(?:есть|найд[её]тся|можно\s+(?:ли\s+)?(?:найти|подобрать|посмотреть))(?!\pL)',$text)
-            &&self::hit($sameDestination,$text)&&self::hit($sameDuration,$text)
-            &&self::hit('(?<!\pL)(?:подешевле|дешевле|бюджетнее)(?!\pL)',$text);
+        if(strlen($text)>600)return false;
+        // Match the complete question so a different product or seller cannot inherit the quote.
+        $ask='(?:а\s+)?(?:есть(?:\s+ли)?|найд[её]тся(?:\s+ли)?|можно\s+(?:ли\s+)?(?:найти|подобрать|посмотреть))';
+        $option='(?:(?:ещ[её]\s+)?(?:что[- ]нибудь|вариант(?:ы)?|тур(?:ы)?|предложени[ея])\s+)?';
+        $destination='(?:туда\s+же|в\s+(?:то\s+же\s+направление|ту\s+же\s+страну)|по\s+тому\s+же\s+направлению)';
+        $duration='(?:на\s+)?(?:столько\s+же\s+(?:дней|суток|ночей)|(?:тот|такой)\s+же\s+срок'
+            .'|(?:ту|такую)\s+же\s+продолжительность|то\s+же\s+количество\s+(?:ночей|дней))';
+        $join='(?:\s*,\s*|\s+)';
+        return self::hit('\A\s*'.$ask.'\s+'.$option.$destination.$join.'(?:и\s+)?'.$duration
+            .$join.'(?:(?:но|только)\s+)?(?:подешевле|дешевле|бюджетнее)\s*[?？]\s*\z',$text);
     }
 
     /** Unknown or unavailable source content cannot preserve current positive context. */
