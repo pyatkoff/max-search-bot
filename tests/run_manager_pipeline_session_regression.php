@@ -114,6 +114,11 @@ class CardSessionStatement extends PDOStatement {
             $this->rows=[['needed'=>in_array((int)$args[0],[46,47,48],true)?1:0,'reply_wait_started_unix'=>null]];return true;
         }
         if(str_starts_with($sql,'SELECT p.id,p.project_key,p.display_name,COALESCE(ra.regional_scope_required,0) AS regional_scope_required FROM projects p JOIN manager_projects ')){$this->rows=[['id'=>1,'project_key'=>'fixture','display_name'=>'Fixture','regional_scope_required'=>0]];return true;}
+        if(str_starts_with($sql,'SELECT s.id,s.source_key,s.display_name,s.channel,p.project_key,p.display_name AS project_name ')){
+            cardFixtureGate('filter_options');
+            if($args===['fixture'])$this->rows=[['id'=>3,'source_key'=>'test','display_name'=>'Test source','channel'=>'max','project_key'=>'fixture','project_name'=>'Fixture']];
+            return true;
+        }
         if(str_starts_with($sql,'SELECT 1 FROM manager_projects mp JOIN projects ')){$this->rows=in_array($args[1],['fixture','repair_fixture','general_fixture','unconfigured_fixture','invalid_fixture'],true)?[[1]]:[];return true;}
         if(str_contains($sql,' AS unread_count ')){cardFixtureGate(($GLOBALS['action']??'')==='counts'?'counts':'list');return true;}
         if(str_starts_with($sql,'SELECT id,direction,sender_type,text,created_at,sender_id FROM messages ')){$customer=in_array((int)$args[0],[46,47,48],true);$this->rows=[['id'=>101,'direction'=>$customer?'inbound':'outbound','sender_type'=>$customer?'customer':'manager','text'=>'Synthetic transcript &amp; retained','created_at'=>'2026-10-25 10:00:00','sender_id'=>null]];return true;}
@@ -150,6 +155,10 @@ function cardFixtureGate(string $kind):void {
     while(!is_file($directory.'/'.$kind.'.release')){if(microtime(true)>$deadline)throw new RuntimeException('Held fixture timeout');usleep(1000);}
 }
 class SalesPipelineService {
+    static function stages(bool $activeOnly):array{cardFixtureGate('catalog');return [['stage_key'=>'new']];}
+    static function tags(bool $activeOnly):array{return [['id'=>3]];}
+    static function outcomeOptions():array{return ['open'=>'Open'];}
+    static function closeReasonOptions(bool $activeOnly):array{return ['other'=>'Other'];}
     static function conversationSnapshot($id):array{cardFixtureGate('read');return ['stage'=>null,'stage_history'=>[],'tags'=>[],'outcome'=>['outcome'=>'open']];}
     static function setStage(...$args):bool{cardFixtureGate('write');return true;}
     static function decorateConversationRows(array $rows):array{return $rows;}
@@ -160,7 +169,7 @@ PHP);
     file_put_contents($tmp.'/manager/fixture-session.php', <<<'PHP'
 <?php
 require_once __DIR__.'/lib/ManagerHttp.php';session_id((string)$_GET['session']);ManagerHttp::startJson();
-$_SESSION['manager_id']=(int)$_GET['manager'];$_SESSION['csrf']='fixture-csrf';ManagerHttp::respond(['ok'=>true]);
+$_SESSION['manager_id']=(int)$_GET['manager'];$_SESSION['csrf']=isset($_GET['rotate'])?'fixture-rotated':'fixture-csrf';ManagerHttp::respond(['ok'=>true]);
 PHP);
     file_put_contents($tmp.'/manager/fixture-transcript.php', <<<'PHP'
 <?php
@@ -338,9 +347,60 @@ PHP);
     cardCheck('acknowledgement action keeps legacy bootstrap and invalid-input guard',$write['response']['status']===422&&$write['response']['body']['error']==='invalid_read_ack'&&$write['project_writes']===1);
     $unknown=cardObservedRequest($second,'/manager/api.php',['action'=>'detail_extra','csrf'=>'fixture-csrf'],$cookies['own']);
     cardCheck('read action matching is exact and leaves other dispatch unchanged',$unknown['response']['status']===400&&$unknown['project_writes']===1);
+
+    // Open the real transcript while one startup directory is still loading.
+    // The parent controls the release, so completion order is the assertion.
+    $directorySamples=[];
+    foreach(['catalog','filter_options'] as $action){
+        $request=['action'=>$action,'csrf'=>'fixture-csrf'];
+        $entered=$tmp.'/'.$action.'.entered';
+        $release=$tmp.'/'.$action.'.release';
+        for($cycle=0;$cycle<3;$cycle++){
+            @unlink($entered);@unlink($release);
+            $held=cardStart($first,'/manager/pipeline-api.php',$request,$cookies['own'],$action);
+            cardWait($entered);
+            $detail=cardStart($second,'/manager/api.php',$data+['open_unread'=>true],$cookies['own']);
+            $completed=cardPoll($detail,0.75);
+            $observedMs=round((hrtime(true)-$detail['start'])/1e6,2);
+            touch($release);
+            $directory=cardFinish($held);$transcript=cardFinish($detail);
+            cardCheck("chat opens before held $action ($cycle)",$completed);
+            $directoryBody=$directory['body'];
+            $expected=$action==='catalog'
+                ?['ok'=>true,'stages'=>[['stage_key'=>'new']],'tags'=>[['id'=>3]],'outcomes'=>['open'=>'Open'],'close_reasons'=>['other'=>'Other']]
+                :['ok'=>true,'filters'=>['projects'=>[['id'=>1,'project_key'=>'fixture','display_name'=>'Fixture','regional_scope_required'=>0]],
+                    'sources'=>[['id'=>3,'source_key'=>'test','display_name'=>'Test source','channel'=>'max','project_key'=>'fixture','project_name'=>'Fixture']],'managers'=>[]]];
+            cardCheck("$action and real chat retain their authorized data ($cycle)",$directory['status']===200&&$directoryBody===$expected
+                &&$transcript['status']===200&&($transcript['body']['conversation']['id']??null)===42
+                &&($transcript['body']['messages'][0]['text']??null)==='Synthetic transcript & retained');
+            $directorySamples[]=['directory'=>$action,'chat_completed_before_release'=>$completed,'chat_observation_ms'=>$observedMs];
+        }
+        foreach([['anonymous','',401],['inactive',$cookies['inactive'],401],['bad CSRF',$cookies['own'],403]] as [$label,$cookie,$status]){
+            $before=count(file($tmp.'/loads.jsonl'));
+            $denied=cardRequest($second,'/manager/pipeline-api.php',
+                ['action'=>$action,'csrf'=>$label==='bad CSRF'?'wrong':'fixture-csrf'],$cookie);
+            cardCheck("$label cannot load $action",$denied['status']===$status&&empty($denied['body']['ok'])
+                &&count(file($tmp.'/loads.jsonl'))===$before);
+        }
+        // Same CSRF/new manager and same manager/new CSRF exercise both fences.
+        $session=bin2hex(random_bytes(16));$cookie='anytour_manager_panel='.$session;
+        $seedPath='/manager/fixture-session.php?session='.$session.'&manager=';
+        $seed=cardRequest($second,$seedPath.'7');
+        if($seed['status']!==200)throw new RuntimeException('Cannot seed directory-change session');
+        @unlink($entered);@unlink($release);
+        $held=cardStart($first,'/manager/pipeline-api.php',$request,$cookie,$action);
+        cardWait($entered);
+        $change=cardStart($second,$seedPath.($action==='catalog'?'9':'7&rotate=1'));
+        $changedBefore=cardPoll($change,0.75);
+        touch($release);
+        $changed=cardFinish($change);$late=cardFinish($held);
+        cardCheck("late $action with a changed session returns no directory",$changedBefore&&$changed['status']===200
+            &&$late['status']===401&&$late['body']===['ok'=>false,'error'=>'unauthorized']);
+    }
+    echo 'SYNTHETIC_DIRECTORY_CHAT_HTTP '.json_encode($directorySamples,JSON_THROW_ON_ERROR)."\n";
 } catch(Throwable $error){cardCheck('bounded actual HTTP/session fixture completes',false);echo $error->getMessage()."\n";if(is_file($tmp.'/server.log'))echo substr((string)file_get_contents($tmp.'/server.log'),-4000);}
 finally {
-    if(is_dir($tmp)){touch($tmp.'/read.release');touch($tmp.'/write.release');touch($tmp.'/list.release');touch($tmp.'/counts.release');}
+    if(is_dir($tmp)){touch($tmp.'/read.release');touch($tmp.'/write.release');touch($tmp.'/list.release');touch($tmp.'/counts.release');touch($tmp.'/catalog.release');touch($tmp.'/filter_options.release');}
     foreach($streams as$stream)if(is_resource($stream))fclose($stream);
     foreach($servers as$server){proc_terminate($server['process']);proc_close($server['process']);}
     if(is_dir($tmp))cardRemove($tmp);
