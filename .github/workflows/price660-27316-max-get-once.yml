@@ -1,0 +1,187 @@
+name: Price 660 27316 original MAX GET read-only one-shot
+on:
+  push:
+    branches: ['audit/price660-27316-readonly-20261117']
+    paths: ['.github/workflows/price660-27316-max-get-once.yml']
+permissions:
+  contents: read
+concurrency:
+  group: anytour-price660-provider-get-27316-20261117
+  cancel-in-progress: false
+jobs:
+  bounded-max-get:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.event_name == 'push' &&
+      github.event.before == 'c74753f8b5042734a2820c47cff00c994296fdb1' &&
+      github.event.head_commit.message == 'diagnostics(anytour): bounded max get 27316 no writes' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Check one-time parent and no mutations in code
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = c74753f8b5042734a2820c47cff00c994296fdb1
+          test "$(git hash-object tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php)" = 71eae82282831c21e5ac3443d135a3549d55d3b9
+          echo ONE_SHOT_ORIGINAL_JOURNAL_PIN_OK
+      - name: Pinned existing SSH host and private runner-only key
+        shell: bash
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          test -n "$KEY_VALUE" && test -n "$DEPLOY_HOST" && test -n "$DEPLOY_USER"
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/price660-key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/price660-key"; fi
+          else
+            printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/price660-key"
+          fi
+          chmod 600 "$RUNNER_TEMP/price660-key"
+          ssh-keygen -y -f "$RUNNER_TEMP/price660-key" >/dev/null
+          python3 - <<'PY'
+          import os,re,hashlib,base64,subprocess,pathlib
+          h=os.environ['DEPLOY_HOST'];u=os.environ['DEPLOY_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',h) and not h.startswith('-') and re.fullmatch(r'[A-Za-z0-9_-]+',u)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',h],capture_output=True,text=True,timeout=35)
+          lines=[]
+          for x in scan.stdout.splitlines():
+              t=x.split()
+              if len(t)<3 or t[0].startswith('#'):continue
+              try: fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(t[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':lines.append(x)
+          assert lines,'HOST_PIN_CHANGED_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/price660-known-hosts').write_text('\n'.join(lines)+'\n')
+          print('HOST_PIN_OK')
+          PY
+      - name: One provider GET and exact registry/journal state read, no publisher call
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/price660-key" -o BatchMode=yes -o ConnectTimeout=12 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/price660-known-hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; GIT_OPTIONAL_LOCKS=0 php' > "$RUNNER_TEMP/price660-get.json" <<'REMOTE_PHP'
+          <?php
+          declare(strict_types=1);
+          ini_set('display_errors','0');ini_set('log_errors','0');
+          $out=['ok'=>false,'mode'=>'price660_max_provider_single_get_readonly','checked_at'=>gmdate('c'),'server_writes'=>0,'post_writes'=>0,'feed_writes'=>0,'supplier_calls'=>0,'provider_get_calls'=>0];
+          function price_need(bool $ok,string $code):void{if(!$ok)throw new RuntimeException($code);}
+          function price_take(string $path,int $cap,bool $tail=false):array{
+              price_need(!is_link($path)&&is_file($path)&&realpath($path)===$path,'read_path_invalid');
+              $f=fopen($path,'rb');price_need(is_resource($f)&&flock($f,LOCK_SH|LOCK_NB),'read_lock_busy');
+              try{
+                  $before=fstat($f);$named=lstat($path);
+                  price_need(is_array($before)&&is_array($named)&&$before['ino']===$named['ino']&&$before['dev']===$named['dev'],'read_identity_invalid');
+                  $size=$before['size'];price_need($size>0&&($tail||$size<=$cap),'read_size_invalid');
+                  $offset=$tail?max(0,$size-$cap):0;
+                  price_need(fseek($f,$offset,SEEK_SET)===0,'read_seek_invalid');
+                  $raw=stream_get_contents($f,$cap+1);
+                  price_need(is_string($raw)&&strlen($raw)===$size-$offset,'read_content_invalid');
+                  clearstatcache(true,$path);$after=fstat($f);$named=lstat($path);
+                  foreach(['dev','ino','size','mtime','ctime'] as $k) price_need($after[$k]===$before[$k]&&$named[$k]===$before[$k],'read_changed');
+                  price_need(str_ends_with($raw,"\n"),'incomplete_lastline');
+                  $body=substr($raw,0,-1);$i=strrpos($body,"\n");
+                  price_need($offset===0||$i!==false,'lastline_too_large');
+                  $last=$i===false?$body:substr($body,$i+1);
+                  price_need($last!=='','lastline_empty');
+                  return ['last'=>$last,'last_sha256'=>hash('sha256',$last."\n"),'bytes'=>$size,'full_sha256'=>$tail?null:hash('sha256',$raw)];
+              }finally{flock($f,LOCK_UN);fclose($f);}
+          }
+          try{
+              $root='/var/www/anytoour/data/channel-post-operations';
+              price_need(realpath($root)===$root,'root_changed');
+              $globalPath=$root.'/monitor-price-after-collection-v1.jsonl';
+              $g=price_take($globalPath,4194304,true);
+              price_need($g['last_sha256']==='5660cc6dad9e6a19900dd251da2cd0d8470182f114ac2dc98a2cccf2e38314b5'&&$g['bytes']===443818242,'global_changed_before_read_stop');
+              $state=json_decode($g['last'],true,64,JSON_THROW_ON_ERROR);
+              $expectedOp='commercial-monitor-price-h27316-7627b206ea11237db2e1fb365e98be5c1ff11a439b3939637fee633dee1b83d4';
+              $p=$state['pending']??null;
+              price_need(is_array($p)&&$p['operation']===$expectedOp&&($p['tourvisor_hotel_id']??null)===27316&&($p['phase']??null)==='post_started'
+                  &&($p['child_failure']['error']??null)==='max_button_outcome_not_confirmed','pending_changed_before_get_stop');
+              $childPath=$root.'/'.$expectedOp.'/receipt.jsonl';
+              $c=price_take($childPath,10000000,false);
+              price_need($c['full_sha256']==='010c6ecfbdae1156a772160bbadb5fec4cbd84555e14acf10baa791c36da2988'&&$c['bytes']===40405,'child_changed_before_get_stop');
+              $child=json_decode($c['last'],true,64,JSON_THROW_ON_ERROR);
+              $posts=$child['posts']??null;
+              price_need(is_array($posts)&&count($posts)===1,'child_post_count_changed');
+              $key=array_key_first($posts);$entry=$posts[$key];
+              price_need(is_string($key)&&str_starts_with($key,'max:')&&($entry['state']??null)==='text_edit_returned','child_phase_changed');
+              $plan=$entry['plan']??null;
+              price_need(is_array($plan)&&($plan['platform']??null)==='max','plan_changed');
+              $mid=$plan['message_id']??null;$publicationId=$plan['publication_id']??null;
+              price_need(is_string($mid)&&preg_match('/\A[A-Za-z0-9_.-]{1,191}\z/D',$mid)===1
+                  &&is_int($publicationId)&&$publicationId>0,'target_invalid');
+              $app='/var/www/anytoour/data/www/app.anytoour.ru';
+              price_need(realpath($app)===$app&&chdir($app),'app_root_changed');
+              $cmd='GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false rev-parse HEAD';
+              $appSha=trim((string)shell_exec($cmd));
+              price_need($appSha==='1a530050ddb50f315990d654c8c84e9fb4791143','app_head_changed_before_get_stop');
+              ob_start();try{require $app.'/config.php';require_once $app.'/services/ChannelPostRuntime.php';}finally{ob_end_clean();}
+              $registry=new ChannelPostRegistryService(ConversationDb::connection());
+              $pub=$registry->publication($publicationId);
+              price_need(is_array($pub)&&($pub['platform']??null)==='max'&&($pub['project_key']??null)==='anytour'
+                &&($pub['external_message_id']??null)===$mid,'registry_identity_changed');
+              $url=ChannelPostButtonTransport::buttonUrl($pub);
+              price_need(is_string($url)&&str_starts_with($url,'https://max.ru/id9704048781_1_bot?start=p_'),'button_target_changed');
+              $resp=ChannelPostApiTransport::buttonRequest('max','GET','/messages/'.$mid,[],null);
+              $out['provider_get_calls']=1;
+              $out['provider_http']=is_int($resp['http']??null)?$resp['http']:null;
+              price_need(empty($resp['transport_error'])&&($resp['http']??null)===200&&is_array($resp['data']??null),'provider_get_failed');
+              $message=$resp['data'];
+              $snap=ChannelPostIncomingAdapter::maxSnapshot($message);
+              price_need(is_array($snap),'provider_snapshot_invalid');
+              $attachments=$snap['attachments']??[];
+              $pic=is_array($attachments)&&count($attachments)===1?$attachments[0]:null;
+              $picId=is_array($pic)?($pic['photo_id']??$pic['file_unique_id']??null):null;
+              $actualPic=is_string($picId)?(string)($pic['provider']??'').':'.$picId:null;
+              $out['comparison']=[
+                'tourvisor_hotel_id'=>27316,
+                'operation'=>$expectedOp,
+                'child_post_phase'=>$entry['state'],
+                'publication_id'=>$publicationId,
+                'registry_version_id'=>$pub['version_id']??null,
+                'prior_version_id'=>$plan['old_version_id']??null,
+                'registry_state'=>$pub['state']??null,
+                'registry_message_identity_matches'=>($pub['external_message_id']??null)===$mid,
+                'registry_expected_text_matches'=>(($pub['snapshot']['text']??null)===($plan['text']??null)),
+                'provider_text_matches_plan'=>(($snap['text']??null)===($plan['text']??null)),
+                'provider_photo_matches_plan'=>($actualPic!==null&&$actualPic===($plan['photo_signature']??null)),
+                'provider_post_url_matches_plan'=>(($snap['post_url']??null)===($plan['post_url']??null)),
+                'provider_expected_button_present'=>ChannelPostIncomingAdapter::containsOnlyButton($snap,$url,'✈️ Узнать стоимость тура'),
+                'registry_expected_button_present'=>ChannelPostIncomingAdapter::containsOnlyButton((array)($pub['snapshot']??[]),$url,'✈️ Узнать стоимость тура'),
+              ];
+              $g2=price_take($globalPath,4194304,true);$c2=price_take($childPath,10000000,false);
+              price_need($g2['last_sha256']===$g['last_sha256']&&$g2['bytes']===$g['bytes']
+                &&$c2['full_sha256']===$c['full_sha256']&&$c2['bytes']===$c['bytes'],'journal_changed_during_provider_get');
+              $out['global_last_line_sha256']=$g['last_sha256'];
+              $out['child_sha256']=$c['full_sha256'];
+              $out['app_head']=$appSha;
+              $out['ok']=true;
+          }catch(Throwable $e){$out['error']=preg_match('/\A[a-z0-9_]+\z/D',$e->getMessage())?$e->getMessage():'read_failed';}
+          echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),"\n";
+          exit($out['ok']?0:2);
+          REMOTE_PHP
+          python3 - <<'PY'
+          import pathlib,json,os
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'price660-get.json'
+          r=json.loads(p.read_text())
+          for k in ['server_writes','post_writes','feed_writes','supplier_calls']:
+              assert r.get(k)==0,'WRITE_CONTRACT_FAILED'
+          assert r.get('mode')=='price660_max_provider_single_get_readonly'
+          print('PRICE660_MAX_READONLY_GET='+json.dumps(r,ensure_ascii=False,separators=(',',':')))
+          assert r.get('ok') is True,'GET_STOPPED_SAFELY'
+          PY
+      - name: Remove runner-only SSH credentials and private result
+        if: always()
+        run: rm -f "$RUNNER_TEMP/price660-key" "$RUNNER_TEMP/price660-known-hosts" "$RUNNER_TEMP/price660-get.json"
