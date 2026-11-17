@@ -1,0 +1,154 @@
+name: Verify new hotel IDs against the live publication registry
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/commercial-wave6-native-registry-read-20261117.yml']
+permissions:
+  contents: read
+jobs:
+  registry-screen:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == 'bf79c52e5ddbe904c46d75e896cbf8a4c6e2031b' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Prepare the read-only HOTEL CONTENT check
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p pub
+          cat > pub/registry-read.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          
+          ini_set('display_errors', '0');
+          $installed = trim((string)shell_exec('git rev-parse HEAD'));
+          if (PHP_SAPI !== 'cli' || $installed !== 'f8c9a48625c599090c826c25e1480864e136f4e7') {
+              fwrite(STDERR, "Installed application changed before registry read\n");
+              exit(2);
+          }
+          if (trim((string)shell_exec('git status --porcelain --untracked-files=no')) !== '') {
+              fwrite(STDERR, "Tracked production files differ from the installed release\n");
+              exit(2);
+          }
+          $pins = json_decode(base64_decode('eyJpbnRlZ3JhdGlvbnMvQ2hhbm5lbFBvc3RBcGlUcmFuc3BvcnQucGhwIjoiMzAwNjM0ZDc3Y2I5ZmRkZjUxYWRmOTg2OTk3NGY5NTZjY2E2ZTNmOSIsIm1pZ3JhdGlvbnMvMDMzX2NoYW5uZWxfcG9zdF9jb250ZXh0LnNxbCI6IjA1MzA0NTgwMzBhNGJmZTZiNmNjNTVkMWU1ZTQ0MTc0NWMyOWI5NDciLCJtaWdyYXRpb25zLzAzNl9jaGFubmVsX3Bvc3RfbWVtYmVyX2RlbGl2ZXJ5LnNxbCI6IjFiZGE0NjNlNTJiMzMxMzBhZDEyNzUyZGRlZjRlZTVjOTI2OTljMDUiLCJtaWdyYXRpb25zLzA0MF9jaGFubmVsX3Bvc3RfcmVjb25jaWxpYXRpb24uc3FsIjoiMGYyNGI4MzhlYWNkNDUzMzNjNWFkZTlhMjk5MWQwNjA0ODhjNjAzNSIsInNlcnZpY2VzL0NoYW5uZWxQb3N0QWRtaW5TZXJ2aWNlLnBocCI6ImI4MGVlZmM4MDEwNTRiZmU2ZmRiNThlYzM0NWVjZGY2ODdiMmU4OWEiLCJzZXJ2aWNlcy9DaGFubmVsUG9zdEF1dG9tYXRpb25TZXJ2aWNlLnBocCI6ImM2Mzg2ZTE1NWQ0MmJjODM5NzBlZGM5NWYzNWIzZWJlYjUxNDA1MzMiLCJzZXJ2aWNlcy9DaGFubmVsUG9zdEJ1dHRvblRyYW5zcG9ydC5waHAiOiI3YjY3MTFmMWRlNjMwMDAzNDZkOGU1Nzg5ZjJkYmI3ZjcyNTUzNWI4Iiwic2VydmljZXMvQ2hhbm5lbFBvc3RFbnRyeVNlcnZpY2UucGhwIjoiMTk4MmZmNzM2ODc2M2VkZjhiNzIzOGMzMTQyZTNjYzI4NTc5ZTk5MSIsInNlcnZpY2VzL0NoYW5uZWxQb3N0TWF4QWxidW1SZWNvdmVyeS5waHAiOiJkZTI2NmNkMDY4NTg3Y2MzYjJmZjgzZjMwOGE5NjZlYTY2ODg3YTA0Iiwic2VydmljZXMvQ2hhbm5lbFBvc3RNZWRpYVNlcnZpY2UucGhwIjoiZjc5NGVmZDBmNmYyNGRmOTE2ZTE4OTA5ZmY2MjgxYjBiYzkyODQzMyIsInNlcnZpY2VzL0NoYW5uZWxQb3N0TWVtYmVyRGVsaXZlcnlTZXJ2aWNlLnBocCI6IjIwYzFkNzk4NDg5OGIyYTU5OTZhNWY5ZTIwZTRkMmQ4YzIwYjQ3NzgiLCJzZXJ2aWNlcy9DaGFubmVsUG9zdFJlY29uY2lsaWF0aW9uU2VydmljZS5waHAiOiI0MzEzM2Y1NzY4NDVjMTQ0NDYxMDJkZWRmZmZiN2YwZGUyZDRiYTFjIiwic2VydmljZXMvQ2hhbm5lbFBvc3RSZWNvbmNpbGlhdGlvblN0YXRlLnBocCI6ImQ5NTgzY2VjYTgwZDE0MjRhNDRhZGUzNTYxYzIxMjgyYTIzYTUyZjAiLCJzZXJ2aWNlcy9DaGFubmVsUG9zdFJlZ2lzdHJ5U2VydmljZS5waHAiOiI5NGZiMTk4OGFjOGNhZjkwZGM1MTAzYWEyM2M1OGU3YWFkNmVhNjkxIiwic2VydmljZXMvQ2hhbm5lbFBvc3RSdW50aW1lLnBocCI6IjJmMWRkOWI3NzQ3NGZkYmFhOTJmMDQwMmYzYjBhYTE3MGM1OTU0NzQiLCJzZXJ2aWNlcy9DaGFubmVsUG9zdFRlbGVncmFtQWxidW0ucGhwIjoiZmFhMWExNGJjMjc5YTRhZjMzOTM2MjgyMTI2YmYwZDQ2ZTM0MzA0MCIsInNlcnZpY2VzL0NoYW5uZWxQb3N0V2ViaG9va0NvbmZpZ1NlcnZpY2UucGhwIjoiZDVmZGNiMDU2MDg4ZjFlM2E1NDFiNDA0NjMyNWQ5N2VlZjY0MTdkOSIsInNlcnZpY2VzL0NvbnZlcnNhdGlvbkRiLnBocCI6ImJiNjI4MWZhZjU1YWNhN2JlZWFlN2Y4YTU3Mzg5ZDE5NzUxOTM2ZjciLCJzZXJ2aWNlcy9NYXhUbHNDb25maWcucGhwIjoiMDMyYzAyMTFlZTNmMzljNmYwZDI3YzY2OWFiZDViNDY3ZTMyMWRlYSIsInNlcnZpY2VzL01heFRyYW5zcG9ydC5waHAiOiIyY2I0Zjg3ODZiNDcwNGE4ZTYyYTNhOWM0MGRjMmNjNzNkYWQ2MTU5Iiwic2VydmljZXMvUHJvamVjdENvbmZpZy5waHAiOiI2M2MxN2M4MTAzNDEyZjhjZmY4Y2RjYzRiYmIwNjJlNzQ0MTA2YWY5Iiwic2VydmljZXMvUHJvamVjdENvbmZpZ3VyYXRpb24ucGhwIjoiMDcwMTlkNDczYzU4OGUzMzg2YWNlNDI5NzdkYjkzMDkyZTgxMTJlMyJ9', true), true, 64, JSON_THROW_ON_ERROR);
+          foreach ($pins as $path => $expected) {
+              if (trim((string)shell_exec('git hash-object -- ' . escapeshellarg($path))) !== $expected) {
+                  throw new RuntimeException('Pinned publication component differs from the installed release');
+              }
+          }
+          $manifest = json_decode(base64_decode('W1sxMDgzMTcsWyJXQUxET1JGIEFTVE9SSUEgU0VZQ0hFTExFUyBQTEFUVEUgSVNMQU5EIiwiV2FsZG9yZiBBc3RvcmlhIFNleWNoZWxsZXMgUGxhdHRlIElzbGFuZCJdXSxbMTE4MzYsWyJGT1VSIFNFQVNPTlMgUkVTT1JUIFNFWUNIRUxMRVMgQVQgREVTUk9DSEVTIElTTEFORCIsIkZvdXIgU2Vhc29ucyBSZXNvcnQgU2V5Y2hlbGxlcyBhdCBEZXNyb2NoZXMgSXNsYW5kIl1dLFsxMTc0NixbIkZPVVIgU0VBU09OUyBSRVNPUlQgTUFVUklUSVVTIEFUIEFOQUhJVEEiLCJGb3VyIFNlYXNvbnMgUmVzb3J0IE1hdXJpdGl1cyBhdCBBbmFoaXRhIl1dLFsxMTg0MixbIkZPVVIgU0VBU09OUyBSRVNPUlQgU0VZQ0hFTExFUyIsIkZvdXIgU2Vhc29ucyBSZXNvcnQgU2V5Y2hlbGxlcyJdXSxbMTE4ODIsWyJSQUZGTEVTIFNFWUNIRUxMRVMiLCJSYWZmbGVzIFNleWNoZWxsZXMiXV0sWzg5ODcsWyJUSEUgUklUWi1DQVJMVE9OIERJRkMgRE9XTlRPV04iLCJUaGUgUml0ei1DYXJsdG9uLCBEdWJhaSBJbnRlcm5hdGlvbmFsIEZpbmFuY2lhbCBDZW50cmUiXV0sWzE1NzczLFsiVEhFIFJJVFotQ0FSTFRPTiBBQlUgREhBQkkgR1JBTkQgQ0FOQUwiXV0sWzI2ODUsWyJUSEUgUklUWiBDQVJMVE9OIERVQkFJIiwiVGhlIFJpdHotQ2FybHRvbiwgRHViYWkiXV0sWzg4NTksWyJUSEUgUklUWi1DQVJMVE9OIFJBUyBBTCBLSEFJTUFIIEFMIFdBREkgREVTRVJUIiwiVGhlIFJpdHotQ2FybHRvbiBSYXMgQWwgS2hhaW1haCwgQWwgV2FkaSBEZXNlcnQiXV0sWzIzMzUsWyJLQVlVTUFOSVMgTlVTQSBEVUEgUFJJVkFURSBWSUxMQSAmIFNQQSIsIktheXVtYW5pcyBOdXNhIER1YSBQcml2YXRlIFZpbGxhICYgU3BhIl1dLFs1ODc0NCxbIkpVTUVJUkFIIE1BTERJVkVTIE9MSEFIQUxJIElTTEFORCIsIkp1bWVpcmFoIE9saGFoYWxpIElzbGFuZCJdXSxbODI1MDQsWyJNQURJRlVTSEkgUFJJVkFURSBJU0xBTkQiXV0sWzY0OTE4LFsiWU9VICYgTUUgQlkgQ09DT09OIE1BTERJVkVTIChBRFVMVFMgT05MWSAxNisiXV0sWzczMDgyLFsiSElMVE9OIEFCVSBESEFCSSBZQVMgSVNMQU5EIl1dLFsyNjAzLFsiTEUgUk9ZQUwgTUVSSURJRU4gQkVBQ0ggUkVTT1JUICYgU1BBIl1dLFszMzU3NCxbIlRIRSBXRVNUSU4gUFVOVEEgQ0FOQSBSRVNPUlQgJiBDTFVCIl1dLFs3ODgzNCxbIkNMVUIgTUVEIFNFWUNIRUxMRVMiXV0sWzc5NDYwLFsiUkVOQUlTU0FOQ0UgQkFMSSBOVVNBIERVQSBSRVNPUlQiXV0sWzEwOTU4NixbIlZJREEgQ1JFRUsgQkVBQ0giXV0sWzI0MDQsWyJUSEUgV0VTVElOIFJFU09SVCBOVVNBIERVQSJdXSxbMjUxMSxbIkFMIFJBSEEgQkVBQ0ggSE9URUwiXV0sWzI2MDIsWyJMRSBNRVJJRElFTiBNSU5BIFNFWUFISSBCRUFDSCBSRVNPUlQgJiBXQVRFUlBBUksiXV0sWzExNzUxLFsiSElMVE9OIE1BVVJJVElVUyBSRVNPUlQgJiBTUEEiXV0sWzExNzc1LFsiTUFSSVRJTSBSRVNPUlQgJiBTUEEgTUFVUklUSVVTIl1dLFsxMjEyNixbIkxVWCogU09VVEggQVJJIEFUT0xMIFJFU09SVFMgJiBWSUxMQVMiXV0sWzUyNDA5LFsiQ09DT09OIE1BTERJVkVTIl1dLFs3NjQ1OCxbIkNPUkEgQ09SQSBNQUxESVZFUyJdXSxbODI1MzgsWyJBVkFOSSsgRkFSRVMgTUFMRElWRVMgUkVTT1JUIl1dLFszMjksWyJNT1ZFTlBJQ0sgUkVTT1JUICYgU1BBIE5BQlEiXV0sWzIzNTcsWyJOVVNBIERVQSBCRUFDSCBIT1RFTCAmIFNQQSJdXSxbMjU3MixbIkhJTFRPTiBEVUJBSSBKVU1FSVJBSCBCRUFDSCJdXSxbMjU5MyxbIktIQUxJRElZQSBQQUxBQ0UgUkFZSEFBTiBCWSBST1RBTkEiXV0sWzI2MDEsWyJMRSBNRVJJRElFTiBBTCBBUUFIIEJFQUNIIFJFU09SVCJdXSxbNDU0NixbIlNFQ1JFVFMgUk9ZQUwgQkVBQ0ggUFVOVEEgQ0FOQSJdXSxbMTM4OTAsWyJDT1VSVFlBUkQgQlkgTUFSUklPVFQgQkFMSSBOVVNBIERVQSBSRVNPUlQiXV0sWzI4NDAwLFsiU09GSVRFTCBCQUxJIE5VU0EgRFVBIEJFQUNIIFJFU09SVCJdXSxbMjU3MyxbIkhJTFRPTiBGVUpBSVJBSCBSRVNPUlQiXV0sWzI3NzYsWyJQVU5UQSBDQU5BIFBSSU5DRVNTIEFMTCBTVUlURVMgUkVTT1JUICYgU1BBIEFEVUxUUyBPTkxZIl1dLFsxMTc5MSxbIlNPRklURUwgTUFVUklUSVVTIEwgSU1QRVJJQUwgUkVTT1JUICYgU1BBIl1dLFsyNjg0NCxbIk9VVFJJR0dFUiBNQVVSSVRJVVMgUkVTT1JUICYgU1BBIl1dLFsyNTIyLFsiQkVBQ0ggUk9UQU5BIl1dLFsxNzAzLFsiUk9ZQUwgQVNBUkxJSyBCRUFDSCAmIFNQQSJdXSxbMTE3NTMsWyJJTlRFUkNPTlRJTkVOVEFMIE1BVVJJVElVUyBSRVNPUlQgQkFMQUNMQVZBIl1dLFsyNzIxLFsiUEFSQURJU1VTIFZBUkFERVJPIFJFU09SVCAmIFNQQSJdXSxbODI2MjYsWyJTRUxFQ1RVTSBGQU1JTFkgUkVTT1JUIFZBUkFERVJPIl1dLFs3Njk1NSxbIk1PVkVOUElDSyBSRVNPUlQgVklMTEFTIl1dLFsxMjMxMjUsWyJBU1RPVkUgQVRPTEwgQkxVRSBTQUZBUkkgU0VZQ0hFTExFUyJdXSxbMTM1NDQxLFsiQkVBQ0ggUk9UQU5BIEFMTCBTVUlURVMiXV0sWzE1OTEwLFsiQ09STkVMSUEgQVpVUkUgVklMTEFTIl1dLFszMzEsWyJNT1ZFTlBJQ0sgUkVTT1JUIEVMIFFVU0VJUiJdXSxbMjc5NCxbIkNJTk5BTU9OIEJFTlRPVEEgQkVBQ0giXV0sWzMzNTMxLFsiU0FWT1kgU0VZQ0hFTExFUyBSRVNPUlQgJiBTUEEiXV0sWzMzMCxbIk1PVkVOUElDSyBSRVNPUlQgVEFCQSJdXSxbMjUwMixbIkhJTFRPTiBBTCBIQU1SQSBCRUFDSCAmIEdPTEYgUkVTT1JUIl1dLFsxMTg0NyxbIkhJTFRPTiBTRVlDSEVMTEVTIE5PUlRIT0xNRSBSRVNPUlQgJiBTUEEiXV0sWzExODUxLFsiS0VNUElOU0tJIFNFWUNIRUxMRVMgUkVTT1JUIl1dLFsxNzYwOCxbIlJPWUFMIEFUTEFOVElTIFNQQSAmIFJFU09SVCJdXSxbNDM3NDMsWyJUSEUgVklMTEEgQkVOVE9UQSBCWSBLSyBDT0xMRUNUSU9OIl1dLFs3NjI4OCxbIk1BTkdPIEhPVVNFIFNFWUNIRUxMRVMiXV0sWzc3ODEwLFsiTU9WRU5QSUNLIFJFU09SVCBFTCBTT0tITkEiXV0sWzYwODA4LFsiTE9ORyBCRUFDSCBIQVJNT05ZIEhPVEVMIl1dLFsxMzQzLFsiTE9ORyBCRUFDSCJdXSxbNTU0NSxbIlJPWUFMIEFMSEFNQlJBIFBBTEFDRSJdXSxbMTAyMDMyLFsiTU9WRU5QSUNLIFJFU09SVCBBU1dBTiJdXSxbNjQxMTAsWyJDIE1BVVJJVElVUyJdXSxbNjk0MjQsWyJTRUxFQ1RVTSBIQUNJRU5EQSBQVU5UQSBDQU5BIl1dLFsxMjE4MDUsWyJTVU5TQ0FQRSBDT0NPIFBVTlRBIENBTkEiXV0sWzI2MzUsWyJQQVJLIFJPVEFOQSJdXSxbODkyMyxbIkxFIE1FUklESUVOIERVQkFJIEhPVEVMICYgQ09ORkVSRU5DRSBDRU5UUkUiXV0sWzExNzkyLFsiU09GSVRFTCBTTyBNQVVSSVRJVVMgQkVMIE9NQlJFIl1dLFs1OTU0OCxbIkFMIEJBTkRBUiBBUkpBQU4gQlkgUk9UQU5BIl1dLFs3Mzk5NSxbIkFMIEpBRERBRiBST1RBTkEiXV0sWzc4MjEwLFsiVEhFIFdCIEFCVSBESEFCSSBDVVJJTyBDT0xMRUNUSU9OIEJZIEhJTFRPTiJdXSxbMjQ5NSxbIkpBIE1BTkFGQVJVIERFTFVYRSJdXSxbMjY4MCxbIlRIRSBBRERSRVNTIERPV05UT1dOIERVQkFJIl1dLFsxNjMxOCxbIkFNQVJURVJSQSBNR0FMTEVSWSBCQUxJIE5VU0EgRFVBIl1dLFsxNzUxMyxbIkxJQkVSVFkgSE9URUxTIExZS0lBIEFEVUxUUyBPTkxZIDE2KyJdXSxbNzQ2NDQsWyJBTCBCQU5EQVIgUk9UQU5BIl1dLFsxMzIxLFsiTElCRVJUWSBIT1RFTFMgTEFSQSJdXSxbMjc1MCxbIkVYQ0VMTEVOQ0UgUFVOVEEgQ0FOQSBBRFVMVFMgT05MWSJdXSxbODQyMCxbIlBVTlRBIENBTkEgVE9SVFVHQSBCQVkiXV0sWzMzNTQ5LFsiUk9ZQUxUT04gQ0hJQyBQVU5UQSBDQU5BIl1dLFs3NzU5NSxbIlNVTkRJQSBFWENMVVNJVkUgQlkgTElCRVJUWSBGRVRISVlFIEFEVUxUUyBPTkxZIDE2KyJdXSxbMTU3MDAxLFsiQUxCQVRST1MgTUFLQURJIENMVUIiXV0sWzQ5MTMsWyJISUxUT04gQUwgQUlOIl1dLFsyNDk3LFsiQUwgQUlOIFJPVEFOQSBIT1RFTCJdXSxbMjYwMCxbIkxFIE1FUklESUVOIEFCVSBESEFCSSBIT1RFTCJdXSxbMjc2MyxbIklCRVJPU1RBUiBXQVZFUyBQVU5UQSBDQU5BIl1dLFsyNzY1LFsiTUFKRVNUSUMgQ09MT05JQUwgUFVOVEEgQ0FOQSJdXSxbMjc2NixbIk1BSkVTVElDIEVMRUdBTkNFIFBVTlRBIENBTkEiXV0sWzQ1NDIsWyJIQVJEIFJPQ0sgSE9URUwgJiBDQVNJTk8gUFVOVEEgQ0FOQSJdXSxbNDU0OSxbIlpPRVRSWSBBUVVBIFBVTlRBIENBTkEiXV0sWzUwODM0LFsiSElMVE9OIERVQkFJIEFMIEhBQlRPT1IgQ0lUWSJdXSxbNzc2ODUsWyJISUxUT04gRFVCQUkgUEFMTSBKVU1FSVJBSCJdXSxbODM3ODUsWyJHUkFORCBBU1RPTiBWQVJBREVSTyJdXSxbNjYyOTksWyJBRERSRVNTIFNLWSBWSUVXIl1dLFs0NTMzLFsiVEhFIEFERFJFU1MgTU9OVEdPTUVSSUUgRFVCQUkiXV0sWzQ1ODY4LFsiVklMVVhFUiBWRVlMSSAmIERJVklORyJdXSxbMTEzOTc4LFsiU1VOIFNJWUFNIE9MSFVWRUxJIFJPTUFOQ0UgQURVTFRTIE9OTFkgMTYrIl1dLFs4MDc0OCxbIk1PVkVOUElDSyBDQUlSTyBNRURJQSBDSVRZIl1dXQ==', true), true, 64, JSON_THROW_ON_ERROR);
+          if (count($manifest) !== 100 || count(array_unique(array_column($manifest, 0))) !== 100) {
+              throw new RuntimeException('Unexpected intake scope');
+          }
+          
+          ob_start();
+          require getcwd() . '/config.php';
+          require_once getcwd() . '/services/ChannelPostRuntime.php';
+          ob_end_clean();
+          
+          $pdo = ConversationDb::connection();
+          $pdo->exec('SET SESSION TRANSACTION READ ONLY');
+          $pdo->beginTransaction();
+          $result = ['installed_sha' => $installed, 'checked_at' => gmdate(DATE_ATOM),
+              'native_hotel_ids' => array_column($manifest, 0), 'channels' => [], 'matches' => []];
+          try {
+              $query = $pdo->prepare('SELECT p.id, p.current_version_id, v.snapshot_json
+                  FROM post_publications p JOIN post_versions v ON v.id = p.current_version_id
+                  WHERE p.post_channel_id = ? ORDER BY p.id');
+              foreach (['telegram' => 10, 'max' => 9] as $platform => $channel) {
+                  $query->execute([$channel]);
+                  $rows = $query->fetchAll(PDO::FETCH_ASSOC);
+                  if (count($rows) < 1000) {
+                      throw new RuntimeException('Publication registry is below the verified baseline');
+                  }
+                  $result['channels'][$platform] = count($rows);
+                  foreach ($rows as $record) {
+                      $post = json_decode($record['snapshot_json'], true, 64, JSON_THROW_ON_ERROR);
+                      $title = explode("\n", (string)($post['text'] ?? ''), 2)[0];
+                      $metadata = $post['metadata'] ?? [];
+                      $native = (int)($metadata['hotel_catalog_id'] ?? 0);
+                      foreach ($manifest as [$id, $aliases]) {
+                          $reason = [];
+                          if ($native === $id || ($metadata['logical_id'] ?? '') === "commercial-hotel-$id-v1") {
+                              $reason[] = 'identity';
+                          }
+                          foreach ($aliases as $alias) {
+                              if ($alias !== '' && mb_stripos($title, $alias, 0, 'UTF-8') !== false) {
+                                  $reason[] = 'title';
+                                  break;
+                              }
+                          }
+                          if ($reason !== []) {
+                              $result['matches'][] = ['requested_id' => $id, 'registry_hotel_id' => $native,
+                                  'platform' => $platform, 'publication_id' => (int)$record['id'],
+                                  'version_id' => (int)$record['current_version_id'], 'reason' => $reason,
+                                  'title' => mb_substr($title, 0, 180, 'UTF-8')];
+                          }
+                      }
+                  }
+              }
+          } finally {
+              $pdo->rollBack();
+          }
+          echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), PHP_EOL;
+          PHP
+          php -l pub/registry-read.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Check both publication registries in a read-only transaction
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php' < pub/registry-read.php > pub/registry-receipt.json
+          python3 -c 'import json; p=json.load(open("pub/registry-receipt.json")); print({"checked":len(p["native_hotel_ids"]), "registry_counts":p["channels"], "matches":len(p["matches"])})'
+      - name: Preserve exact duplicate screening
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: wave6-native-registry-read-20261117
+          path: pub/registry-receipt.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Remove runner-only credentials
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/registry-read.php
+
