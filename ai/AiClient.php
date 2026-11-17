@@ -53,8 +53,8 @@ class AiClient
     public static function requestBody(string $instructions, array $payload): array
     {
         return [
-            'model' => defined('OPENAI_MODEL') ? OPENAI_MODEL : 'gpt-6.1-sol',
-            'reasoning' => ['effort' => 'low'],
+            'model' => defined('OPENAI_MODEL') ? OPENAI_MODEL : 'gpt-6.2-sol',
+            'reasoning' => ['effort' => 'medium'],
             'service_tier' => 'default',
             'input' => [
                 [

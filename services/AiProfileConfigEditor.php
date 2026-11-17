@@ -6,9 +6,9 @@ declare(strict_types=1);
 final class AiProfileConfigEditor
 {
     public const TARGETS = [
-        'OPENAI_MODEL'=>'gpt-6.1-sol',
-        'MANAGER_AI_DRAFT_MODEL'=>'gpt-6.1-sol',
-        'MANAGER_AI_DRAFT_REASONING'=>'low',
+        'OPENAI_MODEL'=>'gpt-6.2-sol',
+        'MANAGER_AI_DRAFT_MODEL'=>'gpt-6.2-sol',
+        'MANAGER_AI_DRAFT_REASONING'=>'medium',
         'MANAGER_AI_DRAFT_SERVICE_TIER'=>'default',
     ];
 
