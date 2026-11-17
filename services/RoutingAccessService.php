@@ -47,8 +47,9 @@ class RoutingAccessService
         if($manager===null)return false;
         $isAdmin=ManagerAuthService::isAdmin($manager);
         $isWorking=ManagerAuthService::isWorking($manager);
-        $sourceIds=(!$isAdmin && ($isWorking || $ignoreShift || (string)($conversation['status']??'')!=='waiting_manager'))
-            ? [(int)($conversation['source_id']??0)] : [];
+        // Shift status is notification eligibility, not permission to view or manually handle a conversation.
+        // Always load its source so an off-shift read still obeys group/fallback restrictions.
+        $sourceIds=!$isAdmin ? [(int)($conversation['source_id']??0)] : [];
         $sources=self::visibilitySources($sourceIds,$currentRead);
         $groups=self::visibilityGroups($managerId,$sources,$currentRead);
         if(!self::visibleInRoutingSnapshot($conversation,$isAdmin,$isWorking,$sources,$groups,time(),$ignoreShift))return false;
@@ -116,7 +117,7 @@ class RoutingAccessService
         $isAdmin=ManagerAuthService::isAdmin($manager);
         $isWorking=ManagerAuthService::isWorking($manager);
         $sourceIds=[];
-        if(!$isAdmin){foreach($rows as $row){if($isWorking || (string)($row['status']??'')!=='waiting_manager')$sourceIds[]=(int)($row['source_id']??0);}}
+        if(!$isAdmin){foreach($rows as $row)$sourceIds[]=(int)($row['source_id']??0);}
         $sources=self::visibilitySources($sourceIds);
         $groups=self::visibilityGroups($managerId,$sources);
         $now=time();
@@ -154,8 +155,7 @@ class RoutingAccessService
     private static function visibleInRoutingSnapshot(array $conversation,bool $isAdmin,bool $isWorking,array $sources,array $groups,int $now,bool$ignoreShift=false): bool
     {
         if($isAdmin)return true;
-        if((string)($conversation['status']??'')==='waiting_manager' && !$isWorking && !$ignoreShift)return false;
-
+        // The caller separately checks shift when deciding whether to notify staff.
         $sourceId=(int)($conversation['source_id']??0);
         if($sourceId<=0)return true;
         $source=$sources[$sourceId]??null;

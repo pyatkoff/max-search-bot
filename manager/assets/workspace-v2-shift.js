@@ -8,7 +8,7 @@ function render(){
   btn.disabled=busy||!S.manager;
   btn.setAttribute('aria-pressed',working?'true':'false');
   btn.textContent=busy?'Сохраняем…':working?'Завершить смену':'Начать смену';
-  btn.title=working?'Вы принимаете новые обращения':'Новые обращения не назначаются вам';
+  btn.title=working?'Уведомления о новых обращениях включены':'Уведомления о новых обращениях выключены. Доступные диалоги остаются в списке.';
 }
 async function toggle(){
   if(busy||!S.manager)return;

@@ -19,7 +19,6 @@ final class ManagerVisibilityHealth
         $mineIds = array_fill_keys(array_map('intval', array_column($mine, 'id')), true);
         $result = ['ok'=>true, 'reason'=>null, 'unassigned_waiting_count'=>0, 'seen_in_all_count'=>0,
             'outside_page_count'=>0, 'missing_in_window_count'=>0, 'all_not_in_mine_count'=>count(array_diff_key($allIds, $mineIds))];
-        if (empty($manager['is_working'])) return $result;
         if ($limit < 1 || count($all) > $limit) return self::invalid();
         $completeTimes = count(array_filter($all, static fn(array $row): bool => self::activity($row) !== null)) === count($all);
         foreach ($waiting as $row) {
