@@ -71,7 +71,7 @@ function price27316_interrupted_cycle_project(
         &&strtotime($cycle['collection_started_at'])<=strtotime($cycle['started_at'])
         &&count($global['holds']??[])===0
         &&is_array($global['completed']??null)
-        &&count($global['completed'])===590,
+        &&count($global['completed'])===589,
         'source_cycle_not_original_started');
 
     $completed=$global['completed'][27316]??null;
@@ -82,7 +82,7 @@ function price27316_interrupted_cycle_project(
         'source_completed_pair_not_proven');
     $previous=$global['completed'];
     unset($previous[27316]);
-    price27316_cycle_need(count($previous)===589
+    price27316_cycle_need(count($previous)===588
         &&price27316_cycle_sha($proof['previous_completed_sha256']??null)
         &&price27316_cycle_hash($previous)===$proof['previous_completed_sha256'],
         'previous_589_completions_changed');
@@ -165,6 +165,8 @@ function price27316_interrupted_cycle_project(
         'feed_operation'=>$completed['feed_operation'],
         'feed_files_sha256'=>price27316_cycle_hash($feeds['files']),
         'previous_completed_sha256'=>$proof['previous_completed_sha256'],
+        'prior_hotel_operation'=>'commercial-monitor-price-h27316-73871d808f646687f94862c74b7dfb78cc7b0c1cee07b74e63690ad16957198f',
+        'completed_hotel_count_unchanged'=>true,
         'max_provider_puts'=>0,
         'telegram_first_edits'=>1,
         'new_posts'=>0,
@@ -185,6 +187,7 @@ if(count($argv)===2&&$argv[1]==='--self-test') {
     $logical='fixture-original-logical-27316';
     $past=[];
     foreach(range(1,589) as $i) $past[$i]=['operation'=>'old-'.$i,'at'=>'2026-11-16T20:00:00+00:00'];
+    $past[27316]=['operation'=>'commercial-monitor-price-h27316-73871d808f646687f94862c74b7dfb78cc7b0c1cee07b74e63690ad16957198f','at'=>'2026-11-17T03:00:00+00:00'];
     $completed=$past;
     $completed[27316]=['operation'=>$op,'at'=>'2026-11-17T10:05:00+00:00',
         'feed_operation'=>'commercial-channel-hotel-feeds-20261117-update123456'];
@@ -214,7 +217,8 @@ if(count($argv)===2&&$argv[1]==='--self-test') {
     $feeds=['operation'=>'commercial-channel-hotel-feeds-20261117-update123456',
         'writer'=>'original_existing_feed_writer','original_operation'=>$op,
         'new_offer_ids'=>0,'duplicate_native_ids'=>0,'files'=>$files];
-    $proof=['previous_completed_sha256'=>price27316_cycle_hash($past),
+    $otherPrior=$past;unset($otherPrior[27316]);
+    $proof=['previous_completed_sha256'=>price27316_cycle_hash($otherPrior),
         'original_logical_key'=>$logical,'original_roster_pairs'=>660,'original_scanned_pairs'=>132,
         'original_updated_pairs'=>12,'original_no_fresh_pairs'=>119,
         'original_remaining_unscanned_pairs'=>528,'original_editor_error'=>'max_button_outcome_not_confirmed',
