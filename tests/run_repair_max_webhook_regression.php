@@ -24,6 +24,13 @@ function repairEntryIntent(PDO $pdo, int $conversationId): array
     return repairEntryPayload($pdo,$conversationId)['repair_entry_reply'] ?? [];
 }
 
+function repairLatestStartEvidence(PDO $pdo, int $conversationId): array
+{
+    $q = $pdo->prepare("SELECT payload_json FROM conversation_events WHERE conversation_id=? AND event_type='bot_started' ORDER BY id DESC LIMIT 1");
+    $q->execute([$conversationId]);
+    return json_decode((string)$q->fetchColumn(),true) ?: [];
+}
+
 $catalog = AppleService39PilotCatalog::entries();
 repairCheck('catalog contains exactly the fifteen reviewed repair entries', count($catalog) === 15);
 foreach ($catalog as $entry) {
@@ -90,6 +97,10 @@ $first = $handle('appleservice39',repairStart(7001));
 $apple = repairConversation($pdo,'appleservice39',7001);
 $context = json_decode((string)$apple['metadata_json'],true);
 repairCheck('pilot start persists into the shared queue', $first['status'] === 200 && $apple['status'] === 'waiting_manager');
+$initialEvidence = repairLatestStartEvidence($pdo,(int)$apple['id']);
+repairCheck('recognized Apple start stores only finite source class and funnel outcome', ($initialEvidence['repair_start_class']??null)==='recognized'
+    && in_array($initialEvidence['repair_funnel_attempt']??null,['recorded','not_recorded','publication_pending','writer_error'],true)
+    && !array_key_exists('start_payload',$initialEvidence) && !array_key_exists('payload',$initialEvidence));
 repairCheck('reviewed model and service survive without invented post URL', $context['repair_context'] === ['model'=>'iPhone X','service'=>'Замена аккумулятора','entry_code'=>'as39_x_battery'] && !isset($context['repair_context']['post_url']));
 repairCheck('platform start is an event and never a fake customer message', (int)$pdo->query('SELECT COUNT(*) FROM messages WHERE conversation_id='.(int)$apple['id']." AND direction='inbound'")->fetchColumn() === 0);
 repairCheck('bot reply uses Apple brand reviewed price and a service-specific question', count($sent) === 1
@@ -118,6 +129,9 @@ $owned = repairConversation($pdo,'appleservice39',7001);
 repairCheck('explicit fresh repair entry replies without changing assigned manager or routing', $owned['status'] === 'manager' && (int)$owned['manager_id'] === 88 && $owned['source_id'] === $apple['source_id'] && count($sent) === $count+1);
 $count = count($sent);
 $handle('appleservice39',repairStart(7001,'unknown_payload',1800000000002));
+$otherEvidence = repairLatestStartEvidence($pdo,(int)$apple['id']);
+repairCheck('unknown native entry records other class without raw payload', ($otherEvidence['repair_start_class']??null)==='other'
+    && !str_contains(json_encode($otherEvidence),'unknown_payload'));
 repairCheck('unknown start preserves known model and service', (json_decode((string)repairConversation($pdo,'appleservice39',7001)['metadata_json'],true)['repair_context'] ?? null) === $context['repair_context']);
 $handle('appleservice39',repairMessage(7001,'photo_mid',[['type'=>'image','payload'=>['token'=>'synthetic-photo-token']]]));
 repairCheck('media archive receives exact project and conversation', end($archives) === ['photo_mid','appleservice39',(int)$apple['id']] && count($sent) === $count);
@@ -134,7 +148,14 @@ repairCheck('upgraded conversation projects the requested repair context', (json
 repairCheck('entry retry does not repeat its reply or handoff', $handle('appleservice39',$entry)['result'] === 'duplicate' && count($sent) === $count+1 && count($notifications) === $pushCount);
 $count = count($sent);
 $handle('appleservice39',repairStart(7004,'',1800000000101));
+$emptyEvidence = repairLatestStartEvidence($pdo,(int)$generic['id']);
+repairCheck('empty Apple start records only an empty class', ($emptyEvidence['repair_start_class']??null)==='empty'
+    && !isset($emptyEvidence['repair_funnel_attempt']));
 $handle('appleservice39',repairStart(7004,'as39_repair-iphone-17-ultra-display',1800000000102));
+$invalidEvidence = repairLatestStartEvidence($pdo,(int)$generic['id']);
+repairCheck('unrecognized Apple start is distinct from empty and never persists its raw code',
+    ($invalidEvidence['repair_start_class']??null)==='unrecognized_apple'
+    && !str_contains(json_encode($invalidEvidence),'as39_repair-iphone-17-ultra-display'));
 repairCheck('empty or unknown reentry remains quiet in an existing conversation', count($sent) === $count && count($notifications) === $pushCount);
 $newEntry = repairStart(7004,'as39_repair-iphone-15-pro-max-display',1800000000103);
 $handle('appleservice39',$newEntry);
