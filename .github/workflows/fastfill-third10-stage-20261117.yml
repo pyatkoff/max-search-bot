@@ -16,7 +16,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
       github.event_name == 'push' &&
-      github.event.before == '5f2ebf606d23cbece5e607dad893acff064729d1' &&
+      github.event.before == '7c8247209d29fe08305c721c1ff0326ee4d16261' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -31,7 +31,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = 5f2ebf606d23cbece5e607dad893acff064729d1
+          test "$(git rev-parse HEAD^)" = 7c8247209d29fe08305c721c1ff0326ee4d16261
           test "$(git hash-object tools/direct_demand/operations/prepare-paid-tourvisor-cover-batch-20261117.py)" = 7e6a25519abcf5c796b8e59f700043f98257a5b3
           test "$(git hash-object tools/direct_demand/operations/commercial-expansion100-third10-publisher-caption-input-20261117.json)" = 84c4a3837587fdfdb18c29db406c4b2104d535b2
           gh api --method GET repos/pyatkoff/max-search-bot/actions/runs/44071339037 --jq '.conclusion+" "+.head_sha+" "+(.run_attempt|tostring)' | grep -Fx 'success 5f2ebf606d23cbece5e607dad893acff064729d1 1'
@@ -73,7 +73,7 @@ jobs:
               need(z.testzip() is None,'artifact_zip_crc')
               need(set(z.namelist())=={str(i)+'.png' for i in IDS}|{'cover-preparation-receipt.json'},'unreviewed_artifact_content')
               receipt_bytes=z.read('cover-preparation-receipt.json')
-              need(len(receipt_bytes)>100 and rr.get('prepared')==10,'source_receipt_invalid')
+              need(len(receipt_bytes)>100,'source_receipt_invalid')
               receipt=json.loads(receipt_bytes)
               need(receipt['prepared']==10 and receipt['actual_posts']==receipt['sender_calls']==receipt['feed_writes']==0,'source_not_preparation_only')
               need([x['hotel_id'] for x in receipt['rows']]==IDS,'different_hotel_order')
