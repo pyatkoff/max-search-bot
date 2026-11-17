@@ -150,7 +150,7 @@ async function verifyReleasePriority() {
 
 
 async function verifyReleaseSlot() {
-  const { REQUIRED, CLOSER, ACTIVATION, context, binding, gateState, recordState, verifyTelemetry,
+  const { REQUIRED, CLOSER, ACTIVATION, context, binding, gateState, selectPreviousFailedWave, recordState, verifyTelemetry,
     verifyConfigure, closeRelease, makeApi } = require('../tools/release_slot_close');
   const repository = 'pyatkoff/max-search-bot';
   const prefix = '/repos/' + repository;
@@ -299,6 +299,106 @@ async function verifyReleaseSlot() {
   let taggedFixture=fixture(({path})=>path.includes('/actions/runs?')?copy(tagged):undefined);
   check(await closeRelease(taggedFixture.options),'released','release slot: actual tagged API closes through complete normal path');
   check(taggedFixture.writes(),1,'release slot: tagged API still writes only the bound publisher once');
+
+
+  // GitHub's real 1596→1597 incident: two workflow_run waves on the new SHA.
+  // Only a preceding failed Deploy with exactly seven skipped, zero-step children
+  // may be excluded. This test neither creates a release nor sends anything.
+  const oldSha='c'.repeat(40),oldTag='deploy-proof:v1:900:1';
+  const waveGates=REQUIRED.filter(([file,event])=>event==='workflow_run'&&file!==ACTIVATION.file);
+  check(waveGates.length,7,'release slot: original skipped-wave scope is seven gates');
+  const previousParent={...copy(runs[0]),id:900,head_sha:oldSha,
+    head_commit:{id:oldSha},created_at:'2026-11-03T18:40:00Z',
+    updated_at:'2026-11-03T18:59:00Z',status:'completed',conclusion:'failure'};
+  const denialSteps=['Prepare canonical SSH private key','Verify installed production checks',
+    'Download exact installed diagnostic snapshot','Publish verification stage status',
+    'Remove acknowledged diagnostic snapshot'];
+  const previousJobs={total_count:6,jobs:[
+    ...['verify-syntax','verify-inventory','verify / application',
+      'verify / diagnostics','deploy'].map((name,i)=>({id:9000+i,name,run_id:900,
+      run_attempt:1,head_sha:oldSha,status:'completed',conclusion:'success',steps:[]})),
+    {id:9005,name:'verify',run_id:900,run_attempt:1,head_sha:oldSha,
+      status:'completed',conclusion:'failure',steps:[
+        {name:'Admit only unfinished verification without installation',conclusion:'failure'},
+        {name:'Require complete installed verification',conclusion:'failure'},
+        ...denialSteps.map(name=>({name,conclusion:'skipped'}))]}]};
+  const oldChildren=waveGates.map(([file],i)=>({
+    ...copy(tagged.workflow_runs.find(r=>r.path.endsWith('/'+file))),
+    id:700+i,name:oldTag,display_title:oldTag,
+    head_commit:{id:source},created_at:'2026-11-03T19:01:00Z',
+    status:'completed',conclusion:'skipped'
+  }));
+  const mixed={total_count:tagged.total_count+oldChildren.length,
+    workflow_runs:[...copy(tagged.workflow_runs),...oldChildren]};
+  const childNames={
+    'max-tls-preflight.yml':['strict-tls-preflight'],
+    'max-production-health.yml':['inspect'],
+    'telegram-production-health.yml':['inspect'],
+    'publish-conversation-diagnostics.yml':['publish'],
+    'live-session-diagnostics.yml':['publish'],
+    'tour-selection-host.yml':['host','independent-editor'],
+    'modeled-conversion-monitor.yml':['monitor']
+  };
+  const proofRead=async resource=>{
+    if(resource==='/actions/runs/900')return copy(previousParent);
+    if(resource==='/compare/'+oldSha+'...'+source)return {
+      status:'ahead',merge_base_commit:{sha:oldSha},ahead_by:2,behind_by:0};
+    if(resource==='/actions/runs/900/attempts/1/jobs?per_page=100')return copy(previousJobs);
+    const match=/^\/actions\/runs\/(7[0-9][0-9])\/attempts\/1\/jobs\?per_page=100$/.exec(resource);
+    if(match){
+      const child=oldChildren.find(r=>r.id===Number(match[1]));
+      if(!child)throw Error('unexpected child');
+      const names=childNames[child.path.slice('.github/workflows/'.length)];
+      return {total_count:names.length,jobs:names.map((name,i)=>({
+        id:10000+child.id*10+i,run_id:child.id,run_attempt:1,
+        head_sha:source,name,status:'completed',conclusion:'skipped',steps:[]}))};
+    }
+    throw Error('unclassified metadata lookup: '+resource);
+  };
+  const filtered=await selectPreviousFailedWave(mixed,c,proofRead);
+  check(filtered.total_count,tagged.total_count,
+    'release slot: authenticated previous skipped wave excluded without touching current gates');
+  check(gateState(filtered,c),'ready','release slot: current exact wave retains all required gates');
+  check(await selectPreviousFailedWave(tagged,c,async()=>{throw Error('unexpected read');}),
+    tagged,'release slot: no duplicate does not invoke extra network reads');
+  check(await selectPreviousFailedWave(mixed,{...c,recovery:{}},async()=>{throw Error('unexpected read');}),
+    mixed,'release slot: same-source attempt2 keeps its separate existing classifier');
+
+  const negativeWave=async(change,read,code,description)=>{
+    const sample=copy(mixed);change?.(sample);
+    await rejects(()=>selectPreviousFailedWave(sample,c,read||proofRead),code,description);
+  };
+  await negativeWave(sample=>sample.workflow_runs.pop()&&sample.total_count--,null,
+    'incomplete_previous_wave','missing old gate cannot be treated as a full skipped wave');
+  await negativeWave(sample=>{sample.workflow_runs.at(-1).id=sample.workflow_runs.at(-2).id;},null,
+    'incomplete_runs','duplicate run IDs never authorize exclusion');
+  await negativeWave(sample=>{sample.workflow_runs.at(-1).conclusion='success';},null,
+    'previous_wave_executed','a successful old child cannot be ignored');
+  await negativeWave(sample=>{sample.workflow_runs.at(-1).display_title='deploy-proof:v1:901:1';},null,
+    'ambiguous_previous_wave','different old parents cannot be mixed');
+  await negativeWave(sample=>{sample.workflow_runs.at(-1).display_title='untrusted';},null,
+    'ambiguous_previous_wave','unknown old origin cannot be laundered');
+  await negativeWave(sample=>{sample.workflow_runs.at(-1).head_sha=oldSha;},null,
+    'untrusted_run','prior wave with a foreign code SHA stops');
+  await negativeWave(null,async p=>p==='/actions/runs/900'?{...previousParent,conclusion:'success'}:proofRead(p),
+    'untrusted_previous_deploy','only a failed original parent may be excluded');
+  await negativeWave(null,async p=>p.startsWith('/compare/')?{
+    status:'diverged',merge_base_commit:{sha:oldSha},ahead_by:2,behind_by:1}:proofRead(p),
+    'previous_deploy_not_ancestor','unrelated source cannot prove old wave');
+  await negativeWave(null,async p=>{
+    if(p==='/actions/runs/900/attempts/1/jobs?per_page=100'){
+      const bad=copy(previousJobs);bad.jobs.at(-1).steps.find(s=>
+        s.name==='Verify installed production checks').conclusion='success';return bad;
+    }
+    return proofRead(p);
+  },'previous_verification_executed','previous verification with protected execution cannot be skipped');
+  await negativeWave(null,async p=>{
+    const result=await proofRead(p);
+    if(/\/actions\/runs\/70[0-6]\/attempts\/1\/jobs\?/.test(p)){
+      result.jobs[0].steps=[{name:'protected work',conclusion:'success'}];
+    }
+    return result;
+  },'previous_wave_executed','a skipped child with any executed step stops');
 
   let f=fixture();
   check(await closeRelease(f.options),'released','release slot: successful original path closes');

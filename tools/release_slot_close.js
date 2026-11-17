@@ -180,8 +180,108 @@ async function selectReleaseRuns(snapshot,c,get) {
       &&j.head_sha===c.sha&&j.status==='completed'&&j.conclusion==='skipped'
       &&Array.isArray(j.steps)&&j.steps.length===0,'independent_activation_executed');
   }
-  return {runs:await selectRecoveryRuns({...snapshot,total_count:selected.length,workflow_runs:selected},c,get),waiting,pending};
+  const scoped=await selectPreviousFailedWave({...snapshot,total_count:selected.length,workflow_runs:selected},c,get);
+  return {runs:await selectRecoveryRuns(scoped,c,get),waiting,pending};
 }
+
+// Filter a previous failed deployment's seven *unexecuted* workflow_run gates.
+// GitHub attributes workflow_run children to the current main SHA, even when
+// their triggering Deploy came from an older main SHA. A title mismatch alone
+// never authorizes exclusion: authenticate the older parent, source ancestry,
+// original failed verification and every skipped/zero-step child.
+async function selectPreviousFailedWave(snapshot,c,get) {
+  if(c.recovery)return snapshot; // Existing same-deploy attempt2 owns its wave rules.
+  const runs=snapshot?.workflow_runs;
+  requireValue(Array.isArray(runs)&&snapshot.total_count===runs.length&&runs.length<100
+    &&new Set(runs.map(r=>r.id)).size===runs.length,'incomplete_runs');
+  const gates=REQUIRED.filter(([file,event])=>event==='workflow_run'&&file!==ACTIVATION.file);
+  const permitted=new Map(gates.map(([file,event,name])=>[PREFIX+file,name]));
+  const currentTitle='deploy-proof:v1:'+c.deploy+':1';
+  const foreign=runs.filter(r=>r.event==='workflow_run'&&permitted.has(r.path)
+    &&typeof r.display_title==='string'&&r.display_title!==currentTitle);
+  if(!foreign.length)return snapshot;
+  const titles=new Set(foreign.map(r=>r.display_title));
+  requireValue(titles.size===1,'ambiguous_previous_wave');
+  const matched=/^deploy-proof:v1:([1-9][0-9]*):1$/.exec([...titles][0]);
+  const oldId=matched?Number(matched[1]):NaN;
+  requireValue(id(oldId)&&oldId!==c.deploy,'untrusted_previous_wave');
+  requireValue(foreign.length===gates.length
+    &&new Set(foreign.map(r=>r.path)).size===gates.length,'incomplete_previous_wave');
+  const currentDeploy=runs.filter(r=>r.path===PREFIX+'deploy.yml'&&r.event==='push');
+  requireValue(currentDeploy.length===1,'ambiguous_run');
+  validRun(currentDeploy[0],c,PREFIX+'deploy.yml','push','Deploy production');
+  requireValue(currentDeploy[0].id===c.deploy&&currentDeploy[0].status==='completed'
+    &&currentDeploy[0].conclusion==='success','current_deploy_changed');
+  const old=await get('/actions/runs/'+oldId);
+  requireValue(old?.id===oldId&&old.path===PREFIX+'deploy.yml'&&old.name==='Deploy production'
+    &&old.event==='push'&&old.head_branch==='main'
+    &&old.head_repository?.full_name===REPOSITORY&&old.run_attempt===1
+    &&sha(old.head_sha)&&old.head_sha!==c.sha&&old.head_commit?.id===old.head_sha
+    &&old.status==='completed'&&old.conclusion==='failure'
+    &&stamp(old.created_at)&&stamp(old.updated_at)
+    &&Date.parse(old.created_at)<Date.parse(currentDeploy[0].created_at)
+    &&Date.parse(old.updated_at)>=Date.parse(old.created_at),'untrusted_previous_deploy');
+  const relation=await get('/compare/'+old.head_sha+'...'+c.sha);
+  requireValue(relation?.status==='ahead'&&relation.merge_base_commit?.sha===old.head_sha
+    &&Number.isSafeInteger(relation.ahead_by)&&relation.ahead_by>0
+    &&relation.behind_by===0,'previous_deploy_not_ancestor');
+  const parentJobs=await get('/actions/runs/'+oldId+'/attempts/1/jobs?per_page=100');
+  const jobNames=['verify-syntax','verify-inventory','verify / application',
+    'verify / diagnostics','deploy','verify'];
+  requireValue(Array.isArray(parentJobs?.jobs)&&parentJobs.total_count===jobNames.length
+    &&parentJobs.jobs.length===jobNames.length
+    &&new Set(parentJobs.jobs.map(j=>j.name)).size===jobNames.length
+    &&jobNames.every(name=>parentJobs.jobs.some(j=>j.name===name)),'previous_deploy_jobs_incomplete');
+  for(const job of parentJobs.jobs) {
+    requireValue(id(job.id)&&job.run_id===oldId&&job.run_attempt===1
+      &&job.head_sha===old.head_sha&&job.status==='completed'
+      &&job.conclusion===(job.name==='verify'?'failure':'success'),'previous_deploy_jobs_untrusted');
+  }
+  const verification=parentJobs.jobs.find(j=>j.name==='verify');
+  const steps=verification.steps;
+  const denied=['Prepare canonical SSH private key','Verify installed production checks',
+    'Download exact installed diagnostic snapshot','Publish verification stage status',
+    'Remove acknowledged diagnostic snapshot'];
+  requireValue(Array.isArray(steps)
+    &&steps.some(s=>s.name==='Admit only unfinished verification without installation'
+      &&s.conclusion==='failure')
+    &&denied.every(name=>steps.some(s=>s.name===name&&s.conclusion==='skipped'))
+    &&steps.filter(s=>s.conclusion==='failure').every(s=>
+      ['Admit only unfinished verification without installation',
+        'Require complete installed verification'].includes(s.name)),
+    'previous_verification_executed');
+  const expectedJobs=new Map([
+    ['max-tls-preflight.yml',['strict-tls-preflight']],
+    ['max-production-health.yml',['inspect']],
+    ['telegram-production-health.yml',['inspect']],
+    ['publish-conversation-diagnostics.yml',['publish']],
+    ['live-session-diagnostics.yml',['publish']],
+    ['tour-selection-host.yml',['host','independent-editor']],
+    ['modeled-conversion-monitor.yml',['monitor']]
+  ]);
+  const ignored=new Set();
+  for(const child of foreign) {
+    validRun(child,c,child.path,'workflow_run',permitted.get(child.path),titles.values().next().value);
+    requireValue(child.status==='completed'&&child.conclusion==='skipped'
+      &&child.head_commit?.id===c.sha&&stamp(child.created_at)
+      &&Date.parse(child.created_at)>=Date.parse(old.updated_at),'previous_wave_executed');
+    const file=child.path.slice(PREFIX.length),names=expectedJobs.get(file);
+    requireValue(Array.isArray(names),'unclassified_gate');
+    const receipt=await get('/actions/runs/'+child.id+'/attempts/1/jobs?per_page=100');
+    requireValue(Array.isArray(receipt?.jobs)&&receipt.total_count===names.length
+      &&receipt.jobs.length===names.length
+      &&new Set(receipt.jobs.map(j=>j.name)).size===names.length
+      &&names.every(name=>receipt.jobs.some(j=>j.name===name)),
+      'previous_wave_jobs_incomplete');
+    requireValue(receipt.jobs.every(j=>id(j.id)&&j.run_id===child.id&&j.run_attempt===1
+      &&j.head_sha===c.sha&&j.status==='completed'&&j.conclusion==='skipped'
+      &&Array.isArray(j.steps)&&j.steps.length===0),'previous_wave_executed');
+    ignored.add(child.id);
+  }
+  const selected=runs.filter(r=>!ignored.has(r.id));
+  return {...snapshot,total_count:selected.length,workflow_runs:selected};
+}
+
 function recordState(record, b) {
   requireValue(record?.id === b.comment_id && record.user?.id === b.owner_id
     && record.issue_url === 'https://api.github.com/repos/' + REPOSITORY + '/issues/1122'
@@ -1012,7 +1112,7 @@ async function resumeUnpublishedTerminal({env,event,api,prepare=false,proofFile=
   let back;try{back=await get('/issues/comments/'+p.comment_id);}catch{throw new Refusal('write_unknown');}
   requireValue(back?.id===p.comment_id&&back.body===b.released,'write_unknown');return 'released';
 }
-module.exports = { REQUIRED, CLOSER, ACTIVATION, context, binding, gateState, recordState, verifyTelemetry,
+module.exports = { REQUIRED, CLOSER, ACTIVATION, context, binding, gateState, selectPreviousFailedWave, recordState, verifyTelemetry,
   resumeUnpublishedTerminal,
   recoveryLog,resumeTerminal,resumeGateTerminal,terminalReads,
   verifyConfigure, verifyActivation, closeRelease, makeApi, INSTALL_JOBS, VERIFY_STEPS, stepResult, copiedExecution,
