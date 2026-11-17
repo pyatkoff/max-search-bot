@@ -36,7 +36,8 @@
     "compared_native_id_name_country_and_category": 100,
     "source": "Existing AnyTour Tourvisor hotel_details records. Gallery counts refer to distinct URLs listed by the exact hotel profile with the accepted Tourvisor host, country path and file format.",
     "stage_counts": {
-      "editorial_and_visual_review": 98,
+      "editorial_and_visual_review": 97,
+      "hold_current_beach_works": 1,
       "needs_authorized_photos": 2
     },
     "visual_acceptances": 0,
@@ -53,7 +54,8 @@
       "region": "Сейшелы",
       "category": 5,
       "aliases_to_check": [
-        "WALDORF ASTORIA SEYCHELLES PLATTE ISLAND"
+        "WALDORF ASTORIA SEYCHELLES PLATTE ISLAND",
+        "Waldorf Astoria Seychelles Platte Island"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Seychelles&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=108317",
@@ -69,10 +71,27 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/28/108317-1602401.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/28/108317-1602300.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/28/108317-1602402.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/108317-1602402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/108317-1602403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/108317-1602504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/108317-1602505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/108317-1602506.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/108317-1602607.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Waldorf Astoria Seychelles Platte Island",
+        "location": "Сейшелы, остров Платт",
+        "body": "Из сада виллы Hawksbill можно сразу выйти на пляж, а с купания вернуться к собственному бассейну. На рассвете гиды водят гостей по острову наблюдать за животными и птицами. Хороший выбор для тех, кто готов проснуться пораньше ради дикой природы.",
+        "official_sources": [
+          "https://www.hilton.com/en/hotels/sezpiwa-waldorf-astoria-seychelles-platte-island/rooms/",
+          "https://www.hilton.com/en-gb/hotels/sezpiwa-waldorf-astoria-seychelles-platte-island/things-to-do/nature/"
+        ],
+        "verified_on": "2026-11-17",
+        "status": "copy_reviewed",
+        "release_requires": "existing publisher checks for gallery cover, live registry and correct hotel-specific CTA"
+      }
     },
     {
       "work_id": "W6_002",
@@ -83,7 +102,8 @@
       "region": "Сейшелы",
       "category": 5,
       "aliases_to_check": [
-        "FOUR SEASONS RESORT SEYCHELLES AT DESROCHES ISLAND"
+        "FOUR SEASONS RESORT SEYCHELLES AT DESROCHES ISLAND",
+        "Four Seasons Resort Seychelles at Desroches Island"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Seychelles&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11836",
@@ -99,10 +119,27 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/28/11836-92377505.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/28/11836-92377400.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/28/11836-92377401.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11836-92377401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11836-92377502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11836-92377503.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11836-92377504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11836-92377506.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11836-92377507.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Four Seasons Resort Seychelles at Desroches Island",
+        "location": "Сейшелы, остров Дерош",
+        "body": "Здесь к пляжу едут на велосипеде по песчаным дорожкам. Берег тянется на 14 километров. у Madame Zabre можно поплавать с маской, а у Aquarium Beach выйти на воду на каяке. По дороге стоит заглянуть в заповедник гигантских черепах.",
+        "official_sources": [
+          "https://www.fourseasons.com/seychellesdesroches/",
+          "https://www.fourseasons.com/seychellesdesroches/services-and-amenities/"
+        ],
+        "verified_on": "2026-11-17",
+        "status": "copy_reviewed",
+        "release_requires": "existing publisher checks for gallery cover, live registry and correct hotel-specific CTA"
+      }
     },
     {
       "work_id": "W6_003",
@@ -113,7 +150,8 @@
       "region": "Маврикий",
       "category": 5,
       "aliases_to_check": [
-        "FOUR SEASONS RESORT MAURITIUS AT ANAHITA"
+        "FOUR SEASONS RESORT MAURITIUS AT ANAHITA",
+        "Four Seasons Resort Mauritius at Anahita"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Mauritius&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11746",
@@ -128,10 +166,27 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/27/11746-7164134.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/11746-7162600.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/27/11746-7162701.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11746-7162701.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11746-7162702.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11746-7162703.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11746-7162804.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11746-7162805.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11746-7162806.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Four Seasons Resort Mauritius at Anahita",
+        "location": "Маврикий, восточное побережье",
+        "body": "С пляжа Бамбу катер пересекает лагуну и высаживает гостей на острове Иль-о-Серф. У Four Seasons там свой пляж только для постояльцев. А если хочется дня вдвоём на вилле, у Garden Pool Villa есть небольшой бассейн и крытая веранда в собственном саду.",
+        "official_sources": [
+          "https://www.fourseasons.com/mauritius/services-and-amenities/beach/",
+          "https://www.fourseasons.com/mauritius/"
+        ],
+        "verified_on": "2026-11-17",
+        "status": "copy_reviewed",
+        "release_requires": "existing publisher checks for gallery cover, live registry and correct hotel-specific CTA"
+      }
     },
     {
       "work_id": "W6_004",
@@ -142,7 +197,8 @@
       "region": "Маэ о.",
       "category": 5,
       "aliases_to_check": [
-        "FOUR SEASONS RESORT SEYCHELLES"
+        "FOUR SEASONS RESORT SEYCHELLES",
+        "Four Seasons Resort Seychelles"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Seychelles&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11842",
@@ -157,10 +213,27 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/28/four-seasons-resort-seychelles-22874404.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/28/four-seasons-resort-seychelles-22874400.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/28/four-seasons-resort-seychelles-22874401.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/four-seasons-resort-seychelles-22874401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/four-seasons-resort-seychelles-22874402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/four-seasons-resort-seychelles-22874403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/four-seasons-resort-seychelles-22874405.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/four-seasons-resort-seychelles-22874406.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/four-seasons-resort-seychelles-22874407.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Four Seasons Resort Seychelles",
+        "location": "Сейшелы, остров Маэ",
+        "body": "С террасы Ocean-View Villa видны сразу бухта Петит-Анс и тропический лес. Виллы стоят на склоне, у каждой виллы этой категории свой бассейн. Утро можно провести наверху вдвоём, а днём спуститься к воде в бухте.",
+        "official_sources": [
+          "https://www.fourseasons.com/seychelles/accommodations/villas/ocean_view_villa/",
+          "https://www.fourseasons.com/seychelles/accommodations/"
+        ],
+        "verified_on": "2026-11-17",
+        "status": "copy_reviewed",
+        "release_requires": "existing publisher checks for gallery cover, live registry and correct hotel-specific CTA"
+      }
     },
     {
       "work_id": "W6_005",
@@ -171,7 +244,8 @@
       "region": "Праслин о.",
       "category": 5,
       "aliases_to_check": [
-        "RAFFLES SEYCHELLES"
+        "RAFFLES SEYCHELLES",
+        "Raffles Seychelles"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Seychelles&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11882",
@@ -187,10 +261,27 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/28/raffles-praslin-seychelles-2114327.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/28/raffles-praslin-seychelles-2114300.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/28/raffles-praslin-seychelles-2114301.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/raffles-praslin-seychelles-2114301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/raffles-praslin-seychelles-2114302.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/raffles-praslin-seychelles-2114303.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/raffles-praslin-seychelles-2114304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/raffles-praslin-seychelles-2114305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/raffles-praslin-seychelles-2114306.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Raffles Seychelles",
+        "location": "Сейшелы, остров Праслин",
+        "body": "С Праслина можно отправиться всей семьёй на соседний остров Кюрьёз. Там вместе с рейнджером гости знакомятся с гигантскими черепахами и узнают, как за ними ухаживают. Между выездами можно отдыхать на пляже Анс-Такамака, а для тихих вечеров выбрать виллу с бассейном и видом на океан.",
+        "official_sources": [
+          "https://www.raffles.com/seychelles/experiences/ranger-for-a-day/",
+          "https://www.raffles.com/seychelles/villas/vcb/"
+        ],
+        "verified_on": "2026-11-17",
+        "status": "copy_reviewed",
+        "release_requires": "existing publisher checks for gallery cover, live registry and correct hotel-specific CTA"
+      }
     },
     {
       "work_id": "W6_006",
@@ -201,7 +292,8 @@
       "region": "Дубай",
       "category": 5,
       "aliases_to_check": [
-        "THE RITZ-CARLTON DIFC DOWNTOWN"
+        "THE RITZ-CARLTON DIFC DOWNTOWN",
+        "The Ritz-Carlton, Dubai International Financial Centre"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Ritz&countryId=9&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8987",
@@ -217,10 +309,27 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/8987-62343100.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/8987-62343203.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/8987-62343304.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/8987-62343304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/8987-62343409.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/8987-62343410.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/8987-62343513.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/8987-62343514.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/8987-62343517.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "The Ritz-Carlton, Dubai International Financial Centre",
+        "location": "ОАЭ, Дубай",
+        "body": "Для знакомства с современным Дубаем удобно жить в квартале DIFC. Рядом галереи Gate Village с фотографией, живописью и скульптурой. После прогулки можно подняться на крышу отеля и поплавать в открытом бассейне с подогревом.",
+        "official_sources": [
+          "https://www.ritzcarlton.com/en/hotels/dxbif-the-ritz-carlton-dubai-international-financial-centre/experiences/",
+          "https://www.ritzcarlton.com/en/hotels/dxbif-the-ritz-carlton-dubai-international-financial-centre/overview/"
+        ],
+        "verified_on": "2026-11-17",
+        "status": "copy_reviewed",
+        "release_requires": "existing publisher checks for gallery cover, live registry and correct hotel-specific CTA"
+      }
     },
     {
       "work_id": "W6_007",
@@ -247,10 +356,24 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-abu-dhabi-grand-canal-2513512.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-abu-dhabi-grand-canal-2513514.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-abu-dhabi-grand-canal-2513515.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-abu-dhabi-grand-canal-2513515.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-abu-dhabi-grand-canal-2513516.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-abu-dhabi-grand-canal-2513517.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-abu-dhabi-grand-canal-2513518.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-abu-dhabi-grand-canal-2513520.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-abu-dhabi-grand-canal-2513521.jpg"
       ],
-      "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "stage": "hold_current_beach_works",
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "The Ritz-Carlton Abu Dhabi, Grand Canal",
+        "status": "hold_beach_works",
+        "reason": "Marriott reports construction affecting the beach from 10 November to 20 December 2026; alternative beach access is in place. Check actual beach access again after the announced end date.",
+        "official_sources": [
+          "https://www.ritzcarlton.com/en/hotels/auhrz-the-ritz-carlton-abu-dhabi-grand-canal/overview/"
+        ],
+        "verified_on": "2026-11-17"
+      }
     },
     {
       "work_id": "W6_008",
@@ -261,7 +384,8 @@
       "region": "Дубай",
       "category": 5,
       "aliases_to_check": [
-        "THE RITZ CARLTON DUBAI"
+        "THE RITZ CARLTON DUBAI",
+        "The Ritz-Carlton, Dubai"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Ritz&countryId=9&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2685",
@@ -277,10 +401,27 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-dubai-102206031.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-dubai-102206020.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-dubai-102206032.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-dubai-102206032.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-dubai-102206033.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-dubai-102206034.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-dubai-102206035.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-dubai-102206036.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-ritz-carlton-dubai-102206037.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "The Ritz-Carlton, Dubai",
+        "location": "ОАЭ, Дубай, Джумейра-Бич-Резиденс",
+        "body": "Утром можно выйти через сад на собственный песчаный пляж, а вечером отправиться пешком на набережную The Walk. С детьми удобно чередовать море и занятия в Ritz Kids. Взрослым остаётся время на спа или спокойный обед у воды.",
+        "official_sources": [
+          "https://www.ritzcarlton.com/en/hotels/dxbrz-the-ritz-carlton-dubai/overview/",
+          "https://www.ritzcarlton.com/en/hotels/dxbrz-the-ritz-carlton-dubai/experiences/"
+        ],
+        "verified_on": "2026-11-17",
+        "status": "copy_reviewed",
+        "release_requires": "existing publisher checks for gallery cover, live registry and correct hotel-specific CTA"
+      }
     },
     {
       "work_id": "W6_009",
@@ -291,7 +432,8 @@
       "region": "Рас-эль-Хайма",
       "category": 5,
       "aliases_to_check": [
-        "THE RITZ-CARLTON RAS AL KHAIMAH AL WADI DESERT"
+        "THE RITZ-CARLTON RAS AL KHAIMAH AL WADI DESERT",
+        "The Ritz-Carlton Ras Al Khaimah, Al Wadi Desert"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Ritz&countryId=9&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8859",
@@ -306,10 +448,27 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/8859-23365027.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/8859-23364400.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/8859-23364501.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/8859-23364501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/8859-23364502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/8859-23364503.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/8859-23364504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/8859-23364505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/8859-23364606.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "The Ritz-Carlton Ras Al Khaimah, Al Wadi Desert",
+        "location": "ОАЭ, Рас-эль-Хайма",
+        "body": "На террасе виллы свой бассейн, а за ним видны песчаные дюны заповедника Аль-Вади. Здесь можно отправиться верхом по пустыне, попробовать стрельбу из лука или остаться на террасе до темноты, когда над дюнами появляются звёзды.",
+        "official_sources": [
+          "https://www.ritzcarlton.com/en/hotels/rktrw-the-ritz-carlton-ras-al-khaimah-al-wadi-desert/overview/",
+          "https://www.ritzcarlton.com/en/hotels/rktrw-the-ritz-carlton-ras-al-khaimah-al-wadi-desert/rooms/"
+        ],
+        "verified_on": "2026-11-17",
+        "status": "copy_reviewed",
+        "release_requires": "existing publisher checks for gallery cover, live registry and correct hotel-specific CTA"
+      }
     },
     {
       "work_id": "W6_010",
@@ -320,7 +479,8 @@
       "region": "Бали",
       "category": 5,
       "aliases_to_check": [
-        "KAYUMANIS NUSA DUA PRIVATE VILLA & SPA"
+        "KAYUMANIS NUSA DUA PRIVATE VILLA & SPA",
+        "Kayumanis Nusa Dua Private Villa & Spa"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Nusa%20Dua&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2335",
@@ -336,10 +496,27 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/7/kayumanis-private-villa-spa-0.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/7/kayumanis-private-villa-spa-1.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/7/kayumanis-private-villa-spa-2.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/kayumanis-private-villa-spa-2.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/kayumanis-private-villa-spa-3.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/kayumanis-private-villa-spa-4.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/kayumanis-private-villa-spa-5.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/kayumanis-private-villa-spa-6.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/kayumanis-private-villa-spa-7.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Kayumanis Nusa Dua Private Villa & Spa",
+        "location": "Индонезия, Бали, Нуса-Дуа",
+        "body": "У виллы с одной спальней отдельный жилой павильон и свой бассейн. Завтрак здесь подают в удобное для гостей время. Можно провести утро вдвоём в саду, а после завтрака дойти пешком до песчаного пляжа Нуса-Дуа.",
+        "official_sources": [
+          "https://www.kayumanisnusadua.com/villas",
+          "https://www.kayumanisnusadua.com/villas/one-bedroom-private-pool-villa"
+        ],
+        "verified_on": "2026-11-17",
+        "status": "copy_reviewed",
+        "release_requires": "existing publisher checks for gallery cover, live registry and correct hotel-specific CTA"
+      }
     },
     {
       "work_id": "W6_011",
@@ -350,7 +527,8 @@
       "region": "Мальдивы",
       "category": 5,
       "aliases_to_check": [
-        "JUMEIRAH MALDIVES OLHAHALI ISLAND"
+        "JUMEIRAH MALDIVES OLHAHALI ISLAND",
+        "Jumeirah Olhahali Island"
       ],
       "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Island&countryId=8&limit=20",
       "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=58744",
@@ -366,10 +544,26 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/8/58744-37886400.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/58744-37886401.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/8/58744-37886402.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/58744-37886402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/58744-37886403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/58744-37886504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/58744-37886505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/58744-37886506.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/58744-37886507.jpg"
       ],
       "stage": "editorial_and_visual_review",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "editorial": {
+        "display_name": "Jumeirah Olhahali Island",
+        "location": "Мальдивы",
+        "body": "С нижней террасы Lagoon Villa спускаются прямо в лагуну поплавать с маской. Наверху у виллы ещё одна терраса, откуда удобно смотреть на океан. А когда хочется остаться у себя, рядом с гостиной есть собственный бассейн.",
+        "official_sources": [
+          "https://www.jumeirah.com/en/stay/maldives/jumeirah-olhahali-island/accommodation/one-bedroom-lagoon-villa-with-pool"
+        ],
+        "verified_on": "2026-11-17",
+        "status": "copy_reviewed",
+        "release_requires": "existing publisher checks for gallery cover, live registry and correct hotel-specific CTA"
+      }
     },
     {
       "work_id": "W6_012",
@@ -396,7 +590,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/8/madifushi-private-island-85890300.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/madifushi-private-island-85890301.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/8/madifushi-private-island-85890302.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/madifushi-private-island-85890302.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/madifushi-private-island-85890304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/madifushi-private-island-85890305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/madifushi-private-island-85890306.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/madifushi-private-island-85890307.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/madifushi-private-island-85890308.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -423,7 +622,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/8/64918-19263336.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/64918-19259600.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/8/64918-19259701.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64918-19259701.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64918-19259702.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64918-19259703.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64918-19259804.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64918-19259805.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64918-19259806.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -453,7 +657,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-abu-dhabi-yas-island-102502060.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-abu-dhabi-yas-island-102502061.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-abu-dhabi-yas-island-102502062.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-abu-dhabi-yas-island-102502062.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-abu-dhabi-yas-island-102502063.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-abu-dhabi-yas-island-102502064.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-abu-dhabi-yas-island-102502065.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-abu-dhabi-yas-island-102502066.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-abu-dhabi-yas-island-102502067.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -483,7 +692,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/le-royal-meridien-beach-resort-spa-102204540.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/le-royal-meridien-beach-resort-spa-102204541.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-royal-meridien-beach-resort-spa-102204542.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-royal-meridien-beach-resort-spa-102204542.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-royal-meridien-beach-resort-spa-102204543.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-royal-meridien-beach-resort-spa-102204544.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-royal-meridien-beach-resort-spa-102204545.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-royal-meridien-beach-resort-spa-102204546.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-royal-meridien-beach-resort-spa-102204547.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -512,7 +726,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/11/the-westin-punta-cana-resort-club-102311190.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/11/the-westin-punta-cana-resort-club-102311201.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/11/the-westin-punta-cana-resort-club-102311202.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/the-westin-punta-cana-resort-club-102311202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/the-westin-punta-cana-resort-club-102311203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/the-westin-punta-cana-resort-club-102311204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/the-westin-punta-cana-resort-club-102311205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/the-westin-punta-cana-resort-club-102311206.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/the-westin-punta-cana-resort-club-102311207.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -542,7 +761,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/28/club-med-seychelles-35902800.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/28/club-med-seychelles-708208.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/28/club-med-seychelles-708209.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/club-med-seychelles-708209.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/club-med-seychelles-708210.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/club-med-seychelles-708211.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/club-med-seychelles-708212.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/club-med-seychelles-35902801.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/club-med-seychelles-35902802.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -572,7 +796,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/7/renaissance-bali-nusa-dua-resort-408306.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/7/renaissance-bali-nusa-dua-resort-408300.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/7/renaissance-bali-nusa-dua-resort-408302.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/renaissance-bali-nusa-dua-resort-408302.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/renaissance-bali-nusa-dua-resort-408304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/renaissance-bali-nusa-dua-resort-408305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/renaissance-bali-nusa-dua-resort-408307.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/renaissance-bali-nusa-dua-resort-408308.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/renaissance-bali-nusa-dua-resort-408309.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -602,7 +831,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/vida-creek-beach-412200.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/vida-creek-beach-412201.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/vida-creek-beach-412202.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/vida-creek-beach-412202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/vida-creek-beach-412203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/vida-creek-beach-412204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/vida-creek-beach-412205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/vida-creek-beach-412206.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/vida-creek-beach-412207.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -632,7 +866,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/7/the-westin-resort-nusa-dua-2612332.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/7/the-westin-resort-nusa-dua-2612300.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/7/the-westin-resort-nusa-dua-2612301.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/the-westin-resort-nusa-dua-2612301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/the-westin-resort-nusa-dua-2612302.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/the-westin-resort-nusa-dua-2612303.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/the-westin-resort-nusa-dua-2612304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/the-westin-resort-nusa-dua-2612305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/the-westin-resort-nusa-dua-2612306.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -662,7 +901,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/al-raha-beach-hotel-102203410.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/al-raha-beach-hotel-102203411.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-raha-beach-hotel-102203412.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-raha-beach-hotel-102203412.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-raha-beach-hotel-102203413.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-raha-beach-hotel-102203414.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-raha-beach-hotel-102203415.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-raha-beach-hotel-102203416.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-raha-beach-hotel-102203417.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -692,7 +936,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/2602-40089800.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/2602-40089901.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/2602-40089902.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/2602-40089902.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/2602-40089903.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/2602-40089904.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/2602-40089905.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/2602-40090006.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/2602-40090007.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -722,7 +971,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/27/11751-1811000.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/11751-1811001.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/27/11751-1811002.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11751-1811002.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11751-1811003.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11751-1811004.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11751-1811005.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11751-1811006.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11751-1811007.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -752,7 +1006,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/27/maritim-hotel-mauritius-200.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/maritim-hotel-mauritius-202.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/27/maritim-hotel-mauritius-203.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/maritim-hotel-mauritius-203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/maritim-hotel-mauritius-204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/maritim-hotel-mauritius-205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/maritim-hotel-mauritius-206.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/maritim-hotel-mauritius-207.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/maritim-hotel-mauritius-208.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -782,7 +1041,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/8/12126-97338509.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/12126-97338300.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/8/12126-97338401.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/12126-97338401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/12126-97338402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/12126-97338403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/12126-97338404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/12126-97338505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/12126-97338506.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -811,7 +1075,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/8/52409-98266703.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/52409-98266600.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/8/52409-98266601.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/52409-98266601.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/52409-98266602.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/52409-98266704.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/52409-98266705.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/52409-98266706.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/52409-98266707.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -841,7 +1110,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/8/76458-85626509.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/76458-85626200.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/8/76458-85626301.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/76458-85626301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/76458-85626302.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/76458-85626303.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/76458-85626404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/76458-85626405.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/76458-85626406.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -871,7 +1145,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/8/avani-fares-maldives-resort-85764029.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/avani-fares-maldives-resort-85750800.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/8/avani-fares-maldives-resort-85750801.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/avani-fares-maldives-resort-85750801.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/avani-fares-maldives-resort-85750802.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/avani-fares-maldives-resort-85750803.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/avani-fares-maldives-resort-85750804.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/avani-fares-maldives-resort-85750805.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/avani-fares-maldives-resort-85750806.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -898,7 +1177,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-spa-nabq-0.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-spa-nabq-1.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-spa-nabq-2.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-spa-nabq-2.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-spa-nabq-3.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-spa-nabq-4.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-spa-nabq-5.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-spa-nabq-6.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-spa-nabq-7.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -928,7 +1212,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/7/nusa-dua-beach-hotel-spa-102411294.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/7/nusa-dua-beach-hotel-spa-102411290.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/7/nusa-dua-beach-hotel-spa-102411291.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/nusa-dua-beach-hotel-spa-102411291.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/nusa-dua-beach-hotel-spa-102411292.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/nusa-dua-beach-hotel-spa-102411293.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/nusa-dua-beach-hotel-spa-102411295.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/nusa-dua-beach-hotel-spa-102411296.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/nusa-dua-beach-hotel-spa-102411297.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -958,7 +1247,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-dubai-jumeirah-102204250.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-dubai-jumeirah-102204251.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-dubai-jumeirah-102204252.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-dubai-jumeirah-102204252.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-dubai-jumeirah-102204253.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-dubai-jumeirah-102204254.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-dubai-jumeirah-102204255.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-dubai-jumeirah-102204256.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-dubai-jumeirah-102204257.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -988,7 +1282,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/khalidiya-palace-rayhaan-29369200.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/khalidiya-palace-rayhaan-29369202.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/khalidiya-palace-rayhaan-29369203.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/khalidiya-palace-rayhaan-29369203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/khalidiya-palace-rayhaan-29369204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/khalidiya-palace-rayhaan-29369205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/khalidiya-palace-rayhaan-29369206.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/khalidiya-palace-rayhaan-29369207.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/khalidiya-palace-rayhaan-29369208.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1018,7 +1317,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-al-aqah-beach-resort-14487606.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-al-aqah-beach-resort-14487600.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-al-aqah-beach-resort-14487601.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-al-aqah-beach-resort-14487601.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-al-aqah-beach-resort-14487602.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-al-aqah-beach-resort-14487603.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-al-aqah-beach-resort-14487604.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-al-aqah-beach-resort-14487605.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-al-aqah-beach-resort-14487607.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1046,7 +1350,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/11/secrets-royal-beach-punta-cana-102312100.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/11/secrets-royal-beach-punta-cana-102312101.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/11/secrets-royal-beach-punta-cana-102312102.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/secrets-royal-beach-punta-cana-102312102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/secrets-royal-beach-punta-cana-102312103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/secrets-royal-beach-punta-cana-102312104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/secrets-royal-beach-punta-cana-102312115.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/secrets-royal-beach-punta-cana-102312116.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/secrets-royal-beach-punta-cana-102312117.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1076,7 +1385,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/7/courtyard-bali-nusa-dua-2612000.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/7/courtyard-bali-nusa-dua-2612001.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/7/courtyard-bali-nusa-dua-2612002.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/courtyard-bali-nusa-dua-2612002.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/courtyard-bali-nusa-dua-2612003.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/courtyard-bali-nusa-dua-2612006.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/courtyard-bali-nusa-dua-2612008.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/courtyard-bali-nusa-dua-2612009.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/courtyard-bali-nusa-dua-2612010.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1106,7 +1420,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/7/sofitel-bali-nusa-dua-beach-resort-2911314.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/7/sofitel-bali-nusa-dua-beach-resort-2911300.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/7/sofitel-bali-nusa-dua-beach-resort-2911301.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/sofitel-bali-nusa-dua-beach-resort-2911301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/sofitel-bali-nusa-dua-beach-resort-2911302.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/sofitel-bali-nusa-dua-beach-resort-2911303.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/sofitel-bali-nusa-dua-beach-resort-2911304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/sofitel-bali-nusa-dua-beach-resort-2911305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/sofitel-bali-nusa-dua-beach-resort-2911306.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1133,7 +1452,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-fujairah-resort-102204284.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-fujairah-resort-102204280.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-fujairah-resort-102204281.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-fujairah-resort-102204281.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-fujairah-resort-102204282.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-fujairah-resort-102204283.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-fujairah-resort-102204285.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-fujairah-resort-102204286.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-fujairah-resort-102204287.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1162,7 +1486,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-princess-all-suites-resort-spa-915200.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-princess-all-suites-resort-spa-915201.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-princess-all-suites-resort-spa-915202.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-princess-all-suites-resort-spa-915202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-princess-all-suites-resort-spa-915203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-princess-all-suites-resort-spa-915204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-princess-all-suites-resort-spa-915205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-princess-all-suites-resort-spa-915206.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-princess-all-suites-resort-spa-915207.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1192,7 +1521,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/27/11791-2209500.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/11791-2209501.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/27/11791-2209502.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11791-2209502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11791-2209503.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11791-2209504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11791-2209505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11791-2209506.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11791-2209507.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1222,7 +1556,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/27/outrigger-mauritius-resort-spa-102311540.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/outrigger-mauritius-resort-spa-102311551.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/27/outrigger-mauritius-resort-spa-102311552.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/outrigger-mauritius-resort-spa-102311552.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/outrigger-mauritius-resort-spa-102311553.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/outrigger-mauritius-resort-spa-102311554.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/outrigger-mauritius-resort-spa-102311555.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/outrigger-mauritius-resort-spa-102311557.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/outrigger-mauritius-resort-spa-102311558.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1252,7 +1591,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/beach-rotana-102203520.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/beach-rotana-102203523.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/beach-rotana-102203524.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/beach-rotana-102203524.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/beach-rotana-102203525.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/beach-rotana-102203526.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/beach-rotana-102203527.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/beach-rotana-102203528.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/beach-rotana-102203529.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1282,7 +1626,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-asarlik-beach-62884504.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-asarlik-beach-62884500.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-asarlik-beach-62884501.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-asarlik-beach-62884501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-asarlik-beach-62884502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-asarlik-beach-62884503.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-asarlik-beach-62884505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-asarlik-beach-62884506.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-asarlik-beach-62884507.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1312,7 +1661,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/27/intercontinental-mauritius-resort-3008500.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/intercontinental-mauritius-resort-3008501.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/27/intercontinental-mauritius-resort-3008502.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/intercontinental-mauritius-resort-3008502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/intercontinental-mauritius-resort-3008503.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/intercontinental-mauritius-resort-3008504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/intercontinental-mauritius-resort-3008505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/intercontinental-mauritius-resort-3008506.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/intercontinental-mauritius-resort-3008507.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1342,7 +1696,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/10/2721-1811526.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/10/2721-1811500.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/10/2721-1811501.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/2721-1811501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/2721-1811502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/2721-1811503.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/2721-1811504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/2721-1811505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/2721-1811506.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1372,7 +1731,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/10/selectum-family-resort-varadero-102508270.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/10/selectum-family-resort-varadero-102508271.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/10/selectum-family-resort-varadero-102508272.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/selectum-family-resort-varadero-102508272.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/selectum-family-resort-varadero-102508273.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/selectum-family-resort-varadero-102508274.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/selectum-family-resort-varadero-102508275.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/selectum-family-resort-varadero-102508276.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/selectum-family-resort-varadero-102508277.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1400,7 +1764,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-villas-914401.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-villas-914400.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-villas-914402.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-villas-914402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-villas-914403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-villas-914404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-villas-914405.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-villas-914406.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-villas-914407.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1450,7 +1819,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/135441-81726100.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/135441-81726201.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/135441-81726202.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/135441-81726202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/135441-81726203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/135441-81726304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/135441-81726305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/135441-81726306.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/135441-81726307.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1480,7 +1854,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/4/azure-villas-by-cornelia-102309250.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/4/azure-villas-by-cornelia-102309251.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/4/azure-villas-by-cornelia-102309252.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/azure-villas-by-cornelia-102309252.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/azure-villas-by-cornelia-102309263.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/azure-villas-by-cornelia-102309264.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/azure-villas-by-cornelia-102309265.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/azure-villas-by-cornelia-102309266.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/azure-villas-by-cornelia-102309277.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1510,7 +1889,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/1/movienpick-el-quseir-102101520.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/1/movienpick-el-quseir-102101521.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/1/movienpick-el-quseir-102101522.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movienpick-el-quseir-102101522.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movienpick-el-quseir-102101523.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movienpick-el-quseir-102101524.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movienpick-el-quseir-102101535.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movienpick-el-quseir-102101536.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movienpick-el-quseir-102101537.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1540,7 +1924,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/12/bentota-beach-2909200.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/12/bentota-beach-2909201.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/12/bentota-beach-2909202.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/bentota-beach-2909202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/bentota-beach-2909203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/bentota-beach-2909204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/bentota-beach-2909205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/bentota-beach-2909206.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/bentota-beach-2909207.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1570,7 +1959,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/28/savoy-resort-spa-102312320.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/28/savoy-resort-spa-102312321.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/28/savoy-resort-spa-102312322.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/savoy-resort-spa-102312322.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/savoy-resort-spa-102312333.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/savoy-resort-spa-102312334.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/savoy-resort-spa-102312335.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/savoy-resort-spa-102312336.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/savoy-resort-spa-102312337.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1600,7 +1994,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-taba-102409252.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-taba-102409250.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-taba-102409251.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-taba-102409251.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-taba-102409253.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-taba-102409254.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-taba-102409255.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-taba-102409256.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-taba-102409257.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1630,7 +2029,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/al-hamra-fort-beach-resort-spa-102203370.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/al-hamra-fort-beach-resort-spa-102203371.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-hamra-fort-beach-resort-spa-102203372.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-hamra-fort-beach-resort-spa-102203372.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-hamra-fort-beach-resort-spa-102203373.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-hamra-fort-beach-resort-spa-102203374.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-hamra-fort-beach-resort-spa-102203375.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-hamra-fort-beach-resort-spa-102203376.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-hamra-fort-beach-resort-spa-102203377.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1659,7 +2063,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/28/11847-84183400.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/28/11847-84183401.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/28/11847-84183502.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11847-84183502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11847-84183503.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11847-84183504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11847-84183505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11847-84183506.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11847-84183507.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1689,7 +2098,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/28/11851-76883100.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/28/11851-76883201.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/28/11851-76883202.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11851-76883202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11851-76883203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11851-76883204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11851-76883305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11851-76883306.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11851-76883307.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1719,7 +2133,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-atlantis-spa-resort-62087800.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-atlantis-spa-resort-62087801.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-atlantis-spa-resort-62087802.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-atlantis-spa-resort-62087802.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-atlantis-spa-resort-62087803.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-atlantis-spa-resort-62087804.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-atlantis-spa-resort-62087805.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-atlantis-spa-resort-62087806.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-atlantis-spa-resort-62087807.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1748,7 +2167,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/12/paradise-road-the-villa-bentota-1707500.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/12/paradise-road-the-villa-bentota-1707501.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/12/paradise-road-the-villa-bentota-1707502.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/paradise-road-the-villa-bentota-1707502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/paradise-road-the-villa-bentota-1707503.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/paradise-road-the-villa-bentota-1707504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/paradise-road-the-villa-bentota-1707505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/paradise-road-the-villa-bentota-1707506.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/paradise-road-the-villa-bentota-1707507.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1777,7 +2201,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/28/mango-house-seychelles-1023093627.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/28/mango-house-seychelles-102309350.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/28/mango-house-seychelles-102309351.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/mango-house-seychelles-102309351.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/mango-house-seychelles-102309352.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/mango-house-seychelles-102309353.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/mango-house-seychelles-102309354.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/mango-house-seychelles-102309355.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/mango-house-seychelles-102309356.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1807,7 +2236,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-el-sokhna-1208000.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-el-sokhna-1208001.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-el-sokhna-1208002.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-el-sokhna-1208002.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-el-sokhna-1208003.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-el-sokhna-1208004.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-el-sokhna-1208005.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-el-sokhna-1208006.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-el-sokhna-1208007.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1836,7 +2270,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-harmony-hotel-102.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-harmony-hotel-100.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-harmony-hotel-101.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-harmony-hotel-101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-harmony-hotel-103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-harmony-hotel-104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-harmony-hotel-105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-harmony-hotel-106.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-harmony-hotel-107.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1866,7 +2305,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-resort-67576849.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-resort-67571100.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-resort-67571101.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-resort-67571101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-resort-67571102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-resort-67571103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-resort-67571104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-resort-67571105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/long-beach-resort-67571106.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1896,7 +2340,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-alhambra-palace-102301290.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-alhambra-palace-102301291.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-alhambra-palace-102301292.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-alhambra-palace-102301292.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-alhambra-palace-102301293.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-alhambra-palace-102301294.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-alhambra-palace-102301295.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-alhambra-palace-102301296.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-alhambra-palace-102301297.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1925,7 +2374,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-aswan-1912138.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-aswan-1912100.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-aswan-1912101.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-aswan-1912101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-aswan-1912102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-aswan-1912103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-aswan-1912104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-aswan-1912105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-resort-aswan-1912106.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1955,7 +2409,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-c-mauritius-3112200.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-c-mauritius-3112201.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-c-mauritius-3112202.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-c-mauritius-3112202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-c-mauritius-3112203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-c-mauritius-3112204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-c-mauritius-3112205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-c-mauritius-3112206.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-c-mauritius-3112207.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -1984,7 +2443,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/11/selectum-hacienda-punta-cana-102411582.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/11/selectum-hacienda-punta-cana-102411580.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/11/selectum-hacienda-punta-cana-102411581.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/selectum-hacienda-punta-cana-102411581.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/selectum-hacienda-punta-cana-102411593.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/selectum-hacienda-punta-cana-102411594.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/selectum-hacienda-punta-cana-102411595.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/selectum-hacienda-punta-cana-102411596.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/selectum-hacienda-punta-cana-102411597.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2034,7 +2498,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/2635-56318800.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/2635-56318801.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/2635-56318902.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/2635-56318902.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/2635-56318903.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/2635-56318904.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/2635-56318905.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/2635-56319006.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/2635-56319007.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2064,7 +2533,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-dubai-98719600.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-dubai-98719601.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-dubai-98719602.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-dubai-98719602.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-dubai-98719603.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-dubai-98719604.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-dubai-98719605.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-dubai-98719606.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-dubai-98719607.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2094,7 +2568,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/27/sofitel-so-mauritius-bel-ombre-102310130.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/sofitel-so-mauritius-bel-ombre-102310131.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/27/sofitel-so-mauritius-bel-ombre-102310132.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/sofitel-so-mauritius-bel-ombre-102310132.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/sofitel-so-mauritius-bel-ombre-102310133.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/sofitel-so-mauritius-bel-ombre-102310134.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/sofitel-so-mauritius-bel-ombre-102310135.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/sofitel-so-mauritius-bel-ombre-102310136.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/sofitel-so-mauritius-bel-ombre-102310137.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2123,7 +2602,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/59548-94780309.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/59548-94780100.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/59548-94780201.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/59548-94780201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/59548-94780202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/59548-94780203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/59548-94780204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/59548-94780305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/59548-94780306.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2153,7 +2637,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/al-jaddaf-rotana-102502370.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/al-jaddaf-rotana-102502371.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-jaddaf-rotana-102502372.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-jaddaf-rotana-102502372.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-jaddaf-rotana-102502373.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-jaddaf-rotana-102502374.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-jaddaf-rotana-102502375.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-jaddaf-rotana-102502376.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-jaddaf-rotana-102502387.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2183,7 +2672,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/the-wb-abu-dhabi-curio-collection-by-hilton-92854100.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/the-wb-abu-dhabi-curio-collection-by-hilton-92872600.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-wb-abu-dhabi-curio-collection-by-hilton-92878300.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-wb-abu-dhabi-curio-collection-by-hilton-92878300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-wb-abu-dhabi-curio-collection-by-hilton-92854101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-wb-abu-dhabi-curio-collection-by-hilton-92854102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-wb-abu-dhabi-curio-collection-by-hilton-92854103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-wb-abu-dhabi-curio-collection-by-hilton-92854104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-wb-abu-dhabi-curio-collection-by-hilton-92854105.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2213,7 +2707,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/8/beach-house-the-waldorf-astoria-collection-29517602.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/beach-house-the-waldorf-astoria-collection-29521700.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/8/beach-house-the-waldorf-astoria-collection-29517600.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/beach-house-the-waldorf-astoria-collection-29517600.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/beach-house-the-waldorf-astoria-collection-29517601.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/beach-house-the-waldorf-astoria-collection-29517603.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/beach-house-the-waldorf-astoria-collection-29517604.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/beach-house-the-waldorf-astoria-collection-29517605.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/beach-house-the-waldorf-astoria-collection-29517606.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2242,7 +2741,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-burj-dubai-down-town-114200.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-burj-dubai-down-town-114201.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-burj-dubai-down-town-114202.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-burj-dubai-down-town-114202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-burj-dubai-down-town-114203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-burj-dubai-down-town-114204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-burj-dubai-down-town-114205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-burj-dubai-down-town-114206.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-burj-dubai-down-town-114207.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2272,7 +2776,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/7/amarterra-villa-spa-51245300.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/7/amarterra-villa-spa-51245301.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/7/amarterra-villa-spa-51245302.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/amarterra-villa-spa-51245302.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/amarterra-villa-spa-51245303.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/amarterra-villa-spa-51245304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/amarterra-villa-spa-51245305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/amarterra-villa-spa-51245306.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/7/amarterra-villa-spa-51245307.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2301,7 +2810,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/4/17513-17015324.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/4/17513-17014800.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/4/17513-17014901.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/17513-17014901.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/17513-17014902.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/17513-17014903.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/17513-17014904.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/17513-17014905.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/17513-17015006.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2331,7 +2845,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/al-bandar-rotana134-1155702.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/al-bandar-rotana134-1155700.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-bandar-rotana134-1155701.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-bandar-rotana134-1155701.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-bandar-rotana134-1155703.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-bandar-rotana134-1155704.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-bandar-rotana134-1155705.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-bandar-rotana134-1155706.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-bandar-rotana134-1155707.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2361,7 +2880,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/4/lara-beach-2325500.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/4/lara-beach-2328100.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/4/lara-beach-2325501.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/lara-beach-2325501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/lara-beach-2325502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/lara-beach-2325503.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/lara-beach-2325504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/lara-beach-2325505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/lara-beach-2325506.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2389,7 +2913,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/11/2750-1307529.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/11/2750-1307500.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/11/2750-1307501.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2750-1307501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2750-1307502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2750-1307503.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2750-1307504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2750-1307505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2750-1307506.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2418,7 +2947,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-tortuga-bay-102302010.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-tortuga-bay-102302011.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-tortuga-bay-102302012.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-tortuga-bay-102302012.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-tortuga-bay-102302013.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-tortuga-bay-102302024.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-tortuga-bay-102302025.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-tortuga-bay-102302026.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/punta-cana-tortuga-bay-102302027.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2447,7 +2981,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/11/chic-punta-cana-102311180.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/11/chic-punta-cana-102311181.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/11/chic-punta-cana-102311182.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/chic-punta-cana-102311182.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/chic-punta-cana-102311183.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/chic-punta-cana-102311184.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/chic-punta-cana-102311185.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/chic-punta-cana-102311186.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/chic-punta-cana-102311187.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2476,7 +3015,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/4/sundia-by-liberty-exclusive-fethiye-1511504.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/4/sundia-by-liberty-exclusive-fethiye-1511500.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/4/sundia-by-liberty-exclusive-fethiye-1511501.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sundia-by-liberty-exclusive-fethiye-1511501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sundia-by-liberty-exclusive-fethiye-1511502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sundia-by-liberty-exclusive-fethiye-1511503.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sundia-by-liberty-exclusive-fethiye-1511505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sundia-by-liberty-exclusive-fethiye-1511506.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sundia-by-liberty-exclusive-fethiye-1511507.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2506,7 +3050,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-makadi-club-8514202.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-makadi-club-8514200.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-makadi-club-8514201.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-makadi-club-8514201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-makadi-club-8514203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-makadi-club-8514204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-makadi-club-8514205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-makadi-club-8514206.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/albatros-makadi-club-8514207.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2535,7 +3084,10 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-al-ain-101.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-al-ain-100.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-al-ain-102.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-al-ain-102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-al-ain-103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-al-ain-104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/hilton-al-ain-105.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2564,7 +3116,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/al-ain-rotana-hotel-2212200.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/al-ain-rotana-hotel-2212201.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-ain-rotana-hotel-2212202.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-ain-rotana-hotel-2212202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-ain-rotana-hotel-2212203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-ain-rotana-hotel-2212204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-ain-rotana-hotel-2212205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-ain-rotana-hotel-2212206.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/al-ain-rotana-hotel-2212207.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2594,7 +3151,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-abu-dhabi-hotel-102204500.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-abu-dhabi-hotel-102204501.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-abu-dhabi-hotel-102204502.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-abu-dhabi-hotel-102204502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-abu-dhabi-hotel-102204503.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-abu-dhabi-hotel-102204504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-abu-dhabi-hotel-102204505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-abu-dhabi-hotel-102204506.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/le-meridien-abu-dhabi-hotel-102204507.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2624,7 +3186,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/11/2763-610100.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/11/2763-610101.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/11/2763-610102.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2763-610102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2763-610103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2763-610104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2763-610105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2763-610106.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2763-610107.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2653,7 +3220,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/11/2765-914311.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/11/2765-914300.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/11/2765-914301.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2765-914301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2765-914302.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2765-914303.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2765-914304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2765-914305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/2765-914306.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2683,7 +3255,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/11/majestic-elegance-punta-cana-102207400.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/11/majestic-elegance-punta-cana-102207401.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/11/majestic-elegance-punta-cana-102207402.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/majestic-elegance-punta-cana-102207402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/majestic-elegance-punta-cana-102207403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/majestic-elegance-punta-cana-102207404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/majestic-elegance-punta-cana-102207405.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/majestic-elegance-punta-cana-102207406.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/majestic-elegance-punta-cana-102207407.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2713,7 +3290,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/11/hard-rock-hotel-casino-102312050.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/11/hard-rock-hotel-casino-102312051.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/11/hard-rock-hotel-casino-102312052.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/hard-rock-hotel-casino-102312052.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/hard-rock-hotel-casino-102312053.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/hard-rock-hotel-casino-102312054.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/hard-rock-hotel-casino-102312055.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/hard-rock-hotel-casino-102312066.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/hard-rock-hotel-casino-102312067.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2741,7 +3323,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/11/zoetry-aqua-punta-cana-102312120.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/11/zoetry-aqua-punta-cana-102312121.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/11/zoetry-aqua-punta-cana-102312122.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/zoetry-aqua-punta-cana-102312122.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/zoetry-aqua-punta-cana-102312123.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/zoetry-aqua-punta-cana-102312124.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/zoetry-aqua-punta-cana-102312125.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/zoetry-aqua-punta-cana-102312126.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/11/zoetry-aqua-punta-cana-102312137.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2771,7 +3358,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/the-westin-dubai-al-habtoor-city-43547604.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/the-westin-dubai-al-habtoor-city-43547600.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-westin-dubai-al-habtoor-city-43547601.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-westin-dubai-al-habtoor-city-43547601.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-westin-dubai-al-habtoor-city-43547602.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-westin-dubai-al-habtoor-city-43547603.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-westin-dubai-al-habtoor-city-43547605.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-westin-dubai-al-habtoor-city-43547606.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-westin-dubai-al-habtoor-city-43547607.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2801,7 +3393,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/77685-2712300.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/77685-2712301.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/77685-2712302.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/77685-2712302.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/77685-2712303.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/77685-2712304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/77685-2712305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/77685-2712306.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/77685-2712307.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2830,7 +3427,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/10/83785-62705100.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/10/83785-62705101.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/10/83785-62705102.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/83785-62705102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/83785-62705103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/83785-62705204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/83785-62705205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/83785-62705206.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/10/83785-62705207.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2860,7 +3462,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/address-sky-view-2013206.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/address-sky-view-2013200.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/address-sky-view-2013201.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/address-sky-view-2013201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/address-sky-view-2013202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/address-sky-view-2013203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/address-sky-view-2013204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/address-sky-view-2013205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/address-sky-view-2013207.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2890,7 +3497,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-montgomerie-club-200.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-montgomerie-club-201.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-montgomerie-club-204.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-montgomerie-club-204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-montgomerie-club-205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-montgomerie-club-206.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-montgomerie-club-207.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-montgomerie-club-208.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-address-montgomerie-club-209.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2916,7 +3528,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/8/viluxer-veyli-diving-100.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/viluxer-veyli-diving-101.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/8/viluxer-veyli-diving-102.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/viluxer-veyli-diving-102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/viluxer-veyli-diving-103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/viluxer-veyli-diving-104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/viluxer-veyli-diving-105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/viluxer-veyli-diving-106.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/viluxer-veyli-diving-107.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2945,7 +3562,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/8/113978-61382410.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/113978-61352000.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/8/113978-61353200.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/113978-61353200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/113978-61353800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/113978-61354300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/113978-61354900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/113978-61355500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/113978-61356200.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -2973,7 +3595,12 @@
       "source_photo_samples": [
         "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-cairo-media-city-208000.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-cairo-media-city-208003.jpg",
-        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-cairo-media-city-208004.jpg"
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-cairo-media-city-208004.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-cairo-media-city-208005.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-cairo-media-city-208006.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-cairo-media-city-208007.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-cairo-media-city-208008.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/movenpick-cairo-media-city-208009.jpg"
       ],
       "stage": "editorial_and_visual_review",
       "publication_allowed": false
@@ -3282,5 +3909,21 @@
       "reason": "previous_name_requires_confirmation",
       "possible_published_ids": []
     }
-  ]
+  ],
+  "editorial_batch": {
+    "order": [
+      108317,
+      11836,
+      11746,
+      11842,
+      11882,
+      8987,
+      2685,
+      8859,
+      2335,
+      58744
+    ],
+    "copy_reviewed": 10,
+    "beach_works_hold_id": 15773
+  }
 }
