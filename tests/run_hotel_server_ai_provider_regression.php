@@ -10,7 +10,7 @@ function haReject(callable $fn,string $label,?string $reason=null):void{
 }
 function haCount(PDO $p,string $table):int{return (int)$p->query('SELECT COUNT(*) FROM '.$table)->fetchColumn();}
 function haPolicy():array{
-    return ['source_mode'=>'assigned_retained_excerpts','model'=>ManagerDraftClient::requestBody('',[])['model'],'profile_sha256'=>hash('sha256',HotelServerInputs::json(ManagerDraftClient::hotelRuntimeProfile())),'budget_attestation_sha256'=>hash('sha256','synthetic budget policy, not pricing'),
+    return ['source_mode'=>'assigned_retained_excerpts','model'=>ManagerDraftClient::hotelRuntimeProfile()['model'],'profile_sha256'=>hash('sha256',HotelServerInputs::json(ManagerDraftClient::hotelRuntimeProfile())),'budget_attestation_sha256'=>hash('sha256','synthetic budget policy, not pricing'),
         'valid_until'=>1800086400,'max_source_age_seconds'=>86400,'max_scopes'=>1,'request_byte_ceiling'=>ManagerDraftClient::MAX_REQUEST_BYTES,
         'input_token_ceiling'=>50000,'reserved_micros_minimum'=>10000,'principals'=>['producer'=>'synthetic-producer-policy-v1','reviewer'=>'synthetic-review-policy-v1']];
 }
@@ -54,7 +54,7 @@ $legacy=ManagerDraftClient::requestBody('legacy',[]);
 haCheck($legacy['text']['format']['name']==='manager_reply_draft'&&$legacy['max_output_tokens']===2200&&$legacy['store']===false,'legacy manager profile/schema unchanged');
 foreach(['producer','reviewer'] as $role){
     $b=ManagerDraftClient::hotelRequestBody($role,'synthetic',[],HotelServerAiProvider::responseSchema($role));
-    haCheck($b['model']===$legacy['model']&&$b['reasoning']===$legacy['reasoning']&&$b['service_tier']===$legacy['service_tier'],'reuse existing profile');
+    haCheck($b['model']==='gpt-6.1-sol'&&$b['reasoning']===['effort'=>'low']&&$b['service_tier']==='default','hotel request preserves its approved worker profile');
     haCheck($b['max_output_tokens']===2200&&$b['store']===false&&!isset($b['tools'],$b['previous_response_id']),'no web tools, session reuse or deadline expansion');
     haCheck($b['text']['format']['name']==='hotel_server_'.$role&&$b['text']['format']['strict']===true,'role-specific strict schema');
 }

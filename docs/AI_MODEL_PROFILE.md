@@ -8,6 +8,7 @@ Runtime caller inventory:
 
 - MAX, Telegram and website: `AiRouter` and `TouristExtractorV2` use `AiClient`.
 - Explicit manager reply draft: `ManagerAiDraftService` uses `ManagerDraftClient`.
+- HOTEL, development and roadmap workers retain their approved `gpt-6.1-sol` / `low` / Standard profile, including the profile used to verify their saved requests.
 - The private virtual reply author and critic use separate evaluation profiles.
 
 The common bot uses `OPENAI_MODEL`; drafts independently use
