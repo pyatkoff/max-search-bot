@@ -1,0 +1,971 @@
+{
+  "schema_version": 1,
+  "state": "FIFTY_CAPTIONS_CHECKED_AWAITING_SOURCE_ACCEPTANCE",
+  "published_baseline": 1020,
+  "rows": [
+    {
+      "hotel_id": 52409,
+      "name": "Cocoon Maldives",
+      "country": "Мальдивы",
+      "location": "атолл Лавияни, Мальдивы",
+      "caption": "✈️ Туры в Cocoon Maldives\n📍 атолл Лавияни, Мальдивы.\n\nДнём можно устроить пикник на песчаной косе, а вечером поужинать при свечах у лагуны в Manta. У отеля есть и пляжные, и водные виллы, так что удобно выбрать между садом у берега и террасой над водой.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "COCOON MALDIVES",
+        "Cocoon Maldives"
+      ],
+      "cover_sha256": "b4369fd63a6aaddfe745d864ff8618953b8d3956512e7bc547eab6ecce7572c9",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=52409",
+      "official_sources": [
+        "https://www.cocoonmaldives.com/",
+        "https://www.cocoonmaldives.com/dining"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 76458,
+      "name": "Cora Cora Maldives",
+      "country": "Мальдивы",
+      "location": "атолл Раа, Мальдивы",
+      "caption": "✈️ Туры в Cora Cora Maldives\n📍 атолл Раа, Мальдивы.\n\nНа острове есть музей Dutch Onion с находками со всего архипелага. Между купаниями можно прогуляться по открытой части музея и посмотреть, что археологи нашли на самом острове. Подойдёт тем, кому за поездку хочется узнать о Мальдивах больше, чем видно с пляжа.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "CORA CORA MALDIVES",
+        "Cora Cora Maldives"
+      ],
+      "cover_sha256": "63ba198ca0123cf670403fbf026efe45c125652489280710b91a5bb7a9682f4c",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76458",
+      "official_sources": [
+        "https://coracoraresorts.com/experiences/dutch-onion-museum/",
+        "https://visitmaldives.com/en/resorts/cora-cora-maldives"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 82538,
+      "name": "Avani+ Fares Maldives Resort",
+      "country": "Мальдивы",
+      "location": "атолл Баа, Мальдивы",
+      "caption": "✈️ Туры в Avani+ Fares Maldives Resort\n📍 атолл Баа, Мальдивы.\n\nС маской можно отправиться к домашнему рифу, а для первого знакомства с ним взять экскурсию с инструктором. На берегу есть детский и подростковый клубы. Удобный выбор для семьи, где взрослым хочется поплавать у рифа, а детям нужны свои занятия на острове.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "AVANI+ FARES MALDIVES RESORT",
+        "Avani+ Fares Maldives Resort"
+      ],
+      "cover_sha256": "2ebe1b1a9938a887a1622a292eddeeaa6c4e09d5fc654a42f503428601a0dff1",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82538",
+      "official_sources": [
+        "https://www.avanihotels.com/en/fares-maldives",
+        "https://www.avanihotels.com/uploads/minor/avani/documents/vfar/things_to_do/aquafanatics_ebrochure_avani_plus_fares_maldives_resort_sep_2025.pdf"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2572,
+      "name": "Hilton Dubai Jumeirah",
+      "country": "ОАЭ",
+      "location": "Дубай, ОАЭ",
+      "caption": "✈️ Туры в Hilton Dubai Jumeirah\n📍 Дубай, ОАЭ.\n\nУтро можно провести на частном пляже, а вечером выйти из отеля прямо на бульвар The Walk. Детский клуб и игровая комната пригодятся, если захочется сделать паузу между морем и прогулками по JBR.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "HILTON DUBAI JUMEIRAH BEACH",
+        "Hilton Dubai Jumeirah"
+      ],
+      "cover_sha256": "6b9a861d4d52fbade2931591b9d564ffa9fe7d0285ec9d94b04285a824da2d80",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2572",
+      "official_sources": [
+        "https://www.hilton.com/en/hotels/dxbjbhi-hilton-dubai-jumeirah/"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2593,
+      "name": "Khalidiya Palace Rayhaan by Rotana",
+      "country": "ОАЭ",
+      "location": "Абу-Даби, ОАЭ",
+      "caption": "✈️ Туры в Khalidiya Palace Rayhaan by Rotana\n📍 Абу-Даби, ОАЭ.\n\nОтель подойдёт для поездки с детьми в Абу-Даби. У воды есть собственный пляж, большой бассейн и детский клуб. Можно провести день у залива, а в другой день выехать посмотреть дворцы и набережную столицы.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "KHALIDIYA PALACE RAYHAAN BY ROTANA",
+        "Khalidiya Palace Rayhaan by Rotana"
+      ],
+      "cover_sha256": "3eeeb7ebaffc9d38143594f1cfbdf6c540c2cea1e6056a55d491f3e088b3fda1",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2593",
+      "official_sources": [
+        "https://www.rotana.com/rayhaanhotelandresorts/unitedarabemirates/abudhabi/khalidiyapalacerayhaanbyrotana/activities"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2601,
+      "name": "Le Méridien Al Aqah Beach Resort",
+      "country": "ОАЭ",
+      "location": "Эль-Ака, ОАЭ",
+      "caption": "✈️ Туры в Le Méridien Al Aqah Beach Resort\n📍 Эль-Ака, ОАЭ.\n\nЗа отелем поднимаются горы Хаджар, а перед ним открывается пляж Фуджейры. Здесь легко устроить спокойный день у воды всей семьёй и провести вечер на берегу, глядя на горы.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "LE MERIDIEN AL AQAH BEACH RESORT",
+        "Le Méridien Al Aqah Beach Resort"
+      ],
+      "cover_sha256": "c811bd13f9d0a142f0b0cff8c6900ec1b0dd9fdafdf5584df761817597995c64",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2601",
+      "official_sources": [
+        "https://www.marriott.com/en-us/hotels/fjrmd-le-meridien-al-aqah-beach-resort/overview/"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 4546,
+      "name": "Secrets Royal Beach Punta Cana",
+      "country": "Доминикана",
+      "location": "Пунта-Кана, Доминикана",
+      "caption": "✈️ Туры в Secrets Royal Beach Punta Cana\n📍 Пунта-Кана, Доминикана.\n\nОтель для взрослых на песчаном берегу Пунта-Каны. Можно начать день купанием у пальм, а вечером выбрать ресторан и устроить ужин вдвоём. У размещения Preferred Club есть отдельный бассейн с ленивой рекой.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "SECRETS ROYAL BEACH PUNTA CANA",
+        "Secrets Royal Beach Punta Cana"
+      ],
+      "cover_sha256": "3fd9937a347227ba227598824d54b37f2b4c9e618ca1a57428ccec3404c6080e",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4546",
+      "official_sources": [
+        "https://www.hyattinclusivecollection.com/en/resorts-hotels/secrets/dominican-republic/royal-beach-punta-cana/",
+        "https://www.hyattinclusivecollection.com/en/resorts-hotels/secrets/dominican-republic/royal-beach-punta-cana/activities"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 13890,
+      "name": "Courtyard by Marriott Bali Nusa Dua Resort",
+      "country": "Индонезия",
+      "location": "Нуса-Дуа, Индонезия",
+      "caption": "✈️ Туры в Courtyard by Marriott Bali Nusa Dua Resort\n📍 Нуса-Дуа, Индонезия.\n\nДля семейного отдыха здесь есть большой бассейн-лагуна, ленивая река и детский клуб. Можно отвести целый день на купание и игры у воды, а на следующий выбраться к пляжу Нуса-Дуа.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "COURTYARD BY MARRIOTT BALI NUSA DUA RESORT",
+        "Courtyard by Marriott Bali Nusa Dua Resort"
+      ],
+      "cover_sha256": "f12f1e9b2d823883292d1953beaee2ffe5d990ae2d3f62ad0a51128c063ebb2f",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=13890",
+      "official_sources": [
+        "https://www.marriott.com/en-us/hotels/dpscy-courtyard-bali-nusa-dua-resort/overview/"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 28400,
+      "name": "Sofitel Bali Nusa Dua Beach Resort",
+      "country": "Индонезия",
+      "location": "Нуса-Дуа, Индонезия",
+      "caption": "✈️ Туры в Sofitel Bali Nusa Dua Beach Resort\n📍 Нуса-Дуа, Индонезия.\n\nБассейны-лагуны проходят через тропический сад к зоне отдыха у пляжа. У категории с выходом к бассейну есть своя терраса у воды. Удобно для тех, кто хочет начинать день с купания прямо у номера.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "SOFITEL BALI NUSA DUA BEACH RESORT",
+        "Sofitel Bali Nusa Dua Beach Resort"
+      ],
+      "cover_sha256": "9505cc4ae9f5b6cb1085fff3ab644754af08c8eb384b1fc0035f43d90e105f44",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=28400",
+      "official_sources": [
+        "https://all.accor.com/hotel/9078/index.en.shtml",
+        "https://sofitel.accor.com/en/hotels/9078/wellness-pool.html"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2776,
+      "name": "Punta Cana Princess All Suites Resort & Spa",
+      "country": "Доминикана",
+      "location": "Пунта-Кана, Доминикана",
+      "caption": "✈️ Туры в Punta Cana Princess All Suites Resort & Spa\n📍 Пунта-Кана, Доминикана.\n\nКурорт 18+ с выходом на пляж Баваро. Днём можно отдыхать на берегу, а вечером выбирать между ресторанами с разной кухней. Для поездки вдвоём есть отдельная категория Honeymoon Suite с гидромассажной ванной.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "PUNTA CANA PRINCESS ALL SUITES RESORT & SPA ADULTS ONLY",
+        "Punta Cana Princess All Suites Resort & Spa"
+      ],
+      "cover_sha256": "5fe5f96c15fef4113fed01652fd5100f04472299e01c8fedf1948029ad2ad9bf",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2776",
+      "official_sources": [
+        "https://www.princess-hotels.com/en/punta-cana/punta-cana-princess/",
+        "https://www.princess-hotels.com/files/punta-cana-princess-ft-26-en.pdf"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 82504,
+      "name": "Madifushi Private Island",
+      "country": "Мальдивы",
+      "location": "атолл Мииму, Мальдивы",
+      "caption": "✈️ Туры в Madifushi Private Island\n📍 атолл Мииму, Мальдивы.\n\nВыберите Sunset Aqua Pool Villa, если хочется встречать закат на своей террасе. Здесь есть собственный бассейн и ступени прямо в лагуну: можно спуститься поплавать и вернуться к закату над океаном.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "MADIFUSHI PRIVATE ISLAND",
+        "Madifushi Private Island"
+      ],
+      "cover_sha256": "271bdd2281361dd77f203c1d81473c252a9a9ae6c57bce46efe771e70b76a29a",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82504",
+      "official_sources": [
+        "https://www.madifushiprivateisland.com/accommodation/sunset-aqua-pool-villa"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 64918,
+      "name": "You & Me Maldives",
+      "country": "Мальдивы",
+      "location": "атолл Раа, Мальдивы",
+      "caption": "✈️ Туры в You & Me Maldives\n📍 атолл Раа, Мальдивы.\n\nВ ресторане H2O ужинают под водой: за панорамными окнами видна жизнь рифа. Курорт только для взрослых, так что сюда удобно ехать вдвоём за спокойными днями у океана и одним необычным вечером.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "YOU & ME BY COCOON MALDIVES (ADULTS ONLY 16+",
+        "You & Me Maldives"
+      ],
+      "cover_sha256": "8f75c8855c15ae82aca8b4e1e1705086c6169ee56e4fff588cfe892f5fae19d7",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64918",
+      "official_sources": [
+        "https://www.youandmemaldives.com/h20",
+        "https://www.youandmemaldives.com/"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11791,
+      "name": "Sofitel Mauritius L’Impérial Resort & Spa",
+      "country": "Маврикий",
+      "location": "Флик-ан-Флак, Маврикий",
+      "caption": "✈️ Туры в Sofitel Mauritius L’Impérial Resort & Spa\n📍 Флик-ан-Флак, Маврикий.\n\nНа западном побережье Маврикия можно начать день с купания, а потом провести время между пляжем и садом. Сюда удобно приехать вдвоём за прогулками у океана и тихими вечерами во Флик-ан-Флаке.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "SOFITEL MAURITIUS L IMPERIAL RESORT & SPA",
+        "Sofitel Mauritius L’Impérial Resort & Spa"
+      ],
+      "cover_sha256": "241c0ad613812b8ed261931269bdd3c164fc1a163e0766fe58311892cf08c5e2",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11791",
+      "official_sources": [
+        "https://all.accor.com/hotel/1144/index.en.shtml"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 26844,
+      "name": "OUTRIGGER Mauritius Beach Resort",
+      "country": "Маврикий",
+      "location": "Бель-Омбр, Маврикий",
+      "caption": "✈️ Туры в OUTRIGGER Mauritius Beach Resort\n📍 Бель-Омбр, Маврикий.\n\nВ детском клубе Coral знакомят с местными танцами и устраивают игры. Рядом отдельный детский бассейн с горкой. Удобно, когда взрослым хочется провести часть дня на пляже, а детям уже надоело просто купаться.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "OUTRIGGER MAURITIUS RESORT & SPA",
+        "OUTRIGGER Mauritius Beach Resort"
+      ],
+      "cover_sha256": "afdbdcb60a51798851eaa9da37eda52db663c348184d3f824b88354dfe2285b3",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=26844",
+      "official_sources": [
+        "https://www.outrigger.com/mauritius/outrigger-mauritius-beach-resort/activities/coral-kids-club"
+      ],
+      "cover_label_requires_review": true,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2522,
+      "name": "Beach Rotana",
+      "country": "ОАЭ",
+      "location": "Абу-Даби, ОАЭ",
+      "caption": "✈️ Туры в Beach Rotana\n📍 Абу-Даби, ОАЭ.\n\nМожно совместить городской отдых с купанием: у отеля есть частный пляжный клуб и бассейн. Абу-Даби Молл рядом, поэтому после пляжа удобно сходить за покупками или поужинать в городе.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "BEACH ROTANA",
+        "Beach Rotana"
+      ],
+      "cover_sha256": "a44f50ce07f439708ec217ff337815331c901acde409c0169cb2bd5111b2e624",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2522",
+      "official_sources": [
+        "https://www.rotana.com/rotanahotelandresorts/unitedarabemirates/abudhabi/beachrotana",
+        "https://www.rotana.com/rotanahotelandresorts/unitedarabemirates/abudhabi/beachrotana/offers/4053"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 1703,
+      "name": "Royal Asarlık Beach Hotel & Spa",
+      "country": "Турция",
+      "location": "Гюмбет, Турция",
+      "caption": "✈️ Туры в Royal Asarlık Beach Hotel & Spa\n📍 Гюмбет, Турция.\n\nС территории открывается вид на бухту Гюмбет. Днём можно провести время у воды, а после солнца отправиться в хаммам. Хороший вариант для тех, кто хочет успеть и отдохнуть у моря, и погулять по Бодруму.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "ROYAL ASARLIK BEACH & SPA",
+        "Royal Asarlık Beach Hotel & Spa"
+      ],
+      "cover_sha256": "e40912b2dbddb1bdf60acf72476c4c5a2d0d5868fcac9727c973b080b8460e56",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1703",
+      "official_sources": [
+        "https://royalasarlikbeach.com/en/about",
+        "https://royalasarlikbeach.com/en/spa"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11753,
+      "name": "InterContinental Resort Mauritius",
+      "country": "Маврикий",
+      "location": "Балаклава, Маврикий",
+      "caption": "✈️ Туры в InterContinental Resort Mauritius\n📍 Балаклава, Маврикий.\n\nОтель выходит прямо к пляжу Балаклава. Когда хочется сменить море на бассейн, за ним не нужно выезжать с курорта. После перелёта можно отвести время на спа, а следующий день провести у океана.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "INTERCONTINENTAL MAURITIUS RESORT BALACLAVA",
+        "InterContinental Resort Mauritius"
+      ],
+      "cover_sha256": "627bba78b4438a72c41f5126afd6c1ce2889a34c3d9a579924cd5773fd6ca64b",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11753",
+      "official_sources": [
+        "https://www.ihg.com/intercontinental/hotels/gb/en/balaclava/mruma/hoteldetail",
+        "https://www.ihg.com/intercontinental/hotels/gb/en/balaclava/mruma/hoteldetail/amenities"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2721,
+      "name": "Paradisus Varadero Resort & Spa",
+      "country": "Куба",
+      "location": "Варадеро, Куба",
+      "caption": "✈️ Туры в Paradisus Varadero Resort & Spa\n📍 Варадеро, Куба.\n\nКурорт выходит к пляжу Плайя-Франсес. Для отпуска вдвоём можно выбрать размещение Royal Service, а если едете семьёй, рассмотреть отдельную секцию The Reserve. У каждого формата свой ритм отдыха у моря.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "PARADISUS VARADERO RESORT & SPA",
+        "Paradisus Varadero Resort & Spa"
+      ],
+      "cover_sha256": "c5bc810b156067ce612cd9a986d8e224e13b22f76451788a6f05500a74091577",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2721",
+      "official_sources": [
+        "https://media.meliacuba.com/fact-sheets/GDS-paradisus-varadero-en-11061.pdf"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 77685,
+      "name": "Hilton Dubai Palm Jumeirah",
+      "country": "ОАЭ",
+      "location": "Дубай, ОАЭ",
+      "caption": "✈️ Туры в Hilton Dubai Palm Jumeirah\n📍 Дубай, ОАЭ.\n\nОтель выходит к Palm West Beach. Утром можно плавать и отдыхать на пляже, а вечером гулять вдоль воды, глядя на высотки Дубай-Марины. Для поездки с детьми пригодится детский клуб.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "HILTON DUBAI PALM JUMEIRAH",
+        "Hilton Dubai Palm Jumeirah"
+      ],
+      "cover_sha256": "f976b0883977aa436627953d3eb84d167f26c874fec0b7f1e5468cfb8ae1742b",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=77685",
+      "official_sources": [
+        "https://www.hilton.com/en/hotels/dxbpjhi-hilton-dubai-palm-jumeirah/",
+        "https://www.hilton.com/en/hotels/dxbpjhi-hilton-dubai-palm-jumeirah/resort/"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 15910,
+      "name": "Azure Villas by Cornelia",
+      "country": "Турция",
+      "location": "Белек, Турция",
+      "caption": "✈️ Туры в Azure Villas by Cornelia\n📍 Белек, Турция.\n\nФормат для тех, кто хочет больше пространства на отдыхе. Можно выбрать виллу с двумя спальнями и проводить время у бассейна, а за ресторанами и развлечениями отправляться в расположенный рядом Cornelia Diamond.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "CORNELIA AZURE VILLAS",
+        "Azure Villas by Cornelia"
+      ],
+      "cover_sha256": "0535828c14c404f17337ff493815d0f4ccd32ef079c8052619b6d2abf2f9ba45",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=15910",
+      "official_sources": [
+        "https://www.corneliaresort.com/EN/azure-villas/overview",
+        "https://www.corneliaresort.com/EN/Azure-Villas/villas"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 331,
+      "name": "Mövenpick Resort El Quseir",
+      "country": "Египет",
+      "location": "Эль-Кусейр, Египет",
+      "caption": "✈️ Туры в Mövenpick Resort El Quseir\n📍 Эль-Кусейр, Египет.\n\nДля снорклинга не нужно далеко ехать: у курорта собственный риф. После купания можно вернуться в бунгало с купольными потолками и побыть на берегу до заката. Подойдёт тем, кто едет в Египет прежде всего за подводным миром.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "MOVENPICK RESORT EL QUSEIR",
+        "Mövenpick Resort El Quseir"
+      ],
+      "cover_sha256": "2bb318695652df951f274f1e632d18e4992c46f021325a4a94edcc62986dd1de",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=331",
+      "official_sources": [
+        "https://movenpick.accor.com/en/africa/egypt/el-quseir/resort-el-quseir.html"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2794,
+      "name": "Cinnamon Bentota Beach",
+      "country": "Шри-Ланка",
+      "location": "Бентота, Шри-Ланка",
+      "caption": "✈️ Туры в Cinnamon Bentota Beach\n📍 Бентота, Шри-Ланка.\n\nЗдесь легко чередовать море и прогулки по реке. На Бентхаре организуют водные лыжи и катание на надувных кругах, а в другой день можно съездить в сад Лунуганга, который создал архитектор Джеффри Бава.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "CINNAMON BENTOTA BEACH",
+        "Cinnamon Bentota Beach"
+      ],
+      "cover_sha256": "7c78176df1e91d7a571d0c6a0e7cc057fe4d49732388cc4a225ae6b1988a78f0",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2794",
+      "official_sources": [
+        "https://www.cinnamonhotels.com/cinnamon-bentota-beach/experiences/river-water-sports",
+        "https://www.cinnamonhotels.com/cinnamon-bentota-beach/experiences"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 33531,
+      "name": "Savoy Seychelles Resort & Spa",
+      "country": "Сейшелы",
+      "location": "Бо-Валлон, Сейшелы",
+      "caption": "✈️ Туры в Savoy Seychelles Resort & Spa\n📍 Бо-Валлон, Сейшелы.\n\nУтром можно искупаться у пляжа Бо-Валлон, а после солнца вернуться к большому бассейну в саду. Для спокойного вечера вдвоём в спа есть отдельные кабинеты для пар.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "SAVOY SEYCHELLES RESORT & SPA",
+        "Savoy Seychelles Resort & Spa"
+      ],
+      "cover_sha256": "aa86bac4c20a3ac029a24d39dd2915b13a8a565bc501151c81a28b6967c7d71e",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=33531",
+      "official_sources": [
+        "https://savoy.sc/",
+        "https://savoy.sc/blog/pool/",
+        "https://savoy.sc/blog/how-to-spa/"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 330,
+      "name": "Mövenpick Resort Taba",
+      "country": "Египет",
+      "location": "Таба, Египет",
+      "caption": "✈️ Туры в Mövenpick Resort Taba\n📍 Таба, Египет.\n\nС пляжа видны горы и воды залива Акаба. Между прогулками по берегу можно выбирать между бассейнами под открытым небом и крытым бассейном с подогревом. Подойдёт для спокойного отдыха на Красном море.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "MOVENPICK RESORT TABA",
+        "Mövenpick Resort Taba"
+      ],
+      "cover_sha256": "fc454a103d958fc609e2ae9943abd726269b5bb009d9a63be4eebd8ffbb2925b",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=330",
+      "official_sources": [
+        "https://movenpick.accor.com/en/africa/egypt/taba/resort-taba.html"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11847,
+      "name": "Hilton Seychelles Northolme Resort & Spa",
+      "country": "Сейшелы",
+      "location": "остров Маэ, Сейшелы",
+      "caption": "✈️ Туры в Hilton Seychelles Northolme Resort & Spa\n📍 остров Маэ, Сейшелы.\n\nВместо обычного номера здесь отдельная вилла с балконом над Индийским океаном. Можно начать день с кофе на своей террасе и провести его в тишине у воды. Отель принимает семьи с детьми старше 13 лет.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "HILTON SEYCHELLES NORTHOLME RESORT & SPA",
+        "Hilton Seychelles Northolme Resort & Spa"
+      ],
+      "cover_sha256": "a039eb92cfd32a31f34b5c899f08ce932d00d0cdf1b9932593772c01ea4e7034",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11847",
+      "official_sources": [
+        "https://www.hilton.com/en/hotels/sezhihi-hilton-seychelles-northolme-resort-and-spa/"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11851,
+      "name": "Kempinski Seychelles Resort Baie Lazare",
+      "country": "Сейшелы",
+      "location": "остров Маэ, Сейшелы",
+      "caption": "✈️ Туры в Kempinski Seychelles Resort Baie Lazare\n📍 остров Маэ, Сейшелы.\n\nУ курорта есть и лагуна, и выход к океану. Когда захочется сменить пляж на прогулку, можно пройти по ботанической тропе. Она выводит на точку с видом на бухту Бэ-Лазар.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "KEMPINSKI SEYCHELLES RESORT",
+        "Kempinski Seychelles Resort Baie Lazare"
+      ],
+      "cover_sha256": "301677137e250133afede3500a87e59536ee8706163c36333308a9a682c4fa57",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11851",
+      "official_sources": [
+        "https://www.kempinski.com/en/seychelles-resort/overview/hotel-information/our-hotel",
+        "https://www.kempinski.com/en/seychelles-resort/overview/services-and-facilities/botanical-walk"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 17608,
+      "name": "Royal Atlantis Spa & Resort",
+      "country": "Турция",
+      "location": "Сиде, Турция",
+      "caption": "✈️ Туры в Royal Atlantis Spa & Resort\n📍 Сиде, Турция.\n\nДни можно чередовать между песчаным пляжем и бассейнами. У отеля есть зоны для взрослых и детей, так что удобно ехать семьёй, когда одним хочется плавать, а другим играть у воды.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "ROYAL ATLANTIS SPA & RESORT",
+        "Royal Atlantis Spa & Resort"
+      ],
+      "cover_sha256": "3c14172ef01fb630978fa4ae71f756de4586330d225f8ce309f5e6fbd48906e3",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=17608",
+      "official_sources": [
+        "https://royalatlantis.com.tr/EN/spa-resort/pool--beach"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 43743,
+      "name": "The Villa Bentota",
+      "country": "Шри-Ланка",
+      "location": "Бентота, Шри-Ланка",
+      "caption": "✈️ Туры в The Villa Bentota\n📍 Бентота, Шри-Ланка.\n\nБывший семейный дом, который архитектор Джеффри Бава превратил в один из первых бутик-отелей Шри-Ланки. Сюда стоит приехать за камерным отдыхом: погулять по тропическому саду, рассмотреть детали дома и встретить закат на пляже.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "THE VILLA BENTOTA BY KK COLLECTION",
+        "The Villa Bentota"
+      ],
+      "cover_sha256": "77f97921ccf86e97a049917ec73fef0d6cb30e7ae32d820cb55cbb54dc473a24",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43743",
+      "official_sources": [
+        "https://www.kkcollection.com/the-villa-bentota/"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 76288,
+      "name": "Mango House Seychelles",
+      "country": "Сейшелы",
+      "location": "остров Маэ, Сейшелы",
+      "caption": "✈️ Туры в Mango House Seychelles\n📍 остров Маэ, Сейшелы.\n\nОтель стоит у небольшой бухты Анс-о-Пуль-Блё на юге Маэ. Для поездки семьёй или компанией можно выбрать Bay House с тремя спальнями и собственным небольшим бассейном, где удобно собираться после купания в океане.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "MANGO HOUSE SEYCHELLES",
+        "Mango House Seychelles"
+      ],
+      "cover_sha256": "9096ff2393aeaa91a7dff7c02625e0196b8e26ce252b79a5227aca600fcde5fd",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76288",
+      "official_sources": [
+        "https://www.hilton.com/en/hotels/sezitol-mango-house-seychelles/",
+        "https://www.hilton.com/en/hotels/sezitol-mango-house-seychelles/resort/"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 77810,
+      "name": "Mövenpick Resort El Sokhna",
+      "country": "Египет",
+      "location": "Айн-Сохна, Египет",
+      "caption": "✈️ Туры в Mövenpick Resort El Sokhna\n📍 Айн-Сохна, Египет.\n\nИз сада у Красного моря можно пройти по мосту на небольшой остров, а потом вернуться на песчаный пляж. На заднем плане возвышаются горы Атака. Удобный вариант для семейной поездки с отдыхом у воды и прогулками по территории.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "MOVENPICK RESORT EL SOKHNA",
+        "Mövenpick Resort El Sokhna"
+      ],
+      "cover_sha256": "e2137930f1cf22eb091dbc77738a8f98a16cf9ab994115503a3eaa28a304af2b",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=77810",
+      "official_sources": [
+        "https://movenpick.accor.com/en/hotels/el-sokhna/B4M7.html",
+        "https://movenpick.accor.com/en/africa/egypt/el-sokhna/resort-el-sokhna.html"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 5545,
+      "name": "Royal Alhambra Palace",
+      "country": "Турция",
+      "location": "Чолаклы, Турция",
+      "caption": "✈️ Туры в Royal Alhambra Palace\n📍 Чолаклы, Турция.\n\nКурорт стоит у песчаного пляжа. Днём дети могут выбрать между водными горками и морем, а когда работает луна-парк, вечером можно заглянуть на аттракционы. Удобный формат для семьи, которой хочется проводить больше времени вместе.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "ROYAL ALHAMBRA PALACE",
+        "Royal Alhambra Palace"
+      ],
+      "cover_sha256": "42d2dbc05e25c60fb38b39eecf732ddc39ef58c0decdcceea4e4cb24b2e929d4",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=5545",
+      "official_sources": [
+        "https://acenta.stonegroup.com.tr/ROYAL%20ALHAMBRA%20PALACE/FACTSHEET/ROYAL%20ALHAMBRA%20PALACE%20HOTEL%202025%20SUMMER%20FACTSHEET/ROYAL%20ALHAMBRA%20PALACE%202025%20FACTSHEET%20ENG.pdf"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 4549,
+      "name": "Zoëtry Agua Punta Cana",
+      "country": "Доминикана",
+      "location": "Уверо-Альто, Доминикана",
+      "caption": "✈️ Туры в Zoëtry Agua Punta Cana\n📍 Уверо-Альто, Доминикана.\n\nНебольшой курорт с одними люксами на берегу Уверо-Альто. Сюда удобно приехать вдвоём за тишиной: утром купаться на пляже, а ближе к вечеру провести время в спа или вернуться к воде на прогулку.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "ZOETRY AQUA PUNTA CANA",
+        "Zoëtry Agua Punta Cana"
+      ],
+      "cover_sha256": "63d88dba760dadcc03e7abfc85c890e524b20e1ddcdcf35871e2ad292929896a",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4549",
+      "official_sources": [
+        "https://www.hyattinclusivecollection.com/en/resorts-hotels/zoetry/dominican-republic/agua-punta-cana/",
+        "https://www.hyattinclusivecollection.com/en/resorts-hotels/zoetry/dominican-republic/agua-punta-cana/activities/"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 64110,
+      "name": "C Mauritius",
+      "country": "Маврикий",
+      "location": "Пальмар, Маврикий",
+      "caption": "✈️ Туры в C Mauritius\n📍 Пальмар, Маврикий.\n\nНа восточном побережье Маврикия отель выходит к пляжу Пальмар. Сюда можно приехать ради кайтсёрфинга, а между занятиями проводить время на песке и у лагуны. Хороший вариант для тех, кому хочется добавить движения в пляжный отпуск.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "C MAURITIUS",
+        "C Mauritius"
+      ],
+      "cover_sha256": "e201a97e0b9e568b2e24ed4d2f51980d233e052e2aa367c16b4f4bd5adf60b27",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64110",
+      "official_sources": [
+        "https://www.c-resorts.com/cmauritius/"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 69424,
+      "name": "Selectum Hacienda Punta Cana",
+      "country": "Доминикана",
+      "location": "Макао, Доминикана",
+      "caption": "✈️ Туры в Selectum Hacienda Punta Cana\n📍 Макао, Доминикана.\n\nКамерный бутик-отель 16+ рядом с пляжем Макао, с территории видно океан. Можно устроить спокойный день у воды и продолжить его процедурами в спа. Подойдёт для поездки вдвоём, когда хочется тишины и небольшого отеля.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "SELECTUM HACIENDA PUNTA CANA",
+        "Selectum Hacienda Punta Cana"
+      ],
+      "cover_sha256": "ff6dd07d59701ae1b45841494bdca5f8997f546dbf72cd95594a8553e2ffac71",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=69424",
+      "official_sources": [
+        "https://hacienda.selectumhotels.com/",
+        "https://hacienda.selectumhotels.com/faq"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2635,
+      "name": "Park Rotana",
+      "country": "ОАЭ",
+      "location": "Абу-Даби, ОАЭ",
+      "caption": "✈️ Туры в Park Rotana\n📍 Абу-Даби, ОАЭ.\n\nОтель удобно выбрать для знакомства с городом: отсюда легко доехать до Большой мечети шейха Зайда. После прогулки можно вернуться к открытому бассейну. Для детей рядом есть отдельный бассейн под навесом.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "PARK ROTANA",
+        "Park Rotana"
+      ],
+      "cover_sha256": "d54e93f0abcdd3c21ea4f58948a1cb7a652bdbe08b04543e263da6f39e95d558",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2635",
+      "official_sources": [
+        "https://www.rotana.com/rotanahotelandresorts/unitedarabemirates/abudhabi/parkrotana"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 8923,
+      "name": "Le Méridien Dubai Hotel & Conference Centre",
+      "country": "ОАЭ",
+      "location": "Дубай, ОАЭ",
+      "caption": "✈️ Туры в Le Méridien Dubai Hotel & Conference Centre\n📍 Дубай, ОАЭ.\n\nПосле перелёта удобно быстро добраться из аэропорта и оказаться в саду. На территории пять открытых бассейнов, так что можно устроить день отдыха между поездками по Дубаю или перед следующим рейсом.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "LE MERIDIEN DUBAI HOTEL & CONFERENCE CENTRE",
+        "Le Méridien Dubai Hotel & Conference Centre"
+      ],
+      "cover_sha256": "ae75ebbc02147fff30f84f8588761b64be3ca6c47b035373b331f3ffb03ad6b5",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8923",
+      "official_sources": [
+        "https://www.marriott.com/en-us/hotels/dxbmd-le-meridien-dubai-hotel-and-conference-centre/overview/"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11792,
+      "name": "SO Sofitel Mauritius",
+      "country": "Маврикий",
+      "location": "Бель-Омбр, Маврикий",
+      "caption": "✈️ Туры в SO Sofitel Mauritius\n📍 Бель-Омбр, Маврикий.\n\nНа южном побережье Маврикия отель стоит у защищённой лагуны. Сюда интересно приехать вдвоём: между купаниями можно гулять среди зелени и рассматривать интерьеры, над которыми работал Кензо Такада.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "SOFITEL SO MAURITIUS BEL OMBRE",
+        "SO Sofitel Mauritius"
+      ],
+      "cover_sha256": "b218c8be9fcffdeea8a90885c071991488ba69fa69f0e6d2a25ab5f13aff7565",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11792",
+      "official_sources": [
+        "https://sofitel.accor.com/en/hotels/6707.html",
+        "https://www.sofitel-so-mauritius.com/en/the-hotel/"
+      ],
+      "cover_label_requires_review": true,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 59548,
+      "name": "Al Bandar Arjaan by Rotana",
+      "country": "ОАЭ",
+      "location": "Дубай, ОАЭ",
+      "caption": "✈️ Туры в Al Bandar Arjaan by Rotana\n📍 Дубай, ОАЭ.\n\nЕсли в Дубае хочется пожить подольше, здесь можно выбрать апартаменты. В них есть оборудованная кухня и пространство для отдыха, а у части вариантов открывается вид на Дубай-Крик. Удобно для семьи или спокойной поездки вдвоём.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "AL BANDAR ARJAAN BY ROTANA",
+        "Al Bandar Arjaan by Rotana"
+      ],
+      "cover_sha256": "289df012338ef05608f283a2129a1a6d360b5352bcec70aa6ea1752e2b459e37",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=59548",
+      "official_sources": [
+        "https://www.rotana.com/arjaanhotelapartments/unitedarabemirates/dubai/albandararjaanbyrotana",
+        "https://www.rotana.com/arjaanhotelapartments/unitedarabemirates/dubai/albandararjaanbyrotana/accommodation"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 73995,
+      "name": "Al Jaddaf Rotana Suite Hotel",
+      "country": "ОАЭ",
+      "location": "Дубай, ОАЭ",
+      "caption": "✈️ Туры в Al Jaddaf Rotana Suite Hotel\n📍 Дубай, ОАЭ.\n\nВариант для тех, кто хочет пространство квартиры и сервис отеля. Можно выбрать люкс с кухней или мини-кухней, а после прогулок по городу отдохнуть у бассейна. Рядом станция метро Al Jaddaf.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "AL JADDAF ROTANA",
+        "Al Jaddaf Rotana Suite Hotel"
+      ],
+      "cover_sha256": "a7ab27f12ed58b14bf9656ed1929d8024c12951c4802241650df7d5c8d94d1bb",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=73995",
+      "official_sources": [
+        "https://www.rotana.com/rotanahotelandresorts/unitedarabemirates/dubai/aljaddafrotana"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 78210,
+      "name": "The WB Abu Dhabi, Curio Collection by Hilton",
+      "country": "ОАЭ",
+      "location": "остров Яс, ОАЭ",
+      "caption": "✈️ Туры в The WB Abu Dhabi, Curio Collection by Hilton\n📍 остров Яс, ОАЭ.\n\nГостиница оформлена по фильмам и мультфильмам Warner Bros. Удобная база для каникул на Ясе: за каждую ночь проживания гостям доступен один тематический парк острова. После парка можно вернуться к бассейну.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "THE WB ABU DHABI CURIO COLLECTION BY HILTON",
+        "The WB Abu Dhabi, Curio Collection by Hilton"
+      ],
+      "cover_sha256": "cf170d39c339f24d15e85bb9b0b0b372435b73ea8a05097565a66f063868c2c5",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=78210",
+      "official_sources": [
+        "https://www.hilton.com/en/hotels/auhwbqq-the-wb-abu-dhabi-hotel/",
+        "https://www.hilton.com/en/hotels/auhwbqq-the-wb-abu-dhabi-hotel/theme-parks/"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2680,
+      "name": "Address Downtown",
+      "country": "ОАЭ",
+      "location": "Дубай, ОАЭ",
+      "caption": "✈️ Туры в Address Downtown\n📍 Дубай, ОАЭ.\n\nИз панорамного бассейна хорошо виден Бурдж-Халифа. Сюда удобно приехать для городского уикенда: из отеля есть прямой переход в Dubai Mall, а вечером можно прогуляться по центру.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "THE ADDRESS DOWNTOWN DUBAI",
+        "Address Downtown"
+      ],
+      "cover_sha256": "b49b641f9d602bdc2de22e6793b2d3a329b538a5611361dfbb58c22aad5b49ad",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2680",
+      "official_sources": [
+        "https://www.addresshotels.com/en/hotels/address-downtown/",
+        "https://www.addresshotels.com/en/hotels/address-downtown/wellness/"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 66299,
+      "name": "Address Sky View",
+      "country": "ОАЭ",
+      "location": "Дубай, ОАЭ",
+      "caption": "✈️ Туры в Address Sky View\n📍 Дубай, ОАЭ.\n\nГлавное впечатление отеля ждёт наверху: из панорамного бассейна у небесного моста можно смотреть на Бурдж-Халифу и центр Дубая. Хороший выбор для короткой поездки вдвоём с прогулками по городу.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "ADDRESS SKY VIEW",
+        "Address Sky View"
+      ],
+      "cover_sha256": "49c88edb6c4ae38c497c0d0bab07fea171f7fd92fbb2d585671d9906ce6096b5",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=66299",
+      "official_sources": [
+        "https://www.addresshotels.com/en/hotels/address-sky-view/amenities/",
+        "https://www.addresshotels.com/en/hotels/address-sky-view/wellness/"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 17513,
+      "name": "Liberty Lykia Adults Only",
+      "country": "Турция",
+      "location": "Олюдениз, Турция",
+      "caption": "✈️ Туры в Liberty Lykia Adults Only\n📍 Олюдениз, Турция.\n\nВзрослая часть курорта подойдёт тем, кто хочет проводить дни у моря и отдыхать в тишине. У бассейна Sarpedon можно поплавать с видом на побережье, а затем спуститься к пляжу.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "LIBERTY HOTELS LYKIA ADULTS ONLY 16+",
+        "Liberty Lykia Adults Only"
+      ],
+      "cover_sha256": "2de08e5e77785e530e2da70c8cbdeb4c077e6f716a3cc844b96f9856d4720b07",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=17513",
+      "official_sources": [
+        "https://www.libertyhotels.com/en/hotels/liberty-lykia-adults-only/beach-pools/"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 74644,
+      "name": "Al Bandar Rotana",
+      "country": "ОАЭ",
+      "location": "Дубай, ОАЭ",
+      "caption": "✈️ Туры в Al Bandar Rotana\n📍 Дубай, ОАЭ.\n\nОтель стоит на северном берегу Дубай-Крик. Можно выбрать номер с видом на воду, а для особого случая посмотреть люксы с собственным небольшим бассейном. Такой вариант подойдёт для спокойной поездки вдвоём.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "AL BANDAR ROTANA",
+        "Al Bandar Rotana"
+      ],
+      "cover_sha256": "9a7d33a8f140625cd5b644b54fe6d533d27e8628dcb9888ab0eda08baff9b6de",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=74644",
+      "official_sources": [
+        "https://www.rotana.com/rotanahotelandresorts/unitedarabemirates/dubai/albandarrotana",
+        "https://www.rotana.com/rotanahotelandresorts/unitedarabemirates/dubai/albandarrotana/accommodation"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 1321,
+      "name": "Liberty Lara",
+      "country": "Турция",
+      "location": "Лара, Турция",
+      "caption": "✈️ Туры в Liberty Lara\n📍 Лара, Турция.\n\nМожно чередовать море и водные горки, а для маленьких детей есть отдельный бассейн с фонтанами. Когда хочется тишины, взрослые могут перебраться к бассейну Apollon, куда пускают гостей от 16 лет.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "LIBERTY HOTELS LARA",
+        "Liberty Lara"
+      ],
+      "cover_sha256": "edbf74be1a5f510fbad0262b6aec88ab5bf7138f5fb479a437859e23b4ad95ce",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1321",
+      "official_sources": [
+        "https://www.libertyhotels.com/en/hotels/liberty-lara/beach-and-pools/"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2750,
+      "name": "Excellence Punta Cana",
+      "country": "Доминикана",
+      "location": "Уверо-Альто, Доминикана",
+      "caption": "✈️ Туры в Excellence Punta Cana\n📍 Уверо-Альто, Доминикана.\n\nВ курорте для взрослых можно выбрать люкс на первой линии с террасой и собственным небольшим бассейном. В таком номере приятно начинать утро у воды и проводить вечера вдвоём с видом на океан.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "EXCELLENCE PUNTA CANA ADULTS ONLY",
+        "Excellence Punta Cana"
+      ],
+      "cover_sha256": "be6ce1a2e5c34d5eedd75bb91f374e2351796aca8a962fc9840abe83f722bc6b",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2750",
+      "official_sources": [
+        "https://www.excellenceresorts.com/punta-cana/excellence-punta-cana/rooms/terrace-suite-with-plunge-pool-ocean-front/",
+        "https://www.excellenceresorts.com/punta-cana/excellence-punta-cana/"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 8420,
+      "name": "Tortuga Bay Hotel",
+      "country": "Доминикана",
+      "location": "Пунта-Кана, Доминикана",
+      "caption": "✈️ Туры в Tortuga Bay Hotel\n📍 Пунта-Кана, Доминикана.\n\nИнтерьеры люксов создал Оскар де ла Рента. Гости могут передвигаться по курорту на гольф-каре, так что удобно чередовать пляж, прогулки по территории и отдых на террасе своего люкса.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "PUNTA CANA TORTUGA BAY",
+        "Tortuga Bay Hotel"
+      ],
+      "cover_sha256": "e6b1f54e69cb23c2357c7d062ee9a307af051e38b8c122df891dc8475c48682d",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8420",
+      "official_sources": [
+        "https://tortugabay-puntacana.com/rooms-and-suites/",
+        "https://www.tortugabayhotel.com/"
+      ],
+      "cover_label_requires_review": true,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 33549,
+      "name": "Royalton CHIC Punta Cana",
+      "country": "Доминикана",
+      "location": "Уверо-Альто, Доминикана",
+      "caption": "✈️ Туры в Royalton CHIC Punta Cana\n📍 Уверо-Альто, Доминикана.\n\nКурорт для взрослых с вечеринками у бассейна, музыкой и баром на воде. Сюда лучше ехать вдвоём или с друзьями, если после пляжного дня хочется продолжить вечер в компании.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "ROYALTON CHIC PUNTA CANA",
+        "Royalton CHIC Punta Cana"
+      ],
+      "cover_sha256": "e64a90b8bba9a4454bb8b7682c614bfce7eaa604087e1f031769cc5dc4e106c0",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=33549",
+      "official_sources": [
+        "https://www.royaltonresorts.com/resorts/chic-punta-cana-resort-spa",
+        "https://www.royaltonresorts.com/resorts/chic-punta-cana-resort-spa/weekly-themed-parties"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 77595,
+      "name": "Sundia Exclusive by Liberty Fethiye",
+      "country": "Турция",
+      "location": "Фетхие, Турция",
+      "caption": "✈️ Туры в Sundia Exclusive by Liberty Fethiye\n📍 Фетхие, Турция.\n\nКурорт для взрослых стоит прямо у пляжа Чалыш. Можно чередовать купание в море и отдых у бассейна с видом на воду, а вечером прогуляться вдоль берега и посмотреть на закат.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "SUNDIA EXCLUSIVE BY LIBERTY FETHIYE ADULTS ONLY 16+",
+        "Sundia Exclusive by Liberty Fethiye"
+      ],
+      "cover_sha256": "57756af5ee0e3f5ae3e0d92f35ed98966c872ebe0c2e9fe65f9b993eae52f3b6",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=77595",
+      "official_sources": [
+        "https://www.sundiabyliberty.com/en/hotels/sundia-exclusive-by-liberty-fethiye/",
+        "https://www.sundiabyliberty.com/en/hotels/sundia-exclusive-by-liberty-fethiye/pool-beach/"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2766,
+      "name": "Majestic Elegance Punta Cana",
+      "country": "Доминикана",
+      "location": "Пунта-Кана, Доминикана",
+      "caption": "✈️ Туры в Majestic Elegance Punta Cana\n📍 Пунта-Кана, Доминикана.\n\nДля отдыха вдвоём можно выбрать секцию Elegance Club для взрослых. У клуба свои зоны отдыха и бассейны, а днём удобно спускаться к пляжу. В основной части курорта есть размещение для семьи.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "MAJESTIC ELEGANCE PUNTA CANA",
+        "Majestic Elegance Punta Cana"
+      ],
+      "cover_sha256": "63d537aada8230cfbcdbe46f76c3dcc940a53a3264e0adaf7442cba566c5511f",
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2766",
+      "official_sources": [
+        "https://www.majestic-resorts.com/punta-cana/resorts/majestic-elegance-punta-cana/inclusions"
+      ],
+      "cover_label_requires_review": false,
+      "publication_allowed": false
+    }
+  ],
+  "editorial_replacements": [
+    {
+      "hotel_id": 82626,
+      "reason": "The previous Selectum management contract for Varadero ended.",
+      "source": "https://static1.squarespace.com/static/563a4585e4b00d0211e8dd7e/t/6a3fdcab4e79e5053124dcf6/1782570155208/Turkiye%2BBased%2BRussia%2BFederation%2BConnected%2BHotel%2BManagement%2BCompany%2BRelinquishes%2BProperties%2BIn%2BCuba.pdf",
+      "replacement_hotel_id": 77685
+    },
+    {
+      "hotel_id": 102032,
+      "reason": "The chain hotel page is unavailable after a reported renovation. Current operation needs confirmation.",
+      "source": "https://all.accor.com/hotel/B4L1/index.en.shtml",
+      "replacement_hotel_id": 4549
+    },
+    {
+      "hotel_id": 16318,
+      "reason": "The hotel is now Autograph Collection, while the catalogue name and cover use MGallery.",
+      "source": "https://www.marriott.com/en-us/hotels/dpsav-amarterra-villas-resort-bali-nusa-dua-autograph-collection/overview/",
+      "replacement_hotel_id": 66299
+    },
+    {
+      "hotel_id": 157001,
+      "reason": "The available chain information identifies Albatros Makadi Resort. The separate identity of the Club listing is unverified.",
+      "source": "https://www.pickalbatros.com/makadi-resort/services-and-facilities",
+      "replacement_hotel_id": 2766
+    }
+  ],
+  "publication_design": {
+    "one_run": true,
+    "groups": 5,
+    "rows_per_group": 10,
+    "source_only": true,
+    "existing_gallery_run": 44179714212,
+    "registry_snapshot_run": 44180890584
+  }
+}
