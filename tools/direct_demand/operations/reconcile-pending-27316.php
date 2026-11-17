@@ -501,7 +501,8 @@ try {
         && ($global['pending']['child_failure']['channel_preflight']['write_attempts']??null)===0
         && ($global['pending']['child_failure']['channel_preflight']['http_results_truncated']??null)===false
         && ($global['pending']['child_failure']['channel_preflight']['receipt_valid']??null)===true
-        && ($global['pending']['child_failure']['channel_preflight']['error']??'non_null')===null
+        && array_key_exists('error',$global['pending']['child_failure']['channel_preflight'])
+        && $global['pending']['child_failure']['channel_preflight']['error']===null
         && ($global['pending']['child_failure']['channel_preflight']['http_results']??null)===[
             ['operation'=>'bot_identity','http'=>200,'transport_error'=>false],
             ['operation'=>'channel_rights','http'=>200,'transport_error'=>false],
