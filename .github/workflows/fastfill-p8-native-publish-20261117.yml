@@ -1,0 +1,171 @@
+name: One-shot FASTFILL P8 paired native publication
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/fastfill-p8-native-publish-20261117.yml']
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: anytour-authorized-channel-publication
+  cancel-in-progress: false
+jobs:
+  publish-nine-once:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '3fafe4ae03b2051d0e4d92970fca85cccb7eb019' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+          sparse-checkout: .github/workflows
+      - name: Authenticate exact accepted source for this bounded batch; no regeneration
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$(git rev-parse HEAD^)" = 3fafe4ae03b2051d0e4d92970fca85cccb7eb019
+          python3 - <<'PY'
+          import base64,hashlib,json,pathlib,subprocess,zipfile
+          EXPECTED=json.loads(r'''{"p8-manifest.json":"f75e129c643be2e452446c01358624e4b780dce1d6eaca973a16933e97af5016","p8-approval.json":"1927fe97c74e95a9ea88ee401e97c15e1d576427fe069d9ffaa779bba0f9e10c","p8-publisher-unexecuted.php":"c79c8929c9892895b805b8cf72420f0053a95bd03e030e1f9eb412afd3fb0cf3","provider-facts.json":"f19dd09bb8001beb94a13ad633d9fc0320953235e19b54592e14bc130759acbb"}''')
+          IDS=json.loads('[40222,306,83106,113,108,133,123365,76125,76121]')
+          def api(p):return json.loads(subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+p],timeout=60))
+          assert api('git/ref/heads/main')['object']['sha']=='fd9b28dab2147f13f3b0d0f7f856b14392b141d2','main_drift'
+          for rid,sha in [(44094775258,'3fafe4ae03b2051d0e4d92970fca85cccb7eb019'),(44079440323,'fd9b28dab2147f13f3b0d0f7f856b14392b141d2')]:
+              r=api('actions/runs/'+str(rid))
+              assert r['conclusion']=='success' and r['run_attempt']==1 and r['head_sha']==sha
+          a=api('actions/artifacts/14333436975');assert not a['expired'] and a['workflow_run']['id']==44094775258
+          assert a['digest']=='sha256:76219055890bfc9e95d5c6397d8978e3a277241a5e5d5f67fd84211091c0ab99'
+          p=pathlib.Path('pub');p.mkdir()
+          raw=subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/actions/artifacts/14333436975/zip'],timeout=90)
+          assert hashlib.sha256(raw).hexdigest()=='76219055890bfc9e95d5c6397d8978e3a277241a5e5d5f67fd84211091c0ab99'
+          (p/'source.zip').write_bytes(raw)
+          with zipfile.ZipFile(p/'source.zip') as z:
+              assert z.testzip() is None and set(z.namelist())==set(EXPECTED)|{'receipt.json'}
+              blobs={n:z.read(n) for n in EXPECTED};receipt=json.loads(z.read('receipt.json'))
+          assert receipt['state']=='NINE_EDITORIAL_ACCEPTED_EXISTING_PUBLISHER_SOURCE_ONLY'
+          assert receipt['runtime_sha']=='fd9b28dab2147f13f3b0d0f7f856b14392b141d2' and receipt['files']==EXPECTED
+          assert receipt['send_attempts']==receipt['feed_writes']==0
+          assert all(hashlib.sha256(v).hexdigest()==EXPECTED[n] for n,v in blobs.items())
+          m=blobs['p8-manifest.json'];approval=json.loads(blobs['p8-approval.json']);manifest=json.loads(m)
+          assert [x['hotel_id'] for x in manifest['rows']]==approval['hotel_ids']==IDS
+          assert approval['expected_installed_sha']=='fd9b28dab2147f13f3b0d0f7f856b14392b141d2' and approval['manifest_sha256']==hashlib.sha256(m).hexdigest()
+          assert manifest['operation']==approval['operation']=='commercial-hotel-batch-20261117-8-v1'
+          php=blobs['p8-publisher-unexecuted.php']
+          assert hashlib.sha256(php).hexdigest()=='c79c8929c9892895b805b8cf72420f0053a95bd03e030e1f9eb412afd3fb0cf3'
+          assert php.count(b"const EXPECTED_INSTALLED_SHA='fd9b28dab2147f13f3b0d0f7f856b14392b141d2';")==1
+          assert b"const MANIFEST_BASE64='"+base64.b64encode(m)+b"';" in php
+          (p/'manifest.json').write_bytes(m);(p/'approval.json').write_bytes(blobs['p8-approval.json'])
+          (p/'source-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
+          (p/'wave2-once.php').write_bytes(php);(p/'wave2-once.php').chmod(0o600)
+          print('EXACT_P8_SOURCE_ARTIFACT_VERIFIED_NO_REGENERATION')
+          PY
+          php -l pub/wave2-once.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read-only current production application HEAD and clean tracked files
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = fd9b28dab2147f13f3b0d0f7f856b14392b141d2
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" -o ServerAliveInterval=15 -o ServerAliveCountMax=2)
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0; app=/var/www/anytoour/data/www/app.anytoour.ru; test -d "$app/.git" && test ! -L "$app"; cd "$app"; test "$(git rev-parse HEAD)" = fd9b28dab2147f13f3b0d0f7f856b14392b141d2; test -z "$(git status --porcelain --untracked-files=no)"; test ! -e /var/www/anytoour/data/channel-post-operations/commercial-hotel-batch-20261117-8-v1; command -v php >/dev/null; printf "CURRENT_PRODUCTION_SOURCE_VERIFIED\\n"' > pub/preflight.txt
+          grep -Fx 'CURRENT_PRODUCTION_SOURCE_VERIFIED' pub/preflight.txt
+      - name: Invoke the original bounded telegram and MAX publisher ONCE
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" -o ServerAliveInterval=15 -o ServerAliveCountMax=2)
+          rc=0
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/wave2-once.php > pub/original-native-output.jsonl || rc=$?
+          printf '%s\n' "$rc" > pub/original-exit.txt
+          cat pub/original-native-output.jsonl
+          exit "$rc"
+      - name: Independently verify original native posts, photo, caption and one hotel-aware bot button
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import collections,hashlib,json,pathlib
+          p=pathlib.Path('pub')
+          lines=[json.loads(l) for l in (p/'original-native-output.jsonl').read_text().splitlines() if l.strip().startswith('{')]
+          assert (p/'original-exit.txt').read_text().strip()=='0' and lines
+          r=lines[-1];assert r['ok'] and r['operation']=='commercial-hotel-batch-20261117-8-v1' and r['installed_sha']=='fd9b28dab2147f13f3b0d0f7f856b14392b141d2'
+          assert r['new_posts']==r['post_write_attempts']==18 and r['reused']==0 and len(r['posts'])==18
+          expected=set(json.loads('[40222,306,83106,113,108,133,123365,76125,76121]'));manifest=json.loads((p/'manifest.json').read_bytes());rows={x['hotel_id']:x for x in manifest['rows']}
+          by=collections.defaultdict(set)
+          for x in r['posts']:
+              assert x['state']=='sent' and x['body_photo_button_verified'] and not x['reused']
+              assert x['hotel_id'] in expected and x['platform'] in ['max','telegram']
+              assert x['button_text']=='✈️ Узнать стоимость тура'
+              assert all(x[k]==rows[x['hotel_id']][k] for k in ['logical_id','text_sha256','photo_sha256','photo_url'])
+              assert x['source_key']==('max_anytour_msk1' if x['platform']=='max' else 'tg_anytour_msk')
+              by[x['platform']].add(x['hotel_id'])
+          assert by['max']==by['telegram']==expected and len(set(x['post_url'] for x in r['posts']))==18
+          out={'state':'EIGHTEEN_NATIVE_POSTS_VERIFIED','unique_new_hotels':9,'telegram':9,'max':9,'operation':r['operation'],'original_output_sha256':hashlib.sha256((p/'original-native-output.jsonl').read_bytes()).hexdigest(),'feed_rows_added':0,'posts':r['posts']}
+          (p/'terminal-verified.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n')
+          print('P8_EIGHTEEN_NATIVE_POSTS_VERIFIED '+out['original_output_sha256'])
+          PY
+      - name: Preserve original one-attempt outcome including UNKNOWN
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fastfill-p8-native-one-attempt-20261117
+          path: |
+            pub/preflight.txt
+            pub/original-native-output.jsonl
+            pub/original-exit.txt
+            pub/terminal-verified.json
+            pub/manifest.json
+            pub/approval.json
+            pub/source-receipt.json
+            pub/feed-pending-readonly.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Remove runner-only key and executable scripts
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/wave2-once.php pub/source.zip pub/feed-pending-readonly.php
