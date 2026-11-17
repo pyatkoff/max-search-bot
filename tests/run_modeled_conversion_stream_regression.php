@@ -957,6 +957,104 @@ function modeledObservationalProfileAssertions(PDO $p,callable $check):void
     }finally{$connection->setValue(null,$previousConnection);}
 }
 
+
+/** Real source prompt and recorder inputs pass through the existing journal/Python/immutable writer. */
+function modeledDateQuestionProfileAssertions(PDO $p,callable $check):void
+{
+    require_once dirname(__DIR__).'/services/SourceQualificationPrompt.php';
+    modeledStreamSchema($p);modeledProfileSchema($p);
+    $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+    // Keep this isolated derived journal within one ID width: real same-second inputs
+    // must not exercise the unrelated lexical 9/10 tie boundary in this date fixture.
+    if($mysql)$p->exec('ALTER TABLE modeled_conversion_stream_versions AUTO_INCREMENT=100');
+    else $p->exec("INSERT INTO sqlite_sequence(name,seq) VALUES('modeled_conversion_stream_versions',99)");
+    $id=$mysql?'BIGINT PRIMARY KEY AUTO_INCREMENT':'INTEGER PRIMARY KEY AUTOINCREMENT';
+    $p->exec('ALTER TABLE customer_channels ADD external_chat_id VARCHAR(40)');
+    $p->exec('ALTER TABLE customer_channels ADD username VARCHAR(80)');
+    foreach(['source_id BIGINT','status VARCHAR(32) DEFAULT \'ai\'','external_chat_id VARCHAR(40)','last_message_at DATETIME']as$column)
+        $p->exec('ALTER TABLE conversations ADD '.$column);
+    $p->exec("UPDATE conversations SET source_id=1,external_chat_id='9011' WHERE id=11");
+    $p->exec("UPDATE conversations SET source_id=2,external_chat_id='9010' WHERE id=10");
+    $p->exec('DROP TABLE messages');$p->exec('DROP TABLE conversation_events');
+    $p->exec('CREATE TABLE messages(id '.$id.',conversation_id BIGINT,direction VARCHAR(16),sender_type VARCHAR(16),sender_id VARCHAR(40),channel VARCHAR(16),external_message_id VARCHAR(80),text MEDIUMTEXT,metadata_json MEDIUMTEXT,created_at DATETIME DEFAULT CURRENT_TIMESTAMP)');
+    $p->exec('CREATE TABLE conversation_events(id '.$id.',conversation_id BIGINT,event_type VARCHAR(64),actor_type VARCHAR(16),payload_json TEXT,created_at DATETIME DEFAULT CURRENT_TIMESTAMP)');
+    $p->exec('CREATE TABLE projects(id BIGINT PRIMARY KEY,project_key VARCHAR(40),is_active INT)');
+    $p->exec("INSERT INTO projects VALUES(1,'anytour',1)");
+    $p->exec('CREATE TABLE conversation_sources(id BIGINT PRIMARY KEY,project_id BIGINT,source_key VARCHAR(80),is_active INT)');
+    $p->exec("INSERT INTO conversation_sources VALUES(1,1,'max:default',1),(2,1,'telegram:default',1)");
+    $restore=[];
+    foreach([[ConversationDb::class,'pdo',$p],[ProjectConfig::class,'config',['id'=>'anytour']],
+        [RoutingAccessService::class,'schemaReady',true],[ProjectAccessService::class,'schemaReady',true],
+        [ConversationRecorder::class,'wizardInput',null],[ConversationRecorder::class,'wizardReceipts',[]],
+        [ConversationRecorder::class,'wizardReceiptReason','input_unavailable']]as[$class,$property,$value]){
+        $reflection=new ReflectionProperty($class,$property);$restore[]=[$reflection,$reflection->getValue()];$reflection->setValue(null,$value);
+    }
+    $fetch=$p->getAttribute(PDO::ATTR_DEFAULT_FETCH_MODE);$p->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,PDO::FETCH_ASSOC);
+    if(!$mysql)$p->sqliteCreateFunction('NOW',static fn():string=>gmdate('Y-m-d H:i:s'));
+    try{
+        $started=time()-2;$source=new ModeledConversionStream($p);$profiles=new ModeledConversionProfiles($p);
+        $source->start($started);$profiles->start();
+        $incoming=['platform'=>'max','type'=>'message','source_key'=>'max:default',
+            'user'=>['external_user_id'=>'9011','chat_id'=>'9011']];
+        $prompt=SourceQualificationPrompt::text(['date','adults','children'],'VINPEARL RESORT NHA TRANG',false);
+        $check('date continuity records the real source prompt and literal customer date',
+            ConversationRecorder::outboundForConversation(11,'max',$prompt)
+            &&ConversationRecorder::inbound($incoming+['message_id'=>'fixture-date-answer','text'=>'5 декабря на 8 дней']));
+        $dateId=(string)$p->query("SELECT id FROM messages WHERE external_message_id='fixture-date-answer'")->fetchColumn();
+        $source->tick(time());$profiles->tick(time());$partial=modeledProfileLatest($p);
+        $first=$p->query('SELECT id,profile_json FROM modeled_conversion_profile_versions ORDER BY id LIMIT 1')->fetch(PDO::FETCH_ASSOC);
+        $check('date continuity saves a partial dates family without an anchor or inflated engagement',
+            $partial['semantic_prediction']['status']==='insufficient_context'
+            &&$partial['semantic_prediction']['current_request_anchor']===null
+            &&$partial['semantic_prediction']['features']['criteria_families']===['dates']
+            &&$partial['semantic_prediction']['features']['meaningful_customer_turns']===0
+            &&$partial['semantic_prediction']['outcome_observations']===[]);
+        foreach([['Из какого города планируете вылет?','Москва','city'],
+            ['Сколько будет взрослых туристов?','2','adults'],
+            ['Будут дети? Если да — сколько?','Нет','children']]as[$question,$answer,$key])
+            $check('date continuity records canonical question and literal answer '.$key,
+                ConversationRecorder::outboundForConversation(11,'max',$question)
+                &&ConversationRecorder::inbound($incoming+['message_id'=>'fixture-date-'.$key,'text'=>$answer]));
+        $check('date continuity records the canonical handoff message',
+            ConversationRecorder::outboundForConversation(11,'max','Запрос передан менеджеру. Он ответит в этом чате.'));
+        // Existing typed receipt producer only; no handoff, customer delivery or provider action.
+        $choice=new ReflectionMethod(SourceHandlingService::class,'recordChoice');
+        $choice->invoke(null,'max','9011','manager','source_needs_complete');
+        $source->tick(time());
+        $nativeBefore=$p->query('SELECT id,metadata_json FROM messages ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+        $journalBefore=$p->query('SELECT id,snapshot_json FROM modeled_conversion_stream_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+        $tables=['messages','conversation_events','conversations','customer_channels','advertising_visit_observations'];
+        foreach($tables as$table)$p->exec('ALTER TABLE '.$table.' RENAME TO unavailable_'.$table);
+        try{$receipt=$profiles->tick(time());}finally{
+            foreach(array_reverse($tables)as$table)$p->exec('ALTER TABLE unavailable_'.$table.' RENAME TO '.$table);
+        }
+        $saved=modeledProfileLatest($p);$prediction=$saved['semantic_prediction'];
+        $lookup=$p->prepare("SELECT id FROM modeled_conversion_stream_versions WHERE source_kind='message' AND source_id=? AND version_no=1");
+        $lookup->execute([$dateId]);$dateRef='journal:'.$lookup->fetchColumn();$lookup->closeCursor();
+        $check('date continuity actual writer joins dates and party into the unchanged concrete prior',
+            $receipt['profiles_written']===1&&$prediction['status']==='predicted'
+            &&$prediction['stage']==='concrete_request'&&$prediction['current_request_anchor']===$dateRef
+            &&$prediction['base_probability']===0.083333&&$prediction['estimated_probability']===0.083333
+            &&$prediction['hypothesis_odds_multiplier']===1.0
+            &&$prediction['features']['criteria_families']===['dates','party']
+            &&$prediction['features']['meaningful_customer_turns']===0&&$prediction['current_customer_turn_count']===4
+            &&$prediction['outcome_observations']===[]&&$prediction['features']['explicit_decline']===false);
+        $check('date continuity AI hotel text and handoff add no seller choice or payment evidence',
+            $saved['contextual_signals']['goal_counts']['agency_purchase_intent']===0
+            &&$saved['contextual_signals']['goal_counts']['general_purchase_intent']===0
+            &&$saved['contextual_signals']['goal_counts']['payment_self_report']===0
+            &&$saved['contextual_signals']['coverage']['prediction_source_continuity']['preserved_handoff_receipts']===1);
+        $check('date continuity leaves the first saved profile and all recorded source bytes unchanged',
+            $p->query('SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.(int)$first['id'])->fetchColumn()===$first['profile_json']
+            &&$p->query('SELECT id,metadata_json FROM messages ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)===$nativeBefore
+            &&$p->query('SELECT id,snapshot_json FROM modeled_conversion_stream_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)===$journalBefore);
+    }finally{
+        foreach(array_reverse($restore)as[$reflection,$value])$reflection->setValue(null,$value);
+        $p->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,$fetch);
+        foreach(['conversation_sources','projects']as$table)$p->exec('DROP TABLE '.$table);
+    }
+}
+
 /** Both SQLite and the existing native MySQL helper execute the actual wizard producer chain. */
 function modeledWizardProfileAssertions(PDO $p,callable $check):void
 {
@@ -970,6 +1068,7 @@ function modeledWizardProfileAssertions(PDO $p,callable $check):void
     require_once dirname(__DIR__).'/services/ConversationRecorder.php';
     require_once dirname(__DIR__).'/services/SourceHandlingService.php';
     require_once dirname(__DIR__).'/services/ModeledConversionValueContract.php';
+    modeledDateQuestionProfileAssertions($p,$check);
     $check('wizard continuity actual fixture uses the canonical PDO storage',RuntimeStorage::usesMysql());
     modeledStreamSchema($p);modeledProfileSchema($p);
     $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';

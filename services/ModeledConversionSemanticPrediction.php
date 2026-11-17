@@ -104,7 +104,7 @@ final class ModeledConversionSemanticPrediction
             &&$occurred-self::moment($question['occurred_at'])<=86400
             &&($flags['quoted_or_relayed']??false)!==true&&($flags['past_trip']??false)!==true
             &&($flags['conditional']??false)!==true
-            &&ModeledConversionQuestionnaireContext::accepts($question['field'],$redactedText);
+            &&ModeledConversionQuestionnaireContext::accepts($question['field'],$redactedText,$occurred);
         // The canonical text extractor can discover its first episode later
         // than the recorded questionnaire. A verified answer continues that
         // same context; every actual boundary and unsafe flag still resets.
@@ -264,7 +264,7 @@ final class ModeledConversionSemanticPrediction
 
     private function questionnaireAnswer(string $field,array $meta):void
     {
-        $family=match($field){'nights'=>'dates','country'=>'destination','city'=>null,default=>'party'};
+        $family=match($field){'date','nights'=>'dates','country'=>'destination','city'=>null,default=>'party'};
         $this->questionnaireAnswers[$meta['source_ref']]=$meta;
         $this->lastQuestionnaireAt=self::moment($meta['occurred_at']);
         if($family!==null){$this->criteria[$family]=true;$this->evidence('criteria_'.$family,$meta);}
