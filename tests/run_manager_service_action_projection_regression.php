@@ -109,8 +109,6 @@ foreach ($labelCases as $payload=>$label) {
 }
 $storedBefore=$pdo->query('SELECT * FROM messages ORDER BY id')->fetchAll();
 $hydrated=ManagerMessageMediaService::hydrate($rows);
-$selectedMediaRows=$pdo->query('SELECT id,channel,direction,metadata_json FROM messages ORDER BY id DESC')->fetchAll();
-actionCheck('preselected metadata uses the exact canonical hydration projection',ManagerMessageMediaService::hydrate($rows,$selectedMediaRows),$hydrated);
 $expectedPublicRows=$rows;
 foreach ($caseRows as [$id,$payload,$label]) {
     if (in_array($payload,$privateLikePayloads,true)) $expectedPublicRows[$id-1]['text']=$label;
