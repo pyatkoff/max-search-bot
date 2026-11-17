@@ -1,0 +1,473 @@
+{
+  "schema_version": 1,
+  "state": "FIFTY_HOTEL_RELEASE_SELECTED",
+  "published_baseline": 1020,
+  "planned_pairs": 50,
+  "published_here": 0,
+  "release_design": {
+    "one_run": true,
+    "sender_limit_per_transaction": 10,
+    "continue_after_partial_only_from_verified_checkpoint": true,
+    "do_not_replay_unknown_outcomes": true,
+    "known_successful_multi_group_run": 44146005426
+  },
+  "intake_ref": "dff6521d1a73e1672e33fe16ee1d0e9a2947fd98",
+  "provider_cover_review_artifact": 14372210778,
+  "registry_read_artifact": 14371762403,
+  "editorial_draft_blob": "30a328fa765841d0e761d8bc8818423d2b31aa1b",
+  "ready_for_release_preflight": 0,
+  "editorial_ready": 10,
+  "editorial_pending": 40,
+  "rows": [
+    {
+      "hotel_id": 52409,
+      "name": "Cocoon Maldives",
+      "country": "Мальдивы",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=52409",
+      "cover_sha256": "b4369fd63a6aaddfe745d864ff8618953b8d3956512e7bc547eab6ecce7572c9",
+      "editorial_status": "facts_and_caption_checked",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 76458,
+      "name": "Cora Cora Maldives",
+      "country": "Мальдивы",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76458",
+      "cover_sha256": "63ba198ca0123cf670403fbf026efe45c125652489280710b91a5bb7a9682f4c",
+      "editorial_status": "facts_and_caption_checked",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 82538,
+      "name": "Avani+ Fares Maldives Resort",
+      "country": "Мальдивы",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82538",
+      "cover_sha256": "2ebe1b1a9938a887a1622a292eddeeaa6c4e09d5fc654a42f503428601a0dff1",
+      "editorial_status": "facts_and_caption_checked",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2572,
+      "name": "Hilton Dubai Jumeirah",
+      "country": "ОАЭ",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2572",
+      "cover_sha256": "6b9a861d4d52fbade2931591b9d564ffa9fe7d0285ec9d94b04285a824da2d80",
+      "editorial_status": "facts_and_caption_checked",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2593,
+      "name": "Khalidiya Palace Rayhaan by Rotana",
+      "country": "ОАЭ",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2593",
+      "cover_sha256": "3eeeb7ebaffc9d38143594f1cfbdf6c540c2cea1e6056a55d491f3e088b3fda1",
+      "editorial_status": "facts_and_caption_checked",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2601,
+      "name": "Le Méridien Al Aqah Beach Resort",
+      "country": "ОАЭ",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2601",
+      "cover_sha256": "c811bd13f9d0a142f0b0cff8c6900ec1b0dd9fdafdf5584df761817597995c64",
+      "editorial_status": "facts_and_caption_checked",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 4546,
+      "name": "Secrets Royal Beach Punta Cana",
+      "country": "Доминикана",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4546",
+      "cover_sha256": "3fd9937a347227ba227598824d54b37f2b4c9e618ca1a57428ccec3404c6080e",
+      "editorial_status": "facts_and_caption_checked",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 13890,
+      "name": "Courtyard by Marriott Bali Nusa Dua Resort",
+      "country": "Индонезия",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=13890",
+      "cover_sha256": "f12f1e9b2d823883292d1953beaee2ffe5d990ae2d3f62ad0a51128c063ebb2f",
+      "editorial_status": "facts_and_caption_checked",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 28400,
+      "name": "Sofitel Bali Nusa Dua Beach Resort",
+      "country": "Индонезия",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=28400",
+      "cover_sha256": "9505cc4ae9f5b6cb1085fff3ab644754af08c8eb384b1fc0035f43d90e105f44",
+      "editorial_status": "facts_and_caption_checked",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2776,
+      "name": "Punta Cana Princess All Suites Resort & Spa",
+      "country": "Доминикана",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2776",
+      "cover_sha256": "5fe5f96c15fef4113fed01652fd5100f04472299e01c8fedf1948029ad2ad9bf",
+      "editorial_status": "facts_and_caption_checked",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 82504,
+      "name": "MADIFUSHI PRIVATE ISLAND",
+      "country": "Мальдивы",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82504",
+      "cover_sha256": "271bdd2281361dd77f203c1d81473c252a9a9ae6c57bce46efe771e70b76a29a",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 64918,
+      "name": "YOU & ME BY COCOON MALDIVES (ADULTS ONLY 16+)",
+      "country": "Мальдивы",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64918",
+      "cover_sha256": "8f75c8855c15ae82aca8b4e1e1705086c6169ee56e4fff588cfe892f5fae19d7",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11791,
+      "name": "SOFITEL MAURITIUS L IMPERIAL RESORT & SPA",
+      "country": "Маврикий",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11791",
+      "cover_sha256": "241c0ad613812b8ed261931269bdd3c164fc1a163e0766fe58311892cf08c5e2",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 26844,
+      "name": "OUTRIGGER MAURITIUS RESORT & SPA",
+      "country": "Маврикий",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=26844",
+      "cover_sha256": "afdbdcb60a51798851eaa9da37eda52db663c348184d3f824b88354dfe2285b3",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2522,
+      "name": "BEACH ROTANA",
+      "country": "ОАЭ",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2522",
+      "cover_sha256": "a44f50ce07f439708ec217ff337815331c901acde409c0169cb2bd5111b2e624",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 1703,
+      "name": "ROYAL ASARLIK BEACH & SPA",
+      "country": "Турция",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1703",
+      "cover_sha256": "e40912b2dbddb1bdf60acf72476c4c5a2d0d5868fcac9727c973b080b8460e56",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11753,
+      "name": "INTERCONTINENTAL MAURITIUS RESORT BALACLAVA",
+      "country": "Маврикий",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11753",
+      "cover_sha256": "627bba78b4438a72c41f5126afd6c1ce2889a34c3d9a579924cd5773fd6ca64b",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2721,
+      "name": "PARADISUS VARADERO RESORT & SPA",
+      "country": "Куба",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2721",
+      "cover_sha256": "c5bc810b156067ce612cd9a986d8e224e13b22f76451788a6f05500a74091577",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 82626,
+      "name": "SELECTUM FAMILY RESORT VARADERO",
+      "country": "Куба",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82626",
+      "cover_sha256": "287af14157548270037d0783f50de84e5885985ad6fcf8a2d62cb3855afdd05b",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 15910,
+      "name": "CORNELIA AZURE VILLAS",
+      "country": "Турция",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=15910",
+      "cover_sha256": "0535828c14c404f17337ff493815d0f4ccd32ef079c8052619b6d2abf2f9ba45",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 331,
+      "name": "MOVENPICK RESORT EL QUSEIR",
+      "country": "Египет",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=331",
+      "cover_sha256": "2bb318695652df951f274f1e632d18e4992c46f021325a4a94edcc62986dd1de",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2794,
+      "name": "CINNAMON BENTOTA BEACH",
+      "country": "Шри-Ланка",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2794",
+      "cover_sha256": "7c78176df1e91d7a571d0c6a0e7cc057fe4d49732388cc4a225ae6b1988a78f0",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 33531,
+      "name": "SAVOY SEYCHELLES RESORT & SPA",
+      "country": "Сейшелы",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=33531",
+      "cover_sha256": "aa86bac4c20a3ac029a24d39dd2915b13a8a565bc501151c81a28b6967c7d71e",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 330,
+      "name": "MOVENPICK RESORT TABA",
+      "country": "Египет",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=330",
+      "cover_sha256": "fc454a103d958fc609e2ae9943abd726269b5bb009d9a63be4eebd8ffbb2925b",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11847,
+      "name": "HILTON SEYCHELLES NORTHOLME RESORT & SPA",
+      "country": "Сейшелы",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11847",
+      "cover_sha256": "a039eb92cfd32a31f34b5c899f08ce932d00d0cdf1b9932593772c01ea4e7034",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11851,
+      "name": "KEMPINSKI SEYCHELLES RESORT",
+      "country": "Сейшелы",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11851",
+      "cover_sha256": "301677137e250133afede3500a87e59536ee8706163c36333308a9a682c4fa57",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 17608,
+      "name": "ROYAL ATLANTIS SPA & RESORT",
+      "country": "Турция",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=17608",
+      "cover_sha256": "3c14172ef01fb630978fa4ae71f756de4586330d225f8ce309f5e6fbd48906e3",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 43743,
+      "name": "THE VILLA BENTOTA BY KK COLLECTION",
+      "country": "Шри-Ланка",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43743",
+      "cover_sha256": "77f97921ccf86e97a049917ec73fef0d6cb30e7ae32d820cb55cbb54dc473a24",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 76288,
+      "name": "MANGO HOUSE SEYCHELLES",
+      "country": "Сейшелы",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76288",
+      "cover_sha256": "9096ff2393aeaa91a7dff7c02625e0196b8e26ce252b79a5227aca600fcde5fd",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 77810,
+      "name": "MOVENPICK RESORT EL SOKHNA",
+      "country": "Египет",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=77810",
+      "cover_sha256": "e2137930f1cf22eb091dbc77738a8f98a16cf9ab994115503a3eaa28a304af2b",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 5545,
+      "name": "ROYAL ALHAMBRA PALACE",
+      "country": "Турция",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=5545",
+      "cover_sha256": "42d2dbc05e25c60fb38b39eecf732ddc39ef58c0decdcceea4e4cb24b2e929d4",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 102032,
+      "name": "MOVENPICK RESORT ASWAN",
+      "country": "Египет",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=102032",
+      "cover_sha256": "e9af96473c19ea19a1e2aae83cd0dbbaf7bb1b497b207fec75f385715d31f287",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 64110,
+      "name": "C MAURITIUS",
+      "country": "Маврикий",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64110",
+      "cover_sha256": "e201a97e0b9e568b2e24ed4d2f51980d233e052e2aa367c16b4f4bd5adf60b27",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 69424,
+      "name": "SELECTUM HACIENDA PUNTA CANA",
+      "country": "Доминикана",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=69424",
+      "cover_sha256": "ff6dd07d59701ae1b45841494bdca5f8997f546dbf72cd95594a8553e2ffac71",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2635,
+      "name": "PARK ROTANA",
+      "country": "ОАЭ",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2635",
+      "cover_sha256": "d54e93f0abcdd3c21ea4f58948a1cb7a652bdbe08b04543e263da6f39e95d558",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 8923,
+      "name": "LE MERIDIEN DUBAI HOTEL & CONFERENCE CENTRE",
+      "country": "ОАЭ",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8923",
+      "cover_sha256": "ae75ebbc02147fff30f84f8588761b64be3ca6c47b035373b331f3ffb03ad6b5",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11792,
+      "name": "SOFITEL SO MAURITIUS BEL OMBRE",
+      "country": "Маврикий",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11792",
+      "cover_sha256": "b218c8be9fcffdeea8a90885c071991488ba69fa69f0e6d2a25ab5f13aff7565",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 59548,
+      "name": "AL BANDAR ARJAAN BY ROTANA",
+      "country": "ОАЭ",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=59548",
+      "cover_sha256": "289df012338ef05608f283a2129a1a6d360b5352bcec70aa6ea1752e2b459e37",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 73995,
+      "name": "AL JADDAF ROTANA",
+      "country": "ОАЭ",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=73995",
+      "cover_sha256": "a7ab27f12ed58b14bf9656ed1929d8024c12951c4802241650df7d5c8d94d1bb",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 78210,
+      "name": "THE WB ABU DHABI CURIO COLLECTION BY HILTON",
+      "country": "ОАЭ",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=78210",
+      "cover_sha256": "cf170d39c339f24d15e85bb9b0b0b372435b73ea8a05097565a66f063868c2c5",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2680,
+      "name": "THE ADDRESS DOWNTOWN DUBAI",
+      "country": "ОАЭ",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2680",
+      "cover_sha256": "b49b641f9d602bdc2de22e6793b2d3a329b538a5611361dfbb58c22aad5b49ad",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 16318,
+      "name": "AMARTERRA MGALLERY BALI NUSA DUA",
+      "country": "Индонезия",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=16318",
+      "cover_sha256": "36c290299526eb1b35a07b77c912c31aa0f52b0f277c2d325eacf6572dfe5ad9",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 17513,
+      "name": "LIBERTY HOTELS LYKIA ADULTS ONLY 16+",
+      "country": "Турция",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=17513",
+      "cover_sha256": "2de08e5e77785e530e2da70c8cbdeb4c077e6f716a3cc844b96f9856d4720b07",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 74644,
+      "name": "AL BANDAR ROTANA",
+      "country": "ОАЭ",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=74644",
+      "cover_sha256": "9a7d33a8f140625cd5b644b54fe6d533d27e8628dcb9888ab0eda08baff9b6de",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 1321,
+      "name": "LIBERTY HOTELS LARA",
+      "country": "Турция",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1321",
+      "cover_sha256": "edbf74be1a5f510fbad0262b6aec88ab5bf7138f5fb479a437859e23b4ad95ce",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2750,
+      "name": "EXCELLENCE PUNTA CANA ADULTS ONLY",
+      "country": "Доминикана",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2750",
+      "cover_sha256": "be6ce1a2e5c34d5eedd75bb91f374e2351796aca8a962fc9840abe83f722bc6b",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 8420,
+      "name": "PUNTA CANA TORTUGA BAY",
+      "country": "Доминикана",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8420",
+      "cover_sha256": "e6b1f54e69cb23c2357c7d062ee9a307af051e38b8c122df891dc8475c48682d",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 33549,
+      "name": "ROYALTON CHIC PUNTA CANA",
+      "country": "Доминикана",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=33549",
+      "cover_sha256": "e64a90b8bba9a4454bb8b7682c614bfce7eaa604087e1f031769cc5dc4e106c0",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 77595,
+      "name": "SUNDIA EXCLUSIVE BY LIBERTY FETHIYE ADULTS ONLY 16+",
+      "country": "Турция",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=77595",
+      "cover_sha256": "57756af5ee0e3f5ae3e0d92f35ed98966c872ebe0c2e9fe65f9b993eae52f3b6",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 157001,
+      "name": "ALBATROS MAKADI CLUB",
+      "country": "Египет",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=157001",
+      "cover_sha256": "4cff03104138d2c2bb3931cc0d8812d77e689757eebd653bd5b992736f33f3db",
+      "editorial_status": "facts_and_caption_pending",
+      "publication_allowed": false
+    }
+  ]
+}
