@@ -1,0 +1,191 @@
+{
+  "reader22": [
+    {
+      "path": "integrations/ChannelPostApiTransport.php",
+      "accepted_blob": "300634d77cb9fddf51adf9869974f956cca6e3f9",
+      "old_blob": "300634d77cb9fddf51adf9869974f956cca6e3f9",
+      "new_blob": "300634d77cb9fddf51adf9869974f956cca6e3f9",
+      "unchanged": true
+    },
+    {
+      "path": "migrations/033_channel_post_context.sql",
+      "accepted_blob": "0530458030a4bfe6b6cc55d1e5e441745c29b947",
+      "old_blob": "0530458030a4bfe6b6cc55d1e5e441745c29b947",
+      "new_blob": "0530458030a4bfe6b6cc55d1e5e441745c29b947",
+      "unchanged": true
+    },
+    {
+      "path": "migrations/036_channel_post_member_delivery.sql",
+      "accepted_blob": "1bda463e52b33130ad12752ddef4ee5c92699c05",
+      "old_blob": "1bda463e52b33130ad12752ddef4ee5c92699c05",
+      "new_blob": "1bda463e52b33130ad12752ddef4ee5c92699c05",
+      "unchanged": true
+    },
+    {
+      "path": "migrations/040_channel_post_reconciliation.sql",
+      "accepted_blob": "0f24b838eacd45333c5ade9a2991d060488c6035",
+      "old_blob": "0f24b838eacd45333c5ade9a2991d060488c6035",
+      "new_blob": "0f24b838eacd45333c5ade9a2991d060488c6035",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostAdminService.php",
+      "accepted_blob": "b80eefc801054bfe6fdb58ec345ecdf687b2e89a",
+      "old_blob": "b80eefc801054bfe6fdb58ec345ecdf687b2e89a",
+      "new_blob": "b80eefc801054bfe6fdb58ec345ecdf687b2e89a",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostAutomationService.php",
+      "accepted_blob": "c6386e155d42bc83970edc95f35b3ebeb5140533",
+      "old_blob": "c6386e155d42bc83970edc95f35b3ebeb5140533",
+      "new_blob": "c6386e155d42bc83970edc95f35b3ebeb5140533",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostButtonTransport.php",
+      "accepted_blob": "7b6711f1de63000346d8e5789f2dbb7f725535b8",
+      "old_blob": "7b6711f1de63000346d8e5789f2dbb7f725535b8",
+      "new_blob": "7b6711f1de63000346d8e5789f2dbb7f725535b8",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostEntryService.php",
+      "accepted_blob": "1982ff7368763edf8b7238c3142e3cc28579e991",
+      "old_blob": "1982ff7368763edf8b7238c3142e3cc28579e991",
+      "new_blob": "1982ff7368763edf8b7238c3142e3cc28579e991",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostMaxAlbumRecovery.php",
+      "accepted_blob": "de266cd068587cc3b2ff83f308a966ea66887a04",
+      "old_blob": "de266cd068587cc3b2ff83f308a966ea66887a04",
+      "new_blob": "de266cd068587cc3b2ff83f308a966ea66887a04",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostMediaService.php",
+      "accepted_blob": "f794efd0f6f24df916e18909ff6281b0bc928433",
+      "old_blob": "f794efd0f6f24df916e18909ff6281b0bc928433",
+      "new_blob": "f794efd0f6f24df916e18909ff6281b0bc928433",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostMemberDeliveryService.php",
+      "accepted_blob": "20c1d7984898b2a5996a5f9e20e4d2d8c20b4778",
+      "old_blob": "20c1d7984898b2a5996a5f9e20e4d2d8c20b4778",
+      "new_blob": "20c1d7984898b2a5996a5f9e20e4d2d8c20b4778",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostReconciliationService.php",
+      "accepted_blob": "43133f576845c14446102dedfffb7f0de2d4ba1c",
+      "old_blob": "43133f576845c14446102dedfffb7f0de2d4ba1c",
+      "new_blob": "43133f576845c14446102dedfffb7f0de2d4ba1c",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostReconciliationState.php",
+      "accepted_blob": "d9583ceca80d1424a44ade3561c21282a23a52f0",
+      "old_blob": "d9583ceca80d1424a44ade3561c21282a23a52f0",
+      "new_blob": "d9583ceca80d1424a44ade3561c21282a23a52f0",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostRegistryService.php",
+      "accepted_blob": "94fb1988ac8caf90dc5103aa23c58e7aad6ea691",
+      "old_blob": "94fb1988ac8caf90dc5103aa23c58e7aad6ea691",
+      "new_blob": "94fb1988ac8caf90dc5103aa23c58e7aad6ea691",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostRuntime.php",
+      "accepted_blob": "2f1dd9b77474fdbaa92f0402f3b0aa170c595474",
+      "old_blob": "2f1dd9b77474fdbaa92f0402f3b0aa170c595474",
+      "new_blob": "2f1dd9b77474fdbaa92f0402f3b0aa170c595474",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostTelegramAlbum.php",
+      "accepted_blob": "faa1a14bc279a4af33936282126bf0d46e343040",
+      "old_blob": "faa1a14bc279a4af33936282126bf0d46e343040",
+      "new_blob": "faa1a14bc279a4af33936282126bf0d46e343040",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostWebhookConfigService.php",
+      "accepted_blob": "d5fdcb056088f1e3a541b4046325d97eef6417d9",
+      "old_blob": "d5fdcb056088f1e3a541b4046325d97eef6417d9",
+      "new_blob": "d5fdcb056088f1e3a541b4046325d97eef6417d9",
+      "unchanged": true
+    },
+    {
+      "path": "services/ConversationDb.php",
+      "accepted_blob": "bb6281faf55aca7beeae7f8a57389d19751936f7",
+      "old_blob": "bb6281faf55aca7beeae7f8a57389d19751936f7",
+      "new_blob": "bb6281faf55aca7beeae7f8a57389d19751936f7",
+      "unchanged": true
+    },
+    {
+      "path": "services/MaxTlsConfig.php",
+      "accepted_blob": "032c0211ee3f39c6f0d27c669abd5b467e321dea",
+      "old_blob": "032c0211ee3f39c6f0d27c669abd5b467e321dea",
+      "new_blob": "032c0211ee3f39c6f0d27c669abd5b467e321dea",
+      "unchanged": true
+    },
+    {
+      "path": "services/MaxTransport.php",
+      "accepted_blob": "2cb4f8786b4704a8e62a3a9c40dc2cc73dad6159",
+      "old_blob": "2cb4f8786b4704a8e62a3a9c40dc2cc73dad6159",
+      "new_blob": "2cb4f8786b4704a8e62a3a9c40dc2cc73dad6159",
+      "unchanged": true
+    },
+    {
+      "path": "services/ProjectConfig.php",
+      "accepted_blob": "63c17c8103412f8cff8cdcc4bbb062e744106af9",
+      "old_blob": "63c17c8103412f8cff8cdcc4bbb062e744106af9",
+      "new_blob": "63c17c8103412f8cff8cdcc4bbb062e744106af9",
+      "unchanged": true
+    },
+    {
+      "path": "services/ProjectConfiguration.php",
+      "accepted_blob": "07019d473c588e3386ace42977db93092e8112e3",
+      "old_blob": "07019d473c588e3386ace42977db93092e8112e3",
+      "new_blob": "07019d473c588e3386ace42977db93092e8112e3",
+      "unchanged": true
+    }
+  ],
+  "additional_contract_changes": [],
+  "changed_files": [
+    {
+      "path": "services/ModeledConversionEarlyForecast.php",
+      "old_blob": "17c65f9a533ee17b323c5b258bb4834fb8dc6dae",
+      "new_blob": "5d0ae3a6810d1d9c2a6c10fc76b3f9e61373323c"
+    },
+    {
+      "path": "services/ModeledConversionQuestionnaireContext.php",
+      "old_blob": "7d2442173f17588d67a73aa455bf5fcdc608f8fd",
+      "new_blob": "b418afbe94282a9be67f52ecf9c4769aabb13f28"
+    },
+    {
+      "path": "services/ModeledConversionSemanticPrediction.php",
+      "old_blob": "0bced282de0efdf4c80d27e25df5c7ce3a5c0483",
+      "new_blob": "7c872df8fe282d32cf05bb7730e11538a4ddd769"
+    },
+    {
+      "path": "services/ModeledConversionValueContract.php",
+      "old_blob": "742e7f82881811a0ea833a2f726e55777059d3df",
+      "new_blob": "23d1b49168c83a1fb3d7f9d0fb317f0a417dab4d"
+    },
+    {
+      "path": "tests/run_modeled_conversion_semantic_prediction_regression.php",
+      "old_blob": "93b72ea072b3ef5776c01f27feb52627ef4671f4",
+      "new_blob": "825d66affdc2fa84d3301247753b0a6e6e808293"
+    },
+    {
+      "path": "tests/run_modeled_conversion_value_export_regression.php",
+      "old_blob": "1fc0d0b71b6831ad4c2363fd8934b29f22892317",
+      "new_blob": "18595c42ba65fcadb1a4e925d74139581c480e56"
+    }
+  ]
+}

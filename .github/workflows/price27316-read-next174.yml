@@ -1,5 +1,5 @@
 # One-shot read-only; reviewed admission-config pins must be populated before publication.
-name: Read only previously unstarted14 and diagnose78929 receipts
+name: Existing bounded128 registry read-only
 on:
   push:
     branches: ['audit/price660-27316-resume-readiness-20261117']
@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 # CLOSED: future parent and terminal handoffs unbound
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -24,27 +24,24 @@ jobs:
       - name: Exact reviewed admission and runner before credentials
         run: |
           set -euo pipefail
-          echo '9d3dc85ab22a62764fb30c0d8399d6b4cf9cae88c2bbbc432cdcf71d8904ac79  tools/direct_demand/operations/next174-read/admit174.py' | sha256sum --check --strict
-          echo '68a55d5738b3e8b9010a9a6c625077ef608682eb1924cf22d23741fb38df9fa1  tools/direct_demand/operations/next174-read/run174.py' | sha256sum --check --strict
-      - name: Lint exact23 bounded readers before credentials
+          echo '7490c8d2d503c6cbd0cc7de07f475bb04298c00f8280304764daa334a868cd80  tools/direct_demand/operations/next128-read/admit128.py' | sha256sum --check --strict
+          echo 'd2637f7f202ce92353bb39cb056e8c48b840c672b21f6e7283a1a83be0148fdc  tools/direct_demand/operations/next128-read/run128.py' | sha256sum --check --strict
+      - name: Lint exact16 bounded readers before credentials
         run: |
           python3 - <<'PYLINT'
           import json,pathlib,subprocess,hashlib
-          root=pathlib.Path('tools/direct_demand/operations/next174-read')
+          root=pathlib.Path('tools/direct_demand/operations/next128-read')
           intent=json.loads((root/'intent.json').read_bytes())
-          assert len(intent['groups'])==23
+          assert len(intent['groups'])==16
           for group in intent['groups']:
               path=root/f"p{group['batch']:02d}"/'read.php'
               assert hashlib.sha256(path.read_bytes()).hexdigest()==group['reader_sha256']
               subprocess.run(['php','-n','-l',str(path)],check=True,timeout=30)
-          diagnostic=root/'diagnostic78929.php'
-          assert hashlib.sha256(diagnostic.read_bytes()).hexdigest()=='50dc18b4a6608b3ecfc999e3dd9786986822241b029654465d033d21e3830905'
-          subprocess.run(['php','-n','-l',str(diagnostic)],check=True,timeout=30)
           PYLINT
       - name: Fresh source owner and competing-run admission
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 tools/direct_demand/operations/next174-read/admit174.py tools/direct_demand/operations/next174-read "$RUNNER_TEMP/fresh-admission.json"
+        run: python3 tools/direct_demand/operations/next128-read/admit128.py tools/direct_demand/operations/next128-read "$RUNNER_TEMP/fresh-admission.json"
       - name: Prepare unchanged server connection and host pin
         env:
           KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -74,12 +71,12 @@ jobs:
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/next174-read/run174.py tools/direct_demand/operations/next174-read "$RUNNER_TEMP/private174-result" "$RUNNER_TEMP/fresh-admission.json"
+        run: python3 tools/direct_demand/operations/next128-read/run128.py tools/direct_demand/operations/next128-read "$RUNNER_TEMP/private128-result" "$RUNNER_TEMP/fresh-admission.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: private-current174-read-${{ github.run_id }}
-          path: ${{ runner.temp }}/private174-result/
+          name: private-current128-read-${{ github.run_id }}
+          path: ${{ runner.temp }}/private128-result/
           retention-days: 7
           if-no-files-found: error
       - name: Cleanup original connection material

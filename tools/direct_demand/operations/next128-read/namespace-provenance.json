@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "catalog_table": "catalog_hotels",
+  "catalog_primary_key": "id",
+  "native_identity_field": "native_catalog_id",
+  "consumer_identity_field": "local_tv_id",
+  "legacy_anytour_id_not_inferred": true,
+  "reader_source": {
+    "repository": "pyatkoff/max-search-bot",
+    "commit": "92d5e6d4cf1c35718c8b8bf340ea9d42a2c86800",
+    "path": "tools/direct_demand/operations/read-commercial-channel-hotel-feeds-20261108-48.php",
+    "sha256": "4b066afc72cd60cbda911cb0dd91db0a06209731685f0cd7231f647a92a0500c",
+    "query_exact_line": "    $sql='SELECT h.id,h.name,h.is_active,h.country_id,h.region_id,r.name AS region FROM catalog_hotels h LEFT JOIN catalog_regions r ON r.id=h.region_id AND r.country_id=h.country_id WHERE h.id IN ('.implode(',',array_fill(0,count($ids),'?')).') ORDER BY h.id';",
+    "query_line_sha256": "775dcaa4be6153410930b8ec1ac69b0070ef415dc758d64c5d82f6ee4fdab471"
+  },
+  "consumer_contract": {
+    "repository": "pyatkoff/poisk-turov-test",
+    "commit": "78c1fc3ad6874a82ea7043296a35ec754c50f0d9",
+    "path": "v2/data/published-hotels-monitor-v1.php",
+    "sha256": "cf33320708bdc911e944a560324566c562f4fefb97f3a601497f8ca0a86c8ae8",
+    "definition": "v2_published_native_hotel_monitor_bindings: local_tv_id values are native catalog_hotels.id identities, not legacy AnyTour integers"
+  }
+}

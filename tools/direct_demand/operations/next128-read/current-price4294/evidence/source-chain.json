@@ -1,0 +1,17 @@
+{
+  "carrier_source": "ee470e5f1adec39c53935492bb87158f7be0fdc8",
+  "checks": [
+    "installer requires original recovery receipt pending === null and completed phase",
+    "guard reads current journal under lock and requires pending === null and completed[4294] original operation",
+    "runner requires separate inspect-new before setting verification_complete"
+  ],
+  "files": {
+    "source-guards.txt": "b35cecda4c4499abdcaa79df940a89cfb6d7a294d839cf90452f5c2da9d4cb26",
+    "source-install.txt": "cd22680139afb3be2451e896726671a60c6ff245660e64cdc3dd0f4507704196",
+    "source-runner.txt": "b661507cb8e7d11fe4dd5f1c70dba940d09fcbcb327a61a164f8397ad51ce89c"
+  },
+  "guards_git_blob": "6893fc4c48546ee10fb68cbca55349b6f384ad8f",
+  "install_git_blob": "d4180c26d3927db5252c95f2435d03055406a029",
+  "installer_source": "314fb89c68161167662afab66aa4d8c9bffd9a18",
+  "kind": "READ_ONLY_SOURCE_CHAIN_FOR_SANITIZED_PENDING_BOUNDARY"
+}

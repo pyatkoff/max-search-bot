@@ -1,0 +1,294 @@
+{
+  "record": {
+    "bundle": "success",
+    "diagnostics": "success",
+    "diagnostics_attempt": 1,
+    "install_attempt": 1,
+    "install_checks": "success",
+    "key": "success",
+    "max_webhook": "success",
+    "metrika_cron": "success",
+    "migration": "success",
+    "provenance": "success",
+    "reported_at": "2026-11-18T15:07:49Z",
+    "repository_release": {
+      "application_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+      "baseline": null,
+      "baseline_eligible": false,
+      "closure": {
+        "binding": {
+          "comment_id": 6650664504,
+          "head_sha": "69856883ce0b4b511e0b08d178eac7cefbe43dfe",
+          "owner_id": 226193297,
+          "pr": 1598,
+          "updated_at": "2026-11-18T14:52:30Z"
+        },
+        "expected_terminal": "PR1598: установлено, выпуск свободен",
+        "gates": [
+          {
+            "conclusion": "success",
+            "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+            "path": ".github/workflows/deploy.yml",
+            "run_attempt": 1,
+            "run_id": "44329290180"
+          },
+          {
+            "conclusion": "success",
+            "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+            "path": ".github/workflows/retired-domain-guard.yml",
+            "run_attempt": 1,
+            "run_id": "44329290202"
+          },
+          {
+            "conclusion": "success",
+            "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+            "path": ".github/workflows/max-tls-preflight.yml",
+            "run_attempt": 1,
+            "run_id": "44332076971"
+          },
+          {
+            "conclusion": "success",
+            "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+            "path": ".github/workflows/max-production-health.yml",
+            "run_attempt": 1,
+            "run_id": "44332076738"
+          },
+          {
+            "conclusion": "success",
+            "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+            "path": ".github/workflows/telegram-production-health.yml",
+            "run_attempt": 1,
+            "run_id": "44332077054"
+          },
+          {
+            "conclusion": "success",
+            "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+            "path": ".github/workflows/publish-conversation-diagnostics.yml",
+            "run_attempt": 1,
+            "run_id": "44332076802"
+          },
+          {
+            "conclusion": "success",
+            "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+            "path": ".github/workflows/live-session-diagnostics.yml",
+            "run_attempt": 1,
+            "run_id": "44332076761"
+          },
+          {
+            "conclusion": "success",
+            "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+            "path": ".github/workflows/tour-selection-host.yml",
+            "run_attempt": 1,
+            "run_id": "44332076848"
+          },
+          {
+            "conclusion": "success",
+            "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+            "path": ".github/workflows/modeled-conversion-monitor.yml",
+            "run_attempt": 1,
+            "run_id": "44332076721"
+          },
+          {
+            "conclusion": "skipped",
+            "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+            "path": ".github/workflows/modeled-pipeline-monitor-activation.yml",
+            "run_attempt": 1,
+            "run_id": "44332249953"
+          }
+        ],
+        "job": "release-slot",
+        "run_attempt": 1,
+        "run_id": "44332076755",
+        "terminal_step": "Release only the admitted publisher after all original mandatory gates"
+      },
+      "content": {
+        "candidate_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+        "classification": "unconfirmed",
+        "installed_sha": "92bd28bea3f8e00bffb154b267104640fd53ce17",
+        "policy": "anytour-development-content-v1",
+        "release_path": "full_required",
+        "runtime_fingerprint": null
+      },
+      "intent_scan": {
+        "checked_commits": 11,
+        "coverage": "registered_markers_and_reserved_families",
+        "matched_commits": [],
+        "status": "no_registered_intent"
+      },
+      "kind": "installed",
+      "observation": {
+        "application_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+        "components": {
+          "editor": null,
+          "public": null
+        },
+        "configuration_key_id": null,
+        "core_digest": null,
+        "digest": null,
+        "mode": "all",
+        "protocol": "anytour-deployment-runtime-v1",
+        "reason_code": "configuration_loader_unsupported",
+        "schema": 1,
+        "status": "unknown"
+      },
+      "observation_producer": {
+        "run_attempt": 1,
+        "run_id": "44332076848"
+      },
+      "phase": "pending_terminal",
+      "release": {
+        "event": "push",
+        "run_attempt": 1,
+        "run_id": "44329290180"
+      },
+      "repository_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+      "schema": 1,
+      "stages": {
+        "bundle": {
+          "execution": "performed",
+          "result": "success"
+        },
+        "diagnostics": {
+          "execution": "performed",
+          "result": "success"
+        },
+        "install_checks": {
+          "execution": "performed",
+          "result": "success"
+        },
+        "key": {
+          "execution": "performed",
+          "result": "success"
+        },
+        "max_webhook": {
+          "execution": "performed",
+          "result": "success"
+        },
+        "metrika_cron": {
+          "execution": "performed",
+          "result": "success"
+        },
+        "migration": {
+          "execution": "performed",
+          "result": "success"
+        },
+        "provenance": {
+          "execution": "performed",
+          "result": "success"
+        },
+        "smoke": {
+          "execution": "performed",
+          "result": "success"
+        },
+        "sync": {
+          "execution": "performed",
+          "result": "success"
+        }
+      }
+    },
+    "run_id": "44329290180",
+    "schema": 2,
+    "sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+    "smoke": "success",
+    "smoke_attempt": 1,
+    "sync": "success"
+  },
+  "publisher": {
+    "id": 6650664504,
+    "author": 226193297,
+    "body": "PR1598: установлено, выпуск свободен",
+    "updated_at": "2026-11-18T15:09:59Z"
+  },
+  "adapterTrace": [
+    {
+      "request": 1,
+      "requested": "https://api.github.com/repos/pyatkoff/max-search-bot/actions/workflows/deploy.yml/runs?head_sha=bd8e248f7138ea75cb9fda2dcf44beb631c633a5&branch=main&per_page=100",
+      "sourceUrl": "https://api.github.com/repos/pyatkoff/max-search-bot/actions/runs?head_sha=bd8e248f7138ea75cb9fda2dcf44beb631c633a5&branch=main&per_page=100",
+      "adapted": true
+    },
+    {
+      "request": 2,
+      "requested": "https://api.github.com/repos/pyatkoff/max-search-bot/git/ref/heads/diagnostics",
+      "sourceUrl": "https://api.github.com/repos/pyatkoff/max-search-bot/git/ref/heads/diagnostics",
+      "adapted": false
+    },
+    {
+      "request": 3,
+      "requested": "https://api.github.com/repos/pyatkoff/max-search-bot/contents/deploy_status.json?ref=82c9802da5ba3d3d3538d1d6f58d3071a8738e7b",
+      "sourceUrl": "https://api.github.com/repos/pyatkoff/max-search-bot/contents/deploy_status.json?ref=82c9802da5ba3d3d3538d1d6f58d3071a8738e7b",
+      "adapted": true
+    },
+    {
+      "request": 4,
+      "requested": "https://api.github.com/repos/pyatkoff/max-search-bot/actions/runs/44332076755",
+      "sourceUrl": "https://api.github.com/repos/pyatkoff/max-search-bot/actions/runs/44332076755",
+      "adapted": false
+    },
+    {
+      "request": 5,
+      "requested": "https://api.github.com/repos/pyatkoff/max-search-bot/actions/runs/44332076755",
+      "sourceUrl": "https://api.github.com/repos/pyatkoff/max-search-bot/actions/runs/44332076755",
+      "adapted": false
+    },
+    {
+      "request": 6,
+      "requested": "https://api.github.com/repos/pyatkoff/max-search-bot/actions/runs/44332076755/attempts/1/jobs?per_page=100",
+      "sourceUrl": "https://api.github.com/repos/pyatkoff/max-search-bot/actions/runs/44332076755/attempts/1/jobs?per_page=100",
+      "adapted": false
+    },
+    {
+      "request": 7,
+      "requested": "https://api.github.com/repos/pyatkoff/max-search-bot/actions/runs/44329290180",
+      "sourceUrl": "https://api.github.com/repos/pyatkoff/max-search-bot/actions/runs/44329290180",
+      "adapted": false
+    },
+    {
+      "request": 8,
+      "requested": "https://api.github.com/repos/pyatkoff/max-search-bot/actions/runs/44329290180/attempts/1/jobs?per_page=100",
+      "sourceUrl": "https://api.github.com/repos/pyatkoff/max-search-bot/actions/runs/44329290180/attempts/1/jobs?per_page=100",
+      "adapted": false
+    },
+    {
+      "request": 9,
+      "requested": "https://api.github.com/repos/pyatkoff/max-search-bot/commits/bd8e248f7138ea75cb9fda2dcf44beb631c633a5/pulls?per_page=100",
+      "sourceUrl": "https://api.github.com/repos/pyatkoff/max-search-bot/commits/bd8e248f7138ea75cb9fda2dcf44beb631c633a5/pulls?per_page=100",
+      "adapted": false
+    },
+    {
+      "request": 10,
+      "requested": "https://api.github.com/repos/pyatkoff/max-search-bot/pulls/1598",
+      "sourceUrl": "https://api.github.com/repos/pyatkoff/max-search-bot/pulls/1598",
+      "adapted": false
+    },
+    {
+      "request": 11,
+      "requested": "https://api.github.com/repos/pyatkoff/max-search-bot/issues/comments/6650664504",
+      "sourceUrl": "https://api.github.com/repos/pyatkoff/max-search-bot/issues/comments/6650664504",
+      "adapted": false
+    },
+    {
+      "request": 12,
+      "requested": "https://api.github.com/repos/pyatkoff/max-search-bot/git/ref/heads/diagnostics",
+      "sourceUrl": "https://api.github.com/repos/pyatkoff/max-search-bot/git/ref/heads/diagnostics",
+      "adapted": false
+    },
+    {
+      "request": 13,
+      "requested": "https://api.github.com/repos/pyatkoff/max-search-bot/contents/deploy_status.json?ref=82c9802da5ba3d3d3538d1d6f58d3071a8738e7b",
+      "sourceUrl": "https://api.github.com/repos/pyatkoff/max-search-bot/contents/deploy_status.json?ref=82c9802da5ba3d3d3538d1d6f58d3071a8738e7b",
+      "adapted": true
+    },
+    {
+      "request": 14,
+      "requested": "https://api.github.com/repos/pyatkoff/max-search-bot/issues/comments/6650664504",
+      "sourceUrl": "https://api.github.com/repos/pyatkoff/max-search-bot/issues/comments/6650664504",
+      "adapted": false
+    },
+    {
+      "request": 15,
+      "requested": "https://api.github.com/repos/pyatkoff/max-search-bot/git/ref/heads/main",
+      "sourceUrl": "https://api.github.com/repos/pyatkoff/max-search-bot/git/ref/heads/main",
+      "adapted": false
+    }
+  ]
+}

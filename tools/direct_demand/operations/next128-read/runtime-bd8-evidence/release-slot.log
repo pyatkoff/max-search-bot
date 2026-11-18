@@ -1,0 +1,191 @@
+﻿2026-11-18T15:08:12.7172648Z Current runner version: '2.338.2'
+2026-11-18T15:08:12.7207882Z ##[group]Runner Image Provisioner
+2026-11-18T15:08:12.7209241Z Hosted Compute Agent
+2026-11-18T15:08:12.7210165Z Version: 20261103.629
+2026-11-18T15:08:12.7211219Z Commit: 15dbd9ccb5dbf34fae002b6ed1a2670f52df37bc
+2026-11-18T15:08:12.7212460Z Build Date: 2026-11-03T17:26:59Z
+2026-11-18T15:08:12.7213536Z Worker ID: {3782100d-6007-4904-9321-fe4441184c3c}
+2026-11-18T15:08:12.7214974Z Region: centralus
+2026-11-18T15:08:12.7215861Z Cloud: Azure
+2026-11-18T15:08:12.7216757Z ##[endgroup]
+2026-11-18T15:08:12.7219043Z ##[group]Operating System
+2026-11-18T15:08:12.7220186Z Ubuntu
+2026-11-18T15:08:12.7221256Z 26.04.1
+2026-11-18T15:08:12.7222170Z LTS
+2026-11-18T15:08:12.7223016Z ##[endgroup]
+2026-11-18T15:08:12.7224082Z ##[group]Runner Image
+2026-11-18T15:08:12.7225563Z Image: ubuntu-26.04
+2026-11-18T15:08:12.7226670Z Version: 20261111.196.1
+2026-11-18T15:08:12.7228687Z Included Software: https://github.com/actions/runner-images/blob/ubuntu26/20261111.196/images/ubuntu/Ubuntu2604-Readme.md
+2026-11-18T15:08:12.7231615Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu26%2F20261111.196
+2026-11-18T15:08:12.7233387Z ##[endgroup]
+2026-11-18T15:08:12.7236110Z ##[group]GITHUB_TOKEN Permissions
+2026-11-18T15:08:12.7239073Z Actions: read
+2026-11-18T15:08:12.7240248Z Contents: write
+2026-11-18T15:08:12.7241373Z Issues: write
+2026-11-18T15:08:12.7242286Z Metadata: read
+2026-11-18T15:08:12.7243408Z PullRequests: read
+2026-11-18T15:08:12.7244550Z ##[endgroup]
+2026-11-18T15:08:12.7248097Z Secret source: Actions
+2026-11-18T15:08:12.7249758Z Cache mode: write
+2026-11-18T15:08:12.7251437Z Prepare workflow directory
+2026-11-18T15:08:12.7598918Z Prepare all required actions
+2026-11-18T15:08:12.7651255Z Getting action download info
+2026-11-18T15:08:13.0222575Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-11-18T15:08:13.1382095Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-11-18T15:08:13.3286986Z Complete job name: release-slot
+2026-11-18T15:08:13.4143716Z ##[group]Run actions/checkout@v4
+2026-11-18T15:08:13.4144968Z with:
+2026-11-18T15:08:13.4145515Z   ref: bd8e248f7138ea75cb9fda2dcf44beb631c633a5
+2026-11-18T15:08:13.4146194Z   persist-credentials: false
+2026-11-18T15:08:13.4146779Z   repository: pyatkoff/max-search-bot
+2026-11-18T15:08:13.4150420Z   token: ***
+2026-11-18T15:08:13.4151030Z   ssh-strict: true
+2026-11-18T15:08:13.4151513Z   ssh-user: git
+2026-11-18T15:08:13.4151979Z   clean: true
+2026-11-18T15:08:13.4152472Z   sparse-checkout-cone-mode: true
+2026-11-18T15:08:13.4153037Z   fetch-depth: 1
+2026-11-18T15:08:13.4153514Z   fetch-tags: false
+2026-11-18T15:08:13.4154002Z   show-progress: true
+2026-11-18T15:08:13.4154638Z   lfs: false
+2026-11-18T15:08:13.4155097Z   submodules: false
+2026-11-18T15:08:13.4155590Z   set-safe-directory: true
+2026-11-18T15:08:13.4156131Z   allow-unsafe-pr-checkout: false
+2026-11-18T15:08:13.4156963Z ##[endgroup]
+2026-11-18T15:08:13.7255165Z Syncing repository: pyatkoff/max-search-bot
+2026-11-18T15:08:13.7258227Z ##[group]Getting Git version info
+2026-11-18T15:08:13.7259673Z Working directory is '/home/runner/work/max-search-bot/max-search-bot'
+2026-11-18T15:08:13.7262010Z [command]/usr/bin/git version
+2026-11-18T15:08:13.7286936Z git version 2.56.1
+2026-11-18T15:08:13.7312923Z ##[endgroup]
+2026-11-18T15:08:13.7337562Z Temporarily overriding HOME='/home/runner/work/_temp/14210cb5-104a-47da-a4d6-8813ae2a489e' before making global git config changes
+2026-11-18T15:08:13.7354097Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-18T15:08:13.7356994Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/max-search-bot/max-search-bot
+2026-11-18T15:08:13.7458090Z Deleting the contents of '/home/runner/work/max-search-bot/max-search-bot'
+2026-11-18T15:08:13.7472913Z ##[group]Initializing the repository
+2026-11-18T15:08:13.7492722Z [command]/usr/bin/git init /home/runner/work/max-search-bot/max-search-bot
+2026-11-18T15:08:13.7626353Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-11-18T15:08:13.7628534Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-11-18T15:08:13.7630543Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-11-18T15:08:13.7632296Z hint: call:
+2026-11-18T15:08:13.7633297Z hint:
+2026-11-18T15:08:13.7634640Z hint: 	git config --global init.defaultBranch <name>
+2026-11-18T15:08:13.7636158Z hint:
+2026-11-18T15:08:13.7637637Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-11-18T15:08:13.7639611Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-11-18T15:08:13.7641268Z hint:
+2026-11-18T15:08:13.7642403Z hint: 	git branch -m <name>
+2026-11-18T15:08:13.7643737Z hint:
+2026-11-18T15:08:13.7645482Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-11-18T15:08:13.7648026Z Initialized empty Git repository in /home/runner/work/max-search-bot/max-search-bot/.git/
+2026-11-18T15:08:13.7660451Z [command]/usr/bin/git remote add origin https://github.com/pyatkoff/max-search-bot
+2026-11-18T15:08:13.7735768Z ##[endgroup]
+2026-11-18T15:08:13.7737568Z ##[group]Disabling automatic garbage collection
+2026-11-18T15:08:13.7743207Z [command]/usr/bin/git config --local gc.auto 0
+2026-11-18T15:08:13.7790427Z ##[endgroup]
+2026-11-18T15:08:13.7791978Z ##[group]Setting up auth
+2026-11-18T15:08:13.7801198Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-18T15:08:13.7856416Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-18T15:08:13.8403200Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-18T15:08:13.8438576Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-18T15:08:13.8713721Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-18T15:08:13.8753314Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-18T15:08:13.9031202Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-11-18T15:08:13.9071535Z ##[endgroup]
+2026-11-18T15:08:13.9073345Z ##[group]Fetching the repository
+2026-11-18T15:08:13.9083244Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin bd8e248f7138ea75cb9fda2dcf44beb631c633a5
+2026-11-18T15:08:16.0678144Z From https://github.com/pyatkoff/max-search-bot
+2026-11-18T15:08:16.0681567Z  * branch            bd8e248f7138ea75cb9fda2dcf44beb631c633a5 -> FETCH_HEAD
+2026-11-18T15:08:16.0688030Z ##[endgroup]
+2026-11-18T15:08:16.0690432Z ##[group]Determining the checkout info
+2026-11-18T15:08:16.0692954Z ##[endgroup]
+2026-11-18T15:08:16.0694909Z [command]/usr/bin/git sparse-checkout disable
+2026-11-18T15:08:16.0760437Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-11-18T15:08:16.0812165Z ##[group]Checking out the ref
+2026-11-18T15:08:16.0814791Z [command]/usr/bin/git checkout --progress --force bd8e248f7138ea75cb9fda2dcf44beb631c633a5
+2026-11-18T15:08:16.5511783Z Note: switching to 'bd8e248f7138ea75cb9fda2dcf44beb631c633a5'.
+2026-11-18T15:08:16.5512527Z 
+2026-11-18T15:08:16.5512926Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-11-18T15:08:16.5513838Z changes and commit them, and you can discard any commits you make in this
+2026-11-18T15:08:16.5515054Z state without impacting any branches by switching back to a branch.
+2026-11-18T15:08:16.5515612Z 
+2026-11-18T15:08:16.5515998Z If you want to create a new branch to retain commits you create, you may
+2026-11-18T15:08:16.5517453Z do so (now or later) by using -c with the switch command. Example:
+2026-11-18T15:08:16.5517947Z 
+2026-11-18T15:08:16.5518171Z   git switch -c <new-branch-name>
+2026-11-18T15:08:16.5518509Z 
+2026-11-18T15:08:16.5518746Z Or undo this operation with:
+2026-11-18T15:08:16.5519086Z 
+2026-11-18T15:08:16.5519280Z   git switch -
+2026-11-18T15:08:16.5519560Z 
+2026-11-18T15:08:16.5519987Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-11-18T15:08:16.5520647Z 
+2026-11-18T15:08:16.5521293Z HEAD is now at bd8e248 Merge pull request #1598 from pyatkoff/fix/appleservice39-ingress-reason-codes-20261117
+2026-11-18T15:08:16.5552779Z ##[endgroup]
+2026-11-18T15:08:16.5604487Z [command]/usr/bin/git log -1 --format=%H
+2026-11-18T15:08:16.5630633Z bd8e248f7138ea75cb9fda2dcf44beb631c633a5
+2026-11-18T15:08:16.5642653Z ##[group]Removing auth
+2026-11-18T15:08:16.5644665Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-18T15:08:16.5677256Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-18T15:08:16.5956390Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-18T15:08:16.5978807Z http.https://github.com/.extraheader
+2026-11-18T15:08:16.5986329Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-11-18T15:08:16.6017858Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-18T15:08:16.6284105Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-18T15:08:16.6316293Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-18T15:08:16.6578320Z ##[endgroup]
+2026-11-18T15:08:16.6802560Z ##[group]Run node tools/release_slot_close.js --prepare-closure --proof "$RUNNER_TEMP/deployment-release-publication.json" >> "$GITHUB_OUTPUT"
+2026-11-18T15:08:16.6803710Z [36;1mnode tools/release_slot_close.js --prepare-closure --proof "$RUNNER_TEMP/deployment-release-publication.json" >> "$GITHUB_OUTPUT"[0m
+2026-11-18T15:08:16.6859058Z shell: /usr/bin/bash -e {0}
+2026-11-18T15:08:16.6859338Z env:
+2026-11-18T15:08:16.6861807Z   GITHUB_TOKEN: ***
+2026-11-18T15:08:16.6862052Z   CONFIGURE_RESULT: skipped
+2026-11-18T15:08:16.6862294Z ##[endgroup]
+2026-11-18T15:09:49.8506205Z ##[group]Run actions/upload-artifact@v4
+2026-11-18T15:09:49.8506515Z with:
+2026-11-18T15:09:49.8506764Z   name: deployment-release-terminal-44332076755-1
+2026-11-18T15:09:49.8507209Z   path: /home/runner/work/_temp/deployment-release-publication.json
+2026-11-18T15:09:49.8507582Z   if-no-files-found: error
+2026-11-18T15:09:49.8507831Z   retention-days: 90
+2026-11-18T15:09:49.8508045Z   compression-level: 6
+2026-11-18T15:09:49.8508259Z   overwrite: false
+2026-11-18T15:09:49.8508472Z   include-hidden-files: false
+2026-11-18T15:09:49.8508713Z ##[endgroup]
+2026-11-18T15:09:50.0210274Z (node:2608) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-11-18T15:09:50.0211155Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-11-18T15:09:50.0256748Z With the provided path, there will be 1 file uploaded
+2026-11-18T15:09:50.0267095Z Artifact name is valid!
+2026-11-18T15:09:50.0268107Z Root directory input is valid!
+2026-11-18T15:09:50.3652726Z Beginning upload of artifact content to blob storage
+2026-11-18T15:09:50.3853123Z (node:2608) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-11-18T15:09:50.5034756Z Uploaded bytes 502
+2026-11-18T15:09:50.5457968Z Finished uploading artifact content to blob storage!
+2026-11-18T15:09:50.5459133Z SHA256 digest of uploaded artifact zip is 4fe2ec6e61e63ac6faed72b2a5e4f0f89a18cf3812b77c4918fc3c7ab4ac719f
+2026-11-18T15:09:50.5460917Z Finalizing artifact upload
+2026-11-18T15:09:50.9464066Z Artifact deployment-release-terminal-44332076755-1.zip successfully finalized. Artifact ID 14439158604
+2026-11-18T15:09:50.9466238Z Artifact deployment-release-terminal-44332076755-1 has been successfully uploaded! Final size is 502 bytes. Artifact ID is 14439158604
+2026-11-18T15:09:50.9475636Z Artifact download URL: https://github.com/pyatkoff/max-search-bot/actions/runs/44332076755/artifacts/14439158604
+2026-11-18T15:09:50.9618037Z ##[group]Run node tools/release_slot_close.js
+2026-11-18T15:09:50.9618413Z [36;1mnode tools/release_slot_close.js[0m
+2026-11-18T15:09:50.9669004Z shell: /usr/bin/bash -e {0}
+2026-11-18T15:09:50.9669259Z env:
+2026-11-18T15:09:50.9671638Z   GITHUB_TOKEN: ***
+2026-11-18T15:09:50.9671865Z   CONFIGURE_RESULT: skipped
+2026-11-18T15:09:50.9672286Z   PREPARED_RECORD_DIGEST: 3a646486ed6efc6d47e443e8f4147d6c5efd50e2e956c7c057034cc3c6e74974
+2026-11-18T15:09:50.9672732Z ##[endgroup]
+2026-11-18T15:09:59.8220841Z release_slot=released
+2026-11-18T15:09:59.8435927Z Post job cleanup.
+2026-11-18T15:09:59.9298990Z [command]/usr/bin/git version
+2026-11-18T15:09:59.9346081Z git version 2.56.1
+2026-11-18T15:09:59.9390200Z Temporarily overriding HOME='/home/runner/work/_temp/8524f801-1899-4952-bd43-9fe683ea0928' before making global git config changes
+2026-11-18T15:09:59.9391631Z Adding repository directory to the temporary git global config as a safe directory
+2026-11-18T15:09:59.9396426Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/max-search-bot/max-search-bot
+2026-11-18T15:09:59.9437293Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-11-18T15:09:59.9475013Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-11-18T15:09:59.9783143Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-11-18T15:09:59.9822316Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-11-18T15:10:00.0143145Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-11-18T15:10:00.0183954Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-11-18T15:10:00.0694604Z Cleaning up orphan processes
+2026-11-18T15:10:00.1163910Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+
