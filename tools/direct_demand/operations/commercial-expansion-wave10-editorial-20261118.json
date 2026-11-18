@@ -1,0 +1,799 @@
+{
+  "schema_version": 1,
+  "state": "WAVE10_CAPTIONS_CHECKED_AWAITING_SOURCE_ACCEPTANCE",
+  "published_baseline": 1186,
+  "country_ids_excluded": [
+    11
+  ],
+  "intake_sha256": "a52df5230d62b03ae72e107a25cc89a4c18149461a0d54627648744ad1203c8c",
+  "rows": [
+    {
+      "hotel_id": 35174,
+      "country_id": 8,
+      "name": "Velaa Private Island",
+      "location": "Атолл Нуну, Мальдивы.",
+      "caption": "✈️ Туры в Velaa Private Island\n📍 Атолл Нуну, Мальдивы.\n\nОстровной отдых с виллами, белым песком и домашним рифом. Подойдёт для поездки вдвоём и семейных каникул, когда хочется проводить больше времени у океана.\n\n• Песчаный пляж вокруг острова и снорклинг у рифа.\n• Панорамный бассейн и несколько ресторанов.\n• Детский клуб для гостей 4–12 лет и водная игровая зона.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "VELAA PRIVATE ISLAND",
+        "Velaa Private Island"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=35174"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=35174",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 64061,
+      "country_id": 8,
+      "name": "Emerald Maldives Resort & Spa",
+      "location": "Атолл Раа, Мальдивы.",
+      "caption": "✈️ Туры в Emerald Maldives Resort & Spa\n📍 Атолл Раа, Мальдивы.\n\nВиллы среди тропической зелени, пляж и домашний риф. Здесь удобно чередовать дни у океана с отдыхом у бассейна и ужинами в разных ресторанах.\n\n• Пляжные виллы и виллы над водой.\n• Четыре ресторана для разных вкусов.\n• Песчаный берег, домашний риф и открытый бассейн.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "EMERALD MALDIVES RESORT & SPA",
+        "Emerald Maldives Resort & Spa"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64061"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64061",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 78938,
+      "country_id": 8,
+      "name": "Emerald Faarufushi Resort & Spa",
+      "location": "Атолл Раа, Мальдивы.",
+      "caption": "✈️ Туры в Emerald Faarufushi Resort & Spa\n📍 Атолл Раа, Мальдивы.\n\nНебольшой остров для отдыха вдвоём: виллы, длинный песчаный берег и домашний риф. Хороший вариант, если хочется сменить городской ритм на прогулки у океана.\n\n• Пляжные виллы и виллы над водой.\n• Пять ресторанов и два бара.\n• Открытый бассейн и риф для снорклинга.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "EMERALD FAARUFUSHI RESORT & SPA",
+        "Emerald Faarufushi Resort & Spa"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=78938"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=78938",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2921,
+      "country_id": 8,
+      "name": "Constance Moofushi Resort",
+      "location": "Южный Ари, Мальдивы.",
+      "caption": "✈️ Туры в Constance Moofushi Resort\n📍 Южный Ари, Мальдивы.\n\nМальдивский отпуск с виллой у пляжа или над водой. Подойдёт для путешествия вдвоём, когда главные планы на день связаны с океаном и неспешным отдыхом.\n\n• Собственный песчаный пляж.\n• Два ресторана и два бара.\n• Открытый бассейн; трансфер на гидросамолёте около 25 минут.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CONSTANCE MOOFUSHI RESORT",
+        "Constance Moofushi Resort"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2921"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2921",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2437,
+      "country_id": 8,
+      "name": "Constance Halaveli Resort",
+      "location": "Северный Ари, Мальдивы.",
+      "caption": "✈️ Туры в Constance Halaveli Resort\n📍 Северный Ари, Мальдивы.\n\nОстров с песчаным пляжем и виллами для спокойного отпуска. Можно проводить дни у океана, отдыхать у бассейна и выбирать разные рестораны для ужина.\n\n• Пляжные виллы и виллы над водой.\n• Собственный песчаный берег и открытый бассейн.\n• Дневной трансфер на гидросамолёте около 25 минут.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CONSTANCE HALAVELI RESORT",
+        "Constance Halaveli Resort"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2437"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2437",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2462,
+      "country_id": 8,
+      "name": "Lily Beach Resort & Spa",
+      "location": "Атолл Ари, Мальдивы.",
+      "caption": "✈️ Туры в Lily Beach Resort & Spa\n📍 Атолл Ари, Мальдивы.\n\nДомашний риф совсем рядом с берегом, а на острове есть занятия и для детей, и для взрослых. Подойдёт семье, которая хочет совместить пляж, снорклинг и отдых у бассейна.\n\n• Домашний риф примерно в 20 метрах от берега.\n• Детский клуб Turtle и семейная зона острова.\n• Два бассейна; зона AQVA предназначена для гостей от 16 лет.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "LILY BEACH RESORT & SPA",
+        "Lily Beach Resort & Spa"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2462"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2462",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11749,
+      "country_id": 27,
+      "name": "Heritage Le Telfair Golf & Spa Resort",
+      "location": "Бель-Омбр, Маврикий.",
+      "caption": "✈️ Туры в Heritage Le Telfair Golf & Spa Resort\n📍 Бель-Омбр, Маврикий.\n\nПляжный отдых на территории поместья Domaine de Bel Ombre. Подойдёт тем, кто хочет сочетать океан со спортом и спокойными днями в зелёном окружении.\n\n• Собственный песчаный пляж.\n• Бассейн с подогревом, теннисные корты и фитнес-центр.\n• Спа-процедуры за отдельную плату.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "HERITAGE LE TELFAIR GOLF & SPA RESORT",
+        "Heritage Le Telfair Golf & Spa Resort"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11749"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11749",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11774,
+      "country_id": 27,
+      "name": "Maradiva Villas Resort & Spa",
+      "location": "Флик-ан-Флак, Маврикий.",
+      "caption": "✈️ Туры в Maradiva Villas Resort & Spa\n📍 Флик-ан-Флак, Маврикий.\n\nОтпуск в виллах на западном побережье острова. Подойдёт для поездки вдвоём, когда хочется больше личного пространства и времени для отдыха у океана.\n\n• Песчаный пляж и открытый бассейн.\n• Четыре ресторана и винный погреб.\n• Теннисные корты и спа-центр.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "MARADIVA VILLAS RESORT & SPA",
+        "Maradiva Villas Resort & Spa"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11774"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11774",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11786,
+      "country_id": 27,
+      "name": "Royal Palm Beachcomber Luxury",
+      "location": "Гранд-Бэй, Маврикий.",
+      "caption": "✈️ Туры в Royal Palm Beachcomber Luxury\n📍 Гранд-Бэй, Маврикий.\n\nКамерный курорт у песчаного пляжа на северо-западе Маврикия. Можно устроить неспешный отпуск вдвоём и чередовать океан, бассейн и ужины в ресторанах.\n\n• Три бассейна с подогревом в зимний период.\n• Три ресторана и спа-центр.\n• Теннисные корты, сквош и водные виды спорта.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "ROYAL PALM BEACHCOMBER LUXURY",
+        "Royal Palm Beachcomber Luxury"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11786"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11786",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11802,
+      "country_id": 27,
+      "name": "Trou Aux Biches Beachcomber",
+      "location": "Тру-о-Биш, Маврикий.",
+      "caption": "✈️ Туры в Trou Aux Biches Beachcomber\n📍 Тру-о-Биш, Маврикий.\n\nКурорт у песчаного пляжа для отпуска с купанием, прогулками и активными днями. Подойдёт тем, кому важно выбирать занятия и рестораны прямо на территории.\n\n• Шесть ресторанов с разной кухней.\n• Бассейн и шесть теннисных кортов.\n• Спа-центр и размещение в номерах или виллах.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "TROU AUX BICHES BEACHCOMBER",
+        "Trou Aux Biches Beachcomber"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11802"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11802",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 56078,
+      "country_id": 8,
+      "name": "Kudafushi Resort & Spa",
+      "location": "Атолл Раа, Мальдивы.",
+      "caption": "✈️ Туры в Kudafushi Resort & Spa\n📍 Атолл Раа, Мальдивы.\n\nОстров с пляжными виллами, домашним рифом и песчаным берегом. Подойдёт для отпуска, в котором хочется больше океана, снорклинга и спокойного отдыха.\n\n• Песчаный пляж и домашний риф.\n• Открытый бассейн и тренажёрный зал.\n• Рестораны North Sail, Olive Me и Sea Edge.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "KUDAFUSHI RESORT & SPA",
+        "Kudafushi Resort & Spa"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=56078"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=56078",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 64360,
+      "country_id": 27,
+      "name": "Paradis Beachcomber Golf Resort & Spa",
+      "location": "Ле-Морн, Маврикий.",
+      "caption": "✈️ Туры в Paradis Beachcomber Golf Resort & Spa\n📍 Ле-Морн, Маврикий.\n\nОтдых на полуострове Ле-Морн с песчаным пляжем перед отелем. Подойдёт тем, кто хочет чередовать дни у океана с теннисом, фитнесом и отдыхом у бассейна.\n\n• Пляж у территории курорта.\n• Открытый бассейн и шесть теннисных кортов.\n• Спа-процедуры за отдельную плату.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "PARADIS BEACHCOMBER GOLF RESORT & SPA",
+        "Paradis Beachcomber Golf Resort & Spa"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64360"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64360",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11743,
+      "country_id": 27,
+      "name": "Constance Le Prince Maurice",
+      "location": "Посте-де-Флак, Маврикий.",
+      "caption": "✈️ Туры в Constance Le Prince Maurice\n📍 Посте-де-Флак, Маврикий.\n\nКурорт у спокойной лагуны для отдыха вдвоём. Здесь можно провести день на песчаном пляже, поплавать в бассейне и выбрать ресторан для неспешного ужина.\n\n• Песчаный берег и два бассейна.\n• Три ресторана и винный погреб.\n• Теннис, дайвинг-центр и спа-центр.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CONSTANCE LE PRINCE MAURICE",
+        "Constance Le Prince Maurice"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11743"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11743",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2483,
+      "country_id": 8,
+      "name": "Taj Coral Reef Resort & Spa",
+      "location": "Северный Мале, Мальдивы.",
+      "caption": "✈️ Туры в Taj Coral Reef Resort & Spa\n📍 Северный Мале, Мальдивы.\n\nНебольшой остров Хембаду с домашним рифом. Подойдёт для поездки вдвоём, если хочется проводить дни у океана и добраться до курорта на катере.\n\n• Домашний риф для снорклинга.\n• Два ресторана и открытый бассейн.\n• Трансфер на катере около 45–60 минут.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "TAJ CORAL REEF RESORT & SPA",
+        "Taj Coral Reef Resort & Spa"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2483"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2483",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11744,
+      "country_id": 27,
+      "name": "Dinarobin Beachcomber Golf Resort & Spa",
+      "location": "Ле-Морн, Маврикий.",
+      "caption": "✈️ Туры в Dinarobin Beachcomber Golf Resort & Spa\n📍 Ле-Морн, Маврикий.\n\nКурорт у песчаного пляжа на полуострове Ле-Морн. Подойдёт для отпуска с океаном, прогулками и выбором между активным днём и отдыхом у бассейна.\n\n• Пять бассейнов, один из них для взрослых.\n• Четыре ресторана и теннисные корты.\n• Спа-центр и возможности для кайтсёрфинга.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "DINAROBIN BEACHCOMBER GOLF RESORT & SPA",
+        "Dinarobin Beachcomber Golf Resort & Spa"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11744"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11744",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11788,
+      "country_id": 27,
+      "name": "Shandrani Beachcomber Resort & Spa",
+      "location": "Блю-Бей, Маврикий.",
+      "caption": "✈️ Туры в Shandrani Beachcomber Resort & Spa\n📍 Блю-Бей, Маврикий.\n\nПляжный отпуск на полуострове рядом с Блю-Бей. Подойдёт тем, кто хочет совместить океан, теннис и выбор ресторанов без дальних переездов по острову.\n\n• Песчаный пляж и открытый бассейн.\n• Шесть ресторанов и шесть теннисных кортов.\n• Спа-центр; аэропорт примерно в 6 км от отеля.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "SHANDRANI BEACHCOMBER RESORT & SPA",
+        "Shandrani Beachcomber Resort & Spa"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11788"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11788",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11794,
+      "country_id": 27,
+      "name": "Sugar Beach",
+      "location": "Западное побережье, Маврикий.",
+      "caption": "✈️ Туры в Sugar Beach\n📍 Западное побережье, Маврикий.\n\nКурорт у песчаного пляжа для отпуска с океаном и активными днями. Можно начать утро у бассейна, поиграть в теннис и выбрать один из ресторанов для ужина.\n\n• Два бассейна и песчаный пляж.\n• Четыре ресторана.\n• Шесть теннисных кортов и спа-центр.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "SUGAR BEACH RESORT",
+        "Sugar Beach"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11794"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11794",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 51240,
+      "country_id": 12,
+      "name": "Shangri-La Hambantota Resort & Spa",
+      "location": "Хамбантота, Шри-Ланка.",
+      "caption": "✈️ Туры в Shangri-La Hambantota Resort & Spa\n📍 Хамбантота, Шри-Ланка.\n\nКурорт для семейного отпуска на юге Шри-Ланки. В программе отдыха можно совместить бассейны, детские водные развлечения и время для себя в спа.\n\n• Бассейн с морской водой.\n• Детский бассейн и водные горки.\n• Два ресторана и аюрведический спа-центр.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "SHANGRI-LAS HAMBANTOTA RESORT & SPA",
+        "Shangri-La Hambantota Resort & Spa"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=51240"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=51240",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2477,
+      "country_id": 8,
+      "name": "Royal Island Resort & Spa",
+      "location": "Атолл Баа, Мальдивы.",
+      "caption": "✈️ Туры в Royal Island Resort & Spa\n📍 Атолл Баа, Мальдивы.\n\nВиллы среди зелени, песчаный берег и домашний риф рядом с островом. Подойдёт для отпуска, в котором хочется каждый день возвращаться к океану.\n\n• Домашний риф примерно в 20 метрах от берега.\n• Рестораны Maakanaa и Raabondhi.\n• Открытый бассейн и дайвинг-центр.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "ROYAL ISLAND RESORT & SPA",
+        "Royal Island Resort & Spa"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2477"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2477",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 57802,
+      "country_id": 12,
+      "name": "Weligama Bay Marriott Resort & Spa",
+      "location": "Велигама, Шри-Ланка.",
+      "caption": "✈️ Туры в Weligama Bay Marriott Resort & Spa\n📍 Велигама, Шри-Ланка.\n\nОтель перед песчаным пляжем бухты Велигама. Подойдёт тем, кто хочет совместить дни у океана с комфортом большого курорта и поездками по южному побережью.\n\n• Пляж Велигамы перед отелем.\n• Три бассейна и шесть ресторанов.\n• Спа-центр для отдыха после активного дня.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "WELIGAMA BAY MARRIOTT RESORT & SPA",
+        "Weligama Bay Marriott Resort & Spa"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=57802"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=57802",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 5399,
+      "country_id": 12,
+      "name": "Jetwing Beach",
+      "location": "Негомбо, Шри-Ланка.",
+      "caption": "✈️ Туры в Jetwing Beach\n📍 Негомбо, Шри-Ланка.\n\nОтель для спокойного отдыха в Негомбо с прогулками к океану и временем у бассейна. Подойдёт для пляжной части путешествия по Шри-Ланке.\n\n• Песчаный общественный пляж примерно в 200 метрах.\n• Открытый и крытый бассейны.\n• Рестораны Black Coral и Sands, теннисный корт и спа-центр.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "JETWING BEACH",
+        "Jetwing Beach"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=5399"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=5399",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11832,
+      "country_id": 28,
+      "name": "Constance Ephelia Resort",
+      "location": "Остров Маэ, Сейшелы.",
+      "caption": "✈️ Туры в Constance Ephelia Resort\n📍 Остров Маэ, Сейшелы.\n\nКурорт у песчаного пляжа для отпуска с океаном и активными днями. Подойдёт тем, кто хочет отдыхать на главном острове Сейшел и выбирать занятия на территории.\n\n• Песчаный пляж у курорта.\n• Бассейн, четыре теннисных корта и сквош.\n• Спа-центр и фитнес; дорога от аэропорта около 40 минут.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CONSTANCE EPHELIA RESORT",
+        "Constance Ephelia Resort"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11832"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11832",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 46068,
+      "country_id": 8,
+      "name": "Furaveri Island Resort & Spa",
+      "location": "Атолл Раа, Мальдивы.",
+      "caption": "✈️ Туры в Furaveri Island Resort & Spa\n📍 Атолл Раа, Мальдивы.\n\nОстровной курорт с виллами и домашним рифом. Подойдёт для отдыха у океана, когда хочется чередовать пляж, снорклинг и ужины с разной кухней.\n\n• Собственный песчаный пляж и домашний риф.\n• Открытый бассейн.\n• Рестораны с международной, азиатской и мексиканской кухней.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "FURAVERI ISLAND RESORT & SPA",
+        "Furaveri Island Resort & Spa"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=46068"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=46068",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 15799,
+      "country_id": 27,
+      "name": "Paradise Beach",
+      "location": "Пуант-д’Эсни, Маврикий.",
+      "caption": "✈️ Туры в Paradise Beach\n📍 Пуант-д’Эсни, Маврикий.\n\nАпартаменты на юго-востоке острова для более самостоятельного отпуска. Подойдут тем, кто предпочитает свой ритм отдыха и планирует поездки по Маврикию.\n\n• Размещение в апартаментах.\n• Открытый бассейн на территории комплекса.\n• Парковка, Wi-Fi и услуги прачечной.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "PARADISE BEACH",
+        "Paradise Beach"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=15799"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=15799",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 82676,
+      "country_id": 12,
+      "name": "DoubleTree by Hilton Weerawila Rajawarna Resort",
+      "location": "Виравила, Шри-Ланка.",
+      "caption": "✈️ Туры в DoubleTree by Hilton Weerawila Rajawarna Resort\n📍 Виравила, Шри-Ланка.\n\nОтель для спокойной остановки в путешествии по югу Шри-Ланки. Подойдёт тем, кто хочет восстанавливать силы между поездками у бассейна и ужинать на территории.\n\n• Открытый бассейн.\n• Два ресторана.\n• Фитнес-центр для тех, кто сохраняет привычный ритм тренировок.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "DOUBLETREE BY HILTON WEERAWILA RAJAWARNA RESORT",
+        "DoubleTree by Hilton Weerawila Rajawarna Resort"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82676"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82676",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 122961,
+      "country_id": 12,
+      "name": "Hilton Yala Resort",
+      "location": "Яла, Шри-Ланка.",
+      "caption": "✈️ Туры в Hilton Yala Resort\n📍 Яла, Шри-Ланка.\n\nКурорт для путешествия к дикой природе Ялы. Подойдёт тем, кто хочет совместить знакомство с этим регионом с отдыхом у бассейна.\n\n• Три ресторана, открытый бассейн и фитнес-центр.\n• Природное окружение рядом с побережьем.\n• Из-за диких животных прогулки и выход на пляж согласуют с сотрудниками отеля.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "HILTON YALA RESORT",
+        "Hilton Yala Resort"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=122961"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=122961",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 64124,
+      "country_id": 8,
+      "name": "Heritance Aarah",
+      "location": "Атолл Раа, Мальдивы.",
+      "caption": "✈️ Туры в Heritance Aarah\n📍 Атолл Раа, Мальдивы.\n\nОстровной курорт для отпуска у океана с большим выбором ресторанов. Можно проводить дни на песчаном пляже, плавать у рифа и отдыхать у бассейна.\n\n• Домашний риф и песчаный берег.\n• Семь ресторанов и пять баров.\n• Два бассейна и размещение в виллах или сьютах.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "HERITANCE AARAH",
+        "Heritance Aarah"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64124"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64124",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 71388,
+      "country_id": 12,
+      "name": "Heritance Tea Factory",
+      "location": "Нувара-Элия, Шри-Ланка.",
+      "caption": "✈️ Туры в Heritance Tea Factory\n📍 Нувара-Элия, Шри-Ланка.\n\nНеобычный отель в бывшей чайной фабрике среди плантаций, примерно на высоте 2 000 метров. Подойдёт для горной части путешествия и знакомства с чайным Цейлоном.\n\n• Ресторан в старом фабричном зале.\n• Отдельный ресторан в железнодорожном вагоне.\n• Библиотека и спа-центр для неспешного отдыха.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "HERITANCE TEA FACTORY",
+        "Heritance Tea Factory"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=71388"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=71388",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 79690,
+      "country_id": 8,
+      "name": "Alila Kothaifaru Maldives",
+      "location": "Атолл Раа, Мальдивы.",
+      "caption": "✈️ Туры в Alila Kothaifaru Maldives\n📍 Атолл Раа, Мальдивы.\n\nКурорт с пляжными виллами и виллами над водой для отдыха вдвоём. Главные планы здесь просты: океан, домашний риф и неспешные дни у бассейна.\n\n• Песчаный пляж и домашний риф.\n• Панорамный бассейн.\n• Три ресторана и три бара.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "ALILA KOTHAIFARU MALDIVES",
+        "Alila Kothaifaru Maldives"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=79690"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=79690",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 126132,
+      "country_id": 8,
+      "name": "Centara Grand Lagoon Maldives",
+      "location": "Северный Мале, Мальдивы.",
+      "caption": "✈️ Туры в Centara Grand Lagoon Maldives\n📍 Северный Мале, Мальдивы.\n\nВиллы и резиденции у океана для отпуска с пляжем и отдыхом у бассейна. Подойдёт тем, кто предпочитает добраться до острова на катере.\n\n• Трансфер на катере около 30–40 минут.\n• Собственный песчаный пляж и бассейн.\n• Ресторан The Gallery и пляжный клуб Bluefin.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CENTARA GRAND LAGOON MALDIVES",
+        "Centara Grand Lagoon Maldives"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126132"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126132",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11781,
+      "country_id": 27,
+      "name": "Paradise Cove Boutique Hotel",
+      "location": "Анс-ла-Ре, Маврикий.",
+      "caption": "✈️ Туры в Paradise Cove Boutique Hotel\n📍 Анс-ла-Ре, Маврикий.\n\nКамерный курорт только для взрослых от 18 лет. Подойдёт для романтической поездки, когда хочется чередовать песчаный пляж, бассейн и ужины вдвоём.\n\n• Три бассейна, включая панорамный с зимним подогревом.\n• Четыре ресторана и пять баров.\n• Сад, теннис и спа-центр.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "PARADISE COVE BOUTIQUE ADULTS ONLY",
+        "Paradise Cove Boutique Hotel"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11781"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11781",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 58743,
+      "country_id": 8,
+      "name": "Fushifaru Maldives",
+      "location": "Атолл Лавиани, Мальдивы.",
+      "caption": "✈️ Туры в Fushifaru Maldives\n📍 Атолл Лавиани, Мальдивы.\n\nНебольшой остров с виллами для спокойного отдыха у океана. Подойдёт для поездки вдвоём, когда хочется больше времени проводить на пляже и меньше переезжать.\n\n• Собственный песчаный пляж.\n• Три ресторана и открытый бассейн.\n• Дневной трансфер на гидросамолёте около 35 минут.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "FUSHIFARU MALDIVES",
+        "Fushifaru Maldives"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=58743"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=58743",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 60233,
+      "country_id": 8,
+      "name": "Noku Maldives",
+      "location": "Атолл Нуну, Мальдивы.",
+      "caption": "✈️ Туры в Noku Maldives\n📍 Атолл Нуну, Мальдивы.\n\nКамерный островной курорт с 50 виллами. Подойдёт для отпуска вдвоём с прогулками по белому песку и отдыхом у океана.\n\n• Песчаный пляж и домашний риф.\n• Два ресторана и два бара.\n• Открытый бассейн; дневной трансфер на гидросамолёте около 45 минут.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "NOKU MALDIVES",
+        "Noku Maldives"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=60233"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=60233",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 64955,
+      "country_id": 8,
+      "name": "The Nautilus Maldives",
+      "location": "Атолл Баа, Мальдивы.",
+      "caption": "✈️ Туры в The Nautilus Maldives\n📍 Атолл Баа, Мальдивы.\n\nНебольшой курорт с 26 домами и виллами у океана. Подойдёт для спокойного отпуска вдвоём, когда хочется проводить дни на острове и выбирать занятия по настроению.\n\n• Песчаный пляж и домашний риф.\n• Три ресторана и два бара.\n• Трансфер на гидросамолёте около 30 минут в дневное время.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "THE NAUTILUS MALDIVES",
+        "The Nautilus Maldives"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64955"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64955",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 109335,
+      "country_id": 12,
+      "name": "Uga Chena Huts",
+      "location": "Яла, Шри-Ланка.",
+      "caption": "✈️ Туры в Uga Chena Huts\n📍 Яла, Шри-Ланка.\n\nКурорт рядом с национальным парком Яла для путешествия к дикой природе. Небольшие виллы в формате отдельных домиков подойдут для спокойного отдыха между поездками.\n\n• Всего 18 вилл.\n• Открытый бассейн и ресторан.\n• Спа-центр; побережье примерно в 100 метрах.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "UGA CHENA HUTS",
+        "Uga Chena Huts"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=109335"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=109335",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2424,
+      "country_id": 8,
+      "name": "Baros Maldives",
+      "location": "Северный Мале, Мальдивы.",
+      "caption": "✈️ Туры в Baros Maldives\n📍 Северный Мале, Мальдивы.\n\nОстров для спокойного отдыха у океана, который принимает гостей от 8 лет. Подойдёт для поездки вдвоём или с ребёнком старшего возраста.\n\n• Домашний риф и собственный песчаный пляж.\n• Панорамный бассейн и рестораны Lime, Lighthouse и Cayenne.\n• Трансфер на катере около 25 минут.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "BAROS MALDIVES",
+        "Baros Maldives"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2424"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2424",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2429,
+      "country_id": 8,
+      "name": "Cinnamon Hakuraa Huraa Maldives",
+      "location": "Атолл Меему, Мальдивы.",
+      "caption": "✈️ Туры в Cinnamon Hakuraa Huraa Maldives\n📍 Атолл Меему, Мальдивы.\n\nКурорт только для взрослых от 18 лет с песчаным берегом и мелководной лагуной. Подойдёт для отпуска вдвоём, когда хочется сменить городской ритм на островной.\n\n• Размещение на основном острове или острове Platinum.\n• Три ресторана и бассейн.\n• Трансфер с внутренним перелётом или на гидросамолёте.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CINNAMON HAKURAA HURAA MALDIVES (ADULTS ONLY 18+)",
+        "CINNAMON HAKURAA HURAA MALDIVES",
+        "Cinnamon Hakuraa Huraa Maldives"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2429"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2429",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 60231,
+      "country_id": 8,
+      "name": "Vakkaru Maldives",
+      "location": "Атолл Баа, Мальдивы.",
+      "caption": "✈️ Туры в Vakkaru Maldives\n📍 Атолл Баа, Мальдивы.\n\nОстровной отдых с домашним рифом и песчаным пляжем. Подойдёт тем, кто хочет проводить дни у океана, отдыхать у бассейна и выбирать разные рестораны для ужина.\n\n• Домашний риф для снорклинга.\n• Пять ресторанов и винный погреб.\n• Открытый бассейн; трансфер на гидросамолёте около 30 минут.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "VAKKARU MALDIVES",
+        "Vakkaru Maldives"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=60231"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=60231",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2803,
+      "country_id": 12,
+      "name": "Cinnamon Grand Colombo",
+      "location": "Коломбо, Шри-Ланка.",
+      "caption": "✈️ Туры в Cinnamon Grand Colombo\n📍 Коломбо, Шри-Ланка.\n\nГородской отель в центре Коломбо для начала или завершения путешествия по острову. Подойдёт тем, кто хочет совместить прогулки по городу с отдыхом на территории.\n\n• Крытый и открытый бассейны.\n• Рестораны и спа-центр.\n• Теннис и сквош для активного отдыха.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CINNAMON GRAND",
+        "Cinnamon Grand Colombo"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2803"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2803",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2826,
+      "country_id": 12,
+      "name": "Jetwing Lighthouse",
+      "location": "Галле, Шри-Ланка.",
+      "caption": "✈️ Туры в Jetwing Lighthouse\n📍 Галле, Шри-Ланка.\n\nОтель у океана примерно в двух километрах от центра Галле. Подойдёт для отпуска, в котором пляжные дни хочется чередовать с городскими прогулками.\n\n• Песчаный общественный пляж рядом с отелем.\n• Два бассейна и шезлонги на территории.\n• Теннисный корт и фитнес-центр.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "JETWING LIGHTHOUSE HOTEL",
+        "Jetwing Lighthouse"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2826"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2826",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11765,
+      "country_id": 27,
+      "name": "Shangri-La Le Touessrok",
+      "location": "Тру-д’О-Дус, Маврикий.",
+      "caption": "✈️ Туры в Shangri-La Le Touessrok\n📍 Тру-д’О-Дус, Маврикий.\n\nКурорт на восточном побережье для отпуска с песчаными пляжами и прогулками у океана. Подойдёт тем, кому важно выбирать между пляжем, спортом и отдыхом у бассейна.\n\n• Несколько пляжных участков на территории курорта.\n• Два бассейна с регулируемой температурой, один для взрослых.\n• Теннис и спа-центр.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "SHANGRI-LA S LE TOUESSROK",
+        "Shangri-La Le Touessrok"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11765"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11765",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11773,
+      "country_id": 27,
+      "name": "LUX Le Morne",
+      "location": "Ле-Морн, Маврикий.",
+      "caption": "✈️ Туры в LUX Le Morne\n📍 Ле-Морн, Маврикий.\n\nКурорт перед песчаным пляжем на юго-западе острова. Подойдёт для поездки вдвоём и семейного отпуска с океаном, прогулками и отдыхом у бассейна.\n\n• Пляж у территории отеля.\n• Взрослый и детский бассейны, есть бассейн с подогревом.\n• Теннис; спа-процедуры за отдельную плату.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "LUX LE MORNE",
+        "LUX Le Morne"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11773"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11773",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11873,
+      "country_id": 28,
+      "name": "Constance Lemuria",
+      "location": "Остров Праслин, Сейшелы.",
+      "caption": "✈️ Туры в Constance Lemuria\n📍 Остров Праслин, Сейшелы.\n\nКурорт для отпуска на Праслине с песчаными пляжами и гольфом. Можно чередовать дни у океана с прогулками и отдыхом у бассейна.\n\n• Поле для гольфа на 18 лунок.\n• Трёхуровневый бассейн, теннис и спа-центр.\n• Пляж Petite Anse Kerlan; до Anse Georgette можно прогуляться.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CONSTANCE LEMURIA",
+        "Constance Lemuria"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11873"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11873",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 43238,
+      "country_id": 12,
+      "name": "Cape Weligama",
+      "location": "Велигама, Шри-Ланка.",
+      "caption": "✈️ Туры в Cape Weligama\n📍 Велигама, Шри-Ланка.\n\nНебольшой курорт для отдыха на южном побережье. Можно чередовать дни у бассейна с прогулками к пляжам и поездками по окрестностям.\n\n• Два бассейна и детская секция.\n• Спа-центр.\n• До восточного общественного пляжа около пяти минут пешком; к западному ведут ступени в скалах.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CAPE WELIGAMA",
+        "Cape Weligama"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43238"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43238",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 43701,
+      "country_id": 12,
+      "name": "Sentido Heritance Negombo",
+      "location": "Негомбо, Шри-Ланка.",
+      "caption": "✈️ Туры в Sentido Heritance Negombo\n📍 Негомбо, Шри-Ланка.\n\nОтель для отпуска у океана с бассейном, садом и выбором ресторанов. Подойдёт тем, кто хочет провести пляжную часть путешествия в Негомбо.\n\n• Зона отеля на общественном песчаном пляже.\n• Пять ресторанов и открытый бассейн.\n• Сад и спа-центр.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "SENTIDO HERITANCE NEGOMBO",
+        "Sentido Heritance Negombo"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43701"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43701",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 45544,
+      "country_id": 12,
+      "name": "Cinnamon Lodge Habarana",
+      "location": "Хабарана, Шри-Ланка.",
+      "caption": "✈️ Туры в Cinnamon Lodge Habarana\n📍 Хабарана, Шри-Ланка.\n\nБунгало в зелёном окружении для путешествия по Культурному треугольнику Шри-Ланки. Подойдёт тем, кто хочет после поездок отдыхать у бассейна и гулять по саду.\n\n• Размещение в бунгало.\n• Сад бабочек и открытый бассейн.\n• База для знакомства с культурными достопримечательностями региона.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CINNAMON LODGE HABARANA",
+        "Cinnamon Lodge Habarana"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=45544"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=45544",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2433,
+      "country_id": 8,
+      "name": "Coco Bodu Hithi",
+      "location": "Северный Мале, Мальдивы.",
+      "caption": "✈️ Туры в Coco Bodu Hithi\n📍 Северный Мале, Мальдивы.\n\nВиллы с собственными бассейнами для отпуска вдвоём. Здесь можно чередовать время у океана с отдыхом на своей террасе и ужинами в ресторанах острова.\n\n• Собственный бассейн в каждой вилле.\n• Песчаный пляж, домашний риф и общий панорамный бассейн.\n• Четыре ресторана; трансфер на катере около 40 минут.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "COCO BODU HITHI",
+        "Coco Bodu Hithi"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2433"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2433",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11770,
+      "country_id": 27,
+      "name": "LUX Belle Mare",
+      "location": "Бель-Мар, Маврикий.",
+      "caption": "✈️ Туры в LUX Belle Mare\n📍 Бель-Мар, Маврикий.\n\nКурорт у длинного белопесчаного пляжа для отпуска вдвоём и семейных каникул. Подойдёт тем, кто хочет сочетать океан, бассейн и занятия для детей на территории.\n\n• Песчаный пляж длиной более километра.\n• Большой бассейн с детской секцией и пять ресторанов.\n• Клуб Play для детей 3–11 лет, теннис и спа-центр.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "LUX BELLE MARE",
+        "LUX Belle Mare"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11770"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11770",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 11742,
+      "country_id": 27,
+      "name": "Constance Belle Mare Plage",
+      "location": "Бель-Мар, Маврикий.",
+      "caption": "✈️ Туры в Constance Belle Mare Plage\n📍 Бель-Мар, Маврикий.\n\nОтдых у песчаного пляжа для тех, кто любит чередовать океан со спортом. Можно провести утро на гольф-поле, а после обеда отдыхать у бассейна.\n\n• Два поля для гольфа на 18 лунок.\n• Четыре бассейна и семь ресторанов.\n• Теннисные корты и спа-центр.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CONSTANCE BELLE MARE PLAGE",
+        "Constance Belle Mare Plage"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11742"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11742",
+      "publication_allowed": false
+    }
+  ],
+  "registry_hold_native_ids": [
+    24474
+  ]
+}

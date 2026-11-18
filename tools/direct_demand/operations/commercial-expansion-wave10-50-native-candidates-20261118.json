@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "stage": "public_copy_edited_native_admission_pending",
+  "stage": "catalogue_and_provider_profile_screened",
   "publication_baseline": 1186,
   "owner_issue": "https://github.com/pyatkoff/max-search-bot/issues/1566",
   "excluded_country_ids": [
@@ -40,7 +40,17 @@
     "subproperty_scope_notes": {
       "11774": "Do not use combined Maradiva/Shoba inventory count or infer separate residence/gallery eligibility. Exact primary-property gallery still needs visual qualification.",
       "15799": "Described explicitly as apartment complex; no private beach or full-service hotel claim."
-    }
+    },
+    "native_registry_source": {
+      "run": 44274454537,
+      "artifact": 14412973927,
+      "sha256": "59099e8e0982a577f919fa992096b3f55af8635836c10d09b17647dc1bce3868",
+      "held_title_collision": [
+        24474
+      ]
+    },
+    "native_registry_ready": 49,
+    "additional_registry_hold": 1
   },
   "rows": [
     {
@@ -76,7 +86,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/8/35174-1212105.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/35174-1212106.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -84,7 +94,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "c11bff9aac986d8f07254a6ca706ef7a54ee5ccda961bb49163f019cf7b30331",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Velaa Private Island",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_002",
@@ -119,7 +134,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/8/64061-58925205.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/64061-58925206.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -127,7 +142,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "4a392b52a4b030ae3570744ae7b4d4e3f79058b42290dc90b350ea0217e09f76",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Emerald Maldives Resort & Spa",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_003",
@@ -162,7 +182,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/8/78938-77761106.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/78938-77761107.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -170,7 +190,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "559b6e71797d9a0b79ef735978e461ab65f3d49cdc88310d2a9d3934bfe18070",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Emerald Faarufushi Resort & Spa",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_004",
@@ -205,7 +230,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/8/2921-2313406.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/2921-2313407.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -213,7 +238,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "f44f31de11e8cbe7ddd3904828953127085beae23c368c03ac05d17b3f2a3fb4",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Constance Moofushi Resort",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_005",
@@ -248,7 +278,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/8/constance-halaveli-resort-102202055.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/constance-halaveli-resort-102202056.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -256,7 +286,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "b47cc13297197679e00a80691b196e770f3b3454f0bee00340c269bc5b0f5c37",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Constance Halaveli Resort",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_006",
@@ -291,7 +326,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/8/2462-94809006.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/2462-94809007.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -299,7 +334,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "07d1394e618c87e41dbb302ae199f3e9af2e3a30c96a039eb1fe69f5f82585e7",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Lily Beach Resort & Spa",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_007",
@@ -334,7 +374,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/27/11749-2210106.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/11749-2210107.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -342,7 +382,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "ca2d8dc56a0cea269378e1bf78bf717b35e079965541e5ea643b2266b0b51855",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Heritage Le Telfair Golf & Spa Resort",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_008",
@@ -377,7 +422,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/27/maradiva-villas-resort-spa-2313405.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/maradiva-villas-resort-spa-2313406.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -385,7 +430,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "f9cd336e79c00eb7e1314450d349f2c32637687e0cbf377cc9ff917f7e457145",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Maradiva Villas Resort & Spa",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_009",
@@ -420,7 +470,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/27/royal-palm6-2314106.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/royal-palm6-2314107.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -428,7 +478,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "e25f08a3821e59e0b55fde087ffe525490726bc3b07af4b0fd2a3b3cca029862",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Royal Palm Beachcomber Luxury",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_010",
@@ -463,7 +518,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/27/trou-aux-biches-1709105.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/trou-aux-biches-1709106.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -471,7 +526,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "7827f5c456431676b4e58714cd8221c630738b36be1d73b0c6a55d863826314d",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Trou Aux Biches Beachcomber",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_011",
@@ -506,7 +566,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/8/56078-38206405.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/56078-38206406.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -514,7 +574,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "742a147f2e1ff3d04fa3635a4d7d4946da36de427b23d157397abe15e0c32021",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Kudafushi Resort & Spa",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_012",
@@ -549,7 +614,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/27/paradis-beachcomber-golf-resort-spa-2111306.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/paradis-beachcomber-golf-resort-spa-2111307.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -557,7 +622,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "54b6cd60273b28d72a05d1a4d930c87617dad5e7799607bffe4255e283bdec36",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Paradis Beachcomber Golf Resort & Spa",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_056",
@@ -592,7 +662,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-le-prince-maurice-2212506.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-le-prince-maurice-2212507.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -600,7 +670,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "420fe7ce7b0d6ed35946e860cbb8fc16d0322b505336e27a7d55f7f0b0bed1b0",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Constance Le Prince Maurice",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_014",
@@ -635,7 +710,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/8/2483-49711506.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/2483-49711507.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -643,7 +718,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "b655c8241804aa8ec0f7fde05f6b9838e2ee92c45e03b384db74e25c7b773040",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Taj Coral Reef Resort & Spa",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_015",
@@ -678,7 +758,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/27/dinarobin-hotel-spa-2312505.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/dinarobin-hotel-spa-2312506.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -686,7 +766,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "81266fcf3b1a5147608588ac672fd1f22927c8771d1f6e354308d72ee1370889",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Dinarobin Beachcomber Golf Resort & Spa",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_016",
@@ -721,7 +806,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/27/11788-7293506.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/11788-7293507.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -729,7 +814,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "4d28f0516d549ba348a907741964afdfc5f43e43fe6f8865ce50e8bc5c49e5ce",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Shandrani Beachcomber Resort & Spa",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_017",
@@ -764,7 +854,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/27/sugar-beach-resort-1809406.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/sugar-beach-resort-1809407.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -772,7 +862,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "fab7100a4c77aa08649de662651d0ef513d9020c5232aec395ec48c1729e4e97",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Sugar Beach",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_018",
@@ -807,7 +902,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/12/shangri-las-hambantota-resort-spa-3014005.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/12/shangri-las-hambantota-resort-spa-3014006.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -815,7 +910,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "55c200cc67758ee44ebd460c6b02606ef830aa9e0a2141019dabcbf6ac3b5696",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Shangri-La Hambantota Resort & Spa",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_019",
@@ -850,7 +950,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/8/2477-7935205.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/2477-7935306.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -858,7 +958,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "88dad654ba3cd1135ffab82e1c8d29238a3d88fc995807a33a91337d2f95c6b4",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Royal Island Resort & Spa",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_020",
@@ -893,7 +998,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/12/weligama-bay-marriott-resort-spa-102401236.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/12/weligama-bay-marriott-resort-spa-102401237.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -901,7 +1006,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "ce31325267cac1ffd34b3bde5fe4ced92afaeeaedf46f273480d57fabbd7beee",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Weligama Bay Marriott Resort & Spa",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_021",
@@ -936,7 +1046,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-beach-97961406.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-beach-97961407.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -944,7 +1054,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "41350ce844eaa353a17ba7041b5305b742326b43b9e68f37f1ade8b5736124a3",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Jetwing Beach",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_022",
@@ -979,7 +1094,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/28/11832-75559506.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/28/11832-75559508.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -987,7 +1102,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "aab856d9a42cd9950aa4deb8f4c07a5f9ff84694cdd22d1fe7613bc547ea00a5",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Constance Ephelia Resort",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_023",
@@ -1022,7 +1142,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/8/46068-75259005.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/46068-75259006.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -1030,7 +1150,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "8d5790b0c7fde1d9240e2906835cdc4d15b5c849f64d7df7b03803707f1e879d",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Furaveri Island Resort & Spa",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_024",
@@ -1065,7 +1190,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-beach4-102311465.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-beach4-102311466.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -1073,7 +1198,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "55697e55ec9c7d23a655d8a9d2699bd8c8079c263b0c4242610282eeda00ecac",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Paradise Beach",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_025",
@@ -1108,7 +1238,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/12/doubletree-by-hilton-weerawila-rajawarna-resort-94593504.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/12/doubletree-by-hilton-weerawila-rajawarna-resort-94593505.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -1116,7 +1246,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "33badc401d6c21f36aaa815208a5b63f4521ed7ff2dc19f4438babae643c27f9",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "DoubleTree by Hilton Weerawila Rajawarna Resort",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_026",
@@ -1151,7 +1286,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/12/hilton-yala-resort-2259206.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/12/hilton-yala-resort-2259207.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -1159,7 +1294,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "88b6e263c418e0fc95c799a2c46c1b109edb4cea0a170f08ca127e8ae0141e4e",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Hilton Yala Resort",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_027",
@@ -1194,7 +1334,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/8/64124-33664906.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/64124-33664907.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -1202,7 +1342,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "3033cec34d360b27ff9cfd17339cd4c88fed193ce1adb7be91d04c596244a82f",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Heritance Aarah",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_028",
@@ -1237,7 +1382,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/12/heritance-tea-factory-1112506.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/12/heritance-tea-factory-1112507.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -1245,7 +1390,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "b99ef4e0599e5a779cb054b274b69a1757987bf7578bf631747432cee35a8a8b",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Heritance Tea Factory",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_029",
@@ -1280,7 +1430,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/8/79690-27307106.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/79690-27307107.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -1288,7 +1438,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "2fc6fdf54c2cd1cd5cb4831c3f203d53c2857e971823e583d3533aa719b8836b",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Alila Kothaifaru Maldives",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_030",
@@ -1323,7 +1478,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/8/126132-61740605.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/126132-61740706.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -1331,7 +1486,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "8a81a52b8bbce26290eb974f9debf4e4ba4e868c6728196619d539c1365eba90",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Centara Grand Lagoon Maldives",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_031",
@@ -1357,8 +1517,8 @@
       ],
       "photo_urls_in_bound_gallery": 43,
       "source_photo_samples": [
-        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-cove-2315112.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-cove-2315100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-cove-2315112.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-cove-2315101.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-cove-2315102.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-cove-2315103.jpg",
@@ -1366,7 +1526,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-cove-2315105.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-cove-2315106.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [
@@ -1379,7 +1539,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "0bb571c62bc5977ccbbc30d3dda171a5485e535b6b943624072209e170300a31",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Paradise Cove Boutique Hotel",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_032",
@@ -1414,7 +1579,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/8/58743-62477505.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/58743-62477506.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -1422,7 +1587,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "a3bdb60bdeb77ce72de5a9f29b7fcf581190752b2692a422f943c1b383e0e392",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Fushifaru Maldives",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_033",
@@ -1457,7 +1627,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/8/60233-68622405.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/60233-68622506.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -1465,7 +1635,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "1059e3c14d4b03646217e1588dd2287a1c22b740f15fed9e1e7835baf267953f",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Noku Maldives",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_034",
@@ -1500,7 +1675,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/8/the-nautilus-maldives-102407415.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/the-nautilus-maldives-102407416.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -1508,7 +1683,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "fba020bf76e0d19fa4e7061b2f44c838a89330cb26d49864279ef7f5b028e7ac",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "The Nautilus Maldives",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_035",
@@ -1543,7 +1723,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/12/uga-chena-huts-2214105.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/12/uga-chena-huts-2214106.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -1551,7 +1731,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "93a7ff31cc52058cccd67681ee2e5ea00481d0ca7ef31d73e19e75801ae361e2",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Uga Chena Huts",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_036",
@@ -1586,7 +1771,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/8/2424-13179406.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/2424-13179507.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -1594,7 +1779,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "4921688a8de8f7ec3caf45d2f91831d7b6ad2b3f2606755f40f2ae7c0edefa22",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Baros Maldives",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_037",
@@ -1630,7 +1820,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/8/2429-19080305.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/2429-19080306.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [
@@ -1643,7 +1833,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "7a113f5b6264ba9930046628f07cdb5a78412a7a1d58004762c6c0f196b391f0",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Cinnamon Hakuraa Huraa Maldives",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_058",
@@ -1678,7 +1873,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/8/60231-27121306.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/60231-27121307.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -1686,7 +1881,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "e6a41ec5593f0f4909ac0e99adec248bd8587245954496351e8515a80a7ddac7",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Vakkaru Maldives",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_039",
@@ -1721,7 +1921,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/12/cinnamon-grand-57454106.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/12/cinnamon-grand-57454107.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -1729,7 +1929,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "fd1b9b697ddadf6de9ca8e08221fea50996e7930329f322c0e184fe1136a2d27",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Cinnamon Grand Colombo",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_040",
@@ -1764,7 +1969,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-lighthouse-hotel-102208236.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-lighthouse-hotel-102208237.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -1772,7 +1977,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "a5c487069bdfb5009caf57e4b4010a45879ba489e52014451e413fdf9ea9dfef",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Jetwing Lighthouse",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_041",
@@ -1807,7 +2017,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/27/le-touessrok-2212006.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/le-touessrok-2212007.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -1815,7 +2025,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "fc6b9d33684daf5c78e31335da886da5043a85251a92d2a2071616f755389e2a",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Shangri-La Le Touessrok",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_042",
@@ -1850,7 +2065,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/27/11773-2110106.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/11773-2110107.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -1858,7 +2073,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "4d32ac3cec1f25a21e56c2fea3923c8ea62631d1939fffbadb05ff6b74ce1ff7",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "LUX Le Morne",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_043",
@@ -1884,8 +2104,8 @@
       ],
       "photo_urls_in_bound_gallery": 60,
       "source_photo_samples": [
-        "https://static.tourvisor.ru/hotel_pics/verybig/28/11873-76967123.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/28/11873-76966700.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11873-76967123.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/28/11873-76966701.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/28/11873-76966702.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/28/11873-76966703.jpg",
@@ -1893,7 +2113,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/28/11873-76966805.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/28/11873-76966806.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -1901,7 +2121,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "58e6b58e905ffc3873de44bf69ea3f1be46a6a8a5f474b80a54ff411226e73fc",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Constance Lemuria",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_044",
@@ -1936,7 +2161,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/12/uga-bay-2908407.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/12/uga-bay-2908408.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "hold",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -1944,7 +2169,13 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "4987f223df9639fd2d46d61e65400ccf5bc572abaf2d52400d03ab8e3ebe8e70",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Uga Bay",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true,
+      "hold_reason": "Registry alias UGA BAY also matches existing Tortuga Bay Hotel by substring; distinct title/native identity recorded, individual qualification deferred without sending this row."
     },
     {
       "work_id": "W10_045",
@@ -1979,7 +2210,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/12/cape-weligama-1012106.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/12/cape-weligama-1012107.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -1987,7 +2218,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "4caa15a1ba967caa4ba135e7e3372ff8338b0e69824c6d30edf0fb10add37bb7",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Cape Weligama",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_046",
@@ -2022,7 +2258,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/12/43701-85248505.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/12/43701-85248606.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -2030,7 +2266,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "bdfaf20fd91868c487559c8af29e750d5d39c9962b67e17746d6d3b4291f15cc",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Sentido Heritance Negombo",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_047",
@@ -2065,7 +2306,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/12/cinnamon-lodge-habarana-53082205.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/12/cinnamon-lodge-habarana-53082206.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -2073,7 +2314,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "610fa782865e2d8bba67869f6e7176e0fac65d379ee8b6d92ccff617e4cc65ff",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Cinnamon Lodge Habarana",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_048",
@@ -2108,7 +2354,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/8/2433-41709605.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/8/2433-41709607.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -2116,7 +2362,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "91b4b4b0641c39875de29d68736b0cc28c8e3c4028798bbe229d562dbeeb03c2",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Coco Bodu Hithi",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_051",
@@ -2151,7 +2402,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/27/lux-belle-mare-1811206.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/lux-belle-mare-1811207.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -2161,7 +2412,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "432b58e442d7977cb34ac62b3180c38be636c75f5835e287a52681b63977bc9f",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "LUX Belle Mare",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     },
     {
       "work_id": "W10_050",
@@ -2196,7 +2452,7 @@
         "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-belle-mare-plage-1709407.jpg",
         "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-belle-mare-plage-1709408.jpg"
       ],
-      "stage": "public_caption_edited_not_admitted",
+      "stage": "editorial_and_visual_review",
       "publication_allowed": false,
       "material_conditions": {
         "adult_only_evidence": [],
@@ -2204,7 +2460,12 @@
         "whole_retained_profile_must_inform_public_copy": true
       },
       "public_draft_sha256": "7c15a553fb135bbb08839fb461e00246928c4d6221775cd2564871e9890dc09c",
-      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json",
+      "editorial": {
+        "display_name": "Constance Belle Mare Plage",
+        "caption_edit_complete": true
+      },
+      "public_copy_edited": true
     }
   ],
   "reserve_unselected": [
