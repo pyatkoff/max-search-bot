@@ -1,4 +1,4 @@
-name: W16 fresh cached intake and original cover preparation, no sends
+name: W17 fresh cached intake and original cover preparation, no sends
 'on':
   push:
     branches:
@@ -11,7 +11,7 @@ permissions:
 jobs:
   prepare:
     if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
-      && github.event.before == '40399d6b06577587c292121155e395ab598bf5ce' && github.run_attempt
+      && github.event.before == '1d30490e43de3b57c1202808b869493de28b58ea' && github.run_attempt
       == 1
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -27,15 +27,15 @@ jobs:
     - name: Prepare preserved licensed sources only
       env:
         GH_TOKEN: ${{ github.token }}
-      run: python3 tools/direct_demand/operations/prepare-wave16-intake-20261118.py
+      run: python3 tools/direct_demand/operations/prepare-wave17-intake-20261118.py
     - if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
-        name: wave16-source-intake-preview
-        path: 'wave16/*.jpg
+        name: wave17-source-intake-preview
+        path: 'wave17/*.jpg
 
-          wave16/receipt.json
+          wave17/receipt.json
 
-          wave16/profiles.json'
+          wave17/profiles.json'
         retention-days: 30
         if-no-files-found: warn
