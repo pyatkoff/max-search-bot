@@ -1,5 +1,5 @@
 # REVIEW PROPOSAL ONLY. Closed config literal and exact parent/claim/source admission gate execution.
-name: Exact remaining207 feed extension after verified prefix10
+name: Exact remaining197 feed extension after verified prefix20
 on:
   push:
     branches: ['audit/price660-27316-resume-readiness-20261117']
@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == '8285dee799e999c4330ef8e46c0084a5ade214e9'
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == 'ac591a90ff4362656e922b0371b27eaa565e4281'
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
@@ -70,30 +70,13 @@ jobs:
           path: ${{ runner.temp }}/feed217/deliver-plan/
           retention-days: 7
           if-no-files-found: error
-      - name: One native feed write for original batch 2
-        id: batch02
-        env:
-          GH_TOKEN: ${{ github.token }}
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 0
-      - name: Publish bounded progress for batch 2 while job is running
-        if: ${{ always() && (steps.batch02.outcome == 'success' || steps.batch02.outcome == 'failure') }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: feed217-progress-p02-${{ github.run_id }}
-          path: |
-            ${{ runner.temp }}/feed217/progress/p02/
-            ${{ runner.temp }}/feed217/failure.json
-          retention-days: 7
-          if-no-files-found: error
       - name: One native feed write for original batch 3
         id: batch03
         env:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 1
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 0
       - name: Publish bounded progress for batch 3 while job is running
         if: ${{ always() && (steps.batch03.outcome == 'success' || steps.batch03.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -110,7 +93,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 2
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 1
       - name: Publish bounded progress for batch 4 while job is running
         if: ${{ always() && (steps.batch04.outcome == 'success' || steps.batch04.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -127,7 +110,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 3
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 2
       - name: Publish bounded progress for batch 5 while job is running
         if: ${{ always() && (steps.batch05.outcome == 'success' || steps.batch05.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -144,7 +127,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 4
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 3
       - name: Publish bounded progress for batch 6 while job is running
         if: ${{ always() && (steps.batch06.outcome == 'success' || steps.batch06.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -161,7 +144,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 5
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 4
       - name: Publish bounded progress for batch 8 while job is running
         if: ${{ always() && (steps.batch08.outcome == 'success' || steps.batch08.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -178,7 +161,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 6
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 5
       - name: Publish bounded progress for batch 9 while job is running
         if: ${{ always() && (steps.batch09.outcome == 'success' || steps.batch09.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -195,7 +178,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 7
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 6
       - name: Publish bounded progress for batch 10 while job is running
         if: ${{ always() && (steps.batch10.outcome == 'success' || steps.batch10.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -212,7 +195,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 8
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 7
       - name: Publish bounded progress for batch 11 while job is running
         if: ${{ always() && (steps.batch11.outcome == 'success' || steps.batch11.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -229,7 +212,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 9
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 8
       - name: Publish bounded progress for batch 12 while job is running
         if: ${{ always() && (steps.batch12.outcome == 'success' || steps.batch12.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -246,7 +229,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 10
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 9
       - name: Publish bounded progress for batch 13 while job is running
         if: ${{ always() && (steps.batch13.outcome == 'success' || steps.batch13.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -263,7 +246,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 11
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 10
       - name: Publish bounded progress for batch 14 while job is running
         if: ${{ always() && (steps.batch14.outcome == 'success' || steps.batch14.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -280,7 +263,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 12
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 11
       - name: Publish bounded progress for batch 15 while job is running
         if: ${{ always() && (steps.batch15.outcome == 'success' || steps.batch15.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -297,7 +280,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 13
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 12
       - name: Publish bounded progress for batch 18 while job is running
         if: ${{ always() && (steps.batch18.outcome == 'success' || steps.batch18.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -314,7 +297,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 14
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 13
       - name: Publish bounded progress for batch 17 while job is running
         if: ${{ always() && (steps.batch17.outcome == 'success' || steps.batch17.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -331,7 +314,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 15
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 14
       - name: Publish bounded progress for batch 19 while job is running
         if: ${{ always() && (steps.batch19.outcome == 'success' || steps.batch19.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -348,7 +331,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 16
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 15
       - name: Publish bounded progress for batch 20 while job is running
         if: ${{ always() && (steps.batch20.outcome == 'success' || steps.batch20.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -365,7 +348,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 17
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 16
       - name: Publish bounded progress for batch 21 while job is running
         if: ${{ always() && (steps.batch21.outcome == 'success' || steps.batch21.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -382,7 +365,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 18
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 17
       - name: Publish bounded progress for batch 22 while job is running
         if: ${{ always() && (steps.batch22.outcome == 'success' || steps.batch22.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -399,7 +382,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 19
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 18
       - name: Publish bounded progress for batch 23 while job is running
         if: ${{ always() && (steps.batch23.outcome == 'success' || steps.batch23.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -416,7 +399,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 20
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 19
       - name: Publish bounded progress for batch 24 while job is running
         if: ${{ always() && (steps.batch24.outcome == 'success' || steps.batch24.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -433,7 +416,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 21
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 20
       - name: Publish bounded progress for batch 25 while job is running
         if: ${{ always() && (steps.batch25.outcome == 'success' || steps.batch25.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -450,7 +433,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 22
+        run: python3 tools/direct_demand/operations/finite_feed217.py tools/direct_demand/operations/feed217-reviewed-config.json step 21
       - name: Publish bounded progress for batch 26 while job is running
         if: ${{ always() && (steps.batch26.outcome == 'success' || steps.batch26.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

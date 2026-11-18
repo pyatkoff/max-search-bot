@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "state": "REVIEWED_FINITE_FEED217_EXACT_ROOT_PERMIT_CHAIN",
-  "parent_sha": "8285dee799e999c4330ef8e46c0084a5ade214e9",
+  "parent_sha": "ac591a90ff4362656e922b0371b27eaa565e4281",
   "claim_id": 6955394658,
   "claim_body_sha256": "51cc2d3531118e2aba6146515946dc2efad9a78130864d5fd45a03789ce6c37a",
   "permit_comment_id": 6957283506,
@@ -337,14 +337,14 @@
     "head_sha": "bbef3101f8c8f6eae15355c0d6fa4b8c1848dfa2"
   },
   "source_sha256": {
-    ".github/workflows/price27316-feed217.yml": "c4f2e7afcf87604276fa212a0b00163bba2f66ff86a11ee3d36c0392734e0dc1",
+    ".github/workflows/price27316-feed217.yml": "036c51599fb7e0a788c82e068cea428028c1fcd1faa6cc83f754bedf0bd9954b",
     "tools/direct_demand/operations/execute_feed217.py": "933c792565e843724a0e99ff06a8deb4d0b542ea5689dc514e6b5eac20b64564",
     "tools/direct_demand/operations/immutable_source_cache.py": "4fb4c879469877c612d2d101eba89214806563a026c9e2e38905875dd95a99f0",
     "tools/direct_demand/operations/inventory217-provenance.json": "69d6813bd7a3a06ad7f62f6a13baa33c8f13ab62f12ca5d57899fb329609fb88",
     "tools/direct_demand/operations/nonwriting_queued217_guard.py": "5fa9881727735a875b9c6ae53343443d01ec7ec7bac09530e7cfd25353e2b349",
     "tools/direct_demand/operations/original_acceptance217.py": "dfb560453ed9cd56218cd3ad80594012485f35551abf308266cd582e861808d3",
     "tools/direct_demand/operations/owner_permit_gate.py": "dc17ee04783f0198f2c6887432b3367e58a2bd270b9906a3ebbf1cba821a1f3c",
-    "tools/direct_demand/operations/prepare_feed217.py": "b5f1cacfa7f555bf36f4da36459e142d1547330b8d1adb6f0a71d5377d35914c",
+    "tools/direct_demand/operations/prepare_feed217.py": "8499ff729a194e0bdc62c5c505a857ee125c295f741680689a9cbcaf2af8af14",
     "tools/direct_demand/operations/probe_feed217_remote.py": "9e74c023c1f05188ee4d1352fca3643408b622405ec496a893f9aff2a53704c8",
     "tools/direct_demand/operations/reconstruct_inventory217.py": "9d26ade32fcab72a00dfa756a4c07c8e865def0b57271f29f2c5cf11f6a8b15e",
     "tools/direct_demand/operations/route217-root-projection.json": "1f9677f64fc7b89ac9a0f7d22cdeb93a67b388421b815da7d4701afe1588f87b",
@@ -359,7 +359,9 @@
     "tools/direct_demand/operations/runtimecc017-transition.json": "c45ae2b8139817587531bb728c9e85924eebe6790e5e3b71fa30d178235647b3",
     "tools/direct_demand/operations/price-evolution-descriptor.json": "c66c2fbde42e118b05fb9edd8efd898644c8a9e4572d17a4d8268e72e9d7f466",
     "tools/direct_demand/operations/price_evolution207.py": "54ff68e005ad2b8cca6a8d6135c40d0d4e1a22b32fc27223ba6ab2c58887e811",
-    "tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-nightly-guard.php": "02bffda02ed05e311b44b90fea63717a5cd787b99cc2653f3b5a17f7d9bfb00f"
+    "tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-nightly-guard.php": "02bffda02ed05e311b44b90fea63717a5cd787b99cc2653f3b5a17f7d9bfb00f",
+    "tools/direct_demand/operations/checkpoint20.py": "cf734f892e9b714d03dbef79050333154e1029664f5bd03c2d2d7ea8ac879841",
+    "tools/direct_demand/operations/checkpoint20-descriptor.json": "7190b7f83853574f27319f130dda5dba3cf5e2f54d3433a72b201e96bdc267c3"
   },
   "runtime_transition": {
     "path": "tools/direct_demand/operations/runtimecc017-transition.json",
@@ -373,5 +375,9 @@
   "price_evolution": {
     "path": "tools/direct_demand/operations/price-evolution-descriptor.json",
     "sha256": "c66c2fbde42e118b05fb9edd8efd898644c8a9e4572d17a4d8268e72e9d7f466"
+  },
+  "continuation_prefix": {
+    "path": "tools/direct_demand/operations/checkpoint20-descriptor.json",
+    "sha256": "7190b7f83853574f27319f130dda5dba3cf5e2f54d3433a72b201e96bdc267c3"
   }
 }
