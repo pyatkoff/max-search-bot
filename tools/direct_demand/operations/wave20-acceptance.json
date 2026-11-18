@@ -1,0 +1,3151 @@
+{
+  "accepted_ids": [
+    68217,
+    72203,
+    1590,
+    2484,
+    4514,
+    2625,
+    64582,
+    12143,
+    17569,
+    69077,
+    1675,
+    4454,
+    2846,
+    47026,
+    2447,
+    5406,
+    64072,
+    67402,
+    2244,
+    2423,
+    26062,
+    51257,
+    75786,
+    1598,
+    2932,
+    44480,
+    68218,
+    64753,
+    23199,
+    1488
+  ],
+  "operational_review": {
+    "68217": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://maldives.intercontinental.com/",
+        "https://maldives.intercontinental.com/family/planet-trekkers/",
+        "https://maldives.intercontinental.com/restaurantsandbars/"
+      ],
+      "evidence": "Действующая официальная property page с актуальным названием/адресом и услугами; детали сопоставлены с полным native. Не обещаем будущие зоны."
+    },
+    "72203": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.radissonhotels.com/en-us/hotels/radisson-blu-resort-maldives/services",
+        "https://www.radissonhotels.com/en-us/hotels/radisson-blu-resort-maldives/family",
+        "https://www.radissonhotels.com/en-us/hotels/radisson-blu-resort-maldives/activities"
+      ],
+      "evidence": "Действующая официальная property page с актуальным названием/адресом и услугами; детали сопоставлены с полным native. Не обещаем будущие зоны."
+    },
+    "1590": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.xanaduhotels.com.tr/en/xanadu-resort",
+        "https://www.xanaduhotels.com.tr/factsheet/xanadu-resort/XANADU_FACTSHEET_2026_ENG.pdf",
+        "https://www.xanaduhotels.com.tr/tr/xanadu-resort/kids"
+      ],
+      "evidence": "Действующая официальная property page с актуальным названием/адресом и услугами; детали сопоставлены с полным native. Не обещаем будущие зоны."
+    },
+    "2484": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.tajhotels.com/en-in/hotels/taj-exotica-maldives"
+      ],
+      "evidence": "Действующая официальная property page с актуальным названием/адресом и услугами; детали сопоставлены с полным native. Не обещаем будущие зоны."
+    },
+    "4514": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.hyatt.com/park-hyatt/en-US/abuph-park-hyatt-abu-dhabi-hotel-and-villas",
+        "https://www.hyatt.com/park-hyatt/en-US/abuph-park-hyatt-abu-dhabi-hotel-and-villas/faqs",
+        "https://kompastour.com/useruploads/tiny_MCE/uae/Abu%20Dhabi/park-hyatt/Park_Hyatt_AbuDhabi_club_en_.pdf"
+      ],
+      "evidence": "Действующая официальная property page с актуальным названием/адресом и услугами; детали сопоставлены с полным native. Не обещаем будущие зоны."
+    },
+    "2625": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://all.accor.com/hotel/B4I9/index.en.shtml",
+        "https://movenpick.accor.com/language-master/middle-east/uae/dubai/hotel-dubai-jumeirah-beach/faqs.html"
+      ],
+      "evidence": "Действующая официальная property page с актуальным названием/адресом и услугами; детали сопоставлены с полным native. Не обещаем будущие зоны."
+    },
+    "64582": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://seasense.searesortshotels.com/",
+        "https://www.coquillebonheur.com/image/catalog/hotels%20Factsheets/4%20Star/Seasense%20(f).pdf"
+      ],
+      "evidence": "Действующая официальная property page с актуальным названием/адресом и услугами; детали сопоставлены с полным native. Не обещаем будущие зоны."
+    },
+    "12143": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.themacollection.com/maalu-maalu-resort/",
+        "https://www.themacollection.com/maalu-maalu-resort/concept/",
+        "https://www.themacollection.com/maalu-maalu-resort/facilities/"
+      ],
+      "evidence": "Действующая официальная property page с актуальным названием/адресом и услугами; детали сопоставлены с полным native. Не обещаем будущие зоны."
+    },
+    "17569": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://kusadasi.palmwings.com.tr/en/page/activities.html",
+        "https://www.oktopod.rs/content_files/pdf_koncepti/2093-kusadasi-palm-wings-beach-resort-5-davutlar.pdf"
+      ],
+      "evidence": "Действующая официальная property page с актуальным названием/адресом и услугами; детали сопоставлены с полным native. Не обещаем будущие зоны."
+    },
+    "69077": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.seadenhotels.com/en/seaden-quality-en/",
+        "https://www.seadenhotels.com/en/seaden-quality-en/pool-beach/",
+        "https://www.seadenhotels.com/en/seaden-quality-en/kids-club/"
+      ],
+      "evidence": "Действующая официальная property page с актуальным названием/адресом и услугами; детали сопоставлены с полным native. Не обещаем будущие зоны."
+    },
+    "1675": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://lablanchehotels.com/en/resort",
+        "https://lablanchehotels.com/en/resort/pools-aquapark",
+        "https://lablanchehotel.com/en/rooms",
+        "https://kompastour.com/useruploads/tiny_MCE/turkey/BODRUM/la_blanche_resort_spa/Fact_Sheet_S26.pdf"
+      ],
+      "evidence": "Действующий Resort в Тургутрейсе, +902523820000 и адрес совпадают. НЕ La Blanche Island (другой телефон/полуостров, уже в registry). Официальный Resort описывает UAI с pools/all facilities, свой пляж 400 м; отдельная pools page даёт открытый, детский и крытый бассейны/аквапарк. Клуб 4–12 supervised."
+    },
+    "4454": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.babalshams.com/experiences/kids-club",
+        "https://www.babalshams.com/events/calendar",
+        "https://www.kerznercommunications.com/bab-al-shams-425082/?lang=eng"
+      ],
+      "evidence": "Действующий отель Rare Finds/Kerzner; актуальный календарь и запись. Официальные страницы: supervised complimentary Kids Club 5–12; newsroom описывает открытые infinity/swim-up/family pools."
+    },
+    "2846": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.jetwinghotels.com/jetwingsamanvillas/",
+        "https://www.jetwinghotels.com/jetwingsamanvillas/facilities/",
+        "https://www.jetwinghotels.com/jetwingsamanvillas/special-offers/resident-offer/"
+      ],
+      "evidence": "Действующий Jetwing Saman Villas, совпадают телефон +94342275435 и местоположение; предложения до 2027. Правила 18+, facilities: infinity pool, spa, library; актуальный перечень сьютов без переноса устаревших площадей."
+    },
+    "47026": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.seadenhotels.com/seaden-valentine/",
+        "https://www.seadenhotels.com/en/seaden-valentine-en/about-us/",
+        "https://www.seadenhotels.com/seaden-valentine/spa-wellness/",
+        "https://www.oktopod.rs/content_files/pdf_koncepti/7102-seaden-valentine-resort-spa-5-adl-only-16.pdf"
+      ],
+      "evidence": "Действующий Seaden Valentine 16+ с бронированием. Официально 200 м от моря; native beach 300 м через дорогу, поэтому не обещаем точный метраж. Официальный spa подтверждает зимний крытый подогреваемый бассейн, factsheet ноябрь–март."
+    },
+    "2447": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://uvethotels.com/gangehiresort/",
+        "https://uvethotels.com/gangehiresort/en/rooms/",
+        "https://uvethotels.com/gangehiresort/en/contacts/"
+      ],
+      "evidence": "Действующая карточка оператора UVET с бронированием, телефон +9606660505 совпадает. Виллы beach/overwater, diving/spa и оплачиваемые два вида трансфера подтверждены."
+    },
+    "5406": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.reefvilla.com/",
+        "https://www.reefvilla.com/images/PDF_documents/FAQs_Agent.pdf",
+        "https://www.reefvilla.com/bookings/packages-and-offers"
+      ],
+      "evidence": "Текущий официальный сайт принимает бронирования, публикует отдых у бассейна/пляжа. Семь сьютов, сад, ресторан и beachfront совпадают с native. FAQ подтверждает общественный пляж и сезонность океанского купания; старые даты событий не использованы."
+    },
+    "64072": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.boutiquecollectionbyamaya.com/villas-wadduwa/stay/",
+        "https://www.boutiquecollectionbyamaya.com/villas-wadduwa/onsite-activities/",
+        "https://www.boutiquecollectionbyamaya.com/villas-wadduwa/onsite-activities/large-swimming-pool/"
+      ],
+      "evidence": "Актуальная карточка The Villas Wadduwa оператора Amaya: совпадают телефон +94382030500 и адрес/координаты native. 32 номера/сьюта, пять Luxury Villa with Plunge Pool; onsite activities включают бассейн, spa и beachside activities."
+    },
+    "67402": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://all.accor.com/hotel/B4J9/index.en.shtml"
+      ],
+      "evidence": "Действующий Accor B4J9, Media City/Al Falak, телефон и координаты совпадают. В собственной карточке: Outdoor Swimming Pool on site, gym, spa, Bytes. Babysitting on request не выдаётся за kids club."
+    },
+    "2244": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.robinson.com/en/en/resort-holiday/turkey/nobilis/club-details/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2244"
+      ],
+      "evidence": "Current official property pages and native profile agree on identity and retained facilities; no future-opening promise used."
+    },
+    "2423": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.banyantree.com/maldives/vabbinfaru",
+        "https://www.banyantree.com/maldives/vabbinfaru/facilities",
+        "https://www.banyantree.com/maldives/vabbinfaru/location",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2423"
+      ],
+      "evidence": "Current official property pages and native profile agree on identity and retained facilities; no future-opening promise used."
+    },
+    "26062": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://thudufushibeach.diamondsresorts.com/",
+        "https://thudufushibeach.diamondsresorts.com/beach-villas/",
+        "https://thudufushibeach.diamondsresorts.com/water-villa/two-bedroom-water-villas/",
+        "https://thudufushibeach.diamondsresorts.com/dining/aqua-water-restaurant/",
+        "https://thudufushibeach.diamondsresorts.com/premium-services/guest-services/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=26062"
+      ],
+      "evidence": "Current official property pages and native profile agree on identity and retained facilities; no future-opening promise used."
+    },
+    "51257": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.amayaresorts.com/amayalake/",
+        "https://www.amayaresorts.com/amayalake/dining/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=51257"
+      ],
+      "evidence": "Current official property pages and native profile agree on identity and retained facilities; no future-opening promise used."
+    },
+    "75786": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.kempinski.com/en/nile-hotel/overview/hotel-information/our-hotel",
+        "https://www.kempinski.com/en/nile-hotel/overview/services-and-facilities/rooftop-pool",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75786"
+      ],
+      "evidence": "Current official property pages and native profile agree on identity and retained facilities; no future-opening promise used."
+    },
+    "1598": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.xanaduhotels.com.tr/en/xanadu-island/kids",
+        "https://www.xanaduhotels.com.tr/en/xanadu-island/activity",
+        "https://xanaduislandbodrum.com.tr/en/otelimiz",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1598"
+      ],
+      "evidence": "Current official property pages and native profile agree on identity and retained facilities; no future-opening promise used."
+    },
+    "2932": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.marriott.com/en-us/hotels/auhdm-le-royal-meridien-abu-dhabi/experiences/",
+        "https://www.marriott.com/en-us/hotels/auhdm-le-royal-meridien-abu-dhabi/overview/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2932"
+      ],
+      "evidence": "Current official property pages and native profile agree on identity and retained facilities; no future-opening promise used."
+    },
+    "44480": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://all.accor.com/hotel/6305/index.en.shtml",
+        "https://www.pullman-dubai-jumeirahlakestowers.com/restaurants-in-jlt-dubai/pool-bar/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=44480"
+      ],
+      "evidence": "Current official property pages and native profile agree on identity and retained facilities; no future-opening promise used."
+    },
+    "68218": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.pullmanmaldivesmaamutaa.com/the-hotel/the-most-generous-all-inclusive-resort-in-the-maldives/",
+        "https://www.pullmanmaldivesmaamutaa.com/the-hotel/family-resort-maldives/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=68218"
+      ],
+      "evidence": "Current official property pages and native profile agree on identity and retained facilities; no future-opening promise used."
+    },
+    "64753": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://riffhikkaduwa.com/",
+        "https://riffhikkaduwa.com/hotel-facilities-amenities/"
+      ],
+      "evidence": "Официальный действующий Riff Hikkaduwa: собственное бронирование и контакт в Thiranagama,25номеров; salt-water outdoor infinity pool у пляжа, spa/library/gym. Совпадает native address870GalleRoad."
+    },
+    "23199": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://all.accor.com/hotel/B4J7/index.en.shtml"
+      ],
+      "evidence": "Текущая AccorB4J7:168номеров,ClusterA,JLT,phone+97144380000; активная бронь. В комнатах прямо включён RIVA BeachClub, бассейн outdoor heated/overflow. DMCCmetro пешком."
+    },
+    "1488": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://kamelyacollection.com/images/uploads/08-2026/eng-kamelya-selin-hotel-w-26-27-fact-sheet_1786693970.pdf",
+        "https://kamelyacollection.com/en/corporate/factsheet",
+        "https://kamelyacollection.com/en/kids"
+      ],
+      "evidence": "Актуальный winter factsheet01.11.2026–31.03.2027: именно KamelyaSelin, open all year, отдельный inventory/свои roomtypes; часть KamelyaCollection. Indoor/outdoorheated28C,4–12club, зимние горки по погоде."
+    }
+  },
+  "countries": {
+    "68217": 8,
+    "72203": 8,
+    "1590": 4,
+    "2484": 8,
+    "4514": 9,
+    "2625": 9,
+    "64582": 27,
+    "12143": 12,
+    "17569": 4,
+    "69077": 4,
+    "1675": 4,
+    "4454": 9,
+    "2846": 12,
+    "47026": 4,
+    "2447": 8,
+    "5406": 12,
+    "64072": 12,
+    "67402": 9,
+    "2244": 4,
+    "2423": 8,
+    "26062": 8,
+    "51257": 12,
+    "75786": 1,
+    "1598": 4,
+    "2932": 9,
+    "44480": 9,
+    "68218": 8,
+    "64753": 12,
+    "23199": 9,
+    "1488": 4
+  },
+  "aliases": {
+    "68217": [
+      "Intercontinental Maldives Maamunagau Resort"
+    ],
+    "72203": [
+      "Radisson Blu Resort Maldives"
+    ],
+    "1590": [
+      "Xanadu Resort Hotel"
+    ],
+    "2484": [
+      "Taj Exotica Resort & Spa"
+    ],
+    "4514": [
+      "Park Hyatt Abu Dhabi Hotel & Villas"
+    ],
+    "2625": [
+      "Movenpick Jumeirah Beach"
+    ],
+    "64582": [
+      "Seasense Boutique Hotel & Spa"
+    ],
+    "12143": [
+      "Maalu Maalu Resort & Spa"
+    ],
+    "17569": [
+      "Palm Wings Kusadasi Beach Resort"
+    ],
+    "69077": [
+      "Seaden Quality Resort & Spa"
+    ],
+    "1675": [
+      "La Blanche Resort",
+      "La Blanche Resort Bodrum",
+      "La Blanche Resort & Spa"
+    ],
+    "4454": [
+      "Bab Al Shams Desert Resort & Spa",
+      "Bab Al Shams Desert Resort"
+    ],
+    "2846": [
+      "Jetwing Saman Villas",
+      "Saman Villas"
+    ],
+    "47026": [
+      "Seaden Valentine Resort & Spa",
+      "Seaden Valentine Resort & Spa Adults Only 16+",
+      "Seaden Valentine Resort & Spa Adults Only16+",
+      "Seaden Valentine"
+    ],
+    "2447": [
+      "Gangehi Island Resort & Spa",
+      "Gangehi Island Resort",
+      "Veraclub Gangehi Island Resort"
+    ],
+    "5406": [
+      "Reef Villa & Spa",
+      "Reef Beach Villa Wadduwa",
+      "Reef Villa Wadduwa"
+    ],
+    "64072": [
+      "The Villas Wadduwa by Amaya",
+      "Amaya Villas",
+      "The Villas Wadduwa"
+    ],
+    "67402": [
+      "Grand Plaza Mövenpick Media City",
+      "Grand Plaza Movenpick Media City Dubai",
+      "Grand Plaza Movenpick Media City"
+    ],
+    "2244": [
+      "Robinson Nobilis"
+    ],
+    "2423": [
+      "Banyan Tree Maldives Vabbinfaru",
+      "Banyan Tree Vabbinfaru"
+    ],
+    "26062": [
+      "Diamonds Thudufushi"
+    ],
+    "51257": [
+      "Amaya Lake"
+    ],
+    "75786": [
+      "Kempinski Nile Hotel Garden City Cairo",
+      "Kempinski Nile Hotel"
+    ],
+    "1598": [
+      "Xanadu Island Bodrum",
+      "Xanadu Island"
+    ],
+    "2932": [
+      "Le Royal Meridien Abu Dhabi",
+      "Le Royal Méridien Abu Dhabi"
+    ],
+    "44480": [
+      "Pullman Dubai Jumeirah Lakes Towers",
+      "Pullman Jumeirah Lakes Towers"
+    ],
+    "68218": [
+      "Pullman Maldives Maamutaa"
+    ],
+    "64753": [
+      "Riff Hikkaduwa"
+    ],
+    "23199": [
+      "Movenpick Hotel Jumeirah Lakes Towers",
+      "Mövenpick Jumeirah Lakes Towers"
+    ],
+    "1488": [
+      "Kamelya Selin",
+      "Kamelya Collection Selin Hotel"
+    ]
+  },
+  "editorial": {
+    "68217": {
+      "id": 68217,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Intercontinental Maldives Maamunagau Resort\n📍 атолл Раа, Мальдивы.\n\nДля семей и пар, которым важны простор и островная жизнь: виллы с бассейнами, пляж и занятия с морскими биологами. Planet Trekkers рассчитан на детей 4–12 лет. Для тихого отдыха есть The Retreat с бассейном, эта зона только для взрослых.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": {
+        "native_profile": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=68217",
+        "native_sha256": "864087779b6a7b909fad201d2d53bc305f8e96fa266f832ef64095ddc31306db",
+        "used_fields": [
+          "common.place",
+          "common.description",
+          "infrastructure",
+          "roomTypes",
+          "services.child"
+        ],
+        "verification": "Полный native прочитан; уточнения официальных источников изложены в material_checks."
+      },
+      "material_conditions": [
+        "The Retreat только для взрослых; клуб4–12; островной трансфер отдельно от международного перелёта."
+      ],
+      "aliases": [
+        "Intercontinental Maldives Maamunagau Resort"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases и ID сверены; совпадений нет. Одноимённые сетевые отели других городов не дубли.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://maldives.intercontinental.com/",
+          "https://maldives.intercontinental.com/family/planet-trekkers/",
+          "https://maldives.intercontinental.com/restaurantsandbars/"
+        ],
+        "evidence": "Действующая официальная property page с актуальным названием/адресом и услугами; детали сопоставлены с полным native. Не обещаем будущие зоны."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Островной берег и beach villas с прямым пляжным выходом.",
+          "sources": [
+            "https://maldives.intercontinental.com/villas-residences/villas/family-beach-pool-villas"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "Native и официальные facilities/family: аквапарк не заявлен; splash pool не выдаём за аквапарк.",
+          "sources": [
+            "https://maldives.intercontinental.com/family/planet-trekkers/"
+          ]
+        },
+        "kids_club": {
+          "status": "verified",
+          "evidence": "Planet Trekkers4–12; организованные игры/миниэкспедиции, малышам не обещаем самостоятельный присмотр.",
+          "sources": [
+            "https://maldives.intercontinental.com/family/planet-trekkers/"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Открытые бассейны при виллах, главный и Retreat; Retreat adults-only.",
+          "sources": [
+            "https://maldives.intercontinental.com/restaurantsandbars/",
+            "https://maldives.intercontinental.com/the-perfect-day/"
+          ]
+        }
+      },
+      "alias_registry_sha256": "90b421172446b22247a94d92d5e26cb4039d95cbb7154402b54dd2f41e2c6f0b",
+      "caption_sha256": "03a707a2e3329f3dd13a3d6bd3932983dd4e861501eab7641b6372ef6180bbd3"
+    },
+    "72203": {
+      "id": 72203,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Radisson Blu Resort Maldives\n📍 атолл Южный Ари, Мальдивы.\n\nДля отдыха с личным пространством: у каждой виллы собственный бассейн и выход к пляжу или океану. Есть дайвинг, теннис и детский клуб 4–12 лет. Семьям с детьми младше 12 лет отель рекомендует береговые виллы; для размещения в надводных требуется отдельное согласие родителей.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": {
+        "native_profile": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=72203",
+        "native_sha256": "535dd3c7b86dcb5066f8c05255f4160652ec184e0667ad85c30fc473e2e2b4bc",
+        "used_fields": [
+          "common.place",
+          "common.description",
+          "infrastructure",
+          "roomTypes",
+          "services.child"
+        ],
+        "verification": "Полный native прочитан; уточнения официальных источников изложены в material_checks."
+      },
+      "material_conditions": [
+        "Native common.description: under12 overwater не рекомендован, требуется waiver родителей; береговые альтернативы."
+      ],
+      "aliases": [
+        "Radisson Blu Resort Maldives"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases и ID сверены; совпадений нет. Одноимённые сетевые отели других городов не дубли.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.radissonhotels.com/en-us/hotels/radisson-blu-resort-maldives/services",
+          "https://www.radissonhotels.com/en-us/hotels/radisson-blu-resort-maldives/family",
+          "https://www.radissonhotels.com/en-us/hotels/radisson-blu-resort-maldives/activities"
+        ],
+        "evidence": "Действующая официальная property page с актуальным названием/адресом и услугами; детали сопоставлены с полным native. Не обещаем будущие зоны."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Все виллы имеют выход на beach либо ocean, различие категорий сохранено.",
+          "sources": [
+            "https://www.radissonhotels.com/en-us/hotels/radisson-blu-resort-maldives/services"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "В full native и официальном перечне services/activities аквапарк не заявлен.",
+          "sources": [
+            "https://www.radissonhotels.com/en-us/hotels/radisson-blu-resort-maldives/services",
+            "https://www.radissonhotels.com/en-us/hotels/radisson-blu-resort-maldives/activities"
+          ]
+        },
+        "kids_club": {
+          "status": "verified",
+          "evidence": "Клуб4–12, команда проводит занятия; under4 только с parent/guardian согласно hotel-authored rules.",
+          "sources": [
+            "https://www.radissonhotels.com/en-us/hotels/radisson-blu-resort-maldives/family",
+            "https://kompastour.com/useruploads/tiny_MCE/Maldives/south-ari-atoll/radisson_blu/RBRM_Kids_Club_2025.pdf"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Все виллы private pool на наружной террасе; общий outdoor в native; не обещаем подогрев.",
+          "sources": [
+            "https://www.radissonhotels.com/en-us/hotels/radisson-blu-resort-maldives/services"
+          ]
+        }
+      },
+      "alias_registry_sha256": "90b421172446b22247a94d92d5e26cb4039d95cbb7154402b54dd2f41e2c6f0b",
+      "caption_sha256": "ed369a80629d656b123c6744c3cc0a6143fb98d0b088b996fca6435957c7dda3"
+    },
+    "1590": {
+      "id": 1590,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Xanadu Resort Hotel\n📍 Белек, Турция.\n\nДля семей, которым нужны и пляж, и насыщенная программа: большая зелёная территория, собственный песчано-галечный берег и Fancyland с занятиями для разных возрастов. Горки включены, но работают по расписанию и с возрастными ограничениями. Fancyland сезонный; вне его сезона работает мини-клуб 4–12 лет. Крытые бассейны летом закрыты.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": {
+        "native_profile": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1590",
+        "native_sha256": "ef299426ae74c719dff726c52bf1613881bdf2452ea5cf7cbfec23655127c7f2",
+        "used_fields": [
+          "common.place",
+          "common.description",
+          "infrastructure",
+          "roomTypes",
+          "services.child"
+        ],
+        "verification": "Полный native прочитан; уточнения официальных источников изложены в material_checks."
+      },
+      "material_conditions": [
+        "Сезонность Fancyland; зимний mini4–12; горки по возрасту/погоде/графику; крытые бассейны не летом."
+      ],
+      "aliases": [
+        "Xanadu Resort Hotel"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases и ID сверены; совпадений нет. Одноимённые сетевые отели других городов не дубли.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.xanaduhotels.com.tr/en/xanadu-resort",
+          "https://www.xanaduhotels.com.tr/factsheet/xanadu-resort/XANADU_FACTSHEET_2026_ENG.pdf",
+          "https://www.xanaduhotels.com.tr/tr/xanadu-resort/kids"
+        ],
+        "evidence": "Действующая официальная property page с актуальным названием/адресом и услугами; детали сопоставлены с полным native. Не обещаем будущие зоны."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Свой берег у курорта; native песок/галька, официальный beach.",
+          "sources": [
+            "https://www.xanaduhotels.com.tr/en/xanadu-resort"
+          ]
+        },
+        "waterpark": {
+          "status": "verified",
+          "evidence": "2026 factsheet waterslidesfree, график10–12/14–16 и разные возрастные уровни; погода/сезон.",
+          "sources": [
+            "https://www.xanaduhotels.com.tr/factsheet/xanadu-resort/XANADU_FACTSHEET_2026_ENG.pdf"
+          ]
+        },
+        "kids_club": {
+          "status": "verified",
+          "evidence": "Fancyland0–3/4–7/8–16; сезонный, winteralternate mini4–12. Не обещаем няню бесплатно.",
+          "sources": [
+            "https://www.xanaduhotels.com.tr/factsheet/xanadu-resort/XANADU_FACTSHEET_2026_ENG.pdf",
+            "https://www.xanaduhotels.com.tr/tr/xanadu-resort/kids"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Открытые бассейны; indoor/indoorchildren not available summer.",
+          "sources": [
+            "https://www.xanaduhotels.com.tr/factsheet/xanadu-resort/XANADU_FACTSHEET_2026_ENG.pdf"
+          ]
+        }
+      },
+      "alias_registry_sha256": "90b421172446b22247a94d92d5e26cb4039d95cbb7154402b54dd2f41e2c6f0b",
+      "caption_sha256": "9e9d9a0719d49d6f8033f23153d13126bf85ee155c2d9d886d133d64932373bf"
+    },
+    "2484": {
+      "id": 2484,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Taj Exotica Resort & Spa\n📍 атолл Южный Мале, Мальдивы.\n\nДля романтического отдыха без долгого внутреннего перелёта: остров Эмбуду-Финолу примерно в 15–20 минутах на катере от аэропорта. Песчаный берег, большая лагуна, открытый инфинити-бассейн и ресторан над водой. Частный бассейн есть не у каждой виллы: категорию подберём под ваш отдых.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": {
+        "native_profile": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2484",
+        "native_sha256": "9d60d995054c5704aef395ed54aeea64b2ce0a616d5345524dfddb8c2ac86196",
+        "used_fields": [
+          "common.place",
+          "common.description",
+          "infrastructure",
+          "roomTypes",
+          "services.child"
+        ],
+        "verification": "Полный native прочитан; уточнения официальных источников изложены в material_checks."
+      },
+      "material_conditions": [
+        "Частный бассейн зависит от категории; трансфер катером15–20мин, не гидроплан."
+      ],
+      "aliases": [
+        "Taj Exotica Resort & Spa"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases и ID сверены; совпадений нет. Одноимённые сетевые отели других городов не дубли.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.tajhotels.com/en-in/hotels/taj-exotica-maldives"
+        ],
+        "evidence": "Действующая официальная property page с актуальным названием/адресом и услугами; детали сопоставлены с полным native. Не обещаем будущие зоны."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Direct beach access/natural lagoon; островEmboodhuFinolhu.",
+          "sources": [
+            "https://www.tajhotels.com/en-in/hotels/taj-exotica-maldives"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "Full native и hotel facilities не заявляют аквапарк.",
+          "sources": [
+            "https://www.tajhotels.com/en-in/hotels/taj-exotica-maldives"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "Full native содержит babysitting/детские занятия, но не отдельный клуб; официальный facilities тоже клуба не заявляет. Не обещаем клуб/присмотр.",
+          "sources": [
+            "https://www.tajhotels.com/en-in/hotels/taj-exotica-maldives"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Официально outdoor/infinityedge; privatepool лишь у части категорий.",
+          "sources": [
+            "https://www.tajhotels.com/en-in/hotels/taj-exotica-maldives"
+          ]
+        }
+      },
+      "alias_registry_sha256": "90b421172446b22247a94d92d5e26cb4039d95cbb7154402b54dd2f41e2c6f0b",
+      "caption_sha256": "2889b5789a108956c0aa684ba5fb902c55af6e46ea40c4bb90a0deb6ff8551bb"
+    },
+    "4514": {
+      "id": 4514,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Park Hyatt Abu Dhabi Hotel & Villas\n📍 остров Саадият, Абу-Даби, ОАЭ.\n\nДля пляжного отдыха рядом с культурными достопримечательностями: белый песок Саадията, открытые бассейны и спа Atarmia. Есть семейная и детская зоны, а один бассейн предназначен только для взрослых. Camp Hyatt предлагает занятия детям 5–12 лет; малышам младше 5 нужен сопровождающий.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": {
+        "native_profile": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4514",
+        "native_sha256": "a69ad0961b4536b7cb37a4ca70229114756985bd0eabb8d644dba07a8dbca4d8",
+        "used_fields": [
+          "common.place",
+          "common.description",
+          "infrastructure",
+          "roomTypes",
+          "services.child"
+        ],
+        "verification": "Полный native прочитан; уточнения официальных источников изложены в material_checks."
+      },
+      "material_conditions": [
+        "Один бассейн adults-only; клуб5–12, under5ссопровождением."
+      ],
+      "aliases": [
+        "Park Hyatt Abu Dhabi Hotel & Villas"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases и ID сверены; совпадений нет. Одноимённые сетевые отели других городов не дубли.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.hyatt.com/park-hyatt/en-US/abuph-park-hyatt-abu-dhabi-hotel-and-villas",
+          "https://www.hyatt.com/park-hyatt/en-US/abuph-park-hyatt-abu-dhabi-hotel-and-villas/faqs",
+          "https://kompastour.com/useruploads/tiny_MCE/uae/Abu%20Dhabi/park-hyatt/Park_Hyatt_AbuDhabi_club_en_.pdf"
+        ],
+        "evidence": "Действующая официальная property page с актуальным названием/адресом и услугами; детали сопоставлены с полным native. Не обещаем будущие зоны."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Официально берегSaadiyat, beachresort; прямой пляжный отдых.",
+          "sources": [
+            "https://www.hyatt.com/park-hyatt/en-US/abuph-park-hyatt-abu-dhabi-hotel-and-villas"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "Native/full official amenities не заявляют аквапарк; гольф/бассейны не аквапарк.",
+          "sources": [
+            "https://www.hyatt.com/park-hyatt/en-US/abuph-park-hyatt-abu-dhabi-hotel-and-villas"
+          ]
+        },
+        "kids_club": {
+          "status": "verified",
+          "evidence": "CurrentHyatt подтверждает supervisedCamp; hotel-authored правила5–12, under5parent/guardian, родители на территории. СтарыеCOVIDпункты не переносим.",
+          "sources": [
+            "https://www.hyatt.com/park-hyatt/en-US/abuph-park-hyatt-abu-dhabi-hotel-and-villas",
+            "https://kompastour.com/useruploads/tiny_MCE/uae/Abu%20Dhabi/park-hyatt/Park_Hyatt_AbuDhabi_club_en_.pdf"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Currentofficial5 pools вместоnative4; outdoor, adults-only/family/child-friendly, lap21m. Количество не обещаем.",
+          "sources": [
+            "https://www.hyatt.com/park-hyatt/en-US/abuph-park-hyatt-abu-dhabi-hotel-and-villas"
+          ]
+        }
+      },
+      "alias_registry_sha256": "90b421172446b22247a94d92d5e26cb4039d95cbb7154402b54dd2f41e2c6f0b",
+      "caption_sha256": "5e3141bef3cc4ad00e81d0bf845f56a8708ff35e7ba02bf5467b12e155b1178f"
+    },
+    "2625": {
+      "id": 2625,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Movenpick Jumeirah Beach\n📍 Дубай, ОАЭ.\n\nДля тех, кто хочет совместить море и прогулки по The Walk: рестораны и магазины рядом, а в отеле есть открытый бассейн с подогревом и фитнес-центр. Пляж общественный, через дорогу, в нескольких минутах пешком: это не отель со своим пляжем. У детского бассейна обязателен присмотр родителей.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": {
+        "native_profile": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2625",
+        "native_sha256": "1bb549dcddcf94d11dda71f9019b4a0a5c696c8145719153823682abfcf5dc57",
+        "used_fields": [
+          "common.place",
+          "common.description",
+          "infrastructure",
+          "roomTypes",
+          "services.child"
+        ],
+        "verification": "Полный native прочитан; уточнения официальных источников изложены в material_checks."
+      },
+      "material_conditions": [
+        "Общественный пляж через дорогу; parental supervision у детского бассейна."
+      ],
+      "aliases": [
+        "Movenpick Jumeirah Beach"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases и ID сверены; совпадений нет. Одноимённые сетевые отели других городов не дубли.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://all.accor.com/hotel/B4I9/index.en.shtml",
+          "https://movenpick.accor.com/language-master/middle-east/uae/dubai/hotel-dubai-jumeirah-beach/faqs.html"
+        ],
+        "evidence": "Действующая официальная property page с актуальным названием/адресом и услугами; детали сопоставлены с полным native. Не обещаем будущие зоны."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "ОфициальныйFAQ privatebeachнет, public2min; native уточняет переходдороги.",
+          "sources": [
+            "https://movenpick.accor.com/language-master/middle-east/uae/dubai/hotel-dubai-jumeirah-beach/faqs.html"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "Аквапарк не заявлен ни fullnative, ни official facilities.",
+          "sources": [
+            "https://all.accor.com/hotel/B4I9/index.en.shtml"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "FAQ на вопросclub описывает playground, не staffedclub; fullnative только площадка/няня. Не рекламируем клуб.",
+          "sources": [
+            "https://movenpick.accor.com/language-master/middle-east/uae/dubai/hotel-dubai-jumeirah-beach/faqs.html"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Официально outdoor/heated, childpool; FAQparents mandatory despite lifeguard.",
+          "sources": [
+            "https://all.accor.com/hotel/B4I9/index.en.shtml",
+            "https://movenpick.accor.com/language-master/middle-east/uae/dubai/hotel-dubai-jumeirah-beach/faqs.html"
+          ]
+        }
+      },
+      "alias_registry_sha256": "90b421172446b22247a94d92d5e26cb4039d95cbb7154402b54dd2f41e2c6f0b",
+      "caption_sha256": "8f942c98449ee0e4ac58eb6e9429c0dd2b7e2e7cfec49863b1e4e06416a42e2a"
+    },
+    "64582": {
+      "id": 64582,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Seasense Boutique Hotel & Spa\n📍 Пальмар, Маврикий.\n\nДля спокойного отдыха вдвоём: камерный отель прямо у песчаного берега, открытый бассейн с подогревом и спа. Подойдёт тем, кто предпочитает пляжные дни и неспешные ужины детской анимации. Важное условие: отель принимает гостей от 12 лет.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": {
+        "native_profile": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64582",
+        "native_sha256": "582c6617eece27055985d803a5f24f7bfbe61381d7b151433e1710e3692fa037",
+        "used_fields": [
+          "common.place",
+          "common.description",
+          "infrastructure",
+          "roomTypes",
+          "services.child"
+        ],
+        "verification": "Полный native прочитан; уточнения официальных источников изложены в material_checks."
+      },
+      "material_conditions": [
+        "Возраст12+, не18+; privatepool толькоSeniorSuites, не обещан всем."
+      ],
+      "aliases": [
+        "Seasense Boutique Hotel & Spa"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases и ID сверены; совпадений нет. Одноимённые сетевые отели других городов не дубли.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://seasense.searesortshotels.com/",
+          "https://www.coquillebonheur.com/image/catalog/hotels%20Factsheets/4%20Star/Seasense%20(f).pdf"
+        ],
+        "evidence": "Действующая официальная property page с актуальным названием/адресом и услугами; детали сопоставлены с полным native. Не обещаем будущие зоны."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "CurrentofficialPalmarbeachfront.",
+          "sources": [
+            "https://seasense.searesortshotels.com/"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "В fullnative/официальнойhotelbrochure аквапарк не заявлен.",
+          "sources": [
+            "https://www.coquillebonheur.com/image/catalog/hotels%20Factsheets/4%20Star/Seasense%20(f).pdf"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "Official12+ adult-oriented; fullnative/брошюра клуба не заявляют.",
+          "sources": [
+            "https://seasense.searesortshotels.com/",
+            "https://www.coquillebonheur.com/image/catalog/hotels%20Factsheets/4%20Star/Seasense%20(f).pdf"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Hotel-authored factsheet mainpoolheated и terracearoundpool; outdoor подтверждён native и официальной галереей.",
+          "sources": [
+            "https://www.coquillebonheur.com/image/catalog/hotels%20Factsheets/4%20Star/Seasense%20(f).pdf",
+            "https://seasense.searesortshotels.com/"
+          ]
+        }
+      },
+      "alias_registry_sha256": "90b421172446b22247a94d92d5e26cb4039d95cbb7154402b54dd2f41e2c6f0b",
+      "caption_sha256": "fe81c5d10b7969b3fc3f4c710dd644e76c3bd40a774141e56ebc2dfd2b85124b"
+    },
+    "12143": {
+      "id": 12143,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Maalu Maalu Resort & Spa\n📍 Пасикуда, Шри-Ланка.\n\nДля любителей небольших отелей с местным характером: домики в стиле рыбацкой деревни прямо у песчаной бухты Пасикуда, открытый инфинити-бассейн и рестораны с блюдами островной кухни. Можно чередовать пляж, прогулки и отдых в спа без атмосферы большого курортного комплекса.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": {
+        "native_profile": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=12143",
+        "native_sha256": "d343fc1524f5e8a951098f42a893f99e804a6175d458b067d3fa845fb1adcf5e",
+        "used_fields": [
+          "common.place",
+          "common.description",
+          "infrastructure",
+          "roomTypes",
+          "services.child"
+        ],
+        "verification": "Полный native прочитан; уточнения официальных источников изложены в material_checks."
+      },
+      "material_conditions": [
+        "Пасикуда, не городТринкомали из общегоregion; без медицинских обещаний спа."
+      ],
+      "aliases": [
+        "Maalu Maalu Resort & Spa"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases и ID сверены; совпадений нет. Одноимённые сетевые отели других городов не дубли.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.themacollection.com/maalu-maalu-resort/",
+          "https://www.themacollection.com/maalu-maalu-resort/concept/",
+          "https://www.themacollection.com/maalu-maalu-resort/facilities/"
+        ],
+        "evidence": "Действующая официальная property page с актуальным названием/адресом и услугами; детали сопоставлены с полным native. Не обещаем будущие зоны."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Officialconceptдвери к песку, PasikudaBay.",
+          "sources": [
+            "https://www.themacollection.com/maalu-maalu-resort/concept/"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "Fullnative/officialfacilities не заявляют waterpark.",
+          "sources": [
+            "https://www.themacollection.com/maalu-maalu-resort/facilities/"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "Fullnative толькоchildpool; officialfacilities/experiences не заявляютkidsclub. Не обещан.",
+          "sources": [
+            "https://www.themacollection.com/maalu-maalu-resort/facilities/"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Officialinfinitypool overlookingocean, открытая береговая зона; nativechildrenpool.",
+          "sources": [
+            "https://www.themacollection.com/maalu-maalu-resort/facilities/"
+          ]
+        }
+      },
+      "alias_registry_sha256": "90b421172446b22247a94d92d5e26cb4039d95cbb7154402b54dd2f41e2c6f0b",
+      "caption_sha256": "4939c1056ba68b5d6825c8d70bf115ad291f5d21e4626bb02a59693eacde64cd"
+    },
+    "17569": {
+      "id": 17569,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Palm Wings Kusadasi Beach Resort\n📍 Давутлар, Кушадасы, Турция.\n\nДля семейного отдыха у Эгейского моря: собственный песчаный берег, открытые бассейны и водные горки, включённые в отдых. В клубе есть программы 4–7 и 8–12 лет; дети младше 4 участвуют только вместе со взрослыми. Бассейны без подогрева, поэтому для купания особенно важен выбор сезона.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": {
+        "native_profile": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=17569",
+        "native_sha256": "e2f3636a44944a5bcd1392487ffbbe7dd3859015e708ecac952da9ecd8e98cc9",
+        "used_fields": [
+          "common.place",
+          "common.description",
+          "infrastructure",
+          "roomTypes",
+          "services.child"
+        ],
+        "verification": "Полный native прочитан; уточнения официальных источников изложены в material_checks."
+      },
+      "material_conditions": [
+        "Без подогрева по native; младше4сродителем; отдельный от PalmWingsEphesus."
+      ],
+      "aliases": [
+        "Palm Wings Kusadasi Beach Resort"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases и ID сверены; совпадений нет. Одноимённые сетевые отели других городов не дубли.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://kusadasi.palmwings.com.tr/en/page/activities.html",
+          "https://www.oktopod.rs/content_files/pdf_koncepti/2093-kusadasi-palm-wings-beach-resort-5-davutlar.pdf"
+        ],
+        "evidence": "Действующая официальная property page с актуальным названием/адресом и услугами; детали сопоставлены с полным native. Не обещаем будущие зоны."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Hotel-authored2025factsheet OnSandyBeach, адресDavutlar.",
+          "sources": [
+            "https://www.oktopod.rs/content_files/pdf_koncepti/2093-kusadasi-palm-wings-beach-resort-5-davutlar.pdf"
+          ]
+        },
+        "waterpark": {
+          "status": "verified",
+          "evidence": "2025hotel-authoredtable WaterSlidesFREE; не путать платныеводныеспорты.",
+          "sources": [
+            "https://www.oktopod.rs/content_files/pdf_koncepti/2093-kusadasi-palm-wings-beach-resort-5-davutlar.pdf"
+          ]
+        },
+        "kids_club": {
+          "status": "verified",
+          "evidence": "Официальные группы 4–7 и 8–12 лет; младше 4 лет только вместе с сопровождающим взрослым.",
+          "sources": [
+            "https://kusadasi.palmwings.com.tr/en/page/activities.html"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Officialoutdoor; factsheet outdoor700m²/child50/waterslides; native specifiesnoheating, не обещаемтёплый.",
+          "sources": [
+            "https://kusadasi.palmwings.com.tr/en/page/activities.html",
+            "https://www.oktopod.rs/content_files/pdf_koncepti/2093-kusadasi-palm-wings-beach-resort-5-davutlar.pdf"
+          ]
+        }
+      },
+      "alias_registry_sha256": "90b421172446b22247a94d92d5e26cb4039d95cbb7154402b54dd2f41e2c6f0b",
+      "caption_sha256": "dfb32ddb2c329d03bbf3e28b2a6bc11f1456cd10cfc42ccfac98ea4fdfb9261f"
+    },
+    "69077": {
+      "id": 69077,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Seaden Quality Resort & Spa\n📍 Кумкой, Сиде, Турция.\n\nДля семей, которым нужен пляжный отель без обязательной гонки за развлечениями: песчаный берег рядом, открытый бассейн, спа и занятия в KiQi Club для детей 4–12 лет. Зимой можно плавать в крытом бассейне с подогревом. Семейные номера есть с двумя спальнями; планировку подберём под ваш состав.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": {
+        "native_profile": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=69077",
+        "native_sha256": "b09a797d9dc8dae4d2a412f6419558320c374dc851ce07e334f62d058a90d3fb",
+        "used_fields": [
+          "common.place",
+          "common.description",
+          "infrastructure",
+          "roomTypes",
+          "services.child"
+        ],
+        "verification": "Полный native прочитан; уточнения официальных источников изложены в material_checks."
+      },
+      "material_conditions": [
+        "Крытыйподогревзимой, наружныйподогревнеобещан."
+      ],
+      "aliases": [
+        "Seaden Quality Resort & Spa"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases и ID сверены; совпадений нет. Одноимённые сетевые отели других городов не дубли.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.seadenhotels.com/en/seaden-quality-en/",
+          "https://www.seadenhotels.com/en/seaden-quality-en/pool-beach/",
+          "https://www.seadenhotels.com/en/seaden-quality-en/kids-club/"
+        ],
+        "evidence": "Действующая официальная property page с актуальным названием/адресом и услугами; детали сопоставлены с полным native. Не обещаем будущие зоны."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Officialbeachfront+native собственныйпесчаныйберегвшаговойдоступности.",
+          "sources": [
+            "https://www.seadenhotels.com/en/seaden-quality-en/"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "Fullnative/currentofficialfacilities не заявляютаквапарк.",
+          "sources": [
+            "https://www.seadenhotels.com/en/seaden-quality-en/"
+          ]
+        },
+        "kids_club": {
+          "status": "verified",
+          "evidence": "CurrentKiQiClub4–12 с занятиями/играми; parental unwind whilestaffactivities.",
+          "sources": [
+            "https://www.seadenhotels.com/en/seaden-quality-en/kids-club/"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Officialoutdoor+heatedindoorwinter, childindoor/outdoor; не обещаемподогревнаружного.",
+          "sources": [
+            "https://www.seadenhotels.com/en/seaden-quality-en/pool-beach/"
+          ]
+        }
+      },
+      "alias_registry_sha256": "90b421172446b22247a94d92d5e26cb4039d95cbb7154402b54dd2f41e2c6f0b",
+      "caption_sha256": "f8e121523ddab15dec5c57e0c94e7c160ff1b5ae9deece8c664e79fa0155d9ac"
+    },
+    "1675": {
+      "id": 1675,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в La Blanche Resort\n📍 Тургутрейс, Бодрум, Турция.\n\nДля семейного отдыха на Эгейском море: собственный песчаный пляж, большой открытый бассейн и водные горки на территории. Мини-клуб с сотрудниками рассчитан на детей 4–12 лет. Питание — «ультра всё включено»; пляжные павильоны и спа-процедуры оплачиваются отдельно.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1675",
+          "evidence": "Прочитан полный native profile, кроме повторяющихся URL изображений."
+        },
+        {
+          "sources": [
+            "https://lablanchehotels.com/en/resort",
+            "https://lablanchehotels.com/en/resort/pools-aquapark",
+            "https://lablanchehotel.com/en/rooms",
+            "https://kompastour.com/useruploads/tiny_MCE/turkey/BODRUM/la_blanche_resort_spa/Fact_Sheet_S26.pdf"
+          ],
+          "evidence": "Действующий Resort в Тургутрейсе, +902523820000 и адрес совпадают. НЕ La Blanche Island (другой телефон/полуостров, уже в registry). Официальный Resort описывает UAI с pools/all facilities, свой пляж 400 м; отдельная pools page даёт открытый, детский и крытый бассейны/аквапарк. Клуб 4–12 supervised."
+        }
+      ],
+      "material_conditions": [
+        "Павильоны и спа-процедуры платные.",
+        "Мини-клуб 4–12 лет."
+      ],
+      "aliases": [
+        "La Blanche Resort",
+        "La Blanche Resort Bodrum",
+        "La Blanche Resort & Spa"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие названия объекта сверены с native/logical IDs и заголовками registry; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://lablanchehotels.com/en/resort",
+          "https://lablanchehotels.com/en/resort/pools-aquapark",
+          "https://lablanchehotel.com/en/rooms",
+          "https://kompastour.com/useruploads/tiny_MCE/turkey/BODRUM/la_blanche_resort_spa/Fact_Sheet_S26.pdf"
+        ],
+        "evidence": "Действующий Resort в Тургутрейсе, +902523820000 и адрес совпадают. НЕ La Blanche Island (другой телефон/полуостров, уже в registry). Официальный Resort описывает UAI с pools/all facilities, свой пляж 400 м; отдельная pools page даёт открытый, детский и крытый бассейны/аквапарк. Клуб 4–12 supervised."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Собственный песчаный пляж на территории; платные павильоны по native, не все пляжные услуги объявляются бесплатными.",
+          "sources": [
+            "https://lablanchehotels.com/en/resort",
+            "https://lablanchehotels.com/en/resort/pools-aquapark",
+            "https://lablanchehotel.com/en/rooms",
+            "https://kompastour.com/useruploads/tiny_MCE/turkey/BODRUM/la_blanche_resort_spa/Fact_Sheet_S26.pdf"
+          ]
+        },
+        "waterpark": {
+          "status": "verified",
+          "evidence": "Собственный открытый аквапарк/горки; официальный Resort включает pools/all facilities в UAI, не сторонний платный парк. Без обещания числа горок и круглосуточного доступа.",
+          "sources": [
+            "https://lablanchehotels.com/en/resort",
+            "https://lablanchehotels.com/en/resort/pools-aquapark",
+            "https://lablanchehotel.com/en/rooms",
+            "https://kompastour.com/useruploads/tiny_MCE/turkey/BODRUM/la_blanche_resort_spa/Fact_Sheet_S26.pdf"
+          ]
+        },
+        "kids_club": {
+          "status": "verified",
+          "evidence": "4–12 лет, ежедневные занятия под присмотром команды Mini Club; не персональная няня.",
+          "sources": [
+            "https://lablanchehotels.com/en/resort",
+            "https://lablanchehotels.com/en/resort/pools-aquapark",
+            "https://lablanchehotel.com/en/rooms",
+            "https://kompastour.com/useruploads/tiny_MCE/turkey/BODRUM/la_blanche_resort_spa/Fact_Sheet_S26.pdf"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Общий открытый 1600 м², открытый детский, крытый 114 м² с подогревом и крытый детский; круглогодичный подогрев открытого в подписи не обещаем.",
+          "sources": [
+            "https://lablanchehotels.com/en/resort",
+            "https://lablanchehotels.com/en/resort/pools-aquapark",
+            "https://lablanchehotel.com/en/rooms",
+            "https://kompastour.com/useruploads/tiny_MCE/turkey/BODRUM/la_blanche_resort_spa/Fact_Sheet_S26.pdf"
+          ]
+        }
+      },
+      "caption_sha256": "27e6691fbd2e6b2940ba99b643bef92b717dfcb3cc8f78a2000b37d4f06a793f"
+    },
+    "4454": {
+      "id": 4454,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Bab Al Shams Desert Resort & Spa\n📍 пустыня Аль-Мармум, Дубай, ОАЭ.\n\nДля отдыха вдвоём или семьёй вдали от городского шума: открытые бассейны с видом на пустыню, спа и прогулки среди дюн. Детский клуб с присмотром рассчитан на 5–12 лет. Это пустынный курорт, не пляжный отель: поездки к морю нужно планировать отдельно.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4454",
+          "evidence": "Прочитан полный native profile, кроме повторяющихся URL изображений."
+        },
+        {
+          "sources": [
+            "https://www.babalshams.com/experiences/kids-club",
+            "https://www.babalshams.com/events/calendar",
+            "https://www.kerznercommunications.com/bab-al-shams-425082/?lang=eng"
+          ],
+          "evidence": "Действующий отель Rare Finds/Kerzner; актуальный календарь и запись. Официальные страницы: supervised complimentary Kids Club 5–12; newsroom описывает открытые infinity/swim-up/family pools."
+        }
+      ],
+      "material_conditions": [
+        "Не на море.",
+        "Клуб 5–12 лет; пустынные экскурсии не объявляются бесплатными."
+      ],
+      "aliases": [
+        "Bab Al Shams Desert Resort & Spa",
+        "Bab Al Shams Desert Resort"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие названия объекта сверены с native/logical IDs и заголовками registry; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.babalshams.com/experiences/kids-club",
+          "https://www.babalshams.com/events/calendar",
+          "https://www.kerznercommunications.com/bab-al-shams-425082/?lang=eng"
+        ],
+        "evidence": "Действующий отель Rare Finds/Kerzner; актуальный календарь и запись. Официальные страницы: supervised complimentary Kids Club 5–12; newsroom описывает открытые infinity/swim-up/family pools."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "not_applicable",
+          "evidence": "Пустынный курорт Аль-Мармум; собственный морской пляж не заявлен.",
+          "sources": [
+            "https://www.babalshams.com/experiences/kids-club",
+            "https://www.babalshams.com/events/calendar",
+            "https://www.kerznercommunications.com/bab-al-shams-425082/?lang=eng"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "В полном native profile и официальном перечне услуг объект не заявляет эту услугу; не добавляем её в предложение и не утверждаем физическое отсутствие.",
+          "sources": [
+            "https://www.babalshams.com/experiences/kids-club",
+            "https://www.babalshams.com/events/calendar",
+            "https://www.kerznercommunications.com/bab-al-shams-425082/?lang=eng"
+          ]
+        },
+        "kids_club": {
+          "status": "verified",
+          "evidence": "Клуб 5–12 лет, присмотр сотрудников, включён для проживающих; расписание сезонное.",
+          "sources": [
+            "https://www.babalshams.com/experiences/kids-club",
+            "https://www.babalshams.com/events/calendar",
+            "https://www.kerznercommunications.com/bab-al-shams-425082/?lang=eng"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Открытые бассейны: infinity с видом на пустыню, swim-up и семейный; не обещаем круглогодичный подогрев.",
+          "sources": [
+            "https://www.babalshams.com/experiences/kids-club",
+            "https://www.babalshams.com/events/calendar",
+            "https://www.kerznercommunications.com/bab-al-shams-425082/?lang=eng"
+          ]
+        }
+      },
+      "caption_sha256": "ae8cf060d0e88a80ded199004d73e4c9c5a4e561e69bfbb3e7e3ebab09a82f34"
+    },
+    "2846": {
+      "id": 2846,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Jetwing Saman Villas\n📍 Индурува, район Бентоты, Шри-Ланка.\n\nДля романтической поездки без детской суеты: бутик-отель принимает гостей от 18 лет. Открытый инфинити-бассейн смотрит на океан, а спа и сьюты помогают провести время вдвоём. Отель стоит на возвышении у общественного пляжа; это океанское побережье, а не защищённая лагуна.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2846",
+          "evidence": "Прочитан полный native profile, кроме повторяющихся URL изображений."
+        },
+        {
+          "sources": [
+            "https://www.jetwinghotels.com/jetwingsamanvillas/",
+            "https://www.jetwinghotels.com/jetwingsamanvillas/facilities/",
+            "https://www.jetwinghotels.com/jetwingsamanvillas/special-offers/resident-offer/"
+          ],
+          "evidence": "Действующий Jetwing Saman Villas, совпадают телефон +94342275435 и местоположение; предложения до 2027. Правила 18+, facilities: infinity pool, spa, library; актуальный перечень сьютов без переноса устаревших площадей."
+        }
+      ],
+      "material_conditions": [
+        "Только 18+.",
+        "Возвышение у океана; общественный пляж."
+      ],
+      "aliases": [
+        "Jetwing Saman Villas",
+        "Saman Villas"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие названия объекта сверены с native/logical IDs и заголовками registry; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.jetwinghotels.com/jetwingsamanvillas/",
+          "https://www.jetwinghotels.com/jetwingsamanvillas/facilities/",
+          "https://www.jetwinghotels.com/jetwingsamanvillas/special-offers/resident-offer/"
+        ],
+        "evidence": "Действующий Jetwing Saman Villas, совпадают телефон +94342275435 и местоположение; предложения до 2027. Правила 18+, facilities: infinity pool, spa, library; актуальный перечень сьютов без переноса устаревших площадей."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "На возвышении над побережьем; общественный пляж native, официальный сайт подтверждает береговое расположение. Спокойную лагуну/частный пляж не обещаем.",
+          "sources": [
+            "https://www.jetwinghotels.com/jetwingsamanvillas/",
+            "https://www.jetwinghotels.com/jetwingsamanvillas/facilities/",
+            "https://www.jetwinghotels.com/jetwingsamanvillas/special-offers/resident-offer/"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "В полном native profile и официальном перечне услуг объект не заявляет эту услугу; не добавляем её в предложение и не утверждаем физическое отсутствие.",
+          "sources": [
+            "https://www.jetwinghotels.com/jetwingsamanvillas/",
+            "https://www.jetwinghotels.com/jetwingsamanvillas/facilities/",
+            "https://www.jetwinghotels.com/jetwingsamanvillas/special-offers/resident-offer/"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "Adults only 18+, детский клуб неприменим.",
+          "sources": [
+            "https://www.jetwinghotels.com/jetwingsamanvillas/",
+            "https://www.jetwinghotels.com/jetwingsamanvillas/facilities/",
+            "https://www.jetwinghotels.com/jetwingsamanvillas/special-offers/resident-offer/"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Открытый infinity pool; private pool только у соответствующих категорий, не у каждого номера.",
+          "sources": [
+            "https://www.jetwinghotels.com/jetwingsamanvillas/",
+            "https://www.jetwinghotels.com/jetwingsamanvillas/facilities/",
+            "https://www.jetwinghotels.com/jetwingsamanvillas/special-offers/resident-offer/"
+          ]
+        }
+      },
+      "caption_sha256": "f56e001f1477d3be6b1b9c90468571021266169efcc36827daf4929ad746871d"
+    },
+    "47026": {
+      "id": 47026,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Seaden Valentine Resort & Spa\n📍 Кумкёй, Сиде, Турция.\n\nДля отдыха вдвоём: отель принимает гостей от 16 лет, предлагает открытые бассейны, спа и питание «ультра всё включено». До собственного пляжа нужно немного пройти и пересечь дорогу. Крытый бассейн с подогревом работает в зимний сезон, а не круглый год.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=47026",
+          "evidence": "Прочитан полный native profile, кроме повторяющихся URL изображений."
+        },
+        {
+          "sources": [
+            "https://www.seadenhotels.com/seaden-valentine/",
+            "https://www.seadenhotels.com/en/seaden-valentine-en/about-us/",
+            "https://www.seadenhotels.com/seaden-valentine/spa-wellness/",
+            "https://www.oktopod.rs/content_files/pdf_koncepti/7102-seaden-valentine-resort-spa-5-adl-only-16.pdf"
+          ],
+          "evidence": "Действующий Seaden Valentine 16+ с бронированием. Официально 200 м от моря; native beach 300 м через дорогу, поэтому не обещаем точный метраж. Официальный spa подтверждает зимний крытый подогреваемый бассейн, factsheet ноябрь–март."
+        }
+      ],
+      "material_conditions": [
+        "16+.",
+        "Дорога по пути на пляж.",
+        "Крытый подогреваемый бассейн только зимой."
+      ],
+      "aliases": [
+        "Seaden Valentine Resort & Spa",
+        "Seaden Valentine Resort & Spa Adults Only 16+",
+        "Seaden Valentine Resort & Spa Adults Only16+",
+        "Seaden Valentine"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие названия объекта сверены с native/logical IDs и заголовками registry; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.seadenhotels.com/seaden-valentine/",
+          "https://www.seadenhotels.com/en/seaden-valentine-en/about-us/",
+          "https://www.seadenhotels.com/seaden-valentine/spa-wellness/",
+          "https://www.oktopod.rs/content_files/pdf_koncepti/7102-seaden-valentine-resort-spa-5-adl-only-16.pdf"
+        ],
+        "evidence": "Действующий Seaden Valentine 16+ с бронированием. Официально 200 м от моря; native beach 300 м через дорогу, поэтому не обещаем точный метраж. Официальный spa подтверждает зимний крытый подогреваемый бассейн, factsheet ноябрь–март."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Собственный песчаный пляж за дорогой. Разница 200/300 м между place/beach не превращается в обещание первой линии; в подписи честная прогулка через дорогу.",
+          "sources": [
+            "https://www.seadenhotels.com/seaden-valentine/",
+            "https://www.seadenhotels.com/en/seaden-valentine-en/about-us/",
+            "https://www.seadenhotels.com/seaden-valentine/spa-wellness/",
+            "https://www.oktopod.rs/content_files/pdf_koncepti/7102-seaden-valentine-resort-spa-5-adl-only-16.pdf"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "В полном native profile и официальном перечне услуг объект не заявляет эту услугу; не добавляем её в предложение и не утверждаем физическое отсутствие.",
+          "sources": [
+            "https://www.seadenhotels.com/seaden-valentine/",
+            "https://www.seadenhotels.com/en/seaden-valentine-en/about-us/",
+            "https://www.seadenhotels.com/seaden-valentine/spa-wellness/",
+            "https://www.oktopod.rs/content_files/pdf_koncepti/7102-seaden-valentine-resort-spa-5-adl-only-16.pdf"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "Adults only 16+, мини-клуб не предлагается.",
+          "sources": [
+            "https://www.seadenhotels.com/seaden-valentine/",
+            "https://www.seadenhotels.com/en/seaden-valentine-en/about-us/",
+            "https://www.seadenhotels.com/seaden-valentine/spa-wellness/",
+            "https://www.oktopod.rs/content_files/pdf_koncepti/7102-seaden-valentine-resort-spa-5-adl-only-16.pdf"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Открытые бассейны; крытый с подогревом зимой, в factsheet 01.11–31.03. Не обещаем летний indoor.",
+          "sources": [
+            "https://www.seadenhotels.com/seaden-valentine/",
+            "https://www.seadenhotels.com/en/seaden-valentine-en/about-us/",
+            "https://www.seadenhotels.com/seaden-valentine/spa-wellness/",
+            "https://www.oktopod.rs/content_files/pdf_koncepti/7102-seaden-valentine-resort-spa-5-adl-only-16.pdf"
+          ]
+        }
+      },
+      "caption_sha256": "e5815e9e5be97e2967d5c0451ff57049595660af5a1f2680b666bdc4a4b6b4b8"
+    },
+    "2447": {
+      "id": 2447,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Gangehi Island Resort & Spa\n📍 атолл Северный Ари, Мальдивы.\n\nДля спокойных дней на небольшом острове: пляж, домашний риф и дайвинг-центр, а для отдыха после моря — спа. Можно выбрать виллу на берегу или над водой. Трансфер оплачивается отдельно: около 25 минут на гидросамолёте либо 2–2,5 часа на скоростном катере, в зависимости от погоды.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2447",
+          "evidence": "Прочитан полный native profile, кроме повторяющихся URL изображений."
+        },
+        {
+          "sources": [
+            "https://uvethotels.com/gangehiresort/",
+            "https://uvethotels.com/gangehiresort/en/rooms/",
+            "https://uvethotels.com/gangehiresort/en/contacts/"
+          ],
+          "evidence": "Действующая карточка оператора UVET с бронированием, телефон +9606660505 совпадает. Виллы beach/overwater, diving/spa и оплачиваемые два вида трансфера подтверждены."
+        }
+      ],
+      "material_conditions": [
+        "Трансфер оплачивается отдельно.",
+        "Катер около 2–2,5 часа; длительность зависит от погоды."
+      ],
+      "aliases": [
+        "Gangehi Island Resort & Spa",
+        "Gangehi Island Resort",
+        "Veraclub Gangehi Island Resort"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие названия объекта сверены с native/logical IDs и заголовками registry; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://uvethotels.com/gangehiresort/",
+          "https://uvethotels.com/gangehiresort/en/rooms/",
+          "https://uvethotels.com/gangehiresort/en/contacts/"
+        ],
+        "evidence": "Действующая карточка оператора UVET с бронированием, телефон +9606660505 совпадает. Виллы beach/overwater, diving/spa и оплачиваемые два вида трансфера подтверждены."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Островной пляж; прямой выход к пляжу у Beach Villa, к лагуне у водных вилл. Домашний риф подтверждён native.",
+          "sources": [
+            "https://uvethotels.com/gangehiresort/",
+            "https://uvethotels.com/gangehiresort/en/rooms/",
+            "https://uvethotels.com/gangehiresort/en/contacts/"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "В полном native profile и официальном перечне услуг объект не заявляет эту услугу; не добавляем её в предложение и не утверждаем физическое отсутствие.",
+          "sources": [
+            "https://uvethotels.com/gangehiresort/",
+            "https://uvethotels.com/gangehiresort/en/rooms/",
+            "https://uvethotels.com/gangehiresort/en/contacts/"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "В полном native profile и официальном перечне услуг объект не заявляет эту услугу; не добавляем её в предложение и не утверждаем физическое отсутствие.",
+          "sources": [
+            "https://uvethotels.com/gangehiresort/",
+            "https://uvethotels.com/gangehiresort/en/rooms/",
+            "https://uvethotels.com/gangehiresort/en/contacts/"
+          ]
+        },
+        "pools": {
+          "status": "not_applicable",
+          "evidence": "В проверенном полном native и перечне услуг UVET бассейн не предлагается; делаем предложение про океан, без обещания бассейна.",
+          "sources": [
+            "https://uvethotels.com/gangehiresort/",
+            "https://uvethotels.com/gangehiresort/en/rooms/",
+            "https://uvethotels.com/gangehiresort/en/contacts/"
+          ]
+        }
+      },
+      "caption_sha256": "0366854bd4069bb0e782c16eec75f1c9b6f47981977a6f20c3bacdb3b47490ca"
+    },
+    "5406": {
+      "id": 5406,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Reef Villa & Spa\n📍 Ваддува, Шри-Ланка.\n\nДля тех, кто предпочитает камерный отдых большому курорту: всего семь сьютов, тропический сад и открытый бассейн рядом с океаном. Есть ресторан Summer Breeze и спа. Выход ведёт на общественный пляж; купание в океане зависит от сезона и волн, это не закрытая лагуна.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=5406",
+          "evidence": "Прочитан полный native profile, кроме повторяющихся URL изображений."
+        },
+        {
+          "sources": [
+            "https://www.reefvilla.com/",
+            "https://www.reefvilla.com/images/PDF_documents/FAQs_Agent.pdf",
+            "https://www.reefvilla.com/bookings/packages-and-offers"
+          ],
+          "evidence": "Текущий официальный сайт принимает бронирования, публикует отдых у бассейна/пляжа. Семь сьютов, сад, ресторан и beachfront совпадают с native. FAQ подтверждает общественный пляж и сезонность океанского купания; старые даты событий не использованы."
+        }
+      ],
+      "material_conditions": [
+        "Общественный пляж.",
+        "Океанские волны и сезонность купания."
+      ],
+      "aliases": [
+        "Reef Villa & Spa",
+        "Reef Beach Villa Wadduwa",
+        "Reef Villa Wadduwa"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие названия объекта сверены с native/logical IDs и заголовками registry; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.reefvilla.com/",
+          "https://www.reefvilla.com/images/PDF_documents/FAQs_Agent.pdf",
+          "https://www.reefvilla.com/bookings/packages-and-offers"
+        ],
+        "evidence": "Текущий официальный сайт принимает бронирования, публикует отдых у бассейна/пляжа. Семь сьютов, сад, ресторан и beachfront совпадают с native. FAQ подтверждает общественный пляж и сезонность океанского купания; старые даты событий не использованы."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Прямой выход на общественный океанский пляж; FAQ отмечает сезон купания декабрь–апрель, без гарантии условий ежедневно.",
+          "sources": [
+            "https://www.reefvilla.com/",
+            "https://www.reefvilla.com/images/PDF_documents/FAQs_Agent.pdf",
+            "https://www.reefvilla.com/bookings/packages-and-offers"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "В полном native profile и официальном перечне услуг объект не заявляет эту услугу; не добавляем её в предложение и не утверждаем физическое отсутствие.",
+          "sources": [
+            "https://www.reefvilla.com/",
+            "https://www.reefvilla.com/images/PDF_documents/FAQs_Agent.pdf",
+            "https://www.reefvilla.com/bookings/packages-and-offers"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "В полном native profile и официальном перечне услуг объект не заявляет эту услугу; не добавляем её в предложение и не утверждаем физическое отсутствие.",
+          "sources": [
+            "https://www.reefvilla.com/",
+            "https://www.reefvilla.com/images/PDF_documents/FAQs_Agent.pdf",
+            "https://www.reefvilla.com/bookings/packages-and-offers"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Бассейн на территории под открытым небом по native; официальный сайт подтверждает бассейн в садовой зоне, FAQ две мелкие секции рядом. Подогрев не заявляем.",
+          "sources": [
+            "https://www.reefvilla.com/",
+            "https://www.reefvilla.com/images/PDF_documents/FAQs_Agent.pdf",
+            "https://www.reefvilla.com/bookings/packages-and-offers"
+          ]
+        }
+      },
+      "caption_sha256": "fe8b97146380602cd2c3510d3425d53bb95a50edbee7a4375ec0f9592b47427b"
+    },
+    "64072": {
+      "id": 64072,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в The Villas Wadduwa by Amaya\n📍 Ваддува, Шри-Ланка.\n\nДля пар и семей, которым нужен небольшой отель у океана: 32 номера и сьюта, открытый бассейн, спа и прогулки по общественному пляжу. Можно остановиться в номере с балконом или выбрать Luxury Villa with Plunge Pool: собственный небольшой бассейн есть именно у этой категории, а не у всех вилл.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64072",
+          "evidence": "Прочитан полный native profile, кроме повторяющихся URL изображений."
+        },
+        {
+          "sources": [
+            "https://www.boutiquecollectionbyamaya.com/villas-wadduwa/stay/",
+            "https://www.boutiquecollectionbyamaya.com/villas-wadduwa/onsite-activities/",
+            "https://www.boutiquecollectionbyamaya.com/villas-wadduwa/onsite-activities/large-swimming-pool/"
+          ],
+          "evidence": "Актуальная карточка The Villas Wadduwa оператора Amaya: совпадают телефон +94382030500 и адрес/координаты native. 32 номера/сьюта, пять Luxury Villa with Plunge Pool; onsite activities включают бассейн, spa и beachside activities."
+        }
+      ],
+      "material_conditions": [
+        "Общественный океанский пляж.",
+        "Личный plunge pool только в соответствующей категории."
+      ],
+      "aliases": [
+        "The Villas Wadduwa by Amaya",
+        "Amaya Villas",
+        "The Villas Wadduwa"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие названия объекта сверены с native/logical IDs и заголовками registry; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.boutiquecollectionbyamaya.com/villas-wadduwa/stay/",
+          "https://www.boutiquecollectionbyamaya.com/villas-wadduwa/onsite-activities/",
+          "https://www.boutiquecollectionbyamaya.com/villas-wadduwa/onsite-activities/large-swimming-pool/"
+        ],
+        "evidence": "Актуальная карточка The Villas Wadduwa оператора Amaya: совпадают телефон +94382030500 и адрес/координаты native. 32 номера/сьюта, пять Luxury Villa with Plunge Pool; onsite activities включают бассейн, spa и beachside activities."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Отель у океана с прямым выходом к пляжу; native обозначает пляж муниципальным, частный пляж не обещаем.",
+          "sources": [
+            "https://www.boutiquecollectionbyamaya.com/villas-wadduwa/stay/",
+            "https://www.boutiquecollectionbyamaya.com/villas-wadduwa/onsite-activities/",
+            "https://www.boutiquecollectionbyamaya.com/villas-wadduwa/onsite-activities/large-swimming-pool/"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "В полном native profile и официальном перечне услуг объект не заявляет эту услугу; не добавляем её в предложение и не утверждаем физическое отсутствие.",
+          "sources": [
+            "https://www.boutiquecollectionbyamaya.com/villas-wadduwa/stay/",
+            "https://www.boutiquecollectionbyamaya.com/villas-wadduwa/onsite-activities/",
+            "https://www.boutiquecollectionbyamaya.com/villas-wadduwa/onsite-activities/large-swimming-pool/"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "В полном native profile и официальном перечне услуг объект не заявляет эту услугу; не добавляем её в предложение и не утверждаем физическое отсутствие.",
+          "sources": [
+            "https://www.boutiquecollectionbyamaya.com/villas-wadduwa/stay/",
+            "https://www.boutiquecollectionbyamaya.com/villas-wadduwa/onsite-activities/",
+            "https://www.boutiquecollectionbyamaya.com/villas-wadduwa/onsite-activities/large-swimming-pool/"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Общий открытый бассейн native; официальный Large Swimming Pool предлагает встречать закат у воды. Личные plunge pools только у пяти одноимённых вилл, не у всех категорий.",
+          "sources": [
+            "https://www.boutiquecollectionbyamaya.com/villas-wadduwa/stay/",
+            "https://www.boutiquecollectionbyamaya.com/villas-wadduwa/onsite-activities/",
+            "https://www.boutiquecollectionbyamaya.com/villas-wadduwa/onsite-activities/large-swimming-pool/"
+          ]
+        }
+      },
+      "caption_sha256": "872e70781b041dd0544fce11d818201a618173d8f2aeb4ba26f95ba857acf162"
+    },
+    "67402": {
+      "id": 67402,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Grand Plaza Mövenpick Media City\n📍 Дубай, ОАЭ.\n\nДля деловой поездки и знакомства с городом: база в Dubai Media City, открытый бассейн, тренажёрный зал и спа. Ресторан Bytes подойдёт для ужина после прогулок или встреч. Это городской отель, не первая линия: к морю нужно ехать отдельно.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=67402",
+          "evidence": "Прочитан полный native profile, кроме повторяющихся URL изображений."
+        },
+        {
+          "sources": [
+            "https://all.accor.com/hotel/B4J9/index.en.shtml"
+          ],
+          "evidence": "Действующий Accor B4J9, Media City/Al Falak, телефон и координаты совпадают. В собственной карточке: Outdoor Swimming Pool on site, gym, spa, Bytes. Babysitting on request не выдаётся за kids club."
+        }
+      ],
+      "material_conditions": [
+        "Не пляжный отель, до моря отдельная поездка."
+      ],
+      "aliases": [
+        "Grand Plaza Mövenpick Media City",
+        "Grand Plaza Movenpick Media City Dubai",
+        "Grand Plaza Movenpick Media City"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие названия объекта сверены с native/logical IDs и заголовками registry; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://all.accor.com/hotel/B4J9/index.en.shtml"
+        ],
+        "evidence": "Действующий Accor B4J9, Media City/Al Falak, телефон и координаты совпадают. В собственной карточке: Outdoor Swimming Pool on site, gym, spa, Bytes. Babysitting on request не выдаётся за kids club."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "not_applicable",
+          "evidence": "Городской отель Media City; собственный пляж и включённый beach club не заявлены.",
+          "sources": [
+            "https://all.accor.com/hotel/B4J9/index.en.shtml"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "В полном native profile и официальном перечне услуг объект не заявляет эту услугу; не добавляем её в предложение и не утверждаем физическое отсутствие.",
+          "sources": [
+            "https://all.accor.com/hotel/B4J9/index.en.shtml"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "Официально babysitting on request, не детский клуб; клуб не заявлен в native.",
+          "sources": [
+            "https://all.accor.com/hotel/B4J9/index.en.shtml"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Открытый бассейн на территории по карточке Accor; никаких переносов доступа к стороннему пляжу.",
+          "sources": [
+            "https://all.accor.com/hotel/B4J9/index.en.shtml"
+          ]
+        }
+      },
+      "caption_sha256": "517314441b34c6cb56097f5de8cf91835bcd3c9053aa8248b018e394a231fa86"
+    },
+    "2244": {
+      "id": 2244,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Robinson Nobilis\n📍 Белек, Турция.\n\nДля семей, которым хочется чередовать пляж, спорт и отдых у бассейна. К песчаному берегу ведёт мост через реку; есть крытый бассейн и детский клуб с 3 лет. Программы для детей 7–12 лет проходят в основные школьные каникулы, на немецком и английском. Подогреваемый релакс-бассейн только для гостей 16+; работа горок сезонная.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Belek river separates resort and sandybeach; access via bridge.",
+        "Resort pool slides: indoorNov–Mar,outdoorchildrenApr–earlyNov, no separate outside waterpark pass advertised.",
+        "SupervisedROBY3–6;7–12 main schoolholidays;13–17 teensholidayprogramme; German/English.",
+        "Main/sport outdoor unheated; relax16+ heatedapproxNov–Apr; indoorheatable; outdoorchildseasonal."
+      ],
+      "material_conditions": [
+        "Beach via riverbridge.",
+        "Club3–6;7–12 main school holidays.",
+        "Relaxpool16+; slidesseasonal."
+      ],
+      "aliases": [
+        "Robinson Nobilis"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Narrow property-specific names screened against all current registry rows; no match.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.robinson.com/en/en/resort-holiday/turkey/nobilis/club-details/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2244"
+        ],
+        "evidence": "Current official property pages and native profile agree on identity and retained facilities; no future-opening promise used."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Belek river separates resort and sandybeach; access via bridge.",
+          "sources": [
+            "https://www.robinson.com/en/en/resort-holiday/turkey/nobilis/club-details/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2244"
+          ]
+        },
+        "waterpark": {
+          "status": "verified",
+          "evidence": "Resort pool slides: indoorNov–Mar,outdoorchildrenApr–earlyNov, no separate outside waterpark pass advertised.",
+          "sources": [
+            "https://www.robinson.com/en/en/resort-holiday/turkey/nobilis/club-details/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2244"
+          ]
+        },
+        "kids_club": {
+          "status": "verified",
+          "evidence": "SupervisedROBY3–6;7–12 main schoolholidays;13–17 teensholidayprogramme; German/English.",
+          "sources": [
+            "https://www.robinson.com/en/en/resort-holiday/turkey/nobilis/club-details/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2244"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Main/sport outdoor unheated; relax16+ heatedapproxNov–Apr; indoorheatable; outdoorchildseasonal.",
+          "sources": [
+            "https://www.robinson.com/en/en/resort-holiday/turkey/nobilis/club-details/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2244"
+          ]
+        }
+      },
+      "caption_sha256": "6b1330ac1a8e04418e37f59b43f26d6060ba4e3d9b174aa1bacfcfa02d38ddf6"
+    },
+    "2423": {
+      "id": 2423,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Banyan Tree Maldives Vabbinfaru\n📍 остров Ваббинфару, атолл Северный Мале, Мальдивы.\n\nДля пары, которой нужны собственный бассейн и риф рядом с берегом. Здесь все виллы пляжные, с приватными бассейнами; можно заняться снорклингом у острова и заглянуть в морскую лабораторию. До курорта около 25 минут на катере из аэропорта Мале, без внутреннего перелёта.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "48 beachfrontpoolvillas, house reef atshore; boat20–30min.",
+        "Native description and checked official facilities do not advertise a waterpark; not promised.",
+        "Native profile and checked official facilities do not advertise a supervised kids club; no childcare promise.",
+        "All beachvillas privatepool; common MadiHiyaa saltwater infinitypool confirmed."
+      ],
+      "material_conditions": [
+        "Boat transfer20–30min; no transfer-price promise."
+      ],
+      "aliases": [
+        "Banyan Tree Maldives Vabbinfaru",
+        "Banyan Tree Vabbinfaru"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Narrow property-specific names screened against all current registry rows; no match.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.banyantree.com/maldives/vabbinfaru",
+          "https://www.banyantree.com/maldives/vabbinfaru/facilities",
+          "https://www.banyantree.com/maldives/vabbinfaru/location",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2423"
+        ],
+        "evidence": "Current official property pages and native profile agree on identity and retained facilities; no future-opening promise used."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "48 beachfrontpoolvillas, house reef atshore; boat20–30min.",
+          "sources": [
+            "https://www.banyantree.com/maldives/vabbinfaru",
+            "https://www.banyantree.com/maldives/vabbinfaru/facilities",
+            "https://www.banyantree.com/maldives/vabbinfaru/location",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2423"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "Native description and checked official facilities do not advertise a waterpark; not promised.",
+          "sources": [
+            "https://www.banyantree.com/maldives/vabbinfaru",
+            "https://www.banyantree.com/maldives/vabbinfaru/facilities",
+            "https://www.banyantree.com/maldives/vabbinfaru/location",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2423"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "Native profile and checked official facilities do not advertise a supervised kids club; no childcare promise.",
+          "sources": [
+            "https://www.banyantree.com/maldives/vabbinfaru",
+            "https://www.banyantree.com/maldives/vabbinfaru/facilities",
+            "https://www.banyantree.com/maldives/vabbinfaru/location",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2423"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "All beachvillas privatepool; common MadiHiyaa saltwater infinitypool confirmed.",
+          "sources": [
+            "https://www.banyantree.com/maldives/vabbinfaru",
+            "https://www.banyantree.com/maldives/vabbinfaru/facilities",
+            "https://www.banyantree.com/maldives/vabbinfaru/location",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2423"
+          ]
+        }
+      },
+      "caption_sha256": "d69dc1e0778209498b896cb94fc6a56e8fb603d2f2ffd68696aa0135991595b9"
+    },
+    "26062": {
+      "id": 26062,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Diamonds Thudufushi\n📍 остров Тудуфуши, атолл Южный Ари, Мальдивы.\n\nДля пары, которая едет за пляжем и подводным миром. На острове есть пляжные и водные виллы, дайвинг-центр и риф для снорклинга. Трансфер из Мале на гидросамолёте, в светлое время суток. Бассейн предусмотрен только у отдельных вилл. Ресторан Aqua включён для водных вилл, для пляжных категорий посещение за доплату.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "White sand beachfrontvillas/reef SouthAri, native25minseaplane daylight.",
+        "Native description and checked official facilities do not advertise a waterpark; not promised.",
+        "Native profile and checked official facilities do not advertise a supervised kids club; no childcare promise.",
+        "Pool only explicitly in TwoBedroomPoolWaterVillas; generalpool not advertised, do not invent."
+      ],
+      "material_conditions": [
+        "Daylightseaplane.",
+        "Poolonlyselectedvillas.",
+        "Aqua paidforbeachcategories."
+      ],
+      "aliases": [
+        "Diamonds Thudufushi"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Narrow property-specific names screened against all current registry rows; no match.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://thudufushibeach.diamondsresorts.com/",
+          "https://thudufushibeach.diamondsresorts.com/beach-villas/",
+          "https://thudufushibeach.diamondsresorts.com/water-villa/two-bedroom-water-villas/",
+          "https://thudufushibeach.diamondsresorts.com/dining/aqua-water-restaurant/",
+          "https://thudufushibeach.diamondsresorts.com/premium-services/guest-services/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=26062"
+        ],
+        "evidence": "Current official property pages and native profile agree on identity and retained facilities; no future-opening promise used."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "White sand beachfrontvillas/reef SouthAri, native25minseaplane daylight.",
+          "sources": [
+            "https://thudufushibeach.diamondsresorts.com/",
+            "https://thudufushibeach.diamondsresorts.com/beach-villas/",
+            "https://thudufushibeach.diamondsresorts.com/water-villa/two-bedroom-water-villas/",
+            "https://thudufushibeach.diamondsresorts.com/dining/aqua-water-restaurant/",
+            "https://thudufushibeach.diamondsresorts.com/premium-services/guest-services/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=26062"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "Native description and checked official facilities do not advertise a waterpark; not promised.",
+          "sources": [
+            "https://thudufushibeach.diamondsresorts.com/",
+            "https://thudufushibeach.diamondsresorts.com/beach-villas/",
+            "https://thudufushibeach.diamondsresorts.com/water-villa/two-bedroom-water-villas/",
+            "https://thudufushibeach.diamondsresorts.com/dining/aqua-water-restaurant/",
+            "https://thudufushibeach.diamondsresorts.com/premium-services/guest-services/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=26062"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "Native profile and checked official facilities do not advertise a supervised kids club; no childcare promise.",
+          "sources": [
+            "https://thudufushibeach.diamondsresorts.com/",
+            "https://thudufushibeach.diamondsresorts.com/beach-villas/",
+            "https://thudufushibeach.diamondsresorts.com/water-villa/two-bedroom-water-villas/",
+            "https://thudufushibeach.diamondsresorts.com/dining/aqua-water-restaurant/",
+            "https://thudufushibeach.diamondsresorts.com/premium-services/guest-services/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=26062"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Pool only explicitly in TwoBedroomPoolWaterVillas; generalpool not advertised, do not invent.",
+          "sources": [
+            "https://thudufushibeach.diamondsresorts.com/",
+            "https://thudufushibeach.diamondsresorts.com/beach-villas/",
+            "https://thudufushibeach.diamondsresorts.com/water-villa/two-bedroom-water-villas/",
+            "https://thudufushibeach.diamondsresorts.com/dining/aqua-water-restaurant/",
+            "https://thudufushibeach.diamondsresorts.com/premium-services/guest-services/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=26062"
+          ]
+        }
+      },
+      "caption_sha256": "9ddc5b8383cb758bc51f7049edd731738bb4aab0a36b54f492886927b0e874e9"
+    },
+    "51257": {
+      "id": 51257,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Amaya Lake\n📍 Кандалама, Дамбулла, Шри-Ланка.\n\nДля путешествия по культурным достопримечательностям Шри-Ланки с отдыхом у озера. Виллы и шале расположены среди зелени, на территории два открытых бассейна, а ресторан Samara знакомит со шри-ланкийской кухней. Это внутренние районы острова: рядом водохранилище Кандалама, не морской пляж.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "KandalamareservoirnearDambulla inland; notoceanbeach.",
+        "Native description and checked official facilities do not advertise a waterpark; not promised.",
+        "Native profile and checked official facilities do not advertise a supervised kids club; no childcare promise.",
+        "Officialtwooutdoorpools; privatepoolonlyselectedsuites."
+      ],
+      "material_conditions": [
+        "Inland reservoir, notsea."
+      ],
+      "aliases": [
+        "Amaya Lake"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Narrow property-specific names screened against all current registry rows; no match.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.amayaresorts.com/amayalake/",
+          "https://www.amayaresorts.com/amayalake/dining/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=51257"
+        ],
+        "evidence": "Current official property pages and native profile agree on identity and retained facilities; no future-opening promise used."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "not_applicable",
+          "evidence": "KandalamareservoirnearDambulla inland; notoceanbeach.",
+          "sources": [
+            "https://www.amayaresorts.com/amayalake/",
+            "https://www.amayaresorts.com/amayalake/dining/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=51257"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "Native description and checked official facilities do not advertise a waterpark; not promised.",
+          "sources": [
+            "https://www.amayaresorts.com/amayalake/",
+            "https://www.amayaresorts.com/amayalake/dining/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=51257"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "Native profile and checked official facilities do not advertise a supervised kids club; no childcare promise.",
+          "sources": [
+            "https://www.amayaresorts.com/amayalake/",
+            "https://www.amayaresorts.com/amayalake/dining/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=51257"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Officialtwooutdoorpools; privatepoolonlyselectedsuites.",
+          "sources": [
+            "https://www.amayaresorts.com/amayalake/",
+            "https://www.amayaresorts.com/amayalake/dining/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=51257"
+          ]
+        }
+      },
+      "caption_sha256": "0f5dde90c7449e57c3a370ddf613b00ba2390ddab475a23cc6d50d34b97734c1"
+    },
+    "75786": {
+      "id": 75786,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Kempinski Nile Hotel Garden City Cairo\n📍 Гарден-Сити, Каир, Египет.\n\nДля городского отдыха и знакомства с Каиром. Отель находится в районе Гарден-Сити у Нила; после прогулок можно подняться к открытому бассейну на крыше с панорамой реки. Бассейн предназначен для проживающих гостей и работает до заката. Это городской отель, не пляжный курорт.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "City hotel, not a seaside beach resort; no private beach or included beach transfer promised.",
+        "Native description and checked official facilities do not advertise a waterpark; not promised.",
+        "Native profile and checked official facilities do not advertise a supervised kids club; no childcare promise.",
+        "Rooftopopenairpool10x5mdepth1.4, hotelguestsonlyuntillsunset. Heatingnotpromised."
+      ],
+      "material_conditions": [
+        "Guestpooluntilsunset.",
+        "No sea beach."
+      ],
+      "aliases": [
+        "Kempinski Nile Hotel Garden City Cairo",
+        "Kempinski Nile Hotel"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Narrow property-specific names screened against all current registry rows; no match.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.kempinski.com/en/nile-hotel/overview/hotel-information/our-hotel",
+          "https://www.kempinski.com/en/nile-hotel/overview/services-and-facilities/rooftop-pool",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75786"
+        ],
+        "evidence": "Current official property pages and native profile agree on identity and retained facilities; no future-opening promise used."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "not_applicable",
+          "evidence": "City hotel, not a seaside beach resort; no private beach or included beach transfer promised.",
+          "sources": [
+            "https://www.kempinski.com/en/nile-hotel/overview/hotel-information/our-hotel",
+            "https://www.kempinski.com/en/nile-hotel/overview/services-and-facilities/rooftop-pool",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75786"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "Native description and checked official facilities do not advertise a waterpark; not promised.",
+          "sources": [
+            "https://www.kempinski.com/en/nile-hotel/overview/hotel-information/our-hotel",
+            "https://www.kempinski.com/en/nile-hotel/overview/services-and-facilities/rooftop-pool",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75786"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "Native profile and checked official facilities do not advertise a supervised kids club; no childcare promise.",
+          "sources": [
+            "https://www.kempinski.com/en/nile-hotel/overview/hotel-information/our-hotel",
+            "https://www.kempinski.com/en/nile-hotel/overview/services-and-facilities/rooftop-pool",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75786"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Rooftopopenairpool10x5mdepth1.4, hotelguestsonlyuntillsunset. Heatingnotpromised.",
+          "sources": [
+            "https://www.kempinski.com/en/nile-hotel/overview/hotel-information/our-hotel",
+            "https://www.kempinski.com/en/nile-hotel/overview/services-and-facilities/rooftop-pool",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75786"
+          ]
+        }
+      },
+      "caption_sha256": "e9448b4ac3b417238fafcd1700e82d4a226660dc5df342531966e3bc7e4f9bc0"
+    },
+    "1598": {
+      "id": 1598,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Xanadu Island Bodrum\n📍 Акьярлар, Бодрум, Турция.\n\nДля семьи, которая хочет отдыхать на отдельном полуострове и чередовать море с занятиями для детей. Есть собственный пляж с пирсом, два открытых и крытый бассейн. Клуб с профессиональной командой принимает детей 4–12 лет, рядом детский бассейн с горкой. Открытые бассейны без подогрева; подогрев крытого зависит от погоды.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Nativeprivatebeach/pier onAkyarlarpeninsula, officialAegeansurroundings.",
+        "Childrenpoolslide withinclub, notseparatefullwaterpark; hotelactivityinHighClassAI, noexternalpassclaimed.",
+        "Professionalteam4–12 supervisedactivities.",
+        "Officialtwooutdoor,oneindoor,kidspool. Nativeoutdoorunheated/indoorweatherheated; noalwaysheatedpromise."
+      ],
+      "material_conditions": [
+        "Outdoorunheated; indoorheatingweatherdependent.",
+        "Club4–12."
+      ],
+      "aliases": [
+        "Xanadu Island Bodrum",
+        "Xanadu Island"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Narrow property-specific names screened against all current registry rows; no match.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.xanaduhotels.com.tr/en/xanadu-island/kids",
+          "https://www.xanaduhotels.com.tr/en/xanadu-island/activity",
+          "https://xanaduislandbodrum.com.tr/en/otelimiz",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1598"
+        ],
+        "evidence": "Current official property pages and native profile agree on identity and retained facilities; no future-opening promise used."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Nativeprivatebeach/pier onAkyarlarpeninsula, officialAegeansurroundings.",
+          "sources": [
+            "https://www.xanaduhotels.com.tr/en/xanadu-island/kids",
+            "https://www.xanaduhotels.com.tr/en/xanadu-island/activity",
+            "https://xanaduislandbodrum.com.tr/en/otelimiz",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1598"
+          ]
+        },
+        "waterpark": {
+          "status": "verified",
+          "evidence": "Childrenpoolslide withinclub, notseparatefullwaterpark; hotelactivityinHighClassAI, noexternalpassclaimed.",
+          "sources": [
+            "https://www.xanaduhotels.com.tr/en/xanadu-island/kids",
+            "https://www.xanaduhotels.com.tr/en/xanadu-island/activity",
+            "https://xanaduislandbodrum.com.tr/en/otelimiz",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1598"
+          ]
+        },
+        "kids_club": {
+          "status": "verified",
+          "evidence": "Professionalteam4–12 supervisedactivities.",
+          "sources": [
+            "https://www.xanaduhotels.com.tr/en/xanadu-island/kids",
+            "https://www.xanaduhotels.com.tr/en/xanadu-island/activity",
+            "https://xanaduislandbodrum.com.tr/en/otelimiz",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1598"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Officialtwooutdoor,oneindoor,kidspool. Nativeoutdoorunheated/indoorweatherheated; noalwaysheatedpromise.",
+          "sources": [
+            "https://www.xanaduhotels.com.tr/en/xanadu-island/kids",
+            "https://www.xanaduhotels.com.tr/en/xanadu-island/activity",
+            "https://xanaduislandbodrum.com.tr/en/otelimiz",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1598"
+          ]
+        }
+      },
+      "caption_sha256": "04499f28edd5c6350dc938bd9c995bb4a403a149fbdee098b91c26d14e2fcbb4"
+    },
+    "2932": {
+      "id": 2932,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Le Royal Meridien Abu Dhabi\n📍 Абу-Даби, ОАЭ.\n\nДля знакомства с Абу-Даби без привязки к пляжному курорту. Отель в центре города удобен для прогулок по Корнишу; на территории есть открытый бассейн и фитнес-центр. К морскому пляжу нужно добираться отдельно. По текущему описанию отеля рестораны Café Palmier и Amalfi временно закрыты.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "City hotel, not a seaside beach resort; no private beach or included beach transfer promised.",
+        "Native description and checked official facilities do not advertise a waterpark; not promised.",
+        "Native profile and checked official facilities do not advertise a supervised kids club; no childcare promise.",
+        "Currentofficialoneoutdoorpool; nativeindoorpoolnotconfirmed and notpromised."
+      ],
+      "material_conditions": [
+        "Citynotprivatebeach.",
+        "NativeCaféPalmier/Amalfi temporarilyclosed."
+      ],
+      "aliases": [
+        "Le Royal Meridien Abu Dhabi",
+        "Le Royal Méridien Abu Dhabi"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Narrow property-specific names screened against all current registry rows; no match.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.marriott.com/en-us/hotels/auhdm-le-royal-meridien-abu-dhabi/experiences/",
+          "https://www.marriott.com/en-us/hotels/auhdm-le-royal-meridien-abu-dhabi/overview/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2932"
+        ],
+        "evidence": "Current official property pages and native profile agree on identity and retained facilities; no future-opening promise used."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "not_applicable",
+          "evidence": "City hotel, not a seaside beach resort; no private beach or included beach transfer promised.",
+          "sources": [
+            "https://www.marriott.com/en-us/hotels/auhdm-le-royal-meridien-abu-dhabi/experiences/",
+            "https://www.marriott.com/en-us/hotels/auhdm-le-royal-meridien-abu-dhabi/overview/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2932"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "Native description and checked official facilities do not advertise a waterpark; not promised.",
+          "sources": [
+            "https://www.marriott.com/en-us/hotels/auhdm-le-royal-meridien-abu-dhabi/experiences/",
+            "https://www.marriott.com/en-us/hotels/auhdm-le-royal-meridien-abu-dhabi/overview/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2932"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "Native profile and checked official facilities do not advertise a supervised kids club; no childcare promise.",
+          "sources": [
+            "https://www.marriott.com/en-us/hotels/auhdm-le-royal-meridien-abu-dhabi/experiences/",
+            "https://www.marriott.com/en-us/hotels/auhdm-le-royal-meridien-abu-dhabi/overview/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2932"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Currentofficialoneoutdoorpool; nativeindoorpoolnotconfirmed and notpromised.",
+          "sources": [
+            "https://www.marriott.com/en-us/hotels/auhdm-le-royal-meridien-abu-dhabi/experiences/",
+            "https://www.marriott.com/en-us/hotels/auhdm-le-royal-meridien-abu-dhabi/overview/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2932"
+          ]
+        }
+      },
+      "caption_sha256": "29b51dab7b3558c01c9760613b2b42d84e50a2cd716e44294d9462c1d4eb8c50"
+    },
+    "44480": {
+      "id": 44480,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Pullman Dubai Jumeirah Lakes Towers\n📍 Джумейра-Лейкс-Тауэрс, Дубай, ОАЭ.\n\nДля тех, кто хочет самостоятельно исследовать Дубай. Рядом станция метро Sobha Realty, а на 35-м этаже открытый бассейн с регулируемой температурой воды и городской панорамой. Можно совместить прогулки по Dubai Marina с отдыхом у бассейна. Собственного пляжа нет: до общественного JBR около 2,5 км.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "JLTClusterTcityhotel; publicJBRbeach~2.5km native/about30minwalkofficial, noownbeach.",
+        "Native description and checked official facilities do not advertise a waterpark; not promised.",
+        "Native profile and checked official facilities do not advertise a supervised kids club; no childcare promise.",
+        "35thflooroutdoortemperaturecontrolledpool8–19 official."
+      ],
+      "material_conditions": [
+        "Publicbeachoffsite2.5km."
+      ],
+      "aliases": [
+        "Pullman Dubai Jumeirah Lakes Towers",
+        "Pullman Jumeirah Lakes Towers"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Narrow property-specific names screened against all current registry rows; no match.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://all.accor.com/hotel/6305/index.en.shtml",
+          "https://www.pullman-dubai-jumeirahlakestowers.com/restaurants-in-jlt-dubai/pool-bar/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=44480"
+        ],
+        "evidence": "Current official property pages and native profile agree on identity and retained facilities; no future-opening promise used."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "JLTClusterTcityhotel; publicJBRbeach~2.5km native/about30minwalkofficial, noownbeach.",
+          "sources": [
+            "https://all.accor.com/hotel/6305/index.en.shtml",
+            "https://www.pullman-dubai-jumeirahlakestowers.com/restaurants-in-jlt-dubai/pool-bar/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=44480"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "Native description and checked official facilities do not advertise a waterpark; not promised.",
+          "sources": [
+            "https://all.accor.com/hotel/6305/index.en.shtml",
+            "https://www.pullman-dubai-jumeirahlakestowers.com/restaurants-in-jlt-dubai/pool-bar/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=44480"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "Native profile and checked official facilities do not advertise a supervised kids club; no childcare promise.",
+          "sources": [
+            "https://all.accor.com/hotel/6305/index.en.shtml",
+            "https://www.pullman-dubai-jumeirahlakestowers.com/restaurants-in-jlt-dubai/pool-bar/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=44480"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "35thflooroutdoortemperaturecontrolledpool8–19 official.",
+          "sources": [
+            "https://all.accor.com/hotel/6305/index.en.shtml",
+            "https://www.pullman-dubai-jumeirahlakestowers.com/restaurants-in-jlt-dubai/pool-bar/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=44480"
+          ]
+        }
+      },
+      "caption_sha256": "58a2b531038c0b1414dfa3a6991150e7c767845aa36ef274f7dc0209ae23a80c"
+    },
+    "68218": {
+      "id": 68218,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Pullman Maldives Maamutaa\n📍 остров Маамутаа, атолл Гаафу-Алифу, Мальдивы.\n\nДля семейного отдыха на большом зелёном острове. Здесь пляжи, открытые бассейны и детская зона с горками; Kids Playground рассчитан на детей 4–11 лет. Есть виллы у пляжа и над водой, а собственный бассейн зависит от категории. Трансфер включает примерно 55 минут внутреннего перелёта и ещё 15 минут на катере.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "MaamutaaGaafuAlifu beaches,55min domesticKooddoo+15minboat.",
+        "ChildrenspoolwaterslideswithinfamilyKidsPlayground includedAIactivities; noexternalwaterpark.",
+        "OfficialKidsPlayground4–11.99,scheduledactivities;safelyoccupiedchildrenstaffprogramme. TeensSkillzseparate.",
+        "Outdoorcommonandchildpools;privatepoolonlynamedpoolvilla categories."
+      ],
+      "material_conditions": [
+        "Club4–11.99.",
+        "Domesticflight+boat.",
+        "Privatepoolcategorydependent."
+      ],
+      "aliases": [
+        "Pullman Maldives Maamutaa"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Narrow property-specific names screened against all current registry rows; no match.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.pullmanmaldivesmaamutaa.com/the-hotel/the-most-generous-all-inclusive-resort-in-the-maldives/",
+          "https://www.pullmanmaldivesmaamutaa.com/the-hotel/family-resort-maldives/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=68218"
+        ],
+        "evidence": "Current official property pages and native profile agree on identity and retained facilities; no future-opening promise used."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "MaamutaaGaafuAlifu beaches,55min domesticKooddoo+15minboat.",
+          "sources": [
+            "https://www.pullmanmaldivesmaamutaa.com/the-hotel/the-most-generous-all-inclusive-resort-in-the-maldives/",
+            "https://www.pullmanmaldivesmaamutaa.com/the-hotel/family-resort-maldives/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=68218"
+          ]
+        },
+        "waterpark": {
+          "status": "verified",
+          "evidence": "ChildrenspoolwaterslideswithinfamilyKidsPlayground includedAIactivities; noexternalwaterpark.",
+          "sources": [
+            "https://www.pullmanmaldivesmaamutaa.com/the-hotel/the-most-generous-all-inclusive-resort-in-the-maldives/",
+            "https://www.pullmanmaldivesmaamutaa.com/the-hotel/family-resort-maldives/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=68218"
+          ]
+        },
+        "kids_club": {
+          "status": "verified",
+          "evidence": "OfficialKidsPlayground4–11.99,scheduledactivities;safelyoccupiedchildrenstaffprogramme. TeensSkillzseparate.",
+          "sources": [
+            "https://www.pullmanmaldivesmaamutaa.com/the-hotel/the-most-generous-all-inclusive-resort-in-the-maldives/",
+            "https://www.pullmanmaldivesmaamutaa.com/the-hotel/family-resort-maldives/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=68218"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Outdoorcommonandchildpools;privatepoolonlynamedpoolvilla categories.",
+          "sources": [
+            "https://www.pullmanmaldivesmaamutaa.com/the-hotel/the-most-generous-all-inclusive-resort-in-the-maldives/",
+            "https://www.pullmanmaldivesmaamutaa.com/the-hotel/family-resort-maldives/",
+            "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=68218"
+          ]
+        }
+      },
+      "caption_sha256": "97e923f1b3706a49659bd095736c6ff28038d1fa84403662b295b9ec8030434b"
+    },
+    "64753": {
+      "id": 64753,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Riff Hikkaduwa\n📍 Хиккадува, Шри-Ланка.\n\nДля отдыха вдвоём у океана: небольшой дизайн-отель на пляже Наригама, открытый инфинити-бассейн с солёной водой и балийские спа-процедуры. После прогулок можно расслабиться в библиотеке или отправиться на ужин в японский ресторан. Пляж общественный; океан бывает волнистым.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Официальный действующий Riff Hikkaduwa: собственное бронирование и контакт в Thiranagama,25номеров; salt-water outdoor infinity pool у пляжа, spa/library/gym. Совпадает native address870GalleRoad."
+      ],
+      "material_conditions": [
+        "Общественный пляж, не приватный.",
+        "Океан может быть волнистым; спокойное купание не гарантируется."
+      ],
+      "aliases": [
+        "Riff Hikkaduwa"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Native ID и узкие aliases проверены по полному registry.json обеих платформ; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://riffhikkaduwa.com/",
+          "https://riffhikkaduwa.com/hotel-facilities-amenities/"
+        ],
+        "evidence": "Официальный действующий Riff Hikkaduwa: собственное бронирование и контакт в Thiranagama,25номеров; salt-water outdoor infinity pool у пляжа, spa/library/gym. Совпадает native address870GalleRoad."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Прибрежный Thiranagama/Narigama, прямой берег; не обещать частность общественного пляжа или спокойное море.",
+          "sources": [
+            "https://riffhikkaduwa.com/",
+            "https://riffhikkaduwa.com/hotel-facilities-amenities/"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "Не заявлено в полном профиле и проверенных официальных услугах; в публикации не обещается.",
+          "sources": [
+            "https://riffhikkaduwa.com/",
+            "https://riffhikkaduwa.com/hotel-facilities-amenities/"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Официально Salt Water Infinity Pool, outdoor, близко к пляжу; подогрев не обещается.",
+          "sources": [
+            "https://riffhikkaduwa.com/",
+            "https://riffhikkaduwa.com/hotel-facilities-amenities/"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "В полном native profile и проверенных официальных услугах аквапарк не заявлен; не рекламируется. Это не утверждение об отсутствии сторонних аквапарков.",
+          "sources": [
+            "https://riffhikkaduwa.com/",
+            "https://riffhikkaduwa.com/hotel-facilities-amenities/"
+          ]
+        }
+      },
+      "caption_sha256": "ab0ec0f1dbf5ea379213f6c5000d572a917ddefde8b1aee4100006227eaeb928"
+    },
+    "23199": {
+      "id": 23199,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Movenpick Hotel Jumeirah Lakes Towers\n📍 Дубай, ОАЭ.\n\nДля сочетания города и пляжных дней: рядом метро DMCC, на территории открытый подогреваемый бассейн, рестораны и бар. В проживание по официальным предложениям включён доступ в RIVA Beach Club на Пальме Джумейра. Пляж находится не у отеля: до клуба нужно ехать; питание и напитки там не считаются автоматически включёнными.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Текущая AccorB4J7:168номеров,ClusterA,JLT,phone+97144380000; активная бронь. В комнатах прямо включён RIVA BeachClub, бассейн outdoor heated/overflow. DMCCmetro пешком."
+      ],
+      "material_conditions": [
+        "Городской отель JLT, не первая линия.",
+        "RIVA расположен вне отеля на PalmJumeirah.",
+        "Включён доступ, не обещаем включённые еду/напитки."
+      ],
+      "aliases": [
+        "Movenpick Hotel Jumeirah Lakes Towers",
+        "Mövenpick Jumeirah Lakes Towers"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Native ID и узкие aliases проверены по полному registry.json обеих платформ; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://all.accor.com/hotel/B4J7/index.en.shtml"
+        ],
+        "evidence": "Текущая AccorB4J7:168номеров,ClusterA,JLT,phone+97144380000; активная бронь. В комнатах прямо включён RIVA BeachClub, бассейн outdoor heated/overflow. DMCCmetro пешком."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Отель не на пляже; RIVA BeachClub на PalmJumeirah вне территории, включён в перечисленные официальные roomrates. Еда/напитки клуба не объявлены включёнными.",
+          "sources": [
+            "https://all.accor.com/hotel/B4J7/index.en.shtml"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "Не заявлено в полном профиле и проверенных официальных услугах; в публикации не обещается.",
+          "sources": [
+            "https://all.accor.com/hotel/B4J7/index.en.shtml"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Открытый подогреваемый overflow pool; глубина1–2м, lifeguard. Не аквапарк: generic Accor поле Slides не доказывает отдельный waterpark.",
+          "sources": [
+            "https://all.accor.com/hotel/B4J7/index.en.shtml"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "В полном native profile и проверенных официальных услугах аквапарк не заявлен; не рекламируется. Это не утверждение об отсутствии сторонних аквапарков.",
+          "sources": [
+            "https://all.accor.com/hotel/B4J7/index.en.shtml"
+          ]
+        }
+      },
+      "caption_sha256": "0a5bb5f36e7d9e95f183bb76805349d8ff099ff8ead8d73210acf186a64c5ef0"
+    },
+    "1488": {
+      "id": 1488,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Kamelya Selin\n📍 Чолаклы, Сиде, Турция.\n\nДля семейного отпуска у песчаного пляжа: крытые и открытые бассейны с зимним подогревом, клуб Chameleon для детей 4–12 лет и водные горки. Отель входит в Kamelya Collection, часть инфраструктуры общая. До пляжа нужно пересечь пешеходный променад. Зимой горки работают в ограниченные часы и по погоде; пляжные кабаны оплачиваются отдельно.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Актуальный winter factsheet01.11.2026–31.03.2027: именно KamelyaSelin, open all year, отдельный inventory/свои roomtypes; часть KamelyaCollection. Indoor/outdoorheated28C,4–12club, зимние горки по погоде."
+      ],
+      "material_conditions": [
+        "Инфраструктура комплекса частично общая.",
+        "Пешеходный променад.",
+        "Зимние горки11:00–12:30/13:00–15:00, зависят от погоды.",
+        "Кабаны платно."
+      ],
+      "aliases": [
+        "Kamelya Selin",
+        "Kamelya Collection Selin Hotel"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Native ID и узкие aliases проверены по полному registry.json обеих платформ; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://kamelyacollection.com/images/uploads/08-2026/eng-kamelya-selin-hotel-w-26-27-fact-sheet_1786693970.pdf",
+          "https://kamelyacollection.com/en/corporate/factsheet",
+          "https://kamelyacollection.com/en/kids"
+        ],
+        "evidence": "Актуальный winter factsheet01.11.2026–31.03.2027: именно KamelyaSelin, open all year, отдельный inventory/свои roomtypes; часть KamelyaCollection. Indoor/outdoorheated28C,4–12club, зимние горки по погоде."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Песчаный берег комплекса в Чолаклы; пешеходный променад между зданием и пляжем, не автомобильная дорога. Кабаны отдельно платно.",
+          "sources": [
+            "https://kamelyacollection.com/images/uploads/08-2026/eng-kamelya-selin-hotel-w-26-27-fact-sheet_1786693970.pdf",
+            "https://kamelyacollection.com/en/corporate/factsheet",
+            "https://kamelyacollection.com/en/kids"
+          ]
+        },
+        "kids_club": {
+          "status": "verified",
+          "evidence": "Chameleon Kids Club4–12 daily с программой; не обещать индивидуальную няню. Текущийwinterнеобещает teenclub13–17.",
+          "sources": [
+            "https://kamelyacollection.com/images/uploads/08-2026/eng-kamelya-selin-hotel-w-26-27-fact-sheet_1786693970.pdf",
+            "https://kamelyacollection.com/en/corporate/factsheet",
+            "https://kamelyacollection.com/en/kids"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Пресные открытые/крытые взрослые и детские бассейны; winter28C, Selin или Terrace подогревается по погоде.",
+          "sources": [
+            "https://kamelyacollection.com/images/uploads/08-2026/eng-kamelya-selin-hotel-w-26-27-fact-sheet_1786693970.pdf",
+            "https://kamelyacollection.com/en/corporate/factsheet",
+            "https://kamelyacollection.com/en/kids"
+          ]
+        },
+        "waterpark": {
+          "status": "verified",
+          "evidence": "Входит в официальный winterAllInclusiveconcept, отдельной платы за обычный доступ в перечне платных услуг нет;11:00–12:30/13:00–15:00 по погоде; не переносить летнее расписание.",
+          "sources": [
+            "https://kamelyacollection.com/images/uploads/08-2026/eng-kamelya-selin-hotel-w-26-27-fact-sheet_1786693970.pdf"
+          ]
+        }
+      },
+      "caption_sha256": "9081ff7333c3e33818703b9bdee2be02ef936ddc42b5c7725ccbc63d3fe87dfe"
+    }
+  },
+  "accepted_cover_hashes": {
+    "68217": "ecce5809b6a711675846bb6e5cc9e94f349a180291a697d520bfca6d1ca2d263",
+    "72203": "816a107a09e56ff015e68e0e6e85f26230a9bbf42517cd8d93f393910a1ad328",
+    "1590": "7297c612cb6059241575996b2090539b1b085eb360981b294689730809b9e387",
+    "2484": "f2a1881dda056e667789aea6845489195c1517c301ea13d5895bbcf4f052c8c9",
+    "4514": "cdd6e2e165314c0fc71080772e6c44074e282454c98c391fcb65bcbd1e6fd40d",
+    "2625": "da11e3447663ed06289c265a146fb1e7d386f635f962e80d2f3f01647414194d",
+    "64582": "1dc5f964c7ef335006fa931be2917087300f770ac9d04f9ca9dae10114c04e9b",
+    "12143": "ee9d52c03f5fb456b7ad24ce50fb34a3f65dc1ac69253db7647f5c2ea7d03553",
+    "17569": "dcb9ea5513b1c67b6527c7c462a026a01c4c198db8a274c08395f2cfdac72884",
+    "69077": "5975ebf1fe7c59143f3295f8ad947b640b831eacf7b572f02a816f92a40bfa9d",
+    "1675": "d37e5139b62a1592f8c4529246e92023698b900e6f2f2bc69cba17e60f329588",
+    "4454": "db5d908f76464cf9ba96f5efcb0bf8e50a86ab0a37a11d43af0436d3aeb96a76",
+    "2846": "12162bcbfdd5ddc21259386acf8d0f4b65592cc8f99554f2d7349a40f7baa012",
+    "47026": "e4e1da8eca7d89c241c5a8da9faaa1f70f6e1ae508d9c9f79b50e2faa119b359",
+    "2447": "ab26943b857c0bd30c8ce298ccc0683b4f3fd96c7dcacc6bd2925ee87b3ddd16",
+    "5406": "7ef5bbc52cd9e285ce47f6c8c6e6f50bfa2b20d8b37bc3169a1a3d8cd01bf9e7",
+    "64072": "eed87a482f106b4307bcea101e60f8c0bc3acc3115de2a17cbe75532f3f45614",
+    "67402": "2bb0dc315f87b432955faa68912c5736610fa2c828ae4fb12ea582ce3bcfd95d",
+    "2244": "b138f0f938ecbdb3bbe473eb7970b2ecdba557dfa635503d91e4c29bf7707918",
+    "2423": "387c5114882c12f15e77de5b91e05008c3019951b0543acf4f130ee6cdfffbee",
+    "26062": "609338c6671e5479bd9b9e6990505f7e15dbd60d460c8ce69cd582e34e3d365a",
+    "51257": "a407fbb49b1f651a4cb9a8b69ca5cc29654469fa6626c8f6fa724efdb0e6e470",
+    "75786": "bd29b5b54c37b64274d37eeb37a7d442fe5e500a17fbb1845c0e0db9992e3d6c",
+    "1598": "396db7ad0d3efc2a8fda487c771adffee5c3bea36fb8356b69f06e89bed1d24d",
+    "2932": "fa141fd248eecfc02791db467e701097a1d3b8d6bfa9e0fede58cb3d6102fc53",
+    "44480": "ecb2c6fbc18c15870e17d4cb8dd07e50a621ff8c01b5b4ae7de8190ba71ae0a7",
+    "68218": "f066f4fac8da03e7da7189aca3ae524c2b406b6265119a8b5bfc2113269f1d94",
+    "64753": "c364cbe7a9213ecdca0a71a2cff5e0e62d2880a83bf92620ed361165867caf2b",
+    "23199": "b678619937c956371f07854b38edc6291c91a00602d2e48e53cbeae31e66e171",
+    "1488": "ac1f893f299edd97fc69ab8484668268d7b73c1f5cc9d001c6fa21ffbbd3cddf"
+  },
+  "cover_receipt_sha256": "eb11c3a821ecab650e17492c27cf185d1eaf508e16ddca7cbcaedd9faf5078dd",
+  "visual_review": {
+    "reviewed_sheets": [
+      "sheet-1.jpg",
+      "sheet-2.jpg",
+      "sheet-3.jpg",
+      "sheet-4.jpg",
+      "sheet-5.jpg",
+      "sheet-6.jpg",
+      "sheet-7.jpg",
+      "sheet-8.jpg",
+      "sheet-9.jpg",
+      "sheet-10.jpg"
+    ],
+    "reviewed_prepared_count": 93,
+    "cover_commit": "2f37e672eaded56d51e322902267aefeee4fef38",
+    "intake_receipt_sha256": "eb11c3a821ecab650e17492c27cf185d1eaf508e16ddca7cbcaedd9faf5078dd",
+    "visual_holds": {
+      "134443": "Trendy Perge cover uses architectural renderings, not verified current photographs",
+      "132436": "Seaden De Mar cover uses architectural renderings with illustration watermark",
+      "70977": "Pullman Sharjah exterior appears architectural rendered; replace with verified actual photograph",
+      "1191": "Fulya lead ornate white palace does not match rectangular Fulya building in secondary photograph; mixed property imagery"
+    },
+    "notes": "All ten complete contact sheets directly inspected, 93 covers. Other images acceptable subject to independent current identity, opening, material conditions and duplicate checks. Visual HOLD does not infer closure."
+  },
+  "holds": {
+    "8842": {
+      "editorial": "Native рекламирует детский клуб, но его действующие правила/возраст не подтверждены Marriott. Current childpolicy допускает все возрасты, прежнее10+ неприменимо.",
+      "alias": null,
+      "visual": null
+    },
+    "134443": {
+      "editorial": "Официальный сайт сохраняет Opening2026; current operational opening и полноценный запуск всех зон не подтверждены первичным источником. Native координаты0, телефондругогоTrendy. Parent visual HOLD: изображения похожи на рендеры.",
+      "alias": null,
+      "visual": "Trendy Perge cover uses architectural renderings, not verified current photographs"
+    },
+    "80065": {
+      "editorial": "Аквапарк/клуб рекламируются; актуальные включённость/плата и правила сопровождения не установлены. Accor перечисляет возрастныекатегории0–3/3–6/6–12/12+, native только3+, без operationalrules.",
+      "alias": null,
+      "visual": null
+    },
+    "9351": {
+      "editorial": "Текущий сайт подтверждает клуб4–12 и indoor/outdoor/slides, но включённость нового аквапарка8+3 и актуальный режим подогрева не проверены; найденный hotel factsheet2023 старее nativeреновации2024.",
+      "alias": null,
+      "visual": null
+    },
+    "37361": {
+      "editorial": "Есть hotel factsheet2025 с клубом4–12 May–Sep и горкамиMay–Oct, но первичный полныйдокумент недоступен403; сезон горок расходится native1Oct vsdoc15Oct. Актуальный режим/включённость нуждаются в проверке.",
+      "alias": null,
+      "visual": null
+    },
+    "64951": {
+      "editorial": "Reopening после реновации не подтверждён: native1Sep–14Nov2026, операторVacationExpress до24Nov2026; также будущаязакрытаяфазаApr–Aug2027. Currentofficialoffers не снимают конфликт дат.",
+      "alias": null,
+      "visual": null
+    },
+    "69521": {
+      "editorial": "Native заявляет детскийклуб, но официальный facilities подтверждает толькоchildrenpool, без возраста/сопровожденияклуба. Не подменять unknown на отсутствие.",
+      "alias": null,
+      "visual": null
+    },
+    "55873": {
+      "editorial": "Официальный сайт подтверждает kidsaquapark/club, но актуальныевозрастныеправила и включённостьгорок не подтверждены; hotelconcept2024по найденнойссылке404, старый2018не используетсякакcurrent.",
+      "alias": null,
+      "visual": null
+    },
+    "9370": {
+      "editorial": "Subproperty: native прямо выделеннаячастьRehanaRoyalBeach; canonical уже опубликован Telegram104/MAX71. Не делать отдельныйдубльPrestige.",
+      "alias": "Совпаденияcanonical/subproperty: ['✈️ Туры в Rehana Royal Beach Resort Aqua Park & Spa']",
+      "visual": null
+    },
+    "37485": {
+      "editorial": "Официальный beach2.5км и shuttleMay–Oct противnative1.5км; paid PrivateBeachService двусмысленен. Актуальныеплатааквапарка/подогревнеустановлены. Не называть весьпляж бесплатным.",
+      "alias": null,
+      "visual": null
+    },
+    "57027": {
+      "editorial": "Возраст16+ и indoor/outdoor/slides подтверждены; актуальная включённостьгорок/режимкрытогоподогрева не установлены. Большой hotel factsheet не открылся; nativeannex300м необходимо сохранить.",
+      "alias": null,
+      "visual": null
+    },
+    "64213": {
+      "editorial": "Oldbrand/subproperty: native villas+весьAmaraDolceVita вТекирове, но координатыБельдиби; актуальныйNirvanaDolceVita уже опубликованID975. Нельзя исправить названиембезустановленияcanonical.",
+      "alias": "Совпаденияcanonical/subproperty: ['✈️ Туры в NIRVANA DOLCE VITA']",
+      "visual": null
+    },
+    "65556": {
+      "editorial": "Native сохраняет старыеJumeirahбрендыTalise/Sinbad2–17, MarriottсейчасSaray/Nojoomi. Клуб существует, но currentвозраст/правила и платностьFlowRider не установлены.",
+      "alias": null,
+      "visual": null
+    },
+    "274": {
+      "editorial": "Официальные страницы конфликтуют по клубу7–11 vs4–12. Аквапарк официальноTemporarilyclosed, находится внеотеля сшаттлом и входплатный. Nativeкрытый/неподогреваемый также расходится сcurrentчастичноheatedwinter.",
+      "alias": null,
+      "visual": null
+    },
+    "1541": {
+      "editorial": "Найденная официальная fact sheet относится к лету 2023. Горки заявлены, но их актуальные правила доступа/включение и сезонные условия бассейнов на текущий период не подтверждены.",
+      "alias": "Совпадений узкого имени в registry не найдено; до разрешения указанного риска выпуск запрещён.",
+      "visual": null
+    },
+    "1671": {
+      "editorial": "Официально подтверждены пляж, бассейны, пять горок и клуб 4–12, но не подтверждено актуальное включение/оплата аквапарка и точные ограничения доступа. PDF 2025 по официальному URL теперь 404; сторонний похожий kefalukahotel.com не принят за официальный.",
+      "alias": "Совпадений узкого имени в registry не найдено; до разрешения указанного риска выпуск запрещён.",
+      "visual": null
+    },
+    "33071": {
+      "editorial": "Не получено надёжного актуального официального подтверждения работы Tolip Taba и материальных условий: native клуб 2–10 и подогреваемый бассейн не подтверждены текущим описанием оператора.",
+      "alias": "Совпадений узкого имени в registry не найдено; до разрешения указанного риска выпуск запрещён.",
+      "visual": null
+    },
+    "75745": {
+      "editorial": "Официально подтверждены пляж и бассейны, но не найдены точные возраст/присмотр мини-клуба и условия включения водных горок; не подменять данными другого Trendy.",
+      "alias": "Совпадений узкого имени в registry не найдено; до разрешения указанного риска выпуск запрещён.",
+      "visual": null
+    },
+    "79169": {
+      "editorial": "Wibit закрыт по средам. Найден официальный прайс для внешних гостей/members, но не установлено включение или доплата именно для проживающих и возрастные условия текущего Starfish Club. Нельзя переносить цену day pass на пакет отеля.",
+      "alias": "Совпадений узкого имени в registry не найдено; до разрешения указанного риска выпуск запрещён.",
+      "visual": null
+    },
+    "97122": {
+      "editorial": "Amarina Jannah есть у действующего оператора, но найденный hotel information PDF содержит чужие SUNRISE Kids Planet/Royal Club и расхождение количества детских горок с native. Нужна чистая собственная концепция аквапарка/клуба.",
+      "alias": "Совпадений узкого имени в registry не найдено; до разрешения указанного риска выпуск запрещён.",
+      "visual": null
+    },
+    "9326": {
+      "editorial": "Официальный действующий сайт подтверждает аквапарк/бассейны/мини-клуб, но доступная подробная концепция ограничена 01.04–31.10.2025; актуальные возрастные группы и включение аквапарка не подтверждены для текущего периода.",
+      "alias": "Совпадений узкого имени в registry не найдено; до разрешения указанного риска выпуск запрещён.",
+      "visual": null
+    },
+    "2207": {
+      "editorial": "Действующий Marti Resort, но возраст клуба противоречив: официальный сайт 4–12, hotel factsheet 2025 4–11. Нужна текущая согласованная концепция клуба и сезонного крытого бассейна, без переноса услуг Marti Myra.",
+      "alias": "Совпадений узкого имени в registry не найдено; до разрешения указанного риска выпуск запрещён.",
+      "visual": null
+    },
+    "2641": {
+      "editorial": "Native прямо указывает закрытие Radisson Blu Resort Sharjah с 2020 года на неопределённый срок. Официальное подтверждение повторного открытия не найдено; не публиковать старую карточку как работающий отель.",
+      "alias": "Совпадений узкого имени в registry не найдено; до разрешения указанного риска выпуск запрещён.",
+      "visual": null
+    },
+    "21703": {
+      "editorial": "Собственные страницы Dream World Resort противоречат друг другу: выделенная pool page три горки/750 м до пляжа, общий текст содержит 10 горок/1000 м, похоже на Dream World Aqua. До проверки точного scope аквапарка и indoor pool не выпускать.",
+      "alias": "Совпадений узкого имени в registry не найдено; до разрешения указанного риска выпуск запрещён.",
+      "visual": null
+    },
+    "1479": {
+      "editorial": "Новый общий Joyland связан с Sea World и De Mar; не подтверждены фактический запуск и условия включения/доступа именно гостей Sea World. Старую собственную акваинфраструктуру нельзя смешивать с новым парком.",
+      "alias": "Совпадений узкого имени в registry не найдено; до разрешения указанного риска выпуск запрещён.",
+      "visual": null
+    },
+    "15906": {
+      "editorial": "Sea Planet действует, но для заявленных горок и мини-клуба не подтверждена текущая полная концепция: найденный hotel factsheet 2025 недостаточен для актуальных возрастных ограничений/включения, сезон indoor расходится с native.",
+      "alias": "Совпадений узкого имени в registry не найдено; до разрешения указанного риска выпуск запрещён.",
+      "visual": null
+    },
+    "132436": {
+      "editorial": "Официальные материалы Seaden De Mar содержат обещание открытия в июне 2026, без достаточного подтверждения фактического запуска нового отеля и общего Joyland с текущими правилами доступа. Будущее/плановое открытие не считать состоявшимся. Независимый visual review родителя: рендеры с illustration watermark.",
+      "alias": "Совпадений узкого имени в registry не найдено; до разрешения указанного риска выпуск запрещён.",
+      "visual": "Seaden De Mar cover uses architectural renderings with illustration watermark"
+    },
+    "109596": {
+      "editorial": "В registry уже опубликован ANDA BARUT COLLECTION. Bayou Villas Delice Peninsula — вилльный инвентарь того же комплекса, сейчас BAYOU Anda Luxury Suites & Villas; отдельная карточка создаст дубль без доказанного самостоятельного scope.",
+      "alias": "В registry уже опубликован ANDA BARUT COLLECTION. Bayou Villas Delice Peninsula — вилльный инвентарь того же комплекса, сейчас BAYOU Anda Luxury Suites & Villas; отдельная карточка создаст дубль без доказанного самостоятельного scope.",
+      "visual": null
+    },
+    "133865": {
+      "editorial": "Native Amarina Sapphire построен в 2026; официальный оператор пока описывает план открытия летом 2025 и не даёт достаточного подтверждения фактической работы/актуальной концепции этого нового объекта. Не продавать план открытия как факт.",
+      "alias": "Совпадений узкого имени в registry не найдено; до разрешения указанного риска выпуск запрещён.",
+      "visual": null
+    },
+    "24490": {
+      "editorial": "Официальный Anilana сообщает о временном закрытии отелей на refurbishment. Нельзя публиковать Anilana Nilaveli как открытый до официального подтверждения возобновления работы.",
+      "alias": "Совпадений узкого имени в registry не найдено; до разрешения указанного риска выпуск запрещён.",
+      "visual": null
+    },
+    "126981": {
+      "editorial": "Не разрешены правила сопровождения/присмотра детей 2–3 лет при официальном допуске клуба с2 лет; не выдавать доступ за самостоятельный supervised childcare.",
+      "alias": null,
+      "visual": null
+    },
+    "2416": {
+      "editorial": "Актуальные возраст и условия Junior World of Hadahaa не подтверждены: найденная возрастная программа относится к праздникам2024–25; не переносить её на2026.",
+      "alias": null,
+      "visual": null
+    },
+    "4513": {
+      "editorial": "Официально закрыт с1мая2026; актуальный Perfecting Elegance обещает возвращение Q1 2027. Старое обещание ноября2026 устарело.",
+      "alias": null,
+      "visual": null
+    },
+    "12122": {
+      "editorial": "Клуб подтверждён, но официальный текущий возраст и условия самостоятельного посещения не найдены; native2–12 недостаточно для обязательной проверки.",
+      "alias": null,
+      "visual": null
+    },
+    "60386": {
+      "editorial": "Не установлен включённый/платный и общий с соседнимRamadaResort доступ в аквапарк; не обещать бесплатный waterpark. Пляж официально2км, не1.5км.",
+      "alias": null,
+      "visual": null
+    },
+    "2639": {
+      "editorial": "Официальная страница услуг заявляет Kids Club, native лишь няню; возраст и фактический формат клуба не подтверждены.",
+      "alias": null,
+      "visual": null
+    },
+    "11843": {
+      "editorial": "Официально ongoing entirely new construction; bookings will reopen soon. Сейчас не действующий курорт.",
+      "alias": null,
+      "visual": null
+    },
+    "43068": {
+      "editorial": "Пляжные условия конфликтуют: native Tagomago бесплатно, официальный RU Tagomago minimum spend, EN Ninive18+ в составе специальныхпакетов. Общий entitlementдлятуристов не доказан.",
+      "alias": null,
+      "visual": null
+    },
+    "2243": {
+      "editorial": "Текущий сезон завершён8ноября2026, официальный следующий16апреля–7ноября2027. Нельзя поставить confirmed_open сегодня; взрослые18+.",
+      "alias": null,
+      "visual": null
+    },
+    "2564": {
+      "editorial": "Roli Poli на официальном factsheet: текущие возраст/режим не разрешены. В native также временно закрыты четыре ресторана и отменён shuttle, нельзя обещать прежнюю инфраструктуру.",
+      "alias": null,
+      "visual": null
+    },
+    "38552": {
+      "editorial": "Официальные возрастные условия KidsClub и включённость aquapark не разрешены. Не смешивать с Marina Lodge на противоположном берегу.",
+      "alias": null,
+      "visual": null
+    },
+    "70977": {
+      "editorial": "Возраст/надзор KidsClub и два заявленных native крытых бассейна не разрешены; parentvisualHOLD: фасад похож на рендер.",
+      "alias": null,
+      "visual": "Pullman Sharjah exterior appears architectural rendered; replace with verified actual photograph"
+    },
+    "74237": {
+      "editorial": "Официальная текущая карточка называется Kempinski Palace Cairo, не Royal Maxim. Нужна полная сверка rebrand с native/обложкой и текущих ограничений spa-pool.",
+      "alias": null,
+      "visual": null
+    },
+    "17371": {
+      "editorial": "Актуальный возраст/режим MiniClub не подтверждён: старый официальный factsheet с4–12 возвращает404; текущий2025 не подтверждает клуб. Пляж каменистый с платформой.",
+      "alias": null,
+      "visual": null
+    },
+    "30634": {
+      "editorial": "Сезон официально закончился8ноября2026; следующий с23апреля2027. Не подтверждать работу сейчас.",
+      "alias": null,
+      "visual": null
+    },
+    "1663": {
+      "editorial": "HOLD: текущая работа после указанного официального окончания сезона13.10.2026 не подтверждена; не выдавать будущий сезон за открытие сейчас.",
+      "alias": null,
+      "visual": null
+    },
+    "63167": {
+      "editorial": "HOLD: Не подтверждены официально возраст/присмотр native kidsclub3–12 и детская зона бассейна.",
+      "alias": null,
+      "visual": null
+    },
+    "113543": {
+      "editorial": "HOLD: Не разрешены официально native общий подогреваемый бассейн и детская секция; privatepool подтверждён отдельно.",
+      "alias": null,
+      "visual": null
+    },
+    "1191": {
+      "editorial": "HOLD: Текущая winterоперация Fulya и доступность его advertisedinfra не подтверждены; нельзя перенести Selinwinter на другойhotel. Parent visual HOLD: смешанные фото, главный дворец с куполами не соответствует прямоугольному Fulya.",
+      "alias": null,
+      "visual": "Fulya lead ornate white palace does not match rectangular Fulya building in secondary photograph; mixed property imagery"
+    },
+    "1542": {
+      "editorial": "HOLD: Точный текущий возраст16+/возможное изменение политики и подогрев крытого бассейна не подтверждены официально; mixedPalace/Saray требует уточнения.",
+      "alias": null,
+      "visual": null
+    },
+    "2250": {
+      "editorial": "HOLD: Не завершена официальная проверка Serenity16+ и правил присмотра клуба, native tags горок не разрешены.",
+      "alias": null,
+      "visual": null
+    },
+    "2576": {
+      "editorial": "HOLD: Не подтверждены текущие native пляжный шаттлAlMamzar и тип/подогревpool.",
+      "alias": null,
+      "visual": null
+    },
+    "9296": {
+      "editorial": "HOLD: Не разрешены officialmini-club4–12/присмотр и детскаягорка/плата; не использоватьfactsheetKorumarEphesus.",
+      "alias": null,
+      "visual": null
+    },
+    "12150": {
+      "editorial": "HOLD: Заявленный native детский открытый бассейн не подтверждён официально.",
+      "alias": null,
+      "visual": null
+    },
+    "21637": {
+      "editorial": "HOLD: Не подтверждены текущая детская бассейноваязона и winterподогрев; нетсобственногопляжа.",
+      "alias": null,
+      "visual": null
+    },
+    "28632": {
+      "editorial": "HOLD: Текущаяоперация/возраст12+ и пляж-платформа не подтверждены официально.",
+      "alias": null,
+      "visual": null
+    },
+    "54603": {
+      "editorial": "HOLD: Не подтверждены возраста/присмотрmini-club и текущийплатныйпляжныйдоступ/шаттл.",
+      "alias": null,
+      "visual": null
+    },
+    "67491": {
+      "editorial": "HOLD: Не подтверждён официальныйтекущий nativeбесплатныйшаттлKiteBeach2разавдень.",
+      "alias": null,
+      "visual": null
+    },
+    "74701": {
+      "editorial": "HOLD: Не разрешены возраст/присмотр текущегоTerraKidsClub после старогоRangers3–12; не переноситьстарыйпорог.",
+      "alias": null,
+      "visual": null
+    },
+    "81138": {
+      "editorial": "HOLD: РебрендингнаStellaGolf: текущийscopeпляжашаттла/платноготалассо/зимнегоподогрева неполностьюустановлен.",
+      "alias": null,
+      "visual": null
+    },
+    "339": {
+      "editorial": "HOLD: SubpropertyPalmWing,не самостоятельныйresort; возраст/присмотрклуба и точныеPalm-бассейнынеподтверждены.",
+      "alias": "PalmWing является room-wing единого Accor1715; требуется canonical Novotel Sharm, не отдельный новый resort.",
+      "visual": null
+    },
+    "1540": {
+      "editorial": "HOLD: Не подтверждены native горка и подогревкрытогобассейна в currentofficial.",
+      "alias": null,
+      "visual": null
+    },
+    "23197": {
+      "editorial": "HOLD: Не подтверждена официально nativeдетскаябассейноваязона/температурныйконтроль.",
+      "alias": null,
+      "visual": null
+    }
+  },
+  "registry_artifact": {
+    "run": 44409753655,
+    "aid": 14476757394,
+    "digest": "e7f67e1d9cac5ac2f7bb9fa36f207ba36744d95a5bc9bbfc3b00ef7b85f68a1e"
+  },
+  "cover_artifact": {
+    "run": 44410097939,
+    "aid": 14476358371,
+    "digest": "4105af6916a3173df409ec29d8bb27f7f3e860943041fee6a8f24e1a5cb63446"
+  }
+}
