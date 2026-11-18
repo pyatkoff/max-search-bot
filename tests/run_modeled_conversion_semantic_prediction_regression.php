@@ -187,6 +187,35 @@ $tests['illustrative priors distinguish request meaning and seller intent']=stat
     $logistics=semanticPredictionRun([['text'=>'Подберите тур в Турцию на 7 ночей.'],['text'=>'Где офис? Как оплатить картой?']]);
     semanticPredictionAssert($logistics['stage']==='concrete_request','logistics became seller intent');
 };
+$tests['hotel star ranges preserve independent calendar evidence and genuine hotel interest']=static function():void{
+    require_once dirname(__DIR__).'/services/ModeledConversionValueContract.php';
+    foreach(['И 3/4 звезд?','Нужно 1/2 звезды','Есть варианты 3/4 звезды?','Только 4/5*','Категория 3 / 4 звёзды']as$text){
+        semanticPredictionAssert(ModeledConversionTextSignals::criteriaFamilies($text)===['requirements'],
+            'hotel star range supplied a calendar criterion');
+    }
+    foreach(['Категория 3/4 звезды, заезд 11/12/2027.','Заезд 3/4, отель 3/4 звезды',
+        'На 8 ночей нужен отель 4/5*','Категория 3/4 звезды, вылет с 09.12 по 16.12.']as$text){
+        semanticPredictionAssert(ModeledConversionTextSignals::criteriaFamilies($text)===['dates','requirements'],
+            'rating masked a separate date or duration in the same turn');
+    }
+    [$case,$w,$doc]=semanticPredictionFreezeFixture([['text'=>'Подберите отель 3/4 звезды.']],'max');
+    $clock=strtotime($doc['requested_at']);$w+=ModeledConversionEarlyForecast::freeze($case,$w,$doc,null,$clock,null,true);
+    $w['deal_value_prediction']=ModeledConversionDealValue::freeze($w,$case);
+    $candidate=ModeledConversionValueContract::candidate($w,$w['subject'],$clock-3600,$clock);
+    semanticPredictionAssert($w['semantic_prediction']['stage']==='substantive_dialogue'
+        &&$w['semantic_prediction']['features']['criteria_families']===['requirements']
+        &&($candidate['stage']??null)==='interest'&&$candidate['value']===500,
+        'explicit hotel interest was lost or promoted to a two-criterion financial request');
+
+    [$case,$w,$doc]=semanticPredictionFreezeFixture([['text'=>'Подберите тур с 10.03 по 19.03.'],
+        ['text'=>'Покажете варианты 3/4 звезды?']],'max');
+    $w+=ModeledConversionEarlyForecast::freeze($case,$w,$doc,null,strtotime($doc['requested_at']),null,true);
+    $p=$w['semantic_prediction'];$refs=array_column($p['evidence'],'source_ref','feature');
+    semanticPredictionAssert($p['current_request_anchor']==='journal:1'&&$p['stage']==='concrete_request'
+        &&$p['features']['criteria_families']===['dates','requirements']
+        &&($refs['criteria_dates']??null)==='journal:1'&&($refs['criteria_requirements']??null)==='journal:2',
+        'later hotel rating replaced the evidence for an independently supplied travel period');
+};
 $tests['bounded criteria handle countries outside canonical narrow vocabulary']=static function():void{
     $p=semanticPredictionRun([['text'=>'Испания в июле, 2 взрослых, бюджет 200 тысяч.']]);
     semanticPredictionAssert($p['stage']==='concrete_request'
