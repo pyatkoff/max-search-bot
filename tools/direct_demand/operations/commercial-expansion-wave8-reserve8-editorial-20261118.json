@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "state": "WAVE8_CAPTIONS_CHECKED_AWAITING_SOURCE_ACCEPTANCE",
+  "published_baseline": 1134,
+  "country_ids_excluded": [
+    11
+  ],
+  "rows": [
+    {
+      "hotel_id": 1078,
+      "country_id": 4,
+      "name": "TUI MAGIC LIFE Belek",
+      "location": "Белек, Турция",
+      "caption": "✈️ Туры в TUI MAGIC LIFE Belek\n📍 Белек, Турция.\n\nПляж, велосипедные прогулки и теннис в одной поездке. У TUI MAGIC LIFE Belek есть собственный песчано-галечный берег, корты и водные горки для семейного отпуска. Подойдёт тем, кто любит проводить день в движении. Открытые бассейны без подогрева; их работа зависит от погоды.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "TUI MAGIC LIFE BELEK (EX. CLUB ASTERIA BELEK)",
+        "TUI MAGIC LIFE BELEK",
+        "CLUB ASTERIA BELEK",
+        "TUI MAGIC LIFE Belek"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1078"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1078",
+      "publication_allowed": false,
+      "cover_sha256": "456072f356a157ae34dc8239bd81fcee2262e094f3d8947be75f7fb45195964c"
+    },
+    {
+      "hotel_id": 17489,
+      "country_id": 4,
+      "name": "TUI MAGIC LIFE Masmavi",
+      "location": "Белек, Турция",
+      "caption": "✈️ Туры в TUI MAGIC LIFE Masmavi\n📍 Белек, Турция.\n\nДнём можно чередовать море с теннисом, а вечером отправиться на развлекательную программу. У Masmavi собственный песчано-галечный пляж, несколько бассейнов и детский клуб. Для прохладного сезона предусмотрен крытый бассейн с подогревом; открытые бассейны без подогрева.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "TUI MAGIC LIFE MASMAVI (EX. ROBINSON CLUB MASMAVI)",
+        "TUI MAGIC LIFE MASMAVI",
+        "ROBINSON CLUB MASMAVI",
+        "TUI MAGIC LIFE Masmavi"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=17489"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=17489",
+      "publication_allowed": false,
+      "cover_sha256": "2338d7fd181eb7464697712c3ec787b5e111ce0c26a062de7222210afb755621"
+    },
+    {
+      "hotel_id": 1679,
+      "country_id": 4,
+      "name": "Club Tuana Fethiye",
+      "location": "Фетхие, Турция",
+      "caption": "✈️ Туры в Club Tuana Fethiye\n📍 Фетхие, Турция.\n\nМоре, зелёная территория и пирс для долгих отпускных дней. В Club Tuana есть бассейны, водные горки и рестораны разных кухонь. Хороший выбор для семьи, которой хочется отдыхать на территории курорта. Корпуса Park находятся примерно в 250 м от моря; пляж песчано-галечный.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "CLUB TUANA FETHIYE (EX. MAJESTY CLUB TUANA PARK)",
+        "CLUB TUANA FETHIYE",
+        "MAJESTY CLUB TUANA PARK",
+        "Club Tuana Fethiye"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1679"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1679",
+      "publication_allowed": false,
+      "cover_sha256": "a7106418dc21b35ef5b0cfbc046f69e02b67dd35379ce6783129f771c795f2e1"
+    },
+    {
+      "hotel_id": 43649,
+      "country_id": 1,
+      "name": "Novotel Marsa Alam",
+      "location": "Марса-Алам, Египет",
+      "caption": "✈️ Туры в Novotel Marsa Alam\n📍 Марса-Алам, Египет.\n\nКрасное море у территории отеля и бассейны для отдыха между купаниями. Novotel подойдёт для спокойной пляжной поездки: здесь есть спа, рестораны и семейные номера с двумя спальнями. Вход в море коралловый — это существенный момент при поездке с маленькими детьми.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "NOVOTEL MARSA ALAM",
+        "Novotel Marsa Alam"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43649"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43649",
+      "publication_allowed": false,
+      "cover_sha256": "eac7092b324fcf2b5c8943bb9ad6628963183cfc434044ccfd52933b32092871"
+    },
+    {
+      "hotel_id": 74019,
+      "country_id": 1,
+      "name": "Hilton Pyramids Golf",
+      "location": "Гиза, Египет",
+      "caption": "✈️ Туры в Hilton Pyramids Golf\n📍 Гиза, Египет.\n\nПартия в гольф и отдых у бассейна после поездок по Каиру. В Hilton Pyramids Golf есть поле на 18 лунок, спа и рестораны. Подойдёт для городской поездки с размеренным отдыхом на территории. Отель расположен в районе 6 Октября, это не пляжный курорт.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "HILTON PYRAMIDS GOLF",
+        "Hilton Pyramids Golf"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=74019"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=74019",
+      "publication_allowed": false,
+      "cover_sha256": "6df44734abd01105ee87ad03120e5a2f57634930eb9c4dce87498e1ba4a800a7"
+    },
+    {
+      "hotel_id": 75504,
+      "country_id": 1,
+      "name": "Marriott Mena House",
+      "location": "Гиза, Египет",
+      "caption": "✈️ Туры в Marriott Mena House\n📍 Гиза, Египет.\n\nПирамиды Гизы рядом, а после экскурсии можно вернуться в сад и к открытому бассейну. Marriott Mena House подойдёт для поездки за древней историей Египта с комфортным отдыхом между прогулками. У отеля есть рестораны и спа. Это городской экскурсионный отдых, без собственного морского пляжа.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "MARRIOTT MENA HOUSE",
+        "Marriott Mena House"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75504"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75504",
+      "publication_allowed": false,
+      "cover_sha256": "9dbc352898004852d4bd5f44cd5a5aece22ec3f50207c0083cdd7aff9b9fc64c"
+    },
+    {
+      "hotel_id": 2590,
+      "country_id": 9,
+      "name": "Dusit Ajman",
+      "location": "Аджман, ОАЭ",
+      "caption": "✈️ Туры в Dusit Ajman\n📍 Аджман, ОАЭ.\n\nПесчаный пляж Персидского залива рядом с отелем. В Dusit Ajman можно провести утро у моря, после обеда отдохнуть у бассейна, а вечером выбрать ресторан на территории. Для семьи предусмотрены детский бассейн и игровая площадка. Спа-процедуры и водные развлечения оплачиваются отдельно.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "DUSIT AJMAN (EX. AJMAN HOTEL)",
+        "DUSIT AJMAN",
+        "AJMAN HOTEL",
+        "Dusit Ajman"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2590"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2590",
+      "publication_allowed": false,
+      "cover_sha256": "488380a79272d96407866938644eab797f4cd73b1ccf22e4064b47a066039521"
+    },
+    {
+      "hotel_id": 73896,
+      "country_id": 9,
+      "name": "Sofitel Dubai The Obelisk",
+      "location": "Дубай, ОАЭ",
+      "caption": "✈️ Туры в Sofitel Dubai The Obelisk\n📍 Дубай, ОАЭ.\n\nИз отеля можно пройти прямо в торговый центр Wafi Mall. Sofitel The Obelisk подойдёт для поездки по Дубаю с прогулками, покупками и отдыхом у бассейна. Есть спа и детский клуб; станция метро Healthcare City в пешей доступности. Это городской отель, не на морском берегу.\n\nПодберём тур на ваши даты.",
+      "aliases": [
+        "SOFITEL DUBAI THE OBELISK",
+        "Sofitel Dubai The Obelisk"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=73896"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=73896",
+      "publication_allowed": false,
+      "cover_sha256": "752ec49f46a03f98704807d5a32da927823eacb11b681f22633c73abeeccd6dd"
+    }
+  ],
+  "intake_sha256": "bf8ad0a74e25be48cee283d262e730391ab940261bfcecc5f46bcbaa379f564d"
+}
