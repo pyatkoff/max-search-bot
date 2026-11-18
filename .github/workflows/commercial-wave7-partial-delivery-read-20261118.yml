@@ -1,0 +1,144 @@
+name: Read exact MAX and Telegram results after interrupted hotel publication
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/commercial-wave7-partial-delivery-read-20261118.yml']
+permissions:
+  contents: read
+jobs:
+  registry-screen:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '7806cd78a750e964c6d83eb5834211457e3e38c6' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Prepare the read-only HOTEL CONTENT check
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p pub
+          cat > pub/registry-read.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          ini_set('display_errors', '0');
+          $installed = trim((string)shell_exec('git rev-parse HEAD'));
+          if (PHP_SAPI !== 'cli' || $installed !== 'cc017ee5bb669f4c7c13efc91d5c5812a50e55f2') {
+              fwrite(STDERR, "Installed application changed before the read-only checkpoint\n");
+              exit(2);
+          }
+          if (trim((string)shell_exec('git status --porcelain --untracked-files=no')) !== '') {
+              throw new RuntimeException('Tracked production files changed');
+          }
+          $operations = [
+              52 => ['max', [1589, 127349, 115677, 2161]],
+              53 => ['telegram', [47023, 164]],
+          ];
+          $result = ['installed_sha'=>$installed, 'checked_at'=>gmdate(DATE_ATOM), 'state_files'=>[], 'native_matches'=>[]];
+          $root = '/var/www/anytoour/data/channel-post-operations';
+          foreach ($operations as $number => [$platform, $ids]) {
+              $op = "$root/commercial-hotel-batch-20261118-$number-v1";
+              if (realpath($op) !== $op || is_link($op)) {
+                  throw new RuntimeException('Expected operation checkpoint directory is missing');
+              }
+              $summary = json_decode(file_get_contents("$op/publication-summary.json"), true, 64, JSON_THROW_ON_ERROR);
+              $result['summaries'][$number] = ['operation'=>$summary['operation'], 'ok'=>$summary['ok'], 'error'=>$summary['error'],
+                  'post_write_attempts'=>$summary['post_write_attempts'], 'new_posts'=>$summary['new_posts']];
+              foreach ($ids as $id) {
+                  $file = "$op/$platform-commercial-hotel-$id-v1-approved.json";
+                  if (is_link($file)) {
+                      throw new RuntimeException('Unexpected linked checkpoint');
+                  }
+                  $data = is_file($file) ? json_decode(file_get_contents($file), true, 64, JSON_THROW_ON_ERROR) : [];
+                  $result['state_files'][] = ['number'=>$number, 'platform'=>$platform, 'hotel_id'=>$id,
+                      'file_present'=>$data !== [], 'state'=>$data['state'] ?? null, 'provider_http'=>$data['provider_http'] ?? null,
+                      'provider_error_code'=>$data['provider_error_code'] ?? null, 'retry_after_seconds'=>$data['retry_after_seconds'] ?? null,
+                      'has_provider_message'=>!empty($data['message']), 'publication_id'=>$data['publication_id'] ?? null];
+              }
+          }
+          ob_start();
+          require getcwd() . '/config.php';
+          require_once getcwd() . '/services/ChannelPostRuntime.php';
+          ob_end_clean();
+          $pdo = ConversationDb::connection();
+          $pdo->exec('SET SESSION TRANSACTION READ ONLY');
+          $pdo->beginTransaction();
+          try {
+              $query = $pdo->prepare('SELECT p.id, p.current_version_id, v.snapshot_json
+                  FROM post_publications p JOIN post_versions v ON v.id = p.current_version_id
+                  WHERE p.post_channel_id = ? ORDER BY p.id');
+              $ids = [1589,127349,115677,2161,236,13853,48795,12104,2686,1518,64330,57682,47023,164];
+              foreach (['telegram'=>10,'max'=>9] as $platform=>$channel) {
+                  $query->execute([$channel]);
+                  foreach ($query->fetchAll(PDO::FETCH_ASSOC) as $record) {
+                      $post = json_decode($record['snapshot_json'], true, 64, JSON_THROW_ON_ERROR);
+                      $native = (int)($post['metadata']['hotel_catalog_id'] ?? 0);
+                      if (in_array($native, $ids, true)) {
+                          $result['native_matches'][] = ['platform'=>$platform,'hotel_id'=>$native,'publication_id'=>(int)$record['id'],
+                              'version_id'=>(int)$record['current_version_id'],'text_sha256'=>hash('sha256',(string)($post['text'] ?? ''))];
+                      }
+                  }
+              }
+          } finally {
+              $pdo->rollBack();
+          }
+          echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), PHP_EOL;
+          PHP
+          php -l pub/registry-read.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read exact operation checkpoints and registry records
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php' < pub/registry-read.php > pub/registry-receipt.json
+          python3 -m json.tool pub/registry-receipt.json >/dev/null
+      - name: Preserve delivery facts without modifying state
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: wave7-partial-delivery-read-20261118
+          path: pub/registry-receipt.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Remove runner-only credentials
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/registry-read.php
+
