@@ -1,64 +1,46 @@
-name: Read public hotel identities in both registries for W13 deduplication
+name: Read existing W11 approved ten pairs after terminal W13 without edits
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 permissions:
   contents: read
+  actions: read
 jobs:
-  registry-screen:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
-      && github.event.before == '9bd341c33ae67f2a2793dcb441338b09ab103fc1' && github.run_attempt
-      == 1
+  read-existing-w11-approved10:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == '0f8bac12837d945a7b359ac7343ebd27f81f3afd'
+      && github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
-    - name: Prepare the read-only HOTEL CONTENT check
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      with:
+        persist-credentials: false
+        fetch-depth: 2
+        sparse-checkout: tools/direct_demand/operations
+    - name: Verify terminal W13, current release and exact read-only package
+      env:
+        GH_TOKEN: ${{ github.token }}
       shell: bash
-      run: "set -euo pipefail\numask 077\nmkdir -p pub\ncat > pub/registry-read.php\
-        \ <<'PHP'\n<?php\ndeclare(strict_types=1);\n\nini_set('display_errors', '0');\n\
-        $installed = trim((string)shell_exec('git rev-parse HEAD'));\nif (PHP_SAPI\
-        \ !== 'cli' || $installed !== 'bd8e248f7138ea75cb9fda2dcf44beb631c633a5')\
-        \ {\n    fwrite(STDERR, \"Installed application changed before registry read\\\
-        n\");\n    exit(2);\n}\nif (trim((string)shell_exec('git status --porcelain\
-        \ --untracked-files=no')) !== '') {\n    fwrite(STDERR, \"Tracked production\
-        \ files differ from the installed release\\n\");\n    exit(2);\n}\n$pins =\
-        \ json_decode(base64_decode('eyJpbnRlZ3JhdGlvbnMvQ2hhbm5lbFBvc3RBcGlUcmFuc3BvcnQucGhwIjogIjMwMDYzNGQ3N2NiOWZkZGY1MWFkZjk4Njk5NzRmOTU2Y2NhNmUzZjkiLCAibWlncmF0aW9ucy8wMzNfY2hhbm5lbF9wb3N0X2NvbnRleHQuc3FsIjogIjA1MzA0NTgwMzBhNGJmZTZiNmNjNTVkMWU1ZTQ0MTc0NWMyOWI5NDciLCAibWlncmF0aW9ucy8wMzZfY2hhbm5lbF9wb3N0X21lbWJlcl9kZWxpdmVyeS5zcWwiOiAiMWJkYTQ2M2U1MmIzMzEzMGFkMTI3NTJkZGVmNGVlNWM5MjY5OWMwNSIsICJtaWdyYXRpb25zLzA0MF9jaGFubmVsX3Bvc3RfcmVjb25jaWxpYXRpb24uc3FsIjogIjBmMjRiODM4ZWFjZDQ1MzMzYzVhZGU5YTI5OTFkMDYwNDg4YzYwMzUiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RBZG1pblNlcnZpY2UucGhwIjogImI4MGVlZmM4MDEwNTRiZmU2ZmRiNThlYzM0NWVjZGY2ODdiMmU4OWEiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RBdXRvbWF0aW9uU2VydmljZS5waHAiOiAiYzYzODZlMTU1ZDQyYmM4Mzk3MGVkYzk1ZjM1YjNlYmViNTE0MDUzMyIsICJzZXJ2aWNlcy9DaGFubmVsUG9zdEJ1dHRvblRyYW5zcG9ydC5waHAiOiAiN2I2NzExZjFkZTYzMDAwMzQ2ZDhlNTc4OWYyZGJiN2Y3MjU1MzViOCIsICJzZXJ2aWNlcy9DaGFubmVsUG9zdEVudHJ5U2VydmljZS5waHAiOiAiMTk4MmZmNzM2ODc2M2VkZjhiNzIzOGMzMTQyZTNjYzI4NTc5ZTk5MSIsICJzZXJ2aWNlcy9DaGFubmVsUG9zdE1heEFsYnVtUmVjb3ZlcnkucGhwIjogImRlMjY2Y2QwNjg1ODdjYzNiMmZmODNmMzA4YTk2NmVhNjY4ODdhMDQiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RNZWRpYVNlcnZpY2UucGhwIjogImY3OTRlZmQwZjZmMjRkZjkxNmUxODkwOWZmNjI4MWIwYmM5Mjg0MzMiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RNZW1iZXJEZWxpdmVyeVNlcnZpY2UucGhwIjogIjIwYzFkNzk4NDg5OGIyYTU5OTZhNWY5ZTIwZTRkMmQ4YzIwYjQ3NzgiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RSZWNvbmNpbGlhdGlvblNlcnZpY2UucGhwIjogIjFmYTI2MGU5NzIwYTg0MjEyMjdlY2JlNzQwYmZiZTMzYTQyZTM5OGQiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RSZWNvbmNpbGlhdGlvblN0YXRlLnBocCI6ICJkOTU4M2NlY2E4MGQxNDI0YTQ0YWRlMzU2MWMyMTI4MmEyM2E1MmYwIiwgInNlcnZpY2VzL0NoYW5uZWxQb3N0UmVnaXN0cnlTZXJ2aWNlLnBocCI6ICJjZjQyYTQ0MjU3ZDFhNThkMWZmNTE2Njc4NjE1Y2Y5ZDAxZjQ1YjU1IiwgInNlcnZpY2VzL0NoYW5uZWxQb3N0UnVudGltZS5waHAiOiAiMmYxZGQ5Yjc3NDc0ZmRiYWE5MmYwNDAyZjNiMGFhMTcwYzU5NTQ3NCIsICJzZXJ2aWNlcy9DaGFubmVsUG9zdFRlbGVncmFtQWxidW0ucGhwIjogImZhYTFhMTRiYzI3OWE0YWYzMzkzNjI4MjEyNmJmMGQ0NmUzNDMwNDAiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RXZWJob29rQ29uZmlnU2VydmljZS5waHAiOiAiZDVmZGNiMDU2MDg4ZjFlM2E1NDFiNDA0NjMyNWQ5N2VlZjY0MTdkOSIsICJzZXJ2aWNlcy9Db252ZXJzYXRpb25EYi5waHAiOiAiYmI2MjgxZmFmNTVhY2E3YmVlYWU3ZjhhNTczODlkMTk3NTE5MzZmNyIsICJzZXJ2aWNlcy9NYXhUbHNDb25maWcucGhwIjogIjAzMmMwMjExZWUzZjM5YzZmMGQyN2M2NjlhYmQ1YjQ2N2UzMjFkZWEiLCAic2VydmljZXMvTWF4VHJhbnNwb3J0LnBocCI6ICIyY2I0Zjg3ODZiNDcwNGE4ZTYyYTNhOWM0MGRjMmNjNzNkYWQ2MTU5IiwgInNlcnZpY2VzL1Byb2plY3RDb25maWcucGhwIjogIjYzYzE3YzgxMDM0MTJmOGNmZjhjZGNjNGJiYjA2MmU3NDQxMDZhZjkiLCAic2VydmljZXMvUHJvamVjdENvbmZpZ3VyYXRpb24ucGhwIjogIjA3MDE5ZDQ3M2M1ODhlMzM4NmFjZTQyOTc3ZGI5MzA5MmU4MTEyZTMifQ==',\
-        \ true), true, 64, JSON_THROW_ON_ERROR);\nforeach ($pins as $path => $expected)\
-        \ {\n    if (trim((string)shell_exec('git hash-object -- ' . escapeshellarg($path)))\
-        \ !== $expected) {\n        throw new RuntimeException('Pinned publication\
-        \ component differs from the installed release');\n    }\n}\n$manifest = [];\n\
-        \nob_start();\nrequire getcwd() . '/config.php';\nrequire_once getcwd() .\
-        \ '/services/ChannelPostRuntime.php';\nob_end_clean();\n\n$pdo = ConversationDb::connection();\n\
-        $pdo->exec('SET SESSION TRANSACTION READ ONLY');\n$pdo->beginTransaction();\n\
-        $result = ['installed_sha' => $installed, 'checked_at' => gmdate(DATE_ATOM),\n\
-        \    'native_hotel_ids' => array_column($manifest, 0), 'channels' => [], 'matches'\
-        \ => []];\ntry {\n    $query = $pdo->prepare('SELECT p.id, p.current_version_id,\
-        \ v.snapshot_json\n        FROM post_publications p JOIN post_versions v ON\
-        \ v.id = p.current_version_id\n        WHERE p.post_channel_id = ? ORDER BY\
-        \ p.id');\n    foreach (['telegram' => 10, 'max' => 9] as $platform => $channel)\
-        \ {\n        $query->execute([$channel]);\n        $rows = $query->fetchAll(PDO::FETCH_ASSOC);\n\
-        \        if (count($rows) < 1367) {\n            throw new RuntimeException('Publication\
-        \ registry is below the verified baseline');\n        }\n        $result['channels'][$platform]\
-        \ = count($rows);\n        foreach ($rows as $record) {\n            $post\
-        \ = json_decode($record['snapshot_json'], true, 64, JSON_THROW_ON_ERROR);\n\
-        \            $title = explode(\"\\n\", (string)($post['text'] ?? ''), 2)[0];\n\
-        \            $metadata = $post['metadata'] ?? [];\n            $native = (int)($metadata['hotel_catalog_id']\
-        \ ?? 0);\n            $result['rows'][] = ['platform'=>$platform,'publication_id'=>(int)$record['id'],'native_id'=>$native,'logical_id'=>(string)($metadata['logical_id']??''),'title'=>$title];\n\
-        \            foreach ($manifest as [$id, $aliases]) {\n                $reason\
-        \ = [];\n                if ($native === $id || ($metadata['logical_id'] ??\
-        \ '') === \"commercial-hotel-$id-v1\") {\n                    $reason[] =\
-        \ 'identity';\n                }\n                foreach ($aliases as $alias)\
-        \ {\n                    if ($alias !== '' && mb_stripos($title, $alias, 0,\
-        \ 'UTF-8') !== false) {\n                        $reason[] = 'title';\n  \
-        \                      break;\n                    }\n                }\n\
-        \                if ($reason !== []) {\n                    $result['matches'][]\
-        \ = ['requested_id' => $id, 'registry_hotel_id' => $native,\n            \
-        \            'platform' => $platform, 'publication_id' => (int)$record['id'],\n\
-        \                        'version_id' => (int)$record['current_version_id'],\
-        \ 'reason' => $reason,\n                        'title' => mb_substr($title,\
-        \ 0, 180, 'UTF-8')];\n                }\n            }\n        }\n    }\n\
-        } finally {\n    $pdo->rollBack();\n}\necho json_encode($result, JSON_UNESCAPED_UNICODE\
-        \ | JSON_THROW_ON_ERROR), PHP_EOL;\nPHP\nphp -l pub/registry-read.php\n"
+      run: "set -euo pipefail\npython3 - <<'PY'\nimport subprocess,json,base64,os\nREPO='pyatkoff/max-search-bot'\nAPP='bd8e248f7138ea75cb9fda2dcf44beb631c633a5'\n\
+        def api(path):\n    return subprocess.check_output(['gh','api',f'repos/{REPO}/{path}'],timeout=70)\n\ndef info(path):\n\
+        \    return json.loads(api(path))\n\ndef digest(data):\n    return hashlib.sha256(data).hexdigest()\n\nassert info('git/ref/heads/main')['object']['sha']==APP\n\
+        d=json.loads(base64.b64decode(info('contents/deploy_status.json?ref=diagnostics')['content']))\nrelease=d['repository_release']\n\
+        assert release['kind']=='installed' and release['repository_sha']==release['application_sha']==d['sha']==APP\nassert\
+        \ str(release['release']['run_id'])=='44329290180' and all(s['result']=='success' for s in release['stages'].values())\n\
+        required={'deploy.yml','retired-domain-guard.yml','max-tls-preflight.yml','max-production-health.yml',\n         \
+        \ 'telegram-production-health.yml','publish-conversation-diagnostics.yml','live-session-diagnostics.yml',\n      \
+        \    'tour-selection-host.yml','modeled-conversion-monitor.yml'}\ngates={g['path'].rsplit('/',1)[-1]:g for g in release['closure']['gates']}\n\
+        assert required <= gates.keys()\nassert all(gates[p]['conclusion']=='success' and gates[p]['head_sha']==APP and gates[p]['run_attempt']==1\
+        \ for p in required)\n\nr=info('actions/runs/44375796597')\nassert r['status']=='completed' and r['conclusion']=='success'\
+        \ and r['run_attempt']==1 and r['head_sha']=='0f8bac12837d945a7b359ac7343ebd27f81f3afd', 'W13_NOT_TERMINAL_SUCCESS_STOP'\n\
+        feed=info('actions/runs?branch=audit%2Fprice660-27316-resume-readiness-20261117&per_page=5')\nassert not [r for r\
+        \ in feed['workflow_runs'] if r['status'] in {'requested','queued','in_progress','waiting','pending'}], 'ACTIVE_FEED_OWNER_STOP'\n\
+        assert info('git/ref/heads/audit/content100-bot-publication-20261101')['object']['sha']==os.environ['GITHUB_SHA'],\
+        \ 'CARRIER_ADVANCED_STOP'\nfrom pathlib import Path\nimport hashlib\nroot=Path('tools/direct_demand/operations/w11-approved-corrections')\n\
+        expected={'prepare-read-stage.py': 'fb6a50c321c0d808c1051da2bbac762732114bca8ad1e2b29b5d0c642719a27c', 'bound-w11-posts.json':\
+        \ '84dbec5a506b7308e2f78a33dacc401a18bf9fa9ff6c84c1d82f57f4da0680ed', 'approved-texts.json': '2a55fda496c5d4e18bc7170e40e86409ee7610c3f5c9f2920d2a940ce38ca3c4'}\n\
+        for name,sha in expected.items():assert hashlib.sha256((root/name).read_bytes()).hexdigest()==sha\nPY\npython3 tools/direct_demand/operations/w11-approved-corrections/prepare-read-stage.py\
+        \ metadata --ops tools/direct_demand/operations --out caption-w11-read\nphp -l caption-w11-read/journal-metadata.php\n"
     - name: Pin established SSH host continuity and authentication identity
       env:
         HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -66,49 +48,70 @@ jobs:
         KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
       shell: bash
       run: "set -euo pipefail\numask 077\npython3 - <<'PY'\nimport os,re\nassert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE']\
-        \ or '')\nassert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or\
-        \ '')\nPY\nif [[ \"$KEY_VALUE\" == *\"PRIVATE KEY\"* ]]; then\n  if [[ \"\
-        $KEY_VALUE\" == *'\\n'* ]]; then printf '%b\\n' \"$KEY_VALUE\" | tr -d '\\\
-        r' > \"$RUNNER_TEMP/channel_key\"; else printf '%s\\n' \"$KEY_VALUE\" | tr\
-        \ -d '\\r' > \"$RUNNER_TEMP/channel_key\"; fi\nelse printf '%s' \"$KEY_VALUE\"\
-        \ | base64 --decode > \"$RUNNER_TEMP/channel_key\"; fi\nchmod 600 \"$RUNNER_TEMP/channel_key\"\
-        \nssh-keygen -y -f \"$RUNNER_TEMP/channel_key\" >/dev/null\npython3 - <<'PY'\n\
-        import base64,hashlib,os,pathlib,subprocess\nscan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]\n\
-        for s in scan.stdout.splitlines():\n    q=s.split()\n    if len(q)<3 or q[0].startswith('#'):continue\n\
-        \    try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')\n\
+        \ or '')\nassert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')\nPY\nif [[ \"$KEY_VALUE\" == *\"PRIVATE\
+        \ KEY\"* ]]; then\n  if [[ \"$KEY_VALUE\" == *'\\n'* ]]; then printf '%b\\n' \"$KEY_VALUE\" | tr -d '\\r' > \"$RUNNER_TEMP/channel_key\"\
+        ; else printf '%s\\n' \"$KEY_VALUE\" | tr -d '\\r' > \"$RUNNER_TEMP/channel_key\"; fi\nelse printf '%s' \"$KEY_VALUE\"\
+        \ | base64 --decode > \"$RUNNER_TEMP/channel_key\"; fi\nchmod 600 \"$RUNNER_TEMP/channel_key\"\nssh-keygen -y -f \"\
+        $RUNNER_TEMP/channel_key\" >/dev/null\npython3 - <<'PY'\nimport base64,hashlib,os,pathlib,subprocess\nscan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]\n\
+        for s in scan.stdout.splitlines():\n    q=s.split()\n    if len(q)<3 or q[0].startswith('#'):continue\n    try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')\n\
         \    except Exception:continue\n    if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)\n\
         assert found,'HOST_PIN_MISMATCH_STOP'\npathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\\\
         n'.join(found)+'\\n')\nprint('ESTABLISHED_HOST_PIN_VERIFIED')\nPY\n"
-    - name: Check both publication registries in a read-only transaction
-      env:
+    - name: Read fresh journal metadata without changing the journal
+      env: &id001
         HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
         USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
       shell: bash
       run: 'set -euo pipefail
 
-        options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
-        -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
-        -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+        options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes
+        -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
 
-        ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" ''cd /var/www/anytoour/data/www/app.anytoour.ru
-        && php'' < pub/registry-read.php > pub/registry-receipt.json
+        ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" ''set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE
+        GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0;
+        cd /var/www/anytoour/data/www/app.anytoour.ru; php'' < caption-w11-read/journal-metadata.php > caption-w11-read/journal-metadata.json
 
-        python3 -c ''import json; p=json.load(open("pub/registry-receipt.json"));
-        print({"checked":len(p["native_hotel_ids"]), "registry_counts":p["channels"],
-        "matches":len(p["matches"])})''
+        python3 tools/direct_demand/operations/w11-approved-corrections/prepare-read-stage.py read --ops tools/direct_demand/operations
+        --out caption-w11-read --journal-meta caption-w11-read/journal-metadata.json
+
+        php -l caption-w11-read/read.php
 
         '
-    - name: Preserve exact duplicate screening
+    - name: Read exact 20 current publications and existing price lineage; no edits
+      env: *id001
+      shell: bash
+      run: "set -euo pipefail\noptions=(-i \"$RUNNER_TEMP/channel_key\" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes\
+        \ -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=\"$RUNNER_TEMP/channel_known_hosts\"\
+        )\nssh \"${options[@]}\" \"$USER_VALUE@$HOST_VALUE\" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE\
+        \ GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0;\
+        \ cd /var/www/anytoour/data/www/app.anytoour.ru; php' < caption-w11-read/read.php > caption-w11-read/read-result.json\n\
+        python3 - <<'PY'\nimport json,pathlib\np=pathlib.Path('caption-w11-read');d=json.loads((p/'read-result.json').read_bytes());m=json.loads((p/'journal-metadata.json').read_bytes());s=json.loads((p/'read-scope.json').read_bytes())\n\
+        assert d['ok'] is True and d['operation']==s['operation'] and d['installed_sha']==m['installed_sha']\nassert d['post_write_attempts']==0\
+        \ and d['provider_calls']==10 and len(d['posts'])==20\nassert d['monitor_pending'] is False and d['monitor_journal_sha256']==m['journal_pin']['sha256']\
+        \ and d['journal_pin']==m['journal_pin']\nexpected={(r['hotel_id'],platform):r for r in s['rows'] for platform in\
+        \ ['max','telegram']};seen=set()\nfor row in d['posts']:\n key=(row['hotel_id'],row['platform']);assert key in expected\
+        \ and key not in seen;seen.add(key);bound=expected[key]\n assert row['publication_id']==bound[row['platform']+'_publication_id']\
+        \ and row['post_url']==bound[row['platform']+'_url']\n assert row['status']=='sent' and row['button_resolves_to_current_post']\
+        \ is True and row['media_count']==1\n assert row['provider_live_verified'] is (row['platform']=='max')\n if row['platform']=='telegram':assert\
+        \ row['message_id']==str(bound['telegram_message_id'])\nassert seen==set(expected)\nprint('W11_APPROVED10_READONLY_SNAPSHOT_VERIFIED_NO_EDITS')\n\
+        PY\n"
+    - name: Preserve read-only snapshot and fresh journal pin
       if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
-        name: wave13-published-identities-read
-        path: pub/registry-receipt.json
+        name: w11-approved10-caption-readonly-20261118
+        path: 'caption-w11-read/journal-metadata.json
+
+          caption-w11-read/read-scope.json
+
+          caption-w11-read/read-result.json
+
+          '
         retention-days: 30
         if-no-files-found: warn
-    - name: Remove runner-only credentials
+    - name: Remove runner-only key and compiled readers
       if: always()
-      run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/registry-read.php
+      run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" caption-w11-read/*.php
 'on':
   push:
     branches:
