@@ -1,0 +1,47 @@
+name: W20 source-only P122 recovery from proved P119 zero-send stop
+'on':
+  push:
+    branches:
+    - audit/content100-bot-publication-20261101
+    paths:
+    - .github/workflows/fastfill-wave20-recovery-source-20261118.yml
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: anytour-authorized-channel-publication
+  cancel-in-progress: false
+jobs:
+  source-only:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == '769dbd6192ba3c34721a39fa55d2e024c0a50c59'
+      && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      with:
+        persist-credentials: false
+        fetch-depth: 2
+        sparse-checkout: tools/direct_demand/operations
+    - name: Accept immutable zero-send proof and fresh capabilities; recompile only P122
+      env:
+        GH_TOKEN: ${{ github.token }}
+      shell: bash
+      run: 'set -euo pipefail
+
+        umask 077
+
+        test "$(git rev-parse HEAD^)" = 769dbd6192ba3c34721a39fa55d2e024c0a50c59
+
+        echo "8b353bb9f0700f935cfd58827405f3d3d828140463faf9b3548dae10157c56e2  tools/direct_demand/operations/accept-wave20-recovery-source-20261118.py"
+        | sha256sum -c -
+
+        python3 tools/direct_demand/operations/accept-wave20-recovery-source-20261118.py'
+    - name: Preserve accepted source and immutable recovery proof
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: wave20-recovery-accepted-source
+        path: accepted-source/
+        retention-days: 30
+        if-no-files-found: warn
