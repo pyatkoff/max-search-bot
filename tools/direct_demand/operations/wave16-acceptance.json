@@ -1,0 +1,624 @@
+{
+  "accepted_ids": [
+    104624,
+    112365,
+    112407,
+    112408,
+    113042,
+    114182,
+    121772,
+    124031,
+    124206,
+    129510,
+    132315
+  ],
+  "operational_review": {
+    "104624": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.bestwesternchatuchak.com/",
+        "https://www.bestwesternchatuchak.com/rooms",
+        "https://www.bestwestern.com/en_US/book/chatuchak/hotel-rooms/best-western-chatuchak/propertyCode.99930.html",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=104624"
+      ],
+      "evidence": "Официальный сайт и действующий каталог BestWestern99930 подтверждают название, адрес18KamphaengPhet,192номера и бронирование."
+    },
+    "112365": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://all.accor.com/hotel/B738/index.en.shtml",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=112365"
+      ],
+      "evidence": "Действующая карточка AccorB738 с тем же адресом/телефоном; официальные категории и ответ менеджера октябрь2026 прямо подтверждают разделение дорогой."
+    },
+    "112407": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.wyndhamgardensukhumvitbangkok.com/",
+        "https://www.wyndhamhotels.com/wyndham-garden/bangkok-thailand/wyndham-garden-bangkok-sukhumvit-42",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=112407"
+      ],
+      "evidence": "Официальные сайт объекта и Wyndham подтверждают действующие103комнаты,19SoiSukhumvit42,прямое бронирование и OneBedroomSuite. Ошибочное описание native TwoBedroom как однокомнатного не использовано."
+    },
+    "112408": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.wyndhamhotels.com/wyndham/bangkok-thailand/wyndham-bangkok-queen-convention-centre/overview",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=112408"
+      ],
+      "evidence": "Действующий каталог Wyndham с бронированием подтверждает название/районКхлонгтей,105комнат,кухни,бассейн и фитнес; соответствует адресу388Rama4."
+    },
+    "113042": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.ramadasukhumvitbangkok.com/",
+        "https://www.ramadasukhumvitbangkok.com/faqs/",
+        "https://www.ramadasukhumvitbangkok.com/rooms/duplex-family/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=113042"
+      ],
+      "evidence": "Официальный действующий сайт с Wyndham availability,9Soi Sukhumvit87/phone3311325 совпадает; FAQ подтверждает kitchenette/pool/gym24h,а roompage и официальныйfactsheet — верхний и нижний уровни. Сайт и профиль расходятся в размерах отдельных категорий, размеры не использованы."
+    },
+    "114182": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://solariahotel.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=114182"
+      ],
+      "evidence": "Официальный сайт действующего Solaria Hotel Hanoi,22BaoKhanh/phone39263456 совпадает. Чётко отделены Tesori/d’Oriente; именно mainSolaria предлагает family/connecting,SolSpa,restaurants иSkyBar. Озеро250м изnative."
+    },
+    "121772": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.grandsunrisepalace.com/",
+        "https://www.grandsunrisepalace.com/reservation",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=121772"
+      ],
+      "evidence": "Официальный действующий сайт иreservation по320CuaDai/phone3914888. Совпадают профиль,интерьеры,pool/spa/restaurant,3кмCuaDai. На двух версиях сайта85/105rooms иразные названия ресторана; эти сведения не использованы, идентичность совпадает адресом/телефоном."
+    },
+    "124031": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://ttchospitality.vn/ttc-hotel/ttc-hotel-ngoc-lan",
+        "https://csdl.vietnamtourism.gov.vn/cslt/?item=2714",
+        "https://ttchospitality.vn/khuyen-mai-khach-san/uu-dai-40-gia-phong-cho-van-dong-vien-va-nguoi-nha-nhan-dip-lam-dong-trail-2026",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=124031"
+      ],
+      "evidence": "Текущая officialTTC карточка сbookdirect,91rooms,spa/sauna/gym. Точныйадрес42NguyenChiThanh иphone3838838 совпадают сnative/госреестром. Ноябрь2026предложение оператора подтверждает работу. Не смешан сTTC Hotel DaLat04NguyenThiMinhKhai."
+    },
+    "124206": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.beyondresort.com/skywalk-nangshi/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=124206",
+        "https://www.beyondresort.com/skywalk-nangshi/spaces/beyond-skywalk/",
+        "https://www.beyondresort.com/skywalk-nangshi/about-us/"
+      ],
+      "evidence": "Официальный Beyond: действующий Book now, категории tents/villas, Infinity Edge Pool; страница Skywalk указывает Open Daily06:00–19:00. About us подтверждает Пхангнгу/Kh​long Khian и рестораны. Native координаты совпадают с SametNangshe, регионPhuket исправлен вcaption."
+    },
+    "129510": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://all.accor.com/hotel/A246/index.en.shtml",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=129510"
+      ],
+      "evidence": "Accor current page с Book this hotel и формой дат; адрес27Sukhumvit4 совпадает с native. Official:600mNana,outdoorpool,fitness,RedSquare. Native:deposit1000THB/night,no pets; nightlife location раскрыт."
+    },
+    "132315": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://premierpearlhotel.vn/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=132315",
+        "https://csdl.vietnamtourism.gov.vn/cslt/?item=16236",
+        "https://premierpearlvungtau.com.vn/"
+      ],
+      "evidence": "Native содержит только идентичность/регион, факты взяты из official оператора и госреестра item16236:69–69AThuyVan,телефон02546506666 совпадает междуисточниками; currentrooms/booking,rooftopinfinitypool,spa,AsianEuropeanrestaurants. Дорога кBaiSau дополнительно подтверждена страницей стратегического дистрибутора premierpearlvungtau.com.vn."
+    }
+  },
+  "countries": {
+    "104624": 2,
+    "112365": 16,
+    "112407": 2,
+    "112408": 2,
+    "113042": 2,
+    "114182": 16,
+    "121772": 16,
+    "124031": 16,
+    "124206": 2,
+    "129510": 2,
+    "132315": 16
+  },
+  "aliases": {
+    "104624": [
+      "best western chatuchak"
+    ],
+    "112365": [
+      "mercure vung tau",
+      "mercure vungtau"
+    ],
+    "112407": [
+      "wyndham garden bangkok sukhumvit 42",
+      "wyndham garden sukhumvit 42"
+    ],
+    "112408": [
+      "wyndham bangkok queen convention centre",
+      "wyndham bangkok queen convention",
+      "wyndham queen convention"
+    ],
+    "113042": [
+      "Ramada By Wyndham Bangkok Sukhumvit 87",
+      "Ramada Bangkok Sukhumvit 87"
+    ],
+    "114182": [
+      "Solaria Hotel",
+      "Solaria Hotel Hanoi"
+    ],
+    "121772": [
+      "Grand Sunrise Palace Hoi An",
+      "Grand Sunrise Palace Hội An"
+    ],
+    "124031": [
+      "Ttc Hotel Ngoc Lan",
+      "TTC Hotel Ngoc Lan",
+      "TTC Hotel Premium Ngoc Lan",
+      "TTC Hotel Ngọc Lan"
+    ],
+    "124206": [
+      "Beyond Skywalk Nangshi",
+      "Beyond Skywalk Nangshe"
+    ],
+    "129510": [
+      "Novotel Bangkok Sukhumvit 4"
+    ],
+    "132315": [
+      "Premier Pearl Hotel Vung Tau",
+      "Premier Pearl Hotel & Spa Vung Tau",
+      "Premier Pearl Vung Tau"
+    ]
+  },
+  "editorial": {
+    "104624": {
+      "id": 104624,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Best Western Chatuchak\n📍 Бангкок, Таиланд.\n\nДля поездки за покупками и прогулками: рынок выходного дня Чатучак в пешей доступности, рядом метро Kamphaeng Phet. В отеле есть ресторан тайской и международной кухни, а для семьи можно выбрать номер с двумя спальнями. Это городской отель, не пляжный курорт.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "native common.address18KamphaengPhet/restaurant; official location walking Chatuchak/MRT, rooms Family2Bedrooms48m².",
+      "material_conditions": "Городской район Чатучак, не морской курорт.",
+      "aliases": [
+        "best western chatuchak"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Нет совпадений native ID или узких property-specific aliases в текущем registry.",
+      "alias_registry_sha256": "8d9148a2ef94bb8117763e55936e313c5a3d702ccaa431a62fa37fb731400864",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.bestwesternchatuchak.com/",
+          "https://www.bestwesternchatuchak.com/rooms",
+          "https://www.bestwestern.com/en_US/book/chatuchak/hotel-rooms/best-western-chatuchak/propertyCode.99930.html",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=104624"
+        ],
+        "evidence": "Официальный сайт и действующий каталог BestWestern99930 подтверждают название, адрес18KamphaengPhet,192номера и бронирование."
+      },
+      "caption_sha256": "2e47446df1e1ab811c075a057285071824eecb88fb7e21a97bf041df3f2601d6"
+    },
+    "112365": {
+      "id": 112365,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Mercure Vung Tau\n📍 Вунгтау, Вьетнам.\n\nДля отдыха вдвоём или с детьми: инфинити-бассейн, ресторан Breezes и семейные номера с двухъярусной кроватью. Важно выбрать корпус: номера Hillside находятся на склоне через дорогу от пляжной части, бассейна и ресторана. Для отдыха без перехода дороги подберём категорию Beachside.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "native address03–06HaLong,pool,restaurant; officialB738:infinitypool,Breezes,FamilyKing+Bunk,Hillsideacrossstreet vs Beachside.",
+      "material_conditions": "Hillside на склоне через дорогу от основной инфраструктуры; Beachside в береговой части.",
+      "aliases": [
+        "mercure vung tau",
+        "mercure vungtau"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Нет совпадений native ID или узких property-specific aliases в текущем registry.",
+      "alias_registry_sha256": "8d9148a2ef94bb8117763e55936e313c5a3d702ccaa431a62fa37fb731400864",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://all.accor.com/hotel/B738/index.en.shtml",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=112365"
+        ],
+        "evidence": "Действующая карточка AccorB738 с тем же адресом/телефоном; официальные категории и ответ менеджера октябрь2026 прямо подтверждают разделение дорогой."
+      },
+      "caption_sha256": "51791344fdb0d1ce3c1df67ada1eecbbf0b27c62aec7dcc2d82e8c9589de2e00"
+    },
+    "112407": {
+      "id": 112407,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Wyndham Garden Bangkok Sukhumvit 42\n📍 Бангкок, Таиланд.\n\nДля семейной поездки или долгого знакомства с городом: люксы с мини-кухней и отдельной гостиной зоной, стиральная машина с сушилкой в One Bedroom Suite. На территории есть бассейн и тренажёрный зал. Рядом станция BTS Ekkamai; это городской отель, не пляжный курорт.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "native:OneBedroomSuite kitchenette/separate living/washerdryer,fitness,pool,Ekkamai300m; official identical suite features and Ekkamai location.",
+      "material_conditions": "Городской отель; стиральная машина с сушилкой подтверждена для OneBedroomSuite. Не обещаем тип бассейна: native outdoor против сети indoor.",
+      "aliases": [
+        "wyndham garden bangkok sukhumvit 42",
+        "wyndham garden sukhumvit 42"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Нет совпадений native ID или узких property-specific aliases в текущем registry.",
+      "alias_registry_sha256": "8d9148a2ef94bb8117763e55936e313c5a3d702ccaa431a62fa37fb731400864",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.wyndhamgardensukhumvitbangkok.com/",
+          "https://www.wyndhamhotels.com/wyndham-garden/bangkok-thailand/wyndham-garden-bangkok-sukhumvit-42",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=112407"
+        ],
+        "evidence": "Официальные сайт объекта и Wyndham подтверждают действующие103комнаты,19SoiSukhumvit42,прямое бронирование и OneBedroomSuite. Ошибочное описание native TwoBedroom как однокомнатного не использовано."
+      },
+      "caption_sha256": "24e709a7007dc623511922e60af06057d15a173b542216442fba6596dd37af65"
+    },
+    "112408": {
+      "id": 112408,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Wyndham Bangkok Queen Convention Centre\n📍 Бангкок, Таиланд.\n\nДля городского отдыха с домашним удобством: номера с мини-кухней и гостиной зоной, инфинити-бассейн на крыше и тренажёрный зал. Рядом конгресс-центр Queen Sirikit и одноимённая станция метро. Это не пляжный отель, зато удобно чередовать прогулки по Бангкоку с отдыхом у бассейна.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "native:rooftop outdoorpool,metro300m,kitchenette,livingarea; official infinitypool,fitness,105rooms/kitchenette.",
+      "material_conditions": "Городской отель, не пляжный; рядом QueenSirikitMRT.",
+      "aliases": [
+        "wyndham bangkok queen convention centre",
+        "wyndham bangkok queen convention",
+        "wyndham queen convention"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Нет совпадений native ID или узких property-specific aliases в текущем registry.",
+      "alias_registry_sha256": "8d9148a2ef94bb8117763e55936e313c5a3d702ccaa431a62fa37fb731400864",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.wyndhamhotels.com/wyndham/bangkok-thailand/wyndham-bangkok-queen-convention-centre/overview",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=112408"
+        ],
+        "evidence": "Действующий каталог Wyndham с бронированием подтверждает название/районКхлонгтей,105комнат,кухни,бассейн и фитнес; соответствует адресу388Rama4."
+      },
+      "caption_sha256": "3e893dee981143ddbd44deb85fdcd81474dd57b58f082e88776f4da2d7f89ab5"
+    },
+    "113042": {
+      "id": 113042,
+      "ready": true,
+      "caption": "✈️ Туры в Ramada By Wyndham Bangkok Sukhumvit 87\n📍 Бангкок, Таиланд.\n\nДля семейной поездки или длительной остановки в Бангкоке: двухуровневые номера с мини-кухней, открытый бассейн и круглосуточный фитнес-зал. Рядом BTS On Nut, а вечером можно подняться в бар Gravity 87. В номерах duplex есть внутренняя лестница — учитывайте это, если путешествуете с малышами или вам сложно подниматься по ступеням.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "hold_reason": null,
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=113042",
+          "facts": "Для семейной поездки или длительной остановки в Бангкоке: двухуровневые номера с мини-кухней, открытый бассейн и круглосуточный фитнес-зал. Рядом BTS On Nut, а вечером можно подняться в бар Gravity 87. В номерах duplex есть внутренняя лестница — учитывайте это, если путешествуете с малышами или вам сложно подниматься по ступеням."
+        },
+        {
+          "source": "https://www.ramadasukhumvitbangkok.com/",
+          "facts": "Официальный действующий сайт с Wyndham availability,9Soi Sukhumvit87/phone3311325 совпадает; FAQ подтверждает kitchenette/pool/gym24h,а roompage и официальныйfactsheet — верхний и нижний уровни. Сайт и профиль расходятся в размерах отдельных категорий, размеры не использованы."
+        }
+      ],
+      "material_conditions": "Городской объект, не пляжный. Duplex с лестницей; стиральная машина только selected room types, не обещана во всех.",
+      "aliases": [
+        "Ramada By Wyndham Bangkok Sukhumvit 87",
+        "Ramada Bangkok Sukhumvit 87"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases сверены с актуальным registry; совпадений опубликованных объектов нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.ramadasukhumvitbangkok.com/",
+          "https://www.ramadasukhumvitbangkok.com/faqs/",
+          "https://www.ramadasukhumvitbangkok.com/rooms/duplex-family/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=113042"
+        ],
+        "evidence": "Официальный действующий сайт с Wyndham availability,9Soi Sukhumvit87/phone3311325 совпадает; FAQ подтверждает kitchenette/pool/gym24h,а roompage и официальныйfactsheet — верхний и нижний уровни. Сайт и профиль расходятся в размерах отдельных категорий, размеры не использованы."
+      },
+      "caption_sha256": "1db1f0b084f6183f49ba8114d16964b1be3cdadeb025b7922359c3e50a517742"
+    },
+    "114182": {
+      "id": 114182,
+      "ready": true,
+      "caption": "✈️ Туры в Solaria Hotel\n📍 Ханой, Вьетнам.\n\nДля знакомства с Ханоем пешком: до озера Хоанкьем около 250 м, рядом улицы Старого квартала. После прогулки можно зайти в Sol Spa, поужинать в ресторане и провести вечер в Sky Bar. Есть семейные и соединяющиеся номера; это городской отель, не пляжный курорт.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "hold_reason": null,
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=114182",
+          "facts": "Для знакомства с Ханоем пешком: до озера Хоанкьем около 250 м, рядом улицы Старого квартала. После прогулки можно зайти в Sol Spa, поужинать в ресторане и провести вечер в Sky Bar. Есть семейные и соединяющиеся номера; это городской отель, не пляжный курорт."
+        },
+        {
+          "source": "https://solariahotel.com/",
+          "facts": "Официальный сайт действующего Solaria Hotel Hanoi,22BaoKhanh/phone39263456 совпадает. Чётко отделены Tesori/d’Oriente; именно mainSolaria предлагает family/connecting,SolSpa,restaurants иSkyBar. Озеро250м изnative."
+        }
+      ],
+      "material_conditions": "Городской Hanoi HoanKiem; не заявляем бассейн соседних отелей Solaria Group; соединяющиеся номера отдельные категории.",
+      "aliases": [
+        "Solaria Hotel",
+        "Solaria Hotel Hanoi"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases сверены с актуальным registry; совпадений опубликованных объектов нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://solariahotel.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=114182"
+        ],
+        "evidence": "Официальный сайт действующего Solaria Hotel Hanoi,22BaoKhanh/phone39263456 совпадает. Чётко отделены Tesori/d’Oriente; именно mainSolaria предлагает family/connecting,SolSpa,restaurants иSkyBar. Озеро250м изnative."
+      },
+      "caption_sha256": "2a699659fd10fb4c5c5a140a80d54c7b6a53912123606769849b02e44c2b1d18"
+    },
+    "121772": {
+      "id": 121772,
+      "ready": true,
+      "caption": "✈️ Туры в Grand Sunrise Palace Hoi An\n📍 Хойан, Вьетнам.\n\nДля отдыха вдвоём между прогулками по Хойану: интерьеры в индокитайском стиле, открытый бассейн и спа. На территории работает ресторан. Старый город примерно в 2 км, пляж Кыадай — в 3 км: отель не на первой линии.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "hold_reason": null,
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=121772",
+          "facts": "Для отдыха вдвоём между прогулками по Хойану: интерьеры в индокитайском стиле, открытый бассейн и спа. На территории работает ресторан. Старый город примерно в 2 км, пляж Кыадай — в 3 км: отель не на первой линии."
+        },
+        {
+          "source": "https://www.grandsunrisepalace.com/",
+          "facts": "Официальный действующий сайт иreservation по320CuaDai/phone3914888. Совпадают профиль,интерьеры,pool/spa/restaurant,3кмCuaDai. На двух версиях сайта85/105rooms иразные названия ресторана; эти сведения не использованы, идентичность совпадает адресом/телефоном."
+        }
+      ],
+      "material_conditions": "ПляжCuaDai3км; oldtown около2км; бассейн не рекламируется как детский, детскийклуб изmetadata не подтверждён и не использован.",
+      "aliases": [
+        "Grand Sunrise Palace Hoi An",
+        "Grand Sunrise Palace Hội An"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases сверены с актуальным registry; совпадений опубликованных объектов нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.grandsunrisepalace.com/",
+          "https://www.grandsunrisepalace.com/reservation",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=121772"
+        ],
+        "evidence": "Официальный действующий сайт иreservation по320CuaDai/phone3914888. Совпадают профиль,интерьеры,pool/spa/restaurant,3кмCuaDai. На двух версиях сайта85/105rooms иразные названия ресторана; эти сведения не использованы, идентичность совпадает адресом/телефоном."
+      },
+      "caption_sha256": "e4cd0250778d860817b2c96561d01ab8cc671905d50d3ccf46531f642ad7b44b"
+    },
+    "124031": {
+      "id": 124031,
+      "ready": true,
+      "caption": "✈️ Туры в TTC Hotel Ngoc Lan\n📍 Далат, Вьетнам.\n\nДля прогулок по Далату: отель в центре, напротив городского рынка и рядом с озером Суанхыонг. После насыщенного дня можно отдохнуть в спа, посетить сауну или фитнес-зал. Вид на озеро зависит от категории номера. Это городской отдых в горах, не пляжный курорт.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "hold_reason": null,
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=124031",
+          "facts": "Для прогулок по Далату: отель в центре, напротив городского рынка и рядом с озером Суанхыонг. После насыщенного дня можно отдохнуть в спа, посетить сауну или фитнес-зал. Вид на озеро зависит от категории номера. Это городской отдых в горах, не пляжный курорт."
+        },
+        {
+          "source": "https://ttchospitality.vn/ttc-hotel/ttc-hotel-ngoc-lan",
+          "facts": "Текущая officialTTC карточка сbookdirect,91rooms,spa/sauna/gym. Точныйадрес42NguyenChiThanh иphone3838838 совпадают сnative/госреестром. Ноябрь2026предложение оператора подтверждает работу. Не смешан сTTC Hotel DaLat04NguyenThiMinhKhai."
+        }
+      ],
+      "material_conditions": "Далат, не море; lakeview только соответствующие категории. Вprofile вентилятор,вofficial heater/fan; кондиционер не обещан.",
+      "aliases": [
+        "Ttc Hotel Ngoc Lan",
+        "TTC Hotel Ngoc Lan",
+        "TTC Hotel Premium Ngoc Lan",
+        "TTC Hotel Ngọc Lan"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases сверены с актуальным registry; совпадений опубликованных объектов нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://ttchospitality.vn/ttc-hotel/ttc-hotel-ngoc-lan",
+          "https://csdl.vietnamtourism.gov.vn/cslt/?item=2714",
+          "https://ttchospitality.vn/khuyen-mai-khach-san/uu-dai-40-gia-phong-cho-van-dong-vien-va-nguoi-nha-nhan-dip-lam-dong-trail-2026",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=124031"
+        ],
+        "evidence": "Текущая officialTTC карточка сbookdirect,91rooms,spa/sauna/gym. Точныйадрес42NguyenChiThanh иphone3838838 совпадают сnative/госреестром. Ноябрь2026предложение оператора подтверждает работу. Не смешан сTTC Hotel DaLat04NguyenThiMinhKhai."
+      },
+      "caption_sha256": "46521824b790a2ae6aa92bef2912d4c22acf5d9f08971ce972cbd0243d58cb22"
+    },
+    "124206": {
+      "id": 124206,
+      "ready": true,
+      "caption": "✈️ Туры в Beyond Skywalk Nangshi\n📍 Самет-Нангше, Пхангнга, Таиланд.\n\nДля необычного отдыха вдвоём: панорамный бассейн, рестораны и стеклянная смотровая дорожка над пейзажами залива Пхангнга. На выбор есть глэмпинг-палатки и виллы. Это курорт на возвышенности на материке, не пляжный отель на Пхукете.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "hold_reason": null,
+      "source_facts": [
+        "Официальный Beyond: действующий Book now, категории tents/villas, Infinity Edge Pool; страница Skywalk указывает Open Daily06:00–19:00. About us подтверждает Пхангнгу/Kh​long Khian и рестораны. Native координаты совпадают с SametNangshe, регионPhuket исправлен вcaption."
+      ],
+      "material_conditions": [
+        "Возвышенность на материке, не пляжный курорт.",
+        "Разные форматы проживания, включая палатки; не обещать виллу всем."
+      ],
+      "aliases": [
+        "Beyond Skywalk Nangshi",
+        "Beyond Skywalk Nangshe"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Полные специфичные aliases сверены с новым registry; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.beyondresort.com/skywalk-nangshi/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=124206",
+          "https://www.beyondresort.com/skywalk-nangshi/spaces/beyond-skywalk/",
+          "https://www.beyondresort.com/skywalk-nangshi/about-us/"
+        ],
+        "evidence": "Официальный Beyond: действующий Book now, категории tents/villas, Infinity Edge Pool; страница Skywalk указывает Open Daily06:00–19:00. About us подтверждает Пхангнгу/Kh​long Khian и рестораны. Native координаты совпадают с SametNangshe, регионPhuket исправлен вcaption."
+      },
+      "caption_sha256": "ebca53ffa1bdd53e3e1fc2c7e89975201c31aec348eaa15bdcab58c483c78701"
+    },
+    "129510": {
+      "id": 129510,
+      "ready": true,
+      "caption": "✈️ Туры в Novotel Bangkok Sukhumvit 4\n📍 Бангкок, Таиланд.\n\nДля знакомства с ночной жизнью Бангкока: открытый бассейн, тренажёрный зал и бар RedSquare на крыше. До станции BTS Nana около 600 м пешком. Отель находится в оживлённом развлекательном районе Сукхумвит; при заселении взимается депозит за каждую ночь.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "hold_reason": null,
+      "source_facts": [
+        "Accor current page с Book this hotel и формой дат; адрес27Sukhumvit4 совпадает с native. Official:600mNana,outdoorpool,fitness,RedSquare. Native:deposit1000THB/night,no pets; nightlife location раскрыт."
+      ],
+      "material_conditions": [
+        "Оживлённый развлекательный район.",
+        "Депозит1000THB за ночь поnative; вcaption без денежной суммы.",
+        "Размещение с животными запрещено."
+      ],
+      "aliases": [
+        "Novotel Bangkok Sukhumvit 4"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Полные специфичные aliases сверены с новым registry; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://all.accor.com/hotel/A246/index.en.shtml",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=129510"
+        ],
+        "evidence": "Accor current page с Book this hotel и формой дат; адрес27Sukhumvit4 совпадает с native. Official:600mNana,outdoorpool,fitness,RedSquare. Native:deposit1000THB/night,no pets; nightlife location раскрыт."
+      },
+      "caption_sha256": "8397e88603095cc15b3e46dbc8236423640482aeda51a1ec83781058662c90d7"
+    },
+    "132315": {
+      "id": 132315,
+      "ready": true,
+      "caption": "✈️ Туры в Premier Pearl Hotel Vung Tau\n📍 Вунгтау, Вьетнам.\n\nДля отдыха у побережья Бай-Сау: панорамный бассейн на крыше, спа и рестораны азиатской и европейской кухни. Отель стоит на улице Тхюиван напротив общественного пляжа: к морю нужно перейти дорогу.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "hold_reason": null,
+      "source_facts": [
+        "Native содержит только идентичность/регион, факты взяты из official оператора и госреестра item16236:69–69AThuyVan,телефон02546506666 совпадает междуисточниками; currentrooms/booking,rooftopinfinitypool,spa,AsianEuropeanrestaurants. Дорога кBaiSau дополнительно подтверждена страницей стратегического дистрибутора premierpearlvungtau.com.vn."
+      ],
+      "material_conditions": [
+        "Общественный пляж через дорогу.",
+        "Native безкоординат/услуг; источникифактовexternalofficial,фотосопоставление выполняет родитель."
+      ],
+      "aliases": [
+        "Premier Pearl Hotel Vung Tau",
+        "Premier Pearl Hotel & Spa Vung Tau",
+        "Premier Pearl Vung Tau"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Полные специфичные aliases сверены с новым registry; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://premierpearlhotel.vn/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=132315",
+          "https://csdl.vietnamtourism.gov.vn/cslt/?item=16236",
+          "https://premierpearlvungtau.com.vn/"
+        ],
+        "evidence": "Native содержит только идентичность/регион, факты взяты из official оператора и госреестра item16236:69–69AThuyVan,телефон02546506666 совпадает междуисточниками; currentrooms/booking,rooftopinfinitypool,spa,AsianEuropeanrestaurants. Дорога кBaiSau дополнительно подтверждена страницей стратегического дистрибутора premierpearlvungtau.com.vn."
+      },
+      "caption_sha256": "dfcc845b0f7d035d4b1acf025063aaf7f8691fea662242655bd6589eac2596a9"
+    }
+  },
+  "accepted_cover_hashes": {
+    "104624": "c3c9b384b053857ccea21ed787447b5c132e10558e36b4413a0b020d44b4905c",
+    "112365": "2a71ac4a1b9036cfa95413a4c76bbf833f561ee7f26f06a94bcf0931e189bad5",
+    "112407": "93b0d9857184a5143755c9e2d144d7de48d4bfac50d6339ea05a15cc229c4329",
+    "112408": "dbad0346e1d677d24360ed15221d1c5f919f3e32a4e4c69d374d38e76d591867",
+    "113042": "384bb0d72dabfd5e27b819ad80d5b09cf1a74d4f62f9a8e1dc0f961ecc7897cc",
+    "114182": "9b1ae635b7810b18803c5607e9901cefcdf51d4035cd3b87b28285cd0604c45c",
+    "121772": "b500070e3808ad56177df0f989d28648209fa800b17ee843c70bd5c11d4da00b",
+    "124031": "fa812f857aacdd859c3a2fc0de731ffebbac6037e084f9255c5691d95c509427",
+    "124206": "c5873ab3f77fb0850e3d4710dc5e6ac926bc771e83821f19fbb4c063ff716cb6",
+    "129510": "8fe154193aa97af6f346e7e2118a3f23e755b28d388f3391566d733c5d17e700",
+    "132315": "c17942e3f33c40a86523e7c47174f01ce8046b5b85698d1b6804888f6d3319b8"
+  },
+  "cover_receipt_sha256": "9759d1fe33397cd6fb78b7072a8c20646d7a4ef618869481a8f7a269cca4ad51",
+  "visual_review": {
+    "reviewed_sheets": [
+      "sheet-1.jpg",
+      "sheet-2.jpg"
+    ],
+    "reviewed_prepared_count": 14,
+    "cover_commit": "83cc2afcc1e17af17db8fc9fea928147677a0b00",
+    "intake_receipt_sha256": "9759d1fe33397cd6fb78b7072a8c20646d7a4ef618869481a8f7a269cca4ad51",
+    "visual_holds": {
+      "133974": "Lead exterior appears rendered and low-resolution, unlike actual pool photos; replace lead",
+      "151062": "Lead rooftop and supporting lobby appear architectural renderings; actual photographic provenance unresolved"
+    },
+    "notes": "Both contact sheets directly visually inspected. Others visually suitable subject to actual identity/operation/editorial verification. Intake receipt stage retains legacy W15 label, but source_head, registry and cover paths are W16-bound; original evidence unchanged."
+  },
+  "holds": {
+    "133974": {
+      "editorial": null,
+      "alias": null,
+      "visual": "Lead exterior appears rendered and low-resolution, unlike actual pool photos; replace lead"
+    },
+    "138389": {
+      "editorial": "HOLD: точная граница действующего объекта и будущей очереди не разрешена. Официальная гостиничная карточка совпадает по адресу и телефону, но C9 Hotelworks и фондовый годовой отчёт указывают одноимённый проект533номера/2028, OTA109номеров/2025. Нужен первичный источник, разделяющий фазы и подтверждающий завершение влияющей на инфраструктуру стройки (ранее заявлена до31.10.2026).",
+      "alias": null,
+      "visual": null
+    },
+    "151062": {
+      "editorial": null,
+      "alias": null,
+      "visual": "Lead rooftop and supporting lobby appear architectural renderings; actual photographic provenance unresolved"
+    }
+  },
+  "registry_artifact": {
+    "run": 44392237226,
+    "aid": 14468622257,
+    "digest": "09375c4f65b10daebb77d7eba546063236c335320f04f4be785e8d66af2c1c43"
+  },
+  "cover_artifact": {
+    "run": 44392531755,
+    "aid": 14469631772,
+    "digest": "ab062a296965be8041bb3ba6eef70f6bf2a866edba2cd5ed8a8ea5af3a4c3864"
+  }
+}
