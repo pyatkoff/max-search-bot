@@ -1,0 +1,141 @@
+name: Validate two postcards after Telegram explicitly rejected the interrupted request
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/verify-wave7-final2-publisher-input-20261118.yml']
+permissions:
+  actions: read
+  contents: read
+jobs:
+  accept-two-reviewed-cards:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == 'df76795fc5cf21e9c921a2ed703ac04ab96581a6' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          sparse-checkout: tools/direct_demand/operations
+      - name: Validate immutable sources and assemble the original sender input
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64
+          import hashlib
+          import io
+          import json
+          import os
+          from pathlib import Path
+          import re
+          import runpy
+          import subprocess
+          import zipfile
+          
+          REPO = 'pyatkoff/max-search-bot'
+          HEAD = os.environ['GITHUB_SHA']
+          BRANCH = 'audit/content100-bot-publication-20261101'
+          APP = 'cc017ee5bb669f4c7c13efc91d5c5812a50e55f2'
+          KNOWN_PIN_CHANGES = [["f5975ab95de5f45e087eb7a0f768f566c5bca648","c6386e155d42bc83970edc95f35b3ebeb5140533"],["f0e04e9b4e0ed6859ced96279cbf0619931596e6","1982ff7368763edf8b7238c3142e3cc28579e991"],["db8181426091a685a79ee55991cde22671f0d9dd","94fb1988ac8caf90dc5103aa23c58e7aad6ea691"]]
+          
+          
+          def api(path, method='GET', body=None, timeout=120):
+              cmd = ['gh', 'api', '--method', method, f'repos/{REPO}/{path}']
+              stdin = None
+              if body is not None:
+                  cmd.extend(['--input', '-'])
+                  stdin = json.dumps(body).encode()
+              return subprocess.check_output(cmd, input=stdin, timeout=timeout)
+          
+          
+          def info(path, method='GET', body=None):
+              return json.loads(api(path, method, body))
+          
+          
+          def digest(content):
+              return hashlib.sha256(content).hexdigest()
+          
+          
+          def get_artifact(run, artifact, expected, required_state):
+              item = info(f'actions/artifacts/{artifact}')
+              if item['workflow_run']['id'] != run or item['digest'] != 'sha256:' + expected or item['expired']:
+                  raise ValueError('artifact lineage changed')
+              run_info = info(f'actions/runs/{run}')
+              if run_info.get('conclusion') != required_state or run_info.get('run_attempt') != 1:
+                  raise ValueError('source workflow did not finish successfully')
+              raw = api(f'actions/artifacts/{artifact}/zip', timeout=130)
+              if digest(raw) != expected:
+                  raise ValueError('artifact archive checksum differs')
+              return zipfile.ZipFile(io.BytesIO(raw))
+          
+          
+          IDS = [47023, 164]
+          frozen='10cd3713e13a762c5585434072f9fb6fcd0e2eff'
+          check_archive=get_artifact(44206120200, 14383083426, 'b91a7fe1d32ce4bfd969c98d66a7e2813d8771d91a03987cbc12530b6febe651', 'success')
+          checkpoint=check_archive.read('registry-receipt.json')
+          check=json.loads(checkpoint)
+          assert check['installed_sha']==APP
+          assert all(m['hotel_id'] not in IDS for m in check['native_matches'])
+          states={m['hotel_id']:m for m in check['state_files']}
+          rejected=states[47023]
+          assert rejected['platform']=='telegram' and rejected['provider_http']==rejected['provider_error_code']==429
+          assert rejected['state']=='send_outcome_unconfirmed' and rejected['retry_after_seconds']==26
+          assert not rejected['has_provider_message'] and rejected['publication_id'] is None
+          assert states[164]['platform']=='telegram' and not states[164]['file_present']
+          original=get_artifact(44205735817, 14383343247, '06b19c61fca6876e6b096f6328d1900d74479091e38754d5636993483d9cdc92', 'failure')
+          raw=original.read('original-native-output.jsonl')
+          assert digest(raw)=='5df305f6ef7d920944d99fb2b6893eddb398fd23e68bdafd3e2ebbec6d3722c2'
+          before=json.loads(raw.splitlines()[-1])
+          assert before['error']=='telegram_send_unconfirmed_no_retry' and before['new_posts']==8 and before['post_write_attempts']==9
+          assert before['current']=={'platform':'telegram','logical_id':'commercial-hotel-47023-v1'}
+          assert not set(IDS)&{post['hotel_id'] for post in before['posts']}
+          approved=json.loads(original.read('manifest.json'))
+          rows=[row for row in approved['rows'] if row['hotel_id'] in IDS]
+          assert [row['hotel_id'] for row in rows]==IDS and approved['photo_freeze_commit']==frozen
+          source=Path('tools/direct_demand/operations')
+          intake=json.loads((source/'commercial-expansion-wave7-50-native-candidates-20261118.json').read_bytes())
+          assert all(row['country_id'] in {1,4,9} for row in intake['rows'] if row['native_tourvisor_id'] in IDS)
+          app_tree=info('git/trees/'+APP+'?recursive=1')
+          assert not app_tree['truncated']
+          live_pins={entry['path']:entry['sha'] for entry in app_tree['tree']}
+          template=(source/'commercial-batch-template-20261102.php').read_text()
+          original_pins=re.findall(r'"([^"]+)"=>"([a-f0-9]{40})"',template)
+          assert len(original_pins)==22
+          for name, original in original_pins:
+              assert live_pins[name]==dict(KNOWN_PIN_CHANGES).get(original,original)
+          assert subprocess.check_output(['git','hash-object',str(source/'prepare-commercial-batch.py')],text=True).strip()=='8df7a35474b138364b6e6c010af4fa484e350ddb'
+          op='commercial-hotel-batch-20261118-59-v1'
+          manifest=dict(approved,operation=op,expected_new_full_pairs=2,rows=rows)
+          raw=(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n').encode()
+          approval={'schema_version':1,'operation':op,'expected_installed_sha':APP,'hotel_ids':IDS,'manifest_sha256':digest(raw)}
+          php,_=runpy.run_path(str(source/'prepare-commercial-batch.py'))['prepare'](template,raw,approval)
+          for previous,current in KNOWN_PIN_CHANGES:
+              assert php.count(previous)==1 and php.count(current)==0
+              php=php.replace(previous,current)
+          files={'p59-manifest.json':raw,'p59-approval.json':(json.dumps(approval,ensure_ascii=False,indent=2)+'\n').encode(),
+                 'p59-publisher-unexecuted.php':php.encode(),'original-rejection-checkpoint.json':checkpoint}
+          out=Path('accepted-source');out.mkdir()
+          for name,data in files.items():(out/name).write_bytes(data)
+          assert info('git/ref/heads/' + BRANCH)['object']['sha']==HEAD
+          assert info('git/ref/heads/main')['object']['sha']==APP
+          receipt={'state':'WAVE7_FINAL_TWO_AFTER_EXPLICIT_REJECTION_SOURCE_ONLY','groups':[{'number':59,'operation':op,'hotel_ids':IDS}],
+                'native_hotel_ids':IDS,'expected_app_sha':APP,'cover_commit':frozen,'poster_calls':0,'feed_writes':0,
+                'source_sha256':{name:digest(data) for name,data in files.items()}}
+          (out/'source-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
+          print('Two reviewed cards validated. No provider or publication writes.')
+          PY
+          for file in accepted-source/*-publisher-unexecuted.php; do php -l "$file"; done
+      - name: Preserve the verified source package
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: commercial-wave7-final2-accepted-source
+          path: accepted-source/
+          retention-days: 30
+          if-no-files-found: warn
