@@ -1,0 +1,589 @@
+{
+  "schema_version": 1,
+  "state": "WAVE7_CAPTIONS_CHECKED_AWAITING_SOURCE_ACCEPTANCE",
+  "intake_sha256": "27a26c7f30e12136d3bdda83c669a176e273f8c9b6c3c6904d7125d3b4112726",
+  "published_baseline": 1085,
+  "country_ids_excluded": [
+    11
+  ],
+  "holds": [
+    {
+      "hotel_id": 66161,
+      "reason": "Distinct Sahl Hasheesh hotel needs its resort in the visible cover and title to distinguish it from the published Gravity Hurghada.",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 113007,
+      "reason": "Official hotel website lists a temporary beach closure.",
+      "publication_allowed": false
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 121821,
+      "country_id": 4,
+      "caption": "✈️ Туры в Royal Atlantis Icon\n📍 Сиде, Турция.\n\nВ Гюндогду можно начать день в аквапарке, а после обеда отправиться на песчаный пляж. До моря ходит шаттл. Для семей, которым важно чередовать пляж и бассейны.",
+      "aliases": [
+        "ROYAL ATLANTIS ICON"
+      ],
+      "cover_sha256": "296ff3f07d47814aa270cb6165a9cc3afbfed0ca78ecae6d326587de0f5094d6",
+      "official_sources": [
+        "https://royalatlantis.com.tr/EN/icon/pool-beach"
+      ]
+    },
+    {
+      "hotel_id": 76226,
+      "country_id": 1,
+      "caption": "✈️ Туры в Sataya Resort Marsa Alam\n📍 Марса-Алам, Египет.\n\nУ Sataya несколько бассейнов и аквапарк для детей. У моря два варианта входа, с берега и с понтона. Пляж песчано-каменистый, пригодится обувь для воды.",
+      "aliases": [
+        "SATAYA (EX. SATAYA RESORT MARSA ALAM)",
+        "SATAYA",
+        "SATAYA RESORT MARSA ALAM"
+      ],
+      "cover_sha256": "57619c18964930339456b1d99455fb43203e59fc652076a24e7aa3a51cf642e5",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 64998,
+      "country_id": 9,
+      "caption": "✈️ Туры в Banyan Tree Dubai\n📍 Дубай, ОАЭ.\n\nПолкилометра частного пляжа на острове Bluewaters. Днём можно гулять вдоль моря с видом на Ain Dubai, вечером отправиться на набережную Dubai Marina.",
+      "aliases": [
+        "BANYAN TREE DUBAI (EX. CAESARS PALACE DUBAI)",
+        "BANYAN TREE DUBAI",
+        "CAESARS PALACE DUBAI"
+      ],
+      "cover_sha256": "1ff02eda3714257806bb09985fe33db719d16deffdd6816d67c82aaf0a904450",
+      "official_sources": [
+        "https://www.banyantree.com/united-arab-emirates/dubai"
+      ]
+    },
+    {
+      "hotel_id": 37209,
+      "country_id": 4,
+      "caption": "✈️ Туры в Royal Taj Mahal Hotel\n📍 Сиде, Турция.\n\nДворец в индийском стиле стоит прямо у песчаного пляжа. Дети могут менять морские купания на аквапарк, а родители отдыхать у открытого бассейна среди пальм.",
+      "aliases": [
+        "ROYAL TAJ MAHAL HOTEL"
+      ],
+      "cover_sha256": "286fefe001a421e382059976d4c28af479718fdf7b0a54c6bdebc66d93a7136c",
+      "official_sources": [
+        "https://www.royaltajmahal.com/en"
+      ]
+    },
+    {
+      "hotel_id": 78964,
+      "country_id": 1,
+      "caption": "✈️ Туры в Xanadu Makadi Bay\n📍 Макади-Бей, Египет.\n\nПосле утра у моря дети могут переместиться в аквапарк или Fancyland. В клубе выделены отдельные зоны для малышей, школьников и подростков, поэтому у каждого свой способ провести день.",
+      "aliases": [
+        "XANADU MAKADI BAY"
+      ],
+      "cover_sha256": "ffdb68f0c3367dcc451337608b9502d62e01337610fb1775e36de61424e1e947",
+      "official_sources": [
+        "https://www.xanaduhotels.com.tr/en/xanadu-makadi-bay/kids"
+      ]
+    },
+    {
+      "hotel_id": 46323,
+      "country_id": 9,
+      "caption": "✈️ Туры в Al Habtoor Palace\n📍 Дубай, ОАЭ.\n\nДворцовый отель в Al Habtoor City подойдёт для поездки с планами на город. Днём можно отдохнуть у бассейна на крыше, вечером сходить на водное шоу La Perle поблизости.",
+      "aliases": [
+        "AL HABTOOR PALACE"
+      ],
+      "cover_sha256": "4d72bedb5a34aa0b40aa55ac482710da3703c1a97e5e417cdac5c007926aa9e0",
+      "official_sources": [
+        "https://www.habtoorpalace.com/"
+      ]
+    },
+    {
+      "hotel_id": 1589,
+      "country_id": 4,
+      "caption": "✈️ Туры в Swandor Topkapi Palace\n📍 Анталья, Турция.\n\nКурорт напоминает османский дворец. За его корпусами песчаный берег с пирсами, просторные бассейны и аквапарк. Большая территория удобна для отдыха с детьми.",
+      "aliases": [
+        "SWANDOR HOTELS & RESORTS TOPKAPI PALACE (EX. WOW TOPKAPI PALACE)",
+        "SWANDOR HOTELS & RESORTS TOPKAPI PALACE",
+        "WOW TOPKAPI PALACE",
+        "Swandor Topkapi Palace"
+      ],
+      "cover_sha256": "0e5f025daecceb0ee39d48d3decfd57c264061899cff57ee29e79c42bfb62e65",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 127349,
+      "country_id": 1,
+      "caption": "✈️ Туры в DoubleTree Mangroovy El Gouna\n📍 Эль-Гуна, Египет.\n\nУтро у бассейна или на собственном песчаном пляже, вечером прогулка по Эль-Гуне. Отель даёт спокойную базу для отдыха на Красном море и выездов на набережную.",
+      "aliases": [
+        "DOUBLETREE BY HILTON MANGROOVY EL GOUNA RESORT",
+        "DoubleTree Mangroovy El Gouna"
+      ],
+      "cover_sha256": "9e75d3f494f41f15f2d9b8c182c2b8b9312da3de6a5812995a9f57615eea6b17",
+      "official_sources": [
+        "https://www.hilton.com/en/hotels/hrgegdi-doubletree-mangroovy-el-gouna-resort/"
+      ]
+    },
+    {
+      "hotel_id": 115677,
+      "country_id": 9,
+      "caption": "✈️ Туры в Palace Dubai Creek Harbour\n📍 Дубай, ОАЭ.\n\nИскупаться в панорамном бассейне, а к закату выйти гулять по набережной Dubai Creek Harbour. Для поездки вдвоём, когда хочется вида на воду и вечеров в городе.",
+      "aliases": [
+        "PALACE DUBAI CREEK HARBOUR"
+      ],
+      "cover_sha256": "051a0416180c734f7aa7f8dc539db3a679a95b33246e72744c96747f5a9a003f",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 2161,
+      "country_id": 4,
+      "caption": "✈️ Туры в TUI Magic Life Bodrum\n📍 Бодрум, Турция.\n\nНа берегу бухты можно попробовать каяк, провести день на собственном пляже или сыграть в теннис. Клуб принимает гостей от 16 лет. Подойдёт для активной поездки вдвоём.",
+      "aliases": [
+        "TUI MAGIC LIFE BODRUM ADULT ONLY 16+ (EX. ERSAN EXCLUSIVE RESORT & SPA)",
+        "TUI MAGIC LIFE BODRUM ADULT ONLY 16+",
+        "ERSAN EXCLUSIVE RESORT & SPA",
+        "TUI Magic Life Bodrum"
+      ],
+      "cover_sha256": "c51beab93eecc83e57eb2e00f56b595d2605f3807c56a82a4d0874df149b4d42",
+      "official_sources": [
+        "https://www.tthotels.com/en/hotel/tui-magic-life-bodrum/hotel-facilities"
+      ]
+    },
+    {
+      "hotel_id": 236,
+      "country_id": 1,
+      "caption": "✈️ Туры в Grand Rotana Resort & Spa\n📍 Шарм-эль-Шейх, Египет.\n\nС пирсов можно выйти к коралловому рифу, а для купания у берега есть песчаные лагуны. В центре курорта большой бассейн среди пальм. Удобно чередовать плавание с маской и отдых у бассейна.",
+      "aliases": [
+        "GRAND ROTANA RESORT & SPA"
+      ],
+      "cover_sha256": "3c9abb0e524db1645413daea30badd02ed9be6b973c2e7e60f255ccf26a28872",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 13853,
+      "country_id": 9,
+      "caption": "✈️ Туры в Bahi Ajman Palace\n📍 Аджман, ОАЭ.\n\nПесчаный пляж перед отелем и открытый бассейн во дворе. Здесь удобно устроить несколько дней у моря в Аджмане и оставить городские выезды на свободные вечера.",
+      "aliases": [
+        "BAHI AJMAN PALACE (EX. THE AJMAN PALACE)",
+        "BAHI AJMAN PALACE",
+        "THE AJMAN PALACE"
+      ],
+      "cover_sha256": "b1c576fa8077fdc33081c5b7280061123874dc9c406336af41ba3dedf562c4f8",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 48795,
+      "country_id": 4,
+      "caption": "✈️ Туры в Side Star Beach\n📍 Сиде, Турция.\n\nПесчаный пляж рядом с отелем. После купания можно выйти на променад и продолжить прогулку в исторической части Сиде. Выбор для тех, кто любит пляж и город в одной поездке.",
+      "aliases": [
+        "SIDE STAR BEACH"
+      ],
+      "cover_sha256": "95a57265fc4a0a02abd5737a0ae6cbdf80a180c6e897c0df475ad8785995fd7c",
+      "official_sources": [
+        "https://www.sidestarhotels.com/beach/en"
+      ]
+    },
+    {
+      "hotel_id": 12104,
+      "country_id": 1,
+      "caption": "✈️ Туры в Concorde Moreen Beach\n📍 Марса-Алам, Египет.\n\nНевысокие корпуса стоят среди садов, за ними собственный песчаный пляж. В Марса-Аламе можно чередовать спокойные дни у воды с выездами на дайвинг.",
+      "aliases": [
+        "CONCORDE MOREEN BEACH RESORT & SPA MARSA ALAM",
+        "Concorde Moreen Beach"
+      ],
+      "cover_sha256": "0a24165224bceff6c2bae80afd405dd6e7dc16ccf13015a5bc7437fafe6661dd",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 2686,
+      "country_id": 9,
+      "caption": "✈️ Туры в The Westin Dubai Mina Seyahi\n📍 Дубай, ОАЭ.\n\nДень начинается на песчаном пляже у Dubai Marina, а у детей есть аквапарк Jungle Bay. Подходит семьям, которые хотят проводить время у моря и выбираться в город.",
+      "aliases": [
+        "THE WESTIN DUBAI MINA SEYAHI BEACH RESORT & MARINA",
+        "The Westin Dubai Mina Seyahi"
+      ],
+      "cover_sha256": "7baea934aa22cc0aaf83f68fa2b9ac2c74d7a6d23635b416053220116399aa3f",
+      "official_sources": [
+        "https://www.marriott.com/en-us/hotels/dxbmb-the-westin-dubai-mina-seyahi-beach-resort-and-marina/overview/"
+      ]
+    },
+    {
+      "hotel_id": 1518,
+      "country_id": 4,
+      "caption": "✈️ Туры в Sueno Hotels Beach Side\n📍 Сиде, Турция.\n\nУ отеля длинный песчаный пляж и пирс, откуда на закате видно старый Сиде. Днём вся семья может плавать в бассейнах, вечером стоит задержаться у моря ради этого вида.",
+      "aliases": [
+        "SUENO HOTELS BEACH",
+        "Sueno Hotels Beach Side"
+      ],
+      "cover_sha256": "d3f8b2d91bff86bff4ef70b33cfac3eef6ab330c06d476687755ea8bf90df9c7",
+      "official_sources": [
+        "https://beach.sueno.com.tr/en/plaj-havuz-en/"
+      ]
+    },
+    {
+      "hotel_id": 64330,
+      "country_id": 1,
+      "caption": "✈️ Туры в Pickalbatros Sea World Marsa Alam\n📍 Марса-Алам, Египет.\n\nСемейный курорт с целым каскадом бассейнов и аквапарком. У берега длинный песчаный пляж с понтоном. На каждый день можно выбрать новое место для купания.",
+      "aliases": [
+        "PICKALBATROS SEA WORLD RESORT MARSA ALAM",
+        "Pickalbatros Sea World Marsa Alam"
+      ],
+      "cover_sha256": "26d04338d0ea21c33d20060f633f5ff8637594cf7718f6b5ff5fd672be248b5a",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 57682,
+      "country_id": 9,
+      "caption": "✈️ Туры в InterContinental Fujairah Resort\n📍 Фуджейра, ОАЭ.\n\nПляж Аль-Ака с видом на Хаджарские горы. Утро можно провести у воды, а после обеда отдохнуть у бассейна или в спа. Вариант для спокойного отдыха на восточном побережье.",
+      "aliases": [
+        "INTERCONTINENTAL FUJAIRAH RESORT"
+      ],
+      "cover_sha256": "81e080e85411c248fba2c06f30b0d5862f48dc066ae4edc35b5c7f126df75f3c",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 47023,
+      "country_id": 4,
+      "caption": "✈️ Туры в Side Royal Palace\n📍 Сиде, Турция.\n\nДворцовый фасад, открытый бассейн и собственный песчаный пляж в Эвренсеки. Хороший вариант для дней, когда утром хочется к морю, а после обеда остаться у бассейна.",
+      "aliases": [
+        "SIDE ROYAL PALACE HOTEL & SPA",
+        "Side Royal Palace"
+      ],
+      "cover_sha256": "b958a3b15cbdc7806bb71f199ab1ae151a73776c8a32e40b4cc5d45e48386ec8",
+      "official_sources": [
+        "https://www.sideroyalhotels.com/palace"
+      ]
+    },
+    {
+      "hotel_id": 164,
+      "country_id": 1,
+      "caption": "✈️ Туры в Coral Sea Imperial Sensatori\n📍 Шарм-эль-Шейх, Египет.\n\nКоралловый риф у песчаного пляжа, к воде ведёт понтон. На территории есть семейный бассейн и отдельный бассейн с панорамным краем. Можно совместить снорклинг и отдых всей семьёй.",
+      "aliases": [
+        "CORAL SEA IMPERIAL SENSATORI (EX. CORAL SEA SENSATORI RESORT)",
+        "CORAL SEA IMPERIAL SENSATORI",
+        "CORAL SEA SENSATORI RESORT"
+      ],
+      "cover_sha256": "3558dd4187cfa4c47c0f618ad7c69e5ff374ab45a411f6cef2ef41df65acb8dd",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 73893,
+      "country_id": 9,
+      "caption": "✈️ Туры в Vida Beach Resort Umm Al Quwain\n📍 Умм-эль-Кайвайн, ОАЭ.\n\nНевысокий пляжный курорт с шале у песчаного берега. Можно провести день у моря или сменить пляж на бассейн. Подойдёт для спокойных выходных у воды.",
+      "aliases": [
+        "VIDA BEACH RESORT UMM AL QUWAIN"
+      ],
+      "cover_sha256": "3e703b9d2b52cb75d7edc3dcb95cc7458839cb94c2d0304b43f62a2bb37af326",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 1615,
+      "country_id": 4,
+      "caption": "✈️ Туры в Bodrum Holiday Resort & Spa\n📍 Бодрум, Турция.\n\nКорпуса спускаются по зелёному склону к бухте Ичмелер. С террас открывается вид на море, внизу пляж. Для семьи, которой нравится отдых на природе и купание в бухте.",
+      "aliases": [
+        "BODRUM HOLIDAY RESORT & SPA"
+      ],
+      "cover_sha256": "14f3dd52750d4f747d466619163b4f13090914cd0120003986506f1c1bf9b22b",
+      "official_sources": [
+        "https://bodrumholidayresort.com/en/"
+      ]
+    },
+    {
+      "hotel_id": 13875,
+      "country_id": 1,
+      "caption": "✈️ Туры в Sentido Akassia Beach\n📍 Марса-Алам, Египет.\n\nУ курорта коралловый риф и два пирса. Семьям пригодятся бассейны и аквапарк, а любители плавания с маской могут проводить часть дня у моря.",
+      "aliases": [
+        "SENTIDO AKASSIA BEACH (EX. LTI AKASSIA BEACH)",
+        "SENTIDO AKASSIA BEACH",
+        "LTI AKASSIA BEACH"
+      ],
+      "cover_sha256": "f02404596e6120380975e3678f2f3151b7caaa6cb60886f8c97e275db5367ffd",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 73509,
+      "country_id": 9,
+      "caption": "✈️ Туры в Palace Beach Resort Fujairah\n📍 Фуджейра, ОАЭ.\n\nУ отеля свой песчаный пляж и бассейн с террасой на первой линии. Можно чередовать купание и обед у воды без поездок по городу.",
+      "aliases": [
+        "PALACE BEACH RESORT FUJAIRAH"
+      ],
+      "cover_sha256": "37758ff742207b164d1fd98b3235509939974c08e52cdfcfa64f381b4a5260d5",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 16943,
+      "country_id": 4,
+      "caption": "✈️ Туры в Marmaris Bay Resort\n📍 Мармарис, Турция.\n\nНевысокие корпуса спрятаны в соснах у бухты. У моря песчаный пляж с пирсом, среди деревьев бассейны. Вариант для тихого отдыха вдвоём. Отель принимает гостей от 16 лет.",
+      "aliases": [
+        "MARMARIS BAY RESORT BY MP HOTELS ADULTS ONLY 16+",
+        "Marmaris Bay Resort"
+      ],
+      "cover_sha256": "6fdaf39b29fd9f0a13daa9d146f0f6eeea118e5dc3123c95ccaff56567cb3d0c",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 118906,
+      "country_id": 1,
+      "caption": "✈️ Туры в Sentido Reef Oasis Suakin\n📍 Марса-Алам, Египет.\n\nПляж на Красном море и отдельный бассейн для дайвинга на территории. Подойдёт тем, кто хочет совместить отдых у воды с первыми занятиями по погружению.",
+      "aliases": [
+        "SENTIDO REEF OASIS SUAKIN RESORT & SPA",
+        "Sentido Reef Oasis Suakin"
+      ],
+      "cover_sha256": "0fbe28718c32ad2259384c6402b32802c73acbe3ef0bc17f2b5e10fa971bbd93",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 8988,
+      "country_id": 9,
+      "caption": "✈️ Туры в The St. Regis Saadiyat Island Resort\n📍 Абу-Даби, ОАЭ.\n\nБелый песок острова Саадият и культурный район Абу-Даби неподалёку. Утро можно отдать пляжу, а после обеда выбраться в Лувр Абу-Даби.",
+      "aliases": [
+        "THE ST. REGIS SAADIYAT ISLAND RESORT"
+      ],
+      "cover_sha256": "8397539248db030d11d0ee35e7b37939686aee00c9a0d3871debe56f9164e83f",
+      "official_sources": [
+        "https://www.marriott.com/en-us/hotels/auhxr-the-st-regis-saadiyat-island-resort-abu-dhabi/overview/"
+      ]
+    },
+    {
+      "hotel_id": 1517,
+      "country_id": 4,
+      "caption": "✈️ Туры в Sueno Hotels Golf Belek\n📍 Белек, Турция.\n\nОтель для поездки за гольфом, с полями рядом с корпусом. После игры можно отдохнуть у бассейна или сходить на песчаный пляж соседнего Sueno Deluxe.",
+      "aliases": [
+        "SUENO HOTELS GOLF BELEK"
+      ],
+      "cover_sha256": "b97839e1faa3697aeb5bd17cf9320ce8e7b250249ae14ce5cb96867980a596d9",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 438,
+      "country_id": 1,
+      "caption": "✈️ Туры в Fantazia Resort Marsa Alam\n📍 Марса-Алам, Египет.\n\nСемьям здесь доступны аквапарк и песчаный пляж, а для взрослых выделена отдельная часть берега. Удобно, если в одной поездке важны и активные дни, и отдых у воды.",
+      "aliases": [
+        "FANTAZIA RESORT MARSA ALAM"
+      ],
+      "cover_sha256": "e8de5cb7d920d7163e6304171429032f6288ed66792477dc7f853f8a4ce47c80",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 27478,
+      "country_id": 9,
+      "caption": "✈️ Туры в Ajman Saray\n📍 Аджман, ОАЭ.\n\nПосле купания на собственном песчаном пляже можно остаться у одного из бассейнов или провести время в спа. Спокойный отдых у залива в Аджмане.",
+      "aliases": [
+        "AJMAN SARAY A LUXURY COLLECTION RESORT",
+        "Ajman Saray"
+      ],
+      "cover_sha256": "e80a0a9212b85df3a6195c1a9125a895e976d8dca452fdbf07d434a53abe3a4a",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 1253,
+      "country_id": 4,
+      "caption": "✈️ Туры в Kaya Belek\n📍 Белек, Турция.\n\nКурорт для семейных дней у моря. На территории есть бассейны и водные горки, к которым удобно вернуться после песчано-галечного пляжа.",
+      "aliases": [
+        "KAYA BELEK (EX. RIU KAYA BELEK)",
+        "KAYA BELEK",
+        "RIU KAYA BELEK"
+      ],
+      "cover_sha256": "ec37d33baff09590eb8c27cd14bbdb93b65fbb0ad06c9a49ef267840aee8f6c1",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 143,
+      "country_id": 1,
+      "caption": "✈️ Туры в Sentido Caribbean Soma Bay\n📍 Сома-Бей, Египет.\n\nДлинная полоса песка на берегу Сома-Бей. Семья может провести утро у моря, а потом перейти к бассейнам и водным горкам. За пляжным днём не нужно никуда ехать.",
+      "aliases": [
+        "SENTIDO CARIBBEAN SOMA BAY (EX. CARIBBEAN WORLD SOMA BAY)",
+        "SENTIDO CARIBBEAN SOMA BAY",
+        "CARIBBEAN WORLD SOMA BAY"
+      ],
+      "cover_sha256": "286cfb5d44b057a5ca5bd3d290a165257ed80cff4f0382b186f50f605775c01c",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 46727,
+      "country_id": 9,
+      "caption": "✈️ Туры в Nikki Beach Resort & Spa Dubai\n📍 Дубай, ОАЭ.\n\nДубай с другой стороны, у песчаного пляжа на Pearl Jumeira. Можно провести день в пляжном клубе или выбрать виллу с собственным бассейном для отдыха в своём кругу.",
+      "aliases": [
+        "NIKKI BEACH RESORT & SPA",
+        "Nikki Beach Resort & Spa Dubai"
+      ],
+      "cover_sha256": "3cdfd25a32cd1f3fdb60033016d045d83a9fec9199c44b08c44735e89294cf94",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 1683,
+      "country_id": 4,
+      "caption": "✈️ Туры в TUI Blue Grand Azur\n📍 Мармарис, Турция.\n\nУтром можно искупаться в бухте, а вечером выйти на променад вдоль моря. Песчано-галечный пляж напротив отеля, вход через пешеходную набережную.",
+      "aliases": [
+        "TUI BLUE GRAND AZUR (EX. GRAND AZUR MARMARIS)",
+        "TUI BLUE GRAND AZUR",
+        "GRAND AZUR MARMARIS"
+      ],
+      "cover_sha256": "f2074cfcd485e2bce9abae0ae410e6d2164eecb01e8f190a898ac3b33e6fd3b5",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 234,
+      "country_id": 1,
+      "caption": "✈️ Туры в Sharm Grand Plaza Resort\n📍 Шарм-эль-Шейх, Египет.\n\nРядом с кораллами есть лагуна с песчаным дном, а с пирса можно выйти на глубину. Когда хочется поплавать без маски, на территории есть олимпийский бассейн.",
+      "aliases": [
+        "SHARM GRAND PLAZA RESORT"
+      ],
+      "cover_sha256": "6378fe30e88e5f1525460e0a9086c3e1d9ffcc1b055847d7e7f942b796a9a36f",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 76940,
+      "country_id": 9,
+      "caption": "✈️ Туры в InterContinental Mina Al Arab\n📍 Рас-эль-Хайма, ОАЭ.\n\nОтель на полуострове Мина-аль-Араб, с собственным песчаным пляжем. Днём можно остаться у моря, а ближе к вечеру перейти на террасу или в спа.",
+      "aliases": [
+        "INTERCONTINENTAL RAS AL KHAIMAH MINA AL ARAB RESORT & SPA",
+        "InterContinental Mina Al Arab"
+      ],
+      "cover_sha256": "11fd878dcac7db99b3ea3f82472348c4070c4286ad24ce2cd53205e7414222e5",
+      "official_sources": [
+        "https://www.ihg.com/intercontinental/hotels/us/en/ras-al-khaimah/rktha/hoteldetail"
+      ]
+    },
+    {
+      "hotel_id": 1428,
+      "country_id": 4,
+      "caption": "✈️ Туры в Swandor Kemer\n📍 Кемер, Турция.\n\nСемейный курорт между морем и горами. После купания на песчано-галечном пляже дети могут вернуться в аквапарк, а у взрослых есть выбор бассейнов.",
+      "aliases": [
+        "SWANDOR HOTELS & RESORTS KEMER",
+        "Swandor Kemer"
+      ],
+      "cover_sha256": "94fc4b8eadcb60a9b1a8f24956da76c0ce726fce5b3813588322bc68667f4c7b",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 307,
+      "country_id": 1,
+      "caption": "✈️ Туры в Makadi Palace\n📍 Макади-Бей, Египет.\n\nКоралловый риф у берега для плавания с маской и четыре бассейна для спокойного купания. Территория с арками и внутренними двориками подойдёт для неспешных прогулок.",
+      "aliases": [
+        "MAKADI PALACE"
+      ],
+      "cover_sha256": "a4883cf1b89ec474a93df6c0ccf721099328435608443e09b911f6533b92f535",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 57476,
+      "country_id": 9,
+      "caption": "✈️ Туры в The Retreat Palm Dubai MGallery\n📍 Дубай, ОАЭ.\n\nПесчаный пляж на Пальме и велнес-центр в одном отеле. Здесь можно провести короткий отдых с плаванием и спа. В отеле действует безалкогольная концепция.",
+      "aliases": [
+        "THE RETREAT PALM DUBAI MGALLERY BY SOFITEL",
+        "The Retreat Palm Dubai MGallery"
+      ],
+      "cover_sha256": "266eccd4cd1c724d72bed72a1a82e0051bd7426e79fbf34e35bc961360cfcb0a",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 56424,
+      "country_id": 4,
+      "caption": "✈️ Туры в Angel’s Marmaris\n📍 Мармарис, Турция.\n\nКурорт в сосновой бухте с отдельным женским пляжем Hidden Sea. Отель без алкоголя. На общих пляжах и у бассейнов для женщин действует закрытый купальный дресс-код.",
+      "aliases": [
+        "ANGELS MARMARIS",
+        "Angel’s Marmaris"
+      ],
+      "cover_sha256": "159ea147ccecf14ed72949c803e20689159f4b3b89f42586c64e25ac7978a208",
+      "official_sources": [
+        "https://angelsmarmaris.com/angels-marmaris-hotel-hidden-sea"
+      ]
+    },
+    {
+      "hotel_id": 357,
+      "country_id": 1,
+      "caption": "✈️ Туры в KaiSol Romance Sahl Hasheesh\n📍 Сахль-Хашиш, Египет.\n\nПесчаный берег рядом с променадом Сахль-Хашиша. Отель подходит для поездки вдвоём, когда в планах дни у моря и вечерние прогулки. Формат отдыха для взрослых.",
+      "aliases": [
+        "KAISOL ROMANCE SAHL HASHEESH (EX. SUNRISE ROMANCE SAHL HASHISH)",
+        "KAISOL ROMANCE SAHL HASHEESH",
+        "SUNRISE ROMANCE SAHL HASHISH"
+      ],
+      "cover_sha256": "e22761bf284a8eda6d0d3a0b5a935345c43f0ababc57b0efc0caae03ee89905a",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 22676,
+      "country_id": 9,
+      "caption": "✈️ Туры в Sofitel Dubai The Palm\n📍 Дубай, ОАЭ.\n\nНа восточном краю Пальмы есть песчаный пляж и бассейны среди тропической зелени. Для семьи можно выбрать апартаменты, а для уединённого отдыха есть виллы.",
+      "aliases": [
+        "SOFITEL DUBAI THE PALM RESORT & SPA",
+        "Sofitel Dubai The Palm"
+      ],
+      "cover_sha256": "75dc24ab9e2f5819702f7f98f55a96275a2169648227590122d285ab080f9766",
+      "official_sources": [
+        "https://sofitel.accor.com/en/hotels/6541.html"
+      ]
+    },
+    {
+      "hotel_id": 59084,
+      "country_id": 4,
+      "caption": "✈️ Туры в TUI Magic Life Sarigerme\n📍 Сарыгерме, Турция.\n\nБунгало среди зелени и длинный песчаный пляж у бирюзовой бухты. Можно отвлечься от моря ради активностей клуба и снова вернуться на берег к вечеру.",
+      "aliases": [
+        "TUI MAGIC LIFE SARIGERME"
+      ],
+      "cover_sha256": "c8628e3c4b6416724664d6616cfc13f28de74686d4056ac271f55889ab946ece",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 4518,
+      "country_id": 9,
+      "caption": "✈️ Туры в Radisson Blu Resort Fujairah\n📍 Фуджейра, ОАЭ.\n\nПротяжённый пляж у подножия гор и открытые бассейны. Подходит для дней без городских поездок, когда хочется гулять по берегу и плавать в своё удовольствие.",
+      "aliases": [
+        "THE RADISSON BLU RESORT FUJAIRAH",
+        "Radisson Blu Resort Fujairah"
+      ],
+      "cover_sha256": "ac91774800eb94ed71e735836f867134f0965c428ff3251c9507fc47cfa6324f",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 65342,
+      "country_id": 4,
+      "caption": "✈️ Туры в Side Royal Style Hotel\n📍 Сиде, Турция.\n\nДнём можно отдыхать на песчаном пляже или у открытого бассейна. Гостям Style доступны водные горки соседнего Side Royal Palace.",
+      "aliases": [
+        "SIDE ROYAL STYLE HOTEL"
+      ],
+      "cover_sha256": "a626104cd8de3400f9c207fe1e9308ddb02382d2cc55a54c13b95fb9d7dfa735",
+      "official_sources": [
+        "https://sideroyalhotels.com/style-en/our-hotel"
+      ]
+    },
+    {
+      "hotel_id": 76109,
+      "country_id": 1,
+      "caption": "✈️ Туры в Lazuli Hotel Marsa Alam\n📍 Марса-Алам, Египет.\n\nНевысокие корпуса вокруг бассейнов и собственный песчаный пляж. После купания в море можно сменить обстановку и отдохнуть в бассейне с джакузи.",
+      "aliases": [
+        "LAZULI HOTEL MARSA ALAM"
+      ],
+      "cover_sha256": "cc14748d6ed414b1e1b8988d07e88dd32a2c8988ad0f5bf27f81deb148cae4d5",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 135442,
+      "country_id": 9,
+      "caption": "✈️ Туры в SO/ Ras Al Khaimah\n📍 Рас-эль-Хайма, ОАЭ.\n\nНа острове Аль-Марджан можно провести день на собственном пляже, остаться у бассейна или сходить в пляжный клуб. Курорт работает в формате «всё включено».",
+      "aliases": [
+        "SO/ RAS AL KHAIMAH"
+      ],
+      "cover_sha256": "2fc584afc4d18a48a03c62404dadf904152838b9f2606130c00bb19bcd333a56",
+      "official_sources": [
+        "https://all.accor.com/hotel/C4R3/index.en.shtml"
+      ]
+    },
+    {
+      "hotel_id": 28470,
+      "country_id": 4,
+      "caption": "✈️ Туры в TUI Magic Life Jacaranda\n📍 Сиде, Турция.\n\nСемейные бассейны, водные горки и песчаный пляж. Для тех, кому важен бассейн поближе к номеру, есть отдельные категории в корпусах Lake House.",
+      "aliases": [
+        "TUI MAGIC LIFE JACARANDA"
+      ],
+      "cover_sha256": "525166853f14c428fac203bc15eee546a9cde413ca17757874a540b8a379082a",
+      "official_sources": []
+    },
+    {
+      "hotel_id": 359,
+      "country_id": 1,
+      "caption": "✈️ Туры в Prima Life Makadi\n📍 Макади-Бей, Египет.\n\nКоралловый риф виден у берега, а в море есть песчаный заход. После плавания с маской всей семьёй можно перейти к бассейнам и водным горкам.",
+      "aliases": [
+        "PRIMA LIFE MAKADI"
+      ],
+      "cover_sha256": "c0dff48e6f7cbadd0e9057e1dccdb73b5252219a585a12a2208486c294a7d04d",
+      "official_sources": []
+    }
+  ]
+}
