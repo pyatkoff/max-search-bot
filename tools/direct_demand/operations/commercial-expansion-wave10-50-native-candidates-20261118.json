@@ -1,0 +1,2765 @@
+{
+  "schema_version": 1,
+  "stage": "public_copy_edited_native_admission_pending",
+  "publication_baseline": 1186,
+  "owner_issue": "https://github.com/pyatkoff/max-search-bot/issues/1566",
+  "excluded_country_ids": [
+    11
+  ],
+  "selection": {
+    "queries": 75,
+    "source": "existing cached local catalogue and hotel_details, paid Tourvisor policy17Nov",
+    "catalogue_candidates": 94,
+    "profiles_read": 60,
+    "exact_id_name_country_matches": 60,
+    "selected": 50,
+    "reserve": 7,
+    "held_identity_or_scope": 17,
+    "not_profiled": 17,
+    "prior_ids_excluded": 1377,
+    "priority_is_editorial_not_measured_demand_or_price": true,
+    "registry_and_gallery_visual_and_editorial_admission_pending": true,
+    "held_material_conditions": 3,
+    "held_total": 20,
+    "ordinary_public_copy_edited": 50,
+    "editorial_material_restrictions_in_copy": {
+      "2424": "guests8+",
+      "2429": "whole resort18+; dated transfer notice overrides older boat field",
+      "11781": "whole hotel18+",
+      "122961": "wildlife and escorted beach/walk conditions",
+      "43238": "public beaches and west rock steps"
+    },
+    "countries": {
+      "Мальдивы": 20,
+      "Маврикий": 15,
+      "Шри-Ланка": 13,
+      "Сейшелы": 2
+    },
+    "ready_to_send": 0,
+    "ordinary_caption_edit_complete_but_admission_still_pending": true,
+    "subproperty_scope_notes": {
+      "11774": "Do not use combined Maradiva/Shoba inventory count or infer separate residence/gallery eligibility. Exact primary-property gallery still needs visual qualification.",
+      "15799": "Described explicitly as apartment complex; no private beach or full-service hotel claim."
+    }
+  },
+  "rows": [
+    {
+      "work_id": "W10_001",
+      "native_tourvisor_id": 35174,
+      "name": "VELAA PRIVATE ISLAND",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "VELAA PRIVATE ISLAND"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Velaa&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=35174",
+      "profile_observed_at_utc": "2026-11-18T04:25:42.440363+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 52,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/35174-1212132.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/35174-1212100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/35174-1212101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/35174-1212102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/35174-1212103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/35174-1212104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/35174-1212105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/35174-1212106.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "c11bff9aac986d8f07254a6ca706ef7a54ee5ccda961bb49163f019cf7b30331",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_002",
+      "native_tourvisor_id": 64061,
+      "name": "EMERALD MALDIVES RESORT & SPA",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "EMERALD MALDIVES RESORT & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Emerald&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64061",
+      "profile_observed_at_utc": "2026-11-18T04:25:42.603981+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 127,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64061-58925518.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64061-58925000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64061-58925101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64061-58925102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64061-58925103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64061-58925204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64061-58925205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64061-58925206.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "4a392b52a4b030ae3570744ae7b4d4e3f79058b42290dc90b350ea0217e09f76",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_003",
+      "native_tourvisor_id": 78938,
+      "name": "EMERALD FAARUFUSHI RESORT & SPA",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "EMERALD FAARUFUSHI RESORT & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Emerald&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=78938",
+      "profile_observed_at_utc": "2026-11-18T04:25:42.524190+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 142,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/78938-77761003.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/78938-77760900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/78938-77761001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/78938-77761002.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/78938-77761004.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/78938-77761105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/78938-77761106.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/78938-77761107.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "559b6e71797d9a0b79ef735978e461ab65f3d49cdc88310d2a9d3934bfe18070",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_004",
+      "native_tourvisor_id": 2921,
+      "name": "CONSTANCE MOOFUSHI RESORT",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "CONSTANCE MOOFUSHI RESORT"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Constance&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2921",
+      "profile_observed_at_utc": "2026-11-18T04:25:42.148195+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 60,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2921-2313400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2921-2313401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2921-2313402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2921-2313403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2921-2313404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2921-2313405.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2921-2313406.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2921-2313407.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "f44f31de11e8cbe7ddd3904828953127085beae23c368c03ac05d17b3f2a3fb4",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_005",
+      "native_tourvisor_id": 2437,
+      "name": "CONSTANCE HALAVELI RESORT",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "CONSTANCE HALAVELI RESORT"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Constance&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2437",
+      "profile_observed_at_utc": "2026-11-18T04:25:41.294501+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 53,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/constance-halaveli-resort-1022020643.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/constance-halaveli-resort-102202040.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/constance-halaveli-resort-102202051.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/constance-halaveli-resort-102202052.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/constance-halaveli-resort-102202053.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/constance-halaveli-resort-102202054.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/constance-halaveli-resort-102202055.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/constance-halaveli-resort-102202056.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "b47cc13297197679e00a80691b196e770f3b3454f0bee00340c269bc5b0f5c37",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_006",
+      "native_tourvisor_id": 2462,
+      "name": "LILY BEACH RESORT & SPA",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "LILY BEACH RESORT & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Lily&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2462",
+      "profile_observed_at_utc": "2026-11-18T04:25:45.384191+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 60,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2462-94808902.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2462-94808800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2462-94808901.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2462-94808903.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2462-94809004.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2462-94809005.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2462-94809006.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2462-94809007.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "07d1394e618c87e41dbb302ae199f3e9af2e3a30c96a039eb1fe69f5f82585e7",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_007",
+      "native_tourvisor_id": 11749,
+      "name": "HERITAGE LE TELFAIR GOLF & SPA RESORT",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "HERITAGE LE TELFAIR GOLF & SPA RESORT"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Heritage&countryId=27&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11749",
+      "profile_observed_at_utc": "2026-11-18T04:25:45.403779+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 60,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11749-2210100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11749-2210101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11749-2210102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11749-2210103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11749-2210104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11749-2210105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11749-2210106.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11749-2210107.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "ca2d8dc56a0cea269378e1bf78bf717b35e079965541e5ea643b2266b0b51855",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_008",
+      "native_tourvisor_id": 11774,
+      "name": "MARADIVA VILLAS RESORT & SPA",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "MARADIVA VILLAS RESORT & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Maradiva&countryId=27&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11774",
+      "profile_observed_at_utc": "2026-11-18T04:25:45.319937+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 43,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/maradiva-villas-resort-spa-2313417.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/maradiva-villas-resort-spa-2313400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/maradiva-villas-resort-spa-2313401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/maradiva-villas-resort-spa-2313402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/maradiva-villas-resort-spa-2313403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/maradiva-villas-resort-spa-2313404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/maradiva-villas-resort-spa-2313405.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/maradiva-villas-resort-spa-2313406.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "f9cd336e79c00eb7e1314450d349f2c32637687e0cbf377cc9ff917f7e457145",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_009",
+      "native_tourvisor_id": 11786,
+      "name": "ROYAL PALM BEACHCOMBER LUXURY",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "ROYAL PALM BEACHCOMBER LUXURY"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Lux&countryId=27&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11786",
+      "profile_observed_at_utc": "2026-11-18T04:25:46.271915+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 45,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/royal-palm6-2314104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/royal-palm6-2314100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/royal-palm6-2314101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/royal-palm6-2314102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/royal-palm6-2314103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/royal-palm6-2314105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/royal-palm6-2314106.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/royal-palm6-2314107.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "e25f08a3821e59e0b55fde087ffe525490726bc3b07af4b0fd2a3b3cca029862",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_010",
+      "native_tourvisor_id": 11802,
+      "name": "TROU AUX BICHES BEACHCOMBER",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "TROU AUX BICHES BEACHCOMBER"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Beachcomber&countryId=27&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11802",
+      "profile_observed_at_utc": "2026-11-18T04:25:45.156891+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 45,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/trou-aux-biches-1709107.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/trou-aux-biches-1709100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/trou-aux-biches-1709101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/trou-aux-biches-1709102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/trou-aux-biches-1709103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/trou-aux-biches-1709104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/trou-aux-biches-1709105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/trou-aux-biches-1709106.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "7827f5c456431676b4e58714cd8221c630738b36be1d73b0c6a55d863826314d",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_011",
+      "native_tourvisor_id": 56078,
+      "name": "KUDAFUSHI RESORT & SPA",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "KUDAFUSHI RESORT & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Kuda&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=56078",
+      "profile_observed_at_utc": "2026-11-18T04:25:50.367988+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 100,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/56078-38206722.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/56078-38206200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/56078-38206301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/56078-38206302.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/56078-38206303.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/56078-38206404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/56078-38206405.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/56078-38206406.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "742a147f2e1ff3d04fa3635a4d7d4946da36de427b23d157397abe15e0c32021",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_012",
+      "native_tourvisor_id": 64360,
+      "name": "PARADIS BEACHCOMBER GOLF RESORT & SPA",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "PARADIS BEACHCOMBER GOLF RESORT & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Beachcomber&countryId=27&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64360",
+      "profile_observed_at_utc": "2026-11-18T04:25:49.451892+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 43,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradis-beachcomber-golf-resort-spa-2111300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradis-beachcomber-golf-resort-spa-2111301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradis-beachcomber-golf-resort-spa-2111302.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradis-beachcomber-golf-resort-spa-2111303.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradis-beachcomber-golf-resort-spa-2111304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradis-beachcomber-golf-resort-spa-2111305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradis-beachcomber-golf-resort-spa-2111306.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradis-beachcomber-golf-resort-spa-2111307.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "54b6cd60273b28d72a05d1a4d930c87617dad5e7799607bffe4255e283bdec36",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_056",
+      "native_tourvisor_id": 11743,
+      "name": "CONSTANCE LE PRINCE MAURICE",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "CONSTANCE LE PRINCE MAURICE"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Constance&countryId=27&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11743",
+      "profile_observed_at_utc": "2026-11-18T04:26:27.921189+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 44,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-le-prince-maurice-2212500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-le-prince-maurice-2212501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-le-prince-maurice-2212502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-le-prince-maurice-2212503.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-le-prince-maurice-2212504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-le-prince-maurice-2212505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-le-prince-maurice-2212506.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-le-prince-maurice-2212507.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "420fe7ce7b0d6ed35946e860cbb8fc16d0322b505336e27a7d55f7f0b0bed1b0",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_014",
+      "native_tourvisor_id": 2483,
+      "name": "TAJ CORAL REEF RESORT & SPA",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "TAJ CORAL REEF RESORT & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cora&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2483",
+      "profile_observed_at_utc": "2026-11-18T04:25:49.224203+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 35,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2483-49711401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2483-49711400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2483-49711402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2483-49711503.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2483-49711504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2483-49711505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2483-49711506.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2483-49711507.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "b655c8241804aa8ec0f7fde05f6b9838e2ee92c45e03b384db74e25c7b773040",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_015",
+      "native_tourvisor_id": 11744,
+      "name": "DINAROBIN BEACHCOMBER GOLF RESORT & SPA",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "DINAROBIN BEACHCOMBER GOLF RESORT & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Beachcomber&countryId=27&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11744",
+      "profile_observed_at_utc": "2026-11-18T04:25:49.375914+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 43,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/dinarobin-hotel-spa-2312513.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/dinarobin-hotel-spa-2312500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/dinarobin-hotel-spa-2312501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/dinarobin-hotel-spa-2312502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/dinarobin-hotel-spa-2312503.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/dinarobin-hotel-spa-2312504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/dinarobin-hotel-spa-2312505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/dinarobin-hotel-spa-2312506.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "81266fcf3b1a5147608588ac672fd1f22927c8771d1f6e354308d72ee1370889",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_016",
+      "native_tourvisor_id": 11788,
+      "name": "SHANDRANI BEACHCOMBER RESORT & SPA",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "SHANDRANI BEACHCOMBER RESORT & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Beachcomber&countryId=27&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11788",
+      "profile_observed_at_utc": "2026-11-18T04:25:54.352044+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 60,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11788-7293300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11788-7293401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11788-7293402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11788-7293403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11788-7293404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11788-7293505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11788-7293506.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11788-7293507.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "4d28f0516d549ba348a907741964afdfc5f43e43fe6f8865ce50e8bc5c49e5ce",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_017",
+      "native_tourvisor_id": 11794,
+      "name": "SUGAR BEACH RESORT",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "SUGAR BEACH RESORT"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sugar&countryId=27&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11794",
+      "profile_observed_at_utc": "2026-11-18T04:25:53.007908+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 45,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/sugar-beach-resort-1809400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/sugar-beach-resort-1809401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/sugar-beach-resort-1809402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/sugar-beach-resort-1809403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/sugar-beach-resort-1809404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/sugar-beach-resort-1809405.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/sugar-beach-resort-1809406.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/sugar-beach-resort-1809407.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "fab7100a4c77aa08649de662651d0ef513d9020c5232aec395ec48c1729e4e97",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_018",
+      "native_tourvisor_id": 51240,
+      "name": "SHANGRI-LAS HAMBANTOTA RESORT & SPA",
+      "country": "Шри-Ланка",
+      "country_id": 12,
+      "region": "Тангалле",
+      "category": 5,
+      "aliases_to_check": [
+        "SHANGRI-LAS HAMBANTOTA RESORT & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Shangri&countryId=12&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=51240",
+      "profile_observed_at_utc": "2026-11-18T04:25:53.027703+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 43,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/shangri-las-hambantota-resort-spa-3014039.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/shangri-las-hambantota-resort-spa-3014000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/shangri-las-hambantota-resort-spa-3014001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/shangri-las-hambantota-resort-spa-3014002.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/shangri-las-hambantota-resort-spa-3014003.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/shangri-las-hambantota-resort-spa-3014004.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/shangri-las-hambantota-resort-spa-3014005.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/shangri-las-hambantota-resort-spa-3014006.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "55c200cc67758ee44ebd460c6b02606ef830aa9e0a2141019dabcbf6ac3b5696",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_019",
+      "native_tourvisor_id": 2477,
+      "name": "ROYAL ISLAND RESORT & SPA",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "ROYAL ISLAND RESORT & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Royal&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2477",
+      "profile_observed_at_utc": "2026-11-18T04:25:53.296170+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 61,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2477-7935309.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2477-7935100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2477-7935201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2477-7935202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2477-7935203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2477-7935204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2477-7935205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2477-7935306.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "88dad654ba3cd1135ffab82e1c8d29238a3d88fc995807a33a91337d2f95c6b4",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_020",
+      "native_tourvisor_id": 57802,
+      "name": "WELIGAMA BAY MARRIOTT RESORT & SPA",
+      "country": "Шри-Ланка",
+      "country_id": 12,
+      "region": "Коггала",
+      "category": 5,
+      "aliases_to_check": [
+        "WELIGAMA BAY MARRIOTT RESORT & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marriott&countryId=12&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=57802",
+      "profile_observed_at_utc": "2026-11-18T04:25:53.063645+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 24,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/weligama-bay-marriott-resort-spa-102401231.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/weligama-bay-marriott-resort-spa-102401230.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/weligama-bay-marriott-resort-spa-102401232.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/weligama-bay-marriott-resort-spa-102401233.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/weligama-bay-marriott-resort-spa-102401234.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/weligama-bay-marriott-resort-spa-102401235.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/weligama-bay-marriott-resort-spa-102401236.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/weligama-bay-marriott-resort-spa-102401237.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "ce31325267cac1ffd34b3bde5fe4ced92afaeeaedf46f273480d57fabbd7beee",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_021",
+      "native_tourvisor_id": 5399,
+      "name": "JETWING BEACH",
+      "country": "Шри-Ланка",
+      "country_id": 12,
+      "region": "Негомбо",
+      "category": 5,
+      "aliases_to_check": [
+        "JETWING BEACH"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Jetwing&countryId=12&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=5399",
+      "profile_observed_at_utc": "2026-11-18T04:25:56.628922+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 39,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-beach-97961400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-beach-97961401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-beach-97961402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-beach-97961403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-beach-97961404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-beach-97961405.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-beach-97961406.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-beach-97961407.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "41350ce844eaa353a17ba7041b5305b742326b43b9e68f37f1ade8b5736124a3",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_022",
+      "native_tourvisor_id": 11832,
+      "name": "CONSTANCE EPHELIA RESORT",
+      "country": "Сейшелы",
+      "country_id": 28,
+      "region": "Маэ о.",
+      "category": 5,
+      "aliases_to_check": [
+        "CONSTANCE EPHELIA RESORT"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Constance&countryId=28&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11832",
+      "profile_observed_at_utc": "2026-11-18T04:25:56.731736+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 59,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11832-75559300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11832-75559401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11832-75559402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11832-75559403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11832-75559404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11832-75559405.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11832-75559506.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11832-75559508.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "aab856d9a42cd9950aa4deb8f4c07a5f9ff84694cdd22d1fe7613bc547ea00a5",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_023",
+      "native_tourvisor_id": 46068,
+      "name": "FURAVERI ISLAND RESORT & SPA",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "FURAVERI ISLAND RESORT & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Furaveri&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=46068",
+      "profile_observed_at_utc": "2026-11-18T04:25:56.823789+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 110,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/46068-75259213.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/46068-75258800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/46068-75258901.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/46068-75258902.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/46068-75258903.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/46068-75259004.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/46068-75259005.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/46068-75259006.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "8d5790b0c7fde1d9240e2906835cdc4d15b5c849f64d7df7b03803707f1e879d",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_024",
+      "native_tourvisor_id": 15799,
+      "name": "PARADISE BEACH",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "PARADISE BEACH"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Paradis&countryId=27&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=15799",
+      "profile_observed_at_utc": "2026-11-18T04:25:56.806882+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 26,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-beach4-1023114613.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-beach4-102311450.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-beach4-102311451.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-beach4-102311452.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-beach4-102311453.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-beach4-102311454.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-beach4-102311465.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-beach4-102311466.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "55697e55ec9c7d23a655d8a9d2699bd8c8079c263b0c4242610282eeda00ecac",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_025",
+      "native_tourvisor_id": 82676,
+      "name": "DOUBLETREE BY HILTON WEERAWILA RAJAWARNA RESORT",
+      "country": "Шри-Ланка",
+      "country_id": 12,
+      "region": "Тангалле",
+      "category": 5,
+      "aliases_to_check": [
+        "DOUBLETREE BY HILTON WEERAWILA RAJAWARNA RESORT"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hilton&countryId=12&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82676",
+      "profile_observed_at_utc": "2026-11-18T04:25:57.984062+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 125,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/doubletree-by-hilton-weerawila-rajawarna-resort-94593500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/doubletree-by-hilton-weerawila-rajawarna-resort-94603800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/doubletree-by-hilton-weerawila-rajawarna-resort-94655900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/doubletree-by-hilton-weerawila-rajawarna-resort-94593501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/doubletree-by-hilton-weerawila-rajawarna-resort-94593502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/doubletree-by-hilton-weerawila-rajawarna-resort-94593503.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/doubletree-by-hilton-weerawila-rajawarna-resort-94593504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/doubletree-by-hilton-weerawila-rajawarna-resort-94593505.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "33badc401d6c21f36aaa815208a5b63f4521ed7ff2dc19f4438babae643c27f9",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_026",
+      "native_tourvisor_id": 122961,
+      "name": "HILTON YALA RESORT",
+      "country": "Шри-Ланка",
+      "country_id": 12,
+      "region": "Тангалле",
+      "category": 5,
+      "aliases_to_check": [
+        "HILTON YALA RESORT"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hilton&countryId=12&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=122961",
+      "profile_observed_at_utc": "2026-11-18T04:26:02.736532+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 49,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/hilton-yala-resort-2259200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/hilton-yala-resort-2259201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/hilton-yala-resort-2259202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/hilton-yala-resort-2259203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/hilton-yala-resort-2259204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/hilton-yala-resort-2259205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/hilton-yala-resort-2259206.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/hilton-yala-resort-2259207.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "88b6e263c418e0fc95c799a2c46c1b109edb4cea0a170f08ca127e8ae0141e4e",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_027",
+      "native_tourvisor_id": 64124,
+      "name": "HERITANCE AARAH",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "HERITANCE AARAH"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Heritance&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64124",
+      "profile_observed_at_utc": "2026-11-18T04:26:02.876839+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 122,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64124-33664700.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64124-33664801.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64124-33664802.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64124-33664803.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64124-33664904.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64124-33664905.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64124-33664906.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/64124-33664907.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "3033cec34d360b27ff9cfd17339cd4c88fed193ce1adb7be91d04c596244a82f",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_028",
+      "native_tourvisor_id": 71388,
+      "name": "HERITANCE TEA FACTORY",
+      "country": "Шри-Ланка",
+      "country_id": 12,
+      "region": "Канди",
+      "category": 5,
+      "aliases_to_check": [
+        "HERITANCE TEA FACTORY"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Heritance&countryId=12&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=71388",
+      "profile_observed_at_utc": "2026-11-18T04:26:03.824695+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 42,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/heritance-tea-factory-1112501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/heritance-tea-factory-1112500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/heritance-tea-factory-1112502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/heritance-tea-factory-1112503.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/heritance-tea-factory-1112504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/heritance-tea-factory-1112505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/heritance-tea-factory-1112506.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/heritance-tea-factory-1112507.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "b99ef4e0599e5a779cb054b274b69a1757987bf7578bf631747432cee35a8a8b",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_029",
+      "native_tourvisor_id": 79690,
+      "name": "ALILA KOTHAIFARU MALDIVES",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "ALILA KOTHAIFARU MALDIVES"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Alila&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=79690",
+      "profile_observed_at_utc": "2026-11-18T04:26:03.048608+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 61,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/79690-27306900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/79690-27307001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/79690-27307002.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/79690-27307003.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/79690-27307004.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/79690-27307005.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/79690-27307106.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/79690-27307107.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "2fc6fdf54c2cd1cd5cb4831c3f203d53c2857e971823e583d3533aa719b8836b",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_030",
+      "native_tourvisor_id": 126132,
+      "name": "CENTARA GRAND LAGOON MALDIVES",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "CENTARA GRAND LAGOON MALDIVES"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Centara&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126132",
+      "profile_observed_at_utc": "2026-11-18T04:26:02.914733+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 133,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/126132-61740707.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/126132-61740500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/126132-61740601.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/126132-61740602.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/126132-61740603.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/126132-61740604.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/126132-61740605.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/126132-61740706.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "8a81a52b8bbce26290eb974f9debf4e4ba4e868c6728196619d539c1365eba90",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_031",
+      "native_tourvisor_id": 11781,
+      "name": "PARADISE COVE BOUTIQUE ADULTS ONLY",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "PARADISE COVE BOUTIQUE ADULTS ONLY"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Paradis&countryId=27&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11781",
+      "profile_observed_at_utc": "2026-11-18T04:26:07.280050+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 43,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-cove-2315112.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-cove-2315100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-cove-2315101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-cove-2315102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-cove-2315103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-cove-2315104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-cove-2315105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/paradise-cove-2315106.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [
+          {
+            "field": "catalogue.name",
+            "value": "PARADISE COVE BOUTIQUE ADULTS ONLY"
+          }
+        ],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "0bb571c62bc5977ccbbc30d3dda171a5485e535b6b943624072209e170300a31",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_032",
+      "native_tourvisor_id": 58743,
+      "name": "FUSHIFARU MALDIVES",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "FUSHIFARU MALDIVES"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Fushifaru&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=58743",
+      "profile_observed_at_utc": "2026-11-18T04:26:07.303944+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 64,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/58743-62477825.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/58743-62477300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/58743-62477401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/58743-62477402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/58743-62477403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/58743-62477504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/58743-62477505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/58743-62477506.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "a3bdb60bdeb77ce72de5a9f29b7fcf581190752b2692a422f943c1b383e0e392",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_033",
+      "native_tourvisor_id": 60233,
+      "name": "NOKU MALDIVES",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "NOKU MALDIVES"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Noku&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=60233",
+      "profile_observed_at_utc": "2026-11-18T04:26:07.351925+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 80,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/60233-68623347.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/60233-68622300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/60233-68622401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/60233-68622402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/60233-68622403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/60233-68622404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/60233-68622405.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/60233-68622506.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "1059e3c14d4b03646217e1588dd2287a1c22b740f15fed9e1e7835baf267953f",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_034",
+      "native_tourvisor_id": 64955,
+      "name": "THE NAUTILUS MALDIVES",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "THE NAUTILUS MALDIVES"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Nautilus&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64955",
+      "profile_observed_at_utc": "2026-11-18T04:26:08.295949+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 71,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/the-nautilus-maldives-102407418.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/the-nautilus-maldives-102407410.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/the-nautilus-maldives-102407411.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/the-nautilus-maldives-102407412.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/the-nautilus-maldives-102407413.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/the-nautilus-maldives-102407414.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/the-nautilus-maldives-102407415.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/the-nautilus-maldives-102407416.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "fba020bf76e0d19fa4e7061b2f44c838a89330cb26d49864279ef7f5b028e7ac",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_035",
+      "native_tourvisor_id": 109335,
+      "name": "UGA CHENA HUTS",
+      "country": "Шри-Ланка",
+      "country_id": 12,
+      "region": "Тангалле",
+      "category": 5,
+      "aliases_to_check": [
+        "UGA CHENA HUTS"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Uga&countryId=12&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=109335",
+      "profile_observed_at_utc": "2026-11-18T04:26:07.140248+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 39,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/uga-chena-huts-2214107.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/uga-chena-huts-2214100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/uga-chena-huts-2214101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/uga-chena-huts-2214102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/uga-chena-huts-2214103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/uga-chena-huts-2214104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/uga-chena-huts-2214105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/uga-chena-huts-2214106.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "93a7ff31cc52058cccd67681ee2e5ea00481d0ca7ef31d73e19e75801ae361e2",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_036",
+      "native_tourvisor_id": 2424,
+      "name": "BAROS MALDIVES",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "BAROS MALDIVES"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Baros&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2424",
+      "profile_observed_at_utc": "2026-11-18T04:26:11.412057+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 61,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2424-13179405.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2424-13179300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2424-13179301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2424-13179402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2424-13179403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2424-13179404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2424-13179406.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2424-13179507.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "4921688a8de8f7ec3caf45d2f91831d7b6ad2b3f2606755f40f2ae7c0edefa22",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_037",
+      "native_tourvisor_id": 2429,
+      "name": "CINNAMON HAKURAA HURAA MALDIVES (ADULTS ONLY 18+)",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "CINNAMON HAKURAA HURAA MALDIVES (ADULTS ONLY 18+)",
+        "CINNAMON HAKURAA HURAA MALDIVES"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cinnamon&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2429",
+      "profile_observed_at_utc": "2026-11-18T04:26:11.360031+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 104,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2429-19082019.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2429-19080100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2429-19080201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2429-19080202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2429-19080203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2429-19080304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2429-19080305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2429-19080306.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [
+          {
+            "field": "catalogue.name",
+            "value": "CINNAMON HAKURAA HURAA MALDIVES (ADULTS ONLY 18+)"
+          }
+        ],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "7a113f5b6264ba9930046628f07cdb5a78412a7a1d58004762c6c0f196b391f0",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_058",
+      "native_tourvisor_id": 60231,
+      "name": "VAKKARU MALDIVES",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "VAKKARU MALDIVES"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Vakkaru&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=60231",
+      "profile_observed_at_utc": "2026-11-18T04:26:28.021166+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 61,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/60231-27121100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/60231-27121201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/60231-27121202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/60231-27121203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/60231-27121204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/60231-27121205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/60231-27121306.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/60231-27121307.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "e6a41ec5593f0f4909ac0e99adec248bd8587245954496351e8515a80a7ddac7",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_039",
+      "native_tourvisor_id": 2803,
+      "name": "CINNAMON GRAND",
+      "country": "Шри-Ланка",
+      "country_id": 12,
+      "region": "Коломбо",
+      "category": 5,
+      "aliases_to_check": [
+        "CINNAMON GRAND"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cinnamon&countryId=12&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2803",
+      "profile_observed_at_utc": "2026-11-18T04:26:12.245746+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 42,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cinnamon-grand-57454100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cinnamon-grand-57454101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cinnamon-grand-57454102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cinnamon-grand-57454103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cinnamon-grand-57454104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cinnamon-grand-57454105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cinnamon-grand-57454106.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cinnamon-grand-57454107.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "fd1b9b697ddadf6de9ca8e08221fea50996e7930329f322c0e184fe1136a2d27",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_040",
+      "native_tourvisor_id": 2826,
+      "name": "JETWING LIGHTHOUSE HOTEL",
+      "country": "Шри-Ланка",
+      "country_id": 12,
+      "region": "Галле",
+      "category": 5,
+      "aliases_to_check": [
+        "JETWING LIGHTHOUSE HOTEL"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Jetwing&countryId=12&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2826",
+      "profile_observed_at_utc": "2026-11-18T04:26:11.155939+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 51,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-lighthouse-hotel-102208220.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-lighthouse-hotel-102208221.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-lighthouse-hotel-102208232.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-lighthouse-hotel-102208233.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-lighthouse-hotel-102208234.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-lighthouse-hotel-102208235.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-lighthouse-hotel-102208236.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-lighthouse-hotel-102208237.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "a5c487069bdfb5009caf57e4b4010a45879ba489e52014451e413fdf9ea9dfef",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_041",
+      "native_tourvisor_id": 11765,
+      "name": "SHANGRI-LA S LE TOUESSROK",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "SHANGRI-LA S LE TOUESSROK"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Shangri&countryId=27&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11765",
+      "profile_observed_at_utc": "2026-11-18T04:26:15.235870+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 45,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/le-touessrok-2212000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/le-touessrok-2212001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/le-touessrok-2212002.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/le-touessrok-2212003.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/le-touessrok-2212004.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/le-touessrok-2212005.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/le-touessrok-2212006.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/le-touessrok-2212007.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "fc6b9d33684daf5c78e31335da886da5043a85251a92d2a2071616f755389e2a",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_042",
+      "native_tourvisor_id": 11773,
+      "name": "LUX LE MORNE",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "LUX LE MORNE"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Lux&countryId=27&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11773",
+      "profile_observed_at_utc": "2026-11-18T04:26:15.916479+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 60,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11773-2110105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11773-2110100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11773-2110101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11773-2110102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11773-2110103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11773-2110104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11773-2110106.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/11773-2110107.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "4d32ac3cec1f25a21e56c2fea3923c8ea62631d1939fffbadb05ff6b74ce1ff7",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_043",
+      "native_tourvisor_id": 11873,
+      "name": "CONSTANCE LEMURIA",
+      "country": "Сейшелы",
+      "country_id": 28,
+      "region": "Праслин о.",
+      "category": 5,
+      "aliases_to_check": [
+        "CONSTANCE LEMURIA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Constance&countryId=28&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11873",
+      "profile_observed_at_utc": "2026-11-18T04:26:15.164054+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 60,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11873-76967123.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11873-76966700.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11873-76966701.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11873-76966702.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11873-76966703.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11873-76966804.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11873-76966805.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/28/11873-76966806.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "58e6b58e905ffc3873de44bf69ea3f1be46a6a8a5f474b80a54ff411226e73fc",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_044",
+      "native_tourvisor_id": 24474,
+      "name": "UGA BAY",
+      "country": "Шри-Ланка",
+      "country_id": 12,
+      "region": "Тринкомали",
+      "category": 5,
+      "aliases_to_check": [
+        "UGA BAY"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Uga&countryId=12&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=24474",
+      "profile_observed_at_utc": "2026-11-18T04:26:15.107978+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 43,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/uga-bay-2908401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/uga-bay-2908400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/uga-bay-2908403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/uga-bay-2908404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/uga-bay-2908405.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/uga-bay-2908406.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/uga-bay-2908407.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/uga-bay-2908408.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "4987f223df9639fd2d46d61e65400ccf5bc572abaf2d52400d03ab8e3ebe8e70",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_045",
+      "native_tourvisor_id": 43238,
+      "name": "CAPE WELIGAMA",
+      "country": "Шри-Ланка",
+      "country_id": 12,
+      "region": "Коггала",
+      "category": 5,
+      "aliases_to_check": [
+        "CAPE WELIGAMA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cape&countryId=12&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43238",
+      "profile_observed_at_utc": "2026-11-18T04:26:15.207817+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 44,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cape-weligama-1012100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cape-weligama-1012101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cape-weligama-1012102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cape-weligama-1012103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cape-weligama-1012104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cape-weligama-1012105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cape-weligama-1012106.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cape-weligama-1012107.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "4caa15a1ba967caa4ba135e7e3372ff8338b0e69824c6d30edf0fb10add37bb7",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_046",
+      "native_tourvisor_id": 43701,
+      "name": "SENTIDO HERITANCE NEGOMBO",
+      "country": "Шри-Ланка",
+      "country_id": 12,
+      "region": "Негомбо",
+      "category": 5,
+      "aliases_to_check": [
+        "SENTIDO HERITANCE NEGOMBO"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Heritance&countryId=12&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43701",
+      "profile_observed_at_utc": "2026-11-18T04:26:19.213905+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 48,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/43701-85248713.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/43701-85248400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/43701-85248501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/43701-85248502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/43701-85248503.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/43701-85248504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/43701-85248505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/43701-85248606.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "bdfaf20fd91868c487559c8af29e750d5d39c9962b67e17746d6d3b4291f15cc",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_047",
+      "native_tourvisor_id": 45544,
+      "name": "CINNAMON LODGE HABARANA",
+      "country": "Шри-Ланка",
+      "country_id": 12,
+      "region": "Сигирия",
+      "category": 5,
+      "aliases_to_check": [
+        "CINNAMON LODGE HABARANA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cinnamon&countryId=12&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=45544",
+      "profile_observed_at_utc": "2026-11-18T04:26:19.331864+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 50,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cinnamon-lodge-habarana-53082222.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cinnamon-lodge-habarana-53082200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cinnamon-lodge-habarana-53082201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cinnamon-lodge-habarana-53082202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cinnamon-lodge-habarana-53082203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cinnamon-lodge-habarana-53082204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cinnamon-lodge-habarana-53082205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/cinnamon-lodge-habarana-53082206.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "610fa782865e2d8bba67869f6e7176e0fac65d379ee8b6d92ccff617e4cc65ff",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_048",
+      "native_tourvisor_id": 2433,
+      "name": "COCO BODU HITHI",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "COCO BODU HITHI"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Coco&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2433",
+      "profile_observed_at_utc": "2026-11-18T04:26:19.399839+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 62,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2433-41709606.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2433-41709400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2433-41709501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2433-41709502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2433-41709503.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2433-41709604.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2433-41709605.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2433-41709607.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "91b4b4b0641c39875de29d68736b0cc28c8e3c4028798bbe229d562dbeeb03c2",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_051",
+      "native_tourvisor_id": 11770,
+      "name": "LUX BELLE MARE",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "LUX BELLE MARE"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Lux&countryId=27&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11770",
+      "profile_observed_at_utc": "2026-11-18T04:26:23.948216+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 30,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/lux-belle-mare-1811200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/lux-belle-mare-1811201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/lux-belle-mare-1811202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/lux-belle-mare-1811203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/lux-belle-mare-1811204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/lux-belle-mare-1811205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/lux-belle-mare-1811206.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/lux-belle-mare-1811207.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [
+          "sorts.com/en/hotel-mauritius/luxbellemare\", \"description\": \"Отель открыт с 01.10.23 после реновации: архитекторы, дизайнеры интерьеров и команда отеля преобразили курорт (каждый штрих придуман архитектором и дизайнером Жаном-Марком Тангом), обновлён номерно"
+        ],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "432b58e442d7977cb34ac62b3180c38be636c75f5835e287a52681b63977bc9f",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    },
+    {
+      "work_id": "W10_050",
+      "native_tourvisor_id": 11742,
+      "name": "CONSTANCE BELLE MARE PLAGE",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "CONSTANCE BELLE MARE PLAGE"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Constance&countryId=27&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11742",
+      "profile_observed_at_utc": "2026-11-18T04:26:19.483760+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 43,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-belle-mare-plage-1709400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-belle-mare-plage-1709401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-belle-mare-plage-1709402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-belle-mare-plage-1709403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-belle-mare-plage-1709404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-belle-mare-plage-1709405.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-belle-mare-plage-1709407.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/constance-belle-mare-plage-1709408.jpg"
+      ],
+      "stage": "public_caption_edited_not_admitted",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "public_draft_sha256": "7c15a553fb135bbb08839fb461e00246928c4d6221775cd2564871e9890dc09c",
+      "public_draft_path": "tools/direct_demand/operations/commercial-wave10-50-public-caption-drafts-20261118.json"
+    }
+  ],
+  "reserve_unselected": [
+    {
+      "work_id": "W10_052",
+      "native_tourvisor_id": 49467,
+      "name": "HERITANCE KANDALAMA",
+      "country": "Шри-Ланка",
+      "country_id": 12,
+      "region": "Сигирия",
+      "category": 5,
+      "aliases_to_check": [
+        "HERITANCE KANDALAMA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Heritance&countryId=12&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=49467",
+      "profile_observed_at_utc": "2026-11-18T04:26:25.047495+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 32,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/49467-93284601.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/49467-93284600.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/49467-93284702.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/49467-93284704.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/49467-93284705.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/49467-93284706.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/49467-93284707.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/49467-93284808.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      }
+    },
+    {
+      "work_id": "W10_053",
+      "native_tourvisor_id": 67299,
+      "name": "CINNAMON VELIFUSHI",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "CINNAMON VELIFUSHI"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cinnamon&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=67299",
+      "profile_observed_at_utc": "2026-11-18T04:26:23.719506+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 61,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/67299-46656900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/67299-46656901.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/67299-46656902.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/67299-46656903.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/67299-46657004.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/67299-46657005.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/67299-46657006.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/67299-46657007.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      }
+    },
+    {
+      "work_id": "W10_054",
+      "native_tourvisor_id": 2820,
+      "name": "HERITANCE AHUNGALLA",
+      "country": "Шри-Ланка",
+      "country_id": 12,
+      "region": "Хиккадува",
+      "category": 5,
+      "aliases_to_check": [
+        "HERITANCE AHUNGALLA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Heritance&countryId=12&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2820",
+      "profile_observed_at_utc": "2026-11-18T04:26:23.791762+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 38,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/heritance-ahungala-3011411.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/heritance-ahungala-3011400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/heritance-ahungala-3011401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/heritance-ahungala-3011403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/heritance-ahungala-3011404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/heritance-ahungala-3011405.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/heritance-ahungala-3011406.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/heritance-ahungala-3011407.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      }
+    },
+    {
+      "work_id": "W10_055",
+      "native_tourvisor_id": 2835,
+      "name": "HERITANCE AYURVEDA MAHA GEDARA ADULTS ONLY 16+",
+      "country": "Шри-Ланка",
+      "country_id": 12,
+      "region": "Бентота",
+      "category": 5,
+      "aliases_to_check": [
+        "HERITANCE AYURVEDA MAHA GEDARA ADULTS ONLY 16+"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Heritance&countryId=12&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2835",
+      "profile_observed_at_utc": "2026-11-18T04:26:23.789243+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 24,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/neptune-hotel-49274800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/neptune-hotel-49274801.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/neptune-hotel-49274802.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/neptune-hotel-49274803.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/neptune-hotel-49274804.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/neptune-hotel-49274805.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/neptune-hotel-49274806.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/neptune-hotel-49274807.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [
+          {
+            "field": "catalogue.name",
+            "value": "HERITANCE AYURVEDA MAHA GEDARA ADULTS ONLY 16+"
+          },
+          {
+            "field": "native_profile.services",
+            "value": "Только для взрослых"
+          }
+        ],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      }
+    },
+    {
+      "work_id": "W10_057",
+      "native_tourvisor_id": 11772,
+      "name": "LUX GRAND GAUBE",
+      "country": "Маврикий",
+      "country_id": 27,
+      "region": "Маврикий",
+      "category": 5,
+      "aliases_to_check": [
+        "LUX GRAND GAUBE"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Lux&countryId=27&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11772",
+      "profile_observed_at_utc": "2026-11-18T04:26:29.072847+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 45,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/lux-grand-gaube-3011102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/lux-grand-gaube-3011100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/lux-grand-gaube-3011101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/lux-grand-gaube-3011103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/lux-grand-gaube-3011104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/lux-grand-gaube-3011105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/lux-grand-gaube-3011106.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/27/lux-grand-gaube-3011107.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      }
+    },
+    {
+      "work_id": "W10_059",
+      "native_tourvisor_id": 2804,
+      "name": "CINNAMON LAKESIDE",
+      "country": "Шри-Ланка",
+      "country_id": 12,
+      "region": "Коломбо",
+      "category": 5,
+      "aliases_to_check": [
+        "CINNAMON LAKESIDE"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cinnamon&countryId=12&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2804",
+      "profile_observed_at_utc": "2026-11-18T04:26:27.696975+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 34,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/2804-2810100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/2804-2810101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/2804-2810102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/2804-2810103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/2804-2810104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/2804-2810105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/2804-2810106.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/2804-2810107.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      }
+    },
+    {
+      "work_id": "W10_060",
+      "native_tourvisor_id": 70315,
+      "name": "JETWING COLOMBO SEVEN",
+      "country": "Шри-Ланка",
+      "country_id": 12,
+      "region": "Коломбо",
+      "category": 5,
+      "aliases_to_check": [
+        "JETWING COLOMBO SEVEN"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Jetwing&countryId=12&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=70315",
+      "profile_observed_at_utc": "2026-11-18T04:26:27.745012+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 45,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-colombo-seven-2610018.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-colombo-seven-2610000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-colombo-seven-2610001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-colombo-seven-2610002.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-colombo-seven-2610003.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-colombo-seven-2610004.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-colombo-seven-2610005.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/jetwing-colombo-seven-2610006.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      }
+    }
+  ],
+  "holds": [
+    {
+      "native_tourvisor_id": 11789,
+      "name": "SHANTI MAURICE RESORT & SPA (EX. SHANTI MAURICE A NIRA)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 78076,
+      "name": "LUX GRAND BAIE RESORT & RESIDENCES",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 2427,
+      "name": "MACHCHAFUSHI ISLAND RESORT & SPA MALDIVES (EX. CENTARA GRAND ISLAND RESORT & SPA MALDIVES)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 11771,
+      "name": "LUX BELLE MARE VILLAS",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 2475,
+      "name": "NH COLLECTION REETHI MALDIVES (EX. REETHI BEACH RESORT)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 43565,
+      "name": "NH MALDIVES KUDA RAH RESORT (EX. AMAYA KUDA RAH)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 11750,
+      "name": "HERITAGE THE VILLAS",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 121899,
+      "name": "VILLA LAGOONSCAPE",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 122643,
+      "name": "SHOBA VILLAS & RESIDENCES BY MARADIVA",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 127559,
+      "name": "SANKHARA LUXURY PRIVATE BEACH VILLAS",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 165443,
+      "name": "JACARANDA LUXURY VILLAS BY MARITIM",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 68977,
+      "name": "CONSTANCE LE CHALAND (EX. ANANTARA IKO)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 2487,
+      "name": "NIVA VELASSARU MALDIVES (EX. VELASSARU MALDIVES)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 12131,
+      "name": "CINNAMON BEY (EX. CHAAYA BEY)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 56077,
+      "name": "NIVA DHIGALI MALDIVES (EX. DHIGALI MALDIVES)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 49468,
+      "name": "HILTON COLOMBO RESIDENCE",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 167686,
+      "name": "COCO RESIDENCES BY COCO COLLECTION",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "work_id": "W10_013",
+      "native_tourvisor_id": 2482,
+      "name": "VILLA PARK SUN ISLAND",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "VILLA PARK SUN ISLAND"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sun&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2482",
+      "profile_observed_at_utc": "2026-11-18T04:25:49.497835+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 80,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2482-68877578.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2482-68875900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2482-68875901.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2482-68875902.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2482-68876003.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2482-68876004.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2482-68876005.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2482-68876006.jpg"
+      ],
+      "stage": "hold",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [
+          "ивых рифов Мальдивских островов.<BR>ВНИМАНИЕ! В отеле проводятся плановые косметические и строительные работы по обновлению номерного фонда, предварительно до 20 декабря 2026. По утверждению отеля - работы не беспокоят гостей резорта.<BR>Завершенные работы на"
+        ],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "reason": "Retained dated construction/cosmetic works through 2026-12-20; deferred for this wave, not a publication admission.",
+      "retained_profile_preserved": true
+    },
+    {
+      "work_id": "W10_038",
+      "native_tourvisor_id": 2471,
+      "name": "ONE & ONLY REETHI RAH",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "ONE & ONLY REETHI RAH"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Reethi&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2471",
+      "profile_observed_at_utc": "2026-11-18T04:26:11.451735+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 61,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2471-99512201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2471-99512100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2471-99512202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2471-99512203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2471-99512304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2471-99512305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2471-99512306.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/2471-99512307.jpg"
+      ],
+      "stage": "hold",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [
+          "escription\": \"ВНИМАНИЕ! В период с апреля до середины декабря 2026 года будут проводиться ремонтные работы по апгрейду номерного фонда отеля и усовершенствования ресторана Fanditha. Указанные ниже категории вилл, будут недоступны :<BR><UL><LI>Beach Villa K",
+          "A . Гости смогут воспользоваться меню ресторана Fanditha в Rabarbaro.</LI><LI>также будут закрыты места для организации приватных ужинов : Reethi Ah-Li, the Tree House, и  the Lawn Club.</LI><LI>The Beach Club, Spa, Gym, Pool, KidsOnly и пляжные facilities "
+        ],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "reason": "Retained renovations April to mid-December 2026, some villas and venues unavailable; deferred for this wave.",
+      "retained_profile_preserved": true
+    },
+    {
+      "work_id": "W10_049",
+      "native_tourvisor_id": 2454,
+      "name": "HUVAFEN FUSHI MALDIVES",
+      "country": "Мальдивы",
+      "country_id": 8,
+      "region": "Мальдивы",
+      "category": 5,
+      "aliases_to_check": [
+        "HUVAFEN FUSHI MALDIVES"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Huvafen&countryId=8&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2454",
+      "profile_observed_at_utc": "2026-11-18T04:26:19.207989+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 41,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/huvafen-fushi-spa-resort-1022022518.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/huvafen-fushi-spa-resort-102202250.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/huvafen-fushi-spa-resort-102202251.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/huvafen-fushi-spa-resort-102202252.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/huvafen-fushi-spa-resort-102202253.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/huvafen-fushi-spa-resort-102202254.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/huvafen-fushi-spa-resort-102202255.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/8/huvafen-fushi-spa-resort-102202256.jpg"
+      ],
+      "stage": "hold",
+      "publication_allowed": false,
+      "material_conditions": {
+        "adult_only_evidence": [],
+        "retained_repair_or_closure_signals": [],
+        "whole_retained_profile_must_inform_public_copy": true
+      },
+      "reason": "Material age-policy qualification not established for this proposed selection; individual review deferred. No assertion of an actual age restriction is made; retained child-corner data preserved.",
+      "retained_profile_preserved": true
+    }
+  ],
+  "not_profiled_catalogue_ids": [
+    81690,
+    12140,
+    49608,
+    2822,
+    26045,
+    58520,
+    64079,
+    64624,
+    80785,
+    109889,
+    117627,
+    124572,
+    126013,
+    134103,
+    146570,
+    163892,
+    118996
+  ],
+  "source_profile_archive": "tools/direct_demand/operations/commercial-wave10-profile-screen-20261118.json.gz",
+  "sender_calls": 0,
+  "feed_writes": 0,
+  "price_queries": 0,
+  "operation_ids_created": 0,
+  "current_window": "PRICE owns stable carrier1b797; preparation saved without moving ref; no proof/editor/sender invoked",
+  "selection_revision": {
+    "observed_at_utc": "2026-11-18T05:27:41.172902+00:00",
+    "replaces_in_working_selection": {
+      "2482": 11743,
+      "2471": 60231,
+      "2454": 11770
+    },
+    "previous_intake_commit": "55e11985b483119f462f0b70a8cadb96cad61c19",
+    "all_prior_holds_preserved": true,
+    "not_a_new_queue": true
+  }
+}
