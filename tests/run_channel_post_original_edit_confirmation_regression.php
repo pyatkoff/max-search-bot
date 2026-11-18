@@ -12,6 +12,8 @@ function originalFixture():array {
  $raw=['message_id'=>831,'date'=>1794931200,'chat'=>['id'=>'-10099887766','type'=>'channel','username'=>'fixture_channel'],'caption'=>'Old caption','photo'=>[['file_id'=>'private','file_unique_id'=>'stable','width'=>1000,'height'=>1000]]];
  $snap=ChannelPostIncomingAdapter::telegramSnapshot($raw);$snap['content_hash']=ChannelPostIncomingAdapter::contentFingerprint($snap);
  $old=$r->registerPublication('anytour','telegram','fixture_bot','-10099887766','831',$snap);
+ $priorClaim=$r->claimPublication($old['publication_id'],$old['version_id']);
+ $r->finishPublication($old['publication_id'],$old['version_id'],$priorClaim['claim_token'],'sent','verified');
  $url=ChannelPostButtonTransport::buttonUrl($old);$raw['caption']='New caption';$raw['edit_date']=1794931201;$raw['reply_markup']=['inline_keyboard'=>[[['text'=>$c['button_text'],'url'=>$url]]]];
  $raw['caption_entities']=[['type'=>'text_link','offset'=>0,'length'=>3,'url'=>$url]];
  $snap=ChannelPostIncomingAdapter::telegramSnapshot($raw);$snap['content_hash']=ChannelPostIncomingAdapter::contentFingerprint($snap);
@@ -57,10 +59,31 @@ foreach(['http','ok','transport','message','channel','text','photo','keyboard','
  // A fresh preview must reject corrupted evidence too, not just the digest.
  if(!in_array($case,['config','digest'],true)){ $answer=originalCall($ss,$pp,$ee);checkOriginal('negative preview '.$case,!$answer['ok']&&originalState($d)===$state); }
 }
-foreach(['stale_expected','mapping_version','prior_photo','prior_number','raw_coherent_extra_button'] as $case){
+// JSON object key order is not semantic; list order, key sets and types are.
+foreach(['reordered_keys','changed_offset','changed_url','coerced_offset','extra_key','entity_order'] as $case){
+ [$d,$rr,$ss,$pp,$ee]=originalFixture();$entity=$ee['plan']['price_link']['telegram_entities'][0];
+ if($case==='reordered_keys')$ee['plan']['price_link']['telegram_entities'][0]=['offset'=>$entity['offset'],'url'=>$entity['url'],'length'=>$entity['length'],'type'=>$entity['type']];
+ if($case==='changed_offset')$ee['plan']['price_link']['telegram_entities'][0]['offset']++;
+ if($case==='changed_url')$ee['plan']['price_link']['telegram_entities'][0]['url']='https://foreign.invalid';
+ if($case==='coerced_offset')$ee['plan']['price_link']['telegram_entities'][0]['offset']=(string)$entity['offset'];
+ if($case==='extra_key')$ee['plan']['price_link']['telegram_entities'][0]['extra']=true;
+ if($case==='entity_order'){
+  $second=['type'=>'bold','offset'=>4,'length'=>3];
+  $ee['plan']['price_link']['telegram_entities']=[$second,$entity];
+  $ee['provider_response']['data']['result']['caption_entities']=[$entity,$second];
+  $snap=$pp['snapshot'];$snap['raw_body']=$ee['provider_response']['data']['result'];$snap['markup']=[$entity,$second];
+  $snap['content_hash']=ChannelPostIncomingAdapter::contentFingerprint($snap);
+  $d->prepare('UPDATE post_versions SET snapshot_json=?,content_hash=? WHERE id=?')->execute([json_encode($snap),$snap['content_hash'],$pp['version_id']]);
+ }
+ $state=originalState($d);$result=originalCall($ss,$pp,$ee);
+ checkOriginal('entity comparison '.$case,($result['ok']===($case==='reordered_keys'))&&originalState($d)===$state);
+}
+foreach(['stale_expected','mapping_version','prior_photo','prior_number','prior_unknown','prior_claimed','raw_coherent_extra_button'] as $case){
  [$d,$rr,$ss,$pp,$ee]=originalFixture();
  if($case==='stale_expected')$d->exec('UPDATE post_versions SET attempt_count=2 WHERE id='.$pp['version_id']);
  if($case==='mapping_version')$d->exec('UPDATE post_observations SET version_id='.$ee['plan']['old_version_id']);
+ if($case==='prior_unknown')$d->exec("UPDATE post_versions SET state='unknown' WHERE id=".$ee['plan']['old_version_id']);
+ if($case==='prior_claimed')$d->exec("UPDATE post_versions SET claim_token='foreign' WHERE id=".$ee['plan']['old_version_id']);
  if($case==='prior_number')$d->exec('UPDATE post_versions SET version_number=99 WHERE id='.$ee['plan']['old_version_id']);
  if($case==='prior_photo'){$prior=$d->query('SELECT snapshot_json FROM post_versions WHERE id='.$ee['plan']['old_version_id'])->fetchColumn();$snap=json_decode($prior,true);$snap['attachments'][0]['file_unique_id']='foreign';$d->prepare('UPDATE post_versions SET snapshot_json=? WHERE id=?')->execute([json_encode($snap),$ee['plan']['old_version_id']]);}
  if($case==='raw_coherent_extra_button'){

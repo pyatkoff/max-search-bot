@@ -582,9 +582,10 @@ final class ChannelPostRegistryService
             $current = $this->publication($id);
             if (!$version || !$current || $current !== $expected) throw new RuntimeException('target_publication_changed');
             self::validateTelegramEditConfirmation($current, $evidence);
-            $prior = $this->fetch('SELECT version_number,snapshot_json FROM post_versions WHERE id=? AND publication_id=?' . ($apply ? $this->lock() : ''), [$evidence['plan']['old_version_id'], $id]);
+            $prior = $this->fetch('SELECT version_number,snapshot_json,state,claim_token,claimed_at FROM post_versions WHERE id=? AND publication_id=?' . ($apply ? $this->lock() : ''), [$evidence['plan']['old_version_id'], $id]);
             $priorSnapshot = json_decode((string)($prior['snapshot_json'] ?? ''), true) ?: [];
-            if (!$prior || (int)$prior['version_number'] + 1 !== $current['version_number']
+            if (!$prior || $prior['state'] !== 'sent' || $prior['claim_token'] !== null || $prior['claimed_at'] !== null
+                || (int)$prior['version_number'] + 1 !== $current['version_number']
                 || ($priorSnapshot['attachments'] ?? null) !== $current['snapshot']['attachments']
                 || ($priorSnapshot['post_url'] ?? null) !== $current['snapshot']['post_url']) throw new RuntimeException('original_edit_observation_changed');
             $event = $current['snapshot']['metadata']['source_event_id'];
@@ -661,7 +662,8 @@ final class ChannelPostRegistryService
             if(($plan['monitor_price']['record_id']??null)!==($meta['monitor_price_record_id']??null)
                 || !preg_match('/\A[a-f0-9]{64}\z/D',(string)($meta['monitor_price_record_id']??''))
                 || ($plan['price_link']['url']??null)!==$url
-                || ($plan['price_link']['telegram_entities']??null)!==$observed['markup'])$fail();
+                || !is_array($plan['price_link']['telegram_entities']??null)
+                || self::canonicalArray($plan['price_link']['telegram_entities'])!==self::canonicalArray($observed['markup']))$fail();
         } elseif(isset($meta['monitor_price_record_id'])) $fail();
     }
 
