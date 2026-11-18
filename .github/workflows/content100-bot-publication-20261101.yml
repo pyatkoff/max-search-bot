@@ -1,8 +1,10 @@
-name: Add the adults-only condition to the existing W Dubai Mina Seyahi pair
-on:
+name: Correct approved existing W11 ten pairs with two-pair canary then eight
+'on':
   push:
-    branches: [audit/content100-bot-publication-20261101]
-    paths: ['.github/workflows/content100-bot-publication-20261101.yml']
+    branches:
+    - audit/content100-bot-publication-20261101
+    paths:
+    - .github/workflows/content100-bot-publication-20261101.yml
 permissions:
   contents: read
   actions: read
@@ -10,172 +12,244 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
-  caption-current-pair:
-    if: >-
-      github.repository == 'pyatkoff/max-search-bot' &&
-      github.actor == 'pyatkoff' &&
-      github.event.before == 'e9027a15257298a3c1c4afbd8a9156c2a82f6df5' &&
-      github.run_attempt == 1
+  caption-approved-w11-ten:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == 'cd74a43bd1fd0f1e0d6011c6c539731cee9a0e32'
+      && github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
-        with:
-          persist-credentials: false
-          sparse-checkout: tools/direct_demand/operations
-      - name: Verify original run terminal and unchanged caption transport
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          import subprocess,json
-          def info(path):return json.loads(subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+path],timeout=60))
-          app='cc017ee5bb669f4c7c13efc91d5c5812a50e55f2'
-          assert info('git/ref/heads/main')['object']['sha']==app
-          r=info('actions/runs/44230281892');assert r['status']=='completed' and r['head_sha']=='8398d22a088be9cd3c5d58b7bc091bb3df646cce' and r['run_attempt']==1
-          a=info('actions/artifacts/14394559384');assert a['workflow_run']['id']==44230281892 and a['digest']=='sha256:edbe4cba52dbd2beff1e8af990a68bd56dd3a97c4d047076bc6a491f2a73129d'
-          active=info('actions/runs?branch=audit%2Fprice660-27316-resume-readiness-20261117&per_page=5')['workflow_runs']
-          assert not [x for x in active if x['status'] in {'requested','queued','in_progress','waiting','pending'}]
-          import zipfile,io,hashlib
-          previous=subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/actions/artifacts/14394443836/zip'],timeout=90)
-          assert hashlib.sha256(previous).hexdigest()=='75e8b24ee462dbea593b1fb8ba7397d32f2d4ce47e227df2d2a59c492d2ea40d'
-          with zipfile.ZipFile(io.BytesIO(previous)) as prior:
-              assert set(prior.namelist())=={'read-scope.json','read-result.json'}
-              stopped=json.loads(prior.read('read-result.json'))
-              assert stopped['error']=='monitor_journal_incomplete' and stopped['post_write_attempts']==stopped['provider_calls']==0 and stopped['posts']==[]
-          
-          second_run=info('actions/runs/44231952250')
-          assert second_run['status']=='completed' and second_run['conclusion']=='failure' and second_run['run_attempt']==1
-          assert second_run['head_sha']=='b1991920bccb791b55d325bef51a83d5f48b81fd'
-          second=subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/actions/artifacts/14394604046/zip'],timeout=90)
-          assert hashlib.sha256(second).hexdigest()=='e4cf77ef95fcff124d8621fe0fb7fb166c16a479091d07b06ff631c48d2613c9'
-          with zipfile.ZipFile(io.BytesIO(second)) as prior:
-              assert set(prior.namelist())=={'journal-metadata.json','read-scope.json','read-result.json'}
-              stopped=json.loads(prior.read('read-result.json'))
-              assert stopped['error']=='monitor_journal_incomplete' and stopped['post_write_attempts']==stopped['provider_calls']==0 and stopped['posts']==[]
-          third_run=info('actions/runs/44255449694')
-          assert third_run['status']=='completed' and third_run['conclusion']=='failure' and third_run['run_attempt']==1 and third_run['head_sha']=='e9027a15257298a3c1c4afbd8a9156c2a82f6df5'
-          third_job=info('actions/runs/44255449694/jobs')['jobs']
-          assert len(third_job)==1
-          disposition={s['name']:s['conclusion'] for s in third_job[0]['steps']}
-          assert disposition['Edit existing two messages ONCE using the established caption executor']=='skipped'
-          third=subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/actions/artifacts/14405552840/zip'],timeout=90)
-          assert hashlib.sha256(third).hexdigest()=='11d0bbdb00408b0a9a4edf65d8a52b39d08b1e8a1251add35e6c013528efc15a'
-          with zipfile.ZipFile(io.BytesIO(third)) as prior:
-              assert set(prior.namelist())=={'read-scope.json','read-result.json'}
-              read=json.loads(prior.read('read-result.json'))
-              assert read['ok'] and read['post_write_attempts']==0 and read['provider_calls']==1
-          original=subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/actions/artifacts/14394559384/zip'],timeout=90)
-          assert hashlib.sha256(original).hexdigest()=='edbe4cba52dbd2beff1e8af990a68bd56dd3a97c4d047076bc6a491f2a73129d'
-          from pathlib import Path
-          with zipfile.ZipFile(io.BytesIO(original)) as prior:
-              terminal=json.loads(prior.read('terminal-verified.json'))
-          bound=json.loads(Path('tools/direct_demand/operations/commercial-w9-78929-caption-bound-posts-20261118.json').read_bytes())
-          assert terminal['operation']==bound['original_operation']
-          posts=[p for p in terminal['posts'] if p['hotel_id']==78929]
-          assert posts==bound['posts'] and all(p['body_photo_button_verified'] for p in posts)
-          for path,expected in [('commercial-caption-review73-20261113-executor.php','cd2d8390f7723a25ec06e9cd90239c0cc9623ad2'),('commercial-caption-review73-20261113-read-scope.php','0f6e34762ddc280dd896b4f5eabc8e334d4534f1')]:
-              assert subprocess.check_output(['git','hash-object','tools/direct_demand/operations/'+path],text=True).strip()==expected
-          PY
-          python3 -m py_compile tools/direct_demand/operations/prepare-w9-78929-adults-caption-20261118.py
-          python3 tools/direct_demand/operations/prepare-w9-78929-adults-caption-20261118.py read
-          php -l caption78929/read.php
-          php -l tools/direct_demand/operations/commercial-w9-78929-price-journal-20261118.php
-          php tools/direct_demand/operations/test-commercial-w9-78929-price-journal-20261118.php
-      - name: Pin established SSH host continuity and authentication identity
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
-          PY
-          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
-            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
-          chmod 600 "$RUNNER_TEMP/channel_key"
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-          python3 - <<'PY'
-          import base64,hashlib,os,pathlib,subprocess
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
-          for s in scan.stdout.splitlines():
-              q=s.split()
-              if len(q)<3 or q[0].startswith('#'):continue
-              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
-              except Exception:continue
-              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
-          assert found,'HOST_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
-          print('ESTABLISHED_HOST_PIN_VERIFIED')
-          PY
-      - name: Read the two current versions without changing them
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < caption78929/read.php > caption78929/read-result.json
-      - name: Bind the exact sentence insertion and reject any broader edit
-        run: |
-          set -euo pipefail
-          python3 tools/direct_demand/operations/prepare-w9-78929-adults-caption-20261118.py edit
-          php -l caption78929/edit.php
-          php caption78929/scope-tests.php
-      - name: Edit existing two messages ONCE using the established caption executor
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          rc=0
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < caption78929/edit.php > caption78929/original-edit-output.jsonl || rc=$?
-          printf '%s\n' "$rc" > caption78929/original-edit-exit.txt
-          cat caption78929/original-edit-output.jsonl
-          exit "$rc"
-      - name: Verify both existing posts, IDs, body, photos, button and price lineage
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          import json,pathlib,hashlib
-          p=pathlib.Path('caption78929');m=json.loads((p/'manifest.json').read_bytes());raw=(p/'original-edit-output.jsonl').read_bytes();r=json.loads(raw.splitlines()[-1])
-          assert (p/'original-edit-exit.txt').read_text().strip()=='0' and r['ok'] and r['operation']==m['operation'] and r['mode']=='approved_existing_caption_quality_revision'
-          assert r['manifest_sha256']==hashlib.sha256((p/'manifest.json').read_bytes()).hexdigest()
-          assert len(r['posts'])==r['post_write_attempts']==r['caption_updates']==r['preflight_existing_messages']==2
-          for k in ['new_posts_created','configuration_write_attempts','button_write_attempts','tour_search_calls','price_queries']:assert r[k]==0
-          targets={x['publication_id']:x for x in m['rows']}
-          for post in r['posts']:
-              x=targets[post['publication_id']]
-              for k in ['hotel_id','platform','message_id','post_url','photo_signature','button_url_sha256','source_key','monitor_price_record_id']:assert post[k]==x[k]
-              assert post['previous_version_id']==x['version_id'] and post['version_id']!=x['version_id'] and post['text_sha256']==x['new_text_sha256'] and post['previous_attachments_sha256']==x['attachments_sha256']
-              for k in ['body_photo_button_verified','formatting_verified','existing_message_reused','existing_token_resolves_to_current_version']:assert post[k] is True
-          (p/'terminal-verified.json').write_text(json.dumps({'state':'EXISTING_78929_ADULTS_CONDITION_VERIFIED_BOTH','new_posts':0,'posts_edited':2,'native_result':r,'manifest':m},ensure_ascii=False,indent=2)+'\n')
-          print('EXISTING_78929_ADULTS_CONDITION_VERIFIED_BOTH')
-          PY
-      - name: Preserve original caption correction evidence including UNKNOWN
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: existing78929-adults-caption-one-attempt-20261118
-          path: |
-            caption78929/read-scope.json
-            caption78929/read-result.json
-            caption78929/manifest.json
-            caption78929/original-edit-output.jsonl
-            caption78929/original-edit-exit.txt
-            caption78929/terminal-verified.json
-          retention-days: 30
-          if-no-files-found: warn
-      - name: Remove runner-only credentials and compiled inputs
-        if: always()
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" caption78929/*.php
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      with:
+        persist-credentials: false
+        fetch-depth: 2
+        sparse-checkout: tools/direct_demand/operations
+    - name: Require terminal W13, nine release gates, exact read artifact and source pins
+      env:
+        GH_TOKEN: ${{ github.token }}
+      shell: bash
+      run: "set -euo pipefail\npython3 - <<'PY'\nimport subprocess,json,base64,os,re\nREPO='pyatkoff/max-search-bot'\nAPP='bd8e248f7138ea75cb9fda2dcf44beb631c633a5'\n\
+        def api(path):\n    return subprocess.check_output(['gh','api',f'repos/{REPO}/{path}'],timeout=70)\n\ndef info(path):\n\
+        \    return json.loads(api(path))\n\ndef digest(data):\n    return hashlib.sha256(data).hexdigest()\n\nassert info('git/ref/heads/main')['object']['sha']==APP\n\
+        d=json.loads(base64.b64decode(info('contents/deploy_status.json?ref=diagnostics')['content']))\nrelease=d['repository_release']\n\
+        assert release['kind']=='installed' and release['repository_sha']==release['application_sha']==d['sha']==APP\nassert\
+        \ str(release['release']['run_id'])=='44329290180' and all(s['result']=='success' for s in release['stages'].values())\n\
+        required={'deploy.yml','retired-domain-guard.yml','max-tls-preflight.yml','max-production-health.yml',\n         \
+        \ 'telegram-production-health.yml','publish-conversation-diagnostics.yml','live-session-diagnostics.yml',\n      \
+        \    'tour-selection-host.yml','modeled-conversion-monitor.yml'}\ngates={g['path'].rsplit('/',1)[-1]:g for g in release['closure']['gates']}\n\
+        assert required <= gates.keys()\nassert all(gates[p]['conclusion']=='success' and gates[p]['head_sha']==APP and gates[p]['run_attempt']==1\
+        \ for p in required)\n\nr=info('actions/runs/44375796597')\nassert r['status']=='completed' and r['conclusion']=='success'\
+        \ and r['run_attempt']==1 and r['head_sha']=='0f8bac12837d945a7b359ac7343ebd27f81f3afd', 'W13_NOT_TERMINAL_SUCCESS_STOP'\n\
+        feed=info('actions/runs?branch=audit%2Fprice660-27316-resume-readiness-20261117&per_page=5')\nassert not [r for r\
+        \ in feed['workflow_runs'] if r['status'] in {'requested','queued','in_progress','waiting','pending'}], 'ACTIVE_FEED_OWNER_STOP'\n\
+        assert info('git/ref/heads/audit/content100-bot-publication-20261101')['object']['sha']==os.environ['GITHUB_SHA'],\
+        \ 'CARRIER_ADVANCED_STOP'\nfrom pathlib import Path\nimport hashlib\nroot=Path('tools/direct_demand/operations/w11-approved-corrections')\n\
+        expected={'prepare-read-stage.py': 'fb6a50c321c0d808c1051da2bbac762732114bca8ad1e2b29b5d0c642719a27c', 'prepare-edit-stage.py':\
+        \ 'e3e8473d078bf23ba999875054d0445041259b5f67f67b84a5669d7ecd39f7e7', 'bound-w11-posts.json': '84dbec5a506b7308e2f78a33dacc401a18bf9fa9ff6c84c1d82f57f4da0680ed',\
+        \ 'approved-texts.json': '2a55fda496c5d4e18bc7170e40e86409ee7610c3f5c9f2920d2a940ce38ca3c4'}\nfor name,sha in expected.items():\n\
+        \ assert re.fullmatch('[a-f0-9]{64}',sha),'SOURCE_HASH_UNBOUND_STOP'\n assert hashlib.sha256((root/name).read_bytes()).hexdigest()==sha,name\n\
+        \nimport io,zipfile\npins={'expected_before': 'cd74a43bd1fd0f1e0d6011c6c539731cee9a0e32', 'read_run_id': 44378822235,\
+        \ 'read_head_sha': 'cd74a43bd1fd0f1e0d6011c6c539731cee9a0e32', 'read_artifact_id': 14462223059, 'read_zip_sha256':\
+        \ '83cbdaca382832e4e12ef2c32a8a3d5aeffdc0e5efdf2106b22bbc4eb39a5c39', 'snapshot_sha256': {'journal-metadata.json':\
+        \ '2d45627d456e02116c480688c3bbb1c26940509f8fdd596397e51e1bf2a1958e', 'read-scope.json': '81292a10081fe6a78feba06600932d3b7c86b06b267ddf724aab8716d9067001',\
+        \ 'read-result.json': '30ca1edecc7751610c376ba001ef644974ad69b8e18d6fedbd223533b260bbfc'}, 'source_sha256': {'prepare-read-stage.py':\
+        \ 'fb6a50c321c0d808c1051da2bbac762732114bca8ad1e2b29b5d0c642719a27c', 'prepare-edit-stage.py': 'e3e8473d078bf23ba999875054d0445041259b5f67f67b84a5669d7ecd39f7e7',\
+        \ 'bound-w11-posts.json': '84dbec5a506b7308e2f78a33dacc401a18bf9fa9ff6c84c1d82f57f4da0680ed', 'approved-texts.json':\
+        \ '2a55fda496c5d4e18bc7170e40e86409ee7610c3f5c9f2920d2a940ce38ca3c4'}}\nfor k in ['read_head_sha']:assert re.fullmatch('[a-f0-9]{40}',pins[k]),'UNBOUND_READ_HEAD_STOP'\n\
+        for k in ['read_zip_sha256']:assert re.fullmatch('[a-f0-9]{64}',pins[k]),'UNBOUND_READ_HASH_STOP'\nfor k in ['read_run_id','read_artifact_id']:assert\
+        \ re.fullmatch('[0-9]+',str(pins[k])),'UNBOUND_READ_ID_STOP'\nr=info('actions/runs/'+str(pins['read_run_id']))\nassert\
+        \ r['status']=='completed' and r['conclusion']=='success' and r['run_attempt']==1 and r['head_sha']==pins['read_head_sha'],'READ_NOT_TERMINAL_SUCCESS_STOP'\n\
+        a=info('actions/artifacts/'+str(pins['read_artifact_id']))\nassert not a['expired'] and str(a['workflow_run']['id'])==str(pins['read_run_id'])\
+        \ and a['workflow_run']['head_sha']==pins['read_head_sha']\nassert a['digest']=='sha256:'+pins['read_zip_sha256']\n\
+        b=api('actions/artifacts/'+str(pins['read_artifact_id'])+'/zip');assert digest(b)==pins['read_zip_sha256']\nout=Path('caption-w11-read');assert\
+        \ not out.exists();out.mkdir()\nwith zipfile.ZipFile(io.BytesIO(b)) as z:\n assert set(z.namelist())==set(pins['snapshot_sha256'])\
+        \ and len(z.namelist())==3\n for name,sha in pins['snapshot_sha256'].items():\n  assert re.fullmatch('[a-f0-9]{64}',sha)\
+        \ and digest(z.read(name))==sha,'READ_MEMBER_HASH_STOP'\n  (out/name).write_bytes(z.read(name))\ns=json.loads((out/'read-scope.json').read_bytes());d=json.loads((out/'read-result.json').read_bytes());meta=json.loads((out/'journal-metadata.json').read_bytes())\n\
+        assert d['ok'] is True and meta['ok'] is True and d['operation']==s['operation']\nassert d['installed_sha']==meta['installed_sha']==APP\
+        \ and d['journal_pin']==meta['journal_pin']\nassert d['post_write_attempts']==0 and d['provider_calls']==10 and len(d['posts'])==20\
+        \ and d['monitor_pending'] is False\nassert [x['hotel_id'] for x in s['rows']]==[7899,159358,81690,129941,134103,104056,772,4355,2822,8033]\n\
+        \nPY\n"
+    - name: Pin established SSH host continuity and authentication identity
+      env:
+        HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+      shell: bash
+      run: "set -euo pipefail\numask 077\npython3 - <<'PY'\nimport os,re\nassert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE']\
+        \ or '')\nassert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')\nPY\nif [[ \"$KEY_VALUE\" == *\"PRIVATE\
+        \ KEY\"* ]]; then\n  if [[ \"$KEY_VALUE\" == *'\\n'* ]]; then printf '%b\\n' \"$KEY_VALUE\" | tr -d '\\r' > \"$RUNNER_TEMP/channel_key\"\
+        ; else printf '%s\\n' \"$KEY_VALUE\" | tr -d '\\r' > \"$RUNNER_TEMP/channel_key\"; fi\nelse printf '%s' \"$KEY_VALUE\"\
+        \ | base64 --decode > \"$RUNNER_TEMP/channel_key\"; fi\nchmod 600 \"$RUNNER_TEMP/channel_key\"\nssh-keygen -y -f \"\
+        $RUNNER_TEMP/channel_key\" >/dev/null\npython3 - <<'PY'\nimport base64,hashlib,os,pathlib,subprocess\nscan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]\n\
+        for s in scan.stdout.splitlines():\n    q=s.split()\n    if len(q)<3 or q[0].startswith('#'):continue\n    try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')\n\
+        \    except Exception:continue\n    if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)\n\
+        assert found,'HOST_PIN_MISMATCH_STOP'\npathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\\\
+        n'.join(found)+'\\n')\nprint('ESTABLISHED_HOST_PIN_VERIFIED')\nPY\n"
+    - name: Compile exact approved ten-pair edits once from the pinned read snapshot
+      shell: bash
+      run: 'set -euo pipefail
+
+        python3 tools/direct_demand/operations/w11-approved-corrections/prepare-edit-stage.py --ops tools/direct_demand/operations
+        --snapshot caption-w11-read/read-result.json --journal-meta caption-w11-read/journal-metadata.json --out caption-w11-edit
+
+        php -l caption-w11-edit/canary-edit.php
+
+        php -l caption-w11-edit/batch-edit.php
+
+        php caption-w11-edit/canary-scope-tests.php
+
+        php caption-w11-edit/batch-scope-tests.php
+
+        '
+    - name: Recheck current release, carrier CAS and no FEED before canary
+      env:
+        GH_TOKEN: ${{ github.token }}
+      shell: bash
+      run: "set -euo pipefail\npython3 - <<'PY'\nimport subprocess,json,base64,os,re\nREPO='pyatkoff/max-search-bot'\nAPP='bd8e248f7138ea75cb9fda2dcf44beb631c633a5'\n\
+        def api(path):\n    return subprocess.check_output(['gh','api',f'repos/{REPO}/{path}'],timeout=70)\n\ndef info(path):\n\
+        \    return json.loads(api(path))\n\ndef digest(data):\n    return hashlib.sha256(data).hexdigest()\n\nassert info('git/ref/heads/main')['object']['sha']==APP\n\
+        d=json.loads(base64.b64decode(info('contents/deploy_status.json?ref=diagnostics')['content']))\nrelease=d['repository_release']\n\
+        assert release['kind']=='installed' and release['repository_sha']==release['application_sha']==d['sha']==APP\nassert\
+        \ str(release['release']['run_id'])=='44329290180' and all(s['result']=='success' for s in release['stages'].values())\n\
+        required={'deploy.yml','retired-domain-guard.yml','max-tls-preflight.yml','max-production-health.yml',\n         \
+        \ 'telegram-production-health.yml','publish-conversation-diagnostics.yml','live-session-diagnostics.yml',\n      \
+        \    'tour-selection-host.yml','modeled-conversion-monitor.yml'}\ngates={g['path'].rsplit('/',1)[-1]:g for g in release['closure']['gates']}\n\
+        assert required <= gates.keys()\nassert all(gates[p]['conclusion']=='success' and gates[p]['head_sha']==APP and gates[p]['run_attempt']==1\
+        \ for p in required)\n\nr=info('actions/runs/44375796597')\nassert r['status']=='completed' and r['conclusion']=='success'\
+        \ and r['run_attempt']==1 and r['head_sha']=='0f8bac12837d945a7b359ac7343ebd27f81f3afd', 'W13_NOT_TERMINAL_SUCCESS_STOP'\n\
+        feed=info('actions/runs?branch=audit%2Fprice660-27316-resume-readiness-20261117&per_page=5')\nassert not [r for r\
+        \ in feed['workflow_runs'] if r['status'] in {'requested','queued','in_progress','waiting','pending'}], 'ACTIVE_FEED_OWNER_STOP'\n\
+        assert info('git/ref/heads/audit/content100-bot-publication-20261101')['object']['sha']==os.environ['GITHUB_SHA'],\
+        \ 'CARRIER_ADVANCED_STOP'\nfrom pathlib import Path\nimport hashlib\nroot=Path('tools/direct_demand/operations/w11-approved-corrections')\n\
+        expected={'prepare-read-stage.py': 'fb6a50c321c0d808c1051da2bbac762732114bca8ad1e2b29b5d0c642719a27c', 'prepare-edit-stage.py':\
+        \ 'e3e8473d078bf23ba999875054d0445041259b5f67f67b84a5669d7ecd39f7e7', 'bound-w11-posts.json': '84dbec5a506b7308e2f78a33dacc401a18bf9fa9ff6c84c1d82f57f4da0680ed',\
+        \ 'approved-texts.json': '2a55fda496c5d4e18bc7170e40e86409ee7610c3f5c9f2920d2a940ce38ca3c4'}\nfor name,sha in expected.items():\n\
+        \ assert re.fullmatch('[a-f0-9]{64}',sha),'SOURCE_HASH_UNBOUND_STOP'\n assert hashlib.sha256((root/name).read_bytes()).hexdigest()==sha,name\n\
+        \nPY\n"
+    - name: Edit Centara and Twinpalms existing pairs ONCE
+      env:
+        HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+      shell: bash
+      run: 'set -euo pipefail
+
+        options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes
+        -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+
+        rc=0
+
+        ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" ''set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE
+        GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0;
+        cd /var/www/anytoour/data/www/app.anytoour.ru; php'' < caption-w11-edit/canary-edit.php > caption-w11-edit/canary-edit-output.jsonl
+        || rc=$?
+
+        printf ''%s\n'' "$rc" > caption-w11-edit/canary-edit-exit.txt
+
+        cat caption-w11-edit/canary-edit-output.jsonl
+
+        exit "$rc"
+
+        '
+    - name: Verify exact canary IDs body photos button formatting and price lineage
+      shell: bash
+      run: "set -euo pipefail\npython3 - <<'PY'\n\nimport json,pathlib,hashlib\np=pathlib.Path('caption-w11-edit');stage='canary';n=4\n\
+        m=json.loads((p/(stage+'-manifest.json')).read_bytes())\nassert (p/(stage+'-edit-exit.txt')).read_text().strip()=='0','EDIT_UNKNOWN_STOP'\n\
+        raw=(p/(stage+'-edit-output.jsonl')).read_bytes();r=json.loads(raw.splitlines()[-1])\nassert r['ok'] is True and r['operation']==m['operation']\
+        \ and r['mode']=='approved_existing_caption_quality_revision'\nassert r['manifest_sha256']==hashlib.sha256((p/(stage+'-manifest.json')).read_bytes()).hexdigest()\n\
+        assert len(m['rows'])==len(r['posts'])==r['preflight_existing_messages']==r['verified_posts']==n\nassert {x['hotel_id']\
+        \ for x in m['rows']}==set([7899, 159358])\nchanged=sum(x['old_text_sha256']!=x['new_text_sha256'] for x in m['rows'])\n\
+        assert r['post_write_attempts']==changed and r['caption_updates']==changed\nfor k in ['new_posts_created','configuration_write_attempts','button_write_attempts','tour_search_calls','price_queries']:assert\
+        \ r[k]==0\nexpected={x['publication_id']:x for x in m['rows']};seen=set()\nassert len(expected)==n\nfor post in r['posts']:\n\
+        \ pid=post['publication_id'];assert pid in expected and pid not in seen;seen.add(pid);x=expected[pid]\n for k in ['hotel_id','platform','message_id','post_url','photo_signature','button_url_sha256','source_key','monitor_price_record_id']:assert\
+        \ post[k]==x[k],k\n assert post['previous_version_id']==x['version_id']\n assert post['same_caption_skipped'] is x['same_caption_skip']\n\
+        \ assert x['same_caption_skip'] is (x['old_text_sha256']==x['new_text_sha256'])\n assert (post['version_id']!=x['version_id'])\
+        \ is (x['old_text_sha256']!=x['new_text_sha256'])\n assert post['text_sha256']==x['new_text_sha256'] and post['previous_text_sha256']==x['old_text_sha256']\n\
+        \ assert post['previous_attachments_sha256']==x['attachments_sha256']\n for k in ['body_photo_button_verified','formatting_verified','existing_message_reused','existing_token_resolves_to_current_version']:assert\
+        \ post[k] is True,k\nassert seen==set(expected)\n(p/(stage+'-terminal-verified.json')).write_text(json.dumps({'state':'VERIFIED_EXISTING_CAPTIONS','stage':stage,'new_posts':0,'posts_verified':n,'posts_edited':changed,'native_result':r,'manifest':m},ensure_ascii=False,indent=2)+'\\\
+        n')\nprint(stage.upper()+'_EXACT_EXISTING_PAIRS_VERIFIED')\n\nPY\n"
+    - name: Recheck current release, carrier CAS and no FEED before batch
+      env:
+        GH_TOKEN: ${{ github.token }}
+      shell: bash
+      run: "set -euo pipefail\npython3 - <<'PY'\nimport subprocess,json,base64,os,re\nREPO='pyatkoff/max-search-bot'\nAPP='bd8e248f7138ea75cb9fda2dcf44beb631c633a5'\n\
+        def api(path):\n    return subprocess.check_output(['gh','api',f'repos/{REPO}/{path}'],timeout=70)\n\ndef info(path):\n\
+        \    return json.loads(api(path))\n\ndef digest(data):\n    return hashlib.sha256(data).hexdigest()\n\nassert info('git/ref/heads/main')['object']['sha']==APP\n\
+        d=json.loads(base64.b64decode(info('contents/deploy_status.json?ref=diagnostics')['content']))\nrelease=d['repository_release']\n\
+        assert release['kind']=='installed' and release['repository_sha']==release['application_sha']==d['sha']==APP\nassert\
+        \ str(release['release']['run_id'])=='44329290180' and all(s['result']=='success' for s in release['stages'].values())\n\
+        required={'deploy.yml','retired-domain-guard.yml','max-tls-preflight.yml','max-production-health.yml',\n         \
+        \ 'telegram-production-health.yml','publish-conversation-diagnostics.yml','live-session-diagnostics.yml',\n      \
+        \    'tour-selection-host.yml','modeled-conversion-monitor.yml'}\ngates={g['path'].rsplit('/',1)[-1]:g for g in release['closure']['gates']}\n\
+        assert required <= gates.keys()\nassert all(gates[p]['conclusion']=='success' and gates[p]['head_sha']==APP and gates[p]['run_attempt']==1\
+        \ for p in required)\n\nr=info('actions/runs/44375796597')\nassert r['status']=='completed' and r['conclusion']=='success'\
+        \ and r['run_attempt']==1 and r['head_sha']=='0f8bac12837d945a7b359ac7343ebd27f81f3afd', 'W13_NOT_TERMINAL_SUCCESS_STOP'\n\
+        feed=info('actions/runs?branch=audit%2Fprice660-27316-resume-readiness-20261117&per_page=5')\nassert not [r for r\
+        \ in feed['workflow_runs'] if r['status'] in {'requested','queued','in_progress','waiting','pending'}], 'ACTIVE_FEED_OWNER_STOP'\n\
+        assert info('git/ref/heads/audit/content100-bot-publication-20261101')['object']['sha']==os.environ['GITHUB_SHA'],\
+        \ 'CARRIER_ADVANCED_STOP'\nfrom pathlib import Path\nimport hashlib\nroot=Path('tools/direct_demand/operations/w11-approved-corrections')\n\
+        expected={'prepare-read-stage.py': 'fb6a50c321c0d808c1051da2bbac762732114bca8ad1e2b29b5d0c642719a27c', 'prepare-edit-stage.py':\
+        \ 'e3e8473d078bf23ba999875054d0445041259b5f67f67b84a5669d7ecd39f7e7', 'bound-w11-posts.json': '84dbec5a506b7308e2f78a33dacc401a18bf9fa9ff6c84c1d82f57f4da0680ed',\
+        \ 'approved-texts.json': '2a55fda496c5d4e18bc7170e40e86409ee7610c3f5c9f2920d2a940ce38ca3c4'}\nfor name,sha in expected.items():\n\
+        \ assert re.fullmatch('[a-f0-9]{64}',sha),'SOURCE_HASH_UNBOUND_STOP'\n assert hashlib.sha256((root/name).read_bytes()).hexdigest()==sha,name\n\
+        p=Path('caption-w11-edit');c=json.loads((p/'canary-terminal-verified.json').read_bytes());assert c['state']=='VERIFIED_EXISTING_CAPTIONS'\
+        \ and c['posts_verified']==4 and c['new_posts']==0\n\nPY\n"
+    - name: Edit remaining eight existing pairs ONCE after verified canary
+      env:
+        HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+      shell: bash
+      run: 'set -euo pipefail
+
+        options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes
+        -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+
+        rc=0
+
+        ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" ''set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE
+        GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0;
+        cd /var/www/anytoour/data/www/app.anytoour.ru; php'' < caption-w11-edit/batch-edit.php > caption-w11-edit/batch-edit-output.jsonl
+        || rc=$?
+
+        printf ''%s\n'' "$rc" > caption-w11-edit/batch-edit-exit.txt
+
+        cat caption-w11-edit/batch-edit-output.jsonl
+
+        exit "$rc"
+
+        '
+    - name: Verify exact batch IDs body photos button formatting and price lineage
+      shell: bash
+      run: "set -euo pipefail\npython3 - <<'PY'\n\nimport json,pathlib,hashlib\np=pathlib.Path('caption-w11-edit');stage='batch';n=16\n\
+        m=json.loads((p/(stage+'-manifest.json')).read_bytes())\nassert (p/(stage+'-edit-exit.txt')).read_text().strip()=='0','EDIT_UNKNOWN_STOP'\n\
+        raw=(p/(stage+'-edit-output.jsonl')).read_bytes();r=json.loads(raw.splitlines()[-1])\nassert r['ok'] is True and r['operation']==m['operation']\
+        \ and r['mode']=='approved_existing_caption_quality_revision'\nassert r['manifest_sha256']==hashlib.sha256((p/(stage+'-manifest.json')).read_bytes()).hexdigest()\n\
+        assert len(m['rows'])==len(r['posts'])==r['preflight_existing_messages']==r['verified_posts']==n\nassert {x['hotel_id']\
+        \ for x in m['rows']}==set([81690, 129941, 134103, 104056, 772, 4355, 2822, 8033])\nchanged=sum(x['old_text_sha256']!=x['new_text_sha256']\
+        \ for x in m['rows'])\nassert r['post_write_attempts']==changed and r['caption_updates']==changed\nfor k in ['new_posts_created','configuration_write_attempts','button_write_attempts','tour_search_calls','price_queries']:assert\
+        \ r[k]==0\nexpected={x['publication_id']:x for x in m['rows']};seen=set()\nassert len(expected)==n\nfor post in r['posts']:\n\
+        \ pid=post['publication_id'];assert pid in expected and pid not in seen;seen.add(pid);x=expected[pid]\n for k in ['hotel_id','platform','message_id','post_url','photo_signature','button_url_sha256','source_key','monitor_price_record_id']:assert\
+        \ post[k]==x[k],k\n assert post['previous_version_id']==x['version_id']\n assert post['same_caption_skipped'] is x['same_caption_skip']\n\
+        \ assert x['same_caption_skip'] is (x['old_text_sha256']==x['new_text_sha256'])\n assert (post['version_id']!=x['version_id'])\
+        \ is (x['old_text_sha256']!=x['new_text_sha256'])\n assert post['text_sha256']==x['new_text_sha256'] and post['previous_text_sha256']==x['old_text_sha256']\n\
+        \ assert post['previous_attachments_sha256']==x['attachments_sha256']\n for k in ['body_photo_button_verified','formatting_verified','existing_message_reused','existing_token_resolves_to_current_version']:assert\
+        \ post[k] is True,k\nassert seen==set(expected)\n(p/(stage+'-terminal-verified.json')).write_text(json.dumps({'state':'VERIFIED_EXISTING_CAPTIONS','stage':stage,'new_posts':0,'posts_verified':n,'posts_edited':changed,'native_result':r,'manifest':m},ensure_ascii=False,indent=2)+'\\\
+        n')\nprint(stage.upper()+'_EXACT_EXISTING_PAIRS_VERIFIED')\n\nPY\n"
+    - name: Preserve original evidence including failure or UNKNOWN; never retry edits
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: w11-approved10-caption-edit-one-attempt-20261118
+        path: 'caption-w11-read/*.json
+
+          caption-w11-edit/*.json
+
+          caption-w11-edit/*.jsonl
+
+          caption-w11-edit/*-exit.txt
+
+          '
+        retention-days: 30
+        if-no-files-found: warn
+    - name: Remove runner-only credentials and compiled PHP
+      if: always()
+      shell: bash
+      run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" caption-w11-edit/*.php caption-w11-read/*.php
