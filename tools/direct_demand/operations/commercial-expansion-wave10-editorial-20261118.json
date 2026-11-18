@@ -21,7 +21,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=35174"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=35174",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "a8adaec79d02ad37a61747f477e6b59af3d019fdfef5eda1b635279a719ebfad"
     },
     {
       "hotel_id": 64061,
@@ -37,7 +38,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64061"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64061",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "0c48682589244dc69c1407c9b9936dd3d6903c6dea5d6f0d4420c37e786f4793"
     },
     {
       "hotel_id": 78938,
@@ -53,7 +55,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=78938"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=78938",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "92f6c354b68805d863d3b8d7e476d994dfe0e9bd6b037184b304f887af28c7f4"
     },
     {
       "hotel_id": 2921,
@@ -69,7 +72,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2921"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2921",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "b3fd117052f9bb14db6fb0a6cfd3bf5236781c70e93d3029e99a12d02289aa2a"
     },
     {
       "hotel_id": 2437,
@@ -85,7 +89,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2437"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2437",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "54dd722d07b2a901a3c42ed02c6f0b685cbf0c51e651eae2d90db55fa7d4a2c9"
     },
     {
       "hotel_id": 2462,
@@ -101,7 +106,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2462"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2462",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "4f2fb458c43a83d88a085352095d3f17f2e963db541ac1f1ae4c499a7d84516e"
     },
     {
       "hotel_id": 11749,
@@ -117,7 +123,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11749"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11749",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "8519f88357ba6edc0bc2fa3c2dfe634629d4d80fe933a79cf967dc1be56a696c"
     },
     {
       "hotel_id": 11774,
@@ -133,7 +140,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11774"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11774",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "3a15a2befe42d7963a9432afb4419db43afc54bc6f0e34024892ef78794c9e97"
     },
     {
       "hotel_id": 11786,
@@ -149,7 +157,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11786"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11786",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "989dba0380188e8f24a238c96eef93e7c6e17aa063fd3a4ccd94ac43288ac178"
     },
     {
       "hotel_id": 11802,
@@ -165,7 +174,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11802"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11802",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "ea0ce5ea6a7fa7a4b7e709a4d3e608ef3befce3b17c84944323f6d21b64f426d"
     },
     {
       "hotel_id": 56078,
@@ -181,7 +191,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=56078"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=56078",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "698185eee35346c8cb47fc63d4f0bfd41cb3dcc834b85d48a9a366e2da504933"
     },
     {
       "hotel_id": 64360,
@@ -197,7 +208,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64360"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64360",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "b41ff18b52593fcb461a4207091ac12236e97cd85c93561bb290e6de45d6f17f"
     },
     {
       "hotel_id": 11743,
@@ -213,7 +225,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11743"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11743",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "9fd0c712bdf78157b71a8904e96e3cd19c2a3e30aa36f92f8b1b8f2c6079d0a8"
     },
     {
       "hotel_id": 2483,
@@ -229,7 +242,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2483"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2483",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "c6a0251b9bac3e7e197d7e0541c7f3a265e3abcccf4d430d82c6f9e0c91fc5b1"
     },
     {
       "hotel_id": 11744,
@@ -245,7 +259,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11744"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11744",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "b6520b258ed3751e786bbde7688f137eea2b13e679a7649f224b480442700c19"
     },
     {
       "hotel_id": 11788,
@@ -261,7 +276,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11788"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11788",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "42a149a61e816c518bdcc906734d945170304a11dc93b52b5c3f0ef79f497f09"
     },
     {
       "hotel_id": 11794,
@@ -277,7 +293,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11794"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11794",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "40ea9ef769f57f6831e09e304ab7a72fe359da4c4e98aae65963c68bcbc889fa"
     },
     {
       "hotel_id": 51240,
@@ -293,7 +310,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=51240"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=51240",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "5be019263b6706a8de946acaf798f84073d00198c427c7cee1ccee8560cd86e5"
     },
     {
       "hotel_id": 2477,
@@ -309,7 +327,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2477"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2477",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "c37e3af5558478da54291985eb3304f6c5bc43959d4ef78e9c6fe2da82278a88"
     },
     {
       "hotel_id": 57802,
@@ -325,7 +344,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=57802"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=57802",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "45c2f98e60cb354ee234385c467407b958b0fffc418c9724c53e62d678dd9d85"
     },
     {
       "hotel_id": 5399,
@@ -341,7 +361,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=5399"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=5399",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "c57a6e0d8bedfcffc0e5662e1204c4098ce26262deb816f1ab6831607e4dc667"
     },
     {
       "hotel_id": 11832,
@@ -357,7 +378,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11832"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11832",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "b1479446cc971416107724ad10217cbf931f8bab0ece4ffad2efb526f09f0c0b"
     },
     {
       "hotel_id": 46068,
@@ -373,7 +395,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=46068"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=46068",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "4b2538db83fabc44e1be98e68bf50794b41af141dc30e7c2bb3521f8d6437843"
     },
     {
       "hotel_id": 15799,
@@ -389,7 +412,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=15799"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=15799",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "cf2156c7f42fca5437270ba31faa377294b6bda1fc978cde6ee41c7fe51e0f78"
     },
     {
       "hotel_id": 82676,
@@ -405,7 +429,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82676"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82676",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "82f09ca35e1dfb1b3d4c05c452b4080fd21fde47734f272098259b5e34f8e917"
     },
     {
       "hotel_id": 122961,
@@ -421,7 +446,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=122961"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=122961",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "fad6597be851ee58fc8e40aa3875b0bbd6fd380919e6c580be26fb2b9972600c"
     },
     {
       "hotel_id": 64124,
@@ -437,7 +463,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64124"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64124",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "9077eeb6a04a90f47357ba4be3cec6bdb1b715476aff172f32905bbf5d282ecc"
     },
     {
       "hotel_id": 71388,
@@ -453,7 +480,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=71388"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=71388",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "04637de293b200f1bb435fc99e30c74870df24dc1f1f53b0244ffb016d973edf"
     },
     {
       "hotel_id": 79690,
@@ -469,7 +497,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=79690"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=79690",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "4d1b5efe286f19018e989996f9e455663b1f5bef0c5d9ee7dbe2f6369c3906e0"
     },
     {
       "hotel_id": 126132,
@@ -485,7 +514,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126132"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126132",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "86cb51be519a772dd110ac45d759c173716e4c5f42707125d0164653478bc423"
     },
     {
       "hotel_id": 11781,
@@ -501,7 +531,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11781"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11781",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "0c654596c7c480c5966baea8ec5c29d513d9a88ca217420df094ba7fb65241f6"
     },
     {
       "hotel_id": 58743,
@@ -517,7 +548,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=58743"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=58743",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "e98380da03437a7d85e48321f1b01475ed49fd4cedf64a56e774d79120aff6ac"
     },
     {
       "hotel_id": 60233,
@@ -533,7 +565,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=60233"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=60233",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "3095953af4210377292be10960cccd43328e00363f1fbb8ceed7675739d75951"
     },
     {
       "hotel_id": 64955,
@@ -549,7 +582,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64955"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64955",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "b45e4f41d7fe59e253181e61a47563e351607c4124b143ec8bc3093e303919b0"
     },
     {
       "hotel_id": 109335,
@@ -565,7 +599,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=109335"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=109335",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "456e36a234fecd8a1fcda08f7c37080f7f4c92b08fb89086b99b277a9f1e82e7"
     },
     {
       "hotel_id": 2424,
@@ -581,7 +616,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2424"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2424",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "b2e65119460c3b60faac955828d45b4335951b68a90867d5150aa06ff485c8ef"
     },
     {
       "hotel_id": 2429,
@@ -598,7 +634,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2429"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2429",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "6fbb3923fd2c96ccffb6bdf8055453b7352290efe5bf89f486578fa20d6f2d85"
     },
     {
       "hotel_id": 60231,
@@ -614,7 +651,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=60231"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=60231",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "252c596237ea87664a34fc6f0b4bec2f026cff7f8458cae5af274d292cadcd1f"
     },
     {
       "hotel_id": 2803,
@@ -630,7 +668,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2803"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2803",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "39770ef47c3370334f0fbe3eb0cd21a41422441214552fdd5fd2e334cfbd26db"
     },
     {
       "hotel_id": 2826,
@@ -646,7 +685,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2826"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2826",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "00f1fa37f3739a45ad59ddfcb7e6097539be7f13201cd3d457627e8e6c8b9b13"
     },
     {
       "hotel_id": 11765,
@@ -662,7 +702,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11765"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11765",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "64b8649ed12336b0b3b636113c4b6d2f6ed5d3e7dcec25aca60567760a73b941"
     },
     {
       "hotel_id": 11773,
@@ -678,7 +719,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11773"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11773",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "f98edd8ed2ff3f5c4d01a0a8291d470d62ff6c1668a065f3d201ea8dbc780ef7"
     },
     {
       "hotel_id": 11873,
@@ -694,7 +736,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11873"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11873",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "239018679381b1a95f4078e8a074f7df555102c76ef36499853719bfa0074c0d"
     },
     {
       "hotel_id": 43238,
@@ -710,7 +753,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43238"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43238",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "4aeb9a950fa16bd6aeecbba4afcd5241483d3e77b17834f43165761d0a282c2b"
     },
     {
       "hotel_id": 43701,
@@ -726,7 +770,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43701"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43701",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "00bcd4712a3c881c5338f3fcb1af4c5f97bbfe01918a09069c09f3d215531c46"
     },
     {
       "hotel_id": 45544,
@@ -742,7 +787,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=45544"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=45544",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "2436b63bee1b97b5df3fc06748fa2bd91133af44371412a2bb1d851cd072746c"
     },
     {
       "hotel_id": 2433,
@@ -758,7 +804,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2433"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2433",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "22c46236d2aa249706a0d697e2941e2b498ab8dd89bb67ad698c12133f4326a8"
     },
     {
       "hotel_id": 11770,
@@ -774,7 +821,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11770"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11770",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "dbd8f7527b61dae097cee967ab8f6a4b644edeb7cdc375cb0c1f2039dd92b956"
     },
     {
       "hotel_id": 11742,
@@ -790,7 +838,8 @@
         "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11742"
       ],
       "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11742",
-      "publication_allowed": false
+      "publication_allowed": false,
+      "cover_sha256": "115a82314cb4105f9a7726e9d1eb797882766f0c2d4cd0e17e1e5a4b81a5f6bb"
     }
   ],
   "registry_hold_native_ids": [
