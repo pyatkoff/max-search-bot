@@ -1,4 +1,4 @@
-name: Accept W17 reviewed hotel source inputs, no sends
+name: Accept W18 reviewed hotel source inputs, no sends
 'on':
   push:
     branches:
@@ -10,7 +10,7 @@ permissions:
   actions: read
 jobs:
   prepare:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == 'dad95ec5e65ac9cf1b73cf703db150cb28adf60c'
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == 'bf6489900eac1c95be3cae4f66ad465207b77890'
       && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -21,24 +21,24 @@ jobs:
         sparse-checkout: 'tools/direct_demand/operations
 
           .github/traffic-publish/brand'
-    - name: Bind W17 exact photos, editorial and original compiler
+    - name: Bind W18 exact photos, editorial and original compiler
       env:
         GH_TOKEN: ${{ github.token }}
       run: 'set -euo pipefail
 
-        echo ''55a8d829f9f8111591da06221fc293338a09e612936c6a947a719bf638456878  tools/direct_demand/operations/accept-wave17-source-20261118.py''
+        echo ''48ec36674225d9ae31f8f02b25701df6a89c373070e8aa8004705212c772476b  tools/direct_demand/operations/accept-wave18-source-20261118.py''
         | sha256sum -c -
 
-        echo ''f78b2cab7a11f7417a2fcd75c916628898116c982cbdf43df5b68e19d74bbbdf  tools/direct_demand/operations/wave17-acceptance.json''
+        echo ''ac1619a87ca0e9d0a61ee7bba80f9c0b6a49e4ff3de673281b360b69bd107d47  tools/direct_demand/operations/wave18-acceptance.json''
         | sha256sum -c -
 
-        python3 tools/direct_demand/operations/accept-wave17-source-20261118.py
+        python3 tools/direct_demand/operations/accept-wave18-source-20261118.py
 
         for f in accepted-source/*-publisher-unexecuted.php; do php -l "$f"; done'
     - if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
-        name: wave17-accepted-source
+        name: wave18-accepted-source
         path: accepted-source/
         retention-days: 30
         if-no-files-found: warn
