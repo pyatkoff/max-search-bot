@@ -260,8 +260,7 @@ customer text and is read without changing the source. A reviewed start without
 a funnel event warrants a scoped investigation of the entry writer; it does
 **not** prove a paid click or authorize a retroactive conversion. An absent
 saved start cannot be labelled organic without further evidence.
-`observations` counts scoped observation rows and recorded ClientID presence,
-not distinct visitors or send-eligible forecasts. None of these counts proves
+The observations section reports scoped rows and stored ClientID presence. On a complete read, its click-tag summary counts nonempty YCLID rows and distinct nonempty YCLIDs in SQL across the full scoped history and by visit day in Europe/Moscow. The daily series includes all represented visit dates plus today and yesterday. A late enrichment stays on the original visit day. Distinct daily totals can overlap. Missing or truncated history produces unknown counts. These are stored tags and observations, not unique visitors or send-eligible forecasts. None of these counts proves
 organic traffic or a sale.
 
 `first_saved_forecast` selects the earliest saved Apple predictive row by ID

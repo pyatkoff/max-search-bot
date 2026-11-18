@@ -133,8 +133,8 @@ final class ProjectFunnelStatusReader
             foreach(['outbox','observations','intake']as$section){
                 try{
                     if($section==='outbox')[$out[$section],$first]=$this->outbox($policy);
-                    elseif($section==='observations')$out[$section]=$this->observations();
-                    else $out[$section]=$this->intake();
+                    elseif($section==='observations')$out[$section]=$this->observations($now);
+                    else $out[$section]=$this->intake(array_keys($approved['posts']));
                 }catch(Throwable $error){$out[$section]=['available'=>false,'complete'=>false,'reason'=>self::reason($error->getMessage()),'counts'=>null];}
                 if(!$out[$section]['complete'])$out['complete']=false;
             }
@@ -172,34 +172,97 @@ final class ProjectFunnelStatusReader
         return [$out,$first];
     }
 
-    private function observations():array
+    private function observations(int $now):array
     {
-        $rows=$this->rows("SELECT project_key,source_key,platform,counter_id,identity_status,CASE WHEN client_id IS NOT NULL AND client_id<>'' THEN 1 ELSE 0 END AS client_present FROM advertising_visit_observations WHERE project_key=? AND HEX(project_key)=HEX(?) ORDER BY id DESC LIMIT 101",[self::PROJECT,self::PROJECT]);
+        $rows=$this->rows("SELECT project_key,source_key,platform,counter_id,identity_status,visit_at_unix,CASE WHEN client_id IS NOT NULL AND client_id<>'' THEN 1 ELSE 0 END AS client_present FROM advertising_visit_observations WHERE project_key=? AND HEX(project_key)=HEX(?) ORDER BY id DESC LIMIT 101",[self::PROJECT,self::PROJECT]);
         $complete=count($rows)<=self::ROW_LIMIT;$counts=['exact_scope_rows'=>0,'verified_rows'=>0,'verified_with_client_rows'=>0,'other_scope_rows'=>0];
+        $moscow=new DateTimeZone('Europe/Moscow');
+        $today=(new DateTimeImmutable('@'.$now))->setTimezone($moscow)->setTime(0,0);
+        $days=[$today->format('Y-m-d')=>$today,$today->modify('-1 day')->format('Y-m-d')=>$today->modify('-1 day')];
         foreach(array_slice($rows,0,self::ROW_LIMIT)as$row){
             if($row['project_key']!==self::PROJECT||$row['source_key']!=='max-miniapp'||$row['platform']!=='max'||$row['counter_id']!==self::COUNTER){$counts['other_scope_rows']++;continue;}
             $counts['exact_scope_rows']++;
             if($row['identity_status']==='verified'){$counts['verified_rows']++;if((int)$row['client_present']===1)$counts['verified_with_client_rows']++;}
+            $day=$today->setTimestamp((int)$row['visit_at_unix'])->setTime(0,0);
+            $days[$day->format('Y-m-d')]=$day;
         }
         return ['available'=>true,'complete'=>$complete,'reason'=>$complete?null:'row_limit','examined'=>min(count($rows),self::ROW_LIMIT),'limit'=>self::ROW_LIMIT,
-            'population'=>'observation_rows_not_unique_people_or_resolved_forecasts','counts'=>$complete?$counts:null];
+            'population'=>'observation_rows_not_unique_people_or_resolved_forecasts','counts'=>$complete?$counts:null,
+            'click_tags'=>$complete?$this->clickTagCounts($days):null];
     }
 
-    private function intake():array
+    /** Aggregate in SQL so even the private result rows carry no click identifiers. */
+    private function clickTagCounts(array $days):array
     {
-        $rows=$this->rows("SELECT c.project_key,c.channel,c.is_test,CASE WHEN LENGTH(c.metadata_json)<=4096 THEN c.metadata_json ELSE NULL END AS metadata_json,
+        $ranges=['SELECT CAST(NULL AS SIGNED) AS starts_at, CAST(NULL AS SIGNED) AS ends_at'];
+        $parameters=[];
+        $labels=[];
+        foreach($days as $label=>$day){
+            $ranges[]='SELECT CAST(? AS SIGNED), CAST(? AS SIGNED)';
+            $parameters[]=$day->getTimestamp();
+            $parameters[]=$day->modify('+1 day')->getTimestamp();
+            $labels[$day->getTimestamp()]=$label;
+        }
+        $rangeSql=implode(' UNION ALL ',$ranges);
+        $rows=$this->rows("SELECT bounds.starts_at, COUNT(v.visit_at_unix) AS observation_rows,
+                COUNT(NULLIF(v.yclid,'')) AS nonempty_rows, COUNT(DISTINCT NULLIF(v.yclid,'')) AS distinct_yclids
+            FROM ($rangeSql) bounds LEFT JOIN (
+                SELECT visit_at_unix,yclid FROM advertising_visit_observations
+                WHERE project_key=? AND HEX(project_key)=HEX(?) AND HEX(source_key)=HEX(?)
+                    AND HEX(platform)=HEX(?) AND HEX(counter_id)=HEX(?)
+                ORDER BY id DESC LIMIT 101
+            ) v ON bounds.starts_at IS NULL OR (v.visit_at_unix>=bounds.starts_at AND v.visit_at_unix<bounds.ends_at)
+            GROUP BY bounds.starts_at ORDER BY bounds.starts_at",
+            [...$parameters,self::PROJECT,self::PROJECT,'max-miniapp','max',self::COUNTER]);
+        $summary=['all_history'=>null,'by_moscow_visit_day'=>[]];
+        foreach($rows as $row){
+            $counts=['observation_rows'=>(int)$row['observation_rows'],'nonempty_rows'=>(int)$row['nonempty_rows'],'distinct_yclids'=>(int)$row['distinct_yclids']];
+            if($row['starts_at']===null)$summary['all_history']=$counts;
+            else $summary['by_moscow_visit_day'][$labels[(int)$row['starts_at']]]=$counts;
+        }
+        return $summary;
+    }
+
+    private function intake(array $catalogPosts):array
+    {
+        $rows=$this->rows("SELECT c.id,c.project_key,c.channel,c.is_test,CASE WHEN LENGTH(c.metadata_json)<=4096 THEN c.metadata_json ELSE NULL END AS metadata_json,
             CASE WHEN EXISTS(SELECT 1 FROM conversation_events e WHERE e.conversation_id=c.id AND e.event_type='project_funnel_entry') THEN 1 ELSE 0 END AS entry_recorded,
             CASE WHEN EXISTS(SELECT 1 FROM conversation_events e WHERE e.conversation_id=c.id AND e.event_type='waiting_manager') THEN 1 ELSE 0 END AS handoff_recorded,
             CASE WHEN EXISTS(SELECT 1 FROM conversation_events e WHERE e.conversation_id=c.id AND e.event_type='bot_started') THEN 1 ELSE 0 END AS bot_start_recorded,
             CASE WHEN EXISTS(SELECT 1 FROM conversation_events e WHERE e.conversation_id=c.id AND e.event_type='bot_started'
                 AND INSTR(e.payload_json, '\"repair_entry_reply\":')>0) THEN 1 ELSE 0 END AS reviewed_start_recorded,
+            -- The latest start is classified by finite tokens in its saved JSON.
+            -- SELECT returns categories only, never payload, user, post, ClientID or text.
+            (SELECT CASE
+                WHEN INSTR(e.payload_json, '\"repair_start_class\":\"recognized\"')>0 THEN 'recognized'
+                WHEN INSTR(e.payload_json, '\"repair_start_class\":\"empty\"')>0 THEN 'empty'
+                WHEN INSTR(e.payload_json, '\"repair_start_class\":\"unrecognized_apple\"')>0 THEN 'unrecognized_apple'
+                WHEN INSTR(e.payload_json, '\"repair_start_class\":\"other\"')>0 THEN 'other'
+                ELSE 'historical' END
+             FROM conversation_events e WHERE e.conversation_id=c.id AND e.event_type='bot_started'
+             ORDER BY e.id DESC LIMIT 1) AS latest_start_class,
+            (SELECT CASE
+                WHEN INSTR(e.payload_json, '\"repair_funnel_attempt\":\"recorded\"')>0 THEN 'recorded'
+                WHEN INSTR(e.payload_json, '\"repair_funnel_attempt\":\"not_recorded\"')>0 THEN 'not_recorded'
+                WHEN INSTR(e.payload_json, '\"repair_funnel_attempt\":\"publication_pending\"')>0 THEN 'publication_pending'
+                WHEN INSTR(e.payload_json, '\"repair_funnel_attempt\":\"writer_error\"')>0 THEN 'writer_error'
+                ELSE 'historical' END
+             FROM conversation_events e WHERE e.conversation_id=c.id AND e.event_type='bot_started'
+             ORDER BY e.id DESC LIMIT 1) AS latest_funnel_attempt,
             CASE WHEN EXISTS(SELECT 1 FROM messages m WHERE m.conversation_id=c.id AND m.direction='outbound' AND m.sender_type='manager') THEN 1 ELSE 0 END AS manager_reply_recorded
             FROM conversations c WHERE c.project_key=? AND HEX(c.project_key)=HEX(?) AND c.channel='max' ORDER BY c.id DESC LIMIT 101",[self::PROJECT,self::PROJECT]);
         // Bounded, privacy-safe diagnosis: a reviewed bot start without a funnel event
         // needs investigation, not retroactive attribution or a fabricated conversion.
         $complete=count($rows)<=self::ROW_LIMIT;$counts=['unmarked_test_conversations'=>0,'marked_test_conversations'=>0,
             'entry_recorded'=>0,'handoff_recorded'=>0,'bot_start_recorded'=>0,'reviewed_start_recorded'=>0,
-            'reviewed_start_without_entry'=>0,'no_saved_bot_start'=>0,'manager_reply_recorded'=>0,'unconfirmed_scope'=>0];
+            'reviewed_start_without_entry'=>0,'reviewed_only_navigation_without_entry'=>0,
+            'reviewed_only_catalog_without_entry'=>0,'reviewed_mixed_or_unconfirmed_without_entry'=>0,'no_saved_bot_start'=>0,'manager_reply_recorded'=>0,'unconfirmed_scope'=>0,
+            'latest_start_recognized'=>0,'latest_start_empty'=>0,'latest_start_unrecognized_apple'=>0,
+            'latest_start_other'=>0,'latest_start_historical'=>0,
+            'latest_recognized_funnel_recorded'=>0,'latest_recognized_funnel_not_recorded'=>0,
+            'latest_recognized_funnel_publication_pending'=>0,'latest_recognized_funnel_writer_error'=>0,
+            'latest_recognized_funnel_historical'=>0];
+        $gapIds=[];
         foreach(array_slice($rows,0,self::ROW_LIMIT)as$row){
             $meta=is_string($row['metadata_json'])?json_decode($row['metadata_json'],true):null;
             if($row['project_key']!==self::PROJECT||$row['channel']!=='max'||!is_array($meta)||($meta['max_bot_key']??null)!==self::BOT){$counts['unconfirmed_scope']++;continue;}
@@ -208,12 +271,72 @@ final class ProjectFunnelStatusReader
             $start=(int)$row['bot_start_recorded']===1;$reviewed=(int)$row['reviewed_start_recorded']===1;$funnel=(int)$row['entry_recorded']===1;
             $counts['bot_start_recorded']+=(int)$start;
             $counts['reviewed_start_recorded']+=(int)$reviewed;
-            $counts['reviewed_start_without_entry']+=(int)($reviewed&&!$funnel);
+            if($reviewed&&!$funnel){$counts['reviewed_start_without_entry']++;$gapIds[]=(int)$row['id'];}
             $counts['no_saved_bot_start']+=(int)!$start;
+            if($start){
+                $class=(string)($row['latest_start_class']??'');
+                if(!in_array($class,['recognized','empty','unrecognized_apple','other'],true))$class='historical';
+                $counts['latest_start_'.$class]++;
+                if($class==='recognized'){
+                    $outcome=(string)($row['latest_funnel_attempt']??'');
+                    if(!in_array($outcome,['recorded','not_recorded','publication_pending','writer_error'],true))$outcome='historical';
+                    $counts['latest_recognized_funnel_'.$outcome]++;
+                }
+            }
             $counts['manager_reply_recorded']+=(int)((int)$row['manager_reply_recorded']===1);
         }
+        if($complete&&$gapIds)$this->classifyReviewedGaps($gapIds,$catalogPosts,$counts);
         return ['available'=>true,'complete'=>$complete,'reason'=>$complete?null:'row_limit','examined'=>min(count($rows),self::ROW_LIMIT),'limit'=>self::ROW_LIMIT,
             'population'=>'is_test_zero_only_not_organic_evidence','counts'=>$complete?$counts:null];
+    }
+
+
+    /** Classify all native starts of each gap. Return only counts, including undecidable histories. */
+    private function classifyReviewedGaps(array $gapIds,array $catalogPosts,array &$counts):void
+    {
+        $counts['reviewed_mixed_or_unconfirmed_without_entry']=count($gapIds);
+        $marks=static fn(array $values):string=>implode(',',array_fill(0,count($values),'?'));
+        $scalar=function(string $path):string{
+            $value="JSON_EXTRACT(doc,'$.".$path."')";
+            return $this->engine==='sqlite'?$value:"JSON_UNQUOTE(".$value.")";
+        };
+        $post=$scalar('repair_entry_reply.post_id');
+        $rootKey=$scalar('delivery_key');$key=$scalar('repair_entry_reply.delivery_key');
+        $bot=$scalar('bot_key');$replyBot=$scalar('repair_entry_reply.bot_key');
+        $project=$scalar('repair_entry_reply.project_key');$conversation=$scalar('repair_entry_reply.conversation_id');
+        // HEX comparisons stay case-sensitive with either database's default collation.
+        // No capture, identifier, post name or customer text is projected into the report.
+        $sql="SELECT conversation_id,CASE
+            WHEN doc IS NULL THEN 'unconfirmed'
+            WHEN JSON_EXTRACT(doc,'$.repair_entry_reply') IS NULL THEN 'skip'
+            WHEN NOT COALESCE(HEX($project)=HEX(?) AND HEX($bot)=HEX(?) AND HEX($replyBot)=HEX($bot)
+                AND CAST($conversation AS CHAR)=CAST(conversation_id AS CHAR)
+                AND LENGTH($rootKey)=64 AND HEX($key)=HEX($rootKey),0) THEN 'unconfirmed'
+            WHEN HEX($post) IN (?,?) THEN 'navigation'
+            WHEN HEX($post) IN (".$marks($catalogPosts).") THEN 'catalog'
+            ELSE 'unconfirmed' END AS post_kind
+            FROM (SELECT e.id,e.conversation_id,CASE WHEN LENGTH(e.payload_json)<=32768 AND JSON_VALID(e.payload_json)=1
+                THEN e.payload_json END AS doc FROM conversation_events e
+                WHERE e.conversation_id IN (".$marks($gapIds).") AND e.event_type='bot_started'
+                ORDER BY e.id LIMIT 201) captured";
+        $hex=static fn(string $value):string=>strtoupper(bin2hex($value));
+        try{$rows=$this->rows($sql,[self::PROJECT,self::BOT,$hex('models-index'),$hex('services-index'),...array_map($hex,$catalogPosts),...$gapIds]);}
+        catch(PDOException $e){
+            // Older MariaDB/SQLite installations may lack JSON functions. Keep their prior counts and leave these gaps undecided.
+            if(!in_array((string)($e->errorInfo[1]??''),['1305','1'],true)||stripos($e->getMessage(),'function')===false)throw $e;
+            return;
+        }
+        if(count($rows)>200)return;
+        $kinds=[];
+        foreach($rows as$row)if($row['post_kind']!=='skip')$kinds[(int)$row['conversation_id']][$row['post_kind']]=true;
+        foreach($kinds as$seen){
+            if(count($seen)!==1)continue;
+            $kind=array_key_first($seen);
+            if($kind==='navigation'||$kind==='catalog'){
+                $counts['reviewed_only_'.$kind.'_without_entry']++;
+                $counts['reviewed_mixed_or_unconfirmed_without_entry']--;
+            }
+        }
     }
 
     private function proof($id,ProjectMaxConnection $connection,array $settings,array $policy,int $now):array

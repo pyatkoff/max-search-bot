@@ -528,7 +528,50 @@ funnelCheck('Apple saved start joins an existing funnel entry without a false di
     $read['intake']['counts']['bot_start_recorded']===1
     &&$read['intake']['counts']['reviewed_start_recorded']===1
     &&$read['intake']['counts']['reviewed_start_without_entry']===0
-    &&$read['intake']['counts']['no_saved_bot_start']===0);
+    &&$read['intake']['counts']['no_saved_bot_start']===0
+    &&$read['intake']['counts']['latest_start_recognized']===1
+    &&$read['intake']['counts']['latest_recognized_funnel_recorded']===1);
+
+// Use visit time for the reporting day, including late ClientID enrichments.
+[$tagDb,$tagSettings,,$tagNow]=funnelStatusFixture();
+$tagDb->exec('DELETE FROM advertising_visit_observations');
+$midnight=(new DateTimeImmutable('2026-11-18 00:00:00',new DateTimeZone('Europe/Moscow')))->getTimestamp();
+$tagInsert=$tagDb->prepare('INSERT INTO advertising_visit_observations
+    (project_key,source_key,platform,counter_id,source_cursor,visit_id,visit_at_unix,observed_at_unix,identity_status,client_id,yclid)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?)');
+$longClick=str_repeat('9',40);
+$otherClick=str_repeat('8',40);
+$tagRows=[
+    ['appleservice39','max-miniapp','max','42611469','1','visit-a',$midnight-1,$midnight-1,'verified','',$longClick],
+    ['appleservice39','max-miniapp','max','42611469','2','visit-a',$midnight-1,$midnight+1,'verified','11',$longClick],
+    ['appleservice39','max-miniapp','max','42611469','3','visit-b',$midnight,$midnight,'verified','22',$longClick],
+    ['appleservice39','max-miniapp','max','42611469','4','visit-c',$midnight+1,$midnight+1,'verified','33',$otherClick],
+    ['appleservice39','max-miniapp','max','42611469','5','visit-d',$midnight+2,$midnight+2,'verified','44',''],
+    ['other-project','max-miniapp','max','42611469','1','visit-foreign',$midnight,$midnight,'verified','55','123'],
+    ['appleservice39','other-source','max','42611469','1','visit-foreign',$midnight,$midnight,'verified','55','123'],
+    ['appleservice39','max-miniapp','telegram','42611469','1','visit-foreign',$midnight,$midnight,'verified','55','123'],
+    ['appleservice39','max-miniapp','max','98615635','1','visit-foreign',$midnight,$midnight,'verified','55','123'],
+];
+foreach($tagRows as $values)$tagInsert->execute($values);
+$tagRead=funnelStatusRead($tagDb,$tagSettings,$midnight+120);
+$tags=$tagRead['observations']['click_tags'];
+funnelCheck('Apple click-tag counts separate observations, distinct clicks and Moscow visit days',
+    $tagRead['observations']['complete']&&$tagRead['observations']['counts']['other_scope_rows']===3
+    &&$tags['all_history']===['observation_rows'=>5,'nonempty_rows'=>4,'distinct_yclids'=>2]
+    &&$tags['by_moscow_visit_day']['2026-11-17']===['observation_rows'=>2,'nonempty_rows'=>2,'distinct_yclids'=>1]
+    &&$tags['by_moscow_visit_day']['2026-11-18']===['observation_rows'=>3,'nonempty_rows'=>2,'distinct_yclids'=>2]
+    &&!str_contains(json_encode($tagRead),$longClick)&&!str_contains(json_encode($tagRead),$otherClick));
+$tagDb->exec('DELETE FROM advertising_visit_observations');
+$emptyTags=funnelStatusRead($tagDb,$tagSettings,$midnight+120)['observations']['click_tags'];
+$zeroTags=['observation_rows'=>0,'nonempty_rows'=>0,'distinct_yclids'=>0];
+funnelCheck('complete empty Apple history and previous Moscow day are explicit zeros',
+    $emptyTags['all_history']===$zeroTags&&$emptyTags['by_moscow_visit_day']['2026-11-17']===$zeroTags);
+for($i=0;$i<=100;$i++){
+    $values=$tagRows[0];$values[4]=(string)($i+1);$tagInsert->execute($values);
+}
+$limitedTags=funnelStatusRead($tagDb,$tagSettings,$midnight+120)['observations'];
+funnelCheck('truncated Apple click-tag history is unknown',
+    !$limitedTags['complete']&&$limitedTags['reason']==='row_limit'&&$limitedTags['click_tags']===null);
 
 [$missingEntryDb,$missingEntrySettings,$missingEntryConversation,$missingEntryNow]=funnelStatusFixture();
 $missingEntryDb->exec("DELETE FROM conversation_events WHERE event_type='project_funnel_entry'");
@@ -539,6 +582,8 @@ funnelCheck('a saved reviewed bot start without its funnel event is reported, no
     &&$missingEntryRead['intake']['counts']['reviewed_start_recorded']===1
     &&$missingEntryRead['intake']['counts']['reviewed_start_without_entry']===1
     &&$missingEntryRead['intake']['counts']['entry_recorded']===0
+    &&$missingEntryRead['intake']['counts']['latest_start_recognized']===1
+    &&$missingEntryRead['intake']['counts']['latest_recognized_funnel_recorded']===1
     &&funnelStatusDatabase($missingEntryDb)===$missingEntryBefore);
 
 [$directOnlyDb,$directOnlySettings,$directOnlyConversation,$directOnlyNow]=funnelStatusFixture();
@@ -549,6 +594,54 @@ funnelCheck('no recorded bot start is distinct from lost reviewed attribution',
     &&$directOnlyRead['intake']['counts']['bot_start_recorded']===0
     &&$directOnlyRead['intake']['counts']['reviewed_start_recorded']===0
     &&$directOnlyRead['intake']['counts']['reviewed_start_without_entry']===0);
+
+[$historicalDb,$historicalSettings,$historicalConversation,$historicalNow]=funnelStatusFixture();
+$historicalEvent=$historicalDb->query("SELECT id,payload_json FROM conversation_events WHERE event_type='bot_started' LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+$historicalPayload=json_decode($historicalEvent['payload_json'],true);
+unset($historicalPayload['repair_start_class'],$historicalPayload['repair_funnel_attempt']);
+$historicalDb->prepare('UPDATE conversation_events SET payload_json=? WHERE id=?')->execute([
+    json_encode($historicalPayload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),$historicalEvent['id']]);
+$historicalRead=funnelStatusRead($historicalDb,$historicalSettings,$historicalNow);
+funnelCheck('legacy native entry remains honestly unclassified instead of being labeled paid or lost',
+    $historicalRead['intake']['counts']['reviewed_start_recorded']===1
+    &&$historicalRead['intake']['counts']['latest_start_historical']===1
+    &&$historicalRead['intake']['counts']['latest_start_recognized']===0
+    &&$historicalRead['intake']['counts']['latest_recognized_funnel_writer_error']===0
+    &&$historicalRead['intake']['counts']['latest_recognized_funnel_recorded']===0);
+
+// Use the real repair ingress. The fixture starts carry no linked advertising observation.
+$gapDb=repairFixture();funnelSchema($gapDb);funnelConversionSchema($gapDb);
+$gapSettings=ProjectFunnelSettings::load(ProjectMaxConnection::resolve('appleservice39'));
+$replyNumber=0;
+$gapFactory=static function()use(&$replyNumber):MaxMessengerAdapter{
+    return new MaxMessengerAdapter(static function()use(&$replyNumber):string{return 'fixture-gap-'.(++$replyNumber);},null,'system',null,false);
+};
+$starts=[
+    [7301,'as39_models-index'],[7301,'as39_services-index'],[7301,''],
+    [7302,'as39_services-index'],[7302,'as39_model-iphone-13'],
+    [7303,'as39_menu'],[7304,'as39_model-iphone-13'],[7305,'as39_services-index'],
+];
+foreach($starts as$offset=>[$user,$code]){
+    $result=RepairMaxWebhookService::handle('appleservice39',str_repeat('a',32),repairStart($user,$code,1800000001000+$offset),$gapFactory,static function(){});
+    funnelCheck('native gap fixture start '.$offset,$result['status']===200);
+}
+// Emulate a captured pre-diagnostics start and an unclassifiable capture; a name in response text proves nothing.
+foreach([7304,7305]as$user){
+    $conversation=repairConversation($gapDb,'appleservice39',$user);
+    $q=$gapDb->prepare("SELECT id,payload_json FROM conversation_events WHERE conversation_id=? AND event_type='bot_started'");
+    $q->execute([$conversation['id']]);$event=$q->fetch(PDO::FETCH_ASSOC);
+    $payload=json_decode($event['payload_json'],true,16,JSON_THROW_ON_ERROR);
+    unset($payload['repair_start_class'],$payload['repair_funnel_attempt']);
+    if($user===7305){$payload['repair_entry_reply']['post_id']='unknown-fixture';$payload['repair_entry_reply']['text']='models-index';}
+    $gapDb->prepare('UPDATE conversation_events SET payload_json=? WHERE id=?')->execute([json_encode($payload,JSON_THROW_ON_ERROR),$event['id']]);
+}
+$gapBefore=funnelStatusDatabase($gapDb);
+$gapResult=funnelStatusRead($gapDb,$gapSettings,time()+1);$gapCounts=$gapResult['intake']['counts'];
+funnelCheck('saved reviewed histories separate navigation, catalog, mixed or unknown and ordinary unattributed entry',
+    $gapResult['intake']['complete']&&$gapCounts['reviewed_start_without_entry']===4
+    &&$gapCounts['reviewed_only_navigation_without_entry']===1&&$gapCounts['reviewed_only_catalog_without_entry']===1
+    &&$gapCounts['reviewed_mixed_or_unconfirmed_without_entry']===2&&$gapCounts['entry_recorded']===1
+    &&funnelStatusDatabase($gapDb)===$gapBefore&&!str_contains(json_encode($gapResult),'models-index'));
 
 [$replyOnlyDb,$replyOnlySettings,$replyOnlyConversation,$replyOnlyNow]=funnelStatusFixture();
 $replyOnlyDb->prepare("INSERT INTO messages(conversation_id,direction,sender_type,channel,metadata_json) VALUES(?,'outbound','manager','max','{}')")->execute([$replyOnlyConversation['id']]);
