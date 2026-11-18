@@ -9,7 +9,7 @@ from route_read_lineage import rebind
 import reconstruct_inventory217 as reconstruct
 import nonwriting_queued217_guard as nonwriting
 from immutable_source_cache import cached_api
-REVIEWED_CONFIG_SHA256='3dafad07731427daafbf1ceec2e224de319ed5dc8596f077159b5fcef52f6cf2'
+REVIEWED_CONFIG_SHA256='33d9a05d669b453b9b99c85042b53bfca2d336c3e56d1581864e015db9908b0e'
 MAX_WAIT_SECONDS=120
 MAX_POLLS_PER_STEP=12
 MAX_CHAIN_POLL_READS=144
@@ -25,6 +25,23 @@ def install_cache():
 def rate_snapshot():
  p=e.subprocess.run(["gh","api","--method","GET","rate_limit"],capture_output=True,timeout=30);e.need(p.returncode==0,"rate_snapshot_failed")
  r=json.loads(p.stdout)["resources"]["core"];e.need(type(r.get("remaining")) is int and type(r.get("reset")) is int and type(r.get("used")) is int,"rate_snapshot_invalid");return r
+
+def initialize_prepare_rate_window(c,root):
+ # Exactly one uncached charged GET before the budget baseline. No retry/reset tolerance.
+ before=rate_snapshot()
+ diagnostic={'warmup_requests':1,'state':'BEFORE_SINGLE_MAIN_GET','before':{k:before[k] for k in ('used','reset','remaining')}}
+ e.save(root/'prepare-rate-warmup.json',diagnostic)
+ main=BASE_API('pyatkoff/max-search-bot','git/ref/heads/main')
+ e.need(main['object']['sha']==c['runtime_acceptance']['head_sha'],'warmup_runtime_main_changed')
+ baseline=rate_snapshot()
+ diagnostic.update(state='AFTER_SINGLE_MAIN_GET',after={k:baseline[k] for k in ('used','reset','remaining')},runtime_main_verified=True)
+ e.save(root/'prepare-rate-warmup.json',diagnostic)
+ e.need(type(baseline['used']) is int and baseline['used']>=1,'warmup_baseline_not_charged')
+ return baseline
+
+def validate_prepare_rate_budget(before,after):
+ delta=after['used']-before['used']
+ e.need(after['reset']==before['reset'] and delta>=0 and delta+1<=PREPARE_GET_CAP,'prepare_rate_window_or_budget_changed')
 
 def public_exclusive(c):
  execution=e.origin(c);current=int(os.environ['GITHUB_RUN_ID'])
@@ -90,7 +107,8 @@ def load_price_evolution(c,root):
  return verified,{'descriptor_raw':raw,'api':metadata,'archive_raw':archive}
 
 def prepare(c,raw):
- before_rate=rate_snapshot();execution=public_exclusive(c);root=pathlib.Path(os.environ['RUNNER_TEMP'])/'feed217';root.mkdir(mode=0o700,exist_ok=False);(root/'reviewed-config.json').write_bytes(raw);e.save(root/'execution-context.json',execution)
+ root=pathlib.Path(os.environ['RUNNER_TEMP'])/'feed217';root.mkdir(mode=0o700,exist_ok=False);(root/'reviewed-config.json').write_bytes(raw)
+ before_rate=initialize_prepare_rate_window(c,root);execution=public_exclusive(c);e.save(root/'execution-context.json',execution)
  for name,digest in {'reconstruct_inventory217.py':'9d26ade32fcab72a00dfa756a4c07c8e865def0b57271f29f2c5cf11f6a8b15e','original_acceptance217.py':'dfb560453ed9cd56218cd3ad80594012485f35551abf308266cd582e861808d3'}.items():e.pin(pathlib.Path(__file__).with_name(name),digest)
  provenance=e.safe(pathlib.Path.cwd(),c['original_inventory_provenance']['path']);e.pin(provenance,'69d6813bd7a3a06ad7f62f6a13baa33c8f13ab62f12ca5d57899fb329609fb88')
  originals=reconstruct.reconstruct(provenance,root/'originals');inv=json.loads(e.pin(originals/'inventory217.json',e.compiler.INVENTORY_SHA));e.need([o['batch'] for o in inv['operations']]==e.ORDER,'original_order_changed')
@@ -134,9 +152,9 @@ def prepare(c,raw):
  e.save(root/'state.json',{'next_index':0,'previous_native_receipt_sha256':prefix['previous_native_receipt_sha256'],'pairs':670,'expected_feeds':ad['previous_feed_sha256'],'plan_sha256':plan_sha,'root_projection_sha256':e.sha(packet_raw),'read_started_at':refresh['started_at'],'original_read_root':str(reads),'completed':[],'resume_prefix':prefix,'price_evolution':evolution,'poll_reads_used':0,'permit_guards_used':0,'read_refreshes':0,'first_writer_budget_checked':False})
  after_rate=rate_snapshot()
  # Persist only bounded numeric evidence BEFORE the unchanged safety predicate.
- e.save(root/'prepare-rate-diagnostic.json',{'stage':'AFTER_COMPILATION_BEFORE_PREPARE_BUDGET_GATE','before':{k:before_rate[k] for k in ('used','reset','remaining')},'after':{k:after_rate[k] for k in ('used','reset','remaining')},'used_delta':after_rate['used']-before_rate['used'],'same_reset_window':after_rate['reset']==before_rate['reset'],'prepare_cap':PREPARE_GET_CAP})
- e.need(after_rate['reset']==before_rate['reset'] and 0<=after_rate['used']-before_rate['used']<=PREPARE_GET_CAP,'prepare_rate_window_or_budget_changed')
- e.save(root/'prepare-rate-budget.json',{'before':before_rate,'after':after_rate,'conservative_prepare_cap':PREPARE_GET_CAP,'writer_suffix_cap':682,'reserved_margin':100})
+ e.save(root/'prepare-rate-diagnostic.json',{'stage':'AFTER_COMPILATION_BEFORE_PREPARE_BUDGET_GATE','before':{k:before_rate[k] for k in ('used','reset','remaining')},'after':{k:after_rate[k] for k in ('used','reset','remaining')},'used_delta':after_rate['used']-before_rate['used'],'warmup_requests':1,'charged_prepare_reads':after_rate['used']-before_rate['used']+1,'same_reset_window':after_rate['reset']==before_rate['reset'],'prepare_cap':PREPARE_GET_CAP})
+ validate_prepare_rate_budget(before_rate,after_rate)
+ e.save(root/'prepare-rate-budget.json',{'before':before_rate,'after':after_rate,'warmup_requests':1,'charged_prepare_reads':after_rate['used']-before_rate['used']+1,'conservative_prepare_cap':PREPARE_GET_CAP,'writer_suffix_cap':682,'reserved_margin':100})
  # Only hash/operation/count metadata for live root coordination, never raw reads/maps.
  deliver=root/'deliver-plan';deliver.mkdir(mode=0o700);e.save(deliver/'plan.json',{'execution':execution,'plan_sha256':plan_sha,'root_projection_sha256':e.sha(packet_raw),'groups':[{k:g[k] for k in ['batch','operation','hotels','script_sha256','files']} for g in plan['groups']],'initial_preimages':ad['previous_feed_sha256'],'execution_mode':c['execution_mode'],'resume_prefix':prefix,'price_evolution':evolution,'initial_pairs':670,'hotels':207,'permit_comment_id':c['permit_comment_id'],'claim_id':c['claim_id'],'private_branch_sha':c['root_verified_route_source']['head_sha'],'permit_ttl_seconds':60,'permit_nonce_encoding':'SHA256 of sorted compact UTF8 expected object excluding permit_comment_id and nonce','api_budget':{'prepare_cap':200,'suffix_cap':682,'margin':100,'per_step_polls':12,'chain_poll_cap':144,'chain_guard_cap':26,'refresh_cap':2},'root_private_checks_required_before_every_write':True});print('FINITE_FEED_PLAN_READY_NO_WRITES')
 
@@ -219,6 +237,7 @@ if __name__=='__main__':
   if root.is_dir():
    failure={'ok':False,'state':'STOP_NO_RETRY','mode':sys.argv[2] if len(sys.argv)>2 else None,'step':sys.argv[3] if len(sys.argv)>3 else None,'error_class':type(ex).__name__}
    if (root/'blocked-guard.json').is_file():failure['guard_diagnostic']=json.loads((root/'blocked-guard.json').read_bytes())
+   if (root/'prepare-rate-warmup.json').is_file():failure['prepare_rate_warmup']=json.loads((root/'prepare-rate-warmup.json').read_bytes())
    if (root/'prepare-rate-diagnostic.json').is_file():
     diagnostic=json.loads((root/'prepare-rate-diagnostic.json').read_bytes())
     failure['prepare_rate_budget']={'stage':'AFTER_COMPILATION_BEFORE_PREPARE_BUDGET_GATE','before':{k:diagnostic['before'][k] for k in ('used','reset','remaining') if type(diagnostic.get('before',{}).get(k)) is int},'after':{k:diagnostic['after'][k] for k in ('used','reset','remaining') if type(diagnostic.get('after',{}).get(k)) is int},'prepare_cap':PREPARE_GET_CAP}

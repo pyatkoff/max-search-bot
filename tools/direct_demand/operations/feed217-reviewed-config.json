@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "state": "REVIEWED_FINITE_FEED217_EXACT_ROOT_PERMIT_CHAIN",
-  "parent_sha": "567506b5b852b8229b9c2777281df5570c91b5cc",
+  "parent_sha": "8285dee799e999c4330ef8e46c0084a5ade214e9",
   "claim_id": 6955394658,
   "claim_body_sha256": "51cc2d3531118e2aba6146515946dc2efad9a78130864d5fd45a03789ce6c37a",
   "permit_comment_id": 6957283506,
@@ -337,7 +337,7 @@
     "head_sha": "bbef3101f8c8f6eae15355c0d6fa4b8c1848dfa2"
   },
   "source_sha256": {
-    ".github/workflows/price27316-feed217.yml": "bf1f15d9911fd239f9fecf5c94a9f43d6aef79521bf6c66ff2430a9ccff55bce",
+    ".github/workflows/price27316-feed217.yml": "c4f2e7afcf87604276fa212a0b00163bba2f66ff86a11ee3d36c0392734e0dc1",
     "tools/direct_demand/operations/execute_feed217.py": "933c792565e843724a0e99ff06a8deb4d0b542ea5689dc514e6b5eac20b64564",
     "tools/direct_demand/operations/immutable_source_cache.py": "4fb4c879469877c612d2d101eba89214806563a026c9e2e38905875dd95a99f0",
     "tools/direct_demand/operations/inventory217-provenance.json": "69d6813bd7a3a06ad7f62f6a13baa33c8f13ab62f12ca5d57899fb329609fb88",
