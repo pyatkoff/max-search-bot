@@ -1,0 +1,777 @@
+{
+  "schema_version": 1,
+  "state": "WAVE9_CAPTIONS_CHECKED_AWAITING_SOURCE_ACCEPTANCE",
+  "published_baseline": 1142,
+  "country_ids_excluded": [
+    11
+  ],
+  "rows": [
+    {
+      "hotel_id": 30609,
+      "country_id": 4,
+      "name": "Club Med Palmiye Kemer",
+      "location": "Гёйнюк, Турция",
+      "caption": "✈️ Туры в Club Med Palmiye Kemer\n📍 Гёйнюк, Турция.\n\nУтро на собственном песчаном пляже, плавание и ужин с блюдами турецкой кухни. В Club Med Palmiye есть открытые и крытый бассейны, тренажёрный зал и несколько ресторанов. Подойдёт для отпуска, в котором пляжный отдых хочется чередовать с активностью на территории.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CLUB MED PALMIYE KEMER",
+        "Club Med Palmiye Kemer"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=30609"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=30609",
+      "cover_sha256": "76affcad1b5b43b9dd41d9f7bb21db921bc725c367b64f69969e99415e9e5b7c",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2139,
+      "country_id": 4,
+      "name": "Club Belcekiz Beach",
+      "location": "Олюдениз, Турция",
+      "caption": "✈️ Туры в Club Belcekiz Beach\n📍 Олюдениз, Турция.\n\nПляж Олюдениза всего в 50 м от отеля. Можно проводить день у моря, возвращаться к бассейну и ужинать в ресторане на территории. Club Belcekiz подойдёт для отпуска с прогулками по курорту. Пляж общественный, песчано-галечный; в корпусах нет лифтов.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CLUB BELCEKIZ BEACH",
+        "Club Belcekiz Beach"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2139"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2139",
+      "cover_sha256": "79338bec7869b0099cc5c7710dcd2dde1b6d8e39fa9b62b6abbd829e2c7ff8d9",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 59539,
+      "country_id": 9,
+      "name": "W Dubai The Palm",
+      "location": "Дубай, ОАЭ",
+      "caption": "✈️ Туры в W Dubai The Palm\n📍 Дубай, ОАЭ.\n\nСобственный песчаный пляж на Пальме Джумейра и бассейны с подогревом. В W Dubai The Palm удобно чередовать море, отдых у воды и ужины в ресторанах отеля. Для тех, кто хочет пляжную поездку в Дубай со спа и фитнесом. При заселении взимается депозит.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "W DUBAI THE PALM",
+        "W Dubai The Palm"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=59539"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=59539",
+      "cover_sha256": "039e466e69541b31b281208a8add7b51254776ecfa45c770ea9d6e38806a693a",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 1083,
+      "country_id": 4,
+      "name": "Club Felicia Village",
+      "location": "Сиде, Турция",
+      "caption": "✈️ Туры в Club Felicia Village\n📍 Сиде, Турция.\n\nНевысокие бунгало, собственный пляж рядом и бассейны для разных настроений. Здесь можно устроить семейные каникулы с водными горками, теннисом и вечерними прогулками по территории. Пляж песчано-галечный, крытый бассейн подогревается в отдельные периоды сезона.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CLUB FELICIA VILLAGE",
+        "Club Felicia Village"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1083"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1083",
+      "cover_sha256": "5ad063c038a7cd3326531d7fafdd9d5a3b68dcaa259b9c5f05cfad55c58bce28",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 3418,
+      "country_id": 4,
+      "name": "TUI BLUE Sherwood Belek",
+      "location": "Белек, Турция",
+      "caption": "✈️ Туры в TUI BLUE Sherwood Belek\n📍 Белек, Турция.\n\nОтпуск для взрослых 16+ на собственном песчано-галечном пляже. В TUI BLUE Sherwood можно чередовать море с открытым и крытым бассейнами, посидеть в кофейне и выбрать ужин в ресторане. Подойдёт для поездки вдвоём без детской суеты.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "TUI BLUE SHERWOOD BELEK ADULTS ONLY",
+        "TUI BLUE Sherwood Belek"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=3418"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=3418",
+      "cover_sha256": "699415fd7e5048a6edaff69151e787fd15738913d4695a9187606d840b92ea99",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 1108,
+      "country_id": 4,
+      "name": "Club Kastalia Holiday Village",
+      "location": "Аланья, Турция",
+      "caption": "✈️ Туры в Club Kastalia Holiday Village\n📍 Аланья, Турция.\n\nСобственный пляж с пирсом и аквапарк на территории. В Club Kastalia можно провести семейный отпуск между морем, бассейнами и водными горками, а вечером отправиться в ресторан. Берег и вход в воду песчано-галечные. Подогрев бассейнов действует в отдельные периоды сезона.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CLUB KASTALIA HOLIDAY VILLAGE",
+        "Club Kastalia Holiday Village"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1108"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1108",
+      "cover_sha256": "208cedb7596a2692ccf47e2320b92f2f4bddcfc41ede59c3da8cd3f996247d69",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 103733,
+      "country_id": 1,
+      "name": "Cleopatra Luxury Resort North Coast Sidi Heneish",
+      "location": "Мерса-Матрух, Египет",
+      "caption": "✈️ Туры в Cleopatra Luxury Resort North Coast Sidi Heneish\n📍 Мерса-Матрух, Египет.\n\nПесчаный пляж и отдых у Средиземного моря. В Cleopatra Luxury North Coast есть несколько бассейнов, рестораны, фитнес-центр и спа. Подойдёт для размеренной пляжной поездки с отдыхом на территории. Отель расположен примерно в 42 км от центра Мерса-Матруха.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CLEOPATRA LUXURY RESORT NORTH COAST SIDI HENEISH",
+        "Cleopatra Luxury Resort North Coast Sidi Heneish"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=103733"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=103733",
+      "cover_sha256": "9ac04a4c8fd2b06121d4e8dd3495cb62dcc06bd69ca9789654a133b266d6146e",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 76819,
+      "country_id": 1,
+      "name": "Grand Ocean Hotel & Resort El Sokhna",
+      "location": "Айн-эль-Сохна, Египет",
+      "caption": "✈️ Туры в Grand Ocean Hotel & Resort El Sokhna\n📍 Айн-эль-Сохна, Египет.\n\nМоре рядом с отелем и два открытых бассейна для неспешных отпускных дней. Grand Ocean подойдёт для пляжного отдыха в Айн-эль-Сохне: можно гулять по песчаному берегу, плавать и ужинать в ресторане на территории. Есть фитнес-центр и общий лаундж.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "GRAND OCEAN HOTEL & RESORT EL SOKHNA",
+        "Grand Ocean Hotel & Resort El Sokhna"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76819"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76819",
+      "cover_sha256": "8cb08bd77930c292adddcabb9778040fccc2c42ffa3808a38a17e9937730bc98",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2643,
+      "country_id": 9,
+      "name": "Raffles Dubai",
+      "location": "Дубай, ОАЭ",
+      "caption": "✈️ Туры в Raffles Dubai\n📍 Дубай, ОАЭ.\n\nОтель в форме пирамиды рядом с торговым центром Wafi. В Raffles есть ботанический сад, бассейн с зимним подогревом и спа. Хорошая база для городской поездки с покупками и отдыхом между прогулками. Морской пляж находится за пределами территории. При заселении взимается депозит.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "RAFFLES DUBAI",
+        "Raffles Dubai"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2643"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2643",
+      "cover_sha256": "88a6178c8b5adc519f547978af6ad86340c513ac30ddce9705264d082c1ac855",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 58808,
+      "country_id": 4,
+      "name": "Kayakapi Premium Caves Cappadocia",
+      "location": "Каппадокия, Турция",
+      "caption": "✈️ Туры в Kayakapi Premium Caves Cappadocia\n📍 Каппадокия, Турция.\n\nПожить в пещерном номере и отправиться знакомиться с Каппадокией. Kayakapi объединяет разноуровневые каменные корпуса, открытый бассейн с подогревом и спа. Подойдёт для необычной поездки вдвоём. После прогулок можно выбрать ресторан, бистро или винный погреб.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "KAYAKAPI PREMIUM CAVES CAPPADOCIA",
+        "Kayakapi Premium Caves Cappadocia"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=58808"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=58808",
+      "cover_sha256": "666b3ea22cfecb69f3f2522b53c967be4f2b6bc2696d42d52f61162e9196a6d1",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 77650,
+      "country_id": 4,
+      "name": "Club Porto Amore",
+      "location": "Аланья, Турция",
+      "caption": "✈️ Туры в Club Porto Amore\n📍 Аланья, Турция.\n\nПляжная поездка только для взрослых 18+. В Club Porto Amore собственный песчаный пляж находится рядом, есть открытый и крытый бассейны, два ресторана и тренажёрный зал. Подойдёт для отдыха вдвоём, когда хочется проводить больше времени у моря.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CLUB PORTO AMORE (ADULTS ONLY 18+)",
+        "CLUB PORTO AMORE",
+        "Club Porto Amore"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=77650"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=77650",
+      "cover_sha256": "7396f2e022460f8550fe3867d540a21826301f2784ae2dff936f1007c85fe1b0",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 24940,
+      "country_id": 9,
+      "name": "Conrad Dubai",
+      "location": "Дубай, ОАЭ",
+      "caption": "✈️ Туры в Conrad Dubai\n📍 Дубай, ОАЭ.\n\nМетро World Trade Center рядом: удобно планировать прогулки по Дубаю и возвращаться к своему бассейну. Conrad подойдёт для городской поездки с ресторанами, фитнесом и спа. У открытого бассейна регулируется температура воды. Для пляжного дня понадобится отдельная поездка.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CONRAD DUBAI",
+        "Conrad Dubai"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=24940"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=24940",
+      "cover_sha256": "f985cbf58985f99569e421bf0b9b380f85a47062bc8760e1c72dc2ac254df78b",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 76112,
+      "country_id": 4,
+      "name": "Melas Hotel Istanbul",
+      "location": "Стамбул, Турция",
+      "caption": "✈️ Туры в Melas Hotel Istanbul\n📍 Стамбул, Турция.\n\nГородские прогулки днём и крытый бассейн вечером. Melas находится в районе Бешикташ и подойдёт для знакомства со Стамбулом с комфортным отдыхом между выездами. На территории есть ресторан, терраса, тренажёрный зал и спа-центр.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "MELAS HOTEL ISTANBUL",
+        "Melas Hotel Istanbul"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76112"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76112",
+      "cover_sha256": "afb67d2db103c74766b0a7df1ae068b74868c8373e915e2d1351d7deb7414a26",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 356,
+      "country_id": 1,
+      "name": "Premier Le Reve Hotel & Spa",
+      "location": "Хургада, Египет",
+      "caption": "✈️ Туры в Premier Le Reve Hotel & Spa\n📍 Хургада, Египет.\n\nОтдых для взрослых 16+ у Красного моря. В Premier Le Reve есть открытые и крытый бассейны, рестораны и спа. Подойдёт для размеренной поездки вдвоём. Пляж песчано-каменистый, предусмотрен понтон; для входа в воду пригодится специальная обувь.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "PREMIER LE REVE HOTEL & SPA ADULTS ONLY 16+",
+        "Premier Le Reve Hotel & Spa"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=356"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=356",
+      "cover_sha256": "3513b0fa5ad8b001a694ae62551a3961b0890134deeb27a8ee54550aa2cea040",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 1000,
+      "country_id": 4,
+      "name": "Arycanda Kirman Premium",
+      "location": "Аланья, Турция",
+      "caption": "✈️ Туры в Arycanda Kirman Premium\n📍 Аланья, Турция.\n\nСобственный пляж перед отелем, бассейны и аквапарк для насыщенного семейного отпуска. В Arycanda есть детский клуб Kichi, кондитерская и несколько ресторанов. Пляж песчано-галечный. Аквапарк расположен на общей территории Arycanda и Leodikya.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "ARYCANDA KIRMAN PREMIUM",
+        "Arycanda Kirman Premium"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1000"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1000",
+      "cover_sha256": "173d630ecac0a38f3b2c0439b5ee77c5991b094bb1744def30defb08f607f5d5",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 23285,
+      "country_id": 9,
+      "name": "Sofitel Abu Dhabi Corniche",
+      "location": "Абу-Даби, ОАЭ",
+      "caption": "✈️ Туры в Sofitel Abu Dhabi Corniche\n📍 Абу-Даби, ОАЭ.\n\nЗнакомство с Абу-Даби и отдых у бассейна с регулируемой температурой. В Sofitel есть рестораны, кафе, фитнес-зал и спа. Подойдёт для городской поездки с пляжными выездами: общественный песчаный пляж примерно в 4 км, предусмотрен автобус от отеля.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "SOFITEL ABU DHABI CORNICHE",
+        "Sofitel Abu Dhabi Corniche"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23285"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23285",
+      "cover_sha256": "80a06336d9b1457aa6de6fdeee04b27df1e6d4dfd74659537e7d9694244209b2",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 23287,
+      "country_id": 9,
+      "name": "St. Regis Abu Dhabi",
+      "location": "Абу-Даби, ОАЭ",
+      "caption": "✈️ Туры в St. Regis Abu Dhabi\n📍 Абу-Даби, ОАЭ.\n\nГородской комфорт на набережной Корниш и свой пляжный клуб. К Nation Riviera Beach Club ведёт подземный кондиционируемый переход; пляж примерно в 250 м от отеля. Для отдыха между прогулками есть бассейны, спа и рестораны. При заселении взимается депозит.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "ST. REGIS ABU DHABI",
+        "St. Regis Abu Dhabi"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23287"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23287",
+      "cover_sha256": "aa97c07107c54be9826ba70a20f1c95c6f72dd2019de9fe6b86265c794b40d78",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 28505,
+      "country_id": 4,
+      "name": "Limak Eurasia Luxury",
+      "location": "Стамбул, Турция",
+      "caption": "✈️ Туры в Limak Eurasia Luxury\n📍 Стамбул, Турция.\n\nПосле поездок по Стамбулу можно вернуться в крытый бассейн и спокойно поужинать в отеле. В Limak Eurasia есть ресторан, фитнес-центр и парковка. Подойдёт для городской поездки, в которой важен отдых на территории между прогулками и встречами.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "LIMAK EURASIA LUXURY",
+        "Limak Eurasia Luxury"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=28505"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=28505",
+      "cover_sha256": "5052858c83190e054e184fb9042cf5d35dee29ead6de9f51fc02d55031d3ff33",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 40880,
+      "country_id": 4,
+      "name": "Limak Thermal Boutique Hotel Yalova",
+      "location": "Ялова, Турция",
+      "caption": "✈️ Туры в Limak Thermal Boutique Hotel Yalova\n📍 Ялова, Турция.\n\nКрытый и открытый термальные бассейны для размеренной поездки. В небольшом Limak Thermal 48 номеров, есть фитнес-центр и спа. Подойдёт тем, кто хочет отдохнуть от городского ритма. Отель примерно в 12 км от Яловы; спа-услуги оплачиваются отдельно.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "LIMAK THERMAL BOUTIQUE HOTEL YALOVA",
+        "Limak Thermal Boutique Hotel Yalova"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=40880"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=40880",
+      "cover_sha256": "1f2d99dfd199b4efd0f44f69811701d24caa2ac01db540300b4132ce88a40420",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 44491,
+      "country_id": 9,
+      "name": "InterContinental Dubai Marina",
+      "location": "Дубай, ОАЭ",
+      "caption": "✈️ Туры в InterContinental Dubai Marina\n📍 Дубай, ОАЭ.\n\nПрогулки по Дубай Марине и отдых у открытого бассейна. В отеле есть рестораны, бары, фитнес и спа. Подойдёт для городской поездки, которую хочется дополнить морем: общественный пляж JBR примерно в 550 м через дорогу. Пляжные зонты и шезлонги отель не предоставляет.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "INTERCONTINENTAL DUBAI MARINA",
+        "InterContinental Dubai Marina"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=44491"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=44491",
+      "cover_sha256": "cd37896d0b4196798c5238098a1b9b273ba0ddc301a82b092b4bec2cc5b9fa95",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 1489,
+      "country_id": 4,
+      "name": "TUI BLUE Side",
+      "location": "Сиде, Турция",
+      "caption": "✈️ Туры в TUI BLUE Side\n📍 Сиде, Турция.\n\nСобственный песчаный пляж рядом и формат только для взрослых 16+. В TUI BLUE Side можно чередовать море, бассейны, спа и ужины в ресторанах. Подойдёт для отдыха вдвоём. Вход в море песчаный, крытый бассейн подогревается в зимний сезон.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "TUI BLUE SIDE ADULTS ONLY 16+",
+        "TUI BLUE Side"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1489"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1489",
+      "cover_sha256": "cf200442950c5017e71d7a91a7ff36fc99b40770e02a12cc674beb807f7c6309",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2584,
+      "country_id": 9,
+      "name": "InterContinental Abu Dhabi",
+      "location": "Абу-Даби, ОАЭ",
+      "caption": "✈️ Туры в InterContinental Abu Dhabi\n📍 Абу-Даби, ОАЭ.\n\nОтдых у яхтенной пристани с пляжным клубом и бассейнами. В InterContinental есть рестораны, теннисный корт, фитнес и спа. Подойдёт для поездки с прогулками по городу и днями у воды. Собственный песчаный пляж находится примерно в 300 м от отеля.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "INTERCONTINENTAL ABU DHABI",
+        "InterContinental Abu Dhabi"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2584"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2584",
+      "cover_sha256": "b0e8b155cb8d4294b4da89a9eb50ad014dc1728c3c7085c5f66f3eed22ac8ad2",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 78929,
+      "country_id": 9,
+      "name": "W Dubai Mina Seyahi",
+      "location": "Дубай, ОАЭ",
+      "caption": "✈️ Туры в W Dubai Mina Seyahi\n📍 Дубай, ОАЭ.\n\nГородской Дубай с отдыхом у собственного песчаного пляжа. В W Mina Seyahi есть открытый бассейн, рестораны, фитнес и спа. Подойдёт для поездки, в которой хочется совместить прогулки и море. До пляжа примерно 150 м; при заселении взимается депозит.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "W DUBAI MINA SEYAHI",
+        "W Dubai Mina Seyahi"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=78929"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=78929",
+      "cover_sha256": "4b18d9d450610742f9ad254b5735ff719306f6d46222ca1769b9f984bc56c026",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 372,
+      "country_id": 1,
+      "name": "Reef Oasis Blue Bay",
+      "location": "Шарм-эль-Шейх, Египет",
+      "caption": "✈️ Туры в Reef Oasis Blue Bay\n📍 Шарм-эль-Шейх, Египет.\n\nПляж, бассейны и водные горки для отпуска у Красного моря. В Reef Oasis Blue Bay есть лагуны с песчаным входом и понтон, а на территории можно выбрать отдых у инфинити-бассейна или бассейна только для взрослых. Подойдёт для семейной поездки с разными планами на день.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "REEF OASIS BLUE BAY",
+        "Reef Oasis Blue Bay"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=372"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=372",
+      "cover_sha256": "178508150945d90b9cdd71f4eda6cad99736d0f1bdecdb7b33700fd170db948d",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 1618,
+      "country_id": 4,
+      "name": "Club & Hotel Letoonia",
+      "location": "Фетхие, Турция",
+      "caption": "✈️ Туры в Club & Hotel Letoonia\n📍 Фетхие, Турция.\n\nБунгало у моря и большая территория для отпускных прогулок. В Letoonia есть несколько бассейнов, водные горки, рестораны и кофейня. Подойдёт для семейного отдыха на курорте. На пляже предусмотрен пирс, вход в воду песчано-галечный; открытые бассейны без подогрева.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CLUB & HOTEL LETOONIA",
+        "Club & Hotel Letoonia"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1618"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1618",
+      "cover_sha256": "71d6aed2dbf18ce8fa3f5203826d0bc77ad9d86df4e5ded1dbfa260f9b886e77",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 44669,
+      "country_id": 9,
+      "name": "Royal M Hotel by Gewan Fujairah",
+      "location": "Фуджейра, ОАЭ",
+      "caption": "✈️ Туры в Royal M Hotel by Gewan Fujairah\n📍 Фуджейра, ОАЭ.\n\nБассейн на крыше и прямой переход в Fujairah Mall. Royal M подойдёт для городской поездки с покупками, ресторанами и отдыхом в спа. Собственного пляжа у здания нет: к общественному Umbrella Beach организован ежедневный шаттл. У бассейна регулируется температура воды.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "ROYAL M HOTEL BY GEWAN FUJAIRAH",
+        "Royal M Hotel by Gewan Fujairah"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=44669"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=44669",
+      "cover_sha256": "35a65e1e5f5b46291d08c269017684967a149859db9fe4262fc63ef3d7429dc6",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 56003,
+      "country_id": 4,
+      "name": "Kaya Izmir Thermal & Convention",
+      "location": "Измир, Турция",
+      "caption": "✈️ Туры в Kaya Izmir Thermal & Convention\n📍 Измир, Турция.\n\nКрытый и открытый бассейны для отдыха между поездками по Измиру. В Kaya есть ресторан, бар и фитнес-центр. Подойдёт для размеренной городской поездки, когда хочется возвращаться в отель с возможностью поплавать и спокойно провести вечер.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "KAYA IZMIR THERMAL & CONVENTION",
+        "Kaya Izmir Thermal & Convention"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=56003"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=56003",
+      "cover_sha256": "d5ff983256873c4902d56960238c93434a504e7d887b463b9a95bb1181572fd5",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 70138,
+      "country_id": 4,
+      "name": "Club Grand Aqua",
+      "location": "Сиде, Турция",
+      "caption": "✈️ Туры в Club Grand Aqua\n📍 Сиде, Турция.\n\nАквапарк и бассейны для семейных каникул. В Club Grand Aqua есть несколько ресторанов, бары, открытый и крытый бассейны. Можно чередовать водные развлечения с прогулками к морю. До песчаного пляжа Чолаклы около 600 м; шезлонги и зонтики на пляже платные.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CLUB GRAND AQUA",
+        "Club Grand Aqua"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=70138"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=70138",
+      "cover_sha256": "c69b0ffa6c1a43b9cac0a0e1c35f0195d10e3d4b972e950abf94a973d8fc967a",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 1064,
+      "country_id": 4,
+      "name": "Kaya Side",
+      "location": "Сиде, Турция",
+      "caption": "✈️ Туры в Kaya Side\n📍 Сиде, Турция.\n\nСобственный песчано-галечный пляж и бассейны на территории. В Kaya Side есть водные горки, крытый бассейн с подогревом, рестораны и тренажёрный зал. Подойдёт для семейного отпуска, в котором море и развлечения находятся рядом.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "KAYA SIDE",
+        "Kaya Side"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1064"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1064",
+      "cover_sha256": "d68df23be943c4bfd5700858bd478669147d561d104eac594f6401f421778817",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 1111,
+      "country_id": 4,
+      "name": "Club Marco Polo",
+      "location": "Кемер, Турция",
+      "caption": "✈️ Туры в Club Marco Polo\n📍 Кемер, Турция.\n\nОтпуск в Чамьюве с собственным пляжем и пирсом. В Club Marco Polo можно проводить день у моря, плавать в бассейнах, кататься с горок и выбирать ужин в ресторанах. Подойдёт для семейной поездки с активным отдыхом на территории. Пляж песчано-галечный.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CLUB MARCO POLO",
+        "Club Marco Polo"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1111"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1111",
+      "cover_sha256": "c9e182df0681399428b691819e6edfb3f5d287efef0067e7e51319239350c4aa",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 39260,
+      "country_id": 1,
+      "name": "Xperience Kiroseiz Premier",
+      "location": "Шарм-эль-Шейх, Египет",
+      "caption": "✈️ Туры в Xperience Kiroseiz Premier\n📍 Шарм-эль-Шейх, Египет.\n\nАквапарк с подогревом и два разных пляжа для отпускных дней. В Kiroseiz есть бассейн, рестораны и вечерняя площадка-амфитеатр. Отель расположен на второй линии: до песчаного и кораллового пляжей ходит шаттл по расписанию. Подойдёт семье, которая любит водные развлечения.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "XPERIENCE KIROSEIZ PREMIER",
+        "Xperience Kiroseiz Premier"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=39260"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=39260",
+      "cover_sha256": "cfe711fffee76488bf58d1284157c916428eea1c058fb5299072966b84fb6866",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 75042,
+      "country_id": 4,
+      "name": "Calyptus Kirman Premium",
+      "location": "Сиде, Турция",
+      "caption": "✈️ Туры в Calyptus Kirman Premium\n📍 Сиде, Турция.\n\nБассейн с зоной джакузи, аквапарк и кондитерская для семейного отпуска. До собственного песчаного пляжа около 450 м. К нему ведёт подземный тоннель, по которому днём курсирует вагончик. В Calyptus есть также крытый бассейн с сезонным подогревом и рестораны.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CALYPTUS KIRMAN PREMIUM",
+        "Calyptus Kirman Premium"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75042"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75042",
+      "cover_sha256": "fe3597a086cc3aa2db57ea70cb3bdce839b5b11a75e1f1e9e459de28d30ef47b",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 67099,
+      "country_id": 9,
+      "name": "Canvas Dubai MGallery",
+      "location": "Дубай, ОАЭ",
+      "caption": "✈️ Туры в Canvas Dubai MGallery\n📍 Дубай, ОАЭ.\n\nБассейн на крыше после прогулок по историческому Дубаю. Canvas расположен в Бур-Дубае, поблизости от Дубай-Крик, музея и рынков. В отеле есть рестораны, терраса, спа и фитнес. Подойдёт для городской поездки; на пляж предусмотрен трансфер.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CANVAS DUBAI MGALLERY BY SOFITEL",
+        "Canvas Dubai MGallery"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=67099"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=67099",
+      "cover_sha256": "50727aff1a421095932e568b902b551279d1a8fcb1ef26a3a0281e194d09d746",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 67048,
+      "country_id": 4,
+      "name": "Kaya Istanbul Fair & Convention",
+      "location": "Стамбул, Турция",
+      "caption": "✈️ Туры в Kaya Istanbul Fair & Convention\n📍 Стамбул, Турция.\n\nКрытый бассейн, фитнес и спа после поездок по городу. Kaya расположен в районе Эсеньюрт и подойдёт тем, кому важно проживание в этой части Стамбула. До Султанахмета около 30 км. На территории есть и открытый бассейн, работающий летом.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "KAYA ISTANBUL FAIR & CONVENTION",
+        "Kaya Istanbul Fair & Convention"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=67048"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=67048",
+      "cover_sha256": "089f1f7f0938b32401e7114c60a7b59fd02c2bbf2416ef0030ca4cfffc78c8fe",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 63106,
+      "country_id": 4,
+      "name": "Crystal Kaymakli Hotel & Spa",
+      "location": "Каппадокия, Турция",
+      "caption": "✈️ Туры в Crystal Kaymakli Hotel & Spa\n📍 Каппадокия, Турция.\n\nПоездки по Каппадокии днём и отдых у бассейна вечером. В Crystal Kaymakli есть открытый и крытый бассейны, ресторан, бар и спа-центр. Подойдёт для экскурсионной поездки с комфортным возвращением в отель после прогулок.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CRYSTAL KAYMAKLI HOTEL & SPA",
+        "Crystal Kaymakli Hotel & Spa"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=63106"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=63106",
+      "cover_sha256": "5ec8054e3ddc5582dc024b7d32ad2eef0ea6fa76a0cb64bb1c44eb8ebdcc3986",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 65906,
+      "country_id": 4,
+      "name": "TUI BLUE Ephesus",
+      "location": "Кушадасы, Турция",
+      "caption": "✈️ Туры в TUI BLUE Ephesus\n📍 Кушадасы, Турция.\n\nПесчаный пляж рядом и аквапарк для насыщенного семейного отпуска. В TUI BLUE Ephesus есть открытый бассейн, крытый бассейн с джакузи, рестораны и пляжный пирс. Подойдёт тем, кто хочет проводить больше времени у воды. До центра Кушадасы около 9 км.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "TUI BLUE EPHESUS (TUI FAMILY LIFE EPHESUS)",
+        "TUI BLUE EPHESUS",
+        "TUI BLUE Ephesus"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=65906"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=65906",
+      "cover_sha256": "e3b86395818434cd10eaf23b19dc97013de81cb1326b66a289d6a42d8fc3e31c",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 104048,
+      "country_id": 1,
+      "name": "Hilton Alexandria Corniche",
+      "location": "Александрия, Египет",
+      "caption": "✈️ Туры в Hilton Alexandria Corniche\n📍 Александрия, Египет.\n\nМоре и городские прогулки в одной поездке. В Hilton Alexandria Corniche есть открытый бассейн, терраса и рестораны разных кухонь. Подойдёт для знакомства с Александрией с пляжными паузами. Песчаный пляж примерно в 100 м, от отеля его отделяет дорога.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "HILTON ALEXANDRIA CORNICHE",
+        "Hilton Alexandria Corniche"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=104048"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=104048",
+      "cover_sha256": "53188a9cff7c4321cb18c48e19b1684392a54a14b16c239d6aab8de36c5435a6",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 122841,
+      "country_id": 1,
+      "name": "Sentido Naga Bay",
+      "location": "Сома-Бэй, Египет",
+      "caption": "✈️ Туры в Sentido Naga Bay\n📍 Сома-Бэй, Египет.\n\nСобственный песчаный пляж, морская лагуна и бассейны. В Sentido Naga Bay можно чередовать отдых у Красного моря с аквапарком, теннисом и фитнесом. Подойдёт для пляжной поездки с активностями на территории. Спа-услуги и освещение кортов оплачиваются отдельно.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "SENTIDO NAGA BAY",
+        "Sentido Naga Bay"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=122841"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=122841",
+      "cover_sha256": "f18b9a97de799dc8ef62a1fd4723d3e5e99ce4abe27650434c1298c2e7f1b35e",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 32333,
+      "country_id": 9,
+      "name": "Sofitel Downtown Dubai",
+      "location": "Дубай, ОАЭ",
+      "caption": "✈️ Туры в Sofitel Downtown Dubai\n📍 Дубай, ОАЭ.\n\nК торговому центру и метро можно пройти по галерее с движущейся дорожкой. Sofitel Downtown подойдёт для прогулок и покупок в центре Дубая. После насыщенного дня доступны открытый бассейн, рестораны и спа. Морской пляж находится за пределами территории.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "SOFITEL DOWNTOWN DUBAI",
+        "Sofitel Downtown Dubai"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=32333"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=32333",
+      "cover_sha256": "be82a76df0991326b7442ef02cb64b7ae8d2e154d573a0bf4d2abb1967e62e82",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 79974,
+      "country_id": 1,
+      "name": "Hyatt Regency Cairo West",
+      "location": "Каир, Египет",
+      "caption": "✈️ Туры в Hyatt Regency Cairo West\n📍 Каир, Египет.\n\nОткрытый бассейн с подогревом для отдыха между поездками по Каиру. В Hyatt Regency Cairo West есть рестораны, спа и тренажёрный зал. Подойдёт для городской экскурсионной поездки, в которой хочется возвращаться в спокойную обстановку отеля.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "HYATT REGENCY CAIRO WEST",
+        "Hyatt Regency Cairo West"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=79974"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=79974",
+      "cover_sha256": "ce88a04a1c4054ef83a1d2974d30695420e711ccf238b3f9ecc50873128ffd0c",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 2583,
+      "country_id": 9,
+      "name": "InterContinental Dubai Festival City",
+      "location": "Дубай, ОАЭ",
+      "caption": "✈️ Туры в InterContinental Dubai Festival City\n📍 Дубай, ОАЭ.\n\nПрямой крытый переход в торговый центр Festival Centre. В InterContinental есть открытый бассейн со стеклянным полом, рестораны, терраса и сад. Подойдёт для городской поездки с покупками и отдыхом у воды. До общественного морского пляжа нужно ехать.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "INTERCONTINENTAL DUBAI FESTIVAL CITY",
+        "InterContinental Dubai Festival City"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2583"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2583",
+      "cover_sha256": "d79f35ae37e4488140cb060876d8c6227b4d2f19f94129cd74270f274561a3f9",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 75800,
+      "country_id": 1,
+      "name": "Cairo Marriott Hotel & Omar Khayyam Casino",
+      "location": "Каир, Египет",
+      "caption": "✈️ Туры в Cairo Marriott Hotel & Omar Khayyam Casino\n📍 Каир, Египет.\n\nПрогулки по Каиру и отдых у бассейна с подогревом. В Cairo Marriott есть рестораны, бары и терраса на крыше. Подойдёт для экскурсионной поездки с комфортными паузами между выездами. Отель расположен в центре города, до пирамид Гизы около 15 км.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "CAIRO MARRIOTT HOTEL & OMAR KHAYYAM CASINO",
+        "Cairo Marriott Hotel & Omar Khayyam Casino"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75800"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75800",
+      "cover_sha256": "71eb43a8144fb7abff4033ddf0b24412faabd9f29e4073374ead166ecdbd36c4",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 76311,
+      "country_id": 1,
+      "name": "Sheraton Cairo Hotel & Casino",
+      "location": "Каир, Египет",
+      "caption": "✈️ Туры в Sheraton Cairo Hotel & Casino\n📍 Каир, Египет.\n\nРестораны разных кухонь и открытый бассейн после прогулок по Каиру. В Sheraton можно выбрать итальянский или японский ужин, посетить тренажёрный зал и отдохнуть у воды. Подойдёт для городской поездки. Спа-услуги оплачиваются отдельно.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "SHERATON CAIRO HOTEL & CASINO",
+        "Sheraton Cairo Hotel & Casino"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76311"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76311",
+      "cover_sha256": "d5812b054cd9e6af76b9a9c75abce7f5a4805d2b6c93b6ed82f20c9dbb1e2a12",
+      "publication_allowed": false
+    },
+    {
+      "hotel_id": 16776,
+      "country_id": 4,
+      "name": "IC Hotels Airport",
+      "location": "Анталья, Турция",
+      "caption": "✈️ Туры в IC Hotels Airport\n📍 Анталья, Турция.\n\nОтдых у бассейна перед перелётом или после дороги. В IC Hotels Airport есть открытый и крытый бассейны, ресторан и бар. Подойдёт для короткой остановки в Анталье с возможностью спокойно отдохнуть между поездками. Это городской отель, не пляжный курорт.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "aliases": [
+        "IC HOTELS AIRPORT",
+        "IC Hotels Airport"
+      ],
+      "official_sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=16776"
+      ],
+      "provider_profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=16776",
+      "cover_sha256": "4e79609978e140ba272edceb867a358bb5ef35e0942c7ee98faf7397984282be",
+      "publication_allowed": false
+    }
+  ],
+  "intake_sha256": "63616652a32661a6a8d10257e585e273295ecc26749fe574c068ed162217276f",
+  "additional_holds": [
+    {
+      "hotel_id": 157,
+      "reason": "retained profile mentions Continental Plaza Beach facilities; clarify independent scope"
+    },
+    {
+      "hotel_id": 104122,
+      "reason": "retained location narrative may mix another Cairo property; do not publish disputed geography"
+    },
+    {
+      "hotel_id": 141330,
+      "reason": "hero appears architectural rendering; replace with proven real hotel photo before admission"
+    }
+  ],
+  "prices": "no saved fresh minimum supplied; none invented",
+  "sources": "retained exact paid Tourvisor profile archive; no new research"
+}

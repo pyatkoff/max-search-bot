@@ -1,4 +1,4 @@
-name: Validate eight retained publication inputs and freeze approved photos
+name: Validate44 retained hotel captions and frozen covers
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -11,7 +11,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'db0b44204d4e60cd60c556fedfe5424c9a11d267' &&
+      github.event.before == 'a11f5aa7cf53ea620cc48150e16df00c7e33f9a4' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
@@ -42,13 +42,13 @@ jobs:
           HEAD = os.environ['GITHUB_SHA']
           BRANCH = 'audit/content100-bot-publication-20261101'
           APP = 'cc017ee5bb669f4c7c13efc91d5c5812a50e55f2'
-          PLAN = json.loads(Path('tools/direct_demand/operations/commercial-expansion-wave8-reserve8-editorial-20261118.json').read_bytes())
+          PLAN = json.loads(Path('tools/direct_demand/operations/commercial-expansion-wave9-editorial-20261118.json').read_bytes())
           IDS = [row['hotel_id'] for row in PLAN['rows']]
           EDITORIAL = {row['hotel_id']:row for row in PLAN['rows']}
-          assert PLAN['state']=='WAVE8_CAPTIONS_CHECKED_AWAITING_SOURCE_ACCEPTANCE' and len(IDS)==len(EDITORIAL)==8
+          assert PLAN['state']=='WAVE9_CAPTIONS_CHECKED_AWAITING_SOURCE_ACCEPTANCE' and len(IDS)==len(EDITORIAL)==44
           KNOWN_PIN_CHANGES = [["f5975ab95de5f45e087eb7a0f768f566c5bca648","c6386e155d42bc83970edc95f35b3ebeb5140533"],["f0e04e9b4e0ed6859ced96279cbf0619931596e6","1982ff7368763edf8b7238c3142e3cc28579e991"],["db8181426091a685a79ee55991cde22671f0d9dd","94fb1988ac8caf90dc5103aa23c58e7aad6ea691"]]
-          PREFIX = '.github/traffic-publish/commercial-wave8-20261118'
-          FIRST_OPERATION = 60
+          PREFIX = '.github/traffic-publish/commercial-wave9-20261118'
+          FIRST_OPERATION = 61
           
           
           def api(path, method='GET', body=None, timeout=120):
@@ -82,7 +82,7 @@ jobs:
           
           
           source = Path('tools/direct_demand/operations')
-          intake = Path('tools/direct_demand/operations/commercial-expansion-wave8-reserve8-native-candidates-20261118.json').read_bytes()
+          intake = Path('tools/direct_demand/operations/commercial-expansion-wave9-50-native-candidates-20261118.json').read_bytes()
           drafts = json.loads(intake)
           assert digest(intake) == PLAN['intake_sha256']
           assert PLAN['country_ids_excluded'] == [11] and 66161 not in IDS
@@ -101,19 +101,19 @@ jobs:
               assert actual_profile['country']['id']==checked['country_id'] and actual_profile['country']['id']!=11
           
           by_id = {row['native_tourvisor_id']: row for row in drafts['rows']}
-          registry_zip = get_artifact(44214762427, 14387183141, 'c65518df5f997896e7cca9114d32a2a5c49d411b4fd9e51ff992e3fcf81cc67d')
+          registry_zip = get_artifact(44222702440, 14390824286, '9b481010bb914407a322d3faa73f2f494a2bb332f7f23f3afab8f16b5e233153')
           registry_bytes = registry_zip.read('registry-receipt.json')
           registry = json.loads(registry_bytes)
           assert set(IDS) <= set(registry['native_hotel_ids'])
           assert registry['installed_sha'] == APP and set(registry['channels']) == {'telegram', 'max'}
           assert not set(IDS) & {row['requested_id'] for row in registry['matches']}
           
-          review_zip = get_artifact(44214762500, 14387981090, 'f69392dba89fa34118c144b1e7cb7bf66cd2ff58834cf4119711cade280e84d9')
+          review_zip = get_artifact(44222702456, 14391501860, 'e056cc6e8735d5ea541bc3acd4b98506b1367006ba16e312ee966cda0bdc8d73')
           cover_receipt_bytes = review_zip.read('receipt.json')
           cover_receipt = json.loads(cover_receipt_bytes)
           assert cover_receipt['input_sha256'] == digest(intake)
           reviewed = {row['native_tourvisor_id']: row for row in cover_receipt['rows']}
-          photos = get_artifact(44214762500, 14386429949, 'c66a35357e64b3bc743a820cb73b5e84ad607444887047f4c21bf1d65977a7b5')
+          photos = get_artifact(44222702456, 14391217999, 'bc1878f124c82e59a4d3b9f0e8a4bff95579a40de31e6a07ebf988cca67ebe9e')
           
           main = info('git/ref/heads/main')['object']['sha']
           assert main == APP
@@ -154,11 +154,11 @@ jobs:
           assert info('git/ref/heads/' + BRANCH)['object']['sha'] == HEAD
           parent = info('git/commits/' + HEAD)
           tree = info('git/trees','POST',{'base_tree':parent['tree']['sha'],'tree':repo_entries})
-          frozen = info('git/commits','POST',{'message':'HOTEL CONTENT: freeze visually checked covers for eight hotels', 'tree':tree['sha'],'parents':[HEAD]})['sha']
+          frozen = info('git/commits','POST',{'message':'HOTEL CONTENT: freeze visually checked covers for44 hotels', 'tree':tree['sha'],'parents':[HEAD]})['sha']
           for row in rows:
               row['photo_url'] = f"https://raw.githubusercontent.com/{REPO}/{frozen}/{row.pop('photo_path')}"
-          assert len({row['photo_sha256'] for row in rows}) == 8
-          assert len({row['text_sha256'] for row in rows}) == 8
+          assert len({row['photo_sha256'] for row in rows}) == 44
+          assert len({row['text_sha256'] for row in rows}) == 44
           prepare = runpy.run_path(str(source/'prepare-commercial-batch.py'))['prepare']
           output = Path('accepted-source')
           output.mkdir()
@@ -185,7 +185,7 @@ jobs:
               (output/name).write_bytes(value)
           assert info('git/ref/heads/' + BRANCH)['object']['sha'] == HEAD
           assert info('git/ref/heads/main')['object']['sha'] == APP
-          receipt = {'state':'WAVE8_SOURCE_ACCEPTED_COVERS_STAGED','groups':groups,'native_hotel_ids':IDS,
+          receipt = {'state':'WAVE9_SOURCE_ACCEPTED_COVERS_STAGED','groups':groups,'native_hotel_ids':IDS,
                      'expected_app_sha':APP,'cover_commit':frozen,'poster_calls':0,'feed_writes':0,
                      'source_sha256':{name:digest(value) for name,value in package.items()}}
           (output/'source-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n',encoding='utf-8')
@@ -196,7 +196,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: commercial-wave8-accepted-source
+          name: commercial-wave9-accepted-source
           path: accepted-source/
           retention-days: 30
           if-no-files-found: warn
