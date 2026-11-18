@@ -1,4 +1,4 @@
-name: W18 fresh cached intake and original cover preparation, no sends
+name: W19 fresh cached intake and original cover preparation, no sends
 'on':
   push:
     branches:
@@ -10,7 +10,7 @@ permissions:
   actions: read
 jobs:
   prepare:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == '2d28627344c1508990d14f89362d5b825edadf69'
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == 'ad34e1f1719cc0a09ca9c4502b7db6a23d37db57'
       && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -25,22 +25,22 @@ jobs:
     - name: Prepare preserved licensed sources only
       env:
         GH_TOKEN: ${{ github.token }}
-      run: 'echo ''9a543a4d8961d0f6e871514337b67c32b260d9555943334e43f8b85f8b78b239  tools/direct_demand/operations/prepare-wave18-intake-20261118.py''
+      run: 'echo ''d93e4fe97586d70d0857fcd8a2388753acf4bd29415329029bf2e0dea5fcdac9  tools/direct_demand/operations/prepare-wave19-intake-20261118.py''
         | sha256sum -c -
 
-        echo ''e31cb732d25874a1f24d70b019d9cb07c2552ed946d4340841b0e78d4a210b52  tools/direct_demand/operations/wave18-prior-classified.json''
+        echo ''13b990f007cb1d676761b99eae7bdec46a552459c4bd8f0628df9067d314e078  tools/direct_demand/operations/wave19-prior-classified.json''
         | sha256sum -c -
 
-        python3 tools/direct_demand/operations/prepare-wave18-intake-20261118.py'
+        python3 tools/direct_demand/operations/prepare-wave19-intake-20261118.py'
     - if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
-        name: wave18-source-intake-preview
-        path: 'wave18/*.jpg
+        name: wave19-source-intake-preview
+        path: 'wave19/*.jpg
 
-          wave18/receipt.json
+          wave19/receipt.json
 
-          wave18/profiles.json'
+          wave19/profiles.json'
         retention-days: 30
         if-no-files-found: warn
 concurrency:
