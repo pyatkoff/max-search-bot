@@ -197,7 +197,7 @@ $tests['hotel star ranges preserve independent calendar evidence and genuine hot
         semanticPredictionAssert(ModeledConversionTextSignals::criteriaFamilies($text)===['dates'],
             'paired emphasis hid a calendar date or introduced a hotel category');
     }
-    foreach(['Категория 3/4 звезды, заезд 11/12/2027.','Заезд 3/4, отель 3/4 звезды',
+    foreach(['**Отель 3/4* с вылетом 4/5**','Категория 3/4 звезды, заезд 11/12/2027.','Заезд 3/4, отель 3/4 звезды',
         'На 8 ночей нужен отель 4/5*','Категория 3/4 звезды, вылет с 09.12 по 16.12.']as$text){
         semanticPredictionAssert(ModeledConversionTextSignals::criteriaFamilies($text)===['dates','requirements'],
             'rating masked a separate date or duration in the same turn');

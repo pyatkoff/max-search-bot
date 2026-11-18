@@ -32,7 +32,7 @@ final class ModeledConversionTextSignals
         if(str_contains($text,'/')){
             $range='[1-5](?:\h*/\h*[1-5])+';
             // Closing Markdown emphasis in “*departure 4/5*” is not a hotel star.
-            $categoryText=preg_replace('~(?<![\pL\pN*])(\*{1,3})(?![\s*])([^*\r\n]*?(?<![\d./])'.$range.')\1(?!\*)~u','$2',$text)??$text;
+            $categoryText=preg_replace('~(?<![\pL\pN*])(\*{1,3})(?![\s*])((?:(?!\1)[^\r\n])*?(?<![\d./])'.$range.')\1(?!\*)~u','$2',$text)??$text;
             // Remove only marked categories. Independent dates and durations keep their original source.
             $calendarText=preg_replace('~(?<![\d./])'.$range.'\h*(?:зв[её]зд\pL*|[*★⭐])~iu',' ',$categoryText,-1,$starRanges)??$categoryText;
         }
