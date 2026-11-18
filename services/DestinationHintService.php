@@ -6,38 +6,31 @@
  */
 class DestinationHintService
 {
+    // A compound entry carries its existing search separator and the parts of its complete name.
+    private const RESORTS = [
+        'Египет' => [
+            'хургада',
+            ['[-\s]?', ['эль', '(?:кусейр|кусеир|каусер|кузейр)']],
+            ['[-\s]?', ['марса', 'алам']],
+            'шарм',
+            ['[-\s]', ['шарм', 'эль', 'шейх']],
+        ],
+        'Турция' => ['алан(?:ь|и)я', 'анталья', 'кемер', 'белек', 'сид[еэ]'],
+        'ОАЭ' => [
+            'дубай',
+            ['[-\s]', ['рас', 'эль', 'хайм[ае]']],
+            'фуджейр[ае]',
+            'шардж[ае]',
+        ],
+        'Таиланд' => ['пхукет', 'паттай[яе]', ['[-\s]?', ['као', 'лак']]],
+    ];
+
     public static function countryFromText(string $text): string
     {
-        $patterns = [
-            'Египет' => [
-                '/\bхургада\b/ui',
-                '/\bэль[-\s]?(?:кусейр|кусеир|каусер|кузейр)\b/ui',
-                '/\bмарса[-\s]?алам\b/ui',
-                '/\bшарм(?:[-\s]эль[-\s]шейх)?\b/ui',
-            ],
-            'Турция' => [
-                '/\bалан(?:ь|и)я\b/ui',
-                '/\bанталья\b/ui',
-                '/\bкемер\b/ui',
-                '/\bбелек\b/ui',
-                '/\bсид[еэ]\b/ui',
-            ],
-            'ОАЭ' => [
-                '/\bдубай\b/ui',
-                '/\bрас[-\s]эль[-\s]хайм[ае]\b/ui',
-                '/\bфуджейр[ае]\b/ui',
-                '/\bшардж[ае]\b/ui',
-            ],
-            'Таиланд' => [
-                '/\bпхукет\b/ui',
-                '/\bпаттай[яе]\b/ui',
-                '/\bкао[-\s]?лак\b/ui',
-            ],
-        ];
-
-        foreach ($patterns as $country => $countryPatterns) {
-            foreach ($countryPatterns as $pattern) {
-                if (preg_match($pattern, $text)) {
+        foreach (self::RESORTS as $country => $names) {
+            foreach ($names as $name) {
+                $pattern = is_array($name) ? implode($name[0], $name[1]) : $name;
+                if (preg_match('~\b'.$pattern.'\b~iu', $text)) {
                     return $country;
                 }
             }
@@ -46,6 +39,21 @@ class DestinationHintService
         return '';
     }
 
+    /** Exact complete compound names, including the spelling with omitted separators. */
+    public static function isStandaloneCompoundResort(string $text): bool
+    {
+        if (strlen($text) > 128) {
+            return false;
+        }
+        foreach (self::RESORTS as $names) {
+            foreach ($names as $name) {
+                if (is_array($name) && preg_match('~\A'.implode('[-\h]?', $name[1]).'\z~iuD', $text) === 1) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     public static function seedCountry(array $parameters, string $text, array $current): array
     {
         if (!empty($parameters['country']) || !empty($current['country'])) {

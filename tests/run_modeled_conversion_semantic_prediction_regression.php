@@ -792,11 +792,14 @@ $tests['legacy immutable numeric digests remain valid without current-code downg
         ini_set('serialize_precision','14');
         $current=$p;$current['prediction_digest']=semanticPredictionLegacyDigest($current);
         semanticPredictionAssert(!ModeledConversionSemanticPrediction::digestMatches($current),'current model accepted legacy codec downgrade');
-        $previous=$p;$previous['model_sha256']='4e4d7c6908bf8246db08917de1b46dbdc904099b0c95afb92273f833b8c3ab42';
-        $previous['prediction_digest']=ModeledConversionSemanticPrediction::digest($previous);
-        semanticPredictionAssert(ModeledConversionSemanticPrediction::digestMatches($previous),'previous installed canonical profile lost');
-        $previous['prediction_digest']=semanticPredictionLegacyDigest($previous);
-        semanticPredictionAssert(!ModeledConversionSemanticPrediction::digestMatches($previous),'previous installed producer admitted an unsupported codec');
+        foreach(['4e4d7c6908bf8246db08917de1b46dbdc904099b0c95afb92273f833b8c3ab42',
+            '110bcfc73c7971ed59b6e73db2da9dca6fa7c8e32dbb82520e22525f9ed7037c']as$installed){
+            $previous=$p;$previous['model_sha256']=$installed;
+            $previous['prediction_digest']=ModeledConversionSemanticPrediction::digest($previous);
+            semanticPredictionAssert(ModeledConversionSemanticPrediction::digestMatches($previous),'previous installed canonical profile lost');
+            $previous['prediction_digest']=semanticPredictionLegacyDigest($previous);
+            semanticPredictionAssert(!ModeledConversionSemanticPrediction::digestMatches($previous),'previous installed producer admitted an unsupported codec');
+        }
         $changed=$p;$changed['estimated_probability']+=0.00000001;
         semanticPredictionAssert(!ModeledConversionSemanticPrediction::digestMatches($changed)
             &&ModeledConversionSemanticPrediction::digest($changed)!==$p['prediction_digest'],'small current tamper lost by canonical codec');
@@ -1340,6 +1343,9 @@ $tests['recorded departure alternatives do not turn a prior date into a destinat
     $v=$run([$q($city),$answer,$q($country),['text'=>'Египет'],$q($adults),['text'=>'2']]);
     semanticPredictionAssert($v['current_request_anchor']==='journal:4'
         &&$v['features']['criteria_families']===['destination','party'],'neutral alternatives became the anchor for later independently established criteria');
+    $origin=$run([$q($city),['text'=>'Шармэльшейх']]);
+    semanticPredictionAssert($origin['current_request_anchor']===null&&$origin['features']['criteria_families']===[],
+        'a compound resort given as the departure city became a trip destination');
     $v=$run([$q($country),['text'=>'Сочи']]);
     semanticPredictionAssert($v['features']['criteria_families']===['destination'],'country question lost its ordinary destination');
     $mixed=$run([$q($city),['text'=>'Казань / Сочи, подберите тур в Египет на 9 ночей']]);
@@ -1351,6 +1357,89 @@ $tests['recorded departure alternatives do not turn a prior date into a destinat
         $v=$run($unbound);
         semanticPredictionAssert(in_array('destination',$v['features']['criteria_families'],true),'an unbound city list was consumed as a reply to the bot');
     }
+};
+
+$tests['standalone compound resort is one customer criterion at the observed cutoff']=static function():void{
+    require_once dirname(__DIR__).'/services/ModeledConversionValueContract.php';
+    semanticPredictionAssert(ModeledConversionSemanticPrediction::RESORT_HINTS_SHA256===hash_file('sha256',dirname(__DIR__).'/services/DestinationHintService.php'),
+        'update the dictionary fingerprint in the assessed model before changing resort hints');
+    $project=static function(array $messages,array $deltas=[],?int $edited=null,?string $metadata=null):array{
+        $parts=semanticPredictionFreezeFixture($messages,'max');
+        if($deltas!==[]){
+            $parts[1]['offer_journey']=['offers'=>[]];
+            $parts=semanticPredictionOfferMoveTimes($parts,$deltas);
+        }
+        [$case,$wrapper,$document]=$parts;
+        foreach($case['rows']as&$row){
+            $message=$messages[(int)$row['journal_id']-1];
+            if(!empty($message['opaque'])||!empty($message['receipt'])){
+                $row['source_kind']=$row['snapshot']['source_kind']='event';
+                $row['snapshot']['payload']=['event_type'=>'unrecognized_receipt','actor_type'=>'system','payload_json'=>'{}'];
+                if(!empty($message['receipt'])){
+                    $row['snapshot']['source_timestamp_basis']='canonical_recording_unix_v1';
+                    $data=ConversationRecordClock::stamp(['project_key'=>'anytour','channel'=>'max'],$row['snapshot']['source_created_at_unix']);
+                    $row['snapshot']['payload']=['event_type'=>'manager_message','actor_type'=>'manager','payload_json'=>json_encode($data,JSON_THROW_ON_ERROR)];
+                }
+            }
+            if((int)$row['journal_id']===$edited)$row['source_version_no']=2;
+            if($metadata!==null)$row['snapshot']['payload']['metadata_json']=$metadata;
+        }
+        unset($row);
+        $clock=strtotime($document['requested_at'])+1;
+        $wrapper+=ModeledConversionEarlyForecast::freeze($case,$wrapper,$document,null,$clock,null,true);
+        $wrapper['deal_value_prediction']=ModeledConversionDealValue::freeze($wrapper,$case);
+        return [$wrapper['semantic_prediction'],ModeledConversionValueContract::candidate($wrapper,$wrapper['subject'],$clock-7*86400,$clock)];
+    };
+    $run=static fn(...$args):array=>$project(...$args)[0];
+    // Different exact spellings use one dictionary. Free-text country hints keep their existing separators and priority.
+    $answer=['text'=>'Шармэльшейх'];
+    foreach(['Шармэльшейх','Шарм-эль-Шейх','Шарм эль Шейх','Марсаалам','КАО-ЛАК']as$name)
+        semanticPredictionAssert(DestinationHintService::isStandaloneCompoundResort($name),'complete resort name missed');
+    semanticPredictionAssert(DestinationHintService::countryFromText('Шармэльшейх')===''
+        &&DestinationHintService::countryFromText('Выбор между Пхукетом и Шарм-эль-Шейхом: Шарм и Као-Лак')==='Египет'
+        &&DestinationHintService::seedCountry([],'Посмотрим Марсаалам',[])===['country'=>'Египет']
+        &&DestinationHintService::seedCountry(['country'=>'Турция'],'Марсаалам',[])===['country'=>'Турция'],
+        'public country hint or seeding behavior changed');
+
+    $opaque=['text'=>'fixture','admitted'=>false,'opaque'=>true];
+    $receipt=['text'=>'fixture','admitted'=>false,'receipt'=>true];
+    $origin=['role'=>'manager','text'=>'Из какого именно аэропорта возвращаетесь?'];
+    $prompt=['role'=>'manager','text'=>'Какой курорт предпочитаете?'];
+    $prefix=[['text'=>'Семьёй на 8 ночей'],$opaque,$prompt];
+    [$after,$candidate]=$project([...$prefix,$answer],[4=>190000]);
+    $refs=array_column($after['evidence'],'source_ref','feature');
+    semanticPredictionAssert($run($prefix)['current_request_anchor']===null&&$after['status']==='predicted'
+        &&$after['stage']==='substantive_dialogue'&&$after['estimated_probability']===0.05
+        &&$after['features']['meaningful_customer_turns']===1&&$after['features']['criteria_families']===['destination']
+        &&$after['current_request_anchor']==='journal:4'&&($refs['criteria_destination']??null)==='journal:4'
+        &&$after['outcome_observations']===[]&&($candidate['rank']??null)===1&&$candidate['stage']==='interest'
+        &&$candidate['source_ref']==='journal:4'&&$candidate['value']===500,'fresh resort did not produce independently evidenced interest');
+    $later=['role'=>'manager','text'=>'Отправила варианты для сравнения.'];
+    $reset=$run([...$prefix,$answer,$opaque,$later],[4=>190000,5=>190000,6=>190000]);
+    semanticPredictionAssert($reset['current_request_anchor']===null&&$reset['estimated_probability']===null,
+        'a later manager selection restored a barrier-cleared customer request');
+    $old=$run([['text'=>'Семьёй на 8 ночей'],$prompt,$answer],[3=>190000]);
+    semanticPredictionAssert($old['current_request_anchor']==='journal:3'&&$old['stage']==='substantive_dialogue'
+        &&$old['features']['meaningful_customer_turns']===1&&$old['features']['criteria_families']===['destination']
+        &&array_unique(array_column($old['evidence'],'source_ref'))===['journal:3'],'stale criteria carried into standalone resort');
+
+    foreach([[$prompt],[$answer+['role'=>'manager']],
+        [['text'=>'Не Шармэльшейх']],[['text'=>'«Шармэльшейх»']],[['text'=>'Шармэльшейх или Као-Лак']],
+        [['text'=>'Из Шармэльшейха']],[['text'=>'Шарм']],
+        [$origin,$answer],[$origin,$receipt,$answer],[$origin,$opaque,$answer],
+        [['role'=>'manager','text'=>'С какого курорта вы летите обратно?'],$answer],
+        [['role'=>'manager','text'=>'Вы вылетаете из Хургады или из Марса-Алама?'],$answer],
+        [['role'=>'manager','text'=>'Где получали багаж?'],$answer]]as$negative){
+        [$p,$candidate]=$project($negative);
+        semanticPredictionAssert($candidate===null&&!in_array('destination',$p['features']['criteria_families'],true)
+            &&$p['current_request_anchor']===null,'an ambiguous, relayed or outbound message became a destination');
+    }
+    $fresh=$run([$origin,$receipt,['text'=>'Спасибо.'],$prompt,$answer]);
+    semanticPredictionAssert($fresh['current_request_anchor']==='journal:5'&&$fresh['features']['criteria_families']===['destination'],
+        'a consumed departure question blocked a later independent destination reply');
+    foreach([$run([$answer],[],1),$run([$answer],[],null,'{"linked_message":{"type":"reply"}}'),
+        $run([$answer],[],null,'{"forwarded":true}')]as$p)
+        semanticPredictionAssert($p['estimated_probability']===null,'non-original resort source admitted');
 };
 
 $failures=0;

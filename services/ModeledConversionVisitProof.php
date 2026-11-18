@@ -421,7 +421,7 @@ final class ModeledConversionVisitProof
             if(!hash_equals($e['fingerprint'],self::fingerprint($row)))return ['available'=>false,'reason'=>'event_changed'];
             $at=$e['checked_at']??$cache['receipt']['checked_at'];
             return ['available'=>true,'fresh'=>$now-strtotime($at)<=900,'checked_at'=>$at,
-                'upload_status'=>$e['upload_status'],'linkage'=>$e['linkage'],'reason'=>$e['reason'],'visit_started_at'=>$e['visit_started_at'],
+                'upload_status'=>$e['upload_status'],'linkage'=>$e['linkage'],'reason'=>$e['reason']??null,'visit_started_at'=>$e['visit_started_at'],
                 'visit_goal_reaches'=>$e['visit_goal_reaches'],'visit_goal_value_rub'=>$e['visit_goal_value_rub']];
         }
         $prior=self::prior($row,$now);if($prior!==[])return self::forEvent($prior['cache'],$row,$now);

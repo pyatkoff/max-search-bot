@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__.'/ModeledConversionTextSignals.php';
+require_once __DIR__.'/DestinationHintService.php';
 require_once __DIR__.'/ArchivePredictiveRelativeWeights.php';
 require_once __DIR__.'/ModeledConversionQuestionnaireContext.php';
 
@@ -13,6 +14,9 @@ require_once __DIR__.'/ModeledConversionQuestionnaireContext.php';
 final class ModeledConversionSemanticPrediction
 {
     public const VERSION='semantic_purchase_heuristic_v1';
+    public const PRE_RESORT_MODEL_SHA256='110bcfc73c7971ed59b6e73db2da9dca6fa7c8e32dbb82520e22525f9ed7037c';
+    // This source is already in assessmentNamespace. CI requires this pin to move with the shared dictionary.
+    public const RESORT_HINTS_SHA256='e19b71cc8874b6fb8796a41ba2b1020b48e451f53288265f25c95b932641beb4';
     public const ASSUMPTIONS_VERSION='illustrative_funnel_2026_11_02_v1';
     public const STAGE_BASELINE_ASSUMPTIONS='stage_baseline_2026_11_06_v1';
     public const ADVERTISING_ASSUMPTIONS='early_dialogue_ads_2026_11_06_v1';
@@ -47,6 +51,7 @@ final class ModeledConversionSemanticPrediction
     private array $evidence=[];
     private array $messages=[];
     private ?array $pendingManagerQuote=null;
+    private bool $resortBlockedByLastQuestion=false;
     private ?array $questionnaireQuestion=null;
     private array $questionnaireAnswers=[];
     private ?int $lastQuestionnaireAt=null;
@@ -89,6 +94,7 @@ final class ModeledConversionSemanticPrediction
         int $available,int $sourceVersion,array $canonicalSemanticResult,bool $originalUnlinked=false):bool
     {
         $meta=$this->metadata($ref,$occurred,$available,$sourceVersion);
+        $otherField=$this->resortBlockedByLastQuestion;
         if($this->lastQuestionnaireAt!==null&&($occurred<$this->lastQuestionnaireAt
             ||$occurred-$this->lastQuestionnaireAt>86400))$this->barrier();
         if(!in_array($role,['customer','manager'],true)||strlen($redactedText)>32768
@@ -120,7 +126,17 @@ final class ModeledConversionSemanticPrediction
         if($reset){$this->barrier();$questionnaireAnswer=false;}
         if(($flags['reversed_clock']??false)===true||($flags['unknown_time']??false)===true
             ||($flags['context_barrier']??false)===true)return false;
+        $unsafe=false;
+        foreach(['quoted_or_relayed','past_trip','conditional','negation']as$key)
+            if(($flags[$key]??false)===true)$unsafe=true;
+        $directCustomer=$role==='customer'&&!$unsafe;
         if(isset($this->messages[$ref]))self::fail('duplicate_message');
+        $namedResort=$directCustomer&&$originalUnlinked&&$this->advertisingV1&&$sourceVersion===1
+            &&$question===null&&!$otherField&&DestinationHintService::isStandaloneCompoundResort($redactedText)
+            &&self::matchesResortSource();
+        // Like a fresh country reply, a self-contained destination starts its own evidence after stale context.
+        if($namedResort&&$this->anchor!==null&&!$this->canPreserveCustomerContext($occurred))$this->barrier();
+        $this->resortBlockedByLastQuestion=$role==='manager'&&self::managerAskedOtherField($redactedText);
         if(count($this->messages)>=50)self::fail('message_limit');
         $this->messages[$ref]=['role'=>$role,...$meta];
         if($role==='customer')$this->customerTurns++;
@@ -128,10 +144,6 @@ final class ModeledConversionSemanticPrediction
         // unrecognised reply or an intervening manager message.
         $this->questionnaireQuestion=null;
         if($questionnaireAnswer)$this->questionnaireAnswer($question['field'],$meta,$departureAlternatives);
-        $unsafe=false;
-        foreach(['quoted_or_relayed','past_trip','conditional','negation']as$key)
-            if(($flags[$key]??false)===true)$unsafe=true;
-        $directCustomer=$role==='customer'&&!$unsafe;
         // An original human quote can explain the next customer's comparison.
         // The quote alone never supplies criteria, price, or an offer identity.
         $previousQuote=$this->pendingManagerQuote;
@@ -163,6 +175,7 @@ final class ModeledConversionSemanticPrediction
         }
         $textSignals=ModeledConversionTextSignals::scan($redactedText);
         $families=$directCustomer?$textSignals['criteria_families']:[];
+        if($namedResort&&!in_array('destination',$families,true))$families[]='destination';
         $comp=$directCustomer&&$textSignals['explicit_comparison'];
         $modify=$directCustomer&&$textSignals['explicit_modification'];
         $packageFollowup=$originalUnlinked&&$directCustomer&&$previousQuote!==null&&$sourceVersion===1
@@ -173,7 +186,7 @@ final class ModeledConversionSemanticPrediction
         $cheaper=$directCustomer&&($textSignals['price_alternative_continued_search']||$packageFollowup);
         $this->messages[$ref]['price_alternative']=$cheaper;
         // Bare logistics and greetings do not establish a trip or seller choice.
-        $meaningful=$role==='customer'&&!$questionnaireAnswer&&($goals!==[]||($directCustomer&&(count($families)>=2
+        $meaningful=$role==='customer'&&!$questionnaireAnswer&&($namedResort||$goals!==[]||($directCustomer&&(count($families)>=2
             ||($this->anchor!==null&&($families!==[]||$comp||$modify||$cheaper)))));
         if($meaningful){
             if($this->anchor===null){
@@ -214,6 +227,18 @@ final class ModeledConversionSemanticPrediction
         return $questionnaireAnswer&&$departureAlternatives;
     }
 
+    private static function matchesResortSource():bool
+    {
+        static $matches=null;
+        return $matches??=hash_file('sha256',__DIR__.'/DestinationHintService.php')===self::RESORT_HINTS_SHA256;
+    }
+
+    private static function managerAskedOtherField(string $text):bool
+    {
+        if(self::hit('(?<!\pL)(?:откуда|(?:из|с)\s+како\pL*|(?:город|аэропорт|место)\pL*\s+(?:обратн\pL*\s+)?(?:вылет|отправлен)\pL*|(?:вылет|отправл)\pL*\s+(?:из|с))(?!\pL)',$text))return true;
+        return self::hit('[?？]',$text)&&!self::hit('(?<!\pL)(?:куда|како[йе]\s+(?:курорт|направление)|(?:курорт|направлени)\pL*\s+(?:предпочита|рассматрива|интересу)\pL*|в\s+какую\s+страну)(?!\pL)',$text);
+    }
+
     private static function isManagerPackageQuote(string $text):bool
     {
         // Bound the recognizable tour row; prices are never read into the value model here.
@@ -247,6 +272,7 @@ final class ModeledConversionSemanticPrediction
         $this->anchor=null;$this->anchorVersion=null;$this->anchorEvidence=null;
         $this->customerTurns=0;$this->meaningfulTurns=0;$this->lastMeaningfulAt=null;$this->positives=[];$this->criteria=[];
         $this->evidence=[];$this->messages=[];$this->pendingManagerQuote=null;$this->currentOutcome=false;
+        // An unread receipt cannot turn the last known question about another field into destination evidence.
         $this->questionnaireQuestion=null;$this->questionnaireAnswers=[];$this->lastQuestionnaireAt=null;
         $this->urgency=false;$this->longRange=false;$this->deferred=false;$this->declined=false;
         $this->comparison=false;$this->modification=false;$this->priceAlternative=false;
@@ -290,6 +316,7 @@ final class ModeledConversionSemanticPrediction
         if($sourceVersion!==1||$field===null)return false;
         if($this->lastQuestionnaireAt!==null&&($occurred<$this->lastQuestionnaireAt
             ||$occurred-$this->lastQuestionnaireAt>86400))$this->barrier();
+        $this->resortBlockedByLastQuestion=$field!=='country';
         $this->questionnaireQuestion=['field'=>$field,...$meta];
         return true;
     }
@@ -450,7 +477,7 @@ final class ModeledConversionSemanticPrediction
             $current=hash_file('sha256',__FILE__);
             if(!is_string($current))return false;
             if(array_key_exists('model_sha256',$prediction)&&(!is_string($prediction['model_sha256'])
-                ||in_array($prediction['model_sha256'],[$current,
+                ||in_array($prediction['model_sha256'],[$current,self::PRE_RESORT_MODEL_SHA256,
                     '4e4d7c6908bf8246db08917de1b46dbdc904099b0c95afb92273f833b8c3ab42'],true)))return false;
             unset($prediction['prediction_digest']);
             return hash_equals($given,hash('sha256',self::encodeDigestValue(self::ordered($prediction),true)));
