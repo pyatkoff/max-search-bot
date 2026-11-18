@@ -1,0 +1,3098 @@
+{
+  "accepted_ids": [
+    11401,
+    622,
+    8005,
+    58095,
+    22737,
+    24878,
+    50943,
+    110562,
+    125787,
+    126911,
+    52252,
+    61641,
+    63690,
+    103281,
+    126756,
+    128156,
+    132999,
+    47466,
+    61633,
+    66523,
+    66558,
+    793,
+    3027,
+    8162,
+    28564,
+    778,
+    23253,
+    50651,
+    52102,
+    61638,
+    37931,
+    34556,
+    37932,
+    44420,
+    7463,
+    4056,
+    126441,
+    102203,
+    20969,
+    45536,
+    45862,
+    55550,
+    57326,
+    62816,
+    62819,
+    64555,
+    64632,
+    65251,
+    68198,
+    71256,
+    74116,
+    74122,
+    80757,
+    81283,
+    96963,
+    100822,
+    102201,
+    103396,
+    103561
+  ],
+  "operational_review": {
+    "11401": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.rachaislandresort.com/index.php",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11401"
+      ],
+      "evidence": "Официальный сайт Rayaburi подтверждает Racha Island/Siam Bay, действующие номера и бронирование."
+    },
+    "622": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://darasamui.com/accommodation/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=622",
+        "https://darasamui.com/special-offer/pamper-yourself/"
+      ],
+      "evidence": "Официальные условия подтверждают минимум12лет и действующие категории; специальное предложение распространяется на проживание до20.12.2026."
+    },
+    "8005": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://krabichada.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8005"
+      ],
+      "evidence": "Официальный сайт с прямым бронированием и адресом500Moo2AoNang совпадает с профилем."
+    },
+    "58095": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.patongbayhill.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=58095"
+      ],
+      "evidence": "Действующая официальная форма бронирования; HasippiHill, suites и ресторан подтверждены."
+    },
+    "22737": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.dhevan-dara.com/huahin/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=22737"
+      ],
+      "evidence": "Официальная группа явно разделяет HuaHinResortSpa и BeachVillaKuiburi; действующее бронирование HuaHin."
+    },
+    "24878": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.dhevan-dara.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=24878",
+        "https://www.dhevan-dara.com/wp-content/uploads/2025/10/Spa-Menu-v2.pdf"
+      ],
+      "evidence": "Официальная группа предлагает отдельный BeachVillaKuiburi; официальный spa-menu2025 подтверждает работающий объект."
+    },
+    "50943": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://kupuphangan.com/contact/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=50943"
+      ],
+      "evidence": "Официальный действующий KupuKupuPhangan, точный адрес совпадает; условия трансфера и доступности опубликованы оператором."
+    },
+    "110562": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.khaolakbluelagoon.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=110562"
+      ],
+      "evidence": "Официальный сайт с Rates&Reservation и точным адресом61/1Moo3; актуальные бунгало/услуги."
+    },
+    "125787": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.blumonkeybangtaophuket.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=125787",
+        "https://trustedthailand.tourismthailand.org/en/establishments/detail/0624"
+      ],
+      "evidence": "Официальный сайт73rooms с действующим бронированием; TATTrustedThailand подтверждает объект и сертификацию24.11.2025–24.11.2026."
+    },
+    "126911": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://bayvillasphangan.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126911"
+      ],
+      "evidence": "Официальный действующий каталог вилл2–6спален и форма бронирования, расположение high above HaadSaladBay."
+    },
+    "52252": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.hoianchic.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=52252"
+      ],
+      "evidence": "Официальный HoiAnChicGreenRetreat подтверждает тот же объект/координаты, действующее бронирование и услуги."
+    },
+    "61641": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://parisdelihotel.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=61641"
+      ],
+      "evidence": "Официальный сайт с актуальной лицензией2025, адрес236VoNguyenGiap совпадает; комнаты и прямое бронирование действуют."
+    },
+    "63690": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://bluesunhotel.com.vn/en/dich-vu-tien-ich/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=63690"
+      ],
+      "evidence": "Официальный работающий сайт с программойDIFF2026 и адресом230VoNguyenGiap; устаревшее описание indoorpool не использовано."
+    },
+    "103281": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://monarquehotel.vn/en/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=103281"
+      ],
+      "evidence": "Официальный сайт с предложениемFESTIVE26,75номеров и адресом238VoNguyenGiap подтверждает текущую работу."
+    },
+    "126756": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://nhuminhplazahotel.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126756"
+      ],
+      "evidence": "Официальный сайт с действующими предложениями,комнатами и адресомPhamVanDong; крытый бассейн подтверждён."
+    },
+    "128156": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.hyatt.com/unscripted-by-hyatt/en-US/vn101-wink-danang-centre",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=128156"
+      ],
+      "evidence": "Hyatt подтверждает действующий Wink Danang Centre по178 Tran Phu,244 номера. https://wink-hotels.com/hotel/wink-hotel-danang-centre/ сохраняет Wink и уточняет Unscripted by Hyatt; это подтверждённая affiliation, не неразрешённая подмена объекта. FAQ подтверждает24h laundromat."
+    },
+    "132999": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.champtonhotel.com/nhatrang",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=132999"
+      ],
+      "evidence": "Официальный действующий сайт с availability/95rooms по51 Tran Quang Khai, rooftop pool/bar, spa/fitness,Salam; открытие не будущий проект."
+    },
+    "47466": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.hoiangardenpalace.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=47466"
+      ],
+      "evidence": "Действующие комнаты/booknow, pool200m²/gym/spa; официальный сайт прямо halfway oldtown/CuaDai. Native address311 Cua Dai."
+    },
+    "61633": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.fvg.com.vn/business/dich-vu-du-lich-1/fivitel-danang-hotel/fivitel-danang-hotel.html",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=61633"
+      ],
+      "evidence": "Оператор FVG подтверждает действующий Fivitel Da Nang уTran Thi Ly, телефон совпадает; https://fvgtravel.com.vn/en/hotel действующая сеть. Не перепутан с Fivitel Boutique/Gopatel."
+    },
+    "66523": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://balconahotel.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=66523"
+      ],
+      "evidence": "Действующая официальная карточка288 Vo Nguyen Giap, https://balconahotel.com/restaurants-bars/ подтверждает Aqua20floor. Native profile бассейн146м²/клуб/депозит."
+    },
+    "66558": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.emmhotels.com/en/emm-hotel-hue/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=66558"
+      ],
+      "evidence": "Оператор TMG, текущие предложения доDec2026/Apr2027, точный адрес15 Ly Thuong Kiet Hue; facilities swimmingpool иrestaurant подтверждены https://www.emmhotels.com/en/."
+    },
+    "793": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://siambayshorepattaya.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=793"
+      ],
+      "evidence": "Действующий официальный отель Sukosol с bookstay,SwimmingPools,LotusSpa; южный конец PattayaBeach и собственные green gardens."
+    },
+    "3027": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.thedewakohchang.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=3027"
+      ],
+      "evidence": "Действующий официальный сайт с travelanium booking и Klong Prao; native profile pool/restaurants/beach/tides."
+    },
+    "8162": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.siamatsiam.com/bangkok/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8162"
+      ],
+      "evidence": "Официальный действующий Bangkok с rooms/booknow,Pool&Fitness и ресторанами TAAN/ChimChim/ParadiseLost. Native address865 Rama1 подтверждает Bangkok неPattaya."
+    },
+    "28564": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.siamatsiam.com/pattaya/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=28564"
+      ],
+      "evidence": "Официальная действующая Pattaya page,booknow/poolfitness/BigFish/Skybar; адрес390 Moo9 совпадает native, неBangkok."
+    },
+    "778": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.samuiparadise.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=778"
+      ],
+      "evidence": "Официальный сайт действующего resort49 Moo3 Chaweng, booknow; terrace villas/suites,beachfront,poolrestaurant иFamilySuite2bedrooms совпадают."
+    },
+    "23253": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.bandaragroup.com/bandara-suites-silom-bangkok/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23253"
+      ],
+      "evidence": "Действующий официальный all-suite hotel240rooms,2pools/fitness,Touka, адрес75/1 Saladaeng; samephone2660505."
+    },
+    "50651": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://eldorahotel.com/facilities.html",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=50651"
+      ],
+      "evidence": "Официальные facilities/accommodation доступны в поисковом индексе, address60 Ben Nghe,booknow; https://www.eldorahotel.com/leisure.html подтверждает14floor unheatedpool/gym/sauna. Государственный реестрHue2026 подтверждает гостиницуEldora."
+    },
+    "52102": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.baanwanglang.com/home.html",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=52102"
+      ],
+      "evidence": "Официальный действующий сайт с Cloudbeds booknow,адрес342SoiWatRakang,Siriraj,рестораны/бар; https://www.baanwanglang.com/riverfront.html разделяетSuperior cityview иRiverfront."
+    },
+    "61638": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://mkpremier.vn/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=61638"
+      ],
+      "evidence": "Официальный сайт с MakeAReservation и CheckAvailability; контакт 72–74 Hang Buom совпадает с координатами native. MK Rooftop Bar, Restaurant, Fitness перечислены оператором."
+    },
+    "37931": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://nhatrangpalacehotel.com.vn/bookings/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=37931"
+      ],
+      "evidence": "Текущая официальная карточка и booking rules: 9 Yersin совпадает с native; возможный cash deposit. Native infrastructure: бассейн, ресторан, зал, пляж 150 м через дорогу."
+    },
+    "34556": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://pattayaseaviewhotel.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=34556"
+      ],
+      "evidence": "Официальный сайт: текущие 55 rooms, категории и контакты 115/8 Moo9 совпадают. Страница /facility/swimming-pool/ подтверждает saltwater pool open daily; native: 100 м пляж, Marina 500 м, депозит."
+    },
+    "37932": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.regaliahotel.vn/en/about-us/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=37932"
+      ],
+      "evidence": "Официальные About Us и Contact: 98B Tran Phu совпадает с native; действующая презентация 103 rooms, контактная форма, бассейн 16-й этаж. Native: ресторан/бары, пляж через дорогу и отсутствие адаптированных номеров. Не смешивать с Regalia Gold."
+    },
+    "44420": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://palace.brghospitality.vn/en/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=44420"
+      ],
+      "evidence": "Официальный оператор BRG: Palace 1 Nguyen Trai, текущие комнаты и booking page. Native: бассейн/ресторан/зал. Distance conflicting 170/500 м, поэтому точные метры не обещаем, только nearby public beach."
+    },
+    "7463": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://rex.brghospitality.vn/en/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=7463"
+      ],
+      "evidence": "Действующий официальный BRG: текущие комнаты Check rates, 1 Le Quy Don совпадает с native, напротив парка в Bai Truoc. Native подтверждает pool/restaurant/fitness."
+    },
+    "4056": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://nhatranglodgehotel.com/en/home",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4056"
+      ],
+      "evidence": "Официальная презентация и /en/booking действуют; 42 Tran Phu совпадает с native. Native: бассейн90 кв.м, Lodge restaurant, общественный пляж, депозит, отсутствие адаптированных комнат."
+    },
+    "126441": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://songhanhotel.com.vn/about.html",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126441"
+      ],
+      "evidence": "Текущий официальный Song Han/Han River: адрес14 Ly Tu Trong совпадает, 133 rooms, 3restaurants, bar, booking entrypoint; policy английски называет Han River Hotel. Native beach3.5км. Бассейн не обещаем без current corroboration."
+    },
+    "102203": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://cocophuket.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=102203"
+      ],
+      "evidence": "Официальный COCO:153 Soi Cherngtalay14, текущие rates/direct booking, бассейн и фитнес; native точно2пула, кафе, пляж900м и cash deposit."
+    },
+    "20969": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.ramadaplazabangkokriverside.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=20969"
+      ],
+      "evidence": "Текущий оператор и Wyndham: current501rooms, easternbankChaoPhraya,2074Charoenkrung; native бассейн500м2,рестораны,SPA,депозит3000бат."
+    },
+    "45536": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.maitriahotels.com/sukhumvitbangkok",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=45536"
+      ],
+      "evidence": "Официальный Chatrium: действующие offers/booknow, адрес26SukhumvitSoi18; rooftop pool,gym,CoffeeClub,coin-operatedlaundrette. Native generic golf/kidsclub не используем."
+    },
+    "45862": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.eastinhotelsresidences.com/eastintanchiangmai/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=45862"
+      ],
+      "evidence": "Официальный current TravelclickBookNow, текущиеfamily/culturaloffers; pool2floor,gymsteam,TStation. Native адрес165HuayKaew совпадает."
+    },
+    "55550": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://all.accor.com/hotel/7049/index.en.shtml",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=55550"
+      ],
+      "evidence": "Accor current booking с датой18/11/2026:94LyThuongKiet; FrenchQuarter,frontstation,24/7gym,Brasserie. Не используем сомнительные native tennis/spa."
+    },
+    "57326": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://goldensilkhotel.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=57326"
+      ],
+      "evidence": "Текущий official с summer2026/bookingoffers:109–111HangGai; rooftopOriental,RendezVousCafe; актуальные roomlabels DeluxeInternalWindow/LuxuryInternalView."
+    },
+    "62816": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://all.accor.com/hotel/9813/index.en.shtml",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=62816"
+      ],
+      "evidence": "Current Accor booking18/11/2026:5DuyTanCauGiay,151rooms,fullyequippedkitchenette,pool,gym,sauna; nativecoords совпадают."
+    },
+    "62819": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://silkpathhotel.com/hanoiboutique/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=62819"
+      ],
+      "evidence": "Официальный SilkPath различает HotelHanoi и BoutiqueHanoi; действующие directoffers иrooms, HoanKiemlake. Nativecoords/телефон совпадают с Boutique,33номера,200мTrangTien."
+    },
+    "64555": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://booking.muongthanh.com/hotel-muong-thanh-grand-ha-noi-centre",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64555"
+      ],
+      "evidence": "Действующая страница бронирования Muong Thanh Grand Hanoi Centre; центральный Ханой, совпадает расположение, подтверждены расстояния до Hoan Kiem и Hoa Lo. Grand — актуальное полное имя того же объекта."
+    },
+    "64632": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://all.accor.com/hotel/9343/index.en.shtml",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64632"
+      ],
+      "evidence": "Accor: активное бронирование и отзывы 2026; адрес 19/9 Sukhumvit 20 и GPS совпадают с профилем, семейная инфраструктура и путь до BTS подтверждены."
+    },
+    "65251": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://all.accor.com/hotel/6185/index.en.shtml",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=65251"
+      ],
+      "evidence": "Accor: активные номера и бронирование, адрес 160 Ha Long road Bai Chay. Это Халонг, не регион Ханой из каталога. Официально opposite position to beach access way."
+    },
+    "68198": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://ttchospitality.vn/ttc-hotel/TTC-HOTEL--HOI-AN?sa=X&ved=2ahUKEwiB0JGutp-AAxXqSKsCHR_gA8UQyK4DegUIAxDKBQ",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=68198"
+      ],
+      "evidence": "Официальная индексируемая карточка TTC Hotel Hoi An: 52 номера, Areca, открытый бассейн, 1.2/3 км. Дополнительно актуальный список официальных контактов сети подтверждает 02353963666 и info.hoian@ttchotels.com; предложение к Новому 2026 году. Без query сайт отдаёт 404, это не объявление закрытия."
+    },
+    "71256": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://holidayvungtau.muongthanh.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=71256"
+      ],
+      "evidence": "Действующий официальный Muong Thanh Holiday Vung Tau, адрес 9 Thong Nhat и телефон +84 254 3552468 соответствуют native с прежним кодом города. Подтверждены бассейн/fitness/spa."
+    },
+    "74116": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://hue.ecolodge.asia/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=74116"
+      ],
+      "evidence": "Официальный действующий сайт и /en/booking.html: 02 Luong Quan, Hue, Thuy Bieu, бунгало/сад/велопрогулки; native координаты соответствуют Хюэ, не Данангу."
+    },
+    "74122": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.grandcititelhanoi.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=74122"
+      ],
+      "evidence": "Официальный сайт и /reservations.html с бронированием, адрес 13B Tong Dan Hoan Kiem; Rice, Joy Lounge и gym. Не использованы посторонние фрагменты boilerplate про Le Chanvre."
+    },
+    "80757": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://all.accor.com/hotel/B0M2/index.en.shtml",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=80757"
+      ],
+      "evidence": "Accor: действующая карточка с бронированием, адрес 5/1 Sukhumvit 24, телефон +66 2 6592888 и GPS совпадают. BTS 100 м и rooftop pool подтверждены."
+    },
+    "81283": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.explorarhotels.com/koh-phangan/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=81283"
+      ],
+      "evidence": "Официальный действующий Reserve Now с телефон +66 77951567 совпадающим с native; контактный адрес Koh Phangan 117/21. Возраст 16+ указан сетью и Exhale menu 2025. Не Самуи; бывший The Coast учтён в aliases, текущий Explorar действует."
+    },
+    "96963": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.bestwestern.com/en-us/book/hotel/hua-hin/best-western-plus-carapace-hotel-hua-hin/99929",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=96963"
+      ],
+      "evidence": "Официальная сеть: активное бронирование 2026, адрес 5/219 Soi Hua Hin 101 совпадает; seaside/freeform lagoon pools, ресторан и fitness. Расстояние до центра из native сохранено."
+    },
+    "100822": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.bwpluswandagrand.com/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=100822"
+      ],
+      "evidence": "Действующий официальный сайт: адрес 111 Moo4 Chaengwattana Pakkret и phone 025828282 совпадают. MRT70m/pool/fitness; ошибочные native nearby Jim Thompson/Royal Palace отброшены."
+    },
+    "102201": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://all.accor.com/hotel/B631/index.en.shtml",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=102201"
+      ],
+      "evidence": "Accor: действующая карточка, отзывы октября2026; адрес109 Sukhumvit Tha Pradu и телефон033017980 совпадают. Food Exchange и fitness; бассейн не обещан из-за неоднозначной fee-формулировки официального FAQ. Ошибочные nearby из native не использованы."
+    },
+    "103396": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.bestwestern.com/en-us/book/hotel/bangkok/best-western-sukhumvit-20/99353",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=103396"
+      ],
+      "evidence": "Официальный property99353: действующий Best Western Sukhumvit20, адрес17 Soi20 совпадает. Старое имя Best Western Plus At20 Sukhumvit ведёт к тому же property99353; переход разрешён, не другая гостиница."
+    },
+    "103561": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.maitriahotels.com/modesukhumvitbangkok/booking",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=103561"
+      ],
+      "evidence": "Официальная активная booking с Family Room 64m² two bedrooms/bathrooms; factsheet MHR подтверждает81 Sukhumvit15/026513355/pool. Старое U Hotel Sukhumvit сменило бренд в2021, текущая работа Maitria подтверждена, aliases проверены."
+    }
+  },
+  "countries": {
+    "11401": 2,
+    "622": 2,
+    "8005": 2,
+    "58095": 2,
+    "22737": 2,
+    "24878": 2,
+    "50943": 2,
+    "110562": 2,
+    "125787": 2,
+    "126911": 2,
+    "52252": 16,
+    "61641": 16,
+    "63690": 16,
+    "103281": 16,
+    "126756": 16,
+    "128156": 16,
+    "132999": 16,
+    "47466": 16,
+    "61633": 16,
+    "66523": 16,
+    "66558": 16,
+    "793": 2,
+    "3027": 2,
+    "8162": 2,
+    "28564": 2,
+    "778": 2,
+    "23253": 2,
+    "50651": 16,
+    "52102": 2,
+    "61638": 16,
+    "37931": 16,
+    "34556": 2,
+    "37932": 16,
+    "44420": 16,
+    "7463": 16,
+    "4056": 16,
+    "126441": 16,
+    "102203": 2,
+    "20969": 2,
+    "45536": 2,
+    "45862": 2,
+    "55550": 16,
+    "57326": 16,
+    "62816": 16,
+    "62819": 16,
+    "64555": 16,
+    "64632": 2,
+    "65251": 16,
+    "68198": 16,
+    "71256": 16,
+    "74116": 16,
+    "74122": 16,
+    "80757": 2,
+    "81283": 2,
+    "96963": 2,
+    "100822": 2,
+    "102201": 2,
+    "103396": 2,
+    "103561": 2
+  },
+  "aliases": {
+    "11401": [
+      "racha island resort by rayaburi",
+      "racha island resort",
+      "rayaburi racha"
+    ],
+    "622": [
+      "dara samui beach resort & spa villa",
+      "dara samui"
+    ],
+    "8005": [
+      "krabi chada resort",
+      "krabi chada"
+    ],
+    "58095": [
+      "patong bay hill resort & spa",
+      "patong bay hill"
+    ],
+    "22737": [
+      "dhevan dara resort & spa",
+      "dhevan dara resort",
+      "dhevan-dara resort"
+    ],
+    "24878": [
+      "dhevan dara beach villa",
+      "dhevan-dara beach villa"
+    ],
+    "50943": [
+      "kupu kupu phangan beach villas & spa",
+      "kupu kupu phangan",
+      "kupu kupu koh phangan"
+    ],
+    "110562": [
+      "khao lak blue lagoon resort",
+      "khao lak blue lagoon",
+      "khaolak blue lagoon"
+    ],
+    "125787": [
+      "blu monkey hub & hotel bangtao beach phuket",
+      "blu monkey bangtao",
+      "blu monkey hub & hotel bangtao"
+    ],
+    "126911": [
+      "bay villas koh phangan",
+      "bay villas phangan"
+    ],
+    "52252": [
+      "hoi an chic",
+      "hoian chic"
+    ],
+    "61641": [
+      "paris deli danang",
+      "paris deli"
+    ],
+    "63690": [
+      "bluesun hotel danang",
+      "bluesun danang",
+      "blue sun danang"
+    ],
+    "103281": [
+      "monarque hotel danang",
+      "monarque hotel"
+    ],
+    "126756": [
+      "nhu minh plaza danang hotel",
+      "nhu minh plaza"
+    ],
+    "128156": [
+      "Wink Hotel Danang Centre",
+      "Wink Danang Centre",
+      "Wink Danang Centre Unscripted by Hyatt"
+    ],
+    "132999": [
+      "Champton Nha Trang",
+      "Champton Nha Trang Hotel"
+    ],
+    "47466": [
+      "Hoi An Garden Palace",
+      "Hoi An Garden Palace & Spa"
+    ],
+    "61633": [
+      "Fivitel Da Nang",
+      "Fivitel Da Nang Hotel",
+      "Fivitel Danang Hotel"
+    ],
+    "66523": [
+      "Balcona Hotel Da Nang",
+      "Balcona Hotel Danang"
+    ],
+    "66558": [
+      "Emm Hotel Hue",
+      "EMM Hotel Hue",
+      "ÊMM Hotel Hue"
+    ],
+    "793": [
+      "Siam Bayshore Hotel",
+      "Siam Bayshore Resort Pattaya",
+      "Siam Bayshore Pattaya"
+    ],
+    "3027": [
+      "The Dewa Koh Chang"
+    ],
+    "8162": [
+      "Siam At Siam Design Hotel Bangkok",
+      "Siam@Siam Design Hotel Bangkok"
+    ],
+    "28564": [
+      "Siam At Siam Design Hotel Pattaya",
+      "Siam@Siam Design Hotel Pattaya"
+    ],
+    "778": [
+      "Samui Paradise",
+      "Samui Paradise Chaweng Beach Resort",
+      "Samui Paradise Chaweng Beach Resort & Spa"
+    ],
+    "23253": [
+      "Bandara Suites Silom",
+      "Bandara Suites Silom Bangkok"
+    ],
+    "50651": [
+      "Eldora Hue",
+      "Eldora Hotel Hue"
+    ],
+    "52102": [
+      "Baan Wanglang Riverside",
+      "Baan Wang Lang Riverside"
+    ],
+    "61638": [
+      "Mk Premier Boutique",
+      "MK Premier Boutique Hotel"
+    ],
+    "37931": [
+      "Nha Trang Palace Hotel",
+      "Nha Trang Palace"
+    ],
+    "34556": [
+      "Pattaya Sea View",
+      "Pattaya Seaview Hotel",
+      "Pattaya Sea View Hotel"
+    ],
+    "37932": [
+      "Regalia Hotel",
+      "Regalia Nha Trang Hotel"
+    ],
+    "44420": [
+      "Palace Vung Tau",
+      "Palace Hotel Vung Tau"
+    ],
+    "7463": [
+      "Rex Hotel Vung Tau",
+      "Rex Vung Tau"
+    ],
+    "4056": [
+      "Nha Trang Lodge",
+      "Nha Trang Lodge Hotel"
+    ],
+    "126441": [
+      "Da Nang Han River Hotel",
+      "Danang Han River Hotel"
+    ],
+    "102203": [
+      "Hotel Coco Phuket Bangtao",
+      "Hotel Coco Phuket Bangtao Beach"
+    ],
+    "20969": [
+      "Ramada Plaza By Wyndham Bangkok Menam Riverside",
+      "Ramada Plaza Bangkok Menam Riverside",
+      "Menam Riverside Hotel"
+    ],
+    "45536": [
+      "Maitria Hotel Sukhumvit 18",
+      "Maitria Hotel Sukhumvit 18 Bangkok"
+    ],
+    "45862": [
+      "Eastin Tan",
+      "Eastin Tan Hotel Chiang Mai"
+    ],
+    "55550": [
+      "Mercure Hanoi La Gare",
+      "Mercure Hanoi la Gare"
+    ],
+    "57326": [
+      "Golden Silk Boutique",
+      "Golden Silk Boutique Hotel"
+    ],
+    "62816": [
+      "Novotel Suites Hanoi",
+      "Novotel Suites Hanoi Hotel"
+    ],
+    "62819": [
+      "Silk Path Boutique",
+      "Silk Path Boutique Hanoi"
+    ],
+    "64555": [
+      "Muong Thanh Hanoi Centre Hotel",
+      "Muong Thanh Grand Hanoi Centre Hotel"
+    ],
+    "64632": [
+      "Novotel Bangkok Sukhumvit 20"
+    ],
+    "65251": [
+      "Novotel Halong Bay",
+      "Novotel Ha Long Bay"
+    ],
+    "68198": [
+      "Ttc Hotel Premium - Hoi An",
+      "TTC Hotel Hoi An"
+    ],
+    "71256": [
+      "Muong Thanh Vung Tau",
+      "Muong Thanh Holiday Vung Tau Hotel"
+    ],
+    "74116": [
+      "Hue Ecolodge"
+    ],
+    "74122": [
+      "Grand Cititel Hanoi",
+      "Grand Cititel Hanoi Hotel"
+    ],
+    "80757": [
+      "Mercure Bangkok Sukhumvit 24"
+    ],
+    "81283": [
+      "Explorar Koh Phangan Adults Only 16+",
+      "Explorar Koh Phangan",
+      "The Coast Resort Koh Phangan"
+    ],
+    "96963": [
+      "Best Western Plus Carapace Hotel Hua Hin"
+    ],
+    "100822": [
+      "Best Western Plus Wanda Grand Hotel"
+    ],
+    "102201": [
+      "Novotel Rayong Star Convention Centre"
+    ],
+    "103396": [
+      "Best Western Sukhumvit 20",
+      "Best Western Plus At 20 Sukhumvit"
+    ],
+    "103561": [
+      "Maitria Mode Sukhumvit 15 Bangkok A Chatrium Collection",
+      "Maitria Mode Sukhumvit 15",
+      "U Hotel Sukhumvit",
+      "U Sukhumvit Bangkok"
+    ]
+  },
+  "editorial": {
+    "11401": {
+      "id": 11401,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Racha Island Resort By Rayaburi\n📍 остров Рача, бухта Сиам, Таиланд.\n\nДля отдыха вдали от оживлённого Пхукета: песчаная бухта, тропический сад, бассейн и ресторан тайской и итальянской кухни. На остров добираются на катере; морской трансфер нужно учитывать при выборе рейса.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "official: Siam Bay/Racha Island, garden, restaurant, boat transfer; native: pool.",
+      "material_conditions": "Остров; необходим морской трансфер.",
+      "aliases": [
+        "racha island resort by rayaburi",
+        "racha island resort",
+        "rayaburi racha"
+      ],
+      "alias_ready": true,
+      "alias_reason": "No specific property alias/native ID match in registry.",
+      "alias_registry_sha256": "0db55facf848a4b0ef37d55434725be745ee54851efa97c2e06461f0a0bb6f92",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.rachaislandresort.com/index.php",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=11401"
+        ],
+        "evidence": "Официальный сайт Rayaburi подтверждает Racha Island/Siam Bay, действующие номера и бронирование."
+      },
+      "caption_sha256": "6ef71f8ce23ff87562adfa4c31cfd3687ce786cd398a5c5f69cd219cc9160223"
+    },
+    "622": {
+      "id": 622,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Dara Samui Beach Resort & Spa Villa\n📍 Чавенг, Самуи, Таиланд.\n\nДля поездки вдвоём: пляж Чавенг у отеля, открытый бассейн и ресторан Dara Serene. Принимают гостей от 12 лет. В трёхэтажных корпусах нет лифтов; при заселении требуется депозит.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "native: beachfront,pool,Dara Serene,no lifts,deposit; official accommodation: minimum age12.",
+      "material_conditions": "12+; нет лифтов; депозит.",
+      "aliases": [
+        "dara samui beach resort & spa villa",
+        "dara samui"
+      ],
+      "alias_ready": true,
+      "alias_reason": "No specific property alias/native ID match in registry.",
+      "alias_registry_sha256": "0db55facf848a4b0ef37d55434725be745ee54851efa97c2e06461f0a0bb6f92",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://darasamui.com/accommodation/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=622",
+          "https://darasamui.com/special-offer/pamper-yourself/"
+        ],
+        "evidence": "Официальные условия подтверждают минимум12лет и действующие категории; специальное предложение распространяется на проживание до20.12.2026."
+      },
+      "caption_sha256": "c25057bdcf1ff800119f3d05401db83642eab95c1ddcf7c669358039549e9def"
+    },
+    "8005": {
+      "id": 8005,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Krabi Chada Resort\n📍 Ао-Нанг, Краби, Таиланд.\n\nДля тех, кто совмещает экскурсии и отдых у бассейна: здесь есть бассейн в саду, бассейн на крыше и ресторан Pailin с тайской кухней. До моря около 1 км, предусмотрен трансфер к пляжному клубу. При заселении взимается депозит.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "official: garden/rooftop pools,Pailin; native beach1–1.1km,shuttle,deposit.",
+      "material_conditions": "Море около1км; депозит.",
+      "aliases": [
+        "krabi chada resort",
+        "krabi chada"
+      ],
+      "alias_ready": true,
+      "alias_reason": "No specific property alias/native ID match in registry.",
+      "alias_registry_sha256": "0db55facf848a4b0ef37d55434725be745ee54851efa97c2e06461f0a0bb6f92",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://krabichada.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8005"
+        ],
+        "evidence": "Официальный сайт с прямым бронированием и адресом500Moo2AoNang совпадает с профилем."
+      },
+      "caption_sha256": "cd84e89a0ddb7259956e3a70e560aa11cb151976efba58b7d369acfc72454360"
+    },
+    "58095": {
+      "id": 58095,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Patong Bay Hill Resort & Spa\n📍 Патонг, Пхукет, Таиланд.\n\nДля пары или семьи, которой важно больше пространства: люксы с отдельной спальней и гостиной, бассейн и ресторан. Есть категории с выходом к бассейну. Отель расположен на холме; до пляжа Патонг около 1,4 км.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "native:suites60m²,livingroom,poolaccess,pool,restaurant,beach1.4km;officialHasippiHill.",
+      "material_conditions": "Холм; пляж1.4км.",
+      "aliases": [
+        "patong bay hill resort & spa",
+        "patong bay hill"
+      ],
+      "alias_ready": true,
+      "alias_reason": "No specific property alias/native ID match in registry.",
+      "alias_registry_sha256": "0db55facf848a4b0ef37d55434725be745ee54851efa97c2e06461f0a0bb6f92",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.patongbayhill.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=58095"
+        ],
+        "evidence": "Действующая официальная форма бронирования; HasippiHill, suites и ресторан подтверждены."
+      },
+      "caption_sha256": "9f8038c499cbfd76b191b25587f2a3e5dbbfe4e1933be2b4b924784e230754be"
+    },
+    "22737": {
+      "id": 22737,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Dhevan Dara Resort & Spa\n📍 Хуахин, Таиланд.\n\nДля семейной поездки или компании: виллы с собственными бассейнами, тропический сад и ресторан. Можно выбрать виллу с несколькими спальнями, чтобы отдыхать вместе. Комплекс находится в глубине курорта: до пляжа и ночного рынка около 12 км.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "native:poolvillas2–5bedrooms,garden,restaurant,12kmbeach/market;officialHuahinpoolvillas.",
+      "material_conditions": "До моря около12км.",
+      "aliases": [
+        "dhevan dara resort & spa",
+        "dhevan dara resort",
+        "dhevan-dara resort"
+      ],
+      "alias_ready": true,
+      "alias_reason": "No specific property alias/native ID match in registry.",
+      "alias_registry_sha256": "0db55facf848a4b0ef37d55434725be745ee54851efa97c2e06461f0a0bb6f92",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.dhevan-dara.com/huahin/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=22737"
+        ],
+        "evidence": "Официальная группа явно разделяет HuaHinResortSpa и BeachVillaKuiburi; действующее бронирование HuaHin."
+      },
+      "caption_sha256": "eb4dff717ad03775c134968928ab12db9e71a59f43e0037986f44ea79aae496e"
+    },
+    "24878": {
+      "id": 24878,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Dhevan Dara Beach Villa\n📍 Бо-Нок, провинция Прачуапкхирикхан, Таиланд.\n\nДля спокойного отдыха у моря: песчаный пляж, бассейн и ресторан The Terrace. Для семьи или компании есть виллы с несколькими спальнями и собственным бассейном. Это район Куйбури, не центр Хуахина.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "native:78Moo5BoNok,beach,pool,TheTerrace,2–3bedpoolvillas;officialKuiburi.",
+      "material_conditions": "Куйбури/Бо-Нок, не центр Хуахина.",
+      "aliases": [
+        "dhevan dara beach villa",
+        "dhevan-dara beach villa"
+      ],
+      "alias_ready": true,
+      "alias_reason": "No specific property alias/native ID match in registry.",
+      "alias_registry_sha256": "0db55facf848a4b0ef37d55434725be745ee54851efa97c2e06461f0a0bb6f92",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.dhevan-dara.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=24878",
+          "https://www.dhevan-dara.com/wp-content/uploads/2025/10/Spa-Menu-v2.pdf"
+        ],
+        "evidence": "Официальная группа предлагает отдельный BeachVillaKuiburi; официальный spa-menu2025 подтверждает работающий объект."
+      },
+      "caption_sha256": "d25c9c4828ccac937c535c129f684c0801378509d6bd60d10125d0e84d2fc0c3"
+    },
+    "50943": {
+      "id": 50943,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Kupu Kupu Phangan Beach Villas & Spa\n📍 Найвок, остров Панган, Таиланд.\n\nДля уединённой поездки вдвоём: виллы с собственными бассейнами, ресторан La Plage и спа. Отдых здесь связан с морским трансфером на Панган. Территория не адаптирована для гостей с ограниченной мобильностью.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "official:privatepoolvillas,LaPlage,spa;contact:69/13Naiwok,boattransfer,not accessible reducedmobility.",
+      "material_conditions": "Морской трансфер; не адаптирован для ограниченной мобильности.",
+      "aliases": [
+        "kupu kupu phangan beach villas & spa",
+        "kupu kupu phangan",
+        "kupu kupu koh phangan"
+      ],
+      "alias_ready": true,
+      "alias_reason": "No specific property alias/native ID match in registry.",
+      "alias_registry_sha256": "0db55facf848a4b0ef37d55434725be745ee54851efa97c2e06461f0a0bb6f92",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://kupuphangan.com/contact/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=50943"
+        ],
+        "evidence": "Официальный действующий KupuKupuPhangan, точный адрес совпадает; условия трансфера и доступности опубликованы оператором."
+      },
+      "caption_sha256": "b88c85c5635754e5d4b80741d47498fe9d64c921976d911928c3f9a427ba048b"
+    },
+    "110562": {
+      "id": 110562,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Khao Lak Blue Lagoon Resort\n📍 Кхук-Кхак, Као-Лак, Таиланд.\n\nДля спокойного отпуска вдвоём: бунгало с собственными балконами, тропический сад и открытый бассейн. В ресторане готовят тайские и международные блюда. До песчаного пляжа Кхук-Кхак можно дойти пешком; до центра Као-Лака нужно ехать.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "official:bungalows50/60m²,balcony,garden,pool,restaurant,stepsKhukKhakBeach,10mindrivecentre.",
+      "material_conditions": "Не центр Као-Лака; до центра на транспорте.",
+      "aliases": [
+        "khao lak blue lagoon resort",
+        "khao lak blue lagoon",
+        "khaolak blue lagoon"
+      ],
+      "alias_ready": true,
+      "alias_reason": "No specific property alias/native ID match in registry.",
+      "alias_registry_sha256": "0db55facf848a4b0ef37d55434725be745ee54851efa97c2e06461f0a0bb6f92",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.khaolakbluelagoon.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=110562"
+        ],
+        "evidence": "Официальный сайт с Rates&Reservation и точным адресом61/1Moo3; актуальные бунгало/услуги."
+      },
+      "caption_sha256": "d35661573d32917e6c3824effc7683ea7e90a38d37fcaa3b110eeda96f29d2e9"
+    },
+    "125787": {
+      "id": 125787,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Blu Monkey Hub & Hotel Bangtao Beach Phuket\n📍 Бангтао, Пхукет, Таиланд.\n\nДля тех, кто любит сочетать отдых и городскую жизнь: бассейн, тренажёрный зал и коворкинг на седьмом этаже. Есть детское пространство и прачечная самообслуживания. Рядом Boat Avenue, а до пляжа Бангтао около 1,7 км.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "official:7floorpool/gym/cowork,kids,laundry,BoatAvenue450m,beach1.7km.",
+      "material_conditions": "До пляжа1.7км.",
+      "aliases": [
+        "blu monkey hub & hotel bangtao beach phuket",
+        "blu monkey bangtao",
+        "blu monkey hub & hotel bangtao"
+      ],
+      "alias_ready": true,
+      "alias_reason": "No specific property alias/native ID match in registry.",
+      "alias_registry_sha256": "0db55facf848a4b0ef37d55434725be745ee54851efa97c2e06461f0a0bb6f92",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.blumonkeybangtaophuket.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=125787",
+          "https://trustedthailand.tourismthailand.org/en/establishments/detail/0624"
+        ],
+        "evidence": "Официальный сайт73rooms с действующим бронированием; TATTrustedThailand подтверждает объект и сертификацию24.11.2025–24.11.2026."
+      },
+      "caption_sha256": "2f8549dc89e71f624adb14c22c3863b26881b9a6eb57bff96f0102e03861f735"
+    },
+    "126911": {
+      "id": 126911,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Bay Villas Koh Phangan\n📍 Салад, остров Панган, Таиланд.\n\nДля семьи или компании, которой нужна отдельная вилла: несколько спален, кухня, терраса и бассейн позволяют отдыхать в своём ритме. Комплекс расположен высоко на холме над бухтой Салад, не непосредственно на пляже. На Панган нужен морской трансфер.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "native:villas,kitchen,terraces,pools;official:highaboveHaadSaladBay,multiplebedroomvillas.",
+      "material_conditions": "Холм; не прямой выход на пляж; морской трансфер.",
+      "aliases": [
+        "bay villas koh phangan",
+        "bay villas phangan"
+      ],
+      "alias_ready": true,
+      "alias_reason": "No specific property alias/native ID match in registry.",
+      "alias_registry_sha256": "0db55facf848a4b0ef37d55434725be745ee54851efa97c2e06461f0a0bb6f92",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://bayvillasphangan.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126911"
+        ],
+        "evidence": "Официальный действующий каталог вилл2–6спален и форма бронирования, расположение high above HaadSaladBay."
+      },
+      "caption_sha256": "6704fcafdc4892d7a157fd59c43a5c5472402c6254a4780de3851dc4e5e63e3b"
+    },
+    "52252": {
+      "id": 52252,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Hoi An Chic\n📍 Хойан, Вьетнам.\n\nДля отдыха между прогулками по старому Хойану: зелёная территория среди рисовых полей, бассейн на крыше и велосипеды для поездок по окрестностям. Это не пляжный отель: до побережья около 2,5–3,5 км в зависимости от пляжа.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "official:GreenRetreat,ricefields,rooftoppool,bikes,beachdistances.",
+      "material_conditions": "Пляжи2.5–3.5км.",
+      "aliases": [
+        "hoi an chic",
+        "hoian chic"
+      ],
+      "alias_ready": true,
+      "alias_reason": "No specific property alias/native ID match in registry.",
+      "alias_registry_sha256": "0db55facf848a4b0ef37d55434725be745ee54851efa97c2e06461f0a0bb6f92",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.hoianchic.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=52252"
+        ],
+        "evidence": "Официальный HoiAnChicGreenRetreat подтверждает тот же объект/координаты, действующее бронирование и услуги."
+      },
+      "caption_sha256": "ae48a52638cc0eac53ef33f2b00f3915a90b410319c93e986c7fb39850bfca2e"
+    },
+    "61641": {
+      "id": 61641,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Paris Deli Danang\n📍 Дананг, Вьетнам.\n\nДля семьи, которая хочет море и прогулки по городу: есть апартаменты с двумя спальнями, бассейн и спа. Пляж Микхе находится примерно в 150 м, через дорогу. Подберём категорию под состав семьи.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "native:pool,spa,beach150m/acrossroad;official2bedroomapartments.",
+      "material_conditions": "Пляж через дорогу,150м.",
+      "aliases": [
+        "paris deli danang",
+        "paris deli"
+      ],
+      "alias_ready": true,
+      "alias_reason": "No specific property alias/native ID match in registry.",
+      "alias_registry_sha256": "0db55facf848a4b0ef37d55434725be745ee54851efa97c2e06461f0a0bb6f92",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://parisdelihotel.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=61641"
+        ],
+        "evidence": "Официальный сайт с актуальной лицензией2025, адрес236VoNguyenGiap совпадает; комнаты и прямое бронирование действуют."
+      },
+      "caption_sha256": "e8e1e54fc2a0c6eda803c086300ca5981f254ebdc8af82a8eb76cd075be85857"
+    },
+    "63690": {
+      "id": 63690,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Bluesun Hotel Danang\n📍 Дананг, Вьетнам.\n\nДля отдыха вдвоём рядом с Микхе: бассейн Ocean Terrace на 17-м этаже, спа и панорамный бар Uranus. До пляжа около 100 м, нужно перейти дорогу. Есть категории без балкона, поэтому выбор номера важен.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "native:beach100m/acrossroad,someNoBalcony;official:OceanTerracePool17floor,BluemoonSpa,Uranus.",
+      "material_conditions": "Пляж через дорогу; есть номера без балкона.",
+      "aliases": [
+        "bluesun hotel danang",
+        "bluesun danang",
+        "blue sun danang"
+      ],
+      "alias_ready": true,
+      "alias_reason": "No specific property alias/native ID match in registry.",
+      "alias_registry_sha256": "0db55facf848a4b0ef37d55434725be745ee54851efa97c2e06461f0a0bb6f92",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://bluesunhotel.com.vn/en/dich-vu-tien-ich/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=63690"
+        ],
+        "evidence": "Официальный работающий сайт с программойDIFF2026 и адресом230VoNguyenGiap; устаревшее описание indoorpool не использовано."
+      },
+      "caption_sha256": "453ba5f06cfa4c681f4e8418477770726a10f601b0cee5a36d293613a4c943db"
+    },
+    "103281": {
+      "id": 103281,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Monarque Hotel Danang\n📍 Дананг, Вьетнам.\n\nДля семейной поездки с пляжем и прогулками: открытый бассейн, спа и семейные номера с двумя спальнями. Пляж Микхе расположен через дорогу. Есть категории без вида, поэтому заранее выберем подходящий номер.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "native:pool,spa,family2bed,DeluxeNoView,beachacrossroad;official75rooms/address.",
+      "material_conditions": "Пляж через дорогу; есть категории без вида.",
+      "aliases": [
+        "monarque hotel danang",
+        "monarque hotel"
+      ],
+      "alias_ready": true,
+      "alias_reason": "No specific property alias/native ID match in registry.",
+      "alias_registry_sha256": "0db55facf848a4b0ef37d55434725be745ee54851efa97c2e06461f0a0bb6f92",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://monarquehotel.vn/en/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=103281"
+        ],
+        "evidence": "Официальный сайт с предложениемFESTIVE26,75номеров и адресом238VoNguyenGiap подтверждает текущую работу."
+      },
+      "caption_sha256": "4226eb268e371708f2829bf0a95a592e35e905d75b82c37b6d175c401f726332"
+    },
+    "126756": {
+      "id": 126756,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Nhu Minh Plaza Danang Hotel\n📍 Дананг, Вьетнам.\n\nДля семейного отдыха в городе: крытый бассейн, детский клуб и тренажёрный зал. Есть люксы с двумя спальнями и кухней, чтобы разместиться вместе. До пляжа около 800 м; при заселении требуется депозит.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "native:800mbeach,deposit,2bedsuitekitchen;officialindoorpool,kidsclub,fitness.",
+      "material_conditions": "Пляж800м; депозит.",
+      "aliases": [
+        "nhu minh plaza danang hotel",
+        "nhu minh plaza"
+      ],
+      "alias_ready": true,
+      "alias_reason": "No specific property alias/native ID match in registry.",
+      "alias_registry_sha256": "0db55facf848a4b0ef37d55434725be745ee54851efa97c2e06461f0a0bb6f92",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://nhuminhplazahotel.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126756"
+        ],
+        "evidence": "Официальный сайт с действующими предложениями,комнатами и адресомPhamVanDong; крытый бассейн подтверждён."
+      },
+      "caption_sha256": "425bed2b93b31c87e9b1250d921abf294a61152d6c1da7c058203fe9c3144777"
+    },
+    "128156": {
+      "id": 128156,
+      "ready": true,
+      "caption": "✈️ Туры в Wink Hotel Danang Centre\n📍 Дананг, Вьетнам.\n\nДля городского отдыха вдвоём или короткой остановки: центр Дананга, ресторан и тренажёрный зал. В номерах есть рабочее место, а на территории — прачечная самообслуживания. Отель расположен в квартале Хайчау, не на пляже.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "hold_reason": null,
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=128156",
+          "facts": "Для городского отдыха вдвоём или короткой остановки: центр Дананга, ресторан и тренажёрный зал. В номерах есть рабочее место, а на территории — прачечная самообслуживания. Отель расположен в квартале Хайчау, не на пляже."
+        },
+        {
+          "source": "https://www.hyatt.com/unscripted-by-hyatt/en-US/vn101-wink-danang-centre",
+          "facts": "Hyatt подтверждает действующий Wink Danang Centre по178 Tran Phu,244 номера. https://wink-hotels.com/hotel/wink-hotel-danang-centre/ сохраняет Wink и уточняет Unscripted by Hyatt; это подтверждённая affiliation, не неразрешённая подмена объекта. FAQ подтверждает24h laundromat."
+        }
+      ],
+      "material_conditions": "Городское расположение, не пляжный отель.",
+      "aliases": [
+        "Wink Hotel Danang Centre",
+        "Wink Danang Centre",
+        "Wink Danang Centre Unscripted by Hyatt"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases сверены с registry: опубликованного объекта не найдено; одноимённые сети и другие города не объединены.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.hyatt.com/unscripted-by-hyatt/en-US/vn101-wink-danang-centre",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=128156"
+        ],
+        "evidence": "Hyatt подтверждает действующий Wink Danang Centre по178 Tran Phu,244 номера. https://wink-hotels.com/hotel/wink-hotel-danang-centre/ сохраняет Wink и уточняет Unscripted by Hyatt; это подтверждённая affiliation, не неразрешённая подмена объекта. FAQ подтверждает24h laundromat."
+      },
+      "caption_sha256": "f955990112b01b9136eabb083dcf23ea7a3d01e16b2ab7e043c848b1e0581f5d"
+    },
+    "132999": {
+      "id": 132999,
+      "ready": true,
+      "caption": "✈️ Туры в Champton Nha Trang\n📍 Нячанг, Вьетнам.\n\nДля пары, которая хочет жить в центре Нячанга: бассейн и бар на крыше, ресторан Salam и тренажёрный зал. Интерьеры вдохновлены архитектурой тямов. До общественного песчаного пляжа около 250 м, по пути нужно перейти дорогу.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "hold_reason": null,
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=132999",
+          "facts": "Для пары, которая хочет жить в центре Нячанга: бассейн и бар на крыше, ресторан Salam и тренажёрный зал. Интерьеры вдохновлены архитектурой тямов. До общественного песчаного пляжа около 250 м, по пути нужно перейти дорогу."
+        },
+        {
+          "source": "https://www.champtonhotel.com/nhatrang",
+          "facts": "Официальный действующий сайт с availability/95rooms по51 Tran Quang Khai, rooftop pool/bar, spa/fitness,Salam; открытие не будущий проект."
+        }
+      ],
+      "material_conditions": "Пляж250м через дорогу; не обещаны неподтверждённые мини-клуб и детский аквапарк.",
+      "aliases": [
+        "Champton Nha Trang",
+        "Champton Nha Trang Hotel"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases сверены с registry: опубликованного объекта не найдено; одноимённые сети и другие города не объединены.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.champtonhotel.com/nhatrang",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=132999"
+        ],
+        "evidence": "Официальный действующий сайт с availability/95rooms по51 Tran Quang Khai, rooftop pool/bar, spa/fitness,Salam; открытие не будущий проект."
+      },
+      "caption_sha256": "a6e9ae7d20284392b16951e31d223ff2b933af3dc80fe18ac8892ed0bbc14e42"
+    },
+    "47466": {
+      "id": 47466,
+      "ready": true,
+      "caption": "✈️ Туры в Hoi An Garden Palace\n📍 Хойан, Вьетнам.\n\nДля знакомства с Хойаном и отдыха после прогулок: бассейн в саду, спа и фитнес-зал. Для семьи можно подобрать Family Suite с двумя спальнями. Отель расположен между старым городом и пляжем Кыадай, не на первой линии; до Японского моста около 2,4 км.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "hold_reason": null,
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=47466",
+          "facts": "Для знакомства с Хойаном и отдыха после прогулок: бассейн в саду, спа и фитнес-зал. Для семьи можно подобрать Family Suite с двумя спальнями. Отель расположен между старым городом и пляжем Кыадай, не на первой линии; до Японского моста около 2,4 км."
+        },
+        {
+          "source": "https://www.hoiangardenpalace.com/",
+          "facts": "Действующие комнаты/booknow, pool200m²/gym/spa; официальный сайт прямо halfway oldtown/CuaDai. Native address311 Cua Dai."
+        }
+      ],
+      "material_conditions": "Городской объект между oldtown иCuaDai, не первая линия; японский мост2.4км.",
+      "aliases": [
+        "Hoi An Garden Palace",
+        "Hoi An Garden Palace & Spa"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases сверены с registry: опубликованного объекта не найдено; одноимённые сети и другие города не объединены.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.hoiangardenpalace.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=47466"
+        ],
+        "evidence": "Действующие комнаты/booknow, pool200m²/gym/spa; официальный сайт прямо halfway oldtown/CuaDai. Native address311 Cua Dai."
+      },
+      "caption_sha256": "16b91e92be58e56ce2e1a173170a5f108d0e26929ce10f64e3e92c35eae0e250"
+    },
+    "61633": {
+      "id": 61633,
+      "ready": true,
+      "caption": "✈️ Туры в Fivitel Da Nang\n📍 Дананг, Вьетнам.\n\nДля городских прогулок и отдыха у реки Хан: открытый бассейн, фитнес-центр и ресторан. Есть семейные номера и апартаменты с кухонным уголком в отдельных категориях. До пляжа Микхе около 1,8 км — отель не у моря.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "hold_reason": null,
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=61633",
+          "facts": "Для городских прогулок и отдыха у реки Хан: открытый бассейн, фитнес-центр и ресторан. Есть семейные номера и апартаменты с кухонным уголком в отдельных категориях. До пляжа Микхе около 1,8 км — отель не у моря."
+        },
+        {
+          "source": "https://www.fvg.com.vn/business/dich-vu-du-lich-1/fivitel-danang-hotel/fivitel-danang-hotel.html",
+          "facts": "Оператор FVG подтверждает действующий Fivitel Da Nang уTran Thi Ly, телефон совпадает; https://fvgtravel.com.vn/en/hotel действующая сеть. Не перепутан с Fivitel Boutique/Gopatel."
+        }
+      ],
+      "material_conditions": "Пляж1.8км; kitchenette только определённые apartment categories.",
+      "aliases": [
+        "Fivitel Da Nang",
+        "Fivitel Da Nang Hotel",
+        "Fivitel Danang Hotel"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases сверены с registry: опубликованного объекта не найдено; одноимённые сети и другие города не объединены.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.fvg.com.vn/business/dich-vu-du-lich-1/fivitel-danang-hotel/fivitel-danang-hotel.html",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=61633"
+        ],
+        "evidence": "Оператор FVG подтверждает действующий Fivitel Da Nang уTran Thi Ly, телефон совпадает; https://fvgtravel.com.vn/en/hotel действующая сеть. Не перепутан с Fivitel Boutique/Gopatel."
+      },
+      "caption_sha256": "c46cb9a4cb5f0424edb5e0e8fefac91f79f15612f1fba3278566e201bfc744e2"
+    },
+    "66523": {
+      "id": 66523,
+      "ready": true,
+      "caption": "✈️ Туры в Balcona Hotel Da Nang\n📍 Дананг, Вьетнам.\n\nДля семьи, которая хочет сочетать пляж и город: бассейн, детский клуб и ресторан Aqua с панорамой Дананга. Песчаный общественный пляж находится через дорогу. При заселении требуется депозит на весь срок проживания.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "hold_reason": null,
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=66523",
+          "facts": "Для семьи, которая хочет сочетать пляж и город: бассейн, детский клуб и ресторан Aqua с панорамой Дананга. Песчаный общественный пляж находится через дорогу. При заселении требуется депозит на весь срок проживания."
+        },
+        {
+          "source": "https://balconahotel.com/",
+          "facts": "Действующая официальная карточка288 Vo Nguyen Giap, https://balconahotel.com/restaurants-bars/ подтверждает Aqua20floor. Native profile бассейн146м²/клуб/депозит."
+        }
+      ],
+      "material_conditions": "Пляж через дорогу; депозит на весь срок.",
+      "aliases": [
+        "Balcona Hotel Da Nang",
+        "Balcona Hotel Danang"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases сверены с registry: опубликованного объекта не найдено; одноимённые сети и другие города не объединены.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://balconahotel.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=66523"
+        ],
+        "evidence": "Действующая официальная карточка288 Vo Nguyen Giap, https://balconahotel.com/restaurants-bars/ подтверждает Aqua20floor. Native profile бассейн146м²/клуб/депозит."
+      },
+      "caption_sha256": "92787ef89f54c95e2b4f40b83f2cfd0528f437d688a6d7583b73d06681f58b0d"
+    },
+    "66558": {
+      "id": 66558,
+      "ready": true,
+      "caption": "✈️ Туры в EMM Hotel Hue\n📍 Хюэ, Вьетнам.\n\nДля поездки за историей и вьетнамской кухней: центральное расположение, открытый бассейн и рестораны. После прогулки по императорскому Хюэ можно вернуться к бассейну и попробовать местные блюда. Это городской отель, а не пляжный курорт.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "hold_reason": null,
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=66558",
+          "facts": "Для поездки за историей и вьетнамской кухней: центральное расположение, открытый бассейн и рестораны. После прогулки по императорскому Хюэ можно вернуться к бассейну и попробовать местные блюда. Это городской отель, а не пляжный курорт."
+        },
+        {
+          "source": "https://www.emmhotels.com/en/emm-hotel-hue/",
+          "facts": "Оператор TMG, текущие предложения доDec2026/Apr2027, точный адрес15 Ly Thuong Kiet Hue; facilities swimmingpool иrestaurant подтверждены https://www.emmhotels.com/en/."
+        }
+      ],
+      "material_conditions": "Город Хюэ, НЕ Дананг несмотря на catalogue region; не пляжный.",
+      "aliases": [
+        "Emm Hotel Hue",
+        "EMM Hotel Hue",
+        "ÊMM Hotel Hue"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases сверены с registry: опубликованного объекта не найдено; одноимённые сети и другие города не объединены.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.emmhotels.com/en/emm-hotel-hue/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=66558"
+        ],
+        "evidence": "Оператор TMG, текущие предложения доDec2026/Apr2027, точный адрес15 Ly Thuong Kiet Hue; facilities swimmingpool иrestaurant подтверждены https://www.emmhotels.com/en/."
+      },
+      "caption_sha256": "4447be2b9426006e8218289386ea75ab9462ff80b8e2086f22ce155b76fd3529"
+    },
+    "793": {
+      "id": 793,
+      "ready": true,
+      "caption": "✈️ Туры в Siam Bayshore Hotel\n📍 Паттайя, Таиланд.\n\nДля тех, кто хочет жить рядом с вечерней жизнью Паттайи: зелёная территория, два открытых бассейна и спа. Отель находится у южного конца Walking Street, до моря нужно перейти дорогу. Это оживлённый городской район, а не уединённый пляжный курорт.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "hold_reason": null,
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=793",
+          "facts": "Для тех, кто хочет жить рядом с вечерней жизнью Паттайи: зелёная территория, два открытых бассейна и спа. Отель находится у южного конца Walking Street, до моря нужно перейти дорогу. Это оживлённый городской район, а не уединённый пляжный курорт."
+        },
+        {
+          "source": "https://siambayshorepattaya.com/",
+          "facts": "Действующий официальный отель Sukosol с bookstay,SwimmingPools,LotusSpa; южный конец PattayaBeach и собственные green gardens."
+        }
+      ],
+      "material_conditions": "WalkingStreet; море через дорогу, не обещан собственный пляж.",
+      "aliases": [
+        "Siam Bayshore Hotel",
+        "Siam Bayshore Resort Pattaya",
+        "Siam Bayshore Pattaya"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases сверены с registry: опубликованного объекта не найдено; одноимённые сети и другие города не объединены.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://siambayshorepattaya.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=793"
+        ],
+        "evidence": "Действующий официальный отель Sukosol с bookstay,SwimmingPools,LotusSpa; южный конец PattayaBeach и собственные green gardens."
+      },
+      "caption_sha256": "d2c7a273de0423542a072800a78c382d83b87112a6b1e0668844cd6505726073"
+    },
+    "3027": {
+      "id": 3027,
+      "ready": true,
+      "caption": "✈️ Туры в The Dewa Koh Chang\n📍 Ко-Чанг, Таиланд.\n\nДля отдыха вдвоём на Клонг-Прао: необычная архитектура, открытый бассейн и рестораны с морепродуктами и грилем. Песчаный пляж примерно в 115 м, на первой линии. На побережье заметны приливы и отливы, это важно учитывать при планировании купания.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "hold_reason": null,
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=3027",
+          "facts": "Для отдыха вдвоём на Клонг-Прао: необычная архитектура, открытый бассейн и рестораны с морепродуктами и грилем. Песчаный пляж примерно в 115 м, на первой линии. На побережье заметны приливы и отливы, это важно учитывать при планировании купания."
+        },
+        {
+          "source": "https://www.thedewakohchang.com/",
+          "facts": "Действующий официальный сайт с travelanium booking и Klong Prao; native profile pool/restaurants/beach/tides."
+        }
+      ],
+      "material_conditions": "Пляж115м первая линия; выраженные приливы/отливы.",
+      "aliases": [
+        "The Dewa Koh Chang"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases сверены с registry: опубликованного объекта не найдено; одноимённые сети и другие города не объединены.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.thedewakohchang.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=3027"
+        ],
+        "evidence": "Действующий официальный сайт с travelanium booking и Klong Prao; native profile pool/restaurants/beach/tides."
+      },
+      "caption_sha256": "39b4b580f72e42e883f80ac55d3388ecdf99b0fa3077af52a32a623c04a6909c"
+    },
+    "8162": {
+      "id": 8162,
+      "ready": true,
+      "caption": "✈️ Туры в Siam At Siam Design Hotel Bangkok\n📍 Бангкок, Таиланд.\n\nДля любителей дизайна, прогулок и гастрономии: авангардные интерьеры, открытый бассейн и ресторан тайской кухни TAAN. До BTS National Stadium около пяти минут пешком; вечером можно подняться в бар Paradise Lost. Это городской отель; в номерах курение запрещено.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "hold_reason": null,
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8162",
+          "facts": "Для любителей дизайна, прогулок и гастрономии: авангардные интерьеры, открытый бассейн и ресторан тайской кухни TAAN. До BTS National Stadium около пяти минут пешком; вечером можно подняться в бар Paradise Lost. Это городской отель; в номерах курение запрещено."
+        },
+        {
+          "source": "https://www.siamatsiam.com/bangkok/",
+          "facts": "Официальный действующий Bangkok с rooms/booknow,Pool&Fitness и ресторанами TAAN/ChimChim/ParadiseLost. Native address865 Rama1 подтверждает Bangkok неPattaya."
+        }
+      ],
+      "material_conditions": "Городской; номера non-smoking.",
+      "aliases": [
+        "Siam At Siam Design Hotel Bangkok",
+        "Siam@Siam Design Hotel Bangkok"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases сверены с registry: опубликованного объекта не найдено; одноимённые сети и другие города не объединены.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.siamatsiam.com/bangkok/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8162"
+        ],
+        "evidence": "Официальный действующий Bangkok с rooms/booknow,Pool&Fitness и ресторанами TAAN/ChimChim/ParadiseLost. Native address865 Rama1 подтверждает Bangkok неPattaya."
+      },
+      "caption_sha256": "a5897dbaade75463a1113ca5d36fec2a7c36a241447099db08b9b21d4a43288c"
+    },
+    "28564": {
+      "id": 28564,
+      "ready": true,
+      "caption": "✈️ Туры в Siam At Siam Design Hotel Pattaya\n📍 Паттайя, Таиланд.\n\nДля отдыха вдвоём с городскими развлечениями: два открытых бассейна, ресторан Big Fish и бар Skybar Summer Club. До общественного песчаного пляжа около 450 м, по пути нужно перейти дорогу. При заселении взимается депозит.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "hold_reason": null,
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=28564",
+          "facts": "Для отдыха вдвоём с городскими развлечениями: два открытых бассейна, ресторан Big Fish и бар Skybar Summer Club. До общественного песчаного пляжа около 450 м, по пути нужно перейти дорогу. При заселении взимается депозит."
+        },
+        {
+          "source": "https://www.siamatsiam.com/pattaya/",
+          "facts": "Официальная действующая Pattaya page,booknow/poolfitness/BigFish/Skybar; адрес390 Moo9 совпадает native, неBangkok."
+        }
+      ],
+      "material_conditions": "Пляж450м через дорогу; депозит.",
+      "aliases": [
+        "Siam At Siam Design Hotel Pattaya",
+        "Siam@Siam Design Hotel Pattaya"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases сверены с registry: опубликованного объекта не найдено; одноимённые сети и другие города не объединены.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.siamatsiam.com/pattaya/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=28564"
+        ],
+        "evidence": "Официальная действующая Pattaya page,booknow/poolfitness/BigFish/Skybar; адрес390 Moo9 совпадает native, неBangkok."
+      },
+      "caption_sha256": "bc16ae456cbb1d6bf4aae094067a836be36ccd8305ead67bf552f5439df62c82"
+    },
+    "778": {
+      "id": 778,
+      "ready": true,
+      "caption": "✈️ Туры в Samui Paradise\n📍 Самуи, Таиланд.\n\nДля отдыха вдвоём у моря: виллы и сьюты с террасами, открытый бассейн и ресторан. Отель расположен прямо на песчаном пляже Чавенг. Можно выбрать семейный сьют с двумя спальнями, если едете с близкими.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "hold_reason": null,
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=778",
+          "facts": "Для отдыха вдвоём у моря: виллы и сьюты с террасами, открытый бассейн и ресторан. Отель расположен прямо на песчаном пляже Чавенг. Можно выбрать семейный сьют с двумя спальнями, если едете с близкими."
+        },
+        {
+          "source": "https://www.samuiparadise.com/",
+          "facts": "Официальный сайт действующего resort49 Moo3 Chaweng, booknow; terrace villas/suites,beachfront,poolrestaurant иFamilySuite2bedrooms совпадают."
+        }
+      ],
+      "material_conditions": "Чавенг beachfront; отдельный частный бассейн не обещан.",
+      "aliases": [
+        "Samui Paradise",
+        "Samui Paradise Chaweng Beach Resort",
+        "Samui Paradise Chaweng Beach Resort & Spa"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases сверены с registry: опубликованного объекта не найдено; одноимённые сети и другие города не объединены.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.samuiparadise.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=778"
+        ],
+        "evidence": "Официальный сайт действующего resort49 Moo3 Chaweng, booknow; terrace villas/suites,beachfront,poolrestaurant иFamilySuite2bedrooms совпадают."
+      },
+      "caption_sha256": "d5c7f7207097b881110d352e097529c4acb1f99a50c46983b118ef281ca6cbb9"
+    },
+    "23253": {
+      "id": 23253,
+      "ready": true,
+      "caption": "✈️ Туры в Bandara Suites Silom\n📍 Бангкок, Таиланд.\n\nДля семейной поездки или долгой остановки в Бангкоке: сьюты с отдельной гостиной и кухней, бассейны и фитнес-центр. На территории есть японский ресторан Touka. Отель находится в Силоме, примерно в 700 м от BTS Sala Daeng; это городской, не пляжный отдых.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "hold_reason": null,
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23253",
+          "facts": "Для семейной поездки или долгой остановки в Бангкоке: сьюты с отдельной гостиной и кухней, бассейны и фитнес-центр. На территории есть японский ресторан Touka. Отель находится в Силоме, примерно в 700 м от BTS Sala Daeng; это городской, не пляжный отдых."
+        },
+        {
+          "source": "https://www.bandaragroup.com/bandara-suites-silom-bangkok/",
+          "facts": "Действующий официальный all-suite hotel240rooms,2pools/fitness,Touka, адрес75/1 Saladaeng; samephone2660505."
+        }
+      ],
+      "material_conditions": "ГородскойSilom; BTS700м; suites/residence отличаются, все не объявлены одинаковыми.",
+      "aliases": [
+        "Bandara Suites Silom",
+        "Bandara Suites Silom Bangkok"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases сверены с registry: опубликованного объекта не найдено; одноимённые сети и другие города не объединены.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.bandaragroup.com/bandara-suites-silom-bangkok/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23253"
+        ],
+        "evidence": "Действующий официальный all-suite hotel240rooms,2pools/fitness,Touka, адрес75/1 Saladaeng; samephone2660505."
+      },
+      "caption_sha256": "817fd564c02223da9ac8badc795c0cf57bd68adc56ff1dabc1516fa06288fb1c"
+    },
+    "50651": {
+      "id": 50651,
+      "ready": true,
+      "caption": "✈️ Туры в Eldora Hue\n📍 Хюэ, Вьетнам.\n\nДля отдыха вдвоём и знакомства с Хюэ: неоклассические интерьеры, ресторан и крытый бассейн с террасой на 14-м этаже. Есть фитнес-зал, сауна и парная. Бассейн без подогрева; отель расположен в городе, не у моря.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "hold_reason": null,
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=50651",
+          "facts": "Для отдыха вдвоём и знакомства с Хюэ: неоклассические интерьеры, ресторан и крытый бассейн с террасой на 14-м этаже. Есть фитнес-зал, сауна и парная. Бассейн без подогрева; отель расположен в городе, не у моря."
+        },
+        {
+          "source": "https://eldorahotel.com/facilities.html",
+          "facts": "Официальные facilities/accommodation доступны в поисковом индексе, address60 Ben Nghe,booknow; https://www.eldorahotel.com/leisure.html подтверждает14floor unheatedpool/gym/sauna. Государственный реестрHue2026 подтверждает гостиницуEldora."
+        }
+      ],
+      "material_conditions": "Indoor pool unheated; городХюэ, неДананг; не обещаны детские скидки из конфликтующих тарифных правил.",
+      "aliases": [
+        "Eldora Hue",
+        "Eldora Hotel Hue"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases сверены с registry: опубликованного объекта не найдено; одноимённые сети и другие города не объединены.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://eldorahotel.com/facilities.html",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=50651"
+        ],
+        "evidence": "Официальные facilities/accommodation доступны в поисковом индексе, address60 Ben Nghe,booknow; https://www.eldorahotel.com/leisure.html подтверждает14floor unheatedpool/gym/sauna. Государственный реестрHue2026 подтверждает гостиницуEldora."
+      },
+      "caption_sha256": "f401d80ab7a6a14ce886e3cdb6fa38ce06c677a6475da599c499eb96da5abac7"
+    },
+    "52102": {
+      "id": 52102,
+      "ready": true,
+      "caption": "✈️ Туры в Baan Wanglang Riverside\n📍 Бангкок, Таиланд.\n\nДля тех, кто хочет увидеть Бангкок с реки: отель на берегу Чаупхраи, ресторан Tonmakok и бар 342 с панорамой города. Рядом колоритный район Вангланг. Вид на реку зависит от категории: Superior выходит на город и район, а не на воду.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "hold_reason": null,
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=52102",
+          "facts": "Для тех, кто хочет увидеть Бангкок с реки: отель на берегу Чаупхраи, ресторан Tonmakok и бар 342 с панорамой города. Рядом колоритный район Вангланг. Вид на реку зависит от категории: Superior выходит на город и район, а не на воду."
+        },
+        {
+          "source": "https://www.baanwanglang.com/home.html",
+          "facts": "Официальный действующий сайт с Cloudbeds booknow,адрес342SoiWatRakang,Siriraj,рестораны/бар; https://www.baanwanglang.com/riverfront.html разделяетSuperior cityview иRiverfront."
+        }
+      ],
+      "material_conditions": "Городскойriverside; Superior cityview,не все river-view.",
+      "aliases": [
+        "Baan Wanglang Riverside",
+        "Baan Wang Lang Riverside"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property-specific aliases сверены с registry: опубликованного объекта не найдено; одноимённые сети и другие города не объединены.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.baanwanglang.com/home.html",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=52102"
+        ],
+        "evidence": "Официальный действующий сайт с Cloudbeds booknow,адрес342SoiWatRakang,Siriraj,рестораны/бар; https://www.baanwanglang.com/riverfront.html разделяетSuperior cityview иRiverfront."
+      },
+      "caption_sha256": "b8e8edc44d7f8db26e0c6ccd07a764f6994b0e6ab92f2f11c51e4390df5b3595"
+    },
+    "61638": {
+      "id": 61638,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в MK Premier Boutique\n📍 Ханой, Вьетнам.\n\nДля прогулок по старому Ханою: отель на улице Хангбуом, ресторан, бар на крыше и фитнес-зал. Городской формат для знакомства со столицей, не пляжный курорт.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Официальный сайт с MakeAReservation и CheckAvailability; контакт 72–74 Hang Buom совпадает с координатами native. MK Rooftop Bar, Restaurant, Fitness перечислены оператором."
+      ],
+      "material_conditions": [
+        "Городской Ханой, не пляж."
+      ],
+      "aliases": [
+        "Mk Premier Boutique",
+        "MK Premier Boutique Hotel"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Проверены specific property aliases в текущем registry: совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://mkpremier.vn/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=61638"
+        ],
+        "evidence": "Официальный сайт с MakeAReservation и CheckAvailability; контакт 72–74 Hang Buom совпадает с координатами native. MK Rooftop Bar, Restaurant, Fitness перечислены оператором."
+      },
+      "caption_sha256": "1ea1303e1bc5db58b2f64269166ea164a6a40c4b9d96e04b1060dfbb6b599ebd"
+    },
+    "37931": {
+      "id": 37931,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Nha Trang Palace Hotel\n📍 Нячанг, Вьетнам.\n\nДля отдыха с пляжем и прогулками по центру: открытый бассейн, ресторан и тренажёрный зал. До песчаного пляжа около 150 м через дорогу. При заселении может потребоваться депозит наличными.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Текущая официальная карточка и booking rules: 9 Yersin совпадает с native; возможный cash deposit. Native infrastructure: бассейн, ресторан, зал, пляж 150 м через дорогу."
+      ],
+      "material_conditions": [
+        "Пляж 150 м через дорогу.",
+        "Возможен депозит наличными; official policy 500000 VND, без цены в caption."
+      ],
+      "aliases": [
+        "Nha Trang Palace Hotel",
+        "Nha Trang Palace"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Проверены specific property aliases в текущем registry: совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://nhatrangpalacehotel.com.vn/bookings/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=37931"
+        ],
+        "evidence": "Текущая официальная карточка и booking rules: 9 Yersin совпадает с native; возможный cash deposit. Native infrastructure: бассейн, ресторан, зал, пляж 150 м через дорогу."
+      },
+      "caption_sha256": "905ed77f9c3986ca80306f7bbde2e73159dde877b38643baff7c429105cef9c6"
+    },
+    "34556": {
+      "id": 34556,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Pattaya Sea View\n📍 Паттайя, Таиланд.\n\nДля тех, кто хочет жить рядом с пляжем и городской жизнью: бассейн с солёной водой, ресторан и около 500 м до торгового центра Central Marina. До общественного пляжа около 100 м. При заселении взимается депозит.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Официальный сайт: текущие 55 rooms, категории и контакты 115/8 Moo9 совпадают. Страница /facility/swimming-pool/ подтверждает saltwater pool open daily; native: 100 м пляж, Marina 500 м, депозит."
+      ],
+      "material_conditions": [
+        "Пляж общественный 100 м.",
+        "Депозит."
+      ],
+      "aliases": [
+        "Pattaya Sea View",
+        "Pattaya Seaview Hotel",
+        "Pattaya Sea View Hotel"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Проверены specific property aliases в текущем registry: совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://pattayaseaviewhotel.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=34556"
+        ],
+        "evidence": "Официальный сайт: текущие 55 rooms, категории и контакты 115/8 Moo9 совпадают. Страница /facility/swimming-pool/ подтверждает saltwater pool open daily; native: 100 м пляж, Marina 500 м, депозит."
+      },
+      "caption_sha256": "c8be0bb759e47933916b3923fed5728fc0ac8bd592406f812484e62f06361335"
+    },
+    "37932": {
+      "id": 37932,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Regalia Hotel\n📍 Нячанг, Вьетнам.\n\nДля отдыха у набережной Чанфу: открытый бассейн на 16-м этаже, ресторан и бары. Общественный песчаный пляж через дорогу. Специально оборудованных номеров для гостей с ограниченной подвижностью нет.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Официальные About Us и Contact: 98B Tran Phu совпадает с native; действующая презентация 103 rooms, контактная форма, бассейн 16-й этаж. Native: ресторан/бары, пляж через дорогу и отсутствие адаптированных номеров. Не смешивать с Regalia Gold."
+      ],
+      "material_conditions": [
+        "Дорога до пляжа.",
+        "Нет специально оборудованных номеров."
+      ],
+      "aliases": [
+        "Regalia Hotel",
+        "Regalia Nha Trang Hotel"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Проверены specific property aliases в текущем registry: совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.regaliahotel.vn/en/about-us/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=37932"
+        ],
+        "evidence": "Официальные About Us и Contact: 98B Tran Phu совпадает с native; действующая презентация 103 rooms, контактная форма, бассейн 16-й этаж. Native: ресторан/бары, пляж через дорогу и отсутствие адаптированных номеров. Не смешивать с Regalia Gold."
+      },
+      "caption_sha256": "6fae68217a65d3b15981abf3fdde138b23afdceecafad7cb80997cf48c498e78"
+    },
+    "44420": {
+      "id": 44420,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Palace Vung Tau\n📍 Вунгтау, Вьетнам.\n\nДля городского отдыха у побережья: открытый бассейн, ресторан и фитнес-центр. Отель расположен в центре Вунгтау, неподалёку от общественного пляжа Бай-Труок. Пляжные шезлонги и зонтики оплачиваются отдельно.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Официальный оператор BRG: Palace 1 Nguyen Trai, текущие комнаты и booking page. Native: бассейн/ресторан/зал. Distance conflicting 170/500 м, поэтому точные метры не обещаем, только nearby public beach."
+      ],
+      "material_conditions": [
+        "Общественный пляж не на территории.",
+        "Пляжные шезлонги/зонтики платные.",
+        "Native 170/500 м противоречат: точное расстояние в caption не заявлено."
+      ],
+      "aliases": [
+        "Palace Vung Tau",
+        "Palace Hotel Vung Tau"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Проверены specific property aliases в текущем registry: совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://palace.brghospitality.vn/en/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=44420"
+        ],
+        "evidence": "Официальный оператор BRG: Palace 1 Nguyen Trai, текущие комнаты и booking page. Native: бассейн/ресторан/зал. Distance conflicting 170/500 м, поэтому точные метры не обещаем, только nearby public beach."
+      },
+      "caption_sha256": "9372c073d4785e7a122d247cbb628edab6160ecf80a5d43117e0b99f3a4e2ea3"
+    },
+    "7463": {
+      "id": 7463,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Rex Hotel Vung Tau\n📍 Вунгтау, Вьетнам.\n\nДля прогулок по Вунгтау: исторический отель в районе Бай-Труок, напротив парка у моря. Есть открытый бассейн, ресторан и тренажёрный зал. Это городской отель, а не курорт с собственным пляжем.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Действующий официальный BRG: текущие комнаты Check rates, 1 Le Quy Don совпадает с native, напротив парка в Bai Truoc. Native подтверждает pool/restaurant/fitness."
+      ],
+      "material_conditions": [
+        "Городской отель, берег через городской парк/улицы."
+      ],
+      "aliases": [
+        "Rex Hotel Vung Tau",
+        "Rex Vung Tau"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Проверены specific property aliases в текущем registry: совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://rex.brghospitality.vn/en/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=7463"
+        ],
+        "evidence": "Действующий официальный BRG: текущие комнаты Check rates, 1 Le Quy Don совпадает с native, напротив парка в Bai Truoc. Native подтверждает pool/restaurant/fitness."
+      },
+      "caption_sha256": "b43f927427ec2c11a432682ad4d98ca0a9a2b93d91e9f7a0b3c7af0644cfd925"
+    },
+    "4056": {
+      "id": 4056,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Nha Trang Lodge\n📍 Нячанг, Вьетнам.\n\nДля знакомства с Нячангом: центральное расположение у площади 2 Апреля, открытый бассейн и ресторан вьетнамской и западной кухни. Пляж общественный. При заселении взимается депозит; специально оборудованных номеров для гостей с ограниченной подвижностью нет.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Официальная презентация и /en/booking действуют; 42 Tran Phu совпадает с native. Native: бассейн90 кв.м, Lodge restaurant, общественный пляж, депозит, отсутствие адаптированных комнат."
+      ],
+      "material_conditions": [
+        "Общественный пляж.",
+        "Депозит.",
+        "Нет адаптированных номеров."
+      ],
+      "aliases": [
+        "Nha Trang Lodge",
+        "Nha Trang Lodge Hotel"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Проверены specific property aliases в текущем registry: совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://nhatranglodgehotel.com/en/home",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4056"
+        ],
+        "evidence": "Официальная презентация и /en/booking действуют; 42 Tran Phu совпадает с native. Native: бассейн90 кв.м, Lodge restaurant, общественный пляж, депозит, отсутствие адаптированных комнат."
+      },
+      "caption_sha256": "ce0a287b7cdd480f8a67ebb574d64f9084bb109490b171c5bb2cbc98bc1bf770"
+    },
+    "126441": {
+      "id": 126441,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Da Nang Han River Hotel\n📍 Дананг, Вьетнам.\n\nДля городской поездки в Дананг: расположение на улице Ли Ты Чонг, рестораны азиатской и европейской кухни и бар. До общественного пляжа около 3,5 км, поэтому для пляжных дней понадобится поездка.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Текущий официальный Song Han/Han River: адрес14 Ly Tu Trong совпадает, 133 rooms, 3restaurants, bar, booking entrypoint; policy английски называет Han River Hotel. Native beach3.5км. Бассейн не обещаем без current corroboration."
+      ],
+      "material_conditions": [
+        "До пляжа3.5км."
+      ],
+      "aliases": [
+        "Da Nang Han River Hotel",
+        "Danang Han River Hotel"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Проверены specific property aliases в текущем registry: совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://songhanhotel.com.vn/about.html",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126441"
+        ],
+        "evidence": "Текущий официальный Song Han/Han River: адрес14 Ly Tu Trong совпадает, 133 rooms, 3restaurants, bar, booking entrypoint; policy английски называет Han River Hotel. Native beach3.5км. Бассейн не обещаем без current corroboration."
+      },
+      "caption_sha256": "b8e7cccc84331ec99d8f75bedf408956dbf17fc1c14be89dd61745114c49ac2e"
+    },
+    "102203": {
+      "id": 102203,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Hotel Coco Phuket Bangtao\n📍 Банг-Тао, Пхукет, Таиланд.\n\nДля отдыха на Банг-Тао с собственным ритмом: два открытых бассейна, кафе с тайской и западной кухней и тренажёрный зал. До общественного песчаного пляжа около 900 м. При заселении нужен депозит наличными.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Официальный COCO:153 Soi Cherngtalay14, текущие rates/direct booking, бассейн и фитнес; native точно2пула, кафе, пляж900м и cash deposit."
+      ],
+      "material_conditions": [
+        "Пляж900м.",
+        "Депозит наличными."
+      ],
+      "aliases": [
+        "Hotel Coco Phuket Bangtao",
+        "Hotel Coco Phuket Bangtao Beach"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Проверены specific property aliases в текущем registry: совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://cocophuket.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=102203"
+        ],
+        "evidence": "Официальный COCO:153 Soi Cherngtalay14, текущие rates/direct booking, бассейн и фитнес; native точно2пула, кафе, пляж900м и cash deposit."
+      },
+      "caption_sha256": "ba208a3d14e595d16eb59b77dc2223cdfb5963183a402179db0af8d9a0f1f64c"
+    },
+    "20969": {
+      "id": 20969,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Ramada Plaza By Wyndham Bangkok Menam Riverside\n📍 Бангкок, Таиланд.\n\nДля отдыха у реки в столице: расположение на берегу Чаупхраи, открытый бассейн, рестораны и спа. Здесь удобно чередовать городские маршруты с отдыхом у воды. При заселении взимается депозит.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Текущий оператор и Wyndham: current501rooms, easternbankChaoPhraya,2074Charoenkrung; native бассейн500м2,рестораны,SPA,депозит3000бат."
+      ],
+      "material_conditions": [
+        "Депозит.",
+        "Городской речной, не морской отель."
+      ],
+      "aliases": [
+        "Ramada Plaza By Wyndham Bangkok Menam Riverside",
+        "Ramada Plaza Bangkok Menam Riverside",
+        "Menam Riverside Hotel"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Проверены specific property aliases в текущем registry: совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.ramadaplazabangkokriverside.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=20969"
+        ],
+        "evidence": "Текущий оператор и Wyndham: current501rooms, easternbankChaoPhraya,2074Charoenkrung; native бассейн500м2,рестораны,SPA,депозит3000бат."
+      },
+      "caption_sha256": "0a6a3c9113507a5dfbbd4558437ddf6d6fd74ae11d47531adbf18ae91bdd92e9"
+    },
+    "45536": {
+      "id": 45536,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Maitria Hotel Sukhumvit 18\n📍 Бангкок, Таиланд.\n\nДля самостоятельного знакомства с Бангкоком: район Сукхумвит рядом с линиями BTS и MRT, бассейн на крыше, тренажёрный зал и ресторан The Coffee Club. Есть прачечная самообслуживания с оплатой за использование.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Официальный Chatrium: действующие offers/booknow, адрес26SukhumvitSoi18; rooftop pool,gym,CoffeeClub,coin-operatedlaundrette. Native generic golf/kidsclub не используем."
+      ],
+      "material_conditions": [
+        "Прачечная платная.",
+        "Городской Бангкок."
+      ],
+      "aliases": [
+        "Maitria Hotel Sukhumvit 18",
+        "Maitria Hotel Sukhumvit 18 Bangkok"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Проверены specific property aliases в текущем registry: совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.maitriahotels.com/sukhumvitbangkok",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=45536"
+        ],
+        "evidence": "Официальный Chatrium: действующие offers/booknow, адрес26SukhumvitSoi18; rooftop pool,gym,CoffeeClub,coin-operatedlaundrette. Native generic golf/kidsclub не используем."
+      },
+      "caption_sha256": "bc11e8f80537cf41edb14051a17565a5928926942cfe6e7b801cc46de0bf1abc"
+    },
+    "45862": {
+      "id": 45862,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Eastin Tan\n📍 Чиангмай, Таиланд.\n\nДля городского отдыха на севере Таиланда: бассейн на втором этаже, фитнес-центр с парной и ресторан T Station в стиле американского вокзала 1920-х. Отель на улице Хуай-Кэу, это не пляжное направление.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Официальный current TravelclickBookNow, текущиеfamily/culturaloffers; pool2floor,gymsteam,TStation. Native адрес165HuayKaew совпадает."
+      ],
+      "material_conditions": [
+        "Городской север Таиланда, не пляж."
+      ],
+      "aliases": [
+        "Eastin Tan",
+        "Eastin Tan Hotel Chiang Mai"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Проверены specific property aliases в текущем registry: совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.eastinhotelsresidences.com/eastintanchiangmai/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=45862"
+        ],
+        "evidence": "Официальный current TravelclickBookNow, текущиеfamily/culturaloffers; pool2floor,gymsteam,TStation. Native адрес165HuayKaew совпадает."
+      },
+      "caption_sha256": "e1a62014098534c4133c0dcf55599844b419f0019836e71fb1eb53f6de52077f"
+    },
+    "55550": {
+      "id": 55550,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Mercure Hanoi La Gare\n📍 Ханой, Вьетнам.\n\nДля путешествия по Ханою и дальнейших поездок на поезде: отель напротив железнодорожного вокзала, во Французском квартале. Здесь есть круглосуточный тренажёрный зал и ресторан Brasserie Le Pavillon с местной кухней.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Accor current booking с датой18/11/2026:94LyThuongKiet; FrenchQuarter,frontstation,24/7gym,Brasserie. Не используем сомнительные native tennis/spa."
+      ],
+      "material_conditions": [
+        "Городской отель напротив вокзала."
+      ],
+      "aliases": [
+        "Mercure Hanoi La Gare",
+        "Mercure Hanoi la Gare"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Проверены specific property aliases в текущем registry: совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://all.accor.com/hotel/7049/index.en.shtml",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=55550"
+        ],
+        "evidence": "Accor current booking с датой18/11/2026:94LyThuongKiet; FrenchQuarter,frontstation,24/7gym,Brasserie. Не используем сомнительные native tennis/spa."
+      },
+      "caption_sha256": "584530c8947a02ca9a489e56f559b83ef3842b6caba2b2b5f93a4cdb20d1bc7b"
+    },
+    "57326": {
+      "id": 57326,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Golden Silk Boutique\n📍 Ханой, Вьетнам.\n\nДля прогулок по Старому кварталу: отель на улице Ханггай, кафе Rendez-Vous и ресторан-бар Oriental на крыше. Важно при выборе номера: есть категории с внутренним окном или внутренним видом, без вида на улицу.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Текущий official с summer2026/bookingoffers:109–111HangGai; rooftopOriental,RendezVousCafe; актуальные roomlabels DeluxeInternalWindow/LuxuryInternalView."
+      ],
+      "material_conditions": [
+        "Некоторые категории с внутренним окном/видом; не обещать вид на город всем."
+      ],
+      "aliases": [
+        "Golden Silk Boutique",
+        "Golden Silk Boutique Hotel"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Проверены specific property aliases в текущем registry: совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://goldensilkhotel.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=57326"
+        ],
+        "evidence": "Текущий official с summer2026/bookingoffers:109–111HangGai; rooftopOriental,RendezVousCafe; актуальные roomlabels DeluxeInternalWindow/LuxuryInternalView."
+      },
+      "caption_sha256": "f3943111f3072a4439bd2d41e11a6cce8e6a9aeefe98674237d560e2108fe655"
+    },
+    "62816": {
+      "id": 62816,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Novotel Suites Hanoi\n📍 Ханой, Вьетнам.\n\nДля семейной или более долгой поездки: номера с оборудованной мини-кухней, бассейн, фитнес-центр и сауна. Отель расположен в западном районе Каузяй, не в Старом квартале; поездки в исторический центр стоит планировать отдельно.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Current Accor booking18/11/2026:5DuyTanCauGiay,151rooms,fullyequippedkitchenette,pool,gym,sauna; nativecoords совпадают."
+      ],
+      "material_conditions": [
+        "Запад Ханоя, не Старый квартал."
+      ],
+      "aliases": [
+        "Novotel Suites Hanoi",
+        "Novotel Suites Hanoi Hotel"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Проверены specific property aliases в текущем registry: совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://all.accor.com/hotel/9813/index.en.shtml",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=62816"
+        ],
+        "evidence": "Current Accor booking18/11/2026:5DuyTanCauGiay,151rooms,fullyequippedkitchenette,pool,gym,sauna; nativecoords совпадают."
+      },
+      "caption_sha256": "4b4fdef5168a6bdfeb46a662ab9db3519c4601aa34dd563a12d885b72866af68"
+    },
+    "62819": {
+      "id": 62819,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Silk Path Boutique\n📍 Ханой, Вьетнам.\n\nДля короткой поездки за атмосферой Ханоя: небольшой бутик-отель у озера Хоанкьем, ресторан и терраса. Всего 33 номера, а торговый центр Trang Tien Plaza находится примерно в 200 м. Это городской отель, не пляжный курорт.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Официальный SilkPath различает HotelHanoi и BoutiqueHanoi; действующие directoffers иrooms, HoanKiemlake. Nativecoords/телефон совпадают с Boutique,33номера,200мTrangTien."
+      ],
+      "material_conditions": [
+        "Отдельный объект от Silk Path Hotel Hanoi.",
+        "Городской формат."
+      ],
+      "aliases": [
+        "Silk Path Boutique",
+        "Silk Path Boutique Hanoi"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Проверены specific property aliases в текущем registry: совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://silkpathhotel.com/hanoiboutique/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=62819"
+        ],
+        "evidence": "Официальный SilkPath различает HotelHanoi и BoutiqueHanoi; действующие directoffers иrooms, HoanKiemlake. Nativecoords/телефон совпадают с Boutique,33номера,200мTrangTien."
+      },
+      "caption_sha256": "60f698b5fb18798717c21c5d4b75f8d23d4b8b5e86496c0920565826532c3a94"
+    },
+    "64555": {
+      "id": 64555,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Muong Thanh Hanoi Centre Hotel\n📍 Ханой, Вьетнам.\n\nДля знакомства с Ханоем: центральное расположение, ресторан и фитнес-зал. До озера Хоанкьем около 750 м, до музея-тюрьмы Хоало около 350 м. После прогулок можно заглянуть в спа.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "common.place: Отель Muong Thanh Hanoi Centre расположен в городе Ханой, неподалеку от популярных достопримечательностей города. Расстояние от отеля до торгового центра Trang Tien Plaza составляет 500 метров, до Кукольного театра на воде Тханг Лонг и Собора Святого Иосифа – 600 метров. Международный аэропорт Нойбай находится в 22 км.",
+        "infrastructure.territory: конференц-зал  парковка  СПА-салон  фитнес-центр  ресторан  кафе-бар  камера хранения багажа  Wi-Fi"
+      ],
+      "material_conditions": [],
+      "aliases": [
+        "Muong Thanh Hanoi Centre Hotel",
+        "Muong Thanh Grand Hanoi Centre Hotel"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Полные property-specific aliases и native ID сверены с registry обеих платформ; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://booking.muongthanh.com/hotel-muong-thanh-grand-ha-noi-centre",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64555"
+        ],
+        "evidence": "Действующая страница бронирования Muong Thanh Grand Hanoi Centre; центральный Ханой, совпадает расположение, подтверждены расстояния до Hoan Kiem и Hoa Lo. Grand — актуальное полное имя того же объекта."
+      },
+      "caption_sha256": "e45c471c64b9827bfece25824966a954e3b8d84fc3846bd9c5c3a481ab40e1cb"
+    },
+    "64632": {
+      "id": 64632,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Novotel Bangkok Sukhumvit 20\n📍 Бангкок, Таиланд.\n\nДля городских каникул с детьми: детский клуб, бассейны для взрослых и детей, фитнес-зал. До BTS Asok и MRT Sukhumvit около 10 минут пешком: удобно чередовать прогулки, покупки и отдых у бассейна.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "infrastructure.territory: Wi-Fi на территории  Игровая комната  Бассейн на открытом воздухе  Ночной клуб  Спа  Фитнес-центр  Бар  Бар у бассейна  Кафе  Ресторан  Банкомат  Камера хранения  Медпункт  Места для курения  Сейф  Химчистка  Лифт  Оборудованный доступ для колясок  Удобства для гостей с инвалидностью  Бесплатная парковка  Парковка на территории"
+      ],
+      "material_conditions": [],
+      "aliases": [
+        "Novotel Bangkok Sukhumvit 20"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Полные property-specific aliases и native ID сверены с registry обеих платформ; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://all.accor.com/hotel/9343/index.en.shtml",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=64632"
+        ],
+        "evidence": "Accor: активное бронирование и отзывы 2026; адрес 19/9 Sukhumvit 20 и GPS совпадают с профилем, семейная инфраструктура и путь до BTS подтверждены."
+      },
+      "caption_sha256": "736fe38dd2adb025767a3e950455067e8ec28d14cfbb7012541166adf34c4f61"
+    },
+    "65251": {
+      "id": 65251,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Novotel Halong Bay\n📍 Байчай, Халонг, Вьетнам.\n\nДля поездки к бухте Халонг: открытый бассейн, фитнес-зал и ресторан The Square с вьетнамскими и международными блюдами. Отель расположен напротив прохода к пляжу Байчай: к морю нужно выйти за территорию и перейти дорогу.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "common.place: Отель Ha Long Bay сети Novotel расположен в самом центре курорта Байчай. Ночной рынок Халонга находится в 800 метрах от отеля Novotel Ha Long Bay, парк развлечений SunWorld HaLong — в 1 км, а торговый центр Vincom Plaza — в 4,4 км. Расстояние до международного аэропорта Катби составляет 36 км.",
+        "infrastructure.territory: ресторан  бар  парковка  открытый бассейн  терраса  Wi-Fi  круглосуточная стойка регистрации  5 конференц-залов  фитнес-центр"
+      ],
+      "material_conditions": [
+        "Байчай, Халонг, не Ханой. Пляж вне территории, через дорогу."
+      ],
+      "aliases": [
+        "Novotel Halong Bay",
+        "Novotel Ha Long Bay"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Полные property-specific aliases и native ID сверены с registry обеих платформ; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://all.accor.com/hotel/6185/index.en.shtml",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=65251"
+        ],
+        "evidence": "Accor: активные номера и бронирование, адрес 160 Ha Long road Bai Chay. Это Халонг, не регион Ханой из каталога. Официально opposite position to beach access way."
+      },
+      "caption_sha256": "f52d1221a2c1c6cc4c0dad507776aebf58da3d5548bd2ee2e18bff80ab61d084"
+    },
+    "68198": {
+      "id": 68198,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в TTC Hotel Premium - Hoi An\n📍 Хойан, Вьетнам.\n\nДля знакомства со старым Хойаном: открытый бассейн, ресторан Areca и номера в азиатском стиле. До Старого города и Японского моста около 1,2 км, до пляжа Анбанг около 3 км.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "common.place: TTC Premium - Hoi An расположен в городе Хойан, в 25 минутах ходьбы от пляжа Ан-Банг. Отель находится в 16 км от Мраморных гор и в 1,2 км от исторического Японского моста. Расстояние до Международного аэропорта Дананг составляет 25 км.",
+        "infrastructure.territory: ресторан  бар  бассейн  сад  парковка  круглосуточная стойка регистрации  фитнес-центр"
+      ],
+      "material_conditions": [
+        "Старый город 1,2 км; пляж Анбанг 3 км."
+      ],
+      "aliases": [
+        "Ttc Hotel Premium - Hoi An",
+        "TTC Hotel Hoi An"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Полные property-specific aliases и native ID сверены с registry обеих платформ; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://ttchospitality.vn/ttc-hotel/TTC-HOTEL--HOI-AN?sa=X&ved=2ahUKEwiB0JGutp-AAxXqSKsCHR_gA8UQyK4DegUIAxDKBQ",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=68198"
+        ],
+        "evidence": "Официальная индексируемая карточка TTC Hotel Hoi An: 52 номера, Areca, открытый бассейн, 1.2/3 км. Дополнительно актуальный список официальных контактов сети подтверждает 02353963666 и info.hoian@ttchotels.com; предложение к Новому 2026 году. Без query сайт отдаёт 404, это не объявление закрытия."
+      },
+      "caption_sha256": "ef76dc15e83f92dd27eb82b16cbf8b3408ad5540924313908b8c56c9d5f2c032"
+    },
+    "71256": {
+      "id": 71256,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Muong Thanh Vung Tau\n📍 Вунгтау, Вьетнам.\n\nДля отдыха у моря с прогулками по городу: открытый бассейн, ресторан и фитнес-зал. До пляжа Фронт около 200 м, по пути нужно перейти дорогу. После прогулок можно выбрать процедуры в спа.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "common.place: Отель «Muong Thanh Vung Tau» расположен на улице Тхонг Нхат, прямо в центре города Вунгтау. Вблизи от отеля находится Дуонг-Бей, места для купания и другие известные достопримечательности, такие как Куанг Трунг Парк, Центральная Площадь и культурный музей.",
+        "infrastructure.territory: конференц-зал  сувенирный магазин  парковка  банкетный зал  бизнес-центр  лифт  терраса  тренажерный зал  открытый бассейн  ресторан (вместимость более 350 чел.)  бар  караоке",
+        "infrastructure.beach: Песчаный пляж Front Beach расположен примерно в 200 м от отеля, через дорогу. Пляжные полотенца предоставляются бесплатно."
+      ],
+      "material_conditions": [
+        "Пляж Фронт 200 м, через дорогу."
+      ],
+      "aliases": [
+        "Muong Thanh Vung Tau",
+        "Muong Thanh Holiday Vung Tau Hotel"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Полные property-specific aliases и native ID сверены с registry обеих платформ; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://holidayvungtau.muongthanh.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=71256"
+        ],
+        "evidence": "Действующий официальный Muong Thanh Holiday Vung Tau, адрес 9 Thong Nhat и телефон +84 254 3552468 соответствуют native с прежним кодом города. Подтверждены бассейн/fitness/spa."
+      },
+      "caption_sha256": "c21ceb8f4f9277321659ace785c084728e43424504d5145074ce567c5127d127"
+    },
+    "74116": {
+      "id": 74116,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Hue Ecolodge\n📍 Хюэ, Вьетнам.\n\nДля неспешного отдыха среди зелени: бунгало в саду, открытый бассейн и ресторан. Велопрогулки помогут познакомиться с окрестностями деревни Тхюибьеу. Это загородная часть Хюэ, а не морской курорт.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "common.place: Отель Hue Ecolodge расположен в городе Хюэ. Пагода Тхьенму находится в 1,9 км от отеля Hue Ecolodge, а Гробница императора Ту Дука — в 3,3 км. Расстояние от отеля до аэропорта Фубай составляет 18 км.",
+        "infrastructure.territory: бассейн  сад  парковка  круглосуточная стойка регистрации  спа-центр  ресторан  бар  Wi-Fi  конференц-зал"
+      ],
+      "material_conditions": [
+        "Хюэ/Тхюибьеу, не Дананг и не морской отель."
+      ],
+      "aliases": [
+        "Hue Ecolodge"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Полные property-specific aliases и native ID сверены с registry обеих платформ; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://hue.ecolodge.asia/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=74116"
+        ],
+        "evidence": "Официальный действующий сайт и /en/booking.html: 02 Luong Quan, Hue, Thuy Bieu, бунгало/сад/велопрогулки; native координаты соответствуют Хюэ, не Данангу."
+      },
+      "caption_sha256": "52b490eb5fa29aa41428513e758f8b2c06d0e27059bdc2a083799e32ce6bf576"
+    },
+    "74122": {
+      "id": 74122,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Grand Cititel Hanoi\n📍 Ханой, Вьетнам.\n\nДля прогулок по историческому Ханою: расположение в районе Хоанкьем, ресторан Rice и бар Joy Lounge. Есть фитнес-зал, чтобы сохранить привычный ритм тренировок между экскурсиями.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "common.place: Отель Grand Cititel Hanoi расположен в районе Хоанкьем в Ханое, в 3 минутах ходьбы от музея революции Вьетнама, Национального музея истории Вьетнама и оперного театра Ханоя. Поездка до международного аэропорта Нойбай занимает 45 минут.",
+        "infrastructure.territory: Wi-Fi  круглосуточная стойка регистрации  тренажерный зал  ресторан  бар"
+      ],
+      "material_conditions": [],
+      "aliases": [
+        "Grand Cititel Hanoi",
+        "Grand Cititel Hanoi Hotel"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Полные property-specific aliases и native ID сверены с registry обеих платформ; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.grandcititelhanoi.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=74122"
+        ],
+        "evidence": "Официальный сайт и /reservations.html с бронированием, адрес 13B Tong Dan Hoan Kiem; Rice, Joy Lounge и gym. Не использованы посторонние фрагменты boilerplate про Le Chanvre."
+      },
+      "caption_sha256": "357ba47a61da870878b8cea6480e357c1da8a41fc7af1c840a0b205e9a38c678"
+    },
+    "80757": {
+      "id": 80757,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Mercure Bangkok Sukhumvit 24\n📍 Бангкок, Таиланд.\n\nДля прогулок и шопинга в Бангкоке: станция BTS Phrom Phong примерно в 100 м, бассейн на крыше 29-го этажа и фитнес-зал. Вечером можно поужинать в ресторане отеля.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "common.place: 5.1 Sukhumvit Road Soi 24, Клонг Тан, Клонгтоуи,, Бангкок, Таиланд",
+        "infrastructure.territory: ресторан  бассейн на крыше  лобби-бар"
+      ],
+      "material_conditions": [],
+      "aliases": [
+        "Mercure Bangkok Sukhumvit 24"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Полные property-specific aliases и native ID сверены с registry обеих платформ; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://all.accor.com/hotel/B0M2/index.en.shtml",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=80757"
+        ],
+        "evidence": "Accor: действующая карточка с бронированием, адрес 5/1 Sukhumvit 24, телефон +66 2 6592888 и GPS совпадают. BTS 100 м и rooftop pool подтверждены."
+      },
+      "caption_sha256": "c975d36f8867f63b8341d045b85f44c7a8220dfc486b048cfb7d15dae2dde528"
+    },
+    "81283": {
+      "id": 81283,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Explorar Koh Phangan Adults Only 16+\n📍 Хаад-Рин, Пханган, Таиланд.\n\nДля отдыха вдвоём или с друзьями от 16 лет: пляж, открытый бассейн и фитнес-зал. Можно встречать закат у воды и ужинать в ресторане курорта. Отель только для гостей 16+, в корпусах нет лифтов.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "common.place: на острове Ко-Пханган.",
+        "infrastructure.territory: парковка  фитнес-зал  открытый бассейн  терраса для загара  бар возле бассейн  ресторан",
+        "infrastructure.beach: муниципальный песчаный пляж  платный трансфер на Zen пляж и обратно, раз в неделю. Расписание уточняется на ресепшн."
+      ],
+      "material_conditions": [
+        "Только гости 16+. Корпуса без лифтов. Пханган, не Самуи."
+      ],
+      "aliases": [
+        "Explorar Koh Phangan Adults Only 16+",
+        "Explorar Koh Phangan",
+        "The Coast Resort Koh Phangan"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Полные property-specific aliases и native ID сверены с registry обеих платформ; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.explorarhotels.com/koh-phangan/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=81283"
+        ],
+        "evidence": "Официальный действующий Reserve Now с телефон +66 77951567 совпадающим с native; контактный адрес Koh Phangan 117/21. Возраст 16+ указан сетью и Exhale menu 2025. Не Самуи; бывший The Coast учтён в aliases, текущий Explorar действует."
+      },
+      "caption_sha256": "ef68deb7d0844e106221cba27c8c0f46b28f3137f57e1d6469c0f7547ed7bb77"
+    },
+    "96963": {
+      "id": 96963,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Best Western Plus Carapace Hotel Hua Hin\n📍 Хуахин, Таиланд.\n\nДля отдыха у моря с бассейнами: просторные бассейны-лагуны, детский бассейн и ресторан. Есть фитнес-зал. Отель расположен примерно в 12 км от центра Хуахина: для городских прогулок понадобится транспорт.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "common.place: Отдых должен быть комфортным! Отель «Best Western Plus Carapace Hotel Hua Hin» находится в Хуахине. Этот отель располагается в 12 км от центра города.",
+        "infrastructure.territory: Удобства для бассейна"
+      ],
+      "material_conditions": [
+        "Около 12 км до центра Хуахина."
+      ],
+      "aliases": [
+        "Best Western Plus Carapace Hotel Hua Hin"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Полные property-specific aliases и native ID сверены с registry обеих платформ; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.bestwestern.com/en-us/book/hotel/hua-hin/best-western-plus-carapace-hotel-hua-hin/99929",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=96963"
+        ],
+        "evidence": "Официальная сеть: активное бронирование 2026, адрес 5/219 Soi Hua Hin 101 совпадает; seaside/freeform lagoon pools, ресторан и fitness. Расстояние до центра из native сохранено."
+      },
+      "caption_sha256": "487bdf6c2eaaadc19d69f84e42caa95c84f532004671c3054f2d5ce47a21fb42"
+    },
+    "100822": {
+      "id": 100822,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Best Western Plus Wanda Grand Hotel\n📍 Паккрет, Нонтхабури, Таиланд.\n\nДля поездок по северной части агломерации Бангкока: станция MRT Chaeng Watthana–Pak Kret 28 примерно в 70 м, открытый бассейн и фитнес-зал. Есть ресторан. Это Нонтхабури, не туристический центр Бангкока.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "common.place: Отдых должен быть комфортным! Отель «Best Western Plus Wanda Grand Hotel» расположен в Паккрете. Этот отель находится в 4 км от центра города. Рядом с отелем — Дом-музей Джима Томпсона, Храм Изумрудного Будды и Большой королевский дворец.",
+        "infrastructure.territory: Открытый бассейн"
+      ],
+      "material_conditions": [
+        "Паккрет, Нонтхабури, не центр Бангкока."
+      ],
+      "aliases": [
+        "Best Western Plus Wanda Grand Hotel"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Полные property-specific aliases и native ID сверены с registry обеих платформ; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.bwpluswandagrand.com/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=100822"
+        ],
+        "evidence": "Действующий официальный сайт: адрес 111 Moo4 Chaengwattana Pakkret и phone 025828282 совпадают. MRT70m/pool/fitness; ошибочные native nearby Jim Thompson/Royal Palace отброшены."
+      },
+      "caption_sha256": "ed7b724889a9d661ae0ed4a294ec349cb7a4efed05f50b3f483e1498954fc035"
+    },
+    "102201": {
+      "id": 102201,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Novotel Rayong Star Convention Centre\n📍 Районг, Таиланд.\n\nДля знакомства с городом Районг: центральное расположение, ресторан Food Exchange и фитнес-зал. Подойдёт тем, кто планирует прогулки и поездки по окрестностям, а не отдых в отеле на первой пляжной линии.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "common.place: Ищите возможность отдохнуть и посмотреть на город? Отель «Novotel Rayong Star Convention Centre» расположен в Районге. Этот отель находится в самом центре города. Утром — выпейте кофе, наблюдая из окна за жизнью города. Рядом с отелем можно прогуляться. Неподалёку: Тропический парк Нонг Нуч, Долфин Уорлд и Аквапарк Cartoon Network Amazone."
+      ],
+      "material_conditions": [
+        "Городской центр Районга, не пляжный отель."
+      ],
+      "aliases": [
+        "Novotel Rayong Star Convention Centre"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Полные property-specific aliases и native ID сверены с registry обеих платформ; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://all.accor.com/hotel/B631/index.en.shtml",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=102201"
+        ],
+        "evidence": "Accor: действующая карточка, отзывы октября2026; адрес109 Sukhumvit Tha Pradu и телефон033017980 совпадают. Food Exchange и fitness; бассейн не обещан из-за неоднозначной fee-формулировки официального FAQ. Ошибочные nearby из native не использованы."
+      },
+      "caption_sha256": "85285c35bcb7a4adf41fcf15def585e3b00af4d57896ad85279b723cfc9ff1f3"
+    },
+    "103396": {
+      "id": 103396,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Best Western Sukhumvit 20\n📍 Бангкок, Таиланд.\n\nДля городских прогулок и шопинга: отель на Сукхумвит 20, недалеко от транспортного узла Asok–Sukhumvit. Есть ресторан и бар, а в номерах — рабочее место для тех, кто совмещает поездку с делами.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "common.place: 27 км до аээропорта Суварнабхуми",
+        "infrastructure.territory: ресторан"
+      ],
+      "material_conditions": [],
+      "aliases": [
+        "Best Western Sukhumvit 20",
+        "Best Western Plus At 20 Sukhumvit"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Полные property-specific aliases и native ID сверены с registry обеих платформ; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.bestwestern.com/en-us/book/hotel/bangkok/best-western-sukhumvit-20/99353",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=103396"
+        ],
+        "evidence": "Официальный property99353: действующий Best Western Sukhumvit20, адрес17 Soi20 совпадает. Старое имя Best Western Plus At20 Sukhumvit ведёт к тому же property99353; переход разрешён, не другая гостиница."
+      },
+      "caption_sha256": "70aaba758f5c8d45787cffdf4a3492602eaeb2ae1106d34739424f183e5492d1"
+    },
+    "103561": {
+      "id": 103561,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Maitria Mode Sukhumvit 15 Bangkok A Chatrium Collection\n📍 Бангкок, Таиланд.\n\nДля отдыха в городе вдвоём или семьёй: бассейн на крыше, фитнес-зал и ресторан. Для семьи есть номера с двумя спальнями и двумя ванными комнатами. До торгового центра Terminal 21 около 1 км.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "common.place: Хороший выбор, когда понежиться в отеле так же важно, как и погулять. Отель «Отель Maitria Mode Sukhumvit 15 Bangkok - A Chatrium Collection» располагается в Бангкоке. Этот отель находится в 7 км от центра города. Рядом с отелем — Маккасан, Торговый центр Терминал 21 и Храм Эраван.",
+        "infrastructure.territory: Открытый бассейн"
+      ],
+      "material_conditions": [
+        "До Terminal21 около1 км."
+      ],
+      "aliases": [
+        "Maitria Mode Sukhumvit 15 Bangkok A Chatrium Collection",
+        "Maitria Mode Sukhumvit 15",
+        "U Hotel Sukhumvit",
+        "U Sukhumvit Bangkok"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Полные property-specific aliases и native ID сверены с registry обеих платформ; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.maitriahotels.com/modesukhumvitbangkok/booking",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=103561"
+        ],
+        "evidence": "Официальная активная booking с Family Room 64m² two bedrooms/bathrooms; factsheet MHR подтверждает81 Sukhumvit15/026513355/pool. Старое U Hotel Sukhumvit сменило бренд в2021, текущая работа Maitria подтверждена, aliases проверены."
+      },
+      "caption_sha256": "80c92d0fb0f4aaeea75daed7a1b7e08373c97d21e418cf5711e9e647de5beba4"
+    }
+  },
+  "accepted_cover_hashes": {
+    "11401": "c59855ac8ce8b4a75b5710c68d5415098a4339e31278f67bf99fa482451bd97c",
+    "622": "b36eca0b7fe274efb7f1053e8dd77718aee31c30a2755342fae16a8d48baacd2",
+    "8005": "63b294210fc48f3c93224df458912f3f9cf515fb66c6ffefe2ba2142e4cd8869",
+    "58095": "1dff77a32495903f52fec44fe5dcab65132a913eafadc3986e9ffcbab8ed47bf",
+    "22737": "a14ffb8cbbca4e2e722f92aae74f770a8dcfdc2ef18688329fdfb43275dc7f06",
+    "24878": "f538e05330e704ffc53690d2d1bde2e8915e7f954701e289b6a26b5d7f3161eb",
+    "50943": "7b35aa5c5c5b4871dd83c83b323ab4d9ed5d2f625dd1e341008ea426771345ba",
+    "110562": "a089137ce1b3705b21762ccac70b057bc313049215a1b3c1b53c4ebe63d95994",
+    "125787": "ca72981bff0613b78394075848f74453266554017e54031c0ad1b673635571e7",
+    "126911": "ca2429c955af7249725d01a1ae0c5d8ef215629e36683d6094c86dd8272cf802",
+    "52252": "dae5f1dfe6c00ee606ee4de639045a3a42c2ec31d5ea6c2f76e43d4806d0687a",
+    "61641": "13183d1b95b97f7ad65c5f4a3767e16f4148f2922c80f2824d12115f35d8c0e8",
+    "63690": "388b8f2f0a477b2de84f32cfcddc9bd1ee848d92cac4cbad45fc11e604f2b850",
+    "103281": "4add97976f09ce2f983276a8010ff8871600a4a3d34ed1312f4fa9ea55559156",
+    "126756": "51aa846f08779c745f167c9afcb7338a5a40a6dfc6902bb556c63fbad0dc7be9",
+    "128156": "43c36ce99b67eea8f6bf9d1742892097302661e94e3baf1ebc4d49fa04dab236",
+    "132999": "e1f4fab28758a59534768b7b3d79d461b31cbeceafb8b04f70b04a72b3bd8240",
+    "47466": "03eae49d3d1eb52a063ca4794a5bafb5f1932729084736efc1825ea75de42397",
+    "61633": "74ff8a77fee3561e7d8c699015f364a7c195ba1474022d7cbdecc23a5b2115c2",
+    "66523": "a12a2aca2273220ab4017cfc2e37964de0e80e9e7cb9aa7d5802166e18ab3e0a",
+    "66558": "fbeff2008c43b0ef568cf861bc90dd35ebbc615174a9a32f55622b41d468fa0d",
+    "793": "2601b84e46176280bce5592e4930db5653af8dc70ebdc1431d4d44a43e40f114",
+    "3027": "1d50dadc36608173b563dd0bde440590e91fe9a9b804484034077a7db846f6a5",
+    "8162": "eaae9eed8b0a2dc8d67f6437eb669ba89f703a264725a12ee7836d6106c90dd4",
+    "28564": "d952cd80fdd727441a78ecb4409d6f474a50e6745401a81eae97afbb44a0a147",
+    "778": "5a3f763c39114fd08c979e358443ff468d1c74b1810835eb0666c0667ce4c7e8",
+    "23253": "7863052963cbaead8507afbbcecb34e50dfcb430edeccad4b647f746659524e1",
+    "50651": "4be08d1cf6d73ff992239983902656817c3b12d691f4bcd88eaa1f318a9a5f00",
+    "52102": "7c96a4b23b92cefe467c32f1982d8ca592a5dfdf86c644322961217039e199a7",
+    "61638": "87caf2d593283c6c4ee7b229563a411674ba962a56f6fa8197a1c13e733d5bc9",
+    "37931": "3ee59af38cece407ad406e0583b50327a081b645bc120f7e48ed70ee648b1eaf",
+    "34556": "ac78fbc58b7cb9bb33ab5864e74f4337f5cf4273edaceb067e1e869fbef750f4",
+    "37932": "38850e33903496eb24b2f775c9702f30f84e783ebda914873424f22ab80b8719",
+    "44420": "87cb06d91828145818a039c49cc2c010f5336df92fdf30750a9cc85ef4f64d2d",
+    "7463": "86a65cb13e0008d97a70e8c8dbb09fa1c6cbec9a58226f162c03512cb237fdba",
+    "4056": "b911e03c42a31df616db930e043a3b904996531112c6dc8b1b84683451693338",
+    "126441": "7b1e1c531953789c871e1d7a1b691405507ab03161e129c41cb87f2dcc44535d",
+    "102203": "4ea3f46370205a24b1be8bfd0ed8560cd79da6eb040eae62a838d2edb97916ae",
+    "20969": "351507aa1c581430b330980fa5497a8ba63cfce9343141851afb5ee2b6ef08c3",
+    "45536": "dd98c97d9c35b364f87cb64f8104e36b141e0db2ad35e627099d5b93c5e3c971",
+    "45862": "64f5955562bac73899ef566cacbc210fe169f960ff3b0c47bae3d798206a48e0",
+    "55550": "0ce52b778686e5c404b3ab31dedd3eccc98b88727a18400c779fa18000ac83c7",
+    "57326": "512cd6db92674c09e2cb207712827580cb638abe9302f32d06f60e721ac5bda3",
+    "62816": "f37fc3e3aee94639c53829a9e9c503aaf38b7f10147991ee44c16778c2ebf5e7",
+    "62819": "a38fb9082b98e9dc95f8e13fc45b4b1cea5c26c93af814f339539fc25e783378",
+    "64555": "06e22ea980ca971e90cfdbbea20319d75bd35e4f38f4e97bb2f1b873a35aa488",
+    "64632": "60f2d16a8c05c263907b466fb84abfa5ed7f769fb887cac766011e082cf03066",
+    "65251": "0adc25f8b152c8dc75e4074b4864865cf31fe09e17fe731e6176a81dc1fabae5",
+    "68198": "405812de73253cd3f16ace8c5f4fc10242e6fee47e6ccf49bebe84500668ae5f",
+    "71256": "448bd2e78ded606672b670e1c02649d49725cc3fda14c04e1dc0db5d6e31b550",
+    "74116": "b85b2b54366b2e18800657c5d90588658168c20caa6f4cc25d3acb38c2bae673",
+    "74122": "5d08c59c32204025e6fa78090e398c62afbdeb0c0b9493d56a7e08b9e94072ba",
+    "80757": "9ea7017922819892c3c402839a5fcff98b6a8dec3107f40b845b258c6e48e5f4",
+    "81283": "f705803a8ddab1380eed8adc7187cec3b26b16b92126916768c993b61f5f5712",
+    "96963": "2a6c67d8338b9588b5036c93c0157000349ab0743e7d2fab547aaeb74ecd3b4a",
+    "100822": "40803084515f79f3188aeb26d742fab08b9f16c4e23879cae0a83aa7220dc75d",
+    "102201": "fe2b3e7485a1962755727c3c0a4ec5c4acc0161e7d505179109fc3e62420fde1",
+    "103396": "9488ab2bf624a85e9a96f476a79e38113e587f3516d531d1b1a584d7399a2ba7",
+    "103561": "349565ec1ec9b6502b9ddbfd1246e008e98cdef77e395bdf9b0a8c87ead3c776"
+  },
+  "cover_receipt_sha256": "e4edaa4636698aaa1bc36ffb7d2cb27496f773a7f3e5cfed52e420a9c7ff9bea",
+  "visual_review": {
+    "reviewed_sheets": [
+      "sheet-1.jpg",
+      "sheet-2.jpg",
+      "sheet-3.jpg",
+      "sheet-4.jpg",
+      "sheet-5.jpg",
+      "sheet-6.jpg",
+      "sheet-7.jpg",
+      "sheet-8.jpg",
+      "sheet-9.jpg"
+    ],
+    "reviewed_prepared_count": 88,
+    "cover_commit": "9406bb52fc15f5a51b05e79ebd6fb7819b99e904",
+    "intake_receipt_sha256": "e4edaa4636698aaa1bc36ffb7d2cb27496f773a7f3e5cfed52e420a9c7ff9bea",
+    "visual_holds": {
+      "59612": "Lead entrance and repeated entrance shot do not adequately present guest accommodation; replace cover",
+      "129298": "Lead exterior appears architectural CGI; real photograph required",
+      "130703": "Lead aerial appears rendered; current photographic provenance unresolved",
+      "124273": "Secondary image is Christmas promotional graphic, not suitable evergreen property cover",
+      "737": "Visible Courtyard sign conflicts with old Patong Merlin title; rebrand and duplicate hold",
+      "50649": "Lead portrait image has large white gutters and visibly poor resolution",
+      "64479": "Dark low-resolution restaurant/street collage with unclear property identity",
+      "66552": "Lead facade image appears heavily rendered/blurred; current real photograph required",
+      "74117": "Pool and aerial views appear architectural renderings; real photographs required",
+      "82682": "Large external SHA promotional seal overlaps lead branding",
+      "100896": "All three photos show conference facilities, no guest accommodation; replace commercial hotel cover"
+    },
+    "notes": "All nine contact sheets directly inspected individually. Remaining covers visually suitable subject to factual/identity/duplicate review. Photo holds do not imply closure."
+  },
+  "holds": {
+    "43531": {
+      "editorial": "Официальный сайт недоступен; актуальную работу и условие сдачи паспорта в депозит не удалось подтвердить.",
+      "alias": null,
+      "visual": null
+    },
+    "59612": {
+      "editorial": "Visual HOLD родителя: слабая повторная входная группа, без подтверждённого guest accommodation.",
+      "alias": null,
+      "visual": "Lead entrance and repeated entrance shot do not adequately present guest accommodation; replace cover"
+    },
+    "91757": {
+      "editorial": "Комплекс состоит из частных апартаментов разных операторов; старый сайт suspended, современный Destada управляет лишь частью и требует30ночей. Nativeпоставщик/подобъект не подтверждены.",
+      "alias": null,
+      "visual": null
+    },
+    "103284": {
+      "editorial": "Текущее название расходится: Soleil by Soluna / Soluna D’Annam вместо Babylon Riverside; требуется официальное связывание и актуальный профиль перед публикацией старого заголовка.",
+      "alias": null,
+      "visual": null
+    },
+    "108104": {
+      "editorial": "Palmyrah Surin является кондоминиумом с разными вариантами управления; не найден официальный оператор конкретного nativeобъекта.",
+      "alias": null,
+      "visual": null
+    },
+    "41503": {
+      "editorial": "Green Hotel Hue по адресу2LeLoi переименован в Silk Path Grand Hue. Официальная туристическая база прямо подтверждает прежнее имя; старый заголовок/профиль публиковать нельзя. Registry совпадение: [{\"title\": \"✈️ Туры в Silk Path Grand Hue Hotel\", \"native_id\": 111488}, {\"title\": \"✈️ Туры в Silk Path Grand Hue Hotel\", \"native_id\": 0}]",
+      "alias": "Green Hotel Hue по адресу2LeLoi переименован в Silk Path Grand Hue. Официальная туристическая база прямо подтверждает прежнее имя; старый заголовок/профиль публиковать нельзя. Registry совпадение: [{\"title\": \"✈️ Туры в Silk Path Grand Hue Hotel\", \"native_id\": 111488}, {\"title\": \"✈️ Туры в Silk Path Grand Hue Hotel\", \"native_id\": 0}]",
+      "visual": null
+    },
+    "115574": {
+      "editorial": "Свежие OTA подтверждают размещение, но официальный источник работы/identity не найден: предполагаемый сайт недоступен; нужен официальный контакт/страница.",
+      "alias": null,
+      "visual": null
+    },
+    "129298": {
+      "editorial": "Visual HOLD: CGI hero по проверке родителя.",
+      "alias": null,
+      "visual": "Lead exterior appears architectural CGI; real photograph required"
+    },
+    "130703": {
+      "editorial": "Visual HOLD: вероятный render основного aerial по проверке родителя.",
+      "alias": null,
+      "visual": "Lead aerial appears rendered; current photographic provenance unresolved"
+    },
+    "126048": {
+      "editorial": "Официальный сайт Century Danang отдаёт redirect loop; после нескольких поисков текущие условия подтверждены только OTA. Не выставлять официальный operational PASS без первичного подтверждения.",
+      "alias": null,
+      "visual": null
+    },
+    "64924": {
+      "editorial": "Официальный Kamala Resotel возвращает502; актуальную работу видно в OTA/Google, но первичный источник условий не найден. HOLD до доступной официальной карточки.",
+      "alias": null,
+      "visual": null
+    },
+    "124273": {
+      "editorial": "Visual HOLD: праздничная графика и слабый коллаж по проверке родителя.",
+      "alias": null,
+      "visual": "Secondary image is Christmas promotional graphic, not suitable evergreen property cover"
+    },
+    "737": {
+      "editorial": "Устаревший Patong Merlin теперь Courtyard by Marriott Phuket Patong Beach Resort; этот объект уже опубликован: TG1104/MAX1113. Не публиковать дубль.",
+      "alias": "Устаревший Patong Merlin теперь Courtyard by Marriott Phuket Patong Beach Resort; этот объект уже опубликован: TG1104/MAX1113. Не публиковать дубль.",
+      "visual": "Visible Courtyard sign conflicts with old Patong Merlin title; rebrand and duplicate hold"
+    },
+    "33337": {
+      "editorial": "Не подтверждён текущий формат Palm Oasis Boutique Hotel: официальный сайт недоступен, источники также продают Palm Oasis Apartments. Нужна сверка текущего управления и состава услуг.",
+      "alias": "Не подтверждён текущий формат Palm Oasis Boutique Hotel: официальный сайт недоступен, источники также продают Palm Oasis Apartments. Нужна сверка текущего управления и состава услуг.",
+      "visual": null
+    },
+    "50649": {
+      "editorial": null,
+      "alias": null,
+      "visual": "Lead portrait image has large white gutters and visibly poor resolution"
+    },
+    "66566": {
+      "editorial": "Текущая работа не подтверждена доступным официальным каналом: официальный сайт403; государственный каталог подтверждает идентичность, но не свежий operational status. Город Хюэ, не Дананг.",
+      "alias": null,
+      "visual": null
+    },
+    "4312": {
+      "editorial": "Нет актуального официального подтверждения действующего Karon Hill Resident; найденные карточки относятся к кондоминиуму и старому гостиничному описанию, scope оператора не установлен.",
+      "alias": null,
+      "visual": null
+    },
+    "7989": {
+      "editorial": "Официальный сайт недоступен; официальный портфель Koko подтверждает объект только документом2024. Текущая работа и старые шаттл-условия не подтверждены.",
+      "alias": null,
+      "visual": null
+    },
+    "38289": {
+      "editorial": "Официальный сайт недоступен; действующие предложения разных управляющих апартаментами, включая Woodbridge, не позволяют сопоставить native карточку с конкретным оператором/набором услуг.",
+      "alias": null,
+      "visual": null
+    },
+    "45534": {
+      "editorial": "Обнаружено имя Best Western Plus Sukhumvit 1 вместо Premier Sukhumvit; старый официальный сайт недоступен. Текущий бренд и точная идентичность не разрешены.",
+      "alias": null,
+      "visual": null
+    },
+    "46568": {
+      "editorial": "Для Mercure Hoi An Royal321CuaDai найдена старая гос-карточка, но не действующая официальная страница Accor. Текущая работа/бренд не подтверждены; не путать с новым Grand Mercure Hoi An.",
+      "alias": null,
+      "visual": null
+    },
+    "64399": {
+      "editorial": "Не подтверждена текущая работа и точная identity: native описывает Palm Delight Guesthouse на Jomtien Soi7, свежие каталоги Coffee & House указывают Watboonkanchana4. Официального источника, разрешающего конфликт, нет.",
+      "alias": null,
+      "visual": null
+    },
+    "64479": {
+      "editorial": "Royal Saigon на228 Bui Vien не равен Kim Do/Royal Hotel Saigon на133 Nguyen Hue. Текущая работа первого не подтверждена официально; дополнительно visual HOLD родителя.",
+      "alias": null,
+      "visual": "Dark low-resolution restaurant/street collage with unclear property identity"
+    },
+    "66552": {
+      "editorial": null,
+      "alias": null,
+      "visual": "Lead facade image appears heavily rendered/blurred; current real photograph required"
+    },
+    "66646": {
+      "editorial": "Royal Lotus Hotel Halong не равен Royal Lotus Halong Resort & Villas. Официальный домен недоступен, найденные первичные списки относятся к2023; текущая работа именно hotel не подтверждена.",
+      "alias": null,
+      "visual": null
+    },
+    "74117": {
+      "editorial": null,
+      "alias": null,
+      "visual": "Pool and aerial views appear architectural renderings; real photographs required"
+    },
+    "82682": {
+      "editorial": null,
+      "alias": null,
+      "visual": "Large external SHA promotional seal overlaps lead branding"
+    },
+    "100896": {
+      "editorial": null,
+      "alias": null,
+      "visual": "All three photos show conference facilities, no guest accommodation; replace commercial hotel cover"
+    },
+    "103127": {
+      "editorial": "Адрес301 Nguyen Duy Hieu и телефон совпадают с современными каталогами Hoian Central Hotel, но официальный сайт403 и его актуальная страница не получена. Для обязательного official operational review пока HOLD; не смешивать с Hoi An Central Boutique Hotel & Spa.",
+      "alias": null,
+      "visual": null
+    }
+  },
+  "registry_artifact": {
+    "run": 44386474424,
+    "aid": 14465162491,
+    "digest": "47e51593b7936ab7e3022b97d855a1e4e25205b744c596f6b3739bf39bc66141"
+  },
+  "cover_artifact": {
+    "run": 44386756987,
+    "aid": 14465218133,
+    "digest": "53a0ff96ac59084b26d69e6272c539870e0452fdeb4adc901f8a6e744c53bcca"
+  }
+}
