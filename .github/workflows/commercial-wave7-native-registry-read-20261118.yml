@@ -1,4 +1,4 @@
-name: Read public hotel identities in both registries for W12 deduplication
+name: Read public hotel identities in both registries for W13 deduplication
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
@@ -7,7 +7,7 @@ permissions:
 jobs:
   registry-screen:
     if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
-      && github.event.before == 'fb7805ca5d73ccdf951d99524e6e73dce13b2353' && github.run_attempt
+      && github.event.before == '9bd341c33ae67f2a2793dcb441338b09ab103fc1' && github.run_attempt
       == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -37,7 +37,7 @@ jobs:
         \ v.id = p.current_version_id\n        WHERE p.post_channel_id = ? ORDER BY\
         \ p.id');\n    foreach (['telegram' => 10, 'max' => 9] as $platform => $channel)\
         \ {\n        $query->execute([$channel]);\n        $rows = $query->fetchAll(PDO::FETCH_ASSOC);\n\
-        \        if (count($rows) < 1283) {\n            throw new RuntimeException('Publication\
+        \        if (count($rows) < 1367) {\n            throw new RuntimeException('Publication\
         \ registry is below the verified baseline');\n        }\n        $result['channels'][$platform]\
         \ = count($rows);\n        foreach ($rows as $record) {\n            $post\
         \ = json_decode($record['snapshot_json'], true, 64, JSON_THROW_ON_ERROR);\n\
@@ -102,7 +102,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
-        name: wave12-published-identities-read
+        name: wave13-published-identities-read
         path: pub/registry-receipt.json
         retention-days: 30
         if-no-files-found: warn

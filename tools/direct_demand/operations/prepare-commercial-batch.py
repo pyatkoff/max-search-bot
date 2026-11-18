@@ -5,7 +5,7 @@ from urllib.parse import urlsplit
 
 MAX_BATCH=10
 TEMPLATE_PATH='tools/direct_demand/operations/commercial-batch-template-20261102.php'
-TEMPLATE_SHA='4c4aaa2e50155a69e8bd8b9f460777026735b0c51c3b2fc253cf0b7556e53ed5'
+TEMPLATE_SHA='426b57458bf31eb5c96a85ba9c54df9d8939d885ba706b6de26b026b16a04041'
 TEMPLATE_OPERATION='commercial-hotel-three-20261102-8-v1'
 PREFIX="<?php\ndeclare(strict_types=1);\n"
 COUNT_ANCHOR="count($payload['rows']??[])===3"
@@ -119,4 +119,3 @@ def main():
  out.write_text(script);out.chmod(0o600);print(json.dumps(report,ensure_ascii=False,sort_keys=True))
 
 if __name__=='__main__':main()
-
