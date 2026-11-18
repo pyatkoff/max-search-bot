@@ -14,7 +14,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '867861f982363d3118e29031e6c52872077cc1ac' &&
+      github.event.before == 'd33a5e90c94816148facf46c18eca68ebb261529' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
@@ -38,6 +38,8 @@ jobs:
           $lock=fopen($dir.'/three-hotels.lock','r');if(!$lock||!flock($lock,LOCK_SH|LOCK_NB))throw new RuntimeException('operation_still_busy');
           $files=array_map('basename',glob($dir.'/*'));sort($files);$summary=json_decode(file_get_contents($dir.'/publication-summary.json'),true,64,JSON_THROW_ON_ERROR);
           $out['original_operation_files']=$files;
+          $out['original_summary_sha256']=hash_file('sha256',$dir.'/publication-summary.json');
+          $out['original_summary_bytes']=filesize($dir.'/publication-summary.json');
           $out['original_summary']=['operation'=>$summary['operation']??null,'ok'=>$summary['ok']??null,'error'=>$summary['error']??null,'post_write_attempts'=>$summary['post_write_attempts']??null,'posts_count'=>count($summary['posts']??[])];
           if(($summary['operation']??null)!=='commercial-hotel-batch-20261118-119-v1'||$files!==['publication-summary.json','three-hotels.lock']||($summary['post_write_attempts']??null)!==0||($summary['ok']??null)!==false||($summary['error']??null)!=='channel_rights_not_ready'||count($summary['posts']??[])!==0)throw new RuntimeException('unexpected_original_operation_state');
           flock($lock,LOCK_UN);fclose($lock);
