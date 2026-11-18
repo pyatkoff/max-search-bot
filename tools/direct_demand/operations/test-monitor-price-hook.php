@@ -772,3 +772,5 @@ foreach(['services/ChannelPostAutomationService.php'=>'f5975ab95de5f45e087eb7a0f
 echo 'MONITOR_PRICE_HOOK_OK cases='.$cases." no_provider_calls=1 no_writes=1\n";
 
 
+
+require __DIR__.'/test-monitor-price-81173-cycle.php';
