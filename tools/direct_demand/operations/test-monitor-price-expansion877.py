@@ -1,5 +1,6 @@
 """Portable offline PRICE877 source contract. stdlib only; no network or runtime writes."""
 import base64,gzip,hashlib,json,pathlib,re
+from monitor_price_expansion1000_prefix import accepted877
 ROOT=pathlib.Path(__file__).resolve().parent
 PROOF_SHA='a650e2821a6394038c9585e902c331d1ca117f31619cbac34a3a6926e4034b47'
 BASE660_SHA='406293597fa7ddeb7d3c58dd08d2c44ad43345923a0385f9eaea33798ad2d0db'
@@ -14,7 +15,7 @@ def need(value,reason):
 def verify(root=ROOT):
  raw=(root/'monitor-price-expansion877-proof-20261118.json').read_bytes();need(sha(raw)==PROOF_SHA,'immutable_proof_changed');proof=json.loads(raw)
  need(proof['base_source_commit']=='4fde5c5a8fedcd17882589628a1f466c9e629d4e','base_source')
- packed=(root/'monitor-price-expanded-roster-20261111.json.gz').read_bytes();need(sha(packed)==proof['roster_gzip_sha256'],'packed_roster_changed')
+ packed=accepted877((root/'monitor-price-expanded-roster-20261111.json.gz').read_bytes(),root);need(sha(packed)==proof['roster_gzip_sha256'],'packed_roster_changed')
  roster=json.loads(gzip.decompress(packed));rows=roster['rows'];need(len(rows)==877,'total877');need(len({r['tourvisor_hotel_id'] for r in rows})==877,'unique_source_ids')
  need(sha(canonical(rows[:660]))==BASE660_SHA==proof['previous660_canonical_sha256'],'accepted660_changed')
  need(sha(canonical(rows[660:]))==proof['append217_canonical_sha256'],'append217_changed')

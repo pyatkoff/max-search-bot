@@ -1,13 +1,14 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/monitor-price-hook-contract.php';
-$raw=gzdecode(file_get_contents(__DIR__.'/monitor-price-expanded-roster-20261111.json.gz'));
+require_once __DIR__.'/test-monitor-price-expansion1000-prefix.php';
+[$raw,$accepted877PackedSha]=monitor_price_test_accepted877(file_get_contents(__DIR__.'/monitor-price-expanded-roster-20261111.json.gz'));
 // Authenticate append877, then reconstruct accepted660 exact bytes. Historical
 // 20/32 proofs below remain unchanged, including their original byte hashes.
 $expansion877Raw=file_get_contents(__DIR__.'/monitor-price-expansion877-proof-20261118.json');
 if(hash('sha256',$expansion877Raw)!=='a650e2821a6394038c9585e902c331d1ca117f31619cbac34a3a6926e4034b47')throw new RuntimeException('expansion877_proof_changed');
 $expansion877=json_decode($expansion877Raw,true,64,JSON_THROW_ON_ERROR);
-if(hash_file('sha256',__DIR__.'/monitor-price-expanded-roster-20261111.json.gz')!==$expansion877['roster_gzip_sha256'])throw new RuntimeException('expansion877_packed_changed');
+if($accepted877PackedSha!==$expansion877['roster_gzip_sha256'])throw new RuntimeException('expansion877_packed_changed');
 $expanded877=json_decode($raw,true,64,JSON_THROW_ON_ERROR);
 if(count($expanded877['rows'])!==877||array_column(array_slice($expanded877['rows'],660),'tourvisor_hotel_id')!==array_column($expansion877['append217'],'tourvisor_hotel_id'))throw new RuntimeException('expansion877_scope_changed');
 $canonical877=function($value)use(&$canonical877){if(!is_array($value))return $value;if(!array_is_list($value))ksort($value,SORT_STRING);foreach($value as $key=>$item)$value[$key]=$canonical877($item);return $value;};
