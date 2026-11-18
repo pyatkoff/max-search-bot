@@ -1,0 +1,159 @@
+name: Validate the 12 remaining MAX posts against the existing Telegram receipts
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: ['.github/workflows/verify-wave7-twelve-max-publisher-input-20261118.yml']
+permissions:
+  actions: read
+  contents: read
+jobs:
+  verify-max-only-sources:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '4e0eb4d0ebee4fcc3ea9c4dd53d3814f0ee4f61f' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+          sparse-checkout: tools/direct_demand/operations
+      - name: Validate immutable sources and assemble the original sender input
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64
+          import hashlib
+          import io
+          import json
+          import os
+          from pathlib import Path
+          import re
+          import runpy
+          import subprocess
+          import zipfile
+          
+          REPO = 'pyatkoff/max-search-bot'
+          HEAD = os.environ['GITHUB_SHA']
+          BRANCH = 'audit/content100-bot-publication-20261101'
+          APP = 'cc017ee5bb669f4c7c13efc91d5c5812a50e55f2'
+          KNOWN_PIN_CHANGES = [["f5975ab95de5f45e087eb7a0f768f566c5bca648","c6386e155d42bc83970edc95f35b3ebeb5140533"],["f0e04e9b4e0ed6859ced96279cbf0619931596e6","1982ff7368763edf8b7238c3142e3cc28579e991"],["db8181426091a685a79ee55991cde22671f0d9dd","94fb1988ac8caf90dc5103aa23c58e7aad6ea691"]]
+          
+          
+          def api(path, method='GET', body=None, timeout=120):
+              cmd = ['gh', 'api', '--method', method, f'repos/{REPO}/{path}']
+              stdin = None
+              if body is not None:
+                  cmd.extend(['--input', '-'])
+                  stdin = json.dumps(body).encode()
+              return subprocess.check_output(cmd, input=stdin, timeout=timeout)
+          
+          
+          def info(path, method='GET', body=None):
+              return json.loads(api(path, method, body))
+          
+          
+          def digest(content):
+              return hashlib.sha256(content).hexdigest()
+          
+          
+          def get_artifact(run, artifact, expected, required_state):
+              item = info(f'actions/artifacts/{artifact}')
+              if item['workflow_run']['id'] != run or item['digest'] != 'sha256:' + expected or item['expired']:
+                  raise ValueError('artifact lineage changed')
+              run_info = info(f'actions/runs/{run}')
+              if run_info.get('conclusion') != required_state or run_info.get('run_attempt') != 1:
+                  raise ValueError('source workflow did not finish successfully')
+              raw = api(f'actions/artifacts/{artifact}/zip', timeout=130)
+              if digest(raw) != expected:
+                  raise ValueError('artifact archive checksum differs')
+              return zipfile.ZipFile(io.BytesIO(raw))
+          
+          
+          pinned_groups = [
+              (57, 44205074290, 14383203255, '6424c16b75211f5d92d5a2e63fcc3160cef8ec779a8cf68e78d0ca10fe71d928', '3921a650084409f8bc031eed5c447ffd9b3210a0f4f824eb0812ffe48b8d8988', [1589,127349,115677,2161], 'upload_endpoint_unconfirmed'),
+              (58, 44205735817, 14383343247, '06b19c61fca6876e6b096f6328d1900d74479091e38754d5636993483d9cdc92', '5df305f6ef7d920944d99fb2b6893eddb398fd23e68bdafd3e2ebbec6d3722c2', [236,13853,48795,12104,2686,1518,64330,57682], 'telegram_send_unconfirmed_no_retry'),
+          ]
+          frozen = '10cd3713e13a762c5585434072f9fb6fcd0e2eff'
+          diag = get_artifact(44206120200, 14383083426, 'b91a7fe1d32ce4bfd969c98d66a7e2813d8771d91a03987cbc12530b6febe651', 'success')
+          delivery = json.loads(diag.read('registry-receipt.json'))
+          assert delivery['installed_sha'] == APP
+          check = {x['hotel_id']:x for x in delivery['state_files']}
+          assert all(check[i]['file_present'] is False and check[i]['has_provider_message'] is False for i in pinned_groups[0][5])
+          assert check[47023]['provider_http']==check[47023]['provider_error_code']==429 and not check[47023]['has_provider_message']
+          actual = {(x['platform'], x['hotel_id']):x for x in delivery['native_matches']}
+          assert not any(('max', i) in actual for group in pinned_groups for i in group[5])
+
+          source = Path('tools/direct_demand/operations')
+          assert info('git/ref/heads/main')['object']['sha'] == APP
+          app_tree = info('git/trees/' + APP + '?recursive=1')
+          assert not app_tree['truncated']
+          live_pins = {x['path']:x['sha'] for x in app_tree['tree']}
+          template = (source/'commercial-batch-template-20261102.php').read_text(encoding='utf-8')
+          original_pins = re.findall(r'"([^"]+)"=>"([a-f0-9]{40})"',template)
+          assert len(original_pins) == 22
+          for name, original in original_pins:
+              assert live_pins[name] == dict(KNOWN_PIN_CHANGES).get(original, original)
+          assert subprocess.check_output(['git','hash-object',str(source/'prepare-commercial-batch.py')],text=True).strip()=='8df7a35474b138364b6e6c010af4fa484e350ddb'
+          prepare = runpy.run_path(str(source/'prepare-commercial-batch.py'))['prepare']
+          package, groups, prior_posts = {}, [], {}
+          for number, run, artifact, arch_digest, raw_digest, expected_ids, error in pinned_groups:
+              z = get_artifact(run, artifact, arch_digest, 'failure')
+              raw = z.read('original-native-output.jsonl')
+              assert digest(raw) == raw_digest
+              outcome = json.loads(raw.splitlines()[-1])
+              assert not outcome['ok'] and outcome['error'] == error
+              source_manifest = json.loads(z.read('manifest.json'))
+              telegram = {p['hotel_id']:p for p in outcome['posts'] if p['platform']=='telegram'}
+              max_ids = {p['hotel_id'] for p in outcome['posts'] if p['platform']=='max'}
+              assert set(expected_ids)==set(telegram)-max_ids and len(set(expected_ids))==len(expected_ids)
+              assert 66161 not in expected_ids and 47023 not in expected_ids and 164 not in expected_ids
+              assert source_manifest['photo_freeze_commit']==frozen
+              by_id = {r['hotel_id']:r for r in source_manifest['rows']}
+              rows = []
+              for hotel_id in expected_ids:
+                  row, tg = by_id[hotel_id], telegram[hotel_id]
+                  registry = actual['telegram', hotel_id]
+                  assert tg['state']=='sent' and tg['body_photo_button_verified'] and not tg['reused']
+                  assert registry['publication_id']==tg['publication_id'] and registry['version_id']==tg['version_id']
+                  assert registry['text_sha256']==tg['text_sha256']==row['text_sha256'] and tg['photo_sha256']==row['photo_sha256']
+                  assert row['photo_url']==tg['photo_url'] and f'/{frozen}/' in row['photo_url']
+                  prior_posts[hotel_id] = tg
+                  rows.append(row)
+              op = f'commercial-hotel-batch-20261118-{number}-v1'
+              manifest=dict(source_manifest,operation=op,expected_new_full_pairs=len(expected_ids),rows=rows)
+              raw = (json.dumps(manifest,ensure_ascii=False,indent=2)+'\n').encode()
+              approval = {'schema_version':1,'operation':op,'expected_installed_sha':APP,'hotel_ids':expected_ids,'manifest_sha256':digest(raw)}
+              php, _ = prepare(template,raw,approval)
+              for previous,current in KNOWN_PIN_CHANGES:
+                  assert php.count(previous)==1 and php.count(current)==0
+                  php=php.replace(previous,current)
+              package[f'p{number}-manifest.json']=raw
+              package[f'p{number}-approval.json']=(json.dumps(approval,ensure_ascii=False,indent=2)+'\n').encode()
+              package[f'p{number}-publisher-unexecuted.php']=php.encode()
+              groups.append({'number':number,'operation':op,'hotel_ids':expected_ids})
+          package['original-telegram-receipts.json']=(json.dumps(prior_posts,ensure_ascii=False,indent=2)+'\n').encode()
+          output=Path('accepted-source');output.mkdir()
+          for name,value in package.items():(output/name).write_bytes(value)
+          assert info('git/ref/heads/' + BRANCH)['object']['sha'] == HEAD
+          assert info('git/ref/heads/main')['object']['sha'] == APP
+          receipt = {'state':'WAVE7_TWELVE_MAX_EXACT_TELEGRAM_REUSE_SOURCE','groups':groups,
+                     'native_hotel_ids':list(prior_posts),'expected_app_sha':APP,'cover_commit':frozen,
+                     'poster_calls':0,'feed_writes':0,'source_sha256':{name:digest(value) for name,value in package.items()}}
+          (output/'source-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n',encoding='utf-8')
+          print(json.dumps({'accepted':len(prior_posts),'new_posts':0,'existing_telegram_reuse':len(prior_posts)}))
+          PY
+          for file in accepted-source/*-publisher-unexecuted.php; do php -l "$file"; done
+      - name: Preserve the verified source package
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: commercial-wave7-twelve-max-accepted-source
+          path: accepted-source/
+          retention-days: 30
+          if-no-files-found: warn
