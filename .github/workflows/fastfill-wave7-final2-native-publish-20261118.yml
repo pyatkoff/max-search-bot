@@ -2,7 +2,7 @@ name: Publish eight new reviewed non-Dominican reserve hotels
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
-    paths: ['.github/workflows/fastfill-wave7-wave8-native-publish-20261118.yml']
+    paths: ['.github/workflows/fastfill-wave7-final2-native-publish-20261118.yml']
 permissions:
   contents: read
   actions: read
@@ -14,7 +14,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'a5a2fdf8631f49641dbaa1a83bf1bedbfb461fd5' &&
+      github.event.before == '03abcb36fd63dd04891abaed718e7c7d231bb3f5' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 35
