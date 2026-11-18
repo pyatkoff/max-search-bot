@@ -8,6 +8,8 @@ def accepted877(packed,root):
  assert [r['tourvisor_hotel_id'] for r in rows[877:]]==[r['tourvisor_hotel_id'] for r in p['append123']]
  prefix=full[:p['baseline_roster_raw_bytes']-7]+b'\n  ]\n}\n'
  assert hashlib.sha256(prefix).hexdigest()==p['baseline_roster_raw_sha256'],'baseline877_changed'
- packed877=gzip.compress(prefix,mtime=0)
+ # Preserve original gzip bytes: recompression headers/deflate vary across Python/zlib.
+ packed877=(pathlib.Path(root)/'monitor-price-expansion1000-baseline877.json.gz').read_bytes()
  assert hashlib.sha256(packed877).hexdigest()==p['baseline_roster_gzip_sha256'],'baseline877_packed_changed'
+ assert gzip.decompress(packed877)==prefix,'baseline877_packed_raw_changed'
  return packed877
