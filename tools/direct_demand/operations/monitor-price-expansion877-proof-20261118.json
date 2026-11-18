@@ -1,0 +1,1500 @@
+{
+  "schema_version": 1,
+  "state": "SOURCE_EXPANSION_PROOF_NOT_RUNTIME_PRICE_ADMISSION",
+  "base_source_commit": "4fde5c5a8fedcd17882589628a1f466c9e629d4e",
+  "previous_count": 660,
+  "appended_count": 217,
+  "total_count": 877,
+  "canonical_json": "UTF-8 ensure_ascii=false sort_keys=true separators=comma-colon",
+  "previous660_canonical_sha256": "406293597fa7ddeb7d3c58dd08d2c44ad43345923a0385f9eaea33798ad2d0db",
+  "append217_canonical_sha256": "0b762440f78e2778c2ff4d8b65db6bcfd2e12feaf1ef49e8f86c5d49f8ab1a0c",
+  "roster_gzip_sha256": "ec7950259e202efd4a098434f0851b7f53961a0905773dd3829e80f5c9ce897e",
+  "contract_sha256": "d75989788c046fe3c0aab18b01a5d1edf07a7872050a37a17f49a6df6c29de14",
+  "inventory_sha256": "c8cee3897d32ae513b537ba55ce4d8fe5d850017789b60fea53eca8a9f9ce565",
+  "registry_read_summary_sha256": "a21738b8daeedb2891fb98cf638b3af34a2a0c4d2f6915e72c0da44ccbbb0a8d",
+  "feed_terminal": {
+    "run_id": 44224540179,
+    "artifact_id": 14392977439,
+    "archive_sha256": "6dec10057f38db5f7ff8776078c363131bbc3d1764d089558f95452b18c2ad50"
+  },
+  "original_artifacts": [
+    {
+      "operation": "commercial-hotel-batch-20261117-1-v1",
+      "batch": 1,
+      "artifact_id": 14319000467,
+      "archive_sha256": "108136a03548ced6396ffa7b2001b5ed35db53dc788d22c6ed52e6230fd9f860",
+      "manifest_sha256": "c88c37514c22fc4bc457b091c65995c609a16cd9057862b06fbc630db5fb6224"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-2-v1",
+      "batch": 2,
+      "artifact_id": 14323322806,
+      "archive_sha256": "931f4126cdf4eb4b0958cc00a9438742d14110de457640b3dd559700389a8589",
+      "manifest_sha256": "1b44864321bd02588a7cc58284217b4add746987464f0285c926494427d1ea79"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-3-v1",
+      "batch": 3,
+      "artifact_id": 14322913547,
+      "archive_sha256": "ec34339414b2b1dececf7d4fe5f46f38fce3da262cba0ca42e6995ac1ba2bd11",
+      "manifest_sha256": "1a3d407acf5d1cbb868276521302c6d7e6eb2a6b05a72887c60efa079b8dd008"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-4-v1",
+      "batch": 4,
+      "artifact_id": 14323894273,
+      "archive_sha256": "da3cc46ee02ecc97c537f7a7554932c1bf9d39d5c5a29e688582c5ab60f84c13",
+      "manifest_sha256": "2731fc95949d67d1fa13ecc199ca3a7c65440f7656afb59135d5c4999c8ebfb2"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-5-v1",
+      "batch": 5,
+      "artifact_id": 14330779251,
+      "archive_sha256": "932a0b18f654084d91e30b14c85eba595e054020aa809dff2e85a7d59f1a51b0",
+      "manifest_sha256": "3224cf457e993fef4aaae615d6095297983129293f32e1b8463007454ddca17e"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-6-v1",
+      "batch": 6,
+      "artifact_id": 14331744797,
+      "archive_sha256": "70bd31c032597e277a41a6185be503ad0c0ce2f345d6f5a0da0fae3142215ae2",
+      "manifest_sha256": "b633c4f10665280417c7bd486b127fbcffd7f411d7811fa9c73f6e20e6b8d3a4"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-8-v1",
+      "batch": 8,
+      "artifact_id": 14333921255,
+      "archive_sha256": "aa3a783411475a6d6e0494cf7ad9c8730badfad2738955217e43614815be5ef9",
+      "manifest_sha256": "f75e129c643be2e452446c01358624e4b780dce1d6eaca973a16933e97af5016"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-9-v1",
+      "batch": 9,
+      "artifact_id": 14336728350,
+      "archive_sha256": "54813bfc2e91bf8faec7480f43b10387cc29a448c5abd888874de24083e396dd",
+      "manifest_sha256": "6492b45d30af5c357c2031699c52982372173188df54cec13baf69a631f3ec81"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-10-v1",
+      "batch": 10,
+      "artifact_id": 14338595185,
+      "archive_sha256": "26a9a056e39ee0ad02c9ac32412a4b5f8edaaf105043793e1cf472f8ef7fd254",
+      "manifest_sha256": "9d21984a97313fba2bfbf4b486d6b99a0118875e5ec8aa3fb29da74e4d49547b"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-11-v1",
+      "batch": 11,
+      "artifact_id": 14337795827,
+      "archive_sha256": "e29c7f5be4bd985bc401ce75abfe5e88c0e6b6f58ffa58671852f358a2198d19",
+      "manifest_sha256": "f1f040fe6ed1ee6903be05661aca5231ac7269ea10099ec4230811892d4b0ac6"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-12-v1",
+      "batch": 12,
+      "artifact_id": 14337401530,
+      "archive_sha256": "e4328a23e18615040568ed0ee8c6a760d1bd8800eda20013608d3f190f52d43c",
+      "manifest_sha256": "b470702e273cbe98b2276a8c11cc2ad2a39e26f32533b56d0edf3b7369a9699a"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-13-v1",
+      "batch": 13,
+      "artifact_id": 14337835726,
+      "archive_sha256": "d3b71fda912834f2545582bdb3b05bc019f67894280893051dc25be1528afea1",
+      "manifest_sha256": "5e00afde2147efacbaffe6af78dd5dae083448da050f1ec58a97025226644d4f"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-14-v1",
+      "batch": 14,
+      "artifact_id": 14340336646,
+      "archive_sha256": "e1d35651afffe2f5a640ecd05b3ef25dbdf6b0e51f15d401194c1b773ccf77a7",
+      "manifest_sha256": "d002d9f000840aa80c41a0c64217ba70b578996c41f1ed7ce9f3678cfe914ca9"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-15-v1",
+      "batch": 15,
+      "artifact_id": 14340142496,
+      "archive_sha256": "f96c4467d398f45ea2a2ac09c937c3c02b800c087edf0191124448afc7dc2478",
+      "manifest_sha256": "a6dfc981fe926307e1ea995b83d33c9c02ba494127abbd0f539928a87acfde64"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-18-v1",
+      "batch": 18,
+      "artifact_id": 14340329986,
+      "archive_sha256": "9becbac92b3899587a7f4db1126ee71e6e8272520f8b7fd89921cce1c9329c40",
+      "manifest_sha256": "c351694e3de41fca87982f24283c8704f0e38cab1765d66fa59181944aee5150"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-17-v1",
+      "batch": 17,
+      "artifact_id": 14341593399,
+      "archive_sha256": "ef0164522c7a38e984a1aa0984cb958cb6a8033d68b0513d04d63e2fb3739ff6",
+      "manifest_sha256": "cd531e8d4cbdbea8150de2d241673381b536e14fdd5feac1a7269f535713c87c"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-19-v1",
+      "batch": 19,
+      "artifact_id": 14346940290,
+      "archive_sha256": "0728470c1841af76f9b974bf7af35172bf1cf6e0dc40e5a42fa15a6de6a51b1d",
+      "manifest_sha256": "dfcca8884fea1b20df5a47ea8c605abf0f55c201eca1902efd16a5b8ee6c2d35"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-20-v1",
+      "batch": 20,
+      "artifact_id": 14346656260,
+      "archive_sha256": "44df379b619f7d57f1adf3128d7c8cb836d7e212c1b81dee03bda231b8c83a9b",
+      "manifest_sha256": "b8ff32e5729bab3bcb8053ded6cca331ccb0dce1f29ef8b7b29e414338360e9f"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-21-v1",
+      "batch": 21,
+      "artifact_id": 14345063854,
+      "archive_sha256": "bc67bd522b9ff175c15dd37d2944d07cce9a71882b669f95543ed103a80bb05a",
+      "manifest_sha256": "0f9a212d53fba9318b30a89e90e6c5b851b9ed742364561d703abf3f3999c484"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-22-v1",
+      "batch": 22,
+      "artifact_id": 14346032376,
+      "archive_sha256": "e9f45c07333f5bbb7f92b2ef673a5ab09a8628ed52f2aa80792c09c4ddb96ecc",
+      "manifest_sha256": "fde22358a9b4756240237e78f5b6127f4d5bd983bd9712945ed4cfd15dfb8b98"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-23-v1",
+      "batch": 23,
+      "artifact_id": 14346517127,
+      "archive_sha256": "27b1ce489754ae029de0da885e377e8f809934ddb986da662f7a3e9bf5baf094",
+      "manifest_sha256": "2ed04178b4f5b4d60ff7a15528429d44b3b21ca36a871a1020bab6e448b900e8"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-24-v1",
+      "batch": 24,
+      "artifact_id": 14346187970,
+      "archive_sha256": "9d10422168da29ff83a608cfd4016a08fbc0b72d2a40df5d16a63593a85cd51e",
+      "manifest_sha256": "ce0c9998a52b65474cb8fdda3538bdd71ddfd8e8c412863df51bd9245b7fa16c"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-25-v1",
+      "batch": 25,
+      "artifact_id": 14346117864,
+      "archive_sha256": "d8421826359141d42ea5aeedd9a24b7716a8a528218911a8f2e8b91c98f769f5",
+      "manifest_sha256": "53fe4b384d7c0f1213cbbc393728b08ae19816c6ffb7cd90f6794dce07d6b0c1"
+    },
+    {
+      "operation": "commercial-hotel-batch-20261117-26-v1",
+      "batch": 26,
+      "artifact_id": 14345813425,
+      "archive_sha256": "7f14c343d16c4d59da6fabd29c0a1867cd389fa5e8cb61e4f9c71d4f7372cd7e",
+      "manifest_sha256": "3d165c0e8af93c9e7300d16020a4ae6d3eba9618a298d7194730f10a2da99f73"
+    }
+  ],
+  "append217": [
+    {
+      "tourvisor_hotel_id": 12120,
+      "logical_id": "commercial-hotel-12120-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-1-v1",
+      "row_canonical_sha256": "1e9d0ccee2d6446fefa26c20f39d14d893ef27118c10bd56f8e9b89eddded22e"
+    },
+    {
+      "tourvisor_hotel_id": 64957,
+      "logical_id": "commercial-hotel-64957-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-1-v1",
+      "row_canonical_sha256": "3807ad4a262ffd53baeadec54efc4f58c4d5f13cf11fdb17cc11833a04718da6"
+    },
+    {
+      "tourvisor_hotel_id": 76029,
+      "logical_id": "commercial-hotel-76029-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-1-v1",
+      "row_canonical_sha256": "ae0747d08a85dfe652787c4a3809328a6dc3ec31bd03474a8dd01e8e21f282c8"
+    },
+    {
+      "tourvisor_hotel_id": 66198,
+      "logical_id": "commercial-hotel-66198-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-1-v1",
+      "row_canonical_sha256": "01cfaff342e141597659323d0a60e544167ccec447f9fc47871dbc0712b9426c"
+    },
+    {
+      "tourvisor_hotel_id": 49750,
+      "logical_id": "commercial-hotel-49750-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-1-v1",
+      "row_canonical_sha256": "d2b88ed758762e2a5fa5907e9065f8fd77dfaa248078cdc1de7d31fbf883084f"
+    },
+    {
+      "tourvisor_hotel_id": 123247,
+      "logical_id": "commercial-hotel-123247-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-1-v1",
+      "row_canonical_sha256": "8bd17fc18a49e283c6ea7b7ec709492d87bbd193aa325002e8edbe8e199222f0"
+    },
+    {
+      "tourvisor_hotel_id": 48184,
+      "logical_id": "commercial-hotel-48184-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-1-v1",
+      "row_canonical_sha256": "c076c5b62d1f2301a5742579bfcde6e54105b9bb62ecc96d120e1fb0f7af43d6"
+    },
+    {
+      "tourvisor_hotel_id": 32322,
+      "logical_id": "commercial-hotel-32322-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-1-v1",
+      "row_canonical_sha256": "68b61b78974419371168adbccaef029ce96ff88f18a8ace8b83631fdec6f4afc"
+    },
+    {
+      "tourvisor_hotel_id": 28272,
+      "logical_id": "commercial-hotel-28272-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-1-v1",
+      "row_canonical_sha256": "0f0af0c605140a55a952edd581620e4b4cb3a3171c0269e913ccd9be5dc78635"
+    },
+    {
+      "tourvisor_hotel_id": 7458,
+      "logical_id": "commercial-hotel-7458-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-1-v1",
+      "row_canonical_sha256": "7e5b2b55fffb835d60ce2ea754a97ecc9e3ff7eb492ad350d6ea3fb9d5bd4086"
+    },
+    {
+      "tourvisor_hotel_id": 2490,
+      "logical_id": "commercial-hotel-2490-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-2-v1",
+      "row_canonical_sha256": "0ec9a8a1542ab67dbab2dc8404047204184432c5e3f1f0edd62bdd8e612f9a93"
+    },
+    {
+      "tourvisor_hotel_id": 2458,
+      "logical_id": "commercial-hotel-2458-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-2-v1",
+      "row_canonical_sha256": "f511c036e0357d2006faa4fa3e0e08fc8606c2678260364e9c3cda098c37cb9e"
+    },
+    {
+      "tourvisor_hotel_id": 113544,
+      "logical_id": "commercial-hotel-113544-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-2-v1",
+      "row_canonical_sha256": "a0c03b3480cf956b50bf9bfe1236291c9eb2b90d9edd4cfed4c66d31f68fcde2"
+    },
+    {
+      "tourvisor_hotel_id": 73477,
+      "logical_id": "commercial-hotel-73477-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-2-v1",
+      "row_canonical_sha256": "fc19d641a71d88181069bb0839a7dbe86ef6584e19000a20fb977ab132a13317"
+    },
+    {
+      "tourvisor_hotel_id": 2588,
+      "logical_id": "commercial-hotel-2588-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-2-v1",
+      "row_canonical_sha256": "040b77b214479d828b442dbf32d5338245f91bc3e295eb875739927a00a239b1"
+    },
+    {
+      "tourvisor_hotel_id": 2611,
+      "logical_id": "commercial-hotel-2611-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-2-v1",
+      "row_canonical_sha256": "2b6ecd53a95ddcc5842dfeacb8b63aed180652b2517fd9d7994b4267e5f88293"
+    },
+    {
+      "tourvisor_hotel_id": 2612,
+      "logical_id": "commercial-hotel-2612-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-2-v1",
+      "row_canonical_sha256": "a617826cc44ec9cff7f4abc8c0a127dcdbd10f61d2ef2199af66fa309ce49a33"
+    },
+    {
+      "tourvisor_hotel_id": 2610,
+      "logical_id": "commercial-hotel-2610-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-2-v1",
+      "row_canonical_sha256": "32b186c7586eb6196688193a6209e5ab7690cce5f2eb572425f5779d4642f00d"
+    },
+    {
+      "tourvisor_hotel_id": 2931,
+      "logical_id": "commercial-hotel-2931-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-2-v1",
+      "row_canonical_sha256": "2064f7bd61a7a2c1ff6870ffb0244d230fb5df0e70a1b5308cb24722b39d4f3a"
+    },
+    {
+      "tourvisor_hotel_id": 78456,
+      "logical_id": "commercial-hotel-78456-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-2-v1",
+      "row_canonical_sha256": "2bd287c7a6365a0dd4dc407d96cbe93dec19ab276d42699c694255bf61f68cd7"
+    },
+    {
+      "tourvisor_hotel_id": 7831,
+      "logical_id": "commercial-hotel-7831-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-3-v1",
+      "row_canonical_sha256": "ce41f5d58dadd1cf8ac6cdbad4521b7a4822e0022c7fb9e99b9cf83216b37b4c"
+    },
+    {
+      "tourvisor_hotel_id": 2948,
+      "logical_id": "commercial-hotel-2948-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-3-v1",
+      "row_canonical_sha256": "779fb44cd534b54298c363e971ab043950690f38889e903d908fd0fba800b04a"
+    },
+    {
+      "tourvisor_hotel_id": 57536,
+      "logical_id": "commercial-hotel-57536-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-3-v1",
+      "row_canonical_sha256": "cc953d08c5de80ae440def9c180283d4fd96fcecd6f34f7a5159d57d1a2d1069"
+    },
+    {
+      "tourvisor_hotel_id": 61241,
+      "logical_id": "commercial-hotel-61241-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-3-v1",
+      "row_canonical_sha256": "c40a56afb4b7064717272b1eca19fab60c2d6b1dddd1f8019d2e4ca339c49362"
+    },
+    {
+      "tourvisor_hotel_id": 17424,
+      "logical_id": "commercial-hotel-17424-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-3-v1",
+      "row_canonical_sha256": "3787fd44d7e1d0894a9ee2804df6b7f11d08fed4c4ae5df157015f759ffa937e"
+    },
+    {
+      "tourvisor_hotel_id": 17423,
+      "logical_id": "commercial-hotel-17423-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-3-v1",
+      "row_canonical_sha256": "d8e2bd83bf17cf21ff284adabb87bcd7851c41faa819cf5856f79db592d84c7c"
+    },
+    {
+      "tourvisor_hotel_id": 23718,
+      "logical_id": "commercial-hotel-23718-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-3-v1",
+      "row_canonical_sha256": "066bf3ebff240a4bb729c2b02e1af62aee2c112b05bdb7e1443b08d89333c190"
+    },
+    {
+      "tourvisor_hotel_id": 22940,
+      "logical_id": "commercial-hotel-22940-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-3-v1",
+      "row_canonical_sha256": "799e70e8e76cd6affeb846cd95be877c844a90592dcfdb9ed26ba0894491b648"
+    },
+    {
+      "tourvisor_hotel_id": 97001,
+      "logical_id": "commercial-hotel-97001-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-3-v1",
+      "row_canonical_sha256": "0713dbe956af96ddd3c8d9001651dd9413ff525ce0c140774f89e6acc033a327"
+    },
+    {
+      "tourvisor_hotel_id": 74509,
+      "logical_id": "commercial-hotel-74509-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-3-v1",
+      "row_canonical_sha256": "282a33ac9d6eb6abd70e897d43db9b6c0e7051475d0378f8aa64a2625a76af93"
+    },
+    {
+      "tourvisor_hotel_id": 4283,
+      "logical_id": "commercial-hotel-4283-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-4-v1",
+      "row_canonical_sha256": "b0050639ae72c42721aef9be5090dc4ee6f3decb37ad9ae872eabb142d7a381e"
+    },
+    {
+      "tourvisor_hotel_id": 52337,
+      "logical_id": "commercial-hotel-52337-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-4-v1",
+      "row_canonical_sha256": "dc37b1ba7c98c9f24d7d70e2633fb9d1b0fe0237d294b7eaf0c83cc284d5a587"
+    },
+    {
+      "tourvisor_hotel_id": 64648,
+      "logical_id": "commercial-hotel-64648-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-4-v1",
+      "row_canonical_sha256": "a536a5abfe2163db455ffb336a9cec8d4e8f4658266c4c6af8482d2fc6921a0c"
+    },
+    {
+      "tourvisor_hotel_id": 78669,
+      "logical_id": "commercial-hotel-78669-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-4-v1",
+      "row_canonical_sha256": "699bc9fe0e0e3732277de4f487c9a976b588501feab8b2cb6f864db4b8d42a00"
+    },
+    {
+      "tourvisor_hotel_id": 60788,
+      "logical_id": "commercial-hotel-60788-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-4-v1",
+      "row_canonical_sha256": "40fac5510e87e1579e7ff18d0c8c867b73e52f82949800efdb2a396a5c3ca685"
+    },
+    {
+      "tourvisor_hotel_id": 2435,
+      "logical_id": "commercial-hotel-2435-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-5-v1",
+      "row_canonical_sha256": "9fa6d73a174f3e2d7f6e4a667cd5bfeac22750fd0a500adf0b8640e9e2383284"
+    },
+    {
+      "tourvisor_hotel_id": 2481,
+      "logical_id": "commercial-hotel-2481-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-5-v1",
+      "row_canonical_sha256": "8d585c1ee735681021a3c3f55540624237ea55b6dc70d14545b4a0557d3e2297"
+    },
+    {
+      "tourvisor_hotel_id": 24744,
+      "logical_id": "commercial-hotel-24744-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-5-v1",
+      "row_canonical_sha256": "4c7ece30fd64c5bad1bad385810b9aec4a7031bb1287968f2418e30a437a0fe5"
+    },
+    {
+      "tourvisor_hotel_id": 50261,
+      "logical_id": "commercial-hotel-50261-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-5-v1",
+      "row_canonical_sha256": "ad7c64641b9ec4c612b48a818ee97fb781708d8dce112d6844bc2ab391e9840e"
+    },
+    {
+      "tourvisor_hotel_id": 78006,
+      "logical_id": "commercial-hotel-78006-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-5-v1",
+      "row_canonical_sha256": "177b185f934ebeedff7785de73500a323106b8a6041bb1db799d7ddf2991ac70"
+    },
+    {
+      "tourvisor_hotel_id": 26043,
+      "logical_id": "commercial-hotel-26043-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-5-v1",
+      "row_canonical_sha256": "4171ac12c462d82d52d7e948f3a5fcbac19ae5e23e02834e51161bb98c04479e"
+    },
+    {
+      "tourvisor_hotel_id": 2922,
+      "logical_id": "commercial-hotel-2922-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-5-v1",
+      "row_canonical_sha256": "df0079f60ca855f52f185b001ab8db756fefbd1a1138c5d45db4681e5c9d9976"
+    },
+    {
+      "tourvisor_hotel_id": 64130,
+      "logical_id": "commercial-hotel-64130-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-5-v1",
+      "row_canonical_sha256": "114b38a4b83de17626e76e13b6db6f93d8aea225805eb75a39457ec7b24458cd"
+    },
+    {
+      "tourvisor_hotel_id": 42647,
+      "logical_id": "commercial-hotel-42647-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-5-v1",
+      "row_canonical_sha256": "327e68fc0b6d89293c96bbd416d1441d65c1d067510c91decdc3b043d06d1b37"
+    },
+    {
+      "tourvisor_hotel_id": 2457,
+      "logical_id": "commercial-hotel-2457-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-5-v1",
+      "row_canonical_sha256": "2e3137f43c013acd242e3d243ddb1e84872722aecbc13a5e452d0defa1656b1d"
+    },
+    {
+      "tourvisor_hotel_id": 65341,
+      "logical_id": "commercial-hotel-65341-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-6-v1",
+      "row_canonical_sha256": "81dc9cc4d92e528be451071053c08c5f3ef1e65520393f3095173ef459535d2e"
+    },
+    {
+      "tourvisor_hotel_id": 49084,
+      "logical_id": "commercial-hotel-49084-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-6-v1",
+      "row_canonical_sha256": "17063a6fa1e3fda331f9a2a3dc89e63b81537e8074278a5ded7e70d6c206385e"
+    },
+    {
+      "tourvisor_hotel_id": 75538,
+      "logical_id": "commercial-hotel-75538-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-6-v1",
+      "row_canonical_sha256": "98b681e39a4e7d952a2f819191616d612540a2fe29a999ddbc2b6db1bbd3e067"
+    },
+    {
+      "tourvisor_hotel_id": 82649,
+      "logical_id": "commercial-hotel-82649-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-6-v1",
+      "row_canonical_sha256": "41d27f6153b722c5122cc66bcdea8683c4c6cb045a9f7947bff0daaabd060dba"
+    },
+    {
+      "tourvisor_hotel_id": 37376,
+      "logical_id": "commercial-hotel-37376-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-6-v1",
+      "row_canonical_sha256": "78f587472af4951a748e8fbd83c10021cbb7d27acb170a4ec247b79e72d83c61"
+    },
+    {
+      "tourvisor_hotel_id": 1148,
+      "logical_id": "commercial-hotel-1148-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-6-v1",
+      "row_canonical_sha256": "39ce071242a268991a4921d8980760591e2208c41cf32de331b44a677e143db4"
+    },
+    {
+      "tourvisor_hotel_id": 75100,
+      "logical_id": "commercial-hotel-75100-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-6-v1",
+      "row_canonical_sha256": "9a4dd92eb99da78159b7607697d3361b34f6cf0d115d49fdfe4229b1a86004b2"
+    },
+    {
+      "tourvisor_hotel_id": 80478,
+      "logical_id": "commercial-hotel-80478-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-6-v1",
+      "row_canonical_sha256": "8440dd113aa02696d12b4b8249b0fe5a8629bcb3164b2615745b2d7170daa86e"
+    },
+    {
+      "tourvisor_hotel_id": 27646,
+      "logical_id": "commercial-hotel-27646-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-6-v1",
+      "row_canonical_sha256": "3398573d9241c2ea866094c0ca39794676163f8520e2b31afd6a27d7f9c10bd8"
+    },
+    {
+      "tourvisor_hotel_id": 1150,
+      "logical_id": "commercial-hotel-1150-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-6-v1",
+      "row_canonical_sha256": "0fe38046d0eb3fdc221cc5665a1f233776987f901a31085c240596e26be2e68c"
+    },
+    {
+      "tourvisor_hotel_id": 40222,
+      "logical_id": "commercial-hotel-40222-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-8-v1",
+      "row_canonical_sha256": "5c516df96835f2d7ff6cd331f3ad4623a87dcf2c3d7b980847f71680edaffb4c"
+    },
+    {
+      "tourvisor_hotel_id": 306,
+      "logical_id": "commercial-hotel-306-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-8-v1",
+      "row_canonical_sha256": "70fc6e7062a3588086ee2d635da17ff5bb66c1a27475b26bf2143ff8f5e7d72e"
+    },
+    {
+      "tourvisor_hotel_id": 83106,
+      "logical_id": "commercial-hotel-83106-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-8-v1",
+      "row_canonical_sha256": "06cbf7184832a5519616af8aa98e1f20ecba75c1154f69f297865d5b6b70d797"
+    },
+    {
+      "tourvisor_hotel_id": 113,
+      "logical_id": "commercial-hotel-113-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-8-v1",
+      "row_canonical_sha256": "f641c60b2ab1f7a4f0890f952f66c3ec2d80e58f975f0f71451042e9846b31cd"
+    },
+    {
+      "tourvisor_hotel_id": 108,
+      "logical_id": "commercial-hotel-108-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-8-v1",
+      "row_canonical_sha256": "7ed14befb59d6c2d67e45c41cf382d8229aa322432804d82f7dd5c5ecd5cc058"
+    },
+    {
+      "tourvisor_hotel_id": 133,
+      "logical_id": "commercial-hotel-133-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-8-v1",
+      "row_canonical_sha256": "fa735e077f76db674fa337893e2618fe3281745c7583d3858a3aed35ec2558e0"
+    },
+    {
+      "tourvisor_hotel_id": 123365,
+      "logical_id": "commercial-hotel-123365-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-8-v1",
+      "row_canonical_sha256": "a62d564dfee2069fea1b7287cfe684b2fc910b189ee1f287eef193dadcabe934"
+    },
+    {
+      "tourvisor_hotel_id": 76125,
+      "logical_id": "commercial-hotel-76125-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-8-v1",
+      "row_canonical_sha256": "17381ce72709e72fad4054133ff563d2797f6018e5f1e9215b5fdcba4833325f"
+    },
+    {
+      "tourvisor_hotel_id": 76121,
+      "logical_id": "commercial-hotel-76121-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-8-v1",
+      "row_canonical_sha256": "37161b1df23804eb90bf4cf4bfa664aa8387ce096c42abed5a88b32da8b7e08b"
+    },
+    {
+      "tourvisor_hotel_id": 1028,
+      "logical_id": "commercial-hotel-1028-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-9-v1",
+      "row_canonical_sha256": "81c1b70234c7313a9a8dc5547494960a12f818d052dd25a940177205167d74d5"
+    },
+    {
+      "tourvisor_hotel_id": 1071,
+      "logical_id": "commercial-hotel-1071-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-9-v1",
+      "row_canonical_sha256": "163a8b61356da1ebf35635df771b16f7aa20c7b16ee93e5ccf341e98451197e3"
+    },
+    {
+      "tourvisor_hotel_id": 1149,
+      "logical_id": "commercial-hotel-1149-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-9-v1",
+      "row_canonical_sha256": "46574129250da88eedb7b2395bd07a122bb36fcc28adf28cf948ec6191456545"
+    },
+    {
+      "tourvisor_hotel_id": 1563,
+      "logical_id": "commercial-hotel-1563-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-9-v1",
+      "row_canonical_sha256": "5af5242299bdaf5096376678907ed1e5f1bedd88c78631a062e8a986da4d0f01"
+    },
+    {
+      "tourvisor_hotel_id": 28460,
+      "logical_id": "commercial-hotel-28460-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-9-v1",
+      "row_canonical_sha256": "e88b2e0c2b6e0bef4824748bc33fa6df4b57441d3731bbf7763b9e764e830699"
+    },
+    {
+      "tourvisor_hotel_id": 112391,
+      "logical_id": "commercial-hotel-112391-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-9-v1",
+      "row_canonical_sha256": "b9664bc8f984e3321d3f18693b87bcc0d90b3b68e9fc187cf0ce9245588d9b72"
+    },
+    {
+      "tourvisor_hotel_id": 127009,
+      "logical_id": "commercial-hotel-127009-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-9-v1",
+      "row_canonical_sha256": "9e8d80f4f3c7ab9cf2fec1dcd6de66fd176d412ddf976cf0d57b3697f370c27e"
+    },
+    {
+      "tourvisor_hotel_id": 17603,
+      "logical_id": "commercial-hotel-17603-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-9-v1",
+      "row_canonical_sha256": "e8bbed7582737403b45aab9b8772189091db10129aa3ccc36a9571edc0ed25fb"
+    },
+    {
+      "tourvisor_hotel_id": 17682,
+      "logical_id": "commercial-hotel-17682-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-9-v1",
+      "row_canonical_sha256": "dacf409ae9ad19ada01aee012952baf1731b44618d223ceb87f1ba385eca8c32"
+    },
+    {
+      "tourvisor_hotel_id": 66450,
+      "logical_id": "commercial-hotel-66450-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-9-v1",
+      "row_canonical_sha256": "13fe434b6957932b064d0e3c0dfccfa7dfe0caaeecc1fc569c6bffa24ac18577"
+    },
+    {
+      "tourvisor_hotel_id": 37470,
+      "logical_id": "commercial-hotel-37470-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-10-v1",
+      "row_canonical_sha256": "1dd35220d09de22b579953b86afc8d1d17e3882c1d1e7b60e9a80531ffb54cd5"
+    },
+    {
+      "tourvisor_hotel_id": 99608,
+      "logical_id": "commercial-hotel-99608-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-10-v1",
+      "row_canonical_sha256": "32727fe2df430a3b727f6067e2cbafa88a411dc4eea7a7dcc47144ab93f347a0"
+    },
+    {
+      "tourvisor_hotel_id": 102321,
+      "logical_id": "commercial-hotel-102321-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-10-v1",
+      "row_canonical_sha256": "dcee48b0d46ffe217e6d37bf9d3994e28a77e4ca212d4735bbdb8ba64c327b2d"
+    },
+    {
+      "tourvisor_hotel_id": 37165,
+      "logical_id": "commercial-hotel-37165-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-10-v1",
+      "row_canonical_sha256": "5a0dbdbd0f2a0d5ae1b2ee001243e8508e9289e1da59fccb64a37fac74420faa"
+    },
+    {
+      "tourvisor_hotel_id": 72910,
+      "logical_id": "commercial-hotel-72910-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-10-v1",
+      "row_canonical_sha256": "048a3dcb067fbf8dcce9f09479d943eede9aafbc2869d3338b3d5a110e40dc3b"
+    },
+    {
+      "tourvisor_hotel_id": 82106,
+      "logical_id": "commercial-hotel-82106-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-10-v1",
+      "row_canonical_sha256": "5ae929e66cb72a8aaf3196ae3a56068ac5fbba2f95d85be493e81ca41a71d65e"
+    },
+    {
+      "tourvisor_hotel_id": 103273,
+      "logical_id": "commercial-hotel-103273-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-10-v1",
+      "row_canonical_sha256": "ee93f3c58b501d549fcb130159525897998fbaeb744a2b491c7005ee157b32fe"
+    },
+    {
+      "tourvisor_hotel_id": 1980,
+      "logical_id": "commercial-hotel-1980-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-10-v1",
+      "row_canonical_sha256": "239c391dd3496f0de56445a63d7349cbf241bc9b50bf90a06d6591c2178aa03e"
+    },
+    {
+      "tourvisor_hotel_id": 266,
+      "logical_id": "commercial-hotel-266-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-10-v1",
+      "row_canonical_sha256": "a18e1c8e4f08703752e491b216a2fb7454e6072ee43de229cdf369a124fba6cf"
+    },
+    {
+      "tourvisor_hotel_id": 159,
+      "logical_id": "commercial-hotel-159-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-10-v1",
+      "row_canonical_sha256": "ce255d83b6b3f02912903e4e36e1211b85694c6f1bd126a5d44e428d7653ed57"
+    },
+    {
+      "tourvisor_hotel_id": 344,
+      "logical_id": "commercial-hotel-344-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-11-v1",
+      "row_canonical_sha256": "ed7679b54cd298a6896645d0cedb30a9d65c742df4f29424a8d141a6b14e53fb"
+    },
+    {
+      "tourvisor_hotel_id": 125550,
+      "logical_id": "commercial-hotel-125550-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-11-v1",
+      "row_canonical_sha256": "f3355bb31c6faacecac8b7529469f5b6aa57bd208e702dd5762587a09d91068a"
+    },
+    {
+      "tourvisor_hotel_id": 143790,
+      "logical_id": "commercial-hotel-143790-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-11-v1",
+      "row_canonical_sha256": "11412616ec2d7da45c20f72ee14432699e61f36aafe069cf9de3eea28ce084f4"
+    },
+    {
+      "tourvisor_hotel_id": 76208,
+      "logical_id": "commercial-hotel-76208-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-11-v1",
+      "row_canonical_sha256": "476089c9405e1702c6e48360b369269c965011d4d03a683e9670812def1317a1"
+    },
+    {
+      "tourvisor_hotel_id": 104626,
+      "logical_id": "commercial-hotel-104626-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-11-v1",
+      "row_canonical_sha256": "aab0c621ddf16e95f4ddd6962182a4157a079e75fef265f83a4ff89cef020355"
+    },
+    {
+      "tourvisor_hotel_id": 2554,
+      "logical_id": "commercial-hotel-2554-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-11-v1",
+      "row_canonical_sha256": "7c5f6f06134e77a04a82b1537c9687377bf8603365386eb2eb27dee2b11e713f"
+    },
+    {
+      "tourvisor_hotel_id": 65170,
+      "logical_id": "commercial-hotel-65170-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-11-v1",
+      "row_canonical_sha256": "b704b3d2de961415eab2c3c2bf7ff7172939447a9c75a553639c547fec010fce"
+    },
+    {
+      "tourvisor_hotel_id": 80397,
+      "logical_id": "commercial-hotel-80397-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-11-v1",
+      "row_canonical_sha256": "17b2270c3eda4a1ee98e3fb51de3a5297f79faa66a85739674075d8a7cc97745"
+    },
+    {
+      "tourvisor_hotel_id": 82023,
+      "logical_id": "commercial-hotel-82023-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-11-v1",
+      "row_canonical_sha256": "cd6df7b8e1fa3f5b7285616d6049f0aaa2937db1c724b8d5752e5b87732ddb8b"
+    },
+    {
+      "tourvisor_hotel_id": 2549,
+      "logical_id": "commercial-hotel-2549-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-11-v1",
+      "row_canonical_sha256": "d2f62018319676ad6ad5c9ec707d7f8fcf018b1f8b4283833a9694dc7f4bdedb"
+    },
+    {
+      "tourvisor_hotel_id": 2553,
+      "logical_id": "commercial-hotel-2553-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-12-v1",
+      "row_canonical_sha256": "23fc1b240a9f7a53509742c0a71833d11acdf8bc68d733e4c460381f31922004"
+    },
+    {
+      "tourvisor_hotel_id": 8917,
+      "logical_id": "commercial-hotel-8917-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-12-v1",
+      "row_canonical_sha256": "30a0c1c5ba41677140b1530d6b23112d75a8a21ee4c99645b1eb1ba8e7ead3f2"
+    },
+    {
+      "tourvisor_hotel_id": 8999,
+      "logical_id": "commercial-hotel-8999-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-12-v1",
+      "row_canonical_sha256": "ff123f13dba5c3e65f9f743b7fc4f96e71dfcd3889002da3a0bad99559e12ad9"
+    },
+    {
+      "tourvisor_hotel_id": 56236,
+      "logical_id": "commercial-hotel-56236-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-12-v1",
+      "row_canonical_sha256": "db53fcbe3659a58af0fea89ffe72dc5963aeb9944d3761baa592d2bb6220a9f0"
+    },
+    {
+      "tourvisor_hotel_id": 110597,
+      "logical_id": "commercial-hotel-110597-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-12-v1",
+      "row_canonical_sha256": "57f7c7c13c499fdd8c2989d7f1dc608bfbbeea8ba50e7ab2d9a9b308a29504a1"
+    },
+    {
+      "tourvisor_hotel_id": 2519,
+      "logical_id": "commercial-hotel-2519-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-12-v1",
+      "row_canonical_sha256": "8d09ace88caa162af8654bbba1519f84bfb72cf2e20b989bb22a12657a937bf9"
+    },
+    {
+      "tourvisor_hotel_id": 2591,
+      "logical_id": "commercial-hotel-2591-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-12-v1",
+      "row_canonical_sha256": "1ed3fe2d2e5e4badb6f8027bc09c7509f6f3a7e8afba5c8ae8713859d7238db5"
+    },
+    {
+      "tourvisor_hotel_id": 2936,
+      "logical_id": "commercial-hotel-2936-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-12-v1",
+      "row_canonical_sha256": "bda61799a3a94d27c488f326f31d8b444431d7d8f97d9828606cae1c8516c004"
+    },
+    {
+      "tourvisor_hotel_id": 8945,
+      "logical_id": "commercial-hotel-8945-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-12-v1",
+      "row_canonical_sha256": "2332700efefb518326068db2826d06a4461a0bb472b690141227d7abf210dc10"
+    },
+    {
+      "tourvisor_hotel_id": 13837,
+      "logical_id": "commercial-hotel-13837-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-12-v1",
+      "row_canonical_sha256": "1824e2eb2a11b22eab7fad12e703f1744ef1ada46034d24fa70d6c71b7c69e45"
+    },
+    {
+      "tourvisor_hotel_id": 80431,
+      "logical_id": "commercial-hotel-80431-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-13-v1",
+      "row_canonical_sha256": "56ae1621d21971e0b8f329b796ea4f9e4f3b23685ba9cf2dd30f25a81155f432"
+    },
+    {
+      "tourvisor_hotel_id": 78845,
+      "logical_id": "commercial-hotel-78845-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-13-v1",
+      "row_canonical_sha256": "b7be95be3590653d5807b90e09fff1f06d0cff0d7fcc603028fb5dd0d7618114"
+    },
+    {
+      "tourvisor_hotel_id": 8918,
+      "logical_id": "commercial-hotel-8918-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-13-v1",
+      "row_canonical_sha256": "7e1dedff16b271ffc79de6dc2ccd45a96b1dbb869bc3bf9de0e09760994bee74"
+    },
+    {
+      "tourvisor_hotel_id": 37172,
+      "logical_id": "commercial-hotel-37172-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-14-v1",
+      "row_canonical_sha256": "739261f2bb4215f21bdb57c0322bf828bcc0d5295b6aaac614c41a7ef3e60632"
+    },
+    {
+      "tourvisor_hotel_id": 17683,
+      "logical_id": "commercial-hotel-17683-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-14-v1",
+      "row_canonical_sha256": "30e05bb7841f71f1c450df345fb92ecd0d0955241c93badb8243ac96080bc7eb"
+    },
+    {
+      "tourvisor_hotel_id": 28662,
+      "logical_id": "commercial-hotel-28662-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-14-v1",
+      "row_canonical_sha256": "303c3c86d4ca1a3b6fdc1e2ed7a347a97e8a6b0428718cc31afa9a8b7abf6880"
+    },
+    {
+      "tourvisor_hotel_id": 83059,
+      "logical_id": "commercial-hotel-83059-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-14-v1",
+      "row_canonical_sha256": "b294b51bc238f78ccc960d1866b8814fa09113ad4bcaeb45d0bf1f1e43d26f06"
+    },
+    {
+      "tourvisor_hotel_id": 75658,
+      "logical_id": "commercial-hotel-75658-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-14-v1",
+      "row_canonical_sha256": "6f1dc2a4f992ab053407a33ed3b08821e2e148b9116b20620bdc8bb52234c56c"
+    },
+    {
+      "tourvisor_hotel_id": 60787,
+      "logical_id": "commercial-hotel-60787-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-14-v1",
+      "row_canonical_sha256": "5eb5f28f006ca60c1cd0ba4db49876e8ca654688780044b3f4b5cb6d5ce60b84"
+    },
+    {
+      "tourvisor_hotel_id": 2592,
+      "logical_id": "commercial-hotel-2592-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-14-v1",
+      "row_canonical_sha256": "23b14157af73275995ae16a11ca5b240c3453d8b2c06cd447abe6b6e6d17256a"
+    },
+    {
+      "tourvisor_hotel_id": 2681,
+      "logical_id": "commercial-hotel-2681-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-14-v1",
+      "row_canonical_sha256": "88e51f8d31c9ede25715c6ff33e976e5395daf0160821d06386f4564f38b0e65"
+    },
+    {
+      "tourvisor_hotel_id": 49850,
+      "logical_id": "commercial-hotel-49850-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-14-v1",
+      "row_canonical_sha256": "2b7065876010a8b1a8a825c895bfc2f09a2be963c0dc6f386d032692a138f6ff"
+    },
+    {
+      "tourvisor_hotel_id": 65031,
+      "logical_id": "commercial-hotel-65031-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-14-v1",
+      "row_canonical_sha256": "f78bfadabd59d6e590e47f7a62aa3c90d41ce42479acfaf57ff39404802a8601"
+    },
+    {
+      "tourvisor_hotel_id": 4522,
+      "logical_id": "commercial-hotel-4522-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-15-v1",
+      "row_canonical_sha256": "f6c304069034c1fc5896c53f34da6789d2bb79e386c9e36c0ecf974917ef16a6"
+    },
+    {
+      "tourvisor_hotel_id": 8916,
+      "logical_id": "commercial-hotel-8916-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-15-v1",
+      "row_canonical_sha256": "3b24d535826e3ddc4645a65e03bd8f9ebb9a1cff93344dead649eb6afada3bb9"
+    },
+    {
+      "tourvisor_hotel_id": 13840,
+      "logical_id": "commercial-hotel-13840-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-15-v1",
+      "row_canonical_sha256": "b20fe9a29806c5df7d530fff35fc0a2d6af5ccd4d77847440a2ba30d8fb927bc"
+    },
+    {
+      "tourvisor_hotel_id": 99319,
+      "logical_id": "commercial-hotel-99319-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-15-v1",
+      "row_canonical_sha256": "a36e20f72fdb2ef83c4fbe73d80bcedb1a3d5ae7f39866aad29443863a1b9eeb"
+    },
+    {
+      "tourvisor_hotel_id": 110940,
+      "logical_id": "commercial-hotel-110940-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-15-v1",
+      "row_canonical_sha256": "04959c28641e5f0384b048b42676fe0d2659b47e15b39f2ca0f5c35e070aa59f"
+    },
+    {
+      "tourvisor_hotel_id": 102527,
+      "logical_id": "commercial-hotel-102527-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-15-v1",
+      "row_canonical_sha256": "d06438341f8c6212c06f7190190025ef850c4199b16d4be8df05c805fcb2b132"
+    },
+    {
+      "tourvisor_hotel_id": 103272,
+      "logical_id": "commercial-hotel-103272-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-15-v1",
+      "row_canonical_sha256": "362235bb3c34e08767cb75cb4a73e2116cc27324461eaedf196f3ac6221ff48c"
+    },
+    {
+      "tourvisor_hotel_id": 32226,
+      "logical_id": "commercial-hotel-32226-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-15-v1",
+      "row_canonical_sha256": "2a14766a15e284308da9d651317d335b67ebbfcf805758829f5f5f11a0ff401d"
+    },
+    {
+      "tourvisor_hotel_id": 69179,
+      "logical_id": "commercial-hotel-69179-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-15-v1",
+      "row_canonical_sha256": "b8c9f71bbe21a242c2e75423d63efd7fcfd3abc67c7d18730d9887408a379fbd"
+    },
+    {
+      "tourvisor_hotel_id": 112603,
+      "logical_id": "commercial-hotel-112603-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-15-v1",
+      "row_canonical_sha256": "17bf518b6aef6814dc9565cb78225b2dc1c831039fbee8a62379bbcec44f7fb2"
+    },
+    {
+      "tourvisor_hotel_id": 77942,
+      "logical_id": "commercial-hotel-77942-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-18-v1",
+      "row_canonical_sha256": "5630643662304228c5bc548bd86fcdafe6b44dbbb7a786a66cd0afa64fa58fc4"
+    },
+    {
+      "tourvisor_hotel_id": 46724,
+      "logical_id": "commercial-hotel-46724-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-18-v1",
+      "row_canonical_sha256": "a1cd602b03b6463cadf20d008565b497e8822c633af52d022c02b5c1d177377a"
+    },
+    {
+      "tourvisor_hotel_id": 13996,
+      "logical_id": "commercial-hotel-13996-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-18-v1",
+      "row_canonical_sha256": "a687d8e7b0d7905826fa9bcbb790f8e4bbb04cb7ae135ac8ac600c3ca7c98f01"
+    },
+    {
+      "tourvisor_hotel_id": 63901,
+      "logical_id": "commercial-hotel-63901-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-18-v1",
+      "row_canonical_sha256": "6f3234cc4e4abc755561be9fcd735759820ad446a708f0e2537c84b54af5c440"
+    },
+    {
+      "tourvisor_hotel_id": 13845,
+      "logical_id": "commercial-hotel-13845-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-18-v1",
+      "row_canonical_sha256": "51683f62a7829cbd3d03ac1c941174d10344dcfbe26612e657aa2ca04e832e5c"
+    },
+    {
+      "tourvisor_hotel_id": 45287,
+      "logical_id": "commercial-hotel-45287-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-18-v1",
+      "row_canonical_sha256": "e8a4897243095c987056c7b1b1b2ddecdd8f6fad92571a2b8ba95f42b09fc049"
+    },
+    {
+      "tourvisor_hotel_id": 44984,
+      "logical_id": "commercial-hotel-44984-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-18-v1",
+      "row_canonical_sha256": "f91a240a7c6e53873c89f352b6fb13518839a6286f525d294e80726fd33c42d1"
+    },
+    {
+      "tourvisor_hotel_id": 23290,
+      "logical_id": "commercial-hotel-23290-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-18-v1",
+      "row_canonical_sha256": "3bec8a1fece26eaa8966fea2dd8566e6a6f4b1f8c561eb28e6395ce50372a54a"
+    },
+    {
+      "tourvisor_hotel_id": 38640,
+      "logical_id": "commercial-hotel-38640-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-18-v1",
+      "row_canonical_sha256": "b47e971815cf51fb37c915f439c4f667630d72f75d131f1f6734b8ab231ff29d"
+    },
+    {
+      "tourvisor_hotel_id": 128487,
+      "logical_id": "commercial-hotel-128487-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-18-v1",
+      "row_canonical_sha256": "3a26478f1194bc782c38ec79f217e8cbcf5512a7ae85e0e40a6f01793f884a64"
+    },
+    {
+      "tourvisor_hotel_id": 68939,
+      "logical_id": "commercial-hotel-68939-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-17-v1",
+      "row_canonical_sha256": "2d2a0ffe46abdcf4d3d2120dba3681cb975dd913b422f4cafefc3f0c60f055bc"
+    },
+    {
+      "tourvisor_hotel_id": 77515,
+      "logical_id": "commercial-hotel-77515-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-17-v1",
+      "row_canonical_sha256": "4398fe377866e3b271d78f4843bdd4d78a890052b3a91f72348c1eabc64ead7a"
+    },
+    {
+      "tourvisor_hotel_id": 69774,
+      "logical_id": "commercial-hotel-69774-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-17-v1",
+      "row_canonical_sha256": "8cbcd46e3bc47b9bbe86bd44aa606019cf4da1db4a8dac063e0cc80e411fa7fd"
+    },
+    {
+      "tourvisor_hotel_id": 23283,
+      "logical_id": "commercial-hotel-23283-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-17-v1",
+      "row_canonical_sha256": "1db6fc3a20a91ce697a498385ec38332b4e86838718fc3e86b0182de50149079"
+    },
+    {
+      "tourvisor_hotel_id": 76032,
+      "logical_id": "commercial-hotel-76032-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-17-v1",
+      "row_canonical_sha256": "296d05efef01ce48dc24e2eba8651de731e2a0fef733614860609ef6226772a2"
+    },
+    {
+      "tourvisor_hotel_id": 2478,
+      "logical_id": "commercial-hotel-2478-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-17-v1",
+      "row_canonical_sha256": "5e1ae315a44a101b4ec7d6563bf7fc31f19ae5dc1964a7bea0ccc00fde5955f4"
+    },
+    {
+      "tourvisor_hotel_id": 132068,
+      "logical_id": "commercial-hotel-132068-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-17-v1",
+      "row_canonical_sha256": "6125320686ed191230ee3f4d3c1001448802e41a6bfebf50bb4a8d1f1edcdb16"
+    },
+    {
+      "tourvisor_hotel_id": 158417,
+      "logical_id": "commercial-hotel-158417-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-17-v1",
+      "row_canonical_sha256": "4929fc6651bb09bcee96283a106026750577b72f6e58997500a656756d70194c"
+    },
+    {
+      "tourvisor_hotel_id": 22740,
+      "logical_id": "commercial-hotel-22740-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-19-v1",
+      "row_canonical_sha256": "c1ff3266c84467fc0dd5b30a997abbb536a17facb92451017aa12297b99731d2"
+    },
+    {
+      "tourvisor_hotel_id": 78200,
+      "logical_id": "commercial-hotel-78200-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-19-v1",
+      "row_canonical_sha256": "fd335d003a6d014dcb89f8d94dc4583292d54e94efcfca6f8b15b9f2ced4c3d7"
+    },
+    {
+      "tourvisor_hotel_id": 538,
+      "logical_id": "commercial-hotel-538-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-19-v1",
+      "row_canonical_sha256": "5c9e210bdfeb36d37d6681458b06d89664aeec6d31a4e27d653760b16c30e7da"
+    },
+    {
+      "tourvisor_hotel_id": 792,
+      "logical_id": "commercial-hotel-792-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-19-v1",
+      "row_canonical_sha256": "0c1d6048de73466ddbf00914604c91ee293f66291307e206b7dd6b0257d63d3e"
+    },
+    {
+      "tourvisor_hotel_id": 2984,
+      "logical_id": "commercial-hotel-2984-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-19-v1",
+      "row_canonical_sha256": "344cfc1f1998374d1e99db6cf3997932a02751ca51d526b8209ba1ad95e57293"
+    },
+    {
+      "tourvisor_hotel_id": 4202,
+      "logical_id": "commercial-hotel-4202-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-19-v1",
+      "row_canonical_sha256": "b3b8964f68b76c2d6e0a2af66f128b0356628463fed447eb08e9c1bb7378cc1b"
+    },
+    {
+      "tourvisor_hotel_id": 7898,
+      "logical_id": "commercial-hotel-7898-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-19-v1",
+      "row_canonical_sha256": "4166706a2846ceb1d94bd6aead88df0639398a7f7bf6dbee93c8dc8c2ec91c30"
+    },
+    {
+      "tourvisor_hotel_id": 66860,
+      "logical_id": "commercial-hotel-66860-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-19-v1",
+      "row_canonical_sha256": "25a5af36dde1de97dcab6afd26bf1b1e85fb351b6025a1615a2d413b528915b8"
+    },
+    {
+      "tourvisor_hotel_id": 598,
+      "logical_id": "commercial-hotel-598-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-19-v1",
+      "row_canonical_sha256": "b7567a320ad3fe85fcfdd27ea7179908312f887952092c7c67144a6495ac4bbf"
+    },
+    {
+      "tourvisor_hotel_id": 669,
+      "logical_id": "commercial-hotel-669-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-19-v1",
+      "row_canonical_sha256": "f72c385a885afb68c1968f674f2ecf449729df023f39d49efcdcbb9765830310"
+    },
+    {
+      "tourvisor_hotel_id": 3022,
+      "logical_id": "commercial-hotel-3022-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-20-v1",
+      "row_canonical_sha256": "28b40a08fa05e3947ec624cfac2e6ae933f123f3fdff629db487d5816b72700d"
+    },
+    {
+      "tourvisor_hotel_id": 4294,
+      "logical_id": "commercial-hotel-4294-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-20-v1",
+      "row_canonical_sha256": "8be600729947ef2f6fa286d6412b15791da42320d81c07a1afa9c343e41d3e19"
+    },
+    {
+      "tourvisor_hotel_id": 4309,
+      "logical_id": "commercial-hotel-4309-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-20-v1",
+      "row_canonical_sha256": "7fdd479d4e284a84d966496a2208ff3c424aa8b1bf1bf377c35d6ca975e7e829"
+    },
+    {
+      "tourvisor_hotel_id": 4343,
+      "logical_id": "commercial-hotel-4343-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-20-v1",
+      "row_canonical_sha256": "2d0ef06043940b676a3926b403f1fdd3730a4797c40e619006ba6cd281551402"
+    },
+    {
+      "tourvisor_hotel_id": 7856,
+      "logical_id": "commercial-hotel-7856-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-20-v1",
+      "row_canonical_sha256": "2bebaba558e73a962375e3a2c0ca22b858136b09501cb5c2c6122fe06893b8f9"
+    },
+    {
+      "tourvisor_hotel_id": 8171,
+      "logical_id": "commercial-hotel-8171-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-20-v1",
+      "row_canonical_sha256": "8bcb43c9cc32e7598af22a97b771db4117283d8eda2ca196a74141fc5a6cb24c"
+    },
+    {
+      "tourvisor_hotel_id": 9395,
+      "logical_id": "commercial-hotel-9395-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-20-v1",
+      "row_canonical_sha256": "0d54bce7b1753247501e6bcd51c3767121429c85e38e020b468aada7a778c267"
+    },
+    {
+      "tourvisor_hotel_id": 12170,
+      "logical_id": "commercial-hotel-12170-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-20-v1",
+      "row_canonical_sha256": "10a97ff0a316a9b3469eee6192f20a9758a21cc03ab7d9acb3e33a16001736f8"
+    },
+    {
+      "tourvisor_hotel_id": 526,
+      "logical_id": "commercial-hotel-526-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-20-v1",
+      "row_canonical_sha256": "c3c50148dbdd91e5be0c9b3a22cb613b2cc75ca8dd7a492a3902bfe8e2e3d30e"
+    },
+    {
+      "tourvisor_hotel_id": 599,
+      "logical_id": "commercial-hotel-599-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-20-v1",
+      "row_canonical_sha256": "48e998c05f0e8ce9e9f87f008589584e62a7bedda305dbcf085f0fdb5f4d69b7"
+    },
+    {
+      "tourvisor_hotel_id": 685,
+      "logical_id": "commercial-hotel-685-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-21-v1",
+      "row_canonical_sha256": "8a45385bd06e2ba48babd42476b31bd805ae82e8084e1561e4e19b932633d22c"
+    },
+    {
+      "tourvisor_hotel_id": 689,
+      "logical_id": "commercial-hotel-689-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-21-v1",
+      "row_canonical_sha256": "2368aaa7956ab3eecbd3ae9579e882b50f4da52547ff49b662a4ceb52e855df5"
+    },
+    {
+      "tourvisor_hotel_id": 697,
+      "logical_id": "commercial-hotel-697-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-21-v1",
+      "row_canonical_sha256": "b3c2ef8defca35f5ad78703ca95593e5afc8e529cfe677353b8f3cff1c2b979d"
+    },
+    {
+      "tourvisor_hotel_id": 761,
+      "logical_id": "commercial-hotel-761-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-21-v1",
+      "row_canonical_sha256": "6a6ab5f169f3fe0de09a964f374f45c7ba3939974fa77ab5d495a0d5bd54756b"
+    },
+    {
+      "tourvisor_hotel_id": 791,
+      "logical_id": "commercial-hotel-791-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-21-v1",
+      "row_canonical_sha256": "605736170291fb8ac5bd4d11afd21b9d6f1bb50cb39c6abd58685c1acb9eb045"
+    },
+    {
+      "tourvisor_hotel_id": 3021,
+      "logical_id": "commercial-hotel-3021-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-21-v1",
+      "row_canonical_sha256": "4b2234ab62acfae895d5c49b8b787ee977af528e0bfea438460da225c0bb8de9"
+    },
+    {
+      "tourvisor_hotel_id": 22836,
+      "logical_id": "commercial-hotel-22836-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-21-v1",
+      "row_canonical_sha256": "eeb034a14477d16fc18bd00afa43bddaec40dcb2f43d76fb3b4dca70383cfdfa"
+    },
+    {
+      "tourvisor_hotel_id": 33310,
+      "logical_id": "commercial-hotel-33310-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-21-v1",
+      "row_canonical_sha256": "b3845ca94a662fe828462b652edc5cd754f8cfafb449184a9f5feb40f99fb1ef"
+    },
+    {
+      "tourvisor_hotel_id": 57466,
+      "logical_id": "commercial-hotel-57466-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-21-v1",
+      "row_canonical_sha256": "a41d3dcf69172f1e66f117a01e62d792f6eb7ef56a94da4ef7843c3c3286b65f"
+    },
+    {
+      "tourvisor_hotel_id": 70051,
+      "logical_id": "commercial-hotel-70051-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-21-v1",
+      "row_canonical_sha256": "411e3c8944e41776239123719a5a4954ccde89bfb93240b1cd28be2c679753e1"
+    },
+    {
+      "tourvisor_hotel_id": 542,
+      "logical_id": "commercial-hotel-542-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-22-v1",
+      "row_canonical_sha256": "81b091ee7894f510674fc197dc92864afeca915206e86c7e46b8a671774be6e1"
+    },
+    {
+      "tourvisor_hotel_id": 596,
+      "logical_id": "commercial-hotel-596-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-22-v1",
+      "row_canonical_sha256": "541d3967e7fb36347dca402c6704766d2c67ad3967ca045d394634b745a17f31"
+    },
+    {
+      "tourvisor_hotel_id": 649,
+      "logical_id": "commercial-hotel-649-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-22-v1",
+      "row_canonical_sha256": "faf45483690c68841ab19ce2680612198a618bcd72413df3955b19d3ca732c57"
+    },
+    {
+      "tourvisor_hotel_id": 706,
+      "logical_id": "commercial-hotel-706-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-22-v1",
+      "row_canonical_sha256": "c3a48b50aa0e501c81737d77f39d70a9e1ea9289559b7944b5aa57f2f571a0d8"
+    },
+    {
+      "tourvisor_hotel_id": 765,
+      "logical_id": "commercial-hotel-765-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-22-v1",
+      "row_canonical_sha256": "ae36e488bc9682426814840d9a43a4fad93d12216da9d769fceeee980a311b88"
+    },
+    {
+      "tourvisor_hotel_id": 768,
+      "logical_id": "commercial-hotel-768-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-22-v1",
+      "row_canonical_sha256": "05b84ad00bc614755be754db48ac6e40f7d5880963d96b9126ac0ecf9ece50fa"
+    },
+    {
+      "tourvisor_hotel_id": 825,
+      "logical_id": "commercial-hotel-825-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-22-v1",
+      "row_canonical_sha256": "18bb7511dc7e2d33933468487a55694cdb2e6ee8b99571fc2512a4657129015f"
+    },
+    {
+      "tourvisor_hotel_id": 4270,
+      "logical_id": "commercial-hotel-4270-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-22-v1",
+      "row_canonical_sha256": "b094e198e4bccbfe19419c03820d58e78f1d0bb484267378c68fbe85871b6159"
+    },
+    {
+      "tourvisor_hotel_id": 9404,
+      "logical_id": "commercial-hotel-9404-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-22-v1",
+      "row_canonical_sha256": "efbb3b5c2bd46a45b55ea1fac35bda48bd9f9efec6034eaaad77e52bf2d4e657"
+    },
+    {
+      "tourvisor_hotel_id": 35036,
+      "logical_id": "commercial-hotel-35036-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-22-v1",
+      "row_canonical_sha256": "e8aecfa726ae897c127965fa0743ffea9d5fb433ee1a1084db70e67c4a18c3b7"
+    },
+    {
+      "tourvisor_hotel_id": 77358,
+      "logical_id": "commercial-hotel-77358-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-23-v1",
+      "row_canonical_sha256": "7244cc1ff1888749b9cb6a9c970fd08f5a9742d2df310c923a3dba275b4f4d57"
+    },
+    {
+      "tourvisor_hotel_id": 60433,
+      "logical_id": "commercial-hotel-60433-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-23-v1",
+      "row_canonical_sha256": "21cf7c4ebfd780ae761758c50f1e32fd87c43987bb1742d8b42e92838949f676"
+    },
+    {
+      "tourvisor_hotel_id": 61611,
+      "logical_id": "commercial-hotel-61611-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-23-v1",
+      "row_canonical_sha256": "b2ddd245d446d5928df1db66b78241c67686902b1782f125833adb61a7a11392"
+    },
+    {
+      "tourvisor_hotel_id": 126119,
+      "logical_id": "commercial-hotel-126119-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-23-v1",
+      "row_canonical_sha256": "eb216e804d52a0519cc8f857435d5851808b5a5323f5de39db564e4a41b8610e"
+    },
+    {
+      "tourvisor_hotel_id": 104035,
+      "logical_id": "commercial-hotel-104035-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-23-v1",
+      "row_canonical_sha256": "27e627ea6aaf038748a99ede7dee5a6919a88f8f3fa164a03bd0c109e74f1727"
+    },
+    {
+      "tourvisor_hotel_id": 126601,
+      "logical_id": "commercial-hotel-126601-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-23-v1",
+      "row_canonical_sha256": "2a45042cd20fff9074e6edc80de04852e71fca8dcecd814cdd8348010248b917"
+    },
+    {
+      "tourvisor_hotel_id": 9230,
+      "logical_id": "commercial-hotel-9230-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-23-v1",
+      "row_canonical_sha256": "2b5a5a5ecb4d64aa55bdc57a6a67a96448b045df36029877d61d4b128100967c"
+    },
+    {
+      "tourvisor_hotel_id": 32341,
+      "logical_id": "commercial-hotel-32341-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-23-v1",
+      "row_canonical_sha256": "c22118b13144c4ccd5b4ca22f991a08ef3d53782d65cde2963344e8310451415"
+    },
+    {
+      "tourvisor_hotel_id": 32412,
+      "logical_id": "commercial-hotel-32412-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-23-v1",
+      "row_canonical_sha256": "d0d7ffcdbaec139d080c79c153f06866b175537bbbe1680ec867cc9bbbb7e593"
+    },
+    {
+      "tourvisor_hotel_id": 41498,
+      "logical_id": "commercial-hotel-41498-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-23-v1",
+      "row_canonical_sha256": "e0ca6d456a0c954bbf70b952107745a65ce7eb59931085a994f2bd565e9595f6"
+    },
+    {
+      "tourvisor_hotel_id": 57025,
+      "logical_id": "commercial-hotel-57025-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-24-v1",
+      "row_canonical_sha256": "e7143466f5b8a7576c489760ae4bc85dd64881b32d3408c50392e33e576454f8"
+    },
+    {
+      "tourvisor_hotel_id": 61623,
+      "logical_id": "commercial-hotel-61623-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-24-v1",
+      "row_canonical_sha256": "cfb1cd874d7537f06be2a4d8c0b7b190e88138ca6414b530e2c777bf7bd81ea4"
+    },
+    {
+      "tourvisor_hotel_id": 73257,
+      "logical_id": "commercial-hotel-73257-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-24-v1",
+      "row_canonical_sha256": "b3daa56a20abd2403136d54a685cb47864c0797fbb90b7ec6e53aee5cf378427"
+    },
+    {
+      "tourvisor_hotel_id": 4966,
+      "logical_id": "commercial-hotel-4966-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-24-v1",
+      "row_canonical_sha256": "3cf1beb2b491981389769aa2cadce72e94c549037844c6b47fc435395ad2d9de"
+    },
+    {
+      "tourvisor_hotel_id": 61615,
+      "logical_id": "commercial-hotel-61615-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-24-v1",
+      "row_canonical_sha256": "f8fe09d2b4ffbd2fa031efe4d67644ff17fb155696ad861318e0d3ca12f110da"
+    },
+    {
+      "tourvisor_hotel_id": 65164,
+      "logical_id": "commercial-hotel-65164-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-24-v1",
+      "row_canonical_sha256": "94e24cdbefd93bbfe5d3937a61105bea40d86b44d5d770f55a50fdcf084db891"
+    },
+    {
+      "tourvisor_hotel_id": 132294,
+      "logical_id": "commercial-hotel-132294-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-24-v1",
+      "row_canonical_sha256": "f806b1287787223fa8eade0628451c90e14c77c895fff49d06cc1b14ee638672"
+    },
+    {
+      "tourvisor_hotel_id": 7443,
+      "logical_id": "commercial-hotel-7443-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-24-v1",
+      "row_canonical_sha256": "087c1c82c51c3100aa07a9aafcba0c5801bec2e3ad388a5429831f0ea7b9356f"
+    },
+    {
+      "tourvisor_hotel_id": 43689,
+      "logical_id": "commercial-hotel-43689-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-24-v1",
+      "row_canonical_sha256": "f12c64bf2d4d12cc58a4a229da46281e7ef44ac587db3156eea21448e1dab926"
+    },
+    {
+      "tourvisor_hotel_id": 54914,
+      "logical_id": "commercial-hotel-54914-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-24-v1",
+      "row_canonical_sha256": "c770a987d549565c03aef9c15e137f91a68766a9b41d93dfe51139f48282e89b"
+    },
+    {
+      "tourvisor_hotel_id": 57672,
+      "logical_id": "commercial-hotel-57672-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-25-v1",
+      "row_canonical_sha256": "a1cb84c4823c7d4905ad9512ff76f44e9faa32c196402f2e5e7373502ee02690"
+    },
+    {
+      "tourvisor_hotel_id": 61583,
+      "logical_id": "commercial-hotel-61583-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-25-v1",
+      "row_canonical_sha256": "90bdbc19f068e8558d0a5dbfa1ff939e70f340f345569dd59c2c02f863b3be08"
+    },
+    {
+      "tourvisor_hotel_id": 14130,
+      "logical_id": "commercial-hotel-14130-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-25-v1",
+      "row_canonical_sha256": "013980130fa0e465a1cedf21c815421fad8c6e7569d34c2fd5a66aad2b2a152c"
+    },
+    {
+      "tourvisor_hotel_id": 46747,
+      "logical_id": "commercial-hotel-46747-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-25-v1",
+      "row_canonical_sha256": "6bf0a364a450899d1d2a64ad49c71adc0bd62d3fe7035e09101cb5a87b9d0fe4"
+    },
+    {
+      "tourvisor_hotel_id": 71241,
+      "logical_id": "commercial-hotel-71241-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-25-v1",
+      "row_canonical_sha256": "cde36659d76b210b218d23be3e41e096e50cc6eeb5231660094d772a4d3e2793"
+    },
+    {
+      "tourvisor_hotel_id": 108234,
+      "logical_id": "commercial-hotel-108234-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-25-v1",
+      "row_canonical_sha256": "a9eb934fd215e4a25d9bed6b27695921583cbda091f529867765443714ac817d"
+    },
+    {
+      "tourvisor_hotel_id": 4919,
+      "logical_id": "commercial-hotel-4919-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-25-v1",
+      "row_canonical_sha256": "b1028cf020108c072d89d1f5367194357539960e38ca71f5c45722b1ee1be75c"
+    },
+    {
+      "tourvisor_hotel_id": 82212,
+      "logical_id": "commercial-hotel-82212-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-25-v1",
+      "row_canonical_sha256": "316d49960e1fca080231e675daeddb47a8d75c68dc1118d4dd404a798f66fe06"
+    },
+    {
+      "tourvisor_hotel_id": 7449,
+      "logical_id": "commercial-hotel-7449-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-25-v1",
+      "row_canonical_sha256": "e8180b5a4c0f4782477997935e4f62a68a8a4c404d607f4a3803692ee5ba2038"
+    },
+    {
+      "tourvisor_hotel_id": 69260,
+      "logical_id": "commercial-hotel-69260-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-25-v1",
+      "row_canonical_sha256": "890a13aa1c9e67cc2fa781fb860f683d1a2645df2d1ebb58c4e745bc8421705f"
+    },
+    {
+      "tourvisor_hotel_id": 47460,
+      "logical_id": "commercial-hotel-47460-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-26-v1",
+      "row_canonical_sha256": "6457a1aaeb097a3ae1c1ff1bab4e7ca5e577d55002c50b956c98357a907c9e9c"
+    },
+    {
+      "tourvisor_hotel_id": 64775,
+      "logical_id": "commercial-hotel-64775-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-26-v1",
+      "row_canonical_sha256": "a90afa7496e1c3a8a02d4bd98d0972c3229798c8e9f4e78ae52d00b12d2cd0d8"
+    }
+  ],
+  "runtime_requirements": [
+    "fresh approved original files and current registry identities",
+    "fresh scheduled source observation per pair, otherwise defer",
+    "separately accepted consumer append217 cohort",
+    "no price or execution authority inferred from feed count"
+  ]
+}

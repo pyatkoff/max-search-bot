@@ -1,0 +1,3715 @@
+{
+  "state": "SOURCE_EXPANSION_PROOF_NOT_RUNTIME_PRICE_ADMISSION",
+  "base_source_commit": "e47d578bde03698554428016120a22ceb5272baf",
+  "baseline_roster_gzip_sha256": "ec7950259e202efd4a098434f0851b7f53961a0905773dd3829e80f5c9ce897e",
+  "baseline_roster_raw_sha256": "d05d6cef464be8aed31e49e9824ccf87d06ec0f43fcaa39aa97dd22f72404c15",
+  "baseline_roster_raw_bytes": 2641546,
+  "previous877_canonical_sha256": "5f9a019b1cb7e69c189f741c80f3bfc4de3a7582f34fb17649fb986f05af82ab",
+  "roster_gzip_sha256": "20b9e6ae9808eed33b421f179b1595a9cb9b7d0152ac71285bf8d01029b654a7",
+  "append123_canonical_sha256": "6c005f41dbf42cbf06c3b6d9e382d33a875d1eff46e045e81b101495576c940e",
+  "reader_input_sha256": "8d13a4bc065fdbcc4ed920fccc9ee57c0adca12b626a671d36981c11dcfaf40a",
+  "recovered_inventory_sha256": "b10c580f83bb994e22f705c6712ff3a17e188dcc13825aec82f131222fda0843",
+  "native_read_run": 44257794281,
+  "feed_final_run": 44262520865,
+  "feed_shas": {
+    "hotel-posts-max.xml": "32a27f63662e05a58b58e2c9c8aabcce97bc635456f4cab0cb28f19994b2467b",
+    "hotel-posts-telegram.xml": "a4ddabf99547bd173725418f4c10780151a93020171dbe6e509a297e151f0e3c",
+    "hotel-posts-all.xml": "fc7167264647b3fe66cf49f202b79f09d6f4bfef3271fd4b05679647531e527c"
+  },
+  "mixed_reuse_approved_path_source_sha256": {
+    "35": "9a1cfb566c68d3bc5a46e25c762ba72a447f06a934eaf4832e41f706ce0704e2",
+    "41": "d97f3cca5c724ff329321447fa65a7e2d78eefa317aaf7c45e792a57095bf05a"
+  },
+  "append123": [
+    {
+      "tourvisor_hotel_id": 797,
+      "logical_id": "commercial-hotel-797-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-28-v1",
+      "row_canonical_sha256": "916d7424b8b007c93da079e02d4aaf484701c13484ced3482cb84246ba7cc270",
+      "manifest_sha256": "9f1b7634532f325d0a570de130d30d1720dd445a77052c54f02872c55cf2c004",
+      "native_read_sha256": "ae474b0f7f8b8210a1351a0cd06952d4821f26b5d067781045cbd04d19f88039",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-28-v1/max-commercial-hotel-797-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-28-v1/telegram-commercial-hotel-797-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1958,
+          "version_id": 7487,
+          "message_id": "mid.ffffb6caf0606fed01a1ea8f6478322c",
+          "post_url": "https://max.ru/channel_anytour/AaHqj2R4Miw",
+          "text_sha256": "b601f557d9112a4cce9f565176d624e9ca39d385e0ab2617ed5e18c3520938fd",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1948,
+          "version_id": 7477,
+          "message_id": "902",
+          "post_url": "https://t.me/any_toour/902",
+          "text_sha256": "b601f557d9112a4cce9f565176d624e9ca39d385e0ab2617ed5e18c3520938fd",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 839,
+      "logical_id": "commercial-hotel-839-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-28-v1",
+      "row_canonical_sha256": "29b0becb8bfc1868c1e89124fc8364af0a896078ef4919140ac387775842ea1d",
+      "manifest_sha256": "9f1b7634532f325d0a570de130d30d1720dd445a77052c54f02872c55cf2c004",
+      "native_read_sha256": "ae474b0f7f8b8210a1351a0cd06952d4821f26b5d067781045cbd04d19f88039",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-28-v1/max-commercial-hotel-839-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-28-v1/telegram-commercial-hotel-839-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1959,
+          "version_id": 7488,
+          "message_id": "mid.ffffb6caf0606fed01a1ea8f6e027983",
+          "post_url": "https://max.ru/channel_anytour/AaHqj24CeYM",
+          "text_sha256": "00a6569fe2b4377bbaba1092530b31de2e2223a6f6e3e37f34a2c445690d2f08",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1949,
+          "version_id": 7478,
+          "message_id": "903",
+          "post_url": "https://t.me/any_toour/903",
+          "text_sha256": "00a6569fe2b4377bbaba1092530b31de2e2223a6f6e3e37f34a2c445690d2f08",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 7897,
+      "logical_id": "commercial-hotel-7897-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-28-v1",
+      "row_canonical_sha256": "ce042d704363a497cd62586be899237c3c8a899e2ea8883128968cfc084b5a1d",
+      "manifest_sha256": "9f1b7634532f325d0a570de130d30d1720dd445a77052c54f02872c55cf2c004",
+      "native_read_sha256": "ae474b0f7f8b8210a1351a0cd06952d4821f26b5d067781045cbd04d19f88039",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-28-v1/max-commercial-hotel-7897-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-28-v1/telegram-commercial-hotel-7897-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1960,
+          "version_id": 7489,
+          "message_id": "mid.ffffb6caf0606fed01a1ea8f773255ca",
+          "post_url": "https://max.ru/channel_anytour/AaHqj3cyVco",
+          "text_sha256": "a32e14b380f8cc3d1757e55a0bed30055e1f6aed32d1c739dac0d8d2e237047a",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1950,
+          "version_id": 7479,
+          "message_id": "904",
+          "post_url": "https://t.me/any_toour/904",
+          "text_sha256": "a32e14b380f8cc3d1757e55a0bed30055e1f6aed32d1c739dac0d8d2e237047a",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 8094,
+      "logical_id": "commercial-hotel-8094-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-28-v1",
+      "row_canonical_sha256": "577251805d3d9690af5cf03d9d4eb114b13a96214f7225f53901e4dbdbfa4c31",
+      "manifest_sha256": "9f1b7634532f325d0a570de130d30d1720dd445a77052c54f02872c55cf2c004",
+      "native_read_sha256": "ae474b0f7f8b8210a1351a0cd06952d4821f26b5d067781045cbd04d19f88039",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-28-v1/max-commercial-hotel-8094-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-28-v1/telegram-commercial-hotel-8094-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1961,
+          "version_id": 7490,
+          "message_id": "mid.ffffb6caf0606fed01a1ea8f80e845f1",
+          "post_url": "https://max.ru/channel_anytour/AaHqj4DoRfE",
+          "text_sha256": "96163b210cbede3b26e17979fbfd7e2ad69690ab077979e45477219d408dd2ce",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1951,
+          "version_id": 7480,
+          "message_id": "905",
+          "post_url": "https://t.me/any_toour/905",
+          "text_sha256": "96163b210cbede3b26e17979fbfd7e2ad69690ab077979e45477219d408dd2ce",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 660,
+      "logical_id": "commercial-hotel-660-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-28-v1",
+      "row_canonical_sha256": "4ff05f127960fec9d0c747448360c25644a85c102097c6a173f664715b766830",
+      "manifest_sha256": "9f1b7634532f325d0a570de130d30d1720dd445a77052c54f02872c55cf2c004",
+      "native_read_sha256": "ae474b0f7f8b8210a1351a0cd06952d4821f26b5d067781045cbd04d19f88039",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-28-v1/max-commercial-hotel-660-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-28-v1/telegram-commercial-hotel-660-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1962,
+          "version_id": 7491,
+          "message_id": "mid.ffffb6caf0606fed01a1ea8f8a8631e2",
+          "post_url": "https://max.ru/channel_anytour/AaHqj4qGMeI",
+          "text_sha256": "3c165c837378f4daaba388089fac3e7361c4a470b7c21a96b102de829d7fdcc0",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1952,
+          "version_id": 7481,
+          "message_id": "906",
+          "post_url": "https://t.me/any_toour/906",
+          "text_sha256": "3c165c837378f4daaba388089fac3e7361c4a470b7c21a96b102de829d7fdcc0",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 2074,
+      "logical_id": "commercial-hotel-2074-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-28-v1",
+      "row_canonical_sha256": "5c5e6c2b68e0625e2f0eb47b1fc4ac24f9c29d36df7ca32fc02bbc40b7f33334",
+      "manifest_sha256": "9f1b7634532f325d0a570de130d30d1720dd445a77052c54f02872c55cf2c004",
+      "native_read_sha256": "ae474b0f7f8b8210a1351a0cd06952d4821f26b5d067781045cbd04d19f88039",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-28-v1/max-commercial-hotel-2074-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-28-v1/telegram-commercial-hotel-2074-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1963,
+          "version_id": 7492,
+          "message_id": "mid.ffffb6caf0606fed01a1ea8f93d4255a",
+          "post_url": "https://max.ru/channel_anytour/AaHqj5PUJVo",
+          "text_sha256": "eaf9bd0991b22563a49c59ca4aad092aedfb42b6aa52e5da3fd6bb79b465593f",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1953,
+          "version_id": 7482,
+          "message_id": "907",
+          "post_url": "https://t.me/any_toour/907",
+          "text_sha256": "eaf9bd0991b22563a49c59ca4aad092aedfb42b6aa52e5da3fd6bb79b465593f",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 2075,
+      "logical_id": "commercial-hotel-2075-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-28-v1",
+      "row_canonical_sha256": "06504c56e749420518ff70ee489cc0db26923d7afc9f14bb02f55309c5e442a0",
+      "manifest_sha256": "9f1b7634532f325d0a570de130d30d1720dd445a77052c54f02872c55cf2c004",
+      "native_read_sha256": "ae474b0f7f8b8210a1351a0cd06952d4821f26b5d067781045cbd04d19f88039",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-28-v1/max-commercial-hotel-2075-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-28-v1/telegram-commercial-hotel-2075-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1964,
+          "version_id": 7493,
+          "message_id": "mid.ffffb6caf0606fed01a1ea8f9e4330e3",
+          "post_url": "https://max.ru/channel_anytour/AaHqj55DMOM",
+          "text_sha256": "78c23ef4e5a49bd20e4fcfd24c6392e35f306cab6503a266f6058f8f0ee857fe",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1954,
+          "version_id": 7483,
+          "message_id": "908",
+          "post_url": "https://t.me/any_toour/908",
+          "text_sha256": "78c23ef4e5a49bd20e4fcfd24c6392e35f306cab6503a266f6058f8f0ee857fe",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 4262,
+      "logical_id": "commercial-hotel-4262-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-28-v1",
+      "row_canonical_sha256": "403ec5f4cb8eee61b10e69972a0480feeff6cef765a4510e3b4c01e8799898f8",
+      "manifest_sha256": "9f1b7634532f325d0a570de130d30d1720dd445a77052c54f02872c55cf2c004",
+      "native_read_sha256": "ae474b0f7f8b8210a1351a0cd06952d4821f26b5d067781045cbd04d19f88039",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-28-v1/max-commercial-hotel-4262-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-28-v1/telegram-commercial-hotel-4262-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1965,
+          "version_id": 7494,
+          "message_id": "mid.ffffb6caf0606fed01a1ea8fa79326d0",
+          "post_url": "https://max.ru/channel_anytour/AaHqj6eTJtA",
+          "text_sha256": "5b766ea006f62b2e8c04c96e91d95fed8b76d955c645690fef575fe15809889c",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1955,
+          "version_id": 7484,
+          "message_id": "909",
+          "post_url": "https://t.me/any_toour/909",
+          "text_sha256": "5b766ea006f62b2e8c04c96e91d95fed8b76d955c645690fef575fe15809889c",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 4446,
+      "logical_id": "commercial-hotel-4446-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-28-v1",
+      "row_canonical_sha256": "9cf8fc1c5c94b5b481578696bc3b883e42e1315863f61810dd77de1b687c8300",
+      "manifest_sha256": "9f1b7634532f325d0a570de130d30d1720dd445a77052c54f02872c55cf2c004",
+      "native_read_sha256": "ae474b0f7f8b8210a1351a0cd06952d4821f26b5d067781045cbd04d19f88039",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-28-v1/max-commercial-hotel-4446-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-28-v1/telegram-commercial-hotel-4446-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1966,
+          "version_id": 7495,
+          "message_id": "mid.ffffb6caf0606fed01a1ea8fb0eb1c70",
+          "post_url": "https://max.ru/channel_anytour/AaHqj7DrHHA",
+          "text_sha256": "3c8878b5e7e3bbe5cfffc25bbf6f207a86a08c98d236d2613a293b12f12e2988",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1956,
+          "version_id": 7485,
+          "message_id": "910",
+          "post_url": "https://t.me/any_toour/910",
+          "text_sha256": "3c8878b5e7e3bbe5cfffc25bbf6f207a86a08c98d236d2613a293b12f12e2988",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 7935,
+      "logical_id": "commercial-hotel-7935-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-28-v1",
+      "row_canonical_sha256": "c832aa50ff34c5c213bfff74ae8058cb927fa6be388fc76ab523820e7e73ebf4",
+      "manifest_sha256": "9f1b7634532f325d0a570de130d30d1720dd445a77052c54f02872c55cf2c004",
+      "native_read_sha256": "ae474b0f7f8b8210a1351a0cd06952d4821f26b5d067781045cbd04d19f88039",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-28-v1/max-commercial-hotel-7935-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-28-v1/telegram-commercial-hotel-7935-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1967,
+          "version_id": 7496,
+          "message_id": "mid.ffffb6caf0606fed01a1ea8fc2247582",
+          "post_url": "https://max.ru/channel_anytour/AaHqj8IkdYI",
+          "text_sha256": "65fbe4838610ecbcbf1e13a6a274414936e7a88705085b6017f50cf976d7cd0a",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1957,
+          "version_id": 7486,
+          "message_id": "911",
+          "post_url": "https://t.me/any_toour/911",
+          "text_sha256": "65fbe4838610ecbcbf1e13a6a274414936e7a88705085b6017f50cf976d7cd0a",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 8117,
+      "logical_id": "commercial-hotel-8117-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-29-v1",
+      "row_canonical_sha256": "20112eb942568e357755e8194c24b5a2ca3a5be7718d61833a778519f8ebe280",
+      "manifest_sha256": "ac2f2645e53aee9921bc940640e83a04ab54aeb1af54c289c461a13058ea7909",
+      "native_read_sha256": "c83089f654d3f3c608344aaed7e0edef061e43e8d563b737ebeb18866f1676b9",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-29-v1/max-commercial-hotel-8117-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-29-v1/telegram-commercial-hotel-8117-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1978,
+          "version_id": 7507,
+          "message_id": "mid.ffffb6caf0606fed01a1ea9099204fc7",
+          "post_url": "https://max.ru/channel_anytour/AaHqkJkgT8c",
+          "text_sha256": "f4d061faffeb43ed0439d4fb40f1a922dc2af4bfa7f1fd8b9e56be2cfbc0460f",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1968,
+          "version_id": 7497,
+          "message_id": "912",
+          "post_url": "https://t.me/any_toour/912",
+          "text_sha256": "f4d061faffeb43ed0439d4fb40f1a922dc2af4bfa7f1fd8b9e56be2cfbc0460f",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 12201,
+      "logical_id": "commercial-hotel-12201-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-29-v1",
+      "row_canonical_sha256": "4ecffbab78be7f0bc8492942962f49a632ec3b4d52a287b24c1cc3ef61b18bb8",
+      "manifest_sha256": "ac2f2645e53aee9921bc940640e83a04ab54aeb1af54c289c461a13058ea7909",
+      "native_read_sha256": "c83089f654d3f3c608344aaed7e0edef061e43e8d563b737ebeb18866f1676b9",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-29-v1/max-commercial-hotel-12201-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-29-v1/telegram-commercial-hotel-12201-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1979,
+          "version_id": 7508,
+          "message_id": "mid.ffffb6caf0606fed01a1ea90a2c91322",
+          "post_url": "https://max.ru/channel_anytour/AaHqkKLJEyI",
+          "text_sha256": "3491d20a7e51ab2ee48be6fe118721e831f12146fe7e4f51659b342db3320649",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1969,
+          "version_id": 7498,
+          "message_id": "913",
+          "post_url": "https://t.me/any_toour/913",
+          "text_sha256": "3491d20a7e51ab2ee48be6fe118721e831f12146fe7e4f51659b342db3320649",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 45733,
+      "logical_id": "commercial-hotel-45733-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-29-v1",
+      "row_canonical_sha256": "c444d8806679539ce02ab9289ce5ff2ed4e21e9376dcff55eb3f81966ad89765",
+      "manifest_sha256": "ac2f2645e53aee9921bc940640e83a04ab54aeb1af54c289c461a13058ea7909",
+      "native_read_sha256": "c83089f654d3f3c608344aaed7e0edef061e43e8d563b737ebeb18866f1676b9",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-29-v1/max-commercial-hotel-45733-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-29-v1/telegram-commercial-hotel-45733-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1980,
+          "version_id": 7509,
+          "message_id": "mid.ffffb6caf0606fed01a1ea90ae0459bd",
+          "post_url": "https://max.ru/channel_anytour/AaHqkK4EWb0",
+          "text_sha256": "b952578355cb3fa5ecbe3be53c06ce10d920e46520ce6baf655f6c38cf9e8533",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1970,
+          "version_id": 7499,
+          "message_id": "914",
+          "post_url": "https://t.me/any_toour/914",
+          "text_sha256": "b952578355cb3fa5ecbe3be53c06ce10d920e46520ce6baf655f6c38cf9e8533",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 57720,
+      "logical_id": "commercial-hotel-57720-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-29-v1",
+      "row_canonical_sha256": "a7e01d30eaa1a63e66e8c224ae2712fac5ce04868da4d1db7a157d89e5ec67ec",
+      "manifest_sha256": "ac2f2645e53aee9921bc940640e83a04ab54aeb1af54c289c461a13058ea7909",
+      "native_read_sha256": "c83089f654d3f3c608344aaed7e0edef061e43e8d563b737ebeb18866f1676b9",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-29-v1/max-commercial-hotel-57720-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-29-v1/telegram-commercial-hotel-57720-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1981,
+          "version_id": 7510,
+          "message_id": "mid.ffffb6caf0606fed01a1ea90b7446648",
+          "post_url": "https://max.ru/channel_anytour/AaHqkLdEZkg",
+          "text_sha256": "6f3955b36bbf852e539bd5a4c4111480892f2ad64b2a386159c72825a2d5ce70",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1971,
+          "version_id": 7500,
+          "message_id": "915",
+          "post_url": "https://t.me/any_toour/915",
+          "text_sha256": "6f3955b36bbf852e539bd5a4c4111480892f2ad64b2a386159c72825a2d5ce70",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 74940,
+      "logical_id": "commercial-hotel-74940-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-29-v1",
+      "row_canonical_sha256": "9a4db57fea89be790f14c9fa0df3f6319467278ef7febf06e1a799e3e2410f5c",
+      "manifest_sha256": "ac2f2645e53aee9921bc940640e83a04ab54aeb1af54c289c461a13058ea7909",
+      "native_read_sha256": "c83089f654d3f3c608344aaed7e0edef061e43e8d563b737ebeb18866f1676b9",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-29-v1/max-commercial-hotel-74940-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-29-v1/telegram-commercial-hotel-74940-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1982,
+          "version_id": 7511,
+          "message_id": "mid.ffffb6caf0606fed01a1ea90c0a205ab",
+          "post_url": "https://max.ru/channel_anytour/AaHqkMCiBas",
+          "text_sha256": "550b7ddb3198bd15e1857fbe4574cd37193725e127173ae3f8455ef34330f4e9",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1972,
+          "version_id": 7501,
+          "message_id": "916",
+          "post_url": "https://t.me/any_toour/916",
+          "text_sha256": "550b7ddb3198bd15e1857fbe4574cd37193725e127173ae3f8455ef34330f4e9",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 630,
+      "logical_id": "commercial-hotel-630-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-29-v1",
+      "row_canonical_sha256": "c7744c08942d12636b2518e0d23f6b948999d48aeee8db4698815cb9f2f4b0ec",
+      "manifest_sha256": "ac2f2645e53aee9921bc940640e83a04ab54aeb1af54c289c461a13058ea7909",
+      "native_read_sha256": "c83089f654d3f3c608344aaed7e0edef061e43e8d563b737ebeb18866f1676b9",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-29-v1/max-commercial-hotel-630-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-29-v1/telegram-commercial-hotel-630-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1983,
+          "version_id": 7512,
+          "message_id": "mid.ffffb6caf0606fed01a1ea90c9f275f6",
+          "post_url": "https://max.ru/channel_anytour/AaHqkMnydfY",
+          "text_sha256": "751c24515e0c3e920a797ebdd2e877c7fe65d09a34f6d4ee877d6ce8e2dfd3c1",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1973,
+          "version_id": 7502,
+          "message_id": "917",
+          "post_url": "https://t.me/any_toour/917",
+          "text_sha256": "751c24515e0c3e920a797ebdd2e877c7fe65d09a34f6d4ee877d6ce8e2dfd3c1",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 766,
+      "logical_id": "commercial-hotel-766-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-29-v1",
+      "row_canonical_sha256": "2cc77765db3716818e506efd6b9461464df0e9587b1dcecc5488f55b1029f7d9",
+      "manifest_sha256": "ac2f2645e53aee9921bc940640e83a04ab54aeb1af54c289c461a13058ea7909",
+      "native_read_sha256": "c83089f654d3f3c608344aaed7e0edef061e43e8d563b737ebeb18866f1676b9",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-29-v1/max-commercial-hotel-766-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-29-v1/telegram-commercial-hotel-766-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1984,
+          "version_id": 7513,
+          "message_id": "mid.ffffb6caf0606fed01a1ea90d3d21539",
+          "post_url": "https://max.ru/channel_anytour/AaHqkNPSFTk",
+          "text_sha256": "6040f45daa90007edcd98b261ad29f6c9d7d715ba1a944f8e5014bef32396a91",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1974,
+          "version_id": 7503,
+          "message_id": "918",
+          "post_url": "https://t.me/any_toour/918",
+          "text_sha256": "6040f45daa90007edcd98b261ad29f6c9d7d715ba1a944f8e5014bef32396a91",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 8127,
+      "logical_id": "commercial-hotel-8127-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-29-v1",
+      "row_canonical_sha256": "c527d280d0517369860111b04e21236ed837ba48e7589db7957bb51d5c5d7f77",
+      "manifest_sha256": "ac2f2645e53aee9921bc940640e83a04ab54aeb1af54c289c461a13058ea7909",
+      "native_read_sha256": "c83089f654d3f3c608344aaed7e0edef061e43e8d563b737ebeb18866f1676b9",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-29-v1/max-commercial-hotel-8127-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-29-v1/telegram-commercial-hotel-8127-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1985,
+          "version_id": 7514,
+          "message_id": "mid.ffffb6caf0606fed01a1ea90ddea320c",
+          "post_url": "https://max.ru/channel_anytour/AaHqkN3qMgw",
+          "text_sha256": "f06b05c0a42ecea79829dc857fa497c116734710ea8abd063cb9ca7fa7317519",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1975,
+          "version_id": 7504,
+          "message_id": "919",
+          "post_url": "https://t.me/any_toour/919",
+          "text_sha256": "f06b05c0a42ecea79829dc857fa497c116734710ea8abd063cb9ca7fa7317519",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 43827,
+      "logical_id": "commercial-hotel-43827-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-29-v1",
+      "row_canonical_sha256": "d0e746b89a4f1a2a93adb1362e0c7b661a0ee717eb4f209c22d4c4236f8b6b6c",
+      "manifest_sha256": "ac2f2645e53aee9921bc940640e83a04ab54aeb1af54c289c461a13058ea7909",
+      "native_read_sha256": "c83089f654d3f3c608344aaed7e0edef061e43e8d563b737ebeb18866f1676b9",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-29-v1/max-commercial-hotel-43827-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-29-v1/telegram-commercial-hotel-43827-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1986,
+          "version_id": 7515,
+          "message_id": "mid.ffffb6caf0606fed01a1ea90e76460d7",
+          "post_url": "https://max.ru/channel_anytour/AaHqkOdkYNc",
+          "text_sha256": "50859b23a03639b73110214e49738fc0745b27e214a1cb60da8c917b3f8e1ef0",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1976,
+          "version_id": 7505,
+          "message_id": "920",
+          "post_url": "https://t.me/any_toour/920",
+          "text_sha256": "50859b23a03639b73110214e49738fc0745b27e214a1cb60da8c917b3f8e1ef0",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 44661,
+      "logical_id": "commercial-hotel-44661-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-29-v1",
+      "row_canonical_sha256": "97cf294c54b206bf47dd60ef592a292d5d148e7aa79cf9bdf0710465a9c8892c",
+      "manifest_sha256": "ac2f2645e53aee9921bc940640e83a04ab54aeb1af54c289c461a13058ea7909",
+      "native_read_sha256": "c83089f654d3f3c608344aaed7e0edef061e43e8d563b737ebeb18866f1676b9",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-29-v1/max-commercial-hotel-44661-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-29-v1/telegram-commercial-hotel-44661-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1987,
+          "version_id": 7516,
+          "message_id": "mid.ffffb6caf0606fed01a1ea90f08967b6",
+          "post_url": "https://max.ru/channel_anytour/AaHqkPCJZ7Y",
+          "text_sha256": "3b93b175401eff741b7d3295ee0d9140dacaaa2ac9efb9f3018ec6fcc2579bd2",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1977,
+          "version_id": 7506,
+          "message_id": "921",
+          "post_url": "https://t.me/any_toour/921",
+          "text_sha256": "3b93b175401eff741b7d3295ee0d9140dacaaa2ac9efb9f3018ec6fcc2579bd2",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 56478,
+      "logical_id": "commercial-hotel-56478-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-30-v1",
+      "row_canonical_sha256": "f2515bbcbca877e9a3d7ef51652c885e1f50c8a2fdad1443a3707eb89e91e368",
+      "manifest_sha256": "39d3526fea398dd66ea60d33fb16ebabc25f15503e065d77a3149de143140501",
+      "native_read_sha256": "29a76908bf96ecd1a0dc14bdfcca2e919e1bc5aad43daa277472eb3b68f2c2a7",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-30-v1/max-commercial-hotel-56478-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-30-v1/telegram-commercial-hotel-56478-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1998,
+          "version_id": 7527,
+          "message_id": "mid.ffffb6caf0606fed01a1ea91c8254019",
+          "post_url": "https://max.ru/channel_anytour/AaHqkcglQBk",
+          "text_sha256": "ca8d2d451539dd1afb3eb6baf28bcc9514b3f53016fc95ce76c1b77ce431c3ef",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1988,
+          "version_id": 7517,
+          "message_id": "922",
+          "post_url": "https://t.me/any_toour/922",
+          "text_sha256": "ca8d2d451539dd1afb3eb6baf28bcc9514b3f53016fc95ce76c1b77ce431c3ef",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 57867,
+      "logical_id": "commercial-hotel-57867-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-30-v1",
+      "row_canonical_sha256": "5c830047cf96b8e5d817956e111eec95f61021a65f9be67ab6396496a1b31575",
+      "manifest_sha256": "39d3526fea398dd66ea60d33fb16ebabc25f15503e065d77a3149de143140501",
+      "native_read_sha256": "29a76908bf96ecd1a0dc14bdfcca2e919e1bc5aad43daa277472eb3b68f2c2a7",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-30-v1/max-commercial-hotel-57867-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-30-v1/telegram-commercial-hotel-57867-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 1999,
+          "version_id": 7528,
+          "message_id": "mid.ffffb6caf0606fed01a1ea91d1631168",
+          "post_url": "https://max.ru/channel_anytour/AaHqkdFjEWg",
+          "text_sha256": "c19a817a37b25c8b3a3062b9fb42322d750bd080d461aab3a9fa3737295a066c",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1989,
+          "version_id": 7518,
+          "message_id": "923",
+          "post_url": "https://t.me/any_toour/923",
+          "text_sha256": "c19a817a37b25c8b3a3062b9fb42322d750bd080d461aab3a9fa3737295a066c",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 58088,
+      "logical_id": "commercial-hotel-58088-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-30-v1",
+      "row_canonical_sha256": "0e87674d71960a0c4f06d5ca88812634a09b5efa4e144d78171c96853afb93e4",
+      "manifest_sha256": "39d3526fea398dd66ea60d33fb16ebabc25f15503e065d77a3149de143140501",
+      "native_read_sha256": "29a76908bf96ecd1a0dc14bdfcca2e919e1bc5aad43daa277472eb3b68f2c2a7",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-30-v1/max-commercial-hotel-58088-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-30-v1/telegram-commercial-hotel-58088-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2000,
+          "version_id": 7529,
+          "message_id": "mid.ffffb6caf0606fed01a1ea91da8a0cf2",
+          "post_url": "https://max.ru/channel_anytour/AaHqkdqKDPI",
+          "text_sha256": "dfc1ebd8c3fc4f4d4aad6995d180b06f58d88d7d2df193529774e14968ab699f",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1990,
+          "version_id": 7519,
+          "message_id": "924",
+          "post_url": "https://t.me/any_toour/924",
+          "text_sha256": "dfc1ebd8c3fc4f4d4aad6995d180b06f58d88d7d2df193529774e14968ab699f",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 80057,
+      "logical_id": "commercial-hotel-80057-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-30-v1",
+      "row_canonical_sha256": "e44a3e20ef7e0bfa525bf815aad3cbf6c990b8d7551e17585c7396b8df861ba6",
+      "manifest_sha256": "39d3526fea398dd66ea60d33fb16ebabc25f15503e065d77a3149de143140501",
+      "native_read_sha256": "29a76908bf96ecd1a0dc14bdfcca2e919e1bc5aad43daa277472eb3b68f2c2a7",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-30-v1/max-commercial-hotel-80057-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-30-v1/telegram-commercial-hotel-80057-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2001,
+          "version_id": 7530,
+          "message_id": "mid.ffffb6caf0606fed01a1ea91ec356728",
+          "post_url": "https://max.ru/channel_anytour/AaHqkew1Zyg",
+          "text_sha256": "95a1228890cf230f4528a9166ad5e787c5454fbe0c58d86da7e1a203c9a8ae13",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1991,
+          "version_id": 7520,
+          "message_id": "925",
+          "post_url": "https://t.me/any_toour/925",
+          "text_sha256": "95a1228890cf230f4528a9166ad5e787c5454fbe0c58d86da7e1a203c9a8ae13",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 574,
+      "logical_id": "commercial-hotel-574-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-30-v1",
+      "row_canonical_sha256": "4ff0330eab31c8bdcd4e86a2dac8e2af462259319eb43e498d0ee1656988e462",
+      "manifest_sha256": "39d3526fea398dd66ea60d33fb16ebabc25f15503e065d77a3149de143140501",
+      "native_read_sha256": "29a76908bf96ecd1a0dc14bdfcca2e919e1bc5aad43daa277472eb3b68f2c2a7",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-30-v1/max-commercial-hotel-574-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-30-v1/telegram-commercial-hotel-574-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2002,
+          "version_id": 7531,
+          "message_id": "mid.ffffb6caf0606fed01a1ea91fd651a55",
+          "post_url": "https://max.ru/channel_anytour/AaHqkf1lGlU",
+          "text_sha256": "b2f27d469a545e5dbe2db64ad169c1158bb7cbeafe2d6a18aa193a86a12b6dbb",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1992,
+          "version_id": 7521,
+          "message_id": "926",
+          "post_url": "https://t.me/any_toour/926",
+          "text_sha256": "b2f27d469a545e5dbe2db64ad169c1158bb7cbeafe2d6a18aa193a86a12b6dbb",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 595,
+      "logical_id": "commercial-hotel-595-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-30-v1",
+      "row_canonical_sha256": "5501aad55f545190458d9ddcb20621d107c7e43c363e5f6ca0a2a51993ee9e09",
+      "manifest_sha256": "39d3526fea398dd66ea60d33fb16ebabc25f15503e065d77a3149de143140501",
+      "native_read_sha256": "29a76908bf96ecd1a0dc14bdfcca2e919e1bc5aad43daa277472eb3b68f2c2a7",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-30-v1/max-commercial-hotel-595-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-30-v1/telegram-commercial-hotel-595-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2003,
+          "version_id": 7532,
+          "message_id": "mid.ffffb6caf0606fed01a1ea9206ec580a",
+          "post_url": "https://max.ru/channel_anytour/AaHqkgbsWAo",
+          "text_sha256": "403a1a76d65dd5d6b14021b15b042aac4cc6648a7cb6b4e29f0fbdbdad06c651",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1993,
+          "version_id": 7522,
+          "message_id": "927",
+          "post_url": "https://t.me/any_toour/927",
+          "text_sha256": "403a1a76d65dd5d6b14021b15b042aac4cc6648a7cb6b4e29f0fbdbdad06c651",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 632,
+      "logical_id": "commercial-hotel-632-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-30-v1",
+      "row_canonical_sha256": "f7fdf661f6411d254c02ae97d713883d6c2ae4a1a1072ebed4ffaae96952847a",
+      "manifest_sha256": "39d3526fea398dd66ea60d33fb16ebabc25f15503e065d77a3149de143140501",
+      "native_read_sha256": "29a76908bf96ecd1a0dc14bdfcca2e919e1bc5aad43daa277472eb3b68f2c2a7",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-30-v1/max-commercial-hotel-632-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-30-v1/telegram-commercial-hotel-632-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2004,
+          "version_id": 7533,
+          "message_id": "mid.ffffb6caf0606fed01a1ea921017202e",
+          "post_url": "https://max.ru/channel_anytour/AaHqkhAXIC4",
+          "text_sha256": "afb44e3f689b3ef79b7744b4b04ce8c958a32db81d1e36d212565ff05d4e0db5",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1994,
+          "version_id": 7523,
+          "message_id": "928",
+          "post_url": "https://t.me/any_toour/928",
+          "text_sha256": "afb44e3f689b3ef79b7744b4b04ce8c958a32db81d1e36d212565ff05d4e0db5",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 126428,
+      "logical_id": "commercial-hotel-126428-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-30-v1",
+      "row_canonical_sha256": "8886cae6c1497e05ea7dc7dcd1de2c0ef4abc2659abc39101f62340f4b0ed4df",
+      "manifest_sha256": "39d3526fea398dd66ea60d33fb16ebabc25f15503e065d77a3149de143140501",
+      "native_read_sha256": "29a76908bf96ecd1a0dc14bdfcca2e919e1bc5aad43daa277472eb3b68f2c2a7",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-30-v1/max-commercial-hotel-126428-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-30-v1/telegram-commercial-hotel-126428-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2005,
+          "version_id": 7534,
+          "message_id": "mid.ffffb6caf0606fed01a1ea9219fd2492",
+          "post_url": "https://max.ru/channel_anytour/AaHqkhn9JJI",
+          "text_sha256": "b5e221591e951baebb90a3ae9da4b13fb901a1cf90bcc294080912c0484e2a41",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1995,
+          "version_id": 7524,
+          "message_id": "929",
+          "post_url": "https://t.me/any_toour/929",
+          "text_sha256": "b5e221591e951baebb90a3ae9da4b13fb901a1cf90bcc294080912c0484e2a41",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 2968,
+      "logical_id": "commercial-hotel-2968-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-30-v1",
+      "row_canonical_sha256": "20b7d1ad78af0d49c2ba06f104b35828846bcc1803fc3dd4d3999402b752a53b",
+      "manifest_sha256": "39d3526fea398dd66ea60d33fb16ebabc25f15503e065d77a3149de143140501",
+      "native_read_sha256": "29a76908bf96ecd1a0dc14bdfcca2e919e1bc5aad43daa277472eb3b68f2c2a7",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-30-v1/max-commercial-hotel-2968-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-30-v1/telegram-commercial-hotel-2968-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2006,
+          "version_id": 7535,
+          "message_id": "mid.ffffb6caf0606fed01a1ea9223702081",
+          "post_url": "https://max.ru/channel_anytour/AaHqkiNwIIE",
+          "text_sha256": "996057c360deff297f73282cd0c27c952b94003acce375a335c75f91b5d218db",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1996,
+          "version_id": 7525,
+          "message_id": "930",
+          "post_url": "https://t.me/any_toour/930",
+          "text_sha256": "996057c360deff297f73282cd0c27c952b94003acce375a335c75f91b5d218db",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 3018,
+      "logical_id": "commercial-hotel-3018-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-30-v1",
+      "row_canonical_sha256": "b64841e17fa803f76f044d9fa838e22fed7ffe482e16528f8a1a30f9133a7858",
+      "manifest_sha256": "39d3526fea398dd66ea60d33fb16ebabc25f15503e065d77a3149de143140501",
+      "native_read_sha256": "29a76908bf96ecd1a0dc14bdfcca2e919e1bc5aad43daa277472eb3b68f2c2a7",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-30-v1/max-commercial-hotel-3018-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-30-v1/telegram-commercial-hotel-3018-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2007,
+          "version_id": 7536,
+          "message_id": "mid.ffffb6caf0606fed01a1ea922cc7605b",
+          "post_url": "https://max.ru/channel_anytour/AaHqkizHYFs",
+          "text_sha256": "372c0587a43ef81f3bead0411a9ccb921da390493b4e4276c96715372017af3c",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1997,
+          "version_id": 7526,
+          "message_id": "931",
+          "post_url": "https://t.me/any_toour/931",
+          "text_sha256": "372c0587a43ef81f3bead0411a9ccb921da390493b4e4276c96715372017af3c",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 13110,
+      "logical_id": "commercial-hotel-13110-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-31-v1",
+      "row_canonical_sha256": "f16661f45c2c7e89024eb51e535f44f088a298e77e45747104ed2c93169ea706",
+      "manifest_sha256": "90088f20aa4894267354b14d9b51d8cbbe527e0a798305dac486429e751e0fd4",
+      "native_read_sha256": "cfe6a0d7838ec21189bee461cfab3bcea5cdb273a2eeb18484e1bf12f2524e16",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-31-v1/max-commercial-hotel-13110-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-31-v1/telegram-commercial-hotel-13110-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2018,
+          "version_id": 7547,
+          "message_id": "mid.ffffb6caf0606fed01a1ea9305223a67",
+          "post_url": "https://max.ru/channel_anytour/AaHqkwUiOmc",
+          "text_sha256": "f5c5f7478abe35aa4867d314d4a52220588175488b783293f4764e25e33e6173",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2008,
+          "version_id": 7537,
+          "message_id": "932",
+          "post_url": "https://t.me/any_toour/932",
+          "text_sha256": "f5c5f7478abe35aa4867d314d4a52220588175488b783293f4764e25e33e6173",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 796,
+      "logical_id": "commercial-hotel-796-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-31-v1",
+      "row_canonical_sha256": "30f9ffb91c5ddd5ca62c60017c789be4d3c5c4bdcb3f9c7d96501d3336b2cbd0",
+      "manifest_sha256": "90088f20aa4894267354b14d9b51d8cbbe527e0a798305dac486429e751e0fd4",
+      "native_read_sha256": "cfe6a0d7838ec21189bee461cfab3bcea5cdb273a2eeb18484e1bf12f2524e16",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-31-v1/max-commercial-hotel-796-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-31-v1/telegram-commercial-hotel-796-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2019,
+          "version_id": 7548,
+          "message_id": "mid.ffffb6caf0606fed01a1ea930e333aa8",
+          "post_url": "https://max.ru/channel_anytour/AaHqkw4zOqg",
+          "text_sha256": "848cbacec82ebdff8dfe93eddab92640cc17152a40e44d1634592e06a4c1d547",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2009,
+          "version_id": 7538,
+          "message_id": "933",
+          "post_url": "https://t.me/any_toour/933",
+          "text_sha256": "848cbacec82ebdff8dfe93eddab92640cc17152a40e44d1634592e06a4c1d547",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 42509,
+      "logical_id": "commercial-hotel-42509-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-31-v1",
+      "row_canonical_sha256": "66db23389fc09f26b075e9738171ceb650dc63253241e49d6ff5dc18db10c47a",
+      "manifest_sha256": "90088f20aa4894267354b14d9b51d8cbbe527e0a798305dac486429e751e0fd4",
+      "native_read_sha256": "cfe6a0d7838ec21189bee461cfab3bcea5cdb273a2eeb18484e1bf12f2524e16",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-31-v1/max-commercial-hotel-42509-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-31-v1/telegram-commercial-hotel-42509-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2020,
+          "version_id": 7549,
+          "message_id": "mid.ffffb6caf0606fed01a1ea93178425dc",
+          "post_url": "https://max.ru/channel_anytour/AaHqkxeEJdw",
+          "text_sha256": "7ef8379402cce187b24c23b5c258fa3f9fee70031a967d1c8eb3daacc11511c0",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2010,
+          "version_id": 7539,
+          "message_id": "934",
+          "post_url": "https://t.me/any_toour/934",
+          "text_sha256": "7ef8379402cce187b24c23b5c258fa3f9fee70031a967d1c8eb3daacc11511c0",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 66861,
+      "logical_id": "commercial-hotel-66861-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-31-v1",
+      "row_canonical_sha256": "0e584f70913da26713c6d55f372bd40868f81da29e822a6bfb5e4194be59a226",
+      "manifest_sha256": "90088f20aa4894267354b14d9b51d8cbbe527e0a798305dac486429e751e0fd4",
+      "native_read_sha256": "cfe6a0d7838ec21189bee461cfab3bcea5cdb273a2eeb18484e1bf12f2524e16",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-31-v1/max-commercial-hotel-66861-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-31-v1/telegram-commercial-hotel-66861-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2021,
+          "version_id": 7550,
+          "message_id": "mid.ffffb6caf0606fed01a1ea93212b2f9a",
+          "post_url": "https://max.ru/channel_anytour/AaHqkyErL5o",
+          "text_sha256": "8e69b19c5b6a306ec681c50cf070074eeee191cb5424ea2258e396f994621f8a",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2011,
+          "version_id": 7540,
+          "message_id": "935",
+          "post_url": "https://t.me/any_toour/935",
+          "text_sha256": "8e69b19c5b6a306ec681c50cf070074eeee191cb5424ea2258e396f994621f8a",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 45232,
+      "logical_id": "commercial-hotel-45232-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-31-v1",
+      "row_canonical_sha256": "539f6c3c458fa1855ea97261a583ee7f7e2dea462855d61a219cce9cedd3d05f",
+      "manifest_sha256": "90088f20aa4894267354b14d9b51d8cbbe527e0a798305dac486429e751e0fd4",
+      "native_read_sha256": "cfe6a0d7838ec21189bee461cfab3bcea5cdb273a2eeb18484e1bf12f2524e16",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-31-v1/max-commercial-hotel-45232-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-31-v1/telegram-commercial-hotel-45232-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2022,
+          "version_id": 7551,
+          "message_id": "mid.ffffb6caf0606fed01a1ea932a416918",
+          "post_url": "https://max.ru/channel_anytour/AaHqkypBaRg",
+          "text_sha256": "32a7154f806c9c368b7c8d7ec4678e8e95318ce5091a6e8cb9680a2573063d24",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2012,
+          "version_id": 7541,
+          "message_id": "936",
+          "post_url": "https://t.me/any_toour/936",
+          "text_sha256": "32a7154f806c9c368b7c8d7ec4678e8e95318ce5091a6e8cb9680a2573063d24",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 47213,
+      "logical_id": "commercial-hotel-47213-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-31-v1",
+      "row_canonical_sha256": "81a2cc1a7d01aa182801b46af5b881d943fa96225f1ba87d69e5f91132fab0b2",
+      "manifest_sha256": "90088f20aa4894267354b14d9b51d8cbbe527e0a798305dac486429e751e0fd4",
+      "native_read_sha256": "cfe6a0d7838ec21189bee461cfab3bcea5cdb273a2eeb18484e1bf12f2524e16",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-31-v1/max-commercial-hotel-47213-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-31-v1/telegram-commercial-hotel-47213-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2023,
+          "version_id": 7552,
+          "message_id": "mid.ffffb6caf0606fed01a1ea9333845575",
+          "post_url": "https://max.ru/channel_anytour/AaHqkzOEVXU",
+          "text_sha256": "cb1eea03bc80fc0c9315ed8ba6f5bf02d2ee1970071813f597487b4f1e868f4f",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2013,
+          "version_id": 7542,
+          "message_id": "937",
+          "post_url": "https://t.me/any_toour/937",
+          "text_sha256": "cb1eea03bc80fc0c9315ed8ba6f5bf02d2ee1970071813f597487b4f1e868f4f",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 77818,
+      "logical_id": "commercial-hotel-77818-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-31-v1",
+      "row_canonical_sha256": "882c3da420cf71353560a8495f5e2e2935a10ceb7fef578c99887a3756bac5b3",
+      "manifest_sha256": "90088f20aa4894267354b14d9b51d8cbbe527e0a798305dac486429e751e0fd4",
+      "native_read_sha256": "cfe6a0d7838ec21189bee461cfab3bcea5cdb273a2eeb18484e1bf12f2524e16",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-31-v1/max-commercial-hotel-77818-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-31-v1/telegram-commercial-hotel-77818-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2024,
+          "version_id": 7553,
+          "message_id": "mid.ffffb6caf0606fed01a1ea933cde2b1d",
+          "post_url": "https://max.ru/channel_anytour/AaHqkzzeKx0",
+          "text_sha256": "07692376bf0e0bac572fd96b10ef730dbe3b80c6ab5eff42e1dfcf5e5fcd7a12",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2014,
+          "version_id": 7543,
+          "message_id": "938",
+          "post_url": "https://t.me/any_toour/938",
+          "text_sha256": "07692376bf0e0bac572fd96b10ef730dbe3b80c6ab5eff42e1dfcf5e5fcd7a12",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 82631,
+      "logical_id": "commercial-hotel-82631-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-31-v1",
+      "row_canonical_sha256": "2299b871b8fe7db85cd0fc78e35d5cadf6abfefef2f889ba37ec9528c2c062b8",
+      "manifest_sha256": "90088f20aa4894267354b14d9b51d8cbbe527e0a798305dac486429e751e0fd4",
+      "native_read_sha256": "cfe6a0d7838ec21189bee461cfab3bcea5cdb273a2eeb18484e1bf12f2524e16",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-31-v1/max-commercial-hotel-82631-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-31-v1/telegram-commercial-hotel-82631-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2025,
+          "version_id": 7554,
+          "message_id": "mid.ffffb6caf0606fed01a1ea93480a1744",
+          "post_url": "https://max.ru/channel_anytour/AaHqk0gKF0Q",
+          "text_sha256": "d729d04669fc4a5e4fc57fbc1ae81b7d623b0383fe71c99ccceccd03ede21cca",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2015,
+          "version_id": 7544,
+          "message_id": "939",
+          "post_url": "https://t.me/any_toour/939",
+          "text_sha256": "d729d04669fc4a5e4fc57fbc1ae81b7d623b0383fe71c99ccceccd03ede21cca",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 102191,
+      "logical_id": "commercial-hotel-102191-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-31-v1",
+      "row_canonical_sha256": "867df0b61bc982636410800ed32ff024c1b714be190b0a9effa6fbce65f72ec2",
+      "manifest_sha256": "90088f20aa4894267354b14d9b51d8cbbe527e0a798305dac486429e751e0fd4",
+      "native_read_sha256": "cfe6a0d7838ec21189bee461cfab3bcea5cdb273a2eeb18484e1bf12f2524e16",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-31-v1/max-commercial-hotel-102191-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-31-v1/telegram-commercial-hotel-102191-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2026,
+          "version_id": 7555,
+          "message_id": "mid.ffffb6caf0606fed01a1ea93515f3c0e",
+          "post_url": "https://max.ru/channel_anytour/AaHqk1FfPA4",
+          "text_sha256": "6a1d7888404c200dfa16b4ee5571d670b468d7d3d49c8659458029f0126647c9",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2016,
+          "version_id": 7545,
+          "message_id": "940",
+          "post_url": "https://t.me/any_toour/940",
+          "text_sha256": "6a1d7888404c200dfa16b4ee5571d670b468d7d3d49c8659458029f0126647c9",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 112772,
+      "logical_id": "commercial-hotel-112772-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-31-v1",
+      "row_canonical_sha256": "8f981fe31e2b63dee326926dadde6d108e4db07415d2cdc2bcff64190c5ec655",
+      "manifest_sha256": "90088f20aa4894267354b14d9b51d8cbbe527e0a798305dac486429e751e0fd4",
+      "native_read_sha256": "cfe6a0d7838ec21189bee461cfab3bcea5cdb273a2eeb18484e1bf12f2524e16",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-31-v1/max-commercial-hotel-112772-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-31-v1/telegram-commercial-hotel-112772-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2027,
+          "version_id": 7556,
+          "message_id": "mid.ffffb6caf0606fed01a1ea935b020644",
+          "post_url": "https://max.ru/channel_anytour/AaHqk1sCBkQ",
+          "text_sha256": "e5ffde3840511923fdb6246bc6989e98c7b0c5304b4b10403ea51077b8acee4e",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2017,
+          "version_id": 7546,
+          "message_id": "941",
+          "post_url": "https://t.me/any_toour/941",
+          "text_sha256": "e5ffde3840511923fdb6246bc6989e98c7b0c5304b4b10403ea51077b8acee4e",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 116451,
+      "logical_id": "commercial-hotel-116451-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-32-v1",
+      "row_canonical_sha256": "f28f2e173ef8ee92c308034b7472769fefda1afcd0987b8ad3db083c42856ba8",
+      "manifest_sha256": "04fc72b226a5fb2054b27ec5a12dbfa9cee687d590ed841254e0dc19764b36e7",
+      "native_read_sha256": "11f7016a2d7616f51e8eaca1435dc22878bfe997e0c724ac5ce5f1d831bb23ba",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-32-v1/max-commercial-hotel-116451-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-32-v1/telegram-commercial-hotel-116451-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2038,
+          "version_id": 7567,
+          "message_id": "mid.ffffb6caf0606fed01a1ea943bda2924",
+          "post_url": "https://max.ru/channel_anytour/AaHqlDvaKSQ",
+          "text_sha256": "6d36eb375edb979c301a500fef9eed97ea1ad281daca8033af85f0ba6420167d",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2028,
+          "version_id": 7557,
+          "message_id": "942",
+          "post_url": "https://t.me/any_toour/942",
+          "text_sha256": "6d36eb375edb979c301a500fef9eed97ea1ad281daca8033af85f0ba6420167d",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 128830,
+      "logical_id": "commercial-hotel-128830-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-32-v1",
+      "row_canonical_sha256": "33922556ced82e278cec964dbaf4bf0af5690276df12db52de82208ab239395c",
+      "manifest_sha256": "04fc72b226a5fb2054b27ec5a12dbfa9cee687d590ed841254e0dc19764b36e7",
+      "native_read_sha256": "11f7016a2d7616f51e8eaca1435dc22878bfe997e0c724ac5ce5f1d831bb23ba",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-32-v1/max-commercial-hotel-128830-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-32-v1/telegram-commercial-hotel-128830-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2039,
+          "version_id": 7568,
+          "message_id": "mid.ffffb6caf0606fed01a1ea9445a656b2",
+          "post_url": "https://max.ru/channel_anytour/AaHqlEWmVrI",
+          "text_sha256": "634c252a7d303efb0d29aae92b9baa11f0bbc892a7d34ac6f26fdd211d53ed1e",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2029,
+          "version_id": 7558,
+          "message_id": "943",
+          "post_url": "https://t.me/any_toour/943",
+          "text_sha256": "634c252a7d303efb0d29aae92b9baa11f0bbc892a7d34ac6f26fdd211d53ed1e",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 103063,
+      "logical_id": "commercial-hotel-103063-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-32-v1",
+      "row_canonical_sha256": "5023867b8709a9242cffa81416e5acfc39ba853cd8f6444e20fd0f6c91a5bfba",
+      "manifest_sha256": "04fc72b226a5fb2054b27ec5a12dbfa9cee687d590ed841254e0dc19764b36e7",
+      "native_read_sha256": "11f7016a2d7616f51e8eaca1435dc22878bfe997e0c724ac5ce5f1d831bb23ba",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-32-v1/max-commercial-hotel-103063-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-32-v1/telegram-commercial-hotel-103063-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2040,
+          "version_id": 7569,
+          "message_id": "mid.ffffb6caf0606fed01a1ea944ecb74ee",
+          "post_url": "https://max.ru/channel_anytour/AaHqlE7LdO4",
+          "text_sha256": "301a5c87de05f65b4ed12d6b6f4e53702e764313d79ee1a502d5e5fd336256a9",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2030,
+          "version_id": 7559,
+          "message_id": "944",
+          "post_url": "https://t.me/any_toour/944",
+          "text_sha256": "301a5c87de05f65b4ed12d6b6f4e53702e764313d79ee1a502d5e5fd336256a9",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 46569,
+      "logical_id": "commercial-hotel-46569-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-32-v1",
+      "row_canonical_sha256": "2719d7b991563578e5b932aea1cd32b8344e4dd8b59946b4cc516a011c7c0654",
+      "manifest_sha256": "04fc72b226a5fb2054b27ec5a12dbfa9cee687d590ed841254e0dc19764b36e7",
+      "native_read_sha256": "11f7016a2d7616f51e8eaca1435dc22878bfe997e0c724ac5ce5f1d831bb23ba",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-32-v1/max-commercial-hotel-46569-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-32-v1/telegram-commercial-hotel-46569-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2041,
+          "version_id": 7570,
+          "message_id": "mid.ffffb6caf0606fed01a1ea94597e7baa",
+          "post_url": "https://max.ru/channel_anytour/AaHqlFl-e6o",
+          "text_sha256": "1fe24296aa4a8bafc0478a0db9d22b97d15c8a07bffcf6365a57e45cae3d469f",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2031,
+          "version_id": 7560,
+          "message_id": "945",
+          "post_url": "https://t.me/any_toour/945",
+          "text_sha256": "1fe24296aa4a8bafc0478a0db9d22b97d15c8a07bffcf6365a57e45cae3d469f",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 68194,
+      "logical_id": "commercial-hotel-68194-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-32-v1",
+      "row_canonical_sha256": "9625f0ef6604598d6c1e4498f1c36f00aa22794fefa69e9248e4a69cbb1f09b3",
+      "manifest_sha256": "04fc72b226a5fb2054b27ec5a12dbfa9cee687d590ed841254e0dc19764b36e7",
+      "native_read_sha256": "11f7016a2d7616f51e8eaca1435dc22878bfe997e0c724ac5ce5f1d831bb23ba",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-32-v1/max-commercial-hotel-68194-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-32-v1/telegram-commercial-hotel-68194-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2042,
+          "version_id": 7571,
+          "message_id": "mid.ffffb6caf0606fed01a1ea9463770f90",
+          "post_url": "https://max.ru/channel_anytour/AaHqlGN3D5A",
+          "text_sha256": "6f5cb63213f32ccb1506fd6b611355df931153f50c0440aa4da588fef3883fc3",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2032,
+          "version_id": 7561,
+          "message_id": "946",
+          "post_url": "https://t.me/any_toour/946",
+          "text_sha256": "6f5cb63213f32ccb1506fd6b611355df931153f50c0440aa4da588fef3883fc3",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 126101,
+      "logical_id": "commercial-hotel-126101-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-32-v1",
+      "row_canonical_sha256": "1475b9ccabc03e12f6be27256caf6ecae2d134585ccb9216d5a9c5654d31219b",
+      "manifest_sha256": "04fc72b226a5fb2054b27ec5a12dbfa9cee687d590ed841254e0dc19764b36e7",
+      "native_read_sha256": "11f7016a2d7616f51e8eaca1435dc22878bfe997e0c724ac5ce5f1d831bb23ba",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-32-v1/max-commercial-hotel-126101-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-32-v1/telegram-commercial-hotel-126101-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2043,
+          "version_id": 7572,
+          "message_id": "mid.ffffb6caf0606fed01a1ea946ced6aaa",
+          "post_url": "https://max.ru/channel_anytour/AaHqlGztaqo",
+          "text_sha256": "2d5ba500dcc3dd47b2d13b953d503826db67abf48e2ef8b4f0c46f99195ecb8c",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2033,
+          "version_id": 7562,
+          "message_id": "947",
+          "post_url": "https://t.me/any_toour/947",
+          "text_sha256": "2d5ba500dcc3dd47b2d13b953d503826db67abf48e2ef8b4f0c46f99195ecb8c",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 68663,
+      "logical_id": "commercial-hotel-68663-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-32-v1",
+      "row_canonical_sha256": "4476028d7d7762e81cd94308457b64c0b2b28783e1ad933d06c24d948ef2cc87",
+      "manifest_sha256": "04fc72b226a5fb2054b27ec5a12dbfa9cee687d590ed841254e0dc19764b36e7",
+      "native_read_sha256": "11f7016a2d7616f51e8eaca1435dc22878bfe997e0c724ac5ce5f1d831bb23ba",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-32-v1/max-commercial-hotel-68663-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-32-v1/telegram-commercial-hotel-68663-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2044,
+          "version_id": 7573,
+          "message_id": "mid.ffffb6caf0606fed01a1ea94760e46d2",
+          "post_url": "https://max.ru/channel_anytour/AaHqlHYORtI",
+          "text_sha256": "2537763a2f36bd06f2c4f8f05cb9e8b8e6d246477d4b96e400527c7dcebbb90a",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2034,
+          "version_id": 7563,
+          "message_id": "948",
+          "post_url": "https://t.me/any_toour/948",
+          "text_sha256": "2537763a2f36bd06f2c4f8f05cb9e8b8e6d246477d4b96e400527c7dcebbb90a",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 69130,
+      "logical_id": "commercial-hotel-69130-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-32-v1",
+      "row_canonical_sha256": "8bae2d4823ffa2000cbcf57038bce1731a39ffd927ef257ca8475e31591942fb",
+      "manifest_sha256": "04fc72b226a5fb2054b27ec5a12dbfa9cee687d590ed841254e0dc19764b36e7",
+      "native_read_sha256": "11f7016a2d7616f51e8eaca1435dc22878bfe997e0c724ac5ce5f1d831bb23ba",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-32-v1/max-commercial-hotel-69130-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-32-v1/telegram-commercial-hotel-69130-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2045,
+          "version_id": 7574,
+          "message_id": "mid.ffffb6caf0606fed01a1ea947f8f20fd",
+          "post_url": "https://max.ru/channel_anytour/AaHqlH-PIP0",
+          "text_sha256": "e0951efe216f9d16100eee11c09f4b32c84688a30fb77a3abf794950b14fae7e",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2035,
+          "version_id": 7564,
+          "message_id": "949",
+          "post_url": "https://t.me/any_toour/949",
+          "text_sha256": "e0951efe216f9d16100eee11c09f4b32c84688a30fb77a3abf794950b14fae7e",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 82751,
+      "logical_id": "commercial-hotel-82751-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-32-v1",
+      "row_canonical_sha256": "95eb6c1266197f2f7077077ad130e5d0a30f098de0dcdb076c52761a9515c90c",
+      "manifest_sha256": "04fc72b226a5fb2054b27ec5a12dbfa9cee687d590ed841254e0dc19764b36e7",
+      "native_read_sha256": "11f7016a2d7616f51e8eaca1435dc22878bfe997e0c724ac5ce5f1d831bb23ba",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-32-v1/max-commercial-hotel-82751-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-32-v1/telegram-commercial-hotel-82751-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2046,
+          "version_id": 7575,
+          "message_id": "mid.ffffb6caf0606fed01a1ea9488fc67ed",
+          "post_url": "https://max.ru/channel_anytour/AaHqlIj8Z-0",
+          "text_sha256": "37fe41c0762453f267056e658629c24fb8f8639af43faacc9e34bfd673866593",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2036,
+          "version_id": 7565,
+          "message_id": "950",
+          "post_url": "https://t.me/any_toour/950",
+          "text_sha256": "37fe41c0762453f267056e658629c24fb8f8639af43faacc9e34bfd673866593",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 23723,
+      "logical_id": "commercial-hotel-23723-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-32-v1",
+      "row_canonical_sha256": "4f77b5165e7f4daf50af290113b6209edb65da9cb7840ed7e7edb988c9aaa1f4",
+      "manifest_sha256": "04fc72b226a5fb2054b27ec5a12dbfa9cee687d590ed841254e0dc19764b36e7",
+      "native_read_sha256": "11f7016a2d7616f51e8eaca1435dc22878bfe997e0c724ac5ce5f1d831bb23ba",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-32-v1/max-commercial-hotel-23723-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-32-v1/telegram-commercial-hotel-23723-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2047,
+          "version_id": 7576,
+          "message_id": "mid.ffffb6caf0606fed01a1ea94929803c2",
+          "post_url": "https://max.ru/channel_anytour/AaHqlJKYA8I",
+          "text_sha256": "81f11d7ed4c96f56852b3db81396dbb23ef0e59fc6bf1a8a9703f0f01e838fab",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2037,
+          "version_id": 7566,
+          "message_id": "951",
+          "post_url": "https://t.me/any_toour/951",
+          "text_sha256": "81f11d7ed4c96f56852b3db81396dbb23ef0e59fc6bf1a8a9703f0f01e838fab",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 66681,
+      "logical_id": "commercial-hotel-66681-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-33-v1",
+      "row_canonical_sha256": "b1ecf8082deb23285c354550c88e833d9ed36f6cfc7e85523ca97cedf0676748",
+      "manifest_sha256": "a5fe848947bbb8d3522cf3ebb59fc17f4575afff33754fea75e34685870b067b",
+      "native_read_sha256": "dc8f763eb036da1aca89e84eb596f2fe861127d534b8add220fb8d884b17f164",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-33-v1/max-commercial-hotel-66681-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-33-v1/telegram-commercial-hotel-66681-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2058,
+          "version_id": 7587,
+          "message_id": "mid.ffffb6caf0606fed01a1ea9568b76276",
+          "post_url": "https://max.ru/channel_anytour/AaHqlWi3YnY",
+          "text_sha256": "20a5f42adf7e755ff8773e5aaaecd6955ac54a313acca461959144375cbbd282",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2048,
+          "version_id": 7577,
+          "message_id": "952",
+          "post_url": "https://t.me/any_toour/952",
+          "text_sha256": "20a5f42adf7e755ff8773e5aaaecd6955ac54a313acca461959144375cbbd282",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 80225,
+      "logical_id": "commercial-hotel-80225-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-33-v1",
+      "row_canonical_sha256": "bab8b5e7888f38e7cee71fca4d74f62af7a6680022c2ecdb254316753f46a4f6",
+      "manifest_sha256": "a5fe848947bbb8d3522cf3ebb59fc17f4575afff33754fea75e34685870b067b",
+      "native_read_sha256": "dc8f763eb036da1aca89e84eb596f2fe861127d534b8add220fb8d884b17f164",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-33-v1/max-commercial-hotel-80225-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-33-v1/telegram-commercial-hotel-80225-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2059,
+          "version_id": 7588,
+          "message_id": "mid.ffffb6caf0606fed01a1ea95722c2cfc",
+          "post_url": "https://max.ru/channel_anytour/AaHqlXIsLPw",
+          "text_sha256": "1e2bbf5aeea0b297fb23b9ae0b345849d7c234f8778aedaf7298be7fe9758d01",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2049,
+          "version_id": 7578,
+          "message_id": "953",
+          "post_url": "https://t.me/any_toour/953",
+          "text_sha256": "1e2bbf5aeea0b297fb23b9ae0b345849d7c234f8778aedaf7298be7fe9758d01",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 80955,
+      "logical_id": "commercial-hotel-80955-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-33-v1",
+      "row_canonical_sha256": "797a9390eda548bbedddeab3263925bf3cce20956abca943f42744e5d5c77385",
+      "manifest_sha256": "a5fe848947bbb8d3522cf3ebb59fc17f4575afff33754fea75e34685870b067b",
+      "native_read_sha256": "dc8f763eb036da1aca89e84eb596f2fe861127d534b8add220fb8d884b17f164",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-33-v1/max-commercial-hotel-80955-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-33-v1/telegram-commercial-hotel-80955-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2060,
+          "version_id": 7589,
+          "message_id": "mid.ffffb6caf0606fed01a1ea957b8e61ea",
+          "post_url": "https://max.ru/channel_anytour/AaHqlXuOYeo",
+          "text_sha256": "3828489114c94e182e0d6976f4ffb510b84eabfba32e5d813c19c6cda0eafb3a",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2050,
+          "version_id": 7579,
+          "message_id": "954",
+          "post_url": "https://t.me/any_toour/954",
+          "text_sha256": "3828489114c94e182e0d6976f4ffb510b84eabfba32e5d813c19c6cda0eafb3a",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 98713,
+      "logical_id": "commercial-hotel-98713-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-33-v1",
+      "row_canonical_sha256": "4b1f1fdf54eff41f13fec98ca6d232e909afc9c9d9329742e37083ecc5b7c106",
+      "manifest_sha256": "a5fe848947bbb8d3522cf3ebb59fc17f4575afff33754fea75e34685870b067b",
+      "native_read_sha256": "dc8f763eb036da1aca89e84eb596f2fe861127d534b8add220fb8d884b17f164",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-33-v1/max-commercial-hotel-98713-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-33-v1/telegram-commercial-hotel-98713-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2061,
+          "version_id": 7590,
+          "message_id": "mid.ffffb6caf0606fed01a1ea9584f62774",
+          "post_url": "https://max.ru/channel_anytour/AaHqlYT2J3Q",
+          "text_sha256": "93abbdd4640aa92f5d154e7b9cedef181e5d3b1ffeedd2b3070919f277b28881",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2051,
+          "version_id": 7580,
+          "message_id": "955",
+          "post_url": "https://t.me/any_toour/955",
+          "text_sha256": "93abbdd4640aa92f5d154e7b9cedef181e5d3b1ffeedd2b3070919f277b28881",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 104973,
+      "logical_id": "commercial-hotel-104973-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-33-v1",
+      "row_canonical_sha256": "450bf38993886c5eca69e8fe462c00d874fbbae67d6d5605097ca06216e0c936",
+      "manifest_sha256": "a5fe848947bbb8d3522cf3ebb59fc17f4575afff33754fea75e34685870b067b",
+      "native_read_sha256": "dc8f763eb036da1aca89e84eb596f2fe861127d534b8add220fb8d884b17f164",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-33-v1/max-commercial-hotel-104973-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-33-v1/telegram-commercial-hotel-104973-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2062,
+          "version_id": 7591,
+          "message_id": "mid.ffffb6caf0606fed01a1ea958e9c079b",
+          "post_url": "https://max.ru/channel_anytour/AaHqlY6cB5s",
+          "text_sha256": "6458b727033c8e9161b399a15ec74a3b865ee7b02d452c25da42a9ec95ff78f0",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2052,
+          "version_id": 7581,
+          "message_id": "956",
+          "post_url": "https://t.me/any_toour/956",
+          "text_sha256": "6458b727033c8e9161b399a15ec74a3b865ee7b02d452c25da42a9ec95ff78f0",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 111414,
+      "logical_id": "commercial-hotel-111414-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-33-v1",
+      "row_canonical_sha256": "01ee0da1db371a9ae67fbed613c84075e8640c99b26319e971bae67303e70039",
+      "manifest_sha256": "a5fe848947bbb8d3522cf3ebb59fc17f4575afff33754fea75e34685870b067b",
+      "native_read_sha256": "dc8f763eb036da1aca89e84eb596f2fe861127d534b8add220fb8d884b17f164",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-33-v1/max-commercial-hotel-111414-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-33-v1/telegram-commercial-hotel-111414-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2063,
+          "version_id": 7592,
+          "message_id": "mid.ffffb6caf0606fed01a1ea95987d62d8",
+          "post_url": "https://max.ru/channel_anytour/AaHqlZh9Ytg",
+          "text_sha256": "a68763e30b63adefa5224a5594934fa66bb07c3533c8f6322012945e895cf4ce",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2053,
+          "version_id": 7582,
+          "message_id": "957",
+          "post_url": "https://t.me/any_toour/957",
+          "text_sha256": "a68763e30b63adefa5224a5594934fa66bb07c3533c8f6322012945e895cf4ce",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 4090,
+      "logical_id": "commercial-hotel-4090-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-33-v1",
+      "row_canonical_sha256": "b379001cd48d331f5e2d0c332facba8d60c0068c96c827687d0409494e0ab004",
+      "manifest_sha256": "a5fe848947bbb8d3522cf3ebb59fc17f4575afff33754fea75e34685870b067b",
+      "native_read_sha256": "dc8f763eb036da1aca89e84eb596f2fe861127d534b8add220fb8d884b17f164",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-33-v1/max-commercial-hotel-4090-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-33-v1/telegram-commercial-hotel-4090-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2064,
+          "version_id": 7593,
+          "message_id": "mid.ffffb6caf0606fed01a1ea95a1b45312",
+          "post_url": "https://max.ru/channel_anytour/AaHqlaG0UxI",
+          "text_sha256": "0d0f2abdab017627ce192e8c25979a2a9223cba761c64ce24feba47d3a4d59a5",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2054,
+          "version_id": 7583,
+          "message_id": "958",
+          "post_url": "https://t.me/any_toour/958",
+          "text_sha256": "0d0f2abdab017627ce192e8c25979a2a9223cba761c64ce24feba47d3a4d59a5",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 22785,
+      "logical_id": "commercial-hotel-22785-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-33-v1",
+      "row_canonical_sha256": "adeb7da26929e7cba605a2b5c14c7a97b56780ea531bbe62cfbeb5025f4e6cdf",
+      "manifest_sha256": "a5fe848947bbb8d3522cf3ebb59fc17f4575afff33754fea75e34685870b067b",
+      "native_read_sha256": "dc8f763eb036da1aca89e84eb596f2fe861127d534b8add220fb8d884b17f164",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-33-v1/max-commercial-hotel-22785-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-33-v1/telegram-commercial-hotel-22785-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2065,
+          "version_id": 7594,
+          "message_id": "mid.ffffb6caf0606fed01a1ea95ab487b4a",
+          "post_url": "https://max.ru/channel_anytour/AaHqlatIe0o",
+          "text_sha256": "9f262733f4a851ad57e162263eb8f5e7c8f759dee05f300f1abdfdd5d390f111",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2055,
+          "version_id": 7584,
+          "message_id": "959",
+          "post_url": "https://t.me/any_toour/959",
+          "text_sha256": "9f262733f4a851ad57e162263eb8f5e7c8f759dee05f300f1abdfdd5d390f111",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 22789,
+      "logical_id": "commercial-hotel-22789-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-33-v1",
+      "row_canonical_sha256": "b195dc30062063619ae42fe27c5bbdb2dd5edc061ef3e6c08a8e7a65c73242f2",
+      "manifest_sha256": "a5fe848947bbb8d3522cf3ebb59fc17f4575afff33754fea75e34685870b067b",
+      "native_read_sha256": "dc8f763eb036da1aca89e84eb596f2fe861127d534b8add220fb8d884b17f164",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-33-v1/max-commercial-hotel-22789-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-33-v1/telegram-commercial-hotel-22789-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2066,
+          "version_id": 7595,
+          "message_id": "mid.ffffb6caf0606fed01a1ea95b5020581",
+          "post_url": "https://max.ru/channel_anytour/AaHqlbUCBYE",
+          "text_sha256": "e27ca11de5ada69c14e52c9e68998dab761d167cf0553639c8ebbd6b251bdd1e",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2056,
+          "version_id": 7585,
+          "message_id": "960",
+          "post_url": "https://t.me/any_toour/960",
+          "text_sha256": "e27ca11de5ada69c14e52c9e68998dab761d167cf0553639c8ebbd6b251bdd1e",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 23721,
+      "logical_id": "commercial-hotel-23721-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-33-v1",
+      "row_canonical_sha256": "f79c1bd357a3e6491f30bbe4b74cd135c7b04afdbe965ed8218e9ed44f6a54e1",
+      "manifest_sha256": "a5fe848947bbb8d3522cf3ebb59fc17f4575afff33754fea75e34685870b067b",
+      "native_read_sha256": "dc8f763eb036da1aca89e84eb596f2fe861127d534b8add220fb8d884b17f164",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-33-v1/max-commercial-hotel-23721-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-33-v1/telegram-commercial-hotel-23721-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2067,
+          "version_id": 7596,
+          "message_id": "mid.ffffb6caf0606fed01a1ea95be6e4e5f",
+          "post_url": "https://max.ru/channel_anytour/AaHqlb5uTl8",
+          "text_sha256": "cd9287ac4fdaaad33f3d39703d80e8a0cc8c6a92fc2f95130b4b2bfe075f4a3d",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2057,
+          "version_id": 7586,
+          "message_id": "961",
+          "post_url": "https://t.me/any_toour/961",
+          "text_sha256": "cd9287ac4fdaaad33f3d39703d80e8a0cc8c6a92fc2f95130b4b2bfe075f4a3d",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 82067,
+      "logical_id": "commercial-hotel-82067-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-34-v1",
+      "row_canonical_sha256": "82fe821b522b76381195f7cdb680addad7ca7ab8f93f6eac7dd8ce1cdcc4b584",
+      "manifest_sha256": "74577f71d84ce074aa47e3c21daa136d38d716a6bd792f58540a9df3ce2e284e",
+      "native_read_sha256": "0e1b4dfc183060dd81c7105532229a1e8e8e07ad4377dc87bb464ba6ba92772a",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-34-v1/max-commercial-hotel-82067-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-34-v1/telegram-commercial-hotel-82067-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2078,
+          "version_id": 7607,
+          "message_id": "mid.ffffb6caf0606fed01a1ea96965d6086",
+          "post_url": "https://max.ru/channel_anytour/AaHqlpZdYIY",
+          "text_sha256": "9195a403d86e05f11f172280c91506ec47ad6e08340f44f5d6dc429001384852",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2068,
+          "version_id": 7597,
+          "message_id": "962",
+          "post_url": "https://t.me/any_toour/962",
+          "text_sha256": "9195a403d86e05f11f172280c91506ec47ad6e08340f44f5d6dc429001384852",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 4076,
+      "logical_id": "commercial-hotel-4076-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-34-v1",
+      "row_canonical_sha256": "2c4546be00e4a2deeb6036e2d183e4ee04ff12b11fe07b27d7de28d4ef53546a",
+      "manifest_sha256": "74577f71d84ce074aa47e3c21daa136d38d716a6bd792f58540a9df3ce2e284e",
+      "native_read_sha256": "0e1b4dfc183060dd81c7105532229a1e8e8e07ad4377dc87bb464ba6ba92772a",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-34-v1/max-commercial-hotel-4076-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-34-v1/telegram-commercial-hotel-4076-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2079,
+          "version_id": 7608,
+          "message_id": "mid.ffffb6caf0606fed01a1ea96a02643a4",
+          "post_url": "https://max.ru/channel_anytour/AaHqlqAmQ6Q",
+          "text_sha256": "586ab6272084e6e0393fe7e2fc3cd83d82218816fc3fe01cd657c73c3679b5fd",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2069,
+          "version_id": 7598,
+          "message_id": "963",
+          "post_url": "https://t.me/any_toour/963",
+          "text_sha256": "586ab6272084e6e0393fe7e2fc3cd83d82218816fc3fe01cd657c73c3679b5fd",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 4077,
+      "logical_id": "commercial-hotel-4077-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-34-v1",
+      "row_canonical_sha256": "b6cc008fc9e061dd6d51ddb8c64f09afad5d54793215f0923e7938c9012b81a7",
+      "manifest_sha256": "74577f71d84ce074aa47e3c21daa136d38d716a6bd792f58540a9df3ce2e284e",
+      "native_read_sha256": "0e1b4dfc183060dd81c7105532229a1e8e8e07ad4377dc87bb464ba6ba92772a",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-34-v1/max-commercial-hotel-4077-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-34-v1/telegram-commercial-hotel-4077-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2080,
+          "version_id": 7609,
+          "message_id": "mid.ffffb6caf0606fed01a1ea96a991504f",
+          "post_url": "https://max.ru/channel_anytour/AaHqlqmRUE8",
+          "text_sha256": "966731d0885a530877dcbac76df1097af94d2cb4523a18b446e0f3c95f63fa80",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2070,
+          "version_id": 7599,
+          "message_id": "964",
+          "post_url": "https://t.me/any_toour/964",
+          "text_sha256": "966731d0885a530877dcbac76df1097af94d2cb4523a18b446e0f3c95f63fa80",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 131884,
+      "logical_id": "commercial-hotel-131884-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-34-v1",
+      "row_canonical_sha256": "e638e199b8696bcfcff3f22f182bfbf92e334888b04e2722cd9188a81c9b86bf",
+      "manifest_sha256": "74577f71d84ce074aa47e3c21daa136d38d716a6bd792f58540a9df3ce2e284e",
+      "native_read_sha256": "0e1b4dfc183060dd81c7105532229a1e8e8e07ad4377dc87bb464ba6ba92772a",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-34-v1/max-commercial-hotel-131884-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-34-v1/telegram-commercial-hotel-131884-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2081,
+          "version_id": 7610,
+          "message_id": "mid.ffffb6caf0606fed01a1ea96b2f9014d",
+          "post_url": "https://max.ru/channel_anytour/AaHqlrL5AU0",
+          "text_sha256": "008e525c9a459e1f677406231e390e18e120ebec2185305eb55e968ec32f4013",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2071,
+          "version_id": 7600,
+          "message_id": "965",
+          "post_url": "https://t.me/any_toour/965",
+          "text_sha256": "008e525c9a459e1f677406231e390e18e120ebec2185305eb55e968ec32f4013",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 70778,
+      "logical_id": "commercial-hotel-70778-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-34-v1",
+      "row_canonical_sha256": "6b1b87bd32d6aee06015552ff40153b43f9728950bebc44067285e6d6e3373ae",
+      "manifest_sha256": "74577f71d84ce074aa47e3c21daa136d38d716a6bd792f58540a9df3ce2e284e",
+      "native_read_sha256": "0e1b4dfc183060dd81c7105532229a1e8e8e07ad4377dc87bb464ba6ba92772a",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-34-v1/max-commercial-hotel-70778-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-34-v1/telegram-commercial-hotel-70778-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2082,
+          "version_id": 7611,
+          "message_id": "mid.ffffb6caf0606fed01a1ea96bce81f74",
+          "post_url": "https://max.ru/channel_anytour/AaHqlrzoH3Q",
+          "text_sha256": "00c931e8e219141ac90e972fd80e99987596036b22dc8e8da416c73647e4bec3",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2072,
+          "version_id": 7601,
+          "message_id": "966",
+          "post_url": "https://t.me/any_toour/966",
+          "text_sha256": "00c931e8e219141ac90e972fd80e99987596036b22dc8e8da416c73647e4bec3",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 126417,
+      "logical_id": "commercial-hotel-126417-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-34-v1",
+      "row_canonical_sha256": "2bf2e91d65314e36fd4cd8cd3e99101f5a168a307bb08c654b54160f270442d1",
+      "manifest_sha256": "74577f71d84ce074aa47e3c21daa136d38d716a6bd792f58540a9df3ce2e284e",
+      "native_read_sha256": "0e1b4dfc183060dd81c7105532229a1e8e8e07ad4377dc87bb464ba6ba92772a",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-34-v1/max-commercial-hotel-126417-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-34-v1/telegram-commercial-hotel-126417-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2083,
+          "version_id": 7612,
+          "message_id": "mid.ffffb6caf0606fed01a1ea96c60c62e1",
+          "post_url": "https://max.ru/channel_anytour/AaHqlsYMYuE",
+          "text_sha256": "a35f6cde869524c8654c7bd9d3c7f78bfe0144564d0dae5912f06d140ef25bc2",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2073,
+          "version_id": 7602,
+          "message_id": "967",
+          "post_url": "https://t.me/any_toour/967",
+          "text_sha256": "a35f6cde869524c8654c7bd9d3c7f78bfe0144564d0dae5912f06d140ef25bc2",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 52256,
+      "logical_id": "commercial-hotel-52256-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-34-v1",
+      "row_canonical_sha256": "085a50b4bac2c9e8311b46870744397c0a9d067b579f6bb83f0fad17ca7b7bfe",
+      "manifest_sha256": "74577f71d84ce074aa47e3c21daa136d38d716a6bd792f58540a9df3ce2e284e",
+      "native_read_sha256": "0e1b4dfc183060dd81c7105532229a1e8e8e07ad4377dc87bb464ba6ba92772a",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-34-v1/max-commercial-hotel-52256-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-34-v1/telegram-commercial-hotel-52256-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2084,
+          "version_id": 7613,
+          "message_id": "mid.ffffb6caf0606fed01a1ea96cfac21ad",
+          "post_url": "https://max.ru/channel_anytour/AaHqls-sIa0",
+          "text_sha256": "800f388a1d84f980d80fb84680c62639376fd2315257681a58573dca6f280b93",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2074,
+          "version_id": 7603,
+          "message_id": "968",
+          "post_url": "https://t.me/any_toour/968",
+          "text_sha256": "800f388a1d84f980d80fb84680c62639376fd2315257681a58573dca6f280b93",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 65253,
+      "logical_id": "commercial-hotel-65253-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-34-v1",
+      "row_canonical_sha256": "7576b7b72bf5de8c4c384d1782d1fe6a7317487fd16c7279482f1f2e5c2d5139",
+      "manifest_sha256": "74577f71d84ce074aa47e3c21daa136d38d716a6bd792f58540a9df3ce2e284e",
+      "native_read_sha256": "0e1b4dfc183060dd81c7105532229a1e8e8e07ad4377dc87bb464ba6ba92772a",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-34-v1/max-commercial-hotel-65253-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-34-v1/telegram-commercial-hotel-65253-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2085,
+          "version_id": 7614,
+          "message_id": "mid.ffffb6caf0606fed01a1ea96d9b3783c",
+          "post_url": "https://max.ru/channel_anytour/AaHqltmzeDw",
+          "text_sha256": "a3573c0b4f2794b72112171adaeb30ebdf5f793b5c86384f3b277de0cc115be6",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2075,
+          "version_id": 7604,
+          "message_id": "969",
+          "post_url": "https://t.me/any_toour/969",
+          "text_sha256": "a3573c0b4f2794b72112171adaeb30ebdf5f793b5c86384f3b277de0cc115be6",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 15862,
+      "logical_id": "commercial-hotel-15862-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-34-v1",
+      "row_canonical_sha256": "bc88c32264c887ef7f3b658372a77b2eb0b6512b16dea1bb203df9656117c046",
+      "manifest_sha256": "74577f71d84ce074aa47e3c21daa136d38d716a6bd792f58540a9df3ce2e284e",
+      "native_read_sha256": "0e1b4dfc183060dd81c7105532229a1e8e8e07ad4377dc87bb464ba6ba92772a",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-34-v1/max-commercial-hotel-15862-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-34-v1/telegram-commercial-hotel-15862-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2086,
+          "version_id": 7615,
+          "message_id": "mid.ffffb6caf0606fed01a1ea96e2ba3aab",
+          "post_url": "https://max.ru/channel_anytour/AaHqluK6Oqs",
+          "text_sha256": "fd435fdec2628cadd0b3461cf90f72a54a6eb02e1957e35336ac91125ff7bf32",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2076,
+          "version_id": 7605,
+          "message_id": "970",
+          "post_url": "https://t.me/any_toour/970",
+          "text_sha256": "fd435fdec2628cadd0b3461cf90f72a54a6eb02e1957e35336ac91125ff7bf32",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 41494,
+      "logical_id": "commercial-hotel-41494-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-34-v1",
+      "row_canonical_sha256": "da56cfb4a58ee72704b7c9b22a8bc3f2be0f9d637249f0c0152946112a2cf1ba",
+      "manifest_sha256": "74577f71d84ce074aa47e3c21daa136d38d716a6bd792f58540a9df3ce2e284e",
+      "native_read_sha256": "0e1b4dfc183060dd81c7105532229a1e8e8e07ad4377dc87bb464ba6ba92772a",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-34-v1/max-commercial-hotel-41494-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-34-v1/telegram-commercial-hotel-41494-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2087,
+          "version_id": 7616,
+          "message_id": "mid.ffffb6caf0606fed01a1ea96ec2d4706",
+          "post_url": "https://max.ru/channel_anytour/AaHqluwtRwY",
+          "text_sha256": "f95a959323fffd0ac31416004e45d10c4c868d1f6fd3cb4bc0a487aa1a881413",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2077,
+          "version_id": 7606,
+          "message_id": "971",
+          "post_url": "https://t.me/any_toour/971",
+          "text_sha256": "f95a959323fffd0ac31416004e45d10c4c868d1f6fd3cb4bc0a487aa1a881413",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 22718,
+      "logical_id": "commercial-hotel-22718-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-35-v1",
+      "row_canonical_sha256": "425f000083a8db2e1b75458e3b6085e3080fc78d68edb6bc2a229d075f89b1cf",
+      "manifest_sha256": "f931d5d2a4d25b267194d354368bc6baeecbea109bf85454253ae9b7bbf1db38",
+      "native_read_sha256": "3c92a04a21f9f2fae5d069d967e6b659dc3f940d19362bd66d2c49ccaf068a48",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-35-v1/max-commercial-hotel-22718-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-35-v1/telegram-commercial-hotel-22718-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2088,
+          "version_id": 7617,
+          "message_id": "mid.ffffb6caf0606fed01a1ea9769c94161",
+          "post_url": "https://max.ru/channel_anytour/AaHql2nJQWE",
+          "text_sha256": "c6a5d974a86e699243e9b31da8261598c7d5b09c358df689918da314e08f3a84",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1938,
+          "version_id": 7467,
+          "message_id": "892",
+          "post_url": "https://t.me/any_toour/892",
+          "text_sha256": "c6a5d974a86e699243e9b31da8261598c7d5b09c358df689918da314e08f3a84",
+          "reused": true
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 541,
+      "logical_id": "commercial-hotel-541-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-35-v1",
+      "row_canonical_sha256": "2aa454c89c03ebb690acb8762a66bed142f4b40488acaa06f5c1016ea3fb1cd1",
+      "manifest_sha256": "f931d5d2a4d25b267194d354368bc6baeecbea109bf85454253ae9b7bbf1db38",
+      "native_read_sha256": "3c92a04a21f9f2fae5d069d967e6b659dc3f940d19362bd66d2c49ccaf068a48",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-35-v1/max-commercial-hotel-541-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-35-v1/telegram-commercial-hotel-541-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2089,
+          "version_id": 7618,
+          "message_id": "mid.ffffb6caf0606fed01a1ea9772cf4a65",
+          "post_url": "https://max.ru/channel_anytour/AaHql3LPSmU",
+          "text_sha256": "72135fce292d71a2e2cc628141fd081b3cd5c77e50ff3675828edd9a6e6d6950",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1939,
+          "version_id": 7468,
+          "message_id": "893",
+          "post_url": "https://t.me/any_toour/893",
+          "text_sha256": "72135fce292d71a2e2cc628141fd081b3cd5c77e50ff3675828edd9a6e6d6950",
+          "reused": true
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 2006,
+      "logical_id": "commercial-hotel-2006-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-35-v1",
+      "row_canonical_sha256": "e14c3dae8cb6bce1446e5aeb423fd011f3cef351b0603163e7b8eda1e43bdccd",
+      "manifest_sha256": "f931d5d2a4d25b267194d354368bc6baeecbea109bf85454253ae9b7bbf1db38",
+      "native_read_sha256": "3c92a04a21f9f2fae5d069d967e6b659dc3f940d19362bd66d2c49ccaf068a48",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-35-v1/max-commercial-hotel-2006-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-35-v1/telegram-commercial-hotel-2006-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2090,
+          "version_id": 7619,
+          "message_id": "mid.ffffb6caf0606fed01a1ea977c0a328e",
+          "post_url": "https://max.ru/channel_anytour/AaHql3wKMo4",
+          "text_sha256": "c26626e04686f95cf2e63985cb188ccc04536cfece44b30fa078cb0182486619",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1940,
+          "version_id": 7469,
+          "message_id": "894",
+          "post_url": "https://t.me/any_toour/894",
+          "text_sha256": "c26626e04686f95cf2e63985cb188ccc04536cfece44b30fa078cb0182486619",
+          "reused": true
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 9385,
+      "logical_id": "commercial-hotel-9385-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-35-v1",
+      "row_canonical_sha256": "8ae2d1de04a64e444d283c0e1f90b1d7b44df4df6372ec4f6fd594fc67b4798e",
+      "manifest_sha256": "f931d5d2a4d25b267194d354368bc6baeecbea109bf85454253ae9b7bbf1db38",
+      "native_read_sha256": "3c92a04a21f9f2fae5d069d967e6b659dc3f940d19362bd66d2c49ccaf068a48",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-35-v1/max-commercial-hotel-9385-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-35-v1/telegram-commercial-hotel-9385-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2091,
+          "version_id": 7620,
+          "message_id": "mid.ffffb6caf0606fed01a1ea97873944f6",
+          "post_url": "https://max.ru/channel_anytour/AaHql4c5RPY",
+          "text_sha256": "b42b46e2bcd5d05796f830723b5ca03213d84a7e715cfeb7e329764e6e8731ae",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1941,
+          "version_id": 7470,
+          "message_id": "895",
+          "post_url": "https://t.me/any_toour/895",
+          "text_sha256": "b42b46e2bcd5d05796f830723b5ca03213d84a7e715cfeb7e329764e6e8731ae",
+          "reused": true
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 3006,
+      "logical_id": "commercial-hotel-3006-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-35-v1",
+      "row_canonical_sha256": "9d7ad6719f8129d3f336a00e8c8f0f7d00c8e463890a11a19179dd8df0d78549",
+      "manifest_sha256": "f931d5d2a4d25b267194d354368bc6baeecbea109bf85454253ae9b7bbf1db38",
+      "native_read_sha256": "3c92a04a21f9f2fae5d069d967e6b659dc3f940d19362bd66d2c49ccaf068a48",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-35-v1/max-commercial-hotel-3006-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-35-v1/telegram-commercial-hotel-3006-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2092,
+          "version_id": 7621,
+          "message_id": "mid.ffffb6caf0606fed01a1ea9790bc39e7",
+          "post_url": "https://max.ru/channel_anytour/AaHql5C8Oec",
+          "text_sha256": "e64eb0d0668792e7da6e12c0b60556bae9032ddc61d85da4052746a1169d60ab",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1942,
+          "version_id": 7471,
+          "message_id": "896",
+          "post_url": "https://t.me/any_toour/896",
+          "text_sha256": "e64eb0d0668792e7da6e12c0b60556bae9032ddc61d85da4052746a1169d60ab",
+          "reused": true
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 82422,
+      "logical_id": "commercial-hotel-82422-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-35-v1",
+      "row_canonical_sha256": "1e4baa0617517afb5c6fbdc136556b4ef6ced9398dfaa5d6c8316b1dfe6e38b5",
+      "manifest_sha256": "f931d5d2a4d25b267194d354368bc6baeecbea109bf85454253ae9b7bbf1db38",
+      "native_read_sha256": "3c92a04a21f9f2fae5d069d967e6b659dc3f940d19362bd66d2c49ccaf068a48",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-35-v1/max-commercial-hotel-82422-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-35-v1/telegram-commercial-hotel-82422-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2093,
+          "version_id": 7622,
+          "message_id": "mid.ffffb6caf0606fed01a1ea9799ce315b",
+          "post_url": "https://max.ru/channel_anytour/AaHql5nOMVs",
+          "text_sha256": "4549cd5a7d59239ed1ffb9c33d2033b18bea49737710fa057b790e6b19a5bfab",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1943,
+          "version_id": 7472,
+          "message_id": "897",
+          "post_url": "https://t.me/any_toour/897",
+          "text_sha256": "4549cd5a7d59239ed1ffb9c33d2033b18bea49737710fa057b790e6b19a5bfab",
+          "reused": true
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 81140,
+      "logical_id": "commercial-hotel-81140-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-35-v1",
+      "row_canonical_sha256": "9e15973f6a41b3c6d5a3ea21afa4598a964fa81fa1dfac8d4ff60f38ab7722b7",
+      "manifest_sha256": "f931d5d2a4d25b267194d354368bc6baeecbea109bf85454253ae9b7bbf1db38",
+      "native_read_sha256": "3c92a04a21f9f2fae5d069d967e6b659dc3f940d19362bd66d2c49ccaf068a48",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-35-v1/max-commercial-hotel-81140-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-35-v1/telegram-commercial-hotel-81140-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2094,
+          "version_id": 7623,
+          "message_id": "mid.ffffb6caf0606fed01a1ea97a59533a5",
+          "post_url": "https://max.ru/channel_anytour/AaHql6WVM6U",
+          "text_sha256": "71437534b9d5ea2f054bfcc1c61a5d60ab5c58a351a9205041754318dc76cbeb",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1944,
+          "version_id": 7473,
+          "message_id": "898",
+          "post_url": "https://t.me/any_toour/898",
+          "text_sha256": "71437534b9d5ea2f054bfcc1c61a5d60ab5c58a351a9205041754318dc76cbeb",
+          "reused": true
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 8020,
+      "logical_id": "commercial-hotel-8020-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-35-v1",
+      "row_canonical_sha256": "2e69c20a7480497b7b3ecec9f124f4fd1bf086ab2b1671105cc0db46a578e8a4",
+      "manifest_sha256": "f931d5d2a4d25b267194d354368bc6baeecbea109bf85454253ae9b7bbf1db38",
+      "native_read_sha256": "3c92a04a21f9f2fae5d069d967e6b659dc3f940d19362bd66d2c49ccaf068a48",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-35-v1/max-commercial-hotel-8020-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-35-v1/telegram-commercial-hotel-8020-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2095,
+          "version_id": 7624,
+          "message_id": "mid.ffffb6caf0606fed01a1ea97b13550a2",
+          "post_url": "https://max.ru/channel_anytour/AaHql7E1UKI",
+          "text_sha256": "ee9b6cc5ec50518d38efbf59fb4b4be184cbb2807341c6de4ab542a4e535dcec",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1945,
+          "version_id": 7474,
+          "message_id": "899",
+          "post_url": "https://t.me/any_toour/899",
+          "text_sha256": "ee9b6cc5ec50518d38efbf59fb4b4be184cbb2807341c6de4ab542a4e535dcec",
+          "reused": true
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 51931,
+      "logical_id": "commercial-hotel-51931-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-35-v1",
+      "row_canonical_sha256": "201a7bd1caca3e61b7893b62ca8d976382e4b4ffe93c82db2071fae27ce71899",
+      "manifest_sha256": "f931d5d2a4d25b267194d354368bc6baeecbea109bf85454253ae9b7bbf1db38",
+      "native_read_sha256": "3c92a04a21f9f2fae5d069d967e6b659dc3f940d19362bd66d2c49ccaf068a48",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-35-v1/max-commercial-hotel-51931-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-35-v1/telegram-commercial-hotel-51931-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2096,
+          "version_id": 7625,
+          "message_id": "mid.ffffb6caf0606fed01a1ea97c3916197",
+          "post_url": "https://max.ru/channel_anytour/AaHql8ORYZc",
+          "text_sha256": "f0a3acc59eb97aadaf56ee314b958514df508cff03ece28e088bbfb7b0e804f2",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1946,
+          "version_id": 7475,
+          "message_id": "900",
+          "post_url": "https://t.me/any_toour/900",
+          "text_sha256": "f0a3acc59eb97aadaf56ee314b958514df508cff03ece28e088bbfb7b0e804f2",
+          "reused": true
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 74110,
+      "logical_id": "commercial-hotel-74110-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-36-v1",
+      "row_canonical_sha256": "02abe04c0cb5190cc596c60d18dfe1e790f84a7ebcd836b1fdf61d96de6edd11",
+      "manifest_sha256": "44af4178ab3809ad21728c07896dcb9f3e09f9c7845cb8d18322f3207267d891",
+      "native_read_sha256": "ddf5f1652ab908409f03e21f37598c9ad3e9b391bfea827a8fba9fbe355d18f5",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-36-v1/max-commercial-hotel-74110-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-36-v1/telegram-commercial-hotel-74110-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2107,
+          "version_id": 7636,
+          "message_id": "mid.ffffb6caf0606fed01a1eaba499a4bcf",
+          "post_url": "https://max.ru/channel_anytour/AaHqukmaS88",
+          "text_sha256": "41999b52df0739fb0213299bf22d340de9d89313b7a0dc246be827bec0f05c7a",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2097,
+          "version_id": 7626,
+          "message_id": "972",
+          "post_url": "https://t.me/any_toour/972",
+          "text_sha256": "41999b52df0739fb0213299bf22d340de9d89313b7a0dc246be827bec0f05c7a",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 113553,
+      "logical_id": "commercial-hotel-113553-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-36-v1",
+      "row_canonical_sha256": "80e306d67392a3ab3097ab9a1bd80a09afb304561faa49b2d6b5fbd553dfdd22",
+      "manifest_sha256": "44af4178ab3809ad21728c07896dcb9f3e09f9c7845cb8d18322f3207267d891",
+      "native_read_sha256": "ddf5f1652ab908409f03e21f37598c9ad3e9b391bfea827a8fba9fbe355d18f5",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-36-v1/max-commercial-hotel-113553-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-36-v1/telegram-commercial-hotel-113553-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2108,
+          "version_id": 7637,
+          "message_id": "mid.ffffb6caf0606fed01a1eaba53311412",
+          "post_url": "https://max.ru/channel_anytour/AaHqulMxFBI",
+          "text_sha256": "4b4af3e525733bd41e05a08619aa260722b7e6bf415e9e0185b7b92b084635ff",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2098,
+          "version_id": 7627,
+          "message_id": "973",
+          "post_url": "https://t.me/any_toour/973",
+          "text_sha256": "4b4af3e525733bd41e05a08619aa260722b7e6bf415e9e0185b7b92b084635ff",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 115812,
+      "logical_id": "commercial-hotel-115812-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-36-v1",
+      "row_canonical_sha256": "01a67cae791bddcfbdd608a460fd6c4dfa2d0c4b4cc4bbe0111f263a003fc658",
+      "manifest_sha256": "44af4178ab3809ad21728c07896dcb9f3e09f9c7845cb8d18322f3207267d891",
+      "native_read_sha256": "ddf5f1652ab908409f03e21f37598c9ad3e9b391bfea827a8fba9fbe355d18f5",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-36-v1/max-commercial-hotel-115812-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-36-v1/telegram-commercial-hotel-115812-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2109,
+          "version_id": 7638,
+          "message_id": "mid.ffffb6caf0606fed01a1eaba5ca071ed",
+          "post_url": "https://max.ru/channel_anytour/AaHqulygce0",
+          "text_sha256": "52ebe72edeba3b1e53ac1965d0f3b27cfc7d4858717057759f9ba316934dba19",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2099,
+          "version_id": 7628,
+          "message_id": "974",
+          "post_url": "https://t.me/any_toour/974",
+          "text_sha256": "52ebe72edeba3b1e53ac1965d0f3b27cfc7d4858717057759f9ba316934dba19",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 121699,
+      "logical_id": "commercial-hotel-121699-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-36-v1",
+      "row_canonical_sha256": "9e98da1f01f883b259176115238bbbca3ff6aca91a46faece34c7533279675b2",
+      "manifest_sha256": "44af4178ab3809ad21728c07896dcb9f3e09f9c7845cb8d18322f3207267d891",
+      "native_read_sha256": "ddf5f1652ab908409f03e21f37598c9ad3e9b391bfea827a8fba9fbe355d18f5",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-36-v1/max-commercial-hotel-121699-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-36-v1/telegram-commercial-hotel-121699-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2110,
+          "version_id": 7639,
+          "message_id": "mid.ffffb6caf0606fed01a1eaba65cb07e1",
+          "post_url": "https://max.ru/channel_anytour/AaHqumXLB-E",
+          "text_sha256": "638ffb398d46f9d94da09f09dcb0eacb8ba4166c0224fc793d202a05b52626d3",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2100,
+          "version_id": 7629,
+          "message_id": "975",
+          "post_url": "https://t.me/any_toour/975",
+          "text_sha256": "638ffb398d46f9d94da09f09dcb0eacb8ba4166c0224fc793d202a05b52626d3",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 140013,
+      "logical_id": "commercial-hotel-140013-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-36-v1",
+      "row_canonical_sha256": "d1b0b9e6c36486c1f6f931befee40cf8fdee69b4260d2de8583a0702846e746a",
+      "manifest_sha256": "44af4178ab3809ad21728c07896dcb9f3e09f9c7845cb8d18322f3207267d891",
+      "native_read_sha256": "ddf5f1652ab908409f03e21f37598c9ad3e9b391bfea827a8fba9fbe355d18f5",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-36-v1/max-commercial-hotel-140013-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-36-v1/telegram-commercial-hotel-140013-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2111,
+          "version_id": 7640,
+          "message_id": "mid.ffffb6caf0606fed01a1eaba6ebc0816",
+          "post_url": "https://max.ru/channel_anytour/AaHqum68CBY",
+          "text_sha256": "8caa4ac43309622db42398f2c33e6b9b1fcf9e85f3abc6915fc9ea9b35c3ddcd",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2101,
+          "version_id": 7630,
+          "message_id": "976",
+          "post_url": "https://t.me/any_toour/976",
+          "text_sha256": "8caa4ac43309622db42398f2c33e6b9b1fcf9e85f3abc6915fc9ea9b35c3ddcd",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 143372,
+      "logical_id": "commercial-hotel-143372-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-36-v1",
+      "row_canonical_sha256": "48daa687a88578c2def31a289c965469649826b3d4a148ab0169c077bc81ed9b",
+      "manifest_sha256": "44af4178ab3809ad21728c07896dcb9f3e09f9c7845cb8d18322f3207267d891",
+      "native_read_sha256": "ddf5f1652ab908409f03e21f37598c9ad3e9b391bfea827a8fba9fbe355d18f5",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-36-v1/max-commercial-hotel-143372-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-36-v1/telegram-commercial-hotel-143372-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2112,
+          "version_id": 7641,
+          "message_id": "mid.ffffb6caf0606fed01a1eaba785c6673",
+          "post_url": "https://max.ru/channel_anytour/AaHqunhcZnM",
+          "text_sha256": "3cb64b2678acdf6eb3cf3b8089efa2a31c0cf9d4b73cefd31fc5ae3d3bb90c34",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2102,
+          "version_id": 7631,
+          "message_id": "977",
+          "post_url": "https://t.me/any_toour/977",
+          "text_sha256": "3cb64b2678acdf6eb3cf3b8089efa2a31c0cf9d4b73cefd31fc5ae3d3bb90c34",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 15852,
+      "logical_id": "commercial-hotel-15852-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-36-v1",
+      "row_canonical_sha256": "b03579f39761e1b0988c6d3017d59399e8e224ef179fc7233440f90177be5da5",
+      "manifest_sha256": "44af4178ab3809ad21728c07896dcb9f3e09f9c7845cb8d18322f3207267d891",
+      "native_read_sha256": "ddf5f1652ab908409f03e21f37598c9ad3e9b391bfea827a8fba9fbe355d18f5",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-36-v1/max-commercial-hotel-15852-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-36-v1/telegram-commercial-hotel-15852-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2113,
+          "version_id": 7642,
+          "message_id": "mid.ffffb6caf0606fed01a1eaba81857486",
+          "post_url": "https://max.ru/channel_anytour/AaHquoGFdIY",
+          "text_sha256": "b011ddfd8be8100a7910e4fea559cf61bd6faa71cadfa983796c66119f514b87",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2103,
+          "version_id": 7632,
+          "message_id": "978",
+          "post_url": "https://t.me/any_toour/978",
+          "text_sha256": "b011ddfd8be8100a7910e4fea559cf61bd6faa71cadfa983796c66119f514b87",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 2986,
+      "logical_id": "commercial-hotel-2986-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-36-v1",
+      "row_canonical_sha256": "3394f1a4b7238eac55d19bea75eceb997c7ba614318cc057baf5d687ba8c62c8",
+      "manifest_sha256": "44af4178ab3809ad21728c07896dcb9f3e09f9c7845cb8d18322f3207267d891",
+      "native_read_sha256": "ddf5f1652ab908409f03e21f37598c9ad3e9b391bfea827a8fba9fbe355d18f5",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-36-v1/max-commercial-hotel-2986-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-36-v1/telegram-commercial-hotel-2986-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2114,
+          "version_id": 7643,
+          "message_id": "mid.ffffb6caf0606fed01a1eaba8adc4081",
+          "post_url": "https://max.ru/channel_anytour/AaHquorcQIE",
+          "text_sha256": "e69fdf2d23f88c082eae84ca931c9ad5d26543aae90904018af922f0ea731d75",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2104,
+          "version_id": 7633,
+          "message_id": "979",
+          "post_url": "https://t.me/any_toour/979",
+          "text_sha256": "e69fdf2d23f88c082eae84ca931c9ad5d26543aae90904018af922f0ea731d75",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 4203,
+      "logical_id": "commercial-hotel-4203-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-36-v1",
+      "row_canonical_sha256": "ffe7f5b772cea557940abae9323a73eb84a724e16f69368f7cbe7b4955ffab44",
+      "manifest_sha256": "44af4178ab3809ad21728c07896dcb9f3e09f9c7845cb8d18322f3207267d891",
+      "native_read_sha256": "ddf5f1652ab908409f03e21f37598c9ad3e9b391bfea827a8fba9fbe355d18f5",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-36-v1/max-commercial-hotel-4203-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-36-v1/telegram-commercial-hotel-4203-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2115,
+          "version_id": 7644,
+          "message_id": "mid.ffffb6caf0606fed01a1eaba94107dc9",
+          "post_url": "https://max.ru/channel_anytour/AaHqupQQfck",
+          "text_sha256": "b49e19ab7321640cc81c05b3077ee4f1d9e5301a83b701b202a7072c9449271d",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2105,
+          "version_id": 7634,
+          "message_id": "980",
+          "post_url": "https://t.me/any_toour/980",
+          "text_sha256": "b49e19ab7321640cc81c05b3077ee4f1d9e5301a83b701b202a7072c9449271d",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 4403,
+      "logical_id": "commercial-hotel-4403-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-36-v1",
+      "row_canonical_sha256": "329332b62cf6d1402bf0b7c3c69e3f629f67b1171a9f211b95d9f39e4573a266",
+      "manifest_sha256": "44af4178ab3809ad21728c07896dcb9f3e09f9c7845cb8d18322f3207267d891",
+      "native_read_sha256": "ddf5f1652ab908409f03e21f37598c9ad3e9b391bfea827a8fba9fbe355d18f5",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-36-v1/max-commercial-hotel-4403-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-36-v1/telegram-commercial-hotel-4403-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2116,
+          "version_id": 7645,
+          "message_id": "mid.ffffb6caf0606fed01a1eaba9dc366f0",
+          "post_url": "https://max.ru/channel_anytour/AaHqup3DZvA",
+          "text_sha256": "367d242988dd764158c27ab2dedb89338394330318496cd9e3751e9bc627f1a3",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2106,
+          "version_id": 7635,
+          "message_id": "981",
+          "post_url": "https://t.me/any_toour/981",
+          "text_sha256": "367d242988dd764158c27ab2dedb89338394330318496cd9e3751e9bc627f1a3",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 8105,
+      "logical_id": "commercial-hotel-8105-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-37-v1",
+      "row_canonical_sha256": "fe05cb249888d05d3af465cd22bb5182120347abc41bec2be786d4ddfea67887",
+      "manifest_sha256": "04bd9b95beeddde0ed98db37c0a3c4ebdff56eb09483a07d5584b94f9b8f910e",
+      "native_read_sha256": "9a522f990fb643533e7af093e1260cb98b7be7e38051e4ae55db6e15d0c4db87",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-37-v1/max-commercial-hotel-8105-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-37-v1/telegram-commercial-hotel-8105-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2127,
+          "version_id": 7656,
+          "message_id": "mid.ffffb6caf0606fed01a1eabb793e17a7",
+          "post_url": "https://max.ru/channel_anytour/AaHqu3k-F6c",
+          "text_sha256": "600dc46deca69b9f5c7e6731b762434df7372134f96e3c520d775c1c5ffb682a",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2117,
+          "version_id": 7646,
+          "message_id": "982",
+          "post_url": "https://t.me/any_toour/982",
+          "text_sha256": "600dc46deca69b9f5c7e6731b762434df7372134f96e3c520d775c1c5ffb682a",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 8169,
+      "logical_id": "commercial-hotel-8169-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-37-v1",
+      "row_canonical_sha256": "65cb6087d9012697068a48b4c3c18f910ca0e21ea8438d134e7cfb11258e3174",
+      "manifest_sha256": "04bd9b95beeddde0ed98db37c0a3c4ebdff56eb09483a07d5584b94f9b8f910e",
+      "native_read_sha256": "9a522f990fb643533e7af093e1260cb98b7be7e38051e4ae55db6e15d0c4db87",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-37-v1/max-commercial-hotel-8169-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-37-v1/telegram-commercial-hotel-8169-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2128,
+          "version_id": 7657,
+          "message_id": "mid.ffffb6caf0606fed01a1eabb829e213f",
+          "post_url": "https://max.ru/channel_anytour/AaHqu4KeIT8",
+          "text_sha256": "f0539c8f5cfdb2a28cf5506e9b9a0795fc0810a0ed596dec826ec81a7d46987c",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2118,
+          "version_id": 7647,
+          "message_id": "983",
+          "post_url": "https://t.me/any_toour/983",
+          "text_sha256": "f0539c8f5cfdb2a28cf5506e9b9a0795fc0810a0ed596dec826ec81a7d46987c",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 15857,
+      "logical_id": "commercial-hotel-15857-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-37-v1",
+      "row_canonical_sha256": "b15a6f19f54a65507c6def1ebd721104fdf4c8735114d70401ded4939d94df9d",
+      "manifest_sha256": "04bd9b95beeddde0ed98db37c0a3c4ebdff56eb09483a07d5584b94f9b8f910e",
+      "native_read_sha256": "9a522f990fb643533e7af093e1260cb98b7be7e38051e4ae55db6e15d0c4db87",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-37-v1/max-commercial-hotel-15857-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-37-v1/telegram-commercial-hotel-15857-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2129,
+          "version_id": 7658,
+          "message_id": "mid.ffffb6caf0606fed01a1eabb8bfd113a",
+          "post_url": "https://max.ru/channel_anytour/AaHqu4v9ETo",
+          "text_sha256": "5d8726ab5ccf608b19979d1f124334aaba6c0489da15c6f99bc875037a127b07",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2119,
+          "version_id": 7648,
+          "message_id": "984",
+          "post_url": "https://t.me/any_toour/984",
+          "text_sha256": "5d8726ab5ccf608b19979d1f124334aaba6c0489da15c6f99bc875037a127b07",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 23264,
+      "logical_id": "commercial-hotel-23264-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-37-v1",
+      "row_canonical_sha256": "da1d636a434c1fd525812455a8e7cec8fca351c2aa7175b3dbe9c333f4c5658d",
+      "manifest_sha256": "04bd9b95beeddde0ed98db37c0a3c4ebdff56eb09483a07d5584b94f9b8f910e",
+      "native_read_sha256": "9a522f990fb643533e7af093e1260cb98b7be7e38051e4ae55db6e15d0c4db87",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-37-v1/max-commercial-hotel-23264-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-37-v1/telegram-commercial-hotel-23264-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2130,
+          "version_id": 7659,
+          "message_id": "mid.ffffb6caf0606fed01a1eabb95b40d5f",
+          "post_url": "https://max.ru/channel_anytour/AaHqu5W0DV8",
+          "text_sha256": "019ba96966ef4dc0c162aee62c20b8dcd7b0fd814f18ece8c0ae734c58739b4a",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2120,
+          "version_id": 7649,
+          "message_id": "985",
+          "post_url": "https://t.me/any_toour/985",
+          "text_sha256": "019ba96966ef4dc0c162aee62c20b8dcd7b0fd814f18ece8c0ae734c58739b4a",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 23738,
+      "logical_id": "commercial-hotel-23738-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-37-v1",
+      "row_canonical_sha256": "dfd858325781bcb56c6534cc2eff5d3445c377750d9b448530f3875aa92f3c37",
+      "manifest_sha256": "04bd9b95beeddde0ed98db37c0a3c4ebdff56eb09483a07d5584b94f9b8f910e",
+      "native_read_sha256": "9a522f990fb643533e7af093e1260cb98b7be7e38051e4ae55db6e15d0c4db87",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-37-v1/max-commercial-hotel-23738-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-37-v1/telegram-commercial-hotel-23738-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2131,
+          "version_id": 7660,
+          "message_id": "mid.ffffb6caf0606fed01a1eabb9f3b63b2",
+          "post_url": "https://max.ru/channel_anytour/AaHqu587Y7I",
+          "text_sha256": "a866701f00848e2eb068d628ff47c98bd2d716497fbe3790d701025e873a1fbd",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2121,
+          "version_id": 7650,
+          "message_id": "986",
+          "post_url": "https://t.me/any_toour/986",
+          "text_sha256": "a866701f00848e2eb068d628ff47c98bd2d716497fbe3790d701025e873a1fbd",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 23755,
+      "logical_id": "commercial-hotel-23755-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-37-v1",
+      "row_canonical_sha256": "0bfd01ae1d42c09fedf4cc360f53f5ab6d8f5861a5aaec91f5094cb780227402",
+      "manifest_sha256": "04bd9b95beeddde0ed98db37c0a3c4ebdff56eb09483a07d5584b94f9b8f910e",
+      "native_read_sha256": "9a522f990fb643533e7af093e1260cb98b7be7e38051e4ae55db6e15d0c4db87",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-37-v1/max-commercial-hotel-23755-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-37-v1/telegram-commercial-hotel-23755-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2132,
+          "version_id": 7661,
+          "message_id": "mid.ffffb6caf0606fed01a1eabbb6117006",
+          "post_url": "https://max.ru/channel_anytour/AaHqu7YRcAY",
+          "text_sha256": "a27c88650afad0c6283ce2b41fca38b5139ec8c541eb32a45ccc5b2cc307dedb",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2122,
+          "version_id": 7651,
+          "message_id": "987",
+          "post_url": "https://t.me/any_toour/987",
+          "text_sha256": "a27c88650afad0c6283ce2b41fca38b5139ec8c541eb32a45ccc5b2cc307dedb",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 70050,
+      "logical_id": "commercial-hotel-70050-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-37-v1",
+      "row_canonical_sha256": "8611e9d10886fcf3c505d220746fac41de98628b7ba09f5674cbeb2af1a12920",
+      "manifest_sha256": "04bd9b95beeddde0ed98db37c0a3c4ebdff56eb09483a07d5584b94f9b8f910e",
+      "native_read_sha256": "9a522f990fb643533e7af093e1260cb98b7be7e38051e4ae55db6e15d0c4db87",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-37-v1/max-commercial-hotel-70050-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-37-v1/telegram-commercial-hotel-70050-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2133,
+          "version_id": 7662,
+          "message_id": "mid.ffffb6caf0606fed01a1eabbc0007481",
+          "post_url": "https://max.ru/channel_anytour/AaHqu8AAdIE",
+          "text_sha256": "828c9f32706389f7aa11fba1795d6936b7242016a87039c86969fc6e2f1981d8",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2123,
+          "version_id": 7652,
+          "message_id": "988",
+          "post_url": "https://t.me/any_toour/988",
+          "text_sha256": "828c9f32706389f7aa11fba1795d6936b7242016a87039c86969fc6e2f1981d8",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 4235,
+      "logical_id": "commercial-hotel-4235-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-37-v1",
+      "row_canonical_sha256": "5ba6530bc52d0d34f7ef84d2f64754ac498ec773d2145a603a85b7bc333c9709",
+      "manifest_sha256": "04bd9b95beeddde0ed98db37c0a3c4ebdff56eb09483a07d5584b94f9b8f910e",
+      "native_read_sha256": "9a522f990fb643533e7af093e1260cb98b7be7e38051e4ae55db6e15d0c4db87",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-37-v1/max-commercial-hotel-4235-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-37-v1/telegram-commercial-hotel-4235-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2134,
+          "version_id": 7663,
+          "message_id": "mid.ffffb6caf0606fed01a1eabbc9995186",
+          "post_url": "https://max.ru/channel_anytour/AaHqu8mZUYY",
+          "text_sha256": "660516a2d15a54dbd6aac6f430470b0f76e458b6804e26e8d3eff2942229e3a4",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2124,
+          "version_id": 7653,
+          "message_id": "989",
+          "post_url": "https://t.me/any_toour/989",
+          "text_sha256": "660516a2d15a54dbd6aac6f430470b0f76e458b6804e26e8d3eff2942229e3a4",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 8170,
+      "logical_id": "commercial-hotel-8170-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-37-v1",
+      "row_canonical_sha256": "4ee45f7bc4a6b814e8c7f68c48659037c3e019a1fb4a6b2510dca9db914104d1",
+      "manifest_sha256": "04bd9b95beeddde0ed98db37c0a3c4ebdff56eb09483a07d5584b94f9b8f910e",
+      "native_read_sha256": "9a522f990fb643533e7af093e1260cb98b7be7e38051e4ae55db6e15d0c4db87",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-37-v1/max-commercial-hotel-8170-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-37-v1/telegram-commercial-hotel-8170-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2135,
+          "version_id": 7664,
+          "message_id": "mid.ffffb6caf0606fed01a1eabbd3597a95",
+          "post_url": "https://max.ru/channel_anytour/AaHqu9NZepU",
+          "text_sha256": "71afc96cee0c04e0af3842fb0ebb02f4b31229bf70fee5d7c6a15958af92f731",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2125,
+          "version_id": 7654,
+          "message_id": "990",
+          "post_url": "https://t.me/any_toour/990",
+          "text_sha256": "71afc96cee0c04e0af3842fb0ebb02f4b31229bf70fee5d7c6a15958af92f731",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 22777,
+      "logical_id": "commercial-hotel-22777-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-37-v1",
+      "row_canonical_sha256": "815844858d5f236e9e3dafe1707685e8b504460423e2d5440a6116ed9e2897b6",
+      "manifest_sha256": "04bd9b95beeddde0ed98db37c0a3c4ebdff56eb09483a07d5584b94f9b8f910e",
+      "native_read_sha256": "9a522f990fb643533e7af093e1260cb98b7be7e38051e4ae55db6e15d0c4db87",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-37-v1/max-commercial-hotel-22777-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-37-v1/telegram-commercial-hotel-22777-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2136,
+          "version_id": 7665,
+          "message_id": "mid.ffffb6caf0606fed01a1eabbdda00e08",
+          "post_url": "https://max.ru/channel_anytour/AaHqu92gDgg",
+          "text_sha256": "fa9144dfabd36585fe9551ba7b5a961dccbde38aa08bb63e832e22b5fa43e479",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2126,
+          "version_id": 7655,
+          "message_id": "991",
+          "post_url": "https://t.me/any_toour/991",
+          "text_sha256": "fa9144dfabd36585fe9551ba7b5a961dccbde38aa08bb63e832e22b5fa43e479",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 22845,
+      "logical_id": "commercial-hotel-22845-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-38-v1",
+      "row_canonical_sha256": "cfc654a72f001a6c040858b0fd6de15e2e7cbd34b4eaad606026ad56eaed5d1c",
+      "manifest_sha256": "c1fccfeb2a50e304479f3a7a5cdcb8a83bf2406a83dc7a38b61fc7b35103bb2a",
+      "native_read_sha256": "e2658b905476f0711c9e6ef4046a46fa7250ba1230e0e36b643735412b6eb584",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-38-v1/max-commercial-hotel-22845-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-38-v1/telegram-commercial-hotel-22845-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2147,
+          "version_id": 7676,
+          "message_id": "mid.ffffb6caf0606fed01a1eabcbfb74eed",
+          "post_url": "https://max.ru/channel_anytour/AaHqvL-3Tu0",
+          "text_sha256": "889e5db627985a38783eb4c99b902f4b64f085428b73652b8adc7656b259f0ac",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2137,
+          "version_id": 7666,
+          "message_id": "992",
+          "post_url": "https://t.me/any_toour/992",
+          "text_sha256": "889e5db627985a38783eb4c99b902f4b64f085428b73652b8adc7656b259f0ac",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 8019,
+      "logical_id": "commercial-hotel-8019-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-38-v1",
+      "row_canonical_sha256": "7b206fdb7c15d01d4f235394a9a9c3f732f4d0ebbd0f26988f47481d4cfd6d54",
+      "manifest_sha256": "c1fccfeb2a50e304479f3a7a5cdcb8a83bf2406a83dc7a38b61fc7b35103bb2a",
+      "native_read_sha256": "e2658b905476f0711c9e6ef4046a46fa7250ba1230e0e36b643735412b6eb584",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-38-v1/max-commercial-hotel-8019-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-38-v1/telegram-commercial-hotel-8019-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2148,
+          "version_id": 7677,
+          "message_id": "mid.ffffb6caf0606fed01a1eabcc9724df9",
+          "post_url": "https://max.ru/channel_anytour/AaHqvMlyTfk",
+          "text_sha256": "3eeacd3235869da4d24dc4af795b0e87d3293e912501a5127367fc56cdac2a75",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2138,
+          "version_id": 7667,
+          "message_id": "993",
+          "post_url": "https://t.me/any_toour/993",
+          "text_sha256": "3eeacd3235869da4d24dc4af795b0e87d3293e912501a5127367fc56cdac2a75",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 13935,
+      "logical_id": "commercial-hotel-13935-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-38-v1",
+      "row_canonical_sha256": "13141ef2a8343eedddad9b2e8960370811a06e799b0a9f049e9b0e300fff2bfc",
+      "manifest_sha256": "c1fccfeb2a50e304479f3a7a5cdcb8a83bf2406a83dc7a38b61fc7b35103bb2a",
+      "native_read_sha256": "e2658b905476f0711c9e6ef4046a46fa7250ba1230e0e36b643735412b6eb584",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-38-v1/max-commercial-hotel-13935-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-38-v1/telegram-commercial-hotel-13935-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2149,
+          "version_id": 7678,
+          "message_id": "mid.ffffb6caf0606fed01a1eabcd327604a",
+          "post_url": "https://max.ru/channel_anytour/AaHqvNMnYEo",
+          "text_sha256": "0b09c7dd753a629461e97b99e986fa0832cb64444a870c0bf3d17dcaaecb4f46",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2139,
+          "version_id": 7668,
+          "message_id": "994",
+          "post_url": "https://t.me/any_toour/994",
+          "text_sha256": "0b09c7dd753a629461e97b99e986fa0832cb64444a870c0bf3d17dcaaecb4f46",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 47185,
+      "logical_id": "commercial-hotel-47185-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-38-v1",
+      "row_canonical_sha256": "eda0cd5298d558b47b7df57dc110faa2497969e10fffca5a07e86e5a66f3575c",
+      "manifest_sha256": "c1fccfeb2a50e304479f3a7a5cdcb8a83bf2406a83dc7a38b61fc7b35103bb2a",
+      "native_read_sha256": "e2658b905476f0711c9e6ef4046a46fa7250ba1230e0e36b643735412b6eb584",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-38-v1/max-commercial-hotel-47185-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-38-v1/telegram-commercial-hotel-47185-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2150,
+          "version_id": 7679,
+          "message_id": "mid.ffffb6caf0606fed01a1eabcdcf451b1",
+          "post_url": "https://max.ru/channel_anytour/AaHqvNz0UbE",
+          "text_sha256": "d60ca31c0b7a9f54a2bd4e65af57fb5a338b5a09036e3f9f47cf81bd5a4e8d1f",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2140,
+          "version_id": 7669,
+          "message_id": "995",
+          "post_url": "https://t.me/any_toour/995",
+          "text_sha256": "d60ca31c0b7a9f54a2bd4e65af57fb5a338b5a09036e3f9f47cf81bd5a4e8d1f",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 49176,
+      "logical_id": "commercial-hotel-49176-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-38-v1",
+      "row_canonical_sha256": "65835352e28d828e6dd4090dc370075f4ceb5032c61538923265bb970a7c10ba",
+      "manifest_sha256": "c1fccfeb2a50e304479f3a7a5cdcb8a83bf2406a83dc7a38b61fc7b35103bb2a",
+      "native_read_sha256": "e2658b905476f0711c9e6ef4046a46fa7250ba1230e0e36b643735412b6eb584",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-38-v1/max-commercial-hotel-49176-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-38-v1/telegram-commercial-hotel-49176-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2151,
+          "version_id": 7680,
+          "message_id": "mid.ffffb6caf0606fed01a1eabce6d343f1",
+          "post_url": "https://max.ru/channel_anytour/AaHqvObTQ_E",
+          "text_sha256": "e9c2463e26dc3800bfc299bcce766955b432b3109ca0d71e554ee56cbc4a0977",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2141,
+          "version_id": 7670,
+          "message_id": "996",
+          "post_url": "https://t.me/any_toour/996",
+          "text_sha256": "e9c2463e26dc3800bfc299bcce766955b432b3109ca0d71e554ee56cbc4a0977",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 49287,
+      "logical_id": "commercial-hotel-49287-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-38-v1",
+      "row_canonical_sha256": "3fda1466d9961ece141c8d4e88443ac731d22d6ba69d0450beb073a2eec85f65",
+      "manifest_sha256": "c1fccfeb2a50e304479f3a7a5cdcb8a83bf2406a83dc7a38b61fc7b35103bb2a",
+      "native_read_sha256": "e2658b905476f0711c9e6ef4046a46fa7250ba1230e0e36b643735412b6eb584",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-38-v1/max-commercial-hotel-49287-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-38-v1/telegram-commercial-hotel-49287-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2152,
+          "version_id": 7681,
+          "message_id": "mid.ffffb6caf0606fed01a1eabcf0741079",
+          "post_url": "https://max.ru/channel_anytour/AaHqvPB0EHk",
+          "text_sha256": "60e4149dd6520bd6e00fe9b865c1fd93626aaadc4c1489458939916f10eef8f2",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2142,
+          "version_id": 7671,
+          "message_id": "997",
+          "post_url": "https://t.me/any_toour/997",
+          "text_sha256": "60e4149dd6520bd6e00fe9b865c1fd93626aaadc4c1489458939916f10eef8f2",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 55570,
+      "logical_id": "commercial-hotel-55570-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-38-v1",
+      "row_canonical_sha256": "34f2d5ecc5c11381ce76615a76f7d87dc72ced93e9a3a06ce0b4dcd0f0afa41d",
+      "manifest_sha256": "c1fccfeb2a50e304479f3a7a5cdcb8a83bf2406a83dc7a38b61fc7b35103bb2a",
+      "native_read_sha256": "e2658b905476f0711c9e6ef4046a46fa7250ba1230e0e36b643735412b6eb584",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-38-v1/max-commercial-hotel-55570-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-38-v1/telegram-commercial-hotel-55570-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2153,
+          "version_id": 7682,
+          "message_id": "mid.ffffb6caf0606fed01a1eabcfa6861af",
+          "post_url": "https://max.ru/channel_anytour/AaHqvPpoYa8",
+          "text_sha256": "c5d64c1ae81f1131ec235ff24d44db2b2cb39b283bdb2004e284368e4ac7a28a",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2143,
+          "version_id": 7672,
+          "message_id": "998",
+          "post_url": "https://t.me/any_toour/998",
+          "text_sha256": "c5d64c1ae81f1131ec235ff24d44db2b2cb39b283bdb2004e284368e4ac7a28a",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 53706,
+      "logical_id": "commercial-hotel-53706-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-38-v1",
+      "row_canonical_sha256": "545734345f428691aac43997a5edba8f931e9d4a6d138f4380e39097874122ab",
+      "manifest_sha256": "c1fccfeb2a50e304479f3a7a5cdcb8a83bf2406a83dc7a38b61fc7b35103bb2a",
+      "native_read_sha256": "e2658b905476f0711c9e6ef4046a46fa7250ba1230e0e36b643735412b6eb584",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-38-v1/max-commercial-hotel-53706-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-38-v1/telegram-commercial-hotel-53706-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2154,
+          "version_id": 7683,
+          "message_id": "mid.ffffb6caf0606fed01a1eabd03d25d1c",
+          "post_url": "https://max.ru/channel_anytour/AaHqvQPSXRw",
+          "text_sha256": "cc485a7bacc6d2d09357e8dce0127ab6bd4d970ebfde93ac2aec7d32a789d7a2",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2144,
+          "version_id": 7673,
+          "message_id": "999",
+          "post_url": "https://t.me/any_toour/999",
+          "text_sha256": "cc485a7bacc6d2d09357e8dce0127ab6bd4d970ebfde93ac2aec7d32a789d7a2",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 23756,
+      "logical_id": "commercial-hotel-23756-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-38-v1",
+      "row_canonical_sha256": "688b601021210e04e022391457b1f10405f19c781e69d45ff4e4ff330816a94d",
+      "manifest_sha256": "c1fccfeb2a50e304479f3a7a5cdcb8a83bf2406a83dc7a38b61fc7b35103bb2a",
+      "native_read_sha256": "e2658b905476f0711c9e6ef4046a46fa7250ba1230e0e36b643735412b6eb584",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-38-v1/max-commercial-hotel-23756-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-38-v1/telegram-commercial-hotel-23756-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2155,
+          "version_id": 7684,
+          "message_id": "mid.ffffb6caf0606fed01a1eabd0d6c707c",
+          "post_url": "https://max.ru/channel_anytour/AaHqvQ1scHw",
+          "text_sha256": "b53485e2f37923670b3c864fa6d96bdc9e9a57a2579228ca7cec59ba2252c13d",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2145,
+          "version_id": 7674,
+          "message_id": "1000",
+          "post_url": "https://t.me/any_toour/1000",
+          "text_sha256": "b53485e2f37923670b3c864fa6d96bdc9e9a57a2579228ca7cec59ba2252c13d",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 40895,
+      "logical_id": "commercial-hotel-40895-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-38-v1",
+      "row_canonical_sha256": "e0e1485d65475ed6cae50feb9b89ba8f7bc0b069d522614f1de4b2f80a2a795b",
+      "manifest_sha256": "c1fccfeb2a50e304479f3a7a5cdcb8a83bf2406a83dc7a38b61fc7b35103bb2a",
+      "native_read_sha256": "e2658b905476f0711c9e6ef4046a46fa7250ba1230e0e36b643735412b6eb584",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-38-v1/max-commercial-hotel-40895-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-38-v1/telegram-commercial-hotel-40895-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2156,
+          "version_id": 7685,
+          "message_id": "mid.ffffb6caf0606fed01a1eabd17231717",
+          "post_url": "https://max.ru/channel_anytour/AaHqvRcjFxc",
+          "text_sha256": "de3b2c0fd2cc652f5fb85db8f713f1d009f7c1997f22f0376c3ed82388080b29",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2146,
+          "version_id": 7675,
+          "message_id": "1001",
+          "post_url": "https://t.me/any_toour/1001",
+          "text_sha256": "de3b2c0fd2cc652f5fb85db8f713f1d009f7c1997f22f0376c3ed82388080b29",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 43494,
+      "logical_id": "commercial-hotel-43494-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-39-v1",
+      "row_canonical_sha256": "9cf973709ba0c6ba772a5371853b8d13ca5808664c5bbebeb4b2a69bdc1b2710",
+      "manifest_sha256": "8bcc70951969839bc529c0f979de382dc5c7d1bf35694cfd12a6520af192b6d2",
+      "native_read_sha256": "bef2ee6557bf9fac004ffde9823d284720745611d2d4dd077d83f65f9f061466",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-39-v1/max-commercial-hotel-43494-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-39-v1/telegram-commercial-hotel-43494-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2167,
+          "version_id": 7696,
+          "message_id": "mid.ffffb6caf0606fed01a1eabdf7ab14e2",
+          "post_url": "https://max.ru/channel_anytour/AaHqvferFOI",
+          "text_sha256": "3c75f1452ca6b0b93cbe96b31c4a3ecd06a4f0e2bc56898da2a4a84232ab116b",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2157,
+          "version_id": 7686,
+          "message_id": "1002",
+          "post_url": "https://t.me/any_toour/1002",
+          "text_sha256": "3c75f1452ca6b0b93cbe96b31c4a3ecd06a4f0e2bc56898da2a4a84232ab116b",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 52090,
+      "logical_id": "commercial-hotel-52090-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-39-v1",
+      "row_canonical_sha256": "2bff99346473840bdaa845603ecd858358d2ae2cc94c9ac4e59766f7b3d638bf",
+      "manifest_sha256": "8bcc70951969839bc529c0f979de382dc5c7d1bf35694cfd12a6520af192b6d2",
+      "native_read_sha256": "bef2ee6557bf9fac004ffde9823d284720745611d2d4dd077d83f65f9f061466",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-39-v1/max-commercial-hotel-52090-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-39-v1/telegram-commercial-hotel-52090-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2168,
+          "version_id": 7697,
+          "message_id": "mid.ffffb6caf0606fed01a1eabe02b96359",
+          "post_url": "https://max.ru/channel_anytour/AaHqvgK5Y1k",
+          "text_sha256": "49974015d52b438071d48ccc4b22ffbf527f0a6b8611dccba5b552d514faf9cf",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2158,
+          "version_id": 7687,
+          "message_id": "1003",
+          "post_url": "https://t.me/any_toour/1003",
+          "text_sha256": "49974015d52b438071d48ccc4b22ffbf527f0a6b8611dccba5b552d514faf9cf",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 66666,
+      "logical_id": "commercial-hotel-66666-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-39-v1",
+      "row_canonical_sha256": "f42e620907abb20485db9bc74a8ed741e885134c7a1dc61759c20764b49bc0e5",
+      "manifest_sha256": "8bcc70951969839bc529c0f979de382dc5c7d1bf35694cfd12a6520af192b6d2",
+      "native_read_sha256": "bef2ee6557bf9fac004ffde9823d284720745611d2d4dd077d83f65f9f061466",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-39-v1/max-commercial-hotel-66666-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-39-v1/telegram-commercial-hotel-66666-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2169,
+          "version_id": 7698,
+          "message_id": "mid.ffffb6caf0606fed01a1eabe0c08175e",
+          "post_url": "https://max.ru/channel_anytour/AaHqvgwIF14",
+          "text_sha256": "68008abbaefbc1d0bedfadb0b4058829870b31bf559550c75a1349c14d254f3d",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2159,
+          "version_id": 7688,
+          "message_id": "1004",
+          "post_url": "https://t.me/any_toour/1004",
+          "text_sha256": "68008abbaefbc1d0bedfadb0b4058829870b31bf559550c75a1349c14d254f3d",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 68971,
+      "logical_id": "commercial-hotel-68971-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-39-v1",
+      "row_canonical_sha256": "5b0c66a997a3c52ce9b7e8532b7be4107450b2c09c16371bc37312a692701d8b",
+      "manifest_sha256": "8bcc70951969839bc529c0f979de382dc5c7d1bf35694cfd12a6520af192b6d2",
+      "native_read_sha256": "bef2ee6557bf9fac004ffde9823d284720745611d2d4dd077d83f65f9f061466",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-39-v1/max-commercial-hotel-68971-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-39-v1/telegram-commercial-hotel-68971-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2170,
+          "version_id": 7699,
+          "message_id": "mid.ffffb6caf0606fed01a1eabe153232b3",
+          "post_url": "https://max.ru/channel_anytour/AaHqvhUyMrM",
+          "text_sha256": "03a223ad1efb931748fb09c79b105e2cbb61fe031dee703ce2fbc60d9bc80fb3",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2160,
+          "version_id": 7689,
+          "message_id": "1005",
+          "post_url": "https://t.me/any_toour/1005",
+          "text_sha256": "03a223ad1efb931748fb09c79b105e2cbb61fe031dee703ce2fbc60d9bc80fb3",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 74114,
+      "logical_id": "commercial-hotel-74114-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-39-v1",
+      "row_canonical_sha256": "de91303f6e94e55de3a35d6928c53e9987bb0fd7b99edfe5cf717b5a16e15fc0",
+      "manifest_sha256": "8bcc70951969839bc529c0f979de382dc5c7d1bf35694cfd12a6520af192b6d2",
+      "native_read_sha256": "bef2ee6557bf9fac004ffde9823d284720745611d2d4dd077d83f65f9f061466",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-39-v1/max-commercial-hotel-74114-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-39-v1/telegram-commercial-hotel-74114-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2171,
+          "version_id": 7700,
+          "message_id": "mid.ffffb6caf0606fed01a1eabe1eac4786",
+          "post_url": "https://max.ru/channel_anytour/AaHqvh6sR4Y",
+          "text_sha256": "93949bd34698b12a9316a00e59a79020eb3b8c26d40164873943a3a50df6fb2f",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2161,
+          "version_id": 7690,
+          "message_id": "1006",
+          "post_url": "https://t.me/any_toour/1006",
+          "text_sha256": "93949bd34698b12a9316a00e59a79020eb3b8c26d40164873943a3a50df6fb2f",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 79323,
+      "logical_id": "commercial-hotel-79323-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-39-v1",
+      "row_canonical_sha256": "ff8f88eeb904f89703b90160f59d43e83bcb1cfd5bb7199cccb18738974d1e79",
+      "manifest_sha256": "8bcc70951969839bc529c0f979de382dc5c7d1bf35694cfd12a6520af192b6d2",
+      "native_read_sha256": "bef2ee6557bf9fac004ffde9823d284720745611d2d4dd077d83f65f9f061466",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-39-v1/max-commercial-hotel-79323-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-39-v1/telegram-commercial-hotel-79323-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2172,
+          "version_id": 7701,
+          "message_id": "mid.ffffb6caf0606fed01a1eabe29f27e09",
+          "post_url": "https://max.ru/channel_anytour/AaHqvinyfgk",
+          "text_sha256": "48dad59ff5f31b6cc9706696e6fc8ab29ef431483dfb5a44156fe3e8402542e4",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2162,
+          "version_id": 7691,
+          "message_id": "1007",
+          "post_url": "https://t.me/any_toour/1007",
+          "text_sha256": "48dad59ff5f31b6cc9706696e6fc8ab29ef431483dfb5a44156fe3e8402542e4",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 79954,
+      "logical_id": "commercial-hotel-79954-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-39-v1",
+      "row_canonical_sha256": "4be882465335d4d08e89da0edf33e694de6d15f1945ff1b177f44ccc65b764eb",
+      "manifest_sha256": "8bcc70951969839bc529c0f979de382dc5c7d1bf35694cfd12a6520af192b6d2",
+      "native_read_sha256": "bef2ee6557bf9fac004ffde9823d284720745611d2d4dd077d83f65f9f061466",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-39-v1/max-commercial-hotel-79954-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-39-v1/telegram-commercial-hotel-79954-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2173,
+          "version_id": 7702,
+          "message_id": "mid.ffffb6caf0606fed01a1eabe336f737d",
+          "post_url": "https://max.ru/channel_anytour/AaHqvjNvc30",
+          "text_sha256": "b44c9375fa94f3a63b49ac95a5e675c417b1088f31a117635c7c84ad463e6e90",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2163,
+          "version_id": 7692,
+          "message_id": "1008",
+          "post_url": "https://t.me/any_toour/1008",
+          "text_sha256": "b44c9375fa94f3a63b49ac95a5e675c417b1088f31a117635c7c84ad463e6e90",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 80233,
+      "logical_id": "commercial-hotel-80233-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-39-v1",
+      "row_canonical_sha256": "b5b434eef9161e8ff13287b58f919719c50c97cea77af3f02ad3d57d397c3e28",
+      "manifest_sha256": "8bcc70951969839bc529c0f979de382dc5c7d1bf35694cfd12a6520af192b6d2",
+      "native_read_sha256": "bef2ee6557bf9fac004ffde9823d284720745611d2d4dd077d83f65f9f061466",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-39-v1/max-commercial-hotel-80233-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-39-v1/telegram-commercial-hotel-80233-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2174,
+          "version_id": 7703,
+          "message_id": "mid.ffffb6caf0606fed01a1eabe3ccc7b3a",
+          "post_url": "https://max.ru/channel_anytour/AaHqvjzMezo",
+          "text_sha256": "336bf733417a449e033b346c4eba3061d4ed5b4cdb7b45b5efdc7d99be24e2ef",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2164,
+          "version_id": 7693,
+          "message_id": "1009",
+          "post_url": "https://t.me/any_toour/1009",
+          "text_sha256": "336bf733417a449e033b346c4eba3061d4ed5b4cdb7b45b5efdc7d99be24e2ef",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 110848,
+      "logical_id": "commercial-hotel-110848-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-39-v1",
+      "row_canonical_sha256": "c106c47a6d4e4c4edbb69352b5879a58b68502dc04a89b6a7c1378dc95a672b8",
+      "manifest_sha256": "8bcc70951969839bc529c0f979de382dc5c7d1bf35694cfd12a6520af192b6d2",
+      "native_read_sha256": "bef2ee6557bf9fac004ffde9823d284720745611d2d4dd077d83f65f9f061466",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-39-v1/max-commercial-hotel-110848-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-39-v1/telegram-commercial-hotel-110848-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2175,
+          "version_id": 7704,
+          "message_id": "mid.ffffb6caf0606fed01a1eabe47471477",
+          "post_url": "https://max.ru/channel_anytour/AaHqvkdHFHc",
+          "text_sha256": "9ae2a795b2200ede5cc708b3e987168e5a79f42eb685ad17d7d747377ba424b5",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2165,
+          "version_id": 7694,
+          "message_id": "1010",
+          "post_url": "https://t.me/any_toour/1010",
+          "text_sha256": "9ae2a795b2200ede5cc708b3e987168e5a79f42eb685ad17d7d747377ba424b5",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 111489,
+      "logical_id": "commercial-hotel-111489-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-39-v1",
+      "row_canonical_sha256": "fb74bfe82696d71bbfab5903265a45dc5b32daf671fc9d86d00c4740869e57db",
+      "manifest_sha256": "8bcc70951969839bc529c0f979de382dc5c7d1bf35694cfd12a6520af192b6d2",
+      "native_read_sha256": "bef2ee6557bf9fac004ffde9823d284720745611d2d4dd077d83f65f9f061466",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-39-v1/max-commercial-hotel-111489-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-39-v1/telegram-commercial-hotel-111489-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2176,
+          "version_id": 7705,
+          "message_id": "mid.ffffb6caf0606fed01a1eabe50c343c0",
+          "post_url": "https://max.ru/channel_anytour/AaHqvlDDQ8A",
+          "text_sha256": "f7dcfdc0b55a28bdab214303c2fe8495082a4ebac7d1a974a7142afef6c945c2",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2166,
+          "version_id": 7695,
+          "message_id": "1011",
+          "post_url": "https://t.me/any_toour/1011",
+          "text_sha256": "f7dcfdc0b55a28bdab214303c2fe8495082a4ebac7d1a974a7142afef6c945c2",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 118713,
+      "logical_id": "commercial-hotel-118713-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-40-v1",
+      "row_canonical_sha256": "d10d9f7cb7de1661a7eeaed7977dc6fda3f17ddcbda74255e26dc9648f3c5382",
+      "manifest_sha256": "fc6aa6afdb97f2acaf729132072f1d696256ee71294b43f5955be34825b36ca1",
+      "native_read_sha256": "99f63b2a786285e8da5b7189d1922ca46788c84888456a3a2eaee64aed181363",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-40-v1/max-commercial-hotel-118713-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-40-v1/telegram-commercial-hotel-118713-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2180,
+          "version_id": 7709,
+          "message_id": "mid.ffffb6caf0606fed01a1eabeaf4c2ae3",
+          "post_url": "https://max.ru/channel_anytour/AaHqvq9MKuM",
+          "text_sha256": "eff887bfd9d648e149f6e40b2ea19474522bf8eb3d59402418e188a68d42e3e9",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2177,
+          "version_id": 7706,
+          "message_id": "1012",
+          "post_url": "https://t.me/any_toour/1012",
+          "text_sha256": "eff887bfd9d648e149f6e40b2ea19474522bf8eb3d59402418e188a68d42e3e9",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 119052,
+      "logical_id": "commercial-hotel-119052-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-40-v1",
+      "row_canonical_sha256": "d86fa8bf0f40aed4a30216c366c64e6e7b8229518b1b8124c19132d60e039cdf",
+      "manifest_sha256": "fc6aa6afdb97f2acaf729132072f1d696256ee71294b43f5955be34825b36ca1",
+      "native_read_sha256": "99f63b2a786285e8da5b7189d1922ca46788c84888456a3a2eaee64aed181363",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-40-v1/max-commercial-hotel-119052-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-40-v1/telegram-commercial-hotel-119052-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2181,
+          "version_id": 7710,
+          "message_id": "mid.ffffb6caf0606fed01a1eabeb8cc210c",
+          "post_url": "https://max.ru/channel_anytour/AaHqvrjMIQw",
+          "text_sha256": "4e5c60fdc908e091b2fbde0e7254b5e546ec658d391f72efdbb44f7e74d0a6de",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2178,
+          "version_id": 7707,
+          "message_id": "1013",
+          "post_url": "https://t.me/any_toour/1013",
+          "text_sha256": "4e5c60fdc908e091b2fbde0e7254b5e546ec658d391f72efdbb44f7e74d0a6de",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 127988,
+      "logical_id": "commercial-hotel-127988-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-40-v1",
+      "row_canonical_sha256": "8328bb3968c38b036841c9fe4e2365309de11c62db6bd40a5e8067f7d4aa3446",
+      "manifest_sha256": "fc6aa6afdb97f2acaf729132072f1d696256ee71294b43f5955be34825b36ca1",
+      "native_read_sha256": "99f63b2a786285e8da5b7189d1922ca46788c84888456a3a2eaee64aed181363",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-40-v1/max-commercial-hotel-127988-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-40-v1/telegram-commercial-hotel-127988-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2182,
+          "version_id": 7711,
+          "message_id": "mid.ffffb6caf0606fed01a1eabec23257fd",
+          "post_url": "https://max.ru/channel_anytour/AaHqvsIyV_0",
+          "text_sha256": "31b6c721d99de3f41e89474dfd390edb2b7539544817da41c10fd05d4dbdb083",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 2179,
+          "version_id": 7708,
+          "message_id": "1014",
+          "post_url": "https://t.me/any_toour/1014",
+          "text_sha256": "31b6c721d99de3f41e89474dfd390edb2b7539544817da41c10fd05d4dbdb083",
+          "reused": false
+        }
+      }
+    },
+    {
+      "tourvisor_hotel_id": 66375,
+      "logical_id": "commercial-hotel-66375-v1",
+      "original_publication_operation": "commercial-hotel-batch-20261117-41-v1",
+      "row_canonical_sha256": "6caab6d166fd87bd49d2d632617fd4775a5d6bf7550c804049824a2e09a115fd",
+      "manifest_sha256": "875b7d4d912c3cc157fd6b5b7dbc22e71f0486b2e8d2edd234b5ab4f3332721d",
+      "native_read_sha256": "1750f2e26223fcd8e214f64fb02028e04f8ef698e419839eb1d414090655049a",
+      "original_approved_paths": {
+        "max": "commercial-hotel-batch-20261117-41-v1/max-commercial-hotel-66375-v1-approved.json",
+        "telegram": "commercial-hotel-batch-20261117-41-v1/telegram-commercial-hotel-66375-v1-approved.json"
+      },
+      "publications": {
+        "max": {
+          "publication_id": 2183,
+          "version_id": 7712,
+          "message_id": "mid.ffffb6caf0606fed01a1eb06618c5e7f",
+          "post_url": "https://max.ru/channel_anytour/AaHrBmGMXn8",
+          "text_sha256": "b2caf990b6bdcdb7ab0dc0e5d7f1951d9d677aba806ad4f0e3b5022431929599",
+          "reused": false
+        },
+        "telegram": {
+          "publication_id": 1947,
+          "version_id": 7476,
+          "message_id": "901",
+          "post_url": "https://t.me/any_toour/901",
+          "text_sha256": "b2caf990b6bdcdb7ab0dc0e5d7f1951d9d677aba806ad4f0e3b5022431929599",
+          "reused": true
+        }
+      }
+    }
+  ]
+}

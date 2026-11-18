@@ -721,6 +721,56 @@ foreach(['monitor'=>$monitorPacing,'ordinary'=>$ordinaryPacing] as $mode=>$pacin
     }
 }
 
+// PR1612 compatibility is monitor-only. Execute the editor's actual pin selection
+// and the driver's exact runtime gate with mocked Git responses, never runtime I/O.
+$pinStart=strpos($editorSource,'$accepted=[');
+$pinEnd=strpos($editorSource,'foreach($accepted as',$pinStart);
+hook_test_check($pinStart!==false&&$pinEnd!==false,'monitor_pin_selection_missing');
+$pinSelection=substr($editorSource,$pinStart,$pinEnd-$pinStart);
+$monitorMode=false;eval($pinSelection);$legacyPins=$accepted;
+$monitorMode=true;eval($pinSelection);$monitorPins=$accepted;
+hook_test_check($legacyPins['services/ChannelPostAutomationService.php']==='f5975ab95de5f45e087eb7a0f768f566c5bca648'
+    &&$legacyPins['services/ChannelPostRegistryService.php']==='a407757b9ac54a9e286900d34385d519d22b8c84','legacy_manual_pin_scope_changed');
+hook_test_check(count($monitorPins)===23
+    &&$monitorPins['services/ChannelPostAutomationService.php']==='c6386e155d42bc83970edc95f35b3ebeb5140533'
+    &&$monitorPins['services/ChannelPostRegistryService.php']==='94fb1988ac8caf90dc5103aa23c58e7aad6ea691','reviewed_pr1612_monitor_pins_missing');
+$bundlePath=tempnam(sys_get_temp_dir(),'monitor-pin-test-');
+try {
+    exec('python3 '.escapeshellarg(__DIR__.'/build-monitor-price-hook.py').' '.escapeshellarg($bundlePath),$bundleOutput,$bundleExit);
+    hook_test_check($bundleExit===0,'monitor_pin_bundle_build_failed');
+    $bundleSource=file_get_contents($bundlePath);
+    hook_test_check(preg_match('/const HOOK_RUNTIME_PINS_B64=("[^"]+");/',$bundleSource,$pinMatch)===1,'monitor_bundle_pins_missing');
+    $bundlePins=json_decode(base64_decode(json_decode($pinMatch[1],true)),true);
+    hook_test_check($bundlePins===$monitorPins,'bundle_editor_pins_differ');
+} finally { unlink($bundlePath); }
+function hook_test_runtime_git(array $args,string $error):string {
+    global $runtimeFixturePins;
+    if($args===['rev-parse','HEAD'])return str_repeat('a',40);
+    if($args[0]==='status'||$args[0]==='merge-base')return '';
+    if($args[0]==='hash-object')return implode("\n",array_values($runtimeFixturePins));
+    throw new RuntimeException('unexpected_git_in_pin_test');
+}
+$runtimeStart=strpos($driver,'function hook_runtime():string {');
+$runtimeEnd=strpos($driver,'/** Aggregate elapsed stage time',$runtimeStart);
+hook_test_check($runtimeStart!==false&&$runtimeEnd!==false,'runtime_pin_gate_missing');
+$runtimeSource=substr($driver,$runtimeStart,$runtimeEnd-$runtimeStart);
+$runtimeSource=str_replace(['function hook_runtime','hook_git(','hook_need(','HOOK_ACCEPTED_BASE','HOOK_RUNTIME_PINS_B64'],
+    ['function hook_test_runtime','hook_test_runtime_git(','monitor_price_require(',var_export(str_repeat('b',40),true),var_export(base64_encode(json_encode($bundlePins)),true)],$runtimeSource);
+eval($runtimeSource);
+$runtimeFixturePins=$monitorPins;
+hook_test_check(hook_test_runtime()===str_repeat('a',40),'reviewed_surface_rejected');
+foreach(array_keys($monitorPins) as $path){
+    $runtimeFixturePins=$monitorPins;$runtimeFixturePins[$path]=str_repeat('0',40);
+    hook_test_reject(static fn()=>hook_test_runtime(),'changed_surface_accepted_'.$path);
+}
+foreach(['services/ChannelPostAutomationService.php'=>'f5975ab95de5f45e087eb7a0f768f566c5bca648',
+    'services/ChannelPostRegistryService.php'=>'7304af19cc19666f00ca4ead1b04c2bdce719646'] as $path=>$oldPin){
+    $runtimeFixturePins=$monitorPins;$runtimeFixturePins[$path]=$oldPin;
+    hook_test_reject(static fn()=>hook_test_runtime(),'superseded_surface_accepted_'.$path);
+}
+
 echo 'MONITOR_PRICE_HOOK_OK cases='.$cases." no_provider_calls=1 no_writes=1\n";
 
 
+
+require __DIR__.'/test-monitor-price-81173-cycle.php';

@@ -397,6 +397,224 @@ function monitor_hook_close_expired_reconciled_cycle(array $state,array $globalP
     $state['nightly_cycle']['reconciled_at']=gmdate('c',$now);return $state;
 }
 
+/** Exact PRICE27316 recovery. Pure: the locked caller must supply real journal pins and
+ * frozen hook_finish_feed local/public readback evidence. No IO or provider writes. */
+function monitor_hook_price27316_identity():array {
+    return ['collector_run_id'=>'44012967294','night_date'=>'2026-11-17',
+        'operation'=>'commercial-monitor-price-h27316-7627b206ea11237db2e1fb365e98be5c1ff11a439b3939637fee633dee1b83d4',
+        'manifest_hash'=>'94ca6dd9be5c0fb66f0bf3ee6a09ca4e7d8319bb1cd1e3ae2f8a7f7390f89a78',
+        'global'=>['sha256'=>'6a381375a03566c2853f31a4f57d4177df17e0ac950bf91ad7b43edc9734474d','bytes'=>443818242,'lines'=>4352],
+        'child'=>['sha256'=>'010c6ecfbdae1156a772160bbadb5fec4cbd84555e14acf10baa791c36da2988','bytes'=>40405,'lines'=>4]];
+}
+function monitor_hook_price27316_hash($value):string {
+    return hash('sha256',json_encode($value,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+}
+function monitor_hook_price27316_sha($value):bool {
+    return is_string($value)&&preg_match('/\A[a-f0-9]{64}\z/D',$value)===1;
+}
+function monitor_hook_price27316_receipt_valid(array $r,string $platform):bool {
+    $max=$platform==='max';
+    return ($r['state']??null)==='sent'&&($r['platform']??null)===$platform
+        &&($r['logical_id']??null)==='commercial-regnum-carya-belek-27316-v1'
+        &&($r['publication_id']??null)===($max?400:395)
+        &&is_int($r['version_id']??null)&&($max?$r['version_id']===7024:$r['version_id']>4200)
+        &&($r['message_id']??null)===($max?'mid.ffffb6caf0606fed01a1a3b88da95daa':'156')
+        &&($r['post_url']??null)===($max?'https://max.ru/channel_anytour/AaGjuI2pXao':'https://t.me/any_toour/156')
+        &&($r['existing_message_reused']??null)===true&&($r['body_photo_button_verified']??null)===true
+        &&($r['price_link_verified']??null)===true&&($r['button_text']??null)==='✈️ Узнать стоимость тура'
+        &&is_string($r['button_url']??null)&&str_starts_with($r['button_url'],'https://')
+        &&($r['price_link_url']??null)===$r['button_url']
+        &&($r['monitor_price']['record_id']??null)==='7627b206ea11237db2e1fb365e98be5c1ff11a439b3939637fee633dee1b83d4'
+        &&is_string($r['text']??null)&&$r['text']!==''&&($r['text_sha256']??null)===hash('sha256',$r['text']);
+}
+function monitor_hook_price27316_cycle_valid(array $cycle):bool {
+    $p=$cycle['recovery']??null;$id=monitor_hook_price27316_identity();
+    if(!is_array($p)||($cycle['state']??null)!=='interrupted_reconciled'
+        ||($cycle['collector_run_id']??null)!==$id['collector_run_id']||($cycle['night_date']??null)!==$id['night_date']
+        ||($p['kind']??null)!=='price27316_original_pair_postfeed_v1'||($p['identity']??null)!==$id
+        ||($p['other_completed_count']??null)!==588||($p['all_660_completed']??null)!==false
+        ||($p['max_puts']??null)!==0||($p['telegram_first_edits']??null)!==1||($p['new_posts']??null)!==0
+        ||!monitor_hook_price27316_sha($p['other_completed_sha256']??null)
+        ||!monitor_hook_price27316_sha($p['child_terminal_sha256']??null))return false;
+    $at=monitor_hook_preflight_utc_time($cycle['reconciled_at']??null);
+    if($at===null||$at<monitor_price_time('2026-11-17T00:00:00+00:00'))return false;
+    $original=$cycle;unset($original['recovery'],$original['reconciled_at']);$original['state']='started';
+    if(($p['original_cycle_sha256']??null)!==monitor_hook_price27316_hash($original))return false;
+    foreach(['max','telegram'] as $platform)if(!is_array($p['receipts'][$platform]??null)
+        ||!monitor_hook_price27316_receipt_valid($p['receipts'][$platform],$platform))return false;
+    $f=$p['feed']??null;
+    if(!is_array($f)||($f['local_and_public_hashes_verified']??null)!==true
+        ||($f['verification_owner']??null)!=='frozen_hook_finish_feed'
+        ||!monitor_hook_price27316_sha($f['appended_global_states_sha256']??null)
+        ||!is_string($f['operation']??null)
+        ||preg_match('/\Acommercial-channel-hotel-feeds-([0-9]{8})-update[0-9]+\z/D',$f['operation'],$m)!==1
+        ||$f['operation']!==monitor_hook_feed_operation($id['operation'],$m[1])
+        ||!is_array($f['files']??null)||count($f['files'])!==3)return false;
+    $names=[];foreach($f['files'] as $file){
+        $name=$file['name']??null;
+        if(!in_array($name,['hotel-posts-max.xml','hotel-posts-telegram.xml','hotel-posts-all.xml'],true)
+            ||isset($names[$name])||($file['rows']??null)!==($name==='hotel-posts-all.xml'?1320:660)
+            ||!monitor_hook_price27316_sha($file['sha256']??null)
+            ||!monitor_hook_price27316_sha($file['expected_previous_sha256']??null)
+            ||!is_int($file['bytes']??null)||$file['bytes']<=0)return false;
+        $names[$name]=true;
+    }
+    return true;
+}
+/** Only modifies cycle metadata; caller appends under original global/child locks. */
+function monitor_hook_close_price27316_cycle(array $state,array $originalState,array $globalPin,array $childPin,array $child,array $feedEvidence,int $now):array {
+    $id=monitor_hook_price27316_identity();$cycle=$originalState['nightly_cycle']??null;
+    monitor_price_require($globalPin===$id['global']&&$childPin===$id['child'],'hook_price27316_prefix_changed');
+    monitor_price_require(is_array($cycle)&&($cycle['state']??null)==='started'
+        &&($cycle['collector_run_id']??null)===$id['collector_run_id']&&($cycle['night_date']??null)===$id['night_date']
+        &&($cycle['budget_seconds']??null)===1800&&($cycle['finish_reserve_seconds']??null)===300
+        &&($state['nightly_cycle']??null)===$cycle&&($state['schema']??null)===1
+        &&($originalState['pending']['operation']??null)===$id['operation']
+        &&($originalState['pending']['tourvisor_hotel_id']??null)===27316
+        &&array_key_exists('pending',$state)&&$state['pending']===null,'hook_price27316_not_terminal');
+    $before=$originalState['completed']??[];$after=$state['completed']??[];
+    monitor_price_require(count($before)===589&&count($after)===589
+        &&($after[27316]['operation']??null)===$id['operation']
+        &&($after[27316]['feed_operation']??null)===($feedEvidence['operation']??null),'hook_price27316_completion_changed');
+    unset($before[27316],$after[27316]);
+    $compare=$originalState;$compare['pending']=null;$compare['completed']=$state['completed'];
+    monitor_price_require(count($before)===588&&$before===$after&&($originalState['holds']??[])===[]
+        &&$compare===$state,'hook_price27316_unrelated_state_changed');
+    monitor_price_require(($child['operation']??null)===$id['operation']&&($child['manifest_hash']??null)===$id['manifest_hash']
+        &&($child['complete']??null)===true&&($child['feed_binding']['tourvisor_hotel_id']??null)===27316
+        &&count($child['posts']??[])===2
+        &&($child['reconciliation']['max_puts']??null)===0
+        &&($child['reconciliation']['new_posts']??null)===0
+        &&($child['reconciliation']['telegram_first_edit_attempts']??null)===1
+        &&($child['reconciliation']['max_confirm_calls']??null)===1,'hook_price27316_child_invalid');
+    $receipts=[];foreach(['max','telegram'] as $platform){
+        $post=$child['posts'][$platform.':regnum-carya-belek']??[];$r=$post['receipt']??[];
+        monitor_price_require(($post['state']??null)==='confirmed'&&monitor_hook_price27316_receipt_valid($r,$platform),
+            'hook_price27316_receipt_invalid');$receipts[$platform]=$r;
+    }
+    $cycle['state']='interrupted_reconciled';$cycle['reconciled_at']=gmdate('c',$now);
+    $cycle['recovery']=['kind'=>'price27316_original_pair_postfeed_v1','identity'=>$id,
+        'original_cycle_sha256'=>monitor_hook_price27316_hash($originalState['nightly_cycle']),
+        'other_completed_count'=>588,'other_completed_sha256'=>monitor_hook_price27316_hash($before),
+        'child_terminal_sha256'=>monitor_hook_price27316_hash($child),'receipts'=>$receipts,'feed'=>$feedEvidence,
+        'max_puts'=>0,'telegram_first_edits'=>1,'new_posts'=>0,'all_660_completed'=>false];
+    monitor_price_require(monitor_hook_price27316_cycle_valid($cycle),'hook_price27316_proof_invalid');
+    $state['nightly_cycle']=$cycle;return $state;
+}
+
+/** Exact PRICE81173 recovery. Pure: the locked caller must supply real journal pins and
+ * frozen hook_finish_feed local/public readback evidence. No IO or provider writes. */
+function monitor_hook_price81173_identity():array {
+    return ['collector_run_id'=>'44204094292','night_date'=>'2026-11-18',
+        'operation'=>'commercial-monitor-price-h81173-a95d49d1391292a05d61705bbe200f525ba4d5ae9f7780f1c5615c92e88036a2',
+        'manifest_hash'=>'e4af665c0e34b48272b6509b0d41c272ac746dcfec3ab571784efa251d15f72f',
+        'global'=>['sha256'=>'05d8643474f0459de7077d7d9280ea11a734dca7583973bee7b98278138b9ad8','bytes'=>486879342,'lines'=>4641],
+        'child'=>['sha256'=>'684472cc095e51ce3445b48ceeeac50c89f88f0123cde48c631af044ba4b079c','bytes'=>88956,'lines'=>7]];
+}
+function monitor_hook_price81173_hash($value):string {
+    return hash('sha256',json_encode($value,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+}
+function monitor_hook_price81173_sha($value):bool {
+    return is_string($value)&&preg_match('/\A[a-f0-9]{64}\z/D',$value)===1;
+}
+function monitor_hook_price81173_receipt_valid(array $r,string $platform):bool {
+    $max=$platform==='max';
+    return ($r['state']??null)==='sent'&&($r['platform']??null)===$platform
+        &&($r['logical_id']??null)==='commercial-white-hills-81173-v1'
+        &&($r['publication_id']??null)===($max?147:144)
+        &&is_int($r['version_id']??null)&&($max?$r['version_id']===8095:$r['version_id']>2214)
+        &&($r['message_id']??null)===($max?'mid.ffffb6caf0606fed01a19be8d82f26f3':'38')
+        &&($r['post_url']??null)===($max?'https://max.ru/channel_anytour/AaGb6NgvJvM':'https://t.me/any_toour/38')
+        &&($r['existing_message_reused']??null)===true&&($r['body_photo_button_verified']??null)===true
+        &&($r['price_link_verified']??null)===true&&($r['button_text']??null)==='✈️ Узнать стоимость тура'
+        &&is_string($r['button_url']??null)&&str_starts_with($r['button_url'],'https://')
+        &&($r['price_link_url']??null)===$r['button_url']
+        &&($r['monitor_price']['record_id']??null)==='a95d49d1391292a05d61705bbe200f525ba4d5ae9f7780f1c5615c92e88036a2'
+        &&is_string($r['text']??null)&&$r['text']!==''&&($r['text_sha256']??null)===hash('sha256',$r['text'])
+        &&$r['text_sha256']===($max?'5669803f9b863a47048286543e60bd7485de1ee9e41218b3ce20ba0c61e29f38':'b04ec195d26ae19fa29f9719b49e62dcbc7eea39ca4820521ecc7ed9f2994bb3')
+        &&preg_match($max?'~\Ahttps://max\.ru/id9704048781_1_bot\?start=p_[A-Za-z0-9_-]+\z~D':'~\Ahttps://t\.me/anyru_bot\?start=p_[A-Za-z0-9_-]+\z~D',$r['button_url'])===1;
+}
+function monitor_hook_price81173_cycle_valid(array $cycle):bool {
+    $p=$cycle['recovery']??null;$id=monitor_hook_price81173_identity();
+    if(!is_array($p)||($cycle['state']??null)!=='interrupted_reconciled'
+        ||($cycle['collector_run_id']??null)!==$id['collector_run_id']||($cycle['night_date']??null)!==$id['night_date']
+        ||($p['kind']??null)!=='price81173_original_pair_postfeed_v1'||($p['identity']??null)!==$id
+        ||!in_array($p['other_completed_count']??null,[594,595],true)||($p['all_660_completed']??null)!==false
+        ||($p['original_rejection']??null)!==['http'=>429,'ok'=>false,'error_code'=>429,'retry_after'=>21]
+        ||($p['max_puts']??null)!==0||($p['telegram_recovery_edits']??null)!==1||($p['new_posts']??null)!==0
+        ||!monitor_hook_price81173_sha($p['other_completed_sha256']??null)
+        ||!monitor_hook_price81173_sha($p['child_terminal_sha256']??null))return false;
+    $at=monitor_hook_preflight_utc_time($cycle['reconciled_at']??null);
+    if($at===null||$at<monitor_price_time('2026-11-18T00:36:37+00:00'))return false;
+    $original=$cycle;unset($original['recovery'],$original['reconciled_at']);$original['state']='started';
+    if(($p['original_cycle_sha256']??null)!=='100c06778fd1f73ba0f8531a7c74f1aa8e59cec054f8c1676659b6bd670e5a76'
+        ||$p['original_cycle_sha256']!==monitor_hook_price81173_hash($original))return false;
+    foreach(['max','telegram'] as $platform)if(!is_array($p['receipts'][$platform]??null)
+        ||!monitor_hook_price81173_receipt_valid($p['receipts'][$platform],$platform))return false;
+    $f=$p['feed']??null;
+    if(!is_array($f)||($f['local_and_public_hashes_verified']??null)!==true
+        ||($f['verification_owner']??null)!=='frozen_hook_finish_feed'
+        ||($f['prefix10_preserved']??null)!==true
+        ||!monitor_hook_price81173_sha($f['appended_global_states_sha256']??null)
+        ||!is_string($f['operation']??null)
+        ||preg_match('/\Acommercial-channel-hotel-feeds-([0-9]{8})-update[0-9]+\z/D',$f['operation'],$m)!==1
+        ||$f['operation']!==monitor_hook_feed_operation($id['operation'],$m[1])
+        ||!is_array($f['files']??null)||count($f['files'])!==3)return false;
+    $preimages=['hotel-posts-max.xml'=>'80d43159c87426a555bc36bd6444fee6b790ec06a19b389f2c7dd2f3f0b18ec3','hotel-posts-telegram.xml'=>'1f4d3b4d49eddcb5e11231f689b8d6e9ea77ae74fd0f2df382c00a5f9b5ee427','hotel-posts-all.xml'=>'65b13a827a08d1f50284718fdfc0680627e61bdff84fb47bf7e99ef4d3e6900a'];
+    $names=[];foreach($f['files'] as $file){
+        $name=$file['name']??null;
+        if(!in_array($name,['hotel-posts-max.xml','hotel-posts-telegram.xml','hotel-posts-all.xml'],true)
+            ||isset($names[$name])||($file['rows']??null)!==($name==='hotel-posts-all.xml'?1340:670)
+            ||!monitor_hook_price81173_sha($file['sha256']??null)
+            ||($file['expected_previous_sha256']??null)!==($preimages[$name]??null)
+            ||!is_int($file['bytes']??null)||$file['bytes']<=0)return false;
+        $names[$name]=true;
+    }
+    return true;
+}
+/** Only modifies cycle metadata; caller appends under original global/child locks. */
+function monitor_hook_close_price81173_cycle(array $state,array $originalState,array $globalPin,array $childPin,array $child,array $feedEvidence,int $now):array {
+    $id=monitor_hook_price81173_identity();$cycle=$originalState['nightly_cycle']??null;
+    monitor_price_require($globalPin===$id['global']&&$childPin===$id['child'],'hook_price81173_prefix_changed');
+    monitor_price_require(is_array($cycle)&&($cycle['state']??null)==='started'
+        &&($cycle['collector_run_id']??null)===$id['collector_run_id']&&($cycle['night_date']??null)===$id['night_date']
+        &&($cycle['budget_seconds']??null)===1800&&($cycle['finish_reserve_seconds']??null)===300
+        &&($state['nightly_cycle']??null)===$cycle&&($state['schema']??null)===1
+        &&($originalState['pending']['operation']??null)===$id['operation']
+        &&($originalState['pending']['tourvisor_hotel_id']??null)===81173
+        &&array_key_exists('pending',$state)&&$state['pending']===null,'hook_price81173_not_terminal');
+    $before=$originalState['completed']??[];$after=$state['completed']??[];
+    monitor_price_require(count($before)===595&&count($after)===595+(array_key_exists(81173,$before)?0:1)
+        &&($after[81173]['operation']??null)===$id['operation']
+        &&($after[81173]['feed_operation']??null)===($feedEvidence['operation']??null),'hook_price81173_completion_changed');
+    unset($before[81173],$after[81173]);
+    $compare=$originalState;$compare['pending']=null;$compare['completed']=$state['completed'];
+    monitor_price_require(in_array(count($before),[594,595],true)&&$before===$after&&($originalState['holds']??[])===[]
+        &&$compare===$state,'hook_price81173_unrelated_state_changed');
+    monitor_price_require(($child['operation']??null)===$id['operation']&&($child['manifest_hash']??null)===$id['manifest_hash']
+        &&($child['complete']??null)===true&&($child['feed_binding']['tourvisor_hotel_id']??null)===81173
+        &&count($child['posts']??[])===2
+        &&($child['reconciliation']['original_rejection']??null)===['http'=>429,'ok'=>false,'error_code'=>429,'retry_after'=>21]
+        &&($child['reconciliation']['max_puts']??null)===0
+        &&($child['reconciliation']['new_posts']??null)===0
+        &&($child['reconciliation']['telegram_recovery_edit_attempts']??null)===1
+        &&($child['reconciliation']['max_confirm_calls']??null)===0,'hook_price81173_child_invalid');
+    $receipts=[];foreach(['max','telegram'] as $platform){
+        $post=$child['posts'][$platform.':commercial-white-hills-81173-v1']??[];$r=$post['receipt']??[];
+        monitor_price_require(($post['state']??null)==='confirmed'&&monitor_hook_price81173_receipt_valid($r,$platform),
+            'hook_price81173_receipt_invalid');$receipts[$platform]=$r;
+    }
+    $cycle['state']='interrupted_reconciled';$cycle['reconciled_at']=gmdate('c',$now);
+    $cycle['recovery']=['kind'=>'price81173_original_pair_postfeed_v1','identity'=>$id,
+        'original_cycle_sha256'=>monitor_hook_price81173_hash($originalState['nightly_cycle']),
+        'other_completed_count'=>count($before),'other_completed_sha256'=>monitor_hook_price81173_hash($before),
+        'child_terminal_sha256'=>monitor_hook_price81173_hash($child),'receipts'=>$receipts,'feed'=>$feedEvidence,
+        'original_rejection'=>['http'=>429,'ok'=>false,'error_code'=>429,'retry_after'=>21],
+        'max_puts'=>0,'telegram_recovery_edits'=>1,'new_posts'=>0,'all_660_completed'=>false];
+    monitor_price_require(monitor_hook_price81173_cycle_valid($cycle),'hook_price81173_proof_invalid');
+    $state['nightly_cycle']=$cycle;return $state;
+}
+
 /** Reuse the original append-only journal; a later collector never erases replay history. */
 function monitor_hook_attempted_collector_runs(array $journalLines):array {
     $runs=[];
@@ -408,7 +626,7 @@ function monitor_hook_attempted_collector_runs(array $journalLines):array {
             &&preg_match('/\A[1-9][0-9]{0,19}\z/D',$cycle['collector_run_id'])===1
             &&(in_array($cycle['state']??null,['started','completed','budget_exhausted'],true)
                 ||monitor_hook_reconciled_cycle_valid($cycle)||monitor_hook_expired_reconciled_cycle_valid($cycle)
-                ||monitor_hook_preflight_cycle_valid($cycle)),'hook_nightly_history_invalid');
+                ||monitor_hook_preflight_cycle_valid($cycle)||monitor_hook_price27316_cycle_valid($cycle)||monitor_hook_price81173_cycle_valid($cycle)),'hook_nightly_history_invalid');
         $runs['run:'.$cycle['collector_run_id']]=true;
     }
     return $runs;
@@ -458,7 +676,7 @@ function monitor_hook_nightly_gate(array $state,int $now,?string $collectionStar
         monitor_price_require(is_array($prior)&&is_string($prior['night_date']??null)
             &&preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}\z/D',$prior['night_date'])===1
             &&(in_array($prior['state']??null,['started','completed','budget_exhausted'],true)||monitor_hook_reconciled_cycle_valid($prior)
-                ||monitor_hook_expired_reconciled_cycle_valid($prior)||monitor_hook_preflight_cycle_valid($prior))
+                ||monitor_hook_expired_reconciled_cycle_valid($prior)||monitor_hook_preflight_cycle_valid($prior)||monitor_hook_price27316_cycle_valid($prior)||monitor_hook_price81173_cycle_valid($prior))
             &&is_string($prior['collector_run_id']??null)&&preg_match('/\A[1-9][0-9]{0,19}\z/D',$prior['collector_run_id'])===1
             &&is_string($prior['collection_started_at']??null),'hook_nightly_cycle_invalid');
         monitor_price_require($prior['night_date']<=$night,'hook_nightly_clock_moved_back');
