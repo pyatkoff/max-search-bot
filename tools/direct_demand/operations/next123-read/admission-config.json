@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "parent_sha": "1a055d8d5cd94fe0a57a2ee03e41905beff274f9",
+  "parent_sha": "ce32b1c850f5c1eac18db70f27cf3004241fbc0d",
   "claim_id": 6967624483,
   "claim_body_sha256": "c14a53c422f8b2a38804d946de35873fd0dc64c8dc9187b4c85b9759d8b54844",
   "runtime_sha": "cc017ee5bb669f4c7c13efc91d5c5812a50e55f2",
@@ -65,7 +65,7 @@
     "claim_id": 6967624483,
     "claim_body_sha256": "c14a53c422f8b2a38804d946de35873fd0dc64c8dc9187b4c85b9759d8b54844",
     "route_head_sha": "bbef3101f8c8f6eae15355c0d6fa4b8c1848dfa2",
-    "observed_at": "2026-11-18T07:12:13.982Z",
+    "observed_at": "2026-11-18T07:17:05.204Z",
     "nonterminal_counts": {
       "in_progress": 0,
       "queued": 0,

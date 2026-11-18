@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == '1a055d8d5cd94fe0a57a2ee03e41905beff274f9'
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == 'ce32b1c850f5c1eac18db70f27cf3004241fbc0d'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -24,7 +24,7 @@ jobs:
       - name: Exact reviewed admission and runner before credentials
         run: |
           set -euo pipefail
-          echo 'fd2bd02cc51900591e33bb311169957c7823f50586a47d1c20fcc314f3d727ae  tools/direct_demand/operations/next123-read/admit123.py' | sha256sum --check --strict
+          echo '56eb897616436962d74389433e9a71859469d6f446ea5bd34cd09f8c703379cd  tools/direct_demand/operations/next123-read/admit123.py' | sha256sum --check --strict
           echo '7a085fc55a5ab17c459cf9f8fe39d46b86d03378293ddae779feb86871facdf7  tools/direct_demand/operations/next123-read/run123.py' | sha256sum --check --strict
       - name: Lint exact14 bounded readers before credentials
         run: |

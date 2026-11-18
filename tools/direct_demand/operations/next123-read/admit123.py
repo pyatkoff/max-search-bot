@@ -1,10 +1,20 @@
 """Fresh GET-only one-shot admission; exact reviewed configuration is mandatory."""
 import datetime,hashlib,json,os,pathlib,re,subprocess,sys
-REVIEWED_CONFIG_SHA256='e31fc317b12ea4ce5d2ad8c15bdf34f120004576d10d6f076c463349c0308bfd'
+REVIEWED_CONFIG_SHA256='254527dbcb2e3bca1c13e020d197accd8155503a32493ea9da743fad73af8d42'
 sha=lambda b:hashlib.sha256(b).hexdigest()
 def need(v,m):
  if not v:raise ValueError(m)
 def api(repo,path):return json.loads(subprocess.check_output(['gh','api','--method','GET','repos/pyatkoff/'+repo+'/'+path],timeout=40))
+def bounded_active_rows(repo,path,status,d):
+ rows=d.get('workflow_runs');total=d.get('total_count')
+ diagnostic={'repository':repo,'path':path,'status':status,'total_count':total,'returned_count':len(rows) if type(rows) is list else None}
+ print(json.dumps({'active_list_diagnostic':diagnostic},sort_keys=True),flush=True)
+ need(type(rows) is list and type(total) is int and 0<=total<=100 and len(rows)==total,'ambiguous_active_list:'+json.dumps(diagnostic,sort_keys=True))
+ if repo=='poisk-turov-test':
+  need(path=='actions/runs?','unexpected_price_query')
+  need(all(type(r) is dict and type(r.get('workflow_id')) is int for r in rows),'ambiguous_workflow_identity:'+json.dumps(diagnostic,sort_keys=True))
+  rows=[r for r in rows if r['workflow_id']==346454799]
+ return rows
 def validate_route_attestation(c,now):
  a=c.get('external_route_coordination',{})
  need(a.get('kind')=='root_connector_read_only_coordination' and a.get('repository')=='pyatkoff/tour-max' and a.get('branch')=='audit/anytour-hotel-feed-routing-20261104','external_route_attestation_missing')
@@ -56,10 +66,10 @@ def main():
  route_attestation=validate_route_attestation(c,datetime.datetime.now(datetime.timezone.utc))
  checks=[]
  for status in ['in_progress','queued','waiting','pending','requested']:
-  for repo,path,self_allowed in [('max-search-bot','actions/runs?branch=audit%2Fprice660-27316-resume-readiness-20261117',True),('max-search-bot','actions/runs?branch=audit%2Fcontent100-bot-publication-20261101',False),('max-search-bot','actions/runs?head_sha='+c['runtime_sha'],False),('poisk-turov-test','actions/workflows/346454799/runs?',False)]:
+  for repo,path,self_allowed in [('max-search-bot','actions/runs?branch=audit%2Fprice660-27316-resume-readiness-20261117',True),('max-search-bot','actions/runs?branch=audit%2Fcontent100-bot-publication-20261101',False),('max-search-bot','actions/runs?head_sha='+c['runtime_sha'],False),('poisk-turov-test','actions/runs?',False)]:
    sep='' if path.endswith('?') else '&';d=api(repo,path+sep+'status='+status+'&per_page=100')
-   need(len(d['workflow_runs'])==d['total_count'] and d['total_count']<=100,'ambiguous_active_list')
-   other=[r for r in d['workflow_runs'] if not(self_allowed and str(r['id'])==os.environ['GITHUB_RUN_ID'] and r['head_sha']==head)]
+   rows=bounded_active_rows(repo,path,status,d)
+   other=[r for r in rows if not(self_allowed and str(r['id'])==os.environ['GITHUB_RUN_ID'] and r['head_sha']==head)]
    need(not other,'competing_current_run:'+repo+':'+status);checks.append({'repository':repo,'path':path,'status':status,'other_count':0})
  validate_route_attestation(c,datetime.datetime.now(datetime.timezone.utc))
  output.write_text(json.dumps({'state':'FRESH_READ_ONLY_ADMISSION','intent_sha256':sha(raw),'expected_installed_sha':c['runtime_sha'],'source_acceptance_verified':True,'owner_and_concurrency_verified':True,'observed_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'checks':checks,'external_route_coordination':route_attestation})+'\n')
