@@ -1,0 +1,96 @@
+{
+  "runtime_sha": "67aa3aef0debacfea01e845029b38a0db2f20b0d",
+  "deploy_run": 44286564852,
+  "installer_job": 134746080211,
+  "final_native_verify_job": 134747254863,
+  "deploy_all6jobs": "success",
+  "native_release_kind": "installed",
+  "all8_mandatory_tails": "success",
+  "tails": [
+    {
+      "run_id": 44288646003,
+      "workflow_path": ".github/workflows/max-production-health.yml",
+      "workflow_id": 346592110,
+      "conclusion": "success"
+    },
+    {
+      "run_id": 44288646012,
+      "workflow_path": ".github/workflows/live-session-diagnostics.yml",
+      "workflow_id": 341564607,
+      "conclusion": "success"
+    },
+    {
+      "run_id": 44288646001,
+      "workflow_path": ".github/workflows/modeled-conversion-monitor.yml",
+      "workflow_id": 406167317,
+      "conclusion": "success"
+    },
+    {
+      "run_id": 44288646040,
+      "workflow_path": ".github/workflows/modeled-conversion-value-export.yml",
+      "workflow_id": 404979772,
+      "conclusion": "success"
+    },
+    {
+      "run_id": 44288646144,
+      "workflow_path": ".github/workflows/tour-selection-host.yml",
+      "workflow_id": 396440679,
+      "conclusion": "success"
+    },
+    {
+      "run_id": 44288645896,
+      "workflow_path": ".github/workflows/telegram-production-health.yml",
+      "workflow_id": 345804963,
+      "conclusion": "success"
+    },
+    {
+      "run_id": 44288645946,
+      "workflow_path": ".github/workflows/max-tls-preflight.yml",
+      "workflow_id": 349298737,
+      "conclusion": "success"
+    },
+    {
+      "run_id": 44288645967,
+      "workflow_path": ".github/workflows/publish-conversation-diagnostics.yml",
+      "workflow_id": 341141254,
+      "conclusion": "success"
+    }
+  ],
+  "native_jobs": {
+    "TLS": {
+      "run": 44288645946,
+      "job": 134747775880
+    },
+    "MAX": {
+      "run": 44288646003,
+      "job": 134747776019
+    },
+    "TG": {
+      "run": 44288645896,
+      "job": 134747775666
+    }
+  },
+  "release_closer_run": 44288646040,
+  "release_closer_job": 134747778001,
+  "release_slot": "released",
+  "reader_publisher22": "byte_identical",
+  "native_reader174_run": null,
+  "feed_admission_granted": false,
+  "evidence_sha256": {
+    "jobs-first.json": "7ab90492f808488678e2380de55b5f0e48e0b5451e5953c7e0f2497246629748",
+    "compare.json": "356561da3afeaccdc274838f2cb32c660e371e8607886fd4cf3c64a4ab496ce5",
+    "closer-jobs.json": "bdd7d45be451217f2ab64b7ce0b762a1c5491e5f5d5eaa361ccd61853ebed937",
+    "deploy-run-terminal.json": "60670de8b97cd96eab213da599d198927508c5fec01dea7177a5dea1f03813d2",
+    "native-verify.log": "61aa471eafcbb3dfad8e90ee8c4ca0c76df56b2ed503209a6b11b3f812f9c3b5",
+    "tls-jobs.json": "ad8aafe2347805af50700558dbdcbda64c20e5f660d908d67133706b307817d4",
+    "tree.json": "5e84895a7103e01deb99feae4eb1494f96930f0dee41ae1b53574e1a99badccb",
+    "max-jobs.json": "5b8c11d38890d8098c6386709a5baed329049bfb4becbb463a4471e7a7f946fc",
+    "release-slot.log": "b887d57d9773e68c71abfa9849dd1840ef85b28d6549b10aece4c2c6ac98a248",
+    "component-matrix.json": "13dfc6a20e57aa04c84c890ba92d2936ea412d90cd198580b691839b178dd7d4",
+    "runs-terminal.json": "09a6dbca3aec6a5e9428bd05bed81ea3e58fbb8045e785ed542c2b4fd3784ae7",
+    "telegram-jobs.json": "0326589f601f36a2396a7db93c54d6f17aac83ee8e8f8c826d541b55b8032b12",
+    "main.json": "fc7bcfe8dfba535db529a6ef3c429921e9c4894e547fa7d3caa956c54565c9ee",
+    "deploy-jobs-terminal.json": "129228c021e0305eb075c8466a31d3ec9a3a14b75aeb16ba635d69ca0f682d48",
+    "runs.json": "4f2b2b347f2c67ab7148be7f446918618bf6966029bbbb54281564fe1597ef76"
+  }
+}

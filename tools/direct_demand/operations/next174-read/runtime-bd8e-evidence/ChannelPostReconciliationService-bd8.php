@@ -1,0 +1,194 @@
+<?php
+declare(strict_types=1);
+require_once __DIR__.'/ChannelPostReconciliationState.php';
+require_once __DIR__.'/ChannelPostAutomationService.php';
+
+/** Bounded MAX provider reads recover missing publications without replaying a webhook. */
+final class ChannelPostReconciliationService
+{
+    private ChannelPostRegistryService $registry;
+    private ChannelPostReconciliationState $state;
+    private ChannelPostButtonTransport $transport;
+    private $request;
+    private $clock;
+    public function __construct(?PDO $pdo=null, ?callable $request=null, ?callable $clock=null)
+    {
+        $pdo=$pdo??ConversationDb::connection();
+        $this->registry=new ChannelPostRegistryService($pdo);
+        $this->state=new ChannelPostReconciliationState($pdo);
+        $this->request=$request??[ChannelPostApiTransport::class,'buttonRequest'];
+        $this->transport=new ChannelPostButtonTransport($this->request);
+        $this->clock=$clock??static fn():int=>(int)floor(microtime(true)*1000);
+    }
+
+    public function scan(array $identity, bool $apply=false): array
+    {
+        $claim=null;
+        try {
+            self::identity($identity);
+            $claim=$this->state->claim($identity['project_key'],$identity['bot_key'],($this->clock)(),$apply);
+            if(!$claim)return ['ok'=>true,'state'=>'idle','observed'=>0,'registered'=>0];
+            $channel=$this->registry->channel($identity['project_key'],'max',$identity['bot_key'],(string)$claim['channel_id']);
+            if(!$channel||(int)$channel['config_version']!==(int)$claim['config_version'])throw new RuntimeException('channel_configuration_changed');
+            $this->verify($channel);
+            $messages=$this->page((string)$channel['channel_id'],(int)$claim['before_ms'],(int)$claim['after_ms']);
+            $registered=0;$oldest=(int)$claim['before_ms'];
+            foreach($messages as $m) {
+                $stamp=(int)$m['timestamp'];$oldest=min($oldest,$stamp);
+                if($apply) {
+                    $p=$this->registry->registerProviderObservation($identity['project_key'],$identity['bot_key'],$channel,$m,(int)$claim['enabled_since_ms']);
+                    if(!$p)throw new RuntimeException('channel_configuration_changed');
+                    if(($p['state']??'')==='pending')$registered++;
+                }
+            }
+            $full=count($messages)===100;
+            if($full&&$oldest>=(int)$claim['before_ms'])throw new RuntimeException('pagination_boundary_requires_attention');
+            $next=$full?$oldest:null;
+            if($apply&&!$this->state->finish($claim,$next))throw new RuntimeException('reconciliation_claim_changed');
+            return ['ok'=>true,'state'=>$apply?'observed':'preview','observed'=>count($messages),'registered'=>$registered,'more'=>$full];
+        } catch(Throwable $e) {
+            $reason=self::reason($e);
+            if($apply&&$claim)try{$this->state->finish($claim,null,$reason);}catch(Throwable $ignored){}
+            return ['ok'=>false,'state'=>'requires_attention','reason'=>$reason];
+        }
+    }
+
+    /** Exact owner-selected publication; preview makes zero database/provider writes. */
+    public function recover(array $identity, string $channelId, int $publishedMs, string $expectedHash='', bool $apply=false, bool $recoverUnsupportedVideo=false, int $expectedVersionId=0, int $expectedConfigVersion=0): array
+    {
+        try {
+            self::identity($identity);
+            if($publishedMs<=0||($apply&&!preg_match('/\A[a-f0-9]{64}\z/',$expectedHash)))throw new RuntimeException('exact_target_required');
+            if($expectedVersionId<0||$expectedConfigVersion<0||(!$recoverUnsupportedVideo&&($expectedVersionId!==0||$expectedConfigVersion!==0))
+                ||($recoverUnsupportedVideo&&$apply&&($expectedVersionId<=0||$expectedConfigVersion<=0)))throw new RuntimeException('exact_video_recovery_target_required');
+            $channel=$this->registry->channel($identity['project_key'],'max',$identity['bot_key'],$channelId);
+            if(!$channel)throw new RuntimeException('channel_not_enabled');
+            if($expectedConfigVersion>0&&(int)$channel['config_version']!==$expectedConfigVersion)throw new RuntimeException('channel_configuration_changed');
+            $this->verify($channel);
+            $messages=$this->page((string)$channel['channel_id'],$publishedMs,$publishedMs);
+            if(count($messages)!==1)throw new RuntimeException('exact_target_not_unique');
+            $message=$messages[0];$snapshot=ChannelPostIncomingAdapter::maxSnapshot($message);
+            if(!$snapshot||($snapshot['metadata']['capability']??'')!=='supported')throw new RuntimeException('unsupported_post');
+            $hash=ChannelPostIncomingAdapter::contentFingerprint($snapshot);
+            if($expectedHash!==''&&!hash_equals($expectedHash,$hash))throw new RuntimeException('target_content_changed');
+            $counts=['image_count'=>0,'video_count'=>0,'media_count'=>count($snapshot['attachments'])];
+            foreach($snapshot['attachments'] as $media)if(in_array($media['type']??'', ['image','video'],true))$counts[$media['type'].'_count']++;
+            $safe=['ok'=>true,'state'=>'preview','content_hash'=>$hash,'published_ms'=>$publishedMs,'database_writes'=>0,'provider_writes'=>0]+$counts;
+            if($recoverUnsupportedVideo) {
+                $p=$this->registry->recoverUnsupportedMaxVideoObservation($identity['project_key'],$identity['bot_key'],$channel,$message,$expectedVersionId,$hash,$apply);
+                $safe['legacy_video_recovery_eligible']=true;
+                $safe['eligible_version_id']=$apply?$expectedVersionId:(int)$p['version_id'];
+                $safe['config_version']=(int)$channel['config_version'];
+            }
+            if(!$apply)return $safe;
+            if(!$recoverUnsupportedVideo)$p=$this->registry->registerProviderObservation($identity['project_key'],$identity['bot_key'],$channel,$message,$publishedMs);
+            if(!$p||!hash_equals(ChannelPostIncomingAdapter::contentFingerprint((array)($p['snapshot']??[])),$hash))throw new RuntimeException('target_registration_changed');
+            if($p['state']==='sent'&&ChannelPostIncomingAdapter::containsOnlyButton($snapshot,ChannelPostButtonTransport::buttonUrl($p),(string)$channel['button_text']))return array_replace($safe,['state'=>'sent','already_present'=>true]);
+            $result=(new ChannelPostAutomationService($this->registry,$this->transport))->processPublication($identity['project_key'],'max',$identity['bot_key'],(int)$p['publication_id'],(int)$p['version_id']);
+            $safe=['ok'=>($result['state']??'')==='sent','state'=>$result['state']??'unknown','reason'=>$result['reason']??'','content_hash'=>$hash,'version_id'=>(int)$p['version_id'],'version_number'=>(int)$p['version_number'],'receipt'=>$result['receipt']??[]]+$counts;
+            if($recoverUnsupportedVideo)$safe['recovered_from_version_id']=$expectedVersionId;
+            return $safe;
+        } catch(Throwable $e) {return ['ok'=>false,'state'=>'requires_attention','reason'=>self::reason($e)];}
+    }
+
+    /** Exact operator-selected confirmation; it never retries a rejected edit. */
+    public function confirmReadFailure(array $identity, string $channelId, int $publicationId, int $expectedVersionId, int $expectedConfigVersion, string $expectedHash = '', bool $apply = false): array
+    {
+        $confirmationStarted = false;
+        try {
+            self::identity($identity);
+            if ($publicationId <= 0 || $expectedVersionId <= 0 || $expectedConfigVersion <= 0
+                || ($expectedHash !== '' && !preg_match('/\A[a-f0-9]{64}\z/D', $expectedHash))
+                || ($apply && $expectedHash === '')) throw new RuntimeException('exact_read_failure_confirmation_target_required');
+            $publication = $this->registry->publication($publicationId);
+            if (!$publication || $publication['project_key'] !== $identity['project_key'] || $publication['platform'] !== 'max'
+                || $publication['bot_key'] !== $identity['bot_key'] || $publication['channel_id'] !== $channelId
+                || $publication['version_id'] !== $expectedVersionId) throw new RuntimeException('target_publication_changed');
+            if ((int)$publication['channel']['config_version'] !== $expectedConfigVersion) throw new RuntimeException('channel_configuration_changed');
+            if (!ChannelPostRegistryService::maxReadFailureConfirmationEligible($publication)) throw new RuntimeException('read_failure_confirmation_not_eligible');
+            $hash = ChannelPostIncomingAdapter::contentFingerprint($publication['snapshot']);
+            if ($expectedHash !== '' && !hash_equals($expectedHash, $hash)) throw new RuntimeException('target_content_changed');
+            $paths = ['/me', '/chats/' . $channelId . '/members/me', '/messages/' . rawurlencode($publication['external_message_id'])];
+            $reads = 0; $beforeWriteCalls = 0; $message = null;
+            $request = function (string $platform, string $method, string $path, array $query, ?array $body) use ($paths, &$reads, &$message): array {
+                if ($platform !== 'max' || $method !== 'GET' || $query !== [] || $body !== null || $reads >= 3 || $path !== $paths[$reads]) throw new RuntimeException('confirmation_read_scope_changed');
+                $reads++;
+                $response = ($this->request)($platform, $method, $path, $query, $body);
+                if ($reads === 3 && is_array($response['data'] ?? null)) $message = $response['data'];
+                return $response;
+            };
+            $proof = (new ChannelPostButtonTransport($request))->attempt($publication, static function () use (&$beforeWriteCalls): bool { $beforeWriteCalls++; return false; }, true);
+            if ($beforeWriteCalls !== 0 || $reads !== 3 || ($proof['state'] ?? '') !== 'sent' || ($proof['reason'] ?? '') !== 'already_present'
+                || ($proof['receipt']['write_attempts'] ?? -1) !== 0 || !is_array($message)) throw new RuntimeException('existing_button_not_confirmed');
+            $snapshot = ChannelPostIncomingAdapter::maxSnapshot($message);
+            if (!$snapshot) throw new RuntimeException('observed_post_does_not_match');
+            $confirmationStarted = $apply;
+            $this->registry->confirmMaxReadFailure($publication, $snapshot, $proof, $apply);
+            return ['ok' => true, 'state' => $apply ? 'sent' : 'preview', 'reason' => 'already_present',
+                'publication_id' => $publicationId, 'version_id' => $expectedVersionId, 'config_version' => $expectedConfigVersion,
+                'content_hash' => $hash, 'database_writes' => $apply ? 1 : 0, 'provider_writes' => 0, 'receipt' => $proof['receipt']];
+        } catch (Throwable $e) {
+            $reason = self::reason($e);
+            // A lost commit acknowledgement is not proof that the CAS failed.
+            return ['ok' => false, 'state' => $confirmationStarted && $reason === 'reconciliation_unavailable' ? 'unknown' : 'requires_attention', 'reason' => $reason, 'provider_writes' => 0];
+        }
+    }
+
+
+    /** Authorized original-receipt confirmation; zero provider calls in both modes. */
+    public function confirmTelegramOriginalEdit(array $identity, int $publicationId, int $versionId, int $configVersion, array $evidence, string $expectedDigest = '', bool $apply = false): array
+    {
+        $started=false;
+        try {
+            if(($identity['platform']??'')!=='telegram'||!is_string($identity['project_key']??null)||!is_string($identity['bot_key']??null)
+                ||$publicationId<=0||$versionId<=0||$configVersion<=0)throw new RuntimeException('exact_original_edit_target_required');
+            $p=$this->registry->publication($publicationId);
+            if(!$p||$p['platform']!=='telegram'||$p['project_key']!==$identity['project_key']||$p['bot_key']!==$identity['bot_key']
+                ||$p['version_id']!==$versionId)throw new RuntimeException('target_publication_changed');
+            if((int)$p['channel']['config_version']!==$configVersion)throw new RuntimeException('channel_configuration_changed');
+            $digest=hash('sha256',json_encode(['publication'=>$p,'evidence'=>$evidence],JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR));
+            if(($apply||$expectedDigest!=='')&&(!preg_match('/\A[a-f0-9]{64}\z/D',$expectedDigest)||!hash_equals($digest,$expectedDigest)))throw new RuntimeException('original_edit_binding_changed');
+            $started=$apply;
+            $current=$this->registry->confirmTelegramEditReadFailure($p,$evidence,$apply);
+            return ['ok'=>true,'state'=>$apply?'sent':'preview','publication_id'=>$publicationId,'version_id'=>$versionId,
+                'config_version'=>$configVersion,'confirmation_digest'=>$digest,'content_hash'=>$current['content_hash'],
+                'database_writes'=>$apply?1:0,'provider_calls'=>0,'provider_writes'=>0];
+        } catch(Throwable $e) {
+            $known=['exact_original_edit_target_required','target_publication_changed','channel_configuration_changed','original_edit_binding_changed','original_edit_confirmation_not_eligible','original_edit_observation_changed'];
+            $reason=in_array($e->getMessage(),$known,true)?$e->getMessage():'reconciliation_unavailable';
+            return ['ok'=>false,'state'=>$started&&$reason==='reconciliation_unavailable'?'unknown':'requires_attention','reason'=>$reason,'provider_calls'=>0,'provider_writes'=>0];
+        }
+    }
+
+    private function verify(array $channel): void
+    {
+        $check=$this->transport->verifyChannel($channel);
+        if(($check['state']??'')!=='ready')throw new RuntimeException('provider_channel_verification_failed');
+    }
+
+    private function page(string $channelId,int $before,int $after): array
+    {
+        $r=($this->request)('max','GET','/messages',['chat_id'=>$channelId,'from'=>$before,'to'=>$after,'count'=>100],null);
+        if(!empty($r['transport_error'])||(int)($r['http']??0)!==200||!is_array($r['data']['messages']??null)||!array_is_list($r['data']['messages'])||count($r['data']['messages'])>100)throw new RuntimeException('provider_page_unavailable');
+        $messages=$r['data']['messages'];$ids=[];
+        foreach($messages as $m) {
+            $stamp=$m['timestamp']??null;$mid=$m['body']['mid']??null;
+            if(!is_array($m)||($m['recipient']['chat_type']??'')!=='channel'||(string)($m['recipient']['chat_id']??'')!==$channelId
+                ||(!is_int($stamp)&&!is_string($stamp))||!preg_match('/\A[1-9][0-9]{0,15}\z/',(string)$stamp)
+                ||(int)$stamp<$after||(int)$stamp>$before||!is_string($mid)||!preg_match('/\A[A-Za-z0-9_.-]{1,191}\z/',$mid)||isset($ids[$mid])
+                ||ChannelPostIncomingAdapter::maxSnapshot($m)===null)throw new RuntimeException('provider_page_identity_mismatch');
+            $ids[$mid]=true;
+        }
+        return $messages;
+    }
+    private static function identity(array $identity): void
+    {
+        if(($identity['platform']??'')!=='max'||!is_string($identity['project_key']??null)||!is_string($identity['bot_key']??null))throw new RuntimeException('canonical_identity_required');
+    }
+    private static function reason(Throwable $e): string
+    {
+        $known=['channel_configuration_changed','provider_channel_verification_failed','provider_page_unavailable','provider_page_identity_mismatch','pagination_boundary_requires_attention','reconciliation_claim_changed','exact_target_required','exact_video_recovery_target_required','channel_not_enabled','exact_target_not_unique','unsupported_post','target_content_changed','target_registration_changed','target_version_changed','legacy_video_not_eligible','legacy_video_content_changed','canonical_identity_required','exact_read_failure_confirmation_target_required','target_publication_changed','read_failure_confirmation_not_eligible','read_only_button_confirmation_required','observed_post_does_not_match','existing_button_not_confirmed'];
+        return in_array($e->getMessage(),$known,true)?$e->getMessage():'reconciliation_unavailable';
+    }
+}
+
