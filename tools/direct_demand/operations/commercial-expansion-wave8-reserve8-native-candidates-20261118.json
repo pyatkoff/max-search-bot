@@ -1,0 +1,301 @@
+{
+  "schema_version": 1,
+  "stage": "catalogue_and_provider_profile_screened",
+  "publication_baseline": 1134,
+  "excluded_country_ids": [
+    11
+  ],
+  "owner_issue": "https://github.com/pyatkoff/max-search-bot/issues/1566",
+  "rows": [
+    {
+      "work_id": "W7_018",
+      "native_tourvisor_id": 1078,
+      "name": "TUI MAGIC LIFE BELEK (EX. CLUB ASTERIA BELEK)",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Белек",
+      "category": 5,
+      "aliases_to_check": [
+        "TUI MAGIC LIFE BELEK (EX. CLUB ASTERIA BELEK)",
+        "TUI MAGIC LIFE BELEK",
+        "CLUB ASTERIA BELEK"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=TUI+Magic&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1078",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 81,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-asteria-81676216.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-asteria-81676200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-asteria-81676201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-asteria-81676202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-asteria-81676203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-asteria-81676204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-asteria-81676205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-asteria-81676206.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W7_019",
+      "native_tourvisor_id": 17489,
+      "name": "TUI MAGIC LIFE MASMAVI (EX. ROBINSON CLUB MASMAVI)",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Белек",
+      "category": 5,
+      "aliases_to_check": [
+        "TUI MAGIC LIFE MASMAVI (EX. ROBINSON CLUB MASMAVI)",
+        "TUI MAGIC LIFE MASMAVI",
+        "ROBINSON CLUB MASMAVI"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=TUI+Magic&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=17489",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 71,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/jacaranda-club-resort-102603324.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/jacaranda-club-resort-102603320.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/jacaranda-club-resort-102603321.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/jacaranda-club-resort-102603322.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/jacaranda-club-resort-102603323.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/jacaranda-club-resort-102603325.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/jacaranda-club-resort-102603326.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/jacaranda-club-resort-102603327.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W7_020",
+      "native_tourvisor_id": 1679,
+      "name": "CLUB TUANA FETHIYE (EX. MAJESTY CLUB TUANA PARK)",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Фетхие",
+      "category": 5,
+      "aliases_to_check": [
+        "CLUB TUANA FETHIYE (EX. MAJESTY CLUB TUANA PARK)",
+        "CLUB TUANA FETHIYE",
+        "MAJESTY CLUB TUANA PARK"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Fethiye&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1679",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 82,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/majesty-club-tuana-park-89127800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/majesty-club-tuana-park-89131700.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/majesty-club-tuana-park-89134900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/majesty-club-tuana-park-89138600.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/majesty-club-tuana-park-89149700.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/majesty-club-tuana-park-89155000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/majesty-club-tuana-park-89127801.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/majesty-club-tuana-park-89127802.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W7_038",
+      "native_tourvisor_id": 43649,
+      "name": "NOVOTEL MARSA ALAM",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Марса Алам",
+      "category": 5,
+      "aliases_to_check": [
+        "NOVOTEL MARSA ALAM"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marsa+Alam&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43649",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 60,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/43649-27515600.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/43649-27515701.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/43649-27515702.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/43649-27515803.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/43649-27515804.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/43649-27515805.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/43649-27515806.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/43649-27515907.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W7_039",
+      "native_tourvisor_id": 74019,
+      "name": "HILTON PYRAMIDS GOLF",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Каир",
+      "category": 5,
+      "aliases_to_check": [
+        "HILTON PYRAMIDS GOLF"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hilton&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=74019",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory"
+      ],
+      "photo_urls_in_bound_gallery": 60,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/74019-79314958.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/74019-79313800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/74019-79313901.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/74019-79313902.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/74019-79313903.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/74019-79313904.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/74019-79313905.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/74019-79313906.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W7_040",
+      "native_tourvisor_id": 75504,
+      "name": "MARRIOTT MENA HOUSE",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Каир",
+      "category": 5,
+      "aliases_to_check": [
+        "MARRIOTT MENA HOUSE"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marriott&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75504",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 57,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/75504-57057500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/75504-57057601.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/75504-57057602.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/75504-57057603.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/75504-57057604.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/75504-57057705.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/75504-57057706.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/75504-57057707.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W7_057",
+      "native_tourvisor_id": 2590,
+      "name": "DUSIT AJMAN (EX. AJMAN HOTEL)",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Аджман",
+      "category": 5,
+      "aliases_to_check": [
+        "DUSIT AJMAN (EX. AJMAN HOTEL)",
+        "DUSIT AJMAN",
+        "AJMAN HOTEL"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Ajman&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2590",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 43,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-ajman-9241300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-ajman-9241301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-ajman-9241304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-ajman-9241305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-ajman-9241306.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-ajman-9241307.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-ajman-9241308.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-ajman-9241309.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W7_059",
+      "native_tourvisor_id": 73896,
+      "name": "SOFITEL DUBAI THE OBELISK",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "SOFITEL DUBAI THE OBELISK"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sofitel&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=73896",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 66,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-dubai-the-obelisk-102502313.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-dubai-the-obelisk-102502310.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-dubai-the-obelisk-102502311.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-dubai-the-obelisk-102502312.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-dubai-the-obelisk-102502314.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-dubai-the-obelisk-102502315.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-dubai-the-obelisk-102502316.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-dubai-the-obelisk-102502317.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    }
+  ],
+  "holds": [
+    {
+      "native_tourvisor_id": 82564,
+      "reason": "Current saved profile reports pool closed from20Mar2026 with no confirmed reopening; no invented pool availability."
+    }
+  ]
+}
