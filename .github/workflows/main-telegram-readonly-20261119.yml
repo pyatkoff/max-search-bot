@@ -1,0 +1,106 @@
+name: Main Telegram AnyTour bounded read-only access diagnosis
+on:
+  push:
+    branches: [audit/main-telegram-readonly-20261119]
+    paths: ['.github/workflows/main-telegram-readonly-20261119.yml']
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: main-telegram-readonly-diagnosis
+  cancel-in-progress: false
+jobs:
+  read-only:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == 'bd8e248f7138ea75cb9fda2dcf44beb631c633a5' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Prepare bounded read-only diagnosis; no sender
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir pub
+          cat > pub/read-only.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          ini_set('display_errors','0');ini_set('log_errors','0');
+          if(PHP_SAPI!=='cli'||trim((string)shell_exec('git rev-parse HEAD'))!=='bd8e248f7138ea75cb9fda2dcf44beb631c633a5')exit(2);
+          ob_start();require getcwd().'/config.php';require_once getcwd().'/services/ChannelPostRuntime.php';require_once getcwd().'/integrations/ChannelPostApiTransport.php';ob_end_clean();
+          function readOnlyTelegram(string $method,array $body):array {if(!in_array($method,['getMe','getChat','getChatMember'],true))throw new RuntimeException('method_denied');return ChannelPostApiTransport::buttonRequest('telegram','POST',$method,[],$body);}
+          $out=['mode'=>'MAIN_TELEGRAM_READ_ONLY','checked_at'=>gmdate('c'),'provider_write_attempts'=>0,'db_writes'=>0];
+          $me=readOnlyTelegram('getMe',[]);$bot=$me['data']['result']??[];
+          $out['bot']=['http'=>$me['http'],'ok'=>$me['data']['ok']??false,'id'=>$bot['id']??null,'username'=>$bot['username']??null];
+          if(($me['data']['ok']??false)!==true||($bot['username']??'')!=='anyru_bot'||!is_int($bot['id']??null)){$out['stop']='canonical_bot_identity';echo json_encode($out),PHP_EOL;exit(1);}
+          $chat=readOnlyTelegram('getChat',['chat_id'=>'@AnyTour']);$c=$chat['data']['result']??[];
+          $out['chat']=['http'=>$chat['http'],'ok'=>$chat['data']['ok']??false]+array_intersect_key($c,array_flip(['id','type','title','username']));
+          if(($chat['data']['ok']??false)!==true||strtolower((string)($c['username']??''))!=='anytour'||($c['type']??'')!=='channel'||!is_int($c['id']??null)){$out['stop']='exact_channel_identity';echo json_encode($out),PHP_EOL;exit(1);}
+          $member=readOnlyTelegram('getChatMember',['chat_id'=>$c['id'],'user_id'=>$bot['id']]);$m=$member['data']['result']??[];
+          $out['rights']=['http'=>$member['http'],'ok'=>$member['data']['ok']??false]+array_intersect_key($m,array_flip(['status','can_edit_messages','can_post_messages','can_delete_messages','is_anonymous']));
+          $pdo=ConversationDb::connection();$pdo->exec('SET SESSION TRANSACTION READ ONLY');$pdo->beginTransaction();
+          try{
+          $q=$pdo->prepare("SELECT pc.id,pc.channel_id,pc.display_name,pc.bot_key,pc.is_enabled,pc.config_version FROM post_channels pc JOIN projects p ON p.id=pc.project_id WHERE p.project_key='anytour' AND pc.platform='telegram' AND pc.channel_id=? LIMIT 2");$q->execute([(string)$c['id']]);$rows=$q->fetchAll(PDO::FETCH_ASSOC);$out['registry']=$rows;$out['stored_posts']=[];
+          foreach($rows as $row){$q=$pdo->prepare('SELECT p.id,p.external_message_id,p.current_version_id,p.created_at,v.state,v.snapshot_json FROM post_publications p LEFT JOIN post_versions v ON v.id=p.current_version_id WHERE p.post_channel_id=? ORDER BY p.id ASC LIMIT 10');$q->execute([$row['id']]);foreach($q->fetchAll(PDO::FETCH_ASSOC) as $p){$s=json_decode((string)($p['snapshot_json']??''),true)??[];$out['stored_posts'][]=['publication_id'=>$p['id'],'external_message_id'=>$p['external_message_id'],'version_id'=>$p['current_version_id'],'state'=>$p['state'],'registered_at'=>$p['created_at'],'published_at'=>$s['published_at']??null,'post_url'=>$s['post_url']??null,'text_prefix'=>mb_substr((string)($s['text']??''),0,160),'stored_keyboard_present'=>!empty($s['keyboard']),'media_types'=>array_column($s['attachments']??[],'type')];}}
+          $out['history_scope']='at most 10 earliest registered publication snapshots; not full provider history; stored keyboard is not current live proof';$out['ok']=true;
+          }finally{$pdo->rollBack();}
+          echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          PHP
+          php -l pub/read-only.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read main channel registry and provider metadata without writes
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = bd8e248f7138ea75cb9fda2dcf44beb631c633a5
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; test -z "$(git status --porcelain --untracked-files=no)"; php' < pub/read-only.php > pub/result.json
+          cat pub/result.json
+      - name: Preserve original diagnosis
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: main-telegram-readonly-20261119
+          path: pub/result.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Remove runner-only authentication
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
