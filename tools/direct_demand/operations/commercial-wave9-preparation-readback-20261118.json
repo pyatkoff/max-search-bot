@@ -1,0 +1,455 @@
+{
+  "schema_version": 1,
+  "state": "WAVE9_PREPARATION_READBACK_COMPLETE_NOT_SENT",
+  "owner": "HOTEL/CONTENT",
+  "baseline_pairs": 1142,
+  "confirmed_new_pairs": 0,
+  "new_posts": 0,
+  "feed_rows_added": 0,
+  "screened_hotels": 50,
+  "profile_id_name_country_matches": 60,
+  "covers_rendered": 49,
+  "prospective_subset_after_registry_and_visual_holds": 47,
+  "publication_admitted_hotels": 0,
+  "country_ids": [
+    4,
+    1,
+    9
+  ],
+  "excluded_country_ids": [
+    11
+  ],
+  "registry_run_id": 44222702440,
+  "registry_artifact_id": 14390824286,
+  "registry_artifact_sha256": "9b481010bb914407a322d3faa73f2f494a2bb332f7f23f3afab8f16b5e233153",
+  "registry_receipt": {
+    "installed_sha": "cc017ee5bb669f4c7c13efc91d5c5812a50e55f2",
+    "checked_at": "2026-11-18T02:22:05+00:00",
+    "native_hotel_ids": [
+      30609,
+      2139,
+      59539,
+      76212,
+      1965,
+      1083,
+      3418,
+      1108,
+      103733,
+      157,
+      76819,
+      2643,
+      58808,
+      77650,
+      24940,
+      76112,
+      356,
+      1000,
+      23285,
+      23287,
+      28505,
+      40880,
+      44491,
+      1489,
+      2584,
+      78929,
+      372,
+      1618,
+      44669,
+      56003,
+      70138,
+      1064,
+      1111,
+      39260,
+      75042,
+      67099,
+      141330,
+      67048,
+      4535,
+      63106,
+      65906,
+      104048,
+      122841,
+      32333,
+      79974,
+      2583,
+      75800,
+      104122,
+      76311,
+      16776
+    ],
+    "channels": {
+      "telegram": 1147,
+      "max": 1152
+    },
+    "matches": [
+      {
+        "requested_id": 1965,
+        "registry_hotel_id": 98723,
+        "platform": "telegram",
+        "publication_id": 363,
+        "version_id": 8370,
+        "reason": [
+          "title"
+        ],
+        "title": "✈️ Туры в Cleopatra Luxury Resort Sharm Adults Only"
+      },
+      {
+        "requested_id": 1965,
+        "registry_hotel_id": 21476,
+        "platform": "telegram",
+        "publication_id": 1261,
+        "version_id": 4190,
+        "reason": [
+          "title"
+        ],
+        "title": "✈️ Туры в Cleopatra Luxury Resort Makadi Bay"
+      },
+      {
+        "requested_id": 1965,
+        "registry_hotel_id": 0,
+        "platform": "max",
+        "publication_id": 366,
+        "version_id": 8369,
+        "reason": [
+          "title"
+        ],
+        "title": "✈️ Туры в Cleopatra Luxury Resort Sharm Adults Only"
+      },
+      {
+        "requested_id": 1965,
+        "registry_hotel_id": 0,
+        "platform": "max",
+        "publication_id": 1269,
+        "version_id": 4189,
+        "reason": [
+          "title"
+        ],
+        "title": "✈️ Туры в Cleopatra Luxury Resort Makadi Bay"
+      }
+    ]
+  },
+  "media_run_id": 44222702456,
+  "media_review_artifact_id": 14391501860,
+  "media_review_artifact_sha256": "e056cc6e8735d5ea541bc3acd4b98506b1367006ba16e312ee966cda0bdc8d73",
+  "media_individual_artifact_id": 14391217999,
+  "media_individual_artifact_sha256": "bc1878f124c82e59a4d3b9f0e8a4bff95579a40de31e6a07ebf988cca67ebe9e",
+  "cover_counts": {
+    "cover_blocked": 1,
+    "preview_ready": 49
+  },
+  "visually_read_sheets": [
+    "covers-01.jpg",
+    "covers-02.jpg",
+    "covers-03.jpg",
+    "covers-04.jpg",
+    "covers-05.jpg"
+  ],
+  "new_holds": [
+    {
+      "native_tourvisor_id": 1965,
+      "reason": "four title matches in existing publication databases; distinct Cleopatra property scope must be resolved before admission"
+    },
+    {
+      "native_tourvisor_id": 4535,
+      "reason": "all sampled gallery images fail dimension checks; cover not generated"
+    },
+    {
+      "native_tourvisor_id": 76212,
+      "reason": "visual uncertainty: cover combines Palm Tower with classical resort pool image; verify or replace image subset before admission"
+    }
+  ],
+  "prior_intake_holds": [
+    {
+      "native_tourvisor_id": 2173,
+      "name": "MEGASARAY WESTBEACH ANTALYA (EX. HARRINGTON PARK RESORT)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 3423,
+      "name": "AKKA HOTELS ANTEDON RESIDENCE VILLAS",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 1259,
+      "name": "IC HOTELS GREEN PALACE & VILLAS",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 74510,
+      "name": "SULTAN GARDENS VILLAS",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 127774,
+      "name": "DUSIT AJMAN RESORT LUXURY VILLAS (EX. AJMAN HOTEL LUXURY VILLAS)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 8989,
+      "name": "VOGO ABU DHABI GOLF RESORT & SPA (EX. THE WESTIN ABU DHABI GOLF RESORT & SPA)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 16945,
+      "name": "TUI BLUE TROPICAL (EX. TUI FAMILY LIFE TROPICAL RESORT)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 74511,
+      "name": "GRAND ROTANA VILLAS",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 367,
+      "name": "SWISSOTEL RESORT EL QUSIER (EX. RADISSON BLU QUSIER)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 252,
+      "name": "TABA HOTEL & NELSON VILLAGE (EX. HILTON)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 15690,
+      "name": "GRAND WATERWORLD MAKADI (EX. SUNWING WATERWORLD)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 58157,
+      "name": "AL HABTOOR POLO RESORT (THE ST. REGIS DUBAI AL HABTOOR POLO RESORT AND CLUB)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 317,
+      "name": "BAY VIEW RESORT TABA HEIGHTS (EX. MARRIOTT TABA)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 261,
+      "name": "MIRAMAR RESORT TABA HEIGHTS (EX. HYATT REGENCY TABA HEIGHTS)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 314,
+      "name": "NAAMA BAY PROMENADE BEACH RESORT (EX. SHARM EL SHEIKH MARRIOTT RED SEA RESORT)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 68135,
+      "name": "DOMINA CORAL BAY SULTAN BEACH",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 79034,
+      "name": "SOFITEL DUBAI THE PALM LUXURY APARTMENTS",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 95563,
+      "name": "BELLIS DELUXE LAGOON & VILLAS",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 111122,
+      "name": "INTERCONTINENTAL RESIDENCES ABU DHABI AN IHG HOTEL",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 73011,
+      "name": "DOUBLETREE BY HILTON RAS AL KHAIMAH CORNICHE & RESIDENCE",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 4186,
+      "name": "SRNTY SUN RAY (EX. SERENITY ALMA HEIGHTS)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 192,
+      "name": "DOMINA CORAL BAY SULTAN",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 15751,
+      "name": "DANCENTER LUXE (EX. CONCORDE FUJAIRAH)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 194,
+      "name": "DOMINA CORAL BAY SULTAN POOL",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 152123,
+      "name": "IC HOTELS RESIDENCE",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 116751,
+      "name": "INTERCONTINENTAL RESIDENCES BUSINESS BAY",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 45865,
+      "name": "INTERCONTINENTAL RESIDENCE SUITES DUBAI FESTIVAL CITY",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 63879,
+      "name": "THE ST. REGIS DOWNTOWN DUBAI (EX. RENAISSANCE DUBAI DOWNTOWN)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 60665,
+      "name": "HILTON CAIRO GRAND NILE (EX. GRAND NILE TOWER)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 110279,
+      "name": "FUJAIRAH RESORT & SPA",
+      "reason": "bound gallery contains fewer than3 photos"
+    },
+    {
+      "native_tourvisor_id": 128892,
+      "name": "FORTUNE AJMAN BEACH",
+      "reason": "bound gallery contains fewer than3 photos"
+    },
+    {
+      "native_tourvisor_id": 162752,
+      "name": "CLEOPATRA SIGNATURE MARSA ALAM",
+      "reason": "bound gallery contains fewer than3 photos"
+    },
+    {
+      "native_tourvisor_id": 104659,
+      "name": "SHERATON MONTAZAH ALEXANDRIA",
+      "reason": "bound gallery contains fewer than3 photos"
+    },
+    {
+      "native_tourvisor_id": 104504,
+      "name": "HILTON ALEXANDRIA GREEN PLAZA",
+      "reason": "bound gallery contains fewer than3 photos"
+    },
+    {
+      "native_tourvisor_id": 42650,
+      "name": "FORTUNA AJMAN",
+      "reason": "bound gallery contains fewer than3 photos"
+    },
+    {
+      "native_tourvisor_id": 83117,
+      "name": "CORAL FORTUNA RAS AL KHAIMAH",
+      "reason": "bound gallery contains fewer than3 photos"
+    },
+    {
+      "native_tourvisor_id": 120607,
+      "name": "HILTON ALEXANDRIA KINGS RANCH",
+      "reason": "bound gallery contains fewer than3 photos"
+    },
+    {
+      "native_tourvisor_id": 131233,
+      "name": "SERENITY ALMA HEIGHTS ROSS PARK COLLECTION",
+      "reason": "sub-property of Serenity Alma Heights; independent object unconfirmed"
+    },
+    {
+      "native_tourvisor_id": 148124,
+      "name": "LIMAK AMBASSADORE",
+      "reason": "bound gallery contains fewer than3 photos"
+    }
+  ],
+  "prospective_native_ids": [
+    30609,
+    2139,
+    59539,
+    1083,
+    3418,
+    1108,
+    103733,
+    157,
+    76819,
+    2643,
+    58808,
+    77650,
+    24940,
+    76112,
+    356,
+    1000,
+    23285,
+    23287,
+    28505,
+    40880,
+    44491,
+    1489,
+    2584,
+    78929,
+    372,
+    1618,
+    44669,
+    56003,
+    70138,
+    1064,
+    1111,
+    39260,
+    75042,
+    67099,
+    141330,
+    67048,
+    63106,
+    65906,
+    104048,
+    122841,
+    32333,
+    79974,
+    2583,
+    75800,
+    104122,
+    76311,
+    16776
+  ],
+  "media_receipt_sha256": "51b93c5ebb70396103e23fd3cca735f4d251040816ea822084d248f2a7f7c508",
+  "intake_commit": "732859495d63aa95b35796c6b86dfcd1b7475bad",
+  "intake_path": "tools/direct_demand/operations/commercial-expansion-wave9-50-native-candidates-20261118.json",
+  "profile_archive_path": "tools/direct_demand/operations/commercial-wave9-profile-screen-20261118.json.gz",
+  "profile_archive_sha256": "96c234085b37fa6a24460a025945a4fbcf6d0767f25959dea1551025477b6e17",
+  "source_profiles_must_be_reused_without_new_research": true,
+  "next_required": [
+    "ordinary selling editorial text from retained exact profile facts, preserving material conditions",
+    "source admission using admitted subset and frozen approved covers",
+    "fresh FEED207 terminal or explicit handoff before any sender",
+    "fresh owner/main/installed/locks/absence/country guards immediately before native operation"
+  ],
+  "sender_operations_created": 0,
+  "native_sender_calls": 0,
+  "feed_or_price_writes": 0,
+  "feed_window_owner_comment": 6966651422,
+  "feed_window_not_released_at_check": true,
+  "public_feeds_read_only": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "url": "https://app.anytoour.ru/feed/hotel-posts-telegram.xml",
+      "http": 200,
+      "rows": 670,
+      "duplicate_ids": 0,
+      "sha256": "c587b3768a3539f270493b4d227f42bbc08fa0ef63704d3a2602f2bd86d955d3",
+      "verified_at_utc": "2026-11-18T02:19:20.929348+00:00"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "url": "https://app.anytoour.ru/feed/hotel-posts-max.xml",
+      "http": 200,
+      "rows": 670,
+      "duplicate_ids": 0,
+      "sha256": "300f2387b47bc41205e3d5c0bfe00e8bc2d66c439822e0935b8c771a819a42a9",
+      "verified_at_utc": "2026-11-18T02:19:20.192557+00:00"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+      "http": 200,
+      "rows": 1340,
+      "duplicate_ids": 0,
+      "sha256": "25bee83c6e74629dcd4cd96afd0e77da9bdccf5697e79cb2b5fb0ac18a21baef",
+      "verified_at_utc": "2026-11-18T02:19:20.434047+00:00"
+    }
+  ],
+  "published_pairs_pending_feed_owner": 472,
+  "source_scope": "same existing carrier, queue and read-only registry workflow; no new actor/schedule"
+}
