@@ -1,0 +1,2028 @@
+{
+  "schema_version": 1,
+  "stage": "catalogue_and_provider_profile_screened",
+  "publication_baseline": 1142,
+  "owner_issue": "https://github.com/pyatkoff/max-search-bot/issues/1566",
+  "excluded_country_ids": [
+    11
+  ],
+  "selection": {
+    "query_count": 80,
+    "catalogue_candidates": 95,
+    "profiles_read": 60,
+    "exact_id_name_country_match": 60,
+    "prior_ids_excluded": 1282,
+    "prior_rows_repeated": 0,
+    "supplier_searches": 0,
+    "price_searches": 0,
+    "fresh_both_registry_check_pending": true,
+    "native_sender_waits_for_existing_FEED_terminal": 6966651422
+  },
+  "rows": [
+    {
+      "work_id": "W9_001",
+      "native_tourvisor_id": 30609,
+      "name": "CLUB MED PALMIYE KEMER",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Кемер",
+      "category": 5,
+      "aliases_to_check": [
+        "CLUB MED PALMIYE KEMER"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Club&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=30609",
+      "profile_observed_at_utc": "2026-11-18T02:19:10.249767+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 103,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-med-palmiye-kemer-35904200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-med-palmiye-kemer-36056600.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-med-palmiye-kemer-36065100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-med-palmiye-kemer-36075000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-med-palmiye-kemer-36094300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-med-palmiye-kemer-35910900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-med-palmiye-kemer-35929100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-med-palmiye-kemer-35962900.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_002",
+      "native_tourvisor_id": 2139,
+      "name": "CLUB BELCEKIZ BEACH",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Фетхие",
+      "category": 5,
+      "aliases_to_check": [
+        "CLUB BELCEKIZ BEACH"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Club&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2139",
+      "profile_observed_at_utc": "2026-11-18T02:19:09.283034+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 42,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-belcekiz-beach-11852000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-belcekiz-beach-11852001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-belcekiz-beach-11852002.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-belcekiz-beach-11852003.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-belcekiz-beach-11852004.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-belcekiz-beach-11852005.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-belcekiz-beach-11852006.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-belcekiz-beach-11852007.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_003",
+      "native_tourvisor_id": 59539,
+      "name": "W DUBAI THE PALM",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "W DUBAI THE PALM"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=W+Dubai&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=59539",
+      "profile_observed_at_utc": "2026-11-18T02:19:09.449516+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 47,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/w-dubai-the-palm-102403251.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/w-dubai-the-palm-102403250.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/w-dubai-the-palm-102403252.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/w-dubai-the-palm-102403253.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/w-dubai-the-palm-102403254.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/w-dubai-the-palm-102403255.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/w-dubai-the-palm-102403256.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/w-dubai-the-palm-102403257.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_004",
+      "native_tourvisor_id": 76212,
+      "name": "THE ST. REGIS DUBAI THE PALM",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "THE ST. REGIS DUBAI THE PALM"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=St+Regis&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76212",
+      "profile_observed_at_utc": "2026-11-18T02:19:10.248879+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 60,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/76212-47369909.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/76212-47369500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/76212-47369601.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/76212-47369602.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/76212-47369703.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/76212-47369704.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/76212-47369805.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/76212-47369806.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_005",
+      "native_tourvisor_id": 1965,
+      "name": "CLEOPATRA LUXURY RESORT",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Шарм-эль-Шейх",
+      "category": 5,
+      "aliases_to_check": [
+        "CLEOPATRA LUXURY RESORT"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cleopatra&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1965",
+      "profile_observed_at_utc": "2026-11-18T02:19:10.396490+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 59,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/1965-29065703.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/1965-29065600.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/1965-29065601.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/1965-29065702.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/1965-29065704.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/1965-29065705.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/1965-29065706.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/1965-29065807.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_006",
+      "native_tourvisor_id": 1083,
+      "name": "CLUB FELICIA VILLAGE",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Сиде",
+      "category": 5,
+      "aliases_to_check": [
+        "CLUB FELICIA VILLAGE"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Club&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1083",
+      "profile_observed_at_utc": "2026-11-18T02:19:15.040143+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 44,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-felicia-village-409500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-felicia-village-409501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-felicia-village-409502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-felicia-village-409504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-felicia-village-409505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-felicia-village-409506.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-felicia-village-409507.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-felicia-village-409508.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_007",
+      "native_tourvisor_id": 3418,
+      "name": "TUI BLUE SHERWOOD BELEK ADULTS ONLY",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Белек",
+      "category": 5,
+      "aliases_to_check": [
+        "TUI BLUE SHERWOOD BELEK ADULTS ONLY"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=TUI&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=3418",
+      "profile_observed_at_utc": "2026-11-18T02:19:14.992784+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 58,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/3418-93449200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/3418-93449201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/3418-93449202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/3418-93449303.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/3418-93449304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/3418-93449305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/3418-93449306.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/3418-93449307.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_008",
+      "native_tourvisor_id": 1108,
+      "name": "CLUB KASTALIA HOLIDAY VILLAGE",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Аланья",
+      "category": 5,
+      "aliases_to_check": [
+        "CLUB KASTALIA HOLIDAY VILLAGE"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Club&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1108",
+      "profile_observed_at_utc": "2026-11-18T02:19:15.552399+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 56,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-kastalia-82639811.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-kastalia-82620900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-kastalia-82620901.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-kastalia-82620902.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-kastalia-82620903.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-kastalia-82620904.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-kastalia-82620905.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-kastalia-82620906.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_009",
+      "native_tourvisor_id": 103733,
+      "name": "CLEOPATRA LUXURY RESORT NORTH COAST SIDI HENEISH",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Матрух",
+      "category": 5,
+      "aliases_to_check": [
+        "CLEOPATRA LUXURY RESORT NORTH COAST SIDI HENEISH"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Cleopatra&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=103733",
+      "profile_observed_at_utc": "2026-11-18T02:19:15.863977+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 55,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/cleopatra-luxury-resort-north-coast-sidi-heneish-2608304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/cleopatra-luxury-resort-north-coast-sidi-heneish-2608300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/cleopatra-luxury-resort-north-coast-sidi-heneish-2608300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/cleopatra-luxury-resort-north-coast-sidi-heneish-2608301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/cleopatra-luxury-resort-north-coast-sidi-heneish-2608302.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/cleopatra-luxury-resort-north-coast-sidi-heneish-2608303.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/cleopatra-luxury-resort-north-coast-sidi-heneish-2608305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/cleopatra-luxury-resort-north-coast-sidi-heneish-2608306.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_010",
+      "native_tourvisor_id": 157,
+      "name": "CONTINENTAL GARDEN REEF RESORT",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Шарм-эль-Шейх",
+      "category": 5,
+      "aliases_to_check": [
+        "CONTINENTAL GARDEN REEF RESORT"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Reef&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=157",
+      "profile_observed_at_utc": "2026-11-18T02:19:15.848015+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 45,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/continental-garden-reef-resort-713300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/continental-garden-reef-resort-713301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/continental-garden-reef-resort-713302.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/continental-garden-reef-resort-713303.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/continental-garden-reef-resort-713304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/continental-garden-reef-resort-713305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/continental-garden-reef-resort-713306.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/continental-garden-reef-resort-713307.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_011",
+      "native_tourvisor_id": 76819,
+      "name": "GRAND OCEAN HOTEL & RESORT EL SOKHNA",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Айн-эль-Сохна",
+      "category": 5,
+      "aliases_to_check": [
+        "GRAND OCEAN HOTEL & RESORT EL SOKHNA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Grand&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76819",
+      "profile_observed_at_utc": "2026-11-18T02:19:19.863982+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 32,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/grand-ocean-hotel-resort-el-sokhna-1508400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/grand-ocean-hotel-resort-el-sokhna-1508403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/grand-ocean-hotel-resort-el-sokhna-1508404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/grand-ocean-hotel-resort-el-sokhna-1508405.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/grand-ocean-hotel-resort-el-sokhna-1508406.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/grand-ocean-hotel-resort-el-sokhna-1508407.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/grand-ocean-hotel-resort-el-sokhna-1508408.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/grand-ocean-hotel-resort-el-sokhna-1508409.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_012",
+      "native_tourvisor_id": 2643,
+      "name": "RAFFLES DUBAI",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "RAFFLES DUBAI"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Raffles&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2643",
+      "profile_observed_at_utc": "2026-11-18T02:19:18.771800+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 45,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/raffles-2813000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/raffles-2813001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/raffles-2813002.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/raffles-2813003.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/raffles-2813004.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/raffles-2813005.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/raffles-2813006.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/raffles-2813007.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_013",
+      "native_tourvisor_id": 58808,
+      "name": "KAYAKAPI PREMIUM CAVES CAPPADOCIA",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Каппадокия",
+      "category": 5,
+      "aliases_to_check": [
+        "KAYAKAPI PREMIUM CAVES CAPPADOCIA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Kaya&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=58808",
+      "profile_observed_at_utc": "2026-11-18T02:19:25.133109+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 42,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kayakapi-premium-caves-cappadocia-1285201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kayakapi-premium-caves-cappadocia-1285200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kayakapi-premium-caves-cappadocia-1285202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kayakapi-premium-caves-cappadocia-1285203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kayakapi-premium-caves-cappadocia-1285204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kayakapi-premium-caves-cappadocia-1285205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kayakapi-premium-caves-cappadocia-1285206.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kayakapi-premium-caves-cappadocia-1285207.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_014",
+      "native_tourvisor_id": 77650,
+      "name": "CLUB PORTO AMORE (ADULTS ONLY 18+)",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Аланья",
+      "category": 5,
+      "aliases_to_check": [
+        "CLUB PORTO AMORE (ADULTS ONLY 18+)",
+        "CLUB PORTO AMORE"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Club&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=77650",
+      "profile_observed_at_utc": "2026-11-18T02:19:24.039573+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 82,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-porto-amore-hotel-84766703.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-porto-amore-hotel-84766700.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-porto-amore-hotel-84766701.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-porto-amore-hotel-84766702.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-porto-amore-hotel-84766704.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-porto-amore-hotel-84766705.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-porto-amore-hotel-84766706.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-porto-amore-hotel-84766707.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_015",
+      "native_tourvisor_id": 24940,
+      "name": "CONRAD DUBAI",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "CONRAD DUBAI"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Conrad&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=24940",
+      "profile_observed_at_utc": "2026-11-18T02:19:23.959591+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 38,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/conrad-dubai-115000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/conrad-dubai-115001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/conrad-dubai-115002.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/conrad-dubai-115003.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/conrad-dubai-115004.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/conrad-dubai-115005.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/conrad-dubai-115006.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/conrad-dubai-115007.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_016",
+      "native_tourvisor_id": 76112,
+      "name": "MELAS HOTEL ISTANBUL",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Стамбул",
+      "category": 5,
+      "aliases_to_check": [
+        "MELAS HOTEL ISTANBUL"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Ela&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76112",
+      "profile_observed_at_utc": "2026-11-18T02:19:23.951836+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 47,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/76112-67691500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/76112-67691602.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/76112-67691603.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/76112-67691705.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/76112-67691706.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/76112-67691808.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/76112-67691809.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/76112-67691910.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_017",
+      "native_tourvisor_id": 356,
+      "name": "PREMIER LE REVE HOTEL & SPA ADULTS ONLY 16+",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Хургада",
+      "category": 5,
+      "aliases_to_check": [
+        "PREMIER LE REVE HOTEL & SPA ADULTS ONLY 16+"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Premier&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=356",
+      "profile_observed_at_utc": "2026-11-18T02:19:25.088573+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 46,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/premier-le-reve-hotel-102102330.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/premier-le-reve-hotel-102102331.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/premier-le-reve-hotel-102102332.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/premier-le-reve-hotel-102102333.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/premier-le-reve-hotel-102102334.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/premier-le-reve-hotel-102102335.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/premier-le-reve-hotel-102102336.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/premier-le-reve-hotel-102102337.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_018",
+      "native_tourvisor_id": 1000,
+      "name": "ARYCANDA KIRMAN PREMIUM",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Аланья",
+      "category": 5,
+      "aliases_to_check": [
+        "ARYCANDA KIRMAN PREMIUM"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Kirman&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1000",
+      "profile_observed_at_utc": "2026-11-18T02:19:32.264381+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 150,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/arycanda-de-luxe-66373804.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/arycanda-de-luxe-66373800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/arycanda-de-luxe-66373801.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/arycanda-de-luxe-66373802.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/arycanda-de-luxe-66373803.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/arycanda-de-luxe-66373805.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/arycanda-de-luxe-66373806.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/arycanda-de-luxe-66373807.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_019",
+      "native_tourvisor_id": 23285,
+      "name": "SOFITEL ABU DHABI CORNICHE",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Абу-Даби",
+      "category": 5,
+      "aliases_to_check": [
+        "SOFITEL ABU DHABI CORNICHE"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sofitel&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23285",
+      "profile_observed_at_utc": "2026-11-18T02:19:32.021284+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 63,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-abu-dhabi-corniche-3014400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-abu-dhabi-corniche-3014401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-abu-dhabi-corniche-3014402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-abu-dhabi-corniche-3014403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-abu-dhabi-corniche-3014404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-abu-dhabi-corniche-3014405.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-abu-dhabi-corniche-3014406.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-abu-dhabi-corniche-3014407.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_020",
+      "native_tourvisor_id": 23287,
+      "name": "ST. REGIS ABU DHABI",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Абу-Даби",
+      "category": 5,
+      "aliases_to_check": [
+        "ST. REGIS ABU DHABI"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=St+Regis&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23287",
+      "profile_observed_at_utc": "2026-11-18T02:19:32.168257+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 83,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/st-regis-abu-dhabi-78325928.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/st-regis-abu-dhabi-78325900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/st-regis-abu-dhabi-78325901.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/st-regis-abu-dhabi-78325902.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/st-regis-abu-dhabi-78325903.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/st-regis-abu-dhabi-78325904.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/st-regis-abu-dhabi-78325906.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/st-regis-abu-dhabi-78325907.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_021",
+      "native_tourvisor_id": 28505,
+      "name": "LIMAK EURASIA LUXURY",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Стамбул",
+      "category": 5,
+      "aliases_to_check": [
+        "LIMAK EURASIA LUXURY"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Limak&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=28505",
+      "profile_observed_at_utc": "2026-11-18T02:19:33.055801+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 28,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-eurasia-5115900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-eurasia-5115901.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-eurasia-5115902.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-eurasia-5115903.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-eurasia-5115904.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-eurasia-5115905.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-eurasia-5115906.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-eurasia-5115907.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_022",
+      "native_tourvisor_id": 40880,
+      "name": "LIMAK THERMAL BOUTIQUE HOTEL YALOVA",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Стамбул",
+      "category": 5,
+      "aliases_to_check": [
+        "LIMAK THERMAL BOUTIQUE HOTEL YALOVA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Limak&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=40880",
+      "profile_observed_at_utc": "2026-11-18T02:19:35.317210+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 35,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-thermal-boutique-hotel-yalova-529244.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-thermal-boutique-hotel-yalova-529200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-thermal-boutique-hotel-yalova-529201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-thermal-boutique-hotel-yalova-529202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-thermal-boutique-hotel-yalova-529203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-thermal-boutique-hotel-yalova-529204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-thermal-boutique-hotel-yalova-529205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-thermal-boutique-hotel-yalova-529206.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_023",
+      "native_tourvisor_id": 44491,
+      "name": "INTERCONTINENTAL DUBAI MARINA",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "INTERCONTINENTAL DUBAI MARINA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Intercontinental&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=44491",
+      "profile_observed_at_utc": "2026-11-18T02:19:35.315979+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 51,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-dubai-marina-70506344.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-dubai-marina-70506300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-dubai-marina-70506301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-dubai-marina-70506302.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-dubai-marina-70506303.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-dubai-marina-70506304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-dubai-marina-70506305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-dubai-marina-70506306.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_024",
+      "native_tourvisor_id": 1489,
+      "name": "TUI BLUE SIDE ADULTS ONLY 16+",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Сиде",
+      "category": 5,
+      "aliases_to_check": [
+        "TUI BLUE SIDE ADULTS ONLY 16+"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=TUI&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1489",
+      "profile_observed_at_utc": "2026-11-18T02:19:36.427949+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 43,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sensimar-side-resort-spa-80158805.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sensimar-side-resort-spa-80158800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sensimar-side-resort-spa-80158801.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sensimar-side-resort-spa-80158802.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sensimar-side-resort-spa-80158803.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sensimar-side-resort-spa-80158804.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sensimar-side-resort-spa-80158806.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sensimar-side-resort-spa-80158807.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_025",
+      "native_tourvisor_id": 2584,
+      "name": "INTERCONTINENTAL ABU DHABI",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Абу-Даби",
+      "category": 5,
+      "aliases_to_check": [
+        "INTERCONTINENTAL ABU DHABI"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Intercontinental&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2584",
+      "profile_observed_at_utc": "2026-11-18T02:19:35.265498+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 33,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-hotel-abu-dhabi-102204401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-hotel-abu-dhabi-102204400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-hotel-abu-dhabi-102204402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-hotel-abu-dhabi-102204403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-hotel-abu-dhabi-102204404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-hotel-abu-dhabi-102204405.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-hotel-abu-dhabi-102204406.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-hotel-abu-dhabi-102204407.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_026",
+      "native_tourvisor_id": 78929,
+      "name": "W DUBAI MINA SEYAHI",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "W DUBAI MINA SEYAHI"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=W+Dubai&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=78929",
+      "profile_observed_at_utc": "2026-11-18T02:19:39.808185+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 51,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/w-dubai-mina-seyahi-2316000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/w-dubai-mina-seyahi-2316001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/w-dubai-mina-seyahi-2316002.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/w-dubai-mina-seyahi-2316003.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/w-dubai-mina-seyahi-2316004.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/w-dubai-mina-seyahi-2316005.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/w-dubai-mina-seyahi-2316006.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/w-dubai-mina-seyahi-2316007.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_027",
+      "native_tourvisor_id": 372,
+      "name": "REEF OASIS BLUE BAY",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Шарм-эль-Шейх",
+      "category": 5,
+      "aliases_to_check": [
+        "REEF OASIS BLUE BAY"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Reef&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=372",
+      "profile_observed_at_utc": "2026-11-18T02:19:38.828042+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 35,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/reef-oasis-blue-bay-102103060.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/reef-oasis-blue-bay-102103061.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/reef-oasis-blue-bay-102103062.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/reef-oasis-blue-bay-102103063.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/reef-oasis-blue-bay-102103064.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/reef-oasis-blue-bay-102103065.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/reef-oasis-blue-bay-102103066.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/reef-oasis-blue-bay-102103077.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_028",
+      "native_tourvisor_id": 1618,
+      "name": "CLUB & HOTEL LETOONIA",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Фетхие",
+      "category": 5,
+      "aliases_to_check": [
+        "CLUB & HOTEL LETOONIA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Club&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1618",
+      "profile_observed_at_utc": "2026-11-18T02:19:38.783682+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 27,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-hotel-letoonia-29649001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-hotel-letoonia-29654800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-hotel-letoonia-29649000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-hotel-letoonia-29649002.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-hotel-letoonia-29649003.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-hotel-letoonia-29649004.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-hotel-letoonia-29649005.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-hotel-letoonia-29649006.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_029",
+      "native_tourvisor_id": 44669,
+      "name": "ROYAL M HOTEL BY GEWAN FUJAIRAH",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Фуджейра",
+      "category": 5,
+      "aliases_to_check": [
+        "ROYAL M HOTEL BY GEWAN FUJAIRAH"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Fujairah&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=44669",
+      "profile_observed_at_utc": "2026-11-18T02:19:39.847734+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 54,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/44669-2508300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/44669-2508301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/44669-2508302.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/44669-2508303.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/44669-2508304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/44669-2508305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/44669-2508306.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/44669-2508307.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_030",
+      "native_tourvisor_id": 56003,
+      "name": "KAYA IZMIR THERMAL & CONVENTION",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Измир",
+      "category": 5,
+      "aliases_to_check": [
+        "KAYA IZMIR THERMAL & CONVENTION"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Kaya&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=56003",
+      "profile_observed_at_utc": "2026-11-18T02:19:38.683857+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 42,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kaya-izmir-thermal-convention-52458506.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kaya-izmir-thermal-convention-52458500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kaya-izmir-thermal-convention-52458501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kaya-izmir-thermal-convention-52458502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kaya-izmir-thermal-convention-52458503.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kaya-izmir-thermal-convention-52458504.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kaya-izmir-thermal-convention-52458505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kaya-izmir-thermal-convention-52458507.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_031",
+      "native_tourvisor_id": 70138,
+      "name": "CLUB GRAND AQUA",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Сиде",
+      "category": 5,
+      "aliases_to_check": [
+        "CLUB GRAND AQUA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Club&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=70138",
+      "profile_observed_at_utc": "2026-11-18T02:19:42.745208+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 9,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-grand-aqua-1314404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-grand-aqua-1314400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-grand-aqua-1314401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-grand-aqua-1314402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-grand-aqua-1314403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-grand-aqua-1314405.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-grand-aqua-1314406.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-grand-aqua-1314407.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_032",
+      "native_tourvisor_id": 1064,
+      "name": "KAYA SIDE",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Сиде",
+      "category": 5,
+      "aliases_to_check": [
+        "KAYA SIDE"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Kaya&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1064",
+      "profile_observed_at_utc": "2026-11-18T02:19:41.684024+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 44,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/calimera-kaya-side-85794000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/calimera-kaya-side-85794001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/calimera-kaya-side-85794002.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/calimera-kaya-side-85794003.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/calimera-kaya-side-85794004.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/calimera-kaya-side-85794005.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/calimera-kaya-side-85794006.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/calimera-kaya-side-85794007.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_033",
+      "native_tourvisor_id": 1111,
+      "name": "CLUB MARCO POLO",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Кемер",
+      "category": 5,
+      "aliases_to_check": [
+        "CLUB MARCO POLO"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Club&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1111",
+      "profile_observed_at_utc": "2026-11-18T02:19:43.032363+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 60,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-marco-polo-40856900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-marco-polo-40856901.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-marco-polo-40856902.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-marco-polo-40856903.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-marco-polo-40856904.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-marco-polo-40856905.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-marco-polo-40856906.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-marco-polo-40856907.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_034",
+      "native_tourvisor_id": 39260,
+      "name": "XPERIENCE KIROSEIZ PREMIER",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Шарм-эль-Шейх",
+      "category": 5,
+      "aliases_to_check": [
+        "XPERIENCE KIROSEIZ PREMIER"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Premier&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=39260",
+      "profile_observed_at_utc": "2026-11-18T02:19:41.719653+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 40,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/xperience-kiroseiz-premier-313406.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/xperience-kiroseiz-premier-313400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/xperience-kiroseiz-premier-313401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/xperience-kiroseiz-premier-313402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/xperience-kiroseiz-premier-313403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/xperience-kiroseiz-premier-313404.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/xperience-kiroseiz-premier-313405.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/xperience-kiroseiz-premier-313407.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_035",
+      "native_tourvisor_id": 75042,
+      "name": "CALYPTUS KIRMAN PREMIUM",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Сиде",
+      "category": 5,
+      "aliases_to_check": [
+        "CALYPTUS KIRMAN PREMIUM"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Kirman&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75042",
+      "profile_observed_at_utc": "2026-11-18T02:19:41.952098+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 98,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kirman-calyptus-resort-spa-66432800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kirman-calyptus-resort-spa-66445700.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kirman-calyptus-resort-spa-66432801.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kirman-calyptus-resort-spa-66432802.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kirman-calyptus-resort-spa-66432803.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kirman-calyptus-resort-spa-66432804.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kirman-calyptus-resort-spa-66432805.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kirman-calyptus-resort-spa-66432806.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_036",
+      "native_tourvisor_id": 67099,
+      "name": "CANVAS DUBAI MGALLERY BY SOFITEL",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "CANVAS DUBAI MGALLERY BY SOFITEL"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sofitel&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=67099",
+      "profile_observed_at_utc": "2026-11-18T02:19:46.343614+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 46,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/canvas-dubai-mgallery-by-sofitel-45877000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/canvas-dubai-mgallery-by-sofitel-41517900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/canvas-dubai-mgallery-by-sofitel-41517901.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/canvas-dubai-mgallery-by-sofitel-41517902.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/canvas-dubai-mgallery-by-sofitel-41517903.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/canvas-dubai-mgallery-by-sofitel-41517904.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/canvas-dubai-mgallery-by-sofitel-41517905.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/canvas-dubai-mgallery-by-sofitel-41517906.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_037",
+      "native_tourvisor_id": 141330,
+      "name": "TUI BLUE MAVISS",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Белек",
+      "category": 5,
+      "aliases_to_check": [
+        "TUI BLUE MAVISS"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=TUI&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=141330",
+      "profile_observed_at_utc": "2026-11-18T02:19:46.412133+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 27,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/tui-blue-maviss-89545200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/tui-blue-maviss-89552600.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/tui-blue-maviss-89545201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/tui-blue-maviss-89545202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/tui-blue-maviss-89545203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/tui-blue-maviss-89545204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/tui-blue-maviss-89545205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/tui-blue-maviss-89545206.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_038",
+      "native_tourvisor_id": 67048,
+      "name": "KAYA ISTANBUL FAIR & CONVENTION",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Стамбул",
+      "category": 5,
+      "aliases_to_check": [
+        "KAYA ISTANBUL FAIR & CONVENTION"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Kaya&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=67048",
+      "profile_observed_at_utc": "2026-11-18T02:19:46.328462+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 44,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kaya-istanbul-fair-convention-90059200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kaya-istanbul-fair-convention-90059201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kaya-istanbul-fair-convention-90059202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kaya-istanbul-fair-convention-90059203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kaya-istanbul-fair-convention-90059204.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kaya-istanbul-fair-convention-90059205.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kaya-istanbul-fair-convention-90059206.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kaya-istanbul-fair-convention-90059207.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_039",
+      "native_tourvisor_id": 4535,
+      "name": "THE PALACE RAS AL KHAIMAH",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Рас-эль-Хайма",
+      "category": 5,
+      "aliases_to_check": [
+        "THE PALACE RAS AL KHAIMAH"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Ras+Al+Khaimah&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4535",
+      "profile_observed_at_utc": "2026-11-18T02:19:46.251161+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 9,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-palace-ras-al-khaimah-0.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-palace-ras-al-khaimah-1.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-palace-ras-al-khaimah-2.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-palace-ras-al-khaimah-3.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-palace-ras-al-khaimah-4.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-palace-ras-al-khaimah-5.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-palace-ras-al-khaimah-6.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/the-palace-ras-al-khaimah-7.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_040",
+      "native_tourvisor_id": 63106,
+      "name": "CRYSTAL KAYMAKLI HOTEL & SPA",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Каппадокия",
+      "category": 5,
+      "aliases_to_check": [
+        "CRYSTAL KAYMAKLI HOTEL & SPA"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Crystal&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=63106",
+      "profile_observed_at_utc": "2026-11-18T02:19:50.612834+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 31,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-kaymakli-hotel-spa-45852121.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-kaymakli-hotel-spa-45852101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-kaymakli-hotel-spa-45852102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-kaymakli-hotel-spa-45852103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-kaymakli-hotel-spa-45852104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-kaymakli-hotel-spa-45852105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-kaymakli-hotel-spa-45852106.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-kaymakli-hotel-spa-45852107.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_041",
+      "native_tourvisor_id": 65906,
+      "name": "TUI BLUE EPHESUS (TUI FAMILY LIFE EPHESUS)",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Кушадасы",
+      "category": 5,
+      "aliases_to_check": [
+        "TUI BLUE EPHESUS (TUI FAMILY LIFE EPHESUS)",
+        "TUI BLUE EPHESUS"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=TUI&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=65906",
+      "profile_observed_at_utc": "2026-11-18T02:19:50.537689+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 9,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/tui-family-life-ephesus-102511380.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/tui-family-life-ephesus-102511381.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/tui-family-life-ephesus-102511382.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/tui-family-life-ephesus-102511383.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/tui-family-life-ephesus-102511384.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/tui-family-life-ephesus-102511385.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/tui-family-life-ephesus-102511386.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/tui-family-life-ephesus-102511387.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_042",
+      "native_tourvisor_id": 104048,
+      "name": "HILTON ALEXANDRIA CORNICHE",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Александрия",
+      "category": 5,
+      "aliases_to_check": [
+        "HILTON ALEXANDRIA CORNICHE"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hilton&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=104048",
+      "profile_observed_at_utc": "2026-11-18T02:19:50.543884+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 44,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/hilton-alexandria-corniche-59416121.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/hilton-alexandria-corniche-59416100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/hilton-alexandria-corniche-59416102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/hilton-alexandria-corniche-59416103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/hilton-alexandria-corniche-59416104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/hilton-alexandria-corniche-59416105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/hilton-alexandria-corniche-59416106.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/hilton-alexandria-corniche-59416107.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_043",
+      "native_tourvisor_id": 122841,
+      "name": "SENTIDO NAGA BAY",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Хургада",
+      "category": 5,
+      "aliases_to_check": [
+        "SENTIDO NAGA BAY"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sentido&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=122841",
+      "profile_observed_at_utc": "2026-11-18T02:19:53.931797+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 60,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/sentido-naga-bay-54710114.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/sentido-naga-bay-54710100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/sentido-naga-bay-54710101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/sentido-naga-bay-54710102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/sentido-naga-bay-54710103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/sentido-naga-bay-54710104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/sentido-naga-bay-54710105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/sentido-naga-bay-54710106.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_044",
+      "native_tourvisor_id": 32333,
+      "name": "SOFITEL DOWNTOWN DUBAI",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "SOFITEL DOWNTOWN DUBAI"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sofitel&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=32333",
+      "profile_observed_at_utc": "2026-11-18T02:19:55.111799+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 40,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-downtown-dubai-102310300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-downtown-dubai-102310301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-downtown-dubai-102310302.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-downtown-dubai-102310303.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-downtown-dubai-102310304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-downtown-dubai-102310305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-downtown-dubai-102310306.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-downtown-dubai-102310307.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_045",
+      "native_tourvisor_id": 79974,
+      "name": "HYATT REGENCY CAIRO WEST",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Каир",
+      "category": 5,
+      "aliases_to_check": [
+        "HYATT REGENCY CAIRO WEST"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Hyatt&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=79974",
+      "profile_observed_at_utc": "2026-11-18T02:19:55.067744+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 60,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/79974-47619000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/79974-47619101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/79974-47619102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/79974-47619103.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/79974-47619104.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/79974-47619105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/79974-47619206.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/79974-47619207.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_046",
+      "native_tourvisor_id": 2583,
+      "name": "INTERCONTINENTAL DUBAI FESTIVAL CITY",
+      "country": "ОАЭ",
+      "country_id": 9,
+      "region": "Дубай",
+      "category": 5,
+      "aliases_to_check": [
+        "INTERCONTINENTAL DUBAI FESTIVAL CITY"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Intercontinental&countryId=9&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2583",
+      "profile_observed_at_utc": "2026-11-18T02:19:57.115836+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 45,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-dubai-festival-city-2915300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-dubai-festival-city-2915301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-dubai-festival-city-2915302.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-dubai-festival-city-2915303.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-dubai-festival-city-2915304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-dubai-festival-city-2915305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-dubai-festival-city-2915306.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/intercontinental-dubai-festival-city-2915307.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_047",
+      "native_tourvisor_id": 75800,
+      "name": "CAIRO MARRIOTT HOTEL & OMAR KHAYYAM CASINO",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Каир",
+      "category": 5,
+      "aliases_to_check": [
+        "CAIRO MARRIOTT HOTEL & OMAR KHAYYAM CASINO"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marriott&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75800",
+      "profile_observed_at_utc": "2026-11-18T02:19:57.152144+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 45,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/cairo-marriott-hotel-omar-khayyam-casino-102505310.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/cairo-marriott-hotel-omar-khayyam-casino-102505311.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/cairo-marriott-hotel-omar-khayyam-casino-102505312.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/cairo-marriott-hotel-omar-khayyam-casino-102505313.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/cairo-marriott-hotel-omar-khayyam-casino-102505314.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/cairo-marriott-hotel-omar-khayyam-casino-102505315.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/cairo-marriott-hotel-omar-khayyam-casino-102505316.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/cairo-marriott-hotel-omar-khayyam-casino-102505317.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_048",
+      "native_tourvisor_id": 104122,
+      "name": "JW MARRIOTT HOTEL CAIRO",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Каир",
+      "category": 5,
+      "aliases_to_check": [
+        "JW MARRIOTT HOTEL CAIRO"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Marriott&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=104122",
+      "profile_observed_at_utc": "2026-11-18T02:19:57.025927+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 30,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/phpk9dFor.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/phpvfLoVs.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/phpvlKFqu.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/phpZomw0v.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/phpHKoGtx.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/php3sJufz.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/phpPBjCNA.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/phpUq3UrC.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_049",
+      "native_tourvisor_id": 76311,
+      "name": "SHERATON CAIRO HOTEL & CASINO",
+      "country": "Египет",
+      "country_id": 1,
+      "region": "Каир",
+      "category": 5,
+      "aliases_to_check": [
+        "SHERATON CAIRO HOTEL & CASINO"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=Sheraton&countryId=1&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=76311",
+      "profile_observed_at_utc": "2026-11-18T02:19:58.141005+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 19,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/sheraton-cairo-hotel-casino-102505110.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/sheraton-cairo-hotel-casino-102505111.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/sheraton-cairo-hotel-casino-102505112.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/sheraton-cairo-hotel-casino-102505113.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/sheraton-cairo-hotel-casino-102505114.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/sheraton-cairo-hotel-casino-102505115.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/sheraton-cairo-hotel-casino-102505116.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/sheraton-cairo-hotel-casino-102505117.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    },
+    {
+      "work_id": "W9_050",
+      "native_tourvisor_id": 16776,
+      "name": "IC HOTELS AIRPORT",
+      "country": "Турция",
+      "country_id": 4,
+      "region": "Анталья",
+      "category": 5,
+      "aliases_to_check": [
+        "IC HOTELS AIRPORT"
+      ],
+      "catalogue_url": "https://anytoour.ru/data/hotel-search-v1.php?q=IC+Hotels&countryId=4&limit=20",
+      "profile_url": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=16776",
+      "profile_observed_at_utc": "2026-11-18T02:19:57.177327+00:00",
+      "profile_name_and_country_match": true,
+      "available_fact_sections": [
+        "description",
+        "location",
+        "territory",
+        "beach",
+        "children"
+      ],
+      "photo_urls_in_bound_gallery": 22,
+      "source_photo_samples": [
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/16776-46967100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/16776-46967201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/16776-46967202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/16776-46967303.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/16776-46967304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/16776-46971000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/16776-46971101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/16776-46971102.jpg"
+      ],
+      "stage": "editorial_and_visual_review",
+      "publication_allowed": false
+    }
+  ],
+  "holds": [
+    {
+      "native_tourvisor_id": 2173,
+      "name": "MEGASARAY WESTBEACH ANTALYA (EX. HARRINGTON PARK RESORT)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 3423,
+      "name": "AKKA HOTELS ANTEDON RESIDENCE VILLAS",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 1259,
+      "name": "IC HOTELS GREEN PALACE & VILLAS",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 74510,
+      "name": "SULTAN GARDENS VILLAS",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 127774,
+      "name": "DUSIT AJMAN RESORT LUXURY VILLAS (EX. AJMAN HOTEL LUXURY VILLAS)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 8989,
+      "name": "VOGO ABU DHABI GOLF RESORT & SPA (EX. THE WESTIN ABU DHABI GOLF RESORT & SPA)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 16945,
+      "name": "TUI BLUE TROPICAL (EX. TUI FAMILY LIFE TROPICAL RESORT)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 74511,
+      "name": "GRAND ROTANA VILLAS",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 367,
+      "name": "SWISSOTEL RESORT EL QUSIER (EX. RADISSON BLU QUSIER)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 252,
+      "name": "TABA HOTEL & NELSON VILLAGE (EX. HILTON)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 15690,
+      "name": "GRAND WATERWORLD MAKADI (EX. SUNWING WATERWORLD)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 58157,
+      "name": "AL HABTOOR POLO RESORT (THE ST. REGIS DUBAI AL HABTOOR POLO RESORT AND CLUB)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 317,
+      "name": "BAY VIEW RESORT TABA HEIGHTS (EX. MARRIOTT TABA)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 261,
+      "name": "MIRAMAR RESORT TABA HEIGHTS (EX. HYATT REGENCY TABA HEIGHTS)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 314,
+      "name": "NAAMA BAY PROMENADE BEACH RESORT (EX. SHARM EL SHEIKH MARRIOTT RED SEA RESORT)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 68135,
+      "name": "DOMINA CORAL BAY SULTAN BEACH",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 79034,
+      "name": "SOFITEL DUBAI THE PALM LUXURY APARTMENTS",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 95563,
+      "name": "BELLIS DELUXE LAGOON & VILLAS",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 111122,
+      "name": "INTERCONTINENTAL RESIDENCES ABU DHABI AN IHG HOTEL",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 73011,
+      "name": "DOUBLETREE BY HILTON RAS AL KHAIMAH CORNICHE & RESIDENCE",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 4186,
+      "name": "SRNTY SUN RAY (EX. SERENITY ALMA HEIGHTS)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 192,
+      "name": "DOMINA CORAL BAY SULTAN",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 15751,
+      "name": "DANCENTER LUXE (EX. CONCORDE FUJAIRAH)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 194,
+      "name": "DOMINA CORAL BAY SULTAN POOL",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 152123,
+      "name": "IC HOTELS RESIDENCE",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 116751,
+      "name": "INTERCONTINENTAL RESIDENCES BUSINESS BAY",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 45865,
+      "name": "INTERCONTINENTAL RESIDENCE SUITES DUBAI FESTIVAL CITY",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 63879,
+      "name": "THE ST. REGIS DOWNTOWN DUBAI (EX. RENAISSANCE DUBAI DOWNTOWN)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 60665,
+      "name": "HILTON CAIRO GRAND NILE (EX. GRAND NILE TOWER)",
+      "reason": "current/former identity or sub-property scope needs individual review; no publication admission"
+    },
+    {
+      "native_tourvisor_id": 110279,
+      "name": "FUJAIRAH RESORT & SPA",
+      "reason": "bound gallery contains fewer than3 photos"
+    },
+    {
+      "native_tourvisor_id": 128892,
+      "name": "FORTUNE AJMAN BEACH",
+      "reason": "bound gallery contains fewer than3 photos"
+    },
+    {
+      "native_tourvisor_id": 162752,
+      "name": "CLEOPATRA SIGNATURE MARSA ALAM",
+      "reason": "bound gallery contains fewer than3 photos"
+    },
+    {
+      "native_tourvisor_id": 104659,
+      "name": "SHERATON MONTAZAH ALEXANDRIA",
+      "reason": "bound gallery contains fewer than3 photos"
+    },
+    {
+      "native_tourvisor_id": 104504,
+      "name": "HILTON ALEXANDRIA GREEN PLAZA",
+      "reason": "bound gallery contains fewer than3 photos"
+    },
+    {
+      "native_tourvisor_id": 42650,
+      "name": "FORTUNA AJMAN",
+      "reason": "bound gallery contains fewer than3 photos"
+    },
+    {
+      "native_tourvisor_id": 83117,
+      "name": "CORAL FORTUNA RAS AL KHAIMAH",
+      "reason": "bound gallery contains fewer than3 photos"
+    },
+    {
+      "native_tourvisor_id": 120607,
+      "name": "HILTON ALEXANDRIA KINGS RANCH",
+      "reason": "bound gallery contains fewer than3 photos"
+    },
+    {
+      "native_tourvisor_id": 131233,
+      "name": "SERENITY ALMA HEIGHTS ROSS PARK COLLECTION",
+      "reason": "sub-property of Serenity Alma Heights; independent object unconfirmed"
+    },
+    {
+      "native_tourvisor_id": 148124,
+      "name": "LIMAK AMBASSADORE",
+      "reason": "bound gallery contains fewer than3 photos"
+    }
+  ],
+  "source_profile_archive": "tools/direct_demand/operations/commercial-wave9-profile-screen-20261118.json.gz",
+  "publication_allowed": false,
+  "sender_calls": 0,
+  "db_writes": 0,
+  "feed_writes": 0,
+  "next": "both native registries/aliases, branded gallery visual review, normal editorial copy, exact source admission; only after existing FEED terminal"
+}
