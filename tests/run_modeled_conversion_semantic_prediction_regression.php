@@ -792,11 +792,14 @@ $tests['legacy immutable numeric digests remain valid without current-code downg
         ini_set('serialize_precision','14');
         $current=$p;$current['prediction_digest']=semanticPredictionLegacyDigest($current);
         semanticPredictionAssert(!ModeledConversionSemanticPrediction::digestMatches($current),'current model accepted legacy codec downgrade');
-        $previous=$p;$previous['model_sha256']='4e4d7c6908bf8246db08917de1b46dbdc904099b0c95afb92273f833b8c3ab42';
-        $previous['prediction_digest']=ModeledConversionSemanticPrediction::digest($previous);
-        semanticPredictionAssert(ModeledConversionSemanticPrediction::digestMatches($previous),'previous installed canonical profile lost');
-        $previous['prediction_digest']=semanticPredictionLegacyDigest($previous);
-        semanticPredictionAssert(!ModeledConversionSemanticPrediction::digestMatches($previous),'previous installed producer admitted an unsupported codec');
+        foreach(['4e4d7c6908bf8246db08917de1b46dbdc904099b0c95afb92273f833b8c3ab42',
+            '110bcfc73c7971ed59b6e73db2da9dca6fa7c8e32dbb82520e22525f9ed7037c']as$installed){
+            $previous=$p;$previous['model_sha256']=$installed;
+            $previous['prediction_digest']=ModeledConversionSemanticPrediction::digest($previous);
+            semanticPredictionAssert(ModeledConversionSemanticPrediction::digestMatches($previous),'previous installed canonical profile lost');
+            $previous['prediction_digest']=semanticPredictionLegacyDigest($previous);
+            semanticPredictionAssert(!ModeledConversionSemanticPrediction::digestMatches($previous),'previous installed producer admitted an unsupported codec');
+        }
         $changed=$p;$changed['estimated_probability']+=0.00000001;
         semanticPredictionAssert(!ModeledConversionSemanticPrediction::digestMatches($changed)
             &&ModeledConversionSemanticPrediction::digest($changed)!==$p['prediction_digest'],'small current tamper lost by canonical codec');
@@ -1369,9 +1372,14 @@ $tests['standalone compound resort is one customer criterion at the observed cut
         [$case,$wrapper,$document]=$parts;
         foreach($case['rows']as&$row){
             $message=$messages[(int)$row['journal_id']-1];
-            if(!empty($message['opaque'])){
+            if(!empty($message['opaque'])||!empty($message['receipt'])){
                 $row['source_kind']=$row['snapshot']['source_kind']='event';
                 $row['snapshot']['payload']=['event_type'=>'unrecognized_receipt','actor_type'=>'system','payload_json'=>'{}'];
+                if(!empty($message['receipt'])){
+                    $row['snapshot']['source_timestamp_basis']='canonical_recording_unix_v1';
+                    $data=ConversationRecordClock::stamp(['project_key'=>'anytour','channel'=>'max'],$row['snapshot']['source_created_at_unix']);
+                    $row['snapshot']['payload']=['event_type'=>'manager_message','actor_type'=>'manager','payload_json'=>json_encode($data,JSON_THROW_ON_ERROR)];
+                }
             }
             if((int)$row['journal_id']===$edited)$row['source_version_no']=2;
             if($metadata!==null)$row['snapshot']['payload']['metadata_json']=$metadata;
@@ -1394,6 +1402,8 @@ $tests['standalone compound resort is one customer criterion at the observed cut
         'public country hint or seeding behavior changed');
 
     $opaque=['text'=>'fixture','admitted'=>false,'opaque'=>true];
+    $receipt=['text'=>'fixture','admitted'=>false,'receipt'=>true];
+    $origin=['role'=>'manager','text'=>'Из какого именно аэропорта возвращаетесь?'];
     $prompt=['role'=>'manager','text'=>'Какой курорт предпочитаете?'];
     $prefix=[['text'=>'Семьёй на 8 ночей'],$opaque,$prompt];
     [$after,$candidate]=$project([...$prefix,$answer],[4=>190000]);
@@ -1416,7 +1426,7 @@ $tests['standalone compound resort is one customer criterion at the observed cut
     foreach([[$prompt],[$answer+['role'=>'manager']],
         [['text'=>'Не Шармэльшейх']],[['text'=>'«Шармэльшейх»']],[['text'=>'Шармэльшейх или Као-Лак']],
         [['text'=>'Из Шармэльшейха']],[['text'=>'Шарм']],
-        [['role'=>'manager','text'=>'Из какого именно аэропорта возвращаетесь?'],$answer],
+        [$origin,$answer],[$origin,$receipt,$answer],[$origin,$opaque,$answer],
         [['role'=>'manager','text'=>'С какого курорта вы летите обратно?'],$answer],
         [['role'=>'manager','text'=>'Вы вылетаете из Хургады или из Марса-Алама?'],$answer],
         [['role'=>'manager','text'=>'Где получали багаж?'],$answer]]as$negative){
@@ -1424,6 +1434,9 @@ $tests['standalone compound resort is one customer criterion at the observed cut
         semanticPredictionAssert($candidate===null&&!in_array('destination',$p['features']['criteria_families'],true)
             &&$p['current_request_anchor']===null,'an ambiguous, relayed or outbound message became a destination');
     }
+    $fresh=$run([$origin,$receipt,['text'=>'Спасибо.'],$prompt,$answer]);
+    semanticPredictionAssert($fresh['current_request_anchor']==='journal:5'&&$fresh['features']['criteria_families']===['destination'],
+        'a consumed departure question blocked a later independent destination reply');
     foreach([$run([$answer],[],1),$run([$answer],[],null,'{"linked_message":{"type":"reply"}}'),
         $run([$answer],[],null,'{"forwarded":true}')]as$p)
         semanticPredictionAssert($p['estimated_probability']===null,'non-original resort source admitted');

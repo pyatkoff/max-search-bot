@@ -16,7 +16,6 @@ final class ModeledConversionValueContract
     public const VALUES=[1=>1250,2=>2083,3=>4167,4=>8333,5=>12500,6=>25000];
     // Stage-only rows from the installed adapter can also carry its preceding signed model.
     private const PRE_RESORT_ADAPTER_SHA256='2d0135423e2034c41aa693ff1a01a2c2821943bef7d5b450993c4599bc088cdf';
-    private const PRE_RESORT_MODEL_SHA256='110bcfc73c7971ed59b6e73db2da9dca6fa7c8e32dbb82520e22525f9ed7037c';
     // The PR1613 adapter used current-adapter validation, including sealed money from earlier model versions.
     private const PRE_DEPARTURE_ADAPTER_SHA256='e5c303338fff38c48351881143842894563669484d8dfeb8aef9fbfaa03b62f2';
     private const PRE_DEPARTURE_MODEL_SHA256='4e4d7c6908bf8246db08917de1b46dbdc904099b0c95afb92273f833b8c3ab42';
@@ -66,10 +65,10 @@ final class ModeledConversionValueContract
             $model=hash_file('sha256',__DIR__.'/ModeledConversionSemanticPrediction.php');
             $preDeparture=$adapter===self::PRE_DEPARTURE_ADAPTER_SHA256;
             if($preDeparture&&($s['extractor_sha256']!==self::PREVIOUS_EXTRACTOR_SHA256
-                ||in_array($p['model_sha256']??null,[$model,self::PRE_RESORT_MODEL_SHA256],true)))return null;
+                ||in_array($p['model_sha256']??null,[$model,ModeledConversionSemanticPrediction::PRE_RESORT_MODEL_SHA256],true)))return null;
             $stageModel=$preDeparture?self::PRE_DEPARTURE_MODEL_SHA256:$model;
-            if($adapter===self::PRE_RESORT_ADAPTER_SHA256&&($p['model_sha256']??null)===self::PRE_RESORT_MODEL_SHA256)
-                $stageModel=self::PRE_RESORT_MODEL_SHA256;
+            if($adapter===self::PRE_RESORT_ADAPTER_SHA256&&($p['model_sha256']??null)===ModeledConversionSemanticPrediction::PRE_RESORT_MODEL_SHA256)
+                $stageModel=ModeledConversionSemanticPrediction::PRE_RESORT_MODEL_SHA256;
             $previousProducer=!$preDeparture&&$adapter!==hash_file('sha256',__DIR__.'/ModeledConversionEarlyForecast.php');
             if($previousProducer){
                 if(($s['adapter_sha256']??null)!==self::PREVIOUS_ADAPTER_SHA256
