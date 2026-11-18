@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "original_run": 44230281892,
+  "original_source_commit": "8398d22a088be9cd3c5d58b7bc091bb3df646cce",
+  "original_operation": "commercial-hotel-batch-20261118-63-v1",
+  "original_artifact_id": 14394559384,
+  "original_artifact_sha256": "edbe4cba52dbd2beff1e8af990a68bd56dd3a97c4d047076bc6a491f2a73129d",
+  "hotel_id": 78929,
+  "observed_condition": "current retained profile services features lists Только для взрослых",
+  "allowed_change": "insert only Отель только для взрослых. in current body, preserve price/media/button/IDs/URLs",
+  "posts": [
+    {
+      "logical_id": "commercial-hotel-78929-v1",
+      "platform": "telegram",
+      "channel_id": "-1002262666616",
+      "message_id": "1179",
+      "post_url": "https://t.me/any_toour/1179",
+      "publication_id": 2510,
+      "version_id": 8529,
+      "button_url": "https://t.me/anyru_bot?start=p_ClrJyF8jKP5zQiUgqM6JALc_",
+      "source_key": "tg_anytour_msk",
+      "text_sha256": "decdd864197c5ec234dd784289609691ca6437d6167c5cf950156fbbdd13a0a6",
+      "photo_sha256": "4b18d9d450610742f9ad254b5735ff719306f6d46222ca1769b9f984bc56c026",
+      "body_photo_button_verified": true,
+      "state": "sent",
+      "reused": false,
+      "hotel_id": 78929,
+      "button_text": "✈️ Узнать стоимость тура",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/949e286dae2ffe31a5bf4113b38060d71506194c/.github/traffic-publish/commercial-wave9-20261118/78929.png"
+    },
+    {
+      "logical_id": "commercial-hotel-78929-v1",
+      "platform": "max",
+      "channel_id": "-80492244209683",
+      "message_id": "mid.ffffb6caf0606fed01a1ecb584646b7b",
+      "post_url": "https://max.ru/channel_anytour/AaHstYRka3s",
+      "publication_id": 2520,
+      "version_id": 8539,
+      "button_url": "https://max.ru/id9704048781_1_bot?start=p_vXAgKsLvIUTrpZo3X9rDWPY0",
+      "source_key": "max_anytour_msk1",
+      "text_sha256": "decdd864197c5ec234dd784289609691ca6437d6167c5cf950156fbbdd13a0a6",
+      "photo_sha256": "4b18d9d450610742f9ad254b5735ff719306f6d46222ca1769b9f984bc56c026",
+      "body_photo_button_verified": true,
+      "state": "sent",
+      "reused": false,
+      "hotel_id": 78929,
+      "button_text": "✈️ Узнать стоимость тура",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/949e286dae2ffe31a5bf4113b38060d71506194c/.github/traffic-publish/commercial-wave9-20261118/78929.png"
+    }
+  ]
+}

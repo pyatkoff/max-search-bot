@@ -1,7 +1,7 @@
-name: Deliver accepted reliability660 bridge without price collection
+name: Add the adults-only condition to the existing W Dubai Mina Seyahi pair
 on:
   push:
-    branches: ['audit/content100-bot-publication-20261101']
+    branches: [audit/content100-bot-publication-20261101]
     paths: ['.github/workflows/content100-bot-publication-20261101.yml']
 permissions:
   contents: read
@@ -10,169 +10,132 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
-  inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before == 'a6dd23d845616e2ac96913495996e4f6e4ef46a2' && github.run_attempt == 1
+  caption-current-pair:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '8398d22a088be9cd3c5d58b7bc091bb3df646cce' &&
+      github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
-          ref: ${{ github.sha }}
           persist-credentials: false
-          fetch-depth: 2
-      - name: Authenticate accepted source and immutable module; test only installation guards
+          sparse-checkout: tools/direct_demand/operations
+      - name: Verify original run terminal and unchanged caption transport
         env:
           GH_TOKEN: ${{ github.token }}
-        shell: bash
         run: |
           set -euo pipefail
-          test "$GITHUB_RUN_ATTEMPT" = 1
-          test "$(git rev-parse HEAD^)" = a6dd23d845616e2ac96913495996e4f6e4ef46a2
-          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 --jq .object.sha)" = "$GITHUB_SHA"
-          p=tools/direct_demand/operations
-          test "$(git hash-object "$p/install-accepted-monitor660-reliability-20261117.php")" = 40cc9df259a1a0d959f9a6d1d3ea4be3c7fd0087
-          test "$(git hash-object "$p/inspect-monitor660-reliability-20261117.php")" = c47b51d5fc8597c387155efd9b900de3d44a1837
-          php -l "$p/install-accepted-monitor660-reliability-20261117.php"
-          php "$p/install-accepted-monitor660-reliability-20261117.php" --self-test
-          umask 077
-          mkdir "$RUNNER_TEMP/module660"
           python3 - <<'PY'
-          import json,pathlib,subprocess,hashlib,base64,zipfile,io,os
-          w=pathlib.Path(os.environ['RUNNER_TEMP'])/'module660'
-          def api(repo,path):return json.loads(subprocess.check_output(['gh','api','--method','GET','repos/pyatkoff/'+repo+'/'+path],timeout=40))
-          previous=api('max-search-bot','actions/runs/43971857016');previous_jobs=api('max-search-bot','actions/runs/43971857016/jobs?per_page=100');previous_artifacts=api('max-search-bot','actions/runs/43971857016/artifacts')
-          assert previous['head_sha']=='72a12caa1ebcd8230c37dc08a28e6c8b4bc69a13' and previous['run_attempt']==1 and previous['status']=='completed' and previous['conclusion']=='failure'
-          assert len(previous_jobs['jobs'])==1 and previous_jobs['jobs'][0]['id']==133665746652
-          steps={st['name']:st['conclusion'] for st in previous_jobs['jobs'][0]['steps']}
-          assert steps['Authenticate accepted source and immutable module; test only installation guards']=='failure'
-          for protected in ['Prepare unchanged server connection and host pin','Fresh unchanged source and no competing collector or application deployment','Replace only the admitted module once under existing journal lock','Independent readback without executing the installed module']:
-            assert steps[protected]=='skipped',('ORIGINAL_PROTECTED_STEP_WAS_EXECUTED',protected)
-          assert previous_artifacts['total_count']==0, 'ORIGINAL_PREWRITE_ARTIFACT_UNEXPECTED'
-          second=api('max-search-bot','actions/runs/43972194096');second_jobs=api('max-search-bot','actions/runs/43972194096/jobs?per_page=100');second_artifacts=api('max-search-bot','actions/runs/43972194096/artifacts')
-          assert second['head_sha']=='082bf4d47452fb29458e97d334d5d3a6f536e951' and second['run_attempt']==1 and second['status']=='completed' and second['conclusion']=='failure'
-          assert len(second_jobs['jobs'])==1 and second_jobs['jobs'][0]['id']==133666940850
-          second_steps={st['name']:st['conclusion'] for st in second_jobs['jobs'][0]['steps']}
-          assert second_steps['Authenticate accepted source and immutable module; test only installation guards']=='success'
-          assert second_steps['Fresh unchanged source and no competing collector or application deployment']=='failure'
-          assert second_steps['Replace only the admitted module once under existing journal lock']=='skipped'
-          assert second_steps['Independent readback without executing the installed module']=='skipped'
-          assert second_artifacts['total_count']==2 and {a['id'] for a in second_artifacts['artifacts']}=={14278702647,14279156733}
-          release=api('max-search-bot','issues/comments/6682640708')
-          assert release['body']=='PR1583: установлено, выпуск свободен' and release['updated_at']=='2026-11-16T22:52:54Z'
-          s=api('max-search-bot','pulls/1574');c=api('poisk-turov-test','pulls/5059')
-          assert s['merged'] and s['head']['sha']=='a1dc3f6712dc74d97bf90ab46a747ed3b2db4e68'
-          assert c['merged'] and c['merge_commit_sha']=='45ad1616caa1f7f96afb879439c8a21e9d345027'
-          runs=[]
-          for repo,rid,head in [('max-search-bot',43952617050,'f4d4cb32bd962054dae3e65e1ffd69322cd1ad16'),('poisk-turov-test',43967512962,'45ad1616caa1f7f96afb879439c8a21e9d345027'),('poisk-turov-test',43967512983,'45ad1616caa1f7f96afb879439c8a21e9d345027'),('max-search-bot',43964804292,'4ce3d164bdf04e859389df1879a6d55e58e9a6aa'),('max-search-bot',43971922470,'b13fd0d624308ef747df077cba79bad91ee91c21'),('max-search-bot',43973941457,'b13fd0d624308ef747df077cba79bad91ee91c21')]:
-            r=api(repo,'actions/runs/'+str(rid));assert r['head_sha']==head and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='success';runs.append({'repo':repo,'run_id':rid,'head':head,'conclusion':r['conclusion']})
-          a=api('max-search-bot','actions/artifacts/14268746215');assert not a['expired'] and a['workflow_run']['id']==43952617050 and a['digest']=='sha256:aa742bf4ee787e5a9cee6695b4c937f9c8e2c9a5d801b75cd2c2cc54ed8921b0'
-          raw=subprocess.check_output(['gh','api','--method','GET','repos/pyatkoff/max-search-bot/actions/artifacts/14268746215/zip'],timeout=60);assert hashlib.sha256(raw).hexdigest()==a['digest'].split(':')[1]
-          with zipfile.ZipFile(io.BytesIO(raw)) as z:
-            assert z.testzip() is None;bundle=z.read('monitor-price-hook.php')
-          assert len(bundle)==613581 and hashlib.sha256(bundle).hexdigest()=='41e9f0151f97691f91258ebb37714090ba0798c76db18c3870ff93bcc23d0c9a'
-          source=pathlib.Path('tools/direct_demand/operations/install-accepted-monitor660-reliability-20261117.php').read_text();assert source.count('__BUNDLE__')==1
-          (w/'install.php').write_text(source.replace('__BUNDLE__',base64.b64encode(bundle).decode()))
-          (w/'intent.json').write_text(json.dumps({'kind':'accepted_code_delivery_only','source_pr':1574,'consumer_pr':5059,'source_artifact':a['id'],'artifact_sha256':a['digest'],'module_sha256':hashlib.sha256(bundle).hexdigest(),'module_bytes':len(bundle),'module_count':660,'original_gates':runs,'collector_dispatches':0,'module_execution':False},indent=2)+'\n')
-          print('ACCEPTED_RELIABILITY660_CODE_ONLY_INTENT_VERIFIED')
+          import subprocess,json
+          def info(path):return json.loads(subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+path],timeout=60))
+          app='cc017ee5bb669f4c7c13efc91d5c5812a50e55f2'
+          assert info('git/ref/heads/main')['object']['sha']==app
+          r=info('actions/runs/44230281892');assert r['status']=='completed' and r['head_sha']=='8398d22a088be9cd3c5d58b7bc091bb3df646cce' and r['run_attempt']==1
+          a=info('actions/artifacts/14394559384');assert a['workflow_run']['id']==44230281892 and a['digest']=='sha256:edbe4cba52dbd2beff1e8af990a68bd56dd3a97c4d047076bc6a491f2a73129d'
+          active=info('actions/runs?branch=audit%2Fprice660-27316-resume-readiness-20261117&per_page=5')['workflow_runs']
+          assert not [x for x in active if x['status'] in {'requested','queued','in_progress','waiting','pending'}]
+          for path,expected in [('commercial-caption-review73-20261113-executor.php','cd2d8390f7723a25ec06e9cd90239c0cc9623ad2'),('commercial-caption-review73-20261113-read-scope.php','0f6e34762ddc280dd896b4f5eabc8e334d4534f1')]:
+              assert subprocess.check_output(['git','hash-object','tools/direct_demand/operations/'+path],text=True).strip()==expected
           PY
-          php -l "$RUNNER_TEMP/module660/install.php"
-      - name: Retain original delivery intent
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: reliability660-bridge-intent-${{ github.run_id }}
-          path: ${{ runner.temp }}/module660/intent.json
-          retention-days: 30
-          if-no-files-found: error
-      - name: Prepare unchanged server connection and host pin
+          python3 -m py_compile tools/direct_demand/operations/prepare-w9-78929-adults-caption-20261118.py
+          python3 tools/direct_demand/operations/prepare-w9-78929-adults-caption-20261118.py read
+          php -l caption78929/read.php
+      - name: Pin established SSH host continuity and authentication identity
         env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
           KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
         run: |
           set -euo pipefail
           umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
           if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
             if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
           else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
           ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
           python3 - <<'PY'
-          import os,re,subprocess,base64,hashlib,pathlib
-          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER'];assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-') and re.fullmatch(r'[A-Za-z0-9_-]+',user)
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35);matches=[]
-          for line in scan.stdout.splitlines():
-            f=line.split()
-            if len(f)<3 or f[0].startswith('#'):continue
-            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(f[2])).digest()).decode().rstrip('=')
-            except Exception:continue
-            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
-          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP';pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Fresh unchanged source and no competing collector or application deployment
+      - name: Read the two current versions without changing them
         env:
-          GH_TOKEN: ${{ github.token }}
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
+        run: |
+          set -euo pipefail
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < caption78929/read.php > caption78929/read-result.json
+      - name: Bind the exact sentence insertion and reject any broader edit
+        run: |
+          set -euo pipefail
+          python3 tools/direct_demand/operations/prepare-w9-78929-adults-caption-20261118.py edit
+          php -l caption78929/edit.php
+          php caption78929/scope-tests.php
+      - name: Edit existing two messages ONCE using the established caption executor
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          rc=0
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < caption78929/edit.php > caption78929/original-edit-output.jsonl || rc=$?
+          printf '%s\n' "$rc" > caption78929/original-edit-exit.txt
+          cat caption78929/original-edit-output.jsonl
+          exit "$rc"
+      - name: Verify both existing posts, IDs, body, photos, button and price lineage
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json,pathlib,subprocess,os,datetime
-          def api(repo,path):return json.loads(subprocess.check_output(['gh','api','--method','GET','repos/pyatkoff/'+repo+'/'+path],timeout=30))
-          assert api('poisk-turov-test','git/ref/heads/main')['object']['sha']=='45ad1616caa1f7f96afb879439c8a21e9d345027'
-          assert api('max-search-bot','git/ref/heads/main')['object']['sha']=='b13fd0d624308ef747df077cba79bad91ee91c21'
-          assert api('max-search-bot','git/ref/heads/audit/content100-bot-publication-20261101')['object']['sha']==os.environ['GITHUB_SHA']
-          reads=[]
-          for state in ['in_progress','queued','waiting']:
-            d=api('poisk-turov-test','actions/workflows/346454799/runs?status='+state+'&per_page=100');assert d['total_count']==0 and not d['workflow_runs'],('COLLECTOR_BUSY',state)
-            reads.append({'workflow_id':346454799,'status':state,'total_count':0})
-          d=api('max-search-bot','actions/runs?head_sha=b13fd0d624308ef747df077cba79bad91ee91c21&per_page=100');assert d['total_count']<=100 and len(d['workflow_runs'])==d['total_count']
-          assert all(r['status']=='completed' for r in d['workflow_runs']),'APPLICATION_RELEASE_STILL_ACTIVE'
-          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'module660/prewrite-read.json';p.write_text(json.dumps({'at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'current_source_verified':True,'collector_status_reads':reads,'app_exact_source_runs_all_completed':True,'mutation_requests':0},indent=2)+'\n')
-          print('FRESH_CODE_DELIVERY_ADMISSION_OK')
+          import json,pathlib,hashlib
+          p=pathlib.Path('caption78929');m=json.loads((p/'manifest.json').read_bytes());raw=(p/'original-edit-output.jsonl').read_bytes();r=json.loads(raw.splitlines()[-1])
+          assert (p/'original-edit-exit.txt').read_text().strip()=='0' and r['ok'] and r['operation']==m['operation'] and r['mode']=='approved_existing_caption_quality_revision'
+          assert r['manifest_sha256']==hashlib.sha256((p/'manifest.json').read_bytes()).hexdigest()
+          assert len(r['posts'])==r['post_write_attempts']==r['caption_updates']==r['preflight_existing_messages']==2
+          for k in ['new_posts_created','configuration_write_attempts','button_write_attempts','tour_search_calls','price_queries']:assert r[k]==0
+          targets={x['publication_id']:x for x in m['rows']}
+          for post in r['posts']:
+              x=targets[post['publication_id']]
+              for k in ['hotel_id','platform','message_id','post_url','photo_signature','button_url_sha256','source_key','monitor_price_record_id']:assert post[k]==x[k]
+              assert post['previous_version_id']==x['version_id'] and post['version_id']!=x['version_id'] and post['text_sha256']==x['new_text_sha256'] and post['previous_attachments_sha256']==x['attachments_sha256']
+              for k in ['body_photo_button_verified','formatting_verified','existing_message_reused','existing_token_resolves_to_current_version']:assert post[k] is True
+          (p/'terminal-verified.json').write_text(json.dumps({'state':'EXISTING_78929_ADULTS_CONDITION_VERIFIED_BOTH','new_posts':0,'posts_edited':2,'native_result':r,'manifest':m},ensure_ascii=False,indent=2)+'\n')
+          print('EXISTING_78929_ADULTS_CONDITION_VERIFIED_BOTH')
           PY
-      - name: Replace only the admitted module once under existing journal lock
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          w="$RUNNER_TEMP/module660"
-          status=0
-          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; GIT_OPTIONAL_LOCKS=0 php' < "$w/install.php" > "$w/result.json" || status=$?
-          printf '%s\n' "$status" > "$w/exit-code.txt"
-          cat "$w/result.json"
-          exit "$status"
-      - name: Independent readback without executing the installed module
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          w="$RUNNER_TEMP/module660"
-          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; GIT_OPTIONAL_LOCKS=0 php' < tools/direct_demand/operations/inspect-monitor660-reliability-20261117.php > "$w/readback.json"
-          cat "$w/readback.json"
-          python3 - <<'PY'
-          import pathlib,json,os
-          w=pathlib.Path(os.environ['RUNNER_TEMP'])/'module660';r=json.loads((w/'result.json').read_bytes());v=json.loads((w/'readback.json').read_bytes())
-          assert r['ok'] and r['code_replacements']==1 and r['new_count']==660 and r['bytes']==613581 and r['installed_sha256']=='41e9f0151f97691f91258ebb37714090ba0798c76db18c3870ff93bcc23d0c9a' and r['module_executions']==0
-          assert all(r[k]==0 for k in ['collector_runs','post_writes','feed_writes','supplier_calls','global_journal_writes'])
-          assert v['ok'] and v['installed_hook']['matches_accepted660'] and v['installed_hook']['roster_count']==660 and not v['installed_hook']['runtime_pin_mismatches']
-          assert v['journal']['pending_is_null'] and v['journal']['bytes']>=339101253 and v['app']['head']=='b13fd0d624308ef747df077cba79bad91ee91c21' and v['app']['tracked_clean']
-          print('RELIABILITY660_INSTALLED_AND_INDEPENDENTLY_READ_BACK NO_PRICE_OR_COLLECTOR_EXECUTION')
-          PY
-      - name: Retain exact delivery outcome
+      - name: Preserve original caption correction evidence including UNKNOWN
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: reliability660-bridge-outcome-${{ github.run_id }}
+          name: existing78929-adults-caption-one-attempt-20261118
           path: |
-            ${{ runner.temp }}/module660/*.json
-            ${{ runner.temp }}/module660/*.txt
+            caption78929/read-scope.json
+            caption78929/read-result.json
+            caption78929/manifest.json
+            caption78929/original-edit-output.jsonl
+            caption78929/original-edit-exit.txt
+            caption78929/terminal-verified.json
           retention-days: 30
-          if-no-files-found: error
-      - name: Remove runner-only connection files
+          if-no-files-found: warn
+      - name: Remove runner-only credentials and compiled inputs
         if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/module660/install.php"
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" caption78929/*.php
