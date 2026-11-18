@@ -1,0 +1,398 @@
+{
+  "schema_version": 1,
+  "state": "P52_SIX_PAIRS_FOUR_TELEGRAM_ONLY",
+  "native_id_namespace": "Tourvisor",
+  "baseline_unique_pairs": 1085,
+  "added_unique_pairs": 6,
+  "total_unique_pairs": 1091,
+  "native_run_id": 44205074290,
+  "native_job_id": 134468804706,
+  "native_run_attempt": 1,
+  "actual_verified_at_utc": "2026-11-18T00:08:20Z",
+  "native_artifact_id": 14383203255,
+  "native_archive_digest": "sha256:6424c16b75211f5d92d5a2e63fcc3160cef8ec779a8cf68e78d0ca10fe71d928",
+  "original_output_sha256": "3921a650084409f8bc031eed5c447ffd9b3210a0f4f824eb0812ffe48b8d8988",
+  "failure": "upload_endpoint_unconfirmed",
+  "post_write_attempts": 16,
+  "feed_rows_added_by_this_operation": 0,
+  "rows": [
+    {
+      "hotel_id": 121821,
+      "name": "Royal Atlantis Icon",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-121821-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1100",
+          "post_url": "https://t.me/any_toour/1100",
+          "publication_id": 2354,
+          "version_id": 8063,
+          "button_url": "https://t.me/anyru_bot?start=p_4fei05bTFljXr4s1HAlqnGWI",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "f3b887ca9a6300e316539c5be72ecd60bd11bf53c552a44db741dfb47997038f",
+          "photo_sha256": "296ff3f07d47814aa270cb6165a9cc3afbfed0ca78ecae6d326587de0f5094d6",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 121821,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/10cd3713e13a762c5585434072f9fb6fcd0e2eff/.github/traffic-publish/commercial-wave7-20261118/121821.png"
+        },
+        "max": {
+          "logical_id": "commercial-hotel-121821-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ebfb36fb4cd7",
+          "post_url": "https://max.ru/channel_anytour/AaHr-zb7TNc",
+          "publication_id": 2364,
+          "version_id": 8073,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_G-rH0PCLosRNK6wZMzQ_jw0j",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "f3b887ca9a6300e316539c5be72ecd60bd11bf53c552a44db741dfb47997038f",
+          "photo_sha256": "296ff3f07d47814aa270cb6165a9cc3afbfed0ca78ecae6d326587de0f5094d6",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 121821,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/10cd3713e13a762c5585434072f9fb6fcd0e2eff/.github/traffic-publish/commercial-wave7-20261118/121821.png"
+        }
+      },
+      "verified_at_utc": "2026-11-18T00:08:20Z"
+    },
+    {
+      "hotel_id": 76226,
+      "name": "Sataya Resort Marsa Alam",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-76226-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1101",
+          "post_url": "https://t.me/any_toour/1101",
+          "publication_id": 2355,
+          "version_id": 8064,
+          "button_url": "https://t.me/anyru_bot?start=p_q1wNRLB2a7b8TrfB_nTlr-YU",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "01253f00e9da27d126be8e43819216892bf8b2f474d2aa2ba83c8ff287799228",
+          "photo_sha256": "57619c18964930339456b1d99455fb43203e59fc652076a24e7aa3a51cf642e5",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 76226,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/10cd3713e13a762c5585434072f9fb6fcd0e2eff/.github/traffic-publish/commercial-wave7-20261118/76226.png"
+        },
+        "max": {
+          "logical_id": "commercial-hotel-76226-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ebfb40945de2",
+          "post_url": "https://max.ru/channel_anytour/AaHr-0CUXeI",
+          "publication_id": 2365,
+          "version_id": 8074,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_qlubgpL2hi6XhPeS0rezYy5i",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "01253f00e9da27d126be8e43819216892bf8b2f474d2aa2ba83c8ff287799228",
+          "photo_sha256": "57619c18964930339456b1d99455fb43203e59fc652076a24e7aa3a51cf642e5",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 76226,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/10cd3713e13a762c5585434072f9fb6fcd0e2eff/.github/traffic-publish/commercial-wave7-20261118/76226.png"
+        }
+      },
+      "verified_at_utc": "2026-11-18T00:08:20Z"
+    },
+    {
+      "hotel_id": 64998,
+      "name": "Banyan Tree Dubai",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-64998-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1102",
+          "post_url": "https://t.me/any_toour/1102",
+          "publication_id": 2356,
+          "version_id": 8065,
+          "button_url": "https://t.me/anyru_bot?start=p_S5pa-pkYvMnIugITjzLCvTCc",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "ed101e6da5a52bf7e6769f6b2e54aff6f90fdf0c5b017d62ee165e10833b1b91",
+          "photo_sha256": "1ff02eda3714257806bb09985fe33db719d16deffdd6816d67c82aaf0a904450",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 64998,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/10cd3713e13a762c5585434072f9fb6fcd0e2eff/.github/traffic-publish/commercial-wave7-20261118/64998.png"
+        },
+        "max": {
+          "logical_id": "commercial-hotel-64998-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ebfb49f33500",
+          "post_url": "https://max.ru/channel_anytour/AaHr-0nzNQA",
+          "publication_id": 2366,
+          "version_id": 8075,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_X3HuPvnAAb-uxUIGXvqw5tx-",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "ed101e6da5a52bf7e6769f6b2e54aff6f90fdf0c5b017d62ee165e10833b1b91",
+          "photo_sha256": "1ff02eda3714257806bb09985fe33db719d16deffdd6816d67c82aaf0a904450",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 64998,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/10cd3713e13a762c5585434072f9fb6fcd0e2eff/.github/traffic-publish/commercial-wave7-20261118/64998.png"
+        }
+      },
+      "verified_at_utc": "2026-11-18T00:08:20Z"
+    },
+    {
+      "hotel_id": 37209,
+      "name": "Royal Taj Mahal Hotel",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-37209-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1103",
+          "post_url": "https://t.me/any_toour/1103",
+          "publication_id": 2357,
+          "version_id": 8066,
+          "button_url": "https://t.me/anyru_bot?start=p_chq5Ep6H5So9SkI-u3vkatoH",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "be70ed79487b1157e5f04637c31c947eae0d9e3027d242bfbf9a8b6f50c101fb",
+          "photo_sha256": "286fefe001a421e382059976d4c28af479718fdf7b0a54c6bdebc66d93a7136c",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 37209,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/10cd3713e13a762c5585434072f9fb6fcd0e2eff/.github/traffic-publish/commercial-wave7-20261118/37209.png"
+        },
+        "max": {
+          "logical_id": "commercial-hotel-37209-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ebfb537c75c5",
+          "post_url": "https://max.ru/channel_anytour/AaHr-1N8dcU",
+          "publication_id": 2367,
+          "version_id": 8076,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_xpYfxTxSKuSVwmo1Q-TCzeJy",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "be70ed79487b1157e5f04637c31c947eae0d9e3027d242bfbf9a8b6f50c101fb",
+          "photo_sha256": "286fefe001a421e382059976d4c28af479718fdf7b0a54c6bdebc66d93a7136c",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 37209,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/10cd3713e13a762c5585434072f9fb6fcd0e2eff/.github/traffic-publish/commercial-wave7-20261118/37209.png"
+        }
+      },
+      "verified_at_utc": "2026-11-18T00:08:20Z"
+    },
+    {
+      "hotel_id": 78964,
+      "name": "Xanadu Makadi Bay",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-78964-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1104",
+          "post_url": "https://t.me/any_toour/1104",
+          "publication_id": 2358,
+          "version_id": 8067,
+          "button_url": "https://t.me/anyru_bot?start=p_4gerKv7NhdQ64-2BWcBcECXJ",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "045380f6cf7d38f0f574d943012e86335b6b95d47195994b10587896a6e38b3e",
+          "photo_sha256": "ffdb68f0c3367dcc451337608b9502d62e01337610fb1775e36de61424e1e947",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 78964,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/10cd3713e13a762c5585434072f9fb6fcd0e2eff/.github/traffic-publish/commercial-wave7-20261118/78964.png"
+        },
+        "max": {
+          "logical_id": "commercial-hotel-78964-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ebfb5d2a41d6",
+          "post_url": "https://max.ru/channel_anytour/AaHr-10qQdY",
+          "publication_id": 2368,
+          "version_id": 8077,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_eChS9FQzOu6aUHNEJmbGZipw",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "045380f6cf7d38f0f574d943012e86335b6b95d47195994b10587896a6e38b3e",
+          "photo_sha256": "ffdb68f0c3367dcc451337608b9502d62e01337610fb1775e36de61424e1e947",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 78964,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/10cd3713e13a762c5585434072f9fb6fcd0e2eff/.github/traffic-publish/commercial-wave7-20261118/78964.png"
+        }
+      },
+      "verified_at_utc": "2026-11-18T00:08:20Z"
+    },
+    {
+      "hotel_id": 46323,
+      "name": "Al Habtoor Palace",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-46323-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1105",
+          "post_url": "https://t.me/any_toour/1105",
+          "publication_id": 2359,
+          "version_id": 8068,
+          "button_url": "https://t.me/anyru_bot?start=p_SFXK4yf18IcpoB294as1Gao4",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "c16c0fa7c5d0b9a127c40406e5436d188273cd89da0a945f8c55679f73eb4e92",
+          "photo_sha256": "4d72bedb5a34aa0b40aa55ac482710da3703c1a97e5e417cdac5c007926aa9e0",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 46323,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/10cd3713e13a762c5585434072f9fb6fcd0e2eff/.github/traffic-publish/commercial-wave7-20261118/46323.png"
+        },
+        "max": {
+          "logical_id": "commercial-hotel-46323-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ebfb670209a2",
+          "post_url": "https://max.ru/channel_anytour/AaHr-2cCCaI",
+          "publication_id": 2369,
+          "version_id": 8078,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_LbauuB1Xmqj8IX-6jTrygDza",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "c16c0fa7c5d0b9a127c40406e5436d188273cd89da0a945f8c55679f73eb4e92",
+          "photo_sha256": "4d72bedb5a34aa0b40aa55ac482710da3703c1a97e5e417cdac5c007926aa9e0",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 46323,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/10cd3713e13a762c5585434072f9fb6fcd0e2eff/.github/traffic-publish/commercial-wave7-20261118/46323.png"
+        }
+      },
+      "verified_at_utc": "2026-11-18T00:08:20Z"
+    }
+  ],
+  "partial_rows": [
+    {
+      "hotel_id": 1589,
+      "name": "Swandor Topkapi Palace",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-1589-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1106",
+          "post_url": "https://t.me/any_toour/1106",
+          "publication_id": 2360,
+          "version_id": 8069,
+          "button_url": "https://t.me/anyru_bot?start=p_pEn3Gd4tMLumLASR1MEfZuKl",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "ca7aa5c64782ae3c4f6fda0e7022e255f54e1f96bcb08fd1101fdee8b6205c2e",
+          "photo_sha256": "0e5f025daecceb0ee39d48d3decfd57c264061899cff57ee29e79c42bfb62e65",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 1589,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/10cd3713e13a762c5585434072f9fb6fcd0e2eff/.github/traffic-publish/commercial-wave7-20261118/1589.png"
+        }
+      }
+    },
+    {
+      "hotel_id": 127349,
+      "name": "DoubleTree Mangroovy El Gouna",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-127349-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1107",
+          "post_url": "https://t.me/any_toour/1107",
+          "publication_id": 2361,
+          "version_id": 8070,
+          "button_url": "https://t.me/anyru_bot?start=p_Q6pwYeD4dK7nDrh6iqAkanuI",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "38a37dff3b95bbe6b0bb6878181a133d484b9fa595a3f644a2bb5a5c1b126a80",
+          "photo_sha256": "9e75d3f494f41f15f2d9b8c182c2b8b9312da3de6a5812995a9f57615eea6b17",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 127349,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/10cd3713e13a762c5585434072f9fb6fcd0e2eff/.github/traffic-publish/commercial-wave7-20261118/127349.png"
+        }
+      }
+    },
+    {
+      "hotel_id": 115677,
+      "name": "Palace Dubai Creek Harbour",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-115677-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1108",
+          "post_url": "https://t.me/any_toour/1108",
+          "publication_id": 2362,
+          "version_id": 8071,
+          "button_url": "https://t.me/anyru_bot?start=p_rzKmQzZ7adCoouQn96crDv1t",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "16950cc2efe8906d6afb74c34871b8923f49068ebc0dd0594c21e07b2b79bce6",
+          "photo_sha256": "051a0416180c734f7aa7f8dc539db3a679a95b33246e72744c96747f5a9a003f",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 115677,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/10cd3713e13a762c5585434072f9fb6fcd0e2eff/.github/traffic-publish/commercial-wave7-20261118/115677.png"
+        }
+      }
+    },
+    {
+      "hotel_id": 2161,
+      "name": "TUI Magic Life Bodrum",
+      "platforms": {
+        "telegram": {
+          "logical_id": "commercial-hotel-2161-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1109",
+          "post_url": "https://t.me/any_toour/1109",
+          "publication_id": 2363,
+          "version_id": 8072,
+          "button_url": "https://t.me/anyru_bot?start=p_J2F_mlAjq9OociBozXrYLufV",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "04a35edbcaedc7d913f1e526c6701b106e6f86b3c68747b606d334289e3b8784",
+          "photo_sha256": "c51beab93eecc83e57eb2e00f56b595d2605f3807c56a82a4d0874df149b4d42",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 2161,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/10cd3713e13a762c5585434072f9fb6fcd0e2eff/.github/traffic-publish/commercial-wave7-20261118/2161.png"
+        }
+      }
+    }
+  ],
+  "unused_operations": [
+    "commercial-hotel-batch-20261118-53-v1",
+    "commercial-hotel-batch-20261118-54-v1",
+    "commercial-hotel-batch-20261118-55-v1",
+    "commercial-hotel-batch-20261118-56-v1"
+  ]
+}
