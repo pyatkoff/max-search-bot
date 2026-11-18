@@ -3,7 +3,7 @@ import base64,datetime,fcntl,hashlib,json,os,pathlib,re,subprocess,sys,urllib.re
 ROOT=pathlib.Path('/var/www/anytoour/data/www/app.anytoour.ru')
 JOURNAL=pathlib.Path('/var/www/anytoour/data/channel-post-operations')
 HOOK=pathlib.Path('/var/www/anytoour/data/www/anytoour.ru/data/monitor-price-hook.php')
-HOOK_SHA='5bd038a50c756b951f9bbc29055b9bf755469066fb9e2719083cd544271abd7e'
+HOOK_SHA='1ad41a8a3a8d10632e0e6127289481675f655c7f7f9a5bbe39b698c03e73e592'
 NAMES=('hotel-posts-telegram.xml','hotel-posts-max.xml','hotel-posts-all.xml')
 def need(v,msg):
  if not v:raise ValueError(msg)

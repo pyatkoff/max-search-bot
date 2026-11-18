@@ -6,7 +6,7 @@ import argparse,base64,contextlib,datetime,hashlib,io,json,pathlib,re,subprocess
 INVENTORY_SHA='c8cee3897d32ae513b537ba55ce4d8fe5d850017789b60fea53eca8a9f9ce565'
 CURRENT='3ffab7f2e2d01c8cd35144fba621897e4ad75e5d'
 REVIEWED_ADMISSION_SHA256='PIN_AFTER_AUTHENTICATED_CURRENT_READ_ROUTES_AND_PREIMAGES'
-PINS={'prepare-publication-tail.py':'6db0ef9d8bb51d897387140c6f5c1d9e5b68bc33ffff41c9cea98621c927c4b8','publish-commercial-channel-hotel-feeds-20261103-1.php':'8609a2cf06d4a46738f934047d46744bdc54d3863e7c2921fdfec1a9be4b7a5e','monitor-price-contract.php':'3c61a260d9c40f7741d644a9531aebea58790595ae2adbad6ff8163975621ede','commercial-channel-hotel-feeds-20261113-update10-nightly-guard.php':'19c921720bfc3c1a1ca06e1d43854420e8f4f8c0a44b9fb80c76ed0cefe038fa'}
+PINS={'prepare-publication-tail.py':'6db0ef9d8bb51d897387140c6f5c1d9e5b68bc33ffff41c9cea98621c927c4b8','publish-commercial-channel-hotel-feeds-20261103-1.php':'8609a2cf06d4a46738f934047d46744bdc54d3863e7c2921fdfec1a9be4b7a5e','monitor-price-contract.php':'3c61a260d9c40f7741d644a9531aebea58790595ae2adbad6ff8163975621ede','commercial-channel-hotel-feeds-20261113-update10-nightly-guard.php':'02bffda02ed05e311b44b90fea63717a5cd787b99cc2653f3b5a17f7d9bfb00f'}
 PUBLIC_LABELS={22940:'Anantara Sir Bani Yas Al Yamm',52337:'Four Seasons Abu Dhabi Al Maryah Island',64648:'Four Seasons Dubai DIFC',78669:'Four Seasons Bangkok Chao Phraya River',60788:'Four Seasons Cairo at The First Residence',77515:'The First Collection Jumeirah Village Circle',69774:'Waldorf Astoria Dubai DIFC',126601:'Danang Marriott Non Nuoc Beach Villas'}
 PUBLIC_LABEL_ORIGINALS={22940: 'Anantara Sir Bani Yas Island Al Yamm Villa Resort', 52337: 'Four Seasons Hotel Abu Dhabi at Al Maryah Island', 64648: 'Four Seasons Hotel Dubai International Financial Centre', 78669: 'Four Seasons Hotel Bangkok at Chao Phraya River', 60788: 'Four Seasons Hotel Cairo at The First Residence', 77515: 'The First Collection at Jumeirah Village Circle', 69774: 'Waldorf Astoria Dubai International Financial Centre', 126601: 'Danang Marriott Resort & Spa Non Nuoc Beach Villas'}
 NAMES=('hotel-posts-telegram.xml','hotel-posts-max.xml','hotel-posts-all.xml')
@@ -82,7 +82,7 @@ def evidence_gate(ad,inv,prefix=None):
   need(json.dumps(ad.get('resume_prefix'),sort_keys=True,separators=(',',':'))==json.dumps(prefix,sort_keys=True,separators=(',',':')),'admitted_prefix_changed')
   need(ad.get('remaining_hotels')==207,'remaining_scope_changed')
  else:need('resume_prefix' not in ad and 'remaining_hotels' not in ad,'unexpected_resume_fields')
- need(ad.get('current_registry_receipts_verified') is True and ad.get('old660_routes_preserved') is True and ad.get('monitor_pending_null') is True and ad.get('installed_hook_sha256')=='5bd038a50c756b951f9bbc29055b9bf755469066fb9e2719083cd544271abd7e','admission_boundary_missing')
+ need(ad.get('current_registry_receipts_verified') is True and ad.get('old660_routes_preserved') is True and ad.get('monitor_pending_null') is True and ad.get('installed_hook_sha256')=='1ad41a8a3a8d10632e0e6127289481675f655c7f7f9a5bbe39b698c03e73e592','admission_boundary_missing')
  need([g.get('operation') for g in ad['groups']]==[feed_operation(ad.get('feed_date'),ad.get('execution',{}),g['batch']) for g in ad['groups']],'execution_operation_scheme_changed')
  need(ad.get('public_label_overrides')=={str(k):v for k,v in PUBLIC_LABELS.items()},'reviewed_short_labels_required')
  need(ad.get('public_label_originals')=={str(k):v for k,v in PUBLIC_LABEL_ORIGINALS.items()},'original_label_proof_required')
@@ -96,15 +96,18 @@ def prepare(repo,originals,reads,routes,preimages,admission,out,reviewed_digest=
  prefix=None
  if prefix_evidence is not None:
   import prefix207_checkpoint as checkpoint
-  need(set(prefix_evidence)=={'descriptor_raw','api_metadata','archives','fresh_probe_raw'},'prefix_evidence_scope')
+  need(set(prefix_evidence)=={'descriptor_raw','api_metadata','archives','fresh_probe_raw','price_evolution_evidence'},'prefix_evidence_scope')
   prefix=checkpoint.authenticate_checkpoint(prefix_evidence['descriptor_raw'],prefix_evidence['api_metadata'],prefix_evidence['archives'])
   need(inv['operations'][0]['batch']==1 and inv['operations'][0]['hotel_ids']==prefix['prefix_hotel_ids'],'prefix_inventory_ids_changed')
   probe_raw=prefix_evidence['fresh_probe_raw'];probe=json.loads(probe_raw)
-  checkpoint.validate_fresh_preimage(prefix,probe,preimages,ad['execution'])
+  import price_evolution207 as evolution_helper
+  ev=prefix_evidence['price_evolution_evidence'];evolution=evolution_helper.authenticate_evolution(ev['descriptor_raw'],ev['api'],ev['archive_raw'])
+  need(evolution_helper.canon(evolution)==evolution_helper.canon(ad['price_evolution']),'admission_evolution_changed')
+  evolution_helper.validate_current_preimage(prefix,evolution,probe,preimages,ad['execution'])
   need(sha(probe_raw)==ad['preimage_read'].get('local_result_sha256') and ad['preimage_read'].get('source')=='THIS_AUTHENTICATED_WORKFLOW_RUN','fresh_probe_execution_binding')
   need(probe['installed_sha']==ad['expected_installed_sha'],'probe_runtime_changed')
   need(probe.get('inventory_sha256')==INVENTORY_SHA,'probe_inventory_changed')
-  need(ad['previous_feed_sha256']==prefix['expected_feeds'],'resume_preimage_changed')
+  need(ad['previous_feed_sha256']==evolution['current_feeds'],'resume_preimage_changed')
  evidence_gate(ad,inv,prefix);current=ad['expected_installed_sha']
  ops=repo/'tools/direct_demand/operations';sources={n:readpin(ops/n,h) for n,h in PINS.items()}
  for n in NAMES:readpin(preimages/n,ad['previous_feed_sha256'][n])
@@ -146,13 +149,13 @@ def prepare(repo,originals,reads,routes,preimages,admission,out,reviewed_digest=
    need(sha(before)==f['expected_previous_sha256'] and sha(nextbytes)==f['sha256'],'render_digest_changed')
    preserved.append(preserve(before,nextbytes,f['name'],total,len(ids)));(after/f['name']).write_bytes(nextbytes)
   subprocess.run(['php','-l',str(dest/'write.php')],capture_output=True,check=True)
-  results.append({'batch':batch,'operation':operation,'hotels':len(ids),'original_publication_operation':op['operation'],'original_approval_sha256':op['approval_sha256'],'original_publication_runtime':pub['installed_sha'],'current_execution_runtime':current,'adapter_inverse_byte_identity':True,'writer_body_unchanged':True,'nightly_guard_unchanged':True,'script_sha256':sha(program),'input_sha256':sha(inp),'route_receipt_sha256':sha(rr),'files':[{k:f[k] for k in ['name','sha256','bytes','rows','expected_previous_sha256']} for f in data['files']],'preservation':preserved})
+  results.append({'batch':batch,'operation':operation,'hotels':len(ids),'original_publication_operation':op['operation'],'original_approval_sha256':op['approval_sha256'],'original_publication_runtime':pub['installed_sha'],'current_execution_runtime':current,'adapter_inverse_byte_identity':True,'writer_body_unchanged':True,'nightly_guard_unchanged':False,'nightly_guard_exact_hook_pin':True,'script_sha256':sha(program),'input_sha256':sha(inp),'route_receipt_sha256':sha(rr),'files':[{k:f[k] for k in ['name','sha256','bytes','rows','expected_previous_sha256']} for f in data['files']],'preservation':preserved})
   previous=after;total+=len(ids)
  need(total==877 and len(set(seen))==217 and seen==inv['hotel_ids_in_original_batch_order'],'final_scope_changed')
  result={'state':'PREPARED_NOT_WRITTEN_NOT_EXECUTION_APPROVAL','hotels':207 if prefix else 217,'previous_pairs':670 if prefix else 660,'final_pairs':877,'groups':results,'inventory_sha256':INVENTORY_SHA,'reviewed_admission_sha256':reviewed_digest,'new_prices':0,'new_messages':0,'supplier_calls':0,'production_writes':0,'writer_runs':0,'requires_fresh_execution_admission':True,'public_label_overrides':{str(k):v for k,v in PUBLIC_LABELS.items()},'public_label_originals':{str(k):v for k,v in PUBLIC_LABEL_ORIGINALS.items()}}
  if prefix:
   need(len(results)==23 and sum(x['hotels'] for x in results)==207 and not (out/'p01').exists(),'suffix_writer_scope_changed')
-  result.update(resume_prefix=prefix,original_hotels=217,completed_prefix=[1],previous_native_receipt_sha256=prefix['previous_native_receipt_sha256'])
+  result.update(price_evolution=evolution,resume_prefix=prefix,original_hotels=217,completed_prefix=[1],previous_native_receipt_sha256=prefix['previous_native_receipt_sha256'])
  (out/'intent.json').write_bytes(compact(result));return result
 if __name__=='__main__':
  p=argparse.ArgumentParser();
