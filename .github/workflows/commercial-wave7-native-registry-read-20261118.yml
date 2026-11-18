@@ -1,8 +1,4 @@
-name: Check50 preserved W11 non-Dominican hotel IDs in both publication registries
-on:
-  push:
-    branches: [audit/content100-bot-publication-20261101]
-    paths: ['.github/workflows/commercial-wave7-native-registry-read-20261118.yml']
+name: Read public hotel identities in both registries for W12 deduplication
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
@@ -10,148 +6,112 @@ permissions:
   contents: read
 jobs:
   registry-screen:
-    if: >-
-      github.repository == 'pyatkoff/max-search-bot' &&
-      github.actor == 'pyatkoff' &&
-      github.event.before == 'cd78ae068b51047d8e28356fd7dc73f65780dfac' &&
-      github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+      && github.event.before == 'fb7805ca5d73ccdf951d99524e6e73dce13b2353' && github.run_attempt
+      == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Prepare the read-only HOTEL CONTENT check
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          mkdir -p pub
-          cat > pub/registry-read.php <<'PHP'
-          <?php
-          declare(strict_types=1);
-          
-          ini_set('display_errors', '0');
-          $installed = trim((string)shell_exec('git rev-parse HEAD'));
-          if (PHP_SAPI !== 'cli' || $installed !== 'bd8e248f7138ea75cb9fda2dcf44beb631c633a5') {
-              fwrite(STDERR, "Installed application changed before registry read\n");
-              exit(2);
-          }
-          if (trim((string)shell_exec('git status --porcelain --untracked-files=no')) !== '') {
-              fwrite(STDERR, "Tracked production files differ from the installed release\n");
-              exit(2);
-          }
-          $pins = json_decode(base64_decode('eyJpbnRlZ3JhdGlvbnMvQ2hhbm5lbFBvc3RBcGlUcmFuc3BvcnQucGhwIjogIjMwMDYzNGQ3N2NiOWZkZGY1MWFkZjk4Njk5NzRmOTU2Y2NhNmUzZjkiLCAibWlncmF0aW9ucy8wMzNfY2hhbm5lbF9wb3N0X2NvbnRleHQuc3FsIjogIjA1MzA0NTgwMzBhNGJmZTZiNmNjNTVkMWU1ZTQ0MTc0NWMyOWI5NDciLCAibWlncmF0aW9ucy8wMzZfY2hhbm5lbF9wb3N0X21lbWJlcl9kZWxpdmVyeS5zcWwiOiAiMWJkYTQ2M2U1MmIzMzEzMGFkMTI3NTJkZGVmNGVlNWM5MjY5OWMwNSIsICJtaWdyYXRpb25zLzA0MF9jaGFubmVsX3Bvc3RfcmVjb25jaWxpYXRpb24uc3FsIjogIjBmMjRiODM4ZWFjZDQ1MzMzYzVhZGU5YTI5OTFkMDYwNDg4YzYwMzUiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RBZG1pblNlcnZpY2UucGhwIjogImI4MGVlZmM4MDEwNTRiZmU2ZmRiNThlYzM0NWVjZGY2ODdiMmU4OWEiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RBdXRvbWF0aW9uU2VydmljZS5waHAiOiAiYzYzODZlMTU1ZDQyYmM4Mzk3MGVkYzk1ZjM1YjNlYmViNTE0MDUzMyIsICJzZXJ2aWNlcy9DaGFubmVsUG9zdEJ1dHRvblRyYW5zcG9ydC5waHAiOiAiN2I2NzExZjFkZTYzMDAwMzQ2ZDhlNTc4OWYyZGJiN2Y3MjU1MzViOCIsICJzZXJ2aWNlcy9DaGFubmVsUG9zdEVudHJ5U2VydmljZS5waHAiOiAiMTk4MmZmNzM2ODc2M2VkZjhiNzIzOGMzMTQyZTNjYzI4NTc5ZTk5MSIsICJzZXJ2aWNlcy9DaGFubmVsUG9zdE1heEFsYnVtUmVjb3ZlcnkucGhwIjogImRlMjY2Y2QwNjg1ODdjYzNiMmZmODNmMzA4YTk2NmVhNjY4ODdhMDQiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RNZWRpYVNlcnZpY2UucGhwIjogImY3OTRlZmQwZjZmMjRkZjkxNmUxODkwOWZmNjI4MWIwYmM5Mjg0MzMiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RNZW1iZXJEZWxpdmVyeVNlcnZpY2UucGhwIjogIjIwYzFkNzk4NDg5OGIyYTU5OTZhNWY5ZTIwZTRkMmQ4YzIwYjQ3NzgiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RSZWNvbmNpbGlhdGlvblNlcnZpY2UucGhwIjogIjFmYTI2MGU5NzIwYTg0MjEyMjdlY2JlNzQwYmZiZTMzYTQyZTM5OGQiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RSZWNvbmNpbGlhdGlvblN0YXRlLnBocCI6ICJkOTU4M2NlY2E4MGQxNDI0YTQ0YWRlMzU2MWMyMTI4MmEyM2E1MmYwIiwgInNlcnZpY2VzL0NoYW5uZWxQb3N0UmVnaXN0cnlTZXJ2aWNlLnBocCI6ICJjZjQyYTQ0MjU3ZDFhNThkMWZmNTE2Njc4NjE1Y2Y5ZDAxZjQ1YjU1IiwgInNlcnZpY2VzL0NoYW5uZWxQb3N0UnVudGltZS5waHAiOiAiMmYxZGQ5Yjc3NDc0ZmRiYWE5MmYwNDAyZjNiMGFhMTcwYzU5NTQ3NCIsICJzZXJ2aWNlcy9DaGFubmVsUG9zdFRlbGVncmFtQWxidW0ucGhwIjogImZhYTFhMTRiYzI3OWE0YWYzMzkzNjI4MjEyNmJmMGQ0NmUzNDMwNDAiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RXZWJob29rQ29uZmlnU2VydmljZS5waHAiOiAiZDVmZGNiMDU2MDg4ZjFlM2E1NDFiNDA0NjMyNWQ5N2VlZjY0MTdkOSIsICJzZXJ2aWNlcy9Db252ZXJzYXRpb25EYi5waHAiOiAiYmI2MjgxZmFmNTVhY2E3YmVlYWU3ZjhhNTczODlkMTk3NTE5MzZmNyIsICJzZXJ2aWNlcy9NYXhUbHNDb25maWcucGhwIjogIjAzMmMwMjExZWUzZjM5YzZmMGQyN2M2NjlhYmQ1YjQ2N2UzMjFkZWEiLCAic2VydmljZXMvTWF4VHJhbnNwb3J0LnBocCI6ICIyY2I0Zjg3ODZiNDcwNGE4ZTYyYTNhOWM0MGRjMmNjNzNkYWQ2MTU5IiwgInNlcnZpY2VzL1Byb2plY3RDb25maWcucGhwIjogIjYzYzE3YzgxMDM0MTJmOGNmZjhjZGNjNGJiYjA2MmU3NDQxMDZhZjkiLCAic2VydmljZXMvUHJvamVjdENvbmZpZ3VyYXRpb24ucGhwIjogIjA3MDE5ZDQ3M2M1ODhlMzM4NmFjZTQyOTc3ZGI5MzA5MmU4MTEyZTMifQ==', true), true, 64, JSON_THROW_ON_ERROR);
-          foreach ($pins as $path => $expected) {
-              if (trim((string)shell_exec('git hash-object -- ' . escapeshellarg($path))) !== $expected) {
-                  throw new RuntimeException('Pinned publication component differs from the installed release');
-              }
-          }
-          $manifest = json_decode(base64_decode('W1s2NzI5OSwgWyJDSU5OQU1PTiBWRUxJRlVTSEkiXV0sIFsxMTc3MiwgWyJMVVggR1JBTkQgR0FVQkUiXV0sIFs4MDk2LCBbIlBJTUFMQUkgUkVTT1JUICYgU1BBIl1dLCBbMjI2NTcsIFsiVkFOQSBCRUxMRSBTQU1VSSBSRVNPUlQgJiBTUEEiXV0sIFs1MzcsIFsiQU1BTlBVUkkiXV0sIFs3NzMsIFsiU0FMQSBTQU1VSSBDSE9FTkdNT04gQkVBQ0ggUkVTT1JUIl1dLCBbNzgyLCBbIlNBTlRJQlVSSSBSRVNPUlQgJiBTUEEiXV0sIFs4NDMsIFsiVFdJTlBBTE1TIFNVUklOIEJFQUNIIFBIVUtFVCJdXSwgWzU5NjA0LCBbIlNBTEEgU0FNVUkgQ0hBV0VORyBCRUFDSCBSRVNPUlQiXV0sIFs1NTcsIFsiTk9WT1RFTCBQSFVLRVQgS0FUQSBBVklTVEEgUkVTT1JUICYgU1BBIl1dLCBbNzcyLCBbIlNBTEEgUEhVS0VUIE1BSSBLSEFPIEJFQUNIIFJFU09SVCJdXSwgWzIwMjYsIFsiSElMVE9OIFBBVFRBWUEiXV0sIFsyMDYxLCBbIlNJTEFWQURFRSBQT09MIFNQQSAmIFJFU09SVCJdXSwgWzMwMjMsIFsiU1JJIFBBTldBIFBIVUtFVCBMVVhVUlkgUE9PTCBWSUxMQSBIT1RFTCJdXSwgWzEyOTk0MSwgWyJUV0lOUEFMTVMgVEVOVEVEIENBTVAgUEhVS0VUIEFEVUxUUyBPTkxZIl1dLCBbNDM1NSwgWyJQQVJFU0EgUkVTT1JUIFBIVUtFVCJdXSwgWzEyMTg0LCBbIkFNQVJJIFBBVFRBWUEiXV0sIFs4MTUwMywgWyJBTkRBWiBQQVRUQVlBIEpPTVRJRU4gQkVBQ0giXV0sIFs4MDg1NiwgWyJUSEUgU1RBTkRBUkQgSFVBIEhJTiJdXSwgWzEyNzAwMSwgWyJUSEUgU1RBTkRBUkQgUEFUVEFZQSBOQSBKT01USUVOIl1dLCBbMjk4MCwgWyJISUxUT04gSFVBIEhJTiBSRVNPUlQgJiBTUEEiXV0sIFs3ODk5LCBbIkNFTlRBUkEgR1JBTkQgQkVBQ0ggUkVTT1JUICYgVklMTEFTIEtSQUJJIl1dLCBbNDk2MDgsIFsiU0lYIFNFTlNFUyBaSUwgUEFTWU9OIl1dLCBbMTA0MDU2LCBbIkhZQVRUIFJFR0VOQ1kgSFVBIEhJTiAmIFRIRSBCQVJBSSJdXSwgWzE1OTM1OCwgWyJUV0lOUEFMTVMgVFJFRUhPVVNFUyBQSFVLRVQiXV0sIFsxNTk5NjAsIFsiQ0hBVFJJVU0gUkFXQUkgUkVTT1JUIl1dLCBbNDk0NjcsIFsiSEVSSVRBTkNFIEtBTkRBTEFNQSJdXSwgWzI4MjAsIFsiSEVSSVRBTkNFIEFIVU5HQUxMQSJdXSwgWzI4MzUsIFsiSEVSSVRBTkNFIEFZVVJWRURBIE1BSEEgR0VEQVJBIEFEVUxUUyBPTkxZIDE2KyJdXSwgWzgxNjkwLCBbIkxVTlVHQU5HQSJdXSwgWzEyMTQwLCBbIkpFVFdJTkcgQkxVRSJdXSwgWzY0MDc5LCBbIkpFVFdJTkcgU1VSRiJdXSwgWzgwNzg1LCBbIkpFVFdJTkcgTEFLRSBEQU1CVUxMQSJdXSwgWzEwOTg4OSwgWyJVR0EgUklWQSJdXSwgWzEzNDEwMywgWyJVR0EgUFJBVkEiXV0sIFsyODA0LCBbIkNJTk5BTU9OIExBS0VTSURFIl1dLCBbNzAzMTUsIFsiSkVUV0lORyBDT0xPTUJPIFNFVkVOIl1dLCBbNDMzOSwgWyJNSUxMRU5OSVVNIEhJTFRPTiBCQU5HS09LIl1dLCBbODE2NCwgWyJTSUFNIEtFTVBJTlNLSSJdXSwgWzgyMTIsIFsiVEhFIFNVS0hPVEhBSSBCQU5HS09LIl1dLCBbODAzMywgWyJDT01PIE1FVFJPUE9MSVRBTiBCQU5HS09LIl1dLCBbODIxMzUsIFsiVEhFIFNUQU5EQVJEIEJBTkdLT0sgTUFIQU5BS0hPTiJdXSwgWzI4MjIsIFsiSElMVE9OIENPTE9NQk8iXV0sIFs4MDI4LCBbIk1BTkRBUklOIE9SSUVOVEFMIl1dLCBbNjQ2MjQsIFsiU0hBTkdSSS1MQSBDT0xPTUJPIl1dLCBbNjc5MTQsIFsiSElMVE9OIFNVS0hVTVZJVCBCQU5HS09LIl1dLCBbODI0MjQsIFsiU0lOREhPUk4gS0VNUElOU0tJIEhPVEVMIEJBTkdLT0siXV0sIFsxMDA4OTMsIFsiQ0hBVFJJVU0gR1JBTkQgQkFOR0tPSyJdXSwgWzExODk5NiwgWyJDSU5OQU1PTiBMSUZFIEFUIENJVFkgT0YgRFJFQU1TIl1dLCBbMTI2MDEzLCBbIkNPVVJUWUFSRCBCWSBNQVJSSU9UVCBDT0xPTUJPIl1dXQ==', true), true, 64, JSON_THROW_ON_ERROR);
-          if (count($manifest) !== 50 || count(array_unique(array_column($manifest, 0))) !== 50) {
-              throw new RuntimeException('Unexpected intake scope');
-          }
-          
-          ob_start();
-          require getcwd() . '/config.php';
-          require_once getcwd() . '/services/ChannelPostRuntime.php';
-          ob_end_clean();
-          
-          $pdo = ConversationDb::connection();
-          $pdo->exec('SET SESSION TRANSACTION READ ONLY');
-          $pdo->beginTransaction();
-          $result = ['installed_sha' => $installed, 'checked_at' => gmdate(DATE_ATOM),
-              'native_hotel_ids' => array_column($manifest, 0), 'channels' => [], 'matches' => []];
-          try {
-              $query = $pdo->prepare('SELECT p.id, p.current_version_id, v.snapshot_json
-                  FROM post_publications p JOIN post_versions v ON v.id = p.current_version_id
-                  WHERE p.post_channel_id = ? ORDER BY p.id');
-              foreach (['telegram' => 10, 'max' => 9] as $platform => $channel) {
-                  $query->execute([$channel]);
-                  $rows = $query->fetchAll(PDO::FETCH_ASSOC);
-                  if (count($rows) < 1235) {
-                      throw new RuntimeException('Publication registry is below the verified baseline');
-                  }
-                  $result['channels'][$platform] = count($rows);
-                  foreach ($rows as $record) {
-                      $post = json_decode($record['snapshot_json'], true, 64, JSON_THROW_ON_ERROR);
-                      $title = explode("\n", (string)($post['text'] ?? ''), 2)[0];
-                      $metadata = $post['metadata'] ?? [];
-                      $native = (int)($metadata['hotel_catalog_id'] ?? 0);
-                      foreach ($manifest as [$id, $aliases]) {
-                          $reason = [];
-                          if ($native === $id || ($metadata['logical_id'] ?? '') === "commercial-hotel-$id-v1") {
-                              $reason[] = 'identity';
-                          }
-                          foreach ($aliases as $alias) {
-                              if ($alias !== '' && mb_stripos($title, $alias, 0, 'UTF-8') !== false) {
-                                  $reason[] = 'title';
-                                  break;
-                              }
-                          }
-                          if ($reason !== []) {
-                              $result['matches'][] = ['requested_id' => $id, 'registry_hotel_id' => $native,
-                                  'platform' => $platform, 'publication_id' => (int)$record['id'],
-                                  'version_id' => (int)$record['current_version_id'], 'reason' => $reason,
-                                  'title' => mb_substr($title, 0, 180, 'UTF-8')];
-                          }
-                      }
-                  }
-              }
-          } finally {
-              $pdo->rollBack();
-          }
-          echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), PHP_EOL;
-          PHP
-          php -l pub/registry-read.php
-      - name: Pin established SSH host continuity and authentication identity
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
-          PY
-          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
-            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
-          chmod 600 "$RUNNER_TEMP/channel_key"
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-          python3 - <<'PY'
-          import base64,hashlib,os,pathlib,subprocess
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
-          for s in scan.stdout.splitlines():
-              q=s.split()
-              if len(q)<3 or q[0].startswith('#'):continue
-              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
-              except Exception:continue
-              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
-          assert found,'HOST_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
-          print('ESTABLISHED_HOST_PIN_VERIFIED')
-          PY
-      - name: Check both publication registries in a read-only transaction
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php' < pub/registry-read.php > pub/registry-receipt.json
-          python3 -c 'import json; p=json.load(open("pub/registry-receipt.json")); print({"checked":len(p["native_hotel_ids"]), "registry_counts":p["channels"], "matches":len(p["matches"])})'
-      - name: Preserve exact duplicate screening
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: wave11-50-registry-read-20261118
-          path: pub/registry-receipt.json
-          retention-days: 30
-          if-no-files-found: warn
-      - name: Remove runner-only credentials
-        if: always()
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/registry-read.php
+    - name: Prepare the read-only HOTEL CONTENT check
+      shell: bash
+      run: "set -euo pipefail\numask 077\nmkdir -p pub\ncat > pub/registry-read.php\
+        \ <<'PHP'\n<?php\ndeclare(strict_types=1);\n\nini_set('display_errors', '0');\n\
+        $installed = trim((string)shell_exec('git rev-parse HEAD'));\nif (PHP_SAPI\
+        \ !== 'cli' || $installed !== 'bd8e248f7138ea75cb9fda2dcf44beb631c633a5')\
+        \ {\n    fwrite(STDERR, \"Installed application changed before registry read\\\
+        n\");\n    exit(2);\n}\nif (trim((string)shell_exec('git status --porcelain\
+        \ --untracked-files=no')) !== '') {\n    fwrite(STDERR, \"Tracked production\
+        \ files differ from the installed release\\n\");\n    exit(2);\n}\n$pins =\
+        \ json_decode(base64_decode('eyJpbnRlZ3JhdGlvbnMvQ2hhbm5lbFBvc3RBcGlUcmFuc3BvcnQucGhwIjogIjMwMDYzNGQ3N2NiOWZkZGY1MWFkZjk4Njk5NzRmOTU2Y2NhNmUzZjkiLCAibWlncmF0aW9ucy8wMzNfY2hhbm5lbF9wb3N0X2NvbnRleHQuc3FsIjogIjA1MzA0NTgwMzBhNGJmZTZiNmNjNTVkMWU1ZTQ0MTc0NWMyOWI5NDciLCAibWlncmF0aW9ucy8wMzZfY2hhbm5lbF9wb3N0X21lbWJlcl9kZWxpdmVyeS5zcWwiOiAiMWJkYTQ2M2U1MmIzMzEzMGFkMTI3NTJkZGVmNGVlNWM5MjY5OWMwNSIsICJtaWdyYXRpb25zLzA0MF9jaGFubmVsX3Bvc3RfcmVjb25jaWxpYXRpb24uc3FsIjogIjBmMjRiODM4ZWFjZDQ1MzMzYzVhZGU5YTI5OTFkMDYwNDg4YzYwMzUiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RBZG1pblNlcnZpY2UucGhwIjogImI4MGVlZmM4MDEwNTRiZmU2ZmRiNThlYzM0NWVjZGY2ODdiMmU4OWEiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RBdXRvbWF0aW9uU2VydmljZS5waHAiOiAiYzYzODZlMTU1ZDQyYmM4Mzk3MGVkYzk1ZjM1YjNlYmViNTE0MDUzMyIsICJzZXJ2aWNlcy9DaGFubmVsUG9zdEJ1dHRvblRyYW5zcG9ydC5waHAiOiAiN2I2NzExZjFkZTYzMDAwMzQ2ZDhlNTc4OWYyZGJiN2Y3MjU1MzViOCIsICJzZXJ2aWNlcy9DaGFubmVsUG9zdEVudHJ5U2VydmljZS5waHAiOiAiMTk4MmZmNzM2ODc2M2VkZjhiNzIzOGMzMTQyZTNjYzI4NTc5ZTk5MSIsICJzZXJ2aWNlcy9DaGFubmVsUG9zdE1heEFsYnVtUmVjb3ZlcnkucGhwIjogImRlMjY2Y2QwNjg1ODdjYzNiMmZmODNmMzA4YTk2NmVhNjY4ODdhMDQiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RNZWRpYVNlcnZpY2UucGhwIjogImY3OTRlZmQwZjZmMjRkZjkxNmUxODkwOWZmNjI4MWIwYmM5Mjg0MzMiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RNZW1iZXJEZWxpdmVyeVNlcnZpY2UucGhwIjogIjIwYzFkNzk4NDg5OGIyYTU5OTZhNWY5ZTIwZTRkMmQ4YzIwYjQ3NzgiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RSZWNvbmNpbGlhdGlvblNlcnZpY2UucGhwIjogIjFmYTI2MGU5NzIwYTg0MjEyMjdlY2JlNzQwYmZiZTMzYTQyZTM5OGQiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RSZWNvbmNpbGlhdGlvblN0YXRlLnBocCI6ICJkOTU4M2NlY2E4MGQxNDI0YTQ0YWRlMzU2MWMyMTI4MmEyM2E1MmYwIiwgInNlcnZpY2VzL0NoYW5uZWxQb3N0UmVnaXN0cnlTZXJ2aWNlLnBocCI6ICJjZjQyYTQ0MjU3ZDFhNThkMWZmNTE2Njc4NjE1Y2Y5ZDAxZjQ1YjU1IiwgInNlcnZpY2VzL0NoYW5uZWxQb3N0UnVudGltZS5waHAiOiAiMmYxZGQ5Yjc3NDc0ZmRiYWE5MmYwNDAyZjNiMGFhMTcwYzU5NTQ3NCIsICJzZXJ2aWNlcy9DaGFubmVsUG9zdFRlbGVncmFtQWxidW0ucGhwIjogImZhYTFhMTRiYzI3OWE0YWYzMzkzNjI4MjEyNmJmMGQ0NmUzNDMwNDAiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RXZWJob29rQ29uZmlnU2VydmljZS5waHAiOiAiZDVmZGNiMDU2MDg4ZjFlM2E1NDFiNDA0NjMyNWQ5N2VlZjY0MTdkOSIsICJzZXJ2aWNlcy9Db252ZXJzYXRpb25EYi5waHAiOiAiYmI2MjgxZmFmNTVhY2E3YmVlYWU3ZjhhNTczODlkMTk3NTE5MzZmNyIsICJzZXJ2aWNlcy9NYXhUbHNDb25maWcucGhwIjogIjAzMmMwMjExZWUzZjM5YzZmMGQyN2M2NjlhYmQ1YjQ2N2UzMjFkZWEiLCAic2VydmljZXMvTWF4VHJhbnNwb3J0LnBocCI6ICIyY2I0Zjg3ODZiNDcwNGE4ZTYyYTNhOWM0MGRjMmNjNzNkYWQ2MTU5IiwgInNlcnZpY2VzL1Byb2plY3RDb25maWcucGhwIjogIjYzYzE3YzgxMDM0MTJmOGNmZjhjZGNjNGJiYjA2MmU3NDQxMDZhZjkiLCAic2VydmljZXMvUHJvamVjdENvbmZpZ3VyYXRpb24ucGhwIjogIjA3MDE5ZDQ3M2M1ODhlMzM4NmFjZTQyOTc3ZGI5MzA5MmU4MTEyZTMifQ==',\
+        \ true), true, 64, JSON_THROW_ON_ERROR);\nforeach ($pins as $path => $expected)\
+        \ {\n    if (trim((string)shell_exec('git hash-object -- ' . escapeshellarg($path)))\
+        \ !== $expected) {\n        throw new RuntimeException('Pinned publication\
+        \ component differs from the installed release');\n    }\n}\n$manifest = [];\n\
+        \nob_start();\nrequire getcwd() . '/config.php';\nrequire_once getcwd() .\
+        \ '/services/ChannelPostRuntime.php';\nob_end_clean();\n\n$pdo = ConversationDb::connection();\n\
+        $pdo->exec('SET SESSION TRANSACTION READ ONLY');\n$pdo->beginTransaction();\n\
+        $result = ['installed_sha' => $installed, 'checked_at' => gmdate(DATE_ATOM),\n\
+        \    'native_hotel_ids' => array_column($manifest, 0), 'channels' => [], 'matches'\
+        \ => []];\ntry {\n    $query = $pdo->prepare('SELECT p.id, p.current_version_id,\
+        \ v.snapshot_json\n        FROM post_publications p JOIN post_versions v ON\
+        \ v.id = p.current_version_id\n        WHERE p.post_channel_id = ? ORDER BY\
+        \ p.id');\n    foreach (['telegram' => 10, 'max' => 9] as $platform => $channel)\
+        \ {\n        $query->execute([$channel]);\n        $rows = $query->fetchAll(PDO::FETCH_ASSOC);\n\
+        \        if (count($rows) < 1283) {\n            throw new RuntimeException('Publication\
+        \ registry is below the verified baseline');\n        }\n        $result['channels'][$platform]\
+        \ = count($rows);\n        foreach ($rows as $record) {\n            $post\
+        \ = json_decode($record['snapshot_json'], true, 64, JSON_THROW_ON_ERROR);\n\
+        \            $title = explode(\"\\n\", (string)($post['text'] ?? ''), 2)[0];\n\
+        \            $metadata = $post['metadata'] ?? [];\n            $native = (int)($metadata['hotel_catalog_id']\
+        \ ?? 0);\n            $result['rows'][] = ['platform'=>$platform,'publication_id'=>(int)$record['id'],'native_id'=>$native,'logical_id'=>(string)($metadata['logical_id']??''),'title'=>$title];\n\
+        \            foreach ($manifest as [$id, $aliases]) {\n                $reason\
+        \ = [];\n                if ($native === $id || ($metadata['logical_id'] ??\
+        \ '') === \"commercial-hotel-$id-v1\") {\n                    $reason[] =\
+        \ 'identity';\n                }\n                foreach ($aliases as $alias)\
+        \ {\n                    if ($alias !== '' && mb_stripos($title, $alias, 0,\
+        \ 'UTF-8') !== false) {\n                        $reason[] = 'title';\n  \
+        \                      break;\n                    }\n                }\n\
+        \                if ($reason !== []) {\n                    $result['matches'][]\
+        \ = ['requested_id' => $id, 'registry_hotel_id' => $native,\n            \
+        \            'platform' => $platform, 'publication_id' => (int)$record['id'],\n\
+        \                        'version_id' => (int)$record['current_version_id'],\
+        \ 'reason' => $reason,\n                        'title' => mb_substr($title,\
+        \ 0, 180, 'UTF-8')];\n                }\n            }\n        }\n    }\n\
+        } finally {\n    $pdo->rollBack();\n}\necho json_encode($result, JSON_UNESCAPED_UNICODE\
+        \ | JSON_THROW_ON_ERROR), PHP_EOL;\nPHP\nphp -l pub/registry-read.php\n"
+    - name: Pin established SSH host continuity and authentication identity
+      env:
+        HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+      shell: bash
+      run: "set -euo pipefail\numask 077\npython3 - <<'PY'\nimport os,re\nassert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE']\
+        \ or '')\nassert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or\
+        \ '')\nPY\nif [[ \"$KEY_VALUE\" == *\"PRIVATE KEY\"* ]]; then\n  if [[ \"\
+        $KEY_VALUE\" == *'\\n'* ]]; then printf '%b\\n' \"$KEY_VALUE\" | tr -d '\\\
+        r' > \"$RUNNER_TEMP/channel_key\"; else printf '%s\\n' \"$KEY_VALUE\" | tr\
+        \ -d '\\r' > \"$RUNNER_TEMP/channel_key\"; fi\nelse printf '%s' \"$KEY_VALUE\"\
+        \ | base64 --decode > \"$RUNNER_TEMP/channel_key\"; fi\nchmod 600 \"$RUNNER_TEMP/channel_key\"\
+        \nssh-keygen -y -f \"$RUNNER_TEMP/channel_key\" >/dev/null\npython3 - <<'PY'\n\
+        import base64,hashlib,os,pathlib,subprocess\nscan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]\n\
+        for s in scan.stdout.splitlines():\n    q=s.split()\n    if len(q)<3 or q[0].startswith('#'):continue\n\
+        \    try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')\n\
+        \    except Exception:continue\n    if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)\n\
+        assert found,'HOST_PIN_MISMATCH_STOP'\npathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\\\
+        n'.join(found)+'\\n')\nprint('ESTABLISHED_HOST_PIN_VERIFIED')\nPY\n"
+    - name: Check both publication registries in a read-only transaction
+      env:
+        HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+      shell: bash
+      run: 'set -euo pipefail
 
+        options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+        -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+        -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+
+        ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" ''cd /var/www/anytoour/data/www/app.anytoour.ru
+        && php'' < pub/registry-read.php > pub/registry-receipt.json
+
+        python3 -c ''import json; p=json.load(open("pub/registry-receipt.json"));
+        print({"checked":len(p["native_hotel_ids"]), "registry_counts":p["channels"],
+        "matches":len(p["matches"])})''
+
+        '
+    - name: Preserve exact duplicate screening
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: wave12-published-identities-read
+        path: pub/registry-receipt.json
+        retention-days: 30
+        if-no-files-found: warn
+    - name: Remove runner-only credentials
+      if: always()
+      run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/registry-read.php
+'on':
+  push:
+    branches:
+    - audit/content100-bot-publication-20261101
+    paths:
+    - .github/workflows/commercial-wave7-native-registry-read-20261118.yml
