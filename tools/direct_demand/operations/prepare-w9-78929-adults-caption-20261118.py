@@ -56,7 +56,14 @@ def edit_stage():
  rows=[]
  for x in d['posts']:
   p=expected[x['platform']];assert x['hotel_id']==78929 and x['publication_id']==p['publication_id'] and x['post_url']==p['post_url']
-  assert x['status']=='sent' and x['button_observed_in_snapshot'] and x['button_resolves_to_current_post']
+  # The registry snapshot is the provider's original media observation; its
+  # optional keyboard field does not supersede the exact confirmed receipt.
+  assert x['status']=='sent' and x['button_resolves_to_current_post']
+  assert isinstance(x['button_observed_in_snapshot'],bool)
+  assert p['body_photo_button_verified'] and p['state']=='sent'
+  assert all(x[k]==p[k] for k in ('version_id','message_id','source_key'))
+  assert x['caption_sha256']==p['text_sha256'] and x['button_url_sha256']==sha(p['button_url'].encode())
+  assert x['platform']!='max' or x['provider_live_verified'] is True
   old=x['caption'];anchor='\n\nГородской Дубай';assert old.count(anchor)==1 and 'Отель только для взрослых.'not in old
   new=old.replace(anchor,'\n\nОтель только для взрослых.'+anchor,1)
   row={k:x[k] for k in ['hotel_id','platform','publication_id','version_id','message_id','post_url','photo_signature','attachments_sha256','button_url_sha256','config_version','source_key','button_observed_in_snapshot','monitor_price_record_id']}

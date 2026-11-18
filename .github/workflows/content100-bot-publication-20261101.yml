@@ -14,7 +14,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '1b797d5b7fea22c1cee007467e792e613d3bdd72' &&
+      github.event.before == 'e9027a15257298a3c1c4afbd8a9156c2a82f6df5' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -54,6 +54,27 @@ jobs:
               assert set(prior.namelist())=={'journal-metadata.json','read-scope.json','read-result.json'}
               stopped=json.loads(prior.read('read-result.json'))
               assert stopped['error']=='monitor_journal_incomplete' and stopped['post_write_attempts']==stopped['provider_calls']==0 and stopped['posts']==[]
+          third_run=info('actions/runs/44255449694')
+          assert third_run['status']=='completed' and third_run['conclusion']=='failure' and third_run['run_attempt']==1 and third_run['head_sha']=='e9027a15257298a3c1c4afbd8a9156c2a82f6df5'
+          third_job=info('actions/runs/44255449694/jobs')['jobs']
+          assert len(third_job)==1
+          disposition={s['name']:s['conclusion'] for s in third_job[0]['steps']}
+          assert disposition['Edit existing two messages ONCE using the established caption executor']=='skipped'
+          third=subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/actions/artifacts/14405552840/zip'],timeout=90)
+          assert hashlib.sha256(third).hexdigest()=='11d0bbdb00408b0a9a4edf65d8a52b39d08b1e8a1251add35e6c013528efc15a'
+          with zipfile.ZipFile(io.BytesIO(third)) as prior:
+              assert set(prior.namelist())=={'read-scope.json','read-result.json'}
+              read=json.loads(prior.read('read-result.json'))
+              assert read['ok'] and read['post_write_attempts']==0 and read['provider_calls']==1
+          original=subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/actions/artifacts/14394559384/zip'],timeout=90)
+          assert hashlib.sha256(original).hexdigest()=='edbe4cba52dbd2beff1e8af990a68bd56dd3a97c4d047076bc6a491f2a73129d'
+          from pathlib import Path
+          with zipfile.ZipFile(io.BytesIO(original)) as prior:
+              terminal=json.loads(prior.read('terminal-verified.json'))
+          bound=json.loads(Path('tools/direct_demand/operations/commercial-w9-78929-caption-bound-posts-20261118.json').read_bytes())
+          assert terminal['operation']==bound['original_operation']
+          posts=[p for p in terminal['posts'] if p['hotel_id']==78929]
+          assert posts==bound['posts'] and all(p['body_photo_button_verified'] for p in posts)
           for path,expected in [('commercial-caption-review73-20261113-executor.php','cd2d8390f7723a25ec06e9cd90239c0cc9623ad2'),('commercial-caption-review73-20261113-read-scope.php','0f6e34762ddc280dd896b4f5eabc8e334d4534f1')]:
               assert subprocess.check_output(['git','hash-object','tools/direct_demand/operations/'+path],text=True).strip()==expected
           PY
