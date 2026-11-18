@@ -1,4 +1,4 @@
-name: W13 fresh cached intake and original cover preparation, no sends
+name: W14 fresh cached intake and original cover preparation, no sends
 'on':
   push:
     branches:
@@ -11,7 +11,7 @@ permissions:
 jobs:
   prepare:
     if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
-      && github.event.before == 'a63b3572b2f670dd645aee01c22c05f286a46211' && github.run_attempt
+      && github.event.before == '9e557c27a918bf4fdefd8e9640139dfe042c2eff' && github.run_attempt
       == 1
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -27,15 +27,15 @@ jobs:
     - name: Prepare preserved licensed sources only
       env:
         GH_TOKEN: ${{ github.token }}
-      run: python3 tools/direct_demand/operations/prepare-wave13-intake-20261118.py
+      run: python3 tools/direct_demand/operations/prepare-wave14-intake-20261118.py
     - if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
-        name: wave13-source-intake-preview
-        path: 'wave13/*.jpg
+        name: wave14-source-intake-preview
+        path: 'wave14/*.jpg
 
-          wave13/receipt.json
+          wave14/receipt.json
 
-          wave13/profiles.json'
+          wave14/profiles.json'
         retention-days: 30
         if-no-files-found: warn
