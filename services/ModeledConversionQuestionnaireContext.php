@@ -13,6 +13,22 @@ final class ModeledConversionQuestionnaireContext
         'country'=>'Куда хотите поехать?',
     ];
 
+    // Frozen labels from resources/regional_departure_rules.json, active_catalog (2026-11-10).
+    // A later directory edit must not silently change this forecast's source fingerprint.
+    private const DEPARTURE_NAMES=[
+        'Москва','Пермь','Екатеринбург','Уфа','С.Петербург','Челябинск',
+        'Самара','Н.Новгород','Новосибирск','Казань','Краснодар','Красноярск',
+        'Сургут','Тюмень','Кемерово','Новокузнецк','Калининград','Нижнекамск',
+        'Хабаровск','Омск','Иркутск','Владивосток','Ю.Сахалинск','Барнаул',
+        'Волгоград','Оренбург','Архангельск','Мурманск','Саратов','Нижневартовск',
+        'Ханты-Мансийск','Благовещенск','Якутск','Мин.Воды','Астрахань','Сыктывкар',
+        'Улан-Удэ','П.Камчатский','Чита','Братск','Владикавказ','Магнитогорск',
+        'Орск','Ульяновск','Чебоксары','Томск','Абакан','Нальчик',
+        'Ставрополь','Сочи','Наб.Челны','Ижевск','Пенза','Новый Уренгой',
+        'Ярославль','Махачкала','Калуга','Грозный','Саранск','Череповец',
+        'Иваново','Киров','Петрозаводск','Псков',
+    ];
+
     public static function field(string $text):?string
     {
         if(strlen($text)>1024||preg_match('//u',$text)!==1)return null;
@@ -40,6 +56,26 @@ final class ModeledConversionQuestionnaireContext
         if($field!=='nights'||preg_match('/\A(?:на\s+)?([1-9][0-9]?)\s*(?:[-–—]\s*([1-9][0-9]?))?\s*(?:ноч(?:ь|и|ей))?[.!]*\z/iuD',$text,$m)!==1)return false;
         $low=(int)$m[1];$high=isset($m[2])?(int)$m[2]:$low;
         return $low<= $high&&$high<=28;
+    }
+
+    /** Only a complete list of labeled departure alternatives can suppress the general text scan. */
+    public static function departureAlternatives(string $text):bool
+    {
+        if(strlen($text)>128||!str_contains($text,'/'))return false;
+        if(strpbrk($text,"\r\n")!==false)return false;
+        $parts=explode('/',trim($text));
+        if(count($parts)>4)return false;
+        $seen=[];
+        foreach($parts as$part){
+            $part=trim($part);
+            $label=null;
+            foreach(self::DEPARTURE_NAMES as$name){
+                if(preg_match('~\\A'.preg_quote($name,'~').'\\z~iuD',$part)===1){$label=$name;break;}
+            }
+            if($label===null||isset($seen[$label]))return false;
+            $seen[$label]=true;
+        }
+        return true;
     }
 
     private static function dateLiteral(string $text,?int $recordedAt):bool
