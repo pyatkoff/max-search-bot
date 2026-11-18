@@ -1,0 +1,40 @@
+{
+  "state": "REVIEWED_SELECT_ONLY_ANALYTICS",
+  "native_execution_allowed": true,
+  "carrier": "audit/hotel-pilot-entries-20261119",
+  "parent_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+  "runtime_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+  "window": {
+    "from_utc": "2026-11-11 21:00:00",
+    "until_utc_exclusive": "2026-11-18 21:00:00"
+  },
+  "targets": [
+    {
+      "platform": "telegram",
+      "channel_id": "-1001845835645",
+      "message_id": "1754"
+    },
+    {
+      "platform": "telegram",
+      "channel_id": "-1001845835645",
+      "message_id": "1756"
+    },
+    {
+      "platform": "telegram",
+      "channel_id": "-1001845835645",
+      "message_id": "1757"
+    },
+    {
+      "platform": "telegram",
+      "channel_id": "-1001845835645",
+      "message_id": "1760"
+    }
+  ],
+  "source_sha256": {
+    "admit.py": "c0a82150ead7b5586fc74eaf5017e191c62c510961cc4ffe11760282b62ea78b",
+    "runner.py": "9602b00ed314b6bb3333471d812a9f223aef7695c06f33fea23d3412cbf43563",
+    "safe_output.py": "35d44de1d456b62186acb3b330755fec0d81b613d32f10a91edfd8835c92e681",
+    "program.php": "faf0558268c3c6073ac2d5aeff5e41bb05374f5403b4b40875d71ee041c0d9b6"
+  },
+  "program_sha256": "faf0558268c3c6073ac2d5aeff5e41bb05374f5403b4b40875d71ee041c0d9b6"
+}
