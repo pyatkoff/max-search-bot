@@ -84,8 +84,9 @@ final class ModeledConversionSemanticPrediction
         $this->cutoff=$cutoff;$this->freeze=$freeze;
     }
 
+    /** True only when the current source ref was admitted as a neutral departure list. */
     public function observeMessage(string $role,string $redactedText,string $ref,int $occurred,
-        int $available,int $sourceVersion,array $canonicalSemanticResult,bool $originalUnlinked=false):void
+        int $available,int $sourceVersion,array $canonicalSemanticResult,bool $originalUnlinked=false):bool
     {
         $meta=$this->metadata($ref,$occurred,$available,$sourceVersion);
         if($this->lastQuestionnaireAt!==null&&($occurred<$this->lastQuestionnaireAt
@@ -95,17 +96,19 @@ final class ModeledConversionSemanticPrediction
         $r=$canonicalSemanticResult;
         if(($r['version']??null)!=='ru_archive_contextual_v2'||($r['status']??null)!=='scanned'
             ||!is_array($r['flags']??null)||!is_array($r['events']??null)||count($r['events'])>32){
-            $this->barrier();return;
+            $this->barrier();return false;
         }
         $flags=$r['flags'];
         $question=$this->questionnaireQuestion;
+        $departureAlternatives=$role==='customer'&&$this->advertisingV1&&$originalUnlinked&&$sourceVersion===1
+            &&($question['field']??null)==='city'&&ModeledConversionQuestionnaireContext::departureAlternatives($redactedText);
         $questionnaireAnswer=$role==='customer'&&$sourceVersion===1&&$question!==null
             &&self::moment($question['occurred_at'])<=$occurred
             &&self::moment($question['available_at'])<=$available
             &&$occurred-self::moment($question['occurred_at'])<=86400
             &&($flags['quoted_or_relayed']??false)!==true&&($flags['past_trip']??false)!==true
             &&($flags['conditional']??false)!==true
-            &&ModeledConversionQuestionnaireContext::accepts($question['field'],$redactedText,$occurred);
+            &&($departureAlternatives||ModeledConversionQuestionnaireContext::accepts($question['field'],$redactedText,$occurred));
         // The canonical text extractor can discover its first episode later
         // than the recorded questionnaire. A verified answer continues that
         // same context; every actual boundary and unsafe flag still resets.
@@ -116,7 +119,7 @@ final class ModeledConversionSemanticPrediction
             if(($flags[$key]??false)===true)$reset=true;
         if($reset){$this->barrier();$questionnaireAnswer=false;}
         if(($flags['reversed_clock']??false)===true||($flags['unknown_time']??false)===true
-            ||($flags['context_barrier']??false)===true)return;
+            ||($flags['context_barrier']??false)===true)return false;
         if(isset($this->messages[$ref]))self::fail('duplicate_message');
         if(count($this->messages)>=50)self::fail('message_limit');
         $this->messages[$ref]=['role'=>$role,...$meta];
@@ -124,7 +127,7 @@ final class ModeledConversionSemanticPrediction
         // Any admitted human turn consumes the pending question, including an
         // unrecognised reply or an intervening manager message.
         $this->questionnaireQuestion=null;
-        if($questionnaireAnswer)$this->questionnaireAnswer($question['field'],$meta);
+        if($questionnaireAnswer)$this->questionnaireAnswer($question['field'],$meta,$departureAlternatives);
         $unsafe=false;
         foreach(['quoted_or_relayed','past_trip','conditional','negation']as$key)
             if(($flags[$key]??false)===true)$unsafe=true;
@@ -208,6 +211,7 @@ final class ModeledConversionSemanticPrediction
             &&($flags['question']??false)!==true&&$textSignals['explicit_decline']){
             $this->declined=true;$this->evidence('explicit_decline',$meta);
         }
+        return $questionnaireAnswer&&$departureAlternatives;
     }
 
     private static function isManagerPackageQuote(string $text):bool
@@ -306,14 +310,16 @@ final class ModeledConversionSemanticPrediction
         return true;
     }
 
-    private function questionnaireAnswer(string $field,array $meta):void
+    private function questionnaireAnswer(string $field,array $meta,bool $departureAlternatives):void
     {
         $family=match($field){'date','nights'=>'dates','country'=>'destination','city'=>null,default=>'party'};
+        // Unselected departure alternatives may validate their own receipt, never ground a later request.
+        if($departureAlternatives){$this->questionnaireAnswers[$meta['source_ref']]=[];return;}
         $this->questionnaireAnswers[$meta['source_ref']]=$meta;
         $this->lastQuestionnaireAt=self::moment($meta['occurred_at']);
         if($family!==null){$this->criteria[$family]=true;$this->evidence('criteria_'.$family,$meta);}
         if($this->anchor===null&&count($this->criteria)>=2){
-            $first=array_values($this->questionnaireAnswers)[0];
+            $first=array_values(array_filter($this->questionnaireAnswers))[0];
             $this->anchor=$first['source_ref'];$this->anchorVersion=$first['source_version_no'];
             $this->anchorEvidence=['feature'=>'current_request_anchor',...$first];
         }
@@ -444,7 +450,8 @@ final class ModeledConversionSemanticPrediction
             $current=hash_file('sha256',__FILE__);
             if(!is_string($current))return false;
             if(array_key_exists('model_sha256',$prediction)&&(!is_string($prediction['model_sha256'])
-                ||$prediction['model_sha256']===$current))return false;
+                ||in_array($prediction['model_sha256'],[$current,
+                    '4e4d7c6908bf8246db08917de1b46dbdc904099b0c95afb92273f833b8c3ab42'],true)))return false;
             unset($prediction['prediction_digest']);
             return hash_equals($given,hash('sha256',self::encodeDigestValue(self::ordered($prediction),true)));
         }catch(Throwable $ignored){return false;}

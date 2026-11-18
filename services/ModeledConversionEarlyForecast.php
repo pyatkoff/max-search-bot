@@ -155,7 +155,7 @@ final class ModeledConversionEarlyForecast
             $offerReaction->message($ref,$role,$permit['at'],$permit['available_at'],$text,$result);
             $originalUnlinked=$advertisingV1&&($row['source_version_no']??null)===1
                 &&self::plainPackageMessage($snap['payload']['metadata_json']??null);
-            $predictive->observeMessage($role,$text,$ref,$permit['at'],$permit['available_at'],
+            $departureAlternatives=$predictive->observeMessage($role,$text,$ref,$permit['at'],$permit['available_at'],
                 (int)($row['source_version_no']??0),$result,$originalUnlinked);
             foreach($result['flags']as$key=>$value)if($value===true)$flags[$key]=true;
             if($result['episode_boundary']!==null){
@@ -165,6 +165,9 @@ final class ModeledConversionEarlyForecast
             if(($result['flags']['unresolved_trip_boundary']??false)===true
                 ||($result['flags']['party_change_unresolved']??false)===true)$current=[];
             foreach($result['events']as$event){
+                // A verified departure list is not a destination condition in either saved projection.
+                if($departureAlternatives&&($event['source_ref']??null)===$ref
+                    &&($event['goal']??null)==='substantive_interest'&&($event['rule']??null)==='customer_trip_conditions')continue;
                 if(!isset($counts[$event['goal']??'']))self::fail('goal');
                 $events[]=$event;$current[]=$event;$counts[$event['goal']]++;
             }

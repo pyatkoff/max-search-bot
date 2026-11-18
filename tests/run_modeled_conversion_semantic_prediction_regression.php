@@ -755,6 +755,11 @@ $tests['legacy immutable numeric digests remain valid without current-code downg
         ini_set('serialize_precision','14');
         $current=$p;$current['prediction_digest']=semanticPredictionLegacyDigest($current);
         semanticPredictionAssert(!ModeledConversionSemanticPrediction::digestMatches($current),'current model accepted legacy codec downgrade');
+        $previous=$p;$previous['model_sha256']='4e4d7c6908bf8246db08917de1b46dbdc904099b0c95afb92273f833b8c3ab42';
+        $previous['prediction_digest']=ModeledConversionSemanticPrediction::digest($previous);
+        semanticPredictionAssert(ModeledConversionSemanticPrediction::digestMatches($previous),'previous installed canonical profile lost');
+        $previous['prediction_digest']=semanticPredictionLegacyDigest($previous);
+        semanticPredictionAssert(!ModeledConversionSemanticPrediction::digestMatches($previous),'previous installed producer admitted an unsupported codec');
         $changed=$p;$changed['estimated_probability']+=0.00000001;
         semanticPredictionAssert(!ModeledConversionSemanticPrediction::digestMatches($changed)
             &&ModeledConversionSemanticPrediction::digest($changed)!==$p['prediction_digest'],'small current tamper lost by canonical codec');
@@ -1249,6 +1254,65 @@ $tests['date question cannot bypass actor time or unsafe context guards']=static
         $p->observeMessage('customer','2','journal:4',$at+30,$at+31,1,$r);
         $v=$p->finish(semanticPredictionLegacy());
         semanticPredictionAssert($v['status']==='insufficient_context'&&$v['current_request_anchor']===null,'unsafe date crossed a guard: '.$kind);
+    }
+};
+
+$tests['recorded departure alternatives do not turn a prior date into a destination request']=static function():void{
+    require_once dirname(__DIR__).'/services/SourceQualificationPrompt.php';
+    $date=SourceQualificationPrompt::text(['date','adults'],'',true);
+    $city=MissingFieldQuestionService::question('city');
+    $adults=MissingFieldQuestionService::question('adults');
+    $country=MissingFieldQuestionService::question('country');
+    $q=static fn(string $text):array=>['text'=>$text,'role'=>'ai','admitted'=>false];
+    $run=static function(array $messages):array{
+        [$case,$wrapper,$document]=semanticPredictionFreezeFixture($messages,'max');
+        foreach($case['rows']as&$row){
+            $message=$messages[(int)$row['journal_id']-1];
+            $snap=&$row['snapshot'];
+            if(($message['role']??null)==='ai'){
+                $snap['source_timestamp_basis']='canonical_recording_unix_v1';
+                $snap['payload']['direction']='outbound';$snap['payload']['sender_type']='ai';
+                $snap['payload']['metadata_json']=json_encode(ConversationRecordClock::stamp(
+                    ['type'=>'message'],$snap['source_created_at_unix']),JSON_THROW_ON_ERROR);
+            }elseif(isset($message['metadata']))$snap['payload']['metadata_json']=$message['metadata'];
+            if(isset($message['version']))$row['source_version_no']=$message['version'];
+            unset($snap);
+        }
+        unset($row);
+        $packet=ModeledConversionEarlyForecast::freeze($case,$wrapper,$document,null,strtotime($document['requested_at'])+1,null,true);
+        return $packet['semantic_prediction'];
+    };
+    foreach(['Казань/Египет','Казань / 15.12','Сочи / ','Сочи/Пермь?',"Сочи\n/Пермь",
+        'Сочи / Томск, двое взрослых','Сочи / Турция в июле']as$ambiguous)
+        semanticPredictionAssert(!ModeledConversionQuestionnaireContext::departureAlternatives($ambiguous),'an incomplete or mixed answer was interpreted as departure alternatives');
+    foreach(['Сочи / СОЧИ','Сочи/Уфа/Пермь/Омск/Братск']as$known){
+        $v=$run([$q($city),['text'=>$known]]);
+        semanticPredictionAssert($v['features']['criteria_families']===[]&&$v['current_request_anchor']===null,
+            'a repeated or longer list of known departure names became a destination request');
+    }
+    $answer=['text'=>'Казань / Сочи / Пермь'];
+    $prefix=[$q($date),['text'=>'04.12 - 14.12'],$q($city),$answer];
+    $v=$run($prefix);
+    semanticPredictionAssert($v['current_request_anchor']===null&&$v['stage']===null
+        &&$v['features']['criteria_families']===['dates'],'departure alternatives created a request or erased the earlier date');
+    $v=$run([...$prefix,$q($city),['text'=>'Пермь'],$q($adults),['text'=>'3']]);
+    semanticPredictionAssert($v['stage']==='concrete_request'&&$v['current_request_anchor']==='journal:2'
+        &&$v['features']['criteria_families']===['dates','party']&&$v['features']['meaningful_customer_turns']===0
+        &&$v['outcome_observations']===[],'later real party and date did not retain their own evidence');
+    foreach($v['evidence']as$e)semanticPredictionAssert(in_array($e['source_ref'],['journal:2','journal:8'],true),'departure became positive evidence');
+    $v=$run([$q($city),$answer,$q($country),['text'=>'Египет'],$q($adults),['text'=>'2']]);
+    semanticPredictionAssert($v['current_request_anchor']==='journal:4'
+        &&$v['features']['criteria_families']===['destination','party'],'neutral alternatives became the anchor for later independently established criteria');
+    $v=$run([$q($country),['text'=>'Сочи']]);
+    semanticPredictionAssert($v['features']['criteria_families']===['destination'],'country question lost its ordinary destination');
+    $mixed=$run([$q($city),['text'=>'Казань / Сочи, подберите тур в Египет на 9 ночей']]);
+    semanticPredictionAssert(in_array('destination',$mixed['features']['criteria_families'],true)
+        &&in_array('dates',$mixed['features']['criteria_families'],true),'compound request lost its explicit conditions');
+    foreach([[$answer],[$q($city),['text'=>'unavailable','admitted'=>false],$answer],
+        [$q($city),$answer+['version'=>2]],
+        [$q($city),$answer+['metadata'=>'{"type":"message","linked_message":{"type":"reply"}}']]]as$unbound){
+        $v=$run($unbound);
+        semanticPredictionAssert(in_array('destination',$v['features']['criteria_families'],true),'an unbound city list was consumed as a reply to the bot');
     }
 };
 
