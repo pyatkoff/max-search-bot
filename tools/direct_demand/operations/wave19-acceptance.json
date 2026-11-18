@@ -1,0 +1,1109 @@
+{
+  "accepted_ids": [
+    13841,
+    2805,
+    8978,
+    45152,
+    1670,
+    229,
+    58676,
+    67004,
+    79279,
+    36541,
+    79154
+  ],
+  "operational_review": {
+    "13841": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.mangrovehotel.ae/index.html",
+        "https://www.oyorooms.com/ae/330803/"
+      ],
+      "evidence": "Действующая официальная/операторская карточка совпадает с native identity/location. Существенные условия подтверждены."
+    },
+    "2805": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://1atravel.onesystem.online/STORAGES/1ATRAVEL/files/445.file.07062025.1206.6844121a2a7208.91685589.122.pdf",
+        "https://cdn.coral.ru/content/doc/all_inclusive_package_club_bentota.pdf",
+        "https://www.clubmahindra.com/experiences/swimming-pool-club-bentona"
+      ],
+      "evidence": "Hotel-authored2025factsheet/guestinfo и действующая карточка оператораClubMahindra подтверждают hotel identity. Существенные условия подтверждены."
+    },
+    "8978": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://sheratonalkhalidiya.com/",
+        "https://visitabudhabi.ae/en/plan-your-trip/where-to-stay/sheraton-khalidiya"
+      ],
+      "evidence": "Действующая официальная/операторская карточка совпадает с native identity/location. Существенные условия подтверждены."
+    },
+    "45152": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.hyatt.com/en-US/hotel/united-arab-emirates/hyatt-place-dubai-baniyas-square/dxbzb",
+        "https://assets.hyatt.com/content/dam/hyatt/hyattdam/documents/2022/01/05/1445/Hyatt-Place-Dubai-Baniyas-Square-Facility-Guide-English.pdf"
+      ],
+      "evidence": "Действующая страница Hyatt с бронированием и телефоном4041234. Метро Baniyas Square и Creek рядом; outdoor temperature-controlled pool, круглосуточный fitness. 126 номеров у Hyatt против125 native: число не рекламируется. Старый guide обещал shuttle к Al Mamzar, актуальное расписание не обещаем."
+    },
+    "1670": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://hotelkayamaris.com/",
+        "https://hotelkmaris.com/en/our-hotel/",
+        "https://hotelkmaris.com/wp-content/uploads/2024/03/surdurulebilirlik-raporu.pdf"
+      ],
+      "evidence": "Старый официальный домен hotelkayamaris.com перенаправляет на hotelkmaris.com. Our Hotel называет K Maris Hotel & Spa и Kayamaris,117 номеров, тот же адрес Siteler256No4. Идентичность смены имени разрешена; официальный booking доступен. Частный участок пляжа в30м, открытый пресный бассейн200м² без подогрева по документу самого отеля."
+    },
+    "229": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://redseahotels.com/resorts/hurghada/the-grand-hotel-hurghada/",
+        "https://www.redseaholidays.co.uk/en/destinations/egypt/hurghada/hurghada-city/the-grand-hotel-hurghada",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=229"
+      ],
+      "evidence": "Текущая официальная страница с действующими услугами и бронированием; название/география/контакты согласованы с native. Официальная гостиничная сеть: private beach, beachfront, песчаный берег, шезлонги/зонты/полотенца.; Сеть подтверждает outdoor swimming pool. Подогрев не заявляем.; Сеть подтверждает Kids Club, оператор Red Sea Holidays уточняет ages4–12; условия передачи ребёнка/часы не обещаны.; В полном native и официальном описании аквапарк не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено."
+    },
+    "58676": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://arugambayroccos.lk/",
+        "https://arugambayroccos.lk/wp-content/uploads/2023/08/Hotel-Brochure-1-1.pdf",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=58676"
+      ],
+      "evidence": "Текущая официальная страница с действующими услугами и бронированием; название/география/контакты согласованы с native. Официально sandy beach непосредственно за бассейном, native30м; не заявляем эксклюзивный частный пляж/включённые спортуслуги.; Официальный WaterCube: adult4ft, kiddies2ft; открытое расположение между номерами и песчаным берегом. Подогрев не обещан.; В полном native и официальном описании детский клуб с присмотром не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено.; В полном native и официальном описании аквапарк не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено."
+    },
+    "67004": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://en.kayaprestige.com.tr/default.aspx",
+        "https://kayaprestige.com.tr/icerik/6/iletisim",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=67004"
+      ],
+      "evidence": "Текущая официальная страница с действующими услугами и бронированием; название/география/контакты согласованы с native. Не применимо: городской IsmetKaptan, Konak. Пляж/береговой трансфер не рекламируются.; Не применимо: в полном native и текущем официальном перечне услуг бассейн не рекламируется.; В полном native и официальном описании детский клуб с присмотром не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено.; В полном native и официальном описании аквапарк не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено."
+    },
+    "79279": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://fortishotel.net/",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=79279"
+      ],
+      "evidence": "Текущая официальная страница с действующими услугами и бронированием; название/география/контакты согласованы с native. Официальный сайт: 2minutes to Fujairah public beach, способ не уточняет; не первая линия, нет обещания собственного пляжа/бесплатного транспорта.; Официально swimmingpool, native уточняет открытый; подогрев и детскую зону не обещаем.; В полном native и официальном описании детский клуб с присмотром не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено.; В полном native и официальном описании аквапарк не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено."
+    },
+    "36541": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.constancehotels.com/en/hotels-resorts/tekoma/",
+        "https://www.constancehotels.com/media/34317/tekoma-factsheet-en-01aug2024.pdf",
+        "https://www.constancehotels.com/en/hotels-resorts/tekoma/restaurants-bars/kreek-beach-club",
+        "https://www.booking.com/hotel/mu/constance-tekoma.en-gb.html"
+      ],
+      "evidence": "Действующая официальная страница с бронированием: Anse Ally, Rodrigues. Factsheet:32 sea-view rooms с private terraces, прямой пляж, бассейн45м². FAQ исправляет устаревший native SPA: отдельного спа сейчас нет, доступны процедуры; детского клуба нет."
+    },
+    "79154": {
+      "status": "confirmed_open",
+      "current_identity_verified": true,
+      "material_conditions_verified": true,
+      "future_opening_or_rebrand_unresolved": false,
+      "sources": [
+        "https://www.cocolux-apartments.com/",
+        "https://www.cocolux-apartments.com/about-cocolux/",
+        "https://www.cocolux-apartments.com/welcome-to-palmeria-hotel/room-rates/",
+        "https://www.seychelles.com/listingdetails/67bea58648dc9962fc4f94ee"
+      ],
+      "evidence": "Текущая официальная бронь CocoLux, AnseReunion напротив Veuve Reserve. Восемь OneBedroomDeluxe и один Penthouse, собственная booking identity внутри Casa de Leela complex; официальный сайт Seychelles подтверждает объект. Ни Casa de Leela, ни Cocolux не найдены в registry."
+    }
+  },
+  "countries": {
+    "13841": 9,
+    "2805": 12,
+    "8978": 9,
+    "45152": 9,
+    "1670": 4,
+    "229": 1,
+    "58676": 12,
+    "67004": 4,
+    "79279": 9,
+    "36541": 27,
+    "79154": 28
+  },
+  "aliases": {
+    "13841": [
+      "mangrove hotel ras al khaimah",
+      "sunday mangrove corniche hotel ras al khaimah",
+      "mangrove corniche hotel ras al khaimah"
+    ],
+    "2805": [
+      "club bentota"
+    ],
+    "8978": [
+      "sheraton khalidiya hotel",
+      "sheraton al khalidiya"
+    ],
+    "45152": [
+      "Hyatt Place Baniyas Square",
+      "Hyatt Place Dubai Baniyas Square"
+    ],
+    "1670": [
+      "Kaya Maris Hotel",
+      "Kayamaris Hotel",
+      "K Maris Hotel Spa",
+      "K Maris Hotel & Spa"
+    ],
+    "229": [
+      "The Grand Hotel Hurghada"
+    ],
+    "58676": [
+      "Arugambay Roccos"
+    ],
+    "67004": [
+      "Kaya Prestige"
+    ],
+    "79279": [
+      "Fortis Hotel Fujairah"
+    ],
+    "36541": [
+      "Constance Tekoma Rodrigues",
+      "Tekoma Boutik Hotel Rodrigues"
+    ],
+    "79154": [
+      "Cocolux Luxury Apartments",
+      "Cocolux Apartments La Digue"
+    ]
+  },
+  "editorial": {
+    "13841": {
+      "id": 13841,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Mangrove Hotel Ras Al Khaimah\n📍 Рас-эль-Хайма, ОАЭ.\n\nДля городской поездки и прогулок по Корнишу: отель у мангровой лагуны, открытый бассейн, фитнес-центр и спа. Есть просторные номера и люксы. Это не пляжный курорт: на купальный пляж нужно добираться отдельно.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "Полный native без repeatedimages прочитан. Городской Corniche/AlKhorRoad у мангровой лагуны, не купальный пляж; бесплатный пляжный доступ/шаттл не заявлен. Открытый бассейн явно указан операторомOYO330803, на который ведёт BOOKNOW официального сайта.",
+      "material_conditions": "Городской Corniche/AlKhorRoad у мангровой лагуны, не купальный пляж; бесплатный пляжный доступ/шаттл не заявлен. Открытый бассейн явно указан операторомOYO330803, на который ведёт BOOKNOW официального сайта.",
+      "aliases": [
+        "mangrove hotel ras al khaimah",
+        "sunday mangrove corniche hotel ras al khaimah",
+        "mangrove corniche hotel ras al khaimah"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property aliases и native/logical ID не совпали с registry.",
+      "alias_registry_sha256": "a531ee7e141cf284a7140c58c6998429806503ffa1d9baee23a640e85109c38b",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.mangrovehotel.ae/index.html",
+          "https://www.oyorooms.com/ae/330803/"
+        ],
+        "evidence": "Действующая официальная/операторская карточка совпадает с native identity/location. Существенные условия подтверждены."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Городской Corniche/AlKhorRoad у мангровой лагуны, не купальный пляж; бесплатный пляжный доступ/шаттл не заявлен.",
+          "sources": [
+            "https://www.mangrovehotel.ae/index.html",
+            "https://www.oyorooms.com/ae/330803/"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "В полном native и проверенных property-specific источниках аквапарк/горки не заявлены; не обещаем.",
+          "sources": [
+            "https://www.mangrovehotel.ae/index.html",
+            "https://www.oyorooms.com/ae/330803/"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "В полном native и проверенных property-specific источниках supervised kids club не заявлен; не обещаем.",
+          "sources": [
+            "https://www.mangrovehotel.ae/index.html",
+            "https://www.oyorooms.com/ae/330803/"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Открытый бассейн явно указан операторомOYO330803, на который ведёт BOOKNOW официального сайта.",
+          "sources": [
+            "https://www.mangrovehotel.ae/index.html",
+            "https://www.oyorooms.com/ae/330803/"
+          ]
+        }
+      },
+      "caption_sha256": "4cd3bf732927c3711bee292971c175c20e4cebf21ee1b6e7ea42bf70c2859392"
+    },
+    "2805": {
+      "id": 2805,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Club Bentota\n📍 Алутгама, Бентота, Шри-Ланка.\n\nДля отдыха между рекой и океаном: отель на песчаном полуострове с садом, открытым бассейном и центром водных развлечений. К пляжу выходят прямо с территории, а к отелю добираются лодкой через реку. Лодочный шаттл на материк работает круглосуточно по расписанию; водные развлечения оплачиваются отдельно.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "Полный native без repeatedimages прочитан. Пляжный полуостров между BentotaRiver и океаном; прибытие через реку на лодке, hotel-authored guest note24hshuttle. Открытый бассейн среди садов подтверждён операторомClubMahindra; фирменный guest note08–20.",
+      "material_conditions": "Пляжный полуостров между BentotaRiver и океаном; прибытие через реку на лодке, hotel-authored guest note24hshuttle. Открытый бассейн среди садов подтверждён операторомClubMahindra; фирменный guest note08–20.",
+      "aliases": [
+        "club bentota"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Узкие property aliases и native/logical ID не совпали с registry.",
+      "alias_registry_sha256": "a531ee7e141cf284a7140c58c6998429806503ffa1d9baee23a640e85109c38b",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://1atravel.onesystem.online/STORAGES/1ATRAVEL/files/445.file.07062025.1206.6844121a2a7208.91685589.122.pdf",
+          "https://cdn.coral.ru/content/doc/all_inclusive_package_club_bentota.pdf",
+          "https://www.clubmahindra.com/experiences/swimming-pool-club-bentona"
+        ],
+        "evidence": "Hotel-authored2025factsheet/guestinfo и действующая карточка оператораClubMahindra подтверждают hotel identity. Существенные условия подтверждены."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Пляжный полуостров между BentotaRiver и океаном; прибытие через реку на лодке, hotel-authored guest note24hshuttle.",
+          "sources": [
+            "https://1atravel.onesystem.online/STORAGES/1ATRAVEL/files/445.file.07062025.1206.6844121a2a7208.91685589.122.pdf",
+            "https://cdn.coral.ru/content/doc/all_inclusive_package_club_bentota.pdf",
+            "https://www.clubmahindra.com/experiences/swimming-pool-club-bentona"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "В полном native и проверенных property-specific источниках аквапарк/горки не заявлены; не обещаем.",
+          "sources": [
+            "https://1atravel.onesystem.online/STORAGES/1ATRAVEL/files/445.file.07062025.1206.6844121a2a7208.91685589.122.pdf",
+            "https://cdn.coral.ru/content/doc/all_inclusive_package_club_bentota.pdf",
+            "https://www.clubmahindra.com/experiences/swimming-pool-club-bentona"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "В полном native и проверенных property-specific источниках supervised kids club не заявлен; не обещаем.",
+          "sources": [
+            "https://1atravel.onesystem.online/STORAGES/1ATRAVEL/files/445.file.07062025.1206.6844121a2a7208.91685589.122.pdf",
+            "https://cdn.coral.ru/content/doc/all_inclusive_package_club_bentota.pdf",
+            "https://www.clubmahindra.com/experiences/swimming-pool-club-bentona"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Открытый бассейн среди садов подтверждён операторомClubMahindra; фирменный guest note08–20.",
+          "sources": [
+            "https://1atravel.onesystem.online/STORAGES/1ATRAVEL/files/445.file.07062025.1206.6844121a2a7208.91685589.122.pdf",
+            "https://cdn.coral.ru/content/doc/all_inclusive_package_club_bentota.pdf",
+            "https://www.clubmahindra.com/experiences/swimming-pool-club-bentona"
+          ]
+        }
+      },
+      "caption_sha256": "d9ca67b38d3eb5874b4042f849cdfcf32b85463c28754717d5c6b0db5d729c10"
+    },
+    "8978": {
+      "id": 8978,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Sheraton Khalidiya Hotel\n📍 Абу-Даби, ОАЭ.\n\nДля поездки с прогулками по городу: отель в районе Аль-Халидия с открытым бассейном, фитнес-зоной и спа. Можно выбрать обычный номер или люкс с более просторной гостиной. Это городской вариант, не отель на первой линии: общественный пляж Корниш находится отдельно от территории.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": "Полный native без repeatedimages прочитан. Городской AlKhalidiya, не первая линия; publicCorniche/AlSahil отдельно от отеля, native800м не выдаём как официальный замер. Текущий официальный сайт прямо подтверждает outdoor pool, healthclub; не обещаем private beach или подогрев.",
+      "material_conditions": "Городской AlKhalidiya, не первая линия; publicCorniche/AlSahil отдельно от отеля, native800м не выдаём как официальный замер. Текущий официальный сайт прямо подтверждает outdoor pool, healthclub; не обещаем private beach или подогрев.",
+      "aliases": [
+        "sheraton khalidiya hotel",
+        "sheraton al khalidiya"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Native/logical ID и узкие aliases не совпали с registry. KhalidiyaPalaceRotana2593 не тот объект.",
+      "alias_registry_sha256": "a531ee7e141cf284a7140c58c6998429806503ffa1d9baee23a640e85109c38b",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://sheratonalkhalidiya.com/",
+          "https://visitabudhabi.ae/en/plan-your-trip/where-to-stay/sheraton-khalidiya"
+        ],
+        "evidence": "Действующая официальная/операторская карточка совпадает с native identity/location. Существенные условия подтверждены."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Городской AlKhalidiya, не первая линия; publicCorniche/AlSahil отдельно от отеля, native800м не выдаём как официальный замер.",
+          "sources": [
+            "https://sheratonalkhalidiya.com/",
+            "https://visitabudhabi.ae/en/plan-your-trip/where-to-stay/sheraton-khalidiya"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "В полном native и проверенных property-specific источниках аквапарк/горки не заявлены; не обещаем.",
+          "sources": [
+            "https://sheratonalkhalidiya.com/",
+            "https://visitabudhabi.ae/en/plan-your-trip/where-to-stay/sheraton-khalidiya"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "В полном native и проверенных property-specific источниках supervised kids club не заявлен; не обещаем.",
+          "sources": [
+            "https://sheratonalkhalidiya.com/",
+            "https://visitabudhabi.ae/en/plan-your-trip/where-to-stay/sheraton-khalidiya"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Текущий официальный сайт прямо подтверждает outdoor pool, healthclub; не обещаем private beach или подогрев.",
+          "sources": [
+            "https://sheratonalkhalidiya.com/",
+            "https://visitabudhabi.ae/en/plan-your-trip/where-to-stay/sheraton-khalidiya"
+          ]
+        }
+      },
+      "caption_sha256": "55cad70c8a059a4db801d7345bb88ce741f415e60215e7baa6d9a25f89bb05e2"
+    },
+    "45152": {
+      "id": 45152,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Hyatt Place Dubai Baniyas Square\n📍 Дубай, Дейра, ОАЭ.\n\nДля прогулок по старому Дубаю и поездок на метро: рядом Baniyas Square и набережная Дубай-Крик. После насыщенного дня можно поплавать в открытом бассейне с контролем температуры или зайти в круглосуточный фитнес-зал. Это городской отель, не первая линия: к морским пляжам нужна отдельная поездка.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=45152",
+          "evidence": "Полный native profile прочитан, кроме повторяющихся URL изображений."
+        },
+        {
+          "sources": [
+            "https://www.hyatt.com/en-US/hotel/united-arab-emirates/hyatt-place-dubai-baniyas-square/dxbzb",
+            "https://assets.hyatt.com/content/dam/hyatt/hyattdam/documents/2022/01/05/1445/Hyatt-Place-Dubai-Baniyas-Square-Facility-Guide-English.pdf"
+          ],
+          "evidence": "Действующая страница Hyatt с бронированием и телефоном4041234. Метро Baniyas Square и Creek рядом; outdoor temperature-controlled pool, круглосуточный fitness. 126 номеров у Hyatt против125 native: число не рекламируется. Старый guide обещал shuttle к Al Mamzar, актуальное расписание не обещаем."
+        }
+      ],
+      "material_conditions": [
+        "Городской отель; не морская первая линия.",
+        "Открытый бассейн с контролем температуры, не крытый.",
+        "Текущий пляжный shuttle и его расписание не обещаны."
+      ],
+      "aliases": [
+        "Hyatt Place Baniyas Square",
+        "Hyatt Place Dubai Baniyas Square"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Сверены native ID, названия и узкие исторические aliases с registry; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.hyatt.com/en-US/hotel/united-arab-emirates/hyatt-place-dubai-baniyas-square/dxbzb",
+          "https://assets.hyatt.com/content/dam/hyatt/hyattdam/documents/2022/01/05/1445/Hyatt-Place-Dubai-Baniyas-Square-Facility-Guide-English.pdf"
+        ],
+        "evidence": "Действующая страница Hyatt с бронированием и телефоном4041234. Метро Baniyas Square и Creek рядом; outdoor temperature-controlled pool, круглосуточный fitness. 126 номеров у Hyatt против125 native: число не рекламируется. Старый guide обещал shuttle к Al Mamzar, актуальное расписание не обещаем."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Отель в Дейре у Creek и метро; Al Mamzar — отдельный городской пляж, не территория отеля. Старый guide содержит shuttle, не выдаём старое расписание за действующее.",
+          "sources": [
+            "https://www.hyatt.com/en-US/hotel/united-arab-emirates/hyatt-place-dubai-baniyas-square/dxbzb",
+            "https://assets.hyatt.com/content/dam/hyatt/hyattdam/documents/2022/01/05/1445/Hyatt-Place-Dubai-Baniyas-Square-Facility-Guide-English.pdf"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "В native profile и проверенном официальном перечне услуг это оснащение не заявлено. Отсутствие рекламного обещания не подменяется обещанием услуги.",
+          "sources": [
+            "https://www.hyatt.com/en-US/hotel/united-arab-emirates/hyatt-place-dubai-baniyas-square/dxbzb",
+            "https://assets.hyatt.com/content/dam/hyatt/hyattdam/documents/2022/01/05/1445/Hyatt-Place-Dubai-Baniyas-Square-Facility-Guide-English.pdf"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "В native profile и проверенном официальном перечне услуг это оснащение не заявлено. Отсутствие рекламного обещания не подменяется обещанием услуги.",
+          "sources": [
+            "https://www.hyatt.com/en-US/hotel/united-arab-emirates/hyatt-place-dubai-baniyas-square/dxbzb",
+            "https://assets.hyatt.com/content/dam/hyatt/hyattdam/documents/2022/01/05/1445/Hyatt-Place-Dubai-Baniyas-Square-Facility-Guide-English.pdf"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Официально temperature-controlled outdoor pool; опубликованные часы08–20. Без обещания крытого бассейна.",
+          "sources": [
+            "https://www.hyatt.com/en-US/hotel/united-arab-emirates/hyatt-place-dubai-baniyas-square/dxbzb",
+            "https://assets.hyatt.com/content/dam/hyatt/hyattdam/documents/2022/01/05/1445/Hyatt-Place-Dubai-Baniyas-Square-Facility-Guide-English.pdf"
+          ]
+        }
+      },
+      "caption_sha256": "85ed4dfecf9e2dc0da8584fb25a5cca58942e52dac53ee5c729d9d2d01dacf2f"
+    },
+    "1670": {
+      "id": 1670,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в K Maris Hotel & Spa\n📍 Мармарис, Ситилер, Турция.\n\nДля отдыха вдвоём и прогулок по побережью: собственный участок пляжа примерно в 30 м через дорогу, открытый бассейн и фитнес-зал. До центра Мармариса около 2 км. Бассейн без подогрева; хаммам, сауна и спа оплачиваются отдельно. Отель ранее назывался Kayamaris.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        {
+          "source": "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1670",
+          "evidence": "Полный native profile прочитан, кроме повторяющихся URL изображений."
+        },
+        {
+          "sources": [
+            "https://hotelkayamaris.com/",
+            "https://hotelkmaris.com/en/our-hotel/",
+            "https://hotelkmaris.com/wp-content/uploads/2024/03/surdurulebilirlik-raporu.pdf"
+          ],
+          "evidence": "Старый официальный домен hotelkayamaris.com перенаправляет на hotelkmaris.com. Our Hotel называет K Maris Hotel & Spa и Kayamaris,117 номеров, тот же адрес Siteler256No4. Идентичность смены имени разрешена; официальный booking доступен. Частный участок пляжа в30м, открытый пресный бассейн200м² без подогрева по документу самого отеля."
+        }
+      ],
+      "material_conditions": [
+        "Подтверждённое новое имя K Maris Hotel & Spa; это тот же Kayamaris, не новый объект.",
+        "Пляж около30м через дорогу; ограниченный участок35–40 лежаков.",
+        "Открытый пресный бассейн без подогрева.",
+        "Хаммам/сауна/спа/массаж платные.",
+        "Native сообщает, что пляжные полотенца не предоставляются."
+      ],
+      "aliases": [
+        "Kaya Maris Hotel",
+        "Kayamaris Hotel",
+        "K Maris Hotel Spa",
+        "K Maris Hotel & Spa"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Сверены native ID, названия и узкие исторические aliases с registry; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://hotelkayamaris.com/",
+          "https://hotelkmaris.com/en/our-hotel/",
+          "https://hotelkmaris.com/wp-content/uploads/2024/03/surdurulebilirlik-raporu.pdf"
+        ],
+        "evidence": "Старый официальный домен hotelkayamaris.com перенаправляет на hotelkmaris.com. Our Hotel называет K Maris Hotel & Spa и Kayamaris,117 номеров, тот же адрес Siteler256No4. Идентичность смены имени разрешена; официальный booking доступен. Частный участок пляжа в30м, открытый пресный бассейн200м² без подогрева по документу самого отеля."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Официально свой участок пляжа30м пешком; native уточняет переход дороги. Документ отеля указывает35–40 шезлонгов.",
+          "sources": [
+            "https://hotelkayamaris.com/",
+            "https://hotelkmaris.com/en/our-hotel/",
+            "https://hotelkmaris.com/wp-content/uploads/2024/03/surdurulebilirlik-raporu.pdf"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "Официально Atlantis и Aqua Dream в11минутах пешком, это внешние парки, не включённый аквапарк отеля.",
+          "sources": [
+            "https://hotelkayamaris.com/",
+            "https://hotelkmaris.com/en/our-hotel/",
+            "https://hotelkmaris.com/wp-content/uploads/2024/03/surdurulebilirlik-raporu.pdf"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "В native profile и проверенном официальном перечне услуг это оснащение не заявлено. Отсутствие рекламного обещания не подменяется обещанием услуги.",
+          "sources": [
+            "https://hotelkayamaris.com/",
+            "https://hotelkmaris.com/en/our-hotel/",
+            "https://hotelkmaris.com/wp-content/uploads/2024/03/surdurulebilirlik-raporu.pdf"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Документ самого отеля: açık havuz200м²,ısıtmasız,tatlı su: открытый пресный без подогрева.",
+          "sources": [
+            "https://hotelkayamaris.com/",
+            "https://hotelkmaris.com/en/our-hotel/",
+            "https://hotelkmaris.com/wp-content/uploads/2024/03/surdurulebilirlik-raporu.pdf"
+          ]
+        }
+      },
+      "caption_sha256": "4e02e28044837a9c55492d0c2aeea022cdcd3d2d596ca938e4d099f022c76e29"
+    },
+    "229": {
+      "id": 229,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в The Grand Hotel Hurghada\n📍 Хургада, Египет.\n\nДля пляжного отпуска с прогулками по курортному району: собственный песчаный берег прямо у отеля, открытый бассейн и зелёный сад. Для детей 4–12 лет работает мини-клуб. Дайвинг, водные виды спорта, тренажёрный зал и спа оплачиваются отдельно.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Официальная гостиничная сеть: private beach, beachfront, песчаный берег, шезлонги/зонты/полотенца.",
+        "Сеть подтверждает outdoor swimming pool. Подогрев не заявляем.",
+        "Сеть подтверждает Kids Club, оператор Red Sea Holidays уточняет ages4–12; условия передачи ребёнка/часы не обещаны.",
+        "В полном native и официальном описании аквапарк не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено."
+      ],
+      "material_conditions": [
+        "Клуб4–12. Дайвинг/водные виды спорта, gym и spa платно по официальной странице."
+      ],
+      "aliases": [
+        "The Grand Hotel Hurghada"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Property-specific names checked against registry; no matches.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://redseahotels.com/resorts/hurghada/the-grand-hotel-hurghada/",
+          "https://www.redseaholidays.co.uk/en/destinations/egypt/hurghada/hurghada-city/the-grand-hotel-hurghada",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=229"
+        ],
+        "evidence": "Текущая официальная страница с действующими услугами и бронированием; название/география/контакты согласованы с native. Официальная гостиничная сеть: private beach, beachfront, песчаный берег, шезлонги/зонты/полотенца.; Сеть подтверждает outdoor swimming pool. Подогрев не заявляем.; Сеть подтверждает Kids Club, оператор Red Sea Holidays уточняет ages4–12; условия передачи ребёнка/часы не обещаны.; В полном native и официальном описании аквапарк не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Официальная гостиничная сеть: private beach, beachfront, песчаный берег, шезлонги/зонты/полотенца.",
+          "sources": [
+            "https://redseahotels.com/resorts/hurghada/the-grand-hotel-hurghada/",
+            "https://www.redseaholidays.co.uk/en/destinations/egypt/hurghada/hurghada-city/the-grand-hotel-hurghada"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Сеть подтверждает outdoor swimming pool. Подогрев не заявляем.",
+          "sources": [
+            "https://redseahotels.com/resorts/hurghada/the-grand-hotel-hurghada/",
+            "https://www.redseaholidays.co.uk/en/destinations/egypt/hurghada/hurghada-city/the-grand-hotel-hurghada"
+          ]
+        },
+        "kids_club": {
+          "status": "verified",
+          "evidence": "Сеть подтверждает Kids Club, оператор Red Sea Holidays уточняет ages4–12; условия передачи ребёнка/часы не обещаны.",
+          "sources": [
+            "https://redseahotels.com/resorts/hurghada/the-grand-hotel-hurghada/",
+            "https://www.redseaholidays.co.uk/en/destinations/egypt/hurghada/hurghada-city/the-grand-hotel-hurghada"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "В полном native и официальном описании аквапарк не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено.",
+          "sources": [
+            "https://redseahotels.com/resorts/hurghada/the-grand-hotel-hurghada/",
+            "https://www.redseaholidays.co.uk/en/destinations/egypt/hurghada/hurghada-city/the-grand-hotel-hurghada"
+          ]
+        }
+      },
+      "caption_sha256": "a1f7b37dd257508e543a0d48eeef28bf15b04a8bc86d929654ba6d9813413ad6"
+    },
+    "58676": {
+      "id": 58676,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Arugambay Roccos\n📍 Аругам-Бей, Шри-Ланка.\n\nДля любителей серфинга и небольших отелей у океана: всего 22 номера-«куба», песчаный пляж рядом и открытый бассейн Water Cube с отдельной детской зоной. В ресторане The Square готовят блюда из местных продуктов. Отель ориентирован на активный отдых: здесь бывают музыка и вечеринки.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Официально sandy beach непосредственно за бассейном, native30м; не заявляем эксклюзивный частный пляж/включённые спортуслуги.",
+        "Официальный WaterCube: adult4ft, kiddies2ft; открытое расположение между номерами и песчаным берегом. Подогрев не обещан.",
+        "В полном native и официальном описании детский клуб с присмотром не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено.",
+        "В полном native и официальном описании аквапарк не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено."
+      ],
+      "material_conditions": [
+        "Вечерняя музыка/вечеринки прямо описаны официально; не позиционируется как гарантированно тихий семейный курорт."
+      ],
+      "aliases": [
+        "Arugambay Roccos"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Property-specific names checked against registry; no matches.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://arugambayroccos.lk/",
+          "https://arugambayroccos.lk/wp-content/uploads/2023/08/Hotel-Brochure-1-1.pdf",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=58676"
+        ],
+        "evidence": "Текущая официальная страница с действующими услугами и бронированием; название/география/контакты согласованы с native. Официально sandy beach непосредственно за бассейном, native30м; не заявляем эксклюзивный частный пляж/включённые спортуслуги.; Официальный WaterCube: adult4ft, kiddies2ft; открытое расположение между номерами и песчаным берегом. Подогрев не обещан.; В полном native и официальном описании детский клуб с присмотром не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено.; В полном native и официальном описании аквапарк не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Официально sandy beach непосредственно за бассейном, native30м; не заявляем эксклюзивный частный пляж/включённые спортуслуги.",
+          "sources": [
+            "https://arugambayroccos.lk/",
+            "https://arugambayroccos.lk/wp-content/uploads/2023/08/Hotel-Brochure-1-1.pdf"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Официальный WaterCube: adult4ft, kiddies2ft; открытое расположение между номерами и песчаным берегом. Подогрев не обещан.",
+          "sources": [
+            "https://arugambayroccos.lk/",
+            "https://arugambayroccos.lk/wp-content/uploads/2023/08/Hotel-Brochure-1-1.pdf"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "В полном native и официальном описании детский клуб с присмотром не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено.",
+          "sources": [
+            "https://arugambayroccos.lk/",
+            "https://arugambayroccos.lk/wp-content/uploads/2023/08/Hotel-Brochure-1-1.pdf"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "В полном native и официальном описании аквапарк не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено.",
+          "sources": [
+            "https://arugambayroccos.lk/",
+            "https://arugambayroccos.lk/wp-content/uploads/2023/08/Hotel-Brochure-1-1.pdf"
+          ]
+        }
+      },
+      "caption_sha256": "34b1969018a8d077033b83a8ac662df00f4d18de75a374cc83d51abb689be28e"
+    },
+    "67004": {
+      "id": 67004,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Kaya Prestige\n📍 Конак, Измир, Турция.\n\nДля прогулок по Измиру и деловой поездки: отель в центральном районе Конак, рядом с выставочным комплексом. Есть рестораны, фитнес-зона и круглосуточный бизнес-центр. Это городской отель для знакомства с Измиром, а не пляжный курорт.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Не применимо: городской IsmetKaptan, Konak. Пляж/береговой трансфер не рекламируются.",
+        "Не применимо: в полном native и текущем официальном перечне услуг бассейн не рекламируется.",
+        "В полном native и официальном описании детский клуб с присмотром не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено.",
+        "В полном native и официальном описании аквапарк не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено."
+      ],
+      "material_conditions": [
+        "Городское расположение; не обещать пляжный доступ."
+      ],
+      "aliases": [
+        "Kaya Prestige"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Property-specific names checked against registry; no matches.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://en.kayaprestige.com.tr/default.aspx",
+          "https://kayaprestige.com.tr/icerik/6/iletisim",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=67004"
+        ],
+        "evidence": "Текущая официальная страница с действующими услугами и бронированием; название/география/контакты согласованы с native. Не применимо: городской IsmetKaptan, Konak. Пляж/береговой трансфер не рекламируются.; Не применимо: в полном native и текущем официальном перечне услуг бассейн не рекламируется.; В полном native и официальном описании детский клуб с присмотром не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено.; В полном native и официальном описании аквапарк не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "not_applicable",
+          "evidence": "Не применимо: городской IsmetKaptan, Konak. Пляж/береговой трансфер не рекламируются.",
+          "sources": [
+            "https://en.kayaprestige.com.tr/default.aspx",
+            "https://kayaprestige.com.tr/icerik/6/iletisim"
+          ]
+        },
+        "pools": {
+          "status": "not_applicable",
+          "evidence": "Не применимо: в полном native и текущем официальном перечне услуг бассейн не рекламируется.",
+          "sources": [
+            "https://en.kayaprestige.com.tr/default.aspx",
+            "https://kayaprestige.com.tr/icerik/6/iletisim"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "В полном native и официальном описании детский клуб с присмотром не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено.",
+          "sources": [
+            "https://en.kayaprestige.com.tr/default.aspx",
+            "https://kayaprestige.com.tr/icerik/6/iletisim"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "В полном native и официальном описании аквапарк не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено.",
+          "sources": [
+            "https://en.kayaprestige.com.tr/default.aspx",
+            "https://kayaprestige.com.tr/icerik/6/iletisim"
+          ]
+        }
+      },
+      "caption_sha256": "abe7a27d0253a25f45fd67aee73bb22d3fc3aecd1869632f2c899afc303da2fb"
+    },
+    "79279": {
+      "id": 79279,
+      "ready": true,
+      "hold_reason": null,
+      "caption": "✈️ Туры в Fortis Hotel Fujairah\n📍 Фуджейра, ОАЭ.\n\nДля городской остановки и поездок по Фуджейре: бассейн, фитнес-зал и ресторан южноиндийской кухни. Отель находится в районе Аль-Гурфа; до общественного пляжа нужно добираться отдельно. В здании работают ночные клубы и площадки с живой музыкой до 03:00, поэтому этот вариант скорее для любителей вечерней жизни.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Официальный сайт: 2minutes to Fujairah public beach, способ не уточняет; не первая линия, нет обещания собственного пляжа/бесплатного транспорта.",
+        "Официально swimmingpool, native уточняет открытый; подогрев и детскую зону не обещаем.",
+        "В полном native и официальном описании детский клуб с присмотром не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено.",
+        "В полном native и официальном описании аквапарк не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено."
+      ],
+      "material_conditions": [
+        "Много entertainment venues до03:00; общественный пляж отдельно от отеля."
+      ],
+      "aliases": [
+        "Fortis Hotel Fujairah"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Property-specific names checked against registry; no matches.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://fortishotel.net/",
+          "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=79279"
+        ],
+        "evidence": "Текущая официальная страница с действующими услугами и бронированием; название/география/контакты согласованы с native. Официальный сайт: 2minutes to Fujairah public beach, способ не уточняет; не первая линия, нет обещания собственного пляжа/бесплатного транспорта.; Официально swimmingpool, native уточняет открытый; подогрев и детскую зону не обещаем.; В полном native и официальном описании детский клуб с присмотром не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено.; В полном native и официальном описании аквапарк не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Официальный сайт: 2minutes to Fujairah public beach, способ не уточняет; не первая линия, нет обещания собственного пляжа/бесплатного транспорта.",
+          "sources": [
+            "https://fortishotel.net/"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Официально swimmingpool, native уточняет открытый; подогрев и детскую зону не обещаем.",
+          "sources": [
+            "https://fortishotel.net/"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "В полном native и официальном описании детский клуб с присмотром не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено.",
+          "sources": [
+            "https://fortishotel.net/"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "В полном native и официальном описании аквапарк не рекламируется; наличие/отсутствие не утверждаем, в подпись не включено.",
+          "sources": [
+            "https://fortishotel.net/"
+          ]
+        }
+      },
+      "caption_sha256": "6d8e60613296d7e7c8c51c187c5538482c63a05c1b9050e4c8a854b0a3450f0d"
+    },
+    "36541": {
+      "id": 36541,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Constance Tekoma Rodrigues\n📍 Анс-Алли, остров Родригес, Маврикий.\n\nДля отдыха у океана вдали от крупных курортов: прямой выход на пляж, номера с собственными террасами и бассейн у пляжного бара. Здесь бывает ветрено. Отель находится на отдельном острове Родригес; перелёт до главного острова Маврикий не заменяет дальнейшую дорогу. Отдельного спа сейчас нет, но доступны массажи и уходовые процедуры.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Действующая официальная страница с бронированием: Anse Ally, Rodrigues. Factsheet:32 sea-view rooms с private terraces, прямой пляж, бассейн45м². FAQ исправляет устаревший native SPA: отдельного спа сейчас нет, доступны процедуры; детского клуба нет."
+      ],
+      "material_conditions": [
+        "Остров Родригес, не главный остров Маврикий.",
+        "Ветреное побережье.",
+        "Отдельного спа сейчас нет; есть процедуры.",
+        "Трансфер из аэропорта Родригеса платный, организуется заранее."
+      ],
+      "aliases": [
+        "Constance Tekoma Rodrigues",
+        "Tekoma Boutik Hotel Rodrigues"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Native ID и узкие aliases проверены по полному registry.json обеих платформ; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.constancehotels.com/en/hotels-resorts/tekoma/",
+          "https://www.constancehotels.com/media/34317/tekoma-factsheet-en-01aug2024.pdf",
+          "https://www.constancehotels.com/en/hotels-resorts/tekoma/restaurants-bars/kreek-beach-club",
+          "https://www.booking.com/hotel/mu/constance-tekoma.en-gb.html"
+        ],
+        "evidence": "Действующая официальная страница с бронированием: Anse Ally, Rodrigues. Factsheet:32 sea-view rooms с private terraces, прямой пляж, бассейн45м². FAQ исправляет устаревший native SPA: отдельного спа сейчас нет, доступны процедуры; детского клуба нет."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Прямой выход к Anse Ally на Родригесе, не главный остров Маврикий; место бывает ветреным.",
+          "sources": [
+            "https://www.constancehotels.com/en/hotels-resorts/tekoma/",
+            "https://www.constancehotels.com/media/34317/tekoma-factsheet-en-01aug2024.pdf",
+            "https://www.constancehotels.com/en/hotels-resorts/tekoma/restaurants-bars/kreek-beach-club",
+            "https://www.booking.com/hotel/mu/constance-tekoma.en-gb.html"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "Текущий официальный FAQ прямо сообщает об отсутствии dedicated Kids Club.",
+          "sources": [
+            "https://www.constancehotels.com/en/hotels-resorts/tekoma/",
+            "https://www.constancehotels.com/media/34317/tekoma-factsheet-en-01aug2024.pdf",
+            "https://www.constancehotels.com/en/hotels-resorts/tekoma/restaurants-bars/kreek-beach-club",
+            "https://www.booking.com/hotel/mu/constance-tekoma.en-gb.html"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Официальный factsheet: бассейн45м², страница Kreek Beach Club подтверждает работающий бассейн у beach bar; outdoor тип дополнительно подтверждён актуальной карточкой Booking. Подогрев/крытый бассейн не обещаются.",
+          "sources": [
+            "https://www.constancehotels.com/en/hotels-resorts/tekoma/",
+            "https://www.constancehotels.com/media/34317/tekoma-factsheet-en-01aug2024.pdf",
+            "https://www.constancehotels.com/en/hotels-resorts/tekoma/restaurants-bars/kreek-beach-club",
+            "https://www.booking.com/hotel/mu/constance-tekoma.en-gb.html"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "В полном native profile и проверенных официальных услугах аквапарк не заявлен; не рекламируется. Это не утверждение об отсутствии сторонних аквапарков.",
+          "sources": [
+            "https://www.constancehotels.com/en/hotels-resorts/tekoma/",
+            "https://www.constancehotels.com/media/34317/tekoma-factsheet-en-01aug2024.pdf",
+            "https://www.constancehotels.com/en/hotels-resorts/tekoma/restaurants-bars/kreek-beach-club",
+            "https://www.booking.com/hotel/mu/constance-tekoma.en-gb.html"
+          ]
+        }
+      },
+      "caption_sha256": "ebe654cbb4df1e851f71ed3efad38f62a65b5ad44aa7adfc5cce11ab570a670b"
+    },
+    "79154": {
+      "id": 79154,
+      "ready": true,
+      "hold_reason": "",
+      "caption": "✈️ Туры в Cocolux Luxury Apartments\n📍 Анс-Реюньон, остров Ла-Диг, Сейшелы.\n\nДля самостоятельного знакомства с Ла-Дигом: апартаменты в тропическом саду, бассейны и прокат велосипедов для поездок по острову. CocoLux находится внутри комплекса Casa de Leela, напротив заповедника Veuve. Это не первая линия: до пляжей нужно добираться отдельно. Завтрак предоставляется по запросу.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "source_facts": [
+        "Текущая официальная бронь CocoLux, AnseReunion напротив Veuve Reserve. Восемь OneBedroomDeluxe и один Penthouse, собственная booking identity внутри Casa de Leela complex; официальный сайт Seychelles подтверждает объект. Ни Casa de Leela, ни Cocolux не найдены в registry."
+      ],
+      "material_conditions": [
+        "Внутри Casa de Leela complex.",
+        "Не первая линия.",
+        "Завтрак по запросу, включение в стоимость не обещается."
+      ],
+      "aliases": [
+        "Cocolux Luxury Apartments",
+        "Cocolux Apartments La Digue"
+      ],
+      "alias_ready": true,
+      "alias_reason": "Native ID и узкие aliases проверены по полному registry.json обеих платформ; совпадений нет.",
+      "operational_review": {
+        "status": "confirmed_open",
+        "current_identity_verified": true,
+        "material_conditions_verified": true,
+        "future_opening_or_rebrand_unresolved": false,
+        "sources": [
+          "https://www.cocolux-apartments.com/",
+          "https://www.cocolux-apartments.com/about-cocolux/",
+          "https://www.cocolux-apartments.com/welcome-to-palmeria-hotel/room-rates/",
+          "https://www.seychelles.com/listingdetails/67bea58648dc9962fc4f94ee"
+        ],
+        "evidence": "Текущая официальная бронь CocoLux, AnseReunion напротив Veuve Reserve. Восемь OneBedroomDeluxe и один Penthouse, собственная booking identity внутри Casa de Leela complex; официальный сайт Seychelles подтверждает объект. Ни Casa de Leela, ни Cocolux не найдены в registry."
+      },
+      "material_checks": {
+        "beach": {
+          "status": "verified",
+          "evidence": "Внутри AnseReunion, не береговая первая линия; пляжи AnseSourceDArgent/GrandAnse требуют прогулки/поездки.",
+          "sources": [
+            "https://www.cocolux-apartments.com/",
+            "https://www.cocolux-apartments.com/about-cocolux/",
+            "https://www.cocolux-apartments.com/welcome-to-palmeria-hotel/room-rates/",
+            "https://www.seychelles.com/listingdetails/67bea58648dc9962fc4f94ee"
+          ]
+        },
+        "kids_club": {
+          "status": "not_applicable",
+          "evidence": "Не заявлено в полном профиле и проверенных официальных услугах; в публикации не обещается.",
+          "sources": [
+            "https://www.cocolux-apartments.com/",
+            "https://www.cocolux-apartments.com/about-cocolux/",
+            "https://www.cocolux-apartments.com/welcome-to-palmeria-hotel/room-rates/",
+            "https://www.seychelles.com/listingdetails/67bea58648dc9962fc4f94ee"
+          ]
+        },
+        "pools": {
+          "status": "verified",
+          "evidence": "Официальная About-страница перечисляет3 swimming pools с отдельными Main Swimming pool/Small Pool area в садовом комплексе. Открытое размещение следует из описания садового комплекса; подогрев, детский тип и приватность не обещаются.",
+          "sources": [
+            "https://www.cocolux-apartments.com/",
+            "https://www.cocolux-apartments.com/about-cocolux/",
+            "https://www.cocolux-apartments.com/welcome-to-palmeria-hotel/room-rates/",
+            "https://www.seychelles.com/listingdetails/67bea58648dc9962fc4f94ee"
+          ]
+        },
+        "waterpark": {
+          "status": "not_applicable",
+          "evidence": "В полном native profile и проверенных официальных услугах аквапарк не заявлен; не рекламируется. Это не утверждение об отсутствии сторонних аквапарков.",
+          "sources": [
+            "https://www.cocolux-apartments.com/",
+            "https://www.cocolux-apartments.com/about-cocolux/",
+            "https://www.cocolux-apartments.com/welcome-to-palmeria-hotel/room-rates/",
+            "https://www.seychelles.com/listingdetails/67bea58648dc9962fc4f94ee"
+          ]
+        }
+      },
+      "caption_sha256": "b6018bde0889701faf8bbc25eb24cf9bdfa1de4e4a3b9bdd66f561db2294ba91"
+    }
+  },
+  "accepted_cover_hashes": {
+    "13841": "1d3c5261ff215d86cea21d834843ae427c1355c4173a4d8a8f02b5c6732f1b47",
+    "2805": "938701dfa38a3879d585025d8dbcdc0017bcff3518215d59516f52a682dcec9a",
+    "8978": "1201a121973ec13044381eafb540722998de9771b6cadb7128d5d3335e9fd662",
+    "45152": "bc5d0f91cfb915e6713f0eea2825934290cdf8399574380f26d92969c0007f79",
+    "1670": "9c4de1a87392a6621bc5aac687578a78ddb963797a002eb5bd00aaa4f914357c",
+    "229": "42fe2b16e639d4f7df934bd31ab19d19c3a159f27a9e3c5e3d7f5c360ff979e4",
+    "58676": "f8fa866a81e843c831043d314bf048bed80b7d8e2219aa434a63d393eb0c1df9",
+    "67004": "b3cfc4f24d78b73ff911dcfca5cd8dc5babf086283b9e3d099b9eacd8254d775",
+    "79279": "450e0aeedd17f4667d6ded2194903bb6260c2d18420fb6cfdd98df5aa367ced0",
+    "36541": "0128e61b33009c56f3ad23e2fc2f49fe9426f641032496c52e6087790f6f4e51",
+    "79154": "921ca2443bc263308a27b7c7d7671be39d2ac7ef21ecda669c4e43b1bd75eed3"
+  },
+  "cover_receipt_sha256": "fc3cc5c70e10739a8281277386d9178b6c7f20ef9f0004651f77f980228fd8a7",
+  "visual_review": {
+    "reviewed_sheets": [
+      "sheet-1.jpg",
+      "sheet-2.jpg",
+      "sheet-3.jpg"
+    ],
+    "reviewed_prepared_count": 30,
+    "cover_commit": "9548c5d5b65ecba2356470b4ea6ea022fed6aa46",
+    "intake_receipt_sha256": "fc3cc5c70e10739a8281277386d9178b6c7f20ef9f0004651f77f980228fd8a7",
+    "visual_holds": {
+      "64373": "La Paloma lead pool photograph visibly pixelated and blurred, replace poor-quality cover",
+      "78960": "Occidental Paradise Dambulla lead aerial looks architectural rendered, requires verified photographic replacement",
+      "78402": "Marriott Executive Downtown lead building looks architectural rendering; use verified real exterior photograph"
+    },
+    "notes": "All three full contact sheets directly inspected,30 covers. Other covers suitable subject to actual identity/open/material/alias checks. Visual hold does not infer closure."
+  },
+  "holds": {
+    "321": {
+      "editorial": "Не подтверждены официальный возраст клуба и актуальный режим подогрева бассейнов.",
+      "alias": null,
+      "visual": null
+    },
+    "12139": {
+      "editorial": "Не подтверждены общие возрастные ограничения и точный пляжный доступ через дорогу; нельзя выдавать за обычный пляжный отель.",
+      "alias": null,
+      "visual": null
+    },
+    "64373": {
+      "editorial": "Parent visual HOLD: главный снимок открытого бассейна крайне пикселизированный; нужен качественный оригинал.",
+      "alias": null,
+      "visual": "La Paloma lead pool photograph visibly pixelated and blurred, replace poor-quality cover"
+    },
+    "421": {
+      "editorial": "Не подтверждены возраст клуба, включённость горок и текущий режим бассейнов.",
+      "alias": null,
+      "visual": null
+    },
+    "11833": {
+      "editorial": "Требуется актуальное официальное завершение реновации/ограничений2025–2026, сведения расходятся.",
+      "alias": null,
+      "visual": null
+    },
+    "38655": {
+      "editorial": "Не подтверждена действующая гостиница под именем NAIA Downtown Jebel Ali. Native ссылается на сторонний агрегатор без контактов; DAMAC описывает Suburbia как жилой комплекс. Нужна актуальная идентичность оператора/инвентаря, не объявления частных квартир.",
+      "alias": "Актуальная идентичность/работа не доказана, алиасы предварительные; совпадений с registry нет.",
+      "visual": null
+    },
+    "56453": {
+      "editorial": "Не найдено актуальное официальное подтверждение работы Bodrum Skylife; официальный домен недоступен. Native противоречит сам себе по платности пляжного оборудования, нельзя выбрать удобное обещание.",
+      "alias": "Актуальная идентичность/работа не доказана, алиасы предварительные; совпадений с registry нет.",
+      "visual": null
+    },
+    "81951": {
+      "editorial": "Официально подтверждён отдельный Boutique hotel, не дубль Ajira Bay; однако не раскрыты текущие правила доступа к общей пляжно-бассейновой зоне Blue Beach. Условия бесплатного доступа09–18 и отсутствия подогрева найдены лишь в перепечатанном Q&A, нужны прямое подтверждение оператора и точный scope.",
+      "alias": null,
+      "visual": null
+    },
+    "8960": {
+      "editorial": "Официальная страница не подтверждает действующие условия детской водной зоны с горками и пляжного трансфера из native. Не выдаём их за отсутствующие; нужна актуальная концепция доступа/платности.",
+      "alias": null,
+      "visual": null
+    },
+    "28791": {
+      "editorial": "Coral сообщает закрытие на реновацию на летний сезон2026. Возобновление работы официально не подтверждено: прежняя страница редиректит на общий сайт, в актуальном списке отеля нет. Старую концепцию16+ не публикуем как действующую.",
+      "alias": "Актуальная идентичность/работа не доказана, алиасы предварительные; совпадений с registry нет.",
+      "visual": null
+    },
+    "425": {
+      "editorial": "Не подтверждены официально возраст/присмотр мини-клуба и включённость/ограничения аквапарка. Native рекламирует эти услуги; официальные страницы перечисляют Aqua Park/Kids Area без условий.",
+      "alias": null,
+      "visual": null
+    },
+    "80872": {
+      "editorial": "Текущая отдельная карточка AJIRA Bay подтверждена; не duplicate Boutique81951. Но собственность/доступ/плата и маршрут к пляжу и бассейну для Bay официально не разрешены. Нельзя перенести описание privatebeach/outdoorpool соседнего Boutique.",
+      "alias": null,
+      "visual": null
+    },
+    "78960": {
+      "editorial": "Visual HOLD: render-like aerial. Дополнительно native Occidental устарел: актуальный официальный Browns использует The Paradise Dambulla, Barceló redirect в общий каталог. Для будущей партии нужны исправленное название/обложка и freeze нового имени.",
+      "alias": null,
+      "visual": "Occidental Paradise Dambulla lead aerial looks architectural rendered, requires verified photographic replacement"
+    },
+    "426": {
+      "editorial": "ICS Travel сообщает новостью18.09.2025 о закрытии на капремонт с15.10.2025 до дальнейшего уведомления. Официальный сайт недоступен, primary reopening не найден; также пляжная схема и возраст мини-клуба не разрешены.",
+      "alias": null,
+      "visual": null
+    },
+    "1322": {
+      "editorial": "Native Lara City ссылается на старое имя Royal City и старый сайт/телефон; текущая идентичность, адрес/координаты и доступ к пляжу100м не подтверждены первичным источником. Не публиковать старый rebrand с неподтверждённой береговой схемой.",
+      "alias": "Property-specific names checked against registry; no matches.",
+      "visual": null
+    },
+    "60588": {
+      "editorial": "HOLD: не разрешена граница native Azzurra apartments и актуального AJIRA boutique hotel, а также включённость доступа к пляжу/шаттла.",
+      "alias": "HOLD: не разрешена граница native Azzurra apartments и актуального AJIRA boutique hotel, а также включённость доступа к пляжу/шаттла.",
+      "visual": null
+    },
+    "77809": {
+      "editorial": "HOLD: subordinate West Bay дублирует уже учтённый Fort Arabesque; canonical15688/76376/77541.",
+      "alias": "HOLD: subordinate West Bay дублирует уже учтённый Fort Arabesque; canonical15688/76376/77541.",
+      "visual": null
+    },
+    "78402": {
+      "editorial": "HOLD: parent visual review — lead building render-like; требуется достоверное фото.",
+      "alias": null,
+      "visual": "Marriott Executive Downtown lead building looks architectural rendering; use verified real exterior photograph"
+    },
+    "117445": {
+      "editorial": "HOLD: unresolved current identity Sunset/Flow byPyramisa, общий инфраструктурный scope и возраст детского клуба; parent flagged cover большого комплекса.",
+      "alias": "HOLD: unresolved current identity Sunset/Flow byPyramisa, общий инфраструктурный scope и возраст детского клуба; parent flagged cover большого комплекса.",
+      "visual": null
+    }
+  },
+  "registry_artifact": {
+    "run": 44406450977,
+    "aid": 14475175885,
+    "digest": "d5a5865c5ec227881a94f8923f7590e428434a881cb2100364ccfbde44b745bb"
+  },
+  "cover_artifact": {
+    "run": 44406839613,
+    "aid": 14476240364,
+    "digest": "1a3f06e9ec34d9fecd2f7a8df51fe9a53de5a86c57e895d6b912603be465ca50"
+  }
+}
