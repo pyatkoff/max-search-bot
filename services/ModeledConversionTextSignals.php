@@ -30,7 +30,7 @@ final class ModeledConversionTextSignals
         ];
         // Only the written star category is excluded from calendar evidence.
         // Other dates and durations in the same customer message keep their original source.
-        $calendarText=preg_replace('~(?<![\d./])[1-5](?:\h*/\h*[1-5])+\h*(?:зв[её]зд\pL*|\*)~iu',' ',$text,-1,$starRanges)??$text;
+        $calendarText=preg_replace('~(?<![\d./])[1-5](?:\h*/\h*[1-5])+\h*(?:зв[её]зд\pL*|[*★⭐])~iu',' ',$text,-1,$starRanges)??$text;
         $out=[];
         foreach($rules as$family=>$pattern){
             if(($family==='requirements'&&$starRanges>0)||self::hit($pattern,$family==='dates'?$calendarText:$text))$out[]=$family;
