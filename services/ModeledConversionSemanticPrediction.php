@@ -84,8 +84,9 @@ final class ModeledConversionSemanticPrediction
         $this->cutoff=$cutoff;$this->freeze=$freeze;
     }
 
+    /** True only when the current source ref was admitted as a neutral departure list. */
     public function observeMessage(string $role,string $redactedText,string $ref,int $occurred,
-        int $available,int $sourceVersion,array $canonicalSemanticResult,bool $originalUnlinked=false):void
+        int $available,int $sourceVersion,array $canonicalSemanticResult,bool $originalUnlinked=false):bool
     {
         $meta=$this->metadata($ref,$occurred,$available,$sourceVersion);
         if($this->lastQuestionnaireAt!==null&&($occurred<$this->lastQuestionnaireAt
@@ -95,7 +96,7 @@ final class ModeledConversionSemanticPrediction
         $r=$canonicalSemanticResult;
         if(($r['version']??null)!=='ru_archive_contextual_v2'||($r['status']??null)!=='scanned'
             ||!is_array($r['flags']??null)||!is_array($r['events']??null)||count($r['events'])>32){
-            $this->barrier();return;
+            $this->barrier();return false;
         }
         $flags=$r['flags'];
         $question=$this->questionnaireQuestion;
@@ -118,7 +119,7 @@ final class ModeledConversionSemanticPrediction
             if(($flags[$key]??false)===true)$reset=true;
         if($reset){$this->barrier();$questionnaireAnswer=false;}
         if(($flags['reversed_clock']??false)===true||($flags['unknown_time']??false)===true
-            ||($flags['context_barrier']??false)===true)return;
+            ||($flags['context_barrier']??false)===true)return false;
         if(isset($this->messages[$ref]))self::fail('duplicate_message');
         if(count($this->messages)>=50)self::fail('message_limit');
         $this->messages[$ref]=['role'=>$role,...$meta];
@@ -210,6 +211,7 @@ final class ModeledConversionSemanticPrediction
             &&($flags['question']??false)!==true&&$textSignals['explicit_decline']){
             $this->declined=true;$this->evidence('explicit_decline',$meta);
         }
+        return $questionnaireAnswer&&$departureAlternatives;
     }
 
     private static function isManagerPackageQuote(string $text):bool
@@ -312,7 +314,8 @@ final class ModeledConversionSemanticPrediction
     {
         $family=match($field){'date','nights'=>'dates','country'=>'destination','city'=>null,default=>'party'};
         // Unselected departure alternatives may validate their own receipt, never ground a later request.
-        $this->questionnaireAnswers[$meta['source_ref']]=$departureAlternatives?[]:$meta;
+        if($departureAlternatives){$this->questionnaireAnswers[$meta['source_ref']]=[];return;}
+        $this->questionnaireAnswers[$meta['source_ref']]=$meta;
         $this->lastQuestionnaireAt=self::moment($meta['occurred_at']);
         if($family!==null){$this->criteria[$family]=true;$this->evidence('criteria_'.$family,$meta);}
         if($this->anchor===null&&count($this->criteria)>=2){

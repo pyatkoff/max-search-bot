@@ -63,17 +63,10 @@ final class ModeledConversionQuestionnaireContext
     {
         if(strlen($text)>128||!str_contains($text,'/'))return false;
         if(strpbrk($text,"\r\n")!==false)return false;
-        $parts=explode('/',trim($text));
-        if(count($parts)>4)return false;
-        $seen=[];
-        foreach($parts as$part){
-            $part=trim($part);
-            $label=null;
-            foreach(self::DEPARTURE_NAMES as$name){
-                if(preg_match('~\\A'.preg_quote($name,'~').'\\z~iuD',$part)===1){$label=$name;break;}
-            }
-            if($label===null||isset($seen[$label]))return false;
-            $seen[$label]=true;
+        static $labelPattern=null;
+        $labelPattern??='~\\A(?:'.implode('|',array_map(static fn(string $name):string=>preg_quote($name,'~'),self::DEPARTURE_NAMES)).')\\z~iuD';
+        foreach(explode('/',$text)as$part){
+            if(preg_match($labelPattern,trim($part))!==1)return false;
         }
         return true;
     }

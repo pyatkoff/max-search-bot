@@ -14,7 +14,10 @@ final class ModeledConversionValueContract
     public const MAX_VALUE_RUB=ModeledConversionDealValue::CAP;
     public const BASE=25000;
     public const VALUES=[1=>1250,2=>2083,3=>4167,4=>8333,5=>12500,6=>25000];
-    // Last installed producer before native message metadata was passed to the predictor (71d5ae9).
+    // The PR1613 adapter used current-adapter validation, including sealed money from earlier model versions.
+    private const PRE_DEPARTURE_ADAPTER_SHA256='e5c303338fff38c48351881143842894563669484d8dfeb8aef9fbfaa03b62f2';
+    private const PRE_DEPARTURE_MODEL_SHA256='4e4d7c6908bf8246db08917de1b46dbdc904099b0c95afb92273f833b8c3ab42';
+    // Original pre-PR1613 exception remains bound to its one installed producer tuple.
     private const PREVIOUS_ADAPTER_SHA256='a4345e27853b63d30313485134a7a2b2ce92ec11eec860fdc2f79f804f4d46e5';
     private const PREVIOUS_MODEL_SHA256='a5f3a1500da36dc34ad05a7961928ad237687930c1f8322bffe298bf5dcf17e6';
     private const PREVIOUS_DEAL_VERSION='early_deal_commission_7pct_v3';
@@ -53,10 +56,16 @@ final class ModeledConversionValueContract
         if(($s['version']??null)!==ModeledConversionEarlyForecast::VERSION
             ||!is_array($s['events']??null)||count($s['events'])>1000)return null;
         $p=$wrapper['semantic_prediction']??null;
-        $previousProducer=false;
+        $previousProducer=false;$stageModel=null;
         if(!$history){
             if(($s['extractor_sha256']??null)!==hash_file('sha256',__DIR__.'/ArchiveResearchSemanticExtractor.php'))return null;
-            $previousProducer=($s['adapter_sha256']??null)!==hash_file('sha256',__DIR__.'/ModeledConversionEarlyForecast.php');
+            $adapter=$s['adapter_sha256']??null;
+            $model=hash_file('sha256',__DIR__.'/ModeledConversionSemanticPrediction.php');
+            $preDeparture=$adapter===self::PRE_DEPARTURE_ADAPTER_SHA256;
+            if($preDeparture&&($s['extractor_sha256']!==self::PREVIOUS_EXTRACTOR_SHA256
+                ||($p['model_sha256']??null)===$model))return null;
+            $stageModel=$preDeparture?self::PRE_DEPARTURE_MODEL_SHA256:$model;
+            $previousProducer=!$preDeparture&&$adapter!==hash_file('sha256',__DIR__.'/ModeledConversionEarlyForecast.php');
             if($previousProducer){
                 if(($s['adapter_sha256']??null)!==self::PREVIOUS_ADAPTER_SHA256
                     ||$s['extractor_sha256']!==self::PREVIOUS_EXTRACTOR_SHA256
@@ -104,7 +113,7 @@ final class ModeledConversionValueContract
         $checked=$history||$previousProducer?ModeledConversionValueRegistry::predictionFields($wrapper):null;
         if($previousProducer&&($checked['semantic_prediction']['availability']??null)!=='available')return null;
         if(is_array($p)&&($p['status']??null)==='predicted'&&self::sameSubject($p['subject']??null,$subject)
-            &&($checked!==null?($checked['semantic_prediction']['availability']??null)==='available':($p['model_sha256']??null)===hash_file('sha256',__DIR__.'/ModeledConversionSemanticPrediction.php'))
+            &&($checked!==null?($checked['semantic_prediction']['availability']??null)==='available':($p['model_sha256']??null)===$stageModel)
             &&ModeledConversionSemanticPrediction::digestMatches($p)){
             $rank=['substantive_dialogue'=>1,'concrete_request'=>2,'exact_offer_discussion'=>3,
                 'general_purchase_intent'=>4,'agency_purchase_intent'=>5][$p['stage']??'']??null;

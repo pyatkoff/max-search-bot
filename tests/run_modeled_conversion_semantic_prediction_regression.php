@@ -1282,9 +1282,14 @@ $tests['recorded departure alternatives do not turn a prior date into a destinat
         $packet=ModeledConversionEarlyForecast::freeze($case,$wrapper,$document,null,strtotime($document['requested_at'])+1,null,true);
         return $packet['semantic_prediction'];
     };
-    foreach(['Казань/Египет','Казань / 15.12','Сочи/Сочи','Сочи / ','Сочи/Пермь?',"Сочи\n/Пермь",
+    foreach(['Казань/Египет','Казань / 15.12','Сочи / ','Сочи/Пермь?',"Сочи\n/Пермь",
         'Сочи / Томск, двое взрослых','Сочи / Турция в июле']as$ambiguous)
         semanticPredictionAssert(!ModeledConversionQuestionnaireContext::departureAlternatives($ambiguous),'an incomplete or mixed answer was interpreted as departure alternatives');
+    foreach(['Сочи / СОЧИ','Сочи/Уфа/Пермь/Омск/Братск']as$known){
+        $v=$run([$q($city),['text'=>$known]]);
+        semanticPredictionAssert($v['features']['criteria_families']===[]&&$v['current_request_anchor']===null,
+            'a repeated or longer list of known departure names became a destination request');
+    }
     $answer=['text'=>'Казань / Сочи / Пермь'];
     $prefix=[$q($date),['text'=>'04.12 - 14.12'],$q($city),$answer];
     $v=$run($prefix);
