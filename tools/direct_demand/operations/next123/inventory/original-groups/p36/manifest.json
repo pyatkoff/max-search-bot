@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261117-36-v1",
+  "state": "PREPARED_NOT_SENT",
+  "button_text": "✈️ Узнать стоимость тура",
+  "expected_new_full_pairs": 10,
+  "photo_freeze_commit": "87d757264e13e455b8d96479895dae583eb5c231",
+  "native_id_namespace": "Tourvisor",
+  "rows": [
+    {
+      "hotel_id": 74110,
+      "logical_id": "commercial-hotel-74110-v1",
+      "aliases": [
+        "Meliá Ba Vi Mountain Retreat",
+        "MELIA BA VI MOUNTAIN RETREAT"
+      ],
+      "text": "✈️ Туры в Meliá Ba Vi Mountain Retreat\n📍 Ба Ви, Вьетнам.\n\nЗелёные склоны Ба Ви для отдыха на природе: номера и виллы среди садов, открытый бассейн и спа. Есть детский клуб и семейные варианты размещения. Подойдёт, чтобы сменить ритм города на тишину и зелень.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "41999b52df0739fb0213299bf22d340de9d89313b7a0dc246be827bec0f05c7a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/74110.png",
+      "photo_sha256": "f00e16f7e5db02f24db438e0bda505730f1940020677bafecc2b0dfc29d26cee",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=74110"
+      ]
+    },
+    {
+      "hotel_id": 113553,
+      "logical_id": "commercial-hotel-113553-v1",
+      "aliases": [
+        "Meliá Vinpearl Hue",
+        "MELIA VINPEARL HUE",
+        "Vinpearl Hue Hotel",
+        "VINPEARL HUE HOTEL"
+      ],
+      "text": "✈️ Туры в Meliá Vinpearl Hue\n📍 Хюэ, Вьетнам.\n\nХюэ с высоты: стильные номера, городские панорамы, бар на крыше и крытый бассейн. Рядом кафе и магазины, а поездку удобно посвятить императорской истории Вьетнама и прогулкам по древней столице.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "4b4af3e525733bd41e05a08619aa260722b7e6bf415e9e0185b7b92b084635ff",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/113553.png",
+      "photo_sha256": "df45e3b381223634bab22c856078952bb46a8e9ac34797f1bf55adadccb6970a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=113553"
+      ]
+    },
+    {
+      "hotel_id": 115812,
+      "logical_id": "commercial-hotel-115812-v1",
+      "aliases": [
+        "Radisson Blu Hotel Ha Long Bay",
+        "RADISSON BLU HOTEL HALONG",
+        "SEA STARS"
+      ],
+      "text": "✈️ Туры в Radisson Blu Hotel Ha Long Bay\n📍 Халонг, Вьетнам.\n\nГородской отдых в Халонге с крытым и открытым бассейнами, спа и ресторанами. Для красивых панорам выбирайте номер с видом на залив. До пляжа Бай Чай нужно добираться отдельно.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "52ebe72edeba3b1e53ac1965d0f3b27cfc7d4858717057759f9ba316934dba19",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/115812.png",
+      "photo_sha256": "8ec23d710494b0416aeb0863ccf2313b02e98758cf548e17050207bf133e964d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=115812",
+        "https://www.radissonhotels.com/en-us/hotels/radisson-blu-ha-long-bay/dining"
+      ]
+    },
+    {
+      "hotel_id": 121699,
+      "logical_id": "commercial-hotel-121699-v1",
+      "aliases": [
+        "Best Western Premier Sapphire Ha Long",
+        "BEST WESTERN PREMIER SAPPHIRE HA LONG"
+      ],
+      "text": "✈️ Туры в Best Western Premier Sapphire Ha Long\n📍 Халонг, Вьетнам.\n\nНа набережной Халонга: номера с балконами, крытый бассейн и рестораны с морепродуктами. Для детей есть клуб. Хороший вариант для семейной остановки и знакомства с бухтой.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "638ffb398d46f9d94da09f09dcb0eacb8ba4166c0224fc793d202a05b52626d3",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/121699.png",
+      "photo_sha256": "f40a8df1f443818b8fdbf59d818cd8900e6dc0cd5d760aaafe706be990947796",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=121699"
+      ]
+    },
+    {
+      "hotel_id": 140013,
+      "logical_id": "commercial-hotel-140013-v1",
+      "aliases": [
+        "Hyatt Regency Nha Trang",
+        "HYATT REGENCY NHA TRANG"
+      ],
+      "text": "✈️ Туры в Hyatt Regency Nha Trang\n📍 Нячанг, Вьетнам.\n\nНячанг через дорогу от песчаного пляжа: светлые номера с балконами, панорамы города и залива, бассейн и спа. Рестораны и бар дополняют отпуск, в котором море соседствует с оживлённым городом.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "8caa4ac43309622db42398f2c33e6b9b1fcf9e85f3abc6915fc9ea9b35c3ddcd",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/140013.png",
+      "photo_sha256": "0a1427ce6a9e29a86848daec3cb6887a620a15aafa6ddb317ef410b59f26aeba",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=140013",
+        "https://newsroom.hyatt.com/281225-Hyatt-Regency-Nha-Trang-Opens"
+      ]
+    },
+    {
+      "hotel_id": 143372,
+      "logical_id": "commercial-hotel-143372-v1",
+      "aliases": [
+        "Four Points by Sheraton Nha Trang",
+        "FOUR POINTS BY SHERATON NHA TRANG"
+      ],
+      "text": "✈️ Туры в Four Points by Sheraton Nha Trang\n📍 Нячанг, Вьетнам.\n\nДля прогулок по Нячангу и поездок к морю: до побережья около 400 метров. В отеле есть бассейн, бар у воды, ресторан и фитнес. Удобный городской формат для знакомства с курортом.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "3cb64b2678acdf6eb3cf3b8089efa2a31c0cf9d4b73cefd31fc5ae3d3bb90c34",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/143372.png",
+      "photo_sha256": "2dd5b81c242d3cfd5a55fe13e3df479cc572597e70af7c2fe259bfa4d5a35342",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=143372"
+      ]
+    },
+    {
+      "hotel_id": 15852,
+      "logical_id": "commercial-hotel-15852-v1",
+      "aliases": [
+        "Sheraton Hanoi Hotel",
+        "SHERATON HANOI"
+      ],
+      "text": "✈️ Туры в Sheraton Hanoi Hotel\n📍 Ханой, Вьетнам.\n\nСпокойный Ханой у Западного озера: зелёные сады, бассейн, рестораны и спа. Подойдёт тем, кто хочет отдыхать в более тихом окружении и выбираться на прогулки по вьетнамской столице.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "b011ddfd8be8100a7910e4fea559cf61bd6faa71cadfa983796c66119f514b87",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/15852.png",
+      "photo_sha256": "2024c82b503ef12f5fa4de55a0f4047eaa5688f727c6deb3ae9856f82068e814",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=15852"
+      ]
+    },
+    {
+      "hotel_id": 2986,
+      "logical_id": "commercial-hotel-2986-v1",
+      "aliases": [
+        "InterContinental Bangkok",
+        "INTERCONTINENTAL BANGKOK",
+        "INTERCONTINENTAL BANGKOK PHLOEN CHIT"
+      ],
+      "text": "✈️ Туры в InterContinental Bangkok\n📍 Бангкок, Таиланд.\n\nБангкок для шопинга и красивого городского отдыха: рядом Gaysorn и станция BTS Chidlom. Просторные номера, открытый бассейн, рестораны и спа помогут приятно завершить насыщенный день.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "e69fdf2d23f88c082eae84ca931c9ad5d26543aae90904018af922f0ea731d75",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/2986.png",
+      "photo_sha256": "717c24c7f1052bb0dac7f6b5086a2b37b8dfec9dbe5e4eef01da940bd974c7a0",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2986",
+        "https://bangkok.intercontinental.com/location"
+      ]
+    },
+    {
+      "hotel_id": 4203,
+      "logical_id": "commercial-hotel-4203-v1",
+      "aliases": [
+        "Amari Bangkok",
+        "AMARI BANGKOK",
+        "AMARI WATERGATE BANGKOK"
+      ],
+      "text": "✈️ Туры в Amari Bangkok\n📍 Бангкок, Таиланд.\n\nБангкок с удобным шопингом: Platinum Fashion Mall напротив, рынки и кафе неподалёку. Просторные номера с городскими видами, открытый бассейн и рестораны тайской и итальянской кухни.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "b49e19ab7321640cc81c05b3077ee4f1d9e5301a83b701b202a7072c9449271d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/4203.png",
+      "photo_sha256": "79813a0edd5649b804fcf51f9475228908125140fb3fbc3e37e77acb8d253742",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4203"
+      ]
+    },
+    {
+      "hotel_id": 4403,
+      "logical_id": "commercial-hotel-4403-v1",
+      "aliases": [
+        "Sheraton Grande Sukhumvit",
+        "SHERATON GRANDE SUKHUMVIT"
+      ],
+      "text": "✈️ Туры в Sheraton Grande Sukhumvit\n📍 Бангкок, Таиланд.\n\nТропическое настроение посреди Бангкока: бассейн среди зелени, спа и рестораны тайской и международной кухни. Подойдёт для поездки, в которой городские прогулки хочется сочетать с красивым отдыхом в отеле.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "367d242988dd764158c27ab2dedb89338394330318496cd9e3751e9bc627f1a3",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/4403.png",
+      "photo_sha256": "4237b39bcb37b54c590914b24123f4cffa2f376b24f7ffb46023fcbd7edf5571",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4403"
+      ]
+    }
+  ]
+}

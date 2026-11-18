@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261117-30-v1",
+  "state": "PREPARED_NOT_SENT",
+  "button_text": "✈️ Узнать стоимость тура",
+  "expected_new_full_pairs": 10,
+  "photo_freeze_commit": "e53eede2df5dbc5da5f72b04c0ac8777819cd8dc",
+  "native_id_namespace": "Tourvisor",
+  "rows": [
+    {
+      "hotel_id": 56478,
+      "logical_id": "commercial-hotel-56478-v1",
+      "aliases": [
+        "The Ritz-Carlton, Koh Samui",
+        "THE RITZ-CARLTON KOH SAMUI"
+      ],
+      "text": "✈️ Туры в The Ritz-Carlton, Koh Samui\n📍 Самуи, Таиланд.\n\nПросторные сьюты и виллы с бассейнами среди зелёных склонов Самуи. Рестораны, спа и детский клуб для отпуска вдвоём или семьёй; у курорта уединённый песчано-каменистый берег.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "ca8d2d451539dd1afb3eb6baf28bcc9514b3f53016fc95ce76c1b77ce431c3ef",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/56478.png",
+      "photo_sha256": "4ed5880e68003785982b0c3339f77f0c6501c02d577e98e910607300c18a7e52",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=56478"
+      ]
+    },
+    {
+      "hotel_id": 57867,
+      "logical_id": "commercial-hotel-57867-v1",
+      "aliases": [
+        "Rosewood Phuket",
+        "ROSEWOOD PHUKET"
+      ],
+      "text": "✈️ Туры в Rosewood Phuket\n📍 Пхукет, Таиланд.\n\nПавильоны и виллы у песчаного Три Транга среди тропической зелени. Бассейны, рестораны тайской и итальянской кухни, спа и детский клуб для красивого отпуска на Пхукете.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "c19a817a37b25c8b3a3062b9fb42322d750bd080d461aab3a9fa3737295a066c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/57867.png",
+      "photo_sha256": "13b7d257b72803c4d7be9f42509b9b25a77063ff0b4eaa8c78778691014159f8",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=57867"
+      ]
+    },
+    {
+      "hotel_id": 58088,
+      "logical_id": "commercial-hotel-58088-v1",
+      "aliases": [
+        "Cape Kudu Hotel",
+        "CAPE KUDU"
+      ],
+      "text": "✈️ Туры в Cape Kudu Hotel\n📍 Ко Яо Ной, Таиланд.\n\nНебольшой остров Ко Яо Ной для спокойных дней с морскими панорамами. Бассейн, уютные номера и виллы, рестораны и спа; пляж через дорогу, а на остров добираются на лодке.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "dfc1ebd8c3fc4f4d4aad6995d180b06f58d88d7d2df193529774e14968ab699f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/58088.png",
+      "photo_sha256": "2f24932416e8d84b2c7b580ab44256915ce338c3adb908cb6ad57d0186ec3395",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=58088"
+      ]
+    },
+    {
+      "hotel_id": 80057,
+      "logical_id": "commercial-hotel-80057-v1",
+      "aliases": [
+        "Hyatt Regency Koh Samui",
+        "HYATT REGENCY KOH SAMUI"
+      ],
+      "text": "✈️ Туры в Hyatt Regency Koh Samui\n📍 Самуи, Таиланд.\n\nСамуи с тропической зеленью, каскадом бассейнов и морскими панорамами. Просторные номера, рестораны и спа для отдыха вдвоём или семейных каникул, когда хочется проводить больше времени у воды.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "95a1228890cf230f4528a9166ad5e787c5454fbe0c58d86da7e1a203c9a8ae13",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/80057.png",
+      "photo_sha256": "dc4014006e8ef7983f224a0733c28253498f5aab028d377edb8f9e3d8fb7ed2c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=80057"
+      ]
+    },
+    {
+      "hotel_id": 574,
+      "logical_id": "commercial-hotel-574-v1",
+      "aliases": [
+        "Banyan Tree Phuket",
+        "BANYAN TREE PHUKET"
+      ],
+      "text": "✈️ Туры в Banyan Tree Phuket\n📍 Пхукет, Таиланд.\n\nВиллы с собственными бассейнами среди зелени и лагун Пхукета. Рестораны, спа Banyan Tree, гольф и детский клуб позволяют устроить уединённый отпуск и вдвоём, и всей семьёй.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "b2f27d469a545e5dbe2db64ad169c1158bb7cbeafe2d6a18aa193a86a12b6dbb",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/574.png",
+      "photo_sha256": "627722ce081c2263c56c77ca96f90bc1578e5799bc10ed6350356fcfa2a3f78f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=574"
+      ]
+    },
+    {
+      "hotel_id": 595,
+      "logical_id": "commercial-hotel-595-v1",
+      "aliases": [
+        "Cape Panwa Hotel",
+        "CAPE PANWA HOTEL"
+      ],
+      "text": "✈️ Туры в Cape Panwa Hotel\n📍 Пхукет, Таиланд.\n\nЗелёный мыс Панва для спокойного Пхукета: два бассейна, рестораны и спа. Есть семейные сьюты и песчаный пляж; на побережье заметны приливы и отливы, обнажающие кораллы.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "403a1a76d65dd5d6b14021b15b042aac4cc6648a7cb6b4e29f0fbdbdad06c651",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/595.png",
+      "photo_sha256": "7494fe55bf47261ce27ee13696db8225b118b0ca0337288fbbd7bdb6429ce1e8",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=595"
+      ]
+    },
+    {
+      "hotel_id": 632,
+      "logical_id": "commercial-hotel-632-v1",
+      "aliases": [
+        "Dusit Thani Pattaya",
+        "DUSIT THANI PATTAYA"
+      ],
+      "text": "✈️ Туры в Dusit Thani Pattaya\n📍 Паттайя, Таиланд.\n\nПаттайя у песчаного берега с двумя бассейнами и морскими панорамами. Детский клуб и площадка дополняют семейные каникулы, а взрослым доступны рестораны, теннис и спа.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "afb44e3f689b3ef79b7744b4b04ce8c958a32db81d1e36d212565ff05d4e0db5",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/632.png",
+      "photo_sha256": "4c4637371dee52079f92665665645473c57fa4b1885297e45e28a50415f7fb0f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=632"
+      ]
+    },
+    {
+      "hotel_id": 126428,
+      "logical_id": "commercial-hotel-126428-v1",
+      "aliases": [
+        "Meliá Pattaya Hotel",
+        "MELIA PATTAYA HOTEL"
+      ],
+      "text": "✈️ Туры в Meliá Pattaya Hotel\n📍 Паттайя, Таиланд.\n\nСовременная Паттайя с бассейном, водной горкой и детским клубом. После прогулок приятно вернуться в уютный номер, выбрать спа или ресторан азиатской кухни; до пляжа около 400 метров.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "b5e221591e951baebb90a3ae9da4b13fb901a1cf90bcc294080912c0484e2a41",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/126428.png",
+      "photo_sha256": "d2c4ff67644a465c4f0bfb9e41b9d3802667c46f59be3a5861fe857ebffcf199",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126428"
+      ]
+    },
+    {
+      "hotel_id": 2968,
+      "logical_id": "commercial-hotel-2968-v1",
+      "aliases": [
+        "Cape Nidhra Hotel",
+        "CAPE NIDHRA HOTEL"
+      ],
+      "text": "✈️ Туры в Cape Nidhra Hotel\n📍 Хуа Хин, Таиланд.\n\nБутик-отель на берегу Хуахина с просторными сьютами и частными бассейнами. Песчаный пляж, ресторан морепродуктов и спа-процедуры для красивого отпуска вдвоём.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "996057c360deff297f73282cd0c27c952b94003acce375a335c75f91b5d218db",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/2968.png",
+      "photo_sha256": "2da21d8968d564523bf185b209aef102ba963fe162b24699d8204a99cecb1bd6",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2968"
+      ]
+    },
+    {
+      "hotel_id": 3018,
+      "logical_id": "commercial-hotel-3018-v1",
+      "aliases": [
+        "Royal Orchid Sheraton Riverside Hotel Bangkok",
+        "ROYAL ORCHID SHERATON HOTEL & TOWERS"
+      ],
+      "text": "✈️ Туры в Royal Orchid Sheraton Riverside Hotel Bangkok\n📍 Бангкок, Таиланд.\n\nБангкок на берегу Чао Прайи: виды на реку, зелёный сад и два бассейна. Рестораны и спа помогают отдохнуть между прогулками по городу и знакомством с его храмами.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "372c0587a43ef81f3bead0411a9ccb921da390493b4e4276c96715372017af3c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/3018.png",
+      "photo_sha256": "36a387ea755f0dc505539c62cbc033217100e2d6a2320bafd2f597629834fa98",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=3018"
+      ]
+    }
+  ]
+}

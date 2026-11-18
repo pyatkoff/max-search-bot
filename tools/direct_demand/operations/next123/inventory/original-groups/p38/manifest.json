@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261117-38-v1",
+  "state": "PREPARED_NOT_SENT",
+  "button_text": "✈️ Узнать стоимость тура",
+  "expected_new_full_pairs": 10,
+  "photo_freeze_commit": "87d757264e13e455b8d96479895dae583eb5c231",
+  "native_id_namespace": "Tourvisor",
+  "rows": [
+    {
+      "hotel_id": 22845,
+      "logical_id": "commercial-hotel-22845-v1",
+      "aliases": [
+        "SO/ Bangkok",
+        "SO BANGKOK",
+        "SOFITEL SO BANGKOK"
+      ],
+      "text": "✈️ Туры в SO/ Bangkok\n📍 Бангкок, Таиланд.\n\nДизайнерский Бангкок у Люмпини: необычные интерьеры, открытый бассейн, спа и рестораны с барами. Для тех, кто выбирает яркую атмосферу и хочет добавить к поездке красивые городские виды.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "889e5db627985a38783eb4c99b902f4b64f085428b73652b8adc7656b259f0ac",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/22845.png",
+      "photo_sha256": "7e670368f646285959aa1ab10dd2e82c0b669c23455e6c72f99c2cc9724f55fc",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=22845"
+      ]
+    },
+    {
+      "hotel_id": 8019,
+      "logical_id": "commercial-hotel-8019-v1",
+      "aliases": [
+        "Le Méridien Bangkok",
+        "LE MERIDIEN BANGKOK"
+      ],
+      "text": "✈️ Туры в Le Méridien Bangkok\n📍 Бангкок, Таиланд.\n\nГородской Бангкок с комфортным отдыхом между прогулками: открытый бассейн, спа, ресторан и бары. Подойдёт для поездки вдвоём, когда хочется совместить впечатления от столицы и время для себя.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "3eeacd3235869da4d24dc4af795b0e87d3293e912501a5127367fc56cdac2a75",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/8019.png",
+      "photo_sha256": "3d9873d2ca4f38e09edfae1986d5fdfd2354acc8732c0adb81e17cbc4c6faf9b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8019"
+      ]
+    },
+    {
+      "hotel_id": 13935,
+      "logical_id": "commercial-hotel-13935-v1",
+      "aliases": [
+        "Park Hyatt Saigon",
+        "PARK HYATT SAIGON"
+      ],
+      "text": "✈️ Туры в Park Hyatt Saigon\n📍 Хошимин, Вьетнам.\n\nЭлегантный отдых в центре Хошимина: красивый двор с бассейном, спа и рестораны. Номера в классическом стиле и спокойная атмосфера для тех, кто хочет знакомиться с Сайгоном без спешки.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "0b09c7dd753a629461e97b99e986fa0832cb64444a870c0bf3d17dcaaecb4f46",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/13935.png",
+      "photo_sha256": "04f504347be4b0f236a7e15f1455a468a3f7c53c476add844a7357d20444668c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=13935"
+      ]
+    },
+    {
+      "hotel_id": 47185,
+      "logical_id": "commercial-hotel-47185-v1",
+      "aliases": [
+        "Pullman Hanoi",
+        "PULLMAN HANOI"
+      ],
+      "text": "✈️ Туры в Pullman Hanoi\n📍 Ханой, Вьетнам.\n\nХаной для городских впечатлений и комфортного отдыха: открытый бассейн, спа, фитнес и ресторан. После прогулок можно сменить оживлённые улицы на расслабленный вечер в отеле.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "d60ca31c0b7a9f54a2bd4e65af57fb5a338b5a09036e3f9f47cf81bd5a4e8d1f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/47185.png",
+      "photo_sha256": "52aa0164eebe6178161ba31e8ec2e9c78ece9afbb22098110eda30167e19e26a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=47185"
+      ]
+    },
+    {
+      "hotel_id": 49176,
+      "logical_id": "commercial-hotel-49176-v1",
+      "aliases": [
+        "Bangkok Marriott Hotel Sukhumvit",
+        "BANGKOK MARRIOTT HOTEL SUKHUMVIT"
+      ],
+      "text": "✈️ Туры в Bangkok Marriott Hotel Sukhumvit\n📍 Бангкок, Таиланд.\n\nБангкок в районе Сукхумвит: открытый бассейн, спа, рестораны и бары. Номера с городской атмосферой и места для отдыха помогут приятно чередовать прогулки, покупки и неспешные вечера.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "e9c2463e26dc3800bfc299bcce766955b432b3109ca0d71e554ee56cbc4a0977",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/49176.png",
+      "photo_sha256": "69e1481ff728acd8226e22a640c304271bf9ba5dd4489adad3e21f4b6dede584",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=49176"
+      ]
+    },
+    {
+      "hotel_id": 49287,
+      "logical_id": "commercial-hotel-49287-v1",
+      "aliases": [
+        "Conrad Bangkok",
+        "CONRAD BANGKOK"
+      ],
+      "text": "✈️ Туры в Conrad Bangkok\n📍 Бангкок, Таиланд.\n\nСпокойные паузы в ритме Бангкока: открытый бассейн среди зелени, спа, рестораны и фитнес. Есть детский бассейн. Подойдёт для поездки вдвоём или семейного знакомства с городом.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "60e4149dd6520bd6e00fe9b865c1fd93626aaadc4c1489458939916f10eef8f2",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/49287.png",
+      "photo_sha256": "93d6ef471a3df0e857dcca732f64955375ce26cc954993f23b798f1db3b74684",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=49287"
+      ]
+    },
+    {
+      "hotel_id": 55570,
+      "logical_id": "commercial-hotel-55570-v1",
+      "aliases": [
+        "Mövenpick Hotel Sukhumvit 15 Bangkok",
+        "MOVENPICK HOTEL SUKHUMVIT 15 BANGKOK"
+      ],
+      "text": "✈️ Туры в Mövenpick Hotel Sukhumvit 15 Bangkok\n📍 Бангкок, Таиланд.\n\nБангкок на Сукхумвит 15: бассейн для отдыха после прогулок, ресторан, бар и фитнес. Современные номера и удобный городской формат для тех, кто собирается активно знакомиться со столицей.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "c5d64c1ae81f1131ec235ff24d44db2b2cb39b283bdb2004e284368e4ac7a28a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/55570.png",
+      "photo_sha256": "5347c80f3303dc7247ae2b327d6117a7bb4e871e4048472ed87bcd70a747bfa5",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=55570"
+      ]
+    },
+    {
+      "hotel_id": 53706,
+      "logical_id": "commercial-hotel-53706-v1",
+      "aliases": [
+        "Meliá Hanoi",
+        "MELIA HANOI"
+      ],
+      "text": "✈️ Туры в Meliá Hanoi\n📍 Ханой, Вьетнам.\n\nКомфортный городской отдых в Ханое: открытый бассейн, спа, рестораны и фитнес. Подойдёт, чтобы сочетать прогулки по вьетнамской столице с приятными вечерами и временем для себя.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "cc485a7bacc6d2d09357e8dce0127ab6bd4d970ebfde93ac2aec7d32a789d7a2",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/53706.png",
+      "photo_sha256": "34a950245ac70d55e5b4f0c9c815c18cced2c935d82ebbfef3fb07b59d05c105",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=53706"
+      ]
+    },
+    {
+      "hotel_id": 23756,
+      "logical_id": "commercial-hotel-23756-v1",
+      "aliases": [
+        "Eastin Grand Hotel Saigon",
+        "EASTIN GRAND SAIGON",
+        "MOVENPICK SAIGON"
+      ],
+      "text": "✈️ Туры в Eastin Grand Hotel Saigon\n📍 Хошимин, Вьетнам.\n\nХошимин с удобной остановкой недалеко от аэропорта: светлые номера, открытый бассейн, спа и рестораны. Подойдёт для короткой городской поездки или продолжения путешествия по Вьетнаму.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "b53485e2f37923670b3c864fa6d96bdc9e9a57a2579228ca7cec59ba2252c13d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/23756.png",
+      "photo_sha256": "2bf9fce6942f2324d84f59c3d9a5cd082e92982519fd96f45664c64ebfa8bf09",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23756"
+      ]
+    },
+    {
+      "hotel_id": 40895,
+      "logical_id": "commercial-hotel-40895-v1",
+      "aliases": [
+        "Hilton Bangkok Grande Asoke",
+        "HILTON BANGKOK GRANDE ASOKE",
+        "PULLMAN BANGKOK GRANDE SUKHUMVIT"
+      ],
+      "text": "✈️ Туры в Hilton Bangkok Grande Asoke\n📍 Бангкок, Таиланд.\n\nБангкок в районе Асок: открытый бассейн, спа, рестораны и фитнес. Для тех, кто планирует городские прогулки и покупки, но хочет оставить время для спокойного отдыха в отеле.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "de3b2c0fd2cc652f5fb85db8f713f1d009f7c1997f22f0376c3ed82388080b29",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/40895.png",
+      "photo_sha256": "58ee458fee6b7d95fb73898cbeebcfdf4def2e12209dc477221a6bb29e27cdc6",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=40895"
+      ]
+    }
+  ]
+}

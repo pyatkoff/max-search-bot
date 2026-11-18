@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261117-34-v1",
+  "state": "PREPARED_NOT_SENT",
+  "button_text": "✈️ Узнать стоимость тура",
+  "expected_new_full_pairs": 10,
+  "photo_freeze_commit": "e53eede2df5dbc5da5f72b04c0ac8777819cd8dc",
+  "native_id_namespace": "Tourvisor",
+  "rows": [
+    {
+      "hotel_id": 82067,
+      "logical_id": "commercial-hotel-82067-v1",
+      "aliases": [
+        "Meliá Vinpearl Phu Quoc",
+        "MELIA VINPEARL PHU QUOC"
+      ],
+      "text": "✈️ Туры в Meliá Vinpearl Phu Quoc\n📍 Фукуок, Вьетнам.\n\nПросторные виллы с собственными бассейнами для отдыха семьёй или компанией на Фукуоке. Песчаный пляж рядом, рестораны и спа для взрослых, детский клуб и игровые площадки для маленьких гостей.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "9195a403d86e05f11f172280c91506ec47ad6e08340f44f5d6dc429001384852",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/82067.png",
+      "photo_sha256": "d17c481034aff3ac3347cf9b9d5da451d33704ef53fcfb17011ea7de104f7c5a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82067"
+      ]
+    },
+    {
+      "hotel_id": 4076,
+      "logical_id": "commercial-hotel-4076-v1",
+      "aliases": [
+        "Sheraton Nha Trang Hotel & Spa",
+        "SHERATON NHA TRANG"
+      ],
+      "text": "✈️ Туры в Sheraton Nha Trang Hotel & Spa\n📍 Нячанг, Вьетнам.\n\nНячанг с морскими панорамами, бассейном и баром на крыше. Рестораны и спа дополняют городской отпуск, а песчаный пляж находится примерно в 50 метрах через дорогу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "586ab6272084e6e0393fe7e2fc3cd83d82218816fc3fe01cd657c73c3679b5fd",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/4076.png",
+      "photo_sha256": "2cbe7f02f9f92d7e03391b8f69a028d000e7a2836d0c059076ddf49a52a6c0c2",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4076"
+      ]
+    },
+    {
+      "hotel_id": 4077,
+      "logical_id": "commercial-hotel-4077-v1",
+      "aliases": [
+        "Six Senses Ninh Van Bay",
+        "SIX SENSES NINH VAN BAY"
+      ],
+      "text": "✈️ Туры в Six Senses Ninh Van Bay\n📍 Нячанг, Вьетнам.\n\nУединённая бухта Нинь Ван для красивого отпуска среди тропической природы. Виллы с бассейнами, песчаный пляж, рестораны и спа; в курорт добираются на катере.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "966731d0885a530877dcbac76df1097af94d2cb4523a18b446e0f3c95f63fa80",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/4077.png",
+      "photo_sha256": "77d34cb399405f9ec5a4afa84d70483328b8b8a61069020d0f45f24bab4e6c37",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4077"
+      ]
+    },
+    {
+      "hotel_id": 131884,
+      "logical_id": "commercial-hotel-131884-v1",
+      "aliases": [
+        "Courtyard by Marriott Danang Han River",
+        "COURTYARD BY MARRIOTT DANANG HAN RIVER"
+      ],
+      "text": "✈️ Туры в Courtyard by Marriott Danang Han River\n📍 Дананг, Вьетнам.\n\nДананг на берегу реки Хан с бассейном, рестораном и баром на крыше. Морские дни можно чередовать с городскими прогулками: до пляжа Ми Кхе около трёх километров.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "008e525c9a459e1f677406231e390e18e120ebec2185305eb55e968ec32f4013",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/131884.png",
+      "photo_sha256": "e16e07bbab961df5f2abefcef2c16378440ee36d2a4a45f454981d513b3b3edf",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=131884"
+      ]
+    },
+    {
+      "hotel_id": 70778,
+      "logical_id": "commercial-hotel-70778-v1",
+      "aliases": [
+        "Vinpearl Sealink Nha Trang",
+        "VINPEARL SEALINK NHA TRANG"
+      ],
+      "text": "✈️ Туры в Vinpearl Sealink Nha Trang\n📍 Нячанг, Вьетнам.\n\nОстров Хон Тре для семейного отпуска у собственного песчаного пляжа. Есть просторные виллы с двумя и тремя спальнями, бассейн и ресторан; островной отдых легко дополнить поездками по заливу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "00c931e8e219141ac90e972fd80e99987596036b22dc8e8da416c73647e4bec3",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/70778.png",
+      "photo_sha256": "009e1374357c691da3b81b9afc18bf3d1f55b5b8428bbdac3b4b09059040c1b4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=70778"
+      ]
+    },
+    {
+      "hotel_id": 126417,
+      "logical_id": "commercial-hotel-126417-v1",
+      "aliases": [
+        "Radisson RED Danang",
+        "RADISSON RED DANANG HOTEL"
+      ],
+      "text": "✈️ Туры в Radisson RED Danang\n📍 Дананг, Вьетнам.\n\nЯркий Дананг с современными номерами, бассейном и баром на крыше. Ресторан и спа дополняют отпуск, а песчаный пляж находится примерно в 50 метрах через дорогу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "a35f6cde869524c8654c7bd9d3c7f78bfe0144564d0dae5912f06d140ef25bc2",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/126417.png",
+      "photo_sha256": "b7451132ec5f1f4e06261dc4761da8a1b50dd185cdd2b0a9b6b65b149749eb2e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126417"
+      ]
+    },
+    {
+      "hotel_id": 52256,
+      "logical_id": "commercial-hotel-52256-v1",
+      "aliases": [
+        "Pullman Vung Tau",
+        "PULLMAN VUNG TAU"
+      ],
+      "text": "✈️ Туры в Pullman Vung Tau\n📍 Вунг Тау, Вьетнам.\n\nСовременный Вунгтау для выходных на побережье или неспешного городского отпуска. Бассейн, рестораны, спа и просторные зоны отдыха помогают переключиться после прогулок и поездок.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "800f388a1d84f980d80fb84680c62639376fd2315257681a58573dca6f280b93",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/52256.png",
+      "photo_sha256": "ccf6764b1423c9929baeee6ab1e32e116e05e2c079497bb5080d9abf51223ff2",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=52256"
+      ]
+    },
+    {
+      "hotel_id": 65253,
+      "logical_id": "commercial-hotel-65253-v1",
+      "aliases": [
+        "Vinpearl Wonderworld Phu Quoc",
+        "VINPEARL WONDERWORLD PHU QUOC",
+        "VINPEARL DISCOVERY 1"
+      ],
+      "text": "✈️ Туры в Vinpearl Wonderworld Phu Quoc\n📍 Фукуок, Вьетнам.\n\nПросторные виллы с двумя, тремя и четырьмя спальнями для каникул всей семьёй. Бассейн, рестораны и детский клуб; до песчаного пляжа около 300 метров, есть шаттл.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "a3573c0b4f2794b72112171adaeb30ebdf5f793b5c86384f3b277de0cc115be6",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/65253.png",
+      "photo_sha256": "2875fd613ec8a38057ee1ae344cd5e6380abd84ad8f87eb9c220a9688fc513f2",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=65253"
+      ]
+    },
+    {
+      "hotel_id": 15862,
+      "logical_id": "commercial-hotel-15862-v1",
+      "aliases": [
+        "InterContinental Grand Ho Tram",
+        "INTERCONTINENTAL GRAND HO TRAM",
+        "THE GRAND HO TRAM STRIP"
+      ],
+      "text": "✈️ Туры в InterContinental Grand Ho Tram\n📍 Хо Трам, Вьетнам.\n\nХо Трам для насыщенного семейного отпуска: бассейны, водные горки и детский клуб. Просторные номера, выбор ресторанов и спа помогут чередовать активные дни и спокойный отдых.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "fd435fdec2628cadd0b3461cf90f72a54a6eb02e1957e35336ac91125ff7bf32",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/15862.png",
+      "photo_sha256": "9ed48b743b1b35a0a16160ba8dcaaf4272ea90319572fbaf11a175ff6a03a1c5",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=15862"
+      ]
+    },
+    {
+      "hotel_id": 41494,
+      "logical_id": "commercial-hotel-41494-v1",
+      "aliases": [
+        "Amanoi",
+        "AMANOI"
+      ],
+      "text": "✈️ Туры в Amanoi\n📍 Бухта Винь Хи, Вьетнам.\n\nВиллы с бассейнами на зелёных склонах над бухтой Винь Хи для уединённого отпуска. Спа, рестораны и морские панорамы; к пляжному клубу и песчано-галечному берегу курсируют багги.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "f95a959323fffd0ac31416004e45d10c4c868d1f6fd3cb4bc0a487aa1a881413",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/41494.png",
+      "photo_sha256": "a4d0b50b40c876ee284bc6a5b7e705c6704b5a9112d6be01535a2dfff80ac98c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=41494"
+      ]
+    }
+  ]
+}

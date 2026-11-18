@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261117-41-v1",
+  "state": "PREPARED_NOT_SENT",
+  "button_text": "✈️ Узнать стоимость тура",
+  "expected_new_full_pairs": 1,
+  "photo_freeze_commit": "e53eede2df5dbc5da5f72b04c0ac8777819cd8dc",
+  "native_id_namespace": "Tourvisor",
+  "rows": [
+    {
+      "hotel_id": 66375,
+      "logical_id": "commercial-hotel-66375-v1",
+      "aliases": [
+        "Cape Fahn Hotel",
+        "CAPE FAHN HOTEL"
+      ],
+      "text": "✈️ Туры в Cape Fahn Hotel\n📍 Самуи, Таиланд.\n\nНебольшой остров рядом с Самуи для особенного отпуска: виллы с бассейнами, морские панорамы и песчаный берег. Рестораны и спа дополняют отдых, когда хочется уединения и тропической природы.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "b2caf990b6bdcdb7ab0dc0e5d7f1951d9d677aba806ad4f0e3b5022431929599",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/66375.png",
+      "photo_sha256": "68d923a5d5e8709d747ea2da78a60dea0f9c8e4269d2c048144a79d98adb4046",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=66375"
+      ]
+    }
+  ]
+}
