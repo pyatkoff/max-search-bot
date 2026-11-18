@@ -1,46 +1,45 @@
 {
     "ok": true,
-    "generated_at": "2026-11-18T13:41:48+00:00",
+    "generated_at": "2026-11-18T14:18:04+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 11,
-        "raw_sessions": 11,
+        "sessions": 10,
+        "raw_sessions": 10,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 10,
+            "resolved": 9,
             "unresolved": 1
         },
-        "started": 10,
-        "needs_collected": 2,
+        "started": 8,
+        "needs_collected": 1,
         "tours_opened": 1,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 9,
-        "manager_replied": 7,
+        "manager_requested": 6,
+        "manager_replied": 5,
         "customer_replied_after_manager": 5,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
-            "answered_after_90s": 7,
+            "answered_after_90s": 5,
             "still_unanswered": 0,
-            "measured_responses": 7,
-            "avg_seconds": 10178,
+            "measured_responses": 5,
+            "avg_seconds": 13668,
             "max_seconds": 41164
         },
         "drop_points": {
             "customer_replied_after_manager": 5,
-            "manager_replied": 2,
-            "manager_requested": 2,
-            "started_only": 1,
-            "collecting_needs": 1
+            "started_only": 2,
+            "collecting_needs": 2,
+            "manager_requested": 1
         },
         "flags": []
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-18T13:41:48Z",
+        "sampled_at": "2026-11-18T14:18:04Z",
         "available": true,
         "error": null,
         "mode": "send",
@@ -59,6 +58,6 @@
         },
         "queue_total": 58
     },
-    "since_utc": "2026-11-18 12:41:48",
+    "since_utc": "2026-11-18 13:18:04",
     "public_redacted": true
 }
