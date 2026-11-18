@@ -19,6 +19,7 @@ final class ModeledConversionProfiles
         $paths=['services/ModeledConversionProfiles.php','services/ModeledConversionEarlyForecast.php',
             'services/ModeledConversionSemanticPrediction.php','services/ModeledConversionQuestionnaireContext.php',
             'services/ArchiveResearchSemanticExtractor.php','services/ModeledConversionTextSignals.php',
+            'services/DestinationHintService.php',
             'services/ModeledConversionOfferReaction.php','services/ManagerAiTextRedactor.php',
             'services/ModeledConversionAssignedValue.php','services/ModeledConversionDealValue.php',
             'tools/profile_conversion_journal.py','tools/extract_conversion_profiles.py'];

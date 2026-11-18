@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__.'/ModeledConversionTextSignals.php';
+require_once __DIR__.'/DestinationHintService.php';
 require_once __DIR__.'/ArchivePredictiveRelativeWeights.php';
 require_once __DIR__.'/ModeledConversionQuestionnaireContext.php';
 
@@ -47,6 +48,7 @@ final class ModeledConversionSemanticPrediction
     private array $evidence=[];
     private array $messages=[];
     private ?array $pendingManagerQuote=null;
+    private bool $managerAskedDeparture=false;
     private ?array $questionnaireQuestion=null;
     private array $questionnaireAnswers=[];
     private ?int $lastQuestionnaireAt=null;
@@ -132,6 +134,8 @@ final class ModeledConversionSemanticPrediction
         foreach(['quoted_or_relayed','past_trip','conditional','negation']as$key)
             if(($flags[$key]??false)===true)$unsafe=true;
         $directCustomer=$role==='customer'&&!$unsafe;
+        $askedDeparture=$this->managerAskedDeparture;
+        $this->managerAskedDeparture=$role==='manager'&&self::hit('(?<!\pL)(?:откуда|(?:из|с)\s+какого\s+(?:города|аэропорта)|(?:город|аэропорт|место)\pL*\s+(?:обратн\pL*\s+)?(?:вылет|отправлен)\pL*)(?!\pL)',$redactedText);
         // An original human quote can explain the next customer's comparison.
         // The quote alone never supplies criteria, price, or an offer identity.
         $previousQuote=$this->pendingManagerQuote;
@@ -163,6 +167,11 @@ final class ModeledConversionSemanticPrediction
         }
         $textSignals=ModeledConversionTextSignals::scan($redactedText);
         $families=$directCustomer?$textSignals['criteria_families']:[];
+        // A complete resort name supplies its own destination. Never borrow a stale request or a departure field.
+        $namedResort=$directCustomer&&$originalUnlinked&&$this->advertisingV1&&$sourceVersion===1
+            &&$question===null&&!$askedDeparture&&($this->anchor===null||$this->canPreserveCustomerContext($occurred))
+            &&DestinationHintService::isStandaloneCompoundResort($redactedText);
+        if($namedResort&&!in_array('destination',$families,true))$families[]='destination';
         $comp=$directCustomer&&$textSignals['explicit_comparison'];
         $modify=$directCustomer&&$textSignals['explicit_modification'];
         $packageFollowup=$originalUnlinked&&$directCustomer&&$previousQuote!==null&&$sourceVersion===1
@@ -173,7 +182,7 @@ final class ModeledConversionSemanticPrediction
         $cheaper=$directCustomer&&($textSignals['price_alternative_continued_search']||$packageFollowup);
         $this->messages[$ref]['price_alternative']=$cheaper;
         // Bare logistics and greetings do not establish a trip or seller choice.
-        $meaningful=$role==='customer'&&!$questionnaireAnswer&&($goals!==[]||($directCustomer&&(count($families)>=2
+        $meaningful=$role==='customer'&&!$questionnaireAnswer&&($namedResort||$goals!==[]||($directCustomer&&(count($families)>=2
             ||($this->anchor!==null&&($families!==[]||$comp||$modify||$cheaper)))));
         if($meaningful){
             if($this->anchor===null){
@@ -247,6 +256,7 @@ final class ModeledConversionSemanticPrediction
         $this->anchor=null;$this->anchorVersion=null;$this->anchorEvidence=null;
         $this->customerTurns=0;$this->meaningfulTurns=0;$this->lastMeaningfulAt=null;$this->positives=[];$this->criteria=[];
         $this->evidence=[];$this->messages=[];$this->pendingManagerQuote=null;$this->currentOutcome=false;
+        $this->managerAskedDeparture=false;
         $this->questionnaireQuestion=null;$this->questionnaireAnswers=[];$this->lastQuestionnaireAt=null;
         $this->urgency=false;$this->longRange=false;$this->deferred=false;$this->declined=false;
         $this->comparison=false;$this->modification=false;$this->priceAlternative=false;
