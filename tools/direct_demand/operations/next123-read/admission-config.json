@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "parent_sha": "1a055d8d5cd94fe0a57a2ee03e41905beff274f9",
+  "claim_id": 6967624483,
+  "claim_body_sha256": "c14a53c422f8b2a38804d946de35873fd0dc64c8dc9187b4c85b9759d8b54844",
+  "runtime_sha": "cc017ee5bb669f4c7c13efc91d5c5812a50e55f2",
+  "accepted_runs": [
+    {
+      "run_id": 44187866614,
+      "head_sha": "cc017ee5bb669f4c7c13efc91d5c5812a50e55f2",
+      "kind": "deployment"
+    },
+    {
+      "run_id": 44190041893,
+      "head_sha": "cc017ee5bb669f4c7c13efc91d5c5812a50e55f2",
+      "kind": "native"
+    },
+    {
+      "run_id": 44190041835,
+      "head_sha": "cc017ee5bb669f4c7c13efc91d5c5812a50e55f2",
+      "kind": "native"
+    },
+    {
+      "run_id": 44190042006,
+      "head_sha": "cc017ee5bb669f4c7c13efc91d5c5812a50e55f2",
+      "kind": "native"
+    }
+  ],
+  "intent_sha256": "ee6cd7792ffd2ed87dcdaeb3fc2b123cb0a7af295e118132ab1909b7d833b51a",
+  "source_sha256": {
+    "run123.py": "7a085fc55a5ab17c459cf9f8fe39d46b86d03378293ddae779feb86871facdf7",
+    "price_readback_handoff.py": "417c9d6bc5735f92661fbc480fc85146277fe8b24ad6d369466edc9ba61716e2",
+    "intent.json": "ee6cd7792ffd2ed87dcdaeb3fc2b123cb0a7af295e118132ab1909b7d833b51a",
+    "content_handoff.py": "8404bc4c58634d2d9ccd106b8b7a3e8932e611cfc33be911cb6019afdd5fc743",
+    "content78929-terminal.json": "818044ecaa3b10c54b5c5b8aa66078243fac0603958cb2781b782fe66afae5d5",
+    "price-readback-summary.json": "986d63b78480cdc6af9ad3515a3fdee42167fa67fb1990f5ca2628790690296f",
+    "namespace-provenance.json": "8f6aece606fe58991d82d534c354645769063b404d40e92b9e2f5f668b2efc43"
+  },
+  "accepted_jobs": [
+    {
+      "run_id": 44187866614,
+      "job_id": 134414708272
+    },
+    {
+      "run_id": 44187866614,
+      "job_id": 134416073788
+    },
+    {
+      "run_id": 44190041893,
+      "job_id": 134416682043
+    },
+    {
+      "run_id": 44190041835,
+      "job_id": 134416682407
+    },
+    {
+      "run_id": 44190042006,
+      "job_id": 134416685502
+    }
+  ],
+  "external_route_coordination": {
+    "kind": "root_connector_read_only_coordination",
+    "repository": "pyatkoff/tour-max",
+    "branch": "audit/anytour-hotel-feed-routing-20261104",
+    "claim_id": 6967624483,
+    "claim_body_sha256": "c14a53c422f8b2a38804d946de35873fd0dc64c8dc9187b4c85b9759d8b54844",
+    "route_head_sha": "bbef3101f8c8f6eae15355c0d6fa4b8c1848dfa2",
+    "observed_at": "2026-11-18T07:12:13.982Z",
+    "nonterminal_counts": {
+      "in_progress": 0,
+      "queued": 0,
+      "waiting": 0,
+      "pending": 0,
+      "requested": 0
+    }
+  },
+  "prior_completed_feed": {
+    "run_id": 44224540179,
+    "head_sha": "1a055d8d5cd94fe0a57a2ee03e41905beff274f9"
+  },
+  "price_terminal_handoff": {
+    "kind": "EXACT_READBACK_AFTER_PARTIAL_PRICE_CYCLE",
+    "repository": "poisk-turov-test",
+    "run_id": 44254140999,
+    "head_sha": "f767095344e5268c5ddfd26c71358a43b71bbaf4",
+    "artifact_id": 14405665921,
+    "archive_sha256": "724256a3698fff5c6e830a8c448e832a41005cc0bb30622591a7a9181ae3ab43",
+    "receipt_path": "price-readback-summary.json",
+    "receipt_sha256": "986d63b78480cdc6af9ad3515a3fdee42167fa67fb1990f5ca2628790690296f"
+  },
+  "content_terminal_handoff": {
+    "repository": "max-search-bot",
+    "run_id": 44255962195,
+    "head_sha": "c4fb9b86f233c09f706b4133f5a690300467d7b3",
+    "artifact_id": 14406291497,
+    "archive_sha256": "ba36a6a6f584467d58abd3ae14445807ced7776037b04c24206a55dfaf9b2939",
+    "receipt_path": "content78929-terminal.json",
+    "receipt_sha256": "818044ecaa3b10c54b5c5b8aa66078243fac0603958cb2781b782fe66afae5d5"
+  },
+  "content_window_ack": {
+    "comment_id": 6961029169,
+    "body_sha256": "1875dad7e5d7a78f5d162a832b853454261947079314eb9c78ef679e75573d0f"
+  }
+}
