@@ -1,0 +1,803 @@
+{
+  "state": "WAVE8_PAIRED_HOTELS_16_POSTS_NATIVE_VERIFIED",
+  "unique_new_hotels": 8,
+  "telegram": 8,
+  "max": 8,
+  "paired_total_before": 1134,
+  "paired_total_after": 1142,
+  "feed_rows_added": 0,
+  "operations": [
+    {
+      "operation": "commercial-hotel-batch-20261118-60-v1",
+      "unique_new_hotels": 8,
+      "original_output_sha256": "5ee3eb4d25e75105fc5ca0fb8d1f6b2bed2c1dedcbc9c8d1d2e1ca7452a451b2"
+    }
+  ],
+  "schema_version": 1,
+  "owner": "HOTEL/CONTENT",
+  "prepared_hotels": 8,
+  "new_posts": 16,
+  "confirmed_new_pairs": 8,
+  "confirmed_feed_complete_new_pairs": 0,
+  "remaining_unpaired_in_admitted_batch": 0,
+  "excluded_country_ids": [
+    11
+  ],
+  "verified_at_utc": "2026-11-18T01:26:08.3455132Z",
+  "verified_at_msk": "2026-11-18T04:26:08.3455132+03:00",
+  "original_operation": "commercial-hotel-batch-20261118-60-v1",
+  "original_run_id": 44215604245,
+  "original_run_attempt": 1,
+  "original_run_commit": "bbcf97a198039c894e84644ae9bc1a6064c6ffc7",
+  "original_output_sha256": "5ee3eb4d25e75105fc5ca0fb8d1f6b2bed2c1dedcbc9c8d1d2e1ca7452a451b2",
+  "source_receipt": {
+    "state": "WAVE8_SOURCE_ACCEPTED_COVERS_STAGED",
+    "groups": [
+      {
+        "number": 60,
+        "operation": "commercial-hotel-batch-20261118-60-v1",
+        "hotel_ids": [
+          1078,
+          17489,
+          1679,
+          43649,
+          74019,
+          75504,
+          2590,
+          73896
+        ]
+      }
+    ],
+    "native_hotel_ids": [
+      1078,
+      17489,
+      1679,
+      43649,
+      74019,
+      75504,
+      2590,
+      73896
+    ],
+    "expected_app_sha": "cc017ee5bb669f4c7c13efc91d5c5812a50e55f2",
+    "cover_commit": "726bad8d418fcf1e0dd6431aaf364866a4848cff",
+    "poster_calls": 0,
+    "feed_writes": 0,
+    "source_sha256": {
+      "registry-receipt.json": "d1fad16042b0a214d6d609527910cd993e4f7b5192a79cb2ba8055f2ad4af0cc",
+      "image-receipt.json": "fd14f5bcc9c5a8d9231f4cf52b07320de493bd55d8699147a3793e36c80a5c7b",
+      "p60-manifest.json": "b22ac2ac0e4a1c9d65aabff90cdcf6d9a918e0706738e8dbe8638848da4a0748",
+      "p60-approval.json": "947043369a9bf17eb84cb200d94891d1faeda6231b1d595c61c066a94e43f340",
+      "p60-publisher-unexecuted.php": "d0dd2533e1e3534ea165c7fdd3d0c75b7d643c22b8b268d9ac720d7b57956af7"
+    }
+  },
+  "original_approval": {
+    "schema_version": 1,
+    "operation": "commercial-hotel-batch-20261118-60-v1",
+    "expected_installed_sha": "cc017ee5bb669f4c7c13efc91d5c5812a50e55f2",
+    "hotel_ids": [
+      1078,
+      17489,
+      1679,
+      43649,
+      74019,
+      75504,
+      2590,
+      73896
+    ],
+    "manifest_sha256": "b22ac2ac0e4a1c9d65aabff90cdcf6d9a918e0706738e8dbe8638848da4a0748"
+  },
+  "rows": [
+    {
+      "hotel_id": 1078,
+      "logical_id": "commercial-hotel-1078-v1",
+      "aliases": [
+        "TUI MAGIC LIFE BELEK (EX. CLUB ASTERIA BELEK)",
+        "TUI MAGIC LIFE BELEK",
+        "CLUB ASTERIA BELEK",
+        "TUI MAGIC LIFE Belek"
+      ],
+      "text": "✈️ Туры в TUI MAGIC LIFE Belek\n📍 Белек, Турция.\n\nПляж, велосипедные прогулки и теннис в одной поездке. У TUI MAGIC LIFE Belek есть собственный песчано-галечный берег, корты и водные горки для семейного отпуска. Подойдёт тем, кто любит проводить день в движении. Открытые бассейны без подогрева; их работа зависит от погоды.\n\nПодберём тур на ваши даты.",
+      "text_sha256": "2f67e43cdd11b7cbbae982b0949eb72a7decd36619aaf89db2a26b57842ba446",
+      "photo_sha256": "456072f356a157ae34dc8239bd81fcee2262e094f3d8947be75f7fb45195964c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1078",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1078",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-asteria-81676216.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-asteria-81676200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-asteria-81676201.jpg"
+      ],
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/1078.png",
+      "country_id": 4,
+      "native_readback_verified_at_utc": "2026-11-18T01:26:07.2043844Z",
+      "posts": [
+        {
+          "logical_id": "commercial-hotel-1078-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1149",
+          "post_url": "https://t.me/any_toour/1149",
+          "publication_id": 2452,
+          "version_id": 8351,
+          "button_url": "https://t.me/anyru_bot?start=p_NZhM2yIUH2IKjsztWfz-x10U",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "2f67e43cdd11b7cbbae982b0949eb72a7decd36619aaf89db2a26b57842ba446",
+          "photo_sha256": "456072f356a157ae34dc8239bd81fcee2262e094f3d8947be75f7fb45195964c",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 1078,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/1078.png"
+        },
+        {
+          "logical_id": "commercial-hotel-1078-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ec42919b5c1c",
+          "post_url": "https://max.ru/channel_anytour/AaHsQpGbXBw",
+          "publication_id": 2460,
+          "version_id": 8359,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_LFG0KC-hKlqTu_PxDvcfl6f8",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "2f67e43cdd11b7cbbae982b0949eb72a7decd36619aaf89db2a26b57842ba446",
+          "photo_sha256": "456072f356a157ae34dc8239bd81fcee2262e094f3d8947be75f7fb45195964c",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 1078,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/1078.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 17489,
+      "logical_id": "commercial-hotel-17489-v1",
+      "aliases": [
+        "TUI MAGIC LIFE MASMAVI (EX. ROBINSON CLUB MASMAVI)",
+        "TUI MAGIC LIFE MASMAVI",
+        "ROBINSON CLUB MASMAVI",
+        "TUI MAGIC LIFE Masmavi"
+      ],
+      "text": "✈️ Туры в TUI MAGIC LIFE Masmavi\n📍 Белек, Турция.\n\nДнём можно чередовать море с теннисом, а вечером отправиться на развлекательную программу. У Masmavi собственный песчано-галечный пляж, несколько бассейнов и детский клуб. Для прохладного сезона предусмотрен крытый бассейн с подогревом; открытые бассейны без подогрева.\n\nПодберём тур на ваши даты.",
+      "text_sha256": "bbf0b8962cec25dbd2f70c3c4300f1593079a77077c66bf816639bb06aef78d4",
+      "photo_sha256": "2338d7fd181eb7464697712c3ec787b5e111ce0c26a062de7222210afb755621",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=17489",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=17489",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/jacaranda-club-resort-102603324.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/jacaranda-club-resort-102603320.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/jacaranda-club-resort-102603321.jpg"
+      ],
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/17489.png",
+      "country_id": 4,
+      "native_readback_verified_at_utc": "2026-11-18T01:26:07.2043844Z",
+      "posts": [
+        {
+          "logical_id": "commercial-hotel-17489-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1150",
+          "post_url": "https://t.me/any_toour/1150",
+          "publication_id": 2453,
+          "version_id": 8352,
+          "button_url": "https://t.me/anyru_bot?start=p_sthKYtY8zi463z6kWtHuz75Y",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "bbf0b8962cec25dbd2f70c3c4300f1593079a77077c66bf816639bb06aef78d4",
+          "photo_sha256": "2338d7fd181eb7464697712c3ec787b5e111ce0c26a062de7222210afb755621",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 17489,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/17489.png"
+        },
+        {
+          "logical_id": "commercial-hotel-17489-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ec429b07587c",
+          "post_url": "https://max.ru/channel_anytour/AaHsQpsHWHw",
+          "publication_id": 2461,
+          "version_id": 8360,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_FjWHS7NTMur5VpBoZ3uHEVj0",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "bbf0b8962cec25dbd2f70c3c4300f1593079a77077c66bf816639bb06aef78d4",
+          "photo_sha256": "2338d7fd181eb7464697712c3ec787b5e111ce0c26a062de7222210afb755621",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 17489,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/17489.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1679,
+      "logical_id": "commercial-hotel-1679-v1",
+      "aliases": [
+        "CLUB TUANA FETHIYE (EX. MAJESTY CLUB TUANA PARK)",
+        "CLUB TUANA FETHIYE",
+        "MAJESTY CLUB TUANA PARK",
+        "Club Tuana Fethiye"
+      ],
+      "text": "✈️ Туры в Club Tuana Fethiye\n📍 Фетхие, Турция.\n\nМоре, зелёная территория и пирс для долгих отпускных дней. В Club Tuana есть бассейны, водные горки и рестораны разных кухонь. Хороший выбор для семьи, которой хочется отдыхать на территории курорта. Корпуса Park находятся примерно в 250 м от моря; пляж песчано-галечный.\n\nПодберём тур на ваши даты.",
+      "text_sha256": "a63584b0b30048d74b040d9d3d8ebea3380450b2a38603d8ab0d1f87b8124338",
+      "photo_sha256": "a7106418dc21b35ef5b0cfbc046f69e02b67dd35379ce6783129f771c795f2e1",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1679",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=1679",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/majesty-club-tuana-park-89127800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/majesty-club-tuana-park-89131700.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/majesty-club-tuana-park-89134900.jpg"
+      ],
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/1679.png",
+      "country_id": 4,
+      "native_readback_verified_at_utc": "2026-11-18T01:26:07.2043844Z",
+      "posts": [
+        {
+          "logical_id": "commercial-hotel-1679-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1151",
+          "post_url": "https://t.me/any_toour/1151",
+          "publication_id": 2454,
+          "version_id": 8353,
+          "button_url": "https://t.me/anyru_bot?start=p_hWA0PY4jDQqL7jkZlwpHr8P5",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "a63584b0b30048d74b040d9d3d8ebea3380450b2a38603d8ab0d1f87b8124338",
+          "photo_sha256": "a7106418dc21b35ef5b0cfbc046f69e02b67dd35379ce6783129f771c795f2e1",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 1679,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/1679.png"
+        },
+        {
+          "logical_id": "commercial-hotel-1679-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ec42a4841ca2",
+          "post_url": "https://max.ru/channel_anytour/AaHsQqSEHKI",
+          "publication_id": 2462,
+          "version_id": 8361,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_YL3KZZLWqVHlyLv-Pmwi223F",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "a63584b0b30048d74b040d9d3d8ebea3380450b2a38603d8ab0d1f87b8124338",
+          "photo_sha256": "a7106418dc21b35ef5b0cfbc046f69e02b67dd35379ce6783129f771c795f2e1",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 1679,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/1679.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 43649,
+      "logical_id": "commercial-hotel-43649-v1",
+      "aliases": [
+        "NOVOTEL MARSA ALAM",
+        "Novotel Marsa Alam"
+      ],
+      "text": "✈️ Туры в Novotel Marsa Alam\n📍 Марса-Алам, Египет.\n\nКрасное море у территории отеля и бассейны для отдыха между купаниями. Novotel подойдёт для спокойной пляжной поездки: здесь есть спа, рестораны и семейные номера с двумя спальнями. Вход в море коралловый — это существенный момент при поездке с маленькими детьми.\n\nПодберём тур на ваши даты.",
+      "text_sha256": "07f7af03007df2ea19ebd84ec42d504e87e90176ee1cb34a6d9c8bcf610db2d7",
+      "photo_sha256": "eac7092b324fcf2b5c8943bb9ad6628963183cfc434044ccfd52933b32092871",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43649",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43649",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/43649-27515600.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/43649-27515701.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/43649-27515702.jpg"
+      ],
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/43649.png",
+      "country_id": 1,
+      "native_readback_verified_at_utc": "2026-11-18T01:26:07.2043844Z",
+      "posts": [
+        {
+          "logical_id": "commercial-hotel-43649-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1152",
+          "post_url": "https://t.me/any_toour/1152",
+          "publication_id": 2455,
+          "version_id": 8354,
+          "button_url": "https://t.me/anyru_bot?start=p_kl_8VP2LvcjeVErq7Q7fQlWx",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "07f7af03007df2ea19ebd84ec42d504e87e90176ee1cb34a6d9c8bcf610db2d7",
+          "photo_sha256": "eac7092b324fcf2b5c8943bb9ad6628963183cfc434044ccfd52933b32092871",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 43649,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/43649.png"
+        },
+        {
+          "logical_id": "commercial-hotel-43649-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ec42ae473fdb",
+          "post_url": "https://max.ru/channel_anytour/AaHsQq5HP9s",
+          "publication_id": 2463,
+          "version_id": 8362,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_9AMFEyOCFWBRFi8N2hMO3YRi",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "07f7af03007df2ea19ebd84ec42d504e87e90176ee1cb34a6d9c8bcf610db2d7",
+          "photo_sha256": "eac7092b324fcf2b5c8943bb9ad6628963183cfc434044ccfd52933b32092871",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 43649,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/43649.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 74019,
+      "logical_id": "commercial-hotel-74019-v1",
+      "aliases": [
+        "HILTON PYRAMIDS GOLF",
+        "Hilton Pyramids Golf"
+      ],
+      "text": "✈️ Туры в Hilton Pyramids Golf\n📍 Гиза, Египет.\n\nПартия в гольф и отдых у бассейна после поездок по Каиру. В Hilton Pyramids Golf есть поле на 18 лунок, спа и рестораны. Подойдёт для городской поездки с размеренным отдыхом на территории. Отель расположен в районе 6 Октября, это не пляжный курорт.\n\nПодберём тур на ваши даты.",
+      "text_sha256": "237e0b6a3c99c4056d1e47164f274ba0db4bcf4d7cf072fa52fb7c7c729f5ba4",
+      "photo_sha256": "6df44734abd01105ee87ad03120e5a2f57634930eb9c4dce87498e1ba4a800a7",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=74019",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=74019",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/74019-79314958.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/74019-79313800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/74019-79313901.jpg"
+      ],
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/74019.png",
+      "country_id": 1,
+      "native_readback_verified_at_utc": "2026-11-18T01:26:07.2043844Z",
+      "posts": [
+        {
+          "logical_id": "commercial-hotel-74019-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1153",
+          "post_url": "https://t.me/any_toour/1153",
+          "publication_id": 2456,
+          "version_id": 8355,
+          "button_url": "https://t.me/anyru_bot?start=p_Iz-F6m8KyTyMTITxY5nL00oS",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "237e0b6a3c99c4056d1e47164f274ba0db4bcf4d7cf072fa52fb7c7c729f5ba4",
+          "photo_sha256": "6df44734abd01105ee87ad03120e5a2f57634930eb9c4dce87498e1ba4a800a7",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 74019,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/74019.png"
+        },
+        {
+          "logical_id": "commercial-hotel-74019-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ec42b7b12752",
+          "post_url": "https://max.ru/channel_anytour/AaHsQrexJ1I",
+          "publication_id": 2464,
+          "version_id": 8363,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_98aShSOlzH5LPQE7mpniXslU",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "237e0b6a3c99c4056d1e47164f274ba0db4bcf4d7cf072fa52fb7c7c729f5ba4",
+          "photo_sha256": "6df44734abd01105ee87ad03120e5a2f57634930eb9c4dce87498e1ba4a800a7",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 74019,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/74019.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 75504,
+      "logical_id": "commercial-hotel-75504-v1",
+      "aliases": [
+        "MARRIOTT MENA HOUSE",
+        "Marriott Mena House"
+      ],
+      "text": "✈️ Туры в Marriott Mena House\n📍 Гиза, Египет.\n\nПирамиды Гизы рядом, а после экскурсии можно вернуться в сад и к открытому бассейну. Marriott Mena House подойдёт для поездки за древней историей Египта с комфортным отдыхом между прогулками. У отеля есть рестораны и спа. Это городской экскурсионный отдых, без собственного морского пляжа.\n\nПодберём тур на ваши даты.",
+      "text_sha256": "ee2bb71194885a86290d84528688f0683e8e263d604e1e686aa5cd7af69ff572",
+      "photo_sha256": "9dbc352898004852d4bd5f44cd5a5aece22ec3f50207c0083cdd7aff9b9fc64c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75504",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=75504",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/75504-57057500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/75504-57057601.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/75504-57057602.jpg"
+      ],
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/75504.png",
+      "country_id": 1,
+      "native_readback_verified_at_utc": "2026-11-18T01:26:07.2043844Z",
+      "posts": [
+        {
+          "logical_id": "commercial-hotel-75504-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1154",
+          "post_url": "https://t.me/any_toour/1154",
+          "publication_id": 2457,
+          "version_id": 8356,
+          "button_url": "https://t.me/anyru_bot?start=p_yXBLd5QOhXN0aHWEi-TMK4qV",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "ee2bb71194885a86290d84528688f0683e8e263d604e1e686aa5cd7af69ff572",
+          "photo_sha256": "9dbc352898004852d4bd5f44cd5a5aece22ec3f50207c0083cdd7aff9b9fc64c",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 75504,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/75504.png"
+        },
+        {
+          "logical_id": "commercial-hotel-75504-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ec42c136064b",
+          "post_url": "https://max.ru/channel_anytour/AaHsQsE2Bks",
+          "publication_id": 2465,
+          "version_id": 8364,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_OgrvjmlTYprQcwIvNTN48KiD",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "ee2bb71194885a86290d84528688f0683e8e263d604e1e686aa5cd7af69ff572",
+          "photo_sha256": "9dbc352898004852d4bd5f44cd5a5aece22ec3f50207c0083cdd7aff9b9fc64c",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 75504,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/75504.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 2590,
+      "logical_id": "commercial-hotel-2590-v1",
+      "aliases": [
+        "DUSIT AJMAN (EX. AJMAN HOTEL)",
+        "DUSIT AJMAN",
+        "AJMAN HOTEL",
+        "Dusit Ajman"
+      ],
+      "text": "✈️ Туры в Dusit Ajman\n📍 Аджман, ОАЭ.\n\nПесчаный пляж Персидского залива рядом с отелем. В Dusit Ajman можно провести утро у моря, после обеда отдохнуть у бассейна, а вечером выбрать ресторан на территории. Для семьи предусмотрены детский бассейн и игровая площадка. Спа-процедуры и водные развлечения оплачиваются отдельно.\n\nПодберём тур на ваши даты.",
+      "text_sha256": "d93a00fbf2fb813acc648f2cbec481644fa9faaf48c9b39cd59487734fe14912",
+      "photo_sha256": "488380a79272d96407866938644eab797f4cd73b1ccf22e4064b47a066039521",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2590",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2590",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-ajman-9241300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-ajman-9241301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/kempinski-ajman-9241304.jpg"
+      ],
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/2590.png",
+      "country_id": 9,
+      "native_readback_verified_at_utc": "2026-11-18T01:26:07.2043844Z",
+      "posts": [
+        {
+          "logical_id": "commercial-hotel-2590-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1155",
+          "post_url": "https://t.me/any_toour/1155",
+          "publication_id": 2458,
+          "version_id": 8357,
+          "button_url": "https://t.me/anyru_bot?start=p_R2jQUnSdIvFuKW2-qgQ1wWaX",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "d93a00fbf2fb813acc648f2cbec481644fa9faaf48c9b39cd59487734fe14912",
+          "photo_sha256": "488380a79272d96407866938644eab797f4cd73b1ccf22e4064b47a066039521",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 2590,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/2590.png"
+        },
+        {
+          "logical_id": "commercial-hotel-2590-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ec42cafd7f08",
+          "post_url": "https://max.ru/channel_anytour/AaHsQsr9fwg",
+          "publication_id": 2466,
+          "version_id": 8365,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_sa878b2mbtHmWJC_c0CSN2wZ",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "d93a00fbf2fb813acc648f2cbec481644fa9faaf48c9b39cd59487734fe14912",
+          "photo_sha256": "488380a79272d96407866938644eab797f4cd73b1ccf22e4064b47a066039521",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 2590,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/2590.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 73896,
+      "logical_id": "commercial-hotel-73896-v1",
+      "aliases": [
+        "SOFITEL DUBAI THE OBELISK",
+        "Sofitel Dubai The Obelisk"
+      ],
+      "text": "✈️ Туры в Sofitel Dubai The Obelisk\n📍 Дубай, ОАЭ.\n\nИз отеля можно пройти прямо в торговый центр Wafi Mall. Sofitel The Obelisk подойдёт для поездки по Дубаю с прогулками, покупками и отдыхом у бассейна. Есть спа и детский клуб; станция метро Healthcare City в пешей доступности. Это городской отель, не на морском берегу.\n\nПодберём тур на ваши даты.",
+      "text_sha256": "a6c1b41d9328eefdbbaba2d71bfe54a54e9e98dcba850377bda162391c8fe447",
+      "photo_sha256": "752ec49f46a03f98704807d5a32da927823eacb11b681f22633c73abeeccd6dd",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=73896",
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=73896",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-dubai-the-obelisk-102502313.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-dubai-the-obelisk-102502310.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-dubai-the-obelisk-102502311.jpg"
+      ],
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/73896.png",
+      "country_id": 9,
+      "native_readback_verified_at_utc": "2026-11-18T01:26:07.2043844Z",
+      "posts": [
+        {
+          "logical_id": "commercial-hotel-73896-v1",
+          "platform": "telegram",
+          "channel_id": "-1002262666616",
+          "message_id": "1156",
+          "post_url": "https://t.me/any_toour/1156",
+          "publication_id": 2459,
+          "version_id": 8358,
+          "button_url": "https://t.me/anyru_bot?start=p_guD8XP2td5fmxKKeYp0yAMyZ",
+          "source_key": "tg_anytour_msk",
+          "text_sha256": "a6c1b41d9328eefdbbaba2d71bfe54a54e9e98dcba850377bda162391c8fe447",
+          "photo_sha256": "752ec49f46a03f98704807d5a32da927823eacb11b681f22633c73abeeccd6dd",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 73896,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/73896.png"
+        },
+        {
+          "logical_id": "commercial-hotel-73896-v1",
+          "platform": "max",
+          "channel_id": "-80492244209683",
+          "message_id": "mid.ffffb6caf0606fed01a1ec42d49b5ab2",
+          "post_url": "https://max.ru/channel_anytour/AaHsQtSbWrI",
+          "publication_id": 2467,
+          "version_id": 8366,
+          "button_url": "https://max.ru/id9704048781_1_bot?start=p_6VHOGKhH6U3-tXREJNiRzGeh",
+          "source_key": "max_anytour_msk1",
+          "text_sha256": "a6c1b41d9328eefdbbaba2d71bfe54a54e9e98dcba850377bda162391c8fe447",
+          "photo_sha256": "752ec49f46a03f98704807d5a32da927823eacb11b681f22633c73abeeccd6dd",
+          "body_photo_button_verified": true,
+          "state": "sent",
+          "reused": false,
+          "hotel_id": 73896,
+          "button_text": "✈️ Узнать стоимость тура",
+          "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/726bad8d418fcf1e0dd6431aaf364866a4848cff/.github/traffic-publish/commercial-wave8-20261118/73896.png"
+        }
+      ]
+    }
+  ],
+  "source_admission_registry": {
+    "installed_sha": "cc017ee5bb669f4c7c13efc91d5c5812a50e55f2",
+    "checked_at": "2026-11-18T01:18:27+00:00",
+    "native_hotel_ids": [
+      1078,
+      17489,
+      1679,
+      43649,
+      74019,
+      75504,
+      2590,
+      73896
+    ],
+    "channels": {
+      "telegram": 1139,
+      "max": 1144
+    },
+    "matches": []
+  },
+  "country_admission": "Exact native country checked again in original publisher immediately before credentials; only4/1/9, country11 excluded",
+  "public_feeds_read_only": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "url": "https://app.anytoour.ru/feed/hotel-posts-telegram.xml",
+      "http": 200,
+      "rows": 670,
+      "duplicate_ids": 0,
+      "sha256": "7be309347601efd9f4fbb67bb8ad5050c81ffae7574a6951527ee2ed6ae732d6",
+      "verified_at_utc": "2026-11-18T01:28:19.412789+00:00"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "url": "https://app.anytoour.ru/feed/hotel-posts-max.xml",
+      "http": 200,
+      "rows": 670,
+      "duplicate_ids": 0,
+      "sha256": "f933b749aaa0269d9a1ae43fea0ced08ee511eefa0d6f6b6b263cae156d2a24e",
+      "verified_at_utc": "2026-11-18T01:28:19.159841+00:00"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+      "http": 200,
+      "rows": 1340,
+      "duplicate_ids": 0,
+      "sha256": "f40d719c8939a34edea031bb5a0441239dd3bd72f33724a9464520ff78e7cbef",
+      "verified_at_utc": "2026-11-18T01:28:19.258610+00:00"
+    }
+  ],
+  "published_pairs_pending_feed_owner": 472,
+  "feed_owner_handoff_comment": 6952537770,
+  "feed_owner_existing_order_preserved": true,
+  "new_batch_goes_after_existing_464": true,
+  "holds": [
+    {
+      "native_tourvisor_id": 82564,
+      "reason": "Current saved profile reports pool closed from20Mar2026 with no confirmed reopening; no invented pool availability."
+    }
+  ],
+  "prior_holds_and_receipts_preserved": true,
+  "manual_price_calls": 0,
+  "price_or_advertising_writes": 0,
+  "media_policy_source": "tools/direct_demand/operations/commercial-expansion100-content43-paid-tourvisor-media-handoff-20261117.json at09ea3194b6d8310770d8ee6f7c86d65a60b4b0fe",
+  "source_run_id": 44215086292,
+  "source_artifact_id": 14388540628,
+  "source_artifact_sha256": "6a6147b6bc97ff36a3c4cb807176a466004482aa1da84e95c80d1885de85c059",
+  "original_progress_observed": [
+    {
+      "observed_at_utc": "2026-11-18T01:26:07.1687387Z",
+      "progress": "post_confirmed",
+      "platform": "telegram",
+      "logical_id": "commercial-hotel-1078-v1",
+      "post_url": "https://t.me/any_toour/1149",
+      "completed": 1
+    },
+    {
+      "observed_at_utc": "2026-11-18T01:26:07.1688472Z",
+      "progress": "post_confirmed",
+      "platform": "telegram",
+      "logical_id": "commercial-hotel-17489-v1",
+      "post_url": "https://t.me/any_toour/1150",
+      "completed": 2
+    },
+    {
+      "observed_at_utc": "2026-11-18T01:26:07.1689449Z",
+      "progress": "post_confirmed",
+      "platform": "telegram",
+      "logical_id": "commercial-hotel-1679-v1",
+      "post_url": "https://t.me/any_toour/1151",
+      "completed": 3
+    },
+    {
+      "observed_at_utc": "2026-11-18T01:26:07.1690608Z",
+      "progress": "post_confirmed",
+      "platform": "telegram",
+      "logical_id": "commercial-hotel-43649-v1",
+      "post_url": "https://t.me/any_toour/1152",
+      "completed": 4
+    },
+    {
+      "observed_at_utc": "2026-11-18T01:26:07.1691517Z",
+      "progress": "post_confirmed",
+      "platform": "telegram",
+      "logical_id": "commercial-hotel-74019-v1",
+      "post_url": "https://t.me/any_toour/1153",
+      "completed": 5
+    },
+    {
+      "observed_at_utc": "2026-11-18T01:26:07.1692247Z",
+      "progress": "post_confirmed",
+      "platform": "telegram",
+      "logical_id": "commercial-hotel-75504-v1",
+      "post_url": "https://t.me/any_toour/1154",
+      "completed": 6
+    },
+    {
+      "observed_at_utc": "2026-11-18T01:26:07.1693071Z",
+      "progress": "post_confirmed",
+      "platform": "telegram",
+      "logical_id": "commercial-hotel-2590-v1",
+      "post_url": "https://t.me/any_toour/1155",
+      "completed": 7
+    },
+    {
+      "observed_at_utc": "2026-11-18T01:26:07.1693803Z",
+      "progress": "post_confirmed",
+      "platform": "telegram",
+      "logical_id": "commercial-hotel-73896-v1",
+      "post_url": "https://t.me/any_toour/1156",
+      "completed": 8
+    },
+    {
+      "observed_at_utc": "2026-11-18T01:26:07.1694596Z",
+      "progress": "post_confirmed",
+      "platform": "max",
+      "logical_id": "commercial-hotel-1078-v1",
+      "post_url": "https://max.ru/channel_anytour/AaHsQpGbXBw",
+      "completed": 9
+    },
+    {
+      "observed_at_utc": "2026-11-18T01:26:07.1695384Z",
+      "progress": "post_confirmed",
+      "platform": "max",
+      "logical_id": "commercial-hotel-17489-v1",
+      "post_url": "https://max.ru/channel_anytour/AaHsQpsHWHw",
+      "completed": 10
+    },
+    {
+      "observed_at_utc": "2026-11-18T01:26:07.1696195Z",
+      "progress": "post_confirmed",
+      "platform": "max",
+      "logical_id": "commercial-hotel-1679-v1",
+      "post_url": "https://max.ru/channel_anytour/AaHsQqSEHKI",
+      "completed": 11
+    },
+    {
+      "observed_at_utc": "2026-11-18T01:26:07.1696972Z",
+      "progress": "post_confirmed",
+      "platform": "max",
+      "logical_id": "commercial-hotel-43649-v1",
+      "post_url": "https://max.ru/channel_anytour/AaHsQq5HP9s",
+      "completed": 12
+    },
+    {
+      "observed_at_utc": "2026-11-18T01:26:07.1697758Z",
+      "progress": "post_confirmed",
+      "platform": "max",
+      "logical_id": "commercial-hotel-74019-v1",
+      "post_url": "https://max.ru/channel_anytour/AaHsQrexJ1I",
+      "completed": 13
+    },
+    {
+      "observed_at_utc": "2026-11-18T01:26:07.1698515Z",
+      "progress": "post_confirmed",
+      "platform": "max",
+      "logical_id": "commercial-hotel-75504-v1",
+      "post_url": "https://max.ru/channel_anytour/AaHsQsE2Bks",
+      "completed": 14
+    },
+    {
+      "observed_at_utc": "2026-11-18T01:26:07.1699313Z",
+      "progress": "post_confirmed",
+      "platform": "max",
+      "logical_id": "commercial-hotel-2590-v1",
+      "post_url": "https://max.ru/channel_anytour/AaHsQsr9fwg",
+      "completed": 15
+    },
+    {
+      "observed_at_utc": "2026-11-18T01:26:07.1700238Z",
+      "progress": "post_confirmed",
+      "platform": "max",
+      "logical_id": "commercial-hotel-73896-v1",
+      "post_url": "https://max.ru/channel_anytour/AaHsQtSbWrI",
+      "completed": 16
+    }
+  ],
+  "original_artifacts": [
+    {
+      "id": 14388142595,
+      "name": "fastfill-p60-native-one-attempt-20261118",
+      "digest": "sha256:9c354031b5973c2be8366a52a36c52480f9b41fe7ed405e6b47ae07a21faf4e3"
+    },
+    {
+      "id": 14387843334,
+      "name": "fastfill-wave8-native-receipt-20261118",
+      "digest": "sha256:6b0f75cd41317082a03f7758d2e26b22bdcd0af57029fc74e56236e255fb5ed4"
+    }
+  ]
+}
