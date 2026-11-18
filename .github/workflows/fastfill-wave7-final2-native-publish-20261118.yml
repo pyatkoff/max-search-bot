@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   publish-five-sequential-once:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == '2e73d61431516c139b3f94e1f4053d8e74894a29' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == '24261fc9c489d30dd02f6f801e3bdd6931b10473' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -70,6 +70,7 @@ jobs:
         assert all(gates[p]['conclusion']=='success' and gates[p]['head_sha']==APP and gates[p]['run_attempt']==1 for p in required)
 
 
+        import re
         def exact_zip(run_id,artifact_id,sha):
             a=info('actions/artifacts/'+str(artifact_id))
             assert a['workflow_run']['id']==run_id and not a['expired'] and a['digest']=='sha256:'+sha
@@ -84,6 +85,10 @@ jobs:
             assert next(s for s in oldjob['steps'] if s['name'].startswith('P'+str(n)+' invoke'))['conclusion']=='skipped'
             with exact_zip(44275448079,artifact,sha) as z: assert set(z.namelist())=={'manifest.json','approval.json','source-receipt.json'}
         for n in [66,67]: assert next(s for s in oldjob['steps'] if s['name'].startswith('P'+str(n)+' verify all'))['conclusion']=='success'
+        middle=info('actions/runs/44284790252');assert middle['status']=='completed' and middle['conclusion']=='failure' and middle['head_sha']=='24261fc9c489d30dd02f6f801e3bdd6931b10473'
+        midjob=info('actions/runs/44284790252/jobs')['jobs'][0];assert midjob['id']==134734539127
+        assert next(s for s in midjob['steps'] if s['name']=='Pin established SSH host continuity and authentication identity')['conclusion']=='skipped'
+        assert all(next(s for s in midjob['steps'] if s['name'].startswith('P'+str(n)+' invoke'))['conclusion']=='skipped' for n in [68,69,70])
         reg_run=info('actions/runs/44284343717')
         assert reg_run['conclusion']=='success' and reg_run['run_attempt']==1 and reg_run['head_sha']=='2e73d61431516c139b3f94e1f4053d8e74894a29'
         with exact_zip(44284343717,14418088416,'8faeff1381d82b00bbc9f554ed82e3ae5f5a129cdc8576bcb5cd476682f47658') as z: registry_bytes=z.read('registry-receipt.json')
