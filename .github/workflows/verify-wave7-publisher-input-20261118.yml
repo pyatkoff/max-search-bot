@@ -1,4 +1,4 @@
-name: Accept W13 reviewed hotel source inputs, no sends
+name: Accept W14 reviewed hotel source inputs, no sends
 'on':
   push:
     branches:
@@ -10,9 +10,8 @@ permissions:
   actions: read
 jobs:
   prepare:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
-      && github.event.before == 'd258a690b74a97184a1a0db9c63d08ff0033051b' && github.run_attempt
-      == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == '441b944e9b24838202f9d0a1e57bd2200ed3fd3e'
+      && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -22,18 +21,24 @@ jobs:
         sparse-checkout: 'tools/direct_demand/operations
 
           .github/traffic-publish/brand'
-    - name: Bind W13 exact photos, editorial and original compiler
+    - name: Bind W14 exact photos, editorial and original compiler
       env:
         GH_TOKEN: ${{ github.token }}
       run: 'set -euo pipefail
 
-        python3 tools/direct_demand/operations/accept-wave13-source-20261118.py
+        echo ''dd32276127f22ed7ac12d4b8e1c049b2d7aaae874ee52ac08f3552abaa83f3ab  tools/direct_demand/operations/accept-wave14-source-20261118.py''
+        | sha256sum -c -
+
+        echo ''beb933babdebec3bde5e4b77efc0fad7601a0970a1b320f8076d6e36a0b40c52  tools/direct_demand/operations/wave14-acceptance.json''
+        | sha256sum -c -
+
+        python3 tools/direct_demand/operations/accept-wave14-source-20261118.py
 
         for f in accepted-source/*-publisher-unexecuted.php; do php -l "$f"; done'
     - if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
-        name: wave13-accepted-source
+        name: wave14-accepted-source
         path: accepted-source/
         retention-days: 30
         if-no-files-found: warn
