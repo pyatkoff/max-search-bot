@@ -86,12 +86,15 @@ final class ManagerReplyQueueService
         }
         $q=$pdo->prepare($sql);$q->execute($args);return array_map('intval',$q->fetch(PDO::FETCH_ASSOC));
     }
-    public static function snapshot(int $actor,int $conversationId): array
+    public static function snapshot(int $actor,int $conversationId,?array &$conversationContext=null): array
     {
+        $captureContext=$conversationContext!==null;
+        if($captureContext)$conversationContext=[];
         $pdo=ConversationDb::connection();$manager=self::actor($pdo,$actor);$c=$manager?ManagerConversationService::visibleConversation($conversationId,$actor):null;
         if(!$c)return self::error('forbidden');$view=self::view($pdo,$manager,$c);
         $fresh=ManagerConversationService::visibleConversation($conversationId,$actor);$freshManager=self::actor($pdo,$actor);
         if(!$fresh||!$freshManager||self::context($fresh,$freshManager)!==self::context($c,$manager))return self::error('forbidden');
+        if($captureContext)$conversationContext=$fresh;
         return ['ok'=>true,'reply_queue'=>$view];
     }
     public static function operation(int $actor,int $conversationId,string $operationId): array

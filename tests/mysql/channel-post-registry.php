@@ -196,4 +196,6 @@ $write=$registry->claimPublication($discovered['publication_id'],$discovered['ve
 $stillUnknown=$otherRegistry->registerProviderObservation('anytour','id9704048781_1_bot',$currentChannel,$provider,(int)$seed['enabled_since_ms']);
 nativePostCheck('native provider discovery never resets an ambiguous provider write', $stillUnknown['state']==='unknown'&&$stillUnknown['version_id']===$discovered['version_id']&&$stillUnknown['write_attempts']===1);
 
+require_once dirname(__DIR__).'/fixtures/channel_post_zero_write_recovery.php';
+runChannelPostZeroWriteRecoveryChecks($pdo, 'nativePostCheck', $secondPdo);
 echo 'NATIVE CHANNEL POST MYSQL OK (' . $passed . " checks)\n";

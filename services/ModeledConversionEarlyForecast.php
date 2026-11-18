@@ -153,7 +153,10 @@ final class ModeledConversionEarlyForecast
             ],$state);
             $state=$result['state'];
             $offerReaction->message($ref,$role,$permit['at'],$permit['available_at'],$text,$result);
-            $predictive->observeMessage($role,$text,$ref,$permit['at'],$permit['available_at'],(int)($row['source_version_no']??0),$result);
+            $originalUnlinked=$advertisingV1&&($row['source_version_no']??null)===1
+                &&self::plainPackageMessage($snap['payload']['metadata_json']??null);
+            $departureAlternatives=$predictive->observeMessage($role,$text,$ref,$permit['at'],$permit['available_at'],
+                (int)($row['source_version_no']??0),$result,$originalUnlinked);
             foreach($result['flags']as$key=>$value)if($value===true)$flags[$key]=true;
             if($result['episode_boundary']!==null){
                 $boundaries[]=['source_ref'=>$ref,'kind'=>$result['episode_boundary'],'episode'=>$state['e'],'identity'=>'unverified'];
@@ -162,6 +165,9 @@ final class ModeledConversionEarlyForecast
             if(($result['flags']['unresolved_trip_boundary']??false)===true
                 ||($result['flags']['party_change_unresolved']??false)===true)$current=[];
             foreach($result['events']as$event){
+                // A verified departure list is not a destination condition in either saved projection.
+                if($departureAlternatives&&($event['source_ref']??null)===$ref
+                    &&($event['goal']??null)==='substantive_interest'&&($event['rule']??null)==='customer_trip_conditions')continue;
                 if(!isset($counts[$event['goal']??'']))self::fail('goal');
                 $events[]=$event;$current[]=$event;$counts[$event['goal']]++;
             }
@@ -413,6 +419,16 @@ final class ModeledConversionEarlyForecast
         $available=$row['observed_at_unix']??null;
         return is_int($at)&&is_int($available)&&$at>=946684800&&$at<=$available&&$available<=$cutoff
             &&($s['source_created_at_unix']??null)===$at;
+    }
+
+    /** A linked reply can concern an earlier object, even when both human messages are admitted. */
+    private static function plainPackageMessage(mixed $raw):bool
+    {
+        if(!is_string($raw)||strlen($raw)>32768)return false;
+        $metadata=json_decode($raw,true,32);
+        if(!is_array($metadata)||($metadata!==[]&&array_is_list($metadata)))return false;
+        $link=$metadata['linked_message']??null;
+        return ($link===null||$link===[])&&empty($metadata['forwarded'])&&empty($metadata['forward_origin']);
     }
 
     /** Canonical AI output is not a customer omission and never supplies customer evidence. */

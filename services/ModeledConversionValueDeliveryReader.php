@@ -32,6 +32,8 @@ final class ModeledConversionValueDeliveryReader
     private const UPLOADS=['PREPARED','UPLOADED','EXPORTED','MATCHED','PROCESSED','LINKAGE_FAILURE'];
     private const ERRORS=['identity_not_found','identity_ambiguous','metrika_visit_window','metrika_visit_unverified','metrika_no_prior_visit','wire_key_collision','scope_unavailable','api_rejected','api_row_rejected',
         'upload_outcome_unknown','event_expired','transport_not_sent','rate_limited'];
+    private const UNVERIFIED_VISIT_REASONS=['other_receipts_unavailable','visit_report_unavailable','no_unique_goal_visit',
+        'goal_count_or_value_mismatch','outside_visit_window'];
     private array $boundFiniteRows=[];
     public function __construct(private PDO $pdo,private $authorize,private ModeledConversionStatusBudget $budget){}
 
@@ -91,6 +93,10 @@ final class ModeledConversionValueDeliveryReader
                 $safe=array_intersect_key($proof,array_flip(['available','fresh','checked_at','upload_status','linkage',
                     'visit_started_at','visit_goal_reaches']));
                 $base['per_receipt_visit_linkage']=$proof['linkage'];
+                if($proof['linkage']==='unverified'&&$proof['upload_status']==='PROCESSED'
+                    &&in_array($proof['reason']??null,self::UNVERIFIED_VISIT_REASONS,true)){
+                    $safe['reason']=$proof['reason'];
+                }
             }elseif(in_array($proof['reason']??null,['not_recorded','invalid_cache','budget_headroom','event_changed','event_binding_unavailable'],true)){
                 $safe['reason']=$proof['reason'];
             }

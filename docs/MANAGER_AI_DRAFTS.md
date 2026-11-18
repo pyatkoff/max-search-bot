@@ -215,8 +215,8 @@ responses share the explicit viewer-bound enrichment.
 - `workspace-v2-ai-draft.js`: preview, stale-result fencing and explicit insertion
   through `WorkspaceV2Conversation.insertAiDraft`; no new send implementation.
 
-The owner-directed profile from 19 October 2026 is `gpt-6.1-sol`, explicit
-`reasoning: {effort: "low"}` and Standard `service_tier: "default"`, for both
+The owner-directed profile from 17 November 2026 is `gpt-6.2-sol`, explicit
+`reasoning: {effort: "medium"}` and Standard `service_tier: "default"`, for both
 the manager draft and shared MAX/Telegram/website bot transport. Draft overrides
 `MANAGER_AI_DRAFT_MODEL`, `MANAGER_AI_DRAFT_REASONING` and
 `MANAGER_AI_DRAFT_SERVICE_TIER` stay feature-specific; `OPENAI_MODEL` affects
