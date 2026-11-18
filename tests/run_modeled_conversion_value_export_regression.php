@@ -1731,8 +1731,10 @@ function modeledValueProducerTransitionAssertions(PDO $p,callable $check):void
     $currentAdapter=$forecast['contextual_signals']['adapter_sha256'];$currentModel=$forecast['semantic_prediction']['model_sha256'];
     $preDepartureAdapter='e5c303338fff38c48351881143842894563669484d8dfeb8aef9fbfaa03b62f2';
     $preDepartureModel='4e4d7c6908bf8246db08917de1b46dbdc904099b0c95afb92273f833b8c3ab42';
+    $preResortModel='110bcfc73c7971ed59b6e73db2da9dca6fa7c8e32dbb82520e22525f9ed7037c';
     $unknown=str_repeat('f',64);
-    foreach([[$unknown,$model],[$adapter,$unknown],[$adapter,$currentModel],[$preDepartureAdapter,$currentModel]]as[$a,$m]){
+    foreach([[$unknown,$model],[$adapter,$unknown],[$adapter,$currentModel],[$preDepartureAdapter,$currentModel],
+        [$preDepartureAdapter,$preResortModel]]as[$a,$m]){
         // A valid seal by itself permits neither a prediction nor a direct payment fallback.
         modeledValueSave($p,$seal($forecast,$a,$m));modeledValueSave($p,$seal($paid,$a,$m));
         $check('unknown or mixed producer never reserves a financial row',$collect()===0&&$rows()===[]);
@@ -1806,6 +1808,25 @@ function modeledValueProducerTransitionAssertions(PDO $p,callable $check):void
         $reserved=$rows();modeledValueSave($p,$earlier);modeledValueSave($p,$genuine);
         $check('replaying formerly current producer preserves the reserve',$collect()===0&&$rows()===$reserved);
     }
+    $legacyScope=modeledValueBinding($p,761);
+    $stageOnly=modeledValueWrapper($legacyScope,$now+6,'concrete_request');
+    $stageOnly['processing']['source_sha256']='722a0064f46f7f03fc78b3a8c830b136a6fd143029dad01f143b0651fafec21d';
+    $stageOnly['contextual_signals']['adapter_sha256']='2d0135423e2034c41aa693ff1a01a2c2821943bef7d5b450993c4599bc088cdf';
+    $stageOnly['semantic_prediction']['model_sha256']=$preResortModel;
+    $stageOnly['semantic_prediction']['prediction_digest']=ModeledConversionSemanticPrediction::digest($stageOnly['semantic_prediction']);
+    $unknownStage=$stageOnly;$unknownStage['semantic_prediction']['model_sha256']=$unknown;
+    $unknownStage['semantic_prediction']['prediction_digest']=ModeledConversionSemanticPrediction::digest($unknownStage['semantic_prediction']);
+    $brokenStage=$stageOnly;$brokenStage['semantic_prediction']['prediction_digest']=$unknown;
+    $before=$rows();modeledValueSave($p,$unknownStage);modeledValueSave($p,$brokenStage);
+    $check('unknown and corrupt stage-only models do not qualify under the installed adapter',$collect()===0&&$rows()===$before);
+    modeledValueSave($p,$stageOnly);$frozen=$profiles();$created=$collect();$oldOnly=array_slice($rows(),count($before));
+    $check('installed processor and previous model keep the signed stage-only amount once',
+        $created===1&&count($oldOnly)===1&&$oldOnly[0]['value_stage']==='specific_request'
+        &&(int)$oldOnly[0]['event_unix']===$now+6&&(int)$oldOnly[0]['value_rub']===ModeledConversionValueContract::VALUES[2]
+        &&$profiles()===$frozen);
+    modeledValueSave($p,$stageOnly);$reserved=$rows();
+    $check('a repeated prior stage-only forecast does not grow its reserve',$collect()===0&&$rows()===$reserved&&$wire->posts===0);
+
 }
 
 function modeledPriceLossAssertions(PDO $p,callable $check):void
