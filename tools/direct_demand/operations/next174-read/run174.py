@@ -28,7 +28,8 @@ def main():
  # Same max-search-bot pinned-key/known-host transport. No keys created here.
  cmd=['ssh','-i',str(temp/'channel_key'),'-o','BatchMode=yes','-o','ConnectTimeout=10','-o','ServerAliveInterval=15','-o','ServerAliveCountMax=2','-o','IdentitiesOnly=yes','-o','StrictHostKeyChecking=yes','-o','GlobalKnownHostsFile=/dev/null','-o','UserKnownHostsFile='+str(temp/'channel_known_hosts'),user+'@'+host,"unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru && GIT_OPTIONAL_LOCKS=0 php"]
  summaries=[]
- for g in intent['groups']:
+ for g in intent['groups'][21:]:
+  need(g['batch'] in (22,23),'continuation_replay_forbidden')
   folder=root/('p%02d'%g['batch']);program=(folder/'read.php').read_bytes();need(sha(program)==g['reader_sha256'],'reader_changed')
   need(program.decode().count(provenance['reader_source']['query_exact_line'])==1,'native_catalog_query_changed')
   p=subprocess.run(cmd,input=program,capture_output=True,timeout=90)
@@ -44,8 +45,16 @@ def main():
    need(type(row['hotel_id']) is int and row['hotel_id']>0 and int(row['country_id'])>0 and int(row['country_id'])!=11 and int(row['region_id'])>0,'native_catalog_result_invalid')
    namespace_rows.append({'batch':g['batch'],'catalog_table':'catalog_hotels','native_catalog_id':row['hotel_id'],'local_tv_id':row['hotel_id'],'country_id':row['country_id'],'region_id':row['region_id'],'name':row['name'],'source_result_sha256':sha(p.stdout),'reader_sha256':g['reader_sha256'],'derivation':'validated existing SELECT catalog_hotels.id membership; consumer native-ID contract, not legacy mapping'})
   summaries.append({'batch':g['batch'],'sha256':sha(p.stdout),'hotels':len(g['hotel_ids'])})
- need(len(summaries)==23 and sum(s['hotels'] for s in summaries)==174,'aggregate_incomplete')
- need(len(namespace_rows)==174 and len({x['native_catalog_id'] for x in namespace_rows})==174,'namespace_scope_changed')
+ need(len(summaries)==2 and [x['batch'] for x in summaries]==[22,23] and sum(s['hotels'] for s in summaries)==14,'aggregate_incomplete')
+ need(len(namespace_rows)==14 and len({x['native_catalog_id'] for x in namespace_rows})==14,'namespace_scope_changed')
  (dest/'namespace-proof.json').write_text(json.dumps({'ok':True,'provenance':provenance,'rows':namespace_rows,'native_namespace':[{'hotel_id':x['native_catalog_id'],'local_tv_id':x['local_tv_id'],'catalog_table':x['catalog_table'],'source_read_sha256':x['source_result_sha256']} for x in namespace_rows],'provider_calls':0,'additional_sql_queries':0,'legacy_anytour_ids_inferred':False})+'\n')
- (dest/'summary.json').write_text(json.dumps({'ok':True,'groups':summaries,'hotels':174,'writes':0,'provider_calls':0,'sender_replays':0,'current_tg_photo_buttons_verified':False})+'\n')
+ program=(root/'diagnostic78929.php').read_bytes();need(sha(program)==config['source_sha256']['diagnostic78929.php'],'diagnostic_source_changed')
+ p=subprocess.run(cmd,input=program,capture_output=True,timeout=90)
+ (dest/'diagnostic.stdout.json').write_bytes(p.stdout)
+ need(p.returncode==0 and len(p.stdout)<100000,'diagnostic_exit_stop_no_retry')
+ diagnostic=json.loads(p.stdout)
+ need(diagnostic.get('ok') is True and diagnostic.get('operation')=='diagnose78929-current-receipts-readonly' and diagnostic.get('mode')=='receipt_diagnostic_only' and diagnostic.get('current_button_verified') is False,'diagnostic_scope')
+ need(all(type(diagnostic.get(k)) is int and diagnostic[k]==0 for k in ['db_writes','provider_calls','message_sends']),'diagnostic_boundary')
+ need({(x['platform'],x['publication_id'],x['version_id']) for x in diagnostic['rows']}=={('telegram',2510,8806),('max',2520,8805)} and len(diagnostic['rows'])==2,'diagnostic_exact_pair')
+ (dest/'summary.json').write_text(json.dumps({'ok':True,'groups':summaries,'hotels':14,'historical_failed_run':44353536071,'all174_accepted':False,'scope':'unstarted_p22_p23_only_plus_separate_diagnostic','writes':0,'provider_calls':0,'sender_replays':0,'current_tg_photo_buttons_verified':False})+'\n')
 if __name__=='__main__':main()

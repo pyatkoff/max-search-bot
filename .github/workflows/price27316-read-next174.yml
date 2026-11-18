@@ -1,5 +1,5 @@
 # One-shot read-only; reviewed admission-config pins must be populated before publication.
-name: Existing bounded174 registry read-only
+name: Read only previously unstarted14 and diagnose78929 receipts
 on:
   push:
     branches: ['audit/price660-27316-resume-readiness-20261117']
@@ -24,8 +24,8 @@ jobs:
       - name: Exact reviewed admission and runner before credentials
         run: |
           set -euo pipefail
-          echo '9d2ba5e3fb8d316e100f2efb4baf70bb7f615f63b4da8459243f3b39ba7231a1  tools/direct_demand/operations/next174-read/admit174.py' | sha256sum --check --strict
-          echo 'e1a3503db1ff016f82b75e8e269d715eecf0617e2a7cf65f30acf2977314e332  tools/direct_demand/operations/next174-read/run174.py' | sha256sum --check --strict
+          echo '9d3dc85ab22a62764fb30c0d8399d6b4cf9cae88c2bbbc432cdcf71d8904ac79  tools/direct_demand/operations/next174-read/admit174.py' | sha256sum --check --strict
+          echo '68a55d5738b3e8b9010a9a6c625077ef608682eb1924cf22d23741fb38df9fa1  tools/direct_demand/operations/next174-read/run174.py' | sha256sum --check --strict
       - name: Lint exact23 bounded readers before credentials
         run: |
           python3 - <<'PYLINT'
@@ -37,6 +37,9 @@ jobs:
               path=root/f"p{group['batch']:02d}"/'read.php'
               assert hashlib.sha256(path.read_bytes()).hexdigest()==group['reader_sha256']
               subprocess.run(['php','-n','-l',str(path)],check=True,timeout=30)
+          diagnostic=root/'diagnostic78929.php'
+          assert hashlib.sha256(diagnostic.read_bytes()).hexdigest()=='50dc18b4a6608b3ecfc999e3dd9786986822241b029654465d033d21e3830905'
+          subprocess.run(['php','-n','-l',str(diagnostic)],check=True,timeout=30)
           PYLINT
       - name: Fresh source owner and competing-run admission
         env:

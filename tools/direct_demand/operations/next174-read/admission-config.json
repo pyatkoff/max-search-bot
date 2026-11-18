@@ -1,65 +1,148 @@
 {
-  "schema_version": 1,
-  "parent_sha": "773076e71ab28f7878bcce33feb8cb47641b69a2",
-  "claim_id": 6972938293,
-  "claim_body_sha256": "8a88a9c15c1cb92bd72f2fecca5e1bc151decf4c34d35932af8c8ff40ea2ed23",
-  "runtime_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
-  "accepted_runs": [
+  "accepted_jobs": [
     {
-      "run_id": 44329290180,
-      "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
-      "kind": "deployment"
+      "job_id": 134896327358,
+      "run_id": 44329290180
     },
     {
-      "run_id": 44332076971,
+      "job_id": 134898165358,
+      "run_id": 44329290180
+    },
+    {
+      "job_id": 134898853821,
+      "run_id": 44332076971
+    },
+    {
+      "job_id": 134898853078,
+      "run_id": 44332076738
+    },
+    {
+      "job_id": 134898854021,
+      "run_id": 44332077054
+    },
+    {
+      "job_id": 134898857708,
+      "run_id": 44332076755
+    }
+  ],
+  "accepted_runs": [
+    {
+      "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+      "kind": "deployment",
+      "run_id": 44329290180
+    },
+    {
       "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
       "kind": "native",
+      "run_id": 44332076971,
       "workflow_path": ".github/workflows/max-tls-preflight.yml"
     },
     {
-      "run_id": 44332076738,
       "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
       "kind": "native",
+      "run_id": 44332076738,
       "workflow_path": ".github/workflows/max-production-health.yml"
     },
     {
-      "run_id": 44332077054,
       "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
       "kind": "native",
+      "run_id": 44332077054,
       "workflow_path": ".github/workflows/telegram-production-health.yml"
     },
     {
-      "run_id": 44332076761,
       "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
       "kind": "native",
+      "run_id": 44332076761,
       "workflow_path": ".github/workflows/live-session-diagnostics.yml"
     },
     {
-      "run_id": 44332076721,
       "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
       "kind": "native",
+      "run_id": 44332076721,
       "workflow_path": ".github/workflows/modeled-conversion-monitor.yml"
     },
     {
-      "run_id": 44332076848,
       "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
       "kind": "native",
+      "run_id": 44332076848,
       "workflow_path": ".github/workflows/tour-selection-host.yml"
     },
     {
-      "run_id": 44332076802,
       "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
       "kind": "native",
+      "run_id": 44332076802,
       "workflow_path": ".github/workflows/publish-conversation-diagnostics.yml"
     },
     {
-      "run_id": 44332076755,
       "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
       "kind": "native",
+      "run_id": 44332076755,
       "workflow_path": ".github/workflows/modeled-conversion-value-export.yml"
     }
   ],
+  "claim_body_sha256": "8a88a9c15c1cb92bd72f2fecca5e1bc151decf4c34d35932af8c8ff40ea2ed23",
+  "claim_id": 6972938293,
+  "content_terminal_handoff": {
+    "descriptor_sha256": "2ffab378a7a6b197435bd970710370bcaf9cac1e46f008325b61b0bb90f0cd68",
+    "kind": "EXACT_CONTENT49_TERMINAL"
+  },
+  "content_window_ack": {
+    "body_sha256": "a3424e8b03fa5cb121ff39f223fef9f7afcdff8064a0181e6c55200ba080eeff",
+    "comment_id": 6961029169,
+    "current_ack_sha256": "122d56e33f428bd69876d5cad95fdf6282fe31c68e0d4060d28122d07167bede"
+  },
+  "continuation": {
+    "all174_accepted": false,
+    "artifact_id": 14450225954,
+    "failed_head": "6a5e7f8f82b0e049395dee2704e4419a2d8e8a63",
+    "failed_run_id": 44353536071,
+    "unstarted_groups": [
+      22,
+      23
+    ],
+    "zip_sha256": "4a7b653d9b9bd190f285b7459c488577a98082cfa47190a72a76c64a61636907"
+  },
+  "current_price_terminal_handoff": {
+    "descriptor_path": "current-price4294/handoff-descriptor.json",
+    "descriptor_sha256": "89993e4284990a801768243a6bb35cb40c3d7c9d478f1ceaa61aa7cf73a4ccee",
+    "kind": "ORIGINAL_PRICE4294_RECOVERY_AND_HOOK_READBACK"
+  },
+  "external_route_coordination": {
+    "branch": "audit/anytour-hotel-feed-routing-20261104",
+    "claim_body_sha256": "8a88a9c15c1cb92bd72f2fecca5e1bc151decf4c34d35932af8c8ff40ea2ed23",
+    "claim_id": 6972938293,
+    "kind": "root_connector_read_only_coordination",
+    "nonterminal_counts": {
+      "in_progress": 0,
+      "pending": 0,
+      "queued": 0,
+      "requested": 0,
+      "waiting": 0
+    },
+    "observed_at": "2026-11-18T17:11:15+00:00",
+    "repository": "pyatkoff/tour-max",
+    "route_head_sha": "6c7266bd3b67167fbfd4c54a2816292f72e361d5"
+  },
+  "fresh_price_window_handoff": null,
   "intent_sha256": "dc828b2a23cb6641f0efbeac8ec3e85dc6d8e6074eb83ec01579ba6f86ec9638",
+  "native_execution_allowed": false,
+  "parent_sha": "6a5e7f8f82b0e049395dee2704e4419a2d8e8a63",
+  "price_terminal_handoff": {
+    "archive_path": "price1000-original.zip",
+    "archive_sha256": "171d0042489a2b11042a81fae819f6fa1a5bd22732cbecd2ad484f29f75132dc",
+    "artifact_id": 14411763726,
+    "head_sha": "4b1247a97487b553917ec54502b402da6b81e5bf",
+    "kind": "EXACT_PRICE1000_INSTALL_BOUNDED_PASS",
+    "repository": "poisk-turov-test",
+    "run_id": 44269492828,
+    "summary_sha256": "8b33e64659f19c5bef1f645c79ce2aaba5fb5d019b168b224b65402e0f09fddf"
+  },
+  "prior_completed_feed": {
+    "head_sha": "773076e71ab28f7878bcce33feb8cb47641b69a2",
+    "run_id": 44262520865
+  },
+  "runtime_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+  "schema_version": 1,
   "source_sha256": {
     "content-current/claim.json": "286d04d30452daf10c0f36788a7063e5482a11512723e126669d193dbec22211",
     "content-current/currentack.json": "122d56e33f428bd69876d5cad95fdf6282fe31c68e0d4060d28122d07167bede",
@@ -101,6 +184,10 @@
     "current-price4294/public-readback.json": "b4507a64399d7b7d7faba899d3cafd4aca4a3eae2e69609cbef8b51d9ec2f08d",
     "current-price4294/recovery-original.zip": "014551f21684f5b1bccbe0d845efcf5224597c8f3a57cfa77415026f86068ba4",
     "current-price4294/recovery-terminal.json": "d0de35e26dad951dc808e0a1ff715c2e84e61a4fd0d95e915ef87eb6f1dead87",
+    "diagnostic78929.php": "50dc18b4a6608b3ecfc999e3dd9786986822241b029654465d033d21e3830905",
+    "historical-failure/authenticated-api-metadata.json": "708c64747baa65534e077a5defc18c625ddc5104c52a9e0cf9b7ee3a8055b0ee",
+    "historical-failure/independent-failure-review.json": "cff7882e030ce3cbc5e30b98cdbb43c2353b71b420381122b2266a54375f7ef5",
+    "historical-failure/original.zip": "4a7b653d9b9bd190f285b7459c488577a98082cfa47190a72a76c64a61636907",
     "intent.json": "dc828b2a23cb6641f0efbeac8ec3e85dc6d8e6074eb83ec01579ba6f86ec9638",
     "namespace-provenance.json": "8f6aece606fe58991d82d534c354645769063b404d40e92b9e2f5f668b2efc43",
     "p01/read.php": "5eb001ec4803b1fffcbe484d47a62652163333ade4f5b1f776ada3768ada2f45",
@@ -129,7 +216,7 @@
     "price1000-original.zip": "171d0042489a2b11042a81fae819f6fa1a5bd22732cbecd2ad484f29f75132dc",
     "price_current_handoff.py": "ea80b5e2d0344b065852c6475fcff7668dd5c40093f4d8610902f504461aaa6f",
     "price_readback_handoff.py": "ee0b376aa664fb8c97b0b9252888761057338b3558240e5dcd975cbff2342aa4",
-    "run174.py": "e1a3503db1ff016f82b75e8e269d715eecf0617e2a7cf65f30acf2977314e332",
+    "run174.py": "68a55d5738b3e8b9010a9a6c625077ef608682eb1924cf22d23741fb38df9fa1",
     "runtime-acceptance-bd8.json": "b6d67392c565897f43a90da1b1560db0c301cc63fe3eb21f6b66e1c2cd60a556",
     "runtime-acceptance.json": "6e55932146d8545976d25a533e7d652954049db4969dbfc86e993c341810d65b",
     "runtime-acceptance67.json": "5dbaa002a732feff8628d95ce27429f372c490dd0ae2b9a27ad583ead8c4c725",
@@ -195,77 +282,5 @@
     "transition-evidence/treenew.json": "59fc22aaa3cbe4bcc23dc3fc30a5be82900e47aa3b9c88552a6da35941e70373",
     "transition-evidence/treeold.json": "9ffac93477f86f0538c5f317919136d67568fac54ec992e707a28eed9c524826"
   },
-  "accepted_jobs": [
-    {
-      "run_id": 44329290180,
-      "job_id": 134896327358
-    },
-    {
-      "run_id": 44329290180,
-      "job_id": 134898165358
-    },
-    {
-      "run_id": 44332076971,
-      "job_id": 134898853821
-    },
-    {
-      "run_id": 44332076738,
-      "job_id": 134898853078
-    },
-    {
-      "run_id": 44332077054,
-      "job_id": 134898854021
-    },
-    {
-      "run_id": 44332076755,
-      "job_id": 134898857708
-    }
-  ],
-  "external_route_coordination": {
-    "kind": "root_connector_read_only_coordination",
-    "repository": "pyatkoff/tour-max",
-    "branch": "audit/anytour-hotel-feed-routing-20261104",
-    "claim_id": 6972938293,
-    "claim_body_sha256": "8a88a9c15c1cb92bd72f2fecca5e1bc151decf4c34d35932af8c8ff40ea2ed23",
-    "route_head_sha": "6c7266bd3b67167fbfd4c54a2816292f72e361d5",
-    "nonterminal_counts": {
-      "in_progress": 0,
-      "queued": 0,
-      "waiting": 0,
-      "pending": 0,
-      "requested": 0
-    },
-    "observed_at": "2026-11-18T16:58:58.539274+00:00"
-  },
-  "prior_completed_feed": {
-    "run_id": 44262520865,
-    "head_sha": "773076e71ab28f7878bcce33feb8cb47641b69a2"
-  },
-  "price_terminal_handoff": {
-    "kind": "EXACT_PRICE1000_INSTALL_BOUNDED_PASS",
-    "repository": "poisk-turov-test",
-    "run_id": 44269492828,
-    "head_sha": "4b1247a97487b553917ec54502b402da6b81e5bf",
-    "artifact_id": 14411763726,
-    "archive_sha256": "171d0042489a2b11042a81fae819f6fa1a5bd22732cbecd2ad484f29f75132dc",
-    "archive_path": "price1000-original.zip",
-    "summary_sha256": "8b33e64659f19c5bef1f645c79ce2aaba5fb5d019b168b224b65402e0f09fddf"
-  },
-  "content_terminal_handoff": {
-    "kind": "EXACT_CONTENT49_TERMINAL",
-    "descriptor_sha256": "2ffab378a7a6b197435bd970710370bcaf9cac1e46f008325b61b0bb90f0cd68"
-  },
-  "content_window_ack": {
-    "comment_id": 6961029169,
-    "body_sha256": "a3424e8b03fa5cb121ff39f223fef9f7afcdff8064a0181e6c55200ba080eeff",
-    "current_ack_sha256": "122d56e33f428bd69876d5cad95fdf6282fe31c68e0d4060d28122d07167bede"
-  },
-  "native_execution_allowed": true,
-  "state": "OPEN_EXACT_READ_ONLY",
-  "fresh_price_window_handoff": null,
-  "current_price_terminal_handoff": {
-    "kind": "ORIGINAL_PRICE4294_RECOVERY_AND_HOOK_READBACK",
-    "descriptor_sha256": "89993e4284990a801768243a6bb35cb40c3d7c9d478f1ceaa61aa7cf73a4ccee",
-    "descriptor_path": "current-price4294/handoff-descriptor.json"
-  }
+  "state": "CLOSED_OFFLINE_ONLY"
 }

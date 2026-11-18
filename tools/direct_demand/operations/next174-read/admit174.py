@@ -1,6 +1,6 @@
 """Fresh GET-only one-shot admission; exact reviewed configuration is mandatory."""
 import datetime,hashlib,json,os,pathlib,re,subprocess,sys
-REVIEWED_CONFIG_SHA256='1b24749589c51acab593892259d6c45293db56da73f6b761dab0245dda9aa9a7'
+REVIEWED_CONFIG_SHA256='3c9fa160cf6df41b17e4d67b63d0f034b36b6ad7f732d668d7602fd652638eff'
 sha=lambda b:hashlib.sha256(b).hexdigest()
 def need(v,m):
  if not v:raise ValueError(m)
@@ -59,6 +59,12 @@ def main():
  prior=c['prior_completed_feed'];need(prior=={'run_id':44262520865,'head_sha':'773076e71ab28f7878bcce33feb8cb47641b69a2'},'prior1000_identity')
  r=api('max-search-bot','actions/runs/'+str(prior['run_id']));need(r['head_sha']==prior['head_sha'] and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='success','prior1000_not_complete')
  need(len(c['accepted_runs'])>=2 and any(x['kind']=='deployment' for x in c['accepted_runs']) and any(x['kind']=='native' for x in c['accepted_runs']),'source_acceptance_missing')
+ need(c['continuation']=={'failed_run_id':44353536071,'failed_head':'6a5e7f8f82b0e049395dee2704e4419a2d8e8a63','artifact_id':14450225954,'zip_sha256':'4a7b653d9b9bd190f285b7459c488577a98082cfa47190a72a76c64a61636907','unstarted_groups':[22,23],'all174_accepted':False},'continuation_scope')
+ prior=api('max-search-bot','actions/runs/44353536071')
+ need(prior['head_sha']==c['continuation']['failed_head'] and prior['run_attempt']==1 and prior['status']=='completed' and prior['conclusion']=='failure','predecessor_not_original_failure')
+ arts=api('max-search-bot','actions/runs/44353536071/artifacts?per_page=100');need(type(arts.get('artifacts')) is list and arts.get('total_count')==len(arts['artifacts'])<=100,'prior_artifacts_ambiguous')
+ found=[x for x in arts['artifacts'] if x.get('id')==14450225954];need(len(found)==1,'prior_artifact_missing');v=found[0]
+ need(v.get('expired') is False and v.get('digest')=='sha256:'+c['continuation']['zip_sha256'] and v.get('workflow_run',{}).get('id')==44353536071 and v['workflow_run'].get('head_sha')==c['continuation']['failed_head'],'prior_artifact_binding')
  for expected in c['accepted_runs']:
   r=api('max-search-bot','actions/runs/'+str(expected['run_id']));need(r['head_sha']==expected['head_sha']==c['runtime_sha'] and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='success','source_run_not_accepted')
  for expected in c['accepted_jobs']:
