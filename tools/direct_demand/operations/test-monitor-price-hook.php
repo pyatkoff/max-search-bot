@@ -733,7 +733,9 @@ hook_test_check($legacyPins['services/ChannelPostAutomationService.php']==='f597
     &&$legacyPins['services/ChannelPostRegistryService.php']==='a407757b9ac54a9e286900d34385d519d22b8c84','legacy_manual_pin_scope_changed');
 hook_test_check(count($monitorPins)===23
     &&$monitorPins['services/ChannelPostAutomationService.php']==='c6386e155d42bc83970edc95f35b3ebeb5140533'
-    &&$monitorPins['services/ChannelPostRegistryService.php']==='94fb1988ac8caf90dc5103aa23c58e7aad6ea691','reviewed_pr1612_monitor_pins_missing');
+    // PR1620: explicit original-edit confirmation adds two reviewed scheduled surfaces.
+    &&$monitorPins['services/ChannelPostRegistryService.php']==='cf42a44257d1a58d1ff516678615cf9d01f45b55'
+    &&$monitorPins['services/ChannelPostReconciliationService.php']==='1fa260e9720a8421227ecbe740bfbe33a42e398d','reviewed_pr1620_monitor_pins_missing');
 $bundlePath=tempnam(sys_get_temp_dir(),'monitor-pin-test-');
 try {
     exec('python3 '.escapeshellarg(__DIR__.'/build-monitor-price-hook.py').' '.escapeshellarg($bundlePath),$bundleOutput,$bundleExit);
@@ -764,10 +766,15 @@ foreach(array_keys($monitorPins) as $path){
     hook_test_reject(static fn()=>hook_test_runtime(),'changed_surface_accepted_'.$path);
 }
 foreach(['services/ChannelPostAutomationService.php'=>'f5975ab95de5f45e087eb7a0f768f566c5bca648',
-    'services/ChannelPostRegistryService.php'=>'7304af19cc19666f00ca4ead1b04c2bdce719646'] as $path=>$oldPin){
+    'services/ChannelPostRegistryService.php'=>'94fb1988ac8caf90dc5103aa23c58e7aad6ea691',
+    'services/ChannelPostReconciliationService.php'=>'43133f576845c14446102dedfffb7f0de2d4ba1c'] as $path=>$oldPin){
     $runtimeFixturePins=$monitorPins;$runtimeFixturePins[$path]=$oldPin;
     hook_test_reject(static fn()=>hook_test_runtime(),'superseded_surface_accepted_'.$path);
 }
+
+// Preserve the older pre-PR1612 Registry rejection as a separate historical case.
+$runtimeFixturePins=$monitorPins;$runtimeFixturePins['services/ChannelPostRegistryService.php']='7304af19cc19666f00ca4ead1b04c2bdce719646';
+hook_test_reject(static fn()=>hook_test_runtime(),'pre_pr1612_surface_accepted');
 
 echo 'MONITOR_PRICE_HOOK_OK cases='.$cases." no_provider_calls=1 no_writes=1\n";
 
