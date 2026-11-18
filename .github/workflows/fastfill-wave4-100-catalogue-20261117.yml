@@ -1,4 +1,4 @@
-name: W17 fresh cached intake and original cover preparation, no sends
+name: W18 fresh cached intake and original cover preparation, no sends
 'on':
   push:
     branches:
@@ -10,9 +10,8 @@ permissions:
   actions: read
 jobs:
   prepare:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
-      && github.event.before == '1d30490e43de3b57c1202808b869493de28b58ea' && github.run_attempt
-      == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == '2d28627344c1508990d14f89362d5b825edadf69'
+      && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -22,20 +21,28 @@ jobs:
         sparse-checkout: 'tools/direct_demand/operations
 
           .github/traffic-publish/brand'
-    - run: python3 -m pip install --disable-pip-version-check --no-cache-dir pillow==11.3.0
-        requests==2.32.5
+    - run: python3 -m pip install --disable-pip-version-check --no-cache-dir pillow==11.3.0 requests==2.32.5
     - name: Prepare preserved licensed sources only
       env:
         GH_TOKEN: ${{ github.token }}
-      run: python3 tools/direct_demand/operations/prepare-wave17-intake-20261118.py
+      run: 'echo ''9a543a4d8961d0f6e871514337b67c32b260d9555943334e43f8b85f8b78b239  tools/direct_demand/operations/prepare-wave18-intake-20261118.py''
+        | sha256sum -c -
+
+        echo ''e31cb732d25874a1f24d70b019d9cb07c2552ed946d4340841b0e78d4a210b52  tools/direct_demand/operations/wave18-prior-classified.json''
+        | sha256sum -c -
+
+        python3 tools/direct_demand/operations/prepare-wave18-intake-20261118.py'
     - if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
-        name: wave17-source-intake-preview
-        path: 'wave17/*.jpg
+        name: wave18-source-intake-preview
+        path: 'wave18/*.jpg
 
-          wave17/receipt.json
+          wave18/receipt.json
 
-          wave17/profiles.json'
+          wave18/profiles.json'
         retention-days: 30
         if-no-files-found: warn
+concurrency:
+  group: anytour-authorized-channel-publication
+  cancel-in-progress: false
