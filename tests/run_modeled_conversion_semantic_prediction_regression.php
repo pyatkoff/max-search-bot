@@ -189,9 +189,13 @@ $tests['illustrative priors distinguish request meaning and seller intent']=stat
 };
 $tests['hotel star ranges preserve independent calendar evidence and genuine hotel interest']=static function():void{
     require_once dirname(__DIR__).'/services/ModeledConversionValueContract.php';
-    foreach(['И 3/4 звезд?','Нужно 1/2 звезды','Есть варианты 3/4 звезды?','Только 4/5*','Категория 3/4★','Подойдёт 4/5⭐️','Категория 3 / 4 звёзды']as$text){
+    foreach(['И 3/4 звезд?','Нужно 1/2 звезды','Есть варианты 3/4 звезды?','Только 4/5*','Категория 3/4★','Отель 3* или 4/5*','**Категория 3/4** звезды','Подойдёт 4/5⭐️','Категория 3 / 4 звёзды']as$text){
         semanticPredictionAssert(ModeledConversionTextSignals::criteriaFamilies($text)===['requirements'],
             'hotel star range supplied a calendar criterion');
+    }
+    foreach(['Вылет **4/5**','Вылет *4/5*','**Вылет 4/5**']as$text){
+        semanticPredictionAssert(ModeledConversionTextSignals::criteriaFamilies($text)===['dates'],
+            'paired emphasis hid a calendar date or introduced a hotel category');
     }
     foreach(['Категория 3/4 звезды, заезд 11/12/2027.','Заезд 3/4, отель 3/4 звезды',
         'На 8 ночей нужен отель 4/5*','Категория 3/4 звезды, вылет с 09.12 по 16.12.']as$text){
