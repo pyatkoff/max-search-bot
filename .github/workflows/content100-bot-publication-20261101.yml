@@ -14,7 +14,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '69062f5ea9fe917272e3074e1e746bbca49d794f' &&
+      github.event.before == '1b797d5b7fea22c1cee007467e792e613d3bdd72' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -45,12 +45,23 @@ jobs:
               stopped=json.loads(prior.read('read-result.json'))
               assert stopped['error']=='monitor_journal_incomplete' and stopped['post_write_attempts']==stopped['provider_calls']==0 and stopped['posts']==[]
           
+          second_run=info('actions/runs/44231952250')
+          assert second_run['status']=='completed' and second_run['conclusion']=='failure' and second_run['run_attempt']==1
+          assert second_run['head_sha']=='b1991920bccb791b55d325bef51a83d5f48b81fd'
+          second=subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/actions/artifacts/14394604046/zip'],timeout=90)
+          assert hashlib.sha256(second).hexdigest()=='e4cf77ef95fcff124d8621fe0fb7fb166c16a479091d07b06ff631c48d2613c9'
+          with zipfile.ZipFile(io.BytesIO(second)) as prior:
+              assert set(prior.namelist())=={'journal-metadata.json','read-scope.json','read-result.json'}
+              stopped=json.loads(prior.read('read-result.json'))
+              assert stopped['error']=='monitor_journal_incomplete' and stopped['post_write_attempts']==stopped['provider_calls']==0 and stopped['posts']==[]
           for path,expected in [('commercial-caption-review73-20261113-executor.php','cd2d8390f7723a25ec06e9cd90239c0cc9623ad2'),('commercial-caption-review73-20261113-read-scope.php','0f6e34762ddc280dd896b4f5eabc8e334d4534f1')]:
               assert subprocess.check_output(['git','hash-object','tools/direct_demand/operations/'+path],text=True).strip()==expected
           PY
           python3 -m py_compile tools/direct_demand/operations/prepare-w9-78929-adults-caption-20261118.py
           python3 tools/direct_demand/operations/prepare-w9-78929-adults-caption-20261118.py read
           php -l caption78929/read.php
+          php -l tools/direct_demand/operations/commercial-w9-78929-price-journal-20261118.php
+          php tools/direct_demand/operations/test-commercial-w9-78929-price-journal-20261118.php
       - name: Pin established SSH host continuity and authentication identity
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -91,15 +102,6 @@ jobs:
         run: |
           set -euo pipefail
           options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          cat > caption78929/journal-meta.php <<'PHP'
-          <?php
-          $f='/var/www/anytoour/data/channel-post-operations/monitor-price-after-collection-v1.jsonl';
-          if(is_link($f)||!is_file($f))exit(2);
-          $h=fopen($f,'rb');if($h===false)exit(2);$s=fstat($h);$last=null;
-          if($s['size']>0){fseek($h,-1,SEEK_END);$last=ord(fread($h,1));}fclose($h);
-          echo json_encode(['observed_at_utc'=>gmdate('c'),'file_bytes'=>$s['size'],'last_byte_ascii'=>$last,'existing_reader_max_bytes'=>100000000,'writes'=>0,'price_content_read'=>false],JSON_THROW_ON_ERROR),PHP_EOL;
-          PHP
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'php' < caption78929/journal-meta.php > caption78929/journal-metadata.json
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < caption78929/read.php > caption78929/read-result.json
       - name: Bind the exact sentence insertion and reject any broader edit
         run: |
@@ -145,7 +147,6 @@ jobs:
         with:
           name: existing78929-adults-caption-one-attempt-20261118
           path: |
-            caption78929/journal-metadata.json
             caption78929/read-scope.json
             caption78929/read-result.json
             caption78929/manifest.json

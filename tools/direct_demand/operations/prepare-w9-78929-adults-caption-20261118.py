@@ -4,9 +4,32 @@ APP='cc017ee5bb669f4c7c13efc91d5c5812a50e55f2'
 READ='commercial-w9-78929-adults-caption-read-20261118-v1'
 EDIT='commercial-w9-78929-adults-caption-edit-20261118-v1'
 PINS=[('f5975ab95de5f45e087eb7a0f768f566c5bca648','c6386e155d42bc83970edc95f35b3ebeb5140533'),('f0e04e9b4e0ed6859ced96279cbf0619931596e6','1982ff7368763edf8b7238c3142e3cc28579e991'),('db8181426091a685a79ee55991cde22671f0d9dd','94fb1988ac8caf90dc5103aa23c58e7aad6ea691')]
+# Exact journal from the PRICE read-only handoff (44254140999, artifact 14405665921).
+PRICE_PIN={"sha256":"d02f2206df26e6dd75b55347ef95d0cf5717be93227be7e3142c38daadb62041","bytes":606390308,"lines":5443,"collector_run_id":"44236272559","cycle_state":"preflight_blocked"}
+JOURNAL_HELPER='commercial-w9-78929-price-journal-20261118.php'
+
+def bind_price_history(template, read_only):
+ path='$monitorPath' if read_only else '$monitorJournal'
+ begin='    $monitorRaw=stream_get_contents($monitorLock);\n'
+ terminal="$out['monitor_journal_sha256']=hash('sha256',$monitorRaw);" if read_only else "need(array_key_exists('pending',$monitorState) && $monitorState['pending']===null,'monitor_pending_operation_stop');"
+ assert template.count(begin)==1 and template.count(terminal)==1
+ start=template.index(begin)
+ stop=template.index(terminal,start)+len(terminal)
+ # The caller retains its original shared or exclusive journal lock.
+ guard="    $monitorProof=verifiedCaptionPriceJournal("+path+",$monitorLock,json_decode(CAPTION_PRICE_PIN,true,16,JSON_THROW_ON_ERROR));"
+ if read_only:
+  guard+="\n    $out['monitor_journal_sha256']=$monitorProof['sha256'];"
+ helper=(ROOT/JOURNAL_HELPER).read_text()
+ header='<?php\ndeclare(strict_types=1);\n'
+ assert helper.startswith(header)
+ at=template.index('declare(strict_types=1);')+len('declare(strict_types=1);')
+ assert at<start
+ return template[:at]+"\n"+helper[len(header):]+template[at:start]+guard+template[stop:]
+
 sha=lambda b:hashlib.sha256(b).hexdigest()
 def raw(d):return (json.dumps(d,ensure_ascii=False,separators=(',',':'))+'\n').encode()
 def bind(template,constants):
+ constants={'CAPTION_PRICE_PIN':json.dumps(PRICE_PIN,separators=(',',':')),**constants}
  for old,new in PINS:
   assert template.count(old)==1 and template.count(new)==0
   template=template.replace(old,new)
@@ -22,11 +45,13 @@ def read_stage():
  s=(ROOT/'commercial-caption-review73-20261113-read-scope.php').read_text()
  s=s.replace('commercial-caption-review73-20261113-read-v1',READ).replace("count($scope['rows']??[])===73","count($scope['rows']??[])===1").replace("count($out['posts'])===146","count($out['posts'])===2").replace("$out['provider_calls']===73","$out['provider_calls']===1")
  s,n=re.subn(r"array_column\(\$scope\['rows'\],'hotel_id'\)===\[[0-9,]+\]","array_column($scope['rows'],'hotel_id')===[78929]",s);assert n==1
+ s=bind_price_history(s,True)
  s=bind(s,{'EXPECTED_INSTALLED_SHA':APP,'APPROVED_MANIFEST_SHA256':sha(b),'MANIFEST_BASE64':base64.b64encode(b).decode()})
  (OUT/'read.php').write_text(s);(OUT/'read-scope.json').write_bytes(b)
 def edit_stage():
  b=(OUT/'read-result.json').read_bytes();d=json.loads(b)
  assert d['ok'] and d['operation']==READ and d['installed_sha']==APP and len(d['posts'])==2 and d['post_write_attempts']==0
+ assert d['monitor_pending'] is False and d['monitor_journal_sha256']==PRICE_PIN['sha256']
  bound=json.loads((ROOT/'commercial-w9-78929-caption-bound-posts-20261118.json').read_text());expected={p['platform']:p for p in bound['posts']}
  rows=[]
  for x in d['posts']:
@@ -66,6 +91,7 @@ def edit_stage():
 """
  s=s[:start]+fixed+s[end:]
  s=s.replace('commercial-caption-review73-20261113-read-v1',READ).replace("($source['post_count'] ?? null) === 146","($source['post_count'] ?? null) === 2")
+ s=bind_price_history(s,False)
  s=bind(s,{'EXPECTED_INSTALLED_SHA':APP,'APPROVED_UPDATE_OPERATION':EDIT,'APPROVED_MANIFEST_SHA256':sha(mb),'MANIFEST_BASE64':base64.b64encode(mb).decode(),'REPAIR_COHORT_SHA256':cohort,'REPAIR_PUBLICATION_IDS_BASE64':base64.b64encode(raw(pubs)).decode(),'REPAIR_BATCH_INDEX':0})
  (OUT/'edit.php').write_text(s)
  # Pure guard tests run before any provider mutation: exact insertion accepted;
