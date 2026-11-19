@@ -79,6 +79,17 @@ appleTgCheck('ordinary customer reply stays with assigned manager without anothe
 appleTgCheck('private repair projection rejects another project and another source',
     ManagerConversationService::repairEntryContext(array_replace($c,['project_key'=>'repair_two']))===null
     &&ManagerConversationService::repairEntryContext(array_replace($c,['source_id'=>21]))===null);
+$pdo->exec("CREATE TABLE appleservice39_pilot_campaigns(campaign_key TEXT,project_key TEXT,bot_key TEXT,source_id INTEGER,channel_id TEXT,connection_sha256 TEXT);
+    CREATE TABLE appleservice39_pilot_operations(campaign_key TEXT,post_key TEXT,operation TEXT,state TEXT,external_message_id TEXT,public_url TEXT)");
+$campaign='appleservice39-telegram-device-v1';$channel='-100900001';$url='https://t.me/appleservice39/37';
+$pdo->prepare('INSERT INTO appleservice39_pilot_campaigns VALUES(?,?,?,?,?,?)')
+    ->execute([$campaign,'appleservice39','Appleservice39_bot',23,$channel,hash('sha256',$binding['bot_id'].'|'.$channel.'|23')]);
+$pdo->prepare('INSERT INTO appleservice39_pilot_operations VALUES(?,?,?,?,?,?)')->execute([$campaign,'device-ipad','create','unknown','37',$url]);
+appleTgCheck('uncertain publication cannot create a canonical post in Manager2',ManagerConversationService::repairEntryContext($c)['post_url']==='');
+$pdo->exec("UPDATE appleservice39_pilot_operations SET state='verified'");
+appleTgCheck('the exact verified project and bot post becomes visible in Manager2',ManagerConversationService::repairEntryContext($c)['post_url']===$url);
+$pdo->exec("UPDATE appleservice39_pilot_campaigns SET connection_sha256='different_bot'");
+appleTgCheck('a verified post from another bot is ignored',ManagerConversationService::repairEntryContext($c)['post_url']==='');
 $pdo->exec("UPDATE conversations SET status='closed' WHERE id=$id");
 appleTgCheck('replay after close cannot create a new lead',$run($update(211,10,'/start@Appleservice39_bot as39_device-ipad'))===200
     &&(int)$one(211)['id']===$id&&$one(211)['status']==='closed'&&count($sent)===$before);

@@ -25,6 +25,18 @@ final class ProjectTelegramMessengerFactory
         }
     }
 
+    /** Only for the protected manager file endpoint. The saved message and conversation must both belong to this bot. */
+    public static function mediaTokenForConversation(array $conversation, string $messageBotId): ?string
+    {
+        if (($conversation['project_key'] ?? '') !== 'appleservice39' || $messageBotId === '') return null;
+        require_once __DIR__.'/AppleService39TelegramConnection.php';
+        $binding = AppleService39TelegramConnection::runtimeBinding();
+        if ($binding === null || $binding['bot_id'] !== $messageBotId
+            || (int)$conversation['source_id'] !== $binding['source_id']
+            || self::appleMessenger($conversation, $binding, 'manager') === null) return null;
+        return $binding['bot_token'];
+    }
+
     private static function appleMessenger(array $conversation, array $binding, string $senderType): ?TelegramMessengerAdapter
     {
         $chat = (string)($conversation['external_chat_id'] ?? '');

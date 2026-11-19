@@ -32,10 +32,19 @@ try {
         if (($_POST['actor'] ?? null) !== (string)$actor) ManagerHttp::respond(['ok'=>false,'error'=>'identity_changed'],409);
         if (($_POST['action'] ?? null) === 'publish') {
             if (array_diff(array_keys($_POST), ['csrf','actor','action'])) ManagerHttp::respond(['ok'=>false,'error'=>'invalid_request'],422);
-            if (!$connection->status($actor)['configured']) ManagerHttp::respond(['ok'=>false,'error'=>'connection_required'],409);
             session_write_close();
+            $connection->requireReadyForPublication($actor);
             require_once dirname(__DIR__).'/services/AppleService39TelegramDevicePublisher.php';
             (new AppleService39TelegramDevicePublisher())->publish($actor);
+            header('Location: /manager/appleservice39-telegram.php',true,303);
+            exit;
+        }
+        if (($_POST['action'] ?? null) === 'activate') {
+            if (array_diff(array_keys($_POST), ['action','csrf','actor','version'])
+                || !is_string($_POST['version'] ?? null) || !preg_match('/\A[1-9][0-9]{0,15}\z/D',$_POST['version']))
+                ManagerHttp::respond(['ok'=>false,'error'=>'invalid_request'],422);
+            session_write_close();
+            $connection->activate($actor,(int)$_POST['version']);
             header('Location: /manager/appleservice39-telegram.php',true,303);
             exit;
         }
@@ -53,7 +62,7 @@ try {
         exit;
     }
     $status = $connection->status($actor);
-    if ($status['configured']) {
+    if ($status['webhook_state'] === 'verified') {
         require_once dirname(__DIR__).'/services/AppleService39TelegramDevicePublisher.php';
         $posts = (new AppleService39TelegramDevicePublisher())->status();
     }
@@ -66,11 +75,16 @@ try {
         'invalid_token'=>'Проверьте формат токена из BotFather.',
         'identity_unavailable'=>'Telegram не подтвердил токен. Проверьте токен и попробуйте снова.',
         'context_changed'=>'Подключение уже обновили. Откройте страницу заново.',
+        'connection_required'=>'Сначала подключите приём личных сообщений Telegram.',
+        'webhook_busy'=>'Предыдущий запрос ещё выполняется. Откройте страницу через две минуты.',
+        'webhook_conflict'=>'У этого бота уже настроен другой адрес или собственный сертификат webhook. Регистрация сохранена. Для переноса согласуйте переключение с владельцем действующего подключения.',
+        'webhook_unknown'=>'Telegram не подтвердил результат. Проверьте состояние, прежде чем повторно подключать бота.',
+        'webhook_unavailable'=>'Не удалось сверить адрес webhook с Telegram. Откройте подключение и проверьте его ещё раз.',
         'source_unavailable'=>'Источник AppleService39 недоступен. Обратитесь к администратору.'
     ];
     $message = $messages[$code] ?? 'Не удалось подтвердить состояние подключения. Откройте страницу заново.';
     $status = null;
-    http_response_code($code === 'context_changed' ? 409 : (isset($messages[$code]) ? 422 : 503));
+    http_response_code(in_array($code,['context_changed','connection_required','webhook_busy','webhook_conflict'],true) ? 409 : (isset($messages[$code]) ? 422 : 503));
 }
 $esc = static fn(string $value): string => htmlspecialchars($value,ENT_QUOTES,'UTF-8');
 ?>
@@ -89,6 +103,20 @@ $esc = static fn(string $value): string => htmlspecialchars($value,ENT_QUOTES,'U
 <label>Новый токен Telegram<input type="password" name="token" required maxlength="220" spellcheck="false" autocomplete="new-password"></label>
 <div class="actions"><button type="submit">Проверить и сохранить</button></div></form>
 <?php if ($status['configured']): ?>
+<h2>Личные обращения в Manager2</h2>
+<?php
+$hookStates = ['not_set'=>'Приём обращений ещё не подключён.','pending'=>'Telegram обрабатывает запрос.',
+    'unknown'=>'Результат последнего подключения неизвестен. Можно повторить подключение.',
+    'accepted'=>'Telegram принял настройки. Требуется проверить адрес.',
+    'verified'=>'Telegram подтвердил адрес для доставки личных сообщений.'];
+?><p><?=$esc($hookStates[$status['webhook_state']] ?? 'Требуется проверить подключение.')?></p>
+<form method="post" action="/manager/appleservice39-telegram.php">
+<input type="hidden" name="csrf" value="<?=$esc($csrf)?>"><input type="hidden" name="actor" value="<?=$actor?>">
+<input type="hidden" name="version" value="<?=$status['version']?>"><input type="hidden" name="action" value="activate">
+<button type="submit"><?=$status['webhook_state']==='verified' ? 'Проверить подключение' : 'Подключить приём сообщений'?></button></form>
+<?php if ($status['webhook_state']==='verified'): ?>
+<p><?=$status['received'] ? 'Личное обращение сохранено в Manager2, бот отправил ответ.' : 'Для сквозной проверки откройте бота и нажмите «Старт». Затем обновите эту страницу.'?>
+<a href="https://t.me/Appleservice39_bot">Открыть @Appleservice39_bot</a></p>
 <h2>Публикации канала @appleservice39</h2>
 <?php
 $labels = ['device-iphone-18'=>'iPhone 18','device-iphone18'=>'iPhone 18','device-ipad'=>'iPad','device-macbook'=>'MacBook','device-apple-watch'=>'Apple Watch'];
@@ -106,6 +134,6 @@ $states = ['published'=>'Опубликовано','pending'=>'Ожидает п
 <input type="hidden" name="csrf" value="<?=$esc($csrf)?>"><input type="hidden" name="actor" value="<?=$actor?>">
 <input type="hidden" name="action" value="publish"><button type="submit">Опубликовать 4 поста в Telegram</button>
 </form>
-<?php endif; endif; ?>
+<?php endif; endif; endif; ?>
 <?php else: ?><a href="/manager/appleservice39-telegram.php">Открыть подключение заново</a><?php endif; ?>
 </section></main></body></html>

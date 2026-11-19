@@ -4,6 +4,8 @@ CREATE TABLE IF NOT EXISTS project_telegram_bot_connections (
     project_id BIGINT UNSIGNED NOT NULL,
     bot_id VARCHAR(19) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     credentials_json TEXT NOT NULL,
+    webhook_state VARCHAR(16) CHARACTER SET ascii NOT NULL DEFAULT 'not_set',
+    webhook_started_at BIGINT UNSIGNED NOT NULL DEFAULT 0,
     version BIGINT UNSIGNED NOT NULL,
     PRIMARY KEY (project_id),
     UNIQUE KEY uq_project_telegram_bot_id (bot_id),

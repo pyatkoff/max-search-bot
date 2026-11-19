@@ -24,7 +24,7 @@ if (isset($_GET['message_id'])) {
             $attachment = ManagerMaxMediaService::attachment($messageId, $index, $managerId);
             if ($attachment) $provider = 'MAX';
             else {
-                $attachment = ManagerTelegramMediaService::attachment($messageId, $index, $managerId);
+                $attachment = ManagerTelegramMediaService::attachment($messageId, $index, $managerId, true);
                 if ($attachment) $provider = 'Telegram';
             }
         }

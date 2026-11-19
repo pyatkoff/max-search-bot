@@ -153,7 +153,26 @@ final class AppleService39TelegramIngress
         $pdo->commit();
     }
 
-    /** Projection for an already authorized Manager2 conversation. A native start alone has no verified post URL. */
+    /** Read the canonical post only after the native publisher verified this bot, source and message. */
+    private static function publishedPost(PDO $pdo, string $post, array $owner, string $bot): string
+    {
+        try {
+            $q=$pdo->prepare("SELECT c.channel_id,c.connection_sha256,o.external_message_id,o.public_url
+                FROM appleservice39_pilot_campaigns c JOIN appleservice39_pilot_operations o ON o.campaign_key=c.campaign_key
+                WHERE c.campaign_key='appleservice39-telegram-device-v1' AND c.project_key=? AND c.bot_key='Appleservice39_bot'
+                  AND c.source_id=? AND o.post_key=? AND o.operation='create' AND o.state='verified'");
+            $q->execute([self::PROJECT,$owner['source_id'],$post]);
+            $row=$q->fetch(PDO::FETCH_ASSOC);
+            if(!$row||$row['connection_sha256']!==hash('sha256',$bot.'|'.$row['channel_id'].'|'.$owner['source_id'])
+                ||!preg_match('/\A[1-9][0-9]*\z/D',(string)$row['external_message_id']))return '';
+            $url='https://t.me/appleservice39/'.$row['external_message_id'];
+            return $row['public_url']===$url?$url:'';
+        } catch(PDOException $unavailable) {
+            return '';
+        }
+    }
+
+    /** Projection for an already authorized Manager2 conversation. */
     public static function managerContext(array $conversation):?array
     {
         if(($conversation['project_key']??null)!==self::PROJECT||($conversation['channel']??null)!=='telegram')return null;
@@ -168,7 +187,7 @@ final class AppleService39TelegramIngress
         $entry=AppleService39PilotCatalog::landingEntryForPost((string)($data['post_id']??''));
         if(($entry['scope']??null)!=='device'||$entry['start_payload']!==($data['entry_code']??null)||$entry['model']!==($data['model']??null)
             ||$entry['service']!==($data['service']??null)||!in_array($data['state']??'',['pending','attempted','suppressed','delivered','unknown'],true)||!is_string($data['text']??null))return null;
-        return ['event_id'=>(int)$row['id'],'model'=>$entry['model'],'service'=>$entry['service'],'post_url'=>'',
+        return ['event_id'=>(int)$row['id'],'model'=>$entry['model'],'service'=>$entry['service'],'post_url'=>self::publishedPost($pdo,$entry['post_id'],$owner,$meta['telegram_bot_id']),
             'reply'=>['state'=>$data['state'],'text'=>$data['text']]];
     }
 }

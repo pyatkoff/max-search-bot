@@ -9,6 +9,7 @@ final class AppleService39PilotPublicationStore
     private PDO $pdo;
     private ?AppleService39SearchIntentRevision $searchRevision = null;
     private ?string $searchBaseSha256 = null;
+    private ?array $deviceOriginalCreates = null;
     public function __construct(PDO $pdo) { $this->pdo = $pdo; }
 
     public function campaign(): ?array
@@ -435,26 +436,49 @@ final class AppleService39PilotPublicationStore
             'body'=>$plan['body'], 'native_text'=>$plan['native_text'], 'native_markup'=>$plan['native_markup']];
     }
 
-    /** Bind every predecessor row, including the verified coverage upload, menu and 39 creates. */
+    /** Only the fixed original 69 published post IDs may precede this device packet. */
+    private function deviceOriginalCreates(): array
+    {
+        if ($this->deviceOriginalCreates !== null) return $this->deviceOriginalCreates;
+        $original = AppleService39PilotManifest::installed();
+        $search = new AppleService39SearchIntentRevision($original);
+        $coverage = new AppleService39CoverageRevision();
+        $expected = array_merge(array_column($original->posts(), 'id'), $coverage->order());
+        foreach ($search->posts() as $card) {
+            if ($card['action'] === 'create_new') $expected[] = $card['id'];
+        }
+        $ids = array_fill_keys($expected,true);
+        if (count($ids) !== 69) throw new RuntimeException('device_parent_incomplete');
+        return $this->deviceOriginalCreates = $ids;
+    }
+
+    /** Bind the entire verified history, including later edits to the original publications. */
     public function deviceParentDigest(): string
     {
-        $coverage = new AppleService39CoverageRevision();
-        $required = array_fill_keys($coverage->order(), 'create');
-        $required[AppleService39CoverageRevision::COVER] = AppleService39CoverageRevision::UPLOAD;
-        $required['menu'] = AppleService39CoverageRevision::MENU;
+        $missing = $this->deviceOriginalCreates();
+        $requiresCover = $requiresMenu = true;
         $parents = [];
         foreach ($this->rows() as $row) {
-            if (AppleService39DeviceRevision::isOperation($row['post_key'], $row['operation'], $row['request'])) continue;
-            if ($row['state'] !== 'verified' || (int)$row['write_attempts'] !== 1) {
+            $post = $row['post_key']; $op = $row['operation'];
+            if (AppleService39DeviceRevision::isOperation($post, $op, $row['request'])) continue;
+            // The existing pin may have been verified in place without sending a pin request.
+            $observedPin = $post === 'menu' && $op === 'pin' && (int)$row['write_attempts'] === 0
+                && ($row['outcome']['already_present'] ?? null) === true && ($row['outcome']['readback'] ?? null) === true;
+            if ($row['state'] !== 'verified' || ((int)$row['write_attempts'] !== 1 && !$observedPin)) {
                 throw new RuntimeException('device_parent_incomplete');
             }
-            if (AppleService39CoverageRevision::isOperation($row['post_key'], $row['operation'], $row['request'])) {
-                if (($required[$row['post_key']] ?? null) !== $row['operation']) throw new RuntimeException('device_parent_incomplete');
-                unset($required[$row['post_key']]);
+            if ($op === 'create') {
+                if (!isset($missing[$post])) throw new RuntimeException('device_parent_incomplete');
+                unset($missing[$post]);
+            } elseif ($post === AppleService39CoverageRevision::COVER && $op === AppleService39CoverageRevision::UPLOAD) {
+                $requiresCover = false;
+            } elseif ($post === 'menu' && $op === AppleService39CoverageRevision::MENU) {
+                $requiresMenu = false;
             }
+            // Later caption, image and link revisions are part of the same immutable snapshot.
             $parents[] = $row;
         }
-        if ($required || count($parents) !== 193) throw new RuntimeException('device_parent_incomplete');
+        if ($missing || $requiresCover || $requiresMenu) throw new RuntimeException('device_parent_incomplete');
         return hash('sha256', json_encode($parents, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
     }
 
