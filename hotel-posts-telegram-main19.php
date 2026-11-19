@@ -74,15 +74,16 @@ function anytourTelegramFeedProject(string $xml): string
     $counts = array_count_values($current);
     $expected = $current;
 
-    foreach ($destinations as $id => [$old, $new]) {
+    foreach ($destinations as $id => [$old, $direct]) {
+        $new = 'https://t.me/Any_tour_bot?startapp={yclid}_'.$id;
         $url = $current[$id] ?? null;
         if ($url === $new && ($counts[$new] ?? 0) === 1) {
             continue;
         }
-        if ($url !== $old || ($counts[$old] ?? 0) !== 1 || isset($counts[$new])) {
+        if (($url !== $old && $url !== $direct) || ($counts[$url] ?? 0) !== 1 || isset($counts[$new])) {
             throw new RuntimeException('Unexpected Telegram offer destination');
         }
-        $oldTag = '<url>'.$old.'</url>';
+        $oldTag = '<url>'.$url.'</url>';
         if (substr_count($xml, $oldTag) !== 1) {
             throw new RuntimeException('Telegram URL element is not unique');
         }
