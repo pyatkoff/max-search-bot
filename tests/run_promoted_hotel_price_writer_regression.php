@@ -21,6 +21,8 @@ promotedPriceCheck(PromotedHotelPriceWriter::revision($first,$price,true) === $f
 $length = intdiv(strlen(mb_convert_encoding('✈️ Seagull & Sea','UTF-16LE','UTF-8')),2);
 $html = PromotedHotelPriceWriter::maxHtml($caption,$first,[['type'=>'strong','from'=>0,'length'=>$length]]);
 promotedPriceCheck(str_starts_with($html,"<b>✈️ Seagull &amp; Sea</b>\n\n") && str_ends_with($html,$price), 'max_markup_lost');
+promotedPriceCheck(PromotedHotelPriceWriter::maxPublicCaption('message:{text:"JAZ Fanara &amp; Residence"}')
+    === 'JAZ Fanara & Residence', 'max_public_html_entities_not_decoded');
 
 foreach ([
     fn()=>PromotedHotelPriceWriter::revision('Старая цена 100 000 ₽',$price,true),

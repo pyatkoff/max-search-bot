@@ -295,9 +295,7 @@ final class PromotedHotelPriceWriter
     {
         if ($platform === 'max') {
             self::need(preg_match('~\Ahttps://max\.ru/anytour/[A-Za-z0-9_-]{11}\z~D', $url) === 1, 'max_public_url_invalid');
-            $html = self::publicBytes($url);
-            self::need(preg_match('~message:\{text:("(?:[^"\\\\]|\\\\.)*")~', $html, $match) === 1, 'max_public_caption_unavailable');
-            return ['caption'=>json_decode($match[1], true, 16, JSON_THROW_ON_ERROR),'buttons'=>[]];
+            return ['caption'=>self::maxPublicCaption(self::publicBytes($url)),'buttons'=>[]];
         }
         self::need(preg_match('~\Ahttps://t\.me/anytour/([1-9][0-9]{0,9})\z~D', $url, $match) === 1, 'telegram_public_url_invalid');
         $mid = $match[1];
@@ -319,6 +317,14 @@ final class PromotedHotelPriceWriter
             $buttons[] = ['text'=>trim($node->textContent), 'url'=>$node->getAttribute('href')];
         }
         return ['caption'=>$caption,'buttons'=>$buttons];
+    }
+
+    public static function maxPublicCaption(string $html): string
+    {
+        self::need(preg_match('~message:\{text:("(?:[^"\\\\]|\\\\.)*")~', $html, $match) === 1, 'max_public_caption_unavailable');
+        $caption = json_decode($match[1], true, 16, JSON_THROW_ON_ERROR);
+        // The MAX public renderer stores an HTML-escaped text value in its data block.
+        return html_entity_decode($caption, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
 
     public static function publicBytes(string $url, int $bound = 4000000): string
