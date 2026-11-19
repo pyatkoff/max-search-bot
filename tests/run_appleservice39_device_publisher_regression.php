@@ -235,8 +235,14 @@ function as39DevicePublisherRegression(): void
     ];
     $wire = as39SearchWire($provider);
     $signedWire = static function (array $request) use ($wire,$provider,$signedPhotos): array {
+        $create = $request['method'] === 'POST' && parse_url($request['url'], PHP_URL_PATH) === '/messages';
+        if ($create && array_key_exists('notify', $request['body'])) {
+            return ['http'=>400, 'transport_error'=>false, 'data'=>[
+                'code'=>'proto.payload', 'message'=>'errors.send-message.channel-notify',
+            ]];
+        }
         $response = $wire($request);
-        if ($request['method'] === 'POST' && parse_url($request['url'], PHP_URL_PATH) === '/messages') {
+        if ($create) {
             $cta = $request['body']['attachments'][1]['payload']['buttons'][0][0]['url'] ?? '';
             if (array_key_exists($cta,$signedPhotos)) {
                 $mid = $response['data']['message']['body']['mid'];
@@ -279,7 +285,7 @@ function as39DevicePublisherRegression(): void
         && $result['held_operations'] === 0 && count($result['published']) === 4, 'all four devices have verified native destinations');
     as39Expect($provider->count('POST','/messages') === 4 && $provider->count('POST','/uploads') === 4
         && $provider->writes() === $preparedWrites + 4 && $provider->pinned === $oldPin,
-        'only four silent native creates follow the four source-bound uploads');
+        'only four native creates follow the four source-bound uploads');
 
     $observed = $publisher->run('device_inspect');
     $photos = []; $sources = []; $urls = [];

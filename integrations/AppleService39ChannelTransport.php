@@ -32,7 +32,14 @@ final class AppleService39ChannelTransport
     }
 
     public function pin(): array { return $this->api('GET', '/chats/'.$this->channelId.'/pin'); }
-    public function create(array $body): array { return $this->api('POST', '/messages', ['chat_id'=>$this->channelId], self::body($body)); }
+    public function create(array $body): array
+    {
+        $wireBody = self::body($body);
+        // MAX rejects notify=false on channel creates. Keep the original
+        // plan intact for request hashes and one-attempt recovery.
+        unset($wireBody['notify']);
+        return $this->api('POST', '/messages', ['chat_id'=>$this->channelId], $wireBody);
+    }
     public function edit(string $mid, array $body): array { return $this->api('PUT', '/messages', ['message_id'=>self::mid($mid)], self::body($body)); }
     public function setPin(string $mid): array { return $this->api('PUT', '/chats/'.$this->channelId.'/pin', [], ['message_id'=>self::mid($mid)]); }
 
