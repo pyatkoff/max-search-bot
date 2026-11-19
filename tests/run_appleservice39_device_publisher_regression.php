@@ -91,13 +91,162 @@ function as39DeviceMaintainedParents(array $fixture): void
         && $changingProvider->writes() === 0, 'a changed confirmed maintenance receipt after snapshot blocks the upload before claiming');
 }
 
+/** Exercise the original missing-MID claim on separate copies of the same prepared packet. */
+function as39DeviceResumeAfterLostCreate(array $seed, string $first): void
+{
+    foreach (['exact_match','no_match','second_hold','ambiguous','rotated_token','failed_list','truncated_list'] as $case) {
+        [$pdo,$provider,$store] = as39SearchClone($seed);
+        $original = $store->operation($first,'create');
+        $timestamp = (int)$original['started_ms'];
+        $firstUrl = 'https://max.ru/id390521129062_bot?start=as39_'.$first;
+        $native = array_values(array_filter($provider->messages, static fn(array $item): bool =>
+            ($item['body']['attachments'][1]['payload']['buttons'][0][0]['url'] ?? null) === $firstUrl));
+        as39Expect(count($native) === 1 && $original['state'] === 'unknown' && $timestamp > 0
+            && $original['external_message_id'] === null, 'the first POST lost its acknowledgement but has a native synthetic message');
+        $mid = $native[0]['body']['mid'];
+        $provider->messages[$mid]['timestamp'] = $timestamp;
+        $uploadToken = $store->operation($first,AppleService39DeviceRevision::UPLOAD)['outcome']['token'];
+        as39Expect($provider->messages[$mid]['body']['attachments'][0]['payload']['token'] === $uploadToken
+            && hash('sha256',$uploadToken) === $original['request']['upload_token_sha256'],
+            'the synthetic list and native GET begin with the original claimed source token');
+        if ($case === 'ambiguous') {
+            $duplicate = $provider->messages[$mid];
+            $duplicate['body']['mid'] = 'mid_other_match';
+            $duplicate['url'] = 'https://max.ru/channel_appleservice39ru/other_match';
+            $provider->messages['mid_other_match'] = $duplicate;
+        }
+        $listed = 0; $posts = []; $wire = as39SearchWire($provider);
+        $resumeWire = static function (array $request) use ($wire,$provider,$store,$case,$mid,&$listed,&$posts): array {
+            $path = parse_url($request['url'], PHP_URL_PATH);
+            if ($request['method'] === 'GET' && $path === '/messages') {
+                $provider->requests[] = $request;
+                parse_str((string)parse_url($request['url'], PHP_URL_QUERY), $query);
+                $starts = array_column(array_filter($store->rows(), static fn(array $row): bool =>
+                    $row['operation'] === 'create' && in_array($row['state'],['write_started','unknown'],true)
+                    && AppleService39DeviceRevision::isOperation($row['post_key'],$row['operation'],$row['request'])), 'started_ms');
+                as39ProviderAssert(count($query) === 4 && ($query['chat_id'] ?? null) === $provider->channelId
+                    && ($query['count'] ?? null) === '100'
+                    && count(array_filter($starts,static fn($t): bool =>
+                        ($query['from'] ?? null) === (string)((int)$t+60000)
+                        && ($query['to'] ?? null) === (string)((int)$t-60000))) > 0,
+                    'native list is restricted to the original claim time in milliseconds and its channel');
+                $listed++;
+                if ($case === 'failed_list') return ['http'=>503,'transport_error'=>false,'data'=>null];
+                $messages = [];
+                if ($case === 'truncated_list') {
+                    for ($n=0; $n<100; $n++) {
+                        $message = $provider->messages[$mid];
+                        $message['body']['mid'] = 'mid_page_'.$n;
+                        $message['url'] = 'https://max.ru/channel_appleservice39ru/page_'.$n;
+                        $messages[] = $message;
+                    }
+                } elseif ($case === 'ambiguous') {
+                    $messages = [$provider->messages[$mid],$provider->messages['mid_other_match']];
+                } elseif ($case === 'exact_match' || $case === 'rotated_token') {
+                    $messages = [$provider->messages[$mid]];
+                }
+                return ['http'=>200,'transport_error'=>false,'data'=>['messages'=>$messages]];
+            }
+            $response = $wire($request);
+            if ($case === 'rotated_token' && $request['method'] === 'GET' && $path === '/messages/'.$mid) {
+                // The list still matches. Only the independent readback reveals the changed image witness.
+                $response['data']['body']['attachments'][0]['payload']['token'] = 'different-fixture-token';
+            }
+            if ($request['method'] === 'POST' && $path === '/messages') {
+                $posts[] = $request['body']['attachments'][1]['payload']['buttons'][0][0]['url'];
+                if ($case === 'second_hold' && count($posts) === 1) return ['http'=>0,'transport_error'=>true,'data'=>null];
+            }
+            return $response;
+        };
+        $worker = as39SearchPublisher($pdo,$provider,$resumeWire);
+        $saved = $store->rows();
+        if ($case === 'failed_list' || $case === 'truncated_list') {
+            as39Refuses(static fn()=>$worker->run('device_observe'), 'device_observation_unavailable');
+            as39Expect($listed > 0 && $posts === [] && $provider->writes() === 0 && $store->rows() === $saved,
+                $case.' cannot supply an observation or create a provider request');
+            continue;
+        }
+        $observed = $worker->run('device_observe');
+        $firstObservation = $observed['operations'][$first];
+        if ($case === 'ambiguous' || $case === 'rotated_token') {
+            $expectedReason = $case === 'ambiguous' ? 'device_candidate_ambiguous' : 'coverage_native_image_evidence_required';
+            $expectedCandidates = $case === 'rotated_token'
+                ? [$first=>['status'=>'native_content_photo_unverified','url'=>$native[0]['url']]] : [];
+            as39Expect($observed['candidates'] === $expectedCandidates,
+                'only a unique content match may expose the separate unverified-photo candidate link');
+            as39Expect($listed > 0 && $observed['held_operations'] === 1 && $firstObservation['state'] === 'unknown'
+                && $firstObservation['reason'] === $expectedReason && $firstObservation['observed_url'] === null
+                && !$firstObservation['mid_present'] && !$firstObservation['image_receipt_present']
+                && !isset($observed['published'][$first]) && $store->rows() === $saved && $provider->writes() === 0,
+                $case.' leaves the original create unbound and performs no native mutation');
+            continue;
+        }
+        $match = $case === 'exact_match';
+        as39Expect($observed['candidates'] === [], 'a verified match or empty native window has no unverified-photo candidate');
+        as39Expect($listed > 0 && $observed['ok'] && $observed['held_operations'] === 1 && $firstObservation['state'] === 'unknown'
+            && $firstObservation['reason'] === ($match ? 'native_verified' : 'awaiting_create_id')
+            && $firstObservation['observed_url'] === ($match ? $native[0]['url'] : null)
+            && !$firstObservation['mid_present'] && $store->rows() === $saved && $provider->writes() === 0,
+            'bounded observation reports available original evidence, with no new claim or provider write');
+        if ($case === 'second_hold') {
+            as39Refuses(static fn()=>$worker->run('device_resume'), 'coverage_operation_held');
+            $after = $store->rows();
+            $held = array_filter($after,static fn(array $row): bool =>$row['operation'] === 'create' && $row['state'] === 'unknown');
+            as39Expect(count($held) === 2 && count($posts) === 1 && $posts[0] !== $firstUrl
+                && $store->operation($first,'create') === $original,
+                'a new independent lost create stops recovery before remaining posts');
+            as39Refuses(static fn()=>$worker->run('device_resume'), 'coverage_operation_held');
+            as39Expect($store->rows() === $after && count($posts) === 1 && $provider->writes() === 1,
+                'two held originals prevent any further or repeated provider write');
+            continue;
+        }
+        $result = $worker->run('device_resume');
+        $fresh = $store->operation($first,'create');
+        as39Expect(count($posts) === 3 && count(array_unique($posts)) === 3 && !in_array($firstUrl,$posts,true)
+            && $provider->writes() === 3 && $result['verified_posts'] === ($match ? 4 : 3)
+            && $result['held_operations'] === ($match ? 0 : 1) && $result['ok'] === $match
+            && $result['device_publication_complete'] === $match && count($result['published']) === ($match ? 4 : 3)
+            && $fresh['id'] === $original['id'] && $fresh['request_json'] === $original['request_json']
+            && (int)$fresh['write_attempts'] === 1, 'three previously untouched posts each publish once');
+        foreach ($result['published'] as $id=>$url) {
+            as39Expect($store->verifiedPostUrl($id,10,true) === $url, 'resume exposes each actually verified canonical URL');
+        }
+        as39Expect($match ? $fresh['state'] === 'verified' && $fresh['external_message_id'] === $mid
+            && $result['published'][$first] === $native[0]['url'] : $fresh === $original && !isset($result['published'][$first]),
+            'only unique verified native evidence can bind the first original attempt');
+        $completeRows = $store->rows(); $again = $worker->run('device_resume');
+        as39Expect($again['published'] === $result['published'] && $again['ok'] === $match
+            && $store->rows() === $completeRows && $provider->writes() === 3 && count($posts) === 3,
+            'repeating partial or finished recovery cannot duplicate a post or change its original receipt');
+    }
+}
+
 /** Exercise the new batch on receipts produced by the real predecessor state machines. */
 function as39DevicePublisherRegression(): void
 {
     $fixture = as39CoverageSeed();
     as39CoverageSuccess($fixture);
     [$pdo,$provider,$store] = as39SearchClone($fixture);
-    $publisher = as39SearchPublisher($pdo, $provider);
+    // MAX may return a photo ID as a signed decimal string or as an integer zero.
+    // Model both in the original POST response and its subsequent native GET.
+    $signedPhotos = [
+        'https://max.ru/id390521129062_bot?start=as39_device-iphone-18'=>'-9223372036854775807',
+        'https://max.ru/id390521129062_bot?start=as39_device-ipad'=>0,
+    ];
+    $wire = as39SearchWire($provider);
+    $signedWire = static function (array $request) use ($wire,$provider,$signedPhotos): array {
+        $response = $wire($request);
+        if ($request['method'] === 'POST' && parse_url($request['url'], PHP_URL_PATH) === '/messages') {
+            $cta = $request['body']['attachments'][1]['payload']['buttons'][0][0]['url'] ?? '';
+            if (array_key_exists($cta,$signedPhotos)) {
+                $mid = $response['data']['message']['body']['mid'];
+                $provider->messages[$mid]['body']['attachments'][0]['payload']['photo_id'] = $signedPhotos[$cta];
+                $response['data']['message'] = $provider->messages[$mid];
+            }
+        }
+        return $response;
+    };
+    $publisher = as39SearchPublisher($pdo, $provider, $signedWire);
     $revision = new AppleService39DeviceRevision();
     $ids = ['device-iphone-18','device-ipad','device-macbook','device-apple-watch'];
     $old = $store->rows();
@@ -109,8 +258,14 @@ function as39DevicePublisherRegression(): void
     as39Expect(count($old) === 193 && count($oldMessages) === 69 && $initial['verified_posts'] === 0
         && !$initial['device_publication_complete'] && $initial['published'] === []
         && $provider->writes() === 0 && $store->rows() === $old, 'device inspection preserves the 69-post predecessor');
+    $safeFields = ['state','write_attempts','mid_present','image_receipt_present','reason','observed_url'];
+    as39Expect(count($initial['operations']) === count($ids), 'device inspection reports exactly the four reviewed creates');
     foreach ($ids as $id) {
-        as39Expect($store->verifiedPostUrl($id,10,true) === null, 'unpublished device has no usable destination');
+        $op = $initial['operations'][$id];
+        as39Expect(count($op) === count($safeFields) && array_diff($safeFields,array_keys($op)) === []
+            && $op['write_attempts'] === 0 && !$op['mid_present'] && !$op['image_receipt_present']
+            && $op['reason'] === 'not_attempted' && $op['observed_url'] === null
+            && $store->verifiedPostUrl($id,10,true) === null, 'unattempted device exposes only bounded inspection fields');
     }
 
     $publisher->run('device_prepare');
@@ -126,6 +281,7 @@ function as39DevicePublisherRegression(): void
         && $provider->writes() === $preparedWrites + 4 && $provider->pinned === $oldPin,
         'only four silent native creates follow the four source-bound uploads');
 
+    $observed = $publisher->run('device_inspect');
     $photos = []; $sources = []; $urls = [];
     foreach ($ids as $id) {
         $row = $store->operation($id, 'create');
@@ -142,6 +298,7 @@ function as39DevicePublisherRegression(): void
             && $receipt['request_sha256'] === $row['payload_sha256']
             && $receipt['message_id'] === $row['external_message_id']
             && $row['request']['body']['notify'] === false && count($attachments) === 2 && $attachments[0]['type'] === 'image'
+            && $receipt['kind'] === 'create_response'
             && (string)$attachments[0]['payload']['photo_id'] === $receipt['photo_id']
             && $attachments[1]['type'] === 'inline_keyboard' && count($buttons) === 1 && count($buttons[0]) === 1
             && $buttons[0][0]['type'] === 'link' && trim($buttons[0][0]['text']) !== ''
@@ -149,6 +306,14 @@ function as39DevicePublisherRegression(): void
             && $result['published'][$id] === $message['url'] && $row['public_url'] === $message['url']
             && $store->verifiedPostUrl($id,10,true) === $message['url'] && $store->verifiedPostUrl($id,20,true) === null,
             $id.' retains its intended image, single callback, project receipt and canonical URL');
+        $op = $observed['operations'][$id];
+        as39Expect($op['state'] === 'verified' && $op['write_attempts'] === 1 && $op['mid_present'] && $op['image_receipt_present']
+            && $op['reason'] === 'native_verified' && $op['observed_url'] === $message['url'],
+            'verified device inspection reports positive native evidence and its canonical URL');
+        if (array_key_exists($buttons[0][0]['url'],$signedPhotos)) {
+            as39Expect($receipt['photo_id'] === (string)$signedPhotos[$buttons[0][0]['url']],
+                'original POST stores the exact signed or zero native photo identity as a string');
+        }
         $photos[] = $receipt['photo_id']; $sources[] = $receipt['source_sha256']; $urls[] = $message['url'];
     }
     as39Expect(count(array_unique($photos)) === 4 && count(array_unique($sources)) === 4 && count(array_unique($urls)) === 4,
@@ -163,6 +328,11 @@ function as39DevicePublisherRegression(): void
         && $store->deviceParentDigest() === $parentDigest && $store->coverageParentDigest() === $coverageDigest
         && $provider->writes() === $writes && array_intersect_key($provider->messages,$oldMessages) === $oldMessages,
         'parent content, pin and all 193 records stay unchanged on replay');
+    [$legacyPdo,$legacyProvider,$legacyStore] = as39SearchClone($fixture);
+    $legacyMid = $legacyStore->operation('model-iphone-8','create')['external_message_id'];
+    $legacyProvider->messages[$legacyMid]['body']['attachments'][0]['payload']['photo_id'] = 0;
+    as39Refuses(static fn()=>as39SearchPublisher($legacyPdo,$legacyProvider)->run('coverage_inspect'), 'coverage_image_changed');
+    as39Expect($legacyProvider->writes() === 0, 'the earlier coverage revision retains its positive-photo verification rule');
     $first = $revision->order()[0];
     $bad = $store->operation($first,'create')['request'];
     $bad['body']['text'] .= ' changed';
@@ -188,7 +358,27 @@ function as39DevicePublisherRegression(): void
         as39Expect($lost && $unknown['state'] === 'unknown' && (int)$unknown['write_attempts'] === 1
             && $faultStore->verifiedPostUrl($first,10,true) === null && $faultProvider->count('POST','/messages') === 1,
             $fault.' holds a single external attempt and withholds its feed URL');
+        $writesBeforeInspect = $faultProvider->writes();
         $inspected = $worker->run('device_inspect');
+        $diagnosis = $inspected['operations'][$first];
+        $knownMid = $fault === 'lost_readback';
+        as39Expect($diagnosis['state'] === 'unknown' && $diagnosis['write_attempts'] === 1
+            && $diagnosis['mid_present'] === $knownMid && $diagnosis['image_receipt_present'] === $knownMid
+            && $diagnosis['reason'] === ($knownMid ? 'native_verified' : 'awaiting_create_id')
+            && $diagnosis['observed_url'] === ($knownMid ? $faultProvider->messages[$unknown['external_message_id']]['url'] : null)
+            && $faultProvider->writes() === $writesBeforeInspect && $faultStore->rows() === $afterFailure,
+            'read-only observation distinguishes a lost original MID from successful GET with saved POST evidence');
+        if ($knownMid) {
+            $mid = $unknown['external_message_id'];
+            $originalText = $faultProvider->messages[$mid]['body']['text'];
+            $faultProvider->messages[$mid]['body']['text'] .= ' changed';
+            $mismatch = $worker->run('device_inspect')['operations'][$first];
+            $faultProvider->messages[$mid]['body']['text'] = $originalText;
+            as39Expect($mismatch['reason'] === 'post_readback_mismatch' && $mismatch['mid_present']
+                && $mismatch['image_receipt_present'] && $faultProvider->writes() === $writesBeforeInspect
+                && $faultStore->rows() === $afterFailure,
+                'an exact known-MID mismatch produces a bounded reason without changing the claim');
+        }
         $oldCoverage = $worker->run('coverage_inspect');
         as39Expect($inspected['held_operations'] === 1 && !$inspected['device_publication_complete']
             && $oldCoverage['coverage_publication_complete'] && $faultStore->rows() === $afterFailure,
@@ -203,9 +393,10 @@ function as39DevicePublisherRegression(): void
                 'lost original message ID remains unknown');
             as39Refuses(static fn()=>$worker->run('device_apply'), 'coverage_operation_held');
             as39Expect($faultProvider->writes() === 1, 'ambiguous create is never sent twice');
+            as39DeviceResumeAfterLostCreate([$faultPdo,$faultProvider,$faultStore],$first);
         } else {
             as39Expect($fresh['state'] === 'verified' && $reconciled['held_operations'] === 0
-                && $worker->run('device_apply')['device_publication_complete'] && $faultProvider->writes() === 4,
+                && $worker->run('device_resume')['device_publication_complete'] && $faultProvider->writes() === 4,
                 'exact saved MID allows GET recovery and only three remaining creates');
         }
     }

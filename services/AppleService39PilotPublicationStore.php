@@ -554,8 +554,11 @@ final class AppleService39PilotPublicationStore
             $expected = $base + ['request_sha256'=>$row['payload_sha256'], 'revision_sha256'=>$r['revision_sha256'],
                 'parent_operation_id'=>$r['parent_operation_id'], 'parent_image_receipt_sha256'=>$r['parent_image_receipt_sha256']];
         } else throw new RuntimeException('invalid_coverage_image_receipt');
-        if ($receipt !== $expected || !is_string($base['photo_id'])
-            || !preg_match('/\A[1-9][0-9]{0,18}\z/D', $base['photo_id'])) throw new RuntimeException('invalid_coverage_image_receipt');
+        $photo = $base['photo_id'];
+        $valid = AppleService39DeviceRevision::isOperation($row['post_key'], $row['operation'], $r)
+            ? AppleService39DeviceRevision::validNativePhotoId($photo)
+            : is_string($photo) && preg_match('/\A[1-9][0-9]{0,18}\z/D', $photo) === 1;
+        if ($receipt !== $expected || !$valid) throw new RuntimeException('invalid_coverage_image_receipt');
     }
 
     public function rememberCoverageImageReceipt(array $row, array $receipt): void

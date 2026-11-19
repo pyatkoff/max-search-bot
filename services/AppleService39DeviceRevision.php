@@ -74,6 +74,12 @@ final class AppleService39DeviceRevision
             'length'=>mb_strlen($post['title'], 'UTF-8')]]];
     }
 
+    public static function validNativePhotoId($value): bool
+    {
+        return is_string($value) && preg_match('/\A(?:0|-?[1-9][0-9]{0,18})\z/D', $value) === 1
+            && filter_var($value, FILTER_VALIDATE_INT) !== false;
+    }
+
     public static function isOperation(string $post, string $operation, array $request): bool
     {
         return in_array($post, self::POSTS, true) || $operation === self::UPLOAD || ($request['revision'] ?? null) === self::KEY;
