@@ -2,7 +2,7 @@ name: Publish approved AppleService39 pilot
 
 on:
   push:
-    branches: [ops/appleservice39-coverage-20261112, ops/appleservice39-device-v1-20261119, ops/appleservice39-device-recovery-20261119]
+    branches: [ops/appleservice39-coverage-20261112, ops/appleservice39-device-v1-20261119, ops/appleservice39-device-recovery-20261119, ops/appleservice39-telegram-catalogue-20261119]
   pull_request:
     branches: [main]
     paths:
@@ -16,6 +16,9 @@ on:
       - 'resources/appleservice39/coverage-v1/**'
       - 'resources/appleservice39/device-v1/**'
       - 'services/AppleService39DeviceRevision.php'
+      - 'services/AppleService39Telegram*.php'
+      - 'resources/appleservice39/telegram-catalogue-v1/**'
+      - 'tests/run_appleservice39_telegram_device_publisher_regression.php'
       - 'tests/run_appleservice39_device_publisher_regression.php'
       - 'services/AppleService39Coverage*.php'
       - 'tests/run_appleservice39_coverage_regression.php'
@@ -73,9 +76,10 @@ jobs:
           php tests/run_appleservice39_search_publisher_regression.php
           php tests/run_appleservice39_coverage_regression.php
           php tests/run_appleservice39_device_publisher_regression.php
+          php tests/run_appleservice39_telegram_device_publisher_regression.php
 
   publish:
-    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'push' && (github.ref == 'refs/heads/ops/appleservice39-coverage-20261112' || github.ref == 'refs/heads/ops/appleservice39-device-v1-20261119' || github.ref == 'refs/heads/ops/appleservice39-device-recovery-20261119'))
+    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'push' && (github.ref == 'refs/heads/ops/appleservice39-coverage-20261112' || github.ref == 'refs/heads/ops/appleservice39-device-v1-20261119' || github.ref == 'refs/heads/ops/appleservice39-device-recovery-20261119' || github.ref == 'refs/heads/ops/appleservice39-telegram-catalogue-20261119'))
     needs: regression
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -97,7 +101,7 @@ jobs:
           set -euo pipefail
           test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
           case "$GITHUB_EVENT_NAME:$GITHUB_REF" in
-            workflow_dispatch:refs/heads/main|push:refs/heads/ops/appleservice39-coverage-20261112|push:refs/heads/ops/appleservice39-device-v1-20261119|push:refs/heads/ops/appleservice39-device-recovery-20261119) ;;
+            workflow_dispatch:refs/heads/main|push:refs/heads/ops/appleservice39-coverage-20261112|push:refs/heads/ops/appleservice39-device-v1-20261119|push:refs/heads/ops/appleservice39-device-recovery-20261119|push:refs/heads/ops/appleservice39-telegram-catalogue-20261119) ;;
             *) exit 2 ;;
           esac
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
@@ -117,7 +121,7 @@ jobs:
       - name: Validate the exact fixed operation before deployment credentials
         env:
           OPERATION: ${{ github.event_name == 'push' && steps.release.outputs.publication_operation || inputs.operation }}
-          CHANNEL_ID: ${{ github.event_name == 'push' && '-80917954947727' || inputs.channel_id }}
+          CHANNEL_ID: ${{ github.ref == 'refs/heads/ops/appleservice39-telegram-catalogue-20261119' && '@appleservice39' || github.event_name == 'push' && '-80917954947727' || inputs.channel_id }}
           EXPECTED_APPLICATION_SHA: ${{ github.event_name == 'push' && steps.release.outputs.application_sha || inputs.expected_application_sha }}
           WORKFLOW_SHA: ${{ github.sha }}
           REPOSITORY_SHA: ${{ steps.release.outputs.repository_sha }}
@@ -128,8 +132,11 @@ jobs:
         run: |
           set -euo pipefail
           [[ "$EXPECTED_APPLICATION_SHA" =~ ^[0-9a-f]{40}$ ]]
-          [[ "$CHANNEL_ID" =~ ^-[1-9][0-9]{0,18}$ ]]
+          if [[ "$OPERATION" != telegram_catalogue ]]; then
+            [[ "$CHANNEL_ID" =~ ^-[1-9][0-9]{0,18}$ ]]
+          fi
           case "$OPERATION" in
+            telegram_catalogue) [[ "$GITHUB_EVENT_NAME:$GITHUB_REF:$CHANNEL_ID" == 'push:refs/heads/ops/appleservice39-telegram-catalogue-20261119:@appleservice39' ]] ;;
             device_batch) [[ "$GITHUB_EVENT_NAME:$GITHUB_REF:$CHANNEL_ID" == 'push:refs/heads/ops/appleservice39-device-v1-20261119:-80917954947727' ]] ;;
             device_recovery) [[ "$GITHUB_EVENT_NAME:$GITHUB_REF:$CHANNEL_ID" == 'push:refs/heads/ops/appleservice39-device-recovery-20261119:-80917954947727' ]] ;;
             device_observe) [[ "$GITHUB_EVENT_NAME:$GITHUB_REF:$CHANNEL_ID" == 'workflow_dispatch:refs/heads/main:-80917954947727' ]] ;;
@@ -165,13 +172,16 @@ jobs:
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
           EXPECTED_APPLICATION_SHA: ${{ github.event_name == 'push' && steps.release.outputs.application_sha || inputs.expected_application_sha }}
           OPERATION: ${{ github.event_name == 'push' && steps.release.outputs.publication_operation || inputs.operation }}
-          CHANNEL_ID: ${{ github.event_name == 'push' && '-80917954947727' || inputs.channel_id }}
+          CHANNEL_ID: ${{ github.ref == 'refs/heads/ops/appleservice39-telegram-catalogue-20261119' && '@appleservice39' || github.event_name == 'push' && '-80917954947727' || inputs.channel_id }}
         shell: bash
         run: |
           set -euo pipefail
           [[ "$EXPECTED_APPLICATION_SHA" =~ ^[0-9a-f]{40}$ ]]
-          [[ "$CHANNEL_ID" =~ ^-[1-9][0-9]{0,18}$ ]]
+          if [[ "$OPERATION" != telegram_catalogue ]]; then
+            [[ "$CHANNEL_ID" =~ ^-[1-9][0-9]{0,18}$ ]]
+          fi
           case "$OPERATION" in
+            telegram_catalogue) [[ "$GITHUB_EVENT_NAME:$GITHUB_REF:$CHANNEL_ID" == 'push:refs/heads/ops/appleservice39-telegram-catalogue-20261119:@appleservice39' ]] ;;
             device_batch) [[ "$GITHUB_EVENT_NAME:$GITHUB_REF:$CHANNEL_ID" == 'push:refs/heads/ops/appleservice39-device-v1-20261119:-80917954947727' ]] ;;
             device_recovery) [[ "$GITHUB_EVENT_NAME:$GITHUB_REF:$CHANNEL_ID" == 'push:refs/heads/ops/appleservice39-device-recovery-20261119:-80917954947727' ]] ;;
             device_observe) [[ "$GITHUB_EVENT_NAME:$GITHUB_REF:$CHANNEL_ID" == 'workflow_dispatch:refs/heads/main:-80917954947727' ]] ;;
@@ -204,7 +214,7 @@ jobs:
           command="cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/publish_appleservice39_pilot.php $OPERATION --expected-sha=$EXPECTED_APPLICATION_SHA --channel-id=$CHANNEL_ID"
           result=0
           ssh "${ssh_options[@]}" "$remote" "$command" || result=$?
-          if [[ "$result" != 0 && "$OPERATION" != inspect && "$OPERATION" != landing_inspect && "$OPERATION" != search_inspect && "$OPERATION" != device_observe ]]; then
+          if [[ "$result" != 0 && "$OPERATION" != inspect && "$OPERATION" != landing_inspect && "$OPERATION" != search_inspect && "$OPERATION" != device_observe && "$OPERATION" != telegram_catalogue ]]; then
             # A lost result permits one inspection, never a repeated mutation.
             inspection_mode=inspect
             if [[ "$OPERATION" == landing_* ]]; then inspection_mode=landing_inspect; fi

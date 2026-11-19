@@ -102,6 +102,15 @@ final class AppleService39TelegramDevicePublisher
             && !(($member['status'] ?? '') === 'administrator' && ($member['can_post_messages'] ?? false) === true))) {
             throw new RuntimeException('telegram_channel_post_access_required');
         }
+        if ($campaign === AppleService39TelegramCatalogue::CAMPAIGN) {
+            $original = $this->db->prepare('SELECT channel_id,connection_sha256 FROM appleservice39_pilot_campaigns WHERE campaign_key=?');
+            $original->execute([self::DEVICE_CAMPAIGN]);
+            $receipt = $original->fetch(PDO::FETCH_ASSOC);
+            if (!$receipt || $receipt['channel_id'] !== $channel
+                || $receipt['connection_sha256'] !== hash('sha256', $botId.'|'.$channel.'|'.$binding['source_id'])) {
+                throw new RuntimeException('telegram_campaign_changed');
+            }
+        }
         $this->bindCampaign($campaign, $revision->sha256(), $binding, $channel, $managerId);
         foreach ($revision->order() as $id) {
             if ($items[$id]['state'] === 'published' || $items[$id]['state'] === 'unknown') continue;
