@@ -23,9 +23,9 @@ from pathlib import Path
 
 ROOT = Path('/var/www/anytoour/data/www/d.anytoour.ru')
 CLIENT_LOGIN = 'anytour2024tp'
-PROBE_ID = 'anytour-hotel-ads-details-20261117'
-DATE_FROM, DATE_TO = '2026-11-10', '2026-11-16'
-TOTAL_SECONDS, MAX_CALLS = 60, 2
+PROBE_ID = 'anytour-hotel-feed-audit-20261119'
+DATE_FROM, DATE_TO = '2026-11-12', '2026-11-18'
+TOTAL_SECONDS, MAX_CALLS = 180, 30
 MAX_RESPONSE_BYTES, MAX_STDOUT_BYTES = 4 * 1024 * 1024, 12_000_000
 MAX_SAVED_BYTES = MAX_STDOUT_BYTES - 512 * 1024
 CAMPAIGN_FIELDS = ['Id', 'Name', 'State', 'Status', 'Type', 'DailyBudget']
@@ -127,7 +127,7 @@ def parse_report(text, expected):
                 raise Stop('REPORT_ROW_WIDTH_MISMATCH')
             key = tuple(report_id(row[field], optional=field in ('AdGroupId', 'AdId'))
                         for field in identity)
-            if key in seen:
+            if key in seen and None not in key:
                 raise Stop('DUPLICATE_REPORT_ROW')
             seen.add(key)
             numeric(row['Impressions'], integer=True)
@@ -232,7 +232,7 @@ def make_reader(token, deadline):
         return len(RESULT['responses']) - 1
 
     def read(endpoint, payload, label, report=False):
-        if endpoint not in ('campaigns', 'ads'):
+        if endpoint not in ('campaigns', 'ads', 'reports', 'feeds'):
             raise Stop('ENDPOINT_NOT_ALLOWED')
         if report:
             params = payload.get('params', {})
@@ -360,7 +360,7 @@ def report_request(kind, fields):
 
 def collect_feeds(read):
     payload = {'method': 'get', 'params': {'FieldNames': FEED_INVENTORY_FIELDS,
-               'UrlFeedFieldNames': ['Url'], 'Page': {'Limit': 1000, 'Offset': 0}}}
+               'UrlFeedFieldNames': ['Url', 'RemoveUtmTags'], 'FileFeedFieldNames':['Filename'], 'Page': {'Limit': 1000, 'Offset': 0}}}
     body = read('feeds', payload, 'feed_inventory')
     block = body.get('result')
     rows = block.get('Feeds') if isinstance(block, dict) else None
@@ -483,44 +483,62 @@ def finish():
 
 
 
-def collect_hotel_details(read):
-    ids = [715778593, 715826656, 715826790, 715826855]
-    RESULT['linked_original_run_id'] = 44127808056
-    RESULT['diagnostic_scope'] = 'Only two first-time get calls for four candidate hotel campaigns; original Reports are not requested again'
-    RESULT['period_reference_only'] = True
-    for key in ('inventory', 'feeds', 'campaign_performance', 'ad_performance', 'ad_details'):
-        RESULT[key] = {'status': 'not_requested_in_followup'}
-    RESULT['details'] = {}
-    cases = [
-      ('campaign_configuration', 'campaigns', {'method':'get','params':{
-        'SelectionCriteria':{'Ids':ids}, 'FieldNames':CAMPAIGN_FIELDS,
-        'UnifiedCampaignFieldNames':['CounterIds','BiddingStrategy','PriorityGoals','AttributionModel','PackageBiddingStrategy'],
-        'Page':{'Limit':100,'Offset':0}}}, 'Campaigns'),
-      ('hotel_ad_details', 'ads', {'method':'get','params':{
-        'SelectionCriteria':{'CampaignIds':ids}, 'FieldNames':AD_FIELDS,
-        'TextAdFieldNames':TEXT_FIELDS, 'ResponsiveAdFieldNames':RESPONSIVE_FIELDS,
-        'ShoppingAdFieldNames':FEED_FIELDS,'ListingAdFieldNames':FEED_FIELDS,
-        'Page':{'Limit':1000,'Offset':0}}}, 'Ads')]
-    for label, endpoint, payload, field in cases:
-        try:
-            body = read(endpoint,payload,label)
-            block = body.get('result')
-            rows = block.get(field) if isinstance(block,dict) else None
-            if not isinstance(rows,list):
-                raise Stop('DETAIL_LIST_NOT_RETURNED')
-            seen=set()
-            for row in rows:
-                if not isinstance(row,dict): raise Stop('DETAIL_ROW_INVALID')
-                identity=positive_id(row.get('Id'))
-                campaign=identity if field=='Campaigns' else positive_id(row.get('CampaignId'))
-                if campaign not in ids or identity in seen: raise Stop('DETAIL_SCOPE_INVALID')
-                seen.add(identity)
-            complete=block.get('LimitedBy') is None
-            if field=='Campaigns': complete=complete and seen==set(ids)
-            RESULT['details'][label]={'rows':len(rows),'complete':complete}
-            if not complete: raise Stop('DETAIL_PAGE_INCOMPLETE')
-        except Stop as error:
-            RESULT['errors'].append({'stage':label,**error.info})
+def collect_metadata(read):
+    active=[]
+    offset=0
+    seen=set()
+    for page in range(5):
+        payload={'method':'get','params':{'SelectionCriteria':{},'FieldNames':CAMPAIGN_FIELDS,'Page':{'Limit':1000,'Offset':offset}}}
+        body=read('campaigns',payload,'campaign_inventory_'+str(page))
+        block=body.get('result');rows=block.get('Campaigns') if isinstance(block,dict) else None
+        if not isinstance(rows,list) or len(rows)>1000:raise Stop('INVALID_CAMPAIGN_PAGE')
+        for row in rows:
+            cid=positive_id(row.get('Id'))
+            if cid in seen:raise Stop('CAMPAIGN_PAGE_DRIFT')
+            seen.add(cid)
+            if row.get('State')=='ON':active.append(cid)
+        RESULT['inventory'].update(rows=len(seen),active_count=len(active),pages=page+1)
+        if block.get('LimitedBy') is None:
+            RESULT['inventory']['complete']=True
+            break
+        next_offset=positive_id(block['LimitedBy'])
+        if next_offset<=offset:raise Stop('INVALID_CAMPAIGN_CURSOR')
+        offset=next_offset
+    else:raise Stop('CAMPAIGN_PAGE_CAP')
+    RESULT['active_ad_bindings']={'complete':False,'active_campaign_ids':sorted(active),'pages':[]}
+    if len(active)>100:raise Stop('ACTIVE_CAMPAIGN_CAP_100')
+    for start in range(0,len(active),10):
+        chunk=sorted(active)[start:start+10]
+        payload={'method':'get','params':{'SelectionCriteria':{'CampaignIds':chunk,'States':['ON']},
+            'FieldNames':AD_FIELDS,'TextAdFieldNames':TEXT_FIELDS,'ResponsiveAdFieldNames':RESPONSIVE_FIELDS,
+            'ShoppingAdFieldNames':FEED_FIELDS,'ListingAdFieldNames':FEED_FIELDS,
+            'Page':{'Limit':1000,'Offset':0}}}
+        body=read('ads',payload,'active_ads_'+str(start//10))
+        block=body.get('result');ads=block.get('Ads') if isinstance(block,dict) else None
+        if not isinstance(ads,list):raise Stop('INVALID_ACTIVE_AD_ROWS')
+        ids=set()
+        for ad in ads:
+            aid=positive_id(ad.get('Id'));cid=positive_id(ad.get('CampaignId'))
+            if cid not in chunk or aid in ids or ad.get('State')!='ON':raise Stop('ACTIVE_AD_SCOPE')
+            ids.add(aid)
+        RESULT['active_ad_bindings']['pages'].append({'rows':len(ads),'campaign_ids':chunk,'complete':block.get('LimitedBy') is None})
+        if block.get('LimitedBy') is not None:raise Stop('ACTIVE_AD_PAGE_CAP')
+    RESULT['active_ad_bindings']['complete']=True
+
+def collect_fresh_ad_report(read):
+    text=read('reports',report_request('AD_PERFORMANCE_REPORT',AD_REPORT_FIELDS),'ad_performance',report=True)
+    rows=parse_report(text,AD_REPORT_FIELDS)
+    RESULT['ad_performance'].update(complete=True,rows=len(rows),
+        clicks=sum(numeric(x['Clicks'],integer=True) for x in rows),
+        impressions=sum(numeric(x['Impressions'],integer=True) for x in rows),
+        cost=str(sum((numeric(x['Cost']) for x in rows),Decimal(0))))
+
+def collect_fresh(read):
+    RESULT['scope']='Fresh read-only account feeds and active ad bindings; no campaign, feed, route or budget writes'
+    RESULT['import_time_semantics']='UpdatedAt is the provider date of feed data change; not asserted as last successful import time'
+    for stage,fn in [('feeds',collect_feeds),('inventory_and_active_ads',collect_metadata),('campaign_performance',collect_campaigns),('ad_performance',collect_fresh_ad_report)]:
+        try:fn(read)
+        except Stop as error:RESULT['errors'].append({'stage':stage,**error.info})
     RESULT['status']='COLLECTED' if not RESULT['errors'] else 'PARTIAL'
 
 if __name__ == '__main__':
@@ -530,7 +548,7 @@ if __name__ == '__main__':
     deadline = time.monotonic() + TOTAL_SECONDS
     signal.alarm(TOTAL_SECONDS)
     try:
-        collect_hotel_details(make_reader(load_local_config(), deadline))
+        collect_fresh(make_reader(load_local_config(), deadline))
     except Stop as error:
         RESULT['errors'].append(error.info)
         RESULT['status'] = 'PARTIAL'

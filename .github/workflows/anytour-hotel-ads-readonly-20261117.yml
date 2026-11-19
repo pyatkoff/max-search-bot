@@ -1,4 +1,4 @@
-name: Read AnyTour hotel campaign bindings
+name: Audit current AnyTour hotel feeds and bindings
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -21,18 +21,18 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Read hotel campaign bindings without repeating statistical reports
+      - name: Read current feeds and active ad bindings; reports through 18 November
         env:
           SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
           SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-          READER_SHA256: bd6759cc222a538b14ad168029442e36a3893f04e67712a0ad742b1fc71a967e
-          REPORT_PUBLIC_KEY_B64: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUEwQ1hCcWJEc0tWamR3OSs5eHlrUApucG85VHVOenc5OXJrUS9TY1V0TWVCc3VLUFZsY3c0SHcyYUU4dG9KNzl2d0w1bGFLZXlMUjRHb2FnVHFrU1NpCllKRlM3RVVtdzhOaW5vS2NYKzN2WE1yWERiRjVwWnpzL0JSQ3Y1MmdpWHB3dGxTc25tQzV3MW93WHVTWlBDS3oKQVh1c2cwekZiSHdyc1VFM1U2ZTZlaS9ueC80aWZzd1VtN0NpTk52NWdGTmFVcDYybDRiM1RFd2dtSkV1YnVYSApPZXVGMDV3OHZDRE5aUHJYa1lMNFZXNGlCYXNTQlk0SlNtMitWSTNaTXdTWE9QWEVwRXYvbUpMMXpaMGtUWEVtClFHOFIrMTZJd2dzOUJVTWVVcHBBN2M0Tm9tQk1WVE5CY0R6bnA0NG1qbE11dDl4NWVJVFNTWk1tQ1pmUDYvK1EKTjhWUFA5ZXJVZzI3TFVBSTA3OWRFRzU2cEpWK2daazBGdkhQbStqR0FPekZCcXJxVDlIZE1uZlE4SHJZeVVIZwp3TVQ0TjN2V3FWVDg2WEljWlNFd0hTK2J2SHVlNmV2WFFYeWdSV2xvekgvdGtrOXNqZk5GdnV6b29Eb2hlaGhuCitzSXBBTGY0dEJzSnNYbHM5OGd0RWt3Ukd2TVorTUxnb2ZLblVtUldzLzJuQWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
+          READER_SHA256: f2a4308878012d933a4a9ed5b1b26cd93e37614506ff9427bf38a674ad6270ff
+          REPORT_PUBLIC_KEY_B64: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUEyQzM5U294Q1gxdmZNN3BaMzVMVwpKOHRydGdmbkNkSmVScisyMkdJejIxeWxDWit0OHBvejVDWFlBQUZza1N4Zk9DMTJDV2U2N1o2SUIrYkd1bkJ5CjFHZGxUcmhNQ1RhTmpXYVZya1lHbkhSKzIyM2FXTjd6dEllU0hINjNDVEF2dmxCd3cxemxCNzZBai9mbkZHTXoKYjhlQzhJcHVja2QrTlZ2ak9mUFh2NjBKTnZPK3dTVWQrN1pUOVFGK1p3dWpRYWFpbmk0TGtwcEo1dUpUWWZLMgo2VG9oRm53Z3Q3eXhpRXh3UlBRTWRIZWdBT0RWZ0xMWGZOR2s0Y29FNkNvTm9QdUJGSlh1WGJoelpId3RmcWFTCjRsUHVlR0ZxVHZHMWt2ZmxLRmJhQW9hb1J0NlNGUTNuTHFKVHd4dkpsZ3d2NFJmbmtFNFhVY2QyOGZsV2FPYy8KUXVkNVMxRWNwbWxHLzd6MUs1RVlWZll2dVZhejFmVUVMMG41VnU3SDlvL3gyUXN4WlJwV0lZMDcrdThuN3lpZAo3RDBZVFMxazBabkZpcjVObGVwMnlaMXNOM2lnY21QcHdYMWRSSS9TUzBzT3BhbkZCNDhJYU1lbi9kQ3p1anhqClhNVU1Bby9PTjY1T2ZWVTdxdU91WUxwZXdzWm1TUnI0ejYrcmMxRjBCeWp4QWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
         run: python3 audit/anytour-hotel-ads-runner-20261117.py
       - name: Retain ciphertext only
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: anytour-hotel-ads-details-20261117
+          name: anytour-hotel-feed-audit-20261119
           path: encrypted-hotel-ads/*.enc.json
           retention-days: 7
           if-no-files-found: error
