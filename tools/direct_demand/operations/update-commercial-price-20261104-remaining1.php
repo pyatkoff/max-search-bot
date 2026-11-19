@@ -89,7 +89,7 @@ try {
     // Legacy pins remain exact. Monitor mode uses the reviewed installed-source surface.
 
     $accepted=[
-        "integrations/ChannelPostApiTransport.php"=>"300634d77cb9fddf51adf9869974f956cca6e3f9",
+        "integrations/ChannelPostApiTransport.php"=>"704c1587e59a5cff6a33c656296af0cb29b4bfd5",
         "migrations/033_channel_post_context.sql"=>"0530458030a4bfe6b6cc55d1e5e441745c29b947",
         "migrations/036_channel_post_member_delivery.sql"=>"1bda463e52b33130ad12752ddef4ee5c92699c05",
         "migrations/040_channel_post_reconciliation.sql"=>"0f24b838eacd45333c5ade9a2991d060488c6035",
