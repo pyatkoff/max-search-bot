@@ -74,6 +74,28 @@ function fixture({reply=accepted,http=200,networkError=false,counter='',clientId
     assert.deepEqual(f.opened,[{url:telegramReply.redirect_url,decoded:true}]);
     assert.deepEqual(f.timeline.slice(0,3),['address','init','getClientID']);
   });
+  const hostedApplePage='https://tg.rhat.ru/tgminiapple/';
+  const hostedAppleLaunch=hostedApplePage+'?'+new URLSearchParams({tgWebAppStartParam:telegramStart});
+  f=fixture({...telegramOptions,pageHref:hostedAppleLaunch,reply:telegramReply});
+  await P.start(f.win);
+  check('AppleService39 captures on the Telegram Mini App host before opening a post',()=>{
+    const tracked=new URL(f.metricUrls[0]);
+    assert.equal(tracked.origin+tracked.pathname,hostedApplePage);
+    assert.equal(tracked.searchParams.get('yclid'),'18446744073709551614');
+    assert.equal(tracked.searchParams.has('tgWebAppStartParam'),false);
+    assert.equal(tracked.searchParams.has('project'),false);
+    assert.equal(f.requests[0].url,hostedApplePage);
+    assert.equal(f.requests[0].body.init_data,telegramInit);
+    assert.deepEqual(f.opened,[{url:telegramReply.redirect_url,decoded:true}]);
+    assert.deepEqual(f.timeline.slice(0,3),['address','init','getClientID']);
+  });
+  f=fixture({...telegramOptions,pageHref:hostedApplePage+'?tgWebAppStartParam=post1_menu',reply:telegramReply});
+  await P.start(f.win);
+  check('conflicting Telegram URL hint cannot start Metrika or save a visit',()=>{
+    assert.equal(f.metrics.length,0);
+    assert.equal(f.requests.length,0);
+    assert.equal(f.opened.length,0);
+  });
   f=fixture({...telegramOptions,reply:{...telegramReply,receipt:accepted.receipt}});
   await P.start(f.win);
   check('Telegram does not open the post for a MAX receipt',()=>{assert.deepEqual(f.opened,[]);assert.deepEqual(f.assigned,[]);});

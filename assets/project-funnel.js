@@ -25,10 +25,13 @@
     const init_data=a||b,signed=init_data?unique(init_data):new Map();
     if(!init_data)return{init_data:'',start_param:'',payload:parse(''),clean:url.origin+url.pathname,metric:''};
     const start_param=signed.get('start_param')??signed.get('startapp')??'';
-    const hints=[];for(const src of[signed,q,h])for(const k of['start_param','startapp','WebAppStartParam','start'])if(src.has(k))hints.push(src.get(k));
+    const hintKeys=['start_param','startapp','WebAppStartParam','start'];
+    if(platform==='telegram')hintKeys.push('tgWebAppStartParam');
+    const hints=[];for(const src of[signed,q,h])for(const k of hintKeys)if(src.has(k))hints.push(src.get(k));
     if(hints.some(v=>v!==start_param))throw Error('conflict');
-    const payload=parse(start_param),clean=new URL(url.origin+url.pathname);clean.searchParams.set('project',q.get('project')||'');
-    if(platform==='telegram')clean.searchParams.set('platform','telegram');
+    const payload=parse(start_param),clean=new URL(url.origin+url.pathname);
+    if(platform!=='telegram'||q.has('project'))clean.searchParams.set('project',q.get('project')||'');
+    if(platform==='telegram'&&q.has('platform'))clean.searchParams.set('platform','telegram');
     const metric=new URL(clean);if(payload.kind==='advertising')for(const[k,v]of Object.entries({yclid:payload.yclid,region:payload.region,campaign:payload.campaign}))metric.searchParams.set(k,v);
     return{init_data,start_param,payload,clean:clean.href,metric:metric.href};
   }
