@@ -1,4 +1,4 @@
-name: "Read hotel candidates in the main-channel registry and MAX history"
+name: "Read existing generic posts and the exact hotel source photos"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,7 +13,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '91861e55577537eca54b978843f3178ddcaf3255' &&
+      github.event.before == '899805707a518b9897f127b27f2080fa5deec5e9' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 7
@@ -30,8 +30,100 @@ jobs:
           ini_set('display_errors', '0');
           ini_set('log_errors', '0');
           $installed = '9b1e17f94f39d8d2cc6260a9a6f45b1d1f38bb3e';
+          function at1566Require(bool $valid, string $reason): void
+          {
+              if (!$valid) throw new RuntimeException($reason);
+          }
+          
+          function at1566Json(array $value): string
+          {
+              return json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+          }
+          
+          function at1566Sha(string $value): string
+          {
+              return hash('sha256', $value);
+          }
+          
+          function at1566Http(string $url): array
+          {
+              $body = '';
+              $handle = curl_init($url);
+              at1566Require($handle !== false, 'http_unavailable');
+              $options = [
+                  CURLOPT_FOLLOWLOCATION => false, CURLOPT_SSL_VERIFYPEER => true, CURLOPT_SSL_VERIFYHOST => 2,
+                  CURLOPT_CONNECTTIMEOUT => 5, CURLOPT_TIMEOUT => 18, CURLOPT_USERAGENT => 'Mozilla/5.0',
+                  CURLOPT_WRITEFUNCTION => static function ($unused, string $chunk) use (&$body): int {
+                      if (strlen($body) + strlen($chunk) > 1_000_000) return 0;
+                      $body .= $chunk;
+                      return strlen($chunk);
+                  },
+              ];
+              curl_setopt_array($handle, $options);
+              $ok = curl_exec($handle) !== false && curl_errno($handle) === 0;
+              $status = (int) curl_getinfo($handle, CURLINFO_HTTP_CODE);
+              curl_close($handle);
+              return [$ok, $status, $body];
+          }
+          
+          function at1566Widget(string $message): array
+          {
+              $url = 'https://t.me/anytour/' . $message;
+              [$ok, $status, $raw] = at1566Http($url . '?embed=1&mode=tme');
+              at1566Require($ok && $status === 200, 'public_post_unavailable');
+              $doc = new DOMDocument('1.0', 'UTF-8');
+              $prior = libxml_use_internal_errors(true);
+              try {
+                  $loaded = $doc->loadHTML($raw, LIBXML_NONET);
+              } finally {
+                  libxml_clear_errors();
+                  libxml_use_internal_errors($prior);
+              }
+              at1566Require($loaded, 'invalid_public_post');
+              $xpath = new DOMXPath($doc);
+              $base = $xpath->query('//*[@data-post="anytour/' . $message . '"]');
+              at1566Require($base !== false && $base->length === 1, 'public_post_identity_changed');
+              $element = $base->item(0);
+              $class = static fn(string $value): string => 'contains(concat(" ",normalize-space(@class)," ")," ' . $value . ' ")';
+              $caption = $xpath->query('.//*[' . $class('tgme_widget_message_text') . ']', $element);
+              $photos = $xpath->query('.//*[' . $class('tgme_widget_message_photo_wrap') . ']', $element);
+              $dates = $xpath->query('.//time[@datetime]', $element);
+              $excluded = $xpath->query('.//video|.//audio|.//*[' . $class('tgme_widget_message_video_thumb')
+                  . ' or ' . $class('tgme_widget_message_roundvideo') . ' or ' . $class('tgme_widget_message_grouped') . ']', $element);
+              at1566Require($caption && $photos && $dates && $excluded && $caption->length === 1 && $photos->length === 1
+                  && $dates->length === 1 && $excluded->length === 0, 'old_post_is_not_single_photo');
+              $photo = $photos->item(0);
+              $marker = trim($photo->getAttribute('class'));
+              at1566Require($photo->getAttribute('href') === $url && str_contains($photo->getAttribute('style'), 'background-image')
+                  && preg_match('/(?:^|\s)[0-9]{5,}(?:_[0-9]+)?(?:\s|$)/D', $marker) === 1, 'photo_marker_unavailable');
+              $html = '';
+              foreach ($caption->item(0)->childNodes as $child) $html .= $doc->saveHTML($child);
+              $text = html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i', "\n", $html)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+              at1566Require(is_string($text) && $text !== '' && mb_check_encoding($text, 'UTF-8'), 'caption_unavailable');
+              return [
+                  'published_unixtime' => (new DateTimeImmutable($dates->item(0)->getAttribute('datetime')))->getTimestamp(),
+                  'caption' => $text, 'caption_sha256' => at1566Sha($text), 'html_sha256' => at1566Sha($html),
+                  'photo_marker_sha256' => at1566Sha($marker), 'url' => $url,
+              ];
+          }
+          
+          function at1566PublicationForMessage(PDO $pdo, ChannelPostRegistryService $registry, int $channel, string $message): ?array
+          {
+              $query = $pdo->prepare('SELECT id FROM post_publications WHERE post_channel_id=? AND external_message_id=?');
+              $query->execute([$channel, $message]);
+              $id = (int) $query->fetchColumn();
+              $query->closeCursor();
+              return $id > 0 ? $registry->publication($id) : null;
+          }
+          
+          function genericPromotion(string $text): bool {
+              return mb_strlen($text) >= 75
+                  && preg_match('/(?:горящ|подборк|туры в|туры на|пут[её]вк|предложени)/iu', $text) === 1
+                  && preg_match('/(?:отзыв|видео|кружок|конкурс|розыгрыш|реквизит|важн(?:ая|ое)\s+информац|официальн)/iu', $text) === 0
+                  && preg_match('/(?:RUB|₽|рубл|тысяч|пут[её]вк|отелей)/iu', $text) === 1;
+          }
           $targets = json_decode(<<<'JSON'
-          {"218":{"aliases":["Four Seasons Resort Sharm","Four Seasons Sharm","Фор Сизонс Шарм"]},"240":{"aliases":["Happy Life Village Dahab","Happy Life Village","Хэппи Лайф"]},"253":{"aliases":["Safir Sharm Waterfalls","Sharm Waterfalls","Сафир Шарм"]},"325":{"aliases":["Minamark Resort","Minamark","Минамарк"]},"341":{"aliases":["Nubian Village","Нубиан Вилладж"]},"352":{"aliases":["Parrotel Aqua Park","Парротель Аква Парк"]},"358":{"aliases":["Rixos Sharm El Sheikh","Rixos Sharm","Риксос Шарм"]},"386":{"aliases":["Monte Carlo Sharm","Monte Carlo Resort","Монте Карло Шарм"]},"393":{"aliases":["Pickalbatros Royal Grand","Royal Grand Sharm","Albatros Royal Grand","Роял Гранд"]},"408":{"aliases":["Savoy Sharm El Sheikh","Savoy Sharm","Savoy Group","Савой Шарм"]},"418":{"aliases":["SRNTY Sea Reef","Serenity Sea Reef","Serenity Makadi Beach","Серенити Макади"]},"466":{"aliases":["Stella Beach Resort","Stella Di Mare Beach Resort Makadi","Стелла Бич Макади"]},"547":{"aliases":["Anantara Mai Khao","Анантара Май Као"]},"800":{"aliases":["Sugar Marina Resort Art Karon","Sugar Marina Art","Sugar Marina Resort - ART","Sugar Marina Resort ART Karon","Шугар Марина Арт"]},"949":{"aliases":["Adam & Eve","Adam and Eve","Adam&Eve","Адам и Ева"]},"1074":{"aliases":["Gural Premier Belek","Güral Premier Belek","Гюрал Премьер Белек"]},"1260":{"aliases":["IC Hotels Santai","IC Santai","Сантай"]},"1569":{"aliases":["Utopia World","Утопия Ворлд"]},"1972":{"aliases":["Moreno Horizon","Морено Горизонт"]},"2575":{"aliases":["Rixos Al Mairid","Rixos Al Mairid Ras Al Khaimah","Риксос Аль Майрид"]},"4079":{"aliases":["Sunny Beach Resort","Санни Бич Резорт"]},"7458":{"aliases":["Four Seasons Resort The Nam Hai","Nam Hai","Нам Хай"]},"12125":{"aliases":["OZEN Reserve Bolifushi","Bolifushi","Болифуши"]},"14140":{"aliases":["Stella Makadi Gardens","Stella Gardens Resort","Стелла Макади Гарденс"]},"15693":{"aliases":["The Makadi Spa","Makadi Spa","Макади Спа"]},"17595":{"aliases":["Ramada Resort Lara","Ramada Lara","Рамада Лара"]},"24909":{"aliases":["Graceland Khao Lak","Graceland","Грейсленд"]},"28581":{"aliases":["Ma Biche Kemer","Ma Biche","Ma Biche by Werde","Ма Бич"]},"32342":{"aliases":["Vinpearl Resort & Spa Phu Quoc","Vinpearl Phu Quoc","Винперл Фукуок"]},"41149":{"aliases":["Vinpearl Resort & Spa Nha Trang Bay","Vinpearl Resort Nha Trang Bay","Nha Trang Bay","Винперл Нячанг Бэй"]},"50869":{"aliases":["Riu Sri Lanka","Риу Шри-Ланка"]},"55574":{"aliases":["Pickalbatros White Beach Resort","White Beach Resort","Альбатрос Вайт Бич"]},"57028":{"aliases":["Pickalbatros Aqua Park Sharm","Albatros Aqua Park Sharm","Aqua Park Sharm","Альбатрос Аква Парк"]},"65877":{"aliases":["Vesna Hotel","Vesna Beach","Весна Отель"]},"67910":{"aliases":["Rixos Premium Magawish","Magawish","Риксос Магавиш"]},"73343":{"aliases":["The Grand Palace","Гранд Палас"]},"80964":{"aliases":["Meraki Sharm","Meraki Resort Sharm","Мераки Шарм"]},"132016":{"aliases":["Voyage Kundu","Вояж Кунду"]}}
+          [[253,"Safir Sharm Waterfalls Resort","AaGjSa3TJ40","144"],[218,"Four Seasons Resort Sharm El Sheikh","AaHlgTBdBoI","673"],[12125,"OZEN Reserve Bolifushi","AaHkMMxScBw","626"],[547,"Anantara Mai Khao Phuket Villas","AaHkMLgMGpU","624"],[1074,"Gural Premier Belek","AaG1yNfoLas","189"],[240,"Happy Life Village Dahab","AaGa3G0Ba0I","22"],[325,"Minamark Resort & Spa","AaHTI-iFZ5E","599"],[418,"SRNTY Sea Reef","AaHRceBGDBw","566"],[4079,"Sunny Beach Resort","AaG38IYfRTk","498"],[28581,"Ma Biche Kemer","AaG3AEh9LSA","326"],[341,"Nubian Village","AaG2y39LWpo","298"],[352,"Parrotel Aqua Park Resort","AaG3GJ5uQ8w","346"],[132016,"Voyage Kundu","AaHQYu_Vdyw","550"]]
           JSON, true, 16, JSON_THROW_ON_ERROR);
           
           $result = ['issue'=>1566, 'ok'=>false, 'production_writes'=>0, 'ad_clicks'=>0, 'bot_starts'=>0];
@@ -49,7 +141,7 @@ jobs:
               } finally {
                   ob_end_clean();
               }
-              if (ProjectConfig::projectId() !== 'anytour' || count($targets) !== 38) {
+              if (ProjectConfig::projectId() !== 'anytour' || count($targets) !== 13) {
                   throw new RuntimeException();
               }
               $pdo = ConversationDb::connection();
@@ -66,55 +158,74 @@ jobs:
               if (!is_array($maxChannel) || (int) $maxChannel['id'] !== 4 || !is_array($tgChannel) || (int) $tgChannel['id'] !== 6) {
                   throw new RuntimeException();
               }
-              $stage = 'read_main_registry';
-              $query = $pdo->prepare(
-                  "SELECT p.post_channel_id, p.external_message_id, v.state,
-                          JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id')) AS hotel_id,
-                          JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.logical_id')) AS logical_id,
-                          JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.text')) AS caption
-                    FROM post_publications p
-                    JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id
-                   WHERE p.post_channel_id IN (4,6,9,10) ORDER BY p.id LIMIT 10001"
-              );
-              $query->execute();
-              $result['registry'] = array_fill_keys(array_keys($targets), []);
-              $result['registry_counts'] = [4=>0, 6=>0, 9=>0, 10=>0];
-              $totalRows = 0;
-              while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
-                  if (++$totalRows > 10000) {
-                      throw new RuntimeException();
+              $stage = 'read_exact_rows';
+              $q = $pdo->prepare('SELECT id FROM post_publications WHERE post_channel_id=? AND external_message_id=? LIMIT 2');
+              $lookup = static function (int $channel, string $message) use ($q): array {
+                  $q->execute([$channel, $message]);
+                  $rows = $q->fetchAll(PDO::FETCH_COLUMN);
+                  $q->closeCursor();
+                  return $rows;
+              };
+              foreach ($targets as [$id, $name, $slug, $telegramMid]) {
+                  $rows = [];
+                  $binary = base64_decode(strtr($slug, '-_', '+/'), true);
+                  at1566Require($binary !== false && strlen($binary) === 8, 'invalid_max_source_slug');
+                  $maxMid = 'mid.' . bin2hex(pack('J', -80492244209683)) . bin2hex($binary);
+                  foreach ([9=>[$maxMid, 'https://max.ru/channel_anytour/' . $slug], 10=>[$telegramMid, 'https://t.me/any_toour/' . $telegramMid]] as $channelId => [$mid, $url]) {
+                      $found = $lookup($channelId, $mid);
+                      $post = count($found) === 1 ? $registry->publication((int)$found[0]) : null;
+                      $s = $post['snapshot'] ?? [];
+                      $m = $s['attachments'] ?? [];
+                      $typed = (int) ($s['metadata']['hotel_catalog_id'] ?? 0);
+                      $caption = (string) ($s['text'] ?? '');
+                      $rows[$channelId] = [
+                          'id'=>$post['publication_id'] ?? null, 'version'=>$post['version_id'] ?? null,
+                          'hash'=>$post['content_hash'] ?? null, 'state'=>$post['state'] ?? null, 'typed_id'=>$typed,
+                          'url'=>$s['post_url'] ?? null, 'mid'=>$mid, 'caption'=>mb_substr($caption, 0, 1900),
+                          'image'=>count($m) === 1 && ($m[0]['type'] ?? '') === 'image',
+                          'photo_reusable'=>count($m) === 1 && !empty($m[0][$channelId === 9 ? 'token' : 'telegram_file_id']),
+                          'source_match'=>($s['post_url'] ?? null) === $url && ($typed === 0 || $typed === $id)
+                              && mb_stripos(mb_substr($caption, 0, 150), $name) !== false,
+                      ];
                   }
-                  $channel = (int) $row['post_channel_id'];
-                  ++$result['registry_counts'][$channel];
-                  $mid = (string) $row['external_message_id'];
-                  if ($row['state'] !== 'sent' || !preg_match('/\A[A-Za-z0-9_.-]{1,191}\z/D', $mid)) {
-                      continue;
-                  }
-                  $typed = (int) $row['hotel_id'];
-                  $caption = (string) $row['caption'];
-                  foreach ($targets as $id => $target) {
-                      $exact = $typed === $id || $row['logical_id'] === 'commercial-hotel-' . $id . '-v1';
-                      $hasName = false;
-                      foreach ($target['aliases'] as $alias) {
-                          if (mb_stripos($caption, $alias, 0, 'UTF-8') !== false) {
-                              $hasName = true;
-                              break;
-                          }
-                      }
-                      if ($exact || $hasName) {
-                          $result['registry'][$id][] = [
-                              'channel'=>$channel, 'message_id'=>$mid, 'typed_id'=>$typed, 'exact'=>$exact
-                          ];
-                      }
-                  }
+                  $result['sources'][$id] = $rows;
               }
-              $query->closeCursor();
               $pdo->rollBack();
               $result['installed_sha'] = $installed;
               $result['read_at_utc'] = gmdate(DATE_ATOM);
+              $result['max_targets'] = [];
+              $result['tg_targets'] = [];
+              $result['tg_history'] = [];
+              $stage = 'telegram_public_history';
+              foreach ([220,420,620,830,1030,1220,1410,1550] as $before) {
+                  [$pass, $http, $body] = at1566Http('https://t.me/s/anytour?before=' . $before);
+                  $result['tg_history'][$before] = $http;
+                  if (!$pass || $http !== 200) continue;
+                  $doc = new DOMDocument('1.0','UTF-8');
+                  libxml_use_internal_errors(true);
+                  $parsed = $doc->loadHTML($body, LIBXML_NONET);
+                  libxml_clear_errors();
+                  if (!$parsed) continue;
+                  $xp = new DOMXPath($doc);
+                  foreach ($xp->query('//*[@data-post]') as $post) {
+                      if (!preg_match('~^anytour/([1-9][0-9]+)$~D', $post->getAttribute('data-post'), $m)) continue;
+                      $mid = $m[1];
+                      if (isset($result['tg_targets'][$mid])) continue;
+                      $caption = $xp->query('.//*[contains(@class,"tgme_widget_message_text")]', $post)->item(0);
+                      $t = $caption ? $caption->textContent : '';
+                      if (!genericPromotion($t) || $lookup(6, $mid)) continue;
+                      if (count($result['tg_targets']) >= 45) break 2;
+                      try {
+                          $candidate = at1566Widget($mid);
+                          if ($candidate['published_unixtime'] > strtotime('2026-06-01T00:00:00Z')) continue;
+                          if (!genericPromotion($candidate['caption'])) continue;
+                          $candidate['caption'] = mb_substr($candidate['caption'], 0, 850);
+                          $result['tg_targets'][$mid] = $candidate;
+                      } catch (Throwable) {}
+                  }
+              }
 
               $stage = 'max_history';
-              $mainMatches = array_fill_keys(array_keys($targets), []);
               $seen = [];
               $before = (int) ceil(microtime(true) * 1000);
               $complete = false;
@@ -162,25 +273,17 @@ jobs:
                           $slug = rtrim(strtr(base64_encode(hex2bin(substr($messageId, -16))), '+/', '-_'), '=');
                           $url = 'https://max.ru/anytour/' . $slug;
                       }
-                      foreach ($targets as $hotelId => $target) {
-                          $foundAt = false;
-                          foreach ($target['aliases'] as $alias) {
-                              $foundAt = mb_stripos($text, $alias, 0, 'UTF-8');
-                              if ($foundAt !== false) {
-                                  break;
-                              }
-                          }
-                          if ($foundAt === false || count($mainMatches[$hotelId]) > 29) {
-                              continue;
-                          }
-                          $mainMatches[$hotelId][] = [
-                              'url'=>$url, 'message_id'=>$messageId, 'published_ms'=>(int) $timestamp,
+                      $a = $snapshot['attachments'] ?? [];
+                      if ((int)$timestamp > strtotime('2026-06-01T00:00:00Z') * 1000
+                          || ($snapshot['metadata']['capability'] ?? '') !== 'supported' || count($a) !== 1
+                          || ($a[0]['provider'] ?? '') !== 'max' || ($a[0]['type'] ?? '') !== 'image'
+                          || empty($a[0]['photo_id']) || !empty($snapshot['keyboard']) || !empty($message['link'])
+                          || !genericPromotion($text) || $lookup(4, $messageId)) continue;
+                      if (count($result['max_targets']) < 70) {
+                          $result['max_targets'][] = [
+                              'url'=>$url,'mid'=>$messageId,'ms'=>(int)$timestamp,
                               'fingerprint'=>ChannelPostIncomingAdapter::contentFingerprint($snapshot),
-                              'headline'=>mb_substr(preg_replace('/\s+/u', ' ', $text), 0, 100, 'UTF-8'),
-                              'matched_excerpt'=>mb_substr($text, max(0, $foundAt - 30), 120, 'UTF-8'),
-                              'supported'=>$snapshot['metadata']['capability'] === 'supported',
-                              'media_types'=>array_column($snapshot['attachments'], 'type'),
-                              'has_keyboard'=>!empty($snapshot['keyboard']),
+                              'caption'=>mb_substr($text, 0, 850),
                           ];
                       }
                   }
@@ -194,7 +297,7 @@ jobs:
                   }
                   $before = $last;
               }
-              $result['history'] = ['pages'=>$pages, 'visible_messages'=>count($seen), 'complete'=>$complete, 'unparsed_bodies'=>$unreadableBodies, 'candidates'=>$mainMatches];
+              $result['history'] = ['pages'=>$pages, 'visible_messages'=>count($seen), 'complete'=>$complete, 'unparsed_bodies'=>$unreadableBodies];
               $result['ok'] = $complete && $unreadableBodies === 0;
           } catch (Throwable) {
               if (isset($pdo) && $pdo->inTransaction()) {
@@ -250,12 +353,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); assert d["ok"]; print({"history":{k:v for k,v in d["history"].items() if k!="candidates"}, "candidate_counts":{k:len(v) for k,v in d["history"]["candidates"].items()}, "registry_counts":d["registry_counts"]})'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); assert d["ok"]; print({k:len(d[k]) for k in ("sources","max_targets","tg_targets")})'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: hotel-main-channel-priority-read-20261119
+          name: hotel-reuse-photo-preflight-20261119
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
