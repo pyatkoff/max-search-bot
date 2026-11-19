@@ -69,7 +69,7 @@ final class AppleService39CoveragePublisher
     {
         return in_array($reason, [
             'awaiting_create_id','device_candidate_ambiguous','device_observation_unavailable','provider_read_unknown',
-            'provider_create_unknown','provider_create_rejected','provider_attachment_not_ready','provider_create_identity_mismatch',
+            'provider_create_unknown','provider_create_http_4xx','provider_attachment_not_ready','provider_create_identity_mismatch',
             'post_readback_mismatch','post_attachment_mismatch','post_button_mismatch','native_post_url_required','post_url_changed',
             'coverage_image_changed','coverage_native_image_evidence_required','invalid_coverage_image_receipt',
             'pilot_provider_identity_collision','image_receipt_storage_unknown','provider_receipt_storage_unknown',
@@ -81,7 +81,7 @@ final class AppleService39CoveragePublisher
     {
         self::check($this->device() && $row['post_key'] === AppleService39DeviceRevision::POSTS[0]
             && $row['operation'] === 'create' && in_array($row['state'], ['write_started','unknown'], true)
-            && (int)$row['write_attempts'] === 1 && empty($row['external_message_id']), 'device_recovery_ineligible');
+            && (int)$row['write_attempts'] === 1, 'device_recovery_ineligible');
         $started = (int)$row['started_ms'];
         $wire = $this->transport->messagesAroundClaim($started);
         $messages = $wire['data']['messages'] ?? null;
@@ -99,12 +99,14 @@ final class AppleService39CoveragePublisher
         }
         self::check(count($candidates) <= 1, 'device_candidate_ambiguous');
         self::check(count($candidates) === 1, 'awaiting_create_id');
+        self::check(empty($row['external_message_id']) || $row['external_message_id'] === $candidates[0],
+            'device_candidate_ambiguous');
         // The separate GET by MID must still prove the exact original upload token.
         return $candidates[0];
     }
 
     /** Exact GET and original POST/token witness, never photo ID alone. */
-    private function native(array $row, array $parent): array
+    private function native(array $row, array $parent, ?array &$content = null): array
     {
         $r = $row['request']; $mid = $row['external_message_id'];
         self::check(is_string($mid) && preg_match('/\A[A-Za-z0-9_.-]{1,191}\z/D', $mid) === 1, 'coverage_operation_held');
@@ -120,6 +122,7 @@ final class AppleService39CoveragePublisher
         $plan = ['body'=>$body, 'native_text'=>$r['native_text'], 'native_markup'=>$r['native_markup']];
         $url = $this->call('verify', $message, $mid, $body, $plan);
         self::check(in_array($row['public_url'], [null,'',$url], true), 'post_url_changed');
+        $content = ['url'=>$url, 'timestamp'=>$message['timestamp'] ?? null];
         $photo = $this->call('photo', $message);
         self::check($this->validPhoto($photo), 'coverage_image_changed');
         $saved = $row['outcome']['image_receipt'] ?? null;
@@ -137,6 +140,24 @@ final class AppleService39CoveragePublisher
         }
         if ($saved !== null) self::check($saved === $receipt, 'invalid_coverage_image_receipt');
         return [$url, $receipt];
+    }
+
+    private static function withinClaim(?array $content, array $row): bool
+    {
+        $time = $content['timestamp'] ?? null;
+        return is_int($time) && abs($time - (int)$row['started_ms']) <= 60000;
+    }
+
+    private static function devicePublicUrl($url): bool
+    {
+        return is_string($url) && preg_match('~\Ahttps://max\.ru/channel_appleservice39ru/[A-Za-z0-9_-]{1,191}\z~D', $url) === 1;
+    }
+
+    private function recordedDeviceMessage(?array $row): array
+    {
+        $mid = $row['external_message_id'] ?? null;
+        return ['mid'=>is_string($mid) && preg_match('/\A[A-Za-z0-9_.-]{1,191}\z/D', $mid) ? $mid : null,
+            'url'=>self::devicePublicUrl($row['public_url'] ?? null) ? $row['public_url'] : null];
     }
 
     private function snapshot(bool $reconcile = false, bool $observeOriginal = false): array
@@ -158,29 +179,52 @@ final class AppleService39CoveragePublisher
                 && $row['request'] === $this->request($row['post_key'], $row['operation'])
                 && $row['payload_sha256'] === self::hash($row['request']), 'coverage_revision_changed');
         }
-        $devicePhotos = []; $operations = [];
+        $devicePhotos = []; $operations = []; $candidates = []; $recorded = [];
         foreach ($this->revision->order() as $id) {
             $row = $this->store->operation($id, 'create');
             if ($this->device()) {
+                $recorded[$id] = $this->recordedDeviceMessage($row);
                 $operations[$id] = ['state'=>$row['state'] ?? 'absent', 'write_attempts'=>(int)($row['write_attempts'] ?? 0),
                     'mid_present'=>!empty($row['external_message_id']), 'image_receipt_present'=>isset($row['outcome']['image_receipt']),
                     'reason'=>'not_attempted', 'observed_url'=>null];
             }
             if ($row === null || $row['state'] === 'prepared') continue;
-            $read = $row;
+            $read = $row; $content = null; $listedMid = null;
             try {
                 if ($this->device() && empty($read['external_message_id'])) {
                     self::check($observeOriginal && $id === AppleService39DeviceRevision::POSTS[0], 'awaiting_create_id');
-                    $read['external_message_id'] = $this->originalDeviceCandidate($row);
+                    $listedMid = $this->originalDeviceCandidate($row);
+                    $read['external_message_id'] = $listedMid;
                 }
-                [$url, $receipt] = $this->native($read, $parent);
+                [$url, $receipt] = $this->native($read, $parent, $content);
+                if ($listedMid !== null) self::check(self::withinClaim($content, $row), 'device_observation_unavailable');
             } catch (RuntimeException $error) {
                 if ($row['state'] === 'verified') throw $error;
                 if ($this->device()) {
                     $reason = self::deviceReason($error->getMessage());
                     if ($reason === 'awaiting_create_id' && isset($row['outcome']['reason'])
-                        && in_array($row['outcome']['reason'], ['provider_create_rejected','provider_attachment_not_ready',
+                        && in_array($row['outcome']['reason'], ['provider_create_http_4xx','provider_attachment_not_ready',
                             'provider_create_identity_mismatch'], true)) $reason = $row['outcome']['reason'];
+                    if ($observeOriginal && $id === AppleService39DeviceRevision::POSTS[0]
+                        && $reason === 'coverage_native_image_evidence_required' && self::withinClaim($content, $row)) {
+                        // This public candidate has no image witness; it can never feed reconciliation or the published map.
+                        try {
+                            $listedMid ??= $this->originalDeviceCandidate($row);
+                            $candidateUrl = $content['url'];
+                            self::check($listedMid === $read['external_message_id'] && self::devicePublicUrl($candidateUrl)
+                                && !isset($parent['mids'][$listedMid]) && !in_array($candidateUrl, $addresses, true),
+                                'pilot_provider_identity_collision');
+                            foreach ($this->store->rows() as $other) {
+                                if ((int)$other['id'] === (int)$row['id']) continue;
+                                self::check($other['external_message_id'] !== $listedMid && $other['public_url'] !== $candidateUrl,
+                                    'pilot_provider_identity_collision');
+                            }
+                            $candidates[$id] = ['status'=>'native_content_photo_unverified', 'url'=>$candidateUrl];
+                        } catch (RuntimeException $candidateError) {
+                            $reason = self::deviceReason($candidateError->getMessage());
+                            if ($reason === 'device_observation_unavailable') throw $candidateError;
+                        }
+                    }
                     $operations[$id]['reason'] = $reason;
                     if ($observeOriginal && in_array($reason, ['device_observation_unavailable','provider_read_unknown'], true)) throw $error;
                 }
@@ -207,6 +251,7 @@ final class AppleService39CoveragePublisher
                 $row = $this->store->operation($id, 'create');
             }
             if ($this->device()) {
+                $recorded[$id] = $this->recordedDeviceMessage($row);
                 $operations[$id] = ['state'=>$row['state'], 'write_attempts'=>(int)$row['write_attempts'],
                     'mid_present'=>!empty($row['external_message_id']), 'image_receipt_present'=>isset($row['outcome']['image_receipt']),
                     'reason'=>'native_verified', 'observed_url'=>$url];
@@ -236,7 +281,7 @@ final class AppleService39CoveragePublisher
             if (in_array($row['state'], ['write_started','unknown','rejected'], true)) $held++;
         }
         return ['parent'=>$parent, 'addresses'=>$addresses, 'verified'=>$verified, 'menu_verified'=>$menu !== null && $menu['state'] === 'verified', 'held'=>$held,
-            'device_photos'=>$devicePhotos, 'operations'=>$operations];
+            'device_photos'=>$devicePhotos, 'operations'=>$operations, 'candidates'=>$candidates, 'recorded_messages'=>$recorded];
     }
 
     private function hold(array $row, Throwable $error): void
@@ -311,7 +356,7 @@ final class AppleService39CoveragePublisher
                     $reason = 'provider_create_unknown';
                     if (empty($response['transport_error']) && $http >= 400 && $http < 500) {
                         $reason = ($response['data']['code'] ?? null) === 'attachment.not.ready'
-                            ? 'provider_attachment_not_ready' : 'provider_create_rejected';
+                            ? 'provider_attachment_not_ready' : 'provider_create_http_4xx';
                     }
                     throw new RuntimeException($reason);
                 }
@@ -376,6 +421,7 @@ final class AppleService39CoveragePublisher
         $published = array_intersect_key($snapshot['addresses'],array_flip($this->revision->order()));
         return ['ok'=>$mode === 'device_observe' || $snapshot['held'] === 0,
             'state'=>$snapshot['held'] === 0 ? $mode.'_complete' : 'held', 'operations'=>$snapshot['operations'],
+            'recorded_messages'=>$snapshot['recorded_messages'], 'candidates'=>$snapshot['candidates'],
             'revision'=>AppleService39DeviceRevision::KEY, 'revision_sha256'=>$this->revision->sha256(),
             'verified_posts'=>count($published), 'published'=>$published, 'held_operations'=>$snapshot['held'],
             'device_publication_complete'=>$snapshot['held'] === 0 && count($published) === count($this->revision->order())];

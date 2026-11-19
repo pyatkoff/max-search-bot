@@ -94,7 +94,7 @@ function as39DeviceMaintainedParents(array $fixture): void
 /** Exercise the original missing-MID claim on separate copies of the same prepared packet. */
 function as39DeviceResumeAfterLostCreate(array $seed, string $first): void
 {
-    foreach (['exact_match','no_match','second_hold'] as $case) {
+    foreach (['exact_match','no_match','second_hold','ambiguous','rotated_token','failed_list','truncated_list'] as $case) {
         [$pdo,$provider,$store] = as39SearchClone($seed);
         $original = $store->operation($first,'create');
         $timestamp = (int)$original['started_ms'];
@@ -105,6 +105,16 @@ function as39DeviceResumeAfterLostCreate(array $seed, string $first): void
             && $original['external_message_id'] === null, 'the first POST lost its acknowledgement but has a native synthetic message');
         $mid = $native[0]['body']['mid'];
         $provider->messages[$mid]['timestamp'] = $timestamp;
+        $uploadToken = $store->operation($first,AppleService39DeviceRevision::UPLOAD)['outcome']['token'];
+        as39Expect($provider->messages[$mid]['body']['attachments'][0]['payload']['token'] === $uploadToken
+            && hash('sha256',$uploadToken) === $original['request']['upload_token_sha256'],
+            'the synthetic list and native GET begin with the original claimed source token');
+        if ($case === 'ambiguous') {
+            $duplicate = $provider->messages[$mid];
+            $duplicate['body']['mid'] = 'mid_other_match';
+            $duplicate['url'] = 'https://max.ru/channel_appleservice39ru/other_match';
+            $provider->messages['mid_other_match'] = $duplicate;
+        }
         $listed = 0; $posts = []; $wire = as39SearchWire($provider);
         $resumeWire = static function (array $request) use ($wire,$provider,$store,$case,$mid,&$listed,&$posts): array {
             $path = parse_url($request['url'], PHP_URL_PATH);
@@ -121,9 +131,27 @@ function as39DeviceResumeAfterLostCreate(array $seed, string $first): void
                         && ($query['to'] ?? null) === (string)((int)$t-60000))) > 0,
                     'native list is restricted to the original claim time in milliseconds and its channel');
                 $listed++;
-                return ['http'=>200,'transport_error'=>false,'data'=>['messages'=>$case === 'exact_match' ? [$provider->messages[$mid]] : []]];
+                if ($case === 'failed_list') return ['http'=>503,'transport_error'=>false,'data'=>null];
+                $messages = [];
+                if ($case === 'truncated_list') {
+                    for ($n=0; $n<100; $n++) {
+                        $message = $provider->messages[$mid];
+                        $message['body']['mid'] = 'mid_page_'.$n;
+                        $message['url'] = 'https://max.ru/channel_appleservice39ru/page_'.$n;
+                        $messages[] = $message;
+                    }
+                } elseif ($case === 'ambiguous') {
+                    $messages = [$provider->messages[$mid],$provider->messages['mid_other_match']];
+                } elseif ($case === 'exact_match' || $case === 'rotated_token') {
+                    $messages = [$provider->messages[$mid]];
+                }
+                return ['http'=>200,'transport_error'=>false,'data'=>['messages'=>$messages]];
             }
             $response = $wire($request);
+            if ($case === 'rotated_token' && $request['method'] === 'GET' && $path === '/messages/'.$mid) {
+                // The list still matches. Only the independent readback reveals the changed image witness.
+                $response['data']['body']['attachments'][0]['payload']['token'] = 'different-fixture-token';
+            }
             if ($request['method'] === 'POST' && $path === '/messages') {
                 $posts[] = $request['body']['attachments'][1]['payload']['buttons'][0][0]['url'];
                 if ($case === 'second_hold' && count($posts) === 1) return ['http'=>0,'transport_error'=>true,'data'=>null];
@@ -132,9 +160,29 @@ function as39DeviceResumeAfterLostCreate(array $seed, string $first): void
         };
         $worker = as39SearchPublisher($pdo,$provider,$resumeWire);
         $saved = $store->rows();
+        if ($case === 'failed_list' || $case === 'truncated_list') {
+            as39Refuses(static fn()=>$worker->run('device_observe'), 'device_observation_unavailable');
+            as39Expect($listed > 0 && $posts === [] && $provider->writes() === 0 && $store->rows() === $saved,
+                $case.' cannot supply an observation or create a provider request');
+            continue;
+        }
         $observed = $worker->run('device_observe');
         $firstObservation = $observed['operations'][$first];
+        if ($case === 'ambiguous' || $case === 'rotated_token') {
+            $expectedReason = $case === 'ambiguous' ? 'device_candidate_ambiguous' : 'coverage_native_image_evidence_required';
+            $expectedCandidates = $case === 'rotated_token'
+                ? [$first=>['status'=>'native_content_photo_unverified','url'=>$native[0]['url']]] : [];
+            as39Expect($observed['candidates'] === $expectedCandidates,
+                'only a unique content match may expose the separate unverified-photo candidate link');
+            as39Expect($listed > 0 && $observed['held_operations'] === 1 && $firstObservation['state'] === 'unknown'
+                && $firstObservation['reason'] === $expectedReason && $firstObservation['observed_url'] === null
+                && !$firstObservation['mid_present'] && !$firstObservation['image_receipt_present']
+                && !isset($observed['published'][$first]) && $store->rows() === $saved && $provider->writes() === 0,
+                $case.' leaves the original create unbound and performs no native mutation');
+            continue;
+        }
         $match = $case === 'exact_match';
+        as39Expect($observed['candidates'] === [], 'a verified match or empty native window has no unverified-photo candidate');
         as39Expect($listed > 0 && $observed['ok'] && $observed['held_operations'] === 1 && $firstObservation['state'] === 'unknown'
             && $firstObservation['reason'] === ($match ? 'native_verified' : 'awaiting_create_id')
             && $firstObservation['observed_url'] === ($match ? $native[0]['url'] : null)
