@@ -1,4 +1,4 @@
-name: "Edit only Aloft after the explicit Telegram rejection and unchanged source check"
+name: "Final readback of seven Telegram posts after the Aloft API rejection"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -6,19 +6,19 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: anytour-authorized-channel-publication
+  group: anytour-issue-1566-registry-read
   cancel-in-progress: false
 jobs:
   registry:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '50f25a435916a9b535146fb0976ceeee4f184149' &&
+      github.event.before == '723c104723dc090f8ccccb94f084909a6404dd96' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 14
+    timeout-minutes: 5
     steps:
-      - name: Validate the seven exact caption plans and scoped editor
+      - name: Prepare SELECT-only program
         shell: bash
         run: |
           set -euo pipefail
@@ -29,10 +29,6 @@ jobs:
           declare(strict_types=1);
           ini_set('display_errors','0');
           ini_set('log_errors','0');
-          const INSTALLED_SHA='e262bf139da2b78623e1be3a891630fd10924180';
-          const PAYLOAD=<<<'PACKET'
-          [{"mid":1043,"hotel_id":61159,"source_mid":428,"source":{"id":951,"version":11658,"hash":"8a434f15b7133380b6249fb7cf0984dc3b1a37cc3099d1982f0648675d90b21d","state":"sent","hotel_id":61159,"url":"https://t.me/any_toour/428","media_types":["image"]},"date":"2025-03-12T13:12:05+00:00","photos":["5371031731395751709"],"caption_sha256":"dfcf39da85384b66f09589a0b0ce68bf293f1516837e8468874717cb072fb8c5","old_buttons":[{"text":"СВЯЗАТЬСЯ С МЕНЕДЖЕРОМ 📱","url":"https://t.me/AnyTour_MSK"}],"links":[{"text":"Подписаться на канал AnyTour - Горящие туры","url":"https://t.me/+gGloLUt4d8s3NDcy"}],"price":{"block":"💰 От 89 843 ₽ за двоих\n✈️ Вылет из Москвы 22.12.2026 · 5 ночей\n👥 2 взрослых\n🛏 aloft room king /twin\n🍽 Завтраки\nЦена найдена мониторингом 19.11.2026, 04:01 МСК. Стоимость и наличие могут измениться.","price":"89843","observation":"2026-11-19T04:01:00+03:00","departure":"2026-12-22"},"channel_config":2,"prefix":"Aloft Palm Jumeirah\n📍 Палм-Джумейра, Дубай\n\nРесторан на крыше с панорамным видом на Дубай и променад для прогулок. Отель располагает частной зоной пляжа примерно в 300 метрах."}]
-          PACKET;
           
           function requireEdit(bool $ok, string $reason): void {
               if (!$ok) throw new RuntimeException($reason);
@@ -131,199 +127,53 @@ jobs:
                   'media_types'=>array_column($post['snapshot']['attachments']??[],'type')];
           }
           
-          const LABEL='✈️ Рассчитать на мои даты';
-          const TARGET='-1001845835645';
-          const CHANNEL_ID=6;
-          function capture($file,array $row):void{
-              $line=json_encode($row,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).PHP_EOL;
-              requireEdit(fwrite($file,$line)===strlen($line) && fflush($file) && fsync($file),'journal_write_failed');
-          }
-          function linkEvidence(array $links):array {
-              return array_map(static fn(array $r):array=>['text'=>trim($r['text']),'url'=>$r['url']],$links);
-          }
-          function captionPlan(array $row):array {
-              $caption=trim($row['prefix']);
-              $entities=[];
-              if($row['links']) $caption.="\n\n";
-              foreach($row['links'] as $link){
-                  if($entities) $caption.=" · ";
-                  $offset=strlen(mb_convert_encoding($caption,'UTF-16LE','UTF-8'))/2;
-                  $entities[]=['type'=>'text_link','offset'=>(int)$offset,
-                      'length'=>(int)(strlen(mb_convert_encoding($link['text'],'UTF-16LE','UTF-8'))/2),'url'=>$link['url']];
-                  $caption.=$link['text'];
-              }
-              return [PromotedHotelPriceWriter::revision($caption,$row['price']['block'],true),$entities];
-          }
-          function requireFreshPrice(array $row,array $prices):void {
-              $fresh=$prices[$row['hotel_id']]??null;
-              requireEdit($fresh===$row['price'],'price_changed_or_unavailable');
-              $stamp=new DateTimeImmutable($row['price']['observation']);
-              requireEdit($stamp->getTimestamp()<=time() && time()-$stamp->getTimestamp()<129600,'price_expired');
-          }
-          function exactRegisterRow(PDO $pdo, ChannelPostRegistryService $registry,array $r):void {
-              requireEdit(fromRegistry($pdo,$registry,CHANNEL_ID,$r['mid'])===null,'target_has_a_registered_version');
-              $s=recordVersion(fromRegistry($pdo,$registry,10,$r['source_mid']));
-              if($s!==null)unset($s['caption']);
-              requireEdit(is_array($s) && $s==$r['source'] && (int)$s['hotel_id']===$r['hotel_id'],'source_version_changed');
-          }
-          function exactOriginal(array $r):array {
-              $current=publicTelegram($r['mid']);
-              requireEdit($current['date']===$r['date'] && $current['videos']===0 && $current['photos']===$r['photos']
-                 && $current['caption_sha256']===$r['caption_sha256'] && $current['buttons']===$r['old_buttons']
-                 && $current['links']===$r['links'],'old_post_changed');
-              return $current;
-          }
-          function verifyPublished(array $r,string $caption,string $url):bool{
-              $p=publicTelegram($r['mid']);
-              return $p['date']===$r['date'] && $p['photos']===$r['photos'] && $p['videos']===0 && $p['caption']===$caption
-                  && $p['buttons']===[['text'=>LABEL,'url'=>$url]] && linkEvidence($p['links'])===linkEvidence($r['links']);
-          }
-          $out=['ok'=>false,'rows'=>[]];
+          $rows=json_decode(<<<'DATA'
+          [{"mid":1046,"hotel_id":12112,"date":"2025-03-13T08:43:18+00:00","photos":["5375555620448627948"],"links":[{"text":"@AnyTour_MSK","url":"https://t.me/AnyTour_MSK"},{"text":"Подписаться на канал AnyTour - Горящие туры","url":"https://t.me/+gGloLUt4d8s3NDcy"}],"old_buttons":[],"caption_sha256":"b52ba812f94678db7877d9c7a1857e9fb1cbe6b9e08b89671e1ee957f3784db3","price":{"block":"💰 От 127 225 ₽ за двоих\n✈️ Вылет из Москвы 31.01.2027 · 5 ночей\n👥 2 взрослых\n🛏 standard back view\n🍽 Всё включено\nЦена найдена мониторингом 19.11.2026, 01:00 МСК. Стоимость и наличие могут измениться.","price":"127225","observation":"2026-11-19T01:00:00+03:00","departure":"2027-01-31"},"prefix":"Sunrise Aqua Joy Resort\n📍 Хургада, Египет\n\nСобственный пляж с песчаной лагуной рядом с променадом. Для отдыха с детьми есть аквапарк, детский бассейн и мини-клуб. На территории пять открытых бассейнов."},{"mid":982,"hotel_id":70030,"date":"2025-01-10T11:23:25+00:00","photos":["5188183905474309693"],"links":[{"text":"@AnyTour_MSK","url":"https://t.me/AnyTour_MSK"},{"text":"Подписаться на канал AnyTour - Горящие туры","url":"https://t.me/+gGloLUt4d8s3NDcy"}],"old_buttons":[],"caption_sha256":"0ed04fb70f92ed7960cb36624674cc6c3e7c3a88e7c3f96b8c230e75524c16ad","price":{"block":"💰 От 130 488 ₽ за двоих\n✈️ Вылет из Москвы 08.05.2027 · 5 ночей\n👥 2 взрослых\n🛏 economy room\n🍽 Ультра всё включено\nЦена найдена мониторингом 19.11.2026, 16:03 МСК. Стоимость и наличие могут измениться.","price":"130488","observation":"2026-11-19T16:03:00+03:00","departure":"2027-05-08"},"prefix":"Utopia Beach Club\n📍 Инжекум, Аланья\n\nТри пляжа, включая песчаный и два в небольших бухтах. Есть детский клуб, мини-диско и площадка. На территории много лестниц, поэтому с коляской передвигаться сложнее."},{"mid":1098,"hotel_id":1273,"date":"2025-05-14T07:56:49+00:00","photos":["5271713958455277162"],"links":[{"text":"@AnyTour_MSK","url":"https://t.me/AnyTour_MSK"},{"text":"Подписаться на канал AnyTour - Горящие туры","url":"https://t.me/+gGloLUt4d8s3NDcy"}],"old_buttons":[],"caption_sha256":"b4d8ed64d1d25668b2118588f10bd44b3fcf698b7e88c9193674f1fb0760373f","price":{"block":"💰 От 144 343 ₽ за двоих\n✈️ Вылет из Москвы 30.03.2027 · 5 ночей\n👥 2 взрослых\n🛏 superior land view\n🍽 Ультра всё включено\nЦена найдена мониторингом 20.11.2026, 00:55 МСК. Стоимость и наличие могут измениться.","price":"144343","observation":"2026-11-20T00:55:00+03:00","departure":"2027-03-30"},"prefix":"Lago Hotel\n📍 Соргун, Сиде\n\nДве лагуны с белым песком, аквапарк и детский клуб. Одна лагуна предназначена для гостей от 16 лет. Подойдёт для семейного отдыха по системе «Ультра всё включено»."},{"mid":954,"hotel_id":1439,"date":"2024-12-08T11:10:32+00:00","photos":["5381930103535168203"],"links":[{"text":"@AnyTour_MSK","url":"https://t.me/AnyTour_MSK"},{"text":"Подписаться на канал AnyTour - Горящие туры","url":"https://t.me/+gGloLUt4d8s3NDcy"}],"old_buttons":[],"caption_sha256":"0d5e42afe254b3d8634a87e15d8b540cb0973f25a8328541beefec044712f53e","price":{"block":"💰 От 182 648 ₽ за двоих\n✈️ Вылет из Москвы 09.05.2027 · 6 ночей\n👥 2 взрослых\n🛏 deluxe room without balcony\n🍽 Ультра всё включено\nЦена найдена мониторингом 19.11.2026, 14:18 МСК. Стоимость и наличие могут измениться.","price":"182648","observation":"2026-11-19T14:18:00+03:00","departure":"2027-05-09"},"prefix":"Rai Premium Tekirova\n📍 Текирова, Кемер\n\nЗелёная территория, собственный пляж и большой аквапарк. Для детей и взрослых есть анимация, а на территории работает своя кондитерская."},{"mid":913,"hotel_id":91404,"date":"2024-10-26T16:06:18+00:00","photos":["5253824522019268317"],"links":[{"text":"@AnyTour_MSK","url":"https://t.me/AnyTour_MSK"}],"old_buttons":[],"caption_sha256":"bb90e17b81ad41cb163898f8ceb4dcfbdf5a8d35aa1b6320b8f035db43dedd9f","price":{"block":"💰 От 171 243 ₽ за двоих\n✈️ Вылет из Москвы 24.12.2026 · 5 ночей\n👥 2 взрослых\n🛏 deluxe room aqua\n🍽 Ультра всё включено\nЦена найдена мониторингом 19.11.2026, 23:18 МСК. Стоимость и наличие могут измениться.","price":"171243","observation":"2026-11-19T23:18:00+03:00","departure":"2026-12-24"},"prefix":"Swissôtel Sharm El Sheikh\n📍 Наама-Бей, Египет\n\nСемейная зона и отдельная зона для взрослых. На территории есть аквапарк, бассейны с подогревом и детский клуб. Отель занимает участки на первой и второй береговой линии."},{"mid":927,"hotel_id":73055,"date":"2024-11-13T11:09:13+00:00","photos":["5303281113382381294"],"links":[{"text":"Подписаться на канал AnyTour - любые туры","url":"https://t.me/+gGloLUt4d8s3NDcy"}],"old_buttons":[],"caption_sha256":"f4c88446988a12270df01c3eb5573b7df6211a798621388fbba849f545667bf1","price":{"block":"💰 От 126 963 ₽ за двоих\n✈️ Вылет из Москвы 21.12.2026 · 5 ночей\n👥 2 взрослых\n🛏 deluxe room mountain view\n🍽 Завтрак и ужин\nЦена найдена мониторингом 19.11.2026, 02:30 МСК. Стоимость и наличие могут измениться.","price":"126963","observation":"2026-11-19T02:30:00+03:00","departure":"2026-12-21"},"prefix":"Address Beach Resort Fujairah\n📍 Фуджейра, ОАЭ\n\nПесчаный пляж между океаном и горами Хаджар. Три бассейна, включая бассейн для взрослых. Для семей есть детский клуб и отдельный детский бассейн."},{"mid":1043,"hotel_id":61159,"date":"2025-03-12T13:12:05+00:00","photos":["5371031731395751709"],"links":[{"text":"Подписаться на канал AnyTour - Горящие туры","url":"https://t.me/+gGloLUt4d8s3NDcy"}],"old_buttons":[{"text":"СВЯЗАТЬСЯ С МЕНЕДЖЕРОМ 📱","url":"https://t.me/AnyTour_MSK"}],"caption_sha256":"dfcf39da85384b66f09589a0b0ce68bf293f1516837e8468874717cb072fb8c5","price":{"block":"💰 От 89 843 ₽ за двоих\n✈️ Вылет из Москвы 22.12.2026 · 5 ночей\n👥 2 взрослых\n🛏 aloft room king /twin\n🍽 Завтраки\nЦена найдена мониторингом 19.11.2026, 04:01 МСК. Стоимость и наличие могут измениться.","price":"89843","observation":"2026-11-19T04:01:00+03:00","departure":"2026-12-22"},"prefix":"Aloft Palm Jumeirah\n📍 Палм-Джумейра, Дубай\n\nРесторан на крыше с панорамным видом на Дубай и променад для прогулок. Отель располагает частной зоной пляжа примерно в 300 метрах."}]
+          DATA,true,16,JSON_THROW_ON_ERROR);
+          $out=['ok'=>false,'writes'=>0,'rows'=>[]];
           try {
-              installedEdit(INSTALLED_SHA);
-              ob_start();
+            installedEdit('e262bf139da2b78623e1be3a891630fd10924180');
+            ob_start();try {
+              require getcwd().'/config.php';
+              require_once getcwd().'/services/PromotedHotelPriceWriter.php';
+              require_once getcwd().'/services/ChannelPostEntryService.php';
+            }finally{ob_end_clean();}
+            $pdo=ConversationDb::connection();
+            $pdo->exec('SET SESSION TRANSACTION READ ONLY');$pdo->beginTransaction();
+            $registry=new ChannelPostRegistryService($pdo);
+            foreach($rows as $r){
+              $mid=$r['mid'];$hotel=$r['hotel_id'];$url='https://t.me/anytour/'.$mid;
+              $row=['mid'=>$mid,'hotel_id'=>$hotel,'url'=>$url];
               try {
-                  require getcwd().'/config.php';
-                  require_once getcwd().'/services/PromotedHotelPriceWriter.php';
-                  require_once getcwd().'/services/ChannelPostEntryService.php';
-                  require_once getcwd().'/services/ChannelPostAutomationService.php';
-              } finally {ob_end_clean();}
-              $pdo=ConversationDb::connection();
-              $registry=new ChannelPostRegistryService($pdo);
-              $identity=ChannelPostRuntime::identity('telegram');
-              $bot=(string)($identity['bot_key']??'');
-              $channel=$registry->channel('anytour','telegram',$bot,TARGET);
-              requireEdit(is_array($channel)&&(int)$channel['id']===CHANNEL_ID && $channel['source_key']==='tg_anytour_msk'
-                  && $channel['button_text']===LABEL && $channel['bot_url']==='https://t.me/anyru_bot','admission_channel_mismatch');
-              requireEdit((new ChannelPostButtonTransport())->verifyChannel($channel)['state']==='ready','native_edit_rights');
-              $base='/var/www/anytoour/data/channel-post-operations';
-              requireEdit(realpath($base)===$base && is_dir($base),'journal_root');
-              $rows=json_decode(PAYLOAD,true,16,JSON_THROW_ON_ERROR);
-              requireEdit(array_column($rows,'mid')===[1043], 'batch_scope');
-              $prices=priceRows(array_column($rows,'hotel_id'));
-              foreach($rows as $r) {
-                  $mid=$r['mid']; $hotel=$r['hotel_id']; $u='https://t.me/anytour/'.$mid;
-                  $result=['mid'=>$mid,'hotel_id'=>$hotel,'url'=>$u,'price'=>$r['price']['price'],'departure'=>$r['price']['departure'],
-                      'observation'=>$r['price']['observation'],'provider_calls'=>0];
-                  $key='anytour-issue1566-seven-tg-caption-'.$mid.'-v2';
-                  $priorKey='anytour-issue1566-seven-tg-caption-'.$mid.'-v1';
-                  $original=$base.'/'.$priorKey.'/receipt.jsonl';
-                  requireEdit(is_file($original)&&!is_link($original)&&filesize($original)<65536,'prior_rejection_receipt_missing');
-                  $lines=file($original,FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES);
-                  $prior=json_decode((string)end($lines),true,12,JSON_THROW_ON_ERROR);
-                  requireEdit(($prior['mid']??null)===$mid && ($prior['caption_http']??null)===400
-                    && ($prior['reason']??null)==='caption_outcome_unconfirmed_no_retry','prior_rejection_receipt_changed');
-                  $journal=null;$lock=false;
-                  try {
-                      installedEdit(INSTALLED_SHA);
-                      requireEdit((int)$channel['config_version']===$r['channel_config']
-                          && $registry->channel('anytour','telegram',$bot,TARGET)===$channel,'channel_version_changed');
-                      requireFreshPrice($r,$prices);
-                      exactRegisterRow($pdo,$registry,$r);
-                      exactOriginal($r);
-                      [$caption,$entities]=captionPlan($r);
-                      foreach([$key,'anytour-issue1566-historical-tg-media-'.$mid.'-v1'] as $op)
-                          requireEdit(!file_exists($base.'/'.$op)&&!is_link($base.'/'.$op),'previous_edit_receipt_hold');
-                      $q=$pdo->prepare('SELECT GET_LOCK(?,0)');
-                      $q->execute([$key]);$lock=(int)$q->fetchColumn()===1;$q->closeCursor();
-                      requireEdit($lock,'target_lock_busy');
-                      exactRegisterRow($pdo,$registry,$r);
-                      requireEdit(!file_exists($base.'/'.$key) && mkdir($base.'/'.$key,0700),'edit_receipt_already_exists');
-                      $journal=fopen($base.'/'.$key.'/receipt.jsonl','x');
-                      requireEdit(is_resource($journal),'edit_receipt_unavailable');
-                      capture($journal,$result+['state'=>'caption_attempt_started','before'=>$r['caption_sha256'],
-                         'photo'=>$r['photos'],'date'=>$r['date'],'new_caption_sha256'=>hash('sha256',$caption)]);
-                      ++$result['provider_calls'];
-                      $response=ChannelPostApiTransport::captionRequest('telegram',TARGET,(string)$mid,[
-                          'caption'=>$caption,
-                          'caption_entities'=>$entities,
-                          'reply_markup'=>['inline_keyboard'=>[]],
-                      ]);
-                      $m=$response['data']['result']??null;
-                      $result['caption_http']=(int)($response['http']??0);
-                      if ($result['caption_http']>=400 && $result['caption_http']<500) {
-                          $result['provider_description']=mb_substr(preg_replace('/[^a-z0-9 :_().-]/i','',(string)($response['data']['description']??'')),0,140);
-                      }
-                      requireEdit($result['caption_http']===200 && empty($response['transport_error'])
-                          && ($response['data']['ok']??false) === true && is_array($m),'caption_outcome_unconfirmed_no_retry');
-                      unset($response);
-                      requireEdit((string)($m['chat']['id']??'')===TARGET && ($m['chat']['username']??'')==='anytour'
-                          && (int)($m['message_id']??0)===$mid && (int)($m['date']??0)===(new DateTimeImmutable($r['date']))->getTimestamp()
-                          && (int)($m['edit_date']??0)>0,'native_message_or_date_mismatch_no_retry');
-                      $snap=ChannelPostIncomingAdapter::telegramSnapshot($m);
-                      requireEdit(is_array($snap) && $snap['text']===$caption && $snap['post_url']===$u
-                          && count($snap['attachments']??[])===1 && ($snap['attachments'][0]['type']??'')==='image'
-                          && !empty($snap['attachments'][0]['file_unique_id']),'native_caption_or_photo_unconfirmed_no_retry');
-                      $snap['metadata']['hotel_catalog_id']=$hotel;
-                      $snap['metadata']['logical_id']='commercial-main-hotel-'.$hotel.'-v1';
-                      $snap['metadata']['source_event_id']=$key.':'.$m['edit_date'];
-                      $snap['metadata']['observation_kind']='authorized_admin_content_edit';
-                      $snap['metadata']['promoted_price_observed_at']=(new DateTimeImmutable($r['price']['observation']))->format(DATE_ATOM);
-                      $snap['content_hash']=ChannelPostIncomingAdapter::contentFingerprint($snap,'',$channel['bot_url']);
-                      $p=$registry->registerPublication('anytour','telegram',$bot,TARGET,(string)$mid,$snap);
-                      requireEdit(is_array($p) && ($p['external_message_id']??'')===(string)$mid
-                          && (int)($p['snapshot']['metadata']['hotel_catalog_id']??0)===$hotel && $p['snapshot']['text']===$caption,
-                          'binding_unconfirmed_no_retry');
-                      $id=(int)$p['publication_id'];$version=(int)$p['version_id'];
-                      $result['publication_id']=$id;$result['version_id']=$version;
-                      $url=ChannelPostButtonTransport::buttonUrl($p);
-                      $context=ChannelPostEntryService::resolve('telegram',$p['start_payload'],$registry);
-                      requireEdit((int)($context['publication_id']??0)===$id
-                        && (int)($context['version_id']??0)===$version
-                        && (int)($context['snapshot']['metadata']['hotel_catalog_id']??0)===$hotel
-                        && ($context['snapshot']['post_url']??'')===$u,'context_unconfirmed_no_retry');
-                      capture($journal,$result+['state'=>'hotel_bound','button_hash'=>hash('sha256',$url)]);
-                      if($p['state']==='pending') {
-                          $transport=new ChannelPostButtonTransport(static function($platform,$method,$path,$query,$body)use($mid){
-                              requireEdit($platform==='telegram' && $method==='POST' && $query===[]
-                                 && (in_array($path,['getMe','getChat','getChatMember'],true)
-                                   || ($path==='editMessageReplyMarkup'&&(string)($body['chat_id']??'')===TARGET
-                                     && (int)($body['message_id']??0)===$mid)), 'outside_exact_button_scope');
-                              return ChannelPostApiTransport::buttonRequest($platform,$method,$path,$query,$body);
-                          });
-                          (new ChannelPostAutomationService($registry,$transport))->processPublication('anytour','telegram',$bot,$id,$version);
-                      }
-                      $verified=false;
-                      for($i=0;$i<3;$i++){
-                          if($i>0)sleep(2);
-                          try {if(verifyPublished($r,$caption,$url)){$verified=true;break;}}catch(Throwable $ignore){}
-                      }
-                      requireEdit($verified,'public_post_or_button_unconfirmed_no_retry');
-                      $final=$registry->publication($id);
-                      requireEdit(is_array($final) && (int)$final['version_id']===$version,'final_registry_version_changed');
-                      if($final['state']==='unknown') {
-                          // A public exact photo/date/caption plus the single expected hotel button
-                          // confirms the prior operation without an additional provider request.
-                          $registry->confirmObservedButton($id,$version,[
-                              'verified'=>true,'button_verified'=>true,'content_preserved'=>true,
-                              'reconciled'=>true,'write_attempts'=>0,
-                          ]);
-                          $final=$registry->publication($id);
-                      }
-                      $result['registry_state']=$final['state'];
-                      $result['published_date_preserved']=true;
-                      $result['single_hotel_button_verified']=true;
-                      $result['original_photo_and_text_links_verified']=true;
-                      $result['state']='verified';
-                  } catch(Throwable $e){
-                      $result['state']=$result['provider_calls']>0?'held_no_retry':'not_written';
-                      $value=$e->getMessage();
-                      $result['reason']=preg_match('/^[a-z_]{1,100}$/D',$value)?$value:'operation_failed';
-                  } finally {
-                      if(is_resource($journal)){
-                          try{capture($journal,$result);}catch(Throwable $ignore){}
-                          fclose($journal);
-                      }
-                      if($lock){$q=$pdo->prepare('SELECT RELEASE_LOCK(?)');$q->execute([$key]);$q->closeCursor();}
+                $p=publicTelegram($mid);
+                $reg=fromRegistry($pdo,$registry,6,$mid);
+                $row['same_date']=$p['date']===$r['date'];
+                $row['same_photo']=$p['photos']===$r['photos'] && $p['videos']===0;
+                $row['same_links']=$p['links']===$r['links'];
+                $row['old_caption']=$p['caption_sha256']===$r['caption_sha256'];
+                $row['old_buttons']=$p['buttons']===$r['old_buttons'];
+                $row['price_checked']=str_contains($p['caption'],$r['price']['block']);
+                $row['registry_state']=$reg['state']??null;
+                $row['registry_reason']=$reg['error_reason']??null;
+                $row['version']=$reg['version_id']??null;
+                $row['button_count']=count($p['buttons']);
+                $row['button_label']=$p['buttons'][0]['text']??null;
+                if($reg!==null){
+                  $row['caption_matches_registry']=$p['caption']===$reg['snapshot']['text'];
+                  $row['button_url_matches']=count($p['buttons'])===1 && $p['buttons'][0]['url']===ChannelPostButtonTransport::buttonUrl($reg);
+                  $x=ChannelPostEntryService::resolve('telegram',$reg['start_payload'],$registry);
+                  $row['correct_context']=((int)($x['snapshot']['metadata']['hotel_catalog_id']??0)===$hotel && ($x['snapshot']['post_url']??'')===$url);
+                  if(!$row['caption_matches_registry']) {
+                    $row['public_caption']=$p['caption'];
+                    $row['registry_caption']=$reg['snapshot']['text'];
                   }
-                  $out['rows'][]=$result;
-              }
-              $out['installed']=INSTALLED_SHA;
-              $out['ok']=true;
-          } catch(Throwable $e) {
-              $msg=$e->getMessage();
-              $out['reason']=preg_match('/^[a-z_]{1,100}$/D',$msg)?$msg:'batch_failed';
-          }
+                }
+                if(!$row['same_links']){$row['links']=$p['links'];}
+              }catch(Throwable $e){$row['reason']=$e->getMessage();}
+              $out['rows'][]=$row;
+            }
+            $pdo->rollBack();$out['ok']=true;
+          }catch(Throwable $e){if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();$out['reason']=$e->getMessage();}
           echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
           exit($out['ok']?0:2);
           PHP
@@ -360,7 +210,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Edit the seven Telegram posts and independently read all results
+      - name: Read only approved old Telegram post and context fingerprints
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -372,17 +222,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 - <<'PY'
-          import json
-          d=json.load(open('pub/registry.json'))
-          print('SEVEN_TELEGRAM_RESULT='+json.dumps(d,ensure_ascii=False,separators=(',',':')))
-          assert d.get('ok') and len(d.get('rows',[]))==1
-          PY
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("SEVEN_READBACK="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and len(d["rows"])==7'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: aloft-telegram-edit-and-readback
+          name: seven-telegram-final-readback
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
