@@ -1,40 +1,265 @@
-name: Read Telegram hotel campaign candidates
+name: "Read hotel candidates in the main-channel registry and MAX history"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
-    paths:
-      - .github/workflows/anytour-hotel-ads-readonly-20261117.yml
-      - audit/anytour-hotel-ads-readonly-20261117.py
-      - audit/anytour-hotel-ads-runner-20261117.py
+    paths: ['.github/workflows/anytour-hotel-ads-readonly-20261117.yml']
 permissions:
   contents: read
 concurrency:
-  group: anytour-hotel-ads-owner-20261117
+  group: anytour-hotel-main-channel-priority-read
   cancel-in-progress: false
 jobs:
-  read:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+  registry:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '91861e55577537eca54b978843f3178ddcaf3255' &&
+      github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 7
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          ref: ${{ github.sha }}
-          persist-credentials: false
-      - name: Read Telegram feed, inactive campaigns and configured budgets
+      - name: Prepare SELECT-only program
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir pub
+          cat > pub/read-only.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          ini_set('display_errors', '0');
+          ini_set('log_errors', '0');
+          $installed = '9b1e17f94f39d8d2cc6260a9a6f45b1d1f38bb3e';
+          $targets = json_decode(<<<'JSON'
+          {"218":{"aliases":["Four Seasons Resort Sharm","Four Seasons Sharm","Фор Сизонс Шарм"]},"240":{"aliases":["Happy Life Village Dahab","Happy Life Village","Хэппи Лайф"]},"253":{"aliases":["Safir Sharm Waterfalls","Sharm Waterfalls","Сафир Шарм"]},"325":{"aliases":["Minamark Resort","Minamark","Минамарк"]},"341":{"aliases":["Nubian Village","Нубиан Вилладж"]},"352":{"aliases":["Parrotel Aqua Park","Парротель Аква Парк"]},"358":{"aliases":["Rixos Sharm El Sheikh","Rixos Sharm","Риксос Шарм"]},"386":{"aliases":["Monte Carlo Sharm","Monte Carlo Resort","Монте Карло Шарм"]},"393":{"aliases":["Pickalbatros Royal Grand","Royal Grand Sharm","Albatros Royal Grand","Роял Гранд"]},"408":{"aliases":["Savoy Sharm El Sheikh","Savoy Sharm","Savoy Group","Савой Шарм"]},"418":{"aliases":["SRNTY Sea Reef","Serenity Sea Reef","Serenity Makadi Beach","Серенити Макади"]},"466":{"aliases":["Stella Beach Resort","Stella Di Mare Beach Resort Makadi","Стелла Бич Макади"]},"547":{"aliases":["Anantara Mai Khao","Анантара Май Као"]},"800":{"aliases":["Sugar Marina Resort Art Karon","Sugar Marina Art","Sugar Marina Resort - ART","Sugar Marina Resort ART Karon","Шугар Марина Арт"]},"949":{"aliases":["Adam & Eve","Adam and Eve","Adam&Eve","Адам и Ева"]},"1074":{"aliases":["Gural Premier Belek","Güral Premier Belek","Гюрал Премьер Белек"]},"1260":{"aliases":["IC Hotels Santai","IC Santai","Сантай"]},"1569":{"aliases":["Utopia World","Утопия Ворлд"]},"1972":{"aliases":["Moreno Horizon","Морено Горизонт"]},"2575":{"aliases":["Rixos Al Mairid","Rixos Al Mairid Ras Al Khaimah","Риксос Аль Майрид"]},"4079":{"aliases":["Sunny Beach Resort","Санни Бич Резорт"]},"7458":{"aliases":["Four Seasons Resort The Nam Hai","Nam Hai","Нам Хай"]},"12125":{"aliases":["OZEN Reserve Bolifushi","Bolifushi","Болифуши"]},"14140":{"aliases":["Stella Makadi Gardens","Stella Gardens Resort","Стелла Макади Гарденс"]},"15693":{"aliases":["The Makadi Spa","Makadi Spa","Макади Спа"]},"17595":{"aliases":["Ramada Resort Lara","Ramada Lara","Рамада Лара"]},"24909":{"aliases":["Graceland Khao Lak","Graceland","Грейсленд"]},"28581":{"aliases":["Ma Biche Kemer","Ma Biche","Ma Biche by Werde","Ма Бич"]},"32342":{"aliases":["Vinpearl Resort & Spa Phu Quoc","Vinpearl Phu Quoc","Винперл Фукуок"]},"41149":{"aliases":["Vinpearl Resort & Spa Nha Trang Bay","Vinpearl Resort Nha Trang Bay","Nha Trang Bay","Винперл Нячанг Бэй"]},"50869":{"aliases":["Riu Sri Lanka","Риу Шри-Ланка"]},"55574":{"aliases":["Pickalbatros White Beach Resort","White Beach Resort","Альбатрос Вайт Бич"]},"57028":{"aliases":["Pickalbatros Aqua Park Sharm","Albatros Aqua Park Sharm","Aqua Park Sharm","Альбатрос Аква Парк"]},"65877":{"aliases":["Vesna Hotel","Vesna Beach","Весна Отель"]},"67910":{"aliases":["Rixos Premium Magawish","Magawish","Риксос Магавиш"]},"73343":{"aliases":["The Grand Palace","Гранд Палас"]},"80964":{"aliases":["Meraki Sharm","Meraki Resort Sharm","Мераки Шарм"]},"132016":{"aliases":["Voyage Kundu","Вояж Кунду"]}}
+          JSON, true, 16, JSON_THROW_ON_ERROR);
+          
+          $result = ['issue'=>1566, 'ok'=>false, 'production_writes'=>0, 'ad_clicks'=>0, 'bot_starts'=>0];
+          $stage = 'release';
+          try {
+              if (PHP_SAPI !== 'cli' || trim((string) shell_exec('git rev-parse HEAD')) !== $installed
+                  || trim((string) shell_exec('git status --porcelain --untracked-files=no')) !== '') {
+                  throw new RuntimeException();
+              }
+              ob_start();
+              try {
+                  require getcwd() . '/config.php';
+                  require_once getcwd() . '/services/ChannelPostEntryService.php';
+                  require_once getcwd() . '/services/ChannelPostButtonTransport.php';
+              } finally {
+                  ob_end_clean();
+              }
+              if (ProjectConfig::projectId() !== 'anytour' || count($targets) !== 38) {
+                  throw new RuntimeException();
+              }
+              $pdo = ConversationDb::connection();
+              $pdo->exec('SET SESSION TRANSACTION READ ONLY');
+              $pdo->beginTransaction();
+              $registry = new ChannelPostRegistryService($pdo);
+              $stage = 'channel_identity';
+              $maxId = '-68765999669267';
+              $tgId = '-1001845835645';
+              $maxIdentity = ChannelPostRuntime::identity('max');
+              $tgIdentity = ChannelPostRuntime::identity('telegram');
+              $maxChannel = $maxIdentity ? $registry->channel('anytour', 'max', $maxIdentity['bot_key'], $maxId) : null;
+              $tgChannel = $tgIdentity ? $registry->channel('anytour', 'telegram', $tgIdentity['bot_key'], $tgId) : null;
+              if (!is_array($maxChannel) || (int) $maxChannel['id'] !== 4 || !is_array($tgChannel) || (int) $tgChannel['id'] !== 6) {
+                  throw new RuntimeException();
+              }
+              $stage = 'read_main_registry';
+              $query = $pdo->prepare(
+                  "SELECT p.post_channel_id, p.external_message_id, v.state,
+                          JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id')) AS hotel_id,
+                          JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.logical_id')) AS logical_id,
+                          JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.text')) AS caption
+                    FROM post_publications p
+                    JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id
+                   WHERE p.post_channel_id IN (4,6,9,10) ORDER BY p.id LIMIT 10001"
+              );
+              $query->execute();
+              $result['registry'] = array_fill_keys(array_keys($targets), []);
+              $result['registry_counts'] = [4=>0, 6=>0, 9=>0, 10=>0];
+              $totalRows = 0;
+              while ($row = $query->fetch(PDO::FETCH_ASSOC)) {
+                  if (++$totalRows > 10000) {
+                      throw new RuntimeException();
+                  }
+                  $channel = (int) $row['post_channel_id'];
+                  ++$result['registry_counts'][$channel];
+                  $mid = (string) $row['external_message_id'];
+                  if ($row['state'] !== 'sent' || !preg_match('/\A[A-Za-z0-9_.-]{1,191}\z/D', $mid)) {
+                      continue;
+                  }
+                  $typed = (int) $row['hotel_id'];
+                  $caption = (string) $row['caption'];
+                  foreach ($targets as $id => $target) {
+                      $exact = $typed === $id || $row['logical_id'] === 'commercial-hotel-' . $id . '-v1';
+                      $hasName = false;
+                      foreach ($target['aliases'] as $alias) {
+                          if (mb_stripos($caption, $alias, 0, 'UTF-8') !== false) {
+                              $hasName = true;
+                              break;
+                          }
+                      }
+                      if ($exact || $hasName) {
+                          $result['registry'][$id][] = [
+                              'channel'=>$channel, 'message_id'=>$mid, 'typed_id'=>$typed, 'exact'=>$exact
+                          ];
+                      }
+                  }
+              }
+              $query->closeCursor();
+              $pdo->rollBack();
+              $result['installed_sha'] = $installed;
+              $result['read_at_utc'] = gmdate(DATE_ATOM);
+
+              $stage = 'max_history';
+              $mainMatches = array_fill_keys(array_keys($targets), []);
+              $seen = [];
+              $before = (int) ceil(microtime(true) * 1000);
+              $complete = false;
+              $pages = 0;
+              $unreadableBodies = 0;
+              for ($page = 0; $page < 20; ++$page) {
+                  $response = ChannelPostApiTransport::buttonRequest(
+                      'max', 'GET', '/messages', ['chat_id'=>$maxId, 'from'=>$before, 'to'=>1, 'count'=>100], null
+                  );
+                  $messages = $response['data']['messages'] ?? null;
+                  if (($response['http'] ?? 0) !== 200 || !empty($response['transport_error'])
+                      || !is_array($messages) || !array_is_list($messages) || count($messages) > 100) {
+                      $result['max_history_http'] = (int) ($response['http'] ?? 0);
+                      throw new RuntimeException();
+                  }
+                  ++$pages;
+                  $last = $before;
+                  $pageIds = [];
+                  foreach ($messages as $message) {
+                      $timestamp = $message['timestamp'] ?? null;
+                      $messageId = $message['body']['mid'] ?? null;
+                      if ((string) ($message['recipient']['chat_id'] ?? '') !== $maxId
+                          || ($message['recipient']['chat_type'] ?? '') !== 'channel'
+                          || !is_string($messageId) || !preg_match('/\A[A-Za-z0-9_.-]{1,191}\z/D', $messageId)
+                          || (!is_int($timestamp) && !is_string($timestamp))
+                          || !preg_match('/\A[1-9][0-9]{0,15}\z/D', (string) $timestamp)
+                          || (int) $timestamp > $before || isset($pageIds[$messageId])) {
+                          $stage = 'max_history_page_identity';
+                          throw new RuntimeException();
+                      }
+                      $pageIds[$messageId] = true;
+                      $last = min($last, (int) $timestamp);
+                      if (isset($seen[$messageId])) {
+                          continue;
+                      }
+                      $seen[$messageId] = true;
+                      $snapshot = ChannelPostIncomingAdapter::maxSnapshot($message);
+                      if ($snapshot === null) {
+                          ++$unreadableBodies;
+                          continue;
+                      }
+                      $text = $snapshot['text'];
+                      $url = $snapshot['post_url'];
+                      if (!str_starts_with($url, 'https://max.ru/anytour/') && preg_match('/\Amid\.[0-9a-f]{32}\z/D', $messageId)) {
+                          $slug = rtrim(strtr(base64_encode(hex2bin(substr($messageId, -16))), '+/', '-_'), '=');
+                          $url = 'https://max.ru/anytour/' . $slug;
+                      }
+                      foreach ($targets as $hotelId => $target) {
+                          $foundAt = false;
+                          foreach ($target['aliases'] as $alias) {
+                              $foundAt = mb_stripos($text, $alias, 0, 'UTF-8');
+                              if ($foundAt !== false) {
+                                  break;
+                              }
+                          }
+                          if ($foundAt === false || count($mainMatches[$hotelId]) > 29) {
+                              continue;
+                          }
+                          $mainMatches[$hotelId][] = [
+                              'url'=>$url, 'message_id'=>$messageId, 'published_ms'=>(int) $timestamp,
+                              'fingerprint'=>ChannelPostIncomingAdapter::contentFingerprint($snapshot),
+                              'headline'=>mb_substr(preg_replace('/\s+/u', ' ', $text), 0, 100, 'UTF-8'),
+                              'matched_excerpt'=>mb_substr($text, max(0, $foundAt - 30), 120, 'UTF-8'),
+                              'supported'=>$snapshot['metadata']['capability'] === 'supported',
+                              'media_types'=>array_column($snapshot['attachments'], 'type'),
+                              'has_keyboard'=>!empty($snapshot['keyboard']),
+                          ];
+                      }
+                  }
+                  if (count($messages) < 100) {
+                      $complete = true;
+                      break;
+                  }
+                  if ($last >= $before) {
+                      $stage = 'max_history_boundary';
+                      throw new RuntimeException();
+                  }
+                  $before = $last;
+              }
+              $result['history'] = ['pages'=>$pages, 'visible_messages'=>count($seen), 'complete'=>$complete, 'unparsed_bodies'=>$unreadableBodies, 'candidates'=>$mainMatches];
+              $result['ok'] = $complete && $unreadableBodies === 0;
+          } catch (Throwable) {
+              if (isset($pdo) && $pdo->inTransaction()) {
+                  $pdo->rollBack();
+              }
+              $result['failed_stage'] = $stage;
+          }
+          echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR), PHP_EOL;
+          exit($result['ok'] ? 0 : 2);
+          PHP
+          php -l pub/read-only.php
+      - name: Pin established SSH host continuity and authentication identity
         env:
-          SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-          SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-          READER_SHA256: 6bbc7612bdb0c39ebc4e04e5a3d151f69be02afc742e7d4e4cdf61e089d62ed1
-          REPORT_PUBLIC_KEY_B64: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUE0cnVIZ1VWR29wVnRnMm1OSStWZQpHM1FlVVFzaTQrK2xET3FZcERiZ0l0M3k0YlIyU0RFYUdLMEpSM2RpMFBaS0RnT1RDSnlxbTM0dndPbG1wMDdFCmRaWi9HSVR0R2RvZFozOVhLSmF4Y3VvbldnS200c3lDZi8vUUxsdGprdERERmQzOUIyWmhsOE93cE9MOHVMaVEKM2R2Z1IrWmFvZlUzODgzWldIdU1JdElLbkJrRXFUK2JhWXNsUk9lNDBsdHNaSXh1b21DTlRta0NsM0IvNFJFZQpxaWJpQ0V0MVBKUjJiK3dCL05SWlp6TWhUQWFWRmhlOGhCUkNLVitjd2N6bnhKZ0NYakx3ZFphQ2FnZXByOGJpClFkTlUyNmcyb20rMTB0MlNDdnlJd1hPTnZhaGlQRkFuRjZzcnVQZUs2QnZVZGZReW01ajRrajdVUUxOSkFUZ2gKZnloWE1oSE92VjBPWEV2am9NaDJRYnlZNm1TVDNNVncwc0cwMC94Kzl3MWVJcE4vUVBEMTQwcnNlMXdaaEUrSApVRnhVVnVpUW0xcWFjYytmU2YzRkJzQ3JqT3FMNGdxZ2pQSTQ3Qi96QSs0ei9ldm5CdDYvWEQyaEhCNFc5MFpCCkN6OS81N3Z0N2FaSHUyRXlJRzRHdnRTekwrTUNGelNnWERHbE5SME81TGd6QWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
-        run: python3 audit/anytour-hotel-ads-runner-20261117.py
-      - name: Retain ciphertext only
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read existing publications and official native MAX history
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); assert d["ok"]; print({"history":{k:v for k,v in d["history"].items() if k!="candidates"}, "candidate_counts":{k:len(v) for k,v in d["history"]["candidates"].items()}, "registry_counts":d["registry_counts"]})'
+      - name: Save bounded match evidence
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: anytour-tg-campaign-audit-20261119
-          path: encrypted-hotel-ads/*.enc.json
+          name: hotel-main-channel-priority-read-20261119
+          path: pub/registry.json
           retention-days: 7
-          if-no-files-found: error
-
-
+          if-no-files-found: warn
+      - name: Remove runner-only connection material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
