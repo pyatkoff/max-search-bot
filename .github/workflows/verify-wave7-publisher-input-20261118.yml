@@ -1,4 +1,4 @@
-name: Accept W20 reviewed hotel source inputs, no sends
+name: Accept three post-W20 source-bound hotel rows; zero sends
 'on':
   push:
     branches:
@@ -10,8 +10,9 @@ permissions:
   actions: read
 jobs:
   prepare:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == '1d9d0b2042d30e96deb053d6d808b07501031fda'
-      && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+      && github.event.before == '96f827fda086f3c6c03db9318f06a3fcb6f33f10' && github.run_attempt
+      == 1
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -21,24 +22,20 @@ jobs:
         sparse-checkout: 'tools/direct_demand/operations
 
           .github/traffic-publish/brand'
-    - name: Bind W20 exact photos, editorial and original compiler
+    - name: Validate three accepted rows with original compiler and current release
       env:
         GH_TOKEN: ${{ github.token }}
       run: 'set -euo pipefail
 
-        echo ''12aa34c3c2a52b5a7e930133bce7af66bce4cca95cd6aefdf2dad29e7760671f  tools/direct_demand/operations/accept-wave20-source-20261118.py''
-        | sha256sum -c -
+        python3 tools/direct_demand/operations/postw20-accept-ten-20261119.py
 
-        echo ''e72a5c55d5dee8bc3ccda1ae12b877ffa248448820a672d9bb27791fd0cc3c61  tools/direct_demand/operations/wave20-acceptance.json''
-        | sha256sum -c -
+        for f in accepted-source/*-publisher-unexecuted.php; do php -l "$f"; done
 
-        python3 tools/direct_demand/operations/accept-wave20-source-20261118.py
-
-        for f in accepted-source/*-publisher-unexecuted.php; do php -l "$f"; done'
+        '
     - if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
-        name: wave20-accepted-source
+        name: postw20-three-accepted-source
         path: accepted-source/
         retention-days: 30
         if-no-files-found: warn
