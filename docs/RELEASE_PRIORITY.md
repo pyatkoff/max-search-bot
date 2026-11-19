@@ -166,6 +166,14 @@ then refreshes main. Existing publisher serialization and expected-head merge
 remain mandatory; these read-only snapshots do not claim atomic GitHub exclusion.
 This preventive fence cannot recover the already-held releases in issue1599.
 
+For the specific PR1630 → PR1631 transition, authenticate the original PR1630
+installation when its successful closer found no publisher binding. The
+read-only admission requires the pinned diagnostics blob, all original
+mandatory gates, and the original closer with terminal publication and slot
+release both skipped. It creates no PR1630 binding, terminal artifact or server
+installation. PR1631 still requires its own ordinary binding before merge and
+its own original completion receipt with technical gates.
+
 ### Continuing an already admitted publisher
 
 A reservation created after the existing publisher was acquired must not make
