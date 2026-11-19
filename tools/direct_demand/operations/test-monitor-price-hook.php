@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require __DIR__.'/monitor-price-hook-contract.php';
+require_once __DIR__.'/monitor-price-telegram-ads19.php';
 $roster=json_decode(file_get_contents(__DIR__.'/monitor-price-hook-roster.json'),true,64,JSON_THROW_ON_ERROR);
 $handoff=json_decode(file_get_contents(__DIR__.'/monitor-price-six-20261111-handoff.json'),true,64,JSON_THROW_ON_ERROR);
 $cases=0;
@@ -42,6 +43,37 @@ monitor_price_require(monitor_hook_known_failure($checked,['tour_id'=>'known-tou
 
 // Targeted no-write terminal cases use retained fixture bytes; no runtime, database or API.
 function hook_test_check(bool $ok,string $name):void { global $cases;monitor_price_require($ok,$name);$cases++; }
+$ads19Roster = json_decode(gzdecode(file_get_contents(__DIR__.'/monitor-price-expanded-roster-20261111.json.gz')), true, 64, JSON_THROW_ON_ERROR);
+$ads19Count = 0;
+foreach ($ads19Roster['rows'] as $ads19Row) {
+    $ads19Id = $ads19Row['tourvisor_hotel_id'];
+    $ads19Redirect = monitor_hook_telegram_redirect($ads19Id);
+    $ads19Next = monitor_hook_apply_telegram_redirect($ads19Row);
+    if ($ads19Redirect === null) {
+        hook_test_check($ads19Next === $ads19Row, 'unrelated_price_binding_changed');
+        continue;
+    }
+    $ads19Count++;
+    [$ads19Old, $ads19New] = $ads19Redirect;
+    $ads19Expected = $ads19Row;
+    $ads19Expected['feed_binding']['destinations']['telegram'] = $ads19New;
+    hook_test_check($ads19Next === $ads19Expected, 'price_ad_destination_scope_changed');
+    hook_test_check(monitor_hook_select_telegram_redirect($ads19Row, $ads19Old, $ads19Old) === $ads19Row, 'price_old_pair_rejected');
+    hook_test_check(monitor_hook_select_telegram_redirect($ads19Row, $ads19New, $ads19New) === $ads19Next, 'price_new_pair_rejected');
+    hook_test_check(monitor_hook_receipt_feed_binding_matches($ads19Row['feed_binding'], $ads19Next), 'price_historical_receipt_rejected');
+    hook_test_check(monitor_hook_receipt_feed_binding_matches($ads19Next['feed_binding'], $ads19Row), 'price_rollback_receipt_rejected');
+    $ads19Changed = $ads19Row['feed_binding'];
+    $ads19Changed['offer_ids']['max'] = 'max_wrong';
+    hook_test_check(!monitor_hook_receipt_feed_binding_matches($ads19Changed, $ads19Next), 'price_foreign_binding_accepted');
+    try {
+        monitor_hook_select_telegram_redirect($ads19Row, $ads19Old, $ads19New);
+        hook_test_check(false, 'price_split_pair_accepted');
+    } catch (RuntimeException $ads19Error) {
+        hook_test_check($ads19Error->getMessage() === 'hook_telegram_redirect_feed_not_ready', 'price_split_pair_accepted');
+    }
+}
+hook_test_check($ads19Count === 19, 'price_ad_redirect_scope_count_changed');
+unset($ads19Roster, $ads19Count, $ads19Row, $ads19Id, $ads19Redirect, $ads19Next, $ads19Old, $ads19New, $ads19Expected, $ads19Changed);
 function hook_test_reject(callable $run,string $name):void {
     global $cases;$failed=false;try{$run();}catch(Throwable $e){$failed=true;}
     monitor_price_require($failed,$name);$cases++;

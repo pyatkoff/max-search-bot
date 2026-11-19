@@ -159,7 +159,7 @@ function hook_context(array $row,ChannelPostRegistryService $registry):array {
         if($captionProofs!==null)hook_need(monitor_price_caption_publication_matches($p,$row,$platform,ChannelPostButtonTransport::buttonUrl($p),$proof),'existing_publication_identity_changed');
         $record=$p['snapshot']['metadata']['monitor_price_record_id']??null;$prior=null;
         if($record!==null){hook_need(is_string($record)&&preg_match('/\A[a-f0-9]{64}\z/D',$record)===1,'hook_record_invalid');$prior=hook_journal('commercial-monitor-price-h'.$row['tourvisor_hotel_id'].'-'.$record);}
-        hook_need(monitor_hook_caption_allowed($p,$row,$platform,$prior),'hook_manual_caption_changed_hold');
+        hook_need(monitor_hook_telegram_caption_allowed($p,$row,$platform,$prior),'hook_manual_caption_changed_hold');
         $result[$platform]=$p;
     }return $result;
 }
@@ -309,6 +309,12 @@ try{
             $out['held_pairs']++;$out['held_ids'][]=$tv;$out['deferred'][]=['tourvisor_hotel_id'=>$tv,'reason'=>$reason];continue;
         }
         try{
+            if (monitor_hook_telegram_redirect($tv) !== null) {
+                $offerId = $row['feed_binding']['offer_ids']['telegram'];
+                $telegramUrl = monitor_hook_telegram_offer_url(hook_read(getcwd().'/feed/hotel-posts-telegram.xml', 4000000), $offerId);
+                $combinedUrl = monitor_hook_telegram_offer_url(hook_read(getcwd().'/feed/hotel-posts-all.xml', 4000000), $offerId);
+                $row = monitor_hook_select_telegram_redirect($row, $telegramUrl, $combinedUrl);
+            }
             $context=$inspect?hook_measure($out,'post_context',fn()=>hook_context($row,$registry)):null;
             if($inspect)$out['verified_ids'][]=$tv;
             $snapshot=$snapshots[$tv];
