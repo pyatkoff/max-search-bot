@@ -21,26 +21,10 @@ from zoneinfo import ZoneInfo
 
 MOSCOW = ZoneInfo("Europe/Moscow")
 MAX_XML_BYTES = 4_000_000
-TARGETS = {
-    174: ("https://max.ru/anytour/AaHzN34rD6Q", "https://t.me/anytour/1792"),
-    12107: ("https://max.ru/anytour/AZwjaZt4Kz8", "https://t.me/anytour/809"),
-    132: ("https://max.ru/anytour/AZ5qgiujRlo", "https://t.me/anytour/17"),
-    469: ("https://max.ru/anytour/AZ6sX9HGLTk", "https://t.me/anytour/19"),
-    12111: ("https://max.ru/anytour/AZ6wa60cTlw", "https://t.me/anytour/23"),
-    70048: ("https://max.ru/anytour/AZ61r6_QcAI", "https://t.me/anytour/37"),
-    82606: ("https://max.ru/anytour/AZ7KT8ynMm8", "https://t.me/anytour/48"),
-    1344: ("https://max.ru/anytour/AZ7PcvbibFA", "https://t.me/anytour/82"),
-    260: ("https://max.ru/anytour/AZ7UVbXteP8", "https://t.me/anytour/192"),
-    415: ("https://max.ru/anytour/AaFUVxlGPTg", "https://t.me/anytour/1754"),
-    2493: ("https://max.ru/anytour/AZ7Z4K9JJNQ", "https://t.me/anytour/196"),
-    3452: ("https://max.ru/anytour/AZ7pU2e2Znw", "https://t.me/anytour/1148"),
-    4181: ("https://max.ru/anytour/AZ8DSRZpHNw", "https://t.me/anytour/204"),
-    37668: ("https://max.ru/anytour/AZ8r4R9vT_Q", "https://t.me/anytour/402"),
-    43676: ("https://max.ru/anytour/AZ9k6MvNF94", "https://t.me/anytour/414"),
-    64895: ("https://max.ru/anytour/AZ-OUsaPJjg", "https://t.me/anytour/993"),
-    73974: ("https://max.ru/anytour/AZ-tLRx7Jzw", "https://t.me/anytour/455"),
-    74503: ("https://max.ru/anytour/AZ_MDV0gO_I", "https://t.me/anytour/474"),
-    99713: ("https://max.ru/anytour/AZ_RB3FVXFc", "https://t.me/anytour/483"),
+TARGET_FILE = Path(__file__).resolve().parents[1] / "config" / "promoted_hotel_price_targets.json"
+POST_URLS = {
+    "max": re.compile(r"https://max[.]ru/anytour/[A-Za-z0-9_-]{1,100}"),
+    "telegram": re.compile(r"https://t[.]me/anytour/[1-9][0-9]*"),
 }
 
 MONEY = r"[1-9][0-9 \u00a0\u202f]*(?:,[0-9]{1,2})?"
@@ -93,7 +77,32 @@ def parse_offer(offer: ET.Element, now: datetime) -> Offer:
     return Offer(match[0], observed, departure)
 
 
-def prepare(xml: bytes, now: datetime) -> dict:
+def read_targets(raw: bytes) -> dict:
+    rows = json.loads(raw)
+    if not isinstance(rows, list) or not rows:
+        raise ValueError("invalid_promoted_targets")
+    hotels: dict[int, dict] = {}
+    publications: set[int] = set()
+    urls: set[str] = set()
+    for row in rows:
+        if not isinstance(row, dict) or set(row) != {"hotel_id", "platform", "publication_id", "url"}:
+            raise ValueError("invalid_promoted_target")
+        hotel, platform = row["hotel_id"], row["platform"]
+        publication, url = row["publication_id"], row["url"]
+        if (type(hotel) is not int or hotel <= 0 or type(publication) is not int or publication <= 0
+                or not isinstance(platform, str) or platform not in POST_URLS
+                or not isinstance(url, str) or not POST_URLS[platform].fullmatch(url)):
+            raise ValueError("invalid_promoted_target")
+        targets = hotels.setdefault(hotel, {})
+        if platform in targets or publication in publications or url in urls:
+            raise ValueError("duplicate_promoted_target")
+        targets[platform] = row
+        publications.add(publication)
+        urls.add(url)
+    return hotels
+
+
+def prepare(xml: bytes, now: datetime, *, target_file: Path = TARGET_FILE) -> dict:
     if now.tzinfo is None:
         raise ValueError("timezone_required")
     now = now.astimezone(MOSCOW)
@@ -103,7 +112,9 @@ def prepare(xml: bytes, now: datetime) -> dict:
     containers = root.findall("shop/offers")
     if root.tag != "yml_catalog" or len(containers) != 1:
         raise ValueError("unexpected_feed_structure")
-    want = {f"{platform}_{hotel}" for hotel in TARGETS for platform in ("max", "tg")}
+    target_bytes = target_file.read_bytes()
+    targets = read_targets(target_bytes)
+    want = {f"{platform}_{hotel}" for hotel in targets for platform in ("max", "tg")}
     offers: dict[str, list[ET.Element]] = {}
     for item in containers[0].findall("offer"):
         key = item.get("id")
@@ -112,7 +123,7 @@ def prepare(xml: bytes, now: datetime) -> dict:
 
     plans = []
     held = []
-    for hotel, (max_url, telegram_url) in TARGETS.items():
+    for hotel, platforms in targets.items():
         try:
             max_items = offers.get(f"max_{hotel}", [])
             tg_items = offers.get(f"tg_{hotel}", [])
@@ -122,17 +133,22 @@ def prepare(xml: bytes, now: datetime) -> dict:
             telegram = parse_offer(tg_items[0], now)
             if maximum != telegram:
                 raise ValueError("platform_offer_mismatch")
-            plans.append({
-                "hotel_id": hotel, "max_url": max_url, "telegram_url": telegram_url,
+            plan = {
+                "hotel_id": hotel,
                 "price_block": maximum.block,
                 "observed_at": maximum.observed.isoformat(),
                 "departure_date": maximum.departure.date().isoformat(),
-            })
+            }
+            for platform, binding in platforms.items():
+                plan[platform + "_url"] = binding["url"]
+                plan[platform + "_publication_id"] = binding["publication_id"]
+            plans.append(plan)
         except ValueError as failure:
             held.append({"hotel_id": hotel, "reason": str(failure)})
     return {
         "checked_at": now.isoformat(), "feed_sha256": hashlib.sha256(xml).hexdigest(),
-        "target_hotels": len(TARGETS), "eligible_hotels": len(plans), "plans": plans, "held": held,
+        "targets_sha256": hashlib.sha256(target_bytes).hexdigest(),
+        "target_hotels": len(targets), "eligible_hotels": len(plans), "plans": plans, "held": held,
     }
 
 

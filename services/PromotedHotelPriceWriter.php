@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 /**
- * Captions for the first 19 promoted @anytour hotel pairs.
+ * Captions for confirmed promoted @anytour hotel publications.
  * Server CLI only. Consumes the public combined feed under the original PRICE
  * lock. One unknown provider edit fences the affected publication only.
  */
@@ -10,15 +10,7 @@ final class PromotedHotelPriceWriter
 {
     private const MAX_CHANNEL = '-68765999669267';
     private const TG_CHANNEL = '-1001845835645';
-    private const SCOPE = [
-        174 => [3574, 3575], 12107 => [3604, 3600], 132 => [3605, 3621],
-        469 => [3606, 3622], 12111 => [3607, 3623], 70048 => [3608, 3624],
-        82606 => [3609, 3625], 1344 => [3610, 3626], 260 => [3611, 3627],
-        415 => [23, 20], 2493 => [3612, 3628], 3452 => [3613, 3602],
-        4181 => [3614, 3629], 37668 => [3615, 3630], 43676 => [3616, 3631],
-        64895 => [3617, 3601], 73974 => [3618, 3632], 74503 => [3619, 3633],
-        99713 => [3620, 3634],
-    ];
+    private const TARGET_FILE = __DIR__.'/../config/promoted_hotel_price_targets.json';
     private const PRICE_FOOTER = ' Стоимость и наличие могут измениться.';
     private const PRICE_PREFIX = '💰 От ';
     private array $channelsVerified = [];
@@ -103,27 +95,84 @@ final class PromotedHotelPriceWriter
         return $stamp->getTimestamp();
     }
 
-    public function run(array $plans, bool $apply): array
+    /** Validate the entire plan before the first native edit, including hotels held for lack of a price. */
+    public static function jobsForPlan(array $plan, string $feedHash, string $targetBytes): array
     {
-        $out = [];
-        foreach ($plans as $plan) {
-            $hotel = $plan['hotel_id'];
-            if (!isset(self::SCOPE[$hotel])) throw new RuntimeException('unapproved_hotel');
-            foreach (['max', 'telegram'] as $index => $platform) {
-                $id = self::SCOPE[$hotel][$index];
-                $url = $plan[$platform.'_url'];
-                $item = ['hotel'=>$hotel, 'platform'=>$platform, 'publication'=>$id, 'url'=>$url];
-                $attempted = false;
-                try {
-                    $item += $this->update($id, $platform, $url, $hotel, $plan['price_block'], $apply, $attempted);
-                } catch (Throwable $error) {
-                    $reason = $error->getMessage();
-                    $item += ['result'=>$attempted ? 'unknown_after_write' : 'held_before_write',
-                        'reason'=>preg_match('/^[a-z0-9_]{1,100}$/D', $reason) ? $reason : 'native_editor_error'];
+        self::need(($plan['targets_sha256'] ?? null) === hash('sha256', $targetBytes)
+            && ($plan['feed_sha256'] ?? null) === $feedHash, 'price_plan_mismatch');
+        $rows = json_decode($targetBytes, true, 32, JSON_THROW_ON_ERROR);
+        self::need(is_array($rows) && array_is_list($rows) && $rows !== [], 'invalid_promoted_targets');
+        $targets = $usedIds = $usedUrls = [];
+        $patterns = ['max'=>'~\Ahttps://max\.ru/anytour/[A-Za-z0-9_-]{1,100}\z~D',
+            'telegram'=>'~\Ahttps://t\.me/anytour/[1-9][0-9]*\z~D'];
+        foreach ($rows as $row) {
+            $hotel = $row['hotel_id'] ?? null;
+            $platform = $row['platform'] ?? null;
+            $id = $row['publication_id'] ?? null;
+            $url = $row['url'] ?? null;
+            self::need(is_array($row) && count($row) === 4 && is_int($hotel) && $hotel > 0
+                && is_int($id) && $id > 0 && is_string($platform) && isset($patterns[$platform])
+                && is_string($url) && preg_match($patterns[$platform], $url) === 1, 'invalid_promoted_target');
+            self::need(!isset($targets[$hotel][$platform]) && !isset($usedIds[$id]) && !isset($usedUrls[$url]),
+                'duplicate_promoted_target');
+            $targets[$hotel][$platform] = $row;
+            $usedIds[$id] = $usedUrls[$url] = true;
+        }
+        self::need(($plan['target_hotels'] ?? null) === count($targets)
+            && is_array($plan['plans'] ?? null) && array_is_list($plan['plans'])
+            && is_array($plan['held'] ?? null) && array_is_list($plan['held'])
+            && ($plan['eligible_hotels'] ?? null) === count($plan['plans']), 'price_plan_mismatch');
+        foreach ($plan['held'] as $held) {
+            $hotel = $held['hotel_id'] ?? null;
+            self::need(is_int($hotel) && isset($targets[$hotel]) && is_string($held['reason'] ?? null)
+                && $held['reason'] !== '', 'price_plan_mismatch');
+            unset($targets[$hotel]);
+        }
+        $jobs = [];
+        foreach ($plan['plans'] as $row) {
+            $hotel = $row['hotel_id'] ?? null;
+            self::need(is_int($hotel) && isset($targets[$hotel]) && is_string($row['price_block'] ?? null)
+                && self::completePrice($row['price_block']), 'price_plan_mismatch');
+            $bindingFields = preg_grep('/_(?:url|publication_id)\z/D', array_keys($row));
+            self::need(count($bindingFields) === 2 * count($targets[$hotel]), 'price_plan_mismatch');
+            foreach ($patterns as $platform => $_) {
+                $urlKey = $platform.'_url';
+                $idKey = $platform.'_publication_id';
+                $target = $targets[$hotel][$platform] ?? null;
+                if ($target === null) {
+                    self::need(!array_key_exists($urlKey, $row) && !array_key_exists($idKey, $row), 'price_plan_mismatch');
+                    continue;
                 }
-                $out[] = $item;
-                if ($attempted) usleep(1000000);
+                self::need(($row[$urlKey] ?? null) === $target['url']
+                    && ($row[$idKey] ?? null) === $target['publication_id'], 'price_plan_mismatch');
+                $jobs[] = ['hotel'=>$hotel, 'platform'=>$platform, 'publication'=>$target['publication_id'],
+                    'url'=>$target['url'], 'price_block'=>$row['price_block']];
             }
+            unset($targets[$hotel]);
+        }
+        self::need($targets === [], 'price_plan_mismatch');
+        return $jobs;
+    }
+
+    public function run(array $plan, string $feedHash, bool $apply): array
+    {
+        $targetBytes = file_get_contents(self::TARGET_FILE);
+        self::need(is_string($targetBytes), 'promoted_targets_unavailable');
+        $out = [];
+        foreach (self::jobsForPlan($plan, $feedHash, $targetBytes) as $item) {
+            $block = $item['price_block'];
+            unset($item['price_block']);
+            $attempted = false;
+            try {
+                $item += $this->update($item['publication'], $item['platform'], $item['url'], $item['hotel'],
+                    $block, $apply, $attempted);
+            } catch (Throwable $error) {
+                $reason = $error->getMessage();
+                $item += ['result'=>$attempted ? 'unknown_after_write' : 'held_before_write',
+                    'reason'=>preg_match('/^[a-z0-9_]{1,100}$/D', $reason) ? $reason : 'native_editor_error'];
+            }
+            $out[] = $item;
+            if ($attempted) usleep(1000000);
         }
         return $out;
     }
