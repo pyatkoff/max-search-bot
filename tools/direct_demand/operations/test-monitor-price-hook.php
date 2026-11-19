@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require __DIR__.'/monitor-price-hook-contract.php';
+require_once __DIR__.'/monitor-price-telegram-ads19.php';
 $roster=json_decode(file_get_contents(__DIR__.'/monitor-price-hook-roster.json'),true,64,JSON_THROW_ON_ERROR);
 $handoff=json_decode(file_get_contents(__DIR__.'/monitor-price-six-20261111-handoff.json'),true,64,JSON_THROW_ON_ERROR);
 $cases=0;
