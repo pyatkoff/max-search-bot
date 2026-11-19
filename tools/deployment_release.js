@@ -1548,8 +1548,10 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
 async function resolvePublicationOperation({env,event,api}) {
   const coverageBranch='ops/appleservice39-coverage-20261112';
   const deviceBranch='ops/appleservice39-device-v1-20261119';
+  const deviceRecoveryBranch='ops/appleservice39-device-recovery-20261119';
   const ref=env.GITHUB_REF;
-  const branch=[coverageBranch,deviceBranch].find(name=>ref==='refs/heads/'+name);
+  const operations=new Map([[coverageBranch,'coverage_batch'],[deviceBranch,'device_batch'],[deviceRecoveryBranch,'device_recovery']]);
+  const branch=[...operations.keys()].find(name=>ref==='refs/heads/'+name);
   const workflow=PREFIX+'publish-appleservice39-pilot.yml';
   const predecessor='c5c0276d94337eee130467716c9794176b2ab25a',predecessorRun=43186776772;
   const initial=event?.before==='0'.repeat(40)&&event?.created===true;
@@ -1583,11 +1585,25 @@ async function resolvePublicationOperation({env,event,api}) {
     const relation=await api('GET',API_ROOT+'/compare/'+predecessor+'...'+c.sha+'?per_page=1');
     requireValue(relation?.status==='ahead'&&relation.merge_base_commit?.sha===predecessor,'publication_source_not_descendant');
   }
+  if(branch===deviceRecoveryBranch){
+    // This run observes the existing device requests. The ledger separately fences
+    // every create and never reopens the original iPhone 18 request.
+    const originalSha='8299a835d9b896c57dd4ffb9b34db75f613b3de0',originalRun=44436183201;
+    const original=await api('GET',API_ROOT+'/actions/runs/'+originalRun);
+    runIdentity(original,{id:originalRun,attempt:1,head:originalSha,workflow,event:'push',branch:deviceBranch,conclusion:'failure'});
+    const job=await api('GET',API_ROOT+'/actions/jobs/135269278628');
+    const failures=Array.isArray(job?.steps)?job.steps.filter(step=>step.conclusion==='failure'):[];
+    requireValue(job?.id===135269278628&&job.run_id===originalRun&&job.name==='publish'&&job.status==='completed'
+      &&job.conclusion==='failure'&&failures.length===1&&failures[0].name==='Run the installed fixed pilot operation once',
+      'device_original_operation_unproven');
+    const relation=await api('GET',API_ROOT+'/compare/'+originalSha+'...'+c.sha+'?per_page=1');
+    requireValue(relation?.status==='ahead'&&relation.merge_base_commit?.sha===originalSha,'publication_source_not_descendant');
+  }
   const location=await readRecord(api);
   const result=await resolveCurrent(api,c,location);
   requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
   const admitted=await finalResolution(api,c,location,result);
-  return {...admitted,publication_operation:branch===coverageBranch?'coverage_batch':'device_batch'};
+  return {...admitted,publication_operation:operations.get(branch)};
 }
 
 async function resolveEditor({env,event,api,repositorySha,applicationSha}) {

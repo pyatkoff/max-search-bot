@@ -467,6 +467,38 @@ async function publicationOperationConsumer(f,repositorySha,applicationSha){
     'untrusted_publication_operation','a workflow rerun cannot publish device posts');
   await refuses(()=>R.resolvePublicationOperation({env:deviceEnv,event,api:f.api}),
     'untrusted_publication_operation','coverage and device branch identities cannot be interchanged');
+  const recoveryBranch='ops/appleservice39-device-recovery-20261119',recoveryRef='refs/heads/'+recoveryBranch;
+  const recoveryRun={...run,id:6600,head_branch:recoveryBranch};
+  f.runs.set(recoveryRun.id,recoveryRun);
+  const repairEnv={...env,GITHUB_RUN_ID:String(recoveryRun.id),GITHUB_REF:recoveryRef,GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+workflow+'@'+recoveryRef};
+  const repairEvent={...event,ref:recoveryRef};
+  const originalSha='8299a835d9b896c57dd4ffb9b34db75f613b3de0',originalRunId=44436183201;
+  const original={...deviceRun,id:originalRunId,head_sha:originalSha,status:'completed',conclusion:'failure'};
+  const originalJob={id:135269278628,run_id:originalRunId,name:'publish',status:'completed',conclusion:'failure',
+    steps:[{name:'Run the installed fixed pilot operation once',conclusion:'failure'}]};
+  const ancestry={status:'ahead',merge_base_commit:{sha:originalSha}};
+  const repairApi=async(method,path,...args)=>{
+    if(path===R.API_ROOT+'/actions/runs/'+originalRunId)return copy(original);
+    if(path===R.API_ROOT+'/actions/jobs/'+originalJob.id)return copy(originalJob);
+    if(path===R.API_ROOT+'/compare/'+originalSha+'...'+repositorySha+'?per_page=1')return copy(ancestry);
+    return f.api(method,path,...args);
+  };
+  const repair=()=>R.resolvePublicationOperation({env:repairEnv,event:repairEvent,api:repairApi});
+  const recoveryReceipt=await repair();
+  equal([recoveryReceipt.publication_operation,recoveryReceipt.repository_sha,recoveryReceipt.application_sha],
+    ['device_recovery',repositorySha,applicationSha],'only the bounded device recovery can follow the original failed publication');
+  original.run_attempt=2;
+  await refuses(repair,'untrusted_workflow_run','a rerun cannot provide the original operation evidence');
+  original.run_attempt=1;originalJob.steps[0].name='Verify current repository provenance';
+  await refuses(repair,'device_original_operation_unproven','failure in another stage grants no continuation');
+  originalJob.steps[0].name='Run the installed fixed pilot operation once';ancestry.merge_base_commit.sha='f'.repeat(40);
+  await refuses(repair,'publication_source_not_descendant','a different source history cannot use the device continuation');
+  ancestry.merge_base_commit.sha=originalSha;
+  await refuses(()=>R.resolvePublicationOperation({env:repairEnv,event:{...repairEvent,created:false,before:originalSha},api:repairApi}),
+    'untrusted_publication_operation','updating a previously used recovery branch cannot start another continuation');
+  await refuses(()=>R.resolvePublicationOperation({env:{...repairEnv,GITHUB_RUN_ATTEMPT:'2'},event:repairEvent,api:repairApi}),
+    'untrusted_publication_operation','rerunning the continuation cannot authorize sends');
+  f.runs.delete(recoveryRun.id);
   f.runs.delete(deviceRun.id);
   for(const [label,patch] of [['not created',{created:false}],['forced',{forced:true}],['deleted',{deleted:true}],
     ['existing branch update',{before:'b'.repeat(40)}],['other source',{after:'b'.repeat(40)}],['main event',{ref:'refs/heads/main'}]]){
