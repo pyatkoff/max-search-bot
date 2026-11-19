@@ -1,4 +1,4 @@
-name: Accept three post-W20 source-bound hotel rows; zero sends
+name: Accept next seven post-W20 source-bound hotels; no sends
 'on':
   push:
     branches:
@@ -11,7 +11,7 @@ permissions:
 jobs:
   prepare:
     if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
-      && github.event.before == '96f827fda086f3c6c03db9318f06a3fcb6f33f10' && github.run_attempt
+      && github.event.before == 'd87cbe9dc506a635e4e029194acb647b84479961' && github.run_attempt
       == 1
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -22,12 +22,12 @@ jobs:
         sparse-checkout: 'tools/direct_demand/operations
 
           .github/traffic-publish/brand'
-    - name: Validate three accepted rows with original compiler and current release
+    - name: Validate seven accepted rows and four material checks
       env:
         GH_TOKEN: ${{ github.token }}
       run: 'set -euo pipefail
 
-        python3 tools/direct_demand/operations/postw20-accept-ten-20261119.py
+        python3 tools/direct_demand/operations/postw20-accept-seven-20261119.py
 
         for f in accepted-source/*-publisher-unexecuted.php; do php -l "$f"; done
 
@@ -35,7 +35,7 @@ jobs:
     - if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
-        name: postw20-three-accepted-source
+        name: postw20-seven-accepted-source
         path: accepted-source/
         retention-days: 30
         if-no-files-found: warn
