@@ -13,7 +13,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'f1ce822a77862bd762d79acc9ab411729a8b9616' &&
+      github.event.before == '9107be6b29aff92b5d200a2219b80bb5d077ea71' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -210,12 +210,20 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print({"ok":d.get("ok"),"reason":d.get("reason"),"count":len(d.get("rows", []))})'
+          python3 - <<'PY'
+          import json
+          d=json.load(open('pub/registry.json'))
+          for r in d.get('rows', []):
+              if isinstance(r.get('source'), dict):
+                  r['source'].pop('caption', None)
+          print('SEALED_PREFLIGHT='+json.dumps(d, ensure_ascii=False, separators=(',',':')))
+          assert d.get('ok') and d.get('writes') == 0 and len(d['rows']) == 7
+          PY
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: seven-telegram-hotel-preflight
+          name: seven-telegram-sealed-preflight
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
