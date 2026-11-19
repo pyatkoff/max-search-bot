@@ -1,0 +1,158 @@
+name: "#1566 Verify old Telegram buttons and reconcile only proven zero-write read failures"
+on:
+  push:
+    branches: [audit/1566-main-hotel-registry-20261119]
+    paths: ['.github/workflows/reconcile-1566-existing-telegram-buttons.yml']
+permissions:
+  contents: read
+concurrency:
+  group: anytour-authorized-channel-publication
+  cancel-in-progress: false
+jobs:
+  registry:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '4bd20ceebc7f1639abac478d16d48413e9f27d84' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Lint exact existing-ID reconciliation program
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir pub
+          cat > pub/read-only.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          ini_set('display_errors','0');
+          ini_set('log_errors','0');
+          $targets=json_decode(<<<'JSON'
+          [["17",132,230,"✈️ Beach Albatros Resort\n📍 Египет · Хургада\n\nСемейный отдых у Красного моря. У Beach Albatros Resort в Хургаде песчаный пляж с пологим входом в воду. Между купанием в море и отдыхом у бассейна — аквапарк с горками для взрослых и детей.\n\nПодберём тур на ваши даты."],["19",469,103,"✈️ Sultan Gardens Resort\n📍 Египет · Шарм-эль-Шейх\n\nСемейный курорт у Красного моря. У пляжа есть риф, к которому ведут понтоны. Для активного и спокойного отдыха предусмотрены отдельные зоны пляжа. В Family Suite две спальни, а детский клуб рассчитан на гостей от 4 до 12 лет.\n\nПодберём тур на ваши даты."],["23",12111,118,"✈️ Mövenpick Sharm El Sheikh\n📍 Египет · Наама-Бей, Шарм-эль-Шейх\n\nОтель на склоне над бухтой Наама-Бей, с видом на море и собственными песчаными пляжами. На территории есть дайв-центр и конюшня, поэтому пляжный день можно дополнить погружением или прогулкой верхом.\n\nПодберём тур на ваши даты."],["37",70048,1148,"✈️ Marina Gallery Resort Kacha Kalim Bay\n📍 Таиланд · Пхукет\n\nКамерный отдых на Пхукете. У отеля открытый бассейн с садом и лежаками, а в ресторане Laikraam подают блюда местной кухни. До пляжа Калим около километра, в Патонг ходит бесплатный шаттл по расписанию.\n\nПодберём тур на ваши даты."],["48",82606,593,"✈️ Lonicera World Hotel\n📍 Турция · Аланья\n\nLonicera World стоит на первой линии в Аланье. Песчаный пляж и мелководье подойдут семьям с детьми. На территории World работают рестораны Aspera и Beach.\n\nПодберём тур на ваши даты."],["82",1344,915,"✈️ Lonicera Resort & Spa — семейный отдых в Аланье\n📍 Турция · Аланья\n\nПесчаный пляж с мелководьем в бухте, а на территории комплекса — бассейны и аквапарк. В детском клубе есть занятия для гостей от 4 до 12 лет.\n\nПодберём тур на ваши даты."],["192",260,313,"✈️ Park Regency Sharm El Sheikh — отдых у Красного моря\n📍 Египет · Шарм-эль-Шейх\n\nУ отеля три пляжа, каскадные бассейны, ленивая река и водная горка. Для детей есть клуб Oasis с игровой комнатой и затенённым бассейном.\n\nПодберём тур на ваши даты."],["196",2493,1461,"✈️ W Maldives\n📍 Мальдивы · Северный Ари\n\nВиллы с собственными бассейнами на пляже и над водой, домашний риф и спа. Подойдёт тем, кто хочет чередовать уединение на вилле со снорклингом и ужинами у океана.\n\nПодберём тур на ваши даты."],["204",4181,1227,"✈️ Hilton Marsa Alam Nubian Resort\n📍 Египет · Марса-Алам\n\nОтель у бухты Абу-Даббаб для знакомства с подводным миром Красного моря. Есть доступ к песчаному пляжу, четыре бассейна и занятия для детей. Условия купания зависят от погоды и правил пляжа.\n\nПодберём тур на ваши даты."],["402",37668,212,"✈️ Rixos Premium Seagate\n📍 Египет · Шарм-эль-Шейх\n\nСемейный курорт в Шарм-эль-Шейхе с собственным пляжем на Красном море. После моря можно отправиться в аквапарк Aquaventure, а для детей работает клуб Rixy.\n\nПодберём тур на ваши даты."],["414",43676,1418,"✈️ Anantara Kalutara Resort\n📍 Шри-Ланка · Калутара\n\nКурорт между Индийским океаном и рекой Калу-Ганга. Бассейны, просторные номера и детский клуб — для семейного отдыха. Для поездки вдвоём — спа, рестораны и виды на воду.\n\nПодберём тур на ваши даты."],["455",73974,510,"✈️ Alma Resort Cam Ranh\n📍 Вьетнам · Камрань\n\nСемейный курорт на пляже Бай-Дай в Камрани. В Splash Water Park есть ленивая река, волновой бассейн и семейные горки, так что день у моря легко совместить с аквапарком.\n\nПодберём тур на ваши даты."],["474",74503,377,"✈️ NG Phaselis Bay\n📍 Турция · Кемер\n\nОтель в Кемере с длинным песчаным пляжем и несколькими бассейнами. Подойдёт для семейного отдыха, а для детей есть клуб Beluga с играми и занятиями.\n\nПодберём тур на ваши даты."],["483",99713,1417,"✈️ Anantara Mina Al Arab Ras Al Khaimah\n📍 ОАЭ · Рас-эль-Хайма\n\nКурорт среди мангровых зарослей Рас-эль-Хаймы. Можно выбрать номер, люкс или отдельную виллу над водой с бассейном. Для семей работают детский и подростковый клубы.\n\nПодберём тур на ваши даты."],["809",12107,0,""],["1148",3452,0,""]]
+          JSON,true,20,JSON_THROW_ON_ERROR);
+          $result=['ok'=>false,'new_posts'=>0,'ad_writes'=>0,'rows'=>[]];
+          try {
+              if (PHP_SAPI!=='cli'||trim((string)shell_exec('git rev-parse HEAD'))!=='fe623086b716b3077e4ec0d4551095fc63db37e3' || count($targets)!==16) {
+                  throw new RuntimeException('installed_release_changed');
+              }
+              ob_start();
+              try {
+                  require getcwd().'/config.php';
+                  require_once getcwd().'/services/ChannelPostEntryService.php';
+                  require_once getcwd().'/services/ChannelPostAutomationService.php';
+              } finally {ob_end_clean();}
+              $pdo=ConversationDb::connection();
+              $registry=new ChannelPostRegistryService($pdo);
+              $identity=ChannelPostRuntime::identity('telegram');
+              if (($identity['project_key']??null)!=='anytour'||($identity['bot_key']??null)!=='anyru_bot') {
+                  throw new RuntimeException('identity_changed');
+              }
+              $q=$pdo->prepare('SELECT id FROM post_publications WHERE post_channel_id=6 AND external_message_id=?');
+              foreach ($targets as [$mid,$hotel,$sourceId,$caption]) {
+                  $url='https://t.me/anytour/'.$mid;
+                  $q->execute([$mid]);
+                  $id=(int)$q->fetchColumn();
+                  $q->closeCursor();
+                  $post=$registry->publication($id);
+                  $entry=$post?ChannelPostEntryService::resolve('telegram',$post['start_payload'],$registry):null;
+                  $version=(int)($post['version_id']??0);
+                  $captionOK=$caption==='' ? in_array($mid,['809','1148'],true) : ($post['snapshot']['text']??null)===$caption;
+                  $source=$sourceId>0?$registry->publication($sourceId):null;
+                  $image=$post['snapshot']['attachments'][0]??[];
+                  $sourceImage=$source['snapshot']['attachments'][0]??[];
+                  $photoOK=is_string($image['file_unique_id']??null)&&($image['type']??'')==='image'
+                      && ($sourceId===0||($sourceImage['file_unique_id']??null)===$image['file_unique_id']);
+                  $valid=$id>0&&$version>0&&is_array($post)&&$post['external_message_id']===$mid
+                      && $post['channel_id']==='-1001845835645'
+                      && ($post['snapshot']['post_url']??null)===$url
+                      && (int)($post['snapshot']['metadata']['hotel_catalog_id']??0)===$hotel
+                      && (int)($entry['publication_id']??0)===$id&&(int)($entry['version_id']??0)===$version;
+                  $row=['hotel_id'=>$hotel,'message_id'=>$mid,'url'=>$url,'exact_post_context'=>$valid,'content_verified'=>$valid&&$captionOK&&$photoOK];
+                  if ($row['content_verified'] && ChannelPostRegistryService::telegramReadFailureRecoveryEligible($post)) {
+                      // This established repair runs only for a proven read failure BEFORE any prior button edit.
+                      $automation=new ChannelPostAutomationService($registry);
+                      $scope=ChannelPostIncomingAdapter::contentFingerprint($post['snapshot']);
+                      $config=(int)$post['channel']['config_version'];
+                      $preview=$automation->recoverTelegramReadFailure($identity,'-1001845835645',$mid,$id,$version,$config,$scope);
+                      $row['recovery_preview']=$preview['state']??null;
+                      if (($preview['ok']??false)===true && ($preview['state']??'')==='preview') {
+                          $repair=$automation->recoverTelegramReadFailure($identity,'-1001845835645',$mid,$id,$version,$config,$scope,$preview['recovery_digest'],true);
+                          $row['recovery_state']=$repair['state']??null;
+                      }
+                  }
+                  $current=$registry->publication($id)??[];
+                  $receipt=$current['receipt']??[];
+                  $row['registry_state']=$current['state']??null;
+                  $row['registry_reason']=$current['error_reason']??null;
+                  $row['attempts']=(int)($current['write_attempts']??0);
+                  $row['button_verified']=$row['content_verified'] && $current['state']==='sent'
+                       && (int)$current['version_id']===$version && !empty($receipt['button_verified'])&&!empty($receipt['content_preserved']);
+                  $result['rows'][]=$row;
+              }
+              $result['ok']=true;
+          } catch(Throwable $e) {
+              $result['error']=preg_match('/\A[a-z_]{1,100}\z/D',$e->getMessage())?$e->getMessage():'reconciliation_unavailable';
+          }
+          echo json_encode($result,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          exit($result['ok']?0:2);
+          PHP
+          php -l pub/read-only.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Verify original button outcomes; use canonical recovery only when no prior write occurred
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); assert d["ok"] and d["new_posts"]==d["ad_writes"]==0; print(json.dumps(d))'
+      - name: Save bounded match evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-1566-telegram-existing-button-reconciliation
+          path: pub/registry.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Remove runner-only connection material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
