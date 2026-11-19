@@ -1,0 +1,786 @@
+{
+  "schema": 1,
+  "state": "PREPARED_NOT_SENT_NOT_IMPORTED",
+  "source_comment": "https://github.com/pyatkoff/max-search-bot/issues/1566#issuecomment-7018162446",
+  "source_updated_at": "2026-11-19T18:46:07Z",
+  "media": {
+    "schema": 1,
+    "renderer_commit": "1d9d0b2042d30e96deb053d6d808b07501031fda",
+    "renderer_sha256": "d513312ce3d55a248309fcd0f03236d61968e8571ef650fb759b322235586fa6",
+    "pillow": "13.0.0",
+    "rows": [
+      {
+        "hotel_id": 116719,
+        "name": "Bliss Hoi An Beach Resort And Wellness",
+        "sources": [
+          {
+            "url": "https://static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216106.jpg",
+            "sha256": "6f3ef4faa082c94e0f7450ed74df3ea7fd9b1b01f166a3d48f3c4b55a58b6805",
+            "bytes": 248049,
+            "size": [
+              1024,
+              578
+            ]
+          },
+          {
+            "url": "https://static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216101.jpg",
+            "sha256": "d7aceeab2dd341620b0a46155b8ac752afc0b015ecbd6aa567b677b162e32b5e",
+            "bytes": 193529,
+            "size": [
+              1024,
+              683
+            ]
+          },
+          {
+            "url": "https://static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216102.jpg",
+            "sha256": "e1355b31f1d850a5ce532641ba2a0a8f7711acd3f4723894172db106985c4f6c",
+            "bytes": 276566,
+            "size": [
+              1024,
+              768
+            ]
+          }
+        ],
+        "png_sha256": "cd10c49820d45569d6eaeb8f698d076133da86ac957035756c66ff00e87c18d9",
+        "png_bytes": 523088,
+        "dimensions": [
+          1080,
+          1080
+        ],
+        "state": "PREPARED_NOT_SENT"
+      },
+      {
+        "hotel_id": 28569,
+        "name": "Twin Lotus Koh Lanta",
+        "sources": [
+          {
+            "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413110.jpg",
+            "sha256": "b37e9857cb4ecb389da9666e2fef1801bfbb90f05f73d9da061c5adc5fd1c73e",
+            "bytes": 93596,
+            "size": [
+              800,
+              534
+            ]
+          },
+          {
+            "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413101.jpg",
+            "sha256": "58d69334417b805b4dd4516c06a2a80784714a7ba8d2a591930d678e42879c34",
+            "bytes": 51148,
+            "size": [
+              800,
+              534
+            ]
+          },
+          {
+            "url": "https://static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413102.jpg",
+            "sha256": "03ae2504d5c6951e8c28d728344f7dcd432c087ad15748101475ffab1f7619e0",
+            "bytes": 53547,
+            "size": [
+              800,
+              534
+            ]
+          }
+        ],
+        "png_sha256": "ff135cab69c33888e0ca61f7ece481b6c3fb655502aa627093e20d8a60531bf1",
+        "png_bytes": 394402,
+        "dimensions": [
+          1080,
+          1080
+        ],
+        "state": "PREPARED_NOT_SENT"
+      },
+      {
+        "hotel_id": 32354,
+        "name": "Phu Quoc Eco Beach Resort",
+        "sources": [
+          {
+            "url": "https://static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703403.jpg",
+            "sha256": "307cac4e32f61db54fee22153ee88a75b5f5a773ba249ec74d6958cb90283478",
+            "bytes": 256307,
+            "size": [
+              1024,
+              683
+            ]
+          },
+          {
+            "url": "https://static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703401.jpg",
+            "sha256": "7efac63b03bd2e9e53be92fbf00fd429d24110ff907f9336e5bc92ef9851a5cd",
+            "bytes": 265681,
+            "size": [
+              1024,
+              683
+            ]
+          },
+          {
+            "url": "https://static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703402.jpg",
+            "sha256": "8e20ee184547a664c402ad470a8d338d671dc07d4fd34c7f75845eef10466920",
+            "bytes": 297805,
+            "size": [
+              1024,
+              767
+            ]
+          }
+        ],
+        "png_sha256": "574eaf462914b5808f9574fb6ed06a93286b6ae54df2d912b443e0242139c5ef",
+        "png_bytes": 499446,
+        "dimensions": [
+          1080,
+          1080
+        ],
+        "state": "PREPARED_NOT_SENT"
+      }
+    ],
+    "sender_calls": 0,
+    "new_pairs": 0
+  },
+  "visual_review": {
+    "result": "PASS",
+    "reviewed_ids": [
+      116719,
+      28569,
+      32354
+    ],
+    "details": "All three actual PNGs inspected: correct names, logo, three source frames, intact title, no clipped text. Pillow 13.0.0 differs from source receipt 11.3.0; actual PNG hashes retained."
+  },
+  "rows": [
+    {
+      "hotel_id": 116719,
+      "country_id": 16,
+      "profile": {
+        "id": 116719,
+        "name": "BLISS HOI AN BEACH RESORT AND WELLNESS",
+        "category": 5,
+        "type": 0,
+        "country": {
+          "id": 16,
+          "name": "Вьетнам"
+        },
+        "region": {
+          "id": 105,
+          "name": "Хой Ан",
+          "countryId": 16
+        },
+        "subRegion": null,
+        "rating": 5,
+        "common": {
+          "address": "B&#236;nh Minh, Th&#259;ng B&#236;nh, Qu&#7843;ng Nam, Хойан, Вьетнам.",
+          "phone": "",
+          "site": "www.blisshoian.com",
+          "description": "В отеле 137 номеров.",
+          "build": "2022",
+          "repair": "",
+          "square": "50000",
+          "place": "В провинции Куангнам; на первой береговой линии; в 19 км от города Хойан; в 45 км от международного аэропорта Da Nang International Airport; в 57 км от аэропорта Chu Lai Airport.",
+          "latitude": 15.778639993714133,
+          "longitude": 108.42950678933634
+        },
+        "infrastructure": {
+          "territory": "<UL><LI>фитнес-центр</LI><LI>открытый бассейн</LI><LI>сад</LI><LI>терраса</LI><LI>ресторан (азиатская, вьетнамская, интернациональная кухня)</LI><LI>2 бара</LI><LI>конференц-зал/банкетный зал</LI><LI>спа-центр</LI></UL>",
+          "beach": "<UL><LI>песчаный пляж в 150 м от отеля</LI><LI>песчаный вход в воду</LI><LI>первая линия</LI><LI>частная пляжная зона</LI></UL>"
+        },
+        "roomTypes": "<UL><LI>Deluxe Room — 51 кв. м. Кровать размера «king-size» или две односпальные кровати. Вид на сад.</LI><LI>Ocean Deluxe Room — 51 кв. м. Кровать размера «king-size» или две односпальные кровати. Вид на океан.</LI><LI>Sky Ocean Deluxe — 80 кв. м. Кровать размера «king-size». Вид на океан</LI><LI>Indochine — 80 кв. м. Кровать размера «king-size» или две односпальные кровати. Вид на сад</LI><LI>Family Suites — 57 кв. м. Кровать размера «king-size» и две односпальные кровати. Вид на океан</LI><LI>Bungalow — 98 кв. м. Двуспальная кровать. Вид на океан.</LI><LI>Two-Bedroom Pool Villa — 130 кв. м. Кровать размера «king-size» и две односпальные кровати. Вид на океан</LI></UL>",
+        "meals": {
+          "list": "<UL><LI>BB — завтрак</LI><LI>AI — всё включено</LI></UL>",
+          "description": "Бары и рестораны:<BR><UL><LI>ресторан Binh Minh (азиатская, европейская кухня). Завтрак: 06:30 – 10:00, обед и ужин: 11:30 – 22:00</LI><LI>бар Rooftop расположен на крыше, часы работы: 18:00 – 00:00 (вместимостью на 80 посадочных мест)</LI><LI>бар у бассейна, часы работы: 10:00 – 20:00</LI></UL>"
+        },
+        "services": {
+          "available": "<UL><LI>прокат велосипедов</LI><LI>парковка</LI><LI>круглосуточная охрана</LI><LI>круглосуточная стойка регистрации</LI></UL>",
+          "free": "<UL><LI>Wi-Fi</LI></UL>",
+          "servicesPay": "<UL><LI>трансфер от/до аэропорта</LI><LI>прачечная/химчистка</LI><LI>массаж</LI></UL>",
+          "animation": "",
+          "child": "<UL><LI>детское меню (платно)</LI><LI>детская площадка на улице</LI><LI>игровая зона в помещении</LI><LI>защитные барьеры для детей</LI><LI>няня / услуги по уходу за детьми (платно)</LI></UL>",
+          "inRoom": "<UL><LI>набор для приготовления чая/кофе</LI><LI>банные принадлежности</LI><LI>фен</LI><LI>кондиционер</LI><LI>телевизор с кабельными каналами</LI><LI>письменный стол</LI><LI>бутилированная питьевая вода</LI><LI>мини-холодильник</LI><LI>сейф</LI><LI>Wi-Fi</LI><LI>IDD телефон</LI></UL>",
+          "tags": [
+            {
+              "id": 1,
+              "name": "Детям",
+              "items": [
+                {
+                  "id": 2,
+                  "name": "Детское меню"
+                },
+                {
+                  "id": 6,
+                  "name": "Детская площадка"
+                }
+              ]
+            },
+            {
+              "id": 2,
+              "name": "Удобства",
+              "items": [
+                {
+                  "id": 8,
+                  "name": "Балкон"
+                },
+                {
+                  "id": 10,
+                  "name": "Wi-Fi в номере"
+                },
+                {
+                  "id": 12,
+                  "name": "Кондиционер"
+                }
+              ]
+            },
+            {
+              "id": 3,
+              "name": "Пляж и расположение",
+              "items": [
+                {
+                  "id": 15,
+                  "name": "Первая линия"
+                },
+                {
+                  "id": 17,
+                  "name": "Песчаный пляж"
+                }
+              ]
+            },
+            {
+              "id": 5,
+              "name": "Услуги и территория",
+              "items": [
+                {
+                  "id": 23,
+                  "name": "Бассейн"
+                },
+                {
+                  "id": 26,
+                  "name": "SPA"
+                },
+                {
+                  "id": 27,
+                  "name": "Ресторан или кафе"
+                },
+                {
+                  "id": 28,
+                  "name": "Спортзал"
+                },
+                {
+                  "id": 36,
+                  "name": "Wi-Fi"
+                }
+              ]
+            },
+            {
+              "id": 8,
+              "name": "Особенности отеля",
+              "items": [
+                {
+                  "id": 44,
+                  "name": "Семейный"
+                }
+              ]
+            }
+          ]
+        },
+        "images": [
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216106.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216101.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216102.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216103.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216104.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216105.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216107.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216108.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216109.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216110.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216111.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216112.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216113.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216114.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216115.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216116.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216117.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216118.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216119.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216120.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216121.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216122.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216123.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216124.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216127.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216128.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216129.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216130.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216131.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216132.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216133.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216134.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216135.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216136.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216137.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216139.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216140.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216141.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216142.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216143.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216144.jpg"
+        ]
+      },
+      "facts": [
+        {
+          "ordinal": 1,
+          "text": "Первая береговая линия пляжа Биньминь",
+          "source_url": "https://blisshoian.com/our-resort/",
+          "status": "QUALIFIED_SOURCE_PACKET_NOT_RUNTIME_IMPORTED"
+        },
+        {
+          "ordinal": 2,
+          "text": "Панорамный бассейн у пляжа длиной 55 м",
+          "source_url": "https://blisshoian.com/our-resort/",
+          "status": "QUALIFIED_SOURCE_PACKET_NOT_RUNTIME_IMPORTED"
+        },
+        {
+          "ordinal": 3,
+          "text": "Бесплатный шаттл по расписанию в старый Хойан и обратно",
+          "source_url": "https://blisshoian.com/sightseeing-tours-services/free-shuttle-bus/",
+          "status": "QUALIFIED_SOURCE_PACKET_NOT_RUNTIME_IMPORTED"
+        },
+        {
+          "ordinal": 4,
+          "text": "Место в шаттле бронируют за два часа",
+          "source_url": "https://blisshoian.com/sightseeing-tours-services/free-shuttle-bus/",
+          "status": "QUALIFIED_SOURCE_PACKET_NOT_RUNTIME_IMPORTED"
+        }
+      ],
+      "caption": "Bliss Hoi An — день у моря, вечер в старом Хойане  \n📍 Пляж Биньминь, Вьетнам\n\nУтром можно выйти из сада прямо на песок или проплыть несколько дорожек в 55-метровом бассейне у моря. А вечером — съездить в старый Хойан на ужин и прогулку среди фонарей.\n\nОтель стоит за городом. До исторического центра ходит бесплатный шаттл по расписанию. Место бронируют заранее.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "cover_path": "tools/direct_demand/operations/postw20-three-20261119/116719.png"
+    },
+    {
+      "hotel_id": 28569,
+      "country_id": 2,
+      "profile": {
+        "id": 28569,
+        "name": "TWIN LOTUS KOH LANTA",
+        "category": 4,
+        "type": 0,
+        "country": {
+          "id": 2,
+          "name": "Таиланд"
+        },
+        "region": {
+          "id": 60,
+          "name": "Краби",
+          "countryId": 2
+        },
+        "subRegion": {
+          "id": 84,
+          "name": "Ланта",
+          "regionId": 60
+        },
+        "rating": 4.8,
+        "common": {
+          "address": "",
+          "phone": "66(0)75607000",
+          "site": "",
+          "description": "",
+          "build": "",
+          "repair": "",
+          "square": "",
+          "place": "Отель расположен в 300 м от пляжа и в 95 км от Международного аэропорта Пхукет.",
+          "latitude": 7.6417876,
+          "longitude": 99.0279001
+        },
+        "infrastructure": {
+          "territory": "<UL><LI>ресторан</LI><LI>бар</LI><LI>Wi-Fi</LI><LI>сад</LI><LI>терраса</LI><LI>открытый бассейн</LI></UL>",
+          "beach": "<UL><LI>муниципальный песчаный пляж в 300 м от отеля</LI></UL>"
+        },
+        "roomTypes": "Отель состоит из основного здания и вилл.<BR>Всего в отеле 76 номеров.<BR>К размещению предлагаются номера категорий:<BR><UL><LI>Deluxe Room (45 кв.м, однокомнатный номер с видом на сад, макс. 2+1 чел.)</LI><LI>Private Deluxe Room</LI><LI>Superior Room (34 кв.м, однокомнатный номер с видом на сад, макс. 2+1 чел.)</LI><LI>Private Superior Room (45 кв.м, однокомнатный номер с видом на бассейн, макс. 2+1 чел.)</LI><LI>Private Pool Suite (120 кв.м, номер со спальней и гостиной зоной, бассейн, макс. 2+1 чел.)</LI><LI>Deluxe Garden Villa (38 кв.м, однокомнатная вилла с видом на сад, терраса, макс. 2+1 чел.)</LI><LI>Deluxe Sea View Villa (38 кв.м, однокомнатная вилла с видом на море, терраса, макс. 2+1 чел.)</LI><LI>Deluxe Beachfront Villa (38 кв.м, однокомнатная вилла на пляже, терраса, макс. 2+1 чел.)</LI><LI>Garden Villa (42 кв.м, однокомнатная вилла с видом на сад, терраса, макс. 21 чел.)</LI></UL><BR>Отель не размещает гостей моложе 18 лет.<BR>Размещение с домашними животным запрещено.",
+        "meals": {
+          "list": "",
+          "description": ""
+        },
+        "services": {
+          "available": "<UL><LI>кинозал</LI><LI>бильярд</LI><LI>фитнес-зал</LI><LI>вечерняя анимация</LI><LI>дартс</LI><LI>SPA</LI><LI>массаж</LI><LI>аэробика</LI><LI>прокат велосипедов</LI><LI>водные виды спорта</LI><LI>кулинарный мастер-класс</LI><LI>сейф</LI><LI>парковка</LI><LI>магазин</LI><LI>камера хранения</LI><LI>библиотека</LI><LI>салон красоты</LI><LI>прачечная</LI><LI>услуги доктора</LI><LI>прокат авто</LI><LI>конференц-зал</LI><LI>экскурсионное бюро</LI><LI>круглосуточная стойка регистрации</LI></UL>",
+          "free": "",
+          "servicesPay": "",
+          "animation": "",
+          "child": "",
+          "inRoom": "<UL><LI>Wi-Fi</LI><LI>душ</LI><LI>фен</LI><LI>ванна</LI><LI>сейф</LI><LI>LCD ТВ</LI><LI>телефон</LI><LI>тапочки, халат</LI><LI>кондиционер</LI><LI>уборка (ежедневно)</LI><LI>покрытие пола — плитка</LI><LI>туалетные принадлежности</LI><LI>набор для приготовления чая/кофе</LI><LI>мини-бар (ежедневное пополнение водой)</LI><LI>смена постельного белья и полотенец (по требованию)</LI><LI>круглосуточный сервис (платно)</LI></UL>",
+          "tags": [
+            {
+              "id": 2,
+              "name": "Удобства",
+              "items": [
+                {
+                  "id": 10,
+                  "name": "Wi-Fi в номере"
+                },
+                {
+                  "id": 12,
+                  "name": "Кондиционер"
+                }
+              ]
+            },
+            {
+              "id": 3,
+              "name": "Пляж и расположение",
+              "items": [
+                {
+                  "id": 17,
+                  "name": "Песчаный пляж"
+                }
+              ]
+            },
+            {
+              "id": 5,
+              "name": "Услуги и территория",
+              "items": [
+                {
+                  "id": 23,
+                  "name": "Бассейн"
+                },
+                {
+                  "id": 26,
+                  "name": "SPA"
+                },
+                {
+                  "id": 27,
+                  "name": "Ресторан или кафе"
+                },
+                {
+                  "id": 28,
+                  "name": "Спортзал"
+                },
+                {
+                  "id": 29,
+                  "name": "Конференц-зал"
+                },
+                {
+                  "id": 33,
+                  "name": "Анимация"
+                },
+                {
+                  "id": 36,
+                  "name": "Wi-Fi"
+                }
+              ]
+            },
+            {
+              "id": 7,
+              "name": "Доп.фильтры",
+              "items": [
+                {
+                  "id": 46,
+                  "name": "Гарантия мест"
+                }
+              ]
+            },
+            {
+              "id": 8,
+              "name": "Особенности отеля",
+              "items": [
+                {
+                  "id": 43,
+                  "name": "Городской"
+                }
+              ]
+            }
+          ]
+        },
+        "images": [
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413110.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413101.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413102.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413103.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413104.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413105.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413106.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413107.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413108.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413111.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413112.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413113.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413114.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413115.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413116.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413117.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413118.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413119.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413120.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413121.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413122.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413123.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413124.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413125.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413126.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413127.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413128.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413129.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413130.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413131.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413132.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413133.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413134.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413135.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413136.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413137.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413138.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413139.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413140.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413141.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413142.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413143.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413144.jpg"
+        ]
+      },
+      "facts": [
+        {
+          "ordinal": 1,
+          "text": "Курорт в районе пляжа Клонг-Дао; расстояние не утверждается",
+          "source_url": "https://www.twinlotusresort.com/",
+          "status": "QUALIFIED_SOURCE_PACKET_NOT_RUNTIME_IMPORTED"
+        },
+        {
+          "ordinal": 2,
+          "text": "С 1 ноября по 30 апреля принимает только взрослых",
+          "source_url": "https://www.twinlotusresort.com/",
+          "status": "QUALIFIED_SOURCE_PACKET_NOT_RUNTIME_IMPORTED"
+        },
+        {
+          "ordinal": 3,
+          "text": "С 1 мая по 31 октября принимает семьи с детьми",
+          "source_url": "https://www.twinlotusresort.com/",
+          "status": "QUALIFIED_SOURCE_PACKET_NOT_RUNTIME_IMPORTED"
+        },
+        {
+          "ordinal": 4,
+          "text": "Есть Garden Villa, Deluxe Beachfront Villa и Pool Villa; свойства категорий не переносятся на все номера",
+          "source_url": "https://www.twinlotusresort.com/",
+          "status": "QUALIFIED_SOURCE_PACKET_NOT_RUNTIME_IMPORTED"
+        }
+      ],
+      "caption": "Twin Lotus — зимний отдых вдвоём на Ко-Ланте  \n📍 Район пляжа Клонг-Дао, Таиланд\n\nЗдесь можно выбрать виллу среди зелени или у самого пляжа. Если хочется плавать у себя, при бронировании ищите категорию Pool Villa.\n\nС 1 ноября по 30 апреля отель принимает только взрослых. Для поездки с детьми подойдут другие даты — с 1 мая по 31 октября.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "cover_path": "tools/direct_demand/operations/postw20-three-20261119/28569.png"
+    },
+    {
+      "hotel_id": 32354,
+      "country_id": 16,
+      "profile": {
+        "id": 32354,
+        "name": "PHU QUOC ECO BEACH RESORT",
+        "category": 3,
+        "type": 0,
+        "country": {
+          "id": 16,
+          "name": "Вьетнам"
+        },
+        "region": {
+          "id": 104,
+          "name": "Фукуок",
+          "countryId": 16
+        },
+        "subRegion": {
+          "id": 577,
+          "name": "Центр",
+          "regionId": 104
+        },
+        "rating": 4.6,
+        "common": {
+          "address": "Group 4, Ong Lang Ward, Cua Duong Commune, Phu Quoc Island, Kien Giang Province",
+          "phone": "+842973986986",
+          "site": "www.phuquocecobeachresort.com",
+          "description": "Состоит из 39 бунгало. В отеле нет оборудованных номеров для гостей с ограниченными физическими возможностями.",
+          "build": "2010 ",
+          "repair": "",
+          "square": "",
+          "place": "На пляже Онг Ланг острова Фукуок, в 7 км от города Дуонг-Донг. Расстояние до аэропорта — 20 км.",
+          "latitude": 10.2663369,
+          "longitude": 103.9291616
+        },
+        "infrastructure": {
+          "territory": "<UL><LI>открытый бассейн</LI><LI>основной ресторан Eco Beach</LI><LI>бар Eco Beach</LI><LI>тренажёрный зал</LI><LI>спа-центр</LI></UL>",
+          "beach": "<UL><LI>собственный песчаный пляж в 20-50 м от отеля</LI><LI>первая линия</LI><LI>пляжные полотенца, шезлонги, зонтики — бесплатно</LI></UL>"
+        },
+        "roomTypes": "<UL><LI>Premium Beach Front Bungalow — 52 кв. м. 1 двуспальная кровать. Рядом с пляжем</LI><LI>Deluxe Bungalow Sea View — 48 кв. м. 1 двуспальная кровать. Вид на море</LI><LI>Superior Bungalow Garden View — 48 кв. м. 1 двуспальная или 2 односпальные кровати. Вид на сад</LI><LI>Deluxe Partial Sea View — 45 кв. м. 1 двуспальная или 2 односпальные кровати. Вид на море</LI><LI>Bungalow Garden View — 52 кв. м. 1 двуспальная кровать. Вид на сад</LI><LI>Deluxe Bungalow Garden View — 48 кв. м. 1 двуспальная или 2 односпальные кровати. Вид на сад</LI><LI>Deluxe Family — 80 кв. м. 1 двуспальная и 2 односпальные или 2 двуспальные кровати.</LI><LI>Bungalow Beach Front — 45 кв. м. 1 двуспальная кровать. Рядом с пляжем</LI></UL>",
+        "meals": {
+          "list": "<UL><LI>BB — завтрак</LI></UL>",
+          "description": "<UL><LI>если в отеле проживает менее 15 человек, завтрак подается по установленному меню</LI><LI>завтрак по системе шведский стол будет подаваться при проживании в отеле 15 и более гостей</LI></UL>"
+        },
+        "services": {
+          "available": "<UL><LI>пляжный футбол/волейбол</LI><LI>парковка велосипеда/автомобиля</LI><LI>аренда велосипеда</LI><LI>обмен валют</LI><LI>камера хранения</LI><LI>сауна</LI></UL>",
+          "free": "<UL><LI>Wi-Fi на всей территории</LI></UL>",
+          "servicesPay": "<UL><LI>дайвинг</LI><LI>парашют</LI><LI>массаж</LI><LI>прачечная</LI></UL>",
+          "animation": "",
+          "child": "<UL><LI>детский бассейн</LI><LI>детская площадка</LI><LI>детские стульчики в ресторане</LI><LI>детская кроватка</LI></UL>",
+          "inRoom": "<UL><LI>wi-fi</LI><LI>душ</LI><LI>туалетно-косметические  принадлежности</LI><LI>тапочки, халаты</LI><LI>фен</LI><LI>кондиционер</LI><LI>тв</LI><LI>мини-бар (пл)</LI><LI>сейф</LI><LI>чайник</LI><LI>набор для приготовления чая /кофе</LI><LI>терраса</LI><LI>сервис в номере (пл)</LI></UL>",
+          "tags": [
+            {
+              "id": 1,
+              "name": "Детям",
+              "items": [
+                {
+                  "id": 2,
+                  "name": "Детское меню"
+                },
+                {
+                  "id": 6,
+                  "name": "Детская площадка"
+                }
+              ]
+            },
+            {
+              "id": 2,
+              "name": "Удобства",
+              "items": [
+                {
+                  "id": 8,
+                  "name": "Балкон"
+                },
+                {
+                  "id": 10,
+                  "name": "Wi-Fi в номере"
+                },
+                {
+                  "id": 12,
+                  "name": "Кондиционер"
+                }
+              ]
+            },
+            {
+              "id": 3,
+              "name": "Пляж и расположение",
+              "items": [
+                {
+                  "id": 15,
+                  "name": "Первая линия"
+                },
+                {
+                  "id": 16,
+                  "name": "Свой пляж"
+                },
+                {
+                  "id": 17,
+                  "name": "Песчаный пляж"
+                }
+              ]
+            },
+            {
+              "id": 5,
+              "name": "Услуги и территория",
+              "items": [
+                {
+                  "id": 23,
+                  "name": "Бассейн"
+                },
+                {
+                  "id": 26,
+                  "name": "SPA"
+                },
+                {
+                  "id": 27,
+                  "name": "Ресторан или кафе"
+                },
+                {
+                  "id": 28,
+                  "name": "Спортзал"
+                },
+                {
+                  "id": 36,
+                  "name": "Wi-Fi"
+                }
+              ]
+            }
+          ]
+        },
+        "images": [
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703401.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703402.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703403.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703404.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703405.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703407.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703408.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703409.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703410.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703411.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703412.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703413.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703414.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703415.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703416.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703417.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703418.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703419.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703421.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703422.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703425.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703426.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703427.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703428.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703429.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703430.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703431.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703432.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703433.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703434.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703436.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703437.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703438.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703439.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703441.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703442.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703443.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703444.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27727600.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27727601.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27727602.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27727603.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27727604.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27727605.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27727606.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27727607.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27727608.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27727609.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27727610.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27727611.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27727612.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27727613.jpg",
+          "//static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27727614.jpg"
+        ]
+      },
+      "facts": [
+        {
+          "ordinal": 1,
+          "text": "Курорт на пляже Онг-Ланг среди деревьев",
+          "source_url": "https://www.phuquocecobeachresort.com/en/",
+          "status": "QUALIFIED_SOURCE_PACKET_NOT_RUNTIME_IMPORTED"
+        },
+        {
+          "ordinal": 2,
+          "text": "Из открытого бассейна видно море",
+          "source_url": "https://www.phuquocecobeachresort.com/en/",
+          "status": "QUALIFIED_SOURCE_PACKET_NOT_RUNTIME_IMPORTED"
+        },
+        {
+          "ordinal": 3,
+          "text": "Superior Bungalow Garden View расположен на склоне примерно в 100 м от пляжа; расстояние только для этой категории",
+          "source_url": "https://www.phuquocecobeachresort.com/en/reservation",
+          "status": "QUALIFIED_SOURCE_PACKET_NOT_RUNTIME_IMPORTED"
+        },
+        {
+          "ordinal": 4,
+          "text": "Для размещения у воды есть отдельные категории Beach Front",
+          "source_url": "https://www.phuquocecobeachresort.com/en/reservation",
+          "status": "QUALIFIED_SOURCE_PACKET_NOT_RUNTIME_IMPORTED"
+        }
+      ],
+      "caption": "Phu Quoc Eco Beach Resort — бунгало на зелёном берегу Фукуока  \n📍 Пляж Онг-Ланг, Вьетнам\n\nУтром здесь можно искупаться в море или в открытом бассейне с видом на воду. При выборе бунгало посмотрите на его расположение. Superior Garden View стоит среди деревьев на склоне, примерно в ста метрах от пляжа. Для отдыха у самого берега выбирайте категорию Beach Front.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "cover_path": "tools/direct_demand/operations/postw20-three-20261119/32354.png"
+    }
+  ],
+  "facts_count": 12,
+  "publication_pairs": 0,
+  "provider_calls": 0,
+  "knowledge_imported": 0,
+  "knowledge_readback": 0,
+  "requires_before_write": [
+    "current main=installed and sender's exact release gates",
+    "fresh native registry/dedup/UNKNOWN and aliases",
+    "country11 exclusion",
+    "current owner and shared lock",
+    "fresh canonical CTA context"
+  ]
+}
