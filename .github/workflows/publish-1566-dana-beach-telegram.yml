@@ -1,0 +1,432 @@
+name: "#1566 Publish Dana Beach Resort silently in main Telegram"
+on:
+  push:
+    branches: [audit/1566-main-hotel-registry-20261119]
+    paths: ['.github/workflows/publish-1566-dana-beach-telegram.yml']
+permissions:
+  contents: read
+concurrency:
+  group: anytour-authorized-channel-publication
+  cancel-in-progress: false
+jobs:
+  registry:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == 'a60c183d8201bd119623d6cd25350f6bfdcf8d18' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Lint bounded silent native publisher
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir pub
+          cat > pub/read-only.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          
+          // Run from the installed AnyTour app checkout. The default mode cannot send.
+          const OPERATION = 'anytour-issue1566-tv174-main-telegram-v1';
+          const HOTEL = 174;
+          const PROJECT = 'anytour';
+          const BOT = 'anyru_bot';
+          const SOURCE_CHANNEL = '-1002262666616';
+          const SOURCE_PUBLICATION = 213;
+          const SOURCE_VERSION = 10950;
+          const SOURCE_CONTENT_HASH = 'f53d8a59bf755e61df15a60aa9aa97938be69767b7dac573c1d9819a5cbe64dd';
+          const TARGET_CHANNEL = '-1001845835645';
+          const TARGET_SOURCE = 'tg_anytour_msk';
+          const LOGICAL_ID = 'commercial-main-hotel-174-v1';
+          const CAPTION = <<<'CAPTION'
+          ✈️ Pickalbatros Dana Beach Resort
+          📍 Хургада, Египет
+          
+          Для семейного отдыха у Красного моря. У отеля собственный песчаный пляж, аквапарки для взрослых и детей и детский клуб Alba.
+          
+          Нажмите кнопку под постом, чтобы узнать стоимость тура на ваши даты.
+          CAPTION;
+          
+          ini_set('display_errors', '0');
+          ini_set('log_errors', '0');
+          
+          function requireCondition(bool $condition, string $reason): void
+          {
+              if (!$condition) {
+                  throw new RuntimeException($reason);
+              }
+          }
+          
+          function checkInstalled(string $expected): void
+          {
+              $installed = trim((string) shell_exec('git rev-parse HEAD 2>/dev/null'));
+              $dirty = trim((string) shell_exec(
+                  'git status --porcelain --untracked-files=no -- services/ChannelPost* integrations/ChannelPost* 2>/dev/null'
+              ));
+              requireCondition($installed === $expected && $dirty === '', 'installed_checkout_changed');
+          }
+          
+          function sourceImage(ChannelPostRegistryService $registry): array
+          {
+              $source = $registry->publication(SOURCE_PUBLICATION);
+              requireCondition(is_array($source)
+                  && $source['project_key'] === PROJECT
+                  && $source['bot_key'] === BOT
+                  && $source['platform'] === 'telegram'
+                  && $source['channel_id'] === SOURCE_CHANNEL
+                  && (int) $source['channel']['id'] === 10
+                  && $source['external_message_id'] === '67'
+                  && $source['snapshot']['post_url'] === 'https://t.me/any_toour/67'
+                  && $source['state'] === 'sent'
+                  && (int) $source['version_id'] === SOURCE_VERSION
+                  && hash_equals(SOURCE_CONTENT_HASH, $source['content_hash'])
+                  && (int) ($source['snapshot']['metadata']['hotel_catalog_id'] ?? 0) === HOTEL,
+                  'source_publication_changed');
+          
+              $attachments = $source['snapshot']['attachments'];
+              $image = $attachments[0] ?? [];
+              requireCondition(count($attachments) === 1
+                  && ($image['type'] ?? null) === 'image'
+                  && ($image['provider'] ?? null) === 'telegram'
+                  && is_string($image['telegram_file_id'] ?? null)
+                  && $image['telegram_file_id'] !== ''
+                  && is_string($image['file_unique_id'] ?? null)
+                  && $image['file_unique_id'] !== '', 'source_image_not_verified');
+              return $image;
+          }
+          
+          function destinationChannel(ChannelPostRegistryService $registry): array
+          {
+              $identity = ChannelPostRuntime::identity('telegram');
+              requireCondition(is_array($identity) && $identity['project_key'] === PROJECT
+                  && $identity['bot_key'] === BOT, 'bot_configuration_changed');
+              $channel = $registry->channel(PROJECT, 'telegram', BOT, TARGET_CHANNEL);
+              requireCondition(is_array($channel) && (int) $channel['id'] === 6
+                  && $channel['source_key'] === TARGET_SOURCE && !empty($channel['is_enabled'])
+                  && ($channel['post_mode'] ?? 'append_button') === 'append_button', 'target_configuration_changed');
+              return $channel;
+          }
+          
+          function provePublishRights(array $channel): void
+          {
+              $check = (new ChannelPostButtonTransport())->verifyChannel($channel);
+              requireCondition(($check['state'] ?? '') === 'ready', 'target_edit_rights_unavailable');
+              $me = ChannelPostApiTransport::buttonRequest('telegram', 'POST', 'getMe', [], []);
+              $bot = $me['data']['result'] ?? [];
+              requireCondition(empty($me['transport_error']) && $me['http'] === 200
+                  && ($bot['username'] ?? '') === BOT && ($bot['is_bot'] ?? false) === true
+                  && is_int($bot['id'] ?? null), 'target_bot_identity_unavailable');
+              $response = ChannelPostApiTransport::buttonRequest('telegram', 'POST', 'getChatMember', [], [
+                  'chat_id' => TARGET_CHANNEL,
+                  'user_id' => $bot['id'],
+              ]);
+              $member = $response['data']['result'] ?? [];
+              requireCondition(empty($response['transport_error']) && $response['http'] === 200
+                  && ($member['user']['id'] ?? null) === $bot['id']
+                  && (($member['status'] ?? '') === 'creator' || (($member['status'] ?? '') === 'administrator'
+                      && ($member['can_post_messages'] ?? false) === true)), 'target_post_rights_unavailable');
+          }
+          
+          function requireMissing(PDO $pdo): void
+          {
+              // A positive alias hit is held for inspection, including excerpts from a roundup.
+              $query = $pdo->prepare(<<<'SQL'
+                  SELECT p.id
+                  FROM post_publications p JOIN post_versions v ON v.id = p.current_version_id AND v.publication_id = p.id
+                  WHERE p.post_channel_id = 6 AND (
+                      CAST(JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json, '$.metadata.hotel_catalog_id')) AS UNSIGNED) = ?
+                      OR JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json, '$.metadata.logical_id')) = ?
+                      OR LOCATE('dana beach', LOWER(JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json, '$.text')))) > 0
+                      OR LOCATE('дана бич', LOWER(JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json, '$.text')))) > 0
+                      OR LOCATE('дана бэйч', LOWER(JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json, '$.text')))) > 0
+                  ) LIMIT 1
+                  SQL);
+              $query->execute([HOTEL, LOGICAL_ID]);
+              requireCondition($query->fetchColumn() === false, 'target_registry_match_requires_review');
+          }
+          
+          function recordStage($journal, array $event): void
+          {
+              $line = json_encode($event, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
+              requireCondition(fwrite($journal, $line) === strlen($line) && fflush($journal) && fsync($journal), 'journal_write_failed');
+          }
+          
+          function sendTelegramPhoto(string $fileId): array
+          {
+              requireCondition(defined('TELEGRAM_BOT_TOKEN') && TELEGRAM_BOT_TOKEN !== '', 'telegram_token_unavailable');
+              $request = curl_init('https://api.telegram.org/bot' . TELEGRAM_BOT_TOKEN . '/sendPhoto');
+              requireCondition($request !== false, 'telegram_request_unavailable');
+              $raw = '';
+              curl_setopt_array($request, [
+                  CURLOPT_POST => true,
+                  CURLOPT_RETURNTRANSFER => false,
+                  CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
+                  CURLOPT_POSTFIELDS => http_build_query([
+                      'chat_id' => TARGET_CHANNEL,
+                      'disable_notification' => 'true',
+                      'photo' => $fileId,
+                      'caption' => CAPTION,
+                  ], '', '&', PHP_QUERY_RFC3986),
+                  CURLOPT_FOLLOWLOCATION => false,
+                  CURLOPT_CONNECTTIMEOUT => 8,
+                  CURLOPT_TIMEOUT => 25,
+                  CURLOPT_SSL_VERIFYPEER => true,
+                  CURLOPT_SSL_VERIFYHOST => 2,
+                  CURLOPT_WRITEFUNCTION => static function ($handle, string $chunk) use (&$raw): int {
+                      if (strlen($raw) + strlen($chunk) > 262144) {
+                          return 0;
+                      }
+                      $raw .= $chunk;
+                      return strlen($chunk);
+                  },
+              ]);
+              $executed = curl_exec($request);
+              $http = (int) curl_getinfo($request, CURLINFO_HTTP_CODE);
+              curl_close($request);
+              $payload = json_decode($raw, true);
+              requireCondition($executed === true && $http === 200 && ($payload['ok'] ?? false) === true
+                  && is_array($payload['result'] ?? null), 'telegram_send_unconfirmed_no_retry');
+              return $payload['result'];
+          }
+          
+          $sendStarted = false;
+          $messageId = '';
+          $journal = null;
+          $pdo = null;
+          $locked = false;
+          $exitCode = 0;
+          $lockName = 'anytour-post-channel-6-hotel-174';
+          try {
+              requireCondition(PHP_SAPI === 'cli' && function_exists('fsync'), 'cli_runtime_required');
+              $option = getenv('ANYTOUR_TG1566_APPLY') === '1' ? '--apply' : '--check';
+              $expectedInstalled = 'fe623086b716b3077e4ec0d4551095fc63db37e3';
+              checkInstalled($expectedInstalled);
+          
+              $root = getcwd();
+              ob_start();
+              try {
+                  require $root . '/config.php';
+                  require_once $root . '/services/ChannelPostRuntime.php';
+                  require_once $root . '/services/ChannelPostAutomationService.php';
+                  require_once $root . '/services/ChannelPostEntryService.php';
+              } finally {
+                  ob_end_clean();
+              }
+          
+              $pdo = ConversationDb::connection();
+              $registry = new ChannelPostRegistryService($pdo);
+              $channel = destinationChannel($registry);
+              provePublishRights($channel);
+              requireMissing($pdo);
+              $image = sourceImage($registry);
+              $base = '/var/www/anytoour/data/channel-post-operations';
+              $directory = $base . '/' . OPERATION;
+              requireCondition(!is_link($base) && realpath($base) === $base
+                  && !is_link($directory) && !file_exists($directory), 'operation_exists_no_replay');
+          
+              $proof = [
+                  'operation' => OPERATION,
+                  'hotel_id' => HOTEL,
+                  'installed_sha' => $expectedInstalled,
+                  'source_publication_id' => SOURCE_PUBLICATION,
+                  'source_version_id' => SOURCE_VERSION,
+                  'source_content_hash' => SOURCE_CONTENT_HASH,
+                  'target_channel' => TARGET_CHANNEL,
+                  'target_channel_config_version' => (int) $channel['config_version'],
+                  'photo_identity_sha256' => hash('sha256', $image['file_unique_id']),
+                  'caption_sha256' => hash('sha256', CAPTION),
+              ];
+              if ($option === '--apply') {
+                  requireCondition(hash_equals($proof['photo_identity_sha256'], (string) getenv('ANYTOUR_TG1566_PHOTO_HASH')),
+                      'preflight_photo_changed');
+              }
+              if ($option === '--check') {
+                  echo json_encode($proof + ['state' => 'ready_read_only', 'provider_write_attempts' => 0], JSON_THROW_ON_ERROR), "\n";
+                  exit(0);
+              }
+          
+              // Coordinate this exact destination and hotel with another publication worker.
+              $getLock = $pdo->prepare('SELECT GET_LOCK(?,0)');
+              $getLock->execute([$lockName]);
+              $locked = (int) $getLock->fetchColumn() === 1;
+              $getLock->closeCursor();
+              requireCondition($locked, 'same_target_busy');
+              checkInstalled($expectedInstalled);
+              requireMissing($pdo);
+              $currentChannel = destinationChannel($registry);
+              requireCondition((int) $currentChannel['config_version'] === (int) $channel['config_version'], 'target_configuration_changed');
+              requireCondition(sourceImage($registry)['file_unique_id'] === $image['file_unique_id'], 'source_image_changed');
+              requireCondition(mkdir($directory, 0700), 'operation_exists_no_replay');
+              $journal = fopen($directory . '/receipt.jsonl', 'x');
+              requireCondition(is_resource($journal), 'journal_create_failed');
+              recordStage($journal, $proof + ['state' => 'send_started']);
+              $sendStarted = true;
+          
+              $message = sendTelegramPhoto($image['telegram_file_id']);
+              $candidate = (string) ($message['message_id'] ?? '');
+              requireCondition((string) ($message['chat']['id'] ?? '') === TARGET_CHANNEL
+                  && ($message['chat']['username'] ?? null) === 'anytour'
+                  && ($message['chat']['type'] ?? null) === 'channel'
+                  && preg_match('/\A[1-9][0-9]{0,19}\z/D', $candidate) === 1, 'telegram_returned_identity_mismatch');
+              $messageId = $candidate;
+              $postUrl = 'https://t.me/anytour/' . $messageId;
+              recordStage($journal, ['state' => 'native_message_observed', 'message_id' => $messageId, 'post_url' => $postUrl]);
+          
+              $snapshot = ChannelPostIncomingAdapter::telegramSnapshot($message);
+              requireCondition(is_array($snapshot) && $snapshot['text'] === CAPTION && $snapshot['post_url'] === $postUrl
+                  && ($snapshot['metadata']['capability'] ?? null) === 'supported'
+                  && count($snapshot['attachments']) === 1 && empty($snapshot['keyboard'])
+                  && ($snapshot['attachments'][0]['file_unique_id'] ?? null) === $image['file_unique_id'],
+                  'telegram_returned_content_mismatch');
+              $snapshot['content_hash'] = ChannelPostIncomingAdapter::contentFingerprint($snapshot, '', $channel['bot_url']);
+              $snapshot['metadata']['observation_kind'] = 'provider_send_response';
+              $snapshot['metadata']['logical_id'] = LOGICAL_ID;
+              $snapshot['metadata']['hotel_catalog_id'] = HOTEL;
+              $snapshot['metadata']['source_event_id'] = OPERATION . ':' . $messageId;
+              $post = $registry->registerPublication(PROJECT, 'telegram', BOT, TARGET_CHANNEL, $messageId, $snapshot);
+              requireCondition(is_array($post) && (int) ($post['snapshot']['metadata']['hotel_catalog_id'] ?? 0) === HOTEL
+                  && ($post['snapshot']['metadata']['logical_id'] ?? null) === LOGICAL_ID
+                  && $post['external_message_id'] === $messageId && $post['channel_id'] === TARGET_CHANNEL,
+                  'destination_registry_observation_mismatch');
+              $publicationId = (int) $post['publication_id'];
+              $version = (int) $post['version_id'];
+              recordStage($journal, ['state' => 'registered', 'publication_id' => $publicationId, 'version_id' => $version]);
+          
+              // Capture authenticated edit response matching the exact context URL. If the
+              // ordinary worker wins the transactional claim, its persisted receipt suffices.
+              $automation = new ChannelPostAutomationService($registry);
+              if ($post['state'] !== 'sent') {
+                  $automation->processPublication(PROJECT, 'telegram', BOT, $publicationId, $version);
+              }
+              $final = $registry->publication($publicationId);
+              requireCondition(is_array($final) && $final['state'] === 'sent'
+                  && !empty($final['receipt']['button_verified']) && !empty($final['receipt']['content_preserved'])
+                  && $final['external_message_id'] === $messageId && $final['channel_id'] === TARGET_CHANNEL
+                  && $final['snapshot']['post_url'] === $postUrl && $final['snapshot']['text'] === CAPTION
+                  && ($final['snapshot']['attachments'][0]['file_unique_id'] ?? null) === $image['file_unique_id'],
+                  'telegram_button_readback_unconfirmed_no_retry');
+              $resolved = ChannelPostEntryService::resolve('telegram', $final['start_payload'], $registry);
+              requireCondition(is_array($resolved) && (int) $resolved['publication_id'] === $publicationId
+                  && (int) $resolved['version_id'] === (int) $final['version_id']
+                  && $resolved['source_key'] === TARGET_SOURCE
+                  && (int) ($resolved['snapshot']['metadata']['hotel_catalog_id'] ?? 0) === HOTEL
+                  && $resolved['snapshot']['post_url'] === $postUrl && $resolved['snapshot']['text'] === CAPTION,
+                  'canonical_hotel_context_unconfirmed');
+          
+              $result = $proof + [
+                  'state' => 'published_and_verified',
+                  'post_url' => $postUrl,
+                  'native_message_id' => $messageId,
+                  'target_publication_id' => $publicationId,
+                  'target_version_id' => (int) $final['version_id'],
+                  'silent' => true,
+                  'body_photo_button_verified' => true,
+                  'ad_writes' => 0,
+              ];
+              recordStage($journal, $result);
+              echo json_encode($result, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), "\n";
+          } catch (Throwable $error) {
+              $reason = $error instanceof RuntimeException && preg_match('/\A[a-z_]{1,80}\z/D', $error->getMessage()) === 1
+                  ? $error->getMessage() : 'operation_failed';
+              $failure = ['operation' => OPERATION, 'state' => $sendStarted ? 'held_no_retry' : 'stopped_before_send', 'reason' => $reason];
+              if ($messageId !== '') {
+                  $failure['native_message_id'] = $messageId;
+                  $failure['post_url'] = 'https://t.me/anytour/' . $messageId;
+              }
+              if ($sendStarted && is_resource($journal)) {
+                  try {
+                      recordStage($journal, $failure);
+                  } catch (Throwable $ignored) {
+                      $failure['journal_error'] = true;
+                  }
+              }
+              echo json_encode($failure, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), "\n";
+              $exitCode = 2;
+          } finally {
+              if (is_resource($journal)) {
+                  fclose($journal);
+              }
+              if ($locked) {
+                  $release = $pdo->prepare('SELECT RELEASE_LOCK(?)');
+                  $release->execute([$lockName]);
+              }
+          }
+          exit($exitCode);
+          PHP
+          php -l pub/read-only.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Confirm the original photo and destination with no publication
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/preflight.json
+          python3 -c 'import json,re; d=json.load(open("pub/preflight.json")); assert d["hotel_id"] == 174 and d["provider_write_attempts"] == 0 and d["state"] == "ready_read_only"; assert re.fullmatch("[a-f0-9]{64}", d["photo_identity_sha256"]); print(d["photo_identity_sha256"])' > pub/photo-sha
+      - name: Publish once without a notification and verify context
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          digest="$(cat pub/photo-sha)"
+          [[ "$digest" =~ ^[a-f0-9]{64}$ ]]
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" "set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; ANYTOUR_TG1566_APPLY=1 ANYTOUR_TG1566_PHOTO_HASH=$digest php" < pub/read-only.php > pub/native.json
+          python3 -c 'import json; d=json.load(open("pub/native.json")); assert d["state"] == "published_and_verified" and d["silent"] and d["body_photo_button_verified"]; print(d["post_url"])'
+      - name: Save original preparation and silent publication receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-1566-dana-beach-telegram
+          path: |
+            pub/preflight.json
+            pub/native.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Remove runner-only connection material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
