@@ -1,0 +1,81 @@
+name: Continue AppleService39 Telegram catalogue after a confirmed rejection
+on:
+  push:
+    branches: [ops/appleservice39-telegram-catalogue-continue-20261119]
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+  issues: read
+jobs:
+  continue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Prove the authorized recovery and exact installed source
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          node - <<'JS'
+          const fs = require('node:fs');
+          const R = require('./tools/deployment_release');
+          const env = process.env;
+          const event = JSON.parse(fs.readFileSync(env.GITHUB_EVENT_PATH, 'utf8'));
+          const ref = 'refs/heads/ops/appleservice39-telegram-catalogue-continue-20261119';
+          const sha = '2e7c8db9d64fea552a813b07279e55c32e9e69da';
+          const need = (condition) => { if (!condition) throw new Error('Unexpected source, original publication or installation'); };
+          (async () => {
+            need(env.GITHUB_EVENT_NAME === 'push' && env.GITHUB_REPOSITORY === R.REPOSITORY
+              && env.GITHUB_ACTOR_ID === '226193297' && env.GITHUB_RUN_ATTEMPT === '1'
+              && env.GITHUB_REF === ref && event.ref === ref && event.created === true
+              && event.before === '0'.repeat(40) && event.after === env.GITHUB_SHA
+              && event.forced === false && event.deleted === false);
+            const api = R.makeReadApi(env.GITHUB_TOKEN), u = R.API_ROOT;
+            need((await api('GET',u+'/git/ref/heads/main')).object.sha === sha);
+            const original = await api('GET',u+'/actions/runs/44538349173');
+            R.runIdentity(original, {id:44538349173,attempt:1,head:sha,
+              workflow:'.github/workflows/publish-appleservice39-pilot.yml',event:'push',
+              branch:'ops/appleservice39-telegram-catalogue-20261119',conclusion:'failure'});
+            const previous = await api('GET',u+'/actions/jobs/135615365915');
+            need(previous.run_id === 44538349173 && previous.run_attempt === 1 && previous.head_sha === sha
+              && previous.name === 'publish' && previous.conclusion === 'failure'
+              && previous.steps.filter(s => s.conclusion === 'failure').map(s => s.name).join() === 'Run the installed fixed pilot operation once');
+            const location = await R.readRecord(api);
+            const installed = await R.resolveCurrent(api, {sha}, location);
+            need(installed.ready === true && installed.perform_actions === true && installed.application_sha === sha
+              && (await api('GET',u+'/git/ref/heads/main')).object.sha === sha);
+            console.log('Installed AppleService39 publisher and original publication confirmed.');
+          })().catch(e => { console.error(e.message); process.exitCode = 1; });
+          JS
+
+      - name: Resume the installed Telegram sender with paced batches
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          key_file="$(mktemp "$RUNNER_TEMP/as39-telegram-key.XXXXXX")"
+          trap 'rm -f -- "$key_file"' EXIT
+          chmod 600 "$key_file"
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null)"
+            [[ "$decoded" == *"PRIVATE KEY"* ]] || exit 2
+            printf '%s\n' "$decoded" > "$key_file"
+          fi
+          unset DEPLOY_SSH_KEY_VALUE raw decoded
+          ssh-keygen -y -f "$key_file" >/dev/null
+          ssh -i "$key_file" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o StrictHostKeyChecking=no \
+            "$DEPLOY_USER@$DEPLOY_HOST" 'cd /var/www/anytoour/data/www/app.anytoour.ru && php -d display_errors=0' \
+            < 'tools/appleservice39-telegram-catalogue-continue.php'
