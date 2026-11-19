@@ -33,7 +33,8 @@ final class AppleService39PilotCatalog
         'device-iphone-18'=>['model'=>'iPhone 18','question'=>'Что хотите уточнить по iPhone 18? Если речь о ремонте, напишите точную версию устройства и что с ним произошло.'],
         'device-ipad'=>['model'=>'iPad','question'=>'Что случилось с iPad? Напишите, какая у вас модель, если знаете.'],
         'device-macbook'=>['model'=>'MacBook','question'=>'Какая у вас модель MacBook и в чём проблема? Если знаете год выпуска, укажите и его.'],
-        'device-apple-watch'=>['model'=>'Apple Watch','question'=>'Какая у вас модель Apple Watch и что случилось с часами?'],
+        'device-apple-watch'=>['model'=>'Apple Watch','service'=>'Замена стекла Apple Watch',
+            'question'=>'Какая у вас серия Apple Watch и какой размер корпуса? После повреждения стекла экран показывает изображение и реагирует на касания?'],
     ];
     // The original search card predates coverage-v1. Its existing generic and
     // service launches both describe the exact base model, without a new alias.
@@ -124,7 +125,8 @@ final class AppleService39PilotCatalog
         $repair = self::forPost($postId);
         if ($repair !== null) return $repair;
         if (isset(self::DEVICE_CATEGORIES[$postId])) {
-            return ['post_id'=>$postId, 'model'=>self::DEVICE_CATEGORIES[$postId]['model'], 'service'=>'',
+            $category = self::DEVICE_CATEGORIES[$postId];
+            return ['post_id'=>$postId, 'model'=>$category['model'], 'service'=>$category['service'] ?? '',
                 'scope'=>'device', 'start_payload'=>'as39_'.$postId];
         }
         if (isset(self::SEARCH_ENTRIES[$postId])) {
@@ -197,9 +199,15 @@ final class AppleService39PilotCatalog
         $scope = $entry['scope'] ?? 'repair';
         if (in_array($scope, ['repair','search_repair','model_service','device'], true)) return $context;
         $model = $known['model'] ?? '';
-        if ($scope === 'menu' && in_array($model, array_column(self::DEVICE_CATEGORIES, 'model'), true)) {
-            $context['model'] = $model;
-            return $context;
+        if ($scope === 'menu') {
+            foreach (self::DEVICE_CATEGORIES as $category) {
+                if ($model !== $category['model']) continue;
+                $context['model'] = $model;
+                if (isset($category['service']) && ($known['service'] ?? '') === $category['service']) {
+                    $context['service'] = $category['service'];
+                }
+                return $context;
+            }
         }
         $model = is_string($model) && self::text($model, 160)
             && preg_match('/[\x00-\x1f\x7f]/u', $model) === 0
@@ -270,7 +278,7 @@ final class AppleService39PilotCatalog
         $end = "\n".self::WARRANTY_TEXT."\nСтоимость, наличие детали и возможность записи уточнит менеджер.";
         if ($scope === 'menu') {
             if (in_array($model, array_column(self::DEVICE_CATEGORIES, 'model'), true)) {
-                return $intro.'Что хотите уточнить по поводу '.$model.'?';
+                return $intro.($service === '' ? 'Что хотите уточнить по поводу '.$model.'?' : $service.'. Что хотите уточнить по ремонту?');
             }
             if ($model !== '' && $service !== '') {
                 return $intro.'Сохранено ваше обращение: '.$model.' — '.$service.'. Что нужно уточнить по ремонту?'.$end;

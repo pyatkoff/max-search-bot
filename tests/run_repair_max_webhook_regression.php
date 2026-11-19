@@ -1032,11 +1032,11 @@ foreach (['Ремонт микрофона','Ремонт микрофона ','
 
 require_once dirname(__DIR__).'/services/ManagerConversationService.php';
 $deviceCategories = [
-    'device-iphone-18'=>'iPhone 18', 'device-ipad'=>'iPad',
-    'device-macbook'=>'MacBook', 'device-apple-watch'=>'Apple Watch',
+    'device-iphone-18'=>['iPhone 18',''], 'device-ipad'=>['iPad',''],
+    'device-macbook'=>['MacBook',''], 'device-apple-watch'=>['Apple Watch','Замена стекла Apple Watch'],
 ];
 $categoryUser = 9800;
-foreach ($deviceCategories as $postId=>$deviceName) {
+foreach ($deviceCategories as $postId=>[$deviceName,$serviceName]) {
     $user = ++$categoryUser;
     $payload = AppleService39PilotCatalog::landingPayloadForPost($postId);
     repairCheck('category has its own MAX start '.$postId, $payload === 'as39_'.$postId);
@@ -1049,16 +1049,21 @@ foreach ($deviceCategories as $postId=>$deviceName) {
     repairCheck('category reaches the existing manager with the selected device '.$postId,
         $result['status'] === 200 && $conversation['status'] === 'waiting_manager'
         && $intent['post_id'] === $postId && $intent['entry_code'] === $payload && $intent['state'] === 'delivered'
-        && ($manager['model'] ?? null) === $deviceName && $manager['service'] === '' && $manager['post_url'] === ''
+        && ($manager['model'] ?? null) === $deviceName && $manager['service'] === $serviceName && $manager['post_url'] === ''
         && $manager['reply']['text'] === end($coverageContextSent) && str_contains($manager['reply']['text'],$deviceName)
         && !str_contains($manager['reply']['text'],'аккумулятор') && !str_contains($manager['reply']['text'],'₽'));
+    if ($postId === 'device-apple-watch') {
+        repairCheck('Apple Watch glass enquiry keeps the selected repair without an iPhone price',
+            str_contains($manager['reply']['text'],'стекла') && str_contains($manager['reply']['text'],'касания')
+            && !str_contains($manager['reply']['text'],'iPhone'));
+    }
     $sentBefore = count($coverageContextSent);
     repairCheck('category replay is quiet '.$postId,
         $coverageContextHandle($start)['result'] === 'duplicate' && count($coverageContextSent) === $sentBefore);
     $coverageContextHandle(repairStart($user,'as39_menu',1800000400002));
     repairCheck('menu retains device category without asking about an iPhone repair '.$postId,
         repairEntryPayload($coverageContextPdo,(int)$conversation['id'])['repair_context']
-            === ['model'=>$deviceName,'service'=>'','entry_code'=>'as39_menu']
+            === ['model'=>$deviceName,'service'=>$serviceName,'entry_code'=>'as39_menu']
         && str_contains(end($coverageContextSent),$deviceName) && !str_contains(end($coverageContextSent),'телефоном'));
 }
 repairCheck('other device keys and other companies remain outside the Apple category routes',
