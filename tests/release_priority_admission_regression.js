@@ -5,7 +5,7 @@ const { spawnSync } = require('node:child_process');
 const path = require('node:path');
 const R = require('../tools/deployment_release');
 const C = require('../tools/release_slot_close');
-const { fixture } = require('./run_deployment_release_regression');
+const { fixture, receipt } = require('./run_deployment_release_regression');
 const { runGuard, verifyPreviousRelease } = require('../tools/release_priority');
 
 const crypto=require('node:crypto');
@@ -264,6 +264,48 @@ module.exports = async function verifyPublisherAdmission(check = assert.equal) {
   await rejects(plain, 'previous_release_unclosed',
     'an installed base still awaiting technical closure cannot admit another merge');
   check(previous.calls.every(c => c.method === 'GET'), true, 'pending release admission never mutates');
+
+  const unboundSource = '57e2aad5dd82e3a7b53c3ffb77e14d8f84f23e17';
+  const unboundRecord = R.releaseRecord({
+    ...receipt(unboundSource, '44542421611'),
+    reported_at: '2026-11-19T14:37:55Z',
+  }, { sha: unboundSource, id: '44542421611', attempt: 1, event: 'push' }, {
+    content: R.contentSummary(null, '2e7c8db9d64fea552a813b07279e55c32e9e69da', unboundSource),
+    intent: {"checked_commits":1,"coverage":"registered_markers_and_reserved_families","matched_commits":[],"status":"no_registered_intent"},
+  });
+  const checkUnbound = async (change = () => {}, candidate = 1628) => {
+    const f = fixture(unboundSource, unboundRecord);
+    f.runs.delete(f.wave.own.id);
+    const wave = f.start(unboundSource, 44542421611, 44545903375, 1627);
+    f.pr = { ...f.pr, body: 'Original PR had no publisher binding', updated_at: '2026-11-19T14:19:03Z',
+      head: { ...f.pr.head, sha: 'defaa6b3323c55a8bc98069c7c08d16e4ac56da3' } };
+    wave.own.status = 'completed';
+    wave.own.conclusion = 'success';
+    const closerJob = job('release-slot', wave.own, [
+      step('Prepare the exact release proof before terminal publication'),
+      step(R.TERMINAL_BINDING_STEP, 'skipped'),
+      step(R.TERMINAL_STEP, 'skipped'),
+    ]);
+    closerJob.id = 135636259834;
+    f.jobs.set(wave.own.id, [closerJob, job('configure', wave.own, [], 'skipped'),
+      job('release-slot-recovery', wave.own, [], 'skipped')]);
+    change(f, wave, closerJob);
+    await verifyPreviousRelease({ repository, prNumber: candidate, baseSha: unboundSource }, env.GITHUB_TOKEN,
+      async (url, options) => response(await f.api(options.method || 'GET', url.replace('https://api.github.com', ''),
+        undefined, options.headers.Accept === 'application/vnd.github.raw+json')));
+    check(f.calls.every(call => call.method === 'GET'), true, 'PR1627 recognition only reads original receipts');
+  };
+  await checkUnbound();
+  await rejects(() => checkUnbound(undefined, 1629), 'previous_release_unclosed',
+    'the exact unbound predecessor cannot admit an unrelated PR');
+  await rejects(() => checkUnbound(f => { f.pr = { ...f.pr, body: slot({ ...publisher, head_sha: f.pr.head.sha }) }; }),
+    'previous_unbound_pull_changed', 'a bound predecessor cannot use the unbound receipt');
+  await rejects(() => checkUnbound((f, wave) => { wave.own.conclusion = 'failure'; }),
+    'original_terminal_not_skipped', 'an unsuccessful closer cannot be recognized as a proved skip');
+  await rejects(() => checkUnbound((f, wave, closer) => { closer.steps[2].conclusion = 'success'; }),
+    'previous_unbound_terminal_changed', 'an executed terminal must use the normal proof');
+  await rejects(() => checkUnbound(f => { f.artifacts.set(44545903375, [{ id: 12 }]); }),
+    'previous_unbound_publication_found', 'unexpected original terminal publication refuses admission');
 
   for (const [description, change, code] of [
     ['active Deploy', f => { f.wave.parent.status = 'in_progress'; f.wave.parent.conclusion = null; }, 'producer_not_successful'],

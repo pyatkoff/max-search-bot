@@ -173,6 +173,80 @@ async function continuePublisher(pulls, context, expected, token, fetchImpl) {
     publisher_comment: expected.comment_id, publisher_acquired_at: expected.updated_at };
 }
 
+// The original closer for PR1627 finished without a publisher binding. Only
+// PR1628 can use the original installation and explicitly skipped terminal.
+const UNBOUND_PREDECESSOR = Object.freeze({
+  source: '57e2aad5dd82e3a7b53c3ffb77e14d8f84f23e17',
+  head: 'defaa6b3323c55a8bc98069c7c08d16e4ac56da3',
+  blob: '7384687b06825154e5244c5a7fd35899dc102042',
+  deploy: 44542421611,
+  closer: 44545903375,
+  closerJob: 135636259834,
+  pullUpdatedAt: '2026-11-19T14:19:03Z',
+});
+
+async function verifyUnboundPredecessor(api, location, native) {
+  const R = require('./deployment_release');
+  const C = require('./release_slot_close');
+  const p = UNBOUND_PREDECESSOR;
+  const get = resource => api('GET', R.API_ROOT + resource);
+  const assertOriginalPull = async () => {
+    const pull = await get('/pulls/1627');
+    if (pull?.number !== 1627 || pull.head?.sha !== p.head || pull.updated_at !== p.pullUpdatedAt ||
+        C.binding(pull, p.source) !== null) refusal('previous_unbound_pull_changed');
+  };
+  const r = R.validateRelease(location.record).release;
+  if (location.blob !== p.blob || r.kind !== 'installed' || native.id !== p.deploy ||
+      native.run_attempt !== 1 || native.head_commit?.id !== p.source ||
+      typeof native.head_commit.message !== 'string' || native.head_commit.message.includes(C.ACTIVATION.marker))
+    refusal('previous_unbound_installation_changed');
+  await assertOriginalPull();
+  await R.authenticatePublication(api, location);
+  await R.requireOps(api, p.source);
+
+  const c = { sha: p.source, deploy: p.deploy, run: p.closer, configure: 'skipped',
+    activation: false, skippedTerminal: true };
+  const snapshot = await C.selectReleaseRuns(await get('/actions/runs?head_sha=' + p.source + '&per_page=100'), c, get);
+  if (snapshot.waiting || C.gateState(snapshot.runs, c) !== 'ready') refusal('previous_unbound_gates_pending');
+  const activation = snapshot.runs.workflow_runs.find(run => run.path === R.PREFIX + C.ACTIVATION.file && run.event === 'workflow_run');
+  const monitor = snapshot.runs.workflow_runs.find(run => run.path === R.PREFIX + 'modeled-conversion-monitor.yml' && run.event === 'workflow_run');
+  const readJobs = run => get('/actions/runs/' + run + '/attempts/1/jobs?per_page=100');
+  C.verifyActivation(await readJobs(activation.id), activation, c, monitor.id);
+  const response = await readJobs(p.closer);
+  const jobs = R.boundedList(response, 'jobs', 'previous_unbound_jobs_incomplete');
+  if (jobs.length !== 3 || jobs.some(job => job.run_id !== p.closer || job.run_attempt !== 1 ||
+      job.head_sha !== p.source || job.status !== 'completed' || !Array.isArray(job.steps)))
+    refusal('previous_unbound_jobs_incomplete');
+  C.verifyConfigure(response, c);
+  const recovery = jobs.find(job => job.name === 'release-slot-recovery');
+  const configure = jobs.find(job => job.name === 'configure');
+  const closer = jobs.find(job => job.name === 'release-slot');
+  if (configure.steps.length !== 0 || recovery?.conclusion !== 'skipped' || recovery.steps.length !== 0 ||
+      closer?.id !== p.closerJob || closer.conclusion !== 'success') refusal('previous_unbound_closer_changed');
+  const steps = [
+    ['Prepare the exact release proof before terminal publication', 'success'],
+    [R.TERMINAL_BINDING_STEP, 'skipped'],
+    [R.TERMINAL_STEP, 'skipped'],
+  ];
+  let previous = 0;
+  for (const [name, conclusion] of steps) {
+    const matches = closer.steps.filter(step => step.name === name);
+    if (matches.length !== 1 || matches[0].status !== 'completed' || matches[0].conclusion !== conclusion ||
+        !Number.isSafeInteger(matches[0].number) || matches[0].number <= previous)
+      refusal('previous_unbound_terminal_changed');
+    previous = matches[0].number;
+  }
+  const artifacts = R.boundedList(await get('/actions/runs/' + p.closer + '/artifacts?per_page=100'),
+    'artifacts', 'previous_unbound_artifacts_incomplete');
+  if (artifacts.length) refusal('previous_unbound_publication_found');
+
+  await assertOriginalPull();
+  const fresh = await R.readRecord(api);
+  if (fresh.blob !== location.blob || fresh.record_digest !== location.record_digest)
+    refusal('previous_release_changed');
+  if ((await get('/git/ref/heads/main'))?.object?.sha !== p.source) refusal('base_changed');
+}
+
 // Final admission alone authenticates the previous technical release. Ordinary
 // source CI must remain independent of an unrelated production wait.
 async function verifyPreviousRelease(context, token, fetchImpl) {
@@ -202,7 +276,12 @@ async function verifyPreviousRelease(context, token, fetchImpl) {
   if (r.repository_sha !== context.baseSha || r.release.run_id !== String(native.id) ||
       r.release.run_attempt !== native.run_attempt || r.release.event !== 'push')
     refusal('previous_release_source_changed');
-  if (r.phase !== 'pending_terminal') refusal('previous_release_unclosed');
+  if (r.phase !== 'pending_terminal') {
+    if (context.prNumber !== 1628 || context.baseSha !== UNBOUND_PREDECESSOR.source)
+      refusal('previous_release_unclosed');
+    await verifyUnboundPredecessor(api, location, native);
+    return;
+  }
   // The canonical resolver authenticates actual installation, exact digest-bound
   // terminal job, and any already supported, explicitly typed recovery lineage.
   const resolved = await R.resolveCurrent(api, { sha: context.baseSha }, location);
