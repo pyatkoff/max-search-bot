@@ -159,7 +159,7 @@ function hook_context(array $row,ChannelPostRegistryService $registry):array {
         if($captionProofs!==null)hook_need(monitor_price_caption_publication_matches($p,$row,$platform,ChannelPostButtonTransport::buttonUrl($p),$proof),'existing_publication_identity_changed');
         $record=$p['snapshot']['metadata']['monitor_price_record_id']??null;$prior=null;
         if($record!==null){hook_need(is_string($record)&&preg_match('/\A[a-f0-9]{64}\z/D',$record)===1,'hook_record_invalid');$prior=hook_journal('commercial-monitor-price-h'.$row['tourvisor_hotel_id'].'-'.$record);}
-        hook_need(monitor_hook_caption_allowed($p,$row,$platform,$prior),'hook_manual_caption_changed_hold');
+        hook_need(monitor_hook_telegram_caption_allowed($p,$row,$platform,$prior),'hook_manual_caption_changed_hold');
         $result[$platform]=$p;
     }return $result;
 }
