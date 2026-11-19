@@ -48,7 +48,7 @@ final class AppleService39PilotPublisher
         self::check(in_array($operation, ['inspect','prepare','publish','finalize','pin','reconcile','landing_inspect','landing_prepare','landing_apply','landing_reconcile',
             'search_inspect','search_prepare','search_apply','search_reconcile',
             'coverage_inspect','coverage_prepare','coverage_apply','coverage_reconcile',
-            'device_inspect','device_prepare','device_apply','device_reconcile'], true), 'unsupported_pilot_operation');
+            'device_inspect','device_prepare','device_apply','device_reconcile','device_observe','device_resume'], true), 'unsupported_pilot_operation');
         $this->readbackDiagnostics = [];
         $devices = str_starts_with($operation, 'device_');
         $this->coverageActive = str_starts_with($operation, 'coverage_') || $devices;

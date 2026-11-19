@@ -23,13 +23,13 @@ function applePilotCheckout(string $root, string $expected): bool
 try {
     $mode = $argv[1] ?? '';
     if ($mode === '--help' && $argc === 2) {
-        echo "php tools/publish_appleservice39_pilot.php inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_prepare|landing_apply|landing_reconcile|search_inspect|search_prepare|search_apply|search_reconcile|coverage_inspect|coverage_prepare|coverage_apply|coverage_reconcile|device_inspect|device_prepare|device_apply|device_reconcile --expected-sha=<accepted application SHA> --channel-id=<exact negative numeric ID>\n";
+        echo "php tools/publish_appleservice39_pilot.php inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_prepare|landing_apply|landing_reconcile|search_inspect|search_prepare|search_apply|search_reconcile|coverage_inspect|coverage_prepare|coverage_apply|coverage_reconcile|device_inspect|device_prepare|device_apply|device_reconcile|device_observe|device_resume --expected-sha=<accepted application SHA> --channel-id=<exact negative numeric ID>\n";
         exit(0);
     }
     if (!in_array($mode, ['inspect','prepare','publish','finalize','pin','reconcile','landing_inspect','landing_prepare','landing_apply','landing_reconcile',
         'search_inspect','search_prepare','search_apply','search_reconcile',
         'coverage_inspect','coverage_prepare','coverage_apply','coverage_reconcile',
-        'device_inspect','device_prepare','device_apply','device_reconcile'], true) || $argc !== 4) throw new RuntimeException('fixed_operation_and_target_required');
+        'device_inspect','device_prepare','device_apply','device_reconcile','device_observe','device_resume'], true) || $argc !== 4) throw new RuntimeException('fixed_operation_and_target_required');
     $options = [];
     foreach (array_slice($argv, 2) as $argument) {
         if (!preg_match('/\A--(expected-sha|channel-id)=(.*)\z/D', $argument, $match) || isset($options[$match[1]])) throw new RuntimeException('fixed_operation_and_target_required');
@@ -91,7 +91,7 @@ try {
         'coverage_text_invalid','coverage_parent_incomplete','coverage_publication_identity_changed','invalid_coverage_operation',
         'coverage_images_not_prepared','invalid_coverage_upload','coverage_upload_collision','invalid_coverage_image_receipt',
         'coverage_image_receipt_required','coverage_operation_held','coverage_revision_changed','coverage_native_image_evidence_required',
-        'device_revision_invalid','invalid_device_operation','device_parent_incomplete','device_images_not_prepared',
+        'device_observation_unavailable','device_candidate_ambiguous','device_recovery_ineligible','device_revision_invalid','invalid_device_operation','device_parent_incomplete','device_images_not_prepared',
         'search_superseded','coverage_feed_incomplete','coverage_feed_destination_changed'];
     $reason = in_array($error->getMessage(), $allowed, true) ? $error->getMessage() : 'pilot_operation_unavailable';
     echo json_encode(['ok'=>false,'state'=>'stopped','reason'=>$reason,'automatic_retry'=>false], JSON_UNESCAPED_SLASHES).PHP_EOL;

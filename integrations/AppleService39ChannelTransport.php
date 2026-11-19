@@ -23,6 +23,14 @@ final class AppleService39ChannelTransport
     public function channel(): array { return $this->api('GET', '/chats/'.$this->channelId); }
     public function membership(): array { return $this->api('GET', '/chats/'.$this->channelId.'/members/me'); }
     public function message(string $mid): array { return $this->api('GET', '/messages/'.self::mid($mid)); }
+    /** MAX uses millisecond bounds, newest first, within this already bound channel. */
+    public function messagesAroundClaim(int $startedMs): array
+    {
+        if ($startedMs <= 60000 || $startedMs > PHP_INT_MAX - 60000) throw new RuntimeException('device_observation_unavailable');
+        return $this->api('GET', '/messages', ['chat_id'=>$this->channelId,
+            'from'=>$startedMs + 60000, 'to'=>$startedMs - 60000, 'count'=>100]);
+    }
+
     public function pin(): array { return $this->api('GET', '/chats/'.$this->channelId.'/pin'); }
     public function create(array $body): array { return $this->api('POST', '/messages', ['chat_id'=>$this->channelId], self::body($body)); }
     public function edit(string $mid, array $body): array { return $this->api('PUT', '/messages', ['message_id'=>self::mid($mid)], self::body($body)); }
