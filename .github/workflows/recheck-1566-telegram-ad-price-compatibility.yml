@@ -1,0 +1,788 @@
+name: "#1566 Verify exact Telegram redirect and current price renderer compatibility"
+on:
+  push:
+    branches: [audit/1566-main-hotel-registry-20261119]
+    paths: ['.github/workflows/recheck-1566-telegram-ad-price-compatibility.yml']
+permissions:
+  contents: read
+concurrency:
+  group: anytour-issue-1566-price-preflight
+  cancel-in-progress: false
+jobs:
+  prepare:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '55da455fe86067ff682bb2df653a82fd6c11fe09' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - name: Lint reviewed migration components
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p pub/source
+          cat > "pub/source/run-native-rebind.sh" <<'SOURCE_0'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          umask 077
+          
+          case "${1:-}" in
+              prepare|verify) lock_mode=read ;;
+              apply|resume) lock_mode=--exclusive ;;
+              *) echo "Usage: run-native-rebind.sh prepare|verify|apply|resume [review.json approved-sha256]" >&2; exit 2 ;;
+          esac
+          
+          unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT
+          unset GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES ANYTOUR_MONITOR_HOOK_INSPECT
+          export GIT_OPTIONAL_LOCKS=0
+          journal=/var/www/anytoour/data/channel-post-operations/monitor-price-after-collection-v1.jsonl
+          here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+          [[ -f "$journal" && ! -L "$journal" ]]
+          exec 9<"$journal"
+          if [[ "$lock_mode" != read ]]; then flock "$lock_mode" --nonblock --conflict-exit-code 75 9; fi
+          export ANYTOUR_REBIND_JOURNAL_FD=9
+          exec node "$here/native-rebind.mjs" "$@"
+          SOURCE_0
+          cat > "pub/source/native-rebind.mjs" <<'SOURCE_1'
+          import assert from "node:assert/strict";
+          import { execFileSync, spawnSync } from "node:child_process";
+          import {
+            closeSync, constants, existsSync, fchmodSync, fchownSync, fstatSync, fsyncSync, lstatSync, mkdirSync,
+            mkdtempSync, openSync, readFileSync, readSync, realpathSync, renameSync, rmdirSync, unlinkSync, writeFileSync
+          } from "node:fs";
+          import { dirname, join, resolve } from "node:path";
+          import { fileURLToPath, pathToFileURL } from "node:url";
+          import { prepareCopies, prepareTransitionHook, sha256, targets } from "./prepare-rebind.mjs";
+          
+          const root = "/var/www/anytoour/data";
+          const app = root + "/www/app.anytoour.ru";
+          const operations = root + "/channel-post-operations";
+          const operationId = "anytour-issue1566-telegram-rebind-174-415-v1";
+          const operationDir = join(operations, operationId);
+          const journal = join(operations, "monitor-price-after-collection-v1.jsonl");
+          const names = {
+            hook: "monitor-price-hook.php",
+            telegram: "hotel-posts-telegram.xml",
+            combined: "hotel-posts-all.xml",
+            max: "hotel-posts-max.xml"
+          };
+          const live = Object.fromEntries(Object.entries(names).map(([key, name]) =>
+            [name, key === "hook" ? join(root, "www/anytoour.ru/data", name) : join(app, "feed", name)]));
+          const expectedRuntime = "fe623086b716b3077e4ec0d4551095fc63db37e3";
+          const ttlSeconds = 300;
+          const candidateHelper = new URL("./transition-tg415.php", import.meta.url);
+          const nativeVerifier = fileURLToPath(new URL("./verify-native-targets.php", import.meta.url));
+          
+          function run(command, args) {
+            try {
+              return execFileSync(command, args, {
+                cwd: app, timeout: args.includes("--inspect") ? 255_000 : 120_000, maxBuffer: 20_000_000, stdio: ["ignore", "pipe", "pipe"]
+              });
+            } catch (error) {
+              const label = args.includes("--inspect") ? "price_inspect" : args.includes("-l") ? "php_lint" : command;
+              const category = error.code === "ETIMEDOUT" ? "timeout" : /^\d+$/.test(String(error.status)) ? "exit_" + error.status : "command_error";
+              throw new Error(label + "_preflight_" + category, { cause: error });
+            }
+          }
+          
+          function file(path, maximum = 4_000_000) {
+            assert.equal(realpathSync(path), path, "Symlinked file path");
+            const fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
+            try {
+              const stat = fstatSync(fd);
+              assert.ok(stat.isFile() && stat.size > 0 && stat.size <= maximum, "Unexpected file size or type");
+              const bytes = readFileSync(fd);
+              assert.equal(bytes.length, stat.size);
+              assert.deepEqual(identity(fstatSync(fd, { bigint: true })), identity(lstatSync(path, { bigint: true })));
+              return { bytes, stat, hash: sha256(bytes) };
+            } finally {
+              closeSync(fd);
+            }
+          }
+          
+          function identity(stat) {
+            return ["dev", "ino", "size", "mtimeNs", "ctimeNs"].map(key => stat[key].toString());
+          }
+          
+          function lastRecord(fd) {
+            const size = fstatSync(fd).size;
+            const offset = Math.max(size - 8_000_000, 0);
+            const bytes = Buffer.alloc(size - offset);
+            assert.equal(readSync(fd, bytes, 0, bytes.length, offset), bytes.length);
+            assert.equal(bytes.at(-1), 10, "Incomplete receipt");
+            const start = bytes.lastIndexOf(10, bytes.length - 2) + 1;
+            assert.ok(start > 0 || offset === 0, "Oversized receipt");
+            const raw = bytes.subarray(start, -1);
+            return { data: JSON.parse(raw), hash: sha256(raw) };
+          }
+          
+          function readJournal(fd) {
+            const before = identity(fstatSync(fd, { bigint: true }));
+            const { data, hash } = lastRecord(fd);
+            assert.deepEqual(identity(lstatSync(journal, { bigint: true })), before, "Journal inode changed");
+            assert.deepEqual(identity(fstatSync(fd, { bigint: true })), before, "Journal changed");
+            assert.ok(data.schema === 1 && Object.hasOwn(data, "pending") && typeof data.completed === "object",
+              "Unexpected journal structure");
+            const price = Object.fromEntries(targets.map(target =>
+              [target.hotelId, data.completed?.[target.hotelId]?.operation ?? null]));
+            return { identity: before, hash, price, pending: data.pending ?? null, state: data };
+          }
+          
+          function requireJournalLock(fd, exclusive) {
+            assert.equal(fd, 9, "Use the native lock launcher");
+            assert.equal(realpathSync(journal), journal, "Unexpected journal path");
+            assert.deepEqual(identity(fstatSync(fd, { bigint: true })), identity(lstatSync(journal, { bigint: true })));
+            const probe = spawnSync("flock", [exclusive ? "--shared" : "--exclusive", "--nonblock",
+              "--conflict-exit-code", "75", journal, "true"], { timeout: 3000, stdio: "ignore" });
+            assert.equal(probe.status, 75, "Native journal lock unavailable");
+          }
+          
+          function checkRuntime() {
+            assert.equal(run("git", ["rev-parse", "HEAD"]).toString().trim(), expectedRuntime, "Installed runtime changed");
+            assert.equal(run("git", ["status", "--porcelain", "--untracked-files=no"]).toString(), "", "Dirty runtime");
+          }
+          
+          function requireIdle() {
+            const table = run("ps", ["-eo", "pid=,args="]).toString();
+            const active = /^\s*\d+\s+(?:\/\S+\/)?php(?:[0-9.]*)?\s+.*(?:top500-daily-collector-v1|scheduled-collector-v1|matrix-collector-v1|monitor-price-hook)\.php(?:\s|$)/m;
+            assert.ok(!active.test(table), "Active collector or price process. Use a naturally idle write window.");
+          }
+          
+          function verifyTargets() {
+            assert.deepEqual(JSON.parse(run("php", [nativeVerifier])), { ok: true, hotel_ids: [174, 415] });
+          }
+          
+          function readLive() {
+            return Object.fromEntries(Object.entries(live).map(([name, path]) => [name, file(path)]));
+          }
+          
+          function verifyPublic(files) {
+            for (const name of [names.telegram, names.combined, names.max]) {
+              const publicBytes = run("curl", ["-fsS", "--max-time", "25", "--max-filesize", "4000000",
+                "https://app.anytoour.ru/feed/" + name]);
+              assert.equal(sha256(publicBytes), files[name].hash, "Public feed differs from native " + name);
+            }
+          }
+          
+          function lint(candidates) {
+            const scratch = mkdtempSync("/tmp/anytour-1566-lint-");
+            try {
+              for (const [name, bytes] of Object.entries(candidates)) {
+                const path = join(scratch, name);
+                try {
+                  writeFileSync(path, bytes, { flag: "wx", mode: 0o600 });
+                  run("php", ["-l", path]);
+                } finally {
+                  unlinkSync(path);
+                }
+              }
+            } finally {
+              rmdirSync(scratch);
+            }
+          }
+          
+          function prepareCandidates(files) {
+            const bytes = Object.fromEntries(Object.entries(files).map(([name, content]) => [name, content.bytes]));
+            const { after, receipt } = prepareCopies(bytes);
+            const transition = prepareTransitionHook(bytes[names.hook], readFileSync(candidateHelper));
+            return { after, transition, receipt: { ...receipt, transitionSha256: sha256(transition) } };
+          }
+          
+          function prepare(fd) {
+            const initial = readJournal(fd);
+            assert.equal(initial.pending, null, "Unresolved price operation");
+            checkRuntime();
+            verifyTargets();
+            const files = readLive();
+            verifyPublic(files);
+            const { after, transition, receipt } = prepareCandidates(files);
+            lint({ "transition.php": transition, "strict.php": after[names.hook] });
+            const result = run("php", [live[names.hook], "--inspect"]).toString();
+            const record = JSON.parse(result.split("\n").find(line => line.startsWith("MONITOR_POST_FEED_RESULT="))
+              .slice("MONITOR_POST_FEED_RESULT=".length));
+            assert.equal(record.mode, "read_only_hook_inspection");
+            assert.equal(record.ok, true);
+            assert.equal(record.installed_sha, expectedRuntime);
+            assert.equal(record.roster_pairs, 1000);
+            assert.equal(record.scanned_pairs, 1000);
+            assert.equal(record.updated_pairs, 0);
+            assert.ok(targets.every(target => record.verified_ids.includes(target.hotelId)
+              && !record.held_ids.includes(target.hotelId)));
+            assert.deepEqual(readJournal(fd).identity, initial.identity, "Price journal changed during readback");
+            return { operationId, runtime: expectedRuntime, preparedAt: Math.floor(Date.now() / 1000),
+              journal: { identity: initial.identity, hash: initial.hash, price: initial.price },
+              candidate: receipt, verifiedHotelIds: [174, 415] };
+          }
+          
+          function syncDirectory(path) {
+            const fd = openSync(path, constants.O_RDONLY | constants.O_DIRECTORY | constants.O_NOFOLLOW);
+            try {
+              fsyncSync(fd);
+            } finally {
+              closeSync(fd);
+            }
+          }
+          
+          function save(path, bytes, previous) {
+            const fd = openSync(path, constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o600);
+            try {
+              writeFileSync(fd, bytes);
+              if (previous) {
+                const current = fstatSync(fd);
+                if (current.uid !== previous.uid || current.gid !== previous.gid) fchownSync(fd, previous.uid, previous.gid);
+                fchmodSync(fd, previous.mode & 0o7777);
+              }
+              fsyncSync(fd);
+            } finally {
+              closeSync(fd);
+            }
+          }
+          
+          function durableReceipt(name, proof) {
+            save(join(operationDir, name), Buffer.from(JSON.stringify(proof) + "\n"));
+            syncDirectory(operationDir);
+          }
+          
+          function writeStep(step, expected, index) {
+            const path = live[step.name];
+            const previous = file(path);
+            assert.equal(previous.hash, expected, "Preimage changed");
+            const temporary = join(dirname(path), "." + operationId + "-" + index + "-" + process.pid + ".tmp");
+            save(temporary, step.bytes, previous.stat);
+            assert.equal(file(temporary).hash, sha256(step.bytes), "Staged bytes changed");
+            assert.equal(file(path).hash, expected, "Preimage changed before rename");
+            renameSync(temporary, path);
+            syncDirectory(dirname(path));
+            const next = file(path);
+            assert.equal(next.hash, sha256(step.bytes), "Replacement readback failed");
+            assert.equal(next.stat.mode, previous.stat.mode);
+            assert.equal(next.stat.uid, previous.stat.uid);
+            assert.equal(next.stat.gid, previous.stat.gid);
+          }
+          
+          function requireFreshReview(plan, fd) {
+            assert.equal(plan.operationId, operationId);
+            assert.equal(plan.runtime, expectedRuntime);
+            const now = Math.floor(Date.now() / 1000);
+            assert.ok(Number.isSafeInteger(plan.preparedAt) && plan.preparedAt <= now && now - plan.preparedAt <= ttlSeconds,
+              "Review expired");
+            const state = readJournal(fd);
+            assert.equal(state.pending, null, "Unresolved price operation");
+            assert.deepEqual({ identity: state.identity, hash: state.hash, price: state.price }, plan.journal,
+              "Price journal advanced since review");
+          }
+          
+          export function selectPhase(current, phases) {
+            const index = phases.findIndex(phase => Object.keys(phase).every(name => phase[name] === current[name]));
+            assert.ok(index >= 0, "Unknown file state. Keep transition hook and obtain reviewed reconciliation.");
+            return index;
+          }
+          
+          function apply(fd, mode, approvalPath, approvedHash) {
+            assert.match(approvedHash ?? "", /^[a-f0-9]{64}$/);
+            const approval = file(approvalPath, 512_000);
+            assert.equal(approval.hash, approvedHash, "Approved receipt differs");
+            const plan = JSON.parse(approval.bytes);
+            requireFreshReview(plan, fd);
+            requireIdle();
+            checkRuntime();
+            verifyTargets();
+            assert.equal(realpathSync(operations), operations, "Operation root changed");
+            const current = readLive();
+            const recovering = mode === "resume";
+            if (recovering) {
+              assert.equal(file(join(operationDir, "approved.json")).hash, approvedHash, "Prior intent differs");
+            } else {
+              assert.ok(!existsSync(operationDir), "Prior intent exists. Resume only from acknowledged exact evidence.");
+            }
+            const before = recovering
+              ? Object.fromEntries(Object.keys(live).map(name => [name, file(join(operationDir, name))]))
+              : current;
+            const bundle = prepareCandidates(before);
+            assert.deepEqual(bundle.receipt, plan.candidate, "Candidate differs from reviewed bytes");
+            const steps = [
+              { name: names.hook, bytes: bundle.transition },
+              { name: names.telegram, bytes: bundle.after[names.telegram] },
+              { name: names.combined, bytes: bundle.after[names.combined] },
+              { name: names.hook, bytes: bundle.after[names.hook] }
+            ];
+            const phases = [Object.fromEntries(Object.entries(before).map(([name, value]) => [name, value.hash]))];
+            for (const step of steps) phases.push({ ...phases.at(-1), [step.name]: sha256(step.bytes) });
+            const phase = selectPhase(Object.fromEntries(Object.entries(current).map(([name, value]) => [name, value.hash])), phases);
+            assert.ok(recovering || phase === 0);
+            if (!recovering) {
+              verifyPublic(current);
+              mkdirSync(operationDir, { mode: 0o700 });
+              for (const [name, entry] of Object.entries(before)) save(join(operationDir, name), entry.bytes);
+              save(join(operationDir, "approved.json"), approval.bytes);
+              durableReceipt("planned.json", { approvedHash, phases });
+              syncDirectory(operations);
+            }
+            assert.deepEqual(JSON.parse(file(join(operationDir, "planned.json")).bytes), { approvedHash, phases });
+            for (let index = phase; index < steps.length; index++) {
+              requireFreshReview(plan, fd);
+              requireIdle();
+              checkRuntime();
+              writeStep(steps[index], phases[index][steps[index].name], index);
+            }
+            const final = readLive();
+            assert.equal(selectPhase(Object.fromEntries(Object.entries(final).map(([name, value]) => [name, value.hash])), phases),
+              steps.length);
+            if (!existsSync(join(operationDir, "installed.json"))) {
+              durableReceipt("installed.json", { approvedHash, installedAt: new Date().toISOString(), phases: phases.at(-1) });
+            }
+            verifyPublic(final);
+            requireFreshReview(plan, fd);
+            checkRuntime();
+            if (!existsSync(join(operationDir, "readback.json"))) {
+              durableReceipt("readback.json", { approvedHash, checkedAt: new Date().toISOString(), targetCount: targets.length });
+            }
+            return { operationId, state: "redirects_verified", ads: targets, posted: 0, price_runs: 0 };
+          }
+          
+          export function hasDestination(bytes, target) {
+            const matches = [...bytes.toString("utf8").matchAll(new RegExp('<offer id="' + target.offerId +
+              '">[\\s\\S]*?<\\/offer>', "g"))];
+            if (matches.length !== 1) return false;
+            const urls = [...matches[0][0].matchAll(/<url>([\s\S]*?)<\/url>/g)];
+            return urls.length === 1 && urls[0][1] === target.newUrl;
+          }
+          
+          function verifyNext(fd) {
+            const plan = JSON.parse(file(join(operationDir, "approved.json")).bytes);
+            const installed = JSON.parse(file(join(operationDir, "installed.json")).bytes);
+            const { state } = readJournal(fd);
+            const current = readLive();
+            assert.equal(current[names.hook].hash, installed.phases[names.hook], "Installed hook differs from accepted rebind");
+            verifyTargets();
+            verifyPublic(current);
+            return targets.map(target => {
+              assert.ok(hasDestination(current[names.telegram].bytes, target)
+                && hasDestination(current[names.combined].bytes, target), "Rebound URL missing");
+              const completed = state.completed?.[target.hotelId];
+              if (!completed || completed.operation === plan.journal.price[target.hotelId]) {
+                return { hotelId: target.hotelId, url: target.newUrl, status: "awaiting_next_natural_price_write" };
+              }
+              assert.match(completed.operation, new RegExp("^commercial-monitor-price-h" + target.hotelId + "-[a-f0-9]{64}$"));
+              assert.ok(Date.parse(completed.at) >= Date.parse(installed.installedAt), "Old price receipt");
+              const child = join(operations, completed.operation, "receipt.jsonl");
+              assert.equal(realpathSync(child), child);
+              const fd = openSync(child, constants.O_RDONLY | constants.O_NOFOLLOW);
+              try {
+                const { data, hash } = lastRecord(fd);
+                assert.ok(data.complete && data.operation === completed.operation && completed.feed_operation);
+                assert.equal(data.feed_binding?.destinations?.telegram, target.newUrl);
+                const sides = Object.values(data.posts ?? {});
+                assert.equal(sides.length, 2);
+                assert.deepEqual(sides.map(side => side.receipt.platform).sort(), ["max", "telegram"]);
+                assert.ok(sides.every(side => side.state === "confirmed" && side.receipt.body_photo_button_verified));
+                return { hotelId: target.hotelId, url: target.newUrl, status: "natural_price_write_verified",
+                  priceOperation: completed.operation, childReceiptSha256: hash };
+              } finally {
+                closeSync(fd);
+              }
+            });
+          }
+          
+          function main() {
+            const [mode, approvalPath, approvedHash] = process.argv.slice(2);
+            assert.ok(["prepare", "apply", "resume", "verify"].includes(mode));
+            const fd = Number(process.env.ANYTOUR_REBIND_JOURNAL_FD);
+            if (mode === "apply" || mode === "resume") requireJournalLock(fd, true);
+            else assert.deepEqual(identity(fstatSync(fd, { bigint: true })), identity(lstatSync(journal, { bigint: true })));
+            const result = mode === "prepare" ? prepare(fd) : mode === "verify"
+              ? verifyNext(fd) : apply(fd, mode, approvalPath, approvedHash);
+            process.stdout.write(JSON.stringify(result) + "\n");
+          }
+          
+          if (typeof process !== "undefined" && process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+            try {
+              main();
+            } catch (error) {
+              process.stderr.write(error.message + "\n");
+              process.exitCode = 1;
+            }
+          }
+          SOURCE_1
+          cat > "pub/source/prepare-rebind.mjs" <<'SOURCE_2'
+          import assert from "node:assert/strict";
+          import { createHash } from "node:crypto";
+          import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+          import { isAbsolute, join, resolve } from "node:path";
+          import { pathToFileURL } from "node:url";
+          import { gunzipSync, gzipSync } from "node:zlib";
+          
+          const oldHookHash = "605f8e628f5ad8bb07ab7e12f0e8a33c51a773defad43711d46908db0cb1caa4";
+          export const targets = [
+            { hotelId: 174, offerId: "tg_174", oldUrl: "https://t.me/any_toour/67", newUrl: "https://t.me/anytour/1792" },
+            { hotelId: 415, offerId: "tg_415", oldUrl: "https://t.me/any_toour/472", newUrl: "https://t.me/anytour/1754" }
+          ];
+          const hookName = "monitor-price-hook.php";
+          const telegramName = "hotel-posts-telegram.xml";
+          const combinedName = "hotel-posts-all.xml";
+          const maxName = "hotel-posts-max.xml";
+          const fileNames = [hookName, telegramName, combinedName, maxName];
+          const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+          
+          function readText(bytes) {
+            return decoder.decode(bytes);
+          }
+          
+          export function sha256(bytes) {
+            return createHash("sha256").update(bytes).digest("hex");
+          }
+          
+          export function prepareHook(hook) {
+            const text = readText(hook);
+            const constants = [...text.matchAll(/^const HOOK_ROSTER_GZIP_B64="([A-Za-z0-9+/=]+)";\r?$/gm)];
+            assert.equal(constants.length, 1, "Expected one compiled price roster");
+            const [line, encoded] = constants[0];
+            let raw = readText(gunzipSync(Buffer.from(encoded, "base64"), { maxOutputLength: 8_000_000 }));
+            const expected = JSON.parse(raw);
+            assert.equal(expected.rows.length, 1000, "Price roster must contain 1000 hotels");
+            assert.equal(new Set(expected.rows.map(row => row.tourvisor_hotel_id)).size, 1000);
+            for (const { hotelId, offerId, oldUrl, newUrl } of targets) {
+              const row = expected.rows.find(candidate => candidate.tourvisor_hotel_id === hotelId);
+              assert.ok(row, "Requested hotel missing from price roster");
+              assert.equal(row.posts.telegram, oldUrl);
+              assert.equal(row.feed_binding.posts.telegram, oldUrl);
+              assert.equal(row.feed_binding.offer_ids.telegram, offerId);
+              assert.equal(row.feed_binding.destinations.telegram, oldUrl);
+              assert.ok(expected.rows.every(candidate => candidate.feed_binding.destinations.telegram !== newUrl));
+              row.feed_binding.destinations.telegram = newUrl;
+          
+              // Locate the destination among the identical URLs without reserializing the roster.
+              const literal = JSON.stringify(oldUrl);
+              const replacement = JSON.stringify(newUrl);
+              const variants = [];
+              for (let index = raw.indexOf(literal); index !== -1; index = raw.indexOf(literal, index + literal.length)) {
+                const candidate = raw.slice(0, index) + replacement + raw.slice(index + literal.length);
+                try {
+                  assert.deepEqual(JSON.parse(candidate), expected);
+                  variants.push(candidate);
+                } catch (error) {
+                  if (error.code !== "ERR_ASSERTION") throw error;
+                }
+              }
+              assert.equal(variants.length, 1, "Could not find exactly one destination-only change for this hotel");
+              raw = variants[0];
+            }
+            // Normalize the gzip OS header to make reviewed bytes portable for the same compressor output.
+            const compressed = gzipSync(raw, { level: 9 });
+            compressed[9] = 255;
+            const updated = compressed.toString("base64");
+            const lineIndex = constants[0].index;
+            const next = text.slice(0, lineIndex) + line.replace(encoded, updated) + text.slice(lineIndex + line.length);
+            return Buffer.from(next);
+          }
+          
+          export function prepareTransitionHook(hook, phpSource) {
+            const text = readText(hook);
+            const extra = readText(phpSource);
+            const phpPrelude = "<?php\ndeclare(strict_types=1);\n";
+            assert.ok(extra.startsWith(phpPrelude));
+            assert.ok(!text.includes("function hook_telegram_1566_destination("));
+            const beforeHelper = "function hook_prepare_feed(array $journal,string $installed):array {";
+            const beforeEditorPath = "            $context=$inspect?hook_measure($out,'post_context',fn()=>hook_context($row,$registry)):null;";
+            for (const anchor of [beforeHelper, beforeEditorPath]) {
+              assert.equal(text.split(anchor).length, 2, "Installed hook structure differs from the accepted source");
+            }
+            return Buffer.from(text
+              .replace(beforeHelper, () => extra.slice(phpPrelude.length) + "\n" + beforeHelper)
+              .replace(beforeEditorPath, () => "            if ($tv === 174 || $tv === 415) $row = hook_telegram_1566_destination($row);\n" + beforeEditorPath));
+          }
+          
+          function feedOffers(text, count, platform) {
+            assert.ok(text.startsWith('<?xml version="1.0" encoding="UTF-8"?>\n<yml_catalog date="'));
+            assert.ok(text.endsWith("</yml_catalog>\n"));
+            assert.ok(!/<!DOCTYPE|<!ENTITY/i.test(text), "Unexpected YML markup");
+            const offers = [...text.matchAll(/<offer id="((?:tg|max)_\d+)">[\s\S]*?<\/offer>/g)];
+            assert.equal((text.match(/<offer\b/g) ?? []).length, count, "Unexpected offer count");
+            assert.equal(offers.length, count, "Unexpected offer markup");
+            assert.equal(new Set(offers.map(match => match[1])).size, count, "Duplicate offer IDs");
+            if (platform) assert.ok(offers.every(match => match[1].startsWith(platform + "_")));
+            return offers;
+          }
+          
+          export function prepareFeed(bytes, name) {
+            const text = readText(bytes);
+            if (name === maxName) {
+              feedOffers(text, 1000, "max");
+              return bytes;
+            }
+            assert.ok(name === telegramName || name === combinedName);
+            const platforms = name === telegramName ? "tg" : null;
+            const offers = feedOffers(text, platforms ? 1000 : 2000, platforms);
+            if (!platforms) {
+              assert.equal(offers.filter(match => match[1].startsWith("tg_")).length, 1000);
+            }
+            let next = text;
+            for (const hotel of targets) {
+              const [target] = offers.filter(match => match[1] === hotel.offerId);
+              assert.ok(target, "Missing " + hotel.offerId + " offer");
+              const block = target[0];
+              const urls = [...block.matchAll(/<url>([\s\S]*?)<\/url>/g)];
+              assert.equal(urls.length, 1, "Expected one " + hotel.offerId + " URL");
+              assert.equal(urls[0][1], hotel.oldUrl, "Unexpected current " + hotel.offerId + " destination");
+              const updated = block.replace("<url>" + hotel.oldUrl + "</url>", "<url>" + hotel.newUrl + "</url>");
+              next = next.replace(block, () => updated);
+            }
+            return Buffer.from(next);
+          }
+          
+          export function prepareCopies(before) {
+            assert.equal(sha256(before[hookName]), oldHookHash, "Installed price hook differs from the accepted source");
+            const after = {
+              [hookName]: prepareHook(before[hookName]),
+              [telegramName]: prepareFeed(before[telegramName], telegramName),
+              [combinedName]: prepareFeed(before[combinedName], combinedName),
+              [maxName]: prepareFeed(before[maxName], maxName)
+            };
+            return {
+              after,
+              receipt: {
+                targets,
+                files: fileNames.map(name => ({
+                  name,
+                  beforeSha256: sha256(before[name]),
+                  afterSha256: sha256(after[name]),
+                  afterBytes: after[name].length
+                }))
+              }
+            };
+          }
+          
+          function main() {
+            const [input, flag, output] = process.argv.slice(2);
+            assert.ok(input && isAbsolute(input) && (!flag || flag === "--emit") && Boolean(flag) === Boolean(output),
+              "Usage: node prepare-rebind.mjs ABSOLUTE_COPY_DIR [--emit ABSOLUTE_NEW_REVIEW_DIR]");
+            const before = Object.fromEntries(fileNames.map(name => [name, readFileSync(join(input, name))]));
+            const { after, receipt } = prepareCopies(before);
+            if (output) {
+              assert.ok(isAbsolute(output), "Expected an absolute new review directory");
+              const helper = readFileSync(new URL("./transition-tg415.php", import.meta.url));
+              const transition = prepareTransitionHook(before[hookName], helper);
+              const transitionName = "monitor-price-hook.transition.preview.php";
+              receipt.transition = { name: transitionName, sha256: sha256(transition), bytes: transition.length };
+              mkdirSync(output, { mode: 0o700 });
+              for (const [name, bytes] of Object.entries(after)) {
+                writeFileSync(join(output, name), bytes, { flag: "wx", mode: 0o600 });
+              }
+              writeFileSync(join(output, transitionName), transition, { flag: "wx", mode: 0o600 });
+              writeFileSync(join(output, "receipt.json"), JSON.stringify(receipt, null, 2) + "\n", {
+                flag: "wx",
+                mode: 0o600
+              });
+            }
+            process.stdout.write(JSON.stringify(receipt, null, 2) + "\n");
+          }
+          
+          if (typeof process !== "undefined" && process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) main();
+          SOURCE_2
+          cat > "pub/source/transition-tg415.php" <<'SOURCE_3'
+          <?php
+          declare(strict_types=1);
+          /** Require agreement between both ad feeds before the price editor touches either scoped hotel. */
+          function hook_telegram_1566_destination(array $row): array {
+              $hotelId = $row['tourvisor_hotel_id'] ?? null;
+              [$old, $new] = match ($hotelId) {
+                  174 => ['https://t.me/any_toour/67', 'https://t.me/anytour/1792'],
+                  415 => ['https://t.me/any_toour/472', 'https://t.me/anytour/1754'],
+                  default => throw new RuntimeException('hook_tg1566_feed_rebind_deferred'),
+              };
+              $offerId = 'tg_' . $hotelId;
+              $reason = 'hook_tg1566_feed_rebind_deferred';
+              hook_need(($row['posts']['telegram'] ?? null) === $old
+                  && ($row['feed_binding']['posts']['telegram'] ?? null) === $old
+                  && ($row['feed_binding']['offer_ids']['telegram'] ?? null) === $offerId
+                  && ($row['feed_binding']['destinations']['telegram'] ?? null) === $old, $reason);
+              $urls = [];
+              foreach (['hotel-posts-telegram.xml', 'hotel-posts-all.xml'] as $name) {
+                  $path = getcwd() . '/feed/' . $name;
+                  try {
+                      $xml = hook_read($path, 4000000);
+                  } catch (RuntimeException $error) {
+                      throw new RuntimeException($reason, 0, $error);
+                  }
+                  hook_need(stripos($xml, '<!DOCTYPE') === false && stripos($xml, '<!ENTITY') === false, $reason);
+                  $dom = new DOMDocument();
+                  $previous = libxml_use_internal_errors(true);
+                  try {
+                      $loaded = $dom->loadXML($xml, LIBXML_NONET);
+                  } finally {
+                      libxml_clear_errors();
+                      libxml_use_internal_errors($previous);
+                  }
+                  hook_need($loaded && $dom->documentElement?->tagName === 'yml_catalog', $reason);
+                  $xpath = new DOMXPath($dom);
+                  $offers = $xpath->query('/yml_catalog/shop/offers/offer[@id="' . $offerId . '"]');
+                  hook_need($offers !== false && $offers->length === 1, $reason);
+                  $nodes = $xpath->query('./url', $offers->item(0));
+                  hook_need($nodes !== false && $nodes->length === 1, $reason);
+                  $urls[] = $nodes->item(0)->textContent;
+              }
+              hook_need($urls[0] === $urls[1] && in_array($urls[0], [$old, $new], true), $reason);
+              $row['feed_binding']['destinations']['telegram'] = $urls[0];
+              return $row;
+          }
+          SOURCE_3
+          cat > "pub/source/verify-native-targets.php" <<'SOURCE_4'
+          <?php
+          declare(strict_types=1);
+          if (PHP_SAPI !== 'cli') {
+              http_response_code(404);
+              exit(1);
+          }
+          
+          const REBIND_APP = '/var/www/anytoour/data/www/app.anytoour.ru';
+          const REBIND_CHANNEL = '-1001845835645';
+          const REBIND_SOURCE = 'tg_anytour_msk';
+          const REBIND_BOT = 'anyru_bot';
+          
+          function verifyRebindTarget(bool $ok, string $reason): void {
+              if (!$ok) {
+                  throw new RuntimeException($reason);
+              }
+          }
+          
+          try {
+              ob_start();
+              try {
+                  require REBIND_APP . '/config.php';
+                  require_once REBIND_APP . '/services/ChannelPostRuntime.php';
+                  require_once REBIND_APP . '/services/ChannelPostEntryService.php';
+                  require_once REBIND_APP . '/services/ChannelPostButtonTransport.php';
+              } finally {
+                  ob_end_clean();
+              }
+              $pdo = ConversationDb::connection();
+              $pdo->exec('SET SESSION TRANSACTION READ ONLY');
+              $pdo->beginTransaction();
+              try {
+                  $registry = new ChannelPostRegistryService($pdo);
+                  $channel = $registry->channel('anytour', 'telegram', REBIND_BOT, REBIND_CHANNEL);
+                  verifyRebindTarget(is_array($channel) && (int) $channel['id'] === 6
+                      && $channel['source_key'] === REBIND_SOURCE && (int) $channel['config_version'] === 2,
+                      'telegram_main_channel_changed');
+                  $targets = [
+                      174 => [
+                          'publication' => 3575, 'version' => 11820, 'message' => '1792',
+                          'caption' => 'cff5118101e8fb34522c1bee40aeda131d6ac9f1373835b6f8fd5f763f308e8c',
+                          'photo' => 'd34abe13a9c615a5d2733518ae4e3998990f8d13c995385ebb1b00643ae9e747'
+                      ],
+                      415 => [
+                          'publication' => 20, 'version' => 11711, 'message' => '1754',
+                          'caption' => '6cdb9d87845d03242a35d005502aeb544e2a118aff1aa580fa74a8903f7b8932',
+                          'button' => 'a32a909a373539dc905b8ac062157d004d4cfe56b5a4a99f852b266167c47c08'
+                      ]
+                  ];
+                  foreach ($targets as $hotel => $target) {
+                      $post = $registry->publication($target['publication']);
+                      $postUrl = 'https://t.me/anytour/' . $target['message'];
+                      verifyRebindTarget(is_array($post) && $post['project_key'] === 'anytour' && $post['platform'] === 'telegram'
+                          && $post['bot_key'] === REBIND_BOT && $post['channel_id'] === REBIND_CHANNEL
+                          && $post['source_key'] === REBIND_SOURCE
+                          && $post['external_message_id'] === $target['message'] && $post['state'] === 'sent'
+                          && (int) $post['version_id'] === $target['version']
+                          && $post['snapshot']['post_url'] === $postUrl, 'telegram_target_identity_changed');
+                      $snapshot = $post['snapshot'];
+                      $image = $snapshot['attachments'][0] ?? [];
+                      verifyRebindTarget(hash('sha256', $snapshot['text']) === $target['caption'] && count($snapshot['attachments']) === 1
+                          && ($image['type'] ?? '') === 'image' && is_string($image['file_unique_id'] ?? null)
+                          && $image['file_unique_id'] !== '', 'telegram_target_content_changed');
+                      $button = ChannelPostButtonTransport::buttonUrl($post);
+                      $resolved = ChannelPostEntryService::resolve('telegram', $post['start_payload'], $registry);
+                      verifyRebindTarget(is_string($button) && str_starts_with($button, 'https://t.me/anyru_bot?start=')
+                          && is_array($resolved) && (int) $resolved['publication_id'] === $target['publication']
+                          && (int) $resolved['version_id'] === $target['version']
+                          && $resolved['source_key'] === REBIND_SOURCE && $resolved['snapshot']['post_url'] === $postUrl,
+                          'telegram_target_context_changed');
+                      if ($hotel === 174) {
+                          verifyRebindTarget(hash('sha256', $image['file_unique_id']) === $target['photo']
+                              && (int) ($resolved['snapshot']['metadata']['hotel_catalog_id'] ?? 0) === $hotel
+                              && !empty($post['receipt']['button_verified']) && !empty($post['receipt']['content_preserved']),
+                              'dana_native_receipt_changed');
+                      } else {
+                          verifyRebindTarget(hash('sha256', $button) === $target['button']
+                              && $image['file_unique_id'] === 'AQADTiBrGwABRLBKfg'
+                              && ($snapshot['metadata']['caption_correction_operation'] ?? '') ===
+                                  'commercial-main-seagull415-no-price-20261119-v1',
+                              'seagull_native_receipt_changed');
+                      }
+                  }
+              } finally {
+                  $pdo->rollBack();
+              }
+              echo json_encode(['ok' => true, 'hotel_ids' => array_keys($targets)], JSON_THROW_ON_ERROR), "\n";
+          } catch (Throwable $error) {
+              $reason = preg_match('/\A[a-z0-9_]{1,80}\z/D', $error->getMessage()) === 1
+                  ? $error->getMessage() : 'native_registry_verification_failed';
+              echo json_encode(['ok' => false, 'error' => $reason], JSON_THROW_ON_ERROR), "\n";
+              exit(1);
+          }
+          SOURCE_4
+          php -l pub/source/verify-native-targets.php
+          node --check pub/source/native-rebind.mjs
+          node --check pub/source/prepare-rebind.mjs
+          bash -n pub/source/run-native-rebind.sh
+          tar -C pub/source -cf pub/source.tar run-native-rebind.sh native-rebind.mjs prepare-rebind.mjs transition-tg415.php verify-native-targets.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Compare proposed Telegram destinations with production and price rules
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'bash -c '"'"'set -euo pipefail; umask 077; stage=$(mktemp -d /tmp/anytour-1566-price.XXXXXXXX); trap "rm -f -- \"$stage\"/*; rmdir -- \"$stage\"" EXIT; tar --no-same-owner --no-same-permissions -C "$stage" -xf -; bash "$stage/run-native-rebind.sh" prepare'"'"'' < pub/source.tar > pub/review.json
+          python3 -c 'import json; d=json.load(open("pub/review.json")); assert d["verifiedHotelIds"] == [174,415]; print("Both exact Telegram destination and price bindings verified.")'
+      - name: Preserve original price compatibility readback
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-1566-telegram-ad-review
+          path: pub/review.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Remove runner-only connection material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
