@@ -1,0 +1,338 @@
+name: "#1566 Publish Dana Beach Resort once in main MAX"
+on:
+  push:
+    branches: [audit/1566-main-hotel-registry-20261119]
+    paths: ['.github/workflows/publish-1566-dana-beach-max.yml']
+permissions:
+  contents: read
+concurrency:
+  group: anytour-authorized-channel-publication
+  cancel-in-progress: false
+jobs:
+  registry:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '19f728c81c5bbb10bb74246b3c55bfc8800408e3' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Lint bounded native publisher
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir pub
+          cat > pub/read-only.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          ini_set('display_errors', '0');
+          ini_set('log_errors', '0');
+          
+          function insist(bool $ok,string $why):void{if(!$ok)throw new RuntimeException($why);}
+          function persist(string $path,array $value):void{
+           $tmp=$path.'.tmp';$raw=json_encode($value,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+           $f=fopen($tmp,'w');insist($f!==false,'receipt_storage_failed');insist(fwrite($f,$raw)===strlen($raw)&&fflush($f),'receipt_storage_failed');if(function_exists('fsync'))insist(fsync($f),'receipt_storage_failed');fclose($f);insist(rename($tmp,$path),'receipt_storage_failed');chmod($path,0600);
+          }
+          function readMax(string $mid):array{
+           insist(preg_match('/\A[A-Za-z0-9_.-]{1,191}\z/',$mid)===1,'invalid_saved_message_id');$r=ChannelPostApiTransport::buttonRequest('max','GET','/messages/'.$mid,[],null);
+           insist(empty($r['transport_error'])&&(int)$r['http']===200&&is_array($r['data']),'provider_post_read_failed');return $r['data'];
+          }
+          function token(array $a):string{if(is_string($a['token']??null)&&$a['token']!=='')return $a['token'];foreach($a as $v)if(is_array($v)){ $s=token($v);if($s!=='')return $s;}return '';}
+          function maxPhoto(string $file,array $row,string $dir):string{
+           $path=$dir.'/max-upload-'.$row['photo_sha256'].'.json';
+           if(is_file($path)){$s=json_decode(file_get_contents($path),true,32,JSON_THROW_ON_ERROR);insist(($s['state']??'')==='confirmed'&&is_string($s['token']??null),'prior_upload_unknown_no_retry');return $s['token'];}
+           persist($path,['state'=>'started','photo_sha256'=>$row['photo_sha256']]);
+           $r=MaxTransport::request('https://platform-api2.max.ru',MAX_SEARCH_TOKEN,'POST','/uploads',['type'=>'image'],null,null);insist(is_array($r)&&is_string($r['url']??null),'upload_endpoint_unconfirmed');
+           $parts=parse_url($r['url']);insist(($parts['scheme']??'')==='https'&&!isset($parts['user'],$parts['pass'])&&!isset($parts['port'])&&!isset($parts['fragment'])&&preg_match('/\A(?:[a-z0-9-]+\.)*(?:max\.ru|oneme\.ru|okcdn\.ru|mycdn\.me)\z/D',(string)($parts['host']??''))===1,'upload_host_requires_review');
+           $mime=(getimagesize($file)['mime']??'');$ext=['image/png'=>'png','image/jpeg'=>'jpg','image/webp'=>'webp'][$mime]??'';insist($ext!=='','upload_mime_invalid');
+           $raw='';$ch=curl_init($r['url']);curl_setopt_array($ch,MaxTlsConfig::strictCurlOptions()+[CURLOPT_POST=>true,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_RETURNTRANSFER=>false,CURLOPT_CONNECTTIMEOUT=>10,CURLOPT_TIMEOUT=>60,CURLOPT_POSTFIELDS=>['data'=>new CURLFile($file,$mime,'photo.'.$ext)],CURLOPT_WRITEFUNCTION=>static function($c,string $s)use(&$raw):int{if(strlen($raw)+strlen($s)>1048576)return 0;$raw.=$s;return strlen($s);}]);
+           $ok=curl_exec($ch);$http=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);curl_close($ch);$data=json_decode($raw,true);
+           insist($ok!==false&&$http>=200&&$http<300&&is_array($data)&&token($data)!=='','photo_upload_outcome_unconfirmed');$t=token($data);persist($path,['state'=>'confirmed','photo_sha256'=>$row['photo_sha256'],'token'=>$t]);return $t;
+          }
+          
+          function telegramAsset(string $target, int $limit): array
+          {
+              $body = '';
+              $request = curl_init($target);
+              curl_setopt_array($request, [
+                  CURLOPT_RETURNTRANSFER=>false, CURLOPT_FOLLOWLOCATION=>false, CURLOPT_CONNECTTIMEOUT=>5, CURLOPT_TIMEOUT=>20,
+                  CURLOPT_SSL_VERIFYPEER=>true, CURLOPT_SSL_VERIFYHOST=>2, CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,
+                  CURLOPT_WRITEFUNCTION=>static function ($handle, string $chunk) use (&$body, $limit): int {
+                      if (strlen($body) + strlen($chunk) > $limit) {
+                          return 0;
+                      }
+                      $body .= $chunk;
+                      return strlen($chunk);
+                  },
+              ]);
+              $ok = curl_exec($request);
+              $status = (int) curl_getinfo($request, CURLINFO_HTTP_CODE);
+              curl_close($request);
+              return [$ok && $status === 200, $body];
+          }
+          
+          $expectedSha = 'fe623086b716b3077e4ec0d4551095fc63db37e3';
+          $sourceHash = 'f53d8a59bf755e61df15a60aa9aa97938be69767b7dac573c1d9819a5cbe64dd';
+          $caption = <<<'CAPTION'
+          ✈️ Pickalbatros Dana Beach Resort — семейный отдых в Хургаде
+          📍 Египет · Хургада
+          
+          Собственный песчаный пляж, аквапарки для взрослых и детей, детский клуб Alba. Хороший вариант для семей, которые хотят совместить море и водные развлечения.
+          
+          Подберём тур на ваши даты.
+          CAPTION;
+          $channelId = '-68765999669267';
+          $operation = 'issue1566-main-max-hotel174-v1';
+          $result = ['operation'=>$operation, 'hotel_id'=>174, 'mode'=>'preflight', 'post_write_attempts'=>0, 'ok'=>false];
+          $lock = null;
+          $dry = getenv('ANYTOUR_1566_APPLY') !== '1';
+          try {
+              insist(PHP_SAPI === 'cli' && trim((string) shell_exec('git rev-parse HEAD')) === $expectedSha &&
+                  trim((string) shell_exec('git status --porcelain --untracked-files=no')) === '', 'installed_release_changed');
+              ob_start();
+              try {
+                  require getcwd() . '/config.php';
+                  require_once getcwd() . '/services/ChannelPostEntryService.php';
+                  require_once getcwd() . '/services/ChannelPostAutomationService.php';
+                  require_once getcwd() . '/services/MaxTransport.php';
+              } finally {
+                  ob_end_clean();
+              }
+              insist(ProjectConfig::projectId() === 'anytour' && preg_match('/\A✈️ Pickalbatros Dana Beach Resort/u', $caption) === 1
+                  && !preg_match('/(?:RUB|₽|https?:\/\/|[\x00-\x08\x0b-\x1f])/ui', $caption), 'caption_scope_changed');
+              $identity = ChannelPostRuntime::identity('max');
+              $telegramIdentity = ChannelPostRuntime::identity('telegram');
+              insist(($identity['bot_key'] ?? '') === 'id9704048781_1_bot' && ($telegramIdentity['bot_key'] ?? '') === 'anyru_bot', 'configured_bot_changed');
+              $pdo = ConversationDb::connection();
+              $registry = new ChannelPostRegistryService($pdo);
+              $private = '/var/www/anytoour/data/channel-post-operations';
+              $directory = $private . '/' . $operation;
+              $receiptPath = $directory . '/publication.json';
+              if (!$dry) {
+                  insist(realpath($private) === $private && !is_link($directory), 'private_operation_directory_invalid');
+                  if (!is_dir($directory)) {
+                      insist(mkdir($directory, 0700), 'private_operation_directory_invalid');
+                  }
+                  insist(realpath($directory) === $directory && !is_link($receiptPath), 'private_operation_directory_invalid');
+                  $lock = fopen($directory . '/publication.lock', 'c');
+                  insist($lock && flock($lock, LOCK_EX | LOCK_NB), 'operation_is_busy');
+                  insist(!file_exists($receiptPath), 'recorded_operation_requires_reconciliation_no_retry');
+              }
+              $pdo->exec('SET TRANSACTION READ ONLY');
+              $pdo->beginTransaction();
+              $channel = $registry->channel('anytour', 'max', $identity['bot_key'], $channelId);
+              insist(is_array($channel) && (int) $channel['id'] === 4 && (int) $channel['config_version'] === 2
+                  && $channel['source_key'] === 'max_anytour_msk1', 'channel_configuration_changed');
+              $source = $registry->publication(213);
+              $image = $source['snapshot']['attachments'][0] ?? [];
+              insist(is_array($source) && (int) $source['version_id'] === 10950 && hash_equals($sourceHash, (string) ($source['content_hash'] ?? ''))
+                  && $source['state'] === 'sent' && $source['platform'] === 'telegram' && $source['channel_id'] === '-1002262666616'
+                  && $source['external_message_id'] === '67' && $source['snapshot']['post_url'] === 'https://t.me/any_toour/67'
+                  && (int) ($source['snapshot']['metadata']['hotel_catalog_id'] ?? 0) === 174
+                  && count($source['snapshot']['attachments']) === 1 && ($image['type'] ?? '') === 'image'
+                  && is_string($image['telegram_file_id'] ?? null) && is_string($image['file_unique_id'] ?? null), 'approved_source_photo_changed');
+              $rows = $pdo->query("SELECT v.snapshot_json FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id WHERE p.post_channel_id=4 LIMIT 10001");
+              $count = 0;
+              while ($raw = $rows->fetchColumn()) {
+                  $snapshot = json_decode($raw, true, 64, JSON_THROW_ON_ERROR);
+                  insist(++$count <= 10000 && (int) ($snapshot['metadata']['hotel_catalog_id'] ?? 0) !== 174
+                      && !preg_match('/Dana Beach Resort|Дана Бич/ui', (string) ($snapshot['text'] ?? '')), 'same_hotel_now_in_registry');
+              }
+              $rows->closeCursor();
+              $pdo->rollBack();
+          
+              $rights = (new ChannelPostButtonTransport())->verifyChannel($channel + ['expected_public_url'=>'https://max.ru/anytour']);
+              insist(($rights['state'] ?? '') === 'ready', 'channel_rights_changed');
+              $member = ChannelPostApiTransport::buttonRequest('max', 'GET', '/chats/' . $channelId . '/members/me', [], null);
+              $m = $member['data'] ?? [];
+              insist(($member['http'] ?? 0) === 200 && ($m['username'] ?? '') === $identity['bot_key']
+                  && (in_array('write', $m['permissions'] ?? [], true) || in_array('post_edit_delete_message', $m['permissions'] ?? [], true)), 'channel_cannot_publish');
+          
+              // Catch a newly published or just-registered duplicate since the full native archive receipt.
+              $from = (int) ceil(microtime(true) * 1000);
+              $until = strtotime('2026-11-19T09:43:00Z') * 1000;
+              insist($from > $until && $from - $until < 2 * 60 * 60 * 1000, 'native_history_receipt_expired');
+              $page = ChannelPostApiTransport::buttonRequest('max', 'GET', '/messages',
+                  ['chat_id'=>$channelId, 'from'=>$from, 'to'=>$until, 'count'=>100], null);
+              $messages = $page['data']['messages'] ?? null;
+              insist(($page['http'] ?? 0) === 200 && is_array($messages) && array_is_list($messages) && count($messages) < 100, 'native_history_requires_refresh');
+              foreach ($messages as $message) {
+                  insist((string) ($message['recipient']['chat_id'] ?? '') === $channelId
+                      && ($message['recipient']['chat_type'] ?? '') === 'channel'
+                      && !preg_match('/Dana Beach Resort|Дана Бич/ui', (string) ($message['body']['text'] ?? '')), 'same_hotel_now_in_native_history');
+              }
+              $telegramBase = 'https://api.telegram.org/bot' . TELEGRAM_BOT_TOKEN;
+              [$found, $fileResponse] = telegramAsset($telegramBase . '/getFile?file_id=' . rawurlencode($image['telegram_file_id']), 65536);
+              $assetMeta = json_decode($fileResponse, true);
+              $remotePath = $assetMeta['result']['file_path'] ?? null;
+              insist($found && ($assetMeta['ok'] ?? false) === true
+                  && ($assetMeta['result']['file_unique_id'] ?? '') === $image['file_unique_id']
+                  && is_string($remotePath) && preg_match('~\A[a-zA-Z0-9_/-]+[.](?:jpg|jpeg|png|webp)\z~D', $remotePath), 'source_photo_provider_read_failed');
+              [$downloaded, $bytes] = telegramAsset('https://api.telegram.org/file/bot' . TELEGRAM_BOT_TOKEN . '/' . $remotePath, 12000000);
+              $imageSize = @getimagesizefromstring($bytes);
+              insist($downloaded && is_array($imageSize) && max($imageSize[0], $imageSize[1]) >= 500
+                  && in_array($imageSize['mime'] ?? '', ['image/jpeg','image/png','image/webp'], true), 'source_photo_bytes_failed_validation');
+              $assetHash = hash('sha256', $bytes);
+              $result['caption_sha256'] = hash('sha256', $caption);
+              $result['photo_sha256'] = $assetHash;
+              $result['width'] = $imageSize[0];
+              $result['height'] = $imageSize[1];
+              if (!$dry) {
+                  insist(hash_equals($assetHash, (string) getenv('ANYTOUR_1566_PHOTO_SHA')), 'preflight_photo_bytes_changed');
+                  $result['mode'] = 'apply';
+                  $state = ['state'=>'upload_admitted', 'hotel_id'=>174, 'caption_sha256'=>$result['caption_sha256'], 'photo_sha256'=>$assetHash];
+                  persist($receiptPath, $state);
+                  $imagePath = $directory . '/image';
+                  insist(file_put_contents($imagePath, $bytes, LOCK_EX) === strlen($bytes), 'private_photo_cache_failed');
+                  chmod($imagePath, 0600);
+                  $token = maxPhoto($imagePath, ['photo_sha256'=>$assetHash], $directory);
+                  $state['state'] = 'send_started';
+                  persist($receiptPath, $state);
+                  ++$result['post_write_attempts'];
+                  [$first, $rest] = explode("\n", $caption, 2);
+                  $text = '<b>' . htmlspecialchars($first, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . "</b>\n"
+                      . htmlspecialchars($rest, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                  $response = MaxTransport::request('https://platform-api2.max.ru', MAX_SEARCH_TOKEN, 'POST', '/messages',
+                      ['chat_id'=>$channelId, 'disable_link_preview'=>'true'],
+                      ['text'=>$text, 'format'=>'html', 'attachments'=>[['type'=>'image', 'payload'=>['token'=>$token]]]], null);
+                  $nativeId = $response['message']['body']['mid'] ?? null;
+                  insist(is_string($nativeId) && preg_match('/\Amid\.[0-9a-f]{32}\z/D', $nativeId), 'send_outcome_unconfirmed_no_retry');
+                  $state['state'] = 'provider_posted';
+                  $state['message_id'] = $nativeId;
+                  persist($receiptPath, $state);
+                  $observed = readMax($nativeId);
+                  $snapshot = ChannelPostIncomingAdapter::maxSnapshot($observed);
+                  insist(($observed['body']['mid'] ?? '') === $nativeId && (string) ($observed['recipient']['chat_id'] ?? '') === $channelId
+                      && ($observed['recipient']['chat_type'] ?? '') === 'channel' && ($snapshot['text'] ?? '') === $caption
+                      && count($snapshot['attachments'] ?? []) === 1 && $snapshot['attachments'][0]['type'] === 'image'
+                      && !empty($snapshot['attachments'][0]['photo_id']), 'post_native_readback_failed');
+                  $snapshot['metadata']['hotel_catalog_id'] = 174;
+                  $snapshot['metadata']['logical_id'] = 'commercial-main-hotel-174-v1';
+                  $snapshot['metadata']['observation_kind'] = 'provider_read';
+                  $snapshot['metadata']['source_revision_ms'] = (string) ($observed['timestamp'] ?? '');
+                  $snapshot['content_hash'] = ChannelPostIncomingAdapter::contentFingerprint($snapshot);
+                  $publication = $registry->registerPublication('anytour', 'max', $identity['bot_key'], $channelId, $nativeId, $snapshot);
+                  insist(is_array($publication), 'native_post_registration_failed_no_retry');
+                  $publicationId = (int) $publication['publication_id'];
+                  $state['publication_id'] = $publicationId;
+                  $state['state'] = 'registered';
+                  persist($receiptPath, $state);
+                  if ($publication['state'] !== 'sent') {
+                      $state['state'] = 'button_started';
+                      persist($receiptPath, $state);
+                      $button = (new ChannelPostAutomationService($registry))->processPublication(
+                          'anytour', 'max', $identity['bot_key'], $publicationId, (int) $publication['version_id']
+                      );
+                      insist(($button['state'] ?? '') === 'sent' && !empty($button['receipt']['button_verified']), 'button_outcome_unconfirmed_no_retry');
+                  }
+                  $fresh = $registry->publication($publicationId);
+                  $live = ChannelPostIncomingAdapter::maxSnapshot(readMax($nativeId));
+                  $resolved = ChannelPostEntryService::resolve('max', $fresh['start_payload'] ?? '', $registry);
+                  $postUrl = $live['post_url'] ?? '';
+                  insist(is_array($fresh) && $fresh['state'] === 'sent' && is_array($live) && $live['text'] === $caption
+                      && count($live['attachments']) === 1 && $live['attachments'][0]['photo_id'] === $snapshot['attachments'][0]['photo_id']
+                      && ChannelPostIncomingAdapter::containsOnlyButton($live, ChannelPostButtonTransport::buttonUrl($fresh), $channel['button_text'])
+                      && (int) ($resolved['publication_id'] ?? 0) === $publicationId && (int) ($resolved['version_id'] ?? 0) === (int) $fresh['version_id']
+                      && ($resolved['snapshot']['text'] ?? '') === $caption && preg_match('~\Ahttps://max[.]ru/anytour/[A-Za-z0-9_-]+\z~D', $postUrl),
+                      'final_post_or_entry_readback_failed');
+                  $result['post_url'] = $postUrl;
+                  $result['publication_id'] = $publicationId;
+                  $result['version_id'] = (int) $fresh['version_id'];
+                  $result['text_photo_and_entry_verified'] = true;
+                  $state['state'] = 'confirmed';
+                  $state['receipt'] = $result + ['ok'=>true];
+                  persist($receiptPath, $state);
+              }
+              $result['ok'] = true;
+          } catch (Throwable $exception) {
+              if (isset($pdo) && $pdo->inTransaction()) {
+                  $pdo->rollBack();
+              }
+              $reason = $exception->getMessage();
+              $result['error'] = preg_match('/\A[a-z][a-z_0-9]{2,100}\z/D', $reason) ? $reason : 'bounded_operation_failed';
+          } finally {
+              if (is_resource($lock)) {
+                  flock($lock, LOCK_UN);
+                  fclose($lock);
+              }
+          }
+          echo json_encode($result, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), PHP_EOL;
+          exit($result['ok'] ? 0 : 2);
+          PHP
+          php -l pub/read-only.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Recheck destination and source photo without sending
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/preflight.json
+          python3 -c 'import json,re; d=json.load(open("pub/preflight.json")); assert d["ok"] and d["hotel_id"] == 174 and d["post_write_attempts"] == 0 and d["mode"] == "preflight"; assert re.fullmatch("[a-f0-9]{64}", d["photo_sha256"]); print(d["photo_sha256"])' > pub/photo-sha
+      - name: Send approved photo and caption once into the large MAX channel
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          digest="$(cat pub/photo-sha)"
+          [[ "$digest" =~ ^[a-f0-9]{64}$ ]]
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" "set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; ANYTOUR_1566_APPLY=1 ANYTOUR_1566_PHOTO_SHA=$digest php" < pub/read-only.php > pub/native.json
+          python3 -c 'import json; d=json.load(open("pub/native.json")); assert d["ok"] and d["post_write_attempts"] == 1 and d["text_photo_and_entry_verified"]; print(d["post_url"])'
+      - name: Save original preparation and publication receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-1566-dana-beach-max
+          path: |
+            pub/preflight.json
+            pub/native.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Remove runner-only connection material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
