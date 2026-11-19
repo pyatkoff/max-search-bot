@@ -173,16 +173,16 @@ async function continuePublisher(pulls, context, expected, token, fetchImpl) {
     publisher_comment: expected.comment_id, publisher_acquired_at: expected.updated_at };
 }
 
-// The original closer for PR1627 finished without a publisher binding. Only
-// PR1628 can use the original installation and explicitly skipped terminal.
+// The original closer for PR1630 finished without a publisher binding. Only
+// PR1631 can use the original installation and explicitly skipped terminal.
 const UNBOUND_PREDECESSOR = Object.freeze({
-  source: '57e2aad5dd82e3a7b53c3ffb77e14d8f84f23e17',
-  head: 'defaa6b3323c55a8bc98069c7c08d16e4ac56da3',
-  blob: '7384687b06825154e5244c5a7fd35899dc102042',
-  deploy: 44542421611,
-  closer: 44545903375,
-  closerJob: 135636259834,
-  pullUpdatedAt: '2026-11-19T14:19:03Z',
+  source: 'c9b4d97a945f88e068b71a9af6c948013434e050',
+  head: '204afa0f455a227536f62196eb4f84762fe416b3',
+  blob: '0ec2cf21fa655fc52670d701142529747f5361d3',
+  deploy: 44587916300,
+  closer: 44590757092,
+  closerJob: 135795803154,
+  pullUpdatedAt: '2026-11-19T18:26:59Z',
 });
 
 async function verifyUnboundPredecessor(api, location, native) {
@@ -191,8 +191,8 @@ async function verifyUnboundPredecessor(api, location, native) {
   const p = UNBOUND_PREDECESSOR;
   const get = resource => api('GET', R.API_ROOT + resource);
   const assertOriginalPull = async () => {
-    const pull = await get('/pulls/1627');
-    if (pull?.number !== 1627 || pull.head?.sha !== p.head || pull.updated_at !== p.pullUpdatedAt ||
+    const pull = await get('/pulls/1630');
+    if (pull?.number !== 1630 || pull.head?.sha !== p.head || pull.updated_at !== p.pullUpdatedAt ||
         C.binding(pull, p.source) !== null) refusal('previous_unbound_pull_changed');
   };
   const r = R.validateRelease(location.record).release;
@@ -277,7 +277,7 @@ async function verifyPreviousRelease(context, token, fetchImpl) {
       r.release.run_attempt !== native.run_attempt || r.release.event !== 'push')
     refusal('previous_release_source_changed');
   if (r.phase !== 'pending_terminal') {
-    if (context.prNumber !== 1628 || context.baseSha !== UNBOUND_PREDECESSOR.source)
+    if (context.prNumber !== 1631 || context.baseSha !== UNBOUND_PREDECESSOR.source)
       refusal('previous_release_unclosed');
     await verifyUnboundPredecessor(api, location, native);
     return;

@@ -166,14 +166,13 @@ then refreshes main. Existing publisher serialization and expected-head merge
 remain mandatory; these read-only snapshots do not claim atomic GitHub exclusion.
 This preventive fence cannot recover the already-held releases in issue1599.
 
-For the single PR1627 → PR1628 transition, the final admission guard authenticates
-PR1627's original installed receipt even though the original closer found no
-publisher binding. It proves the exact installation publication and mandatory
-gates, the skipped configuration and activation, and the original closer's
-successful preparation with both publication and terminal steps skipped. It
-rechecks the unchanged main SHA, original PR and diagnostics receipt. This
-read-only recovery creates no PR1627 publisher record or terminal artifact.
-PR1628 still needs its ordinary publisher acquisition and release checks.
+For the specific PR1630 → PR1631 transition, authenticate the original PR1630
+installation when its successful closer found no publisher binding. The
+read-only admission requires the pinned diagnostics blob, all original
+mandatory gates, and the original closer with terminal publication and slot
+release both skipped. It creates no PR1630 binding, terminal artifact or server
+installation. PR1631 still requires its own ordinary binding before merge and
+its own original completion receipt with technical gates.
 
 ### Continuing an already admitted publisher
 

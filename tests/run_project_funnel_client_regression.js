@@ -99,5 +99,15 @@ function fixture({reply=accepted,http=200,networkError=false,counter='',clientId
   f=fixture({...telegramOptions,reply:{...telegramReply,receipt:accepted.receipt}});
   await P.start(f.win);
   check('Telegram does not open the post for a MAX receipt',()=>{assert.deepEqual(f.opened,[]);assert.deepEqual(f.assigned,[]);});
+  f=fixture({...telegramOptions,pageHref:hostedApplePage,http:400,reply:{ok:false,error:'invalid_launch'},bridgeData:new URLSearchParams({auth_date:'1794300000',user:'{"id":7001}',hash:'f'.repeat(64)}).toString()});
+  f.els.get('funnel-config').textContent=JSON.stringify({...JSON.parse(f.els.get('funnel-config').textContent),catalogue_url:'https://t.me/appleservice39'});
+  await P.start(f.win);
+  check('Opening the AppleService39 bot menu displays the channel without writing a visit',()=>{
+    assert.equal(f.requests.length,0);
+    assert.equal(f.metrics.length,0);
+    assert.equal(f.els.get('continue').href,'https://t.me/appleservice39');
+    assert.equal(f.els.get('continue').hidden,false);
+    assert.equal(f.els.get('retry').hidden,true);
+  });
   console.log('PROJECT FUNNEL CLIENT PASSED '+passed);
 })().catch(e=>{console.error(e);process.exitCode=1;});

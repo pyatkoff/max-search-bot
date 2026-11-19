@@ -218,6 +218,7 @@ return [
         'php tests/run_channel_post_registry_regression.php',
         'php tests/run_channel_post_reconciliation_regression.php',
         'php tests/run_channel_post_original_edit_confirmation_regression.php',
+        'php tests/run_promoted_hotel_price_writer_regression.php',
         'php tests/run_channel_post_max_album_recovery_regression.php',
         'php tests/run_channel_post_automation_regression.php',
         'php tests/run_channel_post_telegram_album_regression.php',

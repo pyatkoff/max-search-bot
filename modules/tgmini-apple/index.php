@@ -99,6 +99,6 @@ header('Content-Type: text/html; charset=utf-8');
     <button id="retry" type="button" hidden>Повторить переход</button>
     <noscript><p>Для перехода включите JavaScript и откройте ссылку в Telegram.</p></noscript>
   </main>
-  <script id="funnel-config" type="application/json">{"channel_url":"https://t.me/appleservice39","counter_id":"42611469","platform":"telegram"}</script>
+  <script id="funnel-config" type="application/json">{"channel_url":"https://t.me/appleservice39","counter_id":"42611469","platform":"telegram","catalogue_url":"https://t.me/appleservice39"}</script>
 </body>
 </html>

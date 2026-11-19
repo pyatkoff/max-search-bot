@@ -66,6 +66,14 @@
           // MAX identity/signature stay in memory and the validated server POST only.
           win.history.replaceState(null,'',ctx.payload.kind==='advertising'?ctx.metric:ctx.clean+win.location.hash);}
         try{bridge()?.ready?.();}catch(_){}
+
+        if(telegram && ctx.start_param==='' && cfg.catalogue_url===cfg.channel_url &&
+          /^https:\/\/t\.me\/[A-Za-z0-9_]{3,100}$/.test(cfg.catalogue_url)){
+          const link=el('continue');
+          link.href=cfg.catalogue_url;link.textContent='Открыть каталог';link.hidden=false;
+          status('Каталог AppleService39','Выберите услугу в нашем Telegram-канале.');
+          return;
+        }
         const client_id=await cid(),controller=new AbortController(),timer=win.setTimeout(()=>controller.abort(),10000);
         let data;try{const res=await win.fetch(ctx.clean,{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({init_data:ctx.init_data,start_param:ctx.start_param,client_id}),signal:controller.signal});data=await res.json();if(!res.ok||!receipt(data,ctx,cfg))throw Error('save_failed');}finally{win.clearTimeout(timer);}
         el('continue').href=data.redirect_url;el('continue').hidden=false;status('Готово','Открываем выбранную публикацию…');

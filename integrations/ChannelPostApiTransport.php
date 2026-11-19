@@ -8,6 +8,32 @@ final class ChannelPostApiTransport
     /** Fixed API hosts, deployment credentials, strict TLS, bounded time and bodies. */
     public static function buttonRequest(string $platform, string $method, string $path, array $query, ?array $body): array
     {
+        return self::postRequest($platform, $method, $path, $query, $body, false);
+    }
+
+    /** Caption edits of already bound posts. Attachments and publish calls are excluded. */
+    public static function captionRequest(string $platform, string $channelId, string $messageId, array $body): array
+    {
+        if ($platform === 'max' && $channelId === '-68765999669267'
+            && preg_match('/\Amid\.[0-9a-f]{32}\z/D', $messageId)
+            && array_keys($body) === ['text', 'format'] && $body['format'] === 'html'
+            && is_string($body['text']) && $body['text'] !== '') {
+            return self::postRequest('max', 'PUT', '/messages', ['message_id' => $messageId], $body, true);
+        }
+        if ($platform === 'telegram' && $channelId === '-1001845835645'
+            && preg_match('/\A[1-9][0-9]{0,9}\z/D', $messageId)
+            && array_keys($body) === ['caption', 'caption_entities', 'reply_markup']
+            && is_string($body['caption']) && $body['caption'] !== ''
+            && is_array($body['caption_entities']) && is_array($body['reply_markup'])) {
+            return self::postRequest('telegram', 'POST', 'editMessageCaption', [], [
+                'chat_id' => $channelId, 'message_id' => (int)$messageId,
+            ] + $body, true);
+        }
+        return ['http' => 0, 'data' => null, 'transport_error' => true];
+    }
+
+    private static function postRequest(string $platform, string $method, string $path, array $query, ?array $body, bool $caption): array
+    {
         if (!extension_loaded('curl')) return ['http' => 0, 'data' => null, 'transport_error' => true];
         $token = $platform === 'max' ? (defined('MAX_SEARCH_TOKEN') ? (string)MAX_SEARCH_TOKEN : '') : (defined('TELEGRAM_BOT_TOKEN') ? (string)TELEGRAM_BOT_TOKEN : '');
         if ($token === '') return ['http' => 0, 'data' => null, 'transport_error' => true];
@@ -16,12 +42,13 @@ final class ChannelPostApiTransport
                 && is_string($query['chat_id']) && preg_match('/\A-[1-9][0-9]{0,19}\z/',$query['chat_id'])
                 && is_int($query['from']) && is_int($query['to']) && $query['to'] > 0 && $query['from'] >= $query['to']
                 && is_int($query['count']) && $query['count'] >= 1 && $query['count'] <= 100;
-            if (!(($page || ($method === 'GET' && $body === null && $query === [])) || ($method === 'PUT' && $path === '/messages' && array_keys($query) === ['message_id'] && is_string($query['message_id']) && is_array($body) && array_keys($body) === ['attachments']))) return ['http' => 0, 'data' => null, 'transport_error' => true];
+            if (!$caption && !(($page || ($method === 'GET' && $body === null && $query === [])) || ($method === 'PUT' && $path === '/messages' && array_keys($query) === ['message_id'] && is_string($query['message_id']) && is_array($body) && array_keys($body) === ['attachments']))) return ['http' => 0, 'data' => null, 'transport_error' => true];
             if (!preg_match('/\A\/(?:me|chats\/-[1-9][0-9]*(?:\/members\/me)?|messages(?:\/[A-Za-z0-9_.-]{1,200})?)\z/', $path)) return ['http' => 0, 'data' => null, 'transport_error' => true];
             $url = 'https://platform-api2.max.ru' . $path;
             $headers = ['Authorization: ' . $token, 'Accept: application/json', 'Content-Type: application/json'];
             $tls = MaxTlsConfig::strictCurlOptions();
-        } elseif ($platform === 'telegram' && $method === 'POST' && $query === [] && in_array($path, ['getMe', 'getChat', 'getChatMember', 'editMessageReplyMarkup'], true)) {
+        } elseif ($platform === 'telegram' && $method === 'POST' && $query === []
+            && ($caption ? $path === 'editMessageCaption' : in_array($path, ['getMe', 'getChat', 'getChatMember', 'editMessageReplyMarkup'], true))) {
             $url = 'https://api.telegram.org/bot' . $token . '/' . $path;
             $headers = ['Accept: application/json', 'Content-Type: application/json'];
             $tls = [CURLOPT_SSL_VERIFYPEER => true, CURLOPT_SSL_VERIFYHOST => 2];
