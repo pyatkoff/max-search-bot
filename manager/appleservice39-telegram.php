@@ -166,6 +166,6 @@ $pendingCount = ($catalogueCounts['pending'] ?? 0) + ($catalogueCounts['rejected
 <li><?=$esc($catalogueLabels[$key])?> — <?php if ($post['state']==='published'): ?><a href="<?=$esc($post['url'])?>">Открыть пост</a><?php else: ?><?=$esc($states[$post['state']])?><?php endif; ?></li>
 <?php endforeach; ?>
 </ul>
-<?php endif; endif; endif; ?>
+<?php endif; endif; ?>
 <?php else: ?><a href="/manager/appleservice39-telegram.php">Открыть подключение заново</a><?php endif; ?>
 </section></main></body></html>
