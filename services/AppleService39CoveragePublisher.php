@@ -37,8 +37,8 @@ final class AppleService39CoveragePublisher
         foreach ($this->store->rows() as $row) {
             if ($row['operation'] !== 'create' || AppleService39DeviceRevision::isOperation($row['post_key'], $row['operation'], $row['request'])) continue;
             $mid = $row['external_message_id']; $url = $row['public_url'];
-            self::check($row['state'] === 'verified' && ($row['outcome']['readback'] ?? null) === true
-                && is_string($mid) && $mid !== '' && is_string($url)
+            self::check($row['state'] === 'verified' && (int)$row['write_attempts'] === 1
+                && is_string($mid) && preg_match('/\A[A-Za-z0-9_.-]{1,191}\z/D',$mid) === 1 && is_string($url)
                 && preg_match('~\Ahttps://max\.ru/channel_appleservice39ru/[A-Za-z0-9_-]{1,191}\z~D', $url) === 1
                 && !isset($mids[$mid]) && !in_array($url,$addresses,true), 'device_parent_incomplete');
             $addresses[$row['post_key']] = $url; $mids[$mid] = true;

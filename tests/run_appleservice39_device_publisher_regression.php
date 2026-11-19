@@ -4,6 +4,93 @@ declare(strict_types=1);
 if (!defined('APPLESERVICE39_COVERAGE_FIXTURES_ONLY')) define('APPLESERVICE39_COVERAGE_FIXTURES_ONLY', true);
 require_once __DIR__.'/run_appleservice39_coverage_regression.php';
 
+/** Model the later public-link maintenance operations on a separate SQLite copy.
+ *  They retain the original create identity and carry their own edit readback.
+ */
+function as39DeviceMaintainedSeed(array $fixture): array
+{
+    [$pdo,$provider,$store] = as39SearchClone($fixture);
+    $pin = $store->operation('menu','pin');
+    as39Expect($provider->pinned === $pin['request']['mid'], 'the synthetic menu is already pinned');
+    $pdo->prepare("UPDATE appleservice39_pilot_operations SET state='prepared', write_attempts=0, started_ms=NULL, outcome_json='{}' WHERE id=?")->execute([$pin['id']]);
+    $store->confirmExistingPin($store->operation('menu','pin'));
+    $digest = static fn($value): string => hash('sha256',json_encode($value,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR));
+    $updated = 0;
+    foreach ($store->rows() as $create) {
+        if ($create['operation'] !== 'create' || $create['post_key'] === 'model-iphone-x') continue;
+        $id = $create['post_key']; $mid = $create['external_message_id'];
+        $before = $provider->messages[$mid]['body'];
+        $source = ['revision'=>'public-links-remaining68-20261116','target_post'=>$id,
+            'message_id'=>$mid,'url'=>$create['public_url'],'before_text_sha256'=>hash('sha256',$before['text']),
+            'before_markup_sha256'=>$digest($before['markup'] ?? []),'preserved_photo_id'=>$before['attachments'][0]['payload']['photo_id'],
+            'preserved_buttons'=>$before['attachments'][1]['payload']['buttons'],'native_text'=>$before['text'],'native_markup'=>$before['markup'] ?? []];
+        $row = $store->prepare('pl2-'.$id,'links',$source);
+        if (!$store->claim($row)) throw new RuntimeException('failed synthetic public-link claim');
+        $store->rememberMessage($row,$mid,$create['public_url']);
+        $store->finish($row,'verified',['readback'=>true,'native_text_sha256'=>$source['before_text_sha256'],
+            'native_markup_sha256'=>$source['before_markup_sha256'],'native_autolinks'=>count($source['native_markup']),
+            'photo_preserved'=>true,'single_cta_preserved'=>true,'provider_acknowledged'=>true,'public_acceptance'=>'pending']);
+        $updated++;
+    }
+    $pin = $store->operation('menu','pin');
+    as39Expect($updated === 68 && (int)$pin['write_attempts'] === 0
+        && $pin['outcome'] === ['readback'=>true,'already_present'=>true], 'fixture contains 68 later link receipts and an adopted native pin');
+    return [$pdo,$provider,$store];
+}
+
+function as39DeviceMaintainedParents(array $fixture): void
+{
+    $seed = as39DeviceMaintainedSeed($fixture);
+    [$pdo,$provider,$store] = as39SearchClone($seed);
+    $old = $store->rows(); $native = $provider->messages; $pinned = $provider->pinned; $digest = $store->deviceParentDigest();
+    $worker = as39SearchPublisher($pdo,$provider);
+    $inspection = $worker->run('device_inspect');
+    as39Expect($inspection['ok'] && $inspection['verified_posts'] === 0 && $store->rows() === $old && $provider->writes() === 0,
+        'a settled variable-length production-shaped parent admits read-only device inspection');
+    $worker->run('device_prepare');
+    $complete = $worker->run('device_apply');
+    as39Expect($complete['device_publication_complete'] && count($complete['published']) === 4
+        && $provider->count('POST','/uploads') === 4 && $provider->count('POST','/messages') === 4
+        && $provider->count('PUT','/messages') === 0 && $provider->pinned === $pinned && $store->deviceParentDigest() === $digest
+        && array_intersect_key($provider->messages,$native) === $native
+        && array_slice($store->rows(),0,count($old)) === $old && count($store->rows()) === count($old)+8,
+        '69 accepted creates, the adopted pin and all historical edits remain byte-identical through device publication');
+
+    foreach (['unknown','zero_attempt_edit','extra_create','replaced_create'] as $fault) {
+        [$badPdo,$badProvider,$badStore] = as39SearchClone($seed);
+        if ($fault === 'unknown' || $fault === 'zero_attempt_edit') {
+            $edit = $badStore->operation('pl2-menu','links');
+            $badPdo->prepare('UPDATE appleservice39_pilot_operations SET state=?,write_attempts=? WHERE id=?')
+                ->execute([$fault === 'unknown' ? 'unknown' : 'verified',$fault === 'zero_attempt_edit' ? 0 : 1,$edit['id']]);
+        } elseif ($fault === 'replaced_create') {
+            $badPdo->exec("UPDATE appleservice39_pilot_operations SET post_key='foreign-fixture-post' WHERE post_key='model-iphone-x' AND operation='create'");
+        } else {
+            $extra = $badStore->prepare('foreign-fixture-post','create',['body'=>['text'=>'fixture']]);
+            if (!$badStore->claim($extra)) throw new RuntimeException('failed synthetic extra create');
+            $badStore->rememberMessage($extra,'foreign_fixture','https://max.ru/channel_appleservice39ru/foreign_fixture');
+            $badStore->finish($extra,'verified',['readback'=>true]);
+        }
+        $prior = $badStore->rows();
+        as39Refuses(static fn()=>as39SearchPublisher($badPdo,$badProvider)->run('device_prepare'), 'device_parent_incomplete');
+        as39Expect($badStore->rows() === $prior && $badProvider->writes() === 0, $fault.' blocks the first new claim and provider write');
+    }
+
+    [$changingDb,$changingProvider,$changingStore] = as39SearchClone($seed);
+    $first = (new AppleService39DeviceRevision())->order()[0]; $changed = false;
+    $changingProvider->membershipHook = static function () use ($changingDb,$changingStore,$first,&$changed): void {
+        if ($changed || ($changingStore->operation($first,AppleService39DeviceRevision::UPLOAD)['state'] ?? null) !== 'prepared') return;
+        $edit = $changingStore->operation('pl2-menu','links');
+        $outcome = $edit['outcome']; $outcome['public_acceptance'] = 'confirmed';
+        $changingDb->prepare('UPDATE appleservice39_pilot_operations SET outcome_json=? WHERE id=?')
+            ->execute([json_encode($outcome,JSON_THROW_ON_ERROR),$edit['id']]);
+        $changed = true;
+    };
+    as39Refuses(static fn()=>as39SearchPublisher($changingDb,$changingProvider)->run('device_prepare'), 'coverage_parent_changed');
+    $held = $changingStore->operation($first,AppleService39DeviceRevision::UPLOAD);
+    as39Expect($changed && $held['state'] === 'prepared' && (int)$held['write_attempts'] === 0
+        && $changingProvider->writes() === 0, 'a changed confirmed maintenance receipt after snapshot blocks the upload before claiming');
+}
+
 /** Exercise the new batch on receipts produced by the real predecessor state machines. */
 function as39DevicePublisherRegression(): void
 {
@@ -122,6 +209,7 @@ function as39DevicePublisherRegression(): void
                 'exact saved MID allows GET recovery and only three remaining creates');
         }
     }
+    as39DeviceMaintainedParents($fixture);
     ProjectMaxConnection::resetForTests();
     echo "AppleService39 device publication regression complete\n";
 }
