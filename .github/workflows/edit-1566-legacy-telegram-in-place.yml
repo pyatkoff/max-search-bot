@@ -1,0 +1,454 @@
+name: "#1566 Preserve the original Fanara, Meraki and Liberty Telegram posts"
+on:
+  push:
+    branches: [audit/1566-main-hotel-registry-20261119]
+    paths: ['.github/workflows/edit-1566-legacy-telegram-in-place.yml']
+permissions:
+  contents: read
+concurrency:
+  group: anytour-authorized-channel-publication
+  cancel-in-progress: false
+jobs:
+  registry:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '70ad88bb6be7ef4f22708150c11c7a76e1821722' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Lint existing-post editor
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir pub
+          cat > pub/read-only.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          
+          const PROJECT = 'anytour';
+          const BOT = 'anyru_bot';
+          const TARGET = '-1001845835645';
+          const SOURCE = '-1002262666616';
+          const TARGET_SOURCE = 'tg_anytour_msk';
+          const SCOPE = [
+              '809' => [
+                  'hotel' => 12107, 'source_message' => '556', 'published' => '2024-08-19T07:46:00+00:00',
+                  'identity' => '/(?:fanara|фанара)/iu',
+                  'caption' => "✈️ JAZ Fanara Resort & Residence\n📍 Рас-Ум-эль-Сид, Шарм-эль-Шейх\n\nПесчаный пляж и коралловый риф для тех, кто любит плавать с маской. На территории есть бассейны и детский клуб. К морю ведут ступени или наклонная дорожка.\n\nПо кнопке подберём номер в Resort или Residence и рассчитаем тур на ваши даты.",
+              ],
+              '993' => [
+                  'hotel' => 64895, 'source_message' => '49', 'published' => '2025-01-15T13:54:07+00:00',
+                  'identity' => '/(?:meraki|мераки)/iu',
+                  'caption' => "✈️ Meraki Resort Hurghada\n📍 Хургада, Египет\n\nДлинный пляж Красного моря, вечеринки и клубная программа для отдыха у моря. На территории есть рестораны греческой и египетской кухни.\n\nНажмите кнопку под постом, чтобы рассчитать тур на ваши даты.",
+              ],
+              '1148' => [
+                  'hotel' => 3452, 'source_message' => '220', 'published' => '2025-07-13T07:46:39+00:00',
+                  'identity' => '/(?:liberty[^\n]{0,60}lykia|либерти[^\n]{0,60}ликия)/iu',
+                  'caption' => "✈️ Liberty Hotels Lykia\n📍 Фетхие, Турция\n\nУ отеля свой песчано-галечный пляж и отдельная детская лагуна. Клуб Libby & Berty принимает детей от 3 до 12 лет, а для малышей от 6 до 36 месяцев есть Baby Club.\n\nПо кнопке подберём тур на ваши даты.",
+              ],
+          ];
+          
+          ini_set('display_errors', '0');
+          ini_set('log_errors', '0');
+          
+          function must(bool $condition, string $reason): void
+          {
+              if (!$condition) {
+                  throw new RuntimeException($reason);
+              }
+          }
+          
+          function installed(string $expected): void
+          {
+              $head = trim((string) shell_exec('git rev-parse HEAD 2>/dev/null'));
+              $dirty = trim((string) shell_exec(
+                  'git status --porcelain --untracked-files=no -- services/ChannelPost* integrations/ChannelPost* 2>/dev/null'
+              ));
+              must($head === $expected && $dirty === '', 'installed_checkout_changed');
+          }
+          
+          function request(string $url, ?array $data = null): array
+          {
+              $client = curl_init($url);
+              must($client !== false, 'transport_unavailable');
+              $body = '';
+              $options = [
+                  CURLOPT_RETURNTRANSFER => false,
+                  CURLOPT_FOLLOWLOCATION => false,
+                  CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
+                  CURLOPT_SSL_VERIFYPEER => true,
+                  CURLOPT_SSL_VERIFYHOST => 2,
+                  CURLOPT_CONNECTTIMEOUT => 5,
+                  CURLOPT_TIMEOUT => 20,
+                  CURLOPT_WRITEFUNCTION => static function ($handle, string $chunk) use (&$body): int {
+                      if (strlen($body) + strlen($chunk) > 393216) {
+                          return 0;
+                      }
+                      $body .= $chunk;
+                      return strlen($chunk);
+                  },
+              ];
+              if ($data !== null) {
+                  $options[CURLOPT_POST] = true;
+                  $options[CURLOPT_POSTFIELDS] = http_build_query($data, '', '&', PHP_QUERY_RFC3986);
+              } else {
+                  $options[CURLOPT_HTTPHEADER] = ['Cache-Control: no-cache'];
+              }
+              curl_setopt_array($client, $options);
+              $transport = curl_exec($client);
+              $status = (int) curl_getinfo($client, CURLINFO_HTTP_CODE);
+              curl_close($client);
+              return ['transport_ok' => $transport === true, 'status' => $status, 'body' => $body];
+          }
+          
+          function widget(string $messageId): array
+          {
+              $url = 'https://t.me/anytour/' . $messageId;
+              $reply = request($url . '?embed=1&mode=tme');
+              must($reply['transport_ok'] && $reply['status'] === 200, 'public_read_unavailable');
+              $document = new DOMDocument('1.0', 'UTF-8');
+              libxml_use_internal_errors(true);
+              must($document->loadHTML($reply['body'], LIBXML_NONET), 'public_widget_parse_failed');
+              libxml_clear_errors();
+              $xpath = new DOMXPath($document);
+              $roots = $xpath->query('//*[@data-post="anytour/' . $messageId . '"]');
+              must($roots !== false && $roots->length === 1, 'public_message_identity_changed');
+              $root = $roots->item(0);
+              $class = static fn(string $value): string => 'contains(concat(" ",normalize-space(@class)," ")," ' . $value . ' ")';
+              $texts = $xpath->query('.//*[' . $class('tgme_widget_message_text') . ']', $root);
+              $photos = $xpath->query('.//*[' . $class('tgme_widget_message_photo_wrap') . ']', $root);
+              $excluded = $xpath->query('.//video | .//*[' . $class('tgme_widget_message_video_thumb')
+                  . ' or ' . $class('tgme_widget_message_grouped') . ']', $root);
+              $times = $xpath->query('.//time[@datetime]', $root);
+              must($texts && $texts->length === 1 && $photos && $photos->length === 1
+                  && $excluded && $excluded->length === 0 && $times && $times->length === 1,
+                  'public_single_photo_identity_unavailable');
+              $photo = $photos->item(0);
+              $photoClass = trim($photo->getAttribute('class'));
+              must($photo->getAttribute('href') === $url && str_contains($photo->getAttribute('style'), 'background-image')
+                  && preg_match('/(?:^|\s)[0-9]{5,}(?:_[0-9]+)?(?:\s|$)/D', $photoClass) === 1,
+                  'public_photo_marker_unavailable');
+              $html = '';
+              foreach ($texts->item(0)->childNodes as $child) {
+                  $html .= $document->saveHTML($child);
+              }
+              $caption = html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i', "\n", $html)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+              must($caption !== '' && mb_check_encoding($caption, 'UTF-8'), 'public_caption_unavailable');
+              $buttons = $xpath->query('.//*[' . $class('tgme_widget_message_inline_button') . ']', $root);
+              must($buttons !== false, 'public_button_observation_unavailable');
+              return [
+                  'caption' => $caption,
+                  'html_sha256' => hash('sha256', $html),
+                  'photo_sha256' => hash('sha256', $photoClass),
+                  'published' => (new DateTimeImmutable($times->item(0)->getAttribute('datetime')))->getTimestamp(),
+                  'visible_buttons' => $buttons->length,
+              ];
+          }
+          
+          function evidence(PDO $pdo, ChannelPostRegistryService $registry, array $row, string $id, string $sha): array
+          {
+              $identity = ChannelPostRuntime::identity('telegram');
+              $channel = $registry->channel(PROJECT, 'telegram', BOT, TARGET);
+              must(is_array($identity) && $identity['project_key'] === PROJECT && $identity['bot_key'] === BOT
+                  && is_array($channel) && (int) $channel['id'] === 6 && $channel['source_key'] === TARGET_SOURCE
+                  && ($channel['post_mode'] ?? 'append_button') === 'append_button' && !empty($channel['is_enabled']),
+                  'target_configuration_changed');
+              must(((new ChannelPostButtonTransport())->verifyChannel($channel)['state'] ?? '') === 'ready', 'target_edit_rights_unavailable');
+          
+              $sourceQuery = $pdo->prepare('SELECT id FROM post_publications WHERE post_channel_id=10 AND external_message_id=?');
+              $sourceQuery->execute([$row['source_message']]);
+              $sourcePublication = $registry->publication((int) $sourceQuery->fetchColumn());
+              must(is_array($sourcePublication) && $sourcePublication['state'] === 'sent'
+                  && $sourcePublication['project_key'] === PROJECT && $sourcePublication['bot_key'] === BOT
+                  && $sourcePublication['channel_id'] === SOURCE
+                  && $sourcePublication['snapshot']['post_url'] === 'https://t.me/any_toour/' . $row['source_message']
+                  && (int) ($sourcePublication['snapshot']['metadata']['hotel_catalog_id'] ?? 0) === $row['hotel'],
+                  'exact_hotel_source_not_verified');
+          
+              $targetQuery = $pdo->prepare(<<<'SQL'
+                  SELECT pp.id FROM post_publications pp
+                  LEFT JOIN post_versions pv ON pv.id=pp.current_version_id AND pv.publication_id=pp.id
+                  WHERE pp.post_channel_id=6 AND (
+                      pp.external_message_id=?
+                      OR CAST(JSON_UNQUOTE(JSON_EXTRACT(pv.snapshot_json, '$.metadata.hotel_catalog_id')) AS UNSIGNED)=?
+                  ) LIMIT 1
+                  SQL);
+              $targetQuery->execute([$id, $row['hotel']]);
+              must($targetQuery->fetchColumn() === false, 'current_registry_target_requires_review');
+              $public = widget($id);
+              must($public['published'] === (new DateTimeImmutable($row['published']))->getTimestamp()
+                  && preg_match($row['identity'], $public['caption']) === 1 && $public['visible_buttons'] === 0,
+                  'original_public_identity_changed');
+              must(strlen(mb_convert_encoding($row['caption'], 'UTF-16LE', 'UTF-8')) <= 2048
+                  && preg_match('/(?:₽|\d{2}\.\d{2})/u', $row['caption']) === 0, 'new_caption_invalid');
+              return [
+                  'installed_sha' => $sha, 'hotel_id' => $row['hotel'], 'target_message_id' => $id,
+                  'target_url' => 'https://t.me/anytour/' . $id,
+                  'target_configuration' => (int) $channel['config_version'],
+                  'source_publication_id' => (int) $sourcePublication['publication_id'],
+                  'published_unixtime' => $public['published'],
+                  'old_caption_sha256' => hash('sha256', $public['caption']),
+                  'old_html_sha256' => $public['html_sha256'], 'photo_sha256' => $public['photo_sha256'],
+                  'new_caption_sha256' => hash('sha256', $row['caption']),
+              ];
+          }
+          
+          function writeReceipt($file, array $event): void
+          {
+              $line = json_encode($event, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
+              must(fwrite($file, $line) === strlen($line) && fflush($file) && fsync($file), 'journal_write_failed');
+          }
+          
+          function editMessage(string $id, string $caption): array
+          {
+              must(defined('TELEGRAM_BOT_TOKEN') && TELEGRAM_BOT_TOKEN !== '', 'telegram_token_unavailable');
+              // No media parameter or new send. The original photo and native message stay.
+              return request('https://api.telegram.org/bot' . TELEGRAM_BOT_TOKEN . '/editMessageCaption', [
+                  'chat_id' => TARGET,
+                  'message_id' => $id,
+                  'caption' => $caption,
+              ]);
+          }
+          
+          function verifyPublicEdit(string $id, string $caption, array $before): void
+          {
+              for ($attempt = 0; $attempt < 3; $attempt++) {
+                  if ($attempt > 0) {
+                      sleep(2);
+                  }
+                  try {
+                      $public = widget($id);
+                      if ($public['caption'] === $caption && $public['published'] === $before['published_unixtime']
+                          && hash_equals($before['photo_sha256'], $public['photo_sha256'])) {
+                          return;
+                      }
+                  } catch (RuntimeException $ignored) {
+                      // The read-only widget can briefly lag the authenticated edit.
+                  }
+              }
+              throw new RuntimeException('public_caption_or_photo_readback_unconfirmed');
+          }
+          
+          $journal = null;
+          $locked = false;
+          $argv = [__FILE__, getenv('ANYTOUR_1566_LEGACY_APPLY') === '1' ? '--apply' : '--check',
+              (string) getenv('ANYTOUR_1566_MESSAGE'), 'fe623086b716b3077e4ec0d4551095fc63db37e3'];
+          if ($argv[1] === '--apply') {
+              $argv[] = (string) getenv('ANYTOUR_1566_APPROVED');
+          }
+          $started = false;
+          $exit = 0;
+          $id = '';
+          try {
+              must(PHP_SAPI === 'cli' && function_exists('fsync') && class_exists(DOMDocument::class), 'cli_runtime_required');
+              $action = $argv[1] ?? '';
+              $id = $argv[2] ?? '';
+              $sha = $argv[3] ?? '';
+              $approved = $argv[4] ?? '';
+              must(in_array($action, ['--check', '--apply'], true) && array_key_exists($id, SCOPE)
+                  && preg_match('/\A[a-f0-9]{40}\z/D', $sha) === 1
+                  && ($action === '--check' ? count($argv) === 4 : count($argv) === 5 && preg_match('/\A[a-f0-9]{64}\z/D', $approved) === 1),
+                  'mode_exact_target_and_sha_required');
+              $row = SCOPE[$id];
+              $operation = 'anytour-issue1566-legacy-telegram-' . $id . '-v1';
+              installed($sha);
+              $root = getcwd();
+              ob_start();
+              try {
+                  require $root . '/config.php';
+                  require_once $root . '/services/ChannelPostRuntime.php';
+                  require_once $root . '/services/ChannelPostAutomationService.php';
+                  require_once $root . '/services/ChannelPostEntryService.php';
+              } finally {
+                  ob_end_clean();
+              }
+              $pdo = ConversationDb::connection();
+              $registry = new ChannelPostRegistryService($pdo);
+              $base = '/var/www/anytoour/data/channel-post-operations';
+              $directory = $base . '/' . $operation;
+              must(!is_link($base) && realpath($base) === $base && !is_link($directory)
+                  && !file_exists($directory), 'operation_exists_no_replay');
+              if ($action === '--apply') {
+                  $lock = $pdo->prepare('SELECT GET_LOCK(?,0)');
+                  $lock->execute([$operation]);
+                  $locked = (int) $lock->fetchColumn() === 1;
+                  $lock->closeCursor();
+                  must($locked, 'same_target_busy');
+              }
+              $proof = evidence($pdo, $registry, $row, $id, $sha);
+              $sealed = hash('sha256', json_encode($proof, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
+              if ($action === '--check') {
+                  echo json_encode(['state' => 'ready_read_only', 'checkpoint_sha256' => $sealed] + $proof,
+                      JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), "\n";
+                  exit(0);
+              }
+              must(hash_equals($sealed, $approved), 'approved_checkpoint_changed');
+              installed($sha);
+              must(mkdir($directory, 0700), 'operation_exists_no_replay');
+              $journal = fopen($directory . '/receipt.jsonl', 'x');
+              must(is_resource($journal), 'journal_create_failed');
+              writeReceipt($journal, ['state' => 'edit_started', 'checkpoint_sha256' => $sealed] + $proof);
+              $started = true;
+          
+              $reply = editMessage($id, $row['caption']);
+              $provider = json_decode($reply['body'], true);
+              if (!$reply['transport_ok'] || $reply['status'] !== 200 || ($provider['ok'] ?? false) !== true) {
+                  $status = $reply['status'];
+                  $description = strtolower((string) ($provider['description'] ?? ''));
+                  $editDenied = in_array($status, [400, 403], true)
+                      && preg_match('/can.?t be edited|cannot be edited|not enough rights|not an administrator|message_author_required/', $description) === 1;
+                  writeReceipt($journal, [
+                      'state' => $editDenied ? 'native_permission_rejected' : 'native_edit_unconfirmed',
+                      'provider_http' => $status,
+                      'provider_error_code' => is_int($provider['error_code'] ?? null) ? $provider['error_code'] : null,
+                  ]);
+                  throw new RuntimeException($editDenied ? 'telegram_native_edit_not_permitted' : 'native_edit_unconfirmed_no_retry');
+              }
+          
+              $message = $provider['result'] ?? null;
+              must(is_array($message) && (string) ($message['chat']['id'] ?? '') === TARGET
+                  && ($message['chat']['username'] ?? '') === 'anytour' && ($message['chat']['type'] ?? '') === 'channel'
+                  && (string) ($message['message_id'] ?? '') === $id && ($message['date'] ?? null) === $proof['published_unixtime']
+                  && is_int($message['edit_date'] ?? null) && empty($message['media_group_id']), 'native_edited_message_identity_changed');
+              $snapshot = ChannelPostIncomingAdapter::telegramSnapshot($message);
+              must(is_array($snapshot) && $snapshot['text'] === $row['caption'] && $snapshot['post_url'] === $proof['target_url']
+                  && count($snapshot['attachments']) === 1 && ($snapshot['attachments'][0]['type'] ?? '') === 'image'
+                  && !empty($snapshot['attachments'][0]['file_unique_id']) && $snapshot['metadata']['capability'] === 'supported',
+                  'native_edited_caption_or_photo_mismatch');
+              writeReceipt($journal, ['state' => 'caption_edit_accepted', 'message_id' => $id, 'edit_unixtime' => $message['edit_date'],
+                  'photo_native_sha256' => hash('sha256', $snapshot['attachments'][0]['file_unique_id'])]);
+          
+              $channel = $registry->channel(PROJECT, 'telegram', BOT, TARGET);
+              must(is_array($channel) && (int) $channel['config_version'] === $proof['target_configuration'], 'target_configuration_changed_after_edit');
+              $snapshot['content_hash'] = ChannelPostIncomingAdapter::contentFingerprint($snapshot, '', $channel['bot_url']);
+              $snapshot['metadata']['hotel_catalog_id'] = $row['hotel'];
+              $snapshot['metadata']['logical_id'] = 'commercial-main-hotel-' . $row['hotel'] . '-v1';
+              $snapshot['metadata']['source_event_id'] = $operation . ':' . $message['edit_date'];
+              $snapshot['metadata']['observation_kind'] = 'authorized_admin_content_edit';
+              $post = $registry->registerPublication(PROJECT, 'telegram', BOT, TARGET, $id, $snapshot);
+              must(is_array($post) && $post['external_message_id'] === $id
+                  && (int) ($post['snapshot']['metadata']['hotel_catalog_id'] ?? 0) === $row['hotel'], 'canonical_hotel_registration_unconfirmed');
+              $publication = (int) $post['publication_id'];
+              $version = (int) $post['version_id'];
+              writeReceipt($journal, ['state' => 'registered', 'publication_id' => $publication, 'version_id' => $version]);
+              if ($post['state'] !== 'sent') {
+                  (new ChannelPostAutomationService($registry))->processPublication(PROJECT, 'telegram', BOT, $publication, $version);
+              }
+              $final = $registry->publication($publication);
+              must(is_array($final) && $final['state'] === 'sent' && !empty($final['receipt']['button_verified'])
+                  && !empty($final['receipt']['content_preserved']) && $final['external_message_id'] === $id
+                  && $final['snapshot']['post_url'] === $proof['target_url'] && $final['snapshot']['text'] === $row['caption']
+                  && ($final['snapshot']['attachments'][0]['file_unique_id'] ?? null) === $snapshot['attachments'][0]['file_unique_id'],
+                  'button_response_unconfirmed_no_retry');
+              $resolved = ChannelPostEntryService::resolve('telegram', $final['start_payload'], $registry);
+              must(is_array($resolved) && (int) $resolved['publication_id'] === $publication
+                  && (int) $resolved['version_id'] === (int) $final['version_id'] && $resolved['source_key'] === TARGET_SOURCE
+                  && (int) ($resolved['snapshot']['metadata']['hotel_catalog_id'] ?? 0) === $row['hotel']
+                  && $resolved['snapshot']['post_url'] === $proof['target_url'], 'canonical_hotel_context_unconfirmed');
+              writeReceipt($journal, ['state' => 'native_caption_photo_button_and_context_verified',
+                  'publication_id' => $publication, 'version_id' => (int) $final['version_id'], 'url' => $proof['target_url']]);
+              verifyPublicEdit($id, $row['caption'], $proof);
+              $result = ['state' => 'updated_and_verified', 'publication_id' => $publication, 'version_id' => (int) $final['version_id'],
+                  'body_photo_button_verified' => true, 'ad_writes' => 0] + $proof;
+              writeReceipt($journal, $result);
+              echo json_encode($result, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), "\n";
+          } catch (Throwable $error) {
+              $reason = $error instanceof RuntimeException && preg_match('/\A[a-z_]{1,80}\z/D', $error->getMessage()) === 1
+                  ? $error->getMessage() : 'operation_failed';
+              $report = ['state' => $started ? 'held_no_retry' : 'stopped_before_edit', 'message_id' => $id, 'reason' => $reason];
+              if ($started && is_resource($journal)) {
+                  try {
+                      writeReceipt($journal, $report);
+                  } catch (Throwable $ignored) {
+                      $report['journal_error'] = true;
+                  }
+              }
+              echo json_encode($report, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), "\n";
+              $exit = 2;
+          } finally {
+              if (is_resource($journal)) {
+                  fclose($journal);
+              }
+              if ($locked) {
+                  $unlock = $pdo->prepare('SELECT RELEASE_LOCK(?)');
+                  $unlock->execute([$operation]);
+              }
+          }
+          exit($exit);
+          PHP
+          php -l pub/read-only.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Edit the same Telegram native IDs, each once when its photo and context match
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          remote='set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru'
+          mkdir pub/out
+          for mid in 809 993 1148; do
+            if ! ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" "$remote; ANYTOUR_1566_MESSAGE=$mid php" < pub/read-only.php > "pub/out/$mid-check.json"; then
+              cat "pub/out/$mid-check.json"
+              continue
+            fi
+            if ! digest="$(python3 -c 'import json,re,sys; d=json.load(open(sys.argv[1])); assert d["state"] == "ready_read_only"; h=d["checkpoint_sha256"]; assert re.fullmatch("[a-f0-9]{64}", h); print(h)' "pub/out/$mid-check.json")"; then
+              continue
+            fi
+            if ! [[ "$digest" =~ ^[a-f0-9]{64}$ ]]; then continue; fi
+            if ! ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" "$remote; ANYTOUR_1566_MESSAGE=$mid ANYTOUR_1566_LEGACY_APPLY=1 ANYTOUR_1566_APPROVED=$digest php" < pub/read-only.php > "pub/out/$mid-native.json"; then
+              cat "pub/out/$mid-native.json"
+              continue
+            fi
+            python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); assert d["state"] == "updated_and_verified" and d["body_photo_button_verified"]; print(d["hotel_id"], d["target_url"])' "pub/out/$mid-native.json" || true
+          done
+      - name: Save exact per-post receipts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-1566-three-legacy-tg-posts
+          path: pub/out/
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Remove runner-only connection material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
