@@ -97,8 +97,10 @@ final class ApplePilotTestProvider
             if ($silentCoverage) {
                 $button = $request['body']['attachments'][1]['payload']['buttons'][0][0]['url'] ?? '';
                 preg_match('/[?&]start=as39_([a-z0-9_-]+)\\z/D', $button, $match);
-                as39ProviderAssert(in_array($match[1] ?? '', (new AppleService39CoverageRevision())->order(), true),
-                    'silent batch contains only the reviewed coverage successor');
+                $id = $match[1] ?? '';
+                as39ProviderAssert(in_array($id, (new AppleService39CoverageRevision())->order(), true)
+                    || in_array($id, AppleService39DeviceRevision::POSTS, true),
+                    'silent batch contains only reviewed coverage or device posts');
             }
             as39ProviderAssert($query === ['chat_id'=>$this->channelId]
                 && (!array_key_exists('notify', $request['body']) || $silentCoverage),
