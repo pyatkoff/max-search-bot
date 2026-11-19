@@ -1,0 +1,99 @@
+name: Seagull exact Telegram bounded read-only access diagnosis
+on:
+  push:
+    branches: [audit/seagull-live-helper-test-20261119]
+    paths: ['.github/workflows/seagull-live-helper-test-20261119.yml']
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: seagull-live-helper-test-diagnosis
+  cancel-in-progress: false
+jobs:
+  read-only:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == 'bd8e248f7138ea75cb9fda2dcf44beb631c633a5' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Prepare bounded read-only diagnosis; no sender
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir pub
+          cat > pub/read-only.php <<'PHP'
+          <?php
+          declare(strict_types=1);function need(bool $ok,string $reason):void{if(!$ok)throw new RuntimeException($reason);}
+          function verifySeagullTelegramPublic(array $row): void {
+           need($row['platform']==='telegram' && $row['publication_id']===20 && $row['message_id']==='1754','tg_live_scope_changed');
+           $body='';$c=curl_init('https://t.me/anytour/1754?embed=1&mode=tme');
+           curl_setopt_array($c,[CURLOPT_RETURNTRANSFER=>false,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,CURLOPT_CONNECTTIMEOUT=>4,CURLOPT_TIMEOUT=>12,CURLOPT_WRITEFUNCTION=>static function($h,$x)use(&$body){if(strlen($body)+strlen($x)>262144)return 0;$body.=$x;return strlen($x);}]);
+           $ok=curl_exec($c);$http=curl_getinfo($c,CURLINFO_HTTP_CODE);$errno=curl_errno($c);curl_close($c);need($ok===true && $http===200 && $errno===0,'tg_live_read_failed');
+           $dom=new DOMDocument();libxml_use_internal_errors(true);$dom->loadHTML($body);$xp=new DOMXPath($dom);$roots=$xp->query('//*[@data-post="anytour/1754"]');need($roots->length===1,'tg_live_identity_changed');$root=$roots->item(0);
+           $texts=$xp->query('.//*[contains(concat(" ",normalize-space(@class)," ")," tgme_widget_message_text ")]',$root);need($texts->length===1,'tg_live_caption_missing');$html='';foreach($texts->item(0)->childNodes as $node)$html.=$dom->saveHTML($node);
+           $text=html_entity_decode(strip_tags(preg_replace('~<br\\s*/?>~i',"\n",$html)),ENT_QUOTES|ENT_HTML5,'UTF-8');need($text===$row['old_text'],'tg_live_caption_changed');
+           $photos=$xp->query('.//*[contains(concat(" ",normalize-space(@class)," ")," tgme_widget_message_photo_wrap ")]',$root);
+           need($photos->length===1 && $photos->item(0)->getAttribute('href')==='https://t.me/anytour/1754' && $photos->item(0)->getAttribute('class')==='tgme_widget_message_photo_wrap 5381876321958436942 1253065728_460005454' && str_contains($photos->item(0)->getAttribute('style'),'background-image'),'tg_live_photo_changed');
+          }
+          
+          $row=json_decode(base64_decode('eyJob3RlbF9pZCI6IDQxNSwgInBsYXRmb3JtIjogInRlbGVncmFtIiwgInB1YmxpY2F0aW9uX2lkIjogMjAsICJ2ZXJzaW9uX2lkIjogMjIsICJtZXNzYWdlX2lkIjogIjE3NTQiLCAicG9zdF91cmwiOiAiaHR0cHM6Ly90Lm1lL2FueXRvdXIvMTc1NCIsICJwaG90b19zaWduYXR1cmUiOiAidGVsZWdyYW06QVFBRFRpQnJHd0FCUkxCS2ZnIiwgImF0dGFjaG1lbnRzX3NoYTI1NiI6ICJhMGMxMWI2NmZiZTJkMzBkNzc0ZmQ0ZjY2MzJjZTY0NjAxNjdkMzJhOTIyNDY2Nzk3NzU3YmM0OTc5MDZiYzIyIiwgImJ1dHRvbl91cmxfc2hhMjU2IjogImEzMmE5MDlhMzczNTM5ZGM5MDViOGFjMDYyMTU3ZDAwNGQ0Y2ZlNTZiNWE0YTk5Zjg1MmIyNjYxNjdjNDdjMDgiLCAiY29uZmlnX3ZlcnNpb24iOiAyLCAic291cmNlX2tleSI6ICJ0Z19hbnl0b3VyX21zayIsICJidXR0b25fb2JzZXJ2ZWRfaW5fc25hcHNob3QiOiBmYWxzZSwgIm1vbml0b3JfcHJpY2VfcmVjb3JkX2lkIjogbnVsbCwgIm9sZF9yZWdpc3RyeV9wb3N0X3VybCI6ICJodHRwczovL3QubWUvYW55dG91ci8xNzU0IiwgIm9sZF90ZXh0IjogItCe0LTQuNC9INC40Lcg0YHQsNC80YvRhSDQutC70LDRgdGB0L3Ri9GFINC+0YLQtdC70LXQuSwg0LrQvtGC0L7RgNGL0Lkg0L3QsNGF0L7QtNC40YLRgdGPINCyINGG0LXQvdGC0YDQtSDQpdGD0YDQs9Cw0LTRiyDQv9C+INC+0YLQu9C40YfQvdC+0Lkg0YbQtdC90LXwn4+W77iPXG5cblNlYWd1bGwgQmVhY2ggUmVzb3J0ICYgQ2x1YiA0KiDigJQg0LrQvtC80YTQvtGA0YLQvdGL0Lkg0L7RgtC10LvRjCDRgSDQv9C10YHRh9Cw0L3Ri9C8INC/0LvRj9C20LXQvCwg0L/QvtC70L7Qs9C40Lwg0LfQsNGF0L7QtNC+0Lwg0LIg0LLQvtC00YMsINC+0YLQu9C40YfQvdC+0Lkg0LjQvdGE0YDQsNGB0YLRgNGD0LrRgtGD0YDQvtC5INC4INC+0LPRgNC+0LzQvdGL0Lwg0LrQvtC70LjRh9C10YHRgtCy0L7QvCDQv9C+0YHRgtC+0Y/QvdC90YvRhSDRgtGD0YDQuNGB0YLQvtCyIVxuXG7Qn9C70Y7RgdGLINC+0YLQtdC70Y86XG7wn5OO0YHQvtCx0YHRgtCy0LXQvdC90YvQuSDQv9C10YHRh9Cw0L3Ri9C5INC/0LvRj9C2LCDQv9C70LDQstC90YvQuSDQt9Cw0YXQvtC0INCyINCy0L7QtNGDIFxu8J+TjjUg0L7RgtC60YDRi9GC0YvRhSDQsdCw0YHRgdC10LnQvdC+0LIgKDIg0YEg0L/QvtC00L7Qs9GA0LXQstC+0Lwg0LIg0LfQuNC80L3QuNC5INC/0LXRgNC40L7QtCksINCw0LrQstCw0L/QsNGA0Log0YEg0L/QvtC00L7Qs9GA0LXQstC+0Lwg0LIg0LfQuNC80L3QuNC5INC/0LXRgNC40L7QtCBcbvCfk47QtNC70Y8g0LzQsNC70LXQvdGM0LrQuNGFINCz0L7RgdGC0LXQuS3QvNC40L3QuC3QutC70YPQsSwg0LTQtdGC0YHQutCw0Y8g0LDQvdC40LzQsNGG0LjRjywgMiDQtNC10YLRgdC60LjRhSDQsdCw0YHRgdC10LnQvdCwINGBINC/0L7QtNC+0LPRgNC10LLQvtC8INCyINC30LjQvNC90LjQuSDQv9C10YDQuNC+0LRcbvCfk47QvtGC0LXQu9GMINC90LDRhdC+0LTQuNGC0YHRjyDRgNGP0LTQvtC8INGBINC80LDQs9Cw0LfQuNC90LDQvNC4LCDQutCw0YTQtSDQuCDQvdCw0LHQtdGA0LXQttC90L7QuS3QutCw0Log0YLQvtC70YzQutC+INGC0Ysg0LLRi9GF0L7QtNC40YjRjCDQuNC3INC+0YLQtdC70Y8sINGC0L4g0L/QvtC70L3QvtGB0YLRjNGOINC+0LrQsNC30YvQstCw0LXRiNGM0YHRjyDQv9C+0LPQu9Cw0YnQtdC9INCz0L7RgNC+0LTRgdC60L7QuSDQttC40LfQvdGM0Y5cbvCfk47RgNC10L3QvtCy0LDRhtC40Y8g0L/RgNC+0LLQvtC00LjQu9Cw0YHRjCDQsiAyMDI0INCz0L7QtNGDXG7wn5OO0L7Rh9C10L3RjCDQutGA0LDRgdC40LLQsNGPINGC0LXRgNGA0LjRgtC+0YDQuNGPLdCy0YHQtSDRh9C40YHRgtC+INC4INC30LXQu9C10L3QviBcbvCfk47QtdGB0YLRjCDQvdC+0LzQtdGA0LAg0YHQviDRgdCy0LXQttC40Lwg0YDQtdC80L7QvdGC0L7QvCBcbvCfk47QsNC90LjQvNCw0YbQuNGPINGA0LDQt9Cy0LvQtdC60LDRgtC10LvRjNC90LDRjyDRgSDRg9GC0YDQsCDQtNC+INCy0LXRh9C10YDQsFxuXG7Qn9GA0LXQtNC70L7QttC10L3QuNC1INC00LvRjyDQtNCy0L7QuNGFINCy0LfRgNC+0YHQu9GL0YUg0YEg0LLRi9C70LXRgtC+0Lwg0LjQtyDQnNC+0YHQutCy0Ys6XG5cbjExLjExLCA3INC90L7Rh9C10LlcbkFJIC0g0JLRgdC1INCS0LrQu9GO0YfQtdC90L4sIDIwN8KgNDQzIFJVQlxuXG4q0YHRgtC+0LjQvNC+0YHRgtGMINC00LXQudGB0YLQstC40YLQtdC70YzQvdCwINC90LAg0LzQvtC80LXQvdGCINGA0LDQt9C80LXRidC10L3QuNGPINC/0L7RgdGC0LBcblxu0JLRiyDQvNC+0LbQtdGC0LUg0YPQt9C90LDRgtGMINCx0L7Qu9GM0YjQtSDQv9C+0LTRgNC+0LHQvdC+0YHRgtC10LksINC/0LXRgNC10LnQtNGPINC/0L4g0YbQtdC90LUhXG5cbtCX0LDQsdGA0L7QvdC40YDRg9C50YLQtSDRgtGD0YAg0L/RgNGP0LzQviDRgdC10LnRh9Cw0YEg0L/QviDQutC90L7Qv9C60LUg0L3QuNC20LXwn5GH8J+Pu1xuXG7QnNGLINCyIFRlbGVncmFtLCBNYXgg0LggVksuINCd0LDRiNC4INC80L7QsdC40LvRjNC90YvQtSDQv9GA0LjQu9C+0LbQtdC90LjRjyBBcHBsZSDQuCBBbmRyb2lkLlxu0J3QsNGIINGB0LDQudGCIOKAlCDQv9C+INGN0YLQvtC5INGB0YHRi9C70LrQteKYuu+4j1xu0JTQviDQstGB0YLRgNC10YfQuCDQsiDQvdC+0LLRi9GFINC/0YPRgtC10YjQtdGB0YLQstC40Y/RhSEiLCAibmV3X3RleHQiOiAi4pyI77iPIFNlYWd1bGwgQmVhY2ggUmVzb3J0IOKAlCDQvNC+0YDQtSDQuCDQv9GA0L7Qs9GD0LvQutC4INC/0L4g0KXRg9GA0LPQsNC00LVcbvCfk40g0JXQs9C40L/QtdGCIMK3INCl0YPRgNCz0LDQtNCwXG5cbtCU0LvRjyDRgdC10LzQtdC50L3QvtCz0L4g0L7RgtC/0YPRgdC60LAsINC60L7Qs9C00LAg0YXQvtGH0LXRgtGB0Y8g0LbQuNGC0Ywg0YMg0LzQvtGA0Y8g0Lgg0LLRi9GF0L7QtNC40YLRjCDQvdCwINC/0YDQvtCz0YPQu9C60YMg0LIg0LPQvtGA0L7QtC4g0KMg0L7RgtC10LvRjyDQtNCy0LAg0YHQvtCx0YHRgtCy0LXQvdC90YvRhSDQv9C10YHRh9Cw0L3Ri9GFINC/0LvRj9C20LAsINCx0LDRgdGB0LXQudC90Ysg0Lgg0LDQutCy0LDQv9Cw0YDQuiDQtNC70Y8g0LLQt9GA0L7RgdC70YvRhSDQuCDQtNC10YLQtdC5LiDQlNC70Y8g0LzQsNC70LXQvdGM0LrQuNGFINCz0L7RgdGC0LXQuSDQtdGB0YLRjCDQtNC10YLRgdC60LjQuSDQutC70YPQsSDQuCDQv9C70L7RidCw0LTQutCwLlxuXG7QndCw0LbQvNC40YLQtSDQutC90L7Qv9C60YMg0L/QvtC0INC/0L7RgdGC0L7QvCDigJQg0YDQsNGB0YHRh9C40YLQsNC10Lwg0YLRg9GAINC90LAg0LLQsNGI0Lgg0LTQsNGC0YsuIiwgIm9sZF90ZXh0X3NoYTI1NiI6ICIxMzBlMzRhYzJjMGQzNWJmYWVhOTVjMzJjYTQ5MTAzMDAzNWI3NTE5ZGY5NTE4MmY5NmQ1ZGIyZGNhZWU2M2E3IiwgIm5ld190ZXh0X3NoYTI1NiI6ICI2Y2RiOWQ4Nzg0NWQwMzI0MmEzNWQwMDU1MDJhZWI1NDRlMmExMThhZmYxYWE1ODBmYTc0YTg5MDNmN2I4OTMyIiwgImFwcHJvdmVkX2NvcHlfc2hhMjU2IjogIjZjZGI5ZDg3ODQ1ZDAzMjQyYTM1ZDAwNTUwMmFlYjU0NGUyYTExOGFmZjFhYTU4MGZhNzRhODkwM2Y3Yjg5MzIiLCAicHJpY2VfYmxvY2tfc2hhMjU2IjogImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCAib2xkX3ByaWNlX29mZnNldF91dGYxNiI6IDAsICJuZXdfcHJpY2Vfb2Zmc2V0X3V0ZjE2IjogMCwgInByaWNlX2xlbmd0aF91dGYxNiI6IDAsICJzYW1lX2NhcHRpb25fc2tpcCI6IGZhbHNlfQ=='),true);verifySeagullTelegramPublic($row);echo 'TG_EXACT_LIVE_PREFLIGHT_PASS',PHP_EOL;
+          PHP
+          php -l pub/read-only.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read main channel registry and provider metadata without writes
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = bd8e248f7138ea75cb9fda2dcf44beb631c633a5
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; test -z "$(git status --porcelain --untracked-files=no)"; php' < pub/read-only.php > pub/result.json
+          cat pub/result.json
+      - name: Preserve original diagnosis
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: seagull-live-helper-test-20261119
+          path: pub/result.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Remove runner-only authentication
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
