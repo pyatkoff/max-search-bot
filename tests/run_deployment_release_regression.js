@@ -449,7 +449,25 @@ async function publicationOperationConsumer(f,repositorySha,applicationSha){
   const result=await R.resolvePublicationOperation({env,event,api:f.api});
   equal([result.repository_sha,result.application_sha,result.perform_actions,result.ready],
     [repositorySha,applicationSha,true,true],'original fixed coverage branch creation resolves the actually accepted application');
+  equal(result.publication_operation,'coverage_batch','coverage branch selects only its original content batch');
   equal(f.calls.slice(before).every(c=>c.method==='GET'),true,'publication source admission is read-only before credentials');
+  const deviceBranch='ops/appleservice39-device-v1-20261119',deviceRef='refs/heads/'+deviceBranch;
+  const deviceRun={...run,id:6599,head_branch:deviceBranch};
+  const deviceEnv={...env,GITHUB_RUN_ID:String(deviceRun.id),GITHUB_REF:deviceRef,GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+workflow+'@'+deviceRef};
+  const deviceEvent={...event,ref:deviceRef};
+  f.runs.set(deviceRun.id,deviceRun);
+  const admitted=await R.resolvePublicationOperation({env:deviceEnv,event:deviceEvent,api:f.api});
+  equal([admitted.publication_operation,admitted.repository_sha,admitted.application_sha,admitted.ready,admitted.perform_actions],
+    ['device_batch',repositorySha,applicationSha,true,true],'the first device push selects the four-card operation at the accepted source');
+  const beforeRecovery=f.calls.length;
+  await refuses(()=>R.resolvePublicationOperation({env:deviceEnv,event:{...deviceEvent,created:false,before:'c5c0276d94337eee130467716c9794176b2ab25a'},api:f.api}),
+    'untrusted_publication_operation','the old coverage predecessor cannot authorize any device push or inspection');
+  equal(f.calls.length,beforeRecovery,'device predecessor is refused before GitHub or publication access');
+  await refuses(()=>R.resolvePublicationOperation({env:{...deviceEnv,GITHUB_RUN_ATTEMPT:'2'},event:deviceEvent,api:f.api}),
+    'untrusted_publication_operation','a workflow rerun cannot publish device posts');
+  await refuses(()=>R.resolvePublicationOperation({env:deviceEnv,event,api:f.api}),
+    'untrusted_publication_operation','coverage and device branch identities cannot be interchanged');
+  f.runs.delete(deviceRun.id);
   for(const [label,patch] of [['not created',{created:false}],['forced',{forced:true}],['deleted',{deleted:true}],
     ['existing branch update',{before:'b'.repeat(40)}],['other source',{after:'b'.repeat(40)}],['main event',{ref:'refs/heads/main'}]]){
     await refuses(()=>R.resolvePublicationOperation({env,event:{...event,...patch},api:f.api}),

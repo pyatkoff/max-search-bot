@@ -1546,12 +1546,15 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
 
 /** One fixed owner-authorised publication push, before any SSH/provider access. */
 async function resolvePublicationOperation({env,event,api}) {
-  const branch='ops/appleservice39-coverage-20261112',ref='refs/heads/'+branch;
+  const coverageBranch='ops/appleservice39-coverage-20261112';
+  const deviceBranch='ops/appleservice39-device-v1-20261119';
+  const ref=env.GITHUB_REF;
+  const branch=[coverageBranch,deviceBranch].find(name=>ref==='refs/heads/'+name);
   const workflow=PREFIX+'publish-appleservice39-pilot.yml';
   const predecessor='c5c0276d94337eee130467716c9794176b2ab25a',predecessorRun=43186776772;
   const initial=event?.before==='0'.repeat(40)&&event?.created===true;
-  const recovery=event?.before===predecessor&&event?.created===false&&event?.after!==predecessor;
-  requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF===ref
+  const recovery=branch===coverageBranch&&event?.before===predecessor&&event?.created===false&&event?.after!==predecessor;
+  requireValue(branch!==undefined&&env.GITHUB_REPOSITORY===REPOSITORY
     &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+workflow+'@'+ref
     &&env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_JOB==='publish'
     &&env.GITHUB_RUN_ATTEMPT==='1'&&sha(env.GITHUB_SHA)&&positive(env.GITHUB_RUN_ID)
@@ -1583,7 +1586,8 @@ async function resolvePublicationOperation({env,event,api}) {
   const location=await readRecord(api);
   const result=await resolveCurrent(api,c,location);
   requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
-  return finalResolution(api,c,location,result);
+  const admitted=await finalResolution(api,c,location,result);
+  return {...admitted,publication_operation:branch===coverageBranch?'coverage_batch':'device_batch'};
 }
 
 async function resolveEditor({env,event,api,repositorySha,applicationSha}) {
