@@ -4,7 +4,7 @@ require_once __DIR__.'/ManagerConversationService.php';
 require_once __DIR__.'/ConversationDb.php';
 require_once __DIR__.'/ConversationControlService.php';
 require_once __DIR__.'/ProjectMaxMessengerFactory.php';
-require_once __DIR__.'/../integrations/TelegramMessengerAdapter.php';
+require_once __DIR__.'/ProjectTelegramMessengerFactory.php';
 
 class ManagerMessageEditService
 {
@@ -56,7 +56,8 @@ class ManagerMessageEditService
                 if(!$adapter) return ['ok'=>false,'error'=>'connection_unavailable'];
                 if(!$adapter->editText((string)$policy['external_message_id'],$safe)) return ['ok'=>false,'error'=>'provider_edit_failed'];
             } elseif($channel==='telegram'){
-                $adapter=new TelegramMessengerAdapter(null,'manager',false);
+                $adapter=ProjectTelegramMessengerFactory::forConversation($conversation,'manager');
+                if(!$adapter) return ['ok'=>false,'error'=>'connection_unavailable'];
                 $edited=$attachments
                     ? $adapter->editCaption($conversation['external_chat_id'],(int)$policy['external_message_id'],$safe)
                     : $adapter->editText($conversation['external_chat_id'],(int)$policy['external_message_id'],$safe);

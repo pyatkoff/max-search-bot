@@ -8,13 +8,22 @@ class TelegramMessengerAdapter implements OutboundMetadataMessengerInterface
     private $sendCallable;
     private $senderType;
     private $recordOutbound;
+    private ?string $botToken;
+    private ?string $boundChatId;
     private $lastExternalMessageId = '';
 
-    public function __construct(?callable $sendCallable = null, string $senderType = 'ai', bool $recordOutbound = true)
+    public function __construct(?callable $sendCallable = null, string $senderType = 'ai', bool $recordOutbound = true, ?string $botToken = null, ?string $boundChatId = null)
     {
         $this->sendCallable = $sendCallable;
         $this->senderType = in_array($senderType, ['ai','manager','system'], true) ? $senderType : 'ai';
-        $this->recordOutbound = $recordOutbound;
+        $this->recordOutbound = $recordOutbound && $botToken === null;
+        $this->botToken = $botToken;
+        $this->boundChatId = $boundChatId;
+    }
+
+    public function __debugInfo(): array
+    {
+        return ['sender_type'=>$this->senderType, 'scoped'=>$this->botToken !== null];
     }
 
     public function send($chatId, string $text): bool
@@ -117,8 +126,14 @@ class TelegramMessengerAdapter implements OutboundMetadataMessengerInterface
         return $hasContact ? ['keyboard'=>$keyboard,'resize_keyboard'=>true,'one_time_keyboard'=>true] : ['inline_keyboard'=>$keyboard];
     }
 
+    private function allowsRecipient(array $payload): bool
+    {
+        return $this->botToken === null || ($this->boundChatId !== null && $this->boundChatId === (string)($payload['chat_id'] ?? ''));
+    }
+
     private function request(string $method, array $payload, array $metadata = []): bool
     {
+        if (!$this->allowsRecipient($payload)) return false;
         if ($this->sendCallable) {
             $result=call_user_func($this->sendCallable,$method,$payload);
             $this->lastExternalMessageId=is_array($result)?trim((string)($result['result']['message_id']??$result['message_id']??'')):'';
@@ -133,6 +148,7 @@ class TelegramMessengerAdapter implements OutboundMetadataMessengerInterface
 
     private function multipartRequest(string $method,array $payload): bool
     {
+        if (!$this->allowsRecipient($payload)) return false;
         if ($this->sendCallable) return (bool)call_user_func($this->sendCallable,$method,$payload);
         return $this->curlRequest($method,$payload,true);
     }
@@ -140,11 +156,13 @@ class TelegramMessengerAdapter implements OutboundMetadataMessengerInterface
     private function curlRequest(string $method,array $payload,bool $multipart,array $metadata = []): bool
     {
         $chatId = $payload['chat_id'] ?? null;
-        if (!defined('TELEGRAM_BOT_TOKEN') || TELEGRAM_BOT_TOKEN === '') {
-            DiagnosticLogger::error('telegram_transport','missing_token',['method'=>$method],$chatId);
+        $scoped = $this->botToken !== null;
+        $token = $this->botToken ?? (defined('TELEGRAM_BOT_TOKEN') ? (string)TELEGRAM_BOT_TOKEN : '');
+        if ($token === '') {
+            DiagnosticLogger::error('telegram_transport','missing_token',['method'=>$method],$scoped ? null : $chatId);
             return false;
         }
-        $ch = curl_init('https://api.telegram.org/bot' . TELEGRAM_BOT_TOKEN . '/' . $method);
+        $ch = curl_init('https://api.telegram.org/bot' . $token . '/' . $method);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $multipart ? $payload : http_build_query($payload));
@@ -157,9 +175,9 @@ class TelegramMessengerAdapter implements OutboundMetadataMessengerInterface
         $ok = $response !== false && !$errno && $http >= 200 && $http < 300 && is_array($decoded) && !empty($decoded['ok']);
         $details = ['method'=>$method,'http'=>$http,'ok'=>$ok];
         if ($errno) $details['curl_errno']=$errno;
-        if ($error !== '') $details['curl_error']=$error;
-        if (is_array($decoded) && !empty($decoded['description'])) $details['description']=(string)$decoded['description'];
-        DiagnosticLogger::log('telegram_transport',$ok?'success':'failure',$details,$chatId,$ok?'info':'error');
+        if (!$scoped && $error !== '') $details['curl_error']=$error;
+        if (!$scoped && is_array($decoded) && !empty($decoded['description'])) $details['description']=(string)$decoded['description'];
+        DiagnosticLogger::log('telegram_transport',$ok?'success':'failure',$details,$scoped ? null : $chatId,$ok?'info':'error');
         if ($ok && $this->recordOutbound && !$multipart && $method === 'sendMessage' && $chatId !== null) {
             ConversationRecorder::outbound('telegram', $chatId, (string)($payload['text'] ?? ''), $this->senderType, array_merge($metadata,['has_buttons'=>isset($payload['reply_markup'])]));
         }
