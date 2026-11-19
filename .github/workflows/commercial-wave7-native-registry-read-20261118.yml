@@ -1,4 +1,4 @@
-name: Read post-W20 three accepted hotel identities; zero provider writes
+name: Read current versions for 55 already-routed hotels; zero FEED writes
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
@@ -8,7 +8,7 @@ permissions:
 jobs:
   registry-screen:
     if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
-      && github.event.before == '4aacc65b49648d9b38be7801d971c11379838305' && github.run_attempt
+      && github.event.before == '3d7a2189afc3cfe6a5479f4b21e74987bb213de1' && github.run_attempt
       == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
@@ -65,40 +65,40 @@ jobs:
         \ true), true, 64, JSON_THROW_ON_ERROR);\nforeach ($pins as $path => $expected)\
         \ {\n    if (trim((string)shell_exec('git hash-object -- ' . escapeshellarg($path)))\
         \ !== $expected) {\n        throw new RuntimeException('Pinned publication\
-        \ component differs from the installed release');\n    }\n}\n$manifest = [[116719,['Bliss\
-        \ Hoi An','Bliss HoiAn']],[28569,['Twin Lotus']],[32354,['Phu Quoc Eco Beach','Eco\
-        \ Beach Resort']]];\n\nob_start();\nrequire getcwd() . '/config.php';\nrequire_once\
-        \ getcwd() . '/services/ChannelPostRuntime.php';\nob_end_clean();\n\n$pdo\
-        \ = ConversationDb::connection();\n$pdo->exec('SET SESSION TRANSACTION READ\
-        \ ONLY');\n$pdo->beginTransaction();\n$result = ['installed_sha' => $installed,\
-        \ 'checked_at' => gmdate(DATE_ATOM),\n    'native_hotel_ids' => array_column($manifest,\
-        \ 0), 'channels' => [], 'matches' => []];\ntry {\n    $query = $pdo->prepare('SELECT\
-        \ p.id, p.current_version_id, v.snapshot_json\n        FROM post_publications\
-        \ p JOIN post_versions v ON v.id = p.current_version_id\n        WHERE p.post_channel_id\
-        \ = ? ORDER BY p.id');\n    foreach (['telegram' => 10, 'max' => 9] as $platform\
-        \ => $channel) {\n        $query->execute([$channel]);\n        $rows = $query->fetchAll(PDO::FETCH_ASSOC);\n\
-        \        if (count($rows) < 1692) {\n            throw new RuntimeException('Publication\
-        \ registry is below the verified baseline');\n        }\n        $result['channels'][$platform]\
+        \ component differs from the installed release');\n    }\n}\n$manifest = json_decode(base64_decode('W1sxMDgzMTcsIFtdXSwgWzExODM2LCBbXV0sIFsxMTc0NiwgW11dLCBbMTE4NDIsIFtdXSwgWzExODgyLCBbXV0sIFs4OTg3LCBbXV0sIFsyNjg1LCBbXV0sIFs4ODU5LCBbXV0sIFsyMzM1LCBbXV0sIFs1ODc0NCwgW11dLCBbNzMwODIsIFtdXSwgWzI2MDMsIFtdXSwgWzc4ODM0LCBbXV0sIFs3OTQ2MCwgW11dLCBbMTA5NTg2LCBbXV0sIFsyNDA0LCBbXV0sIFsyNjAyLCBbXV0sIFsxMTc1MSwgW11dLCBbMTE3NzUsIFtdXSwgWzEyMTI2LCBbXV0sIFs4MjUwNCwgW11dLCBbNjQ5MTgsIFtdXSwgWzExNzkxLCBbXV0sIFsyNjg0NCwgW11dLCBbMjUyMiwgW11dLCBbMTcwMywgW11dLCBbMTE3NTMsIFtdXSwgWzI3MjEsIFtdXSwgWzc3Njg1LCBbXV0sIFsxNTkxMCwgW11dLCBbMzMxLCBbXV0sIFsyNzk0LCBbXV0sIFszMzUzMSwgW11dLCBbMzMwLCBbXV0sIFsxMTg0NywgW11dLCBbMTE4NTEsIFtdXSwgWzE3NjA4LCBbXV0sIFs0Mzc0MywgW11dLCBbNzYyODgsIFtdXSwgWzc3ODEwLCBbXV0sIFs0NTMzLCBbXV0sIFsxMTM5NzgsIFtdXSwgWzgwNzQ4LCBbXV0sIFsxNTg5LCBbXV0sIFsxMjczNDksIFtdXSwgWzExNTY3NywgW11dLCBbMjE2MSwgW11dLCBbMjM2LCBbXV0sIFsxMzg1MywgW11dLCBbNDg3OTUsIFtdXSwgWzEyMTA0LCBbXV0sIFsyNjg2LCBbXV0sIFsxNTE4LCBbXV0sIFs2NDMzMCwgW11dLCBbNTc2ODIsIFtdXV0=',true),true,64,JSON_THROW_ON_ERROR);\n\
+        \nob_start();\nrequire getcwd() . '/config.php';\nrequire_once getcwd() .\
+        \ '/services/ChannelPostRuntime.php';\nob_end_clean();\n\n$pdo = ConversationDb::connection();\n\
+        $pdo->exec('SET SESSION TRANSACTION READ ONLY');\n$pdo->beginTransaction();\n\
+        $result = ['installed_sha' => $installed, 'checked_at' => gmdate(DATE_ATOM),\n\
+        \    'native_hotel_ids' => array_column($manifest, 0), 'channels' => [], 'matches'\
+        \ => []];\ntry {\n    $query = $pdo->prepare('SELECT p.id, p.current_version_id,\
+        \ v.snapshot_json, v.state, v.receipt_json, v.write_attempts, v.error_reason\n\
+        \        FROM post_publications p JOIN post_versions v ON v.id = p.current_version_id\n\
+        \        WHERE p.post_channel_id = ? ORDER BY p.id');\n    foreach (['telegram'\
+        \ => 10, 'max' => 9] as $platform => $channel) {\n        $query->execute([$channel]);\n\
+        \        $rows = $query->fetchAll(PDO::FETCH_ASSOC);\n        if (count($rows)\
+        \ < 1702) {\n            throw new RuntimeException('Publication registry\
+        \ is below the verified baseline');\n        }\n        $result['channels'][$platform]\
         \ = count($rows);\n        foreach ($rows as $record) {\n            $post\
         \ = json_decode($record['snapshot_json'], true, 64, JSON_THROW_ON_ERROR);\n\
         \            $title = explode(\"\\n\", (string)($post['text'] ?? ''), 2)[0];\n\
         \            $metadata = $post['metadata'] ?? [];\n            $native = (int)($metadata['hotel_catalog_id']\
-        \ ?? 0);\n            $result['rows'][] = ['platform'=>$platform,'publication_id'=>(int)$record['id'],'native_id'=>$native,'logical_id'=>(string)($metadata['logical_id']??''),'title'=>$title];\n\
-        \            foreach ($manifest as [$id, $aliases]) {\n                $reason\
-        \ = [];\n                if ($native === $id || ($metadata['logical_id'] ??\
-        \ '') === \"commercial-hotel-$id-v1\") {\n                    $reason[] =\
-        \ 'identity';\n                }\n                foreach ($aliases as $alias)\
-        \ {\n                    if ($alias !== '' && mb_stripos($title, $alias, 0,\
-        \ 'UTF-8') !== false) {\n                        $reason[] = 'title';\n  \
-        \                      break;\n                    }\n                }\n\
-        \                if ($reason !== []) {\n                    $result['matches'][]\
-        \ = ['requested_id' => $id, 'registry_hotel_id' => $native,\n            \
-        \            'platform' => $platform, 'publication_id' => (int)$record['id'],\n\
-        \                        'version_id' => (int)$record['current_version_id'],\
+        \ ?? 0);\n            \n            foreach ($manifest as [$id, $aliases])\
+        \ {\n                $reason = [];\n                if ($native === $id ||\
+        \ ($metadata['logical_id'] ?? '') === \"commercial-hotel-$id-v1\") {\n   \
+        \                 $reason[] = 'identity';\n                }\n           \
+        \     foreach ($aliases as $alias) {\n                    if ($alias !== ''\
+        \ && mb_stripos($title, $alias, 0, 'UTF-8') !== false) {\n               \
+        \         $reason[] = 'title';\n                        break;\n         \
+        \           }\n                }\n                if ($reason !== []) {\n\
+        \                    $result['matches'][] = ['requested_id' => $id, 'registry_hotel_id'\
+        \ => $native,\n                        'platform' => $platform, 'publication_id'\
+        \ => (int)$record['id'],\n                        'version_id' => (int)$record['current_version_id'],\
         \ 'reason' => $reason,\n                        'title' => mb_substr($title,\
-        \ 0, 180, 'UTF-8')];\n                }\n            }\n        }\n    }\n\
-        } finally {\n    $pdo->rollBack();\n}\necho json_encode($result, JSON_UNESCAPED_UNICODE\
-        \ | JSON_THROW_ON_ERROR), PHP_EOL;\nPHP\nphp -l pub/registry-read.php\n"
+        \ 0, 180, 'UTF-8'),'state'=>$record['state'],'write_attempts'=>(int)$record['write_attempts'],'error_reason'=>$record['error_reason'],'snapshot_sha256'=>hash('sha256',$record['snapshot_json']),'text_sha256'=>hash('sha256',(string)($post['text']??'')),'receipt_sha256'=>hash('sha256',(string)$record['receipt_json']),'receipt_flags'=>array_intersect_key(json_decode((string)$record['receipt_json'],true)??[],array_flip(['button_verified','content_preserved','verified','body_photo_button_verified']))];\n\
+        \                }\n            }\n        }\n    }\n} finally {\n    $pdo->rollBack();\n\
+        }\necho json_encode($result, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),\
+        \ PHP_EOL;\nPHP\nphp -l pub/registry-read.php\n"
     - name: Pin established SSH host continuity and authentication identity
       env:
         HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -142,9 +142,9 @@ jobs:
       if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
-        name: postw20-three-registry-read
+        name: feed55-current-registry-read
         path: pub/registry-receipt.json
-        retention-days: 30
+        retention-days: 7
         if-no-files-found: warn
     - name: Remove runner-only credentials
       if: always()
@@ -155,4 +155,3 @@ jobs:
     - audit/content100-bot-publication-20261101
     paths:
     - .github/workflows/commercial-wave7-native-registry-read-20261118.yml
-
