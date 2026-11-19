@@ -1,4 +1,4 @@
-name: Read current versions for 55 already-routed hotels; zero FEED writes
+name: Read exact 110 original publications for first55; metadata gaps explicit
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
@@ -8,7 +8,7 @@ permissions:
 jobs:
   registry-screen:
     if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
-      && github.event.before == '3d7a2189afc3cfe6a5479f4b21e74987bb213de1' && github.run_attempt
+      && github.event.before == '2cf571c2c4624596703951018899ad6f2e4b7c2b' && github.run_attempt
       == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
@@ -67,35 +67,36 @@ jobs:
         \ !== $expected) {\n        throw new RuntimeException('Pinned publication\
         \ component differs from the installed release');\n    }\n}\n$manifest = json_decode(base64_decode('W1sxMDgzMTcsIFtdXSwgWzExODM2LCBbXV0sIFsxMTc0NiwgW11dLCBbMTE4NDIsIFtdXSwgWzExODgyLCBbXV0sIFs4OTg3LCBbXV0sIFsyNjg1LCBbXV0sIFs4ODU5LCBbXV0sIFsyMzM1LCBbXV0sIFs1ODc0NCwgW11dLCBbNzMwODIsIFtdXSwgWzI2MDMsIFtdXSwgWzc4ODM0LCBbXV0sIFs3OTQ2MCwgW11dLCBbMTA5NTg2LCBbXV0sIFsyNDA0LCBbXV0sIFsyNjAyLCBbXV0sIFsxMTc1MSwgW11dLCBbMTE3NzUsIFtdXSwgWzEyMTI2LCBbXV0sIFs4MjUwNCwgW11dLCBbNjQ5MTgsIFtdXSwgWzExNzkxLCBbXV0sIFsyNjg0NCwgW11dLCBbMjUyMiwgW11dLCBbMTcwMywgW11dLCBbMTE3NTMsIFtdXSwgWzI3MjEsIFtdXSwgWzc3Njg1LCBbXV0sIFsxNTkxMCwgW11dLCBbMzMxLCBbXV0sIFsyNzk0LCBbXV0sIFszMzUzMSwgW11dLCBbMzMwLCBbXV0sIFsxMTg0NywgW11dLCBbMTE4NTEsIFtdXSwgWzE3NjA4LCBbXV0sIFs0Mzc0MywgW11dLCBbNzYyODgsIFtdXSwgWzc3ODEwLCBbXV0sIFs0NTMzLCBbXV0sIFsxMTM5NzgsIFtdXSwgWzgwNzQ4LCBbXV0sIFsxNTg5LCBbXV0sIFsxMjczNDksIFtdXSwgWzExNTY3NywgW11dLCBbMjE2MSwgW11dLCBbMjM2LCBbXV0sIFsxMzg1MywgW11dLCBbNDg3OTUsIFtdXSwgWzEyMTA0LCBbXV0sIFsyNjg2LCBbXV0sIFsxNTE4LCBbXV0sIFs2NDMzMCwgW11dLCBbNTc2ODIsIFtdXV0=',true),true,64,JSON_THROW_ON_ERROR);\n\
         \nob_start();\nrequire getcwd() . '/config.php';\nrequire_once getcwd() .\
-        \ '/services/ChannelPostRuntime.php';\nob_end_clean();\n\n$pdo = ConversationDb::connection();\n\
-        $pdo->exec('SET SESSION TRANSACTION READ ONLY');\n$pdo->beginTransaction();\n\
-        $result = ['installed_sha' => $installed, 'checked_at' => gmdate(DATE_ATOM),\n\
-        \    'native_hotel_ids' => array_column($manifest, 0), 'channels' => [], 'matches'\
-        \ => []];\ntry {\n    $query = $pdo->prepare('SELECT p.id, p.current_version_id,\
-        \ v.snapshot_json, v.state, v.receipt_json, v.write_attempts, v.error_reason\n\
-        \        FROM post_publications p JOIN post_versions v ON v.id = p.current_version_id\n\
-        \        WHERE p.post_channel_id = ? ORDER BY p.id');\n    foreach (['telegram'\
-        \ => 10, 'max' => 9] as $platform => $channel) {\n        $query->execute([$channel]);\n\
-        \        $rows = $query->fetchAll(PDO::FETCH_ASSOC);\n        if (count($rows)\
-        \ < 1702) {\n            throw new RuntimeException('Publication registry\
-        \ is below the verified baseline');\n        }\n        $result['channels'][$platform]\
+        \ '/services/ChannelPostRuntime.php';\nob_end_clean();\n\n$original = json_decode(base64_decode('eyIyMTg0IjogeyJob3RlbF9pZCI6IDEwODMxNywgInBsYXRmb3JtIjogInRlbGVncmFtIn0sICIyMTk0IjogeyJob3RlbF9pZCI6IDEwODMxNywgInBsYXRmb3JtIjogIm1heCJ9LCAiMjE4NSI6IHsiaG90ZWxfaWQiOiAxMTgzNiwgInBsYXRmb3JtIjogInRlbGVncmFtIn0sICIyMTk1IjogeyJob3RlbF9pZCI6IDExODM2LCAicGxhdGZvcm0iOiAibWF4In0sICIyMTg2IjogeyJob3RlbF9pZCI6IDExNzQ2LCAicGxhdGZvcm0iOiAidGVsZWdyYW0ifSwgIjIxOTYiOiB7ImhvdGVsX2lkIjogMTE3NDYsICJwbGF0Zm9ybSI6ICJtYXgifSwgIjIxODciOiB7ImhvdGVsX2lkIjogMTE4NDIsICJwbGF0Zm9ybSI6ICJ0ZWxlZ3JhbSJ9LCAiMjE5NyI6IHsiaG90ZWxfaWQiOiAxMTg0MiwgInBsYXRmb3JtIjogIm1heCJ9LCAiMjE4OCI6IHsiaG90ZWxfaWQiOiAxMTg4MiwgInBsYXRmb3JtIjogInRlbGVncmFtIn0sICIyMTk4IjogeyJob3RlbF9pZCI6IDExODgyLCAicGxhdGZvcm0iOiAibWF4In0sICIyMTg5IjogeyJob3RlbF9pZCI6IDg5ODcsICJwbGF0Zm9ybSI6ICJ0ZWxlZ3JhbSJ9LCAiMjE5OSI6IHsiaG90ZWxfaWQiOiA4OTg3LCAicGxhdGZvcm0iOiAibWF4In0sICIyMTkwIjogeyJob3RlbF9pZCI6IDI2ODUsICJwbGF0Zm9ybSI6ICJ0ZWxlZ3JhbSJ9LCAiMjIwMCI6IHsiaG90ZWxfaWQiOiAyNjg1LCAicGxhdGZvcm0iOiAibWF4In0sICIyMTkxIjogeyJob3RlbF9pZCI6IDg4NTksICJwbGF0Zm9ybSI6ICJ0ZWxlZ3JhbSJ9LCAiMjIwMSI6IHsiaG90ZWxfaWQiOiA4ODU5LCAicGxhdGZvcm0iOiAibWF4In0sICIyMTkyIjogeyJob3RlbF9pZCI6IDIzMzUsICJwbGF0Zm9ybSI6ICJ0ZWxlZ3JhbSJ9LCAiMjIwMiI6IHsiaG90ZWxfaWQiOiAyMzM1LCAicGxhdGZvcm0iOiAibWF4In0sICIyMTkzIjogeyJob3RlbF9pZCI6IDU4NzQ0LCAicGxhdGZvcm0iOiAidGVsZWdyYW0ifSwgIjIyMDMiOiB7ImhvdGVsX2lkIjogNTg3NDQsICJwbGF0Zm9ybSI6ICJtYXgifSwgIjIyMDQiOiB7ImhvdGVsX2lkIjogNzMwODIsICJwbGF0Zm9ybSI6ICJ0ZWxlZ3JhbSJ9LCAiMjIxNCI6IHsiaG90ZWxfaWQiOiA3MzA4MiwgInBsYXRmb3JtIjogIm1heCJ9LCAiMjIwNSI6IHsiaG90ZWxfaWQiOiAyNjAzLCAicGxhdGZvcm0iOiAidGVsZWdyYW0ifSwgIjIyMTUiOiB7ImhvdGVsX2lkIjogMjYwMywgInBsYXRmb3JtIjogIm1heCJ9LCAiMjIwNiI6IHsiaG90ZWxfaWQiOiA3ODgzNCwgInBsYXRmb3JtIjogInRlbGVncmFtIn0sICIyMjE2IjogeyJob3RlbF9pZCI6IDc4ODM0LCAicGxhdGZvcm0iOiAibWF4In0sICIyMjA3IjogeyJob3RlbF9pZCI6IDc5NDYwLCAicGxhdGZvcm0iOiAidGVsZWdyYW0ifSwgIjIyMTciOiB7ImhvdGVsX2lkIjogNzk0NjAsICJwbGF0Zm9ybSI6ICJtYXgifSwgIjIyMDgiOiB7ImhvdGVsX2lkIjogMTA5NTg2LCAicGxhdGZvcm0iOiAidGVsZWdyYW0ifSwgIjIyMTgiOiB7ImhvdGVsX2lkIjogMTA5NTg2LCAicGxhdGZvcm0iOiAibWF4In0sICIyMjA5IjogeyJob3RlbF9pZCI6IDI0MDQsICJwbGF0Zm9ybSI6ICJ0ZWxlZ3JhbSJ9LCAiMjIxOSI6IHsiaG90ZWxfaWQiOiAyNDA0LCAicGxhdGZvcm0iOiAibWF4In0sICIyMjEwIjogeyJob3RlbF9pZCI6IDI2MDIsICJwbGF0Zm9ybSI6ICJ0ZWxlZ3JhbSJ9LCAiMjIyMCI6IHsiaG90ZWxfaWQiOiAyNjAyLCAicGxhdGZvcm0iOiAibWF4In0sICIyMjExIjogeyJob3RlbF9pZCI6IDExNzUxLCAicGxhdGZvcm0iOiAidGVsZWdyYW0ifSwgIjIyMjEiOiB7ImhvdGVsX2lkIjogMTE3NTEsICJwbGF0Zm9ybSI6ICJtYXgifSwgIjIyMTIiOiB7ImhvdGVsX2lkIjogMTE3NzUsICJwbGF0Zm9ybSI6ICJ0ZWxlZ3JhbSJ9LCAiMjIyMiI6IHsiaG90ZWxfaWQiOiAxMTc3NSwgInBsYXRmb3JtIjogIm1heCJ9LCAiMjIxMyI6IHsiaG90ZWxfaWQiOiAxMjEyNiwgInBsYXRmb3JtIjogInRlbGVncmFtIn0sICIyMjIzIjogeyJob3RlbF9pZCI6IDEyMTI2LCAicGxhdGZvcm0iOiAibWF4In0sICIyMjQ0IjogeyJob3RlbF9pZCI6IDgyNTA0LCAicGxhdGZvcm0iOiAidGVsZWdyYW0ifSwgIjIyNTQiOiB7ImhvdGVsX2lkIjogODI1MDQsICJwbGF0Zm9ybSI6ICJtYXgifSwgIjIyNDUiOiB7ImhvdGVsX2lkIjogNjQ5MTgsICJwbGF0Zm9ybSI6ICJ0ZWxlZ3JhbSJ9LCAiMjI1NSI6IHsiaG90ZWxfaWQiOiA2NDkxOCwgInBsYXRmb3JtIjogIm1heCJ9LCAiMjI0NiI6IHsiaG90ZWxfaWQiOiAxMTc5MSwgInBsYXRmb3JtIjogInRlbGVncmFtIn0sICIyMjU2IjogeyJob3RlbF9pZCI6IDExNzkxLCAicGxhdGZvcm0iOiAibWF4In0sICIyMjQ3IjogeyJob3RlbF9pZCI6IDI2ODQ0LCAicGxhdGZvcm0iOiAidGVsZWdyYW0ifSwgIjIyNTciOiB7ImhvdGVsX2lkIjogMjY4NDQsICJwbGF0Zm9ybSI6ICJtYXgifSwgIjIyNDgiOiB7ImhvdGVsX2lkIjogMjUyMiwgInBsYXRmb3JtIjogInRlbGVncmFtIn0sICIyMjU4IjogeyJob3RlbF9pZCI6IDI1MjIsICJwbGF0Zm9ybSI6ICJtYXgifSwgIjIyNDkiOiB7ImhvdGVsX2lkIjogMTcwMywgInBsYXRmb3JtIjogInRlbGVncmFtIn0sICIyMjU5IjogeyJob3RlbF9pZCI6IDE3MDMsICJwbGF0Zm9ybSI6ICJtYXgifSwgIjIyNTAiOiB7ImhvdGVsX2lkIjogMTE3NTMsICJwbGF0Zm9ybSI6ICJ0ZWxlZ3JhbSJ9LCAiMjI2MCI6IHsiaG90ZWxfaWQiOiAxMTc1MywgInBsYXRmb3JtIjogIm1heCJ9LCAiMjI1MSI6IHsiaG90ZWxfaWQiOiAyNzIxLCAicGxhdGZvcm0iOiAidGVsZWdyYW0ifSwgIjIyNjEiOiB7ImhvdGVsX2lkIjogMjcyMSwgInBsYXRmb3JtIjogIm1heCJ9LCAiMjI1MiI6IHsiaG90ZWxfaWQiOiA3NzY4NSwgInBsYXRmb3JtIjogInRlbGVncmFtIn0sICIyMjYyIjogeyJob3RlbF9pZCI6IDc3Njg1LCAicGxhdGZvcm0iOiAibWF4In0sICIyMjUzIjogeyJob3RlbF9pZCI6IDE1OTEwLCAicGxhdGZvcm0iOiAidGVsZWdyYW0ifSwgIjIyNjMiOiB7ImhvdGVsX2lkIjogMTU5MTAsICJwbGF0Zm9ybSI6ICJtYXgifSwgIjIyNjQiOiB7ImhvdGVsX2lkIjogMzMxLCAicGxhdGZvcm0iOiAidGVsZWdyYW0ifSwgIjIyNzQiOiB7ImhvdGVsX2lkIjogMzMxLCAicGxhdGZvcm0iOiAibWF4In0sICIyMjY1IjogeyJob3RlbF9pZCI6IDI3OTQsICJwbGF0Zm9ybSI6ICJ0ZWxlZ3JhbSJ9LCAiMjI3NSI6IHsiaG90ZWxfaWQiOiAyNzk0LCAicGxhdGZvcm0iOiAibWF4In0sICIyMjY2IjogeyJob3RlbF9pZCI6IDMzNTMxLCAicGxhdGZvcm0iOiAidGVsZWdyYW0ifSwgIjIyNzYiOiB7ImhvdGVsX2lkIjogMzM1MzEsICJwbGF0Zm9ybSI6ICJtYXgifSwgIjIyNjciOiB7ImhvdGVsX2lkIjogMzMwLCAicGxhdGZvcm0iOiAidGVsZWdyYW0ifSwgIjIyNzciOiB7ImhvdGVsX2lkIjogMzMwLCAicGxhdGZvcm0iOiAibWF4In0sICIyMjY4IjogeyJob3RlbF9pZCI6IDExODQ3LCAicGxhdGZvcm0iOiAidGVsZWdyYW0ifSwgIjIyNzgiOiB7ImhvdGVsX2lkIjogMTE4NDcsICJwbGF0Zm9ybSI6ICJtYXgifSwgIjIyNjkiOiB7ImhvdGVsX2lkIjogMTE4NTEsICJwbGF0Zm9ybSI6ICJ0ZWxlZ3JhbSJ9LCAiMjI3OSI6IHsiaG90ZWxfaWQiOiAxMTg1MSwgInBsYXRmb3JtIjogIm1heCJ9LCAiMjI3MCI6IHsiaG90ZWxfaWQiOiAxNzYwOCwgInBsYXRmb3JtIjogInRlbGVncmFtIn0sICIyMjgwIjogeyJob3RlbF9pZCI6IDE3NjA4LCAicGxhdGZvcm0iOiAibWF4In0sICIyMjcxIjogeyJob3RlbF9pZCI6IDQzNzQzLCAicGxhdGZvcm0iOiAidGVsZWdyYW0ifSwgIjIyODEiOiB7ImhvdGVsX2lkIjogNDM3NDMsICJwbGF0Zm9ybSI6ICJtYXgifSwgIjIyNzIiOiB7ImhvdGVsX2lkIjogNzYyODgsICJwbGF0Zm9ybSI6ICJ0ZWxlZ3JhbSJ9LCAiMjI4MiI6IHsiaG90ZWxfaWQiOiA3NjI4OCwgInBsYXRmb3JtIjogIm1heCJ9LCAiMjI3MyI6IHsiaG90ZWxfaWQiOiA3NzgxMCwgInBsYXRmb3JtIjogInRlbGVncmFtIn0sICIyMjgzIjogeyJob3RlbF9pZCI6IDc3ODEwLCAicGxhdGZvcm0iOiAibWF4In0sICIyMzQ0IjogeyJob3RlbF9pZCI6IDQ1MzMsICJwbGF0Zm9ybSI6ICJ0ZWxlZ3JhbSJ9LCAiMjM0NyI6IHsiaG90ZWxfaWQiOiA0NTMzLCAicGxhdGZvcm0iOiAibWF4In0sICIyMzQ1IjogeyJob3RlbF9pZCI6IDExMzk3OCwgInBsYXRmb3JtIjogInRlbGVncmFtIn0sICIyMzQ4IjogeyJob3RlbF9pZCI6IDExMzk3OCwgInBsYXRmb3JtIjogIm1heCJ9LCAiMjM0NiI6IHsiaG90ZWxfaWQiOiA4MDc0OCwgInBsYXRmb3JtIjogInRlbGVncmFtIn0sICIyMzQ5IjogeyJob3RlbF9pZCI6IDgwNzQ4LCAicGxhdGZvcm0iOiAibWF4In0sICIyMzYwIjogeyJob3RlbF9pZCI6IDE1ODksICJwbGF0Zm9ybSI6ICJ0ZWxlZ3JhbSJ9LCAiMjM3OCI6IHsiaG90ZWxfaWQiOiAxNTg5LCAicGxhdGZvcm0iOiAibWF4In0sICIyMzYxIjogeyJob3RlbF9pZCI6IDEyNzM0OSwgInBsYXRmb3JtIjogInRlbGVncmFtIn0sICIyMzc5IjogeyJob3RlbF9pZCI6IDEyNzM0OSwgInBsYXRmb3JtIjogIm1heCJ9LCAiMjM2MiI6IHsiaG90ZWxfaWQiOiAxMTU2NzcsICJwbGF0Zm9ybSI6ICJ0ZWxlZ3JhbSJ9LCAiMjM4MCI6IHsiaG90ZWxfaWQiOiAxMTU2NzcsICJwbGF0Zm9ybSI6ICJtYXgifSwgIjIzNjMiOiB7ImhvdGVsX2lkIjogMjE2MSwgInBsYXRmb3JtIjogInRlbGVncmFtIn0sICIyMzgxIjogeyJob3RlbF9pZCI6IDIxNjEsICJwbGF0Zm9ybSI6ICJtYXgifSwgIjIzNzAiOiB7ImhvdGVsX2lkIjogMjM2LCAicGxhdGZvcm0iOiAidGVsZWdyYW0ifSwgIjIzODIiOiB7ImhvdGVsX2lkIjogMjM2LCAicGxhdGZvcm0iOiAibWF4In0sICIyMzcxIjogeyJob3RlbF9pZCI6IDEzODUzLCAicGxhdGZvcm0iOiAidGVsZWdyYW0ifSwgIjIzODMiOiB7ImhvdGVsX2lkIjogMTM4NTMsICJwbGF0Zm9ybSI6ICJtYXgifSwgIjIzNzIiOiB7ImhvdGVsX2lkIjogNDg3OTUsICJwbGF0Zm9ybSI6ICJ0ZWxlZ3JhbSJ9LCAiMjM4NCI6IHsiaG90ZWxfaWQiOiA0ODc5NSwgInBsYXRmb3JtIjogIm1heCJ9LCAiMjM3MyI6IHsiaG90ZWxfaWQiOiAxMjEwNCwgInBsYXRmb3JtIjogInRlbGVncmFtIn0sICIyMzg1IjogeyJob3RlbF9pZCI6IDEyMTA0LCAicGxhdGZvcm0iOiAibWF4In0sICIyMzc0IjogeyJob3RlbF9pZCI6IDI2ODYsICJwbGF0Zm9ybSI6ICJ0ZWxlZ3JhbSJ9LCAiMjM4NiI6IHsiaG90ZWxfaWQiOiAyNjg2LCAicGxhdGZvcm0iOiAibWF4In0sICIyMzc1IjogeyJob3RlbF9pZCI6IDE1MTgsICJwbGF0Zm9ybSI6ICJ0ZWxlZ3JhbSJ9LCAiMjM4NyI6IHsiaG90ZWxfaWQiOiAxNTE4LCAicGxhdGZvcm0iOiAibWF4In0sICIyMzc2IjogeyJob3RlbF9pZCI6IDY0MzMwLCAicGxhdGZvcm0iOiAidGVsZWdyYW0ifSwgIjIzODgiOiB7ImhvdGVsX2lkIjogNjQzMzAsICJwbGF0Zm9ybSI6ICJtYXgifSwgIjIzNzciOiB7ImhvdGVsX2lkIjogNTc2ODIsICJwbGF0Zm9ybSI6ICJ0ZWxlZ3JhbSJ9LCAiMjM4OSI6IHsiaG90ZWxfaWQiOiA1NzY4MiwgInBsYXRmb3JtIjogIm1heCJ9fQ==',true),true,64,JSON_THROW_ON_ERROR);\n\
+        $pdo = ConversationDb::connection();\n$pdo->exec('SET SESSION TRANSACTION\
+        \ READ ONLY');\n$pdo->beginTransaction();\n$result = ['installed_sha' => $installed,\
+        \ 'checked_at' => gmdate(DATE_ATOM),\n    'native_hotel_ids' => array_column($manifest,\
+        \ 0), 'channels' => [], 'matches' => []];\ntry {\n    $query = $pdo->prepare('SELECT\
+        \ p.id, p.current_version_id, v.snapshot_json, v.state, v.receipt_json, v.write_attempts,\
+        \ v.error_reason\n        FROM post_publications p JOIN post_versions v ON\
+        \ v.id = p.current_version_id\n        WHERE p.post_channel_id = ? ORDER BY\
+        \ p.id');\n    foreach (['telegram' => 10, 'max' => 9] as $platform => $channel)\
+        \ {\n        $query->execute([$channel]);\n        $rows = $query->fetchAll(PDO::FETCH_ASSOC);\n\
+        \        if (count($rows) < 1702) {\n            throw new RuntimeException('Publication\
+        \ registry is below the verified baseline');\n        }\n        $result['channels'][$platform]\
         \ = count($rows);\n        foreach ($rows as $record) {\n            $post\
         \ = json_decode($record['snapshot_json'], true, 64, JSON_THROW_ON_ERROR);\n\
         \            $title = explode(\"\\n\", (string)($post['text'] ?? ''), 2)[0];\n\
         \            $metadata = $post['metadata'] ?? [];\n            $native = (int)($metadata['hotel_catalog_id']\
         \ ?? 0);\n            \n            foreach ($manifest as [$id, $aliases])\
         \ {\n                $reason = [];\n                if ($native === $id ||\
-        \ ($metadata['logical_id'] ?? '') === \"commercial-hotel-$id-v1\") {\n   \
-        \                 $reason[] = 'identity';\n                }\n           \
-        \     foreach ($aliases as $alias) {\n                    if ($alias !== ''\
-        \ && mb_stripos($title, $alias, 0, 'UTF-8') !== false) {\n               \
-        \         $reason[] = 'title';\n                        break;\n         \
-        \           }\n                }\n                if ($reason !== []) {\n\
-        \                    $result['matches'][] = ['requested_id' => $id, 'registry_hotel_id'\
+        \ ($metadata['logical_id'] ?? '') === \"commercial-hotel-$id-v1\" || (isset($original[(string)$record['id']])\
+        \ && $original[(string)$record['id']]['hotel_id']===$id && $original[(string)$record['id']]['platform']===$platform))\
+        \ {\n                    $reason[] = 'identity';\n                }\n    \
+        \            foreach ($aliases as $alias) {\n                    if ($alias\
+        \ !== '' && mb_stripos($title, $alias, 0, 'UTF-8') !== false) {\n        \
+        \                $reason[] = 'title';\n                        break;\n  \
+        \                  }\n                }\n                if ($reason !== [])\
+        \ {\n                    $result['matches'][] = ['requested_id' => $id, 'registry_hotel_id'\
         \ => $native,\n                        'platform' => $platform, 'publication_id'\
         \ => (int)$record['id'],\n                        'version_id' => (int)$record['current_version_id'],\
         \ 'reason' => $reason,\n                        'title' => mb_substr($title,\
-        \ 0, 180, 'UTF-8'),'state'=>$record['state'],'write_attempts'=>(int)$record['write_attempts'],'error_reason'=>$record['error_reason'],'snapshot_sha256'=>hash('sha256',$record['snapshot_json']),'text_sha256'=>hash('sha256',(string)($post['text']??'')),'receipt_sha256'=>hash('sha256',(string)$record['receipt_json']),'receipt_flags'=>array_intersect_key(json_decode((string)$record['receipt_json'],true)??[],array_flip(['button_verified','content_preserved','verified','body_photo_button_verified']))];\n\
+        \ 0, 180, 'UTF-8'),'metadata_identity'=>array_intersect_key($metadata,array_flip(['hotel_catalog_id','hotel_id','tourvisor_hotel_id','logical_id'])),'state'=>$record['state'],'write_attempts'=>(int)$record['write_attempts'],'error_reason'=>$record['error_reason'],'snapshot_sha256'=>hash('sha256',$record['snapshot_json']),'text_sha256'=>hash('sha256',(string)($post['text']??'')),'receipt_sha256'=>hash('sha256',(string)$record['receipt_json']),'receipt_flags'=>array_intersect_key(json_decode((string)$record['receipt_json'],true)??[],array_flip(['button_verified','content_preserved','verified','body_photo_button_verified']))];\n\
         \                }\n            }\n        }\n    }\n} finally {\n    $pdo->rollBack();\n\
         }\necho json_encode($result, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),\
         \ PHP_EOL;\nPHP\nphp -l pub/registry-read.php\n"
@@ -142,7 +143,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
-        name: feed55-current-registry-read
+        name: feed55-exact-original-registry-read
         path: pub/registry-receipt.json
         retention-days: 7
         if-no-files-found: warn
