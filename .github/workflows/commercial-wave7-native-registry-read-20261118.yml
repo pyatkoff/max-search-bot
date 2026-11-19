@@ -1,43 +1,83 @@
-name: Read public hotel identities in both registries for W20 deduplication
+name: Read post-W20 three accepted hotel identities; zero provider writes
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 permissions:
   contents: read
+  actions: read
 jobs:
   registry-screen:
     if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
-      && github.event.before == '30ed044f4848eb7f668ff1cbd354ac24ab6f1274' && github.run_attempt
+      && github.event.before == '4aacc65b49648d9b38be7801d971c11379838305' && github.run_attempt
       == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
+    - name: Require current installed release and original closure gates
+      env:
+        GH_TOKEN: ${{ github.token }}
+      shell: bash
+      run: 'set -euo pipefail
+
+        python3 - <<''PY''
+
+        import subprocess,json,base64
+
+        def data(p):return json.loads(subprocess.check_output([''gh'',''api'',''repos/pyatkoff/max-search-bot/''+p],timeout=60))
+
+        app=''9b1e17f94f39d8d2cc6260a9a6f45b1d1f38bb3e''
+
+        assert data(''git/ref/heads/main'')[''object''][''sha'']==app
+
+        d=json.loads(base64.b64decode(data(''contents/deploy_status.json?ref=diagnostics'')[''content'']));r=d[''repository_release'']
+
+        assert r[''kind'']==''installed'' and r[''repository_sha'']==r[''application_sha'']==d[''sha'']==app
+
+        assert str(r[''release''][''run_id''])==''44595114412'' and all(s[''result'']==''success''
+        for s in r[''stages''].values())
+
+        required={''deploy.yml'',''retired-domain-guard.yml'',''max-tls-preflight.yml'',''max-production-health.yml'',''telegram-production-health.yml'',''publish-conversation-diagnostics.yml'',''live-session-diagnostics.yml'',''tour-selection-host.yml'',''modeled-conversion-monitor.yml''}
+
+        g={v[''path''].rsplit(''/'',1)[-1]:v for v in r[''closure''][''gates'']};assert
+        required<=g.keys()
+
+        assert all(g[x][''conclusion'']==''success'' and g[x][''head_sha'']==app and
+        g[x][''run_attempt'']==1 for x in required)
+
+        assert ''PR1631: установлено, выпуск свободен'' in data(''issues/comments/6682640708'')[''body'']
+
+        print(''CURRENT_EXACT_RELEASE_ADMITTED_READ_ONLY'')
+
+        PY
+
+        '
     - name: Prepare the read-only HOTEL CONTENT check
       shell: bash
       run: "set -euo pipefail\numask 077\nmkdir -p pub\ncat > pub/registry-read.php\
         \ <<'PHP'\n<?php\ndeclare(strict_types=1);\n\nini_set('display_errors', '0');\n\
         $installed = trim((string)shell_exec('git rev-parse HEAD'));\nif (PHP_SAPI\
-        \ !== 'cli' || $installed !== 'bd8e248f7138ea75cb9fda2dcf44beb631c633a5')\
+        \ !== 'cli' || $installed !== '9b1e17f94f39d8d2cc6260a9a6f45b1d1f38bb3e')\
         \ {\n    fwrite(STDERR, \"Installed application changed before registry read\\\
         n\");\n    exit(2);\n}\nif (trim((string)shell_exec('git status --porcelain\
         \ --untracked-files=no')) !== '') {\n    fwrite(STDERR, \"Tracked production\
         \ files differ from the installed release\\n\");\n    exit(2);\n}\n$pins =\
-        \ json_decode(base64_decode('eyJpbnRlZ3JhdGlvbnMvQ2hhbm5lbFBvc3RBcGlUcmFuc3BvcnQucGhwIjogIjMwMDYzNGQ3N2NiOWZkZGY1MWFkZjk4Njk5NzRmOTU2Y2NhNmUzZjkiLCAibWlncmF0aW9ucy8wMzNfY2hhbm5lbF9wb3N0X2NvbnRleHQuc3FsIjogIjA1MzA0NTgwMzBhNGJmZTZiNmNjNTVkMWU1ZTQ0MTc0NWMyOWI5NDciLCAibWlncmF0aW9ucy8wMzZfY2hhbm5lbF9wb3N0X21lbWJlcl9kZWxpdmVyeS5zcWwiOiAiMWJkYTQ2M2U1MmIzMzEzMGFkMTI3NTJkZGVmNGVlNWM5MjY5OWMwNSIsICJtaWdyYXRpb25zLzA0MF9jaGFubmVsX3Bvc3RfcmVjb25jaWxpYXRpb24uc3FsIjogIjBmMjRiODM4ZWFjZDQ1MzMzYzVhZGU5YTI5OTFkMDYwNDg4YzYwMzUiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RBZG1pblNlcnZpY2UucGhwIjogImI4MGVlZmM4MDEwNTRiZmU2ZmRiNThlYzM0NWVjZGY2ODdiMmU4OWEiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RBdXRvbWF0aW9uU2VydmljZS5waHAiOiAiYzYzODZlMTU1ZDQyYmM4Mzk3MGVkYzk1ZjM1YjNlYmViNTE0MDUzMyIsICJzZXJ2aWNlcy9DaGFubmVsUG9zdEJ1dHRvblRyYW5zcG9ydC5waHAiOiAiN2I2NzExZjFkZTYzMDAwMzQ2ZDhlNTc4OWYyZGJiN2Y3MjU1MzViOCIsICJzZXJ2aWNlcy9DaGFubmVsUG9zdEVudHJ5U2VydmljZS5waHAiOiAiMTk4MmZmNzM2ODc2M2VkZjhiNzIzOGMzMTQyZTNjYzI4NTc5ZTk5MSIsICJzZXJ2aWNlcy9DaGFubmVsUG9zdE1heEFsYnVtUmVjb3ZlcnkucGhwIjogImRlMjY2Y2QwNjg1ODdjYzNiMmZmODNmMzA4YTk2NmVhNjY4ODdhMDQiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RNZWRpYVNlcnZpY2UucGhwIjogImY3OTRlZmQwZjZmMjRkZjkxNmUxODkwOWZmNjI4MWIwYmM5Mjg0MzMiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RNZW1iZXJEZWxpdmVyeVNlcnZpY2UucGhwIjogIjIwYzFkNzk4NDg5OGIyYTU5OTZhNWY5ZTIwZTRkMmQ4YzIwYjQ3NzgiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RSZWNvbmNpbGlhdGlvblNlcnZpY2UucGhwIjogIjFmYTI2MGU5NzIwYTg0MjEyMjdlY2JlNzQwYmZiZTMzYTQyZTM5OGQiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RSZWNvbmNpbGlhdGlvblN0YXRlLnBocCI6ICJkOTU4M2NlY2E4MGQxNDI0YTQ0YWRlMzU2MWMyMTI4MmEyM2E1MmYwIiwgInNlcnZpY2VzL0NoYW5uZWxQb3N0UmVnaXN0cnlTZXJ2aWNlLnBocCI6ICJjZjQyYTQ0MjU3ZDFhNThkMWZmNTE2Njc4NjE1Y2Y5ZDAxZjQ1YjU1IiwgInNlcnZpY2VzL0NoYW5uZWxQb3N0UnVudGltZS5waHAiOiAiMmYxZGQ5Yjc3NDc0ZmRiYWE5MmYwNDAyZjNiMGFhMTcwYzU5NTQ3NCIsICJzZXJ2aWNlcy9DaGFubmVsUG9zdFRlbGVncmFtQWxidW0ucGhwIjogImZhYTFhMTRiYzI3OWE0YWYzMzkzNjI4MjEyNmJmMGQ0NmUzNDMwNDAiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RXZWJob29rQ29uZmlnU2VydmljZS5waHAiOiAiZDVmZGNiMDU2MDg4ZjFlM2E1NDFiNDA0NjMyNWQ5N2VlZjY0MTdkOSIsICJzZXJ2aWNlcy9Db252ZXJzYXRpb25EYi5waHAiOiAiYmI2MjgxZmFmNTVhY2E3YmVlYWU3ZjhhNTczODlkMTk3NTE5MzZmNyIsICJzZXJ2aWNlcy9NYXhUbHNDb25maWcucGhwIjogIjAzMmMwMjExZWUzZjM5YzZmMGQyN2M2NjlhYmQ1YjQ2N2UzMjFkZWEiLCAic2VydmljZXMvTWF4VHJhbnNwb3J0LnBocCI6ICIyY2I0Zjg3ODZiNDcwNGE4ZTYyYTNhOWM0MGRjMmNjNzNkYWQ2MTU5IiwgInNlcnZpY2VzL1Byb2plY3RDb25maWcucGhwIjogIjYzYzE3YzgxMDM0MTJmOGNmZjhjZGNjNGJiYjA2MmU3NDQxMDZhZjkiLCAic2VydmljZXMvUHJvamVjdENvbmZpZ3VyYXRpb24ucGhwIjogIjA3MDE5ZDQ3M2M1ODhlMzM4NmFjZTQyOTc3ZGI5MzA5MmU4MTEyZTMifQ==',\
+        \ json_decode(base64_decode('eyJpbnRlZ3JhdGlvbnMvQ2hhbm5lbFBvc3RBcGlUcmFuc3BvcnQucGhwIjogIjcwNGMxNTg3ZTU5YTVjZmY2YTMzYzY1NjI5NmFmMGNiMjliNGJmZDUiLCAibWlncmF0aW9ucy8wMzNfY2hhbm5lbF9wb3N0X2NvbnRleHQuc3FsIjogIjA1MzA0NTgwMzBhNGJmZTZiNmNjNTVkMWU1ZTQ0MTc0NWMyOWI5NDciLCAibWlncmF0aW9ucy8wMzZfY2hhbm5lbF9wb3N0X21lbWJlcl9kZWxpdmVyeS5zcWwiOiAiMWJkYTQ2M2U1MmIzMzEzMGFkMTI3NTJkZGVmNGVlNWM5MjY5OWMwNSIsICJtaWdyYXRpb25zLzA0MF9jaGFubmVsX3Bvc3RfcmVjb25jaWxpYXRpb24uc3FsIjogIjBmMjRiODM4ZWFjZDQ1MzMzYzVhZGU5YTI5OTFkMDYwNDg4YzYwMzUiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RBZG1pblNlcnZpY2UucGhwIjogImI4MGVlZmM4MDEwNTRiZmU2ZmRiNThlYzM0NWVjZGY2ODdiMmU4OWEiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RBdXRvbWF0aW9uU2VydmljZS5waHAiOiAiYzYzODZlMTU1ZDQyYmM4Mzk3MGVkYzk1ZjM1YjNlYmViNTE0MDUzMyIsICJzZXJ2aWNlcy9DaGFubmVsUG9zdEJ1dHRvblRyYW5zcG9ydC5waHAiOiAiN2I2NzExZjFkZTYzMDAwMzQ2ZDhlNTc4OWYyZGJiN2Y3MjU1MzViOCIsICJzZXJ2aWNlcy9DaGFubmVsUG9zdEVudHJ5U2VydmljZS5waHAiOiAiMTk4MmZmNzM2ODc2M2VkZjhiNzIzOGMzMTQyZTNjYzI4NTc5ZTk5MSIsICJzZXJ2aWNlcy9DaGFubmVsUG9zdE1heEFsYnVtUmVjb3ZlcnkucGhwIjogImRlMjY2Y2QwNjg1ODdjYzNiMmZmODNmMzA4YTk2NmVhNjY4ODdhMDQiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RNZWRpYVNlcnZpY2UucGhwIjogImY3OTRlZmQwZjZmMjRkZjkxNmUxODkwOWZmNjI4MWIwYmM5Mjg0MzMiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RNZW1iZXJEZWxpdmVyeVNlcnZpY2UucGhwIjogIjIwYzFkNzk4NDg5OGIyYTU5OTZhNWY5ZTIwZTRkMmQ4YzIwYjQ3NzgiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RSZWNvbmNpbGlhdGlvblNlcnZpY2UucGhwIjogIjFmYTI2MGU5NzIwYTg0MjEyMjdlY2JlNzQwYmZiZTMzYTQyZTM5OGQiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RSZWNvbmNpbGlhdGlvblN0YXRlLnBocCI6ICJkOTU4M2NlY2E4MGQxNDI0YTQ0YWRlMzU2MWMyMTI4MmEyM2E1MmYwIiwgInNlcnZpY2VzL0NoYW5uZWxQb3N0UmVnaXN0cnlTZXJ2aWNlLnBocCI6ICJjZjQyYTQ0MjU3ZDFhNThkMWZmNTE2Njc4NjE1Y2Y5ZDAxZjQ1YjU1IiwgInNlcnZpY2VzL0NoYW5uZWxQb3N0UnVudGltZS5waHAiOiAiMmYxZGQ5Yjc3NDc0ZmRiYWE5MmYwNDAyZjNiMGFhMTcwYzU5NTQ3NCIsICJzZXJ2aWNlcy9DaGFubmVsUG9zdFRlbGVncmFtQWxidW0ucGhwIjogImZhYTFhMTRiYzI3OWE0YWYzMzkzNjI4MjEyNmJmMGQ0NmUzNDMwNDAiLCAic2VydmljZXMvQ2hhbm5lbFBvc3RXZWJob29rQ29uZmlnU2VydmljZS5waHAiOiAiZDVmZGNiMDU2MDg4ZjFlM2E1NDFiNDA0NjMyNWQ5N2VlZjY0MTdkOSIsICJzZXJ2aWNlcy9Db252ZXJzYXRpb25EYi5waHAiOiAiYmI2MjgxZmFmNTVhY2E3YmVlYWU3ZjhhNTczODlkMTk3NTE5MzZmNyIsICJzZXJ2aWNlcy9NYXhUbHNDb25maWcucGhwIjogIjAzMmMwMjExZWUzZjM5YzZmMGQyN2M2NjlhYmQ1YjQ2N2UzMjFkZWEiLCAic2VydmljZXMvTWF4VHJhbnNwb3J0LnBocCI6ICIyY2I0Zjg3ODZiNDcwNGE4ZTYyYTNhOWM0MGRjMmNjNzNkYWQ2MTU5IiwgInNlcnZpY2VzL1Byb2plY3RDb25maWcucGhwIjogIjYzYzE3YzgxMDM0MTJmOGNmZjhjZGNjNGJiYjA2MmU3NDQxMDZhZjkiLCAic2VydmljZXMvUHJvamVjdENvbmZpZ3VyYXRpb24ucGhwIjogIjA3MDE5ZDQ3M2M1ODhlMzM4NmFjZTQyOTc3ZGI5MzA5MmU4MTEyZTMifQ==',\
         \ true), true, 64, JSON_THROW_ON_ERROR);\nforeach ($pins as $path => $expected)\
         \ {\n    if (trim((string)shell_exec('git hash-object -- ' . escapeshellarg($path)))\
         \ !== $expected) {\n        throw new RuntimeException('Pinned publication\
-        \ component differs from the installed release');\n    }\n}\n$manifest = [];\n\
-        \nob_start();\nrequire getcwd() . '/config.php';\nrequire_once getcwd() .\
-        \ '/services/ChannelPostRuntime.php';\nob_end_clean();\n\n$pdo = ConversationDb::connection();\n\
-        $pdo->exec('SET SESSION TRANSACTION READ ONLY');\n$pdo->beginTransaction();\n\
-        $result = ['installed_sha' => $installed, 'checked_at' => gmdate(DATE_ATOM),\n\
-        \    'native_hotel_ids' => array_column($manifest, 0), 'channels' => [], 'matches'\
-        \ => []];\ntry {\n    $query = $pdo->prepare('SELECT p.id, p.current_version_id,\
-        \ v.snapshot_json\n        FROM post_publications p JOIN post_versions v ON\
-        \ v.id = p.current_version_id\n        WHERE p.post_channel_id = ? ORDER BY\
-        \ p.id');\n    foreach (['telegram' => 10, 'max' => 9] as $platform => $channel)\
-        \ {\n        $query->execute([$channel]);\n        $rows = $query->fetchAll(PDO::FETCH_ASSOC);\n\
-        \        if (count($rows) < 1662) {\n            throw new RuntimeException('Publication\
+        \ component differs from the installed release');\n    }\n}\n$manifest = [[116719,['Bliss\
+        \ Hoi An','Bliss HoiAn']],[28569,['Twin Lotus']],[32354,['Phu Quoc Eco Beach','Eco\
+        \ Beach Resort']]];\n\nob_start();\nrequire getcwd() . '/config.php';\nrequire_once\
+        \ getcwd() . '/services/ChannelPostRuntime.php';\nob_end_clean();\n\n$pdo\
+        \ = ConversationDb::connection();\n$pdo->exec('SET SESSION TRANSACTION READ\
+        \ ONLY');\n$pdo->beginTransaction();\n$result = ['installed_sha' => $installed,\
+        \ 'checked_at' => gmdate(DATE_ATOM),\n    'native_hotel_ids' => array_column($manifest,\
+        \ 0), 'channels' => [], 'matches' => []];\ntry {\n    $query = $pdo->prepare('SELECT\
+        \ p.id, p.current_version_id, v.snapshot_json\n        FROM post_publications\
+        \ p JOIN post_versions v ON v.id = p.current_version_id\n        WHERE p.post_channel_id\
+        \ = ? ORDER BY p.id');\n    foreach (['telegram' => 10, 'max' => 9] as $platform\
+        \ => $channel) {\n        $query->execute([$channel]);\n        $rows = $query->fetchAll(PDO::FETCH_ASSOC);\n\
+        \        if (count($rows) < 1692) {\n            throw new RuntimeException('Publication\
         \ registry is below the verified baseline');\n        }\n        $result['channels'][$platform]\
         \ = count($rows);\n        foreach ($rows as $record) {\n            $post\
         \ = json_decode($record['snapshot_json'], true, 64, JSON_THROW_ON_ERROR);\n\
@@ -102,7 +142,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
-        name: wave20-published-identities-read
+        name: postw20-three-registry-read
         path: pub/registry-receipt.json
         retention-days: 30
         if-no-files-found: warn
@@ -115,3 +155,4 @@ jobs:
     - audit/content100-bot-publication-20261101
     paths:
     - .github/workflows/commercial-wave7-native-registry-read-20261118.yml
+
