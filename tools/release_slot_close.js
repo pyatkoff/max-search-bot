@@ -133,6 +133,7 @@ function gateState(snapshot, c, pending = []) {
   if(c.terminalRecovery)requireValue(String(own[0].id)===(c.priorWaveRecovery?release.PRIOR_WAVE_RECOVERY.run_id:c.unpublishedRecovery?release.UNPUBLISHED_TERMINAL_RECOVERY.run_id:
     c.gateRecovery?release.GATE_RECOVERY.run_id:release.TERMINAL_RECOVERY.run_id)
     &&own[0].status==='completed'&&own[0].conclusion==='failure','original_terminal_not_failed');
+  else if (c.skippedTerminal) requireValue(own[0].status === 'completed' && own[0].conclusion === 'success', 'original_terminal_not_skipped');
   else requireValue(own[0].status === 'in_progress' && own[0].conclusion === null, 'closer_not_active');
   return waiting ? 'waiting' : 'ready';
 }

@@ -1,0 +1,65 @@
+<?php
+declare(strict_types=1);
+
+require_once __DIR__.'/../services/PromotedHotelPriceWriter.php';
+
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
+const PROMOTED_APP = '/var/www/anytoour/data/www/app.anytoour.ru';
+const PROMOTED_OPERATIONS = '/var/www/anytoour/data/channel-post-operations';
+
+$lock = null;
+try {
+    if (realpath(__DIR__.'/..') !== PROMOTED_APP || count($argv) !== 2
+        || !in_array($argv[1], ['--inspect','--apply'], true)) throw new RuntimeException('invalid_invocation');
+    $apply = $argv[1] === '--apply';
+    $path = PROMOTED_OPERATIONS.'/monitor-price-after-collection-v1.jsonl';
+    if (!is_file($path) || is_link($path)) throw new RuntimeException('original_price_lock_missing');
+    $lock = fopen($path,'rb');
+    if (!$lock || !flock($lock, ($apply ? LOCK_EX : LOCK_SH) | LOCK_NB)) throw new RuntimeException('shared_editor_busy');
+    $journal = PROMOTED_OPERATIONS.'/promoted-hotel-price-revisions-v1';
+    if (is_link($journal)) throw new RuntimeException('invalid_journal_path');
+    if ($apply && !is_dir($journal) && !mkdir($journal,0700)) throw new RuntimeException('cannot_create_journal');
+    if (is_dir($journal) && (realpath($journal) !== $journal || (fileperms($journal) & 0077) !== 0)) {
+        throw new RuntimeException('invalid_journal_permissions');
+    }
+
+    $feed = PromotedHotelPriceWriter::publicBytes('https://app.anytoour.ru/feed/hotel-posts-all.xml');
+    $process = proc_open(['/usr/bin/python3',__DIR__.'/prepare_promoted_hotel_prices.py','-'],
+        [['pipe','r'],['pipe','w'],['file','/dev/null','w']], $pipes);
+    if (!is_resource($process)) throw new RuntimeException('price_planner_unavailable');
+    $sent = fwrite($pipes[0],$feed);
+    fclose($pipes[0]);
+    $result = stream_get_contents($pipes[1],100000);
+    fclose($pipes[1]);
+    if (proc_close($process) !== 0 || $sent !== strlen($feed) || !is_string($result)) {
+        throw new RuntimeException('price_planner_failed');
+    }
+    $plan = json_decode($result,true,32,JSON_THROW_ON_ERROR);
+    if (($plan['target_hotels'] ?? null) !== 19 || !is_array($plan['plans'] ?? null)
+        || ($plan['feed_sha256'] ?? null) !== hash('sha256',$feed)) throw new RuntimeException('price_plan_mismatch');
+
+    ob_start();
+    try {
+        require __DIR__.'/../config.php';
+        require_once __DIR__.'/../services/ChannelPostRuntime.php';
+        require_once __DIR__.'/../integrations/ChannelPostApiTransport.php';
+    } finally {
+        ob_end_clean();
+    }
+    $pdo = ConversationDb::connection();
+    $registry = new ChannelPostRegistryService($pdo);
+    $writer = new PromotedHotelPriceWriter($pdo,$registry,$journal);
+    $rows = $writer->run($plan['plans'],$apply);
+    echo 'PROMOTED_HOTEL_PRICE_RESULT='.json_encode(['mode'=>$argv[1],'feed_sha256'=>$plan['feed_sha256'],
+        'source_held'=>$plan['held'],'rows'=>$rows],JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES),PHP_EOL;
+} catch (Throwable $error) {
+    $reason = $error->getMessage();
+    echo 'PROMOTED_HOTEL_PRICE_ERROR='.(preg_match('/^[a-z0-9_]{1,100}$/D',$reason) ? $reason : 'runtime_failure'),PHP_EOL;
+    exit(1);
+} finally {
+    if (is_resource($lock)) fclose($lock);
+}
