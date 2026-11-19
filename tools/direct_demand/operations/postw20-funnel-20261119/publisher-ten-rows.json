@@ -1,0 +1,213 @@
+{
+  "status": "OFFLINE_ROWS_VALIDATED_AWAITING_NATIVE_PREFLIGHT_AND_OWNER_OPERATION",
+  "publication_targets": {
+    "telegram": "https://t.me/any_toour",
+    "max": "https://max.ru/channel_anytour"
+  },
+  "native_id_namespace": "Tourvisor",
+  "button_text": "✈️ Узнать стоимость тура",
+  "expected_new_full_pairs": 10,
+  "photo_freeze_commit": "19245abf0c3965e3472955159dfd3695683aff93",
+  "rows": [
+    {
+      "hotel_id": 116719,
+      "logical_id": "commercial-hotel-116719-v1",
+      "aliases": [
+        "Bliss Hoi An",
+        "Bliss Hoi An Beach Resort And Wellness",
+        "BLISS HOI AN BEACH RESORT AND WELLNESS"
+      ],
+      "text": "✈️ Туры в Bliss Hoi An — день у моря, вечер в старом Хойане\n📍 Пляж Биньминь, Вьетнам.\n\nУтром можно выйти из сада прямо на песок или проплыть несколько дорожек в 55-метровом бассейне у моря. А вечером — съездить в старый Хойан на ужин и прогулку среди фонарей.\n\nОтель стоит за городом. До исторического центра ходит бесплатный шаттл по расписанию. Место бронируют заранее.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "text_sha256": "c703324413e126dedb5c6a888cbd7885993c536337121319d6103e6ffa558ef3",
+      "photo_sha256": "cd10c49820d45569d6eaeb8f698d076133da86ac957035756c66ff00e87c18d9",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/19245abf0c3965e3472955159dfd3695683aff93/.github/traffic-publish/postw20-three-20261119/116719.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=116719",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216106.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/bliss-hoi-an-beach-resort-and-wellness-1216102.jpg"
+      ]
+    },
+    {
+      "hotel_id": 28569,
+      "logical_id": "commercial-hotel-28569-v1",
+      "aliases": [
+        "Twin Lotus",
+        "Twin Lotus Koh Lanta",
+        "TWIN LOTUS KOH LANTA"
+      ],
+      "text": "✈️ Туры в Twin Lotus — зимний отдых вдвоём на Ко-Ланте\n📍 Район пляжа Клонг-Дао, Таиланд.\n\nЗдесь можно выбрать виллу среди зелени или у самого пляжа. Если хочется плавать у себя, при бронировании ищите категорию Pool Villa.\n\nС 1 ноября по 30 апреля отель принимает только взрослых. Для поездки с детьми подойдут другие даты — с 1 мая по 31 октября.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "text_sha256": "43fb55cff639e61f2edfaa1107b92a6b058998e08667be92846a8fd8ce790d4a",
+      "photo_sha256": "ff135cab69c33888e0ca61f7ece481b6c3fb655502aa627093e20d8a60531bf1",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/19245abf0c3965e3472955159dfd3695683aff93/.github/traffic-publish/postw20-three-20261119/28569.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=28569",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413110.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/twin-lotus-koh-lanta-2413102.jpg"
+      ]
+    },
+    {
+      "hotel_id": 32354,
+      "logical_id": "commercial-hotel-32354-v1",
+      "aliases": [
+        "Phu Quoc Eco Beach Resort",
+        "PHU QUOC ECO BEACH RESORT"
+      ],
+      "text": "✈️ Туры в Phu Quoc Eco Beach Resort — бунгало на зелёном берегу Фукуока\n📍 Пляж Онг-Ланг, Вьетнам.\n\nУтром здесь можно искупаться в море или в открытом бассейне с видом на воду. При выборе бунгало посмотрите на его расположение. Superior Garden View стоит среди деревьев на склоне, примерно в ста метрах от пляжа. Для отдыха у самого берега выбирайте категорию Beach Front.\n\nНажмите кнопку под постом — подберём тур на ваши даты.",
+      "text_sha256": "09584b21ccee00894b2431e42f32b26bdd3e257a8026bef6b8abf88b967aaf6f",
+      "photo_sha256": "574eaf462914b5808f9574fb6ed06a93286b6ae54df2d912b443e0242139c5ef",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/19245abf0c3965e3472955159dfd3695683aff93/.github/traffic-publish/postw20-three-20261119/32354.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=32354",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/phu-quoc-eco-beach-resort-27703402.jpg"
+      ]
+    },
+    {
+      "hotel_id": 8017,
+      "logical_id": "commercial-hotel-8017-v1",
+      "aliases": [
+        "Layana Resort & Spa"
+      ],
+      "text": "✈️ Туры в Layana Resort & Spa\n📍 Ко Ланта, Таиланд.\n\nLayana стоит на пляже Пхра-Аэ. Можно начать день с прогулки вдоль воды, а после искупаться в панорамном бассейне с солёной водой.\n\nОтель принимает гостей с 18 лет. Подойдёт, если хотите провести отпуск вдвоём.",
+      "text_sha256": "46e8ec026a5c5fd85f9283adcad40efa8f8f44b2a733da43eaead06ffca34209",
+      "photo_sha256": "fb944ff012b75dbafd83e470167f8159fd8c3c6348f3ebde62481719bdf2e9dd",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/19245abf0c3965e3472955159dfd3695683aff93/.github/traffic-publish/postw20-seven-20261119/8017.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8017",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/layana-resort-spa-1.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/layana-resort-spa-0.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/layana-resort-spa-4.jpg"
+      ]
+    },
+    {
+      "hotel_id": 4372,
+      "logical_id": "commercial-hotel-4372-v1",
+      "aliases": [
+        "Rawi Warin Resort & Spa"
+      ],
+      "text": "✈️ Туры в Rawi Warin Resort & Spa\n📍 Ко Ланта, Таиланд.\n\nУ большого бассейна вид на море, а у детей есть своя игровая комната Elephant. Любителям плавать есть где развернуться — площадь панорамного бассейна составляет 1 000 м².\n\nУ отеля есть и отдельный бассейн в море. В сезон муссонов его закрывают.",
+      "text_sha256": "e561eb7e4202db6898dd1d1301962b07807af5e525e6267855875d69619a8edb",
+      "photo_sha256": "5d3d0aa63716781129cfef87891ed12b62e06e8715665c8c6be2d3108986b78a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/19245abf0c3965e3472955159dfd3695683aff93/.github/traffic-publish/postw20-seven-20261119/4372.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4372",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/rawi-warin-resort-spa-91614203.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/rawi-warin-resort-spa-91614200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/rawi-warin-resort-spa-91614204.jpg"
+      ]
+    },
+    {
+      "hotel_id": 3034,
+      "logical_id": "commercial-hotel-3034-v1",
+      "aliases": [
+        "The Tubkaak Krabi Boutique Resort"
+      ],
+      "text": "✈️ Туры в The Tubkaak Krabi Boutique Resort\n📍 Краби, Таиланд.\n\nОтель стоит прямо на пляже. Если хотите просыпаться с видом на море, при выборе сравните Seaview и Ocean View Pool Villa. Большинство номеров Superior и Deluxe выходят к основному бассейну.\n\nДля поездки семьёй учтите, что соединённых внутренней дверью номеров здесь нет.",
+      "text_sha256": "66d5ea2faab3e7bed5beeac9db4079a4708eb7345d5686eba34afd3d6f1cc95c",
+      "photo_sha256": "b7ca003205d6b300a38bb2c67b4ffd5973772eb0c4509f907a90fbdcc3c55245",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/19245abf0c3965e3472955159dfd3695683aff93/.github/traffic-publish/postw20-seven-20261119/3034.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=3034",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/the-tubkaak-resort-10979401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/the-tubkaak-resort-10979433.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/the-tubkaak-resort-10979400.jpg"
+      ]
+    },
+    {
+      "hotel_id": 12189,
+      "logical_id": "commercial-hotel-12189-v1",
+      "aliases": [
+        "Casa de La Flora"
+      ],
+      "text": "✈️ Туры в Casa de La Flora\n📍 Као Лак, Таиланд.\n\nВиллы с большими окнами стоят на берегу Андаманского моря. Для поездки вдвоём можно выбрать Studio Pool Villa, а если хотите поселиться у самого моря — Beachfront Pool Villa.\n\nС маленькими детьми стоит рассмотреть другой вариант. Сам отель предупреждает, что здесь нет специальных средств безопасности для детей.",
+      "text_sha256": "f460d02776dfe5ec76a3361a7bde3e146daeef918190c68750bd694dd95ff501",
+      "photo_sha256": "385ea2bc4e4cab84afe39572bfcd1994d90e9fa30d928c43d264a35f2998d241",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/19245abf0c3965e3472955159dfd3695683aff93/.github/traffic-publish/postw20-seven-20261119/12189.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=12189",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/casa-de-la-flora-49458100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/casa-de-la-flora-49458101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/casa-de-la-flora-49458103.jpg"
+      ]
+    },
+    {
+      "hotel_id": 4960,
+      "logical_id": "commercial-hotel-4960-v1",
+      "aliases": [
+        "Mango Bay Resort"
+      ],
+      "text": "✈️ Туры в Mango Bay Resort\n📍 Фукуок, Вьетнам.\n\nНа пляже Онг Ланг можно поселиться в деревянном бунгало с террасой. У Deluxe Sea View Plantation терраса выходит к морю. Телевизоров в отеле нет.\n\nЕсли для сна важна прохлада во всей комнате, обратите внимание на категории Premium Plantation с пометкой AC. Система Evening Breeze в других вариантах охлаждает зону вокруг кровати.",
+      "text_sha256": "4333e86ebe512479314f21d0e664087c2175ef54409e69d8f82d89f10ccfc19c",
+      "photo_sha256": "e2171589cf0423d34034cbba661a6278a1d98c233517b2de5e79fe4cc028dcfd",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/19245abf0c3965e3472955159dfd3695683aff93/.github/traffic-publish/postw20-seven-20261119/4960.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4960",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/mango-bay-14.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/mango-bay-0.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/mango-bay-8.jpg"
+      ]
+    },
+    {
+      "hotel_id": 41504,
+      "logical_id": "commercial-hotel-41504-v1",
+      "aliases": [
+        "Vedana Lagoon Resort & Spa"
+      ],
+      "text": "✈️ Туры в Vedana Lagoon Resort & Spa\n📍 район Хюэ, Вьетнам.\n\nЗдесь просыпаются у лагуны Тамзянг. На территории три бассейна, в том числе крытый с подогревом. На прогулку к цитадели Хюэ можно отправиться на бесплатном автобусе отеля.\n\nДо морского пляжа Каньзыонг тоже возят по расписанию, когда позволяет погода. Место просят бронировать хотя бы за 12 часов.",
+      "text_sha256": "e9867df07cb8dcb0683045705798927ae069639eb2ea6a413112ed301afce0be",
+      "photo_sha256": "1147a093d5aabcaf858fcc23e681377438be1038aa85ad920d19bc657f4a71df",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/19245abf0c3965e3472955159dfd3695683aff93/.github/traffic-publish/postw20-seven-20261119/41504.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=41504",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vedana-lagoon-resort-spa-3.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vedana-lagoon-resort-spa-0.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vedana-lagoon-resort-spa-2.jpg"
+      ]
+    },
+    {
+      "hotel_id": 4965,
+      "logical_id": "commercial-hotel-4965-v1",
+      "aliases": [
+        "Chen Sea Resort & Spa Phu Quoc"
+      ],
+      "text": "✈️ Туры в Chen Sea Resort & Spa Phu Quoc\n📍 Фукуок, Вьетнам.\n\nНебольшой курорт на западном берегу Фукуока — всего 36 вилл. Для поездки вдвоём есть виллы у пляжа, а для семьи — вариант с двумя спальнями и собственным бассейном.\n\nЕсли едете ради водных развлечений, важен сезон. Во время муссона отель их не проводит, а для плавания остаётся панорамный бассейн.",
+      "text_sha256": "a4cfd6fd4ad4e66b22403f842e909788d4a42762afaf52c319dd7b430560faf9",
+      "photo_sha256": "0d78ef8c6926ae65dccf02dcc857f1d2c7ad7759a7ae422de50812743c61ebb2",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/19245abf0c3965e3472955159dfd3695683aff93/.github/traffic-publish/postw20-seven-20261119/4965.png",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4965",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/4965-79796801.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/4965-79796802.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/4965-79796803.jpg"
+      ]
+    }
+  ],
+  "source_packet_first_three": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e8b269afd513350abf6d13d77d03cc70fffabb1a/tools/direct_demand/operations/postw20-three-20261119/prepared-packet.json",
+  "source_queue_next_seven": "https://github.com/pyatkoff/max-search-bot/issues/1566#issuecomment-7019777885",
+  "validator_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4aacc65b49648d9b38be7801d971c11379838305/tools/direct_demand/operations/prepare-commercial-batch.py",
+  "validator_blob_sha1": "b5320e670f0d030d59d77ec32f19a2b6cc1c039f",
+  "checks": {
+    "unique_hotel_ids": 10,
+    "original_compiler_row_checks_individual": 10,
+    "original_compiler_row_checks_joint_batch": true,
+    "immutable_png_bytes_verified_at_common_commit": 10,
+    "native_registry_read": false,
+    "operation_assigned": false,
+    "publisher_compiled": false,
+    "provider_calls": 0,
+    "publication_pairs": 0
+  }
+}
