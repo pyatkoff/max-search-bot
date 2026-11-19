@@ -25,17 +25,25 @@ try {
     $csrf = ManagerHttp::csrf(true);
     $message = '';
     $posts = [];
+    $cataloguePosts = [];
+    $catalogueLabels = [];
     if ($method === 'POST') {
         if ((int)($_SERVER['CONTENT_LENGTH'] ?? 0) > 4096) ManagerHttp::respond(['ok'=>false,'error'=>'request_too_large'],413);
         if (!is_string($_POST['csrf'] ?? null)) ManagerHttp::respond(['ok'=>false,'error'=>'csrf'],403);
         ManagerHttp::requireCsrf($_POST);
         if (($_POST['actor'] ?? null) !== (string)$actor) ManagerHttp::respond(['ok'=>false,'error'=>'identity_changed'],409);
-        if (($_POST['action'] ?? null) === 'publish') {
+        $action = $_POST['action'] ?? null;
+        if (in_array($action, ['publish', 'publish_catalogue'], true)) {
             if (array_diff(array_keys($_POST), ['csrf','actor','action'])) ManagerHttp::respond(['ok'=>false,'error'=>'invalid_request'],422);
             session_write_close();
             $connection->requireReadyForPublication($actor);
             require_once dirname(__DIR__).'/services/AppleService39TelegramDevicePublisher.php';
-            (new AppleService39TelegramDevicePublisher())->publish($actor);
+            $publisher = new AppleService39TelegramDevicePublisher();
+            if ($action === 'publish_catalogue') {
+                $publisher->publishCatalogue($actor, new AppleService39TelegramCatalogue());
+            } else {
+                $publisher->publish($actor);
+            }
             header('Location: /manager/appleservice39-telegram.php',true,303);
             exit;
         }
@@ -64,7 +72,11 @@ try {
     $status = $connection->status($actor);
     if ($status['webhook_state'] === 'verified') {
         require_once dirname(__DIR__).'/services/AppleService39TelegramDevicePublisher.php';
-        $posts = (new AppleService39TelegramDevicePublisher())->status();
+        $publisher = new AppleService39TelegramDevicePublisher();
+        $posts = $publisher->status();
+        $catalogue = new AppleService39TelegramCatalogue();
+        $cataloguePosts = $publisher->catalogueStatus($catalogue);
+        foreach ($catalogue->order() as $id) $catalogueLabels[$id] = $catalogue->post($id)['title'];
     }
 } catch (Throwable $error) {
     // No exception or provider body is rendered or logged on this credential path.
@@ -134,6 +146,26 @@ $states = ['published'=>'Опубликовано','pending'=>'Ожидает п
 <input type="hidden" name="csrf" value="<?=$esc($csrf)?>"><input type="hidden" name="actor" value="<?=$actor?>">
 <input type="hidden" name="action" value="publish"><button type="submit">Опубликовать 4 поста в Telegram</button>
 </form>
+<?php endif; ?>
+<?php
+$catalogueCounts = array_count_values(array_column($cataloguePosts, 'state'));
+$publishedCount = $catalogueCounts['published'] ?? 0;
+$pendingCount = ($catalogueCounts['pending'] ?? 0) + ($catalogueCounts['rejected'] ?? 0);
+?>
+<h2>Каталог ремонта в Telegram</h2>
+<p>Опубликовано <?=$publishedCount?> из <?=count($cataloguePosts)?>.</p>
+<?php if ($pendingCount > 0): ?>
+<form method="post" action="/manager/appleservice39-telegram.php">
+<input type="hidden" name="csrf" value="<?=$esc($csrf)?>"><input type="hidden" name="actor" value="<?=$actor?>">
+<input type="hidden" name="action" value="publish_catalogue">
+<button type="submit">Опубликовать следующую партию в Telegram</button>
+</form>
+<?php endif; ?>
+<ul>
+<?php foreach ($cataloguePosts as $key=>$post): ?>
+<li><?=$esc($catalogueLabels[$key])?> — <?php if ($post['state']==='published'): ?><a href="<?=$esc($post['url'])?>">Открыть пост</a><?php else: ?><?=$esc($states[$post['state']])?><?php endif; ?></li>
+<?php endforeach; ?>
+</ul>
 <?php endif; endif; endif; ?>
 <?php else: ?><a href="/manager/appleservice39-telegram.php">Открыть подключение заново</a><?php endif; ?>
 </section></main></body></html>

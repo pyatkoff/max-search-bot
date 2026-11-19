@@ -90,6 +90,26 @@ $pdo->exec("UPDATE appleservice39_pilot_operations SET state='verified'");
 appleTgCheck('the exact verified project and bot post becomes visible in Manager2',ManagerConversationService::repairEntryContext($c)['post_url']===$url);
 $pdo->exec("UPDATE appleservice39_pilot_campaigns SET connection_sha256='different_bot'");
 appleTgCheck('a verified post from another bot is ignored',ManagerConversationService::repairEntryContext($c)['post_url']==='');
+$catalogueCampaign = AppleService39TelegramCatalogue::CAMPAIGN;
+$catalogueKey = 'repair-iphone-x-battery-replacement';
+$catalogueUrl = 'https://t.me/appleservice39/38';
+$pdo->prepare('INSERT INTO appleservice39_pilot_campaigns VALUES(?,?,?,?,?,?)')
+    ->execute([$catalogueCampaign,'appleservice39','Appleservice39_bot',23,$channel,hash('sha256',$binding['bot_id'].'|'.$channel.'|23')]);
+$pdo->prepare('INSERT INTO appleservice39_pilot_operations VALUES(?,?,?,?,?,?)')
+    ->execute([$catalogueCampaign,$catalogueKey,'create','unknown','38',$catalogueUrl]);
+$catalogueBefore = count($sent);
+appleTgCheck('unconfirmed catalogue entry remains a general inquiry',
+    $run($update(980,1,'/start as39_'.$catalogueKey))===200
+    &&ManagerConversationService::repairEntryContext($one(980))===null);
+$pdo->prepare("UPDATE appleservice39_pilot_operations SET state='verified' WHERE campaign_key=?")->execute([$catalogueCampaign]);
+appleTgCheck('verified catalogue post hands off exact model, repair and post URL',
+    $run($update(981,1,'/start as39_'.$catalogueKey))===200);
+$catalogueContext = ManagerConversationService::repairEntryContext($one(981));
+appleTgCheck('Manager2 shows the verified native URL and battery replacement for iPhone X',
+    $catalogueContext['post_url']===$catalogueUrl && $catalogueContext['model']==='iPhone X'
+    &&$catalogueContext['service']==='Замена аккумулятора' &&$catalogueContext['reply']['state']==='delivered'
+    &&$one(981)['status']==='waiting_manager' &&count($sent)===$catalogueBefore+2);
+$before = count($sent);
 $pdo->exec("UPDATE conversations SET status='closed' WHERE id=$id");
 appleTgCheck('replay after close cannot create a new lead',$run($update(211,10,'/start@Appleservice39_bot as39_device-ipad'))===200
     &&(int)$one(211)['id']===$id&&$one(211)['status']==='closed'&&count($sent)===$before);

@@ -2,14 +2,15 @@
 declare(strict_types=1);
 
 require_once __DIR__.'/AppleService39DeviceRevision.php';
+require_once __DIR__.'/AppleService39TelegramCatalogue.php';
 require_once __DIR__.'/AppleService39PilotCatalog.php';
 require_once __DIR__.'/AppleService39TelegramConnection.php';
 require_once __DIR__.'/ConversationDb.php';
 
-/** Four reviewed posts in one public Telegram channel. Provider writes are claimed before transport. */
+/** Reviewed AppleService39 posts in one public Telegram channel. Provider writes are claimed before transport. */
 final class AppleService39TelegramDevicePublisher
 {
-    private const CAMPAIGN = 'appleservice39-telegram-device-v1';
+    public const DEVICE_CAMPAIGN = 'appleservice39-telegram-device-v1';
     private const CHANNEL = 'appleservice39';
     private const BOT = 'Appleservice39_bot';
 
@@ -27,10 +28,20 @@ final class AppleService39TelegramDevicePublisher
     /** GET reads existing receipts only, even if no Telegram credential is configured. */
     public function status(): array
     {
-        $items = array_fill_keys(AppleService39DeviceRevision::POSTS, ['state'=>'pending', 'url'=>null]);
+        return $this->publicationStatus(self::DEVICE_CAMPAIGN, AppleService39DeviceRevision::POSTS);
+    }
+
+    public function catalogueStatus(AppleService39TelegramCatalogue $catalogue): array
+    {
+        return $this->publicationStatus(AppleService39TelegramCatalogue::CAMPAIGN, $catalogue->order());
+    }
+
+    private function publicationStatus(string $campaign, array $keys): array
+    {
+        $items = array_fill_keys($keys, ['state'=>'pending', 'url'=>null]);
         $q = $this->db->prepare("SELECT post_key,state,public_url,external_message_id FROM appleservice39_pilot_operations
             WHERE campaign_key=? AND operation='create'");
-        $q->execute([self::CAMPAIGN]);
+        $q->execute([$campaign]);
         foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $row) {
             $key = $row['post_key'];
             if (!isset($items[$key])) continue;
@@ -48,6 +59,20 @@ final class AppleService39TelegramDevicePublisher
 
     public function publish(int $managerId): array
     {
+        return $this->publishRevision($managerId, self::DEVICE_CAMPAIGN, new AppleService39DeviceRevision(),
+            count(AppleService39DeviceRevision::POSTS));
+    }
+
+    public function publishCatalogue(int $managerId, AppleService39TelegramCatalogue $catalogue): array
+    {
+        return $this->publishRevision($managerId, AppleService39TelegramCatalogue::CAMPAIGN, $catalogue,
+            AppleService39TelegramCatalogue::BATCH_SIZE);
+    }
+
+    private function publishRevision(int $managerId, string $campaign,
+        AppleService39DeviceRevision|AppleService39TelegramCatalogue $revision, int $limit): array
+    {
+        $started = hrtime(true);
         if ($this->db->inTransaction()) throw new RuntimeException('publication_requires_autocommit');
         $binding = ($this->binding)();
         if (($binding['project_key'] ?? '') !== 'appleservice39' || ($binding['source_key'] ?? '') !== 'telegram:appleservice39-main'
@@ -61,9 +86,8 @@ final class AppleService39TelegramDevicePublisher
         $access->execute([$binding['source_id'], $binding['source_key'], $managerId]);
         if (!$access->fetchColumn()) throw new RuntimeException('apple_project_admin_required');
 
-        $items = $this->status();
+        $items = $this->publicationStatus($campaign, $revision->order());
         if (count(array_filter($items, static fn(array $row):bool => in_array($row['state'], ['pending','rejected'], true))) === 0) return $items;
-        $revision = new AppleService39DeviceRevision();
         $token = $binding['bot_token'];
         $botId = (string)$binding['bot_id'];
         $me = $this->read($token, 'getMe', []);
@@ -78,7 +102,7 @@ final class AppleService39TelegramDevicePublisher
             && !(($member['status'] ?? '') === 'administrator' && ($member['can_post_messages'] ?? false) === true))) {
             throw new RuntimeException('telegram_channel_post_access_required');
         }
-        $this->bindCampaign($revision, $binding, $channel, $managerId);
+        $this->bindCampaign($campaign, $revision->sha256(), $binding, $channel, $managerId);
         foreach ($revision->order() as $id) {
             if ($items[$id]['state'] === 'published' || $items[$id]['state'] === 'unknown') continue;
             $post = $revision->post($id);
@@ -89,7 +113,7 @@ final class AppleService39TelegramDevicePublisher
             if (mb_strlen($caption, 'UTF-8') > 1024) throw new RuntimeException('telegram_caption_too_long');
             $payload = json_encode([$channel,$revision->assetSha($id),$caption,$button], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             $hash = hash('sha256', $payload);
-            if (!$this->claim($id, $payload, $hash)) continue;
+            if (!$this->claim($campaign, $id, $payload, $hash)) continue;
             try {
                 $answer = ($this->request)($token, 'sendPhoto', ['chat_id'=>$channel, 'photo'=>$photo, 'caption'=>$caption,
                     'disable_notification'=>true, 'reply_markup'=>['inline_keyboard'=>[[$button]]]]);
@@ -109,11 +133,12 @@ final class AppleService39TelegramDevicePublisher
             $q = $this->db->prepare("UPDATE appleservice39_pilot_operations SET state=?,external_message_id=?,public_url=?,updated_at=?
                 WHERE campaign_key=? AND post_key=? AND operation='create' AND payload_sha256=? AND state='write_started'");
             $q->execute([$state,$ok ? $mid : null,$ok ? 'https://t.me/'.self::CHANNEL.'/'.$mid : null,
-                gmdate('Y-m-d H:i:s'),self::CAMPAIGN,$id,$hash]);
+                gmdate('Y-m-d H:i:s'),$campaign,$id,$hash]);
             if ($q->rowCount() !== 1) throw new RuntimeException('telegram_receipt_uncertain');
-            if (!$ok) break;
+            if (!$ok || --$limit === 0
+                || ($campaign === AppleService39TelegramCatalogue::CAMPAIGN && hrtime(true) - $started >= 18_000_000_000)) break;
         }
-        return $this->status();
+        return $this->publicationStatus($campaign, $revision->order());
     }
 
     private function read(string $token, string $method, array $params): array
@@ -129,29 +154,29 @@ final class AppleService39TelegramDevicePublisher
             && ($chat['type'] ?? '') === 'channel' && strcasecmp((string)($chat['username'] ?? ''), self::CHANNEL) === 0;
     }
 
-    private function bindCampaign(AppleService39DeviceRevision $revision, array $binding, string $channel, int $managerId): void
+    private function bindCampaign(string $campaign, string $manifestSha, array $binding, string $channel, int $managerId): void
     {
         $identity = hash('sha256', $binding['bot_id'].'|'.$channel.'|'.$binding['source_id']);
-        $args = [self::CAMPAIGN,'appleservice39',self::BOT,$channel,$binding['source_id'],$managerId,$revision->sha256(),$identity,gmdate('Y-m-d H:i:s')];
+        $args = [$campaign,'appleservice39',self::BOT,$channel,$binding['source_id'],$managerId,$manifestSha,$identity,gmdate('Y-m-d H:i:s')];
         $this->insertOnce('INSERT INTO appleservice39_pilot_campaigns
             (campaign_key,project_key,bot_key,channel_id,source_id,admin_manager_id,manifest_sha256,connection_sha256,created_at) VALUES (?,?,?,?,?,?,?,?,?)', $args);
         $q = $this->db->prepare('SELECT project_key,bot_key,channel_id,source_id,manifest_sha256,connection_sha256 FROM appleservice39_pilot_campaigns WHERE campaign_key=?');
-        $q->execute([self::CAMPAIGN]);
+        $q->execute([$campaign]);
         $row = $q->fetch(PDO::FETCH_ASSOC);
         if (!$row || $row['project_key'] !== 'appleservice39' || $row['bot_key'] !== self::BOT || $row['channel_id'] !== $channel
-            || (int)$row['source_id'] !== (int)$binding['source_id'] || $row['manifest_sha256'] !== $revision->sha256()
+            || (int)$row['source_id'] !== (int)$binding['source_id'] || $row['manifest_sha256'] !== $manifestSha
             || $row['connection_sha256'] !== $identity) throw new RuntimeException('telegram_campaign_changed');
     }
 
-    private function claim(string $id, string $payload, string $hash): bool
+    private function claim(string $campaign, string $id, string $payload, string $hash): bool
     {
         $now = gmdate('Y-m-d H:i:s');
         $this->insertOnce("INSERT INTO appleservice39_pilot_operations
             (campaign_key,post_key,operation,payload_sha256,request_json,state,write_attempts,outcome_json,created_at,updated_at)
-            VALUES (?,?,'create',?,?,'prepared',0,'{}',?,?)", [self::CAMPAIGN,$id,$hash,$payload,$now,$now]);
+            VALUES (?,?,'create',?,?,'prepared',0,'{}',?,?)", [$campaign,$id,$hash,$payload,$now,$now]);
         $q = $this->db->prepare("UPDATE appleservice39_pilot_operations SET state='write_started',write_attempts=write_attempts+1,updated_at=?
             WHERE campaign_key=? AND post_key=? AND operation='create' AND payload_sha256=? AND state IN ('prepared','rejected')");
-        $q->execute([$now,self::CAMPAIGN,$id,$hash]);
+        $q->execute([$now,$campaign,$id,$hash]);
         return $q->rowCount() === 1;
     }
 
@@ -169,6 +194,7 @@ final class AppleService39TelegramDevicePublisher
         if (!in_array($method, ['getMe','getChat','getChatMember','sendPhoto'], true)
             || !preg_match('/\A[0-9]+:[a-zA-Z0-9_-]+\z/D', $token)) throw new RuntimeException('telegram_request_invalid');
         if ($method === 'sendPhoto') {
+            usleep(1_100_000);
             $params['photo'] = new CURLFile($params['photo'],'image/png','cover.png');
             $params['reply_markup'] = json_encode($params['reply_markup'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             $params['disable_notification'] = 'true';

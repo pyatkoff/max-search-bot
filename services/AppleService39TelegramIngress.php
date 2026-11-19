@@ -7,6 +7,7 @@ require_once __DIR__.'/AppleService39PilotCatalog.php';
 require_once __DIR__.'/ConversationRecorder.php';
 require_once __DIR__.'/ConversationControlService.php';
 require_once __DIR__.'/../integrations/TelegramIncomingAdapter.php';
+require_once __DIR__.'/AppleService39TelegramDevicePublisher.php';
 
 final class AppleService39TelegramIngress
 {
@@ -42,9 +43,9 @@ final class AppleService39TelegramIngress
         if($start){
             $incoming['text']='/start'; // Opaque or mistyped starts never become a CRM attribution.
             $code=$parts[2]??'';
-            if(preg_match('/\Aas39_(device-[a-z0-9-]{1,50})\z/D',$code,$match)){
+            if(preg_match('/\Aas39_([a-z0-9-]{1,59})\z/D',$code,$match)){
                 $candidate=AppleService39PilotCatalog::landingEntryForPost($match[1]);
-                if(($candidate['scope']??null)==='device'&&($candidate['start_payload']??null)===$code)$entry=$candidate;
+                if(($candidate['start_payload']??null)===$code)$entry=$candidate;
             }
         }
         $key=hash('sha256',implode("\0",[self::PROJECT,'telegram',$binding['bot_id'],$user,$mid]));
@@ -61,6 +62,8 @@ final class AppleService39TelegramIngress
                 WHERE p.project_key=? AND p.is_active=1 AND s.channel='telegram' AND s.source_key=? AND s.is_active=1 AND s.handling_mode IN ('manager','ask')");
             $q->execute([self::PROJECT,self::SOURCE]);$source=(int)$q->fetchColumn();
             if($source<=0||$source!==($binding['source_id']??null))throw new RuntimeException('source_unavailable');
+            if($entry!==null&&($entry['scope']??null)!=='device'
+                &&self::publishedPost($pdo,$entry,$binding,$binding['bot_id'])==='')$entry=null;
             // Message IDs are unique within one private chat, including a redelivery after that conversation was closed.
             $q=$pdo->prepare("SELECT c.id,c.source_id,c.metadata_json,m.metadata_json AS message_meta FROM conversations c JOIN messages m ON m.conversation_id=c.id
                 WHERE c.project_key=? AND c.channel='telegram' AND c.external_chat_id=? AND m.direction='inbound' AND m.external_message_id=? LIMIT 2");
@@ -154,14 +157,16 @@ final class AppleService39TelegramIngress
     }
 
     /** Read the canonical post only after the native publisher verified this bot, source and message. */
-    private static function publishedPost(PDO $pdo, string $post, array $owner, string $bot): string
+    private static function publishedPost(PDO $pdo, array $entry, array $owner, string $bot): string
     {
+        $campaign = ($entry['scope'] ?? null) === 'device' ? AppleService39TelegramDevicePublisher::DEVICE_CAMPAIGN
+            : AppleService39TelegramCatalogue::CAMPAIGN;
         try {
             $q=$pdo->prepare("SELECT c.channel_id,c.connection_sha256,o.external_message_id,o.public_url
                 FROM appleservice39_pilot_campaigns c JOIN appleservice39_pilot_operations o ON o.campaign_key=c.campaign_key
-                WHERE c.campaign_key='appleservice39-telegram-device-v1' AND c.project_key=? AND c.bot_key='Appleservice39_bot'
+                WHERE c.campaign_key=? AND c.project_key=? AND c.bot_key='Appleservice39_bot'
                   AND c.source_id=? AND o.post_key=? AND o.operation='create' AND o.state='verified'");
-            $q->execute([self::PROJECT,$owner['source_id'],$post]);
+            $q->execute([$campaign,self::PROJECT,$owner['source_id'],$entry['post_id']]);
             $row=$q->fetch(PDO::FETCH_ASSOC);
             if(!$row||$row['connection_sha256']!==hash('sha256',$bot.'|'.$row['channel_id'].'|'.$owner['source_id'])
                 ||!preg_match('/\A[1-9][0-9]*\z/D',(string)$row['external_message_id']))return '';
@@ -185,9 +190,11 @@ final class AppleService39TelegramIngress
         $data=$row?json_decode((string)$row['payload_json'],true):null;
         if(!is_array($data)||($data['bot_id']??null)!==$meta['telegram_bot_id']||($data['source_key']??null)!==self::SOURCE)return null;
         $entry=AppleService39PilotCatalog::landingEntryForPost((string)($data['post_id']??''));
-        if(($entry['scope']??null)!=='device'||$entry['start_payload']!==($data['entry_code']??null)||$entry['model']!==($data['model']??null)
+        if($entry===null||$entry['start_payload']!==($data['entry_code']??null)||$entry['model']!==($data['model']??null)
             ||$entry['service']!==($data['service']??null)||!in_array($data['state']??'',['pending','attempted','suppressed','delivered','unknown'],true)||!is_string($data['text']??null))return null;
-        return ['event_id'=>(int)$row['id'],'model'=>$entry['model'],'service'=>$entry['service'],'post_url'=>self::publishedPost($pdo,$entry['post_id'],$owner,$meta['telegram_bot_id']),
+        $postUrl=self::publishedPost($pdo,$entry,$owner,$meta['telegram_bot_id']);
+        if(($entry['scope']??null)!=='device'&&$postUrl==='')return null;
+        return ['event_id'=>(int)$row['id'],'model'=>$entry['model'],'service'=>$entry['service'],'post_url'=>$postUrl,
             'reply'=>['state'=>$data['state'],'text'=>$data['text']]];
     }
 }
