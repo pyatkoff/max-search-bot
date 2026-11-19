@@ -1,0 +1,229 @@
+{
+  "schema": 1,
+  "state": "SOURCE_FACTS_SAVED_NOT_RUNTIME_IMPORTED",
+  "source_comment": "https://github.com/pyatkoff/max-search-bot/issues/1566#issuecomment-7019777885",
+  "source_updated_at": "2026-11-19T19:59:54Z",
+  "rows": [
+    {
+      "tourvisor_hotel_id": 8017,
+      "canonical_anytour_id": null,
+      "identity_admission": false,
+      "content_admission": false,
+      "runtime_imported": false,
+      "facts": [
+        {
+          "text": "Отель расположен у пляжа Пхра-Аэ на острове Ко Ланта.",
+          "source_urls": [
+            "https://www.layanaresort.com/"
+          ]
+        },
+        {
+          "text": "Панорамный бассейн наполнен солёной водой.",
+          "source_urls": [
+            "https://www.layanaresort.com/facilities/"
+          ]
+        },
+        {
+          "text": "Отель принимает гостей в возрасте от 18 лет.",
+          "source_urls": [
+            "https://www.layanaresort.com/adults-only-hotel/"
+          ]
+        }
+      ]
+    },
+    {
+      "tourvisor_hotel_id": 4372,
+      "canonical_anytour_id": null,
+      "identity_admission": false,
+      "content_admission": false,
+      "runtime_imported": false,
+      "facts": [
+        {
+          "text": "Площадь панорамного бассейна — 1 000 м².",
+          "source_urls": [
+            "https://rawiwarin.com/th/leisure-and-recreation?lang=se"
+          ]
+        },
+        {
+          "text": "Для детей работает игровая комната Elephant.",
+          "source_urls": [
+            "https://rawiwarin.com/th/leisure-and-recreation?lang=se"
+          ]
+        },
+        {
+          "text": "Отдельный Ocean Pool закрывают на сезон муссонов.",
+          "source_urls": [
+            "https://rawiwarin.com/th/leisure-and-recreation?lang=se"
+          ]
+        }
+      ]
+    },
+    {
+      "tourvisor_hotel_id": 3034,
+      "canonical_anytour_id": null,
+      "identity_admission": false,
+      "content_admission": false,
+      "runtime_imported": false,
+      "facts": [
+        {
+          "text": "Отель расположен прямо на пляже.",
+          "source_urls": [
+            "https://www.tubkaakresort.com/ja/faq/"
+          ]
+        },
+        {
+          "text": "Seaview и Ocean View Pool Villa обращены к пляжу, большинство Superior и Deluxe расположено у основного бассейна.",
+          "source_urls": [
+            "https://www.tubkaakresort.com/ja/faq/"
+          ]
+        },
+        {
+          "text": "Отель не предлагает номера с внутренней соединительной дверью.",
+          "source_urls": [
+            "https://www.tubkaakresort.com/ja/faq/"
+          ]
+        }
+      ]
+    },
+    {
+      "tourvisor_hotel_id": 12189,
+      "canonical_anytour_id": null,
+      "identity_admission": false,
+      "content_admission": false,
+      "runtime_imported": false,
+      "facts": [
+        {
+          "text": "Курорт в Као Лаке предлагает 34 виллы и сьюта в шести категориях.",
+          "source_urls": [
+            "https://www.casadelaflora.com/accommodation/"
+          ]
+        },
+        {
+          "text": "В перечне есть Studio Pool Villa и отдельная Beachfront Pool Villa у моря.",
+          "source_urls": [
+            "https://www.casadelaflora.com/accommodation/"
+          ]
+        },
+        {
+          "text": "Отель не рекомендует проживание с детьми из-за отсутствия специальных детских средств безопасности.",
+          "source_urls": [
+            "https://www.casadelaflora.com/promotions/early-moment/"
+          ]
+        }
+      ]
+    },
+    {
+      "tourvisor_hotel_id": 4960,
+      "canonical_anytour_id": null,
+      "identity_admission": false,
+      "content_admission": false,
+      "runtime_imported": false,
+      "facts": [
+        {
+          "text": "Отель стоит у пляжа Онг Ланг на Фукуоке.",
+          "source_urls": [
+            "https://mangobayphuquoc.com/en/about/"
+          ]
+        },
+        {
+          "text": "У деревянного бунгало Deluxe Sea View Plantation есть просторная терраса с видом на море.",
+          "source_urls": [
+            "https://mangobayphuquoc.com/en/accommodation/"
+          ]
+        },
+        {
+          "text": "Отель сообщает об отсутствии телевизоров.",
+          "source_urls": [
+            "https://mangobayphuquoc.com/en/about/"
+          ]
+        },
+        {
+          "text": "Evening Breeze охлаждает зону вокруг кровати. Premium Plantation Garden View и Sea View обозначены как категории с кондиционером.",
+          "source_urls": [
+            "https://mangobayphuquoc.com/en/accommodation/"
+          ]
+        }
+      ]
+    },
+    {
+      "tourvisor_hotel_id": 41504,
+      "canonical_anytour_id": null,
+      "identity_admission": false,
+      "content_admission": false,
+      "runtime_imported": false,
+      "facts": [
+        {
+          "text": "Курорт расположен у лагуны, в стороне от морского пляжа.",
+          "source_urls": [
+            "https://www.vedanalagoon.com/about-us"
+          ],
+          "original_text": "Курорт расположен у лагуны Тамзянг, в стороне от морского пляжа.",
+          "qualification": "Lagoon proper name omitted pending exact identity."
+        },
+        {
+          "text": "Для гостей предусмотрено три бассейна, включая крытый с подогревом.",
+          "source_urls": [
+            "https://www.vedanalagoon.com/about-us"
+          ]
+        },
+        {
+          "text": "Для проживающих есть бесплатный шаттл по расписанию в Хюэ и к пляжу Canh Duong. Пляжные рейсы зависят от погоды, уведомить отель просят за 12 часов.",
+          "source_urls": [
+            "https://www.vedanalagoon.com/about-us"
+          ]
+        }
+      ]
+    },
+    {
+      "tourvisor_hotel_id": 4965,
+      "canonical_anytour_id": null,
+      "identity_admission": false,
+      "content_admission": false,
+      "runtime_imported": false,
+      "facts": [
+        {
+          "text": "В западной части Фукуока, в бухте у пляжа. В отеле 36 вилл.",
+          "source_urls": [
+            "https://www.chensea-resort.com/"
+          ],
+          "original_source_urls": [
+            "https://www.chensea-resort.com/wp-content/uploads/2017/08/Chen-Sea-Fast-Fact-at-a-Glance-English.pdf"
+          ]
+        },
+        {
+          "text": "Среди категорий есть Beach Front Villa и Two Bedrooms Pool Villa.",
+          "source_urls": [
+            "https://www.chensea-resort.com/"
+          ],
+          "original_source_urls": [
+            "https://www.chensea-resort.com/wp-content/uploads/2017/08/Chen-Sea-Fast-Fact-at-a-Glance-English.pdf"
+          ]
+        },
+        {
+          "text": "Водные активности недоступны в сезон муссонов. Панорамный бассейн упомянут как альтернатива.",
+          "source_urls": [
+            "https://www.chensea-resort.com/"
+          ],
+          "original_source_urls": [
+            "https://www.chensea-resort.com/wp-content/uploads/2017/08/Chen-Sea-Fast-Fact-at-a-Glance-English.pdf"
+          ]
+        },
+        {
+          "text": "Отель рекомендует свой панорамный бассейн и в сезон муссонов.",
+          "source_urls": [
+            "https://www.chensea-resort.com/"
+          ],
+          "original_source_urls": [
+            "https://www.chensea-resort.com/contact-chen-sea-resort-spa/"
+          ]
+        }
+      ]
+    }
+  ],
+  "source_fact_count": 23,
+  "notes": [
+    "Source facts are not independent knowledge admission.",
+    "For 4965 replace dead 2017 PDF support with https://www.chensea-resort.com/ current official page confirming all caption claims.",
+    "Vedana caption omits unconfirmed lagoon proper name; source row can remain qualified only to lagoon setting."
+  ]
+}

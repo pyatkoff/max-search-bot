@@ -1,0 +1,49 @@
+{
+  "installed_sha": "9b1e17f94f39d8d2cc6260a9a6f45b1d1f38bb3e",
+  "catalogue_path": "knowledge/hotels/catalogue.json",
+  "shards": [
+    {
+      "file": "manifest.json",
+      "git_blob_sha": "65cf17828a32decf4fc40b52d6a8b8ac0c07294e"
+    },
+    {
+      "file": "manifest-0001.json",
+      "git_blob_sha": "88ce24f408173b64b1cf0aad148c28694ca7c77c"
+    },
+    {
+      "file": "manifest-0002.json",
+      "git_blob_sha": "53ff6ad31f6e2b5aa07520afe7eea0249b0b8a8f"
+    },
+    {
+      "file": "manifest-0003.json",
+      "git_blob_sha": "65c14f3c887e641ac4e17c9d868f540ed6a1d2b1"
+    },
+    {
+      "file": "manifest-0004.json",
+      "git_blob_sha": "13d3c65c5e5dc1c42e65ac686df2d2bcb84fc53d"
+    }
+  ],
+  "bindings": 112,
+  "country_counts": {
+    "Egypt": 25,
+    "Turkey": 87
+  },
+  "requested_tourvisor_ids": [
+    116719,
+    28569,
+    32354,
+    8017,
+    4372,
+    3034,
+    12189,
+    4960,
+    41504,
+    4965
+  ],
+  "exact_namespace_binding_matches": 0,
+  "qualified_source_facts_saved": 35,
+  "runtime_facts_imported_for_requested_ids": 0,
+  "consumer_available_references_for_requested_ids": 0,
+  "consumer_call_performed": false,
+  "reason": "No accepted typed namespace binding for any requested hotel in the complete installed-version catalogue. Consumer calls require canonical authorised selectors and were not fabricated."
+}
