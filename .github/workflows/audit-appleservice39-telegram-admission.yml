@@ -1,0 +1,22 @@
+name: Read-only AppleService39 Telegram release admission
+on:
+  push:
+    branches: [audit/appleservice39-telegram-catalogue-admission-20261119]
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+  issues: read
+jobs:
+  admit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 'fe623086b716b3077e4ec0d4551095fc63db37e3'
+          persist-credentials: false
+      - name: Authenticate the preceding release and allow the exact candidate
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/release_priority.js --admit 1626 '50fa59c06e2d44c854734b9ab0a0112900336c62' 'fe623086b716b3077e4ec0d4551095fc63db37e3'
