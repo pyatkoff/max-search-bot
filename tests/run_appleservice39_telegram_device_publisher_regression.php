@@ -175,3 +175,40 @@ function as39RunTelegramDevicePublisherRegression(): void
 }
 
 as39RunTelegramDevicePublisherRegression();
+
+$catalogueFixture = new AppleDeviceTelegramFixture();
+$cataloguePublisher = $catalogueFixture->publisher();
+$catalogue = new AppleService39TelegramCatalogue();
+$keys = $catalogue->order();
+as39Expect(count($keys) === 69 && count(array_unique($keys)) === 69
+    && !array_intersect($keys, AppleService39DeviceRevision::POSTS), 'all 69 existing cards without the four published device cards');
+as39Refuses(fn()=>$cataloguePublisher->publishCatalogue(4, $catalogue), 'apple_project_admin_required');
+$cataloguePublisher->publish(2);
+$deviceReceipts = $catalogueFixture->operations();
+$batchSize = AppleService39TelegramCatalogue::BATCH_SIZE;
+for ($start = 0; $start < count($keys); $start += $batchSize) {
+    $state = $cataloguePublisher->publishCatalogue(2, $catalogue);
+    as39Expect(count(array_filter($state, static fn(array $row): bool => $row['state'] === 'published'))
+        === min($start + $batchSize, count($keys)), 'catalogue batch resumes from the last verified post');
+}
+$q = $catalogueFixture->db->prepare('SELECT post_key,write_attempts,public_url FROM appleservice39_pilot_operations WHERE campaign_key=?');
+$q->execute([AppleService39TelegramCatalogue::CAMPAIGN]);
+$catalogueOperations = $q->fetchAll(PDO::FETCH_ASSOC);
+as39Expect(count($catalogueOperations) === 69
+    && count(array_unique(array_column($catalogueOperations, 'public_url'))) === 69
+    && !array_filter($catalogueOperations, static fn(array $row): bool => (int)$row['write_attempts'] !== 1),
+    'all 69 receipts have distinct Telegram addresses and a single provider write');
+foreach ($catalogueFixture->sends as $attempts) {
+    foreach ($attempts as $attempt) {
+        $request = $attempt['request'];
+        $keyboard = $request['reply_markup']['inline_keyboard'];
+        as39Expect(count($keyboard) === 1 && count($keyboard[0]) === 1
+            && preg_match('~\Ahttps://t\.me/Appleservice39_bot\?start=as39_[a-z0-9-]{1,59}\z~D', $keyboard[0][0]['url'])
+            && is_file($request['photo']) && mb_strlen($request['caption'], 'UTF-8') <= 1024,
+            'one valid contextual Telegram CTA with an approved local PNG');
+    }
+}
+$calls = $catalogueFixture->calls;
+$cataloguePublisher->publishCatalogue(2, $catalogue);
+as39Expect($calls === $catalogueFixture->calls && $deviceReceipts === $catalogueFixture->operations(),
+    'completed catalogue is idempotent and preserves original device receipts');

@@ -20,23 +20,49 @@ function applePilotCheckout(string $root, string $expected): bool
         && $run(['git','-C',$root,'status','--porcelain','--untracked-files=no']) === '';
 }
 
+/** Publish the fixed Telegram catalogue through the installed, receipt-backed sender. */
+function appleTelegramCatalogueResult(PDO $db, callable $provenance): array
+{
+    $actor = $db->prepare("SELECT admin_manager_id FROM appleservice39_pilot_campaigns
+        WHERE campaign_key=? AND project_key='appleservice39' AND bot_key='Appleservice39_bot'");
+    $actor->execute([AppleService39TelegramDevicePublisher::DEVICE_CAMPAIGN]);
+    $managerId = (int)$actor->fetchColumn();
+    if ($managerId <= 0) throw new RuntimeException('apple_project_admin_required');
+    $connection = AppleService39TelegramConnection::current();
+    $publisher = new AppleService39TelegramDevicePublisher($db);
+    $catalogue = new AppleService39TelegramCatalogue();
+    $state = $publisher->catalogueStatus($catalogue);
+    while (in_array('pending', array_column($state, 'state'), true)
+        && !array_intersect(['unknown', 'rejected'], array_column($state, 'state'))) {
+        if (!$provenance()) throw new RuntimeException('installed_checkout_changed');
+        $connection->requireReadyForPublication($managerId);
+        $next = $publisher->publishCatalogue($managerId, $catalogue);
+        if ($next === $state) break;
+        $state = $next;
+    }
+    $counts = array_count_values(array_column($state, 'state'));
+    return ['ok'=>($counts['published'] ?? 0) === count($state), 'channel'=>'@appleservice39',
+        'counts'=>$counts, 'posts'=>$state];
+}
+
 try {
     $mode = $argv[1] ?? '';
     if ($mode === '--help' && $argc === 2) {
-        echo "php tools/publish_appleservice39_pilot.php inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_prepare|landing_apply|landing_reconcile|search_inspect|search_prepare|search_apply|search_reconcile|coverage_inspect|coverage_prepare|coverage_apply|coverage_reconcile|device_inspect|device_prepare|device_apply|device_reconcile|device_observe|device_resume --expected-sha=<accepted application SHA> --channel-id=<exact negative numeric ID>\n";
+        echo "php tools/publish_appleservice39_pilot.php inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_prepare|landing_apply|landing_reconcile|search_inspect|search_prepare|search_apply|search_reconcile|coverage_inspect|coverage_prepare|coverage_apply|coverage_reconcile|device_inspect|device_prepare|device_apply|device_reconcile|device_observe|device_resume|telegram_catalogue --expected-sha=<accepted application SHA> --channel-id=<exact MAX ID or @appleservice39>\n";
         exit(0);
     }
     if (!in_array($mode, ['inspect','prepare','publish','finalize','pin','reconcile','landing_inspect','landing_prepare','landing_apply','landing_reconcile',
         'search_inspect','search_prepare','search_apply','search_reconcile',
         'coverage_inspect','coverage_prepare','coverage_apply','coverage_reconcile',
-        'device_inspect','device_prepare','device_apply','device_reconcile','device_observe','device_resume'], true) || $argc !== 4) throw new RuntimeException('fixed_operation_and_target_required');
+        'device_inspect','device_prepare','device_apply','device_reconcile','device_observe','device_resume','telegram_catalogue'], true) || $argc !== 4) throw new RuntimeException('fixed_operation_and_target_required');
     $options = [];
     foreach (array_slice($argv, 2) as $argument) {
         if (!preg_match('/\A--(expected-sha|channel-id)=(.*)\z/D', $argument, $match) || isset($options[$match[1]])) throw new RuntimeException('fixed_operation_and_target_required');
         $options[$match[1]] = $match[2];
     }
     if (!preg_match('/\A[a-f0-9]{40}\z/D', $options['expected-sha'] ?? '')
-        || !preg_match('/\A-[1-9][0-9]{0,18}\z/D', $options['channel-id'] ?? '')) throw new RuntimeException('fixed_operation_and_target_required');
+        || ($mode === 'telegram_catalogue' ? ($options['channel-id'] ?? '') !== '@appleservice39'
+            : !preg_match('/\A-[1-9][0-9]{0,18}\z/D', $options['channel-id'] ?? ''))) throw new RuntimeException('fixed_operation_and_target_required');
     $root = dirname(__DIR__); $expected = $options['expected-sha'];
     if (!applePilotCheckout($root, $expected)) throw new RuntimeException('installed_checkout_changed');
     $private = '/var/www/anytoour/data/config/max-search.php';
@@ -45,13 +71,20 @@ try {
     if (!is_string($privateHash)) throw new RuntimeException('protected_connection_unavailable');
     require_once $root.'/config.php';
     require_once $root.'/services/ConversationDb.php';
-    require_once $root.'/services/AppleService39PilotPublisher.php';
-    $manifest = AppleService39PilotManifest::installed();
     $provenance = static function () use ($root,$expected,$private,$privateHash): bool {
         clearstatcache(true, $private);
         return is_file($private) && !is_link($private) && hash_file('sha256', $private) === $privateHash
             && applePilotCheckout($root, $expected);
     };
+    if ($mode === 'telegram_catalogue') {
+        require_once $root.'/services/AppleService39TelegramDevicePublisher.php';
+        $result = appleTelegramCatalogueResult(ConversationDb::connection(), $provenance);
+        $result['application_sha'] = $expected;
+        echo json_encode($result, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).PHP_EOL;
+        exit($result['ok'] ? 0 : 1);
+    }
+    require_once $root.'/services/AppleService39PilotPublisher.php';
+    $manifest = AppleService39PilotManifest::installed();
     $publisher = new AppleService39PilotPublisher(ConversationDb::connection(), $manifest, $options['channel-id'],
         $provenance, null, null, new AppleService39CatalogueRevision($manifest),
         (str_starts_with($mode, 'search_') || str_starts_with($mode, 'coverage_') || str_starts_with($mode, 'device_')) ? new AppleService39SearchIntentRevision($manifest) : null);
@@ -92,7 +125,10 @@ try {
         'coverage_images_not_prepared','invalid_coverage_upload','coverage_upload_collision','invalid_coverage_image_receipt',
         'coverage_image_receipt_required','coverage_operation_held','coverage_revision_changed','coverage_native_image_evidence_required',
         'device_observation_unavailable','device_candidate_ambiguous','device_recovery_ineligible','device_revision_invalid','invalid_device_operation','device_parent_incomplete','device_images_not_prepared',
-        'search_superseded','coverage_feed_incomplete','coverage_feed_destination_changed'];
+        'search_superseded','coverage_feed_incomplete','coverage_feed_destination_changed',
+        'apple_project_admin_required','telegram_connection_required','telegram_identity_mismatch',
+        'telegram_channel_post_access_required','telegram_read_failed','telegram_receipt_uncertain',
+        'telegram_catalogue_artwork_invalid','telegram_catalogue_invalid','telegram_campaign_changed'];
     $reason = in_array($error->getMessage(), $allowed, true) ? $error->getMessage() : 'pilot_operation_unavailable';
     echo json_encode(['ok'=>false,'state'=>'stopped','reason'=>$reason,'automatic_retry'=>false], JSON_UNESCAPED_SLASHES).PHP_EOL;
     exit(2);

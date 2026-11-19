@@ -1549,8 +1549,9 @@ async function resolvePublicationOperation({env,event,api}) {
   const coverageBranch='ops/appleservice39-coverage-20261112';
   const deviceBranch='ops/appleservice39-device-v1-20261119';
   const deviceRecoveryBranch='ops/appleservice39-device-recovery-20261119';
+  const telegramCatalogueBranch='ops/appleservice39-telegram-catalogue-20261119';
   const ref=env.GITHUB_REF;
-  const operations=new Map([[coverageBranch,'coverage_batch'],[deviceBranch,'device_batch'],[deviceRecoveryBranch,'device_recovery']]);
+  const operations=new Map([[coverageBranch,'coverage_batch'],[deviceBranch,'device_batch'],[deviceRecoveryBranch,'device_recovery'],[telegramCatalogueBranch,'telegram_catalogue']]);
   const branch=[...operations.keys()].find(name=>ref==='refs/heads/'+name);
   const workflow=PREFIX+'publish-appleservice39-pilot.yml';
   const predecessor='c5c0276d94337eee130467716c9794176b2ab25a',predecessorRun=43186776772;
