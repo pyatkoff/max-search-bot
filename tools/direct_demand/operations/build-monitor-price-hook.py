@@ -33,6 +33,7 @@ values = {'HOOK_ACCEPTED_BASE': '8164359eba9a633f3f25d743e534386ecffe622f',
 # Reject HTTP before even defining embedded source constants.
 result = prefix + "if(PHP_SAPI!=='cli'){http_response_code(404);exit;}\n"
 result += ''.join('const '+key+'='+json.dumps(value)+';\n' for key, value in values.items())
-result += contract + '\n' + hook_contract + '\n' + driver
+redirect_contract = source('monitor-price-telegram-ads19.php')
+result += contract + '\n' + hook_contract + '\n' + redirect_contract + '\n' + driver
 dest = pathlib.Path(sys.argv[1]); dest.write_text(result)
 print(json.dumps({'bytes': len(result.encode()), 'sha256': hashlib.sha256(result.encode()).hexdigest(), 'pairs': len(rows), 'supplier_calls': 0}))
