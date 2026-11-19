@@ -1,4 +1,4 @@
-name: "Read the Telegram channel history for the final selected posts and buttons"
+name: "Read the seven existing Telegram posts and live hotel prices"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,7 +13,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'f4f4dcebe6ad343beb83aaee7cb6fece769b5b5d' &&
+      github.event.before == 'f1ce822a77862bd762d79acc9ab411729a8b9616' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -29,178 +29,141 @@ jobs:
           declare(strict_types=1);
           ini_set('display_errors','0');
           ini_set('log_errors','0');
-          function at1566Require(bool $valid, string $reason): void
-          {
-              if (!$valid) throw new RuntimeException($reason);
-          }
           
-          function at1566Json(array $value): string
-          {
-              return json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+          function requireEdit(bool $ok, string $reason): void {
+              if (!$ok) throw new RuntimeException($reason);
           }
-          
-          function at1566Sha(string $value): string
-          {
-              return hash('sha256', $value);
+          function installedEdit(string $expected): void {
+              requireEdit(PHP_SAPI === 'cli' && getcwd() === '/var/www/anytoour/data/www/app.anytoour.ru', 'app_root');
+              requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD')) === $expected, 'installed_checkout_changed');
+              requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false status --porcelain --untracked-files=no')) === '', 'installed_checkout_dirty');
           }
-          
-          function at1566Http(string $url): array
-          {
-              $body = '';
-              $handle = curl_init($url);
-              at1566Require($handle !== false, 'http_unavailable');
-              $options = [
-                  CURLOPT_FOLLOWLOCATION => false, CURLOPT_SSL_VERIFYPEER => true, CURLOPT_SSL_VERIFYHOST => 2,
-                  CURLOPT_CONNECTTIMEOUT => 5, CURLOPT_TIMEOUT => 18, CURLOPT_USERAGENT => 'Mozilla/5.0',
-                  CURLOPT_WRITEFUNCTION => static function ($unused, string $chunk) use (&$body): int {
-                      if (strlen($body) + strlen($chunk) > 1_000_000) return 0;
-                      $body .= $chunk;
-                      return strlen($chunk);
-                  },
-              ];
-              curl_setopt_array($handle, $options);
-              $ok = curl_exec($handle) !== false && curl_errno($handle) === 0;
-              $status = (int) curl_getinfo($handle, CURLINFO_HTTP_CODE);
-              curl_close($handle);
-              return [$ok, $status, $body];
-          }
-          
-          function at1566Widget(string $message): array
-          {
-              $url = 'https://t.me/anytour/' . $message;
-              [$ok, $status, $raw] = at1566Http($url . '?embed=1&mode=tme');
-              at1566Require($ok && $status === 200, 'public_post_unavailable');
-              $doc = new DOMDocument('1.0', 'UTF-8');
-              $prior = libxml_use_internal_errors(true);
-              try {
-                  $loaded = $doc->loadHTML($raw, LIBXML_NONET);
-              } finally {
-                  libxml_clear_errors();
-                  libxml_use_internal_errors($prior);
+          function publicTelegram(int $mid): array {
+              $doc = new DOMDocument();
+              $url = 'https://t.me/s/anytour?before=' . ($mid + 1);
+              $raw = PromotedHotelPriceWriter::publicBytes($url);
+              requireEdit(@$doc->loadHTML('<?xml encoding="UTF-8">'.$raw, LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING), 'public_dom');
+              $xp = new DOMXPath($doc);
+              $roots = $xp->query('//*[@data-post="anytour/'.$mid.'"]');
+              requireEdit($roots->length === 1,'public_id');
+              $root = $roots->item(0);
+              $class = static fn(string $v):string => 'contains(concat(" ",normalize-space(@class)," ")," '.$v.' ")';
+              $text = $xp->query('.//*['.$class('tgme_widget_message_text').']',$root);
+              $time = $xp->query('.//time[@datetime]',$root);
+              requireEdit($text->length===1 && $time->length===1,'public_body_or_date');
+              $photos = [];
+              foreach ($xp->query('.//*['.$class('tgme_widget_message_photo_wrap').']',$root) as $img) {
+                  $marker = trim($img->getAttribute('class'));
+                  preg_match('/(?:^|\s)([0-9]{5,}(?:_[0-9]+)?)(?:\s|$)/D',$marker,$m);
+                  $photos[] = $m[1] ?? ('class:'.hash('sha256',$marker));
               }
-              at1566Require($loaded, 'invalid_public_post');
-              $xpath = new DOMXPath($doc);
-              $base = $xpath->query('//*[@data-post="anytour/' . $message . '"]');
-              at1566Require($base !== false && $base->length === 1, 'public_post_identity_changed');
-              $element = $base->item(0);
-              $class = static fn(string $value): string => 'contains(concat(" ",normalize-space(@class)," ")," ' . $value . ' ")';
-              $caption = $xpath->query('.//*[' . $class('tgme_widget_message_text') . ']', $element);
-              $photos = $xpath->query('.//*[' . $class('tgme_widget_message_photo_wrap') . ']', $element);
-              $dates = $xpath->query('.//time[@datetime]', $element);
-              $excluded = $xpath->query('.//video|.//audio|.//*[' . $class('tgme_widget_message_video_thumb')
-                  . ' or ' . $class('tgme_widget_message_roundvideo') . ' or ' . $class('tgme_widget_message_grouped') . ']', $element);
-              at1566Require($caption && $photos && $dates && $excluded && $caption->length === 1 && $photos->length === 1
-                  && $dates->length === 1 && $excluded->length === 0, 'old_post_is_not_single_photo');
-              $photo = $photos->item(0);
-              $marker = trim($photo->getAttribute('class'));
-              at1566Require($photo->getAttribute('href') === $url && str_contains($photo->getAttribute('style'), 'background-image')
-                  && preg_match('/(?:^|\s)[0-9]{5,}(?:_[0-9]+)?(?:\s|$)/D', $marker) === 1, 'photo_marker_unavailable');
-              $html = '';
-              foreach ($caption->item(0)->childNodes as $child) $html .= $doc->saveHTML($child);
-              $text = html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i', "\n", $html)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-              at1566Require(is_string($text) && $text !== '' && mb_check_encoding($text, 'UTF-8'), 'caption_unavailable');
-              $buttons = $xpath->query('.//a[contains(@class, "tgme_widget_message_inline_button")]', $element);
-              $buttonDigests = [];
-              if ($buttons) foreach ($buttons as $button) {
-                  $buttonDigests[] = hash('sha256', $button->getAttribute('href'));
+              $videos = $xp->query('.//video|.//*['.$class('tgme_widget_message_video_thumb').' or '.$class('tgme_widget_message_roundvideo').']',$root)->length;
+              $captionHtml='';
+              foreach ($text->item(0)->childNodes as $node) $captionHtml.=$doc->saveHTML($node);
+              $caption = html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i',"\n",$captionHtml)),ENT_QUOTES|ENT_HTML5,'UTF-8');
+              $buttons=[];
+              foreach($xp->query('.//a['.$class('tgme_widget_message_inline_button').']',$root) as $a) {
+                  $buttons[]=['text'=>trim($a->textContent),'url'=>$a->getAttribute('href')];
               }
-              return [
-                  'button_digests' => $buttonDigests,
-                  'published_unixtime' => (new DateTimeImmutable($dates->item(0)->getAttribute('datetime')))->getTimestamp(),
-                  'caption' => $text, 'caption_sha256' => at1566Sha($text), 'html_sha256' => at1566Sha($html),
-                  'photo_marker_sha256' => at1566Sha($marker), 'url' => $url,
-              ];
+              $links=[];
+              foreach($xp->query('.//a[@href]',$text->item(0)) as $a) {
+                  $links[]=['text'=>trim($a->textContent),'url'=>$a->getAttribute('href')];
+              }
+              return ['date'=>$time->item(0)->getAttribute('datetime'),'photos'=>$photos,'videos'=>$videos,
+                  'caption'=>$caption,'caption_sha256'=>hash('sha256',$caption),'buttons'=>$buttons,'links'=>$links];
+          }
+          function priceRows(array $ids): array {
+              $raw=PromotedHotelPriceWriter::publicBytes('https://app.anytoour.ru/feed/hotel-posts-all.xml',12000000);
+              requireEdit(!preg_match('/<!\s*(?:DOCTYPE|ENTITY)\b/i',$raw),'invalid_xml');
+              $doc=new DOMDocument();
+              requireEdit(@$doc->loadXML($raw,LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING),'invalid_xml');
+              $xp=new DOMXPath($doc);
+              $result = [];
+              $now=new DateTimeImmutable('now',new DateTimeZone('Europe/Moscow'));
+              foreach($ids as $id) {
+                  try {
+                      $pair=[];
+                      foreach(['max','tg'] as $platform){
+                          $q=$xp->query('/yml_catalog/shop/offers/offer[@id="'.$platform.'_'.$id.'"]');
+                          requireEdit($q->length===1,'missing_or_duplicate_feed_offer');
+                          $o=$q->item(0);
+                          $get=static function(string $name) use($xp,$o):string{
+                              $x=$xp->query('./'.$name,$o);
+                              requireEdit($x->length===1,'invalid_'.$name);
+                              return $x->item(0)->textContent;
+                          };
+                          $desc=$get('description');
+                          $pattern='~^💰 От (?<amount>[0-9][0-9 ,.\x{00a0}\x{202f}]*) ₽ за двоих\n✈️ Вылет из [^\n]+ (?<date>\d{2}\.\d{2}\.\d{4}) · [1-9][0-9]* ноч(?:ь|и|ей)\n👥 2 взрослых\n🛏 [^\n]+\n🍽 [^\n]+\nЦена найдена мониторингом (?<observed>\d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}) МСК\. Стоимость и наличие могут измениться\.$~mu';
+                          requireEdit(preg_match_all($pattern,$desc,$m,PREG_SET_ORDER)===1,'missing_or_ambiguous_price_block');
+                          $a=$m[0];$value=str_replace(',','.',preg_replace('/[\s\x{00a0}\x{202f}]/u','',$a['amount']));
+                          $price=$get('price');
+                          requireEdit($get('currencyId')==='RUB'&&preg_match('/^[1-9][0-9]*(?:\.[0-9]{1,2})?$/D',$price)&& (float)$value===(float)$price,'amount_mismatch');
+                          $obs=DateTimeImmutable::createFromFormat('!d.m.Y, H:i',$a['observed'],$now->getTimezone());
+                          $departure=DateTimeImmutable::createFromFormat('!d.m.Y',$a['date'],$now->getTimezone());
+                          requireEdit($obs && $obs->format('d.m.Y, H:i')===$a['observed'] && $obs<=$now
+                              && $now->getTimestamp()-$obs->getTimestamp()<129600,'observation_outside_36h');
+                          requireEdit($departure && $departure->format('d.m.Y')===$a['date'] && $departure>=$now->setTime(0,0),'past_departure');
+                          $pair[]= ['block'=>$a[0],'price'=>$price,'observation'=>$obs->format(DATE_ATOM),'departure'=>$departure->format('Y-m-d')];
+                      }
+                      requireEdit($pair[0]===$pair[1],'platform_offer_mismatch');
+                      $result[$id]=$pair[0];
+                  } catch (Throwable $e) {
+                      $result[$id]=['reason'=>$e->getMessage()];
+                  }
+              }
+              return $result;
+          }
+          function fromRegistry(PDO $pdo, ChannelPostRegistryService $registry,int $channel,int $mid): ?array {
+              $q=$pdo->prepare('SELECT id FROM post_publications WHERE post_channel_id=? AND external_message_id=? LIMIT 2');
+              $q->execute([$channel,(string)$mid]); $ids=$q->fetchAll(PDO::FETCH_COLUMN);$q->closeCursor();
+              requireEdit(count($ids)<=1,'publication_duplicate');
+              return $ids ? $registry->publication((int)$ids[0]) : null;
+          }
+          function recordVersion(?array $post): ?array {
+              if ($post===null) return null;
+              return ['id'=>$post['publication_id'],'version'=>$post['version_id'],'state'=>$post['state'],
+                  'hash'=>$post['content_hash'],'hotel_id'=>$post['snapshot']['metadata']['hotel_catalog_id']??null,
+                  'url'=>$post['snapshot']['post_url']??null,'caption'=>$post['snapshot']['text']??null,
+                  'media_types'=>array_column($post['snapshot']['attachments']??[],'type')];
           }
           
-
-          $result=['ok'=>false,'writes'=>0,'rows'=>[]];
+          $spec=json_decode('[[1046,12112,43,"Sunrise Aqua Joy"],[982,70030,517,"Utopia Beach Club"],[1098,1273,355,"Lago Hotel"],[954,1439,300,"Rai Premium Tekirova"],[913,91404,476,"Swissotel Sharm"],[927,73055,510,"Address Beach Resort Fujairah"],[1043,61159,428,"Aloft Palm Jumeirah"]]',true,12,JSON_THROW_ON_ERROR);
+          $out=['ok'=>false,'writes'=>0,'rows'=>[]];
           try {
-              if(PHP_SAPI!=='cli'||trim((string)shell_exec('git rev-parse HEAD'))!=='9b1e17f94f39d8d2cc6260a9a6f45b1d1f38bb3e') throw new RuntimeException();
-              ob_start();
+            installedEdit('e262bf139da2b78623e1be3a891630fd10924180');
+            ob_start();
+            try {
+              require getcwd().'/config.php';
+              require_once getcwd().'/services/PromotedHotelPriceWriter.php';
+              require_once getcwd().'/services/ChannelPostEntryService.php';
+            } finally {ob_end_clean();}
+            $out['installed']='e262bf139da2b78623e1be3a891630fd10924180';
+            $out['price']=priceRows(array_column($spec,1));
+            $pdo=ConversationDb::connection();
+            $pdo->exec('SET SESSION TRANSACTION READ ONLY');$pdo->beginTransaction();
+            $registry=new ChannelPostRegistryService($pdo);
+            $runtime=ChannelPostRuntime::identity('telegram');
+            $channel=$registry->channel('anytour','telegram',(string)($runtime['bot_key']??''),'-1001845835645');
+            requireEdit(is_array($channel) && (int)$channel['id']===6,'channel_identity');
+            $out['channel']=['label'=>$channel['button_text'],'config_version'=>(int)$channel['config_version'],
+              'source_key'=>$channel['source_key'],'bot_url'=>$channel['bot_url'],'mode'=>$channel['post_mode']];
+            foreach($spec as [$mid,$id,$src,$name]) {
+              $row=['mid'=>$mid,'hotel_id'=>$id,'source_mid'=>$src];
               try {
-                  require getcwd().'/config.php';
-                  require_once getcwd().'/services/ChannelPostEntryService.php';
-                  require_once getcwd().'/services/ChannelPostButtonTransport.php';
-              } finally { ob_end_clean(); }
-              $targets=json_decode(<<<'JSON'
-          [["612",253,"Safir Sharm Waterfalls Resort\n📍 Шарм-эль-Шейх, Египет\n\nСобственный пляж с причалом, семь бассейнов и дайвинг-центр. Подойдёт, если хочется совместить отдых у моря с погружениями или теннисом.\n\nПодберём тур на ваши даты.","2024-05-12T10:36:58Z","757a4329d0c0599451557be21398c9217f10ef6a3eae7579b7ccdcc096191482","06b9d88354f8e92a1cb87f5eb2beb675fe511baff7b1f4f51b48a6f0b235982b"],["579",218,"Four Seasons Resort Sharm El Sheikh\n📍 Шарм-эль-Шейх, Египет\n\nСобственный пляж и домашний риф для снорклинга. Для семей есть детский клуб и просторные номера, а для спокойных вечеров — рестораны с видом на море.\n\nПодберём тур на ваши даты.","2024-04-27T09:53:00Z","19f84c2ae00a7ace1f3725cd325f940cf4f73c7e3fcb4968c45230c1992bf081","650768c64fec1206227733f010c19e58c6e9cfedd508829e162239bd03369136"],["230",12125,"OZEN Reserve Bolifushi\n📍 Южный Мале, Мальдивы\n\nВиллы с собственным бассейном на берегу и над лагуной, белый песок и детский клуб Kuda Koli. Для отдыха с включёнными услугами есть концепция RESERVE.\n\nПодберём тур на ваши даты.","2023-12-11T07:54:15Z","d1d7aa5b6d706f3ae355cdb0eacd22fd5922f07118ec41cdf34fd3bb859f340a","7b24da50f90a0280417d6b080872feb4d6b5cc3b332efc06e57692e2d2429e8b"],["237",547,"Anantara Mai Khao Phuket Villas\n📍 Май Кхао, Пхукет\n\nВиллы с частными бассейнами и зелёная территория у пляжа. Для семей есть виллы с двумя спальнями и детский клуб, для отдыха вдвоём — спа.\n\nПодберём тур на ваши даты.","2023-12-13T15:24:34Z","b164557f1997c4a45ffa3ea3f23b2876e932e4a490da731dc8191ffecd6c88f0","16487d83cd1359491033367bf8fda6863ef5321d71ae476bcb1e30188195a5ae"],["232",1074,"Gural Premier Belek\n📍 Белек, Турция\n\nСобственный пляж, большой аквапарк и просторные семейные номера. Удобный выбор для отдыха с детьми, когда хочется проводить весь день на территории.\n\nПодберём тур на ваши даты.","2023-12-11T18:20:29Z","3b4b3367a703a96290c84ddf739f50b6c4b054feec73e72dc10b12e464db5b0e","f70cdf127a3be060a21a506197b3918fb782efb86cc5bd4a3e0cba2a2180e3af"],["501",240,"Happy Life Village Dahab\n📍 Дахаб, Египет\n\nКрасное море и горы Синая. Отель расположен в долине Конай, рядом пешие подходы к местам для дайвинга. Подойдёт для спокойного отдыха и погружений.\n\nПодберём тур на ваши даты.","2024-03-20T07:40:58Z","f6163ab1c63192005f587395c5dce953b2038a5844fe83a8b35fabb642147cd8","ee784ae5c689d79c970161171dafc346fcf7061ccd57239f5a31c677ba876d02"],["208",325,"Minamark Resort & Spa\n📍 Хургада, Египет\n\nСобственный песчаный пляж в центре Саккалы. Днём можно отдыхать у моря, а вечером — выйти на прогулку по городу. Для детей есть клуб и водные горки.\n\nПодберём тур на ваши даты.","2023-12-03T14:10:48Z","b6899d5b7b770aaa14430965bd3772c9ad05472d6fa7ccef6cd020ee5059a048","52dfb50853dc21a074e059bac99bb67ad061d36ae79d97d7327f495da90f918d"],["300",418,"SRNTY Sea Reef\n📍 Макади-Бей, Египет\n\nКоралловый риф с выходом с пирса и два бассейна с морской водой. Один из бассейнов только для взрослых. Выход на пирс зависит от погоды.\n\nПодберём тур на ваши даты.","2024-01-03T13:15:44Z","39f1fcf79db9e1bda1924d43f8116681145d1f3385da84a76f1a524e31a5b7f1","7f1158fa1602c34b692ab54336fc1e60a86dd4c827f5a415dab25937f6427016"],["805",4079,"Sunny Beach Resort & Spa\n📍 Муйне, Вьетнам\n\nПляжный отель на первой линии. На собственном пляже есть лежаки и зонты. Подойдёт для спокойного отпуска вдвоём у моря.\n\nПодберём тур на ваши даты.","2024-08-15T07:48:50Z","f53590d24aa85d43e57250b8f0d00f845b892787e89528be6c3b5264603527c3","2f2fcd9365466f57a970f85198be8bd22132f59ad80941df86871fcd00d2704a"],["270",28581,"Ma Biche Kemer by Werde Hotels\n📍 Гёйнюк, Турция\n\nСобственный пляж рядом с отелем. Вечером устраивают шоу, играет живая музыка и работает дискотека.\n\nПодберём тур на ваши даты.","2023-12-24T11:47:39Z","33ed44a023fdb961bca7ed086c6753b9458437118d7133a8f8ff4ca62caaa77d","f6217a5f29c1ab7eb8955d6224c58ebba2dc18b02ba3d354bf53de26545e86cb"],["277",341,"Nubian Village\n📍 Набк-Бей, Шарм-эль-Шейх\n\nСобственный пляж с пирсом, водные горки для детей и взрослых и детский клуб. Вариант для семейного отдыха на Красном море.\n\nПодберём тур на ваши даты.","2023-12-26T15:25:14Z","c4f64b7f26daabffa3eb3a504c21837d212d3b84b49307f1db12b893fbcedbef","ce56d2f207616ece3970f2a12a0db14db67b968c6f6b3536059705fcc2d5a9e6"],["540",352,"Parrotel Aqua Park Resort\n📍 Шарм-эль-Шейх, Египет\n\nОтель с аквапарком и трансфером к пляжу. Вход в море с общего понтона подойдёт тем, кто любит плавать у рифа.\n\nПодберём тур на ваши даты.","2024-04-09T07:11:19Z","0c376829fc668da00f28907ea0c517760b46f99d9c6dff6a4c20a2f7df2fca3a","155eee28c98b49470a860db4bfc7e8b71fbc3f97a632b55339e40310e5fee67c"],["325",132016,"Voyage Kundu\n📍 Кунду, Анталья\n\nПесчаный пляж, аквапарк и детский клуб Tugi Kids World. Для отдыха у бассейна есть номера Lagoon Swim Up с прямым выходом к воде.\n\nПодберём тур на ваши даты.","2024-01-12T12:09:02Z","47a300d68f7ac172f656b1a2829ea19b054bc91351d799dd957c32de6fd1169d","256c852a357c83166af58ad435164322b47f7ff328310175f7946b307595744b"]]
-          JSON,true,20,JSON_THROW_ON_ERROR);
-              if(count($targets)!==13) throw new RuntimeException();
-              $pdo=ConversationDb::connection();
-              $pdo->exec('SET SESSION TRANSACTION READ ONLY');
-              $pdo->beginTransaction();
-              $registry=new ChannelPostRegistryService($pdo);
-              $q=$pdo->prepare('SELECT id FROM post_publications WHERE post_channel_id=6 AND external_message_id=?');
-              foreach($targets as [$mid,$hotel,$caption,$publishedAt,$oldCaption,$oldPhoto]){
-                  $q->execute([$mid]); $id=(int)$q->fetchColumn(); $q->closeCursor();
-                  $post=$registry->publication($id);
-                  $url='https://t.me/anytour/'.$mid;
-                  $row=['id'=>$mid,'hotel_id'=>$hotel,'url'=>$url,'state'=>$post['state']??null];
-                  if($post&&$post['project_key']==='anytour'&&$post['channel_id']==='-1001845835645'
-                      &&$post['external_message_id']===$mid&&$post['snapshot']['post_url']===$url
-                      &&(int)($post['snapshot']['metadata']['hotel_catalog_id']??0)===$hotel
-                      &&($caption===''||$post['snapshot']['text']===$caption)&&count($post['snapshot']['attachments']??[])===1
-                      &&($post['snapshot']['attachments'][0]['type']??'')==='image'){
-                      $context=ChannelPostEntryService::resolve('telegram',$post['start_payload'],$registry);
-                      if($context&&(int)$context['publication_id']===$id&&(int)$context['version_id']===(int)$post['version_id']){
-                          $row['caption_sha256']=hash('sha256',$post['snapshot']['text']);
-                          $row['button_sha256']=hash('sha256',ChannelPostButtonTransport::buttonUrl($post));
-                          $row['button_label']=$post['channel']['button_text'];
-                          $row['resolved']=true;
-                      }
-                  }
-                  $row['registry_reason']=$post['error_reason']??null;
-                  $row['image_matches_source']=false;
-                  $src=$pdo->prepare('SELECT id FROM post_publications WHERE post_channel_id=10 AND external_message_id=?');
-                  $map = json_decode('{"253":"144","218":"673","12125":"626","547":"624","1074":"189","240":"22","325":"599","418":"566","4079":"498","28581":"326","341":"298","352":"346","132016":"550"}', true);
-                  $src->execute([$map[$hotel]]);
-                  $source=$registry->publication((int)$src->fetchColumn());
-                  $src->closeCursor();
-                  $sourcePhoto=$source['snapshot']['attachments'][0]['file_unique_id']??'';
-                  $row['image_matches_source']=$sourcePhoto!=='' && $sourcePhoto===($post['snapshot']['attachments'][0]['file_unique_id']??null);
-                  [$ok,$http,$html]=at1566Http('https://t.me/s/anytour?before=' . ((int)$mid+1));
-                  $row['http']=$http;
-                  if ($ok && $http===200) {
-                      $doc=new DOMDocument('1.0','UTF-8');
-                      libxml_use_internal_errors(true);
-                      $rendered=$doc->loadHTML($html,LIBXML_NONET);
-                      libxml_clear_errors();
-                      if ($rendered) {
-                          $xp=new DOMXPath($doc);
-                          $root=$xp->query('//*[@data-post="anytour/'.$mid.'"]');
-                          if ($root && $root->length===1) {
-                              $el=$root->item(0);
-                              $links=$xp->query('.//a[@href]', $el);
-                              $classCounts=[];
-                              $matches=0;
-                              foreach ($links as $link) {
-                                  $c=$link->getAttribute('class');
-                                  if ($c!=='') $classCounts[$c]=($classCounts[$c]??0)+1;
-                                  if (isset($row['button_sha256']) && hash_equals(
-                                      $row['button_sha256'],hash('sha256',$link->getAttribute('href'))
-                                  )) ++$matches;
-                              }
-                              $row['expected_button_link_count']=$matches;
-                              $row['button_classes']=array_filter($classCounts,static fn(string $class):bool=>preg_match('/button|keyboard/i',$class)===1,ARRAY_FILTER_USE_KEY);
-                              $words=$xp->query('.//*[contains(@class,"tgme_widget_message_text")]', $el);
-                              $row['public_caption_heading_match']=$words && $words->length===1
-                                  && str_starts_with(trim($words->item(0)->textContent),explode("\n",$caption,2)[0]);
-                              $dates=$xp->query('.//time[@datetime]', $el);
-                              $row['public_date_match']=$dates && $dates->length===1
-                                  && (new DateTimeImmutable($dates->item(0)->getAttribute('datetime')))->getTimestamp()
-                                     ===(new DateTimeImmutable($publishedAt))->getTimestamp();
-                          }
-                      }
-                  }
-                  $result['rows'][]=$row;
-              }
-              $pdo->rollBack();
-              $result['ok']=true;
-          } catch(Throwable) {
-              if(isset($pdo)&&$pdo->inTransaction()) $pdo->rollBack();
-          }
-          echo json_encode($result,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),PHP_EOL;
-          exit($result['ok']?0:2);
+                $row['public']=publicTelegram($mid);
+                requireEdit(mb_stripos($row['public']['caption'],$name)!==false,'public_hotel_mismatch');
+                $row['target']=recordVersion(fromRegistry($pdo,$registry,6,$mid));
+                $row['source']=recordVersion(fromRegistry($pdo,$registry,10,$src));
+                requireEdit(isset($row['source']['id']) && ($row['source']['hotel_id']===null ||
+                  (int)$row['source']['hotel_id']===$id) && mb_stripos((string)$row['source']['caption'],$name)!==false,'source_hotel_mismatch');
+              }catch(Throwable $e){$row['reason']=$e->getMessage();}
+              $out['rows'][]=$row;
+            }
+            $pdo->rollBack();
+            $out['ok']=true;
+          }catch(Throwable $e){if(isset($pdo)&&$pdo->inTransaction()) $pdo->rollBack();$out['reason']=$e->getMessage();}
+          echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          exit($out['ok']?0:2);
           PHP
           php -l pub/read-only.php
       - name: Pin established SSH host continuity and authentication identity
@@ -247,12 +210,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); assert d["ok"] and d["writes"]==0; print(json.dumps(d,ensure_ascii=False))'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print({"ok":d.get("ok"),"reason":d.get("reason"),"count":len(d.get("rows", []))})'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: hotel-main-telegram-final-no-write-check
+          name: seven-telegram-hotel-preflight
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
