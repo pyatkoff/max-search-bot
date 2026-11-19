@@ -1,0 +1,482 @@
+name: "#1566 Edit existing historical MAX photo messages only"
+on:
+  push:
+    branches: [audit/1566-main-hotel-registry-20261119]
+    paths: ['.github/workflows/edit-1566-historical-max-photo-posts.yml']
+permissions:
+  contents: read
+concurrency:
+  group: anytour-authorized-channel-publication
+  cancel-in-progress: false
+jobs:
+  edit_existing:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '74fc73b10d72c61ceafae5d36465f6a29dc4278f' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Lint and seal the exact existing message plans
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p pub/stage
+          cat > pub/stage/editor.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          
+          const MAIN_MAX = '-68765999669267';
+          const HOTEL_MAX = '-80492244209683';
+          const MAIN_REGISTRY = 4;
+          const HOTEL_REGISTRY = 9;
+          const MAX_BOT = 'id9704048781_1_bot';
+          const MAX_PROJECT = 'anytour';
+          const MAX_MAIN_SOURCE = 'max_anytour_msk1';
+          const MAX_FIRST_GROUP = [174,12107,132,469,12111,70048,82606,1344,260,415,2493,3452,4181,37668,43676,64895,73974,74503,99713];
+          
+          function maxEditNeed(bool $ok, string $reason): void
+          {
+              if (!$ok) {
+                  throw new RuntimeException($reason);
+              }
+          }
+          
+          function maxEditJson(array $value): string
+          {
+              return json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+          }
+          
+          function maxEditInstalled(string $sha): void
+          {
+              maxEditNeed(getcwd() === '/var/www/anytoour/data/www/app.anytoour.ru'
+                  && trim((string)shell_exec('git rev-parse HEAD 2>/dev/null')) === $sha
+                  && trim((string)shell_exec('git status --porcelain --untracked-files=no 2>/dev/null')) === '', 'installed_checkout_changed');
+          }
+          
+          function maxEditUrl(string $mid, string $channel): string
+          {
+              maxEditNeed(preg_match('/\Amid\.[0-9a-f]{32}\z/D', $mid) === 1
+                  && in_array($channel, [MAIN_MAX, HOTEL_MAX], true), 'invalid_native_message_id');
+              $bytes = hex2bin(substr($mid, -16));
+              return 'https://max.ru/' . ($channel === MAIN_MAX ? 'anytour' : 'channel_anytour') . '/'
+                  . rtrim(strtr(base64_encode($bytes), '+/', '-_'), '=');
+          }
+          
+          function maxEditPlan(string $path, string $expected): array
+          {
+              maxEditNeed(!is_link($path) && is_file($path) && filesize($path) <= 16384, 'invalid_reviewed_plan_file');
+              $raw = file_get_contents($path);
+              maxEditNeed(is_string($raw) && hash_equals($expected, hash('sha256', $raw)), 'reviewed_plan_hash_changed');
+              $plan = json_decode($raw, true, 16, JSON_THROW_ON_ERROR);
+              $required = ['kind', 'hotel', 'hotel_name', 'target_mid', 'target_ms', 'target_url', 'target_fingerprint',
+                  'source_publication', 'source_version', 'source_content_hash', 'source_mid', 'source_url', 'caption'];
+              maxEditNeed(is_array($plan) && array_diff($required, array_keys($plan)) === []
+                  && array_diff(array_keys($plan), [...$required, 'source_aliases']) === [], 'reviewed_plan_scope_changed');
+              maxEditNeed($plan['kind'] === 'expired_reviewed_photo_promotion' && in_array($plan['hotel'], MAX_FIRST_GROUP, true)
+                  && !in_array($plan['hotel'], [174, 415], true)
+                  && is_int($plan['target_ms']) && $plan['target_ms'] > 0
+                  && is_int($plan['source_publication']) && $plan['source_publication'] > 0
+                  && is_int($plan['source_version']) && $plan['source_version'] > 0
+                  && is_string($plan['source_content_hash']) && preg_match('/\A[a-f0-9]{64}\z/D', $plan['source_content_hash']) === 1
+                  && is_string($plan['hotel_name']) && trim($plan['hotel_name']) === $plan['hotel_name']
+                  && mb_strlen($plan['hotel_name']) >= 5, 'reviewed_hotel_or_old_target_invalid');
+              maxEditNeed(is_string($plan['target_mid']) && is_string($plan['source_mid'])
+                  && $plan['target_mid'] !== $plan['source_mid']
+                  && $plan['target_url'] === maxEditUrl($plan['target_mid'], MAIN_MAX)
+                  && $plan['source_url'] === maxEditUrl($plan['source_mid'], HOTEL_MAX)
+                  && is_string($plan['target_fingerprint']) && preg_match('/\A[a-f0-9]{64}\z/D', $plan['target_fingerprint']) === 1,
+                  'exact_old_main_and_hotel_source_required');
+              $caption = $plan['caption'];
+              maxEditNeed(is_string($caption) && trim($caption) === $caption && mb_strlen($caption) >= 60
+                  && mb_strlen($caption) <= 1300 && !preg_match('/(?:https?:\/\/|₽|\$|€|\b(?:RUB|USD|EUR)\b|\bруб(?:\.|лей|ля)?\b)/iu', $caption)
+                  && str_contains(mb_strtolower(explode("\n", $caption, 2)[0]), mb_strtolower($plan['hotel_name'])),
+                  'reviewed_caption_invalid');
+              $aliases = $plan['source_aliases'] ?? [$plan['hotel_name']];
+              maxEditNeed(is_array($aliases) && array_is_list($aliases) && count($aliases) >= 1
+                  && count($aliases) <= 6, 'reviewed_hotel_aliases_invalid');
+              foreach ($aliases as $alias) {
+                  maxEditNeed(is_string($alias) && trim($alias) === $alias && mb_strlen($alias) >= 6
+                      && mb_strlen($alias) <= 130, 'reviewed_hotel_aliases_invalid');
+              }
+              $plan['source_aliases'] = $aliases;
+              return $plan;
+          }
+          
+          function maxEditRead(string $mid, string $channel): array
+          {
+              $read = ChannelPostApiTransport::buttonRequest('max', 'GET', '/messages/' . $mid, [], null);
+              $message = $read['data'] ?? null;
+              maxEditNeed(empty($read['transport_error']) && ($read['http'] ?? 0) === 200 && is_array($message)
+                  && ($message['body']['mid'] ?? '') === $mid && ($message['recipient']['chat_type'] ?? '') === 'channel'
+                  && (string)($message['recipient']['chat_id'] ?? '') === $channel, 'native_message_identity_unconfirmed');
+              $snapshot = ChannelPostIncomingAdapter::maxSnapshot($message);
+              $url = maxEditUrl($mid, $channel);
+              maxEditNeed(is_array($snapshot) && ($snapshot['metadata']['capability'] ?? '') === 'supported'
+                  && (($snapshot['post_url'] ?? '') === '' || basename((string)$snapshot['post_url']) === basename($url)),
+                  'native_photo_or_url_unsupported');
+              $snapshot['post_url'] = $url;
+              return ['message' => $message, 'snapshot' => $snapshot];
+          }
+          
+          function maxEditPhotos(array $snapshot): array
+          {
+              $media = $snapshot['attachments'] ?? [];
+              maxEditNeed(is_array($media) && array_is_list($media) && count($media) >= 1 && count($media) <= 11,
+                  'ordinary_photo_only_message_required');
+              $ids = [];
+              foreach ($media as $photo) {
+                  maxEditNeed(($photo['provider'] ?? '') === 'max' && ($photo['type'] ?? '') === 'image'
+                      && preg_match('/\A[0-9]+\z/D', (string)($photo['photo_id'] ?? '')) === 1,
+                      'ordinary_photo_only_message_required');
+                  $ids[] = (string)$photo['photo_id'];
+              }
+              return $ids;
+          }
+          
+          function maxEditExistingPublication(PDO $pdo, string $mid): ?int
+          {
+              $statement = $pdo->prepare('SELECT id FROM post_publications WHERE post_channel_id=? AND external_message_id=?');
+              $statement->execute([MAIN_REGISTRY, $mid]);
+              $ids = $statement->fetchAll(PDO::FETCH_COLUMN);
+              maxEditNeed(count($ids) <= 1, 'native_publication_not_unique');
+              return $ids ? (int)$ids[0] : null;
+          }
+          
+          function maxEditTarget(PDO $pdo, array $plan): array
+          {
+              $target = maxEditRead($plan['target_mid'], MAIN_MAX);
+              $snapshot = $target['snapshot'];
+              maxEditNeed((string)($target['message']['timestamp'] ?? '') === (string)$plan['target_ms']
+                  && hash_equals($plan['target_fingerprint'], ChannelPostIncomingAdapter::contentFingerprint($snapshot))
+                  && empty($snapshot['keyboard']) && empty($target['message']['link'])
+                  && !preg_match('/(?:отзыв\s+(?:турист|гост|семь)|видеокружок|кружок менеджера)/iu', (string)$snapshot['text'])
+                  && maxEditExistingPublication($pdo, $plan['target_mid']) === null, 'old_promotion_changed_or_already_bound');
+              $photos = maxEditPhotos($snapshot);
+              maxEditNeed(count($photos) === 1, 'ordinary_single_photo_promotion_required');
+              return $photos;
+          }
+          
+          function maxEditEvidence(PDO $pdo, ChannelPostRegistryService $registry, array $plan, string $sha): array
+          {
+              $channel = $registry->channel(MAX_PROJECT, 'max', MAX_BOT, MAIN_MAX);
+              maxEditNeed(is_array($channel) && (int)$channel['id'] === MAIN_REGISTRY && $channel['source_key'] === MAX_MAIN_SOURCE
+                  && ($channel['post_mode'] ?? 'append_button') === 'append_button'
+                  && (new ChannelPostButtonTransport())->verifyChannel($channel)['state'] === 'ready', 'main_channel_edit_not_ready');
+              $targetPhotos = maxEditTarget($pdo, $plan);
+              $sourceRow = $registry->publication($plan['source_publication']);
+              $sourceHotel = (int)($sourceRow['snapshot']['metadata']['hotel_catalog_id'] ?? 0);
+              maxEditNeed(is_array($sourceRow) && ($sourceRow['state'] ?? '') === 'sent'
+                  && (int)($sourceRow['channel']['id'] ?? 0) === HOTEL_REGISTRY
+                  && ($sourceRow['external_message_id'] ?? '') === $plan['source_mid']
+                  && is_string($sourceRow['content_hash'] ?? null) && hash_equals($plan['source_content_hash'], $sourceRow['content_hash'])
+                  && (int)($sourceRow['version_id'] ?? 0) === $plan['source_version']
+                  && ($sourceHotel === 0 || $sourceHotel === $plan['hotel']),
+                  'canonical_hotel_source_mismatch');
+              $source = maxEditRead($plan['source_mid'], HOTEL_MAX);
+              $sourceTitle = mb_substr((string)$source['snapshot']['text'], 0, 300);
+              $sourceNameMatches = false;
+              foreach ($plan['source_aliases'] as $alias) {
+                  if (mb_stripos($sourceTitle, $alias) !== false) {
+                      $sourceNameMatches = true;
+                      break;
+                  }
+              }
+              maxEditNeed($sourceNameMatches, 'verified_source_hotel_title_unconfirmed');
+              $sourceIds = maxEditPhotos($source['snapshot']);
+              $sourceToken = $source['snapshot']['attachments'][0]['token'] ?? '';
+              maxEditNeed(count($sourceIds) === 1 && is_string($sourceToken) && $sourceToken !== ''
+                  && strlen($sourceToken) <= 4096 && maxEditPhotos($sourceRow['snapshot']) === $sourceIds,
+                  'verified_source_photo_reuse_unavailable');
+              $proof = [
+                  'installed_sha' => $sha, 'hotel_id' => $plan['hotel'], 'target_mid' => $plan['target_mid'],
+                  'target_url' => $plan['target_url'], 'target_ms' => $plan['target_ms'],
+                  'target_fingerprint' => $plan['target_fingerprint'], 'target_photo_ids' => $targetPhotos,
+                  'source_publication' => $plan['source_publication'], 'source_version' => (int)$sourceRow['version_id'],
+                  'source_content_hash' => $sourceRow['content_hash'],
+                  'source_mid' => $plan['source_mid'], 'source_url' => $plan['source_url'], 'source_photo_id' => $sourceIds[0],
+                  'target_config' => (int)$channel['config_version'], 'caption_sha256' => hash('sha256', $plan['caption']),
+              ];
+              return [$proof, $channel, $sourceToken];
+          }
+          
+          function maxEditReceipt($file, array $data): void
+          {
+              $line = maxEditJson($data) . "\n";
+              maxEditNeed(fwrite($file, $line) === strlen($line) && fflush($file) && fsync($file), 'durable_edit_receipt_failed');
+          }
+          
+          function maxEditValidatePost(array $read, array $proof, array $plan): void
+          {
+              maxEditNeed((string)($read['message']['timestamp'] ?? '') === (string)$proof['target_ms']
+                  && empty($read['message']['link']) && $read['snapshot']['post_url'] === $proof['target_url']
+                  && $read['snapshot']['text'] === $plan['caption']
+                  && maxEditPhotos($read['snapshot']) === [$proof['source_photo_id']], 'updated_text_photo_or_history_unconfirmed');
+          }
+          
+          function maxEditRun(array $argv): int
+          {
+              $file = null;
+              $pdo = null;
+              $lock = '';
+              $held = false;
+              $started = false;
+              $proof = [];
+              try {
+                  $mode = $argv[1] ?? '';
+                  $path = $argv[2] ?? '';
+                  $planSha = $argv[3] ?? '';
+                  $sha = $argv[4] ?? '';
+                  $approved = $argv[5] ?? '';
+                  maxEditNeed(in_array($mode, ['--check', '--apply'], true)
+                      && preg_match('/\A[a-f0-9]{64}\z/D', $planSha) === 1 && preg_match('/\A[a-f0-9]{40}\z/D', $sha) === 1
+                      && ($mode === '--check' ? count($argv) === 5 : count($argv) === 6
+                          && preg_match('/\A[a-f0-9]{64}\z/D', $approved) === 1), 'exact_mode_plan_and_release_required');
+                  $plan = maxEditPlan($path, $planSha);
+                  maxEditInstalled($sha);
+                  $root = getcwd();
+                  ob_start();
+                  try {
+                      require $root . '/config.php';
+                      require_once $root . '/services/ChannelPostRuntime.php';
+                      require_once $root . '/services/ChannelPostEntryService.php';
+                      require_once $root . '/services/ChannelPostAutomationService.php';
+                      require_once $root . '/services/MaxTransport.php';
+                  } finally {
+                      ob_end_clean();
+                  }
+                  $pdo = ConversationDb::connection();
+                  $registry = new ChannelPostRegistryService($pdo);
+                  $key = substr(hash('sha256', MAIN_MAX . '|' . $plan['target_mid']), 0, 36);
+                  $base = '/var/www/anytoour/data/channel-post-operations';
+                  $lock = 'anytour-1566-main-max-' . $key;
+                  $directory = $base . '/' . $lock;
+                  maxEditNeed(realpath($base) === $base && !is_link($directory) && !file_exists($directory), 'target_receipt_exists_no_replay');
+                  if ($mode === '--apply') {
+                      $query = $pdo->prepare('SELECT GET_LOCK(?, 0)');
+                      $query->execute([$lock]);
+                      $held = (int)$query->fetchColumn() === 1;
+                      $query->closeCursor();
+                      maxEditNeed($held, 'same_target_edit_in_progress');
+                  }
+                  [$proof, $channel, $imageToken] = maxEditEvidence($pdo, $registry, $plan, $sha);
+                  $sealed = hash('sha256', maxEditJson(['plan_sha256' => $planSha] + $proof));
+                  if ($mode === '--check') {
+                      echo maxEditJson(['state' => 'ready_read_only', 'checkpoint_sha256' => $sealed,
+                          'provider_writes' => 0, 'new_posts' => 0, 'ad_writes' => 0] + $proof), "\n";
+                      return 0;
+                  }
+                  maxEditNeed(hash_equals($approved, $sealed), 'approved_checkpoint_changed');
+                  maxEditInstalled($sha);
+                  maxEditNeed(maxEditTarget($pdo, $plan) === $proof['target_photo_ids'], 'original_target_changed_before_edit');
+                  maxEditNeed(mkdir($directory, 0700), 'target_receipt_exists_no_replay');
+                  $file = fopen($directory . '/receipt.jsonl', 'x');
+                  maxEditNeed(is_resource($file), 'durable_edit_receipt_create_failed');
+                  maxEditReceipt($file, ['state' => 'first_edit_started', 'checkpoint_sha256' => $sealed,
+                      'plan_sha256' => $planSha] + $proof);
+                  $started = true;
+                  $put = MaxTransport::request('https://platform-api2.max.ru', MAX_SEARCH_TOKEN, 'PUT', '/messages',
+                      ['message_id' => $plan['target_mid']],
+                      ['text' => htmlspecialchars($plan['caption'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), 'format' => 'html',
+                          'attachments' => [['type' => 'image', 'payload' => ['token' => $imageToken]]]], null);
+                  unset($imageToken);
+                  $providerError = MaxTransport::lastError();
+                  maxEditReceipt($file, ['state' => 'first_edit_response_received',
+                      'provider_explicit_success' => is_array($put) && ($put['success'] ?? false) === true,
+                      'provider_error_http' => (int)($providerError['http_code'] ?? 0)]);
+          
+                  // The exact-message readback resolves a lost API response. A mismatch is held without replay.
+                  $changed = maxEditRead($plan['target_mid'], MAIN_MAX);
+                  maxEditValidatePost($changed, $proof, $plan);
+                  maxEditReceipt($file, ['state' => 'same_message_text_and_hotel_photo_verified']);
+                  $nowChannel = $registry->channel(MAX_PROJECT, 'max', MAX_BOT, MAIN_MAX);
+                  maxEditNeed(is_array($nowChannel) && (int)$nowChannel['config_version'] === $proof['target_config'],
+                      'channel_changed_after_edit');
+                  $snapshot = $changed['snapshot'];
+                  $snapshot['metadata']['hotel_catalog_id'] = $plan['hotel'];
+                  $snapshot['metadata']['logical_id'] = 'commercial-main-hotel-' . $plan['hotel'] . '-v1';
+                  $snapshot['metadata']['observation_kind'] = 'authorized_admin_content_edit';
+                  $snapshot['metadata']['source_event_id'] = $lock . ':native-edit';
+                  $snapshot['metadata']['source_revision_ms'] = (string)(int)floor(microtime(true) * 1000);
+                  $snapshot['content_hash'] = ChannelPostIncomingAdapter::contentFingerprint($snapshot, '', $channel['bot_url']);
+                  $registered = $registry->registerPublication(MAX_PROJECT, 'max', MAX_BOT, MAIN_MAX, $plan['target_mid'], $snapshot);
+                  maxEditNeed(is_array($registered) && ($registered['external_message_id'] ?? '') === $plan['target_mid']
+                      && (int)($registered['snapshot']['metadata']['hotel_catalog_id'] ?? 0) === $plan['hotel'],
+                      'canonical_hotel_binding_unconfirmed');
+                  $id = (int)$registered['publication_id'];
+                  $version = (int)$registered['version_id'];
+                  maxEditReceipt($file, ['state' => 'existing_message_registered', 'publication_id' => $id, 'version_id' => $version]);
+                  if (($registered['state'] ?? '') === 'pending') {
+                      maxEditInstalled($sha);
+                      maxEditReceipt($file, ['state' => 'existing_message_button_check_started', 'publication_id' => $id, 'version_id' => $version]);
+                      $transport = new ChannelPostButtonTransport(static function (
+                          string $platform, string $method, string $path, array $query, ?array $body
+                      ) use ($plan): array {
+                          maxEditNeed($platform === 'max' && (($method === 'GET' && $body === null
+                              && in_array($path, ['/me', '/chats/' . MAIN_MAX . '/members/me', '/messages/' . $plan['target_mid']], true))
+                              || ($method === 'PUT' && $path === '/messages' && $query === ['message_id' => $plan['target_mid']]
+                              && array_keys($body ?? []) === ['attachments'])), 'outside_exact_existing_message_transport_scope');
+                          return ChannelPostApiTransport::buttonRequest($platform, $method, $path, $query, $body);
+                      });
+                      (new ChannelPostAutomationService($registry, $transport))->processPublication(MAX_PROJECT, 'max', MAX_BOT, $id, $version);
+                  }
+                  $final = $registry->publication($id);
+                  maxEditNeed(is_array($final) && (int)$final['version_id'] === $version && $final['state'] === 'sent'
+                      && ($final['snapshot']['post_url'] ?? '') === $proof['target_url']
+                      && (int)($final['snapshot']['metadata']['hotel_catalog_id'] ?? 0) === $plan['hotel'],
+                      'final_registry_state_unconfirmed');
+                  $last = maxEditRead($plan['target_mid'], MAIN_MAX);
+                  maxEditValidatePost($last, $proof, $plan);
+                  $button = ChannelPostButtonTransport::buttonUrl($final);
+                  maxEditNeed(ChannelPostIncomingAdapter::containsOnlyButton($last['snapshot'], $button, $channel['button_text']),
+                      'single_native_context_button_unconfirmed');
+                  $resolved = ChannelPostEntryService::resolve('max', $final['start_payload'], $registry);
+                  maxEditNeed(is_array($resolved) && (int)$resolved['publication_id'] === $id && (int)$resolved['version_id'] === $version
+                      && (int)($resolved['snapshot']['metadata']['hotel_catalog_id'] ?? 0) === $plan['hotel']
+                      && ($resolved['snapshot']['post_url'] ?? '') === $proof['target_url'], 'canonical_hotel_context_unconfirmed');
+                  $receipt = ['state' => 'existing_max_message_updated_and_verified', 'publication_id' => $id, 'version_id' => $version,
+                      'body_photo_button_verified' => true, 'new_posts' => 0, 'ad_writes' => 0] + $proof;
+                  maxEditReceipt($file, $receipt);
+                  echo maxEditJson($receipt), "\n";
+                  return 0;
+              } catch (Throwable $error) {
+                  $reason = preg_match('/\A[a-z_]{1,100}\z/D', $error->getMessage()) === 1 ? $error->getMessage() : 'operation_failed';
+                  $failure = ['state' => $started ? 'held_no_retry' : 'stopped_before_edit', 'reason' => $reason, 'new_posts' => 0,
+                      'ad_writes' => 0] + $proof;
+                  if ($started && is_resource($file)) {
+                      try {
+                          maxEditReceipt($file, $failure);
+                      } catch (Throwable $ignored) {
+                          $failure['journal_error'] = true;
+                      }
+                  }
+                  echo maxEditJson($failure), "\n";
+                  return 2;
+              } finally {
+                  if (is_resource($file)) {
+                      fclose($file);
+                  }
+                  if ($held && $pdo instanceof PDO) {
+                      $query = $pdo->prepare('SELECT RELEASE_LOCK(?)');
+                      $query->execute([$lock]);
+                  }
+              }
+          }
+          
+          if (PHP_SAPI !== 'cli' || realpath((string)($_SERVER['SCRIPT_FILENAME'] ?? '')) !== __FILE__) {
+              return;
+          }
+          exit(maxEditRun($argv));
+          PHP
+          cat > pub/stage/execute.sh <<'SH'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          umask 077
+          unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
+          stage="$(cd -- "$1" && pwd -P)"
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          release='fe623086b716b3077e4ec0d4551095fc63db37e3'
+          for hotel in 12107 132 469 12111 70048 82606 1344 260 2493 3452 4181 37668 43676 64895 73974 74503 99713; do
+            f="$stage/$hotel.json"
+            digest="$(sha256sum "$f" | cut -d' ' -f1)"
+            if ! php "$stage/editor.php" --check "$f" "$digest" "$release" > "$stage/$hotel-check.out"; then
+              sed -e "s/^/RESULT $hotel /" "$stage/$hotel-check.out"
+              continue
+            fi
+            checkpoint="$(python3 -c 'import json,re,sys; d=json.load(open(sys.argv[1])); assert d["state"]=="ready_read_only" and d["provider_writes"]==0 and d["new_posts"]==0 and d["ad_writes"]==0; h=d["checkpoint_sha256"]; assert re.fullmatch("[a-f0-9]{64}",h); print(h)' "$stage/$hotel-check.out")" || continue
+            [[ "$checkpoint" =~ ^[a-f0-9]{64}$ ]] || continue
+            php "$stage/editor.php" --apply "$f" "$digest" "$release" "$checkpoint" > "$stage/$hotel-final.out" || true
+            sed -e "s/^/RESULT $hotel /" "$stage/$hotel-final.out"
+            sleep 2
+          done
+          SH
+          cat > pub/manifest.json <<'JSON'
+          [{"kind":"expired_reviewed_photo_promotion","hotel":12107,"hotel_name":"JAZ Fanara Resort & Residence","target_mid":"mid.ffffc1752b045fed019c23699b782b3f","target_ms":1770120649592,"target_url":"https://max.ru/anytour/AZwjaZt4Kz8","target_fingerprint":"edf986a5656cba0248a7a7913b27baf2c29b3054b494d92b859280ac2a78f3fa","source_publication":1238,"source_version":10901,"source_content_hash":"c27c89dae73cf502e064ea9337ef8f88d3ad5d9f3ca6337d4dd0b83a927a3d93","source_mid":"mid.ffffb6caf0606fed01a1d06325306a13","source_url":"https://max.ru/channel_anytour/AaHQYyUwahM","source_aliases":["Fanara"],"caption":"✈️ JAZ Fanara Resort & Residence\n📍 Египет · Рас-Ум-эль-Сид, Шарм-эль-Шейх\n\nПесчаный пляж и коралловый риф у Рас-Ум-эль-Сида. В JAZ Fanara удобно чередовать отдых у моря со снорклингом. Если хочется погрузиться глубже, у отеля есть дайв-центр.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":132,"hotel_name":"Beach Albatros Resort","target_mid":"mid.ffffc1752b045fed019e6a822ba3465a","target_ms":1779903376291,"target_url":"https://max.ru/anytour/AZ5qgiujRlo","target_fingerprint":"13df3d817d417c5d501785ddd7d92aa536367eca09050432754b106cb0080343","source_publication":240,"source_version":11091,"source_content_hash":"2888846d0f48d881cd093fed7abbe656e51bccbc67345709b216227bfdfb8476","source_mid":"mid.ffffb6caf0606fed01a19e1eb55448bd","source_url":"https://max.ru/channel_anytour/AaGeHrVUSL0","source_aliases":["Beach Albatros"],"caption":"✈️ Beach Albatros Resort\n📍 Египет · Хургада\n\nСемейный отдых у Красного моря. У Beach Albatros Resort в Хургаде песчаный пляж с пологим входом в воду. Между купанием в море и отдыхом у бассейна — аквапарк с горками для взрослых и детей.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":469,"hotel_name":"Sultan Gardens Resort","target_mid":"mid.ffffc1752b045fed019eac5fd1c62d39","target_ms":1781008421318,"target_url":"https://max.ru/anytour/AZ6sX9HGLTk","target_fingerprint":"1f0ba493932b77f1cec273d926898ce0e3541ed68bc307df681eef16fda4edee","source_publication":69,"source_version":11411,"source_content_hash":"32fd58f806ff963a19ae99b92e47651c86b7c8fe53438a18f51d4620c01d445e","source_mid":"mid.ffffb6caf0606fed01a17988e3be47cc","source_url":"https://max.ru/channel_anytour/AaF5iOO-R8w","source_aliases":["Sultan Gardens"],"caption":"✈️ Sultan Gardens Resort\n📍 Египет · Шарм-эль-Шейх\n\nСемейный курорт у Красного моря. У пляжа есть риф, к которому ведут понтоны. Для активного и спокойного отдыха предусмотрены отдельные зоны пляжа. В Family Suite две спальни, а детский клуб рассчитан на гостей от 4 до 12 лет.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":12111,"hotel_name":"Mövenpick Sharm El Sheikh","target_mid":"mid.ffffc1752b045fed019eb06bad1c4e5c","target_ms":1781076307228,"target_url":"https://max.ru/anytour/AZ6wa60cTlw","target_fingerprint":"5bad3f15fc539bab6c1fe339d4be3fea108a04aba0bd06cdbba70ab2c74fb93a","source_publication":121,"source_version":10851,"source_content_hash":"0da4a0ab287e96ea0ff04d1f41ee74c9fcd75324ef157ff0237970aa5e51c3f2","source_mid":"mid.ffffb6caf0606fed01a19af894c82e28","source_url":"https://max.ru/channel_anytour/AaGa-JTILig","source_aliases":["Mövenpick Sharm","Movenpick Sharm"],"caption":"✈️ Mövenpick Sharm El Sheikh\n📍 Египет · Наама-Бей, Шарм-эль-Шейх\n\nОтель на склоне над бухтой Наама-Бей, с видом на море и собственными песчаными пляжами. На территории есть дайв-центр и конюшня, поэтому пляжный день можно дополнить погружением или прогулкой верхом.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":70048,"hotel_name":"Marina Gallery Resort Kacha Kalim Bay","target_mid":"mid.ffffc1752b045fed019eb5afafd07002","target_ms":1781164650448,"target_url":"https://max.ru/anytour/AZ61r6_QcAI","target_fingerprint":"06d34dba48a3d19d19e684c5bc732fbbfc48f3535fea2be92333faecffa5b0b2","source_publication":1155,"source_version":11341,"source_content_hash":"f9121eeb63ff3d1d53c9ce4b48e11d5458f1329b11f9663a4e19622d99e1e71d","source_mid":"mid.ffffb6caf0606fed01a1bb92957a0102","source_url":"https://max.ru/channel_anytour/AaG7kpV6AQI","source_aliases":["Marina Gallery","Kacha Kalim Bay"],"caption":"✈️ Marina Gallery Resort Kacha Kalim Bay\n📍 Таиланд · Пхукет\n\nКамерный отдых на Пхукете. У отеля открытый бассейн с садом и лежаками, а в ресторане Laikraam подают блюда местной кухни. До пляжа Калим около километра, в Патонг ходит бесплатный шаттл по расписанию.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":82606,"hotel_name":"Lonicera World Hotel","target_mid":"mid.ffffc1752b045fed019eca4fcca7326f","target_ms":1781510687911,"target_url":"https://max.ru/anytour/AZ7KT8ynMm8","target_fingerprint":"29c3943a5cee6909f7f5e1325237dd74c66f94e5fb33891c1c670b876137cace","source_publication":602,"source_version":11287,"source_content_hash":"49e90e631868f20e3dafd62303c74cdf5b1162ccbd8b58c31edef454086c248d","source_mid":"mid.ffffb6caf0606fed01a1b6522c01069b","source_url":"https://max.ru/channel_anytour/AaG2UiwBBps","source_aliases":["Lonicera World"],"caption":"✈️ Lonicera World Hotel\n📍 Турция · Аланья\n\nLonicera World стоит на первой линии в Аланье. Песчаный пляж и мелководье подойдут семьям с детьми. На территории World работают рестораны Aspera и Beach.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":1344,"hotel_name":"Lonicera Resort & Spa","target_mid":"mid.ffffc1752b045fed019ecf72f6e26c50","target_ms":1781596878562,"target_url":"https://max.ru/anytour/AZ7PcvbibFA","target_fingerprint":"15bdab6bd3f6feddd5b304d2b706f7e6decdf79493df616d83d1179891231969","source_publication":925,"source_version":8653,"source_content_hash":"bfa9739685aaf01cc5088616e8842e50b724cb9b74588885c211cc4164f134fa","source_mid":"mid.ffffb6caf0606fed01a1b77ec102631e","source_url":"https://max.ru/channel_anytour/AaG3fsECYx4","source_aliases":["Lonicera Resort"],"caption":"✈️ Lonicera Resort & Spa — семейный отдых в Аланье\n📍 Турция · Аланья\n\nПесчаный пляж с мелководьем в бухте, а на территории комплекса — бассейны и аквапарк. В детском клубе есть занятия для гостей от 4 до 12 лет.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":260,"hotel_name":"Park Regency Sharm El Sheikh","target_mid":"mid.ffffc1752b045fed019ed455b5ed78ff","target_ms":1781678847469,"target_url":"https://max.ru/anytour/AZ7UVbXteP8","target_fingerprint":"6fd428751ffe620b2c07ab59feab84c4c487ff0d3ddfd2b1ab7639045c45b75e","source_publication":319,"source_version":11575,"source_content_hash":"18a16b6f7b40fb14baf166b2c5da326bdc456bcb7d548212ca2d9d29ddd7f508","source_mid":"mid.ffffb6caf0606fed01a1a0dcfbfd745f","source_url":"https://max.ru/channel_anytour/AaGg3Pv9dF8","source_aliases":["Park Regency Sharm","Hyatt Regency Sharm"],"caption":"✈️ Park Regency Sharm El Sheikh — отдых у Красного моря\n📍 Египет · Шарм-эль-Шейх\n\nУ отеля три пляжа, каскадные бассейны, ленивая река и водная горка. Для детей есть клуб Oasis с игровой комнатой и затенённым бассейном.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":2493,"hotel_name":"W Maldives","target_mid":"mid.ffffc1752b045fed019ed9e0af4924d4","target_ms":1781771841353,"target_url":"https://max.ru/anytour/AZ7Z4K9JJNQ","target_fingerprint":"c9cb651a77bcc9b8cd23cd6e85000e9edd63d6e63c9fa209f017174eba2d3579","source_publication":1471,"source_version":11469,"source_content_hash":"805b15b3f260e7320d6b8c704446be0d3900e7d0ebab1d6526a83585bdff0e33","source_mid":"mid.ffffb6caf0606fed01a1e57fb94b4a39","source_url":"https://max.ru/channel_anytour/AaHlf7lLSjk","source_aliases":["W Maldives","W Retreat & Spa Maldives"],"caption":"✈️ W Maldives\n📍 Мальдивы · Северный Ари\n\nВиллы с собственными бассейнами на пляже и над водой, домашний риф и спа. Подойдёт тем, кто хочет чередовать уединение на вилле со снорклингом и ужинами у океана.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":3452,"hotel_name":"Liberty Hotels Lykia","target_mid":"mid.ffffc1752b045fed019ee95367b6667c","target_ms":1782031017910,"target_url":"https://max.ru/anytour/AZ7pU2e2Znw","target_fingerprint":"a119bc8a6f8c035e46cc05b2681fd7b6f6161630608d8f01e1fe0ed429722fff","source_publication":542,"source_version":11035,"source_content_hash":"1de9684cff1beb41bfcdf1d9a41b3f27407d043e074b595bfb59d919610f2d58","source_mid":"mid.ffffb6caf0606fed01a1b618773c6ef3","source_url":"https://max.ru/channel_anytour/AaG2GHc8bvM","source_aliases":["Liberty Hotels Lykia","Liberty Lykia"],"caption":"✈️ Liberty Hotels Lykia\n📍 Турция · Фетхие\n\nКурорт у бухты Олюдениз. У него свой песчано-галечный пляж с отдельной детской лагуной. Для детей от 3 до 12 лет работает Libby & Berty, для малышей от 6 до 36 месяцев — Baby Club.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":4181,"hotel_name":"Hilton Marsa Alam Nubian Resort","target_mid":"mid.ffffc1752b045fed019f034916691cdc","target_ms":1782466549353,"target_url":"https://max.ru/anytour/AZ8DSRZpHNw","target_fingerprint":"33b971ce477aa0162c440fd6b88925bb828f023f1c1a9b1595110bf0fb2e3abb","source_publication":1237,"source_version":11737,"source_content_hash":"731c7f54b320df2ac8ba3a9522d9dbe642caefe092e7ba66b29348a8877d476b","source_mid":"mid.ffffb6caf0606fed01a1d0631c0b60c6","source_url":"https://max.ru/channel_anytour/AaHQYxwLYMY","source_aliases":["Hilton Marsa Alam","Nubian Resort"],"caption":"✈️ Hilton Marsa Alam Nubian Resort\n📍 Египет · Марса-Алам\n\nОтель у бухты Абу-Даббаб для знакомства с подводным миром Красного моря. Есть доступ к песчаному пляжу, четыре бассейна и занятия для детей. Условия купания зависят от погоды и правил пляжа.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":37668,"hotel_name":"Rixos Premium Seagate","target_mid":"mid.ffffc1752b045fed019f2be11f6f4ff4","target_ms":1783147601775,"target_url":"https://max.ru/anytour/AZ8r4R9vT_Q","target_fingerprint":"4d8ff84dbea58cc84b9e12af27194c8f0259355ff4b790f42e21c442b62c6bf4","source_publication":216,"source_version":11057,"source_content_hash":"039be76b4ffd6d1f63b0004e7a2fd32e8617ffa3bd3b76f1c23ba3b19045941b","source_mid":"mid.ffffb6caf0606fed01a19de1bb8539dc","source_url":"https://max.ru/channel_anytour/AaGd4buFOdw","source_aliases":["Rixos Premium Seagate","Rixos Premium Sea Gate"],"caption":"✈️ Rixos Premium Seagate\n📍 Египет · Шарм-эль-Шейх\n\nСемейный курорт в Шарм-эль-Шейхе с собственным пляжем на Красном море. После моря можно отправиться в аквапарк Aquaventure, а для детей работает клуб Rixy.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":43676,"hotel_name":"Anantara Kalutara Resort","target_mid":"mid.ffffc1752b045fed019f64e8cbcd17de","target_ms":1784104405965,"target_url":"https://max.ru/anytour/AZ9k6MvNF94","target_fingerprint":"614aa5a97893c2cdc36801e4bff80935b611ae61c4580bd8271abc84d3b57008","source_publication":1428,"source_version":10729,"source_content_hash":"d629819e382917f66a74d2ce8805849b6f5378ad374abdc8d37a9280c58130f8","source_mid":"mid.ffffb6caf0606fed01a1e432417c4db3","source_url":"https://max.ru/channel_anytour/AaHkMkF8TbM","source_aliases":["Anantara Kalutara"],"caption":"✈️ Anantara Kalutara Resort\n📍 Шри-Ланка · Калутара\n\nКурорт между Индийским океаном и рекой Калу-Ганга. Бассейны, просторные номера и детский клуб — для семейного отдыха. Для поездки вдвоём — спа, рестораны и виды на воду.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":64895,"hotel_name":"Meraki Resort Hurghada","target_mid":"mid.ffffc1752b045fed019f8e52c68f2638","target_ms":1784799217295,"target_url":"https://max.ru/anytour/AZ-OUsaPJjg","target_fingerprint":"beb35286e8329030eaeb6619ea7b2ff5db9e7de1c049213168c478c97778856c","source_publication":185,"source_version":10151,"source_content_hash":"1b04dc40a593865276af2889d604ed1713331b3fa0653833840ac0056ce0ece3","source_mid":"mid.ffffb6caf0606fed01a19ce9c3e17de4","source_url":"https://max.ru/channel_anytour/AaGc6cPhfeQ","source_aliases":["Meraki Resort Hurghada","Meraki Resort Adults Only"],"caption":"✈️ Meraki Resort Hurghada\n📍 Египет · Хургада\n\nОтель в Хургаде для отдыха без детей, с длинным пляжем на Красном море. Днём можно отдыхать у воды, вечером — выбирать тематические вечеринки и клубную программу. На территории есть греческий и египетский рестораны.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":73974,"hotel_name":"Alma Resort Cam Ranh","target_mid":"mid.ffffc1752b045fed019fad2d1c7b273c","target_ms":1785316842619,"target_url":"https://max.ru/anytour/AZ-tLRx7Jzw","target_fingerprint":"593db3d3e3b2d56fe6e88b5a0d7cbefcaf17175a7f2387b08a16d10a28bca38e","source_publication":517,"source_version":10573,"source_content_hash":"f3e51198f098be0d4d68087b04695c82089f3807f65005d58994e2f12e747dca","source_mid":"mid.ffffb6caf0606fed01a1b5e6bd39135f","source_url":"https://max.ru/channel_anytour/AaG15r05E18","source_aliases":["Alma Resort Cam Ranh","Alma Resort"],"caption":"✈️ Alma Resort Cam Ranh\n📍 Вьетнам · Камрань\n\nСемейный курорт на пляже Бай-Дай в Камрани. В Splash Water Park есть ленивая река, волновой бассейн и семейные горки, так что день у моря легко совместить с аквапарком.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":74503,"hotel_name":"NG Phaselis Bay","target_mid":"mid.ffffc1752b045fed019fcc0d5d203bf2","target_ms":1785834855712,"target_url":"https://max.ru/anytour/AZ_MDV0gO_I","target_fingerprint":"2c46df18fb94204a2be40a24f8dc095d5923cf3fc1fb5a66541ae69624df33e0","source_publication":379,"source_version":10423,"source_content_hash":"90896ceef96522e5f0dd6b5281a5c217f01c01ca72d848c90bed5326057f1bb8","source_mid":"mid.ffffb6caf0606fed01a1a37482770fdb","source_url":"https://max.ru/channel_anytour/AaGjdIJ3D9s","source_aliases":["NG Phaselis"],"caption":"✈️ NG Phaselis Bay\n📍 Турция · Кемер\n\nОтель в Кемере с длинным песчаным пляжем и несколькими бассейнами. Подойдёт для семейного отдыха, а для детей есть клуб Beluga с играми и занятиями.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":99713,"hotel_name":"Anantara Mina Al Arab Ras Al Khaimah","target_mid":"mid.ffffc1752b045fed019fd10771555c57","target_ms":1785918353749,"target_url":"https://max.ru/anytour/AZ_RB3FVXFc","target_fingerprint":"21e167f0c44d733ee107e0261b9c683c86ebe4d8c04526262a9a656d59caa7f1","source_publication":1427,"source_version":10735,"source_content_hash":"fe1f06a12601d69ad95103a37c9e7495a3ee39fff38c6970e31e850155518a9c","source_mid":"mid.ffffb6caf0606fed01a1e4323805155f","source_url":"https://max.ru/channel_anytour/AaHkMjgFFV8","source_aliases":["Anantara Mina Al Arab","Anantara Mina Ras Al Khaimah"],"caption":"✈️ Anantara Mina Al Arab Ras Al Khaimah\n📍 ОАЭ · Рас-эль-Хайма\n\nКурорт среди мангровых зарослей Рас-эль-Хаймы. Можно выбрать номер, люкс или отдельную виллу над водой с бассейном. Для семей работают детский и подростковый клубы.\n\nПодберём тур на ваши даты."}]
+          JSON
+          php -l pub/stage/editor.php
+          bash -n pub/stage/execute.sh
+          python3 - <<'PY'
+          import json, pathlib
+          rows=json.load(open('pub/manifest.json'))
+          assert [r['hotel'] for r in rows]==[12107,132,469,12111,70048,82606,1344,260,2493,3452,4181,37668,43676,64895,73974,74503,99713]
+          assert len({r['target_mid'] for r in rows})==17
+          raw=pathlib.Path('pub/stage/editor.php').read_text()
+          assert "'PUT', '/messages'" in raw and "'POST', '/messages'" not in raw
+          assert "'DELETE', '/messages'" not in raw and '/uploads' not in raw
+          for row in rows:
+              assert row['target_url'].startswith('https://max.ru/anytour/')
+              pathlib.Path('pub/stage',f"{row['hotel']}.json").write_text(json.dumps(row,ensure_ascii=False,separators=(',',':')))
+          PY
+          tar -C pub/stage -cf pub/approved.tar editor.php execute.sh 12107.json 132.json 469.json 12111.json 70048.json 82606.json 1344.json 260.json 2493.json 3452.json 4181.json 37668.json 43676.json 64895.json 73974.json 74503.json 99713.json
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Edit only each verified existing ID and capture its independent receipt
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'bash -c '"'"'set -euo pipefail; umask 077; stage=$(mktemp -d /tmp/anytour-1566-old-max.XXXXXXXX); trap "rm -f -- \"$stage\"/*; rmdir -- \"$stage\"" EXIT; tar --no-same-owner --no-same-permissions -C "$stage" -xf -; bash "$stage/execute.sh" "$stage"'"'"'' < pub/approved.tar | tee pub/native-results.txt
+          python3 - <<'PY'
+          import json,pathlib
+          summary = {}
+          for line in pathlib.Path('pub/native-results.txt').read_text().splitlines():
+              if not line.startswith('RESULT '): continue
+              _, hotel, payload = line.split(' ', 2)
+              d=json.loads(payload)
+              assert d.get('new_posts',0)==0 and d.get('ad_writes',0)==0
+              summary[hotel]=d
+          assert len(summary)==17
+          pathlib.Path('pub/summary.json').write_text(json.dumps(summary,indent=2,ensure_ascii=False))
+          PY
+      - name: Preserve exact original receipts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-1566-max-edits-existing-only
+          path: |
+            pub/manifest.json
+            pub/native-results.txt
+            pub/summary.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Remove runner-only connection material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
