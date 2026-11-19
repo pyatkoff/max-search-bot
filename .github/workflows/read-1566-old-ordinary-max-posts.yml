@@ -1,0 +1,248 @@
+name: "#1566 Inventory existing old photo offers in large MAX only"
+on:
+  push:
+    branches: [audit/1566-main-hotel-registry-20261119]
+    paths: ['.github/workflows/read-1566-old-ordinary-max-posts.yml']
+permissions:
+  contents: read
+concurrency:
+  group: anytour-issue-1566-registry-read
+  cancel-in-progress: false
+jobs:
+  registry:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '98f14532e6fffda0ea107801a1fdc7e9efd993c6' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Prepare SELECT-only program
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir pub
+          cat > pub/read-only.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          ini_set('display_errors', '0');
+          ini_set('log_errors', '0');
+          $installed = 'fe623086b716b3077e4ec0d4551095fc63db37e3';
+          $notNewerThan = strtotime('2026-09-01T00:00:00Z') * 1000;
+          
+          $result = ['issue'=>1566, 'ok'=>false, 'production_writes'=>0, 'ad_clicks'=>0, 'bot_starts'=>0];
+          $stage = 'release';
+          try {
+              if (PHP_SAPI !== 'cli' || trim((string) shell_exec('git rev-parse HEAD')) !== $installed
+                  || trim((string) shell_exec('git status --porcelain --untracked-files=no')) !== '') {
+                  throw new RuntimeException();
+              }
+              ob_start();
+              try {
+                  require getcwd() . '/config.php';
+                  require_once getcwd() . '/services/ChannelPostEntryService.php';
+                  require_once getcwd() . '/services/ChannelPostButtonTransport.php';
+              } finally {
+                  ob_end_clean();
+              }
+              if (ProjectConfig::projectId() !== 'anytour') {
+                  throw new RuntimeException();
+              }
+              $pdo = ConversationDb::connection();
+              $pdo->exec('SET SESSION TRANSACTION READ ONLY');
+              $pdo->beginTransaction();
+              $registry = new ChannelPostRegistryService($pdo);
+              $stage = 'channel_identity';
+              $maxId = '-68765999669267';
+              $tgId = '-1001845835645';
+              $maxIdentity = ChannelPostRuntime::identity('max');
+              $tgIdentity = ChannelPostRuntime::identity('telegram');
+              $maxChannel = $maxIdentity ? $registry->channel('anytour', 'max', $maxIdentity['bot_key'], $maxId) : null;
+              $tgChannel = $tgIdentity ? $registry->channel('anytour', 'telegram', $tgIdentity['bot_key'], $tgId) : null;
+              if (!is_array($maxChannel) || (int) $maxChannel['id'] !== 4 || !is_array($tgChannel) || (int) $tgChannel['id'] !== 6) {
+                  throw new RuntimeException();
+              }
+              $existing = $pdo->query('SELECT external_message_id FROM post_publications WHERE post_channel_id=4 ORDER BY id LIMIT 10000')->fetchAll(PDO::FETCH_COLUMN);
+              $occupied = array_fill_keys($existing, true);
+              $pdo->rollBack();
+              $result['installed_sha'] = $installed;
+              $result['read_at_utc'] = gmdate(DATE_ATOM);
+          
+              $transport = new ChannelPostButtonTransport();
+              $maxRights = $transport->verifyChannel($maxChannel + ['expected_public_url'=>'https://max.ru/anytour']);
+              $tgRights = $transport->verifyChannel($tgChannel);
+              $result['capability'] = [];
+              foreach (['max'=>$maxRights, 'telegram'=>$tgRights] as $platform => $verification) {
+                  $result['capability'][$platform] = array_intersect_key($verification, array_flip(['state', 'reason']));
+              }
+              $result['capability']['max']['can_post_messages'] = null;
+              if (($maxRights['state'] ?? '') === 'ready') {
+                  $member = ChannelPostApiTransport::buttonRequest('max', 'GET', '/chats/' . $maxId . '/members/me', [], null);
+                  $memberData = $member['data'] ?? [];
+                  if (($member['http'] ?? 0) === 200 && ($memberData['username'] ?? null) === $maxIdentity['bot_key']
+                      && ($memberData['is_admin'] ?? false) === true && is_array($memberData['permissions'] ?? null)) {
+                      $result['capability']['max']['can_post_messages'] =
+                          in_array('write', $memberData['permissions'], true)
+                          || in_array('post_edit_delete_message', $memberData['permissions'], true);
+                  }
+              }
+              $result['capability']['telegram']['can_post_messages'] = null;
+              if (($tgRights['state'] ?? '') === 'ready') {
+                  $me = ChannelPostApiTransport::buttonRequest('telegram', 'POST', 'getMe', [], []);
+                  $meData = $me['data']['result'] ?? [];
+                  if (($me['http'] ?? 0) === 200 && !empty($meData['id']) && $meData['username'] === $tgIdentity['bot_key']) {
+                      $member = ChannelPostApiTransport::buttonRequest('telegram', 'POST', 'getChatMember', [], ['chat_id'=>$tgId, 'user_id'=>$meData['id']]);
+                      $memberData = $member['data']['result'] ?? [];
+                      if (($member['http'] ?? 0) === 200 && ($memberData['user']['id'] ?? null) === $meData['id']) {
+                          $result['capability']['telegram']['can_post_messages'] =
+                              ($memberData['status'] ?? '') === 'creator' || ($memberData['can_post_messages'] ?? false) === true;
+                      }
+                  }
+              }
+          
+              // A failed editor capability does not prevent checking independently readable history.
+              $stage = 'max_history';
+              $candidates = [];
+              $seen = [];
+              $before = (int) ceil(microtime(true) * 1000);
+              $complete = false;
+              $pages = 0;
+              $unreadableBodies = 0;
+              for ($page = 0; $page < 50; ++$page) {
+                  $response = ChannelPostApiTransport::buttonRequest(
+                      'max', 'GET', '/messages', ['chat_id'=>$maxId, 'from'=>$before, 'to'=>1, 'count'=>100], null
+                  );
+                  $messages = $response['data']['messages'] ?? null;
+                  if (($response['http'] ?? 0) !== 200 || !empty($response['transport_error'])
+                      || !is_array($messages) || !array_is_list($messages) || count($messages) > 100) {
+                      $result['max_history_http'] = (int) ($response['http'] ?? 0);
+                      throw new RuntimeException();
+                  }
+                  ++$pages;
+                  $last = $before;
+                  $pageIds = [];
+                  foreach ($messages as $message) {
+                      $timestamp = $message['timestamp'] ?? null;
+                      $messageId = $message['body']['mid'] ?? null;
+                      if ((string) ($message['recipient']['chat_id'] ?? '') !== $maxId
+                          || ($message['recipient']['chat_type'] ?? '') !== 'channel'
+                          || !is_string($messageId) || !preg_match('/\A[A-Za-z0-9_.-]{1,191}\z/D', $messageId)
+                          || (!is_int($timestamp) && !is_string($timestamp))
+                          || !preg_match('/\A[1-9][0-9]{0,15}\z/D', (string) $timestamp)
+                          || (int) $timestamp > $before || isset($pageIds[$messageId])) {
+                          $stage = 'max_history_page_identity';
+                          throw new RuntimeException();
+                      }
+                      $pageIds[$messageId] = true;
+                      $last = min($last, (int) $timestamp);
+                      if (isset($seen[$messageId])) {
+                          continue;
+                      }
+                      $seen[$messageId] = true;
+                      $snapshot = ChannelPostIncomingAdapter::maxSnapshot($message);
+                      if ($snapshot === null) {
+                          ++$unreadableBodies;
+                          continue;
+                      }
+                      $text = $snapshot['text'];
+                      $url = $snapshot['post_url'];
+                      if (!str_starts_with($url, 'https://max.ru/anytour/') && preg_match('/\Amid\.[0-9a-f]{32}\z/D', $messageId)) {
+                          $slug = rtrim(strtr(base64_encode(hex2bin(substr($messageId, -16))), '+/', '-_'), '=');
+                          $url = 'https://max.ru/anytour/' . $slug;
+                      }
+                      if ((int) $timestamp > $notNewerThan || isset($occupied[$messageId])
+                          || !str_starts_with($url, 'https://max.ru/anytour/')
+                          || array_column($snapshot['attachments'], 'type') !== ['image']
+                          || !empty($snapshot['keyboard']) || !empty($message['link'])
+                          || !preg_match('/(?:вылет|горящи|ночей|ночи|стоимость|RUB|₽)/ui', $text)
+                          || preg_match('/(?:отзыв|менеджер|кружоч|сотрудник|рассказывает|смотрит.{0,25}видео)/ui', $text)) {
+                          continue;
+                      }
+                      $candidates[] = [
+                          'url'=>$url, 'message_id'=>$messageId, 'published_ms'=>(int) $timestamp,
+                          'fingerprint'=>ChannelPostIncomingAdapter::contentFingerprint($snapshot),
+                          'excerpt'=>mb_substr(preg_replace('/\s+/u', ' ', $text), 0, 430, 'UTF-8'),
+                          'media_count'=>count($snapshot['attachments']),
+                      ];
+                  }
+                  if (count($messages) < 100) {
+                      $complete = true;
+                      break;
+                  }
+                  if ($last >= $before) {
+                      $stage = 'max_history_boundary';
+                      throw new RuntimeException();
+                  }
+                  $before = $last;
+              }
+              $result['history'] = ['pages'=>$pages, 'visible_messages'=>count($seen), 'complete'=>$complete, 'unparsed_bodies'=>$unreadableBodies, 'candidates'=>$candidates];
+              $result['ok'] = $complete && $unreadableBodies === 0;
+          } catch (Throwable) {
+              if (isset($pdo) && $pdo->inTransaction()) {
+                  $pdo->rollBack();
+              }
+              $result['failed_stage'] = $stage;
+          }
+          echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR), PHP_EOL;
+          exit($result['ok'] ? 0 : 2);
+          PHP
+          php -l pub/read-only.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read official native history and both bot roles without publishing
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); assert d["ok"] and d["history"]["complete"]; print({"candidate_count": len(d["history"]["candidates"]), "read_count": d["history"]["visible_messages"]})'
+      - name: Save bounded match evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-1566-existing-old-max-photo-posts
+          path: pub/registry.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Remove runner-only connection material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
