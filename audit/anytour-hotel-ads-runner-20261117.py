@@ -78,7 +78,7 @@ def execute(work):
     if path.stat().st_size > 12_000_000:
         raise SafeStop('REPORT_SIZE_BOUND')
     report = json.loads(path.read_bytes())
-    if report.get('probe_id') != 'anytour-hotel-feed-audit-20261119':
+    if report.get('probe_id') != 'anytour-tg-campaign-audit-20261119':
         raise SafeStop('REPORT_SCOPE_MISMATCH')
     if any(report.get(k) is not False for k in ('server_writes', 'advertising_writes', 'database_opened', 'token_exported')):
         raise SafeStop('REPORT_SAFETY_FLAGS_INVALID')
@@ -97,7 +97,7 @@ def main():
         public = serialization.load_pem_public_key(base64.b64decode(os.environ['REPORT_PUBLIC_KEY_B64']))
         data = json.dumps(report, ensure_ascii=False, allow_nan=False).encode()
         key, nonce = AESGCM.generate_key(bit_length=256), os.urandom(12)
-        aad = ('anytour-hotel-feed-audit-20261119-' + os.environ['GITHUB_SHA']).encode()
+        aad = ('anytour-tg-campaign-audit-20261119-' + os.environ['GITHUB_SHA']).encode()
         wrapped = public.encrypt(key, padding.OAEP(mgf=padding.MGF1(hashes.SHA256()), algorithm=hashes.SHA256(), label=None))
         enc = AESGCM(key).encrypt(nonce, data, aad)
         b64 = lambda value: base64.b64encode(value).decode()
