@@ -309,6 +309,12 @@ try{
             $out['held_pairs']++;$out['held_ids'][]=$tv;$out['deferred'][]=['tourvisor_hotel_id'=>$tv,'reason'=>$reason];continue;
         }
         try{
+            if (monitor_hook_telegram_redirect($tv) !== null) {
+                $offerId = $row['feed_binding']['offer_ids']['telegram'];
+                $telegramUrl = monitor_hook_telegram_offer_url(hook_read(getcwd().'/feed/hotel-posts-telegram.xml', 4000000), $offerId);
+                $combinedUrl = monitor_hook_telegram_offer_url(hook_read(getcwd().'/feed/hotel-posts-all.xml', 4000000), $offerId);
+                $row = monitor_hook_select_telegram_redirect($row, $telegramUrl, $combinedUrl);
+            }
             $context=$inspect?hook_measure($out,'post_context',fn()=>hook_context($row,$registry)):null;
             if($inspect)$out['verified_ids'][]=$tv;
             $snapshot=$snapshots[$tv];
