@@ -1,46 +1,49 @@
 {
     "ok": true,
-    "generated_at": "2026-11-19T03:40:55+00:00",
+    "generated_at": "2026-11-19T09:36:55+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 4,
-        "raw_sessions": 4,
+        "sessions": 27,
+        "raw_sessions": 27,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 4,
+            "resolved": 27,
             "unresolved": 0
         },
-        "started": 3,
-        "needs_collected": 0,
-        "tours_opened": 0,
+        "started": 25,
+        "needs_collected": 2,
+        "tours_opened": 2,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 2,
-        "manager_replied": 0,
-        "customer_replied_after_manager": 0,
+        "manager_requested": 20,
+        "manager_replied": 19,
+        "customer_replied_after_manager": 3,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
-            "answered_after_90s": 0,
-            "still_unanswered": 2,
-            "measured_responses": 0,
-            "avg_seconds": null,
-            "max_seconds": null
+            "answered_after_90s": 19,
+            "still_unanswered": 0,
+            "measured_responses": 19,
+            "avg_seconds": 33295,
+            "max_seconds": 55785
         },
         "drop_points": {
-            "manager_requested": 2,
-            "collecting_needs": 1,
-            "started_only": 1
+            "manager_replied": 16,
+            "collecting_needs": 4,
+            "customer_replied_after_manager": 3,
+            "started_only": 2,
+            "tours_opened": 1,
+            "manager_requested": 1
         },
         "flags": {
-            "manager_requested_no_reply": 2
+            "repeated_same_input": 1
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-19T03:40:55Z",
+        "sampled_at": "2026-11-19T09:36:55Z",
         "available": true,
         "error": null,
         "mode": "send",
@@ -59,6 +62,6 @@
         },
         "queue_total": 59
     },
-    "since_utc": "2026-11-19 02:40:55",
+    "since_utc": "2026-11-19 08:36:55",
     "public_redacted": true
 }
