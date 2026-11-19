@@ -8,7 +8,7 @@ require_once __DIR__ . '/ConversationRecorder.php';
 require_once __DIR__ . '/MetrikaConversionGoalService.php';
 require_once __DIR__ . '/ProjectMaxMessengerFactory.php';
 require_once __DIR__ . '/ManagerReplyQueueService.php';
-require_once __DIR__ . '/../integrations/TelegramMessengerAdapter.php';
+require_once __DIR__ . '/ProjectTelegramMessengerFactory.php';
 require_once __DIR__ . '/../integrations/WebsiteMessengerAdapter.php';
 
 class ManagerOutboundService
@@ -75,7 +75,7 @@ class ManagerOutboundService
             }
 
             if ($channel === 'max') $adapter = ProjectMaxMessengerFactory::forConversation($c,'manager');
-            elseif ($channel === 'telegram') $adapter = new TelegramMessengerAdapter(null, 'manager', false);
+            elseif ($channel === 'telegram') $adapter = ProjectTelegramMessengerFactory::forConversation($c,'manager');
             elseif ($channel === 'website') $adapter = new WebsiteMessengerAdapter('manager', false);
             else return false;
             if (!$adapter) return self::connectionNotConfigured($channel,$projectKey);
@@ -151,7 +151,7 @@ class ManagerOutboundService
             if($suspended){self::$lastFailure=$suspended;return false;}
         }
         $type=self::attachmentTypeForMime($mimeType);
-        $adapter=$channel==='max'?ProjectMaxMessengerFactory::forConversation($c,'manager'):new TelegramMessengerAdapter(null,'manager',false);
+        $adapter=$channel==='max'?ProjectMaxMessengerFactory::forConversation($c,'manager'):ProjectTelegramMessengerFactory::forConversation($c,'manager');
         if(!$adapter)return self::connectionNotConfigured($channel,$projectKey);
         if($accepted!==null&&!self::calculationDispatchIdentity($c,$calculationIdentity))return false;
         $safeCaption=trim($caption)!==''?htmlspecialchars(trim($caption),ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8'):'';

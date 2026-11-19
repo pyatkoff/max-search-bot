@@ -223,7 +223,7 @@ try {
         file_put_contents($tmp.'/integrations/'.$adapter.'.php', "<?php\n// Synthetic adapter only.\n");
     }
     file_put_contents($tmp.'/config.php', "<?php\nthrow new LogicException('real_bootstrap_forbidden_in_outbound_fixture');\n");
-    foreach (['ConversationRecordClock','ManagerReplyQueueService','ManagerOutboundService','ConversationRecorder','ManagerSendAttemptService','ManagerAiSentTextService','ManagerMediaCache'] as $service) {
+    foreach (['ConversationRecordClock','ManagerReplyQueueService','ManagerOutboundService','ProjectTelegramMessengerFactory','ConversationRecorder','ManagerSendAttemptService','ManagerAiSentTextService','ManagerMediaCache'] as $service) {
         $source = $root.'/services/'.$service.'.php';
         $target = $tmp.'/services/'.$service.'.php';
         if (!copy($source,$target)) throw new RuntimeException('Cannot copy canonical service');

@@ -9,7 +9,17 @@ final class ManagerTelegramMediaService
 {
     public const MAX_BYTES = 20 * 1024 * 1024;
 
-    public static function attachment(int $messageId, int $index, int $managerId): ?array
+    public static function attachment(int $messageId, int $index, int $managerId, bool $allowApple = false): ?array
+    {
+        $record = self::selected($messageId, $index, $managerId);
+        if ($record === null) return null;
+        if ($record['conversation']['project_key'] === 'appleservice39') {
+            return $allowApple ? ['apple_manager_lookup'=>[$messageId,$index,$managerId]] : null;
+        }
+        return $record['conversation']['project_key'] === ProjectConfig::projectId() ? $record['attachment'] : null;
+    }
+
+    private static function selected(int $messageId, int $index, int $managerId): ?array
     {
         if ($messageId <= 0 || $index < 0 || $index > 20 || $managerId <= 0) return null;
         $q = ConversationDb::connection()->prepare('SELECT conversation_id,channel,direction,metadata_json FROM messages WHERE id=? LIMIT 1');
@@ -17,18 +27,31 @@ final class ManagerTelegramMediaService
         $row = $q->fetch();
         if (!$row || $row['channel'] !== 'telegram' || $row['direction'] !== 'inbound') return null;
         $conversation = ManagerConversationService::visibleConversation((int)$row['conversation_id'], $managerId);
-        if (!$conversation || (string)$conversation['project_key'] !== ProjectConfig::projectId()) return null;
+        if (!$conversation || ($conversation['channel'] ?? '') !== 'telegram') return null;
         $meta = json_decode((string)$row['metadata_json'], true);
         $items = array_values(array_filter((array)($meta['attachments'] ?? []), static fn($a)=>is_array($a) && in_array((string)($a['type'] ?? ''), ['image','video','audio','file'], true)));
         $a = $items[$index] ?? null;
-        return is_array($a) && ($a['provider'] ?? '') === 'telegram' && !empty($a['telegram_file_id']) ? $a : null;
+        if (!is_array($a) || ($a['provider'] ?? '') !== 'telegram' || empty($a['telegram_file_id'])) return null;
+        unset($a['apple_manager_lookup']);
+        return ['conversation'=>$conversation, 'attachment'=>$a, 'metadata'=>$meta];
     }
 
     /** Returns a private temporary stream; the caller must close it after serving. */
     public static function open(array $attachment, ?callable $fetch = null, int $limit = self::MAX_BYTES, int $timeout = 30): ?array
     {
         $limit=max(1,min(self::MAX_BYTES,$limit));$timeout=max(1,min(30,$timeout));
-        $token = defined('TELEGRAM_BOT_TOKEN') ? trim((string)TELEGRAM_BOT_TOKEN) : '';
+        if (isset($attachment['apple_manager_lookup'])) {
+            $lookup = $attachment['apple_manager_lookup'];
+            if (!is_array($lookup) || !array_is_list($lookup) || count($lookup) !== 3 || array_filter($lookup, 'is_int') !== $lookup) return null;
+            $record = self::selected(...$lookup);
+            if ($record === null || $record['conversation']['project_key'] !== 'appleservice39'
+                || ($record['metadata']['source_key'] ?? '') !== 'telegram:appleservice39-main') return null;
+            require_once __DIR__.'/ProjectTelegramMessengerFactory.php';
+            $token = ProjectTelegramMessengerFactory::mediaTokenForConversation($record['conversation'], (string)($record['metadata']['bot_key'] ?? '')) ?? '';
+            $attachment = $record['attachment'];
+        } else {
+            $token = defined('TELEGRAM_BOT_TOKEN') ? trim((string)TELEGRAM_BOT_TOKEN) : '';
+        }
         $fileId = (string)($attachment['telegram_file_id'] ?? '');
         if ($token === '' || $fileId === '' || strlen($fileId) > 1024) return null;
         if ((int)($attachment['size'] ?? 0) > $limit) throw new RuntimeException('telegram_media_too_large', 413);

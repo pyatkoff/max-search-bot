@@ -299,6 +299,7 @@ class ManagerConversationService
     public static function requestKind(array $conversation): string
     {
         $project=(string)($conversation['project_key']??'');
+        if($project==='appleservice39'&&($conversation['channel']??'')==='telegram')return 'device_repair';
         if(ProjectMaxConnection::isLegacyProject($project))return 'travel';
         try{
             $connection=ProjectMaxConnection::resolve($project);
@@ -315,6 +316,10 @@ class ManagerConversationService
     /** A bounded projection from this already-authorized conversation only. */
     private static function repairContext(array $conversation): ?array
     {
+        if(($conversation['project_key']??null)==='appleservice39'&&($conversation['channel']??null)==='telegram'){
+            $context=self::repairEntryContext($conversation);
+            return $context!==null?['model'=>$context['model'],'service'=>$context['service']]:null;
+        }
         if((string)($conversation['channel']??'')!=='max'
             ||ProjectMaxConnection::isLegacyConversation($conversation)
             ||ProjectMaxConnection::resolve((string)($conversation['project_key']??''))===null)return null;
@@ -338,6 +343,10 @@ class ManagerConversationService
     /** Read projection only. The caller must first use visibleConversation for the current manager. */
     public static function repairEntryContext(array $conversation): ?array
     {
+        if(($conversation['project_key']??null)==='appleservice39'&&($conversation['channel']??null)==='telegram'){
+            require_once __DIR__.'/AppleService39TelegramIngress.php';
+            return AppleService39TelegramIngress::managerContext($conversation);
+        }
         if (($conversation['channel'] ?? '') !== 'max' || ProjectMaxConnection::isLegacyConversation($conversation)) return null;
         $connection = ProjectMaxConnection::resolve((string)($conversation['project_key'] ?? ''));
         if ($connection === null) return null;
