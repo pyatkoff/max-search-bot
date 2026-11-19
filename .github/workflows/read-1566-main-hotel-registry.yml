@@ -1,0 +1,232 @@
+name: "#1566 Read only the first 19 hotel posts in installed registry"
+on:
+  push:
+    branches: [audit/1566-main-hotel-registry-20261119]
+    paths: ['.github/workflows/read-1566-main-hotel-registry.yml']
+permissions:
+  contents: read
+concurrency:
+  group: anytour-issue-1566-registry-read
+  cancel-in-progress: false
+jobs:
+  registry:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == 'fe623086b716b3077e4ec0d4551095fc63db37e3' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Prepare SELECT-only program
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir pub
+          cat > pub/read-only.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          ini_set('display_errors', '0');
+          ini_set('log_errors', '0');
+          
+          $targets = json_decode(<<<'JSON'
+          {"132":{"aliases":["Beach Albatros"],"source_max":"https://max.ru/channel_anytour/AaGeHrVUSL0","source_tg":"78","main_tg":[]},"174":{"aliases":["Dana Beach Resort","Дана Бич"],"source_max":"https://max.ru/channel_anytour/AaGd4cUkZFY","source_tg":"67","main_tg":[]},"260":{"aliases":["Park Regency Sharm","Hyatt Regency Sharm"],"source_max":"https://max.ru/channel_anytour/AaGg3Pv9dF8","source_tg":"118","main_tg":["1652","1292"]},"415":{"aliases":["Seagull Beach Resort"],"source_max":"https://max.ru/channel_anytour/AaG3sp-8SoU","source_tg":"472","main_tg":["1754"],"main_max":"https://max.ru/anytour/AaFUVxlGPTg"},"469":{"aliases":["Sultan Gardens"],"source_max":"https://max.ru/channel_anytour/AaF5iOO-R8w","source_tg":"12","main_tg":[]},"1344":{"aliases":["Lonicera Resort"],"source_max":"https://max.ru/channel_anytour/AaG3fsECYx4","source_tg":"411","main_tg":["1469"]},"2493":{"aliases":["W Maldives","W Retreat & Spa Maldives"],"source_max":"https://max.ru/channel_anytour/AaHlf7lLSjk","source_tg":"661","main_tg":[]},"3452":{"aliases":["Liberty Hotels Lykia","Liberty Lykia"],"source_max":"https://max.ru/channel_anytour/AaG2GHc8bvM","source_tg":"220","main_tg":["1148"]},"4181":{"aliases":["Hilton Marsa Alam","Nubian Resort"],"source_max":"https://max.ru/channel_anytour/AaHQYxwLYMY","source_tg":"555","main_tg":[]},"12107":{"aliases":["Fanara"],"source_max":"https://max.ru/channel_anytour/AaHQYyUwahM","source_tg":"556","main_tg":["809"]},"12111":{"aliases":["Mövenpick Sharm","Movenpick Sharm"],"source_max":"https://max.ru/channel_anytour/AaGa-JTILig","source_tg":"24","main_tg":[]},"37668":{"aliases":["Rixos Premium Seagate","Rixos Premium Sea Gate"],"source_max":"https://max.ru/channel_anytour/AaGd4buFOdw","source_tg":"66","main_tg":[]},"43676":{"aliases":["Anantara Kalutara"],"source_max":"https://max.ru/channel_anytour/AaHkMkF8TbM","source_tg":"642","main_tg":[]},"64895":{"aliases":["Meraki Resort Hurghada","Meraki Resort Adults Only"],"source_max":"https://max.ru/channel_anytour/AaGc6cPhfeQ","source_tg":"49","main_tg":["993"]},"70048":{"aliases":["Marina Gallery","Kacha Kalim Bay"],"source_max":"https://max.ru/channel_anytour/AaG7kpV6AQI","source_tg":"523","main_tg":[]},"73974":{"aliases":["Alma Resort Cam Ranh","Alma Resort"],"source_max":"https://max.ru/channel_anytour/AaG15r05E18","source_tg":"207","main_tg":[]},"74503":{"aliases":["NG Phaselis"],"source_max":"https://max.ru/channel_anytour/AaGjdIJ3D9s","source_tg":"146","main_tg":[]},"82606":{"aliases":["Lonicera World"],"source_max":"https://max.ru/channel_anytour/AaG2UiwBBps","source_tg":"248","main_tg":[]},"99713":{"aliases":["Anantara Mina Al Arab","Anantara Mina Ras Al Khaimah"],"source_max":"https://max.ru/channel_anytour/AaHkMjgFFV8","source_tg":"641","main_tg":["1150"]}}
+          JSON, true, 16, JSON_THROW_ON_ERROR);
+          
+          $installed = 'fe623086b716b3077e4ec0d4551095fc63db37e3';
+          $out = ['issue' => 1566, 'ok' => false, 'production_writes' => 0, 'bot_starts' => 0, 'provider_calls' => 0];
+          $stage = 'installed_release';
+          try {
+              if (PHP_SAPI !== 'cli' || trim((string) shell_exec('git rev-parse HEAD')) !== $installed
+                  || trim((string) shell_exec('git status --porcelain --untracked-files=no')) !== '') {
+                  throw new RuntimeException();
+              }
+              $stage = 'initialize_registry';
+              ob_start();
+              try {
+                  require getcwd() . '/config.php';
+                  require_once getcwd() . '/services/ChannelPostEntryService.php';
+                  require_once getcwd() . '/services/ChannelPostButtonTransport.php';
+              } finally {
+                  ob_end_clean();
+              }
+              if (ProjectConfig::projectId() !== 'anytour' || count($targets) !== 19) {
+                  throw new RuntimeException();
+              }
+              $pdo = ConversationDb::connection();
+              $pdo->exec('SET SESSION TRANSACTION READ ONLY');
+              $pdo->beginTransaction();
+          
+              $channels = [
+                  4 => ['max', '-68765999669267', 'https://max.ru/anytour/'],
+                  6 => ['telegram', '-1001845835645', 'https://t.me/anytour/'],
+                  9 => ['max', '-80492244209683', 'https://max.ru/channel_anytour/'],
+                  10 => ['telegram', '-1002262666616', 'https://t.me/any_toour/'],
+              ];
+              $stage = 'verify_channel_identity';
+              $readChannels = $pdo->query(
+                  "SELECT pc.id, pc.platform, pc.channel_id, pc.config_version, pc.is_enabled
+                  FROM post_channels pc JOIN projects pr ON pr.id=pc.project_id
+                  WHERE pr.project_key='anytour' AND pc.id IN (4,6,9,10) ORDER BY pc.id"
+              )->fetchAll(PDO::FETCH_ASSOC);
+              if (count($readChannels) !== count($channels)) {
+                  throw new RuntimeException();
+              }
+              foreach ($readChannels as $record) {
+                  $expected = $channels[(int) $record['id']];
+                  if ($record['platform'] !== $expected[0] || $record['channel_id'] !== $expected[1]) {
+                      throw new RuntimeException();
+                  }
+              }
+              $out['read_at_utc'] = gmdate(DATE_ATOM);
+              $out['installed_sha'] = $installed;
+              $out['channels'] = $readChannels;
+              $out['requested_ids'] = array_keys($targets);
+              $out['matches'] = array_fill_keys(array_keys($targets), []);
+          
+              $stage = 'scan_current_registry';
+              $query = $pdo->prepare(
+                  "SELECT p.id, p.external_message_id, v.id AS version_id, v.version_number, v.state, v.content_hash,
+                          JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.post_url')) AS post_url,
+                          JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id')) AS hotel_id,
+                          JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.logical_id')) AS logical_id,
+                          JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.text')) AS caption
+                     FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id
+                    WHERE p.post_channel_id=? ORDER BY p.id LIMIT 10001"
+              );
+              $registry = new ChannelPostRegistryService($pdo);
+              foreach ($channels as $channelId => [$platform, , $urlPrefix]) {
+                  $query->execute([$channelId]);
+                  $count = 0;
+                  while ($record = $query->fetch(PDO::FETCH_ASSOC)) {
+                      if (++$count > 10000) {
+                          throw new RuntimeException();
+                      }
+                      $caption = (string) $record['caption'];
+                      $url = (string) $record['post_url'];
+                      $safeUrl = str_starts_with($url, $urlPrefix) && preg_match('~\A[A-Za-z0-9_-]+\z~D', substr($url, strlen($urlPrefix))) ? $url : null;
+                      foreach ($targets as $hotelId => $target) {
+                          $reasons = [];
+                          if ((int) $record['hotel_id'] === $hotelId) {
+                              $reasons[] = 'tourvisor_id';
+                          }
+                          if ($record['logical_id'] === 'commercial-hotel-' . $hotelId . '-v1') {
+                              $reasons[] = 'logical_id';
+                          }
+                          if (($channelId === 9 && $safeUrl === $target['source_max'])
+                              || ($channelId === 10 && $record['external_message_id'] === $target['source_tg'])
+                              || ($channelId === 6 && in_array($record['external_message_id'], $target['main_tg'], true))
+                              || ($channelId === 4 && isset($target['main_max']) && $safeUrl === $target['main_max'])) {
+                              $reasons[] = 'known_native_post';
+                          }
+                          foreach ($target['aliases'] as $alias) {
+                              if (mb_stripos($caption, $alias, 0, 'UTF-8') !== false) {
+                                  $reasons[] = 'caption_mentions_hotel';
+                                  break;
+                              }
+                          }
+                          if (!$reasons) {
+                              continue;
+                          }
+                          if (count($out['matches'][$hotelId]) >= 49) {
+                              throw new RuntimeException();
+                          }
+                          $current = $registry->publication((int) $record['id']);
+                          $expectedButton = is_array($current) ? ChannelPostButtonTransport::buttonUrl($current) : '';
+                          $resolved = is_array($current)
+                              ? ChannelPostEntryService::resolve($platform, (string) $current['start_payload'], $registry)
+                              : null;
+                          $snapshot = $current['snapshot'] ?? [];
+                          $out['matches'][$hotelId][] = [
+                              'channel' => $channelId,
+                              'provider_message_id' => $record['external_message_id'],
+                              'url' => $safeUrl,
+                              'publication_id' => (int) $record['id'],
+                              'version' => (int) $record['version_id'],
+                              'version_number' => (int) $record['version_number'],
+                              'state' => $record['state'],
+                              'hotel_id' => (int) $record['hotel_id'],
+                              'matches' => $reasons,
+                              'content_hash' => $record['content_hash'],
+                              'media_count' => count($snapshot['attachments'] ?? []),
+                              'one_expected_button_in_snapshot' => $expectedButton !== ''
+                                  && ChannelPostIncomingAdapter::containsOnlyButton($snapshot, $expectedButton, (string) $current['channel']['button_text']),
+                              'entry_resolves_to_same_version' => (int) ($resolved['publication_id'] ?? 0) === (int) $record['id']
+                                  && (int) ($resolved['version_id'] ?? 0) === (int) $record['version_id'],
+                          ];
+                      }
+                  }
+                  $query->closeCursor();
+                  $out['registry_counts'][$channelId] = $count;
+              }
+              $pdo->rollBack();
+              $out['ok'] = true;
+          } catch (Throwable) {
+              if (isset($pdo) && $pdo->inTransaction()) {
+                  $pdo->rollBack();
+              }
+              unset($out['matches']);
+              $out['failure_stage'] = $stage;
+          }
+          echo json_encode($out, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR), PHP_EOL;
+          exit($out['ok'] ? 0 : 2);
+          PHP
+          php -l pub/read-only.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read installed publications without touching providers
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); assert d["ok"]; print({"checked":len(d["requested_ids"]), "registry_counts":d["registry_counts"], "matches":{k:len(v) for k,v in d["matches"].items()}})'
+      - name: Save bounded match evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-1566-hotel-registry-19
+          path: pub/registry.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Remove runner-only connection material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
