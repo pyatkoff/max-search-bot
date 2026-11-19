@@ -1,4 +1,4 @@
-name: Publish three accepted post-W20 hotels P1 ONCE with native readback
+name: Publish next seven post-W20 hotels P2 ONCE after P1 terminal
 'on':
   push:
     branches:
@@ -12,9 +12,9 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
-  publish-three-once:
+  publish-seven-once:
     if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
-      && github.event.before == 'd53fa27da4856f6de5ad3990ef1933a7c8914a99' && github.run_attempt
+      && github.event.before == '88cbbcaf569d78496a7503512f41a70b03a61702' && github.run_attempt
       == 1
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -25,7 +25,7 @@ jobs:
         GH_TOKEN: ${{ github.token }}
       shell: bash
       run: "set -euo pipefail\npython3 - <<'PY'\nimport subprocess,json,base64,hashlib,io,zipfile,pathlib,urllib.request,os\n\
-        REPO='pyatkoff/max-search-bot';APP='9b1e17f94f39d8d2cc6260a9a6f45b1d1f38bb3e';IDS=[116719,28569,32354]\n\
+        REPO='pyatkoff/max-search-bot';APP='9b1e17f94f39d8d2cc6260a9a6f45b1d1f38bb3e';IDS=[8017,4372,3034,12189,4960,41504,4965]\n\
         def api(p):return subprocess.check_output(['gh','api','repos/'+REPO+'/'+p],timeout=80)\n\
         def data(p):return json.loads(api(p))\ndef digest(b):return hashlib.sha256(b).hexdigest()\n\
         assert data('git/ref/heads/main')['object']['sha']==APP\nassert data('git/ref/heads/audit/content100-bot-publication-20261101')['object']['sha']==os.environ['GITHUB_SHA']\n\
@@ -36,14 +36,16 @@ jobs:
         g={v['path'].rsplit('/',1)[-1]:v for v in release['closure']['gates']};assert\
         \ required<=g.keys() and all(g[x]['conclusion']=='success' and g[x]['head_sha']==APP\
         \ and g[x]['run_attempt']==1 for x in required)\nassert 'PR1631: установлено,\
-        \ выпуск свободен' in data('issues/comments/6682640708')['body']\nrun=data('actions/runs/44607203617');assert\
+        \ выпуск свободен' in data('issues/comments/6682640708')['body']\nprior=data('actions/runs/44607740536');assert\
+        \ prior['status']=='completed' and prior['conclusion']=='success' and prior['head_sha']=='84416b63f05b2588b47844236e7a38c99d0f3e79'\
+        \ and prior['run_attempt']==1\nrun=data('actions/runs/44608334410');assert\
         \ run['status']=='completed' and run['conclusion']=='success' and run['run_attempt']==1\
-        \ and run['head_sha']=='d53fa27da4856f6de5ad3990ef1933a7c8914a99'\na=data('actions/artifacts/14571405162');assert\
-        \ a['workflow_run']['id']==44607203617 and a['digest']=='sha256:f6190ce9f29665e6c6c91c9eb786c32d514eae84b8de2c96c69c841f1f662b5a'\
-        \ and not a['expired']\nb=api('actions/artifacts/14571405162/zip');assert\
-        \ digest(b)=='f6190ce9f29665e6c6c91c9eb786c32d514eae84b8de2c96c69c841f1f662b5a'\n\
+        \ and run['head_sha']=='88cbbcaf569d78496a7503512f41a70b03a61702'\na=data('actions/artifacts/14571585761');assert\
+        \ a['workflow_run']['id']==44608334410 and a['digest']=='sha256:d2da2dca269e609519532e257fca2d9eb924dcd16fd5af525cfeaa28e65e1c39'\
+        \ and not a['expired']\nb=api('actions/artifacts/14571585761/zip');assert\
+        \ digest(b)=='d2da2dca269e609519532e257fca2d9eb924dcd16fd5af525cfeaa28e65e1c39'\n\
         with zipfile.ZipFile(io.BytesIO(b)) as z:\n receipt=z.read('source-receipt.json');assert\
-        \ digest(receipt)=='72f2ecc0a1464aebd5460420217c71657caa95d69009f2642b739f6b592ae969'\n\
+        \ digest(receipt)=='40fa87ba67f7105dc92107dc564d177a1c8723cccee5061e8e4ed4ed3f65b885'\n\
         \ r=json.loads(receipt);assert r['state']=='POSTW20_SOURCE_ACCEPTED_COVERS_STAGED'\
         \ and r['expected_app_sha']==APP and r['native_hotel_ids']==IDS and r['poster_calls']==0\
         \ and r['feed_writes']==0 and r['telegram_disable_notification'] is True\n\
@@ -55,12 +57,12 @@ jobs:
         \ and not review['operational_review']['future_opening_or_rebrand_unresolved']\n\
         \  checks=review['material_checks'];assert set(checks)=={'beach','waterpark','kids_club','pools'}\
         \ and all(v['status'] in ['verified','not_applicable'] and v['evidence'] and\
-        \ v['sources'] for v in checks.values())\n root=pathlib.Path('pub/p1');root.mkdir(parents=True)\n\
-        \ for out,name in {'manifest.json':'p1-manifest.json','approval.json':'p1-approval.json','wave2-once.php':'p1-publisher-unexecuted.php'}.items():(root/out).write_bytes(contents[name])\n\
+        \ v['sources'] for v in checks.values())\n root=pathlib.Path('pub/p2');root.mkdir(parents=True)\n\
+        \ for out,name in {'manifest.json':'p2-manifest.json','approval.json':'p2-approval.json','wave2-once.php':'p2-publisher-unexecuted.php'}.items():(root/out).write_bytes(contents[name])\n\
         \ (root/'source-receipt.json').write_bytes(receipt)\n assert b\"'disable_notification'=>'true'\"\
-        \ in contents['p1-publisher-unexecuted.php']\n manifest=json.loads(contents['p1-manifest.json']);approval=json.loads(contents['p1-approval.json'])\n\
-        \ assert manifest['operation']==approval['operation']=='commercial-hotel-batch-20261119-1-v1'\
-        \ and manifest['state']=='PREPARED_NOT_SENT'\n assert approval['manifest_sha256']==digest(contents['p1-manifest.json'])\
+        \ in contents['p2-publisher-unexecuted.php']\n manifest=json.loads(contents['p2-manifest.json']);approval=json.loads(contents['p2-approval.json'])\n\
+        \ assert manifest['operation']==approval['operation']=='commercial-hotel-batch-20261119-2-v1'\
+        \ and manifest['state']=='PREPARED_NOT_SENT'\n assert approval['manifest_sha256']==digest(contents['p2-manifest.json'])\
         \ and approval['expected_installed_sha']==APP and approval['hotel_ids']==IDS\n\
         \ assert [x['hotel_id'] for x in manifest['rows']]==IDS\n for row in manifest['rows']:\n\
         \  with urllib.request.urlopen('https://anytoour.ru/api-v2.php?action=hotel_details&hotelId='+str(row['hotel_id']),timeout=30)\
@@ -68,8 +70,8 @@ jobs:
         \ actual['country']['id']==r['countries'][str(row['hotel_id'])]!=11\n  b=subprocess.check_output(['curl','--fail','--silent','--show-error','--max-time','30',row['photo_url']],timeout=35);assert\
         \ digest(b)==row['photo_sha256']\nassert data('git/ref/heads/main')['object']['sha']==APP\n\
         assert data('git/ref/heads/audit/content100-bot-publication-20261101')['object']['sha']==os.environ['GITHUB_SHA']\n\
-        print('THREE_SOURCE_INPUTS_CURRENT_RELEASE_COUNTRIES_AND_FOUR_MATERIAL_CHECKS_VERIFIED')\n\
-        \nPY\ncat > pub/guard-readonly-p1.php <<'PHP'\n<?php\ndeclare(strict_types=1);\n\
+        print('SEVEN_SOURCE_INPUTS_CURRENT_RELEASE_COUNTRIES_AND_FOUR_MATERIAL_CHECKS_VERIFIED')\n\
+        \nPY\ncat > pub/guard-readonly-p2.php <<'PHP'\n<?php\ndeclare(strict_types=1);\n\
         \nini_set('display_errors', '0');\n$installed = trim((string)shell_exec('git\
         \ rev-parse HEAD'));\nif (PHP_SAPI !== 'cli' || $installed !== '9b1e17f94f39d8d2cc6260a9a6f45b1d1f38bb3e')\
         \ {\n    fwrite(STDERR, \"Installed application changed before registry read\\\
@@ -80,20 +82,20 @@ jobs:
         \ true), true, 64, JSON_THROW_ON_ERROR);\nforeach ($pins as $path => $expected)\
         \ {\n    if (trim((string)shell_exec('git hash-object -- ' . escapeshellarg($path)))\
         \ !== $expected) {\n        throw new RuntimeException('Pinned publication\
-        \ component differs from the installed release');\n    }\n}\n$manifest = [[116719,['Bliss\
-        \ Hoi An','Bliss HoiAn']],[28569,['Twin Lotus']],[32354,['Phu Quoc Eco Beach','Eco\
-        \ Beach Resort']]];\n\nob_start();\nrequire getcwd() . '/config.php';\nrequire_once\
-        \ getcwd() . '/services/ChannelPostRuntime.php';\nob_end_clean();\n\n$pdo\
-        \ = ConversationDb::connection();\n$pdo->exec('SET SESSION TRANSACTION READ\
-        \ ONLY');\n$pdo->beginTransaction();\n$result = ['installed_sha' => $installed,\
-        \ 'checked_at' => gmdate(DATE_ATOM),\n    'native_hotel_ids' => array_column($manifest,\
-        \ 0), 'channels' => [], 'matches' => []];\ntry {\n    $query = $pdo->prepare('SELECT\
-        \ p.id, p.current_version_id, v.snapshot_json\n        FROM post_publications\
-        \ p JOIN post_versions v ON v.id = p.current_version_id\n        WHERE p.post_channel_id\
-        \ = ? ORDER BY p.id');\n    foreach (['telegram' => 10, 'max' => 9] as $platform\
-        \ => $channel) {\n        $query->execute([$channel]);\n        $rows = $query->fetchAll(PDO::FETCH_ASSOC);\n\
-        \        if (count($rows) < 1692) {\n            throw new RuntimeException('Publication\
-        \ registry is below the verified baseline');\n        }\n        $result['channels'][$platform]\
+        \ component differs from the installed release');\n    }\n}\n$manifest = json_decode(base64_decode('W1s4MDE3LCBbIkxheWFuYSBSZXNvcnQgJiBTcGEiXV0sIFs0MzcyLCBbIlJhd2kgV2FyaW4gUmVzb3J0ICYgU3BhIl1dLCBbMzAzNCwgWyJUaGUgVHVia2FhayBLcmFiaSBCb3V0aXF1ZSBSZXNvcnQiXV0sIFsxMjE4OSwgWyJDYXNhIGRlIExhIEZsb3JhIl1dLCBbNDk2MCwgWyJNYW5nbyBCYXkgUmVzb3J0Il1dLCBbNDE1MDQsIFsiVmVkYW5hIExhZ29vbiBSZXNvcnQgJiBTcGEiXV0sIFs0OTY1LCBbIkNoZW4gU2VhIFJlc29ydCAmIFNwYSBQaHUgUXVvYyJdXV0=',\
+        \ true), true, 64, JSON_THROW_ON_ERROR);\n\nob_start();\nrequire getcwd()\
+        \ . '/config.php';\nrequire_once getcwd() . '/services/ChannelPostRuntime.php';\n\
+        ob_end_clean();\n\n$pdo = ConversationDb::connection();\n$pdo->exec('SET SESSION\
+        \ TRANSACTION READ ONLY');\n$pdo->beginTransaction();\n$result = ['installed_sha'\
+        \ => $installed, 'checked_at' => gmdate(DATE_ATOM),\n    'native_hotel_ids'\
+        \ => array_column($manifest, 0), 'channels' => [], 'matches' => []];\ntry\
+        \ {\n    $query = $pdo->prepare('SELECT p.id, p.current_version_id, v.snapshot_json\n\
+        \        FROM post_publications p JOIN post_versions v ON v.id = p.current_version_id\n\
+        \        WHERE p.post_channel_id = ? ORDER BY p.id');\n    foreach (['telegram'\
+        \ => 10, 'max' => 9] as $platform => $channel) {\n        $query->execute([$channel]);\n\
+        \        $rows = $query->fetchAll(PDO::FETCH_ASSOC);\n        if (count($rows)\
+        \ < 1692) {\n            throw new RuntimeException('Publication registry\
+        \ is below the verified baseline');\n        }\n        $result['channels'][$platform]\
         \ = count($rows);\n        foreach ($rows as $record) {\n            $post\
         \ = json_decode($record['snapshot_json'], true, 64, JSON_THROW_ON_ERROR);\n\
         \            $title = explode(\"\\n\", (string)($post['text'] ?? ''), 2)[0];\n\
@@ -113,8 +115,8 @@ jobs:
         \ 'reason' => $reason,\n                        'title' => mb_substr($title,\
         \ 0, 180, 'UTF-8')];\n                }\n            }\n        }\n    }\n\
         } finally {\n    $pdo->rollBack();\n}\necho json_encode($result, JSON_UNESCAPED_UNICODE\
-        \ | JSON_THROW_ON_ERROR), PHP_EOL;\nPHP\nphp -l pub/p1/wave2-once.php\nphp\
-        \ -l pub/guard-readonly-p1.php\n"
+        \ | JSON_THROW_ON_ERROR), PHP_EOL;\nPHP\nphp -l pub/p2/wave2-once.php\nphp\
+        \ -l pub/guard-readonly-p2.php\n"
     - name: Pin established SSH host continuity and authentication identity
       env:
         HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -135,7 +137,7 @@ jobs:
         \    except Exception:continue\n    if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)\n\
         assert found,'HOST_PIN_MISMATCH_STOP'\npathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\\\
         n'.join(found)+'\\n')\nprint('ESTABLISHED_HOST_PIN_VERIFIED')\nPY\n"
-    - name: P1 fresh read-only admission for exactly 3 hotels
+    - name: P2 fresh read-only admission for exactly 7 hotels
       env:
         HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
         USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -144,8 +146,8 @@ jobs:
       run: "set -euo pipefail\npython3 - <<'PY'\nimport json,subprocess\nbase='repos/pyatkoff/max-search-bot'\n\
         def data(path):\n    return json.loads(subprocess.check_output(['gh','api',base+'/'+path],timeout=40))\n\
         assert data('git/ref/heads/main')['object']['sha']=='9b1e17f94f39d8d2cc6260a9a6f45b1d1f38bb3e'\n\
-        import urllib.request\ncountries={'116719':16,'28569':2,'32354':16}\nfor hotel_id\
-        \ in [116719, 28569, 32354]:\n    with urllib.request.urlopen('https://anytoour.ru/api-v2.php?action=hotel_details&hotelId='+str(hotel_id),timeout=30)\
+        import urllib.request\ncountries={'8017':2,'4372':2,'3034':2,'12189':2,'4960':16,'41504':16,'4965':16}\n\
+        for hotel_id in [8017, 4372, 3034, 12189, 4960, 41504, 4965]:\n    with urllib.request.urlopen('https://anytoour.ru/api-v2.php?action=hotel_details&hotelId='+str(hotel_id),timeout=30)\
         \ as response:\n        actual=json.load(response)\n    assert actual['id']==hotel_id\
         \ and actual['country']['id']==countries[str(hotel_id)] and actual['country']['id']!=11\n\
         feed=data('actions/runs?branch=audit%2Fprice660-27316-resume-readiness-20261117&per_page=5')\n\
@@ -160,15 +162,15 @@ jobs:
         \ GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0; app=/var/www/anytoour/data/www/app.anytoour.ru;\
         \ test -d \"$app/.git\" && test ! -L \"$app\"; cd \"$app\"; test \"$(git rev-parse\
         \ HEAD)\" = 9b1e17f94f39d8d2cc6260a9a6f45b1d1f38bb3e; test -z \"$(git status\
-        \ --porcelain --untracked-files=no)\"; test ! -e /var/www/anytoour/data/channel-post-operations/commercial-hotel-batch-20261119-1-v1;\
+        \ --porcelain --untracked-files=no)\"; test ! -e /var/www/anytoour/data/channel-post-operations/commercial-hotel-batch-20261119-2-v1;\
         \ command -v php >/dev/null; printf \"CURRENT_PRODUCTION_SOURCE_VERIFIED\\\
-        \\n\"' > pub/p1/preflight.txt\ngrep -Fx 'CURRENT_PRODUCTION_SOURCE_VERIFIED'\
-        \ pub/p1/preflight.txt\nssh \"${options[@]}\" \"$USER_VALUE@$HOST_VALUE\"\
-        \ 'set -eu; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/guard-readonly-p1.php\
-        \ > pub/p1/absence-checkpoint.json\npython3 -c 'import json; d=json.load(open(\"\
-        pub/p1/absence-checkpoint.json\")); assert d[\"native_hotel_ids\"]==[116719,28569,32354]\
+        \\n\"' > pub/p2/preflight.txt\ngrep -Fx 'CURRENT_PRODUCTION_SOURCE_VERIFIED'\
+        \ pub/p2/preflight.txt\nssh \"${options[@]}\" \"$USER_VALUE@$HOST_VALUE\"\
+        \ 'set -eu; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/guard-readonly-p2.php\
+        \ > pub/p2/absence-checkpoint.json\npython3 -c 'import json; d=json.load(open(\"\
+        pub/p2/absence-checkpoint.json\")); assert d[\"native_hotel_ids\"]==[8017,4372,3034,12189,4960,41504,4965]\
         \ and not d[\"matches\"]'\n"
-    - name: P1 invoke original bounded publisher ONCE; no retry
+    - name: P2 invoke original bounded publisher ONCE; no retry
       env:
         HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
         USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -185,24 +187,24 @@ jobs:
         ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" ''set -eu; unset GIT_DIR GIT_WORK_TREE
         GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY
         GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru;
-        php'' < pub/p1/wave2-once.php > pub/p1/original-native-output.jsonl || rc=$?
+        php'' < pub/p2/wave2-once.php > pub/p2/original-native-output.jsonl || rc=$?
 
-        printf ''%s\n'' "$rc" > pub/p1/original-exit.txt
+        printf ''%s\n'' "$rc" > pub/p2/original-exit.txt
 
-        cat pub/p1/original-native-output.jsonl
+        cat pub/p2/original-native-output.jsonl
 
         exit "$rc"
 
         '
-    - name: P1 verify all 6 actual posts before the next original operation
+    - name: P2 verify all 14 actual posts before the next original operation
       shell: bash
       run: "set -euo pipefail\npython3 - <<'PY'\nimport collections,hashlib,json,pathlib\n\
-        p=pathlib.Path('pub/p1')\nlines=[json.loads(l) for l in (p/'original-native-output.jsonl').read_text().splitlines()\
+        p=pathlib.Path('pub/p2')\nlines=[json.loads(l) for l in (p/'original-native-output.jsonl').read_text().splitlines()\
         \ if l.strip().startswith('{')]\nassert (p/'original-exit.txt').read_text().strip()=='0'\
-        \ and lines\nr=lines[-1];assert r['ok'] and r['operation']=='commercial-hotel-batch-20261119-1-v1'\
+        \ and lines\nr=lines[-1];assert r['ok'] and r['operation']=='commercial-hotel-batch-20261119-2-v1'\
         \ and r['installed_sha']=='9b1e17f94f39d8d2cc6260a9a6f45b1d1f38bb3e'\nassert\
-        \ r['new_posts']==r['post_write_attempts']==6 and r['reused']==0 and len(r['posts'])==6\n\
-        expected=set([116719,28569,32354]);manifest=json.loads((p/'manifest.json').read_bytes());rows={x['hotel_id']:x\
+        \ r['new_posts']==r['post_write_attempts']==14 and r['reused']==0 and len(r['posts'])==14\n\
+        expected=set([8017,4372,3034,12189,4960,41504,4965]);manifest=json.loads((p/'manifest.json').read_bytes());rows={x['hotel_id']:x\
         \ for x in manifest['rows']}\nby=collections.defaultdict(set)\nfor x in r['posts']:\n\
         \    assert x['state']=='sent' and x['body_photo_button_verified'] and not\
         \ x['reused']\n    assert x['hotel_id'] in expected and x['platform'] in ['max','telegram']\n\
@@ -214,28 +216,28 @@ jobs:
         \ if x['platform']=='max' else 'https://t.me/any_toour/')\n    assert x['button_url'].startswith('https://max.ru/id9704048781_1_bot?start=p_'\
         \ if x['platform']=='max' else 'https://t.me/anyru_bot?start=p_')\n    by[x['platform']].add(x['hotel_id'])\n\
         assert by['max']==by['telegram']==expected and len(set(x['post_url'] for x\
-        \ in r['posts']))==6\nout={'state':'6_NATIVE_POSTS_VERIFIED','unique_new_hotels':3,'telegram':3,'max':3,'operation':r['operation'],'original_output_sha256':hashlib.sha256((p/'original-native-output.jsonl').read_bytes()).hexdigest(),'feed_rows_added':0,'posts':r['posts']}\n\
+        \ in r['posts']))==14\nout={'state':'14_NATIVE_POSTS_VERIFIED','unique_new_hotels':7,'telegram':7,'max':7,'operation':r['operation'],'original_output_sha256':hashlib.sha256((p/'original-native-output.jsonl').read_bytes()).hexdigest(),'feed_rows_added':0,'posts':r['posts']}\n\
         (p/'terminal-verified.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\\\
-        n')\nprint('P1_NATIVE_POSTS_VERIFIED '+json.dumps({'hotels':3,'original_output_sha256':out['original_output_sha256']},separators=(',',':')))\n\
+        n')\nprint('P2_NATIVE_POSTS_VERIFIED '+json.dumps({'hotels':7,'original_output_sha256':out['original_output_sha256']},separators=(',',':')))\n\
         PY\n"
-    - name: P1 preserve original one-attempt outcome including UNKNOWN
+    - name: P2 preserve original one-attempt outcome including UNKNOWN
       if: always()
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
-        name: postw20-p1-native-one-attempt-20261119
-        path: 'pub/p1/preflight.txt
+        name: postw20-p2-native-one-attempt-20261119
+        path: 'pub/p2/preflight.txt
 
-          pub/p1/original-native-output.jsonl
+          pub/p2/original-native-output.jsonl
 
-          pub/p1/original-exit.txt
+          pub/p2/original-exit.txt
 
-          pub/p1/terminal-verified.json
+          pub/p2/terminal-verified.json
 
-          pub/p1/manifest.json
+          pub/p2/manifest.json
 
-          pub/p1/approval.json
+          pub/p2/approval.json
 
-          pub/p1/source-receipt.json
+          pub/p2/source-receipt.json
 
           '
         retention-days: 30
