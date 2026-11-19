@@ -1,21 +1,21 @@
 {
     "ok": true,
-    "generated_at": "2026-11-19T13:54:03+00:00",
+    "generated_at": "2026-11-19T14:38:52+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 100,
-        "raw_sessions": 100,
+        "sessions": 103,
+        "raw_sessions": 103,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 100,
+            "resolved": 103,
             "unresolved": 0
         },
-        "started": 76,
-        "needs_collected": 10,
-        "tours_opened": 8,
+        "started": 77,
+        "needs_collected": 11,
+        "tours_opened": 9,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
         "manager_requested": 53,
@@ -32,8 +32,8 @@
         },
         "drop_points": {
             "manager_replied": 30,
-            "started_only": 24,
-            "collecting_needs": 21,
+            "started_only": 26,
+            "collecting_needs": 22,
             "manager_requested": 12,
             "customer_replied_after_manager": 11,
             "tours_opened": 2
@@ -47,9 +47,9 @@
             "manager_taken_no_reply": 1
         },
         "calendar_day": {
-            "conversations_started": 77,
-            "needs_collected_from_started": 6,
-            "tours_opened_from_started": 5,
+            "conversations_started": 79,
+            "needs_collected_from_started": 7,
+            "tours_opened_from_started": 6,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
             "manager_requested": 37,
@@ -58,13 +58,13 @@
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-19T13:54:03Z",
+        "sampled_at": "2026-11-19T14:38:52Z",
         "available": true,
         "error": null,
         "mode": "send",
         "activated": true,
         "queue_counts": {
-            "pending": 63,
+            "pending": 64,
             "ready": 1,
             "uploading": 0,
             "accepted": 0,
@@ -75,7 +75,7 @@
             "expired": 0,
             "retired": 0
         },
-        "queue_total": 69
+        "queue_total": 70
     },
     "local_date": "2026-11-19",
     "local_day_started_at": "2026-11-19T00:00:00+02:00",
