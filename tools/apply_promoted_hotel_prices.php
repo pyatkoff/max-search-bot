@@ -10,6 +10,7 @@ if (PHP_SAPI !== 'cli') {
 
 const PROMOTED_APP = '/var/www/anytoour/data/www/app.anytoour.ru';
 const PROMOTED_OPERATIONS = '/var/www/anytoour/data/channel-post-operations';
+const PROMOTED_PLAN_MAX_BYTES = 4_000_000;
 
 $lock = null;
 try {
@@ -33,14 +34,17 @@ try {
     if (!is_resource($process)) throw new RuntimeException('price_planner_unavailable');
     $sent = fwrite($pipes[0],$feed);
     fclose($pipes[0]);
-    $result = stream_get_contents($pipes[1],100000);
+    $result = stream_get_contents($pipes[1], PROMOTED_PLAN_MAX_BYTES + 1);
     fclose($pipes[1]);
-    if (proc_close($process) !== 0 || $sent !== strlen($feed) || !is_string($result)) {
+    if (proc_close($process) !== 0 || $sent !== strlen($feed) || !is_string($result)
+        || strlen($result) > PROMOTED_PLAN_MAX_BYTES) {
         throw new RuntimeException('price_planner_failed');
     }
     $plan = json_decode($result,true,32,JSON_THROW_ON_ERROR);
-    if (($plan['target_hotels'] ?? null) !== 19 || !is_array($plan['plans'] ?? null)
-        || ($plan['feed_sha256'] ?? null) !== hash('sha256',$feed)) throw new RuntimeException('price_plan_mismatch');
+    $feedHash = hash('sha256',$feed);
+    if (!is_array($plan) || ($plan['feed_sha256'] ?? null) !== $feedHash || !is_array($plan['plans'] ?? null)) {
+        throw new RuntimeException('price_plan_mismatch');
+    }
 
     ob_start();
     try {
@@ -53,7 +57,7 @@ try {
     $pdo = ConversationDb::connection();
     $registry = new ChannelPostRegistryService($pdo);
     $writer = new PromotedHotelPriceWriter($pdo,$registry,$journal);
-    $rows = $writer->run($plan['plans'],$apply);
+    $rows = $writer->run($plan,$feedHash,$apply);
     echo 'PROMOTED_HOTEL_PRICE_RESULT='.json_encode(['mode'=>$argv[1],'feed_sha256'=>$plan['feed_sha256'],
         'source_held'=>$plan['held'],'rows'=>$rows],JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES),PHP_EOL;
 } catch (Throwable $error) {
