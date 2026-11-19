@@ -13,7 +13,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '899805707a518b9897f127b27f2080fa5deec5e9' &&
+      github.event.before == '347e1da579ed75ca53468865d905ee185ec2125a' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 7
@@ -197,7 +197,7 @@ jobs:
               $result['tg_targets'] = [];
               $result['tg_history'] = [];
               $stage = 'telegram_public_history';
-              foreach ([220,420,620,830,1030,1220,1410,1550] as $before) {
+              foreach ([] as $before) {
                   [$pass, $http, $body] = at1566Http('https://t.me/s/anytour?before=' . $before);
                   $result['tg_history'][$before] = $http;
                   if (!$pass || $http !== 200) continue;
@@ -274,15 +274,15 @@ jobs:
                           $url = 'https://max.ru/anytour/' . $slug;
                       }
                       $a = $snapshot['attachments'] ?? [];
-                      if ((int)$timestamp > strtotime('2026-06-01T00:00:00Z') * 1000
+                      if ((int)$timestamp > strtotime('2026-10-15T00:00:00Z') * 1000
                           || ($snapshot['metadata']['capability'] ?? '') !== 'supported' || count($a) !== 1
                           || ($a[0]['provider'] ?? '') !== 'max' || ($a[0]['type'] ?? '') !== 'image'
-                          || empty($a[0]['photo_id']) || !empty($snapshot['keyboard']) || !empty($message['link'])
+                          || empty($a[0]['photo_id']) || !empty($message['link'])
                           || !genericPromotion($text) || $lookup(4, $messageId)) continue;
                       if (count($result['max_targets']) < 70) {
                           $result['max_targets'][] = [
                               'url'=>$url,'mid'=>$messageId,'ms'=>(int)$timestamp,
-                              'fingerprint'=>ChannelPostIncomingAdapter::contentFingerprint($snapshot),
+                              'fingerprint'=>ChannelPostIncomingAdapter::contentFingerprint($snapshot), 'keyboard'=>!empty($snapshot['keyboard']),
                               'caption'=>mb_substr($text, 0, 850),
                           ];
                       }
@@ -358,7 +358,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: hotel-reuse-photo-preflight-20261119
+          name: hotel-reuse-expanded-max-photo-read-20261119
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
