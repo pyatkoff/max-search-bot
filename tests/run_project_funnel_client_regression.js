@@ -17,10 +17,10 @@ check('duplicate launch fields are rejected',()=>assert.throws(()=>P.context(hre
 for(const bad of['https://evil.test/post',cfg.channel_url+'/post?x=1',cfg.channel_url+'/post#x',cfg.channel_url+'/../evil',cfg.channel_url+'-other/post','https://max.ru@evil.test/post'])check('unsafe destination rejected '+bad,()=>assert.equal(P.safeLink(bad,cfg.channel_url),false));
 check('matching durable receipt allows redirect',()=>assert.equal(P.receipt(accepted,ctx,cfg),true));
 for(const change of[{saved:false},{mode:'demo'},{post_id:'menu'},{offer_id:'another'},{receipt:null},{receipt:{visit_id:'',cursor:'1'}},{redirect_url:'https://evil.test'}])check('incomplete or foreign receipt prevents redirect '+JSON.stringify(change),()=>assert.equal(P.receipt({...accepted,...change},ctx,cfg),false));
-function fixture({reply=accepted,http=200,networkError=false,counter='',clientId='12345678900012345678',timeout=false,bridgeData=init,nativeBridge=false,pageHref=href}={}){
+function fixture({reply=accepted,http=200,networkError=false,counter='',clientId='12345678900012345678',timeout=false,bridgeData=init,nativeBridge=false,pageHref=href,telegram=false}={}){
   const els=new Map(),scripts=[],requests=[],assigned=[],opened=[],metrics=[],metricUrls=[],addresses=[],timeline=[],timers=new Map();let n=0,decoded=false;
   const el=id=>{if(!els.has(id))els.set(id,{hidden:true,textContent:'',listeners:{},addEventListener(k,fn){this.listeners[k]=fn;},setAttribute(){}});return els.get(id);};
-  el('funnel-config').textContent=JSON.stringify({...cfg,counter_id:counter});
+  el('funnel-config').textContent=JSON.stringify({...cfg,counter_id:counter,...(telegram?{platform:'telegram',channel_url:'https://t.me/appleservice39'}:{})});
   const win={document:{getElementById:el,querySelector:()=>el('main'),head:{appendChild:s=>scripts.push(s)},createElement:()=>({remove(){}})},
     WebApp:{initData:bridgeData,ready(){}},location:{href:pageHref,hash:new URL(pageHref).hash,assign:url=>assigned.push(url)},
     history:{replaceState(state,title,url){const next=new URL(url,win.location.href);win.location.href=next.href;win.location.hash=next.hash;addresses.push(next.href);timeline.push('address');}},
@@ -28,6 +28,11 @@ function fixture({reply=accepted,http=200,networkError=false,counter='',clientId
     ym(...args){metrics.push(args);metricUrls.push(win.location.href);timeline.push(args[1]);if(args[1]==='getClientID'&&clientId)queueMicrotask(()=>args[2](clientId));},
     async fetch(url,options){requests.push({url,body:JSON.parse(options.body)});if(networkError)throw Error('network');if(timeout)return new Promise((_,reject)=>options.signal.addEventListener('abort',()=>reject(Error('timeout'))));return{ok:http===200,json:async()=>{decoded=true;return reply;}};}};
   if(nativeBridge)win.WebApp.openMaxLink=url=>{opened.push({url,decoded});if(nativeBridge==='throw')throw Error('bridge_unavailable');};
+  if(telegram){
+    win.Telegram={WebApp:win.WebApp};
+    if(nativeBridge)win.Telegram.WebApp.openTelegramLink=win.WebApp.openMaxLink;
+    delete win.WebApp;
+  }
   return{win,els,requests,assigned,opened,metrics,metricUrls,addresses,timeline,scripts};
 }
 (async()=>{
@@ -50,5 +55,27 @@ function fixture({reply=accepted,http=200,networkError=false,counter='',clientId
   const organic=new URLSearchParams({auth_date:'1794300000',user:'{"id":7001}',start_param:'post1_menu',hash:'f'.repeat(64)}).toString();
   f=fixture({bridgeData:organic,reply:{ok:true,mode:'publication',saved:false,post_id:'menu',offer_id:'as39-search-v1-menu',redirect_url:cfg.channel_url+'/AaG9bSM5Y9o'},counter:'99900011'});f.win.location.href='https://app.anytoour.ru/project_funnel.php?project=appleservice39';f.win.location.hash='';await P.start(f.win);
   check('organic path redirects without Metrika or fake ad capture',()=>{assert.equal(f.assigned.length,1);assert.equal(f.metrics.length,0);assert.equal(f.requests[0].body.client_id,'');});
+  const telegramOffer='as39-tg-service-display';
+  const telegramToken=Buffer.from(JSON.stringify({post_id:'service-display',offer_id:telegramOffer})).toString('base64url');
+  const telegramStart='18446744073709551614_region_213_campaign_123_ctx1_'+telegramToken;
+  const telegramInit=new URLSearchParams({auth_date:'1794300000',user:'{"id":7001}',start_param:telegramStart,hash:'f'.repeat(64)}).toString();
+  const telegramPage='https://app.anytoour.ru/project_funnel.php?project=appleservice39&platform=telegram';
+  const telegramOptions={telegram:true,nativeBridge:true,bridgeData:telegramInit,counter:'42611469',pageHref:telegramPage+'#'+new URLSearchParams({tgWebAppData:telegramInit})};
+  const telegramReply={...accepted,offer_id:telegramOffer,redirect_url:'https://t.me/appleservice39/32',receipt:{visit_id:'tg1_'+'a'.repeat(64),cursor:'1',reused:false}};
+  f=fixture({...telegramOptions,reply:telegramReply});
+  await P.start(f.win);
+  check('Telegram captures the paid URL before Metrika and opens the exact post after saving',()=>{
+    const tracked=new URL(f.metricUrls[0]);
+    assert.equal(tracked.searchParams.get('yclid'),'18446744073709551614');
+    assert.equal(tracked.searchParams.get('platform'),'telegram');
+    assert.equal(tracked.hash,'');
+    assert.equal(f.requests[0].url,telegramPage);
+    assert.equal(f.requests[0].body.init_data,telegramInit);
+    assert.deepEqual(f.opened,[{url:telegramReply.redirect_url,decoded:true}]);
+    assert.deepEqual(f.timeline.slice(0,3),['address','init','getClientID']);
+  });
+  f=fixture({...telegramOptions,reply:{...telegramReply,receipt:accepted.receipt}});
+  await P.start(f.win);
+  check('Telegram does not open the post for a MAX receipt',()=>{assert.deepEqual(f.opened,[]);assert.deepEqual(f.assigned,[]);});
   console.log('PROJECT FUNNEL CLIENT PASSED '+passed);
 })().catch(e=>{console.error(e);process.exitCode=1;});

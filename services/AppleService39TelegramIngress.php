@@ -8,6 +8,7 @@ require_once __DIR__.'/ConversationRecorder.php';
 require_once __DIR__.'/ConversationControlService.php';
 require_once __DIR__.'/../integrations/TelegramIncomingAdapter.php';
 require_once __DIR__.'/AppleService39TelegramDevicePublisher.php';
+require_once __DIR__.'/AppleService39TelegramFunnel.php';
 
 final class AppleService39TelegramIngress
 {
@@ -95,6 +96,9 @@ final class AppleService39TelegramIngress
                         'text'=>$reply,'state'=>'pending']);
                     if($entry)$meta['repair_telegram_entry_id']=(int)$pdo->lastInsertId();
                 }
+                if($entry && is_int($message['date']??null)){
+                    AppleService39TelegramFunnel::recordAttribution($pdo,$binding,$id,$user,$entry,$message['date']);
+                }
                 $q=$pdo->prepare('UPDATE conversations SET metadata_json=?,entry_channel=? WHERE id=?');
                 $q->execute([json_encode($meta,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE),self::SOURCE,$id]);
             }
@@ -157,7 +161,7 @@ final class AppleService39TelegramIngress
     }
 
     /** Read the canonical post only after the native publisher verified this bot, source and message. */
-    private static function publishedPost(PDO $pdo, array $entry, array $owner, string $bot): string
+    public static function publishedPost(PDO $pdo, array $entry, array $owner, string $bot): string
     {
         $campaign = ($entry['scope'] ?? null) === 'device' ? AppleService39TelegramDevicePublisher::DEVICE_CAMPAIGN
             : AppleService39TelegramCatalogue::CAMPAIGN;

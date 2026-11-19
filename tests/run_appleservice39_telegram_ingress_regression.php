@@ -109,6 +109,44 @@ appleTgCheck('Manager2 shows the verified native URL and battery replacement for
     $catalogueContext['post_url']===$catalogueUrl && $catalogueContext['model']==='iPhone X'
     &&$catalogueContext['service']==='Замена аккумулятора' &&$catalogueContext['reply']['state']==='delivered'
     &&$one(981)['status']==='waiting_manager' &&count($sent)===$catalogueBefore+2);
+
+$pdo->prepare("UPDATE appleservice39_pilot_operations SET external_message_id='12',public_url='https://t.me/appleservice39/12' WHERE campaign_key=?")->execute([$catalogueCampaign]);
+    $pdo->exec("CREATE TABLE advertising_visit_cursors(project_key TEXT,source_key TEXT,platform TEXT,counter_id TEXT,last_cursor TEXT DEFAULT '0',PRIMARY KEY(project_key,source_key,platform,counter_id));
+    CREATE TABLE advertising_visit_observations(id INTEGER PRIMARY KEY AUTOINCREMENT,project_key TEXT,source_key TEXT,platform TEXT,counter_id TEXT,source_cursor TEXT,visit_id TEXT,visit_at_unix INTEGER,observed_at_unix INTEGER,external_user_id TEXT,identity_status TEXT,client_id TEXT,yclid TEXT,campaign_id TEXT,region_id TEXT,payload_sha256 TEXT,received_at_unix INTEGER,post_ref TEXT DEFAULT '',offer_ref TEXT DEFAULT '',context_json TEXT,UNIQUE(project_key,source_key,platform,counter_id,source_cursor))");
+
+$paidBinding=$binding+['bot_token'=>'fixture-only-bot-token'];
+$paidAt=time();
+$paidOffer='as39-tg-'.$catalogueKey;
+$paidStart='18446744073709551614_region_213_campaign_123_ctx1_'.ProjectFunnelLaunch::context($catalogueKey,$paidOffer);
+$sign=static function(int $user,string $start,int $at,string $token):array{
+    $data=['auth_date'=>(string)$at,'query_id'=>'fixture-'.$user,'start_param'=>$start,'user'=>json_encode(['id'=>$user],JSON_THROW_ON_ERROR)];
+    $lines=[];
+    foreach($data as$key=>$value)$lines[]=$key.'='.$value;
+    $data['hash']=hash_hmac('sha256',implode("\n",$lines),hash_hmac('sha256',$token,'WebAppData',true));
+    return ['init_data'=>http_build_query($data,'','&',PHP_QUERY_RFC3986),'start_param'=>$start,'client_id'=>'12345678900012345678'];
+};
+$paidUser=983;
+$paidInput=$sign($paidUser,$paidStart,$paidAt,$paidBinding['bot_token']);
+$receipt=AppleService39TelegramFunnel::capture($pdo,$paidBinding,$paidInput,$paidAt);
+$duplicateReceipt=AppleService39TelegramFunnel::capture($pdo,$paidBinding,$paidInput,$paidAt);
+appleTgCheck('paid Telegram capture durably saves the exact post and is idempotent',
+    $receipt['redirect_url']==='https://t.me/appleservice39/12'&&$receipt['offer_id']===$paidOffer
+    &&str_starts_with($receipt['receipt']['visit_id'],'tg1_')&&$duplicateReceipt['receipt']['reused']
+    &&$count("SELECT COUNT(*) FROM advertising_visit_observations WHERE platform='telegram' AND yclid='18446744073709551614'")===1);
+$paidFeed=AppleService39TelegramFunnel::feed($pdo,$paidBinding);
+appleTgCheck('Telegram feed includes only verified destinations and keeps original Direct macros',
+    str_contains($paidFeed,$paidOffer.',https://t.me/Appleservice39_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_')
+    &&!str_contains($paidFeed,'https://t.me/appleservice39/12')&&!str_contains($paidFeed,'as39-tg-device-ipad'));
+$paidBotStart=$update($paidUser,1,'/start as39_'.$catalogueKey,['date'=>$paidAt]);
+$adCount=static fn()=> $count("SELECT COUNT(*) FROM conversation_events WHERE event_type='apple_telegram_ad_entry'");
+appleTgCheck('matching verified user and post bind once to the existing Telegram conversation',
+    $run($paidBotStart)===200&&$adCount()===1&&$one($paidUser)['status']==='waiting_manager'
+    &&$run($paidBotStart)===200&&$adCount()===1);
+$event=$pdo->query("SELECT payload_json FROM conversation_events WHERE event_type='apple_telegram_ad_entry'")->fetchColumn();
+appleTgCheck('bound visit is the exact durably saved click',json_decode($event,true)['visit_id']===$receipt['receipt']['visit_id']);
+appleTgCheck('another Telegram user cannot inherit the paid visit',
+    $run($update(984,1,'/start as39_'.$catalogueKey,['date'=>$paidAt]))===200&&$adCount()===1);
+
 $before = count($sent);
 $pdo->exec("UPDATE conversations SET status='closed' WHERE id=$id");
 appleTgCheck('replay after close cannot create a new lead',$run($update(211,10,'/start@Appleservice39_bot as39_device-ipad'))===200
