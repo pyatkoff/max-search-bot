@@ -1,0 +1,383 @@
+{
+  "date_utc": "2026-11-19T21:04:04Z",
+  "observations": [
+    {
+      "public_url": "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=116719&legacyHotelIds%5B%5D=28569&legacyHotelIds%5B%5D=32354&legacyHotelIds%5B%5D=8017&legacyHotelIds%5B%5D=4372&legacyHotelIds%5B%5D=3034&legacyHotelIds%5B%5D=12189&legacyHotelIds%5B%5D=4960&legacyHotelIds%5B%5D=41504&legacyHotelIds%5B%5D=4965",
+      "http_date": "Thu, 19 Nov 2026 21:03:45 GMT",
+      "sha256": "4651b62f592acaf1654c8a863bf9fc2d411918544ae124e92d2a50245d65d585"
+    },
+    {
+      "public_url": "https://anytoour.ru/_preview/search3-next-candidate/data/local-tv-catalog-read-v1.php?oldLocalHotelIds%5B%5D=3807&oldLocalHotelIds%5B%5D=5601&oldLocalHotelIds%5B%5D=8799&oldLocalHotelIds%5B%5D=4698&oldLocalHotelIds%5B%5D=7673&oldLocalHotelIds%5B%5D=1671&oldLocalHotelIds%5B%5D=4747",
+      "http_date": "Thu, 19 Nov 2026 21:04:04 GMT",
+      "sha256": "a561c78d670e68427996280f520a4aa39e9c3c07c840bcc6e43d6279d514e352"
+    }
+  ],
+  "source_packets": [
+    "https://github.com/pyatkoff/max-search-bot/blob/e8b269afd513350abf6d13d77d03cc70fffabb1a/tools/direct_demand/operations/postw20-three-20261119/prepared-packet.json",
+    "https://github.com/pyatkoff/max-search-bot/blob/5443a2cd0ee871c7948fa8b84824f2510b7575fc/tools/direct_demand/operations/postw20-seven-facts-20261119.json"
+  ],
+  "scope": "Ten hotels published on 19 November. Explicit links only. These public preview observations are input to the existing independent identity and content review, not an admission or write.",
+  "facts_in_source_packets": 35,
+  "facts_on_two_sided_links": 7,
+  "two_sided_count": 2,
+  "rows": [
+    {
+      "tourvisor_id": 116719,
+      "name": "Bliss Hoi An",
+      "country": "Вьетнам",
+      "canonical": {
+        "id": 3807,
+        "revision": 1,
+        "name": "BLISS HOI AN BEACH RESORT AND WELLNESS"
+      },
+      "reverse_local_tv": {
+        "id": 116719,
+        "revision": 3,
+        "name": "BLISS HOI AN BEACH RESORT AND WELLNESS",
+        "country_id": 16
+      },
+      "eventual_status": "two_sided_preview_evidence",
+      "source_packet_index": 0,
+      "facts": [
+        {
+          "text": "Первая береговая линия пляжа Биньминь",
+          "sources": [
+            "https://blisshoian.com/our-resort/"
+          ]
+        },
+        {
+          "text": "Панорамный бассейн у пляжа длиной 55 м",
+          "sources": [
+            "https://blisshoian.com/our-resort/"
+          ]
+        },
+        {
+          "text": "Бесплатный шаттл по расписанию в старый Хойан и обратно",
+          "sources": [
+            "https://blisshoian.com/sightseeing-tours-services/free-shuttle-bus/"
+          ]
+        },
+        {
+          "text": "Место в шаттле бронируют за два часа",
+          "sources": [
+            "https://blisshoian.com/sightseeing-tours-services/free-shuttle-bus/"
+          ]
+        }
+      ]
+    },
+    {
+      "tourvisor_id": 28569,
+      "name": "Twin Lotus",
+      "country": "Таиланд",
+      "canonical": null,
+      "reverse_local_tv": null,
+      "eventual_status": "missing_canonical_link",
+      "source_packet_index": 0,
+      "facts": [
+        {
+          "text": "Курорт в районе пляжа Клонг-Дао; расстояние не утверждается",
+          "sources": [
+            "https://www.twinlotusresort.com/"
+          ]
+        },
+        {
+          "text": "С 1 ноября по 30 апреля принимает только взрослых",
+          "sources": [
+            "https://www.twinlotusresort.com/"
+          ]
+        },
+        {
+          "text": "С 1 мая по 31 октября принимает семьи с детьми",
+          "sources": [
+            "https://www.twinlotusresort.com/"
+          ]
+        },
+        {
+          "text": "Есть Garden Villa, Deluxe Beachfront Villa и Pool Villa; свойства категорий не переносятся на все номера",
+          "sources": [
+            "https://www.twinlotusresort.com/"
+          ]
+        }
+      ]
+    },
+    {
+      "tourvisor_id": 32354,
+      "name": "Phu Quoc Eco Beach Resort",
+      "country": "Вьетнам",
+      "canonical": {
+        "id": 5601,
+        "revision": 1,
+        "name": "PHU QUOC ECO BEACH RESORT"
+      },
+      "reverse_local_tv": null,
+      "eventual_status": "missing_reverse_local_tv_link",
+      "source_packet_index": 0,
+      "facts": [
+        {
+          "text": "Курорт на пляже Онг-Ланг среди деревьев",
+          "sources": [
+            "https://www.phuquocecobeachresort.com/en/"
+          ]
+        },
+        {
+          "text": "Из открытого бассейна видно море",
+          "sources": [
+            "https://www.phuquocecobeachresort.com/en/"
+          ]
+        },
+        {
+          "text": "Superior Bungalow Garden View расположен на склоне примерно в 100 м от пляжа; расстояние только для этой категории",
+          "sources": [
+            "https://www.phuquocecobeachresort.com/en/reservation"
+          ]
+        },
+        {
+          "text": "Для размещения у воды есть отдельные категории Beach Front",
+          "sources": [
+            "https://www.phuquocecobeachresort.com/en/reservation"
+          ]
+        }
+      ]
+    },
+    {
+      "tourvisor_id": 8017,
+      "name": "Layana Resort & Spa",
+      "country": "Таиланд",
+      "canonical": {
+        "id": 8799,
+        "revision": 1,
+        "name": "LAYANA RESORT & SPA"
+      },
+      "reverse_local_tv": null,
+      "eventual_status": "missing_reverse_local_tv_link",
+      "source_packet_index": 1,
+      "facts": [
+        {
+          "text": "Отель расположен у пляжа Пхра-Аэ на острове Ко Ланта.",
+          "sources": [
+            "https://www.layanaresort.com/"
+          ]
+        },
+        {
+          "text": "Панорамный бассейн наполнен солёной водой.",
+          "sources": [
+            "https://www.layanaresort.com/facilities/"
+          ]
+        },
+        {
+          "text": "Отель принимает гостей в возрасте от 18 лет.",
+          "sources": [
+            "https://www.layanaresort.com/adults-only-hotel/"
+          ]
+        }
+      ]
+    },
+    {
+      "tourvisor_id": 4372,
+      "name": "Rawi Warin",
+      "country": "Таиланд",
+      "canonical": {
+        "id": 4698,
+        "revision": 1,
+        "name": "RAWI WARIN RESORT & SPA"
+      },
+      "reverse_local_tv": null,
+      "eventual_status": "missing_reverse_local_tv_link",
+      "source_packet_index": 1,
+      "facts": [
+        {
+          "text": "Площадь панорамного бассейна — 1 000 м².",
+          "sources": [
+            "https://rawiwarin.com/th/leisure-and-recreation?lang=se"
+          ]
+        },
+        {
+          "text": "Для детей работает игровая комната Elephant.",
+          "sources": [
+            "https://rawiwarin.com/th/leisure-and-recreation?lang=se"
+          ]
+        },
+        {
+          "text": "Отдельный Ocean Pool закрывают на сезон муссонов.",
+          "sources": [
+            "https://rawiwarin.com/th/leisure-and-recreation?lang=se"
+          ]
+        }
+      ]
+    },
+    {
+      "tourvisor_id": 3034,
+      "name": "The Tubkaak Krabi Boutique Resort",
+      "country": "Таиланд",
+      "canonical": {
+        "id": 7673,
+        "revision": 1,
+        "name": "THE TUBKAAK BOUTIQUE RESORT"
+      },
+      "reverse_local_tv": null,
+      "eventual_status": "missing_reverse_local_tv_link",
+      "source_packet_index": 1,
+      "facts": [
+        {
+          "text": "Отель расположен прямо на пляже.",
+          "sources": [
+            "https://www.tubkaakresort.com/ja/faq/"
+          ]
+        },
+        {
+          "text": "Seaview и Ocean View Pool Villa обращены к пляжу, большинство Superior и Deluxe расположено у основного бассейна.",
+          "sources": [
+            "https://www.tubkaakresort.com/ja/faq/"
+          ]
+        },
+        {
+          "text": "Отель не предлагает номера с внутренней соединительной дверью.",
+          "sources": [
+            "https://www.tubkaakresort.com/ja/faq/"
+          ]
+        }
+      ]
+    },
+    {
+      "tourvisor_id": 12189,
+      "name": "Casa de La Flora",
+      "country": "Таиланд",
+      "canonical": {
+        "id": 1671,
+        "revision": 1,
+        "name": "CASA DE LA FLORA"
+      },
+      "reverse_local_tv": {
+        "id": 12189,
+        "revision": 3,
+        "name": "CASA DE LA FLORA",
+        "country_id": 2
+      },
+      "eventual_status": "two_sided_preview_evidence",
+      "source_packet_index": 1,
+      "facts": [
+        {
+          "text": "Курорт в Као Лаке предлагает 34 виллы и сьюта в шести категориях.",
+          "sources": [
+            "https://www.casadelaflora.com/accommodation/"
+          ]
+        },
+        {
+          "text": "В перечне есть Studio Pool Villa и отдельная Beachfront Pool Villa у моря.",
+          "sources": [
+            "https://www.casadelaflora.com/accommodation/"
+          ]
+        },
+        {
+          "text": "Отель не рекомендует проживание с детьми из-за отсутствия специальных детских средств безопасности.",
+          "sources": [
+            "https://www.casadelaflora.com/promotions/early-moment/"
+          ]
+        }
+      ]
+    },
+    {
+      "tourvisor_id": 4960,
+      "name": "Mango Bay Resort",
+      "country": "Вьетнам",
+      "canonical": {
+        "id": 4747,
+        "revision": 1,
+        "name": "MANGO BAY"
+      },
+      "reverse_local_tv": null,
+      "eventual_status": "missing_reverse_local_tv_link",
+      "source_packet_index": 1,
+      "facts": [
+        {
+          "text": "Отель стоит у пляжа Онг Ланг на Фукуоке.",
+          "sources": [
+            "https://mangobayphuquoc.com/en/about/"
+          ]
+        },
+        {
+          "text": "У деревянного бунгало Deluxe Sea View Plantation есть просторная терраса с видом на море.",
+          "sources": [
+            "https://mangobayphuquoc.com/en/accommodation/"
+          ]
+        },
+        {
+          "text": "Отель сообщает об отсутствии телевизоров.",
+          "sources": [
+            "https://mangobayphuquoc.com/en/about/"
+          ]
+        },
+        {
+          "text": "Evening Breeze охлаждает зону вокруг кровати. Premium Plantation Garden View и Sea View обозначены как категории с кондиционером.",
+          "sources": [
+            "https://mangobayphuquoc.com/en/accommodation/"
+          ]
+        }
+      ]
+    },
+    {
+      "tourvisor_id": 41504,
+      "name": "Vedana Lagoon Resort & Spa",
+      "country": "Вьетнам",
+      "canonical": null,
+      "reverse_local_tv": null,
+      "eventual_status": "missing_canonical_link",
+      "source_packet_index": 1,
+      "facts": [
+        {
+          "text": "Курорт расположен у лагуны, в стороне от морского пляжа.",
+          "sources": [
+            "https://www.vedanalagoon.com/about-us"
+          ]
+        },
+        {
+          "text": "Для гостей предусмотрено три бассейна, включая крытый с подогревом.",
+          "sources": [
+            "https://www.vedanalagoon.com/about-us"
+          ]
+        },
+        {
+          "text": "Для проживающих есть бесплатный шаттл по расписанию в Хюэ и к пляжу Canh Duong. Пляжные рейсы зависят от погоды, уведомить отель просят за 12 часов.",
+          "sources": [
+            "https://www.vedanalagoon.com/about-us"
+          ]
+        }
+      ]
+    },
+    {
+      "tourvisor_id": 4965,
+      "name": "Chen Sea Resort & Spa Phu Quoc",
+      "country": "Вьетнам",
+      "canonical": null,
+      "reverse_local_tv": null,
+      "eventual_status": "missing_canonical_link",
+      "source_packet_index": 1,
+      "facts": [
+        {
+          "text": "В западной части Фукуока, в бухте у пляжа. В отеле 36 вилл.",
+          "sources": [
+            "https://www.chensea-resort.com/"
+          ]
+        },
+        {
+          "text": "Среди категорий есть Beach Front Villa и Two Bedrooms Pool Villa.",
+          "sources": [
+            "https://www.chensea-resort.com/"
+          ]
+        },
+        {
+          "text": "Водные активности недоступны в сезон муссонов. Панорамный бассейн упомянут как альтернатива.",
+          "sources": [
+            "https://www.chensea-resort.com/"
+          ]
+        },
+        {
+          "text": "Отель рекомендует свой панорамный бассейн и в сезон муссонов.",
+          "sources": [
+            "https://www.chensea-resort.com/"
+          ]
+        }
+      ]
+    }
+  ]
+}
