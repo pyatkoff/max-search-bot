@@ -1,0 +1,190 @@
+name: Seagull exact Telegram bounded read-only access diagnosis
+on:
+  push:
+    branches: [audit/seagull-final-admission-20261119]
+    paths: ['.github/workflows/seagull-final-admission-20261119.yml']
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: seagull-final-admission-diagnosis
+  cancel-in-progress: false
+jobs:
+  read-only:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == 'bd8e248f7138ea75cb9fda2dcf44beb631c633a5' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Prepare bounded read-only diagnosis; no sender
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir pub
+          cat > pub/read-only.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          define("EXPECTED_INSTALLED_SHA","bd8e248f7138ea75cb9fda2dcf44beb631c633a5");
+          define("JOURNAL_METADATA_OPERATION","commercial-main-seagull415-journal-metadata-20261119-v1");
+          ini_set('display_errors','0');
+          ini_set('log_errors','0');
+          
+          function requireAudit(bool $ok,string $reason):void
+          {
+              if (!$ok) throw new RuntimeException($reason);
+          }
+          
+          function need(bool $ok,string $reason):void { requireAudit($ok,$reason); }
+          function jsonValue($v):string { return json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR); }
+          function installedGuard(): void
+          {
+              $lines = []; $exitCode = 1;
+              exec('git rev-parse HEAD', $lines, $exitCode);
+              need($exitCode === 0 && trim(implode("\n", $lines)) === EXPECTED_INSTALLED_SHA,
+                  'installed_source_changed');
+              $lines = []; $exitCode = 1;
+              exec('git status --porcelain --untracked-files=no', $lines, $exitCode);
+              need($exitCode === 0 && $lines === [], 'installed_checkout_changed');
+          }
+          
+          function acceptedSurface(): void
+          {
+              // Exactly the 22 reviewed pins from verify-commercial-source.py, including
+              // ProjectConfig's new dependency. No title-edit/provider behavior is changed.
+              $accepted = [
+                  "integrations/ChannelPostApiTransport.php" => "300634d77cb9fddf51adf9869974f956cca6e3f9",
+                  "migrations/033_channel_post_context.sql" => "0530458030a4bfe6b6cc55d1e5e441745c29b947",
+                  "migrations/036_channel_post_member_delivery.sql" => "1bda463e52b33130ad12752ddef4ee5c92699c05",
+                  "migrations/040_channel_post_reconciliation.sql" => "0f24b838eacd45333c5ade9a2991d060488c6035",
+                  "services/ChannelPostAdminService.php" => "b80eefc801054bfe6fdb58ec345ecdf687b2e89a",
+                  "services/ChannelPostAutomationService.php" => "c6386e155d42bc83970edc95f35b3ebeb5140533",
+                  "services/ChannelPostButtonTransport.php" => "7b6711f1de63000346d8e5789f2dbb7f725535b8",
+                  "services/ChannelPostEntryService.php" => "1982ff7368763edf8b7238c3142e3cc28579e991",
+                  "services/ChannelPostMaxAlbumRecovery.php" => "de266cd068587cc3b2ff83f308a966ea66887a04",
+                  "services/ChannelPostMediaService.php" => "f794efd0f6f24df916e18909ff6281b0bc928433",
+                  "services/ChannelPostMemberDeliveryService.php" => "20c1d7984898b2a5996a5f9e20e4d2d8c20b4778",
+                  "services/ChannelPostReconciliationService.php" => "1fa260e9720a8421227ecbe740bfbe33a42e398d",
+                  "services/ChannelPostReconciliationState.php" => "d9583ceca80d1424a44ade3561c21282a23a52f0",
+                  "services/ChannelPostRegistryService.php" => "cf42a44257d1a58d1ff516678615cf9d01f45b55",
+                  "services/ChannelPostRuntime.php" => "2f1dd9b77474fdbaa92f0402f3b0aa170c595474",
+                  "services/ChannelPostTelegramAlbum.php" => "faa1a14bc279a4af33936282126bf0d46e343040",
+                  "services/ChannelPostWebhookConfigService.php" => "d5fdcb056088f1e3a541b4046325d97eef6417d9",
+                  "services/ConversationDb.php" => "bb6281faf55aca7beeae7f8a57389d19751936f7",
+                  "services/MaxTlsConfig.php" => "032c0211ee3f39c6f0d27c669abd5b467e321dea",
+                  "services/MaxTransport.php" => "2cb4f8786b4704a8e62a3a9c40dc2cc73dad6159",
+                  "services/ProjectConfig.php" => "63c17c8103412f8cff8cdcc4bbb062e744106af9",
+                  "services/ProjectConfiguration.php" => "07019d473c588e3386ace42977db93092e8112e3",
+              ];
+              need(count($accepted) === 22, 'publishing_surface_count_changed');
+              foreach ($accepted as $path => $blob) {
+                  $lines = []; $exitCode = 1;
+                  exec('git hash-object -- '.escapeshellarg($path), $lines, $exitCode);
+                  need($exitCode === 0 && trim(implode("\n", $lines)) === $blob, 'publishing_surface_changed');
+              }
+          }
+          
+          
+          $out=['operation'=>JOURNAL_METADATA_OPERATION,'ok'=>false,'installed_sha'=>EXPECTED_INSTALLED_SHA,'post_write_attempts'=>0,'provider_calls'=>0,'db_writes'=>0];$lock=null;
+          try {
+           requireAudit(PHP_SAPI==='cli','cli_only');installedGuard();acceptedSurface();
+           $path='/var/www/anytoour/data/channel-post-operations/monitor-price-after-collection-v1.jsonl';
+           requireAudit(is_file($path)&&!is_link($path)&&realpath($path)===$path,'monitor_journal_unavailable');
+           $lock=fopen($path,'r');requireAudit(is_resource($lock)&&flock($lock,LOCK_SH|LOCK_NB),'monitor_already_running');
+           $keys=array_flip(['dev','ino','mode','nlink','uid','gid','size','mtime','ctime']);
+           $stat=fstat($lock);clearstatcache(true,$path);$pathStat=lstat($path);
+           requireAudit(is_array($stat)&&is_array($pathStat)&&($stat['mode']&0170000)===0100000&&array_intersect_key($stat,$keys)===array_intersect_key($pathStat,$keys),'monitor_journal_identity_changed');
+           requireAudit($stat['size']>0&&$stat['size']<=2147483648,'monitor_journal_size');
+           $hash=hash_init('sha256');$bytes=0;$lines=0;$last='';
+           while(($line=fgets($lock,8388609))!==false){
+            requireAudit(str_ends_with($line,"\n")&&trim($line)!=='','monitor_journal_record_incomplete');
+            $bytes+=strlen($line);++$lines;requireAudit($bytes<=$stat['size'],'monitor_journal_grew');hash_update($hash,$line);$last=$line;
+           }
+           clearstatcache(true,$path);$after=fstat($lock);$pathAfter=lstat($path);
+           requireAudit(feof($lock)&&$bytes===$stat['size']&&array_intersect_key($stat,$keys)===array_intersect_key($after,$keys)&&array_intersect_key($stat,$keys)===array_intersect_key($pathAfter,$keys)&&!is_link($path)&&realpath($path)===$path,'monitor_journal_changed');
+           $latest=json_decode($last,true,64,JSON_THROW_ON_ERROR);
+           requireAudit(is_array($latest)&&array_key_exists('pending',$latest)&&$latest['pending']===null,'monitor_pending_operation_stop');
+           $cycle=$latest['nightly_cycle']??null;
+           requireAudit(is_array($cycle)&&is_string($cycle['collector_run_id']??null)&&is_string($cycle['state']??null),'monitor_cycle_missing');
+           requireAudit(!str_contains(strtolower($cycle['state']),'unknown'),'monitor_unknown_operation_stop');
+           $out['journal_pin']=['sha256'=>hash_final($hash),'bytes'=>$bytes,'lines'=>$lines,'collector_run_id'=>$cycle['collector_run_id'],'cycle_state'=>$cycle['state']];
+           $out['observed_at_utc']=gmdate('c');$out['monitor_pending']=false;$out['ok']=true;
+          } catch(Throwable $e) { $msg=$e->getMessage();$out['error']=preg_match('/\A[a-z][a-z0-9_]{1,100}\z/D',$msg)?$msg:'journal_metadata_read_failed'; }
+          if(is_resource($lock)){flock($lock,LOCK_UN);fclose($lock);}
+          echo jsonValue($out),PHP_EOL;exit($out['ok']?0:2);
+          PHP
+          php -l pub/read-only.php
+          cat > pub/fence.php <<'PHP'
+          <?php
+          declare(strict_types=1);ini_set('display_errors','0');ini_set('log_errors','0');
+          if(PHP_SAPI!=='cli'||trim((string)shell_exec('git rev-parse HEAD'))!=='bd8e248f7138ea75cb9fda2dcf44beb631c633a5')exit(2);
+          ob_start();require getcwd().'/config.php';require_once getcwd().'/services/ChannelPostRuntime.php';require_once getcwd().'/services/ChannelPostEntryService.php';require_once getcwd().'/services/ChannelPostButtonTransport.php';ob_end_clean();
+          $pdo=ConversationDb::connection();$pdo->exec('SET SESSION TRANSACTION READ ONLY');$pdo->beginTransaction();$o=['mode'=>'SEAGULL_TG1754_READ_ONLY','checked_at'=>gmdate('c'),'db_writes'=>0,'provider_write_attempts'=>0];
+          try{$q=$pdo->query("SELECT p.id,p.external_message_id,p.start_payload,p.current_version_id,c.channel_id,c.config_version,c.bot_key,c.is_enabled,s.source_key,v.content_hash,v.snapshot_json,v.receipt_json,v.state,v.write_attempts FROM post_publications p JOIN post_channels c ON c.id=p.post_channel_id JOIN conversation_sources s ON s.id=p.source_id JOIN post_versions v ON v.id=p.current_version_id WHERE p.id=20 AND p.post_channel_id=6 AND p.external_message_id='1754' AND c.channel_id='-1001845835645' AND c.platform='telegram' AND c.bot_key='anyru_bot'");$r=$q->fetch(PDO::FETCH_ASSOC);if(!$r)throw new RuntimeException('exact_post_missing');$s=json_decode($r['snapshot_json'],true)??[];$receipt=json_decode($r['receipt_json'],true)??[];unset($r['snapshot_json'],$r['receipt_json']);$o['publication']=$r;$o['stored_snapshot']=['text'=>$s['text']??null,'post_url'=>$s['post_url']??null,'published_at'=>$s['published_at']??null,'keyboard'=>$s['keyboard']??null,'media_types'=>array_column($s['attachments']??[],'type'),'media_count'=>count($s['attachments']??[])];$o['receipt_summary']=array_intersect_key($receipt,array_flip(['verified','content_preserved','button_verified','message_id','url','ok','http','state']));}finally{$pdo->rollBack();}
+          $body='';$ch=curl_init('https://t.me/anytour/1754?embed=1&mode=tme');curl_setopt_array($ch,[CURLOPT_RETURNTRANSFER=>false,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,CURLOPT_CONNECTTIMEOUT=>4,CURLOPT_TIMEOUT=>12,CURLOPT_WRITEFUNCTION=>static function($h,$x)use(&$body){if(strlen($body)+strlen($x)>262144)return 0;$body.=$x;return strlen($x);}]);$ok=curl_exec($ch);$o['public_embed']=['http'=>curl_getinfo($ch,CURLINFO_HTTP_CODE),'curl_error'=>curl_errno($ch),'bytes'=>strlen($body),'exact_post_marker'=>str_contains(strtolower($body),'data-post="anytour/1754"'),'message_text_found'=>false];curl_close($ch);if(preg_match('~<div class="tgme_widget_message_text[^>]*>(.*?)</div>~s',$body,$m)){$o['public_embed']['message_text_found']=true;$o['public_embed']['text']=html_entity_decode(strip_tags(str_replace(['<br/>','<br>'],"\n",$m[1])),ENT_QUOTES|ENT_HTML5,'UTF-8');}
+          $dom=new DOMDocument();libxml_use_internal_errors(true);$dom->loadHTML($body);$xp=new DOMXPath($dom);$root=$xp->query('//*[@data-post="anytour/1754"]');$o['public_embed']['exact_roots']=$root->length;
+          if($root->length===1){$n=$root->item(0);$o['public_embed']['links']=[];foreach($xp->query('.//a[@href]',$n) as $a){$href=$a->getAttribute('href');if(str_contains($href,'anyru_bot')||str_contains($a->getAttribute('class'),'inline_button'))$o['public_embed']['links'][]=['url'=>$href,'text'=>trim($a->textContent),'class'=>$a->getAttribute('class')];}$o['public_embed']['photos']=[];foreach($xp->query('.//*[contains(@class,"photo_wrap")]', $n) as $a){$o['public_embed']['photos'][]=['class'=>$a->getAttribute('class'),'href'=>$a->getAttribute('href'),'style_sha256'=>hash('sha256',$a->getAttribute('style')),'has_background_image'=>str_contains($a->getAttribute('style'),'background-image')];}}
+          $pdo->exec('SET SESSION TRANSACTION READ ONLY');$pdo->beginTransaction();try{$registry=new ChannelPostRegistryService($pdo);$o['exact_rows']=[];foreach([20,23] as $id){$p=$registry->publication($id);if(!is_array($p))throw new RuntimeException('missing');$snap=$p['snapshot'];$att=$snap['attachments'];$url=ChannelPostButtonTransport::buttonUrl($p);$resolved=ChannelPostEntryService::resolve($p['platform'],$p['start_payload'],$registry);$o['exact_rows'][]=['hotel_id'=>415,'platform'=>$p['platform'],'publication_id'=>$id,'version_id'=>(int)$p['version_id'],'message_id'=>$p['external_message_id'],'post_url'=>$snap['post_url'],'caption'=>$snap['text'],'old_text_sha256'=>hash('sha256',$snap['text']),'photo_signature'=>($att[0]['provider']??'').':'.($att[0]['photo_id']??$att[0]['file_unique_id']??''),'attachments_sha256'=>hash('sha256',json_encode($att,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)),'button_url_sha256'=>hash('sha256',$url),'button_url'=>$url,'config_version'=>(int)$p['channel']['config_version'],'source_key'=>$p['source_key'],'button_observed_in_snapshot'=>ChannelPostIncomingAdapter::containsOnlyButton($snap,$url,$p['channel']['button_text']),'monitor_price_record_id'=>$snap['metadata']['monitor_price_record_id']??null,'resolved_version_id'=>$resolved['version_id']??null,'button_text'=>$p['channel']['button_text'],'markup'=>$snap['markup']??null];}}finally{$pdo->rollBack();}
+          
+          $o['ok']=true;echo json_encode($o,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          PHP
+          php -l pub/fence.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read main channel registry and provider metadata without writes
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = bd8e248f7138ea75cb9fda2dcf44beb631c633a5
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; test -z "$(git status --porcelain --untracked-files=no)"; php' < pub/read-only.php > pub/result.json
+          cat pub/result.json
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/fence.php > pub/fence.json
+          cat pub/fence.json
+      - name: Preserve original diagnosis
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: seagull-final-admission-20261119
+          path: pub/*.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Remove runner-only authentication
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
