@@ -23,12 +23,13 @@ function applePilotCheckout(string $root, string $expected): bool
 try {
     $mode = $argv[1] ?? '';
     if ($mode === '--help' && $argc === 2) {
-        echo "php tools/publish_appleservice39_pilot.php inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_prepare|landing_apply|landing_reconcile|search_inspect|search_prepare|search_apply|search_reconcile|coverage_inspect|coverage_prepare|coverage_apply|coverage_reconcile --expected-sha=<accepted application SHA> --channel-id=<exact negative numeric ID>\n";
+        echo "php tools/publish_appleservice39_pilot.php inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_prepare|landing_apply|landing_reconcile|search_inspect|search_prepare|search_apply|search_reconcile|coverage_inspect|coverage_prepare|coverage_apply|coverage_reconcile|device_inspect|device_prepare|device_apply|device_reconcile --expected-sha=<accepted application SHA> --channel-id=<exact negative numeric ID>\n";
         exit(0);
     }
     if (!in_array($mode, ['inspect','prepare','publish','finalize','pin','reconcile','landing_inspect','landing_prepare','landing_apply','landing_reconcile',
         'search_inspect','search_prepare','search_apply','search_reconcile',
-        'coverage_inspect','coverage_prepare','coverage_apply','coverage_reconcile'], true) || $argc !== 4) throw new RuntimeException('fixed_operation_and_target_required');
+        'coverage_inspect','coverage_prepare','coverage_apply','coverage_reconcile',
+        'device_inspect','device_prepare','device_apply','device_reconcile'], true) || $argc !== 4) throw new RuntimeException('fixed_operation_and_target_required');
     $options = [];
     foreach (array_slice($argv, 2) as $argument) {
         if (!preg_match('/\A--(expected-sha|channel-id)=(.*)\z/D', $argument, $match) || isset($options[$match[1]])) throw new RuntimeException('fixed_operation_and_target_required');
@@ -53,7 +54,7 @@ try {
     };
     $publisher = new AppleService39PilotPublisher(ConversationDb::connection(), $manifest, $options['channel-id'],
         $provenance, null, null, new AppleService39CatalogueRevision($manifest),
-        (str_starts_with($mode, 'search_') || str_starts_with($mode, 'coverage_')) ? new AppleService39SearchIntentRevision($manifest) : null);
+        (str_starts_with($mode, 'search_') || str_starts_with($mode, 'coverage_') || str_starts_with($mode, 'device_')) ? new AppleService39SearchIntentRevision($manifest) : null);
     $result = $publisher->run($mode);
     $result['application_sha'] = $expected;
     echo json_encode($result, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).PHP_EOL;
@@ -90,6 +91,7 @@ try {
         'coverage_text_invalid','coverage_parent_incomplete','coverage_publication_identity_changed','invalid_coverage_operation',
         'coverage_images_not_prepared','invalid_coverage_upload','coverage_upload_collision','invalid_coverage_image_receipt',
         'coverage_image_receipt_required','coverage_operation_held','coverage_revision_changed','coverage_native_image_evidence_required',
+        'device_revision_invalid','invalid_device_operation','device_parent_incomplete','device_images_not_prepared',
         'search_superseded','coverage_feed_incomplete','coverage_feed_destination_changed'];
     $reason = in_array($error->getMessage(), $allowed, true) ? $error->getMessage() : 'pilot_operation_unavailable';
     echo json_encode(['ok'=>false,'state'=>'stopped','reason'=>$reason,'automatic_retry'=>false], JSON_UNESCAPED_SLASHES).PHP_EOL;

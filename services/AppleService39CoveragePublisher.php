@@ -8,10 +8,10 @@ final class AppleService39CoveragePublisher
     public function __construct(
         private AppleService39PilotPublicationStore $store,
         private AppleService39ChannelTransport $transport,
-        private AppleService39CoverageRevision $revision,
+        private AppleService39CoverageRevision|AppleService39DeviceRevision $revision,
         private array $hooks
     ) {
-        $this->parentDigest = $store->coverageParentDigest();
+        $this->parentDigest = $this->parentDigest();
     }
 
     private function call(string $name, ...$args) { return ($this->hooks[$name])(...$args); }
@@ -20,7 +20,32 @@ final class AppleService39CoveragePublisher
     {
         return hash('sha256', json_encode($value, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
     }
-    private function request(string $post, string $operation): array { return $this->store->coverageRequest($post, $operation); }
+    private function device(): bool { return $this->revision instanceof AppleService39DeviceRevision; }
+    private function parentDigest(): string
+    {
+        return $this->device() ? $this->store->deviceParentDigest() : $this->store->coverageParentDigest();
+    }
+    private function request(string $post, string $operation): array
+    {
+        return $this->device() ? $this->store->deviceRequest($post, $operation) : $this->store->coverageRequest($post, $operation);
+    }
+
+    /** The successor adds cards without editing or revalidating an old live post. */
+    private function deviceParents(): array
+    {
+        $addresses = []; $mids = [];
+        foreach ($this->store->rows() as $row) {
+            if ($row['operation'] !== 'create' || AppleService39DeviceRevision::isOperation($row['post_key'], $row['operation'], $row['request'])) continue;
+            $mid = $row['external_message_id']; $url = $row['public_url'];
+            self::check($row['state'] === 'verified' && ($row['outcome']['readback'] ?? null) === true
+                && is_string($mid) && $mid !== '' && is_string($url)
+                && preg_match('~\Ahttps://max\.ru/channel_appleservice39ru/[A-Za-z0-9_-]{1,191}\z~D', $url) === 1
+                && !isset($mids[$mid]) && !in_array($url,$addresses,true), 'device_parent_incomplete');
+            $addresses[$row['post_key']] = $url; $mids[$mid] = true;
+        }
+        self::check(count($addresses) === 69, 'device_parent_incomplete');
+        return ['addresses'=>$addresses, 'mids'=>$mids];
+    }
 
     private function receipt(array $row, string $photo, string $kind): array
     {
@@ -71,23 +96,24 @@ final class AppleService39CoveragePublisher
 
     private function snapshot(bool $reconcile = false): array
     {
-        self::check($this->store->coverageParentDigest() === $this->parentDigest, 'coverage_parent_changed');
-        $menu = $this->store->operation('menu', AppleService39CoverageRevision::MENU);
+        self::check($this->parentDigest() === $this->parentDigest, 'coverage_parent_changed');
+        $menu = $this->device() ? null : $this->store->operation('menu', AppleService39CoverageRevision::MENU);
         $override = null;
         if ($menu !== null && $menu['state'] !== 'prepared') {
             self::check($menu['request'] === $this->request('menu', AppleService39CoverageRevision::MENU), 'coverage_revision_changed');
             $override = $menu['request'];
         }
-        $parent = $this->call('parents', $override);
-        self::check(count($parent['addresses']) === 30 && $parent['verified'] === 8, 'coverage_parent_incomplete');
+        $parent = $this->device() ? $this->deviceParents() : $this->call('parents', $override);
+        if (!$this->device()) self::check(count($parent['addresses']) === 30 && $parent['verified'] === 8, 'coverage_parent_incomplete');
         $addresses = $parent['addresses']; $mids = $parent['mids']; $verified = 0;
         foreach ($this->store->rows() as $row) {
-            if (!AppleService39CoverageRevision::isOperation($row['post_key'], $row['operation'], $row['request'])) continue;
+            if (!$this->revision::isOperation($row['post_key'], $row['operation'], $row['request'])) continue;
             self::check(in_array($row['state'], ['prepared','write_started','unknown','verified'], true)
                 && (int)$row['write_attempts'] === ($row['state'] === 'prepared' ? 0 : 1)
                 && $row['request'] === $this->request($row['post_key'], $row['operation'])
                 && $row['payload_sha256'] === self::hash($row['request']), 'coverage_revision_changed');
         }
+        $devicePhotos = [];
         foreach ($this->revision->order() as $id) {
             $row = $this->store->operation($id, 'create');
             if ($row === null || $row['state'] === 'prepared') continue;
@@ -97,6 +123,10 @@ final class AppleService39CoveragePublisher
                 continue; // An uncertain original write remains held; no candidate search or resend.
             }
             self::check(!isset($mids[$row['external_message_id']]) && !in_array($url, $addresses, true), 'pilot_provider_identity_collision');
+            if ($this->device()) {
+                self::check(!isset($devicePhotos[$receipt['photo_id']]), 'coverage_image_changed');
+                $devicePhotos[$receipt['photo_id']] = true;
+            }
             if ($reconcile && in_array($row['state'], ['write_started','unknown'], true)) {
                 $this->call('authority');
                 $this->store->rememberMessage($row, $row['external_message_id'], $url);
@@ -122,10 +152,14 @@ final class AppleService39CoveragePublisher
                 && ($menu['outcome']['readback'] ?? null) === true && $menu['public_url'] === $url, 'coverage_revision_changed');
         }
         self::check($this->call('pin') === $this->hooks['expected_pin'], 'landing_menu_pin_changed');
-        self::check($this->store->coverageParentDigest() === $this->parentDigest, 'coverage_parent_changed');
+        self::check($this->parentDigest() === $this->parentDigest, 'coverage_parent_changed');
         $held = 0;
-        foreach ($this->store->rows() as $row) if (in_array($row['state'], ['write_started','unknown','rejected'], true)) $held++;
-        return ['parent'=>$parent, 'addresses'=>$addresses, 'verified'=>$verified, 'menu_verified'=>$menu !== null && $menu['state'] === 'verified', 'held'=>$held];
+        foreach ($this->store->rows() as $row) {
+            if (!$this->device() && AppleService39DeviceRevision::isOperation($row['post_key'], $row['operation'], $row['request'])) continue;
+            if (in_array($row['state'], ['write_started','unknown','rejected'], true)) $held++;
+        }
+        return ['parent'=>$parent, 'addresses'=>$addresses, 'verified'=>$verified, 'menu_verified'=>$menu !== null && $menu['state'] === 'verified', 'held'=>$held,
+            'device_photos'=>$devicePhotos];
     }
 
     private function hold(array $row): void
@@ -152,8 +186,9 @@ final class AppleService39CoveragePublisher
             self::check($fresh['held'] === 0 && $this->request($post, $operation) === $request, 'coverage_revision_changed');
         });
         try {
-            if ($operation === AppleService39CoverageRevision::UPLOAD) {
-                $upload = AppleService39ChannelTransport::uploadReceipt($this->transport->upload($this->revision->artwork()));
+            if ($operation === $this->revision::UPLOAD) {
+                $artwork = $this->device() ? $this->revision->artwork($post) : $this->revision->artwork();
+                $upload = AppleService39ChannelTransport::uploadReceipt($this->transport->upload($artwork));
                 self::check($upload !== null, 'invalid_coverage_upload');
                 $this->store->finish($row, 'verified', $upload);
                 return;
@@ -169,6 +204,7 @@ final class AppleService39CoveragePublisher
                 $this->call('verify', $message, $mid, $request['body'], $request);
                 $photo = $this->call('photo', $message);
                 self::check(is_string($photo) && preg_match('/\A[1-9][0-9]{0,18}\z/D', $photo) === 1, 'coverage_image_changed');
+                if ($this->device()) self::check(!isset($snapshot['device_photos'][$photo]), 'coverage_image_changed');
                 $row = $this->store->operation($post, $operation);
                 $this->store->rememberCoverageImageReceipt($row, $this->receipt($row, $photo, 'create_response'));
             } else {
@@ -191,8 +227,29 @@ final class AppleService39CoveragePublisher
         }
     }
 
+    private function runDevices(string $mode): array
+    {
+        self::check(in_array($mode, ['device_inspect','device_prepare','device_apply','device_reconcile'],true), 'invalid_device_operation');
+        $snapshot = $this->snapshot($mode === 'device_reconcile');
+        if (in_array($mode,['device_prepare','device_apply'],true)) {
+            self::check($snapshot['held'] === 0, 'coverage_operation_held');
+            foreach ($this->revision->order() as $id) $this->revision->artwork($id);
+            $operation = $mode === 'device_prepare' ? AppleService39DeviceRevision::UPLOAD : 'create';
+            foreach ($this->revision->order() as $id) {
+                if (($this->store->operation($id,$operation)['state'] ?? null) !== 'verified') $this->execute($id,$operation);
+            }
+            $snapshot = $this->snapshot();
+        }
+        $published = array_intersect_key($snapshot['addresses'],array_flip($this->revision->order()));
+        return ['ok'=>$snapshot['held'] === 0, 'state'=>$snapshot['held'] === 0 ? $mode.'_complete' : 'held',
+            'revision'=>AppleService39DeviceRevision::KEY, 'revision_sha256'=>$this->revision->sha256(),
+            'verified_posts'=>count($published), 'published'=>$published, 'held_operations'=>$snapshot['held'],
+            'device_publication_complete'=>$snapshot['held'] === 0 && count($published) === count($this->revision->order())];
+    }
+
     public function run(string $mode): array
     {
+        if ($this->device()) return $this->runDevices($mode);
         self::check(in_array($mode, ['coverage_inspect','coverage_prepare','coverage_apply','coverage_reconcile'], true), 'invalid_coverage_operation');
         $snapshot = $this->snapshot($mode === 'coverage_reconcile');
         if ($mode === 'coverage_prepare'
