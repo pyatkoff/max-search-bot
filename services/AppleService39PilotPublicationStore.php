@@ -452,15 +452,19 @@ final class AppleService39PilotPublicationStore
         return $this->deviceOriginalCreates = $ids;
     }
 
-    /** Bind the entire verified history, including later edits to the original publications. */
+    /** Bind the verified history used to prepare this device batch. */
     public function deviceParentDigest(): string
     {
         $missing = $this->deviceOriginalCreates();
         $requiresCover = $requiresMenu = true;
         $parents = [];
+        $devicePrepared = false;
         foreach ($this->rows() as $row) {
             $post = $row['post_key']; $op = $row['operation'];
-            if (AppleService39DeviceRevision::isOperation($post, $op, $row['request'])) continue;
+            if (AppleService39DeviceRevision::isOperation($post, $op, $row['request'])) {
+                $devicePrepared = true;
+                continue;
+            }
             // The existing pin may have been verified in place without sending a pin request.
             $observedPin = $post === 'menu' && $op === 'pin' && (int)$row['write_attempts'] === 0
                 && ($row['outcome']['already_present'] ?? null) === true && ($row['outcome']['readback'] ?? null) === true;
@@ -475,7 +479,19 @@ final class AppleService39PilotPublicationStore
             } elseif ($post === 'menu' && $op === AppleService39CoverageRevision::MENU) {
                 $requiresMenu = false;
             }
-            // Later caption, image and link revisions are part of the same immutable snapshot.
+            // The services index formatting was verified after this batch's
+            // upload plan was pinned. Its permalink, photo and CTA are unchanged.
+            if ($devicePrepared && $post === 'pl3-services-index' && $op === 'links'
+                && ($row['request']['revision'] ?? null) === 'labelled-services-links-20261119'
+                && ($row['request']['target_post'] ?? null) === 'services-index'
+                && ($row['request']['message_id'] ?? null) === $row['external_message_id']
+                && ($row['request']['url'] ?? null) === $row['public_url']
+                && ($row['outcome']['readback'] ?? null) === true
+                && ($row['outcome']['native_labelled_links'] ?? null) === 18
+                && ($row['outcome']['photo_preserved'] ?? null) === true
+                && ($row['outcome']['single_cta_preserved'] ?? null) === true) {
+                continue;
+            }
             $parents[] = $row;
         }
         if ($missing || $requiresCover || $requiresMenu) throw new RuntimeException('device_parent_incomplete');

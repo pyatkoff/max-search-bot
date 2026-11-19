@@ -48,12 +48,19 @@ function as39DeviceMaintainedParents(array $fixture): void
     as39Expect($inspection['ok'] && $inspection['verified_posts'] === 0 && $store->rows() === $old && $provider->writes() === 0,
         'a settled variable-length production-shaped parent admits read-only device inspection');
     $worker->run('device_prepare');
+    $serviceIndex = $store->operation('services-index', 'create');
+    $labels = $store->prepare('pl3-services-index', 'links', ['revision'=>'labelled-services-links-20261119',
+        'target_post'=>'services-index', 'message_id'=>$serviceIndex['external_message_id'], 'url'=>$serviceIndex['public_url']]);
+    as39Expect($store->claim($labels), 'the later services index formatting has its own claim');
+    $store->rememberMessage($labels, $serviceIndex['external_message_id'], $serviceIndex['public_url']);
+    $store->finish($labels, 'verified', ['readback'=>true,'native_labelled_links'=>18,'photo_preserved'=>true,'single_cta_preserved'=>true]);
+    as39Expect($store->deviceParentDigest() === $digest, 'verified service labels preserve the already prepared device batch');
     $complete = $worker->run('device_apply');
     as39Expect($complete['device_publication_complete'] && count($complete['published']) === 4
         && $provider->count('POST','/uploads') === 4 && $provider->count('POST','/messages') === 4
         && $provider->count('PUT','/messages') === 0 && $provider->pinned === $pinned && $store->deviceParentDigest() === $digest
         && array_intersect_key($provider->messages,$native) === $native
-        && array_slice($store->rows(),0,count($old)) === $old && count($store->rows()) === count($old)+8,
+        && array_slice($store->rows(),0,count($old)) === $old && count($store->rows()) === count($old)+9,
         '69 accepted creates, the adopted pin and all historical edits remain byte-identical through device publication');
 
     foreach (['unknown','zero_attempt_edit','extra_create','replaced_create'] as $fault) {
@@ -235,8 +242,14 @@ function as39DevicePublisherRegression(): void
     ];
     $wire = as39SearchWire($provider);
     $signedWire = static function (array $request) use ($wire,$provider,$signedPhotos): array {
+        $create = $request['method'] === 'POST' && parse_url($request['url'], PHP_URL_PATH) === '/messages';
+        if ($create && array_key_exists('notify', $request['body'])) {
+            return ['http'=>400, 'transport_error'=>false, 'data'=>[
+                'code'=>'proto.payload', 'message'=>'errors.send-message.channel-notify',
+            ]];
+        }
         $response = $wire($request);
-        if ($request['method'] === 'POST' && parse_url($request['url'], PHP_URL_PATH) === '/messages') {
+        if ($create) {
             $cta = $request['body']['attachments'][1]['payload']['buttons'][0][0]['url'] ?? '';
             if (array_key_exists($cta,$signedPhotos)) {
                 $mid = $response['data']['message']['body']['mid'];
@@ -279,7 +292,7 @@ function as39DevicePublisherRegression(): void
         && $result['held_operations'] === 0 && count($result['published']) === 4, 'all four devices have verified native destinations');
     as39Expect($provider->count('POST','/messages') === 4 && $provider->count('POST','/uploads') === 4
         && $provider->writes() === $preparedWrites + 4 && $provider->pinned === $oldPin,
-        'only four silent native creates follow the four source-bound uploads');
+        'only four native creates follow the four source-bound uploads');
 
     $observed = $publisher->run('device_inspect');
     $photos = []; $sources = []; $urls = [];
