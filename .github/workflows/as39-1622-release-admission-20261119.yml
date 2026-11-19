@@ -1,0 +1,97 @@
+name: Finite read-only admission for AppleService39 PR1622
+on:
+  push:
+    branches: [audit/as39-1622-admission-20261119]
+    paths: ['.github/workflows/as39-1622-release-admission-20261119.yml']
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+  issues: read
+concurrency:
+  group: appleservice39-1622-read-only-admission
+  cancel-in-progress: false
+jobs:
+  before-publisher:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '8299a835d9b896c57dd4ffb9b34db75f613b3de0' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: 8299a835d9b896c57dd4ffb9b34db75f613b3de0
+          persist-credentials: false
+          sparse-checkout: tools
+      - name: Authenticate unchanged canonical admission source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = 8299a835d9b896c57dd4ffb9b34db75f613b3de0
+          test "$(git hash-object tools/release_priority.js)" = c2a8ec2df2af881f1b2eea5640476d9b945f9572
+          test "$(git hash-object tools/deployment_release.js)" = 2dd0d1956dafc61c2fdb989ae646ae7177f6d7a6
+          test "$(git hash-object tools/release_slot_close.js)" = d42b1969bb5dbddb4ccc26054eb590d3821c3de7
+      - name: Execute canonical fresh pre-publisher admission with native reads
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/release_priority.js --admit 1622 d6987046718baf1e8c1889fe3aaf774e84a5dc06 8299a835d9b896c57dd4ffb9b34db75f613b3de0
+  after-publisher:
+    needs: before-publisher
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: 8299a835d9b896c57dd4ffb9b34db75f613b3de0
+          persist-credentials: false
+          sparse-checkout: tools
+      - name: Authenticate unchanged canonical admission source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = 8299a835d9b896c57dd4ffb9b34db75f613b3de0
+          test "$(git hash-object tools/release_priority.js)" = c2a8ec2df2af881f1b2eea5640476d9b945f9572
+          test "$(git hash-object tools/deployment_release.js)" = 2dd0d1956dafc61c2fdb989ae646ae7177f6d7a6
+          test "$(git hash-object tools/release_slot_close.js)" = d42b1969bb5dbddb4ccc26054eb590d3821c3de7
+      - name: Read only until this source owner binds its actual publisher
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import datetime,json,os,re,subprocess,time
+          def get(path):
+              return json.loads(subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+path],timeout=10))
+          for observation in range(60):
+              pr=get('pulls/1622')
+              assert pr['state']=='open' and not pr['draft']
+              assert pr['head']['sha']=='d6987046718baf1e8c1889fe3aaf774e84a5dc06'
+              assert pr['base']['sha']=='8299a835d9b896c57dd4ffb9b34db75f613b3de0'
+              markers=re.findall(r'<!--\s*release-slot-close:v1\s+(\{.*?\})\s*-->',pr.get('body') or '')
+              assert len(markers)<=1
+              if markers:
+                  b=json.loads(markers[0])
+                  assert set(b)=={'comment_id','owner_id','head_sha','updated_at'}
+                  assert b['head_sha']=='d6987046718baf1e8c1889fe3aaf774e84a5dc06'
+                  assert b['owner_id']==226193297 and isinstance(b['comment_id'],int) and b['comment_id']==6650664504
+                  assert re.fullmatch(r'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ',b['updated_at'])
+                  record=get('issues/comments/'+str(b['comment_id']))
+                  assert record['user']['id']==b['owner_id'] and record['updated_at']==b['updated_at']
+                  assert record['body']=='PR1622: выпуск занят'
+                  with open(os.environ['GITHUB_ENV'],'a') as target:
+                      target.write('PUBLISHER_COMMENT='+str(b['comment_id'])+'\n')
+                      target.write('PUBLISHER_OWNER='+str(b['owner_id'])+'\n')
+                      target.write('PUBLISHER_ACQUIRED='+b['updated_at']+'\n')
+                  print(json.dumps({'binding_read':True,**b}))
+                  break
+              if observation==59: raise RuntimeError('publisher_binding_not_observed')
+              time.sleep(5)
+          PY
+      - name: Execute canonical fresh bound admission with native reads
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/release_priority.js --admit 1622 d6987046718baf1e8c1889fe3aaf774e84a5dc06 8299a835d9b896c57dd4ffb9b34db75f613b3de0 --publisher "$PUBLISHER_COMMENT" "$PUBLISHER_OWNER" "$PUBLISHER_ACQUIRED"
