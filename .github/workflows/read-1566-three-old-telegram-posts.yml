@@ -1,0 +1,180 @@
+name: "#1566 Verify the original three edited Telegram posts"
+on:
+  push:
+    branches: [audit/1566-main-hotel-registry-20261119]
+    paths: ['.github/workflows/read-1566-three-old-telegram-posts.yml']
+permissions:
+  contents: read
+concurrency:
+  group: anytour-issue-1566-registry-read
+  cancel-in-progress: false
+jobs:
+  registry:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.before == '20eb03985c05dfbeb80f8cf73f0b0918ea59cd08' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Prepare SELECT-only program
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir pub
+          cat > pub/read-only.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          if (PHP_SAPI !== 'cli' || count($argv) !== 1) exit(2);
+          
+          const LEGACY_TG_APP = '/var/www/anytoour/data/www/app.anytoour.ru';
+          const LEGACY_TG_OPERATIONS = '/var/www/anytoour/data/channel-post-operations';
+          const LEGACY_TG_CHANNEL = '-1001845835645';
+          const LEGACY_TG_CHECKS = [
+              '809' => [12107, '6e34811950abe39d6951f87bc8477b6326fcd1d2bc6a1401fbe9c3abd2627800'],
+              '993' => [64895, 'e36147e6d07d9cc1794fe052a828b76f70297c7ee795e672fddbae9759cceadb'],
+              '1148' => [3452, 'e4a789955b08c410bedef1254e3dcdd72a1c3cd7ef3acb73acd36faaed8faf49'],
+          ];
+          
+          function legacyTelegramJournal(string $messageId): array {
+              $path = LEGACY_TG_OPERATIONS . '/anytour-issue1566-legacy-telegram-' . $messageId . '-v1/receipt.jsonl';
+              if (is_link($path) || realpath($path) !== $path || !is_file($path)) return [];
+              $stream = fopen($path, 'rb');
+              if (!is_resource($stream)) return [];
+              try {
+                  $raw = stream_get_contents($stream, 1_048_577);
+                  if (!is_string($raw) || $raw === '' || strlen($raw) > 1_048_576 || !str_ends_with($raw, "\n")) return [];
+                  $stages = [];
+                  foreach (explode("\n", substr($raw, 0, -1)) as $line) {
+                      $entry = json_decode($line, true, 40, JSON_THROW_ON_ERROR);
+                      if (!is_array($entry) || !is_string($entry['state'] ?? null)) return [];
+                      $stages[$entry['state']] = $entry;
+                  }
+                  return $stages;
+              } finally {
+                  fclose($stream);
+              }
+          }
+          
+          try {
+              ob_start();
+              try {
+                  require LEGACY_TG_APP . '/config.php';
+                  require_once LEGACY_TG_APP . '/services/ChannelPostRuntime.php';
+                  require_once LEGACY_TG_APP . '/services/ChannelPostButtonTransport.php';
+                  require_once LEGACY_TG_APP . '/services/ChannelPostEntryService.php';
+              } finally {
+                  ob_end_clean();
+              }
+              $pdo = ConversationDb::connection();
+              $pdo->exec('SET SESSION TRANSACTION READ ONLY');
+              $pdo->beginTransaction();
+              try {
+                  $registry = new ChannelPostRegistryService($pdo);
+                  $query = $pdo->prepare('SELECT id FROM post_publications WHERE post_channel_id = 6 AND external_message_id = ?');
+                  $result = [];
+                  foreach (LEGACY_TG_CHECKS as $messageId => [$hotelId, $captionHash]) {
+                      $id = (string) $messageId;
+                      $url = 'https://t.me/anytour/' . $id;
+                      $stages = legacyTelegramJournal($id);
+                      $query->execute([$id]);
+                      $post = $registry->publication((int) $query->fetchColumn());
+                      $query->closeCursor();
+                      $caption = $post['snapshot']['text'] ?? '';
+                      $photoId = $post['snapshot']['attachments'][0]['file_unique_id'] ?? null;
+                      $photoHash = $stages['caption_edit_accepted']['photo_native_sha256'] ?? null;
+                      $identity = is_array($post) && $post['platform'] === 'telegram' && $post['project_key'] === 'anytour'
+                          && $post['bot_key'] === 'anyru_bot' && $post['source_key'] === 'tg_anytour_msk'
+                          && $post['channel_id'] === LEGACY_TG_CHANNEL && $post['external_message_id'] === $id
+                          && ($post['snapshot']['post_url'] ?? '') === $url
+                          && (int) ($post['snapshot']['metadata']['hotel_catalog_id'] ?? 0) === $hotelId;
+                      $confirmedCaption = is_string($caption) && hash_equals($captionHash, hash('sha256', $caption));
+                      $confirmedPhoto = is_string($photoId) && is_string($photoHash) && hash_equals($photoHash, hash('sha256', $photoId));
+                      $resolved = $identity ? ChannelPostEntryService::resolve('telegram', $post['start_payload'], $registry) : null;
+                      $context = is_array($resolved) && (int) $resolved['publication_id'] === (int) $post['publication_id']
+                          && (int) $resolved['version_id'] === (int) $post['version_id'] && $resolved['source_key'] === 'tg_anytour_msk'
+                          && (int) ($resolved['snapshot']['metadata']['hotel_catalog_id'] ?? 0) === $hotelId;
+                      $nativeStage = $stages['native_caption_photo_button_and_context_verified'] ?? [];
+                      $stagePinsVersion = $identity && (int) ($nativeStage['publication_id'] ?? 0) === (int) $post['publication_id']
+                          && (int) ($nativeStage['version_id'] ?? 0) === (int) $post['version_id'] && ($nativeStage['url'] ?? '') === $url;
+                      $currentReceipt = $identity && $post['state'] === 'sent' && !empty($post['receipt']['button_verified'])
+                          && !empty($post['receipt']['content_preserved']);
+                      $result[] = [
+                          'hotel_id' => $hotelId, 'message_id' => $id, 'url' => $url,
+                          'publication_id' => $post['publication_id'] ?? null, 'version_id' => $post['version_id'] ?? null,
+                          'registry_state' => $post['state'] ?? null, 'journal_stages' => array_keys($stages),
+                          'identity_verified' => $identity, 'new_caption_verified' => $confirmedCaption,
+                          'original_photo_verified' => $confirmedPhoto, 'context_verified' => $context,
+                          'native_button_verified' => $currentReceipt || $stagePinsVersion,
+                          'complete' => $identity && $confirmedCaption && $confirmedPhoto && $context && ($currentReceipt || $stagePinsVersion),
+                      ];
+                  }
+              } finally {
+                  $pdo->rollBack();
+              }
+              echo json_encode(['ok' => true, 'writes' => 0, 'rows' => $result], JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), "\n";
+          } catch (Throwable $error) {
+              echo '{"ok":false,"error":"native_readback_failed","writes":0}', "\n";
+              exit(1);
+          }
+          PHP
+          php -l pub/read-only.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read exact legacy edit receipts and current bot context
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); assert d["ok"] and d["writes"]==0; print(json.dumps(d))'
+      - name: Save bounded match evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-1566-old-telegram-native-check
+          path: pub/registry.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Remove runner-only connection material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
