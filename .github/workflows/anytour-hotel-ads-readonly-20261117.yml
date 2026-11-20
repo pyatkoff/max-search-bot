@@ -1,4 +1,4 @@
-name: "Aloft 1678: exact read-only publisher and paired feed preflight"
+name: "Aloft 1678: read exact post observation"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,12 +13,12 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '607309c80ea5f49df1922a0c75fce3a8fcb056a7' &&
+      github.event.before == '13f8e9f3d181df71eadd4fa1f83d94e8908629ce' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Prepare exact Telegram publisher and feed preflight
+      - name: Prepare Telegram post registry read
         shell: bash
         run: |
           set -euo pipefail
@@ -37,77 +37,6 @@ jobs:
               requireEdit(PHP_SAPI === 'cli' && getcwd() === '/var/www/anytoour/data/www/app.anytoour.ru', 'app_root');
               requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD')) === $expected, 'installed_checkout_changed');
               requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false status --porcelain --untracked-files=no')) === '', 'installed_checkout_dirty');
-          }
-          function publicTelegram(int $mid, int $cursor): array {
-              $doc = new DOMDocument();
-              $url = 'https://t.me/s/anytour?before=' . $cursor;
-              $raw = PromotedHotelPriceWriter::publicBytes($url);
-              requireEdit(@$doc->loadHTML('<?xml encoding="UTF-8">'.$raw, LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING), 'public_dom');
-              $xp = new DOMXPath($doc);
-              $roots = $xp->query('//*[@data-post="anytour/'.$mid.'"]');
-              requireEdit($roots->length === 1,'public_id');
-              $root = $roots->item(0);
-              $class = static fn(string $v):string => 'contains(concat(" ",normalize-space(@class)," ")," '.$v.' ")';
-              $text = $xp->query('.//*['.$class('tgme_widget_message_text').']',$root);
-              $time = $xp->query('.//time[@datetime]',$root);
-              requireEdit($text->length===1 && $time->length===1,'public_body_or_date');
-              $photos = [];
-              foreach ($xp->query('.//*['.$class('tgme_widget_message_photo_wrap').']',$root) as $img) {
-                  $marker = trim($img->getAttribute('class'));
-                  preg_match('/(?:^|\s)([0-9]{5,}(?:_[0-9]+)?)(?:\s|$)/D',$marker,$m);
-                  $photos[] = $m[1] ?? ('class:'.hash('sha256',$marker));
-              }
-              $videos = $xp->query('.//video|.//*['.$class('tgme_widget_message_video_thumb').' or '.$class('tgme_widget_message_roundvideo').']',$root)->length;
-              $clips=[];
-              foreach ($xp->query('.//video|.//*['.$class('tgme_widget_message_video_thumb').' or '.$class('tgme_widget_message_video_duration').']',$root) as $v) {
-                  $clips[]=[$v->tagName,$v->getAttribute('class'),$v->getAttribute('src'),$v->getAttribute('poster'),$v->getAttribute('style'),trim($v->textContent)];
-              }
-              $captionHtml='';
-              foreach ($text->item(0)->childNodes as $node) $captionHtml.=$doc->saveHTML($node);
-              $caption = html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i',"\n",$captionHtml)),ENT_QUOTES|ENT_HTML5,'UTF-8');
-              $buttons=[];
-              foreach($xp->query('.//a['.$class('tgme_widget_message_inline_button').']',$root) as $a) {
-                  $buttons[]=['text'=>trim($a->textContent),'url'=>$a->getAttribute('href')];
-              }
-              $links=[];
-              foreach($xp->query('.//a[@href]',$text->item(0)) as $a) {
-                  $links[]=['text'=>trim($a->textContent),'url'=>$a->getAttribute('href')];
-              }
-              return ['date'=>$time->item(0)->getAttribute('datetime'),'photos'=>$photos,'videos'=>$videos,
-                  'video_marker_kinds'=>array_map(static fn(array $x):array=>[$x[0],$x[1],$x[2]!=='',$x[4]!==''],$clips),
-                  'video_sha256s'=>array_map(static fn(array $x):string=>hash('sha256',json_encode($x,JSON_THROW_ON_ERROR)),$clips),
-                  'video_duration_text'=>array_values(array_map(static fn(array $x):string=>$x[5],array_filter($clips,static fn(array $x):bool=>str_contains($x[1],'video_duration')))),
-                  'public_via_bot_marker'=>$xp->query('.//*[contains(@class,"tgme_widget_message_via_bot") or contains(@class,"tgme_widget_message_via")]',$root)->length>0,
-                  'caption'=>$caption,'caption_html'=>$captionHtml,'caption_sha256'=>hash('sha256',$caption),'buttons'=>$buttons,'links'=>$links];
-          }
-          function readExactOffer(string $platform): array {
-              $name=$platform==='max'?'max':'telegram';
-              $raw=PromotedHotelPriceWriter::publicBytes('https://app.anytoour.ru/feed/hotel-posts-'.$name.'.xml',12000000);
-              requireEdit(!preg_match('/<!\s*(?:DOCTYPE|ENTITY)\b/i',$raw),'unsafe_xml');
-              $doc=new DOMDocument();
-              requireEdit(@$doc->loadXML($raw,LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING),'invalid_xml');
-              $xp=new DOMXPath($doc);
-              $nodes=$xp->query('/yml_catalog/shop/offers/offer[@id="'.$platform.'_61159"]');
-              requireEdit($nodes->length===1,'missing_or_duplicate_61159');
-              $o=$nodes->item(0);
-              $get=static fn(string $field):string=>(string)$xp->evaluate('string(./'.$field.')',$o);
-              $desc=$get('description');
-              $pattern='~^💰 От (?<amount>[0-9][0-9 ,.\x{00a0}\x{202f}]*) ₽ за двоих\n✈️ Вылет из (?<origin>[^\n]+) (?<date>\d{2}\.\d{2}\.\d{4}) · (?<nights>[1-9][0-9]*) ноч(?:ь|и|ей)\n👥 2 взрослых\n🛏 [^\n]+\n🍽 (?<meal>[^\n]+)\nЦена найдена мониторингом (?<observed>\d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}) МСК\. Стоимость и наличие могут измениться\.$~mu';
-              requireEdit(preg_match_all($pattern,$desc,$matches,PREG_SET_ORDER)===1,'missing_or_ambiguous_61159_offer');
-              $m=$matches[0];
-              $price=$get('price');
-              requireEdit($get('currencyId')==='RUB' && preg_match('/^[1-9][0-9]*(?:\.[0-9]{1,2})?$/D',$price)
-                  && (float)str_replace(',','.',preg_replace('/[\s\x{00a0}\x{202f}]/u','',$m['amount']))===(float)$price,'amount_mismatch');
-              $tz=new DateTimeZone('Europe/Moscow');
-              $now=new DateTimeImmutable('now',$tz);
-              $stamp=DateTimeImmutable::createFromFormat('!d.m.Y, H:i',$m['observed'],$tz);
-              $depart=DateTimeImmutable::createFromFormat('!d.m.Y',$m['date'],$tz);
-              requireEdit($stamp && $depart && $stamp->format('d.m.Y, H:i')===$m['observed'] && $depart->format('d.m.Y')===$m['date'],'offer_date_invalid');
-              $age=$now->getTimestamp()-$stamp->getTimestamp();
-              return ['price'=>(int)$price,'observation'=>$stamp->format(DATE_ATOM),'departure'=>$depart->format('Y-m-d'),
-                'origin'=>$m['origin'],'nights'=>(int)$m['nights'],'meal'=>$m['meal'],'age_minutes'=>(int)floor($age/60),
-                'fresh'=>$age>=0 && $age<129600 && $depart>=$now->setTime(0,0),'checked_at'=>$now->format(DATE_ATOM),
-                'block'=>$m[0]];
           }
           function postRegistryEvidence(PDO $pdo,ChannelPostRegistryService $registry,int $mid): array {
               $q=$pdo->prepare("SELECT p.id,(SELECT COUNT(*) FROM post_versions v WHERE v.publication_id=p.id) AS versions,
@@ -131,67 +60,27 @@ jobs:
                       ($s['attachments'][0]['type']??'')==='video'];
           }
           
-          function testInstalledVideoCaptionGate(int $mid,string $publicDate,string $priceBlock): array {
-              $stamp=(new DateTimeImmutable($publicDate))->getTimestamp();
-              $plan="Aloft Palm Jumeirah\n\n".$priceBlock;
-              $s=ChannelPostIncomingAdapter::telegramSnapshot(['chat'=>['id'=>-1001845835645,'username'=>'anytour','type'=>'channel'],
-                  'message_id'=>$mid,'date'=>$stamp,'caption'=>$plan,
-                  'video'=>['file_id'=>'local-contract-fixture','file_unique_id'=>'local-contract-fixture']]);
-              return ['caption_adapter'=>$s['metadata']['capability']??'unknown','caption_adapter_reason'=>$s['metadata']['capability_reason']??null,
-                  'hotel_bound_in_contract'=>($s['metadata']['hotel_catalog_id']??0)===61159];
-          }
-          
-          $out=['ok'=>false,'db_writes'=>0,'provider_writes'=>0,'channel_post'=>1678,'hotel_id'=>61159];
+          $out=['ok'=>false,'provider_writes'=>0,'db_writes'=>0,'target_post'=>1678];
           try{
               installedEdit('b4b65daaa472c15426a244b87ede3e6c0394626b');
               ob_start();
               try{
                   require getcwd().'/config.php';
-                  require_once getcwd().'/services/PromotedHotelPriceWriter.php';
                   require_once getcwd().'/services/ChannelPostEntryService.php';
               }finally{ob_end_clean();}
               $pdo=ConversationDb::connection();
-              $pdo->exec('SET SESSION TRANSACTION READ ONLY'); $pdo->beginTransaction();
+              $pdo->exec('SET SESSION TRANSACTION READ ONLY');
+              $pdo->beginTransaction();
               $out['registry']=postRegistryEvidence($pdo,new ChannelPostRegistryService($pdo),1678);
               $pdo->rollBack();
-          
-              $me=ChannelPostApiTransport::buttonRequest('telegram','POST','getMe',[],[]);
-              $self=$me['data']['result']??[];
-              requireEdit(($me['http']??0)===200 && ($me['data']['ok']??false)===true && ($self['is_bot']??false)===true
-                  && ($self['username']??'')==='anyru_bot','installed_editor_identity_unavailable');
-              $chat=ChannelPostApiTransport::buttonRequest('telegram','POST','getChat',[],['chat_id'=>-1001845835645]);
-              $native=$chat['data']['result']??[];
-              requireEdit(($chat['http']??0)===200 && ($chat['data']['ok']??false)===true && ($native['type']??'')==='channel'
-                  && (string)($native['id']??'')==='-1001845835645' && ($native['username']??'')==='anytour','channel_native_read_unavailable');
-              $pinned=$native['pinned_message']??null;
-              $exact=is_array($pinned) && ($pinned['message_id']??null)===1678
-                  && (string)($pinned['chat']['id']??'')==='-1001845835645';
-              $out['provider']=['editor'=>$self['username'],'get_chat_http'=>200,'exact_target_returned_as_pinned'=>$exact,
-                  'exact_native_video_id_available'=>$exact && !empty($pinned['video']['file_unique_id']),
-                  'message_specific_edit_permission_verified'=>false];
-              unset($native,$pinned,$chat,$me);
-              $post=publicTelegram(1678,1679);
-              $out['public']=['url'=>'https://t.me/anytour/1678','date'=>$post['date'],'named_aloft'=>stripos($post['caption'],'Aloft Palm Jumeirah')!==false,
-                  'has_video'=>$post['videos']>0,'buttons'=>count($post['buttons']),'old_price_visible'=>preg_match('/175[ \x{00a0}\x{202f}]?863/u',$post['caption'])===1];
-              requireEdit((new DateTimeImmutable($post['date']))->format('Y-m-d H:i:sP')==='2026-08-11 11:51:56+00:00'
-                 && $out['public']['named_aloft'] && $out['public']['has_video'],'public_target_identity_changed');
-          
-              $offers=[];
-              foreach(['max','tg'] as $platform){
-                  try{$offers[$platform]=readExactOffer($platform);}
-                  catch(Throwable $e){$m=$e->getMessage();$offers[$platform]=['error'=>preg_match('/\A[a-z_0-9]{1,100}\z/D',$m)?$m:'feed_read_failed'];}
-              }
-              $max=$offers['max'];$tg=$offers['tg'];
-              $out['feed_offer_blocks_match']=isset($max['block'],$tg['block']) && $max['block']===$tg['block'];
-              $out['both_prices_eligible_now']=$out['feed_offer_blocks_match'] && $max['fresh'] && $tg['fresh'];
-              $out['offers']=array_map(static fn(array $o):array=>array_diff_key($o,['block'=>true]),$offers);
-              $out['local_only_caption_gate']=testInstalledVideoCaptionGate(1678,$post['date'],$tg['block']??"");
+              $out['checked_at']=gmdate(DATE_ATOM);
               $out['ok']=true;
           }catch(Throwable $e){
               if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();
-              $m=$e->getMessage();$out['reason']=preg_match('/\A[a-z_0-9]{1,100}\z/D',$m)?$m:'exact_1678_preflight_failed';
+              $reason=$e->getMessage();
+              $out['reason']=preg_match('/\\A[a-z_0-9]{1,100}\\z/D',$reason)?$reason:'target_registry_read_failed';
           }
-          echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),PHP_EOL;
+          echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
           PHP
           php -l pub/read-only.php
       - name: Pin established SSH host continuity and authentication identity
@@ -238,12 +127,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ALOFT1678_EXACT_READ_PREFLIGHT="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0 and d.get("db_writes")==0'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ALOFT1678_REGISTRY_READ="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0 and d.get("db_writes")==0'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: aloft-1678-exact-read-preflight
+          name: aloft-1678-registry-read
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
