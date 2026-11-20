@@ -157,6 +157,7 @@ final class ChannelPostIncomingAdapter
     {
         $text = $message['text'] ?? $message['caption'] ?? '';
         if (!is_string($text)) return null;
+        $approvedVideo = self::approvedAloftVideo($message, $text);
         $media = []; $reason = ''; $photo = null;
         foreach ((array)($message['photo'] ?? []) as $size) {
             if (!is_array($size) || !is_string($size['file_id'] ?? null) || !is_string($size['file_unique_id'] ?? null)) { $reason = 'image_stable_id_missing'; continue; }
@@ -165,6 +166,10 @@ final class ChannelPostIncomingAdapter
         if ($photo !== null) $media[] = ['type' => 'image', 'provider' => 'telegram', 'telegram_file_id' => $photo['file_id'], 'file_unique_id' => $photo['file_unique_id']];
         foreach (['video', 'animation', 'audio', 'voice', 'video_note', 'document', 'sticker', 'contact', 'location', 'venue', 'poll', 'dice', 'paid_media'] as $field) {
             if (!array_key_exists($field, $message)) continue;
+            if ($field === 'video' && $approvedVideo !== null) {
+                $media[] = $approvedVideo;
+                continue;
+            }
             $reason = 'unsupported_media';
             $media[] = ['type' => $field, 'provider' => 'telegram'];
         }
@@ -178,14 +183,40 @@ final class ChannelPostIncomingAdapter
         $url = '';
         if (preg_match('/\A[A-Za-z0-9_]{5,64}\z/', $username) && preg_match('/\A[1-9][0-9]*\z/', $messageId)) $url = 'https://t.me/' . $username . '/' . $messageId;
         elseif (preg_match('/\A-100([1-9][0-9]*)\z/', $chatId, $match) && preg_match('/\A[1-9][0-9]*\z/', $messageId)) $url = 'https://t.me/c/' . $match[1] . '/' . $messageId;
+        $metadata = ['capability' => $reason === '' ? 'supported' : 'requires_attention', 'capability_reason' => $reason,
+            'media_group_id' => (string)($message['media_group_id'] ?? ''), 'actual_message_id' => $messageId];
+        if ($approvedVideo !== null && $reason === '') $metadata['hotel_catalog_id'] = 61159;
         return [
             'text' => $text, 'format' => 'native', 'attachments' => $media,
             'markup' => $message['entities'] ?? $message['caption_entities'] ?? [], 'keyboard' => $keyboard,
             'post_url' => $url, 'raw_body' => $message,
             'published_at' => self::timestamp($message['date'] ?? null, false),
             'edited_at' => self::timestamp($message['edit_date'] ?? null, false),
-            'metadata' => ['capability' => $reason === '' ? 'supported' : 'requires_attention', 'capability_reason' => $reason, 'media_group_id' => (string)($message['media_group_id'] ?? ''), 'actual_message_id' => $messageId],
+            'metadata' => $metadata,
         ];
+    }
+
+    /** The explicit Aloft archive edit preserves this one existing video. */
+    private static function approvedAloftVideo(array $message, string $caption): ?array
+    {
+        $video = $message['video'] ?? null;
+        if (($message['chat']['type'] ?? null) !== 'channel'
+            || self::channelId($message['chat']['id'] ?? null) !== '-1001845835645'
+            || ($message['chat']['username'] ?? null) !== 'anytour'
+            || ($message['message_id'] ?? null) !== 1207
+            || ($message['date'] ?? null) !== 1758623277
+            || array_key_exists('media_group_id', $message) || array_key_exists('photo', $message)
+            || !is_array($video) || !is_string($video['file_id'] ?? null) || trim($video['file_id']) === ''
+            || !is_string($video['file_unique_id'] ?? null) || trim($video['file_unique_id']) === '') return null;
+
+        // The old caption is ineligible. Only the new hotel-specific caption
+        // with a monitored offer enters the normal button flow.
+        if (!preg_match('/\AAloft Palm Jumeirah\r?\n/u', $caption)
+            || !preg_match('/^💰 От [0-9][0-9 \x{00A0}\x{202F}]* ₽/mu', $caption)
+            || !preg_match('/^Цена найдена мониторингом [0-9]{2}\.[0-9]{2}\.[0-9]{4}, [0-9]{2}:[0-9]{2} МСК/mu', $caption)) return null;
+
+        return ['type' => 'video', 'provider' => 'telegram', 'telegram_file_id' => $video['file_id'],
+            'file_unique_id' => $video['file_unique_id']];
     }
 
     /** Tour content excludes expiring credentials and all replaceable channel keyboards. */
