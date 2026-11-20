@@ -1,8 +1,8 @@
-name: FEED55 exact offline writer compilation
+name: FEED55 exact finite production carrier
 on:
   push:
     branches: ['audit/price660-27316-resume-readiness-20261117']
-    paths: ['.github/workflows/price27316-feed55-compile.yml']
+    paths: ['tools/direct_demand/operations/feed55/write/production-config.json']
   pull_request:
     branches: ['main']
     paths:
@@ -11,14 +11,15 @@ on:
 permissions:
   contents: read
   actions: read
+  issues: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
   compile:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.run_attempt == 1 && ((github.event_name == 'push' && github.event.before == 'e252133459f41e5b6888bba3d9e34419adf8da15') || (github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'audit/price660-27316-resume-readiness-20261117'))
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.run_attempt == 1 && ((github.event_name == 'push') || (github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'audit/price660-27316-resume-readiness-20261117'))
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     env:
       GH_TOKEN: ${{ github.token }}
       CONFIG_SHA256: 95bf0e4e17f2068fd9e32b6369ff5ba8890c4d6d778597231808a34731faac6f
@@ -53,6 +54,7 @@ jobs:
             tools/direct_demand/operations/feed55/write/owner_permit_gate.py \
             tools/direct_demand/operations/feed55/write/execute_feed55.py
           python3 -m json.tool tools/direct_demand/operations/feed55/write/config.json >/dev/null
+          python3 -m json.tool tools/direct_demand/operations/feed55/write/production-config.json >/dev/null
       - name: Materialize exact same-repository evidence
         run: |
           set -euo pipefail
@@ -78,9 +80,12 @@ jobs:
             unzip -q "$root/a$2.zip" -d "$root/originals/orig-$1"
           done
           unzip -q "$root/preflight.zip" -d "$root/preflight"
-          cp "$root/preflight/feed55-preflight/telegram.xml" "$root/preimages/hotel-posts-telegram.xml"
-          cp "$root/preflight/feed55-preflight/max.xml" "$root/preimages/hotel-posts-max.xml"
-          cp "$root/preflight/feed55-preflight/all.xml" "$root/preimages/hotel-posts-all.xml"
+          curl --fail --silent --show-error --max-time 45 --proto '=https' --tlsv1.2 \
+            https://app.anytoour.ru/feed/hotel-posts-telegram.xml -o "$root/preimages/hotel-posts-telegram.xml"
+          curl --fail --silent --show-error --max-time 45 --proto '=https' --tlsv1.2 \
+            https://app.anytoour.ru/feed/hotel-posts-max.xml -o "$root/preimages/hotel-posts-max.xml"
+          curl --fail --silent --show-error --max-time 45 --proto '=https' --tlsv1.2 \
+            https://app.anytoour.ru/feed/hotel-posts-all.xml -o "$root/preimages/hotel-posts-all.xml"
       - name: Compile seven exact native writers without production access
         run: |
           set -euo pipefail
@@ -110,4 +115,171 @@ jobs:
           name: feed55-compile-plan-${{ github.run_id }}
           path: ${{ runner.temp }}/feed55/deliver/
           retention-days: 7
+          if-no-files-found: error
+      - name: Prepare unchanged server connection and host pin
+        if: github.event_name == 'push'
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER'];assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-') and re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35);matches=[]
+          for line in scan.stdout.splitlines():
+            fields=line.split()
+            if len(fields)<3 or fields[0].startswith('#'):continue
+            try:fingerprint='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+            except Exception:continue
+            if fingerprint=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
+          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP';pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+          PY
+      - name: Prepare authenticated production plan without writes
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 tools/direct_demand/operations/feed55/write/execute_feed55.py prepare \
+            tools/direct_demand/operations/feed55/write/production-config.json \
+            "$RUNNER_TEMP/feed55/compiled"
+      - name: Publish production plan before first write
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed55-production-plan-${{ github.run_id }}
+          path: ${{ runner.temp }}/feed55-production/deliver-plan/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Exact one-write group 1
+        if: github.event_name == 'push'
+        id: p01
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/feed55/write/execute_feed55.py step 0
+      - name: Preserve group 1 progress
+        if: ${{ always() && github.event_name == 'push' && (steps.p01.outcome == 'success' || steps.p01.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed55-progress-p01-${{ github.run_id }}
+          path: ${{ runner.temp }}/feed55-production/progress/p01/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Exact one-write group 2
+        if: github.event_name == 'push'
+        id: p02
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/feed55/write/execute_feed55.py step 1
+      - name: Preserve group 2 progress
+        if: ${{ always() && github.event_name == 'push' && (steps.p02.outcome == 'success' || steps.p02.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed55-progress-p02-${{ github.run_id }}
+          path: ${{ runner.temp }}/feed55-production/progress/p02/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Exact one-write group 4
+        if: github.event_name == 'push'
+        id: p04
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/feed55/write/execute_feed55.py step 2
+      - name: Preserve group 4 progress
+        if: ${{ always() && github.event_name == 'push' && (steps.p04.outcome == 'success' || steps.p04.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed55-progress-p04-${{ github.run_id }}
+          path: ${{ runner.temp }}/feed55-production/progress/p04/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Exact one-write group 5
+        if: github.event_name == 'push'
+        id: p05
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/feed55/write/execute_feed55.py step 3
+      - name: Preserve group 5 progress
+        if: ${{ always() && github.event_name == 'push' && (steps.p05.outcome == 'success' || steps.p05.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed55-progress-p05-${{ github.run_id }}
+          path: ${{ runner.temp }}/feed55-production/progress/p05/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Exact one-write group 9
+        if: github.event_name == 'push'
+        id: p09
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/feed55/write/execute_feed55.py step 4
+      - name: Preserve group 9 progress
+        if: ${{ always() && github.event_name == 'push' && (steps.p09.outcome == 'success' || steps.p09.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed55-progress-p09-${{ github.run_id }}
+          path: ${{ runner.temp }}/feed55-production/progress/p09/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Exact one-write group 12
+        if: github.event_name == 'push'
+        id: p12
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/feed55/write/execute_feed55.py step 5
+      - name: Preserve group 12 progress
+        if: ${{ always() && github.event_name == 'push' && (steps.p12.outcome == 'success' || steps.p12.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed55-progress-p12-${{ github.run_id }}
+          path: ${{ runner.temp }}/feed55-production/progress/p12/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Exact one-write group 13
+        if: github.event_name == 'push'
+        id: p13
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/feed55/write/execute_feed55.py step 6
+      - name: Preserve group 13 progress
+        if: ${{ always() && github.event_name == 'push' && (steps.p13.outcome == 'success' || steps.p13.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed55-progress-p13-${{ github.run_id }}
+          path: ${{ runner.temp }}/feed55-production/progress/p13/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Verify final public feeds and Mini App URLs
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/direct_demand/operations/feed55/write/execute_feed55.py finish
+      - name: Preserve final production receipt
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed55-complete-${{ github.run_id }}
+          path: ${{ runner.temp }}/feed55-production/complete.json
+          retention-days: 30
           if-no-files-found: error
