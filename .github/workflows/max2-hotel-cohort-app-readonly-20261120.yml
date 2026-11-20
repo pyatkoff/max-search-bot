@@ -1,0 +1,49 @@
+name: MAX2 hotel app cohort read 20261120
+on:
+  push:
+    branches: [audit/max2-hotel-cohort-app-fixture-20261120]
+    paths:
+      - .github/workflows/max2-hotel-cohort-app-readonly-20261120.yml
+      - audit/max2-hotel-cohort-20261120/app/program.php
+      - audit/max2-hotel-cohort-20261120/app/tests.php
+      - audit/max2-hotel-cohort-20261120/app/runner.py
+      - audit/max2-hotel-cohort-20261120/app/validation.py
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: max2-hotel-cohort-app-20261120
+  cancel-in-progress: false
+jobs:
+  inspect:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.run_attempt == '1' && github.event.created == true && github.event.deleted == false && github.event.forced == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      PROGRAM_SHA256: 800cdd3e1b2a40bf1499b9d0d644ba08033e0ff8a532f65d140a3f80f07a2475
+      TESTS_SHA256: c6c380d1bdcabd38d33f0f0810e7e8a65a9d9efc9533e1b1481549e2df841de3
+      RUNNER_SHA256: 08f3962b9276271328a845d3a21334ddbef6cf1f96f3335d7b6527bcd48c9fa3
+      VALIDATION_SHA256: 60fc06476b3c489c9df0d76c8b91c36ff6ef100ef72fb0117fa1024cfb28c717
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Verify provenance and pure fixtures before credentials
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 audit/max2-hotel-cohort-20261120/app/runner.py admit
+      - name: Read bounded cohort and seal private report
+        env:
+          SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          REPORT_PUBLIC_KEY_B64: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUFxS2wwN2srbXZ2TTZWUExkOU1NNwptMk5PUThyc3RMZ0IzQXRKaEFYWktVc2Q3Z0JyU21DQ2V3WFp4aWRJY015VW9QOGFlWHdKaXhJOVVuYU1qTDRWCkFNdmdWS05hN1VOUFZhQzhsemFHTzVqYnNsa0gvS1RmQ01PdTc4VDMyWjlKZ2p4b0hJdVlET1hXY3FSK1NpNGIKeWEzeEhvVS9pbXh5cmZ4dGZTNnBlR3NwUVZKcHFXUkdSb215ZDR0VHdSNXVSWHJWZWtkWDBzUmppZmkrU2x5Ygo4QTl1clBmZTd5RFZTcURqQ3R4Zy9ybTlFTTlObmhSWGJObjNOQThLalJxeHJVMjBQajBycTVKMUcvT0FBYnA2Cll2MGRIdGtlK0MzTVZ6YmZvUE1YUFg3Y3JYRXp6M2RPbmlNSTBCNFNEeTF2WWI4TjJpMEhWMmJPRGpSeWt1c0MKYUFKRGVoRWwzRVdsb1M0NkxKNkgzOHJCOU9NYWE0bDEwZzBEekRoREh4UitOVVRZWGRYSUdqRmZiVmJhQnVVSwpWYy9mbWlnTkpSQ0JSbHljWGJhZGtLSi9oWFRUbWtxYUlmOHVmVEFheEpYdlIwQU4vRVBFZFJSZmpSbG1JdVhVClNHWFVFclAxNkkycFQ3ZytaT3RhTnc5TnVxeUpJMmo5cHEvK2dsc3NIWXZSQWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
+        run: python3 audit/max2-hotel-cohort-20261120/app/runner.py read
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: max2-hotel-app-20261112-20261118-encrypted
+          path: encrypted-max2-hotel-app/*.enc.json
+          retention-days: 3
+          if-no-files-found: error
