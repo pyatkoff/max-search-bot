@@ -168,7 +168,7 @@
         }
       ],
       "original_reader_sha256": "693d99a8f10440ba7e5a4ebe20d19ef75963d1fa998050b49f02fb8203baec0e",
-      "reader_sha256": null
+      "reader_sha256": "1664cfa74c92ee6bdab1879781113dbd60e5a326635bbdccea2a1eb3b37276bd"
     },
     {
       "batch": 2,
@@ -329,7 +329,7 @@
         }
       ],
       "original_reader_sha256": "693d99a8f10440ba7e5a4ebe20d19ef75963d1fa998050b49f02fb8203baec0e",
-      "reader_sha256": null
+      "reader_sha256": "1e0d253c896d11747f341b22e42368542f4f6b56cb1b3ed3c1b408ea2a045bc8"
     },
     {
       "batch": 4,
@@ -490,7 +490,7 @@
         }
       ],
       "original_reader_sha256": "693d99a8f10440ba7e5a4ebe20d19ef75963d1fa998050b49f02fb8203baec0e",
-      "reader_sha256": null
+      "reader_sha256": "27b55b833c25a57a627e773e3a78e3c589e860af10330fdffc290baac2ca5024"
     },
     {
       "batch": 5,
@@ -651,7 +651,7 @@
         }
       ],
       "original_reader_sha256": "693d99a8f10440ba7e5a4ebe20d19ef75963d1fa998050b49f02fb8203baec0e",
-      "reader_sha256": null
+      "reader_sha256": "2615d263d7f1ab2ea338d9a3ab4e82861eda96120bfaf48763fc19e8e9eafb58"
     },
     {
       "batch": 9,
@@ -707,7 +707,7 @@
         }
       ],
       "original_reader_sha256": "693d99a8f10440ba7e5a4ebe20d19ef75963d1fa998050b49f02fb8203baec0e",
-      "reader_sha256": null
+      "reader_sha256": "9e5f13dbe2525b621767d1d282e2c63f06e9d839de8194b42951129bc6a4f0e5"
     },
     {
       "batch": 12,
@@ -778,7 +778,7 @@
         }
       ],
       "original_reader_sha256": "693d99a8f10440ba7e5a4ebe20d19ef75963d1fa998050b49f02fb8203baec0e",
-      "reader_sha256": null
+      "reader_sha256": "c77c869ef07c6c65f067f1fc6daf7588618df7e8adbf0145743349784b888430"
     },
     {
       "batch": 13,
@@ -909,7 +909,7 @@
         }
       ],
       "original_reader_sha256": "693d99a8f10440ba7e5a4ebe20d19ef75963d1fa998050b49f02fb8203baec0e",
-      "reader_sha256": null
+      "reader_sha256": "45b5c13b4bd85ac28c5a6f6fe707b85603d23b2fcdd0cd3aec18f444a890b775"
     }
   ],
   "public_feeds": {
