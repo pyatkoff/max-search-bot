@@ -12,11 +12,11 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == 'a7d7818a5dc5194d81292f90c7a48eaa79668435'
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == '198d2de55a7e60b39fa5412e1f46be556d97fba0'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      EXPECTED_PARENT_SHA: a7d7818a5dc5194d81292f90c7a48eaa79668435
+      EXPECTED_PARENT_SHA: 198d2de55a7e60b39fa5412e1f46be556d97fba0
       REVIEWED_FEED55_INTENT_SHA256: 8e672b1e83d9b7c27fb15fce698e6751b575fdb787d8ce8e1062cfc3f3e352cf
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -28,7 +28,7 @@ jobs:
         run: |
           set -euo pipefail
           echo '024ae3a953bc59b0fa05c10688c54822b309c677ca7674e523b7a5cc2cbbd140  tools/direct_demand/operations/feed55/preflight/admit55.py' | sha256sum --check --strict
-          echo '30bda1be4daca47b2da722aaa8d9701a2954290a0bc7ab7793ef4115318c34f5  tools/direct_demand/operations/feed55/preflight/run55.py' | sha256sum --check --strict
+          echo '056e84a26e39fa52e27fd0ad159af6f6a431840c52cad1b0164fd1f4aa6079e5  tools/direct_demand/operations/feed55/preflight/run55.py' | sha256sum --check --strict
           echo '8e672b1e83d9b7c27fb15fce698e6751b575fdb787d8ce8e1062cfc3f3e352cf  tools/direct_demand/operations/feed55/preflight/intent.json' | sha256sum --check --strict
           python3 -m py_compile tools/direct_demand/operations/feed55/preflight/admit55.py tools/direct_demand/operations/feed55/preflight/run55.py
           python3 - <<'PY'
