@@ -1,4 +1,4 @@
-name: "Aloft 1207: independently read public video markup without edits"
+name: "Aloft 1207: test official Telegram bot administrator read"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,12 +13,12 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '05d40091d5003e49a494f98766a8faf2ff05840a' &&
+      github.event.before == '240b70088b0c7f27c4c5f14543aaf6608ca77bec' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Prepare targeted read-only archive check
+      - name: Prepare the installed API read probe
         shell: bash
         run: |
           set -euo pipefail
@@ -38,113 +38,52 @@ jobs:
               requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD')) === $expected, 'installed_checkout_changed');
               requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false status --porcelain --untracked-files=no')) === '', 'installed_checkout_dirty');
           }
-          function publicTelegram(int $mid, int $cursor): array {
-              $doc = new DOMDocument();
-              $url = 'https://t.me/s/anytour?before=' . $cursor;
-              $raw = PromotedHotelPriceWriter::publicBytes($url);
-              requireEdit(@$doc->loadHTML('<?xml encoding="UTF-8">'.$raw, LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING), 'public_dom');
-              $xp = new DOMXPath($doc);
-              $roots = $xp->query('//*[@data-post="anytour/'.$mid.'"]');
-              requireEdit($roots->length === 1,'public_id');
-              $root = $roots->item(0);
-              $class = static fn(string $v):string => 'contains(concat(" ",normalize-space(@class)," ")," '.$v.' ")';
-              $text = $xp->query('.//*['.$class('tgme_widget_message_text').']',$root);
-              $time = $xp->query('.//time[@datetime]',$root);
-              requireEdit($text->length===1 && $time->length===1,'public_body_or_date');
-              $photos = [];
-              foreach ($xp->query('.//*['.$class('tgme_widget_message_photo_wrap').']',$root) as $img) {
-                  $marker = trim($img->getAttribute('class'));
-                  preg_match('/(?:^|\s)([0-9]{5,}(?:_[0-9]+)?)(?:\s|$)/D',$marker,$m);
-                  $photos[] = $m[1] ?? ('class:'.hash('sha256',$marker));
-              }
-              $videos = $xp->query('.//video|.//*['.$class('tgme_widget_message_video_thumb').' or '.$class('tgme_widget_message_roundvideo').']',$root)->length;
-              $clips=[];
-              foreach ($xp->query('.//video|.//*['.$class('tgme_widget_message_video_thumb').' or '.$class('tgme_widget_message_video_duration').']',$root) as $v) {
-                  $clips[]=[$v->tagName,$v->getAttribute('class'),$v->getAttribute('src'),$v->getAttribute('poster'),$v->getAttribute('style'),trim($v->textContent)];
-              }
-              $captionHtml='';
-              foreach ($text->item(0)->childNodes as $node) $captionHtml.=$doc->saveHTML($node);
-              $caption = html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i',"\n",$captionHtml)),ENT_QUOTES|ENT_HTML5,'UTF-8');
-              $buttons=[];
-              foreach($xp->query('.//a['.$class('tgme_widget_message_inline_button').']',$root) as $a) {
-                  $buttons[]=['text'=>trim($a->textContent),'url'=>$a->getAttribute('href')];
-              }
-              $links=[];
-              foreach($xp->query('.//a[@href]',$text->item(0)) as $a) {
-                  $links[]=['text'=>trim($a->textContent),'url'=>$a->getAttribute('href')];
-              }
-              return ['date'=>$time->item(0)->getAttribute('datetime'),'photos'=>$photos,'videos'=>$videos,
-                  'video_marker_kinds'=>array_map(static fn(array $x):array=>[$x[0],$x[1],$x[2]!=='',$x[4]!==''],$clips),
-                  'video_sha256s'=>array_map(static fn(array $x):string=>hash('sha256',json_encode($x,JSON_THROW_ON_ERROR)),$clips),
-                  'video_duration_text'=>array_values(array_map(static fn(array $x):string=>$x[5],array_filter($clips,static fn(array $x):bool=>str_contains($x[1],'video_duration')))),
-                  'public_via_bot_marker'=>$xp->query('.//*[contains(@class,"tgme_widget_message_via_bot") or contains(@class,"tgme_widget_message_via")]',$root)->length>0,
-                  'caption'=>$caption,'caption_html'=>$captionHtml,'caption_sha256'=>hash('sha256',$caption),'buttons'=>$buttons,'links'=>$links];
-          }
-          function priceRows(array $ids): array {
-              $raw=PromotedHotelPriceWriter::publicBytes('https://app.anytoour.ru/feed/hotel-posts-all.xml',12000000);
-              requireEdit(!preg_match('/<!\s*(?:DOCTYPE|ENTITY)\b/i',$raw),'invalid_xml');
-              $doc=new DOMDocument();
-              requireEdit(@$doc->loadXML($raw,LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING),'invalid_xml');
-              $xp=new DOMXPath($doc);
-              $result = [];
-              $now=new DateTimeImmutable('now',new DateTimeZone('Europe/Moscow'));
-              foreach($ids as $id) {
-                  try {
-                      $pair=[];
-                      foreach(['max','tg'] as $platform){
-                          $q=$xp->query('/yml_catalog/shop/offers/offer[@id="'.$platform.'_'.$id.'"]');
-                          requireEdit($q->length===1,'missing_or_duplicate_feed_offer');
-                          $o=$q->item(0);
-                          $get=static function(string $name) use($xp,$o):string{
-                              $x=$xp->query('./'.$name,$o);
-                              requireEdit($x->length===1,'invalid_'.$name);
-                              return $x->item(0)->textContent;
-                          };
-                          $desc=$get('description');
-                          $pattern='~^💰 От (?<amount>[0-9][0-9 ,.\x{00a0}\x{202f}]*) ₽ за двоих\n✈️ Вылет из [^\n]+ (?<date>\d{2}\.\d{2}\.\d{4}) · [1-9][0-9]* ноч(?:ь|и|ей)\n👥 2 взрослых\n🛏 [^\n]+\n🍽 [^\n]+\nЦена найдена мониторингом (?<observed>\d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}) МСК\. Стоимость и наличие могут измениться\.$~mu';
-                          requireEdit(preg_match_all($pattern,$desc,$m,PREG_SET_ORDER)===1,'missing_or_ambiguous_price_block');
-                          $a=$m[0];$value=str_replace(',','.',preg_replace('/[\s\x{00a0}\x{202f}]/u','',$a['amount']));
-                          $price=$get('price');
-                          requireEdit($get('currencyId')==='RUB'&&preg_match('/^[1-9][0-9]*(?:\.[0-9]{1,2})?$/D',$price)&& (float)$value===(float)$price,'amount_mismatch');
-                          $obs=DateTimeImmutable::createFromFormat('!d.m.Y, H:i',$a['observed'],$now->getTimezone());
-                          $departure=DateTimeImmutable::createFromFormat('!d.m.Y',$a['date'],$now->getTimezone());
-                          requireEdit($obs && $obs->format('d.m.Y, H:i')===$a['observed'] && $obs<=$now
-                              && $now->getTimestamp()-$obs->getTimestamp()<129600,'observation_outside_36h');
-                          requireEdit($departure && $departure->format('d.m.Y')===$a['date'] && $departure>=$now->setTime(0,0),'past_departure');
-                          $pair[]= ['block'=>$a[0],'price'=>$price,'observation'=>$obs->format(DATE_ATOM),'departure'=>$departure->format('Y-m-d')];
-                      }
-                      requireEdit($pair[0]===$pair[1],'platform_offer_mismatch');
-                      $result[$id]=$pair[0];
-                  } catch (Throwable $e) {
-                      $result[$id]=['reason'=>$e->getMessage()];
-                  }
-              }
-              return $result;
-          }
-          $out=['ok'=>false,'db_writes'=>0,'provider_writes'=>0,'post'=>'https://t.me/anytour/1207'];
-          try {
+          $out=['ok'=>false,'provider_writes'=>0];
+          try{
               installedEdit('9385571c86c45189c31d9c4aa904c23970e3b11a');
               ob_start();
-              try{require getcwd().'/config.php';require_once getcwd().'/services/PromotedHotelPriceWriter.php';}
-              finally{ob_end_clean();}
-              $expected=['8e893fc0574e6f7e7dbf00c1d6910ba1e735962880a8c11e53d9b18c9469cdc1','ab19e4b3015a33d11a71376906c28d6822625a42a00432847b57d9d8f290c7c8'];
-              foreach([1208,1209,1210] as $cursor){
-                  try{
-                      $post=publicTelegram(1207,$cursor);
-                      $out['reads'][]=['window_before'=>$cursor,'date_matches'=>$post['date']==='2025-09-23T10:27:57+00:00',
-                          'caption_matches'=>$post['caption_sha256']==='b2f19ba15412fbff79de5c560617cb85e52d276c8ba972bae659975825805346',
-                          'video_elements'=>$post['videos'],'public_photo_elements'=>count($post['photos']),
-                          'old_video_widget_markers_matched'=>count(array_intersect($expected,$post['video_sha256s'])),
-                          'video_widget_matches_all'=>$expected===$post['video_sha256s'],
-                          'video_marker_kinds'=>$post['video_marker_kinds'],'duration_texts'=>$post['video_duration_text'],
-                          'video_widgets_digest'=>hash('sha256',implode('',$post['video_sha256s']))];
-                  } catch(RuntimeException $e){
-                      $out['reads'][]=['window_before'=>$cursor,'readable'=>false];
+              try{
+                  require getcwd().'/config.php';
+                  require_once getcwd().'/integrations/ChannelPostApiTransport.php';
+              }finally{ob_end_clean();}
+              $chat=-1001845835645;
+              $me=ChannelPostApiTransport::buttonRequest('telegram','POST','getMe',[],[]);
+              $self=$me['data']['result']??[];
+              requireEdit(($me['http']??0)===200 && ($me['data']['ok']??false)===true
+                  && ($self['is_bot']??false)===true && ($self['username']??'')==='anyru_bot'
+                  && is_int($self['id']??null),'canonical_bot_identity_unavailable');
+              $member=ChannelPostApiTransport::buttonRequest('telegram','POST','getChatMember',[],['chat_id'=>$chat,'user_id'=>$self['id']]);
+              $mine=$member['data']['result']??[];
+              requireEdit(($member['http']??0)===200 && ($member['data']['ok']??false)===true
+                  && ($mine['user']['is_bot']??false)===true && ($mine['user']['username']??'')==='anyru_bot','canonical_member_read_unavailable');
+              $safe=static fn(array $entry):array=>[
+                  'username'=>$entry['user']['username'],
+                  'can_edit_messages'=>($entry['can_edit_messages']??null)===true,
+                  'can_post_messages'=>($entry['can_post_messages']??null)===true,
+              ];
+              $out['current_bot']=$safe($mine);
+              $r=ChannelPostApiTransport::buttonRequest('telegram','POST','getChatAdministrators',[],['chat_id'=>$chat,'return_bots'=>true]);
+              $out['admin_read_http']=(int)($r['http']??0);
+              $out['admin_read_transport_error']=($r['transport_error']??true)===true;
+              $out['admin_read_data_is_null']=($r['data']??null)===null;
+              if ($out['admin_read_http']===200 && ($r['data']['ok']??false)===true && is_array($r['data']['result']??null)){
+                  $out['visible_bots']=[];
+                  foreach($r['data']['result'] as $entry){
+                      $user=$entry['user']??[];
+                      if (($user['is_bot']??false)===true && preg_match('/\A[A-Za-z0-9_]{1,64}\z/D',(string)($user['username']??'')))
+                          $out['visible_bots'][]=$safe($entry);
                   }
+                  $out['state']='telegram_list_read';
+              } elseif ($out['admin_read_http']===0 && $out['admin_read_transport_error'] && $out['admin_read_data_is_null']){
+                  $out['state']='installed_adapter_disallows_method';
+              } else {
+                  $out['state']='admin_list_unavailable';
+                  $out['telegram_error_code']=(int)($r['data']['error_code']??0);
               }
-              $out['ok']=count(array_filter($out['reads'],static fn($r)=>isset($r['video_elements'])))>0;
+              $out['ok']=true;
           } catch(Throwable $e){
-              $m=$e->getMessage();$out['reason']=preg_match('/^[a-z_0-9]{1,100}$/D',$m)?$m:'exact_video_read_failed';
+              $m=$e->getMessage();
+              $out['reason']=preg_match('/^[a-z0-9_]{1,100}$/D',$m)?$m:'read_probe_failed';
           }
           echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
           PHP
@@ -181,7 +120,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read publication and Telegram API connection history
+      - name: Check read-only Telegram method and bot rights
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -193,12 +132,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ALOFT1207_VIDEO_WIDGET_AUDIT="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0 and d.get("db_writes")==0'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("TELEGRAM_EXISTING_ADMIN_READ="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: aloft-1207-public-video-readback
+          name: telegram-admin-read-method-probe
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
