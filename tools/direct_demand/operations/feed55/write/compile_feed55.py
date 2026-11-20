@@ -21,6 +21,24 @@ import types
 PREFIX = b"<?php\ndeclare(strict_types=1);\n"
 NAMES = ("hotel-posts-telegram.xml", "hotel-posts-max.xml", "hotel-posts-all.xml")
 ORDER = (1, 2, 4, 5, 9, 12, 13)
+PUBLIC_NAME_OVERRIDES = {
+    11836: (
+        "Four Seasons Resort Seychelles at Desroches Island",
+        "Four Seasons Resort Desroches Island",
+    ),
+    8987: (
+        "The Ritz-Carlton, Dubai International Financial Centre",
+        "The Ritz-Carlton Dubai DIFC",
+    ),
+    8859: (
+        "The Ritz-Carlton Ras Al Khaimah, Al Wadi Desert",
+        "The Ritz-Carlton Al Wadi Desert",
+    ),
+    2602: (
+        "Le Méridien Mina Seyahi Beach Resort & Waterpark",
+        "Le Méridien Mina Seyahi Resort",
+    ),
+}
 
 
 def need(value, reason):
@@ -103,6 +121,10 @@ def adapted_tail(source, current_runtime, publication_runtime):
             'PHP_RENDER=r"""\nputenv',
             'PHP_RENDER=r"""\nregister_shutdown_function(static function(): void {$e=error_get_last();if($e!==null){fwrite(STDERR,json_encode($e,JSON_UNESCAPED_SLASHES));}});\nputenv',
         ),
+        (
+            '"photo_url":source["photo_url"],"name":r["name"].replace("-"," "),"destination":r["destination"].replace("-"," "),',
+            '"photo_url":source["photo_url"],"name":PUBLIC_NAME_BY_SOURCE.get(r["name"],r["name"]).replace("-"," "),"destination":r["destination"].replace("-"," "),',
+        ),
     ]
     for old, new in changes:
         need(text.count(old) == 1, "tail_adapter_anchor_changed")
@@ -113,6 +135,9 @@ def adapted_tail(source, current_runtime, publication_runtime):
         inverse = inverse.replace(new, old, 1)
     need(inverse == source.decode(), "tail_adapter_not_byte_reversible")
     module = types.ModuleType("exact_feed55_tail_adapter")
+    module.__dict__["PUBLIC_NAME_BY_SOURCE"] = {
+        original: public for original, public in PUBLIC_NAME_OVERRIDES.values()
+    }
     exec(compile(text, "exact_feed55_tail_adapter", "exec"), module.__dict__)
     return module
 
@@ -221,6 +246,21 @@ def main():
         read = json.loads(read_raw)
         need(read["installed_sha"] == current_runtime, "fresh_read_runtime_changed")
         need([row["hotel_id"] for row in read["rows"]] == ids, "fresh_read_scope_changed")
+        for row in read["rows"]:
+            override = PUBLIC_NAME_OVERRIDES.get(row["hotel_id"])
+            if override is not None:
+                need(row["name"] == override[0], "public_name_override_source_changed")
+                public_name = override[1]
+            else:
+                public_name = row["name"]
+            public_name = public_name.replace("-", " ")
+            destination = row["destination"].replace("-", " ")
+            need(
+                len("Путевки в " + public_name) <= 56
+                and len(destination) <= 25
+                and re.search(r"[\u2010-\u2015\u2212-]", public_name + destination) is None,
+                "public_label_not_renderable",
+            )
         validate_current_receipts(read, published)
 
         route_projection = route_groups[batch]
