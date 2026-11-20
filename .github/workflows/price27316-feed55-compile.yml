@@ -32,7 +32,7 @@ jobs:
         run: |
           set -euo pipefail
           sha256sum --check --strict <<'SUMS'
-          7c549d411632847bad62747d634f38d9e14ad86db976874d9bd7219ada411c1c  tools/direct_demand/operations/feed55/write/compile_feed55.py
+          a9cc2cb43f7acc57c1ecc0ead5dbf8f5a620dca7683822eed47a52deffeadf7f  tools/direct_demand/operations/feed55/write/compile_feed55.py
           95bf0e4e17f2068fd9e32b6369ff5ba8890c4d6d778597231808a34731faac6f  tools/direct_demand/operations/feed55/write/config.json
           39fc9acbde4be0caf215cdaab800d27527e7399be4e64ea134df2e1216b55d8a  tools/direct_demand/operations/feed55/write/route-p01.json
           0eb45d35679c1320af7d91e5026c991a2e8aa76c6a0a0341f8459086c6fb3531  tools/direct_demand/operations/feed55/write/route-p02.json
