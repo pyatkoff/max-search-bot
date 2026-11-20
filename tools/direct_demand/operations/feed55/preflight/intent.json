@@ -168,7 +168,7 @@
         }
       ],
       "original_reader_sha256": "693d99a8f10440ba7e5a4ebe20d19ef75963d1fa998050b49f02fb8203baec0e",
-      "reader_sha256": "1664cfa74c92ee6bdab1879781113dbd60e5a326635bbdccea2a1eb3b37276bd"
+      "reader_sha256": "f3d211ed84d6cd744ef43e08b77a44a3e8487a21ae16526fa5aa296c52d23327"
     },
     {
       "batch": 2,
@@ -329,7 +329,7 @@
         }
       ],
       "original_reader_sha256": "693d99a8f10440ba7e5a4ebe20d19ef75963d1fa998050b49f02fb8203baec0e",
-      "reader_sha256": "1e0d253c896d11747f341b22e42368542f4f6b56cb1b3ed3c1b408ea2a045bc8"
+      "reader_sha256": "f39da69fe9ddcfa4c65acdd34a29c867681df4d36ba69e9012d4b427f8533bc4"
     },
     {
       "batch": 4,
@@ -490,7 +490,7 @@
         }
       ],
       "original_reader_sha256": "693d99a8f10440ba7e5a4ebe20d19ef75963d1fa998050b49f02fb8203baec0e",
-      "reader_sha256": "27b55b833c25a57a627e773e3a78e3c589e860af10330fdffc290baac2ca5024"
+      "reader_sha256": "e6a15a7bcd9b7a7468953c0d1c7829e6b9d94fbace00c2c0b2cdd50ff05cf33f"
     },
     {
       "batch": 5,
@@ -651,7 +651,7 @@
         }
       ],
       "original_reader_sha256": "693d99a8f10440ba7e5a4ebe20d19ef75963d1fa998050b49f02fb8203baec0e",
-      "reader_sha256": "2615d263d7f1ab2ea338d9a3ab4e82861eda96120bfaf48763fc19e8e9eafb58"
+      "reader_sha256": "f2ab22f0db25402203114779edb05e83c2dfb52700552b80eda646c52f770bcf"
     },
     {
       "batch": 9,
@@ -707,7 +707,7 @@
         }
       ],
       "original_reader_sha256": "693d99a8f10440ba7e5a4ebe20d19ef75963d1fa998050b49f02fb8203baec0e",
-      "reader_sha256": "9e5f13dbe2525b621767d1d282e2c63f06e9d839de8194b42951129bc6a4f0e5"
+      "reader_sha256": "b5dfc0036ea98d492475b61e9469123810b8e60ff195ad1a4214a053c1f779ba"
     },
     {
       "batch": 12,
@@ -778,7 +778,7 @@
         }
       ],
       "original_reader_sha256": "693d99a8f10440ba7e5a4ebe20d19ef75963d1fa998050b49f02fb8203baec0e",
-      "reader_sha256": "c77c869ef07c6c65f067f1fc6daf7588618df7e8adbf0145743349784b888430"
+      "reader_sha256": "bedc16eaef9043a9e6203029f959182019b47ac46100941d1b96b44e7534c850"
     },
     {
       "batch": 13,
@@ -909,7 +909,7 @@
         }
       ],
       "original_reader_sha256": "693d99a8f10440ba7e5a4ebe20d19ef75963d1fa998050b49f02fb8203baec0e",
-      "reader_sha256": "45b5c13b4bd85ac28c5a6f6fe707b85603d23b2fcdd0cd3aec18f444a890b775"
+      "reader_sha256": "9b9d7bcc5c4306019efb76faabef1a8e73ff632c0517001b626ab548b896993e"
     }
   ],
   "public_feeds": {
