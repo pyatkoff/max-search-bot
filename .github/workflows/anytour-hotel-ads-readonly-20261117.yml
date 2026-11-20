@@ -1,4 +1,4 @@
-name: "Aloft: read native connection inventory and exact posts 1207 and 1678"
+name: "Aloft 1678: exact read-only publisher and paired feed preflight"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,12 +13,12 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'bd7b48ec50bb20a933ff67ac8017ab318b040b7a' &&
+      github.event.before == '607309c80ea5f49df1922a0c75fce3a8fcb056a7' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Prepare project-scoped native client and two-post read
+      - name: Prepare exact Telegram publisher and feed preflight
         shell: bash
         run: |
           set -euo pipefail
@@ -80,71 +80,35 @@ jobs:
                   'public_via_bot_marker'=>$xp->query('.//*[contains(@class,"tgme_widget_message_via_bot") or contains(@class,"tgme_widget_message_via")]',$root)->length>0,
                   'caption'=>$caption,'caption_html'=>$captionHtml,'caption_sha256'=>hash('sha256',$caption),'buttons'=>$buttons,'links'=>$links];
           }
-          function priceRows(array $ids): array {
-              $raw=PromotedHotelPriceWriter::publicBytes('https://app.anytoour.ru/feed/hotel-posts-all.xml',12000000);
-              requireEdit(!preg_match('/<!\s*(?:DOCTYPE|ENTITY)\b/i',$raw),'invalid_xml');
+          function readExactOffer(string $platform): array {
+              $name=$platform==='max'?'max':'telegram';
+              $raw=PromotedHotelPriceWriter::publicBytes('https://app.anytoour.ru/feed/hotel-posts-'.$name.'.xml',12000000);
+              requireEdit(!preg_match('/<!\s*(?:DOCTYPE|ENTITY)\b/i',$raw),'unsafe_xml');
               $doc=new DOMDocument();
               requireEdit(@$doc->loadXML($raw,LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING),'invalid_xml');
               $xp=new DOMXPath($doc);
-              $result = [];
-              $now=new DateTimeImmutable('now',new DateTimeZone('Europe/Moscow'));
-              foreach($ids as $id) {
-                  try {
-                      $pair=[];
-                      foreach(['max','tg'] as $platform){
-                          $q=$xp->query('/yml_catalog/shop/offers/offer[@id="'.$platform.'_'.$id.'"]');
-                          requireEdit($q->length===1,'missing_or_duplicate_feed_offer');
-                          $o=$q->item(0);
-                          $get=static function(string $name) use($xp,$o):string{
-                              $x=$xp->query('./'.$name,$o);
-                              requireEdit($x->length===1,'invalid_'.$name);
-                              return $x->item(0)->textContent;
-                          };
-                          $desc=$get('description');
-                          $pattern='~^💰 От (?<amount>[0-9][0-9 ,.\x{00a0}\x{202f}]*) ₽ за двоих\n✈️ Вылет из [^\n]+ (?<date>\d{2}\.\d{2}\.\d{4}) · [1-9][0-9]* ноч(?:ь|и|ей)\n👥 2 взрослых\n🛏 [^\n]+\n🍽 [^\n]+\nЦена найдена мониторингом (?<observed>\d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}) МСК\. Стоимость и наличие могут измениться\.$~mu';
-                          requireEdit(preg_match_all($pattern,$desc,$m,PREG_SET_ORDER)===1,'missing_or_ambiguous_price_block');
-                          $a=$m[0];$value=str_replace(',','.',preg_replace('/[\s\x{00a0}\x{202f}]/u','',$a['amount']));
-                          $price=$get('price');
-                          requireEdit($get('currencyId')==='RUB'&&preg_match('/^[1-9][0-9]*(?:\.[0-9]{1,2})?$/D',$price)&& (float)$value===(float)$price,'amount_mismatch');
-                          $obs=DateTimeImmutable::createFromFormat('!d.m.Y, H:i',$a['observed'],$now->getTimezone());
-                          $departure=DateTimeImmutable::createFromFormat('!d.m.Y',$a['date'],$now->getTimezone());
-                          requireEdit($obs && $obs->format('d.m.Y, H:i')===$a['observed'] && $obs<=$now
-                              && $now->getTimestamp()-$obs->getTimestamp()<129600,'observation_outside_36h');
-                          requireEdit($departure && $departure->format('d.m.Y')===$a['date'] && $departure>=$now->setTime(0,0),'past_departure');
-                          $pair[]= ['block'=>$a[0],'price'=>$price,'observation'=>$obs->format(DATE_ATOM),'departure'=>$departure->format('Y-m-d')];
-                      }
-                      requireEdit($pair[0]===$pair[1],'platform_offer_mismatch');
-                      $result[$id]=$pair[0];
-                  } catch (Throwable $e) {
-                      $result[$id]=['reason'=>$e->getMessage()];
-                  }
-              }
-              return $result;
+              $nodes=$xp->query('/yml_catalog/shop/offers/offer[@id="'.$platform.'_61159"]');
+              requireEdit($nodes->length===1,'missing_or_duplicate_61159');
+              $o=$nodes->item(0);
+              $get=static fn(string $field):string=>(string)$xp->evaluate('string(./'.$field.')',$o);
+              $desc=$get('description');
+              $pattern='~^💰 От (?<amount>[0-9][0-9 ,.\x{00a0}\x{202f}]*) ₽ за двоих\n✈️ Вылет из (?<origin>[^\n]+) (?<date>\d{2}\.\d{2}\.\d{4}) · (?<nights>[1-9][0-9]*) ноч(?:ь|и|ей)\n👥 2 взрослых\n🛏 [^\n]+\n🍽 (?<meal>[^\n]+)\nЦена найдена мониторингом (?<observed>\d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}) МСК\. Стоимость и наличие могут измениться\.$~mu';
+              requireEdit(preg_match_all($pattern,$desc,$matches,PREG_SET_ORDER)===1,'missing_or_ambiguous_61159_offer');
+              $m=$matches[0];
+              $price=$get('price');
+              requireEdit($get('currencyId')==='RUB' && preg_match('/^[1-9][0-9]*(?:\.[0-9]{1,2})?$/D',$price)
+                  && (float)str_replace(',','.',preg_replace('/[\s\x{00a0}\x{202f}]/u','',$m['amount']))===(float)$price,'amount_mismatch');
+              $tz=new DateTimeZone('Europe/Moscow');
+              $now=new DateTimeImmutable('now',$tz);
+              $stamp=DateTimeImmutable::createFromFormat('!d.m.Y, H:i',$m['observed'],$tz);
+              $depart=DateTimeImmutable::createFromFormat('!d.m.Y',$m['date'],$tz);
+              requireEdit($stamp && $depart && $stamp->format('d.m.Y, H:i')===$m['observed'] && $depart->format('d.m.Y')===$m['date'],'offer_date_invalid');
+              $age=$now->getTimestamp()-$stamp->getTimestamp();
+              return ['price'=>(int)$price,'observation'=>$stamp->format(DATE_ATOM),'departure'=>$depart->format('Y-m-d'),
+                'origin'=>$m['origin'],'nights'=>(int)$m['nights'],'meal'=>$m['meal'],'age_minutes'=>(int)floor($age/60),
+                'fresh'=>$age>=0 && $age<129600 && $depart>=$now->setTime(0,0),'checked_at'=>$now->format(DATE_ATOM),
+                'block'=>$m[0]];
           }
-          function inventoryCommand(string $command): array {
-              $lines=[]; $code=0;
-              exec($command.' 2>/dev/null',$lines,$code);
-              return [$code,$lines];
-          }
-          
-          function nativeInventory(): array {
-              [$filesExit,$files]=inventoryCommand('GIT_OPTIONAL_LOCKS=0 git ls-files');
-              requireEdit($filesExit===0,'tracked_file_inventory_unavailable');
-              $nativePattern='/mtproto|tdlib|tdjson|telethon|pyrogram|madelineproto|gramjs|mtcute/i';
-              $known=array_values(array_filter($files,static fn(string $l):bool=>preg_match($nativePattern,$l)===1));
-              [$grepExit,$manifestMatches]=inventoryCommand("GIT_OPTIONAL_LOCKS=0 git grep -I -l -Ei 'mtproto|tdlib|tdjson|telethon|pyrogram|madelineproto|gramjs|mtcute' -- ':(glob)**/composer.json' ':(glob)**/composer.lock' ':(glob)**/package.json' ':(glob)**/requirements*.txt' ':(glob)**/pyproject.toml' ':(glob)**/Dockerfile*' ':(glob)**/*compose*.y*ml' ':(glob)**/*.service' ':(glob)**/*.timer'");
-              [$installedExit,$installed]=inventoryCommand('systemctl list-unit-files --type=service --no-pager --no-legend');
-              [$loadedExit,$loaded]=inventoryCommand('systemctl list-units --all --type=service --no-pager --no-legend --plain');
-              $unitNames=[];
-              foreach(array_merge($installed,$loaded) as $line)
-                  if(preg_match('/^\s*([A-Za-z0-9_.@:-]+\.service)\s/',$line,$m) && preg_match($nativePattern,$m[1])) $unitNames[$m[1]]=true;
-              $projectUnits=array_filter(array_keys($unitNames),static fn(string $name):bool=>preg_match('/anytour|anytoour|anyru/i',$name)===1);
-              return ['tracked_native_named_paths'=>count($known),'dependency_manifest_scan_available'=>in_array($grepExit,[0,1],true),
-                  'native_manifest_matches'=>count($manifestMatches),'unit_file_inventory_available'=>$installedExit===0,
-                  'loaded_unit_inventory_available'=>$loadedExit===0,'host_units_with_native_client_name'=>count($unitNames),
-                  'anytour_units_with_native_client_name'=>count($projectUnits)];
-          }
-          
           function postRegistryEvidence(PDO $pdo,ChannelPostRegistryService $registry,int $mid): array {
               $q=$pdo->prepare("SELECT p.id,(SELECT COUNT(*) FROM post_versions v WHERE v.publication_id=p.id) AS versions,
                   (SELECT COUNT(*) FROM post_observations o WHERE o.publication_id=p.id) AS observations
@@ -177,7 +141,7 @@ jobs:
                   'hotel_bound_in_contract'=>($s['metadata']['hotel_catalog_id']??0)===61159];
           }
           
-          $out=['ok'=>false,'db_writes'=>0,'provider_writes'=>0,'provider_native_target_reads'=>0];
+          $out=['ok'=>false,'db_writes'=>0,'provider_writes'=>0,'channel_post'=>1678,'hotel_id'=>61159];
           try{
               installedEdit('b4b65daaa472c15426a244b87ede3e6c0394626b');
               ob_start();
@@ -185,40 +149,47 @@ jobs:
                   require getcwd().'/config.php';
                   require_once getcwd().'/services/PromotedHotelPriceWriter.php';
                   require_once getcwd().'/services/ChannelPostEntryService.php';
-                  require_once getcwd().'/services/ChannelPostButtonTransport.php';
               }finally{ob_end_clean();}
-              $out['stage']='native_inventory';$out['native_client_inventory']=nativeInventory();
-              $out['stage']='current_telegram_registry';
               $pdo=ConversationDb::connection();
-              $pdo->exec('SET SESSION TRANSACTION READ ONLY');$pdo->beginTransaction();
-              $q=$pdo->prepare("SELECT c.canonical_bot_username FROM post_channels c JOIN projects p ON p.id=c.project_id
-                  WHERE p.project_key=? AND c.platform=? AND c.channel_id=? AND c.is_enabled=1");
-              $q->execute(['anytour','telegram','-1001845835645']);
-              $out['enabled_publishers']=$q->fetchAll(PDO::FETCH_COLUMN);$q->closeCursor();
-              $q=$pdo->prepare("SELECT COUNT(*) FROM project_telegram_bot_connections b JOIN projects p ON p.id=b.project_id WHERE p.project_key=?");
-              $q->execute(['anytour']);$out['separate_anytour_bot_connections']=(int)$q->fetchColumn();$q->closeCursor();
-              $registry=new ChannelPostRegistryService($pdo);
-              foreach([1207,1678] as $mid)$out['posts'][(string)$mid]['registry']=postRegistryEvidence($pdo,$registry,$mid);
+              $pdo->exec('SET SESSION TRANSACTION READ ONLY'); $pdo->beginTransaction();
+              $out['registry']=postRegistryEvidence($pdo,new ChannelPostRegistryService($pdo),1678);
               $pdo->rollBack();
-              $out['stage']='public_posts_and_price';
-              $price=priceRows([61159])[61159];
-              $out['current_offer']=array_diff_key($price,['block'=>true]);
-              foreach([1207,1678] as $mid){
-                  $post=publicTelegram($mid,$mid+1);
-                  $amount=null;
-                  if(preg_match('/\b([0-9][0-9 \x{00a0}\x{202f}]+)\s*(?:RUB|₽)/u',$post['caption'],$m))
-                      $amount=(int)preg_replace('/[^\d]/','',$m[1]);
-                  $out['posts'][(string)$mid]['public']=['url'=>'https://t.me/anytour/'.$mid,'date'=>$post['date'],
-                      'original_hotel_named'=>stripos($post['caption'],'Aloft Palm Jumeirah')!==false,
-                      'has_video'=>$post['videos']>0,'buttons'=>count($post['buttons']),'amount'=>$amount];
-                  if(isset($price['block'])) $out['posts'][(string)$mid]['local_caption_contract_test']=testInstalledVideoCaptionGate($mid,$post['date'],$price['block']);
+          
+              $me=ChannelPostApiTransport::buttonRequest('telegram','POST','getMe',[],[]);
+              $self=$me['data']['result']??[];
+              requireEdit(($me['http']??0)===200 && ($me['data']['ok']??false)===true && ($self['is_bot']??false)===true
+                  && ($self['username']??'')==='anyru_bot','installed_editor_identity_unavailable');
+              $chat=ChannelPostApiTransport::buttonRequest('telegram','POST','getChat',[],['chat_id'=>-1001845835645]);
+              $native=$chat['data']['result']??[];
+              requireEdit(($chat['http']??0)===200 && ($chat['data']['ok']??false)===true && ($native['type']??'')==='channel'
+                  && (string)($native['id']??'')==='-1001845835645' && ($native['username']??'')==='anytour','channel_native_read_unavailable');
+              $pinned=$native['pinned_message']??null;
+              $exact=is_array($pinned) && ($pinned['message_id']??null)===1678
+                  && (string)($pinned['chat']['id']??'')==='-1001845835645';
+              $out['provider']=['editor'=>$self['username'],'get_chat_http'=>200,'exact_target_returned_as_pinned'=>$exact,
+                  'exact_native_video_id_available'=>$exact && !empty($pinned['video']['file_unique_id']),
+                  'message_specific_edit_permission_verified'=>false];
+              unset($native,$pinned,$chat,$me);
+              $post=publicTelegram(1678,1679);
+              $out['public']=['url'=>'https://t.me/anytour/1678','date'=>$post['date'],'named_aloft'=>stripos($post['caption'],'Aloft Palm Jumeirah')!==false,
+                  'has_video'=>$post['videos']>0,'buttons'=>count($post['buttons']),'old_price_visible'=>preg_match('/175[ \x{00a0}\x{202f}]?863/u',$post['caption'])===1];
+              requireEdit((new DateTimeImmutable($post['date']))->format('Y-m-d H:i:sP')==='2026-08-11 11:51:56+00:00'
+                 && $out['public']['named_aloft'] && $out['public']['has_video'],'public_target_identity_changed');
+          
+              $offers=[];
+              foreach(['max','tg'] as $platform){
+                  try{$offers[$platform]=readExactOffer($platform);}
+                  catch(Throwable $e){$m=$e->getMessage();$offers[$platform]=['error'=>preg_match('/\A[a-z_0-9]{1,100}\z/D',$m)?$m:'feed_read_failed'];}
               }
-              $out['ok']=true;unset($out['stage']);
+              $max=$offers['max'];$tg=$offers['tg'];
+              $out['feed_offer_blocks_match']=isset($max['block'],$tg['block']) && $max['block']===$tg['block'];
+              $out['both_prices_eligible_now']=$out['feed_offer_blocks_match'] && $max['fresh'] && $tg['fresh'];
+              $out['offers']=array_map(static fn(array $o):array=>array_diff_key($o,['block'=>true]),$offers);
+              $out['local_only_caption_gate']=testInstalledVideoCaptionGate(1678,$post['date'],$tg['block']??"");
+              $out['ok']=true;
           }catch(Throwable $e){
               if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();
-              $m=$e->getMessage();
-              $out['reason']=preg_match('/\A[a-z_0-9]{1,100}\z/D',$m)?$m:'native_inventory_read_failed';
-              if($e instanceof PDOException){$out['sql_state']=(string)$e->getCode();$out['sql_driver_errno']=(int)($e->errorInfo[1]??0);}
+              $m=$e->getMessage();$out['reason']=preg_match('/\A[a-z_0-9]{1,100}\z/D',$m)?$m:'exact_1678_preflight_failed';
           }
           echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),PHP_EOL;
           PHP
@@ -255,7 +226,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read only native client inventory and the two exact Aloft posts
+      - name: Read only the exact Telegram post and current MAX/TG feeds
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -267,12 +238,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ALOFT_NATIVE_CONNECTION_AND_POSTS="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0 and d.get("db_writes")==0'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ALOFT1678_EXACT_READ_PREFLIGHT="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0 and d.get("db_writes")==0'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: aloft-native-connection-and-post-readback
+          name: aloft-1678-exact-read-preflight
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
