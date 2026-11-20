@@ -1,4 +1,4 @@
-name: "Aloft 1207: verify original content and exact channel editor bindings"
+name: "Big-channel hotel transfer: rank and verify the next batch"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,12 +13,12 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '92895b09862c8d8ae9656c6af106538842a009f3' &&
+      github.event.before == '5dcfff9ea13b39eea06d2e47a1d2de052a1cbf00' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Prepare SELECT-only program
+      - name: Prepare read-only demand and destination audit
         shell: bash
         run: |
           set -euo pipefail
@@ -119,215 +119,102 @@ jobs:
               }
               return $result;
           }
-          function fromRegistry(PDO $pdo, ChannelPostRegistryService $registry,int $channel,int $mid): ?array {
-              $q=$pdo->prepare('SELECT id FROM post_publications WHERE post_channel_id=? AND external_message_id=? LIMIT 2');
-              $q->execute([$channel,(string)$mid]); $ids=$q->fetchAll(PDO::FETCH_COLUMN);$q->closeCursor();
-              requireEdit(count($ids)<=1,'publication_duplicate');
-              return $ids ? $registry->publication((int)$ids[0]) : null;
-          }
-          function recordVersion(?array $post): ?array {
-              if ($post===null) return null;
-              return ['id'=>$post['publication_id'],'version'=>$post['version_id'],'state'=>$post['state'],
-                  'hash'=>$post['content_hash'],'hotel_id'=>$post['snapshot']['metadata']['hotel_catalog_id']??null,
-                  'url'=>$post['snapshot']['post_url']??null,'caption'=>$post['snapshot']['text']??null,
-                  'media_types'=>array_column($post['snapshot']['attachments']??[],'type')];
-          }
-          
-          
-          $baseline=json_decode(<<<'BASE'
-          {"date":"2025-09-23T10:27:57+00:00","captionHash":"b2f19ba15412fbff79de5c560617cb85e52d276c8ba972bae659975825805346","buttons":[{"text":"СВЯЗАТЬСЯ С МЕНЕДЖЕРОМ 📱","url":"https://t.me/AnyTour_MSK"}],"video":["8e893fc0574e6f7e7dbf00c1d6910ba1e735962880a8c11e53d9b18c9469cdc1","ab19e4b3015a33d11a71376906c28d6822625a42a00432847b57d9d8f290c7c8"],"links":[{"text":"201 061 RUB","url":"https://anytour.online/poisk-turov/7q8s8lo4r0/"},{"text":"Подписаться на канал AnyTour - Горящие туры","url":"https://t.me/+gGloLUt4d8s3NDcy"}]}
-          BASE,true,10,JSON_THROW_ON_ERROR);
-          function capture($file,array $row):void{
-              $line=json_encode($row,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).PHP_EOL;
-              requireEdit(fwrite($file,$line)===strlen($line) && fflush($file) && fsync($file),'journal_write_failed');
-          }
-          
-          const INSTALLED='9385571c86c45189c31d9c4aa904c23970e3b11a';
-          const TARGET='-1001845835645';
-          const MID=1207;
-          const CHANNEL=6;
-          const HOTEL=61159;
-          const POST_DATE=1758623277;
-          const POST_URL='https://t.me/anytour/1207';
-          const LABEL='✈️ Рассчитать на мои даты';
-          const OP='anytour-issue1566-aloft-telegram-1207-caption-v1';
-          const JOURNAL='/var/www/anytoour/data/channel-post-operations';
-          
-          function bootAloft(): void {
-              installedEdit(INSTALLED);
+          $out=['ok'=>false,'db_writes'=>0,'provider_writes'=>0];
+          try {
+              installedEdit('9385571c86c45189c31d9c4aa904c23970e3b11a');
               ob_start();
               try {
                   require getcwd().'/config.php';
                   require_once getcwd().'/services/PromotedHotelPriceWriter.php';
                   require_once getcwd().'/services/ChannelPostEntryService.php';
-                  require_once getcwd().'/services/ChannelPostAutomationService.php';
               } finally { ob_end_clean(); }
-          }
-          
-          function samePublicVideo(array $public,array $original): bool {
-              return $public['date']===$original['date'] && $public['photos']===[] && $public['videos']===2
-                  && $public['video_sha256s']===$original['video'];
-          }
-          
-          function utf16Length(string $s): int {
-              return intdiv(strlen(mb_convert_encoding($s,'UTF-16LE','UTF-8')),2);
-          }
-          
-          function captionEntity(string $caption,string $needle,string $type): array {
-              $pos=strpos($caption,$needle);
-              requireEdit($pos!==false && strpos($caption,$needle,$pos+strlen($needle))===false,'entity_anchor_changed');
-              return ['type'=>$type,'offset'=>utf16Length(substr($caption,0,$pos)),'length'=>utf16Length($needle)];
-          }
-          
-          function plannedCaption(string $original,array $offer,array $subscription): array {
-              $start=strpos($original,"\n\nПредложение на двоих взрослых с вылетом из Москвы:");
-              $end=strpos($original,"\n\nПо кнопке ниже вы можете быстро и легко забронировать подходящий вам тур");
-              requireEdit($start!==false && $end!==false && $end>$start
-                  && str_ends_with($original,"\n\n".$subscription['text']), 'old_offer_boundaries_changed');
-              $description=substr($original,0,$start);
-              $remaining=substr($original,$end);
-              $caption="Aloft Palm Jumeirah\n\n".$description."\n\n".$offer['block'].$remaining;
-              requireEdit(utf16Length($caption)<=1024
-                  && str_contains($caption,$description) && !str_contains($caption,'201 061 RUB'),'caption_scope_or_length');
-              $links=[
-                  captionEntity($caption,'Очень популярный отель в Дубае на острове Пальм Джумейра🧡','bold'),
-                  captionEntity($caption,'Aloft Palm Jumeirah 4*','italic'),
-                  captionEntity($caption,'Плюсы отеля:','underline'),
-                  captionEntity($caption,$subscription['text'],'text_link')+['url'=>$subscription['url']],
-                  captionEntity($caption,$subscription['text'],'bold'),
-                  captionEntity($caption,$subscription['text'],'underline'),
-              ];
-              return [$caption,$links];
-          }
-          
-          function nativeSnapshot(array $msg,string $caption): array {
-              requireEdit((string)($msg['chat']['id']??'')===TARGET && ($msg['chat']['username']??'')==='anytour'
-                  && ($msg['message_id']??0)===MID && ($msg['date']??0)===POST_DATE
-                  && ($msg['edit_date']??0)>0,'native_message_or_date_mismatch');
-              $snap=ChannelPostIncomingAdapter::telegramSnapshot($msg);
-              requireEdit(is_array($snap) && $snap['text']===$caption && $snap['post_url']===POST_URL
-                  && ($snap['metadata']['capability']??'')==='supported'
-                  && (int)($snap['metadata']['hotel_catalog_id']??0)===HOTEL
-                  && count($snap['attachments']??[])===1 && ($snap['attachments'][0]['type']??'')==='video'
-                  && ($snap['attachments'][0]['provider']??'')==='telegram'
-                  && !empty($snap['attachments'][0]['file_unique_id']),'native_caption_or_video_unconfirmed');
-              return $snap;
-          }
-          
-          function videoProof(array $snap): string {
-              return hash('sha256',$snap['attachments'][0]['file_unique_id']);
-          }
-          
-          function exactContext(ChannelPostRegistryService $registry,array $registered): bool {
-              $ctx=ChannelPostEntryService::resolve('telegram',$registered['start_payload'],$registry);
-              return (int)($ctx['publication_id']??0)===(int)$registered['publication_id']
-                  && (int)($ctx['version_id']??0)===(int)$registered['version_id']
-                  && (int)($ctx['snapshot']['metadata']['hotel_catalog_id']??0)===HOTEL
-                  && ($ctx['snapshot']['post_url']??'')===POST_URL;
-          }
-          
-          $out=['ok'=>false,'mid'=>MID,'hotel_id'=>HOTEL,'url'=>POST_URL,'provider_writes'=>0];
-          try {
-              bootAloft();
-              $dir=JOURNAL.'/'.OP;
-              $file=$dir.'/receipt.jsonl';
-              $rows=[];
-              if (is_file($file) && !is_link($file) && realpath($file)===$file && filesize($file)<131072) {
-                  foreach (file($file,FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES) as $line)
-                      $rows[]=json_decode($line,true,16,JSON_THROW_ON_ERROR);
-              }
-              $last=$rows ? $rows[count($rows)-1] : [];
-              $native=null;
-              foreach ($rows as $row)
-                  if (($row['native_receipt_verified']??false)===true) $native=$row;
-              $out['journal_state']=$last['state']??'no_receipt';
-              $out['caption_http']=$last['caption_http']??null;
-              $out['button_http']=$last['button_http']??null;
-              $out['native_reason']=$last['reason']??null;
-          
+              $exclude=array_fill_keys([132,174,218,240,253,260,325,341,352,415,418,469,547,1074,1344,2493,3452,4079,4181,12107,12111,12125,28581,37668,43676,64895,70048,73974,74503,82606,99713,132016,12112,70030,1273,1439,91404,73055,61159],true);
+              $msk=new DateTimeZone('Europe/Moscow');
+              $utc=new DateTimeZone('UTC');
+              $end=(new DateTimeImmutable('today',$msk))->setTimezone($utc);
+              $start=$end->modify('-7 day');
+              $out['period_utc']=['from'=>$start->format(DATE_ATOM),'until'=>$end->format(DATE_ATOM)];
               $pdo=ConversationDb::connection();
               $pdo->exec('SET SESSION TRANSACTION READ ONLY');
               $pdo->beginTransaction();
-              $registry=new ChannelPostRegistryService($pdo);
-              $p=fromRegistry($pdo,$registry,CHANNEL,MID);
-              $proof=$p && exactContext($registry,$p);
-              $url=$proof ? ChannelPostButtonTransport::buttonUrl($p): '';
-              $registered=recordVersion($p);
-              if ($registered) unset($registered['caption']);
-              $out['registry']=$registered;
-              $out['context_61159']=$proof;
-              $out['native_receipt_verified']=is_array($native);
-              $out['file_unique_id_unchanged']=$p && $native && ($native['file_unique_id_unchanged_across_native_receipts']??false)
-                  && isset($p['snapshot']['attachments'][0]['file_unique_id'])
-                  && hash_equals($native['video_binding'],videoProof($p['snapshot']));
-              $editors=$pdo->prepare('SELECT pc.id,p.project_key,pc.bot_key,pc.canonical_bot_username,pc.is_enabled,pc.config_version FROM post_channels pc JOIN projects p ON p.id=pc.project_id WHERE pc.platform=? AND pc.channel_id=? ORDER BY pc.id LIMIT 12');
-              $editors->execute(['telegram',TARGET]);
-              $out['configured_exact_channel_editors']=$editors->fetchAll(PDO::FETCH_ASSOC);
-              $editors->closeCursor();
+              $channels=$pdo->query('SELECT id,platform,channel_id,display_name FROM post_channels WHERE id IN (4,6,9,10) ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+              requireEdit(array_map('intval',array_column($channels,'id'))===[4,6,9,10]
+                  && array_column($channels,'platform')===['max','telegram','max','telegram'],'channel_registry_changed');
+              $out['channels']=$channels;
+              $q=$pdo->prepare("SELECT p.id AS publication_id,p.post_channel_id,COUNT(*) AS entries,COUNT(DISTINCT e.conversation_id) AS dialogues,
+                  JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id')) AS hotel_id,
+                  SUBSTRING_INDEX(JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.text')),CHAR(10),1) AS title,
+                  JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.post_url')) AS url
+                FROM post_entries e JOIN post_publications p ON p.id=e.publication_id
+                JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id
+                WHERE p.post_channel_id IN (9,10) AND e.created_at>=? AND e.created_at<?
+                GROUP BY p.id,p.post_channel_id,v.id,v.snapshot_json ORDER BY dialogues DESC,entries DESC,p.id LIMIT 1501");
+              $q->execute([$start->format('Y-m-d H:i:s'),$end->format('Y-m-d H:i:s')]);
+              $demand=$q->fetchAll(PDO::FETCH_ASSOC);
+              $q->closeCursor();
+              requireEdit(count($demand)<1501,'demand_limit_reached');
+              $out['source_posts']=count($demand);
+              $out['unbound_source_posts']=0;
+              $hotels=[];
+              foreach($demand as $row) {
+                  $hotel=(int)$row['hotel_id'];
+                  if($hotel<=0){++$out['unbound_source_posts'];continue;}
+                  if(isset($exclude[$hotel]))continue;
+                  $platform=(int)$row['post_channel_id']===9?'max':'telegram';
+                  if(!isset($hotels[$hotel])) $hotels[$hotel]=['hotel_id'=>$hotel,'title'=>$row['title'],'demand'=>[]];
+                  if(!isset($hotels[$hotel]['demand'][$platform]))
+                      $hotels[$hotel]['demand'][$platform]=['dialogues'=>(int)$row['dialogues'],'entries'=>(int)$row['entries'],'url'=>$row['url']];
+              }
+              $rows=[];
+              foreach($hotels as $hotel=>$value) {
+                  $value['strongest_post_dialogues']=max(array_column(array_values($value['demand']),'dialogues'));
+                  $value['strongest_post_entries']=max(array_column(array_values($value['demand']),'entries'));
+                  $rows[]=$value;
+              }
+              usort($rows,static fn($a,$b)=>$b['strongest_post_dialogues']<=>$a['strongest_post_dialogues']
+                  ?:($b['strongest_post_entries']<=>$a['strongest_post_entries'])?:($a['hotel_id']<=>$b['hotel_id']));
+              $out['ranked_total']=count($rows);
+              $rows=array_slice($rows,0,65);
+              $ids=array_column($rows,'hotel_id');
+              requireEdit($ids!==[],'no_ranked_hotels');
+              $placeholders=implode(',',array_fill(0,count($ids),'?'));
+              $native="CAST(JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id')) AS UNSIGNED)";
+              $reg=$pdo->prepare("SELECT p.id AS publication_id,p.post_channel_id,p.external_message_id,v.id AS version_id,v.state,v.write_attempts,
+                  v.error_reason,$native AS hotel_id,JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.post_url')) AS url,
+                  JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.capability')) AS capability,
+                  JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.attachments[0].type')) AS media_type,
+                  JSON_LENGTH(JSON_EXTRACT(v.snapshot_json,'$.attachments')) AS media_count,
+                  JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.text')) AS caption
+                FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id
+                WHERE p.post_channel_id IN (4,6) AND $native IN ($placeholders) ORDER BY p.id DESC LIMIT 401");
+              $reg->execute($ids);
+              $registryMatches=$reg->fetchAll(PDO::FETCH_ASSOC);
+              $reg->closeCursor();
+              requireEdit(count($registryMatches)<401,'channel_match_limit_reached');
               $pdo->rollBack();
-              $targetCaption=null;
-              if (isset($last['offer']['block'])) {
-                  $old=<<<'CAPTION_ORIGINAL'
-          Очень популярный отель в Дубае на острове Пальм Джумейра🧡
-          
-          Отель Aloft Palm Jumeirah 4* предлагает очень доступную стоимость при множестве преимуществ!
-          
-          Плюсы отеля:
-          
-          📎расположен на знаменитом острове Палм Джумейра
-          📎имеет ресторан на крыше с потрясающим панорамным видом на Дубай
-          📎частная зона на пляже находится в 300 метрах от отеля 
-          📎предоставляются трансферы в торговые центры
-          
-          Для того, чтобы погулять по роскошному Дубаю и позагорать на пляже, при этом не разориться, этот отель — просто замечательный вариант!
-          
-          Предложение на двоих взрослых с вылетом из Москвы:
-          
-          🟧08.10, 7 ночей
-          BB - Только завтрак
-          Цена: 201 061 RUB
-          
-          *стоимость актуальна на момент размещения поста
-          
-          Для уточнения подробностей нажимайте на цену👆🏻
-          
-          По кнопке ниже вы можете быстро и легко забронировать подходящий вам тур😉
-          
-          Подписаться на канал AnyTour - Горящие туры
-          CAPTION_ORIGINAL;
-                  [$targetCaption]=plannedCaption($old,$last['offer'],$baseline['links'][1]);
-                  requireEdit(hash('sha256',$targetCaption)===($last['caption_sha256']??null),'caption_plan_digest_changed');
-                  $out['offer']=$last['offer'];
+              $prices=priceRows($ids);
+              $matches=[];
+              foreach($registryMatches as $m) {
+                  $title=explode("\n",(string)$m['caption'],2)[0];
+                  $price=$prices[(int)$m['hotel_id']]['block']??'';
+                  $m['title']=$title;
+                  $m['current_feed_price_in_registry']=$price!=='' && str_contains((string)$m['caption'],$price);
+                  unset($m['caption']);
+                  $matches[(int)$m['hotel_id']][(int)$m['post_channel_id']===4?'max':'telegram'][]=$m;
               }
-          
-              for ($i=0;$i<4;$i++) {
-                  if ($i) sleep(3);
-                  $live=publicTelegram(MID);
-                  $publicCaption=$targetCaption!==null && $live['caption']===$targetCaption;
-                  $publicButton=$proof && $live['buttons']===[['text'=>LABEL,'url'=>$url]];
-                  if ($publicCaption && $publicButton && samePublicVideo($live,$baseline)) break;
+              foreach($rows as &$row) {
+                  $id=$row['hotel_id'];
+                  $price=$prices[$id];
+                  $row['offer']=isset($price['block'])?['price'=>$price['price'],'observation'=>$price['observation'],'departure'=>$price['departure']]
+                      :['reason'=>$price['reason']??'unavailable'];
+                  $row['big']=$matches[$id]??[];
               }
-              $out['public_date']=$live['date'];
-              $out['original_public_video_and_date']=samePublicVideo($live,$baseline);
-              $out['original_caption_present']=$live['caption_sha256']===$baseline['captionHash'];
-              $out['published_caption_matches_plan']=$publicCaption;
-              $out['subscription_link_preserved']=$live['links']===[$baseline['links'][1]];
-              $out['single_contextual_button']=$publicButton;
-              $out['public_button_count']=count($live['buttons']);
-              $out['original_caption_links_match']=$live['links']===$baseline['links'];
-              $out['original_button_matches']=$live['buttons']===$baseline['buttons'];
-              if ($out['original_button_matches']) $out['original_button']=$live['buttons'][0];
-              if (preg_match('/Цена: ([0-9][0-9 ]+ RUB)/u',$live['caption'],$legacy)) $out['original_price_display']=$legacy[1];
-              if ($publicButton) $out['public_button_text']=$live['buttons'][0]['text'];
-              if (preg_match('/^💰 От ([^\n]+) за двоих$/mu',$live['caption'],$m)) $out['public_price_display']=$m[1];
-              $out['ok']=$out['original_public_video_and_date'] && $out['published_caption_matches_plan']
-                  && $out['subscription_link_preserved'] && $out['single_contextual_button']
-                  && $out['file_unique_id_unchanged'] && ($registered['state']??'')==='sent'
-                  && ($last['state']??'')==='native_verified';
+              $out['rows']=$rows;
+              $out['ok']=true;
           } catch(Throwable $e) {
-              if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
+              if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();
               $m=$e->getMessage();
-              $out['reason']=preg_match('/^[a-z_0-9]{1,100}$/D',$m)?$m:'readback_failed';
+              $out['reason']=preg_match('/^[a-z_0-9]{1,100}$/D',$m)?$m:'registry_candidate_read_failed';
           }
           echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
           PHP
@@ -364,7 +251,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Check original content and configured editor bindings
+      - name: Read fresh demand, paired prices and big-channel bindings
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -376,12 +263,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ALOFT1207_ACCESS_AUDIT="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("provider_writes")==0'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("BIG_CHANNEL_BATCH_AUDIT="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0 and d.get("db_writes")==0'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: aloft-1207-original-content-and-editor-bindings
+          name: big-channel-next-batch-audit
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
