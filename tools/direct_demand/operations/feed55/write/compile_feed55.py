@@ -91,6 +91,10 @@ def adapted_tail(source, current_runtime, publication_runtime):
             're.fullmatch(r"commercial-channel-hotel-feeds-\\d{8}-read[1-9]\\d*",read.get("operation",""))',
             're.fullmatch(r"commercial-channel-hotel-feeds-20261118-next174-read(?:1|2|4|5|9|12|13)",read.get("operation",""))',
         ),
+        (
+            'require(result.returncode==0,"native_append_validation_failed:"+result.stderr.decode()[:100])',
+            'require(result.returncode==0,"native_append_validation_failed:rc="+str(result.returncode)+":stderr="+result.stderr.decode()[:1000]+":stdout="+result.stdout.decode()[:1000])',
+        ),
     ]
     for old, new in changes:
         need(text.count(old) == 1, "tail_adapter_anchor_changed")
