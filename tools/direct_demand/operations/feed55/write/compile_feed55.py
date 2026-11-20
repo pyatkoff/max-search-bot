@@ -99,6 +99,10 @@ def adapted_tail(source, current_runtime, publication_runtime):
             'subprocess.run(["php","-r",PHP_RENDER,str(Path(args.writer).resolve()),str(p)],capture_output=True,timeout=30)',
             'subprocess.run(["php","-d","display_errors=stderr","-d","log_errors=0","-r",PHP_RENDER,str(Path(args.writer).resolve()),str(p)],capture_output=True,timeout=30)',
         ),
+        (
+            'PHP_RENDER=r"""\nputenv',
+            'PHP_RENDER=r"""\nregister_shutdown_function(static function(): void {$e=error_get_last();if($e!==null){fwrite(STDERR,json_encode($e,JSON_UNESCAPED_SLASHES));}});\nputenv',
+        ),
     ]
     for old, new in changes:
         need(text.count(old) == 1, "tail_adapter_anchor_changed")
