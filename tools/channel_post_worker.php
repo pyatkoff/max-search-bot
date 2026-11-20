@@ -37,7 +37,17 @@ try {
         $results=array_map(static fn(array $row):array=>['publication_id'=>$row['publication_id'],'version_id'=>$row['version_id'],'state'=>$row['state']],$rows);
     }
     $ok=($scan===null||!empty($scan['ok']))&&count(array_filter($results,static fn(array $row):bool=>in_array($row['state']??'',['unknown','requires_attention'],true)))===0;
-    echo json_encode(['ok'=>$ok,'platform'=>$platform,'apply'=>in_array('--run',$argv,true),'reconciliation'=>$scan,'results'=>$results],JSON_UNESCAPED_SLASHES).PHP_EOL;
+    $batch = [];
+    if ($platform === 'max' && $reconcile && in_array('--run', $argv, true)
+        && is_file($root.'/config/anytour_existing_post_batch.json')) {
+        try {
+            require_once $root.'/tools/anytour_existing_post_batch.php';
+            $batch = \AnyTour\ExistingPostBatch\tick($root);
+        } catch (Throwable $error) {
+            $batch = [['ok'=>false, 'reason'=>'existing_post_batch_unavailable']];
+        }
+    }
+    echo json_encode(['ok'=>$ok,'platform'=>$platform,'apply'=>in_array('--run',$argv,true),'reconciliation'=>$scan,'results'=>$results]+($batch === [] ? [] : ['existing_post_batch'=>$batch]),JSON_UNESCAPED_SLASHES).PHP_EOL;
     exit($ok?0:1);
 } catch (Throwable $ignored) {
     echo json_encode(['ok'=>false,'reason'=>'channel_worker_unavailable']).PHP_EOL;exit(2);
