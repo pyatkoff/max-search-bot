@@ -24,6 +24,7 @@ import owner_permit_gate as gate
 BRANCH = "audit/feed55-production-20261120"
 REPOSITORY = "pyatkoff/max-search-bot"
 PRIVATE_REPOSITORY = "pyatkoff/tour-max"
+# This main pin is usable only after its ordinary deployment is accepted.
 RUNTIME_SHA = "b4b65daaa472c15426a244b87ede3e6c0394626b"
 TRANSFER_COMMENT_ID = 7026915700
 TRANSFER_BODY_SHA256 = "af864a46251e212c0395382c2bed28471ead44c533e04c8a4eb4459f3de35adf"
