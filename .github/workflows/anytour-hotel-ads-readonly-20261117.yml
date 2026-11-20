@@ -1,24 +1,58 @@
-name: "Aloft 1207: current video and offer read-only preflight"
+name: "Aloft 1207: authorized caption and exact hotel button"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
     paths: ['.github/workflows/anytour-hotel-ads-readonly-20261117.yml']
 permissions:
   contents: read
+  actions: read
+  issues: read
 concurrency:
-  group: anytour-issue-1566-registry-read
+  group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
   registry:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'c655390c97ccdce4db8be2304249e6cda3d7ac7b' &&
+      github.event.before == '9d74c11b46d1cb8f78404880abaa9257e10cfd3c' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 7
     steps:
-      - name: Prepare SELECT-only program
+      - name: Check out exact accepted server release tools
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 9385571c86c45189c31d9c4aa904c23970e3b11a
+          persist-credentials: false
+          path: release-source
+      - name: Authenticate the closed production installation
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'JS'
+          const release = require('./release-source/tools/deployment_release');
+          const source = '9385571c86c45189c31d9c4aa904c23970e3b11a';
+          (async () => {
+            const api = release.makeReadApi(process.env.GITHUB_TOKEN);
+            const path = release.API_ROOT;
+            const main = async () => (await api('GET', path + '/git/ref/heads/main'))?.object?.sha;
+            const slot = () => api('GET', path + '/issues/comments/6682640708');
+            const closed = x => x?.body === 'PR1633: установлено, выпуск свободен' &&
+              x?.user?.id === 226193297 && x?.updated_at === '2026-11-20T01:05:28Z';
+            if (await main() !== source || !closed(await slot())) throw new Error('release_source_or_slot_changed');
+            const snapshot = await release.readRecord(api);
+            const r = await release.resolveCurrent(api, {sha: source}, snapshot);
+            const current = await release.readRecord(api);
+            if (!r.ready || r.repository_sha !== source || r.application_sha !== source ||
+                current.blob !== snapshot.blob || current.record_digest !== snapshot.record_digest ||
+                await main() !== source || !closed(await slot())) throw new Error('closed_release_readback_changed');
+            console.log('ALOFT1207_RELEASE_CLOSED=' + source);
+          })().catch(e => { console.error(e?.code || e?.message || 'release_read_failed'); process.exitCode = 2; });
+          JS
+      - name: Prepare exact caption and hotel button program
         shell: bash
         run: |
           set -euo pipefail
@@ -137,9 +171,24 @@ jobs:
           $baseline=json_decode(<<<'BASE'
           {"date":"2025-09-23T10:27:57+00:00","captionHash":"b2f19ba15412fbff79de5c560617cb85e52d276c8ba972bae659975825805346","buttons":[{"text":"СВЯЗАТЬСЯ С МЕНЕДЖЕРОМ 📱","url":"https://t.me/AnyTour_MSK"}],"video":["8e893fc0574e6f7e7dbf00c1d6910ba1e735962880a8c11e53d9b18c9469cdc1","ab19e4b3015a33d11a71376906c28d6822625a42a00432847b57d9d8f290c7c8"],"links":[{"text":"201 061 RUB","url":"https://anytour.online/poisk-turov/7q8s8lo4r0/"},{"text":"Подписаться на канал AnyTour - Горящие туры","url":"https://t.me/+gGloLUt4d8s3NDcy"}]}
           BASE,true,10,JSON_THROW_ON_ERROR);
-          $out=['ok'=>false,'mid'=>1207,'hotel_id'=>61159,'provider_writes'=>0];
-          try {
-              installedEdit('9385571c86c45189c31d9c4aa904c23970e3b11a');
+          function capture($file,array $row):void{
+              $line=json_encode($row,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).PHP_EOL;
+              requireEdit(fwrite($file,$line)===strlen($line) && fflush($file) && fsync($file),'journal_write_failed');
+          }
+          
+          const INSTALLED='9385571c86c45189c31d9c4aa904c23970e3b11a';
+          const TARGET='-1001845835645';
+          const MID=1207;
+          const CHANNEL=6;
+          const HOTEL=61159;
+          const POST_DATE=1758623277;
+          const POST_URL='https://t.me/anytour/1207';
+          const LABEL='✈️ Рассчитать на мои даты';
+          const OP='anytour-issue1566-aloft-telegram-1207-caption-v1';
+          const JOURNAL='/var/www/anytoour/data/channel-post-operations';
+          
+          function bootAloft(): void {
+              installedEdit(INSTALLED);
               ob_start();
               try {
                   require getcwd().'/config.php';
@@ -147,41 +196,215 @@ jobs:
                   require_once getcwd().'/services/ChannelPostEntryService.php';
                   require_once getcwd().'/services/ChannelPostAutomationService.php';
               } finally { ob_end_clean(); }
-              $post=publicTelegram(1207);
-              $out['post']=['date'=>$post['date'],'photo_count'=>count($post['photos']),'video_nodes'=>$post['videos'],
-                  'video_matches_baseline'=>$post['video_sha256s']===$baseline['video'],
-                  'caption_hash'=>$post['caption_sha256'],'caption'=>$post['caption'],'html'=>$post['caption_html'],
-                  'links'=>$post['links'],'buttons'=>$post['buttons']];
-              requireEdit($post['date']===$baseline['date'] && $post['photos']===[] && $post['videos']===2 &&
-                  $post['video_sha256s']===$baseline['video'], 'original_video_or_date_changed');
+          }
+          
+          function samePublicVideo(array $public,array $original): bool {
+              return $public['date']===$original['date'] && $public['photos']===[] && $public['videos']===2
+                  && $public['video_sha256s']===$original['video'];
+          }
+          
+          function utf16Length(string $s): int {
+              return intdiv(strlen(mb_convert_encoding($s,'UTF-16LE','UTF-8')),2);
+          }
+          
+          function captionEntity(string $caption,string $needle,string $type): array {
+              $pos=strpos($caption,$needle);
+              requireEdit($pos!==false && strpos($caption,$needle,$pos+strlen($needle))===false,'entity_anchor_changed');
+              return ['type'=>$type,'offset'=>utf16Length(substr($caption,0,$pos)),'length'=>utf16Length($needle)];
+          }
+          
+          function plannedCaption(string $original,array $offer,array $subscription): array {
+              $start=strpos($original,"\n\nПредложение на двоих взрослых с вылетом из Москвы:");
+              $end=strpos($original,"\n\nПо кнопке ниже вы можете быстро и легко забронировать подходящий вам тур");
+              requireEdit($start!==false && $end!==false && $end>$start
+                  && str_ends_with($original,"\n\n".$subscription['text']), 'old_offer_boundaries_changed');
+              $description=substr($original,0,$start);
+              $remaining=substr($original,$end);
+              $caption="Aloft Palm Jumeirah\n\n".$description."\n\n".$offer['block'].$remaining;
+              requireEdit(utf16Length($caption)<=1024
+                  && str_contains($caption,$description) && !str_contains($caption,'201 061 RUB'),'caption_scope_or_length');
+              $links=[
+                  captionEntity($caption,'Очень популярный отель в Дубае на острове Пальм Джумейра🧡','bold'),
+                  captionEntity($caption,'Aloft Palm Jumeirah 4*','italic'),
+                  captionEntity($caption,'Плюсы отеля:','underline'),
+                  captionEntity($caption,$subscription['text'],'text_link')+['url'=>$subscription['url']],
+                  captionEntity($caption,$subscription['text'],'bold'),
+                  captionEntity($caption,$subscription['text'],'underline'),
+              ];
+              return [$caption,$links];
+          }
+          
+          function nativeSnapshot(array $msg,string $caption): array {
+              requireEdit((string)($msg['chat']['id']??'')===TARGET && ($msg['chat']['username']??'')==='anytour'
+                  && ($msg['message_id']??0)===MID && ($msg['date']??0)===POST_DATE
+                  && ($msg['edit_date']??0)>0,'native_message_or_date_mismatch');
+              $snap=ChannelPostIncomingAdapter::telegramSnapshot($msg);
+              requireEdit(is_array($snap) && $snap['text']===$caption && $snap['post_url']===POST_URL
+                  && ($snap['metadata']['capability']??'')==='supported'
+                  && (int)($snap['metadata']['hotel_catalog_id']??0)===HOTEL
+                  && count($snap['attachments']??[])===1 && ($snap['attachments'][0]['type']??'')==='video'
+                  && ($snap['attachments'][0]['provider']??'')==='telegram'
+                  && !empty($snap['attachments'][0]['file_unique_id']),'native_caption_or_video_unconfirmed');
+              return $snap;
+          }
+          
+          function videoProof(array $snap): string {
+              return hash('sha256',$snap['attachments'][0]['file_unique_id']);
+          }
+          
+          function exactContext(ChannelPostRegistryService $registry,array $registered): bool {
+              $ctx=ChannelPostEntryService::resolve('telegram',$registered['start_payload'],$registry);
+              return (int)($ctx['publication_id']??0)===(int)$registered['publication_id']
+                  && (int)($ctx['version_id']??0)===(int)$registered['version_id']
+                  && (int)($ctx['snapshot']['metadata']['hotel_catalog_id']??0)===HOTEL
+                  && ($ctx['snapshot']['post_url']??'')===POST_URL;
+          }
+          
+          $out=['ok'=>false,'mid'=>MID,'hotel_id'=>HOTEL,'url'=>POST_URL,'state'=>'not_written','provider_writes'=>0];
+          $lock=false;
+          $journal=null;
+          try {
+              bootAloft();
               $pdo=ConversationDb::connection();
-              $pdo->exec('SET SESSION TRANSACTION READ ONLY');
-              $pdo->beginTransaction();
               $registry=new ChannelPostRegistryService($pdo);
-              $target=recordVersion(fromRegistry($pdo,$registry,6,1207));
+              $bot=(string)(ChannelPostRuntime::identity('telegram')['bot_key']??'');
+              $channel=$registry->channel('anytour','telegram',$bot,TARGET);
+              requireEdit(is_array($channel) && (int)$channel['id']===CHANNEL && (int)$channel['config_version']===2
+                  && $channel['source_key']==='tg_anytour_msk' && $channel['button_text']===LABEL
+                  && $channel['bot_url']==='https://t.me/anyru_bot','channel_mismatch');
+              requireEdit((new ChannelPostButtonTransport())->verifyChannel($channel)['state']==='ready','native_edit_rights_unavailable');
+              requireEdit(realpath(JOURNAL)===JOURNAL && is_dir(JOURNAL),'journal_root_invalid');
+              $journalPath=JOURNAL.'/'.OP;
+              requireEdit(!file_exists($journalPath) && !is_link($journalPath),'existing_receipt_hold');
+              $q=$pdo->prepare('SELECT GET_LOCK(?,0)');
+              $q->execute([OP]);
+              $lock=(int)$q->fetchColumn()===1;
+              $q->closeCursor();
+              requireEdit($lock,'target_lock_busy');
+          
+              $current=publicTelegram(MID);
+              requireEdit(samePublicVideo($current,$baseline) && $current['caption_sha256']===$baseline['captionHash']
+                  && $current['links']===$baseline['links'] && $current['buttons']===$baseline['buttons'],'original_post_changed');
+              requireEdit(fromRegistry($pdo,$registry,CHANNEL,MID)===null,'existing_target_requires_readback');
               $source=recordVersion(fromRegistry($pdo,$registry,10,428));
-              unset($source['caption'], $target['caption']);
-              $out['target']=$target;
-              $out['source']=$source;
-              requireEdit(is_array($source) && (int)$source['hotel_id']===61159 && $source['url']==='https://t.me/any_toour/428', 'source_hotel_mapping_changed');
-              $pdo->rollBack();
-              $price=priceRows([61159])[61159];
-              $out['price']=$price;
-              requireEdit(isset($price['block']), 'fresh_price_unavailable');
-              $identity=ChannelPostRuntime::identity('telegram');
-              $bot=(string)($identity['bot_key']??'');
-              $channel=$registry->channel('anytour','telegram',$bot,'-1001845835645');
-              requireEdit(is_array($channel) && (int)$channel['id']===6
-                  && $channel['source_key']==='tg_anytour_msk' && $channel['bot_url']==='https://t.me/anyru_bot'
-                  && $channel['button_text']==='✈️ Рассчитать на мои даты','channel_mismatch');
-              $out['channel_config']=(int)$channel['config_version'];
-              $out['native_editor']=(new ChannelPostButtonTransport())->verifyChannel($channel)['state'];
-              requireEdit($out['native_editor']==='ready','native_edit_rights_unavailable');
+              requireEdit(is_array($source) && (int)$source['hotel_id']===HOTEL && (int)$source['id']===951
+                  && $source['state']==='sent' && $source['url']==='https://t.me/any_toour/428','source_hotel_mapping_changed');
+              $offer=priceRows([HOTEL])[HOTEL];
+              requireEdit(isset($offer['block']),'fresh_offer_unavailable_'.($offer['reason']??'unknown'));
+              [$caption,$entities]=plannedCaption($current['caption'],$offer,$baseline['links'][1]);
+              $fixture=['chat'=>['id'=>(int)TARGET,'type'=>'channel','username'=>'anytour'],'message_id'=>MID,'date'=>POST_DATE,
+                  'edit_date'=>time(),'video'=>['file_id'=>'preflight-only','file_unique_id'=>'preflight-only'],'caption'=>$caption,
+                  'caption_entities'=>$entities,'reply_markup'=>['inline_keyboard'=>[$current['buttons']]]];
+              nativeSnapshot($fixture,$caption);
+              $fixture['caption']=$current['caption'];
+              requireEdit((ChannelPostIncomingAdapter::telegramSnapshot($fixture)['metadata']['capability']??'')==='requires_attention',
+                  'unexpected_legacy_caption_support');
+              requireEdit($registry->channel('anytour','telegram',$bot,TARGET)===$channel
+                  && fromRegistry($pdo,$registry,CHANNEL,MID)===null,'write_target_changed');
+              installedEdit(INSTALLED);
+              $out['preflight']=['passed'=>true,'ready_editor'=>true,'old_video_and_date_match'=>true,'legacy_caption_ineligible'=>true,
+                  'planned_caption_supported'=>true,'planned_caption_units'=>utf16Length($caption),'source_version'=>(int)$source['version']];
+              $out['offer']=$offer;
+              $out['caption_sha256']=hash('sha256',$caption);
+              requireEdit(!file_exists($journalPath) && !is_link($journalPath) && mkdir($journalPath,0700),'edit_receipt_already_exists');
+              $journal=fopen($journalPath.'/receipt.jsonl','x');
+              requireEdit(is_resource($journal),'edit_receipt_unavailable');
+              capture($journal,array_replace($out,['state'=>'caption_attempt_started']));
+              $out['state']='caption_unknown_hold';
+              ++$out['provider_writes'];
+              $response=ChannelPostApiTransport::captionRequest('telegram',TARGET,(string)MID,[
+                  'caption'=>$caption,'caption_entities'=>$entities,'reply_markup'=>['inline_keyboard'=>[$current['buttons']]],
+              ]);
+              $out['caption_http']=(int)($response['http']??0);
+              $data=$response['data']??null;
+              if (!(empty($response['transport_error']) && $out['caption_http']===200
+                  && ($data['ok']??false)===true && is_array($data['result']??null))) {
+                  if (empty($response['transport_error']) && in_array($out['caption_http'],[400,401,403,404,429],true)
+                      && ($data['ok']??null)===false) {
+                      $out['state']='caption_rejected';
+                      $out['telegram_error']=(int)($data['error_code']??0);
+                      $description=(string)($data['description']??'');
+                      if (preg_match('/\A[A-Za-z0-9 .,():_!\-]{1,200}\z/D',$description)) $out['telegram_description']=$description;
+                  }
+                  throw new RuntimeException('caption_provider_not_confirmed');
+              }
+              $msg=$data['result'];
+              $snap=nativeSnapshot($msg,$caption);
+              $snap['metadata']['logical_id']='commercial-main-hotel-61159-v1';
+              $snap['metadata']['source_event_id']=OP.':'.$msg['edit_date'];
+              $snap['metadata']['observation_kind']='authorized_admin_content_edit';
+              $snap['metadata']['promoted_price_observed_at']=$offer['observation'];
+              $snap['content_hash']=ChannelPostIncomingAdapter::contentFingerprint($snap,'',$channel['bot_url']);
+              $videoHash=videoProof($snap);
+              $out['caption_confirmed']=true;
+              $out['state']='caption_confirmed_button_pending';
+              capture($journal,$out+['video_binding'=>$videoHash]);
+              $p=$registry->registerPublication('anytour','telegram',$bot,TARGET,(string)MID,$snap);
+              requireEdit(is_array($p) && ($p['external_message_id']??'')===(string)MID
+                  && ($p['snapshot']['text']??'')===$caption && ($p['snapshot']['post_url']??'')===POST_URL
+                  && videoProof($p['snapshot'])===$videoHash && exactContext($registry,$p),'hotel_button_context_unconfirmed');
+              $out['publication_id']=(int)$p['publication_id'];
+              $out['version_id']=(int)$p['version_id'];
+              $out['context_verified']=true;
+              $buttonUrl=ChannelPostButtonTransport::buttonUrl($p);
+              requireEdit(str_starts_with($buttonUrl,'https://t.me/anyru_bot?start='),'button_destination_invalid');
+          
+              $nativeButtonVerified=false;
+              $stableVideo=false;
+              $transport=new ChannelPostButtonTransport(static function ($platform,$method,$path,$query,$body)
+                  use (&$out,&$nativeButtonVerified,&$stableVideo,$videoHash,$caption,$buttonUrl) {
+                  requireEdit($platform==='telegram' && $method==='POST' && $query===[]
+                      && (in_array($path,['getMe','getChat','getChatMember'],true) ||
+                          ($path==='editMessageReplyMarkup' && (string)($body['chat_id']??'')===TARGET
+                              && (int)($body['message_id']??0)===MID
+                              && ($body['reply_markup']['inline_keyboard']??[])===[[['text'=>LABEL,'url'=>$buttonUrl]]]
+                              && !isset($body['media']))),'outside_exact_button_scope');
+                  if ($path==='editMessageReplyMarkup') {
+                      ++$out['provider_writes'];
+                      $out['state']='button_unknown_hold';
+                  }
+                  $resp=ChannelPostApiTransport::buttonRequest($platform,$method,$path,$query,$body);
+                  if ($path==='editMessageReplyMarkup') {
+                      $out['button_http']=(int)($resp['http']??0);
+                      $native=$resp['data']['result']??null;
+                      if ($out['button_http']===200 && ($resp['data']['ok']??false)===true && is_array($native)) {
+                          $after=nativeSnapshot($native,$caption);
+                          $stableVideo=hash_equals($videoHash,videoProof($after));
+                          $nativeButtonVerified=$stableVideo && ChannelPostIncomingAdapter::containsOnlyButton($after,$buttonUrl,LABEL);
+                          requireEdit($nativeButtonVerified,'native_button_or_video_unconfirmed');
+                      }
+                  }
+                  return $resp;
+              });
+              if ($p['state']==='pending') {
+                  $work=(new ChannelPostAutomationService($registry,$transport))
+                      ->processPublication('anytour','telegram',$bot,$out['publication_id'],$out['version_id']);
+                  $out['worker_state']=$work['state']??'unknown';
+                  $out['worker_reason']=$work['reason']??'unknown';
+              }
+              $out['native_button_verified']=$nativeButtonVerified;
+              $out['file_unique_id_unchanged_across_native_receipts']=$stableVideo;
+              $fresh=$registry->publication($out['publication_id']);
+              $out['registry_state']=$fresh['state']??'missing';
+              requireEdit($nativeButtonVerified && ($fresh['state']??'')==='sent'
+                  && (int)$fresh['version_id']===$out['version_id'] && exactContext($registry,$fresh)
+                  && hash_equals($videoHash,videoProof($fresh['snapshot'])),'final_native_confirmation_missing');
+              capture($journal,$out+['video_binding'=>$videoHash,'native_receipt_verified'=>true]);
               $out['ok']=true;
+              $out['state']='native_verified';
           } catch(Throwable $e) {
-              if(isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
               $m=$e->getMessage();
-              $out['reason']=preg_match('/^[a-z_]{1,100}$/D',$m)?$m:'preflight_failed';
+              $out['reason']=preg_match('/^[a-z_0-9]{1,100}$/D',$m)?$m:'operation_failed';
+          } finally {
+              if (is_resource($journal)) {
+                  try { capture($journal,$out); } catch(Throwable $e) { $out['journal_completion_failed']=true; }
+                  fclose($journal);
+              }
+              if ($lock) {
+                  $q=$pdo->prepare('SELECT RELEASE_LOCK(?)');
+                  $q->execute([OP]);
+                  $q->closeCursor();
+              }
           }
           echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
           PHP
@@ -218,7 +441,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read current Aloft 1207 publication and offer
+      - name: Apply caption and button only to existing Aloft 1207
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -230,12 +453,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ALOFT1207_PREFLIGHT="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("provider_writes")==0'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ALOFT1207_NATIVE_EDIT="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("state")=="native_verified"'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: aloft-1207-offer-preflight
+          name: aloft-1207-native-edit-receipt
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
