@@ -15,6 +15,7 @@ class MaxSearchApi
 }
 
 require_once __DIR__ . '/../services/NeedApplicationService.php';
+require_once __DIR__ . '/../services/ShadowDialogueService.php';
 
 $passed = 0;
 $failed = 0;
@@ -119,6 +120,33 @@ nasCheck('preference promotion requires explicit confidence threshold', strpos($
 nasCheck('preference promotion writes through conversation repository', strpos($applicationSource, 'ConversationStateRepository::applyPreferences') !== false, true);
 nasCheck('shadow observer promotes wishes through application boundary', strpos($shadowSource, 'NeedApplicationService::applyExtractedPreferences') !== false, true);
 nasCheck('shadow observer does not write canonical preferences directly', strpos($shadowSource, 'ConversationStateRepository::applyPreferences') === false, true);
+nasCheck('shadow observer suppresses pre-reconciliation message_evaluated log', strpos($shadowSource, 'ShadowDialogueService::run($chatId, $message, $state, false)') !== false, true);
+$readbackPos = strpos($shadowSource, '$active = (array)MaxSearchApi::getAiSearchContext($chatId);');
+$savePos = strpos($shadowSource, 'TripStateRepository::save($chatId, $result[\'new_state\'], dirname(__DIR__));');
+$logPos = strpos($shadowSource, 'ShadowDialogueService::logResult($chatId, $message, $result);');
+nasCheck('shadow diagnostic is emitted after canonical read-back', $readbackPos !== false && $logPos !== false && $readbackPos < $logPos, true);
+nasCheck('shadow diagnostic is emitted after reconciled shadow state save', $savePos !== false && $logPos !== false && $savePos < $logPos, true);
+
+$diagnosticFile = tempnam(sys_get_temp_dir(), 'shadow-diagnostic-');
+DiagnosticLogger::setFile($diagnosticFile);
+$canonicalResult = [
+    'old_state'=>['preferences'=>[]],
+    'extracted'=>[
+        'intent'=>'provide_info',
+        'changes'=>['preferences'=>['тихий отель']],
+        'confidence'=>['preferences'=>0.80],
+        'note'=>'',
+    ],
+    // This simulates the canonical read-back rejecting the low-confidence change.
+    'new_state'=>['preferences'=>[],'negative_preferences'=>[]],
+    'decision'=>['action'=>'ASK','missing'=>['dates'],'next_field'=>'dates','reason'=>'missing_required'],
+];
+nasCheck('shadow diagnostic helper writes reconciled result', ShadowDialogueService::logResult(42, 'Хочу тихий отель', $canonicalResult), true);
+$diagnosticRows = array_values(array_filter(explode("\n", trim((string)file_get_contents($diagnosticFile)))));
+$diagnosticRecord = json_decode((string)end($diagnosticRows), true);
+nasCheck('shadow diagnostic records canonical preferences, not rejected extracted wish', $diagnosticRecord['data']['new_state']['preferences'] ?? null, []);
+nasCheck('shadow diagnostic keeps rejected wish only as extraction evidence', $diagnosticRecord['data']['extracted']['changes']['preferences'] ?? null, ['тихий отель']);
+@unlink($diagnosticFile);
 
 $resolverPaths = [
     'departure city' => __DIR__ . '/../services/DepartureCityResolver.php',
