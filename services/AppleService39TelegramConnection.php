@@ -83,6 +83,31 @@ final class AppleService39TelegramConnection
         }
     }
 
+    /** The conversion reader needs the verified identity and active source, never credentials. */
+    public static function forecastBinding(PDO $pdo,?callable $read=null): ?array
+    {
+        $read??=static function(string $sql,array $args)use($pdo):array{
+            $q=$pdo->prepare($sql);
+            $q->execute($args);
+            return $q->fetchAll(PDO::FETCH_ASSOC);
+        };
+        try{
+            $rows=$read("SELECT p.project_key,b.bot_id,s.id AS source_id,s.source_key,s.channel
+                FROM project_telegram_bot_connections b JOIN projects p ON p.id=b.project_id
+                JOIN conversation_sources s ON s.project_id=p.id
+                WHERE p.project_key=? AND p.is_active=1 AND b.webhook_state='verified'
+                  AND s.channel='telegram' AND s.source_key=? AND s.is_active=1 AND s.handling_mode='manager' LIMIT 2",
+                [self::PROJECT,self::SOURCE]);
+        }catch(PDOException $unavailable){
+            return null;
+        }
+        if(count($rows)!==1)return null;
+        $row=$rows[0];
+        if($row['project_key']!==self::PROJECT||$row['source_key']!==self::SOURCE||$row['channel']!=='telegram'
+            ||!preg_match('/\A[1-9][0-9]{0,15}\z/D',(string)$row['bot_id'])||(int)$row['source_id']<=0)return null;
+        return ['project_key'=>self::PROJECT,'bot_id'=>(string)$row['bot_id'],'source_key'=>self::SOURCE,'source_id'=>(int)$row['source_id']];
+    }
+
     /** Read from the same verified project/source on every transport operation. */
     public function binding(): ?array
     {

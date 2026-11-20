@@ -308,6 +308,23 @@ top-level admission result or exit status. Successful synthetic regressions
 prove this contract; a first natural processed forecast remains unobserved until
 the corresponding saved evidence exists and is read after installation.
 
+## AppleService39 Telegram forecasts
+
+The existing project worker can collect a Telegram forecast for a newly
+recorded paid start. It verifies the active AppleService39 Telegram bot and
+source, the stored private start message, the native post receipt and the
+exact earlier visit with a click tag and ClientID. The confirmed post must
+identify one model and service with one approved price. A general entry or a
+historical attribution without the native message receipt stays ineligible.
+
+The same outbox retains one prediction per conversation. A new conversation
+cannot acquire a visit already recorded for that Telegram user. The project
+keeps its approved goal and computes listed repair price × 20%. The worker
+rechecks the evidence before sending and uses the original queue state for
+unknown uploads. The saved-status report shows Telegram click observations
+and outbox states separately from MAX. A processing receipt does not
+independently prove an advertising visit association in the provider.
+
 ## Verification
 
 The required manifest includes shared PHP and client fault-path regressions.

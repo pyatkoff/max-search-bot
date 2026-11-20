@@ -3,6 +3,8 @@ declare(strict_types=1);
 require_once __DIR__.'/fixtures/repair_max_webhook_fixture.php';
 require_once dirname(__DIR__).'/services/AppleService39TelegramIngress.php';
 require_once dirname(__DIR__).'/services/ManagerConversationService.php';
+define('PROJECT_FUNNEL_STATUS_FIXTURE_ONLY',true);
+require_once __DIR__.'/run_project_funnel_conversions_regression.php';
 
 function appleTgCheck(string $label,bool $ok):void{
     if(!$ok)throw new RuntimeException('FAIL '.$label);
@@ -146,6 +148,75 @@ $event=$pdo->query("SELECT payload_json FROM conversation_events WHERE event_typ
 appleTgCheck('bound visit is the exact durably saved click',json_decode($event,true)['visit_id']===$receipt['receipt']['visit_id']);
 appleTgCheck('another Telegram user cannot inherit the paid visit',
     $run($update(984,1,'/start as39_'.$catalogueKey,['date'=>$paidAt]))===200&&$adCount()===1);
+
+funnelConversionSchema($pdo);
+$pdo->exec("CREATE TABLE project_telegram_bot_connections(project_id INTEGER,bot_id TEXT,webhook_state TEXT);
+    INSERT INTO project_telegram_bot_connections VALUES(2,'123456789','verified')");
+$forecastBinding=AppleService39TelegramConnection::forecastBinding($pdo);
+appleTgCheck('forecast binding uses the verified Telegram bot and source without credentials',
+    $forecastBinding==['project_key'=>'appleservice39','bot_id'=>'123456789','source_key'=>'telegram:appleservice39-main','source_id'=>23]);
+$now=time();
+$connection=ProjectMaxConnection::resolve('appleservice39');
+$settings=ProjectFunnelSettings::load($connection);
+$policy=ProjectFunnelConversions::policy($settings);
+$collect=static fn()=>ProjectFunnelConversions::collect($pdo,$connection,$settings,$policy,$now,$forecastBinding);
+$storedEvent=json_decode($event,true);
+$replaceEvent=static function(array $payload)use($pdo):void{
+    $pdo->prepare("UPDATE conversation_events SET payload_json=? WHERE event_type='apple_telegram_ad_entry'")
+        ->execute([json_encode($payload,JSON_THROW_ON_ERROR)]);
+};
+$replaceEvent(array_diff_key($storedEvent,['message_id'=>true]));
+appleTgCheck('an older Telegram attribution without a native start receipt is held',$collect()===0);
+$replaceEvent(array_replace($storedEvent,['message_id'=>'999']));
+appleTgCheck('a Telegram attribution cannot borrow another native message',$collect()===0);
+$replaceEvent($storedEvent);
+$pdo->exec("UPDATE conversations SET is_test=1 WHERE external_chat_id='983'");
+appleTgCheck('marked Telegram test conversations cannot enter the outbox',$collect()===0);
+$pdo->exec("UPDATE conversations SET is_test=0,lead_stage_key='won' WHERE external_chat_id='983'");
+appleTgCheck('a recorded sale is not entered as a Telegram forecast',$collect()===0);
+$pdo->exec("UPDATE conversations SET lead_stage_key='new' WHERE external_chat_id='983'");
+appleTgCheck('exact paid Telegram repair collects once without creating a second queue',$collect()===1&&$collect()===0);
+$outbox=new MaxChannelConversionOutbox($pdo);
+$row=$outbox->projectRows($policy,'pending',$now)[0];
+$identity=ProjectFunnelConversions::identity($pdo,$row,$settings,$now,$binding);
+appleTgCheck('Telegram forecast uses the verified 3500 RUB repair and the approved 20 percent',
+    $row['platform']==='telegram'&&$row['transport_target']==='predict'&&$row['value_rub']==='700.00'
+    &&$identity['visit_id']===$receipt['receipt']['visit_id']);
+appleTgCheck('an unbound bot or altered forecast cannot resolve the Telegram row',
+    ProjectFunnelConversions::identity($pdo,$row,$settings,$now,array_replace($binding,['bot_id'=>'7777777']))===null
+    &&ProjectFunnelConversions::identity($pdo,array_replace($row,['value_rub'=>'701.00']),$settings,$now,$binding)===null);
+$outbox->resolveProject($row,$identity,$now);
+$ready=$outbox->projectRows($policy,'ready',$now)[0];
+$token=$outbox->claimProject($ready,$now);
+appleTgCheck('Telegram row claims the existing outbox exactly once',
+    $token!==null&&$outbox->claimProject($ready,$now)===null&&$ready['client_id']===$paidInput['client_id']);
+$requests=[];
+$api=new MetrikaOfflineClient($policy['counter_id'],'isolated-test-token',
+    static function(string $method,string $url,?string $body)use(&$requests):array{
+        $requests[]=[$method,$url,$body];
+        return ['http'=>200,'body'=>json_encode(['uploading'=>['id'=>101,'status'=>'UPLOADED']])];
+    },null,$policy);
+$reply=$api->upload($ready,$now);
+$outbox->finish((string)$ready['id'],$token,$reply,$now);
+appleTgCheck('only the existing goal and price reach the isolated Telegram upload',
+    $reply['outcome']==='accepted'&&count($requests)===1&&$requests[0][0]==='POST'
+    &&str_contains($requests[0][2],$paidInput['client_id'].',predict,')
+    &&str_contains($requests[0][2],',700.00,RUB')&&$collect()===0);
+$outbox->status($ready,['id'=>'101','status'=>'PROCESSED','source_quantity'=>1,'line_quantity'=>1],$now);
+appleTgCheck('the original Telegram row retains the processed receipt without another send',
+    $pdo->query("SELECT state FROM max_channel_conversion_outbox")->fetchColumn()==='processed'
+    &&count($requests)===1&&$collect()===0);
+require_once dirname(__DIR__).'/services/ProjectFunnelStatusReader.php';
+$report=(new ProjectFunnelStatusReader($pdo))->read($connection,$settings,$now);
+appleTgCheck('saved Telegram attribution and processing are visible without exposing identifiers',
+    $report['outbox']['telegram_approved_policy_states']['processed']===1
+    &&$report['observations']['telegram_click_tags']['all_history']['distinct_yclids']===1
+    &&$report['first_saved_forecast']['platform']==='telegram'
+    &&$report['first_saved_forecast']['retained_processed_receipt']===true
+    &&!str_contains(json_encode($report),$paidInput['client_id']));
+$pdo->exec("UPDATE conversations SET status='closed' WHERE external_chat_id='983'");
+appleTgCheck('a new conversation cannot charge the same paid visit again',
+    $run($update($paidUser,2,'/start as39_'.$catalogueKey,['date'=>$paidAt]))===200&&$adCount()===1&&$collect()===0);
 
 $before = count($sent);
 $pdo->exec("UPDATE conversations SET status='closed' WHERE id=$id");

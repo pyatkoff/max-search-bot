@@ -4,6 +4,7 @@ require_once __DIR__.'/ProjectFunnelConversation.php';
 require_once __DIR__.'/MaxChannelConversionOutbox.php';
 require_once __DIR__.'/MetrikaOfflineClient.php';
 require_once __DIR__.'/RepairProjectSettings.php';
+require_once __DIR__.'/AppleService39TelegramIngress.php';
 
 /** Company adapter for the existing outbox and worker. No second queue or schedule. */
 final class ProjectFunnelConversions
@@ -69,9 +70,20 @@ final class ProjectFunnelConversions
     }
 
     /** Identity resolves only the saved exact visit, never the latest user visit or a different offer. */
-    public static function identity(PDO $pdo,array $row,array $settings,int $now): ?array
+    public static function identity(PDO $pdo,array $row,array $settings,int $now,?array $telegram=null,?callable $read=null): ?array
     {
         $ctx=json_decode((string)($row['funnel_context_json']??''),true);
+        if(($row['platform']??null)==='telegram'){
+            $policy=self::policy($settings);
+            $forecast=$telegram&&$policy?self::telegramForecast($pdo,(int)$row['conversation_id'],$policy,$telegram,$now,$read):null;
+            if(!$forecast||$row['target']!=='funnel_predictive_value'||$row['project_key']!==$policy['project_key']
+                ||$row['counter_id']!==$policy['counter_id']||$row['funnel_policy_sha256']!==$policy['sha256']
+                ||$row['external_user_id']!==$forecast['identity']['external_user_id']
+                ||(int)$row['event_unix']!==$forecast['estimate']['event_unix']
+                ||$row['value_rub']!==$forecast['estimate']['value_rub']
+                ||$ctx!==$forecast['context'])return null;
+            return $forecast['identity'];
+        }
         if(!is_array($ctx)||($ctx['project_key']??null)!==$settings['project_key']||($ctx['bot_key']??null)!==$settings['bot_key']
             ||($ctx['attribution_state']??null)!=='matched'||count($ctx['observations']??[])!==1||($ctx['external_user_id']??null)!==(string)$row['external_user_id']
             ||($ctx['advertising_scope']??null)!==ProjectFunnelEntry::scope($settings)||!isset($settings['posts'][$ctx['post_id']??''])
@@ -90,17 +102,37 @@ final class ProjectFunnelConversions
         return $latest;
     }
 
-    public static function collect(PDO $pdo,ProjectMaxConnection $connection,array $settings,array $policy,int $now): int
+    private static function telegramForecast(PDO $pdo,int $conversationId,array $policy,array $binding,int $now,?callable $read=null): ?array
+    {
+        if($policy['project_key']!==AppleService39TelegramConnection::PROJECT||$policy['counter_id']!=='42611469'
+            ||($policy['prediction']['basis']??null)!=='owner_assumption'||!isset($policy['goals']['predictive_value']))return null;
+        $evidence=AppleService39TelegramFunnel::forecastEvidence($pdo,$conversationId,$binding,$now,$read);
+        if(!$evidence)return null;
+        $estimate=self::estimate($policy,['customer_activity'=>$evidence['event_unix']],$now,$evidence['price_context']);
+        if($estimate===null)return null;
+        return ['context'=>$evidence['anchor']+['estimate'=>$estimate],'estimate'=>$estimate,'identity'=>$evidence['identity']];
+    }
+
+    public static function collect(PDO $pdo,ProjectMaxConnection $connection,array $settings,array $policy,int $now,?array $telegram=null): int
     {
         $repo=new MaxChannelConversionOutbox($pdo);$insert=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite'?'INSERT OR IGNORE':'INSERT IGNORE';
         $pdo->prepare($insert.' INTO max_channel_attribution_settings(project_key,mode,counter_id,activated_at_unix,message_cursor) VALUES(?,?,?,?,0)')->execute([$policy['project_key'],$policy['mode'],$policy['counter_id'],$now]);
         $q=$pdo->prepare('SELECT counter_id,message_cursor FROM max_channel_attribution_settings WHERE project_key=?');$q->execute([$policy['project_key']]);$cursor=$q->fetch(PDO::FETCH_ASSOC);
         if(!$cursor||$cursor['counter_id']!==$policy['counter_id'])throw new RuntimeException('project_counter_changed');
-        $sql="SELECT c.id,c.project_key,c.channel,c.customer_id,c.customer_channel_id,c.external_chat_id,c.metadata_json,cc.external_user_id FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id AND cc.project_key=c.project_key AND cc.channel=c.channel AND cc.external_chat_id=c.external_chat_id WHERE c.project_key=? AND c.channel='max' AND c.is_test=0 AND c.id>? AND EXISTS(SELECT 1 FROM conversation_events e WHERE e.conversation_id=c.id AND e.event_type='project_funnel_entry') ORDER BY c.id LIMIT 25";
+        $entryType="c.channel='max' AND e.event_type='project_funnel_entry'";
+        if($telegram!==null&&$policy['project_key']===AppleService39TelegramConnection::PROJECT)
+            $entryType="($entryType) OR (c.channel='telegram' AND c.lead_stage_key<>'won' AND e.event_type='apple_telegram_ad_entry')";
+        $sql="SELECT c.id,c.project_key,c.channel,c.customer_id,c.customer_channel_id,c.external_chat_id,c.metadata_json,cc.external_user_id FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id AND cc.project_key=c.project_key AND cc.channel=c.channel AND cc.external_chat_id=c.external_chat_id WHERE c.project_key=? AND c.is_test=0 AND c.id>? AND EXISTS(SELECT 1 FROM conversation_events e WHERE e.conversation_id=c.id AND ($entryType)) ORDER BY c.id LIMIT 25";
         $q=$pdo->prepare($sql);$q->execute([$policy['project_key'],(int)$cursor['message_cursor']]);$conversations=$q->fetchAll(PDO::FETCH_ASSOC);
         if(!$conversations&&(int)$cursor['message_cursor']>0){$q->execute([$policy['project_key'],0]);$conversations=$q->fetchAll(PDO::FETCH_ASSOC);}
         $count=0;
         foreach($conversations as$c){
+            if($c['channel']==='telegram'){
+                $forecast=self::telegramForecast($pdo,(int)$c['id'],$policy,$telegram,$now);
+                if($forecast&&$repo->captureProject($policy,$c,'predictive_value',$forecast['estimate']['event_unix'],
+                    $forecast['context'],$forecast['estimate']['value_rub']))$count++;
+                continue;
+            }
             $metadata=json_decode((string)$c['metadata_json'],true);if(($metadata['max_bot_key']??null)!==$connection->botKey())continue;
             $q=$pdo->prepare("SELECT id,payload_json FROM conversation_events WHERE conversation_id=? AND event_type='project_funnel_entry' ORDER BY id LIMIT 101");$q->execute([$c['id']]);$entries=$q->fetchAll(PDO::FETCH_ASSOC);
             if(count($entries)>=101)continue;
@@ -294,15 +326,16 @@ final class ProjectFunnelConversions
             $connection=ProjectMaxConnection::resolve($project);$settings=$connection?ProjectFunnelSettings::load($connection):null;$policy=$settings?self::policy($settings):null;if(!$policy)continue;
             $summary['projects']++;
             try{
-                $repo=new MaxChannelConversionOutbox($pdo);$repo->recoverProject($policy,$now);$summary['collected']+=self::collect($pdo,$connection,$settings,$policy,$now);
-                foreach($repo->projectRows($policy,'pending',$now,25)as$row){$identity=self::identity($pdo,$row,$settings,$now);$repo->resolveProject($row,$identity,$now);if($identity)$summary['resolved']++;}
+                $telegram=$project===AppleService39TelegramConnection::PROJECT?AppleService39TelegramConnection::forecastBinding($pdo):null;
+                $repo=new MaxChannelConversionOutbox($pdo);$repo->recoverProject($policy,$now);$summary['collected']+=self::collect($pdo,$connection,$settings,$policy,$now,$telegram);
+                foreach($repo->projectRows($policy,'pending',$now,25)as$row){$identity=self::identity($pdo,$row,$settings,$now,$telegram);$repo->resolveProject($row,$identity,$now);if($identity)$summary['resolved']++;}
                 if($policy['mode']!=='send')continue;
                 if($apiFactory)$api=$apiFactory($policy);
                 else $api=self::api($policy);
                 if(!$api){$summary['held']++;continue;}
                 $goalsReady=$api->projectGoalsReady();if(!$goalsReady)$summary['held']++;
                 foreach($goalsReady?$repo->projectRows($policy,'ready',$now):[]as$row){
-                    $stage=substr($row['target'],7);$identity=self::identity($pdo,$row,$settings,$now);
+                    $stage=substr($row['target'],7);$identity=self::identity($pdo,$row,$settings,$now,$telegram);
                     if($row['funnel_policy_sha256']!==$policy['sha256']||!isset($policy['goals'][$stage])||$row['transport_target']!==$policy['goals'][$stage]
                         ||!$identity||$row['client_id']!==$identity['client_id']||(int)$row['event_unix']>$now){$summary['held']++;continue;}
                     $token=$repo->claimProject($row,$now);if($token===null)continue;
