@@ -6,6 +6,7 @@ preimage and private route proof.  An unknown result stops the chain.
 """
 from __future__ import annotations
 
+import base64
 import datetime
 import hashlib
 import json
@@ -32,6 +33,81 @@ PERMIT_COMMENT_ID = 7029866773
 ORDER = (1, 2, 4, 5, 9, 12, 13)
 MAX_WAIT_SECONDS = 120
 MAX_POLLS = 12
+REVIEWED_STALE_QUEUED_NO_JOBS = {
+    "43097373885": {
+        "head_sha": "837cc8068d5680190e878eeab0e27c8078707dc1",
+        "path": ".github/workflows/channel-post-context.yml",
+        "event": "pull_request",
+        "workflow_id": 384242777,
+        "head_branch": "feature/manager2-file-preflight-20261111",
+        "workflow_sha256": "277978baaf410c72372b8faea7f74a9f085ba8fdb5d7b153b6643e4881eb7942"
+    },
+    "43097373883": {
+        "head_sha": "837cc8068d5680190e878eeab0e27c8078707dc1",
+        "path": ".github/workflows/workspace-sound.yml",
+        "event": "pull_request",
+        "workflow_id": 363300483,
+        "head_branch": "feature/manager2-file-preflight-20261111",
+        "workflow_sha256": "f2ac71144414b911a4091c20fcb482e38911d582a0b082ed0d792f127e0437a4"
+    },
+    "43097373914": {
+        "head_sha": "837cc8068d5680190e878eeab0e27c8078707dc1",
+        "path": ".github/workflows/retired-domain-guard.yml",
+        "event": "pull_request",
+        "workflow_id": 348353174,
+        "head_branch": "feature/manager2-file-preflight-20261111",
+        "workflow_sha256": "66ac194e95cf25de4b915bf378c25dc2cf33b05c4378b4c2ebdc229ca4a92a0b"
+    },
+    "43097373916": {
+        "head_sha": "837cc8068d5680190e878eeab0e27c8078707dc1",
+        "path": ".github/workflows/regression-tests.yml",
+        "event": "pull_request",
+        "workflow_id": 340550044,
+        "head_branch": "feature/manager2-file-preflight-20261111",
+        "workflow_sha256": "317c2cbd9f597414a3207d7181beb8661cb881c98e1f85aaa32a793166e43b2e"
+    },
+    "43097374035": {
+        "head_sha": "837cc8068d5680190e878eeab0e27c8078707dc1",
+        "path": ".github/workflows/workspace-v2-visual-qa.yml",
+        "event": "pull_request",
+        "workflow_id": 343986842,
+        "head_branch": "feature/manager2-file-preflight-20261111",
+        "workflow_sha256": "2a3d3613ccc558314cdd1b532533657557dea417da6609eaae931c62fb0004c9"
+    },
+    "43097373867": {
+        "head_sha": "837cc8068d5680190e878eeab0e27c8078707dc1",
+        "path": ".github/workflows/publish-appleservice39-pilot.yml",
+        "event": "pull_request",
+        "workflow_id": 411288987,
+        "head_branch": "feature/manager2-file-preflight-20261111",
+        "workflow_sha256": "119b369e381f6f5ff6d2c17966334b32b83ca059f32dcc699317bfff86e3f5d5"
+    },
+    "43097356777": {
+        "head_sha": "a40f92d641bf36a7b1db955df03835c1a3cd77f2",
+        "path": ".github/workflows/retired-domain-guard.yml",
+        "event": "pull_request",
+        "workflow_id": 348353174,
+        "head_branch": "fix/modeled-frozen-outcomes-20261111",
+        "workflow_sha256": "66ac194e95cf25de4b915bf378c25dc2cf33b05c4378b4c2ebdc229ca4a92a0b"
+    },
+    "43097356829": {
+        "head_sha": "a40f92d641bf36a7b1db955df03835c1a3cd77f2",
+        "path": ".github/workflows/regression-tests.yml",
+        "event": "pull_request",
+        "workflow_id": 340550044,
+        "head_branch": "fix/modeled-frozen-outcomes-20261111",
+        "workflow_sha256": "317c2cbd9f597414a3207d7181beb8661cb881c98e1f85aaa32a793166e43b2e"
+    },
+    "43097357094": {
+        "head_sha": "a40f92d641bf36a7b1db955df03835c1a3cd77f2",
+        "path": ".github/workflows/max-channel-attribution.yml",
+        "event": "pull_request",
+        "workflow_id": 385615339,
+        "head_branch": "fix/modeled-frozen-outcomes-20261111",
+        "workflow_sha256": "b3412052410d7a9649877cb87f9ee4fafb1f079510e62a6ffff888dd61d6b4e5"
+    }
+}
+
 URLS = {
     "hotel-posts-telegram.xml": "https://app.anytoour.ru/feed/hotel-posts-telegram.xml",
     "hotel-posts-max.xml": "https://app.anytoour.ru/feed/hotel-posts-max.xml",
@@ -125,6 +201,34 @@ def origin(config):
     return {"repository": REPOSITORY, "run_id": run_id, "head_sha": head, "run_attempt": 1}
 
 
+def reviewed_stale_queued_no_jobs(run):
+    expected = REVIEWED_STALE_QUEUED_NO_JOBS.get(str(run.get("id")))
+    if expected is None:
+        return False
+    if (
+        run.get("status") != "queued"
+        or run.get("run_attempt") != 1
+        or run.get("conclusion") is not None
+        or any(run.get(key) != expected[key] for key in ("head_sha", "path", "event", "workflow_id", "head_branch"))
+    ):
+        return False
+    jobs = api("actions/runs/%d/jobs?per_page=100" % run["id"])
+    if jobs.get("total_count") != 0 or jobs.get("jobs") != []:
+        return False
+    workflow = api("contents/%s?ref=%s" % (expected["path"], expected["head_sha"]))
+    if workflow.get("encoding") != "base64":
+        return False
+    raw = base64.b64decode(workflow.get("content", ""), validate=True)
+    return sha(raw) == expected["workflow_sha256"]
+
+
+def verify_reviewed_stale_queued_no_jobs():
+    for run_id in sorted(int(value) for value in REVIEWED_STALE_QUEUED_NO_JOBS):
+        run = api("actions/runs/%d" % run_id)
+        need(reviewed_stale_queued_no_jobs(run), "reviewed_stale_queued_changed_%d" % run_id)
+        print("REVIEWED_STALE_QUEUED_NO_JOBS id=%d" % run_id)
+
+
 def public_exclusive(current_run):
     for status in gate.STATUSES:
         for repository, workflow_only in (
@@ -141,7 +245,13 @@ def public_exclusive(current_run):
             data = json.loads(result.stdout)
             runs = data["workflow_runs"]
             need(data["total_count"] == len(runs) and data["total_count"] <= 100, "ambiguous_public_runs")
-            competing = [item for item in runs if not (repository == REPOSITORY and item["id"] == current_run)]
+            competing = []
+            for item in runs:
+                if repository == REPOSITORY and item["id"] == current_run:
+                    continue
+                if repository == REPOSITORY and reviewed_stale_queued_no_jobs(item):
+                    continue
+                competing.append(item)
             need(not competing, "competing_public_writer_or_collector")
 
 
@@ -368,6 +478,8 @@ def main():
     mode = sys.argv[1]
     if mode == "prepare":
         prepare(pathlib.Path(sys.argv[2]), pathlib.Path(sys.argv[3]))
+    elif mode == "verify-stale-queued":
+        verify_reviewed_stale_queued_no_jobs()
     elif mode == "step":
         step(int(sys.argv[2]))
     elif mode == "finish":
