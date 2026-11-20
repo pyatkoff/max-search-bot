@@ -1,4 +1,4 @@
-name: "Read the exact Aloft Telegram video, current button and live offer"
+name: "Independent public readback of Aloft 1207 after the video editor admission check"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,7 +13,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '382207885938289d44885436992c031910a860a9' &&
+      github.event.before == '2852e89f02bb1250f8fddedba6dc356cb716ec23' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -134,7 +134,10 @@ jobs:
           }
           
           
-          $out=['ok'=>false,'provider_writes'=>0,'mid'=>1207,'hotel_id'=>61159];
+          $baseline=json_decode(<<<'BASE'
+          {"date":"2025-09-23T10:27:57+00:00","captionHash":"b2f19ba15412fbff79de5c560617cb85e52d276c8ba972bae659975825805346","buttons":[{"text":"СВЯЗАТЬСЯ С МЕНЕДЖЕРОМ 📱","url":"https://t.me/AnyTour_MSK"}],"video":["8e893fc0574e6f7e7dbf00c1d6910ba1e735962880a8c11e53d9b18c9469cdc1","ab19e4b3015a33d11a71376906c28d6822625a42a00432847b57d9d8f290c7c8"],"links":[{"text":"201 061 RUB","url":"https://anytour.online/poisk-turov/7q8s8lo4r0/"},{"text":"Подписаться на канал AnyTour - Горящие туры","url":"https://t.me/+gGloLUt4d8s3NDcy"}]}
+          BASE,true,10,JSON_THROW_ON_ERROR);
+          $out=['ok'=>false,'mid'=>1207,'hotel_id'=>61159,'provider_writes'=>0];
           try {
               installedEdit('e262bf139da2b78623e1be3a891630fd10924180');
               ob_start();try{
@@ -142,40 +145,29 @@ jobs:
                   require_once getcwd().'/services/PromotedHotelPriceWriter.php';
                   require_once getcwd().'/services/ChannelPostEntryService.php';
               }finally{ob_end_clean();}
-              $out['installed']='e262bf139da2b78623e1be3a891630fd10924180';
-              $p=publicTelegram(1207);
-              requireEdit(mb_stripos($p['caption'],'Aloft Palm Jumeirah')!==false,'target_hotel_unconfirmed');
-              $out['public']=$p;
-              $out['price']=priceRows([61159])[61159];
+              $now=publicTelegram(1207);
+              $price=priceRows([61159])[61159];
+              $out['source_offer']=$price;
+              $out['post_url']='https://t.me/anytour/1207';
+              $out['date']=$now['date'];
+              $out['date_unchanged']=$now['date']===$baseline['date'];
+              $out['video_present']=$now['videos']>0;
+              $out['video_markers_match']=$now['video_sha256s']===$baseline['video'];
+              $out['caption_unchanged']=$now['caption_sha256']===$baseline['captionHash'];
+              $out['original_links_unchanged']=$now['links']===$baseline['links'];
+              $out['buttons']=$now['buttons'];
+              $out['old_button_unchanged']=$now['buttons']===$baseline['buttons'];
+              $out['published_offer_matches_feed']=isset($price['block']) && str_contains($now['caption'],$price['block']);
+              if(preg_match('/\b[0-9][0-9 \x{00a0}\x{202f}]+ RUB\b/u',$now['caption'],$old))$out['visible_legacy_amount']=$old[0];
               $pdo=ConversationDb::connection();
-              $pdo->exec('SET SESSION TRANSACTION READ ONLY');
-              $pdo->beginTransaction();
+              $pdo->exec('SET SESSION TRANSACTION READ ONLY');$pdo->beginTransaction();
               $registry=new ChannelPostRegistryService($pdo);
-              $bot=(string)(ChannelPostRuntime::identity('telegram')['bot_key']??'');
-              $channel=$registry->channel('anytour','telegram',$bot,'-1001845835645');
-              requireEdit(is_array($channel) && (int)$channel['id']===6,'channel_identity');
-              $out['channel']=['label'=>$channel['button_text'],'version'=>(int)$channel['config_version'],'source_key'=>$channel['source_key']];
-              $target=fromRegistry($pdo,$registry,6,1207);
-              $out['target']=recordVersion($target);
-              $out['target_capability']=$target['snapshot']['metadata']['capability']??null;
-              $out['target_reason']=$target['snapshot']['metadata']['capability_reason']??null;
-              $out['target_video_id_hash']=isset($target['snapshot']['raw_body']['video']['file_unique_id'])
-                  ? hash('sha256',$target['snapshot']['raw_body']['video']['file_unique_id']):null;
-              $source=fromRegistry($pdo,$registry,10,428);
-              $out['source']=recordVersion($source);unset($out['source']['caption']);
-              foreach(['target'=>$target,'source'=>$source] as $name=>$post){
-                  if(!$post)continue;
-                  $entry=ChannelPostEntryService::resolve('telegram',$post['start_payload'],$registry);
-                  $link=ChannelPostButtonTransport::buttonUrl($post);
-                  $out[$name.'_context']=['hotel_id'=>$entry['snapshot']['metadata']['hotel_catalog_id']??null,
-                      'post_url'=>$entry['snapshot']['post_url']??null,'state'=>$entry['state']??null,'button_sha256'=>hash('sha256',$link)];
-              }
-              // Exercise the deployed adapter using only the observed fact that this post has a video.
-              $sample=ChannelPostIncomingAdapter::telegramSnapshot(['caption'=>$p['caption'],'chat'=>['username'=>'anytour','id'=>'-1001845835645'],
-                  'message_id'=>1207,'video'=>[]]);
-              $out['adapter_test']=['capability'=>$sample['metadata']['capability'],'reason'=>$sample['metadata']['capability_reason']];
+              $out['editor_target']=recordVersion(fromRegistry($pdo,$registry,6,1207));
               $pdo->rollBack();$out['ok']=true;
-          }catch(Throwable $e){if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();$out['reason']=$e->getMessage();}
+          }catch(Throwable $e){
+             if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();
+             $out['reason']=$e->getMessage();
+          }
           echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
           exit($out['ok']?0:2);
           PHP
@@ -224,12 +216,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ALOFT_VIDEO_PRECHECK="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ALOFT_VIDEO_READBACK="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: aloft-1207-video-preflight
+          name: aloft-1207-independent-readback
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
