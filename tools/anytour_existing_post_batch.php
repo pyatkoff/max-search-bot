@@ -128,7 +128,9 @@ function editHotelExisting(PDO $pdo, ChannelPostRegistryService $registry, array
     requirePost(hash_equals($row['old_caption_sha256'], hash('sha256', $public['text']))
         && $prior['text'] === $public['text'], 'pinned_caption_changed');
     $verifyChannel = $post['channel'];
-    $verifyChannel['expected_public_url'] = $platform === 'max' ? 'https://max.ru/anytour' : 'https://t.me/anytour';
+    if ($platform === 'max') {
+        $verifyChannel['expected_public_url'] = 'https://max.ru/anytour';
+    }
     requirePost(((new ChannelPostButtonTransport())->verifyChannel($verifyChannel)['state'] ?? '') === 'ready', 'channel_edit_rights_unavailable');
     requirePost($registry->publication($id) === $post, 'publication_changed_before_write');
     $q->execute([$id]);
@@ -203,7 +205,7 @@ function validHotelEditPlan(array $row): bool
         || !preg_match('/\A[a-f0-9]{64}\z/D', $row['old_caption_sha256'] ?? '')
         || !is_string($row['next'] ?? null) || trim($row['next']) !== $row['next']
         || !mb_check_encoding($row['next'], 'UTF-8')
-        || mb_strlen($row['next'], 'UTF-16LE') > 1024) {
+        || strlen(mb_convert_encoding($row['next'], 'UTF-16LE', 'UTF-8')) > 2048) {
         return false;
     }
     if ($row['platform'] === 'telegram') {
