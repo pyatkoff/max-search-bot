@@ -30,7 +30,11 @@ def main():
  summaries=[];all_ids=[]
  for g in intent["groups"]:
   program=(root/("p%02d"%g["batch"])/"read.php").read_bytes();need(sha(program)==g["reader_sha256"],"reader_changed")
-  p=subprocess.run(cmd,input=program,capture_output=True,timeout=120);need(p.returncode==0 and len(p.stdout)<2000000,"bounded_read_failed")
+  p=subprocess.run(cmd,input=program,capture_output=True,timeout=120)
+  if p.returncode!=0 or len(p.stdout)>=2000000:
+   (dest/("p%02d.failure.json"%g["batch"])).write_text(json.dumps({"batch":g["batch"],"returncode":p.returncode,"stdout_bytes":len(p.stdout),"stdout_sha256":sha(p.stdout),"stderr_bytes":len(p.stderr),"stderr_sha256":sha(p.stderr)})+"\n")
+   if len(p.stdout)<2000000: (dest/("p%02d.failure.stdout"%g["batch"])).write_bytes(p.stdout)
+   raise ValueError("bounded_read_failed_p%02d"%g["batch"])
   result=json.loads(p.stdout);n=len(g["hotel_ids"])
   need(result.get("ok") is True and result.get("installed_sha")==intent["expected_installed_sha"],"runtime_or_read_changed")
   need(all(result.get(k)==0 for k in ["db_writes","provider_calls","message_sends","deferred_count"]),"read_boundary")
