@@ -1,4 +1,4 @@
-name: "Aloft 1207: isolated Telegram bot administrator read"
+name: "Aloft 1207: match exact administrator bot names to authorized bindings"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,68 +13,72 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '721672627aabd2a8fbb3a7a776e6d2f3ddbd96cc' &&
+      github.event.before == '5cb50bdb72e49925589c9e44a9bc41409b3ed609' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Check out isolated integration code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          persist-credentials: false
-          path: source
-      - name: Check and assemble the read-only integration
+      - name: Prepare exact-name read-only registry check
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           mkdir pub
-          php -l source/integrations/AnyTourTelegramAdministratorRead.php
-          php -r '
-            require "source/integrations/AnyTourTelegramAdministratorRead.php";
-            if (AnyTourTelegramAdministratorRead::read(-1001845835644, true)["state"]!=="outside_exact_read_scope"
-              || AnyTourTelegramAdministratorRead::read(-1001845835645, false)["state"]!=="outside_exact_read_scope") exit(2);
-            $method = new ReflectionMethod(AnyTourTelegramAdministratorRead::class,"botRights");
-            $supplied = [
-              ["user"=>["is_bot"=>false,"username"=>"human_fixture","id"=>123],"can_edit_messages"=>true],
-              ["user"=>["is_bot"=>true,"username"=>"example_bot","id"=>234],"can_edit_messages"=>true],
-              ["user"=>["is_bot"=>true,"username"=>"invalid fixture"]],
-            ];
-            $expected=[["username"=>"example_bot","can_edit_messages"=>true,"can_post_messages"=>false]];
-            if ($method->invoke(null,$supplied)!==$expected) exit(3);
-            echo "EXACT_SCOPE_AND_BOT_ONLY_PROJECTION_VERIFIED\n";
-          '
-          cat source/integrations/AnyTourTelegramAdministratorRead.php > pub/read-only.php
-          cat >> pub/read-only.php <<'PHP'
+          cat > pub/read-only.php <<'PHP'
+          <?php
+          declare(strict_types=1);
           ini_set('display_errors','0');
           ini_set('log_errors','0');
-          $out=['ok'=>false,'provider_writes'=>0];
+          
+          function requireEdit(bool $ok, string $reason): void {
+              if (!$ok) throw new RuntimeException($reason);
+          }
+          function installedEdit(string $expected): void {
+              requireEdit(PHP_SAPI === 'cli' && getcwd() === '/var/www/anytoour/data/www/app.anytoour.ru', 'app_root');
+              requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD')) === $expected, 'installed_checkout_changed');
+              requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false status --porcelain --untracked-files=no')) === '', 'installed_checkout_dirty');
+          }
+          function countMatch(PDO $pdo,string $sql,array $params): int {
+              $statement=$pdo->prepare($sql);
+              $statement->execute($params);
+              $total=(int)$statement->fetchColumn();
+              $statement->closeCursor();
+              return $total;
+          }
+          $out=['ok'=>false,'provider_writes'=>0,'db_writes'=>0];
           try {
-              $sha='9385571c86c45189c31d9c4aa904c23970e3b11a';
-              if (PHP_SAPI!=='cli' || getcwd()!=='/var/www/anytoour/data/www/app.anytoour.ru'
-                  || trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'))!==$sha
-                  || trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false status --porcelain --untracked-files=no'))!=='') {
-                  throw new RuntimeException('installed_checkout_changed');
-              }
+              installedEdit('9385571c86c45189c31d9c4aa904c23970e3b11a');
               ob_start();
-              try {
+              try{
                   require getcwd().'/config.php';
-                  require_once getcwd().'/integrations/ChannelPostApiTransport.php';
-              } finally { ob_end_clean(); }
-              $me=ChannelPostApiTransport::buttonRequest('telegram','POST','getMe',[],[]);
-              $user=$me['data']['result']??null;
-              if (($me['http']??0)!==200 || ($me['data']['ok']??false)!==true
-                  || ($user['is_bot']??false)!==true || ($user['username']??'')!=='anyru_bot') {
-                  throw new RuntimeException('installed_bot_identity_unconfirmed');
+                  require_once getcwd().'/services/ChannelPostEntryService.php';
+              }finally{ob_end_clean();}
+              $pdo=ConversationDb::connection();
+              $pdo->exec('SET SESSION TRANSACTION READ ONLY');
+              $pdo->beginTransaction();
+              foreach(['ANYTOURBOT_bot','coralsub_bot'] as $username){
+                  $name=strtolower($username);
+                  $channels=countMatch($pdo,"SELECT COUNT(*) FROM post_channels c JOIN projects p ON p.id=c.project_id
+                      WHERE p.project_key=? AND c.platform=? AND c.is_enabled=1 AND LOWER(c.canonical_bot_username)=?",['anytour','telegram',$name]);
+                  $exact=countMatch($pdo,"SELECT COUNT(*) FROM post_channels c JOIN projects p ON p.id=c.project_id
+                      WHERE p.project_key=? AND c.platform=? AND c.channel_id=? AND c.is_enabled=1 AND LOWER(c.canonical_bot_username)=?",
+                      ['anytour','telegram','-1001845835645',$name]);
+                  $dialogues=countMatch($pdo,'SELECT COUNT(*) FROM telegram_dialogue_connections WHERE project_key=? AND LOWER(bot_key)=? AND is_enabled=1',
+                      ['anytour',$name]);
+                  $archive=countMatch($pdo,'SELECT COUNT(*) FROM telegram_archive_accounts WHERE project_key=? AND LOWER(bot_key)=? AND provider_enabled=1 AND approved=1',
+                      ['anytour',$name]);
+                  $out['candidates'][]=['username'=>$username,'authorized_channel_bindings'=>$channels,'exact_channel_bindings'=>$exact,
+                      'enabled_private_archive_bot_connections'=>$dialogues,'enabled_approved_archive_bot_accounts'=>$archive];
               }
-              unset($me,$user);
-              $out['verified_bot']='anyru_bot';
-              $result=AnyTourTelegramAdministratorRead::read(-1001845835645,true);
-              $out=array_replace($out,$result);
-              $out['admin_read_attempts']=1;
-          } catch(Throwable $e) {
-              $value=$e->getMessage();
-              $out['state']=preg_match('/\A[a-z_]{1,65}\z/D',$value)?$value:'isolated_read_failed';
+              $out['separate_anytour_telegram_bot_connections']=countMatch($pdo,
+                  'SELECT COUNT(*) FROM project_telegram_bot_connections b JOIN projects p ON p.id=b.project_id WHERE p.project_key=?',['anytour']);
+              $identity=ChannelPostRuntime::identity('telegram');
+              $out['runtime_publisher_username']=$identity['bot_key']??null;
+              $pdo->rollBack();
+              $out['ok']=true;
+          }catch(Throwable $e){
+              if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();
+              $message=$e->getMessage();$out['reason']=preg_match('/\A[a-z_]{1,65}\z/D',$message)?$message:'publisher_binding_read_failed';
           }
           echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
           PHP
@@ -111,7 +115,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read the Telegram bot-admin list through the isolated integration
+      - name: Match only the two exact administrator bot names
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -123,12 +127,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("TELEGRAM_ISOLATED_ADMIN_READ="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("provider_writes")==0'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ALOFT1207_ALTERNATE_BOT_BINDINGS="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: telegram-isolated-admin-read-receipt
+          name: aloft-1207-exact-alternative-bot-bindings
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
