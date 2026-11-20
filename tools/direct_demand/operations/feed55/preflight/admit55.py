@@ -11,13 +11,19 @@ def need(v,m):
  if not v: raise ValueError(m)
 def api(repo,path):
  return json.loads(subprocess.check_output(["gh","api","--method","GET","repos/pyatkoff/"+repo+"/"+path],timeout=45))
-def active(repo,status):
+def active(repo,status,now):
  d=api(repo,"actions/runs?status="+status+"&per_page=100")
- rows=d.get("workflow_runs"); need(isinstance(rows,list) and isinstance(d.get("total_count"),int) and len(rows)==d["total_count"]<=100,"ambiguous_active_runs")
+ rows=d.get("workflow_runs");total=d.get("total_count")
+ need(isinstance(rows,list) and isinstance(total,int) and len(rows)==total and total<=100,"ambiguous_active_runs:"+repo+":"+status+":"+str(total)+":"+str(len(rows) if isinstance(rows,list) else -1))
+ cutoff=now-datetime.timedelta(hours=12);recent=[]
+ for row in rows:
+  try: created=datetime.datetime.fromisoformat(row["created_at"].replace("Z","+00:00"))
+  except Exception: raise ValueError("active_run_timestamp_invalid")
+  if created>=cutoff: recent.append(row)
  if repo=="poisk-turov-test":
-  need(all(isinstance(x.get("workflow_id"),int) for x in rows),"collector_identity_missing")
-  rows=[x for x in rows if x["workflow_id"]==346454799]
- return rows
+  need(all(isinstance(x.get("workflow_id"),int) for x in recent),"collector_identity_missing")
+  recent=[x for x in recent if x["workflow_id"]==346454799]
+ return recent
 def main():
  out=pathlib.Path(sys.argv[1])
  need(os.environ.get("GITHUB_REPOSITORY")=="pyatkoff/max-search-bot" and os.environ.get("GITHUB_ACTOR")=="pyatkoff" and os.environ.get("GITHUB_EVENT_NAME")=="push" and os.environ.get("GITHUB_RUN_ATTEMPT")=="1","event_scope")
@@ -29,10 +35,10 @@ def main():
  for cid,digest in [(TRANSFER_ID,TRANSFER_SHA256),(ACCEPT_ID,ACCEPT_SHA256)]:
   c=api("max-search-bot","issues/comments/"+str(cid))
   need(c["user"]["id"]==226193297 and sha(c["body"].encode())==digest,"owner_comment_changed")
- current=int(os.environ["GITHUB_RUN_ID"]); checks=[]
+ current=int(os.environ["GITHUB_RUN_ID"]); checks=[];now=datetime.datetime.now(datetime.timezone.utc)
  for status in ["in_progress","queued","waiting","pending","requested"]:
   for short in ["max-search-bot","poisk-turov-test"]:
-   rows=active(short,status); other=[r for r in rows if not(short=="max-search-bot" and r.get("id")==current and r.get("head_sha")==head)]
+   rows=active(short,status,now); other=[r for r in rows if not(short=="max-search-bot" and r.get("id")==current and r.get("head_sha")==head)]
    need(not other,"competing_run:"+short+":"+status);checks.append({"repository":short,"status":status,"other_count":0})
  out.write_text(json.dumps({"state":"FEED55_FRESH_READ_ONLY_ADMISSION","runtime_sha":RUNTIME,"transfer_comment_id":TRANSFER_ID,"acceptance_comment_id":ACCEPT_ID,"owner_and_concurrency_verified":True,"writes_authorized":False,"observed_at":datetime.datetime.now(datetime.timezone.utc).isoformat(),"checks":checks},sort_keys=True)+"\n")
 if __name__=="__main__":
