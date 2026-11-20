@@ -1,0 +1,47 @@
+name: Private review journal native QA
+on:
+  pull_request:
+    paths:
+      - 'manager2/virtual-replies.php'
+      - 'manager2/assets/virtual-replies.*'
+      - 'manager/virtual-reply-reviews-api.php'
+      - 'services/VirtualReplyReviewBrowser.php'
+      - 'services/VirtualReplyStore.php'
+      - 'tests/fixtures/virtual_reply_review_browser.cjs'
+      - '.github/workflows/virtual-reply-review-browser.yml'
+permissions:
+  contents: read
+jobs:
+  journal-browser:
+    name: journal-browser (${{ matrix.engine }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Install pinned test browser
+        run: |
+          npm install --prefix "$RUNNER_TEMP/journal-browser" --no-audit --no-fund playwright@1.55.0
+          "$RUNNER_TEMP/journal-browser/node_modules/.bin/playwright" install --with-deps "${{ matrix.engine }}"
+      - name: Test actual shell with synthetic private API responses
+        env:
+          REVIEW_BROWSER_ENGINE: ${{ matrix.engine }}
+          REVIEW_BROWSER_SCREENSHOTS: journal-browser-artifacts
+        run: NODE_PATH="$RUNNER_TEMP/journal-browser/node_modules" node tests/fixtures/virtual_reply_review_browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: private-review-journal-${{ matrix.engine }}-${{ github.sha }}
+          path: journal-browser-artifacts/*.png
+          if-no-files-found: error
+          retention-days: 7
