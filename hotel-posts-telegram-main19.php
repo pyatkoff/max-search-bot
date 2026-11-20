@@ -130,13 +130,61 @@ function anytourTelegramFeedOfferFromQuery(string $query): ?string
     return preg_match('/\Aoffer=('.ANYTOUR_TELEGRAM_OFFER_ID.')\z/', $query, $match) ? $match[1] : null;
 }
 
-function anytourTelegramFeedResolve(string $xml, string $offerId): ?array
+function anytourTelegramFeedResolve(string $xml, string $offerId, ?callable $routeLookup = null): ?array
 {
     if (!preg_match('/\A'.ANYTOUR_TELEGRAM_OFFER_ID.'\z/', $offerId)) {
         throw new InvalidArgumentException('Invalid Telegram offer identifier');
     }
     $landing = anytourTelegramFeedDestinationPosts(anytourTelegramFeedOfferUrls($xml));
+    $tableRoutes = [
+        'tg_118475' => ['https://t.me/any_toour/194', 'https://t.me/anytour/1780'],
+        'tg_3405' => ['https://t.me/any_toour/158', 'https://t.me/anytour/1760'],
+    ];
+    if ($routeLookup !== null && isset($landing[$offerId], $tableRoutes[$offerId])) {
+        [$old, $new] = $tableRoutes[$offerId];
+        if ($landing[$offerId] !== $old) {
+            throw new RuntimeException('Unexpected Telegram route source');
+        }
+        $tableRoute = $routeLookup($offerId);
+        if ($tableRoute !== null) {
+            if (($tableRoute['offer_id'] ?? null) !== $offerId || !in_array($tableRoute['post_url'] ?? null, [$old, $new], true)) {
+                throw new RuntimeException('Unexpected Telegram table destination');
+            }
+            return ['offer_id' => $offerId, 'post_url' => $tableRoute['post_url'], 'route_table' => 'max2-v1'];
+        }
+    }
     return isset($landing[$offerId]) ? ['offer_id' => $offerId, 'post_url' => $landing[$offerId]] : null;
+}
+
+function anytourTelegramReadSharedRoute(string $offerId): ?array
+{
+    if (!in_array($offerId, ['tg_118475', 'tg_3405'], true)) {
+        return null;
+    }
+    $request = curl_init('https://tour-max.ru/new/max2/telegram-hotel-route.php?offer='.$offerId);
+    try {
+        $buffer = '';
+        $configured = curl_setopt_array($request, [
+            CURLOPT_CONNECTTIMEOUT => 2, CURLOPT_TIMEOUT => 4, CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_SSL_VERIFYPEER => true, CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_WRITEFUNCTION => static function ($handle, string $part) use (&$buffer): int {
+                if (strlen($buffer) + strlen($part) > 4096) {
+                    return 0;
+                }
+                $buffer .= $part;
+                return strlen($part);
+            },
+        ]);
+        if (!$configured || curl_exec($request) !== true || curl_getinfo($request, CURLINFO_RESPONSE_CODE) !== 200) {
+            return null;
+        }
+        $payload = json_decode($buffer, true, 6, JSON_THROW_ON_ERROR);
+        return is_array($payload) ? $payload : null;
+    } catch (JsonException $error) {
+        return null;
+    } finally {
+        curl_close($request);
+    }
 }
 
 function anytourTelegramFeedRead(): string
@@ -176,13 +224,13 @@ if ($isResolver) {
 try {
     $source = anytourTelegramFeedRead();
     if ($isResolver) {
-        $resolved = anytourTelegramFeedResolve($source, $offerId);
+        $resolved = anytourTelegramFeedResolve($source, $offerId, 'anytourTelegramReadSharedRoute');
         if ($resolved === null) {
             http_response_code(404);
             header('Cache-Control: no-store');
             return;
         }
-        header('Cache-Control: public, max-age=60');
+        header(isset($resolved['route_table']) ? 'Cache-Control: no-store' : 'Cache-Control: public, max-age=60');
         if ($method === 'GET') {
             echo json_encode($resolved, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
         }
