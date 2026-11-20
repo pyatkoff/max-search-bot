@@ -1,4 +1,4 @@
-name: "Aloft 1207: read exact publication, editor and archive history"
+name: "Aloft 1207: independently read public video markup without edits"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,7 +13,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '2080154b2ef8338978aabae2aa974b445d9e4f95' &&
+      github.event.before == '05d40091d5003e49a494f98766a8faf2ff05840a' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -38,9 +38,9 @@ jobs:
               requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD')) === $expected, 'installed_checkout_changed');
               requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false status --porcelain --untracked-files=no')) === '', 'installed_checkout_dirty');
           }
-          function publicTelegram(int $mid): array {
+          function publicTelegram(int $mid, int $cursor): array {
               $doc = new DOMDocument();
-              $url = 'https://t.me/s/anytour?before=' . ($mid + 1);
+              $url = 'https://t.me/s/anytour?before=' . $cursor;
               $raw = PromotedHotelPriceWriter::publicBytes($url);
               requireEdit(@$doc->loadHTML('<?xml encoding="UTF-8">'.$raw, LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING), 'public_dom');
               $xp = new DOMXPath($doc);
@@ -74,6 +74,7 @@ jobs:
                   $links[]=['text'=>trim($a->textContent),'url'=>$a->getAttribute('href')];
               }
               return ['date'=>$time->item(0)->getAttribute('datetime'),'photos'=>$photos,'videos'=>$videos,
+                  'video_marker_kinds'=>array_map(static fn(array $x):array=>[$x[0],$x[1],$x[2]!=='',$x[4]!==''],$clips),
                   'video_sha256s'=>array_map(static fn(array $x):string=>hash('sha256',json_encode($x,JSON_THROW_ON_ERROR)),$clips),
                   'video_duration_text'=>array_values(array_map(static fn(array $x):string=>$x[5],array_filter($clips,static fn(array $x):bool=>str_contains($x[1],'video_duration')))),
                   'public_via_bot_marker'=>$xp->query('.//*[contains(@class,"tgme_widget_message_via_bot") or contains(@class,"tgme_widget_message_via")]',$root)->length>0,
@@ -120,87 +121,30 @@ jobs:
               }
               return $result;
           }
-          function historyCount(PDO $pdo,string $sql,array $args): int {
-              $s=$pdo->prepare($sql);
-              $s->execute($args);
-              $count=(int)$s->fetchColumn();
-              $s->closeCursor();
-              return $count;
-          }
-          
-          $out=['ok'=>false,'post'=>'https://t.me/anytour/1207','hotel_id'=>61159,'db_writes'=>0,'provider_writes'=>0];
+          $out=['ok'=>false,'db_writes'=>0,'provider_writes'=>0,'post'=>'https://t.me/anytour/1207'];
           try {
               installedEdit('9385571c86c45189c31d9c4aa904c23970e3b11a');
               ob_start();
-              try {
-                  require getcwd().'/config.php';
-                  require_once getcwd().'/services/PromotedHotelPriceWriter.php';
-                  require_once getcwd().'/services/ChannelPostEntryService.php';
-                  require_once getcwd().'/services/ChannelPostButtonTransport.php';
-              } finally { ob_end_clean(); }
-              $out['stage']='read_archive';
-              $pdo=ConversationDb::connection();
-              $pdo->exec('SET SESSION TRANSACTION READ ONLY');
-              $pdo->beginTransaction();
-              $s=$pdo->prepare("SELECT pc.id,pc.canonical_bot_username,pc.is_enabled,pc.config_version
-                  FROM post_channels pc JOIN projects p ON p.id=pc.project_id
-                  WHERE p.project_key=? AND pc.platform=? AND pc.channel_id=? ORDER BY pc.id");
-              $s->execute(['anytour','telegram','-1001845835645']);
-              $out['exact_channel_editors']=$s->fetchAll(PDO::FETCH_ASSOC);
-              $s->closeCursor();
-              $out['exact_publication_rows']=historyCount($pdo,
-                  'SELECT COUNT(*) FROM post_publications p JOIN post_channels c ON c.id=p.post_channel_id
-                  WHERE c.platform=? AND c.channel_id=? AND p.external_message_id=?',['telegram','-1001845835645','1207']);
-              $out['exact_publication_version_rows']=historyCount($pdo,
-                  'SELECT COUNT(*) FROM post_versions v JOIN post_publications p ON p.id=v.publication_id JOIN post_channels c ON c.id=p.post_channel_id
-                  WHERE c.platform=? AND c.channel_id=? AND p.external_message_id=?',['telegram','-1001845835645','1207']);
-              $out['exact_webhook_observations']=historyCount($pdo,
-                  'SELECT COUNT(*) FROM post_observations o JOIN post_publications p ON p.id=o.publication_id JOIN post_channels c ON c.id=p.post_channel_id
-                  WHERE c.platform=? AND c.channel_id=? AND p.external_message_id=?',['telegram','-1001845835645','1207']);
-              $out['exact_album_member_rows']=historyCount($pdo,
-                  'SELECT COUNT(*) FROM post_member_deliveries m JOIN post_publications p ON p.id=m.publication_id JOIN post_channels c ON c.id=p.post_channel_id
-                  WHERE c.platform=? AND c.channel_id=? AND m.external_message_id=?',['telegram','-1001845835645','1207']);
-              $out['enabled_private_archive_connections']=historyCount($pdo,
-                  'SELECT COUNT(*) FROM telegram_dialogue_connections WHERE project_key=? AND is_enabled=1',['anytour']);
-              $out['enabled_approved_private_archive_accounts']=historyCount($pdo,
-                  'SELECT COUNT(*) FROM telegram_archive_accounts WHERE project_key=? AND provider_enabled=1 AND approved=1',['anytour']);
-              $out['exact_id_archive_candidates']=historyCount($pdo,
-                  'SELECT COUNT(*) FROM telegram_dialogue_messages WHERE project_key=? AND chat_id IN (?,?) AND message_id=?',
-                  ['anytour','1845835645','1001845835645','1207']);
-              $out['separate_anytour_bot_connection_rows']=historyCount($pdo,
-                  'SELECT COUNT(*) FROM project_telegram_bot_connections c JOIN projects p ON p.id=c.project_id WHERE p.project_key=?',['anytour']);
-          
-              $identity=ChannelPostRuntime::identity('telegram');
-              $registry=new ChannelPostRegistryService($pdo);
-              $channel=$identity?$registry->channel('anytour','telegram',$identity['bot_key'],'-1001845835645'):null;
-              $pdo->rollBack();
-              $out['stage']='check_documented_editor';
-              requireEdit(is_array($channel) && (int)$channel['id']===6 && ($channel['canonical_bot_username']??'')==='anyru_bot',
-                  'canonical_editor_mapping_changed');
-              $rights=(new ChannelPostButtonTransport())->verifyChannel($channel);
-              $out['canonical_editor_generic_rights']=$rights['state']??'unavailable';
-              $out['canonical_editor_exact_read_supported_by_installed_transport']=false;
-              $out['stage']='read_public_post';
-              $post=publicTelegram(1207);
-              $out['public']=[
-                  'original_date'=>$post['date']==='2025-09-23T10:27:57+00:00',
-                  'original_video'=>$post['video_sha256s']===['8e893fc0574e6f7e7dbf00c1d6910ba1e735962880a8c11e53d9b18c9469cdc1',
-                      'ab19e4b3015a33d11a71376906c28d6822625a42a00432847b57d9d8f290c7c8'],
-                  'original_caption'=>$post['caption_sha256']==='b2f19ba15412fbff79de5c560617cb85e52d276c8ba972bae659975825805346',
-                  'original_links'=>$post['links']===[
-                      ['text'=>'201 061 RUB','url'=>'https://anytour.online/poisk-turov/7q8s8lo4r0/'],
-                      ['text'=>'Подписаться на канал AnyTour - Горящие туры','url'=>'https://t.me/+gGloLUt4d8s3NDcy']],
-                  'original_keyboard'=>$post['buttons']===[['text'=>'СВЯЗАТЬСЯ С МЕНЕДЖЕРОМ 📱','url'=>'https://t.me/AnyTour_MSK']],
-                  'publishing_bot_via_marker_visible'=>$post['public_via_bot_marker'],
-              ];
-              $out['stage']='read_fresh_offer';
-              $offer=priceRows([61159])[61159];unset($offer['block']);
-              $out['offer']=$offer;
-              $out['ok']=true;unset($out['stage']);
-          } catch (Throwable $e) {
-              if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();
-              $m=$e->getMessage();$out['reason']=preg_match('/^[a-z_0-9]{1,100}$/D',$m)?$m:'fresh_access_audit_failed';
-              if($e instanceof PDOException){$out['sql_state']=(string)$e->getCode();$out['sql_driver_errno']=(int)($e->errorInfo[1]??0);}
+              try{require getcwd().'/config.php';require_once getcwd().'/services/PromotedHotelPriceWriter.php';}
+              finally{ob_end_clean();}
+              $expected=['8e893fc0574e6f7e7dbf00c1d6910ba1e735962880a8c11e53d9b18c9469cdc1','ab19e4b3015a33d11a71376906c28d6822625a42a00432847b57d9d8f290c7c8'];
+              foreach([1208,1209,1210] as $cursor){
+                  try{
+                      $post=publicTelegram(1207,$cursor);
+                      $out['reads'][]=['window_before'=>$cursor,'date_matches'=>$post['date']==='2025-09-23T10:27:57+00:00',
+                          'caption_matches'=>$post['caption_sha256']==='b2f19ba15412fbff79de5c560617cb85e52d276c8ba972bae659975825805346',
+                          'video_elements'=>$post['videos'],'public_photo_elements'=>count($post['photos']),
+                          'old_video_widget_markers_matched'=>count(array_intersect($expected,$post['video_sha256s'])),
+                          'video_widget_matches_all'=>$expected===$post['video_sha256s'],
+                          'video_marker_kinds'=>$post['video_marker_kinds'],'duration_texts'=>$post['video_duration_text'],
+                          'video_widgets_digest'=>hash('sha256',implode('',$post['video_sha256s']))];
+                  } catch(RuntimeException $e){
+                      $out['reads'][]=['window_before'=>$cursor,'readable'=>false];
+                  }
+              }
+              $out['ok']=count(array_filter($out['reads'],static fn($r)=>isset($r['video_elements'])))>0;
+          } catch(Throwable $e){
+              $m=$e->getMessage();$out['reason']=preg_match('/^[a-z_0-9]{1,100}$/D',$m)?$m:'exact_video_read_failed';
           }
           echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
           PHP
@@ -249,12 +193,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ALOFT1207_FRESH_API_AUDIT="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0 and d.get("db_writes")==0'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ALOFT1207_VIDEO_WIDGET_AUDIT="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0 and d.get("db_writes")==0'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: aloft-1207-fresh-api-access-audit
+          name: aloft-1207-public-video-readback
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
