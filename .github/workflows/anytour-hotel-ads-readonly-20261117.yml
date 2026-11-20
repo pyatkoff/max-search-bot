@@ -13,7 +13,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'd9f7f43dec6f22448374cd3f86ee261d170303ae' &&
+      github.event.before == '0f9b421b31bde5d72cd1c538e5e0bd185a1606a2' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -122,7 +122,7 @@ jobs:
           function offerTitle(string $title): string {
               $t=mb_strtolower($title,'UTF-8');
               $t=preg_replace('/^[^\p{L}\p{N}]+/u','',$t);
-              $t=preg_replace('/^(?:туры?\s+в|поездка\s+в|отель)\s+/u','',$t);
+              $t=preg_replace('/^(?:туры?\s+в|пут[её]вки\s+в|поездка\s+в|отель)\s+/u','',$t);
               $t=preg_replace('/\s+\d\s*[\*★]+(?:\s|$)/u',' ',$t);
               return trim((string)preg_replace('/[^\p{L}\p{N}]+/u',' ',$t));
           }
@@ -165,6 +165,7 @@ jobs:
               $out['feed_name_examples']=array_values(array_slice(array_map(static fn($r)=>$r['tg']['name']??'', $offers),0,6));
               $pdo=ConversationDb::connection();
               $pdo->exec('SET SESSION TRANSACTION READ ONLY');$pdo->beginTransaction();
+              $out['stage']='read_demand';
               $source=$pdo->prepare("SELECT p.id AS publication_id,p.post_channel_id,COUNT(*) AS entries,COUNT(DISTINCT e.conversation_id) AS dialogues,
                   JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id')) AS hotel_id,
                   SUBSTRING_INDEX(JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.text')),CHAR(10),1) AS title,
@@ -175,14 +176,23 @@ jobs:
                 GROUP BY p.id,p.post_channel_id,v.id,v.snapshot_json ORDER BY dialogues DESC,entries DESC,p.id LIMIT 1501");
               $source->execute([$start->format('Y-m-d H:i:s'),$end->format('Y-m-d H:i:s')]);
               $demand=$source->fetchAll(PDO::FETCH_ASSOC);$source->closeCursor();
-              $large=$pdo->query("SELECT p.id AS publication_id,p.post_channel_id,p.external_message_id,v.id AS version_id,v.state,v.write_attempts,v.error_reason,
-                 JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id')) AS hotel_id,
-                 JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.post_url')) AS url,
-                 JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.attachments[0].type')) AS media_type,
-                 JSON_LENGTH(JSON_EXTRACT(v.snapshot_json,'$.attachments')) AS media_count,
-                 JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.text')) AS caption
-                 FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id
-                 WHERE p.post_channel_id IN (4,6) ORDER BY p.id DESC LIMIT 2501")->fetchAll(PDO::FETCH_ASSOC);
+              $out['stage']='read_large_registry';
+              $large=$pdo->query("SELECT p.id AS publication_id,p.post_channel_id,p.external_message_id,v.id AS version_id,
+                  v.state,v.error_reason,v.snapshot_json
+                  FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id
+                  WHERE p.post_channel_id IN (4,6) ORDER BY p.id DESC LIMIT 2501")->fetchAll(PDO::FETCH_ASSOC);
+              foreach($large as &$r){
+                  $snapshot=json_decode((string)$r['snapshot_json'],true);
+                  if(!is_array($snapshot))$snapshot=[];
+                  $attachments=is_array($snapshot['attachments']??null)?$snapshot['attachments']:[];
+                  $r['hotel_id']=$snapshot['metadata']['hotel_catalog_id']??null;
+                  $r['url']=$snapshot['post_url']??null;
+                  $r['caption']=$snapshot['text']??null;
+                  $r['media_type']=$attachments[0]['type']??null;
+                  $r['media_count']=count($attachments);
+                  unset($r['snapshot_json']);
+              }
+              unset($r);
               $pdo->rollBack();
               requireEdit(count($demand)<1501 && count($large)<2501,'audit_limit_reached');
               $out['source_posts']=count($demand);
@@ -215,6 +225,7 @@ jobs:
               usort($rows,static fn($a,$b)=>$b['dialogues']<=>$a['dialogues']?:($b['entries']<=>$a['entries'])?:($a['hotel_id']<=>$b['hotel_id']));
               $out['ranked_total']=count($rows);
               $rows=array_slice($rows,0,65);
+              $out['stage']='price_match';
               $prices=$rows===[]?[]:priceRows(array_column($rows,'hotel_id'));
               $match=[];
               foreach($large as $r) {
@@ -237,10 +248,10 @@ jobs:
                     :['reason'=>$offer['reason']??'unavailable'];
                   $r['big']=$match[$id]??[];
               }
-              $out['rows']=$rows;$out['ok']=true;
+              $out['rows']=$rows;$out['ok']=true;unset($out['stage']);
           } catch(Throwable $e) {
               if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();
-              $m=$e->getMessage();$out['reason']=preg_match('/^[a-z_0-9]{1,100}$/D',$m)?$m:'crosscheck_failed';
+              $m=$e->getMessage(); if($e instanceof PDOException){$out['sql_state']=(string)$e->getCode();$out['sql_driver_errno']=(int)($e->errorInfo[1]??0);} $out['reason']=preg_match('/^[a-z_0-9]{1,100}$/D',$m)?$m:'crosscheck_failed';
           }
           echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
           PHP
