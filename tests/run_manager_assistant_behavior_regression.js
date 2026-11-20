@@ -42,7 +42,7 @@ function harness(){
   const calls=[],timers=[],leadReads=[],loadStatuses=[];let now=Date.now(),hook=null,leadHook=null,openGeneration=1;
   class Clock extends Date{constructor(...args){super(...(args.length?args:[now]))}static now(){return now}static parse(value){return /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(String(value))?NaN:Date.parse(value)}}
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const item=(id=101,changes={})=>({conversation_id:id,manager_id:7,status:'manager',can_decide:true,display_name:'Client '+id,channel:'telegram',last_message_at:'2026-10-20T15:00:00Z',tasks:[],recommendation:{revision:'a'.repeat(64),next_action:'check_offer',reason:'Check selected hotel & meal plan.',checks:['Compare the two selected hotels.'],prepared_at:new Date(now).toISOString(),expires_at:new Date(now+3600000).toISOString(),latest_message_id:35,evidence_message_ids:[35],history_incomplete:false,decision:null},...changes});
+  const item=(id=101,changes={})=>({conversation_id:id,manager_id:7,status:'manager',can_decide:true,display_name:'Client '+id,channel:'telegram',last_message_at:'2026-10-20T15:00:00Z',tasks:[],recommendation:{revision:'a'.repeat(64),next_action:'check_offer',reason:'Check selected hotel & meal plan.',checks:['Compare the two selected hotels.'],should_draft:true,draft:'Готовый безопасный ответ клиенту.',prepared_at:new Date(now).toISOString(),expires_at:new Date(now+3600000).toISOString(),latest_message_id:35,evidence_message_ids:[35],history_incomplete:false,decision:null},...changes});
   const data=new Map([[101,item(101)],[102,item(102)]]);
   const W={S,$:id=>document.getElementById(id),esc,request:async(url,action,payload,options)=>{calls.push({url,action,...payload});if(hook){const r=await hook(url,action,payload,options);if(r!==undefined)return r}if(action==='list')return{ok:true,items:[...data.values()],has_more:false,next_cursor:null};if(action==='detail')return data.has(payload.conversation_id)?{ok:true,item:data.get(payload.conversation_id)}:{ok:false,error:'forbidden'};if(action==='decision'){const row=data.get(payload.conversation_id);row.recommendation={...row.recommendation,decision:payload.decision};return{ok:true}}throw Error('Unexpected assistant request '+action)},pipe:async(action,payload,options)=>{calls.push({url:'pipeline-api.php',action,...payload});return hook?await hook('pipeline-api.php',action,payload,options):{ok:true}}};
   const captureReplyContext=()=>({conversationId:Number(S.current||0),managerId:Number(S.manager?.id||0),authGeneration:S.authGeneration,openGeneration});
@@ -53,16 +53,88 @@ function harness(){
     captureReplyContext,getOpenGeneration:()=>openGeneration,
     refreshLeadData:async(options={})=>{const id=Number(options.conversationId??S.current),before=captureReplyContext();leadReads.push({...options,conversationId:id});const result=leadHook?await leadHook(options):leads.get(id);if(result===false||!result?.ok||S.authExpired||id!==Number(S.current)||JSON.stringify(before)!==JSON.stringify(captureReplyContext()))return false;S.detail.lead=result;return true}
   },ManagerTime:{format:v=>v,toInput:()=>'',fromInput:v=>v}};
+  const prepared=[];window.WorkspaceV2AiDraft={openPrepared:()=>{prepared.push(captureReplyContext());return true}};
   const context=vm.createContext({window,document,console,Date:Clock,Event:class{constructor(type,opts={}){this.type=type;Object.assign(this,opts)}},setTimeout:fn=>{timers.push(fn);return timers.length},clearTimeout:()=>{}});
   vm.runInContext(fs.readFileSync(path.join(__dirname,'../manager/assets/workspace-v2-assistant.js'),'utf8'),context,{filename:'workspace-v2-assistant.js'});
   const A=window.WorkspaceV2Assistant,$=W.$;
   async function click(selector){const n=body.querySelector(selector);assert.ok(n,'Control exists: '+selector);assert.equal(n.disabled,false,'Control is enabled: '+selector);return n.onclick?.({preventDefault(){}})}
   function onlyReads(){assert.equal(calls.some(c=>!['list','detail'].includes(c.action)),false,'Only assistant list/detail requests')}
-  return{A,W,S,window,document,$,body,calls,data,item,lead,leads,leadReads,loadStatuses,timers,opened,file,click,onlyReads,navigate,setHook:fn=>hook=fn,setLeadHook:fn=>leadHook=fn,advance:ms=>now+=ms};
+  return{A,W,S,window,document,$,body,calls,data,item,lead,leads,leadReads,loadStatuses,timers,opened,prepared,file,click,onlyReads,navigate,setHook:fn=>hook=fn,setLeadHook:fn=>leadHook=fn,advance:ms=>now+=ms};
 }
 const deferred=()=>{let resolve;return{promise:new Promise(r=>resolve=r),resolve}};
 const tests=[];function test(name,run){tests.push({name,run})}
 
+test('My Plan opens the canonical prepared reply directly from the list, retaining typed text and File',async()=>{
+  const h=harness();h.A.activate(7);await h.A.openPlan();
+  assert.ok(h.$('assistantList').querySelector('.assistantPlanCard'));
+  assert.match(h.$('assistantList').textContent,/Готовый безопасный ответ клиенту/);
+  const action=h.$('assistantList').querySelector('[data-assistant-direct="101"]');assert.ok(action);assert.equal(action.textContent,'Ответить');
+  await h.click('[data-assistant-direct="101"]');assert.equal(h.opened.length,1);assert.equal(h.opened[0].id,101);assert.equal(h.prepared.length,1);
+  assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
+});
+test('My Plan removes and restores a suggestion without a secondary task or replay',async()=>{
+  const h=harness();h.A.activate(7);await h.A.openPlan();
+  await h.click('[data-assistant-list-decision="101"]');assert.equal(h.data.get(101).recommendation.decision,'irrelevant');
+  assert.equal(h.$('assistantList').querySelector('[data-assistant-direct="101"]'),null);
+  await h.click('[data-assistant-filter="done"]');
+  const undo=h.$('assistantList').querySelector('[data-assistant-list-decision="101"]');assert.ok(undo);assert.equal(undo.textContent,'Вернуть');
+  await h.click('[data-assistant-list-decision="101"]');assert.equal(h.data.get(101).recommendation.decision,'open');
+  assert.equal(h.calls.filter(x=>x.action==='decision').length,2);assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);
+});
+test('post-reply AI suggestion grounded in manager source appears as optional review, never a client send',async()=>{
+  const h=harness(),initial=h.item(101).recommendation;
+  h.data.set(101,h.item(101,{recommendation:{...initial,
+    next_action:'no_contact',should_draft:false,draft:null,
+    reason:'Сейчас повторно писать клиенту не нужно.',
+    internal_review:{kind:'send_calculation',state:'needs_review',source_message_id:25}}}));
+  h.A.activate(7);await h.A.openPlan();
+  const client=h.$('assistantList').querySelector('[data-assistant-client="101"]');
+  assert.ok(client);assert.match(client.textContent,/Проверить статус расчёта/);
+  assert.ok(h.$('assistantList').querySelector('[data-assistant-direct="101"]'));
+  assert.equal(h.$('assistantList').querySelector('[data-assistant-direct="101"]').textContent,'Открыть');
+  assert.ok(h.$('assistantList').querySelector('[data-assistant-list-decision="101"]'));
+  assert.equal(h.$('assistantList').querySelector('[data-assistant-client="101"]').parentElement.querySelector('.assistantPlanDraft'),null);
+  await h.click('[data-assistant-direct="101"]');
+  assert.equal(h.opened.length,1);assert.equal(h.prepared.length,0);
+  assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
+});
+test('post-reply suggestion may be removed and restored without creating a task or contact',async()=>{
+  const h=harness(),r=h.item(101).recommendation;
+  h.data.set(101,h.item(101,{recommendation:{...r,next_action:'no_contact',should_draft:false,draft:null,internal_review:{kind:'send_selection',state:'needs_review',source_message_id:44}}}));
+  h.A.activate(7);await h.A.openPlan();
+  assert.match(h.$('assistantList').textContent,/Проверить отправку подборки/);
+  await h.click('[data-assistant-list-decision="101"]');
+  assert.equal(h.data.get(101).recommendation.decision,'irrelevant');
+  await h.click('[data-assistant-filter="done"]');
+  await h.click('[data-assistant-list-decision="101"]');
+  assert.equal(h.data.get(101).recommendation.decision,'open');
+  assert.equal(h.calls.filter(x=>x.action==='decision').length,2);
+  assert.equal(h.prepared.length,0);assert.equal(h.$('replyFile').file,h.file);
+});
+test('My Plan opens an existing no-contact task without manufacturing a client draft',async()=>{
+  const h=harness();h.data.set(101,h.item(101,{recommendation:{...h.item().recommendation,next_action:'no_contact',should_draft:false,draft:null},tasks:[{id:31,title:'Проверить актуальность расчёта',status:'open',due_state:'unscheduled'}]}));
+  h.A.activate(7);await h.A.openPlan();
+  const button=h.$('assistantList').querySelector('[data-assistant-direct="101"]');assert.ok(button);assert.equal(button.textContent,'Открыть');
+  const client101=h.$('assistantList').querySelector('[data-assistant-client="101"]').parentElement;
+  const client102=h.$('assistantList').querySelector('[data-assistant-client="102"]').parentElement;
+  assert.equal(client101.querySelector('.assistantPlanDraft'),null,'A no-contact client must not get a draft');
+  assert.ok(client102.querySelector('.assistantPlanDraft'),'Another client keeps its legitimate prepared draft');
+  await h.click('[data-assistant-direct="101"]');assert.equal(h.opened.length,1);assert.equal(h.prepared.length,0);
+  assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
+});
+test('team-viewer cannot dismiss or reply to another manager from the plan list',async()=>{
+  const h=harness();h.S.manager.role='admin';h.data.set(101,h.item(101,{can_decide:false,manager_id:9,manager_name:'Other manager'}));h.A.activate(7);await h.A.openPlan();
+  assert.equal(h.$('assistantList').querySelector('[data-assistant-list-decision="101"]'),null);
+  const action=h.$('assistantList').querySelector('[data-assistant-direct="101"]');assert.ok(action);assert.equal(action.textContent,'Открыть');
+  await h.click('[data-assistant-direct="101"]');assert.equal(h.prepared.length,0);h.onlyReads();
+});
+test('optional client detail exposes existing task controls without requiring a second expand',async()=>{
+  const h=harness();h.A.activate(7);await h.A.openPlan();await h.A.loadDetail(101);
+  const detail=h.$('assistantDetail').querySelector('.assistantTasks');
+  assert.ok(detail);assert.equal(detail.getAttribute('open'),'');
+  assert.ok(detail.querySelector('#assistantPlan'));assert.equal(h.$('assistantList').querySelector('.assistantTasks'),null);
+  assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
+});
 test('unanswered work stays visible without AI and fresh no-contact remains separate',async()=>{
   const h=harness();h.data.clear();h.data.set(101,h.item(101,{recommendation:null,operational:{awaiting_manager_reply:true,due_task:false}}));h.A.activate(7);await h.A.open();await h.click('[data-assistant-filter="actions"]');assert.ok(h.body.querySelector('[data-assistant-client="101"]'));await h.A.loadDetail(101);assert.match(h.$('assistantDetail').textContent,/Обращение без записанного ответа/);assert.match(h.$('assistantDetail').textContent,/Нет свежего разбора/);assert.equal(h.$('assistantPlan').textContent,'Запланировать');assert.ok(h.$('assistantDetail').querySelector('.assistantTasks').contains(h.$('assistantPlan')));
   h.data.set(101,h.item(101,{operational:{awaiting_manager_reply:true,due_task:false},recommendation:{...h.item().recommendation,next_action:'no_contact'}}));await h.A.loadDetail(101);assert.equal(h.$('assistantDetail').querySelector('.assistantOperational'),null);neutralNoContact(h);assert.equal(h.body.querySelector('[data-assistant-client="101"]'),null);
@@ -72,7 +144,7 @@ for(const role of ['manager','admin'])test(role+' sees neutral suspended state w
   const h=harness();h.S.manager.role=role;h.data.set(101,h.item(101,{delivery_suspended:true,delivery_notice:'Ответ станет доступен после новой активности клиента.',operational:{awaiting_manager_reply:true,due_task:false}}));h.A.activate(7);await h.A.open(101);
   assert.ok(h.$('assistantDetail').querySelector('.assistantUnavailable'));assert.equal(h.$('assistantDetail').querySelector('.assistantOperational'),null);assert.equal(h.$('assistantDetail').querySelector('.assistantRecommendation'),null);assert.equal(h.$('assistantPlan').textContent,'Запланировать');assert.equal(h.$('assistantReply'),null);assert.match(h.body.querySelector('[data-assistant-client="101"]').textContent,/Клиент недоступен в MAX/);assert.doesNotMatch(h.$('assistantDetail').textContent,/Обращение без записанного ответа|Check selected hotel/);
   await h.click('[data-assistant-filter="actions"]');assert.equal(h.body.querySelector('[data-assistant-client="101"]'),null);
-  h.data.set(101,h.item(101,{delivery_suspended:false,operational:{awaiting_manager_reply:true,due_task:false}}));await h.A.loadDetail(101);assert.equal(h.$('assistantDetail').querySelector('.assistantUnavailable'),null);assert.ok(h.$('assistantDetail').querySelector('.assistantOperational'));assert.ok(h.$('assistantDetail').querySelector('.assistantRecommendation'));assert.ok(h.body.querySelector('[data-assistant-client="101"]'));h.onlyReads();
+  h.data.set(101,h.item(101,{delivery_suspended:false,operational:{awaiting_manager_reply:true,due_task:false}}));await h.A.loadDetail(101);assert.equal(h.$('assistantDetail').querySelector('.assistantUnavailable'),null);assert.equal(h.$('assistantDetail').querySelector('.assistantOperational'),null);assert.ok(h.$('assistantDetail').querySelector('.assistantRecommendation'));assert.ok(h.body.querySelector('[data-assistant-client="101"]'));h.onlyReads();
 });
 test('suspended client retains an explicitly created task and its deadline controls',async()=>{
   const h=harness();h.data.set(101,h.item(101,{delivery_suspended:true,operational:{awaiting_manager_reply:true,due_task:true},tasks:[{id:91,title:'Позвонить по договорённости',status:'open',due_state:'overdue',due_at_utc:'2000-01-01 00:00:00'}]}));h.A.activate(7);await h.A.open(101);
@@ -108,7 +180,7 @@ for(const [screen,id,mode] of [['conversation',101,'none'],['conversation',102,'
 
 test('workspace owner sees team identity and cannot change another manager decision',async()=>{
   const h=harness();h.S.manager.role='admin';h.data.set(101,h.item(101,{project_name:'AnyTour',manager_name:'Другой менеджер',manager_id:9,can_decide:false}));h.A.activate(7);await h.A.open(101);
-  assert.match(h.$('assistantTitle').textContent,/владельца/);assert.match(h.$('assistantSubtitle').textContent,/всей команды/);assert.match(h.$('assistantDetail').textContent,/Другой менеджер/);assert.equal(h.$('assistantDetail').querySelector('[data-assistant-decision]'),null);assert.equal(h.$('assistantPlan'),null);h.onlyReads();
+  assert.match(h.$('assistantTitle').textContent,/владельца/);assert.match(h.$('assistantSubtitle').textContent,/всей команды/);assert.match(h.$('assistantDetail').textContent,/Другой менеджер/);assert.equal(h.$('assistantDetail').querySelector('[data-assistant-decision]'),null);assert.equal(h.$('assistantPlan'),null);assert.equal(h.$('assistantMainAction').textContent,'Открыть');await h.click('#assistantMainAction');assert.equal(h.opened.length,1);assert.equal(h.opened[0].id,101);assert.equal(h.prepared.length,0);h.onlyReads();
 });
 
 test('entry review binding keeps the canonical reply helper and creates no duplicate menu launcher',async()=>{
@@ -126,6 +198,15 @@ test('list paging retains old clients beyond the ordinary inbox cap',async()=>{
 test('detail uses saved reasoning and leaves native reply/file untouched',async()=>{
   const h=harness();h.data.get(101).recommendation.reason='<script>private();</script>';h.A.activate(7);await h.A.open(101);assert.match(h.$('assistantDetail').textContent,/<script>private\(\);<\/script>/);assert.equal(h.$('assistantDetail').querySelector('script'),null);assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
 });
+test('compact recommendation opens canonical prepared preview without writes',async()=>{
+  const h=harness();h.A.activate(7);await h.A.open(101);assert.match(h.$('assistantDetail').textContent,/Готовый безопасный ответ клиенту/);assert.equal(h.$('assistantMainAction').textContent,'Ответить');await h.click('#assistantMainAction');assert.equal(h.opened.length,1);assert.equal(h.opened[0].id,101);assert.equal(h.prepared.length,1);assert.equal(h.prepared[0].conversationId,101);assert.equal(h.$('replyText').value,'Unsent customer reply');assert.equal(h.$('replyFile').file,h.file);h.onlyReads();
+});
+test('compact internal recommendation opens without reply preview',async()=>{
+  const h=harness();Object.assign(h.data.get(101).recommendation,{next_action:'no_contact',should_draft:false,draft:null});h.A.activate(7);await h.A.open(101);assert.equal(h.$('assistantMainAction').textContent,'Открыть');await h.click('#assistantMainAction');assert.equal(h.opened.length,1);assert.equal(h.prepared.length,0);h.onlyReads();
+});
+test('remove and undo use exact recommendation CAS without task writes',async()=>{
+  const h=harness();h.A.activate(7);await h.A.open(101);await h.click('[data-assistant-decision="irrelevant"]');const remove=h.calls.find(c=>c.action==='decision');assert.equal(remove.revision,'a'.repeat(64));assert.equal(remove.expected_decision,null);assert.equal(remove.decision,'irrelevant');await h.click('[data-assistant-decision="open"]');const undo=h.calls.filter(c=>c.action==='decision').at(-1);assert.equal(undo.expected_decision,'irrelevant');assert.equal(undo.decision,'open');assert.equal(h.calls.some(c=>c.url==='pipeline-api.php'),false);
+});
 test('unchanged periodic reads retain native reading nodes, disclosure and action focus',async()=>{
   const h=harness();h.A.activate(7);await h.A.open(101);const detail=h.$('assistantDetail'),source=detail.querySelector('.assistantSource'),button=detail.querySelector('[data-assistant-decision="done"]'),listButton=h.body.querySelector('[data-assistant-client="101"]'),text=detail.querySelector('.assistantRecommendation p').children[0],body=h.body.querySelector('.assistantBody');source.open=true;button.focus();body.scrollTop=180;const same=JSON.parse(JSON.stringify(h.data.get(101)));h.setHook((url,action)=>action==='detail'?{ok:true,item:JSON.parse(JSON.stringify(same))}:undefined);h.timers.at(-1)();assert.equal(h.document.activeElement,button,'Request start preserves focused action');assert.equal(button.isConnected,true);await new Promise(setImmediate);assert.equal(detail.querySelector('.assistantSource'),source);assert.equal(source.open,true);assert.equal(detail.querySelector('[data-assistant-decision="done"]'),button);assert.equal(detail.querySelector('.assistantRecommendation p').children[0],text,'Native text selection anchors stay connected');assert.equal(h.document.activeElement,button);assert.equal(h.body.querySelector('[data-assistant-client="101"]'),listButton);assert.equal(body.scrollTop,180);h.onlyReads();
 });
@@ -133,7 +214,7 @@ test('an identical explicit list refresh retains list focus and an expanded clie
   const h=harness();h.A.activate(7);await h.A.open();await h.A.loadDetail(101);const listButton=h.body.querySelector('[data-assistant-client="101"]'),source=h.$('assistantDetail').querySelector('.assistantSource');source.open=true;listButton.focus();await h.A.loadList(false);assert.equal(h.body.querySelector('[data-assistant-client="101"]'),listButton);assert.equal(h.document.activeElement,listButton);assert.equal(h.$('assistantDetail').querySelector('.assistantSource'),source);assert.equal(source.open,true);h.onlyReads();
 });
 test('retained visually identical actions bind the latest invisible proposal revision',async()=>{
-  const h=harness();h.A.activate(7);await h.A.open(101);const button=h.$('assistantDetail').querySelector('[data-assistant-decision="done"]'),current=JSON.parse(JSON.stringify(h.data.get(101)));current.recommendation.revision='b'.repeat(64);h.data.set(101,current);await h.A.loadDetail(101);assert.equal(h.$('assistantDetail').querySelector('[data-assistant-decision="done"]'),button);button.focus();await h.click('[data-assistant-decision="done"]');assert.equal(h.calls.find(c=>c.action==='decision').revision,'b'.repeat(64));assert.equal(button.isConnected,false,'Changed decision replaces the obsolete action');assert.equal(h.document.activeElement,h.$('assistantConversation'));
+  const h=harness();h.A.activate(7);await h.A.open(101);const button=h.$('assistantDetail').querySelector('[data-assistant-decision="done"]'),current=JSON.parse(JSON.stringify(h.data.get(101)));current.recommendation.revision='b'.repeat(64);h.data.set(101,current);await h.A.loadDetail(101);assert.equal(h.$('assistantDetail').querySelector('[data-assistant-decision="done"]'),button);button.focus();await h.click('[data-assistant-decision="done"]');assert.equal(h.calls.find(c=>c.action==='decision').revision,'b'.repeat(64));assert.equal(button.isConnected,false,'Changed decision replaces the obsolete action');assert.equal(h.document.activeElement,h.$('assistantMainAction'));
 });
 test('a focused action removed by changed advice moves to the same client navigation',async()=>{
   const h=harness();h.A.activate(7);await h.A.open(101);const old=h.$('assistantDetail').querySelector('[data-assistant-decision="done"]');old.focus();h.data.set(101,h.item(101,{recommendation:null}));await h.A.loadDetail(101);assert.equal(old.isConnected,false);assert.equal(h.document.activeElement,h.$('assistantConversation'));assert.match(h.$('assistantDetail').textContent,/Нет свежего разбора/);h.onlyReads();
@@ -151,7 +232,7 @@ for(const failure of [{ok:false,error:'detail_failed',http_status:500},{ok:true,
   const h=harness(),gate=deferred();h.A.activate(7);await h.A.open(101);const old=h.$('assistantDetail').querySelector('[data-assistant-decision="done"]');old.focus();h.setHook((url,action)=>action==='detail'?gate.promise:undefined);const refresh=h.A.loadDetail(101);assert.equal(old.isConnected,true,'A slow read does not rebuild unchanged advice');gate.resolve(failure);await refresh;assert.equal(old.isConnected,false);assert.equal(h.$('assistantDetail').querySelector('.assistantRecommendation'),null);assert.equal(h.document.activeElement,h.$('assistantClose'));h.onlyReads();
 });
 test('no_contact keeps neutral advice with explicit planning and no reply or automatic decision',async()=>{
-  const h=harness();h.data.get(101).recommendation.next_action='no_contact';h.A.activate(7);await h.A.open(101);neutralNoContact(h);assert.ok(h.$('assistantPlan'));assert.equal(h.$('assistantReply'),null);assert.equal(h.$('assistantDetail').querySelectorAll('[data-assistant-decision]').length,0);h.onlyReads();
+  const h=harness();h.data.get(101).recommendation.next_action='no_contact';h.A.activate(7);await h.A.open(101);neutralNoContact(h);assert.ok(h.$('assistantPlan'));assert.equal(h.$('assistantReply'),null);assert.equal(h.$('assistantDetail').querySelectorAll('[data-assistant-decision]').length,0);    assert.equal(h.$('assistantList').querySelector('[data-assistant-list-decision="101"]'),null);h.onlyReads();
 });
 test('expired proposal is never rendered as a fresh recommendation',async()=>{
   const h=harness();h.advance(3600001);h.A.activate(7);await h.A.open(101);assert.match(h.$('assistantDetail').textContent,/Нет свежего разбора/);assert.equal(h.$('assistantDetail').querySelector('[data-assistant-decision]'),null);h.onlyReads();

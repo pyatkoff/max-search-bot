@@ -79,6 +79,19 @@ The read endpoint is `manager/assistant-api.php`, using ManagerHttp authenticati
 
 Verification covers own-manager authorization, revoked sources, expiry and edits, more than200 clients, revision-bound decision conflicts, read-only behavior, browser account/navigation races, and the actual Manager2 shell at390/430/768/1440px. CI browser evidence and natural manager use are separate acceptance facts; a passing fixture is not production-use evidence.
 
+The personal plan presents a current prepared recommendation as one compact card:
+client, supported next action, short reason and the already prepared reply preview.
+`Ответить` opens the canonical conversation and asks the existing AI-draft owner
+to read `prepared_preview`; the displayed projection is never copied directly
+into the composer. `Открыть` handles recommendations without an outgoing reply.
+Manual reply text, the real File input, selection, focus and task drafts remain
+owned by their existing components. `Убрать` and `Вернуть` use the existing exact
+recommendation revision and change assistant metadata only. A rephrased proposal
+is intentionally a new revision in this bounded slice: durable semantic dismissal
+across regenerated wording and follow-through after a manager response remain
+release blockers. Existing tasks are secondary disclosure content and are never
+required to accept a recommendation.
+
 
 ## Operational facts and stable continuation
 
@@ -254,3 +267,87 @@ native PHP server and PDO SQLite. The prepared visual spec is
 `tests/visual/manager-promise-plan.spec.js`; the existing release owner must add
 it to the explicit Manager2 visual inventory and run the required browsers.
 Test discovery or PHP syntax checks are not those native/browser gates.
+
+
+### Same-source refusal identity (draft PR1576; not a release admission)
+
+The active assistant uses the exact generated recommendation revision for the
+current UI/CAS check. A separate private decision source key can preserve
+“Убрать” and “Вернуть” when the **canonical current customer input and
+next-action code** remain the same but the saved model wording, job ID, prompt
+version or expiry changes. No new task or customer message is written. An old
+exact-revision decision remains readable and can be adopted on the next explicit
+manager decision; context and permission checks still precede the decision.
+
+This intentionally is **not** a full semantic-identity guarantee. A new
+customer message, even a courtesy message, can change the canonical input
+receipt, while a same-source profile update may require a distinct request
+boundary not represented by this key. An unavailable input retains the old
+exact-revision behavior. We must not claim that an AI rewording hash alone solves
+these cases or deploy this draft as a complete plan. The stable request/trip
+anchor and verified post-manager action remain separate acceptance gates.
+
+
+### Curated request boundary on source-stable dismissals
+
+Where a canonical manager-curated request profile is available and verified as
+fresh or needing review, the private dismissal identity additionally includes
+the exact trip ID, saved profile-content SHA and customer-message boundary.
+Re-saving identical conditions under a new profile version does not resurrect
+a dismissal; a genuinely changed saved profile or trip is distinct. If profile
+evidence is unavailable or source-changed, the decision conservatively falls
+back to the exact generated-recommendation revision. No new customer-input
+collection, task, AI run or manager form is introduced.
+
+This is deliberately bounded source/request identity, not full language-level
+semantic equivalence. It cannot decide whether two independently written
+messages imply the same request without authoritative evidence.
+
+### Neutral no-contact state in the compact plan
+
+An ordinary `no_contact` result is a neutral instruction not to message the
+client. It is not in itself an action or an established obligation, so neither
+the list nor the detail asks the manager to dismiss it. Existing manual tasks
+remain accessible. A verified actionable internal next step is still a separate
+future contract, not inferred from `no_contact` wording. The visual test must
+not expect “Выполнено” after a real irrelevant (“Убрать”) decision.
+
+### Optional post-manager review from an already prepared chat result
+
+A canonical opened-chat preparation can already be generated after the manager
+responds. The same immutable cached proposal may include a model-suggested
+`manager_promises` candidate. The existing source validator verifies the
+exact manager-authored message, same curated trip and message revision.
+For a `no_contact` / no-draft proposal only, a valid current-trip candidate
+may now yield one `needs_review` card: **check whether the calculation or
+selection was sent**. This is not proof of an active/unfulfilled obligation,
+and does not create or complete a manual task. It offers **Open** and
+**Dismiss/Restore**, never **Reply** or **Send**.
+
+The suggestion gets a private decision source key pinned to original authored
+message/revision and curated trip/profile; regenerated model wording cannot
+resurrect an identical suggestion. If the authored source or trip cannot be
+validated, the extra review is omitted and ordinary no-contact stays neutral.
+No AI run is initiated by reading My Plan; no cron/backfill/budget changes are
+introduced. This only covers conversations with an existing current prepared
+open-chat result; automatic proactive coverage after every manager reply is
+**not implemented**.
+
+### Wake existing AI preparation after a confirmed manager reply
+
+When the manager sends from the already open Manager2 conversation, a **confirmed**
+transport result and a successful authorized refresh of that same conversation
+allow the composer owner to wake the **existing** AI preparation observer once
+its busy guard is released. The observer uses its own current-context/CAS,
+project, access, user preference, subscription and queue limits. This is not a
+new model call inside the send handler, and it never inserts or sends a reply.
+
+An unknown/rejected/partial result, failed refresh, changed manager/account,
+closed conversation or navigation to another client must not wake the observer.
+The existing send receipt and attachment guards remain independent. A later
+prepared no-contact promise review, when properly source-validated, may appear
+in My Plan without another explicit chat-open interaction.
+
+This is *foreground coverage of an active manager send*, not durable background
+monitoring of outbound messages sent from other devices, sessions or providers.
+No broad retrospective scan, task creation or new scheduled queue is implied.
