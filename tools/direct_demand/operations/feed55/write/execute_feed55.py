@@ -218,7 +218,7 @@ def reviewed_stale_queued_no_jobs(run):
     workflow = api("contents/%s?ref=%s" % (expected["path"], expected["head_sha"]))
     if workflow.get("encoding") != "base64":
         return False
-    raw = base64.b64decode(workflow.get("content", ""), validate=True)
+    raw = base64.b64decode("".join(workflow.get("content", "").split()), validate=True)
     return sha(raw) == expected["workflow_sha256"]
 
 
