@@ -1,0 +1,48 @@
+name: Read AnyTour hotel entry forecast cohort
+on:
+  push:
+    branches: [audit/hotel-entry-forecast-20261120]
+    paths:
+      - .github/workflows/hotel-entry-forecast-readonly-20261120.yml
+      - audit/hotel-entry-forecast-20261120/program.php
+      - audit/hotel-entry-forecast-20261120/tests.php
+      - audit/hotel-entry-forecast-20261120/runner.py
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: hotel-entry-forecast-readonly-20261120
+  cancel-in-progress: false
+jobs:
+  inspect:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.run_attempt == '1' && github.event.created == true && github.event.forced == false && github.event.deleted == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PROGRAM_SHA256: fb6d34ec90a09568e1e2e37d3186fb37e8093599fa19f28169ede205330006fd
+      TESTS_SHA256: db9190faef576a061d827d2bfeb50b177dbd78001a9a85ac4f877a8d877c08ef
+      RUNNER_SHA256: 6f02839d12253f367a8f03f06c6cdf2bd86801bc659de9ef93a4ab08ed654a16
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Verify original source and pure cohort fixtures before credentials
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 audit/hotel-entry-forecast-20261120/runner.py admit
+      - name: One bounded SELECT-only historical cohort read
+        env:
+          SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          REPORT_PUBLIC_KEY_B64: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUF3OFNWNDYwWGlPSkwyRHhFU1gwVwpFRnZjOVBNZy9oZnpXWGE3SHQvNFQzSEJ4c0ZOTTJnczU2WWtDa0JDTDBZNmNZU3J5T3FleHQ4Mm9CT0ROZGdlCnlFZ0x6ZVM0ZkxSUjJRa2tSVnh6Q0hlOFVRM3ZUTDBVL243VkxQbGJCaWJUTE5tc3Eydm9NT2JEeDN5eVRTSVQKVnNoTWN1MHlHSXVYVWozQVlNcmZ3R0NBUm9aaG5DYTcxRjYxVDlpSlhBbG5EbnU5eXVTZGFuRFRRWUVQNVZLMAozd1h1SUtpK2JwR0pCem8vYkhPNUxmM0lDVitkVjA4TlZNdU1YNHFlUXhEeUZvNzJtWFh1dWRPNHNmK2ZrbXBmCnVyMS9QOTAvN2M4Qjh1cWZvL3FEb2ZiNGVEVlRBYmZFVTZsZXVIdVA4Qk1LaDVWSWF5TXdSUWFGUElZMXlOaEkKNTZabWNsdFQ2RC9iTUlOd0JSVkpiUzNib2w5c1F4b2NFczlBekRMT1AxSnkxc3hGejZhZ1RCMGJ6YXhmUDFLcAovaGE2dHhLLytpeER2QkM3TkdoODY4REN6dGZRYTF4L3I4NDFKRFlIWW90OTlBMVhNVkJKT0dRUitaNDNXcExaCmhPTVpNQjIwam0yWXdiT2RYczBEbW13RHMwbTRHcnpST214RkhkVkhpTyt0QWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
+        run: python3 audit/hotel-entry-forecast-20261120/runner.py read
+      - name: Retain the encrypted report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: anytour-entry-forecast-20261112-20261118
+          path: encrypted-entry-forecast/*.enc.json
+          retention-days: 3
+          if-no-files-found: error
