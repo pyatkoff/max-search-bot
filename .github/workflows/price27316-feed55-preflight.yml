@@ -12,11 +12,11 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == 'a3b666668d30f7448810b8d09ef95445a474e155'
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == '38eab11e198b5b4fd2de66885deaf3283efeb5a6'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      EXPECTED_PARENT_SHA: a3b666668d30f7448810b8d09ef95445a474e155
+      EXPECTED_PARENT_SHA: 38eab11e198b5b4fd2de66885deaf3283efeb5a6
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
@@ -91,7 +91,17 @@ jobs:
           echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
           exit($out['ok']?0:2);
           PHP
-          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru && GIT_OPTIONAL_LOCKS=0 php" <"$RUNNER_TEMP/read-server.php" >"$RUNNER_TEMP/server.json"
+          rc=2
+          for attempt in $(seq 1 24); do
+            set +e
+            ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru && GIT_OPTIONAL_LOCKS=0 php" <"$RUNNER_TEMP/read-server.php" >"$RUNNER_TEMP/server.json"
+            rc=$?
+            set -e
+            if [ "$rc" -eq 0 ]; then break; fi
+            jq -e '.error=="monitor_lock_busy" and .writes==0' "$RUNNER_TEMP/server.json" >/dev/null
+            sleep 10
+          done
+          test "$rc" -eq 0
           jq -e '.ok==true and .runtime_sha=="b4b65daaa472c15426a244b87ede3e6c0394626b" and .lock_available==true and .pending==null and (.hook_sha256|test("^[a-f0-9]{64}$")) and .writes==0' "$RUNNER_TEMP/server.json"
       - name: Read four public FEED55 outputs
         run: |
