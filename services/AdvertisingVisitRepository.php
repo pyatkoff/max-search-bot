@@ -92,7 +92,7 @@ final class AdvertisingVisitRepository
     public function recordLaunch(array $scope,array $observation,int $now): array
     {
         $scope=AdvertisingVisitContract::scope($scope,true);
-        if($scope['platform']!=='max'||($observation['identity_status']??null)!=='verified')throw new InvalidArgumentException('native_launch_identity_required');
+        if(!in_array($scope['platform'],['max','telegram'],true)||($observation['identity_status']??null)!=='verified')throw new InvalidArgumentException('native_launch_identity_required');
         AdvertisingVisitContract::page(['schema_version'=>2]+$scope+['after_cursor'=>'0','next_cursor'=>'1','observations'=>[['source_cursor'=>'1']+$observation]],$scope,$now);
         $where='project_key=? AND source_key=? AND platform=? AND counter_id=?';$params=array_values($scope);
         for($attempt=0;$attempt<3;$attempt++){
