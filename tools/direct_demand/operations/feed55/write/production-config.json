@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "state": "WAITING_FOR_FRESH_ROUTE_JIT",
+  "parent_sha": "TO_BE_PINNED_AFTER_WORKFLOW",
+  "route_jit": {
+    "state": "WAITING_FOR_FRESH_ROUTE_JIT",
+    "hotels": 55,
+    "map_count": 1055,
+    "proof_sha256": "TO_BE_SUPPLIED_BY_ROOT_ROUTE_OPERATOR",
+    "private_branch_sha": "TO_BE_SUPPLIED_BY_ROOT_ROUTE_OPERATOR",
+    "observed_at": "TO_BE_SUPPLIED_BY_ROOT_ROUTE_OPERATOR",
+    "expires_at": "TO_BE_SUPPLIED_BY_ROOT_ROUTE_OPERATOR"
+  }
+}

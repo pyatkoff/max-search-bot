@@ -1,0 +1,319 @@
+# Exact next123 only. Separate scope; completed route and historical feed writes are not replayed.
+name: Exact next123 feed extension from877 to1000
+on:
+  push:
+    branches: ['audit/price660-27316-resume-readiness-20261117']
+    paths: ['.github/workflows/price27316-feed123.yml']
+permissions:
+  contents: read
+  actions: read
+  issues: read
+concurrency:
+  group: anytour-authorized-channel-publication
+  cancel-in-progress: false
+jobs:
+  inspect:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == '8fb8ef8c9cca236066728ec8d17d6f65dadf2584'
+    runs-on: ubuntu-latest
+    env:
+      REVIEWED_FEED123_CONFIG_SHA256: 6241cb9cbedf6149b9bd279a17be22f92c75e49773756791e3d054b407abe89c
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Verify independently reviewed immutable config before credentials
+        run: |
+          echo "b83f1d7a4c70eb3af6698c58d643544615022c075ff69ff0b7235b4d9b979796  tools/direct_demand/operations/next123/static_preflight.py" | sha256sum --check --strict
+          echo "76115287c56c7f8f3e950901f92d40306e236dacbb33eed607af191d04dece98  tools/direct_demand/operations/next123/finite_feed123.py" | sha256sum --check --strict
+          python3 tools/direct_demand/operations/next123/static_preflight.py tools/direct_demand/operations/next123/config.json
+          for file in tools/direct_demand/operations/next123/tail123/p*/read.php; do php -l "$file"; done
+      - name: Prepare unchanged server connection and host pin
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER'];assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-') and re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35);matches=[]
+          for line in scan.stdout.splitlines():
+            f=line.split()
+            if len(f)<3 or f[0].startswith('#'):continue
+            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(f[2])).digest()).decode().rstrip('=')
+            except Exception:continue
+            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
+          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP';pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+          PY
+      - name: Prepare sanitized root-coordinated finite plan (no writes)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/next123/finite_feed123.py tools/direct_demand/operations/next123/config.json prepare
+      - name: Publish sanitized plan artifact while job is running
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed123-plan-${{ github.run_id }}
+          path: ${{ runner.temp }}/feed123/deliver-plan/
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 28
+        id: batch28
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/next123/finite_feed123.py tools/direct_demand/operations/next123/config.json step 0
+      - name: Publish bounded progress for batch 28 while job is running
+        if: ${{ always() && (steps.batch28.outcome == 'success' || steps.batch28.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed123-progress-p28-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed123/progress/p28/
+            ${{ runner.temp }}/feed123/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 29
+        id: batch29
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/next123/finite_feed123.py tools/direct_demand/operations/next123/config.json step 1
+      - name: Publish bounded progress for batch 29 while job is running
+        if: ${{ always() && (steps.batch29.outcome == 'success' || steps.batch29.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed123-progress-p29-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed123/progress/p29/
+            ${{ runner.temp }}/feed123/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 30
+        id: batch30
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/next123/finite_feed123.py tools/direct_demand/operations/next123/config.json step 2
+      - name: Publish bounded progress for batch 30 while job is running
+        if: ${{ always() && (steps.batch30.outcome == 'success' || steps.batch30.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed123-progress-p30-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed123/progress/p30/
+            ${{ runner.temp }}/feed123/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 31
+        id: batch31
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/next123/finite_feed123.py tools/direct_demand/operations/next123/config.json step 3
+      - name: Publish bounded progress for batch 31 while job is running
+        if: ${{ always() && (steps.batch31.outcome == 'success' || steps.batch31.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed123-progress-p31-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed123/progress/p31/
+            ${{ runner.temp }}/feed123/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 32
+        id: batch32
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/next123/finite_feed123.py tools/direct_demand/operations/next123/config.json step 4
+      - name: Publish bounded progress for batch 32 while job is running
+        if: ${{ always() && (steps.batch32.outcome == 'success' || steps.batch32.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed123-progress-p32-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed123/progress/p32/
+            ${{ runner.temp }}/feed123/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 33
+        id: batch33
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/next123/finite_feed123.py tools/direct_demand/operations/next123/config.json step 5
+      - name: Publish bounded progress for batch 33 while job is running
+        if: ${{ always() && (steps.batch33.outcome == 'success' || steps.batch33.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed123-progress-p33-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed123/progress/p33/
+            ${{ runner.temp }}/feed123/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 34
+        id: batch34
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/next123/finite_feed123.py tools/direct_demand/operations/next123/config.json step 6
+      - name: Publish bounded progress for batch 34 while job is running
+        if: ${{ always() && (steps.batch34.outcome == 'success' || steps.batch34.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed123-progress-p34-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed123/progress/p34/
+            ${{ runner.temp }}/feed123/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 35
+        id: batch35
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/next123/finite_feed123.py tools/direct_demand/operations/next123/config.json step 7
+      - name: Publish bounded progress for batch 35 while job is running
+        if: ${{ always() && (steps.batch35.outcome == 'success' || steps.batch35.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed123-progress-p35-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed123/progress/p35/
+            ${{ runner.temp }}/feed123/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 36
+        id: batch36
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/next123/finite_feed123.py tools/direct_demand/operations/next123/config.json step 8
+      - name: Publish bounded progress for batch 36 while job is running
+        if: ${{ always() && (steps.batch36.outcome == 'success' || steps.batch36.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed123-progress-p36-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed123/progress/p36/
+            ${{ runner.temp }}/feed123/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 37
+        id: batch37
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/next123/finite_feed123.py tools/direct_demand/operations/next123/config.json step 9
+      - name: Publish bounded progress for batch 37 while job is running
+        if: ${{ always() && (steps.batch37.outcome == 'success' || steps.batch37.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed123-progress-p37-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed123/progress/p37/
+            ${{ runner.temp }}/feed123/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 38
+        id: batch38
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/next123/finite_feed123.py tools/direct_demand/operations/next123/config.json step 10
+      - name: Publish bounded progress for batch 38 while job is running
+        if: ${{ always() && (steps.batch38.outcome == 'success' || steps.batch38.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed123-progress-p38-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed123/progress/p38/
+            ${{ runner.temp }}/feed123/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 39
+        id: batch39
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/next123/finite_feed123.py tools/direct_demand/operations/next123/config.json step 11
+      - name: Publish bounded progress for batch 39 while job is running
+        if: ${{ always() && (steps.batch39.outcome == 'success' || steps.batch39.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed123-progress-p39-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed123/progress/p39/
+            ${{ runner.temp }}/feed123/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 40
+        id: batch40
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/next123/finite_feed123.py tools/direct_demand/operations/next123/config.json step 12
+      - name: Publish bounded progress for batch 40 while job is running
+        if: ${{ always() && (steps.batch40.outcome == 'success' || steps.batch40.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed123-progress-p40-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed123/progress/p40/
+            ${{ runner.temp }}/feed123/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: One native feed write for original batch 41
+        id: batch41
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/next123/finite_feed123.py tools/direct_demand/operations/next123/config.json step 13
+      - name: Publish bounded progress for batch 41 while job is running
+        if: ${{ always() && (steps.batch41.outcome == 'success' || steps.batch41.outcome == 'failure') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed123-progress-p41-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed123/progress/p41/
+            ${{ runner.temp }}/feed123/failure.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Preserve bounded failure metadata
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed123-stop-${{ github.run_id }}
+          path: ${{ runner.temp }}/feed123/failure.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Cleanup original connection material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"

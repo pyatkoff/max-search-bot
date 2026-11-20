@@ -1,0 +1,17 @@
+{
+  "historical_validator_sha256": "8938eb05eb22f8643a5d6b39a1729635c82069c61625a65be072921f8bc50846",
+  "current_validator_sha256": "484c33da0ff064a660f7aa3a6ce50c5aed479e144565f3cd6f43937c34544228",
+  "current_ack_sha256": "122d56e33f428bd69876d5cad95fdf6282fe31c68e0d4060d28122d07167bede",
+  "historical_descriptor_sha256": "2ffab378a7a6b197435bd970710370bcaf9cac1e46f008325b61b0bb90f0cd68",
+  "inverse_exact_original_validator": true,
+  "changes": [
+    [
+      "need(config['content_window_ack']=={'comment_id':6961029169,'body_sha256':d['claim_body_sha256']},'claim_scope')",
+      "need(H((root/'content-current/currentack.json').read_bytes())==CURRENT_ACK_SHA,'current_ack_changed')\n ack=json.loads((root/'content-current/currentack.json').read_bytes())\n need(ack['historical_terminal_descriptor_sha256']==DESCRIPTOR_SHA and ack['historical_claim_body_sha256']==d['claim_body_sha256'] and ack['carrier']==d['carrier'],'coordination_lineage_changed')\n need(config['source_sha256'].get('content-current/currentack.json')==CURRENT_ACK_SHA and config['source_sha256'].get('content-current/claim.json')==ack['current_claim_file_sha256'],'current_ack_source_pin')\n need(H((root/'content-current/claim.json').read_bytes())==ack['current_claim_file_sha256'],'saved_current_claim_changed')\n need(config['content_window_ack']=={'comment_id':6961029169,'body_sha256':ack['body_sha256'],'current_ack_sha256':CURRENT_ACK_SHA},'claim_scope')"
+    ],
+    [
+      "H(claim['body'].encode())==d['claim_body_sha256']",
+      "H(claim['body'].encode())==ack['body_sha256'] and claim['updated_at']==ack['updated_at']"
+    ]
+  ]
+}

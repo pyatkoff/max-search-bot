@@ -1,0 +1,25 @@
+{
+  "artifacts": [
+    {
+      "archive_download_url": "https://api.github.com/repos/pyatkoff/poisk-turov-test/actions/artifacts/14445204797/zip",
+      "created_at": "2026-11-18T16:28:48Z",
+      "digest": "sha256:014551f21684f5b1bccbe0d845efcf5224597c8f3a57cfa77415026f86068ba4",
+      "expired": false,
+      "expires_at": "2026-11-25T16:28:47Z",
+      "id": 14445204797,
+      "name": "price4294-sanitized-44347077975",
+      "node_id": "MDg6QXJ0aWZhY3QxNDQ0NTIwNDc5Nw==",
+      "size_in_bytes": 754,
+      "updated_at": "2026-11-18T16:28:48Z",
+      "url": "https://api.github.com/repos/pyatkoff/poisk-turov-test/actions/artifacts/14445204797",
+      "workflow_run": {
+        "head_branch": "audit/price4294-evidence-20261118",
+        "head_repository_id": 1345518271,
+        "head_sha": "859f39c139aac64d22439a65740e8ce5ec55cae8",
+        "id": 44347077975,
+        "repository_id": 1345518271
+      }
+    }
+  ],
+  "total_count": 1
+}

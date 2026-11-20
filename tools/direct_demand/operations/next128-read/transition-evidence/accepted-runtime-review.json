@@ -1,0 +1,31 @@
+{
+  "runtime_sha": "ec3420fc19d9328b0c4ce497325442af6d21d647",
+  "deploy_run": 44276144830,
+  "installer_job": 134709452142,
+  "final_native_verify_job": 134710712887,
+  "deploy_all6jobs": "success",
+  "native_release_kind": "installed",
+  "tails": {
+    "TLS": {
+      "run": 44278076944,
+      "job": 134711237763
+    },
+    "MAX": {
+      "run": 44278076393,
+      "job": 134711236365
+    },
+    "TG": {
+      "run": 44278076945,
+      "job": 134711238084
+    }
+  },
+  "all8_mandatory_tails": "success",
+  "release_closer_run": 44278077077,
+  "release_closer_job": 134711240499,
+  "release_slot": "released",
+  "release_log_at": "2026-11-18T09:42:21.3984663Z",
+  "reader_publisher22": "byte_identical",
+  "content_window_handed_to_feed": false,
+  "native_reader174_run": null,
+  "feed_admission_granted": false
+}

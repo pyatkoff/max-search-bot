@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261117-31-v1",
+  "state": "PREPARED_NOT_SENT",
+  "button_text": "✈️ Узнать стоимость тура",
+  "expected_new_full_pairs": 10,
+  "photo_freeze_commit": "e53eede2df5dbc5da5f72b04c0ac8777819cd8dc",
+  "native_id_namespace": "Tourvisor",
+  "rows": [
+    {
+      "hotel_id": 13110,
+      "logical_id": "commercial-hotel-13110-v1",
+      "aliases": [
+        "Avista Hideaway Phuket Patong MGallery",
+        "AVISTA HIDEAWAY PHUKET PATONG MGALLERY BY SOFITEL"
+      ],
+      "text": "✈️ Туры в Avista Hideaway Phuket Patong MGallery\n📍 Пхукет, Таиланд.\n\nОтдых на зелёном склоне рядом с Патонгом: три бассейна, просторные номера и ресторан на крыше. Спа-процедуры дополняют отпуск, а до пляжа Три Транг около километра.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "f5c5f7478abe35aa4867d314d4a52220588175488b783293f4764e25e33e6173",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/13110.png",
+      "photo_sha256": "cdad70b5c91608d889303970e0a6c34665579731c422f71241eeab36c6ae29e1",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=13110"
+      ]
+    },
+    {
+      "hotel_id": 796,
+      "logical_id": "commercial-hotel-796-v1",
+      "aliases": [
+        "Six Senses Samui",
+        "SIX SENSES SAMUI"
+      ],
+      "text": "✈️ Туры в Six Senses Samui\n📍 Самуи, Таиланд.\n\nВиллы среди тропической зелени на северной оконечности Самуи. Можно выбрать вариант с собственным бассейном, любоваться заливом и чередовать песчаный пляж, спа и неспешные ужины.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "848cbacec82ebdff8dfe93eddab92640cc17152a40e44d1634592e06a4c1d547",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/796.png",
+      "photo_sha256": "634cf5650b8f71d5e9028adc13e81c072f8a74e6ade2a8037d2aabe239310580",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=796"
+      ]
+    },
+    {
+      "hotel_id": 42509,
+      "logical_id": "commercial-hotel-42509-v1",
+      "aliases": [
+        "SO/ Sofitel Hua Hin",
+        "SO SOFITEL HUA HIN",
+        "HOTEL DE LA PAIX"
+      ],
+      "text": "✈️ Туры в SO/ Sofitel Hua Hin\n📍 Ча-Ам, Таиланд.\n\nЧа-Ам рядом с Хуахином для семейных каникул у песчаного пляжа. Четыре бассейна, игровые площадки и просторные семейные номера дополняют отдых, а рестораны и спа помогают сменить городской ритм.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "7ef8379402cce187b24c23b5c258fa3f9fee70031a967d1c8eb3daacc11511c0",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/42509.png",
+      "photo_sha256": "cf9fed724bd2d19030d021012aa7d698dabedb6d3a37e1aa4eea014fc7af415a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=42509"
+      ]
+    },
+    {
+      "hotel_id": 66861,
+      "logical_id": "commercial-hotel-66861-v1",
+      "aliases": [
+        "Mövenpick Myth Hotel Patong Phuket",
+        "MOVENPICK MYTH HOTEL PATONG PHUKET"
+      ],
+      "text": "✈️ Туры в Mövenpick Myth Hotel Patong Phuket\n📍 Пхукет, Таиланд.\n\nПатонг с атмосферой белого колониального особняка, бассейном и спа. Есть семейные сьюты и детский клуб; до песчаного пляжа около 450 метров, ходит шаттл.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "8e69b19c5b6a306ec681c50cf070074eeee191cb5424ea2258e396f994621f8a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/66861.png",
+      "photo_sha256": "cc660659d8c00403d009821de284e091520948ae7ca2b1840f4f3fb23c2c3708",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=66861"
+      ]
+    },
+    {
+      "hotel_id": 45232,
+      "logical_id": "commercial-hotel-45232-v1",
+      "aliases": [
+        "Sathorn Vista Bangkok Marriott Executive Apartments",
+        "MARRIOTT EXECUTIVE APARTMENTS SATHORN VISTA"
+      ],
+      "text": "✈️ Туры в Sathorn Vista Bangkok Marriott Executive Apartments\n📍 Бангкок, Таиланд.\n\nПросторные апартаменты с одной или двумя спальнями в районе Сатхорн. Бассейн, фитнес и спокойное пространство для отдыха после прогулок по Бангкоку или насыщенного рабочего дня.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "32a7154f806c9c368b7c8d7ec4678e8e95318ce5091a6e8cb9680a2573063d24",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/45232.png",
+      "photo_sha256": "a55a0b922861e366be1386b44686674aca4eec4407994b6abf55a5202263d8ef",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=45232"
+      ]
+    },
+    {
+      "hotel_id": 47213,
+      "logical_id": "commercial-hotel-47213-v1",
+      "aliases": [
+        "Chiang Mai Marriott Hotel",
+        "CHIANG MAI MARRIOTT",
+        "LE MERIDIEN CHIANG MAI"
+      ],
+      "text": "✈️ Туры в Chiang Mai Marriott Hotel\n📍 Чианг Май, Таиланд.\n\nЧиангмай рядом с Ночным базаром для знакомства с северным Таиландом. Просторные номера, бассейн и спа-процедуры помогут отдохнуть между прогулками по рынкам, храмам и старому городу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "cb1eea03bc80fc0c9315ed8ba6f5bf02d2ee1970071813f597487b4f1e868f4f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/47213.png",
+      "photo_sha256": "692f21399bf7d7f5d86bd768c5f513efc910e88769a354bf3270695bc114230c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=47213"
+      ]
+    },
+    {
+      "hotel_id": 77818,
+      "logical_id": "commercial-hotel-77818-v1",
+      "aliases": [
+        "Meliá Phuket Mai Khao",
+        "MELIA PHUKET MAI KHAO"
+      ],
+      "text": "✈️ Туры в Meliá Phuket Mai Khao\n📍 Пхукет, Таиланд.\n\nЛюксы и виллы среди зелени рядом с песчаным Май Као. Два бассейна, спа и детский клуб для спокойного Пхукета; для большего уединения можно выбрать виллу с собственным бассейном.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "07692376bf0e0bac572fd96b10ef730dbe3b80c6ab5eff42e1dfcf5e5fcd7a12",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/77818.png",
+      "photo_sha256": "64ed331a029a410227a46d0e99375677d591e13c7205db9c0c150632a1e89393",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=77818"
+      ]
+    },
+    {
+      "hotel_id": 82631,
+      "logical_id": "commercial-hotel-82631-v1",
+      "aliases": [
+        "Meliá Chiang Mai",
+        "MELIA CHIANG MAI"
+      ],
+      "text": "✈️ Туры в Meliá Chiang Mai\n📍 Чианг Май, Таиланд.\n\nЧиангмай для прогулок по Ночному базару и знакомства с тайскими храмами. Просторные номера, бассейн, ресторан и спа дополняют городской отдых, а для детей есть клуб.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "d729d04669fc4a5e4fc57fbc1ae81b7d623b0383fe71c99ccceccd03ede21cca",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/82631.png",
+      "photo_sha256": "ccc359293e0656e1e4286af5c201d228253a80be981bdd197c9c3529b30cdb45",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82631"
+      ]
+    },
+    {
+      "hotel_id": 102191,
+      "logical_id": "commercial-hotel-102191-v1",
+      "aliases": [
+        "Kimpton Kitalay Samui",
+        "KIMPTON KITALAY SAMUI AN IHG HOTEL"
+      ],
+      "text": "✈️ Туры в Kimpton Kitalay Samui\n📍 Самуи, Таиланд.\n\nСамуи для семейного отдыха среди тропической зелени. Уютные номера, бассейн, детский клуб и игровые зоны позволяют провести отпуск в спокойном ритме и уделить время друг другу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "6a1d7888404c200dfa16b4ee5571d670b468d7d3d49c8659458029f0126647c9",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/102191.png",
+      "photo_sha256": "7ef8b5501864b9a33166830ac125882db2e64058de9654c2e0a8c07c3746a605",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=102191"
+      ]
+    },
+    {
+      "hotel_id": 112772,
+      "logical_id": "commercial-hotel-112772-v1",
+      "aliases": [
+        "Cape Racha Hotel",
+        "CAPE RACHA HOTEL"
+      ],
+      "text": "✈️ Туры в Cape Racha Hotel\n📍 Сирача, Таиланд.\n\nГородская Сирача с просторными номерами рядом с магазинами и торговыми центрами. Бассейн, фитнес и ресторан подойдут для отдыха между поездками по побережью и делами в городе.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "e5ffde3840511923fdb6246bc6989e98c7b0c5304b4b10403ea51077b8acee4e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/112772.png",
+      "photo_sha256": "2d00dba721d5de817462cb5d5c7864c9b55d836232babd881489ce3be8226066",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=112772",
+        "https://www.caperacha.com/"
+      ]
+    }
+  ]
+}

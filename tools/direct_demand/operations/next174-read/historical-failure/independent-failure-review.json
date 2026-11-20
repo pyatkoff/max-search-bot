@@ -1,0 +1,27 @@
+{
+  "state": "FAILED_PARTIAL_READ_NOT_ACCEPTED174",
+  "run_id": 44353536071,
+  "head": "6a5e7f8f82b0e049395dee2704e4419a2d8e8a63",
+  "artifact_id": 14450225954,
+  "zip_sha256": "4a7b653d9b9bd190f285b7459c488577a98082cfa47190a72a76c64a61636907",
+  "verified_complete_groups": 20,
+  "verified_complete_hotels": 150,
+  "verified_complete_receipts": 300,
+  "failed_group": 21,
+  "error": "current_button_receipt_missing",
+  "inferred_failing_row": {
+    "hotel_id": 78929,
+    "platform": "telegram",
+    "publication_id": 2510,
+    "version_id": 8806
+  },
+  "failed_group_prior_verified_receipts": 4,
+  "unstarted_groups": [
+    22,
+    23
+  ],
+  "all174_accepted": false,
+  "writes": 0,
+  "provider_calls": 0,
+  "inference_basis": "Sequential retained loop; next row after four emitted receipts. Current version/text/photo shape/button URL/label predicates precede failure, stored receipt flags unreported."
+}

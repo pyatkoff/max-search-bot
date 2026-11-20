@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261117-39-v1",
+  "state": "PREPARED_NOT_SENT",
+  "button_text": "✈️ Узнать стоимость тура",
+  "expected_new_full_pairs": 10,
+  "photo_freeze_commit": "87d757264e13e455b8d96479895dae583eb5c231",
+  "native_id_namespace": "Tourvisor",
+  "rows": [
+    {
+      "hotel_id": 43494,
+      "logical_id": "commercial-hotel-43494-v1",
+      "aliases": [
+        "Dusit Suites Ratchadamri Bangkok",
+        "DUSIT SUITES RATCHADAMRI BANGKOK",
+        "ANANTARA BAAN RAJPRASONG SERVICED SUITES"
+      ],
+      "text": "✈️ Туры в Dusit Suites Ratchadamri Bangkok\n📍 Бангкок, Таиланд.\n\nДля более размеренной поездки в Бангкок: просторные сьюты, зелень и открытый бассейн. Есть ресторан, фитнес и детский бассейн, чтобы удобно сочетать семейный отдых и знакомство с городом.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "3c75f1452ca6b0b93cbe96b31c4a3ecd06a4f0e2bc56898da2a4a84232ab116b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/43494.png",
+      "photo_sha256": "86bff1f194af1b5ead63af4f30b908e38347137c0df9156a7f00439d2d5534bd",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43494",
+        "https://www.dusit.com/dusitsuites-ratchadamribangkok/"
+      ]
+    },
+    {
+      "hotel_id": 52090,
+      "logical_id": "commercial-hotel-52090-v1",
+      "aliases": [
+        "Avani+ Riverside Bangkok Hotel",
+        "AVANI+ RIVERSIDE BANGKOK"
+      ],
+      "text": "✈️ Туры в Avani+ Riverside Bangkok Hotel\n📍 Бангкок, Таиланд.\n\nБангкок с панорамами Чао Прайи: бассейн на высоте, номера с речными видами и фитнес. Лодочный трансфер к центральному пирсу помогает чередовать городские прогулки и отдых над рекой.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "49974015d52b438071d48ccc4b22ffbf527f0a6b8611dccba5b552d514faf9cf",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/52090.png",
+      "photo_sha256": "c00d39fd2b8d469e07a4fdf57ca2f196653843ce9395e13e6b9f938b3aba9846",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=52090"
+      ]
+    },
+    {
+      "hotel_id": 66666,
+      "logical_id": "commercial-hotel-66666-v1",
+      "aliases": [
+        "Fusion Suites Saigon",
+        "FUSION SUITES SAIGON"
+      ],
+      "text": "✈️ Туры в Fusion Suites Saigon\n📍 Хошимин, Вьетнам.\n\nУютный Хошимин рядом с парком Тао Дан: сьюты, ресторан, бар и спа. Есть семейные варианты размещения. Подойдёт для прогулок по городу и спокойного отдыха после насыщенного дня.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "68008abbaefbc1d0bedfadb0b4058829870b31bf559550c75a1349c14d254f3d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/66666.png",
+      "photo_sha256": "86c857b34603697f8f52df9c239f4b5213ddf0938cfa1382f506483d78f30751",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=66666"
+      ]
+    },
+    {
+      "hotel_id": 68971,
+      "logical_id": "commercial-hotel-68971-v1",
+      "aliases": [
+        "Rosewood Bangkok",
+        "ROSEWOOD BANGKOK"
+      ],
+      "text": "✈️ Туры в Rosewood Bangkok\n📍 Бангкок, Таиланд.\n\nАрхитектурный акцент Бангкока на Плоенчит: стильные номера, бассейн, спа и фитнес. Подойдёт тем, кто хочет добавить к городскому путешествию выразительный дизайн и красивую атмосферу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "03a223ad1efb931748fb09c79b105e2cbb61fe031dee703ce2fbc60d9bc80fb3",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/68971.png",
+      "photo_sha256": "c389b9fc1a9ec860616afba01184ee1dc2ab071d6fc8486a5069546e2d2809bc",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=68971"
+      ]
+    },
+    {
+      "hotel_id": 74114,
+      "logical_id": "commercial-hotel-74114-v1",
+      "aliases": [
+        "JW Marriott Hotel Hanoi",
+        "JW MARRIOTT HOTEL HANOI"
+      ],
+      "text": "✈️ Туры в JW Marriott Hotel Hanoi\n📍 Ханой, Вьетнам.\n\nПросторный отдых в западной части Ханоя у озера: рестораны, крытый бассейн и спа. Сад и семейные варианты размещения помогут совместить поездку в столицу с более спокойным ритмом.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "93949bd34698b12a9316a00e59a79020eb3b8c26d40164873943a3a50df6fb2f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/74114.png",
+      "photo_sha256": "83614f8957887dcd9721f51f7d607427529027f983ecc9a435ed40c8c704d1f5",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=74114"
+      ]
+    },
+    {
+      "hotel_id": 79323,
+      "logical_id": "commercial-hotel-79323-v1",
+      "aliases": [
+        "Capella Bangkok",
+        "CAPELLA BANGKOK"
+      ],
+      "text": "✈️ Туры в Capella Bangkok\n📍 Бангкок, Таиланд.\n\nУединённая атмосфера на берегу Чао Прайи: номера с речными видами, рестораны у воды и Auriga Wellness. Для особенной поездки в Бангкок, где хочется больше тишины, красивых закатов и времени вдвоём.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "48dad59ff5f31b6cc9706696e6fc8ab29ef431483dfb5a44156fe3e8402542e4",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/79323.png",
+      "photo_sha256": "07b02f820ed94a2fb280002474f08d009c6e733c3d3079c7480b44641b96316f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=79323"
+      ]
+    },
+    {
+      "hotel_id": 79954,
+      "logical_id": "commercial-hotel-79954-v1",
+      "aliases": [
+        "Park Hyatt Bangkok",
+        "PARK HYATT BANGKOK"
+      ],
+      "text": "✈️ Туры в Park Hyatt Bangkok\n📍 Бангкок, Таиланд.\n\nБангкок над Central Embassy: выразительная архитектура, бассейн, рестораны и спа. Подойдёт тем, кто хочет совместить городской шопинг с красивыми вечерами и комфортным отдыхом.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "b44c9375fa94f3a63b49ac95a5e675c417b1088f31a117635c7c84ad463e6e90",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/79954.png",
+      "photo_sha256": "7ed0c62b8fd880c4ecb2e362da05cd937a1575949cf4607729ddaa845dc3e1eb",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=79954"
+      ]
+    },
+    {
+      "hotel_id": 80233,
+      "logical_id": "commercial-hotel-80233-v1",
+      "aliases": [
+        "Avani Sukhumvit Bangkok Hotel",
+        "AVANI SUKHUMVIT BANGKOK"
+      ],
+      "text": "✈️ Туры в Avani Sukhumvit Bangkok Hotel\n📍 Бангкок, Таиланд.\n\nБангкок с прямым выходом к BTS On Nut: удобно отправляться за городскими впечатлениями. После прогулок ждут бассейн, ресторан, бар и фитнес, а в номерах можно отдохнуть от суеты.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "336bf733417a449e033b346c4eba3061d4ed5b4cdb7b45b5efdc7d99be24e2ef",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/80233.png",
+      "photo_sha256": "499260959f5d1f796d6ffdd4722c71764df36fd185b3dc9a2dd9681d9b60befe",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=80233"
+      ]
+    },
+    {
+      "hotel_id": 110848,
+      "logical_id": "commercial-hotel-110848-v1",
+      "aliases": [
+        "Kimpton Maa Lai Bangkok",
+        "KIMPTON MAA LAI BANGKOK AN IHG HOTEL"
+      ],
+      "text": "✈️ Туры в Kimpton Maa Lai Bangkok\n📍 Бангкок, Таиланд.\n\nДизайнерский Бангкок на улице Сой Тонсон: стильные номера, открытый бассейн, спа и фитнес. Для тех, кто ценит необычные интерьеры и хочет приятно чередовать городские прогулки с отдыхом.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "9ae2a795b2200ede5cc708b3e987168e5a79f42eb685ad17d7d747377ba424b5",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/110848.png",
+      "photo_sha256": "fa79a689b43288b58b5868e19073e25f7d64929f88e5bdd83d8ac8fd8162daab",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=110848"
+      ]
+    },
+    {
+      "hotel_id": 111489,
+      "logical_id": "commercial-hotel-111489-v1",
+      "aliases": [
+        "Fusion Original Saigon Centre",
+        "FUSION ORIGINAL SAIGON CENTRE HO CHI MINH"
+      ],
+      "text": "✈️ Туры в Fusion Original Saigon Centre\n📍 Хошимин, Вьетнам.\n\nХошимин в самом Saigon Centre: яркие дизайнерские интерьеры, открытый бассейн с городским видом и ресторан. Рядом магазины Takashimaya и достопримечательности центрального района.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "f7dcfdc0b55a28bdab214303c2fe8495082a4ebac7d1a974a7142afef6c945c2",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/111489.png",
+      "photo_sha256": "e2e2b3f02b4fc372b2667a8e75e64dc8d58f204374af6df5d6c28eea9cb6a00f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=111489"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "telegram": {
+    "sha256": "a82912754008b6b0b56af2452f3c80b83511e695dcbfc8f1ebfd96ad2f2a2380",
+    "count": 1000,
+    "bytes": 1121876
+  },
+  "max": {
+    "sha256": "baf45dd0fb01c7fd77c528b1cea3e7f2427f4dcd543995e4682e99b488edb6a5",
+    "count": 1000,
+    "bytes": 1282247
+  },
+  "all": {
+    "sha256": "1238a74d2408f02d5eb92d3145bf34c125a6435c4d9e4d95b310a44905a6418b",
+    "count": 2000,
+    "bytes": 2403750
+  },
+  "observed_at": "2026-11-18T16:47:16.988979+00:00"
+}

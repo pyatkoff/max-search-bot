@@ -1,0 +1,10 @@
+{
+  "kind": "EXACT_PREFIX_ONLY_COORDINATION_UPDATE",
+  "prior_body_sha256": "a3424e8b03fa5cb121ff39f223fef9f7afcdff8064a0181e6c55200ba080eeff",
+  "new_body_sha256": "d482c913fe0511957bd7d12efdd3f09e6a5510e9be19e1d5a6898e08dc690fcf",
+  "new_updated_at": "2026-11-18T17:17:40Z",
+  "previous_body_exact_suffix": true,
+  "historical49_unchanged": true,
+  "current78929_not_admitted": true,
+  "content_carrier_unchanged": true
+}

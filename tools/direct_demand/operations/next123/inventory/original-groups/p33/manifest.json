@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261117-33-v1",
+  "state": "PREPARED_NOT_SENT",
+  "button_text": "✈️ Узнать стоимость тура",
+  "expected_new_full_pairs": 10,
+  "photo_freeze_commit": "e53eede2df5dbc5da5f72b04c0ac8777819cd8dc",
+  "native_id_namespace": "Tourvisor",
+  "rows": [
+    {
+      "hotel_id": 66681,
+      "logical_id": "commercial-hotel-66681-v1",
+      "aliases": [
+        "Four Points by Sheraton Danang",
+        "FOUR POINTS BY SHERATON DANANG"
+      ],
+      "text": "✈️ Туры в Four Points by Sheraton Danang\n📍 Дананг, Вьетнам.\n\nДананг с морскими панорамами, бассейном и ресторанами. Спа и просторные номера помогут отдохнуть после прогулок, а песчаный Ми Кхе находится примерно в 100 метрах через дорогу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "20a5f42adf7e755ff8773e5aaaecd6955ac54a313acca461959144375cbbd282",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/66681.png",
+      "photo_sha256": "07ba6c74d2a0b0e57492d713158d081dcb506871b186caeff08dd2badadd4757",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=66681"
+      ]
+    },
+    {
+      "hotel_id": 80225,
+      "logical_id": "commercial-hotel-80225-v1",
+      "aliases": [
+        "Regent Phu Quoc",
+        "REGENT PHU QUOC"
+      ],
+      "text": "✈️ Туры в Regent Phu Quoc\n📍 Фукуок, Вьетнам.\n\nПросторные сьюты и виллы у песчаного побережья Фукуока для особенного отпуска. Бассейны, рестораны и спа дополняют отдых, а детям доступны клуб и игровые площадки.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "1e2bbf5aeea0b297fb23b9ae0b345849d7c234f8778aedaf7298be7fe9758d01",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/80225.png",
+      "photo_sha256": "45e57562e051bd27d52481b6e777d8adfcb951f6c5600f383771905812b776f2",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=80225"
+      ]
+    },
+    {
+      "hotel_id": 80955,
+      "logical_id": "commercial-hotel-80955-v1",
+      "aliases": [
+        "Radisson Hotel Danang",
+        "RADISSON HOTEL DANANG"
+      ],
+      "text": "✈️ Туры в Radisson Hotel Danang\n📍 Дананг, Вьетнам.\n\nГородской Дананг с бассейном на крыше и морскими видами. Ресторан и спа помогают расслабиться после прогулок; песчаный пляж находится примерно в 200 метрах через дорогу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "3828489114c94e182e0d6976f4ffb510b84eabfba32e5d813c19c6cda0eafb3a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/80955.png",
+      "photo_sha256": "083606589c09cfaa9f9a7ebf9597f195c37b839f4c1bcafa0669f6d363578ba2",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=80955"
+      ]
+    },
+    {
+      "hotel_id": 98713,
+      "logical_id": "commercial-hotel-98713-v1",
+      "aliases": [
+        "Best Western Premier Marvella Nha Trang",
+        "BEST WESTERN PREMIER MARVELLA NHA TRANG"
+      ],
+      "text": "✈️ Туры в Best Western Premier Marvella Nha Trang\n📍 Нячанг, Вьетнам.\n\nНячанг с морскими панорамами, бассейном и ресторанами. Есть спа, детский клуб и площадка: удобно чередовать семейные дни у моря и прогулки по городу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "93abbdd4640aa92f5d154e7b9cedef181e5d3b1ffeedd2b3070919f277b28881",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/98713.png",
+      "photo_sha256": "c3218831e8e9d0223203c54443e5e60d23d8d81ea4d0d02b2bae9918c7434edc",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=98713"
+      ]
+    },
+    {
+      "hotel_id": 104973,
+      "logical_id": "commercial-hotel-104973-v1",
+      "aliases": [
+        "Meliá Vinpearl Danang Riverfront",
+        "MELIA VINPEARL DANANG RIVERFRONT",
+        "Vinpearl Da Nang Riverfront Suites"
+      ],
+      "text": "✈️ Туры в Meliá Vinpearl Danang Riverfront\n📍 Дананг, Вьетнам.\n\nДананг с видами на реку Хан и город: просторные номера, бассейны и рестораны. Есть спа и детский клуб, а для пляжного дня можно отправиться к морю примерно в двух километрах.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "6458b727033c8e9161b399a15ec74a3b865ee7b02d452c25da42a9ec95ff78f0",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/104973.png",
+      "photo_sha256": "bbe866e81624cee482665850e0a484ad06778b492965dc191afd0c277a0d0a51",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=104973"
+      ]
+    },
+    {
+      "hotel_id": 111414,
+      "logical_id": "commercial-hotel-111414-v1",
+      "aliases": [
+        "Angsana Ho Tram",
+        "ANGSANA HO TRAM"
+      ],
+      "text": "✈️ Туры в Angsana Ho Tram\n📍 Хо Трам, Вьетнам.\n\nХо Трам для отдыха у песчаного пляжа: номера, сьюты и виллы с бассейнами. Рестораны, спа и детские игровые зоны помогают устроить отпуск вдвоём или всей семьёй.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "a68763e30b63adefa5224a5594934fa66bb07c3533c8f6322012945e895cf4ce",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/111414.png",
+      "photo_sha256": "89bc34f26ecb5f0f377c6552464a22fc4bf19ff26cb0c9df1ae75554b6756d12",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=111414"
+      ]
+    },
+    {
+      "hotel_id": 4090,
+      "logical_id": "commercial-hotel-4090-v1",
+      "aliases": [
+        "Vinpearl Luxury Nha Trang",
+        "VINPEARL LUXURY NHA TRANG"
+      ],
+      "text": "✈️ Туры в Vinpearl Luxury Nha Trang\n📍 Нячанг, Вьетнам.\n\nОстров Хон Тре для спокойного отпуска у песчаного моря. Виллы, просторный бассейн, рестораны и спа над водой; до острова добираются катером или канатной дорогой из Нячанга.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "0d0f2abdab017627ce192e8c25979a2a9223cba761c64ce24feba47d3a4d59a5",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/4090.png",
+      "photo_sha256": "8433530123a48ff6bad4bc5198959b6bdeb3aa0520c6d23088b5a4868d7c89a8",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4090"
+      ]
+    },
+    {
+      "hotel_id": 22785,
+      "logical_id": "commercial-hotel-22785-v1",
+      "aliases": [
+        "Novotel Danang Premier Han River",
+        "NOVOTEL DA NANG PREMIER HAN RIVER"
+      ],
+      "text": "✈️ Туры в Novotel Danang Premier Han River\n📍 Дананг, Вьетнам.\n\nДананг на берегу реки Хан для городских прогулок и красивых вечерних панорам. Бассейн, рестораны и спа дополняют отдых, для детей есть клуб; до моря около трёх километров.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "9f262733f4a851ad57e162263eb8f5e7c8f759dee05f300f1abdfdd5d390f111",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/22785.png",
+      "photo_sha256": "56521ffc3d69c6773c75bdd9c8d94cd4ce092962e9ee1e13c4fe38db3e07d0c1",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=22785"
+      ]
+    },
+    {
+      "hotel_id": 22789,
+      "logical_id": "commercial-hotel-22789-v1",
+      "aliases": [
+        "Six Senses Con Dao",
+        "SIX SENSES CON DAO"
+      ],
+      "text": "✈️ Туры в Six Senses Con Dao\n📍 Кон Дао, Вьетнам.\n\nВиллы с собственными бассейнами у песчаного побережья острова Кон Сон. Тропическая природа архипелага Кон Дао, рестораны, спа и детский клуб для уединённого островного отпуска.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "e27ca11de5ada69c14e52c9e68998dab761d167cf0553639c8ebbd6b251bdd1e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/22789.png",
+      "photo_sha256": "05329cac6a0a69454a46121a7a489f08971a3243c24a2dc2267c43a9d8a3fd3e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=22789"
+      ]
+    },
+    {
+      "hotel_id": 23721,
+      "logical_id": "commercial-hotel-23721-v1",
+      "aliases": [
+        "Angsana Lang Co",
+        "ANGSANA LANG CO"
+      ],
+      "text": "✈️ Туры в Angsana Lang Co\n📍 Ланг Ко, Вьетнам.\n\nЛанг Ко для семейных каникул на широком песчаном пляже. Бассейн, детский клуб и рестораны помогают провести дни у моря, а спа, гольф и водные развлечения добавят впечатлений.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "cd9287ac4fdaaad33f3d39703d80e8a0cc8c6a92fc2f95130b4b2bfe075f4a3d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/23721.png",
+      "photo_sha256": "74243ff27f2166d77d70a13023b53f7cfadcf54cd13c2c4c2a36b2723e69729b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23721"
+      ]
+    }
+  ]
+}

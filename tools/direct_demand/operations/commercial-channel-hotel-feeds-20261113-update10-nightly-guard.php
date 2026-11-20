@@ -8,6 +8,8 @@ try{
  $extensionMonitorNeed(is_file($monitorJournal)&&!is_link($monitorJournal),'monitor_journal_unavailable');
  $extensionMonitorLock=fopen($monitorJournal,'rb');
  $extensionMonitorNeed($extensionMonitorLock!==false&&flock($extensionMonitorLock,LOCK_EX|LOCK_NB),'monitor_already_running');
+ $extensionHook='/var/www/anytoour/data/www/anytoour.ru/data/monitor-price-hook.php';
+ $extensionMonitorNeed(is_file($extensionHook)&&!is_link($extensionHook)&&hash_file('sha256',$extensionHook)==='483f9f1cd853fdf1808523e72d466e2acd0866ec6ae35de049ada38b5cc128f9','monitor_hook_changed');
  // The accepted reconciliation reader bounds each complete JSONL row at 2000000 bytes.
  // Read one extra byte to prove the preceding delimiter when the journal is larger.
  $monitorStat=fstat($extensionMonitorLock);

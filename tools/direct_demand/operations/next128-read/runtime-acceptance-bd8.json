@@ -1,0 +1,102 @@
+{
+  "runtime": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+  "runs": [
+    {
+      "run_id": 44329290180,
+      "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+      "kind": "deployment"
+    },
+    {
+      "run_id": 44332076971,
+      "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+      "kind": "native",
+      "workflow_path": ".github/workflows/max-tls-preflight.yml"
+    },
+    {
+      "run_id": 44332076738,
+      "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+      "kind": "native",
+      "workflow_path": ".github/workflows/max-production-health.yml"
+    },
+    {
+      "run_id": 44332077054,
+      "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+      "kind": "native",
+      "workflow_path": ".github/workflows/telegram-production-health.yml"
+    },
+    {
+      "run_id": 44332076761,
+      "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+      "kind": "native",
+      "workflow_path": ".github/workflows/live-session-diagnostics.yml"
+    },
+    {
+      "run_id": 44332076721,
+      "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+      "kind": "native",
+      "workflow_path": ".github/workflows/modeled-conversion-monitor.yml"
+    },
+    {
+      "run_id": 44332076848,
+      "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+      "kind": "native",
+      "workflow_path": ".github/workflows/tour-selection-host.yml"
+    },
+    {
+      "run_id": 44332076802,
+      "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+      "kind": "native",
+      "workflow_path": ".github/workflows/publish-conversation-diagnostics.yml"
+    },
+    {
+      "run_id": 44332076755,
+      "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+      "kind": "native",
+      "workflow_path": ".github/workflows/modeled-conversion-value-export.yml"
+    }
+  ],
+  "jobs": [
+    {
+      "run_id": 44329290180,
+      "job_id": 134896327358
+    },
+    {
+      "run_id": 44329290180,
+      "job_id": 134898165358
+    },
+    {
+      "run_id": 44332076971,
+      "job_id": 134898853821
+    },
+    {
+      "run_id": 44332076738,
+      "job_id": 134898853078
+    },
+    {
+      "run_id": 44332077054,
+      "job_id": 134898854021
+    },
+    {
+      "run_id": 44332076755,
+      "job_id": 134898857708
+    }
+  ],
+  "evidence_sha256": {
+    "runtime-bd8-evidence/accepted-runtime-review.json": "81a9b5ee2fe2c90ba72bf4f6c820f5a7e66e9f7865cd09010a3502cbae66b8fa",
+    "runtime-bd8-evidence/closer-jobs.json": "845c7254e6a028e9fc5a2c49ddc69df3954bfc549d7d3aca24c1e424a2b43b2a",
+    "runtime-bd8-evidence/saved-accepted-record-and-publisher.json": "47f1cac57e53be76881b45ba3f794f245fc79695169cd9d1cb19d5102fece6c0",
+    "runtime-bd8-evidence/max-jobs.json": "5e1a9a830634e87ca1d63213f8f1831bba0bb2b9038a69bf7d6d310b5460ecf7",
+    "runtime-bd8-evidence/telegram-jobs.json": "0867b798af526babedc75677029c083fa8cf4fd5e8c9e69d37622b29e531627a",
+    "runtime-bd8-evidence/runs.json": "81562b44b3111d678aa753f2be90bc197d4f23deeb939dfd792bd29a2adc8b5e",
+    "runtime-bd8-evidence/publisher-current.json": "20f0fefd6cf5c2087f00c8c3a2a104e790b2e66dbf2ccfa19747000162f75129",
+    "runtime-bd8-evidence/tls-jobs.json": "4b14a9d7e776b3d188ee1ec1acbad8f3636364e33f3b4d78dc430ac1dca59361",
+    "runtime-bd8-evidence/native-verify.log": "c82eaabcad12d91f23f07a5867c25e2b6363d90e621473523de3cae8bcd08d76",
+    "runtime-bd8-evidence/main.json": "f1b61b58356a73dc15c11c55d11fb840e879ff1e475c38a11c5068e4ebf02053",
+    "runtime-bd8-evidence/deploy.json": "8703d4a99831594841c11a7d669184745da5fff7947fb5b3e2d43c0eaa95a3e9",
+    "runtime-bd8-evidence/release-slot.log": "309dedd779cc9c7ea916d5fe16122007c2e9ecae9cafff2dc478b5eb0b979abe",
+    "runtime-bd8-evidence/jobs.json": "19f086ff0d8b655c6eb60c4afb72a7049e6c5d62911c4cb142e5adeb025a5975"
+  },
+  "native_reader174_run": null,
+  "content_handoff": null,
+  "price_window_granted": false
+}
