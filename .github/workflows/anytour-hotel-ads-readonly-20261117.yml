@@ -1,4 +1,4 @@
-name: "Aloft 1207: test official Telegram bot administrator read"
+name: "Aloft 1207: isolated Telegram bot administrator read"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,79 +13,70 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '240b70088b0c7f27c4c5f14543aaf6608ca77bec' &&
+      github.event.before == '721672627aabd2a8fbb3a7a776e6d2f3ddbd96cc' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Prepare the installed API read probe
+      - name: Check out isolated integration code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          path: source
+      - name: Check and assemble the read-only integration
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           mkdir pub
-          cat > pub/read-only.php <<'PHP'
-          <?php
-          declare(strict_types=1);
+          php -l source/integrations/AnyTourTelegramAdministratorRead.php
+          php -r '
+            require "source/integrations/AnyTourTelegramAdministratorRead.php";
+            if (AnyTourTelegramAdministratorRead::read(-1001845835644, true)["state"]!=="outside_exact_read_scope"
+              || AnyTourTelegramAdministratorRead::read(-1001845835645, false)["state"]!=="outside_exact_read_scope") exit(2);
+            $method = new ReflectionMethod(AnyTourTelegramAdministratorRead::class,"botRights");
+            $supplied = [
+              ["user"=>["is_bot"=>false,"username"=>"human_fixture","id"=>123],"can_edit_messages"=>true],
+              ["user"=>["is_bot"=>true,"username"=>"example_bot","id"=>234],"can_edit_messages"=>true],
+              ["user"=>["is_bot"=>true,"username"=>"invalid fixture"]],
+            ];
+            $expected=[["username"=>"example_bot","can_edit_messages"=>true,"can_post_messages"=>false]];
+            if ($method->invoke(null,$supplied)!==$expected) exit(3);
+            echo "EXACT_SCOPE_AND_BOT_ONLY_PROJECTION_VERIFIED\n";
+          '
+          cat source/integrations/AnyTourTelegramAdministratorRead.php > pub/read-only.php
+          cat >> pub/read-only.php <<'PHP'
           ini_set('display_errors','0');
           ini_set('log_errors','0');
-          
-          function requireEdit(bool $ok, string $reason): void {
-              if (!$ok) throw new RuntimeException($reason);
-          }
-          function installedEdit(string $expected): void {
-              requireEdit(PHP_SAPI === 'cli' && getcwd() === '/var/www/anytoour/data/www/app.anytoour.ru', 'app_root');
-              requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD')) === $expected, 'installed_checkout_changed');
-              requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false status --porcelain --untracked-files=no')) === '', 'installed_checkout_dirty');
-          }
           $out=['ok'=>false,'provider_writes'=>0];
-          try{
-              installedEdit('9385571c86c45189c31d9c4aa904c23970e3b11a');
+          try {
+              $sha='9385571c86c45189c31d9c4aa904c23970e3b11a';
+              if (PHP_SAPI!=='cli' || getcwd()!=='/var/www/anytoour/data/www/app.anytoour.ru'
+                  || trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'))!==$sha
+                  || trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false status --porcelain --untracked-files=no'))!=='') {
+                  throw new RuntimeException('installed_checkout_changed');
+              }
               ob_start();
-              try{
+              try {
                   require getcwd().'/config.php';
                   require_once getcwd().'/integrations/ChannelPostApiTransport.php';
-              }finally{ob_end_clean();}
-              $chat=-1001845835645;
+              } finally { ob_end_clean(); }
               $me=ChannelPostApiTransport::buttonRequest('telegram','POST','getMe',[],[]);
-              $self=$me['data']['result']??[];
-              requireEdit(($me['http']??0)===200 && ($me['data']['ok']??false)===true
-                  && ($self['is_bot']??false)===true && ($self['username']??'')==='anyru_bot'
-                  && is_int($self['id']??null),'canonical_bot_identity_unavailable');
-              $member=ChannelPostApiTransport::buttonRequest('telegram','POST','getChatMember',[],['chat_id'=>$chat,'user_id'=>$self['id']]);
-              $mine=$member['data']['result']??[];
-              requireEdit(($member['http']??0)===200 && ($member['data']['ok']??false)===true
-                  && ($mine['user']['is_bot']??false)===true && ($mine['user']['username']??'')==='anyru_bot','canonical_member_read_unavailable');
-              $safe=static fn(array $entry):array=>[
-                  'username'=>$entry['user']['username'],
-                  'can_edit_messages'=>($entry['can_edit_messages']??null)===true,
-                  'can_post_messages'=>($entry['can_post_messages']??null)===true,
-              ];
-              $out['current_bot']=$safe($mine);
-              $r=ChannelPostApiTransport::buttonRequest('telegram','POST','getChatAdministrators',[],['chat_id'=>$chat,'return_bots'=>true]);
-              $out['admin_read_http']=(int)($r['http']??0);
-              $out['admin_read_transport_error']=($r['transport_error']??true)===true;
-              $out['admin_read_data_is_null']=($r['data']??null)===null;
-              if ($out['admin_read_http']===200 && ($r['data']['ok']??false)===true && is_array($r['data']['result']??null)){
-                  $out['visible_bots']=[];
-                  foreach($r['data']['result'] as $entry){
-                      $user=$entry['user']??[];
-                      if (($user['is_bot']??false)===true && preg_match('/\A[A-Za-z0-9_]{1,64}\z/D',(string)($user['username']??'')))
-                          $out['visible_bots'][]=$safe($entry);
-                  }
-                  $out['state']='telegram_list_read';
-              } elseif ($out['admin_read_http']===0 && $out['admin_read_transport_error'] && $out['admin_read_data_is_null']){
-                  $out['state']='installed_adapter_disallows_method';
-              } else {
-                  $out['state']='admin_list_unavailable';
-                  $out['telegram_error_code']=(int)($r['data']['error_code']??0);
+              $user=$me['data']['result']??null;
+              if (($me['http']??0)!==200 || ($me['data']['ok']??false)!==true
+                  || ($user['is_bot']??false)!==true || ($user['username']??'')!=='anyru_bot') {
+                  throw new RuntimeException('installed_bot_identity_unconfirmed');
               }
-              $out['ok']=true;
-          } catch(Throwable $e){
-              $m=$e->getMessage();
-              $out['reason']=preg_match('/^[a-z0-9_]{1,100}$/D',$m)?$m:'read_probe_failed';
+              unset($me,$user);
+              $out['verified_bot']='anyru_bot';
+              $result=AnyTourTelegramAdministratorRead::read(-1001845835645,true);
+              $out=array_replace($out,$result);
+              $out['admin_read_attempts']=1;
+          } catch(Throwable $e) {
+              $value=$e->getMessage();
+              $out['state']=preg_match('/\A[a-z_]{1,65}\z/D',$value)?$value:'isolated_read_failed';
           }
-          echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
           PHP
           php -l pub/read-only.php
       - name: Pin established SSH host continuity and authentication identity
@@ -120,7 +111,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Check read-only Telegram method and bot rights
+      - name: Read the Telegram bot-admin list through the isolated integration
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -132,12 +123,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("TELEGRAM_EXISTING_ADMIN_READ="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("TELEGRAM_ISOLATED_ADMIN_READ="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("provider_writes")==0'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: telegram-admin-read-method-probe
+          name: telegram-isolated-admin-read-receipt
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
