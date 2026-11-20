@@ -22,7 +22,7 @@ jobs:
     timeout-minutes: 60
     env:
       GH_TOKEN: ${{ github.token }}
-      CONFIG_SHA256: 13bafa258998592fd9bbdbdc454112d05ef6b801081eb071725c89502d7a64e4
+      CONFIG_SHA256: 31a3bf2f4752b5c0101468c58be6f410deae1dca43d36ab7f5c3678c6b1cb8ad
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
@@ -36,7 +36,7 @@ jobs:
           ce1f237016c86dfb10364aa1d7c98e804f67151a3f0a5a2d3187a3d7c6ca75c1  tools/direct_demand/operations/feed55/write/compile_feed55.py
           d58088748ebba00b47804136d01d9586011fb35c529270cc5edcacf85159d9cb  tools/direct_demand/operations/feed55/write/owner_permit_gate.py
           4bd4aa4a58548e5bf875b63c40c38547f9d512d406fc274b78852d1e3e93922c  tools/direct_demand/operations/feed55/write/execute_feed55.py
-          13bafa258998592fd9bbdbdc454112d05ef6b801081eb071725c89502d7a64e4  tools/direct_demand/operations/feed55/write/config.json
+          31a3bf2f4752b5c0101468c58be6f410deae1dca43d36ab7f5c3678c6b1cb8ad  tools/direct_demand/operations/feed55/write/config.json
           39fc9acbde4be0caf215cdaab800d27527e7399be4e64ea134df2e1216b55d8a  tools/direct_demand/operations/feed55/write/route-p01.json
           0eb45d35679c1320af7d91e5026c991a2e8aa76c6a0a0341f8459086c6fb3531  tools/direct_demand/operations/feed55/write/route-p02.json
           7e60aa57d3b794258d2f631af6362a58068dbb556a8463fb09cb1018525e00a5  tools/direct_demand/operations/feed55/write/route-p04.json
