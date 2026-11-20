@@ -1,4 +1,4 @@
-name: "Aloft 1207: match exact administrator bot names to authorized bindings"
+name: "Aloft: read native connection inventory and exact posts 1207 and 1678"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,12 +13,12 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '5cb50bdb72e49925589c9e44a9bc41409b3ed609' &&
+      github.event.before == 'bd7b48ec50bb20a933ff67ac8017ab318b040b7a' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Prepare exact-name read-only registry check
+      - name: Prepare project-scoped native client and two-post read
         shell: bash
         run: |
           set -euo pipefail
@@ -38,49 +38,189 @@ jobs:
               requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD')) === $expected, 'installed_checkout_changed');
               requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false status --porcelain --untracked-files=no')) === '', 'installed_checkout_dirty');
           }
-          function countMatch(PDO $pdo,string $sql,array $params): int {
-              $statement=$pdo->prepare($sql);
-              $statement->execute($params);
-              $total=(int)$statement->fetchColumn();
-              $statement->closeCursor();
-              return $total;
+          function publicTelegram(int $mid, int $cursor): array {
+              $doc = new DOMDocument();
+              $url = 'https://t.me/s/anytour?before=' . $cursor;
+              $raw = PromotedHotelPriceWriter::publicBytes($url);
+              requireEdit(@$doc->loadHTML('<?xml encoding="UTF-8">'.$raw, LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING), 'public_dom');
+              $xp = new DOMXPath($doc);
+              $roots = $xp->query('//*[@data-post="anytour/'.$mid.'"]');
+              requireEdit($roots->length === 1,'public_id');
+              $root = $roots->item(0);
+              $class = static fn(string $v):string => 'contains(concat(" ",normalize-space(@class)," ")," '.$v.' ")';
+              $text = $xp->query('.//*['.$class('tgme_widget_message_text').']',$root);
+              $time = $xp->query('.//time[@datetime]',$root);
+              requireEdit($text->length===1 && $time->length===1,'public_body_or_date');
+              $photos = [];
+              foreach ($xp->query('.//*['.$class('tgme_widget_message_photo_wrap').']',$root) as $img) {
+                  $marker = trim($img->getAttribute('class'));
+                  preg_match('/(?:^|\s)([0-9]{5,}(?:_[0-9]+)?)(?:\s|$)/D',$marker,$m);
+                  $photos[] = $m[1] ?? ('class:'.hash('sha256',$marker));
+              }
+              $videos = $xp->query('.//video|.//*['.$class('tgme_widget_message_video_thumb').' or '.$class('tgme_widget_message_roundvideo').']',$root)->length;
+              $clips=[];
+              foreach ($xp->query('.//video|.//*['.$class('tgme_widget_message_video_thumb').' or '.$class('tgme_widget_message_video_duration').']',$root) as $v) {
+                  $clips[]=[$v->tagName,$v->getAttribute('class'),$v->getAttribute('src'),$v->getAttribute('poster'),$v->getAttribute('style'),trim($v->textContent)];
+              }
+              $captionHtml='';
+              foreach ($text->item(0)->childNodes as $node) $captionHtml.=$doc->saveHTML($node);
+              $caption = html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i',"\n",$captionHtml)),ENT_QUOTES|ENT_HTML5,'UTF-8');
+              $buttons=[];
+              foreach($xp->query('.//a['.$class('tgme_widget_message_inline_button').']',$root) as $a) {
+                  $buttons[]=['text'=>trim($a->textContent),'url'=>$a->getAttribute('href')];
+              }
+              $links=[];
+              foreach($xp->query('.//a[@href]',$text->item(0)) as $a) {
+                  $links[]=['text'=>trim($a->textContent),'url'=>$a->getAttribute('href')];
+              }
+              return ['date'=>$time->item(0)->getAttribute('datetime'),'photos'=>$photos,'videos'=>$videos,
+                  'video_marker_kinds'=>array_map(static fn(array $x):array=>[$x[0],$x[1],$x[2]!=='',$x[4]!==''],$clips),
+                  'video_sha256s'=>array_map(static fn(array $x):string=>hash('sha256',json_encode($x,JSON_THROW_ON_ERROR)),$clips),
+                  'video_duration_text'=>array_values(array_map(static fn(array $x):string=>$x[5],array_filter($clips,static fn(array $x):bool=>str_contains($x[1],'video_duration')))),
+                  'public_via_bot_marker'=>$xp->query('.//*[contains(@class,"tgme_widget_message_via_bot") or contains(@class,"tgme_widget_message_via")]',$root)->length>0,
+                  'caption'=>$caption,'caption_html'=>$captionHtml,'caption_sha256'=>hash('sha256',$caption),'buttons'=>$buttons,'links'=>$links];
           }
-          $out=['ok'=>false,'provider_writes'=>0,'db_writes'=>0];
-          try {
-              installedEdit('9385571c86c45189c31d9c4aa904c23970e3b11a');
+          function priceRows(array $ids): array {
+              $raw=PromotedHotelPriceWriter::publicBytes('https://app.anytoour.ru/feed/hotel-posts-all.xml',12000000);
+              requireEdit(!preg_match('/<!\s*(?:DOCTYPE|ENTITY)\b/i',$raw),'invalid_xml');
+              $doc=new DOMDocument();
+              requireEdit(@$doc->loadXML($raw,LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING),'invalid_xml');
+              $xp=new DOMXPath($doc);
+              $result = [];
+              $now=new DateTimeImmutable('now',new DateTimeZone('Europe/Moscow'));
+              foreach($ids as $id) {
+                  try {
+                      $pair=[];
+                      foreach(['max','tg'] as $platform){
+                          $q=$xp->query('/yml_catalog/shop/offers/offer[@id="'.$platform.'_'.$id.'"]');
+                          requireEdit($q->length===1,'missing_or_duplicate_feed_offer');
+                          $o=$q->item(0);
+                          $get=static function(string $name) use($xp,$o):string{
+                              $x=$xp->query('./'.$name,$o);
+                              requireEdit($x->length===1,'invalid_'.$name);
+                              return $x->item(0)->textContent;
+                          };
+                          $desc=$get('description');
+                          $pattern='~^💰 От (?<amount>[0-9][0-9 ,.\x{00a0}\x{202f}]*) ₽ за двоих\n✈️ Вылет из [^\n]+ (?<date>\d{2}\.\d{2}\.\d{4}) · [1-9][0-9]* ноч(?:ь|и|ей)\n👥 2 взрослых\n🛏 [^\n]+\n🍽 [^\n]+\nЦена найдена мониторингом (?<observed>\d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}) МСК\. Стоимость и наличие могут измениться\.$~mu';
+                          requireEdit(preg_match_all($pattern,$desc,$m,PREG_SET_ORDER)===1,'missing_or_ambiguous_price_block');
+                          $a=$m[0];$value=str_replace(',','.',preg_replace('/[\s\x{00a0}\x{202f}]/u','',$a['amount']));
+                          $price=$get('price');
+                          requireEdit($get('currencyId')==='RUB'&&preg_match('/^[1-9][0-9]*(?:\.[0-9]{1,2})?$/D',$price)&& (float)$value===(float)$price,'amount_mismatch');
+                          $obs=DateTimeImmutable::createFromFormat('!d.m.Y, H:i',$a['observed'],$now->getTimezone());
+                          $departure=DateTimeImmutable::createFromFormat('!d.m.Y',$a['date'],$now->getTimezone());
+                          requireEdit($obs && $obs->format('d.m.Y, H:i')===$a['observed'] && $obs<=$now
+                              && $now->getTimestamp()-$obs->getTimestamp()<129600,'observation_outside_36h');
+                          requireEdit($departure && $departure->format('d.m.Y')===$a['date'] && $departure>=$now->setTime(0,0),'past_departure');
+                          $pair[]= ['block'=>$a[0],'price'=>$price,'observation'=>$obs->format(DATE_ATOM),'departure'=>$departure->format('Y-m-d')];
+                      }
+                      requireEdit($pair[0]===$pair[1],'platform_offer_mismatch');
+                      $result[$id]=$pair[0];
+                  } catch (Throwable $e) {
+                      $result[$id]=['reason'=>$e->getMessage()];
+                  }
+              }
+              return $result;
+          }
+          function inventoryCommand(string $command): array {
+              $lines=[]; $code=0;
+              exec($command.' 2>/dev/null',$lines,$code);
+              return [$code,$lines];
+          }
+          
+          function nativeInventory(): array {
+              [$filesExit,$files]=inventoryCommand('GIT_OPTIONAL_LOCKS=0 git ls-files');
+              requireEdit($filesExit===0,'tracked_file_inventory_unavailable');
+              $nativePattern='/mtproto|tdlib|tdjson|telethon|pyrogram|madelineproto|gramjs|mtcute/i';
+              $known=array_values(array_filter($files,static fn(string $l):bool=>preg_match($nativePattern,$l)===1));
+              [$grepExit,$manifestMatches]=inventoryCommand("GIT_OPTIONAL_LOCKS=0 git grep -I -l -Ei 'mtproto|tdlib|tdjson|telethon|pyrogram|madelineproto|gramjs|mtcute' -- ':(glob)**/composer.json' ':(glob)**/composer.lock' ':(glob)**/package.json' ':(glob)**/requirements*.txt' ':(glob)**/pyproject.toml' ':(glob)**/Dockerfile*' ':(glob)**/*compose*.y*ml' ':(glob)**/*.service' ':(glob)**/*.timer'");
+              [$installedExit,$installed]=inventoryCommand('systemctl list-unit-files --type=service --no-pager --no-legend');
+              [$loadedExit,$loaded]=inventoryCommand('systemctl list-units --all --type=service --no-pager --no-legend --plain');
+              $unitNames=[];
+              foreach(array_merge($installed,$loaded) as $line)
+                  if(preg_match('/^\s*([A-Za-z0-9_.@:-]+\.service)\s/',$line,$m) && preg_match($nativePattern,$m[1])) $unitNames[$m[1]]=true;
+              $projectUnits=array_filter(array_keys($unitNames),static fn(string $name):bool=>preg_match('/anytour|anytoour|anyru/i',$name)===1);
+              return ['tracked_native_named_paths'=>count($known),'dependency_manifest_scan_available'=>in_array($grepExit,[0,1],true),
+                  'native_manifest_matches'=>count($manifestMatches),'unit_file_inventory_available'=>$installedExit===0,
+                  'loaded_unit_inventory_available'=>$loadedExit===0,'host_units_with_native_client_name'=>count($unitNames),
+                  'anytour_units_with_native_client_name'=>count($projectUnits)];
+          }
+          
+          function postRegistryEvidence(PDO $pdo,ChannelPostRegistryService $registry,int $mid): array {
+              $q=$pdo->prepare("SELECT p.id,(SELECT COUNT(*) FROM post_versions v WHERE v.publication_id=p.id) AS versions,
+                  (SELECT COUNT(*) FROM post_observations o WHERE o.publication_id=p.id) AS observations
+                  FROM post_publications p JOIN post_channels c ON c.id=p.post_channel_id
+                  WHERE c.platform=? AND c.channel_id=? AND p.external_message_id=? ORDER BY p.id LIMIT 3");
+              $q->execute(['telegram','-1001845835645',(string)$mid]);
+              $rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();
+              requireEdit(count($rows)<=1,'exact_post_identity_duplicated');
+              $m=$pdo->prepare("SELECT COUNT(*) FROM post_member_deliveries m JOIN post_publications p ON p.id=m.publication_id
+                  JOIN post_channels c ON c.id=p.post_channel_id WHERE c.platform=? AND c.channel_id=? AND m.external_message_id=?");
+              $m->execute(['telegram','-1001845835645',(string)$mid]);
+              $members=(int)$m->fetchColumn();$m->closeCursor();
+              $r=$rows[0]??null;
+              $p=$r?$registry->publication((int)$r['id']):null;
+              $s=$p['snapshot']??[];
+              return ['publication_record_count'=>count($rows),'version_count'=>(int)($r['versions']??0),
+                  'provider_observation_count'=>(int)($r['observations']??0),'member_record_count'=>$members,
+                  'recorded_hotel_id'=>isset($s['metadata']['hotel_catalog_id'])?(int)$s['metadata']['hotel_catalog_id']:null,
+                  'current_state'=>$p['state']??null,'video_id_in_snapshot'=>isset($s['attachments'][0]['file_unique_id'])&&
+                      ($s['attachments'][0]['type']??'')==='video'];
+          }
+          
+          function testInstalledVideoCaptionGate(int $mid,string $publicDate,string $priceBlock): array {
+              $stamp=(new DateTimeImmutable($publicDate))->getTimestamp();
+              $plan="Aloft Palm Jumeirah\n\n".$priceBlock;
+              $s=ChannelPostIncomingAdapter::telegramSnapshot(['chat'=>['id'=>-1001845835645,'username'=>'anytour','type'=>'channel'],
+                  'message_id'=>$mid,'date'=>$stamp,'caption'=>$plan,
+                  'video'=>['file_id'=>'local-contract-fixture','file_unique_id'=>'local-contract-fixture']]);
+              return ['caption_adapter'=>$s['metadata']['capability']??'unknown','caption_adapter_reason'=>$s['metadata']['capability_reason']??null,
+                  'hotel_bound_in_contract'=>($s['metadata']['hotel_catalog_id']??0)===61159];
+          }
+          
+          $out=['ok'=>false,'db_writes'=>0,'provider_writes'=>0,'provider_native_target_reads'=>0];
+          try{
+              installedEdit('b4b65daaa472c15426a244b87ede3e6c0394626b');
               ob_start();
               try{
                   require getcwd().'/config.php';
+                  require_once getcwd().'/services/PromotedHotelPriceWriter.php';
                   require_once getcwd().'/services/ChannelPostEntryService.php';
+                  require_once getcwd().'/services/ChannelPostButtonTransport.php';
               }finally{ob_end_clean();}
+              $out['stage']='native_inventory';$out['native_client_inventory']=nativeInventory();
+              $out['stage']='current_telegram_registry';
               $pdo=ConversationDb::connection();
-              $pdo->exec('SET SESSION TRANSACTION READ ONLY');
-              $pdo->beginTransaction();
-              foreach(['ANYTOURBOT_bot','coralsub_bot'] as $username){
-                  $name=strtolower($username);
-                  $channels=countMatch($pdo,"SELECT COUNT(*) FROM post_channels c JOIN projects p ON p.id=c.project_id
-                      WHERE p.project_key=? AND c.platform=? AND c.is_enabled=1 AND LOWER(c.canonical_bot_username)=?",['anytour','telegram',$name]);
-                  $exact=countMatch($pdo,"SELECT COUNT(*) FROM post_channels c JOIN projects p ON p.id=c.project_id
-                      WHERE p.project_key=? AND c.platform=? AND c.channel_id=? AND c.is_enabled=1 AND LOWER(c.canonical_bot_username)=?",
-                      ['anytour','telegram','-1001845835645',$name]);
-                  $dialogues=countMatch($pdo,'SELECT COUNT(*) FROM telegram_dialogue_connections WHERE project_key=? AND LOWER(bot_key)=? AND is_enabled=1',
-                      ['anytour',$name]);
-                  $archive=countMatch($pdo,'SELECT COUNT(*) FROM telegram_archive_accounts WHERE project_key=? AND LOWER(bot_key)=? AND provider_enabled=1 AND approved=1',
-                      ['anytour',$name]);
-                  $out['candidates'][]=['username'=>$username,'authorized_channel_bindings'=>$channels,'exact_channel_bindings'=>$exact,
-                      'enabled_private_archive_bot_connections'=>$dialogues,'enabled_approved_archive_bot_accounts'=>$archive];
-              }
-              $out['separate_anytour_telegram_bot_connections']=countMatch($pdo,
-                  'SELECT COUNT(*) FROM project_telegram_bot_connections b JOIN projects p ON p.id=b.project_id WHERE p.project_key=?',['anytour']);
-              $identity=ChannelPostRuntime::identity('telegram');
-              $out['runtime_publisher_username']=$identity['bot_key']??null;
+              $pdo->exec('SET SESSION TRANSACTION READ ONLY');$pdo->beginTransaction();
+              $q=$pdo->prepare("SELECT c.canonical_bot_username FROM post_channels c JOIN projects p ON p.id=c.project_id
+                  WHERE p.project_key=? AND c.platform=? AND c.channel_id=? AND c.is_enabled=1");
+              $q->execute(['anytour','telegram','-1001845835645']);
+              $out['enabled_publishers']=$q->fetchAll(PDO::FETCH_COLUMN);$q->closeCursor();
+              $q=$pdo->prepare("SELECT COUNT(*) FROM project_telegram_bot_connections b JOIN projects p ON p.id=b.project_id WHERE p.project_key=?");
+              $q->execute(['anytour']);$out['separate_anytour_bot_connections']=(int)$q->fetchColumn();$q->closeCursor();
+              $registry=new ChannelPostRegistryService($pdo);
+              foreach([1207,1678] as $mid)$out['posts'][(string)$mid]['registry']=postRegistryEvidence($pdo,$registry,$mid);
               $pdo->rollBack();
-              $out['ok']=true;
+              $out['stage']='public_posts_and_price';
+              $price=priceRows([61159])[61159];
+              $out['current_offer']=array_diff_key($price,['block'=>true]);
+              foreach([1207,1678] as $mid){
+                  $post=publicTelegram($mid,$mid+1);
+                  $amount=null;
+                  if(preg_match('/\b([0-9][0-9 \x{00a0}\x{202f}]+)\s*(?:RUB|₽)/u',$post['caption'],$m))
+                      $amount=(int)preg_replace('/[^\d]/','',$m[1]);
+                  $out['posts'][(string)$mid]['public']=['url'=>'https://t.me/anytour/'.$mid,'date'=>$post['date'],
+                      'original_hotel_named'=>stripos($post['caption'],'Aloft Palm Jumeirah')!==false,
+                      'has_video'=>$post['videos']>0,'buttons'=>count($post['buttons']),'amount'=>$amount];
+                  if(isset($price['block'])) $out['posts'][(string)$mid]['local_caption_contract_test']=testInstalledVideoCaptionGate($mid,$post['date'],$price['block']);
+              }
+              $out['ok']=true;unset($out['stage']);
           }catch(Throwable $e){
               if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();
-              $message=$e->getMessage();$out['reason']=preg_match('/\A[a-z_]{1,65}\z/D',$message)?$message:'publisher_binding_read_failed';
+              $m=$e->getMessage();
+              $out['reason']=preg_match('/\A[a-z_0-9]{1,100}\z/D',$m)?$m:'native_inventory_read_failed';
+              if($e instanceof PDOException){$out['sql_state']=(string)$e->getCode();$out['sql_driver_errno']=(int)($e->errorInfo[1]??0);}
           }
-          echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),PHP_EOL;
           PHP
           php -l pub/read-only.php
       - name: Pin established SSH host continuity and authentication identity
@@ -115,7 +255,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Match only the two exact administrator bot names
+      - name: Read only native client inventory and the two exact Aloft posts
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -127,12 +267,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ALOFT1207_ALTERNATE_BOT_BINDINGS="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ALOFT_NATIVE_CONNECTION_AND_POSTS="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0 and d.get("db_writes")==0'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: aloft-1207-exact-alternative-bot-bindings
+          name: aloft-native-connection-and-post-readback
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
