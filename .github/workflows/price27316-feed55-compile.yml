@@ -3,6 +3,11 @@ on:
   push:
     branches: ['audit/price660-27316-resume-readiness-20261117']
     paths: ['.github/workflows/price27316-feed55-compile.yml']
+  pull_request:
+    branches: ['main']
+    paths:
+      - '.github/workflows/price27316-feed55-compile.yml'
+      - 'tools/direct_demand/operations/feed55/write/**'
 permissions:
   contents: read
   actions: read
@@ -11,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   compile:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == '4c1825968b792ee850bc801fcbccbaaefddbea11'
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.run_attempt == 1 && ((github.event_name == 'push' && github.event.before == '4c1825968b792ee850bc801fcbccbaaefddbea11') || (github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'audit/price660-27316-resume-readiness-20261117'))
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
