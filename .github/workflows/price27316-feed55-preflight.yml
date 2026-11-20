@@ -12,11 +12,11 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == '38eab11e198b5b4fd2de66885deaf3283efeb5a6'
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == '69a411d8efc0a5256b9776f191289abd31702ecc'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      EXPECTED_PARENT_SHA: 38eab11e198b5b4fd2de66885deaf3283efeb5a6
+      EXPECTED_PARENT_SHA: 69a411d8efc0a5256b9776f191289abd31702ecc
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
@@ -85,7 +85,7 @@ jobs:
             $tail=rtrim($raw,"\n");$p=strrpos($tail,"\n");$last=$p===false?$tail:substr($tail,$p+1);
             $state=json_decode($last,true,64,JSON_THROW_ON_ERROR);
             if(!is_array($state)||!array_key_exists('pending',$state))throw new RuntimeException('journal_state_invalid');
-            $out+=['runtime_sha'=>$runtime,'hook_sha256'=>hash_file('sha256',$hook),'hook_bytes'=>filesize($hook),'journal_bytes'=>$st['size'],'pending'=>$state['pending'],'lock_available'=>true,'ok'=>$state['pending']===null];
+            $out=array_merge($out,['runtime_sha'=>$runtime,'hook_sha256'=>hash_file('sha256',$hook),'hook_bytes'=>filesize($hook),'journal_bytes'=>$st['size'],'pending'=>$state['pending'],'lock_available'=>true,'ok'=>$state['pending']===null]);
             flock($f,LOCK_UN);fclose($f);
           } catch(Throwable $e) {$out['error']=preg_match('/\A[a-z][a-z0-9_]{1,100}\z/D',$e->getMessage())?$e->getMessage():'server_preflight_failed';}
           echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
