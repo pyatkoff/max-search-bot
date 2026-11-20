@@ -1,4 +1,4 @@
-name: "Final readback of seven Telegram posts after the Aloft API rejection"
+name: "Read the exact Aloft Telegram video, current button and live offer"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,7 +13,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '723c104723dc090f8ccccb94f084909a6404dd96' &&
+      github.event.before == '382207885938289d44885436992c031910a860a9' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -58,6 +58,10 @@ jobs:
                   $photos[] = $m[1] ?? ('class:'.hash('sha256',$marker));
               }
               $videos = $xp->query('.//video|.//*['.$class('tgme_widget_message_video_thumb').' or '.$class('tgme_widget_message_roundvideo').']',$root)->length;
+              $clips=[];
+              foreach ($xp->query('.//video|.//*['.$class('tgme_widget_message_video_thumb').' or '.$class('tgme_widget_message_video_duration').']',$root) as $v) {
+                  $clips[]=[$v->tagName,$v->getAttribute('class'),$v->getAttribute('src'),$v->getAttribute('poster'),$v->getAttribute('style'),trim($v->textContent)];
+              }
               $captionHtml='';
               foreach ($text->item(0)->childNodes as $node) $captionHtml.=$doc->saveHTML($node);
               $caption = html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i',"\n",$captionHtml)),ENT_QUOTES|ENT_HTML5,'UTF-8');
@@ -70,6 +74,8 @@ jobs:
                   $links[]=['text'=>trim($a->textContent),'url'=>$a->getAttribute('href')];
               }
               return ['date'=>$time->item(0)->getAttribute('datetime'),'photos'=>$photos,'videos'=>$videos,
+                  'video_sha256s'=>array_map(static fn(array $x):string=>hash('sha256',json_encode($x,JSON_THROW_ON_ERROR)),$clips),
+                  'video_duration_text'=>array_values(array_map(static fn(array $x):string=>$x[5],array_filter($clips,static fn(array $x):bool=>str_contains($x[1],'video_duration')))),
                   'caption'=>$caption,'caption_sha256'=>hash('sha256',$caption),'buttons'=>$buttons,'links'=>$links];
           }
           function priceRows(array $ids): array {
@@ -127,52 +133,48 @@ jobs:
                   'media_types'=>array_column($post['snapshot']['attachments']??[],'type')];
           }
           
-          $rows=json_decode(<<<'DATA'
-          [{"mid":1046,"hotel_id":12112,"date":"2025-03-13T08:43:18+00:00","photos":["5375555620448627948"],"links":[{"text":"@AnyTour_MSK","url":"https://t.me/AnyTour_MSK"},{"text":"Подписаться на канал AnyTour - Горящие туры","url":"https://t.me/+gGloLUt4d8s3NDcy"}],"old_buttons":[],"caption_sha256":"b52ba812f94678db7877d9c7a1857e9fb1cbe6b9e08b89671e1ee957f3784db3","price":{"block":"💰 От 127 225 ₽ за двоих\n✈️ Вылет из Москвы 31.01.2027 · 5 ночей\n👥 2 взрослых\n🛏 standard back view\n🍽 Всё включено\nЦена найдена мониторингом 19.11.2026, 01:00 МСК. Стоимость и наличие могут измениться.","price":"127225","observation":"2026-11-19T01:00:00+03:00","departure":"2027-01-31"},"prefix":"Sunrise Aqua Joy Resort\n📍 Хургада, Египет\n\nСобственный пляж с песчаной лагуной рядом с променадом. Для отдыха с детьми есть аквапарк, детский бассейн и мини-клуб. На территории пять открытых бассейнов."},{"mid":982,"hotel_id":70030,"date":"2025-01-10T11:23:25+00:00","photos":["5188183905474309693"],"links":[{"text":"@AnyTour_MSK","url":"https://t.me/AnyTour_MSK"},{"text":"Подписаться на канал AnyTour - Горящие туры","url":"https://t.me/+gGloLUt4d8s3NDcy"}],"old_buttons":[],"caption_sha256":"0ed04fb70f92ed7960cb36624674cc6c3e7c3a88e7c3f96b8c230e75524c16ad","price":{"block":"💰 От 130 488 ₽ за двоих\n✈️ Вылет из Москвы 08.05.2027 · 5 ночей\n👥 2 взрослых\n🛏 economy room\n🍽 Ультра всё включено\nЦена найдена мониторингом 19.11.2026, 16:03 МСК. Стоимость и наличие могут измениться.","price":"130488","observation":"2026-11-19T16:03:00+03:00","departure":"2027-05-08"},"prefix":"Utopia Beach Club\n📍 Инжекум, Аланья\n\nТри пляжа, включая песчаный и два в небольших бухтах. Есть детский клуб, мини-диско и площадка. На территории много лестниц, поэтому с коляской передвигаться сложнее."},{"mid":1098,"hotel_id":1273,"date":"2025-05-14T07:56:49+00:00","photos":["5271713958455277162"],"links":[{"text":"@AnyTour_MSK","url":"https://t.me/AnyTour_MSK"},{"text":"Подписаться на канал AnyTour - Горящие туры","url":"https://t.me/+gGloLUt4d8s3NDcy"}],"old_buttons":[],"caption_sha256":"b4d8ed64d1d25668b2118588f10bd44b3fcf698b7e88c9193674f1fb0760373f","price":{"block":"💰 От 144 343 ₽ за двоих\n✈️ Вылет из Москвы 30.03.2027 · 5 ночей\n👥 2 взрослых\n🛏 superior land view\n🍽 Ультра всё включено\nЦена найдена мониторингом 20.11.2026, 00:55 МСК. Стоимость и наличие могут измениться.","price":"144343","observation":"2026-11-20T00:55:00+03:00","departure":"2027-03-30"},"prefix":"Lago Hotel\n📍 Соргун, Сиде\n\nДве лагуны с белым песком, аквапарк и детский клуб. Одна лагуна предназначена для гостей от 16 лет. Подойдёт для семейного отдыха по системе «Ультра всё включено»."},{"mid":954,"hotel_id":1439,"date":"2024-12-08T11:10:32+00:00","photos":["5381930103535168203"],"links":[{"text":"@AnyTour_MSK","url":"https://t.me/AnyTour_MSK"},{"text":"Подписаться на канал AnyTour - Горящие туры","url":"https://t.me/+gGloLUt4d8s3NDcy"}],"old_buttons":[],"caption_sha256":"0d5e42afe254b3d8634a87e15d8b540cb0973f25a8328541beefec044712f53e","price":{"block":"💰 От 182 648 ₽ за двоих\n✈️ Вылет из Москвы 09.05.2027 · 6 ночей\n👥 2 взрослых\n🛏 deluxe room without balcony\n🍽 Ультра всё включено\nЦена найдена мониторингом 19.11.2026, 14:18 МСК. Стоимость и наличие могут измениться.","price":"182648","observation":"2026-11-19T14:18:00+03:00","departure":"2027-05-09"},"prefix":"Rai Premium Tekirova\n📍 Текирова, Кемер\n\nЗелёная территория, собственный пляж и большой аквапарк. Для детей и взрослых есть анимация, а на территории работает своя кондитерская."},{"mid":913,"hotel_id":91404,"date":"2024-10-26T16:06:18+00:00","photos":["5253824522019268317"],"links":[{"text":"@AnyTour_MSK","url":"https://t.me/AnyTour_MSK"}],"old_buttons":[],"caption_sha256":"bb90e17b81ad41cb163898f8ceb4dcfbdf5a8d35aa1b6320b8f035db43dedd9f","price":{"block":"💰 От 171 243 ₽ за двоих\n✈️ Вылет из Москвы 24.12.2026 · 5 ночей\n👥 2 взрослых\n🛏 deluxe room aqua\n🍽 Ультра всё включено\nЦена найдена мониторингом 19.11.2026, 23:18 МСК. Стоимость и наличие могут измениться.","price":"171243","observation":"2026-11-19T23:18:00+03:00","departure":"2026-12-24"},"prefix":"Swissôtel Sharm El Sheikh\n📍 Наама-Бей, Египет\n\nСемейная зона и отдельная зона для взрослых. На территории есть аквапарк, бассейны с подогревом и детский клуб. Отель занимает участки на первой и второй береговой линии."},{"mid":927,"hotel_id":73055,"date":"2024-11-13T11:09:13+00:00","photos":["5303281113382381294"],"links":[{"text":"Подписаться на канал AnyTour - любые туры","url":"https://t.me/+gGloLUt4d8s3NDcy"}],"old_buttons":[],"caption_sha256":"f4c88446988a12270df01c3eb5573b7df6211a798621388fbba849f545667bf1","price":{"block":"💰 От 126 963 ₽ за двоих\n✈️ Вылет из Москвы 21.12.2026 · 5 ночей\n👥 2 взрослых\n🛏 deluxe room mountain view\n🍽 Завтрак и ужин\nЦена найдена мониторингом 19.11.2026, 02:30 МСК. Стоимость и наличие могут измениться.","price":"126963","observation":"2026-11-19T02:30:00+03:00","departure":"2026-12-21"},"prefix":"Address Beach Resort Fujairah\n📍 Фуджейра, ОАЭ\n\nПесчаный пляж между океаном и горами Хаджар. Три бассейна, включая бассейн для взрослых. Для семей есть детский клуб и отдельный детский бассейн."},{"mid":1043,"hotel_id":61159,"date":"2025-03-12T13:12:05+00:00","photos":["5371031731395751709"],"links":[{"text":"Подписаться на канал AnyTour - Горящие туры","url":"https://t.me/+gGloLUt4d8s3NDcy"}],"old_buttons":[{"text":"СВЯЗАТЬСЯ С МЕНЕДЖЕРОМ 📱","url":"https://t.me/AnyTour_MSK"}],"caption_sha256":"dfcf39da85384b66f09589a0b0ce68bf293f1516837e8468874717cb072fb8c5","price":{"block":"💰 От 89 843 ₽ за двоих\n✈️ Вылет из Москвы 22.12.2026 · 5 ночей\n👥 2 взрослых\n🛏 aloft room king /twin\n🍽 Завтраки\nЦена найдена мониторингом 19.11.2026, 04:01 МСК. Стоимость и наличие могут измениться.","price":"89843","observation":"2026-11-19T04:01:00+03:00","departure":"2026-12-22"},"prefix":"Aloft Palm Jumeirah\n📍 Палм-Джумейра, Дубай\n\nРесторан на крыше с панорамным видом на Дубай и променад для прогулок. Отель располагает частной зоной пляжа примерно в 300 метрах."}]
-          DATA,true,16,JSON_THROW_ON_ERROR);
-          $out=['ok'=>false,'writes'=>0,'rows'=>[]];
+          
+          $out=['ok'=>false,'provider_writes'=>0,'mid'=>1207,'hotel_id'=>61159];
           try {
-            installedEdit('e262bf139da2b78623e1be3a891630fd10924180');
-            ob_start();try {
-              require getcwd().'/config.php';
-              require_once getcwd().'/services/PromotedHotelPriceWriter.php';
-              require_once getcwd().'/services/ChannelPostEntryService.php';
-            }finally{ob_end_clean();}
-            $pdo=ConversationDb::connection();
-            $pdo->exec('SET SESSION TRANSACTION READ ONLY');$pdo->beginTransaction();
-            $registry=new ChannelPostRegistryService($pdo);
-            foreach($rows as $r){
-              $mid=$r['mid'];$hotel=$r['hotel_id'];$url='https://t.me/anytour/'.$mid;
-              $row=['mid'=>$mid,'hotel_id'=>$hotel,'url'=>$url];
-              try {
-                $p=publicTelegram($mid);
-                $reg=fromRegistry($pdo,$registry,6,$mid);
-                $row['same_date']=$p['date']===$r['date'];
-                $row['same_photo']=$p['photos']===$r['photos'] && $p['videos']===0;
-                $row['same_links']=$p['links']===$r['links'];
-                $row['old_caption']=$p['caption_sha256']===$r['caption_sha256'];
-                $row['old_buttons']=$p['buttons']===$r['old_buttons'];
-                $row['price_checked']=str_contains($p['caption'],$r['price']['block']);
-                $row['registry_state']=$reg['state']??null;
-                $row['registry_reason']=$reg['error_reason']??null;
-                $row['version']=$reg['version_id']??null;
-                $row['button_count']=count($p['buttons']);
-                $row['button_label']=$p['buttons'][0]['text']??null;
-                if($reg!==null){
-                  $row['caption_matches_registry']=$p['caption']===$reg['snapshot']['text'];
-                  $row['button_url_matches']=count($p['buttons'])===1 && $p['buttons'][0]['url']===ChannelPostButtonTransport::buttonUrl($reg);
-                  $x=ChannelPostEntryService::resolve('telegram',$reg['start_payload'],$registry);
-                  $row['correct_context']=((int)($x['snapshot']['metadata']['hotel_catalog_id']??0)===$hotel && ($x['snapshot']['post_url']??'')===$url);
-                  if(!$row['caption_matches_registry']) {
-                    $row['public_caption']=$p['caption'];
-                    $row['registry_caption']=$reg['snapshot']['text'];
-                  }
-                }
-                if(!$row['same_links']){$row['links']=$p['links'];}
-              }catch(Throwable $e){$row['reason']=$e->getMessage();}
-              $out['rows'][]=$row;
-            }
-            $pdo->rollBack();$out['ok']=true;
+              installedEdit('e262bf139da2b78623e1be3a891630fd10924180');
+              ob_start();try{
+                  require getcwd().'/config.php';
+                  require_once getcwd().'/services/PromotedHotelPriceWriter.php';
+                  require_once getcwd().'/services/ChannelPostEntryService.php';
+              }finally{ob_end_clean();}
+              $out['installed']='e262bf139da2b78623e1be3a891630fd10924180';
+              $p=publicTelegram(1207);
+              requireEdit(mb_stripos($p['caption'],'Aloft Palm Jumeirah')!==false,'target_hotel_unconfirmed');
+              $out['public']=$p;
+              $out['price']=priceRows([61159])[61159];
+              $pdo=ConversationDb::connection();
+              $pdo->exec('SET SESSION TRANSACTION READ ONLY');
+              $pdo->beginTransaction();
+              $registry=new ChannelPostRegistryService($pdo);
+              $bot=(string)(ChannelPostRuntime::identity('telegram')['bot_key']??'');
+              $channel=$registry->channel('anytour','telegram',$bot,'-1001845835645');
+              requireEdit(is_array($channel) && (int)$channel['id']===6,'channel_identity');
+              $out['channel']=['label'=>$channel['button_text'],'version'=>(int)$channel['config_version'],'source_key'=>$channel['source_key']];
+              $target=fromRegistry($pdo,$registry,6,1207);
+              $out['target']=recordVersion($target);
+              $out['target_capability']=$target['snapshot']['metadata']['capability']??null;
+              $out['target_reason']=$target['snapshot']['metadata']['capability_reason']??null;
+              $out['target_video_id_hash']=isset($target['snapshot']['raw_body']['video']['file_unique_id'])
+                  ? hash('sha256',$target['snapshot']['raw_body']['video']['file_unique_id']):null;
+              $source=fromRegistry($pdo,$registry,10,428);
+              $out['source']=recordVersion($source);unset($out['source']['caption']);
+              foreach(['target'=>$target,'source'=>$source] as $name=>$post){
+                  if(!$post)continue;
+                  $entry=ChannelPostEntryService::resolve('telegram',$post['start_payload'],$registry);
+                  $link=ChannelPostButtonTransport::buttonUrl($post);
+                  $out[$name.'_context']=['hotel_id'=>$entry['snapshot']['metadata']['hotel_catalog_id']??null,
+                      'post_url'=>$entry['snapshot']['post_url']??null,'state'=>$entry['state']??null,'button_sha256'=>hash('sha256',$link)];
+              }
+              // Exercise the deployed adapter using only the observed fact that this post has a video.
+              $sample=ChannelPostIncomingAdapter::telegramSnapshot(['caption'=>$p['caption'],'chat'=>['username'=>'anytour','id'=>'-1001845835645'],
+                  'message_id'=>1207,'video'=>[]]);
+              $out['adapter_test']=['capability'=>$sample['metadata']['capability'],'reason'=>$sample['metadata']['capability_reason']];
+              $pdo->rollBack();$out['ok']=true;
           }catch(Throwable $e){if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();$out['reason']=$e->getMessage();}
           echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
           exit($out['ok']?0:2);
@@ -222,12 +224,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("SEVEN_READBACK="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and len(d["rows"])==7'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ALOFT_VIDEO_PRECHECK="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: seven-telegram-final-readback
+          name: aloft-1207-video-preflight
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
