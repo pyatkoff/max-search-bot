@@ -2,8 +2,9 @@
 
 An administrator connects a channel once in `/manager/publications.php`, selects
 an existing active source with `manager` or `ask` handling, and enables automatic
-buttons. SMM then publishes ordinary posts with text or photographs, or MAX videos
-(up to 11 images/videos in one MAX post, or 10 photos in a Telegram media group). The bot
+buttons. SMM then publishes ordinary posts with text, photographs or videos
+(up to 11 images/videos in one MAX post, one video in a standalone Telegram post,
+or 10 photos in a Telegram media group). The bot
 receives the authenticated channel update, stores its exact content, and replaces any existing channel keyboard with only
 the native URL button `Рассчитать на мои даты` to that same post.
 
@@ -40,9 +41,11 @@ invitation paths, other hosts, credentials and URL parameters stay unavailable.
   reuses the existing video without downloading or uploading it. Existing channel keyboards are
   deliberately replaced with exactly one AnyTour URL button on both platforms,
   including other bots' comment or callback buttons (owner instruction 2026-10-15).
-  Telegram edits reply markup only. MAX audio/files and Telegram non-photo media
-  remain `requires_attention` without a provider write; a missing or invalid MAX
-  video token or stable ID also blocks the edit. A video is never reconstructed from its URL.
+  Telegram edits reply markup only. A standalone Telegram video requires a valid
+  `file_unique_id`, and that ID must match in the edit response. Video albums and
+  other Telegram media remain `requires_attention`. MAX audio/files and video
+  without a valid token or stable ID also block the edit. A video is never
+  reconstructed from its URL.
   The explicit video `payload.id` was observed in authenticated stored webhooks
   and repeated MAX reads on 2026-11-02; the published MAX schema currently omits
   that field. Missing or malformed IDs therefore fail closed.

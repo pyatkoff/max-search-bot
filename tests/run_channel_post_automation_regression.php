@@ -390,6 +390,44 @@ channelPostCheck('Telegram UNKNOWN never retries edit', channelPostRun($service,
 channelPostCheck('Telegram edited_channel_post confirms ambiguous edit', channelPostReceive($service, $provider->message, 'telegram', true)['state'], 'sent');
 channelPostCheck('Telegram resolved operation drops from worker queue', channelPostRun($service, 'telegram'), []);
 
+$telegramVideo = $fixtures['telegram'];
+unset($telegramVideo['photo']);
+$telegramVideo['video'] = ['file_id'=>'video-original', 'file_unique_id'=>'video-stable', 'duration'=>9, 'width'=>720, 'height'=>1280];
+[$store, $provider, $transport, $service] = channelPostScenario($telegramVideo, 'telegram');
+channelPostReceive($service, $telegramVideo, 'telegram');
+$provider->message['video']['file_id'] = 'video-renewed';
+$result = channelPostRun($service, 'telegram')[0];
+$writes = array_values(array_filter($provider->calls, static fn($c) => $c['path'] === 'editMessageReplyMarkup'));
+channelPostCheck('Telegram video markup verified with same stable clip and renewed file ID', $result['state'], 'sent');
+channelPostCheck('Telegram video button edits only the existing message keyboard', [
+    count($writes), array_keys($writes[0]['body'] ?? []),
+    (string)($writes[0]['body']['message_id'] ?? ''),
+], [1, ['chat_id', 'message_id', 'reply_markup'], (string)$telegramVideo['message_id']]);
+$expected = $telegramVideo;
+$expected['video']['file_id'] = 'video-renewed';
+$expected['reply_markup'] = ['inline_keyboard' => [[[
+    'text' => 'Рассчитать на мои даты',
+    'url' => ChannelPostButtonTransport::buttonUrl(array_values($store->posts)[0]),
+]]]];
+channelPostCheck('Telegram video edit preserves date, caption, entities and clip', $provider->message, $expected);
+
+[$store, $provider, $transport, $service] = channelPostScenario($telegramVideo, 'telegram');
+channelPostReceive($service, $telegramVideo, 'telegram');
+$provider->message['video']['file_unique_id'] = 'other-clip';
+channelPostCheck('Different Telegram video in response cannot confirm the edit', channelPostRun($service, 'telegram')[0]['state'], 'unknown');
+channelPostRun($service, 'telegram');
+channelPostCheck('Telegram video with ambiguous readback is never edited again', $provider->writes(), 1);
+
+$missingVideoIdentity = $telegramVideo;
+unset($missingVideoIdentity['video']['file_unique_id']);
+foreach ([
+    'missing stable clip ID' => $missingVideoIdentity,
+    'video album' => $telegramVideo + ['media_group_id' => 'video-album'],
+] as $case => $message) {
+    $snapshot = ChannelPostIncomingAdapter::telegramSnapshot($message);
+    channelPostCheck('Telegram rejects ' . $case, $snapshot['metadata']['capability_reason'], 'unsupported_media');
+}
+
 foreach (['max', 'telegram'] as $platform) {
     $plain = $fixtures[$platform];
     if ($platform === 'max') { $plain['body']['attachments'] = []; $plain['body']['markup'] = []; }

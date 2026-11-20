@@ -163,7 +163,21 @@ final class ChannelPostIncomingAdapter
             if ($photo === null || (int)($size['width'] ?? 0) * (int)($size['height'] ?? 0) > (int)($photo['width'] ?? 0) * (int)($photo['height'] ?? 0)) $photo = $size;
         }
         if ($photo !== null) $media[] = ['type' => 'image', 'provider' => 'telegram', 'telegram_file_id' => $photo['file_id'], 'file_unique_id' => $photo['file_unique_id']];
-        foreach (['video', 'animation', 'audio', 'voice', 'video_note', 'document', 'sticker', 'contact', 'location', 'venue', 'poll', 'dice', 'paid_media'] as $field) {
+        if (array_key_exists('video', $message)) {
+            $video = $message['video'];
+            $clip = ['type' => 'video', 'provider' => 'telegram'];
+            $uniqueId = is_array($video) ? ($video['file_unique_id'] ?? null) : null;
+            // The button edit never uploads media. Use Telegram's stable clip ID
+            // to compare the original and returned message, not the reusable file ID.
+            if (!array_key_exists('photo', $message) && ($message['media_group_id'] ?? '') === ''
+                && is_string($uniqueId) && preg_match('/\A[A-Za-z0-9_-]{1,256}\z/D', $uniqueId) === 1) {
+                $clip['file_unique_id'] = $uniqueId;
+            } else {
+                $reason = 'unsupported_media';
+            }
+            $media[] = $clip;
+        }
+        foreach (['animation', 'audio', 'voice', 'video_note', 'document', 'sticker', 'contact', 'location', 'venue', 'poll', 'dice', 'paid_media'] as $field) {
             if (!array_key_exists($field, $message)) continue;
             $reason = 'unsupported_media';
             $media[] = ['type' => $field, 'provider' => 'telegram'];
