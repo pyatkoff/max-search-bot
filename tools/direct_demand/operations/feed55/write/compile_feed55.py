@@ -95,6 +95,10 @@ def adapted_tail(source, current_runtime, publication_runtime):
             'require(result.returncode==0,"native_append_validation_failed:"+result.stderr.decode()[:100])',
             'require(result.returncode==0,"native_append_validation_failed:rc="+str(result.returncode)+":stderr="+result.stderr.decode()[:1000]+":stdout="+result.stdout.decode()[:1000])',
         ),
+        (
+            'subprocess.run(["php","-r",PHP_RENDER,str(Path(args.writer).resolve()),str(p)],capture_output=True,timeout=30)',
+            'subprocess.run(["php","-d","display_errors=stderr","-d","log_errors=0","-r",PHP_RENDER,str(Path(args.writer).resolve()),str(p)],capture_output=True,timeout=30)',
+        ),
     ]
     for old, new in changes:
         need(text.count(old) == 1, "tail_adapter_anchor_changed")
