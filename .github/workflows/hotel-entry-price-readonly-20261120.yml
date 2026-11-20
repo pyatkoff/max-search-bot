@@ -1,0 +1,48 @@
+name: Read historical AnyTour entry publication prices
+on:
+  push:
+    branches: [audit/hotel-entry-price-20261120]
+    paths:
+      - .github/workflows/hotel-entry-price-readonly-20261120.yml
+      - audit/hotel-entry-price-20261120/program.php
+      - audit/hotel-entry-price-20261120/tests.php
+      - audit/hotel-entry-price-20261120/runner.py
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: hotel-entry-price-readonly-20261120
+  cancel-in-progress: false
+jobs:
+  inspect:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.run_attempt == '1' && github.event.created == true && github.event.forced == false && github.event.deleted == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      PROGRAM_SHA256: 25e7a6bda02e59c971b08f31da04fe52e5de767e12a4d89e88458b5b3725328e
+      TESTS_SHA256: 334816745293ccbe2d5de3c2db1cdfe843def1ded0df662f3e86427ef85c5c3e
+      RUNNER_SHA256: 8dc00d72cce28de8357452281d4470e9b9a1a70bdba8573cc524701472c522b7
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Verify the original source and pure price fixtures before credentials
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 audit/hotel-entry-price-20261120/runner.py admit
+      - name: One bounded SELECT-only read with the established server connection
+        env:
+          SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          REPORT_PUBLIC_KEY_B64: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUFzTlIvNkxMRlQ2QTJOTVhybTE2dgo1RlBLQ2NoK0pSL0g5VTczTUpJUUh4Q2NpdDl0Q2VFVmZkb3p1MWdQNDVnSUhHNXA1bjVtM2FoR0NFQlRxNXlNClVwNUthRnlkWFdpb0VmQ0NHd0Z0dGk2LzZEbWp3dGgrMFRCRE1YZXBjYmh1aUY4TStPLy8vVHBqOG9jcXpsSlgKNnlhMEMwTXJWdTduaVlRVk9GanV2Y0Zva0JpbXNWK2ptS1YxeDNoR3dDUU81dVNYVER1U0Rwc2cweVJiL2NVVgowM3ZGZVh3NGxHMFVGVU8rTVA4eS9aY1ZITFBzR3p1cm44V0ZKLzZhWUVrMkRjNG9ERUIrMVVWektHbVJUZm81ClhjWWlkbmlLQ2ZZSlNpdEprOElEYjliaGlVbVloRWhrdjdHNHovL2NDY3Q2SDkwUkZnYlczK2NnRWNlR0xGdFEKNVBvY2pya1lUTFA1NTc4WkZNb3ZiSFBMeituNEMwVm1vbnZFb2h2TlVtWHpHWDZRZ3ErYWFIbVF2RnhvZ2dTcgpnNzlreHExTDM2MVE0Qk1Xd1JSRVlNTjZaa3pxTTg4cXl0R3VRZVpDUkhIN2g2UHJadTNEay9Wa2FRNFh4YXF1CkVyZzRpN3pLUGg3QTVFbU1zMUZzUnFLUkRFSVljTWRtaFk3QVdqOWNQcEhCQWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
+        run: python3 audit/hotel-entry-price-20261120/runner.py read
+      - name: Retain the encrypted report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: anytour-entry-price-20261112-20261118
+          path: encrypted-entry-price/*.enc.json
+          retention-days: 3
+          if-no-files-found: error
