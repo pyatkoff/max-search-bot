@@ -1,4 +1,4 @@
-name: "Big-channel hotel transfer: rank and verify the next batch"
+name: "Big-channel transfer: match demand to current catalogue and archived posts"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,7 +13,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '5dcfff9ea13b39eea06d2e47a1d2de052a1cbf00' &&
+      github.event.before == 'd9f7f43dec6f22448374cd3f86ee261d170303ae' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -119,29 +119,53 @@ jobs:
               }
               return $result;
           }
+          function offerTitle(string $title): string {
+              $t=mb_strtolower($title,'UTF-8');
+              $t=preg_replace('/^[^\p{L}\p{N}]+/u','',$t);
+              $t=preg_replace('/^(?:туры?\s+в|поездка\s+в|отель)\s+/u','',$t);
+              $t=preg_replace('/\s+\d\s*[\*★]+(?:\s|$)/u',' ',$t);
+              return trim((string)preg_replace('/[^\p{L}\p{N}]+/u',' ',$t));
+          }
+          function mainOfferIndex(): array {
+              $raw=PromotedHotelPriceWriter::publicBytes('https://app.anytoour.ru/feed/hotel-posts-all.xml',12000000);
+              requireEdit(!preg_match('/<!\s*(?:DOCTYPE|ENTITY)\b/i',$raw),'xml_entities_disallowed');
+              $doc=new DOMDocument();
+              requireEdit(@$doc->loadXML($raw,LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING),'xml_invalid');
+              $xp=new DOMXPath($doc); $both=[]; $urls=[];
+              foreach($xp->query('/yml_catalog/shop/offers/offer') as $node) {
+                  if(!preg_match('/\A(max|tg)_([1-9][0-9]*)\z/D',$node->getAttribute('id'),$m))continue;
+                  $get=static fn(string $k):string=>(string)$xp->evaluate('string(./'.$k.')',$node);
+                  $id=(int)$m[2];$platform=$m[1];
+                  requireEdit(!isset($both[$id][$platform]),'duplicate_feed_id');
+                  $name=$get('name');
+                  if($name==='')$name=$get('model');
+                  $url=$get('url');
+                  $both[$id][$platform]=['name'=>$name,'title'=>offerTitle($name),'url'=>$url];
+                  if(preg_match('~\Ahttps://(?:t\.me/any_toour/[1-9][0-9]*|max\.ru/channel_anytour/[A-Za-z0-9_-]+)\z~D',$url))
+                      $urls[$url][$id]=true;
+              }
+              $names=[];
+              foreach($both as $id=>$pair) {
+                  $key=$pair['tg']['title']??'';
+                  if($key!=='' && ($pair['max']['title']??null)===$key) $names[$key][$id]=true;
+              }
+              return [$both,$names,$urls];
+          }
           $out=['ok'=>false,'db_writes'=>0,'provider_writes'=>0];
           try {
               installedEdit('9385571c86c45189c31d9c4aa904c23970e3b11a');
               ob_start();
-              try {
-                  require getcwd().'/config.php';
-                  require_once getcwd().'/services/PromotedHotelPriceWriter.php';
-                  require_once getcwd().'/services/ChannelPostEntryService.php';
-              } finally { ob_end_clean(); }
+              try {require getcwd().'/config.php';require_once getcwd().'/services/PromotedHotelPriceWriter.php';}
+              finally {ob_end_clean();}
               $exclude=array_fill_keys([132,174,218,240,253,260,325,341,352,415,418,469,547,1074,1344,2493,3452,4079,4181,12107,12111,12125,28581,37668,43676,64895,70048,73974,74503,82606,99713,132016,12112,70030,1273,1439,91404,73055,61159],true);
-              $msk=new DateTimeZone('Europe/Moscow');
-              $utc=new DateTimeZone('UTC');
-              $end=(new DateTimeImmutable('today',$msk))->setTimezone($utc);
+              [$offers,$names,$urls]=mainOfferIndex();
+              $end=(new DateTimeImmutable('today',new DateTimeZone('Europe/Moscow')))->setTimezone(new DateTimeZone('UTC'));
               $start=$end->modify('-7 day');
               $out['period_utc']=['from'=>$start->format(DATE_ATOM),'until'=>$end->format(DATE_ATOM)];
+              $out['feed_name_examples']=array_values(array_slice(array_map(static fn($r)=>$r['tg']['name']??'', $offers),0,6));
               $pdo=ConversationDb::connection();
-              $pdo->exec('SET SESSION TRANSACTION READ ONLY');
-              $pdo->beginTransaction();
-              $channels=$pdo->query('SELECT id,platform,channel_id,display_name FROM post_channels WHERE id IN (4,6,9,10) ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
-              requireEdit(array_map('intval',array_column($channels,'id'))===[4,6,9,10]
-                  && array_column($channels,'platform')===['max','telegram','max','telegram'],'channel_registry_changed');
-              $out['channels']=$channels;
-              $q=$pdo->prepare("SELECT p.id AS publication_id,p.post_channel_id,COUNT(*) AS entries,COUNT(DISTINCT e.conversation_id) AS dialogues,
+              $pdo->exec('SET SESSION TRANSACTION READ ONLY');$pdo->beginTransaction();
+              $source=$pdo->prepare("SELECT p.id AS publication_id,p.post_channel_id,COUNT(*) AS entries,COUNT(DISTINCT e.conversation_id) AS dialogues,
                   JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id')) AS hotel_id,
                   SUBSTRING_INDEX(JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.text')),CHAR(10),1) AS title,
                   JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.post_url')) AS url
@@ -149,72 +173,74 @@ jobs:
                 JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id
                 WHERE p.post_channel_id IN (9,10) AND e.created_at>=? AND e.created_at<?
                 GROUP BY p.id,p.post_channel_id,v.id,v.snapshot_json ORDER BY dialogues DESC,entries DESC,p.id LIMIT 1501");
-              $q->execute([$start->format('Y-m-d H:i:s'),$end->format('Y-m-d H:i:s')]);
-              $demand=$q->fetchAll(PDO::FETCH_ASSOC);
-              $q->closeCursor();
-              requireEdit(count($demand)<1501,'demand_limit_reached');
+              $source->execute([$start->format('Y-m-d H:i:s'),$end->format('Y-m-d H:i:s')]);
+              $demand=$source->fetchAll(PDO::FETCH_ASSOC);$source->closeCursor();
+              $large=$pdo->query("SELECT p.id AS publication_id,p.post_channel_id,p.external_message_id,v.id AS version_id,v.state,v.write_attempts,v.error_reason,
+                 JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id')) AS hotel_id,
+                 JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.post_url')) AS url,
+                 JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.attachments[0].type')) AS media_type,
+                 JSON_LENGTH(JSON_EXTRACT(v.snapshot_json,'$.attachments')) AS media_count,
+                 JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.text')) AS caption
+                 FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id
+                 WHERE p.post_channel_id IN (4,6) ORDER BY p.id DESC LIMIT 2501")->fetchAll(PDO::FETCH_ASSOC);
+              $pdo->rollBack();
+              requireEdit(count($demand)<1501 && count($large)<2501,'audit_limit_reached');
               $out['source_posts']=count($demand);
-              $out['unbound_source_posts']=0;
+              $out['registered_big_targets']=count($large);
+              $out['unmatched_source_examples']=[];
+              $out['source_resolution_counts']=[];
               $hotels=[];
-              foreach($demand as $row) {
-                  $hotel=(int)$row['hotel_id'];
-                  if($hotel<=0){++$out['unbound_source_posts'];continue;}
-                  if(isset($exclude[$hotel]))continue;
-                  $platform=(int)$row['post_channel_id']===9?'max':'telegram';
-                  if(!isset($hotels[$hotel])) $hotels[$hotel]=['hotel_id'=>$hotel,'title'=>$row['title'],'demand'=>[]];
-                  if(!isset($hotels[$hotel]['demand'][$platform]))
-                      $hotels[$hotel]['demand'][$platform]=['dialogues'=>(int)$row['dialogues'],'entries'=>(int)$row['entries'],'url'=>$row['url']];
+              foreach($demand as $r) {
+                  $id=(int)$r['hotel_id'];
+                  $key=offerTitle((string)$r['title']);$links=$urls[$r['url']]??[];$exact=$names[$key]??[];
+                  $type='registry_hotel_id';
+                  if($id<=0 && count($links)===1){$id=(int)array_key_first($links);$type='exact_offer_post_url';}
+                  if($id<=0 && count($exact)===1){$id=(int)array_key_first($exact);$type='unique_exact_feed_name';}
+                  if($id<=0 || !isset($offers[$id]['max'],$offers[$id]['tg']) ||
+                      (count($links)>0 && !isset($links[$id])) || (count($exact)>0 && !isset($exact[$id]))) {
+                      $type='unresolved';
+                  }
+                  $out['source_resolution_counts'][$type]=($out['source_resolution_counts'][$type]??0)+1;
+                  if($type==='unresolved'){
+                      if(count($out['unmatched_source_examples'])<12)$out['unmatched_source_examples'][]=[$r['title'],$r['url']];
+                      continue;
+                  }
+                  if(isset($exclude[$id]))continue;
+                  $platform=(int)$r['post_channel_id']===9?'max':'telegram';
+                  if(!isset($hotels[$id]))$hotels[$id]=['hotel_id'=>$id,'name'=>$offers[$id]['tg']['name'],'dialogues'=>(int)$r['dialogues'],'entries'=>(int)$r['entries'],'source'=>[]];
+                  if(!isset($hotels[$id]['source'][$platform]))
+                      $hotels[$id]['source'][$platform]=['dialogues'=>(int)$r['dialogues'],'entries'=>(int)$r['entries'],'binding'=>$type,'url'=>$r['url']];
               }
-              $rows=[];
-              foreach($hotels as $hotel=>$value) {
-                  $value['strongest_post_dialogues']=max(array_column(array_values($value['demand']),'dialogues'));
-                  $value['strongest_post_entries']=max(array_column(array_values($value['demand']),'entries'));
-                  $rows[]=$value;
-              }
-              usort($rows,static fn($a,$b)=>$b['strongest_post_dialogues']<=>$a['strongest_post_dialogues']
-                  ?:($b['strongest_post_entries']<=>$a['strongest_post_entries'])?:($a['hotel_id']<=>$b['hotel_id']));
+              $rows=array_values($hotels);
+              usort($rows,static fn($a,$b)=>$b['dialogues']<=>$a['dialogues']?:($b['entries']<=>$a['entries'])?:($a['hotel_id']<=>$b['hotel_id']));
               $out['ranked_total']=count($rows);
               $rows=array_slice($rows,0,65);
-              $ids=array_column($rows,'hotel_id');
-              requireEdit($ids!==[],'no_ranked_hotels');
-              $placeholders=implode(',',array_fill(0,count($ids),'?'));
-              $native="CAST(JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id')) AS UNSIGNED)";
-              $reg=$pdo->prepare("SELECT p.id AS publication_id,p.post_channel_id,p.external_message_id,v.id AS version_id,v.state,v.write_attempts,
-                  v.error_reason,$native AS hotel_id,JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.post_url')) AS url,
-                  JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.capability')) AS capability,
-                  JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.attachments[0].type')) AS media_type,
-                  JSON_LENGTH(JSON_EXTRACT(v.snapshot_json,'$.attachments')) AS media_count,
-                  JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.text')) AS caption
-                FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id
-                WHERE p.post_channel_id IN (4,6) AND $native IN ($placeholders) ORDER BY p.id DESC LIMIT 401");
-              $reg->execute($ids);
-              $registryMatches=$reg->fetchAll(PDO::FETCH_ASSOC);
-              $reg->closeCursor();
-              requireEdit(count($registryMatches)<401,'channel_match_limit_reached');
-              $pdo->rollBack();
-              $prices=priceRows($ids);
-              $matches=[];
-              foreach($registryMatches as $m) {
-                  $title=explode("\n",(string)$m['caption'],2)[0];
-                  $price=$prices[(int)$m['hotel_id']]['block']??'';
-                  $m['title']=$title;
-                  $m['current_feed_price_in_registry']=$price!=='' && str_contains((string)$m['caption'],$price);
-                  unset($m['caption']);
-                  $matches[(int)$m['hotel_id']][(int)$m['post_channel_id']===4?'max':'telegram'][]=$m;
+              $prices=$rows===[]?[]:priceRows(array_column($rows,'hotel_id'));
+              $match=[];
+              foreach($large as $r) {
+                  $caption=(string)$r['caption'];
+                  $title=explode("\n",$caption,2)[0];
+                  $native=(int)$r['hotel_id'];$aliases=$names[offerTitle($title)]??[];
+                  $id=$native>0?$native:(count($aliases)===1?(int)array_key_first($aliases):0);
+                  if(!isset($prices[$id]))continue;
+                  $platform=(int)$r['post_channel_id']===4?'max':'telegram';
+                  $price=$prices[$id]['block']??'';
+                  $r['title']=$title;
+                  $r['binding']=$native>0?'registry_hotel_id':'exact_title_requires_native_binding';
+                  $r['current_feed_price_in_registry']=$price!=='' && str_contains($caption,$price);
+                  unset($r['caption']);
+                  $match[$id][$platform][]=$r;
               }
-              foreach($rows as &$row) {
-                  $id=$row['hotel_id'];
-                  $price=$prices[$id];
-                  $row['offer']=isset($price['block'])?['price'=>$price['price'],'observation'=>$price['observation'],'departure'=>$price['departure']]
-                      :['reason'=>$price['reason']??'unavailable'];
-                  $row['big']=$matches[$id]??[];
+              foreach($rows as &$r) {
+                  $id=$r['hotel_id'];$offer=$prices[$id];
+                  $r['offer']=isset($offer['block'])?['price'=>$offer['price'],'observation'=>$offer['observation'],'departure'=>$offer['departure']]
+                    :['reason'=>$offer['reason']??'unavailable'];
+                  $r['big']=$match[$id]??[];
               }
-              $out['rows']=$rows;
-              $out['ok']=true;
+              $out['rows']=$rows;$out['ok']=true;
           } catch(Throwable $e) {
               if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();
-              $m=$e->getMessage();
-              $out['reason']=preg_match('/^[a-z_0-9]{1,100}$/D',$m)?$m:'registry_candidate_read_failed';
+              $m=$e->getMessage();$out['reason']=preg_match('/^[a-z_0-9]{1,100}$/D',$m)?$m:'crosscheck_failed';
           }
           echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
           PHP
@@ -263,12 +289,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("BIG_CHANNEL_BATCH_AUDIT="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0 and d.get("db_writes")==0'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("BIG_CHANNEL_MATCHED_BATCH="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0 and d.get("db_writes")==0'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: big-channel-next-batch-audit
+          name: big-channel-matched-batch
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
