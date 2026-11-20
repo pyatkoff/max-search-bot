@@ -1,4 +1,4 @@
-name: FEED55 exact read-only preflight
+name: FEED55 exact read-only runtime preflight
 on:
   push:
     branches: ['audit/price660-27316-resume-readiness-20261117']
@@ -12,36 +12,22 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == '0e9f27a009a94aec400dfb352c9cd8d863ad0165'
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == 'c90ebf3a5f77698e08b65e5924ec533e6aa5958b'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
     env:
-      EXPECTED_PARENT_SHA: 0e9f27a009a94aec400dfb352c9cd8d863ad0165
-      REVIEWED_FEED55_INTENT_SHA256: 76f378f104dfe5e950c4414f111e3a94de528a25d64e19f2183132f6a317c773
+      EXPECTED_PARENT_SHA: c90ebf3a5f77698e08b65e5924ec533e6aa5958b
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 2
-      - name: Verify exact read-only sources before credentials
+      - name: Verify exact admission source
         run: |
           set -euo pipefail
-          echo '024ae3a953bc59b0fa05c10688c54822b309c677ca7674e523b7a5cc2cbbd140  tools/direct_demand/operations/feed55/preflight/admit55.py' | sha256sum --check --strict
-          echo '056e84a26e39fa52e27fd0ad159af6f6a431840c52cad1b0164fd1f4aa6079e5  tools/direct_demand/operations/feed55/preflight/run55.py' | sha256sum --check --strict
-          echo '76f378f104dfe5e950c4414f111e3a94de528a25d64e19f2183132f6a317c773  tools/direct_demand/operations/feed55/preflight/intent.json' | sha256sum --check --strict
-          python3 -m py_compile tools/direct_demand/operations/feed55/preflight/admit55.py tools/direct_demand/operations/feed55/preflight/run55.py
-          python3 - <<'PY'
-          import hashlib,json,pathlib,subprocess
-          root=pathlib.Path('tools/direct_demand/operations/feed55/preflight')
-          j=json.loads((root/'intent.json').read_bytes())
-          assert [g['batch'] for g in j['groups']]==[1,2,4,5,9,12,13]
-          assert j['hotels']==55 and j['publications']==110
-          for g in j['groups']:
-              p=root/f"p{g['batch']:02d}"/'read.php'
-              assert hashlib.sha256(p.read_bytes()).hexdigest()==g['reader_sha256']
-              subprocess.run(['php','-n','-l',str(p)],check=True,timeout=30)
-          PY
+          echo 'cb6292a8ee2f0252953648c7cc578008df03d2722cb91dbdeef99636f0ea6e3e  tools/direct_demand/operations/feed55/preflight/admit55.py' | sha256sum --check --strict
+          python3 -m py_compile tools/direct_demand/operations/feed55/preflight/admit55.py
       - name: Fresh owner and exclusive-window admission
         env:
           GH_TOKEN: ${{ github.token }}
@@ -73,21 +59,71 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Read exact 55 current publications and XML preimages
+      - name: Read installed runtime hook journal and lock
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: python3 tools/direct_demand/operations/feed55/preflight/run55.py tools/direct_demand/operations/feed55/preflight "$RUNNER_TEMP/feed55-preflight" "$RUNNER_TEMP/feed55-admission.json"
-      - name: Preserve private read-only evidence
+        run: |
+          set -euo pipefail
+          cat >"$RUNNER_TEMP/read-server.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          $out=['ok'=>false,'writes'=>0,'provider_calls'=>0,'message_sends'=>0];
+          try {
+            if(PHP_SAPI!=='cli') throw new RuntimeException('cli_required');
+            $runtime=trim((string)shell_exec('git rev-parse HEAD'));
+            $hook='/var/www/anytoour/data/www/anytoour.ru/data/monitor-price-hook.php';
+            $journal='/var/www/anytoour/data/channel-post-operations/monitor-price-after-collection-v1.jsonl';
+            if(!preg_match('/\A[a-f0-9]{40}\z/D',$runtime)) throw new RuntimeException('runtime_invalid');
+            if(!is_file($hook)||is_link($hook)) throw new RuntimeException('hook_unavailable');
+            if(!is_file($journal)||is_link($journal)) throw new RuntimeException('journal_unavailable');
+            $f=fopen($journal,'rb');
+            if($f===false||!flock($f,LOCK_EX|LOCK_NB)) throw new RuntimeException('monitor_lock_busy');
+            $st=fstat($f);if(!is_array($st)||!is_int($st['size'])||$st['size']<1)throw new RuntimeException('journal_incomplete');
+            $n=min($st['size'],2000001);if(fseek($f,$st['size']-$n)!==0)throw new RuntimeException('journal_incomplete');
+            $raw=stream_get_contents($f,$n);if(!is_string($raw)||strlen($raw)!==$n||!str_ends_with($raw,"\n"))throw new RuntimeException('journal_incomplete');
+            $tail=rtrim($raw,"\n");$p=strrpos($tail,"\n");$last=$p===false?$tail:substr($tail,$p+1);
+            $state=json_decode($last,true,64,JSON_THROW_ON_ERROR);
+            if(!is_array($state)||!array_key_exists('pending',$state))throw new RuntimeException('journal_state_invalid');
+            $out+=['runtime_sha'=>$runtime,'hook_sha256'=>hash_file('sha256',$hook),'hook_bytes'=>filesize($hook),'journal_bytes'=>$st['size'],'pending'=>$state['pending'],'lock_available'=>true,'ok'=>$state['pending']===null];
+            flock($f,LOCK_UN);fclose($f);
+          } catch(Throwable $e) {$out['error']=preg_match('/\A[a-z][a-z0-9_]{1,100}\z/D',$e->getMessage())?$e->getMessage():'server_preflight_failed';}
+          echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          exit($out['ok']?0:2);
+          PHP
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru && GIT_OPTIONAL_LOCKS=0 php" <"$RUNNER_TEMP/read-server.php" >"$RUNNER_TEMP/server.json"
+          jq -e '.ok==true and .runtime_sha=="b4b65daaa472c15426a244b87ede3e6c0394626b" and .lock_available==true and .pending==null and (.hook_sha256|test("^[a-f0-9]{64}$")) and .writes==0' "$RUNNER_TEMP/server.json"
+      - name: Read four public FEED55 outputs
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,json,pathlib,urllib.request,xml.etree.ElementTree as ET,os
+          urls={'telegram':'https://app.anytoour.ru/feed/hotel-posts-telegram.xml','max':'https://app.anytoour.ru/feed/hotel-posts-max.xml','all':'https://app.anytoour.ru/feed/hotel-posts-all.xml','derived':'https://app.anytoour.ru/hotel-posts-telegram-main19.php'}
+          ids=[108317,11836,11746,11842,11882,8987,2685,8859,2335,58744,73082,2603,78834,79460,109586,2404,2602,11751,11775,12126,82504,64918,11791,26844,2522,1703,11753,2721,77685,15910,331,2794,33531,330,11847,11851,17608,43743,76288,77810,4533,113978,80748,1589,127349,115677,2161,236,13853,48795,12104,2686,1518,64330,57682]
+          out={'state':'FEED55_PUBLIC_READ_ONLY','hotels':55,'writes':0,'feeds':{}}
+          for name,url in urls.items():
+              req=urllib.request.Request(url,headers={'Cache-Control':'no-cache','Accept-Encoding':'identity','User-Agent':'AnyTour-FEED55-runtime-preflight/1'})
+              with urllib.request.urlopen(req,timeout=45) as r: raw=r.read(12000001)
+              root=ET.fromstring(raw); offers=root.findall('.//offer'); got=[x.attrib.get('id') for x in offers]
+              assert None not in got and len(got)==len(set(got))
+              pref=('tg_',) if name in ('telegram','derived') else (('max_',) if name=='max' else ('tg_','max_'))
+              wanted={p+str(i) for i in ids for p in pref}
+              out['feeds'][name]={'offers':len(got),'unique':len(set(got)),'sha256':hashlib.sha256(raw).hexdigest(),'target_present':len(set(got)&wanted),'url':url}
+          assert [out['feeds'][x]['offers'] for x in ('telegram','max','all','derived')]==[1000,1000,2000,1000]
+          assert all(x['target_present']==0 for x in out['feeds'].values())
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/public.json').write_text(json.dumps(out,sort_keys=True)+'\n')
+          PY
+      - name: Preserve immutable read-only evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: feed55-preflight-${{ github.run_id }}
+          name: feed55-runtime-preflight-${{ github.run_id }}
           path: |
-            ${{ runner.temp }}/feed55-preflight/
             ${{ runner.temp }}/feed55-admission.json
+            ${{ runner.temp }}/server.json
+            ${{ runner.temp }}/public.json
           retention-days: 7
           if-no-files-found: warn
       - name: Cleanup connection material
         if: always()
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/read-server.php"
