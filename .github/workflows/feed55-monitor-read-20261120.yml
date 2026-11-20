@@ -1,0 +1,106 @@
+name: FEED55 current monitor readback
+on:
+  push:
+    branches: ['audit/feed55-monitor-read-20261120']
+    paths: ['.github/workflows/feed55-monitor-read-20261120.yml']
+permissions:
+  contents: read
+concurrency:
+  group: anytour-authorized-channel-publication
+  cancel-in-progress: false
+jobs:
+  read:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.run_attempt == 1 && github.event.before == 'b4b65daaa472c15426a244b87ede3e6c0394626b'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Prepare unchanged server connection and host pin
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER'];assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-') and re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35);matches=[]
+          for line in scan.stdout.splitlines():
+            fields=line.split()
+            if len(fields)<3 or fields[0].startswith('#'):continue
+            try:fingerprint='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+            except Exception:continue
+            if fingerprint=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
+          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP';pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+          PY
+      - name: Read current runtime, monitor hash, and final journal state
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ "$DEPLOY_HOST" =~ ^[A-Za-z0-9_.:-]+$ && "$DEPLOY_HOST" != -* && "$DEPLOY_USER" =~ ^[A-Za-z0-9_-]+$ ]]
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o "UserKnownHostsFile=$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru && GIT_OPTIONAL_LOCKS=0 php' <<'PHP'
+          <?php
+          declare(strict_types=1);
+          $root='/var/www/anytoour/data/www/app.anytoour.ru';
+          $hook='/var/www/anytoour/data/www/anytoour.ru/data/monitor-price-hook.php';
+          $journal='/var/www/anytoour/data/channel-post-operations/monitor-price-after-collection-v1.jsonl';
+          $expected='b4b65daaa472c15426a244b87ede3e6c0394626b';
+          $report=['state'=>'FEED55_MONITOR_READ_ONLY','ok'=>false,'writes'=>0,'provider_calls'=>0,'runtime'=>null,'hook_sha256'=>null,'journal_lock_available'=>false,'journal_pending_clear'=>false,'feeds'=>[]];
+          $stream=null;
+          try {
+              if (PHP_SAPI!=='cli'||realpath(getcwd())!==$root) { throw new RuntimeException('incorrect_runtime_root'); }
+              $sha=trim((string)shell_exec('git rev-parse HEAD'));
+              if (!preg_match('/\A[a-f0-9]{40}\z/D',$sha)) { throw new RuntimeException('runtime_sha_unavailable'); }
+              $report['runtime']=$sha;
+              $report['tracked_tree_clean']=trim((string)shell_exec('git status --porcelain --untracked-files=no'))==='';
+              if ($sha!==$expected||!$report['tracked_tree_clean']) { throw new RuntimeException('installed_runtime_changed'); }
+              if (!is_file($hook)||is_link($hook)||realpath($hook)!==$hook) { throw new RuntimeException('hook_not_regular'); }
+              $report['hook_sha256']=hash_file('sha256',$hook);
+              if (!is_string($report['hook_sha256'])) { throw new RuntimeException('hook_unreadable'); }
+              if (!is_file($journal)||is_link($journal)||realpath($journal)!==$journal) { throw new RuntimeException('journal_not_regular'); }
+              $stream=fopen($journal,'rb');
+              if ($stream===false||!flock($stream,LOCK_EX|LOCK_NB)) { throw new RuntimeException('journal_lock_busy'); }
+              $report['journal_lock_available']=true;
+              $info=fstat($stream);
+              $size=$info['size']??0;
+              if (!is_int($size)||$size<1) { throw new RuntimeException('journal_size_invalid'); }
+              $length=min($size,2000001);
+              if (fseek($stream,$size-$length,SEEK_SET)!==0) { throw new RuntimeException('journal_tail_unavailable'); }
+              $tail=stream_get_contents($stream,$length);
+              if (!is_string($tail)||strlen($tail)!==$length||!str_ends_with($tail,"\n")) { throw new RuntimeException('journal_tail_incomplete'); }
+              $trimmed=rtrim($tail,"\n");
+              $boundary=strrpos($trimmed,"\n");
+              if ($boundary===false&&$size!==$length) { throw new RuntimeException('journal_row_exceeds_bound'); }
+              $last=$boundary===false?$trimmed:substr($trimmed,$boundary+1);
+              if ($last===''||strlen($last)>=2000000) { throw new RuntimeException('journal_row_invalid'); }
+              $state=json_decode($last,true,64,JSON_THROW_ON_ERROR);
+              $report['journal_pending_clear']=is_array($state)&&array_key_exists('pending',$state)&&$state['pending']===null;
+              foreach (['hotel-posts-max.xml','hotel-posts-telegram.xml','hotel-posts-all.xml'] as $name) {
+                  $file=$root.'/feed/'.$name;
+                  if (!is_file($file)||is_link($file)||realpath($file)!==$file) { throw new RuntimeException('feed_file_not_regular'); }
+                  $report['feeds'][$name]=hash_file('sha256',$file);
+              }
+              $report['ok']=$report['journal_pending_clear']&&!in_array(false,$report['feeds'],true);
+          } catch (Throwable $e) {
+              $message=$e->getMessage();
+              $report['reason']=preg_match('/\A[a-z_]{2,80}\z/D',$message)?$message:'bounded_read_failed';
+          } finally {
+              if (is_resource($stream)) { flock($stream,LOCK_UN); fclose($stream); }
+          }
+          echo 'FEED55_MONITOR_READBACK='.json_encode($report,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).PHP_EOL;
+          exit($report['ok']?0:2);
+          PHP
+      - name: Remove temporary connection material from runner
+        if: always()
+        shell: bash
+        run: rm -f -- "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
