@@ -1,0 +1,1290 @@
+{
+  "schema_version": 1,
+  "task": "existing big-channel posts; issue 1566",
+  "period_utc": {
+    "from": "2026-11-12T21:00:00+00:00",
+    "until": "2026-11-19T21:00:00+00:00"
+  },
+  "ranking": "Largest distinct dialogue count for a single source post; then entries of that post. Per-platform source counts are not added.",
+  "sources": {
+    "demand": "https://github.com/pyatkoff/max-search-bot/actions/runs/44654456925/job/136017148579",
+    "archive": "https://github.com/pyatkoff/max-search-bot/actions/runs/44654881022/job/136018532151"
+  },
+  "coverage": {
+    "eligible_ranked_hotels": 132,
+    "max_posts_read": 348,
+    "max_history_complete": true,
+    "telegram_posts_read": 494,
+    "telegram_oldest_cursor": 1108
+  },
+  "production_writes": 0,
+  "rows": [
+    {
+      "hotel_id": 241,
+      "name": "Путевки в Pickalbatros Makadi Resort",
+      "dialogues": 3,
+      "offer": {
+        "price": "109154",
+        "observation": "2026-11-19T21:48:00+03:00",
+        "departure": "2026-12-20"
+      },
+      "source": {
+        "max": {
+          "dialogues": 3,
+          "entries": 4,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaGa3GMLV1E"
+        }
+      },
+      "rank": 1,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 15693,
+      "name": "Путевки в The Makadi Spa",
+      "dialogues": 3,
+      "offer": {
+        "price": "139361",
+        "observation": "2026-11-19T02:32:00+03:00",
+        "departure": "2027-01-16"
+      },
+      "source": {
+        "max": {
+          "dialogues": 3,
+          "entries": 3,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaHQDVICNd0"
+        }
+      },
+      "rank": 2,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 293,
+      "name": "Путевки в Pickalbatros Laguna Vista",
+      "dialogues": 2,
+      "offer": {
+        "price": "130498",
+        "observation": "2026-11-18T18:40:00+03:00",
+        "departure": "2027-01-21"
+      },
+      "source": {
+        "max": {
+          "dialogues": 2,
+          "entries": 3,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaGePD60KYU"
+        }
+      },
+      "rank": 3,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 408,
+      "name": "Путевки в Savoy Sharm El Sheikh",
+      "dialogues": 2,
+      "offer": {
+        "price": "155373",
+        "observation": "2026-11-19T02:32:00+03:00",
+        "departure": "2027-01-19"
+      },
+      "source": {
+        "max": {
+          "dialogues": 2,
+          "entries": 2,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaGhJ7JODvU"
+        }
+      },
+      "rank": 4,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 800,
+      "name": "Путевки в Sugar Marina Resort Art Karon Beach",
+      "dialogues": 2,
+      "offer": {
+        "price": "164248",
+        "observation": "2026-11-18T20:00:00+03:00",
+        "departure": "2026-11-24"
+      },
+      "source": {
+        "max": {
+          "dialogues": 2,
+          "entries": 2,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaG2GG5XH2I"
+        }
+      },
+      "rank": 5,
+      "archive_candidates": {
+        "max": [
+          {
+            "url": "https://max.ru/anytour/AZ7exN6EPIU",
+            "mid": "mid.ffffc1752b045fed019edec4de843c85",
+            "date_ms": 1781853904516,
+            "match": "body",
+            "media_types": [
+              "image"
+            ],
+            "registry": null
+          }
+        ],
+        "telegram": [
+          {
+            "url": "https://t.me/anytour/1588",
+            "mid": "1588",
+            "date": "2026-06-19T07:47:53+00:00",
+            "match": "body",
+            "photos": 1,
+            "video_nodes": 0,
+            "registry": null
+          }
+        ]
+      }
+    },
+    {
+      "hotel_id": 949,
+      "name": "Путевки в Adam & Eve",
+      "dialogues": 2,
+      "offer": {
+        "price": "183325",
+        "observation": "2026-11-19T17:23:00+03:00",
+        "departure": "2027-04-11"
+      },
+      "source": {
+        "max": {
+          "dialogues": 2,
+          "entries": 2,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaG3oYrTVTI"
+        }
+      },
+      "rank": 6,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 1260,
+      "name": "Путевки в IC Hotels Santai Family Resort",
+      "dialogues": 2,
+      "offer": {
+        "price": "110611",
+        "observation": "2026-11-19T23:56:00+03:00",
+        "departure": "2027-02-03"
+      },
+      "source": {
+        "max": {
+          "dialogues": 2,
+          "entries": 2,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaHQYt4dcmY"
+        }
+      },
+      "rank": 7,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      },
+      "existing_generic_candidate": {
+        "telegram": "https://t.me/anytour/288",
+        "evidence": "https://github.com/pyatkoff/max-search-bot/issues/1566#issuecomment-7020347939"
+      }
+    },
+    {
+      "hotel_id": 1972,
+      "name": "Путевки в Moreno Horizon Spa & Resort",
+      "dialogues": 2,
+      "offer": {
+        "price": "88508",
+        "observation": "2026-11-19T04:01:00+03:00",
+        "departure": "2027-01-16"
+      },
+      "source": {
+        "max": {
+          "dialogues": 2,
+          "entries": 2,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaG3WcDqe3Y"
+        }
+      },
+      "rank": 8,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 2588,
+      "name": "Путевки в Jumeirah Beach Hotel",
+      "dialogues": 2,
+      "offer": {
+        "price": "287300",
+        "observation": "2026-11-18T23:18:00+03:00",
+        "departure": "2027-01-22"
+      },
+      "source": {
+        "max": {
+          "dialogues": 2,
+          "entries": 2,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaHpO-hTO-w"
+        }
+      },
+      "rank": 9,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 24909,
+      "name": "Путевки в Graceland Khao Lak Beach Resort",
+      "dialogues": 2,
+      "offer": {
+        "price": "198276",
+        "observation": "2026-11-19T20:23:00+03:00",
+        "departure": "2026-12-22"
+      },
+      "source": {
+        "max": {
+          "dialogues": 2,
+          "entries": 2,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaG1rsYqb1E"
+        }
+      },
+      "rank": 10,
+      "archive_candidates": {
+        "max": [],
+        "telegram": [
+          {
+            "url": "https://t.me/anytour/1198",
+            "mid": "1198",
+            "date": "2025-09-12T10:01:21+00:00",
+            "match": "body",
+            "photos": 0,
+            "video_nodes": 2,
+            "registry": null
+          }
+        ]
+      }
+    },
+    {
+      "hotel_id": 32342,
+      "name": "Путевки в Vinpearl Resort & Spa Phu Quoc",
+      "dialogues": 2,
+      "offer": {
+        "price": "244339",
+        "observation": "2026-11-19T14:01:00+03:00",
+        "departure": "2026-11-24"
+      },
+      "source": {
+        "max": {
+          "dialogues": 2,
+          "entries": 2,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaG2QuDYdKE"
+        }
+      },
+      "rank": 11,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 57028,
+      "name": "Путевки в Pickalbatros Aqua Park Sharm",
+      "dialogues": 2,
+      "offer": {
+        "price": "140408",
+        "observation": "2026-11-18T21:35:00+03:00",
+        "departure": "2027-01-21"
+      },
+      "source": {
+        "max": {
+          "dialogues": 2,
+          "entries": 2,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaGeHp92NlE"
+        }
+      },
+      "rank": 12,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 65877,
+      "name": "Путевки в Vesna Hotel",
+      "dialogues": 2,
+      "offer": {
+        "price": "126252",
+        "observation": "2026-11-19T14:01:00+03:00",
+        "departure": "2026-11-26"
+      },
+      "source": {
+        "max": {
+          "dialogues": 2,
+          "entries": 2,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaG2NPXdL0M"
+        }
+      },
+      "rank": 13,
+      "archive_candidates": {
+        "max": [
+          {
+            "url": "https://max.ru/anytour/AZ1ift_ITbY",
+            "mid": "mid.ffffc1752b045fed019d627edfc84db6",
+            "date_ms": 1775473975240,
+            "match": "body",
+            "media_types": [
+              "video"
+            ],
+            "registry": null
+          },
+          {
+            "url": "https://max.ru/anytour/AZyuGCGWHSs",
+            "mid": "mid.ffffc1752b045fed019cae1821961d2b",
+            "date_ms": 1772447342998,
+            "match": "body",
+            "media_types": [
+              "video"
+            ],
+            "registry": null
+          }
+        ],
+        "telegram": [
+          {
+            "url": "https://t.me/anytour/1506",
+            "mid": "1506",
+            "date": "2026-04-06T11:32:13+00:00",
+            "match": "body",
+            "photos": 0,
+            "video_nodes": 2,
+            "registry": null
+          },
+          {
+            "url": "https://t.me/anytour/1455",
+            "mid": "1455",
+            "date": "2026-03-02T11:36:29+00:00",
+            "match": "body",
+            "photos": 0,
+            "video_nodes": 2,
+            "registry": null
+          }
+        ]
+      }
+    },
+    {
+      "hotel_id": 73343,
+      "name": "Путевки в The Grand Palace",
+      "dialogues": 2,
+      "offer": {
+        "price": "127571",
+        "observation": "2026-11-19T02:32:00+03:00",
+        "departure": "2027-01-16"
+      },
+      "source": {
+        "max": {
+          "dialogues": 2,
+          "entries": 2,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaHQ_ZjzcEA"
+        }
+      },
+      "rank": 14,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 43689,
+      "name": "Путевки в Fusion Resort Cam Ranh",
+      "dialogues": 1,
+      "offer": {
+        "price": "194876",
+        "observation": "2026-11-19T20:16:00+03:00",
+        "departure": "2026-12-02"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 4,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaHqSql-Q40"
+        }
+      },
+      "rank": 15,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 47025,
+      "name": "Путевки в Adalya Elite Lara",
+      "dialogues": 1,
+      "offer": {
+        "price": "116762",
+        "observation": "2026-11-19T21:57:00+03:00",
+        "departure": "2027-01-26"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 4,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaG2esUuLcc"
+        }
+      },
+      "rank": 16,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 139,
+      "name": "Путевки в Brayka Bay Resort",
+      "dialogues": 1,
+      "offer": {
+        "price": "130475",
+        "observation": "2026-11-19T00:59:00+03:00",
+        "departure": "2027-01-16"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 3,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaGjHF7dGOQ"
+        }
+      },
+      "rank": 17,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 435,
+      "name": "Путевки в Sheraton Soma Bay Resort",
+      "dialogues": 1,
+      "offer": {
+        "price": "147191",
+        "observation": "2026-11-19T02:32:00+03:00",
+        "departure": "2027-01-16"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 2,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaGeij7eOTo"
+        }
+      },
+      "rank": 18,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 513,
+      "name": "Путевки в Naama Bay Hotel & Resort",
+      "dialogues": 1,
+      "offer": {
+        "price": "117457",
+        "observation": "2026-11-19T00:59:00+03:00",
+        "departure": "2027-01-21"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 2,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaG2GFxpMCA"
+        }
+      },
+      "rank": 19,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 2470,
+      "name": "Путевки в Sun Siyam Olhuveli",
+      "dialogues": 1,
+      "offer": {
+        "price": "349441",
+        "observation": "2026-11-20T00:55:00+03:00",
+        "departure": "2026-11-21"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 2,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaHlf5z_ODQ"
+        }
+      },
+      "rank": 20,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 56092,
+      "name": "Путевки в Gravity Hotel & Aqua Park Hurghada",
+      "dialogues": 1,
+      "offer": {
+        "price": "108031",
+        "observation": "2026-11-19T20:19:00+03:00",
+        "departure": "2026-12-20"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 2,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaGeilyCad0"
+        }
+      },
+      "rank": 21,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 59114,
+      "name": "Путевки в Akdora Elite Hotel & Spa",
+      "dialogues": 1,
+      "offer": {
+        "price": "110100",
+        "observation": "2026-11-18T18:37:00+03:00",
+        "departure": "2027-05-07"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 2,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaHcqEDjA3Y"
+        }
+      },
+      "rank": 22,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 63191,
+      "name": "Путевки в Jumeirah Saadiyat Island",
+      "dialogues": 1,
+      "offer": {
+        "price": "279806",
+        "observation": "2026-11-18T17:06:00+03:00",
+        "departure": "2027-01-11"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 2,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaHlgTobEZw"
+        }
+      },
+      "rank": 23,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 76588,
+      "name": "Путевки в LIU Resorts",
+      "dialogues": 1,
+      "offer": {
+        "price": "181911",
+        "observation": "2026-11-20T00:01:00+03:00",
+        "departure": "2027-04-29"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 2,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaG2zkytfiM"
+        }
+      },
+      "rank": 24,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 77914,
+      "name": "Путевки в Sunrise Tucana Resort",
+      "dialogues": 1,
+      "offer": {
+        "price": "159863",
+        "observation": "2026-11-19T01:00:00+03:00",
+        "departure": "2027-01-31"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 2,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaGc6ZyuFlA"
+        }
+      },
+      "rank": 25,
+      "archive_candidates": {
+        "max": [
+          {
+            "url": "https://max.ru/anytour/AZwOjxYjE7s",
+            "mid": "mid.ffffc1752b045fed019c0e8f162313bb",
+            "date_ms": 1769770784291,
+            "match": "body",
+            "media_types": [
+              "video"
+            ],
+            "registry": null
+          }
+        ],
+        "telegram": [
+          {
+            "url": "https://t.me/anytour/1369",
+            "mid": "1369",
+            "date": "2026-01-30T11:18:57+00:00",
+            "match": "body",
+            "photos": 0,
+            "video_nodes": 2,
+            "registry": null
+          }
+        ]
+      }
+    },
+    {
+      "hotel_id": 106,
+      "name": "Путевки в Aladdin Beach Resort",
+      "dialogues": 1,
+      "offer": {
+        "price": "107841",
+        "observation": "2026-11-19T06:26:00+03:00",
+        "departure": "2027-01-29"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaG3snxOWfo"
+        }
+      },
+      "rank": 26,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 111,
+      "name": "Путевки в Pickalbatros Palace Resort Hurghada",
+      "dialogues": 1,
+      "offer": {
+        "price": "111762",
+        "observation": "2026-11-19T02:32:00+03:00",
+        "departure": "2027-01-22"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaGisi-ve3Q"
+        }
+      },
+      "rank": 27,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 114,
+      "name": "Путевки в Ali Baba Palace",
+      "dialogues": 1,
+      "offer": {
+        "price": "105137",
+        "observation": "2026-11-19T04:01:00+03:00",
+        "departure": "2027-01-16"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaG3soUIZh0"
+        }
+      },
+      "rank": 28,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 140,
+      "name": "Путевки в Golden Beach Resort",
+      "dialogues": 1,
+      "offer": {
+        "price": "111031",
+        "observation": "2026-11-19T04:01:00+03:00",
+        "departure": "2027-01-16"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaG1_36xOug"
+        }
+      },
+      "rank": 29,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 178,
+      "name": "Путевки в Desert Rose",
+      "dialogues": 1,
+      "offer": {
+        "price": "118641",
+        "observation": "2026-11-18T23:04:00+03:00",
+        "departure": "2027-01-22"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaGeHr8-UCw"
+        }
+      },
+      "rank": 30,
+      "archive_candidates": {
+        "max": [
+          {
+            "url": "https://max.ru/anytour/AZ26g95VHD8",
+            "mid": "mid.ffffc1752b045fed019dba83de551c3f",
+            "date_ms": 1776950697557,
+            "match": "body",
+            "media_types": [
+              "video"
+            ],
+            "registry": null
+          }
+        ],
+        "telegram": [
+          {
+            "url": "https://t.me/anytour/1521",
+            "mid": "1521",
+            "date": "2026-04-23T12:20:17+00:00",
+            "match": "body",
+            "photos": 0,
+            "video_nodes": 2,
+            "registry": null
+          }
+        ]
+      }
+    },
+    {
+      "hotel_id": 195,
+      "name": "Путевки в Dreams Beach Resort",
+      "dialogues": 1,
+      "offer": {
+        "price": "120957",
+        "observation": "2026-11-19T00:59:00+03:00",
+        "departure": "2027-01-21"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaHUrH76WKs"
+        }
+      },
+      "rank": 31,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 206,
+      "name": "Путевки в Palace Beach Hotel",
+      "dialogues": 1,
+      "offer": {
+        "price": "88964",
+        "observation": "2026-11-19T04:01:00+03:00",
+        "departure": "2027-01-16"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaHeTF_WRuU"
+        }
+      },
+      "rank": 32,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 231,
+      "name": "Путевки в The Grand Makadi",
+      "dialogues": 1,
+      "offer": {
+        "price": "127571",
+        "observation": "2026-11-19T02:32:00+03:00",
+        "departure": "2027-01-16"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaHS60D1FKA"
+        }
+      },
+      "rank": 33,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 246,
+      "name": "Путевки в JAZ Fayrouz",
+      "dialogues": 1,
+      "offer": {
+        "price": "139005",
+        "observation": "2026-11-18T21:35:00+03:00",
+        "departure": "2027-01-21"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaGgW_zLBIc"
+        }
+      },
+      "rank": 34,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 263,
+      "name": "Путевки в Steigenberger Coraya Beach",
+      "dialogues": 1,
+      "offer": {
+        "price": "209258",
+        "observation": "2026-11-18T21:35:00+03:00",
+        "departure": "2027-01-16"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaGePIPBMYk"
+        }
+      },
+      "rank": 35,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 266,
+      "name": "Путевки в Lido Sharm",
+      "dialogues": 1,
+      "offer": {
+        "price": "107364",
+        "observation": "2026-11-18T17:11:00+03:00",
+        "departure": "2027-01-19"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaHp6GvNUDc"
+        }
+      },
+      "rank": 36,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 268,
+      "name": "Путевки в JAZ Makadi Saraya Resort",
+      "dialogues": 1,
+      "offer": {
+        "price": "108916",
+        "observation": "2026-11-19T21:48:00+03:00",
+        "departure": "2026-12-20"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaGa3Hb2aNA"
+        }
+      },
+      "rank": 37,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 310,
+      "name": "Путевки в Pickalbatros Golf Beach Resort",
+      "dialogues": 1,
+      "offer": {
+        "price": "130498",
+        "observation": "2026-11-18T18:40:00+03:00",
+        "departure": "2027-01-21"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaF5iNrwGdY"
+        }
+      },
+      "rank": 38,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 358,
+      "name": "Путевки в Rixos Sharm El Sheikh",
+      "dialogues": 1,
+      "offer": {
+        "price": "172769",
+        "observation": "2026-11-18T21:35:00+03:00",
+        "departure": "2027-01-21"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaGd4bFlag4"
+        }
+      },
+      "rank": 39,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 371,
+      "name": "Путевки в Reef Oasis Beach Resort",
+      "dialogues": 1,
+      "offer": {
+        "price": "135760",
+        "observation": "2026-11-18T21:35:00+03:00",
+        "departure": "2027-01-21"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaGeHsjldCE"
+        }
+      },
+      "rank": 40,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 381,
+      "name": "Путевки в Rehana Royal Beach Resort Aqua Park & Spa",
+      "dialogues": 1,
+      "offer": {
+        "price": "115413",
+        "observation": "2026-11-18T18:40:00+03:00",
+        "departure": "2027-01-21"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaF5iPYSJTA"
+        }
+      },
+      "rank": 41,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 389,
+      "name": "Путевки в Pickalbatros Royal Moderna",
+      "dialogues": 1,
+      "offer": {
+        "price": "126727",
+        "observation": "2026-11-18T18:40:00+03:00",
+        "departure": "2027-01-21"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaGePCsUN8U"
+        }
+      },
+      "rank": 42,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 416,
+      "name": "Путевки в Sunrise Crystal Bay Resort",
+      "dialogues": 1,
+      "offer": {
+        "price": "148488",
+        "observation": "2026-11-19T01:00:00+03:00",
+        "departure": "2027-01-31"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaGck-F7KJ4"
+        }
+      },
+      "rank": 43,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 465,
+      "name": "Путевки в Stella Di Mare Beach Hotel & Spa",
+      "dialogues": 1,
+      "offer": {
+        "price": "133470",
+        "observation": "2026-11-19T00:59:00+03:00",
+        "departure": "2027-01-21"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaGg3OiTOJ4"
+        }
+      },
+      "rank": 44,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 497,
+      "name": "Путевки в Titanic Resort & Aqua Park",
+      "dialogues": 1,
+      "offer": {
+        "price": "99456",
+        "observation": "2026-11-19T21:48:00+03:00",
+        "departure": "2026-12-20"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaHS6zgmfC0"
+        }
+      },
+      "rank": 45,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 932,
+      "name": "Путевки в Titanic Palace",
+      "dialogues": 1,
+      "offer": {
+        "price": "111999",
+        "observation": "2026-11-19T02:32:00+03:00",
+        "departure": "2027-01-16"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaHRo0CILKI"
+        }
+      },
+      "rank": 46,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 948,
+      "name": "Путевки в Adalya Bliss",
+      "dialogues": 1,
+      "offer": {
+        "price": "121839",
+        "observation": "2026-11-19T04:02:00+03:00",
+        "departure": "2027-01-24"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaHR1-daXF8"
+        }
+      },
+      "rank": 47,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 964,
+      "name": "Путевки в Crystal Aura Aqua Collection",
+      "dialogues": 1,
+      "offer": {
+        "price": "122958",
+        "observation": "2026-11-19T16:03:00+03:00",
+        "departure": "2027-05-09"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaG2Y6Q2dxg"
+        }
+      },
+      "rank": 48,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 975,
+      "name": "Путевки в Nirvana Dolce Vita",
+      "dialogues": 1,
+      "offer": {
+        "price": "151358",
+        "observation": "2026-11-19T15:56:00+03:00",
+        "departure": "2027-03-12"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaG2Y3Z4EWo"
+        }
+      },
+      "rank": 49,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    },
+    {
+      "hotel_id": 1013,
+      "name": "Путевки в Sunis Elita Beach Resort & Spa",
+      "dialogues": 1,
+      "offer": {
+        "price": "134835",
+        "observation": "2026-11-19T12:36:00+03:00",
+        "departure": "2027-04-20"
+      },
+      "source": {
+        "max": {
+          "dialogues": 1,
+          "entries": 1,
+          "binding": "unique_exact_feed_name",
+          "url": "https://max.ru/channel_anytour/AaHSUaknQ48"
+        }
+      },
+      "rank": 50,
+      "archive_candidates": {
+        "max": [],
+        "telegram": []
+      }
+    }
+  ]
+}

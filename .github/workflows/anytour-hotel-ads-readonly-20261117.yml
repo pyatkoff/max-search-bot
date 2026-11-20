@@ -1,4 +1,4 @@
-name: "Big-channel transfer: verify archive candidates for 50 hotels"
+name: "Big-channel transfer: inspect promising existing destinations"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,7 +13,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '3dafb10e40ab0df2b517caeb7f63509c8e97f438' &&
+      github.event.before == '0a8cfe5ab71450bec3c4c062afef160e620e9d6a' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -119,114 +119,33 @@ jobs:
               }
               return $result;
           }
-          function normalizedArchiveText(string $s): string {
-              return trim((string)preg_replace('/[^\p{L}\p{N}]+/u',' ',mb_strtolower($s,'UTF-8')));
-          }
-          function archiveHotelMatches(string $title,string $text,array $aliases): array {
-              $h=' '.normalizedArchiveText($title).' ';
-              $all=' '.normalizedArchiveText(mb_substr($text,0,950,'UTF-8')).' ';
-              $found=[];
-              foreach($aliases as $id=>$alias) {
-                  if(str_contains($h,$alias))$found[$id]='heading';
-                  elseif(str_contains($all,$alias))$found[$id]='body';
-              }
-              return count($found)===1?$found:[];
-          }
-          $out=['ok'=>false,'db_writes'=>0,'provider_writes'=>0,'telegram_pages'=>0,'max_pages'=>0];
-          try {
+          $out=['ok'=>false,'provider_writes'=>0,'db_writes'=>0];
+          try{
               installedEdit('9385571c86c45189c31d9c4aa904c23970e3b11a');
               ob_start();
-              try { require getcwd().'/config.php';require_once getcwd().'/services/PromotedHotelPriceWriter.php';require_once getcwd().'/services/ChannelPostEntryService.php'; }
-              finally {ob_end_clean();}
-              $target=json_decode(<<<'TARGETS'
-          [[241,"Путевки в Pickalbatros Makadi Resort"],[15693,"Путевки в The Makadi Spa"],[293,"Путевки в Pickalbatros Laguna Vista"],[408,"Путевки в Savoy Sharm El Sheikh"],[800,"Путевки в Sugar Marina Resort Art Karon Beach"],[949,"Путевки в Adam & Eve"],[1260,"Путевки в IC Hotels Santai Family Resort"],[1972,"Путевки в Moreno Horizon Spa & Resort"],[2588,"Путевки в Jumeirah Beach Hotel"],[24909,"Путевки в Graceland Khao Lak Beach Resort"],[32342,"Путевки в Vinpearl Resort & Spa Phu Quoc"],[57028,"Путевки в Pickalbatros Aqua Park Sharm"],[65877,"Путевки в Vesna Hotel"],[73343,"Путевки в The Grand Palace"],[43689,"Путевки в Fusion Resort Cam Ranh"],[47025,"Путевки в Adalya Elite Lara"],[139,"Путевки в Brayka Bay Resort"],[435,"Путевки в Sheraton Soma Bay Resort"],[513,"Путевки в Naama Bay Hotel & Resort"],[2470,"Путевки в Sun Siyam Olhuveli"],[56092,"Путевки в Gravity Hotel & Aqua Park Hurghada"],[59114,"Путевки в Akdora Elite Hotel & Spa"],[63191,"Путевки в Jumeirah Saadiyat Island"],[76588,"Путевки в LIU Resorts"],[77914,"Путевки в Sunrise Tucana Resort"],[106,"Путевки в Aladdin Beach Resort"],[111,"Путевки в Pickalbatros Palace Resort Hurghada"],[114,"Путевки в Ali Baba Palace"],[140,"Путевки в Golden Beach Resort"],[178,"Путевки в Desert Rose"],[195,"Путевки в Dreams Beach Resort"],[206,"Путевки в Palace Beach Hotel"],[231,"Путевки в The Grand Makadi"],[246,"Путевки в JAZ Fayrouz"],[263,"Путевки в Steigenberger Coraya Beach"],[266,"Путевки в Lido Sharm"],[268,"Путевки в JAZ Makadi Saraya Resort"],[310,"Путевки в Pickalbatros Golf Beach Resort"],[358,"Путевки в Rixos Sharm El Sheikh"],[371,"Путевки в Reef Oasis Beach Resort"],[381,"Путевки в Rehana Royal Beach Resort Aqua Park & Spa"],[389,"Путевки в Pickalbatros Royal Moderna"],[416,"Путевки в Sunrise Crystal Bay Resort"],[465,"Путевки в Stella Di Mare Beach Hotel & Spa"],[497,"Путевки в Titanic Resort & Aqua Park"],[932,"Путевки в Titanic Palace"],[948,"Путевки в Adalya Bliss"],[964,"Путевки в Crystal Aura Aqua Collection"],[975,"Путевки в Nirvana Dolce Vita"],[1013,"Путевки в Sunis Elita Beach Resort & Spa"]]
-          TARGETS,true,16,JSON_THROW_ON_ERROR);
-              requireEdit(count($target)===50 && count(array_unique(array_column($target,0)))===50,'batch_scope');
-              $alias=[];
-              foreach($target as [$hotel,$name]) {
-                  $clean=normalizedArchiveText($name);
-                  $clean=preg_replace('/^(?:путевки|путёвки|туры)\s+в\s+/u','',$clean);
-                  if(mb_strlen($clean,'UTF-8')>=9)$alias[$hotel]=' '.$clean.' ';
+              try{require getcwd().'/config.php';require_once getcwd().'/services/PromotedHotelPriceWriter.php';require_once getcwd().'/services/ChannelPostEntryService.php';}
+              finally{ob_end_clean();}
+              $mid='mid.ffffc1752b045fed019edec4de843c85';
+              $result=ChannelPostApiTransport::buttonRequest('max','GET','/messages/'.$mid,[],null);
+              $native=$result['data']['message']??$result['data']['messages'][0]??$result['data']??null;
+              requireEdit(($result['http']??0)===200 && ($native['body']['mid']??null)===$mid
+                 && (string)($native['recipient']['chat_id']??'')==='-68765999669267','max_exact_read_failed');
+              $m=ChannelPostIncomingAdapter::maxSnapshot($native);
+              requireEdit(is_array($m),'max_exact_snapshot_missing');
+              $out['max_800']=['caption'=>mb_substr($m['text'],0,800,'UTF-8'),'media'=>array_column($m['attachments'],'type'),
+                  'buttons'=>count($m['keyboard']??[]),'date'=>$native['timestamp']];
+              foreach([1588,288] as $id) {
+                  $post=publicTelegram($id);
+                  $out['tg_'.$id]=['caption'=>mb_substr($post['caption'],0,800,'UTF-8'),'photo_count'=>count($post['photos']),
+                      'video_count'=>$post['videos'],'date'=>$post['date'],'button_count'=>count($post['buttons'])];
               }
-              $pdo=ConversationDb::connection();
-              $pdo->exec('SET SESSION TRANSACTION READ ONLY');
-              $pdo->beginTransaction();
-              $q=$pdo->query("SELECT p.id,p.post_channel_id,p.external_message_id,v.state,v.id AS version,
-                  JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id')) AS hotel_id
-                  FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id
-                  WHERE p.post_channel_id IN (4,6) AND JSON_VALID(v.snapshot_json) LIMIT 2501");
-              $reg=$q->fetchAll(PDO::FETCH_ASSOC);
-              $pdo->rollBack();
-              requireEdit(count($reg)<2501,'registry_limit_hit');
-              $bindings=[];
-              foreach($reg as $r){$bindings[(int)$r['post_channel_id']][$r['external_message_id']]=[
-                  'publication_id'=>(int)$r['id'],'version'=>(int)$r['version'],'state'=>$r['state'],'hotel_id'=>(int)$r['hotel_id']];}
-              $matches=['max'=>[],'telegram'=>[]];
-              $chat='-68765999669267';
-              $before=(int)ceil(microtime(true)*1000);
-              $seen=[];
-              for($page=0;$page<8;++$page) {
-                  $r=ChannelPostApiTransport::buttonRequest('max','GET','/messages',['chat_id'=>$chat,'from'=>$before,'to'=>1,'count'=>100],null);
-                  $msgs=$r['data']['messages']??null;
-                  requireEdit(($r['http']??0)===200 && empty($r['transport_error']) && is_array($msgs) && array_is_list($msgs) && count($msgs)<=100,'max_history_read_failed');
-                  ++$out['max_pages'];$last=$before;
-                  foreach($msgs as $m){
-                      $mid=$m['body']['mid']??'';
-                      requireEdit((string)($m['recipient']['chat_id']??'')===$chat && preg_match('/\Amid\.[0-9a-f]{32}\z/D',$mid)&& isset($m['timestamp']),'max_message_identity');
-                      $last=min($last,(int)$m['timestamp']);
-                      if(isset($seen[$mid]))continue;
-                      $seen[$mid]=true;
-                      $post=ChannelPostIncomingAdapter::maxSnapshot($m);
-                      if(!is_array($post)||!is_string($post['text']??null))continue;
-                      $text=$post['text'];
-                      foreach(archiveHotelMatches(explode("\n",$text,2)[0],$text,$alias) as $id=>$scope){
-                          $slug=rtrim(strtr(base64_encode(hex2bin(substr($mid,-16))),'+/','-_'),'=');
-                          $matches['max'][$id][]=['url'=>'https://max.ru/anytour/'.$slug,'mid'=>$mid,'date_ms'=>(int)$m['timestamp'],
-                              'match'=>$scope,'media_types'=>array_column($post['attachments'],'type'),'registry'=>$bindings[4][$mid]??null];
-                      }
-                  }
-                  if(count($msgs)<100){$out['max_complete']=true;break;}
-                  requireEdit($last<$before,'max_nonprogress');$before=$last;
-              }
-              $out['max_messages']=count($seen);
-              $seen=[];$tgIssue=null;
-              for($p=0;$p<32;$p++) {
-                  $url='https://t.me/s/anytour'.(isset($next)?'?before='.$next:'');
-                  try{$raw=PromotedHotelPriceWriter::publicBytes($url,2000000);}
-                  catch(Throwable){$tgIssue='telegram_public_page_unavailable';break;}
-                  $doc=new DOMDocument();
-                  requireEdit(@$doc->loadHTML('<?xml encoding="UTF-8">'.$raw,LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING),'tg_public_dom');
-                  $xp=new DOMXPath($doc);
-                  $roots=$xp->query('//*[starts-with(@data-post,"anytour/")]');
-                  if(!$roots->length)break;
-                  ++$out['telegram_pages'];$last=null;
-                  foreach($roots as $root){
-                      if(!preg_match('/\Aanytour\/([1-9][0-9]*)\z/D',$root->getAttribute('data-post'),$m))continue;
-                      $mid=$m[1];$last=$last===null?(int)$mid:min($last,(int)$mid);
-                      if(isset($seen[$mid]))continue;
-                      $seen[$mid]=true;
-                      $x=$xp->query('.//*[contains(concat(" ",normalize-space(@class)," ")," tgme_widget_message_text ")]',$root);
-                      if($x->length!==1)continue;
-                      $html='';foreach($x->item(0)->childNodes as $node)$html.=$doc->saveHTML($node);
-                      $text=html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i',"\n",$html)),ENT_QUOTES|ENT_HTML5,'UTF-8');
-                      foreach(archiveHotelMatches(explode("\n",$text,2)[0],$text,$alias) as $id=>$scope) {
-                          $dates=$xp->query('.//time[@datetime]',$root);
-                          $pics=$xp->query('.//*[contains(concat(" ",normalize-space(@class)," ")," tgme_widget_message_photo_wrap ")]',$root)->length;
-                          $vids=$xp->query('.//video|.//*[contains(concat(" ",normalize-space(@class)," ")," tgme_widget_message_video_thumb ")]',$root)->length;
-                          $matches['telegram'][$id][]=['url'=>'https://t.me/anytour/'.$mid,'mid'=>$mid,
-                             'date'=>$dates->length===1?$dates->item(0)->getAttribute('datetime'):'','match'=>$scope,
-                             'photos'=>$pics,'video_nodes'=>$vids,'registry'=>$bindings[6][$mid]??null];
-                      }
-                  }
-                  if($last===null||$last<=1||isset($next)&&$last>=$next)break;
-                  $next=$last;
-              }
-              $out['telegram_messages']=count($seen);$out['telegram_oldest_cursor']=$next??null;
-              $out['telegram_read_limit']=$tgIssue??($out['telegram_pages']===32?'planned_page_cap':null);
-              $out['matches']=$matches;$out['ok']=true;
-          } catch(Throwable $e) {
-              if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();
-              $m=$e->getMessage();$out['reason']=preg_match('/^[a-z_0-9]{1,100}$/D',$m)?$m:'archive_audit_failed';
+              $prices=priceRows([800,1260]);
+              foreach($prices as &$row)unset($row['block']);
+              $out['offers']=$prices;
+              $out['ok']=true;
+          }catch(Throwable $e){
+              $msg=$e->getMessage();
+              $out['reason']=preg_match('/^[a-z_0-9]{1,100}$/D',$msg)?$msg:'exact_reuse_read_failed';
           }
           echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
           PHP
@@ -275,12 +194,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("BIG_CHANNEL_ARCHIVE_50="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0 and d.get("db_writes")==0'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("BIG_CHANNEL_EXACT_REUSE="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0 and d.get("db_writes")==0'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: big-channel-archive-50
+          name: big-channel-exact-reuse
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
