@@ -93,7 +93,7 @@ final class AppleService39TelegramFunnel
         }
     }
 
-    public static function recordAttribution(PDO $pdo,array $binding,int $conversationId,string $user,array $entry,int $messageAt): void
+    public static function recordAttribution(PDO $pdo,array $binding,int $conversationId,string $user,array $entry,int $messageAt,string $messageId): void
     {
         $now=time();
         if($messageAt<$now-86400 || $messageAt>$now+60)return;
@@ -109,15 +109,91 @@ final class AppleService39TelegramFunnel
             $q->execute([...array_values($scope),$user,$entry['post_id'],$offer,self::context($binding,$entry,$url),$messageAt-86400,$messageAt,$messageAt]);
             $visits=$q->fetchAll(PDO::FETCH_COLUMN);
             if(count($visits)!==1)return;
+            // A private start can recur after the original conversation is closed. Its visit belongs to that original entry.
+            $q=$pdo->prepare("SELECT 1 FROM conversations c JOIN conversation_events e ON e.conversation_id=c.id
+                WHERE c.project_key=? AND c.channel='telegram' AND c.source_id=? AND c.external_chat_id=?
+                AND e.event_type='apple_telegram_ad_entry' AND INSTR(e.payload_json,?)>0 LIMIT 1");
+            $q->execute([self::PROJECT,$binding['source_id'],$user,'"visit_id":'.json_encode($visits[0],JSON_THROW_ON_ERROR)]);
+            if($q->fetchColumn())return;
             $q=$pdo->prepare("SELECT 1 FROM conversation_events WHERE conversation_id=? AND event_type='apple_telegram_ad_entry' LIMIT 1");
             $q->execute([$conversationId]);
             if($q->fetchColumn())return;
             ConversationControlService::event($conversationId,'apple_telegram_ad_entry','system',null,[
                 'advertising_scope'=>$scope,'bot_id'=>$binding['bot_id'],'post_id'=>$entry['post_id'],'offer_id'=>$offer,
-                'visit_id'=>$visits[0],'post_url'=>$url,'start_unix'=>$messageAt,
+                'visit_id'=>$visits[0],'post_url'=>$url,'start_unix'=>$messageAt,'message_id'=>$messageId,
             ]);
         }catch(PDOException $unavailable){
             return;
         }
+    }
+
+    /** Resolve the persisted private start and its exact, already linked paid visit. */
+    public static function forecastEvidence(PDO $pdo,int $conversationId,array $binding,int $now,?callable $read=null): ?array
+    {
+        if(($binding['project_key']??null)!==self::PROJECT
+            ||($binding['source_key']??null)!==AppleService39TelegramConnection::SOURCE)return null;
+        $read??=static function(string $sql,array $args)use($pdo):array{
+            $q=$pdo->prepare($sql);
+            $q->execute($args);
+            return $q->fetchAll(PDO::FETCH_ASSOC);
+        };
+        $owners=$read("SELECT c.metadata_json,cc.external_user_id
+            FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id
+              AND cc.customer_id=c.customer_id AND cc.project_key=c.project_key AND cc.channel=c.channel
+              AND cc.external_chat_id=c.external_chat_id AND cc.external_user_id=c.external_chat_id
+            WHERE c.id=? AND c.project_key=? AND c.channel='telegram' AND c.source_id=? AND c.is_test=0 LIMIT 2",
+            [$conversationId,self::PROJECT,$binding['source_id']]);
+        $owner=count($owners)===1?$owners[0]:null;
+        if(!$owner||(json_decode($owner['metadata_json'],true)['telegram_bot_id']??null)!==$binding['bot_id'])return null;
+        $user=$owner['external_user_id'];
+        $events=$read("SELECT id,payload_json FROM conversation_events WHERE conversation_id=?
+            AND event_type='apple_telegram_ad_entry' AND actor_type='system' ORDER BY id LIMIT 2",[$conversationId]);
+        if(count($events)!==1)return null;
+        $event=$events[0];
+        $anchor=json_decode($event['payload_json'],true);
+        $at=ConversationRecordClock::read($event['payload_json']);
+        $start=$anchor['start_unix']??null;
+        $messageId=$anchor['message_id']??null;
+        $visit=$anchor['visit_id']??null;
+        if($at===null||$at>$now||!is_int($start)||$start>$at
+            ||$start<$now-21*86400||$at-$start>86400
+            ||!is_string($messageId)||!preg_match('/\A[1-9][0-9]{0,15}\z/D',$messageId)
+            ||!is_string($visit)||!str_starts_with($visit,'tg1_')||strlen($visit)>191
+            ||($anchor['advertising_scope']??null)!==self::scope()
+            ||($anchor['bot_id']??null)!==$binding['bot_id']||!is_string($anchor['post_id']??null))return null;
+        $entry=AppleService39PilotCatalog::landingEntryForPost($anchor['post_id']);
+        if(!$entry||!in_array($entry['scope']??'repair',['repair','search_repair','model_service'],true)
+            ||$entry['model']===''||$entry['service']===''||($anchor['offer_id']??null)!=='as39-tg-'.$entry['post_id'])return null;
+        $url=AppleService39TelegramIngress::publishedPost($pdo,$entry,$binding,$binding['bot_id']);
+        if($url===''||($anchor['post_url']??null)!==$url)return null;
+        $messages=$read("SELECT metadata_json FROM messages WHERE conversation_id=? AND channel='telegram'
+            AND direction='inbound' AND sender_type='customer' AND sender_id=? AND external_message_id=? AND text='/start' LIMIT 2",
+            [$conversationId,$user,$messageId]);
+        if(count($messages)!==1)return null;
+        $messageAt=ConversationRecordClock::read($messages[0]['metadata_json']);
+        $message=json_decode($messages[0]['metadata_json'],true);
+        $key=hash('sha256',implode("\0",[self::PROJECT,'telegram',$binding['bot_id'],$user,$messageId]));
+        if($messageAt===null||$messageAt>$at||$messageAt<$start||($message['delivery_key']??null)!==$key)return null;
+
+        $rows=$read("SELECT * FROM advertising_visit_observations WHERE project_key=? AND source_key=?
+            AND platform=? AND counter_id=? AND visit_id=? ORDER BY id LIMIT 101",[...array_values(self::scope()),$visit]);
+        if(!$rows||count($rows)>=101)return null;
+        $identity=null;
+        $context=self::context($binding,$entry,$url);
+        foreach($rows as $row){
+            if($row['identity_status']!=='verified'||$row['external_user_id']!==$user
+                ||$row['post_ref']!==$entry['post_id']||$row['offer_ref']!==$anchor['offer_id']
+                ||$row['context_json']!==$context||!preg_match('/\A[1-9][0-9]{0,39}\z/D',(string)$row['yclid'])
+                ||(int)$row['visit_at_unix']<$start-86400||(int)$row['visit_at_unix']>$start
+                ||(int)$row['observed_at_unix']>$now)return null;
+            if($row['client_id']==='')continue;
+            if(!preg_match('/\A[1-9][0-9]{0,39}\z/D',$row['client_id'])
+                ||($identity!==null&&$row['client_id']!==$identity['client_id']))return null;
+            if((int)$row['observed_at_unix']<=$start)$identity=$row;
+        }
+        if($identity===null)return null;
+        $priceContext=['model'=>$entry['model'],'service'=>$entry['service'],'entry_code'=>$entry['start_payload'],
+            'post_id'=>$entry['post_id'],'entry_key'=>$key,'recorded_at_unix'=>$at,'source_event_id'=>(string)$event['id']];
+        return ['anchor'=>$anchor,'price_context'=>$priceContext,'identity'=>$identity,'event_unix'=>$at];
     }
 }
