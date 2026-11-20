@@ -114,12 +114,20 @@ function editHotelExisting(PDO $pdo, ChannelPostRegistryService $registry, array
             'mid'=>$mid, 'url'=>$row['url'], 'state'=>'already_verified', 'caption_and_button_verified'=>true];
     }
     $public = publicHotelPost($row);
-    $native = $platform === 'max' ? readHotelMax($mid, $channel) : $prior;
-    requirePost($native['post_url'] === $row['url'] && $native['text'] === $public['text']
-        && postPhotoIds($native, $platform) === $physical
-        && ChannelPostIncomingAdapter::containsOnlyButton($native, $button, $buttonText), 'provider_post_or_photo_changed');
     $expectedButtons = [['text' => $buttonText, 'url' => $button]];
-    requirePost($platform === 'max' || $public['buttons'] === $expectedButtons, 'telegram_public_button_changed');
+    if ($platform === 'max') {
+        $native = readHotelMax($mid, $channel);
+        requirePost($native['post_url'] === $row['url'] && $native['text'] === $public['text']
+            && postPhotoIds($native, $platform) === $physical
+            && ChannelPostIncomingAdapter::containsOnlyButton($native, $button, $buttonText), 'provider_post_or_photo_changed');
+    } else {
+        // An older registry snapshot may predate the confirmed button edit.
+        $liveButton = $public['buttons'][0] ?? null;
+        requirePost(count($public['buttons']) === 1 && is_array($liveButton) && $liveButton['url'] === $button
+            && $liveButton['text'] !== '', 'telegram_public_button_changed');
+        $buttonText = $liveButton['text'];
+        $expectedButtons = [$liveButton];
+    }
 
     $base = ['platform' => $platform, 'hotel_id' => $row['hotel'], 'publication_id' => $id, 'mid' => $mid, 'url' => $row['url']];
     if ($public['text'] === $row['next'] && $prior['text'] === $row['next'] && (int)$catalog === $row['hotel']) {
