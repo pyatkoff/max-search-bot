@@ -23,6 +23,12 @@ import owner_permit_gate as gate
 BRANCH = "audit/price660-27316-resume-readiness-20261117"
 REPOSITORY = "pyatkoff/max-search-bot"
 PRIVATE_REPOSITORY = "pyatkoff/tour-max"
+RUNTIME_SHA = "9385571c86c45189c31d9c4aa904c23970e3b11a"
+TRANSFER_COMMENT_ID = 7026915700
+TRANSFER_BODY_SHA256 = "af864a46251e212c0395382c2bed28471ead44c533e04c8a4eb4459f3de35adf"
+ACCEPTANCE_COMMENT_ID = 7027410356
+ACCEPTANCE_BODY_SHA256 = "16d3b23bbbf26e5cba2e5d057e8984ea8076dce356bb82378db7f916718a3aba"
+PERMIT_COMMENT_ID = 7029866773
 ORDER = (1, 2, 4, 5, 9, 12, 13)
 MAX_WAIT_SECONDS = 120
 MAX_POLLS = 12
@@ -109,11 +115,13 @@ def origin(config):
     need(api("git/ref/heads/" + BRANCH)["object"]["sha"] == head, "carrier_head_changed")
     run = api("actions/runs/" + str(run_id))
     need(run["head_sha"] == head and run["run_attempt"] == 1 and run["event"] == "push", "authenticated_run_changed")
-    need(api("git/ref/heads/main")["object"]["sha"] == config["runtime_sha"], "runtime_main_changed")
-    for key in ("transfer", "acceptance"):
-        descriptor = config[key]
-        comment = api("issues/comments/" + str(descriptor["comment_id"]))
-        need(comment["user"]["id"] == 226193297 and sha(comment["body"].encode()) == descriptor["body_sha256"], key + "_claim_changed")
+    need(api("git/ref/heads/main")["object"]["sha"] == RUNTIME_SHA, "runtime_main_changed")
+    for label, comment_id, digest in (
+        ("transfer", TRANSFER_COMMENT_ID, TRANSFER_BODY_SHA256),
+        ("acceptance", ACCEPTANCE_COMMENT_ID, ACCEPTANCE_BODY_SHA256),
+    ):
+        comment = api("issues/comments/" + str(comment_id))
+        need(comment["user"]["id"] == 226193297 and sha(comment["body"].encode()) == digest, label + "_claim_changed")
     return {"repository": REPOSITORY, "run_id": run_id, "head_sha": head, "run_attempt": 1}
 
 
@@ -229,7 +237,7 @@ def prepare(config_path, compiled):
         "state": "FEED55_PRODUCTION_PLAN_READY_NO_WRITES", "execution": execution,
         "plan_sha256": state["plan_sha256"], "initial_preimages": expected,
         "groups": [{key: group[key] for key in ("batch", "operation", "hotels", "script_sha256", "files")} for group in intent["groups"]],
-        "permit_comment_id": config["permit_comment_id"], "permit_ttl_seconds": 60,
+        "permit_comment_id": PERMIT_COMMENT_ID, "permit_ttl_seconds": 60,
         "route_jit": config["route_jit"], "writes": 0,
     })
     print("FEED55_PRODUCTION_PLAN_READY_NO_WRITES")
@@ -258,12 +266,12 @@ def step(index):
     program = program_path.read_bytes()
     need(sha(program) == group["script_sha256"], "compiled_writer_changed")
     expected = {
-        "permit_comment_id": config["permit_comment_id"],
+        "permit_comment_id": PERMIT_COMMENT_ID,
         "private_branch_sha": config["route_jit"]["private_branch_sha"],
         "repository": REPOSITORY, "execution_run_id": execution["run_id"],
         "execution_head_sha": execution["head_sha"], "run_attempt": 1,
         "batch": group["batch"], "operation": group["operation"],
-        "claim_id": config["acceptance"]["comment_id"],
+        "claim_id": ACCEPTANCE_COMMENT_ID,
         "plan_sha256": state["plan_sha256"], "script_sha256": group["script_sha256"],
         "preimage_sha256": state["expected_feeds"],
         "previous_native_receipt_sha256": state["previous_native_receipt_sha256"],
@@ -278,7 +286,7 @@ def step(index):
     polls = 0
     while time.monotonic() < deadline and polls < MAX_POLLS:
         polls += 1
-        comment = api("issues/comments/" + str(config["permit_comment_id"]))
+        comment = api("issues/comments/" + str(PERMIT_COMMENT_ID))
         try:
             permit = gate.admit(comment, expected, datetime.datetime.now(datetime.timezone.utc))
         except (ValueError, KeyError, TypeError, json.JSONDecodeError):
@@ -288,7 +296,7 @@ def step(index):
             continue
         public_exclusive(execution["run_id"])
         require_snapshot(public_snapshot(), state["expected_feeds"], state["pairs"])
-        latest = api("issues/comments/" + str(config["permit_comment_id"]))
+        latest = api("issues/comments/" + str(PERMIT_COMMENT_ID))
         permit = gate.admit(latest, expected, datetime.datetime.now(datetime.timezone.utc))
         break
     need(permit is not None, "bounded_owner_permit_timeout_no_write")
