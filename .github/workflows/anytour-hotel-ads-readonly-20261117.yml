@@ -1,4 +1,4 @@
-name: "Independent public readback of Aloft 1207 after the video editor admission check"
+name: "Aloft 1207: current video and offer read-only preflight"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,7 +13,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '2852e89f02bb1250f8fddedba6dc356cb716ec23' &&
+      github.event.before == 'c655390c97ccdce4db8be2304249e6cda3d7ac7b' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -76,7 +76,7 @@ jobs:
               return ['date'=>$time->item(0)->getAttribute('datetime'),'photos'=>$photos,'videos'=>$videos,
                   'video_sha256s'=>array_map(static fn(array $x):string=>hash('sha256',json_encode($x,JSON_THROW_ON_ERROR)),$clips),
                   'video_duration_text'=>array_values(array_map(static fn(array $x):string=>$x[5],array_filter($clips,static fn(array $x):bool=>str_contains($x[1],'video_duration')))),
-                  'caption'=>$caption,'caption_sha256'=>hash('sha256',$caption),'buttons'=>$buttons,'links'=>$links];
+                  'caption'=>$caption,'caption_html'=>$captionHtml,'caption_sha256'=>hash('sha256',$caption),'buttons'=>$buttons,'links'=>$links];
           }
           function priceRows(array $ids): array {
               $raw=PromotedHotelPriceWriter::publicBytes('https://app.anytoour.ru/feed/hotel-posts-all.xml',12000000);
@@ -139,37 +139,51 @@ jobs:
           BASE,true,10,JSON_THROW_ON_ERROR);
           $out=['ok'=>false,'mid'=>1207,'hotel_id'=>61159,'provider_writes'=>0];
           try {
-              installedEdit('e262bf139da2b78623e1be3a891630fd10924180');
-              ob_start();try{
+              installedEdit('9385571c86c45189c31d9c4aa904c23970e3b11a');
+              ob_start();
+              try {
                   require getcwd().'/config.php';
                   require_once getcwd().'/services/PromotedHotelPriceWriter.php';
                   require_once getcwd().'/services/ChannelPostEntryService.php';
-              }finally{ob_end_clean();}
-              $now=publicTelegram(1207);
-              $price=priceRows([61159])[61159];
-              $out['source_offer']=$price;
-              $out['post_url']='https://t.me/anytour/1207';
-              $out['date']=$now['date'];
-              $out['date_unchanged']=$now['date']===$baseline['date'];
-              $out['video_present']=$now['videos']>0;
-              $out['video_markers_match']=$now['video_sha256s']===$baseline['video'];
-              $out['caption_unchanged']=$now['caption_sha256']===$baseline['captionHash'];
-              $out['original_links_unchanged']=$now['links']===$baseline['links'];
-              $out['buttons']=$now['buttons'];
-              $out['old_button_unchanged']=$now['buttons']===$baseline['buttons'];
-              $out['published_offer_matches_feed']=isset($price['block']) && str_contains($now['caption'],$price['block']);
-              if(preg_match('/\b[0-9][0-9 \x{00a0}\x{202f}]+ RUB\b/u',$now['caption'],$old))$out['visible_legacy_amount']=$old[0];
+                  require_once getcwd().'/services/ChannelPostAutomationService.php';
+              } finally { ob_end_clean(); }
+              $post=publicTelegram(1207);
+              $out['post']=['date'=>$post['date'],'photo_count'=>count($post['photos']),'video_nodes'=>$post['videos'],
+                  'video_matches_baseline'=>$post['video_sha256s']===$baseline['video'],
+                  'caption_hash'=>$post['caption_sha256'],'caption'=>$post['caption'],'html'=>$post['caption_html'],
+                  'links'=>$post['links'],'buttons'=>$post['buttons']];
+              requireEdit($post['date']===$baseline['date'] && $post['photos']===[] && $post['videos']===2 &&
+                  $post['video_sha256s']===$baseline['video'], 'original_video_or_date_changed');
               $pdo=ConversationDb::connection();
-              $pdo->exec('SET SESSION TRANSACTION READ ONLY');$pdo->beginTransaction();
+              $pdo->exec('SET SESSION TRANSACTION READ ONLY');
+              $pdo->beginTransaction();
               $registry=new ChannelPostRegistryService($pdo);
-              $out['editor_target']=recordVersion(fromRegistry($pdo,$registry,6,1207));
-              $pdo->rollBack();$out['ok']=true;
-          }catch(Throwable $e){
-             if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();
-             $out['reason']=$e->getMessage();
+              $target=recordVersion(fromRegistry($pdo,$registry,6,1207));
+              $source=recordVersion(fromRegistry($pdo,$registry,10,428));
+              unset($source['caption'], $target['caption']);
+              $out['target']=$target;
+              $out['source']=$source;
+              requireEdit(is_array($source) && (int)$source['hotel_id']===61159 && $source['url']==='https://t.me/any_toour/428', 'source_hotel_mapping_changed');
+              $pdo->rollBack();
+              $price=priceRows([61159])[61159];
+              $out['price']=$price;
+              requireEdit(isset($price['block']), 'fresh_price_unavailable');
+              $identity=ChannelPostRuntime::identity('telegram');
+              $bot=(string)($identity['bot_key']??'');
+              $channel=$registry->channel('anytour','telegram',$bot,'-1001845835645');
+              requireEdit(is_array($channel) && (int)$channel['id']===6
+                  && $channel['source_key']==='tg_anytour_msk' && $channel['bot_url']==='https://t.me/anyru_bot'
+                  && $channel['button_text']==='✈️ Рассчитать на мои даты','channel_mismatch');
+              $out['channel_config']=(int)$channel['config_version'];
+              $out['native_editor']=(new ChannelPostButtonTransport())->verifyChannel($channel)['state'];
+              requireEdit($out['native_editor']==='ready','native_edit_rights_unavailable');
+              $out['ok']=true;
+          } catch(Throwable $e) {
+              if(isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
+              $m=$e->getMessage();
+              $out['reason']=preg_match('/^[a-z_]{1,100}$/D',$m)?$m:'preflight_failed';
           }
           echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
-          exit($out['ok']?0:2);
           PHP
           php -l pub/read-only.php
       - name: Pin established SSH host continuity and authentication identity
@@ -204,7 +218,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read only approved old Telegram post and context fingerprints
+      - name: Read current Aloft 1207 publication and offer
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -216,12 +230,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ALOFT_VIDEO_READBACK="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ALOFT1207_PREFLIGHT="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("provider_writes")==0'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: aloft-1207-independent-readback
+          name: aloft-1207-offer-preflight
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
