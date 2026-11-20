@@ -1,4 +1,4 @@
-name: "Aloft 1207: independent native receipt and public Telegram readback"
+name: "Aloft 1207: verify original content and exact channel editor bindings"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,7 +13,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '6b0809b3ae19f5e41e0965c4a36ce168a9e922e3' &&
+      github.event.before == '92895b09862c8d8ae9656c6af106538842a009f3' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -260,6 +260,10 @@ jobs:
               $out['file_unique_id_unchanged']=$p && $native && ($native['file_unique_id_unchanged_across_native_receipts']??false)
                   && isset($p['snapshot']['attachments'][0]['file_unique_id'])
                   && hash_equals($native['video_binding'],videoProof($p['snapshot']));
+              $editors=$pdo->prepare('SELECT pc.id,p.project_key,pc.bot_key,pc.canonical_bot_username,pc.is_enabled,pc.config_version FROM post_channels pc JOIN projects p ON p.id=pc.project_id WHERE pc.platform=? AND pc.channel_id=? ORDER BY pc.id LIMIT 12');
+              $editors->execute(['telegram',TARGET]);
+              $out['configured_exact_channel_editors']=$editors->fetchAll(PDO::FETCH_ASSOC);
+              $editors->closeCursor();
               $pdo->rollBack();
               $targetCaption=null;
               if (isset($last['offer']['block'])) {
@@ -310,6 +314,10 @@ jobs:
               $out['subscription_link_preserved']=$live['links']===[$baseline['links'][1]];
               $out['single_contextual_button']=$publicButton;
               $out['public_button_count']=count($live['buttons']);
+              $out['original_caption_links_match']=$live['links']===$baseline['links'];
+              $out['original_button_matches']=$live['buttons']===$baseline['buttons'];
+              if ($out['original_button_matches']) $out['original_button']=$live['buttons'][0];
+              if (preg_match('/Цена: ([0-9][0-9 ]+ RUB)/u',$live['caption'],$legacy)) $out['original_price_display']=$legacy[1];
               if ($publicButton) $out['public_button_text']=$live['buttons'][0]['text'];
               if (preg_match('/^💰 От ([^\n]+) за двоих$/mu',$live['caption'],$m)) $out['public_price_display']=$m[1];
               $out['ok']=$out['original_public_video_and_date'] && $out['published_caption_matches_plan']
@@ -356,7 +364,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read native receipt, exact bot context and public post
+      - name: Check original content and configured editor bindings
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -368,12 +376,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ALOFT1207_READBACK="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("provider_writes")==0'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ALOFT1207_ACCESS_AUDIT="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("provider_writes")==0'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: aloft-1207-independent-native-and-public-verification
+          name: aloft-1207-original-content-and-editor-bindings
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
