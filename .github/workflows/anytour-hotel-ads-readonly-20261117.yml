@@ -13,7 +13,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '0f9b421b31bde5d72cd1c538e5e0bd185a1606a2' &&
+      github.event.before == '900247692d661cb9394f5220185d4d34384ab783' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -155,7 +155,7 @@ jobs:
           try {
               installedEdit('9385571c86c45189c31d9c4aa904c23970e3b11a');
               ob_start();
-              try {require getcwd().'/config.php';require_once getcwd().'/services/PromotedHotelPriceWriter.php';}
+              try {require getcwd().'/config.php';require_once getcwd().'/services/PromotedHotelPriceWriter.php';require_once getcwd().'/services/ChannelPostEntryService.php';}
               finally {ob_end_clean();}
               $exclude=array_fill_keys([132,174,218,240,253,260,325,341,352,415,418,469,547,1074,1344,2493,3452,4079,4181,12107,12111,12125,28581,37668,43676,64895,70048,73974,74503,82606,99713,132016,12112,70030,1273,1439,91404,73055,61159],true);
               [$offers,$names,$urls]=mainOfferIndex();
@@ -163,6 +163,7 @@ jobs:
               $start=$end->modify('-7 day');
               $out['period_utc']=['from'=>$start->format(DATE_ATOM),'until'=>$end->format(DATE_ATOM)];
               $out['feed_name_examples']=array_values(array_slice(array_map(static fn($r)=>$r['tg']['name']??'', $offers),0,6));
+              $out['stage']='connect_readonly_registry';
               $pdo=ConversationDb::connection();
               $pdo->exec('SET SESSION TRANSACTION READ ONLY');$pdo->beginTransaction();
               $out['stage']='read_demand';
@@ -251,7 +252,7 @@ jobs:
               $out['rows']=$rows;$out['ok']=true;unset($out['stage']);
           } catch(Throwable $e) {
               if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();
-              $m=$e->getMessage(); if($e instanceof PDOException){$out['sql_state']=(string)$e->getCode();$out['sql_driver_errno']=(int)($e->errorInfo[1]??0);} $out['reason']=preg_match('/^[a-z_0-9]{1,100}$/D',$m)?$m:'crosscheck_failed';
+              $m=$e->getMessage(); $out['error_class']=get_class($e); if($e instanceof PDOException){$out['sql_state']=(string)$e->getCode();$out['sql_driver_errno']=(int)($e->errorInfo[1]??0);} $out['reason']=preg_match('/^[a-z_0-9]{1,100}$/D',$m)?$m:'crosscheck_failed';
           }
           echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
           PHP
