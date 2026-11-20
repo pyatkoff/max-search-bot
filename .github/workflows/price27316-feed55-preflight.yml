@@ -12,11 +12,11 @@ concurrency:
   cancel-in-progress: false
 jobs:
   inspect:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == 'c90ebf3a5f77698e08b65e5924ec533e6aa5958b'
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == 'a3b666668d30f7448810b8d09ef95445a474e155'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      EXPECTED_PARENT_SHA: c90ebf3a5f77698e08b65e5924ec533e6aa5958b
+      EXPECTED_PARENT_SHA: a3b666668d30f7448810b8d09ef95445a474e155
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
