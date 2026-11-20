@@ -83,8 +83,10 @@ final class TourSelectionBotEntryService
                 // A labelled projection of the verified native action, not a
                 // fabricated literal message or a native callback/delivery.
                 // The existing Inbox/read/reply owners consume this same store.
-                $now=gmdate('Y-m-d H:i:s');
-                $metadata=$search?['type'=>'tour_search_inquiry','native_event_type'=>$in['type'],'handoff_id'=>$fresh['handoff_id']]
+                $recordedAt=time();
+                $now=gmdate('Y-m-d H:i:s',$recordedAt);
+                $metadata=$search?ConversationRecordClock::stamp(
+                    ['type'=>'tour_search_inquiry','native_event_type'=>$in['type'],'handoff_id'=>$fresh['handoff_id']],$recordedAt)
                     :['type'=>'tour_web_inquiry','native_event_type'=>$in['type'],'publication_id'=>$fresh['publication_id'],'variant'=>$fresh['card']+1,'link_version'=>$fresh['version']];
                 $assignmentNotice='';
                 if(!$search&&!in_array($referral['state'],['assigned','same_manager'],true)) {
