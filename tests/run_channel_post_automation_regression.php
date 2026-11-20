@@ -426,6 +426,58 @@ foreach (['max', 'telegram'] as $platform) {
     channelPostCheck($platform . ' unsupported ' . $unsupportedType . ' does not call provider', count($provider->calls), 0);
     channelPostCheck($platform . ' unsupported ' . $unsupportedType . ' not fake queued success', $r['queued'], false);
 }
+
+$aloftVideo = [
+    'chat' => ['id' => '-1001845835645', 'username' => 'anytour', 'type' => 'channel'],
+    'message_id' => 1207,
+    'date' => 1758623277,
+    'caption' => "Aloft Palm Jumeirah\n📍 Дубай, ОАЭ\n\n💰 От 89 843 ₽ за двоих\nЦена найдена мониторингом 19.11.2026, 04:01 МСК.",
+    'video' => ['file_id' => 'first-video-file-id', 'file_unique_id' => 'stable-video-identity'],
+];
+$aloftSnapshot = ChannelPostIncomingAdapter::telegramSnapshot($aloftVideo);
+channelPostCheck('the approved Aloft caption keeps its contextual hotel and native video identity',
+    [$aloftSnapshot['metadata']['capability'], $aloftSnapshot['metadata']['hotel_catalog_id'],
+        $aloftSnapshot['attachments'][0]['file_unique_id'], $aloftSnapshot['post_url']],
+    ['supported', 61159, 'stable-video-identity', 'https://t.me/anytour/1207']);
+$aloftProvider = new FixturePostProvider($aloftVideo);
+$aloftProvider->bot = 'anyru_bot';
+$aloftTransport = new ChannelPostButtonTransport([$aloftProvider, 'request']);
+$aloftOperation = [
+    'platform' => 'telegram', 'external_message_id' => '1207', 'start_payload' => 'p_aloftfixture',
+    'snapshot' => $aloftSnapshot,
+    'channel' => ['channel_id' => '-1001845835645', 'bot_key' => 'anyru_bot',
+        'bot_url' => 'https://t.me/anyru_bot', 'is_enabled' => true, 'post_mode' => 'append_button'],
+];
+$aloftResult = $aloftTransport->attempt($aloftOperation, static fn(): bool => true);
+channelPostCheck('Aloft keyboard edit verifies once and never sends replacement video or caption',
+    [$aloftResult['state'], $aloftProvider->writes(), array_keys(end($aloftProvider->calls)['body']),
+        $aloftProvider->message['video'], $aloftProvider->message['caption']],
+    ['sent', 1, ['chat_id', 'message_id', 'reply_markup'], $aloftVideo['video'], $aloftVideo['caption']]);
+$renewedAloft = $aloftVideo;
+$renewedAloft['video']['file_id'] = 'renewed-video-file-id';
+channelPostCheck('the same Aloft video survives file credential renewal',
+    ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::telegramSnapshot($renewedAloft)),
+    ChannelPostIncomingAdapter::contentFingerprint($aloftSnapshot));
+$renewedAloft['video']['file_unique_id'] = 'different-video';
+channelPostCheck('a substituted Aloft video cannot confirm preservation',
+    ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::telegramSnapshot($renewedAloft))
+        !== ChannelPostIncomingAdapter::contentFingerprint($aloftSnapshot));
+$wrongChannel = $aloftVideo['chat'];
+$wrongChannel['id'] = '-1001845835646';
+foreach ([
+    'different channel' => ['chat' => $wrongChannel],
+    'different post' => ['message_id' => 1043],
+    'changed publication date' => ['date' => 1758623278],
+    'old offer' => ['caption' => 'Aloft Palm Jumeirah. Прежнее предложение'],
+    'bundled video' => ['media_group_id' => 'album'],
+    'unstable provider file' => ['video' => ['file_id' => 'first-video-file-id']],
+] as $scopeName => $patch) {
+    $snapshot = ChannelPostIncomingAdapter::telegramSnapshot(array_replace($aloftVideo, $patch));
+    channelPostCheck('archive video remains unsupported for ' . $scopeName,
+        [$snapshot['metadata']['capability_reason'], isset($snapshot['metadata']['hotel_catalog_id'])],
+        ['unsupported_media', false]);
+}
+
 [$store, $provider, $transport, $service] = channelPostScenario($fixtures['telegram'], 'telegram');
 $album = $fixtures['telegram']; $album['media_group_id'] = 'album-91';
 $one = channelPostReceive($service, $album, 'telegram'); $album['message_id'] = 62; $album['photo'][1]['file_unique_id'] = 'next-photo';
