@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   compile:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.run_attempt == 1 && ((github.event_name == 'push' && github.event.before == '4c1825968b792ee850bc801fcbccbaaefddbea11') || (github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'audit/price660-27316-resume-readiness-20261117'))
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.run_attempt == 1 && ((github.event_name == 'push' && github.event.before == '2c4268c6377bb3382ebab9787afad5fc880bc37f') || (github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'audit/price660-27316-resume-readiness-20261117'))
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -33,6 +33,8 @@ jobs:
           set -euo pipefail
           sha256sum --check --strict <<'SUMS'
           ce1f237016c86dfb10364aa1d7c98e804f67151a3f0a5a2d3187a3d7c6ca75c1  tools/direct_demand/operations/feed55/write/compile_feed55.py
+          d58088748ebba00b47804136d01d9586011fb35c529270cc5edcacf85159d9cb  tools/direct_demand/operations/feed55/write/owner_permit_gate.py
+          8d60c5c3b31b4e55f213d6ae4fe751f9ae400ed00755c484889930c470b97ac2  tools/direct_demand/operations/feed55/write/execute_feed55.py
           95bf0e4e17f2068fd9e32b6369ff5ba8890c4d6d778597231808a34731faac6f  tools/direct_demand/operations/feed55/write/config.json
           39fc9acbde4be0caf215cdaab800d27527e7399be4e64ea134df2e1216b55d8a  tools/direct_demand/operations/feed55/write/route-p01.json
           0eb45d35679c1320af7d91e5026c991a2e8aa76c6a0a0341f8459086c6fb3531  tools/direct_demand/operations/feed55/write/route-p02.json
@@ -46,7 +48,10 @@ jobs:
           3c61a260d9c40f7741d644a9531aebea58790595ae2adbad6ff8163975621ede  tools/direct_demand/operations/monitor-price-contract.php
           26fd1f24bc79f39cacc8cd112b6bd5e9dcde9f0bfde6061363955272435b4029  tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-nightly-guard.php
           SUMS
-          python3 -m py_compile tools/direct_demand/operations/feed55/write/compile_feed55.py
+          python3 -m py_compile \
+            tools/direct_demand/operations/feed55/write/compile_feed55.py \
+            tools/direct_demand/operations/feed55/write/owner_permit_gate.py \
+            tools/direct_demand/operations/feed55/write/execute_feed55.py
           python3 -m json.tool tools/direct_demand/operations/feed55/write/config.json >/dev/null
       - name: Materialize exact same-repository evidence
         run: |
