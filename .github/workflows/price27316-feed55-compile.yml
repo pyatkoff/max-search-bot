@@ -106,6 +106,7 @@ jobs:
           unzip -q "$root/preflight.zip" -d "$root/preflight"
           unzip -q "$root/runtime-preflight.zip" -d "$root/runtime-preflight"
           jq -e '.ok==true and .runtime_sha=="b4b65daaa472c15426a244b87ede3e6c0394626b" and .hook_sha256=="7245b007e8b7fe2d0c3e0fe7b60a9cdff108d0d8d7a6a7b9ef74d69d191baf3e" and .lock_available==true and .pending==null and .writes==0 and .provider_calls==0 and .message_sends==0' "$root/runtime-preflight/server.json" >/dev/null
+          sha256sum "$root/preflight/feed55-preflight"/p*.stdout.json
           curl --fail --silent --show-error --max-time 45 --proto '=https' --tlsv1.2 \
             https://app.anytoour.ru/feed/hotel-posts-telegram.xml -o "$root/preimages/hotel-posts-telegram.xml"
           curl --fail --silent --show-error --max-time 45 --proto '=https' --tlsv1.2 \
