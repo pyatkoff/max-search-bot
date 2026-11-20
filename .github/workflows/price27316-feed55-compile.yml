@@ -177,6 +177,7 @@ jobs:
           python3 tools/direct_demand/operations/feed55/write/execute_feed55.py prepare \
             tools/direct_demand/operations/feed55/write/production-config.json \
             "$RUNNER_TEMP/feed55/compiled"
+          jq -c . "$RUNNER_TEMP/feed55-production/deliver-plan/plan.json"
       - name: Publish production plan before first write
         if: github.event_name == 'push'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -193,6 +194,9 @@ jobs:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         run: python3 tools/direct_demand/operations/feed55/write/execute_feed55.py step 0
+      - name: Emit group 1 verified metadata
+        if: ${{ github.event_name == 'push' && steps.p01.outcome == 'success' }}
+        run: jq -c . "$RUNNER_TEMP/feed55-production/progress/p01/verified.json"
       - name: Preserve group 1 progress
         if: ${{ always() && github.event_name == 'push' && (steps.p01.outcome == 'success' || steps.p01.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -209,6 +213,9 @@ jobs:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         run: python3 tools/direct_demand/operations/feed55/write/execute_feed55.py step 1
+      - name: Emit group 2 verified metadata
+        if: ${{ github.event_name == 'push' && steps.p02.outcome == 'success' }}
+        run: jq -c . "$RUNNER_TEMP/feed55-production/progress/p02/verified.json"
       - name: Preserve group 2 progress
         if: ${{ always() && github.event_name == 'push' && (steps.p02.outcome == 'success' || steps.p02.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -225,6 +232,9 @@ jobs:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         run: python3 tools/direct_demand/operations/feed55/write/execute_feed55.py step 2
+      - name: Emit group 4 verified metadata
+        if: ${{ github.event_name == 'push' && steps.p04.outcome == 'success' }}
+        run: jq -c . "$RUNNER_TEMP/feed55-production/progress/p04/verified.json"
       - name: Preserve group 4 progress
         if: ${{ always() && github.event_name == 'push' && (steps.p04.outcome == 'success' || steps.p04.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -241,6 +251,9 @@ jobs:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         run: python3 tools/direct_demand/operations/feed55/write/execute_feed55.py step 3
+      - name: Emit group 5 verified metadata
+        if: ${{ github.event_name == 'push' && steps.p05.outcome == 'success' }}
+        run: jq -c . "$RUNNER_TEMP/feed55-production/progress/p05/verified.json"
       - name: Preserve group 5 progress
         if: ${{ always() && github.event_name == 'push' && (steps.p05.outcome == 'success' || steps.p05.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -257,6 +270,9 @@ jobs:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         run: python3 tools/direct_demand/operations/feed55/write/execute_feed55.py step 4
+      - name: Emit group 9 verified metadata
+        if: ${{ github.event_name == 'push' && steps.p09.outcome == 'success' }}
+        run: jq -c . "$RUNNER_TEMP/feed55-production/progress/p09/verified.json"
       - name: Preserve group 9 progress
         if: ${{ always() && github.event_name == 'push' && (steps.p09.outcome == 'success' || steps.p09.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -273,6 +289,9 @@ jobs:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         run: python3 tools/direct_demand/operations/feed55/write/execute_feed55.py step 5
+      - name: Emit group 12 verified metadata
+        if: ${{ github.event_name == 'push' && steps.p12.outcome == 'success' }}
+        run: jq -c . "$RUNNER_TEMP/feed55-production/progress/p12/verified.json"
       - name: Preserve group 12 progress
         if: ${{ always() && github.event_name == 'push' && (steps.p12.outcome == 'success' || steps.p12.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -289,6 +308,9 @@ jobs:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         run: python3 tools/direct_demand/operations/feed55/write/execute_feed55.py step 6
+      - name: Emit group 13 verified metadata
+        if: ${{ github.event_name == 'push' && steps.p13.outcome == 'success' }}
+        run: jq -c . "$RUNNER_TEMP/feed55-production/progress/p13/verified.json"
       - name: Preserve group 13 progress
         if: ${{ always() && github.event_name == 'push' && (steps.p13.outcome == 'success' || steps.p13.outcome == 'failure') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
