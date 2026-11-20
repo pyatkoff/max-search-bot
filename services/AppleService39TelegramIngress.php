@@ -97,7 +97,7 @@ final class AppleService39TelegramIngress
                     if($entry)$meta['repair_telegram_entry_id']=(int)$pdo->lastInsertId();
                 }
                 if($entry && is_int($message['date']??null)){
-                    AppleService39TelegramFunnel::recordAttribution($pdo,$binding,$id,$user,$entry,$message['date']);
+                    AppleService39TelegramFunnel::recordAttribution($pdo,$binding,$id,$user,$entry,$message['date'],$mid);
                 }
                 $q=$pdo->prepare('UPDATE conversations SET metadata_json=?,entry_channel=? WHERE id=?');
                 $q->execute([json_encode($meta,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE),self::SOURCE,$id]);

@@ -162,12 +162,15 @@ final class ProjectFunnelStatusReader
         $out=['available'=>true,'complete'=>$complete,'reason'=>$complete?null:'row_limit','examined'=>min(count($rows),self::ROW_LIMIT),'limit'=>self::ROW_LIMIT,
             'population'=>'all_saved_forecast_rows_before_test_and_receipt_validation',
             'approved_policy_states'=>$complete?array_fill_keys(self::STATES,0):null,'other_policy_states'=>$complete?array_fill_keys(self::STATES,0):null,
+            'telegram_approved_policy_states'=>$complete?array_fill_keys(self::STATES,0):null,
+            'telegram_other_policy_states'=>$complete?array_fill_keys(self::STATES,0):null,
             'excluded_scope_rows'=>$complete?0:null,'unknown_state_rows'=>$complete?0:null];
         if($complete)foreach($rows as$row){
-            if($row['project_key']!==self::PROJECT||$row['platform']!=='max'||$row['counter_id']!==self::COUNTER
+            if($row['project_key']!==self::PROJECT||!in_array($row['platform'],['max','telegram'],true)||$row['counter_id']!==self::COUNTER
                 ||$row['target']!=='funnel_predictive_value'||$row['transport_target']!=='predict'){$out['excluded_scope_rows']++;continue;}
             if(!in_array($row['state'],self::STATES,true)){$out['unknown_state_rows']++;continue;}
-            $out[$row['funnel_policy_sha256']===$policy['sha256']?'approved_policy_states':'other_policy_states'][$row['state']]++;
+            $prefix=$row['platform']==='telegram'?'telegram_':'';
+            $out[$prefix.($row['funnel_policy_sha256']===$policy['sha256']?'approved_policy_states':'other_policy_states')][$row['state']]++;
         }
         return [$out,$first];
     }
@@ -179,7 +182,12 @@ final class ProjectFunnelStatusReader
         $moscow=new DateTimeZone('Europe/Moscow');
         $today=(new DateTimeImmutable('@'.$now))->setTimezone($moscow)->setTime(0,0);
         $days=[$today->format('Y-m-d')=>$today,$today->modify('-1 day')->format('Y-m-d')=>$today->modify('-1 day')];
+        $telegramDays=$days;
         foreach(array_slice($rows,0,self::ROW_LIMIT)as$row){
+            if($row['project_key']===self::PROJECT&&$row['source_key']==='apple-tg-miniapp'&&$row['platform']==='telegram'&&$row['counter_id']===self::COUNTER){
+                $day=$today->setTimestamp((int)$row['visit_at_unix'])->setTime(0,0);
+                $telegramDays[$day->format('Y-m-d')]=$day;
+            }
             if($row['project_key']!==self::PROJECT||$row['source_key']!=='max-miniapp'||$row['platform']!=='max'||$row['counter_id']!==self::COUNTER){$counts['other_scope_rows']++;continue;}
             $counts['exact_scope_rows']++;
             if($row['identity_status']==='verified'){$counts['verified_rows']++;if((int)$row['client_present']===1)$counts['verified_with_client_rows']++;}
@@ -188,11 +196,12 @@ final class ProjectFunnelStatusReader
         }
         return ['available'=>true,'complete'=>$complete,'reason'=>$complete?null:'row_limit','examined'=>min(count($rows),self::ROW_LIMIT),'limit'=>self::ROW_LIMIT,
             'population'=>'observation_rows_not_unique_people_or_resolved_forecasts','counts'=>$complete?$counts:null,
-            'click_tags'=>$complete?$this->clickTagCounts($days):null];
+            'click_tags'=>$complete?$this->clickTagCounts($days,'max-miniapp','max'):null,
+            'telegram_click_tags'=>$complete?$this->clickTagCounts($telegramDays,'apple-tg-miniapp','telegram'):null];
     }
 
     /** Aggregate in SQL so even the private result rows carry no click identifiers. */
-    private function clickTagCounts(array $days):array
+    private function clickTagCounts(array $days,string $source,string $platform):array
     {
         $ranges=['SELECT CAST(NULL AS SIGNED) AS starts_at, CAST(NULL AS SIGNED) AS ends_at'];
         $parameters=[];
@@ -213,7 +222,7 @@ final class ProjectFunnelStatusReader
                 ORDER BY id DESC LIMIT 101
             ) v ON bounds.starts_at IS NULL OR (v.visit_at_unix>=bounds.starts_at AND v.visit_at_unix<bounds.ends_at)
             GROUP BY bounds.starts_at ORDER BY bounds.starts_at",
-            [...$parameters,self::PROJECT,self::PROJECT,'max-miniapp','max',self::COUNTER]);
+            [...$parameters,self::PROJECT,self::PROJECT,$source,$platform,self::COUNTER]);
         $summary=['all_history'=>null,'by_moscow_visit_day'=>[]];
         foreach($rows as $row){
             $counts=['observation_rows'=>(int)$row['observation_rows'],'nonempty_rows'=>(int)$row['nonempty_rows'],'distinct_yclids'=>(int)$row['distinct_yclids']];
@@ -345,8 +354,17 @@ final class ProjectFunnelStatusReader
             CASE WHEN LENGTH(funnel_context_json)<=16384 THEN funnel_context_json ELSE NULL END AS funnel_context_json
             FROM max_channel_conversion_outbox WHERE id=? LIMIT 2",[$id]);
         if(count($rows)!==1)self::fail('record_invalid');$row=$rows[0];
-        if($row['project_key']!==self::PROJECT||$row['platform']!=='max'||$row['counter_id']!==self::COUNTER
+        if($row['project_key']!==self::PROJECT||!in_array($row['platform'],['max','telegram'],true)||$row['counter_id']!==self::COUNTER
             ||$row['target']!=='funnel_predictive_value'||$row['transport_target']!=='predict')self::fail('scope_unconfirmed');
+        if($row['platform']==='telegram'){
+            $binding=AppleService39TelegramConnection::forecastBinding($this->pdo,$this->rows(...));
+            if(!$binding)self::fail('scope_unconfirmed');
+            $identity=ProjectFunnelConversions::identity($this->pdo,$row,$settings,$now,$binding,$this->rows(...));
+            if(!$identity||$row['client_id']!==$identity['client_id'])self::fail('identity_unconfirmed');
+            [$api,$processed]=self::retainedReceipt($row);
+            return ['observed'=>true,'verified'=>true,'reason'=>null,'platform'=>'telegram',
+                'retained_api_receipt'=>$api,'retained_processed_receipt'=>$processed,'manager_path'=>null];
+        }
         $cs=$this->rows("SELECT c.id,c.project_key,c.channel,c.customer_id,c.customer_channel_id,c.external_chat_id,c.is_test,
             CASE WHEN LENGTH(c.metadata_json)<=16384 THEN c.metadata_json ELSE NULL END AS metadata_json,
             cc.customer_id AS channel_customer,cc.project_key AS channel_project,cc.channel AS channel_kind,cc.external_user_id,cc.external_chat_id AS channel_chat
