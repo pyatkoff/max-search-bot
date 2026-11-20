@@ -73,8 +73,8 @@ jobs:
           fetch_source tools/direct_demand/operations/monitor-price-contract.php 3c61a260d9c40f7741d644a9531aebea58790595ae2adbad6ff8163975621ede
           fetch_source tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-nightly-guard.php 26fd1f24bc79f39cacc8cd112b6bd5e9dcde9f0bfde6061363955272435b4029
           python3 - <<'PY'
-          import hashlib,pathlib
-          p=pathlib.Path("$RUNNER_TEMP/feed55/source-repo/tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-nightly-guard.php")
+          import hashlib,os,pathlib
+          p=pathlib.Path(os.environ["RUNNER_TEMP"])/"feed55/source-repo/tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-nightly-guard.php"
           old=b"483f9f1cd853fdf1808523e72d466e2acd0866ec6ae35de049ada38b5cc128f9"
           new=b"7245b007e8b7fe2d0c3e0fe7b60a9cdff108d0d8d7a6a7b9ef74d69d191baf3e"
           raw=p.read_bytes()
