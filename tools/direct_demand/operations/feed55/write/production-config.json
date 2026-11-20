@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
   "state": "ROOT_VERIFIED_FEED55_ROUTE_JIT",
-  "parent_sha": "dcb42c67611ad9e9653bae38cafa15192052a9cc",
+  "parent_sha": "a2d5da6c519489dc07672a555df5f2d823a8d2fc",
   "route_jit": {
     "state": "ROOT_VERIFIED_FEED55_ROUTE_JIT",
     "hotels": 55,
     "map_count": 1055,
-    "proof_sha256": "f4362a0bbab7f86f02056a916559e4a5f96f0f233f513d02f01caa92ffb39e73",
-    "private_branch_sha": "32588a36581ad86cffa0ae293642e106e4196954",
-    "observed_at": "2026-11-20T06:49:02+00:00",
-    "expires_at": "2026-11-20T07:04:02+00:00"
+    "proof_sha256": "d83129a682ce684715c74ebe10abf1af88c4deb3cd98cd9d839f0d352f417097",
+    "private_branch_sha": "62e37872983c8223d328f6dd65b147c6f8aee7b4",
+    "observed_at": "2026-11-20T07:06:42+00:00",
+    "expires_at": "2026-11-20T07:21:42+00:00"
   }
 }
