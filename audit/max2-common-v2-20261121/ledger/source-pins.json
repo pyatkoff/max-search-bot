@@ -1,0 +1,24 @@
+{
+  "app_base_sha": "b678bc2f211c5f141751137453b199036491222d",
+  "dependencies": {
+    "accounting_sha256": "a77136881422f15587379e3921e7d025321ddebb09612a7e81873f337afe0b48",
+    "delivery_package": "../delivery",
+    "policy_package": "../policy",
+    "policy_sha256": "1c3feae48181559a601d595e37a0f01bb42c55371669346ed38bcb5c25bc7db9"
+  },
+  "files": {
+    "README.md": "abdca397850da52d483c060a82e3c124f3b0c5cad7e9ce5245915c8dfb4f97cf",
+    "migrations/112_max2_common_value_v2.sql": "f090952953bed9f365ed26cc799748c3f93afcad93a4bd3b3512ab90837be70b",
+    "services/Max2CommonValueRepositoryV2.php": "706ab4b5167b923fb69d4a039c76541ddc7c3d2bfd4afa7d821eae1d05696e76",
+    "tests/repository.php": "3b0294c8cfb2538349e3718bb6b9226fb546b09cae48d7665266033d95899ab1"
+  },
+  "native_effects": {
+    "actions_started": 0,
+    "db_calls": 0,
+    "provider_calls": 0,
+    "remote_edits": 0
+  },
+  "php_validation": "pending_source_only_native_CI",
+  "schema_version": 1,
+  "scope": "max2-common-v2-own-ledger-source"
+}
