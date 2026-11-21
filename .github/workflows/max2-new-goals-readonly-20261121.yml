@@ -1,0 +1,78 @@
+name: Read exact MAX2 goal catalog on 21 Nov 2026
+on:
+  push:
+    branches: [audit/max2-new-goals-20261121]
+    paths:
+      - .github/workflows/max2-new-goals-readonly-20261121.yml
+      - audit/max2-new-goals-20261121/**
+permissions:
+  contents: read
+concurrency:
+  group: max2-new-goals-readonly-owner-20261121
+  cancel-in-progress: false
+jobs:
+  read:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/audit/max2-new-goals-20261121' &&
+      github.run_attempt == '1' &&
+      github.event.created == true &&
+      github.event.forced == false &&
+      github.event.deleted == false &&
+      github.event.before == '0000000000000000000000000000000000000000' &&
+      github.event.after == github.sha
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      READER_SHA256: fb2e3478c5f2a8af361a10c67de757b3da64fd8a9ece76390d2082148dfc46b3
+      RUNNER_SHA256: a71dfeebab816463161d04847a2e4c83bdefa56cf005db95096f1926ab2ef8aa
+      TEST_GOAL_CATALOG_SHA256: 4f6db59d2997022d2b54e9d6f16f87ab5ecd7cef10fe18cd81fda0dbccd6f96f
+      DECRYPT_HELPER_SHA256: 654bddde3f3531d48ff7327a6a417948d07fc75be6442da3c132dd2d6782d651
+      TEST_DECRYPT_SHA256: 147918c038050aaa85eda150b825b024c7a8e54645b2a60add171e0d051ed854
+      REPORT_PUBLIC_KEY_B64: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUF1OWcrUkdPb0NZTkg1eUl5SHJPUApNQzRSOEFaOVVnMzhENDJseThZeW03NS91MWtTRVFsRC9YRFJkNWhaYzIwR0pkSUNNUGVQam5EdjA5cDJ2WHZDCjJHTk9JbzNvZGZVandBZ1dib2UzS0tkZ2pvSjNVaXE0VDJZWGZzRGU4aWZxZWJHbHJwZ0tMZ0JFYXgvRWEyY2sKOW9ZMlhoUXVNc1BrTDg1ZHpYTHpJdmc4M24xV3BRVjJ4REo5azdBVS9WUUNtUVg4Q3NMWWhKOXJnWVF5Rnd6UgpOUDROYnQzMGFwcVVIc0EwVzlGeVA0ZUdrMkFLTmRqYVk5ZnQ4YlkyeU9xRmhjeElGSDAwTG5SMEp3UkN2Q29YClN3MFBLeHZXZ0lmT3VlWGFZcjJnekVuN0Z1dUVpZVBFK2xiVndBeFFtWVd6ZGkxVFlvVkRFNTRnM1BzL0NKd28KTE5CVVFwN3lLNzdlQzhrM3Jtam1sYVo3a1JDd2dMZnVGSVROdFZINi85cFE0N0tubmlueWt5WHRURThqMkNCKwo1MlhwUXpiWEtGOE1VejdOakN1RG1mRTJMRmZJNEpyTWhOYXhZSjd4TjM0K0ZJcXFITHU5UyswZWhobFR6MzY4CmI3T3pRWUJMNkFmYkhJVHVaa0lCQUU2SEZQTFViUUR6bjZsRnR1MTBwSGpsQWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
+      REPORT_PUBLIC_KEY_SHA256: b3327da32d7863435c5b40727ccfd8f23d5657f6da615c32dead6afdb0f0ee4f
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify reviewed source and new report public key before credentials
+        run: |
+          python3 -B - <<'PY'
+          import ast, hashlib, os, pathlib, re, runpy
+          root = pathlib.Path('audit/max2-new-goals-20261121')
+          files = {
+              'reader.py': 'READER_SHA256',
+              'runner.py': 'RUNNER_SHA256',
+              'test_goal_catalog.py': 'TEST_GOAL_CATALOG_SHA256',
+              'decrypt_report.py': 'DECRYPT_HELPER_SHA256',
+              'test_decrypt_report.py': 'TEST_DECRYPT_SHA256',
+          }
+          for name, variable in files.items():
+              expected = os.environ.get(variable, '')
+              raw = (root / name).read_bytes()
+              if not re.fullmatch(r'[0-9a-f]{64}', expected) or hashlib.sha256(raw).hexdigest() != expected:
+                  raise SystemExit('REVIEWED_SOURCE_PIN_MISMATCH')
+              ast.parse(raw, filename=name)
+          module = runpy.run_path(str(root / 'runner.py'), run_name='source_fixture')
+          module['report_public_key']()
+          print('REVIEWED_SOURCE_AND_PUBLIC_KEY_VERIFIED')
+          PY
+      - name: Verify bounded reads and local decrypt with synthetic fixtures
+        run: python3 -B -m unittest discover -s audit/max2-new-goals-20261121 -p 'test_*.py'
+      - name: Read the fixed counter with existing server credentials
+        env:
+          SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 -B audit/max2-new-goals-20261121/runner.py
+      - name: Retain the encrypted report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: max2-new-goals-98615635-20261121
+          path: encrypted-max2-new-goals/*.enc.json
+          retention-days: 3
+          if-no-files-found: error
+

@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "repository": "pyatkoff/max-search-bot",
+  "base_sha": "b678bc2f211c5f141751137453b199036491222d",
+  "branch": "audit/max2-new-goals-20261121",
+  "scope": "max2_new_goal_catalog_v1",
+  "source_transport_commit": "05d8604c0a092bd034f18da7fadc248b3238c074",
+  "protected_baseline_run_id": "44889693953",
+  "request_limit": 2,
+  "method": "GET",
+  "endpoints": [
+    "/management/v1/counter/98615635",
+    "/management/v1/counter/98615635/goals"
+  ],
+  "fresh_report_public_key_sha256": "b3327da32d7863435c5b40727ccfd8f23d5657f6da615c32dead6afdb0f0ee4f",
+  "files": {
+    "reader.py": "fb2e3478c5f2a8af361a10c67de757b3da64fd8a9ece76390d2082148dfc46b3",
+    "runner.py": "a71dfeebab816463161d04847a2e4c83bdefa56cf005db95096f1926ab2ef8aa",
+    "test_goal_catalog.py": "4f6db59d2997022d2b54e9d6f16f87ab5ecd7cef10fe18cd81fda0dbccd6f96f",
+    "decrypt_report.py": "654bddde3f3531d48ff7327a6a417948d07fc75be6442da3c132dd2d6782d651",
+    "test_decrypt_report.py": "147918c038050aaa85eda150b825b024c7a8e54645b2a60add171e0d051ed854"
+  },
+  "workflow_sha256": "fc2ab485c61265058ca2fb043b80c39cc991309972b204da0277fd1d7adf78b8"
+}

@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "repository": "pyatkoff/max-search-bot",
+  "branch": "audit/max2-new-goals-20261121",
+  "workflow_sha": "ROOT_AFTER_NATIVE_RUN",
+  "run_id": "ROOT_AFTER_NATIVE_RUN",
+  "job_id": "ROOT_AFTER_NATIVE_RUN",
+  "run_attempt": 1,
+  "artifact_id": "ROOT_AFTER_NATIVE_RUN",
+  "artifact_name": "max2-new-goals-98615635-20261121",
+  "archive_sha256": "ROOT_AFTER_NATIVE_DOWNLOAD",
+  "reader_sha256": "fb2e3478c5f2a8af361a10c67de757b3da64fd8a9ece76390d2082148dfc46b3",
+  "runner_sha256": "a71dfeebab816463161d04847a2e4c83bdefa56cf005db95096f1926ab2ef8aa",
+  "report_public_key_sha256": "b3327da32d7863435c5b40727ccfd8f23d5657f6da615c32dead6afdb0f0ee4f"
+}
