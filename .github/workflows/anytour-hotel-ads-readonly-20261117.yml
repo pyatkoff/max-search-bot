@@ -1,4 +1,4 @@
-name: "Exact approved MAX price replacement for AaGL2WYPAfo"
+name: "Exact approved MAX price replacement for AaG7dXpgV8Q"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,7 +13,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '6ec280e39f612403a436ade74ed983c4e3e56f45' &&
+      github.event.before == '9651990e003d096807ef2b608d850f6ae0ebe3f3' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -160,7 +160,7 @@ jobs:
               requireEdit(fwrite($file,$line)===strlen($line)&&fflush($file)&&fsync($file),'edit_receipt_persist_failed');
           }
           $target=json_decode(<<<'DATA'
-          {"hotel":90236,"publication":92,"version":104,"mid":"mid.ffffc1752b045fed01a18bd9660f01fa","slug":"AaGL2WYPAfo","type":"image","old_hash":"c30e045e7185910f12de18fbe36a3fdeb7fc8bf7077d28977ae4163e54369cd1","replacements":[[0,40,"The V Luxury Resort 5* в Саль-Хашише"],[621,815,""]],"added_style":[{"type":"strong","from":0,"length":36}],"expected_styles":[{"type":"strong","from":0,"length":36},{"type":"underline","from":155,"length":22},{"type":"strong","from":617,"length":65}]}
+          {"hotel":67910,"publication":1141,"version":3421,"mid":"mid.ffffc1752b045fed01a1bb757a6057c4","slug":"AaG7dXpgV8Q","type":"video","old_hash":"d05e8dc71833bb764980db34f8444b6b5356c94e4d19a631a1ab1a7fb4550587","replacements":[[731,1047,"Тур с ребёнком можно рассчитать по кнопке ниже.\n\n"]],"added_style":[],"expected_styles":[{"type":"strong","from":0,"length":66},{"type":"strong","from":66,"length":2},{"type":"underline","from":72,"length":41},{"type":"strong","from":780,"length":65},{"type":"strong","from":845,"length":4}]}
           DATA,true,24,JSON_THROW_ON_ERROR);
           $id=$target['publication'];$hotel=$target['hotel'];$mid=$target['mid'];$channel='-68765999669267';
           $url='https://max.ru/anytour/'.$target['slug'];
@@ -350,7 +350,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: accepted-max-exact-edit-AaGL2WYPAfo
+          name: accepted-max-exact-edit-AaG7dXpgV8Q
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
