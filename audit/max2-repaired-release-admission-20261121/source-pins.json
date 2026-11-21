@@ -1,0 +1,33 @@
+{
+  "admission_base": "cabc34b7166994c65816ec8c81e48895ea889683",
+  "coordinator_source_rule": "same_exact_checked_repair_pr_head",
+  "files": {
+    "README.md": {
+      "bytes": 4378,
+      "sha256": "1fdbda4df02c4af443c1d6486229c4a5c5875bfbfeb9eff30c6741f21658edec"
+    },
+    "admission-request.template.json": {
+      "bytes": 517,
+      "sha256": "0d4c1e86e697f17b4d820c58651485254813c29f63ea7112733d2efeaaebf29c"
+    },
+    "runner.py": {
+      "bytes": 12575,
+      "sha256": "c786f83a9ae404f9a8287bd6f51245e0a194d0a2e58aef04fe252eb9d51ce7c8"
+    },
+    "tests/fixtures/release_priority.js": {
+      "bytes": 23624,
+      "sha256": "880addcb078f8f92e0524a5b93de14ab2d1ed24d442180e6e253310038b65d62"
+    },
+    "tests/test_runner.py": {
+      "bytes": 11136,
+      "sha256": "33e1c7d973bc0acb946728972baabc45f772a19c1212805c2cb05fadb07df239"
+    },
+    "workflow.yml": {
+      "bytes": 3018,
+      "sha256": "d38136579f99719d8197699859aacc7511e1f0ea3d23e6d7a2e5365dac92c7b6"
+    }
+  },
+  "repository": "pyatkoff/max-search-bot",
+  "scope": "read-only-fixed-pr1643-repaired-release-admission",
+  "version": 1
+}

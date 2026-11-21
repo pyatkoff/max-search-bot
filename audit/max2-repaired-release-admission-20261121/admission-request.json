@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "repository": "pyatkoff/max-search-bot",
+  "pr_number": 1645,
+  "head_sha": "f7f26aa90e5cc152125965f19a7d3008ed4395ba",
+  "base_sha": "cabc34b7166994c65816ec8c81e48895ea889683",
+  "coordinator_sha": "f7f26aa90e5cc152125965f19a7d3008ed4395ba",
+  "coordinator_core": {
+    "tools/release_priority.js": {
+      "git_blob": "3c1b228d36785546d71fb9e21c68ee4b03961619",
+      "bytes": 23624
+    },
+    "tools/deployment_release.js": {
+      "git_blob": "9bd5d8b8e61742fc5e3e5e0852ba51a4d6e2dc6e",
+      "bytes": 126173
+    },
+    "tools/release_slot_close.js": {
+      "git_blob": "a81a0ef78d30af8d7c2a55bd99b5c08718043015",
+      "bytes": 97640
+    }
+  }
+}

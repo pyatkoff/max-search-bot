@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "repository": "pyatkoff/max-search-bot",
+  "pr_number": null,
+  "head_sha": null,
+  "base_sha": "cabc34b7166994c65816ec8c81e48895ea889683",
+  "coordinator_sha": null,
+  "coordinator_core": {
+    "tools/release_priority.js": {
+      "git_blob": "3c1b228d36785546d71fb9e21c68ee4b03961619",
+      "bytes": 23624
+    },
+    "tools/deployment_release.js": {
+      "git_blob": null,
+      "bytes": null
+    },
+    "tools/release_slot_close.js": {
+      "git_blob": null,
+      "bytes": null
+    }
+  }
+}
