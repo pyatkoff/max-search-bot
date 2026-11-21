@@ -1,0 +1,35 @@
+{
+  "canonical_parents": [
+    "16631e06f4eca1f95ee7a5216a1c5e07e563d06d",
+    "0892d9448f39d1e64bf51fb9406d0d14fe8d39c6"
+  ],
+  "canonical_source_sha": "adfaf7877fc15ea7017cf8750ed44a06dc315b5e",
+  "canonical_tree_sha": "49660f0e04f52a4ad8e759b426004cd9cc6f176d",
+  "docs_git_blobs": {
+    "AGENTS.md": "3ea4c0f1b9bec95e7af86dcc08cf4ef9a15f1bc8",
+    "START_HERE.md": "cfb042ba3589e4a80cac1171de146673944309fb",
+    "docs/RELEASE_PRIORITY.md": "7d52f33c5af52a47a5c969dc55ff996f64491f82"
+  },
+  "docs_source_sha": "16631e06f4eca1f95ee7a5216a1c5e07e563d06d",
+  "files": {
+    "tools/deployment_release.js": {
+      "bytes": 126173,
+      "git_blob": "9bd5d8b8e61742fc5e3e5e0852ba51a4d6e2dc6e",
+      "sha256": "c439137895d78657105829698b2d296a0af4107e9ed87820cabc791a10d717cb"
+    },
+    "tools/release_priority.js": {
+      "bytes": 23624,
+      "git_blob": "3c1b228d36785546d71fb9e21c68ee4b03961619",
+      "sha256": "880addcb078f8f92e0524a5b93de14ab2d1ed24d442180e6e253310038b65d62"
+    },
+    "tools/release_slot_close.js": {
+      "bytes": 97640,
+      "git_blob": "a81a0ef78d30af8d7c2a55bd99b5c08718043015",
+      "sha256": "8b2af9e5089098395df4fbe088c3b68d42f5ab68272ed50c3c256afd70a7286a"
+    }
+  },
+  "repository": "pyatkoff/max-search-bot",
+  "source_verification": "Fresh GitHub immutable commit/tree and base64 source reads; all three complete core sources byte-identical to the verified previous base",
+  "unchanged_core_from_sha": "16631e06f4eca1f95ee7a5216a1c5e07e563d06d",
+  "version": 1
+}
