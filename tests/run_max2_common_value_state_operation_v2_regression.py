@@ -5,6 +5,7 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import re
 import subprocess
 import tempfile
 import unittest
@@ -343,9 +344,32 @@ class FiniteCarrierTests(unittest.TestCase):
         self.assertNotIn('  schedule:', raw)
         self.assertNotIn('  push:', raw)
         self.assertIn('group: production-deploy', raw)
-        self.assertIn('options: [status, activate, off, collect, send]', raw)
+        self.assertIn('options: ["status", "activate", "off", "collect", "send"]', raw)
         self.assertNotIn('actions: write', raw)
         self.assertNotIn('contents: write', raw)
+
+    def test_manual_operation_choices_are_exact_json_strings(self):
+        # Require the JSON subset of YAML here: YAML 1.1 coerces plain off to false.
+        # This reads the real operation block and needs no optional YAML library.
+        raw = (ROOT / M.WORKFLOW).read_text()
+        expected = ['status', 'activate', 'off', 'collect', 'send']
+
+        def checked_choices(workflow):
+            blocks = re.findall(r'^      operation:\n((?:        [^\n]*\n)+)', workflow, re.MULTILINE)
+            self.assertEqual(len(blocks), 1)
+            options = re.findall(r'^        options: (.+)$', blocks[0], re.MULTILINE)
+            self.assertEqual(len(options), 1)
+            choices = json.loads(options[0])
+            self.assertIsInstance(choices, list)
+            self.assertTrue(all(type(choice) is str for choice in choices))
+            self.assertEqual(choices, expected)
+            return options[0]
+
+        actual = checked_choices(raw)
+        for bad in ('[status, activate, off, collect, send]',
+                    '["status", "activate", false, "collect", "send"]'):
+            with self.subTest(options=bad), self.assertRaises((AssertionError, json.JSONDecodeError)):
+                checked_choices(raw.replace(actual, bad, 1))
 
 
 if __name__ == '__main__':

@@ -8,7 +8,7 @@ on:
         type: choice
         required: true
         default: status
-        options: [status, activate, off, collect, send]
+        options: ["status", "activate", "off", "collect", "send"]
       expected_application_sha:
         description: Exact accepted installed application SHA
         type: string

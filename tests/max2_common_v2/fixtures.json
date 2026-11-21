@@ -1,7 +1,7 @@
 {
   "app_base_sha": "b678bc2f211c5f141751137453b199036491222d",
   "assets": {
-    ".github/workflows/max2-common-value-state-v2.yml": "6153dcada8096914173f5ac79a038160201822a35b14d53fbd1ef383a03625e1",
+    ".github/workflows/max2-common-value-state-v2.yml": "479cadcc8b67069a93147ac2a7380e8610d5e0370921a537a790b3619c73995c",
     "migrations/112_max2_common_value_v2.sql": "f090952953bed9f365ed26cc799748c3f93afcad93a4bd3b3512ab90837be70b",
     "migrations/113_max2_common_runtime_v2.sql": "092c123615aae8261c19b8aa7316b0631926698906491c03869f28373646ada9",
     "resources/max2-common-v2/canonical-map-v1055.json": "c5ee090912b5e20402a46b79294137ef3045a02b1dd37abf4a1f9cb5fae50172",
@@ -25,7 +25,7 @@
     "services/Max2ValueLookupHttpV2.php": "5fee9f979eba333d5bb9e4a6cf159dfffaed0a892c0667aa6f682e18abf8726b",
     "services/Max2ValueLookupProtocolV2.php": "04100d16541e5d1c961845ad59a5fb9b11840361630c4bf3b83a80c360bc2fe2",
     "services/Max2ValueLookupRepositoryV2.php": "40ab600c7b8e619da212d0a10942046fb36a37ab13ba661f6019d40b3bd9fac9",
-    "tests/run_max2_common_value_state_operation_v2_regression.py": "fb58a434bef92e9efe035277ef839fa78aae38d24756f0e495a667b86b233807",
+    "tests/run_max2_common_value_state_operation_v2_regression.py": "324ffa718a491b1fb8d8f45f265cceaff7ad0253a043ce84624e008515588fdd",
     "tools/max2_common_value_state_operation_v2.py": "995bdf5f9d7e8433275c07471d198b855b29e96e3ef29e623bd360e32fe2fc5d",
     "tools/max2_common_value_state_v2.php": "c9fa5aef544d77a8c31e704d20dd5019c7bf0ddeb6ddbe639e0665dc27efa5ce"
   },
