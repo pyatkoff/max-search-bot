@@ -117,6 +117,9 @@ jobs:
                   suites.append(('sidecar', 'tests/sidecar.php'))
               if (root / 'worker').exists():
                   suites += [('worker', 'tests/state.php'), ('worker', 'tests/worker.php')]
+              if (root / 'binding').exists():
+                  seals('map')
+                  suites += [('binding', 'tests/capture.php'), ('binding', 'tests/binding.php')]
               report['ledger_included'] = any(group == 'ledger' for group, _ in suites)
               for group, fixture in suites:
                   seals(group)

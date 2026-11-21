@@ -1,0 +1,18 @@
+{
+  "files": {
+    "README.md": {
+      "bytes": 406,
+      "sha256": "1af9f34289da2d49e33328eabf5d2d23de92dca2898be4001897cb00081741f6"
+    },
+    "canonical-map-v1055.json": {
+      "bytes": 264927,
+      "sha256": "c5ee090912b5e20402a46b79294137ef3045a02b1dd37abf4a1f9cb5fae50172"
+    },
+    "provenance.json": {
+      "bytes": 3053,
+      "sha256": "174cb5c5a03d12075326cc08cb34b5d144589c800a5504a5ee5150548243ae47"
+    }
+  },
+  "schema": "max2-common-v2-public-map-v1",
+  "scope": "public_reference_only"
+}

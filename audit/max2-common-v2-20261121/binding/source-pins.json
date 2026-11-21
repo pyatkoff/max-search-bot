@@ -1,0 +1,42 @@
+{
+  "files": {
+    "README.md": {
+      "bytes": 2739,
+      "sha256": "d30399b5e8af049cbd12ffe03a536c34e4f4d2e0a19e4f678e26eafb77ed86a0"
+    },
+    "services/Max2CommonEntryCaptureV2.php": {
+      "bytes": 4762,
+      "sha256": "7a60c3b51b1c120bfe7ad66bf59149248786195e92fa791537c871481145738a"
+    },
+    "services/Max2CommonEntryEvidenceV2.php": {
+      "bytes": 5813,
+      "sha256": "db02e55fd3cf074a6dbc34b5889364b3e6e68a20ff4bcea08221f78f7332dd60"
+    },
+    "services/Max2CommonFrameV2.php": {
+      "bytes": 3112,
+      "sha256": "67153e1a1fee15b941263ff5d7d243a772acdd8f32fa3f8da94eea01ece540e8"
+    },
+    "services/Max2CommonMessageCaptureV2.php": {
+      "bytes": 6970,
+      "sha256": "561a53c38254f45ad7548d55b7ec23a630eb6e54af98c336578cf8eb62570828"
+    },
+    "services/Max2CommonValueBindingV2.php": {
+      "bytes": 13387,
+      "sha256": "ce5ba3d34034ee64f4fec98268d744f8d347f0ac09f6d87cb75a613018a91b74"
+    },
+    "tests/binding.php": {
+      "bytes": 10933,
+      "sha256": "a7678bc2c6d3ec8c2c411cc763f5690e1a9d72f532a16517e69d95c65d7acd6b"
+    },
+    "tests/capture.php": {
+      "bytes": 14715,
+      "sha256": "bde39045f31ddbdac1392de9d53edec88548406c4226b7394318361944490ceb"
+    },
+    "tests/support.php": {
+      "bytes": 9587,
+      "sha256": "d87b55797cf48d987a1e2ac97de8f6a2a735540d09e58a58530b33f04d5c0678"
+    }
+  },
+  "schema": "max2-common-v2-binding-source-v1",
+  "scope": "source_only"
+}

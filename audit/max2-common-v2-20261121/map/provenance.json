@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "kind": "selected_canonical_map_source_provenance",
+  "repository": "pyatkoff/tour-max",
+  "source_sha": "5a91f319fef3ae044d1b6327faa15187aa1a7aa3",
+  "workflow": ".github/workflows/tgmini-identity-readonly.yml",
+  "run": {
+    "id": 44359565858,
+    "attempt": 1,
+    "event": "push",
+    "branch": "audit/anytour-hotel-feed-routing-20261104",
+    "actor": "pyatkoff",
+    "actor_id": 226193297,
+    "triggering_actor": "pyatkoff",
+    "status": "completed",
+    "conclusion": "failure",
+    "url": "https://github.com/pyatkoff/tour-max/actions/runs/44359565858"
+  },
+  "artifact": {
+    "id": 14453294111,
+    "name": "private-route128-original-44359565858",
+    "bytes": 1354677,
+    "zip_sha256": "5e79fcd9b3a8aca480668503849f0b8db19a23b27aef0d07240995df4e13b8e5",
+    "expired_on_read": false,
+    "archive_members": 188,
+    "download_url": "https://api.github.com/repos/pyatkoff/tour-max/actions/artifacts/14453294111/zip"
+  },
+  "selected_map": {
+    "member": "1055/anytour-hotel-feed-routes-v1055-20261118-next128-13.private.php",
+    "bytes": 224904,
+    "sha256": "581591d2165213a65b53a457123f3078fd36b0db1bbf664d91008efa359e5595"
+  },
+  "selected_native_receipt": {
+    "member": "1055/install-result.json",
+    "sha256": "8dbf2a39770e4c90b1f9f7b9d60e6e7017443e544f6f262e85be5f226328e441",
+    "state": "INSTALLED_AND_NATIVE_VERIFIED",
+    "operation": "commercial-max1055-private-route-extension-20261118-next128-13-install1",
+    "exact_total_routes": 1055,
+    "new_native_routes_verified": 8,
+    "previous1047_rows_identical": true,
+    "natural_signed_user_launch_verified": false
+  },
+  "accepted_live_dependency": {
+    "helper_sha256": "3be6afc4eb88175626584bf84ebf633551dcf3f0015b314474df6faf297139ae",
+    "native_map_pin_source": "https://github.com/pyatkoff/tour-max/pull/211#issuecomment-7026485935",
+    "latest_independent_serving_acceptance_source": "3f1b98eee9180040038e13c44da5631e8ed04fb9",
+    "latest_independent_serving_acceptance_run": 44902190913,
+    "latest_independent_serving_acceptance_report_sha256": "ee304760066c058a804694e9048e3ad2ad210fcaa7e5eeb368a7dbbef8ccedfe",
+    "proof_scope": "selected historical map bytes match the separately pinned native map; accepted serving helper is unchanged; this is not a fresh map filesystem read"
+  },
+  "projection": {
+    "file": "canonical-map-v1055.json",
+    "sha256": "c5ee090912b5e20402a46b79294137ef3045a02b1dd37abf4a1f9cb5fae50172",
+    "binding_count": 1055,
+    "format": "bindings_by_post_id with all row values as canonical strings",
+    "regional_override_support": false
+  },
+  "limitations": [
+    "Original full chain is FAILURE; no relabeling to success.",
+    "Canonical map does not prove the exact immutable application version. Adapter must match publication id, stored version post_url and exact project/platform/bot/channel.",
+    "A regional route override absent from this canonical map remains HOLD.",
+    "No native read, database/provider request, PHP execution, or write was performed during extraction."
+  ]
+}
