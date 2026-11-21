@@ -1,0 +1,25 @@
+{
+  "dependencies": {
+    "fixture_source_sha256": "f214b297cb09cd91f7fca0c137a42b535d0249cdb74f9b6dd76d65cb5111139e",
+    "policy_package": "../policy",
+    "policy_sha256": "1c3feae48181559a601d595e37a0f01bb42c55371669346ed38bcb5c25bc7db9",
+    "saved_reader_sha256": "4ac74d360889db0776575219e8779f09e59129fd04bf93a1d4c1411351b233d3",
+    "source_package": "../source"
+  },
+  "effects": {
+    "activation": false,
+    "deployment": false,
+    "live_database_connections": 0,
+    "provider_calls": 0,
+    "v1_mutation": false
+  },
+  "files": {
+    "README.md": "bdf7055f2887da4ce7851850a224b4b50e982ba7a7cef075d60ddbcf5fb4583f",
+    "reference/saved-reader-fixture.php": "e513bc2c4dcf3791dd147b2158a9afe72cbf168a2c35882e82381764a7306a63",
+    "services/Max2CommonIdentityReadV2.php": "ee6445f61424aa27fe717b0a031e085cd24e684f656d19359cf61af18392d18a",
+    "tests/identity.php": "00d2ed33997f0dabcb1e7fd26579cf12c70efc4b64ceec2d3b85238615af619d"
+  },
+  "php_validation": "pending_source_only_native_CI",
+  "schema_version": 1,
+  "scope": "max2-common-v2-saved-identity-source"
+}

@@ -120,6 +120,8 @@ jobs:
               if (root / 'binding').exists():
                   seals('map')
                   suites += [('binding', 'tests/capture.php'), ('binding', 'tests/binding.php')]
+              if (root / 'identity').exists():
+                  suites.append(('identity', 'tests/identity.php'))
               report['ledger_included'] = any(group == 'ledger' for group, _ in suites)
               for group, fixture in suites:
                   seals(group)
