@@ -1,0 +1,80 @@
+# Source-only template. Publish only after accepted serving release:
+# 4f107fffacd1a3f7e69ef3d7caed5a9928a350b6 / 44889151835 / 136800938412.
+name: Read natural MAX2 atomic public pairs on 21 Nov 2026
+on:
+  push:
+    branches: [audit/max2-public-pair-params-20261121]
+    paths:
+      - .github/workflows/max2-public-pair-params-20261121.yml
+      - audit/max2-public-pair-params-20261121/**
+permissions:
+  contents: read
+concurrency:
+  group: max2-public-pair-params-readonly-owner-20261121
+  cancel-in-progress: false
+jobs:
+  read:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/audit/max2-public-pair-params-20261121' &&
+      github.run_attempt == '1' &&
+      github.event.created == true &&
+      github.event.forced == false &&
+      github.event.deleted == false &&
+      github.event.before == '0000000000000000000000000000000000000000' &&
+      github.event.after == github.sha
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      READER_SHA256: 524eb7c402ae310d448fcaac25d1dfc032e0beede750cda6f353c20498c83910
+      RUNNER_SHA256: ee5c5368c4d8884254afcbedfb6db82a09f2e08b6e6b49ba50e189fc568409b4
+      TEST_PUBLIC_PAIR_SHA256: c23516ccf84ad0303966a20ab5260ae29e0a60eead1b694ebb1b35ac1bc3b2a6
+      DECRYPT_HELPER_SHA256: e5568568467594487359a332885bb0e5cc95e1dd16b6577ba41d5a3aaf8c9647
+      TEST_DECRYPT_SHA256: 0a2d023f1ff6c811fa9ba0c82887aa777167ffab3c80a53394182e77d99be0f4
+      REPORT_PUBLIC_KEY_B64: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUEzaks1MUVjcGVHT3ZCN093T05nMwpLV3dXeVltSDkxdFAvUURqRVN0TUMwVjc4L3l2aGhXbHFXVU1JckM4a1JpcHpWZTVNdC9KVnBSM25uN2VCT1dhCnNFL21yL05RRzVaOU1kby80YmJiMGVibytHZ2NSR2oxT012VHdnWWpZeDJxc3FDZVhZWldwMkUyYW13SnpoS0sKVzZBMXFSWG5VbXd4dnYwU3FuanhhVmxyTWhrUWtvalRkbGM3eGxxdnNKbFIzZEVhSXBUb1lXc0lkUU0wSEM1bApRWDFNMHJ6RW9zdzluMktJWlBscmt1a2hmQjZSbHBtOUhlUHZnMDV1OFlmQkNjODJPREROaVBrVTUxaG5DNHUyCjd5U1BQY0lPMjUveDJvNFo4aFcrcU92SmtHditXN1J4UWJ5TS8vN2tyeW5Ob3VIRVpyOTBhak1JblZ6aytZNFUKdnhXM2Yya3owQkJUSWMxMnhlQWZ6eVc3V1JXaGREeU1RdWwyeXFXSXVvS1BJMnh3V2NqbmJ0a01XWUJVZjhnZwpacVo2VHlLRmFuYTJoRlJqNGs0UEdtVHR1dGYyVnh6RXV0Y0UrMGVmbU9TM1lQd0Zad29IcWlTSjBWWERkSGV3CkJkR3c1djUyTG9RU0kzeGVKU25VaEMwOFJVZlpwL1IreWt0SEpsVkU3SnpqQWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
+      REPORT_PUBLIC_KEY_SHA256: 2d5165fc88a5b95eb20c1e8a43f284f4065105c5caa010198f18db72fa51c86e
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify reviewed source and new report public key before credentials
+        run: |
+          python3 -B - <<'PY'
+          import ast, hashlib, os, pathlib, re, runpy
+          root = pathlib.Path('audit/max2-public-pair-params-20261121')
+          files = {
+              'reader.py': 'READER_SHA256',
+              'runner.py': 'RUNNER_SHA256',
+              'test_public_pair.py': 'TEST_PUBLIC_PAIR_SHA256',
+              'decrypt_report.py': 'DECRYPT_HELPER_SHA256',
+              'test_decrypt_report.py': 'TEST_DECRYPT_SHA256',
+          }
+          for name, variable in files.items():
+              expected = os.environ.get(variable, '')
+              raw = (root / name).read_bytes()
+              if not re.fullmatch(r'[0-9a-f]{64}', expected) or hashlib.sha256(raw).hexdigest() != expected:
+                  raise SystemExit('REVIEWED_SOURCE_PIN_MISMATCH')
+              ast.parse(raw, filename=name)
+          module = runpy.run_path(str(root / 'runner.py'), run_name='source_fixture')
+          module['report_public_key']()
+          print('REVIEWED_SOURCE_AND_PUBLIC_KEY_VERIFIED')
+          PY
+      - name: Verify bounded reads and local decrypt with synthetic fixtures
+        run: python3 -B -m unittest discover -s audit/max2-public-pair-params-20261121 -p 'test_*.py'
+      - name: Read the fixed counter with existing server credentials
+        env:
+          SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 -B audit/max2-public-pair-params-20261121/runner.py
+      - name: Retain the encrypted report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: max2-public-pair-98615635-20261121
+          path: encrypted-max2-public-pair/*.enc.json
+          retention-days: 3
+          if-no-files-found: error
+

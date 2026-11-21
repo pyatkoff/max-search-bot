@@ -1,0 +1,51 @@
+{
+  "status": "prepared_not_executed",
+  "upstream_role": {
+    "repository": "pyatkoff/max-search-bot",
+    "commit": "ca1b2e5277a35168d892a9de89c10ad93d3a2e20",
+    "reader": {
+      "path": "audit/max2-public-params-20261121/reader.py",
+      "git_blob": "2fd643581583515fee46f8708687ea24e792c69a",
+      "sha256": "88cbdc066c4381c4c84c5f0440ec9d35f8996ce518129c2966017c0e7fc433d2"
+    },
+    "runner": {
+      "path": "audit/max2-public-params-20261121/runner.py",
+      "git_blob": "2d25ea1560c7f1cfe1c8d4dc6f9467e756d94d5c"
+    },
+    "workflow": {
+      "path": ".github/workflows/max2-public-params-20261121.yml",
+      "git_blob": "9407f5b1c1f3e0187b2875dda60de403f7d8a163"
+    }
+  },
+  "pair_producer": {
+    "repository": "pyatkoff/tour-max",
+    "commit": "a0d9b5136acd9e13078e9765d454b41e0b744f48",
+    "path": "audit/max2-public-pair-key-20261121/candidate/assets/app.js",
+    "git_blob": "7c352113a892d4a740e799c64e8c455b67bad003",
+    "namespace": "max2_public_pair_v1",
+    "key": "p<saved-post-id>__<saved-offer-id>",
+    "regex": "^p([1-9][0-9]{0,18})__max_([1-9][0-9]{0,18})$"
+  },
+  "registry_contract": {
+    "repository": "pyatkoff/max-search-bot",
+    "commit": "ca1b2e5277a35168d892a9de89c10ad93d3a2e20",
+    "service": {
+      "path": "services/ChannelPostRegistryService.php",
+      "git_blob": "cf42a44257d1a58d1ff516678615cf9d01f45b55"
+    },
+    "price_parser": {
+      "path": "services/ModeledConversionDealValue.php",
+      "git_blob": "d491f8d8cdb9d12855c91028dbb5573a861cd038"
+    }
+  },
+  "original_context_read": {
+    "run_id": "44858451737",
+    "job_id": "136706033657",
+    "artifact_id": "14688741368",
+    "ciphertext_read": false,
+    "private_key_read": false,
+    "reuse_authorized": false
+  },
+  "provider_requests_executed": 0,
+  "server_reads_executed": 0
+}

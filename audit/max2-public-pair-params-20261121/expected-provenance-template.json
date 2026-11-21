@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "repository": "pyatkoff/max-search-bot",
+  "branch": "audit/max2-public-pair-params-20261121",
+  "workflow_sha": "FILL_FROM_AUTHENTICATED_ORIGINAL_RUN",
+  "run_id": "FILL_FROM_AUTHENTICATED_ORIGINAL_RUN",
+  "job_id": "FILL_FROM_AUTHENTICATED_READ_JOB",
+  "run_attempt": 1,
+  "artifact_id": "FILL_FROM_AUTHENTICATED_ARTIFACT",
+  "artifact_name": "max2-public-pair-98615635-20261121",
+  "archive_sha256": "FILL_FROM_AUTHENTICATED_ARTIFACT_DIGEST",
+  "reader_sha256": "524eb7c402ae310d448fcaac25d1dfc032e0beede750cda6f353c20498c83910",
+  "runner_sha256": "ee5c5368c4d8884254afcbedfb6db82a09f2e08b6e6b49ba50e189fc568409b4",
+  "report_public_key_sha256": "2d5165fc88a5b95eb20c1e8a43f284f4065105c5caa010198f18db72fa51c86e"
+}
