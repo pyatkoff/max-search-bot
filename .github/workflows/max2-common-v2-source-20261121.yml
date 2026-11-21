@@ -115,6 +115,8 @@ jobs:
                   suites.append(('defaults', 'tests/default-parity.php'))
               if (root / 'sidecar').exists():
                   suites.append(('sidecar', 'tests/sidecar.php'))
+              if (root / 'worker').exists():
+                  suites += [('worker', 'tests/state.php'), ('worker', 'tests/worker.php')]
               report['ledger_included'] = any(group == 'ledger' for group, _ in suites)
               for group, fixture in suites:
                   seals(group)

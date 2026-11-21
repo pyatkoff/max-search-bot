@@ -1,0 +1,32 @@
+{
+  "dependencies": {
+    "delivery": "../delivery",
+    "delivery_with_actual_http_sha256": "3bcaabafa4355643cd3e961540aee63738b661a99f0116760672606aecb6cb4a",
+    "frozen_migration112_sha256": "f090952953bed9f365ed26cc799748c3f93afcad93a4bd3b3512ab90837be70b",
+    "ledger": "../ledger",
+    "lookup": "../lookup",
+    "policy": "../policy"
+  },
+  "files": {
+    "README.md": "e35a444a2862a66bf41ea2d05ef6a94916e9aac82186fb9081b03e33a3315624",
+    "migrations/113_max2_common_runtime_v2.sql": "092c123615aae8261c19b8aa7316b0631926698906491c03869f28373646ada9",
+    "services/Max2CommonValueStateV2.php": "a0569ed15dde28d52ce01fdd19e52e2cd6e44b03f93e0c7d3e7924a3ac8cf7c2",
+    "services/Max2CommonValueWorkerV2.php": "890d0cee6e8309576e25e7b6fa969a730374b6072c69b58db6aba597638c4f18",
+    "tests/state.php": "84b7fd334ddd68801c9d5b4c42098bd021b3053cd99e681a55a2d10cf70cd405",
+    "tests/support.php": "19c82e0f357fa67b362660497c6eedfeb3cf765a02901d458d0e3afa0a759f3e",
+    "tests/worker.php": "6cf9476d2ed0ff5b969e7bda32ffc6803bcbc8ca48bbccd33925c305cbbd5e62"
+  },
+  "fixture_entries": [
+    "tests/state.php",
+    "tests/worker.php"
+  ],
+  "native_effects": {
+    "actions_started": 0,
+    "db_calls": 0,
+    "provider_calls": 0,
+    "remote_edits": 0
+  },
+  "php_validation": "pending_source_only_native_CI",
+  "schema_version": 1,
+  "scope": "max2-common-v2-prospective-runtime-source"
+}
