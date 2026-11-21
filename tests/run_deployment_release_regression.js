@@ -1989,9 +1989,211 @@ async function unstartedForwardCases(){
   }
 }
 
-async function main(){await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await unstartedForwardCases();
+
+// Exact public PR1643 preimages; all API, jobs and writes below are synthetic.
+function publisherBodyFixture(){
+  const p=R.PUBLISHER_BODY_RECOVERY,pending={"bundle":"success","diagnostics":"success","diagnostics_attempt":1,"install_attempt":1,"install_checks":"success","key":"success","max_webhook":"success","metrika_cron":"success","migration":"success","provenance":"success","reported_at":"2026-11-21T14:28:11Z","repository_release":{"application_sha":"cabc34b7166994c65816ec8c81e48895ea889683","baseline":null,"baseline_eligible":false,"closure":null,"content":{"candidate_sha":"cabc34b7166994c65816ec8c81e48895ea889683","classification":"unconfirmed","installed_sha":"b678bc2f211c5f141751137453b199036491222d","policy":"anytour-development-content-v1","release_path":"full_required","runtime_fingerprint":null},"intent_scan":{"checked_commits":2,"coverage":"registered_markers_and_reserved_families","matched_commits":[],"status":"no_registered_intent"},"kind":"installed","observation":null,"observation_producer":null,"phase":"pending_closure","release":{"event":"push","run_attempt":1,"run_id":"44912653990"},"repository_sha":"cabc34b7166994c65816ec8c81e48895ea889683","schema":1,"stages":{"bundle":{"execution":"performed","result":"success"},"diagnostics":{"execution":"performed","result":"success"},"install_checks":{"execution":"performed","result":"success"},"key":{"execution":"performed","result":"success"},"max_webhook":{"execution":"performed","result":"success"},"metrika_cron":{"execution":"performed","result":"success"},"migration":{"execution":"performed","result":"success"},"provenance":{"execution":"performed","result":"success"},"smoke":{"execution":"performed","result":"success"},"sync":{"execution":"performed","result":"success"}}},"run_id":"44912653990","schema":2,"sha":"cabc34b7166994c65816ec8c81e48895ea889683","smoke":"success","smoke_attempt":1,"sync":"success"},body="### MAX2 #211 — ordinary app release of the two new goals\n\nPR1643: выпуск занят\n\nSame MAX2 owner and original [tour-max #211 coordination](https://github.com/pyatkoff/tour-max/pull/211#issuecomment-7054553165), continuing the scoped app integration in this existing record. This is the only publisher record for [PR1643](https://github.com/pyatkoff/max-search-bot/pull/1643).\n\nExact candidate HEAD de603d8c5b53a5dbf3e972e166da96c42c4e5500; BASE b678bc2f211c5f141751137453b199036491222d; tree5bb2649a3f5ff16622b8b9f0c4cef22163f6d1b2; release-manifest2e44744e98851dd68df2062f001009d764bde20adcb71748be0733a0cde8b0d6. All six original PR workflows succeeded on that exact HEAD, including required regression44911483984/job136870771490 and guard44911483993/job136868059497, attempt1. Final14-suite MAX2 wrapper passed in diagnostics job136868292160.\n\nFresh unchanged-BASE full canonical --admit succeeded in original audit sourcec4e5e2e0a088bd51316dd059b5263398ab2886b7, run44912485838/job136871049337/a1. It authenticated the prior original technical release and returned allowed=true, priority_owned for1643. Original artifact14710277291 ZIPsha2569fff1e641b91b46f139f6173ef707cbc9665c31fae564abf078dd34701f22bb3, resultsha2562ec42226dba5d6225b92662f8a87ffcf78e6f8703a2efcd3f280c1286319560f. Fresh main/PR/source-record readback remained exact immediately before this acquisition.\n\nScope remains exactly50 new +6 modified files: NEW Max2*V2 services, own112/113 migrations, resources/tests/docs/finite state CLI and manual workflow. Existing app hooks are only webhook.php, ChannelPostEntryService.php and cron_metrika.php; required_checks_manifest.php adds one wrapper. deployment_release.js adds one explicit finite MANUAL_OPERATIONS member, with its focused existing JS regression. No canonical resolver bypass, new schedule, workflow_run tail, secret, SSH principal or permission grant.\n\nUser-authorized goals are only687931224/max2ok and687941321/anytour_modeled_value_v2_max2 on98615635. Protected678187097/anytour_modeled_value_v1, its300RUB CPA campaign, model/config/full values/export/ledger/sender remain unchanged. Old URL563541588/max2, all campaign selections/budgets, Avito, other projects and SOURCE owners remain unchanged. Existing early JS installation and signed sidecar are accepted terminal operations and must never be replayed.\n\nThis ordinary app installation starts defaultOFF, prospective-only with an independent positive-delta ledger. Await the original exact-source deploy, migrations, smoke, diagnostics, telemetry and every mandatory technical tail. Bind this acquisition's actual author/id/updated_at in PR1643 before expected-head merge. Only the existing automatic terminal may release this publisher; no manual FREE, rerun or replacement record. The finite new-state activation follows the accepted installation separately; later natural business acceptance does not retain a technically completed shared slot.\n";
+  equal(R.gitBlob(Buffer.from(R.wire(pending))),p.blob,'actual original pending bytes stay exact');
+  equal([Buffer.byteLength(body,'utf8'),D(body)],[p.body_bytes,p.body_sha256],'actual original long publisher is pinned');
+  const f=fixture(p.sha,pending),initial=f.head,old=f.commits.get(initial);
+  f.records.set(p.commit,f.records.get(initial));f.commits.set(p.commit,{...copy(old),sha:p.commit});f.head=p.commit;
+  // A later diagnostics commit preserves the same record and original ancestry.
+  f.putRecord(pending,p.commit);
+  const wave=f.start(p.sha,Number(p.deploy),Number(p.run_id),p.pr);f.runs.clear();f.jobs.clear();
+  for(const r of wave.wave)f.runs.set(r.id,r);
+  const activation=wave.wave.find(r=>r.path.endsWith(C.ACTIVATION.file));
+  f.jobs.set(activation.id,[job('activate',activation,[],'skipped')]);
+  f.jobs.set(Number(p.deploy),fullJobs(wave.parent,pending));
+  const failed=wave.own;failed.status='completed';failed.conclusion='failure';f.runs.set(failed.id,failed);
+  const failure=job('release-slot',failed,[step('Prepare the exact release proof before terminal publication','failure'),
+    step(R.TERMINAL_BINDING_STEP,'skipped'),step(R.TERMINAL_STEP,'skipped')],'failure');failure.id=p.job_id;
+  f.jobs.set(failed.id,[job('configure',failed,[],'skipped'),failure,job('release-slot-recovery',failed,[],'skipped')]);
+  const b={comment_id:p.comment_id,head_sha:p.head_sha,owner_id:p.owner_id,updated_at:p.updated_at};
+  f.pr={...f.pr,number:p.pr,head:{sha:p.head_sha,repo:{full_name:R.REPOSITORY}},body:'<!-- release-slot-close:v1 '+JSON.stringify(b)+' -->'};
+  f.comment={...f.comment,id:p.comment_id,user:{id:p.owner_id},updated_at:p.updated_at,body};
+  const source=H('source-checked exact PR1643 body recovery'),runId=900000;
+  const native={...copy(failed),id:runId,head_sha:source,head_branch:p.branch,event:'push',status:'in_progress',conclusion:null,
+    actor:{id:p.owner_id},triggering_actor:{id:p.owner_id},head_commit:{id:source,message:'Checked metadata recovery'}};
+  delete native.display_title;f.runs.set(runId,native);
+  const own=job('release-slot-recovery',native,[],null);own.status='in_progress';own.runner_id=345;
+  f.jobs.set(runId,[own,job('configure',native,[],'skipped'),job('release-slot',native,[],'skipped')]);
+  for(const [i,name,file]of [[1,'Regression tests','regression-tests.yml'],[2,'Retired domain guard','retired-domain-guard.yml']])
+    f.runs.set(runId+i,{...copy(native),id:runId+i,name,path:R.PREFIX+file,event:'pull_request',status:'completed',conclusion:'success'});
+  const sourceFiles={};
+  for(const name of p.source_files){const raw=fs.readFileSync(path.join(__dirname,'..',name));
+    sourceFiles[name]={type:'file',path:name,sha:R.gitBlob(raw),size:raw.length};}
+  const relation={status:'ahead',merge_base_commit:{sha:p.sha},files:p.changed_files.map(filename=>({filename,status:'modified'}))};
+  const branchRuns=[native];
+  f.api.jobLog=async id=>{equal(id,p.job_id,'only the fixed stopped original log is read');return Buffer.from(T+' release_slot=held reason=record_changed\n');};
+  const originalHook=async call=>{
+    const q=call.path;
+    if(q===R.API_ROOT+'/compare/'+p.sha+'...'+source+'?per_page=1')return relation;
+    if(q===R.API_ROOT+'/git/ref/heads/'+p.branch)return {object:{sha:source}};
+    if(q===R.API_ROOT+'/actions/workflows/modeled-conversion-value-export.yml/runs?branch='+p.branch+'&event=push&per_page=100')
+      return {total_count:branchRuns.length,workflow_runs:copy(branchRuns)};
+    if(q===R.API_ROOT+'/contents/tools/release_slot_close.js?ref='+p.sha)return {sha:p.original_code};
+    for(const [name,meta]of Object.entries(sourceFiles))if(q===R.API_ROOT+'/contents/'+name+'?ref='+source)return meta;
+    if(q===R.API_ROOT+'/issues/comments/'+p.comment_id){if(call.method==='PATCH')f.comment={...f.comment,body:call.body.body};return copy(f.comment);}
+  };
+  f.hook=originalHook;
+  const env={GITHUB_REPOSITORY:R.REPOSITORY,GITHUB_EVENT_NAME:'push',GITHUB_REF:'refs/heads/'+p.branch,GITHUB_SHA:source,
+    GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+R.CLOSER+'@refs/heads/'+p.branch,GITHUB_JOB:'release-slot-recovery',
+    GITHUB_RUN_ID:String(runId),GITHUB_RUN_ATTEMPT:'1',GITHUB_ACTOR:'pyatkoff',GITHUB_TRIGGERING_ACTOR:'pyatkoff'};
+  const event={repository:{full_name:R.REPOSITORY,id:1342493152},sender:{id:p.owner_id,login:'pyatkoff'},ref:env.GITHUB_REF,
+    before:'0'.repeat(40),after:source,created:true,deleted:false,forced:false};
+  const writes=()=>f.calls.filter(c=>c.method!=='GET');
+  const terminalWrites=()=>writes().filter(c=>c.method==='PATCH'&&c.path.includes('/issues/comments/'));
+  const complete=()=>{native.status='completed';native.conclusion='success';own.status='completed';own.conclusion='success';own.steps.push(step(R.TERMINAL_STEP));};
+  const options=()=>({env,event,api:f.api});
+  return {f,p,pending,body,env,event,source,native,own,failure,activation,relation,sourceFiles,branchRuns,originalHook,writes,terminalWrites,complete,options};
+}
+async function publisherBodyRecoveryCases(){
+  const startAssertions=assertions;
+  {
+    const x=publisherBodyFixture(),b=C.binding(x.f.pr,x.p.sha);
+    await refuses(async()=>C.recordState(x.f.comment,b),'record_changed','ordinary parser still rejects a long active body');
+    equal(C.publisherBodyRecord(x.f.comment,b),'active','only the exact independently observed body is admitted');
+    const original=await R.failedPublisherBodyTerminal(x.f.api);
+    equal(original.original.record_digest,x.p.record_digest,'original prepare failed before any terminal existed');
+    equal(x.writes().length,0,'original evidence verification is read only');
+    const proof=await C.resumeTerminal({...x.options(),prepare:true});
+    equal(x.f.comment.body,x.body,'preparation never normalizes the publisher');
+    equal(x.terminalWrites().length,0,'proof publication cannot free a publisher');
+    equal(x.f.record.repository_release.closure.recovery.kind,'publisher_body_format_v1','actual new lineage is explicit');
+    equal([x.f.record.repository_release.observation,x.f.record.repository_release.observation_producer,
+      x.f.record.repository_release.baseline_eligible],[null,null,false],'unobserved optional runtime stays unobserved');
+    const restored=copy(x.f.record);restored.repository_release.phase='pending_closure';restored.repository_release.closure=null;
+    equal(restored,x.pending,'no original installation evidence is rewritten');
+    x.own.steps.push(step(R.TERMINAL_BINDING_STEP+proof.record_digest));x.env.PREPARED_RECORD_DIGEST=proof.record_digest;
+    equal(await C.resumeTerminal(x.options()),'released','the fixed original native recovery can finish once');
+    equal(x.terminalWrites().map(c=>[c.path,c.body.body]),[[R.API_ROOT+'/issues/comments/'+x.p.comment_id,b.released]],
+      'exactly one final same-comment PATCH, without intermediate BUSY');
+    x.complete();const location=await R.readRecord(x.f.api);
+    await R.authenticatePublication(x.f.api,location,{closed:true});
+    equal((await R.resolveCurrent(x.f.api,{sha:x.p.sha},location)).application_sha,x.p.sha,'canonical reader accepts the real installation through typed recovery');
+    await commonValueStateConsumer(x.f,x.p.sha,x.p.sha);
+    const priority=require('../tools/release_priority'),acquired='2026-11-21T15:00:00Z',nextPr=1644;
+    const publisher={comment_id:x.p.comment_id,owner_id:x.p.owner_id,updated_at:acquired};
+    const next={number:nextPr,state:'open',draft:false,author_association:'OWNER',
+      base:{ref:'main',sha:x.p.sha,repo:{full_name:R.REPOSITORY}},head:{sha:x.source,repo:{full_name:R.REPOSITORY}},
+      body:'<!-- anytour-release-priority:v1 '+JSON.stringify({head:x.source,base:x.p.sha,kind:'product',
+        started_at:acquired,expires_at:'2026-11-21T15:20:00Z'})+' -->\n<!-- release-slot-close:v1 '+
+        JSON.stringify({...publisher,head_sha:x.source})+' -->'};
+    x.f.comment={...x.f.comment,updated_at:acquired,body:'PR'+nextPr+': выпуск занят'};
+    const fetchImpl=async(url,options)=>{
+      equal(options.method||'GET','GET','complete next-release admission remains read only');
+      const u=new URL(url);equal(u.origin,'https://api.github.com','synthetic admission uses only the canonical origin');
+      const q=u.pathname+u.search;
+      if(q===R.API_ROOT+'/actions/jobs/'+x.p.job_id+'/logs'){
+        const bytes=await x.f.api.jobLog(x.p.job_id);return {ok:true,status:200,headers:{get:()=>null},arrayBuffer:async()=>bytes};}
+      const value=q===R.API_ROOT+'/pulls?state=open&base=main&sort=created&direction=desc&per_page=100&page=1'?[next]:
+        q===R.API_ROOT+'/pulls/'+nextPr?next:await x.f.api('GET',q,undefined,
+          options.headers?.Accept==='application/vnd.github.raw+json');
+      return {ok:true,status:200,json:async()=>copy(value)};
+    };
+    const beforeAdmission=x.writes().length;
+    const decision=await priority.runGuard({env:{GITHUB_REPOSITORY:R.REPOSITORY,GITHUB_TOKEN:'synthetic-only'},
+      admission:{repository:R.REPOSITORY,prNumber:nextPr,headSha:x.source,baseSha:x.p.sha,publisher},
+      now:Date.parse('2026-11-21T15:01:00Z'),fetchImpl});
+    equal([decision.allowed,decision.reason,decision.publisher_comment],[true,'active_publisher',x.p.comment_id],
+      'unchanged full canonical admission accepts a legitimate later acquisition of the same publisher');
+    equal(x.writes().length,beforeAdmission,'historical recovery authentication never rewrites the new acquisition');
+    equal(x.failure.conclusion,'failure','the original failed closer is never relabelled');
+    const before=x.writes().length;
+    await refuses(()=>C.resumeTerminal(x.options()),'publisher_continuation_not_active');
+    equal(x.writes().length,before,'completed continuation cannot repeat writes');
+  }
+  {
+    const x=publisherBodyFixture();x.native.status='queued';
+    const proof=await C.resumePublisherBodyTerminal({...x.options(),prepare:true});
+    x.env.PREPARED_RECORD_DIGEST=proof.record_digest;x.own.steps.push(step(R.TERMINAL_BINDING_STEP+proof.record_digest));
+    equal(await C.resumePublisherBodyTerminal(x.options()),'released',
+      'lagging queued run summary is admitted only with the exact assigned active native job');
+    equal(x.terminalWrites().length,1,'summary lag does not cause a second mutation');
+  }
+  for(const mutate of [x=>x.env.GITHUB_RUN_ATTEMPT='2',x=>x.env.GITHUB_EVENT_NAME='workflow_dispatch',
+    x=>x.env.GITHUB_ACTOR='foreign',x=>x.env.GITHUB_TRIGGERING_ACTOR='foreign',x=>x.event.before=x.p.sha,
+    x=>x.event.created=false,x=>x.event.forced=true,x=>x.event.deleted=true,x=>x.event.after=H('wrong'),
+    x=>x.env.GITHUB_SHA=x.p.sha,x=>x.event.sender.id++,x=>x.event.repository.id++]){
+    const x=publisherBodyFixture();mutate(x);
+    await refuses(()=>C.resumePublisherBodyTerminal({...x.options(),prepare:true}),'untrusted_publisher_body_continuation');
+    equal(x.writes().length,0,'wrong original event has no write');
+  }
+  for(const [mutate,reason]of [
+    [x=>x.f.main=H('changed main'),'main_changed'],
+    [x=>x.native.actor.id++,'publisher_continuation_not_active'],[x=>x.native.triggering_actor.id++,'publisher_continuation_not_active'],
+    [x=>x.own.runner_id=0,'publisher_continuation_not_active'],
+    [x=>{x.native.status='queued';x.own.status='queued';},'publisher_continuation_not_active'],
+    [x=>x.f.jobs.get(x.native.id)[1].steps.push(step('Unexpected configure')),'publisher_continuation_not_active'],
+    [x=>x.branchRuns.push({...copy(x.native),id:x.native.id+100}),'replayed_terminal_continuation'],
+    [x=>x.relation.files.pop(),'publisher_recovery_source_changed'],
+    [x=>x.relation.files[0].filename='config.php','publisher_recovery_source_changed'],
+    [x=>x.sourceFiles['tools/release_priority.js'].sha=H('changed priority'),'publisher_recovery_checkout_changed'],
+    [x=>x.sourceFiles['tools/deployment_release.js'].sha=H('wrong checked source'),'publisher_recovery_checkout_changed'],
+    [x=>x.f.runs.get(x.native.id+1).conclusion='failure','recovery_ci_unconfirmed'],
+    [x=>x.f.runs.get(x.native.id+2).run_attempt=2,'recovery_ci_unconfirmed'],
+    [x=>x.f.comment.body+=' ','publisher_body_changed'],
+    [x=>x.f.comment.body=x.f.comment.body.replace('MAX2','MAX3'),'publisher_body_changed'],
+    [x=>x.f.comment.body='PR1643: выпуск занят','publisher_body_changed'],
+    [x=>x.f.comment.updated_at='2026-11-21T14:11:19Z','publisher_body_changed'],
+    [x=>x.f.comment.user.id++,'foreign_record'],
+    [x=>x.failure.steps[1].conclusion='success','failed_terminal_executed'],
+    [x=>x.failure.steps[2].conclusion='success','failed_terminal_executed'],
+    [x=>x.failure.run_attempt=2,'failed_terminal_not_original'],
+    [x=>x.f.artifacts.set(Number(x.p.run_id),[{id:123}]),'original_terminal_already_published'],
+    [x=>x.f.runs.get(Number(x.p.deploy)+2).conclusion='failure','required_gate_failed'],
+    [x=>x.f.jobs.get(x.activation.id)[0].steps.push(step('Unexpected activation')),'activation_executed'],
+    [x=>x.f.jobs.get(Number(x.p.run_id))[0].steps.push(step('Unexpected configure')),'configuration_executed']
+  ]){
+    const x=publisherBodyFixture();mutate(x);
+    await refuses(()=>C.resumePublisherBodyTerminal({...x.options(),prepare:true}),reason);
+    equal(x.writes().length,0,'changed bound evidence refuses before any publication');
+  }
+  {
+    const x=publisherBodyFixture();x.f.api.jobLog=async()=>Buffer.from(T+' release_slot=held reason=write_unknown\n');
+    await refuses(()=>C.resumePublisherBodyTerminal({...x.options(),prepare:true}),'failed_terminal_reason_changed');
+    equal(x.writes().length,0,'an uncertain original write cannot use a proven-prewrite exception');
+  }
+  {
+    const x=publisherBodyFixture(),proof=await C.resumePublisherBodyTerminal({...x.options(),prepare:true});
+    x.env.PREPARED_RECORD_DIGEST=proof.record_digest;
+    await refuses(()=>C.resumePublisherBodyTerminal(x.options()),'publication_step_unconfirmed');
+    equal(x.terminalWrites().length,0,'no successful native proof binding means no comment PATCH');
+  }
+  for(const mode of ['patch_unknown','readback_changed','source_after_prepare','body_after_prepare','diagnostics_unknown']){
+    const x=publisherBodyFixture();
+    if(mode==='diagnostics_unknown'){
+      x.f.hook=async c=>{if(c.method==='PATCH'&&c.path.endsWith('/git/refs/heads/diagnostics'))throw Error('synthetic unknown ref write');return x.originalHook(c);};
+      await refuses(()=>C.resumePublisherBodyTerminal({...x.options(),prepare:true}),'diagnostics_write_unknown');
+      equal(x.terminalWrites().length,0,'uncertain diagnostics publication retains the exact publisher');continue;
+    }
+    const proof=await C.resumePublisherBodyTerminal({...x.options(),prepare:true});
+    x.env.PREPARED_RECORD_DIGEST=proof.record_digest;x.own.steps.push(step(R.TERMINAL_BINDING_STEP+proof.record_digest));
+    if(mode==='source_after_prepare')x.sourceFiles['tools/release_slot_close.js'].sha=H('late source drift');
+    if(mode==='body_after_prepare')x.f.comment.body+='changed';
+    if(mode==='patch_unknown')x.f.hook=async c=>{if(c.method==='PATCH'&&c.path.includes('/issues/comments/'))throw Error('synthetic unknown PATCH');return x.originalHook(c);};
+    if(mode==='readback_changed')x.f.hook=async c=>{if(c.method==='GET'&&c.path.includes('/issues/comments/')&&x.terminalWrites().length)
+      return {...copy(x.f.comment),user:{id:1}};return x.originalHook(c);};
+    await refuses(()=>C.resumePublisherBodyTerminal(x.options()),mode==='source_after_prepare'?'publisher_recovery_checkout_changed':
+      mode==='body_after_prepare'?'publisher_body_changed':'write_unknown');
+    equal(x.terminalWrites().length,mode.endsWith('prepare')?0:1,'mutation outcome never causes an automatic repeat');
+  }
+  for(const mutate of [x=>x.native.triggering_actor.id++,x=>x.own.steps.at(-1).conclusion='failure',
+    x=>x.own.steps.pop()]){
+    const x=publisherBodyFixture(),proof=await C.resumePublisherBodyTerminal({...x.options(),prepare:true});
+    x.env.PREPARED_RECORD_DIGEST=proof.record_digest;x.own.steps.push(step(R.TERMINAL_BINDING_STEP+proof.record_digest));
+    await C.resumePublisherBodyTerminal(x.options());x.complete();mutate(x);
+    const before=x.writes().length;let rejected=false;
+    try{await R.resolveCurrent(x.f.api,{sha:x.p.sha},await R.readRecord(x.f.api));}catch(e){rejected=true;}
+    equal(rejected,true,'canonical acceptance requires actual owner and the original successful native terminal step');
+    equal(x.writes().length,before,'reader refusal never repairs a publisher');
+  }
+  return assertions-startAssertions;
+}
+
+async function main(){await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
   process.stdout.write('Deployment release regression: '+assertions+' assertions passed\n');}
-module.exports={main,fixture,receipt,observation,installed,installNoopJobs,storedZip,terminalContinuationCases};
+module.exports={main,fixture,receipt,observation,installed,installNoopJobs,storedZip,terminalContinuationCases,publisherBodyRecoveryCases};
 if(require.main===module)main().catch(e=>{process.stderr.write(String(e.stack||e)+'\n');process.exitCode=1;});
 
 
