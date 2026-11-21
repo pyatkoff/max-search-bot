@@ -1,0 +1,160 @@
+name: MAX2 common V2 - disposable MySQL engine contracts
+
+on:
+  push:
+    branches: [prepare/max2-common-v2-20261121]
+    paths:
+      - audit/max2-common-v2-20261121/mysql/**
+      - audit/max2-common-v2-20261121/ledger/**
+      - audit/max2-common-v2-20261121/policy/**
+      - audit/max2-common-v2-20261121/delivery/**
+      - .github/workflows/max2-common-v2-mysql-20261121.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: max2-common-v2-mysql-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  mysql-engine-tests:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' &&
+      github.event_name == 'push' && github.run_attempt == '1' &&
+      github.event.deleted == false && github.event.forced == false &&
+      github.event.head_commit.message == 'test(max2): verify common v2 source package'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    services:
+      mysql:
+        # Docker Official Image 8.0.44, independently observed index digest.
+        image: mysql:8.0.44@sha256:9c3380eac945af0736031b200027f581925927c81e010056214a4bd6b6693714
+        env:
+          MYSQL_DATABASE: max2_v2_ci
+          MYSQL_USER: max2_v2_ci
+          MYSQL_PASSWORD: max2-v2-synthetic-only
+          MYSQL_ROOT_PASSWORD: max2-v2-disposable-root-only
+        ports:
+          - '127.0.0.1:33306:3306'
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -umax2_v2_ci -pmax2-v2-synthetic-only --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+    defaults:
+      run:
+        working-directory: audit/max2-common-v2-20261121
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql, pcntl
+          coverage: none
+          tools: none
+      - name: Verify exact source and run only disposable MySQL fixture
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 -B - <<'PY'
+          import hashlib, json, os, pathlib, re, shutil, subprocess, sys
+          root = pathlib.Path.cwd()
+          report = {
+              'schema': 'max2-common-v2-mysql-ci-v1', 'source_sha': os.environ['GITHUB_SHA'],
+              'run_id': int(os.environ['GITHUB_RUN_ID']), 'run_attempt': 1,
+              'job': 'mysql-engine-tests', 'status': 'FAIL', 'scope': 'source_only',
+              'database_scope': 'disposable_ci_service_only', 'production_access': False,
+              'provider_calls': 0, 'live_database_connections': 0, 'deployed': False,
+              'service_image': 'mysql:8.0.44@sha256:9c3380eac945af0736031b200027f581925927c81e010056214a4bd6b6693714',
+              'source_sha256': {}}
+          def need(condition, code):
+              if not condition:
+                  raise ValueError(code)
+          def sha(data):
+              return hashlib.sha256(data).hexdigest()
+          def seals(group):
+              directory = root / group
+              need(directory.is_dir() and not directory.is_symlink(), 'SOURCE_DIRECTORY_MISSING')
+              manifest_path = directory / 'source-pins.json'
+              need(manifest_path.is_file() and not manifest_path.is_symlink(), 'SOURCE_PINS_MISSING')
+              manifest = json.loads(manifest_path.read_bytes())
+              files = manifest.get('files')
+              need(isinstance(files, dict) and bool(files), 'SOURCE_PIN_SHAPE')
+              actual = set()
+              for path in directory.rglob('*'):
+                  need(not path.is_symlink(), 'SOURCE_SYMLINK')
+                  if path.is_file():
+                      actual.add(path.relative_to(directory).as_posix())
+              need(actual == set(files) | {'source-pins.json'}, 'SOURCE_FILE_SET')
+              for name, pin in files.items():
+                  relative = pathlib.PurePosixPath(name)
+                  need(not relative.is_absolute() and '..' not in relative.parts and str(relative) == name, 'SOURCE_PIN_PATH')
+                  data = (directory / name).read_bytes()
+                  wanted = pin.get('sha256') if isinstance(pin, dict) else pin
+                  need(isinstance(wanted, str) and re.fullmatch(r'[a-f0-9]{64}', wanted) and sha(data) == wanted, 'SOURCE_PIN_CHANGED')
+                  if isinstance(pin, dict):
+                      need(type(pin.get('bytes')) is int and len(data) == pin['bytes'], 'SOURCE_SIZE_CHANGED')
+                  report['source_sha256'][group + '/' + name] = sha(data)
+              report['source_sha256'][group + '/source-pins.json'] = sha(manifest_path.read_bytes())
+              return manifest
+          env = {'PATH': os.environ['PATH'], 'LANG': 'C.UTF-8', 'LC_ALL': 'C.UTF-8',
+                 'GITHUB_ACTIONS': 'true', 'MAX2_V2_MYSQL_FIXTURE': 'ephemeral-ci-only'}
+          blocked = ','.join(['curl_exec', 'curl_multi_exec', 'fsockopen', 'pfsockopen',
+              'stream_socket_client', 'mail', 'exec', 'passthru', 'shell_exec', 'system',
+              'proc_open', 'popen', 'socket_create', 'socket_connect'])
+          php = shutil.which('php')
+          command = [php or 'php', '-d', 'allow_url_fopen=0', '-d', 'allow_url_include=0',
+                     '-d', 'disable_functions=' + blocked, '-d', 'display_errors=stderr',
+                     '-d', 'error_reporting=32767', '-d', 'memory_limit=128M']
+          def execute(args, timeout=90):
+              result = subprocess.run(command + args, env=env, capture_output=True, timeout=timeout)
+              need(len(result.stdout) <= 65536 and len(result.stderr) <= 65536, 'FIXTURE_OUTPUT_BOUND')
+              sys.stdout.write(result.stdout.decode('utf-8', errors='replace'))
+              sys.stderr.write(result.stderr.decode('utf-8', errors='replace'))
+              need(result.returncode == 0, 'PHP_CHECK_FAILED')
+              return result.stdout
+          try:
+              need(php is not None, 'PHP_REQUIRED')
+              runtime = json.loads(execute(['-r', "echo json_encode(['version'=>PHP_VERSION,'pdo_mysql'=>in_array('mysql',PDO::getAvailableDrivers(),true),'pcntl'=>function_exists('pcntl_fork')]);"]))
+              need(runtime['version'].startswith('8.2.') and runtime['pdo_mysql'] is True and runtime['pcntl'] is True, 'PHP_82_MYSQL_PCNTL_REQUIRED')
+              report['php_runtime'] = runtime
+              manifests = {group: seals(group) for group in ('policy', 'delivery', 'ledger', 'mysql')}
+              dependencies = manifests['mysql'].get('dependency_sha256')
+              needed = {'policy/services/Max2ValueBindingPolicyV2.php', 'policy/services/Max2CommonValueAccountingV2.php',
+                  'delivery/services/Max2CommonValueMetrikaClientV2.php', 'ledger/services/Max2CommonValueRepositoryV2.php',
+                  'ledger/migrations/112_max2_common_value_v2.sql', 'ledger/tests/repository.php'}
+              need(isinstance(dependencies, dict) and set(dependencies) == needed, 'MYSQL_DEPENDENCY_SET')
+              for name, wanted in dependencies.items():
+                  need(report['source_sha256'].get(name) == wanted, 'MYSQL_DEPENDENCY_CHANGED')
+              for path in sorted((root / 'mysql').rglob('*.php')):
+                  execute(['-l', str(path)])
+              result = json.loads(execute([str(root / 'mysql/tests/mysql.php')]))
+              need(result.get('status') == 'PASS' and result.get('driver') == 'mysql'
+                   and result.get('engine') == 'InnoDB' and result.get('exact_migration_112') is True
+                   and result.get('production_constructor') is True
+                   and result.get('parallel_reserve_connections') == 2 and result.get('parallel_attempt_connections') == 2
+                   and result.get('database_scope') == 'disposable_ci_service_only'
+                   and result.get('provider_calls') == 0 and result.get('live_database_connections') == 0
+                   and result.get('activation') is False and result.get('deployment') is False, 'MYSQL_RESULT_CONTRACT')
+              report['result'] = result
+              report['status'] = 'PASS'
+          except Exception as error:
+              reason = str(error)
+              report['reason'] = reason if isinstance(error, ValueError) and re.fullmatch(r'[A-Z_]{1,80}', reason) else type(error).__name__
+          finally:
+              (root / 'mysql-ci-result.json').write_text(json.dumps(report, sort_keys=True) + '\n')
+              print(json.dumps(report, sort_keys=True))
+          raise SystemExit(0 if report['status'] == 'PASS' else 1)
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: max2-common-v2-mysql-${{ github.sha }}
+          path: audit/max2-common-v2-20261121/mysql-ci-result.json
+          if-no-files-found: ignore
+          retention-days: 30
