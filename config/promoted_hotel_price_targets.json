@@ -59,5 +59,8 @@
   {"hotel_id": 132016, "platform": "max", "publication_id": 3671, "url": "https://max.ru/anytour/AaDtMfpbMO0"},
   {"hotel_id": 12112, "platform": "telegram", "publication_id": 3685, "url": "https://t.me/anytour/1046"},
   {"hotel_id": 70030, "platform": "telegram", "publication_id": 3686, "url": "https://t.me/anytour/982"},
-  {"hotel_id": 1273, "platform": "telegram", "publication_id": 3687, "url": "https://t.me/anytour/1098"}
+  {"hotel_id": 1273, "platform": "telegram", "publication_id": 3687, "url": "https://t.me/anytour/1098"},
+  {"hotel_id": 73055, "platform": "telegram", "publication_id": 3690, "url": "https://t.me/anytour/927"},
+  {"hotel_id": 1439, "platform": "telegram", "publication_id": 3688, "url": "https://t.me/anytour/954"},
+  {"hotel_id": 91404, "platform": "telegram", "publication_id": 3689, "url": "https://t.me/anytour/913"}
 ]
