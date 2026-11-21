@@ -1,36 +1,360 @@
-name: "PR 1641: canonical admission for acquired publisher"
+name: "Exact approved MAX price replacement for AaGL2WYPAfo"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
     paths: ['.github/workflows/anytour-hotel-ads-readonly-20261117.yml']
 permissions:
   contents: read
-  pull-requests: read
-  actions: read
-  issues: read
 concurrency:
   group: anytour-issue-1566-registry-read
   cancel-in-progress: false
 jobs:
-  canonical-admission:
+  registry:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '2116cc9046b8511efe7de3438b626015ef9f9512' &&
+      github.event.before == '6ec280e39f612403a436ade74ed983c4e3e56f45' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 5
     steps:
-      - name: Checkout the accepted main source for the original verifier
-        uses: actions/checkout@v4
-        with:
-          ref: cb08ade02e0d4588dfef8e4f0a8a5253b04d26c6
-          persist-credentials: false
-      - name: Verify exact PR using the normal release guard and previous terminal
+      - name: Prepare one exact MAX edit with native and public readback
         shell: bash
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = 'cb08ade02e0d4588dfef8e4f0a8a5253b04d26c6'
-          node tools/release_priority.js --admit 1641 eac5683232986c4e67ab65cfc993bff287b78747 cb08ade02e0d4588dfef8e4f0a8a5253b04d26c6 --publisher 6650664504 226193297 2026-11-21T00:34:33Z
+          umask 077
+          mkdir pub
+          cat > pub/read-only.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          ini_set('display_errors','0');
+          ini_set('log_errors','0');
+          
+          function requireEdit(bool $ok, string $reason): void {
+              if (!$ok) throw new RuntimeException($reason);
+          }
+          function installedEdit(string $expected): void {
+              requireEdit(PHP_SAPI === 'cli' && getcwd() === '/var/www/anytoour/data/www/app.anytoour.ru', 'app_root');
+              requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD')) === $expected, 'installed_checkout_changed');
+              requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false status --porcelain --untracked-files=no')) === '', 'installed_checkout_dirty');
+          }
+          function priceRows(array $ids): array {
+              $raw=PromotedHotelPriceWriter::publicBytes('https://app.anytoour.ru/feed/hotel-posts-all.xml',12000000);
+              requireEdit(!preg_match('/<!\s*(?:DOCTYPE|ENTITY)\b/i',$raw),'invalid_xml');
+              $doc=new DOMDocument();
+              requireEdit(@$doc->loadXML($raw,LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING),'invalid_xml');
+              $xp=new DOMXPath($doc);
+              $result = [];
+              $now=new DateTimeImmutable('now',new DateTimeZone('Europe/Moscow'));
+              foreach($ids as $id) {
+                  try {
+                      $pair=[];
+                      foreach(['max','tg'] as $platform){
+                          $q=$xp->query('/yml_catalog/shop/offers/offer[@id="'.$platform.'_'.$id.'"]');
+                          requireEdit($q->length===1,'missing_or_duplicate_feed_offer');
+                          $o=$q->item(0);
+                          $get=static function(string $name) use($xp,$o):string{
+                              $x=$xp->query('./'.$name,$o);
+                              requireEdit($x->length===1,'invalid_'.$name);
+                              return $x->item(0)->textContent;
+                          };
+                          $desc=$get('description');
+                          $pattern='~^💰 От (?<amount>[0-9][0-9 ,.\x{00a0}\x{202f}]*) ₽ за двоих\n✈️ Вылет из [^\n]+ (?<date>\d{2}\.\d{2}\.\d{4}) · [1-9][0-9]* ноч(?:ь|и|ей)\n👥 2 взрослых\n🛏 [^\n]+\n🍽 [^\n]+\nЦена найдена мониторингом (?<observed>\d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}) МСК\. Стоимость и наличие могут измениться\.$~mu';
+                          requireEdit(preg_match_all($pattern,$desc,$m,PREG_SET_ORDER)===1,'missing_or_ambiguous_price_block');
+                          $a=$m[0];$value=str_replace(',','.',preg_replace('/[\s\x{00a0}\x{202f}]/u','',$a['amount']));
+                          $price=$get('price');
+                          requireEdit($get('currencyId')==='RUB'&&preg_match('/^[1-9][0-9]*(?:\.[0-9]{1,2})?$/D',$price)&& (float)$value===(float)$price,'amount_mismatch');
+                          $obs=DateTimeImmutable::createFromFormat('!d.m.Y, H:i',$a['observed'],$now->getTimezone());
+                          $departure=DateTimeImmutable::createFromFormat('!d.m.Y',$a['date'],$now->getTimezone());
+                          requireEdit($obs && $obs->format('d.m.Y, H:i')===$a['observed'] && $obs<=$now
+                              && $now->getTimestamp()-$obs->getTimestamp()<129600,'observation_outside_36h');
+                          requireEdit($departure && $departure->format('d.m.Y')===$a['date'] && $departure>=$now->setTime(0,0),'past_departure');
+                          $pair[]= ['block'=>$a[0],'price'=>$price,'observation'=>$obs->format(DATE_ATOM),'departure'=>$departure->format('Y-m-d')];
+                      }
+                      requireEdit($pair[0]===$pair[1],'platform_offer_mismatch');
+                      $result[$id]=$pair[0];
+                  } catch (Throwable $e) {
+                      $result[$id]=['reason'=>$e->getMessage()];
+                  }
+              }
+              return $result;
+          }
+          function feedBlock(string $platform,string $offerId): array {
+              $file='hotel-posts-'.$platform.'.xml';
+              $raw=PromotedHotelPriceWriter::publicBytes('https://app.anytoour.ru/feed/'.$file,12000000);
+              requireEdit(!preg_match('/<!\s*(?:DOCTYPE|ENTITY)\b/i',$raw),'invalid_split_feed');
+              $doc=new DOMDocument();
+              requireEdit(@$doc->loadXML($raw,LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING),'invalid_split_feed');
+              $xp=new DOMXPath($doc);
+              $offer=$xp->query('/yml_catalog/shop/offers/offer[@id="'.$offerId.'"]');
+              requireEdit($offer->length===1,'split_offer_identity_changed');
+              $fields=[];
+              foreach(['price','currencyId','description'] as $key) {
+                  $values=$xp->query('./'.$key,$offer->item(0));
+                  requireEdit($values->length===1,'invalid_split_offer');
+                  $fields[]=$values->item(0)->textContent;
+              }
+              return $fields;
+          }
+          function mediaIdentity(array $snap): array {
+              $attachments=$snap['attachments']??[];
+              requireEdit(count($attachments)===1&&($attachments[0]['provider']??'')==='max','expected_single_max_attachment');
+              $type=$attachments[0]['type']??'';
+              $id=$type==='image'?($attachments[0]['photo_id']??''):(ChannelPostIncomingAdapter::maxVideoIds($snap)[0]??'');
+              requireEdit(in_array($type,['image','video'],true)&&is_string($id)&&$id!=='','original_stable_media_id_missing');
+              return [$type,$id];
+          }
+          function canonicalStyles(array $styles): array {
+              requireEdit(array_is_list($styles),'max_styles_not_a_list');
+              foreach($styles as &$span) ksort($span);
+              unset($span);
+              usort($styles,static fn(array $a,array $b):int=>[$a['from'],$a['length'],$a['type']]<=>[$b['from'],$b['length'],$b['type']]);
+              return $styles;
+          }
+          function rebuildApprovedCaption(array $target,array $native,string $price): array {
+              $old=$native['text'];
+              $bytes=mb_convert_encoding($old,'UTF-16LE','UTF-8');
+              $updates=[];
+              $revised='';
+              $cursor=0;
+              foreach($target['replacements'] as [$start,$end,$replacement]){
+                  requireEdit($start>=$cursor&&$end>$start&&$end*2<=strlen($bytes),'invalid_approved_range');
+                  $removed=substr($bytes,$start*2,($end-$start)*2);
+                  $context=substr($bytes,$cursor*2,($start-$cursor)*2);
+                  requireEdit(mb_check_encoding($removed,'UTF-16LE')&&mb_check_encoding($context,'UTF-16LE'),'split_unicode_in_approved_range');
+                  $replacement16=mb_convert_encoding($replacement,'UTF-16LE','UTF-8');
+                  $updates[]=[$start,$end,intdiv(strlen($replacement16)-strlen($removed),2)];
+                  $revised.=$context.$replacement16;
+                  $cursor=$end;
+              }
+              $revised.=substr($bytes,$cursor*2);
+              $editorial=rtrim(mb_convert_encoding($revised,'UTF-8','UTF-16LE'),"\n");
+              requireEdit(!preg_match('/[0-9][0-9 \x{00A0}\x{202F}]*\h*(?:RUB|₽|тысяч)/ui',$editorial),'legacy_currency_left_in_caption');
+              $styles=$target['added_style'];
+              foreach($native['markup'] as $span) {
+                  $offset=$span['from']??null;$length=$span['length']??null;
+                  requireEdit(is_int($offset)&&is_int($length)&&$offset>=0&&$length>0&&($offset+$length)*2<=strlen($bytes),'invalid_original_markup');
+                  $shift=0;
+                  foreach($updates as [$start,$end,$delta]){
+                      if($offset>=$end){$shift+=$delta;continue;}
+                      if($offset+$length<=$start)break;
+                      requireEdit($offset>=$start&&$offset+$length<=$end,'unapproved_markup_overlap');
+                      continue 2;
+                  }
+                  $span['from']=$offset+$shift;
+                  $styles[]=$span;
+              }
+              requireEdit(canonicalStyles($styles)===canonicalStyles($target['expected_styles']),'approved_markup_offsets_changed');
+              $new=$editorial."\n\n".$price;
+              requireEdit(mb_strlen($new,'UTF-8')<=4000,'caption_exceeds_max_limit');
+              return [$new,$styles,PromotedHotelPriceWriter::maxHtml($new,$new,$styles)];
+          }
+          function pendingClaims(PDOStatement $query,int $id): int {
+              $query->execute([$id]);
+              $res=(int)$query->fetchColumn();
+              $query->closeCursor();
+              return $res;
+          }
+          function journalLine($file,array $record): void {
+              $line=json_encode($record,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).PHP_EOL;
+              requireEdit(fwrite($file,$line)===strlen($line)&&fflush($file)&&fsync($file),'edit_receipt_persist_failed');
+          }
+          $target=json_decode(<<<'DATA'
+          {"hotel":90236,"publication":92,"version":104,"mid":"mid.ffffc1752b045fed01a18bd9660f01fa","slug":"AaGL2WYPAfo","type":"image","old_hash":"c30e045e7185910f12de18fbe36a3fdeb7fc8bf7077d28977ae4163e54369cd1","replacements":[[0,40,"The V Luxury Resort 5* в Саль-Хашише"],[621,815,""]],"added_style":[{"type":"strong","from":0,"length":36}],"expected_styles":[{"type":"strong","from":0,"length":36},{"type":"underline","from":155,"length":22},{"type":"strong","from":617,"length":65}]}
+          DATA,true,24,JSON_THROW_ON_ERROR);
+          $id=$target['publication'];$hotel=$target['hotel'];$mid=$target['mid'];$channel='-68765999669267';
+          $url='https://max.ru/anytour/'.$target['slug'];
+          $out=['ok'=>false,'hotel'=>$hotel,'publication'=>$id,'previous_version'=>$target['version'],'url'=>$url,'provider_writes'=>0];
+          try {
+              installedEdit('c3d763f828d2f88e006d222766c6be3b3656afe9');
+              umask(0077);
+              ob_start();
+              try {
+                  require getcwd().'/config.php';
+                  require_once getcwd().'/services/PromotedHotelPriceWriter.php';
+                  require_once getcwd().'/services/ChannelPostEntryService.php';
+                  require_once getcwd().'/services/ChannelPostRuntime.php';
+                  require_once getcwd().'/integrations/ChannelPostApiTransport.php';
+                  require_once getcwd().'/tools/anytour_existing_post_batch.php';
+              } finally { ob_end_clean(); }
+              requireEdit(ProjectConfig::projectId()==='anytour','wrong_project');
+              $pdo=ConversationDb::connection();
+              $registry=new ChannelPostRegistryService($pdo);
+              $ops='/var/www/anytoour/data/channel-post-operations';
+              requireEdit(realpath($ops)===$ops,'original_operation_directory_missing');
+              $lockPath=$ops.'/monitor-price-after-collection-v1.jsonl';
+              requireEdit(is_file($lockPath)&&!is_link($lockPath),'original_price_lock_missing');
+              $lock=fopen($lockPath,'rb');
+              requireEdit(is_resource($lock)&&flock($lock,LOCK_EX|LOCK_NB),'shared_editor_busy');
+
+              $journal=$ops.'/issue-1566-edit-existing-'.$id.'.jsonl';
+              requireEdit(!file_exists($journal)&&!is_link($journal),'previous_edit_needs_readback');
+              $priceJournal=$ops.'/promoted-hotel-price-revisions-v1/'.$id.'.json';
+              requireEdit(!file_exists($priceJournal)&&!is_link($priceJournal),'prior_price_operation_exists');
+
+              $post=$registry->publication($id);
+              requireEdit(is_array($post)&&$post['project_key']==='anytour'&&$post['platform']==='max'&&$post['channel_id']===$channel
+                  &&$post['external_message_id']===$mid&&($post['snapshot']['post_url']??'')===$url&&$post['state']==='sent'
+                  &&$post['version_id']===$target['version'],'pinned_publication_changed');
+              $claim=$pdo->prepare("SELECT COUNT(*) FROM post_versions WHERE publication_id=? AND
+                  (state IN ('claimed','write_started','unknown') OR claim_token IS NOT NULL OR claimed_at IS NOT NULL)");
+              requireEdit(pendingClaims($claim,$id)===0,'publication_has_active_writer');
+              $snap=$post['snapshot'];
+              requireEdit(!isset($snap['metadata']['hotel_catalog_id'])||(int)$snap['metadata']['hotel_catalog_id']===$hotel,'hotel_catalogue_conflicts');
+              $before=AnyTour\ExistingPostBatch\readHotelMax($mid,$channel);
+              requireEdit($before['post_url']===$url&&hash_equals($target['old_hash'],hash('sha256',$before['text']))
+                  &&$snap['text']===$before['text']&&AnyTour\ExistingPostBatch\publicHotelPost(['platform'=>'max','url'=>$url])['text']===$before['text'],
+                  'approved_original_caption_hash_changed');
+              $media=mediaIdentity($before);
+              $button=ChannelPostButtonTransport::buttonUrl($post);
+              $label=(string)$post['channel']['button_text'];
+              $ctx=ChannelPostEntryService::resolve('max',$post['start_payload'],$registry);
+              requireEdit($media===mediaIdentity($snap)&&$media[0]===$target['type']&&($before['metadata']['capability']??null)==='supported',
+                  'original_media_not_proven');
+              requireEdit($button!==''&&$label!==''&&($ctx['external_message_id']??null)===$mid&&(int)($ctx['publication_id']??0)===$id
+                  &&ChannelPostIncomingAdapter::containsOnlyButton($before,$button,$label),'original_cta_not_proven');
+              $verify=$post['channel'];$verify['expected_public_url']='https://max.ru/anytour';
+              requireEdit((new ChannelPostButtonTransport())->verifyChannel($verify)['state']==='ready','channel_edit_rights_unavailable');
+
+              $max=feedBlock('max','max_'.$hotel);
+              $tg=feedBlock('telegram','tg_'.$hotel);
+              $offer=priceRows([$hotel])[$hotel];
+              requireEdit(isset($offer['block'],$offer['price'],$offer['observation']),'fresh_pair_offer_unavailable');
+              requireEdit($max[0]===$offer['price']&&$tg[0]===$offer['price']&&$max[1]==='RUB'&&$tg[1]==='RUB'
+                  &&substr_count($max[2],$offer['block'])===1&&substr_count($tg[2],$offer['block'])===1,'separate_and_combined_feeds_disagree');
+              [$next,$styles,$html]=rebuildApprovedCaption($target,$before,$offer['block']);
+              requireEdit($next!==$before['text'],'caption_already_equal');
+              $out['offer']=['amount'=>(int)$offer['price'],'observed'=>$offer['observation'],'departure'=>$offer['departure']];
+              requireEdit($registry->publication($id)===$post&&pendingClaims($claim,$id)===0,'publication_changed_before_write');
+              $now=time();$observed=strtotime($offer['observation']);
+              requireEdit(is_int($observed)&&$observed<=$now&&$now-$observed<129600,'offer_expired_before_write');
+
+              $record=fopen($journal,'x');
+              requireEdit(is_resource($record)&&flock($record,LOCK_EX|LOCK_NB),'edit_receipt_unavailable');
+              $ms=(int)floor(microtime(true)*1000);
+              journalLine($record,['state'=>'provider_edit_started','at'=>gmdate(DATE_ATOM),'version'=>$target['version'],
+                  'old_caption_sha256'=>$target['old_hash'],'new_caption_sha256'=>hash('sha256',$next)]);
+              $out['provider_writes']=1;
+              $response=ChannelPostApiTransport::captionRequest('max',$channel,$mid,['text'=>$html,'format'=>'html']);
+              $out['provider_http']=$response['http'];
+              $out['provider_confirmed']=!$response['transport_error']&&$response['http']>=200&&$response['http']<300&&($response['data']['success']??null)===true;
+              $after=AnyTour\ExistingPostBatch\readHotelMax($mid,$channel);
+              $out['same_url']=$after['post_url']===$url;
+              $out['same_media_id']=mediaIdentity($after)===$media;
+              $out['media_type']=$media[0];
+              $out['same_cta']=$after['keyboard']===$before['keyboard']&&ChannelPostIncomingAdapter::containsOnlyButton($after,$button,$label);
+              $out['same_original_address_and_date']=($after['metadata']['link']??null)===($before['metadata']['link']??null)
+                  &&($after['published_at']??null)===($before['published_at']??null);
+              $out['exact_native_caption']=$after['text']===$next;
+              $out['exact_native_styles']=canonicalStyles($after['markup'])===canonicalStyles($styles);
+              $out['public_exact']=false;
+              for($i=0;$i<3;$i++){
+                  if($i>0)sleep(2);
+                  try {
+                      $public=AnyTour\ExistingPostBatch\publicHotelPost(['platform'=>'max','url'=>$url]);
+                      if($public['text']===$next){$out['public_exact']=true;break;}
+                  } catch(Throwable $ignore) { }
+              }
+              requireEdit($out['provider_confirmed']&&$out['same_url']&&$out['same_media_id']&&$out['same_cta']&&
+                  $out['same_original_address_and_date']&&$out['exact_native_caption']&&$out['exact_native_styles']&&$out['public_exact'],
+                  'native_or_public_after_edit_mismatch_no_retry');
+              journalLine($record,['state'=>'provider_and_public_verified','at'=>gmdate(DATE_ATOM),'media_type'=>$media[0],
+                  'new_caption_sha256'=>hash('sha256',$next),'amount'=>(int)$offer['price']]);
+
+              $latest=$registry->publication($id);
+              if($latest!==$post){
+                  requireEdit(is_array($latest)&&($latest['snapshot']['text']??null)===$next&&$latest['start_payload']===$post['start_payload']
+                     &&mediaIdentity($latest['snapshot'])===$media&&$latest['state']==='sent','registry_changed_after_native_edit_no_retry');
+                  $saved=$latest;
+              }else{
+                  $after['metadata']=array_replace($snap['metadata'],$after['metadata'],[
+                      'source_event_id'=>'issue-1566-existing:'.$id.':'.$ms,
+                      'observation_kind'=>'authorized_admin_content_edit','source_revision_ms'=>(string)$ms,
+                      'promoted_price_observed_at'=>gmdate(DATE_ATOM,$observed),
+                  ]);
+                  unset($after['metadata']['source_sequence'],$after['metadata']['source_sequence_scope']);
+                  $after['content_hash']=ChannelPostIncomingAdapter::contentFingerprint($after,'',(string)$post['channel']['bot_url']);
+                  $saved=$registry->registerPublication('anytour','max',$post['bot_key'],$channel,$mid,$after);
+                  requireEdit(is_array($saved)&&(int)$saved['publication_id']===$id&&$saved['start_payload']===$post['start_payload']
+                      &&$saved['snapshot']['text']===$next,'registry_confirmation_changed_no_retry');
+                  if($saved['state']!=='sent'){
+                      requireEdit($saved['state']==='pending'&&$registry->confirmObservedButton($id,(int)$saved['version_id'],[
+                          'verified'=>true,'button_verified'=>true,'content_preserved'=>true,'write_attempts'=>0]),'registry_sent_confirmation_failed');
+                  }
+              }
+              $final=$registry->publication($id);
+              requireEdit($final['state']==='sent'&&(int)$final['version_id']===(int)$saved['version_id']&&$final['snapshot']['text']===$next,
+                  'final_version_not_proved');
+              $out['version']=$final['version_id'];
+              $out['ok']=true;
+              journalLine($record,['state'=>'public_verified','at'=>gmdate(DATE_ATOM),'version'=>$final['version_id']]);
+          }catch(Throwable $error) {
+              $m=$error->getMessage();
+              $out['hold']=preg_match('/\A[a-z_0-9]{1,100}\z/D',$m)?$m:'exact_max_edit_failed';
+              $out['ok']=false;
+              if(isset($record)&&is_resource($record))try{journalLine($record,['state'=>'held_no_retry','at'=>gmdate(DATE_ATOM),'reason'=>$out['hold']]);}catch(Throwable $ignore){}
+          }finally {
+              if(isset($record)&&is_resource($record))fclose($record);
+              if(isset($lock)&&is_resource($lock))fclose($lock);
+          }
+          $out['at']=gmdate(DATE_ATOM);
+          echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          PHP
+          php -l pub/read-only.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Edit only the configured MAX post and independently reread
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ACCEPTED_MAX_EXACT_EDIT="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok")'
+      - name: Save bounded match evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: accepted-max-exact-edit-AaGL2WYPAfo
+          path: pub/registry.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Remove runner-only connection material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
