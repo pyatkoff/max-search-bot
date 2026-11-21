@@ -367,6 +367,7 @@ return [
         'php tests/run_manager_workspace_v2_handoff_summary_regression.php',
     ],
     'diagnostics' => [
+        'php tests/run_max2_common_value_v2_regression.php',
         'php tests/run_manager_ai_draft_feedback_report_regression.php',
         'php tests/run_manager_request_profile_regression.php',
         'php tests/run_manager_request_profile_http_regression.php',

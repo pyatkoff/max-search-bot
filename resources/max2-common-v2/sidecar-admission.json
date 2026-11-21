@@ -1,0 +1,62 @@
+{
+  "acceptance": {
+    "artifact_digest": "sha256:660a732e76336faca5a20d406107ca8ed744ab89eb73729fb52740fab8ea6396",
+    "artifact_id": 14708309343,
+    "branch": "audit/max2-common-sidecar-acceptance-20261121",
+    "database_calls": 0,
+    "http_requests": 1,
+    "http_status": 405,
+    "job_id": 136858646541,
+    "provider_calls": 0,
+    "report_sha256": "e9727db8ed55e8d2c3440bc57bdd0dda97884b7cfd4a78b98df2a440490243c3",
+    "request_sha256": "156f8acf098ec82bb10163585eb25a759e7a10237fd938ceff742f7c40396863",
+    "run_attempt": 1,
+    "run_id": 44908353917,
+    "runtime_writes": 0,
+    "source_sha": "a2adf2bda08d7a9aa87582131c5eae70a10d9841",
+    "state": "SIDECAR_FILES_AND_METHOD_ROUTE_ACCEPTED",
+    "workflow": ".github/workflows/max2-common-sidecar-acceptance-20261121.yml"
+  },
+  "admission": {
+    "filesystem_sha256": "6ca5160ae98333d7e7cd5dbd11ca20a027b942c88a325a9e86a719170a60247a",
+    "package_sha256": "157db1d08aa55ac177990f1fedf943105599a249d9501ac8bccf91f7f608fe40",
+    "producer_contract_sha256": "3a563c1b7921915fd8b17c08f585cde88127904170a086c291a5677d49cf365e",
+    "protected_sha256": "896bbbfe0b749bd4b9f73a624ff789638720ad53593e11c21fb5a9849432bc8f",
+    "readiness_sha256": "1f3e6d2e312c4a7befbb53b015878635c82d2016d9afc97a81fc324ea3a6064b",
+    "request_sha256": "8b5bbf2d504e319612756d3193a632e6fcca6c1e7ae12ed8ad9db0dbb23e8e29",
+    "source_sha256": "eca12245b3c46772fa31be9b380835d16a14ef535425559a5fb6e8886069f1ee"
+  },
+  "common_goal_id": 687941321,
+  "common_target": "anytour_modeled_value_v2_max2",
+  "counter_id": 98615635,
+  "endpoint": "https://tour-max.ru/new/max2-value-attribution/lookup.php",
+  "installation": {
+    "artifact_digest": "sha256:85efa401d4af8f62fdd593b65ba9f97b42514d7cf3a3d2bf8632cd0f4ce7d49b",
+    "artifact_id": 14708548085,
+    "branch": "prepare/max2-common-sidecar-20261121",
+    "job_id": 136858223130,
+    "receipt_sha256": "de5497a72b6b2ef8a263439a7f1cbca7cb50daae16f99f99334cc83c220fd9e2",
+    "report_sha256": "b6be5531107f61d4b18f1085f01aa7dd344d5b77bac269035cd2b801e06925c9",
+    "run_attempt": 1,
+    "run_id": 44908209869,
+    "source_sha": "e4dbda96627e1a277c44ef25807a2e588bbc84dd",
+    "state": "INSTALLED",
+    "workflow": ".github/workflows/max2-common-sidecar-operation-20261121.yml"
+  },
+  "operation": "max2-common-value-sidecar-20261121-v1",
+  "postimages": {
+    "lookup.php": "1bf959cba0b0e95c889708adca9158420ebd2135262ad68ec4700920758bba77",
+    "services/Max2ValueLookupHttpV2.php": "372632718bba127a89e871a05e620e40bbb9183f6da895426aed828251f44553",
+    "services/Max2ValueLookupProtocolV2.php": "04100d16541e5d1c961845ad59a5fb9b11840361630c4bf3b83a80c360bc2fe2",
+    "services/Max2ValueLookupRepositoryV2.php": "40ab600c7b8e619da212d0a10942046fb36a37ab13ba661f6019d40b3bd9fac9",
+    "services/Max2ValueLookupRuntimeV2.php": "9d18c288ae9a07c87b4db22f16a52f05c22ad6a6b3a9058163fe35a2972025c6"
+  },
+  "repository": "pyatkoff/tour-max",
+  "schema": "max2-common-sidecar-admission-v1",
+  "scope": {
+    "financial_processing_verified": false,
+    "original_artifacts_independently_authenticated_by_release_owner": true,
+    "signed_business_lookup_observed": false,
+    "source_pin_is_not_permission": true
+  }
+}
