@@ -8,6 +8,7 @@ require_once __DIR__.'/InternalOwnerDialogueScope.php';
 final class ModeledConversionForecastPaymentReader
 {
     public const VERSION='forecast_payment_owner_v1';
+    public const AGGREGATE_VERSION='forecast_payment_aggregate_v1';
     public const PAGE_SIZE=8;
     public const SCAN_LIMIT=128;
     public const MAX_SECONDS=15;
@@ -15,6 +16,7 @@ final class ModeledConversionForecastPaymentReader
     private bool $mysql;
     private float $started;
     private int $bytes=0;
+    private bool $aggregateMode=false;
     private array $firstCache=[],$accessCache=[];
     public function __construct(private PDO $pdo,private $authorize,private string $cursorKey)
     {
@@ -25,12 +27,21 @@ final class ModeledConversionForecastPaymentReader
     }
     public function read(array $input,int $now):array
     {
-        $this->started=microtime(true);$this->bytes=0;$this->firstCache=[];$this->accessCache=[];$this->auth();
-        try{$f=$this->filters($input,$now);$saved=isset($input['cursor'])?$this->decode((string)$input['cursor'],$f,$now):null;
+        return $this->readInternal($input,$now,false);
+    }
+    /** One bounded anonymous snapshot; no cursor or cumulative cross-request state. */
+    public function readAggregate(array $input,int $now):array
+    {
+        return $this->readInternal($input,$now,true);
+    }
+    private function readInternal(array $input,int $now,bool $aggregate):array
+    {
+        $this->started=microtime(true);$this->bytes=0;$this->firstCache=[];$this->accessCache=[];$this->aggregateMode=$aggregate;$this->auth();
+        try{$f=$this->filters($input,$now,$aggregate);$saved=isset($input['cursor'])?$this->decode((string)$input['cursor'],$f,$now):null;
             if(isset($input['cursor'])&&$saved===null)return $this->done($this->unavailable('invalid_cursor',$f));
         }catch(Throwable $e){$this->auth();return $this->done($this->unavailable('invalid_filters',[]));}
         if($this->pdo->inTransaction())return $this->done($this->unavailable('outer_transaction',$f));
-        $own=false;
+        $own=false;$scanned=0;$omitted=[];$invalidEarlier=[];$aggregateState=self::emptyAggregate();$window=null;$at=$now;
         try{
             if($this->mysql)$this->pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY');
             $this->pdo->beginTransaction();$own=true;$at=$saved['at']??$now;$after=$saved['after']??'0';
@@ -42,9 +53,9 @@ final class ModeledConversionForecastPaymentReader
                 ." AND ".$this->scalar('$.semantic_prediction.status')."='predicted'";
             if($f['platform']!=='all'){$where.=' AND p.platform=?';$args[]=$f['platform'];}
             $candidates=$this->query($this->select().' '.$this->native().' WHERE '.$where.' ORDER BY p.id LIMIT 129',$args);
-            $rows=[];$omitted=[];$scanned=0;$last=$after;
+            $rows=[];$last=$after;
             foreach($candidates as$meta){
-                if($scanned===self::SCAN_LIMIT||count($rows)===self::PAGE_SIZE)break;
+                if($scanned===self::SCAN_LIMIT||(!$aggregate&&count($rows)===self::PAGE_SIZE))break;
                 $this->guard();$last=(string)$meta['id'];$scanned++;$why=null;$p=$this->packet($meta,$at,$why);
                 if($p===null){$omitted[$why??'invalid_packet']=($omitted[$why??'invalid_packet']??0)+1;continue;}
                 $anchor=$p['current_request_anchor'];
@@ -59,6 +70,11 @@ final class ModeledConversionForecastPaymentReader
                 if($latest){$current=$this->packet($latest[0],$at,$laterWhy);}
                 $followup=ModeledConversionPredictionFollowup::compare($current??[],$p);
                 $end=strtotime($p['horizon_end_at']);
+                if($aggregate){
+                    self::accumulate($aggregateState,$scope['platform'],$p,$followup,$at>=$end);
+                    foreach($first['invalid']as$reason=>$count)$invalidEarlier[$reason]=($invalidEarlier[$reason]??0)+$count;
+                    continue;
+                }
                 $rows[]=['profile_id'=>$last,'platform'=>$scope['platform'],'customer_key'=>$scope['customer_key'],
                     'conversation_id'=>$scope['conversation_id'],'customer_name'=>self::name($meta['customer_name']??null),'request_anchor'=>$anchor,'trip_status'=>'unverified',
                     'forecast'=>['frozen_at'=>$p['frozen_at'],'input_cutoff_at'=>$p['input_cutoff_at'],
@@ -73,7 +89,8 @@ final class ModeledConversionForecastPaymentReader
                     'evaluation_eligible'=>false,'verified_payment'=>false];
             }
             $more=count($candidates)>$scanned;
-            $page=['version'=>self::VERSION,'available'=>true,'reason'=>null,'filters'=>$f,'as_of'=>gmdate('Y-m-d\TH:i:s\Z',$at),
+            $page=$aggregate?$this->aggregatePage($f,$at,$window,$aggregateState,$scanned,$omitted,$invalidEarlier,!$more,$more?'scan_limit':null):
+                ['version'=>self::VERSION,'available'=>true,'reason'=>null,'filters'=>$f,'as_of'=>gmdate('Y-m-d\TH:i:s\Z',$at),
                 'window'=>array_intersect_key($window,array_fill_keys(['from','until','timezone'],true)),
                 'cohort_basis'=>'first_admitted_prediction_profile_observed_clock','rows'=>$rows,'has_more'=>$more,
                 'next_cursor'=>$more?$this->encode(['at'=>$at,'fence'=>$fence,'after'=>$last],$f):null,
@@ -82,7 +99,11 @@ final class ModeledConversionForecastPaymentReader
                     'trip_identity'=>'unverified','negative_payment_labels'=>0,'probability_calibrated'=>false,
                     'totals_available'=>false,'max_scan_profiles'=>self::SCAN_LIMIT,'max_rows'=>self::PAGE_SIZE,
                     'max_seconds'=>self::MAX_SECONDS,'max_bytes'=>self::MAX_BYTES]];
-        }catch(Throwable $e){$page=$this->unavailable($e instanceof LengthException?'read_limit':'storage_unavailable',$f);}
+        }catch(Throwable $e){
+            $page=$aggregate&&$e instanceof LengthException&&is_array($window)
+                ?$this->aggregatePage($f,$at,$window,$aggregateState,$scanned,$omitted,$invalidEarlier,false,'read_limit')
+                :$this->unavailable($e instanceof LengthException?'read_limit':'storage_unavailable',$f);
+        }
         finally{if($own&&$this->pdo->inTransaction())$this->pdo->rollBack();}
         return $this->done($page);
     }
@@ -114,7 +135,8 @@ final class ModeledConversionForecastPaymentReader
     private function select():string
     {
         $paths=['$.semantic_prediction','$.subject','$.profile.prediction_at','$.processing','$.early_forecast.version','$.early_forecast.target_version','$.access_status'];
-        return "SELECT p.id,p.project_key,p.platform,p.customer_key,p.conversation_id,p.journal_cursor,p.observed_at_unix,p.input_sha256,SUBSTR(COALESCE(cu.display_name,''),1,200) AS customer_name,"
+        $name=$this->aggregateMode?'NULL':"SUBSTR(COALESCE(cu.display_name,''),1,200)";
+        return "SELECT p.id,p.project_key,p.platform,p.customer_key,p.conversation_id,p.journal_cursor,p.observed_at_unix,p.input_sha256,".$name." AS customer_name,"
             .'JSON_EXTRACT('.$this->safe().','.implode(',',array_map(static fn(string $p):string=>"'".$p."'",$paths)).') AS packet';
     }
     private function native():string
@@ -166,12 +188,12 @@ final class ModeledConversionForecastPaymentReader
         $s=['project_key'=>(string)($r['project_key']??''),'platform'=>(string)($r['platform']??''),'customer_key'=>(string)($r['customer_key']??''),'conversation_id'=>(string)($r['conversation_id']??'')];
         if($s['project_key']!=='anytour'||!in_array($s['platform'],['max','telegram'],true)||!self::positive($s['customer_key'])||!self::positive($s['conversation_id']))throw new RuntimeException();return$s;
     }
-    private function filters(array $v,int $now):array
+    private function filters(array $v,int $now,bool $aggregate=false):array
     {
-        if($now<946684800||array_diff(array_keys($v),['date','period','platform','cursor']))throw new InvalidArgumentException();
+        if($now<946684800||array_diff(array_keys($v),$aggregate?['date','period','platform']:['date','period','platform','cursor']))throw new InvalidArgumentException();
         $date=$v['date']??(new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('Y-m-d');
-        $period=$v['period']??30;$platform=$v['platform']??'all';
-        if(!is_string($date)||!is_int($period)||!in_array($period,[7,30,90],true)||!is_string($platform)||!in_array($platform,['all','max','telegram'],true))throw new InvalidArgumentException();
+        $period=$v['period']??($aggregate?1:30);$platform=$v['platform']??'all';
+        if(!is_string($date)||!is_int($period)||!in_array($period,$aggregate?[1,7,30,90]:[7,30,90],true)||!is_string($platform)||!in_array($platform,['all','max','telegram'],true))throw new InvalidArgumentException();
         $d=DateTimeImmutable::createFromFormat('!Y-m-d',$date,new DateTimeZone('Europe/Moscow'));
         if(!$d||$d->format('Y-m-d')!==$date||$d->getTimestamp()>$now||isset($v['cursor'])&&!is_string($v['cursor']))throw new InvalidArgumentException();
         return['date'=>$date,'period'=>$period,'platform'=>$platform];
@@ -204,7 +226,78 @@ final class ModeledConversionForecastPaymentReader
     private function guard():void{if(microtime(true)-$this->started>self::MAX_SECONDS||$this->bytes>self::MAX_BYTES)throw new LengthException();}
     private function auth():void{($this->authorize)();}
     private function done(array $p):array{$this->auth();return$p;}
-    private function unavailable(string $reason,array $f):array{return['version'=>self::VERSION,'available'=>false,'reason'=>$reason,'filters'=>$f,'rows'=>[],'has_more'=>false,'next_cursor'=>null];}
+    private function unavailable(string $reason,array $f):array
+    {
+        if($this->aggregateMode)return['version'=>self::AGGREGATE_VERSION,'available'=>false,'reason'=>$reason,'filters'=>$f,
+            'selection_exhausted'=>false,'cohort_membership_complete'=>false,'totals_available'=>false,'totals'=>null,'inspected'=>null,
+            'payment_label'=>null,'probability_calibrated'=>false,'verified_payment'=>false,'evaluation_eligible'=>false];
+        return['version'=>self::VERSION,'available'=>false,'reason'=>$reason,'filters'=>$f,'rows'=>[],'has_more'=>false,'next_cursor'=>null];
+    }
+    private static function emptyMetric():array
+    {
+        return['n'=>0,'probability_sum'=>0.0,'window_open'=>0,'horizon_elapsed'=>0,'later_evidence_observed'=>0,'unknown'=>0,'waiting'=>0];
+    }
+    private static function emptyAggregate():array
+    {
+        $stages=['substantive_dialogue','concrete_request','exact_offer_discussion','general_purchase_intent','agency_purchase_intent'];
+        $edges=[0.0,0.05,0.10,0.20,0.35,0.50,1.0];$bins=[];
+        for($i=0;$i<6;$i++)$bins[]=['lower'=>$edges[$i],'upper'=>$edges[$i+1],'upper_inclusive'=>$i===5]+self::emptyMetric();
+        return['total'=>self::emptyMetric(),'evidence_cases'=>['self_reported_payment'=>0,'manager_confirmed_payment'=>0],
+            'unknown_by_reason'=>[],'by_platform'=>array_fill_keys(['max','telegram'],self::emptyMetric()),
+            'by_stage'=>array_fill_keys($stages,self::emptyMetric()),'probability_bins'=>$bins];
+    }
+    private static function addMetric(array &$metric,float $probability,string $status,bool $elapsed):void
+    {
+        $metric['n']++;$metric['probability_sum']+=$probability;$metric[$elapsed?'horizon_elapsed':'window_open']++;
+        $metric[match($status){'observed'=>'later_evidence_observed','unknown'=>'unknown','waiting'=>'waiting'}]++;
+    }
+    private static function accumulate(array &$state,string $platform,array $prediction,array $followup,bool $elapsed):void
+    {
+        $p=(float)$prediction['estimated_probability'];$stage=$prediction['stage'];$status=$followup['status'];
+        if(!is_finite($p)||$p<0||$p>1||!isset($state['by_platform'][$platform],$state['by_stage'][$stage])
+            ||!in_array($status,['observed','unknown','waiting'],true))throw new RuntimeException('aggregate_packet');
+        self::addMetric($state['total'],$p,$status,$elapsed);
+        self::addMetric($state['by_platform'][$platform],$p,$status,$elapsed);
+        self::addMetric($state['by_stage'][$stage],$p,$status,$elapsed);
+        foreach($state['probability_bins']as&$bin)if($p>=$bin['lower']&&($p<$bin['upper']||$bin['upper_inclusive'])){
+            self::addMetric($bin,$p,$status,$elapsed);break;
+        }unset($bin);
+        if($status==='unknown')$state['unknown_by_reason'][$followup['reason']]=($state['unknown_by_reason'][$followup['reason']]??0)+1;
+        if($status==='observed')foreach(array_unique(array_column($followup['evidence'],'label'))as$label){
+            if(!array_key_exists($label,$state['evidence_cases']))throw new RuntimeException('aggregate_evidence');
+            $state['evidence_cases'][$label]++;
+        }
+    }
+    private static function finishMetric(array $metric):array
+    {
+        $metric['predicted_probability_mean']=$metric['n']?round($metric['probability_sum']/$metric['n'],6):null;
+        unset($metric['probability_sum']);return$metric;
+    }
+    private static function finishAggregate(array $state):array
+    {
+        $total=$state['total'];
+        return['first_forecasts'=>$total['n'],'window_open'=>$total['window_open'],'horizon_elapsed'=>$total['horizon_elapsed'],
+            'later_evidence_observed'=>$total['later_evidence_observed'],'followup_unknown'=>$total['unknown'],'followup_waiting'=>$total['waiting'],
+            'evidence_cases'=>$state['evidence_cases'],'unknown_by_reason'=>$state['unknown_by_reason'],
+            'by_platform'=>array_map(self::finishMetric(...),$state['by_platform']),
+            'by_stage'=>array_map(self::finishMetric(...),$state['by_stage']),
+            'probability_bins'=>array_map(self::finishMetric(...),$state['probability_bins'])];
+    }
+    private function aggregatePage(array $filters,int $at,array $window,array $state,int $scanned,array $omitted,array $invalidEarlier,bool $exhausted,?string $stopped):array
+    {
+        // These are counts of admitted saved forecasts, never all leads or verified payments.
+        $complete=$exhausted&&!array_diff_key($omitted,['not_global_first'=>true])&&!$invalidEarlier;
+        $stats=self::finishAggregate($state);
+        return['version'=>self::AGGREGATE_VERSION,'available'=>true,'reason'=>null,'filters'=>$filters,'as_of'=>gmdate('Y-m-d\TH:i:s\Z',$at),
+            'window'=>array_intersect_key($window,array_fill_keys(['from','until','timezone'],true)),
+            'unit'=>'canonical_scope_and_request_anchor','cohort_basis'=>'first_admitted_prediction_profile_observed_clock',
+            'selection_exhausted'=>$exhausted,'cohort_membership_complete'=>$complete,'totals_available'=>$complete,
+            'totals'=>$complete?$stats:null,'inspected'=>$stats,
+            'coverage'=>['scanned_profiles'=>$scanned,'omitted_by_reason'=>$omitted,'invalid_earlier_profiles_by_reason'=>$invalidEarlier,
+                'stopped_reason'=>$stopped,'max_scan_profiles'=>self::SCAN_LIMIT,'max_seconds'=>self::MAX_SECONDS,'max_bytes'=>self::MAX_BYTES,
+                'source_history_complete'=>false,'trip_identity'=>'unverified'],
+            'payment_label'=>null,'probability_calibrated'=>false,'verified_payment'=>false,'evaluation_eligible'=>false];
+    }
     private static function name($v):string{return is_string($v)&&strlen($v)<=800&&preg_match('//u',$v)===1&&trim($v)!==''?trim($v):'Турист';}
     private static function sha($v):bool{return is_string($v)&&preg_match('/\A[a-f0-9]{64}\z/D',$v)===1;}
     private static function positive($v):bool{return is_string($v)&&preg_match('/\A[1-9][0-9]{0,19}\z/D',$v)===1;}
