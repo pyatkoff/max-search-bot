@@ -109,6 +109,8 @@ jobs:
               # A partial ledger directory is a failure. Root publishes it only when its own sealed fixture is ready.
               if (root / 'ledger').exists():
                   suites.append(('ledger', 'tests/repository.php'))
+              if (root / 'source').exists():
+                  suites.append(('source', 'tests/reader.php'))
               report['ledger_included'] = any(group == 'ledger' for group, _ in suites)
               for group, fixture in suites:
                   seals(group)

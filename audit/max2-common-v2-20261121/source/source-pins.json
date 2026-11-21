@@ -1,0 +1,13 @@
+{
+  "active": false,
+  "app_source_sha": "b678bc2f211c5f141751137453b199036491222d",
+  "files": {
+    "README.md": "b453a7c55717fbab4fa8ffe61100982d395f48a22a07a27ed9d910572b4b6b84",
+    "services/Max2CommonValuePriceReadV2.php": "e8ade0d700cacc679060b9a485e7109840bd4c895e8abfc11790a3ec7352e1ab",
+    "services/Max2ModeledValueReaderV2.php": "4ac74d360889db0776575219e8779f09e59129fd04bf93a1d4c1411351b233d3",
+    "tests/reader.php": "f214b297cb09cd91f7fca0c137a42b535d0249cdb74f9b6dd76d65cb5111139e"
+  },
+  "native_defaults_verified": false,
+  "php_runtime_verified": false,
+  "schema": "max2-common-v2-saved-value-source-v1"
+}

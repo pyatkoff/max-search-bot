@@ -1,0 +1,15 @@
+# Saved inquiry value reader for common V2
+
+Source preparation only: two new readers and synthetic SQLite fixtures. No activation, migration, model tick, provider request, v1 sender invocation or old-record mutation is included.
+
+`Max2ModeledValueReaderV2` reads one exact prospective saved profile for AnyTour MAX/Telegram, verifies its current producer hash and live assessment, binds the saved subject to the current conversation/customer channel, calls the unchanged pure saved-value candidate function, and applies the new bounded price-read adapter. It requires the native first-version customer message behind one substantive tour/unknown inquiry reference. Profile, native snapshot, model amount/type and clock bounds fail to HOLD. A fixed inquiry journal cannot silently move to another anchor. The returned saved actor context does not claim authenticated actor proof or grant delivery permission.
+
+`Max2CommonValuePriceReadV2` pins the accepted original read algorithm to SHA256 `18f1101b3822bb02fd62b025c341a6fc5a298a1861fff04d8d668823848accbf`. It reads at most eight already retained price references, each from an earlier stored profile ID than the current profile. SQL uses a 250 ms hint on MySQL and a 131072-byte CASE guard before JSON fields are transferred. An oversized selected prior is UNKNOWN, never a silent unpriced fallback. The total returned-reference payload also has a 131072-byte admission bound. The prior-price rule is retained; the old helper is not modified and none of its remember/reconcile methods is called. Existing v1 monetary totals are not subtracted from the new common goal.
+
+Reader transactions are read-only on MySQL and always rolled back. The two-second reader check is post-operation admission, not a hard wall-clock deadline. Each direct MySQL SELECT and the new price-reference SELECT has its own execution hint. Native connection/engine/schema and concurrent behavior still require integration verification.
+
+## Prepared fixture
+
+`tests/reader.php` uses real SQLite `:memory:` tables and transactions with explicitly injected internal candidate and adjustment functions. Fifteen scenarios check saved full values, cap/type/floor boundaries, denied or changed source identity, bounded profile/snapshot reads, revised native evidence, duplicate references, tour product admission, fixed anchors, rollback, caller-owned outer transactions and Telegram identity without fabricated actor authentication. Every observation compares all source rows and protected v1 sentinel tables before and after, including goal678187097 and its300-ruble setting.
+
+These tests do not execute the actual default V1 candidate or native price algorithm. Their output explicitly records that limitation. Actual-default parity with the complete pinned application checkout, native MySQL schema/repository behavior and final deployment admission are separate pending gates. There is no local PHP binary, so neither syntax nor fixture runtime PASS is claimed in this source package.
