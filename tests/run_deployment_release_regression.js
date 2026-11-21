@@ -269,6 +269,7 @@ async function gitBridge(){
     equal(baseline.release.baseline_eligible,true,'first full real release becomes the accepted baseline');
     await connectionSetupConsumer(f, a, a);
     await pilotPublisherConsumer(f, a, a);
+    await commonValueStateConsumer(f, a, a);
     await publicationOperationConsumer(f, a, a);
     const nextRun={...context,event:'push'};
     const next=R.releaseRecord(receipt(a),nextRun,{kind:'application_unchanged',baseline:baseline.reference,
@@ -321,6 +322,7 @@ async function gitBridge(){
       'scheduled monitoring resumes against original application after terminal acceptance');
     await connectionSetupConsumer(f, r, a);
     await pilotPublisherConsumer(f, r, a);
+    await commonValueStateConsumer(f, r, a);
     await publicationOperationConsumer(f, r, a);
     equal(f.calls.filter(c=>c.method==='PATCH'&&c.path.endsWith('/issues/comments/900')).length,2,
       'two independent waves each make exactly one terminal mutation');
@@ -436,6 +438,39 @@ async function pilotPublisherConsumer(f,repositorySha,applicationSha){
   await refuses(()=>R.resolveConsumer({env,event,api:f.api}),'main_changed','pilot admission still binds current source');
   f.main=repositorySha;run.status='completed';run.conclusion='success';
   await refuses(()=>R.resolveConsumer({env,event,api:f.api}),'workflow_not_active','historical pilot runs grant no new authority');
+  f.runs.delete(run.id);
+}
+async function commonValueStateConsumer(f,repositorySha,applicationSha){
+  const workflow=R.PREFIX+'max2-common-value-state-v2.yml';
+  const run={...copy(f.wave.parent),id:6503,path:workflow,event:'workflow_dispatch',status:'in_progress',conclusion:null};
+  f.runs.set(run.id,run);
+  const event={repository:{full_name:R.REPOSITORY}};
+  const env=consumerEnv(run,workflow,'workflow_dispatch','state');
+  const before=f.calls.length;
+  const result=await R.resolveConsumer({env,event,api:f.api});
+  equal([result.repository_sha,result.application_sha,result.perform_actions,result.ready],
+    [repositorySha,applicationSha,true,true],'new finite MAX2 state carrier resolves the actual accepted application');
+  equal(f.calls.slice(before).every(c=>c.method==='GET'),true,'MAX2 state admission has no mutation or provider operation');
+  run.run_attempt=2;
+  await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_RUN_ATTEMPT:'2'},event,api:f.api}),
+    'consumer_rerun_forbidden','MAX2 state rerun grants no mutation authority');
+  run.run_attempt=1;run.event='push';
+  await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_EVENT_NAME:'push'},
+    event:{...event,ref:'refs/heads/main',after:repositorySha},api:f.api}),
+    'untrusted_push_consumer','MAX2 state registration does not add automatic push execution');
+  run.event='workflow_run';
+  await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_EVENT_NAME:'workflow_run'},event,api:f.api}),
+    'untrusted_consumer_event','MAX2 state registration does not add a deployment tail');
+  run.event='schedule';
+  await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_EVENT_NAME:'schedule'},event:{...event,schedule:'0 * * * *'},api:f.api}),
+    'untrusted_consumer_event','MAX2 state registration does not add a schedule');
+  run.event='workflow_dispatch';run.path=R.PREFIX+'arbitrary-max2-state.yml';
+  await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+run.path+'@refs/heads/main'},event,api:f.api}),
+    'untrusted_consumer_event','MAX2 state registration never admits another workflow');
+  run.path=workflow;f.main='f'.repeat(40);
+  await refuses(()=>R.resolveConsumer({env,event,api:f.api}),'main_changed','MAX2 state still requires current main');
+  f.main=repositorySha;run.status='completed';run.conclusion='success';
+  await refuses(()=>R.resolveConsumer({env,event,api:f.api}),'workflow_not_active','completed MAX2 state run grants no new operation');
   f.runs.delete(run.id);
 }
 async function publicationOperationConsumer(f,repositorySha,applicationSha){

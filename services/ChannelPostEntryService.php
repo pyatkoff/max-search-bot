@@ -92,9 +92,17 @@ final class ChannelPostEntryService
         try {
             $registry=new ChannelPostRegistryService();
             $preserved=$resolved?self::preservedEntry($platform,$conversation,$resolved,$preservedEntry):null;
-            return $resolved
+            $record=$resolved
                 ?$registry->recordEntry((int)$conversation['id'],$resolved,$eventKey,false,$preserved)
                 :$registry->recordUnavailableEntry((int)$conversation['id'],(string)$conversation['project_key'],$platform,$eventKey);
+            // MAX2 V2 observes only this already committed canonical entry.
+            try {
+                if (is_array($record) && is_array($resolved) && is_file(__DIR__.'/Max2CommonValueRuntimeV2.php')) {
+                    require_once __DIR__.'/Max2CommonValueRuntimeV2.php';
+                    Max2CommonValueRuntimeV2::captureEntry($record,$conversation,$resolved,$eventKey);
+                }
+            } catch (Throwable $ignoredMax2Value) { /* Preserve the original entry result. */ }
+            return $record;
         } catch (Throwable $ignored) {return null;}
     }
 
