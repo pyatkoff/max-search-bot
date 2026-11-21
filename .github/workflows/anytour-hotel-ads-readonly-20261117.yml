@@ -1,4 +1,4 @@
-name: "PRICE 1046: exact native inspection without a write"
+name: "PRICE 1046: one existing Telegram post and exact readback"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,12 +13,12 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '1401c5b8fb9bad33db55db2f231af23abf1da6b7' &&
+      github.event.before == 'a8d83ccfb303b0ceaa54badfa0fd04504ea5786e' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Prepare the stock read-only inspection for one post
+      - name: Prepare the existing PRICE service and exact readback
         shell: bash
         run: |
           set -euo pipefail
@@ -112,7 +112,7 @@ jobs:
                   ($post['snapshot']['post_url']??null)==='https://t.me/anytour/1046','original_sunrise_binding_changed');
               return $post;
           }
-          $out=['ok'=>false,'target'=>1046,'publication'=>3685,'provider_writes'=>0,'db_writes'=>0];
+          $out=['ok'=>false,'target'=>1046,'publication'=>3685,'called_price_writer'=>false,'existing_price_lock'=>false];
           try {
               installedEdit('c3d763f828d2f88e006d222766c6be3b3656afe9');
               umask(0077);
@@ -126,31 +126,17 @@ jobs:
               } finally { ob_end_clean(); }
               requireEdit(ProjectConfig::projectId()==='anytour','wrong_project');
               $pdo=ConversationDb::connection();
-              $pdo->exec('SET SESSION TRANSACTION READ ONLY');
-              $pdo->beginTransaction();
               $registry=new ChannelPostRegistryService($pdo);
               $operations='/var/www/anytoour/data/channel-post-operations';
               $lockFile=$operations.'/monitor-price-after-collection-v1.jsonl';
               requireEdit(is_file($lockFile)&&!is_link($lockFile),'original_price_lock_missing');
               $lock=fopen($lockFile,'rb');
-              requireEdit(is_resource($lock)&&flock($lock,LOCK_SH|LOCK_NB),'shared_editor_busy');
+              requireEdit(is_resource($lock)&&flock($lock,LOCK_EX|LOCK_NB),'shared_editor_busy');
+              $out['existing_price_lock']=true;
               $journal=$operations.'/promoted-hotel-price-revisions-v1';
               requireEdit(is_dir($journal)&&!is_link($journal)&&realpath($journal)===$journal&&(fileperms($journal)&0077)===0,'invalid_journal_permissions');
 
-              $out['price_lock_observation']='available_for_shared_read';
-              $journalFile=$journal.'/3685.json';
-              requireEdit(!is_link($journalFile),'revision_journal_link');
-              $out['original_price_operation']='none';
-              if(is_file($journalFile)){
-                  $prior=file_get_contents($journalFile,false,null,0,4097);
-                  requireEdit(is_string($prior)&&strlen($prior)<=4096,'invalid_revision_journal');
-                  $revision=json_decode($prior,true,16,JSON_THROW_ON_ERROR);
-                  requireEdit(in_array($revision['state']??null,['started','provider_verified','verified'],true),'invalid_revision_journal');
-                  $out['original_price_operation']=$revision['state'];
-              }
               $post=exactPost($registry);
-              $out['registry_version']=$post['version_id'];
-              $out['registry_state']=$post['state'];
               $original=publicTelegram(1046);
               $rawPhoto=$post['snapshot']['attachments'][0]['file_unique_id']??'';
               $button=ChannelPostButtonTransport::buttonUrl($post);
@@ -192,7 +178,11 @@ jobs:
               requireEdit(PromotedHotelPriceWriter::jobsForPlan($plan,$feedHash,$rawTargets)===$one,'sunrise_single_job_not_proved');
               if(str_ends_with($original['caption'],$block)) $out['writer_state']='already_current_public';
               else {
-                  $written=(new PromotedHotelPriceWriter($pdo,$registry,$journal))->run($plan,$feedHash,false);
+                  $previous=$journal.'/3685.json';
+                  requireEdit(!file_exists($previous)&&!is_link($previous),'previous_price_operation_requires_readback');
+                  requireEdit((int)$post['version_id']===13466&&$out['before_price']===127225,'sunrise_source_version_changed');
+                  $out['called_price_writer']=true;
+                  $written=(new PromotedHotelPriceWriter($pdo,$registry,$journal))->run($plan,$feedHash,true);
                   $out['writer_state']=$written[0]['result']??'no_receipt';
                   $out['writer_reason']=$written[0]['reason']??null;
               }
@@ -206,14 +196,11 @@ jobs:
                   'same_text_links'=>$after['links']===$original['links'],'version'=>$final['version_id'],
                   'offer_lines'=>explode("\n",$block)];
               $p=$out['published'];
-              $out['ok']=$p['caption_matches_registry']&&$p['same_cta']&&$p['same_date']&&$p['same_photo']&&$p['same_text_links'];
+              $out['ok']=$p['full_fresh_block']&&$p['caption_matches_registry']&&$p['same_cta']&&$p['same_date']&&$p['same_photo']&&$p['same_text_links'];
           }catch(Throwable $e) {
               $m=$e->getMessage();
               $out['hold']=preg_match('/\A[a-z_0-9]{1,100}\z/D',$m)?$m:'sunrise_exact_price_pass_failed';
-          }finally {
-              if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();
-              if(isset($lock)&&is_resource($lock))fclose($lock);
-          }
+          }finally {if(isset($lock)&&is_resource($lock))fclose($lock);}
           $out['at']=gmdate(DATE_ATOM);
           echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
           PHP
@@ -250,7 +237,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Run the stock PRICE service in inspection mode only
+      - name: Use the original PRICE service for at most Telegram 1046 and read back
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -262,12 +249,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("SUNRISE_EXACT_NATIVE_INSPECT="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok")'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("SUNRISE_SCOPED_PRICE_RESULT="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok")'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: telegram-1046-native-inspect
+          name: telegram-1046-first-price-readback
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
