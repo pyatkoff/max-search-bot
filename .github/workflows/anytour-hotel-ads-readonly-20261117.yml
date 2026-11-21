@@ -1,4 +1,4 @@
-name: "Telegram 927: one fresh offer after confirmed original version"
+name: "Telegram 954 and 913: confirm only the two original versions"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,12 +13,12 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '72fcb74f54732b7a03b4c2d6482f40f173383195' &&
+      github.event.before == 'c4adcc542775d792875c45b058490dc3dc6db73a' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Prepare one new offer for the recovered Telegram post
+      - name: Prepare exact original version confirmation without Telegram writes
         shell: bash
         run: |
           set -euo pipefail
@@ -72,92 +72,65 @@ jobs:
               return ['date'=>$time->item(0)->getAttribute('datetime'),'photos'=>$photos,'videos'=>$videos,
                   'caption'=>$caption,'caption_sha256'=>hash('sha256',$caption),'buttons'=>$buttons,'links'=>$links];
           }
-          function priceRows(array $ids): array {
-              $raw=PromotedHotelPriceWriter::publicBytes('https://app.anytoour.ru/feed/hotel-posts-all.xml',12000000);
-              requireEdit(!preg_match('/<!\s*(?:DOCTYPE|ENTITY)\b/i',$raw),'invalid_xml');
-              $doc=new DOMDocument();
-              requireEdit(@$doc->loadXML($raw,LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING),'invalid_xml');
-              $xp=new DOMXPath($doc);
-              $result = [];
-              $now=new DateTimeImmutable('now',new DateTimeZone('Europe/Moscow'));
-              foreach($ids as $id) {
-                  try {
-                      $pair=[];
-                      foreach(['max','tg'] as $platform){
-                          $q=$xp->query('/yml_catalog/shop/offers/offer[@id="'.$platform.'_'.$id.'"]');
-                          requireEdit($q->length===1,'missing_or_duplicate_feed_offer');
-                          $o=$q->item(0);
-                          $get=static function(string $name) use($xp,$o):string{
-                              $x=$xp->query('./'.$name,$o);
-                              requireEdit($x->length===1,'invalid_'.$name);
-                              return $x->item(0)->textContent;
-                          };
-                          $desc=$get('description');
-                          $pattern='~^💰 От (?<amount>[0-9][0-9 ,.\x{00a0}\x{202f}]*) ₽ за двоих\n✈️ Вылет из [^\n]+ (?<date>\d{2}\.\d{2}\.\d{4}) · [1-9][0-9]* ноч(?:ь|и|ей)\n👥 2 взрослых\n🛏 [^\n]+\n🍽 [^\n]+\nЦена найдена мониторингом (?<observed>\d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}) МСК\. Стоимость и наличие могут измениться\.$~mu';
-                          requireEdit(preg_match_all($pattern,$desc,$m,PREG_SET_ORDER)===1,'missing_or_ambiguous_price_block');
-                          $a=$m[0];$value=str_replace(',','.',preg_replace('/[\s\x{00a0}\x{202f}]/u','',$a['amount']));
-                          $price=$get('price');
-                          requireEdit($get('currencyId')==='RUB'&&preg_match('/^[1-9][0-9]*(?:\.[0-9]{1,2})?$/D',$price)&& (float)$value===(float)$price,'amount_mismatch');
-                          $obs=DateTimeImmutable::createFromFormat('!d.m.Y, H:i',$a['observed'],$now->getTimezone());
-                          $departure=DateTimeImmutable::createFromFormat('!d.m.Y',$a['date'],$now->getTimezone());
-                          requireEdit($obs && $obs->format('d.m.Y, H:i')===$a['observed'] && $obs<=$now
-                              && $now->getTimestamp()-$obs->getTimestamp()<129600,'observation_outside_36h');
-                          requireEdit($departure && $departure->format('d.m.Y')===$a['date'] && $departure>=$now->setTime(0,0),'past_departure');
-                          $pair[]= ['block'=>$a[0],'price'=>$price,'observation'=>$obs->format(DATE_ATOM),'departure'=>$departure->format('Y-m-d')];
-                      }
-                      requireEdit($pair[0]===$pair[1],'platform_offer_mismatch');
-                      $result[$id]=$pair[0];
-                  } catch (Throwable $e) {
-                      $result[$id]=['reason'=>$e->getMessage()];
-                  }
-              }
-              return $result;
-          }
-          function priceValue(string $text): ?int {
-              if(!preg_match('/^💰 От ([0-9\x{00A0}\x{202F} ]+) ₽ за двоих/mu',$text,$m)) return null;
-              return (int)preg_replace('/\D/u','',$m[1]);
-          }
           function safeReason(Throwable $e): string {
               $m=$e->getMessage();
               return preg_match('/\A[a-z_0-9]{1,100}\z/D',$m)?$m:'exact_preflight_failed';
           }
-          function feedBlock(string $platform,string $offerId): array {
-              $file='hotel-posts-'.$platform.'.xml';
-              $raw=PromotedHotelPriceWriter::publicBytes('https://app.anytoour.ru/feed/'.$file,12000000);
-              requireEdit(!preg_match('/<!\s*(?:DOCTYPE|ENTITY)\b/i',$raw),'invalid_split_feed');
-              $doc=new DOMDocument();
-              requireEdit(@$doc->loadXML($raw,LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING),'invalid_split_feed');
-              $xp=new DOMXPath($doc);
-              $offer=$xp->query('/yml_catalog/shop/offers/offer[@id="'.$offerId.'"]');
-              requireEdit($offer->length===1,'split_offer_identity_changed');
-              $fields=[];
-              foreach(['price','currencyId','description'] as $key) {
-                  $values=$xp->query('./'.$key,$offer->item(0));
-                  requireEdit($values->length===1,'invalid_split_offer');
-                  $fields[]=$values->item(0)->textContent;
+          function telegramOperationReceipt(int $mid,int $id,int $version,string $caption,string $button): array {
+              $root='/var/www/anytoour/data/channel-post-operations';
+              $key='anytour-issue1566-seven-tg-caption-'.$mid.'-v1';
+              $dir=$root.'/'.$key;
+              $file=$dir.'/receipt.jsonl';
+              requireEdit(realpath($dir)===$dir && !is_link($file) && is_file($file),'original_receipt_missing');
+              $bytes=file_get_contents($file,false,null,0,65537);
+              requireEdit(is_string($bytes)&&strlen($bytes)<=65536,'original_receipt_invalid');
+              $rows=[];
+              foreach(preg_split('/\R/u',trim($bytes)) as $line) {
+                  $value=json_decode($line,true,24,JSON_THROW_ON_ERROR);
+                  requireEdit(is_array($value)&&($value['mid']??null)===$mid,'original_receipt_wrong_post');
+                  $rows[$value['state']]=$value;
               }
-              return $fields;
+              $begin=$rows['caption_attempt_started']??[];
+              $bound=$rows['hotel_bound']??[];
+              $done=$rows['held_no_retry']??$rows['verified']??[];
+              return ['present'=>true,'ended'=>$done['state']??null,'caption_http'=>$bound['caption_http']??null,
+                      'caption_matches_original'=>hash_equals((string)($begin['new_caption_sha256']??''),hash('sha256',$caption)),
+                      'button_matches_original'=>hash_equals((string)($bound['button_hash']??''),hash('sha256',$button)),
+                      'same_original_version'=>($bound['publication_id']??null)===$id&&($bound['version_id']??null)===$version
+                          && ($done['publication_id']??null)===$id&&($done['version_id']??null)===$version];
           }
-          function persistRevision(string $path,array $receipt,bool $initial=false): void {
-              $staged=$initial?$path:tempnam(dirname($path),'price-');
-              requireEdit(is_string($staged)&&!is_link($path),'price_revision_path_invalid');
-              try {
-                  $handle=fopen($staged,$initial?'x':'wb');
-                  requireEdit(is_resource($handle),'price_revision_open_failed');
-                  try{
-                      $data=json_encode($receipt,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)."\n";
-                      requireEdit(fwrite($handle,$data)===strlen($data)&&fflush($handle)&&fsync($handle),'price_revision_sync_failed');
-                  }finally{fclose($handle);}
-                  if(!$initial) requireEdit(!is_link($path)&&rename($staged,$path),'price_revision_commit_failed');
-              } finally {if(!$initial&&is_file($staged)) unlink($staged);}
+          function verifiedOriginal(ChannelPostRegistryService $registry,array $target): array {
+              $id=$target['publication'];$vid=$target['version'];$mid=$target['mid'];$hotel=$target['hotel_id'];
+              $url='https://t.me/anytour/'.$mid;
+              $p=$registry->publication($id);
+              requireEdit(is_array($p)&&$p['project_key']==='anytour'&&$p['platform']==='telegram'&&$p['channel_id']==='-1001845835645'
+                  &&$p['external_message_id']===(string)$mid&&$p['version_id']===$vid&&($p['snapshot']['post_url']??null)===$url
+                  &&(int)($p['snapshot']['metadata']['hotel_catalog_id']??0)===$hotel,'original_version_binding_changed');
+              $snap=$p['snapshot'];
+              $raw=ChannelPostIncomingAdapter::telegramSnapshot($snap['raw_body']);
+              $public=publicTelegram($mid);
+              $button=ChannelPostButtonTransport::buttonUrl($p);
+              $context=ChannelPostEntryService::resolve('telegram',$p['start_payload'],$registry);
+              requireEdit(is_array($raw)&&$raw['text']===$snap['text']&&($snap['raw_body']['message_id']??0)===$mid
+                  &&(string)($snap['raw_body']['chat']['id']??'')===$p['channel_id']&&count($snap['attachments'])===1
+                  &&!empty($snap['attachments'][0]['file_unique_id'])&&
+                  ($raw['attachments'][0]['file_unique_id']??null)===$snap['attachments'][0]['file_unique_id'],'original_telegram_response_mismatch');
+              requireEdit($public['caption']===$snap['text']&&$public['date']===$target['date']&&$public['photos']===$target['photos']&&$public['videos']===0
+                  &&$public['links']===$target['links']&&$button!==''&&$public['buttons']===[['text'=>$p['channel']['button_text'],'url'=>$button]]
+                  &&(int)($context['publication_id']??0)===$id&&(int)($context['version_id']??0)===$vid
+                  &&(int)($context['snapshot']['metadata']['hotel_catalog_id']??0)===$hotel,'public_evidence_mismatch_no_write');
+              $original=telegramOperationReceipt($mid,$id,$vid,$snap['text'],$button);
+              requireEdit($original['caption_http']===200&&$original['caption_matches_original']&&$original['button_matches_original']
+                  &&$original['same_original_version']&&$original['ended']==='held_no_retry','original_durable_receipt_mismatch');
+              requireEdit(($p['state']==='sent'||($p['state']==='unknown'&&$p['error_reason']==='edit_outcome_unknown'&&$p['write_attempts']===1))
+                  &&$p['claim_token']===null&&$p['claimed_at']===null,'unknown_operation_state_changed');
+              return $p;
           }
-          function priceClaims(PDOStatement $q,int $id): int {
-              $q->execute([$id]);$c=(int)$q->fetchColumn();$q->closeCursor();return $c;
-          }
-          $target=json_decode(<<<'DATA'
-          {"mid":927,"hotel_id":73055,"date":"2024-11-13T11:09:13+00:00","photos":["5303281113382381294"],"links":[{"text":"Подписаться на канал AnyTour - любые туры","url":"https://t.me/+gGloLUt4d8s3NDcy"}],"publication":3690,"version":13471}
+          $targets=json_decode(<<<'DATA'
+          [{"mid":954,"hotel_id":1439,"date":"2024-12-08T11:10:32+00:00","photos":["5381930103535168203"],"links":[{"text":"@AnyTour_MSK","url":"https://t.me/AnyTour_MSK"},{"text":"Подписаться на канал AnyTour - Горящие туры","url":"https://t.me/+gGloLUt4d8s3NDcy"}],"publication":3688,"version":13469},{"mid":913,"hotel_id":91404,"date":"2024-10-26T16:06:18+00:00","photos":["5253824522019268317"],"links":[{"text":"@AnyTour_MSK","url":"https://t.me/AnyTour_MSK"}],"publication":3689,"version":13470}]
           DATA,true,24,JSON_THROW_ON_ERROR);
-          $out=['ok'=>false,'publication'=>3690,'old_version'=>13471,'mid'=>927,'telegram_writes'=>0];
+          $out=['ok'=>false,'telegram_writes'=>0,'registry_updates'=>0,'rows'=>[]];
+          $held=[];
           try {
               installedEdit('c3d763f828d2f88e006d222766c6be3b3656afe9');
               umask(0077);
@@ -167,121 +140,72 @@ jobs:
                   require_once getcwd().'/services/PromotedHotelPriceWriter.php';
                   require_once getcwd().'/services/ChannelPostRuntime.php';
                   require_once getcwd().'/services/ChannelPostEntryService.php';
-                  require_once getcwd().'/integrations/ChannelPostApiTransport.php';
-              }finally{ob_end_clean();}
+              } finally { ob_end_clean(); }
               requireEdit(ProjectConfig::projectId()==='anytour','wrong_project');
-              $ops='/var/www/anytoour/data/channel-post-operations';
-              $path=$ops.'/monitor-price-after-collection-v1.jsonl';
+              $path='/var/www/anytoour/data/channel-post-operations/monitor-price-after-collection-v1.jsonl';
               requireEdit(is_file($path)&&!is_link($path),'original_price_lock_missing');
-              $lock=fopen($path,'rb');
-              requireEdit(is_resource($lock)&&flock($lock,LOCK_EX|LOCK_NB),'shared_editor_busy');
-              $journal=$ops.'/promoted-hotel-price-revisions-v1';
-              requireEdit(is_dir($journal)&&!is_link($journal)&&realpath($journal)===$journal&&(fileperms($journal)&0077)===0,'invalid_journal_permissions');
-              $receiptFile=$journal.'/3690.json';
+              $file=fopen($path,'rb');
+              requireEdit(is_resource($file)&&flock($file,LOCK_EX|LOCK_NB),'shared_editor_busy');
               $pdo=ConversationDb::connection();
               $registry=new ChannelPostRegistryService($pdo);
-              $id=3690;$vid=13471;$mid=927;$hotel=73055;$url='https://t.me/anytour/927';$channel='-1001845835645';
-              $post=$registry->publication($id);
-              requireEdit(is_array($post)&&$post['state']==='sent'&&$post['platform']==='telegram'&&$post['channel_id']===$channel
-                  &&$post['project_key']==='anytour'&&$post['external_message_id']===(string)$mid
-                  &&($post['snapshot']['post_url']??null)===$url&&(int)($post['snapshot']['metadata']['hotel_catalog_id']??0)===$hotel,
-                  'confirmed_address_binding_unavailable');
-              $snap=$post['snapshot'];
-              $photo=$snap['attachments'][0]['file_unique_id']??'';
-              $button=ChannelPostButtonTransport::buttonUrl($post);
-              $label=$post['channel']['button_text'];
-              $expectedButtons=[['text'=>$label,'url'=>$button]];
-              $page=publicTelegram($mid);
-              $context=ChannelPostEntryService::resolve('telegram',$post['start_payload'],$registry);
-              requireEdit($photo!==''&&count($snap['attachments'])===1&&$button!==''&&$page['caption']===$snap['text']
-                  &&$page['date']===$target['date']&&$page['photos']===$target['photos']&&$page['videos']===0&&$page['links']===$target['links']
-                  &&$page['buttons']===$expectedButtons&&(int)($context['publication_id']??0)===$id&&
-                  (int)($context['snapshot']['metadata']['hotel_catalog_id']??0)===$hotel,'address_public_preimage_changed');
-              $out['previous_amount']=priceValue($page['caption']);
-              $max=feedBlock('max','max_'.$hotel);
-              $tg=feedBlock('telegram','tg_'.$hotel);
-              $offer=priceRows([$hotel])[$hotel];
-              requireEdit(isset($offer['block'],$offer['price'],$offer['observation']),'fresh_address_offer_unavailable');
-              requireEdit($max[0]===$offer['price']&&$tg[0]===$offer['price']&&$max[1]==='RUB'&&$tg[1]==='RUB'&&
-                  substr_count($max[2],$offer['block'])===1&&substr_count($tg[2],$offer['block'])===1,'split_feeds_and_combined_disagree');
-              $out['offer']=['amount'=>(int)$offer['price'],'lines'=>explode("\n",$offer['block']),
-                  'observed'=>$offer['observation'],'departure'=>$offer['departure']];
-              $next=PromotedHotelPriceWriter::revision($snap['text'],$offer['block'],true);
-              if($next===$page['caption']){
-                  requireEdit(str_ends_with($next,$offer['block']),'newer_price_already_present');
-                  $out['writer']='already_current';$out['version']=$post['version_id'];$out['public_verified']=true;$out['ok']=true;
-              }else{
-                  requireEdit((int)$post['version_id']===$vid&&$out['previous_amount']===126963&&!file_exists($receiptFile)&&!is_link($receiptFile),
-                      'address_version_or_prior_price_journal_changed');
-                  $claim=$pdo->prepare("SELECT COUNT(*) FROM post_versions WHERE publication_id=? AND
-                      (state IN ('claimed','write_started','unknown') OR claim_token IS NOT NULL OR claimed_at IS NOT NULL)");
-                  requireEdit(priceClaims($claim,$id)===0,'publication_has_active_writer');
-                  $entities=$snap['markup'];
-                  $old16=mb_convert_encoding($snap['text'],'UTF-16LE','UTF-8');
-                  $next16=mb_convert_encoding($next,'UTF-16LE','UTF-8');
-                  foreach($entities as $span){
-                      $start=$span['offset']??null;$length=$span['length']??null;
-                      requireEdit(is_int($start)&&$start>=0&&is_int($length)&&$length>0&&($start+$length)*2<=min(strlen($old16),strlen($next16))
-                          &&substr($old16,$start*2,$length*2)===substr($next16,$start*2,$length*2),'address_price_overlaps_original_link');
-                  }
-                  requireEdit((new ChannelPostButtonTransport())->verifyChannel($post['channel'])['state']==='ready','channel_edit_rights_unavailable');
-                  $now=time();$observed=strtotime($offer['observation']);
-                  requireEdit(is_int($observed)&&$observed<=$now&&$now-$observed<129600&&$registry->publication($id)===$post
-                      &&priceClaims($claim,$id)===0,'publication_or_price_changed_before_write');
-                  $receipt=['state'=>'started','platform'=>'telegram','hotel'=>$hotel,'url'=>$url,'version'=>$vid,
-                        'at'=>(int)floor(microtime(true)*1000),'next_hash'=>hash('sha256',$next)];
-                  persistRevision($receiptFile,$receipt,true);
-                  $out['telegram_writes']=1;
-                  $response=ChannelPostApiTransport::captionRequest('telegram',$channel,(string)$mid,
-                      ['caption'=>$next,'caption_entities'=>$entities,'reply_markup'=>['inline_keyboard'=>[$expectedButtons]]]);
-                  $out['provider_http']=$response['http'];
-                  $raw=$response['data']['result']??null;
-                  requireEdit(!$response['transport_error']&&$response['http']===200&&($response['data']['ok']??null)===true
-                      &&is_array($raw)&&(int)($raw['message_id']??0)===$mid&&(string)($raw['chat']['id']??'')===$channel
-                      &&($raw['chat']['username']??null)==='anytour'&&(int)($raw['edit_date']??0)>0,'provider_caption_response_unverified_no_retry');
-                  $after=ChannelPostIncomingAdapter::telegramSnapshot($raw);
-                  $out['same_photo']=is_array($after)&&count($after['attachments'])===1&&($after['attachments'][0]['file_unique_id']??null)===$photo;
-                  $out['same_button']=is_array($after)&&ChannelPostIncomingAdapter::containsOnlyButton($after,$button,$label);
-                  $out['same_date']=(int)($raw['date']??0)===(new DateTimeImmutable($target['date']))->getTimestamp();
-                  $out['same_links']=is_array($after)&&$after['markup']===$entities;
-                  requireEdit($out['same_photo']&&$out['same_button']&&$out['same_date']&&$out['same_links']
-                      &&$after['post_url']===$url&&$after['text']===$next,'native_caption_readback_mismatch_no_retry');
-                  $after['metadata']=array_replace($snap['metadata'],$after['metadata'],[
-                      'source_event_id'=>'promoted-price:'.$id.':'.$receipt['at'],'observation_kind'=>'authorized_admin_content_edit',
-                      'source_revision_ms'=>(string)((int)$raw['edit_date']*1000),'promoted_price_observed_at'=>gmdate(DATE_ATOM,$observed),
-                  ]);
-                  unset($after['metadata']['source_sequence'],$after['metadata']['source_sequence_scope']);
-                  $after['content_hash']=ChannelPostIncomingAdapter::contentFingerprint($after,'',(string)$post['channel']['bot_url']);
-                  $saved=$registry->registerPublication('anytour','telegram',$post['bot_key'],$channel,(string)$mid,$after);
-                  requireEdit(is_array($saved)&&(int)$saved['publication_id']===$id&&$saved['start_payload']===$post['start_payload']
-                      &&$saved['snapshot']['text']===$next,'price_registry_receipt_mismatch_no_retry');
-                  if($saved['state']!=='sent'){
-                      requireEdit($saved['state']==='pending'&&$registry->confirmObservedButton($id,(int)$saved['version_id'],
-                          ['verified'=>true,'button_verified'=>true,'content_preserved'=>true,'write_attempts'=>0]),'price_registry_confirmation_failed_no_retry');
-                  }
-                  $final=$registry->publication($id);
-                  requireEdit($final['state']==='sent'&&$final['snapshot']['text']===$next&&$final['version_id']===$saved['version_id'],
-                      'price_registry_readback_mismatch_no_retry');
-                  $receipt['state']='provider_verified';$receipt['new_version']=(int)$final['version_id'];
-                  persistRevision($receiptFile,$receipt);
-                  $out['writer']='provider_verified_public_pending';$out['version']=$final['version_id'];$out['public_verified']=false;
-                  for($read=0;$read<3;$read++){
-                      if($read>0)sleep(2);
-                      try{
-                          $seen=publicTelegram($mid);$out['last_public_amount']=priceValue($seen['caption']);
-                          if($seen['caption']===$next&&$seen['date']===$page['date']&&$seen['photos']===$page['photos']
-                              &&$seen['links']===$page['links']&&$seen['buttons']===$expectedButtons){
-                              $out['public_verified']=true;$out['writer']='updated';
-                              $receipt['state']='verified';persistRevision($receiptFile,$receipt);break;
-                          }
-                      }catch(Throwable $ignore){}
-                  }
-                  $out['ok']=$out['public_verified'];
+              $observed=[];
+              foreach($targets as $target){
+                  $out['checking']=$target['mid'];
+                  $key='anytour-issue1566-seven-tg-caption-'.$target['mid'].'-v1';
+                  $stmt=$pdo->prepare('SELECT GET_LOCK(?,0)');
+                  $stmt->execute([$key]);$locked=(int)$stmt->fetchColumn()===1;$stmt->closeCursor();
+                  requireEdit($locked,'target_lock_busy');
+                  $held[]=$key;
+                  $observed[$target['publication']]=verifiedOriginal($registry,$target);
               }
-          }catch(Throwable $error){$out['hold']=safeReason($error);}
-          finally{if(isset($lock)&&is_resource($lock))fclose($lock);}
+
+              $pdo->beginTransaction();
+              $lockPublication=$pdo->prepare('SELECT current_version_id FROM post_publications WHERE id=? FOR UPDATE');
+              $lockVersion=$pdo->prepare('SELECT id FROM post_versions WHERE id=? AND publication_id=? FOR UPDATE');
+              $changes=0;
+              foreach($targets as $target){
+                  $id=$target['publication'];$vid=$target['version'];$mid=$target['mid'];$p=$observed[$id];
+                  $out['checking']=$mid;
+                  $lockPublication->execute([$id]);$found=(int)$lockPublication->fetchColumn();$lockPublication->closeCursor();
+                  requireEdit($found===$vid,'publication_version_changed');
+                  $lockVersion->execute([$vid,$id]);$found=(int)$lockVersion->fetchColumn();$lockVersion->closeCursor();
+                  requireEdit($found===$vid,'pinned_version_unavailable');
+                  requireEdit($registry->publication($id)===$p,'original_operation_claim_or_version_changed');
+                  if($p['state']==='unknown'){
+                      $receipt=array_replace($p['receipt'],['verified'=>true,'button_verified'=>true,'content_preserved'=>true,
+                          'reconciled'=>true,'message_id'=>(string)$mid,'http_status'=>200]);
+                      requireEdit($registry->confirmObservedButton($id,$vid,$receipt),'original_version_confirmation_failed');
+                      ++$changes;
+                  }
+                  $saved=$registry->publication($id);
+                  requireEdit(is_array($saved)&&$saved['state']==='sent'&&$saved['version_id']===$vid&&
+                      $saved['snapshot']===$p['snapshot']&&$saved['write_attempts']===$p['write_attempts']&&
+                      $saved['start_payload']===$p['start_payload'],'confirmation_readback_mismatch');
+              }
+              $pdo->commit();
+              $out['registry_updates']=$changes;
+              foreach($targets as $target){
+                  $id=$target['publication'];$p=$observed[$id];$out['checking']=$target['mid'];
+                  $saved=$registry->publication($id);
+                  requireEdit(is_array($saved)&&$saved['state']==='sent'&&$saved['version_id']===$target['version']&&
+                      $saved['snapshot']===$p['snapshot']&&$saved['start_payload']===$p['start_payload'],'committed_readback_mismatch');
+                  $out['rows'][]=['mid'=>$target['mid'],'publication'=>$id,'version'=>$saved['version_id'],'before'=>$p['state'],
+                      'after'=>$saved['state'],'original_http'=>200,'original_photo_and_public_cta'=>true];
+              }
+              unset($out['checking']);
+              $out['ok']=true;
+          }catch(Throwable $e){
+              if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();
+              $out['hold']=safeReason($e);
+          }finally{
+              if($held){
+                  $unlock=$pdo->prepare('SELECT RELEASE_LOCK(?)');
+                  foreach(array_reverse($held) as $key){$unlock->execute([$key]);$unlock->closeCursor();}
+              }
+              if(isset($file)&&is_resource($file))fclose($file);
+          }
           $out['at']=gmdate(DATE_ATOM);
-          echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
           PHP
           php -l pub/read-only.php
       - name: Pin established SSH host continuity and authentication identity
@@ -316,7 +240,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Use the installed caption editor for only Telegram 927
+      - name: Confirm the two existing versions without editing Telegram
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -328,12 +252,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ADDRESS_927_FRESH_PRICE="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("telegram_writes") in (0,1) and d.get("publication")==3690'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("RAI_SWISS_ORIGINAL_CONFIRM="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("telegram_writes")==0 and [(a["publication"],a["version"]) for a in d.get("rows",[])]==[(3688,13469),(3689,13470)]'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: telegram-927-fresh-price
+          name: telegram-954-913-original-confirmation
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
