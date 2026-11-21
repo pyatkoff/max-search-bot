@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "repository": "pyatkoff/max-search-bot",
+  "pr_number": 1644,
+  "phase": "before_publisher",
+  "head_sha": "0892d9448f39d1e64bf51fb9406d0d14fe8d39c6",
+  "base_sha": "16631e06f4eca1f95ee7a5216a1c5e07e563d06d",
+  "coordinator_sha": "16631e06f4eca1f95ee7a5216a1c5e07e563d06d",
+  "coordinator_core": {
+    "tools/release_priority.js": {
+      "git_blob": "3c1b228d36785546d71fb9e21c68ee4b03961619",
+      "bytes": 23624
+    },
+    "tools/deployment_release.js": {
+      "git_blob": "9bd5d8b8e61742fc5e3e5e0852ba51a4d6e2dc6e",
+      "bytes": 126173
+    },
+    "tools/release_slot_close.js": {
+      "git_blob": "a81a0ef78d30af8d7c2a55bd99b5c08718043015",
+      "bytes": 97640
+    }
+  },
+  "audit_source": {
+    ".github/workflows/forecast-cohort-admission-20261121.yml": {
+      "sha256": "9890d67bf1e54d8c0bdc67eadec35debf0e56f976fbb76f294f0375b0eeac718",
+      "bytes": 11402
+    },
+    "audit/forecast-cohort-admission-20261121/runner.py": {
+      "sha256": "66ca0893f60c9608496a1fdb888a46af53544706c549b99825df11c1c2854e64",
+      "bytes": 13162
+    }
+  },
+  "publisher": null
+}

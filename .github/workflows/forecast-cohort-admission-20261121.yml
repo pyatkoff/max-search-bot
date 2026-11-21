@@ -1,0 +1,200 @@
+name: Forecast cohort read-only admission
+
+"on":
+  push:
+    branches:
+      - audit/cohort1644-before-publisher-20261121
+      - audit/cohort1644-bound-publisher-20261121
+    paths:
+      - audit/forecast-cohort-admission-20261121/**
+      - .github/workflows/forecast-cohort-admission-20261121.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cohort1644-readonly-admission
+  cancel-in-progress: false
+
+jobs:
+  synthetic-ui:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' &&
+      github.event_name == 'push' && github.run_attempt == '1' &&
+      github.event.created == true && github.event.deleted == false && github.event.forced == false &&
+      github.ref == 'refs/heads/audit/cohort1644-before-publisher-20261121' &&
+      github.event.head_commit.message == 'audit(cohort1644): verify admission before publisher'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
+    container:
+      image: ghcr.io/pyatkoff/max-search-bot-browser-qa@sha256:7b95d1abd4105d9fa3d2af76a7e3c832e5bfe6afe43d091bbe8cdc18814a9c5a
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+      options: --init --shm-size=1g
+    defaults:
+      run:
+        shell: "bash /opt/manager2-qa/run {0}"
+    timeout-minutes: 6
+    env:
+      QA_BROWSER_IMAGE: ghcr.io/pyatkoff/max-search-bot-browser-qa@sha256:7b95d1abd4105d9fa3d2af76a7e3c832e5bfe6afe43d091bbe8cdc18814a9c5a
+      COHORT_QA_DIR: ${{ github.workspace }}/cohort-ui
+      TZ: UTC
+    steps:
+      - name: Check out exact synthetic candidate
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 0892d9448f39d1e64bf51fb9406d0d14fe8d39c6
+          path: candidate
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Verify candidate and existing prepared browser package
+        working-directory: candidate
+        run: |
+          git config --global --add safe.directory "$PWD"
+          test "$(git rev-parse HEAD)" = 0892d9448f39d1e64bf51fb9406d0d14fe8d39c6
+          test "$(git rev-parse HEAD^{tree})" = 49660f0e04f52a4ad8e759b426004cd9cc6f176d
+          node /opt/manager2-qa/verify-runtime.js --require-source
+      - name: Render only in-memory synthetic forecast states
+        working-directory: candidate
+        run: |
+          mkdir -p "$COHORT_QA_DIR"
+          php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          require_once getcwd().'/tests/fixtures/modeled_forecast_payment_checks.php';
+          require_once getcwd().'/services/ModeledConversionForecastPaymentAggregateView.php';
+          $out=getenv('COHORT_QA_DIR');$now=strtotime('2026-11-05T12:00:00Z');
+          $filters=['date'=>'2026-11-05','period'=>90,'platform'=>'all'];
+          $pdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+          forecastPaymentFixtureSchema($pdo);
+          for($i=1;$i<=12;$i++){
+              $scope=forecastPaymentFixtureBinding($pdo,95000+$i,$i%2?'max':'telegram','Synthetic visual fixture');
+              $at=$i>9?$now-35*86400:$now-5000-$i*10;$anchor=$at-100;
+              forecastPaymentFixtureSave($pdo,forecastPaymentFixtureWrapper($scope,$at,$anchor,$i%3===0?'intent':'request',$i%3===0?120:100));
+              if($i<=4)forecastPaymentFixtureSave($pdo,forecastPaymentFixtureWrapper($scope,$now-500-$i*10,$anchor,'payment',200));
+          }
+          $reader=new ModeledConversionForecastPaymentReader($pdo,static function():void{},str_repeat('synthetic-visual-key-',2));
+          $complete=$reader->readAggregate($filters,$now);
+          if(($complete['totals_available']??null)!==true||($complete['inspected']['first_forecasts']??null)!==12)throw new RuntimeException('synthetic_complete_state');
+          file_put_contents($out.'/complete.html',ModeledConversionForecastPaymentAggregateView::render($complete,$filters));
+          forecastPaymentFixtureSchema($pdo);
+          for($i=1;$i<=70;$i++){
+              $scope=forecastPaymentFixtureBinding($pdo,96000+$i,$i%2?'max':'telegram','Synthetic partial fixture');
+              forecastPaymentFixtureSave($pdo,forecastPaymentFixtureWrapper($scope,$now-5000,$now-5100,'request',100));
+              forecastPaymentFixtureSave($pdo,forecastPaymentFixtureWrapper($scope,$now-4000,$now-5100,'intent',120));
+          }
+          $partial=$reader->readAggregate($filters,$now);
+          if(($partial['totals_available']??null)!==false||($partial['totals']??null)!==null||($partial['coverage']['stopped_reason']??null)!=='scan_limit')throw new RuntimeException('synthetic_partial_state');
+          file_put_contents($out.'/partial.html',ModeledConversionForecastPaymentAggregateView::render($partial,$filters));
+          file_put_contents($out.'/unavailable.html',ModeledConversionForecastPaymentAggregateView::render(null,$filters,true));
+          echo "Synthetic in-memory HTML states generated\n";
+          PHP
+      - name: Inspect offline layouts and capture synthetic screenshots
+        working-directory: candidate
+        run: |
+          node <<'NODE'
+          const fs=require('node:fs'),path=require('node:path');
+          const {chromium}=require('/opt/manager2-qa/node_modules/playwright');
+          (async()=>{
+            const out=process.env.COHORT_QA_DIR,rows=[];
+            const report={schema:'forecast-cohort-synthetic-ui-v1',candidate_sha:'0892d9448f39d1e64bf51fb9406d0d14fe8d39c6',synthetic:true,production_http:false,passed:false,cases:rows};
+            const browser=await chromium.launch({headless:true});
+            try{
+              for(const state of ['complete','partial','unavailable'])for(const width of [390,430,768,1440]){
+                const context=await browser.newContext({viewport:{width,height:900},deviceScaleFactor:1,offline:true});
+                const page=await context.newPage();let pageerrors=0,consoleerrors=0,requests=0;
+                page.on('pageerror',()=>pageerrors++);page.on('console',m=>{if(m.type()==='error')consoleerrors++;});
+                page.on('request',()=>requests++);await page.route('**/*',route=>route.abort());
+                await page.setContent(fs.readFileSync(path.join(out,state+'.html'),'utf8'),{waitUntil:'load'});
+                const measure=()=>page.evaluate(()=>({viewport:innerWidth,document:document.documentElement.scrollWidth,body:document.body.scrollWidth}));
+                const collapsed=await measure();
+                await page.locator('details').evaluateAll(nodes=>nodes.forEach(n=>{n.open=true;}));
+                const expanded=await measure();
+                const totals=await page.locator('#aggregateTotals').count(),inspected=await page.locator('#aggregateInspected').count();
+                const text=await page.locator('body').innerText();
+                const expected=state==='complete'?totals===1&&inspected===0:state==='partial'?totals===0&&inspected===1&&text.includes('Общие итоги недоступны'):totals===0&&inspected===0&&text.includes('Сводка сейчас недоступна');
+                await page.screenshot({path:path.join(out,state+'-'+width+'.png'),fullPage:true});
+                const ok=expected&&pageerrors===0&&consoleerrors===0&&requests===0&&[collapsed,expanded].every(x=>x.viewport===width&&x.document<=width&&x.body<=width);
+                rows.push({state,width,collapsed,expanded,pageerrors,consoleerrors,requests,expected_state:expected,passed:ok});
+                await context.close();if(!ok)throw new Error('synthetic_layout_refused');
+              }
+              report.passed=rows.length===12;
+            }finally{await browser.close();fs.writeFileSync(path.join(out,'ui-report.json'),JSON.stringify(report,null,2)+'\n');}
+            if(!report.passed)throw new Error('synthetic_layout_incomplete');
+            console.log(JSON.stringify({synthetic:true,cases:rows.length,passed:report.passed}));
+          })().catch(()=>{process.stderr.write('Synthetic forecast UI check failed\n');process.exitCode=1;});
+          NODE
+      - name: Publish synthetic visual evidence before admission
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: forecast-cohort-synthetic-ui-${{ github.sha }}
+          path: ${{ github.workspace }}/cohort-ui
+          if-no-files-found: error
+          retention-days: 30
+
+  canonical-readonly:
+    needs: [synthetic-ui]
+    if: >-
+      always() && github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' &&
+      github.event_name == 'push' && github.run_attempt == '1' &&
+      github.event.created == true && github.event.deleted == false && github.event.forced == false &&
+      ((github.ref == 'refs/heads/audit/cohort1644-before-publisher-20261121' &&
+      github.event.head_commit.message == 'audit(cohort1644): verify admission before publisher' && needs.synthetic-ui.result == 'success') ||
+      (github.ref == 'refs/heads/audit/cohort1644-bound-publisher-20261121' &&
+      github.event.head_commit.message == 'audit(cohort1644): verify bound publisher admission' && needs.synthetic-ui.result == 'skipped'))
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read
+      issues: read
+      pull-requests: read
+    timeout-minutes: 15
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - name: Check out immutable audit request
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          path: audit-source
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Validate exact source and request
+        id: request
+        run: >-
+          python3 -B audit-source/audit/forecast-cohort-admission-20261121/runner.py prepare
+          --source audit-source --request audit-source/audit/forecast-cohort-admission-20261121/admission-request.json
+      - name: Check out exact candidate
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ steps.request.outputs.head_sha }}
+          path: candidate
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Check out exact current canonical source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ steps.request.outputs.coordinator_sha }}
+          path: canonical
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Execute full canonical final admission once
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: >-
+          python3 -B audit-source/audit/forecast-cohort-admission-20261121/runner.py run
+          --source audit-source --request audit-source/audit/forecast-cohort-admission-20261121/admission-request.json
+          --candidate candidate --canonical canonical
+          --expected-request-sha '${{ steps.request.outputs.request_sha256 }}'
+      - name: Publish bounded admission receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: forecast-cohort-admission-${{ github.sha }}
+          path: forecast-cohort-admission-result.json
+          if-no-files-found: ignore
+          retention-days: 30
