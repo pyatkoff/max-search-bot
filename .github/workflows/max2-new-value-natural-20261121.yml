@@ -1,0 +1,81 @@
+name: Observe only two new MAX2 value goals on 21 Nov 2026
+on:
+  push:
+    branches: [audit/max2-new-value-natural-20261121]
+    paths:
+      - .github/workflows/max2-new-value-natural-20261121.yml
+      - audit/max2-value-natural-evidence-20261121/**
+permissions:
+  contents: read
+concurrency:
+  group: max2-new-value-natural-readonly-owner-20261121
+  cancel-in-progress: false
+jobs:
+  read:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' && github.triggering_actor == 'pyatkoff' &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/audit/max2-new-value-natural-20261121' &&
+      github.run_attempt == '1' && github.event.created == true &&
+      github.event.forced == false && github.event.deleted == false &&
+      github.event.before == '0000000000000000000000000000000000000000' &&
+      github.event.after == github.sha &&
+      github.event.head_commit.message == 'audit(max2): observe two new value goals naturally'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      READER_SHA256: fd4fa2ea5a3201211db0eede0d9698b4ff987b09d643671c8621f172f49009ce
+      RUNNER_SHA256: 73de2544a6f37b4fe04998fc2a7b0b8db87cf6b1dbe76c56b25c0e1a0afd3557
+      EVIDENCE_INPUTS_SHA256: 4d14aff0f0235e1e8f5c67c6197038cf4c89a8ea9f6359e9ec684de5730d2015
+      REPORT_PUBLIC_KEY_B64: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUF5Vk5IdXFaR0NpWmk3amFhQ0VjUQpRdXU2SlNlU0lNK3hVVG95b0lmMGhVVjZianBWTC90QWhHNHZHcERGWHQxeDRHT3F1SVJmNnlqY2NSa0x2bmw1Cm9xZndLRC9KYkl3MjNmbEs3QjVjRU5PSGs3YkJhUUs5RS9HamtoWUpZdkZ0YkhwZ3MvbkVQbHQ1L1dNd2pERGYKVjEzdHRNNnRGR0lCemJFNTJObEhkamkxTGx0Z200cS9jYnpqTTVBWlF3SjFPRFVrRytFQXBxVHFCZHBDMnVJZApScC9xRFMvZ2ozcmxnRDVWVW03VzNVNXZMODd5S3ZoVXltTXMwZElBajRjbjZLMTF1U2RZdVlHeWZSa1dYY0pvCkNEc3RuQk9ya2YwL3J2aEJHcDR0OCtsNng5M01wWHBnZU4vYVNKQ0pBMnhHVzRZZFhuN1FMMDIwQVMwbjFhZnEKRlV6b0JUdE03Smo3cmdqd0ErN1NSaXFxaGgycHNQNjRkR0thdW56eFdTS1RUL2dVMG5hS1ZQR3MvNGFraVJKRQpEZzE0aHMrbk9WcUtWVDRTRmN2WEhpQlNwWlQrNTBqNll6MldDcTcyTDR1NVpDd1pIUUVxMHRpcGthNE11cXhrCjFtY0F6RFJDY3cwMUtvd1VKd1kwWmZmcVB4VmNWRmRXa0xvaG1Kc2hWOGYxQWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
+      REPORT_PUBLIC_KEY_SHA256: 0376f0849eb61207bd36e0a627881d4814161b3d0b9b71217370cdc36eda3798
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Verify exact new source, actual installation proof and fresh public key
+        run: |
+          python3 -B - <<'PYVERIFY'
+          import ast, hashlib, pathlib, runpy
+          root = pathlib.Path('audit/max2-value-natural-evidence-20261121')
+          files = {
+              'metrika_reader.py': 'fd4fa2ea5a3201211db0eede0d9698b4ff987b09d643671c8621f172f49009ce',
+              'metrika_runner.py': '73de2544a6f37b4fe04998fc2a7b0b8db87cf6b1dbe76c56b25c0e1a0afd3557',
+              'decrypt_metrika.py': '403fba22ea6e27d045571e6d93d1383b1f9af47ce24555f9054d09d1bf684fd4',
+              'tests/test_metrika.py': 'ecea53bbed8054ac0d103d2a354b818c344355f67d68ee170b2062ba253dd09f',
+              'tests/test_metrika_runner.py': 'b855cab1b94250b2d9eecf57e4b29b7776a5678d05866520987a0e9b3a3b2b54',
+              'tests/test_decrypt_metrika.py': 'e63d85345374e15673abef16a34cc7cc9776213b966c75a57fc1f6f6cb5e86f7',
+              'evidence-inputs.json': '4d14aff0f0235e1e8f5c67c6197038cf4c89a8ea9f6359e9ec684de5730d2015',
+              'proof/install-report.json': '2ba68e9b25659c38e59a2ae29a24766ba833a38fdd7fb07c7fb8792f1e5514f0',
+              'proof/acceptance-report.json': 'ee304760066c058a804694e9048e3ad2ad210fcaa7e5eeb368a7dbbef8ccedfe',
+              'metrika-report-public.pem': '0376f0849eb61207bd36e0a627881d4814161b3d0b9b71217370cdc36eda3798',
+          }
+          for name, expected in files.items():
+              path = root / name
+              if path.is_symlink() or not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+                  raise SystemExit('REVIEWED_SOURCE_PIN_MISMATCH')
+              if name.endswith('.py'): ast.parse(path.read_bytes(), filename=name)
+          module = runpy.run_path(str(root / 'metrika_runner.py'), run_name='source_fixture')
+          module['source_gate']()
+          module['verify_evidence']()
+          module['report_public_key']()
+          print('NEW_SOURCE_ORIGINAL_INSTALL_ACCEPTANCE_AND_PUBLIC_KEY_VERIFIED')
+          PYVERIFY
+      - name: Verify exact scope, single GET and authenticated decrypt with synthetic fixtures
+        run: python3 -B -m unittest discover -s audit/max2-value-natural-evidence-20261121/tests -p 'test_*metrika*.py'
+      - name: Observe two new goals once through the existing read-only standby credential path
+        env:
+          SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 -B audit/max2-value-natural-evidence-20261121/metrika_runner.py
+      - name: Retain only the new encrypted natural observation
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: max2-new-value-natural-98615635-20261121
+          path: encrypted-max2-new-value-natural/*.enc.json
+          retention-days: 3
+          if-no-files-found: error

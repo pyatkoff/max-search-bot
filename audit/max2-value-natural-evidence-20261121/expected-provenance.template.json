@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "repository": "pyatkoff/max-search-bot",
+  "branch": "audit/max2-new-value-natural-20261121",
+  "workflow_sha": null,
+  "run_id": null,
+  "job_id": null,
+  "run_attempt": 1,
+  "artifact_id": null,
+  "artifact_name": "max2-new-value-natural-98615635-20261121",
+  "archive_sha256": null,
+  "reader_sha256": "fd4fa2ea5a3201211db0eede0d9698b4ff987b09d643671c8621f172f49009ce",
+  "runner_sha256": "73de2544a6f37b4fe04998fc2a7b0b8db87cf6b1dbe76c56b25c0e1a0afd3557",
+  "report_public_key_sha256": "0376f0849eb61207bd36e0a627881d4814161b3d0b9b71217370cdc36eda3798"
+}
