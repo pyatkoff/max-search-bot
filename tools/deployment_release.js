@@ -287,7 +287,7 @@ const PUBLISHER_BODY_RECOVERY=Object.freeze({
   changed_files:Object.freeze(['tools/deployment_release.js','tools/release_slot_close.js',
     'tests/run_deployment_release_regression.js',CLOSER,PREFIX+'max2-common-value-state-v2.yml',
     'tests/run_max2_common_value_state_operation_v2_regression.py','tests/max2_common_v2/fixtures.json',
-    'resources/max2-common-v2/release-manifest.json'])
+    'resources/max2-common-v2/release-manifest.json','tests/check_ci_workflow_scopes.py'])
 });
 function publisherBodyRecovery(r){
   const x=r.closure?.recovery,p=PUBLISHER_BODY_RECOVERY;
