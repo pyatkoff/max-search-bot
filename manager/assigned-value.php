@@ -8,6 +8,7 @@ require_once dirname(__DIR__).'/services/ModeledConversionDeliveryRegistryView.p
 require_once dirname(__DIR__).'/services/ModeledConversionAcquisitionStatsView.php';
 require_once dirname(__DIR__).'/services/ModeledConversionDailyReconciliationView.php';
 require_once dirname(__DIR__).'/services/ModeledConversionForecastPaymentView.php';
+require_once dirname(__DIR__).'/services/ModeledConversionForecastPaymentAggregateView.php';
 require_once dirname(__DIR__).'/services/MaxMemberHistoryView.php';
 
 ManagerHttp::startJson();
@@ -30,10 +31,11 @@ try{
     $actor=(int)$manager['id'];
     if(($_SERVER['REQUEST_METHOD']??'')!=='GET')ManagerHttp::respond(['ok'=>false,'error'=>'method_not_allowed'],405);
     $view=$_GET['view']??'delivery';
-    if(!is_string($view)||!in_array($view,['delivery','members','profiles','acquisition','reconciliation','forecast-payments'],true))
+    if(!is_string($view)||!in_array($view,['delivery','members','profiles','acquisition','reconciliation','forecast-payments','forecast-summary'],true))
         ManagerHttp::respond(['ok'=>false,'error'=>'unexpected_parameters'],422);
     $allowed=match($view){'delivery'=>['view','date','platform','cursor'],'acquisition'=>['view','date','period','platform'],
-        'reconciliation'=>['view','date','platform'],'forecast-payments'=>['view','date','period','platform','cursor'],default=>['view','after']};
+        'reconciliation'=>['view','date','platform'],'forecast-payments'=>['view','date','period','platform','cursor'],
+        'forecast-summary'=>['view','date','period','platform'],default=>['view','after']};
     if($_POST||array_diff(array_keys($_GET),$allowed))
         ManagerHttp::respond(['ok'=>false,'error'=>'unexpected_parameters'],422);
     if($view==='delivery'){
@@ -44,7 +46,7 @@ try{
         }
         $deliveryInput['date']=$deliveryInput['date']??(new DateTimeImmutable('@'.$reportNow))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('Y-m-d');
         $deliveryInput['platform']=$deliveryInput['platform']??'all';
-    }elseif(in_array($view,['reconciliation','forecast-payments'],true)){
+    }elseif(in_array($view,['reconciliation','forecast-payments','forecast-summary'],true)){
         foreach(array_diff($allowed,['view'])as$key)if(isset($_GET[$key])){
             if(!is_string($_GET[$key])||strlen($_GET[$key])>($key==='cursor'?1024:32))
                 ManagerHttp::respond(['ok'=>false,'error'=>'unexpected_parameters'],422);
@@ -52,9 +54,9 @@ try{
         }
         $analyticsInput['date']=$analyticsInput['date']??(new DateTimeImmutable('@'.$reportNow))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('Y-m-d');
         $analyticsInput['platform']=$analyticsInput['platform']??'all';
-        if($view==='forecast-payments'){
-            $analyticsInput['period']=$analyticsInput['period']??'30';
-            if(!in_array($analyticsInput['period'],['7','30','90'],true))
+        if(in_array($view,['forecast-payments','forecast-summary'],true)){
+            $analyticsInput['period']=$analyticsInput['period']??($view==='forecast-summary'?'1':'30');
+            if(!in_array($analyticsInput['period'],$view==='forecast-summary'?['1','7','30','90']:['7','30','90'],true))
                 ManagerHttp::respond(['ok'=>false,'error'=>'unexpected_parameters'],422);
             $analyticsInput['period']=(int)$analyticsInput['period'];
         }
@@ -87,7 +89,7 @@ try{
     // A session cookie is client-visible and cannot itself be a cursor signing secret.
     // Keep an independent random key in the existing private administrator session.
     $forecastCursorKey='';
-    if($view==='forecast-payments'){
+    if(in_array($view,['forecast-payments','forecast-summary'],true)){
         $savedKey=$_SESSION['modeled_forecast_payment_cursor_key']??null;
         if(!is_string($savedKey)||preg_match('/\\A[a-f0-9]{64}\\z/D',$savedKey)!==1){
             $savedKey=bin2hex(random_bytes(32));
@@ -113,7 +115,7 @@ try{
             $page=(new ModeledConversionDeliveryRegistry($pdo,$authorize,$cursorKey))->read($deliveryInput,$reportNow);
             $unavailable=($page['available']??false)!==true;
             $monitor=ModeledConversionDeliveryHealth::externalStatus(new ModeledConversionStatusBudget(),$authorize,time());
-        }elseif(in_array($view,['reconciliation','forecast-payments'],true)){
+        }elseif(in_array($view,['reconciliation','forecast-payments','forecast-summary'],true)){
             $authorize=static function()use($actor):void{
                 $current=ManagerAuthService::byId($actor);
                 if(!$current||!ManagerAuthService::isAdmin($current)
@@ -125,7 +127,8 @@ try{
                 $page=(new ModeledConversionDailyReconciliationReader($pdo,$authorize))->read($analyticsInput,$reportNow);
             }else{
                 require_once dirname(__DIR__).'/services/ModeledConversionForecastPaymentReader.php';
-                $page=(new ModeledConversionForecastPaymentReader($pdo,$authorize,$forecastCursorKey))->read($analyticsInput,$reportNow);
+                $reader=new ModeledConversionForecastPaymentReader($pdo,$authorize,$forecastCursorKey);
+                $page=$view==='forecast-summary'?$reader->readAggregate($analyticsInput,$reportNow):$reader->read($analyticsInput,$reportNow);
             }
             $unavailable=($page['available']??false)!==true;
         }elseif($view==='acquisition'){
@@ -165,23 +168,27 @@ try{
 
     http_response_code($unavailable?503:200);
     header('Content-Type: text/html; charset=utf-8');
-    echo $view==='reconciliation'
+    echo $view==='forecast-summary'
+        ?ModeledConversionForecastPaymentAggregateView::render($page,$analyticsInput,$unavailable)
+        :($view==='reconciliation'
         ?ModeledConversionDailyReconciliationView::render($page,$analyticsInput,$unavailable)
         :($view==='forecast-payments'?ModeledConversionForecastPaymentView::render($page,$analyticsInput,$unavailable)
         :($view==='delivery'
         ?ModeledConversionDeliveryRegistryView::render($page,$deliveryInput,$monitor,$unavailable)
         :($view==='acquisition'?ModeledConversionAcquisitionStatsView::render($page,$acquisitionInput,$unavailable)
             :($view==='members'?MaxMemberHistoryView::render($page,$unavailable)
-                :ModeledConversionValueRegistryView::render($view,$page,$after,$unavailable)))));
+                :ModeledConversionValueRegistryView::render($view,$page,$after,$unavailable))))));
 }catch(Throwable $ignored){
     http_response_code(503);
     header('Content-Type: text/html; charset=utf-8');
-    echo $view==='reconciliation'
+    echo $view==='forecast-summary'
+        ?ModeledConversionForecastPaymentAggregateView::render(null,$analyticsInput,true)
+        :($view==='reconciliation'
         ?ModeledConversionDailyReconciliationView::render(null,$analyticsInput,true)
         :($view==='forecast-payments'?ModeledConversionForecastPaymentView::render(null,$analyticsInput,true)
         :($view==='delivery'
         ?ModeledConversionDeliveryRegistryView::render(null,$deliveryInput,[],true)
         :($view==='acquisition'?ModeledConversionAcquisitionStatsView::render(null,$acquisitionInput,true)
             :($view==='members'?MaxMemberHistoryView::render(null,true)
-                :ModeledConversionValueRegistryView::render($view,null,$after,true)))));
+                :ModeledConversionValueRegistryView::render($view,null,$after,true))))));
 }

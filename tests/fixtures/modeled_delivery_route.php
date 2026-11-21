@@ -21,8 +21,8 @@ final class ModeledDeliveryRouteFixturePDO extends PDO
 }
 $case=$argv[1]??'admin';
 $view=$argv[2]??'delivery';
-if(!in_array($view,['delivery','reconciliation','forecast-payments'],true))exit(2);
-if(!in_array($case,['admin','admin_previous_day','manager','inactive','no_project','foreign','post','parameters','session_changed','anonymous'],true))exit(2);
+if(!in_array($view,['delivery','reconciliation','forecast-payments','forecast-summary'],true))exit(2);
+if(!in_array($case,['admin','admin_previous_day','manager','inactive','no_project','foreign','post','parameters','session_changed','anonymous','cursor','invalid_period'],true))exit(2);
 $repo=dirname(__DIR__,2);
 $dir=sys_get_temp_dir().'/modeled_delivery_route_'.bin2hex(random_bytes(10));
 if(!mkdir($dir,0700)||!mkdir($dir.'/manager',0700)||!mkdir($dir.'/sessions',0700))exit(2);
@@ -30,14 +30,14 @@ if(!symlink($repo.'/services',$dir.'/services')||!symlink($repo.'/manager/lib',$
     ||!copy($repo.'/manager/assigned-value.php',$dir.'/manager/assigned-value.php'))exit(2);
 $pdo=new ModeledDeliveryRouteFixturePDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
 deliveryRegistrySchema($pdo);
-if($view==='forecast-payments')forecastPaymentFixtureSchema($pdo);
+if(in_array($view,['forecast-payments','forecast-summary'],true))forecastPaymentFixtureSchema($pdo);
 $now=time();
 $zone=new DateTimeZone('Europe/Moscow');
 $eventAt=$case==='admin_previous_day'
     ?(new DateTimeImmutable('@'.$now))->setTimezone($zone)->setTime(0,0)->getTimestamp()-60
     :$now-60;
 deliveryRegistryFixtureEvent($pdo,101,1,$eventAt,['name'=>'Синтетический турист: проверка доступа']);
-if($view==='forecast-payments'){
+if(in_array($view,['forecast-payments','forecast-summary'],true)){
     $subject=['project_key'=>'anytour','platform'=>'telegram','customer_key'=>'101','conversation_id'=>'101'];
     forecastPaymentFixtureSave($pdo,forecastPaymentFixtureWrapper($subject,$eventAt,$eventAt-100));
 }
@@ -69,6 +69,8 @@ $_SERVER['REQUEST_METHOD']=$case==='post'?'POST':'GET';
 $_GET=['view'=>$view,'date'=>(new DateTimeImmutable('@'.$eventAt))->setTimezone($zone)->format('Y-m-d')];$_POST=[];
 if($view==='forecast-payments')$_GET['period']='30';
 if($case==='parameters')$_GET['unexpected']='fixture';
+if($case==='cursor')$_GET['cursor']='fixture';
+if($case==='invalid_period')$_GET['period']='2';
 if($case==='session_changed')$pdo->switchSession=true;
 register_shutdown_function(static function()use($pdo,$before,$dir):void{
     $status=http_response_code();if($status===false)$status=200;

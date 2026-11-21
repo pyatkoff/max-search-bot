@@ -973,6 +973,62 @@ rewritten or replayed. The already completed historical-review windows and their
 original timezone metadata remain unchanged. Old calendar-bound pagination tokens
 are rejected; refresh the selected report to start a new consistent snapshot.
 
+## Anonymous cohort of saved early forecasts
+
+The existing administrator GET page accepts
+`view=forecast-summary&date=YYYY-MM-DD&period=1|7|30|90&platform=all|max|telegram`.
+It defaults to one Moscow calendar day. `ModeledConversionForecastPaymentReader`
+uses `readAggregate()` for this view; the existing eight-card `forecast-payments`
+view and its signed pagination retain their original contract. Aggregate requests
+reject cursors and do not accumulate state across requests or create a new worker.
+
+One read-only repeatable-read transaction pins the saved-profile fence and
+observation instant. The reader reuses the same global first-admitted prediction
+per canonical subject/request anchor, immutable packet validation, current source
+access and later-evidence comparison. The final administrator/project/session
+authorization remains mandatory. The aggregate does not select customer names
+or return individual IDs, source references, prediction digests, transcript text
+or conversation links. Its limits remain 128 candidate profiles, 15 seconds and
+4 MiB of selected data; removing the eight-card presentation limit does not raise
+those limits or the separate operational MCP budget.
+
+`forecast_payment_aggregate_v1` distinguishes three forms of completeness:
+
+- `selection_exhausted`: every candidate in the selected saved-profile window was
+  inspected within the existing bounds.
+- `cohort_membership_complete`: selection is exhausted and no unresolved packet,
+  first-prediction, anchor or access omission remains. Expected later versions
+  (`not_global_first`) are deduplication, not missing cohort members. An admitted
+  first prediction with invalid earlier candidates also prevents full totals.
+- `coverage.source_history_complete`: always false. A complete saved-forecast
+  selection does not establish all inquiries, distinct people/trips, complete
+  outcome observation or independent payment verification.
+
+Only complete membership supplies `totals`. Otherwise `totals_available=false`
+and `totals=null`; `inspected` contains only the fully admitted cases actually
+processed. Candidate/time/byte limits are explicit. Storage or authorization
+failures never become successful empty totals. Omission and invalid-predecessor
+counts refer to profile candidates and are not additional distinct requests.
+
+Both summaries count first forecasts, open/elapsed 30-day horizons, observed
+conversation evidence and unknown/waiting follow-up. They group those same
+cases by channel, initial stage and fixed probability bands with edges
+0%, 5%, 10%, 20%, 35%, 50%, 100%. Lower edges are inclusive; only the final upper
+edge is inclusive. Means describe immutable early estimates, not measured
+payment frequencies. Self-reported and manager-confirmed evidence counts may
+overlap; a request with both still contributes only one observed case. Unknown
+follow-up reasons remain separate. A mature window without evidence is not a
+negative payment label; CRM won, documents and contradictory/edited evidence do
+not turn into a confirmed payment.
+
+The report returns no accuracy, calibration, commission or advertising-value
+sum: `payment_label=null`, `probability_calibrated=false`, `verified_payment=false`
+and `evaluation_eligible=false`. Monetary policy, ledger reservations, delivery,
+stored forecasts and outcome labels are unchanged. No MCP tool, producer,
+collector, migration or schedule is added. Synthetic SQLite/native-MySQL cases
+and the existing administrator HTTP matrix verify these boundaries; source/CI
+success does not claim installation or a live cohort observation.
+
 ## Saved monetary-policy visibility and calculation availability
 
 Reader `saved_semantic_prediction_status_v1_20` exposes
