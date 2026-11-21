@@ -25,8 +25,8 @@
     "services/Max2ValueLookupHttpV2.php": "5fee9f979eba333d5bb9e4a6cf159dfffaed0a892c0667aa6f682e18abf8726b",
     "services/Max2ValueLookupProtocolV2.php": "04100d16541e5d1c961845ad59a5fb9b11840361630c4bf3b83a80c360bc2fe2",
     "services/Max2ValueLookupRepositoryV2.php": "40ab600c7b8e619da212d0a10942046fb36a37ab13ba661f6019d40b3bd9fac9",
-    "tests/run_max2_common_value_state_operation_v2_regression.py": "324ffa718a491b1fb8d8f45f265cceaff7ad0253a043ce84624e008515588fdd",
-    "tools/max2_common_value_state_operation_v2.py": "995bdf5f9d7e8433275c07471d198b855b29e96e3ef29e623bd360e32fe2fc5d",
+    "tests/run_max2_common_value_state_operation_v2_regression.py": "f0354cc8c2df7961a0c3218359162a8b87453d7b3490a81ae7d220de95f4dc3e",
+    "tools/max2_common_value_state_operation_v2.py": "51b05208e5e8902d8721e3f8674adc49beafd8841dfae7ab1cef706869c448fe",
     "tools/max2_common_value_state_v2.php": "c9fa5aef544d77a8c31e704d20dd5019c7bf0ddeb6ddbe639e0665dc27efa5ce"
   },
   "canonical_fixture": {

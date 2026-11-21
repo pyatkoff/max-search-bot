@@ -305,6 +305,63 @@ class FiniteCarrierTests(unittest.TestCase):
         with self.assertRaises(M.Refusal):
             M.context(env, ev)
 
+    def test_optional_epoch_omission_matches_explicit_blank(self):
+        for op in ('status', 'activate'):
+            with self.subTest(operation=op):
+                env, explicit = event(op)
+                omitted = json.loads(json.dumps(explicit))
+                del omitted['inputs']['expected_epoch']
+                expected = M.context(env, explicit)
+                actual = M.context(env, omitted)
+                self.assertEqual(actual, expected)
+                self.assertIsNone(actual['expected_epoch'])
+                self.assertEqual(M.request_bytes(actual['operation'], actual['source_sha'], actual['expected_epoch']),
+                    M.request_bytes(op, SOURCE, None))
+        env, ev = event('status', EPOCH)
+        self.assertEqual(M.context(env, ev)['expected_epoch'], EPOCH)
+        env, ev = event('activate', EPOCH)
+        with self.assertRaisesRegex(M.Refusal, '^NEW_ACTIVATION_ONLY$'):
+            M.context(env, ev)
+
+    def test_mode_epoch_is_required_and_invalid_epoch_is_not_coerced(self):
+        for op in ('off', 'collect', 'send'):
+            for omitted in (False, True):
+                with self.subTest(operation=op, omitted=omitted):
+                    env, ev = event(op)
+                    if omitted:
+                        del ev['inputs']['expected_epoch']
+                    with self.assertRaisesRegex(M.Refusal, '^EXACT_ACTIVATION_EPOCH_REQUIRED$'):
+                        M.context(env, ev)
+                    ev['inputs']['expected_epoch'] = EPOCH
+                    self.assertEqual(M.context(env, ev)['expected_epoch'], EPOCH)
+        for op in M.OPERATIONS:
+            for epoch in (None, False, 0, [], {}, ' ', '8' * 63, 'g' * 64):
+                with self.subTest(operation=op, invalid_epoch=epoch):
+                    env, ev = event(op, epoch)
+                    with self.assertRaisesRegex(M.Refusal, '^FINITE_OPERATION_REQUIRED$'):
+                        M.context(env, ev)
+
+    def test_required_and_unknown_dispatch_inputs_remain_strict(self):
+        for omitted in ('operation', 'expected_application_sha'):
+            env, ev = event()
+            del ev['inputs'][omitted]
+            with self.assertRaisesRegex(M.Refusal, '^EXACT_MANUAL_INPUTS_REQUIRED$'):
+                M.context(env, ev)
+        for key in ('goal_id', 'extra', 'epoch'):
+            env, ev = event()
+            del ev['inputs']['expected_epoch']
+            ev['inputs'][key] = '678187097'
+            with self.assertRaisesRegex(M.Refusal, '^EXACT_MANUAL_INPUTS_REQUIRED$'):
+                M.context(env, ev)
+
+    def test_actual_release_manifest_is_accepted_without_new_paths(self):
+        raw = (ROOT / M.MANIFEST).read_bytes()
+        expected = json.loads(raw)['files']
+        actual = M.source_package(ROOT)
+        self.assertEqual(actual['sha256'], M.sha(raw))
+        self.assertEqual(actual['files'], expected)
+        self.assertEqual(set(actual['snapshot']), {M.MANIFEST, *expected})
+
     def test_canonical_resolver_mapping_not_just_green_sha(self):
         valid = b'repository_sha=' + SOURCE.encode() + b'\napplication_sha=' + b'6' * 40 + b'\nkind=application_unchanged\nperform_actions=true\nready=true\n'
         self.assertEqual(M.accepted_resolution(valid, SOURCE, '6' * 40)['application_sha'], '6' * 40)

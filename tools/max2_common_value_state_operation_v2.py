@@ -169,8 +169,9 @@ def context(env, event):
          and event.get('sender', {}).get('login') == 'pyatkoff' and event.get('sender', {}).get('id') == 226193297,
          'OWNER_EVENT_REQUIRED')
     inputs = event.get('inputs')
-    need(isinstance(inputs, dict) and set(inputs) == {'operation', 'expected_application_sha', 'expected_epoch'}, 'EXACT_MANUAL_INPUTS_REQUIRED')
-    op, source, epoch = inputs['operation'], inputs['expected_application_sha'], inputs['expected_epoch']
+    need(isinstance(inputs, dict) and {'operation', 'expected_application_sha'}.issubset(inputs)
+         and set(inputs).issubset({'operation', 'expected_application_sha', 'expected_epoch'}), 'EXACT_MANUAL_INPUTS_REQUIRED')
+    op, source, epoch = inputs['operation'], inputs['expected_application_sha'], inputs.get('expected_epoch', '')
     need(op in OPERATIONS and isinstance(source, str) and HEX40.fullmatch(source)
          and isinstance(epoch, str) and (epoch == '' or HEX64.fullmatch(epoch)), 'FINITE_OPERATION_REQUIRED')
     need(op in ('status', 'activate') or bool(epoch), 'EXACT_ACTIVATION_EPOCH_REQUIRED')
