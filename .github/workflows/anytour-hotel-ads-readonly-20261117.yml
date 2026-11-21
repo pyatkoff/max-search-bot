@@ -1,4 +1,4 @@
-name: "PR 1642: canonical read-only release admission"
+name: "PR 1642: canonical admission for the held publisher"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -16,7 +16,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '1b4c268edd2c5bea564c76c74e836bb1b9a8bbf8' &&
+      github.event.before == '6198bdef1fdaa9a0b5a023400c3b28f119e596cc' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
@@ -33,4 +33,4 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = 'c3d763f828d2f88e006d222766c6be3b3656afe9'
-          node tools/release_priority.js --admit 1642 9ef4034b1a2647d2aa44fcd0dcce69d480e9dfd0 c3d763f828d2f88e006d222766c6be3b3656afe9
+          node tools/release_priority.js --admit 1642 9ef4034b1a2647d2aa44fcd0dcce69d480e9dfd0 c3d763f828d2f88e006d222766c6be3b3656afe9 --publisher 6650664504 226193297 2026-11-21T01:35:37Z
