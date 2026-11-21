@@ -1,4 +1,4 @@
-name: "Big MAX Parrotel: exact caption update and two post lookups"
+name: "Big MAX: reconcile Parrotel journal and candidate bindings"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,12 +13,12 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '382116b8302eb2a902995f64af315d922e9b65dd' &&
+      github.event.before == '5c9dc797f7770f3c9673ef1f2984a06a15e74120' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Prepare exact Parrotel operation and two read-only lookups
+      - name: Prepare the bounded read-only journal and post reconciliation
         shell: bash
         run: |
           set -euo pipefail
@@ -38,128 +38,9 @@ jobs:
               requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD')) === $expected, 'installed_checkout_changed');
               requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false status --porcelain --untracked-files=no')) === '', 'installed_checkout_dirty');
           }
-          function priceRows(array $ids): array {
-              $raw=PromotedHotelPriceWriter::publicBytes('https://app.anytoour.ru/feed/hotel-posts-all.xml',12000000);
-              requireEdit(!preg_match('/<!\s*(?:DOCTYPE|ENTITY)\b/i',$raw),'invalid_xml');
-              $doc=new DOMDocument();
-              requireEdit(@$doc->loadXML($raw,LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING),'invalid_xml');
-              $xp=new DOMXPath($doc);
-              $result = [];
-              $now=new DateTimeImmutable('now',new DateTimeZone('Europe/Moscow'));
-              foreach($ids as $id) {
-                  try {
-                      $pair=[];
-                      foreach(['max','tg'] as $platform){
-                          $q=$xp->query('/yml_catalog/shop/offers/offer[@id="'.$platform.'_'.$id.'"]');
-                          requireEdit($q->length===1,'missing_or_duplicate_feed_offer');
-                          $o=$q->item(0);
-                          $get=static function(string $name) use($xp,$o):string{
-                              $x=$xp->query('./'.$name,$o);
-                              requireEdit($x->length===1,'invalid_'.$name);
-                              return $x->item(0)->textContent;
-                          };
-                          $desc=$get('description');
-                          $pattern='~^💰 От (?<amount>[0-9][0-9 ,.\x{00a0}\x{202f}]*) ₽ за двоих\n✈️ Вылет из [^\n]+ (?<date>\d{2}\.\d{2}\.\d{4}) · [1-9][0-9]* ноч(?:ь|и|ей)\n👥 2 взрослых\n🛏 [^\n]+\n🍽 [^\n]+\nЦена найдена мониторингом (?<observed>\d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}) МСК\. Стоимость и наличие могут измениться\.$~mu';
-                          requireEdit(preg_match_all($pattern,$desc,$m,PREG_SET_ORDER)===1,'missing_or_ambiguous_price_block');
-                          $a=$m[0];$value=str_replace(',','.',preg_replace('/[\s\x{00a0}\x{202f}]/u','',$a['amount']));
-                          $price=$get('price');
-                          requireEdit($get('currencyId')==='RUB'&&preg_match('/^[1-9][0-9]*(?:\.[0-9]{1,2})?$/D',$price)&& (float)$value===(float)$price,'amount_mismatch');
-                          $obs=DateTimeImmutable::createFromFormat('!d.m.Y, H:i',$a['observed'],$now->getTimezone());
-                          $departure=DateTimeImmutable::createFromFormat('!d.m.Y',$a['date'],$now->getTimezone());
-                          requireEdit($obs && $obs->format('d.m.Y, H:i')===$a['observed'] && $obs<=$now
-                              && $now->getTimestamp()-$obs->getTimestamp()<129600,'observation_outside_36h');
-                          requireEdit($departure && $departure->format('d.m.Y')===$a['date'] && $departure>=$now->setTime(0,0),'past_departure');
-                          $pair[]= ['block'=>$a[0],'price'=>$price,'observation'=>$obs->format(DATE_ATOM),'departure'=>$departure->format('Y-m-d')];
-                      }
-                      requireEdit($pair[0]===$pair[1],'platform_offer_mismatch');
-                      $result[$id]=$pair[0];
-                  } catch (Throwable $e) {
-                      $result[$id]=['reason'=>$e->getMessage()];
-                  }
-              }
-              return $result;
-          }
-          function parsedPrice(string $text): ?int {
-              if (!preg_match('/^💰 От ([0-9\x{00a0}\x{202f} ]+) ₽ за двоих/mu',$text,$m)) return null;
-              return (int)preg_replace('/\D/','',$m[1]);
-          }
-          function separateOffer(string $url,string $id): array {
-              $bytes=PromotedHotelPriceWriter::publicBytes($url,12000000);
-              requireEdit(!preg_match('/<!\s*(?:DOCTYPE|ENTITY)\b/i',$bytes),'invalid_split_feed');
-              $xml=new DOMDocument();
-              requireEdit(@$xml->loadXML($bytes,LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING),'invalid_split_feed');
-              $offers=(new DOMXPath($xml))->query('/yml_catalog/shop/offers/offer[@id="'.$id.'"]');
-              requireEdit($offers->length===1,'split_offer_identity_unverified');
-              $root=$offers->item(0);
-              $price=$root->getElementsByTagName('price');
-              $desc=$root->getElementsByTagName('description');
-              requireEdit($price->length===1 && $desc->length===1,'split_offer_fields_unverified');
-              return [$price->item(0)->textContent,$desc->item(0)->textContent];
-          }
-          function acceptedLookingPosts(ChannelPostRegistryService $registry,string $channel): array {
-              $before=(int)ceil(microtime(true)*1000);
-              $seen=[];$matches=[90236=>[],67910=>[]];$complete=false;
-              for($page=0;$page<6;++$page) {
-                  $r=ChannelPostApiTransport::buttonRequest('max','GET','/messages',['chat_id'=>$channel,'from'=>$before,'to'=>1,'count'=>100],null);
-                  $msgs=$r['data']['messages']??null;
-                  requireEdit(($r['http']??0)===200 && empty($r['transport_error']) && is_array($msgs) && count($msgs)<=100,'max_history_read_failed');
-                  $last=$before;
-                  foreach($msgs as $m) {
-                      $mid=$m['body']['mid']??'';
-                      requireEdit((string)($m['recipient']['chat_id']??'')===$channel && preg_match('/\Amid\.[0-9a-f]{32}\z/D',$mid) && isset($m['timestamp']),'max_history_identity');
-                      $last=min($last,(int)$m['timestamp']);
-                      if(isset($seen[$mid])) continue;
-                      $seen[$mid]=true;
-                      $text=$m['body']['text']??'';
-                      $hotel=preg_match('/\bThe V Luxury Resort\b/ui',$text) ? 90236
-                          : (preg_match('/\bRixos Premium Magawish\b/ui',$text) ? 67910 : 0);
-                      if(!$hotel) continue;
-                      $snap=ChannelPostIncomingAdapter::maxSnapshot($m);
-                      if(!is_array($snap)) continue;
-                      $slug=rtrim(strtr(base64_encode(hex2bin(substr($mid,-16))),'+/','-_'),'=');
-                      $url='https://max.ru/anytour/'.$slug;
-                      $exact=[];
-                      foreach($m['body']['attachments']??[] as $a) {
-                          if(($a['type']??null)!=='inline_keyboard') continue;
-                          foreach($a['payload']['buttons']??[] as $buttons) {
-                              foreach($buttons as $button) {
-                                  $link=$button['url']??'';
-                                  if(!preg_match('~\Ahttps://max\.ru/id9704048781_1_bot\?start=(p_[A-Za-z0-9_-]{24})\z~D',$link,$token)) continue;
-                                  $context=ChannelPostEntryService::resolve('max',$token[1],$registry);
-                                  if(($context['external_message_id']??null)!==$mid) continue;
-                                  $post=$registry->publication((int)$context['publication_id']);
-                                  if(!is_array($post)||($post['snapshot']['post_url']??null)!==$url) continue;
-                                  $catalog=$post['snapshot']['metadata']['hotel_catalog_id']??null;
-                                  $exact[]=['id'=>(int)$post['publication_id'],'catalogue'=>(int)$catalog,
-                                      'label'=>$button['text']??'','canonical'=>$link===ChannelPostButtonTransport::buttonUrl($post)
-                                          && ChannelPostIncomingAdapter::containsOnlyButton($snap,$link,(string)($button['text']??''))];
-                              }
-                          }
-                      }
-                      $matches[$hotel][]=['url'=>$url,'title_match'=>stripos(explode("\n",$text,2)[0],$hotel===90236?'The V Luxury Resort':'Rixos Premium Magawish')!==false,
-                          'amount'=>parsedPrice($text),'photo'=>in_array('image',array_column($snap['attachments']??[],'type'),true),
-                          'exact_button_bindings'=>$exact];
-                  }
-                  if(count($msgs)<100) {$complete=true;break;}
-                  requireEdit($last<$before,'max_history_no_progress');
-                  $before=$last;
-              }
-              return ['complete'=>$complete,'matches'=>$matches];
-          }
-          function validateOtherPriceJournal(string $base,int $publication,string $caption): void {
-              $path=$base.'/promoted-hotel-price-revisions-v1/'.$publication.'.json';
-              requireEdit(!is_link(dirname($path)) && !is_link($path),'price_journal_link');
-              if(!is_file($path)) return;
-              $raw=file_get_contents($path,false,null,0,4097);
-              requireEdit(is_string($raw)&&strlen($raw)<=4096,'invalid_price_journal');
-              $previous=json_decode($raw,true,16,JSON_THROW_ON_ERROR);
-              requireEdit(($previous['state']??null)==='verified' &&
-                  hash_equals((string)($previous['next_hash']??''),hash('sha256',$caption)),'prior_price_operation_needs_readback');
-          }
-          $out=['ok'=>false,'case'=>352,'called_existing_editor'=>false];
+          $out=['ok'=>false,'provider_writes'=>0,'db_writes'=>0,'evidence'=>[]];
           try {
               installedEdit('cb08ade02e0d4588dfef8e4f0a8a5253b04d26c6');
-              umask(0077);
               ob_start();
               try {
                   require getcwd().'/config.php';
@@ -169,84 +50,63 @@ jobs:
                   require_once getcwd().'/integrations/ChannelPostApiTransport.php';
                   require_once getcwd().'/tools/anytour_existing_post_batch.php';
               } finally { ob_end_clean(); }
-              requireEdit(ProjectConfig::projectId()==='anytour','wrong_project');
               $pdo=ConversationDb::connection();
+              $pdo->exec('SET SESSION TRANSACTION READ ONLY');
+              $pdo->beginTransaction();
               $registry=new ChannelPostRegistryService($pdo);
               $channel='-68765999669267';
-              $base='/var/www/anytoour/data/channel-post-operations';
-              try {
-                  requireEdit(realpath($base)===$base,'price_lock_directory_unavailable');
-                  $path=$base.'/monitor-price-after-collection-v1.jsonl';
-                  requireEdit(is_file($path)&&!is_link($path),'original_price_lock_missing');
-                  $lk=fopen($path,'rb');
-                  requireEdit(is_resource($lk)&&flock($lk,LOCK_EX|LOCK_NB),'shared_editor_busy');
-                  $out['original_price_lock_acquired']=true;
-                  $post=$registry->publication(3670);
-                  $url='https://max.ru/anytour/AaCF4YtORgI';
-                  $mid=$post['external_message_id']??'';
-                  $snap=$post['snapshot']??[];
-                  requireEdit(is_array($post)&&$post['state']==='sent'&&$post['platform']==='max'&&$post['channel_id']===$channel
-                      && ($snap['post_url']??null)===$url,'parrotel_publication_changed');
-                  $binding=json_decode(file_get_contents('config/promoted_hotel_price_targets.json'),true,32,JSON_THROW_ON_ERROR);
-                  requireEdit(in_array(['hotel_id'=>352,'platform'=>'max','publication_id'=>3670,'url'=>$url],$binding,true),'parrotel_target_not_installed');
-                  $native=AnyTour\ExistingPostBatch\readHotelMax($mid,$channel);
-                  $public=AnyTour\ExistingPostBatch\publicHotelPost(['platform'=>'max','url'=>$url]);
-                  $button=ChannelPostButtonTransport::buttonUrl($post);
-                  $label=(string)$post['channel']['button_text'];
-                  $media=AnyTour\ExistingPostBatch\postPhotoIds($native,'max');
-                  requireEdit($native['post_url']===$url && $native['text']===$snap['text'] && $public['text']===$native['text']
-                      && AnyTour\ExistingPostBatch\postPhotoIds($snap,'max')===$media
-                      && ChannelPostIncomingAdapter::containsOnlyButton($native,$button,$label),'parrotel_exact_original_unverified');
-                  $out['before']=parsedPrice($native['text']);
-                  requireEdit(($native['markup']??null)===[] && ($snap['markup']??null)===[],'parrotel_has_formatting_requires_price_writer');
-                  validateOtherPriceJournal($base,3670,$native['text']);
-                  $max=separateOffer('https://app.anytoour.ru/feed/hotel-posts-max.xml','max_352');
-                  $tg=separateOffer('https://app.anytoour.ru/feed/hotel-posts-telegram.xml','tg_352');
-                  $prices=priceRows([352]);
-                  $offer=$prices[352];
-                  requireEdit(isset($offer['block'],$offer['price'],$offer['observation']),'fresh_parrotel_offer_unavailable');
-                  requireEdit($max[0]===$offer['price'] && $tg[0]===$offer['price'] &&
-                      substr_count($max[1],$offer['block'])===1 && substr_count($tg[1],$offer['block'])===1,'split_feed_versus_plan_mismatch');
-                  $out['source']=['amount'=>(int)$offer['price'],'observed'=>$offer['observation'],'departure'=>$offer['departure']];
-                  $afterText=PromotedHotelPriceWriter::revision($native['text'],$offer['block'],false);
-                  if($afterText===$native['text']) {
-                      requireEdit(str_ends_with($afterText,$offer['block']),'newer_price_already_present');
-                      $out['state']='already_current';
-                  } else {
-                      requireEdit($out['before']===95783,'parrotel_price_changed_since_preflight');
-                      $plan=['platform'=>'max','post'=>'3670','hotel'=>352,'mid'=>$mid,'url'=>$url,
-                          'old_caption_sha256'=>hash('sha256',$native['text']),'next'=>$afterText,'button_sha'=>hash('sha256',$button)];
-                      requireEdit(AnyTour\ExistingPostBatch\validHotelEditPlan($plan),'parrotel_invalid_native_plan');
-                      requireEdit(time()-strtotime($offer['observation'])<129600,'parrotel_price_expired_before_edit');
-                      $out['called_existing_editor']=true;
-                      $edit=AnyTour\ExistingPostBatch\editHotelExisting($pdo,$registry,$plan);
-                      $out['state']=$edit['state']??'needs_independent_readback';
+              foreach([3670=>'AaCF4YtORgI',92=>'AaGL2WYPAfo',1141=>'AaG7dXpgV8Q',0=>'AZ_rrRmlYz0'] as $id=>$slug) {
+                  $item=['publication'=>$id?:null,'url'=>'https://max.ru/anytour/'.$slug];
+                  try {
+                      $mid='mid.ffffc1752b045fed'.bin2hex(base64_decode(strtr($slug,'-_','+/').'=',true));
+                      $p=$id?$registry->publication($id):null;
+                      if($id) requireEdit(is_array($p)&&$p['external_message_id']===$mid,'registry_mid_mismatch');
+                      $native=AnyTour\ExistingPostBatch\readHotelMax($mid,$channel);
+                      requireEdit($native['post_url']===$item['url'],'native_target_url_mismatch');
+                      $s=$p['snapshot']??[];
+                      $item['media']=array_column($native['attachments']??[],'type');
+                      $item['markup_types']=array_count_values(array_column($native['markup']??[],'type'));
+                      $item['registry_same_caption']=($s['text']??null)===$native['text'];
+                      $item['catalogue_id']=$s['metadata']['hotel_catalog_id']??null;
+                      $item['state']=$p['state']??null;
+                      $item['named_rixos']=preg_match('/rixos|риксос/ui',$native['text'])===1;
+                      $item['magawish']=preg_match('/magawish|магавиш/ui',$native['text'])===1;
+                      if($p) {
+                          $start=ChannelPostEntryService::resolve('max',$p['start_payload'],$registry);
+                          $item['exact_context']=($start['external_message_id']??null)===$mid && (int)($start['publication_id']??0)===$id;
+                          $item['context_hotel_id']=$start['hotel_catalog_id']??null;
+                          $item['same_cta']=ChannelPostIncomingAdapter::containsOnlyButton($native,ChannelPostButtonTransport::buttonUrl($p),(string)$p['channel']['button_text']);
+                      }
+                      if($id===3670) {
+                          $public=AnyTour\ExistingPostBatch\publicHotelPost(['platform'=>'max','url'=>$item['url']]);
+                          $item['public_same_caption']=$public['text']===$native['text'];
+                          $dir='/var/www/anytoour/data/channel-post-operations';
+                          $path=$dir.'/promoted-hotel-price-revisions-v1/3670.json';
+                          requireEdit(!is_link(dirname($path))&&!is_link($path)&&is_file($path),'expected_original_price_journal_missing');
+                          $raw=file_get_contents($path,false,null,0,4097);
+                          requireEdit(is_string($raw)&&strlen($raw)<=4096,'invalid_price_journal');
+                          $j=json_decode($raw,true,16,JSON_THROW_ON_ERROR);
+                          $st=$j['state']??null;
+                          requireEdit(in_array($st,['started','provider_verified','verified'],true),'invalid_price_journal_state');
+                          $hash=$j['next_hash']??'';
+                          $item['price_journal']=['state'=>$st,'updated_at'=>isset($j['at'])?gmdate(DATE_ATOM,intdiv((int)$j['at'],1000)):null,
+                              'expected_equals_native'=>hash_equals($hash,hash('sha256',$native['text'])),
+                              'expected_equals_public'=>hash_equals($hash,hash('sha256',$public['text'])),
+                              'expected_equals_registry'=>hash_equals($hash,hash('sha256',$s['text']))];
+                          $item['shared_post_journal_exists']=is_file($dir.'/issue-1566-edit-existing-3670.jsonl');
+                      }
+                  } catch(Throwable $error) {
+                      $message=$error->getMessage();
+                      $item['hold']=preg_match('/\A[a-z_0-9]{1,100}\z/D',$message)?$message:'exact_read_failed';
                   }
-                  $next=AnyTour\ExistingPostBatch\readHotelMax($mid,$channel);
-                  $external=AnyTour\ExistingPostBatch\publicHotelPost(['platform'=>'max','url'=>$url]);
-                  $out['after']=['native_price'=>parsedPrice($next['text']),'public_price'=>parsedPrice($external['text']),
-                      'native_and_public_exact'=>$next['text']===$afterText && $external['text']===$afterText,
-                      'same_photo'=>AnyTour\ExistingPostBatch\postPhotoIds($next,'max')===$media,
-                      'same_cta'=>ChannelPostIncomingAdapter::containsOnlyButton($next,$button,$label),
-                      'same_link'=>($next['metadata']['link']??null)===($native['metadata']['link']??null),
-                      'same_markup'=>$next['markup']===$native['markup']];
-                  $out['ok']=$out['after']['native_and_public_exact'] && $out['after']['same_photo'] &&
-                      $out['after']['same_cta'] && $out['after']['same_link'] && $out['after']['same_markup'];
-              } catch(Throwable $error) {
-                  $message=$error->getMessage();
-                  $out['hold']=preg_match('/\A[a-z_0-9]{1,100}\z/D',$message)?$message:'parrotel_existing_editor_error';
-              } finally { if(isset($lk)&&is_resource($lk)) fclose($lk); }
-              try {
-                  $pdo->exec('SET SESSION TRANSACTION READ ONLY');
-                  $pdo->beginTransaction();
-                  $out['other_two']=acceptedLookingPosts($registry,$channel);
-              } catch(Throwable $error) {
-                  $message=$error->getMessage();
-                  $out['other_two_error']=preg_match('/\A[a-z_0-9]{1,100}\z/D',$message)?$message:'max_read_only_lookup_failed';
-              } finally { if($pdo->inTransaction()) $pdo->rollBack(); }
-          } catch(Throwable $error) {
+                  $out['evidence'][]=$item;
+              }
+              $pdo->rollBack();
+              $out['ok']=true;
+          }catch(Throwable $error) {
+              if(isset($pdo)&&$pdo->inTransaction()) $pdo->rollBack();
               $message=$error->getMessage();
-              $out['hold']=preg_match('/\A[a-z_0-9]{1,100}\z/D',$message)?$message:'max_operation_preflight_failed';
+              $out['hold']=preg_match('/\A[a-z_0-9]{1,100}\z/D',$message)?$message:'exact_read_failed';
           }
           $out['at']=gmdate(DATE_ATOM);
           echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
@@ -284,7 +144,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Run the one scoped existing MAX editor and read two candidates
+      - name: Reconcile native, public and journal evidence without edits
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -296,12 +156,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("MAX_SCOPED_PRICE_RESULT="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok")'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("MAX_EXACT_JOURNAL_READ="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0 and d.get("db_writes")==0'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: scoped-max-price-readback
+          name: big-max-price-journal-read
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
