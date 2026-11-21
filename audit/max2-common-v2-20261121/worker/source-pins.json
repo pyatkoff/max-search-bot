@@ -10,9 +10,9 @@
   "files": {
     "README.md": "e35a444a2862a66bf41ea2d05ef6a94916e9aac82186fb9081b03e33a3315624",
     "migrations/113_max2_common_runtime_v2.sql": "092c123615aae8261c19b8aa7316b0631926698906491c03869f28373646ada9",
-    "services/Max2CommonValueStateV2.php": "a0569ed15dde28d52ce01fdd19e52e2cd6e44b03f93e0c7d3e7924a3ac8cf7c2",
+    "services/Max2CommonValueStateV2.php": "5a3f966d2a460f58108e3e6937082d19164b158120f4644ee2b2da119a1d324d",
     "services/Max2CommonValueWorkerV2.php": "890d0cee6e8309576e25e7b6fa969a730374b6072c69b58db6aba597638c4f18",
-    "tests/state.php": "84b7fd334ddd68801c9d5b4c42098bd021b3053cd99e681a55a2d10cf70cd405",
+    "tests/state.php": "2b5ebe79e909dba6d444a3cf9c35746c4edab596d55c1a8eb259b2137d115652",
     "tests/support.php": "19c82e0f357fa67b362660497c6eedfeb3cf765a02901d458d0e3afa0a759f3e",
     "tests/worker.php": "6cf9476d2ed0ff5b969e7bda32ffc6803bcbc8ca48bbccd33925c305cbbd5e62"
   },

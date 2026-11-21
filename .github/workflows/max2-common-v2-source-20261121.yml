@@ -98,6 +98,8 @@ jobs:
               sys.stdout.write(result.stdout.decode('utf-8', errors='replace'))
               sys.stderr.write(result.stderr.decode('utf-8', errors='replace'))
               need(result.returncode == 0, 'PHP_CHECK_FAILED')
+              need(not re.search(rb'(?:PHP )?(?:Warning|Notice|Deprecated|Fatal error):', result.stdout + result.stderr),
+                   'PHP_DIAGNOSTIC_REJECTED')
               return result.stdout
           try:
               need(php is not None, 'PHP_REQUIRED')

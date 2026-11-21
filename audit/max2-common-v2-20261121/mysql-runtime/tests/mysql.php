@@ -9,7 +9,7 @@ if (!in_array('mysql', PDO::getAvailableDrivers(), true) || !function_exists('pc
 $root = dirname(__DIR__, 2);
 $dependencyHashes = [
     'worker/migrations/113_max2_common_runtime_v2.sql'=>'092c123615aae8261c19b8aa7316b0631926698906491c03869f28373646ada9',
-    'worker/services/Max2CommonValueStateV2.php'=>'a0569ed15dde28d52ce01fdd19e52e2cd6e44b03f93e0c7d3e7924a3ac8cf7c2',
+    'worker/services/Max2CommonValueStateV2.php'=>'5a3f966d2a460f58108e3e6937082d19164b158120f4644ee2b2da119a1d324d',
     'policy/services/Max2ValueBindingPolicyV2.php'=>'1c3feae48181559a601d595e37a0f01bb42c55371669346ed38bcb5c25bc7db9',
     'binding/services/Max2CommonFrameV2.php'=>'67153e1a1fee15b941263ff5d7d243a772acdd8f32fa3f8da94eea01ece540e8',
     'binding/services/Max2CommonEntryEvidenceV2.php'=>'db02e55fd3cf074a6dbc34b5889364b3e6e68a20ff4bcea08221f78f7332dd60',

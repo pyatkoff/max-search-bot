@@ -8,7 +8,7 @@
     "map/canonical-map-v1055.json": "c5ee090912b5e20402a46b79294137ef3045a02b1dd37abf4a1f9cb5fae50172",
     "policy/services/Max2ValueBindingPolicyV2.php": "1c3feae48181559a601d595e37a0f01bb42c55371669346ed38bcb5c25bc7db9",
     "worker/migrations/113_max2_common_runtime_v2.sql": "092c123615aae8261c19b8aa7316b0631926698906491c03869f28373646ada9",
-    "worker/services/Max2CommonValueStateV2.php": "a0569ed15dde28d52ce01fdd19e52e2cd6e44b03f93e0c7d3e7924a3ac8cf7c2"
+    "worker/services/Max2CommonValueStateV2.php": "5a3f966d2a460f58108e3e6937082d19164b158120f4644ee2b2da119a1d324d"
   },
   "deployment": false,
   "executed_locally": false,
@@ -23,7 +23,7 @@
     },
     "tests/mysql.php": {
       "bytes": 28669,
-      "sha256": "b8f2b62c700ef9b8b1bf04a06a15945824dbe76159a3a43b2c22a5fba701f410"
+      "sha256": "37595f0175cb5a58beeefc04c6019c5ee9d7785f13155b8da1ad6ebf3e467950"
     }
   },
   "production_activation": false,

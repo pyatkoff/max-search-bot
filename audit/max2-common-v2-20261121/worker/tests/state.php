@@ -29,7 +29,9 @@ stateCheck($state->advanceProfile($tick['tick_key'],'107',['status'=>'HOLD','rea
 stateCheck((int)$db->query('SELECT COUNT(*) FROM max2_common_profile_work_v2')->fetchColumn()===1,'held_profile_diagnostic_durable');
 $summary=array_fill_keys(['profiles_read','reserved','evaluated','held','unknown','lookup_list','lookup_recheck','goal_reads','send_attempts','provider_polls'],0);
 $summary['held']=1;$summary['lookup_list']=1;
-stateCheck($state->finishTick($tick['tick_key'],$summary,$clock)['status']==='COMPLETED'&&$state->settings()['active_tick_key']===null,'tick_aggregate_and_release_committed');
+$finished=$state->finishTick($tick['tick_key'],$summary,$clock);
+stateCheck($finished['status']==='COMPLETED'&&$state->settings()['active_tick_key']===null,'tick_aggregate_and_release_committed');
+stateCheck(($finished['summary']??null)===$summary,'returned_tick_summary_matches_committed_counters');
 $next=$state->beginTick($clock);$clock+=181;
 $replacement=$state->beginTick($clock);
 stateCheck($replacement['status']==='ACQUIRED'&&$replacement['tick_key']!==$next['tick_key'],'expired_lease_replaced_once');

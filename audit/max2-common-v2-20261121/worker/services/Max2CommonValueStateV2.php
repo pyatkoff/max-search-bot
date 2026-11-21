@@ -195,7 +195,7 @@ final class Max2CommonValueStateV2
         if (count($summary)!==count($allowed)) return self::hold('TICK_SUMMARY_UNPROVED');
         foreach ($allowed as $key) if (!is_int($summary[$key]??null)||$summary[$key]<0||$summary[$key]>100) return self::hold('TICK_SUMMARY_UNPROVED');
         $json=json_encode($summary,JSON_THROW_ON_ERROR);
-        return $this->tx(function() use($tickKey,$json,$now):array {
+        return $this->tx(function() use($tickKey,$json,$summary,$now):array {
             $s=$this->normalize($this->lockedSettings());
             if ($s['active_tick_key']!==$tickKey||!self::hash($tickKey)) return self::hold('TICK_LEASE_NOT_OWNED');
             $this->write('UPDATE max2_common_ticks_v2 SET state=?,finished_at_unix=?,summary_json=? WHERE tick_key=? AND state=?',['completed',$now,$json,$tickKey,'running']);
