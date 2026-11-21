@@ -1,0 +1,136 @@
+name: MAX2 common V2 - source-only PHP contracts
+
+on:
+  push:
+    branches: [prepare/max2-common-v2-20261121]
+    paths:
+      - audit/max2-common-v2-20261121/**
+      - .github/workflows/max2-common-v2-source-20261121.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: max2-common-v2-source-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  pure-source-tests:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' &&
+      github.event_name == 'push' && github.run_attempt == '1' &&
+      github.event.deleted == false && github.event.forced == false &&
+      github.event.head_commit.message == 'test(max2): verify common v2 source package'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    defaults:
+      run:
+        working-directory: audit/max2-common-v2-20261121
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      # Official setup-php 2.40.0 commit; fixed source, no floating action tag.
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962
+        with:
+          php-version: '8.2'
+          extensions: openssl, pdo_sqlite
+          coverage: none
+          tools: none
+      - name: Verify seals, lint PHP and run only synthetic contracts
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 -B - <<'PY'
+          import hashlib, json, os, pathlib, re, shutil, subprocess, sys
+          root = pathlib.Path.cwd()
+          report = {
+              'schema': 'max2-common-v2-source-ci-v1', 'source_sha': os.environ['GITHUB_SHA'],
+              'run_id': int(os.environ['GITHUB_RUN_ID']), 'run_attempt': 1,
+              'job': 'pure-source-tests', 'status': 'FAIL', 'scope': 'source_only',
+              'secrets_requested': False, 'server_access': False, 'provider_calls': 0,
+              'live_database_connections': 0, 'deployed': False, 'source_sha256': {}, 'suites': []}
+          def need(condition, code):
+              if not condition:
+                  raise ValueError(code)
+          def sha(data):
+              return hashlib.sha256(data).hexdigest()
+          def seals(group):
+              directory = root / group
+              need(directory.is_dir() and not directory.is_symlink(), 'SOURCE_DIRECTORY_MISSING')
+              manifest_path = directory / 'source-pins.json'
+              need(manifest_path.is_file() and not manifest_path.is_symlink(), 'SOURCE_PINS_MISSING')
+              manifest = json.loads(manifest_path.read_bytes())
+              files = manifest.get('files')
+              need(isinstance(files, dict) and bool(files), 'SOURCE_PIN_SHAPE')
+              expected = set(files) | {'source-pins.json'}
+              actual = set()
+              for path in directory.rglob('*'):
+                  need(not path.is_symlink(), 'SOURCE_SYMLINK')
+                  if path.is_file():
+                      actual.add(path.relative_to(directory).as_posix())
+              need(actual == expected, 'SOURCE_FILE_SET')
+              for name, pin in files.items():
+                  relative = pathlib.PurePosixPath(name)
+                  need(not relative.is_absolute() and '..' not in relative.parts and str(relative) == name,
+                       'SOURCE_PIN_PATH')
+                  data = (directory / name).read_bytes()
+                  wanted = pin.get('sha256') if isinstance(pin, dict) else pin
+                  need(isinstance(wanted, str) and re.fullmatch(r'[a-f0-9]{64}', wanted) and sha(data) == wanted,
+                       'SOURCE_PIN_CHANGED')
+                  if isinstance(pin, dict):
+                      need(type(pin.get('bytes')) is int and len(data) == pin['bytes'], 'SOURCE_SIZE_CHANGED')
+                  report['source_sha256'][group + '/' + name] = sha(data)
+              report['source_sha256'][group + '/source-pins.json'] = sha(manifest_path.read_bytes())
+          env = {'PATH': os.environ['PATH'], 'LANG': 'C.UTF-8', 'LC_ALL': 'C.UTF-8'}
+          blocked = ','.join(['curl_exec', 'curl_multi_exec', 'fsockopen', 'pfsockopen',
+              'stream_socket_client', 'mail', 'exec', 'passthru', 'shell_exec', 'system',
+              'proc_open', 'popen', 'socket_create', 'socket_connect'])
+          php = shutil.which('php')
+          command = [php or 'php', '-d', 'allow_url_fopen=0', '-d', 'allow_url_include=0',
+                     '-d', 'disable_functions=' + blocked, '-d', 'display_errors=stderr',
+                     '-d', 'error_reporting=32767', '-d', 'memory_limit=128M']
+          def execute(args):
+              result = subprocess.run(command + args, env=env, capture_output=True, timeout=60)
+              need(len(result.stdout) <= 65536 and len(result.stderr) <= 65536, 'FIXTURE_OUTPUT_BOUND')
+              sys.stdout.write(result.stdout.decode('utf-8', errors='replace'))
+              sys.stderr.write(result.stderr.decode('utf-8', errors='replace'))
+              need(result.returncode == 0, 'PHP_CHECK_FAILED')
+              return result.stdout
+          try:
+              need(php is not None, 'PHP_REQUIRED')
+              runtime = json.loads(execute(['-r', "echo json_encode(['version'=>PHP_VERSION,'openssl'=>extension_loaded('openssl'),'pdo_sqlite'=>in_array('sqlite',PDO::getAvailableDrivers(),true)]);"]))
+              need(runtime['version'].startswith('8.2.') and runtime['openssl'] is True and runtime['pdo_sqlite'] is True,
+                   'PHP_82_OPENSSL_SQLITE_REQUIRED')
+              report['php_runtime'] = runtime
+              suites = [('policy', 'tests/policy.php'), ('lookup', 'tests/run_lookup.php'), ('delivery', 'tests/delivery.php')]
+              # A partial ledger directory is a failure. Root publishes it only when its own sealed fixture is ready.
+              if (root / 'ledger').exists():
+                  suites.append(('ledger', 'tests/repository.php'))
+              report['ledger_included'] = any(group == 'ledger' for group, _ in suites)
+              for group, fixture in suites:
+                  seals(group)
+                  need((root / group / fixture).is_file(), 'FIXTURE_MISSING')
+              for group, fixture in suites:
+                  for path in sorted((root / group).rglob('*.php')):
+                      execute(['-l', str(path)])
+                  execute([str(root / group / fixture)])
+                  report['suites'].append({'name': group, 'fixture': fixture, 'status': 'PASS'})
+              report['status'] = 'PASS'
+          except Exception as error:
+              reason = str(error)
+              report['reason'] = reason if isinstance(error, ValueError) and re.fullmatch(r'[A-Z_]{1,80}', reason) else type(error).__name__
+          finally:
+              (root / 'source-ci-result.json').write_text(json.dumps(report, sort_keys=True) + '\n')
+              print(json.dumps(report, sort_keys=True))
+          raise SystemExit(0 if report['status'] == 'PASS' else 1)
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: max2-common-v2-source-${{ github.sha }}
+          path: audit/max2-common-v2-20261121/source-ci-result.json
+          if-no-files-found: ignore
+          retention-days: 30

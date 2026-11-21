@@ -1,0 +1,18 @@
+{
+  "app_source_sha": "b678bc2f211c5f141751137453b199036491222d",
+  "effects": {
+    "db_calls": 0,
+    "provider_calls": 0,
+    "remote_edits": 0
+  },
+  "files": {
+    "README.md": "2355284b357b35dd6ba900201ca306655083f876a4ba2cdb870ca2f311190947",
+    "services/Max2CommonValueAccountingV2.php": "a77136881422f15587379e3921e7d025321ddebb09612a7e81873f337afe0b48",
+    "services/Max2ValueBindingPolicyV2.php": "1c3feae48181559a601d595e37a0f01bb42c55371669346ed38bcb5c25bc7db9",
+    "tests/policy.php": "b6b8c03ad09bd6cfd9389da57f850326eb87ab27606bb99fd9548b46a2fbba28"
+  },
+  "php_fixtures": "prepared_not_executed_locally",
+  "producer_contract_sha256": "3a563c1b7921915fd8b17c08f585cde88127904170a086c291a5677d49cf365e",
+  "schema_version": 1,
+  "scope": "max2-common-v2-pure-policy"
+}

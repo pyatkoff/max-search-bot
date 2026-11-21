@@ -1,0 +1,52 @@
+{
+  "active": false,
+  "files": {
+    "README.md": {
+      "bytes": 7880,
+      "sha256": "63eaf4d4fe125494252a7c0f165ba795c66de8068f207553241cdfc42b892b8f"
+    },
+    "producer-contract.json": {
+      "bytes": 1849,
+      "sha256": "3a563c1b7921915fd8b17c08f585cde88127904170a086c291a5677d49cf365e"
+    },
+    "services/Max2ValueLookupClientV2.php": {
+      "bytes": 3419,
+      "sha256": "af34ac14d8c165a2b5a794c2a6f3871be93d06ab690ca0fae00561191312709d"
+    },
+    "services/Max2ValueLookupProtocolV2.php": {
+      "bytes": 15104,
+      "sha256": "04100d16541e5d1c961845ad59a5fb9b11840361630c4bf3b83a80c360bc2fe2"
+    },
+    "services/Max2ValueLookupRepositoryV2.php": {
+      "bytes": 17096,
+      "sha256": "40ab600c7b8e619da212d0a10942046fb36a37ab13ba661f6019d40b3bd9fac9"
+    },
+    "tests/run_lookup.php": {
+      "bytes": 20475,
+      "sha256": "fc4ce9820fb69cbddec2db27d18792eee2c0ec5cb86b71a43833d2b0e0867aa8"
+    }
+  },
+  "php_runtime_verified": false,
+  "producer_contract_sha256": "3a563c1b7921915fd8b17c08f585cde88127904170a086c291a5677d49cf365e",
+  "schema": "max2-own-early-reserve-lookup-source-v2",
+  "source_conventions": [
+    {
+      "bytes": 16074,
+      "path": "max2-v2-app-source/services/MaxTrackerLookupProtocol.php",
+      "sha256": "59fdaed38dacde3b22cfe1773188e7c1d273c8a1e74f9c3bbfbea871b3fc99d3",
+      "use": "read_only_source_conventions; unchanged"
+    },
+    {
+      "bytes": 41006,
+      "path": "max2-v2-app-source/services/MaxTrackerLookupRepository.php",
+      "sha256": "54b01438ff1767d87903e6493c6bbf11b170c424161fce5243be821343495896",
+      "use": "read_only_source_conventions; unchanged"
+    },
+    {
+      "bytes": 21390,
+      "path": "max2-v2-app-source/services/MaxTrackerLookupClient.php",
+      "sha256": "491e707c1e6a79dcb995ab1b0266a24847a9ed930cc2496683f9470bb2acab7c",
+      "use": "read_only_source_conventions; unchanged"
+    }
+  ]
+}

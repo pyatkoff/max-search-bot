@@ -1,0 +1,9 @@
+{
+  "active": false,
+  "files": {
+    "services/Max2CommonValueMetrikaClientV2.php": "5871fe39e68e47be87eb8b767d4a2d82ad74dd3af6f52c7d28deb160ee9d9d2a",
+    "tests/delivery.php": "a54d8487a8ef181173a6b35350f7d4b7673201cd9d6d9dfc68ad73fa7c68d91e"
+  },
+  "php_runtime_verified": false,
+  "schema": "max2-common-v2-delivery-source-v1"
+}
