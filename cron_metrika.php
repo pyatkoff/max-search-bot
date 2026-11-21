@@ -51,6 +51,21 @@ register_shutdown_function(static function (): void {
     }
 });
 
+// MAX2 V2 independent shutdown observation begins.
+register_shutdown_function(static function (): void {
+    try {
+        if (is_file(__DIR__.'/services/Max2CommonValueRuntimeV2.php')) {
+            require_once __DIR__.'/services/Max2CommonValueRuntimeV2.php';
+            $max2ValueResult=Max2CommonValueRuntimeV2::tick();
+            if (($max2ValueResult['status']??'OFF')!=='OFF' && is_file(__DIR__.'/services/DiagnosticLogger.php')) {
+                require_once __DIR__.'/services/DiagnosticLogger.php';
+                DiagnosticLogger::log('max2_common_value_v2','tick',$max2ValueResult);
+            }
+        }
+    } catch (Throwable $ignoredMax2Value) { /* Preserve both existing shutdown paths. */ }
+});
+// MAX2 V2 independent shutdown observation ends.
+
 header('Content-Type: text/plain; charset=utf-8');
 
 $queueFile = __DIR__ . '/metrika_offline_queue.csv';

@@ -35,3 +35,12 @@ function put_log_out($data)
 }
 
 MaxUpdateHandler::handle();
+
+// MAX2 V2 optional message observation begins.
+try {
+    if (is_file(__DIR__.'/services/Max2CommonValueRuntimeV2.php')) {
+        require_once __DIR__.'/services/Max2CommonValueRuntimeV2.php';
+        Max2CommonValueRuntimeV2::captureMessage();
+    }
+} catch (Throwable $ignoredMax2Value) { /* Preserve the completed canonical reply. */ }
+// MAX2 V2 optional message observation ends.

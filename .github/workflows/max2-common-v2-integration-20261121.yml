@@ -1,0 +1,108 @@
+name: MAX2 common V2 - coherent app source contracts
+
+on:
+  push:
+    branches: [audit/max2-common-app-source-20261121]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: max2-common-app-source-20261121
+  cancel-in-progress: false
+
+jobs:
+  coherent-app-contracts:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' &&
+      github.triggering_actor == 'pyatkoff' && github.run_attempt == '1' &&
+      github.event_name == 'push' && github.event.forced == false && github.event.deleted == false &&
+      github.event.head_commit.message == 'test(max2): verify coherent common v2 app'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962
+        with:
+          php-version: '8.2'
+          extensions: pdo_sqlite, openssl, mbstring
+          coverage: none
+          tools: none
+      - name: Verify actual app overlay and run all isolated new contracts
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: |
+          python3 -B - <<'PY'
+          import hashlib, json, os, pathlib, re, subprocess, sys
+          root = pathlib.Path.cwd()
+          base = 'b678bc2f211c5f141751137453b199036491222d'
+          manifest_path = 'resources/max2-common-v2/release-manifest.json'
+          workflow = '.github/workflows/max2-common-v2-integration-20261121.yml'
+          report = {'schema':'max2-common-v2-coherent-source-ci-v1','source_sha':os.environ['GITHUB_SHA'],
+              'run_id':int(os.environ['GITHUB_RUN_ID']),'run_attempt':1,'job':'coherent-app-contracts',
+              'scope':'source_only','status':'FAIL','live_database_connections':0,'provider_calls':0,
+              'deployed':False,'activated':False,'source_sha256':{}}
+          def need(ok, code):
+              if not ok: raise ValueError(code)
+          def git(*args):
+              return subprocess.check_output(['git', *args], text=True, timeout=20).strip()
+          env = {'PATH':os.environ['PATH'],'LANG':'C.UTF-8','LC_ALL':'C.UTF-8'}
+          php = ['php','-d','display_errors=stderr','-d','log_errors=0','-d','error_reporting=32767',
+              '-d','allow_url_fopen=0','-d','allow_url_include=0','-d','memory_limit=256M',
+              '-d','disable_functions=curl_exec,curl_multi_exec,fsockopen,pfsockopen,stream_socket_client,mail']
+          def execute(args, timeout=120):
+              r = subprocess.run(php+args, env=env, capture_output=True, timeout=timeout)
+              need(len(r.stdout)<=262144 and len(r.stderr)<=262144,'OUTPUT_BOUND')
+              sys.stdout.write(r.stdout.decode('utf-8',errors='replace'))
+              sys.stderr.write(r.stderr.decode('utf-8',errors='replace'))
+              need(r.returncode==0 and not r.stderr,'PHP_SOURCE_CONTRACT_FAILED')
+              return r.stdout
+          try:
+              m=json.loads((root/manifest_path).read_bytes())
+              need(m['schema']=='max2-common-v2-app-source-v1' and m['app_base_sha']==base
+                  and m['initial_mode']=='off' and m['counter_id']==98615635
+                  and m['goal_ids']==[687931224,687941321],'APP_SCOPE')
+              need(git('rev-parse','HEAD^')==base,'EXACT_BASE_REQUIRED')
+              changed=set(git('diff','--name-only',base,'HEAD').splitlines())
+              need(changed==set(m['files'])|{manifest_path,workflow},'EXACT_OVERLAY_INVENTORY')
+              for name,wanted in m['files'].items():
+                  p=root/name; need(p.is_file() and not p.is_symlink(),'REGULAR_SOURCE')
+                  got=hashlib.sha256(p.read_bytes()).hexdigest(); need(got==wanted,'SOURCE_PIN_CHANGED')
+                  report['source_sha256'][name]=got
+              existing=set(git('diff','--name-only','--diff-filter=M',base,'HEAD').splitlines())
+              need(existing=={'webhook.php','cron_metrika.php','services/ChannelPostEntryService.php','tests/required_checks_manifest.php',
+                  'tools/deployment_release.js','tests/run_deployment_release_regression.js'},'OLD_SURFACE_SCOPE')
+              for name in sorted(m['files']):
+                  if name.endswith('.php'): execute(['-l',name],30)
+              result=json.loads(execute(['tests/run_max2_common_value_v2_regression.php'],180))
+              need(result['status']=='PASS' and result['fixture_suites']==13
+                  and result['implementation']=='actual_flat_app_services'
+                  and result['live_database_connections']==0 and result['provider_calls']==0
+                  and result['activation'] is False and result['old_sender_invoked'] is False,'APP_RESULT_SCOPE')
+              control=subprocess.run(['node','tests/run_deployment_release_regression.js'],env=env,capture_output=True,timeout=120)
+              need(len(control.stdout)<=262144 and len(control.stderr)<=262144,'CONTROL_OUTPUT_BOUND')
+              sys.stdout.write(control.stdout.decode('utf-8',errors='replace'))
+              sys.stderr.write(control.stderr.decode('utf-8',errors='replace'))
+              need(control.returncode==0,'CANONICAL_CONSUMER_REGRESSION_FAILED')
+              report['canonical_consumer_regression']='PASS'
+              for name,wanted in m['files'].items(): need(hashlib.sha256((root/name).read_bytes()).hexdigest()==wanted,'SOURCE_MUTATED')
+              report['result']=result;report['status']='PASS'
+          except Exception as error:
+              reason=str(error)
+              report['reason']=reason if isinstance(error,ValueError) and re.fullmatch('[A-Z_]{1,100}',reason) else type(error).__name__
+          finally:
+              pathlib.Path('max2-common-app-source-result.json').write_text(json.dumps(report,sort_keys=True)+'\n')
+              print(json.dumps(report,sort_keys=True))
+          raise SystemExit(0 if report['status']=='PASS' else 1)
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: max2-common-app-source-${{ github.sha }}
+          path: max2-common-app-source-result.json
+          if-no-files-found: error
+          retention-days: 30

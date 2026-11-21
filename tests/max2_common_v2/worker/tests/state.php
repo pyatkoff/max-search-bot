@@ -1,0 +1,51 @@
+<?php
+declare(strict_types=1);
+require __DIR__.'/support.php';
+$checks=0;
+function stateCheck(bool $ok,string $label):void {global $checks;$checks++;if(!$ok)throw new RuntimeException('ASSERTION_FAILED_'.$label);}
+$db=v2TestDb(); $clock=1795263000;
+$state=new Max2CommonValueStateV2($db,static function()use(&$clock):int{return $clock;},true);
+stateCheck($state->settings()['mode']==='off'&&$state->beginTick($clock)['status']==='OFF','default_off');
+stateCheck($state->setMode('send',hash('sha256','synthetic'))['status']==='HOLD','cannot_send_before_explicit_activation');
+$source=sha1('synthetic source');$request=hash('sha256','synthetic activation request, not a live release');
+$activated=$state->activate($source,$request);
+stateCheck($activated['status']==='ACTIVATED'&&$activated['settings']['cursor']==='10'
+    &&$activated['settings']['activation']['activated_at_unix']===$clock,'samples_actual_clock_and_project_max');
+$epoch=$activated['settings']['activation']['activation_sha256'];
+$db->exec("INSERT INTO modeled_conversion_profile_versions VALUES(107,'anytour')"); $clock=1795263660;
+stateCheck($state->activate($source,$request)['status']==='ALREADY_ACTIVATED'&&$state->settings()['cursor']==='10','activation_repeat_never_resets_floor_to_new_max');
+stateCheck($state->activate($source,hash('sha256','different request'))['status']==='HOLD','activation_epoch_immutable');
+stateCheck($state->setMode('send',hash('sha256','mode send'))['settings']['activation']['activation_sha256']===$epoch,'mode_change_preserves_epoch');
+$tick=$state->beginTick($clock);
+stateCheck($tick['status']==='ACQUIRED'&&$state->beginTick($clock)['status']==='BUSY','single_tick_lease');
+stateCheck($state->setMode('off',hash('sha256','mode off'))['status']==='HOLD','active_tick_mode_is_stable');
+$hash=hash('sha256','synthetic exact signed request');
+$intent=$state->consumeLookupIntent($tick['tick_key'],'107','list',$hash,$clock);
+stateCheck($intent['status']==='CONSUMED'&&$intent['call_permitted']===true&&!$db->inTransaction(),'intent_committed_before_call_permission');
+stateCheck($state->consumeLookupIntent($tick['tick_key'],'107','list',hash('sha256','new nonce request'),$clock)['status']==='ALREADY_CONSUMED','new_nonce_does_not_authorize_another_call');
+stateCheck($state->finishLookupIntent($tick['tick_key'],'107','list',$hash,null,'unknown',$clock)['status']==='RECORDED','unknown_lookup_recorded');
+stateCheck($state->consumeLookupIntent($tick['tick_key'],'107','list',$hash,$clock)['call_permitted']===false,'unknown_lookup_not_reissued');
+stateCheck($state->advanceProfile($tick['tick_key'],'107',['status'=>'HOLD','reason'=>'SYNTHETIC_UNKNOWN'],$clock)['status']==='ADVANCED','hold_outcome_and_cursor_committed');
+stateCheck((int)$db->query('SELECT COUNT(*) FROM max2_common_profile_work_v2')->fetchColumn()===1,'held_profile_diagnostic_durable');
+$summary=array_fill_keys(['profiles_read','reserved','evaluated','held','unknown','lookup_list','lookup_recheck','goal_reads','send_attempts','provider_polls'],0);
+$summary['held']=1;$summary['lookup_list']=1;
+$finished=$state->finishTick($tick['tick_key'],$summary,$clock);
+stateCheck($finished['status']==='COMPLETED'&&$state->settings()['active_tick_key']===null,'tick_aggregate_and_release_committed');
+stateCheck(($finished['summary']??null)===$summary,'returned_tick_summary_matches_committed_counters');
+$next=$state->beginTick($clock);$clock+=181;
+$replacement=$state->beginTick($clock);
+stateCheck($replacement['status']==='ACQUIRED'&&$replacement['tick_key']!==$next['tick_key'],'expired_lease_replaced_once');
+$stale=$db->prepare('SELECT state FROM max2_common_ticks_v2 WHERE tick_key=?');$stale->execute([$next['tick_key']]);
+stateCheck($stale->fetchColumn()==='unknown','expired_tick_not_claimed_successful');
+stateCheck($state->advanceProfile($next['tick_key'],'109',['status'=>'HOLD'],$clock)['status']==='HOLD','stale_worker_cannot_move_cursor');
+
+$unknownDb=v2TestDb();$now=1795263000;$unknownState=new Max2CommonValueStateV2($unknownDb,static function()use(&$now):int{return $now;},true);
+$unknownDb->loseCommit=1;$unknown=$unknownState->activate($source,$request);
+stateCheck($unknown['status']==='UNKNOWN'&&$unknown['call_permitted']===false,'activation_commit_unknown_no_permission');
+stateCheck($unknownState->settings()['activation']!==null,'activation_unknown_can_be_read_back');
+$now=1795263660;$claim=$unknownState->beginTick($now);$unknownDb->loseCommit=$unknownDb->commits+1;
+$unknown=$unknownState->consumeLookupIntent($claim['tick_key'],'107','list',$hash,$now);
+stateCheck($unknown['status']==='UNKNOWN'&&$unknown['call_permitted']===false,'intent_commit_unknown_no_network_permission');
+stateCheck($unknownState->consumeLookupIntent($claim['tick_key'],'107','list',$hash,$now)['status']==='ALREADY_CONSUMED','unknown_committed_intent_never_reissued');
+stateCheck((int)$db->query('SELECT value_rub FROM max_channel_conversion_outbox')->fetchColumn()===300,'old_v1_sentinel_unchanged');
+echo 'PASS ',$checks," synthetic runtime-state assertions; no native DB/provider calls\n";
