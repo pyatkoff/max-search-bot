@@ -1,0 +1,41 @@
+name: Read natural MAX2 public visit parameters on 21 Nov 2026
+on:
+  push:
+    branches: [audit/max2-public-params-20261121]
+    paths:
+      - .github/workflows/max2-public-params-20261121.yml
+      - audit/max2-public-params-20261121/reader.py
+      - audit/max2-public-params-20261121/runner.py
+      - audit/max2-public-params-20261121/test_public_params.py
+permissions:
+  contents: read
+concurrency:
+  group: max2-public-params-readonly-owner-20261121
+  cancel-in-progress: false
+jobs:
+  read:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.run_attempt == '1' && github.event.created == true && github.event.forced == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify the bounded read with mocked API responses
+        run: python3 -m unittest discover -s audit/max2-public-params-20261121 -p test_public_params.py && python3 -m py_compile audit/max2-public-params-20261121/reader.py audit/max2-public-params-20261121/runner.py
+      - name: Read the fixed counter with existing server credentials
+        env:
+          SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          SSH_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          READER_SHA256: 88cbdc066c4381c4c84c5f0440ec9d35f8996ce518129c2966017c0e7fc433d2
+          REPORT_PUBLIC_KEY_B64: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQm9qQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FZOEFNSUlCaWdLQ0FZRUF3V2tQOEJ3N2dvaVJzc09XZE9EbQo5aDgrRE45TWp2Qjd4aDBQMjh0dFlFOVVxYUpCWVlaL2t3YVJJQ3pqbjdKWWh4NDFFRUFjcXNwT2p3YjFkZDdDCjdlTVhBTjFJV2dRbEZLQmVVdEltWWlDa00xRjVzZWFzdksyOFF6WnJnV1Q5bWo0VFZVNkNobmZkTEpSZFpucmUKVGU0U3orYjViWTBpTEFwQnZjMWxLWml1S05mRDBreUxIV0sxWklwZTZRdjFhMkJtR0hINTJXQUtiVkUza2ZLUgpiaE9aTjJpV2JLQWlCMzhDb1pYSVhzUE1mbjRPZzBUS3hXdDZZOXRYcWZick1kUHZJNGVsWjBhTzJJWUNYMFNuCjFlNkFicmswNUhpaTYwYjdlZlVmZWtYdVRjMFZCS2JwUGRHMEdCdUU2WHpXSkdSQ2lVQ085QkE5aTZRamdxM20KMEpnQWlsVmpYeDJzOEFjUkdJekhPUERNUzhkckFWdHB5NDhwNmdDVWw5dWhRZkNPeUtJMzczNFN4RDdiMnU5egpWdWR3d2ZrRWdacW1jdlhjMEdTOXVWdXlnS1pVcG0zaDdML0RHY1pNVFpSYXZSMHNGWlRsZTRySFZOSXg4VG9nCmhnRDFKUVJUbnJjS2dHVzlwNmZkTTNLYU1pK1Uwamo5L0tOd3FBK3V4UW0zQWdNQkFBRT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tCg==
+        run: python3 audit/max2-public-params-20261121/runner.py
+      - name: Retain the encrypted report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: max2-public-params-98615635-20261121
+          path: encrypted-max2-public-params/*.enc.json
+          retention-days: 3
+          if-no-files-found: error
