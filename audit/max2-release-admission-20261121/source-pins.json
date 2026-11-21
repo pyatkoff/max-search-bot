@@ -1,0 +1,28 @@
+{
+  "canonical_base": "b678bc2f211c5f141751137453b199036491222d",
+  "files": {
+    "README.md": {
+      "bytes": 3249,
+      "sha256": "8723b148d7cc735e020873a8c937641468670ae96edfcb734aa50692ff73fe69"
+    },
+    "admission-request.template.json": {
+      "bytes": 161,
+      "sha256": "75e0c23f29b4a9ec2f412fef36bfcb9f7821dcb51ff1a30dc835752b9b2d1030"
+    },
+    "runner.py": {
+      "bytes": 11195,
+      "sha256": "83d2640910ea97b9ee723a9384e49c54927a0b8824f79933be308dd7b4abb8be"
+    },
+    "tests/test_runner.py": {
+      "bytes": 4982,
+      "sha256": "e33c5511e2e65a22f7741f319c36fec712aceb1afde815f3ca5a3cb855cd68e2"
+    },
+    "workflow.yml": {
+      "bytes": 2931,
+      "sha256": "977bc4827c81dfe2973795fde107ecb6788a0fe4ab2950c32076f7c8c6710755"
+    }
+  },
+  "repository": "pyatkoff/max-search-bot",
+  "scope": "read-only-native-canonical-release-admission",
+  "version": 1
+}

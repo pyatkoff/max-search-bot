@@ -1,0 +1,76 @@
+name: MAX2 canonical read-only release admission
+
+on:
+  push:
+    branches: [audit/max2-release-admission-20261121]
+    paths:
+      - audit/max2-release-admission-20261121/**
+      - .github/workflows/max2-release-admission-20261121.yml
+
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+
+concurrency:
+  group: max2-canonical-release-admission-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  canonical-readonly:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' &&
+      github.event_name == 'push' && github.run_attempt == '1' &&
+      github.event.created == true && github.event.deleted == false && github.event.forced == false &&
+      github.event.head_commit.message == 'audit(max2): verify canonical release admission'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out immutable audit request
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          path: audit-source
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Validate concrete request before canonical execution
+        id: request
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: >-
+          python3 -B audit-source/audit/max2-release-admission-20261121/runner.py prepare
+          --source audit-source
+          --request audit-source/audit/max2-release-admission-20261121/admission-request.json
+      - name: Check out candidate identity separately
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ steps.request.outputs.head_sha }}
+          path: candidate
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Check out unchanged BASE coordinator and all dependencies
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ steps.request.outputs.base_sha }}
+          path: canonical
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Execute full canonical final admission once
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: >-
+          python3 -B audit-source/audit/max2-release-admission-20261121/runner.py run
+          --source audit-source
+          --request audit-source/audit/max2-release-admission-20261121/admission-request.json
+          --candidate candidate --canonical canonical
+          --expected-request-sha '${{ steps.request.outputs.request_sha256 }}'
+      - name: Publish bounded admission receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: max2-release-admission-${{ github.sha }}
+          path: max2-release-admission-result.json
+          if-no-files-found: ignore
+          retention-days: 30
