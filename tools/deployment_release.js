@@ -270,6 +270,73 @@ const PRIOR_WAVE_RECOVERY=Object.freeze({
     comment_id:6682640708,owner_id:226193297,updated_at:'2026-11-17T11:49:29Z',
     terminal:'PR1596: замещено PR1597; исходная проверка не завершена, выпуск свободен'})
 });
+// Owner-approved metadata-only continuation of PR1643's exact body-format refusal.
+// Ordinary recordState remains strict; these pins do not authorize another incident.
+const PUBLISHER_BODY_RECOVERY=Object.freeze({
+  branch:'ops/recover-pr1643-terminal-20261121',sha:'cabc34b7166994c65816ec8c81e48895ea889683',
+  deploy:'44912653990',run_id:'44914105188',job_id:136875917604,
+  commit:'d8b5805dc9699dcc3169aa4005fe1fa6155b1f86',blob:'0b02cdb005a8e9d60cfb0a3ffdccd3d2174c474d',
+  record_digest:'0b1d28a99159afad6409d30cd630596413d9502f95294a88d8ead388556777a5',
+  pr:1643,head_sha:'de603d8c5b53a5dbf3e972e166da96c42c4e5500',comment_id:7063060212,
+  owner_id:226193297,updated_at:'2026-11-21T14:11:18Z',
+  body_bytes:2956,body_sha256:'2f9cda3b8ccc67f1d1838b2a42e6ac3d37300e7aa37c1527354563cc7f7fb130',
+  original_code:'612d124bd14378ceaffad6e691dbcc03597ea910',
+  priority_code:'3c1b228d36785546d71fb9e21c68ee4b03961619',
+  source_files:Object.freeze(['tools/deployment_release.js','tools/release_slot_close.js','tools/release_priority.js',
+    'tests/run_deployment_release_regression.js',CLOSER]),
+  changed_files:Object.freeze(['tools/deployment_release.js','tools/release_slot_close.js',
+    'tests/run_deployment_release_regression.js',CLOSER,PREFIX+'max2-common-value-state-v2.yml',
+    'tests/run_max2_common_value_state_operation_v2_regression.py','tests/max2_common_v2/fixtures.json',
+    'resources/max2-common-v2/release-manifest.json'])
+});
+function publisherBodyRecovery(r){
+  const x=r.closure?.recovery,p=PUBLISHER_BODY_RECOVERY;
+  requireValue(keys(x,['kind','source_sha','source_files','original_commit','original_blob','original_record_digest',
+    'original_run_id','original_job_id','publisher_body_sha256','publisher_body_bytes'])&&x.kind==='publisher_body_format_v1'
+    &&sha(x.source_sha)&&x.source_sha!==p.sha&&keys(x.source_files,p.source_files)
+    &&Object.values(x.source_files).every(sha)&&x.source_files['tools/release_priority.js']===p.priority_code
+    &&r.repository_sha===p.sha&&r.application_sha===p.sha&&r.kind==='installed'
+    &&r.release.run_id===p.deploy&&r.release.run_attempt===1&&r.release.event==='push'
+    &&r.closure.job==='release-slot-recovery'&&r.closure.run_id!==p.run_id
+    &&x.original_commit===p.commit&&x.original_blob===p.blob&&x.original_record_digest===p.record_digest
+    &&x.original_run_id===p.run_id&&x.original_job_id===p.job_id
+    &&x.publisher_body_sha256===p.body_sha256&&x.publisher_body_bytes===p.body_bytes
+    &&r.observation===null&&r.observation_producer===null&&r.baseline_eligible===false
+    &&same(r.closure.binding,{pr:p.pr,head_sha:p.head_sha,comment_id:p.comment_id,
+      owner_id:p.owner_id,updated_at:p.updated_at}),'invalid_publisher_body_recovery');return x;
+}
+async function publisherBodySource(api,source,expected=null,{local=false}={}){
+  const p=PUBLISHER_BODY_RECOVERY,get=q=>api('GET',API_ROOT+q);
+  requireValue(sha(source)&&source!==p.sha&&(local===true||keys(expected,p.source_files)),
+    'publisher_recovery_source_unproved');
+  const relation=await get('/compare/'+p.sha+'...'+source+'?per_page=1');
+  requireValue(relation?.status==='ahead'&&relation.merge_base_commit?.sha===p.sha
+    &&Array.isArray(relation.files)&&relation.files.length===p.changed_files.length
+    &&same(relation.files.map(f=>f.filename).sort(),[...p.changed_files].sort())
+    &&relation.files.every(f=>f.status==='modified'&&!f.previous_filename),'publisher_recovery_source_changed');
+  const ci=boundedList(await get('/actions/runs?head_sha='+source+'&per_page=100'),
+    'workflow_runs','incomplete_recovery_ci');
+  for(const [name,file]of [['Regression tests','regression-tests.yml'],['Retired domain guard','retired-domain-guard.yml']]){
+    const rows=ci.filter(r=>r.path===PREFIX+file&&r.event==='pull_request');
+    requireValue(rows.length===1&&rows[0].name===name&&rows[0].head_sha===source
+      &&rows[0].head_repository?.full_name===REPOSITORY&&rows[0].run_attempt===1
+      &&rows[0].status==='completed'&&rows[0].conclusion==='success','recovery_ci_unconfirmed');
+  }
+  const pins={};
+  for(const name of p.source_files){
+    const item=await get('/contents/'+name+'?ref='+source);
+    requireValue(item?.type==='file'&&item.path===name&&sha(item.sha)
+      &&Number.isSafeInteger(item.size)&&item.size>0&&item.size<=512*1024,'publisher_recovery_source_unproved');
+    pins[name]=item.sha;
+    if(local){
+      const file=path.resolve(__dirname,'..',name),info=fs.lstatSync(file);
+      requireValue(info.isFile()&&!info.isSymbolicLink()&&info.size===item.size
+        &&gitBlob(fs.readFileSync(file))===item.sha,'publisher_recovery_checkout_changed');
+    }
+  }
+  requireValue(pins['tools/release_priority.js']===p.priority_code
+    &&(expected===null||same(pins,expected)),'publisher_recovery_source_changed');return pins;
+}
 function priorWaveRecovery(r){
   const x=r.closure?.recovery,p=PRIOR_WAVE_RECOVERY;
   requireValue(keys(x,['kind','source_sha','original_commit','original_blob','original_record_digest',
@@ -294,6 +361,7 @@ function unpublishedTerminalRecovery(r){
       owner_id:p.owner_id,updated_at:p.updated_at}),'invalid_unpublished_terminal_recovery');return x;
 }
 function recoveryBranch(r){
+  if(r.closure?.recovery?.kind==='publisher_body_format_v1')return PUBLISHER_BODY_RECOVERY.branch;
   if(r.closure?.recovery?.kind==='prior_failed_wave_v1')return PRIOR_WAVE_RECOVERY.branch;
   return r.closure?.recovery?.kind==='unpublished_terminal_v1'?UNPUBLISHED_TERMINAL_RECOVERY.branch:TERMINAL_RECOVERY.branch;
 }
@@ -310,6 +378,7 @@ function gateRecovery(r){
       owner_id:p.owner_id,updated_at:p.updated_at}),'invalid_gate_recovery');return x;
 }
 function terminalRecovery(r){
+  if(r.closure?.recovery?.kind==='publisher_body_format_v1')return publisherBodyRecovery(r);
   if(r.closure?.recovery?.kind==='prior_failed_wave_v1')return priorWaveRecovery(r);
   if(r.closure?.recovery?.kind==='unpublished_terminal_v1')return unpublishedTerminalRecovery(r);
   if(r.closure?.recovery?.kind==='unstarted_tls_v1')return gateRecovery(r);
@@ -549,7 +618,7 @@ async function authenticatePublication(api,location,{closed=false,diagnosticsHea
   }
   if(r.phase==='pending_terminal'){
     const origin='deploy-proof:v1:'+r.release.run_id+':'+r.release.run_attempt;
-    if(r.closure.recovery)await authenticateFailedTerminal(api,record);
+    if(r.closure.recovery)await authenticateFailedTerminal(api,record,{closed});
     else requireValue(run.display_title===origin||(run.display_title===undefined
       &&run.name==='Configure AnyTour modeled value goal'),'terminal_origin_mismatch');
   }
@@ -563,7 +632,24 @@ async function authenticatePublication(api,location,{closed=false,diagnosticsHea
   return {commit:location.commit,blob:location.blob,record_digest:location.record_digest,
     producer_run_id:producer.run_id,producer_run_attempt:producer.run_attempt};
 }
-async function authenticateFailedTerminal(api,record){
+async function authenticateFailedTerminal(api,record,{closed=false}={}){
+  if(record.repository_release?.closure?.recovery?.kind==='publisher_body_format_v1'){
+    const r=validateRelease(record).release,x=publisherBodyRecovery(r),p=PUBLISHER_BODY_RECOVERY;
+    const proof=await failedPublisherBodyTerminal(api),restored=clone(record),C=require('./release_slot_close');
+    restored.repository_release.phase='pending_closure';restored.repository_release.closure=null;
+    requireValue(same(restored,proof.original.record),'original_publisher_body_record_changed');
+    requireValue(same(C.gateReferences(proof.snapshot),r.closure.gates),'gates_changed');
+    await publisherBodySource(api,x.source_sha,x.source_files);
+    const native=await api('GET',API_ROOT+'/actions/runs/'+r.closure.run_id);
+    runIdentity(native,{id:r.closure.run_id,attempt:1,head:x.source_sha,workflow:CLOSER,event:'push',
+      branch:p.branch,completed:closed});
+    requireValue(native.actor?.id===p.owner_id&&native.triggering_actor?.id===p.owner_id,
+      'publisher_continuation_owner_changed');
+    // A later PR can lawfully acquire the same publisher. Historical completion
+    // is proved by the original digest-bound native terminal step below;
+    // current ownership remains the unchanged release-priority admission's job.
+    return proof;
+  }
   if(record.repository_release?.closure?.recovery?.kind==='prior_failed_wave_v1'){
     const r=validateRelease(record).release;priorWaveRecovery(r);
     const proof=await failedPriorWaveTerminal(api),restored=clone(record);
@@ -638,6 +724,60 @@ function failedGateJobs(tlsJobs,closeJobs){
     &&prepare.number<upload[0].number&&upload[0].number<terminal.number
     &&closer.steps.every(s=>s===prepare||['success','skipped'].includes(s.conclusion)),'failed_terminal_executed');
   return {tls,closer};
+}
+async function failedPublisherBodyTerminal(api){
+  const p=PUBLISHER_BODY_RECOVERY,get=q=>api('GET',API_ROOT+q),C=require('./release_slot_close');
+  const original=await readRecord(api,p.commit);
+  requireValue(original.blob===p.blob&&original.record_digest===p.record_digest,
+    'original_publisher_body_record_changed');
+  const r=validateRelease(original.record).release;
+  requireValue(r.repository_sha===p.sha&&r.application_sha===p.sha&&r.phase==='pending_closure'
+    &&r.kind==='installed'&&r.release.run_id===p.deploy&&r.release.run_attempt===1&&r.release.event==='push'
+    &&r.closure===null&&r.observation===null&&r.observation_producer===null&&r.baseline_eligible===false,
+    'original_publisher_body_record_changed');
+  await authenticatePublication(api,original);await deploymentProof(api,installationReceipt(original.record));
+  const run=await get('/actions/runs/'+p.run_id);
+  runIdentity(run,{id:p.run_id,attempt:1,head:p.sha,workflow:CLOSER,event:'workflow_run',conclusion:'failure'});
+  requireValue(run.display_title==='deploy-proof:v1:'+p.deploy+':1','failed_terminal_origin_changed');
+  const raw=await get('/actions/runs/'+p.run_id+'/attempts/1/jobs?per_page=100');
+  const jobs=boundedList(raw,'jobs','incomplete_failed_terminal_jobs'),rows=jobs.filter(j=>j.id===p.job_id&&j.name==='release-slot');
+  requireValue(jobs.length===3&&rows.length===1&&rows[0].run_id===Number(p.run_id)&&rows[0].run_attempt===1
+    &&rows[0].head_sha===p.sha&&rows[0].status==='completed'&&rows[0].conclusion==='failure'
+    &&Array.isArray(rows[0].steps),'failed_terminal_not_original');
+  const own=rows[0],one=(name,result)=>{const ss=own.steps.filter(s=>s.name===name);
+    requireValue(ss.length===1&&ss[0].status==='completed'&&ss[0].conclusion===result,'failed_terminal_executed');return ss[0];};
+  const prepare=one('Prepare the exact release proof before terminal publication','failure');
+  const upload=one(TERMINAL_BINDING_STEP,'skipped'),terminal=one(TERMINAL_STEP,'skipped');
+  requireValue(prepare.number<upload.number&&upload.number<terminal.number
+    &&own.steps.every(s=>s===prepare||['success','skipped'].includes(s.conclusion)),'failed_terminal_executed');
+  requireValue(['configure','release-slot-recovery'].every(name=>{
+    const ss=jobs.filter(j=>j.name===name);return ss.length===1&&ss[0].run_id===Number(p.run_id)
+      &&ss[0].head_sha===p.sha&&ss[0].run_attempt===1&&ss[0].status==='completed'
+      &&ss[0].conclusion==='skipped'&&Array.isArray(ss[0].steps)&&ss[0].steps.length===0;
+  }),'configuration_executed');
+  requireValue(boundedList(await get('/actions/runs/'+p.run_id+'/artifacts?per_page=100'),
+    'artifacts','incomplete_failed_terminal_artifacts').length===0,'original_terminal_already_published');
+  requireValue((await get('/contents/tools/release_slot_close.js?ref='+p.sha))?.sha===p.original_code,
+    'original_terminal_source_changed');
+  requireValue(typeof api.jobLog==='function','original_terminal_log_unavailable');
+  const bytes=await api.jobLog(p.job_id);
+  requireValue(Buffer.isBuffer(bytes)&&bytes.length>0&&bytes.length<=2*1024*1024
+    &&Buffer.from(bytes.toString('utf8')).equals(bytes),'original_terminal_log_unavailable');
+  const lines=bytes.toString('utf8').split(/\r?\n/).filter(l=>/^\d{4}-\d\d-\d\dT[0-9:.]+Z release_slot=/.test(l));
+  requireValue(lines.length===1&&lines[0].endsWith('Z release_slot=held reason=record_changed'),'failed_terminal_reason_changed');
+  const b=C.binding(await get('/pulls/'+p.pr),p.sha);
+  requireValue(b&&same(C.bindingSnapshot(b),{pr:p.pr,head_sha:p.head_sha,comment_id:p.comment_id,
+    owner_id:p.owner_id,updated_at:p.updated_at}),'binding_changed');
+  const c={sha:p.sha,deploy:Number(p.deploy),run:Number(p.run_id),configure:'skipped',activation:false,
+    terminalRecovery:true,publisherBodyRecovery:true};
+  const snapshot=await C.selectReleaseRuns(await get('/actions/runs?head_sha='+p.sha+'&per_page=100'),c,get);
+  requireValue(!snapshot.waiting&&C.gateState(snapshot.runs,c)==='ready','gates_changed');
+  C.verifyConfigure(raw,c);
+  const a=snapshot.runs.workflow_runs.find(x=>x.path===PREFIX+C.ACTIVATION.file&&x.event==='workflow_run');
+  const aj=await get('/actions/runs/'+a.id+'/attempts/1/jobs?per_page=100');
+  C.verifyActivation(aj,a,c,snapshot.runs.workflow_runs.find(x=>x.path===PREFIX+'modeled-conversion-monitor.yml'&&x.event==='workflow_run')?.id);
+  requireValue(aj.jobs[0].steps.length===0,'activation_executed');
+  return {original,snapshot:snapshot.runs,binding:b};
 }
 async function failedPriorWaveTerminal(api){
   const p=PRIOR_WAVE_RECOVERY,q=p.previous,get=path=>api('GET',API_ROOT+path),C=require('./release_slot_close');
@@ -902,7 +1042,7 @@ function makeReadApi(token,fetchImpl=globalThis.fetch,{sleep=waitForRetry}={}) {
   api.jobLog=async job=>{
     requireValue([TERMINAL_RECOVERY.job_id,TERMINAL_RECOVERY.continuation_job_id,TERMINAL_RECOVERY.observation_job_id,
       TERMINAL_RECOVERY.read_failure_job_id,GATE_RECOVERY.tls_job_id,UNPUBLISHED_TERMINAL_RECOVERY.job_id,
-      PRIOR_WAVE_RECOVERY.job_id,PRIOR_WAVE_RECOVERY.previous.verify_job_id].includes(job),'untrusted_terminal_log');
+      PRIOR_WAVE_RECOVERY.job_id,PRIOR_WAVE_RECOVERY.previous.verify_job_id,PUBLISHER_BODY_RECOVERY.job_id].includes(job),'untrusted_terminal_log');
     const response=await request('https://api.github.com'+API_ROOT+'/actions/jobs/'+job+'/logs',headers(false),'manual',2*1024*1024);
     if(Buffer.isBuffer(response))return response;
     let url;try{url=new URL(response.headers.get('location'));}catch{throw new Refusal('invalid_log_redirect');}
@@ -1633,7 +1773,8 @@ function argumentsOf(argv,commands) {
 }
 function outputs(value){for(const [key,v]of Object.entries(value)){
   requireValue(/^[a-z_]+$/.test(key)&&!/[\r\n]/.test(String(v)),'invalid_output');process.stdout.write(key+'='+String(v)+'\n');}}
-module.exports={UNSTARTED_FORWARD,forwardMarker,proveUnstartedDeployment,proveUnstartedForward,admitForwardInstallation,REPOSITORY,API_ROOT,PREFIX,DEPLOY,CLOSER,HOST,RECORD_PATH,PUBLICATION_FILE,PUBLICATION_PROTOCOL,
+module.exports={PUBLISHER_BODY_RECOVERY,publisherBodyRecovery,publisherBodySource,failedPublisherBodyTerminal,
+  UNSTARTED_FORWARD,forwardMarker,proveUnstartedDeployment,proveUnstartedForward,admitForwardInstallation,REPOSITORY,API_ROOT,PREFIX,DEPLOY,CLOSER,HOST,RECORD_PATH,PUBLICATION_FILE,PUBLICATION_PROTOCOL,
   TERMINAL_RECOVERY,GATE_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY,PRIOR_WAVE_RECOVERY,
   priorWaveRecovery,failedPriorWaveTerminal,terminalRecovery,gateRecovery,
   unpublishedTerminalRecovery,recoveryBranch,failedUnpublishedTerminal,authenticateFailedTerminal,
