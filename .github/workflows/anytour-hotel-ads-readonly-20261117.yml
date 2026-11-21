@@ -1,4 +1,4 @@
-name: "Telegram 954 and 913: confirm only the two original versions"
+name: "PRICE 70030 and 1439: run the existing hook for two catalog pairs"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,12 +13,12 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'c4adcc542775d792875c45b058490dc3dc6db73a' &&
+      github.event.before == 'b126d3c4c60b959db7be7f50d6a91bb34a021c9f' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 9
     steps:
-      - name: Prepare exact original version confirmation without Telegram writes
+      - name: Prepare the existing PRICE hook for the two exact roster rows
         shell: bash
         run: |
           set -euo pipefail
@@ -27,185 +27,132 @@ jobs:
           cat > pub/read-only.php <<'PHP'
           <?php
           declare(strict_types=1);
-          ini_set('display_errors','0');
-          ini_set('log_errors','0');
+          ini_set('display_errors', '0');
+          ini_set('log_errors', '0');
           
-          function requireEdit(bool $ok, string $reason): void {
-              if (!$ok) throw new RuntimeException($reason);
+          const APPROVED_HOOK = '/var/www/anytoour/data/www/anytoour.ru/data/monitor-price-hook.php';
+          const APPROVED_HOOK_HASH = '7245b007e8b7fe2d0c3e0fe7b60a9cdff108d0d8d7a6a7b9ef74d69d191baf3e';
+          const ROSTER_BLOB = '9110e5237804ec3766d96ea5a26809822b296852';
+          const HOTELS = [70030, 1439];
+          
+          function need(bool $condition, string $reason): void
+          {
+              if (!$condition) throw new RuntimeException($reason);
           }
-          function installedEdit(string $expected): void {
-              requireEdit(PHP_SAPI === 'cli' && getcwd() === '/var/www/anytoour/data/www/app.anytoour.ru', 'app_root');
-              requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD')) === $expected, 'installed_checkout_changed');
-              requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false status --porcelain --untracked-files=no')) === '', 'installed_checkout_dirty');
+          
+          function canonicalSource(): string
+          {
+              need(realpath(APPROVED_HOOK) === APPROVED_HOOK && !is_link(APPROVED_HOOK), 'installed_hook_not_found');
+              $source = file_get_contents(APPROVED_HOOK, false, null, 0, 2000001);
+              need(is_string($source) && strlen($source) <= 2000000 && hash('sha256', $source) === APPROVED_HOOK_HASH,
+                  'installed_hook_digest_changed');
+              return $source;
           }
-          function publicTelegram(int $mid): array {
-              $doc = new DOMDocument();
-              $url = 'https://t.me/s/anytour?before=' . ($mid + 1);
-              $raw = PromotedHotelPriceWriter::publicBytes($url);
-              requireEdit(@$doc->loadHTML('<?xml encoding="UTF-8">'.$raw, LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING), 'public_dom');
-              $xp = new DOMXPath($doc);
-              $roots = $xp->query('//*[@data-post="anytour/'.$mid.'"]');
-              requireEdit($roots->length === 1,'public_id');
-              $root = $roots->item(0);
-              $class = static fn(string $v):string => 'contains(concat(" ",normalize-space(@class)," ")," '.$v.' ")';
-              $text = $xp->query('.//*['.$class('tgme_widget_message_text').']',$root);
-              $time = $xp->query('.//time[@datetime]',$root);
-              requireEdit($text->length===1 && $time->length===1,'public_body_or_date');
-              $photos = [];
-              foreach ($xp->query('.//*['.$class('tgme_widget_message_photo_wrap').']',$root) as $img) {
-                  $marker = trim($img->getAttribute('class'));
-                  preg_match('/(?:^|\s)([0-9]{5,}(?:_[0-9]+)?)(?:\s|$)/D',$marker,$m);
-                  $photos[] = $m[1] ?? ('class:'.hash('sha256',$marker));
+          
+          function scopedSource(string $source): string
+          {
+              $packedPattern = '~^const HOOK_ROSTER_GZIP_B64="([A-Za-z0-9+/=]+)";$~m';
+              need(preg_match_all($packedPattern, $source, $match) === 1, 'canonical_roster_constant_missing');
+              $gzip = base64_decode($match[1][0], true);
+              need(is_string($gzip) && sha1('blob '.strlen($gzip)."\0".$gzip) === ROSTER_BLOB, 'installed_roster_blob_changed');
+              $full = json_decode(gzdecode($gzip), true, 64, JSON_THROW_ON_ERROR);
+              need(is_array($full['rows'] ?? null), 'installed_roster_unreadable');
+              $rows = array_values(array_filter($full['rows'], static fn(array $row): bool =>
+                  in_array($row['tourvisor_hotel_id'] ?? null, HOTELS, true)));
+              $ids = array_column($rows, 'tourvisor_hotel_id');
+              sort($ids);
+              need($ids === [1439,70030], 'requested_roster_rows_missing_or_duplicate');
+              foreach ($rows as $row) {
+                  $id = $row['tourvisor_hotel_id'];
+                  $binding = $row['feed_binding']['offer_ids'] ?? [];
+                  need(($binding['max'] ?? null) === 'max_'.$id && ($binding['telegram'] ?? null) === 'tg_'.$id, 'commercial_feed_identity_changed');
               }
-              $videos = $xp->query('.//video|.//*['.$class('tgme_widget_message_video_thumb').' or '.$class('tgme_widget_message_roundvideo').']',$root)->length;
-              $captionHtml='';
-              foreach ($text->item(0)->childNodes as $node) $captionHtml.=$doc->saveHTML($node);
-              $caption = html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i',"\n",$captionHtml)),ENT_QUOTES|ENT_HTML5,'UTF-8');
-              $buttons=[];
-              foreach($xp->query('.//a['.$class('tgme_widget_message_inline_button').']',$root) as $a) {
-                  $buttons[]=['text'=>trim($a->textContent),'url'=>$a->getAttribute('href')];
+              $full['rows'] = $rows;
+              $packed = base64_encode(gzencode(json_encode($full, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)));
+              $source = preg_replace($packedPattern, 'const HOOK_ROSTER_GZIP_B64="'.$packed.'";', $source, 1, $replacements);
+              need($replacements === 1, 'scoped_roster_generation_failed');
+              $source = preg_replace('~^const HOOK_ROSTER_COUNT=[0-9]+;$~m', 'const HOOK_ROSTER_COUNT=2;', $source, 1, $replacements);
+              need($replacements === 1, 'scoped_roster_count_missing');
+          
+              // This one-off pass never resumes a different pending operation or collector.
+              // The stock hook makes these checks while holding the original PRICE lock.
+              $boundary = "    \$state=\$history['state']??['schema'=>1,'pending'=>null,'completed'=>[]];";
+              need(substr_count($source, $boundary) === 1, 'stock_journal_boundary_changed');
+              $guard = <<<'CODE'
+              hook_need($history['state']!==null && $state['pending']===null,'existing_price_operation_pending_stop');
+              hook_need(($state['nightly_cycle']['state']??null)!=='started','existing_collector_cycle_started_stop');
+          CODE;
+              return str_replace($boundary, $boundary."\n".$guard, $source);
+          }
+          
+          function executeScoped(string $file, bool $inspect): array
+          {
+              $args = [PHP_BINARY, $file];
+              if ($inspect) $args[] = '--inspect';
+              $process = proc_open($args,[['file','/dev/null','r'],['pipe','w'],['file','/dev/null','w']],$pipes);
+              need(is_resource($process), 'stock_hook_could_not_start');
+              $bytes = stream_get_contents($pipes[1], 2000001);
+              fclose($pipes[1]);
+              $exit = proc_close($process);
+              need(is_string($bytes) && strlen($bytes) <= 2000000, 'stock_hook_output_invalid');
+              $prefix = 'MONITOR_POST_FEED_RESULT=';
+              $lines = array_values(array_filter(explode("\n", $bytes), static fn(string $line): bool => str_starts_with($line, $prefix)));
+              need(count($lines) === 1, 'stock_hook_receipt_missing');
+              $result = json_decode(substr($lines[0], strlen($prefix)), true, 64, JSON_THROW_ON_ERROR);
+              need(is_array($result), 'stock_hook_receipt_invalid');
+              return [$exit, $result];
+          }
+          
+          function publicReceipt(int $exit, array $raw): array
+          {
+              $keys = ['ok','mode','installed_sha','roster_pairs','scanned_pairs','eligible_pairs','held_pairs',
+                  'updated_pairs','verified_ids','eligible_ids','unchanged_ids','held_ids','deferred','error','timings_ms'];
+              $out = array_intersect_key($raw, array_flip($keys));
+              $out['exit'] = $exit;
+              if (isset($raw['child_failure']['error'])) $out['child_error'] = $raw['child_failure']['error'];
+              $out['updates'] = [];
+              foreach ($raw['updates'] ?? [] as $row) {
+                  need(in_array($row['tourvisor_hotel_id'] ?? null, HOTELS, true), 'unexpected_hotel_in_stock_receipt');
+                  $out['updates'][] = array_intersect_key($row, array_flip(['tourvisor_hotel_id','price','record_id','feed_operation']));
               }
-              $links=[];
-              foreach($xp->query('.//a[@href]',$text->item(0)) as $a) {
-                  $links[]=['text'=>trim($a->textContent),'url'=>$a->getAttribute('href')];
+              foreach (['verified_ids','eligible_ids','unchanged_ids','held_ids'] as $key) {
+                  foreach ($out[$key] ?? [] as $id) need(in_array($id, HOTELS, true), 'stock_receipt_scope_changed');
               }
-              return ['date'=>$time->item(0)->getAttribute('datetime'),'photos'=>$photos,'videos'=>$videos,
-                  'caption'=>$caption,'caption_sha256'=>hash('sha256',$caption),'buttons'=>$buttons,'links'=>$links];
+              return $out;
           }
-          function safeReason(Throwable $e): string {
-              $m=$e->getMessage();
-              return preg_match('/\A[a-z_0-9]{1,100}\z/D',$m)?$m:'exact_preflight_failed';
-          }
-          function telegramOperationReceipt(int $mid,int $id,int $version,string $caption,string $button): array {
-              $root='/var/www/anytoour/data/channel-post-operations';
-              $key='anytour-issue1566-seven-tg-caption-'.$mid.'-v1';
-              $dir=$root.'/'.$key;
-              $file=$dir.'/receipt.jsonl';
-              requireEdit(realpath($dir)===$dir && !is_link($file) && is_file($file),'original_receipt_missing');
-              $bytes=file_get_contents($file,false,null,0,65537);
-              requireEdit(is_string($bytes)&&strlen($bytes)<=65536,'original_receipt_invalid');
-              $rows=[];
-              foreach(preg_split('/\R/u',trim($bytes)) as $line) {
-                  $value=json_decode($line,true,24,JSON_THROW_ON_ERROR);
-                  requireEdit(is_array($value)&&($value['mid']??null)===$mid,'original_receipt_wrong_post');
-                  $rows[$value['state']]=$value;
-              }
-              $begin=$rows['caption_attempt_started']??[];
-              $bound=$rows['hotel_bound']??[];
-              $done=$rows['held_no_retry']??$rows['verified']??[];
-              return ['present'=>true,'ended'=>$done['state']??null,'caption_http'=>$bound['caption_http']??null,
-                      'caption_matches_original'=>hash_equals((string)($begin['new_caption_sha256']??''),hash('sha256',$caption)),
-                      'button_matches_original'=>hash_equals((string)($bound['button_hash']??''),hash('sha256',$button)),
-                      'same_original_version'=>($bound['publication_id']??null)===$id&&($bound['version_id']??null)===$version
-                          && ($done['publication_id']??null)===$id&&($done['version_id']??null)===$version];
-          }
-          function verifiedOriginal(ChannelPostRegistryService $registry,array $target): array {
-              $id=$target['publication'];$vid=$target['version'];$mid=$target['mid'];$hotel=$target['hotel_id'];
-              $url='https://t.me/anytour/'.$mid;
-              $p=$registry->publication($id);
-              requireEdit(is_array($p)&&$p['project_key']==='anytour'&&$p['platform']==='telegram'&&$p['channel_id']==='-1001845835645'
-                  &&$p['external_message_id']===(string)$mid&&$p['version_id']===$vid&&($p['snapshot']['post_url']??null)===$url
-                  &&(int)($p['snapshot']['metadata']['hotel_catalog_id']??0)===$hotel,'original_version_binding_changed');
-              $snap=$p['snapshot'];
-              $raw=ChannelPostIncomingAdapter::telegramSnapshot($snap['raw_body']);
-              $public=publicTelegram($mid);
-              $button=ChannelPostButtonTransport::buttonUrl($p);
-              $context=ChannelPostEntryService::resolve('telegram',$p['start_payload'],$registry);
-              requireEdit(is_array($raw)&&$raw['text']===$snap['text']&&($snap['raw_body']['message_id']??0)===$mid
-                  &&(string)($snap['raw_body']['chat']['id']??'')===$p['channel_id']&&count($snap['attachments'])===1
-                  &&!empty($snap['attachments'][0]['file_unique_id'])&&
-                  ($raw['attachments'][0]['file_unique_id']??null)===$snap['attachments'][0]['file_unique_id'],'original_telegram_response_mismatch');
-              requireEdit($public['caption']===$snap['text']&&$public['date']===$target['date']&&$public['photos']===$target['photos']&&$public['videos']===0
-                  &&$public['links']===$target['links']&&$button!==''&&$public['buttons']===[['text'=>$p['channel']['button_text'],'url'=>$button]]
-                  &&(int)($context['publication_id']??0)===$id&&(int)($context['version_id']??0)===$vid
-                  &&(int)($context['snapshot']['metadata']['hotel_catalog_id']??0)===$hotel,'public_evidence_mismatch_no_write');
-              $original=telegramOperationReceipt($mid,$id,$vid,$snap['text'],$button);
-              requireEdit($original['caption_http']===200&&$original['caption_matches_original']&&$original['button_matches_original']
-                  &&$original['same_original_version']&&$original['ended']==='held_no_retry','original_durable_receipt_mismatch');
-              requireEdit(($p['state']==='sent'||($p['state']==='unknown'&&$p['error_reason']==='edit_outcome_unknown'&&$p['write_attempts']===1))
-                  &&$p['claim_token']===null&&$p['claimed_at']===null,'unknown_operation_state_changed');
-              return $p;
-          }
-          $targets=json_decode(<<<'DATA'
-          [{"mid":954,"hotel_id":1439,"date":"2024-12-08T11:10:32+00:00","photos":["5381930103535168203"],"links":[{"text":"@AnyTour_MSK","url":"https://t.me/AnyTour_MSK"},{"text":"Подписаться на канал AnyTour - Горящие туры","url":"https://t.me/+gGloLUt4d8s3NDcy"}],"publication":3688,"version":13469},{"mid":913,"hotel_id":91404,"date":"2024-10-26T16:06:18+00:00","photos":["5253824522019268317"],"links":[{"text":"@AnyTour_MSK","url":"https://t.me/AnyTour_MSK"}],"publication":3689,"version":13470}]
-          DATA,true,24,JSON_THROW_ON_ERROR);
-          $out=['ok'=>false,'telegram_writes'=>0,'registry_updates'=>0,'rows'=>[]];
-          $held=[];
+          
+          $out = ['ok'=>false,'hotels'=>HOTELS,'stage'=>'prepare','apply_started'=>false];
+          $temp = null;
           try {
-              installedEdit('c3d763f828d2f88e006d222766c6be3b3656afe9');
+              need(PHP_SAPI === 'cli', 'cli_required');
               umask(0077);
-              ob_start();
-              try {
-                  require getcwd().'/config.php';
-                  require_once getcwd().'/services/PromotedHotelPriceWriter.php';
-                  require_once getcwd().'/services/ChannelPostRuntime.php';
-                  require_once getcwd().'/services/ChannelPostEntryService.php';
-              } finally { ob_end_clean(); }
-              requireEdit(ProjectConfig::projectId()==='anytour','wrong_project');
-              $path='/var/www/anytoour/data/channel-post-operations/monitor-price-after-collection-v1.jsonl';
-              requireEdit(is_file($path)&&!is_link($path),'original_price_lock_missing');
-              $file=fopen($path,'rb');
-              requireEdit(is_resource($file)&&flock($file,LOCK_EX|LOCK_NB),'shared_editor_busy');
-              $pdo=ConversationDb::connection();
-              $registry=new ChannelPostRegistryService($pdo);
-              $observed=[];
-              foreach($targets as $target){
-                  $out['checking']=$target['mid'];
-                  $key='anytour-issue1566-seven-tg-caption-'.$target['mid'].'-v1';
-                  $stmt=$pdo->prepare('SELECT GET_LOCK(?,0)');
-                  $stmt->execute([$key]);$locked=(int)$stmt->fetchColumn()===1;$stmt->closeCursor();
-                  requireEdit($locked,'target_lock_busy');
-                  $held[]=$key;
-                  $observed[$target['publication']]=verifiedOriginal($registry,$target);
+              $scope = scopedSource(canonicalSource());
+              $temp = tempnam(sys_get_temp_dir(), 'anytour-price-two-');
+              need(is_string($temp) && chmod($temp, 0600) && file_put_contents($temp, $scope) === strlen($scope),
+                  'scoped_temporary_file_failed');
+              $out['stage'] = 'inspect';
+              [$inspectCode, $inspect] = executeScoped($temp, true);
+              $out['inspect'] = publicReceipt($inspectCode, $inspect);
+              need($inspectCode === 0 && ($inspect['ok'] ?? false) === true && ($inspect['roster_pairs'] ?? null) === 2,
+                  'stock_inspection_refused');
+              $eligible = $out['inspect']['eligible_ids'] ?? [];
+              if ($eligible !== []) {
+                  need(canonicalSource() !== '', 'installed_hook_digest_changed');
+                  $out['stage'] = 'apply';
+                  $out['apply_started'] = true;
+                  [$writeCode, $write] = executeScoped($temp, false);
+                  $out['apply'] = publicReceipt($writeCode, $write);
+                  need($writeCode === 0 && ($write['ok'] ?? false) === true, 'stock_apply_stopped_read_journal_before_retry');
               }
-
-              $pdo->beginTransaction();
-              $lockPublication=$pdo->prepare('SELECT current_version_id FROM post_publications WHERE id=? FOR UPDATE');
-              $lockVersion=$pdo->prepare('SELECT id FROM post_versions WHERE id=? AND publication_id=? FOR UPDATE');
-              $changes=0;
-              foreach($targets as $target){
-                  $id=$target['publication'];$vid=$target['version'];$mid=$target['mid'];$p=$observed[$id];
-                  $out['checking']=$mid;
-                  $lockPublication->execute([$id]);$found=(int)$lockPublication->fetchColumn();$lockPublication->closeCursor();
-                  requireEdit($found===$vid,'publication_version_changed');
-                  $lockVersion->execute([$vid,$id]);$found=(int)$lockVersion->fetchColumn();$lockVersion->closeCursor();
-                  requireEdit($found===$vid,'pinned_version_unavailable');
-                  requireEdit($registry->publication($id)===$p,'original_operation_claim_or_version_changed');
-                  if($p['state']==='unknown'){
-                      $receipt=array_replace($p['receipt'],['verified'=>true,'button_verified'=>true,'content_preserved'=>true,
-                          'reconciled'=>true,'message_id'=>(string)$mid,'http_status'=>200]);
-                      requireEdit($registry->confirmObservedButton($id,$vid,$receipt),'original_version_confirmation_failed');
-                      ++$changes;
-                  }
-                  $saved=$registry->publication($id);
-                  requireEdit(is_array($saved)&&$saved['state']==='sent'&&$saved['version_id']===$vid&&
-                      $saved['snapshot']===$p['snapshot']&&$saved['write_attempts']===$p['write_attempts']&&
-                      $saved['start_payload']===$p['start_payload'],'confirmation_readback_mismatch');
-              }
-              $pdo->commit();
-              $out['registry_updates']=$changes;
-              foreach($targets as $target){
-                  $id=$target['publication'];$p=$observed[$id];$out['checking']=$target['mid'];
-                  $saved=$registry->publication($id);
-                  requireEdit(is_array($saved)&&$saved['state']==='sent'&&$saved['version_id']===$target['version']&&
-                      $saved['snapshot']===$p['snapshot']&&$saved['start_payload']===$p['start_payload'],'committed_readback_mismatch');
-                  $out['rows'][]=['mid'=>$target['mid'],'publication'=>$id,'version'=>$saved['version_id'],'before'=>$p['state'],
-                      'after'=>$saved['state'],'original_http'=>200,'original_photo_and_public_cta'=>true];
-              }
-              unset($out['checking']);
-              $out['ok']=true;
-          }catch(Throwable $e){
-              if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();
-              $out['hold']=safeReason($e);
-          }finally{
-              if($held){
-                  $unlock=$pdo->prepare('SELECT RELEASE_LOCK(?)');
-                  foreach(array_reverse($held) as $key){$unlock->execute([$key]);$unlock->closeCursor();}
-              }
-              if(isset($file)&&is_resource($file))fclose($file);
+              $out['stage'] = 'done';
+              $out['ok'] = true;
+          } catch (Throwable $error) {
+              $reason = $error->getMessage();
+              $out['hold'] = preg_match('/\A[a-z_0-9]{1,100}\z/D', $reason) ? $reason : 'scoped_price_operation_failed';
+          } finally {
+              if (is_string($temp) && is_file($temp)) unlink($temp);
           }
-          $out['at']=gmdate(DATE_ATOM);
-          echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          echo json_encode($out, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR), PHP_EOL;
           PHP
           php -l pub/read-only.php
       - name: Pin established SSH host continuity and authentication identity
@@ -240,7 +187,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Confirm the two existing versions without editing Telegram
+      - name: Inspect and apply only the two requested catalog pairs
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -252,12 +199,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("RAI_SWISS_ORIGINAL_CONFIRM="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("telegram_writes")==0 and [(a["publication"],a["version"]) for a in d.get("rows",[])]==[(3688,13469),(3689,13470)]'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("TWO_COMMERCIAL_PRICE_RESULT="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok")'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: telegram-954-913-original-confirmation
+          name: commercial-price-70030-1439
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
