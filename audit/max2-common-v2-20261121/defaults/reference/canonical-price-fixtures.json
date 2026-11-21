@@ -1,0 +1,14 @@
+{
+  "commit": "b678bc2f211c5f141751137453b199036491222d",
+  "excerpt_bytes": 4241,
+  "excerpt_sha256": "55d18cca2147ad0742489561613902af6b7fbd9ecf914441892173330a92b165",
+  "excluded": "no source fixture top-level code, schema helper, tick, configure, reconcile, sender or transport is executed",
+  "function_bodies": "verbatim excerpt; only PHP header added",
+  "functions": [
+    "modeledExpertWrapper",
+    "modeledUnknownPriceWrapper"
+  ],
+  "git_blob": "e0d2616b275e5ecc331657cc4b47465c19ed11fa",
+  "path": "tests/run_modeled_conversion_value_export_regression.php",
+  "repository": "pyatkoff/max-search-bot"
+}

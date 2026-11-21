@@ -55,6 +55,7 @@ refuses(static fn() => $client->upload($mismatched, $now), 'persisted attempt CS
 check($calls === [], 'mismatched durable attempt sends no POST');
 $out = $client->upload($event, $now);
 check($out['outcome'] === 'accepted' && $out['upload_id'] === '321' && $out['visit_linkage_verified'] === false, 'accept is not visit linkage');
+check($out['http_status'] === 200, 'accepted receipt retains actual HTTP status');
 check(count($calls) === 1 && $calls[0][0] === 'POST' && $calls[0][2] === $csv, 'one exact wire');
 check(str_starts_with($calls[0][1], 'https://api-metrika.yandex.net/management/v1/counter/98615635/offline_conversions/upload?type=BASIC&comment=AnyTourV2_'), 'fixed target endpoint');
 refuses(static fn() => $client->upload($event, $now), 'same adapter never replays');
@@ -65,12 +66,22 @@ foreach ([['http' => 200, 'error' => 28, 'body' => '{}'], ['http' => 500, 'error
     check($c->goalReady(), 'uncertainty fixture goal admitted');
     $out = $c->upload($event, $now);
     check($out['outcome'] === 'unknown' && $out['automatic_retry_permitted'] === false, 'uncertainty never retries');
+    check($out['http_status'] === $response['http'], 'uncertain receipt retains observed HTTP status');
 }
 foreach ([400, 403, 429] as $http) {
     $c = new Max2CommonValueMetrikaClientV2('synthetic-token', static fn($method) => $method === 'GET' ? $admittedGoal : ['http' => $http, 'error' => 0, 'body' => '{}']);
     check($c->goalReady(), 'rejection fixture goal admitted');
-    check($c->upload($event, $now)['outcome'] === 'rejected', 'rejection retains no-retry contract');
+    $out = $c->upload($event, $now);
+    check($out['outcome'] === 'rejected', 'rejection retains no-retry contract');
+    check($out['http_status'] === $http, 'rejected receipt retains actual HTTP status');
 }
+$c = new Max2CommonValueMetrikaClientV2('synthetic-token', static function($method) use ($admittedGoal) {
+    if ($method === 'GET') return $admittedGoal;
+    throw new RuntimeException('synthetic no response');
+});
+check($c->goalReady(), 'no-response fixture goal admitted');
+$out = $c->upload($event,$now);
+check($out['outcome'] === 'unknown' && $out['http_status'] === 0, 'missing response never invents HTTP 200');
 $goals = [['id' => 687941321, 'name' => Max2CommonValueMetrikaClientV2::TARGET, 'type' => 'action',
     'conditions' => [['type' => 'exact', 'url' => Max2CommonValueMetrikaClientV2::TARGET]]],
     ['id' => 678187097, 'name' => 'AnyTour: оценочная ценность обращения v1', 'type' => 'action',

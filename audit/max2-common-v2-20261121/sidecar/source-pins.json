@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "installed": false,
+  "endpoint": "https://tour-max.ru/new/max2-value-attribution/lookup.php",
+  "files": {
+    "README.md": {
+      "bytes": 7707,
+      "sha256": "6d216c79f0902a94041e040b217673ea59becb31c6c55786cb8b4b73b76ac086"
+    },
+    "verify.py": {
+      "bytes": 2658,
+      "sha256": "33221ae5e9528d7d477e2375828647745f0734d3243f50059cb8d769a1a7f078"
+    },
+    "tests/sidecar.php": {
+      "bytes": 11244,
+      "sha256": "af885024e13e6d0be7456da5a02969097c9f839f5b23f67218865c061ab05028"
+    },
+    "candidate/lookup.php": {
+      "bytes": 1264,
+      "sha256": "1bf959cba0b0e95c889708adca9158420ebd2135262ad68ec4700920758bba77"
+    },
+    "candidate/services/Max2ValueLookupHttpV2.php": {
+      "bytes": 3579,
+      "sha256": "372632718bba127a89e871a05e620e40bbb9183f6da895426aed828251f44553"
+    },
+    "candidate/services/Max2ValueLookupProtocolV2.php": {
+      "bytes": 15104,
+      "sha256": "04100d16541e5d1c961845ad59a5fb9b11840361630c4bf3b83a80c360bc2fe2"
+    },
+    "candidate/services/Max2ValueLookupRepositoryV2.php": {
+      "bytes": 17096,
+      "sha256": "40ab600c7b8e619da212d0a10942046fb36a37ab13ba661f6019d40b3bd9fac9"
+    },
+    "candidate/services/Max2ValueLookupRuntimeV2.php": {
+      "bytes": 5914,
+      "sha256": "9d18c288ae9a07c87b4db22f16a52f05c22ad6a6b3a9058163fe35a2972025c6"
+    }
+  }
+}

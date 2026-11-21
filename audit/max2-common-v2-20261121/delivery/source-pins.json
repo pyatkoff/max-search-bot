@@ -1,8 +1,8 @@
 {
   "active": false,
   "files": {
-    "services/Max2CommonValueMetrikaClientV2.php": "5871fe39e68e47be87eb8b767d4a2d82ad74dd3af6f52c7d28deb160ee9d9d2a",
-    "tests/delivery.php": "a54d8487a8ef181173a6b35350f7d4b7673201cd9d6d9dfc68ad73fa7c68d91e"
+    "services/Max2CommonValueMetrikaClientV2.php": "3bcaabafa4355643cd3e961540aee63738b661a99f0116760672606aecb6cb4a",
+    "tests/delivery.php": "14227215a5748eeebe0afa2d8bca63f7f7158d408c6fb7434d08c647ad0b9af4"
   },
   "php_runtime_verified": false,
   "schema": "max2-common-v2-delivery-source-v1"

@@ -1,0 +1,32 @@
+{
+  "app_base_sha": "b678bc2f211c5f141751137453b199036491222d",
+  "dependencies": {
+    "canonical_fixture_git_blob": "e0d2616b275e5ecc331657cc4b47465c19ed11fa",
+    "full_application_checkout": true,
+    "old_price_rule_sha256": "18f1101b3822bb02fd62b025c341a6fc5a298a1861fff04d8d668823848accbf",
+    "php_extensions": [
+      "pdo_sqlite",
+      "mbstring",
+      "json"
+    ],
+    "price_reader_sha256": "e8ade0d700cacc679060b9a485e7109840bd4c895e8abfc11790a3ec7352e1ab",
+    "reader_sha256": "4ac74d360889db0776575219e8779f09e59129fd04bf93a1d4c1411351b233d3",
+    "source_package": "../source"
+  },
+  "effects": {
+    "deployment": false,
+    "live_database_connections": 0,
+    "model_ticks": 0,
+    "old_sender_calls": 0,
+    "provider_calls": 0
+  },
+  "files": {
+    "README.md": "9db47ed213e425c2b2c35f22fe6460cc5eddc1a3f599076c8324bb202888b0a3",
+    "reference/canonical-price-fixtures.json": "43b70216daea96f1014bde3334643275e1047d28d4883395f54e2d34d1a42183",
+    "reference/canonical-price-fixtures.php": "55d18cca2147ad0742489561613902af6b7fbd9ecf914441892173330a92b165",
+    "tests/default-parity.php": "cfce4cc55327e4feed8bbbd167ca80b04b96c680406ade5ca215d179d7eded35"
+  },
+  "php_validation": "pending_source_only_native_CI",
+  "schema_version": 1,
+  "scope": "max2-common-v2-actual-default-parity-source"
+}

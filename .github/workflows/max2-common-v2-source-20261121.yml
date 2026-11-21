@@ -36,7 +36,7 @@ jobs:
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962
         with:
           php-version: '8.2'
-          extensions: openssl, pdo_sqlite
+          extensions: openssl, pdo_sqlite, mbstring
           coverage: none
           tools: none
       - name: Verify seals, lint PHP and run only synthetic contracts
@@ -111,6 +111,10 @@ jobs:
                   suites.append(('ledger', 'tests/repository.php'))
               if (root / 'source').exists():
                   suites.append(('source', 'tests/reader.php'))
+              if (root / 'defaults').exists():
+                  suites.append(('defaults', 'tests/default-parity.php'))
+              if (root / 'sidecar').exists():
+                  suites.append(('sidecar', 'tests/sidecar.php'))
               report['ledger_included'] = any(group == 'ledger' for group, _ in suites)
               for group, fixture in suites:
                   seals(group)

@@ -123,19 +123,19 @@ final class Max2CommonValueMetrikaClientV2
         if (!$this->goalAdmitted) throw new RuntimeException('v2_goal_not_admitted');
         if ($this->postAttempted) throw new RuntimeException('v2_post_already_attempted');
         $this->postAttempted = true;
-        $unknown = ['outcome' => 'unknown', 'reason' => 'v2_upload_outcome_unknown', 'automatic_retry_permitted' => false];
+        $unknown = ['outcome' => 'unknown', 'reason' => 'v2_upload_outcome_unknown', 'http_status' => 0, 'automatic_retry_permitted' => false];
         try {
             $comment = self::comment($event);
             $response = $this->request('POST', 'offline_conversions/upload?type=BASIC&comment=' . rawurlencode($comment), $csv);
-            if (($response['error'] ?? null) !== 0) return $unknown;
             $http = $response['http'] ?? null;
-            if (!is_int($http)) return $unknown;
-            if ($http >= 400 && $http < 500) return ['outcome' => 'rejected', 'reason' => 'v2_api_rejected', 'automatic_retry_permitted' => false];
+            if (is_int($http) && ($http === 0 || ($http >= 100 && $http <= 599))) $unknown['http_status'] = $http;
+            if (($response['error'] ?? null) !== 0 || !is_int($http)) return $unknown;
+            if ($http >= 400 && $http < 500) return ['outcome' => 'rejected', 'reason' => 'v2_api_rejected', 'http_status' => $http, 'automatic_retry_permitted' => false];
             $data = json_decode($response['body'], true, 32, JSON_THROW_ON_ERROR | JSON_BIGINT_AS_STRING);
             $receipt = $data['uploading'] ?? null;
             if ($http >= 200 && $http < 300 && self::validReceipt($receipt)
                 && (!array_key_exists('comment', $receipt) || $receipt['comment'] === $comment)) {
-                return ['outcome' => 'accepted', 'upload_id' => (string)$receipt['id'], 'status' => $receipt['status'],
+                return ['outcome' => 'accepted', 'upload_id' => (string)$receipt['id'], 'status' => $receipt['status'], 'http_status' => $http,
                     'automatic_retry_permitted' => false, 'visit_linkage_verified' => false];
             }
             return $unknown;
