@@ -1,4 +1,4 @@
-name: "Aloft 1678: read exact post observation"
+name: "Three existing Big MAX posts: exact read-only price preflight"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -13,12 +13,12 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '13f8e9f3d181df71eadd4fa1f83d94e8908629ce' &&
+      github.event.before == '75e5e90eecb121592a17419559801e111f42d407' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Prepare Telegram post registry read
+      - name: Prepare exact MAX registry and post reads
         shell: bash
         run: |
           set -euo pipefail
@@ -38,49 +38,96 @@ jobs:
               requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD')) === $expected, 'installed_checkout_changed');
               requireEdit(trim((string) shell_exec('GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false status --porcelain --untracked-files=no')) === '', 'installed_checkout_dirty');
           }
-          function postRegistryEvidence(PDO $pdo,ChannelPostRegistryService $registry,int $mid): array {
-              $q=$pdo->prepare("SELECT p.id,(SELECT COUNT(*) FROM post_versions v WHERE v.publication_id=p.id) AS versions,
-                  (SELECT COUNT(*) FROM post_observations o WHERE o.publication_id=p.id) AS observations
-                  FROM post_publications p JOIN post_channels c ON c.id=p.post_channel_id
-                  WHERE c.platform=? AND c.channel_id=? AND p.external_message_id=? ORDER BY p.id LIMIT 3");
-              $q->execute(['telegram','-1001845835645',(string)$mid]);
-              $rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();
-              requireEdit(count($rows)<=1,'exact_post_identity_duplicated');
-              $m=$pdo->prepare("SELECT COUNT(*) FROM post_member_deliveries m JOIN post_publications p ON p.id=m.publication_id
-                  JOIN post_channels c ON c.id=p.post_channel_id WHERE c.platform=? AND c.channel_id=? AND m.external_message_id=?");
-              $m->execute(['telegram','-1001845835645',(string)$mid]);
-              $members=(int)$m->fetchColumn();$m->closeCursor();
-              $r=$rows[0]??null;
-              $p=$r?$registry->publication((int)$r['id']):null;
-              $s=$p['snapshot']??[];
-              return ['publication_record_count'=>count($rows),'version_count'=>(int)($r['versions']??0),
-                  'provider_observation_count'=>(int)($r['observations']??0),'member_record_count'=>$members,
-                  'recorded_hotel_id'=>isset($s['metadata']['hotel_catalog_id'])?(int)$s['metadata']['hotel_catalog_id']:null,
-                  'current_state'=>$p['state']??null,'video_id_in_snapshot'=>isset($s['attachments'][0]['file_unique_id'])&&
-                      ($s['attachments'][0]['type']??'')==='video'];
+          function parsedPrice(string $text): ?int {
+              if (!preg_match('/^💰 От ([0-9\x{00a0}\x{202f} ]+) ₽ за двоих/mu',$text,$m)) return null;
+              return (int)preg_replace('/\D/','',$m[1]);
           }
-          
-          $out=['ok'=>false,'provider_writes'=>0,'db_writes'=>0,'target_post'=>1678];
-          try{
-              installedEdit('b4b65daaa472c15426a244b87ede3e6c0394626b');
+          $report=['ok'=>false,'provider_writes'=>0,'db_writes'=>0];
+          try {
+              installedEdit('cb08ade02e0d4588dfef8e4f0a8a5253b04d26c6');
               ob_start();
-              try{
+              try {
                   require getcwd().'/config.php';
-                  require_once getcwd().'/services/ChannelPostEntryService.php';
-              }finally{ob_end_clean();}
+                  require_once getcwd().'/services/PromotedHotelPriceWriter.php';
+                  require_once getcwd().'/services/ChannelPostRuntime.php';
+                  require_once getcwd().'/integrations/ChannelPostApiTransport.php';
+              } finally { ob_end_clean(); }
+              $path='/var/www/anytoour/data/channel-post-operations/monitor-price-after-collection-v1.jsonl';
+              $lk=is_file($path) && !is_link($path) ? fopen($path,'rb') : null;
+              $hasLock=is_resource($lk) && flock($lk,LOCK_SH|LOCK_NB);
+              $report['price_lock_observation']=$hasLock?'free':(is_resource($lk)?'busy':'unavailable');
+              if(is_resource($lk)) fclose($lk);
+              $targetSet=json_decode(file_get_contents('config/promoted_hotel_price_targets.json'),true,32,JSON_THROW_ON_ERROR);
+              $targets=[];
+              foreach($targetSet as $target) if($target['platform']==='max') $targets[$target['hotel_id']]=$target['publication_id'];
               $pdo=ConversationDb::connection();
               $pdo->exec('SET SESSION TRANSACTION READ ONLY');
               $pdo->beginTransaction();
-              $out['registry']=postRegistryEvidence($pdo,new ChannelPostRegistryService($pdo),1678);
+              $registry=new ChannelPostRegistryService($pdo);
+              $sql=$pdo->prepare("SELECT p.id, JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id')) AS hotel_id,
+                  (SELECT COUNT(*) FROM post_versions pv WHERE pv.publication_id=p.id AND
+                      (pv.state IN ('claimed','write_started','unknown') OR pv.claim_token IS NOT NULL OR pv.claimed_at IS NOT NULL)) AS pending_claims
+                  FROM post_publications p JOIN post_channels c ON c.id=p.post_channel_id
+                  JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id
+                  WHERE c.platform='max' AND c.channel_id=? AND c.is_enabled=1 AND JSON_VALID(v.snapshot_json)
+                    AND (p.id=3670 OR JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id')) IN ('352','90236','67910'))
+                  ORDER BY p.id LIMIT 12");
+              $channel='-68765999669267';
+              $sql->execute([$channel]);
+              $rows=[];
+              foreach($sql->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                  $id=(int)$row['id'];
+                  $hotel=(int)($row['hotel_id']??0);
+                  if($id===3670 && $hotel===0) $hotel=352;
+                  $rows[]=['id'=>$id,'hotel'=>$hotel,'pending'=>(int)$row['pending_claims'],'post'=>$registry->publication($id)];
+              }
               $pdo->rollBack();
-              $out['checked_at']=gmdate(DATE_ATOM);
-              $out['ok']=true;
-          }catch(Throwable $e){
-              if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();
-              $reason=$e->getMessage();
-              $out['reason']=preg_match('/\\A[a-z_0-9]{1,100}\\z/D',$reason)?$reason:'target_registry_read_failed';
+              $report['rows']=[];
+              foreach($rows as $row) {
+                  $post=$row['post'];
+                  $snap=$post['snapshot']??[];
+                  $mid=$post['external_message_id']??'';
+                  $url=$snap['post_url']??'';
+                  $item=['hotel'=>$row['hotel'],'publication'=>$row['id'],'url'=>$url,'state'=>$post['state']??null,
+                      'pending_claims'=>$row['pending'],'price_writer_target'=>($targets[$row['hotel']]??null)===$row['id'],
+                      'registry_price'=>parsedPrice((string)($snap['text']??''))];
+                  try {
+                      requireEdit(preg_match('~\Ahttps://max\.ru/anytour/[A-Za-z0-9_-]{11}\z~D',$url)===1,'max_public_url_invalid');
+                      requireEdit(is_string($mid)&&preg_match('~\A[A-Za-z0-9_.-]{1,160}\z~D',$mid)===1,'bad_native_id');
+                      $native=ChannelPostApiTransport::buttonRequest('max','GET','/messages/'.$mid,[],null);
+                      $raw=$native['data']??[];
+                      $item['native_http']=$native['http']??null;
+                      requireEdit(!$native['transport_error'] && $native['http']===200 && ($raw['body']['mid']??null)===$mid
+                          && (string)($raw['recipient']['chat_id']??'')===$channel && ($raw['recipient']['chat_type']??'')==='channel',
+                          'max_read_unverified');
+                      $actual=ChannelPostIncomingAdapter::maxSnapshot($raw);
+                      requireEdit(is_array($actual)&&($actual['post_url']??null)===$url,'max_snapshot_invalid');
+                      $actualText=$actual['text']??'';
+                      $item['native_price']=parsedPrice($actualText);
+                      $button=ChannelPostButtonTransport::buttonUrl($post);
+                      $label=(string)($post['channel']['button_text']??'');
+                      $item['cta_label']=$label;
+                      $item['cta_matches']=$button!=='' && $label!=='' && ChannelPostIncomingAdapter::containsOnlyButton($actual,$button,$label);
+                      $photo=$actual['attachments'][0]['photo_id']??null;
+                      $item['same_photo']=count($actual['attachments']??[])===1 && ($actual['attachments'][0]['type']??'')==='image'
+                          && is_string($photo) && $photo!=='' && $photo===($snap['attachments'][0]['photo_id']??null);
+                      $item['native_text_matches_registry']=($snap['text']??null)===$actualText;
+                      $item['public_caption_matches_native']=PromotedHotelPriceWriter::maxPublicCaption(
+                          PromotedHotelPriceWriter::publicBytes($url))===$actualText;
+                  }catch(Throwable $error) {
+                      $message=$error->getMessage();
+                      $item['hold']=preg_match('/\A[a-z_0-9]{1,100}\z/D',$message)?$message:'native_or_public_read_failed';
+                  }
+                  $report['rows'][]=$item;
+              }
+              $report['at']=gmdate(DATE_ATOM);
+              $report['ok']=true;
+          }catch(Throwable $error) {
+              if(isset($pdo)&&$pdo->inTransaction()) $pdo->rollBack();
+              $message=$error->getMessage();
+              $report['hold']=preg_match('/\A[a-z_0-9]{1,100}\z/D',$message)?$message:'max_registry_read_failed';
           }
-          echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          echo json_encode($report,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
           PHP
           php -l pub/read-only.php
       - name: Pin established SSH host continuity and authentication identity
@@ -115,7 +162,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read only the exact Telegram post and current MAX/TG feeds
+      - name: Read only three existing MAX posts
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -127,12 +174,12 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("ALOFT1678_REGISTRY_READ="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0 and d.get("db_writes")==0'
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("MAX_THREE_PRICE_PREFLIGHT="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d.get("ok") and d.get("provider_writes")==0 and d.get("db_writes")==0'
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: aloft-1678-registry-read
+          name: three-max-price-preflight
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
