@@ -4,7 +4,6 @@ Caller must supply fully paginated, authorization-filtered, snapshot-consistent 
 No database access, identifiers, messages, network or exports here.
 """
 from collections import Counter
-from datetime import datetime, timezone
 from classifier import Evidence, classify
 
 STAGES = ('D0','D1','D2','D3','D4','unknown')
@@ -34,13 +33,17 @@ def summarize(rows, as_of_unix):
             for v in output.values(): v['complete']=False;v['reasons']['invalid_record']+=1
             continue
         key=(platform,anchor)
-        if key in seen: continue
+        if key in seen:
+            for v in output.values(): v['complete']=False;v['reasons']['duplicate_anchor_requires_first_selection']+=1
+            continue
         seen.add(key)
         features=row.get('early_features')
+        age=as_of_unix-ts
         if not isinstance(features,dict):
             for days in WINDOWS:
-                output[(days,platform)]['stage_counts']['unknown']+=1
-                output[(days,platform)]['records']+=1
+                if 0 <= age < days*86400:
+                    output[(days,platform)]['stage_counts']['unknown']+=1
+                    output[(days,platform)]['records']+=1
             continue
         allowed=Evidence.__dataclass_fields__.keys()
         if any(k not in allowed for k in features):
@@ -48,7 +51,6 @@ def summarize(rows, as_of_unix):
             stage='unknown'
         else:
             stage=classify(Evidence(**features))['stage']
-        age=as_of_unix-ts
         for days in WINDOWS:
             if 0 <= age < days*86400:
                 v=output[(days,platform)]
