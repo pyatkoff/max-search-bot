@@ -11,6 +11,35 @@ final class ChannelPostApiTransport
         return self::postRequest($platform, $method, $path, $query, $body, false);
     }
 
+    /** The saved publisher may only inspect its own rights and edit this one keyboard. */
+    public static function publisherButtonRequest(#[\SensitiveParameter] string $token, string $method, string $path, array $query, ?array $body): array
+    {
+        $denied = ['http' => 0, 'data' => null, 'transport_error' => true];
+        if (!preg_match('/\A([1-9][0-9]{4,18}):[A-Za-z0-9_-]{20,200}\z/D', $token, $match)
+            || $method !== 'POST' || $query !== [] || !is_array($body)) return $denied;
+        $allowed = $path === 'getMe' && $body === [];
+        if ($path === 'getChat') {
+            $allowed = array_keys($body) === ['chat_id'] && $body['chat_id'] === '-1001845835645';
+        } elseif ($path === 'getChatMember') {
+            $allowed = array_keys($body) === ['chat_id', 'user_id'] && $body['chat_id'] === '-1001845835645'
+                && (is_int($body['user_id']) || is_string($body['user_id'])) && (string)$body['user_id'] === $match[1];
+        } elseif ($path === 'editMessageReplyMarkup') {
+            $rows = $body['reply_markup']['inline_keyboard'] ?? null;
+            $button = is_array($rows) ? ($rows[0][0] ?? null) : null;
+            $allowed = array_keys($body) === ['chat_id', 'message_id', 'reply_markup']
+                && $body['chat_id'] === '-1001845835645' && in_array($body['message_id'], [1678, '1678'], true)
+                && is_array($body['reply_markup']) && array_keys($body['reply_markup']) === ['inline_keyboard']
+                && is_array($rows) && array_is_list($rows) && count($rows) === 1
+                && is_array($rows[0]) && array_is_list($rows[0]) && count($rows[0]) === 1
+                && is_array($button) && array_keys($button) === ['text', 'url']
+                && is_string($button['text']) && $button['text'] !== '' && mb_check_encoding($button['text'], 'UTF-8')
+                && mb_strlen($button['text'], 'UTF-8') <= 128
+                && !preg_match('/[\x00-\x1f\x7f]/u', $button['text'])
+                && is_string($button['url']) && preg_match('~\Ahttps://t\.me/anyru_bot\?start=p_[A-Za-z0-9_-]{24}\z~D', $button['url']) === 1;
+        }
+        return $allowed ? self::postRequest('telegram', $method, $path, $query, $body, false, $token) : $denied;
+    }
+
     /** Caption edits of already bound posts. Attachments and publish calls are excluded. */
     public static function captionRequest(string $platform, string $channelId, string $messageId, array $body): array
     {
@@ -32,10 +61,10 @@ final class ChannelPostApiTransport
         return ['http' => 0, 'data' => null, 'transport_error' => true];
     }
 
-    private static function postRequest(string $platform, string $method, string $path, array $query, ?array $body, bool $caption): array
+    private static function postRequest(string $platform, string $method, string $path, array $query, ?array $body, bool $caption, #[\SensitiveParameter] ?string $publisherToken = null): array
     {
         if (!extension_loaded('curl')) return ['http' => 0, 'data' => null, 'transport_error' => true];
-        $token = $platform === 'max' ? (defined('MAX_SEARCH_TOKEN') ? (string)MAX_SEARCH_TOKEN : '') : (defined('TELEGRAM_BOT_TOKEN') ? (string)TELEGRAM_BOT_TOKEN : '');
+        $token = $publisherToken ?? ($platform === 'max' ? (defined('MAX_SEARCH_TOKEN') ? (string)MAX_SEARCH_TOKEN : '') : (defined('TELEGRAM_BOT_TOKEN') ? (string)TELEGRAM_BOT_TOKEN : ''));
         if ($token === '') return ['http' => 0, 'data' => null, 'transport_error' => true];
         if ($platform === 'max') {
             $page = $method === 'GET' && $path === '/messages' && $body === null && array_keys($query) === ['chat_id','from','to','count']

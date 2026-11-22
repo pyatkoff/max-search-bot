@@ -243,5 +243,237 @@ foreach ($pilotBindings as $platform => [$channelId, $mid, $origin, $source, $co
 }
 require_once __DIR__.'/fixtures/channel_post_zero_write_recovery.php';
 runChannelPostZeroWriteRecoveryChecks($pdo, 'postCheck');
+
+/** Isolated public preparation; no Telegram dispatch, click, or production DB. */
+function manualPostFixture(): array
+{
+    $pdo = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    createChannelPostRegistryFixture($pdo);
+    $pdo->exec("INSERT INTO projects VALUES (1,'anytour','AnyTour fixture',1);
+        INSERT INTO conversation_sources VALUES (9,1,'tg_anytour_msk','Channel fixture','telegram',1,'manager');");
+    $registry = new ChannelPostRegistryService($pdo);
+    $channel = $registry->configureChannel(['project_key'=>'anytour','platform'=>'telegram','bot_key'=>'anyru_bot',
+        'channel_id'=>'-1001845835645','source_key'=>'tg_anytour_msk','display_name'=>'Aloft fixture',
+        'bot_url'=>'https://t.me/anyru_bot','is_enabled'=>true]);
+    $snapshot = ['text'=>"Aloft Palm Jumeirah\nТочная тестовая подпись остаётся прежней.", 'title'=>'Aloft Palm Jumeirah',
+        'format'=>'public_html','post_url'=>'https://t.me/anytour/1678','published_at'=>'2026-08-11 11:51:56','edited_at'=>'',
+        'attachments'=>[['type'=>'video','provider'=>'telegram','duration'=>28,'public_media_path'=>'/file/test1678.mp4']],
+        'markup'=>[], 'keyboard'=>[[['text'=>'First','url'=>'https://example.test/one']], [['text'=>'Second','url'=>'https://example.test/two']], [['text'=>'Third','url'=>'https://example.test/three']]],
+        'raw_body'=>[], 'metadata'=>['capability'=>'requires_attention','capability_reason'=>'manual_approval_required',
+            'observation_kind'=>'public_read','actual_message_id'=>'1678','channel_id'=>'-1001845835645',
+            'hotel_catalog_id'=>61159,'checked_at'=>gmdate('c')]];
+    return [$pdo, $registry, $channel, $snapshot, ['username'=>'ANYTOURBOT_bot','bot_id'=>'777000111','credential_version'=>1]];
+}
+function manualPostThrows(callable $operation, string $reason = ''): bool
+{
+    try { $operation(); } catch (Throwable $error) { return $reason === '' || $error->getMessage() === $reason; }
+    return false;
+}
+function manualNativeObservation(ChannelPostRegistryService $registry, array $snapshot, int $sequence = 930001, array $messagePatch = []): array
+{
+    $message = [
+        'chat'=>['id'=>-1001845835645,'type'=>'channel','username'=>'anytour'], 'message_id'=>1678,
+        'date'=>strtotime('2026-08-11 11:51:56 UTC'), 'edit_date'=>1800000000 + $sequence,
+        'caption'=>$snapshot['text'], 'video'=>['file_id'=>'SYNTHETIC_FILE_ID','file_unique_id'=>'synthetic_video_1678','duration'=>28],
+        'reply_markup'=>['inline_keyboard'=>$snapshot['keyboard']]];
+    $event = ChannelPostIncomingAdapter::fromUpdate('telegram', ['update_id'=>$sequence, 'edited_channel_post'=>array_replace($message,$messagePatch)]);
+    if (!$event) throw new RuntimeException('native_fixture_invalid');
+    $event['snapshot']['content_hash'] = ChannelPostIncomingAdapter::contentFingerprint($event['snapshot']);
+    return $registry->registerPublication('anytour','telegram','anyru_bot','-1001845835645','1678',$event['snapshot']);
+}
+
+[$manualDb,$manualRegistry,$manualChannel,$manualSnapshot,$manualPublisher] = manualPostFixture();
+$changes = (int)$manualDb->query('SELECT total_changes()')->fetchColumn();
+postCheck('manual exact-target GET does not create a publication or token', $manualRegistry->manualTelegramButtonPublication() === null && (int)$manualDb->query('SELECT total_changes()')->fetchColumn() === $changes);
+$manualDb->exec("CREATE TRIGGER refuse_pending_manual BEFORE INSERT ON post_versions WHEN NEW.state='pending' BEGIN SELECT RAISE(FAIL,'preparation briefly queued'); END");
+$prepared = $manualRegistry->prepareManualTelegramButton($manualChannel,$manualSnapshot,$manualPublisher);
+$manualDb->exec('DROP TRIGGER refuse_pending_manual');
+postCheck('manual preparation is born held atomically and owns its own opaque token', $prepared['state'] === 'requires_attention' && $prepared['error_reason'] === 'manual_approval_required'
+    && $prepared['attempt_count'] === 0 && $prepared['write_attempts'] === 0 && $prepared['source_id'] === 9 && $prepared['external_message_id'] === '1678'
+    && preg_match('/\Ap_[A-Za-z0-9_-]{24}\z/D',$prepared['start_payload']) === 1 && $prepared['publisher'] === $manualPublisher && $prepared['manual_button_repair'] === true);
+$clock = $manualDb->query('SELECT observed_revision_ms,telegram_sequence FROM post_publications')->fetch();
+postCheck('public preparation never manufactures native observations or provider clocks', $clock['observed_revision_ms'] === null && $clock['telegram_sequence'] === null
+    && (int)$manualDb->query('SELECT COUNT(*) FROM post_observations')->fetchColumn() === 0 && $prepared['snapshot']['raw_body'] === []
+    && $prepared['snapshot']['metadata']['observation_kind'] === 'public_read' && !isset($prepared['snapshot']['metadata']['source_sequence']));
+postCheck('prepared token resolves through the canonical bot with the exact hotel heading', $manualRegistry->resolveToken('anytour','telegram','anyru_bot',$prepared['start_payload'])['snapshot']['title'] === 'Aloft Palm Jumeirah'
+    && $manualRegistry->resolveToken('anytour','telegram','ANYTOURBOT_bot',$prepared['start_payload']) === null
+    && ChannelPostButtonTransport::buttonUrl($prepared) === 'https://t.me/anyru_bot?start='.$prepared['start_payload']);
+$changes = (int)$manualDb->query('SELECT total_changes()')->fetchColumn();
+$sameSnapshot = $manualSnapshot; $sameSnapshot['metadata']['checked_at'] = '2026-11-22T23:59:59+00:00';
+$same = $manualRegistry->prepareManualTelegramButton($manualChannel,$sameSnapshot,$manualPublisher);
+$read = $manualRegistry->manualTelegramButtonPublication();
+postCheck('identical preparation and readback preserve token version receipt without writes', $same === $prepared && array_diff_key($read,['manual_original'=>true]) === $prepared
+    && $read['manual_original']['version_id'] === $prepared['version_id'] && $read['manual_original']['state'] === 'requires_attention'
+    && (int)$manualDb->query('SELECT total_changes()')->fetchColumn() === $changes);
+postCheck('manual preparation is absent from automatic work and ordinary claims', $manualRegistry->pendingPublications('anytour','telegram','anyru_bot',5,false) === []
+    && $manualRegistry->claimPublication($prepared['publication_id'],$prepared['version_id']) === null
+    && !$manualRegistry->confirmObservedButton($prepared['publication_id'],$prepared['version_id'],['verified'=>true]));
+$changedSnapshot = $manualSnapshot; $changedSnapshot['text'] .= ' Изменено.';
+postCheck('changed public content cannot silently replace a reviewed token snapshot', manualPostThrows(fn()=>$manualRegistry->prepareManualTelegramButton($manualChannel,$changedSnapshot,$manualPublisher),'manual_publication_conflict')
+    && array_diff_key($manualRegistry->manualTelegramButtonPublication(),['manual_original'=>true]) === $prepared);
+$otherPublisher = $manualPublisher; $otherPublisher['credential_version'] = 2;
+postCheck('preparation cannot silently rebind a saved publisher version', manualPostThrows(fn()=>$manualRegistry->prepareManualTelegramButton($manualChannel,$manualSnapshot,$otherPublisher),'manual_publication_conflict'));
+$digest = ChannelPostRegistryService::manualTelegramButtonDigest($prepared);
+$differentLabel = $prepared; $differentLabel['channel']['button_text'] = 'Другой текст';
+$differentCredential = $prepared; $differentCredential['receipt']['credential_version'] = 2;
+$differentVersion = $prepared; $differentVersion['version_id']++;
+postCheck('approval digest binds the actual token target version label and publisher credential', $digest === $prepared['plan_digest']
+    && $digest !== ChannelPostRegistryService::manualTelegramButtonDigest($differentLabel)
+    && $digest !== ChannelPostRegistryService::manualTelegramButtonDigest($differentCredential)
+    && $digest !== ChannelPostRegistryService::manualTelegramButtonDigest($differentVersion)
+    && manualPostThrows(fn()=>$manualRegistry->claimManualTelegramButton($prepared,str_repeat('a',64)),'manual_approval_changed'));
+foreach (['project_key'=>'anex','bot_key'=>'ANYTOURBOT_bot','channel_id'=>'-1001234567','source_id'=>10,'source_key'=>'tg_other'] as $key=>$value) {
+    $wrong = $manualChannel; $wrong[$key] = $value;
+    postCheck('manual preparation rejects foreign '.$key, manualPostThrows(fn()=>$manualRegistry->prepareManualTelegramButton($wrong,$manualSnapshot,$manualPublisher),'manual_target_required'));
+}
+$badSnapshot = $manualSnapshot; $badSnapshot['raw_body'] = ['message_id'=>1678];
+postCheck('public preparation refuses a forged native body', manualPostThrows(fn()=>$manualRegistry->prepareManualTelegramButton($manualChannel,$badSnapshot,$manualPublisher)));
+$badSnapshot = $manualSnapshot; $badSnapshot['metadata']['hotel_catalog_id'] = 1207;
+postCheck('public preparation refuses another hotel or archive post identity', manualPostThrows(fn()=>$manualRegistry->prepareManualTelegramButton($manualChannel,$badSnapshot,$manualPublisher)));
+
+$claim = $manualRegistry->claimManualTelegramButton($prepared,$digest);
+postCheck('manual approval consumes one exclusive durable claim', $claim['state'] === 'claimed' && $claim['attempt_count'] === 1 && strlen($claim['claim_token']) === 32
+    && manualPostThrows(fn()=>$manualRegistry->claimManualTelegramButton($prepared,$digest),'manual_repair_not_claimable')
+    && manualPostThrows(fn()=>$manualRegistry->prepareManualTelegramButton($manualChannel,$manualSnapshot,$manualPublisher),'manual_repair_not_claimable'));
+postCheck('manual external-write fence permits exactly one attempt', $manualRegistry->markExternalWriteStarted($claim['publication_id'],$claim['version_id'],$claim['claim_token'])
+    && !$manualRegistry->markExternalWriteStarted($claim['publication_id'],$claim['version_id'],$claim['claim_token']));
+postCheck('manual operation cannot be marked sent with an unverified summary', !$manualRegistry->finishPublication($claim['publication_id'],$claim['version_id'],$claim['claim_token'],'sent','verified',['verified'=>true,'button_verified'=>true]));
+$verifiedReceipt = ['verified'=>true,'button_verified'=>true,'body_unchanged_by_method'=>true,'public_caption_matched'=>true,
+    'publication_date_matched'=>true,'media_type_duration_matched'=>true,'native_media_identity_before_verified'=>false,
+    'native_video_unique_id'=>'synthetic_video_1678','provider_result_sha256'=>str_repeat('b',64),'request_count'=>3,'write_attempts'=>1,
+    'publisher_bot_id'=>'999','credential_version'=>99,'plan_digest'=>str_repeat('c',64),'content_preserved'=>true,
+    'raw_body'=>'PRIVATE-native-response','access_token'=>'PRIVATE-key'];
+postCheck('verified manual result finishes the original claim without storing secrets', $manualRegistry->finishPublication($claim['publication_id'],$claim['version_id'],$claim['claim_token'],'sent','verified',$verifiedReceipt));
+$finished = $manualRegistry->manualTelegramButtonPublication();
+postCheck('manual completion preserves immutable approval and reports limited evidence honestly', $finished['state'] === 'sent' && $finished['write_attempts'] === 1
+    && $finished['publisher'] === $manualPublisher && $finished['plan_digest'] === $digest && $finished['receipt']['native_media_identity_before_verified'] === false
+    && !isset($finished['receipt']['content_preserved']) && !str_contains(json_encode($finished['receipt']),'PRIVATE')
+    && $finished['receipt']['native_video_unique_id'] === 'synthetic_video_1678');
+postCheck('finished manual operation cannot be approved or finished a second time', manualPostThrows(fn()=>$manualRegistry->claimManualTelegramButton($finished,$digest),'manual_write_already_attempted')
+    && !$manualRegistry->finishPublication($claim['publication_id'],$claim['version_id'],$claim['claim_token'],'sent','verified',$verifiedReceipt));
+$afterSuccess = manualNativeObservation($manualRegistry,$manualSnapshot);
+$afterRead = $manualRegistry->manualTelegramButtonPublication();
+$afterResolved = $manualRegistry->resolveToken('anytour','telegram','anyru_bot',$prepared['start_payload']);
+postCheck('same-body native successor preserves the hotel CTA without inventing native-before proof', $afterResolved['version_id'] === $afterSuccess['version_id']
+    && $afterResolved['snapshot']['title'] === 'Aloft Palm Jumeirah' && $afterResolved['snapshot']['metadata']['hotel_catalog_id'] === 61159
+    && $afterResolved['snapshot']['metadata']['context_reference_kind'] === 'public_hotel_binding'
+    && $afterResolved['snapshot']['metadata']['capability'] === 'requires_attention'
+    && $afterResolved['snapshot']['metadata']['capability_reason'] === 'unsupported_media'
+    && $afterResolved['snapshot']['raw_body']['video']['file_unique_id'] === 'synthetic_video_1678');
+postCheck('native current hold and original successful attempt remain separately readable', $afterRead['state'] === 'requires_attention'
+    && $afterRead['version_id'] !== $afterRead['manual_original']['version_id'] && $afterRead['manual_original']['version_id'] === $claim['version_id']
+    && $afterRead['manual_original']['state'] === 'sent' && $afterRead['manual_original']['write_attempts'] === 1
+    && $afterRead['manual_original']['receipt']['provider_result_sha256'] === str_repeat('b',64)
+    && $manualRegistry->pendingPublications('anytour','telegram','anyru_bot') === []);
+$wrongMedia = manualNativeObservation($manualRegistry,$manualSnapshot,930002,['video'=>[
+    'file_id'=>'SYNTHETIC_FILE_ID','file_unique_id'=>'synthetic_video_1678','duration'=>29]]);
+postCheck('changed native video clears the inherited hotel reference despite the old generic fingerprint', $wrongMedia['version_id'] !== $afterSuccess['version_id']
+    && $wrongMedia['snapshot']['title'] === '' && !isset($wrongMedia['snapshot']['metadata']['hotel_catalog_id'])
+    && $wrongMedia['snapshot']['raw_body']['video']['duration'] === 29 && $wrongMedia['state'] === 'requires_attention');
+$restoredMedia = manualNativeObservation($manualRegistry,$manualSnapshot,930003);
+$otherNativeVideo = manualNativeObservation($manualRegistry,$manualSnapshot,930004,['video'=>[
+    'file_id'=>'SYNTHETIC_OTHER_FILE','file_unique_id'=>'different_video_1678','duration'=>28]]);
+postCheck('a video differing from the successful native result cannot inherit its hotel binding', $restoredMedia['snapshot']['title'] === 'Aloft Palm Jumeirah'
+    && $otherNativeVideo['version_id'] !== $restoredMedia['version_id'] && $otherNativeVideo['snapshot']['title'] === ''
+    && !isset($otherNativeVideo['snapshot']['metadata']['hotel_catalog_id']));
+$wrongCaption = manualNativeObservation($manualRegistry,$manualSnapshot,930005,['caption'=>'Another Hotel — changed native caption']);
+postCheck('changed native caption keeps its actual body and does not inherit Aloft metadata', $wrongCaption['snapshot']['text'] === 'Another Hotel — changed native caption'
+    && $wrongCaption['snapshot']['title'] === '' && !isset($wrongCaption['snapshot']['metadata']['hotel_catalog_id'])
+    && $wrongCaption['snapshot']['raw_body']['caption'] === 'Another Hotel — changed native caption');
+
+[$atomicDb,$atomicRegistry,$atomicChannel,$atomicSnapshot,$atomicPublisher] = manualPostFixture();
+$atomicDb->exec("CREATE TRIGGER fail_manual_version BEFORE INSERT ON post_versions BEGIN SELECT RAISE(FAIL,'synthetic version failure'); END");
+postCheck('preparation failure rolls back the token and held version together', manualPostThrows(fn()=>$atomicRegistry->prepareManualTelegramButton($atomicChannel,$atomicSnapshot,$atomicPublisher))
+    && (int)$atomicDb->query('SELECT COUNT(*) FROM post_publications')->fetchColumn() === 0 && (int)$atomicDb->query('SELECT COUNT(*) FROM post_versions')->fetchColumn() === 0);
+
+[$guardDb,$guardRegistry,$guardChannel,$guardPublic,$guardPublisher] = manualPostFixture();
+$guardCalls = 0; $guardOwned = true;
+$denyPreparation = static function () use ($guardDb, &$guardCalls, &$guardOwned): bool {
+    $guardCalls++; $guardOwned = $guardOwned && $guardDb->inTransaction(); return false;
+};
+$emptyDenied = manualPostThrows(fn()=>$guardRegistry->prepareManualTelegramButton($guardChannel,$guardPublic,$guardPublisher,$denyPreparation),'forbidden');
+$emptyUntouched = $guardRegistry->manualTelegramButtonPublication() === null
+    && (int)$guardDb->query('SELECT COUNT(*) FROM post_publications')->fetchColumn() === 0
+    && (int)$guardDb->query('SELECT COUNT(*) FROM post_versions')->fetchColumn() === 0;
+$guardRegistry->prepareManualTelegramButton($guardChannel,$guardPublic,$guardPublisher);
+$heldBeforeDenial = $guardRegistry->manualTelegramButtonPublication();
+$heldChanges = (int)$guardDb->query('SELECT total_changes()')->fetchColumn();
+$heldDenied = manualPostThrows(fn()=>$guardRegistry->prepareManualTelegramButton($guardChannel,$guardPublic,$guardPublisher,$denyPreparation),'forbidden');
+postCheck('revoked preparation authority creates no token and leaves an existing held plan unchanged', $emptyDenied && $emptyUntouched && $heldDenied
+    && $guardCalls === 2 && $guardOwned && !$guardDb->inTransaction()
+    && $guardRegistry->manualTelegramButtonPublication() === $heldBeforeDenial
+    && (int)$guardDb->query('SELECT total_changes()')->fetchColumn() === $heldChanges);
+
+[$changedDb,$changedRegistry,$changedChannel,$changedPublic,$changedPublisher] = manualPostFixture();
+$changedPrepared = $changedRegistry->prepareManualTelegramButton($changedChannel,$changedPublic,$changedPublisher);
+$changedRegistry->configureChannel(['project_key'=>'anytour','platform'=>'telegram','bot_key'=>'anyru_bot','channel_id'=>'-1001845835645',
+    'source_key'=>'tg_anytour_msk','bot_url'=>'https://t.me/anyru_bot','is_enabled'=>true,'expected_version'=>1,'button_text'=>'Изменённый текст']);
+postCheck('channel configuration changes invalidate an earlier approval', manualPostThrows(fn()=>$changedRegistry->claimManualTelegramButton($changedPrepared,$changedPrepared['plan_digest']),'manual_channel_changed')
+    && manualPostThrows(fn()=>$changedRegistry->prepareManualTelegramButton($changedChannel,$changedPublic,$changedPublisher),'manual_channel_changed'));
+[$finalDb,$finalRegistry,$finalChannel,$finalPublic,$finalPublisher] = manualPostFixture();
+$finalPrepared = $finalRegistry->prepareManualTelegramButton($finalChannel,$finalPublic,$finalPublisher);
+$finalClaim = $finalRegistry->claimManualTelegramButton($finalPrepared,$finalPrepared['plan_digest']);
+$finalRegistry->configureChannel(['project_key'=>'anytour','platform'=>'telegram','bot_key'=>'anyru_bot','channel_id'=>'-1001845835645',
+    'source_key'=>'tg_anytour_msk','bot_url'=>'https://t.me/anyru_bot','is_enabled'=>true,'expected_version'=>1,'button_text'=>'Новая конфигурация']);
+postCheck('configuration change after claim blocks the final durable write decision', !$finalRegistry->markExternalWriteStarted($finalClaim['publication_id'],$finalClaim['version_id'],$finalClaim['claim_token'])
+    && $finalRegistry->manualTelegramButtonPublication()['write_attempts'] === 0
+    && $finalRegistry->manualTelegramButtonPublication()['manual_original']['write_attempts'] === 0);
+[$sourceDb,$sourceRegistry,$sourceChannel,$sourcePublic,$sourcePublisher] = manualPostFixture();
+$sourcePrepared = $sourceRegistry->prepareManualTelegramButton($sourceChannel,$sourcePublic,$sourcePublisher);
+$sourceDb->exec("UPDATE conversation_sources SET handling_mode='ai' WHERE id=9");
+postCheck('a retired or AI-only source blocks a prepared manual approval', manualPostThrows(fn()=>$sourceRegistry->claimManualTelegramButton($sourcePrepared,$sourcePrepared['plan_digest']),'manual_channel_changed')
+    && $sourceRegistry->manualTelegramButtonPublication() === null);
+
+[$nativeDb,$nativeRegistry,$nativeChannel,$nativePublic,$nativePublisher] = manualPostFixture();
+$nativeFirst = manualNativeObservation($nativeRegistry,$nativePublic);
+postCheck('an existing native publication cannot be relabelled as a public preparation', manualPostThrows(fn()=>$nativeRegistry->prepareManualTelegramButton($nativeChannel,$nativePublic,$nativePublisher),'manual_publication_changed')
+    && $nativeRegistry->manualTelegramButtonPublication()['start_payload'] === $nativeFirst['start_payload']
+    && (int)$nativeDb->query('SELECT COUNT(*) FROM post_versions')->fetchColumn() === 1);
+
+[$raceDb,$raceRegistry,$raceChannel,$racePublic,$racePublisher] = manualPostFixture();
+$racePrepared = $raceRegistry->prepareManualTelegramButton($raceChannel,$racePublic,$racePublisher);
+$raceClaim = $raceRegistry->claimManualTelegramButton($racePrepared,$racePrepared['plan_digest']);
+$nativeLater = manualNativeObservation($raceRegistry,$racePublic);
+postCheck('a native event racing the manual claim preserves provenance and holds its successor', $nativeLater['version_id'] !== $raceClaim['version_id']
+    && $nativeLater['start_payload'] === $racePrepared['start_payload'] && $nativeLater['state'] === 'requires_attention'
+    && $nativeLater['error_reason'] === 'manual_observation_changed' && $nativeLater['manual_button_repair'] === true
+    && ($nativeLater['snapshot']['metadata']['observation_kind'] ?? '') !== 'public_read'
+    && $nativeLater['snapshot']['metadata']['source_sequence'] === '930001'
+    && $raceRegistry->versionForPublication($racePrepared['publication_id'],$racePrepared['version_id'])['snapshot']['metadata']['observation_kind'] === 'public_read');
+postCheck('raced native version cannot permit the old write or an automatic successor', !$raceRegistry->markExternalWriteStarted($raceClaim['publication_id'],$raceClaim['version_id'],$raceClaim['claim_token'])
+    && $raceRegistry->pendingPublications('anytour','telegram','anyru_bot') === []
+    && $raceRegistry->claimPublication($nativeLater['publication_id'],$nativeLater['version_id']) === null);
+
+[$leaseDb,$leaseRegistry,$leaseChannel,$leasePublic,$leasePublisher] = manualPostFixture();
+$leasePrepared = $leaseRegistry->prepareManualTelegramButton($leaseChannel,$leasePublic,$leasePublisher);
+$leaseClaim = $leaseRegistry->claimManualTelegramButton($leasePrepared,$leasePrepared['plan_digest']);
+$leaseDb->exec("UPDATE post_versions SET claimed_at='2000-01-01 00:00:00' WHERE id=".$leaseClaim['version_id']);
+postCheck('an expired zero-write manual lease stays held and cannot become a retry', $leaseRegistry->pendingPublications('anytour','telegram','anyru_bot') === []
+    && $leaseRegistry->manualTelegramButtonPublication()['state'] === 'requires_attention'
+    && $leaseRegistry->manualTelegramButtonPublication()['write_attempts'] === 0
+    && manualPostThrows(fn()=>$leaseRegistry->claimManualTelegramButton($leasePrepared,$leasePrepared['plan_digest']),'manual_repair_not_claimable'));
+
+[$unknownDb,$unknownRegistry,$unknownChannel,$unknownPublic,$unknownPublisher] = manualPostFixture();
+$unknownPrepared = $unknownRegistry->prepareManualTelegramButton($unknownChannel,$unknownPublic,$unknownPublisher);
+$unknownClaim = $unknownRegistry->claimManualTelegramButton($unknownPrepared,$unknownPrepared['plan_digest']);
+$unknownRegistry->markExternalWriteStarted($unknownClaim['publication_id'],$unknownClaim['version_id'],$unknownClaim['claim_token']);
+$unknownDb->exec("UPDATE post_versions SET claimed_at='2000-01-01 00:00:00' WHERE id=".$unknownClaim['version_id']);
+$unknownPending = $unknownRegistry->pendingPublications('anytour','telegram','anyru_bot');
+postCheck('an expired attempted manual write remains UNKNOWN outside automatic work', $unknownPending === []
+    && $unknownRegistry->manualTelegramButtonPublication()['state'] === 'unknown'
+    && $unknownRegistry->manualTelegramButtonPublication()['write_attempts'] === 1
+    && manualPostThrows(fn()=>$unknownRegistry->claimManualTelegramButton($unknownPrepared,$unknownPrepared['plan_digest']),'manual_write_already_attempted'));
+$unknownNative = manualNativeObservation($unknownRegistry,$unknownPublic);
+postCheck('a later native version retains the all-version no-replay fence', $unknownNative['state'] === 'requires_attention'
+    && $unknownRegistry->pendingPublications('anytour','telegram','anyru_bot') === []
+    && $unknownRegistry->claimPublication($unknownNative['publication_id'],$unknownNative['version_id']) === null
+    && (int)$unknownDb->query('SELECT SUM(write_attempts) FROM post_versions')->fetchColumn() === 1
+    && $unknownRegistry->manualTelegramButtonPublication()['manual_original']['state'] === 'unknown');
+
+[$historicalDb,$historicalRegistry,$historicalChannel,$historicalPublic,$historicalPublisher] = manualPostFixture();
+$historicalPrepared = $historicalRegistry->prepareManualTelegramButton($historicalChannel,$historicalPublic,$historicalPublisher);
+$historicalDb->exec("INSERT INTO post_versions (publication_id,version_number,content_hash,snapshot_json,state,write_attempts,receipt_json,created_at,updated_at)
+    SELECT publication_id,2,content_hash,snapshot_json,'unknown',1,receipt_json,created_at,updated_at FROM post_versions WHERE id=".$historicalPrepared['version_id']);
+postCheck('a non-current historical attempted write still blocks the exact held version', manualPostThrows(fn()=>$historicalRegistry->claimManualTelegramButton($historicalPrepared,$historicalPrepared['plan_digest']),'manual_write_already_attempted'));
 echo 'OK ' . $passed . " channel post registry checks\n";
 

@@ -11,10 +11,14 @@ require_once __DIR__ . '/ChannelPostTelegramAlbum.php';
 final class ChannelPostButtonTransport
 {
     private $request;
+    private bool $customRequest;
     private array $receipt = [];
 
     public function __construct(?callable $request = null)
     {
+        $this->customRequest = $request !== null
+            && $request !== [self::class, 'networkRequest'] && $request !== self::class.'::networkRequest'
+            && $request !== [ChannelPostApiTransport::class, 'buttonRequest'] && $request !== ChannelPostApiTransport::class.'::buttonRequest';
         $this->request = $request ?: [self::class, 'networkRequest'];
     }
 
@@ -54,6 +58,21 @@ final class ChannelPostButtonTransport
         }
     }
 
+    /** Read-only proof for the separately saved publisher; the entry bot stays anyru_bot. */
+    public function verifyPublisher(array $channel, array $binding): array
+    {
+        $this->receipt = ['request_count'=>0, 'write_attempts'=>0, 'http_results'=>[]];
+        try {
+            $this->publisherContext($channel, $binding);
+            $this->publisherIdentity($binding);
+            return $this->result('ready', 'capability_verified');
+        } catch (ChannelPostTransportFailure $e) {
+            return $this->result($e->getMessage() === 'provider_read_failed' ? 'unknown' : 'requires_attention', $e->getMessage());
+        } catch (Throwable $e) {
+            return $this->result('unknown', 'verification_failure');
+        }
+    }
+
     public function attempt(array $operation, callable $beforeWrite, bool $reconcileOnly = false): array
     {
         $this->receipt = ['request_count' => 0, 'write_attempts' => 0, 'http_results' => []];
@@ -66,12 +85,25 @@ final class ChannelPostButtonTransport
             $url = self::buttonUrl($operation);
             $label = (string)($channel['button_text'] ?? 'Рассчитать на мои даты');
             $bot = (string)($channel['canonical_bot_username'] ?? $channel['bot_key'] ?? $operation['bot_key'] ?? '');
+            $manual = array_key_exists('manual_button_repair', $operation)
+                || isset($operation['publisher']) || ($operation['receipt']['repair_kind'] ?? '') === 'aloft_public_keyboard'
+                || ($snapshot['metadata']['observation_kind'] ?? '') === 'public_read';
             self::check(in_array($platform, ['max', 'telegram'], true), 'unsupported_platform');
             self::check(ChannelPostIncomingAdapter::channelId($channelId) !== '', 'invalid_channel_id');
             self::check(($channel['is_enabled'] ?? false) && ($channel['post_mode'] ?? 'append_button') === 'append_button', 'channel_not_enabled');
             self::check($bot !== '' && self::botUrlMatches($platform, (string)($channel['bot_url'] ?? ''), $bot), 'canonical_bot_url_mismatch');
             self::check($url !== '' && $label !== '' && self::length($label) <= 128, 'invalid_button');
-            self::check(($snapshot['metadata']['capability'] ?? '') === 'supported', (string)($snapshot['metadata']['capability_reason'] ?? 'unsupported_post'));
+            if ($manual) {
+                $this->manualOperation($operation, $channel, $snapshot, $mid);
+                if ($reconcileOnly || !empty($operation['write_attempted']) || ($operation['write_attempts'] ?? 0) > 0)
+                    return $this->result('unknown', 'manual_edit_requires_native_reconciliation');
+                self::check(($operation['state'] ?? '') === 'claimed'
+                    && is_string($operation['claim_token'] ?? null)
+                    && preg_match('/\A[a-f0-9]{32}\z/D', $operation['claim_token']) === 1
+                    && ($operation['write_attempts'] ?? null) === 0, 'manual_write_claim_required');
+            } else {
+                self::check(($snapshot['metadata']['capability'] ?? '') === 'supported', (string)($snapshot['metadata']['capability_reason'] ?? 'unsupported_post'));
+            }
             $telegramAlbum = $platform === 'telegram' && str_starts_with($mid, 'group:');
             $targetSnapshot = $telegramAlbum ? ChannelPostTelegramAlbum::target($snapshot) : $snapshot;
             if ($telegramAlbum) {
@@ -79,7 +111,8 @@ final class ChannelPostButtonTransport
                 $mid = (string)($targetSnapshot['metadata']['actual_message_id'] ?? '');
             }
             self::check($mid !== '' && strpos($mid, 'group:') !== 0, 'invalid_message_id');
-            $this->identity($platform, $bot, $channelId);
+            if ($manual) $this->publisherIdentity($operation['publisher']);
+            else $this->identity($platform, $bot, $channelId);
 
             if ($platform === 'max') {
                 self::check((bool)preg_match('/\A[a-zA-Z0-9_.-]{1,200}\z/', $mid), 'invalid_message_id');
@@ -113,10 +146,13 @@ final class ChannelPostButtonTransport
 
             self::check((bool)preg_match('/\A[1-9][0-9]{0,19}\z/', $mid), 'invalid_message_id');
             $clear = ($operation['button_mode'] ?? '') === 'clear_keyboard';
+            self::check(!$manual || !$clear, 'manual_keyboard_cleanup_forbidden');
             self::check(!$clear || isset($operation['delivery_member_id']), 'unclaimed_keyboard_cleanup');
             $rows = $clear ? [] : [[['text'=>$label, 'url'=>$url]]];
             $correct = $clear ? empty($targetSnapshot['keyboard']) : ChannelPostIncomingAdapter::containsOnlyButton($targetSnapshot, $url, $label);
-            if ($correct) return $this->result('sent', 'observed_in_channel_update');
+            if ($correct) return $manual
+                ? $this->result('requires_attention', 'public_button_requires_native_verification')
+                : $this->result('sent', 'observed_in_channel_update');
             // Telegram Bot API has no getMessage. UNKNOWN is reconciled only by a
             // subsequently observed edited_channel_post, never a second edit.
             if ($reconcileOnly) return $this->result('unknown', 'telegram_awaiting_edit_event');
@@ -124,6 +160,7 @@ final class ChannelPostButtonTransport
             $edited = $this->call('telegram', 'POST', 'editMessageReplyMarkup', [], [
                 'chat_id' => $channelId, 'message_id' => $mid, 'reply_markup' => ['inline_keyboard' => $rows],
             ], 'append_button');
+            if ($manual) return $this->verifyManualEdit($edited, $snapshot, $url, $label);
             if (self::accepted($edited, 'telegram') && is_array($edited['data']['result'] ?? null)) {
                 $returned = $edited['data']['result'];
                 self::check((string)($returned['chat']['id'] ?? '') === $channelId && (string)($returned['message_id'] ?? '') === $mid, 'edited_post_identity_mismatch');
@@ -148,6 +185,100 @@ final class ChannelPostButtonTransport
         $base = rtrim((string)($operation['channel']['bot_url'] ?? ''), '/');
         if (!preg_match('/\Ap_[A-Za-z0-9_-]{8,60}\z/', $token)) return '';
         return $base !== '' ? $base . '?start=' . rawurlencode($token) : '';
+    }
+
+    private function publisherContext(array $channel, array $binding): void
+    {
+        self::check($this->customRequest, 'publisher_transport_required');
+        self::check(($channel['project_key'] ?? '') === 'anytour' && ($channel['platform'] ?? '') === 'telegram'
+            && ($channel['channel_id'] ?? '') === '-1001845835645'
+            && ($channel['bot_key'] ?? '') === 'anyru_bot' && ($channel['canonical_bot_username'] ?? '') === 'anyru_bot'
+            && ($channel['bot_url'] ?? '') === 'https://t.me/anyru_bot'
+            && !empty($channel['is_enabled']) && ($channel['post_mode'] ?? 'append_button') === 'append_button',
+            'manual_channel_identity_mismatch');
+        self::check(count($binding) === 3 && ($binding['username'] ?? '') === 'ANYTOURBOT_bot'
+            && is_string($binding['bot_id'] ?? null) && preg_match('/\A[1-9][0-9]{4,18}\z/D', $binding['bot_id']) === 1
+            && is_int($binding['credential_version'] ?? null) && $binding['credential_version'] > 0,
+            'publisher_binding_invalid');
+        $this->receipt['publisher_username'] = $binding['username'];
+        $this->receipt['publisher_bot_id'] = $binding['bot_id'];
+        $this->receipt['credential_version'] = $binding['credential_version'];
+    }
+
+    private function publisherIdentity(array $binding): void
+    {
+        $me = self::readable($this->call('telegram', 'POST', 'getMe', [], [], 'bot_identity'), 'telegram');
+        self::check(($me['is_bot'] ?? null) === true && is_string($me['username'] ?? null)
+            && strcasecmp($me['username'], $binding['username']) === 0 && (string)($me['id'] ?? '') === $binding['bot_id'],
+            'publisher_bot_identity_mismatch');
+        $member = self::readable($this->call('telegram', 'POST', 'getChatMember', [],
+            ['chat_id'=>'-1001845835645', 'user_id'=>$me['id']], 'channel_rights'), 'telegram');
+        self::check(($member['user']['is_bot'] ?? null) === true
+            && (string)($member['user']['id'] ?? '') === $binding['bot_id'] && is_string($member['user']['username'] ?? null)
+            && strcasecmp($member['user']['username'], $binding['username']) === 0, 'membership_identity_mismatch');
+        self::check(($member['status'] ?? '') === 'creator'
+            || (($member['status'] ?? '') === 'administrator' && ($member['can_edit_messages'] ?? false) === true),
+            'channel_edit_permission_required');
+        $chat = self::readable($this->call('telegram', 'POST', 'getChat', [],
+            ['chat_id'=>'-1001845835645'], 'channel_type'), 'telegram');
+        self::check(($chat['type'] ?? '') === 'channel' && (string)($chat['id'] ?? '') === '-1001845835645'
+            && ($chat['username'] ?? '') === 'anytour', 'channel_type_mismatch');
+    }
+
+    private function manualOperation(array $operation, array $channel, array $snapshot, string $mid): void
+    {
+        self::check(($operation['manual_button_repair'] ?? null) === true
+            && ($operation['project_key'] ?? '') === 'anytour' && ($operation['platform'] ?? '') === 'telegram'
+            && ($operation['bot_key'] ?? '') === 'anyru_bot' && $mid === '1678'
+            && (int)($operation['publication_id'] ?? 0) > 0 && (int)($operation['version_id'] ?? 0) > 0
+            && is_array($operation['publisher'] ?? null), 'manual_repair_context_required');
+        $binding = $operation['publisher'];
+        $this->publisherContext($channel, $binding);
+        try { $baseline = ChannelPostIncomingAdapter::aloftPublicFingerprint($snapshot); }
+        catch (Throwable $ignored) { throw new ChannelPostTransportFailure('aloft_public_baseline_invalid'); }
+        $stored = $operation['receipt'] ?? [];
+        self::check(is_array($stored) && ($stored['repair_kind'] ?? '') === 'aloft_public_keyboard'
+            && ($stored['publisher_username'] ?? null) === $binding['username']
+            && ($stored['publisher_bot_id'] ?? null) === $binding['bot_id']
+            && ($stored['credential_version'] ?? null) === $binding['credential_version']
+            && ($stored['channel_config_version'] ?? null) === (int)($channel['config_version'] ?? 0)
+            && ($stored['channel_config_version'] ?? 0) > 0
+            && ($stored['public_baseline_sha256'] ?? '') === $baseline
+            && is_string($stored['plan_digest'] ?? null) && preg_match('/\A[a-f0-9]{64}\z/D', $stored['plan_digest']) === 1
+            && preg_match('/\Ap_[A-Za-z0-9_-]{24}\z/D', (string)($operation['start_payload'] ?? '')) === 1,
+            'manual_repair_preview_changed');
+        foreach (['repair_kind', 'channel_config_version', 'public_baseline_sha256', 'plan_digest'] as $key)
+            $this->receipt[$key] = $stored[$key];
+        $this->receipt['native_media_identity_before_verified'] = false;
+    }
+
+    private function verifyManualEdit(array $response, array $before, string $url, string $label): array
+    {
+        if (self::accepted($response, 'telegram') && is_array($response['data']['result'] ?? null)) {
+            $message = $response['data']['result'];
+            $this->receipt['provider_result_sha256'] = self::hash($message);
+            $comparison = ChannelPostIncomingAdapter::aloftNativeComparison($message, $before);
+            $keyboard = $message['reply_markup']['inline_keyboard'] ?? null;
+            $button = is_array($keyboard) ? ($keyboard[0][0] ?? null) : null;
+            $buttonVerified = is_array($keyboard) && array_is_list($keyboard) && count($keyboard) === 1
+                && is_array($keyboard[0]) && array_is_list($keyboard[0]) && count($keyboard[0]) === 1
+                && is_array($button) && count($button) === 2
+                && ($button['text'] ?? null) === $label && ($button['url'] ?? null) === $url;
+            foreach (['public_caption_matched', 'publication_date_matched', 'media_type_duration_matched',
+                'native_media_identity_before_verified', 'native_video_unique_id'] as $key)
+                if (array_key_exists($key, $comparison)) $this->receipt[$key] = $comparison[$key];
+            $this->receipt['button_verified'] = $comparison['message_identity_matched'] && $buttonVerified;
+            // This request has no caption or media fields. There was no native
+            // pre-edit file ID; do not invent a before/after media comparison.
+            $this->receipt['body_unchanged_by_method'] = true;
+            if ($comparison['matches'] && $buttonVerified) {
+                $this->receipt['verified'] = true;
+                return $this->result('sent', 'verified');
+            }
+            return $this->result('unknown', 'manual_edit_verification_failed');
+        }
+        return $this->result(self::explicitReject($response) ? 'requires_attention' : 'unknown',
+            self::explicitReject($response) ? 'provider_rejected_edit' : 'edit_outcome_unknown');
     }
 
     private function identity(string $platform, string $bot, string $channelId): void
@@ -239,6 +370,23 @@ final class ChannelPostButtonTransport
         catch (Throwable $e) { $result = ['http' => 0, 'data' => null, 'transport_error' => true]; }
         $response = ['http' => (int)($result['http'] ?? 0), 'data' => is_array($result['data'] ?? null) ? $result['data'] : null, 'transport_error' => ($result['transport_error'] ?? false) === true];
         $this->receipt['http_results'][] = ['operation' => $purpose, 'http' => $response['http'], 'transport_error' => $response['transport_error']];
+        if ($platform === 'telegram' && ($this->receipt['publisher_username'] ?? '') === 'ANYTOURBOT_bot'
+            && !$response['transport_error'] && ($response['data']['ok'] ?? null) === false) {
+            $code = $response['data']['error_code'] ?? null;
+            if (is_int($code) && $code >= 100 && $code <= 599) $this->receipt['telegram_error_code'] = $code;
+            $description = strtolower(is_string($response['data']['description'] ?? null) ? $response['data']['description'] : '');
+            $reason = 'provider_rejected';
+            foreach ([
+                'message_id_invalid'=>'message_id_invalid', 'message to edit not found'=>'message_not_found',
+                "message can't be edited"=>'message_not_editable', 'message cannot be edited'=>'message_not_editable',
+                'message is not modified'=>'message_not_modified', 'not enough rights'=>'insufficient_edit_rights',
+                'bot is not a member'=>'bot_not_in_channel', 'bot was kicked'=>'bot_not_in_channel',
+                'chat not found'=>'chat_not_found', 'unauthorized'=>'unauthorized', 'too many requests'=>'rate_limited',
+            ] as $needle=>$normalized) {
+                if (str_contains($description, $needle)) { $reason = $normalized; break; }
+            }
+            $this->receipt['telegram_error_reason'] = $reason;
+        }
         return $response;
     }
 

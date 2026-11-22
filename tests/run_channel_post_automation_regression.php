@@ -973,6 +973,260 @@ foreach(['max','telegram'] as $platform){
     channelPostCheck($platform.' newer wrong-keyboard event cannot reset ambiguous write',[$provider2->writes(),$actualRegistry->publication($r2['publication_id'])['state']],[1,'unknown']);
 }
 
+// Public HTML and provider-shaped synthetic responses for the one manual repair.
+// No Telegram credentials or network calls are used by these cases.
+$aloftHtml = <<<'HTML'
+<div class="tgme_widget_message" data-post="anytour/1678">
+<a class="tgme_widget_message_video_player" href="https://t.me/anytour/1678"><video src="https://cdn4.telesco.pe/file/fixture1678.mp4?token=temporary"></video><time class="message_video_duration">0:28</time></a>
+<div class="tgme_widget_message_text"><b>Отель Aloft Palm Jumeirah</b><br>Сохранить <tg-emoji><i><b>📎</b></i></tg-emoji> подпись &amp; пробелы.</div>
+<a class="tgme_widget_message_date" href="https://t.me/anytour/1678"><time datetime="2026-08-11T11:51:56+00:00">11:51</time></a>
+<div class="tgme_widget_message_inline_keyboard"><div class="tgme_widget_message_inline_row"><a class="tgme_widget_message_inline_button url_button" href="https://t.me/AnyTour_MSK">Менеджер</a></div></div>
+</div>
+HTML;
+$aloftPublic = ChannelPostIncomingAdapter::aloftPublicSnapshot($aloftHtml);
+$aloftHash = ChannelPostIncomingAdapter::aloftPublicFingerprint($aloftPublic);
+channelPostCheck('Aloft public parser preserves plain caption and honest provenance',
+    [$aloftPublic['text'], $aloftPublic['title'], $aloftPublic['metadata']['observation_kind'], $aloftPublic['metadata']['capability'], $aloftPublic['raw_body']],
+    ["Отель Aloft Palm Jumeirah\nСохранить 📎 подпись & пробелы.", 'Aloft Palm Jumeirah', 'public_read', 'requires_attention', []]);
+channelPostCheck('Aloft public media never invents native IDs or retains signed credentials',
+    $aloftPublic['attachments'], [['type'=>'video', 'provider'=>'telegram', 'duration'=>28, 'public_media_path'=>'/file/fixture1678.mp4']]);
+$aloftNormalized = $aloftPublic; $aloftNormalized['media_group_id'] = ''; $aloftNormalized['metadata']['checked_at'] = 'later';
+channelPostCheck('Aloft preview hash survives recording time and registry normalization',
+    ChannelPostIncomingAdapter::aloftPublicFingerprint($aloftNormalized), $aloftHash);
+foreach ([
+    str_replace('data-post="anytour/1678"', 'data-post="anytour/1207"', $aloftHtml),
+    $aloftHtml.$aloftHtml, str_replace('2026-08-11T', '2026-08-12T', $aloftHtml),
+    str_replace('0:28', '0:29', $aloftHtml), str_replace('Aloft Palm Jumeirah', 'Another hotel', $aloftHtml),
+    str_replace('<video ', '<a class="tgme_widget_message_photo_wrap"></a><video ', $aloftHtml),
+    str_replace('data-post=', 'data-group="album" data-post=', $aloftHtml),
+    str_replace('https://cdn4.telesco.pe', 'https://cdn4.telesco.pe.evil.test', $aloftHtml),
+] as $index=>$invalidHtml) {
+    $denied = false;
+    try { ChannelPostIncomingAdapter::aloftPublicSnapshot($invalidHtml); }
+    catch (InvalidArgumentException $e) { $denied = true; }
+    channelPostCheck('Aloft malformed or different public target rejected '.$index, $denied);
+}
+foreach (['text', 'media', 'keyboard'] as $field) {
+    $changed = $aloftPublic;
+    if ($field === 'text') $changed['text'] .= ' Changed';
+    elseif ($field === 'media') $changed['attachments'][0]['public_media_path'] = '/file/changed.mp4';
+    else $changed['keyboard'][0][0]['url'] = 'https://t.me/another_bot';
+    channelPostCheck('Aloft plan detects changed '.$field, ChannelPostIncomingAdapter::aloftPublicFingerprint($changed) !== $aloftHash);
+}
+$changed = $aloftPublic; $changed['keyboard'] = [];
+channelPostCheck('Aloft body comparison excludes only replaceable public keyboard',
+    ChannelPostIncomingAdapter::aloftPublicContentFingerprint($changed), ChannelPostIncomingAdapter::aloftPublicContentFingerprint($aloftPublic));
+$aloftPublisher = ['username'=>'ANYTOURBOT_bot', 'bot_id'=>'123456789', 'credential_version'=>3];
+$aloftChannel = ['project_key'=>'anytour', 'platform'=>'telegram', 'channel_id'=>'-1001845835645',
+    'bot_key'=>'anyru_bot', 'canonical_bot_username'=>'anyru_bot', 'bot_url'=>'https://t.me/anyru_bot',
+    'button_text'=>'Рассчитать на мои даты', 'is_enabled'=>1, 'post_mode'=>'append_button', 'config_version'=>7];
+$aloftOperation = ['publication_id'=>901, 'version_id'=>902, 'project_key'=>'anytour', 'platform'=>'telegram',
+    'bot_key'=>'anyru_bot', 'external_message_id'=>'1678', 'start_payload'=>'p_'.str_repeat('A',24),
+    'channel'=>$aloftChannel, 'snapshot'=>$aloftPublic, 'state'=>'claimed', 'write_attempts'=>0,
+    'write_attempted'=>false, 'claim_token'=>str_repeat('a',32), 'manual_button_repair'=>true,
+    'publisher'=>$aloftPublisher, 'receipt'=>['repair_kind'=>'aloft_public_keyboard',
+        'publisher_username'=>'ANYTOURBOT_bot', 'publisher_bot_id'=>'123456789', 'credential_version'=>3,
+        'channel_config_version'=>7, 'public_baseline_sha256'=>$aloftHash, 'plan_digest'=>str_repeat('b',64)]];
+$aloftNative = ['chat'=>['id'=>-1001845835645, 'type'=>'channel', 'username'=>'anytour'], 'message_id'=>1678,
+    'date'=>1786449116, 'caption'=>$aloftPublic['text'],
+    'video'=>['duration'=>28, 'file_id'=>'native-video-file', 'file_unique_id'=>'native-video-unique']];
+function aloftFixtureTransport(array $message, string $mode='success'): array {
+    $provider = (object)['calls'=>[], 'writes'=>0, 'message'=>$message, 'mode'=>$mode];
+    $request = static function (string $platform,string $method,string $path,array $query,?array $body) use ($provider): array {
+        $provider->calls[] = compact('platform','method','path','query','body');
+        $ok = static fn(array $result): array => ['http'=>200, 'data'=>['ok'=>true, 'result'=>$result], 'transport_error'=>false];
+        $me = ['id'=>$provider->mode === 'wrong_id' ? 987654321 : 123456789, 'is_bot'=>true,
+            'username'=>$provider->mode === 'wrong_publisher' ? 'anyru_bot' : 'ANYTOURBOT_bot'];
+        if ($path === 'getMe') return $ok($me);
+        if ($path === 'getChatMember') return $ok(['user'=>$me, 'status'=>'administrator', 'can_edit_messages'=>$provider->mode !== 'no_rights']);
+        if ($path === 'getChat') return $ok(['id'=>-1001845835645, 'type'=>$provider->mode === 'wrong_chat' ? 'supergroup' : 'channel', 'username'=>'anytour']);
+        if ($path !== 'editMessageReplyMarkup') throw new RuntimeException('unexpected fixture method');
+        $provider->writes++;
+        $provider->message['reply_markup'] = $body['reply_markup'];
+        if ($provider->mode === 'timeout') throw new RuntimeException('synthetic lost response');
+        if ($provider->mode === 'rejected') return ['http'=>400, 'data'=>['ok'=>false, 'error_code'=>400,
+            'description'=>'Bad Request: MESSAGE_ID_INVALID sensitive-not-for-receipt'], 'transport_error'=>false];
+        if ($provider->mode === 'bare_true') return ['http'=>200, 'data'=>['ok'=>true, 'result'=>true], 'transport_error'=>false];
+        if ($provider->mode === 'mixed_keyboard') $provider->message['reply_markup']['inline_keyboard'][] = [['text'=>'Other', 'url'=>'https://example.test/']];
+        return $ok($provider->message);
+    };
+    return [new ChannelPostButtonTransport($request), $provider];
+}
+[$aloftTransport, $aloftProvider] = aloftFixtureTransport($aloftNative);
+$proof = $aloftTransport->verifyPublisher($aloftChannel, $aloftPublisher);
+channelPostCheck('Aloft publisher verifies separately from destination in three read-only calls',
+    [$proof['state'], array_column($aloftProvider->calls,'path'), $aloftProvider->writes],
+    ['ready', ['getMe','getChatMember','getChat'], 0]);
+$defaultAttempt = (new ChannelPostButtonTransport())->attempt($aloftOperation, static fn(): bool=>true);
+channelPostCheck('Aloft manual operation refuses default token transport before any call',
+    [$defaultAttempt['reason'], $defaultAttempt['receipt']['request_count']], ['publisher_transport_required', 0]);
+foreach (['wrong_id','wrong_publisher','no_rights','wrong_chat'] as $mode) {
+    [$transport, $provider] = aloftFixtureTransport($aloftNative, $mode);
+    $result = $transport->attempt($aloftOperation, static fn(): bool=>true);
+    channelPostCheck('Aloft publisher proof blocks '.$mode, [$result['state'], $provider->writes], ['requires_attention',0]);
+}
+foreach (['marker','claim','target','destination','public_provenance','digest','credential'] as $field) {
+    $operation = $aloftOperation;
+    if ($field === 'marker') unset($operation['manual_button_repair']);
+    elseif ($field === 'claim') $operation['state'] = 'pending';
+    elseif ($field === 'target') $operation['external_message_id'] = '1207';
+    elseif ($field === 'destination') $operation['channel']['bot_url'] = 'https://t.me/ANYTOURBOT_bot';
+    elseif ($field === 'public_provenance') $operation['snapshot']['metadata']['capability'] = 'supported';
+    elseif ($field === 'digest') $operation['snapshot']['text'] .= ' changed';
+    else $operation['publisher']['credential_version']++;
+    [$transport,$provider] = aloftFixtureTransport($aloftNative);
+    $result = $transport->attempt($operation, static fn(): bool=>true);
+    channelPostCheck('Aloft stale or unapproved '.$field.' makes zero calls', [$result['state'],count($provider->calls)], ['requires_attention',0]);
+}
+[$transport,$provider] = aloftFixtureTransport($aloftNative);
+$claims = 0;
+$claim = static function () use (&$claims): bool { return ++$claims === 1; };
+$result = $transport->attempt($aloftOperation, $claim);
+channelPostCheck('Aloft exact approved operation verifies one native keyboard edit',
+    [$result['state'], $provider->writes, array_column($provider->calls,'path')], ['sent',1,['getMe','getChatMember','getChat','editMessageReplyMarkup']]);
+$body = $provider->calls[3]['body'];
+channelPostCheck('Aloft native write has only fixed identity and one destination button',
+    $body, ['chat_id'=>'-1001845835645','message_id'=>'1678','reply_markup'=>['inline_keyboard'=>[[
+        ['text'=>'Рассчитать на мои даты','url'=>'https://t.me/anyru_bot?start=p_'.str_repeat('A',24)],
+    ]]]]);
+channelPostCheck('Aloft receipt distinguishes public comparison from missing native before identity',
+    [$result['receipt']['verified'], $result['receipt']['body_unchanged_by_method'], $result['receipt']['public_caption_matched'],
+        $result['receipt']['publication_date_matched'], $result['receipt']['media_type_duration_matched'],
+        $result['receipt']['native_media_identity_before_verified'], $result['receipt']['native_video_unique_id'],
+        $result['receipt']['plan_digest'], strlen($result['receipt']['provider_result_sha256'])],
+    [true,true,true,true,true,false,'native-video-unique',str_repeat('b',64),64]);
+$repeat = $transport->attempt($aloftOperation, $claim);
+channelPostCheck('Aloft durable before-write refusal prevents replay', [$repeat['reason'],$provider->writes], ['write_claim_or_config_changed',1]);
+foreach (['identity','caption','date','duration','file_id','unique_id','album','photo','mixed_keyboard','bare_true','timeout','rejected'] as $case) {
+    $native = $aloftNative;
+    if ($case === 'identity') $native['message_id'] = 1207;
+    elseif ($case === 'caption') $native['caption'] .= ' changed';
+    elseif ($case === 'date') $native['date']++;
+    elseif ($case === 'duration') $native['video']['duration'] = 29;
+    elseif ($case === 'file_id') unset($native['video']['file_id']);
+    elseif ($case === 'unique_id') unset($native['video']['file_unique_id']);
+    elseif ($case === 'album') $native['media_group_id'] = 'another-album';
+    elseif ($case === 'photo') $native['photo'] = [];
+    [$transport,$provider] = aloftFixtureTransport($native, $case);
+    $result = $transport->attempt($aloftOperation, static fn(): bool=>true);
+    channelPostCheck('Aloft native '.$case.' is never fabricated as verified',
+        [$result['state'],$provider->writes,isset($result['receipt']['verified'])], [$case === 'rejected' ? 'requires_attention' : 'unknown',1,false]);
+    if ($case === 'rejected') channelPostCheck('Aloft native rejection is normalized without raw provider detail',
+        [$result['receipt']['telegram_error_code'],$result['receipt']['telegram_error_reason'],str_contains(json_encode($result),'sensitive-not-for-receipt')],
+        [400,'message_id_invalid',false]);
+    $written = $aloftOperation; $written['write_attempts'] = 1; $written['write_attempted'] = true; $written['state'] = 'unknown';
+    $callsBefore = count($provider->calls);
+    $again = $transport->attempt($written, static fn(): bool=>true, true);
+    channelPostCheck('Aloft written '.$case.' never retries during reconciliation',
+        [$again['state'],$provider->writes,count($provider->calls)], ['unknown',1,$callsBefore]);
+}
+
+// Exercise the existing registry, writer and orchestration together. Each case
+// owns an isolated database; provider replies and public HTML remain synthetic.
+function aloftManualScenario(string $html, array $native, string $mode='success'): array {
+    $pdo = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    createChannelPostRegistryFixture($pdo);
+    $pdo->exec("INSERT INTO projects VALUES(1,'anytour','AnyTour',1);
+        INSERT INTO conversation_sources VALUES(9,1,'tg_anytour_msk','Telegram Москва','telegram',1,'manager')");
+    $registry = new ChannelPostRegistryService($pdo);
+    $registry->configureChannel(['project_key'=>'anytour', 'platform'=>'telegram', 'bot_key'=>'anyru_bot',
+        'canonical_bot_username'=>'anyru_bot', 'channel_id'=>'-1001845835645', 'source_key'=>'tg_anytour_msk',
+        'display_name'=>'AnyTour Москва', 'bot_url'=>'https://t.me/anyru_bot', 'button_text'=>'✈️ Рассчитать на мои даты', 'is_enabled'=>true]);
+    [$transport,$provider] = aloftFixtureTransport($native,$mode);
+    $public = (object)['html'=>$html,'reads'=>0,'hook'=>null];
+    $reader = static function () use ($public): string {
+        $public->reads++;
+        if ($public->hook !== null) ($public->hook)($public->reads);
+        return $public->html;
+    };
+    return [$pdo,$registry,$provider,$public,new ChannelPostAutomationService($registry,$transport,$reader)];
+}
+[$manualDb,$manualRegistry,$manualProvider,$manualPublic,$manualService] = aloftManualScenario($aloftHtml,$aloftNative);
+$inspected = $manualService->inspectManualTelegramButton($aloftPublisher);
+channelPostCheck('Aloft inspect reads publisher and public post without creating a publication',
+    [$inspected['ok'],$inspected['state'],$manualProvider->writes,(int)$manualDb->query('SELECT COUNT(*) FROM post_publications')->fetchColumn()],
+    [true,'inspected',0,0]);
+$prepared = $manualService->prepareManualTelegramButton($aloftPublisher);
+$plan = $prepared['preview'] ?? [];
+channelPostCheck('Aloft service prepares the exact held preview with its own hotel URL',
+    [$prepared['ok'],$plan['state']??null,$plan['reason']??null,$plan['source_id']??null,$plan['hotel_id']??null,
+        $plan['plan_matches']??null,$manualProvider->writes,isset($plan['button_url']) && preg_match('~\Ahttps://t\.me/anyru_bot\?start=p_[A-Za-z0-9_-]{24}\z~D',$plan['button_url'])===1],
+    [true,'requires_attention','manual_approval_required',9,61159,true,0,true]);
+$row = $manualRegistry->manualTelegramButtonPublication();
+$resolved = $manualRegistry->resolveToken('anytour','telegram','anyru_bot',$row['start_payload']);
+require_once dirname(__DIR__).'/services/SourceQualificationPrompt.php';
+channelPostCheck('Aloft own token enters the existing hotel qualification flow',
+    SourceQualificationPrompt::publicationContext($resolved)['hotel_name'], 'Aloft Palm Jumeirah');
+channelPostCheck('Aloft prepared token resolves only its original publication and hotel context',
+    [$resolved['external_message_id'],$resolved['source_key'],$resolved['snapshot']['title'],$resolved['snapshot']['metadata']['hotel_catalog_id'],
+        $manualRegistry->resolveToken('anytour','telegram','ANYTOURBOT_bot',$row['start_payload'])],
+    ['1678','tg_anytour_msk','Aloft Palm Jumeirah',61159,null]);
+$same = $manualService->prepareManualTelegramButton($aloftPublisher);
+channelPostCheck('Aloft repeated preparation keeps the exact token and version',
+    [$same['preview']['button_url'],$same['preview']['version_id'],(int)$manualDb->query('SELECT COUNT(*) FROM post_versions')->fetchColumn()],
+    [$plan['button_url'],$plan['version_id'],1]);
+$calls = count($manualProvider->calls);
+$manualService->processPending('anytour','telegram','anyru_bot');
+$manualService->processPublication('anytour','telegram','anyru_bot',$plan['publication_id'],$plan['version_id']);
+channelPostCheck('Aloft ordinary workers cannot consume the held manual preview',
+    [count($manualProvider->calls),$manualProvider->writes,$manualRegistry->manualTelegramButtonPublication()['state']],
+    [$calls,0,'requires_attention']);
+foreach (['digest','publication','version','credential'] as $case) {
+    $binding=$aloftPublisher;$id=$plan['publication_id'];$version=$plan['version_id'];$digest=$plan['plan_digest'];
+    if ($case==='digest') $digest=str_repeat('f',64);
+    elseif ($case==='publication') $id++;
+    elseif ($case==='version') $version++;
+    else $binding['credential_version']++;
+    $refused=$manualService->applyManualTelegramButton($binding,$id,$version,$digest);
+    channelPostCheck('Aloft changed approval '.$case.' stops before provider and claim',
+        [$refused['ok'],$refused['reason'],count($manualProvider->calls),$manualRegistry->manualTelegramButtonPublication()['attempt_count']],
+        [false,'manual_preview_changed',$calls,0]);
+}
+$revoked=$manualService->applyManualTelegramButton($aloftPublisher,$plan['publication_id'],$plan['version_id'],$plan['plan_digest'],
+    static fn():bool=>false);
+channelPostCheck('Aloft authorization revoked after public read cannot consume the approved plan',
+    [$revoked['reason'],$manualRegistry->manualTelegramButtonPublication()['attempt_count'],count($manualProvider->calls),$manualDb->inTransaction()],
+    ['forbidden',0,$calls,false]);
+$applied=$manualService->applyManualTelegramButton($aloftPublisher,$plan['publication_id'],$plan['version_id'],$plan['plan_digest']);
+$saved=$manualRegistry->manualTelegramButtonPublication();
+channelPostCheck('Aloft exact approval uses one durable existing edit and saves the native receipt',
+    [$applied['ok'],$applied['state'],$manualProvider->writes,$saved['state'],$saved['write_attempts'],
+        $saved['receipt']['verified']??false,$saved['receipt']['native_media_identity_before_verified']??null],
+    [true,'sent',1,'sent',1,true,false]);
+$afterCalls=count($manualProvider->calls);
+$again=$manualService->applyManualTelegramButton($aloftPublisher,$plan['publication_id'],$plan['version_id'],$plan['plan_digest']);
+$manualService->processPending('anytour','telegram','anyru_bot');
+channelPostCheck('Aloft confirmed POST replay cannot make a second provider call',
+    [$again['ok'],$manualProvider->writes,count($manualProvider->calls)], [false,1,$afterCalls]);
+
+foreach (['public_before_claim','public_before_write','config_before_write','native_before_write','timeout'] as $case) {
+    [$db,$registry,$provider,$public,$service] = aloftManualScenario($aloftHtml,$aloftNative,$case==='timeout'?'timeout':'success');
+    $preview=$service->prepareManualTelegramButton($aloftPublisher)['preview'];
+    if ($case==='public_before_claim') $public->html=str_replace('Сохранить','Новая подпись: сохранить',$aloftHtml);
+    else $public->hook=static function (int $read) use ($case,$public,$db,$service,$aloftNative): void {
+        if ($read!==3) return;
+        if ($case==='public_before_write') $public->html=str_replace('Сохранить','Новая подпись: сохранить',$public->html);
+        elseif ($case==='config_before_write') $db->exec('UPDATE post_channels SET config_version=config_version+1');
+        elseif ($case==='native_before_write') {
+            $message=$aloftNative;$message['caption'].=' новый текст';$message['edit_date']=$message['date']+100;
+            $service->receive('telegram',['update_id'=>12345,'edited_channel_post'=>$message],'anytour','anyru_bot');
+        }
+    };
+    $outcome=$service->applyManualTelegramButton($aloftPublisher,$preview['publication_id'],$preview['version_id'],$preview['plan_digest']);
+    $expectedWrites=$case==='timeout'?1:0;
+    channelPostCheck('Aloft '.$case.' cannot produce false success or an unsafe edit',
+        [$outcome['ok'],$provider->writes], [false,$expectedWrites]);
+    $beforeCalls=count($provider->calls);
+    $service->processPending('anytour','telegram','anyru_bot');
+    $current=$registry->manualTelegramButtonPublication();
+    $service->processPublication('anytour','telegram','anyru_bot',$current['publication_id'],$current['version_id']);
+    $service->applyManualTelegramButton($aloftPublisher,$preview['publication_id'],$preview['version_id'],$preview['plan_digest']);
+    channelPostCheck('Aloft '.$case.' stays fenced from all repeat writes',
+        [$provider->writes,count($provider->calls)], [$expectedWrites,$beforeCalls]);
+    if ($case==='timeout') channelPostCheck('Aloft lost response retains UNKNOWN and durable attempt',
+        [$current['state'],$current['write_attempts']], ['unknown',1]);
+}
+
 echo 'Channel post automation: ' . $passed . ' passed, ' . $failed . ' failed' . PHP_EOL;
 exit($failed === 0 ? 0 : 1);
 

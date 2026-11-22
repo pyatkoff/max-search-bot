@@ -4,17 +4,21 @@ declare(strict_types=1);
 require_once __DIR__.'/ProjectClientCredentialStore.php';
 require_once __DIR__.'/TelegramArchiveBotSetup.php';
 require_once __DIR__.'/ManagerAuthService.php';
+require_once __DIR__.'/../integrations/ChannelPostApiTransport.php';
 
-/** Dedicated, opt-in credentials. No webhook, routing or publication operations. */
+/** Dedicated credentials and a scoped transport lease; no webhook or routing changes. */
 final class AnyTourPublisherBotConnection
 {
     public const PROJECT = 'anytour';
     public const USERNAME = 'ANYTOURBOT_bot';
+    private const CHANNEL = '-1001845835645';
+    private const MESSAGE = '1678';
     private string $root;
     private ProjectClientCredentialStore $vault;
     private $request;
+    private $publisherRequest;
 
-    public function __construct(?string $root = null, ?callable $request = null)
+    public function __construct(?string $root = null, ?callable $request = null, ?callable $publisherRequest = null)
     {
         $checkout = realpath(dirname(__DIR__));
         if ($checkout === false) throw new RuntimeException('storage_unavailable');
@@ -23,6 +27,7 @@ final class AnyTourPublisherBotConnection
         $this->root = $root ?? dirname($checkout).'/max-search-bot-private-logs/anytour-publisher-credentials';
         $this->vault = new ProjectClientCredentialStore($this->root);
         $this->request = $request ?? [TelegramArchiveBotSetup::class, 'network'];
+        $this->publisherRequest = $publisherRequest ?? [ChannelPostApiTransport::class, 'publisherButtonRequest'];
     }
 
     public function mayConfigure(int $actor, bool $locked = false): bool
@@ -152,7 +157,7 @@ final class AnyTourPublisherBotConnection
             throw new RuntimeException('identity_mismatch');
     }
 
-    /** The saved identity check is historical; it grants no publication capability. */
+    /** Historical identity and installed scoped API, never a message-edit permission check. */
     public function status(int $actor): array
     {
         if (!$this->mayConfigure($actor)) throw new RuntimeException('forbidden');
@@ -160,7 +165,7 @@ final class AnyTourPublisherBotConnection
         if ($row) $this->verifySaved($row);
         return ['configured'=>$row !== null, 'username'=>self::USERNAME, 'bot_id'=>$row['bot_id'] ?? null,
             'version'=>$row['version'] ?? 0, 'updated_at'=>$row['updated_at'] ?? null,
-            'identity_verified'=>$row !== null, 'publication_api_ready'=>false, 'webhook_unchanged'=>true];
+            'identity_verified'=>$row !== null, 'publication_api_ready'=>$row !== null, 'webhook_unchanged'=>true];
     }
 
     private function expected(?array $row, int $version, string $botId): void
@@ -168,6 +173,134 @@ final class AnyTourPublisherBotConnection
         if (($row['version'] ?? 0) !== $version) throw new RuntimeException('context_changed');
         if ($row && $row['bot_id'] !== $botId) throw new RuntimeException('identity_mismatch');
         if ($row) $this->verifySaved($row);
+    }
+
+    private function publisherContext(int $actor, int $version, ?string $botId = null): array
+    {
+        // A caller-owned transaction may contain an old ACL snapshot. Do not
+        // commit, roll back or perform a provider operation inside that context.
+        if (ConversationDb::connection()->inTransaction()) throw new RuntimeException('storage_unavailable');
+        if (!$this->mayConfigure($actor)) throw new RuntimeException('forbidden');
+        $row = $this->record();
+        if ($row === null) throw new RuntimeException('publisher_not_configured');
+        if ($version < 1 || $version !== $row['version']) throw new RuntimeException('context_changed');
+        $this->expected($row, $version, $botId ?? $row['bot_id']);
+        return $row;
+    }
+
+    private static function publisherId($value, string $expected): bool
+    {
+        return (is_string($value) || is_int($value)) && (string)$value === $expected;
+    }
+
+    /** Exact capability boundary, independent of the caller's publication plan. */
+    private static function publisherWrite(string $platform, string $method, string $path, array $query, ?array $body, string $botId): bool
+    {
+        if ($platform !== 'telegram' || $method !== 'POST' || $query !== [] || $body === null)
+            throw new RuntimeException('publisher_operation_forbidden');
+        if ($path === 'getMe' && $body === []) return false;
+        if ($path === 'getChat' && count($body) === 1 && self::publisherId($body['chat_id'] ?? null, self::CHANNEL)) return false;
+        if ($path === 'getChatMember' && count($body) === 2
+            && self::publisherId($body['chat_id'] ?? null, self::CHANNEL)
+            && self::publisherId($body['user_id'] ?? null, $botId)) return false;
+        if ($path !== 'editMessageReplyMarkup' || count($body) !== 3
+            || !self::publisherId($body['chat_id'] ?? null, self::CHANNEL)
+            || !self::publisherId($body['message_id'] ?? null, self::MESSAGE))
+            throw new RuntimeException('publisher_operation_forbidden');
+        $markup = $body['reply_markup'] ?? null;
+        $keyboard = is_array($markup) ? ($markup['inline_keyboard'] ?? null) : null;
+        $row = is_array($keyboard) ? ($keyboard[0] ?? null) : null;
+        $button = is_array($row) ? ($row[0] ?? null) : null;
+        if (!is_array($markup) || count($markup) !== 1 || !is_array($keyboard)
+            || array_keys($keyboard) !== [0] || !is_array($row) || array_keys($row) !== [0]
+            || !is_array($button) || count($button) !== 2
+            || !is_string($button['text'] ?? null) || trim($button['text']) === ''
+            || preg_match('/\A[^\x00-\x1f\x7f]{1,80}\z/uD', $button['text']) !== 1
+            || !is_string($button['url'] ?? null)
+            || preg_match('~\Ahttps://t\.me/anyru_bot\?start=p_[A-Za-z0-9_-]{24}\z~D', $button['url']) !== 1)
+            throw new RuntimeException('publisher_operation_forbidden');
+        return true;
+    }
+
+    private static function publisherPublicValue($value, #[\SensitiveParameter] string $secret, int $depth = 0): bool
+    {
+        if ($depth > 32) return false;
+        if (is_array($value)) {
+            foreach ($value as $key => $item) {
+                if ((is_string($key) && str_contains($key, $secret)) || !self::publisherPublicValue($item, $secret, $depth + 1)) return false;
+            }
+            return true;
+        }
+        if (is_string($value)) return !str_contains($value, $secret);
+        return $value === null || is_bool($value) || is_int($value) || (is_float($value) && is_finite($value));
+    }
+
+    /**
+     * Lend only a bounded request capability to trusted application code. The
+     * existing file lock serializes the entire operation with credential rotation.
+     * Approval, a durable write claim and result reconciliation belong to the
+     * existing publication owner, never to credential storage.
+     */
+    public function withPublisher(int $actor, int $version, callable $operation, bool $allowWrite = false): array
+    {
+        $initial = $this->publisherContext($actor, $version);
+        $result = null;
+        $this->locked(function () use ($actor, $version, $operation, $allowWrite, $initial, &$result): void {
+            $row = $this->publisherContext($actor, $version, $initial['bot_id']);
+            $secret = $this->vault->open(self::PROJECT, 'telegram:'.$row['bot_id'], $row['envelope']);
+            $token = $secret['token'];
+            unset($secret);
+            $binding = ['username'=>self::USERNAME, 'bot_id'=>$row['bot_id'], 'credential_version'=>$version];
+            $active = true;
+            $writeAttempted = false;
+            $identity = false;
+            $rights = false;
+            $channel = false;
+            $request = function (string $platform, string $method, string $path, array $query, ?array $body) use (
+                $actor, $version, $binding, $allowWrite, &$active, &$token, &$writeAttempted, &$identity, &$rights, &$channel
+            ): array {
+                if (!$active) throw new RuntimeException('publisher_scope_closed');
+                $this->publisherContext($actor, $version, $binding['bot_id']);
+                $write = self::publisherWrite($platform, $method, $path, $query, $body, $binding['bot_id']);
+                if ($write && (!$allowWrite || $writeAttempted)) throw new RuntimeException('publisher_operation_forbidden');
+                if ($write && (!$identity || !$rights || !$channel)) throw new RuntimeException('publisher_verification_required');
+                if ($write) $writeAttempted = true; // An uncertain attempt must never be repeated in this lease.
+                try { $reply = ($this->publisherRequest)($token, $method, $path, $query, $body); }
+                catch (Throwable $ignored) { $reply = null; }
+                if (!is_array($reply) || !self::publisherPublicValue($reply, $token)) $reply = [];
+                $response = ['http'=>(int)($reply['http'] ?? 0),
+                    'data'=>is_array($reply['data'] ?? null) ? $reply['data'] : null,
+                    'transport_error'=>($reply['transport_error'] ?? ($reply === [])) === true];
+                $native = !$response['transport_error'] && $response['http'] === 200
+                    && ($response['data']['ok'] ?? null) === true && is_array($response['data']['result'] ?? null)
+                    ? $response['data']['result'] : [];
+                if ($path === 'getMe') {
+                    $identity = ($native['is_bot'] ?? null) === true
+                        && self::publisherId($native['id'] ?? null, $binding['bot_id'])
+                        && is_string($native['username'] ?? null) && strcasecmp($native['username'], self::USERNAME) === 0;
+                    $rights = $channel = false;
+                } elseif ($path === 'getChatMember') {
+                    $rights = $identity && self::publisherId($native['user']['id'] ?? null, $binding['bot_id'])
+                        && is_string($native['user']['username'] ?? null) && strcasecmp($native['user']['username'], self::USERNAME) === 0
+                        && (($native['status'] ?? '') === 'creator'
+                            || (($native['status'] ?? '') === 'administrator' && ($native['can_edit_messages'] ?? null) === true));
+                } elseif ($path === 'getChat') {
+                    $channel = self::publisherId($native['id'] ?? null, self::CHANNEL) && ($native['type'] ?? null) === 'channel'
+                        && is_string($native['username'] ?? null) && strcasecmp($native['username'], 'anytour') === 0;
+                }
+                return $response;
+            };
+            try {
+                $result = $operation($binding, $request);
+                $this->publisherContext($actor, $version, $binding['bot_id']);
+                if (!is_array($result) || !self::publisherPublicValue($result, $token)) throw new RuntimeException('publisher_invalid_result');
+            } finally {
+                $active = false;
+                $token = '';
+                unset($request);
+            }
+        });
+        return $result;
     }
 
     public function save(int $actor, int $version, #[\SensitiveParameter] string $token): void
