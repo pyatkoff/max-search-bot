@@ -19,6 +19,7 @@ final class PromotedHotelPriceWriter
         private readonly PDO $pdo,
         private readonly ChannelPostRegistryService $registry,
         private readonly string $journal,
+        private readonly ?Closure $publicReader = null,
     ) {}
 
     /** Protect original HTML formatting. New price suffix contains plain text. */
@@ -196,10 +197,40 @@ final class PromotedHotelPriceWriter
         if (($prior['state'] ?? null) === 'started') throw new RuntimeException('previous_price_edit_unknown');
         $observed = self::observed($block);
         self::need($observed <= time() && time() - $observed < 129600, 'offer_expired_before_write');
-        $published = self::publicPost($platform, $url);
+        $published = $this->readPublicPost($platform, $url);
         self::need($published['caption'] === $snapshot['text'], 'public_caption_differs_from_registry');
         $new = self::revision($snapshot['text'], $block, $platform === 'telegram');
-        if ($new === $snapshot['text']) return ['result'=>'already_current', 'public_verified'=>true];
+        if ($new === $snapshot['text']) {
+            // A delayed public read closes the original provider receipt, never a new edit.
+            if (($prior['state'] ?? null) === 'provider_verified') {
+                self::need(($prior['platform'] ?? null) === $platform && ($prior['hotel'] ?? null) === $hotel
+                    && ($prior['url'] ?? null) === $url
+                    && is_int($prior['version'] ?? null) && $prior['version'] > 0
+                    && ($prior['new_version'] ?? null) === $post['version_id']
+                    && ($prior['next_hash'] ?? null) === hash('sha256', $snapshot['text'])
+                    && is_int($prior['at'] ?? null) && $prior['at'] > 0
+                    && ($snapshot['metadata']['source_event_id'] ?? null) === 'promoted-price:'.$id.':'.$prior['at']
+                    && ($snapshot['metadata']['observation_kind'] ?? null) === 'authorized_admin_content_edit',
+                    'previous_price_receipt_mismatch');
+                if ($platform === 'telegram') {
+                    $buttonUrl = ChannelPostButtonTransport::buttonUrl($post);
+                    $buttonText = (string)$post['channel']['button_text'];
+                    self::need($buttonUrl !== '' && $buttonText !== '', 'canonical_button_missing');
+                    self::need($published['buttons'] === [['text'=>$buttonText, 'url'=>$buttonUrl]],
+                        'public_telegram_button_unverified');
+                }
+                if ($apply) {
+                    $fresh = $this->registry->publication($id);
+                    $check->closeCursor();
+                    $check->execute([$id]);
+                    self::need($fresh === $post, 'publication_changed_before_reconcile');
+                    self::need((int)$check->fetchColumn() === 0, 'publication_claim_changed_before_reconcile');
+                    $prior['state'] = 'verified';
+                    $this->writeJournal($id, $prior);
+                }
+            }
+            return ['result'=>'already_current', 'public_verified'=>true];
+        }
         $channelKey = $platform.':'.(int)$post['channel']['config_version'];
         if (!isset($this->channelsVerified[$channelKey])) {
             $config = $post['channel'];
@@ -289,7 +320,7 @@ final class PromotedHotelPriceWriter
         for ($read = 0; $read < 3; $read++) {
             if ($read > 0) sleep(2);
             try {
-                if (self::publicPost($platform, $url)['caption'] === $new) {
+                if ($this->readPublicPost($platform, $url)['caption'] === $new) {
                     $record['state'] = 'verified';
                     $this->writeJournal($id, $record);
                     return ['result'=>'updated', 'public_verified'=>true, 'observed_at'=>gmdate(DATE_ATOM,$observed)];
@@ -338,6 +369,12 @@ final class PromotedHotelPriceWriter
             return $keys;
         };
         return $canonical($a) === $canonical($b);
+    }
+
+    private function readPublicPost(string $platform, string $url): array
+    {
+        return $this->publicReader !== null
+            ? ($this->publicReader)($platform, $url) : self::publicPost($platform, $url);
     }
 
     private static function publicPost(string $platform, string $url): array
