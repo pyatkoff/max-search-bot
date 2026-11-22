@@ -3,9 +3,11 @@ from aggregate import summarize
 
 NOW=1800000000
 def row(anchor,days=1,platform='max',features=None,**kw):
-    return dict(anonymous_request_key=anchor,platform=platform,
+    base=dict(anonymous_request_key=anchor,platform=platform,
         early_observed_unix=NOW-days*86400, snapshot_complete=True,
-        snapshot_as_of_unix=NOW,early_features=features or {},**kw)
+        snapshot_as_of_unix=NOW,early_features=features or {})
+    base.update(kw)
+    return base
 
 class AggregateTests(unittest.TestCase):
     def test_windows(self):
