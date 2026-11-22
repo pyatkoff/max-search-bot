@@ -47,6 +47,7 @@ $manager2AdminCssVersion=(string)(@filemtime(dirname(__DIR__).'/manager2/assets/
     <nav class="nav" aria-label="Другие разделы кабинета">
       <a class="adminBack" href="/manager2/">← К диалогам</a>
       <a href="/manager2/clients.php">Компании</a>
+      <a href="/manager/anytour-publisher-telegram.php">Бот публикаций AnyTour</a>
       <a href="routing.php">Маршрутизация</a>
       <a href="pipeline-admin.php">Этапы и теги продаж</a>
       <a id="adminConversions" href="/manager/assigned-value.php?view=delivery" hidden>Конверсии</a>
