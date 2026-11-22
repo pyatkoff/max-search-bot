@@ -9,11 +9,13 @@ final class ChannelPostAutomationService
 {
     private $registry;
     private ChannelPostButtonTransport $transport;
+    private $publicRead;
 
-    public function __construct($registry = null, ?ChannelPostButtonTransport $transport = null)
+    public function __construct($registry = null, ?ChannelPostButtonTransport $transport = null, ?callable $publicRead = null)
     {
         $this->registry = $registry;
         $this->transport = $transport ?? new ChannelPostButtonTransport();
+        $this->publicRead = $publicRead;
     }
 
     /** Safe return values only. Original bodies are held by the private registry. */
@@ -35,6 +37,12 @@ final class ChannelPostAutomationService
             $publication = $registry->registerPublication($projectKey, $platform, $botKey, $event['channel_id'], $event['external_message_id'], $snapshot);
             if (!$publication) return $safe + ['reason' => 'channel_configuration_changed'];
             $publicationId = (int)$publication['publication_id']; $versionId = (int)$publication['version_id'];
+            if (!empty($publication['manual_button_repair'])) {
+                // A native update is new evidence, never consent to repeat this
+                // one manually approved operation with the ordinary bot token.
+                return ['recognized'=>true, 'queued'=>false, 'state'=>(string)$publication['state'],
+                    'reason'=>'manual_repair_requires_review', 'publication_id'=>$publicationId, 'version_id'=>$versionId];
+            }
             if (!empty($publication['duplicate_event']) || !empty($publication['stale_observation'])) {
                 // A retried acknowledgement can safely drain an already durable
                 // pending job without trusting the older envelope as new evidence.
@@ -141,10 +149,150 @@ final class ChannelPostAutomationService
         }
     }
 
+    /** Read only: channel rights do not prove that Telegram accepts editing /1678. */
+    public function inspectManualTelegramButton(array $publisher): array
+    {
+        try {
+            $channel = $this->manualChannel();
+            $proof = $this->transport->verifyPublisher($channel, $publisher);
+            if (($proof['state'] ?? '') !== 'ready') return ['ok'=>false] + $proof;
+            $snapshot = $this->manualSnapshot();
+            return ['ok'=>true, 'state'=>'inspected', 'reason'=>'publisher_channel_rights_verified',
+                'receipt'=>$proof['receipt'], 'observation'=>self::manualObservation($snapshot),
+                'preview'=>$this->manualTelegramButtonStatus()];
+        } catch (Throwable $error) {
+            return self::manualFailure($error);
+        }
+    }
+
+    /** Prepare one held registry version and its own URL; never call a write. */
+    public function prepareManualTelegramButton(array $publisher, ?callable $authorize = null): array
+    {
+        try {
+            $channel = $this->manualChannel();
+            $proof = $this->transport->verifyPublisher($channel, $publisher);
+            if (($proof['state'] ?? '') !== 'ready') return ['ok'=>false] + $proof;
+            $snapshot = $this->manualSnapshot();
+            $publication = $this->registry()->prepareManualTelegramButton($channel, $snapshot, $publisher, $authorize);
+            return ['ok'=>true, 'state'=>'preview', 'reason'=>'manual_approval_required',
+                'receipt'=>$proof['receipt'], 'observation'=>self::manualObservation($snapshot),
+                'preview'=>self::manualPreview($publication)];
+        } catch (Throwable $error) {
+            return self::manualFailure($error);
+        }
+    }
+
+    /** The form submits only the reviewed immutable plan, not a target or URL. */
+    public function applyManualTelegramButton(array $publisher, int $publicationId, int $versionId, string $expectedDigest, ?callable $authorize = null): array
+    {
+        $claimed = false;
+        try {
+            if ($publicationId <= 0 || $versionId <= 0 || !preg_match('/\A[a-f0-9]{64}\z/D', $expectedDigest))
+                throw new RuntimeException('exact_manual_target_required');
+            $registry = $this->registry();
+            $publication = $registry->manualTelegramButtonPublication();
+            if (!$publication || (int)$publication['publication_id'] !== $publicationId
+                || (int)$publication['version_id'] !== $versionId || empty($publication['manual_button_repair'])
+                || ($publication['publisher'] ?? null) !== $publisher
+                || !hash_equals(ChannelPostRegistryService::manualTelegramButtonDigest($publication), $expectedDigest))
+                throw new RuntimeException('manual_preview_changed');
+            $hash = (string)($publication['public_fingerprint'] ?? '');
+            if (!hash_equals($hash, ChannelPostIncomingAdapter::aloftPublicFingerprint($this->manualSnapshot())))
+                throw new RuntimeException('public_post_changed');
+            $claim = $registry->claimManualTelegramButton($publication, $expectedDigest, $authorize);
+            $claimed = true;
+            // Re-read immediately before the existing writer. A stale public
+            // preview is not upgraded to a native pre-edit media observation.
+            $guard = function () use ($hash): bool {
+                return hash_equals($hash, ChannelPostIncomingAdapter::aloftPublicFingerprint($this->manualSnapshot()));
+            };
+            $result = $this->processClaimedOperation($claim, false, true, $guard);
+            return ['ok'=>$result['state'] === 'sent'] + $result;
+        } catch (Throwable $error) {
+            return self::manualFailure($error, $claimed) + ['publication_id'=>$publicationId, 'version_id'=>$versionId];
+        }
+    }
+
+    /** Existing registry only. GET does not probe a bot or create a publication. */
+    public function manualTelegramButtonStatus(): ?array
+    {
+        $publication = $this->registry()->manualTelegramButtonPublication();
+        return $publication === null ? null : self::manualPreview($publication);
+    }
+
+    private function manualChannel(): array
+    {
+        return $this->registry()->channel('anytour', 'telegram', 'anyru_bot', '-1001845835645')
+            ?? throw new RuntimeException('manual_channel_unavailable');
+    }
+
+    private function manualSnapshot(): array
+    {
+        if ($this->publicRead !== null) $html = ($this->publicRead)();
+        else {
+            // Reuse the bounded HTTPS public reader, without invoking its
+            // caption writer. The location is fixed, never submitted by a form.
+            require_once __DIR__.'/PromotedHotelPriceWriter.php';
+            $html = PromotedHotelPriceWriter::publicBytes('https://t.me/s/anytour?before=1679');
+        }
+        if (!is_string($html)) throw new RuntimeException('public_post_unavailable');
+        return ChannelPostIncomingAdapter::aloftPublicSnapshot($html);
+    }
+
+    private static function manualObservation(array $snapshot): array
+    {
+        $kind = (string)($snapshot['metadata']['observation_kind'] ?? 'native_update');
+        $raw = (array)($snapshot['raw_body'] ?? []);
+        $media = $kind === 'public_read' ? 'video' : (isset($raw['video']) ? 'video' : (isset($raw['photo']) ? 'photo' : 'unverified'));
+        $duration = $kind === 'public_read' ? 28 : ($media === 'video' ? ($raw['video']['duration'] ?? null) : null);
+        $published = (string)($snapshot['published_at'] ?? '');
+        $display = '';
+        if (preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\z/D', $published))
+            $display = (new DateTimeImmutable($published, new DateTimeZone('UTC')))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('d.m.Y H:i').' МСК';
+        return ['post_url'=>'https://t.me/anytour/1678', 'caption'=>(string)($snapshot['text'] ?? ''),
+            'published_at'=>$published, 'published_at_moscow'=>$display, 'media_type'=>$media, 'duration'=>$duration,
+            'keyboard'=>(array)($snapshot['keyboard'] ?? []), 'observation_kind'=>$kind,
+            'native_media_identity_before_verified'=>false];
+    }
+
+    private static function manualPreview(array $publication): array
+    {
+        $manual = !empty($publication['manual_button_repair']);
+        $digest = '';
+        // A later native version is evidence requiring review. It must remain
+        // visible even though it can no longer be the approved public plan.
+        if ($manual) {
+            try { $digest = ChannelPostRegistryService::manualTelegramButtonDigest($publication); }
+            catch (Throwable $ignored) {}
+        }
+        return ['publication_id'=>(int)$publication['publication_id'], 'version_id'=>(int)$publication['version_id'],
+            'config_version'=>(int)($publication['channel']['config_version'] ?? 0),
+            'state'=>(string)$publication['state'], 'reason'=>(string)($publication['error_reason'] ?? ''),
+            'attempt_count'=>(int)($publication['attempt_count'] ?? 0), 'write_attempts'=>(int)($publication['write_attempts'] ?? 0),
+            'manual_button_repair'=>$manual, 'publisher'=>(array)($publication['publisher'] ?? []),
+            'plan_digest'=>$digest,
+            'plan_matches'=>$manual && $digest !== '' && hash_equals((string)($publication['receipt']['plan_digest'] ?? ''), $digest),
+            'button_text'=>(string)($publication['channel']['button_text'] ?? ''),
+            'button_url'=>$manual ? ChannelPostButtonTransport::buttonUrl($publication) : '',
+            'source_id'=>(int)($publication['source_id'] ?? 0), 'source_key'=>(string)($publication['channel']['source_key'] ?? ''),
+            'hotel_id'=>$manual && ($publication['snapshot']['metadata']['hotel_catalog_id'] ?? null) === 61159 ? 61159 : null,
+            'observation'=>self::manualObservation((array)$publication['snapshot']),
+            'receipt'=>(array)($publication['receipt'] ?? []), 'original_attempt'=>$publication['manual_original'] ?? null];
+    }
+
+    private static function manualFailure(Throwable $error, bool $claimed = false): array
+    {
+        $reason = preg_match('/\A[a-z_]{1,96}\z/D', $error->getMessage()) ? $error->getMessage() : 'manual_operation_unavailable';
+        return ['ok'=>false, 'state'=>$claimed ? 'unknown' : 'requires_attention', 'reason'=>$reason];
+    }
+
     private function processOperation(array $publication): ?array
     {
         $registry = $this->registry();
         $id = (int)$publication['publication_id']; $version = (int)$publication['version_id'];
+        if (!empty($publication['manual_button_repair']) || ($publication['receipt']['repair_kind'] ?? '') === 'aloft_public_keyboard')
+            return ['publication_id'=>$id, 'version_id'=>$version, 'state'=>(string)$publication['state'],
+                'reason'=>'manual_repair_requires_review', 'reconcile_only'=>true, 'receipt'=>[]];
         if ($publication['platform'] === 'telegram' && str_starts_with((string)$publication['external_message_id'], 'group:')) {
             $delivery = $registry->memberDelivery();
             $member = $delivery->claim($id);
@@ -171,25 +319,39 @@ final class ChannelPostAutomationService
         return $this->processClaimedOperation($claim, $reconcile);
     }
 
-    private function processClaimedOperation(array $claim, bool $reconcile, bool $explicitRecovery = false): array
+    private function processClaimedOperation(array $claim, bool $reconcile, bool $explicitRecovery = false, ?callable $additionalBeforeWrite = null): array
     {
         $registry = $this->registry();
         $id = (int)$claim['publication_id']; $version = (int)$claim['version_id'];
         $claimToken = (string)$claim['claim_token'];
-        $beforeWrite = static function () use ($registry, $claim, $id, $version, $claimToken, $explicitRecovery): bool {
+        $beforeWrite = static function () use ($registry, $claim, $id, $version, $claimToken, $explicitRecovery, $additionalBeforeWrite): bool {
+            if ($additionalBeforeWrite !== null && $additionalBeforeWrite() !== true) return false;
             $fresh = $registry->publication($id);
             if (!$fresh || (int)$fresh['version_id'] !== $version
                 || ($fresh['claim_token'] ?? '') !== $claimToken
                 || ($explicitRecovery && $fresh['channel'] !== $claim['channel'])
                 || self::configurationFingerprint((array)$fresh['channel']) !== self::configurationFingerprint((array)$claim['channel'])) return false;
+            if (!empty($claim['manual_button_repair']) && (($fresh['publisher'] ?? null) !== ($claim['publisher'] ?? null)
+                || !hash_equals(ChannelPostRegistryService::manualTelegramButtonDigest($fresh),
+                    ChannelPostRegistryService::manualTelegramButtonDigest($claim)))) return false;
             return $registry->markExternalWriteStarted($id, $version, $claimToken);
         };
         $result = $this->transport->attempt($claim, $beforeWrite, $reconcile);
         $saved = $registry->finishPublication($id, $version, $claimToken, (string)$result['state'], (string)$result['reason'], (array)$result['receipt']);
+        $state = $saved ? $result['state'] : 'unknown';
+        $reason = $saved ? $result['reason'] : 'receipt_storage_failed';
+        if ($saved && !empty($claim['manual_button_repair'])) {
+            $current = $registry->publication($id);
+            if (!$current || (int)$current['version_id'] !== $version) {
+                // The receipt still belongs to this exact attempted version;
+                // it cannot certify content that arrived concurrently.
+                $state = 'unknown';
+                $reason = 'manual_observation_changed';
+            }
+        }
         return [
             'publication_id' => $id, 'version_id' => $version,
-            'state' => $saved ? $result['state'] : 'unknown',
-            'reason' => $saved ? $result['reason'] : 'receipt_storage_failed',
+            'state' => $state, 'reason' => $reason,
             'reconcile_only' => $reconcile, 'receipt' => $result['receipt'],
         ];
     }

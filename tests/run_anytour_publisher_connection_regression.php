@@ -116,9 +116,9 @@ try {
     }
     $connection->save(1, 0, $token);
     $state = $connection->status(1);
-    publisherCheck('saved identity is explicit but publication remains unavailable', $state['configured'] && $state['identity_verified']
+    publisherCheck('saved identity enables only the installed scoped publisher API', $state['configured'] && $state['identity_verified']
         && $state['username'] === 'ANYTOURBOT_bot' && $state['bot_id'] === '123456' && $state['version'] === 1
-        && $state['publication_api_ready'] === false && $state['webhook_unchanged'] === true && !$pdo->inTransaction());
+        && $state['publication_api_ready'] === true && $state['webhook_unchanged'] === true && !$pdo->inTransaction());
     $row = json_decode((string)file_get_contents($tmp.'/vault/connection.json'), true, 512, JSON_THROW_ON_ERROR);
     publisherCheck('saved token is encrypted and bound to this bot', !str_contains(json_encode($row), $token)
         && (new ProjectClientCredentialStore($tmp.'/vault'))->open('anytour', 'telegram:123456', $row['envelope'])['token'] === $token);
@@ -132,6 +132,166 @@ try {
     publisherRefuses('context_changed', fn()=>$connection->save(1, 0, $next));
     publisherRefuses('identity_mismatch', fn()=>$connection->save(1, 1, '234567:'.str_repeat('B', 35)));
     publisherCheck('status replay and identity substitution cannot write or call provider', publisherFiles($tmp.'/vault') === $before && count($calls) === $beforeCalls);
+
+    // The publisher capability never exports a token and never falls back to
+    // the global runtime bot. Every provider response below is synthetic.
+    $publisherCalls = [];
+    $publisherHook = null;
+    $native = static function ($candidate, $method, $path, $query, $body) use ($token, &$publisherCalls, &$publisherHook): array {
+        if ($candidate !== $token) throw new LogicException('wrong_synthetic_publisher_credential');
+        $publisherCalls[] = [$method, $path, $query, $body];
+        $result = match ($path) {
+            'getMe'=>['id'=>123456, 'username'=>'ANYTOURBOT_bot', 'is_bot'=>true],
+            'getChatMember'=>['user'=>['id'=>123456, 'username'=>'ANYTOURBOT_bot', 'is_bot'=>true], 'status'=>'administrator', 'can_edit_messages'=>true],
+            'getChat'=>['id'=>-1001845835645, 'type'=>'channel', 'username'=>'anytour'],
+            'editMessageReplyMarkup'=>['message_id'=>1678, 'chat'=>['id'=>-1001845835645, 'type'=>'channel'], 'reply_markup'=>$body['reply_markup']],
+            default=>throw new LogicException('unexpected_synthetic_publisher_method'),
+        };
+        if ($publisherHook) $result = $publisherHook($path, $result);
+        return ['http'=>200, 'data'=>['ok'=>true, 'result'=>$result], 'transport_error'=>false];
+    };
+    $publisher = new AnyTourPublisherBotConnection($tmp.'/vault', $reader, $native);
+    $readPublisher = static function (array $binding, callable $request): array {
+        $results = [];
+        $results[] = $request('telegram', 'POST', 'getMe', [], []);
+        $results[] = $request('telegram', 'POST', 'getChatMember', [], ['chat_id'=>'-1001845835645', 'user_id'=>$binding['bot_id']]);
+        $results[] = $request('telegram', 'POST', 'getChat', [], ['chat_id'=>'-1001845835645']);
+        return ['binding'=>$binding, 'http'=>array_column($results, 'http')];
+    };
+    $button = ['chat_id'=>'-1001845835645', 'message_id'=>'1678', 'reply_markup'=>['inline_keyboard'=>[[
+        ['text'=>'Рассчитать на мои даты', 'url'=>'https://t.me/anyru_bot?start=p_'.str_repeat('S', 24)],
+    ]]]];
+    $leaseBefore = publisherFiles($tmp.'/vault');
+    foreach ([0, 2, 3] as $actor) publisherRefuses('forbidden', fn()=>$publisher->withPublisher($actor, 1, $readPublisher));
+    publisherRefuses('context_changed', fn()=>$publisher->withPublisher(1, 0, $readPublisher));
+    publisherRefuses('context_changed', fn()=>$publisher->withPublisher(1, 2, $readPublisher));
+    publisherRefuses('publisher_not_configured', fn()=>(new AnyTourPublisherBotConnection($tmp.'/not-connected', $reader, $native))->withPublisher(1, 1, $readPublisher));
+    $pdo->beginTransaction();
+    publisherRefuses('storage_unavailable', fn()=>$publisher->withPublisher(1, 1, $readPublisher));
+    publisherCheck('publisher refuses an inherited transaction without ending it', $pdo->inTransaction());
+    $pdo->rollBack();
+    publisherCheck('publisher admission failures have no provider or storage effect', $publisherCalls === []
+        && publisherFiles($tmp.'/vault') === $leaseBefore && !file_exists($tmp.'/not-connected'));
+    $inspection = $publisher->withPublisher(1, 1, $readPublisher);
+    publisherCheck('publisher reads use the saved identity and exact target without credential changes',
+        $inspection === ['binding'=>['username'=>'ANYTOURBOT_bot', 'bot_id'=>'123456', 'credential_version'=>1], 'http'=>[200, 200, 200]]
+        && array_column($publisherCalls, 1) === ['getMe', 'getChatMember', 'getChat']
+        && publisherFiles($tmp.'/vault') === $leaseBefore && !str_contains(json_encode($inspection), $token));
+    $publisherCalls = [];
+    publisherRefuses('publisher_operation_forbidden', fn()=>$publisher->withPublisher(1, 1,
+        static fn($binding, $request)=>$request('telegram', 'POST', 'editMessageReplyMarkup', [], $button)));
+    publisherRefuses('publisher_verification_required', fn()=>$publisher->withPublisher(1, 1,
+        static fn($binding, $request)=>$request('telegram', 'POST', 'editMessageReplyMarkup', [], $button), true));
+    $invalidRequests = [
+        ['telegram', 'POST', 'setWebhook', [], []],
+        ['telegram', 'POST', 'getUpdates', [], []],
+        ['telegram', 'POST', 'editMessageCaption', [], $button],
+        ['telegram', 'POST', 'sendMessage', [], $button],
+        ['max', 'POST', 'getMe', [], []],
+        ['telegram', 'GET', 'getMe', [], []],
+        ['telegram', 'POST', 'getMe', ['extra'=>'parameter'], []],
+        ['telegram', 'POST', 'getChat', [], ['chat_id'=>'-1001845835646']],
+        ['telegram', 'POST', 'getChatMember', [], ['chat_id'=>'-1001845835645', 'user_id'=>234567]],
+        ['telegram', 'POST', 'editMessageReplyMarkup', [], array_replace($button, ['message_id'=>'1207'])],
+        ['telegram', 'POST', 'editMessageReplyMarkup', [], $button + ['caption'=>'changed']],
+        ['telegram', 'POST', 'editMessageReplyMarkup', [], array_replace_recursive($button, ['reply_markup'=>['inline_keyboard'=>[[['url'=>'https://t.me/ANYTOURBOT_bot?start=p_'.str_repeat('S', 24)]]]]])],
+        ['telegram', 'POST', 'editMessageReplyMarkup', [], array_replace_recursive($button, ['reply_markup'=>['inline_keyboard'=>[[['url'=>'https://t.me/anyru_bot?start=p_'.str_repeat('S', 23)]]]]])],
+        ['telegram', 'POST', 'editMessageReplyMarkup', [], array_replace_recursive($button, ['reply_markup'=>['inline_keyboard'=>[[1=>['text'=>'extra', 'url'=>'https://example.invalid/']]]]])],
+        ['telegram', 'POST', 'editMessageReplyMarkup', [], array_replace_recursive($button, ['reply_markup'=>['inline_keyboard'=>[[['callback_data'=>'extra']]]]])],
+    ];
+    $publisher->withPublisher(1, 1, static function ($binding, $request) use ($invalidRequests): array {
+        foreach ($invalidRequests as $arguments) publisherRefuses('publisher_operation_forbidden', fn()=>$request(...$arguments));
+        return [];
+    }, true);
+    publisherCheck('capability refuses all unrelated targets methods and keyboard shapes before provider access', $publisherCalls === []);
+    foreach (['getMe', 'getChatMember', 'getChat'] as $wrongNative) {
+        $publisherHook = static function ($path, $result) use ($wrongNative): array {
+            if ($path !== $wrongNative) return $result;
+            if ($path === 'getMe') $result['id'] = 234567;
+            elseif ($path === 'getChatMember') $result['can_edit_messages'] = false;
+            else $result['username'] = 'another_channel';
+            return $result;
+        };
+        publisherRefuses('publisher_verification_required', fn()=>$publisher->withPublisher(1, 1,
+            static function ($binding, $request) use ($readPublisher, $button): array {
+                $readPublisher($binding, $request);
+                return $request('telegram', 'POST', 'editMessageReplyMarkup', [], $button);
+            }, true));
+    }
+    publisherCheck('fresh bot rights and channel proofs are each required for an edit', !in_array('editMessageReplyMarkup', array_column($publisherCalls, 1), true));
+    $publisherHook = null;
+    $publisherCalls = [];
+    $edited = $publisher->withPublisher(1, 1, static function ($binding, $request) use ($readPublisher, $button): array {
+        $readPublisher($binding, $request);
+        $result = $request('telegram', 'POST', 'editMessageReplyMarkup', [], $button);
+        publisherRefuses('publisher_operation_forbidden', fn()=>$request('telegram', 'POST', 'editMessageReplyMarkup', [], $button));
+        return $result;
+    }, true);
+    publisherCheck('an explicit publisher lease allows exactly one keyboard-only attempt for1678',
+        array_column($publisherCalls, 1) === ['getMe', 'getChatMember', 'getChat', 'editMessageReplyMarkup']
+        && $publisherCalls[3][3] === $button && ($edited['data']['result']['message_id'] ?? null) === 1678);
+    $publisherHook = static function ($path, $result) use ($token): array {
+        if ($path === 'editMessageReplyMarkup') throw new RuntimeException('Synthetic transport secret '.$token);
+        return $result;
+    };
+    $publisherCalls = [];
+    $uncertain = $publisher->withPublisher(1, 1, static function ($binding, $request) use ($readPublisher, $button): array {
+        $readPublisher($binding, $request);
+        $result = $request('telegram', 'POST', 'editMessageReplyMarkup', [], $button);
+        publisherRefuses('publisher_operation_forbidden', fn()=>$request('telegram', 'POST', 'editMessageReplyMarkup', [], $button));
+        return $result;
+    }, true);
+    publisherCheck('uncertain provider attempt is sanitized and cannot repeat within the lease',
+        $uncertain === ['http'=>0, 'data'=>null, 'transport_error'=>true]
+        && count(array_filter(array_column($publisherCalls, 1), static fn($path)=>$path === 'editMessageReplyMarkup')) === 1
+        && !str_contains(json_encode($uncertain), $token));
+    $publisherHook = static function ($path, $result) use ($pdo): array {
+        if ($path === 'getMe') $pdo->exec('DELETE FROM manager_projects WHERE manager_id=1 AND project_id=1');
+        return $result;
+    };
+    $publisherCalls = [];
+    publisherRefuses('forbidden', fn()=>$publisher->withPublisher(1, 1, $readPublisher));
+    publisherCheck('revoked project access stops before the next provider request', array_column($publisherCalls, 1) === ['getMe']);
+    $pdo->exec('INSERT INTO manager_projects VALUES(1,1)');
+    $publisherHook = null;
+    publisherRefuses('forbidden', fn()=>$publisher->withPublisher(1, 1, static function () use ($pdo): array {
+        $pdo->exec('DELETE FROM manager_projects WHERE manager_id=1 AND project_id=1');
+        return ['must_not_escape'=>true];
+    }));
+    $pdo->exec('INSERT INTO manager_projects VALUES(1,1)');
+    $registryPreimage = (string)file_get_contents($tmp.'/vault/connection.json');
+    $publisherHook = static function ($path, $result) use ($tmp, $registryPreimage): array {
+        if ($path === 'getMe') {
+            $changed = json_decode($registryPreimage, true, 512, JSON_THROW_ON_ERROR);
+            $changed['version'] = 2;
+            file_put_contents($tmp.'/vault/connection.json', json_encode($changed, JSON_THROW_ON_ERROR));
+        }
+        return $result;
+    };
+    $publisherCalls = [];
+    publisherRefuses('context_changed', fn()=>$publisher->withPublisher(1, 1, $readPublisher));
+    publisherCheck('credential version is checked again before every provider request', array_column($publisherCalls, 1) === ['getMe']);
+    file_put_contents($tmp.'/vault/connection.json', $registryPreimage);
+    $publisherHook = null;
+    publisherRefuses('context_changed', fn()=>$publisher->withPublisher(1, 1, static function () use ($tmp, $registryPreimage): array {
+        $changed = json_decode($registryPreimage, true, 512, JSON_THROW_ON_ERROR);
+        $changed['version'] = 2;
+        file_put_contents($tmp.'/vault/connection.json', json_encode($changed, JSON_THROW_ON_ERROR));
+        return ['must_not_escape'=>true];
+    }));
+    file_put_contents($tmp.'/vault/connection.json', $registryPreimage);
+    $escaped = null;
+    $publisher->withPublisher(1, 1, static function ($binding, $request) use (&$escaped): array { $escaped = $request; return []; });
+    publisherRefuses('publisher_scope_closed', fn()=>$escaped('telegram', 'POST', 'getMe', [], []));
+    publisherRefuses('publisher_invalid_result', fn()=>$publisher->withPublisher(1, 1, static fn($binding, $request)=>['request'=>$request]));
+    publisherRefuses('publisher_invalid_result', fn()=>$publisher->withPublisher(1, 1, static fn()=>['secret'=>$token]));
+    $publisherHook = static function ($path, $result) use ($token): array { $result['unexpected'] = $token; return $result; };
+    $sanitized = $publisher->withPublisher(1, 1, static fn($binding, $request)=>$request('telegram', 'POST', 'getMe', [], []));
+    publisherCheck('a secret-bearing provider response cannot cross the callback boundary', $sanitized === ['http'=>0, 'data'=>null, 'transport_error'=>true]);
+    $publisherHook = null;
+    publisherCheck('publisher use leaves the credential version and encrypted record unchanged', $connection->status(1)['version'] === 1
+        && (string)file_get_contents($tmp.'/vault/connection.json') === $registryPreimage && !$pdo->inTransaction());
+
     $connection->save(1, 1, $next);
     publisherCheck('explicit rotation advances exactly one version', $connection->status(1)['version'] === 2);
     $transactionPreimage = hash_file('sha256', $tmp.'/vault/connection.json');
@@ -141,16 +301,24 @@ try {
         && $connection->status(1)['version'] === 2 && hash_file('sha256', $tmp.'/vault/connection.json') === $transactionPreimage);
     $pdo->rollBack();
 
-    foreach (['a', 'b'] as $worker) {
-        $process = proc_open([PHP_BINARY, __FILE__, '--race', $tmp, $worker],
-            [0=>['pipe', 'r'], 1=>['pipe', 'w'], 2=>['file', $tmp.'/worker-errors.log', 'a']], $pipes);
-        if (!is_resource($process)) throw new RuntimeException('cannot_start_race_worker');
-        fclose($pipes[0]);
-        $workers[$worker] = [$process, $pipes[1]];
-    }
-    for ($attempt = 0; $attempt < 500 && (!is_file($tmp.'/ready-a') || !is_file($tmp.'/ready-b')); $attempt++) usleep(10000);
-    publisherCheck('both concurrent writers reached identity verification for the same version', is_file($tmp.'/ready-a') && is_file($tmp.'/ready-b'));
-    touch($tmp.'/release-workers');
+    $connection->withPublisher(1, 2, static function () use ($tmp, $connection, &$workers): array {
+        foreach (['a', 'b'] as $worker) {
+            $process = proc_open([PHP_BINARY, __FILE__, '--race', $tmp, $worker],
+                [0=>['pipe', 'r'], 1=>['pipe', 'w'], 2=>['file', $tmp.'/worker-errors.log', 'a']], $pipes);
+            if (!is_resource($process)) throw new RuntimeException('cannot_start_race_worker');
+            fclose($pipes[0]);
+            $workers[$worker] = [$process, $pipes[1]];
+        }
+        for ($attempt = 0; $attempt < 500 && (!is_file($tmp.'/ready-a') || !is_file($tmp.'/ready-b')); $attempt++) usleep(10000);
+        publisherCheck('both concurrent writers reached identity verification for the same version', is_file($tmp.'/ready-a') && is_file($tmp.'/ready-b'));
+        touch($tmp.'/release-workers');
+        // Both saves have passed identity verification and can now attempt the
+        // real lock. Their credential CAS must wait until this lease ends.
+        usleep(100000);
+        publisherCheck('publisher callback serializes with actual concurrent credential rotation', $connection->status(1)['version'] === 2
+            && proc_get_status($workers['a'][0])['running'] && proc_get_status($workers['b'][0])['running']);
+        return [];
+    });
     $results = [];
     foreach ($workers as $worker=>[$process, $output]) {
         $results[$worker] = stream_get_contents($output);
@@ -183,10 +351,13 @@ try {
     file_put_contents($tmp.'/vault/connection.json', $before);
     unlink($tmp.'/vault/master.key');
     $beforeCalls = count($calls);
+    $beforePublisherCalls = count($publisherCalls);
     publisherRefuses('credential_store_unavailable', fn()=>$connection->status(1));
     publisherRefuses('credential_store_unavailable', fn()=>$connection->save(1, 3, $next));
+    publisherRefuses('credential_store_unavailable', fn()=>$publisher->withPublisher(1, 3, $readPublisher));
     publisherCheck('lost live key cannot be silently replaced', !file_exists($tmp.'/vault/master.key')
-        && (string)file_get_contents($tmp.'/vault/connection.json') === $before && count($calls) === $beforeCalls);
+        && (string)file_get_contents($tmp.'/vault/connection.json') === $before && count($calls) === $beforeCalls
+        && count($publisherCalls) === $beforePublisherCalls);
 
     // The exact endpoint uses real session/auth/CSRF owners and a query-only DB.
     // Copy only this service so its default private sibling is also disposable.
@@ -201,6 +372,7 @@ try {
         else symlink($file, $target);
     }
     symlink($source.'/manager/lib', $httpRoot.'/manager/lib');
+    symlink($source.'/integrations', $httpRoot.'/integrations');
     copy($source.'/manager/anytour-publisher-telegram.php', $httpRoot.'/manager/anytour-publisher-telegram.php');
     file_put_contents($httpRoot.'/config.php', '<?php require_once '.var_export(__DIR__.'/fixtures/client_onboarding_http.php', true).';clientHttpBootstrap(__DIR__);');
     publisherCheck('HTTP fixture uses byte-exact endpoint and credential service', hash_file('sha256', $source.'/manager/anytour-publisher-telegram.php') === hash_file('sha256', $httpRoot.'/manager/anytour-publisher-telegram.php')
@@ -217,7 +389,7 @@ try {
     $socket = stream_socket_server('tcp://127.0.0.1:0', $errno, $error);
     if (!$socket) throw new RuntimeException('loopback_unavailable');
     $address = stream_socket_get_name($socket, false); fclose($socket);
-    $server = proc_open([PHP_BINARY, '-d', 'session.save_path='.$httpRoot.'/sessions', '-S', $address, '-t', $httpRoot],
+    $server = proc_open([PHP_BINARY, '-d', 'session.save_path='.$httpRoot.'/sessions', '-d', 'disable_functions=curl_exec', '-S', $address, '-t', $httpRoot],
         [0=>['pipe', 'r'], 1=>['file', $tmp.'/server.log', 'a'], 2=>['file', $tmp.'/server.log', 'a']], $pipes);
     if (!is_resource($server)) throw new RuntimeException('cannot_start_loopback');
     fclose($pipes[0]);
@@ -259,13 +431,32 @@ try {
         && $request(1, $form + ['action'=>'activate'])[0] === 422);
     publisherCheck('oversized credential request is bounded', $request(1, array_replace($form, ['token'=>str_repeat('A', 5000)]))[0] === 413);
     publisherCheck('invalid credential failure has safe response and no files', $request(1, $form)[0] === 422 && !file_exists(dirname($httpVault)));
+    $operationForm = ['actor'=>'1', 'csrf'=>'synthetic-publisher-csrf', 'version'=>'0', 'action'=>'inspect'];
+    publisherCheck('native actions retain session actor and CSRF checks', $request(1, array_replace($operationForm, ['csrf'=>'wrong']))[0] === 403
+        && $request(1, array_replace($operationForm, ['actor'=>'3']))[0] === 409);
+    publisherCheck('native action cannot accept arbitrary methods tokens or targets', $request(1, array_replace($operationForm, ['action'=>['inspect']]))[0] === 422
+        && $request(1, $operationForm + ['token'=>$invalid])[0] === 422
+        && $request(1, $operationForm + ['chat_id'=>'-1001845835645', 'message_id'=>'1207'])[0] === 422
+        && $request(1, array_replace($operationForm, ['action'=>'prepare']) + ['button_url'=>'https://example.invalid/'])[0] === 422);
+    $applyForm = array_replace($operationForm, ['action'=>'apply', 'publication_id'=>'1', 'version_id'=>'1', 'plan_digest'=>str_repeat('a', 64)]);
+    publisherCheck('apply requires a separate exact confirmation and well-formed plan identity',
+        $request(1, $applyForm)[0] === 422
+        && $request(1, $applyForm + ['confirm'=>'yes'])[0] === 422
+        && $request(1, $applyForm + ['confirm'=>['replace_aloft_1678_keyboard']])[0] === 422
+        && $request(1, array_replace($applyForm, ['plan_digest'=>'invalid']) + ['confirm'=>'replace_aloft_1678_keyboard'])[0] === 422
+        && $request(1, array_replace($applyForm, ['publication_id'=>'0']) + ['confirm'=>'replace_aloft_1678_keyboard'])[0] === 422);
+    publisherCheck('unconfigured native action is refused before provider use or storage creation',
+        $request(1, $operationForm)[0] === 422 && $request(1, array_replace($operationForm, ['action'=>'prepare']))[0] === 422
+        && !file_exists(dirname($httpVault)));
     $httpConnection = new AnyTourPublisherBotConnection($httpVault, $reader);
     $httpConnection->save(1, 0, $token);
     $before = publisherFiles($httpVault);
     [$http, $html] = $request(1);
-    publisherCheck('saved HTTP form reports version without exposing credentials or enabling publication', $http === 200
-        && str_contains($html, 'Версия 1') && str_contains($html, 'МСК') && str_contains($html, 'Редактирование публикаций ещё не подключено.')
+    publisherCheck('saved HTTP form exposes explicit inspection and preparation without performing them', $http === 200
+        && str_contains($html, 'Версия 1') && str_contains($html, 'МСК')
+        && str_contains($html, 'value="inspect"') && str_contains($html, 'value="prepare"')
         && !str_contains($html, $token) && publisherFiles($httpVault) === $before);
+    publisherCheck('native actions reject stale credential versions before invoking their callback', $request(1, $operationForm)[0] === 409);
     $pdo->exec('UPDATE managers SET is_active=0 WHERE id=1');
     publisherCheck('deactivated session cannot read the saved connection', $request(1)[0] === 401);
     publisherCheck('no secret appears in HTTP output or diagnostic logs', !str_contains(implode('', $bodies), $token)
