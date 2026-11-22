@@ -33,6 +33,7 @@ return [
         'node tests/run_project_funnel_client_regression.js',
         'php tests/run_repair_max_webhook_regression.php',
         'php tests/run_appleservice39_telegram_connection_regression.php',
+        'php tests/run_anytour_publisher_connection_regression.php',
         'php tests/run_appleservice39_telegram_ingress_regression.php',
         'php tests/run_appleservice39_telegram_device_publisher_regression.php',
         'php tests/run_appleservice39_setup_regression.php',
