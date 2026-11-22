@@ -252,7 +252,80 @@ final class ChannelPostAutomationService
         return ['post_url'=>'https://t.me/anytour/1678', 'caption'=>(string)($snapshot['text'] ?? ''),
             'published_at'=>$published, 'published_at_moscow'=>$display, 'media_type'=>$media, 'duration'=>$duration,
             'keyboard'=>(array)($snapshot['keyboard'] ?? []), 'observation_kind'=>$kind,
-            'native_media_identity_before_verified'=>false];
+            'native_media_identity_before_verified'=>false,
+            'native_diagnostics'=>$kind === 'native_update' ? self::manualNativeDiagnostics($raw) : null];
+    }
+
+    /** Bounded facts from the stored body, never a new verification or raw export. */
+    private static function manualNativeDiagnostics(array $raw): array
+    {
+        $field = static function (array $source, string $key, string $format): array {
+            $present = array_key_exists($key, $source);
+            $value = $source[$key] ?? null;
+            $safe = null;
+            if ($format === 'number' && (is_int($value) || (is_float($value) && is_finite($value)))) $safe = $value;
+            elseif (is_string($value) && strlen($value) <= 64) {
+                if (($format === 'number' && preg_match('/\A-?[0-9]{1,20}(?:\.[0-9]{1,9})?\z/D', $value))
+                    || ($format === 'username' && preg_match('/\A[A-Za-z0-9_]{1,64}\z/D', $value))
+                    || ($format === 'chat_type' && in_array($value, ['private','group','supergroup','channel'], true))) $safe = $value;
+            }
+            return ['present'=>$present, 'type'=>$present ? gettype($value) : 'missing', 'value'=>$safe];
+        };
+        $identifier = static function (array $source, string $key): array {
+            $present = array_key_exists($key, $source);
+            $value = $source[$key] ?? null;
+            $bytes = is_string($value) ? strlen($value) : null;
+            $valid = is_string($value) && ($key === 'file_unique_id'
+                ? preg_match('/\A[A-Za-z0-9_-]{1,191}\z/D', $value) === 1
+                : $bytes > 0 && $bytes <= 1024 && trim($value) !== '' && !preg_match('/[\x00-\x20\x7f]/', $value));
+            return ['present'=>$present, 'type'=>$present ? gettype($value) : 'missing', 'byte_length'=>$bytes, 'valid'=>$valid];
+        };
+        $chat = is_array($raw['chat'] ?? null) ? $raw['chat'] : [];
+        $video = is_array($raw['video'] ?? null) ? $raw['video'] : [];
+        $caption = $raw['caption'] ?? null;
+        $alternativeMedia = [];
+        foreach (['media_group_id','photo','animation','audio','voice','video_note','document','sticker','contact','location','venue','poll','dice','paid_media'] as $key)
+            if (array_key_exists($key, $raw)) $alternativeMedia[] = $key;
+
+        $markup = is_array($raw['reply_markup'] ?? null) ? $raw['reply_markup'] : [];
+        $keyboard = $markup['inline_keyboard'] ?? null;
+        $row = is_array($keyboard) && count($keyboard) === 1 ? $keyboard[array_key_first($keyboard)] : null;
+        $button = is_array($row) && count($row) === 1 ? $row[array_key_first($row)] : null;
+        $buttonKeys = [];
+        // Unknown key names can themselves contain private data. Count them;
+        // show only fixed Telegram field names, with no button values.
+        if (is_array($button)) foreach (['text','icon_custom_emoji_id','style','url','callback_data','web_app','login_url','switch_inline_query','switch_inline_query_current_chat','switch_inline_query_chosen_chat','copy_text','callback_game','pay'] as $key)
+            if (array_key_exists($key, $button)) $buttonKeys[] = $key;
+
+        return [
+            'message_id'=>$field($raw, 'message_id', 'number'),
+            'chat_id'=>$field($chat, 'id', 'number'),
+            'chat_type'=>$field($chat, 'type', 'chat_type'),
+            'chat_username'=>$field($chat, 'username', 'username'),
+            'date'=>$field($raw, 'date', 'number'),
+            'caption'=>['present'=>array_key_exists('caption', $raw),
+                'type'=>array_key_exists('caption', $raw) ? gettype($caption) : 'missing',
+                'byte_length'=>is_string($caption) ? strlen($caption) : null,
+                'sha256'=>is_string($caption) ? hash('sha256', $caption) : null],
+            'text_key_present'=>array_key_exists('text', $raw),
+            'video_present'=>array_key_exists('video', $raw),
+            'video_type'=>array_key_exists('video', $raw) ? gettype($raw['video']) : 'missing',
+            'video_duration'=>$field($video, 'duration', 'number'),
+            'video_file_id'=>$identifier($video, 'file_id'),
+            'video_file_unique_id'=>$identifier($video, 'file_unique_id'),
+            'alternative_media_keys'=>$alternativeMedia,
+            'keyboard'=>[
+                'present'=>array_key_exists('inline_keyboard', $markup),
+                'type'=>array_key_exists('inline_keyboard', $markup) ? gettype($keyboard) : 'missing',
+                'row_count'=>is_array($keyboard) ? count($keyboard) : null,
+                'rows_are_list'=>is_array($keyboard) ? array_is_list($keyboard) : null,
+                'single_row_button_count'=>is_array($row) ? count($row) : null,
+                'single_row_is_list'=>is_array($row) ? array_is_list($row) : null,
+                'only_button_key_count'=>is_array($button) ? count($button) : null,
+                'only_button_keys'=>$buttonKeys,
+                'other_button_key_count'=>is_array($button) ? count($button) - count($buttonKeys) : null,
+            ],
+        ];
     }
 
     private static function manualPreview(array $publication): array

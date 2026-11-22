@@ -457,14 +457,79 @@ try {
         && str_contains($html, 'value="inspect"') && str_contains($html, 'value="prepare"')
         && !str_contains($html, $token) && publisherFiles($httpVault) === $before);
     publisherCheck('native actions reject stale credential versions before invoking their callback', $request(1, $operationForm)[0] === 409);
+    publisherCheck('credential setup creates no routing or client connections', (int)$pdo->query('SELECT COUNT(*) FROM conversation_sources')->fetchColumn() === 0
+        && (int)$pdo->query('SELECT COUNT(*) FROM project_client_connections')->fetchColumn() === 0);
+
+    // Seed only this disposable DB. The real HTTP endpoint remains query-only,
+    // with provider execution disabled, while rendering two distinct versions.
+    require_once __DIR__.'/fixtures/channel_post_registry_fixture.php';
+    require_once $source.'/services/ChannelPostRegistryService.php';
+    require_once $source.'/integrations/ChannelPostIncomingAdapter.php';
+    createChannelPostRegistryFixture($pdo);
+    $pdo->exec("INSERT INTO conversation_sources(id,project_id,source_key,display_name,channel,handling_mode,is_active) VALUES(9,1,'tg_anytour_msk','Synthetic Telegram','telegram','manager',1)");
+    $postRegistry = new ChannelPostRegistryService($pdo);
+    $postChannel = $postRegistry->configureChannel(['project_key'=>'anytour', 'platform'=>'telegram', 'bot_key'=>'anyru_bot',
+        'channel_id'=>'-1001845835645', 'source_key'=>'tg_anytour_msk', 'display_name'=>'Synthetic AnyTour',
+        'bot_url'=>'https://t.me/anyru_bot', 'button_text'=>'Рассчитать на мои даты', 'is_enabled'=>true]);
+    $caption = 'Aloft Palm Jumeirah <script>synthetic-html-escape</script>';
+    $publicSnapshot = ['text'=>$caption, 'title'=>'Aloft Palm Jumeirah', 'format'=>'public_html',
+        'post_url'=>'https://t.me/anytour/1678', 'published_at'=>'2026-08-11 11:51:56', 'edited_at'=>'', 'media_group_id'=>'',
+        'attachments'=>[['type'=>'video', 'provider'=>'telegram', 'duration'=>28, 'public_media_path'=>'/file/test1678.mp4']],
+        'markup'=>[], 'raw_body'=>[], 'keyboard'=>[[['text'=>'Old button', 'url'=>'https://example.invalid/old']]],
+        'metadata'=>['capability'=>'requires_attention', 'capability_reason'=>'manual_approval_required', 'observation_kind'=>'public_read',
+            'actual_message_id'=>'1678', 'channel_id'=>'-1001845835645', 'hotel_catalog_id'=>61159]];
+    $preparedPost = $postRegistry->prepareManualTelegramButton($postChannel, $publicSnapshot,
+        ['username'=>'ANYTOURBOT_bot', 'bot_id'=>'123456', 'credential_version'=>1]);
+    $postClaim = $postRegistry->claimManualTelegramButton($preparedPost, $preparedPost['plan_digest']);
+    $postRegistry->markExternalWriteStarted($postClaim['publication_id'], $postClaim['version_id'], $postClaim['claim_token']);
+    $postRegistry->finishPublication($postClaim['publication_id'], $postClaim['version_id'], $postClaim['claim_token'],
+        'unknown', 'manual_edit_verification_failed', ['button_verified'=>true, 'public_caption_matched'=>false,
+            'body_unchanged_by_method'=>true, 'native_media_identity_before_verified'=>false,
+            'native_video_unique_id'=>'PRIVATE_RECEIPT_VIDEO_ID', 'provider_result_sha256'=>str_repeat('a', 64),
+            'http_results'=>[['operation'=>'append_button', 'http'=>200, 'transport_error'=>0],
+                ['operation'=>'PRIVATE_UNKNOWN_STAGE', 'http'=>200, 'transport_error'=>0]]]);
+    $nativeSnapshot = ChannelPostIncomingAdapter::telegramSnapshot(['message_id'=>1678,
+        'chat'=>['id'=>-1001845835645, 'type'=>'channel', 'username'=>'anytour'], 'date'=>1786449116,
+        'edit_date'=>1786449117, 'caption'=>$caption,
+        'video'=>['duration'=>27.75, 'file_id'=>'PRIVATE_NATIVE_FILE_ID', 'file_unique_id'=>'PRIVATE_NATIVE_UNIQUE_ID'],
+        'reply_markup'=>['inline_keyboard'=>[[['text'=>'Рассчитать на мои даты', 'url'=>'https://t.me/anyru_bot?start='.$preparedPost['start_payload'],
+            'callback_data'=>'PRIVATE_CALLBACK_VALUE', 'PRIVATE_BUTTON_KEY'=>'PRIVATE_BUTTON_VALUE']]]]]);
+    $currentPost = $postRegistry->registerPublication('anytour', 'telegram', 'anyru_bot', '-1001845835645', '1678', $nativeSnapshot);
+    $currentReceipt = $currentPost['receipt'] + ['button_verified'=>false, 'public_caption_matched'=>true, 'publication_date_matched'=>true];
+    $pdo->prepare('UPDATE post_versions SET receipt_json=? WHERE id=?')->execute([json_encode($currentReceipt, JSON_THROW_ON_ERROR), $currentPost['version_id']]);
+    $databaseBeforeGet = hash_file('sha256', $httpRoot.'/fixture.sqlite');
+    [$http, $html] = $request(1);
+    preg_match('~<details><summary>Сохранённая квитанция исходной попытки</summary>(.*?)</details>~s', $html, $originalBlock);
+    preg_match('~<details><summary>Диагностика текущей нативной версии</summary>(.*?)</details>~s', $html, $currentBlock);
+    $originalHtml = $originalBlock[1] ?? '';
+    $currentHtml = $currentBlock[1] ?? '';
+    publisherCheck('read-only HTTP diagnostics separate original receipt from the later native version', $http === 200
+        && $preparedPost['version_id'] !== $currentPost['version_id']
+        && str_contains($originalHtml, 'Версия '.$preparedPost['version_id'].'.')
+        && str_contains($originalHtml, 'manual_edit_verification_failed')
+        && str_contains($currentHtml, 'Версия '.$currentPost['version_id'].'.')
+        && str_contains($originalHtml, 'Сообщение и точная кнопка совпали</dt><dd>Да</dd>')
+        && str_contains($originalHtml, 'Подпись совпала с исходным публичным снимком</dt><dd>Нет</dd>')
+        && str_contains($originalHtml, 'Исходная дата совпала точно</dt><dd>Нет данных</dd>')
+        && str_contains($originalHtml, 'Итоговая нативная сверка пройдена</dt><dd>Нет данных</dd>'));
+    publisherCheck('HTTP diagnostics expose bounded native duration and keyboard shape without private values',
+        str_contains($currentHtml, 'Длительность видео, секунд</dt><dd>27.75 · тип double')
+        && str_contains($currentHtml, 'text, url, callback_data; всего: 4; иных полей: 1')
+        && str_contains($originalHtml, 'Этап <code>append_button</code>: HTTP 200')
+        && !str_contains($html, 'PRIVATE_') && !str_contains($html, $token));
+    publisherCheck('HTTP diagnostics escape stored text and cannot reoffer a completed attempt',
+        str_contains($html, '&lt;script&gt;synthetic-html-escape&lt;/script&gt;')
+        && !str_contains($html, '<script>synthetic-html-escape</script>')
+        && !str_contains($html, 'value="apply"')
+        && str_contains($html, 'Гостиничный контекст текущей версии требует повторной сверки.'));
+    publisherCheck('diagnostic GET preserves private credentials and exact database bytes',
+        hash_file('sha256', $httpRoot.'/fixture.sqlite') === $databaseBeforeGet && publisherFiles($httpVault) === $before);
     $pdo->exec('UPDATE managers SET is_active=0 WHERE id=1');
     publisherCheck('deactivated session cannot read the saved connection', $request(1)[0] === 401);
     publisherCheck('no secret appears in HTTP output or diagnostic logs', !str_contains(implode('', $bodies), $token)
         && !str_contains(implode('', $bodies), $invalid)
         && !str_contains((string)file_get_contents($tmp.'/server.log'), $invalid)
         && !is_file($tmp.'/fixture.log'));
-    publisherCheck('credential setup creates no routing or client connections', (int)$pdo->query('SELECT COUNT(*) FROM conversation_sources')->fetchColumn() === 0
-        && (int)$pdo->query('SELECT COUNT(*) FROM project_client_connections')->fetchColumn() === 0);
     publisherCheck('all provider operations were identity reads', $calls !== [] && array_unique($calls) === ['getMe']);
     echo "AnyTour publisher connection regressions passed\n";
 } finally {

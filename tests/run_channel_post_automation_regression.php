@@ -1152,6 +1152,8 @@ channelPostCheck('Aloft service prepares the exact held preview with its own hot
     [$prepared['ok'],$plan['state']??null,$plan['reason']??null,$plan['source_id']??null,$plan['hotel_id']??null,
         $plan['plan_matches']??null,$manualProvider->writes,isset($plan['button_url']) && preg_match('~\Ahttps://t\.me/anyru_bot\?start=p_[A-Za-z0-9_-]{24}\z~D',$plan['button_url'])===1],
     [true,'requires_attention','manual_approval_required',9,61159,true,0,true]);
+channelPostCheck('Aloft public preview never invents native diagnostic fields',
+    array_key_exists('native_diagnostics', $plan['observation']) && $plan['observation']['native_diagnostics'] === null);
 $row = $manualRegistry->manualTelegramButtonPublication();
 $resolved = $manualRegistry->resolveToken('anytour','telegram','anyru_bot',$row['start_payload']);
 require_once dirname(__DIR__).'/services/SourceQualificationPrompt.php';
@@ -1198,6 +1200,56 @@ $again=$manualService->applyManualTelegramButton($aloftPublisher,$plan['publicat
 $manualService->processPending('anytour','telegram','anyru_bot');
 channelPostCheck('Aloft confirmed POST replay cannot make a second provider call',
     [$again['ok'],$manualProvider->writes,count($manualProvider->calls)], [false,1,$afterCalls]);
+
+// Presentation reads an already stored successor. The large private sentinels
+// must not enter its bounded DTO, nor can reading it repair the original state.
+$diagnosticMessage = $aloftNative;
+$diagnosticMessage['message_id'] = '1678';
+$diagnosticMessage['chat']['id'] = '-1001845835645';
+$diagnosticMessage['chat']['username'] = 'AnyTour';
+$diagnosticMessage['date'] = '1786449116';
+$diagnosticMessage['edit_date'] = 1786449216;
+$diagnosticMessage['caption'] = str_replace("\n", "\r\n", $aloftNative['caption']);
+$diagnosticMessage['text'] = null;
+$diagnosticMessage['photo'] = [];
+$diagnosticMessage['video']['duration'] = 28.5;
+$diagnosticMessage['video']['file_id'] = 'private_native_file_'.str_repeat('f', 900);
+$diagnosticMessage['video']['file_unique_id'] = 'private-native-unique:invalid';
+$diagnosticMessage['private_token'] = 'private_bot_token:'.str_repeat('t', 8192);
+$diagnosticMessage['reply_markup']['inline_keyboard'] = [[[
+    'text'=>'✈️ Рассчитать на мои даты', 'url'=>$plan['button_url'],
+    'callback_data'=>'private_callback_'.str_repeat('c', 8192),
+    'private_unknown_key'=>'private_unknown_value_'.str_repeat('v', 8192),
+]]];
+$diagnosticReceived = $manualService->receive('telegram', ['update_id'=>123456, 'edited_channel_post'=>$diagnosticMessage], 'anytour', 'anyru_bot');
+$diagnosticBefore = $manualRegistry->manualTelegramButtonPublication();
+$diagnosticCalls = [count($manualProvider->calls), $manualProvider->writes, $manualPublic->reads];
+$manualDb->exec('PRAGMA query_only=ON');
+$diagnosticStatus = $manualService->manualTelegramButtonStatus();
+$diagnosticAfter = $manualRegistry->manualTelegramButtonPublication();
+$manualDb->exec('PRAGMA query_only=OFF');
+$diagnostic = $diagnosticStatus['observation']['native_diagnostics'];
+channelPostCheck('Aloft stored native diagnostics preserve actual public scalar types and caption bytes',
+    [$diagnostic['message_id'], $diagnostic['chat_id'], $diagnostic['chat_type'], $diagnostic['chat_username'],
+        $diagnostic['date'], $diagnostic['video_duration'], $diagnostic['caption'], $diagnostic['text_key_present']],
+    [['present'=>true,'type'=>'string','value'=>'1678'], ['present'=>true,'type'=>'string','value'=>'-1001845835645'],
+        ['present'=>true,'type'=>'string','value'=>'channel'], ['present'=>true,'type'=>'string','value'=>'AnyTour'],
+        ['present'=>true,'type'=>'string','value'=>'1786449116'], ['present'=>true,'type'=>'double','value'=>28.5],
+        ['present'=>true,'type'=>'string','byte_length'=>strlen($diagnosticMessage['caption']), 'sha256'=>hash('sha256',$diagnosticMessage['caption'])], true]);
+$diagnosticJson = json_encode($diagnostic, JSON_THROW_ON_ERROR);
+channelPostCheck('Aloft native diagnostic DTO exposes bounded field facts without credentials or callback values',
+    [$diagnostic['video_file_id'], $diagnostic['video_file_unique_id'], $diagnostic['alternative_media_keys'], $diagnostic['keyboard'],
+        strlen($diagnosticJson) < 4096, str_contains($diagnosticJson, 'private_'), str_contains($diagnosticJson, 'private-native')],
+    [['present'=>true,'type'=>'string','byte_length'=>strlen($diagnosticMessage['video']['file_id']),'valid'=>true],
+        ['present'=>true,'type'=>'string','byte_length'=>strlen($diagnosticMessage['video']['file_unique_id']),'valid'=>false], ['photo'],
+        ['present'=>true,'type'=>'array','row_count'=>1,'rows_are_list'=>true,'single_row_button_count'=>1,'single_row_is_list'=>true,
+            'only_button_key_count'=>4,'only_button_keys'=>['text','url','callback_data'],'other_button_key_count'=>1], true, false, false]);
+channelPostCheck('Aloft native diagnostic status is query-only and preserves both immutable versions without provider reads',
+    [$diagnosticReceived['reason']??'', $diagnosticBefore === $diagnosticAfter,
+        [count($manualProvider->calls), $manualProvider->writes, $manualPublic->reads] === $diagnosticCalls,
+        $diagnosticStatus['state'], $diagnosticStatus['write_attempts'], $diagnosticStatus['original_attempt']['version_id'],
+        $diagnosticStatus['original_attempt']['state'], $diagnosticStatus['original_attempt']['write_attempts']],
+    ['manual_repair_requires_review', true, true, 'requires_attention', 0, $plan['version_id'], 'sent', 1]);
 
 foreach (['public_before_claim','public_before_write','config_before_write','native_before_write','timeout'] as $case) {
     [$db,$registry,$provider,$public,$service] = aloftManualScenario($aloftHtml,$aloftNative,$case==='timeout'?'timeout':'success');

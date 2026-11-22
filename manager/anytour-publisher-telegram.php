@@ -118,6 +118,7 @@ $reasons=[
     'provider_rejected_edit'=>'Telegram отклонил изменение. Причина приведена ниже; повторная попытка не отправляется.',
     'manual_observation_changed'=>'Получена новая версия поста. Квитанция прежней попытки сохранена отдельно; новая версия требует сверки.',
     'edit_outcome_unknown'=>'Ответ на изменение не подтверждён. Повторная отправка заблокирована до сверки.',
+    'manual_edit_verification_failed'=>'Telegram вернул сообщение после изменения, но локальная сверка не подтвердила все поля. Сохранённая квитанция доступна ниже; повторная отправка заблокирована.',
     'manual_write_already_attempted'=>'Для этой публикации уже зарегистрирована попытка. Автоматического повтора не будет.'
 ];
 $nativeReasons=[
@@ -129,6 +130,16 @@ $nativeReasons=[
     'message_not_modified'=>'Telegram сообщил, что содержимое клавиатуры не изменилось.'
 ];
 $operationReason=is_array($operation)?(string)($operation['reason']??''):'';
+$proofFlag=static fn($value):string=>$value===true?'Да':($value===false?'Нет':'Нет данных');
+$receiptLabels=[
+    'verified'=>'Итоговая нативная сверка пройдена',
+    'button_verified'=>'Сообщение и точная кнопка совпали',
+    'public_caption_matched'=>'Подпись совпала с исходным публичным снимком',
+    'publication_date_matched'=>'Исходная дата совпала точно',
+    'media_type_duration_matched'=>'Тип, длительность и поля видео прошли проверку',
+    'body_unchanged_by_method'=>'Метод изменял только клавиатуру',
+    'native_media_identity_before_verified'=>'Сравнен исходный нативный идентификатор видео'
+];
 $canApply=$status!==null && $status['configured'] && is_array($preview)
     && !empty($preview['manual_button_repair']) && !empty($preview['plan_matches'])
     && $preview['state']==='requires_attention' && $preview['reason']==='manual_approval_required'
@@ -186,6 +197,26 @@ $canApply=$status!==null && $status['configured'] && is_array($preview)
 <p>Исходная попытка относилась к версии <?=(int)$original['version_id']?>. Её состояние: <code><?=$esc((string)$original['state'])?></code>; попыток записи: <?=(int)$original['write_attempts']?>. Эта квитанция не подтверждает более поздние изменения поста.</p>
 <?php endif; ?>
 <?php if (!empty($preview['manual_button_repair'])): ?>
+<?php
+$savedAttempt=is_array($preview['original_attempt']??null)?$preview['original_attempt']:null;
+$savedReceipt=$savedAttempt!==null && is_array($savedAttempt['receipt']??null)?$savedAttempt['receipt']:[];
+?>
+<?php if ($savedAttempt!==null): ?>
+<details><summary>Сохранённая квитанция исходной попытки</summary>
+<p>Версия <?=(int)$savedAttempt['version_id']?>. Состояние: <code><?=$esc((string)$savedAttempt['state'])?></code>. Попыток записи: <?=(int)$savedAttempt['write_attempts']?>.</p>
+<?php if (is_string($savedAttempt['error_reason']??null) && $savedAttempt['error_reason']!==''): ?><p class="hint">Причина: <code><?=$esc($savedAttempt['error_reason'])?></code>.</p><?php endif; ?>
+<dl class="wizardReview">
+<?php foreach ($receiptLabels as $key=>$label): ?><div><dt><?=$esc($label)?></dt><dd><?=$proofFlag($savedReceipt[$key]??null)?></dd></div><?php endforeach; ?>
+</dl>
+<p class="hint">Это сохранённые результаты исходной попытки. Они не заменяют проверку более поздней версии. Отсутствие исходного нативного идентификатора видео само по себе не означает, что видео изменилось.</p>
+<?php if (is_string($savedReceipt['provider_result_sha256']??null) && preg_match('/\A[a-f0-9]{64}\z/D',$savedReceipt['provider_result_sha256'])): ?><p class="hint">SHA256 полученного сообщения: <code><?=$esc($savedReceipt['provider_result_sha256'])?></code></p><?php endif; ?>
+<?php foreach (array_slice(is_array($savedReceipt['http_results']??null)?$savedReceipt['http_results']:[],0,5) as $httpResult):
+    if (!is_array($httpResult) || !in_array($httpResult['operation']??null,['bot_identity','channel_rights','channel_type','append_button'],true)
+        || !is_int($httpResult['http']??null) || $httpResult['http']<0 || $httpResult['http']>599
+        || !is_int($httpResult['transport_error']??null) || $httpResult['transport_error']<0 || $httpResult['transport_error']>1000) continue;
+?><p class="hint">Этап <code><?=$esc($httpResult['operation'])?></code>: HTTP <?=(int)$httpResult['http']?>, код транспортной ошибки <?=(int)$httpResult['transport_error']?>.</p><?php endforeach; ?>
+</details>
+<?php endif; ?>
 <h3>Точное изменение</h3>
 <p>Заменить все кнопки под сообщением №1678 одной кнопкой:</p>
 <p><strong><?=$esc($preview['button_text'])?></strong></p>
@@ -194,6 +225,30 @@ $canApply=$status!==null && $status['configured'] && is_array($preview)
 <?php else: ?><p>Гостиничный контекст текущей версии требует повторной сверки.</p><?php endif; ?>
 <?php if ($preview['observation']['observation_kind']==='public_read'): ?><p>Адрес и дата публикации, видео 0:28 с обложкой и подпись сохраняются. Отправляется только изменение кнопок; новая публикация не создаётся.</p>
 <?php else: ?><p>Получено нативное обновление сообщения. Перед продолжением нужно сверить его с исходной подготовкой; новый вариант не подтверждён.</p><?php endif; ?>
+<?php $nativeDiagnostic=$preview['observation']['native_diagnostics']??null; if (is_array($nativeDiagnostic)): ?>
+<details><summary>Диагностика текущей нативной версии</summary>
+<p>Версия <?=(int)$preview['version_id']?>. Здесь показаны поля уже сохранённого обновления Telegram. Это отдельное наблюдение, а не квитанция исходной попытки.</p>
+<dl class="wizardReview">
+<?php foreach (['message_id'=>'Номер сообщения','chat_id'=>'Идентификатор канала','chat_type'=>'Тип чата','chat_username'=>'Публичное имя канала','date'=>'Исходная дата Unix','video_duration'=>'Длительность видео, секунд'] as $key=>$label): $field=is_array($nativeDiagnostic[$key]??null)?$nativeDiagnostic[$key]:[]; ?>
+<div><dt><?=$esc($label)?></dt><dd><?=$esc(is_scalar($field['value']??null)?(string)$field['value']:'Нет значения')?> · тип <?=$esc((string)($field['type']??'missing'))?> · присутствует: <?=$proofFlag($field['present']??null)?></dd></div>
+<?php endforeach; ?>
+<?php $captionDiagnostic=is_array($nativeDiagnostic['caption']??null)?$nativeDiagnostic['caption']:[]; ?>
+<div><dt>Подпись</dt><dd>Присутствует: <?=$proofFlag($captionDiagnostic['present']??null)?>; тип <?=$esc((string)($captionDiagnostic['type']??'missing'))?>; байт: <?=is_int($captionDiagnostic['byte_length']??null)?(int)$captionDiagnostic['byte_length']:'Нет данных'?></dd></div>
+<div><dt>Отдельное поле text присутствует</dt><dd><?=$proofFlag($nativeDiagnostic['text_key_present']??null)?></dd></div>
+<div><dt>Поле video</dt><dd>Присутствует: <?=$proofFlag($nativeDiagnostic['video_present']??null)?>; тип <?=$esc((string)($nativeDiagnostic['video_type']??'missing'))?></dd></div>
+<?php foreach (['video_file_id'=>'Идентификатор файла видео','video_file_unique_id'=>'Уникальный идентификатор видео'] as $key=>$label): $field=is_array($nativeDiagnostic[$key]??null)?$nativeDiagnostic[$key]:[]; ?>
+<div><dt><?=$esc($label)?></dt><dd>Присутствует: <?=$proofFlag($field['present']??null)?>; тип <?=$esc((string)($field['type']??'missing'))?>; байт: <?=is_int($field['byte_length']??null)?(int)$field['byte_length']:'Нет данных'?>; формат допустим: <?=$proofFlag($field['valid']??null)?></dd></div>
+<?php endforeach; ?>
+<div><dt>Дополнительные поля медиа</dt><dd><?=$esc(implode(', ',is_array($nativeDiagnostic['alternative_media_keys']??null)?$nativeDiagnostic['alternative_media_keys']:[])?:'Нет')?></dd></div>
+<?php $keyboardDiagnostic=is_array($nativeDiagnostic['keyboard']??null)?$nativeDiagnostic['keyboard']:[]; ?>
+<div><dt>Строки клавиатуры</dt><dd>Присутствует: <?=$proofFlag($keyboardDiagnostic['present']??null)?>; тип <?=$esc((string)($keyboardDiagnostic['type']??'missing'))?>; строк: <?=is_int($keyboardDiagnostic['row_count']??null)?(int)$keyboardDiagnostic['row_count']:'Нет данных'?>; список: <?=$proofFlag($keyboardDiagnostic['rows_are_list']??null)?></dd></div>
+<div><dt>Единственная строка</dt><dd>Кнопок: <?=is_int($keyboardDiagnostic['single_row_button_count']??null)?(int)$keyboardDiagnostic['single_row_button_count']:'Нет данных'?>; список: <?=$proofFlag($keyboardDiagnostic['single_row_is_list']??null)?></dd></div>
+<div><dt>Поля единственной кнопки</dt><dd><?=$esc(implode(', ',is_array($keyboardDiagnostic['only_button_keys']??null)?$keyboardDiagnostic['only_button_keys']:[])?:'Нет данных')?>; всего: <?=is_int($keyboardDiagnostic['only_button_key_count']??null)?(int)$keyboardDiagnostic['only_button_key_count']:'Нет данных'?>; иных полей: <?=is_int($keyboardDiagnostic['other_button_key_count']??null)?(int)$keyboardDiagnostic['other_button_key_count']:'Нет данных'?></dd></div>
+</dl>
+<?php if (is_string($captionDiagnostic['sha256']??null) && preg_match('/\A[a-f0-9]{64}\z/D',$captionDiagnostic['sha256'])): ?><p class="hint">SHA256 подписи: <code><?=$esc($captionDiagnostic['sha256'])?></code></p><?php endif; ?>
+<p class="hint">Значения идентификаторов файлов и содержимое callback-полей не выводятся. Просмотр не изменяет сообщение, версии и результаты сверки.</p>
+</details>
+<?php endif; ?>
 <details><summary>Исходная подпись и кнопки</summary>
 <p><?=$esc($preview['observation']['published_at_moscow'])?></p>
 <p><?=nl2br($esc($preview['observation']['caption']))?></p>
