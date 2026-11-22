@@ -62,6 +62,43 @@ monitor_price_require(monitor_hook_known_failure($checked,['tour_id'=>'known-tou
 
 // Targeted no-write terminal cases use retained fixture bytes; no runtime, database or API.
 function hook_test_check(bool $ok,string $name):void { global $cases;monitor_price_require($ok,$name);$cases++; }
+$snapshotStart=strpos($publicationDriver,'function hook_snapshot_batch(');
+$snapshotEnd=strpos($publicationDriver,'function hook_output_and_exit(',$snapshotStart===false?0:$snapshotStart);
+hook_test_check($snapshotStart!==false&&$snapshotEnd!==false,'hook_snapshot_reader_source_missing');
+eval(substr($publicationDriver,$snapshotStart,$snapshotEnd-$snapshotStart));
+$readScope=[];
+$fixtureReader=static function(string $url)use(&$readScope):string {
+    parse_str(parse_url($url,PHP_URL_QUERY),$query);
+    $ids=array_map('intval',$query['tourvisorHotelIds']);
+    $readScope[]=$ids;
+    if(count($ids)>5)throw new RuntimeException('hook_http_read_failed');
+    return json_encode(['ok'=>true,'items'=>array_map(static fn(int $id):array=>['tourvisorHotelId'=>$id],$ids)],JSON_THROW_ON_ERROR);
+};
+$snapshotRoster=array_map(static fn(int $id):array=>['tourvisor_hotel_id'=>$id],range(1,12));
+$snapshotSet=hook_snapshots($snapshotRoster,$priorityTime,$fixtureReader);
+hook_test_check(array_keys($snapshotSet)===range(1,12)
+    &&$readScope===[range(1,12),range(1,5),range(6,10),[11,12]],'hook_export_retry_changes_scope_or_order');
+$identityCalls=0;
+try {
+    hook_snapshots($snapshotRoster,$priorityTime,static function()use(&$identityCalls):string {
+        $identityCalls++;
+        return '{"ok":true,"items":[]}';
+    });
+    hook_test_check(false,'hook_export_missing_identity_accepted');
+} catch(RuntimeException $error) {
+    hook_test_check($error->getMessage()==='hook_monitor_identity_missing'&&$identityCalls===1,'hook_export_identity_failure_retried');
+}
+$transportCalls=0;
+try {
+    hook_snapshots($snapshotRoster,$priorityTime,static function()use(&$transportCalls):string {
+        $transportCalls++;
+        throw new RuntimeException('hook_http_read_failed');
+    });
+    hook_test_check(false,'hook_export_unavailable_accepted');
+} catch(RuntimeException $error) {
+    hook_test_check($error->getMessage()==='hook_http_read_failed'&&$transportCalls===2,'hook_export_unbounded_retry');
+}
+
 $ads19Roster = json_decode(gzdecode(file_get_contents(__DIR__.'/monitor-price-expanded-roster-20261111.json.gz')), true, 64, JSON_THROW_ON_ERROR);
 $ads19Count = 0;
 foreach ($ads19Roster['rows'] as $ads19Row) {

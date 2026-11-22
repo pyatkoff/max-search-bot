@@ -214,14 +214,27 @@ function hook_publication_order(array $rows,string $xml,DateTimeImmutable $today
     return array_merge(...$groups);
 }
 
-/** Same saved monitor reader as before, in batches of 25; no supplier search or writes. */
-function hook_snapshots(array $roster,DateTimeImmutable $today):array {
+/** Same saved monitor reader and identity checks for ordinary and smaller requests. */
+function hook_snapshot_batch(array $ids,DateTimeImmutable $today,callable $read):array {
+    $query=['tourvisorHotelIds'=>$ids,'departureId'=>1,'dateFrom'=>$today->modify('+1 day')->format('Y-m-d'),'dateTo'=>$today->modify('first day of this month')->modify('+12 months')->modify('-1 day')->format('Y-m-d')];
+    $url='https://anytoour.ru/data/hotel-monitor-prices-read-v1.php?'.http_build_query($query,'','&',PHP_QUERY_RFC3986);
+    $payload=json_decode($read($url),true,64,JSON_THROW_ON_ERROR);
+    $snapshots=[];
+    foreach($ids as $tv)$snapshots[$tv]=monitor_hook_source($payload,$tv,$url);
+    return $snapshots;
+}
+function hook_snapshots(array $roster,DateTimeImmutable $today,?callable $read=null):array {
+    $read??='hook_get';
     $snapshots=[];
     foreach(array_chunk(array_column($roster,'tourvisor_hotel_id'),25) as $ids){
-        $query=['tourvisorHotelIds'=>$ids,'departureId'=>1,'dateFrom'=>$today->modify('+1 day')->format('Y-m-d'),'dateTo'=>$today->modify('first day of this month')->modify('+12 months')->modify('-1 day')->format('Y-m-d')];
-        $url='https://anytoour.ru/data/hotel-monitor-prices-read-v1.php?'.http_build_query($query,'','&',PHP_QUERY_RFC3986);
-        $payload=json_decode(hook_get($url),true,64,JSON_THROW_ON_ERROR);
-        foreach($ids as $tv)$snapshots[$tv]=monitor_hook_source($payload,$tv,$url);
+        try{
+            $snapshots+=hook_snapshot_batch($ids,$today,$read);
+        }catch(RuntimeException $error){
+            // Retry only the failed read, once in smaller groups. A missing
+            // identity or a failed smaller read still prevents publication.
+            if($error->getMessage()!=='hook_http_read_failed'||count($ids)<=5)throw $error;
+            foreach(array_chunk($ids,5) as $smaller)$snapshots+=hook_snapshot_batch($smaller,$today,$read);
+        }
     }
     return $snapshots;
 }
