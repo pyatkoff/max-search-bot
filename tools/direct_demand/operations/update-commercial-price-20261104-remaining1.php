@@ -117,7 +117,7 @@ try {
         // PR1649 adds the separately fenced Aloft /1678 button repair. PRICE retains
         // the ordinary identities and only accepts these exact reviewed runtime files.
         'integrations/ChannelPostApiTransport.php'=>'5121aa7f107f2aee0b8080346b630d2147116426',
-        'services/ChannelPostAutomationService.php'=>'d95ab012a39e4afb74851a3dd1bafa78da4b64bf',
+        'services/ChannelPostAutomationService.php'=>'9914ff7af27ab714204f7478a75a5dd971de152d',
         'services/ChannelPostEntryService.php'=>'67495424fdf415b489240e7115e9efedfb1d5c3b',
         'services/ConversationRecordClock.php'=>'8f1d5b9a4888174a0867408594a164fc776ddbe4',
         'services/ChannelPostButtonTransport.php'=>'2dffadf8679caf6e9ed364a45ecfc44f7eb67388',
