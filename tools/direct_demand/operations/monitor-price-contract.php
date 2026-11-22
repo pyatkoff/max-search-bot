@@ -364,14 +364,20 @@ function monitor_price_confirmed_journal(array $journal,array $binding,int $now)
     monitor_price_require(count($receipts)===2,'monitor_posts_not_confirmed');
     return ['price'=>$price,'binding'=>$binding,'receipts'=>$receipts];
 }
-/** Exact patch of target offer blocks. Other URLs, IDs, photos and blocks stay byte-identical. */
-function monitor_price_render_feed(string $xml,array $updates,string $name,int $at):string {
-    monitor_price_require(in_array($name,['hotel-posts-max.xml','hotel-posts-telegram.xml','hotel-posts-all.xml'],true)
-        &&stripos($xml,'<!DOCTYPE')===false&&stripos($xml,'<!ENTITY')===false&&stripos($xml,'available=')===false,'monitor_feed_invalid');
+/** Validate the feed while indexing its existing offers. */
+function monitor_price_feed_elements(string $xml):array {
+    monitor_price_require(stripos($xml,'<!DOCTYPE')===false&&stripos($xml,'<!ENTITY')===false&&stripos($xml,'available=')===false,'monitor_feed_invalid');
     $dom=new DOMDocument();$prior=libxml_use_internal_errors(true);
     try{$loaded=$dom->loadXML($xml,LIBXML_NONET);}finally{libxml_clear_errors();libxml_use_internal_errors($prior);}
     monitor_price_require($loaded&&$dom->documentElement?->tagName==='yml_catalog','monitor_feed_invalid');
     $elements=[];foreach($dom->getElementsByTagName('offer') as $e){$id=$e->getAttribute('id');monitor_price_require($id!==''&&!isset($elements[$id]),'monitor_feed_duplicate');$elements[$id]=$e;}
+    return $elements;
+}
+
+/** Exact patch of target offer blocks. Other URLs, IDs, photos and blocks stay byte-identical. */
+function monitor_price_render_feed(string $xml,array $updates,string $name,int $at):string {
+    monitor_price_require(in_array($name,['hotel-posts-max.xml','hotel-posts-telegram.xml','hotel-posts-all.xml'],true),'monitor_feed_invalid');
+    $elements=monitor_price_feed_elements($xml);
     $targets=[];
     foreach($updates as $update)foreach(['max','telegram'] as $channel){
         if(($name==='hotel-posts-max.xml'&&$channel!=='max')||($name==='hotel-posts-telegram.xml'&&$channel!=='telegram'))continue;

@@ -80,12 +80,51 @@ function monitor_hook_source(array $payload,int $tv,string $url):array {
     unset($payload['ok'],$payload['items']);$payload['item']=$matches[0];$payload['sourceUrl']=$url;return $payload;
 }
 
-/** Oldest successful edit last; unprocessed hotels cannot starve behind the pilot. */
-function monitor_hook_order(array $rows,array $completed):array {
-    usort($rows,static function(array $a,array $b)use($completed):int{
-        $aAt=strtotime($completed[$a['tourvisor_hotel_id']]['at']??'1970-01-01T00:00:00Z');
-        $bAt=strtotime($completed[$b['tourvisor_hotel_id']]['at']??'1970-01-01T00:00:00Z');
-        return ($aAt<=>$bAt)?:($a['tourvisor_hotel_id']<=>$b['tourvisor_hotel_id']);
+/** Order publication work from the current combined feed. */
+function monitor_hook_feed_priority(string $xml,DateTimeImmutable $today,int $now):array {
+    $priority=[];
+    foreach(monitor_price_feed_elements($xml) as $id=>$offer){
+        $description=$offer->getElementsByTagName('description')->item(0)?->textContent??'';
+        if(preg_match('/Вылет[^\r\n]*?(\d{2}\.\d{2}\.\d{4})/u',$description,$matches)===1){
+            $departure=DateTimeImmutable::createFromFormat('!d.m.Y',$matches[1],$today->getTimezone());
+            if($departure!==false&&$departure->format('d.m.Y')===$matches[1]&&$departure<$today){
+                $priority[$id]=0;
+                continue;
+            }
+        }
+        $amount=$offer->getElementsByTagName('price')->item(0)?->textContent;
+        if($amount===null||trim($amount)===''||(is_numeric($amount)&&(float)$amount===0.0)){
+            $priority[$id]=1;
+            continue;
+        }
+        $priority[$id]=2;
+        if(preg_match('/Цена найдена мониторингом (\d{2}\.\d{2}\.\d{4}),?\s+(\d{2}:\d{2})\s+МСК/u',$description,$matches)===1){
+            $stamp=$matches[1].' '.$matches[2];
+            $observed=DateTimeImmutable::createFromFormat('!d.m.Y H:i',$stamp,$today->getTimezone());
+            if($observed!==false&&$observed->format('d.m.Y H:i')===$stamp){
+                $age=$now-$observed->getTimestamp();
+                if($age>=0&&$age<36*3600)$priority[$id]=3;
+            }
+        }
+    }
+    return $priority;
+}
+
+/** Preserve the existing oldest-first order within each publication priority. */
+function monitor_hook_order(array $rows,array $completed,array $feedPriority=[]):array {
+    $priority=[];
+    foreach($rows as $row){
+        $offers=$row['feed_binding']['offer_ids']??[];
+        $priority[$row['tourvisor_hotel_id']]=min(
+            $feedPriority[$offers['max']??'']??3,
+            $feedPriority[$offers['telegram']??'']??3
+        );
+    }
+    usort($rows,static function(array $a,array $b)use($completed,$priority):int{
+        $aId=$a['tourvisor_hotel_id'];$bId=$b['tourvisor_hotel_id'];
+        $aAt=strtotime($completed[$aId]['at']??'1970-01-01T00:00:00Z');
+        $bAt=strtotime($completed[$bId]['at']??'1970-01-01T00:00:00Z');
+        return ($priority[$aId]<=>$priority[$bId])?:($aAt<=>$bAt)?:($aId<=>$bId);
     });return $rows;
 }
 

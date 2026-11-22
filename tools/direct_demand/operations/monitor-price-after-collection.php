@@ -290,9 +290,10 @@ try{
     ob_start();try{require $root.'/config.php';require_once $root.'/services/ChannelPostRuntime.php';require_once $root.'/services/ChannelPostAdminService.php';}finally{ob_end_clean();}
     $registry=new ChannelPostRegistryService(ConversationDb::connection());$roster=json_decode(gzdecode(base64_decode(HOOK_ROSTER_GZIP_B64,true)),true,64,JSON_THROW_ON_ERROR)['rows'];
     hook_need(count($roster)===HOOK_ROSTER_COUNT&&count(array_unique(array_column($roster,'tourvisor_hotel_id')))===HOOK_ROSTER_COUNT,'hook_roster_scope_changed');
-    $roster=monitor_hook_order($roster,$state['completed']);$policy=monitor_hook_pass_policy($nightly,count($roster),$nightly?$startedAt:time());
-    $out['budget_seconds']=$policy['budget_seconds'];$out['finish_reserve_seconds']=$policy['finish_reserve_seconds'];
     $today=new DateTimeImmutable('today',new DateTimeZone('Europe/Moscow'));
+    $feedPriority=hook_measure($out,'publication_order_read',fn()=>monitor_hook_feed_priority(hook_read(getcwd().'/feed/hotel-posts-all.xml',4000000),$today,time()));
+    $roster=monitor_hook_order($roster,$state['completed'],$feedPriority);$policy=monitor_hook_pass_policy($nightly,count($roster),$nightly?$startedAt:time());
+    $out['budget_seconds']=$policy['budget_seconds'];$out['finish_reserve_seconds']=$policy['finish_reserve_seconds'];
     $out['roster_pairs']=count($roster);
     $snapshotsFetchedAt=time();$snapshots=hook_measure($out,'monitor_read',fn()=>hook_snapshots($roster,$today));$out['snapshot_reads']=1;
     foreach($roster as $rosterIndex=>$row){

@@ -36,6 +36,21 @@ foreach(['caption','version','operation','complete','url','identity','receipt','
 $fixture=[['tourvisor_hotel_id'=>3],['tourvisor_hotel_id'=>2],['tourvisor_hotel_id'=>1]];
 $ordered=monitor_hook_order($fixture,[1=>['at'=>'2026-11-11T10:00:00Z'],3=>['at'=>'2026-11-10T10:00:00Z']]);
 monitor_price_require(array_column($ordered,'tourvisor_hotel_id')===[2,3,1],'hook_unprocessed_starved');$cases++;
+
+$priorityTime=new DateTimeImmutable('2026-11-22 12:00',new DateTimeZone('Europe/Moscow'));
+$publicationFeed='<yml_catalog><shop><offers>'
+    .'<offer id="max_1"><price>100</price><description>Вылет из Москвы 23.11.2026. Цена найдена мониторингом 22.11.2026, 11:45 МСК</description></offer>'
+    .'<offer id="max_2"><description>Путёвка в отель</description></offer>'
+    .'<offer id="max_3"><price>100</price><description>Вылет из Москвы 23.11.2026. Цена найдена мониторингом 21.11.2026, 00:00 МСК</description></offer>'
+    .'<offer id="tg_4"><price>100</price><description>Вылет из Москвы 21.11.2026. Цена найдена мониторингом 22.11.2026, 11:45 МСК</description></offer>'
+    .'<offer id="max_5"><price>100</price><description>Цена найдена мониторингом 21.11.2026 00:01 МСК</description></offer>'
+    .'</offers></shop></yml_catalog>';
+$priority=monitor_hook_feed_priority($publicationFeed,$priorityTime->setTime(0,0),$priorityTime->getTimestamp());
+monitor_price_require($priority===['max_1'=>3,'max_2'=>1,'max_3'=>2,'tg_4'=>0,'max_5'=>3],'hook_feed_publication_priorities_changed');$cases++;
+$rows=[];
+foreach([5,3,4,1,2] as $id)$rows[]=['tourvisor_hotel_id'=>$id,'feed_binding'=>['offer_ids'=>['max'=>'max_'.$id,'telegram'=>'tg_'.$id]]];
+$priorityOrder=monitor_hook_order($rows,[1=>['at'=>'2026-11-21T10:00:00Z'],4=>['at'=>'2026-11-22T09:00:00Z']],$priority);
+monitor_price_require(array_column($priorityOrder,'tourvisor_hotel_id')===[4,2,3,5,1],'hook_feed_priority_does_not_precede_age');$cases++;
 $checked=['known_failures'=>[['tour_id'=>'known-tour','at'=>'2026-11-11T12:00:00Z','reason'=>'retained_operator_rejection_2']]];
 monitor_price_require(monitor_hook_known_failure($checked,['tour_id'=>'known-tour','observed_at'=>'2026-11-11T11:00:00Z'])==='retained_operator_rejection_2','hook_known_rejection_ignored');$cases++;
 monitor_price_require(monitor_hook_known_failure($checked,['tour_id'=>'different-tour','observed_at'=>'2026-11-11T11:00:00Z'])===null,'hook_different_tour_blocked');$cases++;
