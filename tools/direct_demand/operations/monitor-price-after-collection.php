@@ -172,6 +172,48 @@ function hook_prepare_feed(array $journal,string $installed):array {
     }
     return ['schema_version'=>3,'operation'=>monitor_hook_feed_operation($journal['operation'],gmdate('Ymd')),'files'=>$files,'generated_at'=>gmdate('Y-m-d\TH:i:s\Z',$at),'price_updates'=>[$binding]];
 }
+/** Order publication work from the current combined feed. */
+function hook_publication_order(array $rows,string $xml,DateTimeImmutable $today,int $now):array {
+    $priority=[];
+    hook_need(stripos($xml,'<!DOCTYPE')===false&&stripos($xml,'<!ENTITY')===false,'hook_publication_order_feed_invalid');
+    $doc=new DOMDocument();$prior=libxml_use_internal_errors(true);
+    try{$loaded=$doc->loadXML($xml,LIBXML_NONET);}finally{libxml_clear_errors();libxml_use_internal_errors($prior);}
+    hook_need($loaded&&$doc->documentElement?->tagName==='yml_catalog','hook_publication_order_feed_invalid');
+    foreach($doc->getElementsByTagName('offer') as $offer){
+        $id=$offer->getAttribute('id');
+        hook_need($id!==''&&!isset($priority[$id]),'hook_publication_order_feed_duplicate');
+        $description=$offer->getElementsByTagName('description')->item(0)?->textContent??'';
+        if(preg_match('/Вылет[^\r\n]*?(\d{2}\.\d{2}\.\d{4})/u',$description,$matches)===1){
+            $departure=DateTimeImmutable::createFromFormat('!d.m.Y',$matches[1],$today->getTimezone());
+            if($departure!==false&&$departure->format('d.m.Y')===$matches[1]&&$departure<$today){
+                $priority[$id]=0;
+                continue;
+            }
+        }
+        $amount=$offer->getElementsByTagName('price')->item(0)?->textContent;
+        if($amount===null||trim($amount)===''||(is_numeric($amount)&&(float)$amount===0.0)){
+            $priority[$id]=1;
+            continue;
+        }
+        $priority[$id]=2;
+        if(preg_match('/Цена найдена мониторингом (\d{2}\.\d{2}\.\d{4}),?\s+(\d{2}:\d{2})\s+МСК/u',$description,$matches)===1){
+            $stamp=$matches[1].' '.$matches[2];
+            $observed=DateTimeImmutable::createFromFormat('!d.m.Y H:i',$stamp,$today->getTimezone());
+            if($observed!==false&&$observed->format('d.m.Y H:i')===$stamp){
+                $age=$now-$observed->getTimestamp();
+                if($age>=0&&$age<36*3600)$priority[$id]=3;
+            }
+        }
+    }
+    $groups=[[],[],[],[]];
+    foreach($rows as $row){
+        $offers=$row['feed_binding']['offer_ids']??[];
+        $rank=min($priority[$offers['max']??'']??3,$priority[$offers['telegram']??'']??3);
+        $groups[$rank][]=$row;
+    }
+    return array_merge(...$groups);
+}
+
 /** Same saved monitor reader as before, in batches of 25; no supplier search or writes. */
 function hook_snapshots(array $roster,DateTimeImmutable $today):array {
     $snapshots=[];
@@ -291,8 +333,8 @@ try{
     $registry=new ChannelPostRegistryService(ConversationDb::connection());$roster=json_decode(gzdecode(base64_decode(HOOK_ROSTER_GZIP_B64,true)),true,64,JSON_THROW_ON_ERROR)['rows'];
     hook_need(count($roster)===HOOK_ROSTER_COUNT&&count(array_unique(array_column($roster,'tourvisor_hotel_id')))===HOOK_ROSTER_COUNT,'hook_roster_scope_changed');
     $today=new DateTimeImmutable('today',new DateTimeZone('Europe/Moscow'));
-    $feedPriority=hook_measure($out,'publication_order_read',fn()=>monitor_hook_feed_priority(hook_read(getcwd().'/feed/hotel-posts-all.xml',4000000),$today,time()));
-    $roster=monitor_hook_order($roster,$state['completed'],$feedPriority);$policy=monitor_hook_pass_policy($nightly,count($roster),$nightly?$startedAt:time());
+    $roster=monitor_hook_order($roster,$state['completed']);
+    $roster=hook_measure($out,'publication_order_read',fn()=>hook_publication_order($roster,hook_read(getcwd().'/feed/hotel-posts-all.xml',4000000),$today,time()));$policy=monitor_hook_pass_policy($nightly,count($roster),$nightly?$startedAt:time());
     $out['budget_seconds']=$policy['budget_seconds'];$out['finish_reserve_seconds']=$policy['finish_reserve_seconds'];
     $out['roster_pairs']=count($roster);
     $snapshotsFetchedAt=time();$snapshots=hook_measure($out,'monitor_read',fn()=>hook_snapshots($roster,$today));$out['snapshot_reads']=1;
