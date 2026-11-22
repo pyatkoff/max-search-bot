@@ -45,6 +45,9 @@ const MANUAL_OPERATIONS = new Set([...DIRECT,...PUSH_OPERATIONS,
   PREFIX+'max2-common-value-state-v2.yml']);
 const SCHEDULES = new Map([[PREFIX+'live-session-diagnostics.yml','25 * * * *'],
   [PREFIX+'modeled-conversion-monitor.yml','2-59/5 * * * *']]);
+const HOTEL_REGISTRY_READ = Object.freeze({branch:'ops/anytour-hotel-four-read-20261123',
+  workflow:PREFIX+'read-1566-main-hotel-registry.yml',job:'registry',operation:'hotel_four_registry',
+  owner:'pyatkoff',owner_id:226193297,repository_id:1342493152});
 const sha = v => typeof v === 'string' && /^[0-9a-f]{40}$/.test(v);
 const digest64 = v => typeof v === 'string' && /^[0-9a-f]{64}$/.test(v);
 const positive = v => (typeof v === 'string' && /^[1-9][0-9]{0,15}$/.test(v)
@@ -1633,6 +1636,41 @@ async function finalResolution(api,c,location,result) {
   requireValue((await api('GET',API_ROOT+'/git/ref/heads/main'))?.object?.sha===c.sha,'main_changed');
   return result;
 }
+/** One initial owner push admits only the four-hotel observation, before SSH. */
+async function resolveHotelRegistryRead({env,event,api}) {
+  const p=HOTEL_REGISTRY_READ,ref='refs/heads/'+p.branch;
+  requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF===ref
+    &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+p.workflow+'@'+ref
+    &&env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_JOB===p.job
+    &&env.GITHUB_RUN_ATTEMPT==='1'&&sha(env.GITHUB_SHA)&&positive(env.GITHUB_RUN_ID)
+    &&env.GITHUB_ACTOR===p.owner&&env.GITHUB_TRIGGERING_ACTOR===p.owner
+    &&event?.repository?.full_name===REPOSITORY&&event.repository.id===p.repository_id
+    &&event.sender?.id===p.owner_id&&event.sender.login===p.owner
+    &&event.ref===ref&&event.after===env.GITHUB_SHA&&event.before==='0'.repeat(40)
+    &&event.created===true&&event.deleted===false&&event.forced===false,
+    'untrusted_hotel_registry_read');
+  const c={sha:env.GITHUB_SHA,id:String(env.GITHUB_RUN_ID),attempt:1,event:'push',workflow:p.workflow,job:p.job};
+  requireValue((await api('GET',API_ROOT+'/git/ref/heads/main'))?.object?.sha===c.sha,'main_changed');
+  const branchPath=API_ROOT+'/git/ref/heads/'+p.branch;
+  requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_registry_read_branch_changed');
+  const run=await api('GET',API_ROOT+'/actions/runs/'+c.id);
+  runIdentity(run,{id:c.id,attempt:1,head:c.sha,workflow:p.workflow,event:'push',completed:false,branch:p.branch});
+  requireValue(run.status==='in_progress','workflow_not_active');
+  requireValue(run.actor?.id===p.owner_id&&run.actor.login===p.owner
+    &&run.triggering_actor?.id===p.owner_id&&run.triggering_actor.login===p.owner,
+    'foreign_hotel_registry_read_actor');
+  // A newly created ref alone is not one-use evidence: deleting and recreating it
+  // must not turn a previous observation into another admitted operation.
+  const runs=boundedList(await api('GET',API_ROOT+'/actions/workflows/'+p.workflow.slice(PREFIX.length)
+    +'/runs?branch='+encodeURIComponent(p.branch)+'&per_page=100'),
+    'workflow_runs','hotel_registry_read_inventory_incomplete');
+  requireValue(runs.length===1&&String(runs[0].id)===c.id,'hotel_registry_read_replay_forbidden');
+  runIdentity(runs[0],{id:c.id,attempt:1,head:c.sha,workflow:p.workflow,event:'push',completed:false,branch:p.branch});
+  const location=await readRecord(api),result=await resolveCurrent(api,c,location);
+  requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
+  requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_registry_read_branch_changed');
+  return {...await finalResolution(api,c,location,result),read_operation:p.operation};
+}
 async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms)),now=()=>performance.now()}) {
   if(env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_REF==='refs/heads/'+GATE_RECOVERY.branch){
     const x=await gateContinuationContext({env,event,api,workflow:GATE_RECOVERY.tls_workflow,job:'strict-tls-preflight'});
@@ -1640,6 +1678,7 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
     requireValue(current.blob===x.original.blob&&current.record_digest===GATE_RECOVERY.record_digest,'deployment_result_changed');
     return resolution(x.source,GATE_RECOVERY.sha,'installed');
   }
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_REGISTRY_READ.branch)return resolveHotelRegistryRead({env,event,api});
   const startedAt=now();
   const c=await sourceContext(env,event,api);
   requireValue(c.attempt===1,'consumer_rerun_forbidden');
