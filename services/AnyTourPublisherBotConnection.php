@@ -23,7 +23,7 @@ final class AnyTourPublisherBotConnection
 
     private function directory(): void
     {
-        if ($this->root === '' || $this->root[0] !== '/' || str_contains($this->root,"\\0"))
+        if ($this->root === '' || $this->root[0] !== '/' || str_contains($this->root,"\0"))
             throw new RuntimeException('storage_unavailable');
         foreach (explode('/', $this->root) as $part)
             if ($part === '.' || $part === '..') throw new RuntimeException('storage_unavailable');
