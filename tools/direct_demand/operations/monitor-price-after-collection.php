@@ -172,10 +172,10 @@ function hook_prepare_feed(array $journal,string $installed):array {
     }
     return ['schema_version'=>3,'operation'=>monitor_hook_feed_operation($journal['operation'],gmdate('Ymd')),'files'=>$files,'generated_at'=>gmdate('Y-m-d\TH:i:s\Z',$at),'price_updates'=>[$binding]];
 }
-/** Same saved monitor reader as before, in batches of 100; no supplier search or writes. */
+/** Same saved monitor reader as before, in batches of 25; no supplier search or writes. */
 function hook_snapshots(array $roster,DateTimeImmutable $today):array {
     $snapshots=[];
-    foreach(array_chunk(array_column($roster,'tourvisor_hotel_id'),100) as $ids){
+    foreach(array_chunk(array_column($roster,'tourvisor_hotel_id'),25) as $ids){
         $query=['tourvisorHotelIds'=>$ids,'departureId'=>1,'dateFrom'=>$today->modify('+1 day')->format('Y-m-d'),'dateTo'=>$today->modify('first day of this month')->modify('+12 months')->modify('-1 day')->format('Y-m-d')];
         $url='https://anytoour.ru/data/hotel-monitor-prices-read-v1.php?'.http_build_query($query,'','&',PHP_QUERY_RFC3986);
         $payload=json_decode(hook_get($url),true,64,JSON_THROW_ON_ERROR);

@@ -115,7 +115,7 @@ try {
         // Reviewed PR1572 entry annotations and PR1612 explicit recovery compatibility.
         // Legacy manual pins above remain unchanged; only scheduled monitoring admits these bytes.
         'services/ChannelPostAutomationService.php'=>'c6386e155d42bc83970edc95f35b3ebeb5140533',
-        'services/ChannelPostEntryService.php'=>'1982ff7368763edf8b7238c3142e3cc28579e991',
+        'services/ChannelPostEntryService.php'=>'67495424fdf415b489240e7115e9efedfb1d5c3b',
         'services/ConversationRecordClock.php'=>'8f1d5b9a4888174a0867408594a164fc776ddbe4',
         'services/ChannelPostButtonTransport.php'=>'7b6711f1de63000346d8e5789f2dbb7f725535b8',
         'services/ChannelPostRegistryService.php'=>'cf42a44257d1a58d1ff516678615cf9d01f45b55',
