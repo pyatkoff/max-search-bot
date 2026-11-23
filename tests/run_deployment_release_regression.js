@@ -272,6 +272,7 @@ async function gitBridge(){
     await commonValueStateConsumer(f, a, a);
     await publicationOperationConsumer(f, a, a);
     await hotelRegistryReadConsumer(f, a, a);
+    await hotelFourTransferConsumer(f, a, a);
     const nextRun={...context,event:'push'};
     const next=R.releaseRecord(receipt(a),nextRun,{kind:'application_unchanged',baseline:baseline.reference,
       content:R.contentSummary(proposal.comparison,a,r),intent:proposal.comparison.intent_scan,observation:observation(a)});
@@ -326,6 +327,7 @@ async function gitBridge(){
     await commonValueStateConsumer(f, r, a);
     await publicationOperationConsumer(f, r, a);
     await hotelRegistryReadConsumer(f, r, a);
+    await hotelFourTransferConsumer(f, r, a);
     equal(f.calls.filter(c=>c.method==='PATCH'&&c.path.endsWith('/issues/comments/900')).length,2,
       'two independent waves each make exactly one terminal mutation');
     equal(f.calls.filter(c=>c.path.includes('/actions/artifacts/')).length,0,
@@ -578,6 +580,7 @@ async function hotelRegistryReadConsumer(f,repositorySha,applicationSha){
     equal([result.repository_sha,result.application_sha,result.ready,result.perform_actions,result.read_operation],
       [repositorySha,applicationSha,true,true,'hotel_four_registry'],
       'the first fixed read resolves the actual canonical application, including an unchanged application');
+    equal(result.write_operation,undefined,'the read-only branch never grants a hotel transfer');
     equal(f.calls.slice(before).every(c=>c.method==='GET'),true,'read admission uses native observation only before SSH');
     const rejectedBeforeApi=f.calls.length;
     for(const [label,patch] of [['existing branch',{created:false}],['noninitial before',{before:H('old read source')}],
@@ -626,6 +629,96 @@ async function hotelRegistryReadConsumer(f,repositorySha,applicationSha){
     await refuses(resolve,'release_pending','a source still waiting for its original terminal cannot reach SSH');
     closer.status=oldStatus;closer.conclusion=oldConclusion;
   }finally{f.hook=null;f.runs.delete(run.id);f.main=repositorySha;}
+}
+async function hotelFourTransferConsumer(f,repositorySha,applicationSha){
+  const branch='ops/anytour-hotel-four-apply-20261123',ref='refs/heads/'+branch;
+  const workflow=R.PREFIX+'edit-1566-historical-telegram-with-channel-default.yml',owner={id:226193297,login:'pyatkoff'};
+  const run={...copy(f.wave.parent),id:6506,path:workflow,event:'push',head_branch:branch,
+    status:'in_progress',conclusion:null,actor:copy(owner),triggering_actor:copy(owner)};
+  f.runs.set(run.id,run);
+  const own={...job('transfer',run,[],null),status:'in_progress'};f.jobs.set(run.id,[own]);
+  const env={...consumerEnv(run,workflow,'push','transfer'),GITHUB_REF:ref,
+    GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+workflow+'@'+ref,GITHUB_ACTOR:owner.login,GITHUB_TRIGGERING_ACTOR:owner.login};
+  const event={repository:{full_name:R.REPOSITORY,id:1342493152},sender:copy(owner),ref,
+    after:repositorySha,before:'0'.repeat(40),created:true,deleted:false,forced:false};
+  const planPath='config/anytour_existing_post_transfer_four_20261123.json',bytes=fs.readFileSync(path.join(__dirname,'..',planPath));
+  const originalPlan={type:'file',path:planPath,sha:R.gitBlob(bytes),size:bytes.length,encoding:'base64',content:bytes.toString('base64')};
+  equal([originalPlan.sha,D(bytes)],['e786330f94af307dc631458a73a38310b73c086a','b88a09ec5220a20c7daee2480c9da9f36310fc8a2dc83a8afbe730ef1ed40d48'],
+    'the reviewed plan remains exact data and cannot silently become a different transfer');
+  equal(JSON.parse(bytes).rows.map(r=>[r.hotel_id,r.source_message_id,r.target_message_id]),
+    [[17595,'455','862'],[358,'65','328'],[393,'85','1083'],[1260,'548','288']],
+    'the pinned review plan contains only the four selected pairs');
+  const inventoryPath=R.API_ROOT+'/actions/workflows/edit-1566-historical-telegram-with-channel-default.yml/runs?branch='
+    +encodeURIComponent(branch)+'&per_page=100';
+  let inventory=[run],total=null,nativePlan=copy(originalPlan),branchHead=repositorySha,mainReads=0,advanceMain=false,branchReads=0,advanceBranch=false;
+  f.hook=({path})=>{
+    if(path===inventoryPath)return {total_count:total??inventory.length,workflow_runs:inventory};
+    if(path===R.API_ROOT+'/contents/'+planPath+'?ref='+repositorySha)return nativePlan;
+    if(path===R.API_ROOT+'/git/ref/heads/'+branch)return {object:{sha:advanceBranch&&++branchReads>1?H('moved transfer branch'):branchHead}};
+    if(path===R.API_ROOT+'/git/ref/heads/main'&&advanceMain&&++mainReads>1)return {object:{sha:H('new main after transfer admission')}};
+  };
+  const resolve=()=>R.resolveConsumer({env,event,api:f.api});
+  try{
+    const before=f.calls.length,result=await resolve();
+    equal([result.repository_sha,result.application_sha,result.ready,result.perform_actions,result.write_operation],
+      [repositorySha,applicationSha,true,true,'hotel_four_transfer'],
+      'one exact first native apply event selects only the existing four-hotel editor at the accepted application');
+    equal(result.read_operation,undefined,'the transfer result is distinct from read-only observation');
+    equal(f.calls.slice(before).every(c=>c.method==='GET'),true,'apply admission itself never writes or loads provider credentials');
+    const rejectedBeforeApi=f.calls.length;
+    for(const [label,patch] of [['existing branch',{created:false}],['noninitial before',{before:H('old transfer source')}],
+      ['forced',{forced:true}],['deleted',{deleted:true}],['wrong event source',{after:H('different source')}],
+      ['wrong repository',{repository:{full_name:R.REPOSITORY,id:1}}],['wrong owner',{sender:{id:1,login:owner.login}}]]){
+      await refuses(()=>R.resolveConsumer({env,event:{...event,...patch},api:f.api}),
+        'untrusted_hotel_four_transfer','fixed transfer rejects '+label);
+    }
+    for(const [label,patch] of [['attempt2',{GITHUB_RUN_ATTEMPT:'2'}],['reader job',{GITHUB_JOB:'registry'}],
+      ['manual dispatch',{GITHUB_EVENT_NAME:'workflow_dispatch'}],['foreign actor',{GITHUB_ACTOR:'other'}],
+      ['reader workflow',{GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+R.PREFIX+'read-1566-main-hotel-registry.yml@'+ref}]]){
+      await refuses(()=>R.resolveConsumer({env:{...env,...patch},event,api:f.api}),
+        'untrusted_hotel_four_transfer','fixed transfer refuses '+label);
+    }
+    equal(f.calls.length,rejectedBeforeApi,'wrong transfer envelopes stop before native or privileged access');
+    const readRef='refs/heads/ops/anytour-hotel-four-read-20261123';
+    await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_REF:readRef,GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+workflow+'@'+readRef},
+      event:{...event,ref:readRef},api:f.api}),'untrusted_hotel_registry_read','the original read carrier cannot select apply');
+    run.head_branch='main';
+    await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_REF:'refs/heads/main',GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+workflow+'@refs/heads/main'},
+      event:{...event,ref:'refs/heads/main'},api:f.api}),'untrusted_push_consumer','ordinary deploy/main push cannot turn on the editor');
+    run.head_branch=branch;
+    for(const [patch,code] of [[{id:run.id+1},'untrusted_workflow_run'],[{head_sha:H('foreign source')},'untrusted_workflow_run'],
+      [{head_branch:'main'},'untrusted_workflow_run'],[{run_attempt:2},'untrusted_workflow_run'],
+      [{status:'completed',conclusion:'success'},'workflow_not_active'],
+      [{actor:{id:1,login:owner.login}},'foreign_hotel_transfer_actor'],
+      [{triggering_actor:{id:1,login:owner.login}},'foreign_hotel_transfer_actor']]){
+      const original=copy(run);Object.assign(run,patch);await refuses(resolve,code);Object.assign(run,original);
+    }
+    for(const patch of [{name:'registry'},{run_id:run.id+1},{head_sha:H('other job source')},{run_attempt:2},
+      {status:'completed',conclusion:'success'}]){
+      const original=copy(own);Object.assign(own,patch);
+      await refuses(resolve,'hotel_transfer_job_unconfirmed','only the active native transfer job can admit SSH');Object.assign(own,original);
+    }
+    total=2;await refuses(resolve,'hotel_transfer_inventory_incomplete','partial history cannot prove a first transfer');total=null;
+    inventory=[run,{...copy(run),id:run.id+1,status:'completed',conclusion:'success'}];
+    await refuses(resolve,'hotel_transfer_replay_forbidden','delete/recreate cannot replay a previous operation');inventory=[run];
+    for(const patch of [{type:'symlink'},{path:'config/other.json'},{sha:H('other plan')},{size:bytes.length+1},
+      {encoding:'none'},{content:'!invalid-base64'},
+      {content:Buffer.from(bytes.toString().replace('"target_message_id": "862"','"target_message_id": "863"')).toString('base64')}]){
+      nativePlan={...originalPlan,...patch};
+      await refuses(resolve,'hotel_transfer_plan_changed','metadata or body drift cannot retain a valid plan binding');
+    }
+    nativePlan=copy(originalPlan);branchHead=H('updated transfer branch');
+    await refuses(resolve,'hotel_transfer_branch_changed');branchHead=repositorySha;advanceBranch=true;branchReads=0;
+    await refuses(resolve,'hotel_transfer_branch_changed','the fixed branch is rechecked after accepted release resolution');advanceBranch=false;
+    f.main=H('new main before transfer');
+    await refuses(resolve,'main_changed','an old source cannot be applied after main advances');f.main=repositorySha;
+    advanceMain=true;mainReads=0;
+    await refuses(resolve,'main_changed','final main drift cannot reach credentials');advanceMain=false;
+    const closer=f.wave.own,oldStatus=closer.status,oldConclusion=closer.conclusion;
+    closer.status='in_progress';closer.conclusion=null;
+    await refuses(resolve,'release_pending','an unclosed release cannot enable the editor');
+    closer.status=oldStatus;closer.conclusion=oldConclusion;
+  }finally{f.hook=null;f.runs.delete(run.id);f.jobs.delete(run.id);f.main=repositorySha;}
 }
 async function publicationOperationConsumer(f,repositorySha,applicationSha){
   const branch='ops/appleservice39-coverage-20261112',ref='refs/heads/'+branch;

@@ -61,8 +61,48 @@ final class ChannelPostApiTransport
         return ['http' => 0, 'data' => null, 'transport_error' => true];
     }
 
-    private static function postRequest(string $platform, string $method, string $path, array $query, ?array $body, bool $caption, #[\SensitiveParameter] ?string $publisherToken = null): array
+    /** Pure preflight before the editor consumes its once-only write marker. */
+    public static function hotelMediaPayload(string $channelId, string $messageId, array $body): ?array
     {
+        if ($channelId !== '-1001845835645' || !in_array($messageId, ['862', '328', '1083', '288'], true)
+            || array_keys($body) !== ['media', 'reply_markup']) return null;
+        $media = $body['media'];
+        $markup = $body['reply_markup'];
+        if (!is_array($media) || array_keys($media) !== ['type', 'media', 'caption', 'caption_entities']
+            || $media['type'] !== 'photo' || !is_string($media['media'])
+            || preg_match('/\A[A-Za-z0-9_-]{1,1024}\z/D', $media['media']) !== 1
+            || !is_string($media['caption']) || trim($media['caption']) === ''
+            || !mb_check_encoding($media['caption'], 'UTF-8')
+            || preg_match('/[\x00-\x09\x0b-\x1f\x7f-\x{009f}]/u', $media['caption']) !== 0
+            || strlen(mb_convert_encoding($media['caption'], 'UTF-16LE', 'UTF-8')) > 2048
+            || $media['caption_entities'] !== []
+            || !is_array($markup) || array_keys($markup) !== ['inline_keyboard']) return null;
+        $rows = $markup['inline_keyboard'];
+        if (!is_array($rows) || !array_is_list($rows) || count($rows) !== 1
+            || !is_array($rows[0]) || !array_is_list($rows[0]) || count($rows[0]) !== 1) return null;
+        $button = $rows[0][0];
+        if (!is_array($button) || array_keys($button) !== ['text', 'url']
+            || !is_string($button['text']) || trim($button['text']) === ''
+            || !mb_check_encoding($button['text'], 'UTF-8') || mb_strlen($button['text'], 'UTF-8') > 128
+            || preg_match('/[\x00-\x1f\x7f-\x{009f}]/u', $button['text']) !== 0
+            || !is_string($button['url'])
+            || preg_match('~\Ahttps://t\.me/anyru_bot\?start=p_[A-Za-z0-9_-]{24}\z~D', $button['url']) !== 1) return null;
+        return ['chat_id' => $channelId, 'message_id' => (int)$messageId] + $body;
+    }
+
+    /** Four approved historical photos only; deployment credentials, never the publisher's. */
+    public static function hotelMediaRequest(string $channelId, string $messageId, array $body): array
+    {
+        $payload = self::hotelMediaPayload($channelId, $messageId, $body);
+        return $payload === null ? ['http' => 0, 'data' => null, 'transport_error' => true]
+            : self::postRequest('telegram', 'POST', 'editMessageMedia', [], $payload, false, null, true);
+    }
+
+    private static function postRequest(string $platform, string $method, string $path, array $query, ?array $body, bool $caption, #[\SensitiveParameter] ?string $publisherToken = null, bool $hotelMedia = false): array
+    {
+        if ($hotelMedia && ($platform !== 'telegram' || $caption || $publisherToken !== null)) {
+            return ['http' => 0, 'data' => null, 'transport_error' => true];
+        }
         if (!extension_loaded('curl')) return ['http' => 0, 'data' => null, 'transport_error' => true];
         $token = $publisherToken ?? ($platform === 'max' ? (defined('MAX_SEARCH_TOKEN') ? (string)MAX_SEARCH_TOKEN : '') : (defined('TELEGRAM_BOT_TOKEN') ? (string)TELEGRAM_BOT_TOKEN : ''));
         if ($token === '') return ['http' => 0, 'data' => null, 'transport_error' => true];
@@ -77,7 +117,8 @@ final class ChannelPostApiTransport
             $headers = ['Authorization: ' . $token, 'Accept: application/json', 'Content-Type: application/json'];
             $tls = MaxTlsConfig::strictCurlOptions();
         } elseif ($platform === 'telegram' && $method === 'POST' && $query === []
-            && ($caption ? $path === 'editMessageCaption' : in_array($path, ['getMe', 'getChat', 'getChatMember', 'editMessageReplyMarkup'], true))) {
+            && ($hotelMedia ? $path === 'editMessageMedia'
+                : ($caption ? $path === 'editMessageCaption' : in_array($path, ['getMe', 'getChat', 'getChatMember', 'editMessageReplyMarkup'], true)))) {
             $url = 'https://api.telegram.org/bot' . $token . '/' . $path;
             $headers = ['Accept: application/json', 'Content-Type: application/json'];
             $tls = [CURLOPT_SSL_VERIFYPEER => true, CURLOPT_SSL_VERIFYHOST => 2];

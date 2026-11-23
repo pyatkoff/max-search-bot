@@ -1279,6 +1279,305 @@ foreach (['public_before_claim','public_before_write','config_before_write','nat
         [$current['state'],$current['write_attempts']], ['unknown',1]);
 }
 
+// Execute the actual integration with provider I/O intercepted in a namespace.
+// No application secrets are loaded and native curl can never contact Telegram.
+foreach (['CURLOPT_SSL_VERIFYPEER','CURLOPT_SSL_VERIFYHOST','CURLOPT_RETURNTRANSFER','CURLOPT_FOLLOWLOCATION',
+    'CURLOPT_CONNECTTIMEOUT','CURLOPT_TIMEOUT','CURLOPT_CUSTOMREQUEST','CURLOPT_HTTPHEADER',
+    'CURLOPT_WRITEFUNCTION','CURLOPT_POSTFIELDS','CURLINFO_HTTP_CODE'] as $index => $constant) {
+    define('HotelMediaApiFixture\\'.$constant, 20000 + $index);
+}
+$GLOBALS['hotel_media_http'] = [];
+eval(<<<'FIXTURE'
+namespace HotelMediaApiFixture;
+const TELEGRAM_BOT_TOKEN = '123456:fixture_deployment_token_only';
+function extension_loaded(string $name): bool { return $name === 'curl'; }
+function defined(string $name): bool { return $name === 'TELEGRAM_BOT_TOKEN' || \defined($name); }
+function curl_init(string $url): object { return (object)['url'=>$url,'options'=>[]]; }
+function curl_setopt_array(object $handle, array $options): bool { $handle->options=$options; return true; }
+function curl_exec(object $handle): bool {
+    $GLOBALS['hotel_media_http'][]=['url'=>$handle->url,'options'=>$handle->options];
+    ($handle->options[CURLOPT_WRITEFUNCTION])($handle,'{"ok":true,"result":{"message_id":862}}');
+    return true;
+}
+function curl_getinfo(object $handle, int $option): int { return 200; }
+function curl_errno(object $handle): int { return 0; }
+function curl_close(object $handle): void {}
+FIXTURE);
+$hotelTransportSource = (string)file_get_contents(__DIR__.'/../integrations/ChannelPostApiTransport.php');
+$hotelTransportSource = preg_replace('/\A<\?php\s*declare\(strict_types=1\);\s*/', '', $hotelTransportSource, 1, $replaced);
+channelPostCheck('hotel transport fixture retains the actual integration body', $replaced, 1);
+$hotelTransportSource = str_replace('__DIR__', var_export(dirname(__DIR__).'/integrations', true), $hotelTransportSource);
+eval('namespace HotelMediaApiFixture; use \MaxTlsConfig; '.$hotelTransportSource);
+
+$hotelMediaBody = [
+    'media'=>['type'=>'photo','media'=>'AgACAgIAAxkBAAIB_fixture_photo_1',
+        'caption'=>"✈️ Туры в проверенный отель\nСохранённая фотография.",'caption_entities'=>[]],
+    'reply_markup'=>['inline_keyboard'=>[[['text'=>'✈️ Рассчитать на мои даты',
+        'url'=>'https://t.me/anyru_bot?start=p_'.str_repeat('A',24)]]]],
+];
+foreach (['862','328','1083','288'] as $mid) {
+    channelPostCheck('hotel media builds exact fixed target '.$mid,
+        HotelMediaApiFixture\ChannelPostApiTransport::hotelMediaPayload('-1001845835645',$mid,$hotelMediaBody),
+        ['chat_id'=>'-1001845835645','message_id'=>(int)$mid]+$hotelMediaBody);
+}
+channelPostCheck('hotel media pure preparation performs no HTTP', $GLOBALS['hotel_media_http'], []);
+$hotelMediaResult = HotelMediaApiFixture\ChannelPostApiTransport::hotelMediaRequest('-1001845835645','862',$hotelMediaBody);
+$hotelWire = $GLOBALS['hotel_media_http'][0];
+channelPostCheck('hotel media performs exactly one deployment-bot editMessageMedia',
+    [$hotelMediaResult['http'],$hotelMediaResult['transport_error'],count($GLOBALS['hotel_media_http']),$hotelWire['url'],
+        json_decode($hotelWire['options'][HotelMediaApiFixture\CURLOPT_POSTFIELDS],true)],
+    [200,false,1,'https://api.telegram.org/bot'.HotelMediaApiFixture\TELEGRAM_BOT_TOKEN.'/editMessageMedia',
+        ['chat_id'=>'-1001845835645','message_id'=>862]+$hotelMediaBody]);
+channelPostCheck('hotel media preserves strict TLS, no redirects and original deadlines',
+    array_map(static fn($key)=>$hotelWire['options'][$key], [
+        HotelMediaApiFixture\CURLOPT_SSL_VERIFYPEER,HotelMediaApiFixture\CURLOPT_SSL_VERIFYHOST,
+        HotelMediaApiFixture\CURLOPT_FOLLOWLOCATION,HotelMediaApiFixture\CURLOPT_CONNECTTIMEOUT,
+        HotelMediaApiFixture\CURLOPT_TIMEOUT,HotelMediaApiFixture\CURLOPT_CUSTOMREQUEST]),
+    [true,2,false,2,6,'POST']);
+
+$hotelMediaDeny = static function(string $case, array $body, string $channel='-1001845835645', string $mid='862'): void {
+    $before=count($GLOBALS['hotel_media_http']);
+    channelPostCheck('hotel media rejects '.$case.' before HTTP',
+        [HotelMediaApiFixture\ChannelPostApiTransport::hotelMediaPayload($channel,$mid,$body),
+            HotelMediaApiFixture\ChannelPostApiTransport::hotelMediaRequest($channel,$mid,$body),
+            count($GLOBALS['hotel_media_http'])],
+        [null,['http'=>0,'data'=>null,'transport_error'=>true],$before]);
+};
+foreach (['1678','1207','455','0862',"862\n",'-862'] as $mid) $hotelMediaDeny('target '.$mid,$hotelMediaBody,'-1001845835645',$mid);
+$hotelMediaDeny('source channel',$hotelMediaBody,'-1001234567890');
+$hotelMediaDeny('MAX channel',$hotelMediaBody,'-68765999669267');
+foreach (['video','document','animation'] as $type) {
+    $bad=$hotelMediaBody;$bad['media']['type']=$type;$hotelMediaDeny('media type '.$type,$bad);
+}
+foreach (['','https://example.test/photo.jpg','http://example.test/photo.jpg','attach://photo',
+    'file:///tmp/photo.jpg','/tmp/photo.jpg','file id',"file\0id",str_repeat('A',1025)] as $i=>$file) {
+    $bad=$hotelMediaBody;$bad['media']['media']=$file;$hotelMediaDeny('non-reusable file '.$i,$bad);
+}
+foreach ([''," \n",'caption'."\0",'caption'."\t",'caption'."\r",'caption'."\u{0085}",
+    'caption'."\xC3\x28",str_repeat('A',1025),str_repeat('😀',513)] as $i=>$caption) {
+    $bad=$hotelMediaBody;$bad['media']['caption']=$caption;$hotelMediaDeny('invalid caption '.$i,$bad);
+}
+foreach ([str_repeat('Я',1024),str_repeat('😀',512)] as $caption) {
+    $boundary=$hotelMediaBody;$boundary['media']['caption']=$caption;
+    channelPostCheck('hotel caption accepts exactly 1024 UTF16 units',
+        HotelMediaApiFixture\ChannelPostApiTransport::hotelMediaPayload('-1001845835645','862',$boundary),
+        ['chat_id'=>'-1001845835645','message_id'=>862]+$boundary);
+}
+foreach ([null,'[]',[['type'=>'bold','offset'=>0,'length'=>1]]] as $i=>$entities) {
+    $bad=$hotelMediaBody;$bad['media']['caption_entities']=$entities;$hotelMediaDeny('caption entities '.$i,$bad);
+}
+foreach ([
+    'https://t.me/ANYTOURBOT_bot?start=p_'.str_repeat('A',24),
+    'https://t.me.evil.test/anyru_bot?start=p_'.str_repeat('A',24),
+    'http://t.me/anyru_bot?start=p_'.str_repeat('A',24),
+    'https://t.me/anyru_bot?start=p_'.str_repeat('A',23),
+    'https://t.me/anyru_bot?start=p_'.str_repeat('A',25),
+    'https://t.me/anyru_bot?start=p_'.str_repeat('A',24).'&extra=1',
+] as $i=>$url) {
+    $bad=$hotelMediaBody;$bad['reply_markup']['inline_keyboard'][0][0]['url']=$url;$hotelMediaDeny('noncanonical bot URL '.$i,$bad);
+}
+foreach (['',' ',str_repeat('A',129),"button\ntext","button\u{0085}","\xC3\x28"] as $i=>$text) {
+    $bad=$hotelMediaBody;$bad['reply_markup']['inline_keyboard'][0][0]['text']=$text;$hotelMediaDeny('invalid button text '.$i,$bad);
+}
+foreach (['body','media','markup','button','row','keyboard','album','media_shape','markup_shape','button_shape'] as $case) {
+    $bad=$hotelMediaBody;
+    if ($case==='body') $bad['chat_id']='-1001845835645';
+    elseif ($case==='media') $bad['media']['parse_mode']='HTML';
+    elseif ($case==='markup') $bad['reply_markup']['resize_keyboard']=true;
+    elseif ($case==='button') $bad['reply_markup']['inline_keyboard'][0][0]['callback_data']='other';
+    elseif ($case==='row') $bad['reply_markup']['inline_keyboard'][0][]=$bad['reply_markup']['inline_keyboard'][0][0];
+    elseif ($case==='keyboard') $bad['reply_markup']['inline_keyboard'][]=$bad['reply_markup']['inline_keyboard'][0];
+    elseif ($case==='album') $bad['media']=[$bad['media'],$bad['media']];
+    elseif ($case==='media_shape') $bad['media']='photo';
+    elseif ($case==='markup_shape') $bad['reply_markup']='inline_keyboard';
+    else $bad['reply_markup']['inline_keyboard'][0][0]='button';
+    $hotelMediaDeny('extra or malformed '.$case,$bad);
+}
+
+$hotelDenied=['http'=>0,'data'=>null,'transport_error'=>true];
+$hotelFullBody=['chat_id'=>'-1001845835645','message_id'=>862]+$hotelMediaBody;
+$publisherFixtureToken='654321:'.str_repeat('B',24);
+$before=count($GLOBALS['hotel_media_http']);
+channelPostCheck('generic button transport does not acquire a media route',
+    HotelMediaApiFixture\ChannelPostApiTransport::buttonRequest('telegram','POST','editMessageMedia',[],$hotelFullBody),$hotelDenied);
+channelPostCheck('caption transport still excludes replacement media',
+    HotelMediaApiFixture\ChannelPostApiTransport::captionRequest('telegram','-1001845835645','862',$hotelMediaBody),$hotelDenied);
+channelPostCheck('saved publisher cannot use the media route',
+    HotelMediaApiFixture\ChannelPostApiTransport::publisherButtonRequest($publisherFixtureToken,'POST','editMessageMedia',[],$hotelFullBody),$hotelDenied);
+$publisherKeyboard=['chat_id'=>'-1001845835645','message_id'=>862,'reply_markup'=>$hotelMediaBody['reply_markup']];
+channelPostCheck('saved publisher keyboard remains limited to Aloft 1678',
+    HotelMediaApiFixture\ChannelPostApiTransport::publisherButtonRequest($publisherFixtureToken,'POST','editMessageReplyMarkup',[],$publisherKeyboard),$hotelDenied);
+channelPostCheck('existing transport boundaries reject before all HTTP',count($GLOBALS['hotel_media_http']),$before);
+$captionOnly=['caption'=>$hotelMediaBody['media']['caption'],'caption_entities'=>[],'reply_markup'=>$hotelMediaBody['reply_markup']];
+HotelMediaApiFixture\ChannelPostApiTransport::captionRequest('telegram','-1001845835645','862',$captionOnly);
+channelPostCheck('existing caption route keeps its exact method and body',
+    [count($GLOBALS['hotel_media_http']),$GLOBALS['hotel_media_http'][$before]['url'],
+        json_decode($GLOBALS['hotel_media_http'][$before]['options'][HotelMediaApiFixture\CURLOPT_POSTFIELDS],true)],
+    [$before+1,'https://api.telegram.org/bot'.HotelMediaApiFixture\TELEGRAM_BOT_TOKEN.'/editMessageCaption',
+        ['chat_id'=>'-1001845835645','message_id'=>862]+$captionOnly]);
+$publisherKeyboard['message_id']=1678;
+HotelMediaApiFixture\ChannelPostApiTransport::publisherButtonRequest($publisherFixtureToken,'POST','editMessageReplyMarkup',[],$publisherKeyboard);
+channelPostCheck('existing publisher route still edits only the accepted keyboard with its saved credential',
+    [count($GLOBALS['hotel_media_http']),$GLOBALS['hotel_media_http'][$before+1]['url'],
+        json_decode($GLOBALS['hotel_media_http'][$before+1]['options'][HotelMediaApiFixture\CURLOPT_POSTFIELDS],true)],
+    [$before+2,'https://api.telegram.org/bot'.$publisherFixtureToken.'/editMessageReplyMarkup',$publisherKeyboard]);
+
+// Exercise the real editor's durable once-only flow; only its internal effects
+// are fixtures. Requiring the CLI file does not bootstrap or invoke its runner.
+require_once __DIR__.'/../tools/anytour_existing_post_batch.php';
+$transferFixtureRoot = sys_get_temp_dir().'/channel-hotel-control-'.bin2hex(random_bytes(10));
+if (!mkdir($transferFixtureRoot,0700)) throw new RuntimeException('fixture_operations_creation_failed');
+$transferFixtureRoot = realpath($transferFixtureRoot);
+$transferFixtureDirectories = [];
+$transferReceiptRead = static function(string $path): array {
+    $lines=file($path,FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES);
+    if (!is_array($lines)) throw new RuntimeException('fixture_receipt_missing');
+    return array_map(static fn($line)=>json_decode($line,true,64,JSON_THROW_ON_ERROR),$lines);
+};
+$transferScenario = static function(string $case) use ($transferFixtureRoot,&$transferFixtureDirectories,$transferReceiptRead,$hotelMediaBody): array {
+    $operations=$transferFixtureRoot.'/'.$case;
+    if (!mkdir($operations,0700)) throw new RuntimeException('fixture_case_creation_failed');
+    $transferFixtureDirectories[]=$operations;
+    $row=['hotel_id'=>17595,'target_message_id'=>'862','source_message_id'=>'455'];
+    $digest=str_repeat('d',64);
+    $receipt=$operations.'/anytour-issue1566-historical-tg-media-862-v1/receipt.jsonl';
+    $reservation=['publication_id'=>901,'version_id'=>902,'button_url'=>$hotelMediaBody['reply_markup']['inline_keyboard'][0][0]['url']];
+    $response=$case==='request_timeout' ? ['http'=>0,'data'=>null,'transport_error'=>true]
+        : ['http'=>200,'data'=>['ok'=>true,'result'=>['message_id'=>862,'caption'=>$hotelMediaBody['media']['caption']]],'transport_error'=>false];
+    $saved=['state'=>'sent','message_id'=>'862','publication_id'=>901,'version_id'=>902,
+        'content_hash'=>str_repeat('c',64),'snapshot'=>['metadata'=>['hotel_catalog_id'=>17595]],
+        'start_payload'=>'p_'.str_repeat('A',24),'channel'=>['bot_url'=>'https://t.me/anyru_bot']];
+    $evidence=['source_caption_sha256'=>str_repeat('e',64),'selected_record_id'=>str_repeat('f',64)];
+    $state=(object)['calls'=>[],'requests'=>0,'completions'=>0,'runtime'=>0,'started_before_request'=>false,
+        'completion_receipts'=>[],'request_bodies'=>[],'reservation_arguments'=>[]];
+    $effects=[
+        'reserve'=>static function() use ($state,$reservation): array {
+            $state->calls[]='reserve';return $reservation;
+        },
+        'prepare'=>static function(array $received) use ($case,$state,$hotelMediaBody,$evidence): array {
+            $state->calls[]='prepare';$state->reservation_arguments[]=$received;
+            $body=$hotelMediaBody;
+            if ($case==='invalid_payload') $body['media']['type']='video';
+            if ($case==='invalid_prepared') return ['body'=>$body];
+            return ['body'=>$body,'evidence'=>$evidence];
+        },
+        'assert'=>static function(array $received) use ($case,$state): void {
+            $state->calls[]='assert';$state->reservation_arguments[]=$received;
+            if ($case==='prewrite_cas') throw new RuntimeException('hotel_transfer_source_changed');
+        },
+        'request'=>static function(array $body) use ($case,$state,$receipt,$transferReceiptRead,$response) {
+            $state->calls[]='request';++$state->requests;$state->request_bodies[]=$body;
+            $events=$transferReceiptRead($receipt);$last=end($events);
+            $state->started_before_request=($last['state']??null)==='provider_edit_started'
+                && ($last['provider_write_attempts']??null)===1;
+            if ($case==='request_throw') throw new RuntimeException('fixture_request_failed');
+            return $case==='invalid_response' ? null : $response;
+        },
+        'complete'=>static function(array $received,array $native) use ($case,$state,$receipt,$transferReceiptRead,$saved): array {
+            $state->calls[]='complete';++$state->completions;$state->reservation_arguments[]=$received;
+            $events=$transferReceiptRead($receipt);
+            $responses=array_values(array_filter($events,static fn($event)=>($event['state']??null)==='provider_response_saved'));
+            $last=end($events);
+            $state->completion_receipts[]=['response'=>$native,'saved_response'=>$responses[0]['response']??null,
+                'saved_count'=>count($responses),'last_state'=>$last['state']??null];
+            if (($case==='complete_busy' && $state->completions<3) || $case==='complete_busy_exhausted') {
+                throw new RuntimeException('hotel_transfer_native_claim_busy');
+            }
+            if ($case==='request_timeout') throw new RuntimeException('hotel_transfer_provider_outcome_unknown');
+            if ($case==='complete_drift') throw new RuntimeException('hotel_transfer_native_identity_changed');
+            if ($case==='complete_error') throw new LogicException('private fixture failure details');
+            if ($case==='complete_unknown') $saved['state']='unknown';
+            if ($case==='complete_wrong_hotel') $saved['snapshot']['metadata']['hotel_catalog_id']=358;
+            return $saved;
+        },
+        'runtime'=>static function() use ($case,$state): void {
+            $state->calls[]='runtime';++$state->runtime;
+            if (($case==='prewrite_runtime' && $state->runtime===1) || ($case==='runtime_after_response' && $state->runtime===2)) {
+                throw new RuntimeException('transfer_runtime_changed');
+            }
+        },
+        'context'=>['native_run_id'=>'fixture-run','application_sha'=>str_repeat('a',40)],
+    ];
+    // A context is optional and must not be necessary for a successful control flow.
+    if ($case==='complete_busy') unset($effects['context']);
+    $result=AnyTour\ExistingPostBatch\transferExecuteRow($row,$digest,$effects,$operations);
+    $events=$transferReceiptRead($receipt);
+    $beforeReplay=clone $state;$beforeHash=hash_file('sha256',$receipt);
+    $replay=AnyTour\ExistingPostBatch\transferExecuteRow($row,$digest,$effects,$operations);
+    return compact('result','replay','events','state','beforeReplay','beforeHash','receipt','response','reservation','evidence','effects');
+};
+$transferExpected=[
+    'success'=>[true,'native_and_registry_verified',null,1,1],
+    'prewrite_cas'=>[false,'held_before_provider','hotel_transfer_source_changed',0,0],
+    'invalid_payload'=>[false,'held_before_provider','transfer_media_payload_invalid',0,0],
+    'invalid_prepared'=>[false,'held_before_provider','transfer_prepared_evidence_invalid',0,0],
+    'prewrite_runtime'=>[false,'held_before_provider','transfer_runtime_changed',0,0],
+    'request_throw'=>[false,'provider_outcome_unknown','fixture_request_failed',1,0],
+    'invalid_response'=>[false,'provider_outcome_unknown','transfer_provider_response_invalid',1,0],
+    'request_timeout'=>[false,'response_saved_completion_requires_readback','hotel_transfer_provider_outcome_unknown',1,1],
+    'complete_busy'=>[true,'native_and_registry_verified',null,1,3],
+    'complete_busy_exhausted'=>[false,'response_saved_completion_requires_readback','hotel_transfer_native_claim_busy',1,3],
+    'complete_unknown'=>[false,'response_saved_completion_requires_readback','transfer_completion_unconfirmed',1,1],
+    'complete_wrong_hotel'=>[false,'response_saved_completion_requires_readback','transfer_completion_unconfirmed',1,1],
+    'complete_drift'=>[false,'response_saved_completion_requires_readback','hotel_transfer_native_identity_changed',1,1],
+    'complete_error'=>[false,'response_saved_completion_requires_readback','transfer_verification_failed',1,1],
+    'runtime_after_response'=>[false,'response_saved_completion_requires_readback','transfer_runtime_changed',1,0],
+];
+try {
+    foreach ($transferExpected as $case=>$expected) {
+        $flow=$transferScenario($case);$state=$flow['state'];$result=$flow['result'];
+        channelPostCheck('real hotel editor '.$case.' has exact outcome and bounded effects',
+            [$result['ok'],$result['state'],$result['reason']??null,$state->requests,$state->completions],$expected);
+        channelPostCheck('real hotel editor '.$case.' refuses replay without effects or journal changes',
+            [$flow['replay']['ok'],$flow['replay']['state'],$flow['replay']['reason'],$flow['replay']['provider_write_attempts'],
+                (array)$state,hash_file('sha256',$flow['receipt'])],
+            [false,'held_before_provider','transfer_previous_operation_do_not_replay',0,(array)$flow['beforeReplay'],$flow['beforeHash']]);
+        $events=$flow['events'];$states=array_column($events,'state');
+        channelPostCheck('real hotel editor '.$case.' retains its durable terminal evidence',
+            [$events[0]['state'],end($states),$result['provider_write_attempts']],
+            ['intent_saved',$expected[1],$expected[3]]);
+        if ($state->requests>0) channelPostCheck('real hotel editor '.$case.' marks the single attempt before request',
+            [$state->started_before_request,$state->request_bodies], [true,[$hotelMediaBody]]);
+        if ($state->completions>0) {
+            channelPostCheck('real hotel editor '.$case.' fsyncs native response before every completion',
+                $state->completion_receipts,array_fill(0,$state->completions,[
+                    'response'=>$flow['response'],'saved_response'=>$flow['response'],'saved_count'=>1,
+                    'last_state'=>'provider_response_saved']));
+        }
+        if (str_starts_with($expected[1],'response_saved_')) {
+            $responses=array_values(array_filter($events,static fn($event)=>($event['state']??null)==='provider_response_saved'));
+            channelPostCheck('real hotel editor '.$case.' keeps the original response for readback',
+                [count($responses),$responses[0]['response']??null], [1,$flow['response']]);
+        }
+        if ($case==='success') {
+            channelPostCheck('real hotel editor executes the required order without a second writer',
+                $state->calls,['reserve','prepare','runtime','assert','request','runtime','complete','runtime']);
+            channelPostCheck('real hotel editor persists exact request, evidence and execution context',
+                [$states,$events[2]['request'],$events[2]['evidence'],$events[0]['execution'],
+                    $events[2]['request_sha256'],$state->reservation_arguments,$result['button_url']],
+                [['intent_saved','identity_reserved','request_prepared','provider_edit_started','provider_response_saved','native_and_registry_verified'],
+                    $hotelFullBody,$flow['evidence'],$flow['effects']['context'],
+                    hash('sha256',json_encode($hotelFullBody,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)),
+                    array_fill(0,3,$flow['reservation']),$hotelMediaBody['reply_markup']['inline_keyboard'][0][0]['url']]);
+        }
+        if ($case==='complete_busy') channelPostCheck('real hotel editor retries only busy completion with optional context absent',
+            [$state->calls,$events[0]['execution']], [
+                ['reserve','prepare','runtime','assert','request','runtime','complete','complete','complete','runtime'],[]]);
+    }
+} finally {
+    // Remove only the exact files/directories this fixture created; never recurse
+    // or follow links through a runtime-supplied path.
+    foreach (array_reverse($transferFixtureDirectories) as $operations) {
+        $operation=$operations.'/anytour-issue1566-historical-tg-media-862-v1';
+        $receipt=$operation.'/receipt.jsonl';
+        if (is_file($receipt) && !is_link($receipt)) unlink($receipt);
+        if (is_dir($operation) && !is_link($operation)) rmdir($operation);
+        if (is_dir($operations) && !is_link($operations)) rmdir($operations);
+    }
+    if (is_dir($transferFixtureRoot) && !is_link($transferFixtureRoot)) rmdir($transferFixtureRoot);
+}
+channelPostCheck('real hotel editor fixtures remove only their isolated operation directories',!file_exists($transferFixtureRoot));
+
 echo 'Channel post automation: ' . $passed . ' passed, ' . $failed . ' failed' . PHP_EOL;
 exit($failed === 0 ? 0 : 1);
 
