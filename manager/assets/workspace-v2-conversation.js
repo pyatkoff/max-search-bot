@@ -47,11 +47,26 @@ function restoreCalculation(value){const link=calculationLink(value);return link
 function validAttempt(value){return value&&validAiDraftId(value.id)&&typeof value.text==='string'&&value.text.trim().length>0&&value.text.length<=maxStoredDraftLength&&Number.isSafeInteger(value.version)&&value.version>0}
 function pendingAttempt(id=S.current){return drafts.get(Number(id))?.attempt||null}
 function newAttemptId(){const bytes=new Uint8Array(16);window.crypto.getRandomValues(bytes);return [...bytes].map(b=>b.toString(16).padStart(2,'0')).join('')}
-function showPendingAttempt(state='unknown'){
-  setReplyStatus(state==='not_found'?'Подтверждение пока не найдено. Это не означает, что сообщение не доставлено.':'Отправка не подтверждена. Проверьте результат этой попытки; повторная отправка заблокирована.','error');
-  if(state==='not_found'){
+function showPendingAttempt(state='unknown',{checked=false,error=''}={}){
+  const errors={timeout:'Сервер не ответил за 20 секунд.',network:'Нет связи с сервером.',forbidden:'Нет доступа к проверке этой отправки. Обновите переписку.',unavailable:'Сервер временно недоступен.',invalid:'Сервер вернул неполный ответ.'};
+  const message=error?'Не удалось проверить отправку. '+(errors[error]||errors.invalid)+' Черновик сохранён; повторная отправка заблокирована.':state==='not_found'?'Подтверждение пока не найдено. Это не означает, что сообщение не доставлено.':checked?(state==='processing'?'Проверили: отправка отмечена как незавершённая. Окончательного результата пока нет.':'Проверили: результат исходной отправки пока неизвестен.')+' Черновик сохранён; повторная отправка заблокирована.':'Отправка не подтверждена. Проверьте результат этой попытки; повторная отправка заблокирована.';
+  setReplyStatus(message,'error');
+  if(state==='not_found'&&!error){
     const button=document.createElement('button');button.type='button';button.textContent='Отменить непринятую попытку';button.onclick=()=>sendReply('cancel_send_attempt');button.addEventListener('mousedown',e=>{if(e.button===0)e.preventDefault()});$('replyStatus')?.appendChild(button);
   }
+}
+async function readSendReceipt(data,isCurrent){
+  const controller=typeof AbortController==='function'?new AbortController():null;let active=true,timer=null;
+  try{
+    // This deadline bounds the read only. The original send remains fenced even
+    // if fetch ignores abort; a late response cannot change current auth or UI.
+    return await Promise.race([api('send_receipt',data,{isCurrent:()=>active&&isCurrent(),signal:controller?.signal}),new Promise((resolve,reject)=>{timer=setTimeout(()=>{active=false;reject(new Error('send_receipt_timeout'));controller?.abort()},20000)})]);
+  }finally{active=false;if(timer!==null)clearTimeout(timer)}
+}
+function sendReceiptError(result){
+  if(result?.http_status===403||['forbidden','send_attempt_mismatch'].includes(result?.error))return 'forbidden';
+  if(Number(result?.http_status)>=500||result?.error==='send_attempt_unavailable')return 'unavailable';
+  return 'invalid';
 }
 
 function removeReplySession(){try{sessionStorage.removeItem(replySessionKey)}catch(e){}}
@@ -109,6 +124,8 @@ function applyInteractionState(){applyComposerState();applyActionState();renderL
 // A failed request is not proof that the recipient did not receive the message.
 // Keep explicit server reasons, but never turn a transport uncertainty into a retry instruction.
 function sendFailureNotice(failure,fallback=''){
+  if(failure?.category==='provider_rejected')return 'Мессенджер отклонил сообщение. Оно не отправлено. Черновик сохранён.';
+  if(failure?.category==='connection_unavailable')return 'Сообщение не отправлено: подключение бота недоступно. Черновик сохранён.';
   if(failure?.category==='not_dispatched'&&failure.http_code===0&&['file_unavailable','context_changed'].includes(failure.reason))return String(failure.notice||fallback||'Отправка файла не началась. Проверьте диалог перед новой отправкой.');
   if(['suspended','blocked','unavailable','unsupported'].includes(failure?.category)){
     const notice=String(failure.notice||fallback||failure.error_message||'');
@@ -679,7 +696,7 @@ async function sendReply(reconcileAction='send_receipt'){
   const sameTarget=()=>sameSession()&&Number(S.current)===target;
   const currentAttempt=()=>sameTarget()&&openSeq===generation;
   if(!target||(!text&&!hasFile&&!attempt))return;
-  const reconcile=!!attempt;let calculation=null;
+  const reconcile=!!attempt,receiptRead=reconcile&&reconcileAction!=='cancel_send_attempt';let calculation=null;
   if(!attempt&&window.WorkspaceV2PromiseCalculation){
     calculation=await window.WorkspaceV2PromiseCalculation.beforeSend();
     if(calculation?.allow!==true||!currentAttempt()||$('replyText').value!==draftText||!!window.WorkspaceV2Media?.hasFile()!==!!hasFile||calculation.matches&&calculation.matches()!==true)return;
@@ -699,10 +716,16 @@ async function sendReply(reconcileAction='send_receipt'){
     let j;
     try{
       if(hasFile)j=await (calculation?.media?window.WorkspaceV2Media.send(text,calculation.media):window.WorkspaceV2Media.send(text));
-      else if(reconcile)j=await api(reconcileAction==='cancel_send_attempt'?reconcileAction:'send_receipt',{conversation_id:target,operation_id:attempt.id,...(calculationAttempt(attempt)?{expected_manager_id:manager}:{})},{isCurrent:currentAttempt});
+      else if(receiptRead)j=await readSendReceipt({conversation_id:target,operation_id:attempt.id,...(calculationAttempt(attempt)?{expected_manager_id:manager}:{})},currentAttempt);
+      else if(reconcile)j=await api('cancel_send_attempt',{conversation_id:target,operation_id:attempt.id,...(calculationAttempt(attempt)?{expected_manager_id:manager}:{})},{isCurrent:currentAttempt});
       else j=await api('send',{conversation_id:target,text,operation_id:attempt.id,...(validAiDraftId(aiDraftId)?{ai_draft_id:aiDraftId}:{}),...(calculationLink(attempt)?{...calculationLink(attempt),expected_manager_id:manager}:{})},{isCurrent:currentAttempt});
     }catch(e){
-      if(currentAttempt()){if(attempt)showPendingAttempt();else setReplyStatus(sendFailureNotice(null),'error');}
+      if(receiptRead){if(currentAttempt())showPendingAttempt('unknown',{error:e?.message==='send_receipt_timeout'?'timeout':'network'});}
+      else if(currentAttempt()){if(attempt)showPendingAttempt();else setReplyStatus(sendFailureNotice(null),'error');}
+      return;
+    }
+    if(receiptRead&&(j?.ok!==true||j?.attempt?.kind==='media'||!['confirmed','rejected','cancelled','processing','unknown','not_found'].includes(j?.attempt?.state))){
+      if(currentAttempt())showPendingAttempt('unknown',{error:sendReceiptError(j)});
       return;
     }
     if(attempt){
@@ -727,7 +750,7 @@ async function sendReply(reconcileAction='send_receipt'){
         if(state==='cancelled'){if(currentAttempt())setReplyStatus('Непринятая попытка отменена. Текст и файлы сохранены; отправьте их явно.');return}
         if(state==='confirmed')j={...j,ok:true};
         else j={...j,ok:false};
-      }else{if(currentAttempt()){if(j?.failure&&S.detail?.conversation){S.detail.delivery_failure=j.failure;renderDeliveryFailure(j.failure,j.error_message);renderActions(S.detail.conversation)}showPendingAttempt(state)}return}
+      }else{if(currentAttempt()){if(j?.failure&&S.detail?.conversation){S.detail.delivery_failure=j.failure;renderDeliveryFailure(j.failure,j.error_message);renderActions(S.detail.conversation)}showPendingAttempt(state,{checked:receiptRead})}return}
     }
     // A multi-file attempt may have delivered an earlier file before a later
     // rejection/unknown result. Consume only a confirmed caption and refresh
