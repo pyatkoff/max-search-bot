@@ -107,9 +107,40 @@ jobs:
           guard = "if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) {"
           call = '        $output = runArchive();'
           assert original.count(guard) == original.count(call) == 1
-          check = "if (trim((string)shell_exec('git rev-parse HEAD')) !== '" + app + "' || trim((string)shell_exec('git status --porcelain --untracked-files=no')) !== '') { throw new RuntimeException('RELEASE_CHANGED'); }"
+          check = "if (trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD')) !== '" + app + "' || trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git status --porcelain --untracked-files=no')) !== '') { throw new RuntimeException('RELEASE_CHANGED'); }"
           provenance = "$output += ['native_run_id'=>'" + run + "', 'application_sha'=>'" + app + "', 'repository_sha'=>'" + repo + "'];"
-          program = original.replace(guard, "if (PHP_SAPI === 'cli') {").replace(call, "        " + check + "\n" + call + "\n        " + check + "\n        " + provenance)
+          isolation = r"""function readArchiveWithEditorLease(): array
+          {
+              $path = '/var/www/anytoour/data/channel-post-operations/monitor-price-after-collection-v1.jsonl';
+              if (is_link($path) || !is_file($path)) throw new RuntimeException('EDITOR_LEASE_UNKNOWN');
+              $lease = fopen($path, 'rb');
+              if (!is_resource($lease)) throw new RuntimeException('EDITOR_LEASE_UNKNOWN');
+              try {
+                  if (!flock($lease, LOCK_SH | LOCK_NB)) throw new RuntimeException('EDITOR_BUSY');
+                  require_once ARCHIVE_APP . '/config.php';
+                  if (ProjectConfig::projectId() !== 'anytour') throw new RuntimeException('WRONG_PROJECT');
+                  $pdo = ConversationDb::connection();
+                  $stamp = static function () use ($pdo): string {
+                      $pdo->exec('SET TRANSACTION READ ONLY');
+                      $pdo->beginTransaction();
+                      try {
+                          $q = $pdo->query('SELECT id,external_message_id,current_version_id,observed_revision_ms FROM post_publications WHERE post_channel_id=4 ORDER BY id');
+                          return hash('sha256', json_encode($q->fetchAll(PDO::FETCH_NUM), JSON_THROW_ON_ERROR));
+                      } finally {
+                          $pdo->rollBack();
+                      }
+                  };
+                  $before = $stamp();
+                  $output = runArchive();
+                  if (!hash_equals($before, $stamp())) throw new RuntimeException('REGISTRY_CHANGED');
+                  $output['price_content_shared_lease'] = true;
+                  $output['registry_versions_before_after_sha256'] = $before;
+                  return $output;
+              } finally {
+                  fclose($lease);
+              }
+          }"""
+          program = original.replace(call, "        " + check + "\n        $output = readArchiveWithEditorLease();\n        " + check + "\n        " + provenance).replace(guard, isolation + "\n\nif (PHP_SAPI === 'cli') {")
           pathlib.Path('pub/read-only.php').write_text(program)
           PY
           php -l pub/read-only.php
@@ -174,7 +205,8 @@ jobs:
           import collections, hashlib, json, os, pathlib, re
           original = (pathlib.Path(os.environ['RUNNER_TEMP']) / 'max-archive-original.json').read_bytes()
           d = json.loads(original)
-          assert d['ok'] and d['history_complete'] and d['messages'] > 0
+          assert d['ok'] and d['history_complete'] and d['messages'] > 0 and d['price_content_shared_lease'] is True
+          assert re.fullmatch(r'[a-f0-9]{64}', d['registry_versions_before_after_sha256'])
           assert d['native_run_id'] == os.environ['GITHUB_RUN_ID']
           assert d['application_sha'] == os.environ['APPLICATION_SHA'] and d['repository_sha'] == os.environ['REPOSITORY_SHA']
           rows = d['rows']
