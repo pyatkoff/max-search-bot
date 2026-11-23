@@ -5,7 +5,7 @@
   "files": {
     ".github/workflows/max2-common-value-state-v2.yml": "479cadcc8b67069a93147ac2a7380e8610d5e0370921a537a790b3619c73995c",
     "cron_metrika.php": "dc215d7603dee668cae15fca7d2aa40dc3f2e99981415cd86413d51846ee8aed",
-    "docs/MAX2_COMMON_VALUE_V2.md": "e996b37c661da10ba2617b3df21291510142cb62376147d6994eca26f4f18540",
+    "docs/MAX2_COMMON_VALUE_V2.md": "85c5def7f0ae2e3d3de3c3d8b4c816235011d3677f44528ea904d16521adf9c4",
     "migrations/112_max2_common_value_v2.sql": "f090952953bed9f365ed26cc799748c3f93afcad93a4bd3b3512ab90837be70b",
     "migrations/113_max2_common_runtime_v2.sql": "092c123615aae8261c19b8aa7316b0631926698906491c03869f28373646ada9",
     "resources/max2-common-v2/canonical-map-v1055.json": "c5ee090912b5e20402a46b79294137ef3045a02b1dd37abf4a1f9cb5fae50172",
@@ -21,7 +21,7 @@
     "services/Max2CommonValueMetrikaClientV2.php": "3bcaabafa4355643cd3e961540aee63738b661a99f0116760672606aecb6cb4a",
     "services/Max2CommonValuePriceReadV2.php": "e8ade0d700cacc679060b9a485e7109840bd4c895e8abfc11790a3ec7352e1ab",
     "services/Max2CommonValueRepositoryV2.php": "706ab4b5167b923fb69d4a039c76541ddc7c3d2bfd4afa7d821eae1d05696e76",
-    "services/Max2CommonValueRuntimeV2.php": "07f8b3f28d35821b3ff17f47473ee074d0e62ea9a622b33f082544d3e65d3c01",
+    "services/Max2CommonValueRuntimeV2.php": "def6cf2bb8d21c9460f19e5183337feb60599373237b85c4db37db5639a01e57",
     "services/Max2CommonValueStateV2.php": "5a3f966d2a460f58108e3e6937082d19164b158120f4644ee2b2da119a1d324d",
     "services/Max2CommonValueWorkerV2.php": "890d0cee6e8309576e25e7b6fa969a730374b6072c69b58db6aba597638c4f18",
     "services/Max2ModeledValueReaderV2.php": "4ac74d360889db0776575219e8779f09e59129fd04bf93a1d4c1411351b233d3",
