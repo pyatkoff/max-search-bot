@@ -402,6 +402,43 @@ function forecastNativeAuthRegression():void
         });
         $phase='complete_backlog';
         require_once dirname(__DIR__).'/modeled_conversion_backlog_fixture.php';modeledBacklogAssertions($pdo,$check);
+        $phase='common_v2_saved_delivery';
+        // The backlog fixture has historical clocks. Make one of its existing V1 rows
+        // part of the real current day so the preservation check cannot pass on two zeros.
+        $currentDay=(new DateTimeImmutable('@'.time()))->setTimezone(new DateTimeZone('Europe/Moscow'))->setTime(0,0)->getTimestamp();
+        $dayRow=$pdo->query("SELECT id FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635'"
+            ." AND transport_target='anytour_modeled_value_v1' AND value_contract='semantic_stage_value_25000_v1' AND value_rub>0 ORDER BY id LIMIT 1")->fetchColumn();
+        if($dayRow===false)throw new RuntimeException('fixture_v1_day_row_missing');
+        $pdo->prepare('UPDATE max_channel_conversion_outbox SET event_unix=?,claimed_at_unix=CASE WHEN claimed_at_unix IS NULL THEN NULL ELSE ? END,'
+            .'value_api_accepted_at_unix=CASE WHEN value_api_accepted_at_unix IS NULL THEN NULL ELSE ? END,'
+            .'value_processed_at_unix=CASE WHEN value_processed_at_unix IS NULL THEN NULL ELSE ? END WHERE id=?')
+            ->execute([$currentDay,$currentDay,$currentDay,$currentDay,$dayRow]);
+        [$withoutV2]=forecastNativeAuthDispatch($pdo,$forecast);
+        $previousDay=$withoutV2['result']['structuredContent']['daily_reconciliation']??[];
+        $check('V2 composition starts from a nonzero complete current V1 day',($previousDay['available']??false)
+            &&($previousDay['calendar']['accruals']['events']??0)>0&&($previousDay['calendar']['accruals']['value_rub']??0)>0);
+        require_once dirname(__DIR__).'/max2_common_value_status_reader_v2_fixture.php';
+        max2CommonValueStatusAssertions($pdo,$check);
+        $v2Before=max2CommonValueStatusSnapshot($pdo);
+        $phase='common_v2_authenticated_default';
+        forecastNativeReadOnly($pdo,static function()use($pdo,$forecast,$check,$previousDay):void{
+            [$rpc,$afterBearer,$afterRead]=forecastNativeAuthDispatch($pdo,$forecast);
+            $data=$rpc['result']['structuredContent']??[];$common=$data['common_v2']??[];
+            $day=$data['daily_reconciliation']??[];
+            $check('real default OAuth read exposes V2 saved processing without invoking its sender',
+                !isset($rpc['error'])&&($common['available']??false)
+                &&($common['ledger']['late_reserved_kopeks']??null)===28364
+                &&($common['ledger']['cumulative_saved_proof']['processed']??null)===['events'=>1,'delta_kopeks'=>7364]
+                &&($common['examples'][0]['state']??null)==='processed'
+                &&($common['provider_requests']??null)===0&&($common['writes']??null)===0);
+            $check('V2 addition preserves complete V1 day and mandatory authorization within the shared response budget',
+                ($previousDay['available']??false)&&($day['available']??false)
+                &&$day['calendar']===$previousDay['calendar']&&$day['current_statuses']===$previousDay['current_statuses']
+                &&$afterRead>=4096&&$afterRead<$afterBearer
+                &&strlen(json_encode($data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=28000
+                &&strlen(json_encode($rpc,JSON_THROW_ON_ERROR))<=65536);
+        });
+        $check('authenticated V2 default read preserves every saved native fixture row',max2CommonValueStatusSnapshot($pdo)===$v2Before);
         echo 'NATIVE FORECAST AUTH PASSED '.$passed.PHP_EOL;
     }catch(Throwable $error){
         // Fixed phases and sanitized codes only: no tokens, SQL, fixture texts or connection details.

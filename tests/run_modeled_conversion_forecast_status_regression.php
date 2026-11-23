@@ -538,6 +538,9 @@ function forecastOperationalCorePressureAssertions(PDO $p,callable $check):void
             'coverage'=>['scope'=>'current_exact_owner_admitted_native_bindings']],
         'value_delivery'=>['available'=>true,'goal_id'=>'678187097','mode'=>'send',
             'by_state'=>['accepted'=>['events'=>1,'value_rub'=>700],'processed'=>['events'=>1,'value_rub'=>1000]]],
+        'common_v2'=>['available'=>true,'goal_id'=>687941321,
+            'coverage'=>['complete_within_bound'=>false],
+            'late_reserved_kopeks'=>7364,'examples'=>[]],
         'backlog'=>['available'=>true,'window'=>['inspected_rows'=>450,'complete_within_bound'=>true],
             'by_state'=>['ready'=>['events'=>7,'value_rub'=>5100]]],
         'today_latency'=>['available'=>true,'live_value'=>['examples'=>[['platform'=>'max','increment_rub'=>700,
@@ -560,7 +563,7 @@ function forecastOperationalCorePressureAssertions(PDO $p,callable $check):void
     $packet['synthetic_budget_pressure']=str_repeat('x',$padding);
     $bounded=$format->invoke($reader,$packet);
     $sameFinancial=true;
-    foreach(['daily_reconciliation','value_delivery','backlog','today_latency','external_monitor']as$key)
+    foreach(['daily_reconciliation','common_v2','value_delivery','backlog','today_latency','external_monitor']as$key)
         $sameFinancial=$sameFinancial&&$bounded[$key]===$packet[$key];
     $check('optional profile context cannot hide exact daily totals full backlog or saved per-event visit proof at the response ceiling',
         $size($packet)>28000&&$size($bounded)===27000&&$sameFinancial
@@ -574,6 +577,17 @@ function forecastOperationalCorePressureAssertions(PDO $p,callable $check):void
     catch(ModeledConversionStatusLimit $e){$limited=$e->reason==='byte_limit';}
     $check('irreducible financial response overflow still fails closed without forgiving copy charges or authorizing reads',
         $limited&&$authorizations===0&&$budget->remainingBytes()===$remaining);
+    $v2Pressure=$packet;$v2Pressure['synthetic_budget_pressure']='';
+    $v2Pressure['common_v2']['examples']=array_fill(0,6,['synthetic'=>str_repeat('v',6000)]);
+    $v2Bounded=$format->invoke($reader,$v2Pressure);
+    $check('V2 example pressure preserves V1 daily amounts and the explicitly incomplete V2 sum',
+        $size($v2Bounded)<=28000
+        &&$v2Bounded['daily_reconciliation']===$packet['daily_reconciliation']
+        &&$v2Bounded['value_delivery']===$packet['value_delivery']
+        &&$v2Bounded['common_v2']['late_reserved_kopeks']===7364
+        &&$v2Bounded['common_v2']['coverage']['complete_within_bound']===false
+        &&$v2Bounded['common_v2']['examples_omitted_due_to_response_budget']===true
+        &&count($v2Bounded['common_v2']['examples'])<6);
 }
 
 function forecastV1Assertions(PDO $p,callable $check):void
@@ -4615,5 +4629,7 @@ if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $check=static function(string $name,bool $ok)use(&$passed):void{if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
     forecastV1Assertions($p,$check);forecastLatencyAssertions($p,$check);forecastTelegramLinkageAssertions($p,$check);
     require_once __DIR__.'/modeled_conversion_backlog_fixture.php';modeledBacklogAssertions($p,$check);
+    require_once __DIR__.'/max2_common_value_status_reader_v2_fixture.php';
+    max2CommonValueStatusAssertions(new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]),$check);
     echo 'V1 FORECAST STATUS PASSED '.$passed.PHP_EOL;
 }

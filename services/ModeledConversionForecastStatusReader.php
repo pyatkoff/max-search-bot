@@ -12,11 +12,12 @@ require_once __DIR__.'/ModeledConversionDealValue.php';
 require_once __DIR__.'/ModeledConversionVisitProof.php';
 require_once __DIR__.'/ModeledConversionDailyReconciliationReader.php';
 require_once __DIR__.'/ModeledConversionIntakeCoverageReader.php';
+require_once __DIR__.'/Max2CommonValueStatusReaderV2.php';
 
-/** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
+/** Private saved V1 forecasts and separate V2 delivery. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1_26';
+    public const VERSION='saved_semantic_prediction_status_v1_27';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
@@ -58,6 +59,10 @@ final class ModeledConversionForecastStatusReader
                 $out['daily_reconciliation']=$this->optionalRead(fn():array=>
                     (new ModeledConversionDailyReconciliationReader($this->pdo,$this->authorize,null,$this->budget))->read([],$now));
                 $out['read_budget']['remaining_ms']['daily_reconciliation']=$this->budget->remainingMilliseconds();
+                // A separate saved V2 ledger view; never invoke its runtime or provider client.
+                $out['common_v2']=$this->optionalRead(fn():array=>
+                    (new Max2CommonValueStatusReaderV2($this->pdo,$this->authorize,$this->budget))->read($now),1000,12288);
+                $out['read_budget']['remaining_ms']['common_v2']=$this->budget->remainingMilliseconds();
                 $out['external_monitor']=$this->optionalRead(fn():array=>
                     ModeledConversionDeliveryHealth::externalStatus($this->budget,$this->authorize,$now));
                 $out['value_delivery']=$this->optionalRead(fn():array=>
@@ -131,6 +136,10 @@ final class ModeledConversionForecastStatusReader
             $out[$key]=['available'=>false,'reason'=>'response_budget'];
             if(is_array($automatic))$out[$key]['automatic']=$automatic;
         }
+        while($bytes($out)>28000&&!empty($out['common_v2']['examples'])){
+            array_pop($out['common_v2']['examples']);
+            $out['common_v2']['examples_omitted_due_to_response_budget']=true;
+        }
         while($bytes($out)>28000&&!empty($out['value_delivery']['recent_receipts']['rows'])){
             array_pop($out['value_delivery']['recent_receipts']['rows']);
             $out['value_delivery']['recent_receipts']['returned_rows']=count($out['value_delivery']['recent_receipts']['rows']);
@@ -140,6 +149,8 @@ final class ModeledConversionForecastStatusReader
         foreach(['historical_review','price_continuity_audit']as$key)
             if($bytes($out)>28000&&isset($out['value_delivery'][$key]))
                 $out['value_delivery'][$key]=['available'=>false,'reason'=>'response_budget'];
+        if($bytes($out)>28000&&isset($out['common_v2']))
+            $out['common_v2']=['available'=>false,'reason'=>'response_budget'];
         if($bytes($out)>28000)throw new ModeledConversionStatusLimit('byte_limit');
         return$out;
     }
