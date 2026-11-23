@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace AnyTour\ExistingPostBatch;
 
+use AnyTourRankedHotelTransfer46;
 use ChannelPostApiTransport;
 use ChannelPostButtonTransport;
 use ChannelPostEntryService;
@@ -17,6 +18,8 @@ use ProjectConfig;
 use PromotedHotelPriceWriter;
 use RuntimeException;
 use Throwable;
+require_once __DIR__ . '/../config/anytour_ranked_transfer_scope_20261123.php';
+
 const POST_OPS = '/var/www/anytoour/data/channel-post-operations';
 
 function requirePost(bool $ok, string $message): void
@@ -299,6 +302,48 @@ const NEXT_TRANSFER_PAIRS = [
     466 => ['source'=>'473','source_publication'=>1047,'target'=>'1101','date'=>1747735272],
 ];
 
+function transferRankedProfile(string $digest): array
+{
+    return AnyTourRankedHotelTransfer46::PLANS[$digest] ?? throw new RuntimeException('transfer_ranked_plan_unknown');
+}
+
+function transferProfilePairs(bool|string $next): array
+{
+    if (is_string($next)) return transferRankedProfile($next)['pairs'];
+    return $next ? NEXT_TRANSFER_PAIRS : TRANSFER_PAIRS;
+}
+
+function transferProfileOperation(bool|string $next): string
+{
+    if (is_string($next)) return transferRankedProfile($next)['operation'];
+    return $next ? NEXT_TRANSFER_OPERATION : TRANSFER_OPERATION;
+}
+
+function transferProfileFile(bool|string $next): string
+{
+    if (is_string($next)) return transferRankedProfile($next)['path'];
+    return $next ? NEXT_TRANSFER_PLAN_FILE : TRANSFER_PLAN_FILE;
+}
+
+function transferRankedOfferScope(array $rows): void
+{
+    require_once dirname(__DIR__) . '/hotel-posts-telegram-main19.php';
+    $feed = anytourTelegramFeedOfferUrls(anytourTelegramFeedRead());
+    requirePost($feed !== [], 'transfer_ranked_feed_unavailable');
+    $routes = anytourTelegramFeedDestinationPosts($feed);
+    $used = array_fill_keys(array_merge(array_values($routes), [
+        'https://t.me/anytour/1780', 'https://t.me/anytour/1760',
+    ]), true);
+    foreach ($rows as $row) {
+        $offer = 'tg_' . $row['hotel_id'];
+        $source = 'https://t.me/any_toour/' . $row['source_message_id'];
+        $target = 'https://t.me/anytour/' . $row['target_message_id'];
+        requirePost(($feed[$offer] ?? null) === $source && ($routes[$offer] ?? null) === $source,
+            'transfer_ranked_source_offer_changed');
+        requirePost(!isset($used[$target]), 'transfer_ranked_target_in_use');
+    }
+}
+
 function transferRegistryRow(array $row): array
 {
     unset($row['price_template'], $row['source_photo_marker_sha256']);
@@ -306,10 +351,10 @@ function transferRegistryRow(array $row): array
 }
 
 /** Pure decoding: no runtime bootstrap, reservation, HTTP, or journal creation. */
-function transferPlanFromBytes(string $raw, string $approvedDigest, bool $next = false): array
+function transferPlanFromBytes(string $raw, string $approvedDigest, bool|string $next = false): array
 {
-    $pairs = $next ? NEXT_TRANSFER_PAIRS : TRANSFER_PAIRS;
-    $operation = $next ? NEXT_TRANSFER_OPERATION : TRANSFER_OPERATION;
+    $pairs = transferProfilePairs($next);
+    $operation = transferProfileOperation($next);
     requirePost(strlen($raw) <= 64000 && preg_match('/\A[a-f0-9]{64}\z/D', $approvedDigest) === 1
         && hash_equals($approvedDigest, hash('sha256', $raw)), 'transfer_approved_plan_changed');
     $plan = json_decode($raw, true, 32, JSON_THROW_ON_ERROR);
@@ -323,7 +368,10 @@ function transferPlanFromBytes(string $raw, string $approvedDigest, bool $next =
         && is_array($plan['rows']) && array_is_list($plan['rows'])
         && array_column($plan['rows'], 'hotel_id') === array_keys($pairs), 'transfer_plan_scope_invalid');
     $proof = $plan['native_preflight'];
-    if ($next) {
+    if (is_string($next)) {
+        requirePost(hash_equals($next, $approvedDigest) && $proof === AnyTourRankedHotelTransfer46::PROOF,
+            'transfer_ranked_native_proof_changed');
+    } elseif ($next) {
         // The read ran while an unrelated release was deploying. Pin both identities.
         requirePost($proof === [
             'run_id' => '45156882185',
@@ -380,19 +428,19 @@ function transferPlanFromBytes(string $raw, string $approvedDigest, bool $next =
     return $plan;
 }
 
-function transferPublicAllowed(string $channel, string $message, bool $next = false): bool
+function transferPublicAllowed(string $channel, string $message, bool|string $next = false): bool
 {
-    $pairs = $next ? NEXT_TRANSFER_PAIRS : TRANSFER_PAIRS;
+    $pairs = transferProfilePairs($next);
     $allowed = $channel === 'anytour' ? array_column($pairs, 'target')
         : ($channel === 'any_toour' ? array_column($pairs, 'source') : []);
     return in_array($message, $allowed, true);
 }
 
 /** Only fixed public posts and, for the original batch, the saved monitor export. */
-function transferReadBytes(string $url, bool $next = false): string
+function transferReadBytes(string $url, bool|string $next = false): string
 {
     $allowed = $next ? [] : [TRANSFER_MONITOR_URL];
-    foreach (($next ? NEXT_TRANSFER_PAIRS : TRANSFER_PAIRS) as $pair) {
+    foreach ((transferProfilePairs($next)) as $pair) {
         $allowed[] = 'https://t.me/anytour/'.$pair['target'].'?embed=1&mode=tme';
         $allowed[] = 'https://t.me/any_toour/'.$pair['source'].'?embed=1&mode=tme';
     }
@@ -415,14 +463,14 @@ function transferReadBytes(string $url, bool $next = false): string
     return $body;
 }
 
-function transferPublic(string $channel, string $message, bool $next = false): array
+function transferPublic(string $channel, string $message, bool|string $next = false): array
 {
     requirePost(transferPublicAllowed($channel, $message, $next), 'transfer_public_scope_invalid');
     return parseTransferPublic(transferReadBytes('https://t.me/'.$channel.'/'.$message.'?embed=1&mode=tme', $next),
         $channel, $message, $next);
 }
 
-function parseTransferPublic(string $body, string $channel, string $message, bool $next = false): array
+function parseTransferPublic(string $body, string $channel, string $message, bool|string $next = false): array
 {
     requirePost(transferPublicAllowed($channel, $message, $next), 'transfer_public_scope_invalid');
     requirePost(strlen($body) <= 1_000_000, 'transfer_public_body_unbounded');
@@ -614,9 +662,10 @@ function transferReason(Throwable $error): string
  * The operation journal is append-only. Injectable internal effects allow the
  * production control flow to be tested without bootstrapping runtime credentials.
  */
-function transferExecuteRow(array $row, string $planDigest, array $effects, string $operations = POST_OPS, bool $next = false): array
+function transferExecuteRow(array $row, string $planDigest, array $effects, string $operations = POST_OPS, bool|string $next = false): array
 {
-    $pairs = $next ? NEXT_TRANSFER_PAIRS : TRANSFER_PAIRS;
+    $pairs = transferProfilePairs($next);
+    if (is_string($next)) requirePost(hash_equals($next, $planDigest), 'transfer_ranked_digest_changed');
     foreach (['reserve','prepare','assert','request','complete','runtime'] as $name) {
         requirePost(isset($effects[$name]) && is_callable($effects[$name]), 'transfer_effects_invalid');
     }
@@ -633,7 +682,7 @@ function transferExecuteRow(array $row, string $planDigest, array $effects, stri
         requirePost(mkdir($directory, 0700), 'transfer_operation_creation_failed');
         $record = fopen($directory.'/receipt.jsonl', 'x+b');
         requirePost(is_resource($record) && flock($record, LOCK_EX | LOCK_NB), 'transfer_journal_unavailable');
-        transferJournal($record, ['state'=>'intent_saved','operation'=>$next ? NEXT_TRANSFER_OPERATION : TRANSFER_OPERATION,
+        transferJournal($record, ['state'=>'intent_saved','operation'=>transferProfileOperation($next),
             'plan_sha256'=>$planDigest,'row'=>$row,'execution'=>$effects['context'] ?? []]);
         $reservation = $effects['reserve']();
         transferJournal($record, ['state'=>'identity_reserved','plan_sha256'=>$planDigest,
@@ -696,9 +745,9 @@ function transferExecuteRow(array $row, string $planDigest, array $effects, stri
 }
 
 /** Only the explicit CLI branch below calls this; tick() remains unchanged. */
-function applyTransferPlan(string $root, string $approvedDigest, string $applicationSha, string $nativeRunId, bool $next = false): array
+function applyTransferPlan(string $root, string $approvedDigest, string $applicationSha, string $nativeRunId, bool|string $next = false): array
 {
-    $planFile = $next ? NEXT_TRANSFER_PLAN_FILE : TRANSFER_PLAN_FILE;
+    $planFile = transferProfileFile($next);
     requirePost(preg_match('/\A[1-9][0-9]{0,19}\z/D', $nativeRunId) === 1, 'transfer_native_run_invalid');
     transferRuntime($root, $applicationSha);
     $raw = file_get_contents($root.'/'.$planFile, false, null, 0, 64001);
@@ -722,6 +771,7 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
     $pdo = null; $locks = []; $results = []; $oldUmask = umask(0077);
     try {
         requirePost(flock($priceLease, LOCK_EX | LOCK_NB), 'transfer_content_editor_busy');
+        if (is_string($next)) transferRankedOfferScope($plan['rows']);
         $pdo = ConversationDb::connection();
         requirePost($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql', 'transfer_native_database_required');
         $registry = new ChannelPostRegistryService($pdo);
@@ -785,6 +835,7 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
                         requirePost(is_array($preparedExport), 'transfer_price_export_invalid');
                         transferPrice($plan, $row, $preparedExport, time());
                     }
+                    if (is_string($next)) transferRankedOfferScope([$row]);
                     $registry->assertTelegramHotelTransferReservation($reservation, $registryRow, $approvedDigest);
                 },
                 'request'=>static fn(array $body): array => ChannelPostApiTransport::hotelMediaRequest(
@@ -828,9 +879,14 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
     $command = $argv[1] ?? '';
     $next = in_array($command, ['--check-next-transfer-plan','--apply-next-transfer'], true);
     try {
+        if (in_array($command, ['--check-ranked-transfer-plan','--apply-ranked-transfer'], true)) {
+            $selected = $argv[2] ?? '';
+            transferRankedProfile($selected);
+            $next = $selected;
+        }
         $root = dirname(__DIR__);
-        if (count($argv) === 3 && in_array($command, ['--check-transfer-plan','--check-next-transfer-plan'], true)) {
-            $planFile = $next ? NEXT_TRANSFER_PLAN_FILE : TRANSFER_PLAN_FILE;
+        if (count($argv) === 3 && in_array($command, ['--check-transfer-plan','--check-next-transfer-plan','--check-ranked-transfer-plan'], true)) {
+            $planFile = transferProfileFile($next);
             $raw = file_get_contents($root.'/'.$planFile, false, null, 0, 64001);
             requirePost(is_string($raw), 'transfer_plan_unavailable');
             $plan = transferPlanFromBytes($raw, $argv[2], $next);
@@ -839,7 +895,7 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
                 'rows'=>array_map(static fn(array $row): array => ['hotel_id'=>$row['hotel_id'],
                     'target_url'=>'https://t.me/anytour/'.$row['target_message_id'],
                     'caption_sha256'=>$row['next_caption_sha256']], $plan['rows'])];
-        } elseif (count($argv) === 5 && in_array($command, ['--apply-transfer','--apply-next-transfer'], true)) {
+        } elseif (count($argv) === 5 && in_array($command, ['--apply-transfer','--apply-next-transfer','--apply-ranked-transfer'], true)) {
             $result = applyTransferPlan($root, $argv[2], $argv[3], $argv[4], $next);
         } else {
             throw new RuntimeException('transfer_explicit_command_required');
@@ -848,7 +904,7 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
     } catch (Throwable $error) {
         // A global failure may occur after a row was confirmed. Do not infer zero
         // writes from this summary; each original per-target journal is retained.
-        $result = ['ok'=>false,'operation'=>$next ? NEXT_TRANSFER_OPERATION : TRANSFER_OPERATION,'state'=>'requires_readback',
+        $result = ['ok'=>false,'operation'=>transferProfileOperation($next),'state'=>'requires_readback',
             'reason'=>transferReason($error)];
     }
     echo json_encode($result, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), PHP_EOL;
