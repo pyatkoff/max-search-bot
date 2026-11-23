@@ -1,0 +1,50 @@
+name: Confirm public Savoy and Stella Makadi edits
+on:
+  push:
+    branches: [audit/1566-next-release-admission-1664]
+    paths: [.github/workflows/verify-1672-telegram-public.yml]
+permissions:
+  contents: read
+jobs:
+  read:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: de6282c79cf533e316980a765acdd58a5227b05d
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: curl, dom, mbstring
+          coverage: none
+      - name: Read the original posts and verify each visible edit
+        shell: bash
+        run: |
+          set -euo pipefail
+          php <<'PHP'
+          <?php
+          require 'tools/anytour_existing_post_batch.php';
+          $raw=file_get_contents('config/anytour_existing_post_transfer_next_20261123.json');
+          $plan=AnyTour\ExistingPostBatch\selectRemainingTransferRows(
+              AnyTour\ExistingPostBatch\transferPlanFromBytes($raw,'30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d',true));
+          $results=[];
+          foreach($plan['rows'] as $r){
+              $public=AnyTour\ExistingPostBatch\transferPublic('anytour',$r['target_message_id'],true);
+              $caption=$r['next_caption_sha256']===$public['caption_sha256'];
+              $photo=$public['single_photo'] && $public['photo_marker_sha256']!==$r['target_photo_marker_sha256'];
+              $date=$public['published_unixtime']===$r['target_published_unixtime'];
+              $button=count($public['buttons'])===1 && $public['buttons'][0]['text']===$r['button_text']
+                  && is_string($public['buttons'][0]['hotel_url']);
+              $old=$public['single_photo'] && $public['photo_marker_sha256']===$r['target_photo_marker_sha256']
+                  && $public['caption_sha256']===$r['target_caption_sha256'] && $date && count($public['buttons'])===0;
+              $results[]=['hotel_id'=>$r['hotel_id'],'message_id'=>$r['target_message_id'],
+                  'caption'=>$caption,'new_photo'=>$photo,'original_date'=>$date,'hotel_button'=>$button,
+                  'applied'=>$caption&&$photo&&$date&&$button,
+                  'matches_native_outcome'=>$r['hotel_id']===408 ? $caption&&$photo&&$date&&$button : $old];
+          }
+          echo json_encode($results,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          exit(count($results)===2&&!in_array(false,array_column($results,'matches_native_outcome'),true)?0:1);
+          PHP
