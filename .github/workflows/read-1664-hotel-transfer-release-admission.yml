@@ -1,0 +1,24 @@
+name: Evaluate exact hotel transfer release admission
+on:
+  push:
+    branches: [audit/1566-next-release-admission-1664]
+    paths: [.github/workflows/read-1664-hotel-transfer-release-admission.yml]
+permissions:
+  actions: read
+  contents: read
+  issues: read
+  pull-requests: read
+jobs:
+  admission:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: cc3bad7cc7377b598c0cd34e63463d1a887acf09
+          persist-credentials: false
+      - name: Verify previous release, PR source and publisher
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/release_priority.js --admit 1664 02c25df61dce7448889779e0b5f2d02d485b8162 cc3bad7cc7377b598c0cd34e63463d1a887acf09
