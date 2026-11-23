@@ -127,6 +127,19 @@ observer errors, preserving the canonical customer result. The preserved
 `ChannelPostRegistryService.php` source hash explicitly admits its recording
 clock; a changed producer requires review.
 
+The 2026-11-23 producer review admits SHA256
+`eafd2253944d68315e78ff7d551f0c1f6e21df54ce7d4980b8d1730ef3134fbf`:
+both entry paths still record `self::now()` from `gmdate('Y-m-d H:i:s')`; the
+reviewed publication changes preserve those UTC recording clocks. The runtime
+retains its exact regular-file check. Integration tests call that actual guard
+with the current producer and reject changed bytes, a missing file and a symlink
+to the correct bytes. They keep the Runtime source unchanged in every case.
+
+The release manifest's `originals` retain their historical source hashes. This
+pin correction preserves the existing activation epoch, profile floor and
+cursor. It does not replay preactivation profiles or invoke a manual tick; the
+existing scheduler resumes the already authorized prospective work.
+
 `php tests/run_max2_common_value_v2_regression.php` is registered in the full
 required diagnostics group. It executes the exact reviewed grouped fixtures in
 private temporary views whose service directory points to the actual flat app
