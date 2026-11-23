@@ -1,0 +1,227 @@
+{
+  "binding_revision": "6d744f3ae913c9ef61fb3478d4ed8622ee474c33356cbccaa82a602f8c0a1cb8",
+  "coverage": {
+    "available_prepared_claim_count": 8,
+    "basis": "All whole source facts from the immutable reviewed LOCAL26 package; not independent AI content admission.",
+    "complete": false,
+    "selected_claim_count": 8
+  },
+  "facts": [
+    {
+      "aspect": "riverside_and_old_town_location",
+      "declared": true,
+      "hotel_key": "EXP025",
+      "id": "A10377-F01",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Thu Bon river / less than 1 km from Hoi An historic centre",
+        "kind": "location"
+      },
+      "source_ids": [
+        "A10377-home"
+      ],
+      "text": "Отель находится в саду на берегу реки Тхубон, менее чем в одном километре от исторического центра Хойана.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "room_view_options",
+      "declared": true,
+      "hotel_key": "EXP025",
+      "id": "A10377-F02",
+      "kind": "official_declared",
+      "scope": {
+        "key": "rooms and suites; garden or river views",
+        "kind": "accommodation_listing"
+      },
+      "source_ids": [
+        "A10377-home"
+      ],
+      "text": "Предлагаются номера и люксы с видами на сад или реку.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "pools",
+      "declared": true,
+      "hotel_key": "EXP025",
+      "id": "A10377-F03",
+      "kind": "official_declared",
+      "scope": {
+        "key": "temperature-controlled pool / separate child pool",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "A10377-home",
+        "A10377-leisure"
+      ],
+      "text": "Есть бассейн с регулируемой температурой воды и отдельный детский бассейн.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "fitness_and_spa",
+      "declared": true,
+      "hotel_key": "EXP025",
+      "id": "A10377-F04",
+      "kind": "official_declared",
+      "scope": {
+        "key": "fitness room / spa",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "A10377-home",
+        "A10377-leisure"
+      ],
+      "text": "На территории работают фитнес-зал и спа.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "riverside_dining_art_and_trips",
+      "declared": true,
+      "hotel_key": "EXP025",
+      "id": "A10377-F05",
+      "kind": "official_declared",
+      "scope": {
+        "key": "riverside restaurants / Art Space / river trips",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "A10377-home"
+      ],
+      "text": "Указаны рестораны у реки, Art Space и возможность речных прогулок.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "bicycles",
+      "declared": true,
+      "hotel_key": "EXP025",
+      "id": "A10377-F06",
+      "kind": "official_declared",
+      "scope": {
+        "key": "guest bicycles",
+        "kind": "service"
+      },
+      "source_ids": [
+        "A10377-home",
+        "A10377-leisure"
+      ],
+      "text": "Для самостоятельных поездок гостям предоставляются велосипеды.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "cooking_and_lantern_workshops",
+      "declared": true,
+      "hotel_key": "EXP025",
+      "id": "A10377-F07",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Vietnamese cooking with market visit / lantern making",
+        "kind": "activities"
+      },
+      "source_ids": [
+        "A10377-leisure"
+      ],
+      "text": "Предлагаются занятия вьетнамской кухней с посещением рынка и мастер-классы изготовления фонариков.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "offsite_beach_distance",
+      "declared": true,
+      "hotel_key": "EXP025",
+      "id": "A10377-F08",
+      "kind": "official_declared",
+      "scope": {
+        "key": "An Bang beach approximately 5 km away; not beachfront",
+        "kind": "access_route"
+      },
+      "source_ids": [
+        "A10377-home"
+      ],
+      "text": "Ближайший пляж — Ан-Банг, примерно в пяти километрах от курорта.",
+      "valid_at_travel": "unverified"
+    }
+  ],
+  "hotel_ref": {
+    "catalog": "anytour",
+    "id": 10377
+  },
+  "material_limits": {
+    "identity_admission": "Цепочка legacy_catalog 23718 → AnyTour 10377 (ревизия 2) → local-tv 23718 (ревизия 2) и это целое досье независимо приняты решением ACCEPT_LOCAL19_BOUNDED_CONSUMER_IDENTITY_AND_CONTENT_ADMISSION по сохранённым оригинальным доказательствам. Native LOCAL остаётся pending, source_json=NULL; приёмка досье не означает приёмку нового native/provider source. Реальная Library приёмка, установка в справочник, чтение с реальным разрешённым selector и использование ИИ подтверждаются отдельно; runtime_admission_verified=false.",
+    "original_notes_ru": [
+      "Расположение у реки отделено от пляжного: Ан-Банг находится примерно в пяти километрах, первая пляжная линия не заявляется.",
+      "Завтрак, занятия и круизы не обозначены как безусловно включённые в любой тариф; фото номера — пример садовой категории."
+    ],
+    "recommendation_boundary": "Заявления об аудитории отеля не являются независимой оценкой качества или гарантией пригодности конкретному туристу.",
+    "scope": "Каждое целое утверждение применяется только к указанному объекту, категории, услуге, сезону или маршруту. Обещания тарифа, цены, наличия и будущей работы не добавлены.",
+    "temporal": "Сохранены сведения и дата чтения 22.11.2026. Текущая или будущая работа услуг не проверялась; срок действия и дата публикации не выдуманы."
+  },
+  "price_authority": "none",
+  "project_key": "anytour",
+  "record_hashes": {
+    "claims": {
+      "A10377-F01": "694ec9c6c021c21e9afdcc8f4c643dd690b2f3f6aa1fe3b4bf04eeb438c488dc",
+      "A10377-F02": "a8b622d051ee097a16ec3af6f47b6d912dc88ae2c52d8fae39a6303501801cb2",
+      "A10377-F03": "7348b51875aec171862801cc9e8400beaf6f4ed39ab0eff75a18dc382463f236",
+      "A10377-F04": "efeca6c8ba8ed6a715f49bc07293a6116f057912424be64be756760f037c5ba2",
+      "A10377-F05": "43efc9f2b257ff11a5e18d6b27c8ca3e20dcee153f4594f4e12c29d7007aea88",
+      "A10377-F06": "c4d97f4cb9c57302977849353fbb080626d8dd3061db6e52fdaa23e311f6a586",
+      "A10377-F07": "c2104f6291e6dcb4047ae0d83f7c3cbdbf72a148a9e12bd98ac56ebbc733533c",
+      "A10377-F08": "4e97780c83b17ce1400f83fcf2779e5217873701ff6fba7eed2bbfa1d364c330"
+    },
+    "sources": {
+      "A10377-contact": "24ebf2a50e2ffe6cdea7510a4ce666e23b53ec5a0627d04a56fb581e03fbbf5a",
+      "A10377-home": "277802bc1df68f8ea44d4970dc670fb9d925719b7395ac1b82eeff204561b97e",
+      "A10377-leisure": "d6d202b51fb7632f153f6c046060d3abd063c1d6a39b955a5bc481b1aed23395"
+    }
+  },
+  "research_hotel_key": "EXP025",
+  "runtime_admission_verified": false,
+  "schema_version": "hotel_reference_v1",
+  "sources": [
+    {
+      "capture_bytes": 226159,
+      "capture_format": "raw_html",
+      "capture_sha256": "d697ceac849e74fc8ab695f7bd5c9cad4419112ca9c3785671b307e4c10f84f8",
+      "hotel_key": "EXP025",
+      "id": "A10377-home",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: A10377-F01, A10377-F02, A10377-F03, A10377-F04, A10377-F05, A10377-F06, A10377-F08. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:40.675592+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Official Site of Anantara Hoi An Resort | Luxury Resort Hoi An, Vietnam",
+      "url": "https://www.anantara.com/en/hoi-an"
+    },
+    {
+      "capture_bytes": 217224,
+      "capture_format": "raw_html",
+      "capture_sha256": "11b474b870f9bc5fca5570daa7b5ddec023eda986b7bb04d13cbf91be7cb97ac",
+      "hotel_key": "EXP025",
+      "id": "A10377-leisure",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: A10377-F03, A10377-F04, A10377-F06, A10377-F07. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:59:07.581804+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Things to do in Hoi An | Leisure at Anantara Hoi An Resort",
+      "url": "https://www.anantara.com/en/hoi-an/leisure"
+    },
+    {
+      "capture_bytes": 158615,
+      "capture_format": "raw_html",
+      "capture_sha256": "66d2815f1cccc868a01e84b4d8572700b6320a6bb986702d6966bbea879ad3f8",
+      "hotel_key": "EXP025",
+      "id": "A10377-contact",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Дополнительная официальная страница из исходного пакета; ни один из 206 текстовых фактов прямо не ссылается на эту запись. Не является новым основанием для фактов.",
+      "retrieved_at_utc": "2026-11-22T09:59:07.568113+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Best Resorts in Hoi An | Contact Details of Anantara Hoi An Resot",
+      "url": "https://www.anantara.com/en/hoi-an/contact"
+    }
+  ],
+  "status": "SEALED_AUTHORING_DATA_ONLY",
+  "trusted_selector_required": true
+}

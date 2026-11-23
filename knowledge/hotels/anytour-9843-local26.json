@@ -1,0 +1,241 @@
+{
+  "binding_revision": "ee35e9adbcbc4ef90725e0cccee291ce0f82786152f7ce8867e1ccb17c305a7d",
+  "coverage": {
+    "available_prepared_claim_count": 8,
+    "basis": "All whole source facts from the immutable reviewed LOCAL26 package; not independent AI content admission.",
+    "complete": false,
+    "selected_claim_count": 8
+  },
+  "facts": [
+    {
+      "aspect": "bosphorus_location",
+      "declared": true,
+      "hotel_key": "EXP089",
+      "id": "EXP089-F01",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Çırağan Cad. No. 28 / Beşiktaş",
+        "kind": "location"
+      },
+      "source_ids": [
+        "fs-bosphorus-main"
+      ],
+      "text": "Отель расположен у Босфора по адресу Çırağan Cad. No. 28, Beşiktaş.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "historic_building",
+      "declared": true,
+      "hotel_key": "EXP089",
+      "id": "EXP089-F02",
+      "kind": "official_declared",
+      "scope": {
+        "key": "former Atik Pasha nineteenth-century Ottoman palace",
+        "kind": "building"
+      },
+      "source_ids": [
+        "fs-bosphorus-facts"
+      ],
+      "text": "Историческая часть — бывший османский дворец Atik Pasha XIX века.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "category_dependent_views_and_decor",
+      "declared": true,
+      "hotel_key": "EXP089",
+      "id": "EXP089-F03",
+      "kind": "official_declared",
+      "scope": {
+        "key": "rooms; Bosphorus/courtyard/garden/street views by category",
+        "kind": "accommodation_listing"
+      },
+      "source_ids": [
+        "fs-bosphorus-main",
+        "fs-bosphorus-rooms"
+      ],
+      "text": "Номера сочетают современный и османский декор; виды по категориям включают Босфор, двор, сад и улицу.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "suite_layout_and_terrace",
+      "declared": true,
+      "hotel_key": "EXP089",
+      "id": "EXP089-F04",
+      "kind": "official_declared",
+      "scope": {
+        "key": "One-Bedroom Bosphorus Suite / Palace Roof Suite",
+        "kind": "room_categories"
+      },
+      "source_ids": [
+        "fs-bosphorus-main"
+      ],
+      "text": "One-Bedroom Bosphorus Suite имеет отделённую спальню; Palace Roof Suite — частную террасу на крыше.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "heated_pools",
+      "declared": true,
+      "hotel_key": "EXP089",
+      "id": "EXP089-F05",
+      "kind": "official_declared",
+      "scope": {
+        "key": "indoor and outdoor pools",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "fs-bosphorus-amenities"
+      ],
+      "text": "Есть крытый и открытый подогреваемый бассейны.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "spa_hammams_and_fitness",
+      "declared": true,
+      "hotel_key": "EXP089",
+      "id": "EXP089-F06",
+      "kind": "official_declared",
+      "scope": {
+        "key": "spa Turkish hammams / fitness centre",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "fs-bosphorus-amenities"
+      ],
+      "text": "В составе спа перечислены турецкие хаммамы; работает фитнес-центр.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "child_amenities_and_babysitting",
+      "declared": true,
+      "hotel_key": "EXP089",
+      "id": "EXP089-F07",
+      "kind": "official_declared",
+      "scope": {
+        "key": "cots / high chairs / babysitting",
+        "kind": "services"
+      },
+      "source_ids": [
+        "fs-bosphorus-amenities"
+      ],
+      "text": "Для детей предусмотрены кроватки и стульчики; доступны услуги няни.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "private_water_excursions",
+      "declared": true,
+      "hotel_key": "EXP089",
+      "id": "EXP089-F08",
+      "kind": "official_declared",
+      "scope": {
+        "key": "hotel-arranged private boat excursions",
+        "kind": "service"
+      },
+      "source_ids": [
+        "fs-bosphorus-amenities"
+      ],
+      "text": "Отель предлагает организацию частных прогулок по воде.",
+      "valid_at_travel": "unverified"
+    }
+  ],
+  "hotel_ref": {
+    "catalog": "anytour",
+    "id": 9843
+  },
+  "material_limits": {
+    "identity_admission": "Цепочка legacy_catalog 17424 → AnyTour 9843 (ревизия 2) → local-tv 17424 (ревизия 2) и это целое досье независимо приняты решением ACCEPT_LOCAL19_BOUNDED_CONSUMER_IDENTITY_AND_CONTENT_ADMISSION по сохранённым оригинальным доказательствам. Native LOCAL остаётся pending, source_json=NULL; приёмка досье не означает приёмку нового native/provider source. Реальная Library приёмка, установка в справочник, чтение с реальным разрешённым selector и использование ИИ подтверждаются отдельно; runtime_admission_verified=false.",
+    "original_notes_ru": [
+      "Вид на Босфор не заявлен для всех категорий: Superior имеет другие виды.",
+      "Не смешивать с отдельным Four Seasons Istanbul at Sultanahmet."
+    ],
+    "recommendation_boundary": "Заявления об аудитории отеля не являются независимой оценкой качества или гарантией пригодности конкретному туристу.",
+    "scope": "Каждое целое утверждение применяется только к указанному объекту, категории, услуге, сезону или маршруту. Обещания тарифа, цены, наличия и будущей работы не добавлены.",
+    "temporal": "Сохранены сведения и дата чтения 22.11.2026. Текущая или будущая работа услуг не проверялась; срок действия и дата публикации не выдуманы."
+  },
+  "price_authority": "none",
+  "project_key": "anytour",
+  "record_hashes": {
+    "claims": {
+      "EXP089-F01": "3e5990f9caa9d26e126ff26dc7e70c561064ea3ebcbd82b31983e9890d6aaf04",
+      "EXP089-F02": "1447c96e4ed8e5b469613f3f4601c60ccad5da7ccbb05bd12355f911759a63b5",
+      "EXP089-F03": "98c0c440ce0281bed7a862991b1acfddb2899e1cc3a6fbcffc0695495add6447",
+      "EXP089-F04": "c97421fc05dacd47b7d2fffcdda402eab9be3ab9b7fce8648a44984d1329f89b",
+      "EXP089-F05": "4b0d237a9c6a330b049b5ee3256f7d85fb77bc7bce0f1afe247ea7f18c78f215",
+      "EXP089-F06": "fea1aea1eb221ce25a6667f635fd07146327f9db00170668c94f9fe451608735",
+      "EXP089-F07": "9f8e6095e71a22542c54e21fb4d7f574ad2edc471e9330ddc93061489e8d16e1",
+      "EXP089-F08": "48bab59f8344f81f56bcf4186964dc0f187b624d83d7cd23c97c555ccaa03e62"
+    },
+    "sources": {
+      "fs-bosphorus-amenities": "cf3315215407ce15aed92ccfe20dc66c9fcead47ffe31abae6eee973b3b07f0d",
+      "fs-bosphorus-facts": "6b98f690facd89065624ea68c4bc64d273bb5ba59ff47c60cad97187bd2ebdad",
+      "fs-bosphorus-main": "6d446f640b4074c9070c5bd78d037c55c961023738fd8761c7dd9e08ec6a0574",
+      "fs-bosphorus-rooms": "ab9dfafb07a83f90e69c002ce804f83aefbf7025278dece576412fc2e4bae27c"
+    }
+  },
+  "research_hotel_key": "EXP089",
+  "runtime_admission_verified": false,
+  "schema_version": "hotel_reference_v1",
+  "sources": [
+    {
+      "capture_bytes": 271921,
+      "capture_format": "raw_html",
+      "capture_sha256": "ff7c50d82691a8572947214ce3ac39fefd03cc3a6a238ed11cd98cb3f8721409",
+      "hotel_key": "EXP089",
+      "id": "fs-bosphorus-main",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: EXP089-F01, EXP089-F03, EXP089-F04. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:40.937244+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Bosphorus, Istanbul Luxury Hotel | Four Seasons at the Bosphorus",
+      "url": "https://www.fourseasons.com/bosphorus/"
+    },
+    {
+      "capture_bytes": 112014,
+      "capture_format": "raw_html",
+      "capture_sha256": "a413b2626804af46bb2753a3468222ddaed71a317eb4b781c923f7af32ad77c8",
+      "hotel_key": "EXP089",
+      "id": "fs-bosphorus-amenities",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: EXP089-F05, EXP089-F06, EXP089-F07, EXP089-F08. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:40.943909+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Amenities &amp; Services | Istanbul Hotel with Pool &amp; Gym | Four Seasons",
+      "url": "https://www.fourseasons.com/bosphorus/services-and-amenities/"
+    },
+    {
+      "capture_bytes": 273981,
+      "capture_format": "raw_html",
+      "capture_sha256": "fe8c30273a84a7d7892c42e2c56f5ebe94c524ea3bc724450eaa28b13900ccf0",
+      "hotel_key": "EXP089",
+      "id": "fs-bosphorus-rooms",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: EXP089-F03. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:41.039425+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Istanbul Luxury Rooms &amp; Bosphorus Suites | Four Seasons Hotel",
+      "url": "https://www.fourseasons.com/bosphorus/accommodations/"
+    },
+    {
+      "capture_bytes": 43318,
+      "capture_format": "raw_html",
+      "capture_sha256": "49d0763e76cd6d3c946923b6e72bfe394747cd746860f04cfb0c64838ffa9e77",
+      "hotel_key": "EXP089",
+      "id": "fs-bosphorus-facts",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: EXP089-F02. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:50.022916+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Hotel Facts | Four Seasons Hotel Istanbul at the Bosphorus",
+      "url": "https://press.fourseasons.com/bosphorus/hotel-facts/"
+    }
+  ],
+  "status": "SEALED_AUTHORING_DATA_ONLY",
+  "trusted_selector_required": true
+}

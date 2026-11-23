@@ -1,0 +1,226 @@
+{
+  "binding_revision": "71fd7bed82a13cbf79dd0c17b0cc05ac4de5ecebf6fbe5dbbcb2cd4e41c01506",
+  "coverage": {
+    "available_prepared_claim_count": 8,
+    "basis": "All whole source facts from the immutable reviewed LOCAL26 package; not independent AI content admission.",
+    "complete": false,
+    "selected_claim_count": 8
+  },
+  "facts": [
+    {
+      "aspect": "riverside_location",
+      "declared": true,
+      "hotel_key": "EXP006",
+      "id": "A8751-F01",
+      "kind": "official_declared",
+      "scope": {
+        "key": "west bank of Chao Phraya / Bangkok",
+        "kind": "location"
+      },
+      "source_ids": [
+        "A8751-home"
+      ],
+      "text": "Отель расположен на западном берегу Чаупхраи в Бангкоке, на территории с тропическими садами.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "room_balconies_and_view_options",
+      "declared": true,
+      "hotel_key": "EXP006",
+      "id": "A8751-F02",
+      "kind": "official_declared",
+      "scope": {
+        "key": "rooms and suites; city or river views",
+        "kind": "accommodation_listing"
+      },
+      "source_ids": [
+        "A8751-home"
+      ],
+      "text": "Предлагаются номера с собственными балконами и видами на город или реку, а также люксы.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "shuttle_boat_route",
+      "declared": true,
+      "hotel_key": "EXP006",
+      "id": "A8751-F03",
+      "kind": "official_declared",
+      "scope": {
+        "key": "hotel to Sathorn Pier / BTS Saphan Taksin",
+        "kind": "transfer_route"
+      },
+      "source_ids": [
+        "A8751-contact"
+      ],
+      "text": "Шаттл-лодка связывает отель с причалом Сатхон у станции BTS Saphan Taksin.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "pool_and_fitness",
+      "declared": true,
+      "hotel_key": "EXP006",
+      "id": "A8751-F04",
+      "kind": "official_declared",
+      "scope": {
+        "key": "pool / whirlpool / fitness centre",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "A8751-leisure"
+      ],
+      "text": "На территории есть бассейн с джакузи и фитнес-центр.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "child_club",
+      "declared": true,
+      "hotel_key": "EXP006",
+      "id": "A8751-F05",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Chang Noi club",
+        "kind": "facility"
+      },
+      "source_ids": [
+        "A8751-home",
+        "A8751-leisure"
+      ],
+      "text": "Для детей работает клуб Chang Noi с игровой зоной и занятиями.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "spa",
+      "declared": true,
+      "hotel_key": "EXP006",
+      "id": "A8751-F06",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Anantara Spa",
+        "kind": "facility"
+      },
+      "source_ids": [
+        "A8751-home"
+      ],
+      "text": "В отеле работает Anantara Spa.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "dinner_cruise",
+      "declared": true,
+      "hotel_key": "EXP006",
+      "id": "A8751-F07",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Manohra Cruises / restored rice barge",
+        "kind": "service"
+      },
+      "source_ids": [
+        "A8751-leisure"
+      ],
+      "text": "Manohra Cruises предлагает ужин с тайской кухней на восстановленной рисовой барже на Чаупхрае.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "cooking_and_muay_thai",
+      "declared": true,
+      "hotel_key": "EXP006",
+      "id": "A8751-F08",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Spice Spoons / instructor-led Muay Thai",
+        "kind": "activities"
+      },
+      "source_ids": [
+        "A8751-leisure"
+      ],
+      "text": "Среди предлагаемых занятий — кулинарные мастер-классы Spice Spoons и тренировки муай-тай с инструктором.",
+      "valid_at_travel": "unverified"
+    }
+  ],
+  "hotel_ref": {
+    "catalog": "anytour",
+    "id": 8751
+  },
+  "material_limits": {
+    "identity_admission": "Цепочка legacy_catalog 7831 → AnyTour 8751 (ревизия 2) → local-tv 7831 (ревизия 2) и это целое досье независимо приняты решением ACCEPT_LOCAL19_BOUNDED_CONSUMER_IDENTITY_AND_CONTENT_ADMISSION по сохранённым оригинальным доказательствам. Native LOCAL остаётся pending, source_json=NULL; приёмка досье не означает приёмку нового native/provider source. Реальная Library приёмка, установка в справочник, чтение с реальным разрешённым selector и использование ИИ подтверждаются отдельно; runtime_admission_verified=false.",
+    "original_notes_ru": [
+      "Городской отель у реки; пляжный статус не заявляется.",
+      "Фиксированные часы, частота и длительность шаттла не перенесены: на официальных страницах встречаются разные значения.",
+      "Круиз, занятия и спа не обозначены как включённые в тариф; фото номера иллюстрирует конкретную категорию."
+    ],
+    "recommendation_boundary": "Заявления об аудитории отеля не являются независимой оценкой качества или гарантией пригодности конкретному туристу.",
+    "scope": "Каждое целое утверждение применяется только к указанному объекту, категории, услуге, сезону или маршруту. Обещания тарифа, цены, наличия и будущей работы не добавлены.",
+    "temporal": "Сохранены сведения и дата чтения 22.11.2026. Текущая или будущая работа услуг не проверялась; срок действия и дата публикации не выдуманы."
+  },
+  "price_authority": "none",
+  "project_key": "anytour",
+  "record_hashes": {
+    "claims": {
+      "A8751-F01": "379216189820a23081943c18c5e04b27491b1b73379d6196e967e9aadee7d602",
+      "A8751-F02": "fa906bb91df9585b94d4ccf375601e03bdbfea300faa742c99be9d8e2588f8a2",
+      "A8751-F03": "def143ecd2d0eb983f5f3d5f4bcfa672fafd81199ff2265109cfeff37d9a9995",
+      "A8751-F04": "8b0d5935a67b5969dac690a115f7a4aff65661418279af71ee6149f4ef38a0f6",
+      "A8751-F05": "0f278b39a79bb3a05c5e543cf385da593bc6fbb7c7a01706f7a2911170f84570",
+      "A8751-F06": "95ecaa3beb8115b09a9a0683786b362cbcc45fbf8b2b1910faafb5519ddbc291",
+      "A8751-F07": "12c336e07ef4b9ecd67c9a5b8405d81624a56a535a1ebd8d506e98147cb39725",
+      "A8751-F08": "5aa812cd94e79bc92b53c9c3b4d0624eeddca53b28695f0cbbf4bdcc19100ce1"
+    },
+    "sources": {
+      "A8751-contact": "7b072b858051188a25af32cbda6ee5281780a51906dbf33361f6dfb32509a253",
+      "A8751-home": "eedde0e4a8fc581613ef7ae6a21270828452549188e5ad6dc5dd3498aba398e1",
+      "A8751-leisure": "d2f030ffc10d8cb5a10b87c89ae403c801df401e95962e3ede0f24765c1f735a"
+    }
+  },
+  "research_hotel_key": "EXP006",
+  "runtime_admission_verified": false,
+  "schema_version": "hotel_reference_v1",
+  "sources": [
+    {
+      "capture_bytes": 264734,
+      "capture_format": "raw_html",
+      "capture_sha256": "2af8f75790f29e86e89c733ca5d9f0a8b08b06a66aacbf892f0a2a249cd6935a",
+      "hotel_key": "EXP006",
+      "id": "A8751-home",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: A8751-F01, A8751-F02, A8751-F05, A8751-F06. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:37.370768+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Bangkok Riverfront Resort | Anantara Riverside Bangkok Resort Official Site",
+      "url": "https://www.anantara.com/en/riverside-bangkok"
+    },
+    {
+      "capture_bytes": 197586,
+      "capture_format": "raw_html",
+      "capture_sha256": "369620ab519a3885036a0511dff91542c9c2d37bbe9499a296b31509b0c28fc6",
+      "hotel_key": "EXP006",
+      "id": "A8751-leisure",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: A8751-F04, A8751-F05, A8751-F07, A8751-F08. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:56.265316+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Riverside Bangkok Hotel | Anantara Riverside Bangkok Resort",
+      "url": "https://www.anantara.com/en/riverside-bangkok/leisure"
+    },
+    {
+      "capture_bytes": 163776,
+      "capture_format": "raw_html",
+      "capture_sha256": "81290cab8f5452d1069ea7ac6aa7755f82a3753c7d555b3114c2a13911fb1e98",
+      "hotel_key": "EXP006",
+      "id": "A8751-contact",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: A8751-F03. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:56.364704+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Contact Anantara Riverside Hotels in Bangkok | Telephone, Fax, Email",
+      "url": "https://www.anantara.com/en/riverside-bangkok/contact"
+    }
+  ],
+  "status": "SEALED_AUTHORING_DATA_ONLY",
+  "trusted_selector_required": true
+}

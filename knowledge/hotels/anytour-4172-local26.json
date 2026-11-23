@@ -1,0 +1,192 @@
+{
+  "binding_revision": "c2096f24f3b5e3d99f26b2393e33dcc3a1792100b3c99e0b91eb274ebd64c2ff",
+  "coverage": {
+    "available_prepared_claim_count": 7,
+    "basis": "All whole source facts from the immutable reviewed LOCAL26 package; not independent AI content admission.",
+    "complete": false,
+    "selected_claim_count": 7
+  },
+  "facts": [
+    {
+      "aspect": "atoll_location",
+      "declared": true,
+      "hotel_key": "EXP068",
+      "id": "F1",
+      "kind": "official_declared",
+      "scope": {
+        "key": "North Male Atoll",
+        "kind": "location"
+      },
+      "source_ids": [
+        "hil-home"
+      ],
+      "text": "Остров расположен в атолле Северный Мале.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "airport_boat_duration",
+      "declared": true,
+      "hotel_key": "EXP068",
+      "id": "F2",
+      "kind": "official_declared",
+      "scope": {
+        "key": "airport to island by boat; approximately 20 minutes",
+        "kind": "transfer_route"
+      },
+      "source_ids": [
+        "hil-home"
+      ],
+      "text": "На сайте указан катер от аэропорта примерно20минут.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "villa_private_pools",
+      "declared": true,
+      "hotel_key": "EXP068",
+      "id": "F3",
+      "kind": "official_declared",
+      "scope": {
+        "key": "beach and overwater villas",
+        "kind": "accommodation_listing"
+      },
+      "source_ids": [
+        "hil-home",
+        "hil-villas"
+      ],
+      "text": "Пляжные и водные виллы имеют частные бассейны.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "family_and_two_bedroom_categories",
+      "declared": true,
+      "hotel_key": "EXP068",
+      "id": "F4",
+      "kind": "official_declared",
+      "scope": {
+        "key": "family beach category / two-bedroom villas",
+        "kind": "accommodation_listing"
+      },
+      "source_ids": [
+        "hil-villas"
+      ],
+      "text": "Есть семейная пляжная категория и двухспальные виллы.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "overwater_villa_water_access",
+      "declared": true,
+      "hotel_key": "EXP068",
+      "id": "F5",
+      "kind": "official_declared",
+      "scope": {
+        "key": "overwater villas; terrace and direct steps into water",
+        "kind": "room_categories"
+      },
+      "source_ids": [
+        "hil-home"
+      ],
+      "text": "Водные виллы имеют террасу и прямой спуск в воду.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "dining_spa_and_diving",
+      "declared": true,
+      "hotel_key": "EXP068",
+      "id": "F6",
+      "kind": "official_declared",
+      "scope": {
+        "key": "restaurants / lounges / Amingiri Spa & Hammam / dive centre",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "hil-home"
+      ],
+      "text": "Есть рестораны, лаунжи, Amingiri Spa & Hammam и дайвинг-центр.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "child_and_sport_facilities",
+      "declared": true,
+      "hotel_key": "EXP068",
+      "id": "F7",
+      "kind": "official_declared",
+      "scope": {
+        "key": "child club and pool / padel / futsal / multi-sport court",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "hil-home"
+      ],
+      "text": "Детям предусмотрены клуб и бассейн; среди спортивных объектов — падел, футзал и мультиспортивная площадка.",
+      "valid_at_travel": "unverified"
+    }
+  ],
+  "hotel_ref": {
+    "catalog": "anytour",
+    "id": 4172
+  },
+  "material_limits": {
+    "identity_admission": "Цепочка legacy_catalog 80008 → AnyTour 4172 (ревизия 2) → local-tv 80008 (ревизия 3) и это целое досье независимо приняты решением ACCEPT_HILTON_BOUNDED_IDENTITY_AND_CONTENT_ADMISSION по сохранённым оригинальным доказательствам. Установка в справочник, чтение с реальным разрешённым selector и использование ИИ подтверждаются отдельно; runtime_admission_verified=false.",
+    "original_notes_ru": [
+      "Предлагается заполнить только description. Существующие primaryImage и images (44 URL) сохранены без изменений; новые фотографии для этой карточки не добавляются.",
+      "Точное число гостей зависит от категории; различия основной страницы и таблицы вилл не превращены в универсальный лимит вместимости."
+    ],
+    "recommendation_boundary": "Заявления об аудитории отеля не являются независимой оценкой качества или гарантией пригодности конкретному туристу.",
+    "scope": "Каждое целое утверждение применяется только к указанному объекту, категории, услуге, сезону или маршруту. Обещания тарифа, цены, наличия и будущей работы не добавлены.",
+    "temporal": "Сохранены сведения и дата чтения 22.11.2026. Текущая или будущая работа услуг не проверялась; срок действия и дата публикации не выдуманы."
+  },
+  "price_authority": "none",
+  "project_key": "anytour",
+  "record_hashes": {
+    "claims": {
+      "F1": "4e2ff86ff0eb38348137bc0eefba341bcfeb8a012decb10354327e92e6ef18d4",
+      "F2": "cd5b9c98293dd6d6cfcdc20675baaf3a261853680c82552ae1dbb95524324d56",
+      "F3": "f9afd2f4f9fdee18b8f15546ee5c5e0f21b44c3118d23bc82d3f5c471e994ce9",
+      "F4": "2974aeb513fb5c977602a13dfed7befcca85a28dc300ddc77ad77143535d0910",
+      "F5": "c5c884108117c776ff09f519bd08ae131e2889ed43cbaff4fa6dde701d0edc5a",
+      "F6": "9b8e238beda77ddbc92da039e59342e8445846074bf2d5bde8013f1b4d3f99f3",
+      "F7": "02d6fa494739102803a57a082d02af65844727ef6c84a7ac9c47ddb26de1bf88"
+    },
+    "sources": {
+      "hil-home": "9f4ad2f214fc7ddeb7833ca41a56153af26310bbaf481bfb52b80cd86b660fca",
+      "hil-villas": "b7a9d8b2429a77798af0bcd7fe41f3d0ebf3ad586e39e1ee7bca8faa096f24a0"
+    }
+  },
+  "research_hotel_key": "EXP068",
+  "runtime_admission_verified": false,
+  "schema_version": "hotel_reference_v1",
+  "sources": [
+    {
+      "capture_bytes": 286987,
+      "capture_format": "raw_html",
+      "capture_sha256": "382654a1a73dc76f7fb56884a60cab45f715c7726b01a0c01863dc185992d76a",
+      "hotel_key": "EXP068",
+      "id": "hil-home",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: F1, F2, F3, F5, F6, F7. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:59:41.725163+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Hilton Maldives Amingiri Resort",
+      "url": "https://www.hilton.com/en/hotels/mleaihi-hilton-maldives-amingiri-resort-and-spa/"
+    },
+    {
+      "capture_bytes": 356523,
+      "capture_format": "raw_html",
+      "capture_sha256": "1e90783efd4499e25536c84c481b1184d26871595bf9a16ca8c48ae483d3d29d",
+      "hotel_key": "EXP068",
+      "id": "hil-villas",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: F3, F4. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:59:41.707377+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Hilton Maldives Amingiri Resort & Spa | Villas",
+      "url": "https://www.hilton.com/en/hotels/mleaihi-hilton-maldives-amingiri-resort-and-spa/villas/"
+    }
+  ],
+  "status": "SEALED_AUTHORING_DATA_ONLY",
+  "trusted_selector_required": true
+}

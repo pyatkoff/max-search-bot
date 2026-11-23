@@ -1,0 +1,225 @@
+{
+  "binding_revision": "0d42c467450b8e77233419db7055e0af98a5aa4fd5af95dbc63abd1a1a6d9ee4",
+  "coverage": {
+    "available_prepared_claim_count": 8,
+    "basis": "All whole source facts from the immutable reviewed LOCAL26 package; not independent AI content admission.",
+    "complete": false,
+    "selected_claim_count": 8
+  },
+  "facts": [
+    {
+      "aspect": "waterfront_location",
+      "declared": true,
+      "hotel_key": "EXP082",
+      "id": "EXP082-F01",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Al Maryah Island / Abu Dhabi",
+        "kind": "location"
+      },
+      "source_ids": [
+        "fs-abudhabi-main",
+        "fs-abudhabi-amenities"
+      ],
+      "text": "Отель находится на набережной острова Al Maryah Island в Абу-Даби.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "mall_access",
+      "declared": true,
+      "hotel_key": "EXP082",
+      "id": "EXP082-F02",
+      "kind": "official_declared",
+      "scope": {
+        "key": "direct air-conditioned access to The Galleria Mall",
+        "kind": "access_route"
+      },
+      "source_ids": [
+        "fs-abudhabi-amenities"
+      ],
+      "text": "Из отеля есть прямой кондиционируемый доступ в The Galleria Mall.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "category_room_layout",
+      "declared": true,
+      "hotel_key": "EXP082",
+      "id": "EXP082-F03",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Deluxe Room / Premier Suite; separate category features",
+        "kind": "room_categories"
+      },
+      "source_ids": [
+        "fs-abudhabi-main"
+      ],
+      "text": "Номер Deluxe включает зону отдыха с диваном; Premier Suite имеет отдельные гостиную и столовую.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "pool_terrace_and_lounge",
+      "declared": true,
+      "hotel_key": "EXP082",
+      "id": "EXP082-F04",
+      "kind": "official_declared",
+      "scope": {
+        "key": "third-floor terrace / outdoor pool / Eclipse Terrace Lounge",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "fs-abudhabi-amenities"
+      ],
+      "text": "На третьем этаже есть терраса с открытым бассейном и Eclipse Terrace Lounge.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "spa",
+      "declared": true,
+      "hotel_key": "EXP082",
+      "id": "EXP082-F05",
+      "kind": "official_declared",
+      "scope": {
+        "key": "The Pearl Spa & Wellness Abu Dhabi",
+        "kind": "facility"
+      },
+      "source_ids": [
+        "fs-abudhabi-main"
+      ],
+      "text": "В отеле работает The Pearl Spa & Wellness Abu Dhabi.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "gender_separated_fitness",
+      "declared": true,
+      "hotel_key": "EXP082",
+      "id": "EXP082-F06",
+      "kind": "official_declared",
+      "scope": {
+        "key": "separate male/female fitness centres",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "fs-abudhabi-amenities"
+      ],
+      "text": "Фитнес-центры для мужчин и женщин разделены и имеют окна с видом на воду.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "dining_and_room_service",
+      "declared": true,
+      "hotel_key": "EXP082",
+      "id": "EXP082-F07",
+      "kind": "official_declared",
+      "scope": {
+        "key": "restaurants / lounges / 24-hour room service",
+        "kind": "services"
+      },
+      "source_ids": [
+        "fs-abudhabi-amenities"
+      ],
+      "text": "Есть рестораны и лаунжи, а также круглосуточное обслуживание в номере.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "child_program_age_and_amenities",
+      "declared": true,
+      "hotel_key": "EXP082",
+      "id": "EXP082-F08",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Kids For All Seasons age 4-12 / Teen Club / child amenities",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "fs-abudhabi-amenities"
+      ],
+      "text": "Kids For All Seasons рассчитана на возраст 4–12 лет; также перечислены Teen Club, коляски и стульчики.",
+      "valid_at_travel": "unverified"
+    }
+  ],
+  "hotel_ref": {
+    "catalog": "anytour",
+    "id": 12248
+  },
+  "material_limits": {
+    "identity_admission": "Цепочка legacy_catalog 52337 → AnyTour 12248 (ревизия 2) → local-tv 52337 (ревизия 2) и это целое досье независимо приняты решением ACCEPT_LOCAL19_BOUNDED_CONSUMER_IDENTITY_AND_CONTENT_ADMISSION по сохранённым оригинальным доказательствам. Native LOCAL остаётся pending, source_json=NULL; приёмка досье не означает приёмку нового native/provider source. Реальная Library приёмка, установка в справочник, чтение с реальным разрешённым selector и использование ИИ подтверждаются отдельно; runtime_admission_verified=false.",
+    "original_notes_ru": [
+      "Наличие вида на воду и состав помещений проверяются по выбранной категории; не заявлен собственный пляж.",
+      "Возраст 4–12 относится к детской программе, а не к общему допуску в отель."
+    ],
+    "recommendation_boundary": "Заявления об аудитории отеля не являются независимой оценкой качества или гарантией пригодности конкретному туристу.",
+    "scope": "Каждое целое утверждение применяется только к указанному объекту, категории, услуге, сезону или маршруту. Обещания тарифа, цены, наличия и будущей работы не добавлены.",
+    "temporal": "Сохранены сведения и дата чтения 22.11.2026. Текущая или будущая работа услуг не проверялась; срок действия и дата публикации не выдуманы."
+  },
+  "price_authority": "none",
+  "project_key": "anytour",
+  "record_hashes": {
+    "claims": {
+      "EXP082-F01": "494269eb1c63c1bbb308fc5690ce22dfb05f7a914a0de4faf96412c51f5883c0",
+      "EXP082-F02": "c8b3ee5360200f5492f32267fb2deec683e96cf6b77bd961c7b09fd61cde9c47",
+      "EXP082-F03": "f9a6e4983d92bbedc1b8f79ce3ae9300cb8f0c56cd795af1e50f68a22e4c32f7",
+      "EXP082-F04": "642fec6c435d548ee243f21f1133f0ddf80f20adf970e29fd1b7ec31c992bc65",
+      "EXP082-F05": "ee50b5e4b69254acd2e78a713bb40800967a86e0a4e003f94a8e685e6dfabf63",
+      "EXP082-F06": "e3ab317e3476e8b19961fab450bf51856e294ea39970f6e613528aaa897a4bc9",
+      "EXP082-F07": "5e0c7a8fa58ac3ceac2285f406b1d3d6dab5f4b222affddb8d00a0688f77b6ac",
+      "EXP082-F08": "9e24ccd53e67a75dda809960434d5378303804408381e1213e1a033626b6af45"
+    },
+    "sources": {
+      "fs-abudhabi-amenities": "b04a6acb40bfd09997543a29897f8a35fb66540d939b43645f02e7df6570339b",
+      "fs-abudhabi-main": "3be7115ee62cb6211f386d7e9a9fd1c10b2b842587e57eb4edac2d051249a85d",
+      "fs-abudhabi-rooms": "e02723733a41bf28aeb5715c734cdceadd6fb7909f2bb41c576018af6f234f8e"
+    }
+  },
+  "research_hotel_key": "EXP082",
+  "runtime_admission_verified": false,
+  "schema_version": "hotel_reference_v1",
+  "sources": [
+    {
+      "capture_bytes": 275663,
+      "capture_format": "raw_html",
+      "capture_sha256": "de0d6c000160a6c520953624cbd550ff584459991b441dc790d3e26bef6a165f",
+      "hotel_key": "EXP082",
+      "id": "fs-abudhabi-main",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: EXP082-F01, EXP082-F03, EXP082-F05. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:37.469427+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Luxury 5-Star Hotel Abu Dhabi | Four Seasons Hotel Al Maryah Island",
+      "url": "https://www.fourseasons.com/abudhabi/"
+    },
+    {
+      "capture_bytes": 109105,
+      "capture_format": "raw_html",
+      "capture_sha256": "0a82904a2045612db89e61d4de8aa97e860aa7610cd9fcf962f6e15d57d837a2",
+      "hotel_key": "EXP082",
+      "id": "fs-abudhabi-amenities",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: EXP082-F01, EXP082-F02, EXP082-F04, EXP082-F06, EXP082-F07, EXP082-F08. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:37.203630+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Luxury Hotel in Abu Dhabi | Family-Friendly | Four Seasons Abu Dhabi",
+      "url": "https://www.fourseasons.com/abudhabi/services-and-amenities/"
+    },
+    {
+      "capture_bytes": 319169,
+      "capture_format": "raw_html",
+      "capture_sha256": "021a67636885f2ca62e39608eb19e74c1c5b51caaaa711f392f2a7d6e62c1dc0",
+      "hotel_key": "EXP082",
+      "id": "fs-abudhabi-rooms",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Дополнительная официальная страница из исходного пакета; ни один из 206 текстовых фактов прямо не ссылается на эту запись. Не является новым основанием для фактов.",
+      "retrieved_at_utc": "2026-11-22T09:58:37.488933+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Abu Dhabi Suites and Accommodations | Four Seasons Hotel Al Maryah Island",
+      "url": "https://www.fourseasons.com/abudhabi/accommodations/"
+    }
+  ],
+  "status": "SEALED_AUTHORING_DATA_ONLY",
+  "trusted_selector_required": true
+}

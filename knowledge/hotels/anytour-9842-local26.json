@@ -1,0 +1,243 @@
+{
+  "binding_revision": "d98d2dd9608545b3dc0487a31eb53d9011edcec3a14aceb386ed582d81cf5330",
+  "coverage": {
+    "available_prepared_claim_count": 8,
+    "basis": "All whole source facts from the immutable reviewed LOCAL26 package; not independent AI content admission.",
+    "complete": false,
+    "selected_claim_count": 8
+  },
+  "facts": [
+    {
+      "aspect": "historic_district_location",
+      "declared": true,
+      "hotel_key": "EXP090",
+      "id": "EXP090-F01",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Sultanahmet / Hagia Sophia / Blue Mosque",
+        "kind": "location"
+      },
+      "source_ids": [
+        "fs-istanbul-main"
+      ],
+      "text": "Отель находится в Sultanahmet рядом с Hagia Sophia и Blue Mosque.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "building_and_courtyard",
+      "declared": true,
+      "hotel_key": "EXP090",
+      "id": "EXP090-F02",
+      "kind": "official_declared",
+      "scope": {
+        "key": "neoclassical building around enclosed garden courtyard",
+        "kind": "building"
+      },
+      "source_ids": [
+        "fs-istanbul-main",
+        "fs-istanbul-facts"
+      ],
+      "text": "Неоклассическое здание расположено вокруг закрытого садового двора.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "category_dependent_views",
+      "declared": true,
+      "hotel_key": "EXP090",
+      "id": "EXP090-F03",
+      "kind": "official_declared",
+      "scope": {
+        "key": "courtyard/garden/street; selected suites Hagia Sophia/Marmara Sea",
+        "kind": "accommodation_listing"
+      },
+      "source_ids": [
+        "fs-istanbul-main",
+        "fs-istanbul-rooms"
+      ],
+      "text": "Виды зависят от категории: двор, сад или улицы; отдельные люксы имеют виды на Hagia Sophia либо Marmara Sea.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "room_occupancy",
+      "declared": true,
+      "hotel_key": "EXP090",
+      "id": "EXP090-F04",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Four Seasons Room with two queen beds; 2 adults + 2 children",
+        "kind": "room_category"
+      },
+      "source_ids": [
+        "fs-istanbul-rooms"
+      ],
+      "text": "Four Seasons Room с двумя queen beds допускает 2 взрослых и 2 детей.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "restaurant_and_garden_facilities",
+      "declared": true,
+      "hotel_key": "EXP090",
+      "id": "EXP090-F05",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Avlu / winter garden / pergola",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "fs-istanbul-amenities"
+      ],
+      "text": "Перечислены ресторан Avlu, зимний сад и зона отдыха под перголой.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "spa_and_fitness",
+      "declared": true,
+      "hotel_key": "EXP090",
+      "id": "EXP090-F06",
+      "kind": "official_declared",
+      "scope": {
+        "key": "spa / fitness centre",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "fs-istanbul-rooms",
+        "fs-istanbul-amenities"
+      ],
+      "text": "Есть спа и фитнес-центр.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "pool_at_other_property",
+      "declared": true,
+      "hotel_key": "EXP090",
+      "id": "EXP090-F07",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Four Seasons Istanbul at the Bosphorus pool; not onsite",
+        "kind": "other_property_facility"
+      },
+      "source_ids": [
+        "fs-istanbul-amenities"
+      ],
+      "text": "Доступ к бассейну предоставляется в другом объекте сети — Four Seasons Istanbul at the Bosphorus.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "family_and_room_service",
+      "declared": true,
+      "hotel_key": "EXP090",
+      "id": "EXP090-F08",
+      "kind": "official_declared",
+      "scope": {
+        "key": "child amenities / babysitting / 24-hour room service",
+        "kind": "services"
+      },
+      "source_ids": [
+        "fs-istanbul-amenities"
+      ],
+      "text": "Для семей предусмотрены детские принадлежности и няня; предоставляется круглосуточное обслуживание в номере.",
+      "valid_at_travel": "unverified"
+    }
+  ],
+  "hotel_ref": {
+    "catalog": "anytour",
+    "id": 9842
+  },
+  "material_limits": {
+    "identity_admission": "Цепочка legacy_catalog 17423 → AnyTour 9842 (ревизия 2) → local-tv 17423 (ревизия 2) и это целое досье независимо приняты решением ACCEPT_LOCAL19_BOUNDED_CONSUMER_IDENTITY_AND_CONTENT_ADMISSION по сохранённым оригинальным доказательствам. Native LOCAL остаётся pending, source_json=NULL; приёмка досье не означает приёмку нового native/provider source. Реальная Library приёмка, установка в справочник, чтение с реальным разрешённым selector и использование ИИ подтверждаются отдельно; runtime_admission_verified=false.",
+    "original_notes_ru": [
+      "Не приписывать этому объекту бассейн на собственной территории: официальный источник направляет к Bosphorus.",
+      "Вместимость 2 взрослых + 2 детей относится только к указанной категории Four Seasons Room."
+    ],
+    "recommendation_boundary": "Заявления об аудитории отеля не являются независимой оценкой качества или гарантией пригодности конкретному туристу.",
+    "scope": "Каждое целое утверждение применяется только к указанному объекту, категории, услуге, сезону или маршруту. Обещания тарифа, цены, наличия и будущей работы не добавлены.",
+    "temporal": "Сохранены сведения и дата чтения 22.11.2026. Текущая или будущая работа услуг не проверялась; срок действия и дата публикации не выдуманы."
+  },
+  "price_authority": "none",
+  "project_key": "anytour",
+  "record_hashes": {
+    "claims": {
+      "EXP090-F01": "51f3002c86758f5e5dd82a65178ffd9c18ac2f7731c7fc44027ab5d2b98718ce",
+      "EXP090-F02": "803de5142536e8f113e0d15ddb2f9b9bd8d7b161b165ffe7efc5d77a921ff84a",
+      "EXP090-F03": "f99089783bbdfea90f46edfb5a262ed2b48e5b0e95434504a9b80ca6dbfc1fcb",
+      "EXP090-F04": "ad4386afd6c83ee24218900d920a82f6378cdee856e0ee2e6b45d17292863a11",
+      "EXP090-F05": "ea3c77fc9d5ec06827eaf05018eea8b53c87b09a7c6f1a5eaa50e5a9fcfc4f48",
+      "EXP090-F06": "34798c9556ed84abf615531ab9840a38c18353ce3fc3d839de3ba7520d195c44",
+      "EXP090-F07": "32f8308f5308bf40579121176f88dc658b84ce3b7f17f0808c98f18edb7659e6",
+      "EXP090-F08": "8e27429eaa18438d68e9b14b0e74120af05633b22c06a2d3a8607651c2a1e4f5"
+    },
+    "sources": {
+      "fs-istanbul-amenities": "958769109ae7a3c309cf2772ddb1894da826253a4e2c11c10d91c24fb3389a9f",
+      "fs-istanbul-facts": "e64f93e82838a9ac76357aca82fd5ac33a7b8fa35bd7e3e2f57b726bf2c194f3",
+      "fs-istanbul-main": "1c06500e3413b20b17494e606093481946f4b61dff3b79e148d45baa522573b5",
+      "fs-istanbul-rooms": "40f7a1dc471c1124d8164e35c02b351592a6bc6c9628d8fcba83c354efeb4eac"
+    }
+  },
+  "research_hotel_key": "EXP090",
+  "runtime_admission_verified": false,
+  "schema_version": "hotel_reference_v1",
+  "sources": [
+    {
+      "capture_bytes": 239819,
+      "capture_format": "raw_html",
+      "capture_sha256": "e0aa4e86239a2309a40b7b0142417ac3048df2603b489df5220788b02506b563",
+      "hotel_key": "EXP090",
+      "id": "fs-istanbul-main",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: EXP090-F01, EXP090-F02, EXP090-F03. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:40.966489+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Luxury 5-Star Hotel in Sultanahmet, Istanbul | Four Seasons Istanbul",
+      "url": "https://www.fourseasons.com/istanbul/"
+    },
+    {
+      "capture_bytes": 107009,
+      "capture_format": "raw_html",
+      "capture_sha256": "deb97b17547475c2a22d99c0471ca2d32f47e2b0fe7de6bbd87030ea1155d170",
+      "hotel_key": "EXP090",
+      "id": "fs-istanbul-amenities",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: EXP090-F05, EXP090-F06, EXP090-F07, EXP090-F08. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:40.958777+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Services &amp; Amenities | Four Seasons Hotel Istanbul at Sultanahmet",
+      "url": "https://www.fourseasons.com/istanbul/services-and-amenities/"
+    },
+    {
+      "capture_bytes": 277570,
+      "capture_format": "raw_html",
+      "capture_sha256": "bf053bec170498b8459787b63df744d4254860b5b6463ad7b5224d65de55431f",
+      "hotel_key": "EXP090",
+      "id": "fs-istanbul-rooms",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: EXP090-F03, EXP090-F04, EXP090-F06. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:40.883586+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Old Town Sultanahmet Suites &amp; Rooms in Istanbul | Four Seasons",
+      "url": "https://www.fourseasons.com/istanbul/accommodations/"
+    },
+    {
+      "capture_bytes": 41391,
+      "capture_format": "raw_html",
+      "capture_sha256": "a4af4e707b22b07f1080aea54a6ccf43fb965fc5e964b15d603a35fa37ccc744",
+      "hotel_key": "EXP090",
+      "id": "fs-istanbul-facts",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: EXP090-F02. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:49.879687+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Hotel Facts | Four Seasons Hotel Istanbul At Sultanahmet",
+      "url": "https://press.fourseasons.com/istanbul/hotel-facts/"
+    }
+  ],
+  "status": "SEALED_AUTHORING_DATA_ONLY",
+  "trusted_selector_required": true
+}
