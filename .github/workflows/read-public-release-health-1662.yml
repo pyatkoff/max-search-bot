@@ -1,0 +1,19 @@
+name: Read public health for exact hotel release
+on:
+  push:
+    branches: [audit/1566-next-release-admission-1664]
+    paths: [.github/workflows/read-public-release-health-1662.yml]
+permissions: {}
+jobs:
+  read:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Verify the exact failed public HEAD check
+        run: |
+          set -euo pipefail
+          root="$(curl --max-time 15 -sS -o /dev/null -I -w '%{http_code}' https://app.anytoour.ru/)" || root=000
+          restricted="$(curl --max-time 15 -sS -o /dev/null -I -w '%{http_code}' https://app.anytoour.ru/structured_events.log)" || restricted=000
+          printf 'root=%s restricted=%s\n' "$root" "$restricted"
+          case "$restricted" in 403|404) ;; *) exit 1 ;; esac
