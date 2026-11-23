@@ -1,0 +1,14 @@
+{
+  "kind": "CURRENT_CONTENT_COORDINATION_AFTER_VERIFIED49",
+  "comment_id": 6961029169,
+  "user_id": 226193297,
+  "updated_at": "2026-11-18T15:13:44Z",
+  "body_sha256": "a3424e8b03fa5cb121ff39f223fef9f7afcdff8064a0181e6c55200ba080eeff",
+  "carrier": "cd78ae068b51047d8e28356fd7dc73f65780dfac",
+  "historical_terminal_descriptor_sha256": "2ffab378a7a6b197435bd970710370bcaf9cac1e46f008325b61b0bb90f0cd68",
+  "historical_claim_body_sha256": "fa2aed7811ae13ca01c6249c4d9f3dc160726246bfa50378deeca758835d3d6d",
+  "current_claim_file_sha256": "286d04d30452daf10c0f36788a7063e5482a11512723e126669d193dbec22211",
+  "terminal49_rewritten": false,
+  "new_content_execution_authorized": false,
+  "fresh_price_handoff_granted_by_this_ack": false
+}

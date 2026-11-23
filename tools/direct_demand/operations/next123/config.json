@@ -1,0 +1,358 @@
+{
+  "baseline877": {
+    "expected_feeds": {
+      "hotel-posts-all.xml": "4993ee48e31735b05ad4c92d21b70660cfadc855c5c9a79a9fa48ee11c914bc1",
+      "hotel-posts-max.xml": "0995206f073ca5897eb01a05b86cdd804763d02705740d2ceae49ed0d6b7a337",
+      "hotel-posts-telegram.xml": "2d14d19fe3a869f1540da852bcfbc5491b0f611204264523d9a568b9b41b7608"
+    },
+    "previous_native_receipt_sha256": "78318d0d578714b6073e31eb3eed9999d1d0c7f20ef83dc1f7c1906a5f4ce632",
+    "seed_proof_path": "tools/direct_demand/operations/next123/seed877-proof.json",
+    "seed_proof_sha256": "3d2928e97c42a5bdcb41d8cc9d652410092c9eced1b9a63404fa967a93c6cda5"
+  },
+  "claim_body_sha256": "c14a53c422f8b2a38804d946de35873fd0dc64c8dc9187b4c85b9759d8b54844",
+  "claim_id": 6967624483,
+  "execution_mode": "WRITE_NEXT123",
+  "feed_date": "20261118",
+  "gate": "REVIEWED_NEXT123_FINITE",
+  "known_actual_hook_sha256": "483f9f1cd853fdf1808523e72d466e2acd0866ec6ae35de049ada38b5cc128f9",
+  "known_guard_sha256": "26fd1f24bc79f39cacc8cd112b6bd5e9dcde9f0bfde6061363955272435b4029",
+  "original_read_artifact": {
+    "archive_sha256": "d23218d0c6a8943304b1adfbb18e086d1faa919f38d188ea2d6370e3a56eea6b",
+    "artifact_id": 14406956282,
+    "head_sha": "8fb8ef8c9cca236066728ec8d17d6f65dadf2584",
+    "members": {
+      "p28.stdout.json": {
+        "path": "p28.stdout.json",
+        "sha256": "ae474b0f7f8b8210a1351a0cd06952d4821f26b5d067781045cbd04d19f88039"
+      },
+      "p29.stdout.json": {
+        "path": "p29.stdout.json",
+        "sha256": "c83089f654d3f3c608344aaed7e0edef061e43e8d563b737ebeb18866f1676b9"
+      },
+      "p30.stdout.json": {
+        "path": "p30.stdout.json",
+        "sha256": "29a76908bf96ecd1a0dc14bdfcca2e919e1bc5aad43daa277472eb3b68f2c2a7"
+      },
+      "p31.stdout.json": {
+        "path": "p31.stdout.json",
+        "sha256": "cfe6a0d7838ec21189bee461cfab3bcea5cdb273a2eeb18484e1bf12f2524e16"
+      },
+      "p32.stdout.json": {
+        "path": "p32.stdout.json",
+        "sha256": "11f7016a2d7616f51e8eaca1435dc22878bfe997e0c724ac5ce5f1d831bb23ba"
+      },
+      "p33.stdout.json": {
+        "path": "p33.stdout.json",
+        "sha256": "dc8f763eb036da1aca89e84eb596f2fe861127d534b8add220fb8d884b17f164"
+      },
+      "p34.stdout.json": {
+        "path": "p34.stdout.json",
+        "sha256": "0e1b4dfc183060dd81c7105532229a1e8e8e07ad4377dc87bb464ba6ba92772a"
+      },
+      "p35.stdout.json": {
+        "path": "p35.stdout.json",
+        "sha256": "3c92a04a21f9f2fae5d069d967e6b659dc3f940d19362bd66d2c49ccaf068a48"
+      },
+      "p36.stdout.json": {
+        "path": "p36.stdout.json",
+        "sha256": "ddf5f1652ab908409f03e21f37598c9ad3e9b391bfea827a8fba9fbe355d18f5"
+      },
+      "p37.stdout.json": {
+        "path": "p37.stdout.json",
+        "sha256": "9a522f990fb643533e7af093e1260cb98b7be7e38051e4ae55db6e15d0c4db87"
+      },
+      "p38.stdout.json": {
+        "path": "p38.stdout.json",
+        "sha256": "e2658b905476f0711c9e6ef4046a46fa7250ba1230e0e36b643735412b6eb584"
+      },
+      "p39.stdout.json": {
+        "path": "p39.stdout.json",
+        "sha256": "bef2ee6557bf9fac004ffde9823d284720745611d2d4dd077d83f65f9f061466"
+      },
+      "p40.stdout.json": {
+        "path": "p40.stdout.json",
+        "sha256": "99f63b2a786285e8da5b7189d1922ca46788c84888456a3a2eaee64aed181363"
+      },
+      "p41.stdout.json": {
+        "path": "p41.stdout.json",
+        "sha256": "1750f2e26223fcd8e214f64fb02028e04f8ef698e419839eb1d414090655049a"
+      }
+    },
+    "repository": "pyatkoff/max-search-bot",
+    "run_id": 44257794281
+  },
+  "parent_sha": "8fb8ef8c9cca236066728ec8d17d6f65dadf2584",
+  "permit_comment_id": 6972314498,
+  "price877_artifact": {
+    "archive_sha256": "724256a3698fff5c6e830a8c448e832a41005cc0bb30622591a7a9181ae3ab43",
+    "artifact_id": 14405665921,
+    "head_sha": "f767095344e5268c5ddfd26c71358a43b71bbaf4",
+    "members": {
+      "summary.json": {
+        "path": "summary.json",
+        "sha256": "986d63b78480cdc6af9ad3515a3fdee42167fa67fb1990f5ca2628790690296f"
+      }
+    },
+    "repository": "pyatkoff/poisk-turov-test",
+    "run_id": 44254140999
+  },
+  "price877_result_file": "summary.json",
+  "price877_result_sha256": "986d63b78480cdc6af9ad3515a3fdee42167fa67fb1990f5ca2628790690296f",
+  "reader_packet": {
+    "accepted_run_id": 44257794281,
+    "admission_config_sha256": "254527dbcb2e3bca1c13e020d197accd8155503a32493ea9da743fad73af8d42",
+    "files": {
+      "admission-config.json": {
+        "sha256": "254527dbcb2e3bca1c13e020d197accd8155503a32493ea9da743fad73af8d42",
+        "source_path": "tools/direct_demand/operations/next123/tail123/admission-config.json"
+      },
+      "intent.json": {
+        "sha256": "ee6cd7792ffd2ed87dcdaeb3fc2b123cb0a7af295e118132ab1909b7d833b51a",
+        "source_path": "tools/direct_demand/operations/next123/tail123/intent.json"
+      },
+      "namespace-provenance.json": {
+        "sha256": "8f6aece606fe58991d82d534c354645769063b404d40e92b9e2f5f668b2efc43",
+        "source_path": "tools/direct_demand/operations/next123/tail123/namespace-provenance.json"
+      },
+      "p28/read.php": {
+        "sha256": "b0b7a7c51562671aab3dd9bd80b73a2830f33be2d5b8536eaf37bb994cc611b8",
+        "source_path": "tools/direct_demand/operations/next123/tail123/p28/read.php"
+      },
+      "p29/read.php": {
+        "sha256": "59e03dfd0074b4b5e9caf4d00c9978180c3d930b1556c727c6e6635f006170b8",
+        "source_path": "tools/direct_demand/operations/next123/tail123/p29/read.php"
+      },
+      "p30/read.php": {
+        "sha256": "88a5527f27904f375b10c8dc893332614fed7cc7a9859625f5bda663029a436b",
+        "source_path": "tools/direct_demand/operations/next123/tail123/p30/read.php"
+      },
+      "p31/read.php": {
+        "sha256": "78dd6249b318b8ad2139a16cd9efedc4b2637ef50efa61c4a3f02bf00e426959",
+        "source_path": "tools/direct_demand/operations/next123/tail123/p31/read.php"
+      },
+      "p32/read.php": {
+        "sha256": "cc0e9f9b1438e49f1ae1a1938fbdb651a02a6b180eacdfccbdffe79820b76764",
+        "source_path": "tools/direct_demand/operations/next123/tail123/p32/read.php"
+      },
+      "p33/read.php": {
+        "sha256": "c5257bae2570edbd6fbb293291b5727a3fff3e87b7283a2b557a9ab4b668c7a9",
+        "source_path": "tools/direct_demand/operations/next123/tail123/p33/read.php"
+      },
+      "p34/read.php": {
+        "sha256": "ff49835f44f4c3d9d6bbc32f32088277b0aaa620b8e8b11cfb9e0bf797d3e3e6",
+        "source_path": "tools/direct_demand/operations/next123/tail123/p34/read.php"
+      },
+      "p35/read.php": {
+        "sha256": "034ab41dcd0a705f8a0b8b11aaceb996ae4ce2d70efea854bbfa11ca8eef2d96",
+        "source_path": "tools/direct_demand/operations/next123/tail123/p35/read.php"
+      },
+      "p36/read.php": {
+        "sha256": "bba9369766f20987e88aa755353152708fb315b549e7f7187a7bbfe77057ae47",
+        "source_path": "tools/direct_demand/operations/next123/tail123/p36/read.php"
+      },
+      "p37/read.php": {
+        "sha256": "e01461583fe58c9c306cae8c58ec3d975334ca23bf9f1a22a303ef8beb67c011",
+        "source_path": "tools/direct_demand/operations/next123/tail123/p37/read.php"
+      },
+      "p38/read.php": {
+        "sha256": "b766ff0d353630cf0cc9fbca3b3b3ca823e25b00d21706c1b86c52f80dd8c390",
+        "source_path": "tools/direct_demand/operations/next123/tail123/p38/read.php"
+      },
+      "p39/read.php": {
+        "sha256": "873febd1e933bad1e406f1eb1ab86eb4bc4242f20163e1e425868d05ba5fcf97",
+        "source_path": "tools/direct_demand/operations/next123/tail123/p39/read.php"
+      },
+      "p40/read.php": {
+        "sha256": "8ff80ee966632bbaebba67ea7f503cb0efee798f03e6475f26637bd8827b9105",
+        "source_path": "tools/direct_demand/operations/next123/tail123/p40/read.php"
+      },
+      "p41/read.php": {
+        "sha256": "2fdf2fae85d389e5699c73aa0d79b17d663b2e655ea548e42e16f2d7669a69da",
+        "source_path": "tools/direct_demand/operations/next123/tail123/p41/read.php"
+      },
+      "run123.py": {
+        "sha256": "7a085fc55a5ab17c459cf9f8fe39d46b86d03378293ddae779feb86871facdf7",
+        "source_path": "tools/direct_demand/operations/next123/tail123/run123.py"
+      }
+    },
+    "intent_sha256": "ee6cd7792ffd2ed87dcdaeb3fc2b123cb0a7af295e118132ab1909b7d833b51a",
+    "namespace_provenance_sha256": "8f6aece606fe58991d82d534c354645769063b404d40e92b9e2f5f668b2efc43",
+    "runner_sha256": "7a085fc55a5ab17c459cf9f8fe39d46b86d03378293ddae779feb86871facdf7",
+    "runtime_sha": "cc017ee5bb669f4c7c13efc91d5c5812a50e55f2",
+    "source_commit": "8fb8ef8c9cca236066728ec8d17d6f65dadf2584",
+    "source_mode": "PINNED_CHECKOUT_IDENTICAL_TO_ACCEPTED_READER"
+  },
+  "root_verified_route_source": {
+    "archive_sha256": "b29dace25c25f64b49c331d7246cb621666fadbecba97ec6669e1dff40d25f04",
+    "artifact_id": 14406754252,
+    "conclusion": "success",
+    "head_sha": "a65e667241ce3e910d33a50b3f3e2ce1bc9f66a0",
+    "repository": "pyatkoff/tour-max",
+    "run_attempt": 1,
+    "run_id": 44259319651
+  },
+  "route_projection_packet": {
+    "path": "tools/direct_demand/operations/next123/route123-root-projection.json",
+    "sha256": "9f7d59bbd2743389300298d241f11b5fe9f7746593f1ce46ab0ff4a2dd98214d"
+  },
+  "runtime_acceptance": {
+    "deploy_run_id": 44187866614,
+    "head_sha": "cc017ee5bb669f4c7c13efc91d5c5812a50e55f2",
+    "native_acceptance_sha256": "94fcf6d58e822bf28a97d9cec21d7bc88ff0032094b64938ff8a8cd10cbc738e",
+    "native_read_run_id": 44193534466,
+    "native_read_source_head_sha": "a73d0ad58038d9aa19990897e5e7dfa4c153139e",
+    "state": "DEPLOYED_AND_NATIVE_ACCEPTED"
+  },
+  "runtime_native_artifact": {
+    "archive_sha256": "8a3180c9b68e9099eb876e4caf83d9375734f1b1394b8ff2b97953ae21009402",
+    "artifact_id": 14377658127,
+    "head_sha": "a73d0ad58038d9aa19990897e5e7dfa4c153139e",
+    "members": {
+      "p01.stdout.json": {
+        "path": "native-runtime.json",
+        "sha256": "94fcf6d58e822bf28a97d9cec21d7bc88ff0032094b64938ff8a8cd10cbc738e"
+      }
+    },
+    "repository": "pyatkoff/max-search-bot",
+    "run_id": 44193534466
+  },
+  "runtime_native_expected_fields": {
+    "db_writes": 0,
+    "deferred_count": 0,
+    "feed_rows": 10,
+    "installed_sha": "cc017ee5bb669f4c7c13efc91d5c5812a50e55f2",
+    "message_sends": 0,
+    "ok": true,
+    "private_binding_count": 10,
+    "provider_calls": 0,
+    "scope_hotels": 10
+  },
+  "runtime_native_file": "native-runtime.json",
+  "runtime_native_runtime_path": "installed_sha",
+  "scope": {
+    "counts": [
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10,
+      9,
+      10,
+      10,
+      10,
+      10,
+      3,
+      1
+    ],
+    "final_pairs": 1000,
+    "initial_pairs": 877,
+    "new_hotels": 123,
+    "order": [
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41
+    ],
+    "posts": 0,
+    "prefix_replay": false,
+    "provider_calls": 0
+  },
+  "source_sha256": {
+    "tools/direct_demand/operations/commercial-channel-hotel-feeds-20261113-update10-nightly-guard.php": "26fd1f24bc79f39cacc8cd112b6bd5e9dcde9f0bfde6061363955272435b4029",
+    "tools/direct_demand/operations/monitor-price-contract.php": "3c61a260d9c40f7741d644a9531aebea58790595ae2adbad6ff8163975621ede",
+    "tools/direct_demand/operations/next123/base_compiler/prepare_feed217.py": "8499ff729a194e0bdc62c5c505a857ee125c295f741680689a9cbcaf2af8af14",
+    "tools/direct_demand/operations/next123/compiler_bridge123.py": "56bede24c063adebbbf3987b6a97e4b7ae9ab01a078770d7ebb32f14456e872b",
+    "tools/direct_demand/operations/next123/execute_feed123.py": "e79ed484d249acd2248787c683f42d1bb2cf5609d492c1a8c6d8142d6be34fbf",
+    "tools/direct_demand/operations/next123/finite_feed123.py": "76115287c56c7f8f3e950901f92d40306e236dacbb33eed607af191d04dece98",
+    "tools/direct_demand/operations/next123/immutable_source_cache.py": "4fb4c879469877c612d2d101eba89214806563a026c9e2e38905875dd95a99f0",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p28/approval.json": "2ba7bbb65da36081a3a1ac85bd6cbebccd45834a3818826718e34807f75977f8",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p28/manifest.json": "9f1b7634532f325d0a570de130d30d1720dd445a77052c54f02872c55cf2c004",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p28/original-native-output.jsonl": "2a7053c38495c155bace1670ff516343d70b565e7a3dfb8155dde3c1d87f4a04",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p29/approval.json": "9b3873fa4db91e8a452662d5431f9a6d00e54ff12c737a6dda8e4890a1adb733",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p29/manifest.json": "ac2f2645e53aee9921bc940640e83a04ab54aeb1af54c289c461a13058ea7909",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p29/original-native-output.jsonl": "8c3152f794101f314e3e49c3cb14a94a2496d953efa7c0f2909c2e7b8d53a327",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p30/approval.json": "371f8ce01a715b4290ee609a9320498333eb31374a177b4bc1301443947fbdeb",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p30/manifest.json": "39d3526fea398dd66ea60d33fb16ebabc25f15503e065d77a3149de143140501",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p30/original-native-output.jsonl": "4c2b982d15c41f0d9061c91ce28fff7386a100291b206b8901fb2b2b86521f5a",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p31/approval.json": "f8578b9859f699c432226f348278ee657b67f5e59ddb4629e3f1857fe59c8d82",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p31/manifest.json": "90088f20aa4894267354b14d9b51d8cbbe527e0a798305dac486429e751e0fd4",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p31/original-native-output.jsonl": "7cc9b87b94d6fe72c66bb49b20a004e6bf003a9610d7dec4fb2a6c0dcbca9b8d",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p32/approval.json": "a2aeb5dc88af3b91b847382e5502e292610c95b6f2b56f17239b1acfa94f6de9",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p32/manifest.json": "04fc72b226a5fb2054b27ec5a12dbfa9cee687d590ed841254e0dc19764b36e7",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p32/original-native-output.jsonl": "1127bea373f26b3d6d19ffbcd7f7882a04df2b12e50b7c08fe0b563f62c6f8e8",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p33/approval.json": "f6d8f4bcb9475457a67aa1e96e8cfdbd4b94ded6d63c934c2bea36afc0ad41f9",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p33/manifest.json": "a5fe848947bbb8d3522cf3ebb59fc17f4575afff33754fea75e34685870b067b",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p33/original-native-output.jsonl": "c04ef268bd962dfbde7ccf09b995ebab5c3b90b5e6d6e6ba0c28f7f298bbc201",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p34/approval.json": "56c5f54bed7972b9700790ab6d07c2c42f2c3345d477ae7c6067d940529deb4f",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p34/manifest.json": "74577f71d84ce074aa47e3c21daa136d38d716a6bd792f58540a9df3ce2e284e",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p34/original-native-output.jsonl": "0be5fde5e52b96a401852e6d5a1dcae95da3e55b944e04d4b7c68c0d0264a36b",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p35/approval.json": "a60819c1d7de99e858e1b9ea55a5ce397e0bd8f764a93551a0342fef13d4ab95",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p35/manifest.json": "f931d5d2a4d25b267194d354368bc6baeecbea109bf85454253ae9b7bbf1db38",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p35/original-native-output.jsonl": "83b2994b3b87e43426ba7674f6d2eb4e68c8e1059affa1baf33e598b0ef5145b",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p36/approval.json": "8eab33b62ffe9e1c9254252eef4a1c8d18dbc92421119215e8095cdda774517b",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p36/manifest.json": "44af4178ab3809ad21728c07896dcb9f3e09f9c7845cb8d18322f3207267d891",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p36/original-native-output.jsonl": "79a48a21028e6a620f9ec44b414fdb5f357305aa13eabf3168eda6d2bd7d1e8f",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p37/approval.json": "688d45015266457ca76428bcec1e4840517caee52a7ea4991462507ab149b9fa",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p37/manifest.json": "04bd9b95beeddde0ed98db37c0a3c4ebdff56eb09483a07d5584b94f9b8f910e",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p37/original-native-output.jsonl": "b3663039a1fc0ce0a8c42c7ff118ebda1c859767a62170fd04c8d04387f8c01c",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p38/approval.json": "c2c6af24ff7b6f1ec54042405962038b91a27566cb999d57117d7fc8cc368321",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p38/manifest.json": "c1fccfeb2a50e304479f3a7a5cdcb8a83bf2406a83dc7a38b61fc7b35103bb2a",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p38/original-native-output.jsonl": "a3cc7ca79df43b03fca2614a8708ce0088a4cfce3b7fbf3841850a36e3573831",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p39/approval.json": "8eb23d95f1a5f821432f9b6ea8b3913040556b417a9334a2291d947f721570dc",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p39/manifest.json": "8bcc70951969839bc529c0f979de382dc5c7d1bf35694cfd12a6520af192b6d2",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p39/original-native-output.jsonl": "df1b744d928771fe7fd9c941824f561567cafa5b82e4cd83a2a9ac893f5d6e34",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p40/approval.json": "f2ea533de4c9dfb468fe6d20555ec3b60b23b3fc74d82c75027ce21c62a74d0a",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p40/manifest.json": "fc6aa6afdb97f2acaf729132072f1d696256ee71294b43f5955be34825b36ca1",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p40/original-native-output.jsonl": "95081185611c5cf3dec0ad2982c9d282386733ea924210691fffdcb140475bf2",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p41/approval.json": "8c3e0cbb37f14db425137336a6dbee8aa708e92db93fbb5b525abf16688ea5d8",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p41/manifest.json": "875b7d4d912c3cc157fd6b5b7dbc22e71f0486b2e8d2edd234b5ab4f3332721d",
+    "tools/direct_demand/operations/next123/inventory/original-groups/p41/p41-original-native-output.jsonl": "57c12280d9a0be304f6b5ee6f740d791341626fd062dbf9d699716d1b32bb9cf",
+    "tools/direct_demand/operations/next123/inventory/reader-input123.json": "8d13a4bc065fdbcc4ed920fccc9ee57c0adca12b626a671d36981c11dcfaf40a",
+    "tools/direct_demand/operations/next123/inventory/recovered-inventory-next123.json": "b10c580f83bb994e22f705c6712ff3a17e188dcc13825aec82f131222fda0843",
+    "tools/direct_demand/operations/next123/inventory/recovered-route-publication-binding.json": "8462dfb9d319c8cef24ca742b49b328a77a6191bf547c87acd21192673c677cd",
+    "tools/direct_demand/operations/next123/nonwriting_queued217_guard.py": "5fa9881727735a875b9c6ae53343443d01ec7ec7bac09530e7cfd25353e2b349",
+    "tools/direct_demand/operations/next123/owner_permit_gate.py": "dc17ee04783f0198f2c6887432b3367e58a2bd270b9906a3ebbf1cba821a1f3c",
+    "tools/direct_demand/operations/next123/prepare_feed123.py": "ec72e075065cab74e0569892009188789a1d45b437c3a3f653e7e9bbce280757",
+    "tools/direct_demand/operations/next123/price_readback_handoff.py": "417c9d6bc5735f92661fbc480fc85146277fe8b24ad6d369466edc9ba61716e2",
+    "tools/direct_demand/operations/next123/probe_feed123_remote.py": "712abb8757f9f20abdc2a22f8320371fcdeb9dc99097511d064e0fd57ff8b645",
+    "tools/direct_demand/operations/next123/route123-root-projection.json": "9f7d59bbd2743389300298d241f11b5fe9f7746593f1ce46ab0ff4a2dd98214d",
+    "tools/direct_demand/operations/next123/route_read_lineage.py": "72eda1b9484925cac887f6de56537fa840086155bfef77c70af61df18cc1709a",
+    "tools/direct_demand/operations/next123/run_feed123_probe.py": "73316d977a573461c004b3abd44501d590cef943ae2fb0d80b5d4ccf7a0a86de",
+    "tools/direct_demand/operations/next123/seed877-proof.json": "3d2928e97c42a5bdcb41d8cc9d652410092c9eced1b9a63404fa967a93c6cda5",
+    "tools/direct_demand/operations/next123/stale_deploy217_guard.py": "5fe5944207a863e6d7bc7fb2ffd506777ab6b9e8521a2afc2043ffb87526c4d9",
+    "tools/direct_demand/operations/next123/static_preflight.py": "b83f1d7a4c70eb3af6698c58d643544615022c075ff69ff0b7235b4d9b979796",
+    "tools/direct_demand/operations/next123/tail123/admission-config.json": "254527dbcb2e3bca1c13e020d197accd8155503a32493ea9da743fad73af8d42",
+    "tools/direct_demand/operations/next123/tail123/intent.json": "ee6cd7792ffd2ed87dcdaeb3fc2b123cb0a7af295e118132ab1909b7d833b51a",
+    "tools/direct_demand/operations/next123/tail123/namespace-provenance.json": "8f6aece606fe58991d82d534c354645769063b404d40e92b9e2f5f668b2efc43",
+    "tools/direct_demand/operations/next123/tail123/p28/read.php": "b0b7a7c51562671aab3dd9bd80b73a2830f33be2d5b8536eaf37bb994cc611b8",
+    "tools/direct_demand/operations/next123/tail123/p29/read.php": "59e03dfd0074b4b5e9caf4d00c9978180c3d930b1556c727c6e6635f006170b8",
+    "tools/direct_demand/operations/next123/tail123/p30/read.php": "88a5527f27904f375b10c8dc893332614fed7cc7a9859625f5bda663029a436b",
+    "tools/direct_demand/operations/next123/tail123/p31/read.php": "78dd6249b318b8ad2139a16cd9efedc4b2637ef50efa61c4a3f02bf00e426959",
+    "tools/direct_demand/operations/next123/tail123/p32/read.php": "cc0e9f9b1438e49f1ae1a1938fbdb651a02a6b180eacdfccbdffe79820b76764",
+    "tools/direct_demand/operations/next123/tail123/p33/read.php": "c5257bae2570edbd6fbb293291b5727a3fff3e87b7283a2b557a9ab4b668c7a9",
+    "tools/direct_demand/operations/next123/tail123/p34/read.php": "ff49835f44f4c3d9d6bbc32f32088277b0aaa620b8e8b11cfb9e0bf797d3e3e6",
+    "tools/direct_demand/operations/next123/tail123/p35/read.php": "034ab41dcd0a705f8a0b8b11aaceb996ae4ce2d70efea854bbfa11ca8eef2d96",
+    "tools/direct_demand/operations/next123/tail123/p36/read.php": "bba9369766f20987e88aa755353152708fb315b549e7f7187a7bbfe77057ae47",
+    "tools/direct_demand/operations/next123/tail123/p37/read.php": "e01461583fe58c9c306cae8c58ec3d975334ca23bf9f1a22a303ef8beb67c011",
+    "tools/direct_demand/operations/next123/tail123/p38/read.php": "b766ff0d353630cf0cc9fbca3b3b3ca823e25b00d21706c1b86c52f80dd8c390",
+    "tools/direct_demand/operations/next123/tail123/p39/read.php": "873febd1e933bad1e406f1eb1ab86eb4bc4242f20163e1e425868d05ba5fcf97",
+    "tools/direct_demand/operations/next123/tail123/p40/read.php": "8ff80ee966632bbaebba67ea7f503cb0efee798f03e6475f26637bd8827b9105",
+    "tools/direct_demand/operations/next123/tail123/p41/read.php": "2fdf2fae85d389e5699c73aa0d79b17d663b2e655ea548e42e16f2d7669a69da",
+    "tools/direct_demand/operations/next123/tail123/run123.py": "7a085fc55a5ab17c459cf9f8fe39d46b86d03378293ddae779feb86871facdf7",
+    "tools/direct_demand/operations/prepare-publication-tail.py": "6db0ef9d8bb51d897387140c6f5c1d9e5b68bc33ffff41c9cea98621c927c4b8",
+    "tools/direct_demand/operations/publish-commercial-channel-hotel-feeds-20261103-1.php": "8609a2cf06d4a46738f934047d46744bdc54d3863e7c2921fdfec1a9be4b7a5e"
+  },
+  "target_mode_after_review": "WRITE_NEXT123"
+}

@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261117-35-v1",
+  "state": "PREPARED_NOT_SENT",
+  "button_text": "✈️ Узнать стоимость тура",
+  "expected_new_full_pairs": 9,
+  "photo_freeze_commit": "e53eede2df5dbc5da5f72b04c0ac8777819cd8dc",
+  "native_id_namespace": "Tourvisor",
+  "rows": [
+    {
+      "hotel_id": 22718,
+      "logical_id": "commercial-hotel-22718-v1",
+      "aliases": [
+        "Avani+ Mai Khao Phuket Suites & Villas",
+        "AVANI+ MAI KHAO PHUKET SUITES & VILLAS"
+      ],
+      "text": "✈️ Туры в Avani+ Mai Khao Phuket Suites & Villas\n📍 Пхукет, Таиланд.\n\nПросторные сьюты и виллы для семейного Пхукета: бассейн среди зелени, детский клуб и рестораны. В сьютах есть оборудованная кухня, а до песчаного Май Као около 300 метров через дорогу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "c6a5d974a86e699243e9b31da8261598c7d5b09c358df689918da314e08f3a84",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/22718.png",
+      "photo_sha256": "51d62263f6822153e12f1d51035cd7722865c1e69658912931120ca4d9b017ed",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=22718",
+        "https://www.avanihotels.com/uploads/minor/avani/documents/vmai/hotel-info/avani-mai-khao-phuket-suites-and-villa-fact-sheet.pdf?la=en"
+      ]
+    },
+    {
+      "hotel_id": 541,
+      "logical_id": "commercial-hotel-541-v1",
+      "aliases": [
+        "Amari Pattaya",
+        "AMARI OCEAN PATTAYA",
+        "AMARI ORCHID OCEAN TOWER",
+        "Amari Ocean Pattaya"
+      ],
+      "text": "✈️ Туры в Amari Pattaya\n📍 Паттайя, Таиланд.\n\nСемейная Паттайя с бассейнами, водными развлечениями и детским клубом. Рестораны и спа помогут отдохнуть между прогулками, а городской песчаный пляж находится примерно в 150 метрах через дорогу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "72135fce292d71a2e2cc628141fd081b3cd5c77e50ff3675828edd9a6e6d6950",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/541.png",
+      "photo_sha256": "0c1d2a5f97d65819489d3ec8d07d9bd5c909c56b7bd5e3a8235aaea20c3f93e8",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=541",
+        "https://www.amari.com/pattaya"
+      ]
+    },
+    {
+      "hotel_id": 2006,
+      "logical_id": "commercial-hotel-2006-v1",
+      "aliases": [
+        "Centara Grand Beach Resort Phuket",
+        "CENTARA GRAND BEACH RESORT PHUKET"
+      ],
+      "text": "✈️ Туры в Centara Grand Beach Resort Phuket\n📍 Пхукет, Таиланд.\n\nКарон для ярких семейных каникул: пляж перед отелем, бассейны и аквапарк с ленивой рекой. Пока дети заняты в клубе и на игровых площадках, взрослые могут выбрать спа или ужин у моря.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "c26626e04686f95cf2e63985cb188ccc04536cfece44b30fa078cb0182486619",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/2006.png",
+      "photo_sha256": "e8cf353aaaae00849067d7f92b1092e431953bb886ee0a9be936f5888425a0b7",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=2006"
+      ]
+    },
+    {
+      "hotel_id": 9385,
+      "logical_id": "commercial-hotel-9385-v1",
+      "aliases": [
+        "Cape Dara Resort",
+        "CAPE DARA RESORT"
+      ],
+      "text": "✈️ Туры в Cape Dara Resort\n📍 Паттайя, Таиланд.\n\nМорские панорамы северной Паттайи, два бассейна и рестораны для красивого отпуска. Есть детский клуб и спа-процедуры. У отеля галечный берег, поэтому бассейны особенно кстати.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "b42b46e2bcd5d05796f830723b5ca03213d84a7e715cfeb7e329764e6e8731ae",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/9385.png",
+      "photo_sha256": "9f1597ff438e109a5533496cf378fe756c1544091dbcf8a263c7dea3780c9b0e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=9385"
+      ]
+    },
+    {
+      "hotel_id": 3006,
+      "logical_id": "commercial-hotel-3006-v1",
+      "aliases": [
+        "Angsana Villas Resort Phuket",
+        "ANGSANA VILLAS RESORT PHUKET",
+        "OUTRIGGER LAGUNA RESORT AND VILLA"
+      ],
+      "text": "✈️ Туры в Angsana Villas Resort Phuket\n📍 Пхукет, Таиланд.\n\nПросторные сьюты и виллы в районе Лагуна для отдыха семьёй или своей компанией. Два бассейна, детский клуб и возможность пользоваться шаттлом по комплексу помогут провести отпуск в спокойном ритме.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "e64eb0d0668792e7da6e12c0b60556bae9032ddc61d85da4052746a1169d60ab",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/3006.png",
+      "photo_sha256": "affb677aa1f489fcbcc8fda965ddcfa635ec8aa019bf9b33043538942ffd1e6e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=3006",
+        "https://www.angsana.com/contact-us"
+      ]
+    },
+    {
+      "hotel_id": 82422,
+      "logical_id": "commercial-hotel-82422-v1",
+      "aliases": [
+        "Avani Chaweng Samui Hotel & Beach Club",
+        "AVANI CHAWENG SAMUI HOTEL & BEACH CLUB ADULTS ONLY"
+      ],
+      "text": "✈️ Туры в Avani Chaweng Samui Hotel & Beach Club\n📍 Самуи, Таиланд.\n\nСамуи для гостей от 18 лет: бассейн, пляжный клуб SEEN и песчаный Чавенг. Подойдёт для отпуска вдвоём или с друзьями, когда хочется совместить море и оживлённую курортную атмосферу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "4549cd5a7d59239ed1ffb9c33d2033b18bea49737710fa057b790e6b19a5bfab",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/82422.png",
+      "photo_sha256": "997026ed476d437801d4b9fb787c935bc3e81e9b63c63194bcacf864807d539e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82422"
+      ]
+    },
+    {
+      "hotel_id": 81140,
+      "logical_id": "commercial-hotel-81140-v1",
+      "aliases": [
+        "SAii Koh Samui Villas 12+",
+        "SAII KOH SAMUI VILLAS ADULTS ONLY 12+",
+        "SAII KOH SAMUI CHOENGMON"
+      ],
+      "text": "✈️ Туры в SAii Koh Samui Villas 12+\n📍 Самуи, Таиланд.\n\nВиллы с собственными бассейнами и тропический сад для гостей от 12 лет. Спокойный Самуи, спа и пляжный клуб у бассейна; на природном пляже каменистый вход в море.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "71437534b9d5ea2f054bfcc1c61a5d60ab5c58a351a9205041754318dc76cbeb",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/81140.png",
+      "photo_sha256": "178a18c65b23403db663ea61fa2bc6239f4e198d6ea8c93e4cd4b822ae3a0e87",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=81140"
+      ]
+    },
+    {
+      "hotel_id": 8020,
+      "logical_id": "commercial-hotel-8020-v1",
+      "aliases": [
+        "The Lamai Samui",
+        "THE LAMAI SAMUI",
+        "LE MERIDIEN KOH SAMUI RESORT & SPA"
+      ],
+      "text": "✈️ Туры в The Lamai Samui\n📍 Самуи, Таиланд.\n\nТропический сад у пляжа Ламай, бассейн, рестораны и спа для спокойного Самуи. Можно выбрать сьют или виллу и проводить дни между морем, отдыхом у воды и тайскими ужинами.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "ee9b6cc5ec50518d38efbf59fb4b4be184cbb2807341c6de4ab542a4e535dcec",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/8020.png",
+      "photo_sha256": "cbf6d5ebb29174f59c4e8f8c157406918e9ccb532ee3df06d9966863399c16e3",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8020"
+      ]
+    },
+    {
+      "hotel_id": 51931,
+      "logical_id": "commercial-hotel-51931-v1",
+      "aliases": [
+        "Amari Bangsaen",
+        "AMARI BANGSAEN",
+        "TIDE RESORT"
+      ],
+      "text": "✈️ Туры в Amari Bangsaen\n📍 Банг Саен, Таиланд.\n\nБанг Саен для спокойных дней у моря и прогулок по местным кафе. Отель расположен напротив пляжа; бассейн, спа и детский клуб помогут устроить короткий отпуск или семейные каникулы.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "f0a3acc59eb97aadaf56ee314b958514df508cff03ece28e088bbfb7b0e804f2",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/51931.png",
+      "photo_sha256": "d1dc5f43b42a7358d7c4bafc34975cb26d5e9654d9666cb7c4926ad8a2a1e4ed",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=51931",
+        "https://www.amari.com/bangsaen/location",
+        "https://jp.amari.com/bangsaen/about-us"
+      ]
+    }
+  ]
+}

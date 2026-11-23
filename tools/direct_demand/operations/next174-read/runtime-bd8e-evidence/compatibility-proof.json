@@ -1,0 +1,264 @@
+{
+  "base": "9ba896c12ae9ce0f7d6e5d31564bcf8830ebbeac",
+  "target": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+  "component_matrix": [
+    {
+      "path": "integrations/ChannelPostApiTransport.php",
+      "accepted_blob": "300634d77cb9fddf51adf9869974f956cca6e3f9",
+      "old_blob": "300634d77cb9fddf51adf9869974f956cca6e3f9",
+      "new_blob": "300634d77cb9fddf51adf9869974f956cca6e3f9",
+      "unchanged": true
+    },
+    {
+      "path": "migrations/033_channel_post_context.sql",
+      "accepted_blob": "0530458030a4bfe6b6cc55d1e5e441745c29b947",
+      "old_blob": "0530458030a4bfe6b6cc55d1e5e441745c29b947",
+      "new_blob": "0530458030a4bfe6b6cc55d1e5e441745c29b947",
+      "unchanged": true
+    },
+    {
+      "path": "migrations/036_channel_post_member_delivery.sql",
+      "accepted_blob": "1bda463e52b33130ad12752ddef4ee5c92699c05",
+      "old_blob": "1bda463e52b33130ad12752ddef4ee5c92699c05",
+      "new_blob": "1bda463e52b33130ad12752ddef4ee5c92699c05",
+      "unchanged": true
+    },
+    {
+      "path": "migrations/040_channel_post_reconciliation.sql",
+      "accepted_blob": "0f24b838eacd45333c5ade9a2991d060488c6035",
+      "old_blob": "0f24b838eacd45333c5ade9a2991d060488c6035",
+      "new_blob": "0f24b838eacd45333c5ade9a2991d060488c6035",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostAdminService.php",
+      "accepted_blob": "b80eefc801054bfe6fdb58ec345ecdf687b2e89a",
+      "old_blob": "b80eefc801054bfe6fdb58ec345ecdf687b2e89a",
+      "new_blob": "b80eefc801054bfe6fdb58ec345ecdf687b2e89a",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostAutomationService.php",
+      "accepted_blob": "c6386e155d42bc83970edc95f35b3ebeb5140533",
+      "old_blob": "c6386e155d42bc83970edc95f35b3ebeb5140533",
+      "new_blob": "c6386e155d42bc83970edc95f35b3ebeb5140533",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostButtonTransport.php",
+      "accepted_blob": "7b6711f1de63000346d8e5789f2dbb7f725535b8",
+      "old_blob": "7b6711f1de63000346d8e5789f2dbb7f725535b8",
+      "new_blob": "7b6711f1de63000346d8e5789f2dbb7f725535b8",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostEntryService.php",
+      "accepted_blob": "1982ff7368763edf8b7238c3142e3cc28579e991",
+      "old_blob": "1982ff7368763edf8b7238c3142e3cc28579e991",
+      "new_blob": "1982ff7368763edf8b7238c3142e3cc28579e991",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostMaxAlbumRecovery.php",
+      "accepted_blob": "de266cd068587cc3b2ff83f308a966ea66887a04",
+      "old_blob": "de266cd068587cc3b2ff83f308a966ea66887a04",
+      "new_blob": "de266cd068587cc3b2ff83f308a966ea66887a04",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostMediaService.php",
+      "accepted_blob": "f794efd0f6f24df916e18909ff6281b0bc928433",
+      "old_blob": "f794efd0f6f24df916e18909ff6281b0bc928433",
+      "new_blob": "f794efd0f6f24df916e18909ff6281b0bc928433",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostMemberDeliveryService.php",
+      "accepted_blob": "20c1d7984898b2a5996a5f9e20e4d2d8c20b4778",
+      "old_blob": "20c1d7984898b2a5996a5f9e20e4d2d8c20b4778",
+      "new_blob": "20c1d7984898b2a5996a5f9e20e4d2d8c20b4778",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostReconciliationService.php",
+      "accepted_blob": "43133f576845c14446102dedfffb7f0de2d4ba1c",
+      "old_blob": "43133f576845c14446102dedfffb7f0de2d4ba1c",
+      "new_blob": "1fa260e9720a8421227ecbe740bfbe33a42e398d",
+      "unchanged": false
+    },
+    {
+      "path": "services/ChannelPostReconciliationState.php",
+      "accepted_blob": "d9583ceca80d1424a44ade3561c21282a23a52f0",
+      "old_blob": "d9583ceca80d1424a44ade3561c21282a23a52f0",
+      "new_blob": "d9583ceca80d1424a44ade3561c21282a23a52f0",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostRegistryService.php",
+      "accepted_blob": "94fb1988ac8caf90dc5103aa23c58e7aad6ea691",
+      "old_blob": "94fb1988ac8caf90dc5103aa23c58e7aad6ea691",
+      "new_blob": "cf42a44257d1a58d1ff516678615cf9d01f45b55",
+      "unchanged": false
+    },
+    {
+      "path": "services/ChannelPostRuntime.php",
+      "accepted_blob": "2f1dd9b77474fdbaa92f0402f3b0aa170c595474",
+      "old_blob": "2f1dd9b77474fdbaa92f0402f3b0aa170c595474",
+      "new_blob": "2f1dd9b77474fdbaa92f0402f3b0aa170c595474",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostTelegramAlbum.php",
+      "accepted_blob": "faa1a14bc279a4af33936282126bf0d46e343040",
+      "old_blob": "faa1a14bc279a4af33936282126bf0d46e343040",
+      "new_blob": "faa1a14bc279a4af33936282126bf0d46e343040",
+      "unchanged": true
+    },
+    {
+      "path": "services/ChannelPostWebhookConfigService.php",
+      "accepted_blob": "d5fdcb056088f1e3a541b4046325d97eef6417d9",
+      "old_blob": "d5fdcb056088f1e3a541b4046325d97eef6417d9",
+      "new_blob": "d5fdcb056088f1e3a541b4046325d97eef6417d9",
+      "unchanged": true
+    },
+    {
+      "path": "services/ConversationDb.php",
+      "accepted_blob": "bb6281faf55aca7beeae7f8a57389d19751936f7",
+      "old_blob": "bb6281faf55aca7beeae7f8a57389d19751936f7",
+      "new_blob": "bb6281faf55aca7beeae7f8a57389d19751936f7",
+      "unchanged": true
+    },
+    {
+      "path": "services/MaxTlsConfig.php",
+      "accepted_blob": "032c0211ee3f39c6f0d27c669abd5b467e321dea",
+      "old_blob": "032c0211ee3f39c6f0d27c669abd5b467e321dea",
+      "new_blob": "032c0211ee3f39c6f0d27c669abd5b467e321dea",
+      "unchanged": true
+    },
+    {
+      "path": "services/MaxTransport.php",
+      "accepted_blob": "2cb4f8786b4704a8e62a3a9c40dc2cc73dad6159",
+      "old_blob": "2cb4f8786b4704a8e62a3a9c40dc2cc73dad6159",
+      "new_blob": "2cb4f8786b4704a8e62a3a9c40dc2cc73dad6159",
+      "unchanged": true
+    },
+    {
+      "path": "services/ProjectConfig.php",
+      "accepted_blob": "63c17c8103412f8cff8cdcc4bbb062e744106af9",
+      "old_blob": "63c17c8103412f8cff8cdcc4bbb062e744106af9",
+      "new_blob": "63c17c8103412f8cff8cdcc4bbb062e744106af9",
+      "unchanged": true
+    },
+    {
+      "path": "services/ProjectConfiguration.php",
+      "accepted_blob": "07019d473c588e3386ace42977db93092e8112e3",
+      "old_blob": "07019d473c588e3386ace42977db93092e8112e3",
+      "new_blob": "07019d473c588e3386ace42977db93092e8112e3",
+      "unchanged": true
+    }
+  ],
+  "unchanged_components": 20,
+  "changed_components": 2,
+  "method_proof": {
+    "ChannelPostRegistryService": {
+      "all_original_methods_byte_identical": true,
+      "original_method_count": 51,
+      "added_methods": [
+        "confirmTelegramEditReadFailure",
+        "validateTelegramEditConfirmation"
+      ],
+      "original_method_sha256": {
+        "__construct": "ee69f4403294a59b8e212012107619b6215cf219a56cc53f00d82cbf3865cf90",
+        "memberDelivery": "21a25406b24a4b76dbf786f8d10a2f06466baa7f3890d57951ac623efb8877a6",
+        "configureChannel": "6e00d75fd74c3e900bdd82d35b7e4a5ab67809a0d58ef5daa38a770e9c9a3009",
+        "listChannels": "23b9ecf068ffbf0f0ed1095ac53bbde4b76f1498060bb3863bd1aaa708ce2abf",
+        "canonicalChannelId": "d698b3a5b870ad8c5945646f53dd90f02ac37c7244d48add9c6a8f5b3bc6e242",
+        "channel": "832439941e5ecf23e855092947d5bfd4698f8754557eba1560ded03e8f78dc1d",
+        "registerPublication": "65ff5b1d42d696528c7a76785a7ff9f0eea6b7ba713264e00800a97ea2d819fa",
+        "registerProviderObservation": "ffe7e73961906bc04758e08adf106c9f0e7018d3a86b5cfdb2474f38266f0383",
+        "recoverUnsupportedMaxVideoObservation": "ce4700ecb8e062137c7e3337566b5bee29872fc1cbc07c98668f685c599862de",
+        "maxVideoRecoveryContent": "5ec95210efa3e9299dfbb9ce19ae52d5d8da1bb8c3bf45d2adc965577057ea63",
+        "registerObservation": "ee9dc55b60a302129dccd4e1117badeeed0989372863111c79883d8c615d931f",
+        "resolveToken": "b687971eefa5bcbe00a0bc86a65791c94cb0aa0137150824c908cf249b0ae13c",
+        "publication": "0c52fdfd1106593fb36278d8c87369ec17ed1a03e2025cda430b08adba057a7c",
+        "pendingPublications": "25d50c56f53a95728279733c00eda774f9ac0f7bceb19b9a4f6edb4597b9cfbd",
+        "claimPublication": "f9df8650146b2406d9ef3802ca6dfa399387b099b57fb9c50e5e77f12c57ad24",
+        "telegramReadFailureRecoveryEligible": "3e99be6aa4147bee6231c6e230cd1af8a8fe1e74d3212d3bd732960b8da73999",
+        "telegramReadFailureRecoveryDigest": "67d08fcd837bf9aa6d96d0f91d28a1c2bd8449ab124d5ccc252bdd85ccb2ef53",
+        "claimTelegramReadFailure": "b4e2f1502c5a51b3cadd6108321e725a72e784796a0f7a6ef445861b62750e12",
+        "retainTelegramRecoveryHistory": "d74f2f13a096fe50fd00084e622a62856ecc33065b8075cc805959cd11a67b64",
+        "markExternalWriteStarted": "e09862fed01302ef4833c45ac9b769419e90daae23de846b0b401cf3fe838bdd",
+        "finishPublication": "880303ee4ca07d98293024f5e3d939bf6e2c0f1b477720814a0cb2cc5b4da2b9",
+        "confirmObservedButton": "88359187542b66aa4ed97e79eef7d5c290b0f9da2106a3b909f806a29474a875",
+        "maxReadFailureConfirmationEligible": "6557301e7c2302560be35157aaadd2ec23aaf3f6ea4009f8075186c0097ceb8b",
+        "confirmMaxReadFailure": "8a8bb27f276a0b461c052bc9564c0877529b7e8efb9484d268ba41ee5e8f48f1",
+        "recordEntry": "4da1b7c46d1dbecae692b4e755517efde15fcfffd9ba3581289c2a61698f22be",
+        "preservedEntry": "fe151143c8af1c2a4fb30aeac94bb1359db4f88e78e4421885b63602ebfbde2b",
+        "recordUnavailableEntry": "c78e63782bed2ca0ee6700974208715b4c8ecb5d0e4cae9626ab4ee3795ab535",
+        "managerContext": "80184764a1c103c6dd96da5d20e020cfbd158c8e4aa2b1aa9b8f52dd45d6a2cc",
+        "versionForEntry": "2d8d1aa632c674a5a26ed9b777b8ff1257c927ac6d05c94b904655aa1a7ddc15",
+        "versionForPublication": "f645bb34e9c34c61aca0045ed2be9de4f484102585114e2bdba569730bf287c6",
+        "publicationRow": "11da9c4e485021f70e8dfaa4c11fbcb66869f2b73de6ccc684fffd4f463d6ad3",
+        "operation": "68a46c2799daa49f5be912c4223d3f9fba9d8167437c231e8e10e1942b20ba94",
+        "snapshot": "f6dcaf8043eace5b4029636b2561359e62b1dfc114b5c5838043dfec484fff3c",
+        "validateTree": "5fbaa096730946033cb558520ffea2754725e425d3652f3d7262981f5fed3436",
+        "canonicalArray": "1dffc94a179ad2c140362a09f0067afad11efdcd38dfc78eb6dd6ab3890c00c0",
+        "revisionTime": "543ba4584440a47ea2c74bf57350318fb425983251d282e80c6db4612d8c2fce",
+        "telegramSequence": "553a0ec63e7667db5dc6760a379e2bd08d57d7c93ae27cbc52a4f4963d753adf",
+        "validSequence": "21eb1a0574760e6d41a297298bdd7307d876b438868cd20b76948f36c7af4ad4",
+        "compareSequence": "b0d64999c28e5fa4b3faa5dbc5b3e8d5bedfaffbfdb3ed3b3d4f772d0a63bec5",
+        "receipt": "1087478efd892675dce3c2b9e05a0e5fc52547e32ba8579ede91f4200a6eccbf",
+        "botUrl": "5baec0c5084f6f20690912964d4a9de54e6c1cd4baa3111581f7ba6457f06fd9",
+        "postUrl": "cc733a141a6c8f6abb318d7cd99c43ad9a264ad0befb24b15b32bacfbcfa520a",
+        "platform": "9d06d0a042c13c1cc123ff1123876915b79a79984181f1c4b0c44ed561cae763",
+        "identity": "397a7d490db58f13a78d5ed74b675a943fa5925111191f3367b5595c92c5f384",
+        "text": "c90e45a7256e02cd3185b2317e8e489f8000667a60f316ba721b8c038c793740",
+        "json": "2c2d4300fcbc9698d65efc97dd5c46eef2e7bee96a25f8b5ec3ea30fbc4233de",
+        "fetch": "036c002d90ecff4298f270774b4bdb4c0cea6e053f35fbd4a4e9fc6524e84088",
+        "execute": "1d511182283773212a427683e214240202b7924b7016a2c398a8d55a075f0032",
+        "transaction": "80584ee75956cb5ed7bc4c273255465fc4fdcc5264c4742f69c25a5e2bc85fa9",
+        "lock": "f6c89cabed7357199f516e86a5a9b5955dcd750e60b1a90fd01a85325ece2217",
+        "now": "c7a28343499dc70a0bdec8751c5c95eb3996ba52cf2dd92a4996bdcd80e663ad"
+      },
+      "old_sha256": "ebddf3b9378cbd1eadbffcbc72a5c9a13f7dfc9898b7e76702366fbc8792eaf9",
+      "new_sha256": "590fcda66c13b5c0d89b021dc25e761ef316b8cfdb4b28fedf833f8593d5da0f",
+      "reader_call_roots": [
+        "__construct",
+        "publication"
+      ],
+      "reader_method_closure": [
+        "__construct",
+        "canonicalChannelId",
+        "channel",
+        "fetch",
+        "lock",
+        "operation",
+        "platform",
+        "publication",
+        "publicationRow"
+      ],
+      "added_methods_reachable_from_reader": false
+    },
+    "ChannelPostReconciliationService": {
+      "all_original_methods_byte_identical": true,
+      "original_method_count": 8,
+      "added_methods": [
+        "confirmTelegramOriginalEdit"
+      ],
+      "original_method_sha256": {
+        "__construct": "5d99f19cba7fe135064a226f02842c7de5d6eca468e21a507191df5d8ba63b4f",
+        "scan": "1f76659ae44ee3c3cc7d276ac0a885467c59104cc4243ab249d301bd4c5cf75c",
+        "recover": "5bae35cf4f140d96f78f738404d848b114a599a46ca74ebefcd795eba677d368",
+        "confirmReadFailure": "8322b5db4ad110bb7dd70cc977884ea5e0abf4eb30b38678c2c063a6caddc40d",
+        "verify": "1ec129bb5408c42d7d3fff03b0027b3c57c99c84faeb46a92fac891f3c9fc450",
+        "page": "16147e27fee72b58f1a1c6b63b8622ebe91f85c464f3deffc51f6f0431f072b3",
+        "identity": "3dd24bb3209ccf887bf685590fd6238469e438f52528ddbb0e986897e7c89f40",
+        "reason": "d7fce2155f41b715a9dc164ef7f96bba695b1d452e2da958fc92bd197833a321"
+      },
+      "old_sha256": "e21cece60c90cfdd268c03f4ef1ed127f0d40e594e35bd39322a914861b1e35e",
+      "new_sha256": "6cb14b30abd430d8e5ca768490c42b052d3592249d2c7a33f0fd5d66b8b7f25e"
+    }
+  },
+  "native_run": null,
+  "admission_opened": false
+}

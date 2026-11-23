@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261117-37-v1",
+  "state": "PREPARED_NOT_SENT",
+  "button_text": "✈️ Узнать стоимость тура",
+  "expected_new_full_pairs": 10,
+  "photo_freeze_commit": "87d757264e13e455b8d96479895dae583eb5c231",
+  "native_id_namespace": "Tourvisor",
+  "rows": [
+    {
+      "hotel_id": 8105,
+      "logical_id": "commercial-hotel-8105-v1",
+      "aliases": [
+        "Pullman Bangkok King Power",
+        "PULLMAN BANGKOK KING POWER"
+      ],
+      "text": "✈️ Туры в Pullman Bangkok King Power\n📍 Бангкок, Таиланд.\n\nГородской курорт в Бангкоке неподалёку от BTS Victory Monument. Открытый бассейн, рестораны и спа для отдыха после прогулок. Для семейной поездки есть детский бассейн.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "600dc46deca69b9f5c7e6731b762434df7372134f96e3c520d775c1c5ffb682a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/8105.png",
+      "photo_sha256": "e49a852904388877007e125dad7fb65d4c2cbb239852e7e6db797c00fe780fa0",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8105"
+      ]
+    },
+    {
+      "hotel_id": 8169,
+      "logical_id": "commercial-hotel-8169-v1",
+      "aliases": [
+        "Sofitel Bangkok Sukhumvit",
+        "SOFITEL BANGKOK SUKHUMVIT",
+        "SOFITEL SUKHUMVIT"
+      ],
+      "text": "✈️ Туры в Sofitel Bangkok Sukhumvit\n📍 Бангкок, Таиланд.\n\nФранцузский стиль на Сукхумвит: бассейн, спа и рестораны для красивого городского отдыха. Надземный переход связывает отель с BTS Asok, MRT Sukhumvit и торговым центром Terminal 21.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "f0539c8f5cfdb2a28cf5506e9b9a0795fc0810a0ed596dec826ec81a7d46987c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/8169.png",
+      "photo_sha256": "ac52b3f364995ef0fd4c1415b6cb2890f5dc8227220709d96773228b847c2a67",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8169",
+        "https://all.accor.com/hotel/5213/index.en.shtml"
+      ]
+    },
+    {
+      "hotel_id": 15857,
+      "logical_id": "commercial-hotel-15857-v1",
+      "aliases": [
+        "Sheraton Saigon Grand Opera Hotel",
+        "SHERATON SAIGON HOTEL & TOWERS"
+      ],
+      "text": "✈️ Туры в Sheraton Saigon Grand Opera Hotel\n📍 Хошимин, Вьетнам.\n\nОтдых на улице Донг Кхой в центре Хошимина: открытый бассейн, спа и рестораны. Рядом Оперный театр и городские достопримечательности. Подойдёт для знакомства с Сайгоном в комфортном ритме.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "5d8726ab5ccf608b19979d1f124334aaba6c0489da15c6f99bc875037a127b07",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/15857.png",
+      "photo_sha256": "98f37e7b88ae4d2f593deddb9cd6dc3441f1cb8f8658238925fb18a2aa696db1",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=15857",
+        "https://www.marriott.com/en-us/hotels/sgnsi-sheraton-saigon-grand-opera-hotel/overview/overview/"
+      ]
+    },
+    {
+      "hotel_id": 23264,
+      "logical_id": "commercial-hotel-23264-v1",
+      "aliases": [
+        "JW Marriott Hotel Bangkok",
+        "JW MARRIOTT HOTEL BANGKOK"
+      ],
+      "text": "✈️ Туры в JW Marriott Hotel Bangkok\n📍 Бангкок, Таиланд.\n\nКомфортный Бангкок между прогулками: открытый бассейн, сад, спа и рестораны. Подойдёт тем, кто хочет насыщенно проводить день в городе и возвращаться к спокойному отдыху в отеле.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "019ba96966ef4dc0c162aee62c20b8dcd7b0fd814f18ece8c0ae734c58739b4a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/23264.png",
+      "photo_sha256": "7b69990d7d43641ec55c51b408e2fdb9540ee68802c0684e978da6a4350fb77c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23264"
+      ]
+    },
+    {
+      "hotel_id": 23738,
+      "logical_id": "commercial-hotel-23738-v1",
+      "aliases": [
+        "InterContinental Hanoi Westlake",
+        "INTERCONTINENTAL HANOI WESTLAKE"
+      ],
+      "text": "✈️ Туры в InterContinental Hanoi Westlake\n📍 Ханой, Вьетнам.\n\nХаной на берегу Западного озера: открытый бассейн, рестораны и бар над водой с красивыми закатами. Для тех, кто хочет совместить знакомство со столицей и более спокойную атмосферу у озера.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "a866701f00848e2eb068d628ff47c98bd2d716497fbe3790d701025e873a1fbd",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/23738.png",
+      "photo_sha256": "c07fb5ce434d332dff42370b3cab36554fce697d0ad2bbdf9b1dcf20b1c82113",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23738"
+      ]
+    },
+    {
+      "hotel_id": 23755,
+      "logical_id": "commercial-hotel-23755-v1",
+      "aliases": [
+        "Mövenpick Hotel Hanoi Centre",
+        "MOVENPICK HOTEL HANOI"
+      ],
+      "text": "✈️ Туры в Mövenpick Hotel Hanoi Centre\n📍 Ханой, Вьетнам.\n\nФранцузский колониальный стиль в центре Ханоя: уютные номера, рестораны, сауна и фитнес. Прогулки по французскому кварталу и знакомство с достопримечательностями удобно сочетать с отдыхом в отеле.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "a27c88650afad0c6283ce2b41fca38b5139ec8c541eb32a45ccc5b2cc307dedb",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/23755.png",
+      "photo_sha256": "7f04086a23e34a931d8b066b7a63e8c8cf493674a792ff732509c4d6c1874f5a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23755",
+        "https://all.accor.com/hotel/B4G6/index.en.shtml"
+      ]
+    },
+    {
+      "hotel_id": 70050,
+      "logical_id": "commercial-hotel-70050-v1",
+      "aliases": [
+        "Mövenpick BDMS Wellness Resort Bangkok",
+        "MOVENPICK BDMS WELLNESS RESORT BANGKOK"
+      ],
+      "text": "✈️ Туры в Mövenpick BDMS Wellness Resort Bangkok\n📍 Бангкок, Таиланд.\n\nБангкок с ощущением курорта: зелёный сад, большой открытый бассейн, рестораны и спа. Подойдёт тем, кому после городской суеты хочется больше тишины, зелени и времени для себя.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "828c9f32706389f7aa11fba1795d6936b7242016a87039c86969fc6e2f1981d8",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/70050.png",
+      "photo_sha256": "27c37942034562a4dd09a7c97488db99a5f56ebd76164a2762b55ac3a71e9407",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=70050"
+      ]
+    },
+    {
+      "hotel_id": 4235,
+      "logical_id": "commercial-hotel-4235-v1",
+      "aliases": [
+        "Banyan Tree Bangkok",
+        "BANYAN TREE HOTEL BANGKOK"
+      ],
+      "text": "✈️ Туры в Banyan Tree Bangkok\n📍 Бангкок, Таиланд.\n\nБангкок с красивыми вечерами на высоте: рестораны и бары с панорамами города, открытый бассейн и спа. Подойдёт для поездки вдвоём, когда важны атмосфера, вкусная еда и неспешный отдых.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "660516a2d15a54dbd6aac6f430470b0f76e458b6804e26e8d3eff2942229e3a4",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/4235.png",
+      "photo_sha256": "d0b801dac69ed8abe71696e1e078e14a459ae6605db2d385f60ea6e7f83e48f4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=4235"
+      ]
+    },
+    {
+      "hotel_id": 8170,
+      "logical_id": "commercial-hotel-8170-v1",
+      "aliases": [
+        "Centara Grand at Central Plaza Ladprao Bangkok",
+        "CENTARA GRAND AT CENTRAL PLAZA LADPRAO BANGKOK"
+      ],
+      "text": "✈️ Туры в Centara Grand at Central Plaza Ladprao Bangkok\n📍 Бангкок, Таиланд.\n\nДля городских прогулок и покупок: рядом торговый центр Central Plaza. Открытый бассейн, спа и рестораны с тайской, японской и европейской кухней. Номера с видами на город или сад.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "71afc96cee0c04e0af3842fb0ebb02f4b31229bf70fee5d7c6a15958af92f731",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/8170.png",
+      "photo_sha256": "a6e17675d4ccfac10f9199f7a45ced7365d505fa1a1992e094e99169bb79e725",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8170"
+      ]
+    },
+    {
+      "hotel_id": 22777,
+      "logical_id": "commercial-hotel-22777-v1",
+      "aliases": [
+        "Pullman Bangkok Hotel G",
+        "PULLMAN BANGKOK HOTEL G"
+      ],
+      "text": "✈️ Туры в Pullman Bangkok Hotel G\n📍 Бангкок, Таиланд.\n\nСветлые номера с большими окнами и панорамы Бангкока в районе Силом. Открытый бассейн, спа и ресторан с видом на город. Удобный формат, чтобы сочетать прогулки и отдых после насыщенного дня.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "fa9144dfabd36585fe9551ba7b5a961dccbde38aa08bb63e832e22b5fa43e479",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/87d757264e13e455b8d96479895dae583eb5c231/.github/traffic-publish/commercial-wave5-65-20261117/22777.png",
+      "photo_sha256": "d3297ee2defe30a8fb14edf78e882ed4eed55e286458e6d01c139001e864efb9",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=22777"
+      ]
+    }
+  ]
+}

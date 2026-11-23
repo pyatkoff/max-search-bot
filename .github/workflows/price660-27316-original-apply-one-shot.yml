@@ -1,0 +1,124 @@
+name: Price660 27316 original pending pair recovery APPLY
+on:
+  push:
+    branches: ['audit/price660-27316-resume-readiness-20261117']
+    paths: ['.github/workflows/price660-27316-original-apply-one-shot.yml']
+permissions:
+  contents: read
+concurrency:
+  group: anytour-price660-original-apply-27316-20261117
+  cancel-in-progress: false
+jobs:
+  bounded-max-get:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.event_name == 'push' &&
+      github.event.before == '2b15451c3381e3b6d88ee50e2965cb494de0f596' &&
+      github.event.head_commit.message == 'fix(price27316): finish original MAX CAS Telegram edit and verified feed once' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Check one-time parent and exact recovery source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD^)" = 2b15451c3381e3b6d88ee50e2965cb494de0f596
+          test "$(git hash-object tools/direct_demand/operations/inspect-monitor-price-pending-20261116.php)" = 71eae82282831c21e5ac3443d135a3549d55d3b9
+          test "$(sha256sum tools/direct_demand/operations/reconcile-pending-27316.php | cut -d' ' -f1)" = 588223b5eb6676937ccb66c43f1b6c33482655e79d9d45f564c58f7d97ee5f55
+          echo ONE_SHOT_ORIGINAL_JOURNAL_PIN_OK
+      - name: Pinned existing SSH host and private runner-only key
+        shell: bash
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          test -n "$KEY_VALUE" && test -n "$DEPLOY_HOST" && test -n "$DEPLOY_USER"
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/price660-key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/price660-key"; fi
+          else
+            printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/price660-key"
+          fi
+          chmod 600 "$RUNNER_TEMP/price660-key"
+          ssh-keygen -y -f "$RUNNER_TEMP/price660-key" >/dev/null
+          python3 - <<'PY'
+          import os,re,hashlib,base64,subprocess,pathlib
+          h=os.environ['DEPLOY_HOST'];u=os.environ['DEPLOY_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',h) and not h.startswith('-') and re.fullmatch(r'[A-Za-z0-9_-]+',u)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',h],capture_output=True,text=True,timeout=35)
+          lines=[]
+          for x in scan.stdout.splitlines():
+              t=x.split()
+              if len(t)<3 or t[0].startswith('#'):continue
+              try: fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(t[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':lines.append(x)
+          assert lines,'HOST_PIN_CHANGED_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/price660-known-hosts').write_text('\n'.join(lines)+'\n')
+          print('HOST_PIN_OK')
+          PY
+      - name: Rehydrate independently verified frozen original module, no production writes
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p "$RUNNER_TEMP/price660-27316"
+          python3 - <<'PY'
+          import subprocess,hashlib,zipfile,io,os,pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'price660-27316'
+          raw=subprocess.check_output(['gh','api','--method','GET','repos/pyatkoff/max-search-bot/actions/artifacts/14268746215/zip'],timeout=65)
+          assert hashlib.sha256(raw).hexdigest()=='aa742bf4ee787e5a9cee6695b4c937f9c8e2c9a5d801b75cd2c2cc54ed8921b0'
+          with zipfile.ZipFile(io.BytesIO(raw)) as zip:
+              assert zip.testzip() is None
+              body=zip.read('monitor-price-hook.php')
+          assert len(body)==613581 and hashlib.sha256(body).hexdigest()=='41e9f0151f97691f91258ebb37714090ba0798c76db18c3870ff93bcc23d0c9a'
+          (p/'hook.php').write_bytes(body)
+          print('FROZEN_ORIGINAL_HOOK_660_VERIFIED')
+          PY
+          python3 tools/direct_demand/operations/build-reconcile-pending-27316.py "$RUNNER_TEMP/price660-27316/hook.php" "$RUNNER_TEMP/price660-27316/preview.php"
+          php -l "$RUNNER_TEMP/price660-27316/preview.php"
+          php "$RUNNER_TEMP/price660-27316/preview.php" --self-test
+          php tools/direct_demand/operations/test-reconcile-pending-27316-integration.php "$RUNNER_TEMP/price660-27316/hook.php"
+          test "$(sha256sum "$RUNNER_TEMP/price660-27316/preview.php" | cut -d' ' -f1)" = e056d3d3a1cc143ab09842a62e4227c22906af8519740d811954a818c242b65b
+          echo 'FROZEN_RECONCILER_DIGEST_VERIFIED'
+      - name: Complete only original pair and read back exact feeds
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          result_rc=0
+          ssh -i "$RUNNER_TEMP/price660-key" -o BatchMode=yes -o ConnectTimeout=12 -o ServerAliveInterval=15 -o ServerAliveCountMax=2 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/price660-known-hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; GIT_OPTIONAL_LOCKS=0 ANYTOUR_MONITOR_27316_APPLY=1 php' < "$RUNNER_TEMP/price660-27316/preview.php" > "$RUNNER_TEMP/price660-27316/result.txt" || result_rc=$?
+          PREVIEW_EXIT="$result_rc" python3 - <<'PY'
+          import json,os,pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'price660-27316/result.txt'
+          lines=p.read_text().splitlines()
+          candidates=[x for x in lines if x.startswith('MONITOR_PENDING_27316_RECONCILIATION=')]
+          assert len(candidates)==1,'ORIGINAL_PREVIEW_RECEIPT_MISSING'
+          r=json.loads(candidates[0].split('=',1)[1])
+          keys=['ok','mode','error','runtime_sha','original_operation','max_puts','max_gets','saved_monitor_gets','max_confirm_calls','telegram_edit_attempts','new_posts','supplier_calls','database_write_calls','journal_appends','feed_resume_calls','original_completed_pairs_replayed','updated_pairs','pending_cleared','original_prefix_preserved','other_hotel_completed_entries_preserved','original_journal_complete','global_cycle_closure_pending','all_660_completed','feed_evidence','fresh_admission','telegram_capability_read']
+          keep={k:r.get(k) for k in keys}
+          print('PRICE660_ORIGINAL_PAIR_RECOVERY='+json.dumps(keep,ensure_ascii=False,separators=(',',':')))
+          assert all(r.get(k)==0 for k in ['max_puts','new_posts','supplier_calls','original_completed_pairs_replayed']),'RECOVERY_SCOPE_VIOLATION'
+          assert os.environ['PREVIEW_EXIT']=='0' and r.get('ok') is True and r.get('mode')=='apply_original_pending_only','RECOVERY_STOP_REVIEW_RECEIPT_NO_RETRY'
+          assert r.get('telegram_edit_attempts')==1 and r.get('max_confirm_calls')==1 and r.get('updated_pairs')==1 and r.get('feed_resume_calls')==1
+          assert r.get('pending_cleared') is True and r.get('original_prefix_preserved') is True and r.get('other_hotel_completed_entries_preserved')==588
+          assert r.get('original_journal_complete') is True and r.get('global_cycle_closure_pending') is True and r.get('all_660_completed') is False
+          assert r.get('feed_evidence',{}).get('local_and_public_hashes_verified') is True
+          PY
+      - name: Remove runner-only credentials and frozen code/result
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/price660-key" "$RUNNER_TEMP/price660-known-hosts"
+          rm -rf "$RUNNER_TEMP/price660-27316"

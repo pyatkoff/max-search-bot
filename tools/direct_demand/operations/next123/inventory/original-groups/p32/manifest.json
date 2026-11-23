@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261117-32-v1",
+  "state": "PREPARED_NOT_SENT",
+  "button_text": "✈️ Узнать стоимость тура",
+  "expected_new_full_pairs": 10,
+  "photo_freeze_commit": "e53eede2df5dbc5da5f72b04c0ac8777819cd8dc",
+  "native_id_namespace": "Tourvisor",
+  "rows": [
+    {
+      "hotel_id": 116451,
+      "logical_id": "commercial-hotel-116451-v1",
+      "aliases": [
+        "InterContinental Chiang Mai The Mae Ping",
+        "INTERCONTINENTAL CHIANG MAI THE MAE PING"
+      ],
+      "text": "✈️ Туры в InterContinental Chiang Mai The Mae Ping\n📍 Чианг Май, Таиланд.\n\nЧиангмай с атмосферой северного Таиланда рядом с Ночным базаром и историческим центром. Бассейн, рестораны и спа помогут расслабиться после прогулок, а для детей есть игровые зоны.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "6d36eb375edb979c301a500fef9eed97ea1ad281daca8033af85f0ba6420167d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/116451.png",
+      "photo_sha256": "940638c905d258b789754ab0d9a912285e86556b13d4b2f3f49e43f8b509d60f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=116451"
+      ]
+    },
+    {
+      "hotel_id": 128830,
+      "logical_id": "commercial-hotel-128830-v1",
+      "aliases": [
+        "Coastal Escape Natai",
+        "COASTAL ESCAPE NATAI"
+      ],
+      "text": "✈️ Туры в Coastal Escape Natai\n📍 Као Лак, Таиланд.\n\nСпокойный Натай для отдыха у песчаного побережья. Просторные виллы, бассейны и спа-процедуры для отпуска своей компанией или вдвоём вдали от шумных курортных улиц.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "634c252a7d303efb0d29aae92b9baa11f0bbc892a7d34ac6f26fdd211d53ed1e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/128830.png",
+      "photo_sha256": "c460ca5270ec9ea8f2f3b1c8680500688531c39e96b4c43b22e7ec04185eda66",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=128830"
+      ]
+    },
+    {
+      "hotel_id": 103063,
+      "logical_id": "commercial-hotel-103063-v1",
+      "aliases": [
+        "Villa Le Corail, a Gran Meliá Hotel",
+        "VILLA LE CORAIL A GRAN MELIA HOTEL NHA TRANG"
+      ],
+      "text": "✈️ Туры в Villa Le Corail, a Gran Meliá Hotel\n📍 Нячанг, Вьетнам.\n\nНячанг для красивого семейного отпуска: песчаный пляж, бассейн и виллы среди зелени. Испанская и японская кухня, спа и детский клуб добавят впечатлений дням у моря.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "301a5c87de05f65b4ed12d6b6f4e53702e764313d79ee1a502d5e5fd336256a9",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/103063.png",
+      "photo_sha256": "a134caa2fbd5598b5948ff9066f9351c35b1123b255f9d746eda29412a489d2c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=103063"
+      ]
+    },
+    {
+      "hotel_id": 46569,
+      "logical_id": "commercial-hotel-46569-v1",
+      "aliases": [
+        "Fusion Suites Danang Beach",
+        "FUSION SUITES DANANG BEACH"
+      ],
+      "text": "✈️ Туры в Fusion Suites Danang Beach\n📍 Дананг, Вьетнам.\n\nПросторные сьюты для отдыха в Дананге с морскими видами. Бассейн, ресторан и спа помогают переключиться после городских прогулок, а детям доступны клуб и игровая площадка.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "1fe24296aa4a8bafc0478a0db9d22b97d15c8a07bffcf6365a57e45cae3d469f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/46569.png",
+      "photo_sha256": "0006ba593e28d1bb6f31fe23f1587ec6cddd5ef2faff1828077d95a46cadbf80",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=46569"
+      ]
+    },
+    {
+      "hotel_id": 68194,
+      "logical_id": "commercial-hotel-68194-v1",
+      "aliases": [
+        "Alba Wellness Resort by Fusion",
+        "ALBA WELLNESS RESORT BY FUSION"
+      ],
+      "text": "✈️ Туры в Alba Wellness Resort by Fusion\n📍 Хюэ, Вьетнам.\n\nЗелёный курорт в окрестностях Хюэ для спокойного отдыха и заботы о себе. Горячие источники онсэн, бассейн, йога и спа-процедуры дополняют дни среди садов и природы.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "6f5cb63213f32ccb1506fd6b611355df931153f50c0440aa4da588fef3883fc3",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/68194.png",
+      "photo_sha256": "15a3e06f3c5210d01be5c5900598979f2c6e06826665bf33ce8207535c223667",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=68194"
+      ]
+    },
+    {
+      "hotel_id": 126101,
+      "logical_id": "commercial-hotel-126101-v1",
+      "aliases": [
+        "Radisson Blu Resort Hoi An",
+        "RADISSON BLU RESORT HOI AN"
+      ],
+      "text": "✈️ Туры в Radisson Blu Resort Hoi An\n📍 Хой Ан, Вьетнам.\n\nПесчаное побережье рядом с Хойаном для семейного отпуска. Два бассейна, рестораны и детский клуб позволяют чередовать отдых у моря с поездками в старый город.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "2d5ba500dcc3dd47b2d13b953d503826db67abf48e2ef8b4f0c46f99195ecb8c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/126101.png",
+      "photo_sha256": "4b517058d067aaf3968ea870a6741fc8caf7cb644bf11f0b120a5b984d581d93",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=126101"
+      ]
+    },
+    {
+      "hotel_id": 68663,
+      "logical_id": "commercial-hotel-68663-v1",
+      "aliases": [
+        "Vinpearl Landmark 81, Autograph Collection",
+        "VINPEARL LUXURY LANDMARK 81"
+      ],
+      "text": "✈️ Туры в Vinpearl Landmark 81, Autograph Collection\n📍 Хошимин, Вьетнам.\n\nХошимин с высоты Landmark 81: панорамы города и реки, просторные номера и инфинити-бассейн. Рестораны и спа для тех, кто хочет увидеть Сайгон с особенного ракурса.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "2537763a2f36bd06f2c4f8f05cb9e8b8e6d246477d4b96e400527c7dcebbb90a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/68663.png",
+      "photo_sha256": "c9856febb23e49a9356e0a8292198ed263774d2d83cce15853e55a5c56eee044",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=68663",
+        "https://www.marriott.com/en-us/hotels/sgnak-vinpearl-landmark-81-autograph-collection/overview/"
+      ]
+    },
+    {
+      "hotel_id": 69130,
+      "logical_id": "commercial-hotel-69130-v1",
+      "aliases": [
+        "Meliá Ho Tram",
+        "MELIA HO TRAM"
+      ],
+      "text": "✈️ Туры в Meliá Ho Tram\n📍 Хо Трам, Вьетнам.\n\nХо Трам для спокойного отпуска у песчаного пляжа: зелёные сады, бассейны и пляжный клуб. Рестораны, спа и детский клуб делают курорт удобным для отдыха вдвоём или всей семьёй.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "e0951efe216f9d16100eee11c09f4b32c84688a30fb77a3abf794950b14fae7e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/69130.png",
+      "photo_sha256": "39e86f64b26b471a8c38e85eadecf9df326fc61c2f4d4f2836845c33390de431",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=69130"
+      ]
+    },
+    {
+      "hotel_id": 82751,
+      "logical_id": "commercial-hotel-82751-v1",
+      "aliases": [
+        "The Anam Mui Ne",
+        "THE ANAM MUI NE"
+      ],
+      "text": "✈️ Туры в The Anam Mui Ne\n📍 Муйне, Вьетнам.\n\nМуйне с атмосферой колониального курорта, тропическими садами и песчаным пляжем. Два бассейна, рестораны и спа для неспешного отпуска; для детей работает клуб.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "37fe41c0762453f267056e658629c24fb8f8639af43faacc9e34bfd673866593",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/82751.png",
+      "photo_sha256": "35ccf92b7e345a88aa007d64aabe5eb9b067224a17a6b3887b2af3c02056d53a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=82751"
+      ]
+    },
+    {
+      "hotel_id": 23723,
+      "logical_id": "commercial-hotel-23723-v1",
+      "aliases": [
+        "Banyan Tree Lang Co",
+        "BANYAN TREE LANG CO"
+      ],
+      "text": "✈️ Туры в Banyan Tree Lang Co\n📍 Ланг Ко, Вьетнам.\n\nВиллы с собственными бассейнами у песчаного побережья Ланг Ко. Тропическая зелень, спа и морские панорамы для уединённого отпуска, а для семей есть детский клуб и игровая площадка.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "81f11d7ed4c96f56852b3db81396dbb23ef0e59fc6bf1a8a9703f0f01e838fab",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/23723.png",
+      "photo_sha256": "c1435bfb5560ddc67a3e8f64de2b36dcde4256ca0e22b071e491d2292000d3b4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=23723"
+      ]
+    }
+  ]
+}

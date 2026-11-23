@@ -1,0 +1,89 @@
+{
+  "jobs": [
+    {
+      "check_run_url": "https://api.github.com/repos/pyatkoff/poisk-turov-test/check-runs/134960046403",
+      "completed_at": "2026-11-18T16:41:54Z",
+      "conclusion": "success",
+      "created_at": "2026-11-18T16:36:54Z",
+      "head_branch": "audit/price4294-evidence-20261118",
+      "head_sha": "ee470e5f1adec39c53935492bb87158f7be0fdc8",
+      "html_url": "https://github.com/pyatkoff/poisk-turov-test/actions/runs/44349256158/job/134960046403",
+      "id": 134960046403,
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "name": "apply",
+      "node_id": "CR_kwDOUDL6v88AAAAfbD7hQw",
+      "run_attempt": 1,
+      "run_id": 44349256158,
+      "run_url": "https://api.github.com/repos/pyatkoff/poisk-turov-test/actions/runs/44349256158",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions",
+      "runner_id": 1000325730,
+      "runner_name": "GitHub Actions 1000325730",
+      "started_at": "2026-11-18T16:36:59Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completed_at": "2026-11-18T16:37:00Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "started_at": "2026-11-18T16:37:00Z",
+          "status": "completed"
+        },
+        {
+          "completed_at": "2026-11-18T16:37:02Z",
+          "conclusion": "success",
+          "name": "Read original carrier wiring without checkout mutation",
+          "number": 2,
+          "started_at": "2026-11-18T16:37:00Z",
+          "status": "completed"
+        },
+        {
+          "completed_at": "2026-11-18T16:37:04Z",
+          "conclusion": "success",
+          "name": "Prepare unchanged server connection and host pin",
+          "number": 3,
+          "started_at": "2026-11-18T16:37:02Z",
+          "status": "completed"
+        },
+        {
+          "completed_at": "2026-11-18T16:41:50Z",
+          "conclusion": "success",
+          "name": "Fresh private producer and admission then one hook installation",
+          "number": 4,
+          "started_at": "2026-11-18T16:37:04Z",
+          "status": "completed"
+        },
+        {
+          "completed_at": "2026-11-18T16:41:52Z",
+          "conclusion": "success",
+          "name": "Upload only allowlisted terminal receipt",
+          "number": 5,
+          "started_at": "2026-11-18T16:41:50Z",
+          "status": "completed"
+        },
+        {
+          "completed_at": "2026-11-18T16:41:52Z",
+          "conclusion": "success",
+          "name": "Cleanup connection material only",
+          "number": 6,
+          "started_at": "2026-11-18T16:41:52Z",
+          "status": "completed"
+        },
+        {
+          "completed_at": "2026-11-18T16:41:52Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 7,
+          "started_at": "2026-11-18T16:41:52Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://api.github.com/repos/pyatkoff/poisk-turov-test/actions/jobs/134960046403",
+      "workflow_name": "Install only verified compatible price hook"
+    }
+  ],
+  "total_count": 1
+}

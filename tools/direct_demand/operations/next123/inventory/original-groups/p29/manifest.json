@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261117-29-v1",
+  "state": "PREPARED_NOT_SENT",
+  "button_text": "✈️ Узнать стоимость тура",
+  "expected_new_full_pairs": 10,
+  "photo_freeze_commit": "e53eede2df5dbc5da5f72b04c0ac8777819cd8dc",
+  "native_id_namespace": "Tourvisor",
+  "rows": [
+    {
+      "hotel_id": 8117,
+      "logical_id": "commercial-hotel-8117-v1",
+      "aliases": [
+        "Rayavadee",
+        "RAYAVADEE"
+      ],
+      "text": "✈️ Туры в Rayavadee\n📍 Краби, Таиланд.\n\nКраби среди известняковых скал, пальм и пляжей Райлей и Прананг. Павильоны и виллы в тропическом саду, бассейн и рестораны для особенного отпуска; в отель прибывают на катере.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "f4d061faffeb43ed0439d4fb40f1a922dc2af4bfa7f1fd8b9e56be2cfbc0460f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/8117.png",
+      "photo_sha256": "8545e81c5032ea1661ba73017c3b08d0124560c4b8f0255347ea397258855853",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8117"
+      ]
+    },
+    {
+      "hotel_id": 12201,
+      "logical_id": "commercial-hotel-12201-v1",
+      "aliases": [
+        "Hyatt Regency Hua Hin",
+        "HYATT REGENCY HUA HIN"
+      ],
+      "text": "✈️ Туры в Hyatt Regency Hua Hin\n📍 Хуа Хин, Таиланд.\n\nЗелёный Хуахин для семейного отпуска у моря: бассейны, водные горки и просторная территория. Есть детская площадка, рестораны и спа, а песчаный пляж расположен рядом с курортом.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "3491d20a7e51ab2ee48be6fe118721e831f12146fe7e4f51659b342db3320649",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/12201.png",
+      "photo_sha256": "65bd16665afa62bfb5d5e7387e26e212342bf2353824d686e9af9ee6eff0ef1a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=12201"
+      ]
+    },
+    {
+      "hotel_id": 45733,
+      "logical_id": "commercial-hotel-45733-v1",
+      "aliases": [
+        "Grand Hyatt Erawan Bangkok",
+        "GRAND HYATT ERAWAN"
+      ],
+      "text": "✈️ Туры в Grand Hyatt Erawan Bangkok\n📍 Бангкок, Таиланд.\n\nБангкок для городских прогулок и отдыха с комфортом. Просторные номера, бассейн среди зелени, спа и рестораны помогут переключиться после насыщенного дня в центре столицы.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "b952578355cb3fa5ecbe3be53c06ce10d920e46520ce6baf655f6c38cf9e8533",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/45733.png",
+      "photo_sha256": "121d9c737a4af5891fae77b7468fc9463aa1f59439c1d396ad6baeb838ed7a87",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=45733"
+      ]
+    },
+    {
+      "hotel_id": 57720,
+      "logical_id": "commercial-hotel-57720-v1",
+      "aliases": [
+        "Avista Grande Phuket Karon MGallery",
+        "AVISTA GRANDE PHUKET KARON M GALLERY BY SOFITEL"
+      ],
+      "text": "✈️ Туры в Avista Grande Phuket Karon MGallery\n📍 Пхукет, Таиланд.\n\nКарон с просторными номерами, бассейном и рестораном-баром на крыше. Для детей есть игровая комната и бассейн, для взрослых спа; до песчаного пляжа около 200 метров через дорогу.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "6f3955b36bbf852e539bd5a4c4111480892f2ad64b2a386159c72825a2d5ce70",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/57720.png",
+      "photo_sha256": "5deb955ec8727cde3dee670bfae8064e041591780ba96e8a39626455cd1b6864",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=57720"
+      ]
+    },
+    {
+      "hotel_id": 74940,
+      "logical_id": "commercial-hotel-74940-v1",
+      "aliases": [
+        "Banyan Tree Krabi",
+        "BANYAN TREE KRABI"
+      ],
+      "text": "✈️ Туры в Banyan Tree Krabi\n📍 Краби, Таиланд.\n\nКраби у песчаного Туб Каек: сьюты и виллы с бассейнами, тропическая зелень и спа. Детский клуб, водная игровая зона и рестораны тайской кухни помогут устроить красивый отпуск всей семьёй.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "550b7ddb3198bd15e1857fbe4574cd37193725e127173ae3f8455ef34330f4e9",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/74940.png",
+      "photo_sha256": "9333b095e4a56b4ffbe1f13996b7f1aa7578ad96102936d752ccd96094ba2828",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=74940"
+      ]
+    },
+    {
+      "hotel_id": 630,
+      "logical_id": "commercial-hotel-630-v1",
+      "aliases": [
+        "Baraquda Pattaya by Heeton",
+        "BARAQUDA PATTAYA BY HEETON",
+        "DUSIT D2 BARAQUDA"
+      ],
+      "text": "✈️ Туры в Baraquda Pattaya by Heeton\n📍 Паттайя, Таиланд.\n\nГородская Паттайя для прогулок, ресторанов и вечерних выходов. У отеля бассейн и уютные номера, а до песчаного пляжа около 250 метров: удобно чередовать курортную жизнь и отдых у воды.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "751c24515e0c3e920a797ebdd2e877c7fe65d09a34f6d4ee877d6ce8e2dfd3c1",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/630.png",
+      "photo_sha256": "8263520aab856b95f9f68ca41cf57173c64df16c222e960d46af669defe89a8d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=630"
+      ]
+    },
+    {
+      "hotel_id": 766,
+      "logical_id": "commercial-hotel-766-v1",
+      "aliases": [
+        "Royal Cliff Grand Hotel",
+        "ROYAL CLIFF GRAND"
+      ],
+      "text": "✈️ Туры в Royal Cliff Grand Hotel\n📍 Паттайя, Таиланд.\n\nМорские панорамы Паттайи, бассейны и песчаные пляжи курортного комплекса Royal Cliff. Просторные номера, рестораны разных кухонь и спа-процедуры для отдыха в своём ритме.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "6040f45daa90007edcd98b261ad29f6c9d7d715ba1a944f8e5014bef32396a91",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/766.png",
+      "photo_sha256": "37c5414b20955fdf6b6973387defce7759f3bf6f8f67d21c0e0e554b0f2bf6d5",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=766",
+        "https://www.royalcliff.com/"
+      ]
+    },
+    {
+      "hotel_id": 8127,
+      "logical_id": "commercial-hotel-8127-v1",
+      "aliases": [
+        "Royal Wing Suites & Spa",
+        "ROYAL WING SUITES & SPA",
+        "ROYAL CLIFF WING SUITES & SPA"
+      ],
+      "text": "✈️ Туры в Royal Wing Suites & Spa\n📍 Паттайя, Таиланд.\n\nПросторные сьюты с отдельной гостиной и морскими видами для особенного отдыха в Паттайе. У Royal Wing отдельный пляж для гостей; доступны бассейны, рестораны и спа комплекса Royal Cliff.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "f06b05c0a42ecea79829dc857fa497c116734710ea8abd063cb9ca7fa7317519",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/8127.png",
+      "photo_sha256": "46f55b38e7680c7a3d053d37f131648ca240e512533511f258e7f9e05b5117b9",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=8127",
+        "https://www.royalcliff.com/"
+      ]
+    },
+    {
+      "hotel_id": 43827,
+      "logical_id": "commercial-hotel-43827-v1",
+      "aliases": [
+        "Keemala",
+        "KEEMALA"
+      ],
+      "text": "✈️ Туры в Keemala\n📍 Пхукет, Таиланд.\n\nНеобычные виллы с собственными бассейнами среди тропического леса над Камалой. Спа, йога и ужины в уединённой атмосфере; песчаный пляж примерно в двух километрах, есть трансфер.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "50859b23a03639b73110214e49738fc0745b27e214a1cb60da8c917b3f8e1ef0",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/43827.png",
+      "photo_sha256": "d67d9617517abf6d0516f4285dc09e51e63052919ad61edf86fa822d4d88bcfc",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=43827"
+      ]
+    },
+    {
+      "hotel_id": 44661,
+      "logical_id": "commercial-hotel-44661-v1",
+      "aliases": [
+        "Mövenpick Siam Hotel Na Jomtien Pattaya",
+        "MOVENPICK SIAM HOTEL PATTAYA"
+      ],
+      "text": "✈️ Туры в Mövenpick Siam Hotel Na Jomtien Pattaya\n📍 Паттайя, Таиланд.\n\nНа Джомтьен для семейных каникул с видом на море: бассейн, водные горки и детский клуб. Песчаный пляж рядом, а рестораны и спа-процедуры помогут переключиться на отдых.\n\nПодберём тур на ваши даты. Нажмите кнопку под постом.",
+      "text_sha256": "3b93b175401eff741b7d3295ee0d9140dacaaa2ac9efb9f3018ec6fcc2579bd2",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e53eede2df5dbc5da5f72b04c0ac8777819cd8dc/.github/traffic-publish/commercial-wave4-100-20261117/44661.png",
+      "photo_sha256": "981c4b141a6d704d236e0fc6882953085f49dc0c11e9ec559b3616a505787bc6",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/api-v2.php?action=hotel_details&hotelId=44661"
+      ]
+    }
+  ]
+}

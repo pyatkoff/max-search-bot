@@ -1,0 +1,286 @@
+{
+  "accepted_jobs": [
+    {
+      "job_id": 134896327358,
+      "run_id": 44329290180
+    },
+    {
+      "job_id": 134898165358,
+      "run_id": 44329290180
+    },
+    {
+      "job_id": 134898853821,
+      "run_id": 44332076971
+    },
+    {
+      "job_id": 134898853078,
+      "run_id": 44332076738
+    },
+    {
+      "job_id": 134898854021,
+      "run_id": 44332077054
+    },
+    {
+      "job_id": 134898857708,
+      "run_id": 44332076755
+    }
+  ],
+  "accepted_runs": [
+    {
+      "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+      "kind": "deployment",
+      "run_id": 44329290180
+    },
+    {
+      "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+      "kind": "native",
+      "run_id": 44332076971,
+      "workflow_path": ".github/workflows/max-tls-preflight.yml"
+    },
+    {
+      "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+      "kind": "native",
+      "run_id": 44332076738,
+      "workflow_path": ".github/workflows/max-production-health.yml"
+    },
+    {
+      "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+      "kind": "native",
+      "run_id": 44332077054,
+      "workflow_path": ".github/workflows/telegram-production-health.yml"
+    },
+    {
+      "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+      "kind": "native",
+      "run_id": 44332076761,
+      "workflow_path": ".github/workflows/live-session-diagnostics.yml"
+    },
+    {
+      "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+      "kind": "native",
+      "run_id": 44332076721,
+      "workflow_path": ".github/workflows/modeled-conversion-monitor.yml"
+    },
+    {
+      "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+      "kind": "native",
+      "run_id": 44332076848,
+      "workflow_path": ".github/workflows/tour-selection-host.yml"
+    },
+    {
+      "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+      "kind": "native",
+      "run_id": 44332076802,
+      "workflow_path": ".github/workflows/publish-conversation-diagnostics.yml"
+    },
+    {
+      "head_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+      "kind": "native",
+      "run_id": 44332076755,
+      "workflow_path": ".github/workflows/modeled-conversion-value-export.yml"
+    }
+  ],
+  "claim_body_sha256": "8a88a9c15c1cb92bd72f2fecca5e1bc151decf4c34d35932af8c8ff40ea2ed23",
+  "claim_id": 6972938293,
+  "content_terminal_handoff": {
+    "descriptor_sha256": "2ffab378a7a6b197435bd970710370bcaf9cac1e46f008325b61b0bb90f0cd68",
+    "kind": "EXACT_CONTENT49_TERMINAL"
+  },
+  "content_window_ack": {
+    "body_sha256": "a3424e8b03fa5cb121ff39f223fef9f7afcdff8064a0181e6c55200ba080eeff",
+    "comment_id": 6961029169,
+    "current_ack_sha256": "122d56e33f428bd69876d5cad95fdf6282fe31c68e0d4060d28122d07167bede"
+  },
+  "continuation": {
+    "all174_accepted": false,
+    "artifact_id": 14450225954,
+    "failed_head": "6a5e7f8f82b0e049395dee2704e4419a2d8e8a63",
+    "failed_run_id": 44353536071,
+    "unstarted_groups": [
+      22,
+      23
+    ],
+    "zip_sha256": "4a7b653d9b9bd190f285b7459c488577a98082cfa47190a72a76c64a61636907"
+  },
+  "current_price_terminal_handoff": {
+    "descriptor_path": "current-price4294/handoff-descriptor.json",
+    "descriptor_sha256": "89993e4284990a801768243a6bb35cb40c3d7c9d478f1ceaa61aa7cf73a4ccee",
+    "kind": "ORIGINAL_PRICE4294_RECOVERY_AND_HOOK_READBACK"
+  },
+  "external_route_coordination": {
+    "branch": "audit/anytour-hotel-feed-routing-20261104",
+    "claim_body_sha256": "8a88a9c15c1cb92bd72f2fecca5e1bc151decf4c34d35932af8c8ff40ea2ed23",
+    "claim_id": 6972938293,
+    "kind": "root_connector_read_only_coordination",
+    "nonterminal_counts": {
+      "in_progress": 0,
+      "pending": 0,
+      "queued": 0,
+      "requested": 0,
+      "waiting": 0
+    },
+    "observed_at": "2026-11-18T17:11:15+00:00",
+    "repository": "pyatkoff/tour-max",
+    "route_head_sha": "6c7266bd3b67167fbfd4c54a2816292f72e361d5"
+  },
+  "fresh_price_window_handoff": null,
+  "intent_sha256": "dc828b2a23cb6641f0efbeac8ec3e85dc6d8e6074eb83ec01579ba6f86ec9638",
+  "native_execution_allowed": false,
+  "parent_sha": "6a5e7f8f82b0e049395dee2704e4419a2d8e8a63",
+  "price_terminal_handoff": {
+    "archive_path": "price1000-original.zip",
+    "archive_sha256": "171d0042489a2b11042a81fae819f6fa1a5bd22732cbecd2ad484f29f75132dc",
+    "artifact_id": 14411763726,
+    "head_sha": "4b1247a97487b553917ec54502b402da6b81e5bf",
+    "kind": "EXACT_PRICE1000_INSTALL_BOUNDED_PASS",
+    "repository": "poisk-turov-test",
+    "run_id": 44269492828,
+    "summary_sha256": "8b33e64659f19c5bef1f645c79ce2aaba5fb5d019b168b224b65402e0f09fddf"
+  },
+  "prior_completed_feed": {
+    "head_sha": "773076e71ab28f7878bcce33feb8cb47641b69a2",
+    "run_id": 44262520865
+  },
+  "runtime_sha": "bd8e248f7138ea75cb9fda2dcf44beb631c633a5",
+  "schema_version": 1,
+  "source_sha256": {
+    "content-current/claim.json": "286d04d30452daf10c0f36788a7063e5482a11512723e126669d193dbec22211",
+    "content-current/currentack.json": "122d56e33f428bd69876d5cad95fdf6282fe31c68e0d4060d28122d07167bede",
+    "content-current/historical-content-validator.py": "8938eb05eb22f8643a5d6b39a1729635c82069c61625a65be072921f8bc50846",
+    "content-current/validator-lineage-proof.json": "bb1b6fa50b0fbbc0761920704848ae8096d31045c325523106ae0ffb26dc7c1b",
+    "content49/14414102638.zip": "0a55e5c0294e5cf780282ed0239177165897505aea9adb87aa5dd99cf5fe1e4a",
+    "content49/14414248492.zip": "bfab9235e875f34831c9a59ccb88e8ed637075137728bf4b485d6cfca3f5b50c",
+    "content49/14418358908.zip": "24553d7624b37960576e41d3f5280aa77603fed7323c640acf5cf03a2c8f7032",
+    "content49/14418897828.zip": "a22822495444f619056ae1359ce0f4ac33c31ff52ff4d8b590fd2bdae36ca54f",
+    "content49/14418932661.zip": "1943baa061dc479fe7722f17b6d5a5afa193eb5788acd428bbcc7a651871ac0a",
+    "content49/14419570121.zip": "ae2be9022071018e2e222c5eed531543130fc29ad1570204b32969dfce5bf2e2",
+    "content49/artifacts.json": "786ff3225c1e3af6519e94ca9344a23ab35201c08fc6bd462365dc01f5b84d88",
+    "content49/carrier.json": "2d3fd7c16a345682d3e27c4d717b9facd75c874777f97306252ab7d8f788292e",
+    "content49/claim.json": "1833763db0a525fbbfa57848567865744cd01420763870f6f29b53d645547749",
+    "content49/descriptor.json": "2ffab378a7a6b197435bd970710370bcaf9cac1e46f008325b61b0bb90f0cd68",
+    "content49/original-artifacts.json": "05a706baf69f5f51ef9abcbdafbb566a241e41f7f6e7986acb75daa2e0f7c9a3",
+    "content49/original-run.json": "ca3badbf085ee8a10e29c2823566c1f2ed6928f736b0a97b4b5f2c9d259d4312",
+    "content49/receipt49-blob.json": "98023e3522d7997909d402eb42ac004f200b60efaef0d0c0f3ee1820924b720b",
+    "content49/receipt49.json": "b9b12adcae97ca7cba0fcbcd5168e92011c56deb4a42db6e7eb28c4207e2c5e0",
+    "content49/run.json": "ff089205494bc73b979f2580fce459fb64865c19649e7e0d8a312fb4d33c6abd",
+    "content_handoff.py": "484c33da0ff064a660f7aa3a6ce50c5aed479e144565f3cd6f43937c34544228",
+    "current-price4294/evidence/handoff.json": "571fd27ce7d14e31cd1272f68b53c2e5fd5bef158c12fa504897d7e545ef1970",
+    "current-price4294/evidence/hook.log": "3ae9cc738fcbabc49a2a949e6166d024d507ea4ec24de64dc0351ee2f7ea1a6b",
+    "current-price4294/evidence/hook_artifacts.json": "4c8a4f6cea2c06289a793baaa180768a1d8c13b9bef052fda3626b5b08b29212",
+    "current-price4294/evidence/hook_jobs.json": "de0a5168cb0a00f246e4e86ae8f0de930299bd35cae1b532d00f588820600a46",
+    "current-price4294/evidence/hook_run.json": "2b0038141ad5a70f24824b4666bee7bc2e56c8d63a1d4b723251cef6d08b2c33",
+    "current-price4294/evidence/recovery.log": "44ea417cf2fde09b3be7479c279c78ce8da06bbb7902a6920d4dc8422e6716ed",
+    "current-price4294/evidence/recovery_artifacts.json": "7513fa4a0271ea4b4937bfffbbde789f552a806a6946ccd65bec190c0f7cf4be",
+    "current-price4294/evidence/recovery_jobs.json": "9c69000235534a2f4322fd92db5e26ea2d94497a9a9084aba584d471be580b43",
+    "current-price4294/evidence/recovery_run.json": "d4beb270221e35fa4e6c8d5a9b450276b3987ee62f480077804fe33159ae4368",
+    "current-price4294/evidence/source-chain.json": "5d7bac3704bdf1c7c93e334d00f2983e430ba750fb672c3f3777b09b8cb7d9e1",
+    "current-price4294/evidence/source-guards.txt": "b35cecda4c4499abdcaa79df940a89cfb6d7a294d839cf90452f5c2da9d4cb26",
+    "current-price4294/evidence/source-install.txt": "cd22680139afb3be2451e896726671a60c6ff245660e64cdc3dd0f4507704196",
+    "current-price4294/evidence/source-runner.txt": "b661507cb8e7d11fe4dd5f1c70dba940d09fcbcb327a61a164f8397ad51ce89c",
+    "current-price4294/handoff-descriptor.json": "89993e4284990a801768243a6bb35cb40c3d7c9d478f1ceaa61aa7cf73a4ccee",
+    "current-price4294/hook-original.zip": "d385b1823eec364b5e52079b010c8faf213dd89aa2174d9ab6aa59c7bc67fb52",
+    "current-price4294/hook-terminal.json": "7cfcdb5be6dbeac8a2271c86506a2a67f2027e11d0c189da91eeb961be16d562",
+    "current-price4294/price_terminal_4294.py": "f22aa7a8708f46452020cfab5cf5fa035a1c289ca1dec53701f73f70f696b460",
+    "current-price4294/public-readback.json": "b4507a64399d7b7d7faba899d3cafd4aca4a3eae2e69609cbef8b51d9ec2f08d",
+    "current-price4294/recovery-original.zip": "014551f21684f5b1bccbe0d845efcf5224597c8f3a57cfa77415026f86068ba4",
+    "current-price4294/recovery-terminal.json": "d0de35e26dad951dc808e0a1ff715c2e84e61a4fd0d95e915ef87eb6f1dead87",
+    "diagnostic78929.php": "50dc18b4a6608b3ecfc999e3dd9786986822241b029654465d033d21e3830905",
+    "historical-failure/authenticated-api-metadata.json": "708c64747baa65534e077a5defc18c625ddc5104c52a9e0cf9b7ee3a8055b0ee",
+    "historical-failure/independent-failure-review.json": "cff7882e030ce3cbc5e30b98cdbb43c2353b71b420381122b2266a54375f7ef5",
+    "historical-failure/original.zip": "4a7b653d9b9bd190f285b7459c488577a98082cfa47190a72a76c64a61636907",
+    "intent.json": "dc828b2a23cb6641f0efbeac8ec3e85dc6d8e6074eb83ec01579ba6f86ec9638",
+    "namespace-provenance.json": "8f6aece606fe58991d82d534c354645769063b404d40e92b9e2f5f668b2efc43",
+    "p01/read.php": "5eb001ec4803b1fffcbe484d47a62652163333ade4f5b1f776ada3768ada2f45",
+    "p02/read.php": "ccc4e74112eff2a333d5fee34e194e50606358fd93e9f2168c66cebe1cad1d2a",
+    "p03/read.php": "a3c4c25afbc118ab0e81e0222d252dd40a55fbb1228be8540dd1ad60a180746c",
+    "p04/read.php": "468b2abbae701c303d2585131cb071c27caa2d561ecc7d882d25b25f50acd139",
+    "p05/read.php": "a989f5c2b23bf40515fd16889a8a2629bb3b5e3baada684d371e42f22e628d19",
+    "p06/read.php": "bbe88838be06d5c986786d00928aa132308747e816c227c0c41fb88a77209ff8",
+    "p07/read.php": "bd9f4d0057e803c2e3811392d6d698eabd6adb9f223bb946b0c8eb1ac01ca1ba",
+    "p08/read.php": "fd2c003136583cc8255b7f8a1a77e86207578d65b663e09b0ab03b418789133e",
+    "p09/read.php": "cfa9f7b5fa2cbd0cb139f6ebfd2c0a7f3e0a9207efbde7b7a0b513526373957c",
+    "p10/read.php": "9cbe90137d4666265390df0e0249462ec055c6292d46f7cc33d59e42cb38c60f",
+    "p11/read.php": "54ba78919648e26b7bb60f79e08a0b8a4b2b34f6fc77f023c34e61d4d4a12445",
+    "p12/read.php": "73d4fd6e34a2779b93666238f99d1843f4f18b9f04e8e58bb6db17a4a46dbc58",
+    "p13/read.php": "763a1d5eb27e0acb7725f930305d059e59b784ade3cfdbd6346f90377b38aa65",
+    "p14/read.php": "7be7809a0959673e6f888c8ad2186f90a68bfb5258fd99c4d3ee0d3af53e6b4b",
+    "p15/read.php": "4d6eb4b60422b7e917940450fe2ff32afdc54ddf2d151ec38d9f88ad140ac652",
+    "p16/read.php": "d47cc165c5c924958ef543ff7443c202d6f82aecd4c14e5998f1091afd8d1173",
+    "p17/read.php": "c6ddb9163ca0874a315c5301b1717854373fbd2e1ba321ab7973af712d27fbd8",
+    "p18/read.php": "aae812959a9b1427504420317415f0d6a2f46d441802293340d00ef4e19e9865",
+    "p19/read.php": "026544bd7093380b89da3e2708bf0ac5a6146b586cb9388f132afe1798a0a8b6",
+    "p20/read.php": "442a57d029f8d53f5ef45596eb81eec315edf0084ada6c4434d694931cc1028d",
+    "p21/read.php": "ed659781305038a0b9f85ee8f985fe3609862eb594ecf380b4ed734161f58fce",
+    "p22/read.php": "bae3613d10489d4afb0a255616c36f489094986d45e68a172dd05a5925a18f24",
+    "p23/read.php": "f87778fec205ed3b8c685c2bf546b8586c1654a5caa4651d9482003b2fe36817",
+    "price1000-original.zip": "171d0042489a2b11042a81fae819f6fa1a5bd22732cbecd2ad484f29f75132dc",
+    "price_current_handoff.py": "ea80b5e2d0344b065852c6475fcff7668dd5c40093f4d8610902f504461aaa6f",
+    "price_readback_handoff.py": "ee0b376aa664fb8c97b0b9252888761057338b3558240e5dcd975cbff2342aa4",
+    "run174.py": "68a55d5738b3e8b9010a9a6c625077ef608682eb1924cf22d23741fb38df9fa1",
+    "runtime-acceptance-bd8.json": "b6d67392c565897f43a90da1b1560db0c301cc63fe3eb21f6b66e1c2cd60a556",
+    "runtime-acceptance.json": "6e55932146d8545976d25a533e7d652954049db4969dbfc86e993c341810d65b",
+    "runtime-acceptance67.json": "5dbaa002a732feff8628d95ce27429f372c490dd0ae2b9a27ad583ead8c4c725",
+    "runtime-bd8-evidence/accepted-runtime-review.json": "81a9b5ee2fe2c90ba72bf4f6c820f5a7e66e9f7865cd09010a3502cbae66b8fa",
+    "runtime-bd8-evidence/closer-jobs.json": "845c7254e6a028e9fc5a2c49ddc69df3954bfc549d7d3aca24c1e424a2b43b2a",
+    "runtime-bd8-evidence/deploy.json": "8703d4a99831594841c11a7d669184745da5fff7947fb5b3e2d43c0eaa95a3e9",
+    "runtime-bd8-evidence/jobs.json": "19f086ff0d8b655c6eb60c4afb72a7049e6c5d62911c4cb142e5adeb025a5975",
+    "runtime-bd8-evidence/main.json": "f1b61b58356a73dc15c11c55d11fb840e879ff1e475c38a11c5068e4ebf02053",
+    "runtime-bd8-evidence/max-jobs.json": "5e1a9a830634e87ca1d63213f8f1831bba0bb2b9038a69bf7d6d310b5460ecf7",
+    "runtime-bd8-evidence/native-verify.log": "c82eaabcad12d91f23f07a5867c25e2b6363d90e621473523de3cae8bcd08d76",
+    "runtime-bd8-evidence/publisher-current.json": "20f0fefd6cf5c2087f00c8c3a2a104e790b2e66dbf2ccfa19747000162f75129",
+    "runtime-bd8-evidence/release-slot.log": "309dedd779cc9c7ea916d5fe16122007c2e9ecae9cafff2dc478b5eb0b979abe",
+    "runtime-bd8-evidence/runs.json": "81562b44b3111d678aa753f2be90bc197d4f23deeb939dfd792bd29a2adc8b5e",
+    "runtime-bd8-evidence/saved-accepted-record-and-publisher.json": "47f1cac57e53be76881b45ba3f794f245fc79695169cd9d1cb19d5102fece6c0",
+    "runtime-bd8-evidence/telegram-jobs.json": "0867b798af526babedc75677029c083fa8cf4fd5e8c9e69d37622b29e531627a",
+    "runtime-bd8-evidence/tls-jobs.json": "4b14a9d7e776b3d188ee1ec1acbad8f3636364e33f3b4d78dc430ac1dca59361",
+    "runtime-bd8e-evidence/ChannelPostReconciliationService-9ba.php": "e21cece60c90cfdd268c03f4ef1ed127f0d40e594e35bd39322a914861b1e35e",
+    "runtime-bd8e-evidence/ChannelPostReconciliationService-bd8.php": "6cb14b30abd430d8e5ca768490c42b052d3592249d2c7a33f0fd5d66b8b7f25e",
+    "runtime-bd8e-evidence/ChannelPostRegistryService-9ba.php": "ebddf3b9378cbd1eadbffcbc72a5c9a13f7dfc9898b7e76702366fbc8792eaf9",
+    "runtime-bd8e-evidence/ChannelPostRegistryService-bd8.php": "590fcda66c13b5c0d89b021dc25e761ef316b8cfdb4b28fedf833f8593d5da0f",
+    "runtime-bd8e-evidence/REVIEW.txt": "39a974831fdd8291307fe7b18cd1a2cd1aaa23f8b4c4b975b0ed9574fe081441",
+    "runtime-bd8e-evidence/compare.json": "2175deb4ca9eb991ed20a9508c56ef80ea329a38e0c3e12dc02db341f7aff14c",
+    "runtime-bd8e-evidence/compatibility-proof.json": "1ca4937a54df98b47765c4dce1b71c790b9495ae2573716eeed4e73bea3bf6e3",
+    "runtime-bd8e-evidence/tree.json": "b3dfe7eedb311e318e54e0735e92dac4583536db183627b95d07d44955148db0",
+    "runtime-bd8e-evidence/verify.py": "5c7568815a1db3fee2c695cd3924710ccdcb30b8523de9210c2afe786a138907",
+    "runtime-transition-67aa-proof.json": "84244a8ecca0e785a0a2dcaa3e18c513bcff69d91ee44f0875382232f3771e9b",
+    "runtime-transition-bd8e-proof.json": "b2e24800ec53d951c2f2415f07b78a4248e03a2d39822c4abac6ac49457f3b5a",
+    "runtime-transition-proof.json": "9e36c710a708db7ee510a6b0313c6399f479cd54bbd661ba8944ae58d3f84d9f",
+    "runtime67-evidence/accepted-runtime-review.json": "eb907d119b4b0ca8f791f406a5690973d75fa9eb78e3ef0be68343dc2f84df3c",
+    "runtime67-evidence/closer-jobs.json": "bdd7d45be451217f2ab64b7ce0b762a1c5491e5f5d5eaa361ccd61853ebed937",
+    "runtime67-evidence/compare.json": "356561da3afeaccdc274838f2cb32c660e371e8607886fd4cf3c64a4ab496ce5",
+    "runtime67-evidence/component-matrix.json": "13dfc6a20e57aa04c84c890ba92d2936ea412d90cd198580b691839b178dd7d4",
+    "runtime67-evidence/deploy-jobs-terminal.json": "129228c021e0305eb075c8466a31d3ec9a3a14b75aeb16ba635d69ca0f682d48",
+    "runtime67-evidence/deploy-run-terminal.json": "60670de8b97cd96eab213da599d198927508c5fec01dea7177a5dea1f03813d2",
+    "runtime67-evidence/jobs-first.json": "7ab90492f808488678e2380de55b5f0e48e0b5451e5953c7e0f2497246629748",
+    "runtime67-evidence/main.json": "fc7bcfe8dfba535db529a6ef3c429921e9c4894e547fa7d3caa956c54565c9ee",
+    "runtime67-evidence/max-jobs.json": "5b8c11d38890d8098c6386709a5baed329049bfb4becbb463a4471e7a7f946fc",
+    "runtime67-evidence/native-verify.log": "61aa471eafcbb3dfad8e90ee8c4ca0c76df56b2ed503209a6b11b3f812f9c3b5",
+    "runtime67-evidence/release-slot.log": "b887d57d9773e68c71abfa9849dd1840ef85b28d6549b10aece4c2c6ac98a248",
+    "runtime67-evidence/runs-terminal.json": "09a6dbca3aec6a5e9428bd05bed81ea3e58fbb8045e785ed542c2b4fd3784ae7",
+    "runtime67-evidence/runs.json": "4f2b2b347f2c67ab7148be7f446918618bf6966029bbbb54281564fe1597ef76",
+    "runtime67-evidence/telegram-jobs.json": "0326589f601f36a2396a7db93c54d6f17aac83ee8e8f8c826d541b55b8032b12",
+    "runtime67-evidence/tls-jobs.json": "ad8aafe2347805af50700558dbdcbda64c20e5f660d908d67133706b307817d4",
+    "runtime67-evidence/tree.json": "5e84895a7103e01deb99feae4eb1494f96930f0dee41ae1b53574e1a99badccb",
+    "runtime_acceptance.py": "26337c69ac2e71e54ee767a6f508ba5658f61e864649a6b44591219409b55ed2",
+    "runtime_acceptance67.py": "afd27db4e6a18e343646f043e70a76eedad26a3434fb08c310275f347209563d",
+    "runtime_acceptance_bd8.py": "b0ebcde5152ca61edfeb4405040323f0fc1a08cbae42da288c21f55689300246",
+    "runtime_acceptance_bd8e.py": "1e21e582dba59d7553ae28850e8c8ed396b7b713a5376d5e4b323b5de63f2089",
+    "transition-67aa-evidence/compare.json": "356561da3afeaccdc274838f2cb32c660e371e8607886fd4cf3c64a4ab496ce5",
+    "transition-67aa-evidence/component-matrix.json": "13dfc6a20e57aa04c84c890ba92d2936ea412d90cd198580b691839b178dd7d4",
+    "transition-67aa-evidence/tree.json": "5e84895a7103e01deb99feae4eb1494f96930f0dee41ae1b53574e1a99badccb",
+    "transition-evidence/accepted-runtime-review.json": "3be50f4c75070be9585d72f34284951e90ea4ea500072f8ae511749bdc9634d9",
+    "transition-evidence/compare.json": "86a4d904a38207c8b55341ba2ee76ded5a964429c37635dd64977361a2430e9e",
+    "transition-evidence/component-matrix.json": "a5c534e5d3f99e1a1207fb0e11b510752585687c8da95ac6926c9561bbd415d7",
+    "transition-evidence/jobs-terminal.json": "dec7d8c01a3ac1e2c4d4c3e5fd5d1a4f7d6927e6f4733c0f5f9f4c8f942e81fb",
+    "transition-evidence/native-verify.log": "84eb891ee6fafc2454f938540c3975e74266a71f84e18c52706b7c9b1c779be6",
+    "transition-evidence/release-jobs.json": "8b134afb7041cf0940a7330496dedb09a9096948b0504dee1fc03f95074a3bff",
+    "transition-evidence/release-run.json": "8711963862af9410572f2220b09c71faa55e9bc3daa0b62b690197d1731f9a60",
+    "transition-evidence/release-slot.log": "728754d1a844c9e786b78ed71864f5f90830a8d41262fb9f9b43ea002987749a",
+    "transition-evidence/tail-MAX-jobs.json": "ab5fadf0a4ee95ac3e226a141b093226ea1782297436c49422bb6bebbc3fa87a",
+    "transition-evidence/tail-TG-jobs.json": "26a30b3c23d56ea009c8ff37245e470f5447282635b6833bde4bb962749d3373",
+    "transition-evidence/tail-TLS-jobs.json": "901d93945e80fa50b8f932826855f3a0cad874bc48f70eaee402b01540d389a0",
+    "transition-evidence/treenew.json": "59fc22aaa3cbe4bcc23dc3fc30a5be82900e47aa3b9c88552a6da35941e70373",
+    "transition-evidence/treeold.json": "9ffac93477f86f0538c5f317919136d67568fac54ec992e707a28eed9c524826"
+  },
+  "state": "CLOSED_OFFLINE_ONLY"
+}

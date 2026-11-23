@@ -1,0 +1,93 @@
+name: FEED55 exact read-only preflight
+on:
+  push:
+    branches: ['audit/price660-27316-resume-readiness-20261117']
+    paths: ['.github/workflows/price27316-feed55-preflight.yml']
+permissions:
+  contents: read
+  actions: read
+  issues: read
+concurrency:
+  group: anytour-authorized-channel-publication
+  cancel-in-progress: false
+jobs:
+  inspect:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.run_attempt == 1 && github.event.before == '263354a092246714142a4ede595c5b6e36939efd'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      EXPECTED_PARENT_SHA: 263354a092246714142a4ede595c5b6e36939efd
+      REVIEWED_FEED55_INTENT_SHA256: 286023657199e1a97739464465aa0af21d5083cacdf72bcf8042542585b8a8fc
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 2
+      - name: Verify exact read-only sources before credentials
+        run: |
+          set -euo pipefail
+          echo 'cb6292a8ee2f0252953648c7cc578008df03d2722cb91dbdeef99636f0ea6e3e  tools/direct_demand/operations/feed55/preflight/admit55.py' | sha256sum --check --strict
+          echo '056e84a26e39fa52e27fd0ad159af6f6a431840c52cad1b0164fd1f4aa6079e5  tools/direct_demand/operations/feed55/preflight/run55.py' | sha256sum --check --strict
+          echo '286023657199e1a97739464465aa0af21d5083cacdf72bcf8042542585b8a8fc  tools/direct_demand/operations/feed55/preflight/intent.json' | sha256sum --check --strict
+          python3 -m py_compile tools/direct_demand/operations/feed55/preflight/admit55.py tools/direct_demand/operations/feed55/preflight/run55.py
+          python3 - <<'PY'
+          import hashlib,json,pathlib,subprocess
+          root=pathlib.Path('tools/direct_demand/operations/feed55/preflight')
+          j=json.loads((root/'intent.json').read_bytes())
+          assert [g['batch'] for g in j['groups']]==[1,2,4,5,9,12,13]
+          assert j['hotels']==55 and j['publications']==110
+          for g in j['groups']:
+              p=root/f"p{g['batch']:02d}"/'read.php'
+              assert hashlib.sha256(p.read_bytes()).hexdigest()==g['reader_sha256']
+              subprocess.run(['php','-n','-l',str(p)],check=True,timeout=30)
+          PY
+      - name: Fresh owner and exclusive-window admission
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/direct_demand/operations/feed55/preflight/admit55.py "$RUNNER_TEMP/feed55-admission.json"
+      - name: Prepare unchanged server connection and host pin
+        env:
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-') and re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35);matches=[]
+          for line in scan.stdout.splitlines():
+              f=line.split()
+              if len(f)<3 or f[0].startswith('#'): continue
+              try: fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(f[2])).digest()).decode().rstrip('=')
+              except Exception: continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0': matches.append(line)
+          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+          PY
+      - name: Read exact 55 current publications and XML preimages
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 tools/direct_demand/operations/feed55/preflight/run55.py tools/direct_demand/operations/feed55/preflight "$RUNNER_TEMP/feed55-preflight" "$RUNNER_TEMP/feed55-admission.json"
+      - name: Preserve private read-only evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: feed55-preflight-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/feed55-preflight/
+            ${{ runner.temp }}/feed55-admission.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Cleanup connection material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"

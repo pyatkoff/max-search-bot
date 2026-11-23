@@ -1,0 +1,31 @@
+{
+  "current_preimages_equal_historical": false,
+  "fresh_same_run_probe_required": true,
+  "historical_feed": {
+    "archive_sha256": "6dec10057f38db5f7ff8776078c363131bbc3d1764d089558f95452b18c2ad50",
+    "artifact_id": 14392977439,
+    "complete_sha256": "982ada571469c3f112addc7015ff3692478df9baa2f47d1a875471ebbe1f1b9b",
+    "head_sha": "1a055d8d5cd94fe0a57a2ee03e41905beff274f9",
+    "native_receipt_member": "progress/p26/native-result.json",
+    "native_receipt_sha256": "78318d0d578714b6073e31eb3eed9999d1d0c7f20ef83dc1f7c1906a5f4ce632",
+    "run_id": 44224540179,
+    "verified_sha256": "765f3bc873b1b09e4be63c4a000ed7a28d92795494116b1482709a03c470c9da"
+  },
+  "historical_receipt_rewritten": false,
+  "initial_previous_native_receipt_sha256": "78318d0d578714b6073e31eb3eed9999d1d0c7f20ef83dc1f7c1906a5f4ce632",
+  "kind": "HISTORICAL_FEED877_CHAIN_SEED_PLUS_SEPARATE_CURRENT_PRICE_READBACK",
+  "price_readback": {
+    "archive_sha256": "724256a3698fff5c6e830a8c448e832a41005cc0bb30622591a7a9181ae3ab43",
+    "artifact_id": 14405665921,
+    "current_feed_sha256": {
+      "hotel-posts-all.xml": "4993ee48e31735b05ad4c92d21b70660cfadc855c5c9a79a9fa48ee11c914bc1",
+      "hotel-posts-max.xml": "0995206f073ca5897eb01a05b86cdd804763d02705740d2ceae49ed0d6b7a337",
+      "hotel-posts-telegram.xml": "2d14d19fe3a869f1540da852bcfbc5491b0f611204264523d9a568b9b41b7608"
+    },
+    "head_sha": "f767095344e5268c5ddfd26c71358a43b71bbaf4",
+    "price_cycle_success": false,
+    "receipt_sha256": "986d63b78480cdc6af9ad3515a3fdee42167fa67fb1990f5ca2628790690296f",
+    "run_id": 44254140999
+  },
+  "seed_does_not_authorize_write": true
+}

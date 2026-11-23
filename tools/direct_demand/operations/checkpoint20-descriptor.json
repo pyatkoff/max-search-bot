@@ -1,0 +1,523 @@
+{
+  "kind": "EXACT_FAILED44222070996_VERIFIED_PREFIX20_ONLY",
+  "metadata": {
+    "run": {
+      "id": 44222070996,
+      "head_sha": "ac591a90ff4362656e922b0371b27eaa565e4281",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "failure",
+      "event": "push"
+    },
+    "job": {
+      "id": 134526113618,
+      "name": "inspect",
+      "run_id": 44222070996,
+      "status": "completed",
+      "conclusion": "failure",
+      "steps": [
+        {
+          "number": 1,
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 2,
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 3,
+          "name": "Verify independently reviewed immutable config before credentials",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 4,
+          "name": "Prepare unchanged server connection and host pin",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 5,
+          "name": "Prepare sanitized root-coordinated finite plan (no writes)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 6,
+          "name": "Publish sanitized plan artifact while job is running",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 7,
+          "name": "One native feed write for original batch 2",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 8,
+          "name": "Publish bounded progress for batch 2 while job is running",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 9,
+          "name": "One native feed write for original batch 3",
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "number": 10,
+          "name": "Publish bounded progress for batch 3 while job is running",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 11,
+          "name": "One native feed write for original batch 4",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 12,
+          "name": "Publish bounded progress for batch 4 while job is running",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 13,
+          "name": "One native feed write for original batch 5",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 14,
+          "name": "Publish bounded progress for batch 5 while job is running",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 15,
+          "name": "One native feed write for original batch 6",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 16,
+          "name": "Publish bounded progress for batch 6 while job is running",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 17,
+          "name": "One native feed write for original batch 8",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 18,
+          "name": "Publish bounded progress for batch 8 while job is running",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 19,
+          "name": "One native feed write for original batch 9",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 20,
+          "name": "Publish bounded progress for batch 9 while job is running",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 21,
+          "name": "One native feed write for original batch 10",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 22,
+          "name": "Publish bounded progress for batch 10 while job is running",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 23,
+          "name": "One native feed write for original batch 11",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 24,
+          "name": "Publish bounded progress for batch 11 while job is running",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 25,
+          "name": "One native feed write for original batch 12",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 26,
+          "name": "Publish bounded progress for batch 12 while job is running",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 27,
+          "name": "One native feed write for original batch 13",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 28,
+          "name": "Publish bounded progress for batch 13 while job is running",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 29,
+          "name": "One native feed write for original batch 14",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 30,
+          "name": "Publish bounded progress for batch 14 while job is running",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 31,
+          "name": "One native feed write for original batch 15",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 32,
+          "name": "Publish bounded progress for batch 15 while job is running",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 33,
+          "name": "One native feed write for original batch 18",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 34,
+          "name": "Publish bounded progress for batch 18 while job is running",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 35,
+          "name": "One native feed write for original batch 17",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 36,
+          "name": "Publish bounded progress for batch 17 while job is running",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 37,
+          "name": "One native feed write for original batch 19",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 38,
+          "name": "Publish bounded progress for batch 19 while job is running",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 39,
+          "name": "One native feed write for original batch 20",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 40,
+          "name": "Publish bounded progress for batch 20 while job is running",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 41,
+          "name": "One native feed write for original batch 21",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 42,
+          "name": "Publish bounded progress for batch 21 while job is running",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 43,
+          "name": "One native feed write for original batch 22",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 44,
+          "name": "Publish bounded progress for batch 22 while job is running",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 45,
+          "name": "One native feed write for original batch 23",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 46,
+          "name": "Publish bounded progress for batch 23 while job is running",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 47,
+          "name": "One native feed write for original batch 24",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 48,
+          "name": "Publish bounded progress for batch 24 while job is running",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 49,
+          "name": "One native feed write for original batch 25",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 50,
+          "name": "Publish bounded progress for batch 25 while job is running",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 51,
+          "name": "One native feed write for original batch 26",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 52,
+          "name": "Publish bounded progress for batch 26 while job is running",
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "number": 53,
+          "name": "Preserve bounded failure metadata",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 54,
+          "name": "Cleanup original connection material",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 108,
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "number": 109,
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    "artifacts": {
+      "plan": {
+        "id": 14391785488,
+        "name": "feed217-plan-44222070996",
+        "expired": false,
+        "digest": "sha256:c63d521c15df75fa9f6a416459b0a8a5a1cfbfacfcac690e02d9fdd93ea58550",
+        "workflow_run": {
+          "id": 44222070996,
+          "head_sha": "ac591a90ff4362656e922b0371b27eaa565e4281",
+          "repository_id": 1342493152,
+          "head_repository_id": 1342493152
+        }
+      },
+      "p02": {
+        "id": 14391980188,
+        "name": "feed217-progress-p02-44222070996",
+        "expired": false,
+        "digest": "sha256:651fc86b649b390273cae2c7373a73a8de00c3d7039730f427f0288333f8a5a4",
+        "workflow_run": {
+          "id": 44222070996,
+          "head_sha": "ac591a90ff4362656e922b0371b27eaa565e4281",
+          "repository_id": 1342493152,
+          "head_repository_id": 1342493152
+        }
+      },
+      "p03": {
+        "id": 14390554217,
+        "name": "feed217-progress-p03-44222070996",
+        "expired": false,
+        "digest": "sha256:7e848449d7f94fff7c9d2101d1b918c3aa6b1b6f41864bcbfffca5d3b773b08d",
+        "workflow_run": {
+          "id": 44222070996,
+          "head_sha": "ac591a90ff4362656e922b0371b27eaa565e4281",
+          "repository_id": 1342493152,
+          "head_repository_id": 1342493152
+        }
+      }
+    }
+  },
+  "archives": {
+    "plan": {
+      "sha256": "c63d521c15df75fa9f6a416459b0a8a5a1cfbfacfcac690e02d9fdd93ea58550",
+      "members": {
+        "plan.json": "7699d7174584ff26fa2a5a8b7722be5639c6ce956b74cf349159b76cfbffb67a"
+      }
+    },
+    "p02": {
+      "sha256": "651fc86b649b390273cae2c7373a73a8de00c3d7039730f427f0288333f8a5a4",
+      "members": {
+        "progress/p02/native-result.json": "5da6d64f89008743b0d5d5572d9e893aca4ef9737e8609711f8760f3b13fd40e",
+        "progress/p02/started.json": "bcf85be1c4356b531dcaf101613df414923ea56a002d78e60b80c658aa2045cb",
+        "progress/p02/verified.json": "8157b6dea5e1ba293f7fbe1c00afe958a436cb556dde4fefe7e61112639268d1",
+        "progress/p02/waiting.json": "df30412914960f711f50b3c639b03025c62c732cc4c7b913b3561809ee68ba81"
+      }
+    },
+    "p03": {
+      "sha256": "7e848449d7f94fff7c9d2101d1b918c3aa6b1b6f41864bcbfffca5d3b773b08d",
+      "members": {
+        "progress/p03/waiting.json": "8540cb8920fbe3db6a7a442de8d3d155dd4748f1bdc4a43275289e4c45530a0b",
+        "failure.json": "ec3c8c602c768789fb6691719d72740e96e874a98a31ec96ab64e33c1cc51856"
+      }
+    }
+  },
+  "completed_hotel_ids": [
+    12120,
+    64957,
+    76029,
+    66198,
+    49750,
+    123247,
+    48184,
+    32322,
+    28272,
+    7458,
+    2490,
+    2458,
+    113544,
+    73477,
+    2588,
+    2611,
+    2612,
+    2610,
+    2931,
+    78456
+  ],
+  "inventory_sha256": "c8cee3897d32ae513b537ba55ce4d8fe5d850017789b60fea53eca8a9f9ce565",
+  "historical_prefix10": {
+    "kind": "AUTHENTICATED_EXACT_PREFIX1_NOT_CURRENT_ADMISSION",
+    "descriptor_sha256": "a9b483bb76b7d07d1ad727ea12c9c5d7749b6030329f6a381ee14e3905eaca4b",
+    "historical_run_id": 44163849869,
+    "historical_head_sha": "216df1858b16c193a2382f0f294b3b6599c82df7",
+    "historical_plan_sha256": "25aa74e29b4aeee0b6609f69c9d3d0d882efd44782460512e08615b8a351acc2",
+    "completed_prefix": [
+      1
+    ],
+    "prefix_hotel_ids": [
+      12120,
+      64957,
+      76029,
+      66198,
+      49750,
+      123247,
+      48184,
+      32322,
+      28272,
+      7458
+    ],
+    "previous_pairs": 670,
+    "remaining_hotels": 207,
+    "suffix_batches": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      18,
+      17,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26
+    ],
+    "previous_native_receipt_sha256": "2dcf4f7d9698934cf7df022606c42b4d80f42778318fb7db17e719b1de226a12",
+    "expected_feeds": {
+      "hotel-posts-telegram.xml": "dd0ca832b3e8721c19b990e2acc2ddaf55361c07f72c5584d7cbae18b90266c7",
+      "hotel-posts-max.xml": "2230ff13613de02f7c4fe637bc3442dc4da4eef49826c16904835860ad8d1335",
+      "hotel-posts-all.xml": "397e4fef3a4004beaff124bbebcf9860144a2163c076b514b7522b023d0327ec"
+    },
+    "historical_after_probe_sha256": "b5000ad85807b61b17342a3f86ffde7729a03d6482bd82dd76bf0d8b072ede25",
+    "historical_probe_bytes_available": false
+  },
+  "price_evolution": {
+    "kind": "AUTHENTICATED_EXACT_PRICE_EVOLUTION_NOT_CURRENT_ADMISSION",
+    "descriptor_sha256": "c66c2fbde42e118b05fb9edd8efd898644c8a9e4572d17a4d8268e72e9d7f466",
+    "historical_feeds": {
+      "hotel-posts-telegram.xml": "dd0ca832b3e8721c19b990e2acc2ddaf55361c07f72c5584d7cbae18b90266c7",
+      "hotel-posts-max.xml": "2230ff13613de02f7c4fe637bc3442dc4da4eef49826c16904835860ad8d1335",
+      "hotel-posts-all.xml": "397e4fef3a4004beaff124bbebcf9860144a2163c076b514b7522b023d0327ec"
+    },
+    "current_feeds": {
+      "hotel-posts-telegram.xml": "c587b3768a3539f270493b4d227f42bbc08fa0ef63704d3a2602f2bd86d955d3",
+      "hotel-posts-max.xml": "300f2387b47bc41205e3d5c0bfe00e8bc2d66c439822e0935b8c771a819a42a9",
+      "hotel-posts-all.xml": "25bee83c6e74629dcd4cd96afd0e77da9bdccf5697e79cb2b5fb0ac18a21baef"
+    },
+    "installed_hook_sha256": "1ad41a8a3a8d10632e0e6127289481675f655c7f7f9a5bbe39b698c03e73e592",
+    "runtime_sha": "cc017ee5bb669f4c7c13efc91d5c5812a50e55f2",
+    "artifact": {
+      "repository": "pyatkoff/poisk-turov-test",
+      "run_id": 44217252234,
+      "head_sha": "7361540b2839029cda2b4f4e2a01fadbdba35bd5",
+      "artifact_id": 14389576567,
+      "archive_sha256": "267acff310c9d7b71972ae15373355f123c123f2f87d3e69b7fd53e7f9cc0cd1"
+    }
+  }
+}
