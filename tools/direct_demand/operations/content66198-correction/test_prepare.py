@@ -266,6 +266,143 @@ $r=$m['rows'][0];$bad=$r['old_markup'];$bad[0]['length']--;$rejected=false;try{c
         with self.assertRaises(ValueError):
             p.verify(self.dir / 'edit-manifest.json', path, self.dir)
 
+    def test_confirmed_telegram_file_id_rotation_keeps_stable_photo(self):
+        # Shape of original EDIT45096362078: same photo, exact previous digest,
+        # changed Telegram current digest; fixture IDs/versions are not authority.
+        self.compile()
+        result = self.native_result_fixture()
+        result['posts'][0]['attachments_sha256'] = 'e' * 64
+        path = self.dir / 'edit-result.json'
+        path.write_bytes(p.raw(result))
+        verified = p.verify(self.dir / 'edit-manifest.json', path, self.dir)
+        self.assertEqual(verified['posts_edited'], 2)
+        self.assertEqual(verified['native_result']['posts'][0]['attachments_sha256'], 'e' * 64)
+        mutations = [
+            lambda x: x['posts'][0].update(photo_signature='telegram:another_photo'),
+            lambda x: x['posts'][0].update(previous_attachments_sha256='e' * 64),
+            lambda x: x['posts'][0].update(attachments_sha256='invalid'),
+            lambda x: x['posts'][0].update(body_photo_button_verified=False),
+            lambda x: x['posts'][0].update(formatting_verified=False),
+            lambda x: x['posts'][0].update(existing_token_resolves_to_current_version=False),
+            lambda x: x['posts'][1].update(attachments_sha256='e' * 64),
+            lambda x: x.update(new_posts_created=1),
+            lambda x: x.update(post_write_attempts=1),
+        ]
+        for mutation in mutations:
+            bad = copy.deepcopy(result)
+            mutation(bad)
+            path.write_bytes(p.raw(bad))
+            with self.subTest(mutation=mutation), self.assertRaises(ValueError):
+                p.verify(self.dir / 'edit-manifest.json', path, self.dir)
+        self.write_fixture(correct=True)
+        self.compile()
+        noop = self.native_result_fixture()
+        noop['posts'][0]['attachments_sha256'] = 'e' * 64
+        path.write_bytes(p.raw(noop))
+        with self.assertRaisesRegex(ValueError, 'native_result_attachment_invalid'):
+            p.verify(self.dir / 'edit-manifest.json', path, self.dir)
+
+    def reconciliation_fixture(self):
+        before = {
+            'telegram': [dict(type='image', provider='telegram', telegram_file_id='fixture_file_before',
+                              file_unique_id='fixture_photo_66198')],
+            'max': [dict(type='image', provider='max', photo_id='fixture_photo_66198')],
+        }
+        after = copy.deepcopy(before)
+        after['telegram'][0]['telegram_file_id'] = 'fixture_file_after'
+        def set_hashes(meta, read):
+            for post in read['posts']:
+                post['attachments_sha256'] = p.sha(p.raw(before[post['platform']])[:-1])
+        self.write_fixture(edit=set_hashes)
+        self.compile()
+        native = self.native_result_fixture()
+        for post in native['posts']:
+            post['attachments_sha256'] = p.sha(p.raw(after[post['platform']])[:-1])
+        path = self.dir / 'edit-result.json'
+        path.write_bytes(p.raw(native))
+        ctx = p.compile_reconcile(OPS, self.meta_path, self.dir / 'edit-manifest.json', path, self.dir)
+        return ctx, before, after
+
+    def test_reconciliation_compiles_and_limits_actual_raw_attachment_delta(self):
+        ctx, before, after = self.reconciliation_fixture()
+        file = self.dir / 'reconcile.php'
+        syntax = subprocess.run([PHP, '-l', str(file)], text=True, capture_output=True)
+        self.assertEqual(syntax.returncode, 0, syntax.stdout + syntax.stderr)
+        rows = []
+        for row, receipt in zip(ctx['manifest']['rows'], ctx['native_result']['posts']):
+            rows.append(dict(row=row, receipt=receipt, before=dict(attachments=before[row['platform']]),
+                             after=dict(attachments=after[row['platform']])))
+        payload = base64.b64encode(p.raw(rows)).decode()
+        code = file.read_text().split("$out=['ok'=>false", 1)[0]
+        code += "$rows=json_decode(base64_decode('" + payload + "'),true);$proof=[];foreach($rows as $x){$proof[]=reconciliationAttachments($x['before'],$x['after'],$x['row'],$x['receipt']);}\n"
+        code += r'''
+$tg=$rows[0];
+$changes=[
+    static function(&$x){$x['after']['attachments'][]=$x['after']['attachments'][0];},
+    static function(&$x){$x['after']['attachments'][0]['file_unique_id']='another_photo';},
+    static function(&$x){$x['after']['attachments'][0]['type']='video';},
+    static function(&$x){$x['after']['attachments'][0]['extra']='not_canonical';},
+    static function(&$x){$x['receipt']['previous_attachments_sha256']=str_repeat('0',64);},
+];
+foreach($changes as $change){$bad=$tg;$change($bad);$bad['receipt']['attachments_sha256']=attachmentHash($bad['after']);
+    $failed=false;try{reconciliationAttachments($bad['before'],$bad['after'],$bad['row'],$bad['receipt']);}catch(Throwable $e){$failed=true;}
+    need($failed,'unsafe_attachment_delta_accepted');}
+echo jsonValue($proof);
+'''
+        process = subprocess.run([PHP], input=code, text=True, capture_output=True)
+        self.assertEqual(process.returncode, 0, process.stdout + process.stderr)
+        proof = json.loads(process.stdout)
+        self.assertEqual(proof[0]['changed_attachment_fields'], ['telegram_file_id'])
+        self.assertEqual(proof[1]['changed_attachment_fields'], [])
+        self.assertEqual(proof[0]['photo_signature'], 'telegram:fixture_photo_66198')
+        expired = p.load(self.meta_path)
+        expired['observed_at_utc'] = '2020-01-01T00:00:00Z'
+        self.meta_path.write_bytes(p.raw(expired))
+        with self.assertRaisesRegex(ValueError, 'reconciliation_metadata_expired'):
+            p.compile_reconcile(OPS, self.meta_path, self.dir / 'edit-manifest.json', self.dir / 'edit-result.json', self.dir)
+
+    def test_reconciliation_result_binds_current_versions_and_no_writes(self):
+        ctx, before, after = self.reconciliation_fixture()
+        input_path = self.dir / 'reconcile-input.json'
+        result = dict(ok=True, operation=ctx['operation'], caption_operation=p.EDIT, installed_sha=p.APP,
+            input_sha256=p.sha(input_path.read_bytes()), manifest_sha256=ctx['manifest_sha256'],
+            native_result_sha256=ctx['native_result_sha256'], journal_pin=ctx['journal_pin'], monitor_pending=False,
+            provider_calls=0, post_write_attempts=0, database_writes=0, filesystem_writes=0,
+            caption_journal_sha256='f'*64, caption_journal_bytes=12345,
+            observed_at_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(), posts=[])
+        for row, receipt in zip(ctx['manifest']['rows'], ctx['native_result']['posts']):
+            platform = row['platform']
+            item = {k: row[k] for k in ['hotel_id', 'platform', 'publication_id', 'message_id', 'post_url',
+                'photo_signature', 'button_url_sha256']}
+            item.update(previous_version_id=row['version_id'], version_id=receipt['version_id'],
+                text_sha256=receipt['text_sha256'], previous_attachments_sha256=row['attachments_sha256'],
+                attachments_sha256=receipt['attachments_sha256'], before_attachments=before[platform],
+                after_attachments=after[platform], photo_count=1, photo_identity_unchanged=True,
+                original_receipt_confirmed=True, price_markup_button_preserved=True, current_token_verified=True,
+                changed_attachment_fields=['telegram_file_id'] if platform=='telegram' else [])
+            result['posts'].append(item)
+        path = self.dir / 'reconcile-result.json'
+        path.write_bytes(p.raw(result))
+        self.assertEqual(p.verify_reconcile(input_path, path, self.dir)['posts_verified'], 2)
+        mutations = [
+            lambda x: x['posts'][0].update(version_id=x['posts'][0]['previous_version_id']),
+            lambda x: x['posts'][0].update(current_token_verified=False),
+            lambda x: x['posts'][0].update(original_receipt_confirmed=False),
+            lambda x: x['posts'][0].update(changed_attachment_fields=[]),
+            lambda x: x['posts'][0]['after_attachments'].append(copy.deepcopy(x['posts'][0]['after_attachments'][0])),
+            lambda x: x['posts'][0]['after_attachments'][0].update(file_unique_id='another_photo'),
+            lambda x: x.update(provider_calls=1),
+            lambda x: x.update(database_writes=1),
+            lambda x: x.update(input_sha256='0'*64),
+            lambda x: x.update(observed_at_utc='2020-01-01T00:00:00Z'),
+        ]
+        for mutation in mutations:
+            bad = copy.deepcopy(result)
+            mutation(bad)
+            path.write_bytes(p.raw(bad))
+            with self.subTest(mutation=mutation), self.assertRaises(ValueError):
+                p.verify_reconcile(input_path, path, self.dir)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)

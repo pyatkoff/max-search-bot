@@ -60,6 +60,25 @@ function wf_public(string $url): array {
     wf_need(is_string($raw) && strlen($raw)>1000 && strlen($raw)<4000000 && $status===200,'waldorf_public_read_failed');
     return ['raw'=>$raw,'http_status'=>$status];
 }
+function wf_resume_original_receipts(array $state,array $ctx): void {
+    $versions=['telegram:1500'=>14280,'max:1510'=>14281];
+    wf_need(($ctx['continuation_kind']??null)==='CONTENT66198_FEED_ONLY_AFTER_CONFIRMED_EDIT'
+        && ($state['complete']??null)===true && is_array($state['posts']??null) && count($state['posts'])===2
+        && is_array($ctx['confirmed_receipts']??null) && count($ctx['confirmed_receipts'])===2,
+        'waldorf_resume_original_receipt_missing');
+    foreach ($versions as $key=>$version) {
+        $expected=$ctx['confirmed_receipts'][$key]??null; $post=$state['posts'][$key]??null; $actual=$post['receipt']??null;
+        wf_need(is_array($expected) && ($expected['version_id']??null)===$version && ($post['state']??null)==='confirmed'
+            && is_array($actual) && count($actual)===count($expected),'waldorf_resume_original_receipt_changed');
+        foreach ($expected as $field=>$value)
+            wf_need(array_key_exists($field,$actual) && $actual[$field]===$value,'waldorf_resume_original_receipt_changed');
+    }
+}
+function wf_receipt_preimages_unchanged(array $files,array $expected): void {
+    wf_need(array_column($files,'name')===wf_names() && array_column($expected,'name')===wf_names(),'waldorf_pre_edit_feed_changed');
+    foreach ($files as $i=>$f) wf_need($f['sha256']===$expected[$i]['sha256'] && $f['bytes']===$expected[$i]['bytes'],
+        'waldorf_pre_edit_feed_changed');
+}
 $locks=[]; $out=['ok'=>false,'kind'=>'CONTENT66198_FEED_READ','filesystem_writes'=>0,'provider_calls'=>0,'database_writes'=>0];
 try {
     wf_source(); $b=wf_binding(); $ctx=wf_context(); $mode=FEED66198_PHASE;
@@ -77,14 +96,14 @@ try {
         }
         $out+=['phase'=>'pre_edit_capture','posts'=>$posts,'files'=>$files,'caption_updates'=>$bindings,
             'native_read_sha256'=>$ctx['native_read_sha256'],'target_description_occurrences'=>4,'description_changes'=>$changed];
-    } elseif ($mode==='receipts') {
+    } elseif ($mode==='receipts' || $mode==='resume-receipts') {
         $read=wf_locked_jsonl('/var/www/anytoour/data/channel-post-operations/'.$b['caption_operation'].'/receipt.jsonl',134217728,LOCK_SH,$locks);
         $op=['operation'=>$b['caption_operation'],'manifest_sha256'=>$ctx['manifest_sha256'],'installed_sha'=>$b['installed_sha'],
             'journal_sha256'=>$read['sha256'],'row_count'=>2];
+        if ($mode==='resume-receipts') wf_resume_original_receipts($read['state'],$ctx);
         $updates=wf_confirmed($read['state'],$op,$ctx['caption_updates']); wf_registry($updates,true);
         $files=wf_capture_files();
-        foreach ($files as $i=>$f) wf_need($f['name']===$ctx['files'][$i]['name'] && $f['sha256']===$ctx['files'][$i]['sha256']
-            && $f['bytes']===$ctx['files'][$i]['bytes'],'waldorf_pre_edit_feed_changed');
+        wf_receipt_preimages_unchanged($files,$ctx['files']);
         $safe=['operation'=>$b['caption_operation'],'manifest_sha256'=>$ctx['manifest_sha256'],'installed_sha'=>$b['installed_sha'],
             'complete'=>true,'row_count'=>2,'posts'=>[]];
         $planFields=['hotel_id','platform','publication_id','version_id','message_id','post_url','old_text','new_text','old_text_sha256','new_text_sha256',
@@ -94,8 +113,11 @@ try {
             'caption_correction_operation','body_photo_button_verified','formatting_verified','existing_message_reused','existing_token_resolves_to_current_version','same_caption_skipped'];
         foreach ($read['state']['posts'] as $key=>$p) $safe['posts'][$key]=['state'=>'confirmed',
             'plan'=>array_intersect_key($p['plan'],array_flip($planFields)),'receipt'=>array_intersect_key($p['receipt'],array_flip($receiptFields))];
-        $out+=['phase'=>'post_edit_receipts','capture_sha256'=>$ctx['capture_sha256'],'edit_result_sha256'=>$ctx['edit_result_sha256'],
+        $out+=['phase'=>$mode==='resume-receipts'?'post_edit_resume_receipts':'post_edit_receipts',
+            'capture_sha256'=>$ctx['capture_sha256'],'edit_result_sha256'=>$ctx['edit_result_sha256'],
             'caption_operations'=>[$op],'caption_states'=>[$b['caption_operation']=>$safe], 'pre_edit_feeds_unchanged'=>true];
+        if ($mode==='resume-receipts') $out+=['continuation_kind'=>$ctx['continuation_kind'],
+            'original_caption_result_matched'=>true,'historical_capture_revalidated'=>true];
     } elseif ($mode==='readback') {
         $files=wf_capture_files(); $results=[];
         foreach ($files as $i=>$f) {

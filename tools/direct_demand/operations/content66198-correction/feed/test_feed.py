@@ -2,16 +2,20 @@
 """Offline executable tests: the actual PHP contract and exact publisher bytes."""
 import argparse
 import base64
+import contextlib
 import copy
 import datetime as dt
 import html
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parent
 spec = importlib.util.spec_from_file_location('feed_prepare', ROOT / 'prepare.py')
@@ -19,12 +23,13 @@ mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
 PARSER = argparse.ArgumentParser(); PARSER.add_argument('--ops', type=Path, required=True); PARSER.add_argument('--php', default=os.environ.get('PHP_BIN', 'php'))
 ARGS, REMAINING = PARSER.parse_known_args()
 
-def fixture(correct_posts=False, correct_feed=False):
+def fixture(correct_posts=False, correct_feed=False, native_versions=False):
     stamp = dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')
     binding = mod.binding(json.loads((ROOT / 'binding.json').read_bytes()))
     caption = 'Waldorf Astoria Maldives — островной отдых\n' + mod.OLD + ' & отдых для двоих.\nЦена от 123 456 ₽. Вылет 30.11.2026.'
     rows = []
-    for platform, pid, vid, mid in [('telegram', 1500, 37000, '678'), ('max', 1510, 37001, 'native-max-message')]:
+    versions = [('telegram', 1500, 13436, '678'), ('max', 1510, 13435, 'native-max-message')] if native_versions else [('telegram', 1500, 37000, '678'), ('max', 1510, 37001, 'native-max-message')]
+    for platform, pid, vid, mid in versions:
         text = mod.correct(caption) if correct_posts else caption
         rows.append(dict(hotel_id=66198, platform=platform, publication_id=pid, version_id=vid, message_id=mid,
                          post_url=mod.URLS[platform], caption=text, caption_sha256=mod.sha(text.encode()), photo_signature=platform + ':photo-hash',
@@ -72,7 +77,8 @@ def fixture(correct_posts=False, correct_feed=False):
     manifest_raw = mod.canonical(manifest); state = dict(operation=mod.CAPTION_OP, installed_sha=mod.APP, manifest_sha256=mod.sha(manifest_raw), row_count=2, complete=True, posts={})
     for row in manifest_rows:
         skip = row['old_text'] == row['new_text']; receipt = {k: row[k] for k in ['hotel_id', 'platform', 'publication_id', 'message_id', 'post_url', 'photo_signature', 'button_url_sha256', 'source_key', 'monitor_price_record_id']}
-        receipt.update(previous_version_id=row['version_id'], version_id=row['version_id'] if skip else row['version_id'] + 2,
+        next_version = mod.RESUME_VERSIONS[row['platform'] + ':' + str(row['publication_id'])] if native_versions else row['version_id'] + 2
+        receipt.update(previous_version_id=row['version_id'], version_id=row['version_id'] if skip else next_version,
                        previous_text_sha256=row['old_text_sha256'], text_sha256=row['new_text_sha256'],
                        previous_attachments_sha256=row['attachments_sha256'], attachments_sha256=row['attachments_sha256'],
                        state='sent', button_text='✈️ Узнать стоимость тура', same_caption_skipped=skip,
@@ -88,6 +94,25 @@ def fixture(correct_posts=False, correct_feed=False):
     return dict(binding=binding, capture=capture, capture_raw=capture_raw, snapshot=snapshot, snapshot_raw=snapshot_raw, metadata=metadata,
                 manifest=manifest, manifest_raw=manifest_raw, receipts=receipts, state=state, op=op)
 
+def resume_fixture():
+    f = fixture(native_versions=True)
+    f['capture']['observed_at_utc'] = '2020-01-01T00:00:00Z'
+    f['capture_raw'] = mod.canonical(f['capture'])
+    # A legitimate raw attachment normalization is bound to the exact original
+    # receipt; the native resume reader may not substitute another receipt.
+    f['state']['posts']['telegram:1500']['receipt']['attachments_sha256'] = 'c' * 64
+    result = dict(ok=True, operation=mod.CAPTION_OP, installed_sha=mod.APP, manifest_sha256=mod.sha(f['manifest_raw']),
+                  post_write_attempts=2, caption_updates=2, verified_posts=2, preflight_existing_messages=2,
+                  new_posts_created=0, configuration_write_attempts=0, button_write_attempts=0, tour_search_calls=0, price_queries=0,
+                  posts=[p['receipt'] for p in f['state']['posts'].values()])
+    f['result'] = result; f['result_raw'] = mod.canonical(result)
+    f['pins'] = dict(RESUME_CAPTURE_SHA256=mod.sha(f['capture_raw']), RESUME_MANIFEST_SHA256=mod.sha(f['manifest_raw']),
+                     RESUME_RESULT_SHA256=mod.sha(f['result_raw']))
+    f['receipts'].update(phase='post_edit_resume_receipts', capture_sha256=f['pins']['RESUME_CAPTURE_SHA256'],
+                         edit_result_sha256=f['pins']['RESUME_RESULT_SHA256'], continuation_kind=mod.RESUME_KIND,
+                         original_caption_result_matched=True, historical_capture_revalidated=True)
+    return f
+
 class FeedTests(unittest.TestCase):
     def php(self, code, value):
         with tempfile.TemporaryDirectory() as d:
@@ -101,6 +126,88 @@ class FeedTests(unittest.TestCase):
 
     def updates(self, f):
         return mod.verified_receipts(f['receipts'], b'', f['capture_raw'], f['capture'], f['manifest'], f['manifest_raw'], f['binding'])
+
+    def capture_php(self, code, value):
+        # Load the actual read-only helper definitions, never its native runner.
+        load = "$src=file_get_contents(" + json.dumps(str(ROOT / 'capture.php')) + ");" \
+               "$end=strpos($src,'$locks=[];');if($end===false)throw new RuntimeException('template_boundary');" \
+               "eval(substr($src,strlen(\"<?php\\ndeclare(strict_types=1);\\n\"),$end-strlen(\"<?php\\ndeclare(strict_types=1);\\n\")));"
+        return self.php(load + code, value)
+
+    def test_expired_history_requires_exact_resume_binding_and_fresh_native_proof(self):
+        f = resume_fixture()
+        with patch.multiple(mod, **f['pins']):
+            with self.assertRaisesRegex(ValueError, 'capture_expired'):
+                mod.captured(f['capture_raw'], f['binding'])
+            c = mod.historical_resume_capture(f['capture_raw'], f['binding'])
+            self.assertEqual(c['observed_at_utc'], '2020-01-01T00:00:00Z')
+            mod.original_resume_result(f['result_raw'], f['manifest_raw'], f['binding'])
+            got = mod.verified_receipts(f['receipts'], b'', f['capture_raw'], c, f['manifest'], f['manifest_raw'], f['binding'], resume=True)
+            self.assertEqual({u['offer_id'] for u in got}, {'tg_66198', 'max_66198'})
+            with self.assertRaisesRegex(ValueError, 'resume_original_capture_changed'):
+                mod.historical_resume_capture(f['capture_raw'] + b'\n', f['binding'])
+            with self.assertRaisesRegex(ValueError, 'resume_original_edit_changed'):
+                mod.original_resume_result(f['result_raw'] + b'\n', f['manifest_raw'], f['binding'])
+
+    def test_resume_rejects_stale_unbound_partial_unknown_or_changed_version_proof(self):
+        f = resume_fixture()
+        with patch.multiple(mod, **f['pins']):
+            for change in ['stale', 'normal_phase', 'unlocked', 'unmatched', 'preimage', 'result', 'partial', 'unknown', 'version', 'journal']:
+                r = copy.deepcopy(f['receipts']); state = r['caption_states'][mod.CAPTION_OP]
+                if change == 'stale': r['observed_at_utc'] = '2020-01-01T00:00:00Z'
+                elif change == 'normal_phase': r['phase'] = 'post_edit_receipts'
+                elif change == 'unlocked': r['locks_released_before_return'] = False
+                elif change == 'unmatched': r['original_caption_result_matched'] = False
+                elif change == 'preimage': r['pre_edit_feeds_unchanged'] = False
+                elif change == 'result': r['edit_result_sha256'] = '0' * 64
+                elif change == 'partial': state['complete'] = False
+                elif change == 'unknown': state['posts']['telegram:1500']['state'] = 'unknown'
+                elif change == 'version': state['posts']['telegram:1500']['receipt']['version_id'] += 1
+                else: r['journal_pin']['sha256'] = '0' * 64
+                with self.subTest(change=change), self.assertRaises(ValueError):
+                    mod.verified_receipts(r, b'', f['capture_raw'], f['capture'], f['manifest'], f['manifest_raw'], f['binding'], resume=True)
+
+    def test_actual_native_resume_reader_checks_original_receipt_and_live_preimages(self):
+        f = resume_fixture()
+        ctx = dict(continuation_kind=mod.RESUME_KIND, confirmed_receipts={k:p['receipt'] for k,p in f['state']['posts'].items()})
+        files = [{k:x[k] for k in ['name','sha256','bytes']} for x in f['capture']['files']]
+        value = dict(binding=f['binding'], state=copy.deepcopy(f['state']), ctx=copy.deepcopy(ctx), files=files, expected=copy.deepcopy(files))
+        code = "wf_resume_original_receipts($d['state'],$d['ctx']);wf_receipt_preimages_unchanged($d['files'],$d['expected']);echo json_encode(['ok'=>true]);"
+        r, got = self.capture_php(code, value); self.assertEqual(r.returncode, 0, got)
+        for change in ['partial','unknown','receipt','version','preimage_hash','preimage_bytes','missing_file']:
+            bad = copy.deepcopy(value)
+            if change == 'partial': bad['state']['complete'] = False
+            elif change == 'unknown': bad['state']['posts']['telegram:1500']['state'] = 'unknown'
+            elif change == 'receipt': bad['state']['posts']['telegram:1500']['receipt']['attachments_sha256'] = 'd' * 64
+            elif change == 'version': bad['state']['posts']['telegram:1500']['receipt']['version_id'] += 1
+            elif change == 'preimage_hash': bad['files'][1]['sha256'] = '0' * 64
+            elif change == 'preimage_bytes': bad['files'][1]['bytes'] += 1
+            else: bad['files'].pop()
+            with self.subTest(change=change):
+                r, got = self.capture_php(code, bad); self.assertNotEqual(r.returncode, 0, got)
+
+    def test_resume_cli_preserves_history_and_existing_writer(self):
+        f = resume_fixture()
+        with tempfile.TemporaryDirectory() as d, patch.multiple(mod, **f['pins']):
+            root = Path(d)
+            for name,key in [('binding','binding'),('capture','capture'),('manifest','manifest'),('receipts','receipts'),('journal','metadata'),('result','result')]:
+                (root/(name+'.json')).write_bytes(mod.canonical(f[key]))
+            before = (root/'capture.json').read_bytes()
+            def cli(phase,out,*args):
+                argv = ['prepare.py',phase,'--binding',str(root/'binding.json'),'--out',str(root/out),*[str(a) for a in args]]
+                with patch.object(sys,'argv',argv), contextlib.redirect_stdout(io.StringIO()): mod.main()
+            cli('resume-receipts','receipt','--manifest',root/'manifest.json','--result',root/'result.json',
+                '--journal',root/'journal.json','--capture',root/'capture.json')
+            script = (root/'receipt/receipts.php').read_bytes()
+            r = subprocess.run([ARGS.php,'-l'],input=script,capture_output=True); self.assertEqual(r.returncode,0,r.stdout+r.stderr)
+            cli('prepare-resume','write','--manifest',root/'manifest.json','--capture',root/'capture.json',
+                '--receipts',root/'receipts.json','--source-root',ARGS.ops)
+            prep = mod.read(root/'write/preparation.json'); self.assertEqual(prep['description_changes'],4)
+            self.assertEqual(prep['existing_writer_sha256'],mod.SOURCE_HASHES['publish-commercial-channel-hotel-feeds-20261103-1.php'])
+            self.assertEqual((root/'capture.json').read_bytes(),before)
+            with self.assertRaisesRegex(ValueError,'capture_expired'):
+                cli('receipts','normal-receipt','--manifest',root/'manifest.json','--result',root/'result.json',
+                    '--journal',root/'journal.json','--capture',root/'capture.json')
 
     def test_native_timestamps_and_actual_tg_provenance(self):
         f = fixture(); got = mod.native_read(f['snapshot_raw'], f['metadata'], f['binding'])

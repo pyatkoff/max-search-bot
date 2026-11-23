@@ -21,6 +21,13 @@ NEW = 'Десять ресторанов, баров и лаунжей'
 CAPTION_OP = 'commercial-waldorf66198-caption-correction-20261123-v1'
 APP = 'b1da1418ff75cba9657d8b5a2971270c8eafb1c9'
 FEED_OP = 'commercial-channel-hotel-feeds-20261123-update66198'
+RESUME_KIND = 'CONTENT66198_FEED_ONLY_AFTER_CONFIRMED_EDIT'
+# Immutable evidence from original READ45096018311 and EDIT45096362078.
+# These are historical preimages, never a substitute for the fresh native proof.
+RESUME_CAPTURE_SHA256 = '64ece3dc9c6a157c87283c96b06e588519cb4f6728b95162bb875c24972d3c75'
+RESUME_MANIFEST_SHA256 = 'a10fa0a8823b2c674d39727d7088889534adff3183f88f9de67add181415ee85'
+RESUME_RESULT_SHA256 = 'bdd728b2e9cc848df796a49e89cd2b874252a4a54a0d1603a10285399f5cf551'
+RESUME_VERSIONS = {'telegram:1500': 14280, 'max:1510': 14281}
 NAMES = ['hotel-posts-telegram.xml', 'hotel-posts-max.xml', 'hotel-posts-all.xml']
 URLS = {'telegram': 'https://t.me/any_toour/678', 'max': 'https://max.ru/channel_anytour/AaHo8ukNYB8'}
 PREFIX = b'<?php\ndeclare(strict_types=1);\n'
@@ -226,17 +233,49 @@ def project(raw, updates, name):
         need(field(new_nodes[i], 'description') == u['text'], 'description_projection')
     return after, changed
 
-def captured(raw, b, snapshot_raw=None):
+def capture_evidence(raw, b, snapshot_raw=None):
     c = parse(raw)
     need(c.get('ok') is True and c.get('phase') == 'pre_edit_capture' and c.get('kind') == 'CONTENT66198_FEED_READ'
          and c.get('operation') == CAPTION_OP and c.get('feed_operation') == FEED_OP and c.get('installed_sha') == b['installed_sha']
          and c.get('approval_comment_id') == 7072600922 and c.get('filesystem_writes') == c.get('provider_calls') == c.get('database_writes') == 0
          and c.get('locks_released_before_return') is True and c.get('monitor_journal_unchanged') is True, 'capture_not_confirmed')
-    fresh(c['observed_at_utc']); journal(c['journal_pin'])
+    journal(c['journal_pin'])
     if snapshot_raw is not None:
         need(c['native_read_sha256'] == sha(snapshot_raw) and posts(parse(snapshot_raw)['posts']) == c['posts'], 'capture_native_binding_changed')
     need(resolve(c['posts'], c['files']) == c['caption_updates'], 'capture_resolved_binding_changed')
     return c
+
+def captured(raw, b, snapshot_raw=None):
+    c = capture_evidence(raw, b, snapshot_raw)
+    fresh(c['observed_at_utc'])
+    return c
+
+def historical_resume_capture(raw, b):
+    need(sha(raw) == RESUME_CAPTURE_SHA256, 'resume_original_capture_changed')
+    c = capture_evidence(raw, b)
+    old = {p['platform']: p for p in c['posts']}
+    updates = [dict(u, old_text=old[u['platform']]['caption'], text=correct(old[u['platform']]['caption']))
+               for u in c['caption_updates']]
+    changes = sum(project(base64.b64decode(f['content_base64'], validate=True), updates, f['name'])[1]
+                  for f in c['files'])
+    need(c['target_description_occurrences'] == c['description_changes'] == changes == 4, 'resume_original_diff_changed')
+    return c
+
+def original_resume_result(raw, manifest_raw, b):
+    need(sha(manifest_raw) == RESUME_MANIFEST_SHA256 and sha(raw) == RESUME_RESULT_SHA256,
+         'resume_original_edit_changed')
+    r = parse(raw)
+    need(r.get('ok') is True and r.get('operation') == CAPTION_OP and r.get('installed_sha') == b['installed_sha']
+         and r.get('manifest_sha256') == RESUME_MANIFEST_SHA256 and r.get('post_write_attempts') == 2
+         and r.get('caption_updates') == r.get('verified_posts') == r.get('preflight_existing_messages') == 2
+         and r.get('new_posts_created') == r.get('configuration_write_attempts') == r.get('button_write_attempts')
+         == r.get('tour_search_calls') == r.get('price_queries') == 0
+         and isinstance(r.get('posts'), list) and len(r['posts']) == 2, 'resume_original_edit_unconfirmed')
+    receipts = {p['platform'] + ':' + str(p['publication_id']): p for p in r['posts']}
+    need(set(receipts) == set(RESUME_VERSIONS) and all(p.get('version_id') == RESUME_VERSIONS[k]
+         and p.get('state') == 'sent' and p.get('same_caption_skipped') is False
+         and p.get('caption_correction_operation') == CAPTION_OP for k, p in receipts.items()), 'resume_original_versions_changed')
+    return receipts
 
 def compile_php(b, context, phase):
     contract = (HERE / 'contract.php').read_bytes(); template = (HERE / 'capture.php').read_bytes()
@@ -259,12 +298,17 @@ def verify_manifest(m, raw, c, b):
              and r.get('old_text_sha256') == old['caption_sha256'] and r.get('new_text_sha256') == sha(correct(old['caption']).encode()), 'manifest_nonphrase_delta')
     return sha(raw)
 
-def verified_receipts(r, raw, c_raw, c, m, m_raw, b):
-    need(r.get('ok') is True and r.get('phase') == 'post_edit_receipts' and r.get('operation') == CAPTION_OP
+def verified_receipts(r, raw, c_raw, c, m, m_raw, b, *, resume=False):
+    need(r.get('ok') is True and r.get('phase') == ('post_edit_resume_receipts' if resume else 'post_edit_receipts') and r.get('operation') == CAPTION_OP
          and r.get('feed_operation') == FEED_OP and r.get('installed_sha') == b['installed_sha']
          and r.get('capture_sha256') == sha(c_raw) and r.get('pre_edit_feeds_unchanged') is True
          and r.get('filesystem_writes') == r.get('provider_calls') == r.get('database_writes') == 0
          and r.get('locks_released_before_return') is True and r.get('monitor_journal_unchanged') is True, 'receipts_capture_unconfirmed')
+    if resume:
+        need(sha(c_raw) == RESUME_CAPTURE_SHA256 and sha(m_raw) == RESUME_MANIFEST_SHA256
+             and r.get('edit_result_sha256') == RESUME_RESULT_SHA256 and r.get('continuation_kind') == RESUME_KIND
+             and r.get('original_caption_result_matched') is True and r.get('historical_capture_revalidated') is True,
+             'resume_fresh_native_proof_missing')
     fresh(r['observed_at_utc']); need(journal(r['journal_pin']) == journal(c['journal_pin']), 'monitor_changed_after_capture')
     need(len(r['caption_operations']) == 1 and set(r['caption_states']) == {CAPTION_OP}, 'receipt_operation_scope')
     op = r['caption_operations'][0]; state = r['caption_states'][CAPTION_OP]
@@ -278,6 +322,8 @@ def verified_receipts(r, raw, c_raw, c, m, m_raw, b):
     by_key = {x['platform'] + ':' + str(x['publication_id']): x for x in c['caption_updates']}
     for key, post in state['posts'].items():
         need(post['state'] == 'confirmed', 'receipt_not_confirmed'); p = post['plan']; a = post['receipt']; approved = plans[key]
+        if resume:
+            need(key in RESUME_VERSIONS and a.get('version_id') == RESUME_VERSIONS[key], 'resume_current_version_changed')
         for k, v in p.items():
             need(k in approved and approved[k] == v, 'receipt_plan_changed:' + k)
         for k in ['hotel_id', 'platform', 'publication_id', 'message_id', 'post_url', 'photo_signature', 'button_url_sha256', 'source_key']:
@@ -314,7 +360,7 @@ def write_compile(b, context, input_raw, source_root):
     return PREFIX + header + sources['monitor-price-contract.php'][len(PREFIX):] + b'\n' + contract[len(PREFIX):] + b'\n' + writer
 
 def main():
-    p = argparse.ArgumentParser(description=__doc__); p.add_argument('phase', choices=['capture', 'verify-capture', 'receipts', 'prepare', 'verify-writer', 'verify-readback'])
+    p = argparse.ArgumentParser(description=__doc__); p.add_argument('phase', choices=['capture', 'verify-capture', 'receipts', 'resume-receipts', 'prepare', 'prepare-resume', 'verify-writer', 'verify-readback'])
     for name in ['binding', 'snapshot', 'journal', 'capture', 'manifest', 'result', 'receipts', 'preparation', 'source-root', 'readback', 'edit-result']:
         p.add_argument('--' + name)
     p.add_argument('--exit-code', type=int, default=0); p.add_argument('--out', required=True)
@@ -342,8 +388,10 @@ def main():
         save(out, 'capture-proof.json', {'ok': True, 'operation': CAPTION_OP, 'capture_sha256': sha(c_raw), 'description_changes': changes,
                                         'target_description_occurrences': 4, 'all_other_bytes_preserved': True, 'writes': 0, 'approved_diffs': diffs})
         print(json.dumps({'approved_phrase_only_diffs': diffs}, ensure_ascii=False))
-    elif a.phase == 'receipts':
-        c_raw = Path(a.capture).read_bytes(); c = captured(c_raw, b); m_raw = Path(a.manifest).read_bytes(); m = parse(m_raw)
+    elif a.phase in ['receipts', 'resume-receipts']:
+        resume = a.phase == 'resume-receipts'
+        c_raw = Path(a.capture).read_bytes(); c = historical_resume_capture(c_raw, b) if resume else captured(c_raw, b)
+        m_raw = Path(a.manifest).read_bytes(); m = parse(m_raw)
         manifest_sha = verify_manifest(m, m_raw, c, b); result_raw = Path(a.edit_result or a.result).read_bytes(); result = parse(result_raw)
         need(a.exit_code == 0 and result.get('ok') is True and result.get('operation') == CAPTION_OP
              and result.get('manifest_sha256') == manifest_sha and isinstance(result.get('posts'), list) and len(result['posts']) == 2,
@@ -354,11 +402,18 @@ def main():
         ctx = {'journal_pin': journal(meta['journal_pin']), 'manifest_sha256': manifest_sha, 'capture_sha256': sha(c_raw),
                'edit_result_sha256': sha(result_raw), 'caption_updates': c['caption_updates'],
                'files': [{k: f[k] for k in ['name', 'sha256', 'bytes']} for f in c['files']]}
-        save(out, 'receipts.php', compile_php(b, ctx, 'receipts'))
-    elif a.phase == 'prepare':
-        c_raw = Path(a.capture).read_bytes(); c = captured(c_raw, b); m_raw = Path(a.manifest).read_bytes(); m = parse(m_raw)
+        if resume:
+            need(meta.get('operation') == 'commercial-waldorf66198-journal-metadata-20261123-v1'
+                 and meta.get('post_write_attempts') == meta.get('provider_calls') == meta.get('db_writes') == 0,
+                 'resume_metadata_unconfirmed')
+            ctx.update(continuation_kind=RESUME_KIND, confirmed_receipts=original_resume_result(result_raw, m_raw, b))
+        save(out, 'receipts.php', compile_php(b, ctx, 'resume-receipts' if resume else 'receipts'))
+    elif a.phase in ['prepare', 'prepare-resume']:
+        resume = a.phase == 'prepare-resume'
+        c_raw = Path(a.capture).read_bytes(); c = historical_resume_capture(c_raw, b) if resume else captured(c_raw, b)
+        m_raw = Path(a.manifest).read_bytes(); m = parse(m_raw)
         verify_manifest(m, m_raw, c, b); r_raw = Path(a.receipts).read_bytes(); r = parse(r_raw)
-        updates = verified_receipts(r, r_raw, c_raw, c, m, m_raw, b); files = []; changes = 0
+        updates = verified_receipts(r, r_raw, c_raw, c, m, m_raw, b, resume=resume); files = []; changes = 0
         for f in c['files']:
             before = base64.b64decode(f['content_base64'], validate=True); after, changed = project(before, updates, f['name']); changes += changed
             files.append({'name': f['name'], 'sha256': sha(after), 'bytes': len(after), 'rows': f['rows'], 'expected_previous_sha256': f['sha256'],
