@@ -1,0 +1,126 @@
+name: Verify unstarted Telegram hotel targets from PR1664
+on:
+  push:
+    branches: [audit/1566-next-release-admission-1664]
+    paths: [.github/workflows/read-1664-remaining-targets.yml]
+permissions: {}
+jobs:
+  read:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35)
+          found=[]
+          for line in scan.stdout.splitlines():
+              fields=line.split()
+              if len(fields)<3 or fields[0].startswith('#'):continue
+              try:fingerprint='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fingerprint=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(line)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read remaining identities and current channel permissions
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 \
+            -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null \
+            -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$USER_VALUE@$HOST_VALUE" 'bash -s' <<'REMOTE'
+          set -eu
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          php -d display_errors=0 <<'PHP'
+          <?php
+          require 'tools/anytour_existing_post_batch.php';
+
+          use function AnyTour\ExistingPostBatch\requirePost;
+          use function AnyTour\ExistingPostBatch\transferChannelRights;
+          use function AnyTour\ExistingPostBatch\transferNoTarget;
+          use function AnyTour\ExistingPostBatch\transferPlanFromBytes;
+          use function AnyTour\ExistingPostBatch\transferPublic;
+          use function AnyTour\ExistingPostBatch\transferPublicPreimage;
+          use function AnyTour\ExistingPostBatch\transferReason;
+          use function AnyTour\ExistingPostBatch\transferRuntime;
+          use function AnyTour\ExistingPostBatch\transferSource;
+
+          transferRuntime(getcwd(), '3bff152819b85e68a56fe3f50adb268cef3b9dfb');
+          $digest = '30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d';
+          $plan = transferPlanFromBytes(file_get_contents('config/anytour_existing_post_transfer_next_20261123.json'), $digest, true);
+          ob_start();
+          try {
+              require_once 'config.php';
+              require_once 'services/ChannelPostRegistryService.php';
+              require_once 'services/ChannelPostButtonTransport.php';
+              require_once 'services/ChannelPostRuntime.php';
+              require_once 'integrations/ChannelPostApiTransport.php';
+          } finally {
+              ob_end_clean();
+          }
+          requirePost(ProjectConfig::projectId() === 'anytour', 'transfer_project_changed');
+          $pdo = ConversationDb::connection();
+          requirePost($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql', 'transfer_native_database_required');
+          $pdo->exec('SET TRANSACTION READ ONLY');
+          $pdo->beginTransaction();
+          $checks = ['provider_writes'=>0,'production_writes'=>0,'rows'=>[]];
+          $check = static function (callable $call) {
+              try {
+                  $call();
+                  return true;
+              } catch (Throwable $error) {
+                  return transferReason($error);
+              }
+          };
+          try {
+              $registry = new ChannelPostRegistryService($pdo);
+              $checks['channel_rights'] = $check(static fn() => transferChannelRights($registry));
+              foreach ($plan['rows'] as $row) {
+                  $id = $row['target_message_id'];
+                  $path = AnyTour\ExistingPostBatch\POST_OPS.'/anytour-issue1566-historical-tg-media-'.$id.'-v1';
+                  $result = ['target_id'=>$id, 'journal_exists'=>file_exists($path) || is_link($path)];
+                  if ($id === '1588') {
+                      $result['preserved_reservation'] = $registry->publication(3709) !== null;
+                  } else {
+                      $result['current_source'] = $check(static fn() => transferSource($pdo, $registry, $row));
+                      $result['target_available'] = $check(static fn() => transferNoTarget($pdo, $row));
+                      $result['public_preimage'] = $check(static fn() => transferPublicPreimage($row,
+                          transferPublic('any_toour', $row['source_message_id'], true),
+                          transferPublic('anytour', $id, true)));
+                  }
+                  $checks['rows'][] = $result;
+              }
+          } finally {
+              $pdo->rollBack();
+          }
+          echo json_encode($checks, JSON_THROW_ON_ERROR), PHP_EOL;
+          PHP
+          REMOTE
+      - name: Remove authentication material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
