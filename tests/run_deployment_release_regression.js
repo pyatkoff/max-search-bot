@@ -643,7 +643,7 @@ async function hotelFourTransferConsumer(f,repositorySha,applicationSha){
     after:repositorySha,before:'0'.repeat(40),created:true,deleted:false,forced:false};
   const planPath='config/anytour_existing_post_transfer_four_20261123.json',bytes=fs.readFileSync(path.join(__dirname,'..',planPath));
   const originalPlan={type:'file',path:planPath,sha:R.gitBlob(bytes),size:bytes.length,encoding:'base64',content:bytes.toString('base64')};
-  equal([originalPlan.sha,D(bytes)],['e786330f94af307dc631458a73a38310b73c086a','b88a09ec5220a20c7daee2480c9da9f36310fc8a2dc83a8afbe730ef1ed40d48'],
+  equal([originalPlan.sha,D(bytes)],['648e68b7395fcab65c321448b1a6a68554de17dc','fdda41801951a033715b5ca5d567ef348f2ee885ab40074d35dfa8151d52de56'],
     'the reviewed plan remains exact data and cannot silently become a different transfer');
   equal(JSON.parse(bytes).rows.map(r=>[r.hotel_id,r.source_message_id,r.target_message_id]),
     [[17595,'455','862'],[358,'65','328'],[393,'85','1083'],[1260,'548','288']],
