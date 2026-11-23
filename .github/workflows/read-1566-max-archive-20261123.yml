@@ -19,7 +19,7 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == '875c5e00eaa1e192ecb4dcc9674bf64dc6939d2c' &&
+      github.event.before == '9d65cb01e8d7a04078db0c4427593c6ee667a676' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -47,12 +47,27 @@ jobs:
           const fs = require('node:fs')
           const R = require('./tools/deployment_release')
           const P = require('./tools/release_priority')
+          const expectedMain = 'b3386d558f72e9eb80acefad9e87b1ab91b4426f'
+          async function proveStoppedBeforeSSH() {
+            const api = R.makeReadApi(process.env.GITHUB_TOKEN)
+            const base = R.API_ROOT+'/actions/runs/45176027819'
+            const run = await api('GET', base)
+            if (run.id !== 45176027819 || run.run_attempt !== 1 || run.conclusion !== 'failure' ||
+                run.status !== 'completed' || run.head_sha !== '9d65cb01e8d7a04078db0c4427593c6ee667a676' ||
+                run.head_branch !== 'ops/1566-max-archive-inventory-20261123' || run.repository.id !== 1342493152) throw Error('prior_run_mismatch')
+            const jobs = (await api('GET', base+'/attempts/1/jobs?per_page=30')).jobs
+            if (jobs.length !== 1 || jobs[0].id !== 137697375433 || jobs[0].conclusion !== 'failure') throw Error('prior_job_mismatch')
+            const outcomes = new Map(jobs[0].steps.map(s=>[s.name,s.conclusion]))
+            if (outcomes.get('Require current accepted release and actual application') !== 'failure' ||
+                outcomes.get('Pin established SSH host continuity and authentication identity') !== 'skipped' ||
+                outcomes.get('Read the full channel archive and occupied native identifiers') !== 'skipped') throw Error('prior_provider_state_unknown')
+          }
           async function check() {
             const expected = process.env.READ_REPOSITORY_SHA
             const token = process.env.GITHUB_TOKEN
             const api = R.makeReadApi(token)
             const current = async () => (await api('GET', R.API_ROOT+'/git/ref/heads/main')).object.sha
-            if (!/^[a-f0-9]{40}$/.test(expected) || await current() !== expected) throw Error('main_changed')
+            if (expected !== expectedMain || await current() !== expected) throw Error('main_changed')
             const observed = await R.readRecord(api)
             const resolution = await R.resolveCurrent(api, {sha:expected}, observed)
             if (!resolution.ready || resolution.repository_sha !== expected || !/^[a-f0-9]{40}$/.test(resolution.application_sha)) throw Error('accepted_release_mismatch')
@@ -61,7 +76,18 @@ jobs:
             if (latest.blob !== observed.blob || latest.record_digest !== observed.record_digest || await current() !== expected) throw Error('accepted_release_changed')
             fs.appendFileSync(process.env.GITHUB_ENV, 'REPOSITORY_SHA='+expected+'\nAPPLICATION_SHA='+resolution.application_sha+'\n')
           }
-          check().catch(error => { console.error('read_release_refused', error.code || 'release_not_accepted'); process.exitCode=1 })
+          async function admit() {
+            await proveStoppedBeforeSSH()
+            const until = Date.now() + 120000
+            for (;;) {
+              try { return await check() }
+              catch (e) {
+                if (e.code !== 'release_pending' || Date.now() >= until) throw e
+                await new Promise(resolve=>setTimeout(resolve, 10000))
+              }
+            }
+          }
+          admit().catch(error => { console.error('read_release_refused', error.code || error.message || 'release_not_accepted'); process.exitCode=1 })
           NODE
       - name: Bind the reviewed MAX reader to this installation and run
         shell: bash
