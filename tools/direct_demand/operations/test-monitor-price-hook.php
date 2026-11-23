@@ -820,11 +820,11 @@ $monitorMode=true;eval($pinSelection);$monitorPins=$accepted;
 hook_test_check($legacyPins['services/ChannelPostAutomationService.php']==='f5975ab95de5f45e087eb7a0f768f566c5bca648'
     &&$legacyPins['services/ChannelPostRegistryService.php']==='a407757b9ac54a9e286900d34385d519d22b8c84','legacy_manual_pin_scope_changed');
 hook_test_check(count($monitorPins)===23
-    &&$monitorPins['integrations/ChannelPostApiTransport.php']==='5121aa7f107f2aee0b8080346b630d2147116426'
+    &&$monitorPins['integrations/ChannelPostApiTransport.php']==='0735da76a0c9f62f5c418343dd6ee172dd992b2a'
     &&$monitorPins['services/ChannelPostAutomationService.php']==='9914ff7af27ab714204f7478a75a5dd971de152d'
     &&$monitorPins['services/ChannelPostButtonTransport.php']==='2dffadf8679caf6e9ed364a45ecfc44f7eb67388'
-    &&$monitorPins['services/ChannelPostRegistryService.php']==='180d65146a8e085376d96355f721b7a722451129'
-    &&$monitorPins['services/ChannelPostReconciliationService.php']==='1fa260e9720a8421227ecbe740bfbe33a42e398d','reviewed_pr1649_monitor_pins_missing');
+    &&$monitorPins['services/ChannelPostRegistryService.php']==='5543aaa24de234b26d881fba75670429f2913dcf'
+    &&$monitorPins['services/ChannelPostReconciliationService.php']==='1fa260e9720a8421227ecbe740bfbe33a42e398d','reviewed_pr1657_monitor_pins_missing');
 $bundlePath=tempnam(sys_get_temp_dir(),'monitor-pin-test-');
 try {
     exec('python3 '.escapeshellarg(__DIR__.'/build-monitor-price-hook.py').' '.escapeshellarg($bundlePath),$bundleOutput,$bundleExit);
