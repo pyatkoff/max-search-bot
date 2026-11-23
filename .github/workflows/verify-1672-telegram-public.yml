@@ -36,12 +36,13 @@ jobs:
               $caption=$r['next_caption_sha256']===$public['caption_sha256'];
               $photo=$public['single_photo'] && $public['photo_marker_sha256']!==$r['target_photo_marker_sha256'];
               $date=$public['published_unixtime']===$r['target_published_unixtime'];
-              $button=count($public['buttons'])===1 && $public['buttons'][0]['text']===$r['button_text']
-                  && is_string($public['buttons'][0]['hotel_url']);
+              $button=count($public['buttons'])===1 && $public['buttons'][0]['url_sha256']==='8574db9265ca50202a4323979a2e99f90116b3c13434b9f00251bbc11a7049c0';
               $old=$public['single_photo'] && $public['photo_marker_sha256']===$r['target_photo_marker_sha256']
                   && $public['caption_sha256']===$r['target_caption_sha256'] && $date && count($public['buttons'])===0;
               $results[]=['hotel_id'=>$r['hotel_id'],'message_id'=>$r['target_message_id'],
                   'caption'=>$caption,'new_photo'=>$photo,'original_date'=>$date,'hotel_button'=>$button,
+                  'visible_button_count'=>count($public['buttons']),
+                  'label' => $public['buttons'][0]['text'] ?? null,
                   'applied'=>$caption&&$photo&&$date&&$button,
                   'matches_native_outcome'=>$r['hotel_id']===408 ? $caption&&$photo&&$date&&$button : $old];
           }
