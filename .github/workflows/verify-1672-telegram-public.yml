@@ -33,6 +33,16 @@ jobs:
           $results=[];
           foreach($plan['rows'] as $r){
               $public=AnyTour\ExistingPostBatch\transferPublic('anytour',$r['target_message_id'],true);
+              if ($r['hotel_id']===408 && count($public['buttons'])===0) {
+                  $endpoint='https://t.me/s/anytour?before=998';
+                  $client=curl_init($endpoint);
+                  curl_setopt_array($client,[CURLOPT_RETURNTRANSFER=>true,CURLOPT_FOLLOWLOCATION=>false,
+                      CURLOPT_CONNECTTIMEOUT=>5,CURLOPT_TIMEOUT=>15,CURLOPT_USERAGENT=>'Mozilla/5.0']);
+                  $body=curl_exec($client);
+                  if (!is_string($body) || curl_getinfo($client,CURLINFO_HTTP_CODE)!==200) throw new RuntimeException('public_channel_history_unavailable');
+                  $history=AnyTour\ExistingPostBatch\parseTransferPublic($body,'anytour','997',true);
+                  $public['buttons']=$history['buttons'];
+              }
               $caption=$r['next_caption_sha256']===$public['caption_sha256'];
               $photo=$public['single_photo'] && $public['photo_marker_sha256']!==$r['target_photo_marker_sha256'];
               $date=$public['published_unixtime']===$r['target_published_unixtime'];
