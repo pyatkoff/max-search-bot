@@ -274,6 +274,7 @@ async function gitBridge(){
     await hotelRegistryReadConsumer(f, a, a);
     await max2HoldPairReadConsumer(f, a, a);
     await hotelFourTransferConsumer(f, a, a);
+    await hotelMaxTransferConsumer(f, a, a);
     await remainingTransferOriginalProof();
     const nextRun={...context,event:'push'};
     const next=R.releaseRecord(receipt(a),nextRun,{kind:'application_unchanged',baseline:baseline.reference,
@@ -331,6 +332,7 @@ async function gitBridge(){
     await hotelRegistryReadConsumer(f, r, a);
     await max2HoldPairReadConsumer(f, r, a);
     await hotelFourTransferConsumer(f, r, a);
+    await hotelMaxTransferConsumer(f, r, a);
     equal(f.calls.filter(c=>c.method==='PATCH'&&c.path.endsWith('/issues/comments/900')).length,2,
       'two independent waves each make exactly one terminal mutation');
     equal(f.calls.filter(c=>c.path.includes('/actions/artifacts/')).length,0,
@@ -865,6 +867,38 @@ async function hotelFourTransferConsumer(f,repositorySha,applicationSha){
     closer.status=oldStatus;closer.conclusion=oldConclusion;
   }finally{f.hook=null;f.runs.delete(run.id);f.jobs.delete(run.id);f.main=repositorySha;}
 }
+async function hotelMaxTransferConsumer(f,repositorySha,applicationSha){
+  const branch='ops/anytour-max-sugar-marina-800-apply-20261123',ref='refs/heads/'+branch;
+  const workflow=R.PREFIX+'edit-1566-max-sugar-marina.yml',owner={id:226193297,login:'pyatkoff'};
+  const planPath='config/anytour_existing_post_transfer_max_800.json',bytes=fs.readFileSync(path.join(__dirname,'..',planPath));
+  const plan={type:'file',path:planPath,sha:R.gitBlob(bytes),size:bytes.length,encoding:'base64',content:bytes.toString('base64')};
+  const run={...copy(f.wave.parent),id:6507,path:workflow,event:'push',head_branch:branch,
+    status:'in_progress',conclusion:null,actor:copy(owner),triggering_actor:copy(owner)};
+  const env={...consumerEnv(run,workflow,'push','transfer'),GITHUB_REF:ref,
+    GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+workflow+'@'+ref,GITHUB_ACTOR:owner.login,GITHUB_TRIGGERING_ACTOR:owner.login};
+  const event={repository:{full_name:R.REPOSITORY,id:1342493152},sender:copy(owner),ref,
+    after:repositorySha,before:'0'.repeat(40),created:true,deleted:false,forced:false};
+  f.runs.set(run.id,run);
+  f.jobs.set(run.id,[{...job('transfer',run,[],null),status:'in_progress'}]);
+  const inventory=R.API_ROOT+'/actions/workflows/'+workflow.slice(R.PREFIX.length)+'/runs?branch='
+    +encodeURIComponent(branch)+'&per_page=100';
+  f.hook=({path})=>{
+    if(path===inventory)return {total_count:1,workflow_runs:[run]};
+    if(path===R.API_ROOT+'/contents/'+planPath+'?ref='+repositorySha)return plan;
+    if(path===R.API_ROOT+'/git/ref/heads/'+branch)return {object:{sha:repositorySha}};
+  };
+  const resolve=()=>R.resolveConsumer({env,event,api:f.api});
+  try{
+    if(repositorySha!==applicationSha){
+      await refuses(resolve,'max_transfer_editor_not_installed','a repository-only release cannot select the MAX editor');
+    }else{
+      const result=await resolve();
+      equal([result.repository_sha,result.application_sha,result.write_operation],
+        [repositorySha,applicationSha,'hotel_max_sugar_transfer'],'the exact first MAX apply push binds the installed editor');
+    }
+  }finally{f.hook=null;f.runs.delete(run.id);f.jobs.delete(run.id);}
+}
+
 async function publicationOperationConsumer(f,repositorySha,applicationSha){
   const branch='ops/appleservice39-coverage-20261112',ref='refs/heads/'+branch;
   const workflow=R.PREFIX+'publish-appleservice39-pilot.yml';

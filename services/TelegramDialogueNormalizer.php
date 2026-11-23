@@ -133,6 +133,7 @@ final class TelegramDialogueNormalizer
         $created = self::timestamp($message['date'] ?? null);
         $edited = isset($message['edit_date']) ? self::timestamp($message['edit_date']) : $created;
         if ($edited < $created) throw new InvalidArgumentException('invalid_business_edit_time');
+        $nativeContent = self::nativeContent($message);
         $text = self::text($message['text'] ?? $message['caption'] ?? '');
         $attachments = [];
         $photo = null;
@@ -147,7 +148,53 @@ final class TelegramDialogueNormalizer
             'business_message', $connection, $sequence, isset($message['forward_origin']));
         if (!empty($message['sender_business_bot']) || !empty($message['from']['is_bot'])) $record['sender_type'] = 'bot';
         if (isset($message['rich_message']) && $text === '') $record['content_coverage'] = 'rich_message_not_decoded';
+        $record['native_content'] = $nativeContent;
         return $record;
+    }
+
+    /** Native fields only: a text message does not prove typing rather than a reply-keyboard action. */
+    private static function nativeContent(array $message): array
+    {
+        $native = ['schema_version'=>1, 'producer'=>'TelegramDialogueNormalizer.v1',
+            'source_format'=>'telegram_bot_api_message', 'kind'=>'unknown', 'text_origin'=>'unknown'];
+        // Unknown/service/rich body fields fail closed without rejecting or changing the archived content.
+        // Context objects are not traversed; a reply, quote or forwarded origin is not this message's body.
+        $known = ['message_id','message_thread_id','direct_messages_topic','from','sender_chat','sender_boost_count',
+            'sender_business_bot','sender_tag','receiver_user','ephemeral_message_id','date','guest_query_id',
+            'business_connection_id','chat','forward_origin','is_topic_message','is_automatic_forward','reply_to_message',
+            'external_reply','quote','reply_to_story','reply_to_checklist_task_id','reply_to_poll_option_id','via_bot',
+            'guest_bot_caller_user','guest_bot_caller_chat','edit_date','has_protected_content','is_from_offline',
+            'is_paid_post','media_group_id','author_signature','paid_star_count','entities','link_preview_options',
+            'suggested_post_info','effect_id','caption_entities','show_caption_above_media','has_media_spoiler','reply_markup',
+            'text','caption','contact','photo','animation','audio','document','sticker','video','video_note','voice'];
+        if (array_diff(array_keys($message), $known)) return $native;
+        $hasText = array_key_exists('text', $message);
+        $hasCaption = array_key_exists('caption', $message);
+        $hasContact = array_key_exists('contact', $message);
+        $media = array_values(array_intersect(['photo','animation','audio','document','sticker','video','video_note','voice'], array_keys($message)));
+        if ($hasText) {
+            if (!$hasCaption && !$hasContact && !$media && is_string($message['text']) && $message['text'] !== '') $native['kind'] = 'text';
+            return $native;
+        }
+        if ($hasContact) {
+            $contact = $message['contact'];
+            if (!$hasCaption && !$media && is_array($contact)
+                && is_string($contact['phone_number'] ?? null) && $contact['phone_number'] !== ''
+                && is_string($contact['first_name'] ?? null) && $contact['first_name'] !== '') $native['kind'] = 'contact';
+            return $native; // No contact values enter the provenance or the stored record.
+        }
+        // Telegram sends document alongside animation for backward compatibility.
+        if (!$media || (count($media) > 1 && $media !== ['animation','document'])) return $native;
+        foreach ($media as $field) {
+            $files = $field === 'photo' ? $message[$field] : [$message[$field]];
+            if (!is_array($files) || !$files) return $native;
+            foreach ($files as $file) if (!is_array($file) || !is_string($file['file_id'] ?? null) || $file['file_id'] === '') return $native;
+        }
+        if ($hasCaption) {
+            if (!is_string($message['caption']) || array_intersect($media, ['sticker','video_note'])) return $native;
+            $native['kind'] = $message['caption'] !== '' ? 'caption' : 'media';
+        } else $native['kind'] = 'media';
+        return $native;
     }
 
     private static function file(string $type, array $file): array
