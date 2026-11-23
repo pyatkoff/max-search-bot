@@ -369,6 +369,8 @@ return [
     ],
     'diagnostics' => [
         'php tests/run_max2_common_value_v2_regression.php',
+        'php tests/run_max2_hold_pair_read_regression.php',
+        'python3 tests/max2_hold_pair_read_20261123/test_runner.py',
         'php tests/run_manager_ai_draft_feedback_report_regression.php',
         'php tests/run_manager_request_profile_regression.php',
         'php tests/run_manager_request_profile_http_regression.php',

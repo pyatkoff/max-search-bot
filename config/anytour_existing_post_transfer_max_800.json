@@ -1,0 +1,26 @@
+{
+  "operation": "anytour_sugar_marina_max_transfer_20261123",
+  "hotel_id": 800,
+  "hotel_name": "Sugar Marina Resort Art Karon Beach",
+  "source": {
+    "channel_id": "-80492244209683",
+    "message_id": "mid.ffffb6caf0606fed01a1b6186e571f62",
+    "url": "https://max.ru/channel_anytour/AaG2GG5XH2I",
+    "publication_id": 541,
+    "version_id": 13957,
+    "content_sha256": "04e41dce822b476539e6e23aa99b4de7ca62961de3e5dddcf69ae97530a9edbb",
+    "photo_sha256": "41a2f54dd4611a50b80a1e2fe778b10e379c89272ceecb18027024b02c7af69a",
+    "caption_sha256": "5480f0e2908b5379b3576d259a3ab80b6b1dad03f6a33b37f8c7ffcb9af28f54"
+  },
+  "target": {
+    "channel_id": "-68765999669267",
+    "message_id": "mid.ffffc1752b045fed019edec4de843c85",
+    "url": "https://max.ru/anytour/AZ7exN6EPIU",
+    "published_timestamp": 1781853904516,
+    "photo_sha256": "5c23f9774d2e5ed02593298f71840e1f262f618ce18363ff9570545be28d9c8a",
+    "caption_sha256": "6c029d82d56e70563b68a137a5a352a36e7dca4fa9dec0b1e24127e9f1b00c53",
+    "config_version": 2
+  },
+  "text": "Sugar Marina Resort Art Karon Beach\n📍 Таиланд · Пхукет\n\nОтель на второй линии у общественного пляжа Карон. В детском клубе есть игровая зона с шариками.\n\nРассчитаем тур на ваши даты.",
+  "preflight_run": 45158538856
+}
