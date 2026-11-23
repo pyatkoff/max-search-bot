@@ -1,0 +1,174 @@
+name: Find a free alternate Telegram post for Stella Makadi
+on:
+  push:
+    branches: [audit/1566-next-release-admission-1664]
+    paths: [.github/workflows/read-1566-stella-alternate-candidates.yml]
+permissions: {}
+jobs:
+  read:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35)
+          found=[]
+          for line in scan.stdout.splitlines():
+              fields=line.split()
+              if len(fields)<3 or fields[0].startswith('#'):continue
+              try:fingerprint='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fingerprint=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(line)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read existing archive posts, registry, and current ads
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 \
+            -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null \
+            -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$USER_VALUE@$HOST_VALUE" 'bash -s' <<'REMOTE'
+          set -eu
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          test "$(git rev-parse HEAD)" = 'de6282c79cf533e316980a765acdd58a5227b05d' || test "$(git rev-parse HEAD)" = '0689691b5aa4b8cd5fbf2f3629d9e9dc76df7e9b'
+          php -d display_errors=0 <<'PHP'
+          <?php
+          require 'tools/anytour_existing_post_batch.php';
+          use function AnyTour\ExistingPostBatch\transferPlanFromBytes;
+          use function AnyTour\ExistingPostBatch\transferSource;
+          use function AnyTour\ExistingPostBatch\transferChannelRights;
+          use function AnyTour\ExistingPostBatch\transferPublic;
+          use function AnyTour\ExistingPostBatch\requirePost;
+          
+          $exclusions = array_fill_keys(['1101','997','1588','1678','1484','1780','1760','23','48','402','474','1754','809','1469','1652','1292','1148','993','1150','1788','1789','1784','1787','1790','1782','1312','1792','17','19','37','82','192','196','204','414','455','483','526','540','567','588','1779','862','328','1083','1227','288','1046','982','1098','954','913','927','1043','1207','220','224','249','266','316','346','372','594','626','646','716','884','901','905','906','908','914','915','917','918','923','924','928','930','948','949','951','952','963','969','970','999','1003','1012','1016','1037','1042','1049','1051','1052','1057','1059','1087','1110','1131','920','957','909'], true);
+          $exclusionCount = count($exclusions);
+          $plan = transferPlanFromBytes(file_get_contents('config/anytour_existing_post_transfer_next_20261123.json'),
+              '30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d', true);
+          $stella = $plan['rows'][2];
+          requirePost($stella['hotel_id'] === 466 && $stella['target_message_id'] === '1101', 'stella_row_not_found');
+          ob_start();
+          try {
+              require_once 'config.php';
+              require_once 'services/ChannelPostRegistryService.php';
+              require_once 'services/ChannelPostButtonTransport.php';
+              require_once 'services/ChannelPostRuntime.php';
+              require_once 'integrations/ChannelPostApiTransport.php';
+          } finally { ob_end_clean(); }
+          $pdo = ConversationDb::connection();
+          $pdo->exec('SET TRANSACTION READ ONLY');
+          $pdo->beginTransaction();
+          try {
+              $registry = new ChannelPostRegistryService($pdo);
+              transferChannelRights($registry);
+              transferSource($pdo, $registry, $stella);
+              $q=$pdo->query('SELECT external_message_id FROM post_publications WHERE post_channel_id=6 AND external_message_id IS NOT NULL');
+              foreach ($q->fetchAll(PDO::FETCH_COLUMN) as $occupied) $exclusions[(string)$occupied]=true;
+          } finally { $pdo->rollBack(); }
+          $source = transferPublic('any_toour', $stella['source_message_id'], true);
+          requirePost($source['caption_sha256'] === $stella['source_caption_sha256']
+              && $source['photo_marker_sha256'] === $stella['source_photo_marker_sha256'], 'source_public_changed');
+          foreach (array_merge(['hotel-posts-telegram-main19.php'], glob('feed/*hotel*.xml') ?: []) as $file) {
+              if (!is_file($file) || filesize($file) > 16_000_000) continue;
+              $links = [];
+              preg_match_all('~t\.me/(?:s/)?anytour/([1-9][0-9]{0,9})~', file_get_contents($file), $links);
+              foreach ($links[1] as $used) $exclusions[$used] = true;
+          }
+          $oldJournal = AnyTour\ExistingPostBatch\POST_OPS . '/anytour-issue1566-historical-tg-media-1101-v1/receipt.jsonl';
+          $oldResult = is_file($oldJournal) ? file_get_contents($oldJournal, false, null, 0, 1_000_001) : '';
+          requirePost(str_contains($oldResult, '"state":"provider_message_id_rejected"') && str_contains($oldResult, 'MESSAGE_ID_INVALID'), 'old_rejection_unconfirmed');
+          
+          function stellaRead(string $url): ?string {
+              $context = stream_context_create(['http'=>['method'=>'GET','timeout'=>8,'follow_location'=>0,
+                  'header'=>"User-Agent: Mozilla/5.0\r\n"],'ssl'=>['verify_peer'=>true,'verify_peer_name'=>true]]);
+              $body = @file_get_contents($url, false, $context, 0, 1_600_001);
+              return is_string($body) && strlen($body) <= 1_600_000 ? $body : null;
+          }
+          $pages = [
+              'https://t.me/s/anytour?q=Stella%20Makadi',
+              'https://t.me/s/anytour?q=%D0%A1%D1%82%D0%B5%D0%BB%D0%BB%D0%B0%20%D0%9C%D0%B0%D0%BA%D0%B0%D0%B4%D0%B8',
+              'https://t.me/s/anytour?before=1050',
+              'https://t.me/s/anytour?before=1010',
+              'https://t.me/s/anytour?before=980',
+              'https://t.me/s/anytour?before=951',
+              'https://t.me/s/anytour?before=922',
+              'https://t.me/s/anytour?before=893',
+              'https://t.me/s/anytour?before=864',
+          ];
+          $candidates = [];
+          $matches = [];
+          $checked = [];
+          $pagesRead = 0;
+          foreach ($pages as $index=>$url) {
+              $body = stellaRead($url);
+              if ($body === null) continue;
+              ++$pagesRead;
+              $doc = new DOMDocument('1.0', 'UTF-8');
+              if (!@$doc->loadHTML($body, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING)) continue;
+              $xp = new DOMXPath($doc);
+              foreach ($xp->query('//*[@data-post]') as $post) {
+                  if (!preg_match('~\Aanytour/([1-9][0-9]{0,9})\z~D', $post->getAttribute('data-post'), $match)) continue;
+                  $id = $match[1];
+                  if (isset($checked[$id])) continue;
+                  $checked[$id] = true;
+                  if (isset($exclusions[$id])) continue;
+                  $journalPath = AnyTour\ExistingPostBatch\POST_OPS.'/anytour-issue1566-historical-tg-media-'.$id.'-v1';
+                  if (file_exists($journalPath) || is_link($journalPath)) continue;
+                  $text = $xp->query('.//*[contains(concat(" ",normalize-space(@class)," ")," tgme_widget_message_text ")]', $post);
+                  $time = $xp->query('.//time[@datetime]', $post);
+                  $photos = $xp->query('.//*[contains(concat(" ",normalize-space(@class)," ")," tgme_widget_message_photo_wrap ")]', $post);
+                  if (!$text || !$time || !$photos || $text->length !== 1 || $time->length !== 1) continue;
+                  $html = '';
+                  foreach ($text->item(0)->childNodes as $child) $html .= $doc->saveHTML($child);
+                  $caption = html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i',"\n",$html)), ENT_QUOTES | ENT_HTML5,'UTF-8');
+                  $date = (new DateTimeImmutable($time->item(0)->getAttribute('datetime')))->getTimestamp();
+                  $first = mb_substr(trim(explode("\n",$caption)[0]),0,110,'UTF-8');
+                  $specific = preg_match('/(?:Stella\s+Makadi\s+Beach|Стелла\s+Макади\s+Бич)/iu',$caption) === 1;
+                  if ($specific) $matches[] = ['id'=>$id,'date'=>gmdate(DATE_ATOM,$date),'photos'=>$photos->length,'title'=>$first];
+                  if ($date >= strtotime('2025-10-01T00:00:00Z') || $photos->length !== 1 || $caption === '') continue;
+                  $extras = $xp->query('.//video|.//audio|.//*[contains(@class,"tgme_widget_message_video") or contains(@class,"tgme_widget_message_grouped") or contains(@class,"tgme_widget_message_forwarded_from") or contains(@class,"tgme_widget_message_inline_button")]', $post);
+                  if (!$extras || $extras->length > 0) continue;
+                  if (!$specific && (!preg_match('/(?:вылет|ночей|тур[ыа]|подборк)/iu',$caption)
+                      || preg_match_all('/(?:₽|руб\.)/iu',$caption)<2
+                      || preg_match('/(?:конкурс|победител|отзыв|личный опыт|отч[её]т|актуальные ссылки)/iu',$first))) continue;
+                  $marker = trim($photos->item(0)->getAttribute('class'));
+                  if (!preg_match('/(?:^|\s)[0-9]{5,}(?:_[0-9]+)?(?:\s|$)/D',$marker)) continue;
+                  $candidates[] = ['id'=>$id,'date'=>gmdate(DATE_ATOM,$date),'timestamp'=>$date,'first'=>$first,
+                      'prices'=>preg_match_all('/(?:₽|руб\.)/iu',$caption),'stella'=>$specific,
+                      'caption_sha256'=>hash('sha256',$caption),'photo_sha256'=>hash('sha256',$marker)];
+              }
+              if (count($candidates)>=14) break;
+          }
+          echo json_encode(['hotel_id'=>466,'source_ready'=>true,'channel_rights_ready'=>true,'old_rejection_confirmed'=>true,
+              'pages_read'=>$pagesRead,'posts_seen'=>count($checked),'excluded_known'=>count($exclusions),
+              'exact_hotel_hits'=>$matches,'candidates'=>array_slice($candidates,0,18),'writes'=>0],JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),PHP_EOL;
+          PHP
+          REMOTE
+      - name: Remove authentication material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
