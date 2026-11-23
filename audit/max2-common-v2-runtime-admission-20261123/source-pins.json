@@ -1,0 +1,37 @@
+{
+  "canonical_base": "b1da1418ff75cba9657d8b5a2971270c8eafb1c9",
+  "files": {
+    "README.md": {
+      "bytes": 8772,
+      "sha256": "2f3f31beed358c7c512e86ff573737903298b9a5f6f479cb6f414f2ab379208a"
+    },
+    "admission-request.template.json": {
+      "bytes": 102,
+      "sha256": "3567cce467953fdcd3f12e6354e2434f56e4f29cb4cb9dc1b358bec5ea8d16ca"
+    },
+    "canonical-source-pins.json": {
+      "bytes": 1810,
+      "sha256": "a4ba0a02f21d5f49704e600d3167cf29d56f1984aab691a309a009a45ab111f1"
+    },
+    "runner.py": {
+      "bytes": 11355,
+      "sha256": "61e2cf494058051a4f77eb34de59b0f2aff42a1ad2d1f7d0d3c66e36c00f6eed"
+    },
+    "tests/fixtures/release_priority.js": {
+      "bytes": 23624,
+      "sha256": "880addcb078f8f92e0524a5b93de14ab2d1ed24d442180e6e253310038b65d62"
+    },
+    "tests/test_runner.py": {
+      "bytes": 12663,
+      "sha256": "def2ca0bf8d17b92582a82733d028e8f6716acef20fa5f4a7e8674d7fba9422e"
+    },
+    "workflow.yml": {
+      "bytes": 3045,
+      "sha256": "5e0737f3ccc1c5f8aa7673af30fc4860a41257053587994d6ab987647cc12c43"
+    }
+  },
+  "preparation_only": true,
+  "repository": "pyatkoff/max-search-bot",
+  "scope": "read-only-native-common-v2-runtime-release-admission",
+  "version": 1
+}

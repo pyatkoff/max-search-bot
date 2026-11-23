@@ -1,0 +1,40 @@
+{
+  "canonical_parents": [
+    "08f11061fbaac645585ae7215578d0fd4630e31a",
+    "a58b7279c115f796013c2f9688da9815877db38f"
+  ],
+  "canonical_source_sha": "b1da1418ff75cba9657d8b5a2971270c8eafb1c9",
+  "canonical_tree_sha": "91088bd9fa902025bea4142ebc96f41c310e0b4f",
+  "changed_core_paths": [
+    "tools/deployment_release.js"
+  ],
+  "core_changes_from_preparation_sha": "7320b3ac1f178e28d2144ab4424a13cc0fd4e696",
+  "docs_git_blobs": {
+    "AGENTS.md": "3ea4c0f1b9bec95e7af86dcc08cf4ef9a15f1bc8",
+    "START_HERE.md": "cfb042ba3589e4a80cac1171de146673944309fb",
+    "docs/RELEASE_PRIORITY.md": "7d52f33c5af52a47a5c969dc55ff996f64491f82"
+  },
+  "docs_source_sha": "b1da1418ff75cba9657d8b5a2971270c8eafb1c9",
+  "files": {
+    "tools/deployment_release.js": {
+      "bytes": 133707,
+      "git_blob": "ce8ca9b741ee973b533a61b2dc5df3474939d01b",
+      "sha256": "ec01c531031cbc994166d10b86f8ce07ca4c8c31e65b534b8ed247ae838ede26"
+    },
+    "tools/release_priority.js": {
+      "bytes": 23624,
+      "git_blob": "3c1b228d36785546d71fb9e21c68ee4b03961619",
+      "sha256": "880addcb078f8f92e0524a5b93de14ab2d1ed24d442180e6e253310038b65d62"
+    },
+    "tools/release_slot_close.js": {
+      "bytes": 97640,
+      "git_blob": "a81a0ef78d30af8d7c2a55bd99b5c08718043015",
+      "sha256": "8b2af9e5089098395df4fbe088c3b68d42f5ab68272ed50c3c256afd70a7286a"
+    }
+  },
+  "final_admission_inputs": "UNSEALED",
+  "preparation_only": true,
+  "repository": "pyatkoff/max-search-bot",
+  "source_verification": "Native GitHub GET at immutable b1da1418ff75cba9657d8b5a2971270c8eafb1c9 verified the commit tree, parents and exact three coordinator and three documentation Git blobs. Matching local bytes were independently checked by Git blob, length and SHA256. Preparation source only; no final base admission.",
+  "version": 1
+}
