@@ -50,7 +50,7 @@ jobs:
           [[ "$GITHUB_RUN_ID" =~ ^[1-9][0-9]{0,19}$ ]]
           umask 077
           mkdir pub
-          php tools/anytour_existing_post_batch.php --check-transfer-plan b88a09ec5220a20c7daee2480c9da9f36310fc8a2dc83a8afbe730ef1ed40d48 > pub/plan-check.json
+          php tools/anytour_existing_post_batch.php --check-transfer-plan fdda41801951a033715b5ca5d567ef348f2ee885ab40074d35dfa8151d52de56 > pub/plan-check.json
       - name: Pin established SSH host continuity and authentication identity
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -102,7 +102,7 @@ jobs:
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           remote='set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru'
           set +e
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" "$remote; php tools/anytour_existing_post_batch.php --apply-transfer b88a09ec5220a20c7daee2480c9da9f36310fc8a2dc83a8afbe730ef1ed40d48 $APPLICATION_SHA $GITHUB_RUN_ID" > pub/result.json
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" "$remote; php tools/anytour_existing_post_batch.php --apply-transfer fdda41801951a033715b5ca5d567ef348f2ee885ab40074d35dfa8151d52de56 $APPLICATION_SHA $GITHUB_RUN_ID" > pub/result.json
           status=$?
           set -e
           python3 - <<'PY'
@@ -116,7 +116,7 @@ jobs:
           assert d.get('operation')=='anytour_hotel_transfer_four_20261123'
           assert d.get('native_run_id')==os.environ['GITHUB_RUN_ID']
           assert d.get('application_sha')==os.environ['APPLICATION_SHA']
-          assert d.get('plan_sha256')=='b88a09ec5220a20c7daee2480c9da9f36310fc8a2dc83a8afbe730ef1ed40d48'
+          assert d.get('plan_sha256')=='fdda41801951a033715b5ca5d567ef348f2ee885ab40074d35dfa8151d52de56'
           assert d.get('provider_write_attempts')==4
           assert d.get('supplier_requests')==d.get('bot_starts')==0
           assert [r['hotel_id'] for r in d['results']]==[17595,358,393,1260]
