@@ -74,6 +74,7 @@ function anytourTelegramFeedDestinationPosts(array $source): array
         'tg_358' => ['https://t.me/any_toour/65', 'https://t.me/anytour/328'],
         'tg_393' => ['https://t.me/any_toour/85', 'https://t.me/anytour/1083'],
         'tg_1260' => ['https://t.me/any_toour/548', 'https://t.me/anytour/288'],
+        'tg_408' => ['https://t.me/any_toour/120', 'https://t.me/anytour/997'],
     ];
     $landing = $source;
     foreach ($source as $id => $url) {
