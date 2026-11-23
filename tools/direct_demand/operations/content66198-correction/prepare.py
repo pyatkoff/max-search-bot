@@ -13,7 +13,10 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
+# The original caption operation is consumed. Its compiler and evidence retain
+# their actual application forever; only read-only reconciliation moves forward.
 APP = 'b1da1418ff75cba9657d8b5a2971270c8eafb1c9'
+RUNTIME_APP = '9addf04716e648793e47849247ea823168fdf5fe'
 LINEAGE = 'd44ff7ff0e1137801137467f5f03e3ca32af87f6'
 READ = 'commercial-waldorf66198-caption-read-20261123-v1'
 META = 'commercial-waldorf66198-journal-metadata-20261123-v1'
@@ -105,9 +108,9 @@ def timestamp(value):
     return parsed.timestamp()
 
 
-def metadata(path):
+def metadata(path, expected_app=APP):
     result = load(path)
-    need(result.get('ok') is True and result.get('operation') == META and result.get('installed_sha') == APP
+    need(result.get('ok') is True and result.get('operation') == META and result.get('installed_sha') == expected_app
          and result.get('monitor_pending') is False, 'native_metadata_binding_changed')
     need(all(type(result.get(k)) is int and result[k] == 0 for k in ['provider_calls', 'post_write_attempts', 'db_writes']), 'metadata_write_or_provider_attempt')
     pin = result['journal_pin']
@@ -147,7 +150,7 @@ def compile_metadata(ops, out):
     body = once(w11.r.METADATA_BODY,
         "requireAudit(is_array($latest)&&array_key_exists('pending',$latest)",
         "requireAudit(is_array($latest)&&($latest['schema']??null)===1&&array_key_exists('pending',$latest)")
-    text = bind(text + body, {'EXPECTED_INSTALLED_SHA': APP, 'JOURNAL_METADATA_OPERATION': META})
+    text = bind(text + body, {'EXPECTED_INSTALLED_SHA': RUNTIME_APP, 'JOURNAL_METADATA_OPERATION': META})
     (out / 'journal-metadata.php').write_text(text)
 
 
@@ -342,7 +345,8 @@ function reconciliationAttachments(array $before,array $after,array $row,array $
 }
 
 $out=['ok'=>false,'operation'=>RECONCILE_OPERATION,'caption_operation'=>CAPTION_OPERATION,
-    'installed_sha'=>EXPECTED_INSTALLED_SHA,'provider_calls'=>0,'post_write_attempts'=>0,
+    'installed_sha'=>EXPECTED_INSTALLED_SHA,'caption_installed_sha'=>CAPTION_INSTALLED_SHA,
+    'provider_calls'=>0,'post_write_attempts'=>0,
     'database_writes'=>0,'filesystem_writes'=>0,'posts'=>[]];
 $pdo=null; $monitorLock=null; $captionLock=null;
 try {
@@ -351,8 +355,9 @@ try {
     need(is_string($input) && hash('sha256',$input)===RECONCILE_INPUT_SHA256,'reconciliation_input_changed');
     $ctx=json_decode($input,true,128,JSON_THROW_ON_ERROR); $manifest=$ctx['manifest']; $result=$ctx['native_result'];
     need($ctx['operation']===RECONCILE_OPERATION && $ctx['installed_sha']===EXPECTED_INSTALLED_SHA
-        && $manifest['operation']===CAPTION_OPERATION && $manifest['expected_installed_sha']===EXPECTED_INSTALLED_SHA
-        && $result['operation']===CAPTION_OPERATION && $result['installed_sha']===EXPECTED_INSTALLED_SHA
+        && $ctx['caption_installed_sha']===CAPTION_INSTALLED_SHA
+        && $manifest['operation']===CAPTION_OPERATION && $manifest['expected_installed_sha']===CAPTION_INSTALLED_SHA
+        && $result['operation']===CAPTION_OPERATION && $result['installed_sha']===CAPTION_INSTALLED_SHA
         && $result['manifest_sha256']===$ctx['manifest_sha256'] && count($manifest['rows'])===2
         && count($result['posts'])===2,'reconciliation_scope_changed');
     $base='/var/www/anytoour/data/channel-post-operations';
@@ -378,7 +383,7 @@ try {
         $state=json_decode($line,true,128,JSON_THROW_ON_ERROR);
         need(is_array($state) && ($state['operation']??null)===CAPTION_OPERATION
             && ($state['manifest_sha256']??null)===$ctx['manifest_sha256']
-            && ($state['installed_sha']??null)===EXPECTED_INSTALLED_SHA,'reconciliation_caption_journal_binding_changed');
+            && ($state['installed_sha']??null)===CAPTION_INSTALLED_SHA,'reconciliation_caption_journal_binding_changed');
         need($terminal===null || $terminal===$state,'reconciliation_caption_terminal_changed');
         if (($state['complete']??false)===true) $terminal=$state;
     }
@@ -493,7 +498,7 @@ exit($out['ok']?0:2);
 
 def compile_reconcile(ops, journal_meta, manifest_path, result_path, out):
     lineage(ops)
-    meta, pin = metadata(journal_meta)
+    meta, pin = metadata(journal_meta, RUNTIME_APP)
     now = datetime.datetime.now(datetime.timezone.utc).timestamp()
     need(now - 900 <= timestamp(meta['observed_at_utc']) <= now + 60, 'reconciliation_metadata_expired')
     verified = verify(manifest_path, result_path, out, write=False)
@@ -504,7 +509,7 @@ def compile_reconcile(ops, journal_meta, manifest_path, result_path, out):
          and all(r['hotel_id'] == 66198 and r['post_url'] == URLS[r['platform']]
                  and changed_caption(r['old_text']) == r['new_text'] for r in manifest['rows']),
          'reconciliation_exact_scope_changed')
-    ctx = dict(operation=EDIT + '-reconcile', installed_sha=APP, manifest=manifest,
+    ctx = dict(operation=EDIT + '-reconcile', installed_sha=RUNTIME_APP, caption_installed_sha=APP, manifest=manifest,
         manifest_sha256=sha(manifest_path.read_bytes()), native_result=verified['native_result'],
         native_result_sha256=sha(result_path.read_bytes()), journal_pin=pin,
         metadata_sha256=sha(journal_meta.read_bytes()), metadata_observed_at_utc=meta['observed_at_utc'])
@@ -517,7 +522,7 @@ def compile_reconcile(ops, journal_meta, manifest_path, result_path, out):
     helper = once(helper, "if (!is_array($latest) || !array_key_exists('pending', $latest)",
                   "if (!is_array($latest) || ($latest['schema'] ?? null) !== 1 || !array_key_exists('pending', $latest)")
     helper = helper.removeprefix('<?php\ndeclare(strict_types=1);\n')
-    text = bind(text + helper + RECONCILE_PHP, {'EXPECTED_INSTALLED_SHA': APP, 'CAPTION_OPERATION': EDIT,
+    text = bind(text + helper + RECONCILE_PHP, {'EXPECTED_INSTALLED_SHA': RUNTIME_APP, 'CAPTION_INSTALLED_SHA': APP, 'CAPTION_OPERATION': EDIT,
         'RECONCILE_OPERATION': ctx['operation'], 'RECONCILE_INPUT_SHA256': sha(data),
         'RECONCILE_INPUT_BASE64': base64.b64encode(data).decode()})
     (out / 'reconcile-input.json').write_bytes(data)
@@ -528,9 +533,12 @@ def compile_reconcile(ops, journal_meta, manifest_path, result_path, out):
 def verify_reconcile(input_path, result_path, out):
     data = input_path.read_bytes()
     ctx, result = json.loads(data), load(result_path)
-    need(ctx.get('operation') == EDIT + '-reconcile' and ctx.get('installed_sha') == APP
+    need(ctx.get('operation') == EDIT + '-reconcile' and ctx.get('installed_sha') == RUNTIME_APP
+         and ctx.get('caption_installed_sha') == APP
+         and ctx['manifest'].get('expected_installed_sha') == APP and ctx['native_result'].get('installed_sha') == APP
          and result.get('ok') is True and result.get('operation') == ctx['operation']
-         and result.get('caption_operation') == EDIT and result.get('installed_sha') == APP
+         and result.get('caption_operation') == EDIT and result.get('installed_sha') == RUNTIME_APP
+         and result.get('caption_installed_sha') == APP
          and result.get('input_sha256') == sha(data)
          and result.get('manifest_sha256') == ctx['manifest_sha256']
          and result.get('native_result_sha256') == ctx['native_result_sha256']
@@ -579,7 +587,7 @@ def verify_reconcile(input_path, result_path, out):
         else:
             need(before == after, 'reconciliation_immutable_attachment_changed')
         need(item.get('changed_attachment_fields') == changed, 'reconciliation_delta_proof_changed')
-    summary = dict(state='VERIFIED_CONFIRMED_CAPTION_RECONCILIATION', installed_sha=APP,
+    summary = dict(state='VERIFIED_CONFIRMED_CAPTION_RECONCILIATION', installed_sha=RUNTIME_APP, caption_installed_sha=APP,
         operation=ctx['operation'], original_caption_operation=EDIT, posts_verified=2,
         provider_calls=0, post_write_attempts=0, native_proof=result)
     (out / 'verified-reconcile.json').write_bytes(raw(summary))

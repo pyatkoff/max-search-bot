@@ -320,6 +320,11 @@ $r=$m['rows'][0];$bad=$r['old_markup'];$bad[0]['length']--;$rejected=false;try{c
             post['attachments_sha256'] = p.sha(p.raw(after[post['platform']])[:-1])
         path = self.dir / 'edit-result.json'
         path.write_bytes(p.raw(native))
+        # Historical EDIT evidence remains on its actual application. Only this
+        # fresh metadata observation belongs to the current reconciliation app.
+        fresh = p.load(self.meta_path)
+        fresh['installed_sha'] = p.RUNTIME_APP
+        self.meta_path.write_bytes(p.raw(fresh))
         ctx = p.compile_reconcile(OPS, self.meta_path, self.dir / 'edit-manifest.json', path, self.dir)
         return ctx, before, after
 
@@ -364,7 +369,8 @@ echo jsonValue($proof);
     def test_reconciliation_result_binds_current_versions_and_no_writes(self):
         ctx, before, after = self.reconciliation_fixture()
         input_path = self.dir / 'reconcile-input.json'
-        result = dict(ok=True, operation=ctx['operation'], caption_operation=p.EDIT, installed_sha=p.APP,
+        result = dict(ok=True, operation=ctx['operation'], caption_operation=p.EDIT,
+            installed_sha=p.RUNTIME_APP, caption_installed_sha=p.APP,
             input_sha256=p.sha(input_path.read_bytes()), manifest_sha256=ctx['manifest_sha256'],
             native_result_sha256=ctx['native_result_sha256'], journal_pin=ctx['journal_pin'], monitor_pending=False,
             provider_calls=0, post_write_attempts=0, database_writes=0, filesystem_writes=0,
@@ -394,6 +400,8 @@ echo jsonValue($proof);
             lambda x: x.update(provider_calls=1),
             lambda x: x.update(database_writes=1),
             lambda x: x.update(input_sha256='0'*64),
+            lambda x: x.update(installed_sha=p.APP),
+            lambda x: x.update(caption_installed_sha=p.RUNTIME_APP),
             lambda x: x.update(observed_at_utc='2020-01-01T00:00:00Z'),
         ]
         for mutation in mutations:
@@ -402,6 +410,35 @@ echo jsonValue($proof);
             path.write_bytes(p.raw(bad))
             with self.subTest(mutation=mutation), self.assertRaises(ValueError):
                 p.verify_reconcile(input_path, path, self.dir)
+
+    def test_historical_caption_and_current_reconciliation_apps_stay_distinct(self):
+        ctx, _, _ = self.reconciliation_fixture()
+        self.assertNotEqual(p.APP, p.RUNTIME_APP)
+        self.assertEqual(ctx['installed_sha'], p.RUNTIME_APP)
+        self.assertEqual(ctx['caption_installed_sha'], p.APP)
+        self.assertEqual(ctx['manifest']['expected_installed_sha'], p.APP)
+        self.assertEqual(ctx['native_result']['installed_sha'], p.APP)
+        manifest_path = self.dir / 'edit-manifest.json'
+        result_path = self.dir / 'edit-result.json'
+        manifest_bytes = manifest_path.read_bytes()
+        result_bytes = result_path.read_bytes()
+        wrong_manifest = p.load(manifest_path)
+        wrong_manifest['expected_installed_sha'] = p.RUNTIME_APP
+        manifest_path.write_bytes(p.raw(wrong_manifest))
+        with self.assertRaisesRegex(ValueError, 'verification_manifest_changed'):
+            p.compile_reconcile(OPS, self.meta_path, manifest_path, result_path, self.dir)
+        manifest_path.write_bytes(manifest_bytes)
+        wrong_result = p.load(result_path)
+        wrong_result['installed_sha'] = p.RUNTIME_APP
+        result_path.write_bytes(p.raw(wrong_result))
+        with self.assertRaisesRegex(ValueError, 'native_edit_not_confirmed'):
+            p.compile_reconcile(OPS, self.meta_path, manifest_path, result_path, self.dir)
+        result_path.write_bytes(result_bytes)
+        wrong_metadata = p.load(self.meta_path)
+        wrong_metadata['installed_sha'] = p.APP
+        self.meta_path.write_bytes(p.raw(wrong_metadata))
+        with self.assertRaisesRegex(ValueError, 'native_metadata_binding_changed'):
+            p.compile_reconcile(OPS, self.meta_path, manifest_path, result_path, self.dir)
 
 
 if __name__ == '__main__':

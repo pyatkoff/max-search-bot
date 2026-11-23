@@ -11,9 +11,10 @@ function wf_urls(): array { return ['telegram'=>'https://t.me/any_toour/678','ma
 function wf_hash(mixed $v): bool { return is_string($v) && preg_match('/\A[a-f0-9]{64}\z/D',$v)===1; }
 function wf_binding(): array {
     $b=json_decode(base64_decode(FEED66198_BINDING_B64,true),true,16,JSON_THROW_ON_ERROR);
-    wf_need(array_keys($b)===['schema','kind','installed_sha','caption_operation','feed_operation','approval_comment_id']
+    wf_need(array_keys($b)===['schema','kind','installed_sha','original_caption_installed_sha','caption_operation','feed_operation','approval_comment_id']
         && $b['schema']===1 && $b['kind']==='CONTENT66198_FEED_BINDING'
-        && $b['installed_sha']==='b1da1418ff75cba9657d8b5a2971270c8eafb1c9'
+        && $b['installed_sha']==='9addf04716e648793e47849247ea823168fdf5fe'
+        && $b['original_caption_installed_sha']==='b1da1418ff75cba9657d8b5a2971270c8eafb1c9'
         && $b['caption_operation']==='commercial-waldorf66198-caption-correction-20261123-v1'
         && $b['feed_operation']==='commercial-channel-hotel-feeds-20261123-update66198'
         && $b['approval_comment_id']===7072600922,'waldorf_binding_changed');
@@ -21,6 +22,15 @@ function wf_binding(): array {
 }
 function wf_context(): array {
     return json_decode(base64_decode(FEED66198_CONTEXT_B64,true),true,128,JSON_THROW_ON_ERROR);
+}
+function wf_resume_context(array $ctx): bool {
+    if (!array_key_exists('continuation_kind',$ctx)) return false;
+    wf_need($ctx['continuation_kind']==='CONTENT66198_FEED_ONLY_AFTER_CONFIRMED_EDIT'
+        && ($ctx['capture_sha256']??null)==='64ece3dc9c6a157c87283c96b06e588519cb4f6728b95162bb875c24972d3c75'
+        && ($ctx['manifest_sha256']??null)==='a10fa0a8823b2c674d39727d7088889534adff3183f88f9de67add181415ee85'
+        && ($ctx['edit_result_sha256']??null)==='bdd728b2e9cc848df796a49e89cd2b874252a4a54a0d1603a10285399f5cf551',
+        'waldorf_resume_context_changed');
+    return true;
 }
 function wf_correct(string $text): string {
     $old='Одиннадцать ресторанов'; $new='Десять ресторанов, баров и лаунжей';
@@ -154,9 +164,11 @@ function wf_no_publication_claim(PDO $pdo,int $publicationId): void {
         state IN ('claimed','write_started','unknown') OR claim_token IS NOT NULL OR claimed_at IS NOT NULL)");
     wf_need($q!==false && $q->execute([$publicationId]) && (int)$q->fetchColumn()===0,'waldorf_publication_claim_or_unknown');
 }
-function wf_confirmed(array $state,array $op,array $bindings): array {
+function wf_confirmed(array $state,array $op,array $bindings,bool $resume=false): array {
     $b=wf_binding();
-    wf_need($op['operation']===$b['caption_operation'] && $op['installed_sha']===$b['installed_sha']
+    $captionApp=$resume?$b['original_caption_installed_sha']:$b['installed_sha'];
+    wf_need($op['operation']===$b['caption_operation'] && $op['installed_sha']===$captionApp
+        && (!$resume || $op['manifest_sha256']==='a10fa0a8823b2c674d39727d7088889534adff3183f88f9de67add181415ee85')
         && $op['row_count']===2 && wf_hash($op['manifest_sha256']) && wf_hash($op['journal_sha256'])
         && ($state['operation']??null)===$op['operation'] && ($state['installed_sha']??null)===$op['installed_sha']
         && ($state['manifest_sha256']??null)===$op['manifest_sha256'] && ($state['complete']??null)===true
@@ -199,11 +211,12 @@ function caption_feed_admit(array $input,string $installed,array &$locks): array
     $b=wf_binding(); $ctx=wf_context();
     wf_need($installed===$b['installed_sha'] && $input['operation']===$b['feed_operation']
         && count($input['caption_operations'])===1,'waldorf_feed_admission_scope_changed');
+    $resume=wf_resume_context($ctx);
     wf_monitor($ctx['journal_pin'],$locks); $op=$input['caption_operations'][0];
     wf_need($op['operation']===$b['caption_operation'],'waldorf_caption_operation_changed');
     $r=wf_locked_jsonl('/var/www/anytoour/data/channel-post-operations/'.$op['operation'].'/receipt.jsonl',134217728,LOCK_SH,$locks);
     wf_need($r['sha256']===$op['journal_sha256'],'waldorf_caption_journal_changed');
-    $updates=wf_confirmed($r['state'],$op,$input['caption_updates']); wf_registry($updates,true); return $updates;
+    $updates=wf_confirmed($r['state'],$op,$input['caption_updates'],$resume); wf_registry($updates,true); return $updates;
 }
 function caption_feed_render(string $xml,array $updates,string $name): string {
     wf_need(in_array($name,wf_names(),true) && count($updates)===2,'waldorf_render_scope_changed');

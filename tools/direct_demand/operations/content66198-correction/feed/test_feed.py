@@ -96,12 +96,17 @@ def fixture(correct_posts=False, correct_feed=False, native_versions=False):
 
 def resume_fixture():
     f = fixture(native_versions=True)
+    f['capture']['installed_sha'] = mod.ORIGINAL_CAPTION_APP
     f['capture']['observed_at_utc'] = '2020-01-01T00:00:00Z'
     f['capture_raw'] = mod.canonical(f['capture'])
+    f['manifest']['expected_installed_sha'] = mod.ORIGINAL_CAPTION_APP
+    f['manifest_raw'] = mod.canonical(f['manifest'])
+    for value in [f['state'], f['op']]:
+        value.update(installed_sha=mod.ORIGINAL_CAPTION_APP, manifest_sha256=mod.sha(f['manifest_raw']))
     # A legitimate raw attachment normalization is bound to the exact original
     # receipt; the native resume reader may not substitute another receipt.
     f['state']['posts']['telegram:1500']['receipt']['attachments_sha256'] = 'c' * 64
-    result = dict(ok=True, operation=mod.CAPTION_OP, installed_sha=mod.APP, manifest_sha256=mod.sha(f['manifest_raw']),
+    result = dict(ok=True, operation=mod.CAPTION_OP, installed_sha=mod.ORIGINAL_CAPTION_APP, manifest_sha256=mod.sha(f['manifest_raw']),
                   post_write_attempts=2, caption_updates=2, verified_posts=2, preflight_existing_messages=2,
                   new_posts_created=0, configuration_write_attempts=0, button_write_attempts=0, tour_search_calls=0, price_queries=0,
                   posts=[p['receipt'] for p in f['state']['posts'].values()])
@@ -110,6 +115,7 @@ def resume_fixture():
                      RESUME_RESULT_SHA256=mod.sha(f['result_raw']))
     f['receipts'].update(phase='post_edit_resume_receipts', capture_sha256=f['pins']['RESUME_CAPTURE_SHA256'],
                          edit_result_sha256=f['pins']['RESUME_RESULT_SHA256'], continuation_kind=mod.RESUME_KIND,
+                         original_caption_installed_sha=mod.ORIGINAL_CAPTION_APP,
                          original_caption_result_matched=True, historical_capture_revalidated=True)
     return f
 
@@ -137,8 +143,11 @@ class FeedTests(unittest.TestCase):
     def test_expired_history_requires_exact_resume_binding_and_fresh_native_proof(self):
         f = resume_fixture()
         with patch.multiple(mod, **f['pins']):
-            with self.assertRaisesRegex(ValueError, 'capture_expired'):
+            with self.assertRaisesRegex(ValueError, 'capture_not_confirmed'):
                 mod.captured(f['capture_raw'], f['binding'])
+            current = copy.deepcopy(f['capture']); current['installed_sha'] = mod.APP
+            with self.assertRaisesRegex(ValueError, 'capture_expired'):
+                mod.captured(mod.canonical(current), f['binding'])
             c = mod.historical_resume_capture(f['capture_raw'], f['binding'])
             self.assertEqual(c['observed_at_utc'], '2020-01-01T00:00:00Z')
             mod.original_resume_result(f['result_raw'], f['manifest_raw'], f['binding'])
@@ -169,7 +178,9 @@ class FeedTests(unittest.TestCase):
 
     def test_actual_native_resume_reader_checks_original_receipt_and_live_preimages(self):
         f = resume_fixture()
-        ctx = dict(continuation_kind=mod.RESUME_KIND, confirmed_receipts={k:p['receipt'] for k,p in f['state']['posts'].items()})
+        ctx = dict(continuation_kind=mod.RESUME_KIND, confirmed_receipts={k:p['receipt'] for k,p in f['state']['posts'].items()},
+                   capture_sha256=mod.RESUME_CAPTURE_SHA256, manifest_sha256=mod.RESUME_MANIFEST_SHA256,
+                   edit_result_sha256=mod.RESUME_RESULT_SHA256)
         files = [{k:x[k] for k in ['name','sha256','bytes']} for x in f['capture']['files']]
         value = dict(binding=f['binding'], state=copy.deepcopy(f['state']), ctx=copy.deepcopy(ctx), files=files, expected=copy.deepcopy(files))
         code = "wf_resume_original_receipts($d['state'],$d['ctx']);wf_receipt_preimages_unchanged($d['files'],$d['expected']);echo json_encode(['ok'=>true]);"
@@ -205,9 +216,48 @@ class FeedTests(unittest.TestCase):
             prep = mod.read(root/'write/preparation.json'); self.assertEqual(prep['description_changes'],4)
             self.assertEqual(prep['existing_writer_sha256'],mod.SOURCE_HASHES['publish-commercial-channel-hotel-feeds-20261103-1.php'])
             self.assertEqual((root/'capture.json').read_bytes(),before)
-            with self.assertRaisesRegex(ValueError,'capture_expired'):
+            self.assertEqual(prep['installed_sha'],mod.APP)
+            self.assertEqual(prep['original_caption_installed_sha'],mod.ORIGINAL_CAPTION_APP)
+            with self.assertRaisesRegex(ValueError,'capture_not_confirmed'):
                 cli('receipts','normal-receipt','--manifest',root/'manifest.json','--result',root/'result.json',
                     '--journal',root/'journal.json','--capture',root/'capture.json')
+
+    def test_resume_current_runtime_and_original_caption_apps_are_not_interchangeable(self):
+        f = resume_fixture()
+        self.assertNotEqual(mod.APP,mod.ORIGINAL_CAPTION_APP)
+        with patch.multiple(mod, **f['pins']):
+            c = mod.historical_resume_capture(f['capture_raw'],f['binding'])
+            mod.verify_manifest(f['manifest'],f['manifest_raw'],c,f['binding'],resume=True)
+            with self.assertRaisesRegex(ValueError,'manifest_scope'):
+                mod.verify_manifest(f['manifest'],f['manifest_raw'],c,f['binding'])
+            for change in ['outer_historical','nested_current','original_claim_current']:
+                r=copy.deepcopy(f['receipts'])
+                if change=='outer_historical': r['installed_sha']=mod.ORIGINAL_CAPTION_APP
+                elif change=='nested_current':
+                    r['caption_operations'][0]['installed_sha']=mod.APP
+                    r['caption_states'][mod.CAPTION_OP]['installed_sha']=mod.APP
+                else: r['original_caption_installed_sha']=mod.APP
+                with self.subTest(change=change), self.assertRaises(ValueError):
+                    mod.verified_receipts(r,b'',f['capture_raw'],c,f['manifest'],f['manifest_raw'],f['binding'],resume=True)
+        bad=copy.deepcopy(f['binding']);bad['original_caption_installed_sha']=mod.APP
+        with self.assertRaisesRegex(ValueError,'binding_scope'): mod.binding(bad)
+
+    def test_php_resume_requires_explicit_original_context_and_preserves_caption_app(self):
+        f=resume_fixture()
+        f['state']['manifest_sha256']=f['op']['manifest_sha256']=mod.RESUME_MANIFEST_SHA256
+        ctx=dict(continuation_kind=mod.RESUME_KIND,capture_sha256=mod.RESUME_CAPTURE_SHA256,
+                 manifest_sha256=mod.RESUME_MANIFEST_SHA256,edit_result_sha256=mod.RESUME_RESULT_SHA256)
+        value=dict(binding=f['binding'],state=f['state'],op=f['op'],bindings=f['capture']['caption_updates'],ctx=ctx)
+        code="wf_confirmed($d['state'],$d['op'],$d['bindings'],wf_resume_context($d['ctx']));echo json_encode(['ok'=>true,'caption_app'=>$d['state']['installed_sha'],'runtime_app'=>wf_binding()['installed_sha']]);"
+        r,got=self.php(code,value);self.assertEqual(r.returncode,0,got)
+        self.assertEqual(got['caption_app'],mod.ORIGINAL_CAPTION_APP);self.assertEqual(got['runtime_app'],mod.APP)
+        for change in ['normal_context','wrong_capture','wrong_manifest','wrong_result','relabelled_journal','different_original_manifest']:
+            bad=copy.deepcopy(value)
+            if change=='normal_context':bad['ctx']={}
+            elif change=='relabelled_journal':bad['state']['installed_sha']=mod.APP
+            elif change=='different_original_manifest':bad['state']['manifest_sha256']=bad['op']['manifest_sha256']='0'*64
+            else:bad['ctx'][{'wrong_capture':'capture_sha256','wrong_manifest':'manifest_sha256','wrong_result':'edit_result_sha256'}[change]]='0'*64
+            r,got=self.php(code,bad);self.assertNotEqual(r.returncode,0,(change,got))
 
     def test_native_timestamps_and_actual_tg_provenance(self):
         f = fixture(); got = mod.native_read(f['snapshot_raw'], f['metadata'], f['binding'])

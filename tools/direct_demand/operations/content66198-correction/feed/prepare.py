@@ -19,7 +19,8 @@ HERE = Path(__file__).resolve().parent
 OLD = 'Одиннадцать ресторанов'
 NEW = 'Десять ресторанов, баров и лаунжей'
 CAPTION_OP = 'commercial-waldorf66198-caption-correction-20261123-v1'
-APP = 'b1da1418ff75cba9657d8b5a2971270c8eafb1c9'
+APP = '9addf04716e648793e47849247ea823168fdf5fe'
+ORIGINAL_CAPTION_APP = 'b1da1418ff75cba9657d8b5a2971270c8eafb1c9'
 FEED_OP = 'commercial-channel-hotel-feeds-20261123-update66198'
 RESUME_KIND = 'CONTENT66198_FEED_ONLY_AFTER_CONFIRMED_EDIT'
 # Immutable evidence from original READ45096018311 and EDIT45096362078.
@@ -71,12 +72,13 @@ def hash_value(value):
     return isinstance(value, str) and re.fullmatch('[a-f0-9]{64}', value) is not None
 
 def binding(value):
-    need(set(value) == {'schema', 'kind', 'installed_sha', 'caption_operation', 'feed_operation', 'approval_comment_id'}, 'binding_schema')
+    need(set(value) == {'schema', 'kind', 'installed_sha', 'original_caption_installed_sha', 'caption_operation', 'feed_operation', 'approval_comment_id'}, 'binding_schema')
     need(value['schema'] == 1 and value['kind'] == 'CONTENT66198_FEED_BINDING'
          and value['installed_sha'] == APP
+         and value['original_caption_installed_sha'] == ORIGINAL_CAPTION_APP
          and value['caption_operation'] == CAPTION_OP and value['feed_operation'] == FEED_OP
          and value['approval_comment_id'] == 7072600922, 'binding_scope')
-    return {k: value[k] for k in ['schema', 'kind', 'installed_sha', 'caption_operation', 'feed_operation', 'approval_comment_id']}
+    return {k: value[k] for k in ['schema', 'kind', 'installed_sha', 'original_caption_installed_sha', 'caption_operation', 'feed_operation', 'approval_comment_id']}
 
 def fresh(stamp, now=None):
     need(isinstance(stamp, str) and re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:Z|\+00:00)', stamp), 'capture_time_invalid')
@@ -233,10 +235,11 @@ def project(raw, updates, name):
         need(field(new_nodes[i], 'description') == u['text'], 'description_projection')
     return after, changed
 
-def capture_evidence(raw, b, snapshot_raw=None):
+def capture_evidence(raw, b, snapshot_raw=None, *, original_caption=False):
     c = parse(raw)
+    expected_app = b['original_caption_installed_sha'] if original_caption else b['installed_sha']
     need(c.get('ok') is True and c.get('phase') == 'pre_edit_capture' and c.get('kind') == 'CONTENT66198_FEED_READ'
-         and c.get('operation') == CAPTION_OP and c.get('feed_operation') == FEED_OP and c.get('installed_sha') == b['installed_sha']
+         and c.get('operation') == CAPTION_OP and c.get('feed_operation') == FEED_OP and c.get('installed_sha') == expected_app
          and c.get('approval_comment_id') == 7072600922 and c.get('filesystem_writes') == c.get('provider_calls') == c.get('database_writes') == 0
          and c.get('locks_released_before_return') is True and c.get('monitor_journal_unchanged') is True, 'capture_not_confirmed')
     journal(c['journal_pin'])
@@ -252,7 +255,7 @@ def captured(raw, b, snapshot_raw=None):
 
 def historical_resume_capture(raw, b):
     need(sha(raw) == RESUME_CAPTURE_SHA256, 'resume_original_capture_changed')
-    c = capture_evidence(raw, b)
+    c = capture_evidence(raw, b, original_caption=True)
     old = {p['platform']: p for p in c['posts']}
     updates = [dict(u, old_text=old[u['platform']]['caption'], text=correct(old[u['platform']]['caption']))
                for u in c['caption_updates']]
@@ -265,7 +268,7 @@ def original_resume_result(raw, manifest_raw, b):
     need(sha(manifest_raw) == RESUME_MANIFEST_SHA256 and sha(raw) == RESUME_RESULT_SHA256,
          'resume_original_edit_changed')
     r = parse(raw)
-    need(r.get('ok') is True and r.get('operation') == CAPTION_OP and r.get('installed_sha') == b['installed_sha']
+    need(r.get('ok') is True and r.get('operation') == CAPTION_OP and r.get('installed_sha') == b['original_caption_installed_sha']
          and r.get('manifest_sha256') == RESUME_MANIFEST_SHA256 and r.get('post_write_attempts') == 2
          and r.get('caption_updates') == r.get('verified_posts') == r.get('preflight_existing_messages') == 2
          and r.get('new_posts_created') == r.get('configuration_write_attempts') == r.get('button_write_attempts')
@@ -285,8 +288,9 @@ def compile_php(b, context, phase):
     header = ''.join("const %s='%s';\n" % item for item in definitions.items()).encode()
     return PREFIX + header + contract[len(PREFIX):] + b'\n' + template[len(PREFIX):]
 
-def verify_manifest(m, raw, c, b):
-    need(m.get('operation') == CAPTION_OP and m.get('expected_installed_sha') == b['installed_sha']
+def verify_manifest(m, raw, c, b, *, resume=False):
+    expected_app = b['original_caption_installed_sha'] if resume else b['installed_sha']
+    need(m.get('operation') == CAPTION_OP and m.get('expected_installed_sha') == expected_app
          and m.get('row_count') == 2 and isinstance(m.get('rows'), list) and len(m['rows']) == 2, 'manifest_scope')
     before = {p['platform']: p for p in c['posts']}
     seen = set()
@@ -307,15 +311,17 @@ def verified_receipts(r, raw, c_raw, c, m, m_raw, b, *, resume=False):
     if resume:
         need(sha(c_raw) == RESUME_CAPTURE_SHA256 and sha(m_raw) == RESUME_MANIFEST_SHA256
              and r.get('edit_result_sha256') == RESUME_RESULT_SHA256 and r.get('continuation_kind') == RESUME_KIND
+             and r.get('original_caption_installed_sha') == b['original_caption_installed_sha']
              and r.get('original_caption_result_matched') is True and r.get('historical_capture_revalidated') is True,
              'resume_fresh_native_proof_missing')
     fresh(r['observed_at_utc']); need(journal(r['journal_pin']) == journal(c['journal_pin']), 'monitor_changed_after_capture')
     need(len(r['caption_operations']) == 1 and set(r['caption_states']) == {CAPTION_OP}, 'receipt_operation_scope')
     op = r['caption_operations'][0]; state = r['caption_states'][CAPTION_OP]
-    need(op['operation'] == CAPTION_OP and op['row_count'] == 2 and op['installed_sha'] == b['installed_sha']
+    caption_app = b['original_caption_installed_sha'] if resume else b['installed_sha']
+    need(op['operation'] == CAPTION_OP and op['row_count'] == 2 and op['installed_sha'] == caption_app
          and op['manifest_sha256'] == sha(m_raw) and hash_value(op['journal_sha256']), 'receipt_operation_pin')
     need(state['operation'] == CAPTION_OP and state['row_count'] == 2 and state['complete'] is True
-         and state['manifest_sha256'] == sha(m_raw) and state['installed_sha'] == b['installed_sha'] and len(state['posts']) == 2, 'receipt_terminal_scope')
+         and state['manifest_sha256'] == sha(m_raw) and state['installed_sha'] == caption_app and len(state['posts']) == 2, 'receipt_terminal_scope')
     plans = {x['platform'] + ':' + str(x['publication_id']): x for x in m['rows']}
     need(set(state['posts']) == set(plans), 'receipt_post_scope')
     updates = []
@@ -392,7 +398,7 @@ def main():
         resume = a.phase == 'resume-receipts'
         c_raw = Path(a.capture).read_bytes(); c = historical_resume_capture(c_raw, b) if resume else captured(c_raw, b)
         m_raw = Path(a.manifest).read_bytes(); m = parse(m_raw)
-        manifest_sha = verify_manifest(m, m_raw, c, b); result_raw = Path(a.edit_result or a.result).read_bytes(); result = parse(result_raw)
+        manifest_sha = verify_manifest(m, m_raw, c, b, resume=resume); result_raw = Path(a.edit_result or a.result).read_bytes(); result = parse(result_raw)
         need(a.exit_code == 0 and result.get('ok') is True and result.get('operation') == CAPTION_OP
              and result.get('manifest_sha256') == manifest_sha and isinstance(result.get('posts'), list) and len(result['posts']) == 2,
              'edit_result_not_confirmed')
@@ -412,7 +418,7 @@ def main():
         resume = a.phase == 'prepare-resume'
         c_raw = Path(a.capture).read_bytes(); c = historical_resume_capture(c_raw, b) if resume else captured(c_raw, b)
         m_raw = Path(a.manifest).read_bytes(); m = parse(m_raw)
-        verify_manifest(m, m_raw, c, b); r_raw = Path(a.receipts).read_bytes(); r = parse(r_raw)
+        verify_manifest(m, m_raw, c, b, resume=resume); r_raw = Path(a.receipts).read_bytes(); r = parse(r_raw)
         updates = verified_receipts(r, r_raw, c_raw, c, m, m_raw, b, resume=resume); files = []; changes = 0
         for f in c['files']:
             before = base64.b64decode(f['content_base64'], validate=True); after, changed = project(before, updates, f['name']); changes += changed
@@ -420,13 +426,19 @@ def main():
                           'content_base64': base64.b64encode(after).decode(), 'previous_content_base64': f['content_base64']})
         i = {'schema_version': 5, 'operation': FEED_OP, 'files': files, 'generated_at': dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
              'caption_operations': r['caption_operations'], 'caption_updates': c['caption_updates']}
-        raw = canonical(i); ctx = {'journal_pin': journal(r['journal_pin'])}; writer = write_compile(b, ctx, raw, a.source_root)
+        raw = canonical(i); ctx = {'journal_pin': journal(r['journal_pin'])}
+        if resume:
+            ctx.update(continuation_kind=RESUME_KIND, capture_sha256=RESUME_CAPTURE_SHA256,
+                       manifest_sha256=RESUME_MANIFEST_SHA256, edit_result_sha256=RESUME_RESULT_SHA256)
+        writer = write_compile(b, ctx, raw, a.source_root)
         summaries = [{k: f[k] for k in ['name', 'sha256', 'bytes', 'rows', 'expected_previous_sha256']} for f in files]
         prep = {'ok': True, 'operation': CAPTION_OP, 'feed_operation': FEED_OP, 'installed_sha': b['installed_sha'], 'input_sha256': sha(raw),
                 'capture_sha256': sha(c_raw), 'caption_receipts_sha256': sha(r_raw), 'manifest_sha256': sha(m_raw),
                 'writer_sha256': sha(writer), 'existing_writer_sha256': SOURCE_HASHES['publish-commercial-channel-hotel-feeds-20261103-1.php'],
                 'files': summaries, 'target_description_occurrences': 4, 'description_changes': changes,
                 'all_other_bytes_preserved': True, 'price_changes': 0, 'url_changes': 0, 'offer_changes': 0, 'new_posts': 0, 'retry_authorized': False}
+        if resume:
+            prep['original_caption_installed_sha'] = b['original_caption_installed_sha']
         save(out, 'input.json', raw); save(out, 'writer.php', writer); save(out, 'preparation.json', prep)
         save(out, 'readback.php', compile_php(b, dict(ctx, files=summaries, input_sha256=sha(raw)), 'readback'))
     elif a.phase == 'verify-writer':

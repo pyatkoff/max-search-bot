@@ -62,7 +62,7 @@ function wf_public(string $url): array {
 }
 function wf_resume_original_receipts(array $state,array $ctx): void {
     $versions=['telegram:1500'=>14280,'max:1510'=>14281];
-    wf_need(($ctx['continuation_kind']??null)==='CONTENT66198_FEED_ONLY_AFTER_CONFIRMED_EDIT'
+    wf_need(wf_resume_context($ctx)
         && ($state['complete']??null)===true && is_array($state['posts']??null) && count($state['posts'])===2
         && is_array($ctx['confirmed_receipts']??null) && count($ctx['confirmed_receipts'])===2,
         'waldorf_resume_original_receipt_missing');
@@ -98,13 +98,13 @@ try {
             'native_read_sha256'=>$ctx['native_read_sha256'],'target_description_occurrences'=>4,'description_changes'=>$changed];
     } elseif ($mode==='receipts' || $mode==='resume-receipts') {
         $read=wf_locked_jsonl('/var/www/anytoour/data/channel-post-operations/'.$b['caption_operation'].'/receipt.jsonl',134217728,LOCK_SH,$locks);
-        $op=['operation'=>$b['caption_operation'],'manifest_sha256'=>$ctx['manifest_sha256'],'installed_sha'=>$b['installed_sha'],
+        $op=['operation'=>$b['caption_operation'],'manifest_sha256'=>$ctx['manifest_sha256'],'installed_sha'=>$read['state']['installed_sha']??null,
             'journal_sha256'=>$read['sha256'],'row_count'=>2];
         if ($mode==='resume-receipts') wf_resume_original_receipts($read['state'],$ctx);
-        $updates=wf_confirmed($read['state'],$op,$ctx['caption_updates']); wf_registry($updates,true);
+        $updates=wf_confirmed($read['state'],$op,$ctx['caption_updates'],$mode==='resume-receipts'); wf_registry($updates,true);
         $files=wf_capture_files();
         wf_receipt_preimages_unchanged($files,$ctx['files']);
-        $safe=['operation'=>$b['caption_operation'],'manifest_sha256'=>$ctx['manifest_sha256'],'installed_sha'=>$b['installed_sha'],
+        $safe=['operation'=>$b['caption_operation'],'manifest_sha256'=>$ctx['manifest_sha256'],'installed_sha'=>$read['state']['installed_sha'],
             'complete'=>true,'row_count'=>2,'posts'=>[]];
         $planFields=['hotel_id','platform','publication_id','version_id','message_id','post_url','old_text','new_text','old_text_sha256','new_text_sha256',
             'photo_signature','attachments_sha256','button_url_sha256','source_key','monitor_price_record_id'];
@@ -117,6 +117,7 @@ try {
             'capture_sha256'=>$ctx['capture_sha256'],'edit_result_sha256'=>$ctx['edit_result_sha256'],
             'caption_operations'=>[$op],'caption_states'=>[$b['caption_operation']=>$safe], 'pre_edit_feeds_unchanged'=>true];
         if ($mode==='resume-receipts') $out+=['continuation_kind'=>$ctx['continuation_kind'],
+            'original_caption_installed_sha'=>$read['state']['installed_sha'],
             'original_caption_result_matched'=>true,'historical_capture_revalidated'=>true];
     } elseif ($mode==='readback') {
         $files=wf_capture_files(); $results=[];
