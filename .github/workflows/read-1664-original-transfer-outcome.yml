@@ -90,6 +90,8 @@ jobs:
                       'provider_http'=>$response['http'] ?? null, 'provider_ok'=>$response['data']['ok'] ?? null,
                       'transport_error'=>$response['transport_error'] ?? null, 'error_code'=>$response['data']['error_code'] ?? null,
                       'provider_reason'=>array_values(array_filter($knownReasons, static fn($reason) => stripos($description, $reason) !== false)),
+                      'provider_description'=>preg_match('/\ABad Request: [A-Za-z0-9 _.,:;()!?"\x27-]{1,140}\z/D', $description) === 1
+                        ? preg_replace('/[A-Za-z0-9_-]{28,}|[0-9]{5,}/', '[redacted]', $description) : null,
                       'native_identity_matches'=>(string)($raw['message_id'] ?? '') === $id
                         && ($raw['chat']['username'] ?? null) === 'anytour' && (string)($raw['chat']['id'] ?? '') === '-1001845835645',
                       'native_original_date_matches'=>($raw['date'] ?? null) === $row['target_published_unixtime'],
