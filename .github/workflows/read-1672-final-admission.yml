@@ -1,0 +1,24 @@
+name: Read final admission for the two remaining hotel edits
+on:
+  push:
+    branches: [audit/1566-next-release-admission-1664]
+    paths: [.github/workflows/read-1672-final-admission.yml]
+permissions:
+  actions: read
+  contents: read
+  issues: read
+  pull-requests: read
+jobs:
+  admission:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 3bff152819b85e68a56fe3f50adb268cef3b9dfb
+          persist-credentials: false
+      - name: Verify accepted prior release and reviewed exact source
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/release_priority.js --admit 1672 cabd246175158d9bf76f3a301886c8ccfd9f7be2 3bff152819b85e68a56fe3f50adb268cef3b9dfb
