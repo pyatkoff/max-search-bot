@@ -132,6 +132,26 @@ $probe .= ' require ' . var_export($realApp . '/services/Max2CommonValueRuntimeV
 hookNeed(json_decode(hookRun($root, $probe), true, 32, JSON_THROW_ON_ERROR) === [
     ['status'=>'HOLD','reason'=>'V2_SETTINGS_UNAVAILABLE','provider_calls'=>0,'old_stream_invoked'=>false],1],
     'ACTUAL_RUNTIME_UNKNOWN_SETTINGS_IS_HOLD_NOT_OFF'); $checks++;
+
+// Exercise the real admission guard without calling a tick or opening a database.
+// Every case keeps the actual Runtime bytes, including its reviewed producer pin.
+$guard = new ReflectionMethod(Max2CommonValueRuntimeV2::class, 'entryClockAdmitted');
+hookNeed($guard->invoke(null) === true, 'ENTRY_CLOCK_GUARD_CURRENT'); $checks++;
+$producer = (string)file_get_contents($realApp . '/services/ChannelPostRegistryService.php');
+foreach (['changed', 'missing', 'symlink'] as $case) {
+    $root = $temp . '/entry-clock-' . $case; hookNeed(mkdir($root, 0700), 'CASE');
+    foreach (['Max2CommonValueRuntimeV2.php', 'Max2CommonValueStateV2.php', 'Max2ValueBindingPolicyV2.php'] as $file)
+        hookWrite($root, 'services/' . $file, (string)file_get_contents($realApp . '/services/' . $file));
+    if ($case === 'changed')
+        hookWrite($root, 'services/ChannelPostRegistryService.php', $producer . "\n// Synthetic unreviewed producer change.\n");
+    elseif ($case === 'symlink')
+        hookNeed(symlink($realApp . '/services/ChannelPostRegistryService.php', $root . '/services/ChannelPostRegistryService.php'), 'PRODUCER_SYMLINK');
+    $probe = 'require __DIR__."/services/Max2CommonValueRuntimeV2.php";'
+        . ' $guard=new ReflectionMethod(Max2CommonValueRuntimeV2::class,"entryClockAdmitted");'
+        . ' echo json_encode($guard->invoke(null),JSON_THROW_ON_ERROR);';
+    hookNeed(json_decode(hookRun($root, $probe), true, 8, JSON_THROW_ON_ERROR) === false,
+        'ENTRY_CLOCK_GUARD_' . strtoupper($case)); $checks++;
+}
 hookRemove($temp);
 echo json_encode(['status'=>'PASS','checks'=>$checks,'hook_sources'=>'actual_app_files','fixture_database'=>'sqlite_memory_only',
     'native_connections'=>0,'provider_calls'=>0,'old_sender_invoked'=>false], JSON_THROW_ON_ERROR) . "\n";

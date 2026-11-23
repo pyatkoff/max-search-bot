@@ -5,7 +5,7 @@ require_once __DIR__.'/Max2CommonValueStateV2.php';
 /** Optional integration of the two explicitly authorized new goals only. */
 final class Max2CommonValueRuntimeV2
 {
-    public const ENTRY_PRODUCER_SHA256 = '590fcda66c13b5c0d89b021dc25e761ef316b8cfdb4b28fedf833f8593d5da0f';
+    public const ENTRY_PRODUCER_SHA256 = 'eafd2253944d68315e78ff7d551f0c1f6e21df54ce7d4980b8d1730ef3134fbf';
     private static function scope(): bool
     {
         return class_exists('ProjectConfig') && ProjectConfig::projectId()==='anytour'
