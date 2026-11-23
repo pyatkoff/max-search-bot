@@ -1,0 +1,39 @@
+{
+  "application_sha": "b16bf4e7002d31fdc1238eef9373b617fdaa2fe3",
+  "source_comment": {
+    "id": 6961029169,
+    "updated_at": "2026-11-23T09:39:54Z",
+    "body_sha256": "5fef71e7cdd71450ea7ab3639d183805f45b928331fa7906c1945f7968c3752c"
+  },
+  "approval_comment": {
+    "id": 7072422617,
+    "updated_at": "2026-11-22T01:45:46Z",
+    "body_sha256": "d0fc1fcee0d1d074faf41f0a54cf3d96449ffc7fc7c4ffbc7c0527c805914754"
+  },
+  "release_modules": {
+    "deployment_release.js": "6c47babd1aaff4fd8f56cd626bdfcb857cd9b50b",
+    "release_slot_close.js": "a81a0ef78d30af8d7c2a55bd99b5c08718043015"
+  },
+  "schema": 1,
+  "stage": "read",
+  "operation": "commercial-max13-amp-read-20261123-v1",
+  "expected_before": "b16bf4e7002d31fdc1238eef9373b617fdaa2fe3",
+  "source_files": {
+    "tools/direct_demand/operations/max13-amp-check/active-inventory.js": "cb33888b198afbb2a7a6d6d975d9239dcddf138b6078a44f2217664b5b9c63b7",
+    "tools/direct_demand/operations/max13-amp-check/admission.js": "4e3dc75311b4a3a8e8e1b17674f007b9afb162d1b4b1f0b9a038dc7b102c9f32",
+    "tools/direct_demand/operations/max13-amp-check/lineage/commercial-caption-review73-20261113-read-scope.php": "5158f1e4157984cce98acc085329a0227f6b78c93829bd5984d247e8b629c95e",
+    "tools/direct_demand/operations/max13-amp-check/lineage/commercial-w9-78929-price-journal-20261118.php": "859ba9d5fde7fa88e3c019a82d0550da22efcbbd66096e2f98e11ed4a3b62263",
+    "tools/direct_demand/operations/max13-amp-check/lineage/w11-approved-corrections/prepare-read-stage.py": "fb6a50c321c0d808c1051da2bbac762732114bca8ad1e2b29b5d0c642719a27c",
+    "tools/direct_demand/operations/max13-amp-check/manifest.json": "c564d0c0dee0ccdaaa25bc5bb5ba46d703ffc9b48237730f4fb79e214734b99b",
+    "tools/direct_demand/operations/max13-amp-check/prepare.py": "08dca180a48e111dc772ad1740d3d72e6f9d5f42c69938b3c8da67dea44fb366",
+    "tools/direct_demand/operations/max13-amp-check/public_probe.py": "40eac99bd9ddcd745baae5367c13a8268e38bbca57ac77a60b3799a25b0ee57f",
+    "tools/direct_demand/operations/max13-amp-check/read-body.php": "93b4303e1434d3e0d5ced474b8df71ce9efdbe57f0b708fa1e3ba9893366646f",
+    "tools/direct_demand/operations/max13-amp-check/surface-pins.json": "bd35b0c4e07d8339cd8161eef3800b6ff0e4be4b769712636e353c2a65016123",
+    "tools/direct_demand/operations/max13-amp-check/test_admission.js": "407634b52c94a8c7f0a46149843d17e48e7bbf628943a675a1a7d698cc7e092f",
+    "tools/direct_demand/operations/max13-amp-check/test_max13.py": "b2f049a48e3ff71e82dbbaf3ac47cca423ea42a852d8ad49f3c8039f847b108a",
+    "tools/direct_demand/operations/max13-amp-check/test_wait_install.js": "39cee0c0f6bcbb3ef40eef47713fcd9f702bdcc3248216100376137e961b4fcf",
+    "tools/direct_demand/operations/max13-amp-check/wait-install.js": "6f7d8f04ad87a3c16799dc5fa273279fb3a0aac5a1594974d439466bb4a67ca1",
+    "tools/direct_demand/operations/max13-amp-check/workflow_check.py": "e1b641bc3f9a55a101515bab0988cee3def1147e4ea6acfddde031c77b37c614"
+  },
+  "workflow_sha256": "c227191b99108b0248471776f2b0d4db3de8614033e5271196a9d6ec5bc6af87"
+}
