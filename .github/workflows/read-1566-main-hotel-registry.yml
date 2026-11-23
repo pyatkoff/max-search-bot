@@ -1,7 +1,7 @@
-name: "#1566 Read four hotel transfer candidates"
+name: "#1566 Read existing hotel transfer candidates"
 on:
   push:
-    branches: [ops/anytour-hotel-four-read-20261123]
+    branches: [ops/anytour-hotel-four-read-20261123, 'ops/anytour-hotel-inventory-*']
 permissions:
   contents: read
   actions: read
@@ -43,12 +43,21 @@ jobs:
           set -euo pipefail
           test "$READY" = true
           test "$PERFORM_ACTIONS" = true
-          test "$READ_OPERATION" = hotel_four_registry
+          case "$GITHUB_REF_NAME" in
+            ops/anytour-hotel-four-read-20261123)
+              test "$READ_OPERATION" = hotel_four_registry ;;
+            ops/anytour-hotel-inventory-*)
+              test "$READ_OPERATION" = hotel_queue_inventory
+              blob=$(git hash-object config/anytour_existing_post_inventory.json)
+              [[ "$GITHUB_REF_NAME" =~ ^ops/anytour-hotel-inventory-${blob}-[0-9]{8}T[0-9]{6}Z$ ]] ;;
+            *) exit 1 ;;
+          esac
           test "$REPOSITORY_SHA" = "$GITHUB_SHA"
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           [[ "$APPLICATION_SHA" =~ ^[a-f0-9]{40}$ ]]
       - name: Prepare the bounded SELECT-only observation
         env:
+          READ_OPERATION: ${{ steps.release.outputs.read_operation }}
           REPOSITORY_SHA: ${{ steps.release.outputs.repository_sha }}
           APPLICATION_SHA: ${{ steps.release.outputs.application_sha }}
         shell: bash
@@ -69,6 +78,8 @@ jobs:
           const APPLICATION_SHA = '__APPLICATION_SHA__';
           const REPOSITORY_SHA = '__REPOSITORY_SHA__';
           const NATIVE_RUN_ID = '__NATIVE_RUN_ID__';
+          const READ_OPERATION = '__READ_OPERATION__';
+          const QUEUE_BYTES = '__QUEUE_BYTES__';
           const PAIRS = [
               17595 => ['name' => 'Ramada Resort by Wyndham Lara', 'source' => '455', 'target' => '862', 'date' => '2024-09-19T07:42:11Z'],
               358 => ['name' => 'Rixos Sharm El Sheikh', 'source' => '65', 'target' => '328', 'date' => '2024-01-13T11:27:08Z'],
@@ -102,7 +113,165 @@ jobs:
               }
           }
 
-          /** Exactly eight fixed public GETs; TLS verified, no redirects or retries. */
+          /** Reviewed batch bytes come from the exact checkout, not the runner input or an HTTP request. */
+          function inventoryPairs(string $operation, string $bytes): array
+          {
+              if ($operation === 'hotel_four_registry') return PAIRS;
+              requireRead($operation === 'hotel_queue_inventory' && strlen($bytes) <= 48000, 'inventory_scope_invalid');
+              $raw = base64_decode($bytes, true);
+              requireRead(is_string($raw) && $raw !== '', 'inventory_manifest_invalid');
+              $rows = json_decode($raw, true, 8, JSON_THROW_ON_ERROR);
+              requireRead(is_array($rows) && array_is_list($rows) && count($rows) > 0 && count($rows) <= 50,
+                  'inventory_batch_size_invalid');
+              $pairs = []; $sources = array_column(PAIRS, 'source'); $targets = array_column(PAIRS, 'target');
+              $maxSources = []; $maxTargets = [];
+              foreach ($rows as $row) {
+                  requireRead(is_array($row) && isset($row['hotel_id'],$row['name'],$row['source'],$row['target'],$row['date'])
+                      && is_string($row['name']) && trim($row['name']) !== '' && strlen($row['name']) <= 300
+                      && is_int($row['hotel_id']) && $row['hotel_id'] > 0 && !isset($pairs[$row['hotel_id']])
+                      && !isset(PAIRS[$row['hotel_id']]) && count(array_diff(array_keys($row), ['hotel_id','name','source','target','date','max'])) === 0,
+                      'inventory_hotel_identity_invalid');
+                  foreach (['source','target'] as $side)
+                      requireRead(is_string($row[$side]) && preg_match('/\A[1-9][0-9]{0,11}\z/D',$row[$side]) === 1, 'inventory_telegram_identity_invalid');
+                  requireRead(!in_array($row['source'],$sources,true) && !in_array($row['target'],$targets,true), 'inventory_overlap');
+                  $sources[] = $row['source']; $targets[] = $row['target'];
+                  $date = is_string($row['date']) ? DateTimeImmutable::createFromFormat('!Y-m-d\TH:i:s\Z',$row['date'],new DateTimeZone('UTC')) : false;
+                  requireRead($date !== false && $date->format('Y-m-d\TH:i:s\Z') === $row['date'], 'inventory_target_date_invalid');
+                  if (array_key_exists('max',$row)) {
+                      $max = $row['max'];
+                      requireRead(is_array($max) && count($max) === 3 && is_string($max['source_url'] ?? null)
+                          && is_string($max['target_url'] ?? null) && is_int($max['target_ms'] ?? null) && $max['target_ms'] > 0,
+                          'max_inventory_input_invalid');
+                      $sourceMid = maxQueueMessageId($max['source_url'], false);
+                      $targetMid = maxQueueMessageId($max['target_url'], true);
+                      requireRead(!isset($maxSources[$sourceMid]) && !isset($maxTargets[$targetMid]), 'inventory_overlap');
+                      $maxSources[$sourceMid] = true; $maxTargets[$targetMid] = true;
+                  }
+                  $pairs[$row['hotel_id']] = $row;
+              }
+              return $pairs;
+          }
+
+          /** Invert the historical maxEditUrl binding; only the two configured channel URLs are accepted. */
+          function maxQueueMessageId(string $url, bool $target): string
+          {
+              $channel = $target ? 'anytour' : 'channel_anytour';
+              requireRead(preg_match('~\Ahttps://max\.ru/' . $channel . '/([A-Za-z0-9_-]{11})\z~D', $url, $match) === 1,
+                  'max_public_url_invalid');
+              $bytes = base64_decode(strtr($match[1], '-_', '+/') . '=', true);
+              requireRead(is_string($bytes) && strlen($bytes) === 8
+                  && rtrim(strtr(base64_encode($bytes), '+/', '-_'), '=') === $match[1], 'max_message_encoding_invalid');
+              return 'mid.' . ($target ? 'ffffc1752b045fed' : 'ffffb6caf0606fed') . bin2hex($bytes);
+          }
+
+          function maxQueueUrlMatches(string $nativeUrl, string $chat, string $publicUrl): bool
+          {
+              return $nativeUrl === $publicUrl || $nativeUrl === 'https://max.ru/c/' . $chat . '/' . basename($publicUrl);
+          }
+
+          function maxQueueMessage(string $mid, string $chat, string $url): array
+          {
+              $read = ChannelPostApiTransport::buttonRequest('max', 'GET', '/messages/' . $mid, [], null);
+              $message = $read['data'] ?? null;
+              requireRead(($read['http'] ?? 0) === 200 && empty($read['transport_error']) && is_array($message)
+                  && ($message['body']['mid'] ?? null) === $mid && ($message['recipient']['chat_type'] ?? null) === 'channel'
+                  && (string)($message['recipient']['chat_id'] ?? '') === $chat, 'max_native_message_identity_changed');
+              $snapshot = ChannelPostIncomingAdapter::maxSnapshot($message);
+              requireRead(is_array($snapshot) && ($snapshot['metadata']['capability'] ?? '') === 'supported'
+                  && (empty($snapshot['post_url']) || maxQueueUrlMatches($snapshot['post_url'], $chat, $url)), 'max_native_snapshot_unavailable');
+              $snapshot['post_url'] = $url;
+              return [$message, $snapshot];
+          }
+
+          function maxQueuePhotoId(array $snapshot): ?string
+          {
+              $attachments = $snapshot['attachments'] ?? [];
+              if (count($attachments) !== 1) return null;
+              $photo = $attachments[0] ?? [];
+              $id = (string)($photo['photo_id'] ?? '');
+              return ($photo['type'] ?? null) === 'image' && ($photo['provider'] ?? null) === 'max'
+                  && preg_match('/\A[0-9]+\z/D', $id) === 1 ? $id : null;
+          }
+
+          /** Called within the established read-only transaction and shared editor lock. No reservation is made. */
+          function maxQueueInventory(PDO $pdo, ChannelPostRegistryService $registry, int $hotel, array $max, array $existingMax, ?string &$channelRights): array
+          {
+              $result = ['hotel_id' => $hotel, 'mode' => 'inventory_only', 'source_url' => $max['source_url'],
+                  'target_url' => $max['target_url'], 'provider_writes' => 0, 'write_admitted' => false, 'native_get_attempts' => 0, 'blockers' => []];
+              try {
+                  requireRead($pdo->inTransaction() && $hotel > 0 && is_int($max['target_ms']) && $max['target_ms'] > 0,
+                      'max_inventory_input_invalid');
+                  $sourceMid = maxQueueMessageId($max['source_url'], false);
+                  $targetMid = maxQueueMessageId($max['target_url'], true);
+                  $sourceChat = '-80492244209683'; $targetChat = '-68765999669267'; $bot = 'id9704048781_1_bot';
+                  if ($channelRights === null) {
+                      $channel = $registry->channel('anytour', 'max', $bot, $targetChat);
+                      requireRead(is_array($channel) && (int)$channel['id'] === 4 && $channel['source_key'] === 'max_anytour_msk1',
+                          'max_target_channel_changed');
+                      $readOnly = static function (string $platform, string $method, string $path, array $query, ?array $body) use ($targetChat, &$result): array {
+                          requireRead($platform === 'max' && $method === 'GET' && $query === [] && $body === null
+                              && in_array($path, ['/me', '/chats/' . $targetChat, '/chats/' . $targetChat . '/members/me'], true),
+                              'max_provider_read_scope_changed');
+                          $result['native_get_attempts']++;
+                          return ChannelPostApiTransport::buttonRequest('max', 'GET', $path, [], null);
+                      };
+                      $rights = (new ChannelPostButtonTransport($readOnly))->verifyChannel($channel + ['expected_public_url' => 'https://max.ru/anytour']);
+                      $channelRights = $rights['state'] ?? 'unknown';
+                  }
+                  $result['channel_edit_rights'] = $channelRights;
+                  if ($result['channel_edit_rights'] !== 'ready') $result['blockers'][] = 'max_edit_rights_unconfirmed';
+                  $result['native_get_attempts']++;
+                  [$sourceMessage, $source] = maxQueueMessage($sourceMid, $sourceChat, $max['source_url']);
+                  $result['native_get_attempts']++;
+                  [$targetMessage, $target] = maxQueueMessage($targetMid, $targetChat, $max['target_url']);
+                  $q = $pdo->prepare('SELECT id FROM post_publications WHERE post_channel_id=? AND external_message_id=? LIMIT 2');
+                  $q->execute([9, $sourceMid]);
+                  $sourceIds = $q->fetchAll(PDO::FETCH_COLUMN);
+                  requireRead(count($sourceIds) === 1, 'max_source_publication_ambiguous_or_missing');
+                  $p = $registry->publication((int)$sourceIds[0]);
+                  requireRead(is_array($p) && $p['project_key'] === 'anytour' && $p['platform'] === 'max' && $p['bot_key'] === $bot
+                      && (int)$p['channel']['id'] === 9 && (string)$p['channel']['channel_id'] === $sourceChat
+                      && $p['message_id'] === $sourceMid && maxQueueUrlMatches($p['snapshot']['post_url'] ?? '', $sourceChat, $max['source_url'])
+                      && (int)($p['snapshot']['metadata']['hotel_catalog_id'] ?? 0) === $hotel, 'max_hotel_source_unconfirmed');
+                  $q->execute([4, $targetMid]);
+                  $targetIds = $q->fetchAll(PDO::FETCH_COLUMN);
+                  requireRead(count($targetIds) <= 1, 'max_target_registry_ambiguous');
+                  $result['source_publication'] = (int)$p['publication_id']; $result['source_version'] = (int)$p['version_id'];
+                  $result['source_content_hash'] = $p['content_hash']; $result['source_timestamp_ms'] = $sourceMessage['timestamp'] ?? null;
+                  $result['target_publication'] = $targetIds ? (int)$targetIds[0] : null;
+                  $result['target_timestamp_ms'] = $targetMessage['timestamp'] ?? null;
+                  $result['target_fingerprint'] = ChannelPostIncomingAdapter::contentFingerprint($target);
+                  $result['target_button_rows'] = count($target['keyboard'] ?? []);
+                  $result['source_photo_id'] = maxQueuePhotoId($source); $result['target_photo_id'] = maxQueuePhotoId($target);
+                  $sourcePhoto = $source['attachments'][0] ?? [];
+                  if ($p['state'] !== 'sent' || $result['source_photo_id'] === null
+                      || maxQueuePhotoId($p['snapshot']) !== $result['source_photo_id'] || ($p['snapshot']['text'] ?? null) !== ($source['text'] ?? null)
+                      || !is_string($sourcePhoto['token'] ?? null) || $sourcePhoto['token'] === '' || strlen($sourcePhoto['token']) > 4096) {
+                      $result['blockers'][] = 'max_source_snapshot_or_photo_unconfirmed';
+                  }
+                  if ((string)$result['target_timestamp_ms'] !== (string)$max['target_ms'] || $result['target_photo_id'] === null
+                      || $result['target_button_rows'] !== 0 || !empty($targetMessage['link'])
+                      || preg_match('/(?:отзыв\s+(?:турист|гост|семь)|видеокружок|кружок менеджера)/iu', (string)$target['text']) !== 0) $result['blockers'][] = 'max_historical_target_changed';
+                  if ($targetIds || $existingMax) $result['blockers'][] = 'max_target_or_hotel_already_registered';
+                  $q = $pdo->prepare("SELECT id FROM post_versions WHERE publication_id IN (?,?) AND (claim_token IS NOT NULL
+                      OR claimed_at IS NOT NULL OR state IN ('claimed','write_started','unknown')) LIMIT 1");
+                  $q->execute([(int)$p['publication_id'], $result['target_publication']]);
+                  if ($q->fetchColumn() !== false) $result['blockers'][] = 'max_version_held_or_unknown';
+                  $lock = 'anytour-1566-main-max-' . substr(hash('sha256', $targetChat . '|' . $targetMid), 0, 36);
+                  $directory = OPERATIONS . '/' . $lock;
+                  requireRead(!is_link($directory), 'max_operation_directory_changed');
+                  $q = $pdo->prepare('SELECT IS_FREE_LOCK(?)');
+                  $q->execute([$lock]);
+                  if ((string)$q->fetchColumn() !== '1') $result['blockers'][] = 'max_target_lock_busy_or_unknown';
+                  $result['historical_editor_journal'] = receiptRead($directory . '/receipt.jsonl');
+                  if (file_exists($directory)) $result['blockers'][] = 'max_target_receipt_requires_readback';
+              } catch (Throwable $e) {
+                  $result['blockers'][] = reasonRead($e);
+              }
+              return $result;
+          }
+
+          /** Only source and target addresses declared in the admitted batch are read. */
           function publicEvidence(string $channel, string $message): array
           {
               try { return ['ok' => true] + publicRead($channel, $message); }
@@ -112,8 +281,9 @@ jobs:
           }
           function publicRead(string $channel, string $message): array
           {
-              $allowed = $channel === 'anytour' ? array_column(PAIRS, 'target')
-                  : ($channel === 'any_toour' ? array_column(PAIRS, 'source') : []);
+              $pairs = inventoryPairs(READ_OPERATION, QUEUE_BYTES);
+              $allowed = $channel === 'anytour' ? array_column($pairs, 'target')
+                  : ($channel === 'any_toour' ? array_column($pairs, 'source') : []);
               requireRead(in_array($message, $allowed, true), 'public_scope_invalid');
               $url = 'https://t.me/' . $channel . '/' . $message;
               $body = '';
@@ -255,7 +425,7 @@ jobs:
                   'content_edit_journal' => receiptRead(OPERATIONS . '/issue-1566-edit-existing-' . $p['publication_id'] . '.jsonl')];
           }
 
-          $out = ['schema' => 1, 'issue' => 1566, 'operation' => 'hotel_four_registry', 'ok' => false,
+          $out = ['schema' => 1, 'issue' => 1566, 'operation' => READ_OPERATION, 'ok' => false,
               'repository_sha' => REPOSITORY_SHA, 'application_sha' => APPLICATION_SHA,
               'native_run_id' => NATIVE_RUN_ID, 'native_run_attempt' => 1,
               'production_writes' => 0, 'provider_writes' => 0, 'bot_starts' => 0, 'public_get_attempts' => 0];
@@ -263,6 +433,7 @@ jobs:
           $priceLock = null;
           $stage = 'installed_release';
           try {
+              $pairs = inventoryPairs(READ_OPERATION, QUEUE_BYTES);
               runtimeRead();
               requireRead(realpath(OPERATIONS) === OPERATIONS, 'operations_root_changed');
               $lockPath = OPERATIONS . '/monitor-price-after-collection-v1.jsonl';
@@ -319,7 +490,8 @@ jobs:
               $out['native_public_channel_binding'] = ['anytour' => $targetUsernameMatches, 'any_toour' => $sourceUsernameMatches];
               $out['native_read_request_count'] = (int) ($out['native_channel_rights']['receipt']['request_count'] ?? 0) + 1;
               $out['rows'] = [];
-              foreach (PAIRS as $hotel => $pair) {
+              $maxChannelRights = null;
+              foreach ($pairs as $hotel => $pair) {
                   $stage = 'hotel_' . $hotel;
                   $operation = 'anytour-issue1566-historical-tg-media-' . $pair['target'] . '-v1';
                   $q = $pdo->prepare('SELECT IS_FREE_LOCK(?)');
@@ -365,7 +537,18 @@ jobs:
                   if ($existingTg !== []) $blockers[] = 'hotel_already_registered_in_large_telegram';
                   if (($out['native_channel_rights']['state'] ?? '') !== 'ready') $blockers[] = 'channel_edit_rights_not_confirmed';
                   if (!$targetUsernameMatches || !$sourceUsernameMatches) $blockers[] = 'native_public_channel_binding_not_confirmed';
-                  $out['rows'][] = ['hotel_id' => $hotel, 'name' => $pair['name'], 'source_message_id' => $pair['source'],
+                  $inventory = [];
+                  if (READ_OPERATION === 'hotel_queue_inventory') {
+                      if ($targetNative !== null && !empty($targetNative['hotel_id']))
+                          $blockers[] = 'target_already_has_hotel_binding';
+                      $inventory = ['mode' => 'inventory_only', 'write_admitted' => false, 'telegram_registry_and_media_match' => $blockers === [],
+                          'route_occupancy_verified' => false, 'displaced_hotel_continuity_verified' => false];
+                      if (isset($pair['max'])) {
+                          $inventory['max'] = maxQueueInventory($pdo, $registry, $hotel, $pair['max'], $existingMax, $maxChannelRights);
+                          $out['native_read_request_count'] += $inventory['max']['native_get_attempts'];
+                      }
+                  }
+                  $out['rows'][] = $inventory + ['hotel_id' => $hotel, 'name' => $pair['name'], 'source_message_id' => $pair['source'],
                       'target_message_id' => $pair['target'], 'source_native' => $sourceNative, 'target_native' => $targetNative,
                       'source_public' => $sourcePublic, 'target_public' => $targetPublic,
                       'target_media_lock_free' => $free !== false && $free !== null && (int) $free === 1,
@@ -373,7 +556,7 @@ jobs:
                       'existing_large_channel_hotel_registry_matches' => $existing, 'large_max_hotel_already_registered' => $existingMax !== [],
                       'source_matches' => $sourceMatches,
                       'historical_target_matches' => $targetMatches,
-                      'preview_blockers' => $blockers, 'preview_ready' => $blockers === []];
+                      'preview_blockers' => $blockers, 'preview_ready' => READ_OPERATION === 'hotel_four_registry' && $blockers === []];
               }
               $pdo->rollBack();
               runtimeRead();
@@ -392,9 +575,14 @@ jobs:
           exit($out['ok'] ? 0 : 2);
           PHP
           python3 - <<'PY'
-          import os,pathlib,re
+          import base64,os,pathlib,re
           p=pathlib.Path('pub/read-only.php')
           program=p.read_text()
+          operation=os.environ['READ_OPERATION']
+          assert operation in ('hotel_four_registry','hotel_queue_inventory')
+          raw=pathlib.Path('config/anytour_existing_post_inventory.json').read_bytes() if operation=='hotel_queue_inventory' else b''
+          assert len(raw)<=36000
+          program=program.replace('__READ_OPERATION__',operation).replace('__QUEUE_BYTES__',base64.b64encode(raw).decode('ascii'))
           for name,pattern in [('APPLICATION_SHA',r'[a-f0-9]{40}'),('REPOSITORY_SHA',r'[a-f0-9]{40}'),('NATIVE_RUN_ID',r'[1-9][0-9]{0,19}')]:
               value=os.environ['GITHUB_RUN_ID' if name=='NATIVE_RUN_ID' else name]
               assert re.fullmatch(pattern,value)
@@ -435,8 +623,9 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read four native snapshots and public photos without editing
+      - name: Read selected native snapshots and public photos without editing
         env:
+          READ_OPERATION: ${{ steps.release.outputs.read_operation }}
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
@@ -448,18 +637,28 @@ jobs:
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
           python3 - <<'PY'
-          import json
+          import json,os
           d=json.load(open('pub/registry.json'))
-          assert d['ok'] and d['operation']=='hotel_four_registry'
+          assert d['ok'] and d['operation']==os.environ['READ_OPERATION']
           assert d['production_writes']==d['provider_writes']==d['bot_starts']==0
-          assert [r['hotel_id'] for r in d['rows']]==[17595,358,393,1260]
+          if d['operation']=='hotel_queue_inventory':
+              rows=json.load(open('config/anytour_existing_post_inventory.json'))
+              expected=[(r['hotel_id'],r['source'],r['target']) for r in rows]
+              assert [(r['hotel_id'],r['source_message_id'],r['target_message_id']) for r in d['rows']]==expected
+              for item,config in zip(d['rows'],rows):
+                  assert item['mode']=='inventory_only' and item['write_admitted'] is False
+                  if 'max' in config:
+                      assert item['max']['source_url']==config['max']['source_url'] and item['max']['target_url']==config['max']['target_url']
+                      assert item['max']['provider_writes']==0 and item['max']['write_admitted'] is False
+          else:
+              assert [r['hotel_id'] for r in d['rows']]==[17595,358,393,1260]
           print(json.dumps({'checkpoint_sha256':d['checkpoint_sha256'],'read_at_utc':d['read_at_utc'],'rows':[{'hotel_id':r['hotel_id'],'target_message_id':r['target_message_id'],'preview_ready':r['preview_ready']} for r in d['rows']]}))
           PY
       - name: Save the bounded native observation
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: issue-1566-hotel-four-preflight
+          name: ${{ steps.release.outputs.read_operation == 'hotel_queue_inventory' && 'issue-1566-hotel-queue-inventory' || 'issue-1566-hotel-four-preflight' }}
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn

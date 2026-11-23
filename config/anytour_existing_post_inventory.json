@@ -1,0 +1,21 @@
+[
+  {
+    "hotel_id": 800,
+    "name": "Sugar Marina Resort Art Karon Beach",
+    "source": "219",
+    "target": "1588",
+    "date": "2026-06-19T07:47:53Z",
+    "max": {
+      "source_url": "https://max.ru/channel_anytour/AaG2GG5XH2I",
+      "target_url": "https://max.ru/anytour/AZ7exN6EPIU",
+      "target_ms": 1781853904516
+    }
+  },
+  {
+    "hotel_id": 408,
+    "name": "Savoy Sharm El Sheikh",
+    "source": "120",
+    "target": "997",
+    "date": "2025-01-24T13:28:26Z"
+  }
+]

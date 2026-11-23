@@ -272,6 +272,7 @@ async function gitBridge(){
     await commonValueStateConsumer(f, a, a);
     await publicationOperationConsumer(f, a, a);
     await hotelRegistryReadConsumer(f, a, a);
+    await hotelRegistryReadConsumer(f, a, a, true);
     await hotelFourTransferConsumer(f, a, a);
     const nextRun={...context,event:'push'};
     const next=R.releaseRecord(receipt(a),nextRun,{kind:'application_unchanged',baseline:baseline.reference,
@@ -327,6 +328,7 @@ async function gitBridge(){
     await commonValueStateConsumer(f, r, a);
     await publicationOperationConsumer(f, r, a);
     await hotelRegistryReadConsumer(f, r, a);
+    await hotelRegistryReadConsumer(f, r, a, true);
     await hotelFourTransferConsumer(f, r, a);
     equal(f.calls.filter(c=>c.method==='PATCH'&&c.path.endsWith('/issues/comments/900')).length,2,
       'two independent waves each make exactly one terminal mutation');
@@ -481,7 +483,7 @@ function hotelRegistryReadWorkflow(){
   const workflow=fs.readFileSync(path.join(__dirname,'../.github/workflows/read-1566-main-hotel-registry.yml'),'utf8');
   const embedded=/          cat > pub\/read-only\.php <<'PHP'\n([\s\S]*?)\n          PHP\n/.exec(workflow);
   equal(Boolean(embedded),true,'the fixed reader remains reviewable in its existing workflow');
-  const program=embedded[1].replace(/^          /gm,''),main=program.indexOf("\n$out = ['schema'");
+  const program=embedded[1].replace(/^          /gm,'').replace('__READ_OPERATION__','hotel_four_registry').replace('__QUEUE_BYTES__',''),main=program.indexOf("\n$out = ['schema'");
   equal(main>0,true,'pure reader declarations are separate from production execution');
   equal([...program.matchAll(/^\s+(\d+) => \['name' => '[^']+', 'source' => '(\d+)', 'target' => '(\d+)'/gm)]
     .map(m=>m.slice(1)),[['17595','455','862'],['358','65','328'],['393','85','1083'],['1260','548','288']],
@@ -549,15 +551,38 @@ foreach([['other','862'],['anytour','1678'],['any_toour','862']] as [$channel,$m
 $wrong=str_replace('data-post="anytour/862"','data-post="anytour/863"',$base);$reason='';
 try{parsePublicRead($wrong,'anytour','862');}catch(RuntimeException $e){$reason=$e->getMessage();}
 checkFixture($reason==='public_identity_changed','a neighboring returned widget cannot stand in for the target');
+$approved=json_decode(base64_decode(getenv('HOTEL_INVENTORY_FIXTURE')),true,8,JSON_THROW_ON_ERROR);
+function batchFixture(array $rows):array{
+  return inventoryPairs('hotel_queue_inventory',base64_encode(json_encode($rows,JSON_THROW_ON_ERROR)));
+}
+checkFixture(array_keys(batchFixture($approved))===array_column($approved,'hotel_id'),'checked manifest retains the exact hotel IDs');
+$one=$approved[0];
+$dual=array_values(array_filter($approved,static fn($r)=>isset($r['max'])))[0];
+checkFixture(maxQueueMessageId('https://max.ru/anytour/AZ7exN6EPIU',true)==='mid.ffffc1752b045fed019edec4de843c85','historical MAX link matches original native receipt');
+foreach([
+  'duplicate hotel'=>[$one,$one],
+  'duplicate old address'=>[$one,array_replace($one,['hotel_id'=>345,'source'=>'12345'])],
+  'original hotel'=>[array_replace($one,['hotel_id'=>358])],
+  'original target'=>[array_replace($one,['target'=>'328'])],
+  'original source'=>[array_replace($one,['source'=>'455'])],
+  'wrong date'=>[array_replace($one,['date'=>'2026-02-30T01:00:00Z'])],
+  'unbound address'=>[array_replace($one,['target'=>'https://t.me/other/120'])],
+  'wrong MAX channel'=>[array_replace($dual,['max'=>array_replace($dual['max'],['source_url'=>$dual['max']['target_url']])])],
+] as $label=>$rows){
+  $failed=false;try{batchFixture($rows);}catch(RuntimeException $e){$failed=true;}
+  checkFixture($failed,'invalid inventory refused: '.$label);
+}
 echo json_encode(['checks'=>$checks],JSON_THROW_ON_ERROR);
 `;
   const parsed=spawnSync('php',['-d','disable_functions=curl_init,curl_exec,exec,file_put_contents,fwrite','-r',fixture],
-    {input:program.slice(0,main),encoding:'utf8'});
+    {input:program.slice(0,main),encoding:'utf8',env:{...process.env,HOTEL_INVENTORY_FIXTURE:fs.readFileSync(path.join(__dirname,'../config/anytour_existing_post_inventory.json')).toString('base64')}});
   equal(parsed.status,0,'the exact pure parser handles synthetic widgets with native HTTP disabled: '+parsed.stderr);
-  equal(JSON.parse(parsed.stdout).checks>=19,true,'photo fixtures cover source/target identity, CDN, avatar, media and unsafe URLs');
+  equal(JSON.parse(parsed.stdout).checks>=29,true,'photo fixtures cover source/target identity, CDN, avatar, media and unsafe URLs');
 }
-async function hotelRegistryReadConsumer(f,repositorySha,applicationSha){
-  const branch='ops/anytour-hotel-four-read-20261123',ref='refs/heads/'+branch;
+async function hotelRegistryReadConsumer(f,repositorySha,applicationSha,queueInventory=false){
+  const manifest=fs.readFileSync(path.join(__dirname,'../config/anytour_existing_post_inventory.json'));
+  const batchId=crypto.createHash('sha1').update('blob '+manifest.length+'\0').update(manifest).digest('hex');
+  const branch=queueInventory?'ops/anytour-hotel-inventory-'+batchId+'-20261123T101400Z':'ops/anytour-hotel-four-read-20261123',ref='refs/heads/'+branch;
   const workflow=R.PREFIX+'read-1566-main-hotel-registry.yml',owner={id:226193297,login:'pyatkoff'};
   const run={...copy(f.wave.parent),id:6505,path:workflow,event:'push',head_branch:branch,
     status:'in_progress',conclusion:null,actor:copy(owner),triggering_actor:copy(owner)};
@@ -578,10 +603,14 @@ async function hotelRegistryReadConsumer(f,repositorySha,applicationSha){
   try{
     const before=f.calls.length,result=await resolve();
     equal([result.repository_sha,result.application_sha,result.ready,result.perform_actions,result.read_operation],
-      [repositorySha,applicationSha,true,true,'hotel_four_registry'],
+      [repositorySha,applicationSha,true,true,queueInventory?'hotel_queue_inventory':'hotel_four_registry'],
       'the first fixed read resolves the actual canonical application, including an unchanged application');
     equal(result.write_operation,undefined,'the read-only branch never grants a hotel transfer');
     equal(f.calls.slice(before).every(c=>c.method==='GET'),true,'read admission uses native observation only before SSH');
+    if(queueInventory){
+      await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_REF:ref.replace(batchId,H('foreign manifest'))},event,api:f.api}),
+        'hotel_inventory_manifest_changed','a different manifest cannot use a previously reviewed inventory ref');
+    }
     const rejectedBeforeApi=f.calls.length;
     for(const [label,patch] of [['existing branch',{created:false}],['noninitial before',{before:H('old read source')}],
       ['forced',{forced:true}],['deleted',{deleted:true}],['wrong event source',{after:H('different source')}],
