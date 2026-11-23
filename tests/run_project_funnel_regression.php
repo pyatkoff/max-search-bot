@@ -24,8 +24,14 @@ funnelCheck('owner-approved AppleService price assumption enables its own sender
     &&($s['prediction']['basis']??null)==='owner_assumption'&&$s['prediction']['probability']===0.2&&$s['prediction']['price_basis']==='listed_service_price');
 funnelCheck('owner-selected predict goal keeps its exact ID with the required offline condition',$s['metrika']['goals']===['predictive_value'=>'predict']&&$s['metrika']['goal_ids']===['predictive_value'=>'680570232']&&$s['metrika']['goal_match']===['predictive_value'=>'exact']&&$s['metrika']['credential_source']==='platform');
 $expandedSettings=$s;
-funnelCheck('coverage source contains67 offers and preserves previously published batteries and front glass',
-    count($s['posts'])===67&&isset($s['posts']['service-battery-replacement'],$s['posts']['service-front-glass-replacement'])
+$deviceOffers=[
+    'device-ipad'=>['offer_id'=>'as39-device-v1-device-ipad','mid'=>'AaHzLTakRs4','model'=>'iPad','service'=>''],
+    'device-macbook'=>['offer_id'=>'as39-device-v1-device-macbook','mid'=>'AaHzLVO3L9k','model'=>'MacBook','service'=>''],
+    'device-apple-watch'=>['offer_id'=>'as39-device-v1-device-apple-watch','mid'=>'AaHzLWt0d3o','model'=>'Apple Watch','service'=>'Замена стекла Apple Watch'],
+];
+funnelCheck('coverage source preserves 67 original offers and adds only the three approved device cards',
+    count($s['posts'])===70&&count(array_diff_key($s['posts'],$deviceOffers))===67
+    &&isset($s['posts']['service-battery-replacement'],$s['posts']['service-front-glass-replacement'])
     &&count(array_filter(array_keys($s['posts']),static fn($id)=>str_starts_with($id,'model-iphone-')))===33
     &&!isset($s['posts']['models-index'],$s['posts']['services-index']));
 $oldOfferIds=['menu','model-iphone-17','service-display','repair-iphone-16-display','service-rear-glass-replacement','symptom-not-charging','service-rear-camera-replacement','service-earpiece-replacement'];
@@ -82,13 +88,13 @@ foreach($expandedSettings['posts'] as$id=>$meta){
     $insertPublication->execute([$id,'appleservice39-pilot-v1','create','verified',1,'fixture_'.$id,'https://max.ru/channel_appleservice39ru/fixture_'.$id]);$added[]=$id;
 }
 $staged=$expandedEntry->feed();
-funnelCheck('staged coverage exposes30 verified originals while37 new advertising cards wait',
+funnelCheck('staged coverage exposes 30 verified originals while 37 coverage and three device cards wait',
     count(array_map('str_getcsv',explode("\n",trim($staged))))===31
     &&str_contains($staged,'as39-search-v1-menu')&&str_contains($staged,'service-battery-replacement')
     &&str_contains($staged,'service-front-glass-replacement')
     &&funnelReject(fn()=>$expandedEntry->destination('model-iphone-8')));
 foreach($expandedSettings['posts'] as$id=>$meta){
-    if(!($meta['withhold_until_verified']??false))continue;
+    if(!($meta['withhold_until_verified']??false)||isset($deviceOffers[$id]))continue;
     $insertPublication->execute([$id,'appleservice39-pilot-v1','create','verified',1,'fixture_'.$id,'https://max.ru/channel_appleservice39ru/fixture_'.$id]);$added[]=$id;
 }
 $full=$expandedEntry->feed();$fullRows=array_map('str_getcsv',explode("\n",trim($full)));
@@ -101,6 +107,52 @@ funnelCheck('all67 own verified offers use unique miniapp contexts and literal D
 funnelCheck('all67 upstream advertising rows exactly match the accepted public feed',
     hash('sha256',json_encode($fullRows,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))
     ==='52c30732dcf4a0f7283c3585c0fe20ba9cb5a1fd967557eebe7895c725065aab');
+// Offline receipt fixtures reuse the accepted native addresses; no publication or bot call occurs.
+foreach($deviceOffers as$id=>$expected){
+    $meta=$expandedSettings['posts'][$id];
+    funnelCheck($id.' waits for its own verified create receipt',
+        $meta['owner']==='appleservice39_pilot'&&$meta['withhold_until_verified']===true
+        &&$meta['offer_id']===$expected['offer_id']&&!str_contains($full,$expected['offer_id'])
+        &&funnelReject(fn()=>$expandedEntry->destination($id,$expected['offer_id'])));
+    $insertPublication->execute([$id,'appleservice39-pilot-v1','create','unknown',1,$expected['mid'],
+        'https://max.ru/channel_appleservice39ru/'.$expected['mid']]);$added[]=$id;
+    funnelCheck($id.' unknown publication cannot redirect',funnelReject(fn()=>$expandedEntry->destination($id)));
+}
+funnelCheck('unknown device receipts leave all 67 historical feed rows unchanged',$expandedEntry->feed()===$full);
+$pdo->exec("UPDATE appleservice39_pilot_operations SET state='verified' WHERE post_key='device-ipad'");
+$partial=$expandedEntry->feed();
+funnelCheck('one verified device is exported without waiting for the other two',
+    count(explode("\n",trim($partial)))===69&&str_contains($partial,$deviceOffers['device-ipad']['offer_id'])
+    &&!str_contains($partial,$deviceOffers['device-macbook']['offer_id'])
+    &&!str_contains($partial,$deviceOffers['device-apple-watch']['offer_id']));
+$verifyDevice=$pdo->prepare("UPDATE appleservice39_pilot_operations SET state='verified' WHERE post_key=?");
+foreach(array_keys($deviceOffers) as$id)$verifyDevice->execute([$id]);
+$withDevices=$expandedEntry->feed();$deviceRows=array_map('str_getcsv',explode("\n",trim($withDevices)));
+funnelCheck('three verified device offers extend the unchanged 67 to 70 without prices',
+    count($deviceRows)===71&&array_slice($deviceRows,0,68)===$fullRows
+    &&count(array_unique(array_column(array_slice($deviceRows,1),0)))===70
+    &&substr_count($withDevices,'https://max.ru/id390521129062_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_')===70
+    &&count(array_filter(array_slice($deviceRows,1),static fn($r)=>$r[5]!==''||$r[6]!==''))===0);
+$deviceRowsByOffer=array_column(array_slice($deviceRows,1),null,0);
+$telegramSource=fopen(dirname(__DIR__).'/resources/appleservice39/telegram-offers-v1.csv','r');
+$telegramHeader=fgetcsv($telegramSource);$telegramRows=[];
+while(($telegramRow=fgetcsv($telegramSource))!==false)$telegramRows[$telegramRow[0]]=array_combine($telegramHeader,$telegramRow);
+fclose($telegramSource);
+foreach($deviceOffers as$id=>$expected){
+    $row=$deviceRowsByOffer[$expected['offer_id']];$telegramRow=$telegramRows['as39-tg-'.$id];
+    parse_str((string)parse_url($row[1],PHP_URL_QUERY),$deviceQuery);
+    $deviceLaunch=ProjectFunnelLaunch::parse(strtr($deviceQuery['startapp'],[
+        '{yclid}'=>'123','{region_id}'=>'39','{campaign_id}'=>'456']));
+    $deviceContext=AppleService39PilotCatalog::landingEntryForPost($id);
+    funnelCheck($id.' keeps the accepted copy image and exact native destination',
+        $row[2]===$telegramRow['Image']&&$row[3]===$telegramRow['Title']&&$row[4]===$telegramRow['Description']
+        &&array_slice($row,7)===$expandedSettings['posts'][$id]['labels']
+        &&$deviceLaunch['post_id']===$id&&$deviceLaunch['offer_id']===$expected['offer_id']
+        &&$expandedEntry->destination($id,$expected['offer_id'])['url']==='https://max.ru/channel_appleservice39ru/'.$expected['mid']);
+    funnelCheck($id.' keeps its existing model and service in the bot context',
+        $deviceContext['model']===$expected['model']&&$deviceContext['service']===$expected['service']
+        &&$deviceContext['scope']==='device'&&$deviceContext['start_payload']==='as39_'.$id);
+}
 $pdo->exec("UPDATE appleservice39_pilot_operations SET public_url='https://max.ru/foreign/borrowed' WHERE post_key='model-iphone-8'");
 funnelCheck('withholding never conceals a corrupt verified publication',funnelReject(fn()=>$expandedEntry->feed()));
 $pdo->exec("UPDATE appleservice39_pilot_operations SET public_url='https://max.ru/channel_appleservice39ru/fixture_model-iphone-8' WHERE post_key='model-iphone-8'");
