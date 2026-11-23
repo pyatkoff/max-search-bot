@@ -19,7 +19,7 @@ python3 -m pip install -r tools/direct_demand/operations/satori/requirements-tes
 npm ci --prefix tools/direct_demand/operations/satori --no-fund --no-audit
 ```
 
-Pillow использует имеющийся Liberation Sans Bold или переданный `--font`. Его прежние зависимости и правила не изменены. Satori использует включённые Open Sans Regular/Semibold/Bold с notice и полным Apache-2.0; логотип берётся из существующего `.github/traffic-publish/brand/anytour-logo-white.png` и проверяется по прежнему SHA. Open Sans остаётся временным шрифтом до решения CONTENT.
+Pillow использует имеющийся Liberation Sans Bold или переданный `--font`. Его прежние зависимости и правила не изменены. Satori использует включённые Open Sans Regular/Semibold/Bold с notice и полным Apache-2.0; логотип берётся из существующего `.github/traffic-publish/brand/anytour-logo-white.png` и проверяется по прежнему SHA. Open Sans зафиксирован в выбранных пользователем образцах. Повторный выбор между Open Sans и Aeroport не является отдельным условием рассмотрения этого draft. В нём сохраняется выбранный шрифт.
 
 После установки подготовка полностью локальна: внешние изображения не скачиваются, провайдеры и API публикации не вызываются.
 
@@ -84,8 +84,8 @@ npm test --prefix tools/direct_demand/operations/satori -- \
 ## Статус и остаток перед обычным выпуском
 
 - Исследование завершено; техническое подключение подготовлено отдельным draft PR.
-- Владелец остаётся [CONTENT / HOTEL #1566](https://github.com/pyatkoff/max-search-bot/issues/1566#issuecomment-6961029169). Другие claims и MAIN/DEPLOY publisher не занимаются.
-- Композиция трёх образцов дополнительно просмотрена пользователем без обязательных исправлений. Открытые решения по шрифту, Royal и формулировке Koh Yao Yai перечислены в [CONTENT_REVIEW.md](CONTENT_REVIEW.md).
+- Владелец остаётся [CONTENT / HOTEL #1566](https://github.com/pyatkoff/max-search-bot/issues/1566) согласно [текущему индексу](https://github.com/pyatkoff/max-search-bot/issues/1122#issuecomment-6633089481). Другие claims и MAIN/DEPLOY publisher не занимаются.
+- Композиция трёх образцов дополнительно просмотрена пользователем без обязательных исправлений. CONTENT осталось принять дополнительный режим подготовки либо назвать конкретное обязательное исправление. Кандидатуры подписей Royal и Koh Yao Yai рассматриваются при выборе этих текстов для коммерческого входа; первым контрольным входом предложен Al Sahel без новой редакции. Точные входы и границы решения находятся в [CONTENT_REVIEW.md](CONTENT_REVIEW.md).
 - В этой source-ветке существующие `regression` и `guard` автоматически запускаются только для PR в `main`. Отсутствие их запуска у carrier-base draft не означает PASS. Обязательные гейты обычного выпуска должны быть отдельно подтверждены на точном принимаемом head; workflow ради пилота не меняется.
 - Локальное чтение точного базового коммита обнаружило 348 строк в 45 прежних файлах, которые не проходят существующий retired-domain guard. Новые файлы Satori таких ссылок не добавляют. Этот унаследованный остаток записан в [review/release-gates.json](review/release-gates.json); архивы не переписываются и guard не ослабляется. PHP-инвентарь локально не выполнен, поскольку PHP в окружении отсутствует.
 - Целевая проверка подключения: [review/technical-checks.json](review/technical-checks.json), 15/15 сценариев и 11/11 сохранённых PNG. Это отдельное свидетельство для просмотра draft, не замена общим гейтам выпуска.
