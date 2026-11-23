@@ -1,0 +1,185 @@
+name: "#1566 Read the full main MAX photo archive and registry"
+on:
+  push:
+    branches: [ops/1566-max-archive-inventory-20261123]
+    paths: ['.github/workflows/read-1566-max-archive-20261123.yml']
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+concurrency:
+  group: anytour-issue-1566-registry-read
+  cancel-in-progress: false
+jobs:
+  registry:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.event.repository.id == 1342493152 &&
+      github.actor == 'pyatkoff' &&
+      github.event.sender.id == 226193297 &&
+      github.event.created == false &&
+      github.event.before == '875c5e00eaa1e192ecb4dcc9674bf64dc6939d2c' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Check out the exact candidate packet
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Check out main for the existing release verifier
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: accepted
+          persist-credentials: false
+      - name: Require current accepted release and actual application
+        working-directory: accepted
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          export READ_REPOSITORY_SHA="$(git rev-parse HEAD)"
+          node - <<'NODE'
+          const fs = require('node:fs')
+          const R = require('./tools/deployment_release')
+          const P = require('./tools/release_priority')
+          async function check() {
+            const expected = process.env.READ_REPOSITORY_SHA
+            const token = process.env.GITHUB_TOKEN
+            const api = R.makeReadApi(token)
+            const current = async () => (await api('GET', R.API_ROOT+'/git/ref/heads/main')).object.sha
+            if (!/^[a-f0-9]{40}$/.test(expected) || await current() !== expected) throw Error('main_changed')
+            const observed = await R.readRecord(api)
+            const resolution = await R.resolveCurrent(api, {sha:expected}, observed)
+            if (!resolution.ready || resolution.repository_sha !== expected || !/^[a-f0-9]{40}$/.test(resolution.application_sha)) throw Error('accepted_release_mismatch')
+            await P.verifyPreviousRelease({repository:R.REPOSITORY,baseSha:expected}, token, fetch)
+            const latest = await R.readRecord(api)
+            if (latest.blob !== observed.blob || latest.record_digest !== observed.record_digest || await current() !== expected) throw Error('accepted_release_changed')
+            fs.appendFileSync(process.env.GITHUB_ENV, 'REPOSITORY_SHA='+expected+'\nAPPLICATION_SHA='+resolution.application_sha+'\n')
+          }
+          check().catch(error => { console.error('read_release_refused', error.code || 'release_not_accepted'); process.exitCode=1 })
+          NODE
+      - name: Bind the reviewed MAX reader to this installation and run
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir pub
+          python3 - <<'PY'
+          import hashlib, os, pathlib, re
+          source = pathlib.Path('tools/direct_demand/operations/read-1566-max-archive-20261123.php').read_bytes()
+          assert hashlib.sha256(source).hexdigest() == '55076c54733c655d08b87540cc66fb3588c51542322356ca4e270043e9347475'
+          app = os.environ['APPLICATION_SHA']
+          repo = os.environ['REPOSITORY_SHA']
+          run = os.environ['GITHUB_RUN_ID']
+          assert re.fullmatch(r'[a-f0-9]{40}', app) and re.fullmatch(r'[a-f0-9]{40}', repo) and re.fullmatch(r'[1-9][0-9]*', run)
+          original = source.decode()
+          guard = "if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) {"
+          call = '        $output = runArchive();'
+          assert original.count(guard) == original.count(call) == 1
+          check = "if (trim((string)shell_exec('git rev-parse HEAD')) !== '" + app + "' || trim((string)shell_exec('git status --porcelain --untracked-files=no')) !== '') { throw new RuntimeException('RELEASE_CHANGED'); }"
+          provenance = "$output += ['native_run_id'=>'" + run + "', 'application_sha'=>'" + app + "', 'repository_sha'=>'" + repo + "'];"
+          program = original.replace(guard, "if (PHP_SAPI === 'cli') {").replace(call, "        " + check + "\n" + call + "\n        " + check + "\n        " + provenance)
+          pathlib.Path('pub/read-only.php').write_text(program)
+          PY
+          php -l pub/read-only.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read the full channel archive and occupied native identifiers
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          status=0
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > "$RUNNER_TEMP/max-archive-original.json" || status=$?
+          if test "$status" -ne 0; then
+            python3 - <<'PY'
+          import json, os, pathlib
+          p = pathlib.Path(os.environ['RUNNER_TEMP']) / 'max-archive-original.json'
+          try:
+              d = json.loads(p.read_bytes())
+              print("Archive read failed:", str(d.get('error', 'NO_RECEIPT'))[:80])
+          except (OSError, ValueError):
+              print("Archive read failed before a receipt was produced")
+          PY
+            exit "$status"
+          fi
+          python3 - <<'PY'
+          import collections, hashlib, json, os, pathlib, re
+          original = (pathlib.Path(os.environ['RUNNER_TEMP']) / 'max-archive-original.json').read_bytes()
+          d = json.loads(original)
+          assert d['ok'] and d['history_complete'] and d['messages'] > 0
+          assert d['native_run_id'] == os.environ['GITHUB_RUN_ID']
+          assert d['application_sha'] == os.environ['APPLICATION_SHA'] and d['repository_sha'] == os.environ['REPOSITORY_SHA']
+          rows = d['rows']
+          assert len(rows) == len({r['mid'] for r in rows}) == len({r['url'] for r in rows}) == d['messages']
+          assert collections.Counter(r['status'] for r in rows) == d['categories']
+          for row in rows:
+              assert re.fullmatch(r'mid\.ffffc1752b045fed[0-9a-f]{16}', row['mid']) and re.fullmatch(r'https://max\.ru/anytour/[A-Za-z0-9_-]{11}', row['url'])
+              text = row.pop('text', None)
+              if text is None:
+                  continue
+              assert row['status'] == 'needs_content_and_route_review'
+              assert not row['registered'] and not row['previously_screened'] and row['media'] == ['image']
+              # Keep publication text and original links in the existing operator boundary.
+              row['public_text_sha256'] = hashlib.sha256(text.encode()).hexdigest()
+              row['hotel_star_mentions'] = len(re.findall(r'[2-5]\s*[*★]', text))
+              row['price_mentions'] = len(re.findall(r'(?:RUB|₽|руб[.\s])', text, re.I))
+              row['roundup_terms'] = bool(re.search(r'подборк|предложения в|несколько отелей|проверенные отели|цены на туры|горящие туры', text, re.I))
+          d.update(operation='hotel_archive_main_max_registry', production_writes=0, provider_writes=0,
+                   original_receipt_sha256=hashlib.sha256(original).hexdigest())
+          pathlib.Path('pub/registry.json').write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
+          print(json.dumps({k:d[k] for k in ('operation','native_run_id','read_utc','pages','messages','categories','application_sha','repository_sha','original_receipt_sha256')}, sort_keys=True))
+          PY
+      - name: Save the bounded native observation
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-1566-main-max-archive-inventory
+          path: pub/registry.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Remove runner connection material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/max-archive-original.json" pub/read-only.php
