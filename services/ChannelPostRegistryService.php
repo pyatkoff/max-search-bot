@@ -279,7 +279,15 @@ final class ChannelPostRegistryService
         $pairs = [17595=>['455',1003,'862',1726731731], 358=>['65',211,'328',1705145228],
             393=>['85',247,'1083',1745392994], 1260=>['548',1220,'288',1703918786]];
         $next = hash_equals('30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d', $planDigest);
-        if ($next) {
+        require_once __DIR__ . '/../config/anytour_ranked_transfer_scope_20261123.php';
+        $ranked = AnyTourRankedHotelTransfer46::PLANS[$planDigest] ?? null;
+        if ($ranked !== null) {
+            $next = true;
+            $pairs = [];
+            foreach ($ranked['pairs'] as $id => $pair) {
+                $pairs[$id] = [$pair['source'], $pair['source_publication'], $pair['target'], $pair['date']];
+            }
+        } elseif ($next) {
             $pairs = [800=>['219',535,'1588',1781855273], 408=>['120',323,'997',1737725306],
                 466=>['473',1047,'1101',1747735272]];
         }
@@ -300,7 +308,14 @@ final class ChannelPostRegistryService
             || !hash_equals(hash('sha256', $row['next_caption']), $row['next_caption_sha256'])
             || !is_string($row['button_text']) || $row['button_text'] === '' || !mb_check_encoding($row['button_text'], 'UTF-8')
             || mb_strlen($row['button_text'], 'UTF-8') > 80 || preg_match('/[\x00-\x1f\x7f]/u', $row['button_text'])) throw new InvalidArgumentException('hotel_transfer_plan_invalid');
-        return array_replace(array_fill_keys($keys, null), $row);
+        $validated = array_replace(array_fill_keys($keys, null), $row);
+        if ($ranked !== null) {
+            $actual = hash('sha256', json_encode($validated, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
+            if (!hash_equals($ranked['pairs'][$row['hotel_id']]['registry_sha256'], $actual)) {
+                throw new InvalidArgumentException('hotel_transfer_ranked_row_changed');
+            }
+        }
+        return $validated;
     }
 
     private function telegramHotelTransferChannel(array $row): array

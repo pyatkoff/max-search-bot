@@ -1435,6 +1435,30 @@ channelPostCheck('new public post scope is only available to the next fixed tran
     [AnyTour\ExistingPostBatch\transferPublicAllowed('anytour', '1588'),
         AnyTour\ExistingPostBatch\transferPublicAllowed('anytour', '1588', true),
         AnyTour\ExistingPostBatch\transferPublicAllowed('anytour', '862', true)], [false,true,false]);
+$remainingTransfer = AnyTour\ExistingPostBatch\selectRemainingTransferRows($nextTransfer);
+channelPostCheck('continuation selects only the two untouched posts',
+    [array_column($remainingTransfer['rows'],'hotel_id'),array_column($remainingTransfer['rows'],'target_message_id')],
+    [[408,466],['997','1101']]);
+$rejectedTransfer = ['http'=>400,'transport_error'=>false,
+    'data'=>['ok'=>false,'error_code'=>400,'description'=>'Bad Request: MESSAGE_ID_INVALID']];
+$firstTransferEvents = [
+    ['state'=>'intent_saved','operation'=>AnyTour\ExistingPostBatch\NEXT_TRANSFER_OPERATION,
+        'row'=>$nextTransfer['rows'][0],'plan_sha256'=>hash('sha256',$nextTransferRaw),
+        'execution'=>['native_run_id'=>AnyTour\ExistingPostBatch\ORIGINAL_NEXT_TRANSFER_RUN,
+            'application_sha'=>AnyTour\ExistingPostBatch\ORIGINAL_NEXT_TRANSFER_APP]],
+    ['state'=>'identity_reserved'],['state'=>'request_prepared'],
+    ['state'=>'provider_edit_started','provider_write_attempts'=>1],
+    ['state'=>'provider_response_saved','response'=>$rejectedTransfer],
+    ['state'=>'response_saved_completion_requires_readback','provider_write_attempts'=>1],
+];
+AnyTour\ExistingPostBatch\requireOriginalNextTransferRejection($firstTransferEvents,$nextTransfer['rows'][0],hash('sha256',$nextTransferRaw));
+$firstTransferEvents[4]['response']['transport_error'] = true;
+try {
+    AnyTour\ExistingPostBatch\requireOriginalNextTransferRejection($firstTransferEvents,$nextTransfer['rows'][0],hash('sha256',$nextTransferRaw));
+    channelPostCheck('uncertain Telegram response stops the continuation', false);
+} catch (RuntimeException $error) {
+    channelPostCheck('uncertain Telegram response stops the continuation', $error->getMessage(), 'transfer_original_rejection_unconfirmed');
+}
 // Load the same tracked dependency path as applyTransferPlan, without its runtime
 // bootstrap. This synthetic saved export is test data, never native evidence.
 require_once __DIR__.'/../tools/direct_demand/operations/monitor-price-hook-contract.php';

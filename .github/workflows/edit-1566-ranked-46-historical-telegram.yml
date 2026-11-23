@@ -1,0 +1,195 @@
+name: "#1566 Apply approved ranked Telegram hotel transfers"
+on:
+  push:
+    branches: [ops/anytour-hotel-ranked-46-apply-20261123]
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+concurrency:
+  group: anytour-authorized-channel-publication
+  cancel-in-progress: false
+jobs:
+  transfer:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.created == true &&
+      github.event.before == '0000000000000000000000000000000000000000' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 130
+    steps:
+      - name: Check out the native run source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Resolve accepted repository and application
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"
+      - name: Require exact APPLY admission before loading credentials
+        env:
+          READY: ${{ steps.release.outputs.ready }}
+          PERFORM_ACTIONS: ${{ steps.release.outputs.perform_actions }}
+          WRITE_OPERATION: ${{ steps.release.outputs.write_operation }}
+          REPOSITORY_SHA: ${{ steps.release.outputs.repository_sha }}
+          APPLICATION_SHA: ${{ steps.release.outputs.application_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$READY" = true
+          test "$PERFORM_ACTIONS" = true
+          test "$WRITE_OPERATION" = hotel_ranked_46_transfer
+          test "$REPOSITORY_SHA" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          [[ "$APPLICATION_SHA" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$GITHUB_RUN_ID" =~ ^[1-9][0-9]{0,19}$ ]]
+          umask 077
+          mkdir pub
+          python3 - <<'PY'
+          import hashlib, json, pathlib
+          p=pathlib.Path('config/anytour_ranked_46_20261123.json')
+          raw=p.read_bytes()
+          assert hashlib.sha256(raw).hexdigest()=='30d58e6649877a0eb07deb7e2fddcfa99c92081aac5fbef8c3c2b1d7a4a92833','owner_index_changed'
+          index=json.loads(raw)
+          for item in index['plans']:
+              plan=pathlib.Path(item['path']).read_bytes()
+              assert len(plan)==item['bytes'] and hashlib.sha256(plan).hexdigest()==item['sha256'],'chunk_bytes_changed'
+              blob=hashlib.sha1(b'blob '+str(len(plan)).encode()+b'\0'+plan).hexdigest()
+              assert blob==item['git_blob'],'chunk_git_blob_changed'
+          PY
+          for digest in 12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce; do
+            php tools/anytour_existing_post_batch.php --check-ranked-transfer-plan "$digest" > "pub/check-$digest.json"
+          done
+          python3 - <<'PY'
+          import json, pathlib
+          chunks=[{'path': 'config/anytour_ranked_46_20261123_01.json', 'bytes': 62146, 'git_blob': '5a5c31c0e73784e203643ed51d8ec1c9d079b3bd', 'sha256': '12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce', 'hotels': [15693, 293, 949, 1972, 2588, 24909, 32342, 57028, 65877, 73343, 43689, 47025, 139, 435, 513, 2470, 56092, 59114, 63191, 76588, 77914, 106, 111, 114, 140, 195, 206, 231, 246, 263, 266, 371, 416, 465, 497, 932, 948, 964, 975, 1013], 'messages': ['224', '249', '266', '316', '346', '372', '594', '626', '646', '716', '884', '901', '905', '906', '908', '914', '915', '917', '918', '923', '924', '928', '930', '948', '949', '952', '963', '969', '970', '999', '1003', '1037', '1051', '1052', '1057', '1059', '1087', '1110', '1131', '920'], 'operation': 'anytour_hotel_transfer_46_20261123_01'}]
+          out={}
+          for item in chunks:
+              digest=item['sha256']
+              checked=json.loads(pathlib.Path('pub/check-'+digest+'.json').read_bytes())
+              assert checked['ok'] is True and checked['mode']=='offline_plan_check' and checked['operation']==item['operation']
+              assert checked['production_writes']==checked['provider_writes']==0 and checked['plan_sha256']==digest
+              assert [r['hotel_id'] for r in checked['rows']]==item['hotels']
+              assert [r['target_url'] for r in checked['rows']]==['https://t.me/anytour/'+m for m in item['messages']]
+              out[digest]={'state':'not_started','hotel_ids':item['hotels']}
+          pathlib.Path('pub/summary.json').write_text(json.dumps(out))
+          PY
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35)
+          found=[]
+          for line in scan.stdout.splitlines():
+              fields=line.split()
+              if len(fields)<3 or fields[0].startswith('#'):continue
+              try:fingerprint='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fingerprint=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(line)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      # The branch is created once only after the owner's separate approval of
+      # this exact plan. Installing this workflow does not create that branch.
+      - name: Apply the installed editor once and retain its original receipts
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          APPLICATION_SHA: ${{ steps.release.outputs.application_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ "$APPLICATION_SHA" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$GITHUB_RUN_ID" =~ ^[1-9][0-9]{0,19}$ ]]
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          remote='set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru'
+          for digest in 12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce; do
+            python3 - "$digest" <<'PY'
+          import json, pathlib, sys
+          p=pathlib.Path('pub/summary.json')
+          summary=json.loads(p.read_bytes())
+          assert summary[sys.argv[1]]['state']=='not_started','chunk_replay_forbidden'
+          summary[sys.argv[1]]['state']='invoked_requires_readback'
+          p.write_text(json.dumps(summary))
+          PY
+            status=0
+            ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" "$remote; php tools/anytour_existing_post_batch.php --apply-ranked-transfer $digest $APPLICATION_SHA $GITHUB_RUN_ID" > "pub/result-$digest.json" || status=$?
+            python3 - "$digest" "$status" <<'PY'
+          import json, os, pathlib, sys
+          digest,status=sys.argv[1],int(sys.argv[2])
+          items=[{'path': 'config/anytour_ranked_46_20261123_01.json', 'bytes': 62146, 'git_blob': '5a5c31c0e73784e203643ed51d8ec1c9d079b3bd', 'sha256': '12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce', 'hotels': [15693, 293, 949, 1972, 2588, 24909, 32342, 57028, 65877, 73343, 43689, 47025, 139, 435, 513, 2470, 56092, 59114, 63191, 76588, 77914, 106, 111, 114, 140, 195, 206, 231, 246, 263, 266, 371, 416, 465, 497, 932, 948, 964, 975, 1013], 'messages': ['224', '249', '266', '316', '346', '372', '594', '626', '646', '716', '884', '901', '905', '906', '908', '914', '915', '917', '918', '923', '924', '928', '930', '948', '949', '952', '963', '969', '970', '999', '1003', '1037', '1051', '1052', '1057', '1059', '1087', '1110', '1131', '920'], 'operation': 'anytour_hotel_transfer_46_20261123_01'}]
+          item=next(r for r in items if r['sha256']==digest)
+          summary=pathlib.Path('pub/summary.json')
+          states=json.loads(summary.read_bytes())
+          state=states[digest]
+          p=pathlib.Path('pub/result-'+digest+'.json')
+          assert 0<p.stat().st_size<=1000000,'original_result_missing_or_unbounded_requires_readback'
+          d=json.loads(p.read_bytes())
+          if not isinstance(d.get('results'),list):
+              state['state']='requires_original_journals'
+              summary.write_text(json.dumps(states))
+              raise SystemExit('result_inconclusive_do_not_replay')
+          rows=d['results']
+          assert d.get('native_run_id')==os.environ['GITHUB_RUN_ID'] and d.get('application_sha')==os.environ['APPLICATION_SHA']
+          assert d.get('operation')==item['operation'] and d.get('plan_sha256')==digest
+          assert len(rows)<=len(item['hotels']) and [r['hotel_id'] for r in rows]==item['hotels'][:len(rows)]
+          assert [r['message_id'] for r in rows]==item['messages'][:len(rows)]
+          assert d.get('supplier_requests')==d.get('bot_starts')==0
+          confirmed=[]
+          held=[]
+          for i,row in enumerate(rows):
+              assert row['url']=='https://t.me/anytour/'+item['messages'][i]
+              if row.get('ok') is True:
+                  assert row['state']=='native_and_registry_verified' and row['provider_write_attempts']==1
+                  assert row['hotel_id_verified'] and row['photo_caption_button_verified'] and row['original_message_id_and_date_preserved']
+                  confirmed.append(row['hotel_id'])
+              else:
+                  assert i==len(rows)-1 and row.get('ok') is False
+                  held.append({'hotel_id':row['hotel_id'],'state':row['state']})
+          assert d.get('provider_write_attempts')==sum(r['provider_write_attempts'] for r in rows)
+          ok=status==0 and d.get('ok') is True and confirmed==item['hotels'] and not held
+          state.update(state='complete' if ok else 'partial_requires_readback',confirmed=confirmed,held=held,unreached=item['hotels'][len(rows):])
+          summary.write_text(json.dumps(states))
+          print(json.dumps(state))
+          if not ok:
+              raise SystemExit('held_or_partial_do_not_replay')
+          PY
+          done
+      - name: Save the original sanitized transfer result
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-1566-hotel-ranked-46-transfer
+          path: pub/*.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Remove runner connection material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
