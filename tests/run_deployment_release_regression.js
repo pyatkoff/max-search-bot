@@ -273,6 +273,7 @@ async function gitBridge(){
     await publicationOperationConsumer(f, a, a);
     await hotelRegistryReadConsumer(f, a, a);
     await hotelFourTransferConsumer(f, a, a);
+    await remainingTransferOriginalProof();
     const nextRun={...context,event:'push'};
     const next=R.releaseRecord(receipt(a),nextRun,{kind:'application_unchanged',baseline:baseline.reference,
       content:R.contentSummary(proposal.comparison,a,r),intent:proposal.comparison.intent_scan,observation:observation(a)});
@@ -630,6 +631,37 @@ async function hotelRegistryReadConsumer(f,repositorySha,applicationSha){
     closer.status=oldStatus;closer.conclusion=oldConclusion;
   }finally{f.hook=null;f.runs.delete(run.id);f.main=repositorySha;}
 }
+async function remainingTransferOriginalProof(){
+  const sha='bb7d0bde64092cbd24a69084e651ff44336ba8b5';
+  const owned={id:226193297,login:'pyatkoff'};
+  const branch='ops/anytour-hotel-next-apply-20261123';
+  const run={id:45235830990,run_attempt:1,path:R.PREFIX+'edit-1566-next-historical-telegram.yml',
+    head_sha:sha,head_branch:branch,head_repository:{full_name:R.REPOSITORY},event:'push',
+    created_at:'2026-11-23T18:12:00Z',status:'completed',conclusion:'failure',
+    actor:copy(owned),triggering_actor:copy(owned)};
+  const steps=[
+    {name:'Apply the installed editor once and retain its original receipts',status:'completed',conclusion:'failure'},
+    {name:'Save the original sanitized transfer result',status:'completed',conclusion:'success'}
+  ];
+  const job={id:137907167978,run_id:run.id,head_sha:sha,run_attempt:1,name:'transfer',
+    status:'completed',conclusion:'failure',steps};
+  const artifact={id:14850280926,digest:'sha256:8df0ba31b546c644f800a71324d959c8ebdaa1a0801ffdc2f0d8ef5cebf3034c',
+    name:'issue-1566-hotel-next-transfer',workflow_run:{id:run.id,head_sha:sha,head_branch:branch}};
+  const api=async (method,path)=>{
+    equal(method,'GET','remaining transfer evidence is read-only');
+    if(path===R.API_ROOT+'/actions/runs/'+run.id)return run;
+    if(path===R.API_ROOT+'/actions/runs/'+run.id+'/attempts/1/jobs?per_page=100')return {total_count:1,jobs:[job]};
+    if(path===R.API_ROOT+'/actions/artifacts/'+artifact.id)return artifact;
+    throw Error('Unexpected remaining transfer evidence request');
+  };
+  await R.proveOriginalNextTransfer(api);
+  steps[1].conclusion='failure';
+  await refuses(()=>R.proveOriginalNextTransfer(api),'original_hotel_transfer_result_changed');
+  steps[1].conclusion='success';
+  artifact.digest='sha256:'+'0'.repeat(64);
+  await refuses(()=>R.proveOriginalNextTransfer(api),'original_hotel_transfer_artifact_changed');
+}
+
 async function hotelFourTransferConsumer(f,repositorySha,applicationSha){
   const branch='ops/anytour-hotel-four-apply-20261123',ref='refs/heads/'+branch;
   const workflow=R.PREFIX+'edit-1566-historical-telegram-with-channel-default.yml',owner={id:226193297,login:'pyatkoff'};
