@@ -11,6 +11,7 @@ class TelegramMessengerAdapter implements OutboundMetadataMessengerInterface
     private ?string $botToken;
     private ?string $boundChatId;
     private $lastExternalMessageId = '';
+    private ?array $lastFailure = null;
 
     public function __construct(?callable $sendCallable = null, string $senderType = 'ai', bool $recordOutbound = true, ?string $botToken = null, ?string $boundChatId = null)
     {
@@ -46,10 +47,11 @@ class TelegramMessengerAdapter implements OutboundMetadataMessengerInterface
 
     public function sendMedia($chatId, string $type, string $filePath, string $fileName, string $mimeType, string $text = '', string $previewUrl = ''): bool
     {
-        if (!is_file($filePath)) return false;
+        $this->resetResult();
+        if (!is_file($filePath)) return $this->failBeforeDispatch('not_dispatched','file_unavailable');
         $methodMap = ['image'=>'sendPhoto','video'=>'sendVideo','audio'=>'sendAudio','file'=>'sendDocument'];
         $fieldMap = ['image'=>'photo','video'=>'video','audio'=>'audio','file'=>'document'];
-        if (!isset($methodMap[$type], $fieldMap[$type])) return false;
+        if (!isset($methodMap[$type], $fieldMap[$type])) return $this->failBeforeDispatch('unsupported');
         $payload = ['chat_id'=>$chatId,$fieldMap[$type]=>new CURLFile($filePath,$mimeType,$fileName)];
         if (trim($text) !== '') {
             $payload['caption']=$text;
@@ -66,6 +68,12 @@ class TelegramMessengerAdapter implements OutboundMetadataMessengerInterface
     public function lastExternalMessageId(): string
     {
         return $this->lastExternalMessageId;
+    }
+
+    /** Typed transport evidence only: never expose token, recipient or provider text. */
+    public function lastFailure(): ?array
+    {
+        return $this->lastFailure;
     }
 
     public function editText($chatId, $messageId, string $text): bool
@@ -133,11 +141,13 @@ class TelegramMessengerAdapter implements OutboundMetadataMessengerInterface
 
     private function request(string $method, array $payload, array $metadata = []): bool
     {
-        if (!$this->allowsRecipient($payload)) return false;
+        $this->resetResult();
+        if (!$this->allowsRecipient($payload)) return $this->failBeforeDispatch('attempt_context_changed');
         if ($this->sendCallable) {
             $result=call_user_func($this->sendCallable,$method,$payload);
             $this->lastExternalMessageId=is_array($result)?trim((string)($result['result']['message_id']??$result['message_id']??'')):'';
             $ok=(bool)$result;
+            if (!$ok) $this->lastFailure=['category'=>'unknown','http_code'=>0];
             if ($ok && $this->recordOutbound && $method === 'sendMessage' && isset($payload['chat_id'])) {
                 ConversationRecorder::outbound('telegram', $payload['chat_id'], (string)($payload['text'] ?? ''), $this->senderType, array_merge($metadata,['has_buttons'=>isset($payload['reply_markup'])]));
             }
@@ -148,8 +158,13 @@ class TelegramMessengerAdapter implements OutboundMetadataMessengerInterface
 
     private function multipartRequest(string $method,array $payload): bool
     {
-        if (!$this->allowsRecipient($payload)) return false;
-        if ($this->sendCallable) return (bool)call_user_func($this->sendCallable,$method,$payload);
+        $this->resetResult();
+        if (!$this->allowsRecipient($payload)) return $this->failBeforeDispatch('attempt_context_changed');
+        if ($this->sendCallable) {
+            $ok=(bool)call_user_func($this->sendCallable,$method,$payload);
+            if (!$ok) $this->lastFailure=['category'=>'unknown','http_code'=>0];
+            return $ok;
+        }
         return $this->curlRequest($method,$payload,true);
     }
 
@@ -160,7 +175,7 @@ class TelegramMessengerAdapter implements OutboundMetadataMessengerInterface
         $token = $this->botToken ?? (defined('TELEGRAM_BOT_TOKEN') ? (string)TELEGRAM_BOT_TOKEN : '');
         if ($token === '') {
             DiagnosticLogger::error('telegram_transport','missing_token',['method'=>$method],$scoped ? null : $chatId);
-            return false;
+            return $this->failBeforeDispatch('connection_unavailable');
         }
         $ch = curl_init('https://api.telegram.org/bot' . $token . '/' . $method);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -173,6 +188,7 @@ class TelegramMessengerAdapter implements OutboundMetadataMessengerInterface
         $decoded = is_string($response) ? json_decode($response, true) : null;
         $this->lastExternalMessageId=is_array($decoded)?trim((string)($decoded['result']['message_id']??'')):'';
         $ok = $response !== false && !$errno && $http >= 200 && $http < 300 && is_array($decoded) && !empty($decoded['ok']);
+        if (!$ok) $this->lastFailure=self::transportFailure($response,$errno,$http,$decoded);
         $details = ['method'=>$method,'http'=>$http,'ok'=>$ok];
         if ($errno) $details['curl_errno']=$errno;
         if (!$scoped && $error !== '') $details['curl_error']=$error;
@@ -182,5 +198,33 @@ class TelegramMessengerAdapter implements OutboundMetadataMessengerInterface
             ConversationRecorder::outbound('telegram', $chatId, (string)($payload['text'] ?? ''), $this->senderType, array_merge($metadata,['has_buttons'=>isset($payload['reply_markup'])]));
         }
         return $ok;
+    }
+
+    private function resetResult(): void
+    {
+        $this->lastFailure=null;
+        $this->lastExternalMessageId='';
+    }
+
+    private function failBeforeDispatch(string $category,?string $reason=null): bool
+    {
+        $this->lastFailure=['category'=>$category,'http_code'=>0];
+        if ($reason!==null) $this->lastFailure['reason']=$reason;
+        return false;
+    }
+
+    private static function transportFailure($response,int $errno,int $http,$decoded): array
+    {
+        // Only an intact, explicit provider refusal may release the send fence.
+        // A network/proxy/JSON failure or ambiguous code still has unknown delivery.
+        if ($response===false || $errno!==0 || !is_array($decoded)
+            || ($decoded['ok']??null)!==false || !is_int($decoded['error_code']??null)
+            || $decoded['error_code']!==$http || $http<400 || $http>=500
+            || in_array($http,[408,409,429],true)) return ['category'=>'unknown','http_code'=>0];
+        $category='provider_rejected';
+        if ($http===401) $category='connection_unavailable';
+        elseif ($http===403 && is_string($decoded['description']??null)
+            && stripos($decoded['description'],'bot was blocked by the user')!==false) $category='blocked';
+        return ['category'=>$category,'http_code'=>$http];
     }
 }

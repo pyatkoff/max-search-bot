@@ -5,7 +5,7 @@ const vm = require('node:vm');
 
 // DOM behavior only: no layout, production session, transport, or credentials.
 // App logic comes directly from the canonical production asset files.
-function createHarness({storage, managerId=7, mobile=false, sessionHistory, inbox=false,replyQueue=false,tasks=false} = {}) {
+function createHarness({storage, managerId=7, mobile=false, sessionHistory, inbox=false,replyQueue=false,tasks=false,clock} = {}) {
 if(!storage){const values=new Map();storage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,String(v)),removeItem:k=>values.delete(k)}}
 const ids = new Map();
 class Element {
@@ -109,7 +109,7 @@ const identity = {ok:true, csrf:'synthetic-csrf', manager, projects:[]};
 const conversation = {id:101, manager_id:7, status:'manager', channel:'max', display_name:'Synthetic conversation'};
 async function fetch(url, options) {
   const request = JSON.parse(options.body); calls.push({url,...request});
-  if(hook){const result=await hook(url,request);if(result)return result;}
+  if(hook){const result=await hook(url,request,options);if(result)return result;}
   let value;
   if (request.action === 'me' || request.action === 'login') value = nextIdentity || identity;
   else if (url === 'api.php' && request.action === 'detail') value = {ok:true, conversation:{...conversation,id:request.conversation_id}, messages:[]};
@@ -135,7 +135,7 @@ const window = {
 const history=sessionHistory||{entries:[null],index:0,get state(){return this.entries[this.index]},replaceState(state){this.entries[this.index]=state},pushState(state){this.entries.splice(++this.index);this.entries.push(state)},async back(){if(this.index>0){this.index--;await this.listener(this.state)}},async forward(){if(this.index<this.entries.length-1){this.index++;await this.listener(this.state)}}};
 history.listener=async state=>{const handler=events.get('popstate');if(handler)await handler({state})};
 const reloads=[];
-const context = vm.createContext({window,document,fetch,location:{pathname:'/manager/',search:'',hash:'',href:'https://example.invalid/manager/',reload:()=>reloads.push(history.state)},history,setTimeout:()=>0,setInterval:(fn,ms)=>{timers.push({fn,ms});return timers.length},console,sessionStorage:storage,localStorage:storage});
+const context = vm.createContext({window,document,fetch,location:{pathname:'/manager/',search:'',hash:'',href:'https://example.invalid/manager/',reload:()=>reloads.push(history.state)},history,AbortController,setTimeout:clock?.setTimeout||(()=>0),clearTimeout:clock?.clearTimeout||(()=>{}),setInterval:(fn,ms)=>{timers.push({fn,ms});return timers.length},console,sessionStorage:storage,localStorage:storage});
 function loadAsset(file,globals={}){Object.assign(context,globals);vm.runInContext(fs.readFileSync(path.join(__dirname,'../manager/assets',file),'utf8'),context,{filename:file});}
 for (const file of ['manager-time.js','workspace-v2.js','workspace-v2-conversation.js',...(inbox?['workspace-v2-inbox.js']:[]),...(mobile?['workspace-v2-mobile.js']:[]),...(replyQueue?['workspace-v2-reply-queue.js']:[]),...(tasks?['workspace-v2-tasks.js']:[])]) loadAsset(file);
 
@@ -473,6 +473,75 @@ test('confirmed readback clears an older uncertain warning without another send'
   await h.C.sendReply();assert.match(h.ids.get('replyStatus').textContent,/^Отправлено/);
   assert.equal(h.ids.get('deliveryFailure').classList.contains('hidden'),true);
   assert.equal(h.calls.filter(r=>r.action==='send').length,1);assert.equal(h.calls.filter(r=>r.action==='send_receipt').length,1);
+});
+function receiptClock(){
+  let id=0;const pending=new Map();
+  return{setTimeout(fn,ms){pending.set(++id,{fn,ms});return id},clearTimeout(key){pending.delete(key)},count(ms){return [...pending.values()].filter(x=>x.ms===ms).length},fire(ms){for(const [key,value]of [...pending])if(value.ms===ms){pending.delete(key);value.fn()}}};
+}
+for(const state of ['unknown','processing'])test('send receipt '+state+' shows completed check and preserves newer text/file without replay',async()=>{
+  const clock=receiptClock(),h=createHarness({clock});await h.start();await h.draft('Original uncertain reply');
+  h.setHook((url,r)=>r.action==='send'?response({ok:false,attempt:{state:'unknown'}},409):r.action==='send_receipt'?response({ok:true,attempt:{state}}):null);
+  await h.C.sendReply();const before=h.ids.get('replyStatus').textContent;
+  await h.draft('Newer unsent reply');const file={name:'retained.png'};h.setFile(file);await h.C.sendReply();
+  assert.notEqual(h.ids.get('replyStatus').textContent,before);assert.match(h.ids.get('replyStatus').textContent,state==='processing'?/Проверили: отправка отмечена как незавершённая\. Окончательного результата пока нет\./:/Проверили: результат исходной отправки пока неизвестен/);
+  assert.equal(h.ids.get('replyText').value,'Newer unsent reply');assert.equal(h.getFile(),file);assert.equal(h.ids.get('sendReply').textContent,'Проверить отправку');assert.equal(h.ids.get('sendReply').disabled,false);assert.equal(clock.count(20000),0);
+  const send=h.calls.filter(r=>r.action==='send'),read=h.calls.filter(r=>r.action==='send_receipt');assert.equal(send.length,1);assert.equal(read.length,1);assert.equal(read[0].operation_id,send[0].operation_id);assert.equal(h.calls.some(r=>r.action==='cancel_send_attempt'),false);
+});
+for(const mode of ['forbidden','unavailable','invalid_json','network','missing_receipt','unknown_state','failed_typed_receipt'])test('send receipt '+mode+' shows failed check and retains original operation',async()=>{
+  const clock=receiptClock(),h=createHarness({clock});await h.start();await h.draft('Uncertain reply');
+  h.setHook((url,r)=>{
+    if(r.action==='send')return response({ok:false,attempt:{state:'unknown'}},409);
+    if(r.action!=='send_receipt')return null;
+    if(mode==='network')throw new Error('Synthetic network outage');
+    if(mode==='invalid_json')return{ok:true,status:200,json:async()=>{throw new Error('Synthetic malformed JSON')}};
+    if(mode==='forbidden')return response({ok:false,error:'forbidden'},403);
+    if(mode==='unavailable')return response({ok:false,error:'send_attempt_unavailable'},503);
+    if(mode==='failed_typed_receipt')return response({ok:true,attempt:{state:'confirmed'}},500);
+    return response(mode==='unknown_state'?{ok:true,attempt:{state:'unexpected'}}:{ok:true});
+  });
+  await h.C.sendReply();const before=h.ids.get('replyStatus').textContent;await h.C.sendReply();
+  const text=h.ids.get('replyStatus').textContent;assert.notEqual(text,before);assert.match(text,/^Не удалось проверить отправку/);assert.doesNotMatch(text,/^Отправлено|^Проверили:/);
+  assert.match(text,mode==='forbidden'?/Нет доступа/:['unavailable','failed_typed_receipt'].includes(mode)?/Сервер временно недоступен/:mode==='network'?/Нет связи с сервером/:/Сервер вернул неполный ответ/);
+  assert.equal(h.ids.get('replyText').value,'Uncertain reply');assert.equal(h.ids.get('sendReply').textContent,'Проверить отправку');assert.equal(h.ids.get('sendReply').disabled,false);assert.equal(clock.count(20000),0);
+  const send=h.calls.filter(r=>r.action==='send'),read=h.calls.filter(r=>r.action==='send_receipt');assert.equal(send.length,1);assert.equal(read.length,1);assert.equal(read[0].operation_id,send[0].operation_id);assert.equal(h.calls.some(r=>r.action==='cancel_send_attempt'),false);
+});
+for(const lateStatus of [200,401])test('send receipt timeout ignores late '+lateStatus+' without changing a newer check or draft',async()=>{
+  const clock=receiptClock(),h=createHarness({clock});await h.start();await h.draft('Uncertain reply');
+  const old=deferred(),next=deferred(),entered=deferred(),nextEntered=deferred();let reads=0,signal;
+  h.setHook((url,r,options)=>{
+    if(r.action==='send')return response({ok:false,attempt:{state:'unknown'}},409);
+    if(r.action==='send_receipt'){if(++reads===1){signal=options.signal;entered.resolve();return old.promise}nextEntered.resolve();return next.promise}
+    return null;
+  });
+  await h.C.sendReply();assert.equal(clock.count(20000),0,'Original send has no new read deadline');
+  const first=h.C.sendReply();await entered.promise;assert.ok(signal instanceof AbortSignal);assert.equal(signal.aborted,false);assert.equal(clock.count(20000),1);
+  await h.C.sendReply();assert.equal(reads,1,'Pending native read suppresses a duplicate click');
+  clock.fire(20000);await first;assert.equal(signal.aborted,true);assert.match(h.ids.get('replyStatus').textContent,/Сервер не ответил за 20 секунд/);assert.equal(h.ids.get('sendReply').disabled,false);assert.equal(h.ids.get('sendReply').textContent,'Проверить отправку');
+  await h.draft('Newer reply after timeout');const second=h.C.sendReply();await nextEntered.promise;const currentFeedback=h.ids.get('replyStatus').textContent;
+  old.resolve(response(lateStatus===200?{ok:true,attempt:{state:'confirmed'}}:{ok:false,error:'unauthorized'},lateStatus));await new Promise(setImmediate);
+  assert.equal(h.W.S.authExpired,false);assert.equal(h.ids.get('replyText').value,'Newer reply after timeout');assert.equal(h.ids.get('replyStatus').textContent,currentFeedback);assert.equal(h.ids.get('sendReply').disabled,true);assert.equal(clock.count(20000),1);
+  next.resolve(response({ok:true,attempt:{state:'unknown'}}));await second;assert.match(h.ids.get('replyStatus').textContent,/^Проверили:/);assert.equal(h.ids.get('sendReply').disabled,false);assert.equal(clock.count(20000),0);
+  const send=h.calls.filter(r=>r.action==='send'),receipts=h.calls.filter(r=>r.action==='send_receipt');assert.equal(send.length,1);assert.equal(receipts.length,2);assert.ok(receipts.every(r=>r.operation_id===send[0].operation_id));assert.equal(h.calls.some(r=>r.action==='cancel_send_attempt'),false);
+});
+test('send receipt failure survives same-account reload without creating another send',async()=>{
+  const h=createHarness();await h.start();await h.draft('Pending after reload');h.setHook((url,r)=>r.action==='send'?response({ok:false,attempt:{state:'unknown'}},409):r.action==='send_receipt'?response({ok:false,error:'send_attempt_unavailable'},503):null);
+  await h.C.sendReply();await h.C.sendReply();const operation=h.calls.find(r=>r.action==='send').operation_id;
+  const next=createHarness({storage:h.storage});await next.start();next.setHook((url,r)=>r.action==='send_receipt'?response({ok:true,attempt:{state:'unknown'}}):null);await next.C.sendReply();
+  assert.equal(next.calls.some(r=>r.action==='send'||r.action==='cancel_send_attempt'),false);assert.equal(next.calls.find(r=>r.action==='send_receipt').operation_id,operation);assert.equal(next.ids.get('replyText').value,'Pending after reload');assert.match(next.ids.get('replyStatus').textContent,/^Проверили:/);
+});
+test('send receipt deadline never applies to explicit cancellation or repeats it',async()=>{
+  const clock=receiptClock(),h=createHarness({clock});await h.start();await h.draft('Uncertain reply');const cancellation=deferred(),entered=deferred();let signal;
+  h.setHook((url,r,options)=>r.action==='send'?response({ok:false,attempt:{state:'unknown'}},409):r.action==='send_receipt'?response({ok:true,attempt:{state:'not_found'}}):r.action==='cancel_send_attempt'?(signal=options.signal,entered.resolve(),cancellation.promise):null);
+  await h.C.sendReply();await h.C.sendReply();const pending=h.C.sendReply('cancel_send_attempt');await entered.promise;assert.equal(clock.count(20000),0);assert.equal(signal,undefined);clock.fire(20000);await h.C.sendReply('cancel_send_attempt');
+  assert.equal(h.calls.filter(r=>r.action==='cancel_send_attempt').length,1);cancellation.resolve(response({ok:true,attempt:{state:'cancelled'}}));await pending;assert.equal(h.ids.get('sendReply').textContent,'Отправить');assert.equal(h.ids.get('replyText').value,'Uncertain reply');assert.equal(h.calls.filter(r=>r.action==='send').length,1);
+});
+for(const category of ['provider_rejected','connection_unavailable'])for(const fromReceipt of [false,true])test(category+' from '+(fromReceipt?'receipt':'send')+' states non-delivery without raw provider text or replay',async()=>{
+  const h=createHarness();await h.start();await h.draft('Rejected reply');const failure={category,message:'Synthetic raw private provider text'};
+  h.setHook((url,r)=>r.action==='send'?response(fromReceipt?{ok:false,attempt:{state:'unknown'}}:{ok:false,attempt:{state:'rejected'},failure},409):r.action==='send_receipt'?response({ok:true,attempt:{state:'rejected'},failure}):null);
+  await h.C.sendReply();if(fromReceipt)await h.C.sendReply();
+  assert.equal(h.ids.get('replyText').value,'Rejected reply');assert.equal(h.ids.get('sendReply').textContent,'Отправить');assert.equal(h.ids.get('sendReply').disabled,false);
+  for(const id of ['replyStatus','deliveryFailure']){assert.match(h.ids.get(id).textContent,category==='provider_rejected'?/Мессенджер отклонил сообщение\. Оно не отправлено/:/Сообщение не отправлено: подключение бота недоступно\. Черновик сохранён\./);assert.doesNotMatch(h.ids.get(id).textContent,/Synthetic raw|не подтверждена/)}
+  assert.equal(h.calls.filter(r=>r.action==='send').length,1);assert.equal(h.calls.filter(r=>r.action==='send_receipt').length,fromReceipt?1:0);
 });
 test('successful send and refresh reports sent without inferring client reading',async()=>{
   const h=createHarness();await h.start();await h.draft('Synthetic text');h.setHook((url,r)=>r.action==='send'?response({ok:true}):null);
