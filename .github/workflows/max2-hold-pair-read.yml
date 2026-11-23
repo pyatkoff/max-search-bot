@@ -1,0 +1,55 @@
+name: "MAX2 original two HOLD observations"
+
+on:
+  push:
+    branches: [ops/max2-hold-pair-read-20261123]
+
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+
+concurrency:
+  group: max2-original-hold-pair-read-20261123
+  cancel-in-progress: false
+
+jobs:
+  diagnose:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' && github.triggering_actor == 'pyatkoff' &&
+      github.event.created == true &&
+      github.event.before == '0000000000000000000000000000000000000000' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - name: Check out the native run source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify the finite carrier without private access
+        run: python3 -B tests/max2_hold_pair_read_20261123/test_runner.py
+      - name: Resolve accepted source before loading credentials
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 -B tools/max2_hold_pair_read_20261123/runner.py --prepare
+      - name: Read the two original immutable profiles once
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          STANDBY_DEPLOY_SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 -B tools/max2_hold_pair_read_20261123/runner.py --execute
+      - name: Preserve the allowlisted observation
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: max2-original-hold-pair-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/max2-original-hold-pair-result.json
+          if-no-files-found: ignore
+          retention-days: 90
