@@ -1,0 +1,87 @@
+name: Read scoped ingress listeners and local vhost health
+on:
+  push:
+    branches: [audit/1566-next-release-admission-1664]
+    paths: [.github/workflows/read-1664-serving-host-listeners.yml]
+permissions: {}
+jobs:
+  read:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35)
+          found=[]
+          for line in scan.stdout.splitlines():
+              fields=line.split()
+              if len(fields)<3 or fields[0].startswith('#'):continue
+              try:fingerprint='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fingerprint=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(line)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Inspect the public host listeners and scoped HTTP responses
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 \
+            -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null \
+            -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$USER_VALUE@$HOST_VALUE" 'bash -s' <<'REMOTE'
+          set -eu
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          test "$(git rev-parse HEAD)" = 'b3386d558f72e9eb80acefad9e87b1ab91b4426f'
+          host='app.anytoour.ru'
+          read -r addr _ < <(getent ahostsv4 "$host")
+          case "$addr" in (*[!0-9.]*|'') exit 1;; esac
+          ss -ltnpH 2>/dev/null | awk '$4 ~ /:(80|443)$/ {
+            ep=$4; gsub(/^.*:/,"",ep);
+            if($4 ~ /^127[.]/) b="loopback"; else if($4 ~ /^0[.]0[.]0[.]0:|^\*:/) b="wildcard"; else b="interface";
+            p="unavailable"; if (match($0,/users:\(\("[a-zA-Z0-9_.-]+"/)) {p=substr($0,RSTART+9,RLENGTH-10)}
+            printf "listener port=%s bind=%s recvq=%d sendq=%d process=%s\n",ep,b,$2,$3,p
+          }'
+          for service in nginx apache2 httpd haproxy caddy; do
+            count="$(ps -C "$service" -o comm= 2>/dev/null | awk 'END{print NR}')"
+            if [ "$count" -gt 0 ]; then printf 'web_process=%s count=%s\n' "$service" "$count"; fi
+          done
+          probe() {
+            label="$1"; shift
+            result="$(curl --noproxy '*' --connect-timeout 3 --max-time 8 -s -o /dev/null -I -w 'http=%{http_code} tls=%{time_appconnect} first_byte=%{time_starttransfer}' "$@" 2>/dev/null)" && code=0 || code=$?
+            printf '%s exit=%s %s\n' "$label" "$code" "$result"
+          }
+          probe ipv4_http --resolve "$host:80:$addr" "http://$host/" &
+          probe ipv4_vhost --resolve "$host:80:$addr" "http://$host/poisk-turov/" &
+          probe ipv4_tls --resolve "$host:443:$addr" "https://$host/" &
+          probe loopback_tls --resolve "$host:443:127.0.0.1" "https://$host/" &
+          probe loopback_http -H "Host: $host" 'http://127.0.0.1/' &
+          wait
+          REMOTE
+      - name: Remove authentication material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
