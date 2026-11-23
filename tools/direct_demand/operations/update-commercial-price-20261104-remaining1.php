@@ -116,12 +116,12 @@ try {
         // Legacy manual pins above remain unchanged; only scheduled monitoring admits these bytes.
         // PR1649 adds the separately fenced Aloft /1678 button repair. PRICE retains
         // the ordinary identities and only accepts these exact reviewed runtime files.
-        'integrations/ChannelPostApiTransport.php'=>'5121aa7f107f2aee0b8080346b630d2147116426',
+        'integrations/ChannelPostApiTransport.php'=>'0735da76a0c9f62f5c418343dd6ee172dd992b2a',
         'services/ChannelPostAutomationService.php'=>'9914ff7af27ab714204f7478a75a5dd971de152d',
         'services/ChannelPostEntryService.php'=>'67495424fdf415b489240e7115e9efedfb1d5c3b',
         'services/ConversationRecordClock.php'=>'8f1d5b9a4888174a0867408594a164fc776ddbe4',
         'services/ChannelPostButtonTransport.php'=>'2dffadf8679caf6e9ed364a45ecfc44f7eb67388',
-        'services/ChannelPostRegistryService.php'=>'180d65146a8e085376d96355f721b7a722451129',
+        'services/ChannelPostRegistryService.php'=>'5543aaa24de234b26d881fba75670429f2913dcf',
         'services/ChannelPostReconciliationService.php'=>'1fa260e9720a8421227ecbe740bfbe33a42e398d',
         'services/MaxTransport.php'=>'2cb4f8786b4704a8e62a3a9c40dc2cc73dad6159',
         'services/ProjectConfig.php'=>'63c17c8103412f8cff8cdcc4bbb062e744106af9',
