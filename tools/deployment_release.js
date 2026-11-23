@@ -65,6 +65,11 @@ const HOTEL_RANKED_46 = Object.freeze({...HOTEL_FOUR_TRANSFER,
   plan_path:'config/anytour_ranked_46_20261123.json',plan_size:712,plan_blob:'f3e0d4ee289f189eb5c43aaf85f8024c3de801ba',
   plan_digest:'30d58e6649877a0eb07deb7e2fddcfa99c92081aac5fbef8c3c2b1d7a4a92833',native_run:'45175721919',native_artifact:14818587717,
   native_zip_bytes:94348,native_zip_digest:'cf776ab108e8b023aaf6217fa1d5e43dce6047d462e2c96295cc94175332d0cc'});
+const HOTEL_RANKED_CONTINUATION = Object.freeze({...HOTEL_RANKED_46,
+  branch:'ops/anytour-hotel-ranked-37-continue-20261123',operation:'hotel_ranked_37_continuation'});
+const ORIGINAL_RANKED_TRANSFER = Object.freeze({
+  run:45277253456,job:138052141297,sha:'0689691b5aa4b8cd5fbf2f3629d9e9dc76df7e9b',
+  artifact:14868735835,digest:'sha256:d861a07884fb09aaeb917cc0f2991e4dad9a20768f138ecbf7d708293aa8c76e'});
 const HOTEL_REMAINING_TRANSFER = Object.freeze({...HOTEL_NEXT_TRANSFER,
   branch:'ops/anytour-hotel-remaining-apply-20261123',operation:'hotel_remaining_transfer'});
 const ORIGINAL_NEXT_TRANSFER = Object.freeze({
@@ -1724,9 +1729,8 @@ async function resolveHotelRegistryRead({env,event,api}) {
 }
 /** The reviewed plan is data, not user consent. Only a separate first owner push
  * can select the existing editor; this resolver itself performs GETs only. */
-async function proveOriginalNextTransfer(api) {
-  const {run,job,sha:head,artifact,digest:artifactDigest}=ORIGINAL_NEXT_TRANSFER;
-  const p=HOTEL_NEXT_TRANSFER;
+async function proveOriginalHotelTransfer(api,p,original,artifactName) {
+  const {run,job,sha:head,artifact,digest:artifactDigest}=original;
   const [source,jobs,proof]=await Promise.all([
     api('GET',API_ROOT+'/actions/runs/'+run),
     api('GET',API_ROOT+'/actions/runs/'+run+'/attempts/1/jobs?per_page=100'),
@@ -1745,9 +1749,13 @@ async function proveOriginalNextTransfer(api) {
     requireValue(steps.length===1&&steps[0].status==='completed'&&steps[0].conclusion===outcome,
       'original_hotel_transfer_result_changed');
   }
-  requireValue(proof?.id===artifact&&proof.digest===artifactDigest&&proof.name==='issue-1566-hotel-next-transfer'
+  requireValue(proof?.id===artifact&&proof.digest===artifactDigest&&proof.name===artifactName
     &&proof.workflow_run?.id===run&&proof.workflow_run.head_sha===head
     &&proof.workflow_run.head_branch===p.branch,'original_hotel_transfer_artifact_changed');
+}
+
+function proveOriginalNextTransfer(api) {
+  return proveOriginalHotelTransfer(api,HOTEL_NEXT_TRANSFER,ORIGINAL_NEXT_TRANSFER,'issue-1566-hotel-next-transfer');
 }
 
 async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
@@ -1793,13 +1801,13 @@ async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
   requireValue(bytes.length===p.plan_size&&bytes.toString('base64')===encoded&&gitBlob(bytes)===p.plan_blob
     &&crypto.createHash('sha256').update(bytes).digest('hex')===p.plan_digest,'hotel_transfer_plan_changed');
   if(p===HOTEL_REMAINING_TRANSFER)await proveOriginalNextTransfer(api);
+  if(p===HOTEL_RANKED_CONTINUATION)await proveOriginalHotelTransfer(api,HOTEL_RANKED_46,ORIGINAL_RANKED_TRANSFER,'issue-1566-hotel-ranked-46-transfer');
   const location=await readRecord(api),result=await resolveCurrent(api,c,location);
   requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
   requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_transfer_branch_changed');
   return {...await finalResolution(api,c,location,result),write_operation:p.operation};
 }
-async function resolveRankedHotelTransfer(inputs) {
-  const p = HOTEL_RANKED_46;
+async function resolveRankedHotelTransfer(inputs,p=HOTEL_RANKED_46) {
   const run = await inputs.api('GET', API_ROOT+'/actions/runs/'+p.native_run);
   runIdentity(run, {id:p.native_run, attempt:1, head:'db1157a5091ff0f708d7825acf6ca4e1dc9a5339',
     workflow:PREFIX+'read-1566-telegram-46-20261123.yml', event:'push',
@@ -1828,6 +1836,7 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_FOUR_TRANSFER.branch)return resolveHotelTransfer({env,event,api});
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_NEXT_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_NEXT_TRANSFER);
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_RANKED_46.branch)return resolveRankedHotelTransfer({env,event,api});
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_RANKED_CONTINUATION.branch)return resolveRankedHotelTransfer({env,event,api},HOTEL_RANKED_CONTINUATION);
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_REMAINING_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_REMAINING_TRANSFER);
   const startedAt=now();
   const c=await sourceContext(env,event,api);

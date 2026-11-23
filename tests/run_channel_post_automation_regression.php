@@ -1439,6 +1439,22 @@ $remainingTransfer = AnyTour\ExistingPostBatch\selectRemainingTransferRows($next
 channelPostCheck('continuation selects only the two untouched posts',
     [array_column($remainingTransfer['rows'],'hotel_id'),array_column($remainingTransfer['rows'],'target_message_id')],
     [[408,466],['997','1101']]);
+$rankedDigest = AnyTour\ExistingPostBatch\RANKED_ORIGINAL_PLAN;
+$rankedRaw = file_get_contents(__DIR__.'/../config/anytour_ranked_46_20261123_01.json');
+$rankedPlan = AnyTour\ExistingPostBatch\transferPlanFromBytes($rankedRaw, $rankedDigest, $rankedDigest);
+$rankedTail = AnyTour\ExistingPostBatch\selectRankedContinuationRows($rankedPlan, $rankedDigest);
+channelPostCheck('ranked continuation selects exactly 37 untouched original rows',
+    [$rankedTail['operation'], count($rankedTail['rows']), $rankedTail['rows'],
+        array_intersect(['224','249','266'], array_column($rankedTail['rows'], 'target_message_id'))],
+    [AnyTour\ExistingPostBatch\RANKED_CONTINUATION_OPERATION, 37, array_slice($rankedPlan['rows'], 3), []]);
+$invalidRankedPlan = $rankedPlan;
+[$invalidRankedPlan['rows'][1], $invalidRankedPlan['rows'][2]] = [$rankedPlan['rows'][2], $rankedPlan['rows'][1]];
+foreach ([[$invalidRankedPlan, $rankedDigest], [$rankedPlan, str_repeat('0',64)]] as [$candidate, $digest]) {
+    $reason = null;
+    try { AnyTour\ExistingPostBatch\selectRankedContinuationRows($candidate, $digest); }
+    catch (RuntimeException $e) { $reason = $e->getMessage(); }
+    channelPostCheck('ranked continuation refuses changed prefix or plan digest', $reason, 'transfer_ranked_continuation_scope_invalid');
+}
 $rejectedTransfer = ['http'=>400,'transport_error'=>false,
     'data'=>['ok'=>false,'error_code'=>400,'description'=>'Bad Request: MESSAGE_ID_INVALID']];
 $firstTransferEvents = [

@@ -1,7 +1,7 @@
 name: "#1566 Apply approved ranked Telegram hotel transfers"
 on:
   push:
-    branches: [ops/anytour-hotel-ranked-46-apply-20261123]
+    branches: [ops/anytour-hotel-ranked-46-apply-20261123, ops/anytour-hotel-ranked-37-continue-20261123]
 permissions:
   contents: read
   actions: read
@@ -43,7 +43,13 @@ jobs:
           set -euo pipefail
           test "$READY" = true
           test "$PERFORM_ACTIONS" = true
-          test "$WRITE_OPERATION" = hotel_ranked_46_transfer
+          case "$GITHUB_REF:$WRITE_OPERATION" in
+            refs/heads/ops/anytour-hotel-ranked-46-apply-20261123:hotel_ranked_46_transfer)
+              check=--check-ranked-transfer-plan ;;
+            refs/heads/ops/anytour-hotel-ranked-37-continue-20261123:hotel_ranked_37_continuation)
+              check=--check-ranked-continuation ;;
+            *) exit 2 ;;
+          esac
           test "$REPOSITORY_SHA" = "$GITHUB_SHA"
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           [[ "$APPLICATION_SHA" =~ ^[a-f0-9]{40}$ ]]
@@ -63,20 +69,24 @@ jobs:
               assert blob==item['git_blob'],'chunk_git_blob_changed'
           PY
           for digest in 12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce; do
-            php tools/anytour_existing_post_batch.php --check-ranked-transfer-plan "$digest" > "pub/check-$digest.json"
+            php tools/anytour_existing_post_batch.php "$check" "$digest" > "pub/check-$digest.json"
           done
           python3 - <<'PY'
-          import json, pathlib
+          import json, os, pathlib
           chunks=[{'path': 'config/anytour_ranked_46_20261123_01.json', 'bytes': 62146, 'git_blob': '5a5c31c0e73784e203643ed51d8ec1c9d079b3bd', 'sha256': '12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce', 'hotels': [15693, 293, 949, 1972, 2588, 24909, 32342, 57028, 65877, 73343, 43689, 47025, 139, 435, 513, 2470, 56092, 59114, 63191, 76588, 77914, 106, 111, 114, 140, 195, 206, 231, 246, 263, 266, 371, 416, 465, 497, 932, 948, 964, 975, 1013], 'messages': ['224', '249', '266', '316', '346', '372', '594', '626', '646', '716', '884', '901', '905', '906', '908', '914', '915', '917', '918', '923', '924', '928', '930', '948', '949', '952', '963', '969', '970', '999', '1003', '1037', '1051', '1052', '1057', '1059', '1087', '1110', '1131', '920'], 'operation': 'anytour_hotel_transfer_46_20261123_01'}]
           out={}
           for item in chunks:
+              if os.environ['WRITE_OPERATION']=='hotel_ranked_37_continuation':
+                  item['hotels']=item['hotels'][3:]
+                  item['messages']=item['messages'][3:]
+                  item['operation']='anytour_hotel_transfer_ranked_remaining37_20261123'
               digest=item['sha256']
               checked=json.loads(pathlib.Path('pub/check-'+digest+'.json').read_bytes())
               assert checked['ok'] is True and checked['mode']=='offline_plan_check' and checked['operation']==item['operation']
               assert checked['production_writes']==checked['provider_writes']==0 and checked['plan_sha256']==digest
               assert [r['hotel_id'] for r in checked['rows']]==item['hotels']
               assert [r['target_url'] for r in checked['rows']]==['https://t.me/anytour/'+m for m in item['messages']]
-              out[digest]={'state':'not_started','hotel_ids':item['hotels']}
+              out[digest]={'state':'not_started','hotel_ids':item['hotels'],'message_ids':item['messages'],'operation':item['operation']}
           pathlib.Path('pub/summary.json').write_text(json.dumps(out))
           PY
       - name: Pin established SSH host continuity and authentication identity
@@ -128,6 +138,10 @@ jobs:
           options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          apply=--apply-ranked-transfer
+          if [[ "$GITHUB_REF" == refs/heads/ops/anytour-hotel-ranked-37-continue-20261123 ]]; then
+            apply=--apply-ranked-continuation
+          fi
           remote='set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru'
           for digest in 12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce; do
             python3 - "$digest" <<'PY'
@@ -139,15 +153,14 @@ jobs:
           p.write_text(json.dumps(summary))
           PY
             status=0
-            ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" "$remote; php tools/anytour_existing_post_batch.php --apply-ranked-transfer $digest $APPLICATION_SHA $GITHUB_RUN_ID" > "pub/result-$digest.json" || status=$?
+            ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" "$remote; php tools/anytour_existing_post_batch.php $apply $digest $APPLICATION_SHA $GITHUB_RUN_ID" > "pub/result-$digest.json" || status=$?
             python3 - "$digest" "$status" <<'PY'
           import json, os, pathlib, sys
           digest,status=sys.argv[1],int(sys.argv[2])
-          items=[{'path': 'config/anytour_ranked_46_20261123_01.json', 'bytes': 62146, 'git_blob': '5a5c31c0e73784e203643ed51d8ec1c9d079b3bd', 'sha256': '12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce', 'hotels': [15693, 293, 949, 1972, 2588, 24909, 32342, 57028, 65877, 73343, 43689, 47025, 139, 435, 513, 2470, 56092, 59114, 63191, 76588, 77914, 106, 111, 114, 140, 195, 206, 231, 246, 263, 266, 371, 416, 465, 497, 932, 948, 964, 975, 1013], 'messages': ['224', '249', '266', '316', '346', '372', '594', '626', '646', '716', '884', '901', '905', '906', '908', '914', '915', '917', '918', '923', '924', '928', '930', '948', '949', '952', '963', '969', '970', '999', '1003', '1037', '1051', '1052', '1057', '1059', '1087', '1110', '1131', '920'], 'operation': 'anytour_hotel_transfer_46_20261123_01'}]
-          item=next(r for r in items if r['sha256']==digest)
           summary=pathlib.Path('pub/summary.json')
           states=json.loads(summary.read_bytes())
           state=states[digest]
+          item={'hotels':state['hotel_ids'],'messages':state['message_ids'],'operation':state['operation']}
           p=pathlib.Path('pub/result-'+digest+'.json')
           assert 0<p.stat().st_size<=1000000,'original_result_missing_or_unbounded_requires_readback'
           d=json.loads(p.read_bytes())
