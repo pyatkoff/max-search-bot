@@ -48,6 +48,9 @@ const SCHEDULES = new Map([[PREFIX+'live-session-diagnostics.yml','25 * * * *'],
 const HOTEL_REGISTRY_READ = Object.freeze({branch:'ops/anytour-hotel-four-read-20261123',
   workflow:PREFIX+'read-1566-main-hotel-registry.yml',job:'registry',operation:'hotel_four_registry',
   owner:'pyatkoff',owner_id:226193297,repository_id:1342493152});
+const MAX2_HOLD_PAIR_READ = Object.freeze({branch:'ops/max2-hold-pair-read-20261123',
+  workflow:PREFIX+'max2-hold-pair-read.yml',job:'diagnose',operation:'max2_hold_pair_20261123',
+  owner:'pyatkoff',owner_id:226193297,repository_id:1342493152});
 const HOTEL_FOUR_TRANSFER = Object.freeze({branch:'ops/anytour-hotel-four-apply-20261123',
   workflow:PREFIX+'edit-1566-historical-telegram-with-channel-default.yml',job:'transfer',operation:'hotel_four_transfer',
   owner:'pyatkoff',owner_id:226193297,repository_id:1342493152,
@@ -1693,6 +1696,45 @@ async function finalResolution(api,c,location,result) {
   requireValue((await api('GET',API_ROOT+'/git/ref/heads/main'))?.object?.sha===c.sha,'main_changed');
   return result;
 }
+/** One initial owner push admits only the two original MAX2 HOLD observations. */
+async function resolveMax2HoldPairRead({env,event,api}) {
+  const p=MAX2_HOLD_PAIR_READ,ref='refs/heads/'+p.branch;
+  requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF===ref
+    &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+p.workflow+'@'+ref
+    &&env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_JOB===p.job
+    &&env.GITHUB_RUN_ATTEMPT==='1'&&sha(env.GITHUB_SHA)&&positive(env.GITHUB_RUN_ID)
+    &&env.GITHUB_ACTOR===p.owner&&env.GITHUB_TRIGGERING_ACTOR===p.owner
+    &&event?.repository?.full_name===REPOSITORY&&event.repository.id===p.repository_id
+    &&event.sender?.id===p.owner_id&&event.sender.login===p.owner
+    &&event.ref===ref&&event.after===env.GITHUB_SHA&&event.before==='0'.repeat(40)
+    &&event.created===true&&event.deleted===false&&event.forced===false,
+    'untrusted_max2_hold_pair_read');
+  const c={sha:env.GITHUB_SHA,id:String(env.GITHUB_RUN_ID),attempt:1,event:'push',workflow:p.workflow,job:p.job};
+  requireValue((await api('GET',API_ROOT+'/git/ref/heads/main'))?.object?.sha===c.sha,'main_changed');
+  const branchPath=API_ROOT+'/git/ref/heads/'+p.branch;
+  requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'max2_hold_pair_read_branch_changed');
+  const run=await api('GET',API_ROOT+'/actions/runs/'+c.id);
+  runIdentity(run,{id:c.id,attempt:1,head:c.sha,workflow:p.workflow,event:'push',completed:false,branch:p.branch});
+  // The run summary may lag its already assigned native job below.
+  requireValue(['queued','in_progress'].includes(run.status),'workflow_not_active');
+  requireValue(run.actor?.id===p.owner_id&&run.actor.login===p.owner
+    &&run.triggering_actor?.id===p.owner_id&&run.triggering_actor.login===p.owner,
+    'foreign_max2_hold_pair_read_actor');
+  const jobs=boundedList(await api('GET',API_ROOT+'/actions/runs/'+c.id+'/attempts/1/jobs?per_page=100'),
+    'jobs','max2_hold_pair_read_jobs_incomplete');
+  requireValue(jobs.length===1&&jobs[0].name===p.job&&jobs[0].run_id===run.id&&jobs[0].run_attempt===1
+    &&jobs[0].head_sha===c.sha&&jobs[0].status==='in_progress'&&jobs[0].conclusion===null
+    &&positive(jobs[0].runner_id),'max2_hold_pair_read_job_not_active');
+  const runs=boundedList(await api('GET',API_ROOT+'/actions/workflows/'+p.workflow.slice(PREFIX.length)
+    +'/runs?branch='+encodeURIComponent(p.branch)+'&per_page=100'),
+    'workflow_runs','max2_hold_pair_read_inventory_incomplete');
+  requireValue(runs.length===1&&String(runs[0].id)===c.id,'max2_hold_pair_read_replay_forbidden');
+  runIdentity(runs[0],{id:c.id,attempt:1,head:c.sha,workflow:p.workflow,event:'push',completed:false,branch:p.branch});
+  const location=await readRecord(api),result=await resolveCurrent(api,c,location);
+  requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
+  requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'max2_hold_pair_read_branch_changed');
+  return {...await finalResolution(api,c,location,result),read_operation:p.operation};
+}
 /** One initial owner push admits only the four-hotel observation, before SSH. */
 async function resolveHotelRegistryRead({env,event,api}) {
   const p=HOTEL_REGISTRY_READ,ref='refs/heads/'+p.branch;
@@ -1832,6 +1874,7 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
     return resolution(x.source,GATE_RECOVERY.sha,'installed');
   }
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_REGISTRY_READ.branch)return resolveHotelRegistryRead({env,event,api});
+  if(env.GITHUB_REF==='refs/heads/'+MAX2_HOLD_PAIR_READ.branch)return resolveMax2HoldPairRead({env,event,api});
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_FOUR_TRANSFER.branch)return resolveHotelTransfer({env,event,api});
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_NEXT_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_NEXT_TRANSFER);
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_MAX_SUGAR_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_MAX_SUGAR_TRANSFER);

@@ -732,7 +732,7 @@ final class ArchiveResearchReadService
             'source_kind'=>$row['source_kind'],'read_status'=>$row['read_status'],'text'=>null,'role'=>'unknown',
             'direction'=>'unknown','role_verified'=>false,'created_at'=>null,'version_at'=>self::time($row['version_at']),
             'deleted'=>(int)$row['is_deleted']!==0,'forwarded'=>null,'media'=>null,'media_contents_read'=>false,
-            'historical_first_available_at'=>null];
+            'historical_first_available_at'=>null,'native_content'=>self::nativeContent([])];
         if($row['read_status']!=='available')return$item;
         try{$record=json_decode((string)$raw,true,64,JSON_THROW_ON_ERROR|JSON_BIGINT_AS_STRING);}catch(Throwable$e){$record=null;}
         if(!is_array($record)){$item['read_status']='malformed_record';return$item;}
@@ -754,6 +754,7 @@ final class ArchiveResearchReadService
         $item['text']=preg_replace('/(?<![\pL\pN_])@[A-Za-z][A-Za-z0-9_]{3,31}\b/u','[контакт скрыт]',$item['text'])??$item['text'];
         $item['text_minimized']=true;$item['selection_links_unread']=$selection;$item['links_redacted']=$links;
         $item['record_sha256']=hash('sha256',(string)$raw);
+        $item['native_content']=self::nativeContent($record);
         $item['media']=[];
         foreach((array)($record['attachments']??[])as$attachment){
             if(!is_array($attachment)){$item['media'][]=['type'=>'unknown','availability'=>'unknown'];continue;}
@@ -763,6 +764,31 @@ final class ArchiveResearchReadService
             if(count($item['media'])>=100){$item['media_truncated']=true;break;}
         }
         return$item;
+    }
+
+    /** Versioned producer metadata, not a reconstruction from wording and not Telegram authentication. */
+    private static function nativeContent(array $record): array
+    {
+        $unknown=['schema_version'=>null,'producer'=>null,'source_format'=>'unknown','kind'=>'unknown','text_origin'=>'unknown'];
+        $native=$record['native_content']??null;
+        if(($record['source_kind']??null)!=='business_message'||!is_array($native)||count($native)!==5
+            ||($native['schema_version']??null)!==1||($native['producer']??null)!=='TelegramDialogueNormalizer.v1'
+            ||($native['source_format']??null)!=='telegram_bot_api_message'||($native['text_origin']??null)!=='unknown'
+            ||!in_array($native['kind']??null,['text','caption','contact','media','unknown'],true))return$unknown;
+        $text=$record['text']??null;$media=$record['attachments']??null;$kind=$native['kind'];
+        if(!is_string($text)||!is_array($media))return$unknown;
+        $file=$media[0]??null;
+        $supportedMedia=count($media)===1&&is_array($file)&&count($file)===4
+            &&in_array($file['type']??null,['image','audio','video','file'],true)
+            &&($file['availability']??null)==='provider_reference_only'
+            &&is_string($file['telegram_file_id']??null)&&$file['telegram_file_id']!==''&&preg_match('//u',$file['telegram_file_id'])===1
+            &&array_key_exists('file_unique_id',$file)&&($file['file_unique_id']===null
+                ||(is_string($file['file_unique_id'])&&preg_match('//u',$file['file_unique_id'])===1));
+        if(($kind==='text'&&($text===''||$media!==[]))||($kind==='caption'&&($text===''||!$supportedMedia))
+            ||($kind==='contact'&&($text!==''||$media!==[]))||($kind==='media'&&($text!==''||!$supportedMedia)))return$unknown;
+        // Rebuild the bounded object rather than exposing arbitrary metadata from the stored JSON.
+        return['schema_version'=>1,'producer'=>'TelegramDialogueNormalizer.v1','source_format'=>'telegram_bot_api_message',
+            'kind'=>$kind,'text_origin'=>'unknown'];
     }
 
     private function base(string$fence):array
