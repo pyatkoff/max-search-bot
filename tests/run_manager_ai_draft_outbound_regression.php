@@ -212,6 +212,123 @@ function draftOutboundMetadata(string $json): array
     unset($metadata['_recorded_clock'],$metadata[ManagerReplyQueueService::SEND_BOUNDARY]);return $metadata;
 }
 
+function draftOutboundTelegramTransport(string $root,string $parent): void
+{
+    $dir=$parent.'/telegram-transport';
+    foreach ([$dir,$dir.'/services',$dir.'/integrations',$dir.'/contracts'] as $path) mkdir($path,0700);
+    foreach (['ManagerConversationService','ManagerPushService','ManagerSendGuardService','ManagerDeliveryStateService',
+        'ConversationDb','ConversationRecorder','MetrikaConversionGoalService','ProjectMaxMessengerFactory',
+        'ProjectTelegramMessengerFactory','ManagerReplyQueueService','DiagnosticLogger'] as $dependency)
+        file_put_contents($dir.'/services/'.$dependency.'.php',"<?php\n// Isolated external dependency only.\n");
+    file_put_contents($dir.'/integrations/WebsiteMessengerAdapter.php',"<?php\n");
+    foreach (['integrations/TelegramMessengerAdapter.php','services/ManagerOutboundService.php',
+        'services/ManagerSendAttemptService.php','contracts/MessengerInterface.php','contracts/OutboundMetadataMessengerInterface.php'] as $path) {
+        if (!copy($root.'/'.$path,$dir.'/'.$path)) throw new RuntimeException('Cannot copy Telegram transport source');
+        draftOutboundCheck($path.' executes exact bytes in the isolated transport process',hash_file('sha256',$root.'/'.$path)===hash_file('sha256',$dir.'/'.$path));
+    }
+    $worker= <<<'PHP'
+<?php
+declare(strict_types=1);
+// Disabled native curl functions are replaced only inside this subprocess.
+// The real adapter, outbound service and durable receipt service remain intact.
+final class TelegramResultFixture
+{
+    public static PDO $pdo;
+    public static TelegramMessengerAdapter $adapter;
+    public static $response=false;
+    public static int $http=0,$errno=0,$calls=0,$passed=0;
+    public static array $events=[],$logs=[],$messages=[];
+    public static function row(): array {return ['id'=>42,'manager_id'=>7,'status'=>'manager','project_key'=>'appleservice39','source_id'=>3,'channel'=>'telegram','external_chat_id'=>'123456789'];}
+}
+foreach (['CURLOPT_RETURNTRANSFER','CURLOPT_POST','CURLOPT_POSTFIELDS','CURLOPT_CONNECTTIMEOUT','CURLOPT_TIMEOUT','CURLINFO_HTTP_CODE'] as $i=>$name) if(!defined($name))define($name,$i+1);
+function curl_init($url) {if($url!=='https://api.telegram.org/botfixture-private-token/sendMessage'&&$url!=='https://api.telegram.org/botfixture-private-token/sendDocument')throw new RuntimeException('Unexpected synthetic destination');return new stdClass();}
+function curl_setopt($handle,$option,$value): bool {return true;}
+function curl_exec($handle) {TelegramResultFixture::$calls++;return TelegramResultFixture::$response;}
+function curl_errno($handle): int {return TelegramResultFixture::$errno;}
+function curl_error($handle): string {return 'fixture-private-curl-error';}
+function curl_getinfo($handle,$option): int {return TelegramResultFixture::$http;}
+function curl_close($handle): void {}
+if(!class_exists('CURLFile')){class CURLFile{public function __construct(...$args){}}}
+class ConversationDb {public static function connection(): PDO {return TelegramResultFixture::$pdo;}}
+class ManagerConversationService {public static function visibleConversation(int $id,int $actor): ?array {return $id===42&&$actor===7?TelegramResultFixture::row():null;}}
+class ManagerSendGuardService {public static function acquire(...$args): bool{return true;}public static function release(...$args): void{}public static function isImmediateDuplicate(...$args): bool{return false;}}
+class ManagerReplyQueueService {public const SEND_BOUNDARY='reply_boundary';public static function captureSendBoundary(int $id): array{return ['version'=>1,'customer_message_id'=>0,'request_event_id'=>0];}}
+class ProjectTelegramMessengerFactory {public static function forConversation(...$args): TelegramMessengerAdapter{return TelegramResultFixture::$adapter;}}
+class ConversationControlService {public static function event(...$args): bool {TelegramResultFixture::$events[]=$args;return true;}}
+class ManagerPushService {public static function notifyConversation(...$args): void{}}
+class ProjectConfig {public static function projectId(): string{return 'anytour';}}
+class MetrikaConversionGoalService {public static function managerReply(...$args): void{throw new RuntimeException('Foreign project conversion');}}
+class ConversationRecorder {public static function outboundForConversation(...$args): bool{TelegramResultFixture::$messages[]=$args;return true;}public static function attachmentPreview(...$args): string{return 'File';}}
+class DiagnosticLogger {public static function log(...$args): void{TelegramResultFixture::$logs[]=$args;}public static function error(...$args): void{TelegramResultFixture::$logs[]=$args;}}
+require __DIR__.'/integrations/TelegramMessengerAdapter.php';
+require __DIR__.'/services/ManagerOutboundService.php';
+function tgResultCheck(string $label,bool $ok): void {if(!$ok)throw new RuntimeException($label);TelegramResultFixture::$passed++;}
+function tgResultReply(int $http,int $errno,$body): void {TelegramResultFixture::$http=$http;TelegramResultFixture::$errno=$errno;TelegramResultFixture::$response=is_array($body)?json_encode($body):$body;}
+function tgResultSend(int $id): array {return ManagerOutboundService::sendAttempt(42,7,str_pad(dechex($id),32,'0',STR_PAD_LEFT),'Синтетический ответ');}
+$pdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+TelegramResultFixture::$pdo=$pdo;
+$pdo->exec("CREATE TABLE managers(id INTEGER PRIMARY KEY,is_active INTEGER);INSERT INTO managers VALUES(7,1);
+CREATE TABLE conversations(id INTEGER PRIMARY KEY);INSERT INTO conversations VALUES(42);
+CREATE TABLE manager_send_attempts(manager_id INTEGER,operation_id TEXT,conversation_id INTEGER,context_hash TEXT,request_hash TEXT,operation_kind TEXT,state TEXT,result_json TEXT,created_at TEXT,updated_at TEXT,PRIMARY KEY(manager_id,operation_id))");
+TelegramResultFixture::$adapter=new TelegramMessengerAdapter(null,'manager',false,'fixture-private-token','123456789');
+$cases=[
+    ['blocked',403,0,['ok'=>false,'error_code'=>403,'description'=>'Forbidden: bot was blocked by the user; fixture-private-description'],'rejected','blocked'],
+    ['other forbidden',403,0,['ok'=>false,'error_code'=>403,'description'=>'Other fixture-private-description'],'rejected','provider_rejected'],
+    ['bad request',400,0,['ok'=>false,'error_code'=>400,'description'=>'Bad fixture-private-description'],'rejected','provider_rejected'],
+    ['bad credentials',401,0,['ok'=>false,'error_code'=>401,'description'=>'fixture-private-description'],'rejected','connection_unavailable'],
+    ['not found',404,0,['ok'=>false,'error_code'=>404],'rejected','provider_rejected'],
+    ['timeout',0,28,false,'unknown',null],
+    ['partial forbidden',403,28,['ok'=>false,'error_code'=>403],'unknown',null],
+    ['gateway forbidden',403,0,'<html>fixture-private-description</html>','unknown',null],
+    ['malformed JSON',400,0,'{','unknown',null],
+    ['missing provider error',400,0,['ok'=>false],'unknown',null],
+    ['string provider error',400,0,['ok'=>false,'error_code'=>'400'],'unknown',null],
+    ['inconsistent provider error',400,0,['ok'=>false,'error_code'=>403],'unknown',null],
+    ['successful HTTP with refusal',200,0,['ok'=>false,'error_code'=>400],'unknown',null],
+    ['refused HTTP with success',400,0,['ok'=>true,'result'=>['message_id'=>1]],'unknown',null],
+];
+foreach([408,409,429,500,503] as $http)$cases[]=['ambiguous '.$http,$http,0,['ok'=>false,'error_code'=>$http],'unknown',null];
+foreach($cases as $i=>[$label,$http,$errno,$body,$state,$category]){
+    tgResultReply($http,$errno,$body);$before=TelegramResultFixture::$calls;$id=$i+1;$operation=str_pad(dechex($id),32,'0',STR_PAD_LEFT);
+    $result=tgResultSend($id);
+    tgResultCheck($label.' must retain its actual delivery classification',($result['attempt']['state']??null)===$state&&($result['failure']['category']??null)===$category);
+    tgResultCheck($label.' runs exactly one actual adapter request',TelegramResultFixture::$calls===$before+1);
+    $rows=$pdo->query('SELECT * FROM manager_send_attempts ORDER BY operation_id')->fetchAll();
+    tgResultCheck($label.' receipt is readable without transport',(ManagerSendAttemptService::receipt(7,42,$operation)['attempt']['state']??null)===$state);
+    tgResultCheck($label.' replay and cancel retain the original outcome',tgResultSend($id)===$result&&(ManagerSendAttemptService::cancel(7,42,$operation)['attempt']['state']??null)===$state&&TelegramResultFixture::$calls===$before+1);
+    tgResultCheck($label.' repeated checks do not rewrite any old receipt',$rows===$pdo->query('SELECT * FROM manager_send_attempts ORDER BY operation_id')->fetchAll());
+    $public=json_encode([$result,TelegramResultFixture::$logs,TelegramResultFixture::$events,$rows]);
+    tgResultCheck($label.' safe diagnostics contain no provider text token or recipient',!str_contains($public,'fixture-private-')&&!str_contains($public,'123456789'));
+}
+tgResultCheck('refused and uncertain delivery never create a false outbound message',TelegramResultFixture::$messages===[]);
+tgResultReply(200,0,['ok'=>true,'result'=>['message_id'=>713]]);$before=TelegramResultFixture::$calls;
+$result=tgResultSend(100);
+tgResultCheck('success following a refusal clears the old adapter failure',($result['attempt']['state']??null)==='confirmed'&&TelegramResultFixture::$adapter->lastFailure()===null&&TelegramResultFixture::$adapter->lastExternalMessageId()==='713'&&count(TelegramResultFixture::$messages)===1);
+tgResultCheck('confirmed receipt never calls Telegram twice',tgResultSend(100)===$result&&TelegramResultFixture::$calls===$before+1);
+$before=TelegramResultFixture::$calls;
+TelegramResultFixture::$adapter=new TelegramMessengerAdapter(null,'manager',false,'fixture-private-token','987654321');
+$result=tgResultSend(101);
+tgResultCheck('wrong recipient is distinct zero-dispatch rejection',($result['attempt']['state']??null)==='rejected'&&($result['failure']['category']??null)==='attempt_context_changed'&&TelegramResultFixture::$calls===$before);
+TelegramResultFixture::$adapter=new TelegramMessengerAdapter(null,'manager',false,'','123456789');
+$result=tgResultSend(102);
+tgResultCheck('missing token is distinct zero-dispatch rejection',($result['attempt']['state']??null)==='rejected'&&($result['failure']['category']??null)==='connection_unavailable'&&TelegramResultFixture::$calls===$before);
+TelegramResultFixture::$adapter=new TelegramMessengerAdapter(null,'manager',false,'fixture-private-token','123456789');
+tgResultReply(400,0,['ok'=>false,'error_code'=>400,'description'=>'fixture-private-description']);
+tgResultCheck('ordinary media preserves the same explicit provider refusal',!ManagerOutboundService::sendMedia(42,7,__FILE__,'synthetic.txt','text/plain','Synthetic caption')&&(ManagerOutboundService::lastFailure()['category']??null)==='provider_rejected'&&ManagerSendAttemptService::isDefiniteMediaFailure(ManagerOutboundService::lastFailure()));
+$before=TelegramResultFixture::$calls;
+tgResultCheck('missing media is not reported as uncertain delivery',!TelegramResultFixture::$adapter->sendMedia('123456789','file',__DIR__.'/missing','synthetic.txt','text/plain')&&TelegramResultFixture::$adapter->lastFailure()===['category'=>'not_dispatched','http_code'=>0,'reason'=>'file_unavailable']&&TelegramResultFixture::$calls===$before);
+echo json_encode(['passed'=>TelegramResultFixture::$passed]);
+PHP;
+    file_put_contents($dir.'/worker.php',$worker);
+    $disabled=array_filter(array_unique(array_merge(explode(',',(string)ini_get('disable_functions')),['curl_init','curl_setopt','curl_exec','curl_errno','curl_error','curl_getinfo','curl_close'])));
+    $process=proc_open([PHP_BINARY,'-d','disable_functions='.implode(',',$disabled),$dir.'/worker.php'],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes,$dir);
+    if(!is_resource($process))throw new RuntimeException('Cannot start isolated Telegram transport regression');
+    fclose($pipes[0]);$output=stream_get_contents($pipes[1]);fclose($pipes[1]);$error=stream_get_contents($pipes[2]);fclose($pipes[2]);$status=proc_close($process);
+    if($status!==0)throw new RuntimeException('Telegram transport regression failed: '.$error.$output);
+    $result=json_decode($output,true);
+    draftOutboundCheck('actual Telegram adapter through canonical outbound and durable receipts passes isolated outcomes',is_array($result)&&($result['passed']??0)===121);
+}
+
 try {
     foreach ([$tmp,$tmp.'/services',$tmp.'/integrations'] as $directory) mkdir($directory,0700);
     foreach (['ManagerConversationService','ManagerPushService','ManagerSendGuardService',
@@ -474,6 +591,7 @@ try {
     DraftOutboundFixture::$visible = false;
     draftOutboundCheck('inaccessible conversation is rejected before feedback or delivery',ManagerOutboundService::send(42,7,'Ответ',$draftId) === false
         && DraftOutboundFixture::events('feedback') === [] && DraftOutboundFixture::events('adapter_send') === []);
+    draftOutboundTelegramTransport($root,$tmp);
 } finally {
     DraftOutboundFixture::$pdo = null;
     $remove = static function(string $path) use (&$remove): void {
