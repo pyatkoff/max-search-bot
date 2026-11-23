@@ -1,0 +1,143 @@
+{
+  "base_refresh": {
+    "candidate_head_and_ci_not_assumed": true,
+    "changed_paths_count": 4,
+    "core_and_docs_git_blobs_unchanged": true,
+    "previous_base": "cb63be5342d575cf6515a1f5ea408b186a5908d9",
+    "source_inspection_reused_only_for_identical_blobs": true,
+    "static_dependency_git_blobs_unchanged": true
+  },
+  "canonical_parents": [
+    "cb63be5342d575cf6515a1f5ea408b186a5908d9",
+    "cd25b1553e488fdd28effb7f180bf9780fb41793"
+  ],
+  "canonical_source_sha": "2f27dfd7178af35d5760b0d48c3373fef50963c5",
+  "canonical_tree_sha": "4553d8391c7843c2eff8db2e75e19d48b07865bd",
+  "dependency_verification": "All seven local JavaScript/Python files were fetched and verified at cb63. Complete native tools tree entries and local byte hashes prove every blob unchanged at 2f27. Other imports are platform standard libraries. Entire clean canonical BASE tree remains required before and after the unchanged CLI.",
+  "docs_git_blobs": {
+    "AGENTS.md": "3ea4c0f1b9bec95e7af86dcc08cf4ef9a15f1bc8",
+    "START_HERE.md": "cfb042ba3589e4a80cac1171de146673944309fb",
+    "docs/RELEASE_PRIORITY.md": "7d52f33c5af52a47a5c969dc55ff996f64491f82"
+  },
+  "docs_source_sha": "2f27dfd7178af35d5760b0d48c3373fef50963c5",
+  "files": {
+    "tools/deployment_release.js": {
+      "bytes": 141560,
+      "git_blob": "4a1d585ad07bb43bb09f471f72dfa8179770bddb",
+      "sha256": "4b49b08a8255f7ca30cd71e40b616aa2a77dce68c7645a6753be27debd06c7b0"
+    },
+    "tools/release_priority.js": {
+      "bytes": 25080,
+      "git_blob": "7db689ddce0bc35ccae9901e40f63dd8921882d1",
+      "sha256": "6ae0cb278f37a96904baf21dc75d9185b56316042d764a190c03082d9941e4f6"
+    },
+    "tools/release_slot_close.js": {
+      "bytes": 98182,
+      "git_blob": "4ecdcc3190f84c8c3d725e9860645941a48496ab",
+      "sha256": "0bef7e15ced400d0a7291331a8378db628b384dbfd0c6ce5d2ac27c7bf22667b"
+    }
+  },
+  "final_admission_inputs": "UNSEALED_NULL_REQUEST_AND_TEMPLATE; no native admission attempted",
+  "preparation_history": [
+    {
+      "canonical_source_sha": "0689691b5aa4b8cd5fbf2f3629d9e9dc76df7e9b",
+      "state": "PREPARED_UNEXECUTED"
+    },
+    {
+      "admission_result": null,
+      "canonical_source_sha": "e9100b0dbc36e8613d232f2c950bc4b2f9980a6d",
+      "canonical_tree_sha": "b10fd4532a1da9e789b3088f80a4aedfbbe62050",
+      "native_branch_created": false,
+      "native_run_id": null,
+      "request": {
+        "base_sha": "e9100b0dbc36e8613d232f2c950bc4b2f9980a6d",
+        "head_sha": "e70f4ef6fdefb921b3fdb549c06d418d258aead6",
+        "pr_number": 1677,
+        "repository": "pyatkoff/max-search-bot",
+        "version": 1
+      },
+      "request_sha256": "c519b7375eacf214f7429ca8e2a20ac3dd66158a1ca91ba6ac76c0c2eefd8ec7",
+      "root_sealed_at_utc": "2026-11-23 22:53:34 UTC",
+      "state": "PREPARED_THEN_SEALED_UNEXECUTED_SUPERSEDED_BY_BASE_CHANGE",
+      "unreferenced_git_tree": "c04a5d72b2f9a3405d0b1e90ee57f4491697898b"
+    },
+    {
+      "admission_result": null,
+      "base_refresh": {
+        "candidate_head_and_ci_not_assumed": true,
+        "changed_paths_count": 12,
+        "deployment_release_git_blob_changed": true,
+        "docs_git_blobs_unchanged": true,
+        "previous_base": "e9100b0dbc36e8613d232f2c950bc4b2f9980a6d",
+        "priority_and_closer_git_blobs_unchanged": true,
+        "reviewed_coordinator_diff": "Separate hotel_max_sugar_transfer consumer registration and installation guard; final-admission path unchanged.",
+        "source_inspection_reused_only_for_identical_blobs": true
+      },
+      "canonical_source_sha": "cb63be5342d575cf6515a1f5ea408b186a5908d9",
+      "canonical_tree_sha": "7b5d0918102b5138024ca8c7c8f74af98e9a56dd",
+      "native_branch_created": false,
+      "native_run_id": null,
+      "state": "UNSEALED_UNEXECUTED_SUPERSEDED_BY_BASE_CHANGE"
+    }
+  ],
+  "preparation_only": true,
+  "prior_closed_reference": {
+    "native_run_id": 45098093278,
+    "reused_as_admission": false,
+    "source_sha": "3d6e4a4fbd7720f1c5d4f30dbf1da87231547aad"
+  },
+  "repository": "pyatkoff/max-search-bot",
+  "source_verification": "Native Git GET of exact 2f27 commit, complete root/tools/docs trees and cb63...2f27 comparison verified parents, modes, byte lengths, exactly four archive paths and unchanged seven dependency-closure plus three documentation Git blobs. Prior verified bytes and source review are reused. No carrier branch, run or admission exists; historical e910 sealed preparation and its unreferenced tree remain unexecuted.",
+  "static_local_dependency_edges": {
+    "tools/deployment_content_plan.py": [],
+    "tools/deployment_release.js": [
+      "tools/deployment_content_plan.py",
+      "tools/deployment_release_preview.py",
+      "tools/exhausted_verify_1664_forward.js",
+      "tools/partial_install_1662_forward.js",
+      "tools/release_slot_close.js"
+    ],
+    "tools/deployment_release_preview.py": [
+      "tools/deployment_content_plan.py"
+    ],
+    "tools/exhausted_verify_1664_forward.js": [
+      "tools/deployment_release.js",
+      "tools/release_slot_close.js"
+    ],
+    "tools/partial_install_1662_forward.js": [
+      "tools/release_slot_close.js"
+    ],
+    "tools/release_priority.js": [
+      "tools/deployment_release.js",
+      "tools/exhausted_verify_1664_forward.js",
+      "tools/partial_install_1662_forward.js",
+      "tools/release_slot_close.js"
+    ],
+    "tools/release_slot_close.js": [
+      "tools/deployment_release.js"
+    ]
+  },
+  "static_local_dependency_files": {
+    "tools/deployment_content_plan.py": {
+      "bytes": 14833,
+      "git_blob": "a0c7c380039fd106aff488f449218f08a71e6eec",
+      "sha256": "cdcba42b52c202454970ec545cf2d4b4a76b54d8e42015c1607dbc393451f997"
+    },
+    "tools/deployment_release_preview.py": {
+      "bytes": 5549,
+      "git_blob": "7632af3525ae997d7ac1b1ddd76f7b102b5cf66a",
+      "sha256": "f9a3495761b667d82e91e0264fb3acc1f184687f161d5bb0c806705c5aa75b10"
+    },
+    "tools/exhausted_verify_1664_forward.js": {
+      "bytes": 12370,
+      "git_blob": "25dfe2c769d25d7a65bf296927cacdb56ac4d33f",
+      "sha256": "70f80404d8d944565041653f79ea46ddb326b35c80610bc3cf0cf9ee7e7685b2"
+    },
+    "tools/partial_install_1662_forward.js": {
+      "bytes": 24635,
+      "git_blob": "7cf36eb46eaeaacdd93bf0357ce1bf153e6de84a",
+      "sha256": "a320d174cb1cf3af6f695f520d25ae3f09fccc4ac79c679e144b06af051f792a"
+    }
+  },
+  "version": 1
+}
