@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "reviewed_at_utc": "2026-11-23T21:10:00.182651+00:00",
+  "reviewer": "independent scoped source review",
+  "scope": "AnyTour-only optional local cover preparation, draft PR only",
+  "base_sha": "26171ec67ada13822f140aa0ed6b870617263ee4",
+  "source_files": [
+    {
+      "path": "tools/direct_demand/operations/prepare-commercial-covers.py",
+      "sha256": "85aa4cac73c9cdf47f8f1e0535edf4057ca67606864f7c2a5b51152bf6120e1c",
+      "bytes": 11185
+    },
+    {
+      "path": "tools/direct_demand/operations/prepare-commercial-covers-satori.mjs",
+      "sha256": "0ac3b7b7b165931c61ce238a5569729c5eafdedbcacebe2833683e66d8bf13a7",
+      "bytes": 13618
+    },
+    {
+      "path": "tools/direct_demand/operations/satori/src/render.mjs",
+      "sha256": "e808eb0bd1ee7285a205010faf4cb2ffb568cbebb81907cc64cc1234305f48f1",
+      "bytes": 14257
+    },
+    {
+      "path": "tools/direct_demand/operations/satori/package.json",
+      "sha256": "d627db4b00c14b5c05c795ae0ca0e6fb071a40bad02563c3f19d2231e05c81c7",
+      "bytes": 390
+    },
+    {
+      "path": "tools/direct_demand/operations/satori/package-lock.json",
+      "sha256": "694f22df1a92d8fcd1757024780123db1ecb05bee3ebe7a4cf85631dda14ba84",
+      "bytes": 28411
+    }
+  ],
+  "result": "PASS_FOR_DRAFT_REVIEW",
+  "blocking_findings": [],
+  "verified_by_this_review": [
+    "Python default remains Pillow; five existing preparation and render function ASTs match the exact carrier base.",
+    "Satori is selected explicitly and uses the adjacent pinned runtime. Subprocess arguments are a list, with no shell invocation or hidden fallback.",
+    "Bridge verifies input/editorial hashes, identity, photo hashes, role uniqueness and optional source-snapshot lineage before rendering. Original row metadata and full editorial metadata are retained.",
+    "Crop geometry comes from the same planHotelLayout used to render. EXIF-oriented source dimensions and centering-to-focal conversion are applied before staging.",
+    "The bridge uses lstat to refuse an existing resolved output path at entry and before final rename. Cleanup is limited to the unique mkdtemp stage; previous preparations are not removed.",
+    "Runtime accepts only AnyTour, reuses the existing repository logo with its pinned SHA, and contains no hotel-specific editorial copy or publication calls.",
+    "Package dependency versions are fixed and isolated under the optional runtime. No publishing workflow, schedule, server or default image mode is changed by the reviewed source files."
+  ],
+  "pillow_function_ast_matches": {
+    "digest": true,
+    "require": true,
+    "accepted_sources": true,
+    "render_cover": true,
+    "prepare": true
+  },
+  "retained_test_evidence": {
+    "path": "tools/direct_demand/operations/satori/review/technical-checks.json",
+    "sha256": "01f84fc32bbe5dfca4bcdfdcc9d1f4eac37f6c624fa864a991ac747171e04b24",
+    "cases": 15,
+    "passed": 15,
+    "pilot_all_eleven_requested": true,
+    "implementation_hash_checks": [
+      {
+        "path": "tools/direct_demand/operations/prepare-commercial-covers.py",
+        "matches": true
+      },
+      {
+        "path": "tools/direct_demand/operations/prepare-commercial-covers-satori.mjs",
+        "matches": true
+      },
+      {
+        "path": "tools/direct_demand/operations/satori/src/render.mjs",
+        "matches": true
+      },
+      {
+        "path": "tools/direct_demand/operations/satori/test-integration.py",
+        "matches": true
+      },
+      {
+        "path": "tools/direct_demand/operations/satori/package.json",
+        "matches": true
+      },
+      {
+        "path": "tools/direct_demand/operations/satori/package-lock.json",
+        "matches": true
+      },
+      {
+        "path": "tools/direct_demand/operations/satori/fixtures/manifest.json",
+        "matches": true
+      },
+      {
+        "path": ".github/traffic-publish/brand/anytour-logo-white.png",
+        "matches": true
+      },
+      {
+        "path": "tools/direct_demand/operations/satori/assets/fonts/OpenSans-Bold.ttf",
+        "matches": true
+      },
+      {
+        "path": "tools/direct_demand/operations/satori/assets/fonts/OpenSans-Regular.ttf",
+        "matches": true
+      },
+      {
+        "path": "tools/direct_demand/operations/satori/assets/fonts/OpenSans-Semibold.ttf",
+        "matches": true
+      }
+    ],
+    "independently_rerun": false,
+    "interpretation": "Read the existing test receipt and verified all recorded implementation hashes. This review did not replay the tests, benchmark or visuals."
+  },
+  "boundaries": [
+    "PASS means suitable for review as the authorized draft, not approval to merge, install or publish.",
+    "Native main-targeted CI is not represented as passed for the carrier-base PR. Required release checks remain a later gate.",
+    "Formal CONTENT font/editorial decisions remain as listed in CONTENT_REVIEW.md."
+  ],
+  "source_changes_by_reviewer": 0,
+  "external_writes_by_reviewer": 0
+}

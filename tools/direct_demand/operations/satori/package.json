@@ -1,0 +1,17 @@
+{
+  "name": "anytour-commercial-cover-satori",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Optional offline AnyTour cover preparation; no publishing or server integration",
+  "engines": {
+    "node": ">=24.22.3 <25"
+  },
+  "scripts": {
+    "test": "python3 test-integration.py"
+  },
+  "dependencies": {
+    "satori": "0.63.2",
+    "sharp": "0.35.5"
+  }
+}

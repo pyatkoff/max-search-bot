@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "rows": [
+    {
+      "hotel_id": 4185,
+      "title": "Royal Brayka Resort",
+      "photos": [
+        {
+          "role": "hero",
+          "path": "photos/royal-brayka-hero.webp",
+          "source_url": "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-royal-brayka-resort-swimming-pools-75583.webp",
+          "sha256": "f1923938a8477f5d537e60e86bbac384640974d87a830691412f1ad7d1314be3",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "original_path": "/workspace/scratch/715224df0ce7/batch9/photos/4185-0.image"
+        },
+        {
+          "role": "detail_left",
+          "path": "photos/royal-brayka-detail_left.webp",
+          "source_url": "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-royal-brayka-resort-standard-room-89f7f.webp",
+          "sha256": "a99d4c376323107363741945ac509f61f771e60bd29da7417f82c6ffcdf20f07",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "original_path": "/workspace/scratch/715224df0ce7/batch9/photos/4185-1.image"
+        },
+        {
+          "role": "detail_right",
+          "path": "photos/royal-brayka-detail_right.webp",
+          "source_url": "https://cdn.braykaresorts.com/images/uploads/brayka-resorts-marsa-alam-marsa-alam-royal-brayka-resort-beach-06fe3c26-cb14-4b77-a936-9e29c1ebe99b-6deea.webp",
+          "sha256": "5e5a461ceed22595f0d8adcf70b7dbb43b67e743bf3924954174c058a983b04d",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "original_path": "/workspace/scratch/715224df0ce7/batch9/photos/4185-2.image"
+        }
+      ],
+      "accepted_revision": 2,
+      "registry_version": 227,
+      "sourceRefs": [
+        {
+          "kind": "catalog",
+          "label": "Расширение каталога · 05.11.2026",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/53c99034cd8774c4d90c3161b3c05f5f77fdf84d/tools/direct_demand/operations/commercial-stock-20261105-51-inventory.json",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Сохранённый каталог от 05.11.2026. catalog_hotels.id; пространство native/Tourvisor каталога, не ANEX ID. Старый признак «не опубликован» не является текущей проверкой. Материалы требуют подготовки и приёмки. Состояние исходной записи: CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+        },
+        {
+          "kind": "catalog",
+          "label": "Сохранённая проверка каталога",
+          "url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+          "at": "2026-11-05T00:00:00Z",
+          "note": "Источник каталожной записи. Статус в реестре не означает приёмку контента."
+        },
+        {
+          "kind": "official",
+          "label": "Royal Brayka · официальный обзор",
+          "url": "https://braykaresorts.com/royal-brayka-resort/overview",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Самостоятельный Royal Brayka Resort; не соседний Brayka Bay. Семейный отдых и детские развлечения."
+        },
+        {
+          "kind": "official",
+          "label": "Royal Brayka · бассейны",
+          "url": "https://braykaresorts.com/royal-brayka-resort/experiences/swimming-pools",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Бассейн с горками, детская зона и отдельный Heated Pool на прохладный сезон."
+        },
+        {
+          "kind": "official",
+          "label": "Royal Brayka · пляж",
+          "url": "https://braykaresorts.com/royal-brayka-resort/experiences/beach",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Собственный песчаный пляж и пирс 106 м; конкретный безопасный вход и условия купания уточняются."
+        },
+        {
+          "kind": "official",
+          "label": "Royal Brayka · Deluxe Family",
+          "url": "https://braykaresorts.com/royal-brayka-resort/accommodation/deluxe-family-room",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Категория Deluxe Family 38–43 м². Не распространяется на все номера."
+        },
+        {
+          "kind": "receipt",
+          "label": "Кнопки действующего публикатора",
+          "url": "https://github.com/pyatkoff/max-search-bot/blob/4f3c5e201684a1300e1328221e95244d964ca7b9/services/ChannelPostRegistryService.php",
+          "at": "2026-11-11T00:05:49.872459Z",
+          "note": "Токен создаётся после регистрации реального сообщения. Нужна квитанция кнопки каждого канала; цена, post_id и токен не вымышлены."
+        }
+      ],
+      "retained_limitations": [
+        "Deluxe Family 38–43 м² и Deluxe Beach Front — разные категории. Вид, вместимость и расположение номера подтверждаются при подборе.",
+        "Подогрев заявлен для отдельного Heated Pool. Он не означает подогрев всех бассейнов или горок; сезон и фактическая работа уточняются.",
+        "Песчаная пляжная зона не гарантирует одинаковый вход в воду по всей длине. Доступ к пирсу и морское купание зависят от условий; услуги соседнего Brayka Bay не включены автоматически."
+      ]
+    }
+  ],
+  "source_snapshot": {
+    "path": "royal-source-input.json",
+    "sha256": "c021929f2f3440274afebf36b6dd585f935143d969cb0a98e5b1548e399efe6b",
+    "selected_ids": [
+      4185
+    ]
+  }
+}

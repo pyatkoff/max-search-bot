@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "publication_allowed": false,
+  "fixture_only": true,
+  "pilot_source": {
+    "path": "anantara-source-cards.json",
+    "sha256": "f6ee12243d579387a57ce0e05a97c166f1d94f22ee68721093604e9da23e06d8",
+    "card_id": "anytour-88169"
+  },
+  "rows": [
+    {
+      "hotel_id": 88169,
+      "title": "Anantara Koh Yao Yai Resort & Villas",
+      "photos": [
+        {
+          "role": "hero",
+          "path": "photos/EXP014_TV88169_001.jpg",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-koh-yao-yai-resort-and-villas-102510491.jpg",
+          "sha256": "c964a3e3cf4f83bffaf6003cf329aa95c6c071680846cc78464023db96db3cdd",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "pilot_source": {
+            "path": "assets/photos/EXP014_TV88169_001.jpg",
+            "sha256": "c964a3e3cf4f83bffaf6003cf329aa95c6c071680846cc78464023db96db3cdd",
+            "width": 960,
+            "height": 1200,
+            "focal": [
+              0.5,
+              0.5
+            ],
+            "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-koh-yao-yai-resort-and-villas-102510491.jpg",
+            "source_image_index": 1,
+            "source_fetched_at": "2026-09-22 08:47:02",
+            "source_snapshot_retrieved": "2026-11-16"
+          }
+        },
+        {
+          "role": "detail_left",
+          "path": "photos/EXP014_TV88169_043.jpg",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-koh-yao-yai-resort-and-villas-1025105145.jpg",
+          "sha256": "12eb705bf18573b7babcccdb523d5fbc1ebe355d5bd81e6133cc9aaec49576a1",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "pilot_source": {
+            "path": "assets/photos/EXP014_TV88169_043.jpg",
+            "sha256": "12eb705bf18573b7babcccdb523d5fbc1ebe355d5bd81e6133cc9aaec49576a1",
+            "width": 1200,
+            "height": 900,
+            "focal": [
+              0.5,
+              0.5
+            ],
+            "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-koh-yao-yai-resort-and-villas-1025105145.jpg",
+            "source_image_index": 43,
+            "source_fetched_at": "2026-09-22 08:47:02",
+            "source_snapshot_retrieved": "2026-11-16"
+          }
+        },
+        {
+          "role": "detail_right",
+          "path": "photos/EXP014_TV88169_014.jpg",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-koh-yao-yai-resort-and-villas-1025105015.jpg",
+          "sha256": "3f7037fa89c23b37e15112d594694e5fb3dfebd6a5490fd3b7abff3febd08a2f",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "pilot_source": {
+            "path": "assets/photos/EXP014_TV88169_014.jpg",
+            "sha256": "3f7037fa89c23b37e15112d594694e5fb3dfebd6a5490fd3b7abff3febd08a2f",
+            "width": 1200,
+            "height": 633,
+            "focal": [
+              0.5,
+              0.5
+            ],
+            "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-koh-yao-yai-resort-and-villas-1025105015.jpg",
+            "source_image_index": 14,
+            "source_fetched_at": "2026-09-22 08:47:02",
+            "source_snapshot_retrieved": "2026-11-16"
+          }
+        }
+      ],
+      "sourceRefs": [
+        "https://www.anantara.com/en/koh-yao-yai-phuket",
+        "https://www.anantara.com/en/koh-yao-yai-phuket/leisure"
+      ],
+      "facts_snapshot": "2026-11-16",
+      "rights": "Existing owner-authorized paid Tourvisor/ANEX material policy; isolated reuse for the owner. No new open licence or production approval.",
+      "pilot_card_id": "anytour-88169"
+    }
+  ]
+}

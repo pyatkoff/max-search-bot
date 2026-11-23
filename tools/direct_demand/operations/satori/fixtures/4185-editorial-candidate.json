@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "mode": "isolated-preview",
+  "publication_allowed": false,
+  "dynamic_prices": false,
+  "source_input_sha256": "c021929f2f3440274afebf36b6dd585f935143d969cb0a98e5b1548e399efe6b",
+  "editorial_source_sha256": "49e85c006c3a2b3655873a6ba75bf94666b7890a352ed710cbf033aae1c02865",
+  "rows": [
+    {
+      "hotel_id": 4185,
+      "title": "Royal Brayka Resort",
+      "location": "Марса-Алам, Египет",
+      "description": "Свой песчаный пляж и клубы для детей.",
+      "source": {
+        "url": "https://github.com/pyatkoff/max-search-bot/blob/26171ec67ada13822f140aa0ed6b870617263ee4/tools/direct_demand/operations/commercial-batch-20261113-9-prepared/editorial-drafts.json",
+        "repository": "pyatkoff/max-search-bot",
+        "revision": "26171ec67ada13822f140aa0ed6b870617263ee4",
+        "path": "tools/direct_demand/operations/commercial-batch-20261113-9-prepared/editorial-drafts.json",
+        "git_blob_sha1": "e4c83daf405b9ef98f82992c05f83dc2f2770036",
+        "sha256": "49e85c006c3a2b3655873a6ba75bf94666b7890a352ed710cbf033aae1c02865",
+        "bytes": 41994,
+        "source_authored_at": "2026-11-13T01:34:50.437254+03:00",
+        "retrieved_utc": "2026-11-23T08:42:42.268230+00:00",
+        "exact_row_pointer": "/rows/3"
+      },
+      "copy_basis": "Title and location retain the canonical editorial snapshot. The revised static benefit is a concise paraphrase of the official Royal Brayka overview, read on 2026-11-23. No claim about seasonal operation, included services, pools, room categories or prices.",
+      "original_caption_sha256": "3d3ff3f80a6f446850b3243eb1324da95dfd0a75e14861ca692270a3b99ad6d8",
+      "source_state": "EDITORIAL_DRAFT_NOT_SENT_NOT_IMPORTED",
+      "releaseHolds": [],
+      "retained_limitations": [
+        "Deluxe Family 38–43 м² и Deluxe Beach Front — разные категории. Вид, вместимость и расположение номера подтверждаются при подборе.",
+        "Подогрев заявлен для отдельного Heated Pool. Он не означает подогрев всех бассейнов или горок; сезон и фактическая работа уточняются.",
+        "Песчаная пляжная зона не гарантирует одинаковый вход в воду по всей длине. Доступ к пирсу и морское купание зависят от условий; услуги соседнего Brayka Bay не включены автоматически."
+      ],
+      "rights": {
+        "photo_origin": "Existing exact-hash official images in owner workflow cover-input snapshot",
+        "isolated_reuse_only": true,
+        "new_rights_clearance": false,
+        "open_licence_inferred": false,
+        "official_site_notice": "Copyright 2026 Brayka Resorts. All Rights Reserved."
+      },
+      "demo": false,
+      "benefit_source": {
+        "url": "https://braykaresorts.com/royal-brayka-resort/overview",
+        "retrieved_date": "2026-11-23",
+        "facts": [
+          "Own private sandy beach",
+          "Kids and Teens Clubs"
+        ],
+        "purpose": "Isolated copy refinement; no new publication clearance"
+      }
+    }
+  ]
+}

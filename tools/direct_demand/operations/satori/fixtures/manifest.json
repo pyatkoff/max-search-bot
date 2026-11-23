@@ -1,0 +1,317 @@
+{
+  "schema_version": 1,
+  "scope": "AnyTour only; three real source cases; no publication permission",
+  "publication_allowed": false,
+  "content_visual_acceptance_recorded": false,
+  "source_archive": {
+    "archive_name": "anytour-satori-refined-2026-11-23.zip",
+    "archive_sha256": "1bf1540aa32d03ce797617d4681e4c671003b64c42a2eb27f0113e4159bd1f67",
+    "library_file_id": "libfile_fde3_f-4a2b2ed6fb6c8191b705d761cb51da35_839482358a3c8191a38d8cf811d28df4",
+    "file": "fixtures/layout-cards.json",
+    "sha256": "b048fd6ee1baaf3c5aab8d446df83ecfb089b0883c7de47e0312f3d996a6eb4c"
+  },
+  "baseline_generator": {
+    "repository": "pyatkoff/max-search-bot",
+    "ref": "26171ec67ada13822f140aa0ed6b870617263ee4",
+    "path": "tools/direct_demand/operations/prepare-commercial-covers.py",
+    "sha256": "16b2233c88b5f168be899f3046cd0d6ba4f701f8d7dccf8793cef1ead79f457c"
+  },
+  "cases": [
+    {
+      "id": "anytour-4185",
+      "hotel_id": 4185,
+      "input": "4185-cover-input.json",
+      "input_sha256": "a171254f4c94f60f07ee36d528853cdd039ceb6f1733e4704e5e3efe94cf4319",
+      "editorial": "4185-editorial.json",
+      "editorial_sha256": "3ed4b5d298c1c777f871d74079c9d67b4d700523e5a6a14faab9ff88004034b1",
+      "expected_png_sha256": "01b410b6223238f1036a2f98ef464a2fc39e8a6a6011d6d51ba4b098e787ac2b",
+      "expected_dimensions": [
+        1000,
+        1000
+      ],
+      "copy_status": "preserved_previous_preview_copy; does not replace accepted published text",
+      "candidate_editorial": "4185-editorial-candidate.json",
+      "candidate_editorial_sha256": "88baebdb0bc3b7309388641632faf3c661655689d49e1b7a88c3f3c3d2b02d86",
+      "candidate_expected_png_sha256": "9e1ab5f7368120e31c718cf77b4d466c878c47ab53d82e31ef2fd6be03d2bcd4",
+      "candidate_status": "separate_new_wording_pending_CONTENT; not default test input"
+    },
+    {
+      "id": "anytour-88169",
+      "hotel_id": 88169,
+      "input": "88169-cover-input.json",
+      "input_sha256": "46c289ad0c7a9dad1cffcf5895730ca958cf1d0da1db5a48ca4395ada72cf2fd",
+      "editorial": "88169-editorial.json",
+      "editorial_sha256": "871b83405467da699eaf1ddc72a5e61162dc40cae25e750de044351aff193f79",
+      "expected_png_sha256": "c7db3fb3357f7bef7f8e4d128014cd0cbd4dc42fd78ee46c3ec873de35baa84a",
+      "expected_dimensions": [
+        1000,
+        1000
+      ],
+      "copy_status": "unchanged_from_pilot; CONTENT publication acceptance remains separate"
+    },
+    {
+      "id": "anytour-27481",
+      "hotel_id": 27481,
+      "input": "27481-cover-input.json",
+      "input_sha256": "1d1303d90283940197a6023fc2d13d4be7d98a1667bcd46fa5fa06ba9fb894ed",
+      "editorial": "27481-editorial.json",
+      "editorial_sha256": "45a4ff6132c16b3dfd243c1eb41d771204ea1e71e67bc75f56e5dfa032576b4d",
+      "expected_png_sha256": "0fca6760d65b79393a4f84761ffab312d1a8a7561c252c37dcfb0c1175d43503",
+      "expected_dimensions": [
+        1000,
+        1000
+      ],
+      "copy_status": "unchanged_from_pilot; CONTENT publication acceptance remains separate"
+    }
+  ],
+  "preserved_pilot_cards": [
+    {
+      "id": "anytour-4185",
+      "hotel_id": 4185,
+      "png_sha256": "9e1ab5f7368120e31c718cf77b4d466c878c47ab53d82e31ef2fd6be03d2bcd4",
+      "dimensions": [
+        1000,
+        1000
+      ],
+      "source_photo_sha256": [
+        "f1923938a8477f5d537e60e86bbac384640974d87a830691412f1ad7d1314be3",
+        "a99d4c376323107363741945ac509f61f771e60bd29da7417f82c6ffcdf20f07",
+        "5e5a461ceed22595f0d8adcf70b7dbb43b67e743bf3924954174c058a983b04d"
+      ]
+    },
+    {
+      "id": "anytour-88169",
+      "hotel_id": 88169,
+      "png_sha256": "c7db3fb3357f7bef7f8e4d128014cd0cbd4dc42fd78ee46c3ec873de35baa84a",
+      "dimensions": [
+        1000,
+        1000
+      ],
+      "source_photo_sha256": [
+        "c964a3e3cf4f83bffaf6003cf329aa95c6c071680846cc78464023db96db3cdd",
+        "12eb705bf18573b7babcccdb523d5fbc1ebe355d5bd81e6133cc9aaec49576a1",
+        "3f7037fa89c23b37e15112d594694e5fb3dfebd6a5490fd3b7abff3febd08a2f"
+      ]
+    },
+    {
+      "id": "anytour-547",
+      "hotel_id": 547,
+      "png_sha256": "9a9696a0a39d690da9535b2fcc9dea037962d931070beddc149253255b52d1d8",
+      "dimensions": [
+        1000,
+        1000
+      ],
+      "source_photo_sha256": [
+        "42ede990c2d767ed7f52760b5031212bd72fc0a31b449a3dc7e848608a81f95e",
+        "707fc0249fa74f6cd51f9df4b4c5a9925ee5cb0e73fd3ed6cff8d7907ef40266",
+        "a2cf2c5da8e71aa81a13baa1bc3e7bb8ee5952a8238868171a23921398ad757b"
+      ]
+    },
+    {
+      "id": "anytour-12125",
+      "hotel_id": 12125,
+      "png_sha256": "9794b0dd9dc9a110d5fa184f63e91d35847c18ecdb0b961fee18b6bfec72b935",
+      "dimensions": [
+        1000,
+        1000
+      ],
+      "source_photo_sha256": [
+        "1925f0c8937037531ed94616805e1d88f4a63a48d36948acfe6e5af82b84434a",
+        "2015b5a52d92af43c8a08379b2225e7914d1d9dbc81dcf3bc75d669ffc342002",
+        "07614c3ebe05f9637fc44590df16766ee046637200c2eb893421283393efc81a"
+      ]
+    },
+    {
+      "id": "anytour-57335",
+      "hotel_id": 57335,
+      "png_sha256": "593f4a72793307f7be5135dc39913e0d6036eedf325a9973f43c4739f6253324",
+      "dimensions": [
+        1000,
+        1000
+      ],
+      "source_photo_sha256": [
+        "5f1cc5b93f1ee45b2bae2013890b008de3569e4ce414e1782057548a1c0aa8cf",
+        "c190c81ea6a8f7c39880150f813fe96deb574449da1d089fa42da7acaab9d3fa",
+        "1ad58feb88f6ee2b5c24b2e6dbd34b19a5b29a6a0fc2b07971dd3ebe1ae7032c"
+      ]
+    },
+    {
+      "id": "anytour-2480",
+      "hotel_id": 2480,
+      "png_sha256": "c1dd4a27763f3eef879f4bca72490776489dd5a62238859497997b43bf76e599",
+      "dimensions": [
+        1000,
+        1000
+      ],
+      "source_photo_sha256": [
+        "5fc697e6a3821cfabf8cc8446b75866061c0887a1815ddad89041b1f51b90e17",
+        "bcd7e04a8ed21ea670f2d6823232258d28c41a26f266639c0908d66ab77b1880",
+        "550eb26f1fd70a7e88a4bfc0a61ffcdf554a75d7b0c4009b594b903e3332f2a1"
+      ]
+    },
+    {
+      "id": "anytour-2417",
+      "hotel_id": 2417,
+      "png_sha256": "a5ae2ed2701ebec99065808f62ad05af0b92305931bb9ccdfd2a47d0c2caf1ed",
+      "dimensions": [
+        1000,
+        1000
+      ],
+      "source_photo_sha256": [
+        "2ac8b3f1c6c4c9bf90e5b2958adaf4bf02b97a06cc58079e013ff7e0a29ec2c2",
+        "116fa01a7c42ef3c0e0d5d497cfe5f12cc3b4298086eb772e8decd511d67d04c",
+        "babe312e7b9f7e8c8ae3ada8d7e0edb88e282b40542a2c4f42335929bde9d114"
+      ]
+    },
+    {
+      "id": "anytour-2418",
+      "hotel_id": 2418,
+      "png_sha256": "78bc1f18e576f52099f541da86fa1d12679b71c42b1046bbe302d106176e0f2b",
+      "dimensions": [
+        1000,
+        1000
+      ],
+      "source_photo_sha256": [
+        "568b59b85ef272a0c05f8b34a5d71593d0dafc0f0b3beee0af2d34650498362d",
+        "740a4d97dd3b76141376c07bd55c35761ee8ae9e2850dcddcb529ed5da3c9de1",
+        "3ba504fbe0cf3bb0b2ea1a0df57b73f85b8c5da0f7059d86038f6c6224a29564"
+      ]
+    },
+    {
+      "id": "anytour-2468",
+      "hotel_id": 2468,
+      "png_sha256": "6e2e46a56b3677f3ac47f97249087ab916e47dd6bd62c29d255092760c63597d",
+      "dimensions": [
+        1000,
+        1000
+      ],
+      "source_photo_sha256": [
+        "0431f45026dba504832709e5230a1aecf47de62fbacc008bc0e194c5c5975a73",
+        "0874c0bb3b032ce5431060c9b7ce414776fd4dcf93afcde20b0f1a57b3caa795",
+        "c35b6e71c861bc56f1e1478ba6a3fb1b7e51d8662102c073717bf9f493405270"
+      ]
+    },
+    {
+      "id": "anytour-12127",
+      "hotel_id": 12127,
+      "png_sha256": "1d1a0464015b4387bdbeb9ec34d1b82354c67053a6fe70ff2a87281abbf3b3a4",
+      "dimensions": [
+        1000,
+        1000
+      ],
+      "source_photo_sha256": [
+        "d1719eee2736441ba94dbe6d6dcdba1b094bd417bbad23879a468549a7079a00",
+        "74bbdce4f5d3d466f4c9872a3b7d575014ba1e80ea361222a1997b4f0e090134",
+        "b23835cb38565a051eb0816932540e75824ceaa15e995e3d30992e1326db5a4b"
+      ]
+    },
+    {
+      "id": "anytour-27481",
+      "hotel_id": 27481,
+      "png_sha256": "0fca6760d65b79393a4f84761ffab312d1a8a7561c252c37dcfb0c1175d43503",
+      "dimensions": [
+        1000,
+        1000
+      ],
+      "source_photo_sha256": [
+        "e6dbbab91cd19eddd0206579c11d0aa8f2cab6e64821e73d801fde03fe4b6d57",
+        "188f15530cdbf224cd1a99b3a81737ef6dc1aa799e6d554048de86ee5a6b0e22",
+        "95e6c18b6462af97e9e2fbb376f07bfd01756f59017dbdb90a6662e2b34c031e"
+      ]
+    }
+  ],
+  "pilot_source_files": [
+    {
+      "path": "fixtures/layout-cards.json",
+      "sha256": "b048fd6ee1baaf3c5aab8d446df83ecfb089b0883c7de47e0312f3d996a6eb4c"
+    },
+    {
+      "path": "fixtures/typography-overrides.json",
+      "sha256": "2ce8c94a68bf99e91a131dcf12e058671815e3fdb629082723afbc7ced2e9638"
+    },
+    {
+      "path": "output/satori/cover-receipt.json",
+      "sha256": "781c548087d71fa21217eb5ad19aa7b8c37e433ec07e4089f0601753a06b1c6e"
+    },
+    {
+      "path": "output/layout-refinement-report.json",
+      "sha256": "33946f2fc51d3795da833a91d4b76c1d03230c258bcc793eaf3ccd697ad72cb8"
+    }
+  ],
+  "source_photos": [
+    {
+      "path": "photos/EXP014_TV88169_001.jpg",
+      "sha256": "c964a3e3cf4f83bffaf6003cf329aa95c6c071680846cc78464023db96db3cdd",
+      "bytes": 356462
+    },
+    {
+      "path": "photos/EXP014_TV88169_014.jpg",
+      "sha256": "3f7037fa89c23b37e15112d594694e5fb3dfebd6a5490fd3b7abff3febd08a2f",
+      "bytes": 374408
+    },
+    {
+      "path": "photos/EXP014_TV88169_043.jpg",
+      "sha256": "12eb705bf18573b7babcccdb523d5fbc1ebe355d5bd81e6133cc9aaec49576a1",
+      "bytes": 222955
+    },
+    {
+      "path": "photos/EXP018_TV27481_000.jpg",
+      "sha256": "e6dbbab91cd19eddd0206579c11d0aa8f2cab6e64821e73d801fde03fe4b6d57",
+      "bytes": 101890
+    },
+    {
+      "path": "photos/EXP018_TV27481_001.jpg",
+      "sha256": "188f15530cdbf224cd1a99b3a81737ef6dc1aa799e6d554048de86ee5a6b0e22",
+      "bytes": 164233
+    },
+    {
+      "path": "photos/EXP018_TV27481_004.jpg",
+      "sha256": "95e6c18b6462af97e9e2fbb376f07bfd01756f59017dbdb90a6662e2b34c031e",
+      "bytes": 165610
+    },
+    {
+      "path": "photos/royal-brayka-detail_left.webp",
+      "sha256": "a99d4c376323107363741945ac509f61f771e60bd29da7417f82c6ffcdf20f07",
+      "bytes": 123712
+    },
+    {
+      "path": "photos/royal-brayka-detail_right.webp",
+      "sha256": "5e5a461ceed22595f0d8adcf70b7dbb43b67e743bf3924954174c058a983b04d",
+      "bytes": 279868
+    },
+    {
+      "path": "photos/royal-brayka-hero.webp",
+      "sha256": "f1923938a8477f5d537e60e86bbac384640974d87a830691412f1ad7d1314be3",
+      "bytes": 147728
+    }
+  ],
+  "source_documents": [
+    {
+      "path": "royal-source-input.json",
+      "sha256": "c021929f2f3440274afebf36b6dd585f935143d969cb0a98e5b1548e399efe6b"
+    },
+    {
+      "path": "royal-editorial-source.json",
+      "sha256": "49e85c006c3a2b3655873a6ba75bf94666b7890a352ed710cbf033aae1c02865"
+    },
+    {
+      "path": "anantara-source-cards.json",
+      "sha256": "f6ee12243d579387a57ce0e05a97c166f1d94f22ee68721093604e9da23e06d8"
+    }
+  ],
+  "editorial_changes": [
+    {
+      "hotel_id": 4185,
+      "before": "Семейный отдых у песчаного пляжа.",
+      "candidate": "Свой песчаный пляж и клубы для детей.",
+      "fixture": "4185-editorial-candidate.json",
+      "status": "not accepted for publication; CONTENT decision required"
+    },
+    {
+      "hotel_id": 88169,
+      "current": "Семейные люксы и виллы с собственным бассейном.",
+      "question": "Confirm wording does not imply a private pool in every family suite; source/control text retained unchanged.",
+      "status": "no automatic rewrite"
+    }
+  ]
+}

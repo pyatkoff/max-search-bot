@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "kind": "exact_selected_pilot_cards",
+  "publication_allowed": false,
+  "source": {
+    "archive_name": "anytour-satori-refined-2026-11-23.zip",
+    "archive_sha256": "1bf1540aa32d03ce797617d4681e4c671003b64c42a2eb27f0113e4159bd1f67",
+    "library_file_id": "libfile_fde3_f-4a2b2ed6fb6c8191b705d761cb51da35_839482358a3c8191a38d8cf811d28df4",
+    "file": "fixtures/layout-cards.json",
+    "sha256": "b048fd6ee1baaf3c5aab8d446df83ecfb089b0883c7de47e0312f3d996a6eb4c"
+  },
+  "cards": [
+    {
+      "id": "anytour-88169",
+      "brand": "anytour",
+      "hotel_id": 88169,
+      "title": "Anantara Koh Yao Yai Resort & Villas",
+      "location": "Ко Яо Яй, Таиланд",
+      "description": "Семейные люксы и виллы с собственным бассейном.",
+      "photos": [
+        {
+          "path": "assets/photos/EXP014_TV88169_001.jpg",
+          "sha256": "c964a3e3cf4f83bffaf6003cf329aa95c6c071680846cc78464023db96db3cdd",
+          "width": 960,
+          "height": 1200,
+          "focal": [
+            0.5,
+            0.5
+          ],
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-koh-yao-yai-resort-and-villas-102510491.jpg",
+          "source_image_index": 1,
+          "source_fetched_at": "2026-09-22 08:47:02",
+          "source_snapshot_retrieved": "2026-11-16"
+        },
+        {
+          "path": "assets/photos/EXP014_TV88169_043.jpg",
+          "sha256": "12eb705bf18573b7babcccdb523d5fbc1ebe355d5bd81e6133cc9aaec49576a1",
+          "width": 1200,
+          "height": 900,
+          "focal": [
+            0.5,
+            0.5
+          ],
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-koh-yao-yai-resort-and-villas-1025105145.jpg",
+          "source_image_index": 43,
+          "source_fetched_at": "2026-09-22 08:47:02",
+          "source_snapshot_retrieved": "2026-11-16"
+        },
+        {
+          "path": "assets/photos/EXP014_TV88169_014.jpg",
+          "sha256": "3f7037fa89c23b37e15112d594694e5fb3dfebd6a5490fd3b7abff3febd08a2f",
+          "width": 1200,
+          "height": 633,
+          "focal": [
+            0.5,
+            0.5
+          ],
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/anantara-koh-yao-yai-resort-and-villas-1025105015.jpg",
+          "source_image_index": 14,
+          "source_fetched_at": "2026-09-22 08:47:02",
+          "source_snapshot_retrieved": "2026-11-16"
+        }
+      ],
+      "verified_identity": true,
+      "demo": false,
+      "facts_snapshot": "2026-11-16",
+      "sources": [
+        "https://www.anantara.com/en/koh-yao-yai-phuket",
+        "https://www.anantara.com/en/koh-yao-yai-phuket/leisure"
+      ],
+      "evidence_excerpt": "✈️ Туры в Anantara Koh Yao Yai Resort & Villas\n📍 Ко Яо Яй, Таиланд.\n\nОстровной отпуск с видом на залив Пханг Нга. Просторные семейные люксы, детский клуб и бассейн для отдыха с детьми. Для более уединённой поездки есть виллы с собственным бассейном.\n\nПодберём тур на ваши даты.",
+      "baseline": "assets/baseline/anytour-88169-same-input.png",
+      "baseline_current": "assets/baseline/anytour-88169-current.png",
+      "rights": "Existing owner-authorized paid Tourvisor/ANEX material policy; isolated reuse for the owner. No new open licence or production approval.",
+      "stress": {
+        "portrait": true,
+        "light": false,
+        "dark": false,
+        "wide": false,
+        "long_name": false
+      }
+    },
+    {
+      "id": "anytour-27481",
+      "brand": "anytour",
+      "hotel_id": 27481,
+      "title": "Anantara Sir Bani Yas Island Al Sahel Villa Resort",
+      "location": "Сир-Бани-Яс, Абу-Даби, ОАЭ",
+      "description": "Виллы среди саванны на острове-заповеднике.",
+      "photos": [
+        {
+          "path": "assets/photos/EXP018_TV27481_000.jpg",
+          "sha256": "e6dbbab91cd19eddd0206579c11d0aa8f2cab6e64821e73d801fde03fe4b6d57",
+          "width": 940,
+          "height": 705,
+          "focal": [
+            0.5,
+            0.5
+          ],
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/27481-65737100.jpg",
+          "source_image_index": 0,
+          "source_fetched_at": "2026-09-12 08:16:19",
+          "source_snapshot_retrieved": "2026-11-16"
+        },
+        {
+          "path": "assets/photos/EXP018_TV27481_001.jpg",
+          "sha256": "188f15530cdbf224cd1a99b3a81737ef6dc1aa799e6d554048de86ee5a6b0e22",
+          "width": 940,
+          "height": 705,
+          "focal": [
+            0.5,
+            0.5
+          ],
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/27481-65737201.jpg",
+          "source_image_index": 1,
+          "source_fetched_at": "2026-09-12 08:16:19",
+          "source_snapshot_retrieved": "2026-11-16"
+        },
+        {
+          "path": "assets/photos/EXP018_TV27481_004.jpg",
+          "sha256": "95e6c18b6462af97e9e2fbb376f07bfd01756f59017dbdb90a6662e2b34c031e",
+          "width": 940,
+          "height": 705,
+          "focal": [
+            0.5,
+            0.5
+          ],
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/27481-65737204.jpg",
+          "source_image_index": 4,
+          "source_fetched_at": "2026-09-12 08:16:19",
+          "source_snapshot_retrieved": "2026-11-16"
+        }
+      ],
+      "verified_identity": true,
+      "demo": false,
+      "facts_snapshot": "2026-11-16",
+      "sources": [
+        "https://www.anantara.com/en/desert-islands-sir-bani-yas/al-sahel",
+        "https://www.anantara.com/en/al-sahel-sir-bani-yas/villas"
+      ],
+      "evidence_excerpt": "✈️ Туры в Anantara Sir Bani Yas Island Al Sahel Villa Resort\n📍 Сир-Бани-Яс, Абу-Даби, ОАЭ.\n\nДругие Эмираты: вилла среди саванны на острове-заповеднике. Здесь выбирают сафари, природу и уединение, а не городской пляжный отдых. Есть виллы с собственным бассейном и ресторан с африканскими мотивами.\n\nПодберём тур на ваши даты.",
+      "baseline": "assets/baseline/anytour-27481-same-input.png",
+      "baseline_current": "assets/baseline/anytour-27481-current.png",
+      "rights": "Existing owner-authorized paid Tourvisor/ANEX material policy; isolated reuse for the owner. No new open licence or production approval.",
+      "stress": {
+        "portrait": false,
+        "light": false,
+        "dark": false,
+        "wide": false,
+        "long_name": true
+      }
+    }
+  ]
+}

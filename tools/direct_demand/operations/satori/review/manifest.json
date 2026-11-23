@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "purpose": "Frozen three-card CONTENT review kit for the explicit AnyTour Satori preparation mode. No image was re-rendered or edited for this kit.",
+  "owner_source": "https://github.com/pyatkoff/max-search-bot/issues/1566#issuecomment-6961029169",
+  "user_composition_review": {
+    "reported_in_current_instruction": true,
+    "statement": "Три контрольных образца — Royal Brayka, Al Sahel и Koh Yao Yai — дополнительно просмотрены: обязательных исправлений композиции не найдено.",
+    "formal_content_acceptance_in_repository_confirmed": false
+  },
+  "states": {
+    "research_experiment_complete": true,
+    "review_package_prepared": true,
+    "prepared_for_draft_pr": true,
+    "merged": false,
+    "installed": false,
+    "publication_authorized_by_this_package": false
+  },
+  "frozen_artifacts": {
+    "gallery": "https://chatgpt.com/library?file_id=libfile_fde3_f-dc28799db2808191bcdb7150cd3d4de1_839482358a3c8191a38d8cf811d28df4&account_id=personal",
+    "all_11_cards": "https://chatgpt.com/library?file_id=libfile_fde3_f-74a2822f7594819180972d30ba44eae7_839482358a3c8191a38d8cf811d28df4&account_id=personal",
+    "complete_pilot_package": {
+      "url": "https://chatgpt.com/library?file_id=libfile_fde3_f-4a2b2ed6fb6c8191b705d761cb51da35_839482358a3c8191a38d8cf811d28df4&account_id=personal",
+      "sha256": "1bf1540aa32d03ce797617d4681e4c671003b64c42a2eb27f0113e4159bd1f67",
+      "bytes": 99634656
+    },
+    "report": "https://chatgpt.com/library?file_id=libfile_fde3_f-4773d7b8a3208191bbf2478f1b50a5f5_839482358a3c8191a38d8cf811d28df4&account_id=personal",
+    "full_card_count": 11
+  },
+  "font": {
+    "family": "Open Sans",
+    "status": "Pilot fallback; formal CONTENT decision pending. Aeroport not bundled."
+  },
+  "unresolved_content_decisions": [
+    "Approve temporary Open Sans or provide an authorized Aeroport font and repeat visual checks.",
+    "Choose Royal Brayka copy explicitly: retained earlier line or separately identified new candidate; do not overwrite accepted copy silently.",
+    "Clarify Koh Yao Yai pool-category wording before commercial use; original frozen sample remains unchanged.",
+    "Apply the existing CONTENT publication acceptance to exact commercial input, image rights, text and identifiers; this technical kit grants no new licence or permission."
+  ],
+  "cards": [
+    {
+      "hotel_id": 4185,
+      "title": "Royal Brayka Resort",
+      "preview_file": "anytour-4185-320.png",
+      "preview_dimensions": [
+        320,
+        320
+      ],
+      "preview_sha256": "83d67726255ed3e3b296cc647ffe3801b4845f3815e9dc8be31471555a43f7a8",
+      "preview_bytes": 158803,
+      "frozen_full_image": "output/refined/anytour-4185.png",
+      "full_dimensions": [
+        1000,
+        1000
+      ],
+      "full_sha256": "9e1ab5f7368120e31c718cf77b4d466c878c47ab53d82e31ef2fd6be03d2bcd4",
+      "render_audit": "output/refined/anytour-4185.json",
+      "render_audit_sha256": "594cd4d3cdc7033eaf5d3c73bf04c6e624d187dabb79a0e2745d178bf61aa88e",
+      "source_photo_sha256": [
+        "f1923938a8477f5d537e60e86bbac384640974d87a830691412f1ad7d1314be3",
+        "a99d4c376323107363741945ac509f61f771e60bd29da7417f82c6ffcdf20f07",
+        "5e5a461ceed22595f0d8adcf70b7dbb43b67e743bf3924954174c058a983b04d"
+      ]
+    },
+    {
+      "hotel_id": 27481,
+      "title": "Anantara Sir Bani Yas Island Al Sahel Villa Resort",
+      "preview_file": "anytour-27481-320.png",
+      "preview_dimensions": [
+        320,
+        320
+      ],
+      "preview_sha256": "b085010553206a766482180218cffab5f207534ae03de39c0a05f982b3f77b6d",
+      "preview_bytes": 140159,
+      "frozen_full_image": "output/refined/anytour-27481.png",
+      "full_dimensions": [
+        1000,
+        1000
+      ],
+      "full_sha256": "0fca6760d65b79393a4f84761ffab312d1a8a7561c252c37dcfb0c1175d43503",
+      "render_audit": "output/refined/anytour-27481.json",
+      "render_audit_sha256": "949e6cb329fafae4f1524bdbcc66141f036c1b4f43a38d10bd8e43770743458d",
+      "source_photo_sha256": [
+        "e6dbbab91cd19eddd0206579c11d0aa8f2cab6e64821e73d801fde03fe4b6d57",
+        "188f15530cdbf224cd1a99b3a81737ef6dc1aa799e6d554048de86ee5a6b0e22",
+        "95e6c18b6462af97e9e2fbb376f07bfd01756f59017dbdb90a6662e2b34c031e"
+      ]
+    },
+    {
+      "hotel_id": 88169,
+      "title": "Anantara Koh Yao Yai Resort & Villas",
+      "preview_file": "anytour-88169-320.png",
+      "preview_dimensions": [
+        320,
+        320
+      ],
+      "preview_sha256": "cf226cefd0c050fee1f90d4f9f3bcc96e085dfdbc64cb5293f2f75c92aaebf63",
+      "preview_bytes": 136679,
+      "frozen_full_image": "output/refined/anytour-88169.png",
+      "full_dimensions": [
+        1000,
+        1000
+      ],
+      "full_sha256": "c7db3fb3357f7bef7f8e4d128014cd0cbd4dc42fd78ee46c3ec873de35baa84a",
+      "render_audit": "output/refined/anytour-88169.json",
+      "render_audit_sha256": "d9843a15d3a6e40213ced5e2b6358b64c2c752a0e1809da91eb20a7ffec78670",
+      "source_photo_sha256": [
+        "c964a3e3cf4f83bffaf6003cf329aa95c6c071680846cc78464023db96db3cdd",
+        "12eb705bf18573b7babcccdb523d5fbc1ebe355d5bd81e6133cc9aaec49576a1",
+        "3f7037fa89c23b37e15112d594694e5fb3dfebd6a5490fd3b7abff3febd08a2f"
+      ]
+    }
+  ]
+}

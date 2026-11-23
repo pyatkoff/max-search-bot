@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "mode": "isolated-preview",
+  "publication_allowed": false,
+  "dynamic_prices": false,
+  "source_input_sha256": "46c289ad0c7a9dad1cffcf5895730ca958cf1d0da1db5a48ca4395ada72cf2fd",
+  "editorial_source_sha256": "f6ee12243d579387a57ce0e05a97c166f1d94f22ee68721093604e9da23e06d8",
+  "rows": [
+    {
+      "hotel_id": 88169,
+      "title": "Anantara Koh Yao Yai Resort & Villas",
+      "location": "Ко Яо Яй, Таиланд",
+      "description": "Семейные люксы и виллы с собственным бассейном.",
+      "layout": {
+        "title_lines": [
+          "Anantara Koh Yao Yai",
+          "Resort & Villas"
+        ]
+      },
+      "source": {
+        "path": "anantara-source-cards.json",
+        "sha256": "f6ee12243d579387a57ce0e05a97c166f1d94f22ee68721093604e9da23e06d8",
+        "card_id": "anytour-88169",
+        "original_sources": [
+          "https://www.anantara.com/en/koh-yao-yai-phuket",
+          "https://www.anantara.com/en/koh-yao-yai-phuket/leisure"
+        ]
+      },
+      "copy_basis": "Exact unchanged text from the preserved pilot card; line-break hints only.",
+      "source_state": "PRESERVED_PILOT_CONTROL_NOT_A_PUBLICATION_APPROVAL",
+      "releaseHolds": [],
+      "rights": "Existing owner-authorized paid Tourvisor/ANEX material policy; isolated reuse for the owner. No new open licence or production approval.",
+      "demo": false
+    }
+  ]
+}
