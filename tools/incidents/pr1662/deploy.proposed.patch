@@ -1,0 +1,160 @@
+--- a/.github/workflows/deploy.yml
++++ b/.github/workflows/deploy.yml
+@@ -88,6 +88,7 @@
+     outputs:
+       kind: ${{ steps.release.outputs.kind }}
+       record_json: ${{ steps.release.outputs.record_json }}
++      application_sha: ${{ steps.release.outputs.application_sha }}
+     steps:
+       - name: Require the complete deployment verification
+         env:
+@@ -159,6 +160,37 @@
+           set -euo pipefail
+           if [[ "$RELEASE_PLAN" == install ]]; then
+             printf 'kind=installed\n' >> "$GITHUB_OUTPUT"
++            exit 0
++          fi
++          if [[ "$RELEASE_PLAN" == partial_install_1662 ]]; then
++            test "$APPLICATION_SHA" = 302ba66b5739e369a4df94471c8cfe9c054dd070
++            # Re-admit the exact failed installer, direct successor and original lease.
++            # Keep generated outputs private until the two current read-only checks pass.
++            proof="$RUNNER_TEMP/partial-install-1662.outputs"
++            node tools/deployment_release.js admit-partial-install-1662 --plan "$RUNNER_TEMP/release-plan.json" > "$proof"
++            test "$(cat "$proof")" = "$(printf 'kind=partial_install_1662\napplication_sha=%s' "$APPLICATION_SHA")"
++            status="$(curl --max-time 15 -sS -o /dev/null -I -w '%{http_code}' 'https://app.anytoour.ru/structured_events.log')"
++            case "$status" in 403|404) ;; *) exit 1;; esac
++            # Use the production host fingerprint already established by the channel editor.
++            known="$RUNNER_TEMP/partial-1662-hosts"
++            scan="$RUNNER_TEMP/partial-1662-scan"
++            ssh-keyscan -T 10 -t ed25519,ecdsa,rsa "$DEPLOY_HOST" > "$scan"
++            : > "$known"
++            while IFS= read -r host_key; do
++              fingerprint="$(ssh-keygen -E sha256 -lf /dev/stdin <<< "$host_key" | awk '{print $2}')"
++              if [[ "$fingerprint" == 'SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0' ]]; then
++                printf '%s\n' "$host_key" >> "$known"
++              fi
++            done < "$scan"
++            test -s "$known"
++            ssh -i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$known" -o ConnectTimeout=10 "$DEPLOY_USER@$DEPLOY_HOST" bash -s -- "$APPLICATION_SHA" <<'READ_PARTIAL'
++          set -euo pipefail
++          cd /var/www/anytoour/data/www/app.anytoour.ru
++          test "$(git rev-parse HEAD)" = "$1"
++          git diff --quiet --no-ext-diff
++          git diff --cached --quiet --no-ext-diff
++          READ_PARTIAL
++            cat "$proof" >> "$GITHUB_OUTPUT"
+             exit 0
+           fi
+           test "$RELEASE_PLAN" = observe_unchanged
+@@ -213,7 +245,11 @@
+ 
+       - name: Apply database migrations and fence the old hotel contour
+         id: migration
+-        if: steps.sync.outcome == 'success'
++        if: >-
++          steps.sync.outcome == 'success' ||
++          (steps.release.outcome == 'success' && steps.release.outputs.kind == 'partial_install_1662' &&
++           steps.release.outputs.application_sha == '302ba66b5739e369a4df94471c8cfe9c054dd070' &&
++           steps.bundle.outcome == 'skipped' && steps.sync.outcome == 'skipped')
+         continue-on-error: true
+         env:
+           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+@@ -388,7 +424,7 @@
+         env:
+           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+-          EXPECTED_SHA: ${{ github.sha }}
++          EXPECTED_SHA: ${{ steps.release.outputs.application_sha || github.sha }}
+         shell: bash
+         run: |
+           set -euo pipefail
+@@ -446,9 +482,15 @@
+             test "$INSTALLED_OUTCOME" = skipped
+             exit 0
+           fi
+-          test "$RELEASE_KIND" = installed
+-          test "$BUNDLE_OUTCOME" = success
+-          test "$SYNC_OUTCOME" = success
++          case "$RELEASE_KIND" in
++            partial_install_1662)
++              test "$BUNDLE_OUTCOME" = skipped
++              test "$SYNC_OUTCOME" = skipped ;;
++            installed)
++              test "$BUNDLE_OUTCOME" = success
++              test "$SYNC_OUTCOME" = success ;;
++            *) exit 1 ;;
++          esac
+           test "$MIGRATION_OUTCOME" = success
+           test "$MAX_WEBHOOK_OUTCOME" = success
+           test "$METRIKA_CRON_OUTCOME" = success
+@@ -465,8 +507,10 @@
+           fetch-depth: 0
+       - name: Admit only unfinished verification without installation
+         id: admission
+-        if: needs.deploy.outputs.kind == 'installed'
+-        env:
++        if: needs.deploy.outputs.kind == 'installed' || needs.deploy.outputs.kind == 'partial_install_1662'
++        env:
++          RELEASE_KIND: ${{ needs.deploy.outputs.kind }}
++          APPLICATION_SHA: ${{ needs.deploy.outputs.application_sha || github.sha }}
+           GITHUB_TOKEN: ${{ github.token }}
+         run: node tools/release_slot_close.js --admit-verification >> "$GITHUB_OUTPUT"
+       - name: Publish the proven unchanged result without installed stages
+@@ -510,7 +554,7 @@
+         env:
+           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+-          EXPECTED_SHA: ${{ github.sha }}
++          EXPECTED_SHA: ${{ needs.deploy.outputs.application_sha || github.sha }}
+         shell: bash
+         run: |
+           set -euo pipefail
+@@ -540,7 +584,7 @@
+         env:
+           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+-          EXPECTED_SHA: ${{ github.sha }}
++          EXPECTED_SHA: ${{ needs.deploy.outputs.application_sha || github.sha }}
+         shell: bash
+         run: |
+           set -euo pipefail
+@@ -557,6 +601,8 @@
+         id: status
+         if: always() && steps.admission.outputs.run_status == 'true' && steps.ssh_key.outcome == 'success'
+         env:
++          RELEASE_KIND: ${{ needs.deploy.outputs.kind }}
++          APPLICATION_SHA: ${{ needs.deploy.outputs.application_sha || github.sha }}
+           GITHUB_TOKEN: ${{ github.token }}
+           SMOKE_ATTEMPT: ${{ steps.admission.outputs.smoke_attempt }}
+           DIAGNOSTICS_ATTEMPT: ${{ steps.admission.outputs.diagnostics_attempt }}
+@@ -573,8 +619,10 @@
+ 
+       - name: Reuse the exact status when only its publication proof failed
+         id: resumed_publication
+-        if: always() && needs.deploy.outputs.kind == 'installed' && steps.admission.outputs.run_publication == 'true' && steps.admission.outputs.run_status == 'false'
+-        env:
++        if: always() && (needs.deploy.outputs.kind == 'installed' || needs.deploy.outputs.kind == 'partial_install_1662') && steps.admission.outputs.run_publication == 'true' && steps.admission.outputs.run_status == 'false'
++        env:
++          RELEASE_KIND: ${{ needs.deploy.outputs.kind }}
++          APPLICATION_SHA: ${{ needs.deploy.outputs.application_sha || github.sha }}
+           GITHUB_TOKEN: ${{ github.token }}
+         run: node tools/release_slot_close.js --resume-publication --proof "$RUNNER_TEMP/deployment-release-publication.json" >> "$GITHUB_OUTPUT"
+ 
+@@ -594,7 +642,7 @@
+         env:
+           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+-          EXPECTED_SHA: ${{ github.sha }}
++          EXPECTED_SHA: ${{ needs.deploy.outputs.application_sha || github.sha }}
+         shell: bash
+         run: |
+           set -euo pipefail
+@@ -642,7 +690,7 @@
+             test "$CLEANUP" = skipped
+             exit 0
+           fi
+-          test "$RELEASE_KIND" = installed
++          case "$RELEASE_KIND" in installed|partial_install_1662) ;; *) exit 1;; esac
+           test "$UNCHANGED" = skipped
+           test "$ADMISSION" = success
+           test "$KEY" = success
