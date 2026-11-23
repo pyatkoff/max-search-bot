@@ -21,4 +21,17 @@ jobs:
       - name: Verify the original exhausted source and active publisher
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node tools/release_priority.js --admit 1669 43295c457798b0629fe13d338c5f138b74e5fefe b3386d558f72e9eb80acefad9e87b1ab91b4426f
+        run: |
+          set -euo pipefail
+          publisher="$(gh api repos/pyatkoff/max-search-bot/issues/comments/7077907800)"
+          state="$(jq -er '.body' <<< "$publisher")"
+          args=(--admit 1669 43295c457798b0629fe13d338c5f138b74e5fefe b3386d558f72e9eb80acefad9e87b1ab91b4426f)
+          case "$state" in
+            'PR1664: выпуск занят') ;;
+            'PR1669: выпуск занят')
+              acquired="$(jq -er '.updated_at' <<< "$publisher")"
+              args+=(--publisher 7077907800 226193297 "$acquired")
+              ;;
+            *) exit 1 ;;
+          esac
+          node tools/release_priority.js "${args[@]}"
