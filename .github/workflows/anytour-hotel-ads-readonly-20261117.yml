@@ -16,7 +16,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '66d4a260ba3c713bc2bd6717cf25c4a34732a975' &&
+      github.event.before == '3b613dbf60e50338e0e3cac7f12c14a957ce2733' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 18
