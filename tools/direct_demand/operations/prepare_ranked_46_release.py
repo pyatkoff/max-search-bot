@@ -30,6 +30,10 @@ NEXT_PLAN = "config/anytour_existing_post_transfer_next_20261123.json"
 INDEX = "config/anytour_ranked_46_20261123.json"
 BRANCH = "ops/anytour-hotel-ranked-46-apply-20261123"
 READ_SHA = "db1157a5091ff0f708d7825acf6ca4e1dc9a5339"
+MAX2_DOC = "docs/MAX2_COMMON_VALUE_V2.md"
+MAX2_RUNTIME = "services/Max2CommonValueRuntimeV2.php"
+MAX2_MANIFEST = "resources/max2-common-v2/release-manifest.json"
+MAX2_FIXTURES = "tests/max2_common_v2/fixtures.json"
 
 
 def git(folder, *args):
@@ -56,8 +60,42 @@ def repo_sources(repo):
     need(root == repo.resolve(), "owner_checkout_root_expected")
     head = git(repo, "rev-parse", "HEAD").decode().strip()
     need(re.fullmatch(r"[0-9a-f]{40}", head), "invalid_base_commit")
-    paths = [WORKFLOW, EDITOR, RELEASE, REGISTRY, TRANSPORT, PRICE_PLAN, NEXT_PLAN]
+    paths = [WORKFLOW, EDITOR, RELEASE, REGISTRY, TRANSPORT, PRICE_PLAN, NEXT_PLAN,
+             MAX2_DOC, MAX2_RUNTIME, MAX2_MANIFEST, MAX2_FIXTURES]
     return head, {name: git(repo, "show", head + ":" + name).decode("utf-8") for name in paths}
+
+
+def bind_max2_pins(base, sources):
+    # The native registry also supplies the accepted UTC clock for MAX2. The ranked writer edits
+    # its transfer validator only. Keep the exact evidence link after reviewing that invariant.
+    entry = "    public function recordEntry("
+    old_registry, new_registry = base[REGISTRY], sources[REGISTRY]
+    need(old_registry.count(entry) == new_registry.count(entry) == 1
+         and old_registry[old_registry.index(entry):] == new_registry[new_registry.index(entry):],
+         "MAX2_entry_producer_changed_review_required")
+    previous, successor = digest(old_registry.encode()), digest(new_registry.encode())
+    bound = {}
+    for name in [MAX2_DOC, MAX2_RUNTIME]:
+        need(base[name].count(previous) == 1, "MAX2_existing_producer_pin_unconfirmed")
+        bound[name] = base[name].replace(previous, successor)
+
+    def refresh(path, group, targets):
+        text = base[path]
+        declared = json.loads(text)[group]
+        for target, content in targets.items():
+            old = declared[target]
+            need(old == digest(base[target].encode()), "MAX2_previous_source_changed")
+            before = '"' + target + '": "' + old + '"'
+            after = '"' + target + '": "' + digest(content.encode()) + '"'
+            need(text.count(before) == 1, "MAX2_pin_ambiguous")
+            text = text.replace(before, after)
+        return text
+
+    bound[MAX2_FIXTURES] = refresh(MAX2_FIXTURES, "assets", {MAX2_RUNTIME: bound[MAX2_RUNTIME]})
+    bound[MAX2_MANIFEST] = refresh(MAX2_MANIFEST, "files", {
+        MAX2_DOC: bound[MAX2_DOC], MAX2_RUNTIME: bound[MAX2_RUNTIME],
+        MAX2_FIXTURES: bound[MAX2_FIXTURES], RELEASE: sources[RELEASE]})
+    return bound
 
 
 def check_plans(stage, php, plans):
@@ -98,6 +136,7 @@ def package(repo, records, proof, channel_ready, zip_size, php, node):
     gate_changes = bind_gate(base, plans, INDEX, index_raw)
     need(not (editor_changes.keys() & gate_changes.keys()), "overlapping_generator_outputs")
     sources = {**editor_changes, **gate_changes}
+    sources.update(bind_max2_pins(base, sources))
     original = {path: text.encode() for path, text in base.items()}
     changes = {path: text.encode() for path, text in sources.items()}
     need(not ({k for k, _ in plans} | {INDEX}) & changes.keys(), "generated_path_collision")
