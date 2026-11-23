@@ -38,6 +38,11 @@ AI_INVOCATION_CUTOFF_REASONS = {
     "unsupported_schema", "invalid_invocation_id", "invalid_stage", "invalid_timestamp",
     "frame_size_limit", "invalid_payload_digest", "payload_truncated", "payload_digest_mismatch",
     "payload_not_lf_aligned", "truncation_marker_in_payload",
+    "context_read_header_size_limit", "invalid_context_read_header",
+}
+WEBSITE_CONTEXT_READ_OUTCOMES = {
+    "available", "empty", "not_found", "read_failed",
+    "not_attempted_invalid_chat", "load_failed", "not_recorded",
 }
 FLAGS = {
     "repeated_callback_input", "repeated_same_input", "excessive_turns",
@@ -182,7 +187,8 @@ def ai_invocation_metadata_evidence(production, sha, salt, now):
     fresh(production.get("generated_at"), now)
     source = production.get("ai_invocation_metadata_private")
     if source is None:
-        return {"schema": "anytour.ai_invocation_metadata_evidence.v1", "available": False,
+        return {"schema": "anytour.ai_invocation_metadata_evidence.v2", "available": False,
+                "source_schema": None,
                 "reason": "source_not_supplied", "runtime_trace_proven": False,
                 "causal_diagnosis_performed": False, "session_link_available": False}
 
@@ -197,7 +203,7 @@ def ai_invocation_metadata_evidence(production, sha, salt, now):
     exact_keys(source, {"schema", "generated_at", "ok", "projection", "trust", "runtime_trace_proven",
                         "causal_diagnosis_performed", "cross_stream_atomic", "source_history_complete",
                         "session_link_available", "limits", "streams", "records"})
-    if (source["schema"] != "anytour.ai_invocation_metadata.v1"
+    if (source["schema"] not in ("anytour.ai_invocation_metadata.v1", "anytour.ai_invocation_metadata.v2")
             or source["projection"] != "metadata_only" or source["trust"] != "unauthenticated_text_log"
             or type(source["ok"]) is not bool
             or any(source[key] is not False for key in ("runtime_trace_proven", "causal_diagnosis_performed",
@@ -205,6 +211,7 @@ def ai_invocation_metadata_evidence(production, sha, salt, now):
             or not isinstance(source["limits"], dict) or source["limits"] != AI_INVOCATION_LIMITS
             or any(type(value) is not int for value in source["limits"].values())):
         raise ValueError("invalid invocation projection contract")
+    source_v2 = source["schema"] == "anytour.ai_invocation_metadata.v2"
     fresh(source["generated_at"], now)
     if not isinstance(source["streams"], list) or len(source["streams"]) != 2:
         raise ValueError("invalid invocation streams")
@@ -245,13 +252,22 @@ def ai_invocation_metadata_evidence(production, sha, salt, now):
     records, groups = [], {}
     seen = {name: [] for name in streams}
     for record in source["records"]:
-        exact_keys(record, {"stream", "frame_index", "invocation_id", "stage", "age_seconds", "payload_bytes",
-                            "frame_bytes", "payload_sha256_verified", "shape_confirmed", "embedded_prefix_lines"})
+        fields = {"stream", "frame_index", "invocation_id", "stage", "age_seconds", "payload_bytes",
+                  "frame_bytes", "payload_sha256_verified", "shape_confirmed", "embedded_prefix_lines"}
+        if source_v2:
+            fields.add("website_context_read")
+        exact_keys(record, fields)
         stream, identifier = record["stream"], record["invocation_id"]
         if not isinstance(stream, str) or stream not in streams or not isinstance(record["stage"], str) or record["stage"] not in {"input", "result", "exception"}:
             raise ValueError("invalid invocation record identity")
         if identifier is not None and (not isinstance(identifier, str) or re.fullmatch(r"[0-9a-f]{32}", identifier) is None):
             raise ValueError("invalid invocation correlation")
+        website_read = record["website_context_read"] if source_v2 else ("not_recorded" if record["stage"] == "input" else None)
+        if record["stage"] == "input":
+            if not isinstance(website_read, str) or website_read not in WEBSITE_CONTEXT_READ_OUTCOMES:
+                raise ValueError("invalid website context read outcome")
+        elif website_read is not None:
+            raise ValueError("website context read on a non-input record")
         integer(record["frame_index"], 1, streams[stream]["valid_frames"])
         integer(record["age_seconds"], -AI_INVOCATION_LIMITS["future_seconds"], AI_INVOCATION_LIMITS["age_seconds"])
         integer(record["payload_bytes"], 0, AI_INVOCATION_LIMITS["frame_bytes"])
@@ -268,6 +284,7 @@ def ai_invocation_metadata_evidence(production, sha, salt, now):
         item = {"record_ref": f"R{len(records) + 1:03d}", "invocation_ref": alias,
                 **{key: record[key] for key in ("stream", "frame_index", "stage", "payload_bytes", "frame_bytes", "shape_confirmed", "embedded_prefix_lines")},
                 "age_seconds_at_source_snapshot": record["age_seconds"],
+                "website_context_read": website_read,
                 "source_reported_payload_sha256_verified": True}
         records.append(item)
         if alias is not None:
@@ -297,7 +314,8 @@ def ai_invocation_metadata_evidence(production, sha, salt, now):
         projected_groups.append({"invocation_ref": alias, "status": status, "reason_codes": sorted(set(reasons)),
                                  "input_records": len(inputs), "terminal_records": len(terminals),
                                  "record_refs": [r["record_ref"] for r in members]})
-    return {"schema": "anytour.ai_invocation_metadata_evidence.v1", "available": True, "ok": source["ok"],
+    return {"schema": "anytour.ai_invocation_metadata_evidence.v2", "available": True, "ok": source["ok"],
+            "source_schema": source["schema"],
             "source_generated_at": timestamp(source["generated_at"]).isoformat(), "projection": "metadata_only",
             "trust": "unauthenticated_text_log", "integrity_check_origin": "source_reported",
             "cross_stream_atomic": False, "source_history_complete": False, "session_link_available": False,
@@ -306,6 +324,7 @@ def ai_invocation_metadata_evidence(production, sha, salt, now):
             "records": records, "groups": projected_groups,
             "unlinked_null_id_records": sum(r["invocation_ref"] is None for r in records),
             "coverage": "bounded recent metadata from two sequential private log snapshots; rotation and omissions can hide events",
+            "context_read_scope": "website page only; source-post and recent-dialogue retrieval outcomes are not recorded here",
             "version_scope": "production_sha identifies the capture code; individual frame code, prompt and model versions are unavailable"}
 
 

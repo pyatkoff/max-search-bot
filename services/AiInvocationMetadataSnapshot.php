@@ -14,7 +14,7 @@ require_once __DIR__ . '/AiRuntimeLogger.php';
  */
 final class AiInvocationMetadataSnapshot
 {
-    public const SCHEMA = 'anytour.ai_invocation_metadata.v1';
+    public const SCHEMA = 'anytour.ai_invocation_metadata.v2';
     public const MAX_FILE_BYTES = 1048576;
     public const MAX_FRAME_BYTES = 65536;
     public const MAX_HEADER_BYTES = 4096;
@@ -22,6 +22,12 @@ final class AiInvocationMetadataSnapshot
     public const MAX_FRAMES_PER_STREAM = 4096;
     public const MAX_AGE_SECONDS = 3600;
     public const MAX_FUTURE_SECONDS = 60;
+    private const CONTEXT_READ_PREFIX = 'AI CONTEXT READ: ';
+    private const MAX_CONTEXT_READ_HEADER_BYTES = 256;
+    private const WEBSITE_CONTEXT_OUTCOMES = [
+        'available', 'empty', 'not_found', 'read_failed',
+        'not_attempted_invalid_chat', 'load_failed', 'not_recorded',
+    ];
 
     public static function collect(?DateTimeImmutable $now = null): array
     {
@@ -139,6 +145,34 @@ final class AiInvocationMetadataSnapshot
         return $data;
     }
 
+    /** Interpret only a fixed first line inside an already verified payload. */
+    private static function websiteContextRead(string $stage, string $payload): ?string
+    {
+        if ($stage !== 'input') return null;
+        if (!str_starts_with($payload, 'AI CONTEXT READ:')) return 'not_recorded';
+        $end = strpos($payload, "\n");
+        if ($end === false || $end > self::MAX_CONTEXT_READ_HEADER_BYTES) {
+            throw new RuntimeException('context_read_header_size_limit');
+        }
+        $line = substr($payload, 0, $end);
+        if (!str_starts_with($line, self::CONTEXT_READ_PREFIX) || str_ends_with($line, "\r")) {
+            throw new RuntimeException('invalid_context_read_header');
+        }
+        $json = substr($line, strlen(self::CONTEXT_READ_PREFIX));
+        try {
+            $read = json_decode($json, true, 4, JSON_THROW_ON_ERROR);
+        } catch (Throwable $ignored) {
+            throw new RuntimeException('invalid_context_read_header');
+        }
+        if (!is_array($read) || count($read) !== 2 || array_diff(array_keys($read), ['schema', 'website_page'])
+            || preg_match_all('/"(?:[^"\\\\]|\\\\.)*"\s*:/', $json) !== 2
+            || $read['schema'] !== 'anytour.ai_context_read.v1'
+            || !is_string($read['website_page']) || !in_array($read['website_page'], self::WEBSITE_CONTEXT_OUTCOMES, true)) {
+            throw new RuntimeException('invalid_context_read_header');
+        }
+        return $read['website_page'];
+    }
+
     private static function project(string $bytes, array $state, int $now): array
     {
         $records = [];
@@ -179,6 +213,9 @@ final class AiInvocationMetadataSnapshot
                 if (!hash_equals($metadata['payload_sha256'], hash('sha256', $payload))) throw new RuntimeException('payload_digest_mismatch');
                 if ($payload !== '' && !str_ends_with($payload, "\n")) throw new RuntimeException('payload_not_lf_aligned');
                 if (preg_match('/^\[record truncated\]\r?$/m', $payload)) throw new RuntimeException('truncation_marker_in_payload');
+                // Do not search customer/model text for a lookalike header.
+                // This is still an unauthenticated source-reported outcome.
+                $websiteRead = self::websiteContextRead($metadata['stage'], $payload);
             } catch (RuntimeException $error) {
                 $stop($error->getMessage(), $position);
                 break; // No resynchronization through payload/unknown tail.
@@ -204,6 +241,7 @@ final class AiInvocationMetadataSnapshot
                     'payload_sha256_verified' => true,
                     'shape_confirmed' => $shape,
                     'embedded_prefix_lines' => preg_match_all('/^AI INVOCATION:/m', $payload),
+                    'website_context_read' => $websiteRead,
                 ];
                 if (count($records) > self::MAX_RETAINED_PER_STREAM) {
                     array_shift($records);

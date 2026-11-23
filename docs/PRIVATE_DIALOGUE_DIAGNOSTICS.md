@@ -42,7 +42,7 @@ not necessarily the original sent text; recorded equality is not a quality score
 ### AI invocation metadata
 
 The existing private `production_snapshot.json` can also contain
-`ai_invocation_metadata_private`, schema `anytour.ai_invocation_metadata.v1`.
+`ai_invocation_metadata_private`, schema `anytour.ai_invocation_metadata.v2`.
 `AiInvocationMetadataSnapshot` reads the existing external debug and error
 logs locally, checks complete `anytour.ai_invocation.v1` frames using their
 declared byte lengths and SHA256, and emits metadata only. It never copies the
@@ -91,6 +91,62 @@ for independent verification. Integrity and byte shape do not authenticate who
 wrote a text frame. Every view retains `trust=unauthenticated_text_log`,
 `runtime_trace_proven=false` and `causal_diagnosis_performed=false`.
 
+### Website-page context read outcome
+
+`WebsitePageContextService::forChat()` keeps its existing result and accepts an
+optional diagnostic output by reference. `AiInvocationService` observes that
+same read; it does not repeat a query or add the diagnostic value to the model's
+context. The statement's local SQLSTATE may be observed after execute/fetch to
+avoid treating a non-throwing driver failure as an absent row. This is not an
+additional SQL query. Diagnostic observation failure preserves the business
+result and reports `not_recorded` unless the read failure is already known.
+
+The input payload begins with one fixed `AI CONTEXT READ: ` JSON line, schema
+`anytour.ai_context_read.v1`, containing only `website_page` and its fixed
+outcome. The remaining original input payload, invocation envelope v1, six
+envelope fields and input/result/exception stages are unchanged. This first line
+is part of the original payload length/hash. The collector interprets it only
+at byte zero, after the complete frame has passed those checks; a similar line
+inside customer or model text cannot supply or override an outcome. The line
+is limited to 256 bytes before its LF. Malformed/oversized typed headers stop
+source admission explicitly, without searching for a later convenient frame.
+
+| `website_context_read` | Observed meaning |
+| --- | --- |
+| `available` | A row was returned with a nonblank URL/title or a nonempty decoded structured array. |
+| `empty` | A row exists, but those returned content fields are empty. Its original array, including `updated_at`, still reaches the model as before. |
+| `not_found` | The read succeeded and returned no row. |
+| `read_failed` | The actual read threw, execute failed, or the completed statement reported an error. No exception text or SQLSTATE is exported. |
+| `not_attempted_invalid_chat` | The existing invalid-chat guard prevented the read. |
+| `load_failed` | The invocation wrapper could not load/call the context reader. |
+| `not_recorded` | No admissible observation was recorded; this does not imply any of the other outcomes. |
+
+Malformed structured JSON retains the existing `forChat()` behavior. The
+outcome describes the content actually returned by that code; it does not
+assert that a malformed stored value contained no useful information.
+Only the website-page read is covered. Source-post/recent-dialogue reads,
+incoming-message identity, state application and provider metadata remain
+separate unresolved evidence. The outcome has no separate read timestamp; the
+existing frame time is a recording time, not a new measurement of retrieval
+duration or a reconstruction of historical event times.
+
+Each v2 source record has `website_context_read`: a fixed outcome on input,
+and null on terminal records. The encrypted consumer accepts source v1 and v2;
+it emits `anytour.ai_invocation_metadata_evidence.v2` and retains `source_schema`.
+Old v1 inputs and inputs without the typed first line become `not_recorded`,
+never an invented absent row or error. Input/terminal grouping keeps its existing
+meaning: `candidate_correlated` does not prove that context retrieval succeeded
+or was observed. The trust/trace/causal flags above remain unchanged, including
+after a natural delivery acceptance.
+
+The frozen D5 v1 collector can still validate new input frames and ignores the
+typed payload line. Its original encrypted consumer rejects a v2 projection,
+so the v2 collector and consumer must be released together through the existing
+exact-SHA capture. A forward revert of D2 restores both to D5; existing logs do
+not need to be rewritten. No new service, dependency, workflow, schedule, query
+or public diagnostic field is introduced. The bounded extra input line and one
+fixed metadata value use the existing log/capture retention and size limits.
+
 The capture's `production_sha` identifies the collector deployment. It does not
 prove the code, prompt or model version that produced each retained frame.
 Those versions remain unavailable. Existing dialogue-sample limits and
@@ -110,7 +166,7 @@ release and encrypted-capture acceptance below. There is no new workflow,
 schedule, service, model call or public output.
 
 Maintain the PHP producer and runner schema/bounds together. Focused coverage
-is included in the existing AI log boundary, encrypted evidence and public
+is included in the existing AI invocation, AI log boundary, encrypted evidence and public
 diagnostics privacy suites; there is no additional test group.
 
 The standard age format encrypts the projection to the single X25519 public

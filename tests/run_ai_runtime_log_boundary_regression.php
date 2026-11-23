@@ -57,6 +57,56 @@ try {
     aiLogCheck('projection leaves original log bytes and modes unchanged', file_get_contents($debug) === $inputFrame . $resultFrame && file_get_contents($error) === '' && (fileperms($debug) & 0777) === 0600);
     aiLogCheck('metadata explicitly declines authenticated trace, session link and cross-file atomicity', $projection['trust'] === 'unauthenticated_text_log' && $projection['runtime_trace_proven'] === false && $projection['cross_stream_atomic'] === false && $projection['session_link_available'] === false && $projection['source_history_complete'] === false);
 
+    aiLogCheck('v2 projection keeps uninstrumented input distinct from an observed missing row',
+        $projection['schema'] === 'anytour.ai_invocation_metadata.v2'
+        && $projection['records'][0]['website_context_read'] === 'not_recorded'
+        && $projection['records'][1]['website_context_read'] === null);
+    $contextHeader = static fn(string $outcome): string => 'AI CONTEXT READ: ' . json_encode([
+        'schema' => 'anytour.ai_context_read.v1', 'website_page' => $outcome,
+    ], JSON_UNESCAPED_SLASHES) . "\n";
+    foreach (['available', 'empty', 'not_found', 'read_failed', 'not_attempted_invalid_chat', 'load_failed', 'not_recorded'] as $outcome) {
+        $writeSnapshots($frame(str_repeat('a', 32), 'input', $contextHeader($outcome) . $inputPayload) . $resultFrame);
+        $view = AiInvocationMetadataSnapshot::collect($now);
+        aiLogCheck('verified first-line website outcome survives metadata projection: ' . $outcome,
+            $view['ok'] === true && count($view['records']) === 2
+            && $view['records'][0]['website_context_read'] === $outcome
+            && $view['records'][0]['payload_sha256_verified'] === true
+            && $view['records'][0]['shape_confirmed'] === true
+            && $view['records'][1]['website_context_read'] === null);
+    }
+    $customerLookalike = str_replace('PRIVATE_FIXTURE', $contextHeader('available') . 'PRIVATE_FIXTURE', $inputPayload);
+    $writeSnapshots($frame(str_repeat('a', 32), 'input', $customerLookalike) . $resultFrame);
+    aiLogCheck('customer-text lookalike cannot invent a previously unrecorded context outcome',
+        AiInvocationMetadataSnapshot::collect($now)['records'][0]['website_context_read'] === 'not_recorded');
+    $writeSnapshots($frame(str_repeat('a', 32), 'input', $contextHeader('read_failed') . $customerLookalike) . $resultFrame);
+    aiLogCheck('customer-text lookalike cannot override the actual first-line context outcome',
+        AiInvocationMetadataSnapshot::collect($now)['records'][0]['website_context_read'] === 'read_failed');
+
+    $badContextHeaders = [
+        'AI CONTEXT READ: {"schema":"anytour.ai_context_read.v1","website_page":"PRIVATE_OUTCOME"}',
+        'AI CONTEXT READ: {"schema":"anytour.ai_context_read.v1","website_page":"available","text":"PRIVATE_TEXT"}',
+        'AI CONTEXT READ: {"schema":"anytour.ai_context_read.v1","website_page":"available","website\\u005fpage":"not_found"}',
+        'AI CONTEXT READ: {"schema":"anytour.ai_context_read.v2","website_page":"available"}',
+        'AI CONTEXT READ: {"schema":"anytour.ai_context_read.v1","website_page":null}',
+        'AI CONTEXT READ:{"schema":"anytour.ai_context_read.v1","website_page":"available"}',
+    ];
+    $badHeadersRejected = true;
+    foreach ($badContextHeaders as $badHeader) {
+        $writeSnapshots($frame(str_repeat('a', 32), 'input', $badHeader . "\n" . $inputPayload) . $resultFrame);
+        $badView = AiInvocationMetadataSnapshot::collect($now);
+        $badHeadersRejected = $badHeadersRejected && $badView['records'] === []
+            && $badView['streams'][0]['cutoff_reason'] === 'invalid_context_read_header'
+            && !str_contains(json_encode($badView), 'PRIVATE_');
+    }
+    aiLogCheck('malformed, unknown, duplicate and private context fields stop without tail resynchronization', $badHeadersRejected);
+    $writeSnapshots($frame(str_repeat('a', 32), 'input', rtrim($contextHeader('available'), "\n") . str_repeat(' ', 257) . "\n" . $inputPayload) . $resultFrame);
+    aiLogCheck('typed context header has its own bounded size',
+        AiInvocationMetadataSnapshot::collect($now)['streams'][0]['cutoff_reason'] === 'context_read_header_size_limit');
+    $checkedContextFrame = $frame(str_repeat('a', 32), 'input', $contextHeader('read_failed') . $inputPayload);
+    $writeSnapshots(str_replace('read_failed', 'PRIVATE_BAD', $checkedContextFrame) . $resultFrame);
+    aiLogCheck('payload digest is checked before interpreting context metadata',
+        AiInvocationMetadataSnapshot::collect($now)['streams'][0]['cutoff_reason'] === 'payload_digest_mismatch');
+
     $writeSnapshots($inputFrame, $frame(str_repeat('a', 32), 'exception', "23.11.2026 14:00:00--- chat=SYNTHETIC_NATIVE_CHAT --- PRIVATE_EXCEPTION\n"));
     $projection = AiInvocationMetadataSnapshot::collect($now);
     aiLogCheck('error stream supplies its real terminal frame without exception text', count($projection['records']) === 2 && $projection['records'][1]['stream'] === 'error' && $projection['records'][1]['stage'] === 'exception' && !str_contains(json_encode($projection), 'PRIVATE_EXCEPTION'));

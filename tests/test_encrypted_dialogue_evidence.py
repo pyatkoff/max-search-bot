@@ -52,7 +52,7 @@ def production_fixture():
                 "proposal_json": "HIDDEN_RAW_PROPOSAL", "extra": "HIDDEN_EXTRA"}]}
 
 
-def invocation_fixture():
+def invocation_fixture(version=1, outcome="available"):
     production = production_fixture()
     streams = [{"stream": name, "read_status": "available", "reason": None, "bytes_read": 900 if name == "debug" else 0,
                 "valid_frames": 2 if name == "debug" else 0, "retained_frames": 2 if name == "debug" else 0,
@@ -67,6 +67,11 @@ def invocation_fixture():
                      "age_seconds": 101 - index, "payload_bytes": 100, "frame_bytes": 450,
                      "payload_sha256_verified": True, "shape_confirmed": True, "embedded_prefix_lines": 0}
                     for index, stage in ((1, "input"), (2, "result"))]}
+    if version == 2:
+        source = production["ai_invocation_metadata_private"]
+        source["schema"] = "anytour.ai_invocation_metadata.v2"
+        for record in source["records"]:
+            record["website_context_read"] = outcome if record["stage"] == "input" else None
     return production
 
 
@@ -97,6 +102,60 @@ class EvidenceTests(unittest.TestCase):
         for forbidden in ("c" * 32, '"invocation_id"', '"payload_sha256"', '"recorded_at_utc"', '"text"', '"prompt"', '"model"', '"path"'):
             self.assertNotIn(forbidden, encoded)
         self.assertIn("individual frame code, prompt and model versions are unavailable", view["version_scope"])
+
+    def test_legacy_invocation_metadata_does_not_invent_a_website_read_outcome(self):
+        view = json.loads(self.build(production=invocation_fixture()))["ai_invocation_metadata"]
+        self.assertEqual(view["schema"], "anytour.ai_invocation_metadata_evidence.v2")
+        self.assertEqual(view["source_schema"], "anytour.ai_invocation_metadata.v1")
+        self.assertEqual(view["records"][0]["website_context_read"], "not_recorded")
+        self.assertIsNone(view["records"][1]["website_context_read"])
+        self.assertEqual(view["groups"][0]["status"], "candidate_correlated")
+
+    def test_website_read_outcomes_survive_age_encryption_without_becoming_causal_proof(self):
+        for outcome in ("available", "empty", "not_found", "read_failed", "not_attempted_invalid_chat", "load_failed", "not_recorded"):
+            with self.subTest(outcome=outcome):
+                data = self.build(production=invocation_fixture(version=2, outcome=outcome))
+                ciphertext = pyrage.encrypt(data, [self.identity.to_public()])
+                view = json.loads(pyrage.decrypt(ciphertext, [self.identity]))["ai_invocation_metadata"]
+                self.assertEqual(view["source_schema"], "anytour.ai_invocation_metadata.v2")
+                self.assertEqual(view["records"][0]["website_context_read"], outcome)
+                self.assertIsNone(view["records"][1]["website_context_read"])
+                self.assertFalse(view["runtime_trace_proven"])
+                self.assertFalse(view["causal_diagnosis_performed"])
+                self.assertIn("source-post and recent-dialogue", view["context_read_scope"])
+                self.assertNotIn(("c" * 32).encode(), data)
+
+    def test_website_read_contract_rejects_missing_private_unknown_or_misplaced_values(self):
+        mutations = [
+            lambda s: s["records"][0].pop("website_context_read"),
+            lambda s: s["records"][0].update(website_context_read=None),
+            lambda s: s["records"][0].update(website_context_read=True),
+            lambda s: s["records"][0].update(website_context_read={"error": "PRIVATE_ERROR"}),
+            lambda s: s["records"][0].update(website_context_read="PRIVATE_TEXT"),
+            lambda s: s["records"][1].update(website_context_read="available"),
+            lambda s: s["records"][0].update(website_context_error="PRIVATE_ERROR"),
+        ]
+        for index, mutate in enumerate(mutations):
+            with self.subTest(mutation=index):
+                production = invocation_fixture(version=2)
+                mutate(production["ai_invocation_metadata_private"])
+                with self.assertRaises(ValueError):
+                    self.build(production=production)
+        production = invocation_fixture()
+        production["ai_invocation_metadata_private"]["records"][0]["website_context_read"] = "available"
+        with self.assertRaises(ValueError):
+            self.build(production=production)
+
+    def test_website_read_rejection_retains_explicit_source_cutoff(self):
+        production = invocation_fixture(version=2)
+        source = production["ai_invocation_metadata_private"]
+        source["records"] = []
+        source["streams"][0].update(valid_frames=0, retained_frames=0, cutoff_reason="invalid_context_read_header", untrusted_tail_bytes=900)
+        source["ok"] = False
+        view = json.loads(self.build(production=production))["ai_invocation_metadata"]
+        self.assertFalse(view["ok"])
+        self.assertEqual(view["records"], [])
+        self.assertEqual(view["streams"][0]["cutoff_reason"], "invalid_context_read_header")
 
     def test_invocation_metadata_includes_error_stream_and_preserves_missing_evidence(self):
         production = invocation_fixture()
