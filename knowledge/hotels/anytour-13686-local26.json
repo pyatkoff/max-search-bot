@@ -1,0 +1,227 @@
+{
+  "binding_revision": "74a0102e0b81ba1c9fecc56c9199748b89f1bd20ac2b6d68c556b49bacf8cbf7",
+  "coverage": {
+    "available_prepared_claim_count": 8,
+    "basis": "All whole source facts from the immutable reviewed LOCAL26 package; not independent AI content admission.",
+    "complete": false,
+    "selected_claim_count": 8
+  },
+  "facts": [
+    {
+      "aspect": "atoll_location",
+      "declared": true,
+      "hotel_key": "EXP054",
+      "id": "F1",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Noonu Atoll",
+        "kind": "location"
+      },
+      "source_ids": [
+        "siy-home"
+      ],
+      "text": "Курорт находится в атолле Ноону.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "villa_and_residence_inventory",
+      "declared": true,
+      "hotel_key": "EXP054",
+      "id": "F2",
+      "kind": "official_declared",
+      "scope": {
+        "key": "beach villas / multi-bedroom residences / overwater pool categories",
+        "kind": "accommodation_listing"
+      },
+      "source_ids": [
+        "siy-home"
+      ],
+      "text": "Представлены пляжные виллы, многоспальные резиденции и водные категории с бассейнами.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "pool_and_slide_category_feature",
+      "declared": true,
+      "hotel_key": "EXP054",
+      "id": "F3",
+      "kind": "official_declared",
+      "scope": {
+        "key": "categories explicitly named Pool + Slide",
+        "kind": "room_categories"
+      },
+      "source_ids": [
+        "siy-home"
+      ],
+      "text": "У категорий с обозначением Pool + Slide есть бассейн и горка в воду.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "floating_waterpark",
+      "declared": true,
+      "hotel_key": "EXP054",
+      "id": "F4",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Siyam Water World",
+        "kind": "facility"
+      },
+      "source_ids": [
+        "siy-home",
+        "siy-experiences"
+      ],
+      "text": "Есть плавучий аквапарк Siyam Water World.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "padel_and_ranch",
+      "declared": true,
+      "hotel_key": "EXP054",
+      "id": "F5",
+      "kind": "official_declared",
+      "scope": {
+        "key": "padel / horse-riding ranch",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "siy-experiences"
+      ],
+      "text": "Есть падел и ранчо с конными прогулками.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "activities_and_child_services",
+      "declared": true,
+      "hotel_key": "EXP054",
+      "id": "F6",
+      "kind": "official_declared",
+      "scope": {
+        "key": "diving / water sports / excursions / child activities",
+        "kind": "activities"
+      },
+      "source_ids": [
+        "siy-experiences"
+      ],
+      "text": "Предлагаются дайвинг, водный спорт, экскурсии и детские развлечения.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "dining_inventory",
+      "declared": true,
+      "hotel_key": "EXP054",
+      "id": "F7",
+      "kind": "official_declared",
+      "scope": {
+        "key": "restaurants and bars; cuisines only, no meal-plan inclusion",
+        "kind": "dining"
+      },
+      "source_ids": [
+        "siy-home",
+        "siy-destination"
+      ],
+      "text": "Есть рестораны и бары с различными кухнями.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "transfer_options",
+      "declared": true,
+      "hotel_key": "EXP054",
+      "id": "F8",
+      "kind": "official_declared",
+      "scope": {
+        "key": "seaplane or domestic flight to Maafaru followed by boat",
+        "kind": "transfer_route"
+      },
+      "source_ids": [
+        "siy-destination"
+      ],
+      "text": "Трансфер: гидросамолёт либо внутренний рейс до Маафару с катером.",
+      "valid_at_travel": "unverified"
+    }
+  ],
+  "hotel_ref": {
+    "catalog": "anytour",
+    "id": 13686
+  },
+  "material_limits": {
+    "identity_admission": "Цепочка legacy_catalog 73477 → AnyTour 13686 (ревизия 2) → local-tv 73477 (ревизия 2) и это целое досье независимо приняты решением ACCEPT_LOCAL19_BOUNDED_CONSUMER_IDENTITY_AND_CONTENT_ADMISSION по сохранённым оригинальным доказательствам. Native LOCAL остаётся pending, source_json=NULL; приёмка досье не означает приёмку нового native/provider source. Реальная Library приёмка, установка в справочник, чтение с реальным разрешённым selector и использование ИИ подтверждаются отдельно; runtime_admission_verified=false.",
+    "original_notes_ru": [
+      "Не утверждается, что все водные виллы имеют горку: признак связан с точной категорией.",
+      "На главной странице рекламируется24-hourall-inclusive, а FAQ перечисляет несколько планов питания. Условия и включение отдельных активностей в цену не перенесены в описание и room/meal mappings.",
+      "Не использованы маркетинговые рекорды «самый большой» и тарифы трансферов."
+    ],
+    "recommendation_boundary": "Заявления об аудитории отеля не являются независимой оценкой качества или гарантией пригодности конкретному туристу.",
+    "scope": "Каждое целое утверждение применяется только к указанному объекту, категории, услуге, сезону или маршруту. Обещания тарифа, цены, наличия и будущей работы не добавлены.",
+    "temporal": "Сохранены сведения и дата чтения 22.11.2026. Текущая или будущая работа услуг не проверялась; срок действия и дата публикации не выдуманы."
+  },
+  "price_authority": "none",
+  "project_key": "anytour",
+  "record_hashes": {
+    "claims": {
+      "F1": "e995decdcd1f9b6aa16016d9cc5062c98418d719d4a3654182884cd04b483825",
+      "F2": "a5f433f3d48676b890b8a97df4eb3ec18cbb1c2a82a8378adb4db04cd45c133f",
+      "F3": "b69ff455dc0c56211a69b468b8b315e99efad80166564e4a152c522f689c1c57",
+      "F4": "032a507726486c5ebec9c86993f17f418229f3de7e3ef8aee6241bac8c30950a",
+      "F5": "2ba02d42faa4d00e2e315959561ec81f492224224afbf5e737ca09dd5c3d1dff",
+      "F6": "6f346716ca5ccd16bd1a8cdf9c352079600a6045ea9abfe04dd47abe43599167",
+      "F7": "b197edafb68a49f8e3a83fcaee29240dd51e4279b12745fee5d02e2ca18e9f61",
+      "F8": "4da6471c4dd09b39fdc1662aa4403b18fa6f170f2605d703eccd04785feed29c"
+    },
+    "sources": {
+      "siy-destination": "c0d3fc064c53aca6c2f267763649dc2fbb2be75cc6da263cc575eb7866f08c15",
+      "siy-experiences": "c4bfc1e74807d55ba4d00413d189f690f946502a0af4f0c2948a91d35203bc7c",
+      "siy-home": "0ba83a204fd612734e4fa7f1d4776f987b6bd6bbe6133754d792f6dade09f76b"
+    }
+  },
+  "research_hotel_key": "EXP054",
+  "runtime_admission_verified": false,
+  "schema_version": "hotel_reference_v1",
+  "sources": [
+    {
+      "capture_bytes": 254520,
+      "capture_format": "raw_html",
+      "capture_sha256": "3d43c048122dc3803c287446f4d3988f51848075197ff395c8a7c9033a696d15",
+      "hotel_key": "EXP054",
+      "id": "siy-home",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: F1, F2, F3, F4, F7. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:59:41.129935+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Siyam World | 5-star Luxury All Inclusive Resort in Maldives",
+      "url": "https://www.sunsiyam.com/siyam-world/"
+    },
+    {
+      "capture_bytes": 126833,
+      "capture_format": "raw_html",
+      "capture_sha256": "0a70fb1ec3fb8eeee25a4c397815e60a0c91ffdf318414cab08e92f6388dfd21",
+      "hotel_key": "EXP054",
+      "id": "siy-destination",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: F7, F8. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T10:01:01.340106+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Sun Siyam - Destination",
+      "url": "https://www.sunsiyam.com/siyam-world/destination/"
+    },
+    {
+      "capture_bytes": 182017,
+      "capture_format": "raw_html",
+      "capture_sha256": "564c042b6d5a0d132ddf937e1482bc7e055b8594831baf9339193f5e541aace5",
+      "hotel_key": "EXP054",
+      "id": "siy-experiences",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: F4, F5, F6. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T10:01:02.417522+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Maldives Experiences & Attractions at Siyam World",
+      "url": "https://www.sunsiyam.com/siyam-world/experiences/"
+    }
+  ],
+  "status": "SEALED_AUTHORING_DATA_ONLY",
+  "trusted_selector_required": true
+}
