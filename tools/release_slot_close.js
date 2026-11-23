@@ -523,12 +523,13 @@ function trustedAttempt(run,c,attempt,event='push') {
     run.head_sha===c.sha&&run.head_commit?.id===c.sha&&run.run_attempt===attempt&&
     stamp(run.created_at)&&stamp(run.run_started_at)&&stamp(run.updated_at),'untrusted_deployment_attempt');
 }
-function deploymentHistory(history,first,current,c,admitting=false) {
+function deploymentHistory(history,first,current,c,admitting=false,exhausted=false) {
+  requireValue(!exhausted||!admitting,'invalid_verification_history_mode');
   trustedAttempt(first,c,1);trustedAttempt(current,c,2);
   requireValue(first.status==='completed'&&first.conclusion==='failure'&&
     Date.parse(first.updated_at)<Date.parse(current.run_started_at),'original_attempt_not_failed');
   requireValue(admitting?current.status==='in_progress'&&current.conclusion===null:
-    current.status==='completed'&&current.conclusion==='success','invalid_recovery_attempt');
+    current.status==='completed'&&current.conclusion===(exhausted?'failure':'success'),'invalid_recovery_attempt');
   requireValue(Array.isArray(history?.jobs)&&history.total_count===history.jobs.length&&history.jobs.length<100&&
     history.jobs.every(j=>j&&typeof j==='object'&&!Array.isArray(j))&&
     new Set(history.jobs.map(j=>j.id)).size===history.jobs.length,'incomplete_deployment_jobs');
@@ -548,7 +549,16 @@ function deploymentHistory(history,first,current,c,admitting=false) {
   const old=at('verify',1),latest=at('verify',2);
   requireValue(old.status==='completed'&&old.conclusion==='failure','original_verification_not_failed');
   requireValue(admitting?latest.status==='in_progress'&&latest.conclusion===null:
-    latest.status==='completed'&&latest.conclusion==='success','recovery_not_confirmed');
+    latest.status==='completed'&&latest.conclusion===(exhausted?'failure':'success'),'recovery_not_confirmed');
+  if(exhausted){
+    const matches={check:'failure',download:'skipped',status:'success',publication:'success',cleanup:'skipped'};
+    for(const job of [old,latest]){
+      for(const [key,result] of Object.entries(matches)){
+        requireValue(stepResult(job,VERIFY_STEPS[key])===result,'unclassified_exhausted_verification');
+      }
+    }
+    return {firstVerifyId:old.id,latestVerifyId:latest.id};
+  }
   const results=Object.fromEntries(Object.entries(VERIFY_STEPS).map(([key,name])=>[key,stepResult(old,name)]));
   requireValue(results.check!=='success'||results.download!=='skipped','unclassified_original_verification');
   requireValue(results.cleanup!=='success'||(results.download==='success'&&results.status==='success'),'invalid_original_verification');
