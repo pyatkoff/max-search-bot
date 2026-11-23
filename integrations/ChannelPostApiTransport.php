@@ -124,6 +124,26 @@ final class ChannelPostApiTransport
             : self::postRequest('telegram', 'POST', 'editMessageMedia', [], $payload, false, null, true, $jpeg);
     }
 
+    /** The approved historical MAX card is replaced in one provider request. */
+    public static function maxHotelTransferRequest(string $channelId, string $messageId, string $text,
+        #[\SensitiveParameter] string $photoToken, string $label, string $buttonUrl): array
+    {
+        if ($channelId !== '-68765999669267' || $messageId !== 'mid.ffffc1752b045fed019edec4de843c85'
+            || !str_starts_with($text, "Sugar Marina Resort Art Karon Beach\n")
+            || !mb_check_encoding($text, 'UTF-8') || mb_strlen($text, 'UTF-8') > 600
+            || preg_match('/[0-9₽\x00-\x09\x0b-\x1f\x7f]/u', $text) !== 0
+            || !preg_match('/\A[\x21-\x7e]{1,2048}\z/D', $photoToken)
+            || !in_array($label, ['Рассчитать на мои даты', '✈️ Рассчитать на мои даты'], true)
+            || !preg_match('~\Ahttps://max\.ru/[A-Za-z0-9_]{2,80}\?start=p_[A-Za-z0-9_-]{24}\z~D', $buttonUrl)) {
+            return ['http' => 0, 'data' => null, 'transport_error' => true];
+        }
+        $body = ['text' => $text, 'attachments' => [
+            ['type'=>'image', 'payload'=>['token'=>$photoToken]],
+            ['type'=>'inline_keyboard', 'payload'=>['buttons'=>[[['type'=>'link', 'text'=>$label, 'url'=>$buttonUrl]]]]],
+        ], 'notify'=>false];
+        return self::postRequest('max', 'PUT', '/messages', ['message_id'=>$messageId], $body, true);
+    }
+
     /** Pure preflight before the editor consumes its once-only write marker. */
     public static function hotelMediaPayload(string $channelId, string $messageId, array $body, bool|string $next = false): ?array
     {
