@@ -16,7 +16,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '3b613dbf60e50338e0e3cac7f12c14a957ce2733' &&
+      github.event.before == '6fd129b8429cec2ec73296bb60d7ec0d0235b229' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 18
@@ -203,7 +203,7 @@ jobs:
           function readRights(ChannelPostRegistryService $registry,string $platform,string $bot,string $chat,string $url): array {
               $c=$registry->channel('anytour',$platform,$bot,$chat);
               requireRead(is_array($c),'registered_channel_not_available');
-              $c['expected_public_url']=$url;
+              if($platform==='max') $c['expected_public_url']=$url;
               $connector=static function (string $platform,string $method,string $path,array $query,?array $body) use ($chat):array {
                   $allowed=$platform==='telegram'
                       ? ($method==='POST'&&in_array($path,['getMe','getChat','getChatMember'],true)&&($path==='getMe'||(string)($body['chat_id']??'')===$chat))
@@ -230,6 +230,7 @@ jobs:
               requireRead(is_array($snap),'max_native_snapshot_missing');
               $photos=array_values(array_filter($snap['attachments'],fn($t)=>($t['type']??null)==='image'));
               $result+=['published_at'=>$snap['published_at'],'photo_count'=>count($photos),
+                  'existing_photo_token_present'=>count($photos)===1&&is_string($photos[0]['token']??null)&&$photos[0]['token']!=='',
                   'reusable_photo_id'=>count($photos)===1&&!empty($photos[0]['photo_id']),
                   'photo_id_sha256'=>count($photos)===1&&!empty($photos[0]['photo_id'])?hash('sha256',$photos[0]['photo_id']):null,
                   'media_types'=>array_column($snap['attachments'],'type'),'same_public_caption'=>false,
