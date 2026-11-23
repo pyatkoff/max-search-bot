@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "mode": "isolated-preview",
+  "publication_allowed": false,
+  "dynamic_prices": false,
+  "source_input_sha256": "1d1303d90283940197a6023fc2d13d4be7d98a1667bcd46fa5fa06ba9fb894ed",
+  "editorial_source_sha256": "f6ee12243d579387a57ce0e05a97c166f1d94f22ee68721093604e9da23e06d8",
+  "rows": [
+    {
+      "hotel_id": 27481,
+      "title": "Anantara Sir Bani Yas Island Al Sahel Villa Resort",
+      "location": "Сир-Бани-Яс, Абу-Даби, ОАЭ",
+      "description": "Виллы среди саванны на острове-заповеднике.",
+      "layout": {
+        "title_lines": [
+          "Anantara Sir Bani Yas Island",
+          "Al Sahel Villa Resort"
+        ]
+      },
+      "source": {
+        "path": "anantara-source-cards.json",
+        "sha256": "f6ee12243d579387a57ce0e05a97c166f1d94f22ee68721093604e9da23e06d8",
+        "card_id": "anytour-27481",
+        "original_sources": [
+          "https://www.anantara.com/en/desert-islands-sir-bani-yas/al-sahel",
+          "https://www.anantara.com/en/al-sahel-sir-bani-yas/villas"
+        ]
+      },
+      "copy_basis": "Exact unchanged text from the preserved pilot card; line-break hints only.",
+      "source_state": "PRESERVED_PILOT_CONTROL_NOT_A_PUBLICATION_APPROVAL",
+      "releaseHolds": [],
+      "rights": "Existing owner-authorized paid Tourvisor/ANEX material policy; isolated reuse for the owner. No new open licence or production approval.",
+      "demo": false
+    }
+  ]
+}

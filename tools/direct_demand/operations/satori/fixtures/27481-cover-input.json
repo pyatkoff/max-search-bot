@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "publication_allowed": false,
+  "fixture_only": true,
+  "pilot_source": {
+    "path": "anantara-source-cards.json",
+    "sha256": "f6ee12243d579387a57ce0e05a97c166f1d94f22ee68721093604e9da23e06d8",
+    "card_id": "anytour-27481"
+  },
+  "rows": [
+    {
+      "hotel_id": 27481,
+      "title": "Anantara Sir Bani Yas Island Al Sahel Villa Resort",
+      "photos": [
+        {
+          "role": "hero",
+          "path": "photos/EXP018_TV27481_000.jpg",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/27481-65737100.jpg",
+          "sha256": "e6dbbab91cd19eddd0206579c11d0aa8f2cab6e64821e73d801fde03fe4b6d57",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "pilot_source": {
+            "path": "assets/photos/EXP018_TV27481_000.jpg",
+            "sha256": "e6dbbab91cd19eddd0206579c11d0aa8f2cab6e64821e73d801fde03fe4b6d57",
+            "width": 940,
+            "height": 705,
+            "focal": [
+              0.5,
+              0.5
+            ],
+            "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/27481-65737100.jpg",
+            "source_image_index": 0,
+            "source_fetched_at": "2026-09-12 08:16:19",
+            "source_snapshot_retrieved": "2026-11-16"
+          }
+        },
+        {
+          "role": "detail_left",
+          "path": "photos/EXP018_TV27481_001.jpg",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/27481-65737201.jpg",
+          "sha256": "188f15530cdbf224cd1a99b3a81737ef6dc1aa799e6d554048de86ee5a6b0e22",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "pilot_source": {
+            "path": "assets/photos/EXP018_TV27481_001.jpg",
+            "sha256": "188f15530cdbf224cd1a99b3a81737ef6dc1aa799e6d554048de86ee5a6b0e22",
+            "width": 940,
+            "height": 705,
+            "focal": [
+              0.5,
+              0.5
+            ],
+            "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/27481-65737201.jpg",
+            "source_image_index": 1,
+            "source_fetched_at": "2026-09-12 08:16:19",
+            "source_snapshot_retrieved": "2026-11-16"
+          }
+        },
+        {
+          "role": "detail_right",
+          "path": "photos/EXP018_TV27481_004.jpg",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/27481-65737204.jpg",
+          "sha256": "95e6c18b6462af97e9e2fbb376f07bfd01756f59017dbdb90a6662e2b34c031e",
+          "crop_center": [
+            0.5,
+            0.5
+          ],
+          "pilot_source": {
+            "path": "assets/photos/EXP018_TV27481_004.jpg",
+            "sha256": "95e6c18b6462af97e9e2fbb376f07bfd01756f59017dbdb90a6662e2b34c031e",
+            "width": 940,
+            "height": 705,
+            "focal": [
+              0.5,
+              0.5
+            ],
+            "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/27481-65737204.jpg",
+            "source_image_index": 4,
+            "source_fetched_at": "2026-09-12 08:16:19",
+            "source_snapshot_retrieved": "2026-11-16"
+          }
+        }
+      ],
+      "sourceRefs": [
+        "https://www.anantara.com/en/desert-islands-sir-bani-yas/al-sahel",
+        "https://www.anantara.com/en/al-sahel-sir-bani-yas/villas"
+      ],
+      "facts_snapshot": "2026-11-16",
+      "rights": "Existing owner-authorized paid Tourvisor/ANEX material policy; isolated reuse for the owner. No new open licence or production approval.",
+      "pilot_card_id": "anytour-27481"
+    }
+  ]
+}

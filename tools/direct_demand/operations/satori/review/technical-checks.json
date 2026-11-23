@@ -1,0 +1,402 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-11-23T21:09:08.078008+00:00",
+  "scope": "AnyTour optional local preparation only; no publishing, server or commercial writes",
+  "cases": 15,
+  "passed": 15,
+  "pilot_all_eleven_requested": true,
+  "results": [
+    {
+      "name": "three fixtures, photographs and archived golden hashes stay pinned",
+      "passed": true,
+      "detail": {
+        "real_cases": 3,
+        "exact_source_photos": 9,
+        "preserved_pilot_png_hashes": 11,
+        "royal_new_copy_separate_from_default": true
+      }
+    },
+    {
+      "name": "Pillow base/default/explicit PNGs and receipts match; five function ASTs unchanged",
+      "passed": true,
+      "detail": {
+        "base": "26171ec67ada13822f140aa0ed6b870617263ee4",
+        "unchanged_functions": [
+          "digest",
+          "require",
+          "accepted_sources",
+          "render_cover",
+          "prepare"
+        ],
+        "identical_pngs": 3,
+        "identical_receipts": 3,
+        "png_sha256": "a89b9b0cda6197e67b5630362a8a94d81369772ed7a8209848686920a16f3393"
+      }
+    },
+    {
+      "name": "three real Satori controls preserve photos, copy, identifiers, metadata and pixels",
+      "passed": true,
+      "detail": [
+        {
+          "id": "anytour-4185",
+          "png_sha256": "01b410b6223238f1036a2f98ef464a2fc39e8a6a6011d6d51ba4b098e787ac2b",
+          "source_metadata_preserved": true,
+          "layout_errors": 0
+        },
+        {
+          "id": "anytour-88169",
+          "png_sha256": "c7db3fb3357f7bef7f8e4d128014cd0cbd4dc42fd78ee46c3ec873de35baa84a",
+          "source_metadata_preserved": true,
+          "layout_errors": 0
+        },
+        {
+          "id": "anytour-27481",
+          "png_sha256": "0fca6760d65b79393a4f84761ffab312d1a8a7561c252c37dcfb0c1175d43503",
+          "source_metadata_preserved": true,
+          "layout_errors": 0
+        }
+      ]
+    },
+    {
+      "name": "wrong input hash fails without output or fallback",
+      "passed": true,
+      "detail": {
+        "rejection": "input:snapshot_changed",
+        "no_final_output": true,
+        "no_staging_output": true
+      }
+    },
+    {
+      "name": "wrong editorial hash fails without output or fallback",
+      "passed": true,
+      "detail": {
+        "rejection": "editorial:snapshot_changed",
+        "no_final_output": true,
+        "no_staging_output": true
+      }
+    },
+    {
+      "name": "wrong editorial identity fails despite matching updated hash",
+      "passed": true,
+      "detail": {
+        "rejection": "editorial_hotel:expected_exactly_one",
+        "no_final_output": true,
+        "no_staging_output": true
+      }
+    },
+    {
+      "name": "changed source image bytes fail before output",
+      "passed": true,
+      "detail": {
+        "rejection": "accepted_source_photo_changed",
+        "no_final_output": true,
+        "no_staging_output": true
+      }
+    },
+    {
+      "name": "editorial parent references must agree",
+      "passed": true,
+      "detail": {
+        "rejection": "editorial_source_reference_mismatch",
+        "no_final_output": true,
+        "no_staging_output": true
+      }
+    },
+    {
+      "name": "duplicate hotel IDs are rejected",
+      "passed": true,
+      "detail": {
+        "rejection": "hotel_id_invalid_or_duplicate",
+        "no_final_output": true,
+        "no_staging_output": true
+      }
+    },
+    {
+      "name": "duplicate source photograph is rejected",
+      "passed": true,
+      "detail": {
+        "rejection": "source_photos_not_distinct",
+        "no_final_output": true,
+        "no_staging_output": true
+      }
+    },
+    {
+      "name": "asymmetric centering follows actual landscape and portrait nodes",
+      "passed": true,
+      "detail": [
+        {
+          "hotel_id": 27481,
+          "checks": [
+            {
+              "role": "hero",
+              "target": [
+                952,
+                428
+              ],
+              "actual_origin": [
+                0,
+                226
+              ],
+              "expected_origin": [
+                0.0,
+                225.60000000000002
+              ],
+              "naive_origin": [
+                0,
+                282
+              ]
+            },
+            {
+              "role": "detail_left",
+              "target": [
+                470,
+                210
+              ],
+              "actual_origin": [
+                0,
+                57
+              ],
+              "expected_origin": [
+                0.0,
+                57.0
+              ],
+              "naive_origin": [
+                0,
+                0
+              ]
+            },
+            {
+              "role": "detail_right",
+              "target": [
+                470,
+                210
+              ],
+              "actual_origin": [
+                0,
+                242
+              ],
+              "expected_origin": [
+                0.0,
+                242.25
+              ],
+              "naive_origin": [
+                0,
+                285
+              ]
+            }
+          ]
+        },
+        {
+          "hotel_id": 88169,
+          "checks": [
+            {
+              "role": "hero",
+              "target": [
+                520,
+                604
+              ],
+              "actual_origin": [
+                0,
+                68
+              ],
+              "expected_origin": [
+                0.0,
+                68.0
+              ],
+              "naive_origin": [
+                0,
+                85
+              ]
+            },
+            {
+              "role": "detail_left",
+              "target": [
+                420,
+                296
+              ],
+              "actual_origin": [
+                0,
+                11
+              ],
+              "expected_origin": [
+                0.0,
+                10.8
+              ],
+              "naive_origin": [
+                0,
+                0
+              ]
+            },
+            {
+              "role": "detail_right",
+              "target": [
+                420,
+                296
+              ],
+              "actual_origin": [
+                45,
+                0
+              ],
+              "expected_origin": [
+                45.3,
+                0.0
+              ],
+              "naive_origin": [
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "existing output is refused without deleting previous files",
+      "passed": true,
+      "detail": {
+        "existing_files_unchanged": 2,
+        "prior_preview_receipt_does_not_authorize_deletion": true
+      }
+    },
+    {
+      "name": "manual line hints cannot change words before image access",
+      "passed": true,
+      "detail": {
+        "rejection": "layout_override_changes_copy",
+        "failed_before_image_access": true
+      }
+    },
+    {
+      "name": "new Royal copy remains a separate unaccepted preview",
+      "passed": true,
+      "detail": {
+        "preserved_default_text": "Семейный отдых у песчаного пляжа.",
+        "separate_candidate_text": "Свой песчаный пляж и клубы для детей.",
+        "candidate_png_sha256": "9e1ab5f7368120e31c718cf77b4d466c878c47ab53d82e31ef2fd6be03d2bcd4",
+        "publication_allowed": false
+      }
+    },
+    {
+      "name": "all eleven preserved pilot PNGs match the transplanted AnyTour renderer",
+      "passed": true,
+      "detail": {
+        "cases": 11,
+        "matched": 11,
+        "results": [
+          {
+            "id": "anytour-4185",
+            "png_sha256": "9e1ab5f7368120e31c718cf77b4d466c878c47ab53d82e31ef2fd6be03d2bcd4",
+            "identical_to_preserved_pilot": true
+          },
+          {
+            "id": "anytour-88169",
+            "png_sha256": "c7db3fb3357f7bef7f8e4d128014cd0cbd4dc42fd78ee46c3ec873de35baa84a",
+            "identical_to_preserved_pilot": true
+          },
+          {
+            "id": "anytour-547",
+            "png_sha256": "9a9696a0a39d690da9535b2fcc9dea037962d931070beddc149253255b52d1d8",
+            "identical_to_preserved_pilot": true
+          },
+          {
+            "id": "anytour-12125",
+            "png_sha256": "9794b0dd9dc9a110d5fa184f63e91d35847c18ecdb0b961fee18b6bfec72b935",
+            "identical_to_preserved_pilot": true
+          },
+          {
+            "id": "anytour-57335",
+            "png_sha256": "593f4a72793307f7be5135dc39913e0d6036eedf325a9973f43c4739f6253324",
+            "identical_to_preserved_pilot": true
+          },
+          {
+            "id": "anytour-2480",
+            "png_sha256": "c1dd4a27763f3eef879f4bca72490776489dd5a62238859497997b43bf76e599",
+            "identical_to_preserved_pilot": true
+          },
+          {
+            "id": "anytour-2417",
+            "png_sha256": "a5ae2ed2701ebec99065808f62ad05af0b92305931bb9ccdfd2a47d0c2caf1ed",
+            "identical_to_preserved_pilot": true
+          },
+          {
+            "id": "anytour-2418",
+            "png_sha256": "78bc1f18e576f52099f541da86fa1d12679b71c42b1046bbe302d106176e0f2b",
+            "identical_to_preserved_pilot": true
+          },
+          {
+            "id": "anytour-2468",
+            "png_sha256": "6e2e46a56b3677f3ac47f97249087ab916e47dd6bd62c29d255092760c63597d",
+            "identical_to_preserved_pilot": true
+          },
+          {
+            "id": "anytour-12127",
+            "png_sha256": "1d1a0464015b4387bdbeb9ec34d1b82354c67053a6fe70ff2a87281abbf3b3a4",
+            "identical_to_preserved_pilot": true
+          },
+          {
+            "id": "anytour-27481",
+            "png_sha256": "0fca6760d65b79393a4f84761ffab312d1a8a7561c252c37dcfb0c1175d43503",
+            "identical_to_preserved_pilot": true
+          }
+        ]
+      }
+    }
+  ],
+  "implementation": [
+    {
+      "path": "tools/direct_demand/operations/prepare-commercial-covers.py",
+      "sha256": "85aa4cac73c9cdf47f8f1e0535edf4057ca67606864f7c2a5b51152bf6120e1c",
+      "bytes": 11185
+    },
+    {
+      "path": "tools/direct_demand/operations/prepare-commercial-covers-satori.mjs",
+      "sha256": "0ac3b7b7b165931c61ce238a5569729c5eafdedbcacebe2833683e66d8bf13a7",
+      "bytes": 13618
+    },
+    {
+      "path": "tools/direct_demand/operations/satori/src/render.mjs",
+      "sha256": "e808eb0bd1ee7285a205010faf4cb2ffb568cbebb81907cc64cc1234305f48f1",
+      "bytes": 14257
+    },
+    {
+      "path": "tools/direct_demand/operations/satori/test-integration.py",
+      "sha256": "7ecc9bdb8024d12eb47eed39056f8fc4faf0ccb9088c04d90b6f2b7ca06076ad",
+      "bytes": 22428
+    },
+    {
+      "path": "tools/direct_demand/operations/satori/package.json",
+      "sha256": "d627db4b00c14b5c05c795ae0ca0e6fb071a40bad02563c3f19d2231e05c81c7",
+      "bytes": 390
+    },
+    {
+      "path": "tools/direct_demand/operations/satori/package-lock.json",
+      "sha256": "694f22df1a92d8fcd1757024780123db1ecb05bee3ebe7a4cf85631dda14ba84",
+      "bytes": 28411
+    },
+    {
+      "path": "tools/direct_demand/operations/satori/fixtures/manifest.json",
+      "sha256": "ef78fa393b62e4d6c59324e1e477ab50a3d2643b6cfb43ba8d3fe6ce21be7540",
+      "bytes": 11593
+    },
+    {
+      "path": ".github/traffic-publish/brand/anytour-logo-white.png",
+      "sha256": "b27cda894047b1ecb4125eea2ecf0db9d1e1674472cad62f70edf1ef1a6c968f",
+      "bytes": 2105
+    },
+    {
+      "path": "tools/direct_demand/operations/satori/assets/fonts/OpenSans-Bold.ttf",
+      "sha256": "5894a3649b213cf5b2d673b6e7a871815fd1d120fa68a463592f27db14eae323",
+      "bytes": 224592
+    },
+    {
+      "path": "tools/direct_demand/operations/satori/assets/fonts/OpenSans-Regular.ttf",
+      "sha256": "e64e508b2aa2880f907e470c4550980ec4c0694d103a43f36150ac3f93189bee",
+      "bytes": 217360
+    },
+    {
+      "path": "tools/direct_demand/operations/satori/assets/fonts/OpenSans-Semibold.ttf",
+      "sha256": "aa3b0ef53db12e3d45094030cac0e69d384e44cc5978643dd4390041cad546e2",
+      "bytes": 221328
+    }
+  ]
+}

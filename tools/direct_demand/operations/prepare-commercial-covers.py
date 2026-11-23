@@ -30,6 +30,8 @@ Usage:
     --output-dir prepared-covers
 
 Dependencies: Pillow and Liberation Sans Bold (or an explicit --font).
+Optional --renderer satori uses the adjacent pinned satori/ package and requires
+--editorial-input and --expected-editorial-sha256. See satori/README.md.
 The checked brand asset is repository-relative and shared by every batch.
 """
 
@@ -38,6 +40,7 @@ import hashlib
 import json
 import math
 import re
+import subprocess
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -212,7 +215,26 @@ def main():
     parser.add_argument("--expected-input-sha256", required=True)
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--font", default=DEFAULT_FONT)
+    parser.add_argument("--renderer", choices=("pillow", "satori"), default="pillow")
+    parser.add_argument("--editorial-input", type=Path)
+    parser.add_argument("--expected-editorial-sha256")
     args = parser.parse_args()
+    if args.renderer == "satori":
+        if not (args.editorial_input and args.expected_editorial_sha256):
+            parser.error("satori requires a hash-pinned editorial input")
+        if args.font != DEFAULT_FONT:
+            parser.error("--font applies to Pillow; Satori uses its pinned runtime fonts")
+        subprocess.run([
+            "node", str(Path(__file__).with_name("prepare-commercial-covers-satori.mjs")),
+            "--input", str(args.input.resolve()),
+            "--expected-input-sha256", args.expected_input_sha256,
+            "--output-dir", str(args.output_dir.resolve()),
+            "--editorial-input", str(args.editorial_input.resolve()),
+            "--expected-editorial-sha256", args.expected_editorial_sha256,
+        ], check=True)
+        return
+    if args.editorial_input or args.expected_editorial_sha256:
+        parser.error("Satori arguments require --renderer satori")
     print(json.dumps(prepare(args.input.resolve(), args.expected_input_sha256,
                              args.output_dir.resolve(), args.font), ensure_ascii=False))
 
