@@ -1063,7 +1063,7 @@ function makeReadApi(token,fetchImpl=globalThis.fetch,{sleep=waitForRetry}={}) {
     requireValue([TERMINAL_RECOVERY.job_id,TERMINAL_RECOVERY.continuation_job_id,TERMINAL_RECOVERY.observation_job_id,
       TERMINAL_RECOVERY.read_failure_job_id,GATE_RECOVERY.tls_job_id,UNPUBLISHED_TERMINAL_RECOVERY.job_id,
       PRIOR_WAVE_RECOVERY.job_id,PRIOR_WAVE_RECOVERY.previous.verify_job_id,PUBLISHER_BODY_RECOVERY.job_id,
-      137646126584,137658227484].includes(job),'untrusted_terminal_log');
+      137646126584,137658227484,137707302320,137760498372].includes(job),'untrusted_terminal_log');
     const response=await request('https://api.github.com'+API_ROOT+'/actions/jobs/'+job+'/logs',headers(false),'manual',2*1024*1024);
     if(Buffer.isBuffer(response))return response;
     let url;try{url=new URL(response.headers.get('location'));}catch{throw new Refusal('invalid_log_redirect');}
@@ -1475,6 +1475,19 @@ async function admitForwardInstallation(api,c,event) {
     await provePartialInstall1662Forward({api,pr:1667,head:commit.parents[1].sha,
       phase:'installation',source:c.sha,runId:c.id,event});
     return {expectedCheckout:partialBase};
+  }
+  const failedVerifyBase='b3386d558f72e9eb80acefad9e87b1ab91b4426f';
+  if(commit.parents.some(parent=>parent.sha===failedVerifyBase)||event.before===failedVerifyBase){
+    requireValue(c.event==='push'&&c.attempt===1&&event.forced===false&&event.before===failedVerifyBase
+      &&event.after===c.sha&&commit.parents.length===2&&commit.parents[0].sha===failedVerifyBase,
+      'invalid_exhausted_verify_forward_source');
+    const pulls=await get('/commits/'+c.sha+'/pulls?per_page=100');
+    requireValue(Array.isArray(pulls)&&pulls.length<100,'incomplete_pulls');
+    const merged=pulls.filter(pr=>pr.merge_commit_sha===c.sha&&pr.state==='closed');
+    requireValue(merged.length===1,'ambiguous_pull');
+    const {proveExhaustedVerify1664Forward}=require('./exhausted_verify_1664_forward');
+    return proveExhaustedVerify1664Forward({api,pr:merged[0].number,head:commit.parents[1].sha,
+      phase:'installation',source:c.sha,runId:c.id,event});
   }
   // Only the immediate successor of the fixed failed source is in scope.
   if(!commit.parents.some(parent=>parent.sha===p.sha)){

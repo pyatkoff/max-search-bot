@@ -206,7 +206,11 @@ jobs:
           sync_script="$RUNNER_TEMP/production-sync-with-monitor-lock.sh"
           PREVIOUS_MAIN_SHA="${PREVIOUS_MAIN_SHA:-}"
           EXPECTED_CHECKOUT_SHA="${EXPECTED_CHECKOUT_SHA:-}"
-          if [[ "$PREVIOUS_MAIN_SHA" == 302ba66b5739e369a4df94471c8cfe9c054dd070 || -n "$EXPECTED_CHECKOUT_SHA" ]]; then
+          if [[ "$PREVIOUS_MAIN_SHA" == b3386d558f72e9eb80acefad9e87b1ab91b4426f || "$EXPECTED_CHECKOUT_SHA" == b3386d558f72e9eb80acefad9e87b1ab91b4426f ]]; then
+            test "$PREVIOUS_MAIN_SHA" = b3386d558f72e9eb80acefad9e87b1ab91b4426f
+            test "$EXPECTED_CHECKOUT_SHA" = "$PREVIOUS_MAIN_SHA"
+            ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = b3386d558f72e9eb80acefad9e87b1ab91b4426f; php tools/search_destination_smoke.php --http'
+          elif [[ "$PREVIOUS_MAIN_SHA" == 302ba66b5739e369a4df94471c8cfe9c054dd070 || -n "$EXPECTED_CHECKOUT_SHA" ]]; then
             test "$PREVIOUS_MAIN_SHA" = 302ba66b5739e369a4df94471c8cfe9c054dd070
             test "$EXPECTED_CHECKOUT_SHA" = "$PREVIOUS_MAIN_SHA"
             prior_status="$(curl --max-time 15 -sS -o /dev/null -I -w '%{http_code}' 'https://app.anytoour.ru/structured_events.log')"
@@ -214,7 +218,15 @@ jobs:
           fi
           {
             cat tools/deploy_monitor_lock.sh
-            if [[ -n "$EXPECTED_CHECKOUT_SHA" ]]; then
+            if [[ "$EXPECTED_CHECKOUT_SHA" == b3386d558f72e9eb80acefad9e87b1ab91b4426f ]]; then
+              cat <<'PR1664_CHECKOUT'
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          if [[ "$(git rev-parse HEAD)" != b3386d558f72e9eb80acefad9e87b1ab91b4426f ]]; then
+            echo 'PR1664 predecessor checkout changed' >&2
+            exit 1
+          fi
+          PR1664_CHECKOUT
+            elif [[ -n "$EXPECTED_CHECKOUT_SHA" ]]; then
               cat <<'PR1662_CHECKOUT'
           cd /var/www/anytoour/data/www/app.anytoour.ru
           if [[ "$(git rev-parse HEAD)" != 302ba66b5739e369a4df94471c8cfe9c054dd070 ]]; then
