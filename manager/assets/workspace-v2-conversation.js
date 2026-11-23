@@ -720,7 +720,8 @@ async function sendReply(reconcileAction='send_receipt'){
       else if(reconcile)j=await api('cancel_send_attempt',{conversation_id:target,operation_id:attempt.id,...(calculationAttempt(attempt)?{expected_manager_id:manager}:{})},{isCurrent:currentAttempt});
       else j=await api('send',{conversation_id:target,text,operation_id:attempt.id,...(validAiDraftId(aiDraftId)?{ai_draft_id:aiDraftId}:{}),...(calculationLink(attempt)?{...calculationLink(attempt),expected_manager_id:manager}:{})},{isCurrent:currentAttempt});
     }catch(e){
-      if(currentAttempt()){if(attempt)showPendingAttempt('unknown',receiptRead?{error:e?.message==='send_receipt_timeout'?'timeout':'network'}:{});else setReplyStatus(sendFailureNotice(null),'error');}
+      if(receiptRead){if(currentAttempt())showPendingAttempt('unknown',{error:e?.message==='send_receipt_timeout'?'timeout':'network'});}
+      else if(currentAttempt()){if(attempt)showPendingAttempt();else setReplyStatus(sendFailureNotice(null),'error');}
       return;
     }
     if(receiptRead&&(j?.ok!==true||j?.attempt?.kind==='media'||!['confirmed','rejected','cancelled','processing','unknown','not_found'].includes(j?.attempt?.state))){
