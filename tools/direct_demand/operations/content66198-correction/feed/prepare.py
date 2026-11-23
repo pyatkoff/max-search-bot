@@ -19,7 +19,7 @@ HERE = Path(__file__).resolve().parent
 OLD = 'Одиннадцать ресторанов'
 NEW = 'Десять ресторанов, баров и лаунжей'
 CAPTION_OP = 'commercial-waldorf66198-caption-correction-20261123-v1'
-APP = '7320b3ac1f178e28d2144ab4424a13cc0fd4e696'
+APP = '08f11061fbaac645585ae7215578d0fd4630e31a'
 FEED_OP = 'commercial-channel-hotel-feeds-20261123-update66198'
 NAMES = ['hotel-posts-telegram.xml', 'hotel-posts-max.xml', 'hotel-posts-all.xml']
 URLS = {'telegram': 'https://t.me/any_toour/678', 'max': 'https://max.ru/channel_anytour/AaHo8ukNYB8'}
@@ -129,7 +129,7 @@ def native_read(raw, metadata, b):
     need(pin == journal(metadata['journal_pin']) and s['monitor_journal_sha256'] == pin['sha256'], 'read_journal_changed')
     for r in s['posts']:
         need((r.get('platform') != 'max' or r.get('provider_live_verified') is True) and r.get('status') == 'sent'
-             and r.get('button_resolves_to_current_post') is True and r.get('media_count') == 1 and r.get('media_types') == ['photo'],
+             and r.get('button_resolves_to_current_post') is True and r.get('media_count') == 1 and r.get('media_types') == ['image'],
              'native_post_not_verified')
     return {'journal_pin': pin, 'posts': posts(s['posts']), 'native_read_sha256': sha(raw)}
 

@@ -30,7 +30,7 @@ def fixture(correct_posts=False, correct_feed=False):
                          post_url=mod.URLS[platform], caption=text, caption_sha256=mod.sha(text.encode()), photo_signature=platform + ':photo-hash',
                          attachments_sha256='a' * 64, button_url_sha256='b' * 64, source_key='max_anytour_msk1' if platform == 'max' else 'tg_anytour_msk',
                          monitor_price_record_id=None, caption_correction_operation='previous-real-caption' if correct_posts else None,
-                         status='sent', provider_live_verified=platform == 'max', button_resolves_to_current_post=True, media_count=1, media_types=['photo']))
+                         status='sent', provider_live_verified=platform == 'max', button_resolves_to_current_post=True, media_count=1, media_types=['image']))
     feeds = {}
     for platform in ['telegram', 'max']:
         prefix = 'tg_' if platform == 'telegram' else 'max_'
@@ -109,6 +109,23 @@ class FeedTests(unittest.TestCase):
             mod.fresh(stamp, dt.datetime(2026,11,23,tzinfo=dt.timezone.utc).timestamp())
         with self.assertRaises(ValueError): mod.fresh('2026-11-23T03:00:00+03:00')
         with self.assertRaises(ValueError): mod.fresh('2020-01-01T00:00:00Z')
+
+    def test_native_canonical_image_media_and_started_journal(self):
+        # The original native READ45091375484 returned canonical media type
+        # image on both platforms, not the provider-specific photo label.
+        f = fixture()
+        f['snapshot']['journal_pin'].update(bytes=1874681123, lines=11806,
+                                          collector_run_id='44891762210', cycle_state='started')
+        got = mod.native_read(mod.canonical(f['snapshot']), f['metadata'], f['binding'])
+        self.assertEqual(got['journal_pin']['cycle_state'], 'started')
+        self.assertEqual([p['platform'] for p in got['posts']], ['telegram', 'max'])
+        for count, kinds in [(1, ['photo']), (1, ['video']), (0, []), (2, ['image', 'image'])]:
+            for platform in ['telegram', 'max']:
+                bad = copy.deepcopy(f['snapshot'])
+                post = next(p for p in bad['posts'] if p['platform'] == platform)
+                post.update(media_count=count, media_types=kinds)
+                with self.subTest(platform=platform, count=count, kinds=kinds), self.assertRaisesRegex(ValueError, 'native_post_not_verified'):
+                    mod.native_read(mod.canonical(bad), f['metadata'], f['binding'])
 
     def test_exact_four_changes_and_php_matches_python(self):
         f = fixture(); updates = self.updates(f); changes = 0

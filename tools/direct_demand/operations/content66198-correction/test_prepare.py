@@ -41,7 +41,7 @@ def fixture(correct=False):
             caption=text, caption_sha256=p.sha(text.encode()), provider_live_verified=platform == 'max',
             snapshot_provenance='registry_and_live_max_get' if platform == 'max' else 'canonical_registry_latest_version',
             monitor_price_record_id=record, prior_monitor_receipt=None, caption_correction_operation=None,
-            media_count=1, media_types=['photo'], photo_signature=platform + ':fixture_photo_66198',
+            media_count=1, media_types=['image'], photo_signature=platform + ':fixture_photo_66198',
             attachments_sha256='c' * 64, config_version=7,
             source_key='tg_anytour_msk' if platform == 'telegram' else 'max_anytour_msk1',
             button_url_sha256='d' * 64, button_observed_in_snapshot=True,
@@ -144,6 +144,31 @@ class BindingTests(unittest.TestCase):
             if row['platform'] == 'max':
                 self.assertIn('<i>' + p.NEW + '</i>', fmt['max_html'])
                 self.assertIn('2 100 000 ₽', fmt['max_html'])
+
+    def test_native_single_image_representation_and_media_scope(self):
+        # Native READ45091375484 reports ['image'] for both platforms. Preserve its
+        # canonical shape while using independent fixture IDs, versions and clocks.
+        self.compile()
+        self.php_functions(r"""
+foreach(['telegram','max'] as $platform){
+    $media=['type'=>'image','provider'=>$platform,$platform==='max'?'photo_id':'file_unique_id'=>'fixture_66198'];
+    need(photoSignature(['attachments'=>[$media]])===$platform.':fixture_66198','canonical_image_rejected');
+    foreach([[$media,$media],[array_replace($media,['type'=>'photo'])],[array_replace($media,['type'=>'video'])]] as $bad){
+        $failed=false;try{photoSignature(['attachments'=>$bad]);}catch(Throwable $e){$failed=true;}
+        need($failed,'invalid_media_accepted');
+    }
+}
+""")
+        for platform in ['telegram', 'max']:
+            for count, types in [(1, ['photo']), (1, ['video']), (1, []), (1, 'image'),
+                                 (1, ['image', 'video']), (2, ['image']), (2, ['image', 'image'])]:
+                with self.subTest(platform=platform, count=count, media_types=types):
+                    def change(meta, read):
+                        post = next(x for x in read['posts'] if x['platform'] == platform)
+                        post.update(media_count=count, media_types=types)
+                    self.write_fixture(edit=change)
+                    with self.assertRaisesRegex(ValueError, 'native_target_or_preservation_unverified'):
+                        self.compile()
 
     def test_already_correct_is_verified_noop(self):
         self.write_fixture(correct=True)

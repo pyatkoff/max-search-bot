@@ -13,7 +13,7 @@ function wf_binding(): array {
     $b=json_decode(base64_decode(FEED66198_BINDING_B64,true),true,16,JSON_THROW_ON_ERROR);
     wf_need(array_keys($b)===['schema','kind','installed_sha','caption_operation','feed_operation','approval_comment_id']
         && $b['schema']===1 && $b['kind']==='CONTENT66198_FEED_BINDING'
-        && $b['installed_sha']==='7320b3ac1f178e28d2144ab4424a13cc0fd4e696'
+        && $b['installed_sha']==='08f11061fbaac645585ae7215578d0fd4630e31a'
         && $b['caption_operation']==='commercial-waldorf66198-caption-correction-20261123-v1'
         && $b['feed_operation']==='commercial-channel-hotel-feeds-20261123-update66198'
         && $b['approval_comment_id']===7072600922,'waldorf_binding_changed');

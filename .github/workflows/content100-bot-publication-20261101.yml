@@ -1,4 +1,4 @@
-name: Read exact existing Waldorf66198 posts and XML before correction
+name: Source checks only for approved Waldorf66198 correction
 'on':
   push:
     branches:
@@ -14,9 +14,9 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
-  native-read:
+  source-check:
     if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push'
-      && github.event.before == '3e4c96fe873b49d575546e09880a567cd9810b2b' && github.run_attempt == 1
+      && github.event.before == 'a50bfc23c792e6370db6335659c3eab19978b8f0' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -25,191 +25,32 @@ jobs:
         persist-credentials: false
         fetch-depth: 2
         sparse-checkout: tools/direct_demand/operations
-    - name: Authenticate original source, current ownership and installed application
+    - name: Prepare PHP for source tests
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: mbstring,dom,pdo_sqlite,curl
+        coverage: none
+    - name: Check the exact caption and XML correction sources
       shell: bash
       run: |
         set -euo pipefail
-        cat > binding-native.json <<'CONTENT66198_BINDING'
-        {
-          "application_sha": "7320b3ac1f178e28d2144ab4424a13cc0fd4e696",
-          "source_comment": {
-            "id": 6961029169,
-            "updated_at": "2026-11-23T00:32:10Z",
-            "body_sha256": "54ec6b43bd00b673d1616fdfe5bb148546293f01f0c2565e6ae2cc751f2f5d3c"
-          },
-          "approval_comment": {
-            "id": 7072600922,
-            "updated_at": "2026-11-22T01:59:49Z",
-            "body_sha256": "9c94d588f167bdd7dc3c8c309dd3727298aa00620528f8455ab05dbd2a9fa943"
-          },
-          "schema": 1,
-          "stage": "read",
-          "checkpoint": "credentials",
-          "job": "native-read",
-          "expected_before": "3e4c96fe873b49d575546e09880a567cd9810b2b",
-          "source_ci": {
-            "run_id": 45090677643,
-            "head_sha": "3e4c96fe873b49d575546e09880a567cd9810b2b"
-          },
-          "release_modules": {
-            "deployment_release.js": "8f9b427fe05ad3fca501f872d429ea98009ead53",
-            "release_slot_close.js": "a81a0ef78d30af8d7c2a55bd99b5c08718043015"
-          },
-          "source_files": {
-            "tools/direct_demand/operations/content66198-correction/admission.js": "9aa8593f3342ec7a60deb36bd262f4aa64d981e550f889d0c13579fba88f9c7a",
-            "tools/direct_demand/operations/content66198-correction/artifacts.py": "d3bab59d9747adf1c28d84ab28a2742365e264cc4b621ae79e4019b661d80806",
-            "tools/direct_demand/operations/content66198-correction/feed/binding.json": "96a420a287c7ed66aa425f9757dadfdd93bb40476cbf3f590fdd9b1b28fbfa66",
-            "tools/direct_demand/operations/content66198-correction/feed/capture.php": "67d24f3e45f7ef841a633d057a4b7f4fa3f6ee079e3e22e81b65d26c1c4a7c51",
-            "tools/direct_demand/operations/content66198-correction/feed/contract.php": "458a40e2787aa758341ec7a400984bdceb7155bca60cbde2dbe1448325d8dce6",
-            "tools/direct_demand/operations/content66198-correction/feed/prepare.py": "c24f66621c823fb256f5e8764f27e3faa9ed05649b698a4f3760600cd35d0420",
-            "tools/direct_demand/operations/content66198-correction/feed/test_feed.py": "187ac797622f6504479aaf983831c87e2117c06498b7bc0af77630ef05e5c00e",
-            "tools/direct_demand/operations/content66198-correction/prepare.py": "df6a4813a5e278d18b996cb4bd1a8b9c392174cfeaeeaa3346fa68c69d02b8ff",
-            "tools/direct_demand/operations/content66198-correction/public_read.py": "1619677917af34cd1e864f53f25f7a2fef4b146ce4e890ff0810c42eee4a2858",
-            "tools/direct_demand/operations/content66198-correction/scope.php": "35e721ce8c3ccd80ba27d1787fec9e30211748babd87fb61efee0afcd7d9502f",
-            "tools/direct_demand/operations/content66198-correction/surface-pins.json": "f6f0cb7f10170c9a11dc3a2637c53fa980026fc574e9958aab63e42a372f2943",
-            "tools/direct_demand/operations/content66198-correction/test_prepare.py": "551f8593af09e8badfbd13db62ac5107a2ef92e212ccbd5e79cf9bb98a10b6af",
-            "tools/direct_demand/operations/content66198-correction/test_workflow_helpers.py": "56bbe11e3b84e4cc56c2eedfc60d4cb6d9e5183eccb2e9a554e044ac9b98d72b"
-          }
-        }
-        CONTENT66198_BINDING
+        python3 tools/direct_demand/operations/content66198-correction/test_prepare.py --ops tools/direct_demand/operations --php php
+        python3 tools/direct_demand/operations/content66198-correction/feed/test_feed.py --ops tools/direct_demand/operations --php php
+        python3 tools/direct_demand/operations/content66198-correction/test_workflow_helpers.py
+        node --check tools/direct_demand/operations/content66198-correction/admission.js
         python3 - <<'PY'
-        import base64,hashlib,json,os,pathlib,subprocess
-        b=json.loads(pathlib.Path('binding-native.json').read_text())
-        root=pathlib.Path(os.environ['RUNNER_TEMP'])/'content66198-canonical'
-        root.mkdir(mode=0o700,exist_ok=True)
-        for name,expected in b['release_modules'].items():
-         r=json.loads(subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/contents/tools/'+name+'?ref=7320b3ac1f178e28d2144ab4424a13cc0fd4e696'],timeout=30))
-         data=base64.b64decode(r['content'])
-         assert r['sha']==expected and hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()==expected,'CANONICAL_MODULE_CHANGED'
-         (root/name).write_bytes(data)
+        import hashlib,json,pathlib
+        root=pathlib.Path('tools/direct_demand/operations/content66198-correction')
+        files=sorted(p for p in root.rglob('*') if p.is_file() and '__pycache__' not in p.parts)
+        proof={'state':'CONTENT66198_SOURCE_CHECKED_NO_PRIVATE_ACCESS','files':{str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in files},'provider_calls':0,'post_writes':0,'xml_writes':0}
+        pathlib.Path('content66198-source-proof.json').write_text(json.dumps(proof,sort_keys=True,indent=2)+'\n')
+        print(json.dumps(proof,sort_keys=True))
         PY
-        node tools/direct_demand/operations/content66198-correction/admission.js binding-native.json "$RUNNER_TEMP/content66198-canonical"
-      env:
-        GH_TOKEN: ${{ github.token }}
-        GITHUB_TOKEN: ${{ github.token }}
-    - name: Pin established SSH host continuity and authentication identity
-      env:
-        HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-        USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-        KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-      shell: bash
-      run: |
-        set -euo pipefail
-        umask 077
-        python3 - <<'PY'
-        import os,re
-        assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
-        assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
-        PY
-        if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
-          if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-        else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
-        chmod 600 "$RUNNER_TEMP/channel_key"
-        ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-        python3 - <<'PY'
-        import base64,hashlib,os,pathlib,subprocess
-        scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
-        for s in scan.stdout.splitlines():
-            q=s.split()
-            if len(q)<3 or q[0].startswith('#'):continue
-            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
-            except Exception:continue
-            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
-        assert found,'HOST_PIN_MISMATCH_STOP'
-        pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
-        print('ESTABLISHED_HOST_PIN_VERIFIED')
-        PY
-    - name: Compile the exact read-only journal metadata request
-      shell: bash
-      run: |
-        set -euo pipefail
-        python3 tools/direct_demand/operations/content66198-correction/prepare.py metadata --ops tools/direct_demand/operations --out content66198-read
-        php -l content66198-read/journal-metadata.php
-    - name: Read the actual current price journal without writes
-      shell: bash
-      run: |
-        set -euo pipefail
-        options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-        rc=0
-        ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < content66198-read/journal-metadata.php > content66198-read/journal-metadata.json || rc=$?
-        printf '%s\n' "$rc" > content66198-read/journal-metadata.json.exit
-        cat content66198-read/journal-metadata.json
-        exit "$rc"
-      env: &id001
-        HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-        USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-    - name: Compile the two-post native read from that exact journal
-      shell: bash
-      run: |
-        set -euo pipefail
-        python3 tools/direct_demand/operations/content66198-correction/prepare.py read --ops tools/direct_demand/operations --journal-meta content66198-read/journal-metadata.json --out content66198-read
-        php -l content66198-read/read.php
-    - name: Read the current two exact publication versions without edits
-      shell: bash
-      run: |
-        set -euo pipefail
-        options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-        rc=0
-        ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < content66198-read/read.php > content66198-read/read-result.json || rc=$?
-        printf '%s\n' "$rc" > content66198-read/read-result.json.exit
-        cat content66198-read/read-result.json
-        exit "$rc"
-      env: *id001
-    - name: Prove the phrase-only caption diff and independent public baseline
-      shell: bash
-      run: |
-        set -euo pipefail
-        python3 tools/direct_demand/operations/content66198-correction/prepare.py edit --ops tools/direct_demand/operations --journal-meta content66198-read/journal-metadata.json --snapshot content66198-read/read-result.json --out content66198-edit
-        php -l content66198-edit/edit.php
-        python3 tools/direct_demand/operations/content66198-correction/public_read.py --phase before --input content66198-read/read-result.json --out content66198-read/public-before.json
-        cat content66198-edit/edit-manifest.json
-        python3 tools/direct_demand/operations/content66198-correction/feed/prepare.py capture --binding tools/direct_demand/operations/content66198-correction/feed/binding.json --snapshot content66198-read/read-result.json --journal content66198-read/journal-metadata.json --out content66198-feed
-        php -l content66198-feed/capture.php
-    - name: Capture the exact current XML preimages before editing posts
-      shell: bash
-      run: |
-        set -euo pipefail
-        options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-        rc=0
-        ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < content66198-feed/capture.php > content66198-feed/feed-capture.json || rc=$?
-        printf '%s\n' "$rc" > content66198-feed/feed-capture.json.exit
-        exit "$rc"
-      env: *id001
-    - name: Verify all four XML descriptions have only the approved phrase delta
-      shell: bash
-      run: |
-        set -euo pipefail
-        python3 tools/direct_demand/operations/content66198-correction/feed/prepare.py verify-capture --binding tools/direct_demand/operations/content66198-correction/feed/binding.json --snapshot content66198-read/read-result.json --capture content66198-feed/feed-capture.json --out content66198-feed
-        cat content66198-feed/capture-proof.json
-        mkdir content66198-evidence
-        cp content66198-read/journal-metadata.json content66198-read/read-scope.json content66198-read/read-result.json content66198-read/public-before.json content66198-evidence/
-        cp content66198-feed/feed-capture.json content66198-feed/capture-proof.json content66198-evidence/
-        cp content66198-read-credentials-admission.json content66198-evidence/read-admission.json
-        cp content66198-edit/edit-manifest.json content66198-evidence/edit-manifest-preflight.json
-        python3 tools/direct_demand/operations/content66198-correction/artifacts.py manifest --out content66198-evidence
-    - name: Preserve original evidence on success, failure or UNKNOWN
-      if: always()
+    - name: Retain source proof only
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
-        name: content66198-original-read
-        path: content66198-evidence/*.json
+        name: content66198-source-proof
+        path: content66198-source-proof.json
+        if-no-files-found: error
         retention-days: 30
-        if-no-files-found: warn
-    - name: Preserve original evidence on success, failure or UNKNOWN
-      if: always()
-      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-      with:
-        name: content66198-read-observations
-        path: |-
-          content66198-read/*.json
-          content66198-read/*.exit
-          content66198-feed/*.json
-          content66198-feed/*.exit
-        retention-days: 30
-        if-no-files-found: warn
-    - name: Remove runner-only credentials and compiled PHP
-      shell: bash
-      run: |
-        set -euo pipefail
-        rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" content66198-read/*.php content66198-edit/*.php content66198-feed/*.php content66198-receipts/*.php
-      if: always()

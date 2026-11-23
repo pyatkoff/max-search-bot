@@ -13,7 +13,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-APP = '7320b3ac1f178e28d2144ab4424a13cc0fd4e696'
+APP = '08f11061fbaac645585ae7215578d0fd4630e31a'
 LINEAGE = 'd44ff7ff0e1137801137467f5f03e3ca32af87f6'
 READ = 'commercial-waldorf66198-caption-read-20261123-v1'
 META = 'commercial-waldorf66198-journal-metadata-20261123-v1'
@@ -198,7 +198,7 @@ def make_manifest(ops, snapshot, journal_meta):
         x = next(p for p in posts if p['platform'] == platform)
         need(x['hotel_id'] == 66198 and x['post_url'] == URLS[platform]
              and x['status'] == 'sent' and x['button_resolves_to_current_post'] is True
-             and x['media_count'] == 1 and x['media_types'] == ['photo']
+             and x['media_count'] == 1 and x['media_types'] == ['image']
              and isinstance(x['markup'], list), 'native_target_or_preservation_unverified')
         need(platform != 'max' or x['provider_live_verified'] is True, 'max_native_read_unverified')
         need(platform != 'telegram' or x['message_id'] == '678', 'telegram_native_message_changed')
