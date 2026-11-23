@@ -194,6 +194,8 @@ jobs:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
           EXPECTED_SHA: ${{ github.sha }}
+          EXPECTED_CHECKOUT_SHA: ${{ steps.release_plan.outputs.expected_checkout_sha }}
+          PREVIOUS_MAIN_SHA: ${{ github.event.before }}
         shell: bash
         run: |
           set -euo pipefail
@@ -202,8 +204,25 @@ jobs:
           remote_bundle="/tmp/max-search-production-$EXPECTED_SHA.bundle"
           ssh_opts=(-i "$key_file" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=4)
           sync_script="$RUNNER_TEMP/production-sync-with-monitor-lock.sh"
+          PREVIOUS_MAIN_SHA="${PREVIOUS_MAIN_SHA:-}"
+          EXPECTED_CHECKOUT_SHA="${EXPECTED_CHECKOUT_SHA:-}"
+          if [[ "$PREVIOUS_MAIN_SHA" == 302ba66b5739e369a4df94471c8cfe9c054dd070 || -n "$EXPECTED_CHECKOUT_SHA" ]]; then
+            test "$PREVIOUS_MAIN_SHA" = 302ba66b5739e369a4df94471c8cfe9c054dd070
+            test "$EXPECTED_CHECKOUT_SHA" = "$PREVIOUS_MAIN_SHA"
+            prior_status="$(curl --max-time 15 -sS -o /dev/null -I -w '%{http_code}' 'https://app.anytoour.ru/structured_events.log')"
+            case "$prior_status" in 403|404) ;; *) exit 1;; esac
+          fi
           {
             cat tools/deploy_monitor_lock.sh
+            if [[ -n "$EXPECTED_CHECKOUT_SHA" ]]; then
+              cat <<'PR1662_CHECKOUT'
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          if [[ "$(git rev-parse HEAD)" != 302ba66b5739e369a4df94471c8cfe9c054dd070 ]]; then
+            echo 'PR1662 predecessor checkout changed' >&2
+            exit 1
+          fi
+          PR1662_CHECKOUT
+            fi
             printf '%s\n' "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; if ! git diff --quiet || ! git diff --cached --quiet; then echo 'ERROR: tracked production drift detected'; git status --short; rm -f '$remote_bundle'; exit 1; fi; git fetch '$remote_bundle' HEAD; git cat-file -e '$EXPECTED_SHA^{commit}'; git reset --hard '$EXPECTED_SHA'; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; php tools/structured_runtime_log_smoke.php; rm -f '$remote_bundle'; echo production_sha=\$(git rev-parse HEAD)"
           } > "$sync_script"
           scp "${ssh_opts[@]}" "$bundle_file" "$DEPLOY_USER@$DEPLOY_HOST:$remote_bundle"
