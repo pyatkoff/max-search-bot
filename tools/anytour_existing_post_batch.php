@@ -21,6 +21,7 @@ use Throwable;
 require_once __DIR__ . '/../config/anytour_ranked_transfer_scope_20261123.php';
 
 const POST_OPS = '/var/www/anytoour/data/channel-post-operations';
+const EDITORIAL_PRICE_SOURCE = 'https://anytoour.ru/data/hotel-monitor-prices-read-v1.php?tourvisorHotelIds%5B%5D=17595&tourvisorHotelIds%5B%5D=358&tourvisorHotelIds%5B%5D=393&tourvisorHotelIds%5B%5D=1260&departureId=1&dateFrom=2026-11-25&dateTo=2027-10-31';
 
 function requirePost(bool $ok, string $message): void
 {
@@ -51,7 +52,12 @@ function publicHotelPost(array $row): array
     foreach ($xpath->query('.//a[contains(concat(" ",normalize-space(@class)," ")," tgme_widget_message_inline_button ")]', $node) as $button) {
         $buttons[] = ['text' => trim($button->textContent), 'url' => $button->getAttribute('href')];
     }
-    return ['text' => html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i', "\n", $inner)), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 'buttons' => $buttons];
+    $result = ['text' => html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i', "\n", $inner)), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 'buttons' => $buttons];
+    if (isset($row['next_media'])) {
+        $parsed = parseTransferPublic($raw, 'anytour', $row['mid']);
+        $result += array_intersect_key($parsed, array_flip(['published_unixtime','single_photo','photo_url','photo_marker_sha256']));
+    }
+    return $result;
 }
 
 function postPhotoIds(array $snapshot, string $platform): array
@@ -67,6 +73,147 @@ function postPhotoIds(array $snapshot, string $platform): array
     return $photos;
 }
 
+/** The two owner-approved originals; no arbitrary paths, URLs or target expansion. */
+function hotelEditMediaPlan(array $row): ?array
+{
+    if (!array_key_exists('next_media', $row)) return null;
+    $scope = ChannelPostApiTransport::existingHotelPhotoScope((string)($row['mid'] ?? ''));
+    requirePost(($row['platform'] ?? '') === 'telegram' && $scope !== null
+        && ($row['hotel'] ?? null) === $scope['hotel'] && is_array($row['next_media']), 'existing_media_scope_invalid');
+    $expected = array_intersect_key($scope, array_flip(['path','sha256','bytes','width','height']));
+    requirePost($row['next_media'] === $expected, 'existing_media_plan_changed');
+    return $scope;
+}
+
+/** Read once before the journal marker. The transport receives these same bytes. */
+function hotelEditPhotoBytes(array $row, string $root): ?string
+{
+    $scope = hotelEditMediaPlan($row);
+    if ($scope === null) return null;
+    $root = realpath($root);
+    requirePost(is_string($root), 'existing_media_root_unavailable');
+    $path = $root.'/'.$scope['path'];
+    requirePost(realpath($path) === $path && is_file($path) && !is_link($path), 'existing_media_file_unavailable');
+    $bytes = file_get_contents($path, false, null, 0, $scope['bytes'] + 1);
+    requirePost(is_string($bytes) && strlen($bytes) === $scope['bytes']
+        && hash_equals($scope['sha256'], hash('sha256', $bytes)), 'existing_media_bytes_changed');
+    return $bytes;
+}
+
+/** A matching caption alone never proves the approved image was installed. */
+function hotelEditPhotoAccepted(array $snapshot, array $row): bool
+{
+    if (!array_key_exists('next_media', $row)) return true;
+    try {
+        $scope = hotelEditMediaPlan($row);
+        $ids = postPhotoIds($snapshot, 'telegram');
+        $proof = $snapshot['metadata']['hotel_editor_photo'] ?? null;
+        return count($ids) === 1 && is_array($proof) && ($proof['sha256'] ?? null) === $scope['sha256']
+            && ($proof['file_unique_id'] ?? null) === $ids[0];
+    } catch (Throwable $error) { return false; }
+}
+
+/** Native readback is bound to the existing message, photo semantics and exact CTA. */
+function hotelEditNativeMatches(array $prior, array $after, array $row, string $button, string $buttonText): bool
+{
+    try {
+        if (($after['post_url'] ?? null) !== $row['url'] || ($after['text'] ?? null) !== $row['next']
+            || !ChannelPostIncomingAdapter::containsOnlyButton($after, $button, $buttonText)) return false;
+        $old = postPhotoIds($prior, $row['platform']);
+        $new = postPhotoIds($after, $row['platform']);
+        if (!array_key_exists('next_media', $row)) return $new === $old;
+        return count($old) === 1 && count($new) === 1 && $new !== $old
+            && ($after['metadata']['capability'] ?? null) === 'supported'
+            && empty($after['metadata']['media_group_id']) && ($after['markup'] ?? null) === []
+            && is_string($after['attachments'][0]['telegram_file_id'] ?? null)
+            && $after['attachments'][0]['telegram_file_id'] !== ''
+            && isset($prior['published_at']) && ($after['published_at'] ?? null) === $prior['published_at'];
+    } catch (Throwable $error) { return false; }
+}
+
+/** Reuse the saved-price admission without rewriting the owner-approved editorial body. */
+function hotelEditPriceMatches(array $row, array $export, int $now): void
+{
+    require_once __DIR__.'/direct_demand/operations/monitor-price-hook-contract.php';
+    $check = $row['price_check'] ?? null;
+    requirePost(is_array($check) && isset($check['record_id'], $check['offer']) && is_array($check['offer']), 'existing_price_plan_invalid');
+    $snapshot = \monitor_hook_source($export, $row['hotel'], EDITORIAL_PRICE_SOURCE);
+    $price = \monitor_price_observation($snapshot, $row['hotel'], $now, true);
+    $actual = array_intersect_key($price['offer'], $check['offer']);
+    $expected = $check['offer'];
+    ksort($actual); ksort($expected);
+    requirePost($price['record_id'] === $check['record_id'] && $actual === $expected, 'existing_approved_price_changed');
+}
+
+/** Read a prior attempt, including a response saved before a possible DB failure. */
+function hotelEditOriginalAttempt(string $path, array $row): ?array
+{
+    if (!file_exists($path)) return null;
+    requirePost(is_file($path) && !is_link($path), 'post_journal_unavailable');
+    $file = fopen($path, 'rb');
+    requirePost(is_resource($file), 'post_journal_unavailable');
+    try {
+        requirePost(flock($file, LOCK_SH | LOCK_NB), 'post_editor_busy');
+        $raw = stream_get_contents($file, 4194305);
+    } finally { fclose($file); }
+    if ($raw === '') return null;
+    requirePost(is_string($raw) && strlen($raw) <= 4194304 && str_ends_with($raw, "\n"), 'post_journal_incomplete');
+    $events = array_map(static fn(string $line): array => json_decode($line, true, 64, JSON_THROW_ON_ERROR),
+        explode("\n", rtrim($raw, "\n")));
+    $starts = array_values(array_filter($events, static fn(array $event): bool => ($event['state'] ?? '') === 'provider_edit_started'));
+    $responses = array_values(array_filter($events, static fn(array $event): bool => ($event['state'] ?? '') === 'provider_response_saved'));
+    requirePost(count($starts) === 1 && count($responses) <= 1 && is_array($starts[0]['before'] ?? null)
+        && is_array($starts[0]['button'] ?? null) && ($starts[0]['message_id'] ?? null) === $row['mid']
+        && ($starts[0]['caption_sha256'] ?? null) === hash('sha256', $row['next'])
+        && ($starts[0]['photo_sha256'] ?? null) === ($row['next_media']['sha256'] ?? null), 'previous_edit_needs_readback');
+    $response = $responses[0]['response'] ?? null;
+    requirePost($response === null || (is_array($response)
+        && ($responses[0]['response_sha256'] ?? null) === hash('sha256', json_encode($response, JSON_THROW_ON_ERROR))),
+        'post_original_response_changed');
+    return $starts[0] + ['response'=>$response, 'journal_sha256'=>hash('sha256', $raw),
+        'public_verified'=>in_array('public_verified', array_column($events, 'state'), true)];
+}
+
+function hotelEditPublicMatches(array $public, array $row, array $buttons, ?string $oldMarker): bool
+{
+    if (($public['text'] ?? null) !== $row['next'] || ($public['buttons'] ?? null) !== $buttons) return false;
+    return !isset($row['next_media']) || (($public['single_photo'] ?? false) === true
+        && ($public['published_unixtime'] ?? null) === $row['target_published_unixtime']
+        && is_string($oldMarker) && is_string($public['photo_marker_sha256'] ?? null)
+        && $public['photo_marker_sha256'] !== $oldMarker);
+}
+
+/** Complete only the already-saved response and public readback; never call a provider. */
+function resumeHotelEdit(ChannelPostRegistryService $registry, array $row, array $attempt, string $journal): array
+{
+    requirePost(is_array($attempt['response']), 'previous_edit_needs_readback');
+    $saved = $registry->completeTelegramExistingHotelEdit($attempt['before'], $row, $attempt['response']);
+    requirePost($saved['state'] === 'sent' && $saved['snapshot']['text'] === $row['next']
+        && hotelEditPhotoAccepted($saved['snapshot'], $row), 'registry_readback_unconfirmed');
+    $base = ['platform'=>'telegram','hotel_id'=>$row['hotel'],'publication_id'=>(int)$saved['publication_id'],
+        'mid'=>$row['mid'],'url'=>$row['url'],'provider_write_attempts'=>0,'readback_only'=>true];
+    if ($attempt['public_verified']) return $base + ['ok'=>true,'state'=>'already_verified','caption_and_button_verified'=>true];
+    $public = publicHotelPost($row);
+    if (!hotelEditPublicMatches($public, $row, [$attempt['button']], $attempt['public_photo_marker_sha256'] ?? null)) {
+        return $base + ['ok'=>false,'state'=>'edited_public_read_pending'];
+    }
+    $file = fopen($journal, 'r+b');
+    requirePost(is_resource($file), 'post_journal_unavailable');
+    try {
+        requirePost(flock($file, LOCK_EX | LOCK_NB), 'post_editor_busy');
+        $raw = stream_get_contents($file, 4194305);
+        $current = $registry->publication((int)$saved['publication_id']);
+        requirePost(is_string($raw) && hash('sha256', $raw) === $attempt['journal_sha256']
+            && is_array($current) && $current['version_id'] === $saved['version_id']
+            && $current['start_payload'] === $saved['start_payload'] && $current['snapshot'] === $saved['snapshot'],
+            'post_readback_state_changed');
+        $line = json_encode(['state'=>'public_verified','at'=>gmdate(DATE_ATOM),
+            'photo_url'=>$public['photo_url'] ?? null,'photo_marker_sha256'=>$public['photo_marker_sha256'] ?? null], JSON_THROW_ON_ERROR).PHP_EOL;
+        requirePost(fwrite($file, $line) === strlen($line) && fflush($file), 'post_journal_write_failed');
+    } finally { fclose($file); }
+    return $base + ['ok'=>true,'state'=>'edited_verified','caption_and_button_verified'=>true];
+}
+
 function readHotelMax(string $mid, string $channel): array
 {
     $response = ChannelPostApiTransport::buttonRequest('max', 'GET', '/messages/'.$mid, [], null);
@@ -78,8 +225,12 @@ function readHotelMax(string $mid, string $channel): array
     return $post;
 }
 
-function editHotelExisting(PDO $pdo, ChannelPostRegistryService $registry, array $row): array
+function editHotelExisting(PDO $pdo, ChannelPostRegistryService $registry, array $row, bool &$providerWriteStarted = false): array
 {
+    $providerWriteStarted = false;
+    if (($row['platform'] ?? null) === 'telegram' && in_array($row['mid'] ?? null, ['862','328','1083','288'], true)) {
+        ChannelPostRegistryService::telegramExistingHotelEditDigest($row);
+    }
     $platform = $row['platform'];
     $mid = $row['mid'];
     $channel = $platform === 'max' ? '-68765999669267' : '-1001845835645';
@@ -90,12 +241,16 @@ function editHotelExisting(PDO $pdo, ChannelPostRegistryService $registry, array
     requirePost(count($versions) === 1, 'expected_exactly_one_registered_publication');
     $id = (int)$versions[0];
     requirePost(!isset($row['post']) || (string)$id === $row['post'], 'publication_id_changed');
+    $journal = POST_OPS.'/issue-1566-edit-existing-'.$id.'.jsonl';
+    if (isset($row['price_check'])) {
+        $attempt = hotelEditOriginalAttempt($journal, $row);
+        if ($attempt !== null) return resumeHotelEdit($registry, $row, $attempt, $journal);
+    }
     $post = $registry->publication($id);
     requirePost(is_array($post) && $post['state'] === 'sent' && $post['project_key'] === 'anytour' && $post['platform'] === $platform
         && $post['channel_id'] === $channel && (int)$post['channel']['id'] === $channelRow
         && $post['snapshot']['post_url'] === $row['url'], 'expected_live_publication');
     $prior = $post['snapshot'];
-    $journal = POST_OPS.'/issue-1566-edit-existing-'.$id.'.jsonl';
     $catalog = $prior['metadata']['hotel_catalog_id'] ?? null;
     requirePost($catalog === null || (int)$catalog === $row['hotel'], 'catalogue_id_conflict');
     $q = $pdo->prepare("SELECT COUNT(*) FROM post_versions WHERE publication_id=? AND
@@ -112,8 +267,8 @@ function editHotelExisting(PDO $pdo, ChannelPostRegistryService $registry, array
     requirePost(!isset($row['button_sha']) || hash_equals($row['button_sha'], hash('sha256', $button)), 'button_changed_since_archive');
     $physical = postPhotoIds($prior, $platform);
     requirePost(!is_link($journal), 'post_journal_unavailable');
-    if ($prior['text'] === $row['next'] && (int)$catalog === $row['hotel']
-        && is_file($journal) && str_contains((string)file_get_contents($journal, false, null, 0, 8192), '"state":"public_verified"')) {
+    if ($prior['text'] === $row['next'] && (int)$catalog === $row['hotel'] && hotelEditPhotoAccepted($prior, $row)
+        && is_file($journal) && str_contains((string)file_get_contents($journal, false, null, 0, 4194305), '"state":"public_verified"')) {
         return ['ok'=>true, 'platform'=>$platform, 'hotel_id'=>$row['hotel'], 'publication_id'=>$id,
             'mid'=>$mid, 'url'=>$row['url'], 'state'=>'already_verified', 'caption_and_button_verified'=>true];
     }
@@ -128,17 +283,36 @@ function editHotelExisting(PDO $pdo, ChannelPostRegistryService $registry, array
         // An older registry snapshot may predate the confirmed button edit.
         $liveButton = $public['buttons'][0] ?? null;
         requirePost(count($public['buttons']) === 1 && is_array($liveButton) && $liveButton['url'] === $button
-            && $liveButton['text'] !== '', 'telegram_public_button_changed');
+            && $liveButton['text'] !== '' && (!isset($row['button_text']) || $liveButton['text'] === $row['button_text']),
+            'telegram_public_button_changed');
         $buttonText = $liveButton['text'];
         $expectedButtons = [$liveButton];
     }
 
     $base = ['platform' => $platform, 'hotel_id' => $row['hotel'], 'publication_id' => $id, 'mid' => $mid, 'url' => $row['url']];
-    if ($public['text'] === $row['next'] && $prior['text'] === $row['next'] && (int)$catalog === $row['hotel']) {
+    if ($public['text'] === $row['next'] && $prior['text'] === $row['next'] && (int)$catalog === $row['hotel']
+        && hotelEditPhotoAccepted($prior, $row)) {
         return $base + ['ok' => true, 'state' => 'already_verified', 'caption_and_button_verified' => true];
     }
     requirePost(hash_equals($row['old_caption_sha256'], hash('sha256', $public['text']))
         && $prior['text'] === $public['text'], 'pinned_caption_changed');
+    $photoBytes = hotelEditPhotoBytes($row, __DIR__.'/..');
+    $payload = $platform === 'max'
+        ? ['text' => htmlspecialchars($row['next'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), 'format'=>'html']
+        : ['caption'=>$row['next'], 'caption_entities'=>[], 'reply_markup'=>['inline_keyboard'=>[$expectedButtons]]];
+    if ($photoBytes !== null) {
+        requirePost(extension_loaded('curl') && class_exists('CURLStringFile')
+            && ChannelPostApiTransport::existingHotelMediaPayload($channel, $mid, $payload, $photoBytes) !== null,
+            'existing_media_transport_unavailable');
+        requirePost(($public['single_photo'] ?? false) === true
+            && ($public['published_unixtime'] ?? null) === ($row['target_published_unixtime'] ?? null)
+            && is_string($public['photo_marker_sha256'] ?? null), 'existing_media_public_preimage_changed');
+    }
+    if (isset($row['price_check'])) {
+        $export = json_decode(PromotedHotelPriceWriter::publicBytes(EDITORIAL_PRICE_SOURCE), true, 32, JSON_THROW_ON_ERROR);
+        requirePost(is_array($export), 'existing_price_source_unavailable');
+        hotelEditPriceMatches($row, $export, time());
+    }
     $verifyChannel = $post['channel'];
     if ($platform === 'max') {
         $verifyChannel['expected_public_url'] = 'https://max.ru/anytour';
@@ -155,16 +329,23 @@ function editHotelExisting(PDO $pdo, ChannelPostRegistryService $registry, array
     try {
         requirePost(flock($record, LOCK_EX | LOCK_NB), 'post_editor_busy');
         requirePost(fstat($record)['size'] === 0 && $registry->publication($id) === $post, 'previous_edit_needs_readback');
-        $write = static function (string $state) use ($record): void {
-            $line = json_encode(['state'=>$state,'at'=>gmdate(DATE_ATOM)], JSON_THROW_ON_ERROR).PHP_EOL;
+        $write = static function (string $state, array $evidence = []) use ($record): void {
+            $line = json_encode(['state'=>$state,'at'=>gmdate(DATE_ATOM)] + $evidence, JSON_THROW_ON_ERROR).PHP_EOL;
             requirePost(fwrite($record, $line) === strlen($line) && fflush($record), 'post_journal_write_failed');
         };
-        $write('provider_edit_started');
-        $payload = $platform === 'max'
-            ? ['text' => htmlspecialchars($row['next'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), 'format'=>'html']
-            : ['caption'=>$row['next'], 'caption_entities'=>[], 'reply_markup'=>['inline_keyboard'=>[$expectedButtons]]];
+        if (isset($export)) hotelEditPriceMatches($row, $export, time());
+        $write('provider_edit_started', ['publication_id'=>$id, 'message_id'=>$mid,
+            'caption_sha256'=>hash('sha256', $row['next']), 'photo_sha256'=>$row['next_media']['sha256'] ?? null,
+            'before'=>$post,'button'=>$expectedButtons[0] ?? null,
+            'public_photo_marker_sha256'=>$public['photo_marker_sha256'] ?? null]);
+        $providerWriteStarted = true;
         $at = (int)floor(microtime(true)*1000);
-        $response = ChannelPostApiTransport::captionRequest($platform, $channel, $mid, $payload);
+        $response = $photoBytes === null
+            ? ChannelPostApiTransport::captionRequest($platform, $channel, $mid, $payload)
+            : ChannelPostApiTransport::existingHotelMediaRequest($channel, $mid, $payload, $photoBytes);
+        // Preserve the original answer before any DB action. An unknown write is never retried.
+        $write('provider_response_saved', ['response'=>$response,
+            'response_sha256'=>hash('sha256', json_encode($response, JSON_THROW_ON_ERROR))]);
         if ($platform === 'max') {
             $after = readHotelMax($mid, $channel);
         } else {
@@ -172,20 +353,27 @@ function editHotelExisting(PDO $pdo, ChannelPostRegistryService $registry, array
             requirePost($response['http'] === 200 && !$response['transport_error'] && ($response['data']['ok'] ?? false) === true
                 && (string)($message['chat']['id'] ?? '') === $channel && (string)($message['message_id'] ?? '') === $mid
                 && ($message['chat']['username'] ?? '') === 'anytour' && (int)($message['edit_date'] ?? 0) > 0, 'telegram_edit_response_unconfirmed');
+            requirePost(!isset($row['target_published_unixtime'])
+                || ($message['date'] ?? null) === $row['target_published_unixtime'], 'telegram_original_date_changed');
             $at = (int)$message['edit_date']*1000;
             $after = ChannelPostIncomingAdapter::telegramSnapshot($message);
         }
-        requirePost(is_array($after) && $after['post_url'] === $row['url'] && $after['text'] === $row['next']
-            && postPhotoIds($after, $platform) === $physical && ChannelPostIncomingAdapter::containsOnlyButton($after, $button, $buttonText), 'provider_readback_unconfirmed');
+        requirePost(is_array($after) && hotelEditNativeMatches($prior, $after, $row, $button, $buttonText), 'provider_readback_unconfirmed');
         $after['metadata'] = array_replace($prior['metadata'], $after['metadata'], [
             'hotel_catalog_id'=>$row['hotel'], 'source_event_id'=>'issue-1566-existing:'.$id.':'.$at,
             'observation_kind'=>'authorized_admin_content_edit', 'source_revision_ms'=>(string)$at,
         ]);
+        if ($photoBytes !== null) {
+            $after['metadata']['hotel_editor_photo'] = ['sha256'=>$row['next_media']['sha256'],
+                'file_unique_id'=>$after['attachments'][0]['file_unique_id']];
+        }
         unset($after['metadata']['source_sequence'], $after['metadata']['source_sequence_scope']);
         $after['content_hash'] = ChannelPostIncomingAdapter::contentFingerprint($after, '', $post['channel']['bot_url']);
-        $saved = $registry->registerPublication('anytour', $platform, $post['bot_key'], $channel, $mid, $after);
+        $saved = isset($row['price_check'])
+            ? $registry->completeTelegramExistingHotelEdit($post, $row, $response)
+            : $registry->registerPublication('anytour', $platform, $post['bot_key'], $channel, $mid, $after);
         requirePost(is_array($saved) && (int)$saved['publication_id'] === $id && $saved['start_payload'] === $post['start_payload']
-            && $saved['snapshot']['text'] === $row['next'], 'registry_readback_unconfirmed');
+            && $saved['snapshot']['text'] === $row['next'] && hotelEditPhotoAccepted($saved['snapshot'], $row), 'registry_readback_unconfirmed');
         if ($saved['state'] !== 'sent') {
             requirePost($saved['state'] === 'pending' && $registry->confirmObservedButton($id, (int)$saved['version_id'], [
                 'verified'=>true, 'button_verified'=>true, 'content_preserved'=>true, 'write_attempts'=>0,
@@ -196,8 +384,11 @@ function editHotelExisting(PDO $pdo, ChannelPostRegistryService $registry, array
             if ($read > 0) { sleep(2); }
             try {
                 $seen = publicHotelPost($row);
-                if ($seen['text'] === $row['next'] && ($platform === 'max' || $seen['buttons'] === $expectedButtons)) {
-                    $write('public_verified');
+                $publicMatches = $platform === 'max' ? $seen['text'] === $row['next']
+                    : hotelEditPublicMatches($seen, $row, $expectedButtons, $public['photo_marker_sha256'] ?? null);
+                if ($publicMatches) {
+                    $write('public_verified', ['photo_url'=>$seen['photo_url'] ?? null,
+                        'photo_marker_sha256'=>$seen['photo_marker_sha256'] ?? null]);
                     return $base + ['ok' => true, 'state' => 'edited_verified', 'caption_and_button_verified' => true];
                 }
             } catch (Throwable $error) {
@@ -212,6 +403,7 @@ function editHotelExisting(PDO $pdo, ChannelPostRegistryService $registry, array
 
 function validHotelEditPlan(array $row): bool
 {
+    try { hotelEditMediaPlan($row); } catch (Throwable $error) { return false; }
     if (!is_int($row['hotel'] ?? null) || $row['hotel'] <= 0
         || !is_string($row['mid'] ?? null) || !is_string($row['url'] ?? null)
         || !preg_match('/\A[a-f0-9]{64}\z/D', $row['old_caption_sha256'] ?? '')
@@ -220,6 +412,11 @@ function validHotelEditPlan(array $row): bool
         || strlen(mb_convert_encoding($row['next'], 'UTF-16LE', 'UTF-8')) > 2048) {
         return false;
     }
+    if (isset($row['target_published_unixtime']) && (!is_int($row['target_published_unixtime']) || $row['target_published_unixtime'] <= 0)) return false;
+    if (array_key_exists('price_check', $row) && (($row['platform'] ?? '') !== 'telegram'
+        || ([17595=>'862',358=>'328',393=>'1083',1260=>'288'][$row['hotel']] ?? null) !== $row['mid']
+        || !is_array($row['price_check']) || !is_array($row['price_check']['offer'] ?? null)
+        || preg_match('/\A[a-f0-9]{64}\z/D', $row['price_check']['record_id'] ?? '') !== 1)) return false;
     if ($row['platform'] === 'telegram') {
         return preg_match('/\A[1-9][0-9]{0,9}\z/D', $row['mid']) === 1
             && $row['url'] === 'https://t.me/anytour/'.$row['mid'];
@@ -257,22 +454,32 @@ function tick(string $root): array
     $pdo = ConversationDb::connection();
     $registry = new ChannelPostRegistryService($pdo);
     $results = [];
+    $shared = null;
     $previousUmask = umask(0077);
     try {
+        if (count(array_filter($batch, static fn(array $row): bool => isset($row['next_media']) || isset($row['price_check']))) > 0) {
+            $lease = POST_OPS.'/monitor-price-after-collection-v1.jsonl';
+            requirePost(is_file($lease) && !is_link($lease), 'original_price_lock_missing');
+            $shared = fopen($lease, 'rb');
+            requirePost(is_resource($shared) && flock($shared, LOCK_EX | LOCK_NB), 'shared_editor_busy');
+        }
         foreach ($batch as $row) {
+            $providerWriteStarted = false;
             try {
-                $status = editHotelExisting($pdo, $registry, $row);
+                $status = editHotelExisting($pdo, $registry, $row, $providerWriteStarted);
             } catch (Throwable $error) {
                 $message = $error->getMessage();
                 $status = ['ok'=>false, 'platform'=>$row['platform'], 'hotel_id'=>$row['hotel'], 'url'=>$row['url'],
                     'error'=>preg_match('/\A[a-z0-9_]{3,70}\z/D', $message) ? $message : 'verification_failed'];
+                if ($providerWriteStarted) $status += ['state'=>'requires_readback','provider_write_attempts'=>1];
             }
             $results[] = $status;
-            if (in_array($status['state'] ?? '', ['edited_verified','edited_public_read_pending'], true)) {
+            if ($providerWriteStarted || in_array($status['state'] ?? '', ['edited_verified','edited_public_read_pending'], true)) {
                 break;
             }
         }
     } finally {
+        if (is_resource($shared)) fclose($shared);
         umask($previousUmask);
     }
     return $results;

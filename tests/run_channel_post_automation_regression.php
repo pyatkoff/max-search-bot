@@ -1661,6 +1661,261 @@ try {
 }
 channelPostCheck('real hotel editor fixtures remove only their isolated operation directories',!file_exists($transferFixtureRoot));
 
+// These are the two photographs and caption/button identities approved in the
+// editorial preview. Exercise the real pure transport with the shipped JPEGs;
+// none of these assertions needs a provider call or a new Telegram file ID.
+$editorialRows = json_decode((string)file_get_contents(__DIR__.'/../config/anytour_existing_post_batch.json'), true, 512, JSON_THROW_ON_ERROR);
+$editorialByMid = [];
+foreach ($editorialRows as $row) {
+    if (($row['platform'] ?? '') === 'telegram') $editorialByMid[$row['mid']] = $row;
+}
+$editorialApprovals = [
+    '1083'=>[
+        'hotel'=>393, 'file'=>'royal-grand-pool-01-16.jpg', 'size'=>[1920,1280],
+        'sha256'=>'d0d4b7a38c056478125f20e6ebe60af68da8e230b664c1f80a8a2527436c8d94',
+        'caption_sha256'=>'1279c19a3f2cdfe292299f5854cfde0b29a36c1ca4ed5462d52d076f527704d4',
+        'button_url'=>'https://t.me/anyru_bot?start=p_cAHGboXOdmiTlZAADqwQ2edD',
+    ],
+    '288'=>[
+        'hotel'=>1260, 'file'=>'santai-beach.jpg', 'size'=>[1005,705],
+        'sha256'=>'27ff38d3afbb88af13e6f76a391d8023f9aaadc092b3cc99972d009adf58e0c5',
+        'caption_sha256'=>'4340546097c7b34b0a236c03a2d6e933cf0a15e5bb367689a4055fb77dedab4c',
+        'button_url'=>'https://t.me/anyru_bot?start=p_prj5Od-RFvrP5piNMNWPK9HZ',
+    ],
+];
+$editorialBodies = []; $editorialPhotos = [];
+$editorialBeforeHttp = count($GLOBALS['hotel_media_http']);
+foreach ($editorialApprovals as $mid=>$approved) {
+    $mid=(string)$mid;
+    $row=$editorialByMid[$mid];
+    $photoPath='resources/anytour/editorial-four-20261124/'.$approved['file'];
+    $jpeg=(string)file_get_contents(__DIR__.'/../'.$photoPath);
+    $image=getimagesizefromstring($jpeg);
+    $scope=HotelMediaApiFixture\ChannelPostApiTransport::existingHotelPhotoScope($mid);
+    channelPostCheck('editorial '.$mid.' ships the exact approved hotel photograph and caption',
+        [$row['hotel'],hash('sha256',$row['next']),hash('sha256',$jpeg),array_slice($image,0,2),$image[2]],
+        [$approved['hotel'],$approved['caption_sha256'],$approved['sha256'],$approved['size'],IMAGETYPE_JPEG]);
+    channelPostCheck('editorial '.$mid.' photo scope and batch agree with the actual asset',
+        [$scope['hotel'],$scope['path'],$scope['sha256'],$scope['bytes'],$scope['width'],$scope['height'],
+            $scope['caption_sha256'],$scope['button_sha256'],$row['next_media']],
+        [$approved['hotel'],$photoPath,$approved['sha256'],strlen($jpeg),$image[0],$image[1],
+            $approved['caption_sha256'],hash('sha256',$approved['button_url']),
+            ['path'=>$photoPath,'sha256'=>$approved['sha256'],'bytes'=>strlen($jpeg),'width'=>$image[0],'height'=>$image[1]]]);
+    $body=['caption'=>$row['next'],'caption_entities'=>[],
+        'reply_markup'=>['inline_keyboard'=>[[['text'=>'✈️ Рассчитать на мои даты','url'=>$approved['button_url']]]]]];
+    $editorialBodies[$mid]=$body; $editorialPhotos[$mid]=$jpeg;
+    channelPostCheck('editorial '.$mid.' produces one exact photo/caption/button replacement',
+        HotelMediaApiFixture\ChannelPostApiTransport::existingHotelMediaPayload('-1001845835645',$mid,$body,$jpeg),
+        ['chat_id'=>'-1001845835645','message_id'=>(int)$mid,
+            'media'=>['type'=>'photo','media'=>'attach://approved_photo','caption'=>$body['caption'],'caption_entities'=>[]],
+            'reply_markup'=>$body['reply_markup']]);
+}
+$editorialDeny = static function(string $case, string $mid, array $body, string $jpeg, string $channel='-1001845835645') use ($editorialBeforeHttp): void {
+    channelPostCheck('editorial rejects '.$case.' without HTTP',
+        [HotelMediaApiFixture\ChannelPostApiTransport::existingHotelMediaPayload($channel,$mid,$body,$jpeg),
+            HotelMediaApiFixture\ChannelPostApiTransport::existingHotelMediaRequest($channel,$mid,$body,$jpeg),
+            count($GLOBALS['hotel_media_http'])],
+        [null,['http'=>0,'data'=>null,'transport_error'=>true],$editorialBeforeHttp]);
+};
+foreach (['1083'=>'288','288'=>'1083'] as $mid=>$other) {
+    $mid=(string)$mid;
+    $body=$editorialBodies[$mid]; $jpeg=$editorialPhotos[$mid];
+    $editorialDeny($mid.' photograph from the other hotel',$mid,$body,$editorialPhotos[$other]);
+    $changed=$jpeg; $offset=intdiv(strlen($changed),2); $changed[$offset]=chr(ord($changed[$offset]) ^ 1);
+    channelPostCheck('editorial '.$mid.' changed-byte fixture retains JPEG dimensions',array_slice(getimagesizefromstring($changed),0,2),$editorialApprovals[$mid]['size']);
+    $editorialDeny($mid.' changed photo bytes with unchanged dimensions',$mid,$body,$changed);
+    $editorialDeny($mid.' truncated JPEG',$mid,$body,substr($jpeg,0,100));
+    $changedBody=$body; $changedBody['caption'].=' ';
+    $editorialDeny($mid.' unapproved caption',$mid,$changedBody,$jpeg);
+    $changedBody=$body; $changedBody['reply_markup']=$editorialBodies[$other]['reply_markup'];
+    $editorialDeny($mid.' valid bot URL for another hotel',$mid,$changedBody,$jpeg);
+    $changedBody=$body; $changedBody['reply_markup']['inline_keyboard'][0][0]['text']='Узнать стоимость тура';
+    $editorialDeny($mid.' unapproved button label',$mid,$changedBody,$jpeg);
+    $changedBody=$body; $changedBody['reply_markup']['inline_keyboard'][0][]=$changedBody['reply_markup']['inline_keyboard'][0][0];
+    $editorialDeny($mid.' extra CTA',$mid,$changedBody,$jpeg);
+    $changedBody=$body; $changedBody['caption_entities']=[['type'=>'bold','offset'=>0,'length'=>1]];
+    $editorialDeny($mid.' unapproved caption formatting',$mid,$changedBody,$jpeg);
+    $changedBody=$body; $changedBody['media']='https://example.test/unapproved.jpg';
+    $editorialDeny($mid.' extra media input',$mid,$changedBody,$jpeg);
+    $editorialDeny($mid.' another channel',$mid,$body,$jpeg,'-1001234567890');
+}
+foreach (['862','328','455','9999','01083',"1083\n"] as $mid) {
+    channelPostCheck('editorial has no photo scope for '.$mid,HotelMediaApiFixture\ChannelPostApiTransport::existingHotelPhotoScope($mid),null);
+    $editorialDeny('unapproved target '.$mid,$mid,$editorialBodies['1083'],$editorialPhotos['1083']);
+}
+channelPostCheck('all approved editorial photo preparation stays offline',count($GLOBALS['hotel_media_http']),$editorialBeforeHttp);
+
+// Native receipts must prove the requested replacement on the same historical
+// message. Start with provider-shaped messages and use the production normalizer.
+$editorialNativeMessage = static function(array $row, array $body, string $photoId) use ($fixtures): array {
+    $message=$fixtures['telegram'];
+    $message['message_id']=(int)$row['mid'];
+    $message['chat']['id']=-1001845835645; $message['chat']['username']='anytour';
+    $message['sender_chat']=$message['chat'];
+    $message['date']=$row['target_published_unixtime'];
+    $message['caption']=$body['caption']; $message['caption_entities']=[];
+    $message['reply_markup']=$body['reply_markup'];
+    $message['photo']=[['file_id'=>'file-'.$photoId,'file_unique_id'=>$photoId,'width'=>900,'height'=>900]];
+    return $message;
+};
+foreach ($editorialApprovals as $mid=>$approved) {
+    $mid=(string)$mid; $row=$editorialByMid[$mid]; $body=$editorialBodies[$mid];
+    $button=$body['reply_markup']['inline_keyboard'][0][0];
+    $oldMessage=$editorialNativeMessage($row,array_replace($body,['caption'=>'Previously published caption']),'old-'.$mid);
+    $newMessage=$editorialNativeMessage($row,$body,'approved-'.$mid);
+    $newMessage['edit_date']=$newMessage['date']+60;
+    $prior=ChannelPostIncomingAdapter::telegramSnapshot($oldMessage);
+    $after=ChannelPostIncomingAdapter::telegramSnapshot($newMessage);
+    channelPostCheck('editorial '.$mid.' reads the same verified photo bytes before the write marker',
+        AnyTour\ExistingPostBatch\hotelEditPhotoBytes($row,__DIR__.'/..'),$editorialPhotos[$mid]);
+    channelPostCheck('editorial '.$mid.' accepts its exact native edit with the original URL and publication date',
+        AnyTour\ExistingPostBatch\hotelEditNativeMatches($prior,$after,$row,$button['url'],$button['text']));
+    $extraButton=$body['reply_markup']; $extraButton['inline_keyboard'][0][]=$button;
+    $wrongButton=$body['reply_markup']; $wrongButton['inline_keyboard'][0][0]['url']='https://example.test/another-hotel';
+    $missingFile=$newMessage['photo']; $missingFile[0]['file_id']='';
+    foreach ([
+        'retained old photograph'=>['photo'=>$oldMessage['photo']],
+        'changed publication date'=>['date'=>$newMessage['date']+1],
+        'another message URL'=>['message_id'=>(int)$mid+1],
+        'changed approved caption'=>['caption'=>$row['next'].' '],
+        'another hotel button'=>['reply_markup'=>$wrongButton],
+        'extra CTA'=>['reply_markup'=>$extraButton],
+        'album membership'=>['media_group_id'=>'unapproved-album'],
+        'unexpected caption formatting'=>['caption_entities'=>[['type'=>'bold','offset'=>0,'length'=>1]]],
+        'missing reusable Telegram file ID'=>['photo'=>$missingFile],
+        'unsupported additional media'=>['document'=>['file_id'=>'unexpected-document']],
+    ] as $case=>$patch) {
+        channelPostCheck('editorial '.$mid.' native readback rejects '.$case,
+            AnyTour\ExistingPostBatch\hotelEditNativeMatches($prior,ChannelPostIncomingAdapter::telegramSnapshot(array_replace($newMessage,$patch)),
+                $row,$button['url'],$button['text']),false);
+    }
+    $twoPhotos=$after; $twoPhotos['attachments'][]=$prior['attachments'][0];
+    channelPostCheck('editorial '.$mid.' native readback rejects two normalized photographs',
+        AnyTour\ExistingPostBatch\hotelEditNativeMatches($prior,$twoPhotos,$row,$button['url'],$button['text']),false);
+    channelPostCheck('editorial '.$mid.' matching caption and native photo alone do not prove completed approval',
+        AnyTour\ExistingPostBatch\hotelEditPhotoAccepted($after,$row),false);
+    $accepted=$after;
+    $accepted['metadata']['hotel_editor_photo']=['sha256'=>$approved['sha256'],'file_unique_id'=>'approved-'.$mid];
+    channelPostCheck('editorial '.$mid.' stored proof recognizes the accepted photo on a repeat run',
+        AnyTour\ExistingPostBatch\hotelEditPhotoAccepted($accepted,$row));
+    $wrongHash=$accepted; $wrongHash['metadata']['hotel_editor_photo']['sha256']=str_repeat('0',64);
+    $wrongIdentity=$accepted; $wrongIdentity['metadata']['hotel_editor_photo']['file_unique_id']='old-'.$mid;
+    $oldPhoto=$accepted; $oldPhoto['attachments']=$prior['attachments'];
+    $twoAccepted=$accepted; $twoAccepted['attachments'][]=$prior['attachments'][0];
+    foreach (['another approved-byte hash'=>$wrongHash,'another native identity in proof'=>$wrongIdentity,
+        'old photo with copied new proof'=>$oldPhoto,'two photos with single-photo proof'=>$twoAccepted] as $case=>$snapshot) {
+        channelPostCheck('editorial '.$mid.' repeat admission rejects '.$case,
+            AnyTour\ExistingPostBatch\hotelEditPhotoAccepted($snapshot,$row),false);
+    }
+}
+foreach (['862','328'] as $mid) {
+    $row=$editorialByMid[$mid];
+    // The fixture CTA is supplied explicitly: this helper checks native receipt
+    // preservation; the existing transport owns canonical button admission.
+    $body=['caption'=>$row['next'],'reply_markup'=>$fixtures['telegram']['reply_markup']];
+    $button=$body['reply_markup']['inline_keyboard'][0][0];
+    $before=$editorialNativeMessage($row,array_replace($body,['caption'=>'Previously published caption']),'unchanged-'.$mid);
+    $after=$editorialNativeMessage($row,$body,'unchanged-'.$mid);
+    $prior=ChannelPostIncomingAdapter::telegramSnapshot($before);
+    $snapshot=ChannelPostIncomingAdapter::telegramSnapshot($after);
+    channelPostCheck('editorial '.$mid.' caption-only edit preserves its existing photo without new media proof',
+        [AnyTour\ExistingPostBatch\hotelEditPhotoBytes($row,__DIR__.'/..'),AnyTour\ExistingPostBatch\hotelEditPhotoAccepted($snapshot,$row),
+            AnyTour\ExistingPostBatch\hotelEditNativeMatches($prior,$snapshot,$row,$button['url'],$button['text'])],[null,true,true]);
+    $after['photo'][0]['file_unique_id']='unapproved-replacement-'.$mid;
+    channelPostCheck('editorial '.$mid.' caption-only readback rejects a changed photograph',
+        AnyTour\ExistingPostBatch\hotelEditNativeMatches($prior,ChannelPostIncomingAdapter::telegramSnapshot($after),$row,$button['url'],$button['text']),false);
+}
+channelPostCheck('all approved editorial native receipt checks stay offline',count($GLOBALS['hotel_media_http']),$editorialBeforeHttp);
+
+// The existing namespaced curl fixture also observes the actual multipart wire
+// without loading credentials or making network requests. It catches accidental
+// JSON encoding of a CURLStringFile or use of the new-message/upload endpoints.
+channelPostCheck('editorial direct photo transport has its native CURLStringFile dependency',class_exists(\CURLStringFile::class));
+if (class_exists(\CURLStringFile::class)) {
+    foreach ($editorialApprovals as $mid=>$approved) {
+        $mid=(string)$mid; $before=count($GLOBALS['hotel_media_http']);
+        $body=$editorialBodies[$mid]; $jpeg=$editorialPhotos[$mid];
+        $response=HotelMediaApiFixture\ChannelPostApiTransport::existingHotelMediaRequest('-1001845835645',$mid,$body,$jpeg);
+        $wire=$GLOBALS['hotel_media_http'][$before];
+        $form=$wire['options'][HotelMediaApiFixture\CURLOPT_POSTFIELDS];
+        channelPostCheck('editorial '.$mid.' sends one multipart edit to the existing Telegram message',
+            [$response['http'],$response['transport_error'],count($GLOBALS['hotel_media_http'])-$before,$wire['url'],
+                array_keys($form),$form['chat_id'],(int)$form['message_id'],
+                json_decode($form['media'],true),json_decode($form['reply_markup'],true)],
+            [200,false,1,'https://api.telegram.org/bot'.HotelMediaApiFixture\TELEGRAM_BOT_TOKEN.'/editMessageMedia',
+                ['chat_id','message_id','media','reply_markup','approved_photo'],'-1001845835645',(int)$mid,
+                ['type'=>'photo','media'=>'attach://approved_photo','caption'=>$body['caption'],'caption_entities'=>[]],
+                $body['reply_markup']]);
+        $upload=$form['approved_photo'];
+        channelPostCheck('editorial '.$mid.' uploads the same verified JPEG bytes with the approved attachment name',
+            [$upload instanceof \CURLStringFile,hash('sha256',$upload->data),$upload->postname,$upload->mime],
+            [true,$approved['sha256'],'approved-photo.jpg','image/jpeg']);
+        channelPostCheck('editorial '.$mid.' lets curl set the multipart boundary and preserves transport limits',
+            [array_values(array_filter($wire['options'][HotelMediaApiFixture\CURLOPT_HTTPHEADER],static fn($header)=>stripos($header,'Content-Type:')===0)),
+                array_map(static fn($key)=>$wire['options'][$key],[
+                    HotelMediaApiFixture\CURLOPT_SSL_VERIFYPEER,HotelMediaApiFixture\CURLOPT_SSL_VERIFYHOST,
+                    HotelMediaApiFixture\CURLOPT_FOLLOWLOCATION,HotelMediaApiFixture\CURLOPT_CONNECTTIMEOUT,
+                    HotelMediaApiFixture\CURLOPT_TIMEOUT,HotelMediaApiFixture\CURLOPT_CUSTOMREQUEST])],
+            [[],[true,2,false,2,6,'POST']]);
+    }
+}
+
+// Empty SQLite has no registry tables: touching PDO before the approval guard
+// would produce a database error instead of this exact fail-closed decision.
+$editorialGuardDb=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+$editorialChangedRow=$editorialByMid['862']; $editorialChangedRow['next'].=' Unapproved addition.';
+$editorialMissingPriceGuard=$editorialChangedRow; unset($editorialMissingPriceGuard['price_check']);
+foreach (['changed caption'=>$editorialChangedRow,'changed caption with price guard removed'=>$editorialMissingPriceGuard] as $case=>$changedRow) {
+    $editorialGuardError=''; $editorialGuardStarted=true;
+    try {
+        AnyTour\ExistingPostBatch\editHotelExisting($editorialGuardDb,new ChannelPostRegistryService($editorialGuardDb),$changedRow,$editorialGuardStarted);
+    } catch (Throwable $error) { $editorialGuardError=$error->getMessage(); }
+    channelPostCheck('editorial rejects '.$case.' before the first registry query or provider marker',
+        [$editorialGuardError,$editorialGuardStarted],['existing_hotel_edit_plan_invalid',false]);
+}
+
+// Exercise the production batch loop with only its single-post edit replaced.
+// A durable write intent consumes the tick even when the edit then throws.
+$tickReflection=new ReflectionFunction('AnyTour\\ExistingPostBatch\\tick');
+$tickSource=file($tickReflection->getFileName());
+eval('namespace ExistingEditorialTickFixture; use \\ChannelPostRegistryService; use \\Throwable; '
+    .'use function \\AnyTour\\ExistingPostBatch\\requirePost; use function \\AnyTour\\ExistingPostBatch\\validHotelEditPlan; '
+    .'final class ProjectConfig { public static function projectId(): string { return "anytour"; } } '
+    .'final class ConversationDb { public static function connection(): \\PDO { return $GLOBALS["editorial_tick_pdo"]; } } '
+    .'function file_get_contents(string $path, bool $include=false, $context=null, int $offset=0, ?int $length=null): string { '
+        .'if (basename($path)!=="anytour_existing_post_batch.json") throw new \\RuntimeException("unexpected_tick_fixture_read"); '
+        .'return $GLOBALS["editorial_tick_batch"]; } '
+    .'function editHotelExisting(\\PDO $pdo, \\ChannelPostRegistryService $registry, array $row, bool &$started=false): array { '
+        .'$GLOBALS["editorial_tick_rows"][]=$row["mid"]; '
+        .'if (count($GLOBALS["editorial_tick_rows"])===1) { $started=$GLOBALS["editorial_tick_write_started"]; '
+            .'throw new \\RuntimeException($started?"fixture_edit_outcome_unknown":"fixture_prewrite_failure"); } '
+        .'return ["ok"=>true,"state"=>"edited_verified"]; } '
+    .implode('',array_slice($tickSource,$tickReflection->getStartLine()-1,$tickReflection->getEndLine()-$tickReflection->getStartLine()+1)));
+$tickDirectory=sys_get_temp_dir().'/hotel-editorial-tick-'.bin2hex(random_bytes(6));
+if (!mkdir($tickDirectory,0700)) throw new RuntimeException('editorial tick fixture unavailable');
+$tickLease=$tickDirectory.'/monitor-price-after-collection-v1.jsonl';
+define('ExistingEditorialTickFixture\\POST_OPS',$tickDirectory);
+try {
+    file_put_contents($tickLease,'');
+    $GLOBALS['editorial_tick_pdo']=new PDO('sqlite::memory:');
+    $GLOBALS['editorial_tick_batch']=json_encode([$editorialByMid['1083'],$editorialByMid['288']],JSON_THROW_ON_ERROR);
+    $GLOBALS['editorial_tick_rows']=[]; $GLOBALS['editorial_tick_write_started']=true;
+    $unknownTick=ExistingEditorialTickFixture\tick(__DIR__.'/..');
+    channelPostCheck('editorial tick stops after an exception following durable provider intent and reports UNKNOWN readback',
+        [$GLOBALS['editorial_tick_rows'],count($unknownTick),$unknownTick[0]['ok'],$unknownTick[0]['state'],
+            $unknownTick[0]['provider_write_attempts'],$unknownTick[0]['error']],
+        [['1083'],1,false,'requires_readback',1,'fixture_edit_outcome_unknown']);
+    $GLOBALS['editorial_tick_rows']=[]; $GLOBALS['editorial_tick_write_started']=false;
+    $prewriteTick=ExistingEditorialTickFixture\tick(__DIR__.'/..');
+    channelPostCheck('editorial tick may continue after a pre-write failure without labeling it an attempted provider edit',
+        [$GLOBALS['editorial_tick_rows'],count($prewriteTick),$prewriteTick[0]['error'],
+            isset($prewriteTick[0]['provider_write_attempts']),$prewriteTick[1]['state']],
+        [['1083','288'],2,'fixture_prewrite_failure',false,'edited_verified']);
+} finally {
+    if (is_file($tickLease) && !is_link($tickLease)) unlink($tickLease);
+    if (is_dir($tickDirectory) && !is_link($tickDirectory)) rmdir($tickDirectory);
+}
+
 echo 'Channel post automation: ' . $passed . ' passed, ' . $failed . ' failed' . PHP_EOL;
 exit($failed === 0 ? 0 : 1);
 

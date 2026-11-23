@@ -61,6 +61,69 @@ final class ChannelPostApiTransport
         return ['http' => 0, 'data' => null, 'transport_error' => true];
     }
 
+    /** Exact owner-approved originals for two already registered hotel posts. */
+    public static function existingHotelPhotoScope(string $messageId): ?array
+    {
+        return match ($messageId) {
+            '1083' => [
+                'hotel' => 393,
+                'path' => 'resources/anytour/editorial-four-20261124/royal-grand-pool-01-16.jpg',
+                'sha256' => 'd0d4b7a38c056478125f20e6ebe60af68da8e230b664c1f80a8a2527436c8d94',
+                'bytes' => 333821, 'width' => 1920, 'height' => 1280,
+                'caption_sha256' => '1279c19a3f2cdfe292299f5854cfde0b29a36c1ca4ed5462d52d076f527704d4',
+                'button_sha256' => '75f66dbd0f8af0222d1dff120147547ba08717393695d14bc8da031cfa42633b',
+            ],
+            '288' => [
+                'hotel' => 1260,
+                'path' => 'resources/anytour/editorial-four-20261124/santai-beach.jpg',
+                'sha256' => '27ff38d3afbb88af13e6f76a391d8023f9aaadc092b3cc99972d009adf58e0c5',
+                'bytes' => 196025, 'width' => 1005, 'height' => 705,
+                'caption_sha256' => '4340546097c7b34b0a236c03a2d6e933cf0a15e5bb367689a4055fb77dedab4c',
+                'button_sha256' => '0959a7ea94353f818e994174166f04b62f84983645f6684c294750f1c4bb52d0',
+            ],
+            default => null,
+        };
+    }
+
+    /** Pure preparation: no file reads, curl objects, provider calls or write marker. */
+    public static function existingHotelMediaPayload(string $channelId, string $messageId, array $body, string $jpeg): ?array
+    {
+        $scope = self::existingHotelPhotoScope($messageId);
+        if ($scope === null || $channelId !== '-1001845835645'
+            || array_keys($body) !== ['caption', 'caption_entities', 'reply_markup']
+            || !is_string($body['caption']) || !mb_check_encoding($body['caption'], 'UTF-8')
+            || strlen(mb_convert_encoding($body['caption'], 'UTF-16LE', 'UTF-8')) > 2048
+            || !hash_equals($scope['caption_sha256'], hash('sha256', $body['caption']))
+            || $body['caption_entities'] !== [] || !is_array($body['reply_markup'])
+            || array_keys($body['reply_markup']) !== ['inline_keyboard']
+            || strlen($jpeg) !== $scope['bytes'] || !hash_equals($scope['sha256'], hash('sha256', $jpeg))) return null;
+        $rows = $body['reply_markup']['inline_keyboard'];
+        if (!is_array($rows) || !array_is_list($rows) || count($rows) !== 1
+            || !is_array($rows[0]) || !array_is_list($rows[0]) || count($rows[0]) !== 1) return null;
+        $button = $rows[0][0];
+        if (!is_array($button) || array_keys($button) !== ['text', 'url']
+            || $button['text'] !== '✈️ Рассчитать на мои даты' || !is_string($button['url'])
+            || !hash_equals($scope['button_sha256'], hash('sha256', $button['url']))) return null;
+        $image = @getimagesizefromstring($jpeg);
+        if (!is_array($image) || ($image[0] ?? null) !== $scope['width']
+            || ($image[1] ?? null) !== $scope['height'] || ($image[2] ?? null) !== IMAGETYPE_JPEG
+            || ($image['mime'] ?? null) !== 'image/jpeg') return null;
+        return [
+            'chat_id' => $channelId, 'message_id' => (int)$messageId,
+            'media' => ['type' => 'photo', 'media' => 'attach://approved_photo',
+                'caption' => $body['caption'], 'caption_entities' => []],
+            'reply_markup' => $body['reply_markup'],
+        ];
+    }
+
+    /** One direct edit from the same approved bytes; no upload or new-message call. */
+    public static function existingHotelMediaRequest(string $channelId, string $messageId, array $body, string $jpeg): array
+    {
+        $payload = self::existingHotelMediaPayload($channelId, $messageId, $body, $jpeg);
+        return $payload === null ? ['http' => 0, 'data' => null, 'transport_error' => true]
+            : self::postRequest('telegram', 'POST', 'editMessageMedia', [], $payload, false, null, true, $jpeg);
+    }
+
     /** Pure preflight before the editor consumes its once-only write marker. */
     public static function hotelMediaPayload(string $channelId, string $messageId, array $body, bool|string $next = false): ?array
     {
@@ -112,9 +175,14 @@ final class ChannelPostApiTransport
             : self::postRequest('telegram', 'POST', 'editMessageMedia', [], $payload, false, null, true);
     }
 
-    private static function postRequest(string $platform, string $method, string $path, array $query, ?array $body, bool $caption, #[\SensitiveParameter] ?string $publisherToken = null, bool $hotelMedia = false): array
+    private static function postRequest(string $platform, string $method, string $path, array $query, ?array $body, bool $caption, #[\SensitiveParameter] ?string $publisherToken = null, bool $hotelMedia = false, ?string $jpeg = null): array
     {
         if ($hotelMedia && ($platform !== 'telegram' || $caption || $publisherToken !== null)) {
+            return ['http' => 0, 'data' => null, 'transport_error' => true];
+        }
+        if ($jpeg !== null && (!$hotelMedia || $method !== 'POST' || $path !== 'editMessageMedia'
+            || $query !== [] || !is_array($body) || ($body['media']['media'] ?? null) !== 'attach://approved_photo'
+            || !class_exists(\CURLStringFile::class))) {
             return ['http' => 0, 'data' => null, 'transport_error' => true];
         }
         if (!extension_loaded('curl')) return ['http' => 0, 'data' => null, 'transport_error' => true];
@@ -140,6 +208,17 @@ final class ChannelPostApiTransport
         if ($query) $url .= '?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
         $encoded = $body === null ? null : json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if ($body !== null && (!is_string($encoded) || strlen($encoded) > 1048576)) return ['http' => 0, 'data' => null, 'transport_error' => true];
+        if ($jpeg !== null) {
+            if (strlen($encoded) + strlen($jpeg) > 1048576) return ['http' => 0, 'data' => null, 'transport_error' => true];
+            $encoded = [
+                'chat_id' => $body['chat_id'], 'message_id' => $body['message_id'],
+                'media' => json_encode($body['media'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                'reply_markup' => json_encode($body['reply_markup'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                'approved_photo' => new \CURLStringFile($jpeg, 'approved-photo.jpg', 'image/jpeg'),
+            ];
+            // libcurl supplies the multipart boundary; never label these bytes JSON.
+            $headers = ['Accept: application/json'];
+        }
         $raw = ''; $ch = curl_init($url);
         $options = $tls + [
             CURLOPT_RETURNTRANSFER => false, CURLOPT_FOLLOWLOCATION => false,

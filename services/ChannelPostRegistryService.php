@@ -127,6 +127,175 @@ final class ChannelPostRegistryService
         return $this->registerObservation($projectKey,$platform,$botKey,$channelId,$messageId,$snapshot);
     }
 
+    /** Pure approval check, reused before the editor writes its provider marker. */
+    public static function telegramExistingHotelEditDigest(array $row): string
+    {
+        $scope = [
+            '3700'=>[17595,'862','a1b24835e624743d7c7fd58e5deb6ecc1869bc47f21b94d3dcdca6f57fa6da68'],
+            '3701'=>[358,'328','fa449ca6bb0429e9621db8278d88be7c13b3369637d1832f2df6e6d071517528'],
+            '3702'=>[393,'1083','81bcaa64e9dd36046263b9b5cd49762565b1fd43b5fb7d50685a9362e3ba55dd'],
+            '3703'=>[1260,'288','7c5e3fdb7715ab4f29bdf6eff7e8d6489d1bd541b1ad4f3c30f5bf346c99e25c'],
+        ];
+        $id = $row['post'] ?? null;
+        $rowDigest = hash('sha256', self::json(self::canonicalArray($row)));
+        if (!is_string($id) || !isset($scope[$id]) || [$row['hotel'] ?? null,$row['mid'] ?? null] !== array_slice($scope[$id],0,2)
+            || !hash_equals($scope[$id][2],$rowDigest)) throw new InvalidArgumentException('existing_hotel_edit_plan_invalid');
+        return $rowDigest;
+    }
+
+    /**
+     * Complete the four approved existing edits from the caller's saved baseline
+     * and authentic HTTP response. No provider calls, reservations or identities
+     * are created here. The editor owns approval and the durable once-only journal.
+     */
+    public function completeTelegramExistingHotelEdit(array $before, array $row, array $nativeResponse): array
+    {
+        $rowDigest = self::telegramExistingHotelEditDigest($row);
+        $id = (int)$row['post'];
+        $prior = $before['snapshot'] ?? null;
+        if (($before['publication_id'] ?? null) !== $id || ($before['project_key'] ?? '') !== 'anytour'
+            || ($before['platform'] ?? '') !== 'telegram' || ($before['bot_key'] ?? '') !== 'anyru_bot'
+            || ($before['channel_id'] ?? '') !== '-1001845835645' || ($before['external_message_id'] ?? '') !== $row['mid']
+            || ($before['state'] ?? '') !== 'sent' || !is_int($before['version_id'] ?? null) || $before['version_id'] <= 0
+            || !is_string($before['start_payload'] ?? null) || !preg_match('/\Ap_[A-Za-z0-9_-]{24}\z/D',$before['start_payload'])
+            || !is_array($prior) || !is_array($before['channel'] ?? null) || (int)($before['channel']['id'] ?? 0) !== 6
+            || ($prior['post_url'] ?? '') !== $row['url'] || (int)($prior['metadata']['hotel_catalog_id'] ?? 0) !== $row['hotel']
+            || !hash_equals($row['old_caption_sha256'],hash('sha256',(string)($prior['text'] ?? '')))
+            || ($before['content_hash'] ?? '') !== ChannelPostIncomingAdapter::contentFingerprint($prior)) throw new RuntimeException('existing_hotel_edit_baseline_changed');
+        $button = 'https://t.me/anyru_bot?start='.$before['start_payload'];
+        $keyboard = [[['text'=>'✈️ Рассчитать на мои даты','url'=>$button]]];
+        if (!hash_equals($row['button_sha'],hash('sha256',$button))
+            || self::canonicalArray($prior['keyboard'] ?? []) !== self::canonicalArray($keyboard)) throw new RuntimeException('existing_hotel_edit_baseline_changed');
+        $raw = $nativeResponse['data']['result'] ?? null;
+        if (($nativeResponse['http'] ?? null) !== 200 || ($nativeResponse['transport_error'] ?? null) !== false
+            || ($nativeResponse['data']['ok'] ?? null) !== true || !is_array($raw)
+            || (string)($raw['chat']['id'] ?? '') !== '-1001845835645' || ($raw['chat']['type'] ?? '') !== 'channel'
+            || ($raw['chat']['username'] ?? '') !== 'anytour' || (string)($raw['message_id'] ?? '') !== $row['mid']
+            || ($raw['date'] ?? null) !== $row['target_published_unixtime'] || !is_int($raw['edit_date'] ?? null)
+            || $raw['edit_date'] <= $raw['date'] || $raw['edit_date'] > 9999999999
+            || ($raw['caption'] ?? null) !== $row['next'] || isset($raw['text']) || !empty($raw['media_group_id'])
+            || ($raw['caption_entities'] ?? []) !== [] || ($raw['entities'] ?? []) !== []
+            || !is_array($raw['reply_markup'] ?? null)
+            || self::canonicalArray($raw['reply_markup']) !== self::canonicalArray(['inline_keyboard'=>$keyboard])) throw new RuntimeException('existing_hotel_edit_response_unconfirmed');
+        $observed = ChannelPostIncomingAdapter::telegramSnapshot($raw);
+        $oldPhoto = $prior['attachments'][0] ?? [];
+        $photo = $observed['attachments'][0] ?? [];
+        if (!$observed || ($observed['metadata']['capability'] ?? '') !== 'supported' || count($observed['attachments']) !== 1
+            || count($prior['attachments'] ?? []) !== 1 || ($prior['metadata']['capability'] ?? '') !== 'supported'
+            || !empty($prior['metadata']['media_group_id']) || ($photo['type'] ?? '') !== 'image' || ($photo['provider'] ?? '') !== 'telegram'
+            || ($oldPhoto['type'] ?? '') !== 'image' || ($oldPhoto['provider'] ?? '') !== 'telegram'
+            || !is_string($photo['telegram_file_id'] ?? null) || !preg_match('/\A[A-Za-z0-9_-]{8,1024}\z/D',$photo['telegram_file_id'])
+            || !is_string($photo['file_unique_id'] ?? null) || !preg_match('/\A[A-Za-z0-9_-]{5,160}\z/D',$photo['file_unique_id'])
+            || !is_string($oldPhoto['file_unique_id'] ?? null) || !preg_match('/\A[A-Za-z0-9_-]{5,160}\z/D',$oldPhoto['file_unique_id'])
+            || (isset($row['next_media']) ? $photo['file_unique_id'] === $oldPhoto['file_unique_id'] : $photo['file_unique_id'] !== $oldPhoto['file_unique_id'])
+            || $observed['post_url'] !== $row['url'] || $observed['published_at'] !== ($prior['published_at'] ?? null)) throw new RuntimeException('existing_hotel_edit_response_unconfirmed');
+        $observed = self::snapshot($observed);
+        $hash = ChannelPostIncomingAdapter::contentFingerprint($observed);
+        $revision = $raw['edit_date'] * 1000;
+        $responseDigest = hash('sha256', self::json(self::canonicalArray($nativeResponse)));
+        $event = 'authorized-hotel-existing-edit:'.$rowDigest.':'.$responseDigest;
+        $provenance = ['kind'=>'telegram_existing_hotel_edit_v1','row_digest'=>$rowDigest,'response_sha256'=>$responseDigest,
+            'publication_id'=>$id,'baseline_version_id'=>$before['version_id'],'baseline_content_hash'=>$before['content_hash']];
+        return $this->transaction(function () use ($before,$row,$id,$prior,$observed,$photo,$hash,$revision,$event,$provenance,$responseDigest): array {
+            $channel = $this->channel('anytour','telegram','anyru_bot','-1001845835645',true,true);
+            if (!$channel || (int)$channel['id'] !== 6 || $channel['canonical_bot_username'] !== 'anyru_bot'
+                || $channel['source_key'] !== 'tg_anytour_msk' || $channel['bot_url'] !== 'https://t.me/anyru_bot'
+                || $channel['button_text'] !== '✈️ Рассчитать на мои даты'
+                || self::canonicalArray($channel) !== self::canonicalArray($before['channel'])) throw new RuntimeException('existing_hotel_edit_configuration_changed');
+            $identity = $this->fetch('SELECT * FROM post_publications WHERE id=?' . $this->lock(),[$id]);
+            if (!$identity || (int)$identity['post_channel_id'] !== 6 || (int)$identity['source_id'] !== (int)$channel['source_id']
+                || (int)($before['source_id'] ?? 0) !== (int)$identity['source_id'] || $identity['external_message_id'] !== $row['mid']
+                || $identity['start_payload'] !== $before['start_payload'] || $identity['current_version_id'] === null
+                || (int)($identity['observed_revision_ms'] ?? 0) > $revision) throw new RuntimeException('existing_hotel_edit_target_changed');
+            $baseline = $this->fetch('SELECT * FROM post_versions WHERE id=? AND publication_id=?' . $this->lock(),[$before['version_id'],$id]);
+            if (!$baseline || $baseline['state'] !== 'sent' || $baseline['claim_token'] !== null || $baseline['claimed_at'] !== null
+                || (int)$baseline['version_number'] !== ($before['version_number'] ?? null) || $baseline['content_hash'] !== $before['content_hash']
+                || self::canonicalArray(json_decode((string)$baseline['snapshot_json'],true) ?: []) !== self::canonicalArray($prior)) throw new RuntimeException('existing_hotel_edit_baseline_changed');
+            $previous = $this->fetch('SELECT * FROM post_versions WHERE id=? AND publication_id=?' . $this->lock(),[(int)$identity['current_version_id'],$id]);
+            if (!$previous) throw new RuntimeException('existing_hotel_edit_target_changed');
+            $held = $this->fetch("SELECT id FROM post_versions WHERE publication_id=? AND (state IN ('claimed','write_started','unknown') OR claim_token IS NOT NULL OR claimed_at IS NOT NULL) LIMIT 1" . $this->lock(),[$id]);
+            if ($held) throw new RuntimeException('existing_hotel_edit_target_held');
+            $accepted = $this->fetch('SELECT version_id FROM post_observations WHERE publication_id=? AND source_event_key=?' . $this->lock(),[$id,hash('sha256',$event)]);
+            $adopted = (int)$previous['id'] !== $before['version_id'];
+            $snapshot = $observed;
+            if ($adopted) {
+                $snapshot = json_decode((string)$previous['snapshot_json'],true) ?: [];
+                self::telegramExistingHotelObservedMatch($snapshot,$observed,$row);
+                if ($previous['content_hash'] !== $hash || !in_array($previous['state'],['pending','sent'],true) || (int)$previous['write_attempts'] !== 0
+                    || (isset($snapshot['metadata']['hotel_catalog_id']) && (int)$snapshot['metadata']['hotel_catalog_id'] !== $row['hotel'])) throw new RuntimeException('existing_hotel_edit_target_changed');
+                if ($accepted) {
+                    $receipt = json_decode((string)$previous['receipt_json'],true) ?: [];
+                    $expectedPhoto = isset($row['next_media']) ? ['sha256'=>$row['next_media']['sha256'],'file_unique_id'=>$photo['file_unique_id']] : null;
+                    if ((int)$accepted['version_id'] !== (int)$previous['id'] || $previous['state'] !== 'sent'
+                        || ($snapshot['metadata']['hotel_editor_edit'] ?? null) !== $provenance
+                        || ($snapshot['metadata']['hotel_catalog_id'] ?? null) !== $row['hotel']
+                        || (isset($row['next_media']) && ($snapshot['metadata']['hotel_editor_photo'] ?? null) !== $expectedPhoto)
+                        || ($receipt['completion_kind'] ?? '') !== 'telegram_existing_hotel_edit_v1'
+                        || ($receipt['provider_response_sha256'] ?? '') !== $responseDigest) throw new RuntimeException('existing_hotel_edit_target_changed');
+                    return ($this->publication($id) ?? throw new RuntimeException('existing_hotel_edit_target_changed')) + ['already_completed'=>true];
+                }
+                $nativeEvent = $snapshot['metadata']['source_event_id'] ?? null;
+                $nativeReceipt = is_string($nativeEvent) && preg_match('/\A[a-f0-9]{64}\z/D',$nativeEvent)
+                    ? $this->fetch('SELECT version_id FROM post_observations WHERE publication_id=? AND source_event_key=?' . $this->lock(),[$id,hash('sha256',$nativeEvent)]) : null;
+                if (!$nativeReceipt || (int)$nativeReceipt['version_id'] !== (int)$previous['id']
+                    || (int)$previous['version_number'] !== (int)$baseline['version_number'] + 1
+                    || self::telegramSequence($snapshot) === null || self::revisionTime($snapshot) !== $revision
+                    || isset($snapshot['metadata']['hotel_editor_edit'])) throw new RuntimeException('existing_hotel_edit_target_changed');
+            } elseif ($accepted || (int)($identity['observed_revision_ms'] ?? 0) >= $revision) {
+                // A same-body webhook can advance the clock without a version.
+                // HTTP has no update_id to prove it follows that same-second event.
+                throw new RuntimeException('existing_hotel_edit_target_changed');
+            }
+            $snapshot['metadata'] = array_replace($prior['metadata'],$snapshot['metadata'],[
+                'hotel_catalog_id'=>$row['hotel'],'hotel_editor_edit'=>$provenance,
+                'hotel_editor_price_record_id'=>$row['price_check']['record_id'],
+            ]);
+            if (!$adopted) {
+                $snapshot['metadata']['observation_kind'] = 'authorized_admin_content_edit';
+                $snapshot['metadata']['source_event_id'] = $event;
+                $snapshot['metadata']['source_revision_ms'] = (string)$revision;
+                unset($snapshot['metadata']['source_sequence'],$snapshot['metadata']['source_sequence_scope']);
+            }
+            if (isset($row['next_media'])) $snapshot['metadata']['hotel_editor_photo'] = ['sha256'=>$row['next_media']['sha256'],'file_unique_id'=>$photo['file_unique_id']];
+            $snapshot = self::snapshot($snapshot);
+            if (ChannelPostIncomingAdapter::contentFingerprint($snapshot) !== $hash) throw new RuntimeException('existing_hotel_edit_target_changed');
+            $receipt = ['verified'=>true,'button_verified'=>true,'caption_verified'=>true,'media_verified'=>true,'publication_date_verified'=>true,
+                'completion_kind'=>'telegram_existing_hotel_edit_v1','provider_response_sha256'=>$responseDigest,
+                'provider_write_attempts'=>1,'request_count'=>0,'write_attempts'=>0,'baseline_version_id'=>$before['version_id'],
+                'adopted_from_version_id'=>$adopted ? (int)$previous['id'] : null];
+            $now = self::now();
+            $this->execute("INSERT INTO post_versions (publication_id,version_number,content_hash,snapshot_json,state,write_attempts,error_reason,receipt_json,created_at,updated_at) VALUES (?,?,?,?,'sent',0,'',?,?,?)",[$id,(int)$previous['version_number']+1,$hash,self::json($snapshot),self::json($receipt),$now,$now]);
+            $versionId = (int)$this->pdo->lastInsertId();
+            if ($this->execute('UPDATE post_publications SET current_version_id=? WHERE id=? AND current_version_id=?',[$versionId,$id,(int)$previous['id']]) !== 1) throw new RuntimeException('existing_hotel_edit_target_changed');
+            if ($previous['state'] === 'pending' && $this->execute("UPDATE post_versions SET state='requires_attention',error_reason='superseded_before_write',updated_at=? WHERE id=? AND state='pending' AND write_attempts=0 AND claim_token IS NULL AND claimed_at IS NULL",[$now,(int)$previous['id']]) !== 1) throw new RuntimeException('existing_hotel_edit_target_held');
+            // HTTP edit_date is genuine but carries no update_id. Keep every
+            // accepted native sequence, including a webhook in the same second.
+            if ((int)($identity['observed_revision_ms'] ?? 0) < $revision) $this->execute('UPDATE post_publications SET observed_revision_ms=? WHERE id=?',[$revision,$id]);
+            $this->execute('INSERT INTO post_observations (publication_id,source_event_key,version_id,created_at) VALUES (?,?,?,?)',[$id,hash('sha256',$event),$versionId,$now]);
+            return ($this->publication($id) ?? throw new RuntimeException('existing_hotel_edit_target_changed')) + ['already_completed'=>false];
+        });
+    }
+
+    /** A raced webhook must contain the same native message, not synthetic metadata. */
+    private static function telegramExistingHotelObservedMatch(array $current, array $observed, array $row): void
+    {
+        foreach (['text','markup','post_url','published_at','edited_at'] as $key) {
+            if (($current[$key] ?? null) !== ($observed[$key] ?? null)) throw new RuntimeException('existing_hotel_edit_target_changed');
+        }
+        $raw = $current['raw_body'] ?? [];
+        $native = is_array($raw) ? ChannelPostIncomingAdapter::telegramSnapshot($raw) : null;
+        if (!$native || (string)($raw['chat']['id'] ?? '') !== '-1001845835645' || ($raw['chat']['type'] ?? '') !== 'channel'
+            || ($raw['chat']['username'] ?? '') !== 'anytour' || (string)($raw['message_id'] ?? '') !== $row['mid']
+            || ($raw['date'] ?? null) !== $row['target_published_unixtime'] || ($native['metadata']['capability'] ?? '') !== 'supported'
+            || $native['published_at'] !== $observed['published_at'] || $native['edited_at'] !== $observed['edited_at']
+            || self::canonicalArray($current['keyboard'] ?? []) !== self::canonicalArray($observed['keyboard'])
+            || self::canonicalArray($native['keyboard']) !== self::canonicalArray($observed['keyboard'])
+            || ($current['metadata']['capability'] ?? '') !== 'supported' || !empty($current['metadata']['media_group_id'])
+            || ($current['metadata']['actual_message_id'] ?? '') !== $row['mid']
+            || ChannelPostIncomingAdapter::contentFingerprint($native) !== ChannelPostIncomingAdapter::contentFingerprint($observed)
+            || ChannelPostIncomingAdapter::contentFingerprint($current) !== ChannelPostIncomingAdapter::contentFingerprint($observed)) throw new RuntimeException('existing_hotel_edit_target_changed');
+    }
+
     /**
      * Explicit editor only. Reserve an identity, never a native observation or
      * queued version. The caller owns durable approval and the once-only journal.

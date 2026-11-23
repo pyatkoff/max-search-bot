@@ -127,8 +127,8 @@ observer errors, preserving the canonical customer result. The preserved
 `ChannelPostRegistryService.php` source hash explicitly admits its recording
 clock; a changed producer requires review.
 
-The 2026-11-23 producer review admits SHA256
-`36096e42a886e991c1956557ada6fb790bc4e59047cb8501cbec7670977db7da`:
+The 2026-11-24 approved hotel-editor producer review admits SHA256
+`c08c33389393ee7455efff0034253ca7b04c51080b91ac0fb4a2851f01139c6c`:
 both entry paths still record `self::now()` from `gmdate('Y-m-d H:i:s')`; the
 reviewed publication changes preserve those UTC recording clocks. The runtime
 retains its exact regular-file check. Integration tests call that actual guard

@@ -671,5 +671,216 @@ $sourceRaceRegistry->registerPublication('anytour','telegram','anyru_bot','-1002
 postCheck('a changed source version cannot be used by pre-write CAS or completion of an obsolete approved draft',
     manualPostThrows(fn()=>$sourceRaceRegistry->assertTelegramHotelTransferReservation($sourceRaceReservation,$sourceRaceRow,$sourceRacePlan),'hotel_transfer_source_changed')
     && manualPostThrows(fn()=>$sourceRaceRegistry->completeTelegramHotelTransfer($sourceRaceReservation,$sourceRaceRow,$sourceRacePlan,$sourceRaceResponse),'hotel_transfer_source_changed'));
+
+/** A real already-registered target, isolated from the identity-only transfer tests. */
+function existingHotelEditorialFixture(string $mid = '1083'): array
+{
+    $rows=json_decode((string)file_get_contents(__DIR__.'/../config/anytour_existing_post_batch.json'),true,512,JSON_THROW_ON_ERROR);
+    $oldPlan=json_decode((string)file_get_contents(__DIR__.'/../config/anytour_existing_post_transfer_four_20261123.json'),true,512,JSON_THROW_ON_ERROR);
+    $row=null; $old=null;
+    foreach ($rows as $candidate) if (($candidate['platform'] ?? '')==='telegram' && $candidate['mid']===$mid) $row=$candidate;
+    foreach ($oldPlan['rows'] as $candidate) if ($candidate['target_message_id']===$mid) $old=$candidate;
+    if (!is_array($row) || !is_array($old) || hash('sha256',$old['next_caption'])!==$row['old_caption_sha256']) {
+        throw new RuntimeException('existing editorial fixture baseline changed');
+    }
+    $tokens=['862'=>'p_iPDrnrv9xEMP_IR8akTGvQCk','328'=>'p_7hlkFPPDFErdtIJGKiLRX9lp',
+        '1083'=>'p_cAHGboXOdmiTlZAADqwQ2edD','288'=>'p_prj5Od-RFvrP5piNMNWPK9HZ'];
+    $db=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    createChannelPostRegistryFixture($db);
+    $db->exec("INSERT INTO projects VALUES (1,'anytour','AnyTour editorial fixture',1);
+        INSERT INTO conversation_sources VALUES (9,1,'tg_anytour_msk','Existing target','telegram',1,'manager');");
+    $service=new ChannelPostRegistryService($db);
+    $config=['project_key'=>'anytour','platform'=>'telegram','bot_key'=>'anyru_bot','channel_id'=>'-1001845835645',
+        'source_key'=>'tg_anytour_msk','display_name'=>'Existing editorial target','bot_url'=>'https://t.me/anyru_bot',
+        'button_text'=>'✈️ Рассчитать на мои даты','is_enabled'=>true];
+    $channel=$service->configureChannel($config);
+    $db->exec('UPDATE post_channels SET id=6 WHERE id='.(int)$channel['id']);
+    $service->configureChannel($config+['expected_version'=>1]);
+    $db->prepare('INSERT INTO post_publications (id,post_channel_id,source_id,external_message_id,start_payload) VALUES (?,6,9,?,?)')
+        ->execute([(int)$row['post'],$mid,$tokens[$mid]]);
+    $message=['chat'=>['id'=>-1001845835645,'type'=>'channel','username'=>'anytour'],'message_id'=>(int)$mid,
+        'date'=>$row['target_published_unixtime'],'edit_date'=>1795470000,'caption'=>$old['next_caption'],'caption_entities'=>[],
+        'photo'=>[['file_id'=>'editorial-old-file-'.$mid,'file_unique_id'=>'editorial-old-unique-'.$mid,'width'=>900,'height'=>900]],
+        'reply_markup'=>['inline_keyboard'=>[[['text'=>$config['button_text'],'url'=>$config['bot_url'].'?start='.$tokens[$mid]]]]]];
+    $event=ChannelPostIncomingAdapter::fromUpdate('telegram',['update_id'=>980000,'edited_channel_post'=>$message]);
+    $snapshot=$event['snapshot']; $snapshot['content_hash']=ChannelPostIncomingAdapter::contentFingerprint($snapshot);
+    $snapshot['metadata']['hotel_catalog_id']=$row['hotel'];
+    $post=$service->registerPublication('anytour','telegram','anyru_bot','-1001845835645',$mid,$snapshot);
+    $service->confirmObservedButton($post['publication_id'],$post['version_id'],['verified'=>true,'event_id'=>$event['source_event_id']]);
+    $before=$service->publication($post['publication_id']);
+    $message['caption']=$row['next']; $message['edit_date']+=60;
+    if (isset($row['next_media'])) $message['photo']=[['file_id'=>'editorial-approved-file-'.$mid,
+        'file_unique_id'=>'editorial-approved-unique-'.$mid,'width'=>$row['next_media']['width'],'height'=>$row['next_media']['height']]];
+    return [$db,$service,$before,$row,['http'=>200,'transport_error'=>false,'data'=>['ok'=>true,'result'=>$message]]];
+}
+function existingHotelEditorialState(PDO $db): array
+{
+    return [$db->query('SELECT * FROM post_publications ORDER BY id')->fetchAll(),
+        $db->query('SELECT * FROM post_versions ORDER BY id')->fetchAll(),
+        $db->query('SELECT * FROM post_observations ORDER BY publication_id,source_event_key')->fetchAll()];
+}
+
+foreach (['862'=>false,'328'=>true,'1083'=>false,'288'=>true] as $mid=>$webhookConfirmed) {
+    $mid=(string)$mid;
+    [$editDb,$editRegistry,$editBefore,$editRow,$editResponse]=existingHotelEditorialFixture($mid);
+    $baseline=$editDb->query('SELECT snapshot_json FROM post_versions WHERE id='.$editBefore['version_id'])->fetchColumn();
+    $observed=hotelTransferObserve($editRegistry,$editResponse,$webhookConfirmed,980001);
+    $webhookSnapshot=$editDb->query('SELECT snapshot_json FROM post_versions WHERE id='.$observed['version_id'])->fetchColumn();
+    $webhookClock=$editDb->query('SELECT observed_revision_ms,telegram_sequence FROM post_publications WHERE id='.$observed['publication_id'])->fetch();
+    postCheck('existing editorial '.$mid.' fixture first registers an authentic newer webhook without editorial proof',
+        $observed['version_number']===2 && $observed['version_id']!==$editBefore['version_id']
+        && $observed['state']===($webhookConfirmed?'sent':'pending')
+        && !isset($observed['snapshot']['metadata']['hotel_editor_photo'])
+        && $observed['snapshot']['metadata']['source_sequence']==='980001');
+    $done=$editRegistry->completeTelegramExistingHotelEdit($editBefore,$editRow,$editResponse);
+    postCheck('existing editorial '.$mid.' webhook-first completion appends a sent hotel-bound version without another identity or write',
+        $done['state']==='sent' && $done['version_number']===3 && $done['already_completed']===false
+        && $done['publication_id']===(int)$editRow['post'] && $done['publication_id']===$editBefore['publication_id']
+        && $done['start_payload']===$editBefore['start_payload'] && $done['external_message_id']===$mid
+        && $done['snapshot']['published_at']===$editBefore['snapshot']['published_at']
+        && $done['snapshot']['text']===$editRow['next'] && $done['snapshot']['post_url']===$editRow['url']
+        && $done['snapshot']['metadata']['hotel_catalog_id']===$editRow['hotel']
+        && $done['snapshot']['metadata']['source_sequence']==='980001'
+        && $done['snapshot']['raw_body']===$editResponse['data']['result']
+        && (int)$editDb->query('SELECT COUNT(*) FROM post_publications')->fetchColumn()===1
+        && (int)$editDb->query('SELECT SUM(write_attempts) FROM post_versions')->fetchColumn()===0
+        && $editRegistry->pendingPublications('anytour','telegram','anyru_bot')===[]);
+    $expectedPhoto=isset($editRow['next_media'])
+        ? ['sha256'=>$editRow['next_media']['sha256'],'file_unique_id'=>$editResponse['data']['result']['photo'][0]['file_unique_id']]
+        : null;
+    postCheck('existing editorial '.$mid.' binds only the approved photo while keeping both prior snapshots and webhook clocks immutable',
+        ($done['snapshot']['metadata']['hotel_editor_photo'] ?? null)===$expectedPhoto
+        && $baseline===$editDb->query('SELECT snapshot_json FROM post_versions WHERE id='.$editBefore['version_id'])->fetchColumn()
+        && $webhookSnapshot===$editDb->query('SELECT snapshot_json FROM post_versions WHERE id='.$observed['version_id'])->fetchColumn()
+        && $webhookClock===$editDb->query('SELECT observed_revision_ms,telegram_sequence FROM post_publications WHERE id='.$observed['publication_id'])->fetch()
+        && $editRegistry->resolveToken('anytour','telegram','anyru_bot',$editBefore['start_payload'])['version_id']===$done['version_id']);
+    $completedState=existingHotelEditorialState($editDb);
+    $again=$editRegistry->completeTelegramExistingHotelEdit($editBefore,$editRow,$editResponse);
+    postCheck('existing editorial '.$mid.' saved-response completion repeats without another version, observation, claim or send',
+        $again['already_completed']===true && $again['version_id']===$done['version_id']
+        && $completedState===existingHotelEditorialState($editDb));
+}
+
+[$directDb,$directRegistry,$directBefore,$directRow,$directResponse]=existingHotelEditorialFixture();
+$directDone=$directRegistry->completeTelegramExistingHotelEdit($directBefore,$directRow,$directResponse);
+postCheck('existing editorial response-first completion also appends a sent version with the same token',
+    $directDone['state']==='sent' && $directDone['version_number']===2
+    && $directDone['start_payload']===$directBefore['start_payload']
+    && $directDone['snapshot']['metadata']['hotel_editor_photo']['sha256']===$directRow['next_media']['sha256']);
+
+foreach (['claimed','write_started','unknown'] as $heldState) {
+    [$editDb,$editRegistry,$editBefore,$editRow,$editResponse]=existingHotelEditorialFixture();
+    $observed=hotelTransferObserve($editRegistry,$editResponse,false,980001);
+    $claim=$editRegistry->claimPublication($observed['publication_id'],$observed['version_id']);
+    if ($heldState!=='claimed') $editRegistry->markExternalWriteStarted($observed['publication_id'],$observed['version_id'],$claim['claim_token']);
+    if ($heldState==='unknown') $editRegistry->finishPublication($observed['publication_id'],$observed['version_id'],$claim['claim_token'],'unknown','fixture_unknown_outcome');
+    $held=existingHotelEditorialState($editDb);
+    postCheck('existing editorial completion refuses '.$heldState.' without stealing the native writer or resetting its receipt',
+        manualPostThrows(fn()=>$editRegistry->completeTelegramExistingHotelEdit($editBefore,$editRow,$editResponse),'existing_hotel_edit_target_held')
+        && $held===existingHotelEditorialState($editDb));
+}
+[$changedDb,$changedRegistry,$changedBefore,$changedRow,$changedResponse]=existingHotelEditorialFixture('288');
+$foreignResponse=$changedResponse; $foreignResponse['data']['result']['caption'].=' Another author edited this post.';
+hotelTransferObserve($changedRegistry,$foreignResponse,true,980001);
+$changedState=existingHotelEditorialState($changedDb);
+postCheck('existing editorial completion refuses a different authenticated current body without replacing it with the saved HTTP result',
+    manualPostThrows(fn()=>$changedRegistry->completeTelegramExistingHotelEdit($changedBefore,$changedRow,$changedResponse),'existing_hotel_edit_target_changed')
+    && $changedState===existingHotelEditorialState($changedDb));
+[$invalidDb,$invalidRegistry,$invalidBefore,$invalidRow,$invalidResponse]=existingHotelEditorialFixture();
+$invalidState=existingHotelEditorialState($invalidDb);
+foreach (['caption'=>'Unapproved replacement','date'=>$invalidRow['target_published_unixtime']+1,
+    'photo'=>$invalidBefore['snapshot']['raw_body']['photo']] as $field=>$value) {
+    $mismatch=$invalidResponse; $mismatch['data']['result'][$field]=$value;
+    postCheck('existing editorial completion rejects mismatched native '.$field.' before any DB mutation',
+        manualPostThrows(fn()=>$invalidRegistry->completeTelegramExistingHotelEdit($invalidBefore,$invalidRow,$mismatch),'existing_hotel_edit_response_unconfirmed')
+        && $invalidState===existingHotelEditorialState($invalidDb));
+}
+
+[$clockDb,$clockRegistry,$clockBefore,$clockRow,$clockResponse]=existingHotelEditorialFixture();
+$clockEvent=$clockResponse; $clockEvent['data']['result']=$clockBefore['snapshot']['raw_body'];
+$clockEvent['data']['result']['edit_date']=$clockResponse['data']['result']['edit_date'];
+$clockObserved=hotelTransferObserve($clockRegistry,$clockEvent,true,980001);
+$clockState=existingHotelEditorialState($clockDb);
+postCheck('existing editorial completion cannot order its HTTP result after a same-second old-body webhook without update_id evidence',
+    $clockObserved['version_id']===$clockBefore['version_id']
+    && manualPostThrows(fn()=>$clockRegistry->completeTelegramExistingHotelEdit($clockBefore,$clockRow,$clockResponse),'existing_hotel_edit_target_changed')
+    && $clockState===existingHotelEditorialState($clockDb));
+
+[$atomicDb,$atomicRegistry,$atomicBefore,$atomicRow,$atomicResponse]=existingHotelEditorialFixture();
+hotelTransferObserve($atomicRegistry,$atomicResponse,false,980001);
+$atomicState=existingHotelEditorialState($atomicDb);
+$atomicDb->exec("CREATE TRIGGER reject_editorial_receipt BEFORE INSERT ON post_observations BEGIN SELECT RAISE(FAIL,'synthetic editorial receipt failure'); END");
+postCheck('existing editorial receipt failure rolls back new version, current pointer and pending supersession together',
+    manualPostThrows(fn()=>$atomicRegistry->completeTelegramExistingHotelEdit($atomicBefore,$atomicRow,$atomicResponse))
+    && $atomicState===existingHotelEditorialState($atomicDb));
+$atomicDb->exec('DROP TRIGGER reject_editorial_receipt');
+$atomicDone=$atomicRegistry->completeTelegramExistingHotelEdit($atomicBefore,$atomicRow,$atomicResponse);
+postCheck('existing editorial saved-response completion alone succeeds after receipt storage recovers',
+    $atomicDone['state']==='sent' && $atomicDone['version_number']===3
+    && (int)$atomicDb->query('SELECT SUM(write_attempts) FROM post_versions')->fetchColumn()===0);
+
+// Run the exact production resume body with the real registry. Only the public
+// observation is a local fixture, so this test cannot reach a provider or CDN.
+require_once __DIR__.'/../integrations/ChannelPostApiTransport.php';
+require_once __DIR__.'/../tools/anytour_existing_post_batch.php';
+$resumeReflection=new ReflectionFunction('AnyTour\\ExistingPostBatch\\resumeHotelEdit');
+$resumeSource=file($resumeReflection->getFileName());
+eval('namespace ExistingEditorialReadFixture; use \\ChannelPostRegistryService; '
+    .'use function \\AnyTour\\ExistingPostBatch\\requirePost; '
+    .'use function \\AnyTour\\ExistingPostBatch\\hotelEditPhotoAccepted; '
+    .'use function \\AnyTour\\ExistingPostBatch\\hotelEditPublicMatches; '
+    .'function publicHotelPost(array $row): array { $GLOBALS["editorial_public_reads"]++; return $GLOBALS["editorial_public_observation"]; } '
+    .implode('',array_slice($resumeSource,$resumeReflection->getStartLine()-1,$resumeReflection->getEndLine()-$resumeReflection->getStartLine()+1)));
+[$resumeDb,$resumeRegistry,$resumeBefore,$resumeRow,$resumeResponse]=existingHotelEditorialFixture();
+$resumeButton=$resumeResponse['data']['result']['reply_markup']['inline_keyboard'][0][0];
+$oldMarker=hash('sha256','old-public-editorial-photo');
+$resumeEvents=[['state'=>'provider_edit_started','publication_id'=>$resumeBefore['publication_id'],'message_id'=>$resumeRow['mid'],
+    'caption_sha256'=>hash('sha256',$resumeRow['next']),'photo_sha256'=>$resumeRow['next_media']['sha256'],
+    'before'=>$resumeBefore,'button'=>$resumeButton,'public_photo_marker_sha256'=>$oldMarker],
+    ['state'=>'provider_response_saved','response'=>$resumeResponse,'response_sha256'=>hash('sha256',json_encode($resumeResponse,JSON_THROW_ON_ERROR))]];
+$resumeLines=static fn(array $events): string => implode("\n",array_map(static fn(array $event): string => json_encode($event,JSON_THROW_ON_ERROR),$events))."\n";
+$resumeJournal=tempnam(sys_get_temp_dir(),'hotel-editorial-journal-');
+if (!is_string($resumeJournal)) throw new RuntimeException('editorial test journal unavailable');
+try {
+    $journalBytes=$resumeLines($resumeEvents); file_put_contents($resumeJournal,$journalBytes);
+    $attempt=AnyTour\ExistingPostBatch\hotelEditOriginalAttempt($resumeJournal,$resumeRow);
+    $GLOBALS['editorial_public_reads']=0;
+    $GLOBALS['editorial_public_observation']=['text'=>$resumeRow['next'],'buttons'=>[$resumeButton],
+        'single_photo'=>true,'published_unixtime'=>$resumeRow['target_published_unixtime'],'photo_marker_sha256'=>$oldMarker];
+    $pending=ExistingEditorialReadFixture\resumeHotelEdit($resumeRegistry,$resumeRow,$attempt,$resumeJournal);
+    postCheck('existing editorial resume adopts the original saved response but an unchanged public photo stays pending',
+        $attempt['response']===$resumeResponse && $attempt['before']===$resumeBefore
+        && $pending['state']==='edited_public_read_pending' && $pending['ok']===false
+        && $pending['readback_only']===true && $pending['provider_write_attempts']===0
+        && $resumeRegistry->publication($resumeBefore['publication_id'])['version_number']===2
+        && $GLOBALS['editorial_public_reads']===1 && file_get_contents($resumeJournal)===$journalBytes);
+    $GLOBALS['editorial_public_observation']['photo_marker_sha256']=hash('sha256','approved-public-editorial-photo');
+    $completedState=existingHotelEditorialState($resumeDb);
+    $verified=ExistingEditorialReadFixture\resumeHotelEdit($resumeRegistry,$resumeRow,$attempt,$resumeJournal);
+    $verifiedBytes=file_get_contents($resumeJournal);
+    $verifiedAttempt=AnyTour\ExistingPostBatch\hotelEditOriginalAttempt($resumeJournal,$resumeRow);
+    postCheck('existing editorial public retry verifies the new photo without another DB version or provider write',
+        $verified['state']==='edited_verified' && $verified['ok']===true && $verified['provider_write_attempts']===0
+        && $verifiedAttempt['public_verified']===true && $verifiedAttempt['response']===$resumeResponse
+        && $GLOBALS['editorial_public_reads']===2 && $completedState===existingHotelEditorialState($resumeDb));
+    $again=ExistingEditorialReadFixture\resumeHotelEdit($resumeRegistry,$resumeRow,$verifiedAttempt,$resumeJournal);
+    postCheck('existing editorial fully verified journal resumes without even another public read',
+        $again['state']==='already_verified' && $again['readback_only']===true && $again['provider_write_attempts']===0
+        && $GLOBALS['editorial_public_reads']===2 && file_get_contents($resumeJournal)===$verifiedBytes
+        && $completedState===existingHotelEditorialState($resumeDb));
+    $altered=$resumeEvents; $altered[1]['response']['data']['result']['caption']='Changed after durable receipt';
+    file_put_contents($resumeJournal,$resumeLines($altered));
+    postCheck('existing editorial journal refuses altered response bytes instead of reconstructing an edit',
+        manualPostThrows(fn()=>AnyTour\ExistingPostBatch\hotelEditOriginalAttempt($resumeJournal,$resumeRow),'post_original_response_changed')
+        && $completedState===existingHotelEditorialState($resumeDb));
+    file_put_contents($resumeJournal,$resumeLines([$resumeEvents[0]]));
+    $missing=AnyTour\ExistingPostBatch\hotelEditOriginalAttempt($resumeJournal,$resumeRow);
+    postCheck('existing editorial journal with only write intent never retries an unknown provider outcome',
+        $missing['response']===null
+        && manualPostThrows(fn()=>ExistingEditorialReadFixture\resumeHotelEdit($resumeRegistry,$resumeRow,$missing,$resumeJournal),'previous_edit_needs_readback')
+        && $GLOBALS['editorial_public_reads']===2 && $completedState===existingHotelEditorialState($resumeDb));
+} finally {
+    if (is_file($resumeJournal) && !is_link($resumeJournal)) unlink($resumeJournal);
+}
 echo 'OK ' . $passed . " channel post registry checks\n";
 
