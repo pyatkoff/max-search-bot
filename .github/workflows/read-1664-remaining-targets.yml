@@ -115,6 +115,7 @@ jobs:
           ob_start();
           try {
               require_once 'config.php';
+              require_once 'services/ConversationDb.php';
           } finally {
               ob_end_clean();
           }
