@@ -13,7 +13,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-APP = '08f11061fbaac645585ae7215578d0fd4630e31a'
+APP = 'b1da1418ff75cba9657d8b5a2971270c8eafb1c9'
 LINEAGE = 'd44ff7ff0e1137801137467f5f03e3ca32af87f6'
 READ = 'commercial-waldorf66198-caption-read-20261123-v1'
 META = 'commercial-waldorf66198-journal-metadata-20261123-v1'
@@ -22,7 +22,7 @@ AUTH = 'approval7072600922_user20261123_one_time_waldorf66198'
 OLD = 'Одиннадцать ресторанов'
 NEW = 'Десять ресторанов, баров и лаунжей'
 URLS = {'telegram': 'https://t.me/any_toour/678', 'max': 'https://max.ru/channel_anytour/AaHo8ukNYB8'}
-PIN_FILE_SHA256 = 'f6f0cb7f10170c9a11dc3a2637c53fa980026fc574e9958aab63e42a372f2943'
+PIN_FILE_SHA256 = 'bd35b0c4e07d8339cd8161eef3800b6ff0e4be4b769712636e353c2a65016123'
 SOURCE_HASHES = {
     'commercial-caption-review73-20261113-read-scope.php': '5158f1e4157984cce98acc085329a0227f6b78c93829bd5984d247e8b629c95e',
     'commercial-caption-review73-20261113-executor.php': 'cb30dbd22432224bed30d0e8c0121b58a393ffcbd3263a09614b7d083fa88c2e',

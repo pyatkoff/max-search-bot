@@ -11,11 +11,11 @@ const {spawnSync} = require('node:child_process');
 const REPO = 'pyatkoff/max-search-bot';
 const BRANCH = 'audit/content100-bot-publication-20261101';
 const WORKFLOW = '.github/workflows/content100-bot-publication-20261101.yml';
-const APP = '08f11061fbaac645585ae7215578d0fd4630e31a';
+const APP = 'b1da1418ff75cba9657d8b5a2971270c8eafb1c9';
 const SOURCE = 6961029169;
 const APPROVAL = 7072600922;
 const OWNER = 226193297;
-const MODULES = Object.freeze({'deployment_release.js':'8f9b427fe05ad3fca501f872d429ea98009ead53',
+const MODULES = Object.freeze({'deployment_release.js':'ce8ca9b741ee973b533a61b2dc5df3474939d01b',
   'release_slot_close.js':'a81a0ef78d30af8d7c2a55bd99b5c08718043015'});
 const sha256 = b => crypto.createHash('sha256').update(b).digest('hex');
 function need(ok, code) { if (!ok) throw new Error(code); }
