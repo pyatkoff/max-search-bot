@@ -1,0 +1,186 @@
+name: Read thirteen approved MAX captions and public HTML
+'on':
+  push:
+    branches:
+    - audit/max13-native-20261123
+    paths:
+    - tools/direct_demand/operations/max13-amp-check/**
+    - .github/workflows/max13-native-read-20261123.yml
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+concurrency:
+  group: anytour-authorized-channel-publication
+  cancel-in-progress: false
+jobs:
+  source-check:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before
+      == '898d796f5220bd8694f52206d1525d97e9739d18' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      with:
+        persist-credentials: false
+        fetch-depth: 2
+    - name: Check exact MAX13 read-only sources
+      env:
+        PYTHONDONTWRITEBYTECODE: '1'
+      shell: bash
+      run: |
+        set -euo pipefail
+        python3 tools/direct_demand/operations/max13-amp-check/workflow_check.py
+        python3 tools/direct_demand/operations/max13-amp-check/test_max13.py --php php
+  native-read:
+    needs: source-check
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event_name == 'push' && github.event.before
+      == '898d796f5220bd8694f52206d1525d97e9739d18' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+    - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      with:
+        persist-credentials: false
+        fetch-depth: 2
+    - name: Authenticate exact source, ownership and installed application
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GITHUB_TOKEN: ${{ github.token }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        mkdir -p max13-read
+        python3 - <<'PYTHON'
+        import base64,hashlib,json,os,pathlib,subprocess
+        b=json.loads(pathlib.Path('tools/direct_demand/operations/max13-amp-check/binding.json').read_text())
+        root=pathlib.Path(os.environ['RUNNER_TEMP'])/'max13-canonical'
+        root.mkdir(mode=0o700,exist_ok=True)
+        for name,expected in b['release_modules'].items():
+         r=json.loads(subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/contents/tools/'+name+'?ref='+b['application_sha']],timeout=30))
+         data=base64.b64decode(r['content'])
+         assert r['sha']==expected and hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()==expected,'CANONICAL_MODULE_CHANGED'
+         (root/name).write_bytes(data)
+        PYTHON
+        node tools/direct_demand/operations/max13-amp-check/admission.js tools/direct_demand/operations/max13-amp-check/binding.json "$RUNNER_TEMP/max13-canonical" credentials
+    - name: Pin established SSH host continuity and authentication identity
+      env:
+        HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        umask 077
+        python3 - <<'PY'
+        import os,re
+        assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+        assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+        PY
+        if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+          if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+        else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+        chmod 600 "$RUNNER_TEMP/channel_key"
+        ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+        python3 - <<'PY'
+        import base64,hashlib,os,pathlib,subprocess
+        scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+        for s in scan.stdout.splitlines():
+            q=s.split()
+            if len(q)<3 or q[0].startswith('#'):continue
+            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+            except Exception:continue
+            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+        assert found,'HOST_PIN_MISMATCH_STOP'
+        pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+        print('ESTABLISHED_HOST_PIN_VERIFIED')
+        PY
+    - name: Compile exact read-only metadata request
+      shell: bash
+      run: |
+        set -euo pipefail
+        python3 tools/direct_demand/operations/max13-amp-check/prepare.py metadata --out max13-read
+        php -l max13-read/journal-metadata.php
+    - name: Read the actual current price journal without writes
+      shell: bash
+      run: |
+        set -euo pipefail
+        options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+        rc=0
+        ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < max13-read/journal-metadata.php > max13-read/journal-metadata.json || rc=$?
+        printf '%s\n' "$rc" > max13-read/journal-metadata.json.exit
+        exit "$rc"
+      env:
+        HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+    - name: Compile the thirteen MAX-only native reads
+      shell: bash
+      run: |
+        set -euo pipefail
+        python3 tools/direct_demand/operations/max13-amp-check/prepare.py read --journal-meta max13-read/journal-metadata.json --out max13-read
+        php -l max13-read/read.php
+    - name: Recheck current authority immediately before native GET
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GITHUB_TOKEN: ${{ github.token }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        node tools/direct_demand/operations/max13-amp-check/admission.js tools/direct_demand/operations/max13-amp-check/binding.json "$RUNNER_TEMP/max13-canonical" before_read
+    - name: Read thirteen current MAX captions without edits
+      shell: bash
+      run: |
+        set -euo pipefail
+        options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+        rc=0
+        ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; export GIT_OPTIONAL_LOCKS=0; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < max13-read/read.php > max13-read/read-result.json || rc=$?
+        printf '%s\n' "$rc" > max13-read/read-result.json.exit
+        exit "$rc"
+      env:
+        HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+    - name: Verify thirteen native identities and classify literal entities
+      shell: bash
+      run: |
+        set -euo pipefail
+        python3 tools/direct_demand/operations/max13-amp-check/prepare.py verify --journal-meta max13-read/journal-metadata.json --result max13-read/read-result.json --out max13-read
+        python3 - <<'PYTHON'
+        import json,pathlib
+        d=json.loads(pathlib.Path("max13-read/read-result.json").read_bytes())
+        print(json.dumps({"ok":d.get("ok"),"post_count":d.get("post_count"),"counts":d.get("counts"),"provider_calls":d.get("provider_calls"),"post_write_attempts":d.get("post_write_attempts"),"db_writes":d.get("db_writes"),"xml_writes":d.get("xml_writes")}))
+        PYTHON
+    - name: Observe public HTML separately from native captions
+      shell: bash
+      run: |
+        set -euo pipefail
+        python3 tools/direct_demand/operations/max13-amp-check/public_probe.py --native max13-read/read-result.json --out max13-read/public-observation.json
+    - name: Bind original read evidence to this exact source and run
+      if: always()
+      shell: bash
+      run: |
+        set -euo pipefail
+        python3 - <<'PYTHON'
+        import hashlib,json,os,pathlib
+        p=pathlib.Path('max13-read');p.mkdir(exist_ok=True)
+        files={str(f.relative_to(p)):{'sha256':hashlib.sha256(f.read_bytes()).hexdigest(),'bytes':f.stat().st_size} for f in sorted(p.iterdir()) if f.is_file() and f.suffix in ('.json','.exit') and f.name!='evidence-manifest.json'}
+        d={'schema':1,'operation':'commercial-max13-amp-read-20261123-v1','run_id':os.environ['GITHUB_RUN_ID'],'attempt':os.environ['GITHUB_RUN_ATTEMPT'],'head_sha':os.environ['GITHUB_SHA'],'files':files}
+        (p/'evidence-manifest.json').write_text(json.dumps(d,indent=2)+'\n')
+        print('MAX13_EVIDENCE_MEMBERS',len(files))
+        PYTHON
+    - name: Preserve the original read evidence
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: max13-original-native-read
+        path: |-
+          max13-read/*.json
+          max13-read/*.exit
+        retention-days: 30
+        if-no-files-found: warn
+    - name: Remove runner-only credentials and compiled PHP
+      if: always()
+      shell: bash
+      run: |
+        set -euo pipefail
+        rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" max13-read/*.php

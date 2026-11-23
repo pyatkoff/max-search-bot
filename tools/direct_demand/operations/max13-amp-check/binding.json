@@ -1,0 +1,35 @@
+{
+  "application_sha": "898d796f5220bd8694f52206d1525d97e9739d18",
+  "source_comment": {
+    "id": 6961029169,
+    "updated_at": "2026-11-23T08:55:31Z",
+    "body_sha256": "6b6bfb11968b90fb1aa055b2ea1badac73a4e089cefd129999f034c268224b8c"
+  },
+  "approval_comment": {
+    "id": 7072422617,
+    "updated_at": "2026-11-22T01:45:46Z",
+    "body_sha256": "d0fc1fcee0d1d074faf41f0a54cf3d96449ffc7fc7c4ffbc7c0527c805914754"
+  },
+  "release_modules": {
+    "deployment_release.js": "ce8ca9b741ee973b533a61b2dc5df3474939d01b",
+    "release_slot_close.js": "a81a0ef78d30af8d7c2a55bd99b5c08718043015"
+  },
+  "schema": 1,
+  "stage": "read",
+  "operation": "commercial-max13-amp-read-20261123-v1",
+  "expected_before": "898d796f5220bd8694f52206d1525d97e9739d18",
+  "source_files": {
+    "tools/direct_demand/operations/max13-amp-check/admission.js": "2ae56732a9bf13fde8802f943aaebb11eb0079d964534375c5d51907e0f5bc87",
+    "tools/direct_demand/operations/max13-amp-check/lineage/commercial-caption-review73-20261113-read-scope.php": "5158f1e4157984cce98acc085329a0227f6b78c93829bd5984d247e8b629c95e",
+    "tools/direct_demand/operations/max13-amp-check/lineage/commercial-w9-78929-price-journal-20261118.php": "859ba9d5fde7fa88e3c019a82d0550da22efcbbd66096e2f98e11ed4a3b62263",
+    "tools/direct_demand/operations/max13-amp-check/lineage/w11-approved-corrections/prepare-read-stage.py": "fb6a50c321c0d808c1051da2bbac762732114bca8ad1e2b29b5d0c642719a27c",
+    "tools/direct_demand/operations/max13-amp-check/manifest.json": "c564d0c0dee0ccdaaa25bc5bb5ba46d703ffc9b48237730f4fb79e214734b99b",
+    "tools/direct_demand/operations/max13-amp-check/prepare.py": "6b48c496c106fdbd6cf2dcc2bbe495e7b88f273354c09b1966c4c1b258ce315d",
+    "tools/direct_demand/operations/max13-amp-check/public_probe.py": "40eac99bd9ddcd745baae5367c13a8268e38bbca57ac77a60b3799a25b0ee57f",
+    "tools/direct_demand/operations/max13-amp-check/read-body.php": "93b4303e1434d3e0d5ced474b8df71ce9efdbe57f0b708fa1e3ba9893366646f",
+    "tools/direct_demand/operations/max13-amp-check/surface-pins.json": "bd35b0c4e07d8339cd8161eef3800b6ff0e4be4b769712636e353c2a65016123",
+    "tools/direct_demand/operations/max13-amp-check/test_max13.py": "b9780bdb2cc200e4c0615309d5e41758acc8b3ad64dabc4c133a84743f6fb4a5",
+    "tools/direct_demand/operations/max13-amp-check/workflow_check.py": "e1b641bc3f9a55a101515bab0988cee3def1147e4ea6acfddde031c77b37c614"
+  },
+  "workflow_sha256": "b7d8a1904bdfb3f66cef306f187312ae9c9ff120404f3a56bca278b4b06caa2b"
+}

@@ -1,0 +1,276 @@
+{
+  "schema": 1,
+  "kind": "MAX13_AMP_READ_ONLY_SCOPE",
+  "operation": "commercial-max13-amp-read-20261123-v1",
+  "approval_comment_id": 7072422617,
+  "authorization_scope": "one_time_native_read_13_only",
+  "project_key": "anytour",
+  "platform": "max",
+  "bot_key": "id9704048781_1_bot",
+  "channel_id": "-80492244209683",
+  "post_channel_id": 9,
+  "source_key": "max_anytour_msk1",
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 2335,
+      "title": "Kayumanis Nusa Dua Private Villa & Spa",
+      "publication_id": 2202,
+      "message_id": "mid.ffffb6caf0606fed01a1eb7686a9512e",
+      "post_url": "https://max.ru/channel_anytour/AaHrdoapUS4",
+      "historical": {
+        "receipt_source_commit": "26171ec67ada13822f140aa0ed6b870617263ee4",
+        "receipt_path": "tools/direct_demand/operations/fastfill-wave6-first10-publication-receipt-20261117.json",
+        "native_run_id": 44182446654,
+        "native_run_attempt": 1,
+        "native_job_id": 134390047606,
+        "native_artifact_id": 14372083310,
+        "verified_at_utc": "2026-11-17T21:43:00Z",
+        "version_id": 7731,
+        "text_sha256": "07b5a68d79a3b532cdcce3e766412dd51894cd786ce5924707bfd692501ccc0d",
+        "photo_sha256": "5d84f9929524bd59fcf0879cca11338b9e56b697fe61538580cb33088181aee7",
+        "button_url_sha256": "4f7fce11705754d31358107a096a3eb1d80be1dde624206bb2a429de388065a8"
+      }
+    },
+    {
+      "hotel_id": 2603,
+      "title": "Le Royal Méridien Beach Resort & Spa",
+      "publication_id": 2215,
+      "message_id": "mid.ffffb6caf0606fed01a1eb8694686450",
+      "post_url": "https://max.ru/channel_anytour/AaHrhpRoZFA",
+      "historical": {
+        "receipt_source_commit": "26171ec67ada13822f140aa0ed6b870617263ee4",
+        "receipt_path": "tools/direct_demand/operations/fastfill-wave6-second10-publication-receipt-20261117.json",
+        "native_run_id": 44185473013,
+        "native_run_attempt": 1,
+        "native_job_id": 134400745733,
+        "native_artifact_id": 14374865792,
+        "verified_at_utc": "2026-11-17T22:00:49Z",
+        "version_id": 7744,
+        "text_sha256": "5e4d42ce093375953fb1be88d753d1a865d975bf7042fb9dc80a52ba3f98f5fe",
+        "photo_sha256": "7139ef49971c363bbf34a4a72609f9ba39de6b3851311b105a612d54710b4c27",
+        "button_url_sha256": "840ceff4a075261f6e07e48263c9f6493148cb30ef01a14233b15c86300b3d9e"
+      }
+    },
+    {
+      "hotel_id": 2602,
+      "title": "Le Méridien Mina Seyahi Beach Resort & Waterpark",
+      "publication_id": 2220,
+      "message_id": "mid.ffffb6caf0606fed01a1eb86c3f7647d",
+      "post_url": "https://max.ru/channel_anytour/AaHrhsP3ZH0",
+      "historical": {
+        "receipt_source_commit": "26171ec67ada13822f140aa0ed6b870617263ee4",
+        "receipt_path": "tools/direct_demand/operations/fastfill-wave6-second10-publication-receipt-20261117.json",
+        "native_run_id": 44185473013,
+        "native_run_attempt": 1,
+        "native_job_id": 134400745733,
+        "native_artifact_id": 14374865792,
+        "verified_at_utc": "2026-11-17T22:00:49Z",
+        "version_id": 7749,
+        "text_sha256": "41233bf15fae95026402d1201b80243b45c0b73b30635c3ee14851e639c4a0fd",
+        "photo_sha256": "545396f6eb08d6306fa191fe144c4e37fc901b7f03d766cf327897220cb9f9c9",
+        "button_url_sha256": "eb050dba81c38f5681a5d940724f2921b0a818e09d41493a1fdd910566d3b08c"
+      }
+    },
+    {
+      "hotel_id": 11751,
+      "title": "Hilton Mauritius Resort & Spa",
+      "publication_id": 2221,
+      "message_id": "mid.ffffb6caf0606fed01a1eb86cd9c1682",
+      "post_url": "https://max.ru/channel_anytour/AaHrhs2cFoI",
+      "historical": {
+        "receipt_source_commit": "26171ec67ada13822f140aa0ed6b870617263ee4",
+        "receipt_path": "tools/direct_demand/operations/fastfill-wave6-second10-publication-receipt-20261117.json",
+        "native_run_id": 44185473013,
+        "native_run_attempt": 1,
+        "native_job_id": 134400745733,
+        "native_artifact_id": 14374865792,
+        "verified_at_utc": "2026-11-17T22:00:49Z",
+        "version_id": 7750,
+        "text_sha256": "7126c5977b0f4ebc0ac32db5da4aff880eadd78cfbb9b4bbc91c1a9e7e96db62",
+        "photo_sha256": "1703b093e936266960767279eb7cabaefdda3eee11fd63e49610e45695e91078",
+        "button_url_sha256": "b7354b4bfbfc09ecf0de4f4c5a0c224ee3efc8da3ccde9ab4f230a960658722a"
+      }
+    },
+    {
+      "hotel_id": 11775,
+      "title": "Maritim Resort & Spa Mauritius",
+      "publication_id": 2222,
+      "message_id": "mid.ffffb6caf0606fed01a1eb86d67773c5",
+      "post_url": "https://max.ru/channel_anytour/AaHrhtZ3c8U",
+      "historical": {
+        "receipt_source_commit": "26171ec67ada13822f140aa0ed6b870617263ee4",
+        "receipt_path": "tools/direct_demand/operations/fastfill-wave6-second10-publication-receipt-20261117.json",
+        "native_run_id": 44185473013,
+        "native_run_attempt": 1,
+        "native_job_id": 134400745733,
+        "native_artifact_id": 14374865792,
+        "verified_at_utc": "2026-11-17T22:00:49Z",
+        "version_id": 7751,
+        "text_sha256": "b36d62e32886c6dbcae935ebf39ee07f3e68defe3b806b32e4726ccffa021239",
+        "photo_sha256": "b8255336c7dada19796cb58b2720c6f1eebbb78eff09d747fb46fdd8a05671a3",
+        "button_url_sha256": "1c8b3b1ea27c0cbd92f7982d760231e831efaef70ad79deede2ef8e409813d88"
+      }
+    },
+    {
+      "hotel_id": 64918,
+      "title": "You & Me Maldives",
+      "publication_id": 2255,
+      "message_id": "mid.ffffb6caf0606fed01a1ebc8c7d25a8d",
+      "post_url": "https://max.ru/channel_anytour/AaHryMfSWo0",
+      "historical": {
+        "receipt_source_commit": "26171ec67ada13822f140aa0ed6b870617263ee4",
+        "receipt_path": "tools/direct_demand/operations/fastfill-wave6-next50-publication-receipt-20261118.json",
+        "native_run_id": 44196967967,
+        "native_run_attempt": 1,
+        "native_job_id": 134440841127,
+        "native_artifact_id": 14379896859,
+        "verified_at_utc": "2026-11-17T23:17:03Z",
+        "version_id": 7784,
+        "text_sha256": "692e904ed5a837fd983b0b2fbd8306f3643ab4680b8227787a43d865c5789eac",
+        "photo_sha256": "8f75c8855c15ae82aca8b4e1e1705086c6169ee56e4fff588cfe892f5fae19d7",
+        "button_url_sha256": "540506fc9d7f8954df37c3cbc87b652b44801af9a1b6d59cf98b6a4a689e3734"
+      }
+    },
+    {
+      "hotel_id": 11791,
+      "title": "Sofitel Mauritius L’Impérial Resort & Spa",
+      "publication_id": 2256,
+      "message_id": "mid.ffffb6caf0606fed01a1ebc8d2025e98",
+      "post_url": "https://max.ru/channel_anytour/AaHryNICXpg",
+      "historical": {
+        "receipt_source_commit": "26171ec67ada13822f140aa0ed6b870617263ee4",
+        "receipt_path": "tools/direct_demand/operations/fastfill-wave6-next50-publication-receipt-20261118.json",
+        "native_run_id": 44196967967,
+        "native_run_attempt": 1,
+        "native_job_id": 134440841127,
+        "native_artifact_id": 14379896859,
+        "verified_at_utc": "2026-11-17T23:17:03Z",
+        "version_id": 7785,
+        "text_sha256": "6dcdf7cefdb8c0c4de5b605b23fb093e4b9534c1d67cfd0de12af5db0ea40611",
+        "photo_sha256": "241c0ad613812b8ed261931269bdd3c164fc1a163e0766fe58311892cf08c5e2",
+        "button_url_sha256": "27ea125493913b49610f302f1a9d389df36bf83201b2b06613639f0ac88783fe"
+      }
+    },
+    {
+      "hotel_id": 1703,
+      "title": "Royal Asarlık Beach Hotel & Spa",
+      "publication_id": 2259,
+      "message_id": "mid.ffffb6caf0606fed01a1ebc8ee2d30ed",
+      "post_url": "https://max.ru/channel_anytour/AaHryO4tMO0",
+      "historical": {
+        "receipt_source_commit": "26171ec67ada13822f140aa0ed6b870617263ee4",
+        "receipt_path": "tools/direct_demand/operations/fastfill-wave6-next50-publication-receipt-20261118.json",
+        "native_run_id": 44196967967,
+        "native_run_attempt": 1,
+        "native_job_id": 134440841127,
+        "native_artifact_id": 14379896859,
+        "verified_at_utc": "2026-11-17T23:17:03Z",
+        "version_id": 7788,
+        "text_sha256": "41d079fc4f18ceacfbd11637aa16f7f39658e26de73d38fc94967b0e3063198b",
+        "photo_sha256": "e40912b2dbddb1bdf60acf72476c4c5a2d0d5868fcac9727c973b080b8460e56",
+        "button_url_sha256": "af6e56f78cae73f19a2978ddac4873ece0ba0dd00a96921abf7334b9a06b0b31"
+      }
+    },
+    {
+      "hotel_id": 2721,
+      "title": "Paradisus Varadero Resort & Spa",
+      "publication_id": 2261,
+      "message_id": "mid.ffffb6caf0606fed01a1ebc901227d64",
+      "post_url": "https://max.ru/channel_anytour/AaHryQEifWQ",
+      "historical": {
+        "receipt_source_commit": "26171ec67ada13822f140aa0ed6b870617263ee4",
+        "receipt_path": "tools/direct_demand/operations/fastfill-wave6-next50-publication-receipt-20261118.json",
+        "native_run_id": 44196967967,
+        "native_run_attempt": 1,
+        "native_job_id": 134440841127,
+        "native_artifact_id": 14379896859,
+        "verified_at_utc": "2026-11-17T23:17:03Z",
+        "version_id": 7790,
+        "text_sha256": "405132e073ced734bd081a45b2ad4f876681ecb941a652456ee074bb8070d8fa",
+        "photo_sha256": "c5bc810b156067ce612cd9a986d8e224e13b22f76451788a6f05500a74091577",
+        "button_url_sha256": "10db13e70d8eaa664e100292c9135248f12f3bf229013e6870a8a5a3f8ab774b"
+      }
+    },
+    {
+      "hotel_id": 33531,
+      "title": "Savoy Seychelles Resort & Spa",
+      "publication_id": 2276,
+      "message_id": "mid.ffffb6caf0606fed01a1ebc9fd4b1ac6",
+      "post_url": "https://max.ru/channel_anytour/AaHryf1LGsY",
+      "historical": {
+        "receipt_source_commit": "26171ec67ada13822f140aa0ed6b870617263ee4",
+        "receipt_path": "tools/direct_demand/operations/fastfill-wave6-next50-publication-receipt-20261118.json",
+        "native_run_id": 44196967967,
+        "native_run_attempt": 1,
+        "native_job_id": 134440841127,
+        "native_artifact_id": 14379896859,
+        "verified_at_utc": "2026-11-17T23:17:03Z",
+        "version_id": 7805,
+        "text_sha256": "ed9367443aa93a5b82964acdc35e77a3a4bd9dbd63962d0eab6154f573f1baa6",
+        "photo_sha256": "aa86bac4c20a3ac029a24d39dd2915b13a8a565bc501151c81a28b6967c7d71e",
+        "button_url_sha256": "ec942f5010a5d5487c04c67f01e361dbafa22f795971a4fe92b226c26ceaa194"
+      }
+    },
+    {
+      "hotel_id": 11847,
+      "title": "Hilton Seychelles Northolme Resort & Spa",
+      "publication_id": 2278,
+      "message_id": "mid.ffffb6caf0606fed01a1ebca105006b0",
+      "post_url": "https://max.ru/channel_anytour/AaHryhBQBrA",
+      "historical": {
+        "receipt_source_commit": "26171ec67ada13822f140aa0ed6b870617263ee4",
+        "receipt_path": "tools/direct_demand/operations/fastfill-wave6-next50-publication-receipt-20261118.json",
+        "native_run_id": 44196967967,
+        "native_run_attempt": 1,
+        "native_job_id": 134440841127,
+        "native_artifact_id": 14379896859,
+        "verified_at_utc": "2026-11-17T23:17:03Z",
+        "version_id": 7807,
+        "text_sha256": "4f333ef88f0d038c3b21621542f3496c573b6c7301256000ce286745bd86a022",
+        "photo_sha256": "a039eb92cfd32a31f34b5c899f08ce932d00d0cdf1b9932593772c01ea4e7034",
+        "button_url_sha256": "f68f14db1bbc619cd7eeb45d2eb1da1134c274b7d51b04580a9fc95539c2e82d"
+      }
+    },
+    {
+      "hotel_id": 17608,
+      "title": "Royal Atlantis Spa & Resort",
+      "publication_id": 2280,
+      "message_id": "mid.ffffb6caf0606fed01a1ebca252b0d53",
+      "post_url": "https://max.ru/channel_anytour/AaHryiUrDVM",
+      "historical": {
+        "receipt_source_commit": "26171ec67ada13822f140aa0ed6b870617263ee4",
+        "receipt_path": "tools/direct_demand/operations/fastfill-wave6-next50-publication-receipt-20261118.json",
+        "native_run_id": 44196967967,
+        "native_run_attempt": 1,
+        "native_job_id": 134440841127,
+        "native_artifact_id": 14379896859,
+        "verified_at_utc": "2026-11-17T23:17:03Z",
+        "version_id": 7809,
+        "text_sha256": "95865f7bfccae416063deb8bd4c5bc076be4cbaf3afae7d110744461cb967ef7",
+        "photo_sha256": "3c14172ef01fb630978fa4ae71f756de4586330d225f8ce309f5e6fbd48906e3",
+        "button_url_sha256": "3fba1f1a5efe21b85a539c55e16727b2636d60da4532826f89c9f031c9aa1359"
+      }
+    },
+    {
+      "hotel_id": 236,
+      "title": "Grand Rotana Resort & Spa",
+      "publication_id": 2382,
+      "message_id": "mid.ffffb6caf0606fed01a1ec050ce74018",
+      "post_url": "https://max.ru/channel_anytour/AaHsBQznQBg",
+      "historical": {
+        "receipt_source_commit": "26171ec67ada13822f140aa0ed6b870617263ee4",
+        "receipt_path": "tools/direct_demand/operations/fastfill-wave7-recovered12-publication-receipt-20261118.json",
+        "native_run_id": 44206658054,
+        "native_run_attempt": 1,
+        "native_job_id": 134474215335,
+        "native_artifact_id": 14384271377,
+        "verified_at_utc": "2026-11-18T00:18:59Z",
+        "version_id": 8100,
+        "text_sha256": "701f581cc70cb428459a4ae230871faf7337c7f618b9b4baf9d213beee551dbe",
+        "photo_sha256": "3c9abb0e524db1645413daea30badd02ed9be6b973c2e7e60f255ccf26a28872",
+        "button_url_sha256": "a60fc63b0a9add50c4fe6bd4f09c6c90547f01203350a941e03c300497044964"
+      }
+    }
+  ]
+}
