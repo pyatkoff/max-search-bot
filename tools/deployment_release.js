@@ -1680,7 +1680,6 @@ async function resolveHotelRegistryRead({env,event,api}) {
   runIdentity(runs[0],{id:c.id,attempt:1,head:c.sha,workflow:p.workflow,event:'push',completed:false,branch:p.branch});
   const location=await readRecord(api),result=await resolveCurrent(api,c,location);
   requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
-  if(p===HOTEL_MAX_SUGAR_TRANSFER)requireValue(result.application_sha===c.sha,'max_transfer_editor_not_installed');
   requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_registry_read_branch_changed');
   return {...await finalResolution(api,c,location,result),read_operation:p.operation};
 }
@@ -1730,6 +1729,7 @@ async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
     &&crypto.createHash('sha256').update(bytes).digest('hex')===p.plan_digest,'hotel_transfer_plan_changed');
   const location=await readRecord(api),result=await resolveCurrent(api,c,location);
   requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
+  if(p===HOTEL_MAX_SUGAR_TRANSFER)requireValue(result.application_sha===c.sha,'max_transfer_editor_not_installed');
   requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_transfer_branch_changed');
   return {...await finalResolution(api,c,location,result),write_operation:p.operation};
 }
