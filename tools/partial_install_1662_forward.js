@@ -208,7 +208,10 @@ const SUCCESSOR_PR = 1667;
 const SUCCESSOR_BRANCH = 'review/pr1662-partial-install-20261123';
 const API_ROOT = '/repos/' + REPO;
 const sha = value => typeof value === 'string' && /^[a-f0-9]{40}$/.test(value);
+const MAX2_MANIFEST = 'resources/max2-common-v2/release-manifest.json';
+const MAX2_MANIFEST_BLOB = '3a4b17c97860a04e61e997e987265a7a30f87a9d';
 const FORWARD_FILES = {
+  [MAX2_MANIFEST]: 'modified',
   '.github/workflows/deploy.yml': 'modified',
   'tools/deployment_release.js': 'modified',
   'tools/release_priority.js': 'modified',
@@ -216,8 +219,7 @@ const FORWARD_FILES = {
   'tests/run_partial_install_1662_forward_regression.js': 'added',
   'tests/run_partial_install_1662_forward_sync.py': 'added',
   'tests/run_deployment_release_regression.js': 'modified',
-  'tests/fixtures/pr1643/release_priority.js.txt': 'added',
-  'resources/max2-common-v2/release-manifest.json': 'modified'
+  'tests/fixtures/pr1643/release_priority.js.txt': 'added'
 };
 
 function fileSnapshot(rows) {
@@ -227,6 +229,9 @@ function fileSnapshot(rows) {
     must(file && Object.hasOwn(FORWARD_FILES, file.filename) && !Object.hasOwn(snapshot, file.filename) &&
       file.status === FORWARD_FILES[file.filename] && !Object.hasOwn(file, 'previous_filename') && sha(file.sha),
       'successor file identity changed');
+    if (file.filename === MAX2_MANIFEST) {
+      must(file.sha === MAX2_MANIFEST_BLOB, 'successor manifest changed');
+    }
     snapshot[file.filename] = file.sha;
   }
   return snapshot;
@@ -339,18 +344,20 @@ async function nativeInstallation(api, c) {
     deploys[0].event === 'push' && deploys[0].head_branch === 'main', 'duplicate or replayed successor deploy');
 }
 
-async function sourceChecks(api, head) {
+async function sourceChecks(api, c) {
+  const head = c.head;
   const runs = await census(api, head);
   const required = [
     [340550044, PREFIX + 'regression-tests.yml'],
     [348353174, PREFIX + 'retired-domain-guard.yml']
   ];
-  return Promise.all(required.map(async ([workflow, path]) => {
+  const results = await Promise.all(required.map(async ([workflow, path]) => {
     const candidates = runs.filter(r => r.workflow_id === workflow || r.path === path);
     must(candidates.length === 1 && Number.isSafeInteger(candidates[0].id) && candidates[0].id > 0,
       'missing or duplicate source check');
     const listed = candidates[0];
     const fetched = await api.get('/actions/runs/' + listed.id);
+    let missingLink = false;
     for (const run of [listed, fetched]) {
       must(run?.id === listed.id && run.workflow_id === workflow && run.path === path &&
         run.event === 'pull_request' && run.run_attempt === 1 && run.head_sha === head &&
@@ -359,22 +366,40 @@ async function sourceChecks(api, head) {
       for (const key of ['repository', 'head_repository']) {
         must(run[key]?.id === REPO_ID && run[key]?.full_name === REPO, 'source check repository changed');
       }
-      if (run.pull_requests != null) {
-        must(Array.isArray(run.pull_requests) && run.pull_requests.length <= 1, 'ambiguous source check pull');
-        for (const pull of run.pull_requests) {
-          must(pull.number === SUCCESSOR_PR && pull.head?.sha === head && pull.head.ref === SUCCESSOR_BRANCH &&
-            pull.base?.ref === 'main' && pull.head.repo?.id === REPO_ID && pull.base.repo?.id === REPO_ID,
-            'source check pull changed');
-        }
+      must(Array.isArray(run.pull_requests) && run.pull_requests.length <= 1, 'ambiguous source check pull');
+      if (run.pull_requests.length === 0) {
+        must(c.phase === 'installation', 'source check has no premerge pull');
+        missingLink = true;
+      }
+      for (const pull of run.pull_requests) {
+        must(pull.number === SUCCESSOR_PR && pull.head?.sha === head && pull.head.ref === SUCCESSOR_BRANCH &&
+          pull.base?.ref === 'main' && pull.head.repo?.id === REPO_ID && pull.base.repo?.id === REPO_ID,
+          'source check pull changed');
       }
     }
-    return listed.id;
+    return {id:listed.id, missingLink};
   }));
+  if (results.some(r => r.missingLink)) {
+    const [pulls, detail] = await Promise.all([
+      api.get('/commits/' + head + '/pulls?per_page=100'), api.get('/pulls/' + SUCCESSOR_PR)
+    ]);
+    must(Array.isArray(pulls) && pulls.length === 1, 'ambiguous committed source pull');
+    const row = pulls[0];
+    checkTarget(detail, c);
+    const stamp = row?.merged_at;
+    must(row?.number === SUCCESSOR_PR && row.state === 'closed' && row.merge_commit_sha === c.main &&
+      (!Object.hasOwn(row, 'merged') || row.merged === true) &&
+      typeof stamp === 'string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/.test(stamp) &&
+      Number.isFinite(Date.parse(stamp)) && new Date(stamp).toISOString().replace('.000Z','Z') === stamp &&
+      detail.merged_at === stamp && row.head?.sha === head && row.head.ref === SUCCESSOR_BRANCH &&
+      row.head.repo?.id === REPO_ID, 'committed source pull changed');
+  }
+  return results.map(r => r.id);
 }
 
 async function liveAnchors(api, c) {
   const [publisher, diagnosticsHead, sourceCheckRuns] = await Promise.all([
-    livePublisher(api, c), liveBaseline(api), sourceChecks(api, c.head),
+    livePublisher(api, c), liveBaseline(api), sourceChecks(api, c),
     c.phase === 'installation' ? nativeInstallation(api, c) : undefined]);
   return {...publisher, diagnosticsHead, sourceCheckRuns};
 }

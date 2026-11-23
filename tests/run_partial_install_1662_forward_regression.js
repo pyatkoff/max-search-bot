@@ -22,12 +22,14 @@ const census = '/actions/runs?head_sha=' + source + '&per_page=100&page=1';
 const baseFile = '/contents/deploy_status.json?ref=' + diagnostics;
 const mergeCommit = '/git/commits/' + source;
 const mergePulls = '/commits/' + source + '/pulls?per_page=100';
+const headPulls = '/commits/' + head + '/pulls?per_page=100';
+const manifest='resources/max2-common-v2/release-manifest.json';
+const manifestBlob='3a4b17c97860a04e61e997e987265a7a30f87a9d';
 const scope = {
   '.github/workflows/deploy.yml':'modified', 'tools/deployment_release.js':'modified',
   'tools/release_priority.js':'modified', 'tools/partial_install_1662_forward.js':'added',
   'tests/run_partial_install_1662_forward_regression.js':'added', 'tests/run_partial_install_1662_forward_sync.py':'added',
-  'tests/run_deployment_release_regression.js':'modified', 'tests/fixtures/pr1643/release_priority.js.txt':'added',
-  'resources/max2-common-v2/release-manifest.json':'modified'
+  'tests/run_deployment_release_regression.js':'modified', 'tests/fixtures/pr1643/release_priority.js.txt':'added', [manifest]:'modified'
 };
 const sourceCensus='/actions/runs?head_sha='+head+'&per_page=100&page=1';
 function sourceRuns(state) {
@@ -53,10 +55,10 @@ function marker(sha, date) {
 function simulation(phase) {
   const merged = phase === 'installation';
   const priorSlot = phase === 'before_handoff';
-  const target = {number:1667, state:merged?'closed':'open', merged, draft:false, changed_files:8,
+  const target = {number:1667, state:merged?'closed':'open', merged, draft:false, changed_files:9,
     user:owner, base:{ref:'main',repo,sha:original}, head:{ref:'review/pr1662-partial-install-20261123',repo,sha:head},
     merge_commit_sha:merged?source:null, body:priorSlot?'':marker(head,newStamp)};
-  const files = Object.entries(scope).map(([filename,status],i)=>({filename,status,sha:String(i+1).repeat(40)}));
+  const files = Object.entries(scope).map(([filename,status],i)=>({filename,status,sha:filename===manifest?manifestBlob:String(i+1).repeat(40)}));
   const run = {id:runId, workflow_id:340734782, path:'.github/workflows/deploy.yml', head_sha:source, head_branch:'main',
     event:'push', head_commit:{id:source},run_attempt:1,status:'in_progress',conclusion:null,
     repository:repo,head_repository:repo,actor:owner,triggering_actor:owner};
@@ -87,6 +89,8 @@ function simulation(phase) {
   api.jobLog=id=>absent('job log '+id);
   const options={pr:1667,head,phase,api};
   if (merged) {
+    target.merged_at='2026-11-23T14:00:00Z';
+    state[headPulls]=[{number:1667,state:'closed',merged_at:target.merged_at,merge_commit_sha:source,head:target.head}];
     state[mergeCommit]={sha:source,parents:[{sha:original},{sha:head}]};
     state[mergePulls]=[{number:1667,state:'closed',merge_commit_sha:source,head:{sha:head}}];
     state[liveRun]=run;
@@ -116,13 +120,16 @@ for(const [label,phase,alter,error] of [
   ['different branch','before_handoff',({state})=>{state['/pulls/1667'].head.ref='other';},/successor pull changed/],
   ['draft pull','before_handoff',({state})=>{state['/pulls/1667'].draft=true;},/successor pull changed/],
   ['unrelated candidate','after_handoff',({state})=>{state[comparePath].merge_base_commit.sha=head;},/head ancestry changed/],
-  ['changed file count','before_handoff',({state})=>{state['/pulls/1667'].changed_files=9;},/pull content changed/],
+  ['changed file count','before_handoff',({state})=>{state['/pulls/1667'].changed_files=10;},/pull content changed/],
   ['omitted required test','after_handoff',({state})=>{state[filesPath].pop();},/file count changed/],
   ['extra application file','before_handoff',({state})=>{state[comparePath].files.push({filename:'app.php'});},/file count changed/],
   ['business file substitution','installation',({state})=>{state[filesPath][0].filename='app.php';},/file identity changed/],
   ['renamed file','before_handoff',({state})=>{state[filesPath][0].previous_filename='old';},/file identity changed/],
   ['allowed path with unexpected change type','installation',({state})=>{state[filesPath][0].status='removed';},/file identity changed/],
   ['duplicate path','before_handoff',({state})=>{state[filesPath][0]=state[filesPath][1];},/file identity changed/],
+  ['a matching but modified MAX2 policy manifest','installation',({state})=>{
+    for (const rows of [state[filesPath],state[comparePath].files]) rows.find(f=>f.filename===manifest).sha='a'.repeat(40);
+  },/successor manifest changed/],
   ['unbound blob SHA','after_handoff',({state})=>{state[filesPath][0].sha='e'.repeat(40);},/pull content changed/],
   ['successor claiming the publisher before acquisition','before_handoff',({state})=>{state[slot].body='PR1667: выпуск занят';},/record_changed/],
   ['original publisher after acquisition','after_handoff',({state})=>{state[slot].body='PR1662: выпуск занят';},/record_changed/],
@@ -138,6 +145,24 @@ for(const [label,phase,alter,error] of [
   ['foreign source repository','before_handoff',({state})=>{state['/actions/runs/92000001'].head_repository.id++;},/source check repository changed/],
   ['foreign pull in source check','after_handoff',({state})=>{state['/actions/runs/92000002'].pull_requests[0].number++;},/source check pull changed/],
   ['multiple pull references in source check','installation',({state})=>{state['/actions/runs/92000002'].pull_requests.push({number:1668});},/ambiguous source check pull/],
+  ['empty source PR list before acquisition','before_handoff',({state})=>{state[sourceCensus].workflow_runs[0].pull_requests=[];},/source check has no premerge pull/],
+  ['empty detailed source PR after acquisition','after_handoff',({state})=>{state['/actions/runs/92000002'].pull_requests=[];},/source check has no premerge pull/],
+  ['omitted source linkage after merge','installation',({state})=>{delete state['/actions/runs/92000002'].pull_requests;},/ambiguous source check pull/],
+  ['empty postmerge source PR without commit association','installation',({state})=>{
+    state['/actions/runs/92000002'].pull_requests=[];state[headPulls]=[];
+  },/ambiguous committed source pull/],
+  ['two postmerge PRs associated with head','installation',({state})=>{
+    state[sourceCensus].workflow_runs[0].pull_requests=[];state[headPulls].push({...state[headPulls][0],number:1668});
+  },/ambiguous committed source pull/],
+  ['foreign postmerge head PR','installation',({state})=>{
+    state[sourceCensus].workflow_runs[0].pull_requests=[];state[headPulls][0].number=1668;
+  },/committed source pull changed/],
+  ['postmerge association without merge timestamp','installation',({state})=>{
+    state[sourceCensus].workflow_runs[0].pull_requests=[];state[headPulls][0].merged_at=null;
+  },/committed source pull changed/],
+  ['postmerge association claiming a different merge','installation',({state})=>{
+    state[sourceCensus].workflow_runs[0].pull_requests=[];state[headPulls][0].merge_commit_sha=original;
+  },/committed source pull changed/],
   ['forced push','installation',({options})=>{options.event.forced=true;},/untrusted successor push/],
   ['foreign sender','installation',({options})=>{options.event.sender.id++;},/untrusted successor push/],
   ['wrong second merge parent','installation',({state})=>{state[mergeCommit].parents[1].sha=original;},/direct successor/],
@@ -152,6 +177,16 @@ for(const [label,phase,alter,error] of [
   const x=simulation(phase);
   alter(x);
   await assert.rejects(prove(x.options),error);
+});
+
+test('empty postmerge CI links with a real head association still require historical evidence',async()=>{
+  const {state,options,missing}=simulation('installation');
+  for(const run of state[sourceCensus].workflow_runs) {
+    run.pull_requests=[];
+    state['/actions/runs/'+run.id].pull_requests=[];
+  }
+  await assert.rejects(prove(options),{message:'offline evidence absent: '+baseFile});
+  assert.deepEqual(missing,[baseFile]);
 });
 
 test('premerge reader requests the JSON contents envelope and checks its bytes',async()=>{
