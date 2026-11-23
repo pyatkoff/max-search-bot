@@ -76,7 +76,14 @@ final class AppleService39PilotPublisher
                 'feed'=>function (array $addresses): array {
                     require_once __DIR__.'/ProjectFunnelEntry.php';
                     $settings = ProjectFunnelSettings::load($this->connection);
-                    self::check(is_array($settings) && count($settings['posts']) === 67, 'coverage_feed_incomplete');
+                    // Certify the original 69-post revision's 67 advertising cards independently of later additions.
+                    $coveragePosts = array_diff_key($addresses, ['models-index'=>true,'services-index'=>true]);
+                    self::check(is_array($settings) && count($coveragePosts) === 67
+                        && array_diff_key($coveragePosts, $settings['posts']) === [], 'coverage_feed_incomplete');
+                    $settings['posts'] = array_intersect_key($settings['posts'], $coveragePosts);
+                    if (isset($settings['feed_presentation'])) {
+                        $settings['feed_presentation'] = array_intersect_key($settings['feed_presentation'], $coveragePosts);
+                    }
                     $entry = new ProjectFunnelEntry($this->pdo, $this->connection, $settings);
                     $routes = [];
                     foreach ($settings['posts'] as $id=>$item) {
