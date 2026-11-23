@@ -1,0 +1,38 @@
+{
+  "canonical_parents": [
+    "847bd25bee0d5dc3e7b418fe897805607233f7f0",
+    "13457f960c319a90579814d5f8ad542e0906c3c0"
+  ],
+  "canonical_source_sha": "7320b3ac1f178e28d2144ab4424a13cc0fd4e696",
+  "canonical_tree_sha": "c1c6bc7fdd5f7caad355207cc96d7054369a0fd5",
+  "changed_core_paths": [],
+  "core_changes_from_preparation_sha": "847bd25bee0d5dc3e7b418fe897805607233f7f0",
+  "docs_git_blobs": {
+    "AGENTS.md": "3ea4c0f1b9bec95e7af86dcc08cf4ef9a15f1bc8",
+    "START_HERE.md": "cfb042ba3589e4a80cac1171de146673944309fb",
+    "docs/RELEASE_PRIORITY.md": "7d52f33c5af52a47a5c969dc55ff996f64491f82"
+  },
+  "docs_source_sha": "7320b3ac1f178e28d2144ab4424a13cc0fd4e696",
+  "files": {
+    "tools/deployment_release.js": {
+      "bytes": 129239,
+      "git_blob": "8f9b427fe05ad3fca501f872d429ea98009ead53",
+      "sha256": "266e290e82694c7a5f4150c6297e60ef64135be15654d235d0cc80395adc223a"
+    },
+    "tools/release_priority.js": {
+      "bytes": 23624,
+      "git_blob": "3c1b228d36785546d71fb9e21c68ee4b03961619",
+      "sha256": "880addcb078f8f92e0524a5b93de14ab2d1ed24d442180e6e253310038b65d62"
+    },
+    "tools/release_slot_close.js": {
+      "bytes": 97640,
+      "git_blob": "a81a0ef78d30af8d7c2a55bd99b5c08718043015",
+      "sha256": "8b2af9e5089098395df4fbe088c3b68d42f5ab68272ed50c3c256afd70a7286a"
+    }
+  },
+  "final_admission_inputs": "UNSEALED",
+  "preparation_only": true,
+  "repository": "pyatkoff/max-search-bot",
+  "source_verification": "Exact immutable GitHub7320b3a source blobs were independently matched against retained847 byte copies, lengths and SHA256; preparation source only, not final base admission.",
+  "version": 1
+}
