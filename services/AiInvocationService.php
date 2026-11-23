@@ -20,11 +20,17 @@ class AiInvocationService
         }
 
         $aiCurrent = $current;
+        $pageContextOutcome = 'not_recorded';
         try {
             require_once __DIR__ . '/WebsitePageContextService.php';
-            $pageContext = WebsitePageContextService::forChat((int)$chatId);
+            $pageContext = WebsitePageContextService::forChat((int)$chatId, $pageContextOutcome);
             if ($pageContext) $aiCurrent['_page_context'] = $pageContext;
-        } catch (\Throwable $ignored) {}
+        } catch (\Throwable $ignored) {
+            $pageContextOutcome = 'load_failed';
+        }
+        if (!in_array($pageContextOutcome, ['available', 'empty', 'not_found', 'read_failed', 'not_attempted_invalid_chat', 'load_failed', 'not_recorded'], true)) {
+            $pageContextOutcome = 'not_recorded';
+        }
 
         $sourcePost=SourceHandlingService::sourcePostContext($chatId);
         if($sourcePost)$aiCurrent['_source_post']=$sourcePost;
@@ -32,6 +38,7 @@ class AiInvocationService
         if($recentDialogue)$aiCurrent['_recent_dialogue']=$recentDialogue;
 
         self::recordInvocation('debug', 'input', $invocationId,
+            'AI CONTEXT READ: ' . json_encode(['schema'=>'anytour.ai_context_read.v1', 'website_page'=>$pageContextOutcome], JSON_UNESCAPED_SLASHES) . "\n" .
             "\n" . date('d.m.Y H:i:s') . "--- chat=" . $chatId . " ---\n" .
             "ROUTE: " . $route . "\n" .
             "AI INPUT: " . $userText . "\n" .

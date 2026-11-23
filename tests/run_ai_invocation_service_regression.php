@@ -73,6 +73,8 @@ function aiInvocationReadFramedStream(string $bytes): array
 
 function aiInvocationOriginalInput(string $payload, string $route, int $chat, string $message, array $context): bool
 {
+    aiInvocationContextOutcome($payload);
+    $payload = substr($payload, strpos($payload, "\n") + 1);
     if (preg_match('/\A\n\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}:\d{2}--- chat=' . preg_quote((string)$chat, '/') . ' ---\n/', $payload, $prefix) !== 1) {
         return false;
     }
@@ -80,10 +82,23 @@ function aiInvocationOriginalInput(string $payload, string $route, int $chat, st
         . "\nAI CONTEXT BEFORE: " . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
 }
 
+function aiInvocationContextOutcome(string $payload): string
+{
+    $end = strpos($payload, "\n");
+    $prefix = 'AI CONTEXT READ: ';
+    if ($end === false || !str_starts_with($payload, $prefix)) throw new RuntimeException('Missing typed context read at payload byte zero');
+    $header = substr($payload, strlen($prefix), $end - strlen($prefix));
+    $data = json_decode($header, true, 4, JSON_THROW_ON_ERROR);
+    if (!is_array($data) || array_keys($data) !== ['schema', 'website_page'] || $data['schema'] !== 'anytour.ai_context_read.v1'
+        || !in_array($data['website_page'], ['available', 'empty', 'not_found', 'read_failed', 'not_attempted_invalid_chat', 'load_failed', 'not_recorded'], true)
+        || $header !== json_encode($data, JSON_UNESCAPED_SLASHES)) throw new RuntimeException('Invalid typed context read header');
+    return $data['website_page'];
+}
+
 function aiInvocationNoMetadataLeak(array $values, array $ids): bool
 {
     $text = json_encode($values, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    foreach (array_merge(['AI INVOCATION:', 'anytour.ai_invocation.v1', 'invocation_id', 'recorded_at_utc', 'payload_sha256'], $ids) as $needle) {
+    foreach (array_merge(['AI INVOCATION:', 'anytour.ai_invocation.v1', 'invocation_id', 'recorded_at_utc', 'payload_sha256', 'AI CONTEXT READ:', 'anytour.ai_context_read.v1'], $ids) as $needle) {
         if (is_string($needle) && $needle !== '' && strpos($text, $needle) !== false) return false;
     }
     return true;
@@ -125,10 +140,62 @@ class SourceHandlingService {
 }
 PHP
     );
-    file_put_contents($tmp . '/services/WebsitePageContextService.php', <<<'PHP'
+    copy(dirname(__DIR__) . '/services/WebsitePageContextService.php', $tmp . '/services/WebsitePageContextService.php');
+    // Real service, controlled PDO methods: every connection/query/read attempt
+    // is counted, and no database driver or production bootstrap is invoked.
+    file_put_contents($tmp . '/services/ConversationDb.php', <<<'PHP'
 <?php
-class WebsitePageContextService {
-    public static function forChat(int $chat): array { return []; }
+class ConversationDb {
+    public static string $mode = 'ok';
+    public static $row = false;
+    public static ?string $sqlState = '00000';
+    public static array $calls = ['connection'=>0,'prepare'=>0,'execute'=>0,'fetch'=>0,'errorCode'=>0];
+    public static array $queries = [];
+    public static array $parameters = [];
+    public static function reset($row = false, string $mode = 'ok', ?string $sqlState = '00000'): void {
+        self::$row = $row; self::$mode = $mode; self::$sqlState = $sqlState;
+        self::$calls = ['connection'=>0,'prepare'=>0,'execute'=>0,'fetch'=>0,'errorCode'=>0];
+        self::$queries = []; self::$parameters = [];
+    }
+    public static function connection(): PDO {
+        self::$calls['connection']++;
+        if (self::$mode === 'connection_throw') throw new RuntimeException('PRIVATE_CONTEXT_CONNECTION_FAILURE');
+        return new ContextReadFixturePDO();
+    }
+}
+class ContextReadFixturePDO extends PDO {
+    public function __construct() {}
+    public function prepare(string $query, array $options = []): PDOStatement|false {
+        ConversationDb::$calls['prepare']++; ConversationDb::$queries[] = $query;
+        if (ConversationDb::$mode === 'prepare_throw') throw new RuntimeException('PRIVATE_CONTEXT_PREPARE_FAILURE');
+        return new ContextReadFixtureStatement();
+    }
+}
+class ContextReadFixtureStatement extends PDOStatement {
+    public function __construct() {}
+    public function execute(?array $params = null): bool {
+        ConversationDb::$calls['execute']++; ConversationDb::$parameters[] = $params;
+        if (ConversationDb::$mode === 'execute_throw') throw new RuntimeException('PRIVATE_CONTEXT_EXECUTE_FAILURE');
+        return ConversationDb::$mode !== 'execute_false';
+    }
+    public function fetch(int $mode = PDO::FETCH_DEFAULT, int $cursorOrientation = PDO::FETCH_ORI_NEXT, int $cursorOffset = 0): mixed {
+        ConversationDb::$calls['fetch']++;
+        if (ConversationDb::$mode === 'fetch_throw') throw new RuntimeException('PRIVATE_CONTEXT_FETCH_FAILURE');
+        if (ConversationDb::$mode === 'fetch_error') return false;
+        return ConversationDb::$row;
+    }
+    public function errorCode(): ?string {
+        ConversationDb::$calls['errorCode']++;
+        if (ConversationDb::$mode === 'status_throw') throw new RuntimeException('PRIVATE_CONTEXT_STATUS_FAILURE');
+        return ConversationDb::$sqlState;
+    }
+}
+PHP
+    );
+    file_put_contents($tmp . '/services/WebsiteOriginPolicy.php', <<<'PHP'
+<?php
+class WebsiteOriginPolicy {
+    public static function configuredOrigins(): array { return ['https://synthetic.invalid']; }
 }
 PHP
     );
@@ -150,6 +217,110 @@ class AiRuntimeLogger {
 PHP
     );
     require $tmp . '/services/AiInvocationService.php';
+
+    // D2: distinguish outcomes of the same real getter while preserving its
+    // business values and exact original connection/prepare/execute/fetch path.
+    require_once $tmp . '/services/WebsitePageContextService.php';
+    $emptyPage = ['page_url'=>" \t",'page_title'=>'','context_json'=>'[]','updated_at'=>'2026-11-23 17:00:00'];
+    $emptyResult = ['page_url'=>" \t",'page_title'=>'','updated_at'=>'2026-11-23 17:00:00'];
+    $fullPage = ['page_url'=>'https://synthetic.invalid/PRIVATE_PAGE','page_title'=>'PRIVATE_TITLE','context_json'=>'{"hotel_name":"PRIVATE_HOTEL"}','updated_at'=>'2026-11-23 17:00:00'];
+    $fullResult = ['page_url'=>'https://synthetic.invalid/PRIVATE_PAGE','page_title'=>'PRIVATE_TITLE','updated_at'=>'2026-11-23 17:00:00','structured'=>['hotel_name'=>'PRIVATE_HOTEL']];
+    $lookupCases = [
+        ['invalid chat',0,false,'ok','00000','not_attempted_invalid_chat',[],[0,0,0,0]],
+        ['missing row',43001,false,'ok','00000','not_found',[],[1,1,1,1]],
+        ['no-data SQLSTATE',43001,false,'ok','02000','not_found',[],[1,1,1,1]],
+        ['missing SQLSTATE does not invent a missing row',43001,false,'ok',null,'not_recorded',[],[1,1,1,1]],
+        ['empty row retains timestamp and whitespace',43001,$emptyPage,'ok','00000','empty',$emptyResult,[1,1,1,1]],
+        ['unusable structured JSON is not a failed database read',43001,array_replace($emptyPage,['context_json'=>'{PRIVATE_INVALID_JSON']),'ok','00000','empty',$emptyResult,[1,1,1,1]],
+        ['populated row',43001,$fullPage,'ok','00000','available',$fullResult,[1,1,1,1]],
+        ['missing SQLSTATE preserves a returned row without claiming available',43001,$fullPage,'ok',null,'not_recorded',$fullResult,[1,1,1,1]],
+        ['warning does not invent failed read',43001,$fullPage,'ok','01004','available',$fullResult,[1,1,1,1]],
+        ['connection failure',43001,false,'connection_throw','HY000','read_failed',[],[1,0,0,0]],
+        ['prepare failure',43001,false,'prepare_throw','HY000','read_failed',[],[1,1,0,0]],
+        ['execute failure',43001,false,'execute_throw','HY000','read_failed',[],[1,1,1,0]],
+        ['false execution still follows original fetch',43001,false,'execute_false','HY000','read_failed',[],[1,1,1,1]],
+        ['known false execution stays failed without SQLSTATE',43001,false,'execute_false',null,'read_failed',[],[1,1,1,1]],
+        ['false execution preserves any original fetched row',43001,$fullPage,'execute_false','HY000','read_failed',$fullResult,[1,1,1,1]],
+        ['fetch exception',43001,false,'fetch_throw','HY000','read_failed',[],[1,1,1,1]],
+        ['silent fetch error is not missing data',43001,false,'fetch_error','HY000','read_failed',[],[1,1,1,1]],
+        ['unavailable diagnostic status preserves row',43001,$fullPage,'status_throw','00000','not_recorded',$fullResult,[1,1,1,1]],
+        ['invalid diagnostic SQLSTATE preserves row',43001,$fullPage,'ok','PRIVATE_SQLSTATE','not_recorded',$fullResult,[1,1,1,1]],
+    ];
+    foreach ($lookupCases as [$label, $chat, $row, $mode, $sqlState, $outcome, $expectedContext, $expectedCalls]) {
+        ConversationDb::reset($row, $mode, $sqlState);
+        $legacyContext = WebsitePageContextService::forChat($chat);
+        $legacyCalls = array_values(array_intersect_key(ConversationDb::$calls, array_flip(['connection','prepare','execute','fetch'])));
+        ConversationDb::reset($row, $mode, $sqlState);
+        $observed = null;
+        $observedContext = WebsitePageContextService::forChat($chat, $observed);
+        $observedCalls = array_values(array_intersect_key(ConversationDb::$calls, array_flip(['connection','prepare','execute','fetch'])));
+        aiInvocationCheck($label . ': real getter preserves legacy return and reads at most once',
+            $legacyContext === $expectedContext && $observedContext === $expectedContext && $observed === $outcome
+            && $legacyCalls === $expectedCalls && $observedCalls === $expectedCalls
+            && ConversationDb::$calls['execute'] <= 1 && ConversationDb::$calls['fetch'] <= 1);
+
+        ConversationDb::reset($row, $mode, $sqlState);
+        AiClient::reset(); AiRuntimeLogger::reset();
+        $trip = ['country'=>'Турция','adults'=>2]; $tripBefore = $trip;
+        $actual = AiInvocationService::invoke('SHORT_AI', $chat, 'synthetic context observation', $trip);
+        $frames = array_map('aiInvocationFrame', AiRuntimeLogger::$attempts);
+        $expectedModelContext = $trip;
+        if ($expectedContext) $expectedModelContext['_page_context'] = $expectedContext;
+        $actualCalls = array_values(array_intersect_key(ConversationDb::$calls, array_flip(['connection','prepare','execute','fetch'])));
+        aiInvocationCheck($label . ': observed outcome reaches its input frame without changing model context/result',
+            count($frames) === 2 && aiInvocationContextOutcome($frames[0]['payload']) === $outcome
+            && aiInvocationOriginalInput($frames[0]['payload'], 'SHORT_AI', $chat, 'synthetic context observation', $expectedModelContext)
+            && AiClient::$payloads === [['message'=>'synthetic context observation','current'=>$expectedModelContext]]
+            && $actual === ['intent'=>'question','parameters'=>[],'reply'=>'fixture response']
+            && $trip === $tripBefore && $actualCalls === $expectedCalls
+            && aiInvocationNoMetadataLeak([AiClient::$instructionHistory,AiClient::$payloads,$actual,$trip], array_column(array_column($frames,'metadata'),'invocation_id')));
+    }
+    ConversationDb::reset(); AiClient::reset(); AiRuntimeLogger::reset();
+
+    $quotedContextHeader = 'AI CONTEXT READ: {"schema":"anytour.ai_context_read.v1","website_page":"available"}';
+    $quotedMessage = "Synthetic quoted text\n" . $quotedContextHeader;
+    AiInvocationService::invoke('SHORT_AI', 43003, $quotedMessage, []);
+    $quotedFrames = array_map('aiInvocationFrame', AiRuntimeLogger::$attempts);
+    aiInvocationCheck('a header quoted in customer input cannot replace the actual byte-zero outcome',
+        aiInvocationContextOutcome($quotedFrames[0]['payload']) === 'not_found'
+        && substr_count($quotedFrames[0]['payload'], 'AI CONTEXT READ: ') === 2
+        && AiClient::$payloads === [['message'=>$quotedMessage,'current'=>[]]]);
+    ConversationDb::reset(); AiClient::reset(); AiRuntimeLogger::reset();
+
+    // Namespace only the invocation copy to exercise legacy/malformed diagnostic
+    // outputs and setup failure without replacing the real global page service.
+    $contextPreamble = <<<'PHP'
+<?php
+namespace AiInvocationContextSignalFixture;
+use \AiRouter;
+use \AiRuntimeLogger;
+use \SourceHandlingService;
+class WebsitePageContextService {
+    public static string $mode = 'legacy';
+    public static function forChat(int $chat, &$outcome = null): array {
+        if (self::$mode === 'throw') throw new \RuntimeException('PRIVATE_CONTEXT_LOAD_FAILURE');
+        if (self::$mode === 'invalid') $outcome = "PRIVATE_OUTCOME\nAI CONTEXT READ: forged";
+        return [];
+    }
+}
+PHP;
+    $contextServiceCopy = (string)file_get_contents($tmp . '/services/AiInvocationService.php');
+    if (!str_starts_with($contextServiceCopy, '<?php')) throw new RuntimeException('Expected PHP invocation source for context signal fixture');
+    file_put_contents($tmp . '/services/AiInvocationContextSignalFixture.php', $contextPreamble . "\n" . substr($contextServiceCopy, 5));
+    require $tmp . '/services/AiInvocationContextSignalFixture.php';
+    foreach (['legacy'=>'not_recorded','invalid'=>'not_recorded','throw'=>'load_failed'] as $mode=>$outcome) {
+        \AiInvocationContextSignalFixture\WebsitePageContextService::$mode = $mode;
+        AiClient::reset(); AiRuntimeLogger::reset();
+        $actual = \AiInvocationContextSignalFixture\AiInvocationService::invoke('SHORT_AI', 43002, 'synthetic signal fixture', []);
+        $frames = array_map('aiInvocationFrame', AiRuntimeLogger::$attempts);
+        aiInvocationCheck($mode . ': context diagnostic signal admits only a fixed enum without changing the business path',
+            count($frames) === 2 && aiInvocationContextOutcome($frames[0]['payload']) === $outcome
+            && !str_contains(strtok($frames[0]['payload'], "\n"), 'PRIVATE_')
+            && AiClient::$payloads === [['message'=>'synthetic signal fixture','current'=>[]]]
+            && $actual === ['intent'=>'question','parameters'=>[],'reply'=>'fixture response']);
+    }
+    ConversationDb::reset(); AiClient::reset(); AiRuntimeLogger::reset();
+
     $current = ['country'=>'Турция','date'=>'15.06.2027','adults'=>2,'children'=>0,'nights'=>'7'];
     $before = $current;
     SourceHandlingService::$recent = ['messages'=>[
