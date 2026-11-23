@@ -1643,8 +1643,8 @@ async function finalResolution(api,c,location,result) {
   return result;
 }
 /** One initial owner push admits only the four-hotel observation, before SSH. */
-async function resolveHotelRegistryRead({env,event,api}) {
-  const p=HOTEL_REGISTRY_READ,ref='refs/heads/'+p.branch;
+async function resolveHotelRegistryRead({env,event,api},p=HOTEL_REGISTRY_READ) {
+  const ref='refs/heads/'+p.branch;
   requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF===ref
     &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+p.workflow+'@'+ref
     &&env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_JOB===p.job
@@ -1734,6 +1734,14 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
     return resolution(x.source,GATE_RECOVERY.sha,'installed');
   }
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_REGISTRY_READ.branch)return resolveHotelRegistryRead({env,event,api});
+  const inventoryRef=/^refs\/heads\/ops\/anytour-hotel-inventory-([0-9a-f]{40})-([0-9]{8}T[0-9]{6}Z)$/.exec(env.GITHUB_REF);
+  if(inventoryRef){
+    const bytes=fs.readFileSync(path.join(__dirname,'../config/anytour_existing_post_inventory.json'));
+    requireValue(bytes.length>0&&bytes.length<=36000,'hotel_inventory_size_invalid');
+    requireValue(gitBlob(bytes)===inventoryRef[1],'hotel_inventory_manifest_changed');
+    const inventory={...HOTEL_REGISTRY_READ,branch:env.GITHUB_REF.slice('refs/heads/'.length),operation:'hotel_queue_inventory'};
+    return resolveHotelRegistryRead({env,event,api},inventory);
+  }
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_FOUR_TRANSFER.branch)return resolveHotelFourTransfer({env,event,api});
   const startedAt=now();
   const c=await sourceContext(env,event,api);
