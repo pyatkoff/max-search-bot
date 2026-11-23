@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 $root = dirname(__DIR__);
 require_once $root . '/services/AiRuntimeLogger.php';
+require_once $root . '/services/AiInvocationMetadataSnapshot.php';
 
 $passed = 0;
 $failed = 0;
@@ -26,6 +27,104 @@ try {
     aiLogCheck('runtime paths resolve to configured external directory', dirname($debug) === $tmp && dirname($error) === $tmp);
     aiLogCheck('runtime directory is private', (fileperms($tmp) & 0777) === 0700);
     aiLogCheck('runtime files are private', (fileperms($debug) & 0777) === 0600 && (fileperms($error) & 0777) === 0600);
+
+    $now = new DateTimeImmutable('2026-11-23T14:00:00Z');
+    $frame = static function (?string $id, string $stage, string $payload, ?DateTimeImmutable $at = null) use ($now): string {
+        return 'AI INVOCATION: ' . json_encode([
+            'schema' => 'anytour.ai_invocation.v1', 'invocation_id' => $id, 'stage' => $stage,
+            'recorded_at_utc' => ($at ?? $now)->format('Y-m-d\TH:i:s\Z'),
+            'payload_bytes' => strlen($payload), 'payload_sha256' => hash('sha256', $payload),
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n" . $payload;
+    };
+    $writeSnapshots = static function (string $debugBytes, ?string $errorBytes = '') use ($debug, $error): void {
+        file_put_contents($debug, $debugBytes); chmod($debug, 0600);
+        if ($errorBytes === null) { if (file_exists($error)) unlink($error); }
+        else { file_put_contents($error, $errorBytes); chmod($error, 0600); }
+        clearstatcache();
+    };
+    $inputPayload = "23.11.2026 14:00:00--- chat=SYNTHETIC_NATIVE_CHAT --- route=RICH_AI\nAI INPUT: PRIVATE_FIXTURE +7 (900) 000-00-00\nAI CONTEXT BEFORE: {\"first_name\":\"PRIVATE_NAME\"}\n";
+    $resultPayload = "AI RAW: {\"private_fixture\":true}\n";
+    $inputFrame = $frame(str_repeat('a', 32), 'input', $inputPayload);
+    $resultFrame = $frame(str_repeat('a', 32), 'result', $resultPayload);
+    $writeSnapshots($inputFrame . $resultFrame);
+    $projection = AiInvocationMetadataSnapshot::collect($now);
+    $projectionJson = json_encode($projection);
+    aiLogCheck('metadata projection verifies complete frames before contact redaction', $projection['ok'] === true && count($projection['records']) === 2 && $projection['records'][0]['payload_sha256_verified'] === true);
+    aiLogCheck('metadata contains no payload digest, customer text, chat ID or file path',
+        !str_contains($projectionJson, 'PRIVATE_FIXTURE') && !str_contains($projectionJson, 'PRIVATE_NAME')
+        && !str_contains($projectionJson, 'SYNTHETIC_NATIVE_CHAT') && !str_contains($projectionJson, '+7 (900)')
+        && !str_contains($projectionJson, hash('sha256', $inputPayload)) && !str_contains($projectionJson, $tmp));
+    aiLogCheck('projection leaves original log bytes and modes unchanged', file_get_contents($debug) === $inputFrame . $resultFrame && file_get_contents($error) === '' && (fileperms($debug) & 0777) === 0600);
+    aiLogCheck('metadata explicitly declines authenticated trace, session link and cross-file atomicity', $projection['trust'] === 'unauthenticated_text_log' && $projection['runtime_trace_proven'] === false && $projection['cross_stream_atomic'] === false && $projection['session_link_available'] === false && $projection['source_history_complete'] === false);
+
+    $writeSnapshots($inputFrame, $frame(str_repeat('a', 32), 'exception', "23.11.2026 14:00:00--- chat=SYNTHETIC_NATIVE_CHAT --- PRIVATE_EXCEPTION\n"));
+    $projection = AiInvocationMetadataSnapshot::collect($now);
+    aiLogCheck('error stream supplies its real terminal frame without exception text', count($projection['records']) === 2 && $projection['records'][1]['stream'] === 'error' && $projection['records'][1]['stage'] === 'exception' && !str_contains(json_encode($projection), 'PRIVATE_EXCEPTION'));
+
+    $writeSnapshots('', '');
+    $empty = AiInvocationMetadataSnapshot::collect($now);
+    $writeSnapshots('', null);
+    $missing = AiInvocationMetadataSnapshot::collect($now);
+    aiLogCheck('empty available stream differs from missing stream', $empty['ok'] === true && $empty['streams'][1]['read_status'] === 'available' && $empty['streams'][1]['valid_frames'] === 0 && $missing['ok'] === false && $missing['streams'][1]['reason'] === 'file_missing');
+    $writeSnapshots("AI INPUT: unframed private fixture\nAI RAW: unlinked fixture\n");
+    $legacy = AiInvocationMetadataSnapshot::collect($now);
+    aiLogCheck('legacy text is counted only as unlinked bytes and never becomes an event', $legacy['records'] === [] && $legacy['streams'][0]['legacy_bytes'] > 0 && !str_contains(json_encode($legacy), 'private fixture'));
+
+    $embedded = $frame(str_repeat('b', 32), 'input', $inputPayload) . $frame(str_repeat('b', 32), 'result', $resultPayload);
+    $writeSnapshots($frame(str_repeat('a', 32), 'input', "AI INPUT: synthetic embedded frame\n" . $embedded . "AI CONTEXT BEFORE: {}\n") . $resultFrame);
+    $projection = AiInvocationMetadataSnapshot::collect($now);
+    aiLogCheck('valid payload consumes embedded fake headers instead of admitting extra events', count($projection['records']) === 2 && $projection['records'][0]['embedded_prefix_lines'] === 2 && !str_contains(json_encode($projection), str_repeat('b', 32)));
+
+    $writeSnapshots(str_replace('PRIVATE_FIXTURE', 'ALTERED_FIXTURE', $inputFrame) . $resultFrame);
+    $projection = AiInvocationMetadataSnapshot::collect($now);
+    aiLogCheck('first digest failure stops admission without searching for later valid headers', $projection['records'] === [] && $projection['streams'][0]['cutoff_reason'] === 'payload_digest_mismatch' && $projection['streams'][0]['untrusted_tail_bytes'] > 0);
+    $writeSnapshots(substr($inputFrame, 0, -3));
+    aiLogCheck('incomplete payload reports explicit cutoff', AiInvocationMetadataSnapshot::collect($now)['streams'][0]['cutoff_reason'] === 'payload_truncated');
+    $writeSnapshots($frame(null, 'input', $inputPayload));
+    aiLogCheck('null invocation ID remains unlinked rather than being invented', AiInvocationMetadataSnapshot::collect($now)['records'][0]['invocation_id'] === null);
+    $writeSnapshots($frame(str_repeat('a', 32), 'input', str_replace("\n", "\r\n", $inputPayload)) . $resultFrame);
+    aiLogCheck('CRLF payload bytes validate without line reconstruction', count(AiInvocationMetadataSnapshot::collect($now)['records']) === 2);
+
+    $writeSnapshots(str_replace('{"schema":', '{"stage":"result","schema":', $inputFrame) . $resultFrame);
+    aiLogCheck('duplicate metadata keys fail before a later stage can be admitted', AiInvocationMetadataSnapshot::collect($now)['streams'][0]['cutoff_reason'] === 'duplicate_metadata_key');
+    $writeSnapshots($frame(str_repeat('a', 32), 'input', $inputPayload . "[record truncated]\n") . $resultFrame);
+    aiLogCheck('truncation marker inside a valid payload remains an explicit unknown tail', AiInvocationMetadataSnapshot::collect($now)['streams'][0]['cutoff_reason'] === 'truncation_marker_in_payload');
+    $writeSnapshots("[record truncated]\n" . $inputFrame);
+    aiLogCheck('legacy truncation marker prevents later resynchronization', AiInvocationMetadataSnapshot::collect($now)['streams'][0]['cutoff_reason'] === 'truncation_marker_in_legacy');
+    $writeSnapshots($frame(str_repeat('a', 32), 'input', str_repeat('x', 65536) . "\n"));
+    aiLogCheck('declared frame beyond known logger cap is rejected', AiInvocationMetadataSnapshot::collect($now)['streams'][0]['cutoff_reason'] === 'frame_size_limit');
+    $writeSnapshots('AI INVOCATION: ' . str_repeat('x', 4097));
+    aiLogCheck('metadata header cap stops the source explicitly', AiInvocationMetadataSnapshot::collect($now)['streams'][0]['cutoff_reason'] === 'header_size_limit');
+    $writeSnapshots(str_repeat('x', 1048577));
+    $overLimit = AiInvocationMetadataSnapshot::collect($now);
+    aiLogCheck('oversized file is unavailable rather than partially parsed as complete', $overLimit['streams'][0]['reason'] === 'file_size_limit' && $overLimit['streams'][0]['bytes_read'] === 0 && $overLimit['records'] === []);
+
+    $writeSnapshots($frame(str_repeat('a', 32), 'input', $inputPayload, $now->modify('-3601 seconds'))
+        . $frame(str_repeat('a', 32), 'input', $inputPayload, $now->modify('+61 seconds')) . $inputFrame);
+    $projection = AiInvocationMetadataSnapshot::collect($now);
+    aiLogCheck('one-hour age and future bounds report omitted frames without retaining them', count($projection['records']) === 1 && $projection['streams'][0]['omitted_old_frames'] === 1 && $projection['streams'][0]['omitted_future_frames'] === 1 && $projection['records'][0]['frame_index'] === 3);
+    $writeSnapshots(str_repeat($resultFrame, 129));
+    $projection = AiInvocationMetadataSnapshot::collect($now);
+    aiLogCheck('retention keeps at most 128 recent frames per stream and declares the cutoff', count($projection['records']) === 128 && $projection['records'][0]['frame_index'] === 2 && $projection['streams'][0]['omitted_by_limit'] === 1 && $projection['ok'] === false);
+
+    $writeSnapshots($inputFrame);
+    $locked = fopen($debug, 'rb'); flock($locked, LOCK_EX);
+    $busy = AiInvocationMetadataSnapshot::collect($now);
+    flock($locked, LOCK_UN); fclose($locked);
+    aiLogCheck('collector does not wait for the cooperating logger lock', $busy['streams'][0]['reason'] === 'file_busy' && $busy['streams'][0]['bytes_read'] === 0);
+    chmod($debug, 0640);
+    $unsafe = AiInvocationMetadataSnapshot::collect($now);
+    clearstatcache();
+    aiLogCheck('collector reports unsafe file modes without repairing them', $unsafe['streams'][0]['reason'] === 'unsafe_permissions' && (fileperms($debug) & 0777) === 0640);
+    chmod($debug, 0600);
+    unlink($error); symlink($debug, $error);
+    $linked = AiInvocationMetadataSnapshot::collect($now);
+    aiLogCheck('collector refuses linked error log without modifying target', $linked['streams'][1]['reason'] === 'unsafe_file_type' && file_get_contents($debug) === $inputFrame);
+    unlink($error); file_put_contents($error, ''); chmod($error, 0600);
+    putenv('MAX_SEARCH_AI_LOG_DIR=' . $tmp . '-projection-absent');
+    $absent = AiInvocationMetadataSnapshot::collect($now);
+    aiLogCheck('both read-only logger getters leave absent directories absent', $absent['ok'] === false && !file_exists($tmp . '-projection-absent'));
+    putenv('MAX_SEARCH_AI_LOG_DIR=' . $tmp);
 
     for ($i = 0; $i < 20; $i++) {
         AiRuntimeLogger::debug(str_repeat('x', 70000));

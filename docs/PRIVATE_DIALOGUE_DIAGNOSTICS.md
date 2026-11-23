@@ -39,6 +39,80 @@ The public snapshot receives aggregate counters only. An unavailable report is
 distinct from an available report with no linked samples. Current edited text is
 not necessarily the original sent text; recorded equality is not a quality score.
 
+### AI invocation metadata
+
+The existing private `production_snapshot.json` can also contain
+`ai_invocation_metadata_private`, schema `anytour.ai_invocation_metadata.v1`.
+`AiInvocationMetadataSnapshot` reads the existing external debug and error
+logs locally, checks complete `anytour.ai_invocation.v1` frames using their
+declared byte lengths and SHA256, and emits metadata only. It never copies the
+payload, payload digest, customer/chat/message identifiers, error text, file
+path, prompt or model name. Raw log bytes are used transiently in the collector;
+no additional plaintext log copy or log transport is created.
+
+Limits are 1 MiB per source file, 64 KiB per frame, 4 KiB per header and 4,096
+parsed frames per stream. At most the last 128 eligible frames per stream are
+retained. Eligible declared recording times are within one hour before the
+source snapshot, with at most 60 seconds of clock skew into the future.
+Expired/future records and records omitted by the retention cap are counted
+explicitly. These are bounds on declared metadata, not authenticated event
+times. The existing 2 MiB encrypted-plaintext limit remains unchanged.
+
+The reader does not create directories, repair permissions or append probes.
+It requires the existing private directory/file modes and regular files, and
+uses a nonblocking shared lock against the cooperating logger. This is not a
+wall-time guarantee for arbitrary filesystem I/O: a foreign process replacing
+a regular file with a FIFO between the type check and open can still block.
+The application logger only truncates/appends regular files under its exclusive
+lock. Debug and error files are captured sequentially, so the projection always
+declares `cross_stream_atomic=false` and `source_history_complete=false`.
+Rotation can remove evidence even when both reads succeed.
+
+Missing, unreadable, busy, unsafe or oversized files remain unavailable; a
+successfully read empty file is an available zero. Legacy unframed bytes are
+counted without interpreting legacy `AI INPUT` / `AI RAW` labels as invocation
+events. A frame-looking `AI INVOCATION:` header starts byte validation; a
+self-consistent forgery can therefore pass only as unauthenticated metadata.
+At the first
+malformed/truncated frame, hash mismatch or known truncation marker, admission
+stops for the rest of that source; the reader never resynchronizes through an
+unknown tail. Header-looking text inside a valid frame is consumed as payload.
+
+The existing `--production` encryption input carries this separate projection.
+The runner strictly validates its schema, bounds and fixed reason codes, and
+replaces the random invocation identifier with an independent, domain-separated
+per-capture alias. It neither transfers native conversation/message IDs nor
+joins invocation aliases to session aliases. The decrypted JSON contains a
+separate `ai_invocation_metadata` section with source availability/cutoffs,
+bounded records, and `candidate_correlated`, `incomplete` or `ambiguous` groups.
+Null invocation identifiers remain unlinked. The original length/hash check is
+explicitly **source-reported**; no original payload is present in the evidence
+for independent verification. Integrity and byte shape do not authenticate who
+wrote a text frame. Every view retains `trust=unauthenticated_text_log`,
+`runtime_trace_proven=false` and `causal_diagnosis_performed=false`.
+
+The capture's `production_sha` identifies the collector deployment. It does not
+prove the code, prompt or model version that produced each retained frame.
+Those versions remain unavailable. Existing dialogue-sample limits and
+selection are unchanged. No connection to the previously reviewed cases can be
+claimed without an independently verified native mapping.
+Permission to review this metadata section does not authorize opening unrelated
+MAX dialogue or Manager AI feedback text carried in the same encrypted capture.
+
+The public composer excludes this collection, and the public sanitizer removes
+the entire private key even when invoked directly or on nested data. The
+existing line-tail/redacted `ai` export is unchanged; it is not a byte-preserving
+copy of framed logs and must not be relabeled as one. A missing optional
+metadata field reports `source_not_supplied`, allowing older captures to remain
+readable without inventing zero events. This source preparation alone does not
+prove deployed collection; activation still requires the ordinary exact-SHA
+release and encrypted-capture acceptance below. There is no new workflow,
+schedule, service, model call or public output.
+
+Maintain the PHP producer and runner schema/bounds together. Focused coverage
+is included in the existing AI log boundary, encrypted evidence and public
+diagnostics privacy suites; there is no additional test group.
+
 The standard age format encrypts the projection to the single X25519 public
 recipient in `docs/diagnostics-recipient.txt`. The pinned `pyrage` wheel wraps
 the interoperable Rust age implementation; no cryptographic construction is
@@ -48,8 +122,9 @@ reviewer's local environment, never on the application server.
 Only `$RUNNER_TEMP/dialogue-evidence.age` is uploaded, after existing plaintext
 files are removed. Artifact retention is one day, but copied ciphertext can
 outlive that retention. The publisher also removes private files and its SSH
-key in an always-run cleanup step. The public branch allowlist and sanitizer
-are unchanged. Encryption failure fails the job; there is no plaintext fallback.
+key in an always-run cleanup step. The existing public branch allowlist is
+retained; the sanitizer additionally drops the entire invocation metadata
+private key. Encryption failure fails the job; there is no plaintext fallback.
 
 ## Key custody
 
@@ -115,6 +190,9 @@ checkpoint. Until that end-to-end check passes, access is prepared, not restored
 Rollback disables/removes encrypted capture/upload via a forward revert on
 main through the normal gates; public redaction, external AI/MAX log boundaries
 and deploy provenance must stay intact. No migration or data rollback is needed.
+An invocation-metadata-only rollback removes its collector hookup and private
+projection through the same forward-revert gates, while retaining the existing
+encrypted dialogue/feedback capture, public redaction and external log boundary.
 
 References: [age format](https://age-encryption.org/v1),
 [pyrage](https://github.com/woodruffw/pyrage),
