@@ -128,7 +128,7 @@ observer errors, preserving the canonical customer result. The preserved
 clock; a changed producer requires review.
 
 The 2026-11-23 producer review admits SHA256
-`bb46fe35c207545d6711d8bd4a04cd09f2e8003609ee97df2092ee6590c5790d`:
+`524340b05b0d834655e2bcd4ecfdc499922217cc41be4980801c23c48deb5970`:
 both entry paths still record `self::now()` from `gmdate('Y-m-d H:i:s')`; the
 reviewed publication changes preserve those UTC recording clocks. The runtime
 retains its exact regular-file check. Integration tests call that actual guard

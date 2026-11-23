@@ -291,6 +291,14 @@ const TRANSFER_PAIRS = [
     1260 => ['source'=>'548','source_publication'=>1220,'target'=>'288','date'=>1703918786],
 ];
 
+const NEXT_TRANSFER_OPERATION = 'anytour_hotel_transfer_next_20261123';
+const NEXT_TRANSFER_PLAN_FILE = 'config/anytour_existing_post_transfer_next_20261123.json';
+const NEXT_TRANSFER_PAIRS = [
+    800 => ['source'=>'219','source_publication'=>535,'target'=>'1588','date'=>1781855273],
+    408 => ['source'=>'120','source_publication'=>323,'target'=>'997','date'=>1737725306],
+    466 => ['source'=>'473','source_publication'=>1047,'target'=>'1101','date'=>1747735272],
+];
+
 function transferRegistryRow(array $row): array
 {
     unset($row['price_template'], $row['source_photo_marker_sha256']);
@@ -298,27 +306,44 @@ function transferRegistryRow(array $row): array
 }
 
 /** Pure decoding: no runtime bootstrap, reservation, HTTP, or journal creation. */
-function transferPlanFromBytes(string $raw, string $approvedDigest): array
+function transferPlanFromBytes(string $raw, string $approvedDigest, bool $next = false): array
 {
+    $pairs = $next ? NEXT_TRANSFER_PAIRS : TRANSFER_PAIRS;
+    $operation = $next ? NEXT_TRANSFER_OPERATION : TRANSFER_OPERATION;
     requirePost(strlen($raw) <= 64000 && preg_match('/\A[a-f0-9]{64}\z/D', $approvedDigest) === 1
         && hash_equals($approvedDigest, hash('sha256', $raw)), 'transfer_approved_plan_changed');
     $plan = json_decode($raw, true, 32, JSON_THROW_ON_ERROR);
     requirePost(is_array($plan) && array_keys($plan) === ['schema','operation','execution','native_preflight',
         'monitor_source_url','price_policy','rows']
-        && $plan['schema'] === 1 && $plan['operation'] === TRANSFER_OPERATION
+        && $plan['schema'] === 1 && $plan['operation'] === $operation
         && $plan['execution'] === 'explicit_owner_apply_only'
-        && $plan['monitor_source_url'] === TRANSFER_MONITOR_URL
-        && $plan['price_policy'] === 'fresh_saved_export_must_render_identical_approved_caption'
+        && $plan['monitor_source_url'] === ($next ? null : TRANSFER_MONITOR_URL)
+        && $plan['price_policy'] === ($next ? 'omit_previous_price_keep_hotel_calculation_button'
+            : 'fresh_saved_export_must_render_identical_approved_caption')
         && is_array($plan['rows']) && array_is_list($plan['rows'])
-        && array_column($plan['rows'], 'hotel_id') === array_keys(TRANSFER_PAIRS), 'transfer_plan_scope_invalid');
+        && array_column($plan['rows'], 'hotel_id') === array_keys($pairs), 'transfer_plan_scope_invalid');
     $proof = $plan['native_preflight'];
-    requirePost(is_array($proof) && ($proof['run_id'] ?? '') === '45088999012'
-        && ($proof['run_attempt'] ?? 0) === 1 && ($proof['artifact_id'] ?? 0) === 14780019122
-        && ($proof['artifact_zip_sha256'] ?? '') === '1eafbbb2500ef340ada373384db98ee5743e48da40256891e3e25e473e60f0a3'
-        && ($proof['registry_sha256'] ?? '') === 'c8379052d1c669aeae4aa960267caca92e7d621d2e88294bfcfcdbcc4100f70c'
-        && ($proof['checkpoint_sha256'] ?? '') === '85f3ce09285f3f0e3c98b93ab295dfe3daf58946166baf2c2e79e09dd3feef0a'
-        && ($proof['repository_sha'] ?? '') === '847bd25bee0d5dc3e7b418fe897805607233f7f0'
-        && ($proof['application_sha'] ?? '') === $proof['repository_sha'], 'transfer_native_preflight_changed');
+    if ($next) {
+        // The read ran while an unrelated release was deploying. Pin both identities.
+        requirePost($proof === [
+            'run_id' => '45156882185',
+            'run_attempt' => 1,
+            'artifact_id' => 14808682666,
+            'artifact_zip_sha256' => '5b68a4cf346f4cf07214dc7f12b2eefbf3a03c8a91300fc39cc71c53a2854b82',
+            'registry_sha256' => '998403be4281b5ec5deaddbdabcba0119b8882e9d97ced1a6d6c95db6ce7bc62',
+            'checkpoint_sha256' => 'bbdf76f114a97a1796be46fd1b68e494156689787fec7e2e0e4f265ebf6b6dfc',
+            'repository_sha' => 'f2894cdf9a14031d53ee8622934364c35dab5730',
+            'application_sha' => 'f773b4d5a88e4a3d2a08031b01c34f061d00608a',
+        ], 'transfer_native_preflight_changed');
+    } else {
+        requirePost(is_array($proof) && ($proof['run_id'] ?? '') === '45088999012'
+            && ($proof['run_attempt'] ?? 0) === 1 && ($proof['artifact_id'] ?? 0) === 14780019122
+            && ($proof['artifact_zip_sha256'] ?? '') === '1eafbbb2500ef340ada373384db98ee5743e48da40256891e3e25e473e60f0a3'
+            && ($proof['registry_sha256'] ?? '') === 'c8379052d1c669aeae4aa960267caca92e7d621d2e88294bfcfcdbcc4100f70c'
+            && ($proof['checkpoint_sha256'] ?? '') === '85f3ce09285f3f0e3c98b93ab295dfe3daf58946166baf2c2e79e09dd3feef0a'
+            && ($proof['repository_sha'] ?? '') === '847bd25bee0d5dc3e7b418fe897805607233f7f0'
+            && ($proof['application_sha'] ?? '') === $proof['repository_sha'], 'transfer_native_preflight_changed');
+    }
     $keys = ['hotel_id','source_message_id','source_publication_id','source_version_id','source_content_hash',
         'source_caption_sha256','source_file_id_sha256','source_file_unique_id_sha256','target_message_id',
         'target_published_unixtime','target_caption_sha256','target_photo_marker_sha256','target_config_version',
@@ -328,7 +353,7 @@ function transferPlanFromBytes(string $raw, string $approvedDigest): array
     foreach ($plan['rows'] as $row) {
         requirePost(is_array($row), 'transfer_plan_row_invalid');
         $actual = array_keys($row); sort($actual);
-        $pair = TRANSFER_PAIRS[$row['hotel_id']];
+        $pair = $pairs[$row['hotel_id']];
         requirePost($actual === $keys && $row['source_message_id'] === $pair['source']
             && $row['source_publication_id'] === $pair['source_publication']
             && is_int($row['source_version_id']) && $row['source_version_id'] > 0
@@ -336,7 +361,7 @@ function transferPlanFromBytes(string $raw, string $approvedDigest): array
             && $row['target_config_version'] === 2 && $row['bot_url'] === 'https://t.me/anyru_bot'
             && $row['button_text'] === '✈️ Рассчитать на мои даты', 'transfer_plan_row_identity');
         foreach (['source_content_hash','source_caption_sha256','source_file_id_sha256','source_file_unique_id_sha256',
-            'target_caption_sha256','target_photo_marker_sha256','next_caption_sha256','price_record_id',
+            'target_caption_sha256','target_photo_marker_sha256','next_caption_sha256',
             'source_photo_marker_sha256'] as $field) {
             requirePost(is_string($row[$field]) && preg_match('/\A[a-f0-9]{64}\z/D', $row[$field]) === 1,
                 'transfer_plan_digest_invalid');
@@ -347,22 +372,27 @@ function transferPlanFromBytes(string $raw, string $approvedDigest): array
             && hash_equals($row['next_caption_sha256'], hash('sha256', $row['next_caption']))
             && is_string($row['price_template']) && mb_check_encoding($row['price_template'], 'UTF-8')
             && strlen($row['price_template']) <= 8000, 'transfer_caption_invalid');
+        requirePost($next
+            ? $row['price_record_id'] === null && $row['price_template'] === ''
+            : is_string($row['price_record_id']) && preg_match('/\A[a-f0-9]{64}\z/D', $row['price_record_id']) === 1,
+            'transfer_price_policy_invalid');
     }
     return $plan;
 }
 
-function transferPublicAllowed(string $channel, string $message): bool
+function transferPublicAllowed(string $channel, string $message, bool $next = false): bool
 {
-    $allowed = $channel === 'anytour' ? array_column(TRANSFER_PAIRS, 'target')
-        : ($channel === 'any_toour' ? array_column(TRANSFER_PAIRS, 'source') : []);
+    $pairs = $next ? NEXT_TRANSFER_PAIRS : TRANSFER_PAIRS;
+    $allowed = $channel === 'anytour' ? array_column($pairs, 'target')
+        : ($channel === 'any_toour' ? array_column($pairs, 'source') : []);
     return in_array($message, $allowed, true);
 }
 
-/** Only the saved-monitor read and the eight fixed public messages; never a supplier call. */
-function transferReadBytes(string $url): string
+/** Only fixed public posts and, for the original batch, the saved monitor export. */
+function transferReadBytes(string $url, bool $next = false): string
 {
-    $allowed = [TRANSFER_MONITOR_URL];
-    foreach (TRANSFER_PAIRS as $pair) {
+    $allowed = $next ? [] : [TRANSFER_MONITOR_URL];
+    foreach (($next ? NEXT_TRANSFER_PAIRS : TRANSFER_PAIRS) as $pair) {
         $allowed[] = 'https://t.me/anytour/'.$pair['target'].'?embed=1&mode=tme';
         $allowed[] = 'https://t.me/any_toour/'.$pair['source'].'?embed=1&mode=tme';
     }
@@ -385,16 +415,16 @@ function transferReadBytes(string $url): string
     return $body;
 }
 
-function transferPublic(string $channel, string $message): array
+function transferPublic(string $channel, string $message, bool $next = false): array
 {
-    requirePost(transferPublicAllowed($channel, $message), 'transfer_public_scope_invalid');
-    return parseTransferPublic(transferReadBytes('https://t.me/'.$channel.'/'.$message.'?embed=1&mode=tme'),
-        $channel, $message);
+    requirePost(transferPublicAllowed($channel, $message, $next), 'transfer_public_scope_invalid');
+    return parseTransferPublic(transferReadBytes('https://t.me/'.$channel.'/'.$message.'?embed=1&mode=tme', $next),
+        $channel, $message, $next);
 }
 
-function parseTransferPublic(string $body, string $channel, string $message): array
+function parseTransferPublic(string $body, string $channel, string $message, bool $next = false): array
 {
-    requirePost(transferPublicAllowed($channel, $message), 'transfer_public_scope_invalid');
+    requirePost(transferPublicAllowed($channel, $message, $next), 'transfer_public_scope_invalid');
     requirePost(strlen($body) <= 1_000_000, 'transfer_public_body_unbounded');
     $url = 'https://t.me/' . $channel . '/' . $message;
     $doc = new DOMDocument('1.0', 'UTF-8');
@@ -584,13 +614,14 @@ function transferReason(Throwable $error): string
  * The operation journal is append-only. Injectable internal effects allow the
  * production control flow to be tested without bootstrapping runtime credentials.
  */
-function transferExecuteRow(array $row, string $planDigest, array $effects, string $operations = POST_OPS): array
+function transferExecuteRow(array $row, string $planDigest, array $effects, string $operations = POST_OPS, bool $next = false): array
 {
+    $pairs = $next ? NEXT_TRANSFER_PAIRS : TRANSFER_PAIRS;
     foreach (['reserve','prepare','assert','request','complete','runtime'] as $name) {
         requirePost(isset($effects[$name]) && is_callable($effects[$name]), 'transfer_effects_invalid');
     }
-    requirePost(isset(TRANSFER_PAIRS[$row['hotel_id']])
-        && TRANSFER_PAIRS[$row['hotel_id']]['target'] === $row['target_message_id']
+    requirePost(isset($pairs[$row['hotel_id']])
+        && $pairs[$row['hotel_id']]['target'] === $row['target_message_id']
         && realpath($operations) === $operations, 'transfer_operation_scope_invalid');
     $operation = 'anytour-issue1566-historical-tg-media-'.$row['target_message_id'].'-v1';
     $directory = $operations.'/'.$operation;
@@ -602,7 +633,7 @@ function transferExecuteRow(array $row, string $planDigest, array $effects, stri
         requirePost(mkdir($directory, 0700), 'transfer_operation_creation_failed');
         $record = fopen($directory.'/receipt.jsonl', 'x+b');
         requirePost(is_resource($record) && flock($record, LOCK_EX | LOCK_NB), 'transfer_journal_unavailable');
-        transferJournal($record, ['state'=>'intent_saved','operation'=>TRANSFER_OPERATION,
+        transferJournal($record, ['state'=>'intent_saved','operation'=>$next ? NEXT_TRANSFER_OPERATION : TRANSFER_OPERATION,
             'plan_sha256'=>$planDigest,'row'=>$row,'execution'=>$effects['context'] ?? []]);
         $reservation = $effects['reserve']();
         transferJournal($record, ['state'=>'identity_reserved','plan_sha256'=>$planDigest,
@@ -611,7 +642,7 @@ function transferExecuteRow(array $row, string $planDigest, array $effects, stri
         requirePost(is_array($prepared) && array_keys($prepared) === ['body','evidence']
             && is_array($prepared['body']) && is_array($prepared['evidence']), 'transfer_prepared_evidence_invalid');
         $body = $prepared['body'];
-        $payload = ChannelPostApiTransport::hotelMediaPayload('-1001845835645', $row['target_message_id'], $body);
+        $payload = ChannelPostApiTransport::hotelMediaPayload('-1001845835645', $row['target_message_id'], $body, $next);
         requirePost(is_array($payload), 'transfer_media_payload_invalid');
         transferJournal($record, ['state'=>'request_prepared','request'=>$payload,'evidence'=>$prepared['evidence'],
             'request_sha256'=>hash('sha256', json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR))]);
@@ -665,14 +696,15 @@ function transferExecuteRow(array $row, string $planDigest, array $effects, stri
 }
 
 /** Only the explicit CLI branch below calls this; tick() remains unchanged. */
-function applyTransferPlan(string $root, string $approvedDigest, string $applicationSha, string $nativeRunId): array
+function applyTransferPlan(string $root, string $approvedDigest, string $applicationSha, string $nativeRunId, bool $next = false): array
 {
+    $planFile = $next ? NEXT_TRANSFER_PLAN_FILE : TRANSFER_PLAN_FILE;
     requirePost(preg_match('/\A[1-9][0-9]{0,19}\z/D', $nativeRunId) === 1, 'transfer_native_run_invalid');
     transferRuntime($root, $applicationSha);
-    $raw = file_get_contents($root.'/'.TRANSFER_PLAN_FILE, false, null, 0, 64001);
+    $raw = file_get_contents($root.'/'.$planFile, false, null, 0, 64001);
     requirePost(is_string($raw), 'transfer_plan_unavailable');
-    $plan = transferPlanFromBytes($raw, $approvedDigest);
-    require_once $root.'/tools/direct_demand/operations/monitor-price-hook-contract.php';
+    $plan = transferPlanFromBytes($raw, $approvedDigest, $next);
+    if (!$next) require_once $root.'/tools/direct_demand/operations/monitor-price-hook-contract.php';
     ob_start();
     try {
         require_once $root.'/config.php';
@@ -704,22 +736,24 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
             transferNoTarget($pdo, $row);
             transferSource($pdo, $registry, $row);
         }
-        $exportBytes = transferReadBytes($plan['monitor_source_url']);
-        $export = json_decode($exportBytes, true, 64, JSON_THROW_ON_ERROR);
-        requirePost(is_array($export), 'transfer_price_export_invalid');
+        $export = null;
+        if (!$next) {
+            $export = json_decode(transferReadBytes($plan['monitor_source_url']), true, 64, JSON_THROW_ON_ERROR);
+            requirePost(is_array($export), 'transfer_price_export_invalid');
+        }
         // Validate every row before any identity reservation or publication change.
         foreach ($plan['rows'] as $row) {
-            transferPrice($plan, $row, $export, time());
-            transferPublicPreimage($row, transferPublic('any_toour', $row['source_message_id']),
-                transferPublic('anytour', $row['target_message_id']));
+            if (!$next) transferPrice($plan, $row, $export, time());
+            transferPublicPreimage($row, transferPublic('any_toour', $row['source_message_id'], $next),
+                transferPublic('anytour', $row['target_message_id'], $next));
         }
         transferRuntime($root, $applicationSha);
         foreach ($plan['rows'] as $row) {
             $registryRow = transferRegistryRow($row);
             $preparedExport = null;
-            $runtime = static function () use ($root, $applicationSha, $approvedDigest): void {
+            $runtime = static function () use ($root, $applicationSha, $approvedDigest, $planFile): void {
                 transferRuntime($root, $applicationSha);
-                requirePost(hash_file('sha256', $root.'/'.TRANSFER_PLAN_FILE) === $approvedDigest,
+                requirePost(hash_file('sha256', $root.'/'.$planFile) === $approvedDigest,
                     'transfer_installed_plan_changed');
             };
             $effects = [
@@ -727,29 +761,34 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
                     return $registry->reserveTelegramHotelTransfer($registryRow, $approvedDigest,
                         static fn(array $validated, string $digest): bool => $validated === $registryRow && $digest === $approvedDigest);
                 },
-                'prepare'=>static function (array $reservation) use ($pdo, $registry, $row, $plan, &$preparedExport): array {
+                'prepare'=>static function (array $reservation) use ($pdo, $registry, $row, $plan, $next, &$preparedExport): array {
                     $source = transferSource($pdo, $registry, $row);
-                    $sourcePublic = transferPublic('any_toour', $row['source_message_id']);
-                    $targetPublic = transferPublic('anytour', $row['target_message_id']);
+                    $sourcePublic = transferPublic('any_toour', $row['source_message_id'], $next);
+                    $targetPublic = transferPublic('anytour', $row['target_message_id'], $next);
                     transferPublicPreimage($row, $sourcePublic, $targetPublic);
-                    $freshBytes = transferReadBytes($plan['monitor_source_url']);
-                    $preparedExport = json_decode($freshBytes, true, 64, JSON_THROW_ON_ERROR);
-                    requirePost(is_array($preparedExport), 'transfer_price_export_invalid');
-                    $price = transferPrice($plan, $row, $preparedExport, time());
+                    $evidence = ['source_public'=>$sourcePublic,'target_public'=>$targetPublic];
+                    if (!$next) {
+                        $freshBytes = transferReadBytes($plan['monitor_source_url']);
+                        $preparedExport = json_decode($freshBytes, true, 64, JSON_THROW_ON_ERROR);
+                        requirePost(is_array($preparedExport), 'transfer_price_export_invalid');
+                        $evidence += ['monitor_source_url'=>$plan['monitor_source_url'],
+                            'monitor_export_sha256'=>hash('sha256',$freshBytes),'monitor_export'=>$preparedExport,
+                            'selected_price'=>transferPrice($plan, $row, $preparedExport, time())];
+                    }
                     $body = ['media'=>['type'=>'photo','media'=>$source['snapshot']['attachments'][0]['telegram_file_id'],
                         'caption'=>$row['next_caption'],'caption_entities'=>[]],
                         'reply_markup'=>['inline_keyboard'=>[[['text'=>$row['button_text'],'url'=>$reservation['button_url']]]]]];
-                    return ['body'=>$body,'evidence'=>['monitor_source_url'=>$plan['monitor_source_url'],
-                        'monitor_export_sha256'=>hash('sha256',$freshBytes),'monitor_export'=>$preparedExport,
-                        'selected_price'=>$price,'source_public'=>$sourcePublic,'target_public'=>$targetPublic]];
+                    return ['body'=>$body,'evidence'=>$evidence];
                 },
-                'assert'=>static function (array $reservation) use ($registry, $registryRow, $approvedDigest, $row, $plan, &$preparedExport): void {
-                    requirePost(is_array($preparedExport), 'transfer_price_export_invalid');
-                    transferPrice($plan, $row, $preparedExport, time());
+                'assert'=>static function (array $reservation) use ($registry, $registryRow, $approvedDigest, $row, $plan, $next, &$preparedExport): void {
+                    if (!$next) {
+                        requirePost(is_array($preparedExport), 'transfer_price_export_invalid');
+                        transferPrice($plan, $row, $preparedExport, time());
+                    }
                     $registry->assertTelegramHotelTransferReservation($reservation, $registryRow, $approvedDigest);
                 },
                 'request'=>static fn(array $body): array => ChannelPostApiTransport::hotelMediaRequest(
-                    '-1001845835645', $row['target_message_id'], $body),
+                    '-1001845835645', $row['target_message_id'], $body, $next),
                 'complete'=>static function (array $reservation, array $response) use ($registry, $registryRow, $approvedDigest, $row): array {
                     $saved = $registry->completeTelegramHotelTransfer($reservation, $registryRow, $approvedDigest, $response);
                     $resolved = $registry->resolveToken('anytour', 'telegram', 'anyru_bot', $saved['start_payload']);
@@ -763,13 +802,13 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
                 'context'=>['native_run_id'=>$nativeRunId,'application_sha'=>$applicationSha,
                     'native_preflight'=>$plan['native_preflight']],
             ];
-            $result = transferExecuteRow($row, $approvedDigest, $effects);
+            $result = transferExecuteRow($row, $approvedDigest, $effects, POST_OPS, $next);
             $results[] = $result;
             if (!$result['ok']) break;
         }
-        return ['schema'=>1,'operation'=>TRANSFER_OPERATION,'native_run_id'=>$nativeRunId,
+        return ['schema'=>1,'operation'=>$plan['operation'],'native_run_id'=>$nativeRunId,
             'application_sha'=>$applicationSha,'plan_sha256'=>$approvedDigest,
-            'ok'=>count($results) === 4 && !in_array(false, array_column($results, 'ok'), true),
+            'ok'=>count($results) === count($plan['rows']) && !in_array(false, array_column($results, 'ok'), true),
             'provider_write_attempts'=>array_sum(array_column($results, 'provider_write_attempts')),
             'supplier_requests'=>0,'bot_starts'=>0,'results'=>$results,'finished_at_utc'=>gmdate(DATE_ATOM)];
     } finally {
@@ -786,19 +825,22 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
 if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) {
     ini_set('display_errors', '0'); ini_set('log_errors', '0');
     $exitCode = 2;
+    $command = $argv[1] ?? '';
+    $next = in_array($command, ['--check-next-transfer-plan','--apply-next-transfer'], true);
     try {
         $root = dirname(__DIR__);
-        if (count($argv) === 3 && $argv[1] === '--check-transfer-plan') {
-            $raw = file_get_contents($root.'/'.TRANSFER_PLAN_FILE, false, null, 0, 64001);
+        if (count($argv) === 3 && in_array($command, ['--check-transfer-plan','--check-next-transfer-plan'], true)) {
+            $planFile = $next ? NEXT_TRANSFER_PLAN_FILE : TRANSFER_PLAN_FILE;
+            $raw = file_get_contents($root.'/'.$planFile, false, null, 0, 64001);
             requirePost(is_string($raw), 'transfer_plan_unavailable');
-            $plan = transferPlanFromBytes($raw, $argv[2]);
-            $result = ['ok'=>true,'operation'=>TRANSFER_OPERATION,'mode'=>'offline_plan_check',
+            $plan = transferPlanFromBytes($raw, $argv[2], $next);
+            $result = ['ok'=>true,'operation'=>$plan['operation'],'mode'=>'offline_plan_check',
                 'production_writes'=>0,'provider_writes'=>0,'plan_sha256'=>hash('sha256',$raw),
                 'rows'=>array_map(static fn(array $row): array => ['hotel_id'=>$row['hotel_id'],
                     'target_url'=>'https://t.me/anytour/'.$row['target_message_id'],
                     'caption_sha256'=>$row['next_caption_sha256']], $plan['rows'])];
-        } elseif (count($argv) === 5 && $argv[1] === '--apply-transfer') {
-            $result = applyTransferPlan($root, $argv[2], $argv[3], $argv[4]);
+        } elseif (count($argv) === 5 && in_array($command, ['--apply-transfer','--apply-next-transfer'], true)) {
+            $result = applyTransferPlan($root, $argv[2], $argv[3], $argv[4], $next);
         } else {
             throw new RuntimeException('transfer_explicit_command_required');
         }
@@ -806,7 +848,7 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
     } catch (Throwable $error) {
         // A global failure may occur after a row was confirmed. Do not infer zero
         // writes from this summary; each original per-target journal is retained.
-        $result = ['ok'=>false,'operation'=>TRANSFER_OPERATION,'state'=>'requires_readback',
+        $result = ['ok'=>false,'operation'=>$next ? NEXT_TRANSFER_OPERATION : TRANSFER_OPERATION,'state'=>'requires_readback',
             'reason'=>transferReason($error)];
     }
     echo json_encode($result, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), PHP_EOL;

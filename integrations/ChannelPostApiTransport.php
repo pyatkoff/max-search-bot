@@ -82,9 +82,10 @@ final class ChannelPostApiTransport
     }
 
     /** Pure preflight before the editor consumes its once-only write marker. */
-    public static function hotelMediaPayload(string $channelId, string $messageId, array $body): ?array
+    public static function hotelMediaPayload(string $channelId, string $messageId, array $body, bool $next = false): ?array
     {
-        if ($channelId !== '-1001845835645' || !in_array($messageId, ['862', '328', '1083', '288'], true)
+        $approvedMessages = $next ? ['1588', '997', '1101'] : ['862', '328', '1083', '288'];
+        if ($channelId !== '-1001845835645' || !in_array($messageId, $approvedMessages, true)
             || array_keys($body) !== ['media', 'reply_markup']) return null;
         $media = $body['media'];
         $markup = $body['reply_markup'];
@@ -110,10 +111,10 @@ final class ChannelPostApiTransport
         return ['chat_id' => $channelId, 'message_id' => (int)$messageId] + $body;
     }
 
-    /** Four approved historical photos only; deployment credentials, never the publisher's. */
-    public static function hotelMediaRequest(string $channelId, string $messageId, array $body): array
+    /** Fixed historical photo edits use deployment credentials. */
+    public static function hotelMediaRequest(string $channelId, string $messageId, array $body, bool $next = false): array
     {
-        $payload = self::hotelMediaPayload($channelId, $messageId, $body);
+        $payload = self::hotelMediaPayload($channelId, $messageId, $body, $next);
         return $payload === null ? ['http' => 0, 'data' => null, 'transport_error' => true]
             : self::postRequest('telegram', 'POST', 'editMessageMedia', [], $payload, false, null, true);
     }

@@ -54,6 +54,12 @@ const HOTEL_FOUR_TRANSFER = Object.freeze({branch:'ops/anytour-hotel-four-apply-
   plan_path:'config/anytour_existing_post_transfer_four_20261123.json',plan_size:11972,
   plan_blob:'648e68b7395fcab65c321448b1a6a68554de17dc',
   plan_digest:'fdda41801951a033715b5ca5d567ef348f2ee885ab40074d35dfa8151d52de56'});
+const HOTEL_NEXT_TRANSFER = Object.freeze({...HOTEL_FOUR_TRANSFER,
+  branch:'ops/anytour-hotel-next-apply-20261123',
+  workflow:PREFIX+'edit-1566-next-historical-telegram.yml',operation:'hotel_next_transfer',
+  plan_path:'config/anytour_existing_post_transfer_next_20261123.json',plan_size:5520,
+  plan_blob:'297bed885e03f3422e624ac3dff6fd873e689135',
+  plan_digest:'30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d'});
 const HOTEL_MAX_SUGAR_TRANSFER = Object.freeze({...HOTEL_FOUR_TRANSFER,
   branch:'ops/anytour-max-sugar-marina-800-apply-20261123',
   workflow:PREFIX+'edit-1566-max-sugar-marina.yml',operation:'hotel_max_sugar_transfer',
@@ -1758,6 +1764,7 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
   }
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_REGISTRY_READ.branch)return resolveHotelRegistryRead({env,event,api});
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_FOUR_TRANSFER.branch)return resolveHotelTransfer({env,event,api});
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_NEXT_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_NEXT_TRANSFER);
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_MAX_SUGAR_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_MAX_SUGAR_TRANSFER);
   const startedAt=now();
   const c=await sourceContext(env,event,api);
