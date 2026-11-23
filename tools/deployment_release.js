@@ -67,6 +67,9 @@ const HOTEL_RANKED_46 = Object.freeze({...HOTEL_FOUR_TRANSFER,
   native_zip_bytes:94348,native_zip_digest:'cf776ab108e8b023aaf6217fa1d5e43dce6047d462e2c96295cc94175332d0cc'});
 const HOTEL_REMAINING_TRANSFER = Object.freeze({...HOTEL_NEXT_TRANSFER,
   branch:'ops/anytour-hotel-remaining-apply-20261123',operation:'hotel_remaining_transfer'});
+const HOTEL_STELLA_ALTERNATE = Object.freeze({...HOTEL_NEXT_TRANSFER,
+  branch:'ops/anytour-hotel-stella-alternate-apply-20261123',operation:'hotel_stella_alternate_transfer',
+  plan_path:'config/anytour_stella_alternate_20261123.json',plan_size:2005,plan_blob:'f186b48375251a66226a9d2b81de4d0638e93c8e',plan_digest:'c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab'});
 const ORIGINAL_NEXT_TRANSFER = Object.freeze({
   run:45235830990,job:137907167978,sha:'bb7d0bde64092cbd24a69084e651ff44336ba8b5',
   artifact:14850280926,digest:'sha256:8df0ba31b546c644f800a71324d959c8ebdaa1a0801ffdc2f0d8ef5cebf3034c'});
@@ -1793,6 +1796,13 @@ async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
   requireValue(bytes.length===p.plan_size&&bytes.toString('base64')===encoded&&gitBlob(bytes)===p.plan_blob
     &&crypto.createHash('sha256').update(bytes).digest('hex')===p.plan_digest,'hotel_transfer_plan_changed');
   if(p===HOTEL_REMAINING_TRANSFER)await proveOriginalNextTransfer(api);
+  if(p===HOTEL_STELLA_ALTERNATE){
+    const proof=runIdentity(await api('GET',API_ROOT+'/actions/runs/45275242345'),{
+      id:45275242345,attempt:1,head:'68b789067a576da57cf7ec16533f658e437f6e3c',
+      workflow:PREFIX+'read-1566-stella-alternate-candidates.yml',
+      event:'push',branch:'audit/1566-next-release-admission-1664'});
+    requireValue(proof.actor?.id===p.owner_id&&proof.triggering_actor?.id===p.owner_id,'foreign_stella_alternate_preflight');
+  }
   const location=await readRecord(api),result=await resolveCurrent(api,c,location);
   requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
   requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_transfer_branch_changed');
@@ -1829,6 +1839,7 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_NEXT_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_NEXT_TRANSFER);
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_RANKED_46.branch)return resolveRankedHotelTransfer({env,event,api});
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_REMAINING_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_REMAINING_TRANSFER);
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_STELLA_ALTERNATE.branch)return resolveHotelTransfer({env,event,api},HOTEL_STELLA_ALTERNATE);
   const startedAt=now();
   const c=await sourceContext(env,event,api);
   requireValue(c.attempt===1,'consumer_rerun_forbidden');

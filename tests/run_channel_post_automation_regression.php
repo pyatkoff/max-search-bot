@@ -1459,6 +1459,19 @@ try {
 } catch (RuntimeException $error) {
     channelPostCheck('uncertain Telegram response stops the continuation', $error->getMessage(), 'transfer_original_rejection_unconfirmed');
 }
+$stellaPlanRaw = file_get_contents(__DIR__.'/../config/anytour_stella_alternate_20261123.json');
+$stellaDigest = 'c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab';
+$stellaAlternate = AnyTour\ExistingPostBatch\transferPlanFromBytes($stellaPlanRaw, $stellaDigest, $stellaDigest);
+channelPostCheck('alternate Stella plan preserves the approved source, photo, and caption',
+    $stellaAlternate['rows'], [array_replace($nextTransfer['rows'][2], [
+        'target_message_id'=>'925', 'target_published_unixtime'=>1731241439,
+        'target_caption_sha256'=>'f73587cf7dcc1fafa3c303bd8948dbafbdf3fc8ae07992acf5472e8f0d6a220e',
+        'target_photo_marker_sha256'=>'00581a7eaa9f78288dfc78567412b44ab4cd8b12ba195548a2cb3272f5a6573e',
+    ])]);
+channelPostCheck('alternate Stella plan only allows the new target',
+    [AnyTour\ExistingPostBatch\transferPublicAllowed('anytour', '925', $stellaDigest),
+        AnyTour\ExistingPostBatch\transferPublicAllowed('anytour', '1101', $stellaDigest),
+        AnyTour\ExistingPostBatch\transferPublicAllowed('anytour', '997', $stellaDigest)], [true,false,false]);
 // Load the same tracked dependency path as applyTransferPlan, without its runtime
 // bootstrap. This synthetic saved export is test data, never native evidence.
 require_once __DIR__.'/../tools/direct_demand/operations/monitor-price-hook-contract.php';
