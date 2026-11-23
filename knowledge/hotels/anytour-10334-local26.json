@@ -1,0 +1,226 @@
+{
+  "binding_revision": "28aa90e2f34b15082502a459a64376e9bf0e4798ad4e287abf619333a9ad3bb2",
+  "coverage": {
+    "available_prepared_claim_count": 8,
+    "basis": "All whole source facts from the immutable reviewed LOCAL26 package; not independent AI content admission.",
+    "complete": false,
+    "selected_claim_count": 8
+  },
+  "facts": [
+    {
+      "aspect": "location_and_architecture",
+      "declared": true,
+      "hotel_key": "EXP017",
+      "id": "A10334-F01",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Al Yamm / Sir Bani Yas Island",
+        "kind": "location"
+      },
+      "source_ids": [
+        "A10334-home"
+      ],
+      "text": "Курорт находится у пляжа на острове Сир-Бани-Яс, у побережья Абу-Даби; архитектура вдохновлена традиционной эмиратской рыбацкой деревней.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "villa_inventory_and_pools",
+      "declared": true,
+      "hotel_key": "EXP017",
+      "id": "A10334-F02",
+      "kind": "official_declared",
+      "scope": {
+        "key": "30 one- and two-bedroom Al Yamm villas",
+        "kind": "accommodation_listing"
+      },
+      "source_ids": [
+        "A10334-home"
+      ],
+      "text": "Размещение — 30 вилл с собственными бассейнами; представлены варианты с одной и двумя спальнями.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "villa_view_options",
+      "declared": true,
+      "hotel_key": "EXP017",
+      "id": "A10334-F03",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Al Yamm villas; bay or mangrove views",
+        "kind": "accommodation_listing"
+      },
+      "source_ids": [
+        "A10334-home"
+      ],
+      "text": "Виллы предлагают виды на залив или мангровые заросли.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "pool_and_fitness",
+      "declared": true,
+      "hotel_key": "EXP017",
+      "id": "A10334-F04",
+      "kind": "official_declared",
+      "scope": {
+        "key": "shared beach-view pool / fitness studio",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "A10334-home",
+        "A10334-leisure"
+      ],
+      "text": "Есть общий бассейн с видом на пляж и небольшая фитнес-студия.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "island_activities",
+      "declared": true,
+      "hotel_key": "EXP017",
+      "id": "A10334-F05",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Sir Bani Yas nature park / walking / kayaking / riding",
+        "kind": "activities"
+      },
+      "source_ids": [
+        "A10334-leisure"
+      ],
+      "text": "Среди островных занятий — поездки по природному парку, прогулки, каякинг и верховая езда.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "water_taxi_duration",
+      "declared": true,
+      "hotel_key": "EXP017",
+      "id": "A10334-F06",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Jebel Danna jetty to Sir Bani Yas",
+        "kind": "transfer_route"
+      },
+      "source_ids": [
+        "A10334-contact"
+      ],
+      "text": "Водное такси отправляется к острову от причала Джебель-Данна; заявленная продолжительность переправы — около 30 минут.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "water_taxi_reservation_and_weather",
+      "declared": true,
+      "hotel_key": "EXP017",
+      "id": "A10334-F07",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Jebel Danna jetty to Sir Bani Yas",
+        "kind": "transfer_route"
+      },
+      "source_ids": [
+        "A10334-contact"
+      ],
+      "text": "Переправу нужно бронировать минимум за 24 часа; рейс зависит от погодных условий и разрешения береговой охраны.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "summer_water_sports_limit",
+      "declared": true,
+      "hotel_key": "EXP017",
+      "id": "A10334-F08",
+      "kind": "official_declared",
+      "scope": {
+        "key": "island water sports in summer months",
+        "kind": "seasonal_activities"
+      },
+      "source_ids": [
+        "A10334-leisure"
+      ],
+      "text": "Официальная страница предупреждает об ограниченном выборе водных видов спорта в летние месяцы.",
+      "valid_at_travel": "unverified"
+    }
+  ],
+  "hotel_ref": {
+    "catalog": "anytour",
+    "id": 10334
+  },
+  "material_limits": {
+    "identity_admission": "Цепочка legacy_catalog 22940 → AnyTour 10334 (ревизия 2) → local-tv 22940 (ревизия 2) и это целое досье независимо приняты решением ACCEPT_LOCAL19_BOUNDED_CONSUMER_IDENTITY_AND_CONTENT_ADMISSION по сохранённым оригинальным доказательствам. Native LOCAL остаётся pending, source_json=NULL; приёмка досье не означает приёмку нового native/provider source. Реальная Library приёмка, установка в справочник, чтение с реальным разрешённым selector и использование ИИ подтверждаются отдельно; runtime_admission_verified=false.",
+    "original_notes_ru": [
+      "Объект отделён от Anantara Al Sahel Villa Resort и Desert Islands Resort & Spa; их фотографии и номерной фонд не использованы.",
+      "Текущая главная страница Al Yamm прямо описывает все 30 вилл как pool villas; старые варианты без бассейна не добавлялись.",
+      "Островные экскурсии описаны как доступные занятия, без обещания включения в стоимость; ограничения переправы и летних водных развлечений сохранены."
+    ],
+    "recommendation_boundary": "Заявления об аудитории отеля не являются независимой оценкой качества или гарантией пригодности конкретному туристу.",
+    "scope": "Каждое целое утверждение применяется только к указанному объекту, категории, услуге, сезону или маршруту. Обещания тарифа, цены, наличия и будущей работы не добавлены.",
+    "temporal": "Сохранены сведения и дата чтения 22.11.2026. Текущая или будущая работа услуг не проверялась; срок действия и дата публикации не выдуманы."
+  },
+  "price_authority": "none",
+  "project_key": "anytour",
+  "record_hashes": {
+    "claims": {
+      "A10334-F01": "0b666e953bdcc0922b818e08c58f5f60e209ed78d04321ddbc88a746e5ff89ab",
+      "A10334-F02": "3cf70a28b28fb9445db1c65f218fe9308fec9fcd9571bf7d1c637448e5d2d5a3",
+      "A10334-F03": "1b25c9b7ace9037bd4bc998260f56e62c9f8b3db9bda6ca7d000e4f3b6ffcd4e",
+      "A10334-F04": "2ac430c8256a56b661a3d36c1371db6d811d13c80692aa33eac366db7257fce1",
+      "A10334-F05": "e8469d279c7dc0f680ffcc0b1a30a0bbce6ed0c942ba91d38f3ca1076300ca1c",
+      "A10334-F06": "6bec88f3d3f02848afcbe5ff107de779bb101a8ac3453e0458b114fe1e8fac70",
+      "A10334-F07": "48a216531bd152b7badbce472b91a241c2c9aa9c4a38f7ec9d9ea2a3d5efbfb2",
+      "A10334-F08": "495b2b029c65b0cb721bd6a10ef4259207554217163c69a1fc62f07babe65fde"
+    },
+    "sources": {
+      "A10334-contact": "37c9c3838eccd4351b42197af6fc849adad34d4a9258284403505b5073b0e641",
+      "A10334-home": "07d5e78e452905f1fde76b5080a845ce0a765fa4e8ac309a3eeafa5c5502b626",
+      "A10334-leisure": "4cf4ccb0de2f919a0a1fb3fad68bdabe12a48d3df6b7040db754539dc71ef31a"
+    }
+  },
+  "research_hotel_key": "EXP017",
+  "runtime_admission_verified": false,
+  "schema_version": "hotel_reference_v1",
+  "sources": [
+    {
+      "capture_bytes": 196518,
+      "capture_format": "raw_html",
+      "capture_sha256": "50c904275ab1a01858758e10f29c02c38b681850b0201545aad6ff075c0d4cf2",
+      "hotel_key": "EXP017",
+      "id": "A10334-home",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: A10334-F01, A10334-F02, A10334-F03, A10334-F04. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:36.273916+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Abu Dhabi Resorts | Anantara Al Yamm Villa Resort Official Site",
+      "url": "https://www.anantara.com/en/al-yamm-sir-bani-yas"
+    },
+    {
+      "capture_bytes": 207954,
+      "capture_format": "raw_html",
+      "capture_sha256": "e5dfa659446957e1bd2cdb2ce6bc25281444a20835d971d0af83514bbda68233",
+      "hotel_key": "EXP017",
+      "id": "A10334-leisure",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: A10334-F04, A10334-F05, A10334-F08. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:56.332103+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Best Tourist Attractions in Abu Dhabi | Leisure | Al Yamm Villa Resort",
+      "url": "https://www.anantara.com/en/al-yamm-sir-bani-yas/leisure"
+    },
+    {
+      "capture_bytes": 165747,
+      "capture_format": "raw_html",
+      "capture_sha256": "4f56497e62cc29eac0dfe57196ffa818c41ede03df1ac7eb1406e982ab6561d6",
+      "hotel_key": "EXP017",
+      "id": "A10334-contact",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: A10334-F06, A10334-F07. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:56.306005+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Abu Dhabi Beach Resort | Contact Details of Al Yamm Resort",
+      "url": "https://www.anantara.com/en/al-yamm-sir-bani-yas/contact"
+    }
+  ],
+  "status": "SEALED_AUTHORING_DATA_ONLY",
+  "trusted_selector_required": true
+}

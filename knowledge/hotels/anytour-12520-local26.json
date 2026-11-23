@@ -1,0 +1,226 @@
+{
+  "binding_revision": "dba72303a0f649ba73b1416f0d760174daad455fe3597d7f84b7aad1f709fc6d",
+  "coverage": {
+    "available_prepared_claim_count": 8,
+    "basis": "All whole source facts from the immutable reviewed LOCAL26 package; not independent AI content admission.",
+    "complete": false,
+    "selected_claim_count": 8
+  },
+  "facts": [
+    {
+      "aspect": "beach_and_lagoon_location",
+      "declared": true,
+      "hotel_key": "EXP028",
+      "id": "A12520-F01",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Salalah / Arabian Sea beach and freshwater lagoon",
+        "kind": "location"
+      },
+      "source_ids": [
+        "A12520-home",
+        "A12520-contact"
+      ],
+      "text": "Курорт расположен в Салале между частным пляжем Аравийского моря и пресноводной лагуной.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "nearby_heritage_sites",
+      "declared": true,
+      "hotel_key": "EXP028",
+      "id": "A12520-F02",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Al Baleed archaeological park / Museum of the Frankincense Land",
+        "kind": "location"
+      },
+      "source_ids": [
+        "A12520-home"
+      ],
+      "text": "Рядом находятся археологический парк Аль-Балид и Музей земли ладана.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "category_balconies_and_pools",
+      "declared": true,
+      "hotel_key": "EXP028",
+      "id": "A12520-F03",
+      "kind": "official_declared",
+      "scope": {
+        "key": "rooms / Villas / Pool Villas; pools only in named Pool Villas",
+        "kind": "accommodation_listing"
+      },
+      "source_ids": [
+        "A12520-home"
+      ],
+      "text": "Предлагаются номера с балконами или террасами, виллы и Pool Villas; собственные бассейны относятся к категориям Pool Villas.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "infinity_pool",
+      "declared": true,
+      "hotel_key": "EXP028",
+      "id": "A12520-F04",
+      "kind": "official_declared",
+      "scope": {
+        "key": "shared infinity pool",
+        "kind": "facility"
+      },
+      "source_ids": [
+        "A12520-home",
+        "A12520-leisure"
+      ],
+      "text": "На территории есть панорамный бассейн.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "child_and_teen_clubs",
+      "declared": true,
+      "hotel_key": "EXP028",
+      "id": "A12520-F05",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Albahhara Kids Club / Alshirae Play Space",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "A12520-leisure"
+      ],
+      "text": "Для детей работает Albahhara Kids’ Club, для подростков — Alshirae Play Space.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "sports",
+      "declared": true,
+      "hotel_key": "EXP028",
+      "id": "A12520-F06",
+      "kind": "official_declared",
+      "scope": {
+        "key": "tennis / padel / mini-golf",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "A12520-leisure"
+      ],
+      "text": "Среди спортивных возможностей указаны теннис, падел и мини-гольф.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "named_restaurant_cuisines",
+      "declared": true,
+      "hotel_key": "EXP028",
+      "id": "A12520-F07",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Mekong / Al Mina",
+        "kind": "dining"
+      },
+      "source_ids": [
+        "A12520-home"
+      ],
+      "text": "Mekong предлагает тайскую, вьетнамскую и китайскую кухню, Al Mina — средиземноморские блюда.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "airport_transfer_notice",
+      "declared": true,
+      "hotel_key": "EXP028",
+      "id": "A12520-F08",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Salalah airport; approximately 15 minutes / request at least 48 hours ahead",
+        "kind": "transfer_route"
+      },
+      "source_ids": [
+        "A12520-contact"
+      ],
+      "text": "Аэропорт Салалы расположен примерно в 15 минутах езды; трансфер организуют по запросу минимум за 48 часов.",
+      "valid_at_travel": "unverified"
+    }
+  ],
+  "hotel_ref": {
+    "catalog": "anytour",
+    "id": 12520
+  },
+  "material_limits": {
+    "identity_admission": "Цепочка legacy_catalog 57536 → AnyTour 12520 (ревизия 2) → local-tv 57536 (ревизия 2) и это целое досье независимо приняты решением ACCEPT_LOCAL19_BOUNDED_CONSUMER_IDENTITY_AND_CONTENT_ADMISSION по сохранённым оригинальным доказательствам. Native LOCAL остаётся pending, source_json=NULL; приёмка досье не означает приёмку нового native/provider source. Реальная Library приёмка, установка в справочник, чтение с реальным разрешённым selector и использование ИИ подтверждаются отдельно; runtime_admission_verified=false.",
+    "original_notes_ru": [
+      "Наличие бассейна не распространено на все виллы: сайт отдельно перечисляет Villas и Pool Villas.",
+      "Сезонные условия моря и Харифа не превращены в гарантии погоды или купания; стоимость трансфера и ресторанные тарифы не добавлены."
+    ],
+    "recommendation_boundary": "Заявления об аудитории отеля не являются независимой оценкой качества или гарантией пригодности конкретному туристу.",
+    "scope": "Каждое целое утверждение применяется только к указанному объекту, категории, услуге, сезону или маршруту. Обещания тарифа, цены, наличия и будущей работы не добавлены.",
+    "temporal": "Сохранены сведения и дата чтения 22.11.2026. Текущая или будущая работа услуг не проверялась; срок действия и дата публикации не выдуманы."
+  },
+  "price_authority": "none",
+  "project_key": "anytour",
+  "record_hashes": {
+    "claims": {
+      "A12520-F01": "13a8e35cc9a6a1effcb1cb39e51643116d5bbf156e02a33bdc8ee7deae85b157",
+      "A12520-F02": "41eba1150759cbae8974108cde4f13e8925521d45a0b7f0e706e86a4a0b20877",
+      "A12520-F03": "6bfee7c83160ac680240712315bd280f6f44e7abb7248a8a25b657df672a6648",
+      "A12520-F04": "f3b252cf38c72ca0ea2a3733026c7543b3c6ecee5fe25344ae93610761b82ff6",
+      "A12520-F05": "080778416d2632f4ffd4f576285f65d5bba6d368da044acf0fbacf6d80ab1c44",
+      "A12520-F06": "140ce613285b818e5f098fb5042e222b8f40360108c1488ba107dceb09440bc1",
+      "A12520-F07": "226ac3ac789a3aaef1b3d505b0f671786ae625ee6aeffaa0ead005742a3363b7",
+      "A12520-F08": "90fd4a92c2c27d1f05c75d686b6c31b5908629929fb5eea66b44e01d96ead37c"
+    },
+    "sources": {
+      "A12520-contact": "f220ea94793db75e137ea9ee0617ea14a0978da30a02bee02c369647290a1386",
+      "A12520-home": "27a3f860e37667fa0e93156f22445851e8b2af5aeda72c0b438b1ae96bd46fdd",
+      "A12520-leisure": "876583a218b2a074ee8d69e3fa1754ea2c5058db92b7a49f85c59b328f0c56c3"
+    }
+  },
+  "research_hotel_key": "EXP028",
+  "runtime_admission_verified": false,
+  "schema_version": "hotel_reference_v1",
+  "sources": [
+    {
+      "capture_bytes": 222116,
+      "capture_format": "raw_html",
+      "capture_sha256": "f96e8e40b21e454f78b843b4f3976eca3d3d0efee311ea25657bd2367b35cb88",
+      "hotel_key": "EXP028",
+      "id": "A12520-home",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: A12520-F01, A12520-F02, A12520-F03, A12520-F04, A12520-F07. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:40.642729+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Salalah Hotels | Al Baleed Resort Salalah by Anantara Official Site",
+      "url": "https://www.anantara.com/en/al-baleed-salalah"
+    },
+    {
+      "capture_bytes": 198912,
+      "capture_format": "raw_html",
+      "capture_sha256": "a31289c8621c078f43077664fc20eea0b17e450e99888593bad8a795df4b72ba",
+      "hotel_key": "EXP028",
+      "id": "A12520-leisure",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: A12520-F04, A12520-F05, A12520-F06. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:59:04.183664+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Places to Visit in Oman Salalah | Leisure | Anantara Salalah",
+      "url": "https://www.anantara.com/en/al-baleed-salalah/leisure"
+    },
+    {
+      "capture_bytes": 159507,
+      "capture_format": "raw_html",
+      "capture_sha256": "0780cfac65af7b56efa962ec70bf6e581cf479a4c106d3b7c0eaf11c281d64ce",
+      "hotel_key": "EXP028",
+      "id": "A12520-contact",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: A12520-F01, A12520-F08. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:59:04.155740+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Oman Resorts | Al Baleed Resort Salalah|Contact Details",
+      "url": "https://www.anantara.com/en/al-baleed-salalah/contact"
+    }
+  ],
+  "status": "SEALED_AUTHORING_DATA_ONLY",
+  "trusted_selector_required": true
+}

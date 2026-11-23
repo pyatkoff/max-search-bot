@@ -1,0 +1,224 @@
+{
+  "binding_revision": "e165a9f1fab49b1a1ab35e461cc640828f06c952b441f32431909b20e15f395d",
+  "coverage": {
+    "available_prepared_claim_count": 8,
+    "basis": "All whole source facts from the immutable reviewed LOCAL26 package; not independent AI content admission.",
+    "complete": false,
+    "selected_claim_count": 8
+  },
+  "facts": [
+    {
+      "aspect": "district_location",
+      "declared": true,
+      "hotel_key": "EXP084",
+      "id": "EXP084-F01",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Gate Village Building 9 / DIFC / Dubai",
+        "kind": "location"
+      },
+      "source_ids": [
+        "fs-dubaidifc-main"
+      ],
+      "text": "Отель расположен в Gate Village, Building 9, DIFC, рядом с Downtown Dubai.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "room_layout_and_view",
+      "declared": true,
+      "hotel_key": "EXP084",
+      "id": "EXP084-F02",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Four Seasons Room",
+        "kind": "room_category"
+      },
+      "source_ids": [
+        "fs-dubaidifc-main"
+      ],
+      "text": "Four Seasons Room — угловой номер с окнами от пола до потолка и видом на город.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "suite_separate_bedroom",
+      "declared": true,
+      "hotel_key": "EXP084",
+      "id": "EXP084-F03",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Deluxe Executive Suite",
+        "kind": "room_category"
+      },
+      "source_ids": [
+        "fs-dubaidifc-main"
+      ],
+      "text": "Deluxe Executive Suite имеет гостиную, отделённую от спальни.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "rooftop_pool",
+      "declared": true,
+      "hotel_key": "EXP084",
+      "id": "EXP084-F04",
+      "kind": "official_declared",
+      "scope": {
+        "key": "glass-sided rooftop pool",
+        "kind": "facility"
+      },
+      "source_ids": [
+        "fs-dubaidifc-amenities"
+      ],
+      "text": "На крыше находится бассейн со стеклянными стенками.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "poolside_cabanas_and_drinks",
+      "declared": true,
+      "hotel_key": "EXP084",
+      "id": "EXP084-F05",
+      "kind": "official_declared",
+      "scope": {
+        "key": "rooftop pool area",
+        "kind": "facility"
+      },
+      "source_ids": [
+        "fs-dubaidifc-amenities"
+      ],
+      "text": "У бассейна предусмотрены отдельные кабинки для отдыха и обслуживание напитками.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "fitness_and_spa",
+      "declared": true,
+      "hotel_key": "EXP084",
+      "id": "EXP084-F06",
+      "kind": "official_declared",
+      "scope": {
+        "key": "fitness centre / seventh-floor spa",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "fs-dubaidifc-amenities"
+      ],
+      "text": "Есть фитнес-центр и спа на седьмом этаже с массажами и уходовыми процедурами.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "named_dining_venues",
+      "declared": true,
+      "hotel_key": "EXP084",
+      "id": "EXP084-F07",
+      "kind": "official_declared",
+      "scope": {
+        "key": "MINA Brasserie / KIGO / Luna Dubai",
+        "kind": "dining"
+      },
+      "source_ids": [
+        "fs-dubaidifc-main"
+      ],
+      "text": "На основной странице перечислены MINA Brasserie, KIGO и Luna Dubai.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "business_and_concierge",
+      "declared": true,
+      "hotel_key": "EXP084",
+      "id": "EXP084-F08",
+      "kind": "official_declared",
+      "scope": {
+        "key": "business services / multilingual concierge",
+        "kind": "services"
+      },
+      "source_ids": [
+        "fs-dubaidifc-amenities"
+      ],
+      "text": "Предоставляются бизнес-услуги и помощь многоязычного консьержа.",
+      "valid_at_travel": "unverified"
+    }
+  ],
+  "hotel_ref": {
+    "catalog": "anytour",
+    "id": 13066
+  },
+  "material_limits": {
+    "identity_admission": "Цепочка legacy_catalog 64648 → AnyTour 13066 (ревизия 2) → local-tv 64648 (ревизия 2) и это целое досье независимо приняты решением ACCEPT_LOCAL19_BOUNDED_CONSUMER_IDENTITY_AND_CONTENT_ADMISSION по сохранённым оригинальным доказательствам. Native LOCAL остаётся pending, source_json=NULL; приёмка досье не означает приёмку нового native/provider source. Реальная Library приёмка, установка в справочник, чтение с реальным разрешённым selector и использование ИИ подтверждаются отдельно; runtime_admission_verified=false.",
+    "original_notes_ru": [
+      "Не смешивать с Four Seasons Resort Dubai at Jumeirah Beach.",
+      "Бассейн на крыше является общим гостиничным удобством, не частным бассейном каждого номера."
+    ],
+    "recommendation_boundary": "Заявления об аудитории отеля не являются независимой оценкой качества или гарантией пригодности конкретному туристу.",
+    "scope": "Каждое целое утверждение применяется только к указанному объекту, категории, услуге, сезону или маршруту. Обещания тарифа, цены, наличия и будущей работы не добавлены.",
+    "temporal": "Сохранены сведения и дата чтения 22.11.2026. Текущая или будущая работа услуг не проверялась; срок действия и дата публикации не выдуманы."
+  },
+  "price_authority": "none",
+  "project_key": "anytour",
+  "record_hashes": {
+    "claims": {
+      "EXP084-F01": "4945bc25db185a0052fca930b5a138dbcea6c1683b2989417e9eb47de0142ab3",
+      "EXP084-F02": "36c658a06f634a2cfe1c8ba432c4a0ae0d2785c9ae5485c913c152f79f441ebc",
+      "EXP084-F03": "a5c1501e20a46984ebbde8bd7e167f64f956d385eb40ac4c4890cef9f6bcd899",
+      "EXP084-F04": "6334ca89d7053fc26b63e71422fb8df9de4b4bad4eafb63e015752eea0de3808",
+      "EXP084-F05": "17a7148761ae30fb0bc7c4d13a7df3036f0c8595cd36961f09b039a9731cf97e",
+      "EXP084-F06": "c2ca587a7ef76bf9a68d0c6c29dfbe78035ed9048b4aa4b2cb75e30001bab219",
+      "EXP084-F07": "fbefd8e1cefbcd510ea3ca628785ca84a1b11d4873867f6849ff8b0112bf2976",
+      "EXP084-F08": "a4ef1e83066c1a8b5b84f5d14db1f3f38056e075e7f681b218fec196a67c0822"
+    },
+    "sources": {
+      "fs-dubaidifc-amenities": "135e84ceb7c78ce34207aa147954a6395dbe2a958c7a45d3d19612b6536f6935",
+      "fs-dubaidifc-main": "5979c703d4dcb544b701fba65c493a91044ee07813418d2c87f9650e915c26f3",
+      "fs-dubaidifc-rooms": "535d6c8395bdbfeb4e95d3811c5bd1c0cf35bc6e885c8005b0ba0c9fc4088ef1"
+    }
+  },
+  "research_hotel_key": "EXP084",
+  "runtime_admission_verified": false,
+  "schema_version": "hotel_reference_v1",
+  "sources": [
+    {
+      "capture_bytes": 246149,
+      "capture_format": "raw_html",
+      "capture_sha256": "346d68454dce1e363beb4c97b8b67cc52e4300140cc319de1fa3168c567cc55a",
+      "hotel_key": "EXP084",
+      "id": "fs-dubaidifc-main",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: EXP084-F01, EXP084-F02, EXP084-F03, EXP084-F07. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:37.295513+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Luxury Hotel in Dubai DIFC | Near Burj Khalifa | Luxury Four Seasons",
+      "url": "https://www.fourseasons.com/dubaidifc/"
+    },
+    {
+      "capture_bytes": 97957,
+      "capture_format": "raw_html",
+      "capture_sha256": "918424840cd14c36063242dbf273b7b1f84178e659cd875ba4583a0c13afad78",
+      "hotel_key": "EXP084",
+      "id": "fs-dubaidifc-amenities",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: EXP084-F04, EXP084-F05, EXP084-F06, EXP084-F08. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:37.274343+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Four Seasons Dubai DIFC Services &amp; Amenities",
+      "url": "https://www.fourseasons.com/dubaidifc/services-and-amenities/"
+    },
+    {
+      "capture_bytes": 325146,
+      "capture_format": "raw_html",
+      "capture_sha256": "653ccbbaf94b34ca3fbf06e37ba68be653a2ef10124685704e81d6ef1eae0b8c",
+      "hotel_key": "EXP084",
+      "id": "fs-dubaidifc-rooms",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Дополнительная официальная страница из исходного пакета; ни один из 206 текстовых фактов прямо не ссылается на эту запись. Не является новым основанием для фактов.",
+      "retrieved_at_utc": "2026-11-22T09:58:37.408428+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Dubai Hotel Suites | DIFC Hotel Apartments | Four Seasons",
+      "url": "https://www.fourseasons.com/dubaidifc/accommodations/"
+    }
+  ],
+  "status": "SEALED_AUTHORING_DATA_ONLY",
+  "trusted_selector_required": true
+}

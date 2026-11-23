@@ -1,0 +1,209 @@
+{
+  "binding_revision": "37e1a5fcb967ff77711986d3a091f6122f992790321ded23bf90ddbfa0613627",
+  "coverage": {
+    "available_prepared_claim_count": 8,
+    "basis": "All whole source facts from the immutable reviewed LOCAL26 package; not independent AI content admission.",
+    "complete": false,
+    "selected_claim_count": 8
+  },
+  "facts": [
+    {
+      "aspect": "complex_location_and_architecture",
+      "declared": true,
+      "hotel_key": "EXP094",
+      "id": "JUM7619-F1",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Al Qasr / Madinat Jumeirah / Dubai",
+        "kind": "location"
+      },
+      "source_ids": [
+        "JUM7619-S1"
+      ],
+      "text": "Jumeirah Al Qasr расположен в Madinat Jumeirah, Дубай; его архитектура описана как арабский дворец среди садов и каналов.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "category_dependent_design_and_views",
+      "declared": true,
+      "hotel_key": "EXP094",
+      "id": "JUM7619-F2",
+      "kind": "official_declared",
+      "scope": {
+        "key": "rooms and suites; gulf/garden/canal views depend on category",
+        "kind": "accommodation_listing"
+      },
+      "source_ids": [
+        "JUM7619-S2"
+      ],
+      "text": "Номера и люксы сочетают арабский и современный дизайн; виды на залив, сады и каналы зависят от категории.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "named_room_categories",
+      "declared": true,
+      "hotel_key": "EXP094",
+      "id": "JUM7619-F3",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Deluxe Arabian Room / Lagoon Deluxe / Ocean Deluxe",
+        "kind": "room_categories"
+      },
+      "source_ids": [
+        "JUM7619-S2"
+      ],
+      "text": "В актуальном каталоге размещения есть Deluxe Arabian Room, Lagoon Deluxe и Ocean Deluxe.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "connecting_family_categories",
+      "declared": true,
+      "hotel_key": "EXP094",
+      "id": "JUM7619-F4",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Two Bedroom Arabian Family Room / Two Bedroom Ocean Family Room",
+        "kind": "room_categories"
+      },
+      "source_ids": [
+        "JUM7619-S2"
+      ],
+      "text": "Two Bedroom Arabian Family Room и Two Bedroom Ocean Family Room обозначены как сообщающиеся категории.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "beach_and_pool_age_zones",
+      "declared": true,
+      "hotel_key": "EXP094",
+      "id": "JUM7619-F5",
+      "kind": "official_declared",
+      "scope": {
+        "key": "beach / pools / separate adults-only pool",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "JUM7619-S1"
+      ],
+      "text": "Официальная страница перечисляет пляж и бассейны; отдельно упомянут бассейн для взрослых.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "child_club_and_spa",
+      "declared": true,
+      "hotel_key": "EXP094",
+      "id": "JUM7619-F6",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Jumeirah Circle at Jumeirah Al Qasr / Talise Spa",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "JUM7619-S1"
+      ],
+      "text": "В перечне инфраструктуры указаны Jumeirah Circle at Jumeirah Al Qasr и Talise Spa.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "complex_abra_service",
+      "declared": true,
+      "hotel_key": "EXP094",
+      "id": "JUM7619-F7",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Madinat Jumeirah canals / abra boats",
+        "kind": "shared_complex_service"
+      },
+      "source_ids": [
+        "JUM7619-S1"
+      ],
+      "text": "В комплексе предусмотрены поездки по каналам на традиционных лодках абра.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "complex_dining",
+      "declared": true,
+      "hotel_key": "EXP094",
+      "id": "JUM7619-F8",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Pierchic / Pai Thai",
+        "kind": "shared_complex_dining"
+      },
+      "source_ids": [
+        "JUM7619-S1"
+      ],
+      "text": "Среди ресторанов, представленных для Al Qasr, указаны Pierchic и Pai Thai.",
+      "valid_at_travel": "unverified"
+    }
+  ],
+  "hotel_ref": {
+    "catalog": "anytour",
+    "id": 7619
+  },
+  "material_limits": {
+    "identity_admission": "Цепочка legacy_catalog 2611 → AnyTour 7619 (ревизия 2) → local-tv 2611 (ревизия 2) и это целое досье независимо приняты решением ACCEPT_LOCAL19_BOUNDED_CONSUMER_IDENTITY_AND_CONTENT_ADMISSION по сохранённым оригинальным доказательствам. Native LOCAL остаётся pending, source_json=NULL; приёмка досье не означает приёмку нового native/provider source. Реальная Library приёмка, установка в справочник, чтение с реальным разрешённым selector и использование ИИ подтверждаются отдельно; runtime_admission_verified=false.",
+    "original_notes_ru": [
+      "На JUM7619-S1 по состоянию на 22.11.2026 Wild Wadi обозначен как временно закрытый. Доступ в аквапарк не включён в предлагаемое описание.",
+      "Обозначение adult-only относится к отдельному бассейну, а не ко всему отелю. Семейное размещение и Jumeirah Circle описаны на официальном сайте.",
+      "Фотография с балкона не используется для утверждения, что все категории имеют одинаковую панораму."
+    ],
+    "recommendation_boundary": "Заявления об аудитории отеля не являются независимой оценкой качества или гарантией пригодности конкретному туристу.",
+    "scope": "Каждое целое утверждение применяется только к указанному объекту, категории, услуге, сезону или маршруту. Обещания тарифа, цены, наличия и будущей работы не добавлены.",
+    "temporal": "Сохранены сведения и дата чтения 22.11.2026. Текущая или будущая работа услуг не проверялась; срок действия и дата публикации не выдуманы."
+  },
+  "price_authority": "none",
+  "project_key": "anytour",
+  "record_hashes": {
+    "claims": {
+      "JUM7619-F1": "1128be3929dbef08df79c4231eef9e541fad034349c63fae51294cfbc482102c",
+      "JUM7619-F2": "e6285c6169344da1427078e882476a2c2168b307648a1edb07bda2ac0130883b",
+      "JUM7619-F3": "2abe6b81ad7e85bb0093fc029a853375b9a9776627b78952a062633f23e83e25",
+      "JUM7619-F4": "d8664e11d2b54582f9fe964619cd3b395e795c0fcfd79719c569e8ce4c9cf46d",
+      "JUM7619-F5": "125c0da6798597684c36671fba15eb6d1c789baf2e434ab49a4df9939669c3b5",
+      "JUM7619-F6": "35af70e38603e8eb8183dc8c192abedd631615cba058ce4f3287e35a4f8b68c6",
+      "JUM7619-F7": "d995a8e42c50857c787baa1c7fc3bbc16f5a37929ad946eaafc4bbdd8e792c5b",
+      "JUM7619-F8": "c3072b059299f66949ff10634c0976420f8596ce2a6475c8812e5c6d6ad96c09"
+    },
+    "sources": {
+      "JUM7619-S1": "d8bb893497b21b2cfb27c4f7636f948e13d9fc5123854e3aab22ff831e4525b4",
+      "JUM7619-S2": "c0376bf3524aa68a4437051088d8e9befff0ad5a5fac1ad1cb083bbc199e5f74"
+    }
+  },
+  "research_hotel_key": "EXP094",
+  "runtime_admission_verified": false,
+  "schema_version": "hotel_reference_v1",
+  "sources": [
+    {
+      "capture_bytes": 715139,
+      "capture_format": "raw_html",
+      "capture_sha256": "997839799323841d40a76a7fa80adadc9c8d42c07fac444ad5e5a1b9d49f5779",
+      "hotel_key": "EXP094",
+      "id": "JUM7619-S1",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: JUM7619-F1, JUM7619-F5, JUM7619-F6, JUM7619-F7, JUM7619-F8. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:22.518478+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Book your stay with Jumeirah Al Qasr in Dubai",
+      "url": "https://www.jumeirah.com/en/stay/dubai/jumeirah-al-qasr"
+    },
+    {
+      "capture_bytes": 434566,
+      "capture_format": "raw_html",
+      "capture_sha256": "201372bd2d33e876d956766dca3ab11d0eef5bc727225d3a8ebd53af51a6a663",
+      "hotel_key": "EXP094",
+      "id": "JUM7619-S2",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: JUM7619-F2, JUM7619-F3, JUM7619-F4. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:59:11.430903+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Rooms and Suites at Jumeirah Al Qasr | Jumeirah",
+      "url": "https://www.jumeirah.com/en/stay/dubai/jumeirah-al-qasr/accommodation"
+    }
+  ],
+  "status": "SEALED_AUTHORING_DATA_ONLY",
+  "trusted_selector_required": true
+}

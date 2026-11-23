@@ -1,0 +1,210 @@
+{
+  "binding_revision": "c31bdaeb258c52d5f5e1b395d872c2f808f03b6757f931f1fa0d969a4977dce1",
+  "coverage": {
+    "available_prepared_claim_count": 8,
+    "basis": "All whole source facts from the immutable reviewed LOCAL26 package; not independent AI content admission.",
+    "complete": false,
+    "selected_claim_count": 8
+  },
+  "facts": [
+    {
+      "aspect": "complex_and_houses_location",
+      "declared": true,
+      "hotel_key": "EXP097",
+      "id": "JUM4538-F1",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Dar Al Masyaf houses / Madinat Jumeirah gardens and canals",
+        "kind": "location"
+      },
+      "source_ids": [
+        "JUM4538-S1"
+      ],
+      "text": "Dar Al Masyaf входит в Madinat Jumeirah в Дубае и состоит из арабских домов среди садов и каналов.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "accommodation_groups",
+      "declared": true,
+      "hotel_key": "EXP097",
+      "id": "JUM4538-F2",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Palm Houses / Cove Houses / Beach Houses / Malakiya Villas",
+        "kind": "accommodation_listing"
+      },
+      "source_ids": [
+        "JUM4538-S1",
+        "JUM4538-S2"
+      ],
+      "text": "Основные группы размещения — Palm Houses, Cove Houses, Beach Houses и Malakiya Villas.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "family_room_categories",
+      "declared": true,
+      "hotel_key": "EXP097",
+      "id": "JUM4538-F3",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Two-Bedroom Beach House Family Room / Palm House Two Bedroom Family Suite",
+        "kind": "room_categories"
+      },
+      "source_ids": [
+        "JUM4538-S2"
+      ],
+      "text": "Есть Two-Bedroom Beach House Family Room и Palm House Two Bedroom Family Suite.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "private_pool_villa",
+      "declared": true,
+      "hotel_key": "EXP097",
+      "id": "JUM4538-F4",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Three Bedroom Malakiya Villa only",
+        "kind": "room_category"
+      },
+      "source_ids": [
+        "JUM4538-S2"
+      ],
+      "text": "Three Bedroom Malakiya Villa имеет собственный небольшой бассейн; это не общее свойство всех домов и номеров.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "beach_and_cluster_pools",
+      "declared": true,
+      "hotel_key": "EXP097",
+      "id": "JUM4538-F5",
+      "kind": "official_declared",
+      "scope": {
+        "key": "beach / shared house-cluster pools",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "JUM4538-S1"
+      ],
+      "text": "В официальном перечне инфраструктуры названы пляж и обособленные бассейны для групп домов — cluster pools.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "spa_and_child_club_at_adjacent_property",
+      "declared": true,
+      "hotel_key": "EXP097",
+      "id": "JUM4538-F6",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Talise Spa / Jumeirah Circle at Jumeirah Al Qasr",
+        "kind": "other_property_facilities"
+      },
+      "source_ids": [
+        "JUM4538-S1"
+      ],
+      "text": "Talise Spa и детский Jumeirah Circle расположены при Jumeirah Al Qasr.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "villa_host",
+      "declared": true,
+      "hotel_key": "EXP097",
+      "id": "JUM4538-F7",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Villa Host",
+        "kind": "service"
+      },
+      "source_ids": [
+        "JUM4538-S1"
+      ],
+      "text": "Официальная страница представляет услугу Villa Host для организации пребывания.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "complex_dining",
+      "declared": true,
+      "hotel_key": "EXP097",
+      "id": "JUM4538-F8",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Pai Thai / Pierchic in Madinat Jumeirah",
+        "kind": "shared_complex_dining"
+      },
+      "source_ids": [
+        "JUM4538-S1"
+      ],
+      "text": "Для гостей Dar Al Masyaf на странице указаны рестораны комплекса, включая Pai Thai и Pierchic.",
+      "valid_at_travel": "unverified"
+    }
+  ],
+  "hotel_ref": {
+    "catalog": "anytour",
+    "id": 4538
+  },
+  "material_limits": {
+    "identity_admission": "Цепочка legacy_catalog 2610 → AnyTour 4538 (ревизия 2) → local-tv 2610 (ревизия 2) и это целое досье независимо приняты решением ACCEPT_LOCAL19_BOUNDED_CONSUMER_IDENTITY_AND_CONTENT_ADMISSION по сохранённым оригинальным доказательствам. Native LOCAL остаётся pending, source_json=NULL; приёмка досье не означает приёмку нового native/provider source. Реальная Library приёмка, установка в справочник, чтение с реальным разрешённым selector и использование ИИ подтверждаются отдельно; runtime_admission_verified=false.",
+    "original_notes_ru": [
+      "JUM4538-S1 одновременно содержит сообщение о временном закрытии Wild Wadi в правилах и старое обещание доступа в FAQ. Это противоречие сохранено как ограничение; доступ в аквапарк не включён в описание.",
+      "Talise Spa, Jumeirah Circle и названные рестораны относятся к инфраструктуре Madinat Jumeirah; они не описаны как отдельные учреждения внутри каждого арабского дома.",
+      "Личный бассейн относится к подтверждённой категории Three Bedroom Malakiya Villa. Cluster pools не приравниваются к индивидуальным бассейнам каждого номера."
+    ],
+    "recommendation_boundary": "Заявления об аудитории отеля не являются независимой оценкой качества или гарантией пригодности конкретному туристу.",
+    "scope": "Каждое целое утверждение применяется только к указанному объекту, категории, услуге, сезону или маршруту. Обещания тарифа, цены, наличия и будущей работы не добавлены.",
+    "temporal": "Сохранены сведения и дата чтения 22.11.2026. Текущая или будущая работа услуг не проверялась; срок действия и дата публикации не выдуманы."
+  },
+  "price_authority": "none",
+  "project_key": "anytour",
+  "record_hashes": {
+    "claims": {
+      "JUM4538-F1": "7fdb99eaa937b7e9afcf083e0863372638be347023422a3119f971883afc6949",
+      "JUM4538-F2": "47079e76bccd41d71854343c98d68fb31fd0e622c7028d71b9b9a1cd3c73bec9",
+      "JUM4538-F3": "daa6c0e03321d9049ca2fb8cd002a56b5a0d8bfd4a1051b6609f75df2c636c25",
+      "JUM4538-F4": "96c712ac36dc51739aaf923f8db389186a16020ff94671a00bf2aa2ea0c13aa2",
+      "JUM4538-F5": "5f1cc0f51078d6ec12445a940134a5b58189705018725d7dc7d8e53c398449f0",
+      "JUM4538-F6": "f21d7537353a9334c078defb9dfe74131a173facd09d463fc1b49c624b3bc0c6",
+      "JUM4538-F7": "35f6c1d1d3521c1b74a7737b778534a63206395f2549a2f79dd61e3658cd51eb",
+      "JUM4538-F8": "c71da49fd4e3de64499c56a266abfbc46c2ee1ea8e991bbcfdd6a6a64970350d"
+    },
+    "sources": {
+      "JUM4538-S1": "8d98c3a16bc367359e23d5c60e9be5214cbeb0d069170142706505ca6483ccb5",
+      "JUM4538-S2": "136bc122309b40943dfe7cb40ad571cb2b1aafea72348a11d224a4df3b31c720"
+    }
+  },
+  "research_hotel_key": "EXP097",
+  "runtime_admission_verified": false,
+  "schema_version": "hotel_reference_v1",
+  "sources": [
+    {
+      "capture_bytes": 711537,
+      "capture_format": "raw_html",
+      "capture_sha256": "e822d3ad6c5c5b2f2ae997069a73d40f0c783ebf82ebec1b24d92cf4b7feef5d",
+      "hotel_key": "EXP097",
+      "id": "JUM4538-S1",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: JUM4538-F1, JUM4538-F2, JUM4538-F5, JUM4538-F6, JUM4538-F7, JUM4538-F8. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:22.520246+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Book your stay with Jumeirah Dar Al Masyaf in Dubai",
+      "url": "https://www.jumeirah.com/en/stay/dubai/jumeirah-dar-al-masyaf"
+    },
+    {
+      "capture_bytes": 431201,
+      "capture_format": "raw_html",
+      "capture_sha256": "f3e6145f2cd6cf39bb4a0ae179239213c61c34cfb3dfa54d5de6bc3d01e64c00",
+      "hotel_key": "EXP097",
+      "id": "JUM4538-S2",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: JUM4538-F2, JUM4538-F3, JUM4538-F4. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:59:11.049921+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Rooms, Suites and Villas at Jumeirah Dar Al Masyaf | Jumeirah",
+      "url": "https://www.jumeirah.com/en/stay/dubai/jumeirah-dar-al-masyaf/accommodation"
+    }
+  ],
+  "status": "SEALED_AUTHORING_DATA_ONLY",
+  "trusted_selector_required": true
+}

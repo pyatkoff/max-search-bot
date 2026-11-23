@@ -1,0 +1,210 @@
+{
+  "binding_revision": "4d8703a870affe7afb8573e3c1373098fd005da370efe393c0a9690d5cd03e06",
+  "coverage": {
+    "available_prepared_claim_count": 8,
+    "basis": "All whole source facts from the immutable reviewed LOCAL26 package; not independent AI content admission.",
+    "complete": false,
+    "selected_claim_count": 8
+  },
+  "facts": [
+    {
+      "aspect": "location_and_theme",
+      "declared": true,
+      "hotel_key": "EXP098",
+      "id": "JUM4601-F1",
+      "kind": "official_declared",
+      "scope": {
+        "key": "West Crescent / Palm Jumeirah / Ottoman theme",
+        "kind": "location"
+      },
+      "source_ids": [
+        "JUM4601-S1"
+      ],
+      "text": "Отель расположен на West Crescent острова Palm Jumeirah, Дубай; в оформлении используется османская тематика.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "accommodation_inventory",
+      "declared": true,
+      "hotel_key": "EXP098",
+      "id": "JUM4601-F2",
+      "kind": "official_declared",
+      "scope": {
+        "key": "rooms / family categories / suites / Royal Villas",
+        "kind": "accommodation_listing"
+      },
+      "source_ids": [
+        "JUM4601-S1",
+        "JUM4601-S2"
+      ],
+      "text": "Размещение включает номера, семейные категории, люксы и Royal Villas в тропических садах у бассейна-лагуны.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "villa_pool_access_vs_private_pool",
+      "declared": true,
+      "hotel_key": "EXP098",
+      "id": "JUM4601-F3",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Four-Bedroom Royal Lagoon Villa / Five-Bedroom Royal Villa",
+        "kind": "room_categories"
+      },
+      "source_ids": [
+        "JUM4601-S2"
+      ],
+      "text": "Four-Bedroom Royal Lagoon Villa имеет собственный выход к лагунному бассейну; Five-Bedroom Royal Villa — личный бассейн.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "beach_and_pools",
+      "declared": true,
+      "hotel_key": "EXP098",
+      "id": "JUM4601-F4",
+      "kind": "official_declared",
+      "scope": {
+        "key": "private beach / infinity pool / separate child pool",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "JUM4601-S1"
+      ],
+      "text": "Официально указаны собственный пляж, панорамный бассейн и отдельный детский бассейн.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "child_and_teen_club",
+      "declared": true,
+      "hotel_key": "EXP098",
+      "id": "JUM4601-F5",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Jumeirah Circle Kids and Teen Club",
+        "kind": "facility"
+      },
+      "source_ids": [
+        "JUM4601-S1"
+      ],
+      "text": "Для детей и подростков представлен Jumeirah Circle Kids and Teen Club.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "spa",
+      "declared": true,
+      "hotel_key": "EXP098",
+      "id": "JUM4601-F6",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Talise Ottoman Spa",
+        "kind": "facility"
+      },
+      "source_ids": [
+        "JUM4601-S1"
+      ],
+      "text": "В отеле находится Talise Ottoman Spa.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "fitness",
+      "declared": true,
+      "hotel_key": "EXP098",
+      "id": "JUM4601-F7",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Talise Fitness Hub",
+        "kind": "facility"
+      },
+      "source_ids": [
+        "JUM4601-S1"
+      ],
+      "text": "Для тренировок представлен Talise Fitness Hub.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "named_restaurant_cuisines",
+      "declared": true,
+      "hotel_key": "EXP098",
+      "id": "JUM4601-F8",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Amala / Zenzi Beach / Imperium",
+        "kind": "dining"
+      },
+      "source_ids": [
+        "JUM4601-S1"
+      ],
+      "text": "Amala предлагает индийскую кухню, Zenzi Beach — средиземноморскую, Imperium — международное меню.",
+      "valid_at_travel": "unverified"
+    }
+  ],
+  "hotel_ref": {
+    "catalog": "anytour",
+    "id": 4601
+  },
+  "material_limits": {
+    "identity_admission": "Цепочка legacy_catalog 2931 → AnyTour 4601 (ревизия 2) → local-tv 2931 (ревизия 2) и это целое досье независимо приняты решением ACCEPT_LOCAL19_BOUNDED_CONSUMER_IDENTITY_AND_CONTENT_ADMISSION по сохранённым оригинальным доказательствам. Native LOCAL остаётся pending, source_json=NULL; приёмка досье не означает приёмку нового native/provider source. Реальная Library приёмка, установка в справочник, чтение с реальным разрешённым selector и использование ИИ подтверждаются отдельно; runtime_admission_verified=false.",
+    "original_notes_ru": [
+      "На JUM4601-S1 заявлено размещение с домашними животными по специальным правилам с обращением к консьержу. В описание не перенесено безусловное разрешение для всех категорий и любых животных.",
+      "В FAQ JUM4601-S1 есть расхождение между заявленным количеством ресторанов и длиной списка. Использованы только подтверждённые названия и кухни; общий счёт не утверждается.",
+      "Собственный выход к общему бассейну-лагуне у Four-Bedroom Royal Lagoon Villa не приравнивается к личному бассейну. Привилегии иных вилл не перенесены на обычные номера."
+    ],
+    "recommendation_boundary": "Заявления об аудитории отеля не являются независимой оценкой качества или гарантией пригодности конкретному туристу.",
+    "scope": "Каждое целое утверждение применяется только к указанному объекту, категории, услуге, сезону или маршруту. Обещания тарифа, цены, наличия и будущей работы не добавлены.",
+    "temporal": "Сохранены сведения и дата чтения 22.11.2026. Текущая или будущая работа услуг не проверялась; срок действия и дата публикации не выдуманы."
+  },
+  "price_authority": "none",
+  "project_key": "anytour",
+  "record_hashes": {
+    "claims": {
+      "JUM4601-F1": "a4c37c9e20df950885124ee9d7a66f6a95510369ae8715763a341ef1ec91f746",
+      "JUM4601-F2": "b3a5837fec1add07223c53d767bf817b3693b732d5820adefa240adb1589cd81",
+      "JUM4601-F3": "5f0d70c9ace37a86a512c90023d3bfc4bb6b74aa0370fa7d6f43a8f5a28b4e03",
+      "JUM4601-F4": "dab074b4a2edcc2fba7f74de7433e3f4d9bc701686e72bca5447512411d401aa",
+      "JUM4601-F5": "c8e787a0be44522add1a9d7ff92de0c40dcb4fa20ed40b6d3f244e40ca8510f7",
+      "JUM4601-F6": "33cf46792a560ce526c8fca30d7096faac6c6c63d13eaedde08a280895404faf",
+      "JUM4601-F7": "f876a7e32c6ee89d1c8fb400391b21dcea81af6da6bded02b701912e1bbce962",
+      "JUM4601-F8": "80397aa0d62bd72d55aecc548d8a84d9a3ed872126e6ea18d3d4c1bfa1f6d1e3"
+    },
+    "sources": {
+      "JUM4601-S1": "e777383d821e6904d2a25bd41326026e763d45dd9b4d18f7852a039d6cd43c87",
+      "JUM4601-S2": "bdca1cd478a194b71121fbcb0753a929812e57eeadaabf4f49463c5a5517d50b"
+    }
+  },
+  "research_hotel_key": "EXP098",
+  "runtime_admission_verified": false,
+  "schema_version": "hotel_reference_v1",
+  "sources": [
+    {
+      "capture_bytes": 683709,
+      "capture_format": "raw_html",
+      "capture_sha256": "b25ccb81f090b15c652c345aa09f6d7b9cfd201fcea0abfe5101c4802be56147",
+      "hotel_key": "EXP098",
+      "id": "JUM4601-S1",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: JUM4601-F1, JUM4601-F2, JUM4601-F4, JUM4601-F5, JUM4601-F6, JUM4601-F7, JUM4601-F8. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:22.470840+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Book your stay with Jumeirah Zabeel Saray in Dubai",
+      "url": "https://www.jumeirah.com/en/stay/dubai/jumeirah-zabeel-saray"
+    },
+    {
+      "capture_bytes": 441490,
+      "capture_format": "raw_html",
+      "capture_sha256": "a47861fdbb7ec54ca0f9f9cc9109967e2e6282a0c627a3f3e1b10a631d271458",
+      "hotel_key": "EXP098",
+      "id": "JUM4601-S2",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: JUM4601-F2, JUM4601-F3. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:59:11.201352+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Rooms, Suites and Royal Villas at Jumeirah Zabeel Saray | Jumeirah",
+      "url": "https://www.jumeirah.com/en/stay/dubai/jumeirah-zabeel-saray/accommodation"
+    }
+  ],
+  "status": "SEALED_AUTHORING_DATA_ONLY",
+  "trusted_selector_required": true
+}

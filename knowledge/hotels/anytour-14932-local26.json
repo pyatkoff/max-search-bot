@@ -1,0 +1,225 @@
+{
+  "binding_revision": "3ae521542e805aa0834e9bf8d719a0d3a3ca2d99cb4e3ce3494723def0cdf02b",
+  "coverage": {
+    "available_prepared_claim_count": 8,
+    "basis": "All whole source facts from the immutable reviewed LOCAL26 package; not independent AI content admission.",
+    "complete": false,
+    "selected_claim_count": 8
+  },
+  "facts": [
+    {
+      "aspect": "coastal_location_and_architecture",
+      "declared": true,
+      "hotel_key": "EXP024",
+      "id": "A14932-F01",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Ghantoot coast between Dubai and Abu Dhabi",
+        "kind": "location"
+      },
+      "source_ids": [
+        "A14932-home"
+      ],
+      "text": "Курорт расположен в прибрежном Гантуте между Дубаем и Абу-Даби; архитектура вдохновлена греческими островами.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "adults_only_policy",
+      "declared": true,
+      "hotel_key": "EXP024",
+      "id": "A14932-F02",
+      "kind": "official_declared",
+      "scope": {
+        "key": "adults-only; exact minimum age not stated in retained sources",
+        "kind": "property"
+      },
+      "source_ids": [
+        "A14932-home"
+      ],
+      "text": "Официальный формат — adults-only, то есть отдых только для взрослых.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "room_inventory_and_view_options",
+      "declared": true,
+      "hotel_key": "EXP024",
+      "id": "A14932-F03",
+      "kind": "official_declared",
+      "scope": {
+        "key": "22 rooms and suites; category-dependent sea views/balconies/terraces",
+        "kind": "accommodation_listing"
+      },
+      "source_ids": [
+        "A14932-home"
+      ],
+      "text": "В курорте 22 номера и люкса; заявлены виды на море, балконы или террасы.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "private_beach",
+      "declared": true,
+      "hotel_key": "EXP024",
+      "id": "A14932-F04",
+      "kind": "official_declared",
+      "scope": {
+        "key": "private beach",
+        "kind": "facility"
+      },
+      "source_ids": [
+        "A14932-home"
+      ],
+      "text": "У отеля есть частный пляж.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "infinity_pool",
+      "declared": true,
+      "hotel_key": "EXP024",
+      "id": "A14932-F05",
+      "kind": "official_declared",
+      "scope": {
+        "key": "bay-facing infinity-edge pool",
+        "kind": "facility"
+      },
+      "source_ids": [
+        "A14932-leisure"
+      ],
+      "text": "Панорамный бассейн infinity-edge обращён к заливу.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "spa_and_fitness",
+      "declared": true,
+      "hotel_key": "EXP024",
+      "id": "A14932-F06",
+      "kind": "official_declared",
+      "scope": {
+        "key": "spa / fitness centre",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "A14932-home",
+        "A14932-leisure"
+      ],
+      "text": "Работают спа и фитнес-центр.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "private_screening",
+      "declared": true,
+      "hotel_key": "EXP024",
+      "id": "A14932-F07",
+      "kind": "official_declared",
+      "scope": {
+        "key": "VIP viewing lounge; individual screening subject to arrangements",
+        "kind": "facility"
+      },
+      "source_ids": [
+        "A14932-leisure"
+      ],
+      "text": "Есть кинозал VIP viewing lounge с возможностью индивидуального показа.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "declared_dining_venue_count",
+      "declared": true,
+      "hotel_key": "EXP024",
+      "id": "A14932-F08",
+      "kind": "official_declared",
+      "scope": {
+        "key": "two venues listed on retained main page",
+        "kind": "dining"
+      },
+      "source_ids": [
+        "A14932-home"
+      ],
+      "text": "На главной странице указаны два ресторанных заведения.",
+      "valid_at_travel": "unverified"
+    }
+  ],
+  "hotel_ref": {
+    "catalog": "anytour",
+    "id": 14932
+  },
+  "material_limits": {
+    "identity_admission": "Цепочка legacy_catalog 113544 → AnyTour 14932 (ревизия 2) → local-tv 113544 (ревизия 2) и это целое досье независимо приняты решением ACCEPT_LOCAL19_BOUNDED_CONSUMER_IDENTITY_AND_CONTENT_ADMISSION по сохранённым оригинальным доказательствам. Native LOCAL остаётся pending, source_json=NULL; приёмка досье не означает приёмку нового native/provider source. Реальная Library приёмка, установка в справочник, чтение с реальным разрешённым selector и использование ИИ подтверждаются отдельно; runtime_admission_verified=false.",
+    "original_notes_ru": [
+      "Указан подтверждённый формат adults-only. Точный нижний возраст не опубликован в использованных источниках, поэтому значения 16+ или 18+ не добавлены.",
+      "Прямой выход на пляж относится к отдельным категориям и не заявлен для каждого номера; доступность индивидуального кинопоказа требует согласования."
+    ],
+    "recommendation_boundary": "Заявления об аудитории отеля не являются независимой оценкой качества или гарантией пригодности конкретному туристу.",
+    "scope": "Каждое целое утверждение применяется только к указанному объекту, категории, услуге, сезону или маршруту. Обещания тарифа, цены, наличия и будущей работы не добавлены.",
+    "temporal": "Сохранены сведения и дата чтения 22.11.2026. Текущая или будущая работа услуг не проверялась; срок действия и дата публикации не выдуманы."
+  },
+  "price_authority": "none",
+  "project_key": "anytour",
+  "record_hashes": {
+    "claims": {
+      "A14932-F01": "28357b94094e55db11c416ec2ff272c1af4e87cf49b9d49ccd0f8d66f2cceb79",
+      "A14932-F02": "263010d0b0cc904aeaf85ba67228822facf33f03aade3cb8fbf2c75149b31b24",
+      "A14932-F03": "e1b5b0610436f04a1920303ea2026afd2d987adb8044c30a79b26a00b79841ed",
+      "A14932-F04": "2eac665bc0793d7ea3d0ef9d916ea9e6117c0a0663049b50df4d4dbb3d0580b9",
+      "A14932-F05": "152b62efd28a77e2cb5b6f13b95070f9dc765b5137a779798c2d781dd9307515",
+      "A14932-F06": "0d610461b9f9cab152dbdda2f2b714f46ed72aa9fc491ff8545a33dff6679428",
+      "A14932-F07": "2e34848d4768b26bc10cda2557a92febc6541cc82a96d8131c7294a9a2a701f3",
+      "A14932-F08": "37b8d5a85af03b632ea9ae733332ad770bc03f78390e32416b37cc38cdcf38de"
+    },
+    "sources": {
+      "A14932-contact": "599816e0bf763d72b503fd8ea298ef1b7284108de08f3d49f674e24f07457fea",
+      "A14932-home": "c38109ab7169084ed4c54f5f0910c3a2043d05a05014a600cec4ec6e86a01d12",
+      "A14932-leisure": "22c6684a81536914fc3916d29e4946e4a12cd8faf46b549cf53cfaa8d25cf2c8"
+    }
+  },
+  "research_hotel_key": "EXP024",
+  "runtime_admission_verified": false,
+  "schema_version": "hotel_reference_v1",
+  "sources": [
+    {
+      "capture_bytes": 167492,
+      "capture_format": "raw_html",
+      "capture_sha256": "c15e5713d8bbae3e19603cddf3969fe8d3607c726550b567fb845d7823534a00",
+      "hotel_key": "EXP024",
+      "id": "A14932-home",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: A14932-F01, A14932-F02, A14932-F03, A14932-F04, A14932-F06, A14932-F08. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:37.317275+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Beach Hotel in Abu Dhabi | Anantara Retreat Santorini Abu Dhabi",
+      "url": "https://www.anantara.com/en/santorini-abu-dhabi"
+    },
+    {
+      "capture_bytes": 147866,
+      "capture_format": "raw_html",
+      "capture_sha256": "51aef455279be0b510524aecbfce6f8061cc60d9c2599d5d71797a53abb5d960",
+      "hotel_key": "EXP024",
+      "id": "A14932-leisure",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: A14932-F05, A14932-F06, A14932-F07. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:59:00.572082+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Best Things to do Abu Dhabi | Anantara Santorini | Leisure",
+      "url": "https://www.anantara.com/en/santorini-abu-dhabi/leisure"
+    },
+    {
+      "capture_bytes": 158604,
+      "capture_format": "raw_html",
+      "capture_sha256": "c3e5d3a6cd503b177f29556b32a918f99a26ea25bf8e653089cf3cfee8f429d1",
+      "hotel_key": "EXP024",
+      "id": "A14932-contact",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Дополнительная официальная страница из исходного пакета; ни один из 206 текстовых фактов прямо не ссылается на эту запись. Не является новым основанием для фактов.",
+      "retrieved_at_utc": "2026-11-22T09:59:00.624747+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Hotel in Abu Dhabi | Anantara Retreat Santorini Abu Dhabi Official Site",
+      "url": "https://www.anantara.com/en/santorini-abu-dhabi/contact"
+    }
+  ],
+  "status": "SEALED_AUTHORING_DATA_ONLY",
+  "trusted_selector_required": true
+}

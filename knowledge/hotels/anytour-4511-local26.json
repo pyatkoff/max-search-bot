@@ -1,0 +1,244 @@
+{
+  "binding_revision": "01a94e307f959739015ca1160166c1d1f7562825b302427ba6f5c8e7f2ac3ee2",
+  "coverage": {
+    "available_prepared_claim_count": 8,
+    "basis": "All whole source facts from the immutable reviewed LOCAL26 package; not independent AI content admission.",
+    "complete": false,
+    "selected_claim_count": 8
+  },
+  "facts": [
+    {
+      "aspect": "island_location_and_house_reef",
+      "declared": true,
+      "hotel_key": "EXP039",
+      "id": "F1",
+      "kind": "official_declared",
+      "scope": {
+        "key": "South Ari Atoll / island shore",
+        "kind": "location"
+      },
+      "source_ids": [
+        "vil-home",
+        "vil-island"
+      ],
+      "text": "Остров в атолле Южный Ари; у берега расположен домашний риф.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "accommodation_inventory",
+      "declared": true,
+      "hotel_key": "EXP039",
+      "id": "F2",
+      "kind": "official_declared",
+      "scope": {
+        "key": "beach / tropical garden / overwater villas",
+        "kind": "accommodation_listing"
+      },
+      "source_ids": [
+        "vil-home",
+        "vil-island"
+      ],
+      "text": "Есть пляжные, садовые и водные виллы.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "children_allowed_room_categories",
+      "declared": true,
+      "hotel_key": "EXP039",
+      "id": "F3",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Tropical / Adjacent Beachfront / Beachfront Villas",
+        "kind": "room_categories"
+      },
+      "source_ids": [
+        "vil-island"
+      ],
+      "text": "Tropical, Adjacent Beachfront и Beachfront Villas допускают семьи с детьми.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "minimum_age_room_categories",
+      "declared": true,
+      "hotel_key": "EXP039",
+      "id": "F4",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Romantic Beachfront / Romantic Ocean Villas",
+        "kind": "room_categories"
+      },
+      "source_ids": [
+        "vil-island"
+      ],
+      "text": "Romantic Beachfront и Romantic Ocean Villas — только для гостей от18лет.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "family_facilities",
+      "declared": true,
+      "hotel_key": "EXP039",
+      "id": "F5",
+      "kind": "official_declared",
+      "scope": {
+        "key": "child pool / family areas / Heron club",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "vil-island",
+        "vil-kids"
+      ],
+      "text": "Есть детский бассейн, семейные зоны и клуб Heron.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "water_activities_and_spa",
+      "declared": true,
+      "hotel_key": "EXP039",
+      "id": "F6",
+      "kind": "official_declared",
+      "scope": {
+        "key": "diving / snorkelling / water sports / Duniye Spa",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "vil-home"
+      ],
+      "text": "Доступны дайвинг, сноркелинг, водные виды спорта и Duniye Spa.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "dining_allocation",
+      "declared": true,
+      "hotel_key": "EXP039",
+      "id": "F7",
+      "kind": "official_declared",
+      "scope": {
+        "key": "buffet and a la carte venues; allocation depends on accommodation",
+        "kind": "dining"
+      },
+      "source_ids": [
+        "vil-island"
+      ],
+      "text": "Есть буфетные и à la carte рестораны; распределение ресторанов связано с размещением.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "airport_transfer_duration",
+      "declared": true,
+      "hotel_key": "EXP039",
+      "id": "F8",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Velana airport to island by seaplane",
+        "kind": "transfer_route"
+      },
+      "source_ids": [
+        "vil-home"
+      ],
+      "text": "На сайте указан трансфер от Веланы гидросамолётом около25минут.",
+      "valid_at_travel": "unverified"
+    }
+  ],
+  "hotel_ref": {
+    "catalog": "anytour",
+    "id": 4511
+  },
+  "material_limits": {
+    "identity_admission": "Цепочка legacy_catalog 2490 → AnyTour 4511 (ревизия 2) → local-tv 2490 (ревизия 2) и это целое досье независимо приняты решением ACCEPT_LOCAL19_BOUNDED_CONSUMER_IDENTITY_AND_CONTENT_ADMISSION по сохранённым оригинальным доказательствам. Native LOCAL остаётся pending, source_json=NULL; приёмка досье не означает приёмку нового native/provider source. Реальная Library приёмка, установка в справочник, чтение с реальным разрешённым selector и использование ИИ подтверждаются отдельно; runtime_admission_verified=false.",
+    "original_notes_ru": [
+      "На главной странице по-прежнему показан баннер реновации с началом1мая2026 и ожидаемым открытием15ноября2026. Он исключён из фото. Самостоятельное подтверждение фактического открытия не получено; описание не утверждает текущую доступность размещения.",
+      "Официальная текущая галерея содержит изображения прошлых лет. Их нельзя выдавать за подтверждение вида всех помещений после реновации.",
+      "Старые Garden/Jacuzzi названия не переносятся в словарь номеров: здесь используются категории текущей официальной страницы только как описательные факты."
+    ],
+    "recommendation_boundary": "Заявления об аудитории отеля не являются независимой оценкой качества или гарантией пригодности конкретному туристу.",
+    "scope": "Каждое целое утверждение применяется только к указанному объекту, категории, услуге, сезону или маршруту. Обещания тарифа, цены, наличия и будущей работы не добавлены.",
+    "temporal": "Сохранены сведения и дата чтения 22.11.2026. Текущая или будущая работа услуг не проверялась; срок действия и дата публикации не выдуманы."
+  },
+  "price_authority": "none",
+  "project_key": "anytour",
+  "record_hashes": {
+    "claims": {
+      "F1": "8bb04a4c3ab13c9ec53b202301e4ef30dc184a557432bfbaeab0b2e25459704f",
+      "F2": "745a07a6e8990f4eb645680f1e81a6947f40fcf77c0451a90bcd906a87d15461",
+      "F3": "d616ab6225278b43cd4d9d441606af7092ec64f89481f5af8b52a7da31c25fb4",
+      "F4": "bf7eee28f9bb5d499bc2970debcdf6351e0e95267153016bdedfb5783e68793d",
+      "F5": "b261b42fd16d35f32ed47cb11f18d87f72d6fb1ca5c675424e737a3ff17be794",
+      "F6": "bd787ce409ce45aa397c6eec588d21396499a3a58a7d14a4b769fe2ce388ec19",
+      "F7": "233fa35f5357c1e271d7c8741aeb53a96df27245e82aea1945f4df92bd720b7e",
+      "F8": "393252a4cb13c2b2dd0f8c9681c69132c1f54fcd3c000e98d34c5d715c2ba967"
+    },
+    "sources": {
+      "vil-gallery": "912928c5cd495aea84578b09c3e84befae076cc8c44dc22a7c5b21e248ab17ab",
+      "vil-home": "0c0004a851003ce027bb22a8cf4405d52be44033fea906401a76caec9fb4a399",
+      "vil-island": "6c32f17037de237ffb62232a7e2c9e12d0892683a9b2376806bbf63410120cdc",
+      "vil-kids": "18fde30ace7cfeb746765e1c99bd540532c5a086890155117694b8d5b01d77db"
+    }
+  },
+  "research_hotel_key": "EXP039",
+  "runtime_admission_verified": false,
+  "schema_version": "hotel_reference_v1",
+  "sources": [
+    {
+      "capture_bytes": 282545,
+      "capture_format": "raw_html",
+      "capture_sha256": "33b6735c7763f5e4a14e849f598565ded11f49344782f6d03456fca02943070e",
+      "hotel_key": "EXP039",
+      "id": "vil-home",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: F1, F2, F6, F8. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:59:36.874451+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Maldives Resorts | Vilamendhoo Maldives Resort Island | Official Site",
+      "url": "https://www.vilamendhoo.com/"
+    },
+    {
+      "capture_bytes": 222720,
+      "capture_format": "raw_html",
+      "capture_sha256": "740409700dabbf679506e694cc10670f110c965c4319939b803ffb726a408f6f",
+      "hotel_key": "EXP039",
+      "id": "vil-island",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: F1, F2, F3, F4, F5, F7. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:59:37.893646+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Maldives Island Resorts | Vilamendhoo Island Resort & Spa",
+      "url": "https://www.vilamendhoo.com/overview/the-island.html"
+    },
+    {
+      "capture_bytes": 221816,
+      "capture_format": "raw_html",
+      "capture_sha256": "3269e2b90a13c19b48a1b9d0a521a18990ec6a937c5bba49f27b362ee6210d02",
+      "hotel_key": "EXP039",
+      "id": "vil-kids",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: F5. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:59:38.042131+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Maldives with Kids | Vilamendhoo Island | Children Facilities",
+      "url": "https://www.vilamendhoo.com/facilities/children-facilities.html"
+    },
+    {
+      "capture_bytes": 237910,
+      "capture_format": "raw_html",
+      "capture_sha256": "585112ecb9730d4df112566047c0f8f60014394744c05410076716ef926398e2",
+      "hotel_key": "EXP039",
+      "id": "vil-gallery",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Дополнительная официальная страница из исходного пакета; ни один из 206 текстовых фактов прямо не ссылается на эту запись. Не является новым основанием для фактов.",
+      "retrieved_at_utc": "2026-11-22T10:01:02.184643+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Vilamendhoo Island Resort & Spa | Image Gallery",
+      "url": "https://www.vilamendhoo.com/gallery.html"
+    }
+  ],
+  "status": "SEALED_AUTHORING_DATA_ONLY",
+  "trusted_selector_required": true
+}
