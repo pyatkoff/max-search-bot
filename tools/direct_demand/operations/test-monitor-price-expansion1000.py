@@ -1,6 +1,6 @@
 """Portable PRICE1000 source-only proof. Stdlib, no network/native writes."""
 import pathlib,json,gzip,hashlib,base64,copy,re
-from monitor_price_expansion1000_prefix import accepted877,PROOF_SHA
+from monitor_price_expansion1000_prefix import accepted877,accepted1000,PROOF_SHA
 ROOT=pathlib.Path(__file__).resolve().parent
 sha=lambda b:hashlib.sha256(b).hexdigest()
 canonical=lambda x:json.dumps(x,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()
@@ -33,7 +33,10 @@ def validate_rows(rows,p):
  return True
 def verify(root=ROOT):
  raw=(root/'monitor-price-expansion1000-proof-20261118.json').read_bytes();need(sha(raw)==PROOF_SHA,'immutable_proof');p=json.loads(raw)
- packed=(root/'monitor-price-expanded-roster-20261111.json.gz').read_bytes();old=accepted877(packed,root);rows=json.loads(gzip.decompress(packed))['rows'];validate_rows(rows,p)
+ packed=(root/'monitor-price-expanded-roster-20261111.json.gz').read_bytes();old=accepted877(packed,root)
+ # The current roster passes its exact correction/999-row checks before the
+ # unchanged expansion assertions consume the byte-exact historical source.
+ rows=json.loads(accepted1000(packed,root))['rows'];validate_rows(rows,p)
  need(json.loads(gzip.decompress(old))['rows']==rows[:877],'exact_prefix')
  need(sha((root/'monitor-price-hook-contract.php').read_bytes())=='d75989788c046fe3c0aab18b01a5d1edf07a7872050a37a17f49a6df6c29de14','unchanged_history_preflight_contract')
  need(p['state']=='SOURCE_EXPANSION_PROOF_NOT_RUNTIME_PRICE_ADMISSION','no_runtime_admission')
