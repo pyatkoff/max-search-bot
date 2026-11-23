@@ -444,6 +444,37 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
     $check('missing value storage preserves the independent forecast result',$r['available']&&$r['value_delivery']['available']===false&&$r['value_delivery']['reason']==='storage_unavailable');
 }
 
+/** Two valid scopes expose a larger latest policy that must not fall back to an older forecast. */
+function forecastOneProfileBudgetOmissionAssertions(PDO $p,callable $check):void
+{
+    forecastV1Schema($p);forecastV1Append($p,forecastV1Packet('9002','10002'));
+    $latest=forecastV1Packet('9003','10003',[['text'=>'Здравствуйте!']]);
+    $latest['deal_value_prediction']=ModeledConversionDealValue::freeze($latest,[]);forecastV1Append($p,$latest);
+    $snapshot=static fn():array=>[forecastV1Rows($p),$p->query('SELECT * FROM modeled_conversion_profiles_state ORDER BY project_key')->fetchAll(PDO::FETCH_ASSOC)];
+    $before=$snapshot();$reads=[];
+    // A pair of fresh OAuth reads costs 750 bytes in the composed native fixture.
+    foreach([19750,19000]as$remaining){
+        $budget=new ModeledConversionStatusBudget();$budget->consumeBytes(ModeledConversionStatusBudget::MAX_BYTES-$remaining);
+        $reader=new ModeledConversionForecastStatusReader($p,static function():void{},$budget);
+        $core=$reader->read(false);
+        $reads[]=(new ReflectionMethod(ModeledConversionForecastStatusReader::class,'operationalCorePresentation'))->invoke($reader,$core);
+    }
+    [$fits,$omitted]=$reads;$money=$fits['saved']['deal_value']['by_monetary_policy'][ModeledConversionDealValue::VERSION]??[];
+    $check('one-profile view retains the latest saved unknown-price policy when its packet fits',
+        $fits['available']&&$fits['saved']['valid_v1_versions']===1&&$fits['window']['profile_rows_read']===1
+        &&$fits['window']['byte_limit_omissions']===0&&($money['versions']??null)===1
+        &&($money['unknown_price_versions']??null)===1&&($money['estimated_value_versions']??null)===0
+        &&($money['full_value_base_range_rub']??null)===['minimum'=>10000,'maximum'=>10000]
+        &&$fits['saved']['deal_value']['value_range_rub']===['minimum'=>null,'maximum'=>null]);
+    $check('750 fewer shared bytes omit the latest core once without substituting an older valid forecast',
+        !$omitted['available']&&$omitted['reason']==='budget_headroom'&&$omitted['saved']===null
+        &&$omitted['confirmation']==='unknown'&&$omitted['window']['metadata_rows']===2
+        &&$omitted['window']['profile_rows_read']===0&&$omitted['window']['current_v1_candidates']===1
+        &&$omitted['window']['byte_limit_omissions']===1
+        &&$omitted['input_coverage']===['available'=>false,'reason'=>'budget_headroom']);
+    $check('one-profile budget admission preserves both saved profiles and processing state',$snapshot()===$before);
+}
+
 /** Reuse the existing one-profile fixture; all probes are SELECTs on its unchanged saved rows. */
 function forecastCoreProjectionBudgetAssertions(PDO $p,callable $check,array $expected):void
 {
@@ -4629,6 +4660,7 @@ if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
     $check=static function(string $name,bool $ok)use(&$passed):void{if(!$ok)throw new RuntimeException('FAIL '.$name);$passed++;echo 'PASS '.$name.PHP_EOL;};
     forecastV1Assertions($p,$check);forecastLatencyAssertions($p,$check);forecastTelegramLinkageAssertions($p,$check);
     require_once __DIR__.'/modeled_conversion_backlog_fixture.php';modeledBacklogAssertions($p,$check);
+    forecastOneProfileBudgetOmissionAssertions(new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]),$check);
     require_once __DIR__.'/max2_common_value_status_reader_v2_fixture.php';
     max2CommonValueStatusAssertions(new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]),$check);
     echo 'V1 FORECAST STATUS PASSED '.$passed.PHP_EOL;

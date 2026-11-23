@@ -185,7 +185,7 @@ final class ModeledConversionForecastStatusReader
             $out['window']['metadata_rows']=count($meta);$out['window']['metadata_limit_reached']=count($meta)===self::METADATA_LIMIT;
             $fence=$meta?(string)$meta[0]['id']:'0';$scopes=[];
             $next=0;
-            $readProfiles=function(int $limit)use(&$out,&$scopes,&$next,$meta,$parts,$bodyBytes,$fence,$model,$processor):void{
+            $readProfiles=function(int $limit)use(&$out,&$scopes,&$next,$meta,$parts,$bodyBytes,$fence,$model,$processor,$includeDeliveryViews):void{
                 for(;$next<count($meta);$next++){
                     // Inspect one core packet after priority delivery evidence; use spare budget for the remaining candidates.
                     if($limit<self::PROFILE_LIMIT&&$out['window']['profile_rows_read']>=$limit)break;
@@ -201,7 +201,10 @@ final class ModeledConversionForecastStatusReader
                     if($size<2||$size>self::PROFILE_BYTES){$out['window']['oversize_rows']++;continue;}
                     if($out['window']['profile_rows_read']>=self::PROFILE_LIMIT){$out['window']['row_limit_omissions']++;continue;}
                     if($this->copied+$size>self::PROFILE_BYTES||$size*2+2048>$this->budget->remainingBytes()-self::RELEASE_RESERVE){
-                        $out['window']['byte_limit_omissions']++;continue;
+                        $out['window']['byte_limit_omissions']++;
+                        // The one-profile view cannot replace its omitted latest candidate with an older scope.
+                        if(!$includeDeliveryViews){$next=count($meta);return;}
+                        continue;
                     }
                     $columns=[];
                     foreach($parts as$name=>$sql)$columns[]='CASE WHEN JSON_VALID(profile_json) THEN '.$sql.' ELSE NULL END AS '.$name;
