@@ -1,0 +1,49 @@
+name: Authenticate the two exhausted verification attempts
+on:
+  push:
+    branches: [audit/1566-next-release-admission-1664]
+    paths: [.github/workflows/read-1669-exact-predecessor.yml]
+permissions:
+  actions: read
+  contents: read
+jobs:
+  preflight:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 43295c457798b0629fe13d338c5f138b74e5fefe
+          persist-credentials: false
+      - name: Verify the original installer and exact negative verification receipts
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const R=require('./tools/deployment_release')
+          const C=require('./tools/release_slot_close')
+          const H=require('./tools/exhausted_verify_1664_forward')
+          async function check() {
+            const api=R.makeReadApi(process.env.GITHUB_TOKEN)
+            const get=p=>api('GET',R.API_ROOT+p)
+            const uri='/actions/runs/45176020801'
+            const [first,two,all,location,item]=await Promise.all([
+              get(uri+'/attempts/1'), get(uri+'/attempts/2'),get(uri+'/jobs?filter=all&per_page=100'),
+              R.readRecord(api),get('/actions/artifacts/14828025431')
+            ])
+            const jobs=C.deploymentHistory(all,first,two,{sha:H.BASE,deploy:45176020801},false,true)
+            if(jobs.firstVerifyId!==137707302320||jobs.latestVerifyId!==137760498372)throw Error('UNEXPECTED_NATIVE_JOBS')
+            const {release}=R.validateRelease(location.record,false)
+            if(release.phase!=='pending_closure'||location.record_digest!=='6a395d8717ec141c507ea8a5367c7b93747b424ce55af36038bb628c7d885c09')throw Error('NEGATIVE_RECORD_CHANGED')
+            const artifact=await R.artifactJson(api,item,R.PUBLICATION_FILE,two,'deployment-release-pending-45176020801-2')
+            const published = await R.readRecord(api,artifact.commit)
+            if(!R.same(artifact,R.publicationProof(location.record,published,45176020801,2)))throw Error('NEGATIVE_RECEIPT_CHANGED')
+            H.exactTimeoutLog(await api.jobLog(jobs.firstVerifyId),jobs.firstVerifyId)
+            H.exactTimeoutLog(await api.jobLog(jobs.latestVerifyId),jobs.latestVerifyId)
+            console.log(JSON.stringify({installer_executions:1,failed_verifications:2,hashes_and_publication_verified:true}))
+          }
+          check().catch(e=>{console.error(e.code||e.message); process.exitCode=1})
+          NODE
