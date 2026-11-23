@@ -21,6 +21,9 @@ const MAX_TRANSFER_PLAN = 'config/anytour_existing_post_transfer_max_800.json';
 const MAX_TRANSFER_DIGEST = '536eac513fc1491363b27d9a909043abfb3ef6fece67245327d1e49eac1f2ab6';
 const MAX_TRANSFER_OPERATION = 'anytour_sugar_marina_max_transfer_20261123';
 const MAX_TRANSFER_LEASE = 'anytour-issue1566-max-sugar-marina-800-v1';
+const MAX_TRANSFER_ORIGINAL_RUN = '45286514435';
+const MAX_TRANSFER_ORIGINAL_APPLICATION = 'cb63be5342d575cf6515a1f5ea408b186a5908d9';
+const MAX_TRANSFER_PUBLIC_RECOVERY = MAX_TRANSFER_LEASE.'-public-caption';
 
 function maxTransferPlan(string $root, string $approvedDigest): array
 {
@@ -70,6 +73,43 @@ function maxTransferNativeEditor(array $channel, array $target): void
         'max_transfer_native_rights_unconfirmed');
 }
 
+function maxTransferPublicCaption(string $html, array $target): string
+{
+    // The public app exposes one full primary message and separate recommendation cards.
+    $quoted = '"(?:[^"\\\\]|\\\\.)*"';
+    $pattern = '~message:\{id:[1-9][0-9]{0,19},link:('.$quoted.'),createdAt:('.$quoted.')'
+        .',updatedAt:(?:'.$quoted.'|null),text:('.$quoted.')~';
+    requirePost(preg_match_all($pattern, $html, $matches, PREG_SET_ORDER) === 1, 'max_public_caption_unavailable');
+    [, $link, $createdAt, $text] = $matches[0];
+    $decodedDate = json_decode($createdAt, true, 16, JSON_THROW_ON_ERROR);
+    $date = \DateTimeImmutable::createFromFormat('!Y-m-d\TH:i:s.v\Z', $decodedDate, new \DateTimeZone('UTC'));
+    requirePost(json_decode($link, true, 16, JSON_THROW_ON_ERROR) === $target['url']
+        && $date instanceof \DateTimeImmutable && $date->format('Y-m-d\TH:i:s.v\Z') === $decodedDate
+        && $date->format('Uv') === (string)$target['published_timestamp'], 'max_transfer_public_identity_changed');
+    return html_entity_decode(json_decode($text, true, 16, JSON_THROW_ON_ERROR), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+}
+
+function maxTransferOriginalNoWrite(string $bytes, array $target): string
+{
+    requirePost(strlen($bytes) <= 16384 && str_ends_with($bytes, "\n"), 'max_transfer_original_journal_invalid');
+    $lines = explode("\n", substr($bytes, 0, -1));
+    requirePost(count($lines) === 2, 'max_transfer_original_journal_invalid');
+    foreach (['preflight_started', 'hold'] as $index => $state) {
+        $row = json_decode($lines[$index], true, 32, JSON_THROW_ON_ERROR);
+        requirePost(is_array($row) && ($row['state'] ?? null) === $state
+            && ($row['native_run_id'] ?? null) === MAX_TRANSFER_ORIGINAL_RUN
+            && ($row['application_sha'] ?? null) === MAX_TRANSFER_ORIGINAL_APPLICATION
+            && ($row['plan_sha256'] ?? null) === MAX_TRANSFER_DIGEST
+            && ($row['target_url'] ?? null) === $target['url'] && ($row['hotel_id'] ?? null) === 800
+            && ($row['operation'] ?? null) === MAX_TRANSFER_OPERATION && ($row['ok'] ?? null) === false
+            && ($row['provider_write_attempts'] ?? null) === 0 && ($row['supplier_requests'] ?? null) === 0
+            && ($row['bot_starts'] ?? null) === 0 && !isset($row['publication_id']) && !isset($row['version_id'])
+            && ($row['reason'] ?? null) === ($index === 0 ? null : 'max_public_caption_unavailable'),
+            'max_transfer_original_journal_invalid');
+    }
+    return hash('sha256', $bytes);
+}
+
 function maxTransferWithLease(PDO $pdo, array $plan, string $root, string $applicationSha, $journal, array &$result): void
 {
     $registry = new ChannelPostRegistryService($pdo);
@@ -93,7 +133,7 @@ function maxTransferWithLease(PDO $pdo, array $plan, string $root, string $appli
     [$original, $oldSnapshot] = maxTransferRead($target);
     requirePost(maxTransferOriginal($oldSnapshot, $target) && $oldSnapshot['keyboard'] === []
         && (string)($original['timestamp'] ?? '') === (string)$target['published_timestamp'], 'max_transfer_target_changed');
-    $publicBefore = PromotedHotelPriceWriter::maxPublicCaption(PromotedHotelPriceWriter::publicBytes($target['url']));
+    $publicBefore = maxTransferPublicCaption(PromotedHotelPriceWriter::publicBytes($target['url']), $target);
     requirePost($publicBefore === $oldSnapshot['text'], 'max_transfer_target_public_baseline_changed');
     $reservation = $registry->reserveMaxSugarMarinaTransfer($channel);
     $button = rtrim((string)$channel['bot_url'], '/').'?start='.rawurlencode($reservation['payload']);
@@ -137,7 +177,7 @@ function maxTransferWithLease(PDO $pdo, array $plan, string $root, string $appli
     for ($i = 0; $i < 3; $i++) {
         if ($i !== 0) sleep(20);
         try {
-            $caption = PromotedHotelPriceWriter::maxPublicCaption(PromotedHotelPriceWriter::publicBytes($target['url']));
+            $caption = maxTransferPublicCaption(PromotedHotelPriceWriter::publicBytes($target['url']), $target);
             if ($caption === $plan['text']) {
                 $result['public_caption_sha256'] = hash('sha256', $caption);
                 transferJournal($journal, ['state'=>'public_verified'] + $result);
@@ -149,7 +189,7 @@ function maxTransferWithLease(PDO $pdo, array $plan, string $root, string $appli
     throw new RuntimeException('max_transfer_public_readback_pending');
 }
 
-function applyMaxTransfer(string $root, array $plan, string $applicationSha, string $nativeRunId, array &$result): void
+function applyMaxTransfer(string $root, array $plan, string $applicationSha, string $nativeRunId, array &$result, bool $publicRecovery): void
 {
     requirePost(preg_match('/\A[1-9][0-9]{0,19}\z/D', $nativeRunId) === 1, 'max_transfer_run_invalid');
     transferRuntime($root, $applicationSha);
@@ -181,6 +221,16 @@ function applyMaxTransfer(string $root, array $plan, string $applicationSha, str
         $q->closeCursor();
         requirePost($locked, 'max_transfer_target_editor_busy');
         $directory = POST_OPS.'/'.MAX_TRANSFER_LEASE;
+        if ($publicRecovery) {
+            $previous = $directory.'/events.jsonl';
+            requirePost(!is_link($directory) && realpath($directory) === $directory && !is_link($previous)
+                && is_file($previous) && realpath($previous) === $previous, 'max_transfer_original_journal_invalid');
+            $bytes = file_get_contents($previous, false, null, 0, 16385);
+            requirePost(is_string($bytes), 'max_transfer_original_journal_invalid');
+            $result['original_journal_sha256'] = maxTransferOriginalNoWrite($bytes, $plan['target']);
+            $result['original_native_run_id'] = MAX_TRANSFER_ORIGINAL_RUN;
+            $directory = POST_OPS.'/'.MAX_TRANSFER_PUBLIC_RECOVERY;
+        }
         requirePost(!file_exists($directory) && !is_link($directory), 'max_transfer_previous_operation_readback_only');
         requirePost(mkdir($directory, 0700), 'max_transfer_journal_unavailable');
         $journal = fopen($directory.'/events.jsonl', 'xb');
@@ -214,9 +264,9 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
         if (count($argv) === 3 && $argv[1] === '--check-plan') {
             $result['ok'] = true;
             $result['mode'] = 'offline_plan_check';
-        } elseif (count($argv) === 5 && $argv[1] === '--apply') {
+        } elseif (count($argv) === 5 && in_array($argv[1], ['--apply', '--apply-public-caption-recovery'], true)) {
             $result += ['application_sha'=>$argv[3], 'native_run_id'=>$argv[4]];
-            applyMaxTransfer($root, $plan, $argv[3], $argv[4], $result);
+            applyMaxTransfer($root, $plan, $argv[3], $argv[4], $result, $argv[1] === '--apply-public-caption-recovery');
         } else {
             throw new RuntimeException('max_transfer_explicit_command_required');
         }

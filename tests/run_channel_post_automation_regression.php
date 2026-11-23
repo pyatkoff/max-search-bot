@@ -1678,6 +1678,42 @@ channelPostCheck('MAX transfer rejects any other historical post before native I
         $maxTransferPlan['text'], 'fixture', 'Рассчитать на мои даты', 'https://max.ru/fixture_bot?start=p_'.str_repeat('a', 24)),
     ['http'=>0, 'data'=>null, 'transport_error'=>true]);
 
+
+$maxRecoveryTarget = $maxTransferPlan['target'];
+$oldPublicEnvelope = '<script>message:{id:116775577486376060,link:'
+    .json_encode($maxRecoveryTarget['url'], JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)
+    .',createdAt:"2026-06-19T07:25:04.516Z",updatedAt:null,text:"Sugar Marina\nA &amp; B"}</script>';
+channelPostCheck('MAX transfer reads the full primary caption from the current public envelope',
+    AnyTour\ExistingPostBatch\maxTransferPublicCaption($oldPublicEnvelope, $maxRecoveryTarget), "Sugar Marina\nA & B");
+foreach ([
+    str_replace('2026-06-19T07:25:04.516Z', '2026-06-19T07:25:04.517Z', $oldPublicEnvelope),
+    str_replace('/AZ7exN6EPIU', '/other', $oldPublicEnvelope),
+] as $wrongPublicEnvelope) {
+    try {
+        AnyTour\ExistingPostBatch\maxTransferPublicCaption($wrongPublicEnvelope, $maxRecoveryTarget);
+        channelPostCheck('MAX transfer refuses mismatched public identity', true, false);
+    } catch (RuntimeException $error) {
+        channelPostCheck('MAX transfer refuses mismatched public identity', $error->getMessage(), 'max_transfer_public_identity_changed');
+    }
+}
+$originalMaxFields = ['operation'=>AnyTour\ExistingPostBatch\MAX_TRANSFER_OPERATION, 'hotel_id'=>800, 'ok'=>false,
+    'provider_write_attempts'=>0, 'supplier_requests'=>0, 'bot_starts'=>0,
+    'target_url'=>$maxRecoveryTarget['url'], 'plan_sha256'=>AnyTour\ExistingPostBatch\MAX_TRANSFER_DIGEST,
+    'application_sha'=>AnyTour\ExistingPostBatch\MAX_TRANSFER_ORIGINAL_APPLICATION,
+    'native_run_id'=>AnyTour\ExistingPostBatch\MAX_TRANSFER_ORIGINAL_RUN];
+$maxStartLine = json_encode(['state'=>'preflight_started'] + $originalMaxFields, JSON_THROW_ON_ERROR)."\n";
+$maxHeldLine = json_encode(['state'=>'hold', 'reason'=>'max_public_caption_unavailable'] + $originalMaxFields, JSON_THROW_ON_ERROR)."\n";
+channelPostCheck('MAX recovery accepts the exact attempt with no write or reservation',
+    AnyTour\ExistingPostBatch\maxTransferOriginalNoWrite($maxStartLine.$maxHeldLine, $maxRecoveryTarget),
+    hash('sha256', $maxStartLine.$maxHeldLine));
+try {
+    AnyTour\ExistingPostBatch\maxTransferOriginalNoWrite(
+        $maxStartLine.str_replace('"provider_write_attempts":0', '"provider_write_attempts":1', $maxHeldLine), $maxRecoveryTarget);
+    channelPostCheck('MAX recovery refuses a previous write attempt', true, false);
+} catch (RuntimeException $error) {
+    channelPostCheck('MAX recovery refuses a previous write attempt', $error->getMessage(), 'max_transfer_original_journal_invalid');
+}
+
 echo 'Channel post automation: ' . $passed . ' passed, ' . $failed . ' failed' . PHP_EOL;
 exit($failed === 0 ? 0 : 1);
 
