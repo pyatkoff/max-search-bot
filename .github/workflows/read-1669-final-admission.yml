@@ -1,0 +1,24 @@
+name: Read final admission for the exact recovery
+on:
+  push:
+    branches: [audit/1566-next-release-admission-1664]
+    paths: [.github/workflows/read-1669-final-admission.yml]
+permissions:
+  actions: read
+  contents: read
+  issues: read
+  pull-requests: read
+jobs:
+  preflight:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 43295c457798b0629fe13d338c5f138b74e5fefe
+          persist-credentials: false
+      - name: Verify the original exhausted source and active publisher
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/release_priority.js --admit 1669 43295c457798b0629fe13d338c5f138b74e5fefe b3386d558f72e9eb80acefad9e87b1ab91b4426f
