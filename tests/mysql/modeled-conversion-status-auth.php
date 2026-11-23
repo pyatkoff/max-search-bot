@@ -367,6 +367,24 @@ function forecastNativeAuthRegression():void
             [$response,$afterBearer,$afterRead]=forecastNativeAuthDispatch($pdo,$forecast);
             $data=$response['result']['structuredContent']??[];
             $core=$data['forecast_core']??[];
+            // Only bounded technical fields from this disposable synthetic fixture.
+            echo 'MONETARY_COMPOSED_FIXTURE_TECHNICAL '.json_encode([
+                'error_code'=>$response['error']['code']??null,
+                'remaining_after_bearer'=>$afterBearer,'remaining_after_read'=>$afterRead,
+                'daily_available'=>$data['daily_reconciliation']['available']??null,
+                'core_available'=>$core['available']??null,'core_reason'=>$core['reason']??null,
+                'valid_versions'=>$data['saved']['valid_v1_versions']??null,
+                'profile_rows'=>$data['window']['profile_rows_read']??null,
+                'byte_omissions'=>$data['window']['byte_limit_omissions']??null,
+                'invalid_blocks'=>$data['window']['invalid_block_reason_counts']??null,
+                'monetary_policy'=>$data['saved']['deal_value']['by_monetary_policy'][ModeledConversionDealValue::VERSION]??null,
+                'value_range'=>$data['saved']['deal_value']['value_range_rub']??null,
+                'common_v2_available'=>$data['common_v2']['available']??null,
+                'common_v2_reason'=>$data['common_v2']['reason']??null,
+                'timing_available'=>$data['today_latency']['available']??null,
+                'linkage_available'=>$data['telegram_linkage']['available']??null,
+                'result_bytes'=>strlen(json_encode($data,JSON_THROW_ON_ERROR)),
+                'rpc_bytes'=>strlen(json_encode($response,JSON_THROW_ON_ERROR))],JSON_THROW_ON_ERROR).PHP_EOL;
             $check('composed real OAuth retains exact V2 unknown-price policy when the optional core fits',
                 (($core['available']??false)&&forecastNativeMonetaryUnknown($data))
                 ||(forecastNativeOptionalBudget($core)&&array_key_exists('saved',$data)&&$data['saved']===null));
@@ -377,14 +395,6 @@ function forecastNativeAuthRegression():void
                 &&$afterRead>=4096&&$afterRead<$afterBearer
                 &&strlen(json_encode($data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=28000
                 &&strlen(json_encode($response,JSON_THROW_ON_ERROR))<=65536);
-            echo 'MONETARY_COMPOSED_FIXTURE_TECHNICAL '.json_encode([
-                'remaining_after_bearer'=>$afterBearer,'remaining_after_read'=>$afterRead,
-                'daily_available'=>$data['daily_reconciliation']['available']??null,
-                'core_available'=>$core['available']??null,'core_reason'=>$core['reason']??null,
-                'timing_available'=>$data['today_latency']['available']??null,
-                'linkage_available'=>$data['telegram_linkage']['available']??null,
-                'result_bytes'=>strlen(json_encode($data,JSON_THROW_ON_ERROR)),
-                'rpc_bytes'=>strlen(json_encode($response,JSON_THROW_ON_ERROR))],JSON_THROW_ON_ERROR).PHP_EOL;
             // The exact canonical profile validator is still proved separately, with
             // its unchanged budget and no delivery subview or fabricated numeric price.
             $profile=(new ModeledConversionForecastStatusReader($pdo,static function():void{},new ModeledConversionStatusBudget()))->read(false);
