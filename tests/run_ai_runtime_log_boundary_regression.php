@@ -80,12 +80,18 @@ $runtimeFiles = [
     $root . '/services/PendingMonthStore.php',
 ];
 $runtimeSource = '';
-foreach ($runtimeFiles as $file) $runtimeSource .= (string)file_get_contents($file);
+foreach ($runtimeFiles as $file) {
+    $source = (string)file_get_contents($file);
+    $runtimeSource .= $source;
+    // A shared diagnostic helper may serve more than one runtime call site.
+    // Check each actual writer instead of counting references across files.
+    aiLogCheck(basename($file) . ' uses the external AI logger',
+        preg_match('/AiRuntimeLogger::(?:debug|error)\s*\(/', $source) === 1);
+}
 $deploy = (string)file_get_contents($root . '/.github/workflows/deploy.yml');
 $exporter = (string)file_get_contents($root . '/export_debug_logs.php');
 $smoke = (string)file_get_contents($root . '/tools/ai_runtime_log_smoke.php');
 
-aiLogCheck('AI runtime writers use the external logger', substr_count($runtimeSource, 'AiRuntimeLogger::') >= 7);
 aiLogCheck('AI runtime writers do not write legacy webroot log paths',
     !str_contains($runtimeSource, "'/ai_debug.log'")
     && !str_contains($runtimeSource, "'/handlers/ai_debug.log'")
