@@ -1,4 +1,4 @@
-name: "TV800: native read of the two existing transfer targets"
+name: "TV800: MAX source photo and original publisher read only"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -16,7 +16,7 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '6fd129b8429cec2ec73296bb60d7ec0d0235b229' &&
+      github.event.before == '07bb1d1442aed0bfbc24ee483fc6e0f1a0da7223' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 18
@@ -24,7 +24,7 @@ jobs:
       - name: Checkout exact installed provenance source
         uses: actions/checkout@v4
         with:
-          ref: f2894cdf9a14031d53ee8622934364c35dab5730
+          ref: 302ba66b5739e369a4df94471c8cfe9c054dd070
           persist-credentials: false
       - name: Verify current main and accepted application without mutations
         env:
@@ -32,18 +32,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = 'f2894cdf9a14031d53ee8622934364c35dab5730'
+          test "$(git rev-parse HEAD)" = '302ba66b5739e369a4df94471c8cfe9c054dd070'
           node - <<'NODE'
           const R = require('./tools/deployment_release')
           const P = require('./tools/release_priority')
-          const expected = 'f2894cdf9a14031d53ee8622934364c35dab5730'
+          const expected = '302ba66b5739e369a4df94471c8cfe9c054dd070'
           async function read() {
             const api = R.makeReadApi(process.env.GITHUB_TOKEN)
             for (let i = 0; i < 20; i++) {
               const main = await api('GET', R.API_ROOT+'/git/ref/heads/main')
               if (main.object?.sha !== expected) throw new Error('main_changed_before_read')
+              const slot = await api('GET', R.API_ROOT+'/issues/comments/7077907800')
               const pending = await R.readRecord(api)
-              if (pending.record.repository_release?.repository_sha === expected && pending.record.repository_release?.phase === 'pending_terminal') break
+              if (slot.body === 'PR1662: установлено, выпуск свободен' && pending.record.repository_release?.repository_sha === expected && pending.record.repository_release?.phase === 'pending_terminal') break
               if (i === 19) throw new Error('accepted_installation_still_pending')
               await new Promise(done=>setTimeout(done, 25000))
             }
@@ -215,7 +216,7 @@ jobs:
               return ['state'=>$r['state']??null,'reason'=>$r['reason']??null,'writes'=>$r['receipt']['write_attempts']??null,
                   'channel_version'=>$c['config_version']??null];
           }
-          function maxRead(PDO $pdo,ChannelPostRegistryService $registry,string $chat,string $slug,string $channelUrl): array {
+          function maxRead(PDO $pdo,ChannelPostRegistryService $registry,string $chat,string $slug,string $channelUrl, string $botId): array {
               $prefix=substr(sprintf('%016x',(int)$chat),0,16);
               $bytes=base64_decode(strtr($slug,'-_','+/').'=',true);
               requireRead(is_string($bytes)&&strlen($bytes)===8,'bad_public_slug');
@@ -230,6 +231,9 @@ jobs:
               requireRead(is_array($snap),'max_native_snapshot_missing');
               $photos=array_values(array_filter($snap['attachments'],fn($t)=>($t['type']??null)==='image'));
               $result+=['published_at'=>$snap['published_at'],'photo_count'=>count($photos),
+                  'original_sender_present'=>isset($raw['sender']['user_id']),
+                  'original_sender_is_bot'=>($raw['sender']['is_bot']??null)===true,
+                  'original_sender_matches_editor'=>($raw['sender']['is_bot']??null)===true&&$botId!==''&&(string)($raw['sender']['user_id']??'')===$botId,
                   'existing_photo_token_present'=>count($photos)===1&&is_string($photos[0]['token']??null)&&$photos[0]['token']!=='',
                   'reusable_photo_id'=>count($photos)===1&&!empty($photos[0]['photo_id']),
                   'photo_id_sha256'=>count($photos)===1&&!empty($photos[0]['photo_id'])?hash('sha256',$photos[0]['photo_id']):null,
@@ -244,7 +248,7 @@ jobs:
           }
           $out=['ok'=>false,'hotel'=>800,'provider_writes'=>0,'db_writes'=>0];
           try {
-              installedEdit('f2894cdf9a14031d53ee8622934364c35dab5730');
+              installedEdit('302ba66b5739e369a4df94471c8cfe9c054dd070');
               ob_start();
               try {
                   require getcwd().'/config.php';
@@ -282,12 +286,16 @@ jobs:
                       $out[$key]['channel_rights']=readRights($registry,$platform,$bot,$chat,$url);
                   }catch(Throwable $e){$out[$key]['channel_rights']=['hold'=>reasonRead($e)];}
               }
+              $identity=ChannelPostApiTransport::buttonRequest('max','GET','/me',[],null);
+              requireRead(($identity['http']??0)===200&&($identity['data']['is_bot']??null)===true,'max_editor_identity_unverified');
+              $botId=(string)($identity['data']['user_id']??'');
+              requireRead($botId!=='','max_editor_identity_unverified');
               foreach([['source',MAX_SOURCE,'AaG2GG5XH2I','https://max.ru/channel_anytour'],['target',MAX_TARGET,'AZ7exN6EPIU','https://max.ru/anytour']] as [$key,$chat,$slug,$url]){
-                  try{$out['max'][$key]=maxRead($pdo,$registry,$chat,$slug,$url);}
+                  try{$out['max'][$key]=maxRead($pdo,$registry,$chat,$slug,$url,$botId);}
                   catch(Throwable $e){$out['max'][$key]=['hold'=>reasonRead($e)];}
               }
               $pdo->rollBack();
-              installedEdit('f2894cdf9a14031d53ee8622934364c35dab5730');
+              installedEdit('302ba66b5739e369a4df94471c8cfe9c054dd070');
               $out['ok']=true;
           }catch(Throwable $e){
               if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();
