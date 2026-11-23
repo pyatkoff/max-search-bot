@@ -398,6 +398,110 @@ final class ChannelPostRegistryService
         return 'p_' . rtrim(strtr(base64_encode(random_bytes(18)), '+/', '-_'), '=');
     }
 
+    /** Allocate only the exact old MAX identity. No queued version is created. */
+    public function reserveMaxSugarMarinaTransfer(array $channel): array
+    {
+        return $this->transaction(function () use ($channel): array {
+            $this->lockMaxSugarMarinaTransferChannel($channel);
+            $mid = 'mid.ffffc1752b045fed019edec4de843c85';
+            $occupied = $this->fetch('SELECT p.id FROM post_publications p LEFT JOIN post_versions v ON v.id=p.current_version_id'
+                . " WHERE p.post_channel_id=? AND (p.external_message_id=? OR JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id'))=?)"
+                . ' LIMIT 1' . $this->lock(), [(int)$channel['id'], $mid, '800']);
+            if ($occupied) throw new RuntimeException('max_transfer_target_or_hotel_occupied');
+            $payload = self::publicationToken();
+            $this->execute('INSERT INTO post_publications (post_channel_id,source_id,external_message_id,start_payload,created_at) VALUES (?,?,?,?,?)',
+                [(int)$channel['id'], (int)$channel['source_id'], $mid, $payload, self::now()]);
+            return ['id'=>(int)$this->pdo->lastInsertId(), 'payload'=>$payload];
+        });
+    }
+
+    public function assertMaxSugarMarinaTransfer(array $channel, array $reservation): void
+    {
+        $this->transaction(function () use ($channel, $reservation): void {
+            $row = $this->lockMaxSugarMarinaTransfer($channel, $reservation);
+            if ($row['current_version_id'] !== null || $row['observed_revision_ms'] !== null
+                || $this->fetch('SELECT id FROM post_versions WHERE publication_id=? LIMIT 1' . $this->lock(), [(int)$row['id']])) {
+                throw new RuntimeException('max_transfer_target_or_hotel_occupied');
+            }
+        });
+    }
+
+    /** Adopt an authenticated exact GET readback, without queuing a provider edit. */
+    public function completeMaxSugarMarinaTransfer(array $channel, array $reservation, array $message, array $plan, string $digest): array
+    {
+        $snapshot = ChannelPostIncomingAdapter::maxSnapshot($message);
+        $button = rtrim((string)$channel['bot_url'], '/') . '?start=' . rawurlencode($reservation['payload']);
+        if (!$snapshot || ($message['body']['mid'] ?? '') !== 'mid.ffffc1752b045fed019edec4de843c85'
+            || (string)($message['recipient']['chat_id'] ?? '') !== '-68765999669267'
+            || ($message['recipient']['chat_type'] ?? '') !== 'channel'
+            || (string)($message['timestamp'] ?? '') !== '1781853904516'
+            || $snapshot['post_url'] !== 'https://max.ru/anytour/AZ7exN6EPIU'
+            || ($snapshot['metadata']['capability'] ?? '') !== 'supported'
+            || $snapshot['text'] !== $plan['text'] || count($snapshot['attachments']) !== 1
+            || hash('sha256', (string)($snapshot['attachments'][0]['photo_id'] ?? '')) !== $plan['source']['photo_sha256']
+            || !ChannelPostIncomingAdapter::containsOnlyButton($snapshot, $button, $channel['button_text'])) {
+            throw new RuntimeException('max_transfer_native_readback_mismatch');
+        }
+        return $this->transaction(function () use ($channel, $reservation, $snapshot, $plan, $digest): array {
+            $row = $this->lockMaxSugarMarinaTransfer($channel, $reservation);
+            $id = (int)$row['id'];
+            $version = 1;
+            if ($row['current_version_id'] !== null) {
+                $this->fetch('SELECT id FROM post_versions WHERE id=? AND publication_id=?' . $this->lock(), [(int)$row['current_version_id'], $id]);
+                $previous = $this->publication($id);
+                // The native edit can have arrived by webhook after our reservation.
+                if (!$previous || $previous['version_number'] !== 1 || $previous['write_attempts'] !== 0
+                    || !in_array($previous['state'], ['pending','sent'], true)
+                    || $previous['claim_token'] !== null || $previous['claimed_at'] !== null
+                    || !hash_equals(ChannelPostIncomingAdapter::contentFingerprint($snapshot),
+                        ChannelPostIncomingAdapter::contentFingerprint($previous['snapshot']))
+                    || !ChannelPostIncomingAdapter::containsOnlyButton($previous['snapshot'],
+                        rtrim((string)$channel['bot_url'], '/') . '?start=' . rawurlencode($reservation['payload']), $channel['button_text'])) {
+                    throw new RuntimeException('max_transfer_registry_readback_mismatch');
+                }
+                if ($previous['state'] === 'pending') {
+                    if ($this->execute("UPDATE post_versions SET state='requires_attention',error_reason='superseded_before_write',updated_at=? WHERE id=? AND state='pending' AND write_attempts=0 AND claim_token IS NULL AND claimed_at IS NULL",
+                        [self::now(), $previous['version_id']]) !== 1) throw new RuntimeException('max_transfer_registry_readback_mismatch');
+                }
+                $version++;
+            }
+            $observationHash = hash('sha256', self::json(self::canonicalArray($snapshot['raw_body'])));
+            $snapshot['title'] = $plan['hotel_name'];
+            $snapshot['metadata']['hotel_catalog_id'] = 800;
+            $snapshot['metadata']['observation_kind'] = 'authorized_admin_media_edit';
+            $snapshot['metadata']['hotel_transfer_plan_digest'] = $digest;
+            $snapshot = self::snapshot($snapshot);
+            $receipt = ['verified'=>true, 'button_verified'=>true, 'media_verified'=>true,
+                'caption_verified'=>true, 'publication_date_verified'=>true, 'completion_kind'=>'max_hotel_transfer_v1',
+                'plan_digest'=>$digest, 'provider_response_sha256'=>$observationHash, 'media_write_attempts'=>1];
+            $now = self::now();
+            $this->execute("INSERT INTO post_versions (publication_id,version_number,content_hash,snapshot_json,state,write_attempts,error_reason,receipt_json,created_at,updated_at) VALUES (?,?,?,?,'sent',0,'',?,?,?)",
+                [$id, $version, ChannelPostIncomingAdapter::contentFingerprint($snapshot), self::json($snapshot), self::json($receipt), $now, $now]);
+            $versionId = (int)$this->pdo->lastInsertId();
+            $this->execute('UPDATE post_publications SET current_version_id=? WHERE id=?', [$versionId, $id]);
+            return $this->publication($id) ?? throw new RuntimeException('max_transfer_registry_readback_mismatch');
+        });
+    }
+
+    private function lockMaxSugarMarinaTransferChannel(array $channel): void
+    {
+        $fresh = $this->channel('anytour', 'max', (string)$channel['bot_key'], '-68765999669267', true, true);
+        if ($fresh !== $channel || (int)$channel['config_version'] !== 2) {
+            throw new RuntimeException('max_transfer_channel_configuration_changed');
+        }
+    }
+
+    private function lockMaxSugarMarinaTransfer(array $channel, array $reservation): array
+    {
+        $this->lockMaxSugarMarinaTransferChannel($channel);
+        $row = $this->fetch('SELECT * FROM post_publications WHERE id=? AND post_channel_id=? AND external_message_id=?' . $this->lock(),
+            [$reservation['id'], (int)$channel['id'], 'mid.ffffc1752b045fed019edec4de843c85']);
+        if (!$row || (int)$row['source_id'] !== (int)$channel['source_id'] || !hash_equals($row['start_payload'], $reservation['payload'])) {
+            throw new RuntimeException('max_transfer_reservation_changed');
+        }
+        return $row;
+    }
+
     /** Read the one selected publication without allocating a token or work. */
     public function manualTelegramButtonPublication(): ?array
     {

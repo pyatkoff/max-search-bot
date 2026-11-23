@@ -54,6 +54,12 @@ const HOTEL_FOUR_TRANSFER = Object.freeze({branch:'ops/anytour-hotel-four-apply-
   plan_path:'config/anytour_existing_post_transfer_four_20261123.json',plan_size:11972,
   plan_blob:'648e68b7395fcab65c321448b1a6a68554de17dc',
   plan_digest:'fdda41801951a033715b5ca5d567ef348f2ee885ab40074d35dfa8151d52de56'});
+const HOTEL_MAX_SUGAR_TRANSFER = Object.freeze({...HOTEL_FOUR_TRANSFER,
+  branch:'ops/anytour-max-sugar-marina-800-apply-20261123',
+  workflow:PREFIX+'edit-1566-max-sugar-marina.yml',operation:'hotel_max_sugar_transfer',
+  plan_path:'config/anytour_existing_post_transfer_max_800.json',plan_size:1387,
+  plan_blob:'34a610598ddd0db2213851ef12af7b3347931d3a',
+  plan_digest:'536eac513fc1491363b27d9a909043abfb3ef6fece67245327d1e49eac1f2ab6'});
 const sha = v => typeof v === 'string' && /^[0-9a-f]{40}$/.test(v);
 const digest64 = v => typeof v === 'string' && /^[0-9a-f]{64}$/.test(v);
 const positive = v => (typeof v === 'string' && /^[1-9][0-9]{0,15}$/.test(v)
@@ -1674,13 +1680,14 @@ async function resolveHotelRegistryRead({env,event,api}) {
   runIdentity(runs[0],{id:c.id,attempt:1,head:c.sha,workflow:p.workflow,event:'push',completed:false,branch:p.branch});
   const location=await readRecord(api),result=await resolveCurrent(api,c,location);
   requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
+  if(p===HOTEL_MAX_SUGAR_TRANSFER)requireValue(result.application_sha===c.sha,'max_transfer_editor_not_installed');
   requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_registry_read_branch_changed');
   return {...await finalResolution(api,c,location,result),read_operation:p.operation};
 }
 /** The reviewed plan is data, not user consent. Only a separate first owner push
  * can select the existing editor; this resolver itself performs GETs only. */
-async function resolveHotelFourTransfer({env,event,api}) {
-  const p=HOTEL_FOUR_TRANSFER,ref='refs/heads/'+p.branch;
+async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
+  const ref='refs/heads/'+p.branch;
   requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF===ref
     &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+p.workflow+'@'+ref
     &&env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_JOB===p.job
@@ -1734,7 +1741,8 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
     return resolution(x.source,GATE_RECOVERY.sha,'installed');
   }
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_REGISTRY_READ.branch)return resolveHotelRegistryRead({env,event,api});
-  if(env.GITHUB_REF==='refs/heads/'+HOTEL_FOUR_TRANSFER.branch)return resolveHotelFourTransfer({env,event,api});
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_FOUR_TRANSFER.branch)return resolveHotelTransfer({env,event,api});
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_MAX_SUGAR_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_MAX_SUGAR_TRANSFER);
   const startedAt=now();
   const c=await sourceContext(env,event,api);
   requireValue(c.attempt===1,'consumer_rerun_forbidden');

@@ -1627,6 +1627,23 @@ try {
 }
 channelPostCheck('real hotel editor fixtures remove only their isolated operation directories',!file_exists($transferFixtureRoot));
 
+require_once __DIR__ . '/../tools/anytour_existing_post_max_transfer.php';
+$maxTransferPlan = \AnyTour\ExistingPostBatch\maxTransferPlan(dirname(__DIR__), \AnyTour\ExistingPostBatch\MAX_TRANSFER_DIGEST);
+channelPostCheck('MAX transfer plan binds just Sugar Marina and one unchanged old address', [
+    $maxTransferPlan['hotel_id'], $maxTransferPlan['source']['url'], $maxTransferPlan['target']['url'],
+    preg_match('/[0-9₽]/u', $maxTransferPlan['text']),
+], [800, 'https://max.ru/channel_anytour/AaG2GG5XH2I', 'https://max.ru/anytour/AZ7exN6EPIU', 0]);
+try {
+    \AnyTour\ExistingPostBatch\maxTransferPlan(dirname(__DIR__), str_repeat('0', 64));
+    channelPostCheck('MAX transfer rejects a different plan digest', false);
+} catch (RuntimeException $error) {
+    channelPostCheck('MAX transfer rejects a different plan digest', $error->getMessage(), 'max_transfer_plan_not_approved');
+}
+channelPostCheck('MAX transfer rejects any other historical post before native I/O',
+    ChannelPostApiTransport::maxHotelTransferRequest('-68765999669267', 'mid.ffffc1752b045fed019edec4de843c86',
+        $maxTransferPlan['text'], 'fixture', 'Рассчитать на мои даты', 'https://max.ru/fixture_bot?start=p_'.str_repeat('a', 24)),
+    ['http'=>0, 'data'=>null, 'transport_error'=>true]);
+
 echo 'Channel post automation: ' . $passed . ' passed, ' . $failed . ' failed' . PHP_EOL;
 exit($failed === 0 ? 0 : 1);
 
