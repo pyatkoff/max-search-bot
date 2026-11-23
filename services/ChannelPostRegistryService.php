@@ -127,6 +127,277 @@ final class ChannelPostRegistryService
         return $this->registerObservation($projectKey,$platform,$botKey,$channelId,$messageId,$snapshot);
     }
 
+    /**
+     * Explicit editor only. Reserve an identity, never a native observation or
+     * queued version. The caller owns durable approval and the once-only journal.
+     */
+    public function reserveTelegramHotelTransfer(array $row, string $planDigest, ?callable $authorize = null): array
+    {
+        $row = self::telegramHotelTransferRow($row, $planDigest);
+        return $this->transaction(function () use ($row, $planDigest, $authorize): array {
+            $channel = $this->telegramHotelTransferChannel($row);
+            $this->telegramHotelTransferSource($row);
+            $existing = $this->fetch('SELECT id FROM post_publications WHERE post_channel_id=? AND external_message_id=?' . $this->lock(), [(int)$channel['id'], $row['target_message_id']]);
+            // An orphan reservation is not proof of this operator's ownership.
+            if ($existing) throw new RuntimeException('hotel_transfer_identity_exists');
+            if ($authorize === null || $authorize($row, $planDigest) !== true) throw new RuntimeException('hotel_transfer_approval_required');
+            $token = self::publicationToken();
+            $this->execute('INSERT INTO post_publications (post_channel_id,source_id,external_message_id,start_payload,created_at) VALUES (?,?,?,?,?)', [(int)$channel['id'], (int)$channel['source_id'], $row['target_message_id'], $token, self::now()]);
+            return self::telegramHotelTransferReservation($channel, $row, $planDigest, (int)$this->pdo->lastInsertId(), $token);
+        });
+    }
+
+    /** Read-only final CAS. No version, claim, expiry, provider call or rearming. */
+    public function assertTelegramHotelTransferReservation(array $reservation, array $row, string $planDigest): array
+    {
+        $row = self::telegramHotelTransferRow($row, $planDigest);
+        return $this->transaction(function () use ($reservation, $row, $planDigest): array {
+            $channel = $this->telegramHotelTransferChannel($row);
+            $this->telegramHotelTransferSource($row);
+            $identity = $this->telegramHotelTransferIdentity($reservation, $channel, $row, $planDigest);
+            if ($identity['current_version_id'] !== null || $identity['observed_revision_ms'] !== null || $identity['telegram_sequence'] !== null
+                || $this->fetch('SELECT id FROM post_versions WHERE publication_id=? LIMIT 1' . $this->lock(), [(int)$identity['id']])
+                || $this->fetch('SELECT version_id FROM post_observations WHERE publication_id=? LIMIT 1' . $this->lock(), [(int)$identity['id']])) throw new RuntimeException('hotel_transfer_reservation_changed');
+            return $reservation;
+        });
+    }
+
+    /**
+     * Adopt one authentic saved editMessageMedia response. Authentication and the
+     * media once-only marker belong to the caller's private editor journal. This
+     * method performs no provider write and invents no Telegram update identity.
+     */
+    public function completeTelegramHotelTransfer(array $reservation, array $row, string $planDigest, array $nativeResponse): array
+    {
+        $row = self::telegramHotelTransferRow($row, $planDigest);
+        $observed = self::telegramHotelTransferResponse($reservation, $row, $nativeResponse);
+        $responseDigest = hash('sha256', self::json(self::canonicalArray($nativeResponse)));
+        return $this->transaction(function () use ($reservation, $row, $planDigest, $nativeResponse, $observed, $responseDigest): array {
+            $channel = $this->telegramHotelTransferChannel($row);
+            $identity = $this->telegramHotelTransferIdentity($reservation, $channel, $row, $planDigest);
+            $id = (int)$identity['id'];
+            if ($identity['current_version_id'] === null && ($identity['observed_revision_ms'] !== null || $identity['telegram_sequence'] !== null)) throw new RuntimeException('hotel_transfer_target_changed');
+            $previous = $identity['current_version_id'] === null ? null : $this->fetch('SELECT * FROM post_versions WHERE id=? AND publication_id=?' . $this->lock(), [(int)$identity['current_version_id'], $id]);
+            $provenance = ['kind'=>'telegram_hotel_transfer_v1', 'plan_digest'=>$planDigest,
+                'row_digest'=>$reservation['row_digest'], 'response_sha256'=>$responseDigest,
+                'publication_id'=>$id, 'source_publication_id'=>$row['source_publication_id'],
+                'source_version_id'=>$row['source_version_id'], 'source_content_hash'=>$row['source_content_hash'],
+                'source_file_unique_id_sha256'=>$row['source_file_unique_id_sha256']];
+            if ($identity['current_version_id'] !== null && !$previous) throw new RuntimeException('hotel_transfer_target_changed');
+            $priorSnapshot = $previous ? (json_decode((string)$previous['snapshot_json'], true) ?: []) : null;
+            $revision = (int)$nativeResponse['data']['result']['edit_date'] * 1000;
+            if ((int)($identity['observed_revision_ms'] ?? 0) > $revision) throw new RuntimeException('hotel_transfer_target_changed');
+            if ($previous) {
+                self::telegramHotelTransferObservedMatch($priorSnapshot, $observed, $row);
+                if (!hash_equals((string)$previous['content_hash'], ChannelPostIncomingAdapter::contentFingerprint($priorSnapshot))) throw new RuntimeException('hotel_transfer_target_changed');
+                if (!isset($priorSnapshot['metadata']['hotel_transfer'])) {
+                    $nativeEvent = $priorSnapshot['metadata']['source_event_id'] ?? null;
+                    $nativeObservation = is_string($nativeEvent) && preg_match('/\A[a-f0-9]{64}\z/D', $nativeEvent)
+                        ? $this->fetch('SELECT version_id FROM post_observations WHERE publication_id=? AND source_event_key=?' . $this->lock(), [$id, hash('sha256', $nativeEvent)]) : null;
+                    if (!$nativeObservation || (int)$nativeObservation['version_id'] !== (int)$previous['id']
+                        || ($priorSnapshot['metadata']['source_sequence_scope'] ?? '') !== 'telegram_update_id'
+                        || self::validSequence($priorSnapshot['metadata']['source_sequence'] ?? null) === null) throw new RuntimeException('hotel_transfer_target_changed');
+                }
+            }
+            $held = $this->fetch("SELECT id,state,write_attempts,claim_token,claimed_at FROM post_versions WHERE publication_id=? AND (state IN ('claimed','write_started','unknown') OR claim_token IS NOT NULL OR claimed_at IS NOT NULL) ORDER BY id LIMIT 1" . $this->lock(), [$id]);
+            if ($held) {
+                $this->telegramHotelTransferSource($row);
+                $history = $this->fetch('SELECT COUNT(*) AS total FROM post_versions WHERE publication_id=?', [$id]);
+                // The only retryable DB completion race is an ordinary worker
+                // reading this already-correct keyboard before its zero-write finish.
+                if ($previous && (int)$history['total'] === 1 && (int)$held['id'] === (int)$previous['id']
+                    && $held['state'] === 'claimed' && (int)$held['write_attempts'] === 0
+                    && is_string($held['claim_token']) && preg_match('/\A[a-f0-9]{32}\z/D', $held['claim_token'])
+                    && is_string($held['claimed_at']) && $held['claimed_at'] >= gmdate('Y-m-d H:i:s', time() - self::LEASE_SECONDS)
+                    && $held['claimed_at'] <= self::now() && !isset($priorSnapshot['metadata']['hotel_transfer'])
+                    && (!isset($priorSnapshot['metadata']['hotel_catalog_id']) || (int)$priorSnapshot['metadata']['hotel_catalog_id'] === $row['hotel_id'])) throw new RuntimeException('hotel_transfer_native_claim_busy');
+                throw new RuntimeException('hotel_transfer_target_held');
+            }
+            if ($previous) {
+                if (($priorSnapshot['metadata']['hotel_transfer'] ?? null) === $provenance
+                    && ($priorSnapshot['metadata']['hotel_catalog_id'] ?? null) === $row['hotel_id']
+                    && ($priorSnapshot['metadata']['hotel_transfer_price_record_id'] ?? null) === $row['price_record_id']
+                    && $previous['state'] === 'sent') {
+                    return ($this->publication($id) ?? throw new RuntimeException('hotel_transfer_target_changed')) + ['already_completed'=>true];
+                }
+            }
+            $this->telegramHotelTransferSource($row);
+            $history = $this->fetch('SELECT COUNT(*) AS total FROM post_versions WHERE publication_id=?', [$id]);
+            if (($previous && ((int)$history['total'] !== 1 || (int)$previous['version_number'] !== 1))
+                || (!$previous && (int)$history['total'] !== 0)) throw new RuntimeException('hotel_transfer_target_changed');
+            if ($previous && (!in_array($previous['state'], ['pending','sent'], true)
+                || (int)$previous['write_attempts'] !== 0
+                || isset($priorSnapshot['metadata']['hotel_transfer'])
+                || (isset($priorSnapshot['metadata']['hotel_catalog_id']) && (int)$priorSnapshot['metadata']['hotel_catalog_id'] !== $row['hotel_id']))) throw new RuntimeException('hotel_transfer_target_changed');
+            $event = 'authorized-hotel-media:' . $planDigest . ':' . $row['target_message_id'] . ':' . $responseDigest;
+            $snapshot = $priorSnapshot ?? $observed;
+            if (!$previous) {
+                $snapshot['metadata']['observation_kind'] = 'authorized_admin_media_edit';
+                $snapshot['metadata']['source_event_id'] = $event;
+                $snapshot['metadata']['source_revision_ms'] = (string)$revision;
+            }
+            $snapshot['metadata']['hotel_catalog_id'] = $row['hotel_id'];
+            $snapshot['metadata']['hotel_transfer_price_record_id'] = $row['price_record_id'];
+            $snapshot['metadata']['hotel_transfer'] = $provenance;
+            $snapshot = self::snapshot($snapshot);
+            $hash = ChannelPostIncomingAdapter::contentFingerprint($snapshot);
+            $receipt = ['verified'=>true, 'button_verified'=>true, 'media_verified'=>true, 'caption_verified'=>true,
+                'publication_date_verified'=>true, 'completion_kind'=>'telegram_hotel_transfer_v1',
+                'plan_digest'=>$planDigest, 'row_digest'=>$reservation['row_digest'],
+                'provider_response_sha256'=>$responseDigest, 'media_write_attempts'=>1,
+                'request_count'=>0, 'write_attempts'=>0, 'adopted_from_version_id'=>$previous ? (int)$previous['id'] : null];
+            $now = self::now();
+            $this->execute("INSERT INTO post_versions (publication_id,version_number,content_hash,snapshot_json,state,write_attempts,error_reason,receipt_json,created_at,updated_at) VALUES (?,?,?,?,'sent',0,'',?,?,?)", [$id, $previous ? (int)$previous['version_number'] + 1 : 1, $hash, self::json($snapshot), self::json($receipt), $now, $now]);
+            $versionId = (int)$this->pdo->lastInsertId();
+            $cas = $previous ? 'current_version_id=?' : 'current_version_id IS NULL';
+            $values = [$versionId, $id];
+            if ($previous) $values[] = (int)$previous['id'];
+            if ($this->execute('UPDATE post_publications SET current_version_id=? WHERE id=? AND ' . $cas, $values) !== 1) throw new RuntimeException('hotel_transfer_target_changed');
+            if ($previous && $previous['state'] === 'pending') {
+                if ($this->execute("UPDATE post_versions SET state='requires_attention',error_reason='superseded_before_write',updated_at=? WHERE id=? AND state='pending' AND write_attempts=0 AND claim_token IS NULL AND claimed_at IS NULL", [$now, (int)$previous['id']]) !== 1) throw new RuntimeException('hotel_transfer_target_held');
+            }
+            // HTTP has edit_date but no update_id. Never replace a genuine
+            // same-second sequence or lower a newer accepted native clock.
+            if ((int)($identity['observed_revision_ms'] ?? 0) < $revision) {
+                $this->execute('UPDATE post_publications SET observed_revision_ms=? WHERE id=?', [$revision, $id]);
+            }
+            $this->execute('INSERT INTO post_observations (publication_id,source_event_key,version_id,created_at) VALUES (?,?,?,?)', [$id, hash('sha256', $event), $versionId, $now]);
+            return ($this->publication($id) ?? throw new RuntimeException('hotel_transfer_target_changed')) + ['already_completed'=>false];
+        });
+    }
+
+    private static function telegramHotelTransferRow(array $row, string $planDigest): array
+    {
+        $keys = ['hotel_id','source_message_id','source_publication_id','source_version_id','source_content_hash',
+            'source_caption_sha256','source_file_id_sha256','source_file_unique_id_sha256','target_message_id',
+            'target_published_unixtime','target_caption_sha256','target_photo_marker_sha256','target_config_version',
+            'next_caption','next_caption_sha256','button_text','bot_url','price_record_id'];
+        $actual = array_keys($row); sort($actual); $expected = $keys; sort($expected);
+        if ($actual !== $expected || !preg_match('/\A[a-f0-9]{64}\z/D', $planDigest)) throw new InvalidArgumentException('hotel_transfer_plan_invalid');
+        $pairs = [17595=>['455',1003,'862',1726731731], 358=>['65',211,'328',1705145228],
+            393=>['85',247,'1083',1745392994], 1260=>['548',1220,'288',1703918786]];
+        if (!is_int($row['hotel_id']) || !isset($pairs[$row['hotel_id']])
+            || [$row['source_message_id'],$row['source_publication_id'],$row['target_message_id'],$row['target_published_unixtime']] !== $pairs[$row['hotel_id']]
+            || !is_int($row['source_version_id']) || $row['source_version_id'] <= 0
+            || $row['target_config_version'] !== 2 || $row['bot_url'] !== 'https://t.me/anyru_bot') throw new InvalidArgumentException('hotel_transfer_scope_invalid');
+        foreach (['source_content_hash','source_caption_sha256','source_file_id_sha256','source_file_unique_id_sha256',
+            'target_caption_sha256','target_photo_marker_sha256','next_caption_sha256','price_record_id'] as $key) {
+            if (!is_string($row[$key]) || !preg_match('/\A[a-f0-9]{64}\z/D', $row[$key])) throw new InvalidArgumentException('hotel_transfer_plan_invalid');
+        }
+        if (!is_string($row['next_caption']) || $row['next_caption'] === '' || !mb_check_encoding($row['next_caption'], 'UTF-8')
+            || strlen(mb_convert_encoding($row['next_caption'], 'UTF-16LE', 'UTF-8')) > 2048
+            || !hash_equals(hash('sha256', $row['next_caption']), $row['next_caption_sha256'])
+            || !is_string($row['button_text']) || $row['button_text'] === '' || !mb_check_encoding($row['button_text'], 'UTF-8')
+            || mb_strlen($row['button_text'], 'UTF-8') > 80 || preg_match('/[\x00-\x1f\x7f]/u', $row['button_text'])) throw new InvalidArgumentException('hotel_transfer_plan_invalid');
+        return array_replace(array_fill_keys($keys, null), $row);
+    }
+
+    private function telegramHotelTransferChannel(array $row): array
+    {
+        $channel = $this->channel('anytour', 'telegram', 'anyru_bot', '-1001845835645', true, true);
+        if (!$channel || (int)$channel['config_version'] !== $row['target_config_version']
+            || $channel['canonical_bot_username'] !== 'anyru_bot' || $channel['source_key'] !== 'tg_anytour_msk'
+            || $channel['bot_url'] !== $row['bot_url'] || $channel['button_text'] !== $row['button_text']) throw new RuntimeException('hotel_transfer_configuration_changed');
+        return $channel;
+    }
+
+    private function telegramHotelTransferSource(array $row): array
+    {
+        $channel = $this->channel('anytour', 'telegram', 'anyru_bot', '-1002262666616', true, true);
+        $identity = $this->fetch('SELECT * FROM post_publications WHERE id=?' . $this->lock(), [$row['source_publication_id']]);
+        if (!$channel || !$identity || (int)$identity['post_channel_id'] !== (int)$channel['id']
+            || $identity['external_message_id'] !== $row['source_message_id']
+            || (int)$identity['current_version_id'] !== $row['source_version_id']) throw new RuntimeException('hotel_transfer_source_changed');
+        $version = $this->fetch('SELECT * FROM post_versions WHERE id=? AND publication_id=?' . $this->lock(), [$row['source_version_id'], $row['source_publication_id']]);
+        $held = $this->fetch("SELECT id FROM post_versions WHERE publication_id=? AND (state IN ('claimed','write_started','unknown') OR claim_token IS NOT NULL OR claimed_at IS NOT NULL) LIMIT 1" . $this->lock(), [$row['source_publication_id']]);
+        $snapshot = json_decode((string)($version['snapshot_json'] ?? ''), true) ?: [];
+        $media = $snapshot['attachments'] ?? [];
+        $photo = count($media) === 1 ? ($media[0] ?? []) : [];
+        if (!$version || $held || $version['state'] !== 'sent' || (int)$identity['source_id'] !== (int)$channel['source_id']
+            || !hash_equals((string)$version['content_hash'], $row['source_content_hash'])
+            || !hash_equals(ChannelPostIncomingAdapter::contentFingerprint($snapshot), $row['source_content_hash'])
+            || !hash_equals(hash('sha256', (string)($snapshot['text'] ?? '')), $row['source_caption_sha256'])
+            || (int)($snapshot['metadata']['hotel_catalog_id'] ?? 0) !== $row['hotel_id']
+            || ($snapshot['metadata']['capability'] ?? '') !== 'supported' || !empty($snapshot['metadata']['media_group_id'])
+            || ($snapshot['post_url'] ?? '') !== 'https://t.me/any_toour/' . $row['source_message_id']
+            || ($photo['type'] ?? '') !== 'image' || ($photo['provider'] ?? '') !== 'telegram'
+            || !is_string($photo['telegram_file_id'] ?? null) || !preg_match('/\A[A-Za-z0-9_-]{8,1024}\z/D', $photo['telegram_file_id'])
+            || !is_string($photo['file_unique_id'] ?? null) || !preg_match('/\A[A-Za-z0-9_-]{5,160}\z/D', $photo['file_unique_id'])
+            || !hash_equals(hash('sha256', $photo['telegram_file_id']), $row['source_file_id_sha256'])
+            || !hash_equals(hash('sha256', $photo['file_unique_id']), $row['source_file_unique_id_sha256'])) throw new RuntimeException('hotel_transfer_source_changed');
+        return $snapshot;
+    }
+
+    private static function telegramHotelTransferReservation(array $channel, array $row, string $planDigest, int $id, string $token): array
+    {
+        return ['schema'=>'telegram_hotel_transfer_reservation_v1', 'project_key'=>'anytour', 'platform'=>'telegram',
+            'bot_key'=>'anyru_bot', 'channel_id'=>'-1001845835645', 'post_channel_id'=>(int)$channel['id'],
+            'source_id'=>(int)$channel['source_id'], 'target_config_version'=>(int)$channel['config_version'],
+            'publication_id'=>$id, 'target_message_id'=>$row['target_message_id'], 'start_payload'=>$token,
+            'button_url'=>$row['bot_url'] . '?start=' . $token, 'button_text'=>$row['button_text'],
+            'current_version_id'=>null, 'plan_digest'=>$planDigest,
+            'row_digest'=>hash('sha256', self::json(self::canonicalArray($row))),
+            'channel_digest'=>hash('sha256', self::json(self::canonicalArray($channel)))];
+    }
+
+    private function telegramHotelTransferIdentity(array $reservation, array $channel, array $row, string $planDigest): array
+    {
+        $id = $reservation['publication_id'] ?? null; $token = $reservation['start_payload'] ?? null;
+        if (!is_int($id) || $id <= 0 || !is_string($token) || !preg_match('/\Ap_[A-Za-z0-9_-]{24}\z/D', $token)
+            || self::canonicalArray($reservation) !== self::canonicalArray(self::telegramHotelTransferReservation($channel, $row, $planDigest, $id, $token))) throw new RuntimeException('hotel_transfer_reservation_changed');
+        $identity = $this->fetch('SELECT * FROM post_publications WHERE post_channel_id=? AND external_message_id=?' . $this->lock(), [(int)$channel['id'], $row['target_message_id']]);
+        if (!$identity || (int)$identity['id'] !== $id || (int)$identity['source_id'] !== (int)$channel['source_id']
+            || !hash_equals((string)$identity['start_payload'], $token)) throw new RuntimeException('hotel_transfer_reservation_changed');
+        return $identity;
+    }
+
+    private static function telegramHotelTransferResponse(array $reservation, array $row, array $response): array
+    {
+        $raw = $response['data']['result'] ?? null;
+        if (($response['http'] ?? null) !== 200 || ($response['transport_error'] ?? null) !== false
+            || ($response['data']['ok'] ?? null) !== true || !is_array($raw)
+            || (string)($raw['chat']['id'] ?? '') !== '-1001845835645' || ($raw['chat']['type'] ?? '') !== 'channel'
+            || ($raw['chat']['username'] ?? '') !== 'anytour' || (string)($raw['message_id'] ?? '') !== $row['target_message_id']
+            || ($raw['date'] ?? null) !== $row['target_published_unixtime'] || !is_int($raw['edit_date'] ?? null)
+            || $raw['edit_date'] <= $row['target_published_unixtime'] || $raw['edit_date'] > 9999999999
+            || ($raw['caption'] ?? null) !== $row['next_caption'] || isset($raw['text']) || !empty($raw['media_group_id'])
+            || ($raw['caption_entities'] ?? []) !== [] || ($raw['entities'] ?? []) !== []) throw new RuntimeException('hotel_transfer_response_unconfirmed');
+        $expectedKeyboard = ['inline_keyboard'=>[[['text'=>$row['button_text'], 'url'=>$reservation['button_url'] ?? null]]]];
+        if (!is_array($raw['reply_markup'] ?? null)
+            || self::canonicalArray($raw['reply_markup']) !== self::canonicalArray($expectedKeyboard)) throw new RuntimeException('hotel_transfer_response_unconfirmed');
+        $snapshot = ChannelPostIncomingAdapter::telegramSnapshot($raw);
+        $photo = $snapshot['attachments'][0] ?? [];
+        if (!$snapshot || ($snapshot['metadata']['capability'] ?? '') !== 'supported' || count($snapshot['attachments']) !== 1
+            || ($photo['type'] ?? '') !== 'image' || ($photo['provider'] ?? '') !== 'telegram'
+            || !is_string($photo['file_unique_id'] ?? null)
+            || !hash_equals(hash('sha256', $photo['file_unique_id']), $row['source_file_unique_id_sha256'])
+            || $snapshot['post_url'] !== 'https://t.me/anytour/' . $row['target_message_id']) throw new RuntimeException('hotel_transfer_response_unconfirmed');
+        return self::snapshot($snapshot);
+    }
+
+    private static function telegramHotelTransferObservedMatch(array $current, array $observed, array $row): void
+    {
+        foreach (['text','markup','post_url','published_at','edited_at'] as $key) {
+            if (($current[$key] ?? null) !== ($observed[$key] ?? null)) throw new RuntimeException('hotel_transfer_target_changed');
+        }
+        $raw = $current['raw_body'] ?? [];
+        $native = is_array($raw) ? ChannelPostIncomingAdapter::telegramSnapshot($raw) : null;
+        if (!is_array($current['keyboard'] ?? null) || self::canonicalArray($current['keyboard']) !== self::canonicalArray($observed['keyboard'])
+            || !$native || (string)($raw['chat']['id'] ?? '') !== '-1001845835645' || ($raw['chat']['type'] ?? '') !== 'channel'
+            || (string)($raw['message_id'] ?? '') !== $row['target_message_id'] || ($raw['date'] ?? null) !== $row['target_published_unixtime']
+            || $native['published_at'] !== $observed['published_at'] || $native['edited_at'] !== $observed['edited_at']
+            || !hash_equals(ChannelPostIncomingAdapter::contentFingerprint($native), ChannelPostIncomingAdapter::contentFingerprint($observed))
+            || self::canonicalArray($native['keyboard']) !== self::canonicalArray($observed['keyboard'])
+            || ($current['metadata']['capability'] ?? '') !== 'supported' || !empty($current['metadata']['media_group_id'])
+            || ($current['metadata']['actual_message_id'] ?? '') !== $row['target_message_id']
+            || !hash_equals(ChannelPostIncomingAdapter::contentFingerprint($current), ChannelPostIncomingAdapter::contentFingerprint($observed))) throw new RuntimeException('hotel_transfer_target_changed');
+    }
+
+    private static function publicationToken(): string
+    {
+        return 'p_' . rtrim(strtr(base64_encode(random_bytes(18)), '+/', '-_'), '=');
+    }
+
     /** Read the one selected publication without allocating a token or work. */
     public function manualTelegramButtonPublication(): ?array
     {
@@ -451,7 +722,7 @@ final class ChannelPostRegistryService
             if (!$channel || ($providerConfigVersion !== null && (int)$channel['config_version'] !== $providerConfigVersion)) return null;
             $publication = $this->fetch('SELECT * FROM post_publications WHERE post_channel_id=? AND external_message_id=?' . $this->lock(), [(int)$channel['id'], $messageId]);
             if (!$publication) {
-                $token = 'p_' . rtrim(strtr(base64_encode(random_bytes(18)), '+/', '-_'), '=');
+                $token = self::publicationToken();
                 $this->execute('INSERT INTO post_publications (post_channel_id,source_id,external_message_id,start_payload,created_at) VALUES (?,?,?,?,?)', [(int)$channel['id'], (int)$channel['source_id'], $messageId, $token, self::now()]);
                 $publication = ['id' => (int)$this->pdo->lastInsertId(), 'current_version_id' => null];
             }

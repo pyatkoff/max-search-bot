@@ -48,6 +48,12 @@ const SCHEDULES = new Map([[PREFIX+'live-session-diagnostics.yml','25 * * * *'],
 const HOTEL_REGISTRY_READ = Object.freeze({branch:'ops/anytour-hotel-four-read-20261123',
   workflow:PREFIX+'read-1566-main-hotel-registry.yml',job:'registry',operation:'hotel_four_registry',
   owner:'pyatkoff',owner_id:226193297,repository_id:1342493152});
+const HOTEL_FOUR_TRANSFER = Object.freeze({branch:'ops/anytour-hotel-four-apply-20261123',
+  workflow:PREFIX+'edit-1566-historical-telegram-with-channel-default.yml',job:'transfer',operation:'hotel_four_transfer',
+  owner:'pyatkoff',owner_id:226193297,repository_id:1342493152,
+  plan_path:'config/anytour_existing_post_transfer_four_20261123.json',plan_size:11966,
+  plan_blob:'e786330f94af307dc631458a73a38310b73c086a',
+  plan_digest:'b88a09ec5220a20c7daee2480c9da9f36310fc8a2dc83a8afbe730ef1ed40d48'});
 const sha = v => typeof v === 'string' && /^[0-9a-f]{40}$/.test(v);
 const digest64 = v => typeof v === 'string' && /^[0-9a-f]{64}$/.test(v);
 const positive = v => (typeof v === 'string' && /^[1-9][0-9]{0,15}$/.test(v)
@@ -1671,6 +1677,55 @@ async function resolveHotelRegistryRead({env,event,api}) {
   requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_registry_read_branch_changed');
   return {...await finalResolution(api,c,location,result),read_operation:p.operation};
 }
+/** The reviewed plan is data, not user consent. Only a separate first owner push
+ * can select the existing editor; this resolver itself performs GETs only. */
+async function resolveHotelFourTransfer({env,event,api}) {
+  const p=HOTEL_FOUR_TRANSFER,ref='refs/heads/'+p.branch;
+  requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF===ref
+    &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+p.workflow+'@'+ref
+    &&env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_JOB===p.job
+    &&env.GITHUB_RUN_ATTEMPT==='1'&&sha(env.GITHUB_SHA)&&positive(env.GITHUB_RUN_ID)
+    &&env.GITHUB_ACTOR===p.owner&&env.GITHUB_TRIGGERING_ACTOR===p.owner
+    &&event?.repository?.full_name===REPOSITORY&&event.repository.id===p.repository_id
+    &&event.sender?.id===p.owner_id&&event.sender.login===p.owner
+    &&event.ref===ref&&event.after===env.GITHUB_SHA&&event.before==='0'.repeat(40)
+    &&event.created===true&&event.deleted===false&&event.forced===false,
+    'untrusted_hotel_four_transfer');
+  const c={sha:env.GITHUB_SHA,id:String(env.GITHUB_RUN_ID),attempt:1,event:'push',workflow:p.workflow,job:p.job};
+  requireValue((await api('GET',API_ROOT+'/git/ref/heads/main'))?.object?.sha===c.sha,'main_changed');
+  const branchPath=API_ROOT+'/git/ref/heads/'+p.branch;
+  requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_transfer_branch_changed');
+  const run=await api('GET',API_ROOT+'/actions/runs/'+c.id);
+  runIdentity(run,{id:c.id,attempt:1,head:c.sha,workflow:p.workflow,event:'push',completed:false,branch:p.branch});
+  requireValue(run.status==='in_progress','workflow_not_active');
+  requireValue(run.actor?.id===p.owner_id&&run.actor.login===p.owner
+    &&run.triggering_actor?.id===p.owner_id&&run.triggering_actor.login===p.owner,'foreign_hotel_transfer_actor');
+  const runs=boundedList(await api('GET',API_ROOT+'/actions/workflows/'+p.workflow.slice(PREFIX.length)
+    +'/runs?branch='+encodeURIComponent(p.branch)+'&per_page=100'),
+    'workflow_runs','hotel_transfer_inventory_incomplete');
+  requireValue(runs.length===1&&String(runs[0].id)===c.id,'hotel_transfer_replay_forbidden');
+  runIdentity(runs[0],{id:c.id,attempt:1,head:c.sha,workflow:p.workflow,event:'push',completed:false,branch:p.branch});
+  const jobs=boundedList(await api('GET',API_ROOT+'/actions/runs/'+c.id+'/attempts/1/jobs?per_page=100'),
+    'jobs','hotel_transfer_jobs_incomplete');
+  const own=jobs.filter(j=>j.name===p.job);
+  requireValue(own.length===1&&positive(own[0].id)&&own[0].run_id===Number(c.id)&&own[0].run_attempt===1
+    &&own[0].head_sha===c.sha&&own[0].status==='in_progress'&&own[0].conclusion===null,
+    'hotel_transfer_job_unconfirmed');
+  // Bind the exact immutable GitHub source bytes, not a mutable ref, filename,
+  // local summary or the historical reader's successful execution alone.
+  const item=await api('GET',API_ROOT+'/contents/'+p.plan_path+'?ref='+c.sha);
+  requireValue(item?.type==='file'&&item.path===p.plan_path&&item.sha===p.plan_blob
+    &&item.encoding==='base64'&&item.size===p.plan_size&&typeof item.content==='string','hotel_transfer_plan_changed');
+  const encoded=item.content.replace(/\n/g,'');
+  requireValue(/^[A-Za-z0-9+/]*={0,2}$/.test(encoded),'hotel_transfer_plan_changed');
+  const bytes=Buffer.from(encoded,'base64');
+  requireValue(bytes.length===p.plan_size&&bytes.toString('base64')===encoded&&gitBlob(bytes)===p.plan_blob
+    &&crypto.createHash('sha256').update(bytes).digest('hex')===p.plan_digest,'hotel_transfer_plan_changed');
+  const location=await readRecord(api),result=await resolveCurrent(api,c,location);
+  requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
+  requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_transfer_branch_changed');
+  return {...await finalResolution(api,c,location,result),write_operation:p.operation};
+}
 async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms)),now=()=>performance.now()}) {
   if(env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_REF==='refs/heads/'+GATE_RECOVERY.branch){
     const x=await gateContinuationContext({env,event,api,workflow:GATE_RECOVERY.tls_workflow,job:'strict-tls-preflight'});
@@ -1679,6 +1734,7 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
     return resolution(x.source,GATE_RECOVERY.sha,'installed');
   }
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_REGISTRY_READ.branch)return resolveHotelRegistryRead({env,event,api});
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_FOUR_TRANSFER.branch)return resolveHotelFourTransfer({env,event,api});
   const startedAt=now();
   const c=await sourceContext(env,event,api);
   requireValue(c.attempt===1,'consumer_rerun_forbidden');
