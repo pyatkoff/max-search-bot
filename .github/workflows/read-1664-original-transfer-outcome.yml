@@ -1,0 +1,122 @@
+name: Read original Telegram edit outcome for PR1664
+on:
+  push:
+    branches: [audit/1566-next-release-admission-1664]
+    paths: [.github/workflows/read-1664-original-transfer-outcome.yml]
+permissions: {}
+jobs:
+  read:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35)
+          found=[]
+          for line in scan.stdout.splitlines():
+              fields=line.split()
+              if len(fields)<3 or fields[0].startswith('#'):continue
+              try:fingerprint='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fingerprint=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(line)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read original edit journal and public posts without writes
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 \
+            -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null \
+            -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$USER_VALUE@$HOST_VALUE" 'bash -s' <<'REMOTE'
+          set -eu
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          test "$(git rev-parse HEAD)" = 'bb7d0bde64092cbd24a69084e651ff44336ba8b5'
+          php -d display_errors=0 <<'PHP'
+          <?php
+          require 'tools/anytour_existing_post_batch.php';
+
+          use function AnyTour\ExistingPostBatch\transferPlanFromBytes;
+          use function AnyTour\ExistingPostBatch\transferPublic;
+          use function AnyTour\ExistingPostBatch\requirePost;
+
+          $digest = '30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d';
+          $plan = transferPlanFromBytes(file_get_contents('config/anytour_existing_post_transfer_next_20261123.json'), $digest, true);
+          $root = '/var/www/anytoour/data/channel-post-operations/';
+          $result = [];
+          foreach ($plan['rows'] as $row) {
+              $id = $row['target_message_id'];
+              $path = $root.'anytour-issue1566-historical-tg-media-'.$id.'-v1/receipt.jsonl';
+              $item = ['message_id'=>$id, 'journal_exists'=>is_file($path)];
+              $reservedUrl = null;
+              if ($item['journal_exists']) {
+                  requirePost($id === '1588' && realpath($path) === $path && filesize($path) < 1000000, 'unexpected_journal');
+                  $events = array_map(static fn($line) => json_decode($line, true, 64, JSON_THROW_ON_ERROR), file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
+                  requirePost(($events[0]['execution']['native_run_id'] ?? null) === '45235830990'
+                    && ($events[0]['plan_sha256'] ?? null) === $digest, 'original_journal_mismatch');
+                  $byState = array_column($events, null, 'state');
+                  $reservation = $byState['identity_reserved']['reservation'] ?? [];
+                  $reservedUrl = $reservation['button_url'] ?? null;
+                  $response = $byState['provider_response_saved']['response'] ?? [];
+                  $raw = $response['data']['result'] ?? [];
+                  $description = (string)($response['data']['description'] ?? '');
+                  $knownReasons = ['message can\'t be edited','message to edit not found','message is not modified','wrong file identifier','file is too big'];
+                  $item += ['journal_states'=>array_column($events, 'state'),
+                      'write_starts'=>count(array_filter($events, static fn($event) => $event['state'] === 'provider_edit_started')),
+                      'provider_http'=>$response['http'] ?? null, 'provider_ok'=>$response['data']['ok'] ?? null,
+                      'transport_error'=>$response['transport_error'] ?? null, 'error_code'=>$response['data']['error_code'] ?? null,
+                      'provider_reason'=>array_values(array_filter($knownReasons, static fn($reason) => stripos($description, $reason) !== false)),
+                      'native_identity_matches'=>(string)($raw['message_id'] ?? '') === $id
+                        && ($raw['chat']['username'] ?? null) === 'anytour' && (string)($raw['chat']['id'] ?? '') === '-1001845835645',
+                      'native_original_date_matches'=>($raw['date'] ?? null) === $row['target_published_unixtime'],
+                      'native_caption_matches'=>($raw['caption'] ?? null) === $row['next_caption'],
+                      'native_caption_entities_count'=>count($raw['caption_entities'] ?? []),
+                      'native_expected_photo_present'=>in_array($row['source_file_unique_id_sha256'],
+                        array_map(static fn($photo) => hash('sha256', (string)($photo['file_unique_id'] ?? '')), $raw['photo'] ?? []), true),
+                      'native_button_matches'=>is_string($reservedUrl) && ($raw['reply_markup']['inline_keyboard'][0][0]['url'] ?? null) === $reservedUrl
+                        && ($raw['reply_markup']['inline_keyboard'][0][0]['text'] ?? null) === $row['button_text']];
+              }
+              try {
+                  $public = transferPublic('anytour', $id, true);
+                  $item += ['public_old_caption'=>$public['caption_sha256'] === $row['target_caption_sha256'],
+                      'public_new_caption'=>$public['caption_sha256'] === $row['next_caption_sha256'],
+                      'public_original_date'=>$public['published_unixtime'] === $row['target_published_unixtime'],
+                      'public_single_photo'=>$public['single_photo'], 'public_button_count'=>count($public['buttons']),
+                      'public_reserved_button'=>is_string($reservedUrl) && count($public['buttons']) === 1
+                        && $public['buttons'][0]['hotel_url'] === $reservedUrl && $public['buttons'][0]['text'] === $row['button_text']];
+              } catch (Throwable $error) {
+                  $item['public_read_error'] = AnyTour\ExistingPostBatch\transferReason($error);
+              }
+              $result[] = $item;
+          }
+          echo json_encode($result, JSON_THROW_ON_ERROR), PHP_EOL;
+          PHP
+          REMOTE
+      - name: Remove authentication material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
