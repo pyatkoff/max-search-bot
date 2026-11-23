@@ -505,5 +505,9 @@ PHP;
     }
 }
 
+$entryStatus = 1;
+passthru(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(__DIR__ . '/fixtures/ai_invocation_entry.php'), $entryStatus);
+aiInvocationCheck('independent native-input service-entry fixture', $entryStatus === 0);
+
 echo "\n--------------------------\nTOTAL " . ($passed + $failed) . " | PASS {$passed} | FAIL {$failed}\n";
 exit($failed ? 1 : 0);

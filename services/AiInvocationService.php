@@ -19,6 +19,14 @@ class AiInvocationService
             $route = 'SHORT_AI';
         }
 
+        // The canonical dispatcher has already mirrored this request's input.
+        // Standalone callers must not bootstrap a database or infer a last input.
+        try {
+            if (class_exists('ConversationRecorder', false)) {
+                \ConversationRecorder::aiInvocationEntered($chatId, $invocationId);
+            }
+        } catch (\Throwable $ignored) {}
+
         $aiCurrent = $current;
         $pageContextOutcome = 'not_recorded';
         try {

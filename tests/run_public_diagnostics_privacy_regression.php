@@ -32,6 +32,14 @@ $pushEvent=['ts'=>'PRIVATE PUSH TIMESTAMP','component'=>'manager_push','event'=>
     'endpoint'=>'PRIVATE PUSH ENDPOINT','message'=>'PRIVATE PUSH ERROR','token'=>'PRIVATE PUSH TOKEN']];
 $fixture['recent_manager_push_events']=[$pushEvent];
 $fixture['manager']['push_setup']=ManagerPushSetupDiagnostics::summary([$pushEvent]);
+$fixture['nested']['service_entry_capture']=['ai_invocation_metadata_private'=>[
+    'schema'=>'anytour.ai_invocation_metadata.v3',
+    'service_entries'=>['schema'=>'anytour.ai_invocation_entries.v1','records'=>[[
+        'event_id'=>'18446744073709551615','input_message_id'=>'18446744073709551614',
+        'invocation_id'=>str_repeat('c',32),'input_link'=>'retained_inbound',
+        'diagnostic_canary'=>'PRIVATE SERVICE ENTRY',
+    ]]],
+]];
 file_put_contents($tmp,json_encode($fixture,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
 $cmd=escapeshellarg(PHP_BINARY).' '.escapeshellarg($root.'/tools/sanitize_public_diagnostics.php').' '.escapeshellarg($tmp);
 exec($cmd,$lines,$code);@unlink($tmp);$raw=implode("\n",$lines);$json=json_decode($raw,true);
@@ -47,6 +55,7 @@ publicDiagCheck('sanitizer removes transcript and personal identifiers',strpos($
 publicDiagCheck('raw push event collection is removed while safe sampled summary survives',!str_contains($raw,'recent_manager_push_events')&&!str_contains($raw,'PRIVATE PUSH')&&($json['manager']['push_setup']??null)===$fixture['manager']['push_setup']&&($json['manager']['push_setup']['failure_count']??null)===1&&!array_key_exists('ts',$json['manager']['push_setup']['latest']??[]));
 publicDiagCheck('AI private samples and nested proposal fields never survive public sanitization',!str_contains($raw,'PRIVATE AI')&&!str_contains($raw,'manager_ai_feedback_private')&&!str_contains($raw,'draft_id')&&($json['manager_ai_feedback']['counts']['persisted_proposals']??null)===3);
 publicDiagCheck('invocation metadata collection is excluded from direct and nested public sanitization',!str_contains($raw,'ai_invocation_metadata_private')&&!str_contains($raw,'PRIVATE INVOCATION')&&!str_contains($raw,'PRIVATE NESTED INVOCATION')&&!str_contains($raw,str_repeat('b',32))&&!str_contains($raw,'anytour.ai_invocation_metadata.v1'));
+publicDiagCheck('service entry and inbound row identities cannot leak through the existing public sanitizer',!str_contains($raw,'PRIVATE SERVICE ENTRY')&&!str_contains($raw,'18446744073709551615')&&!str_contains($raw,'18446744073709551614')&&!str_contains($raw,str_repeat('c',32))&&!str_contains($raw,'input_message_id')&&!str_contains($raw,'event_id')&&!str_contains($raw,'anytour.ai_invocation_metadata.v3')&&!str_contains($raw,'anytour.ai_invocation_entries.v1'));
 $allowlist="find . -maxdepth 1 -type f -name '*.json' ! -name 'deploy_status.json' ! -name 'ops_status.json' ! -name 'autopilot_snapshot.json' ! -name 'architecture_inventory.json' ! -name 'public_live_status.json' ! -name 'public_daily_status.json' -delete";
 publicDiagCheck('production publisher commits only public-safe aggregate artifacts',strpos($publish,'cp production_snapshot.json live_session_report.json')===false&&strpos($publish,$allowlist)!==false&&strpos($publish,'git add -A')!==false);
 publicDiagCheck('AI private projection uses the existing encrypted production capture only',str_contains($publish,'--production production_snapshot.json')&&str_contains($publish,'--output "$RUNNER_TEMP/dialogue-evidence.age"')&&!str_contains($publish,'path: production_snapshot.json'));

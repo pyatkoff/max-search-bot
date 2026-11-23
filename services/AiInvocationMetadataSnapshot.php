@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/AiRuntimeLogger.php';
+require_once __DIR__ . '/AiInvocationEntrySnapshot.php';
 
 /**
  * Private, bounded metadata projection of existing AI invocation frames.
@@ -14,7 +15,7 @@ require_once __DIR__ . '/AiRuntimeLogger.php';
  */
 final class AiInvocationMetadataSnapshot
 {
-    public const SCHEMA = 'anytour.ai_invocation_metadata.v2';
+    public const SCHEMA = 'anytour.ai_invocation_metadata.v3';
     public const MAX_FILE_BYTES = 1048576;
     public const MAX_FRAME_BYTES = 65536;
     public const MAX_HEADER_BYTES = 4096;
@@ -54,6 +55,9 @@ final class AiInvocationMetadataSnapshot
             ],
             'streams' => [],
             'records' => [],
+            // An independent store; its availability does not rewrite the
+            // existing log-only `ok` or turn source reports into a trace.
+            'service_entries' => AiInvocationEntrySnapshot::collect($now),
         ];
         foreach (['debug' => AiRuntimeLogger::debugFile(false), 'error' => AiRuntimeLogger::errorFile(false)] as $stream => $path) {
             $source = self::readSnapshot($path);
