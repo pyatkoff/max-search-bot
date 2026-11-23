@@ -1057,7 +1057,8 @@ function makeReadApi(token,fetchImpl=globalThis.fetch,{sleep=waitForRetry}={}) {
   api.jobLog=async job=>{
     requireValue([TERMINAL_RECOVERY.job_id,TERMINAL_RECOVERY.continuation_job_id,TERMINAL_RECOVERY.observation_job_id,
       TERMINAL_RECOVERY.read_failure_job_id,GATE_RECOVERY.tls_job_id,UNPUBLISHED_TERMINAL_RECOVERY.job_id,
-      PRIOR_WAVE_RECOVERY.job_id,PRIOR_WAVE_RECOVERY.previous.verify_job_id,PUBLISHER_BODY_RECOVERY.job_id].includes(job),'untrusted_terminal_log');
+      PRIOR_WAVE_RECOVERY.job_id,PRIOR_WAVE_RECOVERY.previous.verify_job_id,PUBLISHER_BODY_RECOVERY.job_id,
+      137646126584,137658227484].includes(job),'untrusted_terminal_log');
     const response=await request('https://api.github.com'+API_ROOT+'/actions/jobs/'+job+'/logs',headers(false),'manual',2*1024*1024);
     if(Buffer.isBuffer(response))return response;
     let url;try{url=new URL(response.headers.get('location'));}catch{throw new Refusal('invalid_log_redirect');}
@@ -1459,6 +1460,17 @@ async function admitForwardInstallation(api,c,event) {
   const commit=await get('/commits/'+c.sha);
   requireValue(commit?.sha===c.sha&&Array.isArray(commit.parents)&&commit.parents.length>=1&&commit.parents.length<=2
     &&commit.parents.every(parent=>sha(parent.sha)),'forward_source_unconfirmed');
+  // Only PR1667 may succeed the pinned partially installed #1662 on the first main push.
+  const partialBase='302ba66b5739e369a4df94471c8cfe9c054dd070';
+  if(commit.parents.some(parent=>parent.sha===partialBase)||event.before===partialBase){
+    requireValue(c.event==='push'&&c.attempt===1&&event.forced===false&&event.before===partialBase
+      &&event.after===c.sha&&commit.parents.length===2&&commit.parents[0].sha===partialBase,
+      'invalid_partial_forward_source');
+    const {provePartialInstall1662Forward}=require('./partial_install_1662_forward');
+    await provePartialInstall1662Forward({api,pr:1667,head:commit.parents[1].sha,
+      phase:'installation',source:c.sha,runId:c.id,event});
+    return {expectedCheckout:partialBase};
+  }
   // Only the immediate successor of the fixed failed source is in scope.
   if(!commit.parents.some(parent=>parent.sha===p.sha)){
     requireValue(event.before!==p.sha,'forward_not_direct_successor');return;
@@ -1480,11 +1492,15 @@ async function planDeployment({env,event,api,repository=process.cwd(),compare=v2
   const c=await sourceContext(env,event,api,DEPLOY);
   requireValue(c.attempt===1&&c.job==='deploy'&&['push','workflow_dispatch'].includes(c.event),'untrusted_deployment_context');
   if(c.event==='push')requireValue(event.ref==='refs/heads/main'&&event.after===c.sha&&typeof event.forced==='boolean','untrusted_push');
-  await admitForwardInstallation(api,c,event);
+  const forward=await admitForwardInstallation(api,c,event);
   const location=await readRecord(api),result={schema:1,protocol:'anytour-deployment-plan-v1',repository:REPOSITORY,
     repository_sha:c.sha,run_id:c.id,run_attempt:1,event:c.event,plan:'install',application_sha:c.sha,
     source:{commit:location.commit,blob:location.blob,record_digest:location.record_digest},
     baseline:null,installation:null,content:contentSummary(null,c.sha,c.sha),intent_scan:{status:'unknown'}};
+  if(forward?.expectedCheckout){
+    // This single successor performs its own full installation and receives the ordinary installed receipt.
+    return {...result,expected_checkout_sha:forward.expectedCheckout};
+  }
   if(c.event==='workflow_dispatch'||event.forced||Object.keys(event.inputs||{}).length){
     result.intent_scan={status:'explicit_intent'};return result;
   }
@@ -1906,7 +1922,9 @@ if(require.main===module){
     }
     if(args.command==='plan-deployment'){
       requireValue(keys(args,['command','output']),'invalid_arguments');const result=await planDeployment(common);saveJson(args.output,result);
-      outputs({plan:result.plan,application_sha:result.application_sha,plan_file:args.output});return;
+      const fields={plan:result.plan,application_sha:result.application_sha,plan_file:args.output};
+      if(result.expected_checkout_sha)fields.expected_checkout_sha=result.expected_checkout_sha;
+      outputs(fields);return;
     }
     if(args.command==='admit-unchanged'){
       requireValue(keys(args,['command','plan','observation','output']),'invalid_arguments');

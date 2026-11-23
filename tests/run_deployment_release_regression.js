@@ -2328,7 +2328,30 @@ function publisherBodyFixture(){
   const options=()=>({env,event,api:f.api});
   return {f,p,pending,body,env,event,source,native,own,failure,activation,relation,sourceFiles,branchRuns,originalHook,writes,terminalWrites,complete,options};
 }
+// The original PR1643 operation checked both the source API and its actual
+// checkout. Exercise exactly that checkout even when today's priority code differs.
 async function publisherBodyRecoveryCases(){
+  const project=path.resolve(__dirname,'..'),p=R.PUBLISHER_BODY_RECOVERY;
+  const priority='tools/release_priority.js',current=fs.readFileSync(path.join(project,priority));
+  if(R.gitBlob(current)===p.priority_code)return publisherBodyFixtureCases();
+  const pinned=fs.readFileSync(path.join(__dirname,'fixtures/pr1643/release_priority.js.txt'));
+  assert.equal(R.gitBlob(pinned),p.priority_code,'PR1643 priority fixture must be its authentic Git blob');
+  const replica=fs.mkdtempSync(path.join(os.tmpdir(),'pr1643-source-'));
+  try{
+    for(const name of p.source_files){
+      const dest=path.join(replica,name);
+      fs.mkdirSync(path.dirname(dest),{recursive:true});
+      if(name===priority)fs.writeFileSync(dest,pinned);
+      else fs.copyFileSync(path.join(project,name),dest);
+    }
+    const isolated=require(path.join(replica,'tests/run_deployment_release_regression.js'));
+    const completed=await isolated.publisherBodyRecoveryCases();
+    assertions+=completed;
+    return completed;
+  }finally{fs.rmSync(replica,{recursive:true,force:true});}
+}
+
+async function publisherBodyFixtureCases(){
   const startAssertions=assertions;
   {
     const x=publisherBodyFixture(),b=C.binding(x.f.pr,x.p.sha);
@@ -2473,6 +2496,8 @@ async function publisherBodyRecoveryCases(){
 }
 
 async function main(){hotelRegistryReadWorkflow();await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
+  execFileSync(process.execPath,['--test',path.join(__dirname,'run_partial_install_1662_forward_regression.js')],{stdio:'inherit'});
+  execFileSync('python3',[path.join(__dirname,'run_partial_install_1662_forward_sync.py')],{stdio:'inherit'});
   process.stdout.write('Deployment release regression: '+assertions+' assertions passed\n');}
 module.exports={main,fixture,receipt,observation,installed,installNoopJobs,storedZip,terminalContinuationCases,publisherBodyRecoveryCases};
 if(require.main===module)main().catch(e=>{process.stderr.write(String(e.stack||e)+'\n');process.exitCode=1;});
