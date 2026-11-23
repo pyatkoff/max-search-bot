@@ -54,6 +54,12 @@ const HOTEL_FOUR_TRANSFER = Object.freeze({branch:'ops/anytour-hotel-four-apply-
   plan_path:'config/anytour_existing_post_transfer_four_20261123.json',plan_size:11972,
   plan_blob:'648e68b7395fcab65c321448b1a6a68554de17dc',
   plan_digest:'fdda41801951a033715b5ca5d567ef348f2ee885ab40074d35dfa8151d52de56'});
+const HOTEL_NEXT_TRANSFER = Object.freeze({...HOTEL_FOUR_TRANSFER,
+  branch:'ops/anytour-hotel-next-apply-20261123',
+  workflow:PREFIX+'edit-1566-next-historical-telegram.yml',operation:'hotel_next_transfer',
+  plan_path:'config/anytour_existing_post_transfer_next_20261123.json',plan_size:5520,
+  plan_blob:'297bed885e03f3422e624ac3dff6fd873e689135',
+  plan_digest:'30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d'});
 const sha = v => typeof v === 'string' && /^[0-9a-f]{40}$/.test(v);
 const digest64 = v => typeof v === 'string' && /^[0-9a-f]{64}$/.test(v);
 const positive = v => (typeof v === 'string' && /^[1-9][0-9]{0,15}$/.test(v)
@@ -1695,8 +1701,8 @@ async function resolveHotelRegistryRead({env,event,api}) {
 }
 /** The reviewed plan is data, not user consent. Only a separate first owner push
  * can select the existing editor; this resolver itself performs GETs only. */
-async function resolveHotelFourTransfer({env,event,api}) {
-  const p=HOTEL_FOUR_TRANSFER,ref='refs/heads/'+p.branch;
+async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
+  const ref='refs/heads/'+p.branch;
   requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF===ref
     &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+p.workflow+'@'+ref
     &&env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_JOB===p.job
@@ -1750,7 +1756,8 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
     return resolution(x.source,GATE_RECOVERY.sha,'installed');
   }
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_REGISTRY_READ.branch)return resolveHotelRegistryRead({env,event,api});
-  if(env.GITHUB_REF==='refs/heads/'+HOTEL_FOUR_TRANSFER.branch)return resolveHotelFourTransfer({env,event,api});
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_FOUR_TRANSFER.branch)return resolveHotelTransfer({env,event,api});
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_NEXT_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_NEXT_TRANSFER);
   const startedAt=now();
   const c=await sourceContext(env,event,api);
   requireValue(c.attempt===1,'consumer_rerun_forbidden');

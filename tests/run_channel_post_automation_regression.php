@@ -1425,6 +1425,16 @@ channelPostCheck('existing publisher route still edits only the accepted keyboar
 // Exercise the real editor's durable once-only flow; only its internal effects
 // are fixtures. Requiring the CLI file does not bootstrap or invoke its runner.
 require_once __DIR__.'/../tools/anytour_existing_post_batch.php';
+$nextTransferRaw = file_get_contents(__DIR__.'/../'.AnyTour\ExistingPostBatch\NEXT_TRANSFER_PLAN_FILE);
+$nextTransfer = AnyTour\ExistingPostBatch\transferPlanFromBytes($nextTransferRaw, '30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d', true);
+channelPostCheck('next fixed hotel transfer carries no old price and preserves exact destinations',
+    [array_column($nextTransfer['rows'], 'target_message_id'), array_column($nextTransfer['rows'], 'price_record_id'),
+        $nextTransfer['monitor_source_url']],
+    [['1588','997','1101'], [null,null,null], null]);
+channelPostCheck('new public post scope is only available to the next fixed transfer',
+    [AnyTour\ExistingPostBatch\transferPublicAllowed('anytour', '1588'),
+        AnyTour\ExistingPostBatch\transferPublicAllowed('anytour', '1588', true),
+        AnyTour\ExistingPostBatch\transferPublicAllowed('anytour', '862', true)], [false,true,false]);
 // Load the same tracked dependency path as applyTransferPlan, without its runtime
 // bootstrap. This synthetic saved export is test data, never native evidence.
 require_once __DIR__.'/../tools/direct_demand/operations/monitor-price-hook-contract.php';
