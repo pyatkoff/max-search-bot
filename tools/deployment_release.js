@@ -51,9 +51,9 @@ const HOTEL_REGISTRY_READ = Object.freeze({branch:'ops/anytour-hotel-four-read-2
 const HOTEL_FOUR_TRANSFER = Object.freeze({branch:'ops/anytour-hotel-four-apply-20261123',
   workflow:PREFIX+'edit-1566-historical-telegram-with-channel-default.yml',job:'transfer',operation:'hotel_four_transfer',
   owner:'pyatkoff',owner_id:226193297,repository_id:1342493152,
-  plan_path:'config/anytour_existing_post_transfer_four_20261123.json',plan_size:11966,
-  plan_blob:'e786330f94af307dc631458a73a38310b73c086a',
-  plan_digest:'b88a09ec5220a20c7daee2480c9da9f36310fc8a2dc83a8afbe730ef1ed40d48'});
+  plan_path:'config/anytour_existing_post_transfer_four_20261123.json',plan_size:11972,
+  plan_blob:'648e68b7395fcab65c321448b1a6a68554de17dc',
+  plan_digest:'fdda41801951a033715b5ca5d567ef348f2ee885ab40074d35dfa8151d52de56'});
 const sha = v => typeof v === 'string' && /^[0-9a-f]{40}$/.test(v);
 const digest64 = v => typeof v === 'string' && /^[0-9a-f]{64}$/.test(v);
 const positive = v => (typeof v === 'string' && /^[1-9][0-9]{0,15}$/.test(v)

@@ -1425,6 +1425,55 @@ channelPostCheck('existing publisher route still edits only the accepted keyboar
 // Exercise the real editor's durable once-only flow; only its internal effects
 // are fixtures. Requiring the CLI file does not bootstrap or invoke its runner.
 require_once __DIR__.'/../tools/anytour_existing_post_batch.php';
+// Load the same tracked dependency path as applyTransferPlan, without its runtime
+// bootstrap. This synthetic saved export is test data, never native evidence.
+require_once __DIR__.'/../tools/direct_demand/operations/monitor-price-hook-contract.php';
+$transferPriceNow = strtotime('2026-11-23T08:00:00Z');
+$transferPriceRecord = hash('sha256','synthetic hotel transfer price');
+$transferPriceTemplate = "✈️ Туры в Тестовый отель\n📍 Турция · Анталья\n\nУзнать стоимость тура\n\n"
+    ."💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n"
+    .'[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]';
+$transferPriceCaption = "✈️ Туры в Тестовый отель\n📍 Турция · Анталья\n\nУзнать стоимость тура\n\n"
+    ."💰 От 87 006 ₽ за двоих\n✈️ Вылет из Москвы 26.11.2026 · 5 ночей\n👥 2 взрослых\n"
+    ."🛏 standard room\n🍽 Всё включено\n"
+    .'Цена найдена мониторингом 23.11.2026, 10:00 МСК. Стоимость и наличие могут измениться.';
+$transferPriceRow = ['hotel_id'=>17595,'price_record_id'=>$transferPriceRecord,
+    'price_template'=>$transferPriceTemplate,'next_caption'=>$transferPriceCaption,
+    'next_caption_sha256'=>hash('sha256',$transferPriceCaption)];
+$transferPricePlan = ['monitor_source_url'=>AnyTour\ExistingPostBatch\TRANSFER_MONITOR_URL];
+$transferPriceExport = ['ok'=>true,'format'=>'anytour-hotel-monitor-prices-v1',
+    'generatedAt'=>gmdate(DATE_ATOM,$transferPriceNow),'identityNamespace'=>'tourvisor',
+    'source'=>'scheduled_monitor','observationWindowHours'=>36,
+    'timeBasis'=>'database-relative; stored observation timezone is not asserted',
+    'supplierRequests'=>0,'writes'=>0,
+    'scope'=>['tourvisorHotelIds'=>[17595,358,393,1260],'departureId'=>1,'adults'=>2,
+        'childrenCount'=>0,'currency'=>'RUB','nightsFrom'=>5,'nightsTo'=>14,
+        'dateFrom'=>'2026-11-24','dateTo'=>'2027-10-31'],
+    'items'=>[['tourvisorHotelId'=>17595,'state'=>'observed','offers'=>[[
+        'tourvisorHotelId'=>17595,'tourId'=>'synthetic-transfer-tour','recordId'=>$transferPriceRecord,
+        'departureId'=>1,'departureDate'=>'2026-11-26','nights'=>5,'adults'=>2,'childrenCount'=>0,
+        'price'=>87006,'currency'=>'RUB','roomType'=>'standard room','mealId'=>7,
+        'source'=>'scheduled_monitor','priceKind'=>'listing_observation',
+        'currentPriceVerified'=>false,'fullPackagePriceVerified'=>false,'availabilityVerified'=>false,
+        'fuelIncluded'=>null,'ageSecondsAtExport'=>3600,'expiresAt'=>gmdate(DATE_ATOM,$transferPriceNow+900),
+    ]]]]];
+$transferPrice = AnyTour\ExistingPostBatch\transferPrice($transferPricePlan,$transferPriceRow,$transferPriceExport,$transferPriceNow);
+channelPostCheck('real hotel editor loads its deployed pure contracts and reproduces the approved caption',
+    [$transferPrice['record_id'],$transferPrice['price'],$transferPrice['observed_at'],
+        monitor_hook_draft($transferPriceTemplate,$transferPrice)],
+    [$transferPriceRecord,87006,'2026-11-23T07:00:00Z',$transferPriceCaption]);
+foreach (['changed_price','changed_record','expired_export','expired_observation'] as $case) {
+    $export=$transferPriceExport;$now=$transferPriceNow;
+    if ($case==='changed_price') $export['items'][0]['offers'][0]['price']=87007;
+    if ($case==='changed_record') $export['items'][0]['offers'][0]['recordId']=hash('sha256','another synthetic price');
+    if ($case==='expired_export') $now+=900;
+    if ($case==='expired_observation') $export['items'][0]['offers'][0]['ageSecondsAtExport']=36*3600;
+    $reason=null;
+    try { AnyTour\ExistingPostBatch\transferPrice($transferPricePlan,$transferPriceRow,$export,$now); }
+    catch (RuntimeException $error) { $reason=$error->getMessage(); }
+    channelPostCheck('real hotel editor refuses '.$case.' through the loaded price contract',$reason,
+        str_starts_with($case,'changed_')?'transfer_price_or_caption_changed':'monitor_price_expired');
+}
 $transferFixtureRoot = sys_get_temp_dir().'/channel-hotel-control-'.bin2hex(random_bytes(10));
 if (!mkdir($transferFixtureRoot,0700)) throw new RuntimeException('fixture_operations_creation_failed');
 $transferFixtureRoot = realpath($transferFixtureRoot);
