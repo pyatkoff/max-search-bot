@@ -57,67 +57,82 @@ jobs:
           cd /var/www/anytoour/data/www/app.anytoour.ru
           php -d display_errors=0 <<'PHP'
           <?php
+          namespace AnyTour\ExistingPostBatch;
+          
           require 'tools/anytour_existing_post_batch.php';
-
-          use function AnyTour\ExistingPostBatch\requirePost;
-          use function AnyTour\ExistingPostBatch\transferChannelRights;
-          use function AnyTour\ExistingPostBatch\transferNoTarget;
-          use function AnyTour\ExistingPostBatch\transferPlanFromBytes;
-          use function AnyTour\ExistingPostBatch\transferPublic;
-          use function AnyTour\ExistingPostBatch\transferPublicPreimage;
-          use function AnyTour\ExistingPostBatch\transferReason;
-          use function AnyTour\ExistingPostBatch\transferRuntime;
-          use function AnyTour\ExistingPostBatch\transferSource;
-
+          
+          function transferNextRemainingRows(array $plan, string $approvedDigest, string $journal): array
+          {
+              requirePost($approvedDigest === '30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d'
+                  && $plan['operation'] === NEXT_TRANSFER_OPERATION
+                  && array_column($plan['rows'], 'target_message_id') === ['1588', '997', '1101'],
+                  'transfer_remaining_plan_changed');
+              requirePost(strlen($journal) <= 1_000_000 && str_ends_with($journal, "\n"),
+                  'transfer_original_journal_invalid');
+              $lines = explode("\n", substr($journal, 0, -1), 7);
+              $events = array_map(static fn(string $line): array => json_decode($line, true, 64, JSON_THROW_ON_ERROR), $lines);
+              requirePost(array_column($events, 'state') === [
+                  'intent_saved', 'identity_reserved', 'request_prepared', 'provider_edit_started',
+                  'provider_response_saved', 'response_saved_completion_requires_readback',
+              ], 'transfer_original_journal_invalid');
+              [$intent, $reserved, , $attempt, $saved, $terminal] = $events;
+              $response = $saved['response'] ?? [];
+              requirePost(($intent['operation'] ?? null) === NEXT_TRANSFER_OPERATION
+                  && ($intent['plan_sha256'] ?? null) === $approvedDigest
+                  && ($intent['row'] ?? null) === $plan['rows'][0]
+                  && ($intent['execution'] ?? null) === [
+                      'native_run_id'=>'45235830990',
+                      'application_sha'=>'bb7d0bde64092cbd24a69084e651ff44336ba8b5',
+                      'native_preflight'=>$plan['native_preflight'],
+                  ]
+                  && ($reserved['reservation']['publication_id'] ?? null) === 3709
+                  && ($attempt['provider_write_attempts'] ?? null) === 1
+                  && ($response['http'] ?? null) === 400 && ($response['transport_error'] ?? null) === false
+                  && ($response['data']['ok'] ?? null) === false && ($response['data']['error_code'] ?? null) === 400
+                  && ($response['data']['description'] ?? null) === 'Bad Request: MESSAGE_ID_INVALID'
+                  && ($terminal['ok'] ?? null) === false && ($terminal['hotel_id'] ?? null) === 800
+                  && ($terminal['message_id'] ?? null) === '1588'
+                  && ($terminal['operation'] ?? null) === 'anytour-issue1566-historical-tg-media-1588-v1'
+                  && ($terminal['reason'] ?? null) === 'hotel_transfer_response_unconfirmed'
+                  && ($terminal['provider_write_attempts'] ?? null) === 1
+                  && ($terminal['reserved_publication_id'] ?? null) === 3709,
+                  'transfer_original_rejection_unconfirmed');
+              return array_slice($plan['rows'], 1);
+          }
+          
           transferRuntime(getcwd(), '3bff152819b85e68a56fe3f50adb268cef3b9dfb');
           $digest = '30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d';
-          $plan = transferPlanFromBytes(file_get_contents('config/anytour_existing_post_transfer_next_20261123.json'), $digest, true);
+          $plan = transferPlanFromBytes(file_get_contents(NEXT_TRANSFER_PLAN_FILE), $digest, true);
+          $path = POST_OPS.'/anytour-issue1566-historical-tg-media-1588-v1/receipt.jsonl';
+          requirePost(is_file($path) && realpath($path) === $path, 'transfer_original_journal_invalid');
+          $selected = transferNextRemainingRows($plan, $digest, file_get_contents($path, false, null, 0, 1_000_001));
+          $unstarted = [];
+          foreach ($selected as $row) {
+              $operation = POST_OPS.'/anytour-issue1566-historical-tg-media-'.$row['target_message_id'].'-v1';
+              requirePost(!file_exists($operation) && !is_link($operation), 'transfer_previous_operation_do_not_replay');
+              $unstarted[] = $row['target_message_id'];
+          }
           ob_start();
           try {
               require_once 'config.php';
-              require_once 'services/ChannelPostRegistryService.php';
-              require_once 'services/ChannelPostButtonTransport.php';
-              require_once 'services/ChannelPostRuntime.php';
-              require_once 'integrations/ChannelPostApiTransport.php';
           } finally {
               ob_end_clean();
           }
-          requirePost(ProjectConfig::projectId() === 'anytour', 'transfer_project_changed');
-          $pdo = ConversationDb::connection();
-          requirePost($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql', 'transfer_native_database_required');
+          $pdo = \ConversationDb::connection();
           $pdo->exec('SET TRANSACTION READ ONLY');
           $pdo->beginTransaction();
-          $checks = ['provider_writes'=>0,'production_writes'=>0,'rows'=>[]];
-          $check = static function (callable $call) {
-              try {
-                  $call();
-                  return true;
-              } catch (Throwable $error) {
-                  return transferReason($error);
-              }
-          };
           try {
-              $registry = new ChannelPostRegistryService($pdo);
-              $checks['channel_rights'] = $check(static fn() => transferChannelRights($registry));
-              foreach ($plan['rows'] as $row) {
-                  $id = $row['target_message_id'];
-                  $path = AnyTour\ExistingPostBatch\POST_OPS.'/anytour-issue1566-historical-tg-media-'.$id.'-v1';
-                  $result = ['target_id'=>$id, 'journal_exists'=>file_exists($path) || is_link($path)];
-                  if ($id === '1588') {
-                      $result['preserved_reservation'] = $registry->publication(3709) !== null;
-                  } else {
-                      $result['current_source'] = $check(static fn() => transferSource($pdo, $registry, $row));
-                      $result['target_available'] = $check(static fn() => transferNoTarget($pdo, $row));
-                      $result['public_preimage'] = $check(static fn() => transferPublicPreimage($row,
-                          transferPublic('any_toour', $row['source_message_id'], true),
-                          transferPublic('anytour', $id, true)));
-                  }
-                  $checks['rows'][] = $result;
-              }
+              $q = $pdo->prepare('SELECT current_version_id, observed_revision_ms, telegram_sequence FROM post_publications WHERE id=? AND post_channel_id=? AND external_message_id=?');
+              $q->execute([3709,6,'1588']);
+              $reservation = $q->fetch(\PDO::FETCH_ASSOC);
+              requirePost($reservation === [
+                  'current_version_id'=>null,'observed_revision_ms'=>null,'telegram_sequence'=>null,
+              ], 'original_hotel_reservation_changed');
           } finally {
               $pdo->rollBack();
           }
-          echo json_encode($checks, JSON_THROW_ON_ERROR), PHP_EOL;
+          echo json_encode(['original_journal_matches'=>true,'original_reservation_is_pending'=>true,
+              'selected_targets'=>$unstarted,'provider_writes'=>0,'production_writes'=>0], JSON_THROW_ON_ERROR), PHP_EOL;
           PHP
           REMOTE
       - name: Remove authentication material
