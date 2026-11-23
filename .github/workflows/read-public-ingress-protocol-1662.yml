@@ -1,0 +1,28 @@
+name: Read exact public ingress protocols for hotel release
+on:
+  push:
+    branches: [audit/1566-next-release-admission-1664]
+    paths: [.github/workflows/read-public-ingress-protocol-1662.yml]
+permissions: {}
+jobs:
+  read:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Compare methods while discarding all response bodies
+        shell: bash
+        run: |
+          set -euo pipefail
+          probe() {
+            label="$1"
+            shift
+            result="$(curl --connect-timeout 5 --max-time 12 -s -o /dev/null -w 'http=%{http_code} version=%{http_version} tls=%{time_appconnect} first_byte=%{time_starttransfer}' "$@" 2>/dev/null)" && code=0 || code=$?
+            printf '%s exit=%s %s\n' "$label" "$code" "$result"
+          }
+          origin='https://app.anytoour.ru'
+          probe get -4 "$origin/" &
+          probe head -4 -I "$origin/" &
+          probe head_http_1_1 -4 --http1.1 -I "$origin/" &
+          probe original_restricted -I "$origin/structured_events.log" &
+          wait
