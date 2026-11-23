@@ -79,7 +79,7 @@ final class Max2CommonValueStatusReaderV2
     }
     private function nativeJoin(string $source):string
     {
-        return ' JOIN conversations c ON c.id='.$source.'.conversation_id AND HEX(CAST(c.id AS '.($this->mysql?'CHAR':'TEXT').'))=HEX('.$source.'.conversation_id) AND HEX(c.project_key)=HEX('.$source.'.project_key)'
+        return ' JOIN conversations c ON c.id='.$source.'.conversation_id AND HEX(CAST(c.id AS '.($this->mysql?'CHAR':'TEXT').'))=HEX(CAST('.$source.'.conversation_id AS '.($this->mysql?'CHAR':'TEXT').')) AND HEX(c.project_key)=HEX('.$source.'.project_key)'
             .' AND HEX(c.channel)=HEX('.$source.'.platform) AND HEX(CAST(c.customer_id AS '.($this->mysql?'CHAR':'TEXT').'))=HEX('.$source.'.customer_key)'
             .' JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id'
             .' AND HEX(cc.project_key)=HEX(c.project_key) AND HEX(cc.channel)=HEX(c.channel) JOIN customers cu ON cu.id=c.customer_id';
