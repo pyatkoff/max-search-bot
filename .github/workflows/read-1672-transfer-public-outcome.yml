@@ -43,7 +43,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Compare original edit receipts and live Telegram posts
+      - name: Compare native keyboards across both public preview formats
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -62,43 +62,56 @@ jobs:
           require 'tools/anytour_existing_post_batch.php';
           
           transferRuntime(getcwd(), 'de6282c79cf533e316980a765acdd58a5227b05d');
-          $digest = '30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d';
-          $plan = transferPlanFromBytes(file_get_contents(NEXT_TRANSFER_PLAN_FILE), $digest, true);
-          $plan = selectRemainingTransferRows($plan);
           $rows = [];
-          foreach ($plan['rows'] as $row) {
-              $id = $row['target_message_id'];
-              $journal = POST_OPS.'/anytour-issue1566-historical-tg-media-'.$id.'-v1/receipt.jsonl';
-              requirePost(is_file($journal) && realpath($journal) === $journal, 'transfer_journal_unavailable');
-              $raw = file_get_contents($journal, false, null, 0, 1_000_001);
+          foreach (['997'=>'45272173038','862'=>null] as $message => $run) {
+              $id = (string)$message;
+              $path = POST_OPS.'/anytour-issue1566-historical-tg-media-'.$id.'-v1/receipt.jsonl';
+              requirePost(is_file($path) && realpath($path) === $path, 'transfer_journal_unavailable');
+              $raw = file_get_contents($path, false, null, 0, 1_000_001);
               requirePost(is_string($raw) && strlen($raw) <= 1_000_000, 'transfer_journal_event_unbounded');
               $events = array_map(static fn(string $line): array => json_decode($line, true, 64, JSON_THROW_ON_ERROR),
                   explode("\n", rtrim($raw, "\r\n")));
-              $intent = $events[0];
-              requirePost($intent['row'] === $row && $intent['plan_sha256'] === $digest
-                  && ($intent['execution']['native_run_id'] ?? null) === '45272173038'
-                  && ($intent['execution']['application_sha'] ?? null) === 'de6282c79cf533e316980a765acdd58a5227b05d'
-                  && count(array_filter($events, static fn(array $event): bool => $event['state'] === 'provider_edit_started')) === 1,
+              $journal = array_column($events, null, 'state');
+              $ok = $journal['native_and_registry_verified'] ?? [];
+              $button = $journal['identity_reserved']['reservation']['button_url'] ?? null;
+              $native = $journal['provider_response_saved']['response']['data']['result']['reply_markup']['inline_keyboard'][0][0] ?? [];
+              requirePost(($ok['message_id'] ?? null) === $id && is_string($button)
+                  && ($run === null || ($journal['intent_saved']['execution']['native_run_id'] ?? null) === $run),
                   'transfer_original_journal_mismatch');
-              $byState = array_column($events, null, 'state');
-              $terminal = $events[count($events) - 1];
-              $response = $byState['provider_response_saved']['response'] ?? [];
-              $public = transferPublic('anytour', $id, true);
-              $button = $byState['identity_reserved']['reservation']['button_url'] ?? null;
-              $item = ['message_id'=>$id,'hotel_id'=>$row['hotel_id'],'journal_state'=>$terminal['state'],
-                  'provider_http'=>$response['http'] ?? null,
-                  'message_id_rejected'=>transferMessageIdRejected($response),
-                  'public_new_caption'=>$public['caption_sha256'] === $row['next_caption_sha256'],
-                  'public_old_caption'=>$public['caption_sha256'] === $row['target_caption_sha256'],
-                  'public_original_date'=>$public['published_unixtime'] === $row['target_published_unixtime'],
-                  'public_single_photo'=>$public['single_photo'],
-                  'public_button_count'=>count($public['buttons']),
-                  'public_expected_hotel_button'=>is_string($button) && count($public['buttons']) === 1
-                      && $public['buttons'][0]['hotel_url'] === $button
-                      && $public['buttons'][0]['text'] === $row['button_text']];
+              $item = ['message_id'=>$id,'native_button_exact'=>($native['url'] ?? null) === $button,
+                  'native_button_text_exact'=>($native['text'] ?? null) === $journal['intent_saved']['row']['button_text']];
+              $views = ['widget'=>'https://t.me/anytour/'.$id.'?embed=1&mode=tme',
+                  'channel_preview'=>'https://t.me/s/anytour/'.$id];
+              foreach ($views as $name => $url) {
+                  $context = stream_context_create(['http'=>['method'=>'GET','timeout'=>12,'follow_location'=>0,
+                      'header'=>"User-Agent: Mozilla/5.0\r\n"], 'ssl'=>['verify_peer'=>true,'verify_peer_name'=>true]]);
+                  $body = @file_get_contents($url, false, $context, 0, 1_000_001);
+                  $result = ['read'=>is_string($body) && strlen($body) <= 1_000_000,'post_found'=>false,
+                      'explicit_button_link'=>false];
+                  if ($result['read']) {
+                      $doc = new \DOMDocument('1.0', 'UTF-8');
+                      $prior = libxml_use_internal_errors(true);
+                      try {
+                          if ($doc->loadHTML($body, LIBXML_NONET)) {
+                              $xpath = new \DOMXPath($doc);
+                              $nodes = $xpath->query('//*[@data-post="anytour/'.$id.'"]');
+                              $result['post_found'] = $nodes && $nodes->length === 1;
+                              if ($result['post_found']) {
+                                  foreach ($xpath->query('.//a[@href]', $nodes->item(0)) as $link) {
+                                      if ($link->getAttribute('href') === $button) $result['explicit_button_link'] = true;
+                                  }
+                              }
+                          }
+                      } finally {
+                          libxml_clear_errors();
+                          libxml_use_internal_errors($prior);
+                      }
+                  }
+                  $item[$name] = $result;
+              }
               $rows[] = $item;
           }
-          echo json_encode(['rows'=>$rows,'provider_writes'=>0,'production_writes'=>0], JSON_THROW_ON_ERROR), PHP_EOL;
+          echo json_encode(['button_comparison'=>$rows,'provider_writes'=>0,'production_writes'=>0], JSON_THROW_ON_ERROR), PHP_EOL;
           PHP
           REMOTE
       - name: Remove authentication material
