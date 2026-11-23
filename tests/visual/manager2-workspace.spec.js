@@ -1545,7 +1545,7 @@ for(const viewport of [{width:390,height:420},{width:1440,height:900}])test('Man
   const d=route.request().postDataJSON();if(!['send','send_receipt','detail'].includes(d.action))return route.fallback();expect(d.csrf).toBe('synthetic-csrf');expect(d.conversation_id).toBe(11);
   if(d.action==='send'){sends.push(d);return route.abort('failed')}
   if(d.action==='detail')return detailFails?route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false})}):route.fallback();
-  receipts.push(d);return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:false,attempt:{state:'rejected'},failure:{category:'attempt_context_changed'}})});
+  receipts.push(d);return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,attempt:{state:'rejected'},failure:{category:'attempt_context_changed'}})});
  });
  await page.locator('#replyText').fill('Исходный ответ');await page.locator('#sendReply').click();await expect(page.locator('#sendReply')).toHaveText('Проверить отправку');
  await page.locator('#replyText').fill('Сохранённый новый текст');await page.locator('#replyFile').setInputFiles({name:'retained-context.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=','base64')});await expect(page.locator('.mediaSelectedItem')).toHaveCount(1);const url=await page.locator('.mediaPreview img').getAttribute('src');
