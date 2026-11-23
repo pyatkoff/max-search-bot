@@ -263,6 +263,30 @@ async function verifyPreviousRelease(context, token, fetchImpl) {
   const logReader = R.makeReadApi(token, fetchImpl);
   logReader.transientReads = false;
   api.jobLog = logReader.jobLog;
+  if (context.prNumber === 1667 && context.baseSha === '302ba66b5739e369a4df94471c8cfe9c054dd070') {
+    const {provePartialInstall1662Forward} = require('./partial_install_1662_forward');
+    const proof = await provePartialInstall1662Forward({
+      api, pr: context.prNumber, head: context.headSha,
+      phase: context.publisher ? 'after_handoff' : 'before_handoff'
+    });
+    if (context.publisher && (proof.binding.comment_id !== context.publisher.comment_id ||
+        proof.binding.owner_id !== context.publisher.owner_id ||
+        proof.binding.updated_at !== context.publisher.updated_at)) refusal('forward_publisher_changed');
+    return;
+  }
+  if (context.baseSha === 'b3386d558f72e9eb80acefad9e87b1ab91b4426f') {
+    const target = await api('GET', R.API_ROOT + '/pulls/' + context.prNumber);
+    const {BRANCH, proveExhaustedVerify1664Forward} = require('./exhausted_verify_1664_forward');
+    if (target?.head?.ref === BRANCH) {
+      api.artifact = logReader.artifact;
+      const proof = await proveExhaustedVerify1664Forward({api,pr:context.prNumber,head:context.headSha,
+        phase:context.publisher ? 'after_handoff' : 'before_handoff'});
+      if (context.publisher && (proof.binding.comment_id !== context.publisher.comment_id ||
+          proof.binding.owner_id !== context.publisher.owner_id ||
+          proof.binding.updated_at !== context.publisher.updated_at)) refusal('forward_publisher_changed');
+      return;
+    }
+  }
   const runs = R.boundedList(await api('GET', R.API_ROOT +
     '/actions/workflows/deploy.yml/runs?head_sha=' + context.baseSha + '&branch=main&per_page=100'),
     'workflow_runs', 'incomplete_previous_deployments');

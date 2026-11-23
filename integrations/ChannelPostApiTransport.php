@@ -62,9 +62,20 @@ final class ChannelPostApiTransport
     }
 
     /** Pure preflight before the editor consumes its once-only write marker. */
-    public static function hotelMediaPayload(string $channelId, string $messageId, array $body): ?array
+    public static function hotelMediaPayload(string $channelId, string $messageId, array $body, bool|string $next = false): ?array
     {
-        if ($channelId !== '-1001845835645' || !in_array($messageId, ['862', '328', '1083', '288'], true)
+        $rankedRow = null;
+        if (is_string($next)) {
+            require_once __DIR__ . '/../config/anytour_ranked_transfer_scope_20261123.php';
+            $rows = AnyTourRankedHotelTransfer46::PLANS[$next]['pairs'] ?? [];
+            $byTarget = array_column($rows, null, 'target');
+            $rankedRow = $byTarget[$messageId] ?? null;
+            if ($rankedRow === null) return null;
+            $approvedMessages = [$rankedRow['target']];
+        } else {
+            $approvedMessages = $next ? ['1588', '997', '1101'] : ['862', '328', '1083', '288'];
+        }
+        if ($channelId !== '-1001845835645' || !in_array($messageId, $approvedMessages, true)
             || array_keys($body) !== ['media', 'reply_markup']) return null;
         $media = $body['media'];
         $markup = $body['reply_markup'];
@@ -87,13 +98,16 @@ final class ChannelPostApiTransport
             || preg_match('/[\x00-\x1f\x7f-\x{009f}]/u', $button['text']) !== 0
             || !is_string($button['url'])
             || preg_match('~\Ahttps://t\.me/anyru_bot\?start=p_[A-Za-z0-9_-]{24}\z~D', $button['url']) !== 1) return null;
+        if ($rankedRow !== null && ($button['text'] !== '✈️ Рассчитать на мои даты'
+            || !hash_equals($rankedRow['caption_sha256'], hash('sha256', $media['caption']))
+            || !hash_equals($rankedRow['file_id_sha256'], hash('sha256', $media['media'])))) return null;
         return ['chat_id' => $channelId, 'message_id' => (int)$messageId] + $body;
     }
 
-    /** Four approved historical photos only; deployment credentials, never the publisher's. */
-    public static function hotelMediaRequest(string $channelId, string $messageId, array $body): array
+    /** Fixed historical photo edits use deployment credentials. */
+    public static function hotelMediaRequest(string $channelId, string $messageId, array $body, bool|string $next = false): array
     {
-        $payload = self::hotelMediaPayload($channelId, $messageId, $body);
+        $payload = self::hotelMediaPayload($channelId, $messageId, $body, $next);
         return $payload === null ? ['http' => 0, 'data' => null, 'transport_error' => true]
             : self::postRequest('telegram', 'POST', 'editMessageMedia', [], $payload, false, null, true);
     }

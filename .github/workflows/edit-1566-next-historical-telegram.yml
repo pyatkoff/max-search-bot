@@ -1,0 +1,156 @@
+name: "#1566 Apply next approved hotel transfers"
+on:
+  push:
+    branches: [ops/anytour-hotel-next-apply-20261123, ops/anytour-hotel-remaining-apply-20261123]
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+concurrency:
+  group: anytour-authorized-channel-publication
+  cancel-in-progress: false
+jobs:
+  transfer:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' &&
+      github.actor == 'pyatkoff' &&
+      github.event.created == true &&
+      github.event.before == '0000000000000000000000000000000000000000' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the native run source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Resolve accepted repository and application
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"
+      - name: Require exact APPLY admission before loading credentials
+        env:
+          READY: ${{ steps.release.outputs.ready }}
+          PERFORM_ACTIONS: ${{ steps.release.outputs.perform_actions }}
+          WRITE_OPERATION: ${{ steps.release.outputs.write_operation }}
+          REPOSITORY_SHA: ${{ steps.release.outputs.repository_sha }}
+          APPLICATION_SHA: ${{ steps.release.outputs.application_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$READY" = true
+          test "$PERFORM_ACTIONS" = true
+          case "$GITHUB_REF" in
+            refs/heads/ops/anytour-hotel-next-apply-20261123)
+              test "$WRITE_OPERATION" = hotel_next_transfer
+              scope=next
+              ;;
+            refs/heads/ops/anytour-hotel-remaining-apply-20261123)
+              test "$WRITE_OPERATION" = hotel_remaining_transfer
+              scope=remaining
+              ;;
+            *) exit 1 ;;
+          esac
+          printf 'TRANSFER_SCOPE=%s\n' "$scope" >> "$GITHUB_ENV"
+          test "$REPOSITORY_SHA" = "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          [[ "$APPLICATION_SHA" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$GITHUB_RUN_ID" =~ ^[1-9][0-9]{0,19}$ ]]
+          umask 077
+          mkdir pub
+          php tools/anytour_existing_post_batch.php "--check-$scope-transfer-plan" 30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d > pub/plan-check.json
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35)
+          found=[]
+          for line in scan.stdout.splitlines():
+              fields=line.split()
+              if len(fields)<3 or fields[0].startswith('#'):continue
+              try:fingerprint='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fingerprint=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(line)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      # The branch is created once only after the owner's separate approval of
+      # this exact plan. Installing this workflow does not create that branch.
+      - name: Apply the installed editor once and retain its original receipts
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          APPLICATION_SHA: ${{ steps.release.outputs.application_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ "$APPLICATION_SHA" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$GITHUB_RUN_ID" =~ ^[1-9][0-9]{0,19}$ ]]
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          remote='set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru'
+          case "$TRANSFER_SCOPE" in
+            next|remaining) ;;
+            *) exit 1 ;;
+          esac
+          set +e
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" "$remote; php tools/anytour_existing_post_batch.php --apply-$TRANSFER_SCOPE-transfer 30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d $APPLICATION_SHA $GITHUB_RUN_ID" > pub/result.json
+          status=$?
+          set -e
+          python3 - <<'PY'
+          import json,os,pathlib
+          p=pathlib.Path('pub/result.json')
+          assert p.stat().st_size<=1000000,'RESULT_UNBOUNDED_DO_NOT_REPLAY'
+          try:d=json.loads(p.read_text())
+          except (OSError,ValueError):raise SystemExit('RESULT_UNAVAILABLE_READ_ORIGINAL_JOURNALS_DO_NOT_REPLAY')
+          print(json.dumps({k:d[k] for k in ('ok','operation','state','reason','provider_write_attempts','supplier_requests','bot_starts') if k in d}))
+          print(json.dumps([{k:r[k] for k in ('hotel_id','message_id','ok','state','provider_write_attempts') if k in r}
+                            for r in d.get('results',[])]))
+          assert d.get('ok') is True,'HELD_READ_ORIGINAL_JOURNALS_DO_NOT_REPLAY'
+          scope=os.environ['TRANSFER_SCOPE']
+          assert d.get('operation')=='anytour_hotel_transfer_'+scope+'_20261123'
+          expected=[800,408,466] if scope=='next' else [408,466]
+          assert d.get('native_run_id')==os.environ['GITHUB_RUN_ID']
+          assert d.get('application_sha')==os.environ['APPLICATION_SHA']
+          assert d.get('plan_sha256')=='30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d'
+          assert d.get('provider_write_attempts')==len(expected)
+          assert d.get('supplier_requests')==d.get('bot_starts')==0
+          assert [r['hotel_id'] for r in d['results']]==expected
+          assert all(r['ok'] and r['provider_write_attempts']==1 for r in d['results'])
+          PY
+          test "$status" -eq 0
+      - name: Save the original sanitized transfer result
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-1566-hotel-next-transfer
+          path: pub/*.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Remove runner connection material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"

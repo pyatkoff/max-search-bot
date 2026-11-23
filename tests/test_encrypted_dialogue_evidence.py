@@ -1,5 +1,6 @@
 """Synthetic-only privacy, integrity and provenance regressions."""
 import datetime as dt
+import copy
 import importlib.util
 import json
 from pathlib import Path
@@ -51,6 +52,29 @@ def production_fixture():
                 "proposal_json": "HIDDEN_RAW_PROPOSAL", "extra": "HIDDEN_EXTRA"}]}
 
 
+def invocation_fixture(version=1, outcome="available"):
+    production = production_fixture()
+    streams = [{"stream": name, "read_status": "available", "reason": None, "bytes_read": 900 if name == "debug" else 0,
+                "valid_frames": 2 if name == "debug" else 0, "retained_frames": 2 if name == "debug" else 0,
+                "omitted_old_frames": 0, "omitted_future_frames": 0, "omitted_by_limit": 0,
+                "legacy_bytes": 0, "cutoff_reason": None, "untrusted_tail_bytes": 0} for name in ("debug", "error")]
+    production["ai_invocation_metadata_private"] = {
+        "schema": "anytour.ai_invocation_metadata.v1", "generated_at": production["generated_at"], "ok": True,
+        "projection": "metadata_only", "trust": "unauthenticated_text_log", "runtime_trace_proven": False,
+        "causal_diagnosis_performed": False, "cross_stream_atomic": False, "source_history_complete": False,
+        "session_link_available": False, "limits": dict(evidence.AI_INVOCATION_LIMITS), "streams": streams,
+        "records": [{"stream": "debug", "frame_index": index, "invocation_id": "c" * 32, "stage": stage,
+                     "age_seconds": 101 - index, "payload_bytes": 100, "frame_bytes": 450,
+                     "payload_sha256_verified": True, "shape_confirmed": True, "embedded_prefix_lines": 0}
+                    for index, stage in ((1, "input"), (2, "result"))]}
+    if version == 2:
+        source = production["ai_invocation_metadata_private"]
+        source["schema"] = "anytour.ai_invocation_metadata.v2"
+        for record in source["records"]:
+            record["website_context_read"] = outcome if record["stage"] == "input" else None
+    return production
+
+
 class EvidenceTests(unittest.TestCase):
     def setUp(self):
         self.identity = pyrage.x25519.Identity.generate()
@@ -59,6 +83,179 @@ class EvidenceTests(unittest.TestCase):
     def build(self, report=None, production=None):
         return evidence.build_evidence([("live", report or fixture())], SHA, self.recipient,
                                        production=production)
+
+    def test_invocation_metadata_has_independent_rotating_aliases_and_no_frame_content(self):
+        first = json.loads(self.build(production=invocation_fixture()))
+        second = json.loads(self.build(production=invocation_fixture()))
+        view = first["ai_invocation_metadata"]
+        self.assertEqual(view["groups"][0]["status"], "candidate_correlated")
+        self.assertEqual(view["records"][0]["invocation_ref"], view["records"][1]["invocation_ref"])
+        self.assertNotEqual(view["records"][0]["invocation_ref"], second["ai_invocation_metadata"]["records"][0]["invocation_ref"])
+        self.assertNotEqual(view["records"][0]["invocation_ref"], first["sessions"][0]["session_ref"])
+        self.assertFalse(view["runtime_trace_proven"])
+        self.assertFalse(view["causal_diagnosis_performed"])
+        self.assertFalse(view["cross_stream_atomic"])
+        self.assertFalse(view["source_history_complete"])
+        self.assertFalse(view["session_link_available"])
+        self.assertEqual(view["integrity_check_origin"], "source_reported")
+        encoded = json.dumps(view)
+        for forbidden in ("c" * 32, '"invocation_id"', '"payload_sha256"', '"recorded_at_utc"', '"text"', '"prompt"', '"model"', '"path"'):
+            self.assertNotIn(forbidden, encoded)
+        self.assertIn("individual frame code, prompt and model versions are unavailable", view["version_scope"])
+
+    def test_legacy_invocation_metadata_does_not_invent_a_website_read_outcome(self):
+        view = json.loads(self.build(production=invocation_fixture()))["ai_invocation_metadata"]
+        self.assertEqual(view["schema"], "anytour.ai_invocation_metadata_evidence.v2")
+        self.assertEqual(view["source_schema"], "anytour.ai_invocation_metadata.v1")
+        self.assertEqual(view["records"][0]["website_context_read"], "not_recorded")
+        self.assertIsNone(view["records"][1]["website_context_read"])
+        self.assertEqual(view["groups"][0]["status"], "candidate_correlated")
+
+    def test_website_read_outcomes_survive_age_encryption_without_becoming_causal_proof(self):
+        for outcome in ("available", "empty", "not_found", "read_failed", "not_attempted_invalid_chat", "load_failed", "not_recorded"):
+            with self.subTest(outcome=outcome):
+                data = self.build(production=invocation_fixture(version=2, outcome=outcome))
+                ciphertext = pyrage.encrypt(data, [self.identity.to_public()])
+                view = json.loads(pyrage.decrypt(ciphertext, [self.identity]))["ai_invocation_metadata"]
+                self.assertEqual(view["source_schema"], "anytour.ai_invocation_metadata.v2")
+                self.assertEqual(view["records"][0]["website_context_read"], outcome)
+                self.assertIsNone(view["records"][1]["website_context_read"])
+                self.assertFalse(view["runtime_trace_proven"])
+                self.assertFalse(view["causal_diagnosis_performed"])
+                self.assertIn("source-post and recent-dialogue", view["context_read_scope"])
+                self.assertNotIn(("c" * 32).encode(), data)
+
+    def test_website_read_contract_rejects_missing_private_unknown_or_misplaced_values(self):
+        mutations = [
+            lambda s: s["records"][0].pop("website_context_read"),
+            lambda s: s["records"][0].update(website_context_read=None),
+            lambda s: s["records"][0].update(website_context_read=True),
+            lambda s: s["records"][0].update(website_context_read={"error": "PRIVATE_ERROR"}),
+            lambda s: s["records"][0].update(website_context_read="PRIVATE_TEXT"),
+            lambda s: s["records"][1].update(website_context_read="available"),
+            lambda s: s["records"][0].update(website_context_error="PRIVATE_ERROR"),
+        ]
+        for index, mutate in enumerate(mutations):
+            with self.subTest(mutation=index):
+                production = invocation_fixture(version=2)
+                mutate(production["ai_invocation_metadata_private"])
+                with self.assertRaises(ValueError):
+                    self.build(production=production)
+        production = invocation_fixture()
+        production["ai_invocation_metadata_private"]["records"][0]["website_context_read"] = "available"
+        with self.assertRaises(ValueError):
+            self.build(production=production)
+
+    def test_website_read_rejection_retains_explicit_source_cutoff(self):
+        production = invocation_fixture(version=2)
+        source = production["ai_invocation_metadata_private"]
+        source["records"] = []
+        source["streams"][0].update(valid_frames=0, retained_frames=0, cutoff_reason="invalid_context_read_header", untrusted_tail_bytes=900)
+        source["ok"] = False
+        view = json.loads(self.build(production=production))["ai_invocation_metadata"]
+        self.assertFalse(view["ok"])
+        self.assertEqual(view["records"], [])
+        self.assertEqual(view["streams"][0]["cutoff_reason"], "invalid_context_read_header")
+
+    def test_invocation_metadata_includes_error_stream_and_preserves_missing_evidence(self):
+        production = invocation_fixture()
+        source = production["ai_invocation_metadata_private"]
+        source["records"][1].update(stream="error", frame_index=1, stage="exception")
+        for stream in source["streams"]:
+            stream.update(valid_frames=1, retained_frames=1, bytes_read=450)
+        report = json.loads(self.build(production=production))["ai_invocation_metadata"]
+        self.assertEqual(report["groups"][0]["status"], "candidate_correlated")
+        self.assertEqual(report["records"][1]["stream"], "error")
+        source["records"].pop()
+        source["streams"][1].update(read_status="unavailable", reason="file_missing", bytes_read=0, valid_frames=0, retained_frames=0)
+        source["ok"] = False
+        report = json.loads(self.build(production=production))["ai_invocation_metadata"]
+        self.assertFalse(report["ok"])
+        self.assertEqual(report["groups"][0]["status"], "incomplete")
+        self.assertIn("terminal_record_missing", report["groups"][0]["reason_codes"])
+        self.assertIn("source_stream_unavailable", report["groups"][0]["reason_codes"])
+
+    def test_invocation_metadata_empty_legacy_and_absent_sources_are_not_conflated(self):
+        missing = json.loads(self.build(production=production_fixture()))["ai_invocation_metadata"]
+        self.assertFalse(missing["available"])
+        production = invocation_fixture()
+        source = production["ai_invocation_metadata_private"]
+        source["records"] = []
+        for stream in source["streams"]:
+            stream.update(bytes_read=0, valid_frames=0, retained_frames=0)
+        empty = json.loads(self.build(production=production))["ai_invocation_metadata"]
+        self.assertTrue(empty["available"])
+        self.assertTrue(empty["ok"])
+        self.assertEqual(empty["groups"], [])
+        source["streams"][0].update(bytes_read=120, legacy_bytes=120)
+        legacy = json.loads(self.build(production=production))["ai_invocation_metadata"]
+        self.assertEqual(legacy["streams"][0]["legacy_bytes"], 120)
+        self.assertEqual(legacy["groups"], [])
+
+    def test_invocation_metadata_duplicates_null_ids_cutoff_and_order_do_not_become_traces(self):
+        production = invocation_fixture()
+        source = production["ai_invocation_metadata_private"]
+        source["records"].append({**source["records"][1], "frame_index": 3})
+        source["streams"][0].update(valid_frames=3, retained_frames=3, bytes_read=1350)
+        view = json.loads(self.build(production=production))["ai_invocation_metadata"]
+        self.assertEqual(view["groups"][0]["status"], "ambiguous")
+        source["records"][2]["invocation_id"] = None
+        view = json.loads(self.build(production=production))["ai_invocation_metadata"]
+        self.assertEqual(view["unlinked_null_id_records"], 1)
+        source["streams"][0].update(cutoff_reason="payload_digest_mismatch", untrusted_tail_bytes=100, bytes_read=1450)
+        source["ok"] = False
+        view = json.loads(self.build(production=production))["ai_invocation_metadata"]
+        self.assertEqual(view["groups"][0]["status"], "incomplete")
+        self.assertIn("source_admission_stopped", view["groups"][0]["reason_codes"])
+        source["records"][1]["age_seconds"] = 200
+        view = json.loads(self.build(production=production))["ai_invocation_metadata"]
+        self.assertIn("terminal_recording_precedes_input", view["groups"][0]["reason_codes"])
+
+    def test_invocation_metadata_rejects_private_fields_forged_checks_and_bad_bounds(self):
+        mutations = [
+            lambda p: p.update(payload="PRIVATE_BODY"),
+            lambda p: p["records"][0].update(payload_sha256="PRIVATE_DIGEST"),
+            lambda p: p["records"][0].update(text="PRIVATE_TEXT"),
+            lambda p: p["records"][0].update(model="UNCONFIRMED_MODEL"),
+            lambda p: p["records"][0].update(payload_sha256_verified=False),
+            lambda p: p["records"][0].update(age_seconds=3601),
+            lambda p: p["records"][0].update(age_seconds=-61),
+            lambda p: p["records"][0].update(frame_index=True),
+            lambda p: p["records"][1].update(frame_index=1),
+            lambda p: p["streams"][0].update(retained_frames=129),
+            lambda p: p.update(source_history_complete=True),
+            lambda p: p.update(cross_stream_atomic=True),
+            lambda p: p.update(trust="authenticated"),
+            lambda p: p.update(generated_at="2000-01-01T00:00:00Z"),
+            lambda p: p.update(limits=[]),
+        ]
+        for mutate in mutations:
+            production = invocation_fixture()
+            mutate(production["ai_invocation_metadata_private"])
+            with self.subTest(mutation=mutations.index(mutate)), self.assertRaises(ValueError):
+                self.build(production=production)
+
+    def test_invocation_metadata_age_and_cardinality_omissions_remain_visible(self):
+        production = invocation_fixture()
+        stream = production["ai_invocation_metadata_private"]["streams"][0]
+        stream.update(valid_frames=6, omitted_old_frames=2, omitted_future_frames=1, omitted_by_limit=1, bytes_read=2700)
+        production["ai_invocation_metadata_private"]["ok"] = False
+        view = json.loads(self.build(production=production))["ai_invocation_metadata"]
+        self.assertEqual(view["streams"][0]["omitted_old_frames"], 2)
+        self.assertEqual(view["streams"][0]["omitted_future_frames"], 1)
+        self.assertEqual(view["streams"][0]["omitted_by_limit"], 1)
+        self.assertEqual(view["groups"][0]["status"], "incomplete")
+        self.assertIn("record_retention_limit", view["groups"][0]["reason_codes"])
+
+    def test_invocation_metadata_uses_existing_age_roundtrip_without_raw_ids(self):
+        data = self.build(production=invocation_fixture())
+        encrypted = pyrage.encrypt(data, [self.identity.to_public()])
+        decoded = pyrage.decrypt(encrypted, [self.identity])
+        self.assertEqual(decoded, data)
+        self.assertEqual(json.loads(decoded)["ai_invocation_metadata"]["groups"][0]["status"], "candidate_correlated")
+        self.assertNotIn(("c" * 32).encode(), decoded)
+        with self.assertRaises(Exception):
+            pyrage.decrypt(encrypted, [pyrage.x25519.Identity.generate()])
 
     def test_optional_feedback_projection_redacts_and_allowlists_private_fields(self):
         self.assertNotIn("manager_ai_feedback", json.loads(self.build()))

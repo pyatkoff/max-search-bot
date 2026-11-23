@@ -237,7 +237,9 @@ final class ChannelPostRegistryService
                 $snapshot['metadata']['source_revision_ms'] = (string)$revision;
             }
             $snapshot['metadata']['hotel_catalog_id'] = $row['hotel_id'];
-            $snapshot['metadata']['hotel_transfer_price_record_id'] = $row['price_record_id'];
+            if ($row['price_record_id'] !== null) {
+                $snapshot['metadata']['hotel_transfer_price_record_id'] = $row['price_record_id'];
+            }
             $snapshot['metadata']['hotel_transfer'] = $provenance;
             $snapshot = self::snapshot($snapshot);
             $hash = ChannelPostIncomingAdapter::contentFingerprint($snapshot);
@@ -276,20 +278,44 @@ final class ChannelPostRegistryService
         if ($actual !== $expected || !preg_match('/\A[a-f0-9]{64}\z/D', $planDigest)) throw new InvalidArgumentException('hotel_transfer_plan_invalid');
         $pairs = [17595=>['455',1003,'862',1726731731], 358=>['65',211,'328',1705145228],
             393=>['85',247,'1083',1745392994], 1260=>['548',1220,'288',1703918786]];
+        $next = hash_equals('30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d', $planDigest);
+        require_once __DIR__ . '/../config/anytour_ranked_transfer_scope_20261123.php';
+        $ranked = AnyTourRankedHotelTransfer46::PLANS[$planDigest] ?? null;
+        if ($ranked !== null) {
+            $next = true;
+            $pairs = [];
+            foreach ($ranked['pairs'] as $id => $pair) {
+                $pairs[$id] = [$pair['source'], $pair['source_publication'], $pair['target'], $pair['date']];
+            }
+        } elseif ($next) {
+            $pairs = [800=>['219',535,'1588',1781855273], 408=>['120',323,'997',1737725306],
+                466=>['473',1047,'1101',1747735272]];
+        }
         if (!is_int($row['hotel_id']) || !isset($pairs[$row['hotel_id']])
             || [$row['source_message_id'],$row['source_publication_id'],$row['target_message_id'],$row['target_published_unixtime']] !== $pairs[$row['hotel_id']]
             || !is_int($row['source_version_id']) || $row['source_version_id'] <= 0
             || $row['target_config_version'] !== 2 || $row['bot_url'] !== 'https://t.me/anyru_bot') throw new InvalidArgumentException('hotel_transfer_scope_invalid');
         foreach (['source_content_hash','source_caption_sha256','source_file_id_sha256','source_file_unique_id_sha256',
-            'target_caption_sha256','target_photo_marker_sha256','next_caption_sha256','price_record_id'] as $key) {
+            'target_caption_sha256','target_photo_marker_sha256','next_caption_sha256'] as $key) {
             if (!is_string($row[$key]) || !preg_match('/\A[a-f0-9]{64}\z/D', $row[$key])) throw new InvalidArgumentException('hotel_transfer_plan_invalid');
+        }
+        if ($next ? $row['price_record_id'] !== null
+            : (!is_string($row['price_record_id']) || !preg_match('/\A[a-f0-9]{64}\z/D', $row['price_record_id']))) {
+            throw new InvalidArgumentException('hotel_transfer_plan_invalid');
         }
         if (!is_string($row['next_caption']) || $row['next_caption'] === '' || !mb_check_encoding($row['next_caption'], 'UTF-8')
             || strlen(mb_convert_encoding($row['next_caption'], 'UTF-16LE', 'UTF-8')) > 2048
             || !hash_equals(hash('sha256', $row['next_caption']), $row['next_caption_sha256'])
             || !is_string($row['button_text']) || $row['button_text'] === '' || !mb_check_encoding($row['button_text'], 'UTF-8')
             || mb_strlen($row['button_text'], 'UTF-8') > 80 || preg_match('/[\x00-\x1f\x7f]/u', $row['button_text'])) throw new InvalidArgumentException('hotel_transfer_plan_invalid');
-        return array_replace(array_fill_keys($keys, null), $row);
+        $validated = array_replace(array_fill_keys($keys, null), $row);
+        if ($ranked !== null) {
+            $actual = hash('sha256', json_encode($validated, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
+            if (!hash_equals($ranked['pairs'][$row['hotel_id']]['registry_sha256'], $actual)) {
+                throw new InvalidArgumentException('hotel_transfer_ranked_row_changed');
+            }
+        }
+        return $validated;
     }
 
     private function telegramHotelTransferChannel(array $row): array

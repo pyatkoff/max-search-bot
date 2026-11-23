@@ -54,6 +54,22 @@ const HOTEL_FOUR_TRANSFER = Object.freeze({branch:'ops/anytour-hotel-four-apply-
   plan_path:'config/anytour_existing_post_transfer_four_20261123.json',plan_size:11972,
   plan_blob:'648e68b7395fcab65c321448b1a6a68554de17dc',
   plan_digest:'fdda41801951a033715b5ca5d567ef348f2ee885ab40074d35dfa8151d52de56'});
+const HOTEL_NEXT_TRANSFER = Object.freeze({...HOTEL_FOUR_TRANSFER,
+  branch:'ops/anytour-hotel-next-apply-20261123',
+  workflow:PREFIX+'edit-1566-next-historical-telegram.yml',operation:'hotel_next_transfer',
+  plan_path:'config/anytour_existing_post_transfer_next_20261123.json',plan_size:5520,
+  plan_blob:'297bed885e03f3422e624ac3dff6fd873e689135',
+  plan_digest:'30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d'});
+const HOTEL_RANKED_46 = Object.freeze({...HOTEL_FOUR_TRANSFER,
+  branch:'ops/anytour-hotel-ranked-46-apply-20261123',workflow:PREFIX+'edit-1566-ranked-46-historical-telegram.yml',operation:'hotel_ranked_46_transfer',
+  plan_path:'config/anytour_ranked_46_20261123.json',plan_size:712,plan_blob:'f3e0d4ee289f189eb5c43aaf85f8024c3de801ba',
+  plan_digest:'30d58e6649877a0eb07deb7e2fddcfa99c92081aac5fbef8c3c2b1d7a4a92833',native_run:'45175721919',native_artifact:14818587717,
+  native_zip_bytes:94348,native_zip_digest:'cf776ab108e8b023aaf6217fa1d5e43dce6047d462e2c96295cc94175332d0cc'});
+const HOTEL_REMAINING_TRANSFER = Object.freeze({...HOTEL_NEXT_TRANSFER,
+  branch:'ops/anytour-hotel-remaining-apply-20261123',operation:'hotel_remaining_transfer'});
+const ORIGINAL_NEXT_TRANSFER = Object.freeze({
+  run:45235830990,job:137907167978,sha:'bb7d0bde64092cbd24a69084e651ff44336ba8b5',
+  artifact:14850280926,digest:'sha256:8df0ba31b546c644f800a71324d959c8ebdaa1a0801ffdc2f0d8ef5cebf3034c'});
 const sha = v => typeof v === 'string' && /^[0-9a-f]{40}$/.test(v);
 const digest64 = v => typeof v === 'string' && /^[0-9a-f]{64}$/.test(v);
 const positive = v => (typeof v === 'string' && /^[1-9][0-9]{0,15}$/.test(v)
@@ -1051,7 +1067,8 @@ function makeReadApi(token,fetchImpl=globalThis.fetch,{sleep=waitForRetry}={}) {
   api.jobLog=async job=>{
     requireValue([TERMINAL_RECOVERY.job_id,TERMINAL_RECOVERY.continuation_job_id,TERMINAL_RECOVERY.observation_job_id,
       TERMINAL_RECOVERY.read_failure_job_id,GATE_RECOVERY.tls_job_id,UNPUBLISHED_TERMINAL_RECOVERY.job_id,
-      PRIOR_WAVE_RECOVERY.job_id,PRIOR_WAVE_RECOVERY.previous.verify_job_id,PUBLISHER_BODY_RECOVERY.job_id].includes(job),'untrusted_terminal_log');
+      PRIOR_WAVE_RECOVERY.job_id,PRIOR_WAVE_RECOVERY.previous.verify_job_id,PUBLISHER_BODY_RECOVERY.job_id,
+      137646126584,137658227484,137707302320,137760498372].includes(job),'untrusted_terminal_log');
     const response=await request('https://api.github.com'+API_ROOT+'/actions/jobs/'+job+'/logs',headers(false),'manual',2*1024*1024);
     if(Buffer.isBuffer(response))return response;
     let url;try{url=new URL(response.headers.get('location'));}catch{throw new Refusal('invalid_log_redirect');}
@@ -1453,6 +1470,30 @@ async function admitForwardInstallation(api,c,event) {
   const commit=await get('/commits/'+c.sha);
   requireValue(commit?.sha===c.sha&&Array.isArray(commit.parents)&&commit.parents.length>=1&&commit.parents.length<=2
     &&commit.parents.every(parent=>sha(parent.sha)),'forward_source_unconfirmed');
+  // Only PR1667 may succeed the pinned partially installed #1662 on the first main push.
+  const partialBase='302ba66b5739e369a4df94471c8cfe9c054dd070';
+  if(commit.parents.some(parent=>parent.sha===partialBase)||event.before===partialBase){
+    requireValue(c.event==='push'&&c.attempt===1&&event.forced===false&&event.before===partialBase
+      &&event.after===c.sha&&commit.parents.length===2&&commit.parents[0].sha===partialBase,
+      'invalid_partial_forward_source');
+    const {provePartialInstall1662Forward}=require('./partial_install_1662_forward');
+    await provePartialInstall1662Forward({api,pr:1667,head:commit.parents[1].sha,
+      phase:'installation',source:c.sha,runId:c.id,event});
+    return {expectedCheckout:partialBase};
+  }
+  const failedVerifyBase='b3386d558f72e9eb80acefad9e87b1ab91b4426f';
+  if(commit.parents.some(parent=>parent.sha===failedVerifyBase)||event.before===failedVerifyBase){
+    requireValue(c.event==='push'&&c.attempt===1&&event.forced===false&&event.before===failedVerifyBase
+      &&event.after===c.sha&&commit.parents.length===2&&commit.parents[0].sha===failedVerifyBase,
+      'invalid_exhausted_verify_forward_source');
+    const pulls=await get('/commits/'+c.sha+'/pulls?per_page=100');
+    requireValue(Array.isArray(pulls)&&pulls.length<100,'incomplete_pulls');
+    const merged=pulls.filter(pr=>pr.merge_commit_sha===c.sha&&pr.state==='closed');
+    requireValue(merged.length===1,'ambiguous_pull');
+    const {proveExhaustedVerify1664Forward}=require('./exhausted_verify_1664_forward');
+    return proveExhaustedVerify1664Forward({api,pr:merged[0].number,head:commit.parents[1].sha,
+      phase:'installation',source:c.sha,runId:c.id,event});
+  }
   // Only the immediate successor of the fixed failed source is in scope.
   if(!commit.parents.some(parent=>parent.sha===p.sha)){
     requireValue(event.before!==p.sha,'forward_not_direct_successor');return;
@@ -1474,11 +1515,15 @@ async function planDeployment({env,event,api,repository=process.cwd(),compare=v2
   const c=await sourceContext(env,event,api,DEPLOY);
   requireValue(c.attempt===1&&c.job==='deploy'&&['push','workflow_dispatch'].includes(c.event),'untrusted_deployment_context');
   if(c.event==='push')requireValue(event.ref==='refs/heads/main'&&event.after===c.sha&&typeof event.forced==='boolean','untrusted_push');
-  await admitForwardInstallation(api,c,event);
+  const forward=await admitForwardInstallation(api,c,event);
   const location=await readRecord(api),result={schema:1,protocol:'anytour-deployment-plan-v1',repository:REPOSITORY,
     repository_sha:c.sha,run_id:c.id,run_attempt:1,event:c.event,plan:'install',application_sha:c.sha,
     source:{commit:location.commit,blob:location.blob,record_digest:location.record_digest},
     baseline:null,installation:null,content:contentSummary(null,c.sha,c.sha),intent_scan:{status:'unknown'}};
+  if(forward?.expectedCheckout){
+    // This single successor performs its own full installation and receives the ordinary installed receipt.
+    return {...result,expected_checkout_sha:forward.expectedCheckout};
+  }
   if(c.event==='workflow_dispatch'||event.forced||Object.keys(event.inputs||{}).length){
     result.intent_scan={status:'explicit_intent'};return result;
   }
@@ -1679,8 +1724,34 @@ async function resolveHotelRegistryRead({env,event,api}) {
 }
 /** The reviewed plan is data, not user consent. Only a separate first owner push
  * can select the existing editor; this resolver itself performs GETs only. */
-async function resolveHotelFourTransfer({env,event,api}) {
-  const p=HOTEL_FOUR_TRANSFER,ref='refs/heads/'+p.branch;
+async function proveOriginalNextTransfer(api) {
+  const {run,job,sha:head,artifact,digest:artifactDigest}=ORIGINAL_NEXT_TRANSFER;
+  const p=HOTEL_NEXT_TRANSFER;
+  const [source,jobs,proof]=await Promise.all([
+    api('GET',API_ROOT+'/actions/runs/'+run),
+    api('GET',API_ROOT+'/actions/runs/'+run+'/attempts/1/jobs?per_page=100'),
+    api('GET',API_ROOT+'/actions/artifacts/'+artifact)
+  ]);
+  runIdentity(source,{id:run,attempt:1,head,workflow:p.workflow,event:'push',branch:p.branch,conclusion:'failure'});
+  requireValue(source.actor?.id===p.owner_id&&source.triggering_actor?.id===p.owner_id,'original_hotel_transfer_actor_changed');
+  const rows=boundedList(jobs,'jobs','original_hotel_transfer_jobs_incomplete');
+  requireValue(rows.length===1&&rows[0].id===job&&rows[0].run_id===run&&rows[0].head_sha===head&&
+    rows[0].run_attempt===1&&rows[0].name===p.job&&rows[0].status==='completed'&&rows[0].conclusion==='failure'
+    &&Array.isArray(rows[0].steps),'original_hotel_transfer_job_changed');
+  for(const [name,outcome] of [
+    ['Apply the installed editor once and retain its original receipts','failure'],
+    ['Save the original sanitized transfer result','success']]){
+    const steps=rows[0].steps.filter(step=>step.name===name);
+    requireValue(steps.length===1&&steps[0].status==='completed'&&steps[0].conclusion===outcome,
+      'original_hotel_transfer_result_changed');
+  }
+  requireValue(proof?.id===artifact&&proof.digest===artifactDigest&&proof.name==='issue-1566-hotel-next-transfer'
+    &&proof.workflow_run?.id===run&&proof.workflow_run.head_sha===head
+    &&proof.workflow_run.head_branch===p.branch,'original_hotel_transfer_artifact_changed');
+}
+
+async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
+  const ref='refs/heads/'+p.branch;
   requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF===ref
     &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+p.workflow+'@'+ref
     &&env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_JOB===p.job
@@ -1721,10 +1792,30 @@ async function resolveHotelFourTransfer({env,event,api}) {
   const bytes=Buffer.from(encoded,'base64');
   requireValue(bytes.length===p.plan_size&&bytes.toString('base64')===encoded&&gitBlob(bytes)===p.plan_blob
     &&crypto.createHash('sha256').update(bytes).digest('hex')===p.plan_digest,'hotel_transfer_plan_changed');
+  if(p===HOTEL_REMAINING_TRANSFER)await proveOriginalNextTransfer(api);
   const location=await readRecord(api),result=await resolveCurrent(api,c,location);
   requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
   requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_transfer_branch_changed');
   return {...await finalResolution(api,c,location,result),write_operation:p.operation};
+}
+async function resolveRankedHotelTransfer(inputs) {
+  const p = HOTEL_RANKED_46;
+  const run = await inputs.api('GET', API_ROOT+'/actions/runs/'+p.native_run);
+  runIdentity(run, {id:p.native_run, attempt:1, head:'db1157a5091ff0f708d7825acf6ca4e1dc9a5339',
+    workflow:PREFIX+'read-1566-telegram-46-20261123.yml', event:'push',
+    branch:'ops/1566-telegram-46-native-read-20261123'});
+  requireValue(run.repository?.full_name===REPOSITORY && run.repository.id===p.repository_id
+    && run.head_repository?.id===p.repository_id && run.actor?.login===p.owner && run.actor?.id===p.owner_id
+    && run.triggering_actor?.login===p.owner && run.triggering_actor?.id===p.owner_id,'ranked_native_actor_changed');
+  const artifacts = boundedList(await inputs.api('GET',API_ROOT+'/actions/runs/'+p.native_run+'/artifacts?per_page=100'),
+    'artifacts','ranked_native_artifact_inventory_incomplete');
+  const artifact = artifacts[0];
+  requireValue(artifacts.length===1 && artifact.id===p.native_artifact
+    && artifact.name==='issue-1566-telegram-46-preflight' && artifact.expired===false
+    && artifact.digest==='sha256:'+p.native_zip_digest && artifact.size_in_bytes===p.native_zip_bytes
+    && String(artifact.workflow_run?.id)===p.native_run && artifact.workflow_run.repository_id===p.repository_id
+    && artifact.workflow_run.head_sha==='db1157a5091ff0f708d7825acf6ca4e1dc9a5339','ranked_native_original_not_confirmed');
+  return resolveHotelTransfer(inputs,p);
 }
 async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms)),now=()=>performance.now()}) {
   if(env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_REF==='refs/heads/'+GATE_RECOVERY.branch){
@@ -1734,7 +1825,10 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
     return resolution(x.source,GATE_RECOVERY.sha,'installed');
   }
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_REGISTRY_READ.branch)return resolveHotelRegistryRead({env,event,api});
-  if(env.GITHUB_REF==='refs/heads/'+HOTEL_FOUR_TRANSFER.branch)return resolveHotelFourTransfer({env,event,api});
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_FOUR_TRANSFER.branch)return resolveHotelTransfer({env,event,api});
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_NEXT_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_NEXT_TRANSFER);
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_RANKED_46.branch)return resolveRankedHotelTransfer({env,event,api});
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_REMAINING_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_REMAINING_TRANSFER);
   const startedAt=now();
   const c=await sourceContext(env,event,api);
   requireValue(c.attempt===1,'consumer_rerun_forbidden');
@@ -1868,7 +1962,7 @@ function argumentsOf(argv,commands) {
 }
 function outputs(value){for(const [key,v]of Object.entries(value)){
   requireValue(/^[a-z_]+$/.test(key)&&!/[\r\n]/.test(String(v)),'invalid_output');process.stdout.write(key+'='+String(v)+'\n');}}
-module.exports={PUBLISHER_BODY_RECOVERY,publisherBodyRecovery,publisherBodySource,failedPublisherBodyTerminal,
+module.exports={proveOriginalNextTransfer,PUBLISHER_BODY_RECOVERY,publisherBodyRecovery,publisherBodySource,failedPublisherBodyTerminal,
   UNSTARTED_FORWARD,forwardMarker,proveUnstartedDeployment,proveUnstartedForward,admitForwardInstallation,REPOSITORY,API_ROOT,PREFIX,DEPLOY,CLOSER,HOST,RECORD_PATH,PUBLICATION_FILE,PUBLICATION_PROTOCOL,
   TERMINAL_RECOVERY,GATE_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY,PRIOR_WAVE_RECOVERY,
   priorWaveRecovery,failedPriorWaveTerminal,terminalRecovery,gateRecovery,
@@ -1898,7 +1992,9 @@ if(require.main===module){
     }
     if(args.command==='plan-deployment'){
       requireValue(keys(args,['command','output']),'invalid_arguments');const result=await planDeployment(common);saveJson(args.output,result);
-      outputs({plan:result.plan,application_sha:result.application_sha,plan_file:args.output});return;
+      const fields={plan:result.plan,application_sha:result.application_sha,plan_file:args.output};
+      if(result.expected_checkout_sha)fields.expected_checkout_sha=result.expected_checkout_sha;
+      outputs(fields);return;
     }
     if(args.command==='admit-unchanged'){
       requireValue(keys(args,['command','plan','observation','output']),'invalid_arguments');

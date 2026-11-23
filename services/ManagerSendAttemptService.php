@@ -77,7 +77,7 @@ final class ManagerSendAttemptService
                     $category=(string)($raw['category']??'unknown');$code=(int)($raw['http_code']??0);
                     $zero=$kind==='media'&&$category==='not_dispatched'&&in_array($raw['reason']??'',['file_unavailable','context_changed'],true)&&$code===0;
                     $definite=$kind==='media'?self::isDefiniteMediaFailure($raw):(in_array($category,['suspended','blocked','unsupported','attempt_context_changed','connection_unavailable'],true)||($code>=400&&$code<500&&!in_array($code,[408,409,429],true)));
-                    if ($definite) {$state='rejected';$failure=['category'=>$zero?'not_dispatched':(in_array($category,['suspended','blocked','unavailable','unsupported','attempt_context_changed','connection_unavailable'],true)?$category:'unknown')];if($zero)$failure['reason']=$raw['reason'];}
+                    if ($definite) {$state='rejected';$failure=['category'=>$zero?'not_dispatched':(in_array($category,['suspended','blocked','unavailable','unsupported','attempt_context_changed','connection_unavailable','provider_rejected'],true)?$category:'unknown')];if($zero)$failure['reason']=$raw['reason'];}
                 }
             }
         } catch (Throwable $e) { /* No exception/provider payload in the receipt. */ }
