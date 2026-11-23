@@ -998,6 +998,51 @@
         "coverage-v1"
       ],
       "withhold_until_verified": true
+    },
+    "device-ipad": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-device-v1-device-ipad",
+      "title": "Ремонт iPad в Калининграде",
+      "description": "Замена стекла, дисплея и аккумулятора iPad. Узнайте цену для своей модели.",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/8299a835d9b896c57dd4ffb9b34db75f613b3de0/resources/appleservice39/device-v1/covers/device-ipad.png",
+      "labels": [
+        "device",
+        "general",
+        "ipad",
+        "Калининград",
+        "device-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "device-macbook": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-device-v1-device-macbook",
+      "title": "Ремонт MacBook в Калининграде",
+      "description": "Диагностика MacBook Air и Pro при проблемах с экраном, питанием или клавиатурой.",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/8299a835d9b896c57dd4ffb9b34db75f613b3de0/resources/appleservice39/device-v1/covers/device-macbook.png",
+      "labels": [
+        "device",
+        "general",
+        "macbook",
+        "Калининград",
+        "device-v1"
+      ],
+      "withhold_until_verified": true
+    },
+    "device-apple-watch": {
+      "owner": "appleservice39_pilot",
+      "offer_id": "as39-device-v1-device-apple-watch",
+      "title": "Замена стекла Apple Watch в Калининграде",
+      "description": "Стекло треснуло, а экран работает? Узнайте, подойдёт ли замена для ваших часов.",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/8299a835d9b896c57dd4ffb9b34db75f613b3de0/resources/appleservice39/device-v1/covers/device-apple-watch.png",
+      "labels": [
+        "device",
+        "glass_replacement",
+        "apple-watch",
+        "Калининград",
+        "device-v1"
+      ],
+      "withhold_until_verified": true
     }
   },
   "feed_presentation": {
@@ -1335,6 +1380,21 @@
       "title": "Ремонт и замена корпуса iPhone в Калининграде",
       "description": "Погнут или повреждён корпус? Узнайте цену ремонта в MAX. Гарантия 3 месяца.",
       "image_url": "https://tour-max.ru/new/appleservice39/covers/ad-intent-v1/housing.png"
+    },
+    "device-ipad": {
+      "title": "Ремонт iPad в Калининграде",
+      "description": "Замена стекла, дисплея и аккумулятора iPad. Узнайте цену для своей модели.",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/8299a835d9b896c57dd4ffb9b34db75f613b3de0/resources/appleservice39/device-v1/covers/device-ipad.png"
+    },
+    "device-macbook": {
+      "title": "Ремонт MacBook в Калининграде",
+      "description": "Диагностика MacBook Air и Pro при проблемах с экраном, питанием или клавиатурой.",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/8299a835d9b896c57dd4ffb9b34db75f613b3de0/resources/appleservice39/device-v1/covers/device-macbook.png"
+    },
+    "device-apple-watch": {
+      "title": "Замена стекла Apple Watch в Калининграде",
+      "description": "Стекло треснуло, а экран работает? Узнайте, подойдёт ли замена для ваших часов.",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/8299a835d9b896c57dd4ffb9b34db75f613b3de0/resources/appleservice39/device-v1/covers/device-apple-watch.png"
     }
   },
   "prediction": {
