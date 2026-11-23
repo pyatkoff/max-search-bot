@@ -820,10 +820,10 @@ $monitorMode=true;eval($pinSelection);$monitorPins=$accepted;
 hook_test_check($legacyPins['services/ChannelPostAutomationService.php']==='f5975ab95de5f45e087eb7a0f768f566c5bca648'
     &&$legacyPins['services/ChannelPostRegistryService.php']==='a407757b9ac54a9e286900d34385d519d22b8c84','legacy_manual_pin_scope_changed');
 hook_test_check(count($monitorPins)===23
-    &&$monitorPins['integrations/ChannelPostApiTransport.php']==='0735da76a0c9f62f5c418343dd6ee172dd992b2a'
+    &&$monitorPins['integrations/ChannelPostApiTransport.php']==='cf008c9f53b046b51b88ec1372a0c7b4fd5f7ba3'
     &&$monitorPins['services/ChannelPostAutomationService.php']==='9914ff7af27ab714204f7478a75a5dd971de152d'
     &&$monitorPins['services/ChannelPostButtonTransport.php']==='2dffadf8679caf6e9ed364a45ecfc44f7eb67388'
-    &&$monitorPins['services/ChannelPostRegistryService.php']==='5543aaa24de234b26d881fba75670429f2913dcf'
+    &&$monitorPins['services/ChannelPostRegistryService.php']==='da1dddb370ce5e9987f97a80f72123b51fd927e3'
     &&$monitorPins['services/ChannelPostReconciliationService.php']==='1fa260e9720a8421227ecbe740bfbe33a42e398d','reviewed_pr1657_monitor_pins_missing');
 $bundlePath=tempnam(sys_get_temp_dir(),'monitor-pin-test-');
 try {
