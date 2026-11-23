@@ -139,29 +139,30 @@ jobs:
                   requireRead($date !== false && $date->format('Y-m-d\TH:i:s\Z') === $row['date'], 'inventory_target_date_invalid');
                   if (array_key_exists('max',$row)) {
                       $max = $row['max'];
-                      requireRead(is_array($max) && count($max) === 3 && is_string($max['source_url'] ?? null)
+                      requireRead(is_array($max) && count($max) === 4 && is_string($max['source_url'] ?? null)
                           && is_string($max['target_url'] ?? null) && is_int($max['target_ms'] ?? null) && $max['target_ms'] > 0,
                           'max_inventory_input_invalid');
-                      $sourceMid = maxQueueMessageId($max['source_url'], false);
-                      $targetMid = maxQueueMessageId($max['target_url'], true);
-                      requireRead(!isset($maxSources[$sourceMid]) && !isset($maxTargets[$targetMid]), 'inventory_overlap');
-                      $maxSources[$sourceMid] = true; $maxTargets[$targetMid] = true;
+                      $sourceUrl = $max['source_url'];
+                      requireRead(preg_match('~\Ahttps://max\.ru/channel_anytour/[A-Za-z0-9_-]{11}\z~D',$sourceUrl) === 1,
+                          'max_source_url_invalid');
+                      $targetMid = $max['target_mid'] ?? null;
+                      requireRead(is_string($targetMid) && maxQueuePublicUrl($targetMid, true) === $max['target_url'], 'max_target_url_changed');
+                      requireRead(!isset($maxSources[$sourceUrl]) && !isset($maxTargets[$targetMid]), 'inventory_overlap');
+                      $maxSources[$sourceUrl] = true; $maxTargets[$targetMid] = true;
                   }
                   $pairs[$row['hotel_id']] = $row;
               }
               return $pairs;
           }
 
-          /** Invert the historical maxEditUrl binding; only the two configured channel URLs are accepted. */
-          function maxQueueMessageId(string $url, bool $target): string
+          /** Verify the native message against the declared permalink using the previous editor's forward mapping. */
+          function maxQueuePublicUrl(string $mid, bool $target): string
           {
-              $channel = $target ? 'anytour' : 'channel_anytour';
-              requireRead(preg_match('~\Ahttps://max\.ru/' . $channel . '/([A-Za-z0-9_-]{11})\z~D', $url, $match) === 1,
-                  'max_public_url_invalid');
-              $bytes = base64_decode(strtr($match[1], '-_', '+/') . '=', true);
-              requireRead(is_string($bytes) && strlen($bytes) === 8
-                  && rtrim(strtr(base64_encode($bytes), '+/', '-_'), '=') === $match[1], 'max_message_encoding_invalid');
-              return 'mid.' . ($target ? 'ffffc1752b045fed' : 'ffffb6caf0606fed') . bin2hex($bytes);
+              $prefix = $target ? 'ffffc1752b045fed' : 'ffffb6caf0606fed';
+              requireRead(preg_match('/\Amid\.' . $prefix . '([0-9a-f]{16})\z/D', $mid, $match) === 1,
+                  'max_native_id_invalid');
+              $slug = rtrim(strtr(base64_encode(hex2bin($match[1])), '+/', '-_'), '=');
+              return 'https://max.ru/' . ($target ? 'anytour' : 'channel_anytour') . '/' . $slug;
           }
 
           function maxQueueUrlMatches(string $nativeUrl, string $chat, string $publicUrl): bool
@@ -201,8 +202,7 @@ jobs:
               try {
                   requireRead($pdo->inTransaction() && $hotel > 0 && is_int($max['target_ms']) && $max['target_ms'] > 0,
                       'max_inventory_input_invalid');
-                  $sourceMid = maxQueueMessageId($max['source_url'], false);
-                  $targetMid = maxQueueMessageId($max['target_url'], true);
+                  $targetMid = $max['target_mid'];
                   $sourceChat = '-80492244209683'; $targetChat = '-68765999669267'; $bot = 'id9704048781_1_bot';
                   if ($channelRights === null) {
                       $channel = $registry->channel('anytour', 'max', $bot, $targetChat);
@@ -220,23 +220,30 @@ jobs:
                   }
                   $result['channel_edit_rights'] = $channelRights;
                   if ($result['channel_edit_rights'] !== 'ready') $result['blockers'][] = 'max_edit_rights_unconfirmed';
+                  $sourceQuery = $pdo->prepare("SELECT p.id,p.external_message_id FROM post_publications p "
+                      . "JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id WHERE p.post_channel_id=9 "
+                      . "AND JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id'))=? "
+                      . "AND JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.post_url')) IN (?,?) LIMIT 2");
+                  $sourceQuery->execute([(string)$hotel,$max['source_url'],'https://max.ru/c/'.$sourceChat.'/'.basename($max['source_url'])]);
+                  $sources = $sourceQuery->fetchAll(PDO::FETCH_ASSOC);
+                  requireRead(count($sources) === 1, 'max_source_publication_ambiguous_or_missing');
+                  $sourceMid = (string)$sources[0]['external_message_id'];
+                  requireRead(maxQueuePublicUrl($sourceMid, false) === $max['source_url'], 'max_source_native_url_changed');
+                  $p = $registry->publication((int)$sources[0]['id']);
+                  requireRead(is_array($p) && $p['project_key'] === 'anytour' && $p['platform'] === 'max' && $p['bot_key'] === $bot
+                      && (int)$p['channel']['id'] === 9 && (string)$p['channel']['channel_id'] === $sourceChat
+                      && $p['message_id'] === $sourceMid && maxQueueUrlMatches($p['snapshot']['post_url'] ?? '', $sourceChat, $max['source_url'])
+                      && (int)($p['snapshot']['metadata']['hotel_catalog_id'] ?? 0) === $hotel, 'max_hotel_source_unconfirmed');
                   $result['native_get_attempts']++;
                   [$sourceMessage, $source] = maxQueueMessage($sourceMid, $sourceChat, $max['source_url']);
                   $result['native_get_attempts']++;
                   [$targetMessage, $target] = maxQueueMessage($targetMid, $targetChat, $max['target_url']);
                   $q = $pdo->prepare('SELECT id FROM post_publications WHERE post_channel_id=? AND external_message_id=? LIMIT 2');
-                  $q->execute([9, $sourceMid]);
-                  $sourceIds = $q->fetchAll(PDO::FETCH_COLUMN);
-                  requireRead(count($sourceIds) === 1, 'max_source_publication_ambiguous_or_missing');
-                  $p = $registry->publication((int)$sourceIds[0]);
-                  requireRead(is_array($p) && $p['project_key'] === 'anytour' && $p['platform'] === 'max' && $p['bot_key'] === $bot
-                      && (int)$p['channel']['id'] === 9 && (string)$p['channel']['channel_id'] === $sourceChat
-                      && $p['message_id'] === $sourceMid && maxQueueUrlMatches($p['snapshot']['post_url'] ?? '', $sourceChat, $max['source_url'])
-                      && (int)($p['snapshot']['metadata']['hotel_catalog_id'] ?? 0) === $hotel, 'max_hotel_source_unconfirmed');
                   $q->execute([4, $targetMid]);
                   $targetIds = $q->fetchAll(PDO::FETCH_COLUMN);
                   requireRead(count($targetIds) <= 1, 'max_target_registry_ambiguous');
                   $result['source_publication'] = (int)$p['publication_id']; $result['source_version'] = (int)$p['version_id'];
+                  $result['source_mid'] = $sourceMid; $result['target_mid'] = $targetMid;
                   $result['source_content_hash'] = $p['content_hash']; $result['source_timestamp_ms'] = $sourceMessage['timestamp'] ?? null;
                   $result['target_publication'] = $targetIds ? (int)$targetIds[0] : null;
                   $result['target_timestamp_ms'] = $targetMessage['timestamp'] ?? null;

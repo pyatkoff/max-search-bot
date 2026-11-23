@@ -558,7 +558,7 @@ function batchFixture(array $rows):array{
 checkFixture(array_keys(batchFixture($approved))===array_column($approved,'hotel_id'),'checked manifest retains the exact hotel IDs');
 $one=$approved[0];
 $dual=array_values(array_filter($approved,static fn($r)=>isset($r['max'])))[0];
-checkFixture(maxQueueMessageId('https://max.ru/anytour/AZ7exN6EPIU',true)==='mid.ffffc1752b045fed019edec4de843c85','historical MAX link matches original native receipt');
+checkFixture(maxQueuePublicUrl('mid.ffffc1752b045fed019edec4de843c85',true)==='https://max.ru/anytour/AZ7exN6EPIU','historical MAX link matches original native receipt');
 foreach([
   'duplicate hotel'=>[$one,$one],
   'duplicate old address'=>[$one,array_replace($one,['hotel_id'=>345,'source'=>'12345'])],
@@ -567,6 +567,7 @@ foreach([
   'original source'=>[array_replace($one,['source'=>'455'])],
   'wrong date'=>[array_replace($one,['date'=>'2026-02-30T01:00:00Z'])],
   'unbound address'=>[array_replace($one,['target'=>'https://t.me/other/120'])],
+  'other MAX native message'=>[array_replace($dual,['max'=>array_replace($dual['max'],['target_mid'=>'mid.ffffc1752b045fed019edec4de843c86'])])],
   'wrong MAX channel'=>[array_replace($dual,['max'=>array_replace($dual['max'],['source_url'=>$dual['max']['target_url']])])],
 ] as $label=>$rows){
   $failed=false;try{batchFixture($rows);}catch(RuntimeException $e){$failed=true;}
@@ -577,7 +578,7 @@ echo json_encode(['checks'=>$checks],JSON_THROW_ON_ERROR);
   const parsed=spawnSync('php',['-d','disable_functions=curl_init,curl_exec,exec,file_put_contents,fwrite','-r',fixture],
     {input:program.slice(0,main),encoding:'utf8',env:{...process.env,HOTEL_INVENTORY_FIXTURE:fs.readFileSync(path.join(__dirname,'../config/anytour_existing_post_inventory.json')).toString('base64')}});
   equal(parsed.status,0,'the exact pure parser handles synthetic widgets with native HTTP disabled: '+parsed.stderr);
-  equal(JSON.parse(parsed.stdout).checks>=29,true,'photo fixtures cover source/target identity, CDN, avatar, media and unsafe URLs');
+  equal(JSON.parse(parsed.stdout).checks>=30,true,'photo fixtures cover source/target identity, CDN, avatar, media and unsafe URLs');
 }
 async function hotelRegistryReadConsumer(f,repositorySha,applicationSha,queueInventory=false){
   const manifest=fs.readFileSync(path.join(__dirname,'../config/anytour_existing_post_inventory.json'));
