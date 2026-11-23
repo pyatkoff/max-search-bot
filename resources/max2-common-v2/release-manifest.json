@@ -37,7 +37,7 @@
     "tests/max2_common_v2/defaults/reference/canonical-price-fixtures.php": "55d18cca2147ad0742489561613902af6b7fbd9ecf914441892173330a92b165",
     "tests/max2_common_v2/defaults/tests/default-parity.php": "cfce4cc55327e4feed8bbbd167ca80b04b96c680406ade5ca215d179d7eded35",
     "tests/max2_common_v2/delivery/tests/delivery.php": "14227215a5748eeebe0afa2d8bca63f7f7158d408c6fb7434d08c647ad0b9af4",
-    "tests/max2_common_v2/fixtures.json": "af72525380d562436f36bc35dafa52cfe9fd3540b977abacce7fa652abbb70e7",
+    "tests/max2_common_v2/fixtures.json": "bfc7fa8326aac4c406358b9d13e452afb443d97d25e6ee144f97b099a1511048",
     "tests/max2_common_v2/identity/reference/saved-reader-fixture.php": "e513bc2c4dcf3791dd147b2158a9afe72cbf168a2c35882e82381764a7306a63",
     "tests/max2_common_v2/identity/tests/identity.php": "00d2ed33997f0dabcb1e7fd26579cf12c70efc4b64ceec2d3b85238615af619d",
     "tests/max2_common_v2/integration/tests/hooks.php": "9f76c1de7b8e498efa48de4ea0803f093fff13bfc7345391197a7302d65a1144",
