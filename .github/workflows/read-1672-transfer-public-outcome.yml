@@ -1,0 +1,107 @@
+name: Verify the two Telegram targets after PR1672
+on:
+  push:
+    branches: [audit/1566-next-release-admission-1664]
+    paths: [.github/workflows/read-1672-transfer-public-outcome.yml]
+permissions: {}
+jobs:
+  read:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35)
+          found=[]
+          for line in scan.stdout.splitlines():
+              fields=line.split()
+              if len(fields)<3 or fields[0].startswith('#'):continue
+              try:fingerprint='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fingerprint=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(line)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Compare original edit receipts and live Telegram posts
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 \
+            -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null \
+            -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$USER_VALUE@$HOST_VALUE" 'bash -s' <<'REMOTE'
+          set -eu
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          php -d display_errors=0 <<'PHP'
+          <?php
+          namespace AnyTour\ExistingPostBatch;
+          
+          require 'tools/anytour_existing_post_batch.php';
+          
+          transferRuntime(getcwd(), 'de6282c79cf533e316980a765acdd58a5227b05d');
+          $digest = '30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d';
+          $plan = transferPlanFromBytes(file_get_contents(NEXT_TRANSFER_PLAN_FILE), $digest, true);
+          $plan = selectRemainingTransferRows($plan);
+          $rows = [];
+          foreach ($plan['rows'] as $row) {
+              $id = $row['target_message_id'];
+              $journal = POST_OPS.'/anytour-issue1566-historical-tg-media-'.$id.'-v1/receipt.jsonl';
+              requirePost(is_file($journal) && realpath($journal) === $journal, 'transfer_journal_unavailable');
+              $raw = file_get_contents($journal, false, null, 0, 1_000_001);
+              requirePost(is_string($raw) && strlen($raw) <= 1_000_000, 'transfer_journal_event_unbounded');
+              $events = array_map(static fn(string $line): array => json_decode($line, true, 64, JSON_THROW_ON_ERROR),
+                  explode("\n", rtrim($raw, "\r\n")));
+              $intent = $events[0];
+              requirePost($intent['row'] === $row && $intent['plan_sha256'] === $digest
+                  && ($intent['execution']['native_run_id'] ?? null) === '45272173038'
+                  && ($intent['execution']['application_sha'] ?? null) === 'de6282c79cf533e316980a765acdd58a5227b05d'
+                  && count(array_filter($events, static fn(array $event): bool => $event['state'] === 'provider_edit_started')) === 1,
+                  'transfer_original_journal_mismatch');
+              $byState = array_column($events, null, 'state');
+              $terminal = $events[count($events) - 1];
+              $response = $byState['provider_response_saved']['response'] ?? [];
+              $public = transferPublic('anytour', $id, true);
+              $button = $byState['identity_reserved']['reservation']['button_url'] ?? null;
+              $item = ['message_id'=>$id,'hotel_id'=>$row['hotel_id'],'journal_state'=>$terminal['state'],
+                  'provider_http'=>$response['http'] ?? null,
+                  'message_id_rejected'=>transferMessageIdRejected($response),
+                  'public_new_caption'=>$public['caption_sha256'] === $row['next_caption_sha256'],
+                  'public_old_caption'=>$public['caption_sha256'] === $row['target_caption_sha256'],
+                  'public_original_date'=>$public['published_unixtime'] === $row['target_published_unixtime'],
+                  'public_single_photo'=>$public['single_photo'],
+                  'public_button_count'=>count($public['buttons']),
+                  'public_expected_hotel_button'=>is_string($button) && count($public['buttons']) === 1
+                      && $public['buttons'][0]['hotel_url'] === $button
+                      && $public['buttons'][0]['text'] === $row['button_text']];
+              $rows[] = $item;
+          }
+          echo json_encode(['rows'=>$rows,'provider_writes'=>0,'production_writes'=>0], JSON_THROW_ON_ERROR), PHP_EOL;
+          PHP
+          REMOTE
+      - name: Remove authentication material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
