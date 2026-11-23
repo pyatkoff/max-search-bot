@@ -475,5 +475,201 @@ $historicalPrepared = $historicalRegistry->prepareManualTelegramButton($historic
 $historicalDb->exec("INSERT INTO post_versions (publication_id,version_number,content_hash,snapshot_json,state,write_attempts,receipt_json,created_at,updated_at)
     SELECT publication_id,2,content_hash,snapshot_json,'unknown',1,receipt_json,created_at,updated_at FROM post_versions WHERE id=".$historicalPrepared['version_id']);
 postCheck('a non-current historical attempted write still blocks the exact held version', manualPostThrows(fn()=>$historicalRegistry->claimManualTelegramButton($historicalPrepared,$historicalPrepared['plan_digest']),'manual_write_already_attempted'));
+
+function hotelTransferFixture(int $hotel = 17595): array
+{
+    $db = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    createChannelPostRegistryFixture($db);
+    $db->exec("INSERT INTO projects VALUES (1,'anytour','AnyTour fixture',1);
+        INSERT INTO conversation_sources VALUES (9,1,'tg_anytour_msk','Large channel','telegram',1,'manager'),(10,1,'tg_hotel_source','Source channel','telegram',1,'manager');");
+    $service = new ChannelPostRegistryService($db);
+    $config = ['project_key'=>'anytour','platform'=>'telegram','bot_key'=>'anyru_bot','channel_id'=>'-1001845835645',
+        'source_key'=>'tg_anytour_msk','display_name'=>'Large channel','bot_url'=>'https://t.me/anyru_bot',
+        'button_text'=>'Рассчитать на мои даты','is_enabled'=>true];
+    $service->configureChannel($config);
+    $service->configureChannel($config + ['expected_version'=>1]);
+    $sourceChannel = $service->configureChannel(array_replace($config, ['channel_id'=>'-1002262666616','source_key'=>'tg_hotel_source','display_name'=>'Source channel']));
+    $pairs = [17595=>['455',1003,'862',1726731731], 358=>['65',211,'328',1705145228],
+        393=>['85',247,'1083',1745392994],1260=>['548',1220,'288',1703918786]];
+    [$sourceMid,$sourceId,$targetMid,$published] = $pairs[$hotel];
+    $token = 'p_' . str_pad('source' . $hotel, 24, 'x');
+    $db->prepare('INSERT INTO post_publications (id,post_channel_id,source_id,external_message_id,start_payload) VALUES (?,?,?,?,?)')
+        ->execute([$sourceId,$sourceChannel['id'],10,$sourceMid,$token]);
+    $message = ['chat'=>['id'=>-1002262666616,'type'=>'channel','username'=>'any_toour'], 'message_id'=>(int)$sourceMid,
+        'date'=>1700000000, 'caption'=>'Original hotel '.$hotel.' with an old price',
+        'photo'=>[['file_id'=>'source_file_'.$hotel,'file_unique_id'=>'source_unique_'.$hotel,'width'=>1000,'height'=>1000]],
+        'reply_markup'=>['inline_keyboard'=>[[['text'=>$config['button_text'],'url'=>$config['bot_url'].'?start='.$token]]]]];
+    $snapshot = ChannelPostIncomingAdapter::telegramSnapshot($message);
+    $snapshot['content_hash'] = ChannelPostIncomingAdapter::contentFingerprint($snapshot);
+    $snapshot['metadata']['hotel_catalog_id'] = $hotel;
+    $snapshot['metadata']['monitor_price_record_id'] = 'old-price-must-not-be-copied';
+    $snapshot['metadata']['source_event_id'] = 'source-hotel-fixture-'.$hotel;
+    $source = $service->registerPublication('anytour','telegram','anyru_bot','-1002262666616',$sourceMid,$snapshot);
+    $service->confirmObservedButton($sourceId,$source['version_id'],['verified'=>true,'button_verified'=>true]);
+    $caption = 'Approved hotel '.$hotel."\nNew quoted price — 123 456 ₽";
+    $row = ['hotel_id'=>$hotel,'source_message_id'=>$sourceMid,'source_publication_id'=>$sourceId,
+        'source_version_id'=>$source['version_id'],'source_content_hash'=>$source['content_hash'],
+        'source_caption_sha256'=>hash('sha256',$message['caption']),
+        'source_file_id_sha256'=>hash('sha256',$message['photo'][0]['file_id']),
+        'source_file_unique_id_sha256'=>hash('sha256',$message['photo'][0]['file_unique_id']),
+        'target_message_id'=>$targetMid,'target_published_unixtime'=>$published,
+        'target_caption_sha256'=>hash('sha256','Original generic target'), 'target_photo_marker_sha256'=>hash('sha256','original-target-photo'),
+        'target_config_version'=>2,'next_caption'=>$caption,'next_caption_sha256'=>hash('sha256',$caption),
+        'button_text'=>$config['button_text'],'bot_url'=>$config['bot_url'],'price_record_id'=>hash('sha256','approved-quote-'.$hotel)];
+    return [$db,$service,$row,hash('sha256','approved-plan-'.$hotel),$message];
+}
+function hotelTransferResponse(array $reservation, array $row, array $source): array
+{
+    return ['http'=>200,'transport_error'=>false,'data'=>['ok'=>true,'result'=>[
+        'chat'=>['id'=>-1001845835645,'type'=>'channel','username'=>'anytour'],
+        'message_id'=>(int)$row['target_message_id'],'date'=>$row['target_published_unixtime'],'edit_date'=>1795396000,
+        'caption'=>$row['next_caption'],'photo'=>$source['photo'],
+        'reply_markup'=>['inline_keyboard'=>[[['text'=>$row['button_text'],'url'=>$reservation['button_url']]]]]]]];
+}
+function hotelTransferObserve(ChannelPostRegistryService $service, array $response, bool $confirm = true, int $sequence = 955001): array
+{
+    $update = ['update_id'=>$sequence,'edited_channel_post'=>$response['data']['result']];
+    $event = ChannelPostIncomingAdapter::fromUpdate('telegram',$update);
+    $snapshot = $event['snapshot']; $snapshot['content_hash'] = ChannelPostIncomingAdapter::contentFingerprint($snapshot);
+    $post = $service->registerPublication('anytour','telegram','anyru_bot','-1001845835645',$event['external_message_id'],$snapshot);
+    if ($confirm) $service->confirmObservedButton($post['publication_id'],$post['version_id'],['event_id'=>$event['source_event_id'],'verified'=>true]);
+    return $service->publication($post['publication_id']);
+}
+$approveTransfer = static fn(array $row, string $digest): bool => true;
+[$transferDb,$transferRegistry,$transferRow,$transferPlan,$transferSource] = hotelTransferFixture();
+$beforeTransfer = $transferDb->query('SELECT * FROM post_publications')->fetchAll();
+postCheck('hotel identity reservation defaults denied without creating a native observation or identity',
+    manualPostThrows(fn()=>$transferRegistry->reserveTelegramHotelTransfer($transferRow,$transferPlan),'hotel_transfer_approval_required')
+    && $beforeTransfer === $transferDb->query('SELECT * FROM post_publications')->fetchAll());
+$wrongTransferScope = $transferRow; $wrongTransferScope['target_message_id'] = '1678';
+postCheck('hotel transfer cannot expand its fixed pairs into the separate Aloft repair',
+    manualPostThrows(fn()=>$transferRegistry->reserveTelegramHotelTransfer($wrongTransferScope,$transferPlan,$approveTransfer),'hotel_transfer_scope_invalid')
+    && $beforeTransfer === $transferDb->query('SELECT * FROM post_publications')->fetchAll());
+$reservation = $transferRegistry->reserveTelegramHotelTransfer($transferRow,$transferPlan,$approveTransfer);
+$rawReservation = $transferDb->query('SELECT * FROM post_publications WHERE id='.$reservation['publication_id'])->fetch();
+postCheck('approved identity-only reservation is invisible to queue, token resolution and native-version getters',
+    $rawReservation['current_version_id'] === null && $rawReservation['observed_revision_ms'] === null && $rawReservation['telegram_sequence'] === null
+    && $transferRegistry->publication($reservation['publication_id']) === null
+    && $transferRegistry->resolveToken('anytour','telegram','anyru_bot',$reservation['start_payload']) === null
+    && $transferRegistry->pendingPublications('anytour','telegram','anyru_bot') === []
+    && (int)$transferDb->query('SELECT COUNT(*) FROM post_versions')->fetchColumn() === 1);
+postCheck('an existing or orphan reservation is never silently reused',
+    manualPostThrows(fn()=>$transferRegistry->reserveTelegramHotelTransfer($transferRow,$transferPlan,$approveTransfer),'hotel_transfer_identity_exists'));
+$reorderedReservation = $reservation; ksort($reorderedReservation);
+postCheck('final reservation CAS accepts durable JSON key order but rejects changed plans',
+    $transferRegistry->assertTelegramHotelTransferReservation($reorderedReservation,$transferRow,$transferPlan) === $reorderedReservation
+    && manualPostThrows(fn()=>$transferRegistry->assertTelegramHotelTransferReservation($reservation,$transferRow,str_repeat('f',64)),'hotel_transfer_reservation_changed'));
+$sourceBeforeTransfer = $transferDb->query('SELECT snapshot_json FROM post_versions WHERE id='.$transferRow['source_version_id'])->fetchColumn();
+$transferResponse = hotelTransferResponse($reservation,$transferRow,$transferSource);
+foreach (['caption','date','photo','keyboard','lost_response'] as $invalid) {
+    $badResponse = $transferResponse;
+    if ($invalid === 'caption') $badResponse['data']['result']['caption'] = 'Unapproved text';
+    elseif ($invalid === 'date') $badResponse['data']['result']['date']++;
+    elseif ($invalid === 'photo') $badResponse['data']['result']['photo'][0]['file_unique_id'] = 'wrong-photo';
+    elseif ($invalid === 'keyboard') $badResponse['data']['result']['reply_markup']['inline_keyboard'][0][] = ['text'=>'extra','url'=>'https://example.test'];
+    else $badResponse = ['http'=>0,'transport_error'=>true,'data'=>null];
+    postCheck('unconfirmed hotel media '.$invalid.' cannot create a native version',
+        manualPostThrows(fn()=>$transferRegistry->completeTelegramHotelTransfer($reservation,$transferRow,$transferPlan,$badResponse),'hotel_transfer_response_unconfirmed')
+        && $transferRegistry->publication($reservation['publication_id']) === null);
+}
+$completedTransfer = $transferRegistry->completeTelegramHotelTransfer($reservation,$transferRow,$transferPlan,$transferResponse);
+postCheck('one authentic media response creates a sent hotel-bound native version with no button attempt or false preservation claim',
+    $completedTransfer['state'] === 'sent' && $completedTransfer['version_number'] === 1 && $completedTransfer['write_attempts'] === 0
+    && $completedTransfer['snapshot']['text'] === $transferRow['next_caption'] && $completedTransfer['snapshot']['raw_body'] === $transferResponse['data']['result']
+    && $completedTransfer['snapshot']['metadata']['hotel_catalog_id'] === 17595
+    && $completedTransfer['snapshot']['metadata']['hotel_transfer_price_record_id'] === $transferRow['price_record_id']
+    && !isset($completedTransfer['snapshot']['metadata']['monitor_price_record_id'])
+    && !isset($completedTransfer['snapshot']['metadata']['source_sequence'])
+    && $completedTransfer['receipt']['media_write_attempts'] === 1 && !isset($completedTransfer['receipt']['content_preserved'])
+    && $transferRegistry->resolveToken('anytour','telegram','anyru_bot',$reservation['start_payload'])['snapshot']['metadata']['hotel_catalog_id'] === 17595
+    && $sourceBeforeTransfer === $transferDb->query('SELECT snapshot_json FROM post_versions WHERE id='.$transferRow['source_version_id'])->fetchColumn());
+$beforeDuplicateCompletion = [$transferDb->query('SELECT * FROM post_versions')->fetchAll(),$transferDb->query('SELECT * FROM post_observations')->fetchAll()];
+$againTransfer = $transferRegistry->completeTelegramHotelTransfer($reservation,$transferRow,$transferPlan,$transferResponse);
+postCheck('repeating only DB completion is read-only and cannot allocate a second version or observation',
+    $againTransfer['already_completed'] && $againTransfer['version_id'] === $completedTransfer['version_id']
+    && $beforeDuplicateCompletion === [$transferDb->query('SELECT * FROM post_versions')->fetchAll(),$transferDb->query('SELECT * FROM post_observations')->fetchAll()]);
+$lateTransfer = hotelTransferObserve($transferRegistry,$transferResponse);
+postCheck('late authentic media webhook retains completed binding and cannot enqueue a second button edit',
+    $lateTransfer['version_id'] === $completedTransfer['version_id'] && $lateTransfer['snapshot']['metadata']['hotel_catalog_id'] === 17595
+    && $transferRegistry->pendingPublications('anytour','telegram','anyru_bot') === []);
+
+foreach ([true,false] as $webhookConfirmed) {
+    [$raceDb,$raceRegistry,$raceRow,$racePlan,$raceSource] = hotelTransferFixture(358);
+    $raceReservation = $raceRegistry->reserveTelegramHotelTransfer($raceRow,$racePlan,$approveTransfer);
+    $raceResponse = hotelTransferResponse($raceReservation,$raceRow,$raceSource);
+    $nativeFirst = hotelTransferObserve($raceRegistry,$raceResponse,$webhookConfirmed,955009);
+    $nativeSnapshot = $raceDb->query('SELECT snapshot_json FROM post_versions WHERE id='.$nativeFirst['version_id'])->fetchColumn();
+    $nativeClock = $raceDb->query('SELECT observed_revision_ms,telegram_sequence FROM post_publications WHERE id='.$nativeFirst['publication_id'])->fetch();
+    $raceDone = $raceRegistry->completeTelegramHotelTransfer($raceReservation,$raceRow,$racePlan,$raceResponse);
+    postCheck('webhook-first '.($webhookConfirmed?'sent':'unclaimed pending').' result adopts immutable hotel metadata and retains real clocks',
+        $raceDone['state'] === 'sent' && $raceDone['version_number'] === 2 && $raceDone['start_payload'] === $nativeFirst['start_payload']
+        && $raceDone['snapshot']['metadata']['hotel_catalog_id'] === 358 && $raceDone['snapshot']['metadata']['source_sequence'] === '955009'
+        && $nativeSnapshot === $raceDb->query('SELECT snapshot_json FROM post_versions WHERE id='.$nativeFirst['version_id'])->fetchColumn()
+        && $nativeClock === $raceDb->query('SELECT observed_revision_ms,telegram_sequence FROM post_publications WHERE id='.$nativeFirst['publication_id'])->fetch());
+}
+[$rollbackDb,$rollbackRegistry,$rollbackRow,$rollbackPlan,$rollbackSource] = hotelTransferFixture(358);
+$rollbackReservation = $rollbackRegistry->reserveTelegramHotelTransfer($rollbackRow,$rollbackPlan,$approveTransfer);
+$rollbackResponse = hotelTransferResponse($rollbackReservation,$rollbackRow,$rollbackSource);
+$rollbackNative = hotelTransferObserve($rollbackRegistry,$rollbackResponse,false);
+$beforeFailedCompletion = [$rollbackDb->query('SELECT * FROM post_publications')->fetchAll(),$rollbackDb->query('SELECT * FROM post_versions')->fetchAll(),$rollbackDb->query('SELECT * FROM post_observations')->fetchAll()];
+$rollbackDb->exec("CREATE TRIGGER reject_transfer_receipt BEFORE INSERT ON post_observations BEGIN SELECT RAISE(FAIL,'synthetic receipt failure'); END");
+postCheck('receipt storage failure rolls back the appended binding, current-version CAS and pending supersession together',
+    manualPostThrows(fn()=>$rollbackRegistry->completeTelegramHotelTransfer($rollbackReservation,$rollbackRow,$rollbackPlan,$rollbackResponse))
+    && $beforeFailedCompletion === [$rollbackDb->query('SELECT * FROM post_publications')->fetchAll(),$rollbackDb->query('SELECT * FROM post_versions')->fetchAll(),$rollbackDb->query('SELECT * FROM post_observations')->fetchAll()]);
+$rollbackDb->exec('DROP TRIGGER reject_transfer_receipt');
+$rollbackDb->exec('UPDATE post_publications SET observed_revision_ms=observed_revision_ms+1000 WHERE id='.$rollbackNative['publication_id']);
+postCheck('an older HTTP result never lowers a newer authenticated observation clock',
+    manualPostThrows(fn()=>$rollbackRegistry->completeTelegramHotelTransfer($rollbackReservation,$rollbackRow,$rollbackPlan,$rollbackResponse),'hotel_transfer_target_changed')
+    && $rollbackRegistry->publication($rollbackNative['publication_id'])['version_id'] === $rollbackNative['version_id']);
+foreach (['claimed','write_started','unknown'] as $heldState) {
+    [$heldDb,$heldRegistry,$heldRow,$heldPlan,$heldSource] = hotelTransferFixture(393);
+    $heldReservation = $heldRegistry->reserveTelegramHotelTransfer($heldRow,$heldPlan,$approveTransfer);
+    $heldResponse = hotelTransferResponse($heldReservation,$heldRow,$heldSource);
+    $heldPost = hotelTransferObserve($heldRegistry,$heldResponse,false);
+    $heldClaim = $heldRegistry->claimPublication($heldPost['publication_id'],$heldPost['version_id']);
+    if ($heldState !== 'claimed') $heldRegistry->markExternalWriteStarted($heldPost['publication_id'],$heldPost['version_id'],$heldClaim['claim_token']);
+    if ($heldState === 'unknown') $heldRegistry->finishPublication($heldPost['publication_id'],$heldPost['version_id'],$heldClaim['claim_token'],'unknown','edit_outcome_unknown');
+    $heldBefore = $heldDb->query('SELECT * FROM post_versions')->fetchAll();
+    $reason = $heldState === 'claimed' ? 'hotel_transfer_native_claim_busy' : 'hotel_transfer_target_held';
+    postCheck('hotel adoption holds '.$heldState.' without resetting attempts, claims or snapshots',
+        manualPostThrows(fn()=>$heldRegistry->completeTelegramHotelTransfer($heldReservation,$heldRow,$heldPlan,$heldResponse),$reason)
+        && $heldBefore === $heldDb->query('SELECT * FROM post_versions')->fetchAll());
+    if ($heldState === 'claimed') {
+        $heldRegistry->finishPublication($heldPost['publication_id'],$heldPost['version_id'],$heldClaim['claim_token'],'sent','observed_in_channel_update',['verified'=>true]);
+        postCheck('completion alone succeeds after the zero-write native observer releases its exact claim',
+            $heldRegistry->completeTelegramHotelTransfer($heldReservation,$heldRow,$heldPlan,$heldResponse)['state'] === 'sent');
+    }
+}
+[$foreignDb,$foreignRegistry,$foreignRow,$foreignPlan,$foreignSource] = hotelTransferFixture(1260);
+$foreignReservation = $foreignRegistry->reserveTelegramHotelTransfer($foreignRow,$foreignPlan,$approveTransfer);
+$foreignExpected = hotelTransferResponse($foreignReservation,$foreignRow,$foreignSource);
+$foreignResponse = $foreignExpected; $foreignResponse['data']['result']['caption'] = 'A different author changed this post';
+$foreignPost = hotelTransferObserve($foreignRegistry,$foreignResponse,false);
+postCheck('a real intervening target observation invalidates pre-write reservation and rejects adoption of different content',
+    manualPostThrows(fn()=>$foreignRegistry->assertTelegramHotelTransferReservation($foreignReservation,$foreignRow,$foreignPlan),'hotel_transfer_reservation_changed')
+    && manualPostThrows(fn()=>$foreignRegistry->completeTelegramHotelTransfer($foreignReservation,$foreignRow,$foreignPlan,$foreignExpected),'hotel_transfer_target_changed')
+    && $foreignRegistry->publication($foreignPost['publication_id'])['version_id'] === $foreignPost['version_id']);
+$foreignRegistry->claimPublication($foreignPost['publication_id'],$foreignPost['version_id']);
+postCheck('a claim on different native content cannot be misreported as retryable observer contention',
+    manualPostThrows(fn()=>$foreignRegistry->completeTelegramHotelTransfer($foreignReservation,$foreignRow,$foreignPlan,$foreignExpected),'hotel_transfer_target_changed'));
+
+[$changedDb,$changedRegistry,$changedRow,$changedPlan,$changedSource] = hotelTransferFixture();
+$changedReservation = $changedRegistry->reserveTelegramHotelTransfer($changedRow,$changedPlan,$approveTransfer);
+$changedResponse = hotelTransferResponse($changedReservation,$changedRow,$changedSource);
+$changedDb->exec('UPDATE post_channels SET config_version=config_version+1 WHERE channel_id=\'-1001845835645\'');
+postCheck('current channel configuration drift prevents final CAS and native completion',
+    manualPostThrows(fn()=>$changedRegistry->assertTelegramHotelTransferReservation($changedReservation,$changedRow,$changedPlan),'hotel_transfer_configuration_changed')
+    && manualPostThrows(fn()=>$changedRegistry->completeTelegramHotelTransfer($changedReservation,$changedRow,$changedPlan,$changedResponse),'hotel_transfer_configuration_changed'));
+[$sourceRaceDb,$sourceRaceRegistry,$sourceRaceRow,$sourceRacePlan,$sourceRaceMessage] = hotelTransferFixture();
+$sourceRaceReservation = $sourceRaceRegistry->reserveTelegramHotelTransfer($sourceRaceRow,$sourceRacePlan,$approveTransfer);
+$sourceRaceResponse = hotelTransferResponse($sourceRaceReservation,$sourceRaceRow,$sourceRaceMessage);
+$sourceRaceMessage['caption'] = 'A newer source price';
+$sourceRaceSnapshot = ChannelPostIncomingAdapter::telegramSnapshot($sourceRaceMessage);
+$sourceRaceSnapshot['content_hash'] = ChannelPostIncomingAdapter::contentFingerprint($sourceRaceSnapshot);
+$sourceRaceSnapshot['metadata']['source_event_id'] = 'new-source-event';
+$sourceRaceRegistry->registerPublication('anytour','telegram','anyru_bot','-1002262666616',$sourceRaceRow['source_message_id'],$sourceRaceSnapshot);
+postCheck('a changed source version cannot be used by pre-write CAS or completion of an obsolete approved draft',
+    manualPostThrows(fn()=>$sourceRaceRegistry->assertTelegramHotelTransferReservation($sourceRaceReservation,$sourceRaceRow,$sourceRacePlan),'hotel_transfer_source_changed')
+    && manualPostThrows(fn()=>$sourceRaceRegistry->completeTelegramHotelTransfer($sourceRaceReservation,$sourceRaceRow,$sourceRacePlan,$sourceRaceResponse),'hotel_transfer_source_changed'));
 echo 'OK ' . $passed . " channel post registry checks\n";
 

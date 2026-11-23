@@ -198,6 +198,7 @@ HOTEL;
             || count($manifest['bindings']) > 32) return [null, 'manifest_invalid'];
         $found = null; $identities = []; $hotels = [];
         $retained = self::validRetainedSelector($selector);
+        $selectorKey = null;
         foreach ($manifest['bindings'] as $entry) {
             if (!is_array($entry) || !self::keys($entry, ['status','source_identity','accepted_source_names','accepted_binding','binding_revision','bundle_file','bundle_sha256','approval'])
                 || ($entry['status'] ?? null) !== 'accepted' || !self::validSourceIdentity($entry['source_identity'] ?? null)
@@ -220,9 +221,8 @@ HOTEL;
             // Country labels cannot authorize a different source namespace.
             if ((string)$local['id'] !== $entry['source_identity']['hotel']
                 || (self::SOURCE_COUNTRIES[$entry['source_identity']['country']] ?? null) !== $core['identity_anchor']['country']) return [null, 'manifest_invalid'];
-            $matches = $retained
-                ? self::canonical($core['hotel_ref']) === self::canonical($selector['hotel_ref'])
-                : self::canonical($entry['source_identity']) === self::canonical($selector['source_identity']);
+            $selectorKey ??= self::canonical($retained ? $selector['hotel_ref'] : $selector['source_identity']);
+            $matches = ($retained ? $hotelKey : $sourceKey) === $selectorKey;
             if ($matches) {
                 if ($retained && $core['identity_anchor']['country'] !== self::retainedCountry($selector['provenance']['request_country'])) {
                     return [null, 'source_country_mismatch'];

@@ -1,0 +1,211 @@
+{
+  "binding_revision": "f2251c262ad5452036322f1d2308421a8eed4af1c3ea38bca9218fc7fcc0ffc6",
+  "coverage": {
+    "available_prepared_claim_count": 8,
+    "basis": "All whole source facts from the immutable reviewed LOCAL26 package; not independent AI content admission.",
+    "complete": false,
+    "selected_claim_count": 8
+  },
+  "facts": [
+    {
+      "aspect": "complex_beach_and_canal_location",
+      "declared": true,
+      "hotel_key": "EXP096",
+      "id": "JUM4539-F1",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Madinat Jumeirah / Umm Suqeim / Dubai",
+        "kind": "location"
+      },
+      "source_ids": [
+        "JUM4539-S1"
+      ],
+      "text": "Отель находится в Madinat Jumeirah, район Umm Suqeim, Дубай, у пляжа и каналов комплекса.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "room_and_suite_design",
+      "declared": true,
+      "hotel_key": "EXP096",
+      "id": "JUM4539-F2",
+      "kind": "official_declared",
+      "scope": {
+        "key": "rooms and suites; Arabian motifs",
+        "kind": "accommodation_listing"
+      },
+      "source_ids": [
+        "JUM4539-S1",
+        "JUM4539-S2"
+      ],
+      "text": "Номера и люксы оформлены с арабскими мотивами.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "room_balconies_and_views",
+      "declared": true,
+      "hotel_key": "EXP096",
+      "id": "JUM4539-F3",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Deluxe Lagoon Room / Deluxe Ocean Room",
+        "kind": "room_categories"
+      },
+      "source_ids": [
+        "JUM4539-S2"
+      ],
+      "text": "Deluxe Lagoon Room и Deluxe Ocean Room имеют собственный балкон с соответствующим видом на лагуну или море.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "connecting_family_categories",
+      "declared": true,
+      "hotel_key": "EXP096",
+      "id": "JUM4539-F4",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Two-Bedroom Ocean / Lagoon / Arabian Family Room",
+        "kind": "room_categories"
+      },
+      "source_ids": [
+        "JUM4539-S2"
+      ],
+      "text": "Two-Bedroom Ocean, Lagoon и Arabian Family Room обозначены как сообщающиеся семейные категории.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "beach_pools_and_water_sports",
+      "declared": true,
+      "hotel_key": "EXP096",
+      "id": "JUM4539-F5",
+      "kind": "official_declared",
+      "scope": {
+        "key": "private beach / pools / water sports",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "JUM4539-S1"
+      ],
+      "text": "Среди удобств официально перечислены собственный пляж, бассейны и водные виды спорта.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "fitness_and_wellness",
+      "declared": true,
+      "hotel_key": "EXP096",
+      "id": "JUM4539-F6",
+      "kind": "official_declared",
+      "scope": {
+        "key": "J Club / Talise",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "JUM4539-S1"
+      ],
+      "text": "Для тренировок и оздоровительного отдыха на странице представлены J Club и Talise.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "child_club_at_adjacent_property",
+      "declared": true,
+      "hotel_key": "EXP096",
+      "id": "JUM4539-F7",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Jumeirah Circle at Jumeirah Al Qasr",
+        "kind": "other_property_facility"
+      },
+      "source_ids": [
+        "JUM4539-S1"
+      ],
+      "text": "Детский клуб указан как Jumeirah Circle at Jumeirah Al Qasr, то есть инфраструктура соседнего отеля комплекса.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "named_dining_venues",
+      "declared": true,
+      "hotel_key": "EXP096",
+      "id": "JUM4539-F8",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Zheng He’s / Shimmers / Cala Vista",
+        "kind": "dining"
+      },
+      "source_ids": [
+        "JUM4539-S1"
+      ],
+      "text": "Среди ресторанов на официальной странице названы Zheng He’s, Shimmers и Cala Vista.",
+      "valid_at_travel": "unverified"
+    }
+  ],
+  "hotel_ref": {
+    "catalog": "anytour",
+    "id": 4539
+  },
+  "material_limits": {
+    "identity_admission": "Цепочка legacy_catalog 2612 → AnyTour 4539 (ревизия 2) → local-tv 2612 (ревизия 2) и это целое досье независимо приняты решением ACCEPT_LOCAL19_BOUNDED_CONSUMER_IDENTITY_AND_CONTENT_ADMISSION по сохранённым оригинальным доказательствам. Native LOCAL остаётся pending, source_json=NULL; приёмка досье не означает приёмку нового native/provider source. Реальная Library приёмка, установка в справочник, чтение с реальным разрешённым selector и использование ИИ подтверждаются отдельно; runtime_admission_verified=false.",
+    "original_notes_ru": [
+      "JUM4539-S1 содержит сообщение о временном закрытии Wild Wadi. В предлагаемом описании отсутствует обещание доступа в аквапарк.",
+      "FAQ на JUM4539-S1 называет семь ресторанов, но перечисляет восемь наименований. Число ресторанов не переносилось; использованы только подтверждённые названия.",
+      "Jumeirah Circle находится при Jumeirah Al Qasr: принадлежность к общей инфраструктуре Madinat Jumeirah сохранена в описании.",
+      "Текущий каталог размещения использует обновлённый порядок слов в названии Deluxe Arabian Room по сравнению с подписью фото Arabian Deluxe. Категории и фотографии разных отелей не смешивались."
+    ],
+    "recommendation_boundary": "Заявления об аудитории отеля не являются независимой оценкой качества или гарантией пригодности конкретному туристу.",
+    "scope": "Каждое целое утверждение применяется только к указанному объекту, категории, услуге, сезону или маршруту. Обещания тарифа, цены, наличия и будущей работы не добавлены.",
+    "temporal": "Сохранены сведения и дата чтения 22.11.2026. Текущая или будущая работа услуг не проверялась; срок действия и дата публикации не выдуманы."
+  },
+  "price_authority": "none",
+  "project_key": "anytour",
+  "record_hashes": {
+    "claims": {
+      "JUM4539-F1": "aedb01cfee200f9045c298f53849c965201b282fdffbcb652a14004c2fc17e0a",
+      "JUM4539-F2": "959aced6481fd296ac2e64c48038e5f9c394ac25739d13b67a1beee7d3282de0",
+      "JUM4539-F3": "fa80109a088258640fa8c42579e1a2e283e283af6c034d125b43a294eb806fb7",
+      "JUM4539-F4": "46e9917a137b6df326c7bae132bd9baf46210ee7135fd4b027ce6f77a75799ca",
+      "JUM4539-F5": "7b6cd1ca855f5aee174f377ef5d023c3c5a4fa8554a9a5fe144f5aa175a89a00",
+      "JUM4539-F6": "6eb312813c75a856e7e60a7880737b198376cbf2d9cf9a4231b5a521761d92bc",
+      "JUM4539-F7": "00b93d0a667aec3e7a8d879a5e9b97618ff2520eff81a0014cab326b1870c842",
+      "JUM4539-F8": "da4a8d8f041b030c0af688e8f6403217f9825b11354a7bb96abe23d9636f4795"
+    },
+    "sources": {
+      "JUM4539-S1": "4695eb9cd7e5d5a661b92bc255b3242b82c89b1e419a90867061c17daa3580ee",
+      "JUM4539-S2": "a6439a5e81a64e58aaa9d9c6369b0bcf6815fa926dd2de9dcfa30045b5ae82c6"
+    }
+  },
+  "research_hotel_key": "EXP096",
+  "runtime_admission_verified": false,
+  "schema_version": "hotel_reference_v1",
+  "sources": [
+    {
+      "capture_bytes": 706552,
+      "capture_format": "raw_html",
+      "capture_sha256": "9627504852107471d34cbeb6d86af0f4a496052c0eca19acd77a1694738f2660",
+      "hotel_key": "EXP096",
+      "id": "JUM4539-S1",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: JUM4539-F1, JUM4539-F2, JUM4539-F5, JUM4539-F6, JUM4539-F7, JUM4539-F8. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:22.369224+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Book your stay with Jumeirah Mina Al Salam in Dubai",
+      "url": "https://www.jumeirah.com/en/stay/dubai/jumeirah-mina-al-salam"
+    },
+    {
+      "capture_bytes": 428376,
+      "capture_format": "raw_html",
+      "capture_sha256": "7e615a4665f9110d6b1a0acbff561e3b11c26e6e8713ae4547b833d0ee32b3b5",
+      "hotel_key": "EXP096",
+      "id": "JUM4539-S2",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: JUM4539-F2, JUM4539-F3, JUM4539-F4. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:59:11.045322+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Suites at Jumeirah Mina Al Salam | Jumeirah",
+      "url": "https://www.jumeirah.com/en/stay/dubai/jumeirah-mina-al-salam/accommodation"
+    }
+  ],
+  "status": "SEALED_AUTHORING_DATA_ONLY",
+  "trusted_selector_required": true
+}
