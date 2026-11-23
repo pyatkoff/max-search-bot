@@ -271,6 +271,7 @@ async function gitBridge(){
     await pilotPublisherConsumer(f, a, a);
     await commonValueStateConsumer(f, a, a);
     await publicationOperationConsumer(f, a, a);
+    await hotelRegistryReadConsumer(f, a, a);
     const nextRun={...context,event:'push'};
     const next=R.releaseRecord(receipt(a),nextRun,{kind:'application_unchanged',baseline:baseline.reference,
       content:R.contentSummary(proposal.comparison,a,r),intent:proposal.comparison.intent_scan,observation:observation(a)});
@@ -324,6 +325,7 @@ async function gitBridge(){
     await pilotPublisherConsumer(f, r, a);
     await commonValueStateConsumer(f, r, a);
     await publicationOperationConsumer(f, r, a);
+    await hotelRegistryReadConsumer(f, r, a);
     equal(f.calls.filter(c=>c.method==='PATCH'&&c.path.endsWith('/issues/comments/900')).length,2,
       'two independent waves each make exactly one terminal mutation');
     equal(f.calls.filter(c=>c.path.includes('/actions/artifacts/')).length,0,
@@ -472,6 +474,158 @@ async function commonValueStateConsumer(f,repositorySha,applicationSha){
   f.main=repositorySha;run.status='completed';run.conclusion='success';
   await refuses(()=>R.resolveConsumer({env,event,api:f.api}),'workflow_not_active','completed MAX2 state run grants no new operation');
   f.runs.delete(run.id);
+}
+function hotelRegistryReadWorkflow(){
+  const workflow=fs.readFileSync(path.join(__dirname,'../.github/workflows/read-1566-main-hotel-registry.yml'),'utf8');
+  const embedded=/          cat > pub\/read-only\.php <<'PHP'\n([\s\S]*?)\n          PHP\n/.exec(workflow);
+  equal(Boolean(embedded),true,'the fixed reader remains reviewable in its existing workflow');
+  const program=embedded[1].replace(/^          /gm,''),main=program.indexOf("\n$out = ['schema'");
+  equal(main>0,true,'pure reader declarations are separate from production execution');
+  equal([...program.matchAll(/^\s+(\d+) => \['name' => '[^']+', 'source' => '(\d+)', 'target' => '(\d+)'/gm)]
+    .map(m=>m.slice(1)),[['17595','455','862'],['358','65','328'],['393','85','1083'],['1260','548','288']],
+    'exactly the four unconfirmed source and target pairs can be observed');
+  const admission=workflow.indexOf('node tools/deployment_release.js resolve-consumer'),
+    marker=workflow.indexOf('test "$READ_OPERATION" = hotel_four_registry'),secret=workflow.indexOf('$'+'{{ secrets.');
+  equal(admission>=0&&marker>admission&&secret>marker
+    &&workflow.includes('test "$READY" = true')&&workflow.includes('test "$PERFORM_ACTIONS" = true')
+    &&workflow.includes('test "$(git rev-parse HEAD)" = "$GITHUB_SHA"')
+    &&!workflow.includes('continue-on-error:'),true,'canonical admission and exact checkout precede every SSH credential');
+  const sql=[...program.matchAll(/\$pdo->(?:prepare|query|exec)\(\s*(['"])([\s\S]*?)\1/g)].map(m=>m[2]);
+  equal(sql.length>=4&&sql.every(q=>/^SELECT\b/.test(q)||q==='SET SESSION TRANSACTION READ ONLY')
+    &&program.includes("$pdo->exec('SET SESSION TRANSACTION READ ONLY');")&&program.includes('$pdo->rollBack();')
+    &&!/\b(?:commit|registerPublication|registerObservation|claimPublication|pendingPublications|markExternalWriteStarted|finishPublication|sendPhoto|sendMessage|editMessage\w*|file_put_contents|fwrite|mkdir)\s*\(/.test(program),
+    true,'the reader cannot write publications, queue work, journal files or committed database state');
+  const lint=spawnSync('php',['-l'],{input:program,encoding:'utf8'});
+  if(lint.error?.code==='ENOENT'){
+    process.stdout.write('SKIP fixed reader PHP fixtures: native PHP unavailable locally; required architecture runtime executes them\n');
+    return;
+  }
+  equal(lint.status,0,'the exact embedded reader is valid PHP: '+lint.stderr);
+  // Execute the actual pure parser over synthetic HTML. Production main is not
+  // loaded, and native curl/exec/file writers are disabled for this child process.
+  const fixture=String.raw`$source=stream_get_contents(STDIN);
+eval(preg_replace('/\A<\?php\s*declare\(strict_types=1\);/','',$source));
+$checks=0;
+function checkFixture(bool $condition,string $why):void{global $checks;if(!$condition)throw new RuntimeException($why);$checks++;}
+$photo='https://cdn4.cdn-telegram.org/file/synthetic-hotel-photo.jpg';
+$avatar='https://cdn4.cdn-telegram.org/file/synthetic-channel-avatar.jpg';
+function widgetFixture(string $channel,string $message,string $photo,string $avatar):string{
+  $chat=$channel==='anytour'?'1845835645':'2262666616';
+  return '<!doctype html><html><head><meta charset="utf-8"></head><body><div data-post="'.$channel.'/'.$message.'">'
+    .'<a class="tgme_widget_message_user_photo" href="https://t.me/'.$channel.'"><img src="'.$avatar.'"></a>'
+    .'<div class="tgme_widget_message_text"><b>Отель</b><br>7 ночей &amp; море</div>'
+    .'<a class="tgme_widget_message_photo_wrap '.$chat.'_'.$message.'" href="https://t.me/'.$channel.'/'.$message
+    .'" style="background-image:url('.$photo.')"></a><time datetime="2024-09-19T07:42:11Z"></time>'
+    .'<a class="tgme_widget_message_inline_button" href="https://t.me/anyru_bot?start=p_'.str_repeat('A',24).'">Рассчитать</a>'
+    .'</div></body></html>';
+}
+foreach([['anytour','862'],['any_toour','455']] as [$channel,$message]){
+  $base=widgetFixture($channel,$message,$photo,$avatar);$read=parsePublicRead($base,$channel,$message);
+  checkFixture($read['single_photo']&&$read['photo_url']===$photo&&$read['photo_url']!==$avatar,'hotel photo, not channel avatar, is extracted');
+  checkFixture($read['caption']==="Отель\n7 ночей & море",'native DOM preserves Unicode, line breaks and entities');
+  checkFixture($read['buttons'][0]['hotel_url']==='https://t.me/anyru_bot?start=p_'.str_repeat('A',24),'public hotel button remains exact');
+}
+$base=widgetFixture('anytour','862',$photo,$avatar);
+foreach([
+  ['foreign CDN',str_replace($photo,'https://cdn-telegram.org.attacker.invalid/image.jpg',$base)],
+  ['credentials in image URL',str_replace($photo,'https://user@cdn4.cdn-telegram.org/image.jpg',$base)],
+  ['explicit image port',str_replace($photo,'https://cdn4.cdn-telegram.org:8443/image.jpg',$base)],
+  ['neighboring photo',str_replace('href="https://t.me/anytour/862"','href="https://t.me/anytour/863"',$base)],
+  ['missing native photo marker',str_replace('1845835645_862','unbound',$base)],
+  ['avatar only',preg_replace('~<a class="tgme_widget_message_photo_wrap[^>]*></a>~','',$base)],
+  ['video',str_replace('</div></body>','<video></video></div></body>',$base)],
+  ['album',str_replace('</div></body>','<div class="tgme_widget_message_grouped"></div></div></body>',$base)],
+] as [$reason,$html]){
+  checkFixture(parsePublicRead($html,'anytour','862')['single_photo']===false,$reason.' cannot prove a single native photo');
+}
+$foreignButton=str_replace('https://t.me/anyru_bot?start=','https://t.me/other_bot?start=',$base);
+checkFixture(parsePublicRead($foreignButton,'anytour','862')['buttons'][0]['hotel_url']===null,'a foreign bot is not an expected hotel button');
+foreach([['other','862'],['anytour','1678'],['any_toour','862']] as [$channel,$message]){
+  $reason='';try{publicRead($channel,$message);}catch(RuntimeException $e){$reason=$e->getMessage();}
+  checkFixture($reason==='public_scope_invalid','wrong channel/message is rejected before any native HTTP function');
+}
+$wrong=str_replace('data-post="anytour/862"','data-post="anytour/863"',$base);$reason='';
+try{parsePublicRead($wrong,'anytour','862');}catch(RuntimeException $e){$reason=$e->getMessage();}
+checkFixture($reason==='public_identity_changed','a neighboring returned widget cannot stand in for the target');
+echo json_encode(['checks'=>$checks],JSON_THROW_ON_ERROR);
+`;
+  const parsed=spawnSync('php',['-d','disable_functions=curl_init,curl_exec,exec,file_put_contents,fwrite','-r',fixture],
+    {input:program.slice(0,main),encoding:'utf8'});
+  equal(parsed.status,0,'the exact pure parser handles synthetic widgets with native HTTP disabled: '+parsed.stderr);
+  equal(JSON.parse(parsed.stdout).checks>=19,true,'photo fixtures cover source/target identity, CDN, avatar, media and unsafe URLs');
+}
+async function hotelRegistryReadConsumer(f,repositorySha,applicationSha){
+  const branch='ops/anytour-hotel-four-read-20261123',ref='refs/heads/'+branch;
+  const workflow=R.PREFIX+'read-1566-main-hotel-registry.yml',owner={id:226193297,login:'pyatkoff'};
+  const run={...copy(f.wave.parent),id:6505,path:workflow,event:'push',head_branch:branch,
+    status:'in_progress',conclusion:null,actor:copy(owner),triggering_actor:copy(owner)};
+  f.runs.set(run.id,run);
+  const env={...consumerEnv(run,workflow,'push','registry'),GITHUB_REF:ref,
+    GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+workflow+'@'+ref,GITHUB_ACTOR:owner.login,GITHUB_TRIGGERING_ACTOR:owner.login};
+  const event={repository:{full_name:R.REPOSITORY,id:1342493152},sender:copy(owner),ref,
+    after:repositorySha,before:'0'.repeat(40),created:true,deleted:false,forced:false};
+  const inventoryPath=R.API_ROOT+'/actions/workflows/read-1566-main-hotel-registry.yml/runs?branch='
+    +encodeURIComponent(branch)+'&per_page=100';
+  let inventory=[run],total=null,branchHead=repositorySha,mainReads=0,advanceMain=false,branchReads=0,advanceBranch=false;
+  f.hook=({path})=>{
+    if(path===inventoryPath)return {total_count:total??inventory.length,workflow_runs:inventory};
+    if(path===R.API_ROOT+'/git/ref/heads/'+branch)return {object:{sha:advanceBranch&&++branchReads>1?H('moved read branch'):branchHead}};
+    if(path===R.API_ROOT+'/git/ref/heads/main'&&advanceMain&&++mainReads>1)return {object:{sha:H('new main after observation admission')}};
+  };
+  const resolve=()=>R.resolveConsumer({env,event,api:f.api});
+  try{
+    const before=f.calls.length,result=await resolve();
+    equal([result.repository_sha,result.application_sha,result.ready,result.perform_actions,result.read_operation],
+      [repositorySha,applicationSha,true,true,'hotel_four_registry'],
+      'the first fixed read resolves the actual canonical application, including an unchanged application');
+    equal(f.calls.slice(before).every(c=>c.method==='GET'),true,'read admission uses native observation only before SSH');
+    const rejectedBeforeApi=f.calls.length;
+    for(const [label,patch] of [['existing branch',{created:false}],['noninitial before',{before:H('old read source')}],
+      ['forced',{forced:true}],['deleted',{deleted:true}],['wrong event source',{after:H('different source')}],
+      ['main event',{ref:'refs/heads/main'}],['foreign repository',{repository:{full_name:R.REPOSITORY,id:1}}],
+      ['foreign sender',{sender:{id:1,login:owner.login}}]]){
+      await refuses(()=>R.resolveConsumer({env,event:{...event,...patch},api:f.api}),
+        'untrusted_hotel_registry_read','fixed observation rejects '+label);
+    }
+    for(const [label,patch] of [['attempt2',{GITHUB_RUN_ATTEMPT:'2'}],['other job',{GITHUB_JOB:'publish'}],
+      ['manual dispatch',{GITHUB_EVENT_NAME:'workflow_dispatch'}],['foreign actor',{GITHUB_ACTOR:'other'}],
+      ['foreign triggering actor',{GITHUB_TRIGGERING_ACTOR:'other'}],
+      ['foreign workflow',{GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+R.PREFIX+'other.yml@'+ref}]]){
+      await refuses(()=>R.resolveConsumer({env:{...env,...patch},event,api:f.api}),
+        'untrusted_hotel_registry_read','fixed observation refuses '+label);
+    }
+    equal(f.calls.length,rejectedBeforeApi,'invalid fixed read envelopes fail before any native or private access');
+    await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_REF:'refs/heads/ops/another-hotel-read'},event,api:f.api}),
+      'untrusted_context','the new read does not admit arbitrary operation branches');
+    for(const [label,patch,code] of [['different source',{head_sha:H('foreign checkout')},'untrusted_workflow_run'],
+      ['different branch',{head_branch:'main'},'untrusted_workflow_run'],
+      ['different workflow',{path:R.PREFIX+'other.yml'},'untrusted_workflow_run'],
+      ['native rerun',{run_attempt:2},'untrusted_workflow_run'],
+      ['finished run',{status:'completed',conclusion:'success'},'workflow_not_active'],
+      ['foreign native actor',{actor:{id:1,login:owner.login}},'foreign_hotel_registry_read_actor'],
+      ['foreign native triggering actor',{triggering_actor:{id:1,login:owner.login}},'foreign_hotel_registry_read_actor']]){
+      const original=copy(run);Object.assign(run,patch);
+      await refuses(resolve,code,'fixed read authenticates '+label);Object.assign(run,original);
+    }
+    total=2;
+    await refuses(resolve,'hotel_registry_read_inventory_incomplete','a partial history cannot prove a first read');total=null;
+    inventory=[run,{...copy(run),id:run.id+1,status:'completed',conclusion:'success'}];
+    await refuses(resolve,'hotel_registry_read_replay_forbidden','delete/recreate cannot replay the fixed read');
+    inventory=[{...copy(run),id:run.id+1}];
+    await refuses(resolve,'hotel_registry_read_replay_forbidden','another native run cannot stand in for the current read');
+    inventory=[run];branchHead=H('updated operation branch');
+    await refuses(resolve,'hotel_registry_read_branch_changed','the current fixed branch must still name the native source');
+    branchHead=repositorySha;advanceBranch=true;branchReads=0;
+    await refuses(resolve,'hotel_registry_read_branch_changed','moving the read branch during provenance resolution fails closed');
+    advanceBranch=false;f.main=H('new main before admission');
+    await refuses(resolve,'main_changed','an old accepted checkout does not admit a new read');f.main=repositorySha;
+    advanceMain=true;mainReads=0;
+    await refuses(resolve,'main_changed','fresh main is checked again after canonical resolution');advanceMain=false;
+    const closer=f.wave.own,oldStatus=closer.status,oldConclusion=closer.conclusion;
+    closer.status='in_progress';closer.conclusion=null;
+    await refuses(resolve,'release_pending','a source still waiting for its original terminal cannot reach SSH');
+    closer.status=oldStatus;closer.conclusion=oldConclusion;
+  }finally{f.hook=null;f.runs.delete(run.id);f.main=repositorySha;}
 }
 async function publicationOperationConsumer(f,repositorySha,applicationSha){
   const branch='ops/appleservice39-coverage-20261112',ref='refs/heads/'+branch;
@@ -2191,7 +2345,7 @@ async function publisherBodyRecoveryCases(){
   return assertions-startAssertions;
 }
 
-async function main(){await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
+async function main(){hotelRegistryReadWorkflow();await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
   process.stdout.write('Deployment release regression: '+assertions+' assertions passed\n');}
 module.exports={main,fixture,receipt,observation,installed,installNoopJobs,storedZip,terminalContinuationCases,publisherBodyRecoveryCases};
 if(require.main===module)main().catch(e=>{process.stderr.write(String(e.stack||e)+'\n');process.exitCode=1;});
