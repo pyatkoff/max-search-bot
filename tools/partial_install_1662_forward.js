@@ -216,7 +216,8 @@ const FORWARD_FILES = {
   'tests/run_partial_install_1662_forward_regression.js': 'added',
   'tests/run_partial_install_1662_forward_sync.py': 'added',
   'tests/run_deployment_release_regression.js': 'modified',
-  'tests/fixtures/pr1643/release_priority.js.txt': 'added'
+  'tests/fixtures/pr1643/release_priority.js.txt': 'added',
+  'resources/max2-common-v2/release-manifest.json': 'modified'
 };
 
 function fileSnapshot(rows) {

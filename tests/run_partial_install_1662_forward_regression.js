@@ -26,7 +26,8 @@ const scope = {
   '.github/workflows/deploy.yml':'modified', 'tools/deployment_release.js':'modified',
   'tools/release_priority.js':'modified', 'tools/partial_install_1662_forward.js':'added',
   'tests/run_partial_install_1662_forward_regression.js':'added', 'tests/run_partial_install_1662_forward_sync.py':'added',
-  'tests/run_deployment_release_regression.js':'modified', 'tests/fixtures/pr1643/release_priority.js.txt':'added'
+  'tests/run_deployment_release_regression.js':'modified', 'tests/fixtures/pr1643/release_priority.js.txt':'added',
+  'resources/max2-common-v2/release-manifest.json':'modified'
 };
 const sourceCensus='/actions/runs?head_sha='+head+'&per_page=100&page=1';
 function sourceRuns(state) {
