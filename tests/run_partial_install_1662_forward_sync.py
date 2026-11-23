@@ -1,0 +1,197 @@
+"""Exercise the checked-in sync shell with local Git repositories and a real file lock."""
+import fcntl
+import os
+from pathlib import Path
+import select
+import shutil
+import subprocess
+from tempfile import TemporaryDirectory
+import textwrap
+import unittest
+
+
+ROOT = Path(__file__).resolve().parents[1]
+BASE = "302ba66b5739e369a4df94471c8cfe9c054dd070"
+PRODUCTION = "/var/www/anytoour/data/www/app.anytoour.ru"
+JOURNAL = "/var/www/anytoour/data/channel-post-operations/monitor-price-after-collection-v1.jsonl"
+GIT = shutil.which("git")
+
+
+def checked_git(repo, *args):
+    return subprocess.check_output([GIT, "-C", str(repo), *args], text=True).strip()
+
+
+class ProductionSync(unittest.TestCase):
+    def setUp(self):
+        self.temp = TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.tools = self.root / "tools"
+        self.checkout = self.root / "checkout"
+        self.journal = self.root / "journal"
+        self.calls = self.root / "calls"
+        self.bin = self.root / "bin"
+        for directory in (self.tools, self.checkout, self.bin):
+            directory.mkdir()
+        self.journal.write_text("one original journal record\n")
+        self.calls.touch()
+        workflow = (ROOT / ".github/workflows/deploy.yml").read_text()
+        step = workflow.split("      - name: Sync canonical production checkout\n", 1)[1].split("\n      - name:", 1)[0]
+        self.assertIn("EXPECTED_CHECKOUT_SHA: ${{ steps.release_plan.outputs.expected_checkout_sha }}", step)
+        self.assertIn("PREVIOUS_MAIN_SHA: ${{ github.event.before }}", step)
+        shell = textwrap.dedent(step.split("        run: |\n", 1)[1])
+        # Only absolute filesystem locations are redirected. All commands, predicates,
+        # production SHAs and lock ordering are the actual workflow's shell.
+        self.shell = shell.replace(PRODUCTION, str(self.checkout)).replace(
+            "/tmp/max-search-production-", str(self.root / "uploaded-"))
+        lock = (ROOT / "tools/deploy_monitor_lock.sh").read_text()
+        self.assertIn(JOURNAL, lock)
+        (self.tools / "deploy_monitor_lock.sh").write_text(lock.replace(JOURNAL, str(self.journal)))
+        self.make_git_checkout()
+        self.install_doubles()
+
+    def make_git_checkout(self):
+        checked_git(self.checkout, "init", "-q")
+        user = ["-c", "user.name=Incident test", "-c", "user.email=incident@example.invalid"]
+        (self.checkout / "version").write_text("original\n")
+        checked_git(self.checkout, "add", "version")
+        checked_git(self.checkout, *user, "commit", "-qm", "original fixture")
+        self.original = checked_git(self.checkout, "rev-parse", "HEAD")
+        (self.checkout / "version").write_text("successor\n")
+        checked_git(self.checkout, "add", "version")
+        checked_git(self.checkout, *user, "commit", "-qm", "successor fixture")
+        self.successor = checked_git(self.checkout, "rev-parse", "HEAD")
+        checked_git(self.checkout, "bundle", "create", str(self.root / "production-deploy.bundle"), "HEAD")
+        checked_git(self.checkout, "reset", "--hard", self.original)
+        # Represent the public predecessor ID using a local fixture object. No public
+        # repository, credential, remote host, or actual application's files are used.
+        checked_git(self.checkout, "update-ref", "refs/replace/" + BASE, self.original)
+        branch = checked_git(self.checkout, "symbolic-ref", "HEAD")
+        (self.checkout / ".git" / branch).write_text(BASE + "\n")
+        self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), BASE)
+        self.assertEqual(checked_git(self.checkout, "status", "--porcelain"), "")
+
+    def install_doubles(self):
+        wrappers = {
+            "curl": """
+                [[ " $* " == *" -I "* && " $* " == *" -o /dev/null "* &&
+                   "${@: -1}" == https://app.anytoour.ru/structured_events.log ]]
+                count=$(grep -c '^http$' "$CALLS" || true)
+                echo http >> "$CALLS"
+                if [[ "$count" == 0 ]]; then code="$FIRST_HTTP"; else code="$NEXT_HTTP"; fi
+                [[ "$code" != timeout ]] || exit 28
+                printf %s "$code"
+            """,
+            "scp": """
+                echo scp >> "$CALLS"
+                dst="${@: -1}"
+                cp "${@: -2:1}" "${dst#*:}"
+            """,
+            "ssh": """
+                [[ "${@: -1}" == "bash -s" ]]
+                echo ssh >> "$CALLS"
+                export LOCAL_REMOTE=1
+                exec bash -s
+            """,
+            "git": """
+                if [[ "${LOCAL_REMOTE:-}" == 1 ]]; then
+                  # A distinct file descriptor cannot acquire this exclusive lock.
+                  if flock --nonblock "$LOCAL_JOURNAL" true; then exit 78; fi
+                  echo "locked git $*" >> "$CALLS"
+                fi
+                exec "$REAL_GIT" "$@"
+            """,
+            "php": """
+                [[ "$*" == tools/structured_runtime_log_smoke.php ]]
+                echo smoke >> "$CALLS"
+            """,
+        }
+        for name, body in wrappers.items():
+            path = self.bin / name
+            path.write_text("#!/usr/bin/env bash\nset -euo pipefail\n" + textwrap.dedent(body))
+            path.chmod(0o700)
+
+    def options(self, before=BASE, planned=BASE, first="403", last="403"):
+        env = dict(os.environ, PATH=str(self.bin) + ":" + os.environ["PATH"],
+                   RUNNER_TEMP=str(self.root), DEPLOY_USER="local", DEPLOY_HOST="fixture",
+                   PREVIOUS_MAIN_SHA=before, EXPECTED_CHECKOUT_SHA=planned, EXPECTED_SHA=self.successor,
+                   FIRST_HTTP=first, NEXT_HTTP=last, CALLS=str(self.calls),
+                   REAL_GIT=GIT, LOCAL_JOURNAL=str(self.journal))
+        return dict(args=["bash", "-c", self.shell], cwd=self.root, env=env, text=True,
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    def check_run(self, succeeds, **kwargs):
+        p = subprocess.run(**self.options(**kwargs), timeout=8)
+        self.assertEqual(p.returncode == 0, succeeds, p.stdout + p.stderr)
+        return self.calls.read_text().splitlines()
+
+    def test_both_allowed_statuses_and_complete_git_sync(self):
+        calls = self.check_run(True, first="404", last="403")
+        self.assertEqual(calls[:3], ["http", "scp", "ssh"])
+        self.assertEqual(calls[-1], "http")
+        self.assertIn("smoke", calls)
+        self.assertLess(calls.index("locked git rev-parse HEAD"),
+                        next(i for i, c in enumerate(calls) if c.startswith("locked git fetch ")))
+        self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.successor)
+        self.assertEqual((self.checkout / "version").read_text(), "successor\n")
+
+    def test_wrong_physical_head_stops_before_fetch_and_reset(self):
+        checked_git(self.checkout, "reset", "--hard", self.original)
+        calls = self.check_run(False)
+        self.assertEqual(calls, ["http", "scp", "ssh", "locked git rev-parse HEAD"])
+        self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.original)
+
+    def test_mismatched_or_missing_plan_and_bad_http_stop_before_upload(self):
+        for before, planned, first, expected in (
+                (BASE, "", "403", []), (BASE, self.original, "403", []),
+                (self.original, BASE, "403", []), ("", BASE, "403", []),
+                (BASE, BASE, "200", ["http"]), (BASE, BASE, "500", ["http"]),
+                (BASE, BASE, "timeout", ["http"])):
+            with self.subTest(before=before, planned=planned, first=first):
+                self.calls.write_text("")
+                self.assertEqual(self.check_run(False, before=before, planned=planned, first=first), expected)
+                self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), BASE)
+
+    def test_dirty_worktree_and_index_still_stop_before_fetch(self):
+        (self.checkout / "version").write_text("local change\n")
+        for staged in (False, True):
+            with self.subTest(staged=staged):
+                if staged:
+                    checked_git(self.checkout, "add", "version")
+                self.calls.write_text("")
+                calls = self.check_run(False)
+                self.assertIn("locked git diff --quiet", calls)
+                self.assertFalse(any(c.startswith("locked git fetch ") for c in calls))
+                self.assertEqual((self.checkout / "version").read_text(), "local change\n")
+                self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), BASE)
+
+    def test_ordinary_full_sync_uses_only_its_existing_post_install_head(self):
+        checked_git(self.checkout, "reset", "--hard", self.original)
+        calls = self.check_run(True, before=self.original, planned="", first="404")
+        self.assertEqual(calls[:2], ["scp", "ssh"])
+        self.assertEqual(calls.count("http"), 1)
+        self.assertEqual(calls[-1], "http")
+        self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.successor)
+
+    def test_live_lock_blocks_work_until_prior_writer_releases_it(self):
+        with self.journal.open("r") as prior_owner:
+            fcntl.flock(prior_owner, fcntl.LOCK_EX)
+            child = subprocess.Popen(**self.options())
+            try:
+                readable, _, _ = select.select([child.stdout], [], [], 6)
+                self.assertTrue(readable, "runner did not reach the journal lock")
+                self.assertTrue(child.stdout.readline().startswith("monitor_journal_lock=waiting"))
+                self.assertEqual(self.calls.read_text().splitlines(), ["http", "scp", "ssh"])
+                self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), BASE)
+                fcntl.flock(prior_owner, fcntl.LOCK_UN)
+                output, error = child.communicate(timeout=8)
+                self.assertEqual(child.returncode, 0, output + error)
+                self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.successor)
+            finally:
+                if child.poll() is None:
+                    child.kill()
+                    child.communicate()
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
