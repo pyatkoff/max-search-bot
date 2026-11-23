@@ -60,6 +60,11 @@ const HOTEL_NEXT_TRANSFER = Object.freeze({...HOTEL_FOUR_TRANSFER,
   plan_path:'config/anytour_existing_post_transfer_next_20261123.json',plan_size:5520,
   plan_blob:'297bed885e03f3422e624ac3dff6fd873e689135',
   plan_digest:'30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d'});
+const HOTEL_REMAINING_TRANSFER = Object.freeze({...HOTEL_NEXT_TRANSFER,
+  branch:'ops/anytour-hotel-remaining-apply-20261123',operation:'hotel_remaining_transfer'});
+const ORIGINAL_NEXT_TRANSFER = Object.freeze({
+  run:45235830990,job:137907167978,sha:'bb7d0bde64092cbd24a69084e651ff44336ba8b5',
+  artifact:14850280926,digest:'sha256:8df0ba31b546c644f800a71324d959c8ebdaa1a0801ffdc2f0d8ef5cebf3034c'});
 const sha = v => typeof v === 'string' && /^[0-9a-f]{40}$/.test(v);
 const digest64 = v => typeof v === 'string' && /^[0-9a-f]{64}$/.test(v);
 const positive = v => (typeof v === 'string' && /^[1-9][0-9]{0,15}$/.test(v)
@@ -1714,6 +1719,32 @@ async function resolveHotelRegistryRead({env,event,api}) {
 }
 /** The reviewed plan is data, not user consent. Only a separate first owner push
  * can select the existing editor; this resolver itself performs GETs only. */
+async function proveOriginalNextTransfer(api) {
+  const {run,job,sha:head,artifact,digest:artifactDigest}=ORIGINAL_NEXT_TRANSFER;
+  const p=HOTEL_NEXT_TRANSFER;
+  const [source,jobs,proof]=await Promise.all([
+    api('GET',API_ROOT+'/actions/runs/'+run),
+    api('GET',API_ROOT+'/actions/runs/'+run+'/attempts/1/jobs?per_page=100'),
+    api('GET',API_ROOT+'/actions/artifacts/'+artifact)
+  ]);
+  runIdentity(source,{id:run,attempt:1,head,workflow:p.workflow,event:'push',branch:p.branch,conclusion:'failure'});
+  requireValue(source.actor?.id===p.owner_id&&source.triggering_actor?.id===p.owner_id,'original_hotel_transfer_actor_changed');
+  const rows=boundedList(jobs,'jobs','original_hotel_transfer_jobs_incomplete');
+  requireValue(rows.length===1&&rows[0].id===job&&rows[0].run_id===run&&rows[0].head_sha===head&&
+    rows[0].run_attempt===1&&rows[0].name===p.job&&rows[0].status==='completed'&&rows[0].conclusion==='failure'
+    &&Array.isArray(rows[0].steps),'original_hotel_transfer_job_changed');
+  for(const [name,outcome] of [
+    ['Apply the installed editor once and retain its original receipts','failure'],
+    ['Save the original sanitized transfer result','success']]){
+    const steps=rows[0].steps.filter(step=>step.name===name);
+    requireValue(steps.length===1&&steps[0].status==='completed'&&steps[0].conclusion===outcome,
+      'original_hotel_transfer_result_changed');
+  }
+  requireValue(proof?.id===artifact&&proof.digest===artifactDigest&&proof.name==='issue-1566-hotel-next-transfer'
+    &&proof.workflow_run?.id===run&&proof.workflow_run.head_sha===head
+    &&proof.workflow_run.head_branch===p.branch,'original_hotel_transfer_artifact_changed');
+}
+
 async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
   const ref='refs/heads/'+p.branch;
   requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF===ref
@@ -1756,6 +1787,7 @@ async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
   const bytes=Buffer.from(encoded,'base64');
   requireValue(bytes.length===p.plan_size&&bytes.toString('base64')===encoded&&gitBlob(bytes)===p.plan_blob
     &&crypto.createHash('sha256').update(bytes).digest('hex')===p.plan_digest,'hotel_transfer_plan_changed');
+  if(p===HOTEL_REMAINING_TRANSFER)await proveOriginalNextTransfer(api);
   const location=await readRecord(api),result=await resolveCurrent(api,c,location);
   requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
   requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_transfer_branch_changed');
@@ -1771,6 +1803,7 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_REGISTRY_READ.branch)return resolveHotelRegistryRead({env,event,api});
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_FOUR_TRANSFER.branch)return resolveHotelTransfer({env,event,api});
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_NEXT_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_NEXT_TRANSFER);
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_REMAINING_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_REMAINING_TRANSFER);
   const startedAt=now();
   const c=await sourceContext(env,event,api);
   requireValue(c.attempt===1,'consumer_rerun_forbidden');
@@ -1904,7 +1937,7 @@ function argumentsOf(argv,commands) {
 }
 function outputs(value){for(const [key,v]of Object.entries(value)){
   requireValue(/^[a-z_]+$/.test(key)&&!/[\r\n]/.test(String(v)),'invalid_output');process.stdout.write(key+'='+String(v)+'\n');}}
-module.exports={PUBLISHER_BODY_RECOVERY,publisherBodyRecovery,publisherBodySource,failedPublisherBodyTerminal,
+module.exports={proveOriginalNextTransfer,PUBLISHER_BODY_RECOVERY,publisherBodyRecovery,publisherBodySource,failedPublisherBodyTerminal,
   UNSTARTED_FORWARD,forwardMarker,proveUnstartedDeployment,proveUnstartedForward,admitForwardInstallation,REPOSITORY,API_ROOT,PREFIX,DEPLOY,CLOSER,HOST,RECORD_PATH,PUBLICATION_FILE,PUBLICATION_PROTOCOL,
   TERMINAL_RECOVERY,GATE_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY,PRIOR_WAVE_RECOVERY,
   priorWaveRecovery,failedPriorWaveTerminal,terminalRecovery,gateRecovery,
