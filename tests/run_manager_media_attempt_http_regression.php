@@ -5,7 +5,7 @@ require_once __DIR__.'/fixtures/manager_send_attempt_fixture.php';
 require_once __DIR__.'/fixtures/manager_media_attempt_http_fixture.php';
 
 $root=dirname(__DIR__);$directory=sys_get_temp_dir().'/manager-media-http-'.bin2hex(random_bytes(8));
-mkdir($directory,0700);$server=null;$passed=0;
+mkdir($directory,0700);$servers=[];$passed=0;
 function mediaHttpCheck(string $name,bool $ok):void{global$passed;if(!$ok)throw new RuntimeException('FAIL media HTTP '.$name);$passed++;echo 'PASS media HTTP '.$name."\n";}
 function mediaHttpId(int $id):string{return str_pad(dechex($id),32,'0',STR_PAD_LEFT);}
 function mediaHttpLines(string $path):array{return array_map(static fn($line)=>json_decode($line,true),is_file($path)?file($path,FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES):[]);}
@@ -27,9 +27,14 @@ try{
     session_name('anytour_manager_panel');session_save_path($directory.'/sessions');
     foreach([7,8,9,10] as $actor){$sid=bin2hex(random_bytes(16));session_id($sid);session_start();$_SESSION=['manager_id'=>$actor,'csrf'=>'synthetic-media-csrf'];session_write_close();$sessions[$actor]=$sid;}
     foreach($actual as $path)mediaHttpCheck('exact current '.$path,hash_file('sha256',$root.'/'.$path)===hash_file('sha256',$directory.'/'.$path));
-    $socket=stream_socket_server('tcp://127.0.0.1:0',$errno,$error);if(!$socket)throw new RuntimeException('Cannot allocate loopback');$address=stream_socket_get_name($socket,false);fclose($socket);
-    $server=proc_open([PHP_BINARY,'-d','session.save_path='.$directory.'/sessions','-d','upload_tmp_dir='.$directory,'-S',$address,'-t',$directory],[0=>['pipe','r'],1=>['file',$directory.'/server.log','a'],2=>['file',$directory.'/server.log','a']],$pipes);if(!is_resource($server))throw new RuntimeException('Cannot start loopback');fclose($pipes[0]);
-    $ready=false;for($i=0;$i<100;$i++){if($probe=@stream_socket_client('tcp://'.$address,$e,$s,.05)){fclose($probe);$ready=true;break;}usleep(10000);}if(!$ready)throw new RuntimeException('Loopback not ready');
+    $addresses=[];
+    for($worker=0;$worker<2;$worker++){
+        $socket=stream_socket_server('tcp://127.0.0.1:0',$errno,$error);if(!$socket)throw new RuntimeException('Cannot allocate loopback');$address=stream_socket_get_name($socket,false);fclose($socket);
+        $server=proc_open([PHP_BINARY,'-d','session.save_path='.$directory.'/sessions','-d','upload_tmp_dir='.$directory,'-S',$address,'-t',$directory],[0=>['pipe','r'],1=>['file',$directory.'/server.log','a'],2=>['file',$directory.'/server.log','a']],$pipes);if(!is_resource($server))throw new RuntimeException('Cannot start loopback');$servers[]=$server;fclose($pipes[0]);
+        $ready=false;for($i=0;$i<100;$i++){if($probe=@stream_socket_client('tcp://'.$address,$e,$s,.05)){fclose($probe);$ready=true;break;}usleep(10000);}if(!$ready)throw new RuntimeException('Loopback not ready');
+        $addresses[]=$address;
+    }
+    [$address,$senderAddress]=$addresses;
     $request=static function(string $path,array $data,?int $actor=7,?array $upload=null)use($address,$sessions):array{
         $headers=[];if($actor!==null)$headers[]='Cookie: anytour_manager_panel='.$sessions[$actor];
         if($upload===null){$headers[]='Content-Type: application/json';$body=json_encode($data,JSON_THROW_ON_ERROR);}else{
@@ -86,8 +91,33 @@ try{
     $r=$request('/manager/media-upload.php',array_replace($upload,['operation_id'=>mediaHttpId(99)]),7,$bytes);mediaHttpCheck('delayed real upload remains cancelled after tombstone',$r['status']===200&&$r['json']['attempt']['state']==='cancelled'&&mediaHttpLines($directory.'/effects.jsonl')===$effects);
     $cacheBefore=glob($directory.'/runtime/manager-media/*');touch($directory.'/read-only');$r=$api(array_replace($lookup,['operation_id'=>mediaHttpId(200)]));mediaHttpCheck('post-upload reload recovers exact result without dispatch or cache changes',$r['status']===200&&$r['json']['attempt']['state']==='confirmed'&&mediaHttpLines($directory.'/effects.jsonl')===$effects&&glob($directory.'/runtime/manager-media/*')===$cacheBefore);
     mediaHttpCheck('HTTP recovery and cancel preserve transcript read markers assignment and shifts',mediaHttpState($pdo)===$protected);
+    unlink($directory.'/read-only');
+    $text=array_replace($base,['action'=>'send','operation_id'=>mediaHttpId(300),'text'=>'Synthetic text']);
+    $body=json_encode($text,JSON_THROW_ON_ERROR);
+    $sender=stream_socket_client('tcp://'.$senderAddress,$errno,$error,2);
+    if(!$sender)throw new RuntimeException('Cannot start synthetic send');
+    fwrite($sender,"POST /manager/api.php HTTP/1.1\r\nHost: $senderAddress\r\nCookie: anytour_manager_panel=".$sessions[7]."\r\nContent-Type: application/json\r\nContent-Length: ".strlen($body)."\r\nConnection: close\r\n\r\n".$body);
+    $deadline=microtime(true)+2;
+    while(!is_file($directory.'/text-calls')){
+        if(microtime(true)>$deadline)throw new RuntimeException('Synthetic text provider was never reached');
+        usleep(1000);
+    }
+    $receipt=array_replace($text,['action'=>'send_receipt']);
+    $started=hrtime(true);
+    $reloaded=$api(['action'=>'me']);
+    $reloadMs=round((hrtime(true)-$started)/1e6,1);
+    $reloadBeforeTimeout=!is_file($directory.'/text-timeout');
+    $inFlight=$api($receipt);
+    $retry=$api($text);
+    touch($directory.'/release-text');
+    $sent=stream_get_contents($sender);fclose($sender);
+    $completed=$api($receipt);
+    mediaHttpCheck('reload resolves the same manager before the held send finishes ('.$reloadMs.' ms)',$reloadBeforeTimeout&&$reloaded['status']===200&&(int)($reloaded['json']['manager']['id']??0)===7&&$reloaded['json']['csrf']===$base['csrf']);
+    mediaHttpCheck('same-session receipt sees processing while text transport waits',$inFlight['status']===200&&($inFlight['json']['attempt']['state']??null)==='processing');
+    mediaHttpCheck('concurrent same-operation retry does not dispatch again',($retry['json']['attempt']['state']??null)==='processing'&&count(file($directory.'/text-calls'))===1);
+    mediaHttpCheck('after transport resumes both send and receipt confirm',str_contains($sent,'"state":"confirmed"')&&($completed['json']['attempt']['state']??null)==='confirmed');
     echo 'TOTAL '.$passed.' | PASS '.$passed.' | FAIL 0'."\n";
 }catch(Throwable $error){if(is_file($directory.'/server.log'))fwrite(STDERR,substr((string)file_get_contents($directory.'/server.log'),-6000));throw$error;}finally{
-    if(is_resource($server)){proc_terminate($server);proc_close($server);}
+    touch($directory.'/release-text');foreach($servers as $server){proc_terminate($server);proc_close($server);}
     $remove=static function(string $path)use(&$remove):void{if(is_file($path)||is_link($path)){unlink($path);return;}if(is_dir($path)){foreach(scandir($path)as$name)if($name!=='.'&&$name!=='..')$remove($path.'/'.$name);rmdir($path);}};$remove($directory);
 }

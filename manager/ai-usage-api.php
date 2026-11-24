@@ -16,7 +16,7 @@ try{
             :($action==='assessment_read'?ManagerAiUsageService::assessment($actor,$input)
                 :($action==='input'?ManagerAiUsageService::input($actor,$input['message_id'],$input['case_revision'])
                     :ManagerAiUsageService::sentText($actor,$input['message_id'],$input['case_revision'])));
-        if(!session_start(['read_and_close'=>true])||ManagerHttp::managerId()!==$actor||!ManagerRequestContext::validCsrf((string)$input['csrf']))ManagerHttp::respond(['ok'=>false,'error'=>'unauthorized'],401);
+        ManagerHttp::revalidateSession($actor,(string)$input['csrf']);
     }elseif($action==='assessment_save'){
         $result=ManagerAiUsageService::assessment($actor,$input,true);
     }elseif($action==='review'){

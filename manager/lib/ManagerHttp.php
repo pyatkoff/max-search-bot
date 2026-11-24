@@ -10,6 +10,7 @@ final class ManagerHttp
     {
         self::redirectLegacyPath();
         ManagerRequestContext::startSession();
+        if(session_status()!==PHP_SESSION_ACTIVE)self::sessionUnavailable();
     }
 
     private static function redirectLegacyPath(): void
@@ -41,6 +42,29 @@ final class ManagerHttp
         self::start();
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-store');
+    }
+
+    private static function sessionUnavailable(): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store');
+        self::respond(['ok'=>false,'error'=>'session_unavailable'],503);
+    }
+
+    public static function resumeSession(): void
+    {
+        if(!@session_start(['read_and_close'=>true])){
+            error_log('Manager session storage unavailable');
+            self::sessionUnavailable();
+        }
+    }
+
+    public static function revalidateSession(int $actor,string $token): void
+    {
+        self::resumeSession();
+        if(self::managerId()!==$actor||!self::validCsrf($token)){
+            self::respond(['ok'=>false,'error'=>'unauthorized'],401);
+        }
     }
 
     public static function body(): array

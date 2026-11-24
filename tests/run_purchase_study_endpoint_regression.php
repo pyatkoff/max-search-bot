@@ -7,6 +7,7 @@ function studyEndpointCheck(string $name,bool $ok):void{global$passed,$failed;ec
 function studyEndpointRemove(string $p):void{if(is_file($p)||is_link($p)){unlink($p);return;}if(!is_dir($p))return;foreach(scandir($p)as$n)if($n!=='.'&&$n!=='..')studyEndpointRemove($p.'/'.$n);rmdir($p);}
 try{
     mkdir($dir,0700);mkdir($dir.'/manager',0700);mkdir($dir.'/manager/lib',0700);mkdir($dir.'/services',0700);mkdir($dir.'/tools',0700);mkdir($private,0700);
+    mkdir($private.'/sessions',0700);
     copy($base.'/manager/purchase-study-api.php',$dir.'/manager/purchase-study-api.php');
     copy($base.'/manager/lib/ManagerHttp.php',$dir.'/manager/lib/ManagerHttp.php');
     copy($base.'/services/PurchaseStudyOperationalSnapshot.php',$dir.'/services/PurchaseStudyOperationalSnapshot.php');
@@ -35,7 +36,7 @@ PHP);
 <?php
 class ManagerRequestContext{
  static int $managerReads=0;
- static function startSession():void{}
+ static function startSession():void{session_start();}
  static function manager():?array{
   if(!ProjectAccessService::$readOnly)file_put_contents(getenv('PURCHASE_ENDPOINT_MARKER'),'AUTH_SCHEMA_UPSERT',FILE_APPEND);
   self::$managerReads++;$r=$_COOKIE['study_role']??'none';
@@ -64,7 +65,7 @@ PHP);
     $socket=stream_socket_server('tcp://127.0.0.1:0',$errno,$error);if(!$socket)throw new RuntimeException('fixture_socket');
     $address=stream_socket_get_name($socket,false);fclose($socket);
     $env=getenv();$env['PURCHASE_ENDPOINT_MARKER']=$dir.'/marker';$env['PURCHASE_ENDPOINT_PRIVATE']=$private;
-    $process=proc_open([PHP_BINARY,'-S',$address,'-t',$dir],[0=>['file','/dev/null','r'],1=>['file',$dir.'/server.out','a'],2=>['file',$dir.'/server.err','a']],$pipes,null,$env);
+    $process=proc_open([PHP_BINARY,'-d','session.save_path='.$private.'/sessions','-S',$address,'-t',$dir],[0=>['file','/dev/null','r'],1=>['file',$dir.'/server.out','a'],2=>['file',$dir.'/server.err','a']],$pipes,null,$env);
     if(!is_resource($process))throw new RuntimeException('fixture_server');
     $url='http://'.$address.'/manager/purchase-study-api.php';
     $request=static function(string $cookie='',string $method='GET',string $query='')use($url):array{
