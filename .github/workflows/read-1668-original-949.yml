@@ -1,4 +1,4 @@
-name: Read original UNKNOWN594 and UNKNOWN716 from 45321557294
+name: Read new UNKNOWN923 and UNKNOWN930 plus saved transfer timings
 on:
   push:
     branches: [audit/1566-ranked-response-949]
@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   read:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == '4d1bc49d924267fa899b05b4c1ff7ecb8d873af2' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == 'e422da3fcffed989959d096128421d9615614e28' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 4
     steps:
@@ -61,11 +61,11 @@ jobs:
           php -d display_errors=stderr <<'PHP'
           <?php
           require 'tools/anytour_existing_post_batch.php';
-          use function AnyTour\ExistingPostBatch\{requirePost,transferPlanFromBytes,transferRegistryRow,transferRuntime,transferPublic,parseTransferPublic,transferReason};
+          use function AnyTour\ExistingPostBatch\{requirePost,transferPlanFromBytes,transferRegistryRow,transferRuntime,transferPublic,parseTransferPublic,transferReason,transferCurrentRunJournal};
           $root='/var/www/anytoour/data/www/app.anytoour.ru';
-          $sha='fdcbf29f831b68005295dfa398ecb5878d94e6c7';
+          $sha='e3e1a9bdf29dd0d7530fe6b3b393f1286834d092';
           $digest='12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce';
-          $out=['original_run_id'=>'45321557294','application_sha'=>$sha,'read_only'=>true,
+          $out=['original_run_id'=>'45372056681','application_sha'=>$sha,'read_only'=>true,
               'provider_write_attempts'=>0,'supplier_requests'=>0,'bot_starts'=>0,'results'=>[]];
           $lock=null;$pdo=null;
           try {
@@ -86,7 +86,7 @@ jobs:
               $pdo=ConversationDb::connection();
               requirePost($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql','database_changed');
               $pdo->exec('START TRANSACTION READ ONLY');
-              foreach([[32342,'594',3718],[73343,'716',3721]] as [$hotel,$mid,$pid]){
+              foreach([[76588,'923',3732],[111,'930',3735]] as [$hotel,$mid,$pid]){
                   $entry=['hotel_id'=>$hotel,'message_id'=>$mid,'url'=>'https://t.me/anytour/'.$mid,'resolved'=>false];
                   $journal=null;
                   try {
@@ -100,7 +100,7 @@ jobs:
                       $events=array_map(static fn($l)=>json_decode($l,true,64,JSON_THROW_ON_ERROR),explode("\n",rtrim($bytes,"\r\n")));
                       $states=array_column($events,'state');
                       requirePost($states===['intent_saved','identity_reserved','request_prepared','provider_edit_started','provider_response_saved','response_saved_completion_requires_readback']
-                          &&($events[0]['execution']['native_run_id']??null)==='45321557294'
+                          &&($events[0]['execution']['native_run_id']??null)==='45372056681'
                           &&($events[0]['execution']['application_sha']??null)===$sha
                           &&($events[0]['execution']['continuation_of_ranked_run_id']??null)==='45277253456'
                           &&$events[0]['plan_sha256']===$digest&&$events[0]['row']===$row
@@ -111,6 +111,10 @@ jobs:
                       $errors=[];
                       foreach(['error','curl_error','message'] as $key)if(is_string($response[$key]??null))$errors[]=$response[$key];
                       $error=implode("\n",$errors);
+                      $clock=[];foreach($events as $event){$t=$event['at_utc']??null;requirePost(is_string($t)&&preg_match('/\A[0-9TZ:+-]{20,30}\z/',$t),'journal_clock_missing');$clock[$event['state']]=$t;}
+                      $entry['technical_times']=$clock;
+                      $entry['provider_elapsed_seconds']=strtotime($clock['provider_response_saved'])-strtotime($clock['provider_edit_started']);
+                      $entry['curl_errno_recorded']=array_key_exists('curl_errno',$response);
                       $entry+=['journal_sha256'=>hash('sha256',$bytes),'states'=>$states,'reserved_publication_id'=>$pid,
                           'http'=>$response['http']??null,'transport_error'=>$response['transport_error']??null,
                           'provider_ok'=>$response['data']['ok']??null,'error_code'=>$response['data']['error_code']??null,
@@ -152,6 +156,23 @@ jobs:
                   finally{if(is_resource($journal)){flock($journal,LOCK_UN);fclose($journal);}}
                   $out['results'][]=$entry;
               }
+              // Saved metadata only: do not reread the eleven already accepted public posts.
+              $out['successful_transfer_times']=[];
+              foreach([[43689,'884'],[47025,'901'],[139,'905'],[435,'906'],[513,'908'],[2470,'914'],[56092,'915'],[59114,'917'],[63191,'918'],[77914,'924'],[106,'928']] as [$hotel,$mid]){
+                  $row=$by[$hotel];requirePost($row['target_message_id']===$mid,'timing_target_mismatch');
+                  $dir=$operations.'anytour-issue1566-historical-tg-media-'.$mid.'-v1';
+                  $prior=transferCurrentRunJournal($dir,$row,$digest,'45372056681',$sha);
+                  requirePost($prior['prior_terminal_state']==='native_and_registry_verified','timing_original_not_confirmed');
+                  $path=$dir.'/receipt.jsonl';$bytes=file_get_contents($path);
+                  requirePost(hash('sha256',$bytes)===$prior['prior_journal_sha256'],'timing_journal_changed');
+                  $clock=[];foreach(explode("\n",rtrim($bytes,"\r\n")) as $line){$e=json_decode($line,true,64,JSON_THROW_ON_ERROR);$clock[$e['state']]=$e['at_utc']??null;}
+                  requirePost(isset($clock['provider_edit_started'],$clock['provider_response_saved'],$clock['native_and_registry_verified']),'timing_clock_missing');
+                  $out['successful_transfer_times'][]=['hotel_id'=>$hotel,'message_id'=>$mid,'journal_sha256'=>$prior['prior_journal_sha256'],
+                      'provider_started_at_utc'=>$clock['provider_edit_started'],'provider_response_saved_at_utc'=>$clock['provider_response_saved'],
+                      'native_verified_at_utc'=>$clock['native_and_registry_verified'],
+                      'provider_elapsed_seconds'=>strtotime($clock['provider_response_saved'])-strtotime($clock['provider_edit_started'])];
+              }
+              $out['installed_transport_policy']=['connect_timeout_seconds'=>2,'total_timeout_seconds'=>6,'curl_phase_times_recorded'=>false];
               $pdo->exec('ROLLBACK');$pdo=null;
               transferRuntime($root,$sha);
               $out['read_complete']=count($out['results'])===2&&!in_array(true,array_map(static fn($r)=>isset($r['read_error']),$out['results']),true);
