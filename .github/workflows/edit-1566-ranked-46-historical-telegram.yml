@@ -203,7 +203,7 @@ jobs:
                   assert row.get('ok') is False
                   if i!=len(rows)-1:
                       assert (os.environ['GITHUB_REF'] in {'refs/heads/ops/anytour-hotel-ranked-37-continue-20261123','refs/heads/ops/anytour-hotel-ranked-resume-20261124'}
-                              or os.environ['GITHUB_REF'].startswith('refs/heads/ops/anytour-hotel-ranked-after-'))
+                              or os.environ['GITHUB_REF'].startswith(('refs/heads/ops/anytour-hotel-ranked-after-', 'refs/heads/ops/anytour-hotel-ranked-plan-')))
                       rejected=row['state']=='provider_message_id_rejected' and row['provider_write_attempts']==1
                       stale=(row['state']=='held_before_provider' and row.get('reason')=='transfer_source_revision_advanced'
                              and row['provider_write_attempts']==0 and ('reserved_publication_id' not in row
@@ -225,7 +225,10 @@ jobs:
                       prewrite=(row['state']=='held_before_provider' and row['provider_write_attempts']==0
                                 and row.get('reason')=='public_identity_changed' and row.get('local_prewrite_hold_recorded') is True
                                 and type(row.get('reserved_publication_id')) is int and row['reserved_publication_id']>0)
-                      assert rejected or stale or isolated or local_hold or prior or prewrite,'nonlocal_error_must_end_batch'
+                      previous_target=(os.environ['GITHUB_REF'].startswith('refs/heads/ops/anytour-hotel-ranked-plan-')
+                                       and row['state']=='held_before_provider' and row['provider_write_attempts']==0
+                                       and 'reserved_publication_id' not in row and row.get('reason')=='transfer_previous_operation_do_not_replay')
+                      assert rejected or stale or isolated or local_hold or prior or prewrite or previous_target,'nonlocal_error_must_end_batch'
                       isolated_transport_loss |= isolated
                   held.append({k:row[k] for k in ('hotel_id','message_id','state','reason','reserved_publication_id',
                       'provider_write_attempts','shared_access_rechecked','shared_access_error','prior_journal_sha256','prior_terminal_state','prior_public_readback_verified','prior_readback_reason','local_prewrite_hold_recorded') if k in row})

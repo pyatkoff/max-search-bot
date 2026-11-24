@@ -65,9 +65,10 @@ def compare(plan, row, channel):
     require(s["ok"] is True and t["ok"] is True and s["single_photo"] is True and t["single_photo"] is True
             and t["buttons"] == [] and s["url"] == n["post_url"] == "https://t.me/any_toour/" + row["source_message_id"]
             and t["url"] == "https://t.me/anytour/" + row["target_message_id"] and n["state"] == "sent"
-            and n["one_expected_button"] is True and n["current_token_resolves"] is True
+            and n["current_token_resolves"] is True
             and n["native_claim_held_or_unknown"] is False and n["hotel_id"] == row["hotel_id"]
             and n["caption_sha256"] == s["caption_sha256"] and len(n["attachments"]) == 1, "source or target changed")
+    # The editor creates its own destination button. The original token must resolve to this source.
     photo = n["attachments"][0]
     require(photo["type"] == "image" and photo["provider"] == "telegram" and photo["reusable_telegram_photo"] is True,
             "native image unavailable")

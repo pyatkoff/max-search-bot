@@ -799,6 +799,23 @@ function transferReason(Throwable $error): string
         ? $error->getMessage() : 'transfer_verification_failed';
 }
 
+/** A generic input is determined by the installed HOTEL index, never by an offset or run flag. */
+function transferApprovedRankedIndex(bool|string $next): ?string
+{
+    return is_string($next) && $next !== RANKED_ORIGINAL_PLAN
+        ? (AnyTourRankedHotelTransfer46::profile($next)['approved_index_sha256'] ?? null) : null;
+}
+
+function transferIndependentRankedExecution(string $digest, array $execution): bool
+{
+    if ($digest === RANKED_ORIGINAL_PLAN)
+        return ($execution['continuation_of_ranked_run_id'] ?? null) === RANKED_ORIGINAL_RUN;
+    $index = transferApprovedRankedIndex($digest);
+    return $index !== null && ($execution['approved_index_sha256'] ?? null) === $index
+        && preg_match('/\A[1-9][0-9]{0,19}\z/D', $execution['native_run_id'] ?? '') === 1
+        && preg_match('/\A[a-f0-9]{40}\z/D', $execution['application_sha'] ?? '') === 1;
+}
+
 /** Prove this run's exact ambiguous write from the still-locked journal before examining shared health. */
 function transferTransportLossRecorded($record, array $row, string $digest, array $execution, array $result): bool
 {
@@ -819,7 +836,7 @@ function transferTransportLossRecorded($record, array $row, string $digest, arra
     [$intent,$reserved,$prepared,$attempt,$response,$terminal] = $events;
     unset($terminal['at_utc']);
     $request = $prepared['request'] ?? [];
-    return $digest === RANKED_ORIGINAL_PLAN && $execution['continuation_of_ranked_run_id'] === RANKED_ORIGINAL_RUN
+    return transferIndependentRankedExecution($digest, $execution)
         && $intent['execution'] === $execution && $intent['row'] === $row && $intent['plan_sha256'] === $digest
         && $intent['operation'] === transferProfileOperation($digest) && $reserved['plan_sha256'] === $digest
         && ($reserved['reservation']['publication_id'] ?? null) === $result['reserved_publication_id']
@@ -859,6 +876,8 @@ function transferExecuteRow(array $row, string $planDigest, array $effects, stri
     requirePost(isset($pairs[$row['hotel_id']])
         && $pairs[$row['hotel_id']]['target'] === $row['target_message_id']
         && realpath($operations) === $operations, 'transfer_operation_scope_invalid');
+    $independentRow = ($effects['context']['continuation_of_ranked_run_id'] ?? null) === RANKED_ORIGINAL_RUN
+        || transferIndependentRankedExecution($planDigest, $effects['context'] ?? []);
     $operation = 'anytour-issue1566-historical-tg-media-'.$row['target_message_id'].'-v1';
     $directory = $operations.'/'.$operation;
     $record = null; $attempts = 0; $responseSaved = false; $reservation = null;
@@ -893,7 +912,7 @@ function transferExecuteRow(array $row, string $planDigest, array $effects, stri
         $responseSaved = true;
         $effects['runtime']();
         $maySkipRejection = ($effects['context']['continuation_of_native_run_id'] ?? null) === ORIGINAL_NEXT_TRANSFER_RUN
-            || ($effects['context']['continuation_of_ranked_run_id'] ?? null) === RANKED_ORIGINAL_RUN;
+            || $independentRow;
         if ($maySkipRejection
             && transferMessageIdRejected($response)) {
             $result = $base + ['ok'=>false,'state'=>'provider_message_id_rejected','provider_write_attempts'=>1,
@@ -934,12 +953,12 @@ function transferExecuteRow(array $row, string $planDigest, array $effects, stri
         if (is_resource($record)) {
             try {
                 transferJournal($record, $result);
-                if (($effects['context']['continuation_of_ranked_run_id'] ?? null) === RANKED_ORIGINAL_RUN
+                if ($independentRow
                     && $result['reason'] === 'transfer_source_revision_advanced' && $attempts === 0
                     && is_int($result['reserved_publication_id'] ?? null) && $result['reserved_publication_id'] > 0) {
                     $result['source_revision_hold_recorded'] = true;
                 }
-                if (($effects['context']['continuation_of_ranked_run_id'] ?? null) === RANKED_ORIGINAL_RUN
+                if ($independentRow
                     && $result['reason'] === 'public_identity_changed' && $attempts === 0
                     && is_int($result['reserved_publication_id'] ?? null) && $result['reserved_publication_id'] > 0) {
                     $result['local_prewrite_hold_recorded'] = true;
@@ -1177,6 +1196,8 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
         && $applicationSha!==RANKED_RESUME_ORIGIN['application_sha']), 'transfer_resume_scope_invalid');
     requirePost($next === true || !$remaining, 'transfer_remaining_scope_invalid');
     requirePost(!$rankedContinuation || (!$remaining && $next === RANKED_ORIGINAL_PLAN), 'transfer_ranked_continuation_scope_invalid');
+    $approvedIndex = transferApprovedRankedIndex($next);
+    $independentRows = $rankedContinuation || $approvedIndex !== null;
     $planFile = transferProfileFile($next);
     requirePost(preg_match('/\A[1-9][0-9]{0,19}\z/D', $nativeRunId) === 1, 'transfer_native_run_invalid');
     transferRuntime($root, $applicationSha);
@@ -1212,7 +1233,7 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
             if ($rankedResume) $plan['operation']=RANKED_RESUME_OPERATION;
         }
         // Scope only independently untouched rows; old accepted routes must never be rewound.
-        if (is_string($next) && !$rankedContinuation) transferRankedOfferScope($plan['rows']);
+        if (is_string($next) && !$independentRows) transferRankedOfferScope($plan['rows']);
         if ($remaining) {
             transferOriginalNextJournal($plan['rows'][0], $approvedDigest);
             $plan = selectRemainingTransferRows($plan);
@@ -1225,7 +1246,7 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
             $operation = 'anytour-issue1566-historical-tg-media-'.$row['target_message_id'].'-v1';
             $q = $pdo->prepare('SELECT GET_LOCK(?,0)'); $q->execute([$operation]);
             $acquired = transferTargetLockAcquired($q->fetchColumn()); $q->closeCursor();
-            if (!$acquired && $rankedContinuation) {
+            if (!$acquired && $independentRows) {
                 $preflightHolds[$row['target_message_id']] = ['reason'=>'transfer_target_editor_busy'];
                 continue;
             }
@@ -1243,6 +1264,11 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
             }
             if (file_exists($directory) || is_link($directory)) {
                 requirePost($unreachedParent === null, 'transfer_unreached_target_already_started');
+                if ($approvedIndex !== null) {
+                    requirePost(is_dir($directory) && realpath($directory) === $directory, 'transfer_operations_root_changed');
+                    $preflightHolds[$row['target_message_id']] = ['reason'=>'transfer_previous_operation_do_not_replay'];
+                    continue;
+                }
                 requirePost($rankedContinuation, 'transfer_previous_operation_do_not_replay');
                 $prior = transferCurrentRunJournal($directory,$row,$approvedDigest,$nativeRunId,$applicationSha);
                 if ($prior['prior_terminal_state'] === 'response_saved_completion_requires_readback') {
@@ -1253,11 +1279,11 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
                 continue;
             }
             try {
-                if (is_string($next) && $rankedContinuation) transferRankedOfferScope([$row]);
+                if (is_string($next) && $independentRows) transferRankedOfferScope([$row]);
                 transferNoTarget($pdo, $row);
-                transferSource($pdo, $registry, $row, $rankedContinuation);
+                transferSource($pdo, $registry, $row, $independentRows);
             } catch (RuntimeException $error) {
-                if (!$rankedContinuation || !in_array($error->getMessage(), ['transfer_source_revision_advanced',
+                if (!$independentRows || !in_array($error->getMessage(), ['transfer_source_revision_advanced',
                     'transfer_target_identity_exists','transfer_hotel_already_in_large_channel',
                     'transfer_ranked_source_offer_changed','transfer_ranked_target_in_use'], true)) throw $error;
                 $preflightHolds[$row['target_message_id']] = ['reason'=>$error->getMessage()];
@@ -1276,7 +1302,7 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
                 transferPublicPreimage($row, transferPublic('any_toour', $row['source_message_id'], $next),
                     transferPublic('anytour', $row['target_message_id'], $next));
             } catch (RuntimeException $error) {
-                if (!$rankedContinuation || $error->getMessage()!=='public_identity_changed') throw $error;
+                if (!$independentRows || $error->getMessage()!=='public_identity_changed') throw $error;
                 $preflightHolds[$row['target_message_id']]=['reason'=>'public_identity_changed'];
             }
         }
@@ -1300,8 +1326,8 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
                     return $registry->reserveTelegramHotelTransfer($registryRow, $approvedDigest,
                         static fn(array $validated, string $digest): bool => $validated === $registryRow && $digest === $approvedDigest);
                 },
-                'prepare'=>static function (array $reservation) use ($pdo, $registry, $row, $plan, $next, $rankedContinuation, &$preparedExport): array {
-                    $source = transferSource($pdo, $registry, $row, $rankedContinuation);
+                'prepare'=>static function (array $reservation) use ($pdo, $registry, $row, $plan, $next, $independentRows, &$preparedExport): array {
+                    $source = transferSource($pdo, $registry, $row, $independentRows);
                     $sourcePublic = transferPublic('any_toour', $row['source_message_id'], $next);
                     $targetPublic = transferPublic('anytour', $row['target_message_id'], $next);
                     transferPublicPreimage($row, $sourcePublic, $targetPublic);
@@ -1343,12 +1369,13 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
                     'native_preflight'=>$plan['native_preflight']]
                     + ($unreachedParent !== null ? ['unreached_after_native_run_id'=>$unreachedParent['parent_run_id'],
                         'parent_artifact_sha256'=>$unreachedParent['parent_artifact_sha256']] : [])
+                    + ($approvedIndex !== null ? ['approved_index_sha256'=>$approvedIndex] : [])
                     + ($rankedResume ? ['resume_after_native_run_id'=>RANKED_RESUME_ORIGIN['native_run_id']] : [])
                     + ($prewriteResume ? ['closed_prewrite_origin_native_run_id'=>'45349080956'] : [])
                     + ($remaining ? ['continuation_of_native_run_id'=>ORIGINAL_NEXT_TRANSFER_RUN] : [])
                     + ($rankedContinuation ? ['continuation_of_ranked_run_id'=>RANKED_ORIGINAL_RUN] : []),
             ];
-            if ($rankedContinuation && !$continuedAfterLoss) {
+            if ($independentRows && !$continuedAfterLoss) {
                 $effects['recheck_after_transport_loss'] = static function () use ($runtime, $registry, $priceLease, $leasePath, $pdo, $locks): void {
                     $runtime();
                     clearstatcache(true, $leasePath);
@@ -1367,14 +1394,14 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
             }
             $result = transferExecuteRow($row, $approvedDigest, $effects, POST_OPS, $next);
             $results[] = $result;
-            if ($rankedContinuation && (($result['source_revision_hold_recorded'] ?? false) === true
+            if ($independentRows && (($result['source_revision_hold_recorded'] ?? false) === true
                 || ($result['local_prewrite_hold_recorded'] ?? false) === true)) continue;
             if (($result['shared_access_rechecked'] ?? false) === true) {
                 // One uncertain edit per run may be isolated. A second stops even when read APIs remain healthy.
                 $continuedAfterLoss = true;
                 continue;
             }
-            if (!$result['ok'] && !(($remaining || $rankedContinuation) && $result['state'] === 'provider_message_id_rejected')) break;
+            if (!$result['ok'] && !(($remaining || $independentRows) && $result['state'] === 'provider_message_id_rejected')) break;
         }
         return ['schema'=>1,'operation'=>$plan['operation'],'native_run_id'=>$nativeRunId,
             'application_sha'=>$applicationSha,'plan_sha256'=>$approvedDigest,

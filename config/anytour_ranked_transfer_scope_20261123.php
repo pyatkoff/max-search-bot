@@ -68,7 +68,7 @@ final class AnyTourRankedHotelTransfer46
                     $sources[$source] = $targets[$target] = true;
                 }
                 return $profiles[$digest] = ['path'=>$item['path'], 'operation'=>$plan['operation'],
-                    'native_preflight'=>$index['native_preflight'], 'pairs'=>$pairs];
+                    'native_preflight'=>$index['native_preflight'], 'approved_index_sha256'=>$approval['sha256'], 'pairs'=>$pairs];
             }
         }
         return null;

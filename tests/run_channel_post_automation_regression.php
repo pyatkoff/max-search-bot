@@ -1533,6 +1533,29 @@ foreach (['complete'=>[null,[],true],'wrong run'=>[0,['execution'=>[]],false],
     }
     fclose($receipt);
 }
+// A later HOTEL plan can isolate one journaled timeout only against its own installed receipt.
+$indexPath = __DIR__.'/../config/anytour_ranked_index_45387052894.json';
+$newIndex = json_decode(file_get_contents($indexPath), true, 16, JSON_THROW_ON_ERROR);
+$newDigest = $newIndex['plans'][0]['sha256'];
+$newBytes = file_get_contents(__DIR__.'/../'.$newIndex['plans'][0]['path']);
+$newPlan = AnyTour\ExistingPostBatch\transferPlanFromBytes($newBytes, $newDigest, $newDigest);
+$newRow = $newPlan['rows'][0];
+$newContext = ['native_run_id'=>'12345', 'application_sha'=>str_repeat('a',40), 'approved_index_sha256'=>hash_file('sha256',$indexPath)];
+$newResult = array_replace($lostResult, ['hotel_id'=>$newRow['hotel_id'], 'message_id'=>$newRow['target_message_id']]);
+$newRequest = array_replace($lostRequest, ['message_id'=>(int)$newRow['target_message_id']]);
+$events = $evidence;
+$events[0] = array_replace($events[0], ['execution'=>$newContext, 'operation'=>$newPlan['operation'], 'row'=>$newRow, 'plan_sha256'=>$newDigest]);
+$events[1]['plan_sha256'] = $newDigest;
+$events[2] = array_replace($events[2], ['request'=>$newRequest, 'request_sha256'=>hash('sha256', json_encode($newRequest))]);
+$events[5] = $newResult;
+$file = tmpfile();
+foreach ($events as $event) AnyTour\ExistingPostBatch\transferJournal($file, $event);
+foreach (['release-approved'=>$newContext, 'foreign approval'=>array_replace($newContext,['approved_index_sha256'=>str_repeat('b',64)]),
+    'missing run'=>array_diff_key($newContext,['native_run_id'=>true])] as $case=>$context) {
+    channelPostCheck('data plan journal '.$case, AnyTour\ExistingPostBatch\transferTransportLossRecorded(
+        $file,$newRow,$newDigest,$context,$newResult), $case==='release-approved');
+}
+fclose($file);
 $existingDir = sys_get_temp_dir().'/ranked-previous-operation-'.bin2hex(random_bytes(10));
 mkdir($existingDir,0700);
 try {
