@@ -222,7 +222,8 @@ const FORWARD_FILES = {
   'tests/fixtures/pr1643/release_priority.js.txt': 'added'
 };
 
-function fileSnapshot(rows) {
+function fileSnapshot(rows, profile) {
+  const {files: FORWARD_FILES, manifestBlob: MAX2_MANIFEST_BLOB} = profile;
   must(Array.isArray(rows) && rows.length === Object.keys(FORWARD_FILES).length, 'successor file count changed');
   const snapshot = {};
   for (const file of rows) {
@@ -237,12 +238,13 @@ function fileSnapshot(rows) {
   return snapshot;
 }
 
-function successorContext({pr, head, phase, source, event, runId}) {
+function successorContext({pr, head, phase, source, event, runId}, profile) {
+  const {pr:SUCCESSOR_PR, main:MAIN, head:HEAD} = profile;
   must(pr === SUCCESSOR_PR && sha(head) && head !== MAIN && head !== HEAD &&
     ['before_handoff', 'after_handoff', 'installation'].includes(phase), 'wrong successor');
   if (phase !== 'installation') {
     must(source === undefined && runId === undefined && event === undefined, 'unexpected installation context');
-    return {pr, head, phase, main: MAIN};
+    return {pr, head, phase, main: MAIN, profile};
   }
   must(sha(source) && source !== MAIN && source !== head &&
     (typeof runId === 'string' || typeof runId === 'number') && /^[1-9]\d*$/.test(String(runId)) &&
@@ -252,10 +254,11 @@ function successorContext({pr, head, phase, source, event, runId}) {
     event.ref === 'refs/heads/main' && event.before === MAIN && event.after === source &&
     event.head_commit?.id === source && event.forced === false &&
     Object.keys(event.inputs || {}).length === 0, 'untrusted successor push');
-  return {pr, head, phase, main: source, runId: Number(runId)};
+  return {pr, head, phase, main: source, runId: Number(runId), profile};
 }
 
 function checkTarget(target, c) {
+  const {main:MAIN, branch:SUCCESSOR_BRANCH} = c.profile;
   const {pr, head, phase, main} = c;
   must(target?.number === pr && target.user?.id === OWNER && target.user.login === 'pyatkoff' &&
     target.head?.repo?.full_name === REPO && target.head.repo.id === REPO_ID &&
@@ -270,7 +273,8 @@ function checkTarget(target, c) {
   }
 }
 
-async function liveBaseline(api) {
+async function liveBaseline(api, profile) {
+  const {diagnostics:DIAGNOSTICS, baselineBytes:checkedBaselineBytes} = profile;
   const ref = await api.get('/git/ref/heads/diagnostics');
   must(ref?.ref === 'refs/heads/diagnostics' && ref.object?.type === 'commit' &&
     sha(ref.object.sha), 'diagnostics ref changed');
@@ -285,9 +289,10 @@ async function liveBaseline(api) {
 }
 
 async function livePublisher(api, c) {
+  const {previousPr, main:MAIN, head:HEAD, binding:BIND, pr:SUCCESSOR_PR, files:FORWARD_FILES} = c.profile;
   const close = require('./release_slot_close');
   const [ref, previous, target, comment, relation, files] = await Promise.all([
-    api.get('/git/ref/heads/main'), api.get('/pulls/1662'), api.get('/pulls/' + c.pr),
+    api.get('/git/ref/heads/main'), api.get('/pulls/'+previousPr), api.get('/pulls/' + c.pr),
     api.get('/issues/comments/' + BIND.comment_id),
     api.get('/compare/' + MAIN + '...' + c.head + '?per_page=1'),
     api.get('/pulls/' + SUCCESSOR_PR + '/files?per_page=100&page=1')
@@ -296,12 +301,12 @@ async function livePublisher(api, c) {
     ref.object.sha === c.main, 'current main changed');
   must(relation?.status === 'ahead' && relation.merge_base_commit?.sha === MAIN,
     'successor head ancestry changed');
-  verifyPull(previous, 1662, MAIN, HEAD);
+  verifyPull(previous, previousPr, MAIN, HEAD);
   const previousBinding = close.binding(previous, MAIN);
-  must(previousBinding && equal(close.bindingSnapshot(previousBinding), {pr:1662, ...BIND}), 'original publisher binding changed');
+  must(previousBinding && equal(close.bindingSnapshot(previousBinding), {pr:previousPr, ...BIND}), 'original publisher binding changed');
   checkTarget(target, c);
-  const blobs = fileSnapshot(relation.files);
-  must(target.changed_files === Object.keys(FORWARD_FILES).length && equal(fileSnapshot(files), blobs),
+  const blobs = fileSnapshot(relation.files,c.profile);
+  must(target.changed_files === Object.keys(FORWARD_FILES).length && equal(fileSnapshot(files,c.profile), blobs),
     'successor pull content changed');
   let active = previousBinding;
   if (c.phase !== 'before_handoff') {
@@ -318,6 +323,7 @@ async function livePublisher(api, c) {
 }
 
 async function nativeInstallation(api, c) {
+  const {main:MAIN, pr:SUCCESSOR_PR} = c.profile;
   const [commit, pulls, run, all] = await Promise.all([
     api.get('/git/commits/' + c.main), api.get('/commits/' + c.main + '/pulls?per_page=100'),
     api.get('/actions/runs/' + c.runId), census(api, c.main)
@@ -345,6 +351,7 @@ async function nativeInstallation(api, c) {
 }
 
 async function sourceChecks(api, c) {
+  const {branch:SUCCESSOR_BRANCH, pr:SUCCESSOR_PR} = c.profile;
   const head = c.head;
   const runs = await census(api, head);
   const required = [
@@ -399,26 +406,34 @@ async function sourceChecks(api, c) {
 
 async function liveAnchors(api, c) {
   const [publisher, diagnosticsHead, sourceCheckRuns] = await Promise.all([
-    livePublisher(api, c), liveBaseline(api), sourceChecks(api, c),
+    livePublisher(api, c), liveBaseline(api, c.profile), sourceChecks(api, c),
     c.phase === 'installation' ? nativeInstallation(api, c) : undefined]);
   return {...publisher, diagnosticsHead, sourceCheckRuns};
 }
 
 // Only the ordinary full installation may act. This proof never supplies an
 // installation receipt, an unchanged-application result, or a terminal release.
-async function provePartialInstall1662Forward(options) {
+async function proveCheckedSuccessor(options, profile) {
   must(typeof options?.api === 'function' && typeof options.api.jobLog === 'function', 'read-only adapter missing');
-  const c = successorContext(options);
+  const c = successorContext(options, profile);
   const read = {get: path => options.api('GET', API_ROOT + path), jobLog: id => options.api.jobLog(id)};
   const initial = await liveAnchors(read, c);
-  const [, , status] = await Promise.all([baseline(read), original(read), publicReceipt(read)]);
+  const evidence = await profile.history(read);
   const final = await liveAnchors(read, c);
   must(equal(initial, final), 'live forward anchors changed');
   return {phase:c.phase, head_sha:c.head, source_sha:c.main, binding:final.binding,
-    source_check_runs:final.sourceCheckRuns,
-    previous_pr:1662, previous_sha:MAIN, previous_run_id:String(DEPLOY),
-    previous_installation:'partial_after_checkout', previous_install_job_id:INSTALL_JOB,
-    previous_application_sha:PRIOR, previous_accepted_record_sha256:BASELINE_DIGEST,
-    previous_public_check_run:CHECK, previous_observed_http:status};
+    source_check_runs:final.sourceCheckRuns, ...evidence};
 }
-module.exports = {provePartialInstall1662Forward};
+function provePartialInstall1662Forward(options) {
+  return proveCheckedSuccessor(options, {previousPr:1662, main:MAIN, head:HEAD, binding:BIND,
+    pr:SUCCESSOR_PR, branch:SUCCESSOR_BRANCH, files:FORWARD_FILES, manifestBlob:MAX2_MANIFEST_BLOB,
+    diagnostics:DIAGNOSTICS, baselineBytes:checkedBaselineBytes, history:async read => {
+      const [, , status] = await Promise.all([baseline(read), original(read), publicReceipt(read)]);
+      return {previous_pr:1662, previous_sha:MAIN, previous_run_id:String(DEPLOY),
+        previous_installation:'partial_after_checkout', previous_install_job_id:INSTALL_JOB,
+        previous_application_sha:PRIOR, previous_accepted_record_sha256:BASELINE_DIGEST,
+        previous_public_check_run:CHECK, previous_observed_http:status};
+    }});
+}
+module.exports = {provePartialInstall1662Forward, proveCheckedSuccessor, complete, verifyRun, census, jobs,
+  binding, verifyPull, nativeLog, installationSteps};
