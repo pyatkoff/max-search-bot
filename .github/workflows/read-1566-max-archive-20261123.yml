@@ -1,4 +1,4 @@
-name: "#1566 Screen additional MAX archive addresses and formats"
+name: "#1566 Validate five native MAX receipts against the existing editor"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -15,7 +15,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == 'c557ed4d51705359c5d09812e3918b5bd323b098' &&
+      github.event.before == 'c256d36ff7bc1481221554b8719f1039d51396ec' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -91,39 +91,7 @@ jobs:
               assert match["url"] not in completed and match["mid"] == target["original_native_target"]["mid"]
               assert present_shape(match) and not match["registered"]
 
-          reserved = {row["url"] for row in prepared["spares"]}
-          assert reserved <= {row["url"] for row in unoccupied}
-          prepared_urls = {row["target_url"] for row in targets}
-          assert not reserved.intersection(prepared_urls)
-          unassigned = [row for row in unoccupied if row["url"] not in prepared_urls | reserved]
-          plain_or_images = [
-              row for row in pending
-              if not row["registered"] and not row["keyboard_present"] and not row["linked_message"]
-              and all(kind == "image" for kind in row["media"])
-          ]
           blocked = [row for row in pending if row["status"] == "other_format"]
-          media_matrix = collections.Counter(
-              ("+".join(row["media"]) or "none", row["keyboard_present"], row["registered"])
-              for row in pending
-          )
-          print("MAX_330_FORMATS=" + json.dumps({
-              "archive_run": run["id"],
-              "media_keyboard_registered_matrix": [
-                  {"media": media, "keyboard": keyboard, "registered": registered, "count": count}
-                  for (media, keyboard, registered), count in sorted(media_matrix.items())
-              ],
-              "unregistered_without_keyboard_or_link_including_other_formats": sum(
-                  not row["registered"] and not row["keyboard_present"] and not row["linked_message"]
-                  for row in pending
-              ),
-              "unregistered_plain_text_or_images_without_keyboard_or_link": len(plain_or_images),
-              "unassigned_old_mids": len(unassigned),
-              "unassigned_by_status": dict(collections.Counter(row["status"] for row in unassigned)),
-          }, sort_keys=True))
-          for row in sorted(unassigned, key=lambda row: (row["status"], row["published_ms"], row["mid"])):
-              print("MAX_330_UNASSIGNED=" + json.dumps({
-                  key: row[key] for key in ("mid", "url", "published_ms", "fingerprint", "status")
-              }, sort_keys=True))
           output = {
               "goal": 330,
               "archive_run": run["id"],
@@ -148,3 +116,77 @@ jobs:
           }
           print("MAX_330_ARCHIVE=" + json.dumps(output, sort_keys=True))
           PY
+          gh api /repos/pyatkoff/max-search-bot/actions/runs/45504924450 > "$DATA_DIR/native-run.json"
+          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14972457087 > "$DATA_DIR/native-artifact.json"
+          curl --fail --silent --show-error --location --max-time 25 \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            https://api.github.com/repos/pyatkoff/max-search-bot/actions/artifacts/14972457087/zip \
+            --output "$DATA_DIR/native.zip"
+          gh api '/repos/pyatkoff/max-search-bot/contents/tools/direct_demand/operations/max-existing-photo/batch_input.php?ref=b62a8739ab56d1b7930c71b0b21e6c49837cb782' \
+            --jq .content | base64 --decode > "$DATA_DIR/batch_input.php"
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, zipfile
+          folder = pathlib.Path(os.environ["DATA_DIR"])
+          run = json.loads((folder / "native-run.json").read_bytes())
+          artifact = json.loads((folder / "native-artifact.json").read_bytes())
+          head = "ee9ae6d91063e0eaaf69640ccb57d1faac49c0df"
+          assert (run["id"], run["head_sha"], run["run_attempt"], run["conclusion"]) == (45504924450, head, 1, "success")
+          assert artifact["id"] == 14972457087 and artifact["workflow_run"]["head_sha"] == head and not artifact["expired"]
+          digest = "6b9fd8246cbdbf309f9a177caef5da6c10bb3c53140490db70f06bc16b7fcc85"
+          assert artifact["digest"] == "sha256:" + digest
+          archive_file = folder / "native.zip"
+          assert archive_file.stat().st_size == artifact["size_in_bytes"] <= 100_000
+          assert hashlib.sha256(archive_file.read_bytes()).hexdigest() == digest
+          with zipfile.ZipFile(archive_file) as archive:
+              assert archive.namelist() == ["registry.json"] and archive.getinfo("registry.json").file_size <= 100_000
+              data = archive.read("registry.json")
+          native = json.loads(data)
+          assert native["ok"] and native["operation"] == "max_five_ranked_read_only"
+          assert native["application_sha"] == native["repository_sha"] == "7b96c69c1f6974fb6ff09f52551a4581ffcdf171"
+          assert native["archive_run"] == 45373389110 and native["target_editor_rights"]
+          assert native["db_writes"] == native["provider_writes"] == native["bot_starts"] == 0
+          (folder / "native.json").write_bytes(data)
+          code = (folder / "batch_input.php").read_bytes()
+          assert hashlib.sha1(b"blob " + str(len(code)).encode() + b"\0" + code).hexdigest() == "979c91fddf879d792937f26aaac4a4f1d778346d"
+          PY
+          php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          function maxEditNeed(bool $ok, string $reason): void {
+              if (!$ok) throw new RuntimeException($reason);
+          }
+          function maxEditJson(array $value): string {
+              return json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+          }
+          $folder = getenv('DATA_DIR');
+          require $folder.'/batch_input.php';
+          $native = json_decode(file_get_contents($folder.'/native.json'), true, 32, JSON_THROW_ON_ERROR);
+          $prepared = json_decode(file_get_contents('tools/direct_demand/operations/max-existing-photo/next-native-input-20261124.json'), true, 32, JSON_THROW_ON_ERROR);
+          $protected = ['AZ-DqmRQHF8','AaBhZRPRMt4','AZ6mZd9cP1Y','AZ-nsUrqXuU'];
+          $planned = array_slice($prepared['rows'], 0, 5);
+          maxEditNeed(array_column($planned,'hotel_id') === array_column($native['rows'],'hotel_id'), 'source_scope_changed');
+          $ready = [];
+          $held = [];
+          foreach ($planned as $i => $row) {
+              $o = $native['rows'][$i];
+              $id = $row['hotel_id'];
+              try {
+                  $sourceSlug = rtrim(strtr(base64_encode(hex2bin(substr($o['source_mid'], -16))), '+/', '-_'), '=');
+                  maxEditNeed($row['source_url'] === 'https://max.ru/channel_anytour/'.$sourceSlug, 'public_source_identity_changed');
+                  maxEditNeed(!in_array(basename($row['target_url']), $protected, true), 'protected_review');
+                  $identity = [];
+                  foreach (['hotel_id','source_id','source_mid','native_source_date_ms','source_version','source_content_sha256','source_photo_sha256','source_caption_sha256','target_mid'] as $key) {
+                      $identity[] = $o[$key] ?? null;
+                  }
+                  $approved = [
+                      'hotel_id'=>$id, 'source_id'=>$row['source_publication_id'], 'source_mid'=>$o['source_mid'],
+                      'target_mid'=>$row['original_native_target']['mid'], 'target_url'=>$row['target_url'],
+                      'original_legacy_identity_sha256'=>hash('sha256', maxEditJson($identity))
+                  ];
+                  maxBatchValidateNativeRow($approved, $o);
+                  $ready[] = ['hotel_id'=>$id,'source_version'=>$o['source_version'],'legacy_identity_sha256'=>$approved['original_legacy_identity_sha256']];
+              } catch (RuntimeException $err) { $held[$id] = $err->getMessage(); }
+          }
+          echo 'MAX_FIVE_EDITOR_EVIDENCE=', maxEditJson(['ready_for_target_attribution_check'=>$ready, 'held'=>$held,
+              'writes'=>0, 'native_run'=>45504924450, 'price_is_publish_gate'=>false]), PHP_EOL;
+          PHP
