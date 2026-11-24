@@ -1,0 +1,64 @@
+name: Verify original partial hotel deployment 1702
+on:
+  push:
+    branches: [audit/pr1702-partial-install-preflight-20261124]
+permissions:
+  actions: read
+  contents: read
+  issues: read
+  pull-requests: read
+jobs:
+  preflight:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.created && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Verify exact source, original job history and active publisher
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE: 32155b9eb2c8606b61554951bfdc988d70bbcb39
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, urllib.request
+          root = 'https://api.github.com/repos/pyatkoff/max-search-bot/'
+          headers = {'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'X-GitHub-Api-Version': '2022-11-28'}
+          def api(path):
+              with urllib.request.urlopen(urllib.request.Request(root+path, headers=headers), timeout=12) as response:
+                  return json.load(response)
+          source = os.environ['SOURCE']
+          assert api('git/ref/heads/main')['object']['sha'] == source
+          parents = api('git/commits/' + os.environ['GITHUB_SHA'])['parents']
+          assert [p['sha'] for p in parents] == [source]
+          pr = api('pulls/1702')
+          assert pr['merged'] and pr['merge_commit_sha'] == source
+          assert pr['head']['sha'] == '9b0a8a5a4dc252b977f95bee2b890287cdbbec1f'
+          publisher = api('issues/comments/6818332618')
+          assert (publisher['user']['id'],publisher['body'],publisher['updated_at']) == (226193297,'PR1702: выпуск занят','2026-11-24T14:35:09Z')
+          run = api('actions/runs/45416010115')
+          assert (run['event'],run['head_branch'],run['head_sha'],run['run_attempt'],run['path'],run['status'],run['conclusion']) == ('push','main',source,1,'.github/workflows/deploy.yml','completed','failure')
+          result = api('actions/runs/45416010115/attempts/1/jobs?per_page=100')
+          jobs = {j['name']: j for j in result['jobs']}
+          assert result['total_count'] == len(jobs) == 6
+          for j in ['verify-syntax','verify-inventory','verify / diagnostics','verify / application']:
+              assert jobs[j]['conclusion'] == 'success'
+          assert (jobs['deploy']['id'],jobs['deploy']['conclusion'])==(138531045324,'failure')
+          assert (jobs['verify']['id'],jobs['verify']['conclusion'])==(138532634860,'skipped')
+          steps={s['name']:s['conclusion'] for s in jobs['deploy']['steps']}
+          assert steps['Build exact deployment bundle']=='success' and steps['Fail failed installation']=='failure'
+          for step in ['Apply database migrations and fence the old hotel contour','Reconcile canonical MAX webhook ownership','Ensure Metrika offline uploader cron','Apply profile and retain exact diagnostic snapshot']:
+              assert steps[step]=='skipped',step
+          print('SOURCE='+source+' ORIGINAL=45416010115/1 INSTALLER=138531045324 FINAL_VERIFY=138532634860/skipped PUBLISHER=6818332618/held')
+          PY
+      - name: Check the original public containment header without reading content
+        shell: bash
+        run: |
+          set -euo pipefail
+          status="$(curl --head --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' 'https://app.anytoour.ru/structured_events.log')"
+          printf 'original_guard_current_http=%s\n' "$status"
+          case "$status" in 403|404) ;; *) exit 1;; esac
+      - name: Acknowledge preflight scope
+        shell: bash
+        run: |
+          echo 'Read-only preflight finished. The original failed installation, skipped stages and held publisher still require their own completion evidence.'
