@@ -1,0 +1,425 @@
+{
+  "schema": 1,
+  "issue": 1566,
+  "kind": "max_next_native_read_input_not_apply_plan",
+  "existing_reader_branch": "ops/1566-max-archive-inventory-20261123",
+  "existing_writer_branch": "audit/1566-main-hotel-registry-20261119",
+  "prepared_at_utc": "2026-11-24T16:20:00Z",
+  "original_archive_run": 45373389110,
+  "original_archive_read_utc": "2026-11-24T10:18:11+00:00",
+  "canonical_map_ref": "c3307bb811aefaa964c78f855b4d5e405fd606fb",
+  "current_feed_contexts": {
+    "count": 1055,
+    "unique_offers": 1055,
+    "selected_alias_matches": 5,
+    "source_url": "https://app.anytoour.ru/feed/hotel-posts-max.xml",
+    "limitation": "HTML extractor preserved URL contexts but not XML attributes; not a byte-for-byte raw XML proof or a native MAX2 route-table read."
+  },
+  "rows": [
+    {
+      "priority_rank": 8,
+      "hotel_id": 1972,
+      "offer_id": "max_1972",
+      "source_publication_id": 887,
+      "source_url": "https://max.ru/channel_anytour/AaG3WcDqe3Y",
+      "source_alias": "h1_7cdc48f2dd799f91ad74d98b53f7c324",
+      "target_url": "https://max.ru/anytour/AaBI6Jfvad8",
+      "price_policy": "approved_without_price; do not reuse expired public quote",
+      "source_public_text": "✈️ Туры в Moreno Horizon Spa & Resort\n📍 Хургада, Египет.\n🏖 Собственный пляж.\n💧 Бассейны для взрослых и отдельный детский бассейн.\n💦 Аквапарк с горками для взрослых и детей.\n🎭 Развлекательные программы на территории.\n💰 От 88 186 ₽ за двоих\n✈️ Вылет из Москвы 16.01.2027 · 5 ночей\n👥 2 взрослых\n🛏 standard room\n🍽 Всё включено\nЦена найдена мониторингом 20.11.2026, 05:17 МСК. Стоимость и наличие могут измениться.\nУзнать стоимость тура",
+      "target_public_text": "🏝️\nЭто не шутка, это реальная цена на один из топовых отелей Дубая!\nNh Collection Dubai The Palm 4* – один из самых изысканных отелей острова Пальм Джумейра🤩\nПлюсы отеля:\n💦собственный пляж с белым песком\n💦инфинити-бассейн с панорамным видом\n💦идеальное месторасположение рядом с торговым центром и набережной с фонтанами\nПредложение на двоих с вылетом из Москвы:\n05.09, 7 ночей\nHB - Завтрак, Ужин\n158 806 RUB\nЦена актуальна на момент публикации!\nКликайте по цене, чтобы узнать все подробности📎\nПишите нам, чтобы задать вопрос и оставить заявку на подбор / бронирование тура🔗\nМы в \nTelegram, \nMax и \nVK. Наши мобильные приложения \nApple и \nAndroid.\nНаш сайт — \nпо этой ссылке☺️\nДо встречи в новых путешествиях!",
+      "apply_eligible": false,
+      "required_before_apply": [
+        "accepted_installed_release_and_current_publisher",
+        "current_native_source_version_photo_button_and_hotel",
+        "current_edit_rights_and_target_mid_date_free_no_route",
+        "shared_PRICE_CONTENT_lock_and_original_operation_census"
+      ],
+      "original_native_target": {
+        "mid": "mid.ffffc1752b045fed01a048e897ef69df",
+        "url": "https://max.ru/anytour/AaBI6Jfvad8",
+        "published_ms": 1787929597935,
+        "registered": false,
+        "previously_screened": true,
+        "media": [
+          "image"
+        ],
+        "keyboard_present": false,
+        "linked_message": false,
+        "fingerprint": "967f9773ea28deac5456206f76e4c467df3af6493742f7aab65b57cf72dae267",
+        "status": "already_known"
+      }
+    },
+    {
+      "priority_rank": 9,
+      "hotel_id": 2588,
+      "offer_id": "max_2588",
+      "source_publication_id": 1533,
+      "source_url": "https://max.ru/channel_anytour/AaHpO-hTO-w",
+      "source_alias": "h1_b0ad50d1f7b72fbb0d8d3f44d551294a",
+      "target_url": "https://max.ru/anytour/AaAkdvyEBXQ",
+      "price_policy": "approved_without_price; do not reuse expired public quote",
+      "source_public_text": "✈️ Туры в Jumeirah Beach Hotel\n📍 Дубай, ОАЭ.\nПляжный отдых с видом на Burj Al Arab.\n🏊 Бассейны и водные развлечения.\n👨👩👧 Детские программы и семейная атмосфера.\n💰 \nОт 285 222 ₽ за двоих\n✈️ Вылет из Москвы 22.01.2027 · 5 ночей\n👥 2 взрослых\n🛏 ocean deluxe room\n🍽 Без питания\nЦена найдена мониторингом 20.11.2026, 07:46 МСК. Стоимость и наличие могут измениться.\nУзнать стоимость тура",
+      "target_public_text": "🏖️\nГорящие туры на Пхукет на много ночей!\nПредложения для двоих взрослых с вылетом из Москвы:\n01.09, 12+1 ночей\n🌅\nKata Beach Studio Apartment 3*\nBB - Только завтрак\n154 959 RUB\n01.09, 12+1 ночей\n🌅\nBaumancasa Beach Resort (Ex. Pgs Hotels Bauman Casa) 3*\nBB - Только завтрак\n156 770 RUB\n01.09, 12+1 ночей\n🌅\nIbis Phuket Kata 3*\nBB - Только завтрак\n168 366 RUB\n01.09, 12+1 ночей\n🌅\nWyndham Garden Phuket Kamala 4*\nBB - Только завтрак\n168 448 RUB\nЦена актуальна на момент публикации!\nКликайте по цене, чтобы узнать все подробности📎\nПишите нам, чтобы задать вопрос и оставить заявку на подбор / бронирование тура🤩",
+      "apply_eligible": false,
+      "required_before_apply": [
+        "accepted_installed_release_and_current_publisher",
+        "current_native_source_version_photo_button_and_hotel",
+        "current_edit_rights_and_target_mid_date_free_no_route",
+        "shared_PRICE_CONTENT_lock_and_original_operation_census"
+      ],
+      "original_native_target": {
+        "mid": "mid.ffffc1752b045fed01a02476fc840574",
+        "url": "https://max.ru/anytour/AaAkdvyEBXQ",
+        "published_ms": 1787318172804,
+        "registered": false,
+        "previously_screened": true,
+        "media": [
+          "image"
+        ],
+        "keyboard_present": false,
+        "linked_message": false,
+        "fingerprint": "74e88ae75c0734d28829e22468798a6c7a9f3efc77f2753c9490847b1ded81d2",
+        "status": "already_known"
+      }
+    },
+    {
+      "priority_rank": 11,
+      "hotel_id": 32342,
+      "offer_id": "max_32342",
+      "source_publication_id": 584,
+      "source_url": "https://max.ru/channel_anytour/AaG2QuDYdKE",
+      "source_alias": "h1_832e474d233e3ff903264f8017890723",
+      "target_url": "https://max.ru/anytour/AZ_rrRmlYz0",
+      "price_policy": "approved_without_price; do not reuse expired public quote",
+      "source_public_text": "✈️ Туры в VINPEARL RESORT & SPA PHU QUOC\n📍 Вьетнам · Фукуок\n💰 От 243 450 ₽ за двоих\n✈️ Вылет из Москвы 24.11.2026 · 7 ночей\n👥 2 взрослых\n🛏 deluxe ocean view\n🍽 Завтраки\nЦена найдена мониторингом 21.11.2026, 02:14 МСК. Стоимость и наличие могут измениться.\n• Пляж рядом с отелем.\n• Для семьи или компании, которой нужен выбор между номером и виллой.\nУзнать стоимость тура",
+      "target_public_text": "Друзья, последнее время часто бронируем Китай для наших туристов, ведь цены просто шикарные🤩\nГорящие предложения в проверенные отели на острове Хайнань на двоих взрослых с вылетом из Москвы:\n27.08, 10+1 ночей\n🌴\nOcean View Resort Yalong Bay (Ex. Lan Resort Sanya) 5*\nBB - Только завтрак\n150 569 RUB\n27.08, 10+1 ночей\n🌴\nSwissotel & Grand Mercure Sanya Yalong Bay 5*\nBB - Только завт\nрак\n152 790 RUB\n27.08, 10+1 ноче\nй\n🌴Harman Resort Hotel Sanya 5*\nBB - Только завт\nрак\n163 728 RUB\n27.08, 10+1 ноче\nй\n🌴Pearl River Garden Hotel 5*\nBB - Только завт\nрак\n189 877 RUB\n27.08, 10+1 ноче\nй\n🌴Mangrove Tree Resort Yalong Bay 5*\nBB - Только завт\nрак\n196 628 R\nUB\n*стоимость действительна на момент размещения поста\nВы можете узнать больше подробностей, перейдя по цен\nе!\nПишите нам, чтобы задать вопрос и оставить заявку на подбор / бронирование тура✉️\nМ\nы в Telegr\nam, Ma\nx и VK. Наши мобильные приложе\nния Appl\ne и Android.\nНаш сай\nт — по этой ссылке☺️\nДо встречи в новых путешествиях!",
+      "apply_eligible": false,
+      "required_before_apply": [
+        "accepted_installed_release_and_current_publisher",
+        "current_native_source_version_photo_button_and_hotel",
+        "current_edit_rights_and_target_mid_date_free_no_route",
+        "shared_PRICE_CONTENT_lock_and_original_operation_census"
+      ],
+      "original_native_target": {
+        "mid": "mid.ffffc1752b045fed019febad19a5633d",
+        "url": "https://max.ru/anytour/AZ_rrRmlYz0",
+        "published_ms": 1786365417893,
+        "registered": false,
+        "previously_screened": true,
+        "media": [
+          "image"
+        ],
+        "keyboard_present": false,
+        "linked_message": false,
+        "fingerprint": "85319aa3afcc1755790733c24b7802320da0213a39de3c0213f1a681b5465126",
+        "status": "already_known"
+      }
+    },
+    {
+      "priority_rank": 12,
+      "hotel_id": 57028,
+      "offer_id": "max_57028",
+      "source_publication_id": 238,
+      "source_url": "https://max.ru/channel_anytour/AaGeHp92NlE",
+      "source_alias": "h1_4e6688447a8d76c946868b2d04224fd8",
+      "target_url": "https://max.ru/anytour/AZ9AsoswVYw",
+      "price_policy": "approved_without_price; do not reuse expired public quote",
+      "source_public_text": "✈️ Туры в PICKALBATROS AQUA PARK SHARM\n📍 Египет · Шарм эль Шейх\n💰 \nОт 134 546 ₽ за двоих\n✈️ Вылет из Москвы 21.01.2027 · 5 ночей\n👥 2 взрослых\n🛏 standard garden view\n🍽 Всё включено\nЦена найдена мониторингом 20.11.2026, 02:20 МСК. Стоимость и наличие могут измениться.\n• Аквапарк с детскими горками и водными играми.\n• Аттракционы Midway Street.\n• Детский клуб Alba для ребят от 4 до 12 лет.\nУзнать стоимость тура",
+      "target_public_text": "🏞️\nВ этом посте мы собрали для вас лучшие предложения в сегменте «доступные отели Турции»\nДрузья, мы понимаем, что цены на туры выросли и сейчас сложно подобрать отель по недорогой цене, не переживая при этом, что отпуск будет испорчен!\n🌿В подборке ниже мы предлагаем вам отели, в которых отдыхали наши туристы и оставляли исключительно положительные отзывы, а в некоторых мы были лично.\nПредложения на двоих взрослых с вылетом из Москвы:\n29.07, 7 ночей\n🏝️\nKaia Coracseium (Ex. Titan Garden) 4*\nUAI - Ультра Все Включено\n174 531 RUB\n17.07, 7 ночей\n🏝️\nClub Hotel Caretta Beach 4*\nAI - Все Включено\n175 452 RUB\n17.07, 7 ночей\n🏝️\nSealife Buket Beach (Ex. Aska Buket Resort & Spa) 5*\nUAI - Ультра Все Включ\nено\n183 284 RUB\n27.07, 7 ночей\n🏝️Mira Meridia Beach Resort 5*\nUAI - Ультра Все Включ\nено\n184 541 RUB\nЦена актуальна на момент публикации!\nКликайте по цене, чтобы узнать все подробности\n📎\nПишите нам, чтобы задать вопрос и оставить заявку на подбор / бронирование тура!\nМ\nы в Telegr\nam, Ma\nx и VK. Наши мобильные приложе\nния Appl\ne и Android.\nНаш сай\nт — по этой ссылке☺️\nДо встречи в новых путешествиях!",
+      "apply_eligible": false,
+      "required_before_apply": [
+        "accepted_installed_release_and_current_publisher",
+        "current_native_source_version_photo_button_and_hotel",
+        "current_edit_rights_and_target_mid_date_free_no_route",
+        "shared_PRICE_CONTENT_lock_and_original_operation_census"
+      ],
+      "original_native_target": {
+        "mid": "mid.ffffc1752b045fed019f40b28b30558c",
+        "url": "https://max.ru/anytour/AZ9AsoswVYw",
+        "published_ms": 1783496870704,
+        "registered": false,
+        "previously_screened": false,
+        "media": [
+          "image"
+        ],
+        "keyboard_present": false,
+        "linked_message": false,
+        "fingerprint": "300f751d6d705e041dcafd9faae7e82402f68a59b990608774f6064fb2bbe415",
+        "status": "needs_content_and_route_review",
+        "public_text_sha256": "b65ee82c7328dd921b9d8992374ad3626b43f7719760272206dd213a7bb69689",
+        "hotel_star_mentions": 4,
+        "price_mentions": 4,
+        "roundup_terms": true
+      }
+    },
+    {
+      "priority_rank": 13,
+      "hotel_id": 65877,
+      "offer_id": "max_65877",
+      "source_publication_id": 563,
+      "source_url": "https://max.ru/channel_anytour/AaG2NPXdL0M",
+      "source_alias": "h1_12c9e98c83db2198ba35799b9e761ec7",
+      "target_url": "https://max.ru/anytour/AZ-d-XrfADw",
+      "price_policy": "approved_without_price; do not reuse expired public quote",
+      "source_public_text": "✈️ Туры в VESNA HOTEL\n📍 Вьетнам · Нячанг\n💰 \nОт 126 252 ₽ за двоих\n✈️ Вылет из Москвы 26.11.2026 · 7 ночей\n👥 2 взрослых\n🛏 superior no view\n🍽 Завтраки\nЦена найдена мониторингом 19.11.2026, 14:01 МСК. Стоимость и наличие могут измениться.\n• Пляж примерно в 50 м, через дорогу.\n• Для поездки в Нячанг втроём или большой семьёй.\nУзнать стоимость тура",
+      "target_public_text": "Друзья, наконец то мы можем снова летать на Занзибар🤩\nЭто направление для тех, кто мечтает о необычном отпуске, белоснежных пляжах, океане невероятного цвета и ощущении, будто оказался совсем на другой планете!\nОтели здесь можно найти на любой вкус и бюджет! Вот несколько вариантов:\n🏝️\nMalika Hotel 4* - недорогой, но очень приличный уютный отель с красивым видом на сад и рядом с шикарным пляжем.\nКлассный вариант, если вы планируете активный отдых и хотите сэкономить на проживании, не теряя при этом в качестве!\nПредложение на двоих взрослых с вылетом из Москвы:\n08.08, 11 ночей\nBB - Только завтрак\n189 821 RUB\n \n🏝️\nAzao Resort & Spa 4* - отель с прямым выходом к океану, прекрасной спа-зоной и вкусной едой. Отель работает на питании завтрак+ужи\nн!\nПредложение на двоих взрослых с вылетом из Москвы:\n08.08, 11 ночей\nHB - Завтрак, У\nжин\n244 767 RUB\n \n🏝️Zanzibar Bay Resort 4* - отель, работающий на «все включено». Здесь вас ждут пляж с белым песком, прекрасный бассейн с баром, анимация и никакой «головной боли», все уже продумано за вас – только отдых и наслаждени\nе!\nПредложение на двоих взрослых с вылетом из Москвы:\n20.08, 11 ночей\nAI - Все Включ\nено\n286 921 RUB\n🏝️Jaz Elite Aurora (Ex. Jaz Aurora Beach Resort) 5* - роскошный пятизвездочный курорт на пляже Мичамви, который славится своими фантастическими закатами. В этом отеле один из самых впечатляющих бассейнов на острове, большой пирс с баром прямо над океаном, аквапарк, падел-корт и много чего ещ\nе!\nПредложение на двоих взрослых с вылетом из Москвы:\n25.08, 10 ночей\nAI - Все Включ\nено\n382 676 RUB\n \n📎Важно: друзья, есть насколько важных нюансов, о которых наш менеджер обязательно предупредит вас перед тем, как подбирать тур (виза и страховка по прилету)\nЦена актуальна на момент публикаци\nи!\nПо всем вопросам, для подбора / бронирования тура пишите нам☺️",
+      "apply_eligible": false,
+      "required_before_apply": [
+        "accepted_installed_release_and_current_publisher",
+        "current_native_source_version_photo_button_and_hotel",
+        "current_edit_rights_and_target_mid_date_free_no_route",
+        "shared_PRICE_CONTENT_lock_and_original_operation_census"
+      ],
+      "original_native_target": {
+        "mid": "mid.ffffc1752b045fed019f9df97adf003c",
+        "url": "https://max.ru/anytour/AZ-d-XrfADw",
+        "published_ms": 1785061800671,
+        "registered": false,
+        "previously_screened": false,
+        "media": [
+          "image"
+        ],
+        "keyboard_present": false,
+        "linked_message": false,
+        "fingerprint": "f8a1b0819559ae0afa1d3d2caee50811c47c06a40e1a6211e62307baa770bbd3",
+        "status": "needs_content_and_route_review",
+        "public_text_sha256": "c284942f37d83609f06a06c5b534a17b12c6d6044c614d3d82a57da3ceb1d6a3",
+        "hotel_star_mentions": 4,
+        "price_mentions": 4,
+        "roundup_terms": false
+      }
+    }
+  ],
+  "spares": [
+    {
+      "url": "https://max.ru/anytour/AaAZbG-VQzQ",
+      "assigned_hotel_id": null,
+      "original_native_target": {
+        "mid": "mid.ffffc1752b045fed01a0196c6f954334",
+        "url": "https://max.ru/anytour/AaAZbG-VQzQ",
+        "published_ms": 1787132931989,
+        "registered": false,
+        "previously_screened": true,
+        "media": [
+          "image"
+        ],
+        "keyboard_present": false,
+        "linked_message": false,
+        "fingerprint": "17d5898c949179d541e8ea8aff8c9c0263f1d07753088070f6d28653ae8847d8",
+        "status": "already_known"
+      }
+    },
+    {
+      "url": "https://max.ru/anytour/AaAuJeZbQAc",
+      "assigned_hotel_id": null,
+      "original_native_target": {
+        "mid": "mid.ffffc1752b045fed01a02e25e65b4007",
+        "url": "https://max.ru/anytour/AaAuJeZbQAc",
+        "published_ms": 1787480630875,
+        "registered": false,
+        "previously_screened": true,
+        "media": [
+          "image"
+        ],
+        "keyboard_present": false,
+        "linked_message": false,
+        "fingerprint": "8fb9c0628fcea7df16218bd61670ac1221142da93f95545d710ffee84de529f3",
+        "status": "already_known"
+      }
+    }
+  ],
+  "archive_screening": [
+    {
+      "url": "https://max.ru/anytour/AZpP4782Zbg",
+      "mid": "mid.ffffc1752b045fed019a4fe3bf3665b8",
+      "published_ms": 1762276917046,
+      "fingerprint": "c3699853c3cc9199ee86c0acb1a90abfbcb0fe0cbab7aa206d49a499c0fd23be",
+      "classification": "informational_holiday_or_general_promotion_exclude"
+    },
+    {
+      "url": "https://max.ru/anytour/AZpjIGcPHmM",
+      "mid": "mid.ffffc1752b045fed019a6320670f1e63",
+      "published_ms": 1762599659279,
+      "fingerprint": "50af6fce78663bc8b135a78ca55db5879f04a9e605ce9c8876323b3b580f0200",
+      "classification": "informational_holiday_or_general_promotion_exclude"
+    },
+    {
+      "url": "https://max.ru/anytour/AZqNqJWJCeg",
+      "mid": "mid.ffffc1752b045fed019a8da8958909e8",
+      "published_ms": 1763313227145,
+      "fingerprint": "9e0529afd59e82872dff188efe04447413f94fb3da8c173c6a9faff06965f67e",
+      "classification": "informational_holiday_or_general_promotion_exclude"
+    },
+    {
+      "url": "https://max.ru/anytour/AZqr7a70ChA",
+      "mid": "mid.ffffc1752b045fed019aabedaef40a10",
+      "published_ms": 1763821072116,
+      "fingerprint": "49063c58150d3489e5190f32225d3a27582a4191366dca0aa9180c2b2a0f4f2e",
+      "classification": "informational_holiday_or_general_promotion_exclude"
+    },
+    {
+      "url": "https://max.ru/anytour/AZrE5K3jCFs",
+      "mid": "mid.ffffc1752b045fed019ac4e4ade3085b",
+      "published_ms": 1764239912419,
+      "fingerprint": "d5620d2a739981dc2d6edb18fd55a1dfb705c2b7dba53116281d4224b9fea5ca",
+      "classification": "informational_holiday_or_general_promotion_exclude"
+    },
+    {
+      "url": "https://max.ru/anytour/AZrKhLlyHLU",
+      "mid": "mid.ffffc1752b045fed019aca84b9721cb5",
+      "published_ms": 1764334287218,
+      "fingerprint": "e3795cf0d15eac4e3ac05abea6a3d79d9b706416b7926a7d6234bd8f6c5658cc",
+      "classification": "informational_holiday_or_general_promotion_exclude"
+    },
+    {
+      "url": "https://max.ru/anytour/AZruVv0nJw8",
+      "mid": "mid.ffffc1752b045fed019aee56fd27270f",
+      "published_ms": 1764935269671,
+      "fingerprint": "aa5e1304f8a30decc7a036bba7a296a567d1de17aaedf064321ed27165d5e88b",
+      "classification": "informational_holiday_or_general_promotion_exclude"
+    },
+    {
+      "url": "https://max.ru/anytour/AZsiDQVWe6E",
+      "mid": "mid.ffffc1752b045fed019b220d05567ba1",
+      "published_ms": 1765802837334,
+      "fingerprint": "7d8296e41711ef34b133bc3d760cf2afcf4d3a82797d3121c764accba7126c61",
+      "classification": "informational_holiday_or_general_promotion_exclude"
+    },
+    {
+      "url": "https://max.ru/anytour/AZtpxEykLRQ",
+      "mid": "mid.ffffc1752b045fed019b69c44ca42d14",
+      "published_ms": 1767006031012,
+      "fingerprint": "9822a1725ab420ef13fcb06ee825e45d49e6fc157e2c1fd064220b862999c645",
+      "classification": "informational_holiday_or_general_promotion_exclude"
+    },
+    {
+      "url": "https://max.ru/anytour/AZt0h5GafXw",
+      "mid": "mid.ffffc1752b045fed019b7487919a7d7c",
+      "published_ms": 1767186600346,
+      "fingerprint": "73e3fcd0e6446b65d07de9d478d4573d4c06f8adc98cd61ab0d71132db10af78",
+      "classification": "informational_holiday_or_general_promotion_exclude"
+    },
+    {
+      "url": "https://max.ru/anytour/AZuXfGokPB8",
+      "mid": "mid.ffffc1752b045fed019b977c6a243c1f",
+      "published_ms": 1767773071908,
+      "fingerprint": "dcc25fad35104675d1c33ce369114946ac263a1f0a4a44638ca70e7fe17f9180",
+      "classification": "informational_holiday_or_general_promotion_exclude"
+    },
+    {
+      "url": "https://max.ru/anytour/AZv1ONxDUs0",
+      "mid": "mid.ffffc1752b045fed019bf538dc4352cd",
+      "published_ms": 1769345702979,
+      "fingerprint": "567f3e5f2afb03a2192a64a74024093a0097367fbad40fd1e42317b0a799fb28",
+      "classification": "informational_holiday_or_general_promotion_exclude"
+    },
+    {
+      "url": "https://max.ru/anytour/AZxcNpG8Qfk",
+      "mid": "mid.ffffc1752b045fed019c5c3691bc41f9",
+      "published_ms": 1771073606076,
+      "fingerprint": "2eeb6d206073e689cb4f81ef68a4e33c407d8d19fd008c7b60c9fefae99b21b6",
+      "classification": "informational_holiday_or_general_promotion_exclude"
+    },
+    {
+      "url": "https://max.ru/anytour/AZxmm4N2M0A",
+      "mid": "mid.ffffc1752b045fed019c669b83763340",
+      "published_ms": 1771247993718,
+      "fingerprint": "f598a3d706cf5d884942d08ffb9a8301ea7150a3ff27b2fa1772995de23e70e3",
+      "classification": "informational_holiday_or_general_promotion_exclude"
+    },
+    {
+      "url": "https://max.ru/anytour/AZyJj6p4ZBI",
+      "mid": "mid.ffffc1752b045fed019c898faa786412",
+      "published_ms": 1771834419832,
+      "fingerprint": "f779b9cb13c0aea6c33f9a47e046483cd343c9c2b207af3213bfcd7f8078742c",
+      "classification": "informational_holiday_or_general_promotion_exclude"
+    },
+    {
+      "url": "https://max.ru/anytour/AZzMqcq1V7o",
+      "mid": "mid.ffffc1752b045fed019ccca9cab557ba",
+      "published_ms": 1772960205493,
+      "fingerprint": "57a333dacc0248e8fcc18ee285094b6a42e27da3c24141709475aa908ddd712b",
+      "classification": "informational_holiday_or_general_promotion_exclude"
+    },
+    {
+      "url": "https://max.ru/anytour/AZ2BgDutejc",
+      "mid": "mid.ffffc1752b045fed019d81803bad7a37",
+      "published_ms": 1775994157997,
+      "fingerprint": "2a91123c91458f4dd3efd528f70e84da8f2ed63a043cdd19c99d5eaa0ac987b0",
+      "classification": "informational_holiday_or_general_promotion_exclude"
+    },
+    {
+      "url": "https://max.ru/anytour/AZ3imZ8fIc4",
+      "mid": "mid.ffffc1752b045fed019de2999f1f21ce",
+      "published_ms": 1777623211807,
+      "fingerprint": "a7a91976ddf96f095811d85028fd7653598450b1d1384b8a4be5d25ff42f59fe",
+      "classification": "informational_holiday_or_general_promotion_exclude"
+    },
+    {
+      "url": "https://max.ru/anytour/AZ4b4TYfLl0",
+      "mid": "mid.ffffc1752b045fed019e1be1361f2e5d",
+      "published_ms": 1778584204831,
+      "fingerprint": "57ec6704585bc3f9bb5d9daad07b54cc9871b446d6c0aed5dad384608c243490",
+      "classification": "informational_holiday_or_general_promotion_exclude"
+    },
+    {
+      "url": "https://max.ru/anytour/AZ6mZd9cP1Y",
+      "mid": "mid.ffffc1752b045fed019ea665df5c3f56",
+      "published_ms": 1780908154716,
+      "fingerprint": "2eaa7e006cf921aba126fb43a81fca4c79049aaa3d96ef0685138d7c7f674f3e",
+      "classification": "review_exclude"
+    },
+    {
+      "url": "https://max.ru/anytour/AZ9AsoswVYw",
+      "mid": "mid.ffffc1752b045fed019f40b28b30558c",
+      "published_ms": 1783496870704,
+      "fingerprint": "300f751d6d705e041dcafd9faae7e82402f68a59b990608774f6064fb2bbe415",
+      "classification": "old_hotel_offer_candidate"
+    },
+    {
+      "url": "https://max.ru/anytour/AZ-d-XrfADw",
+      "mid": "mid.ffffc1752b045fed019f9df97adf003c",
+      "published_ms": 1785061800671,
+      "fingerprint": "f8a1b0819559ae0afa1d3d2caee50811c47c06a40e1a6211e62307baa770bbd3",
+      "classification": "old_hotel_offer_candidate"
+    },
+    {
+      "url": "https://max.ru/anytour/AZ-nsUrqXuU",
+      "mid": "mid.ffffc1752b045fed019fa7b14aea5ee5",
+      "published_ms": 1785224841962,
+      "fingerprint": "bf2c5db1520ff37300099576ee9882f21a9685194e1c7b308cbdad3a5843d3d2",
+      "classification": "review_exclude"
+    },
+    {
+      "url": "https://max.ru/anytour/AaAfFELNWVk",
+      "mid": "mid.ffffc1752b045fed01a01f1442cd5959",
+      "published_ms": 1787227816653,
+      "fingerprint": "2ffd4cf625aa02211af1c57eaa01ff3d10e4c76cbc9bbc7a891cc6c22cd822b8",
+      "classification": "Flow_current_ROUTE_scope_exclude_pending_native"
+    },
+    {
+      "url": "https://max.ru/anytour/AaDiVVYSTXg",
+      "mid": "mid.ffffc1752b045fed01a0e25556124d78",
+      "published_ms": 1790503638546,
+      "fingerprint": "7e83c8a914afaa42405a57ed4ce27c088c32098fc6e8103c16e395a99f38b915",
+      "classification": "informational_holiday_or_general_promotion_exclude"
+    }
+  ],
+  "excluded_native_ops": [
+    45386430758,
+    45388485813
+  ],
+  "excluded_hotels": [
+    241,
+    15693,
+    293,
+    408,
+    949,
+    1260,
+    24909,
+    800
+  ],
+  "provider_writes": 0,
+  "post_creations": 0,
+  "advertising_changes": 0
+}
