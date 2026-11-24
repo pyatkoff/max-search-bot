@@ -1,4 +1,4 @@
-name: "#1566 Read ranked MAX hotel sources for the next drafts"
+name: "#1566 Read further ranked MAX hotel sources after the first 62 drafts"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -15,7 +15,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == '55e1db8a1456c0189695d383c1e4f9d26644f9d3' && github.run_attempt == 1
+      github.event.before == '10e42f1343c997e74f9319159fa6471542c85afd' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -46,7 +46,7 @@ jobs:
           from datetime import datetime, timezone
           from html.parser import HTMLParser
 
-          excluded = set([106,111,114,132,139,150,206,218,231,240,241,246,253,260,266,288,293,325,341,352,358,371,408,418,435,466,469,483,513,547,713,768,800,949,1096,1260,1344,1569,1972,2470,2493,2588,3405,3452,4079,4091,4181,7458,12107,12111,12125,15693,24909,28581,32342,37668,43676,43689,47025,56092,57028,59114,63191,64895,64918,65877,70048,73343,73974,74503,75100,76588,77914,82606,99713,118475,132016])
+          excluded = set([106,109,111,114,132,139,150,206,218,231,236,240,241,246,253,260,266,288,293,325,341,352,358,371,381,408,418,435,454,465,466,469,483,513,547,713,768,800,949,1035,1096,1105,1257,1260,1344,1451,1569,1960,1972,2470,2493,2588,3405,3415,3452,4079,4091,4181,4270,7458,11791,12107,12111,12125,14140,15693,24909,26844,28460,28581,32342,37668,43676,43689,47025,50869,51238,54605,56092,57028,59114,63191,64895,64914,64918,65877,70048,73343,73974,74503,75100,76588,77914,79071,82106,82606,85417,99713,107938,118475,132016])
           reserve = json.loads("[{\"url\":\"https://max.ru/anytour/AZwEq2zVLGY\",\"mid\":\"mid.ffffc1752b045fed019c04ab6cd52c66\",\"hotel_name\":\"The Marin Phuket\"},{\"url\":\"https://max.ru/anytour/AZwpDhM0dC0\",\"mid\":\"mid.ffffc1752b045fed019c290e1334742d\",\"hotel_name\":\"Akka Alinda Hotel\"},{\"url\":\"https://max.ru/anytour/AZxcpmMWNUI\",\"mid\":\"mid.ffffc1752b045fed019c5ca663163542\",\"hotel_name\":\"Address Beach Resort Fujairah\"},{\"url\":\"https://max.ru/anytour/AZ82fl5vOjg\",\"mid\":\"mid.ffffc1752b045fed019f367e5e6f3a38\",\"hotel_name\":\"SO/ Ras Al Khaimah\"}]")
           rank_run = json.loads(pathlib.Path("pub/rank-run.json").read_bytes())
           rank_meta = json.loads(pathlib.Path("pub/rank-meta.json").read_bytes())
@@ -139,11 +139,11 @@ jobs:
                       continue
                   token=parts[1]+"="*(-len(parts[1])%4)
                   key=json.loads(base64.urlsafe_b64decode(token))
+                  referenced = by_offer.get(key.get("offer_id"))
+                  for target in reserve:
+                      if normalized(item.findtext("name",""))==normalized(target["hotel_name"]) and referenced and key.get("post_id")==referenced["alias"]:
+                          reserve_matches.append({"target":target,"source":referenced})
                   if key.get("offer_id") not in wanted:
-                      referenced = by_offer.get(key.get("offer_id"))
-                      for target in reserve:
-                          if normalized(item.findtext("name",""))==normalized(target["hotel_name"]) and referenced and key.get("post_id")==referenced["alias"]:
-                              reserve_matches.append({"target":target,"source":referenced})
                       continue
                   c=wanted[key["offer_id"]]
                   matches=key.get("post_id")==c["source_alias"] and all(part in url for part in ("{yclid}","{campaign_id}","{region_id}"))
