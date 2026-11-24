@@ -146,6 +146,20 @@ function monthlyReplyQualityReadRegression(PDO $pdo): int
         $qualityProvider=static function()use(&$qualityAllowed,$key):string{if(!$qualityAllowed)throw new DomainException();return$key;};
         $archiveProvider=static function()use(&$archiveAllowed,$archiveKey):string{if(!$archiveAllowed)throw new DomainException();return$archiveKey;};
         $archiveService=new MonthlyReplyQualityReadService($pdo,$clock,$qualityProvider,$archiveProvider);
+        $fastDescriptor=MonthlyReplyQualityReadService::descriptor()['lanes']['archive']['newest_retained']??[];
+        $check(($fastDescriptor['start_cursor']??null)==='qh.archive.recent.start'
+            &&($fastDescriptor['order']??null)==='archive_record_id_desc'
+            &&($fastDescriptor['text_materialized']??null)===false,
+            'direct_recent_business_entry_advertised_in_quality_descriptor');
+        $fastPage=$archiveService->inventory(1,$connection,['cursor'=>'qh.archive.recent.start','limit'=>1]);
+        $fastRow=$fastPage['records'][0]??[];
+        $check(($fastPage['operation']??null)==='recent_business_message_inventory'
+            &&($fastRow['source_ref']??null)==='archive_message:9100003'
+            &&str_starts_with($fastRow['record_ref']??'','qh.')
+            &&$fastPage['has_more']===true&&!isset($fastPage['chats'])
+            &&!str_contains($json($fastPage),'ARCHIVE_NEWEST_SELECTED'),
+            'direct_recent_business_entry_returns_bounded_exact_record_without_inventory');
+        $reject(fn()=>$service->inventory(1,$connection,['cursor'=>'qh.archive.recent.start','limit'=>1]),'forbidden');
         $archiveInventory=$archiveService->inventory(1,$connection,['cursor'=>'qh.archive.start','limit'=>1]);
         $recentDescriptor=$archiveInventory['newest_retained']??[];
         $check(is_string($recentDescriptor['start_cursor']??null)&&str_starts_with($recentDescriptor['start_cursor'],'qh.')
@@ -206,6 +220,7 @@ function monthlyReplyQualityReadRegression(PDO $pdo): int
         $check($lateArchiveCalls===3&&$lateQualityCalls===3,'exact_archive_context_rechecks_both_grants_after_source_read');
         $forecastArchive=new MonthlyReplyQualityReadService($pdo,$clock,$qualityProvider,$archiveProvider,true);
         $reject(fn()=>$forecastArchive->inventory(1,$connection,['cursor'=>$recentDescriptor['start_cursor']]),'invalid_arguments');
+        $reject(fn()=>$forecastArchive->inventory(1,$connection,['cursor'=>'qh.archive.recent.start']),'invalid_arguments');
         $reject(fn()=>$forecastArchive->context(1,$connection,['dialogue_ref'=>$selectedRef]),'invalid_arguments');
 
         $review=new MonthlyReplyQualityReadService($pdo,$clock,static fn():string=>$key,null,true);

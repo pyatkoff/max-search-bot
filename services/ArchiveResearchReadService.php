@@ -38,12 +38,22 @@ final class ArchiveResearchReadService
 
     public function inventory(int $admin,string $connection,array $args=[]): array
     {
-        self::arguments($args,['cursor','limit'],50);
+        self::arguments($args,['cursor','limit','recent_start'],50);
+        if(array_key_exists('recent_start',$args)&&($args['recent_start']!==true||!$this->qualityHistory||isset($args['cursor'])))self::fail('invalid_arguments');
         return $this->read($admin,$connection,function(string $key) use($admin,$connection,$args):array {
             $state=isset($args['cursor'])?$this->decode($args['cursor'],'inventory_or_features',$key,$admin,$connection):null;
             if(in_array($state['k']??null,['feature_inventory','semantic_inventory'],true)&&$state['a']!=='0'&&!isset($this->accountAliases[$state['a']]))self::fail('forbidden');
             $currentFence=$this->fence();$fence=$state['f']??$currentFence;
             if(self::decimalGreater($fence,$currentFence))self::fail('stale_cursor');
+            // Explicit quality-only shortcut: no whole-archive summary or chat inventory.
+            if(($args['recent_start']??false)===true){
+                $this->stage='summary';
+                $this->checkRecentSourceLimit($fence,self::MAX_ROWS,false);
+                $this->checkRecentSourceLimit($fence,self::MAX_CHATS,true);
+                return $this->recentInventory([
+                    'v'=>1,'k'=>'recent_inventory','a'=>'0','c'=>'0','f'=>$fence,'n'=>'0','e'=>$this->now()+self::CURSOR_TTL],
+                    $args['limit']??25,$key,$admin,$connection);
+            }
             if(($state['k']??null)==='recent_inventory')return$this->recentInventory($state,$args['limit']??25,$key,$admin,$connection);
             if(in_array($state['k']??null,['feature_inventory','semantic_inventory'],true))return$this->featureInventory($state,$args['limit']??25,$key,$admin,$connection);
             $expiry=$this->now()+self::CURSOR_TTL;
@@ -362,6 +372,32 @@ final class ArchiveResearchReadService
         return(string)$this->q('SELECT COALESCE(MAX(m.id),0) FROM telegram_dialogue_messages m '
             .'WHERE m.project_key=? AND m.account_id IN ('.implode(',',array_fill(0,count($ids),'?')).')',
             ['anytour',...$ids])->fetchColumn();
+    }
+
+    /** Prove the historical source cap without computing per-account totals. */
+    private function checkRecentSourceLimit(string $fence,int $limit,bool $distinctChats): void
+    {
+        // An unsigned unique ID in [0, fence] bounds both rows and pairs.
+        if($this->mysql && self::decimalGreater((string)$limit,$fence))return;
+
+        $accounts=array_keys($this->accountAliases);
+        $placeholders=implode(',',array_fill(0,count($accounts),'?'));
+        $select=$distinctChats?'DISTINCT m.project_key,m.account_id,m.chat_id':'m.id';
+        $from=' FROM telegram_dialogue_messages m';
+        $indexHint=$distinctChats && $this->mysql?' FORCE INDEX (uq_telegram_dialogue_message)':'';
+        $boundary=' LIMIT 1 OFFSET '.$limit;
+
+        // Check the first excess row/key in an indexed superset in this snapshot.
+        // Access, source-kind and owner exclusions can only reduce the true size.
+        $probe=$this->q('SELECT '.$select.$from.$indexHint.' WHERE m.project_key=? AND m.account_id IN ('.$placeholders.')'
+            .$boundary,['anytour',...$accounts]);
+        if($probe->fetchColumn()===false)return;
+
+        // The superset alone can never deny an otherwise admissible archive.
+        [$where,$values]=$this->scope($fence,true);
+        $excess=$this->q('SELECT '.$select.$from.' JOIN projects p ON p.project_key=m.project_key WHERE '.$where
+            .$boundary,$values);
+        if($excess->fetchColumn()!==false)self::fail('source_limit');
     }
 
     private function summary(string$fence):array
