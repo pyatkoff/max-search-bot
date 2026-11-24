@@ -9,6 +9,8 @@ final class ModeledConversionVisitProof
 {
     public const VERSION='modeled_visit_reconciliation_v1';
     public const MAX_ROWS=32;
+    /** A complete admitted goal ledger is required before visit attribution; fail closed above this bound. */
+    public const MAX_LEDGER_ROWS=4096;
     private const MAX_BYTES=49152;
     private const REPORT_ZONE='Europe/Moscow';
     private const HISTORICAL_REVIEW_ZONE='Europe/Kaliningrad';
@@ -45,14 +47,14 @@ final class ModeledConversionVisitProof
         $mysql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
         $q=$pdo->query('SELECT o.id,o.conversation_id,o.project_key,o.counter_id,o.transport_target,o.value_contract,o.platform,o.target,o.value_profile_id,'
             .'o.value_stage,o.value_rub,o.event_unix,o.client_id,o.upload_id,o.external_user_id,o.state,o.upload_status,o.value_api_accepted_at_unix,o.value_processed_at_unix,o.claimed_at_unix,o.tracker_observed_unix '
-            .ModeledConversionDeliveryRegistry::sourceSql($mysql).' ORDER BY o.id DESC LIMIT 1001');
+            .ModeledConversionDeliveryRegistry::sourceSql($mysql).' ORDER BY o.id DESC LIMIT '.(self::MAX_LEDGER_ROWS+1));
         $rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();
-        if(count($rows)>=1001)throw new RuntimeException('verification_ledger_bound');
+        if(count($rows)>self::MAX_LEDGER_ROWS)throw new RuntimeException('verification_ledger_bound');
         return $rows;
     }
     public static function verify(array $ledger,object $api,int $activation,int $checkpoint,int $now,?array $selectedIds=null,?float $deadline=null,array $retained=[],?int $followupCheckpoint=null):array
     {
-        if(count($ledger)>=1001||$activation<946684800||$checkpoint<$activation||$checkpoint>$now)throw new InvalidArgumentException('verification_scope');
+        if(count($ledger)>self::MAX_LEDGER_ROWS||$activation<946684800||$checkpoint<$activation||$checkpoint>$now)throw new InvalidArgumentException('verification_scope');
         $cohort=[];$other=[];$ids=[];
         foreach($ledger as$r){
             if(($r['project_key']??null)!=='anytour'||(string)($r['counter_id']??'')!=='98615635'
@@ -437,7 +439,7 @@ final class ModeledConversionVisitProof
     }
     private static function sentCohortForCalendar(array $ledger,array $current,int $now,?callable $archive,?int $dayReference,string $calendar):array
     {
-        if(count($ledger)>=1001||$now<946684800)throw new RuntimeException('verification_daily_scope');
+        if(count($ledger)>self::MAX_LEDGER_ROWS||$now<946684800)throw new RuntimeException('verification_daily_scope');
         $dayReference??=$now;if($dayReference<946684800||$dayReference>$now)throw new RuntimeException('verification_daily_scope');
         $zone=new DateTimeZone($calendar);$day=(new DateTimeImmutable('@'.$dayReference))->setTimezone($zone)->setTime(0,0);
         $from=$day->getTimestamp();$until=$day->modify('+1 day')->getTimestamp();$out=[];$people=[];
