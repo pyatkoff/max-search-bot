@@ -103,6 +103,50 @@ $poll = new Max2CommonValueMetrikaClientV2('synthetic-token', static fn() => ['h
 check($poll->poll('321')['status'] === 'PROCESSED' && $poll->poll('321')['visit_linkage_verified'] === false, 'exact processed receipt without false linkage');
 check($poll->poll('322') === null && $poll->poll('../321') === null, 'foreign receipt or path refused');
 
+// One visit can qualify for both goals. Each destination has its own wire and receipt.
+$umkEvent = array_replace($event, [
+    'goal_id' => '696194739', 'target' => 'anytour_umk_funnel_value',
+    'value_contract' => Max2CommonValueMetrikaClientV2::UMK_CONTRACT,
+    'event_key' => str_repeat('c', 64), 'attempt_key' => str_repeat('d', 64),
+]);
+$umkCsv = Max2CommonValueMetrikaClientV2::umkCsv($umkEvent, $now);
+$umkEvent['csv_sha256'] = hash('sha256', $umkCsv);
+check($umkCsv === str_replace('anytour_modeled_value_v2_max2', 'anytour_umk_funnel_value', $csv), 'baseline wire preserves value and visit');
+refuses(static fn() => Max2CommonValueMetrikaClientV2::csv($umkEvent, $now), 'V2 rejects UMK row');
+refuses(static fn() => Max2CommonValueMetrikaClientV2::umkCsv($event, $now), 'UMK rejects V2 row');
+$umkGoal = ['id' => 696194739, 'name' => 'AnyTour — УМК по воронке', 'type' => 'action',
+    'conditions' => [['type' => 'exact', 'url' => 'anytour_umk_funnel_value']]];
+$catalogue = json_decode($admittedGoal['body'], true)['goals'];
+$catalogue[] = $umkGoal;
+$umkRequests = [];
+$umkReceipt = ['id' => 322, 'type' => 'BASIC', 'client_id_type' => 'CLIENT_ID', 'status' => 'PROCESSED',
+    'source_quantity' => 1, 'line_quantity' => 1, 'comment' => Max2CommonValueMetrikaClientV2::umkComment($umkEvent)];
+$umkClient = Max2CommonValueMetrikaClientV2::forUmk('synthetic-token',
+    static function ($method, $url, $body) use (&$catalogue, &$umkRequests, &$umkReceipt) {
+        $umkRequests[] = [$method, $url, $body];
+        $data = str_ends_with($url, '/goals') ? ['goals' => $catalogue] : ['uploading' => $umkReceipt];
+        return ['http' => 200, 'error' => 0, 'body' => json_encode($data, JSON_THROW_ON_ERROR)];
+    });
+check($umkClient->goalReady(), 'UMK exact ID and action with independent display name');
+$catalogue[1]['id'] = 696194738;
+check(!$umkClient->goalReady(), 'a matching target on the wrong ID is refused');
+$catalogue[1] = $umkGoal;
+$catalogue[] = ['id' => 123, 'type' => 'action', 'conditions' => [['type' => 'contain', 'url' => 'umk_funnel']]];
+check(!$umkClient->goalReady(), 'overlapping UMK goal refused');
+refuses(static fn() => $umkClient->upload($umkEvent, $now), 'failed catalogue check revokes UMK admission');
+array_pop($catalogue);
+check($umkClient->goalReady(), 'both exact goals can coexist');
+$umkResult = $umkClient->upload($umkEvent, $now);
+check($umkResult['outcome'] === 'accepted' && $umkResult['upload_id'] === '322', 'own UMK receipt accepted');
+refuses(static fn() => $umkClient->upload($umkEvent, $now), 'UMK attempted wire cannot be sent again');
+$umkPosts = array_values(array_filter($umkRequests, static fn($request) => $request[0] === 'POST'));
+check(count($umkPosts) === 1 && $umkPosts[0][2] === $umkCsv
+    && str_ends_with($umkPosts[0][1], 'comment=AnyTourUMK_' . $umkEvent['event_key']), 'single exact UMK upload');
+check($umkClient->poll('322', $umkEvent['event_key'])['status'] === 'PROCESSED', 'own UMK receipt observed');
+check($umkClient->poll('322') === null, 'UMK reconciliation requires an event key');
+$umkReceipt['comment'] = Max2CommonValueMetrikaClientV2::comment($event);
+check($umkClient->poll('322', $umkEvent['event_key']) === null, 'V2 receipt cannot complete a UMK event');
+
 // Exercise real tempnam/file permissions locally, including its documented fallback shape.
 $base = sys_get_temp_dir() . '/max2-v2-csv-fixture-' . bin2hex(random_bytes(12));
 check(mkdir($base, 0700), 'fixture root created');

@@ -1,13 +1,17 @@
 <?php
 declare(strict_types=1);
 
-/** Separate V2 wire adapter. Never calls or changes the existing V1 sender. */
+/** Metrika transport for the two modeled-value destinations. Each instance sends to one goal. */
 final class Max2CommonValueMetrikaClientV2
 {
     public const COUNTER = '98615635';
     public const GOAL = '687941321';
     public const TARGET = 'anytour_modeled_value_v2_max2';
     public const CONTRACT = 'max2_common_observed_inquiry_value_v2';
+    public const UMK_GOAL = '696194739';
+    public const UMK_TARGET = 'anytour_umk_funnel_value';
+    public const UMK_CONTRACT = 'anytour_umk_funnel_value_v1';
+    private bool $umk = false;
     private const API = 'https://api-metrika.yandex.net/management/v1/counter/98615635/';
     private const CAP_KOPEKS = 10000000;
     private bool $postAttempted = false;
@@ -18,6 +22,13 @@ final class Max2CommonValueMetrikaClientV2
     {
         if ($token === '' || strpbrk($token, "\r\n") !== false) throw new InvalidArgumentException('v2_token_unavailable');
         $this->transport = $transport;
+    }
+
+    public static function forUmk(string $token, ?callable $transport = null): self
+    {
+        $client = new self($token, $transport);
+        $client->umk = true;
+        return $client;
     }
 
     private static function id($value): bool
@@ -38,9 +49,19 @@ final class Max2CommonValueMetrikaClientV2
     /** The caller must atomically move its OWN event from reserved to attempted before this projection. */
     public static function csv(array $event, int $now): string
     {
+        return self::encodeCsv($event, $now, self::GOAL, self::TARGET, self::CONTRACT);
+    }
+
+    public static function umkCsv(array $event, int $now): string
+    {
+        return self::encodeCsv($event, $now, self::UMK_GOAL, self::UMK_TARGET, self::UMK_CONTRACT);
+    }
+
+    private static function encodeCsv(array $event, int $now, string $goal, string $target, string $contract): string
+    {
         if (($event['project_key'] ?? null) !== 'anytour' || ($event['counter_id'] ?? null) !== self::COUNTER
-            || ($event['goal_id'] ?? null) !== self::GOAL || ($event['target'] ?? null) !== self::TARGET
-            || ($event['value_contract'] ?? null) !== self::CONTRACT || ($event['delivery_state'] ?? null) !== 'attempted'
+            || ($event['goal_id'] ?? null) !== $goal || ($event['target'] ?? null) !== $target
+            || ($event['value_contract'] ?? null) !== $contract || ($event['delivery_state'] ?? null) !== 'attempted'
             || ($event['attempt_count'] ?? null) !== 1 || !self::hash($event['event_key'] ?? null)
             || !self::hash($event['attempt_key'] ?? null) || !self::clientId($event['client_id'] ?? null)
             || !is_int($event['delta_kopeks'] ?? null) || $event['delta_kopeks'] < 1 || $event['delta_kopeks'] > self::CAP_KOPEKS
@@ -52,7 +73,7 @@ final class Max2CommonValueMetrikaClientV2
         $stream = fopen('php://temp', 'w+');
         try {
             fputcsv($stream, ['ClientId', 'Target', 'DateTime', 'Price', 'Currency'], ',', '"', '');
-            fputcsv($stream, [$event['client_id'], self::TARGET, (string)$event['event_unix'], $price, 'RUB'], ',', '"', '');
+            fputcsv($stream, [$event['client_id'], $target, (string)$event['event_unix'], $price, 'RUB'], ',', '"', '');
             rewind($stream);
             $csv = stream_get_contents($stream);
             if (!is_string($csv) || strlen($csv) > 1024) throw new RuntimeException('v2_csv_failed');
@@ -62,8 +83,18 @@ final class Max2CommonValueMetrikaClientV2
 
     public static function comment(array $event): string
     {
+        return self::eventComment('AnyTourV2_', $event);
+    }
+
+    public static function umkComment(array $event): string
+    {
+        return self::eventComment('AnyTourUMK_', $event);
+    }
+
+    private static function eventComment(string $prefix, array $event): string
+    {
         if (!self::hash($event['event_key'] ?? null)) throw new InvalidArgumentException('v2_event_key_required');
-        return 'AnyTourV2_' . $event['event_key'];
+        return $prefix . $event['event_key'];
     }
 
     /** Read only: confirms the existing exact goal and rejects overlapping action conditions. */
@@ -76,24 +107,26 @@ final class Max2CommonValueMetrikaClientV2
             $data = json_decode($response['body'], true, 32, JSON_THROW_ON_ERROR | JSON_BIGINT_AS_STRING);
             $goals = $data['goals'] ?? null;
             if (!is_array($goals) || !array_is_list($goals) || count($goals) > 200) return false;
+            $goalId = $this->umk ? self::UMK_GOAL : self::GOAL;
+            $target = $this->umk ? self::UMK_TARGET : self::TARGET;
             $selected = 0;
             foreach ($goals as $goal) {
                 if (!is_array($goal)) return false;
                 $id = (string)($goal['id'] ?? '');
-                if ($id === self::GOAL) {
-                    if (($goal['type'] ?? null) !== 'action' || ($goal['name'] ?? null) !== self::TARGET
+                if ($id === $goalId) {
+                    if (($goal['type'] ?? null) !== 'action' || (!$this->umk && ($goal['name'] ?? null) !== $target)
                         || !is_array($goal['conditions'] ?? null) || count($goal['conditions']) !== 1
                         || ($goal['conditions'][0]['type'] ?? null) !== 'exact'
-                        || ($goal['conditions'][0]['url'] ?? null) !== self::TARGET) return false;
+                        || ($goal['conditions'][0]['url'] ?? null) !== $target) return false;
                     $selected++;
                 } elseif (($goal['type'] ?? null) === 'action') {
                     if (!is_array($goal['conditions'] ?? null)) return false;
                     foreach ($goal['conditions'] as $condition) {
                         $value = $condition['url'] ?? null; $kind = $condition['type'] ?? null;
                         if (!is_string($value) || $value === '') return false;
-                        if (in_array($kind, ['exact', 'action'], true)) { if ($value === self::TARGET) return false; }
-                        elseif ($kind === 'contain') { if (str_contains(self::TARGET, $value)) return false; }
-                        elseif ($kind === 'start') { if (str_starts_with(self::TARGET, $value)) return false; }
+                        if (in_array($kind, ['exact', 'action'], true)) { if ($value === $target) return false; }
+                        elseif ($kind === 'contain') { if (str_contains($target, $value)) return false; }
+                        elseif ($kind === 'start') { if (str_starts_with($target, $value)) return false; }
                         else return false;
                     }
                 }
@@ -115,7 +148,7 @@ final class Max2CommonValueMetrikaClientV2
     /** One POST only. Any uncertainty remains reserved; this adapter never retries it. */
     public function upload(array $event, int $now): array
     {
-        $csv = self::csv($event, $now);
+        $csv = $this->umk ? self::umkCsv($event, $now) : self::csv($event, $now);
         if (!self::hash($event['csv_sha256'] ?? null)
             || !hash_equals($event['csv_sha256'], hash('sha256', $csv))) {
             throw new InvalidArgumentException('v2_attempt_csv_changed');
@@ -125,7 +158,7 @@ final class Max2CommonValueMetrikaClientV2
         $this->postAttempted = true;
         $unknown = ['outcome' => 'unknown', 'reason' => 'v2_upload_outcome_unknown', 'http_status' => 0, 'automatic_retry_permitted' => false];
         try {
-            $comment = self::comment($event);
+            $comment = $this->umk ? self::umkComment($event) : self::comment($event);
             $response = $this->request('POST', 'offline_conversions/upload?type=BASIC&comment=' . rawurlencode($comment), $csv);
             $http = $response['http'] ?? null;
             if (is_int($http) && ($http === 0 || ($http >= 100 && $http <= 599))) $unknown['http_status'] = $http;
@@ -134,7 +167,7 @@ final class Max2CommonValueMetrikaClientV2
             $data = json_decode($response['body'], true, 32, JSON_THROW_ON_ERROR | JSON_BIGINT_AS_STRING);
             $receipt = $data['uploading'] ?? null;
             if ($http >= 200 && $http < 300 && self::validReceipt($receipt)
-                && (!array_key_exists('comment', $receipt) || $receipt['comment'] === $comment)) {
+                && (($receipt['comment'] ?? null) === $comment || (!$this->umk && !array_key_exists('comment', $receipt)))) {
                 return ['outcome' => 'accepted', 'upload_id' => (string)$receipt['id'], 'status' => $receipt['status'], 'http_status' => $http,
                     'automatic_retry_permitted' => false, 'visit_linkage_verified' => false];
             }
@@ -143,15 +176,16 @@ final class Max2CommonValueMetrikaClientV2
     }
 
     /** Polls only a known exact receipt. Processing is not individual visit-linkage evidence. */
-    public function poll(string $uploadId): ?array
+    public function poll(string $uploadId, ?string $eventKey = null): ?array
     {
-        if (!self::id($uploadId)) return null;
+        if (!self::id($uploadId) || ($this->umk && !self::hash($eventKey))) return null;
         try {
             $response = $this->request('GET', 'offline_conversions/uploading/' . $uploadId);
             if (($response['error'] ?? null) !== 0 || ($response['http'] ?? null) !== 200) return null;
             $data = json_decode($response['body'], true, 32, JSON_THROW_ON_ERROR | JSON_BIGINT_AS_STRING);
             $value = $data['uploading'] ?? null;
             if (!self::validReceipt($value) || (string)$value['id'] !== $uploadId) return null;
+            if ($this->umk && ($value['comment'] ?? null) !== self::umkComment(['event_key' => $eventKey])) return null;
             $result = ['upload_id' => $uploadId, 'status' => $value['status'], 'visit_linkage_verified' => false];
             foreach (['source_quantity', 'line_quantity', 'processed_quantity'] as $key) {
                 if (array_key_exists($key, $value)) {
@@ -211,7 +245,8 @@ final class Max2CommonValueMetrikaClientV2
             if ($method === 'POST') {
                 $temp = self::privateCsv(MaxTrackerLookupConfig::csvDirectory(), $csv);
                 $options[CURLOPT_POST] = true;
-                $options[CURLOPT_POSTFIELDS] = ['file' => new CURLFile($temp, 'text/csv', 'max2_common_value_v2.csv')];
+                $name = $this->umk ? 'anytour_umk_funnel_value.csv' : 'max2_common_value_v2.csv';
+                $options[CURLOPT_POSTFIELDS] = ['file' => new CURLFile($temp, 'text/csv', $name)];
             }
             curl_setopt_array($curl, $options);
             curl_exec($curl);
