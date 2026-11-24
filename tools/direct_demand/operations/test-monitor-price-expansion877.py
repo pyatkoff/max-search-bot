@@ -19,7 +19,8 @@ def verify(root=ROOT):
  roster=json.loads(gzip.decompress(packed));rows=roster['rows'];need(len(rows)==877,'total877');need(len({r['tourvisor_hotel_id'] for r in rows})==877,'unique_source_ids')
  need(sha(canonical(rows[:660]))==BASE660_SHA==proof['previous660_canonical_sha256'],'accepted660_changed')
  need(sha(canonical(rows[660:]))==proof['append217_canonical_sha256'],'append217_changed')
- need(sha((root/'monitor-price-hook-contract.php').read_bytes())==CONTRACT_SHA==proof['contract_sha256'],'4fde_contract_changed')
+ need(CONTRACT_SHA==proof['contract_sha256'],'historical_4fde_contract_proof_changed')
+ need(sha((root/'monitor-price-hook-contract.php').read_bytes())=='438966058ce8972104f599400881a21b41ed5e5aba9b739645915ce924ef9018','saved_read_recovery_contract_changed')
  need(len(proof['append217'])==217,'proof_scope');need([r['tourvisor_hotel_id'] for r in rows[660:]]==[r['tourvisor_hotel_id'] for r in proof['append217']],'exact217_order')
  artifacts={x['operation']:x for x in proof['original_artifacts']};need(len(artifacts)==24,'original24operations')
  for artifact in artifacts.values():

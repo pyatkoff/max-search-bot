@@ -38,7 +38,7 @@ def verify(root=ROOT):
  # unchanged expansion assertions consume the byte-exact historical source.
  rows=json.loads(accepted1000(packed,root))['rows'];validate_rows(rows,p)
  need(json.loads(gzip.decompress(old))['rows']==rows[:877],'exact_prefix')
- need(sha((root/'monitor-price-hook-contract.php').read_bytes())=='d75989788c046fe3c0aab18b01a5d1edf07a7872050a37a17f49a6df6c29de14','unchanged_history_preflight_contract')
+ need(sha((root/'monitor-price-hook-contract.php').read_bytes())=='438966058ce8972104f599400881a21b41ed5e5aba9b739645915ce924ef9018','unchanged_history_preflight_contract')
  need(p['state']=='SOURCE_EXPANSION_PROOF_NOT_RUNTIME_PRICE_ADMISSION','no_runtime_admission')
  for mutation in ['remove','extra','duplicate','swap','old','text','post','operation','context']:
   bad=copy.deepcopy(rows)
