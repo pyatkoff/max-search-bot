@@ -1,0 +1,554 @@
+{
+  "schema": 1,
+  "kind": "hotel_max_caption_preparation",
+  "issue": 1566,
+  "archive_run": 45373389110,
+  "source_allocation_commit": "8d6c68aef6d97d77730fff9a32a8a1a1c200c366",
+  "price_gate": false,
+  "production_writes": 0,
+  "proposed_reserve": {
+    "url": "https://max.ru/anytour/AaAuJeZbQAc",
+    "mid": "mid.ffffc1752b045fed01a02e25e65b4007",
+    "next_gate": "prove_previous_target_advertising_continuity",
+    "assigned_hotel_id": null,
+    "previous_offer_hint": "Radisson Blu Resort Phu Quoc"
+  },
+  "excluded_reserve": {
+    "url": "https://max.ru/anytour/AaAZbG-VQzQ",
+    "mid": "mid.ffffc1752b045fed01a0196c6f954334",
+    "reason": "опыт отдыха туристов"
+  },
+  "rows": [
+    {
+      "exact_id": 73343,
+      "priority_rank": 14,
+      "hotel_name": "The Grand Palace",
+      "caption": "✈️ Туры в The Grand Palace\n📍 Хургада, Египет\nПляжный отдых вдвоём в отеле 18+. Песчаный пляж, бассейны и просторные Junior Suite. Есть категория с выходом в общий бассейн.",
+      "cta": "Рассчитать на мои даты",
+      "source": {
+        "url": "https://max.ru/channel_anytour/AaHQ_ZjzcEA",
+        "publication_id": 1253,
+        "photo_policy": "reuse_native_attachment",
+        "public_photo_visible": true
+      },
+      "offer": {
+        "id": "max_73343",
+        "source_alias": "h1_d5c8a692e27557a88b5dd2ddf469c74d",
+        "attribution_macros_preserved": true
+      },
+      "proposed_target": {
+        "url": "https://max.ru/anytour/AaBnNxELfuU",
+        "mid": "mid.ffffc1752b045fed01a06737110b7ee5",
+        "published_ms": 1788438057227,
+        "archive_fingerprint": "f2941e0561a6b769be868554dd9cf0b30501b59bbee90ba74460bb49d8ced2a8"
+      },
+      "protected_target": null,
+      "next_gate": "prove_previous_target_advertising_continuity",
+      "source_native_evidence": {
+        "version": 14019,
+        "legacy_identity_sha256": "52bf1329a3e552d89529bc1b240502b8575c6aaed9a3ff22d750dbcccd58f024"
+      },
+      "prior_target_context": {
+        "description": "подборка предложений Нячанга",
+        "observed_external_link_hosts": [],
+        "active_inbound_advertising": "unverified"
+      }
+    },
+    {
+      "exact_id": 43689,
+      "priority_rank": 15,
+      "hotel_name": "Fusion Resort Cam Ranh",
+      "caption": "✈️ Туры в Fusion Resort Cam Ranh\n📍 Камрань, Вьетнам\nСьюты и виллы для спокойного отдыха у моря. Рядом песчаный пляж, на территории — спа и бассейны. Для детей есть отдельный бассейн и игровая площадка.",
+      "cta": "Рассчитать на мои даты",
+      "source": {
+        "url": "https://max.ru/channel_anytour/AaHqSql-Q40",
+        "publication_id": 1912,
+        "photo_policy": "reuse_native_attachment",
+        "public_photo_visible": true
+      },
+      "offer": {
+        "id": "max_43689",
+        "source_alias": "h1_2a8f28fdeb4e5e47932fa629571e0f86",
+        "attribution_macros_preserved": true
+      },
+      "proposed_target": {
+        "url": "https://max.ru/anytour/AaBxuxe-Jxk",
+        "mid": "mid.ffffc1752b045fed01a071bb17be2719",
+        "published_ms": 1788614481854,
+        "archive_fingerprint": "94291066bd05573d38af7b11884da2fa35a9519b2d65655bfe03f455c0566fc9"
+      },
+      "protected_target": null,
+      "next_gate": "prove_previous_target_advertising_continuity",
+      "source_native_evidence": {
+        "version": 12792,
+        "legacy_identity_sha256": "79403cf2e1b3754b1317b0f6b6c9edca24d5f066ef5cc971cb496882f2699e35"
+      },
+      "prior_target_context": {
+        "description": "Lugano Hotel & Resort Cam Ranh",
+        "observed_external_link_hosts": [
+          "vk.com",
+          "play.google.com",
+          "anytour.online"
+        ],
+        "active_inbound_advertising": "unverified"
+      }
+    },
+    {
+      "exact_id": 47025,
+      "priority_rank": 16,
+      "hotel_name": "Adalya Elite Lara",
+      "caption": "✈️ Туры в Adalya Elite Lara\n📍 Лара, Турция\nПервая линия и собственный песчаный пляж. Для активного отдыха есть теннис и волейбол, для спокойного — отдельный бассейн для гостей 18+.",
+      "cta": "Рассчитать на мои даты",
+      "source": {
+        "url": "https://max.ru/channel_anytour/AaG2esUuLcc",
+        "publication_id": 644,
+        "photo_policy": "reuse_native_attachment",
+        "public_photo_visible": true
+      },
+      "offer": {
+        "id": "max_47025",
+        "source_alias": "h1_81a68725daabfab8f9e054052abd1f34",
+        "attribution_macros_preserved": true
+      },
+      "proposed_target": null,
+      "protected_target": {
+        "url": "https://max.ru/anytour/AaB7HKAZCt0",
+        "mid": "mid.ffffc1752b045fed01a07b1ca0190add",
+        "reason": "опыт отдыха туристов"
+      },
+      "next_gate": "select_alternative_existing_target",
+      "source_native_evidence": null
+    },
+    {
+      "exact_id": 139,
+      "priority_rank": 17,
+      "hotel_name": "Brayka Bay Resort",
+      "caption": "✈️ Туры в Brayka Bay Resort\n📍 Марса-Алам, Египет\nСобственный песчаный пляж в бухте, сады и пальмы на территории. Для семейного отдыха есть бассейны и занятия для детей.",
+      "cta": "Рассчитать на мои даты",
+      "source": {
+        "url": "https://max.ru/channel_anytour/AaGjHF7dGOQ",
+        "publication_id": 367,
+        "photo_policy": "reuse_native_attachment",
+        "public_photo_visible": true
+      },
+      "offer": {
+        "id": "max_139",
+        "source_alias": "h1_0dd8e79eb59d7c04a8ebba12384fd9f8",
+        "attribution_macros_preserved": true
+      },
+      "proposed_target": {
+        "url": "https://max.ru/anytour/AaCAxCRDffc",
+        "mid": "mid.ffffc1752b045fed01a080c424437df7",
+        "published_ms": 1788866733123,
+        "archive_fingerprint": "51279825e0ba5c5ae369640991984d58a8f36f29219dc1f093a1b7062072406c"
+      },
+      "protected_target": null,
+      "next_gate": "prove_previous_target_advertising_continuity",
+      "source_native_evidence": {
+        "version": 13592,
+        "legacy_identity_sha256": "a56f2358ccbd23e7bd9dc0ed13d5ce0b21930c27f20c389e656a7c2a558b7a6a"
+      },
+      "prior_target_context": {
+        "description": "Riu Palace Phuket",
+        "observed_external_link_hosts": [
+          "vk.com",
+          "apps.apple.com",
+          "play.google.com",
+          "anytour.online"
+        ],
+        "active_inbound_advertising": "unverified"
+      }
+    },
+    {
+      "exact_id": 435,
+      "priority_rank": 18,
+      "hotel_name": "Sheraton Soma Bay Resort",
+      "caption": "✈️ Туры в Sheraton Soma Bay Resort\n📍 Хургада, Египет\nСобственный песчаный пляж рядом с корпусами, аквапарк Soma Splash и детский клуб. Для активного отдыха есть спортивные занятия и тренажёрный зал.",
+      "cta": "Рассчитать на мои даты",
+      "source": {
+        "url": "https://max.ru/channel_anytour/AaGeij7eOTo",
+        "publication_id": 280,
+        "photo_policy": "reuse_native_attachment",
+        "public_photo_visible": true
+      },
+      "offer": {
+        "id": "max_435",
+        "source_alias": "h1_a169ae69ae6d1c5d9d794f00882806ca",
+        "attribution_macros_preserved": true
+      },
+      "proposed_target": null,
+      "protected_target": {
+        "url": "https://max.ru/anytour/AaCvgMVScas",
+        "mid": "mid.ffffc1752b045fed01a0af80c55271ab",
+        "reason": "положительные отзывы туристов"
+      },
+      "next_gate": "select_alternative_existing_target",
+      "source_native_evidence": null
+    },
+    {
+      "exact_id": 513,
+      "priority_rank": 19,
+      "hotel_name": "Naama Bay Hotel & Resort",
+      "caption": "✈️ Туры в Naama Bay Hotel & Resort\n📍 Шарм-эль-Шейх, Египет\nПесчаный пляж примерно в 150 м, через дорогу. В отеле четыре открытых бассейна, горки для детей и взрослых и клуб для детей 4–12 лет.",
+      "cta": "Рассчитать на мои даты",
+      "source": {
+        "url": "https://max.ru/channel_anytour/AaG2GFxpMCA",
+        "publication_id": 539,
+        "photo_policy": "reuse_native_attachment",
+        "public_photo_visible": true
+      },
+      "offer": {
+        "id": "max_513",
+        "source_alias": "h1_f9a0bcf54ff0e9a28fc3cb00157aab88",
+        "attribution_macros_preserved": true
+      },
+      "proposed_target": null,
+      "protected_target": {
+        "url": "https://max.ru/anytour/AaCz6C1IGtk",
+        "mid": "mid.ffffc1752b045fed01a0b3e82d481ad9",
+        "reason": "отзывы отдыхавших туристов в одной из частей подборки"
+      },
+      "next_gate": "select_alternative_existing_target",
+      "source_native_evidence": null
+    },
+    {
+      "exact_id": 2470,
+      "priority_rank": 20,
+      "hotel_name": "Sun Siyam Olhuveli",
+      "caption": "✈️ Туры в Sun Siyam Olhuveli\n📍 Южный Мале, Мальдивы\nПляжи, бассейны и водные развлечения. Для семей есть детский клуб и подходящие номера и виллы. Отдельная зона Romance предназначена для взрослых.",
+      "cta": "Рассчитать на мои даты",
+      "source": {
+        "url": "https://max.ru/channel_anytour/AaHlf5z_ODQ",
+        "publication_id": 1468,
+        "photo_policy": "reuse_native_attachment",
+        "public_photo_visible": true
+      },
+      "offer": {
+        "id": "max_2470",
+        "source_alias": "h1_f6ff5a979401dbe0a1a4d6eb763fe29a",
+        "attribution_macros_preserved": true
+      },
+      "proposed_target": {
+        "url": "https://max.ru/anytour/AaC42fW_AY0",
+        "mid": "mid.ffffc1752b045fed01a0b8d9f5bf018d",
+        "published_ms": 1789807687103,
+        "archive_fingerprint": "737aabd9ac6837e47e3d2e0f768f2386db5a93c11d24203be57d092b5f410c8a"
+      },
+      "protected_target": null,
+      "next_gate": "prove_previous_target_advertising_continuity",
+      "source_native_evidence": {
+        "version": 13413,
+        "legacy_identity_sha256": "2ee1236d1296ef9f24a752506555ddd5d03f9f2de6ab681c192202aa5569bc34"
+      },
+      "prior_target_context": {
+        "description": "Vinpearl Empire Nha Trang",
+        "observed_external_link_hosts": [
+          "apps.apple.com"
+        ],
+        "active_inbound_advertising": "unverified"
+      }
+    },
+    {
+      "exact_id": 56092,
+      "priority_rank": 21,
+      "hotel_name": "Gravity Hotel & Aqua Park Hurghada",
+      "caption": "✈️ Туры в Gravity Hotel & Aqua Park Hurghada\n📍 Хургада, Египет\nСобственный пляж у лагуны и аквапарк с десятью горками. Помимо основного ресторана работают итальянский La Piazza и азиатский Akina.",
+      "cta": "Рассчитать на мои даты",
+      "source": {
+        "url": "https://max.ru/channel_anytour/AaGeilyCad0",
+        "publication_id": 283,
+        "photo_policy": "reuse_native_attachment",
+        "public_photo_visible": true
+      },
+      "offer": {
+        "id": "max_56092",
+        "source_alias": "h1_f8a64964fafb102a6f0c82703205f9b2",
+        "attribution_macros_preserved": true
+      },
+      "proposed_target": {
+        "url": "https://max.ru/anytour/AaDD8UQLQ4U",
+        "mid": "mid.ffffc1752b045fed01a0c3f1440b4385",
+        "published_ms": 1789993763851,
+        "archive_fingerprint": "3daf2a678a4fd0557ea60a9aaf72478cd1d3acb28722867566d6264b5ffa223e"
+      },
+      "protected_target": null,
+      "next_gate": "prove_previous_target_advertising_continuity",
+      "source_native_evidence": {
+        "version": 12862,
+        "legacy_identity_sha256": "f9a989f2a9b606336b5b534307ce5a230a57b5111f9d52200afdf266029af10f"
+      },
+      "prior_target_context": {
+        "description": "Fairmont Fujairah Beach Resort",
+        "observed_external_link_hosts": [
+          "anytour.online",
+          "telegram.me",
+          "vk.com",
+          "apps.apple.com",
+          "play.google.com"
+        ],
+        "active_inbound_advertising": "unverified"
+      }
+    },
+    {
+      "exact_id": 59114,
+      "priority_rank": 22,
+      "hotel_name": "Akdora Elite Hotel & Spa",
+      "caption": "✈️ Туры в Akdora Elite Hotel & Spa\n📍 Сиде, Турция\nДо собственного песчаного пляжа около 300 м. На территории открытые бассейны и спа. Рядом стройка, возможен шум.",
+      "cta": "Рассчитать на мои даты",
+      "source": {
+        "url": "https://max.ru/channel_anytour/AaHcqEDjA3Y",
+        "publication_id": 1374,
+        "photo_policy": "reuse_native_attachment",
+        "public_photo_visible": true
+      },
+      "offer": {
+        "id": "max_59114",
+        "source_alias": "h1_43c901391df4e5c2132497a01db66fca",
+        "attribution_macros_preserved": true
+      },
+      "proposed_target": {
+        "url": "https://max.ru/anytour/AaDYcRGJKpQ",
+        "mid": "mid.ffffc1752b045fed01a0d87111892a94",
+        "published_ms": 1790337683849,
+        "archive_fingerprint": "29e99e1737fe183e5c13269cfde5ea8b5eb3376d512efced12a2863b7c436243"
+      },
+      "protected_target": null,
+      "next_gate": "prove_previous_target_advertising_continuity",
+      "source_native_evidence": {
+        "version": 13824,
+        "legacy_identity_sha256": "bab7cf2ae726b257097b07e5586f2b21deca435689994799053dd4c8f5c52b31"
+      },
+      "prior_target_context": {
+        "description": "подборка по акции 2+2 в Катаре",
+        "observed_external_link_hosts": [],
+        "active_inbound_advertising": "unverified"
+      }
+    },
+    {
+      "exact_id": 63191,
+      "priority_rank": 23,
+      "hotel_name": "Jumeirah Saadiyat Island",
+      "caption": "✈️ Туры в Jumeirah Saadiyat Island\n📍 Саадият, Абу-Даби, ОАЭ\nПесчаный пляж, бассейны и просторные номера. Для детей и подростков есть отдельные клубы, для взрослых — спа и рестораны у моря.",
+      "cta": "Рассчитать на мои даты",
+      "source": {
+        "url": "https://max.ru/channel_anytour/AaHlgTobEZw",
+        "publication_id": 1496,
+        "photo_policy": "reuse_native_attachment",
+        "public_photo_visible": true
+      },
+      "offer": {
+        "id": "max_63191",
+        "source_alias": "h1_b0abe530d9ef80315f4ce241ee2acd1c",
+        "attribution_macros_preserved": true
+      },
+      "proposed_target": {
+        "url": "https://max.ru/anytour/AaELd0cFVAQ",
+        "mid": "mid.ffffc1752b045fed01a10b7747055404",
+        "published_ms": 1791193728773,
+        "archive_fingerprint": "46e816edf55ef86c71d58b25e78ea26d26fe5ee87444f2d2fba87d50b3d136af"
+      },
+      "protected_target": null,
+      "next_gate": "prove_previous_target_advertising_continuity",
+      "source_native_evidence": {
+        "version": 13736,
+        "legacy_identity_sha256": "a8182db4f62ebd0a2a4ac2f0d76e8407fb60c15112ed5e79b1a21660cbd91051"
+      },
+      "prior_target_context": {
+        "description": "подборка туров на Фукуок",
+        "observed_external_link_hosts": [],
+        "active_inbound_advertising": "unverified"
+      }
+    },
+    {
+      "exact_id": 76588,
+      "priority_rank": 24,
+      "hotel_name": "Liu Resorts",
+      "caption": "✈️ Туры в Liu Resorts\n📍 Сиде, Турция\nСобственный песчаный пляж примерно в 300 м. В Breeze выступают живые группы и диджеи. Для поездки вдвоём можно рассмотреть Superior Corner с видом на море.",
+      "cta": "Рассчитать на мои даты",
+      "source": {
+        "url": "https://max.ru/channel_anytour/AaG2zkytfiM",
+        "publication_id": 718,
+        "photo_policy": "reuse_native_attachment",
+        "public_photo_visible": true
+      },
+      "offer": {
+        "id": "max_76588",
+        "source_alias": "h1_a710b1b43c4287fe5e8f8c11bcb9b887",
+        "attribution_macros_preserved": true
+      },
+      "proposed_target": {
+        "url": "https://max.ru/anytour/AaEba-dgJKk",
+        "mid": "mid.ffffc1752b045fed01a11b6be76024a9",
+        "published_ms": 1791461418848,
+        "archive_fingerprint": "f5725724b78bb616225f2171dc4878201c1cd842aa4d7f3d96bf3f58f03c03dd"
+      },
+      "protected_target": null,
+      "next_gate": "prove_previous_target_advertising_continuity",
+      "source_native_evidence": {
+        "version": 13262,
+        "legacy_identity_sha256": "4badb66291610e50ab5124eb67a52c72a9bf969a1a77603db32a656abadedc08"
+      },
+      "prior_target_context": {
+        "description": "Srnty Sun Ray (бывший Serenity Alma Heights)",
+        "observed_external_link_hosts": [],
+        "active_inbound_advertising": "unverified"
+      }
+    },
+    {
+      "exact_id": 77914,
+      "priority_rank": 25,
+      "hotel_name": "Sunrise Tucana Resort",
+      "caption": "✈️ Туры в Sunrise Tucana Resort\n📍 Хургада, Египет\nСобственный пляж и рестораны с обслуживанием по меню. Для отдыха с детьми есть клуб для ребят от 3 до 12 лет.",
+      "cta": "Рассчитать на мои даты",
+      "source": {
+        "url": "https://max.ru/channel_anytour/AaGc6ZyuFlA",
+        "publication_id": 181,
+        "photo_policy": "reuse_native_attachment",
+        "public_photo_visible": true
+      },
+      "offer": {
+        "id": "max_77914",
+        "source_alias": "h1_464e4ce1c4a476d9f8a9b7e1fb3dad4a",
+        "attribution_macros_preserved": true
+      },
+      "proposed_target": {
+        "url": "https://max.ru/anytour/AaEl-MVcT8Q",
+        "mid": "mid.ffffc1752b045fed01a125f8c55c4fc4",
+        "published_ms": 1791638422876,
+        "archive_fingerprint": "db6e6af8df6138f132a927485f4b72b7864399866bfe21d9d066254a51974873"
+      },
+      "protected_target": null,
+      "next_gate": "prove_previous_target_advertising_continuity",
+      "source_native_evidence": {
+        "version": 13544,
+        "legacy_identity_sha256": "8d4ba079aa6268260f5087dcab2779082308211bd400e823bf086cdbfde20fc3"
+      },
+      "prior_target_context": {
+        "description": "Hilton Salwa Beach Resort & Villas",
+        "observed_external_link_hosts": [],
+        "active_inbound_advertising": "unverified"
+      }
+    },
+    {
+      "exact_id": 106,
+      "priority_rank": 26,
+      "hotel_name": "Aladdin Beach Resort",
+      "caption": "✈️ Туры в Aladdin Beach Resort\n📍 Хургада, Египет\nОтель на первой линии с песчано-галечным пляжем. По вечерам проходят шоу и выступают музыканты.",
+      "cta": "Рассчитать на мои даты",
+      "source": {
+        "url": "https://max.ru/channel_anytour/AaG3snxOWfo",
+        "publication_id": 1042,
+        "photo_policy": "reuse_native_attachment",
+        "public_photo_visible": true
+      },
+      "offer": {
+        "id": "max_106",
+        "source_alias": "h1_ffd75d0ae4d3b308154fa24f436f95b7",
+        "attribution_macros_preserved": true
+      },
+      "proposed_target": {
+        "url": "https://max.ru/anytour/AaEwSMavEQU",
+        "mid": "mid.ffffc1752b045fed01a13048c6af1105",
+        "published_ms": 1791811438255,
+        "archive_fingerprint": "0907be808fe30854293c6edf63c403c4221fc7801909e927404474658fd70dc2"
+      },
+      "protected_target": null,
+      "next_gate": "prove_previous_target_advertising_continuity",
+      "source_native_evidence": {
+        "version": 14169,
+        "legacy_identity_sha256": "48a66bdc68037f2c31ba6f844b1af9ea2ba0197167766bf473d74aedc0052dd6"
+      },
+      "prior_target_context": {
+        "description": "подборка туров в Фантьет",
+        "observed_external_link_hosts": [],
+        "active_inbound_advertising": "unverified"
+      }
+    },
+    {
+      "exact_id": 111,
+      "priority_rank": 27,
+      "hotel_name": "Pickalbatros Palace Resort Hurghada",
+      "caption": "✈️ Туры в Pickalbatros Palace Resort Hurghada\n📍 Хургада, Египет\nСобственный пляж, четыре бассейна и пять детских горок для ребят от 4 до 12 лет. Два бассейна подогревают с ноября по апрель в зависимости от погоды.",
+      "cta": "Рассчитать на мои даты",
+      "source": {
+        "url": "https://max.ru/channel_anytour/AaGisi-ve3Q",
+        "publication_id": 355,
+        "photo_policy": "reuse_native_attachment",
+        "public_photo_visible": true
+      },
+      "offer": {
+        "id": "max_111",
+        "source_alias": "h1_b25fef02b0842659d3da3dbe12e66f76",
+        "attribution_macros_preserved": true
+      },
+      "proposed_target": {
+        "url": "https://max.ru/anytour/AaE0q57XSGk",
+        "mid": "mid.ffffc1752b045fed01a134ab9ed74869",
+        "published_ms": 1791885024983,
+        "archive_fingerprint": "28cdc2545fb89806feee400a6acb5cb892db1c9c0e6c17b87bae69c984c70d16"
+      },
+      "protected_target": null,
+      "next_gate": "prove_previous_target_advertising_continuity",
+      "source_native_evidence": {
+        "version": 13865,
+        "legacy_identity_sha256": "ce68d271e3f8cdb99649d296ff3e8cc092579a4b0d278ac2969620e5d9ac7796"
+      },
+      "prior_target_context": {
+        "description": "новогодняя подборка по Египту",
+        "observed_external_link_hosts": [],
+        "active_inbound_advertising": "unverified"
+      }
+    },
+    {
+      "exact_id": 114,
+      "priority_rank": 28,
+      "hotel_name": "Ali Baba Palace",
+      "caption": "✈️ Туры в Ali Baba Palace\n📍 Хургада, Египет\nСобственный песчаный пляж. У входа в море встречается галька, поэтому для купания удобно взять специальную обувь.",
+      "cta": "Рассчитать на мои даты",
+      "source": {
+        "url": "https://max.ru/channel_anytour/AaG3soUIZh0",
+        "publication_id": 1043,
+        "photo_policy": "reuse_native_attachment",
+        "public_photo_visible": true
+      },
+      "offer": {
+        "id": "max_114",
+        "source_alias": "h1_17116714af190238cf991ca60d867ae6",
+        "attribution_macros_preserved": true
+      },
+      "proposed_target": {
+        "url": "https://max.ru/anytour/AaE6sgknSuc",
+        "mid": "mid.ffffc1752b045fed01a13ab209274ae7",
+        "published_ms": 1791986108711,
+        "archive_fingerprint": "f490eaff0990f02815f154b52aa6c0f8955211f348768498c0eaffc2cb28e0e3"
+      },
+      "protected_target": null,
+      "next_gate": "prove_previous_target_advertising_continuity",
+      "source_native_evidence": {
+        "version": 14055,
+        "legacy_identity_sha256": "3bc57bf282332540f333fc71444bcdd8724d88ef1e9cf28e1ba870d7709d37b5"
+      },
+      "prior_target_context": {
+        "description": "подборка туров в Унаватуну",
+        "observed_external_link_hosts": [],
+        "active_inbound_advertising": "unverified"
+      }
+    }
+  ],
+  "native_read": {
+    "run_id": 45506100672,
+    "job_id": 138841614301,
+    "artifact_id": 14973573608,
+    "artifact_sha256": "c3c52b4a082a6775e73b4ff32b034d286858e0183ad18c33b6bcd818ad5a634b",
+    "application_sha": "7b96c69c1f6974fb6ff09f52551a4581ffcdf171",
+    "observed_utc": "2026-11-24T23:00:47Z",
+    "writes": 0
+  },
+  "editor_validator": {
+    "run_id": 45506346917,
+    "job_id": 138842432247,
+    "validator_ref": "b62a8739ab56d1b7930c71b0b21e6c49837cb782",
+    "accepted_pairs": 12,
+    "writes": 0
+  }
+}
