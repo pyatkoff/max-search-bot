@@ -1,4 +1,4 @@
-name: Read host HTTP health for hotel release
+name: Read host HTTP health for PR1702
 on:
   push:
     branches: [audit/1566-next-release-admission-1664]
@@ -6,7 +6,7 @@ on:
 permissions: {}
 jobs:
   read:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -55,7 +55,9 @@ jobs:
             -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$USER_VALUE@$HOST_VALUE" 'bash -s' <<'REMOTE'
           set -eu
           cd /var/www/anytoour/data/www/app.anytoour.ru
-          printf 'checkout='; git rev-parse HEAD
+          current="$(git rev-parse HEAD)"
+          test "$current" = 32155b9eb2c8606b61554951bfdc988d70bbcb39
+          printf 'checkout=%s\n' "$current"
           probe() {
             label="$1"
             shift
