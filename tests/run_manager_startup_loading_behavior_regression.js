@@ -38,6 +38,29 @@ test('early 401 opens recovery at boot and a fresh login can use the workspace',
   assert.equal(h.calls.filter(call=>call.action==='me').length,1);
 });
 
+test('reload restores the authorized chat and its draft while the Inbox is still loading',async()=>{
+  const previous=createHarness({inbox:true});await previous.start();await previous.draft('Saved before reload');
+  const h=createHarness({inbox:true,storage:previous.storage}),list=deferred(),detail=deferred(),requested=deferred();
+  h.setHook((url,r)=>{
+    if(r.action==='list')return list.promise;
+    if(url==='api.php'&&r.action==='detail'){requested.resolve();return detail.promise;}
+  });
+  const boot=h.start({open:false});
+  try{
+    await within(requested.promise);
+    assert.equal(h.calls[0].action,'me');assert.equal(h.W.S.current,0);
+    assert.equal(h.ids.get('replyText').value,'');assert.equal(hidden(h),true);
+    detail.resolve(response({ok:true,conversation:h.conversation,messages:[]}));await within(boot);
+    assert.equal(h.W.S.current,101);assert.equal(h.ids.get('replyText').value,'Saved before reload');
+    assert.equal(hidden(h),false);assertNoMutations(h);
+  }finally{
+    detail.resolve(response({ok:true,conversation:h.conversation,messages:[]}));
+    list.resolve(response({ok:true,conversations:[]}));
+    await boot;
+  }
+  assert.equal(h.W.S.current,101);
+});
+
 for(const failure of ['forbidden','network'])test('early '+failure+' is retried only on explicit boot',async()=>{
   const read=()=>failure==='network'?Promise.reject(new Error('offline')):response({ok:false},403);
   const h=createHarness({inbox:true,earlyIdentity:read});await new Promise(setImmediate);

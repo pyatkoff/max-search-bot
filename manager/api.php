@@ -94,9 +94,7 @@ if($action==='list'){
     $rows=ManagerConversationService::list($actor,$queue,100,(string)($data['project_key']??'*'),$isAdmin?(string)($data['manager_filter']??''):'');
     $rows=ManagerQueueProjectionService::actionableRows($queue,$rows);
     $rows=ManagerConversationService::displayRows(ManagerAiInboxStatusService::decorate($rows,$actor));
-    if(!session_start(['read_and_close'=>true])||ManagerHttp::managerId()!==$actor||!ManagerHttp::validCsrf((string)$data['csrf'])){
-        out(['ok'=>false,'error'=>'unauthorized'],401);
-    }
+    ManagerHttp::revalidateSession($actor,(string)$data['csrf']);
     out(['ok'=>true,'conversations'=>$rows]);
 }
 if($action==='counts'){
@@ -276,6 +274,7 @@ if($action==='send_receipt'||$action==='cancel_send_attempt'){
     if(array_key_exists('expected_manager_id',$data)&&(!is_int($data['expected_manager_id'])||$data['expected_manager_id']!==(int)$m['id']))out(['ok'=>false,'error'=>'actor_changed'],409);
     $id=$data['operation_id']??null;$conversationId=$data['conversation_id']??null;
     if(!is_string($id)||!is_int($conversationId))out(['ok'=>false,'error'=>'invalid_send_attempt'],400);
+    if(session_status()===PHP_SESSION_ACTIVE)session_write_close();
     $result=$action==='send_receipt'?ManagerSendAttemptService::receipt((int)$m['id'],$conversationId,$id):ManagerSendAttemptService::cancel((int)$m['id'],$conversationId,$id);
     out($result,isset($result['attempt'])?200:409);
 }
@@ -291,6 +290,8 @@ if($action==='send'){
     }
     if(array_key_exists('operation_id',$data)){
         if(!is_string($data['operation_id'])||!is_int($data['conversation_id']??null)||!is_string($data['text']??null))out(['ok'=>false,'error'=>'invalid_send_attempt'],400);
+        // The operation journal serializes replay. A slow provider must not lock the manager's other requests.
+        if(session_status()===PHP_SESSION_ACTIVE)session_write_close();
         $result=ManagerOutboundService::sendAttempt($data['conversation_id'],(int)$m['id'],$data['operation_id'],$data['text'],$draftId,$calculation);
         out($result,isset($result['attempt'])?200:409);
     }

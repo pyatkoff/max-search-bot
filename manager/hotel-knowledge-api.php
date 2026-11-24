@@ -22,7 +22,8 @@ try {
     unset($input['csrf'], $input['conversation_id'], $input['action']);
     session_write_close();
     $result = ManagerHotelKnowledgeReadService::read($actor, $conversation, $input, static function() use ($actor, $csrf): bool {
-        return session_start(['read_and_close'=>true]) && ManagerHttp::managerId() === $actor
+        ManagerHttp::resumeSession();
+        return ManagerHttp::managerId() === $actor
             && ManagerRequestContext::validCsrf((string)$csrf);
     });
     $status = !empty($result['ok']) ? 200 : match ($result['error'] ?? '') {
