@@ -184,6 +184,17 @@ and persistent connections are not replaced and report unavailable coverage.
 When `available=false`, zero observer counters mean **not measured**, not zero
 SQL work; only the original callback's duration is measured.
 
+The opt-in capture also brackets the existing list probes with two resource
+samples and publishes fixed aggregate fields under `manager.resource_profile`.
+It reads CPU ticks and available-memory percentages on Linux and requests an
+allowlist of global MySQL status variables over the same PDO. The interval
+includes the probes and their instrumentation. The MySQL counters are global
+and the CPU figures cover the visible Linux host. Missing metrics or observed
+counter decreases are null. The InnoDB row-lock time delta is in milliseconds.
+Compare these samples with background-job timestamps. This capture does not
+identify the worker responsible for contention, measure FPM pool saturation or
+sample live HTTP requests.
+
 Each capture is one sample with uncontrolled cache state, not p50/p95, database
 internal execution time, browser latency or an SLA. Compare only like scenarios
 with explicit coverage and instrumentation state; retain the existing encrypted

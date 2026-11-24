@@ -176,6 +176,96 @@ final class ManagerReadProfile
     }
 }
 
+/**
+ * Optional, host-wide resource evidence for the existing CLI list probes.
+ * Each sample adds one bounded MySQL status read and two bounded procfs reads.
+ */
+final class ManagerReadProfileResources
+{
+    private const GAUGES = ['threads_running', 'threads_connected', 'innodb_row_lock_current_waits'];
+    private const COUNTERS = ['innodb_row_lock_waits', 'innodb_row_lock_time', 'created_tmp_disk_tables', 'slow_queries'];
+
+    public static function sample(PDO $pdo): array
+    {
+        $started = hrtime(true);
+        $status = [];
+        try {
+            if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
+                $names = implode("','", [...self::GAUGES, ...self::COUNTERS, 'uptime']);
+                $statement = $pdo->query("SHOW GLOBAL STATUS WHERE Variable_name IN ('$names')");
+                if ($statement !== false) {
+                    foreach ($statement->fetchAll(PDO::FETCH_KEY_PAIR) as $name => $value) {
+                        $value = filter_var($value, FILTER_VALIDATE_INT, ['options'=>['min_range'=>0]]);
+                        if ($value !== false) { $status[strtolower((string)$name)] = $value; }
+                    }
+                    $statement->closeCursor();
+                }
+            }
+        } catch (PDOException $ignored) {
+            // Missing metrics never fail the existing manager-list capture.
+        }
+
+        $cpu = null;
+        $available = null;
+        if (PHP_OS_FAMILY === 'Linux') {
+            $stat = (string)@file_get_contents('/proc/stat', false, null, 0, 1024);
+            if (preg_match('/\Acpu[ \t]+((?:[0-9]+[ \t]+){3,}[0-9]+)[ \t]*\r?\n/', $stat, $match)) {
+                // guest and guest_nice are already included in user and nice.
+                $ticks = array_map('intval', array_slice(preg_split('/[ \t]+/', $match[1]), 0, 8));
+                $cpu = ['total'=>array_sum($ticks), 'idle'=>$ticks[3]+($ticks[4]??0)];
+            }
+            $meminfo = (string)@file_get_contents('/proc/meminfo', false, null, 0, 4096);
+            if (preg_match('/^MemTotal:\s+([0-9]+) kB$/m', $meminfo, $total)
+                && preg_match('/^MemAvailable:\s+([0-9]+) kB$/m', $meminfo, $free)
+                && (int)$total[1] > 0 && (int)$free[1] <= (int)$total[1]) {
+                $available = round(100 * (int)$free[1] / (int)$total[1], 2);
+            }
+        }
+
+        return [
+            'monotonic_ns'=>$started, 'sampled_at_utc'=>gmdate('c'),
+            'mysql_status'=>$status, 'cpu_ticks'=>$cpu, 'memory_available_pct'=>$available,
+        ];
+    }
+
+    public static function summarize(array $before, array $after): array
+    {
+        $elapsed = max(0, ($after['monotonic_ns'] - $before['monotonic_ns']) / 1e6);
+        $first = $before['mysql_status'];
+        $last = $after['mysql_status'];
+        $gauges = [];
+        foreach (self::GAUGES as $name) {
+            $gauges[$name] = ['before'=>$first[$name]??null, 'after'=>$last[$name]??null];
+        }
+        $uptime = self::increase($first['uptime']??null, $last['uptime']??null);
+        $deltas = [];
+        foreach (self::COUNTERS as $name) {
+            $deltas[$name] = $uptime === null ? null : self::increase($first[$name]??null, $last[$name]??null);
+        }
+
+        $cpuBefore = $before['cpu_ticks'];
+        $cpuAfter = $after['cpu_ticks'];
+        $total = self::increase($cpuBefore['total']??null, $cpuAfter['total']??null);
+        $idle = self::increase($cpuBefore['idle']??null, $cpuAfter['idle']??null);
+
+        return [
+            'scope'=>'host_and_mysql_global_during_manager_list_probes',
+            'started_at_utc'=>$before['sampled_at_utc'], 'ended_at_utc'=>$after['sampled_at_utc'],
+            'elapsed_ms'=>round($elapsed, 3),
+            'host'=>[
+                'cpu_non_idle_pct'=>$total > 0 && $idle !== null && $idle <= $total ? round(100 * ($total-$idle) / $total, 2) : null,
+                'memory_available_pct'=>['before'=>$before['memory_available_pct'], 'after'=>$after['memory_available_pct']],
+            ],
+            'mysql'=>['gauges'=>$gauges, 'global_counter_deltas'=>$deltas],
+        ];
+    }
+
+    private static function increase(?int $before, ?int $after): ?int
+    {
+        return $before !== null && $after !== null && $after >= $before ? $after - $before : null;
+    }
+}
+
 final class ManagerReadProfileStatement extends PDOStatement
 {
     private ?int $record;

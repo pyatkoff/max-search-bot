@@ -15,6 +15,7 @@ $fixtures['production.json']['paid_daily']=['ok'=>true,'days'=>[['date'=>'2026-0
 $fixtures['production.json']['channel_daily']=['ok'=>true,'days'=>[['date'=>'2026-08-27','channels'=>[['channel'=>'telegram','new_conversations'=>3]]]]];
 $fixtures['production.json']['manager_ai_feedback']=['ok'=>true,'error'=>null,'generated_at'=>'2026-08-27T17:00:00Z','complete'=>false,'draft_limit_reached'=>true,'message_limit_reached'=>false,'counts'=>[],'window'=>['since'=>'2026-08-20 17:00:00','until'=>'2026-08-27 17:00:00','timezone'=>'UTC','days'=>7,'basis'=>'persisted_generation_cohort'],'limits'=>['draft_rows'=>1000,'message_rows'=>5000,'samples'=>10,'sample_characters'=>2000],'private_canary'=>'PRIVATE AI SUMMARY'];
 $fixtures['production.json']['manager_ai_feedback_private']=[['proposed_text'=>'PRIVATE AI PROPOSAL','current_sent_text'=>'PRIVATE AI SENT','draft_id'=>str_repeat('a',32)]];
+$fixtures['production.json']['manager_resource_profile']=['scope'=>'host_and_mysql_global_during_manager_list_probes','elapsed_ms'=>200,'host'=>['cpu_non_idle_pct'=>43.2],'mysql'=>['global_counter_deltas'=>['innodb_row_lock_waits'=>null]]];
 $fixtures['production.json']['manager_visibility'][0]['load_ms']=['all'=>12.3,'mine'=>4.5,'waiting'=>2.1];
 $fixtures['production.json']['manager_mcp_discovery']=['sampled_count'=>1,'recent_attempts'=>[
     ['at'=>'2026-10-19T13:39:00Z','credential_header'=>'missing','http_status'=>401,'stage'=>'credentials','rpc_error'=>-32001]]];
@@ -66,6 +67,7 @@ file_put_contents($tmp.'/composed.json',$raw);
 $publicLines=[];exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg($root.'/tools/sanitize_public_diagnostics.php').' '.escapeshellarg($tmp.'/composed.json'),$publicLines,$publicCode);
 $publicRaw=implode("\n",$publicLines);$public=json_decode($publicRaw,true);
 aCheck('public diagnostics retain fixed-category MCP failure evidence',($public['manager_mcp_discovery']??null)===$fixtures['production.json']['manager_mcp_discovery']);
+aCheck('public diagnostics preserve aggregate opt-in resource evidence and explicit missing counters',($public['manager']['resource_profile']??null)===$fixtures['production.json']['manager_resource_profile']);
 aCheck('public diagnostics retain aggregate preparation health',($public['manager_preparation']??null)===$fixtures['production.json']['manager_preparation']);
 aCheck('actual public sanitizer preserves only the safe composed setup summary',$publicCode===0&&!empty($public['public_redacted'])&&($public['manager']['push_setup']??null)===$pushSetup&&!str_contains($publicRaw,'PRIVATE PUSH')&&!str_contains($publicRaw,'manager_id'));
 @unlink($tmp.'/composed.json');

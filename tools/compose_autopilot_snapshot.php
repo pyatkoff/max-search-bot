@@ -106,6 +106,7 @@ try{
             'architecture'=>'architecture_inventory.json',
         ],
     ];
+    if(isset($production['manager_resource_profile'])) $snapshot['manager']['resource_profile']=$production['manager_resource_profile'];
     if(isset($production['paid_daily'])) $snapshot['paid_daily']=$production['paid_daily'];
     if(isset($production['channel_daily'])) $snapshot['channel_daily']=$production['channel_daily'];
     if(is_array($production['manager_ai_feedback']??null)) $snapshot['manager_ai_feedback']=ManagerAiDraftFeedbackReport::publicSummary($production['manager_ai_feedback']);
