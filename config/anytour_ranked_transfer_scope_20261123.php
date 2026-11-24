@@ -380,5 +380,28 @@ final class AnyTourRankedHotelTransfer46
                 ],
             ],
         ],
+        'c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab' => [
+            'path' => 'config/anytour_stella_alternate_20261123.json',
+            'operation' => 'anytour_hotel_transfer_stella_alternate_20261123',
+            'native_preflight' => [
+                'run_id' => '45275242345',
+                'run_attempt' => 1,
+                'job_id' => 138045244207,
+                'read_head_sha' => '68b789067a576da57cf7ec16533f658e437f6e3c',
+                'source_run_id' => '45156882185',
+                'previous_apply_run_id' => '45272173038',
+            ],
+            'pairs' => [
+                466 => [
+                    'source' => '473',
+                    'source_publication' => 1047,
+                    'target' => '925',
+                    'date' => 1731241439,
+                    'registry_sha256' => 'd18f0ef5717051a20058b73e6cb5125c8d77f1803e7780b762c415a40687f28e',
+                    'caption_sha256' => '682eab065d04167a2ba1b0ed2e31fe37dba4f45bf6bdeb1cab0cc6653add8e5f',
+                    'file_id_sha256' => 'd977212dead5341218feecdcd4d36ce49933cc5c689b11dae4305912233453d9',
+                ],
+            ],
+        ],
     ];
 }

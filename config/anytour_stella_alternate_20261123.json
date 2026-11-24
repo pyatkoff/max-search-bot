@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "operation": "anytour_hotel_transfer_stella_alternate_20261123",
+  "execution": "explicit_owner_apply_only",
+  "native_preflight": {
+    "run_id": "45275242345",
+    "run_attempt": 1,
+    "job_id": 138045244207,
+    "read_head_sha": "68b789067a576da57cf7ec16533f658e437f6e3c",
+    "source_run_id": "45156882185",
+    "previous_apply_run_id": "45272173038"
+  },
+  "monitor_source_url": null,
+  "price_policy": "omit_previous_price_keep_hotel_calculation_button",
+  "rows": [
+    {
+      "hotel_id": 466,
+      "source_message_id": "473",
+      "source_publication_id": 1047,
+      "source_version_id": 14062,
+      "source_content_hash": "9a3d6b07d138d7c3e2840576e4ffaf024cb99d232818fb6ce878a3aba25e399e",
+      "source_caption_sha256": "589691c26a0474cff092fb9722dd5801e8a7d50837afd36061ace14c52401322",
+      "source_file_id_sha256": "d977212dead5341218feecdcd4d36ce49933cc5c689b11dae4305912233453d9",
+      "source_file_unique_id_sha256": "67b75790884123058feee3ea6ff198d4c0fc8d0e0a8a62f62f9199a0c226c034",
+      "target_message_id": "925",
+      "target_published_unixtime": 1731241439,
+      "target_caption_sha256": "f73587cf7dcc1fafa3c303bd8948dbafbdf3fc8ae07992acf5472e8f0d6a220e",
+      "target_photo_marker_sha256": "00581a7eaa9f78288dfc78567412b44ab4cd8b12ba195548a2cb3272f5a6573e",
+      "target_config_version": 2,
+      "next_caption": "✈️ Туры в STELLA MAKADI BEACH RESORT & SPA\n📍 Египет · Макади Бей\n\n• Собственный пляж на первой линии. Вход в море с понтона.\n\nУзнать стоимость тура",
+      "next_caption_sha256": "682eab065d04167a2ba1b0ed2e31fe37dba4f45bf6bdeb1cab0cc6653add8e5f",
+      "button_text": "✈️ Рассчитать на мои даты",
+      "bot_url": "https://t.me/anyru_bot",
+      "price_template": "",
+      "price_record_id": null,
+      "source_photo_marker_sha256": "961cf09e410f77e2de3be66a3ca90023cefc4b5aea2768442d36704c71d54799"
+    }
+  ]
+}

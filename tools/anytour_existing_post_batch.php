@@ -372,7 +372,8 @@ function transferPlanFromBytes(string $raw, string $approvedDigest, bool|string 
         && array_column($plan['rows'], 'hotel_id') === array_keys($pairs), 'transfer_plan_scope_invalid');
     $proof = $plan['native_preflight'];
     if (is_string($next)) {
-        requirePost(hash_equals($next, $approvedDigest) && $proof === AnyTourRankedHotelTransfer46::PROOF,
+        $approvedProof = transferRankedProfile($next)['native_preflight'] ?? AnyTourRankedHotelTransfer46::PROOF;
+        requirePost(hash_equals($next, $approvedDigest) && $proof === $approvedProof,
             'transfer_ranked_native_proof_changed');
     } elseif ($next) {
         // The read ran while an unrelated release was deploying. Pin both identities.
