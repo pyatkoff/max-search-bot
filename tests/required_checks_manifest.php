@@ -222,6 +222,7 @@ return [
         'php tests/run_promoted_hotel_price_writer_regression.php',
         'php tests/run_channel_post_max_album_recovery_regression.php',
         'php tests/run_channel_post_automation_regression.php',
+        'php tests/run_hotel_transfer_price_lineage_regression.php',
         'php tests/run_channel_post_telegram_album_regression.php',
         'php tests/test_channel_post_album_member_delivery.php',
         'php tests/run_channel_post_entry_regression.php',
