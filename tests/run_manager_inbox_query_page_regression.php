@@ -208,7 +208,13 @@ $projectCountRows=static function(array $rows,string $queue)use($countFields):ar
     return array_map(static fn(array $row):array=>array_intersect_key($row,array_flip($fields)),$rows);
 };
 $pdo->executions=0;$pdo->listWork=[];$pdo->annotations=0;$fullCountRows=[];
-foreach(['waiting','requested','mine'] as $queue)$fullCountRows[$queue]=ManagerConversationService::list(7,$queue,200,'anytour');
+foreach(['waiting','requested','mine'] as $queue){
+    $fullCountRows[$queue]=ManagerConversationService::list(7,$queue,200,'anytour');
+    if($queue==='waiting'||$queue==='mine'){
+        $listSql=str_replace('JSON_UNQUOTE(','(',$pdo->lastListSql);
+        queryPageCheck("{$queue} list reuses its canonical reply decision for the wait clock",substr_count($listSql,ManagerReplyQueueService::neededSql('c',false))===1);
+    }
+}
 $fullCountWork=['sql'=>$pdo->executions,'list'=>$pdo->listWork,'annotations'=>$pdo->annotations];
 echo 'COUNT_WORK before '.json_encode($fullCountWork,JSON_THROW_ON_ERROR)."\n";
 queryPageCheck('dedicated counter projection is available',is_callable([ManagerConversationService::class,'queueCountRows']));
