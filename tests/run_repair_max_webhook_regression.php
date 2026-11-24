@@ -102,6 +102,9 @@ try {
         && $inspectPackage($packageBytes,$packageDigest) === [0,$packageEqual,'']);
 } finally { unlink($packagePath); }
 
+require_once __DIR__.'/support/appleservice39_catalogue_switch.php';
+repairCatalogueSwitchChecks($packageBytes, $packageDigest, $changedPackageBytes, $catalog);
+
 foreach ($catalog as $entry) {
     $payload = AppleService39PilotCatalog::payloadForPost($entry['post_id']);
     repairCheck('canonical payload maps to reviewed model and service '.$entry['post_id'],

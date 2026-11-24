@@ -19,6 +19,18 @@ bad digest, a bad file or invalid catalogue exits 1. A CLI usage error exits
 requires the existing owner's authorization, installed-core compatibility
 and publication manifest checks for prices, source URLs and artwork.
 
+The repair webhook regression also exercises a switch and rollback in its own
+temporary directory. It copies the real catalogue reader and two immutable
+comparison files from AnyTour and Manager2, then switches a test pointer to
+a separately prepared package with one synthetic question change. The
+existing selection editor pointer and rollback primitives operate only on
+those temporary paths. Fresh PHP processes check the original, selected and
+restored bytes. A reader that opened the old package before the atomic
+rename can finish against the old bytes. Wrong digest, stale expected
+package, foreign operation and attempted repeat are checked in the same run.
+This is a filesystem and reader rehearsal. It is not admission or activation
+of AppleService39 files through the selection editor release workflow.
+
 ## Search-intent successor
 
 The fixed `search-intent-v1` source contains eight reviewed1254×1254 covers and
