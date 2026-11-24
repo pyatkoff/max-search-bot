@@ -2730,12 +2730,96 @@ async function rankedResumeOriginCases(){
   }
 }
 
-async function main(){await closedPrewriteOriginCases();await rankedResumeOriginCases();hotelRegistryReadWorkflow();await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
+async function rankedApprovedInputCases() {
+  const source={head_sha:H('native-reader'),job_id:100,step:'Read the hotel pairs',artifact_name:'telegram-ranked'};
+  const index={schema:1,native_source:source,native_zip_bytes:123,plans:[{sha256:'a'.repeat(64)}],
+    native_preflight:{run_id:'99',run_attempt:1,artifact_id:101,artifact_zip_sha256:'b'.repeat(64)}};
+  const entry={path:'config/anytour_test.json',sha256:crypto.createHash('sha256').update(JSON.stringify(index)).digest('hex')};
+  const branch='ops/anytour-hotel-ranked-plan-'+entry.sha256, head=H('approved-release');
+  let approvals=[entry];
+  const api=async(method,url)=>{
+    const pathname=url.split('/contents/')[1]?.split('?')[0];
+    const content=Buffer.from(JSON.stringify(pathname==='config/anytour_ranked_approved_indexes.json'?approvals:index));
+    return {type:'file',path:pathname,size:content.length,sha:R.gitBlob(content),encoding:'base64',content:content.toString('base64')};
+  };
+  equal((await R.approvedRankedInput(api,head,entry.sha256,branch)).native_source,source,'original HOTEL source comes from the release-approved index');
+  approvals=[]; await refuses(()=>R.approvedRankedInput(api,head,entry.sha256,branch),'ranked_input_not_approved');
+  approvals=[entry,entry]; await refuses(()=>R.approvedRankedInput(api,head,entry.sha256,branch),'ranked_input_not_approved');
+  approvals=[entry]; index.native_source.job_id=102;
+  await refuses(()=>R.approvedRankedInput(api,head,entry.sha256,branch),'ranked_input_proof_invalid');
+}
+async function rankedParentCases() {
+  const seed = 45372056681, child = seed + 10, leaf = child + 1;
+  const seedSha = 'e3e1a9bdf29dd0d7530fe6b3b393f1286834d092', head = H('ranked-child');
+  const chunk = '12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce';
+  function fixture() {
+    const runs = {}, jobs = {};
+    for (const id of [seed, child]) {
+      runs[id] = {id, run_attempt:1, path:'.github/workflows/edit-1566-ranked-46-historical-telegram.yml',
+        head_sha:id === seed ? seedSha : head, head_branch:id === seed ? 'ops/anytour-hotel-ranked-resume-20261124' :
+          'ops/anytour-hotel-ranked-after-' + seed, head_repository:{full_name:'pyatkoff/max-search-bot',id:1342493152},
+        repository:{id:1342493152}, event:'push', created_at:'2026-11-24T11:20:00Z', status:'completed', conclusion:'failure',
+        actor:{id:226193297}, triggering_actor:{id:226193297}};
+      jobs[id] = {id:id === seed ? 138368539666 : 138368539667, run_id:id, run_attempt:1, head_sha:runs[id].head_sha,
+        name:'transfer', status:'completed', conclusion:'failure', steps:[
+          step('Resolve accepted repository and application'),step('Require exact APPLY admission before loading credentials'),
+          step('Apply the installed editor once and retain its original receipts','failure'),
+          step('Save the original sanitized transfer result')
+        ]};
+    }
+    const receipt = {native_run_id:String(child), application_sha:head, plan_sha256:chunk, parent_run_id:String(seed)};
+    const summary = {state:'partial_requires_readback', unreached:[1013]};
+    const check = {plan_sha256:chunk, parent_run_id:String(seed)};
+    const files = {['result-' + chunk + '.json']:receipt, 'summary.json':{[chunk]:summary}, ['check-' + chunk + '.json']:check};
+    const bytes = execFileSync('python3', ['-c', [
+      'import io,json,sys,zipfile', 'data=io.BytesIO()',
+      'with zipfile.ZipFile(data,"w",zipfile.ZIP_DEFLATED) as archive:',
+      ' for name,body in json.load(sys.stdin).items(): archive.writestr(name,json.dumps(body))',
+      'sys.stdout.buffer.write(data.getvalue())'
+    ].join('\n')], {input:JSON.stringify(files)});
+    const artifact = {id:14920000000, expired:false, size_in_bytes:bytes.length, name:'issue-1566-hotel-ranked-46-transfer',
+      workflow_run:{id:child,head_sha:head,repository_id:1342493152,head_branch:runs[child].head_branch},
+      digest:'sha256:'+require('node:crypto').createHash('sha256').update(bytes).digest('hex')};
+    const inventory = {total_count:1, workflow_runs:[{id:child}]};
+    const api = async (method,path) => {
+      assert.strictEqual(method,'GET');
+      for (const run of Object.values(runs)) {
+        if (path.endsWith('/actions/runs/' + run.id)) return run;
+        if (path.includes('/actions/runs/' + run.id + '/attempts/1/jobs?')) return {total_count:1,jobs:[jobs[run.id]]};
+        if (path.includes('branch=' + encodeURIComponent(run.head_branch) + '&')) {
+          return run.id === child ? inventory : {total_count:1,workflow_runs:[{id:seed}]};
+        }
+      }
+      if (path.includes('/runs/' + child + '/artifacts?')) return {total_count:1,artifacts:[artifact]};
+      if (path.includes('/compare/' + seedSha + '...' + head)) return {status:'ahead',merge_base_commit:{sha:seedSha}};
+      throw Error('unrecognized ranked receipt request: '+path);
+    };
+    api.artifact = async () => bytes;
+    return {api,runs,jobs,artifact,inventory,receipt,summary};
+  }
+  const good=fixture(), current={id:String(leaf),sha:head};
+  const evidence=await R.rankedParentEvidence(good.api, String(child), current);
+  equal(evidence.parent_run_id,String(child),'ranked suffix binds its immediate parent');
+  equal(evidence.receipt,good.receipt,'ranked input uses original archive result');
+  equal(evidence.summary,good.summary,'ranked input uses original archive summary');
+  for (const mutate of [
+    f=>f.runs[child].run_attempt++, f=>f.runs[child].triggering_actor.id++, f=>f.runs[child].repository.id++,
+    f=>f.runs[child].head_branch='other', f=>f.jobs[child].steps[1].conclusion='failure',
+    f=>f.jobs[child].steps[3].conclusion='skipped', f=>f.runs[seed].head_sha=head,
+    f=>f.artifact.expired=true, f=>f.artifact.digest='sha256:'+'0'.repeat(64),
+    f=>f.artifact.workflow_run.id=seed, f=>f.inventory.workflow_runs.push({id:2}), f=>f.jobs[seed].id++
+  ]) {
+    const bad=fixture();mutate(bad);await assert.rejects(()=>R.rankedParentEvidence(bad.api,String(child),current));assertions++;
+  }
+  await assert.rejects(()=>R.rankedParentEvidence(good.api,String(child),{id:String(child),sha:head}));assertions++;
+}
+
+async function main(){await closedPrewriteOriginCases();await rankedApprovedInputCases();await rankedParentCases();await rankedResumeOriginCases();hotelRegistryReadWorkflow();await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_partial_install_1662_forward_regression.js')],{stdio:'inherit'});
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_exhausted_verify_1664_forward_regression.js')],{stdio:'inherit'});
   execFileSync('python3',[path.join(__dirname,'run_partial_install_1662_forward_sync.py')],{stdio:'inherit'});
   process.stdout.write('Deployment release regression: '+assertions+' assertions passed\n');}
-module.exports={closedPrewriteOriginCases,rankedResumeOriginCases,main,fixture,receipt,observation,installed,installNoopJobs,storedZip,terminalContinuationCases,publisherBodyRecoveryCases,max2HoldPairReadConsumer};
+module.exports={rankedParentCases,closedPrewriteOriginCases,rankedResumeOriginCases,main,fixture,receipt,observation,installed,installNoopJobs,storedZip,terminalContinuationCases,publisherBodyRecoveryCases,max2HoldPairReadConsumer};
 if(require.main===module)main().catch(e=>{process.stderr.write(String(e.stack||e)+'\n');process.exitCode=1;});
 
 

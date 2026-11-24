@@ -1283,7 +1283,7 @@ foreach (['public_before_claim','public_before_write','config_before_write','nat
 // No application secrets are loaded and native curl can never contact Telegram.
 foreach (['CURLOPT_SSL_VERIFYPEER','CURLOPT_SSL_VERIFYHOST','CURLOPT_RETURNTRANSFER','CURLOPT_FOLLOWLOCATION',
     'CURLOPT_CONNECTTIMEOUT','CURLOPT_TIMEOUT','CURLOPT_CUSTOMREQUEST','CURLOPT_HTTPHEADER',
-    'CURLOPT_WRITEFUNCTION','CURLOPT_POSTFIELDS','CURLINFO_HTTP_CODE'] as $index => $constant) {
+    'CURLOPT_WRITEFUNCTION','CURLOPT_POSTFIELDS','CURLINFO_HTTP_CODE','CURLINFO_TOTAL_TIME'] as $index => $constant) {
     define('HotelMediaApiFixture\\'.$constant, 20000 + $index);
 }
 $GLOBALS['hotel_media_http'] = [];
@@ -1296,11 +1296,15 @@ function curl_init(string $url): object { return (object)['url'=>$url,'options'=
 function curl_setopt_array(object $handle, array $options): bool { $handle->options=$options; return true; }
 function curl_exec(object $handle): bool {
     $GLOBALS['hotel_media_http'][]=['url'=>$handle->url,'options'=>$handle->options];
+    if (!empty($GLOBALS['hotel_media_fixture_timeout'])) return false;
     ($handle->options[CURLOPT_WRITEFUNCTION])($handle,'{"ok":true,"result":{"message_id":862}}');
     return true;
 }
-function curl_getinfo(object $handle, int $option): int { return 200; }
-function curl_errno(object $handle): int { return 0; }
+function curl_getinfo(object $handle, int $option): int|float {
+    if ($option === CURLINFO_TOTAL_TIME) return 15.012;
+    return empty($GLOBALS['hotel_media_fixture_timeout']) ? 200 : 0;
+}
+function curl_errno(object $handle): int { return empty($GLOBALS['hotel_media_fixture_timeout']) ? 0 : 28; }
 function curl_close(object $handle): void {}
 FIXTURE);
 $hotelTransportSource = (string)file_get_contents(__DIR__.'/../integrations/ChannelPostApiTransport.php');
@@ -1333,7 +1337,19 @@ channelPostCheck('hotel media preserves strict TLS, no redirects and original de
         HotelMediaApiFixture\CURLOPT_SSL_VERIFYPEER,HotelMediaApiFixture\CURLOPT_SSL_VERIFYHOST,
         HotelMediaApiFixture\CURLOPT_FOLLOWLOCATION,HotelMediaApiFixture\CURLOPT_CONNECTTIMEOUT,
         HotelMediaApiFixture\CURLOPT_TIMEOUT,HotelMediaApiFixture\CURLOPT_CUSTOMREQUEST]),
-    [true,2,false,2,6,'POST']);
+    [true,2,false,2,15,'POST']);
+$GLOBALS['hotel_media_fixture_timeout'] = true;
+$attemptCount = count($GLOBALS['hotel_media_http']);
+$timeoutResult = HotelMediaApiFixture\ChannelPostApiTransport::hotelMediaRequest('-1001845835645','862',$hotelMediaBody);
+channelPostCheck('uncertain hotel media edit saves numeric transport facts after exactly one attempt',
+    [$timeoutResult, count($GLOBALS['hotel_media_http']) - $attemptCount],
+    [['http'=>0, 'data'=>null, 'transport_error'=>true, 'curl_errno'=>28, 'elapsed_ms'=>15012], 1]);
+$ordinary = HotelMediaApiFixture\ChannelPostApiTransport::buttonRequest('telegram','POST','getMe',[],[]);
+$ordinaryWire = end($GLOBALS['hotel_media_http']);
+channelPostCheck('ordinary Telegram calls retain their time budget and response shape',
+    [$ordinaryWire['options'][HotelMediaApiFixture\CURLOPT_CONNECTTIMEOUT], $ordinaryWire['options'][HotelMediaApiFixture\CURLOPT_TIMEOUT], $ordinary],
+    [2,6,['http'=>0, 'data'=>null, 'transport_error'=>true]]);
+unset($GLOBALS['hotel_media_fixture_timeout']);
 
 $hotelMediaDeny = static function(string $case, array $body, string $channel='-1001845835645', string $mid='862'): void {
     $before=count($GLOBALS['hotel_media_http']);
@@ -1517,6 +1533,51 @@ foreach (['complete'=>[null,[],true],'wrong run'=>[0,['execution'=>[]],false],
     }
     fclose($receipt);
 }
+channelPostCheck('no-price HOTEL input excludes the previous monitor quote with a valid caption digest',
+    [AnyTour\ExistingPostBatch\transferCaptionOmitsMonitorPrice("Пляж\n💰 От 108 689 ₽ за двоих"),
+     AnyTour\ExistingPostBatch\transferCaptionOmitsMonitorPrice("Цена найдена мониторингом 19.11.2026, 09:18 МСК."),
+     AnyTour\ExistingPostBatch\transferCaptionOmitsMonitorPrice('В ресторане H2O ужинают под водой.')], [false,false,true]);
+$pricePath = tempnam(sys_get_temp_dir(), 'hotel-price-lease-');
+$owner = fopen($pricePath, 'rb'); $worker = fopen($pricePath, 'rb');
+try {
+    flock($owner, LOCK_SH);
+    channelPostCheck('data plan waits for the established PRICE owner without taking its lock',
+        AnyTour\ExistingPostBatch\acquireRankedPriceLease($worker,$pricePath,10),false);
+    flock($owner, LOCK_UN);
+    channelPostCheck('data plan acquires the same free inode before any row',
+        AnyTour\ExistingPostBatch\acquireRankedPriceLease($worker,$pricePath,10),true);
+    flock($worker,LOCK_UN);
+    rename($pricePath,$pricePath.'.old'); touch($pricePath);
+    try {AnyTour\ExistingPostBatch\acquireRankedPriceLease($worker,$pricePath,10); $reason = 'allowed';}
+    catch (RuntimeException $e) {$reason=$e->getMessage();}
+    channelPostCheck('an exchanged PRICE inode never grants a write',$reason,'transfer_price_lease_unknown');
+} finally {
+    fclose($worker); fclose($owner); unlink($pricePath);
+    if (is_file($pricePath.'.old')) unlink($pricePath.'.old');
+}
+// A later HOTEL plan can isolate one journaled timeout only against its own installed receipt.
+$indexPath = __DIR__.'/../config/anytour_ranked_index_45387052894.json';
+$newIndex = json_decode(file_get_contents($indexPath), true, 16, JSON_THROW_ON_ERROR);
+$newDigest = $newIndex['plans'][0]['sha256'];
+$newBytes = file_get_contents(__DIR__.'/../'.$newIndex['plans'][0]['path']);
+$newPlan = AnyTour\ExistingPostBatch\transferPlanFromBytes($newBytes, $newDigest, $newDigest);
+$newRow = $newPlan['rows'][0];
+$newContext = ['native_run_id'=>'12345', 'application_sha'=>str_repeat('a',40), 'approved_index_sha256'=>hash_file('sha256',$indexPath)];
+$newResult = array_replace($lostResult, ['hotel_id'=>$newRow['hotel_id'], 'message_id'=>$newRow['target_message_id']]);
+$newRequest = array_replace($lostRequest, ['message_id'=>(int)$newRow['target_message_id']]);
+$events = $evidence;
+$events[0] = array_replace($events[0], ['execution'=>$newContext, 'operation'=>$newPlan['operation'], 'row'=>$newRow, 'plan_sha256'=>$newDigest]);
+$events[1]['plan_sha256'] = $newDigest;
+$events[2] = array_replace($events[2], ['request'=>$newRequest, 'request_sha256'=>hash('sha256', json_encode($newRequest))]);
+$events[5] = $newResult;
+$file = tmpfile();
+foreach ($events as $event) AnyTour\ExistingPostBatch\transferJournal($file, $event);
+foreach (['release-approved'=>$newContext, 'foreign approval'=>array_replace($newContext,['approved_index_sha256'=>str_repeat('b',64)]),
+    'missing run'=>array_diff_key($newContext,['native_run_id'=>true])] as $case=>$context) {
+    channelPostCheck('data plan journal '.$case, AnyTour\ExistingPostBatch\transferTransportLossRecorded(
+        $file,$newRow,$newDigest,$context,$newResult), $case==='release-approved');
+}
+fclose($file);
 $existingDir = sys_get_temp_dir().'/ranked-previous-operation-'.bin2hex(random_bytes(10));
 mkdir($existingDir,0700);
 try {
@@ -1910,6 +1971,11 @@ try {
 } catch (RuntimeException $error) {
     channelPostCheck('MAX recovery refuses a previous write attempt', $error->getMessage(), 'max_transfer_original_journal_invalid');
 }
+
+require_once __DIR__ . '/support/ranked-unreached.php';
+\AnyTour\Tests\RankedUnreached\run($rankedTail, $rankedDigest);
+require_once __DIR__ . '/ranked_telegram_public_cases.php';
+\AnyTour\Tests\RankedPublicReadback\runCases();
 
 echo 'Channel post automation: ' . $passed . ' passed, ' . $failed . ' failed' . PHP_EOL;
 exit($failed === 0 ? 0 : 1);
