@@ -12,6 +12,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = "302ba66b5739e369a4df94471c8cfe9c054dd070"
+PR1702_MAIN = "32155b9eb2c8606b61554951bfdc988d70bbcb39"
 PR1692_MAIN = "cdde6f427f61bace3a5afbd943d2303f463d6531"
 PR1692_INSTALLED = "e3e1a9bdf29dd0d7530fe6b3b393f1286834d092"
 PRODUCTION = "/var/www/anytoour/data/www/app.anytoour.ru"
@@ -176,6 +177,23 @@ class ProductionSync(unittest.TestCase):
         self.assertEqual(calls[:2], ["scp", "ssh"])
         self.assertEqual(calls.count("http"), 1)
         self.assertEqual(calls[-1], "http")
+        self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.successor)
+
+    def test_pr1702_requires_public_containment_then_exact_physical_checkout_under_lock(self):
+        self.pin_checkout(PR1702_MAIN)
+        for status in ("200", "500", "timeout"):
+            self.calls.write_text("")
+            self.assertEqual(self.check_run(False, before=PR1702_MAIN, planned=PR1702_MAIN, first=status), ["http"])
+        self.calls.write_text("")
+        self.assertEqual(self.check_run(False, before=PR1702_MAIN, planned=BASE), [])
+        self.calls.write_text("")
+        calls = self.check_run(True, before=PR1702_MAIN, planned=PR1702_MAIN)
+        self.assertEqual(calls[:4], ["http", "scp", "ssh", "locked git rev-parse HEAD"])
+        self.assertEqual(calls[-1], "http")
+        self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.successor)
+        self.calls.write_text("")
+        self.assertEqual(self.check_run(False, before=PR1702_MAIN, planned=PR1702_MAIN),
+                         ["http", "scp", "ssh", "locked git rev-parse HEAD"])
         self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.successor)
 
     def test_pr1692_sync_from_accepted_checkout(self):
