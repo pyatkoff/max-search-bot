@@ -389,12 +389,12 @@ try {
     $race('assignment access lost',['access'=>false],null,403,'forbidden',2);
     $race('manager deactivated',['active'=>false],null,401,'unauthorized',2);
     $race('logout during provider',[],'logout',401,'unauthorized',1);
-    $race('CSRF rotates during provider',[],'rotate_csrf',401,'unauthorized',1);
+    $race('CSRF rotates during provider',[],'rotate_csrf',403,'csrf',1);
     $race('account changes during provider',[],'change_account',401,'unauthorized',1);
     $race('new message during passive preview',['latest_message_id'=>11,'revision'=>hash('sha256','preview-new-message')],null,409,'context_stale',2,['prepared_result'=>$stored],'prepared_preview');
     $race('access lost during passive preview',['access'=>false],null,403,'forbidden',2,['prepared_result'=>$stored],'prepared_preview');
     $race('logout during passive preview',[],'logout',401,'unauthorized',1,['prepared_result'=>$stored],'prepared_preview');
-    $race('CSRF rotates during passive preview',[],'rotate_csrf',401,'unauthorized',1,['prepared_result'=>$stored],'prepared_preview');
+    $race('CSRF rotates during passive preview',[],'rotate_csrf',403,'csrf',1,['prepared_result'=>$stored],'prepared_preview');
     $race('account changes during passive preview',[],'change_account',401,'unauthorized',1,['prepared_result'=>$stored],'prepared_preview');
     $race('new message during automatic request',['latest_message_id'=>11,'revision'=>hash('sha256','opening-new-message')],null,409,'context_stale',2,[],'ensure_prepared');
     $race('access lost during automatic request',['access'=>false],null,403,'forbidden',2,[],'ensure_prepared');

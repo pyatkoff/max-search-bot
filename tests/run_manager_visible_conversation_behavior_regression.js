@@ -274,6 +274,138 @@ test('response arriving after mobile Back is discarded without changing screen o
  const h=await setup({mobile:true}),pending=deferred();h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?pending.promise:null);const refresh=h.C.refreshVisible();await flush();h.window.WorkspaceV2Mobile.showInbox({historyMode:'none'});
  pending.resolve(response({ok:true,conversation:h.conversation,messages:[first,next]}));assert.equal(await refresh,false);assert.equal(h.W.S.detail.messages.length,1);assert.equal(h.window.WorkspaceV2Mobile.getScreen(),'inbox');
 });
+test('a rotated session token verifies the same manager before restoring an owned draft',async()=>{
+ const h=await setup(),check=deferred();await h.draft('Unsent text');const file={name:'draft.png'};h.setFile(file);
+ let failDetail=true;
+ h.intercept((url,r)=>{
+  if(url==='api.php'&&r.action==='me')return check.promise;
+  if(url==='api.php'&&r.action==='detail'&&failDetail){failDetail=false;return response({ok:false,error:'csrf'},403)}
+ });
+ assert.equal(await h.C.refreshVisible(),false);assert.equal(h.W.S.authExpired,true);assert.equal(hidden(h),true);
+ assert.equal(h.C.getSavedSelection(),101);assert.equal(h.ids.get('replyText').value,'Unsent text');
+ assert.equal(h.ids.get('managerAuthForm').classList.contains('hidden'),true);
+ check.resolve(response({...h.identity,csrf:'fresh-token'}));await flush();await flush();await flush();
+ assert.equal(h.W.S.authExpired,false);assert.equal(h.W.S.csrf,'fresh-token');assert.equal(h.W.S.current,101);assert.equal(hidden(h),false);
+ assert.equal(h.ids.get('replyText').value,'Unsent text');assert.equal(h.getFile(),file);assertNoMutations(h);
+});
+
+for(const checkResult of ['expired','other account','unchanged token'])test('a rejected '+checkResult+' identity check keeps the workspace locked',async()=>{
+ const h=await setup();await h.draft('Private reply');
+ h.intercept((url,r)=>{
+  if(url==='api.php'&&r.action==='detail')return response({ok:false,error:'csrf'},403);
+  if(url==='api.php'&&r.action==='me'){
+   if(checkResult==='expired')return response({ok:false,error:'unauthorized'},401);
+   if(checkResult==='other account')return response({...h.identity,manager:{...h.identity.manager,id:8},csrf:'other-token'});
+   return response(h.identity);
+  }
+ });
+ await h.C.refreshVisible();await flush();assert.equal(h.W.S.authExpired,true);assert.equal(hidden(h),true);assert.equal(h.W.S.manager.id,h.identity.manager.id);assertNoMutations(h);
+ assert.equal(h.ids.get('managerAuthForm').classList.contains('hidden'),checkResult==='unchanged token');
+});
+
+test('signing in as a different manager discards the previous attempt and selection',async()=>{
+ const h=await setup();await h.draft('Previous manager private reply');const other={...h.identity,manager:{...h.identity.manager,id:8},csrf:'second-account-token'};
+ h.intercept((url,r)=>{
+  if(url!=='api.php')return;
+  if(r.action==='send')return response({ok:false},502);
+  if(r.action==='detail')return response({ok:false,error:'csrf'},403);
+  if(r.action==='me'||r.action==='login')return response(other);
+ });
+ await h.C.sendReply();await h.C.refreshVisible();await flush();
+ assert.equal(h.W.S.authExpired,true);assert.equal(h.ids.get('managerAuthForm').classList.contains('hidden'),false);
+ const details=detailCount(h);await h.login();assert.equal(h.W.S.manager.id,8);assert.equal(h.W.S.current,0);assert.equal(h.C.getSavedSelection(),0);
+ assert.equal(h.ids.get('replyText').value,'');assert.equal(detailCount(h),details);assert.equal(h.calls.filter(r=>r.action==='send').length,1);assert.equal(h.calls.filter(r=>r.action==='send_receipt').length,0);
+});
+
+test('an unavailable identity check keeps the login form hidden and preserves a fenced send across retry',async()=>{
+ const h=await setup();await h.draft('Unconfirmed synthetic reply');const check=deferred();let identityReads=0;
+ h.intercept((url,r)=>{
+  if(url!=='api.php')return;
+  if(r.action==='send')return response({ok:false},502);
+  if(r.action==='detail'&&r.csrf!=='fresh-token')return response({ok:false,error:'csrf'},403);
+  if(r.action==='me')return ++identityReads===1?response({ok:false,error:'session_unavailable'},503):check.promise;
+ });
+ await h.C.sendReply();assert.equal(h.ids.get('sendReply').textContent,'Проверить отправку');
+ await h.C.refreshVisible();await flush();
+ const form=h.ids.get('managerAuthForm'),retry=h.ids.get('managerAuthRetry');
+ assert.equal(h.W.S.authExpired,true);assert.equal(form.classList.contains('hidden'),true);assert.equal(retry.classList.contains('hidden'),false);
+ retry.onclick();await flush();assert.equal(form.classList.contains('hidden'),true);
+ check.resolve(response({...h.identity,csrf:'fresh-token'}));await flush();await flush();await flush();
+ assert.equal(h.W.S.authExpired,false);assert.equal(h.W.S.current,101);assert.equal(h.ids.get('replyText').value,'Unconfirmed synthetic reply');
+ assert.equal(h.ids.get('sendReply').textContent,'Проверить отправку');assert.equal(h.calls.filter(r=>r.action==='send').length,1);
+});
+
+for(const checkResult of ['unavailable','unchanged token'])test('a manager can explicitly sign in after '+checkResult+' without losing an uncertain send',async()=>{
+ const h=await setup();await h.draft('Keep the original pending attempt');let failedLogin=true,failedDetail=true;
+ h.intercept((url,r)=>{
+  if(url!=='api.php')return;
+  if(r.action==='send')return response({ok:false},502);
+  if(r.action==='detail'&&failedDetail){failedDetail=false;return response({ok:false,error:'csrf'},403)}
+  if(r.action==='me')return checkResult==='unavailable'?response({ok:false,error:'session_unavailable'},503):response(h.identity);
+  if(r.action==='login')return failedLogin?response({ok:false,error:'invalid_credentials'},401):response({...h.identity,csrf:'new-token'});
+ });
+ await h.C.sendReply();const original=h.calls.find(r=>r.action==='send').operation_id;
+ await h.C.refreshVisible();await flush();
+ const choose=h.ids.get('managerAuthChooseLogin'),form=h.ids.get('managerAuthForm');
+ assert.equal(form.classList.contains('hidden'),true);assert.equal(choose.classList.contains('hidden'),false);
+ assert.equal(h.calls.some(r=>r.action==='login'),false);
+ choose.onclick();assert.equal(form.classList.contains('hidden'),false);assert.equal(choose.classList.contains('hidden'),true);
+ await h.login();assert.equal(h.W.S.authExpired,true);assert.equal(hidden(h),true);assert.equal(h.ids.get('managerAuthError').textContent,'Неверный логин или пароль.');
+ assert.equal(h.ids.get('replyText').value,'Keep the original pending attempt');
+ failedLogin=false;await h.login();assert.equal(h.W.S.authExpired,false);assert.equal(h.W.S.current,101);
+ assert.equal(h.ids.get('sendReply').textContent,'Проверить отправку');assert.equal(h.calls.filter(r=>r.action==='send').length,1);
+ await h.C.sendReply();
+ assert.equal(h.calls.filter(r=>r.action==='send').length,1);assert.equal(h.calls.find(r=>r.action==='send_receipt').operation_id,original);
+});
+
+test('a refreshed token reauthorizes the active transcript while its Inbox is pending',async()=>{
+ const h=await setup(),list=deferred();let rejected=false,reauthorized=false;
+ h.intercept((url,r)=>{
+  if(r.action==='list')return list.promise;
+  if(url!=='api.php')return;
+  if(r.action==='me')return response({...h.identity,csrf:'fresh-token'});
+  if(r.action==='detail'&&!rejected){rejected=true;return response({ok:false,error:'csrf'},403)}
+  if(r.action==='detail'&&r.csrf==='fresh-token')reauthorized=true;
+ });
+ try{
+  await h.C.refreshVisible();await flush();await flush();await flush();assert.equal(reauthorized,true);
+  assert.equal(h.W.S.authExpired,false);assert.equal(h.C.hasReadAccess(),true);assert.equal(hidden(h),false);assertNoMutations(h);
+ }finally{list.resolve(response({ok:true,conversations:[]}));await flush()}
+});
+
+test('a stalled identity check offers a retry; its late response cannot change the recovered session',async()=>{
+ const h=await setup(),late=deferred();let checks=0,deadline=null;
+ h.loadAsset('manager-time.js',{setTimeout(fn,ms){if(ms===12000)deadline=fn;return 1},clearTimeout(){}});
+ h.intercept((url,r)=>{
+  if(url!=='api.php')return;
+  if(r.action==='detail'&&r.csrf!=='fresh-token')return response({ok:false,error:'csrf'},403);
+  if(r.action==='me')return ++checks===1?late.promise:response({...h.identity,csrf:'fresh-token'});
+ });
+ await h.C.refreshVisible();await flush();assert.equal(typeof deadline,'function');deadline();await flush();
+ const retry=h.ids.get('managerAuthRetry');assert.equal(retry.classList.contains('hidden'),false);assert.equal(h.ids.get('managerAuthForm').classList.contains('hidden'),true);
+ retry.onclick();await flush();await flush();await flush();assert.equal(h.W.S.authExpired,false);
+ late.resolve(response({ok:false,error:'unauthorized'},401));await flush();assert.equal(h.W.S.authExpired,false);assert.equal(h.C.getSavedSelection(),101);assertNoMutations(h);
+});
+
+test('a refreshed token cannot reopen a chat whose access has been revoked',async()=>{
+ const h=await setup();await h.draft('Private reply');h.setFile({name:'private.png'});
+ h.intercept((url,r)=>{
+  if(url==='api.php'&&r.action==='me')return response({...h.identity,csrf:'fresh-token'});
+  if(url==='api.php'&&r.action==='detail')return r.csrf==='fresh-token'?response({ok:false,error:'not_found'},404):response({ok:false,error:'csrf'},403);
+ });
+ await h.C.refreshVisible();await flush();await flush();await flush();
+ assert.equal(h.W.S.authExpired,false);assert.equal(h.C.hasReadAccess(),false);assert.equal(hidden(h),true);
+ assert.equal(h.C.getSavedSelection(),0);assert.equal(h.ids.get('replyText').value,'');assert.equal(h.getFile(),null);assertNoMutations(h);
+});
+
+test('a token rejection on send keeps the original attempt fenced after identity recovery',async()=>{
+ const h=await setup();const check=deferred();await h.draft('Unsent reply after token rotation');
+ h.intercept((url,r)=>url==='api.php'&&r.action==='send'?response({ok:false,error:'csrf'},403):url==='api.php'&&r.action==='me'?check.promise:null);
+ await h.C.sendReply();assert.equal(h.W.S.authExpired,true);assert.equal(hidden(h),true);check.resolve(response({...h.identity,csrf:'fresh-token'}));await flush();await flush();await flush();
+ assert.equal(h.W.S.authExpired,false);assert.equal(h.W.S.current,101);assert.equal(h.ids.get('replyText').value,'Unsent reply after token rotation');
+ assert.equal(h.calls.filter(r=>r.action==='send').length,1);assert.equal(h.calls.filter(r=>r.action==='send_receipt').length,0);
+});
+
 for(const status of [403,404])test('fresh '+status+' access loss locks replies and removes cached text without sending',async()=>{
  const h=await setup();await h.draft('Private unsent reply');h.setFile({name:'private.png'});h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?response({ok:false},status):null);
  assert.equal(await h.C.refreshVisible(),false);assert.equal(hidden(h),true);assert.equal(h.ids.get('sendReply').disabled,true);assert.equal(h.ids.get('replyText').value,'');assert.equal(h.getFile(),null);assert.equal(h.C.getSavedSelection(),0);assert.equal(h.W.S.detail.messages.length,1);

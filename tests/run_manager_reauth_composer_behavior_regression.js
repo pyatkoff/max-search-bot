@@ -35,7 +35,7 @@ class Element {
     this._html = String(value); this.replaceChildren();
     // Expose dynamically inserted controls by their real id, and preserve classes.
     // HTML semantics and any app state are not implemented by this harness.
-    for (const match of this._html.matchAll(/<([a-z]+)\b([^>]*\bid="([^"]+)"[^>]*)>/g)) {
+    for (const match of this._html.matchAll(/<([a-z][a-z0-9]*)\b([^>]*\bid="([^"]+)"[^>]*)>/g)) {
       const child = new Element(match[1]); child.id = match[3];
       child.className = match[2].match(/\bclass="([^"]*)"/)?.[1] || '';
       this.appendChild(child);
