@@ -270,17 +270,14 @@ final class ChannelPostRegistryService
 
     private static function telegramHotelTransferRow(array $row, string $planDigest): array
     {
-        $keys = ['hotel_id','source_message_id','source_publication_id','source_version_id','source_content_hash',
-            'source_caption_sha256','source_file_id_sha256','source_file_unique_id_sha256','target_message_id',
-            'target_published_unixtime','target_caption_sha256','target_photo_marker_sha256','target_config_version',
-            'next_caption','next_caption_sha256','button_text','bot_url','price_record_id'];
+        require_once __DIR__ . '/../config/anytour_ranked_transfer_scope_20261123.php';
+        $keys = AnyTourRankedHotelTransfer46::REGISTRY_FIELDS;
         $actual = array_keys($row); sort($actual); $expected = $keys; sort($expected);
         if ($actual !== $expected || !preg_match('/\A[a-f0-9]{64}\z/D', $planDigest)) throw new InvalidArgumentException('hotel_transfer_plan_invalid');
         $pairs = [17595=>['455',1003,'862',1726731731], 358=>['65',211,'328',1705145228],
             393=>['85',247,'1083',1745392994], 1260=>['548',1220,'288',1703918786]];
         $next = hash_equals('30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d', $planDigest);
-        require_once __DIR__ . '/../config/anytour_ranked_transfer_scope_20261123.php';
-        $ranked = AnyTourRankedHotelTransfer46::PLANS[$planDigest] ?? null;
+        $ranked = AnyTourRankedHotelTransfer46::profile($planDigest);
         if ($ranked !== null) {
             $next = true;
             $pairs = [];

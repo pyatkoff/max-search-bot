@@ -3,383 +3,13 @@ declare(strict_types=1);
 
 final class AnyTourRankedHotelTransfer46
 {
-    public const PROOF = [
-        'run_id' => '45175721919',
-        'run_attempt' => 1,
-        'artifact_id' => 14818587717,
-        'artifact_zip_sha256' => 'cf776ab108e8b023aaf6217fa1d5e43dce6047d462e2c96295cc94175332d0cc',
-        'registry_sha256' => '4d01d07909de87ef62d35612ed2cc2407d9bf2b2a7fbcf0016495ea7bb5c4b20',
-        'checkpoint_sha256' => 'dbf2286be4b9842f71f584161894f129215f405d2c9602f294d7d6be9709c845',
-        'repository_sha' => 'cc3bad7cc7377b598c0cd34e63463d1a887acf09',
-        'application_sha' => 'cc3bad7cc7377b598c0cd34e63463d1a887acf09',
-    ];
-    public const PLANS = [
-        '12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce' => [
-            'path' => 'config/anytour_ranked_46_20261123_01.json',
-            'operation' => 'anytour_hotel_transfer_46_20261123_01',
-            'pairs' => [
-                15693 => [
-                    'source' => '532',
-                    'source_publication' => 1181,
-                    'target' => '224',
-                    'date' => 1702109585,
-                    'registry_sha256' => 'e9722c08cb67e3dc00247d44fb6110dd0330672edd04cde39c84381d11dbe0c7',
-                    'caption_sha256' => 'c9a6a67d3ce427bfee9934c091c02d4861b342d4b79bf0f0b169f28ce4e0cf9b',
-                    'file_id_sha256' => '2875f0b1ee3a37a165ba4eadfefc04aa1f4fe8c5663885d19ce22b9bb2608e9f',
-                ],
-                293 => [
-                    'source' => '83',
-                    'source_publication' => 245,
-                    'target' => '249',
-                    'date' => 1702811645,
-                    'registry_sha256' => 'dede5f19f9fa6368921311269f4d37ce6086dfe0936caaafadcb13aa8afdb816',
-                    'caption_sha256' => '57c4c0deb3456e21149eff37ba96e1e082cc638319664898745cd6c90729c2b5',
-                    'file_id_sha256' => '8460fe9fcaadc7e6ffc6635970a2c3c309c0db03d6beb4e3284465cf39bc993b',
-                ],
-                949 => [
-                    'source' => '438',
-                    'source_publication' => 976,
-                    'target' => '266',
-                    'date' => 1703316550,
-                    'registry_sha256' => 'effefe80ce0194c5a100217881248c8eabd04f07988c5fd39845707e0a06ad76',
-                    'caption_sha256' => '1cf69d84e6cac7a45f6a2c6210107018b60aed3e45d017188cffe75c2e7cf5da',
-                    'file_id_sha256' => 'f26d2f4bee5d158bf7d2bde8d9587b32843b145d69de04abcb45ebe70c4268bb',
-                ],
-                1972 => [
-                    'source' => '391',
-                    'source_publication' => 877,
-                    'target' => '316',
-                    'date' => 1704802337,
-                    'registry_sha256' => '38be0ab3ff095dac51d35e93d7c5c78af470c5641feac3fa37c142cdd4b3399b',
-                    'caption_sha256' => 'fd0989b09e34b7e8935f28d52dc9a898803712beb2374a5c6dbe58e13d4f59d7',
-                    'file_id_sha256' => 'b329b92b71a922d35e0fd7cce9bdd623a446e59dd0dd8c1ed3a2dead2fab8e5c',
-                ],
-                2588 => [
-                    'source' => '689',
-                    'source_publication' => 1523,
-                    'target' => '346',
-                    'date' => 1705667873,
-                    'registry_sha256' => 'ff2c505ac63300a4ff6dc965fec6d9484ec377b09d926a71b49dff42a8d96817',
-                    'caption_sha256' => '99a0538e4c8ef20b2d2e465bcbfbd310e1b559173d8270167af836e4b788e945',
-                    'file_id_sha256' => '3be0e65c0d3f176f9551c9f7cef663c7c2afbb40991cbb94c2c31ca6e7fb565d',
-                ],
-                24909 => [
-                    'source' => '188',
-                    'source_publication' => 472,
-                    'target' => '372',
-                    'date' => 1706358017,
-                    'registry_sha256' => '9dc77024006fad91cf338e85e1578920079cf25aa5151ee2b603617ec99cf0ff',
-                    'caption_sha256' => 'e6cb822eeca49e6650429872f5d2c58cd94c605332c4772b0b2a96bd1f8ee0c6',
-                    'file_id_sha256' => '4e8f616a3fd043c5cde0b98bf16be3565994f8b105a15ec66a6288e1bcdda0a0',
-                ],
-                32342 => [
-                    'source' => '239',
-                    'source_publication' => 575,
-                    'target' => '594',
-                    'date' => 1714822456,
-                    'registry_sha256' => '658bec1c0aaa00224820bd982c01d088d7c930b6cb80a0d8fa4f924ee4b4525a',
-                    'caption_sha256' => 'aa5069df291e3ed6270ec46f458729f268072849aa0e78e678c019bc0bd1869b',
-                    'file_id_sha256' => '62c83389929c89357afcf048c1dae752b00c8b81acbac8ee1e93d27d9c0dfcf4',
-                ],
-                57028 => [
-                    'source' => '76',
-                    'source_publication' => 228,
-                    'target' => '626',
-                    'date' => 1716106912,
-                    'registry_sha256' => '2b2e0332ebd1236921dd14559ceee10c9057adb72127b8a79e792ac11ae2d7f4',
-                    'caption_sha256' => '1bf8243ffc483f83d8f2ee51165906525949ea0d3a898d962881ec28e4e1494c',
-                    'file_id_sha256' => '35bc154fec2b6ccb764cae84823225c73121350d7b5f81f3dea9433075049a21',
-                ],
-                65877 => [
-                    'source' => '227',
-                    'source_publication' => 554,
-                    'target' => '646',
-                    'date' => 1716970407,
-                    'registry_sha256' => '2b3dea4c85d9c1bc61304430699107b2fa29a98681bdb63d01039dcff22150cf',
-                    'caption_sha256' => '134291d474d41003c6a9c5854fd14b4afb114b4bd1e3747015d98f8f00c52851',
-                    'file_id_sha256' => '761098d34d566b47e44e9996573067b3479f14ebb276f79c48d3a1f45637cf11',
-                ],
-                73343 => [
-                    'source' => '562',
-                    'source_publication' => 1244,
-                    'target' => '716',
-                    'date' => 1719738944,
-                    'registry_sha256' => '3504fee8ae08beefefd037a01318d4c02165ee688771cb58598d5a8fffe6eb80',
-                    'caption_sha256' => '69fe75fb49901ef43bb8ee753bb71ddfe3171d80914d13778938e0157efb6e98',
-                    'file_id_sha256' => '2fdebf2ec27831cc5c54001e7353593e1e7705410cd2c4b1f499e4fd8f6225dc',
-                ],
-                43689 => [
-                    'source' => '878',
-                    'source_publication' => 1902,
-                    'target' => '884',
-                    'date' => 1727854669,
-                    'registry_sha256' => '9a0bdd0ba0c2a6ab2d47227979002b80d374ccb7ead5e1f16bef459f79712b62',
-                    'caption_sha256' => '7b869ddf31eb5ae240f3512808eb46d53267650fbac56bfab455a25df85c4178',
-                    'file_id_sha256' => 'c55317ac6efd0c6cc571376fce4411bc5601f7417964af76b1a93558dabe0b85',
-                ],
-                47025 => [
-                    'source' => '271',
-                    'source_publication' => 641,
-                    'target' => '901',
-                    'date' => 1729085293,
-                    'registry_sha256' => '4cd12d3e967192ce030e968a9c1c055368de070d55a9c21345d145c742cab860',
-                    'caption_sha256' => 'bb25e5d63a4b61af506fbe92d16179db059ae53dcc2aa0999324551e4eac327e',
-                    'file_id_sha256' => '3a79d05b545b1965f1940d1e03b7a3b5bd6f305ef011424963b1e2b6812e59f1',
-                ],
-                139 => [
-                    'source' => '140',
-                    'source_publication' => 364,
-                    'target' => '905',
-                    'date' => 1729256784,
-                    'registry_sha256' => '6f16a508b0b8103e62e25d8e85be53084f759f6e64ea397032fb1dfcca9e150c',
-                    'caption_sha256' => '9b1882c9b7d2e3360dd96d1a217452726dbfe5685acc47fafea27858fdded46f',
-                    'file_id_sha256' => '6685d6c91eff443a01ff990aa439fa97000fd6b9df31bd674f828f1094595799',
-                ],
-                435 => [
-                    'source' => '96',
-                    'source_publication' => 272,
-                    'target' => '906',
-                    'date' => 1729340750,
-                    'registry_sha256' => '01281d64b65dca23cfc3f1053230f7f56b11bf0a93d7facd1a215bf3fc9bb993',
-                    'caption_sha256' => 'ddb4d51b4b2169d9043dccd9a7192a2bf5a445d9b2f41da1b74b8d8db4fae3f3',
-                    'file_id_sha256' => 'c64fa518da0be4a8fa746c60a3f2f2a09e2145b9fb41416cd6bdf6627106a5f6',
-                ],
-                513 => [
-                    'source' => '217',
-                    'source_publication' => 533,
-                    'target' => '908',
-                    'date' => 1729605927,
-                    'registry_sha256' => 'ef72782574c60ca143927918c7315deb46627fcf4303d82a5f2b128a966ded03',
-                    'caption_sha256' => '60d80f229623599bf39816bd30a5259d87f4bcabb70ca77d2d81ace29cf61219',
-                    'file_id_sha256' => '44974192bf5e4521af8cf6e31d2c7dc6d66369f98985b0559f1874e5af6a745b',
-                ],
-                2470 => [
-                    'source' => '658',
-                    'source_publication' => 1458,
-                    'target' => '914',
-                    'date' => 1730108888,
-                    'registry_sha256' => 'b64db36349588fdf45cb325cc3714bc2c0ebdb04c596dd366f0242252a0cd150',
-                    'caption_sha256' => '8c787f9b0dc5a72b57c9cafdee4a3e63bbb78e302fb0207a7b9645ba1806b7d4',
-                    'file_id_sha256' => '625364acd73dd4b744f61240da6b241c7c2bc642eaa7d25c379cd14135fcde36',
-                ],
-                56092 => [
-                    'source' => '99',
-                    'source_publication' => 275,
-                    'target' => '915',
-                    'date' => 1730189255,
-                    'registry_sha256' => 'd15d39d4a2ab7833e7c5edb8bc93ef721e7eb7065b665b275de65d65fad9c9db',
-                    'caption_sha256' => '59fcb8660f1fa026941c278ab7c4335873a95ebb9358b1ebdc60bb3ea4192557',
-                    'file_id_sha256' => 'af4fbb058bbb565e72f6f49f597a9b702d9636e750b5411860a91894c79e1e2c',
-                ],
-                59114 => [
-                    'source' => '619',
-                    'source_publication' => 1371,
-                    'target' => '917',
-                    'date' => 1730299415,
-                    'registry_sha256' => 'b97fddd6c0bfeee17f357e25df5c02f5bebb6a03b8ebd5bdf48b3ce764475e67',
-                    'caption_sha256' => '0e7d4fdca687696f3abe76761523b5de5d76ac0f0495e99f0770bcdb08551a9b',
-                    'file_id_sha256' => 'fdd8874b6e79b15caa76d6649f0c804c5d6b8e4a861e36d0d029d45282d3ebe4',
-                ],
-                63191 => [
-                    'source' => '674',
-                    'source_publication' => 1494,
-                    'target' => '918',
-                    'date' => 1730373484,
-                    'registry_sha256' => '2546ba8f46bc1d3266549442b5a005c28938930f317dcf9e63d58650871cd32a',
-                    'caption_sha256' => '18efccba8a8efb23063e07bb91d7be6b9b2c4b4e50ab5461fa139c0e77566951',
-                    'file_id_sha256' => '3916c0e1d435b49aa85fc5023d0e1aa4ac856f314381949f542ac4ff98936e5a',
-                ],
-                76588 => [
-                    'source' => '308',
-                    'source_publication' => 709,
-                    'target' => '923',
-                    'date' => 1730800708,
-                    'registry_sha256' => '1212f35a6c940d260fd8a048bf0bd7c915015fa4ccee7718e25e44fd0da61b35',
-                    'caption_sha256' => '33d58fa9936637d6d49f4f102afc8de4fb0d8698fda937bbb0e7cdc3bf39abb0',
-                    'file_id_sha256' => 'af49cb353b7b95b4a232b608c9fb4e522834e8071d95a5bbff364e33c4b5bdd8',
-                ],
-                77914 => [
-                    'source' => '45',
-                    'source_publication' => 171,
-                    'target' => '924',
-                    'date' => 1731058510,
-                    'registry_sha256' => '5cebb4ccea8c6250e0647a4706e123741c96027a02683ef952195f75476d9675',
-                    'caption_sha256' => '28b6fb47d68e85484ce69e2fd14e7f924f058c171f03ce77eedb66ffad371e58',
-                    'file_id_sha256' => '39aebd4746af8c9a30e97e2fbaeaaf951b39f0b2911c8272882a0baadf69d9a0',
-                ],
-                106 => [
-                    'source' => '468',
-                    'source_publication' => 1035,
-                    'target' => '928',
-                    'date' => 1731574726,
-                    'registry_sha256' => 'ce8ea5e22bd7550c5c6c0bdf310b7dc9227f6998c752ecc19e121209c5a53a3c',
-                    'caption_sha256' => 'dbcea2fe1965d171ce487ca40aca33f4ef4555dbde2a84224ab084738eb69ea8',
-                    'file_id_sha256' => '5611a7c2fe5db80ebbebb1aa786611ee826b086560e67672ded747be8aa0d4f9',
-                ],
-                111 => [
-                    'source' => '134',
-                    'source_publication' => 351,
-                    'target' => '930',
-                    'date' => 1731931816,
-                    'registry_sha256' => '848d7bd63fff0062a9843cb55ad8a603f67f0507abc740152c0b2b3d550c5efe',
-                    'caption_sha256' => '052a39bfaff93c544af2e8d7283f88d0c3d2518578f3634776f2ad149157b54a',
-                    'file_id_sha256' => 'eb316e43eab4c45c0351f66e384685d11baae9e4f2e720ad77b924a4390f5d84',
-                ],
-                114 => [
-                    'source' => '469',
-                    'source_publication' => 1036,
-                    'target' => '948',
-                    'date' => 1732719217,
-                    'registry_sha256' => 'a4616f5e2de7e054b396cf26ed669ef53b9a23e617953df206a65dc9ea28dbc0',
-                    'caption_sha256' => '406e3cd65db816ff667b07f4dfd3e8a9034da863251da2c7bff1681ea8251794',
-                    'file_id_sha256' => '8928104f8b5c7db847d5ad4a03bb575ebfdd5ce6c70bfe76641f42154ebb14b0',
-                ],
-                140 => [
-                    'source' => '209',
-                    'source_publication' => 519,
-                    'target' => '949',
-                    'date' => 1732867247,
-                    'registry_sha256' => 'b6d691282be5afd4cf033a0cac5778111b3966897828f748a22cf9a07c42badf',
-                    'caption_sha256' => '8e38c0f96c7f19fec0c96c990a63261577b4afa1221b979178bda7262ac192a7',
-                    'file_id_sha256' => '1673b5bf9bf9caa7b708df5f8a48eb4bac9d844e69adda55a28617e02a2b1520',
-                ],
-                195 => [
-                    'source' => '617',
-                    'source_publication' => 1352,
-                    'target' => '952',
-                    'date' => 1733388770,
-                    'registry_sha256' => '76a2c1adaeb08e3b8b39933d22cfb33399d801a15e636a70ef40f2941385c19e',
-                    'caption_sha256' => 'e449c6c8922362330199a4e069d271c8ae57e810bfbc9615689f2285c63398ad',
-                    'file_id_sha256' => 'b26710cd5bc3273f7e8f9db32b2d658666148b3cbb2308704440459f39251fd1',
-                ],
-                206 => [
-                    'source' => '622',
-                    'source_publication' => 1377,
-                    'target' => '963',
-                    'date' => 1734693966,
-                    'registry_sha256' => '3084ee8d666a07321ff8ddb7fee6e7cb2681ec01f5cb504ad63bc82624397ce7',
-                    'caption_sha256' => '0c2921685a1f125267f268d60d696eea86992a01f62f07d99705a52427a212b2',
-                    'file_id_sha256' => 'ddc2172ecf6fc2d993f1332a9308d24c4821698fbb85fdf0013a54b221e0d53c',
-                ],
-                231 => [
-                    'source' => '598',
-                    'source_publication' => 1318,
-                    'target' => '969',
-                    'date' => 1735910100,
-                    'registry_sha256' => '6a460bd2dbd59a83dae47edcd9849bbd9c214699cdae771ab09ef7fd2d2159bb',
-                    'caption_sha256' => '5b7afa1844e2c04c2df3fedca513486df7f40a4d9d4b0882562e324d045ba066',
-                    'file_id_sha256' => '7e674145956c5219e72cb4e1257286fe56f954496a22c7d0f2d887df5f2b39f0',
-                ],
-                246 => [
-                    'source' => '106',
-                    'source_publication' => 290,
-                    'target' => '970',
-                    'date' => 1736079166,
-                    'registry_sha256' => '51745a9f1335286fa7b0996d6fa32ce8582f19eecc8eb06dcd3f10fc608b7d8e',
-                    'caption_sha256' => '33a5026a8ca504087ec19cc4625c822fa109cc2e82af397dea16babd4afec84b',
-                    'file_id_sha256' => '54e7ed35a2fe996787cfd6f6c2340151c7aaf228406c0caed5d8c389223cac97',
-                ],
-                263 => [
-                    'source' => '90',
-                    'source_publication' => 252,
-                    'target' => '999',
-                    'date' => 1737990663,
-                    'registry_sha256' => '0c9c5c7631629a84aa5e4a251147517759e48e6bd71f7cc91401f47e9f712194',
-                    'caption_sha256' => '378b5b814a137ff0db1af20140de1f9f07bb258902d293f55e7996a3ddd6b64a',
-                    'file_id_sha256' => '8781eb85b350c4256686a3129e699168d5860d5064bd7517be09d798e6d662a5',
-                ],
-                266 => [
-                    'source' => '757',
-                    'source_publication' => 1658,
-                    'target' => '1003',
-                    'date' => 1738671435,
-                    'registry_sha256' => '22811759ec7acb2f176fb6877796c1fa72ea26791e89fcf4ad2b2702fcff111a',
-                    'caption_sha256' => 'c20c56717b1cc25f5c59861d5b0e51202e4801d0426a0b1ace4646f7fa524520',
-                    'file_id_sha256' => '752da5da34fdcbfdd4901b5776bb99ec5a1139eec19aba0b7b014154adb4603c',
-                ],
-                371 => [
-                    'source' => '80',
-                    'source_publication' => 232,
-                    'target' => '1037',
-                    'date' => 1741341871,
-                    'registry_sha256' => 'a05bb82ca0ed51a6287943280a90f0bcb544c762ac5881d2984242653dc297b9',
-                    'caption_sha256' => '2d471b073000696ba5923fe7eac3ded433d021bdfb0a23c10055a619008df78d',
-                    'file_id_sha256' => '80f51460bb4c69ba36ce13f0937105bdf9bcfcb190bb2fd2f54a7dcea1c41502',
-                ],
-                416 => [
-                    'source' => '42',
-                    'source_publication' => 165,
-                    'target' => '1051',
-                    'date' => 1742283907,
-                    'registry_sha256' => '290f3e07d6ea6dfeabeaa0d14302e0f863ea40519038918f0e2b8cdce6d6567e',
-                    'caption_sha256' => 'b1a670f855259513bd1d0ee8c9f068a210c975212ebf9dab8210087b333c6f5c',
-                    'file_id_sha256' => 'fd3e1b9ebe579589ae7fd6b94ae5e8c9643de25efc644448e5d8f5726a80b15f',
-                ],
-                465 => [
-                    'source' => '116',
-                    'source_publication' => 311,
-                    'target' => '1052',
-                    'date' => 1742370590,
-                    'registry_sha256' => 'eac8f2e05b9ee9d10d8ca43bebac5fd0edfe2a11ba535bae527baca8564e7c90',
-                    'caption_sha256' => 'f1c3e2a1e3c1c1a50ecabf65ec00a8c507fbc688c36cc2b39897063020ddfb7e',
-                    'file_id_sha256' => '943d3a824267660b939ad90d3540080c65508f7ee73ac633149bfcfcf3cfeddd',
-                ],
-                497 => [
-                    'source' => '597',
-                    'source_publication' => 1317,
-                    'target' => '1057',
-                    'date' => 1742888410,
-                    'registry_sha256' => '35fdff4a2b4e0e81a5b0854d34ddebeefef67c68a1552e06b9b2bc0d7e348de2',
-                    'caption_sha256' => '48d803bf3096a7670076c9f3f68558b8ac1bed38e9be60b34a0eb568e51e744a',
-                    'file_id_sha256' => '6851e7463349bdd049db1dbf075622a0440b48e3bf29cbeeb9a8dad421160bf0',
-                ],
-                932 => [
-                    'source' => '574',
-                    'source_publication' => 1273,
-                    'target' => '1059',
-                    'date' => 1743060913,
-                    'registry_sha256' => '363c62070a99402ec4c125f4b32d563c6ad6b18c95225a44630493b0836db354',
-                    'caption_sha256' => '56c89db951ad7d49c2dd0481489c6cb5973e8158d6e83c819b0e88c6c87e8c7c',
-                    'file_id_sha256' => 'da5d2f342a1e14272552b6c0129b7bc15644fae9b5f8be947662c8cabed79778',
-                ],
-                948 => [
-                    'source' => '582',
-                    'source_publication' => 1289,
-                    'target' => '1087',
-                    'date' => 1745912330,
-                    'registry_sha256' => '8cb92e34fa7bd29d6cdf885bb8c822d1c40f587b151706f236422f51e9d0f98b',
-                    'caption_sha256' => '30a836fafc5ff9ddf8372dbb8e5cb1d2ceb18e119b470c3197ec8d65871df946',
-                    'file_id_sha256' => 'e4a8ea264f618eab8b29c7ca872a8be2d386a4d8f248a989794410fd8eaed0dd',
-                ],
-                964 => [
-                    'source' => '259',
-                    'source_publication' => 613,
-                    'target' => '1110',
-                    'date' => 1748590299,
-                    'registry_sha256' => '6a003a979bd6fae0e3f29b58ba896f79bcac0ef82db11f5caf3ede6ad4882a1c',
-                    'caption_sha256' => '71e2808e8f4fb2f10cdaa2f9f6c9d5cf4ccdc55c948f373b2faceca5a9ff48a6',
-                    'file_id_sha256' => 'be6e8044af784b0323dad0bcceffb1060758ef8a3cd2816a3e8ef730ecd65f46',
-                ],
-                975 => [
-                    'source' => '254',
-                    'source_publication' => 608,
-                    'target' => '1131',
-                    'date' => 1750587622,
-                    'registry_sha256' => '8fb9f5cd08890e90b8fe199404a2f4847350be499e9cf8e74f210089aa011e5a',
-                    'caption_sha256' => '02311408989e9d9549be80fca4b116200743e60d1bcbafd1e5e322ddc5815c99',
-                    'file_id_sha256' => '51334e39d4140e49e19c70a5af9c6cca3e0007f3510f7f11542bad004e44c23d',
-                ],
-                1013 => [
-                    'source' => '591',
-                    'source_publication' => 1306,
-                    'target' => '920',
-                    'date' => 1730643822,
-                    'registry_sha256' => '2613b77d6b014743258d600ba10166482f91f1f44e772d5ad8c0d973176bcc9a',
-                    'caption_sha256' => '35a4cbbb19bd382bcc44b3869e94d0a175b50fbaf770d0d3cd54722a4a1707cc',
-                    'file_id_sha256' => 'a391410b80e2f7cccf1422dc1503dad8b2123ef616455f8ed5e39b3843b15540',
-                ],
-            ],
-        ],
+    public const REGISTRY_FIELDS = ['hotel_id','source_message_id','source_publication_id','source_version_id','source_content_hash',
+        'source_caption_sha256','source_file_id_sha256','source_file_unique_id_sha256','target_message_id',
+        'target_published_unixtime','target_caption_sha256','target_photo_marker_sha256','target_config_version',
+        'next_caption','next_caption_sha256','button_text','bot_url','price_record_id'];
+
+    // Stella has a separate, already published proof format.
+    private const SPECIAL_PLANS = [
         'c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab' => [
             'path' => 'config/anytour_stella_alternate_20261123.json',
             'operation' => 'anytour_hotel_transfer_stella_alternate_20261123',
@@ -404,4 +34,55 @@ final class AnyTourRankedHotelTransfer46
             ],
         ],
     ];
+
+
+    /** Only immutable, release-installed HOTEL indices can nominate plans. */
+    public static function profile(string $digest): ?array
+    {
+        if (isset(self::SPECIAL_PLANS[$digest])) return self::SPECIAL_PLANS[$digest];
+        if (!preg_match('/\A[a-f0-9]{64}\z/D', $digest)) return null;
+        static $profiles = [];
+        if (isset($profiles[$digest])) return $profiles[$digest];
+
+        $approvals = json_decode(file_get_contents(__DIR__.'/anytour_ranked_approved_indexes.json'), true, 8, JSON_THROW_ON_ERROR);
+        foreach ($approvals as $approval) {
+            $index = self::document($approval['path'], $approval['sha256'], 64000);
+            foreach ($index['plans'] as $item) {
+                if ($item['sha256'] !== $digest) continue;
+                $plan = self::document($item['path'], $digest, 64000);
+                if (($plan['native_preflight'] ?? null) !== $index['native_preflight'] || !is_array($plan['rows'])
+                    || !array_is_list($plan['rows']) || !$plan['rows']) throw new RuntimeException('transfer_ranked_native_proof_changed');
+                $pairs = []; $sources = []; $targets = [];
+                foreach ($plan['rows'] as $row) {
+                    $hotel = $row['hotel_id']; $source = $row['source_message_id']; $target = $row['target_message_id'];
+                    if (!is_int($hotel) || $hotel < 1 || !is_string($source) || !is_string($target)
+                        || !preg_match('/\A[1-9][0-9]{0,9}\z/D', $source) || !preg_match('/\A[1-9][0-9]{0,9}\z/D', $target)
+                        || isset($pairs[$hotel]) || isset($targets[$target]) || isset($sources[$source]))
+                        throw new RuntimeException('transfer_plan_row_identity');
+                    $identity = [];
+                    foreach (self::REGISTRY_FIELDS as $key) $identity[$key] = $row[$key];
+                    $pairs[$hotel] = ['source'=>$source, 'source_publication'=>$row['source_publication_id'],
+                        'target'=>$target, 'date'=>$row['target_published_unixtime'],
+                        'registry_sha256'=>hash('sha256', json_encode($identity, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)),
+                        'caption_sha256'=>$row['next_caption_sha256'], 'file_id_sha256'=>$row['source_file_id_sha256']];
+                    $sources[$source] = $targets[$target] = true;
+                }
+                return $profiles[$digest] = ['path'=>$item['path'], 'operation'=>$plan['operation'],
+                    'native_preflight'=>$index['native_preflight'], 'pairs'=>$pairs];
+            }
+        }
+        return null;
+    }
+
+    private static function document(string $path, string $digest, int $limit): array
+    {
+        if (!preg_match('~\Aconfig/anytour_[a-z0-9_]+\.json\z~D', $path))
+            throw new RuntimeException('transfer_ranked_path_invalid');
+        $path = dirname(__DIR__).'/'.$path;
+        if (realpath($path) !== $path || !is_file($path)) throw new RuntimeException('transfer_plan_unavailable');
+        $raw = file_get_contents($path, false, null, 0, $limit + 1);
+        if (!is_string($raw) || strlen($raw) > $limit || !hash_equals($digest, hash('sha256', $raw)))
+            throw new RuntimeException('transfer_approved_plan_changed');
+        return json_decode($raw, true, 32, JSON_THROW_ON_ERROR);
+    }
 }

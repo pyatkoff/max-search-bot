@@ -83,6 +83,7 @@ const HOTEL_RANKED_CONTINUATION = Object.freeze({...HOTEL_RANKED_46,
   branch:'ops/anytour-hotel-ranked-37-continue-20261123',operation:'hotel_ranked_37_continuation'});
 const HOTEL_RANKED_RESUME = Object.freeze({...HOTEL_RANKED_46,
   branch:'ops/anytour-hotel-ranked-resume-20261124',operation:'hotel_ranked_resume'});
+const RANKED_INPUT_BRANCH = /^ops\/anytour-hotel-ranked-plan-([0-9a-f]{64})$/;
 const RANKED_AFTER_BRANCH = /^ops\/anytour-hotel-ranked-after-([1-9][0-9]{0,15})$/;
 const RANKED_RESUME_SEED = Object.freeze({
   run:45372056681, job:138368539666, sha:'e3e1a9bdf29dd0d7530fe6b3b393f1286834d092',
@@ -2094,7 +2095,7 @@ async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
   }
   const location=await readRecord(api),result=await resolveCurrent(api,c,location);
   requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
-  if(p===HOTEL_RANKED_RESUME||p===HOTEL_PREWRITE_RESUME||p.parent_run_id)requireValue(result.application_sha===c.sha,'hotel_resume_editor_not_installed');
+  if(p===HOTEL_RANKED_RESUME||p===HOTEL_PREWRITE_RESUME||p.parent_run_id||p.native_source)requireValue(result.application_sha===c.sha,'hotel_resume_editor_not_installed');
   if(p===HOTEL_MAX_SUGAR_TRANSFER||p===HOTEL_MAX_SUGAR_PUBLIC_RECOVERY){
     requireValue(result.application_sha===c.sha,'max_transfer_editor_not_installed');
   }
@@ -2103,9 +2104,37 @@ async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
   return {...await finalResolution(api,c,location,result),write_operation:p.operation,
     ...(parent ? {parent_evidence:JSON.stringify(parent)} : {})};
 }
+async function approvedRankedInput(api, head, digest, branch) {
+  requireValue(sha(head) && RANKED_INPUT_BRANCH.exec(branch)?.[1]===digest
+    && digest!==HOTEL_RANKED_46.plan_digest,'ranked_input_not_approved');
+  const read = async path => {
+    const item = await api('GET',API_ROOT+'/contents/'+path+'?ref='+head);
+    requireValue(item?.type==='file' && item.path===path && item.encoding==='base64'
+      && Number.isSafeInteger(item.size) && item.size>0 && item.size<=64000 && typeof item.content==='string','ranked_input_changed');
+    const encoded=item.content.replace(/\n/g,''), bytes=Buffer.from(encoded,'base64');
+    requireValue(bytes.toString('base64')===encoded && bytes.length===item.size && gitBlob(bytes)===item.sha,'ranked_input_changed');
+    return {document:parseJson(bytes), blob:item.sha, bytes:item.size, digest:crypto.createHash('sha256').update(bytes).digest('hex')};
+  };
+  const approvals=(await read('config/anytour_ranked_approved_indexes.json')).document;
+  requireValue(Array.isArray(approvals),'ranked_input_not_approved');
+  const entries=approvals.filter(row=>row?.sha256===digest);
+  requireValue(entries.length===1 && /^config\/anytour_[a-z0-9_]+\.json$/.test(entries[0].path),'ranked_input_not_approved');
+  const item=await read(entries[0].path), index=item.document, proof=index.native_preflight, source=index.native_source;
+  requireValue(item.digest===digest && index.schema===1 && Array.isArray(index.plans) && index.plans.length===1
+    && /^[a-f0-9]{64}$/.test(index.plans[0].sha256) && index.plans[0].sha256!==RANKED_CHUNK_DIGEST
+    && proof?.run_attempt===1 && typeof proof.run_id==='string' && positive(proof.run_id)
+    && Number.isSafeInteger(proof.artifact_id) && positive(proof.artifact_id) && sha(source?.head_sha)
+    && positive(source.job_id) && typeof source.step==='string' && /^[a-zA-Z0-9 ,.()_-]{1,150}$/.test(source.step)
+    && /^[a-zA-Z0-9_-]{1,100}$/.test(source.artifact_name) && /^[0-9a-f]{64}$/.test(proof.artifact_zip_sha256)
+    && Number.isSafeInteger(index.native_zip_bytes) && index.native_zip_bytes>0 && index.native_zip_bytes<=MAX_ARCHIVE,
+    'ranked_input_proof_invalid');
+  return {...HOTEL_RANKED_46, branch, operation:'hotel_ranked_approved_input', plan_path:entries[0].path,
+    plan_size:item.bytes, plan_blob:item.blob, plan_digest:digest, native_run:proof.run_id, native_artifact:proof.artifact_id,
+    native_zip_bytes:index.native_zip_bytes, native_zip_digest:proof.artifact_zip_sha256, native_source:source};
+}
 async function resolveRankedHotelTransfer(inputs,p=HOTEL_RANKED_46) {
   const run = await inputs.api('GET', API_ROOT+'/actions/runs/'+p.native_run);
-  runIdentity(run, {id:p.native_run, attempt:1, head:'db1157a5091ff0f708d7825acf6ca4e1dc9a5339',
+  runIdentity(run, {id:p.native_run, attempt:1, head:p.native_source?.head_sha || 'db1157a5091ff0f708d7825acf6ca4e1dc9a5339',
     workflow:PREFIX+'read-1566-telegram-46-20261123.yml', event:'push',
     branch:'ops/1566-telegram-46-native-read-20261123'});
   requireValue(run.repository?.full_name===REPOSITORY && run.repository.id===p.repository_id
@@ -2115,11 +2144,20 @@ async function resolveRankedHotelTransfer(inputs,p=HOTEL_RANKED_46) {
     'artifacts','ranked_native_artifact_inventory_incomplete');
   const artifact = artifacts[0];
   requireValue(artifacts.length===1 && artifact.id===p.native_artifact
-    && artifact.name==='issue-1566-telegram-46-preflight' && artifact.expired===false
+    && artifact.name===(p.native_source?.artifact_name || 'issue-1566-telegram-46-preflight') && artifact.expired===false
     && artifact.digest==='sha256:'+p.native_zip_digest && artifact.size_in_bytes===p.native_zip_bytes
     && String(artifact.workflow_run?.id)===p.native_run && artifact.workflow_run.repository_id===p.repository_id
-    && artifact.workflow_run.head_sha==='db1157a5091ff0f708d7825acf6ca4e1dc9a5339','ranked_native_original_not_confirmed');
-  return resolveHotelTransfer(inputs,p);
+    && artifact.workflow_run.head_sha===run.head_sha && artifact.workflow_run.head_branch===run.head_branch,'ranked_native_original_not_confirmed');
+  if(p.native_source) {
+    const jobs=boundedList(await inputs.api('GET',API_ROOT+'/actions/runs/'+p.native_run+'/attempts/1/jobs?per_page=100'),
+      'jobs','ranked_native_job_unverified');
+    const job=jobs[0], step=job?.steps?.filter(entry=>entry.name===p.native_source.step);
+    requireValue(jobs.length===1 && job.id===p.native_source.job_id && job.name==='registry'
+      && job.run_id===run.id && job.run_attempt===1 && job.head_sha===run.head_sha && job.status==='completed'
+      && job.conclusion==='success' && step?.length===1 && step[0].status==='completed' && step[0].conclusion==='success',
+      'ranked_native_job_unverified');
+  }
+  return {...await resolveHotelTransfer(inputs,p), ranked_index_sha256:p.plan_digest, ranked_artifact_id:String(p.native_artifact)};
 }
 async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms)),now=()=>performance.now()}) {
   if(env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_REF==='refs/heads/'+GATE_RECOVERY.branch){
@@ -2138,6 +2176,8 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_RANKED_CONTINUATION.branch)return resolveRankedHotelTransfer({env,event,api},HOTEL_RANKED_CONTINUATION);
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_RANKED_RESUME.branch)return resolveRankedHotelTransfer({env,event,api},HOTEL_RANKED_RESUME);
   const rankedBranch = (env.GITHUB_REF || '').replace(/^refs\/heads\//, '');
+  const rankedInput = RANKED_INPUT_BRANCH.exec(rankedBranch);
+  if (rankedInput) return resolveRankedHotelTransfer({env,event,api}, await approvedRankedInput(api,env.GITHUB_SHA,rankedInput[1],rankedBranch));
   const rankedAfter = RANKED_AFTER_BRANCH.exec(rankedBranch);
   if (rankedAfter) return resolveRankedHotelTransfer({env,event,api},
     {...HOTEL_RANKED_46, branch:rankedBranch, operation:'hotel_ranked_unreached', parent_run_id:rankedAfter[1]});
@@ -2277,7 +2317,7 @@ function argumentsOf(argv,commands) {
 }
 function outputs(value){for(const [key,v]of Object.entries(value)){
   requireValue(/^[a-z_]+$/.test(key)&&!/[\r\n]/.test(String(v)),'invalid_output');process.stdout.write(key+'='+String(v)+'\n');}}
-module.exports={rankedParentEvidence,proveClosedPrewriteOriginal,proveRankedResumeOriginal,proveOriginalNextTransfer,PUBLISHER_BODY_RECOVERY,publisherBodyRecovery,publisherBodySource,failedPublisherBodyTerminal,
+module.exports={approvedRankedInput,rankedParentEvidence,proveClosedPrewriteOriginal,proveRankedResumeOriginal,proveOriginalNextTransfer,PUBLISHER_BODY_RECOVERY,publisherBodyRecovery,publisherBodySource,failedPublisherBodyTerminal,
   UNSTARTED_FORWARD,UNSTARTED_FORWARD_1692,forwardMarker,proveUnstartedDeployment,proveUnstartedForward,admitForwardInstallation,REPOSITORY,API_ROOT,PREFIX,DEPLOY,CLOSER,HOST,RECORD_PATH,PUBLICATION_FILE,PUBLICATION_PROTOCOL,
   TERMINAL_RECOVERY,GATE_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY,PRIOR_WAVE_RECOVERY,
   priorWaveRecovery,failedPriorWaveTerminal,terminalRecovery,gateRecovery,

@@ -87,7 +87,7 @@ final class ChannelPostApiTransport
         $rankedRow = null;
         if (is_string($next)) {
             require_once __DIR__ . '/../config/anytour_ranked_transfer_scope_20261123.php';
-            $rows = AnyTourRankedHotelTransfer46::PLANS[$next]['pairs'] ?? [];
+            $rows = AnyTourRankedHotelTransfer46::profile($next)['pairs'] ?? [];
             $byTarget = array_column($rows, null, 'target');
             $rankedRow = $byTarget[$messageId] ?? null;
             if ($rankedRow === null) return null;

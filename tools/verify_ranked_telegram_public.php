@@ -36,7 +36,7 @@ function verifiedCandidates(array $plan, array $check, array $result, array $sum
 {
     $digest = $context['plan_sha256'];
     $operation = match ($context['write_operation']) {
-        'hotel_ranked_46_transfer' => $plan['operation'],
+        'hotel_ranked_46_transfer', 'hotel_ranked_approved_input' => $plan['operation'],
         'hotel_ranked_37_continuation' => RANKED_CONTINUATION_OPERATION,
         'hotel_ranked_resume' => RANKED_RESUME_OPERATION,
         'hotel_ranked_unreached' => RANKED_UNREACHED_OPERATION,
@@ -133,7 +133,9 @@ function inspectPublic(array $candidates, string $digest, callable $read): array
 if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) {
     $folder = getenv('RUNNER_TEMP').'/native/';
     $load = static fn(string $file): array => json_decode(file_get_contents($file), true, 64, JSON_THROW_ON_ERROR);
-    $index = $load(__DIR__.'/../config/anytour_ranked_46_20261123.json');
+    $indexPath = getenv('RANKED_APPROVED_INDEX') ?: 'config/anytour_ranked_46_20261123.json';
+    requirePost(preg_match('~\Aconfig/anytour_[a-z0-9_]+\.json\z~D', $indexPath) === 1, 'native_plan_path_invalid');
+    $index = $load(__DIR__.'/../'.$indexPath);
     $summary = $load($folder.'summary.json');
     $context = ['run_id'=>getenv('NATIVE_RUN_ID'), 'repository_sha'=>getenv('NATIVE_REPOSITORY_SHA'),
         'artifact_id'=>getenv('RECEIPT_ID'), 'artifact_sha256'=>getenv('RECEIPT_SHA256'), 'write_operation'=>getenv('WRITE_OPERATION')];

@@ -307,7 +307,7 @@ const NEXT_TRANSFER_PAIRS = [
 
 function transferRankedProfile(string $digest): array
 {
-    return AnyTourRankedHotelTransfer46::PLANS[$digest] ?? throw new RuntimeException('transfer_ranked_plan_unknown');
+    return AnyTourRankedHotelTransfer46::profile($digest) ?? throw new RuntimeException('transfer_ranked_plan_unknown');
 }
 
 function transferProfilePairs(bool|string $next): array
@@ -372,7 +372,7 @@ function transferPlanFromBytes(string $raw, string $approvedDigest, bool|string 
         && array_column($plan['rows'], 'hotel_id') === array_keys($pairs), 'transfer_plan_scope_invalid');
     $proof = $plan['native_preflight'];
     if (is_string($next)) {
-        $approvedProof = transferRankedProfile($next)['native_preflight'] ?? AnyTourRankedHotelTransfer46::PROOF;
+        $approvedProof = transferRankedProfile($next)['native_preflight'];
         requirePost(hash_equals($next, $approvedDigest) && $proof === $approvedProof,
             'transfer_ranked_native_proof_changed');
     } elseif ($next) {
