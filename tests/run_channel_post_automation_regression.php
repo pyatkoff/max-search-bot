@@ -1555,6 +1555,38 @@ try {
         if ($change==='link') unlink($fixture);
     }
 } finally { rmdir($existingDir); }
+// Synthetic closed predecessor on real files; never a live provider receipt.
+$resumeDir=sys_get_temp_dir().'/ranked-cross-run-'.bin2hex(random_bytes(10));mkdir($resumeDir,0700);
+try {
+    foreach (['unknown','success','changed_run','changed_app','partial','active','failed_readback'] as $case) {
+        $events=$evidence;
+        if (in_array($case,['success','failed_readback'],true)) {
+            $events[4]['response']=['http'=>200,'transport_error'=>false,'data'=>['ok'=>true,'result'=>['message_id'=>(int)$rankedRow['target_message_id']]]];
+            $events[5]=array_replace($lostResult,['state'=>'native_and_registry_verified','ok'=>true,'publication_id'=>40,
+                'hotel_id_verified'=>true,'original_message_id_and_date_preserved'=>true,'photo_caption_button_verified'=>true]);
+        }
+        if($case==='partial')array_pop($events);
+        $path=$resumeDir.'/receipt.jsonl';$h=fopen($path,'x+b');
+        foreach($events as $event)AnyTour\ExistingPostBatch\transferJournal($h,$event);
+        if($case==='active')flock($h,LOCK_EX|LOCK_NB);else fclose($h);
+        $origin=['native_run_id'=>$case==='changed_run'?'999999':$runContext['native_run_id'],
+            'application_sha'=>$case==='changed_app'?str_repeat('b',40):$runContext['application_sha']];
+        $reads=0;$before=hash_file('sha256',$path);
+        try {
+            $prior=AnyTour\ExistingPostBatch\transferResumePrior($resumeDir,$rankedRow,$rankedDigest,$origin,
+                static function()use(&$reads,$case):void{++$reads;if($case==='failed_readback')throw new RuntimeException('transfer_resume_route_unconfirmed');});
+            $observed=[$prior['reason'],$prior['prior_terminal_state'],$prior['prior_public_readback_verified'],$reads];
+        }catch(Throwable $e){$observed=$e->getMessage();}
+        $expected=in_array($case,['success','failed_readback'],true)
+            ?['transfer_previous_run_journal_requires_readback','native_and_registry_verified',$case==='success',1]
+            :($case==='unknown'?['transfer_previous_run_journal_requires_readback','response_saved_completion_requires_readback',false,0]
+            :'transfer_previous_operation_do_not_replay');
+        channelPostCheck('cross-run exact closed predecessor: '.$case,$observed,$expected);
+        channelPostCheck('cross-run original journal unchanged: '.$case,hash_file('sha256',$path),$before);
+        if($case==='active')fclose($h);unlink($path);
+    }
+}finally{rmdir($resumeDir);}
+
 channelPostCheck('ranked continuation selects exactly 37 untouched original rows',
     [$rankedTail['operation'], count($rankedTail['rows']), $rankedTail['rows'],
         array_intersect(['224','249','266'], array_column($rankedTail['rows'], 'target_message_id'))],

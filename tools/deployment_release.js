@@ -81,6 +81,11 @@ const HOTEL_RANKED_46 = Object.freeze({...HOTEL_FOUR_TRANSFER,
   native_zip_bytes:94348,native_zip_digest:'cf776ab108e8b023aaf6217fa1d5e43dce6047d462e2c96295cc94175332d0cc'});
 const HOTEL_RANKED_CONTINUATION = Object.freeze({...HOTEL_RANKED_46,
   branch:'ops/anytour-hotel-ranked-37-continue-20261123',operation:'hotel_ranked_37_continuation'});
+const HOTEL_RANKED_RESUME = Object.freeze({...HOTEL_RANKED_46,
+  branch:'ops/anytour-hotel-ranked-resume-20261124',operation:'hotel_ranked_resume'});
+const ORIGINAL_RANKED_CONTINUATION = Object.freeze({
+  run:45321557294,job:138201073452,sha:'fdcbf29f831b68005295dfa398ecb5878d94e6c7',
+  artifact:14887229025,digest:'sha256:14741cf575a1999287fbd8c2b73ceb9a8c2146edeb3ad8a345d173bf8bd34b81'});
 const ORIGINAL_RANKED_TRANSFER = Object.freeze({
   run:45277253456,job:138052141297,sha:'0689691b5aa4b8cd5fbf2f3629d9e9dc76df7e9b',
   artifact:14868735835,digest:'sha256:d861a07884fb09aaeb917cc0f2991e4dad9a20768f138ecbf7d708293aa8c76e'});
@@ -1808,6 +1813,13 @@ async function proveOriginalHotelTransfer(api,p,original,artifactName) {
   requireValue(proof?.id===artifact&&proof.digest===artifactDigest&&proof.name===artifactName
     &&proof.workflow_run?.id===run&&proof.workflow_run.head_sha===head
     &&proof.workflow_run.head_branch===p.branch,'original_hotel_transfer_artifact_changed');
+  return proof;
+}
+
+async function proveRankedResumeOriginal(api) {
+  const p=ORIGINAL_RANKED_CONTINUATION;
+  const artifact=await proveOriginalHotelTransfer(api,HOTEL_RANKED_CONTINUATION,p,'issue-1566-hotel-ranked-46-transfer');
+  requireValue(artifact.expired===false&&artifact.size_in_bytes===4063,'ranked_resume_artifact_unavailable');
 }
 
 function proveOriginalNextTransfer(api) {
@@ -1888,7 +1900,8 @@ async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
   requireValue(bytes.length===p.plan_size&&bytes.toString('base64')===encoded&&gitBlob(bytes)===p.plan_blob
     &&crypto.createHash('sha256').update(bytes).digest('hex')===p.plan_digest,'hotel_transfer_plan_changed');
   if(p===HOTEL_REMAINING_TRANSFER)await proveOriginalNextTransfer(api);
-  if(p===HOTEL_RANKED_CONTINUATION)await proveOriginalHotelTransfer(api,HOTEL_RANKED_46,ORIGINAL_RANKED_TRANSFER,'issue-1566-hotel-ranked-46-transfer');
+  if(p===HOTEL_RANKED_CONTINUATION||p===HOTEL_RANKED_RESUME)await proveOriginalHotelTransfer(api,HOTEL_RANKED_46,ORIGINAL_RANKED_TRANSFER,'issue-1566-hotel-ranked-46-transfer');
+  if(p===HOTEL_RANKED_RESUME)await proveRankedResumeOriginal(api);
   if(p===HOTEL_MAX_SUGAR_PUBLIC_RECOVERY)await proveOriginalMaxPublicFailure(api);
   if(p===HOTEL_STELLA_ALTERNATE){
     const proof=runIdentity(await api('GET',API_ROOT+'/actions/runs/45275242345'),{
@@ -1899,7 +1912,7 @@ async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
   }
   const location=await readRecord(api),result=await resolveCurrent(api,c,location);
   requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
-  if(p===HOTEL_MAX_SUGAR_TRANSFER||p===HOTEL_MAX_SUGAR_PUBLIC_RECOVERY){
+  if(p===HOTEL_MAX_SUGAR_TRANSFER||p===HOTEL_MAX_SUGAR_PUBLIC_RECOVERY||p===HOTEL_RANKED_RESUME){
     requireValue(result.application_sha===c.sha,'max_transfer_editor_not_installed');
   }
   requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_transfer_branch_changed');
@@ -1938,6 +1951,7 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_MAX_SUGAR_PUBLIC_RECOVERY.branch)return resolveHotelTransfer({env,event,api},HOTEL_MAX_SUGAR_PUBLIC_RECOVERY);
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_RANKED_46.branch)return resolveRankedHotelTransfer({env,event,api});
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_RANKED_CONTINUATION.branch)return resolveRankedHotelTransfer({env,event,api},HOTEL_RANKED_CONTINUATION);
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_RANKED_RESUME.branch)return resolveRankedHotelTransfer({env,event,api},HOTEL_RANKED_RESUME);
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_REMAINING_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_REMAINING_TRANSFER);
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_STELLA_ALTERNATE.branch)return resolveHotelTransfer({env,event,api},HOTEL_STELLA_ALTERNATE);
   const startedAt=now();
@@ -2073,7 +2087,7 @@ function argumentsOf(argv,commands) {
 }
 function outputs(value){for(const [key,v]of Object.entries(value)){
   requireValue(/^[a-z_]+$/.test(key)&&!/[\r\n]/.test(String(v)),'invalid_output');process.stdout.write(key+'='+String(v)+'\n');}}
-module.exports={proveOriginalNextTransfer,PUBLISHER_BODY_RECOVERY,publisherBodyRecovery,publisherBodySource,failedPublisherBodyTerminal,
+module.exports={proveRankedResumeOriginal,proveOriginalNextTransfer,PUBLISHER_BODY_RECOVERY,publisherBodyRecovery,publisherBodySource,failedPublisherBodyTerminal,
   UNSTARTED_FORWARD,forwardMarker,proveUnstartedDeployment,proveUnstartedForward,admitForwardInstallation,REPOSITORY,API_ROOT,PREFIX,DEPLOY,CLOSER,HOST,RECORD_PATH,PUBLICATION_FILE,PUBLICATION_PROTOCOL,
   TERMINAL_RECOVERY,GATE_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY,PRIOR_WAVE_RECOVERY,
   priorWaveRecovery,failedPriorWaveTerminal,terminalRecovery,gateRecovery,
