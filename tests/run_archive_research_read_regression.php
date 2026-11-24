@@ -364,6 +364,42 @@ function archiveResearchReadRegression(PDO $pdo): int
         $reject(fn()=>$service->inventory(1,$connection,['recent_start'=>true,'limit'=>1]),'invalid_arguments');
         $reject(fn()=>$qualityHistory->inventory(1,$connection,['recent_start'=>false,'limit'=>1]),'invalid_arguments');
         $reject(fn()=>$qualityHistory->inventory(1,$connection,['recent_start'=>true,'cursor'=>$recentStart]),'invalid_arguments');
+        // Sparse IDs cannot substitute for cardinality. Use the public production limits here.
+        $seed(9510501,100,777000,11,'EXCLUDED_SPARSE_FENCE',$recentBusiness);
+        ArchiveResearchTraceStatement::$queries=[];
+        $sparse=$qualityHistory->inventory(1,$connection,['recent_start'=>true,'limit'=>1]);
+        $capSql=ArchiveResearchTraceStatement::$queries;
+        $pairSql=array_values(array_filter($capSql,static fn($sql)=>str_contains($sql,'SELECT')
+            &&str_contains($sql,'DISTINCT m.project_key,m.account_id,m.chat_id')&&str_contains($sql,'OFFSET 30000')));
+        $check(($sparse['recent_business_records'][0]['source_ref']??null)==='archive_message:50090'
+            &&count($pairSql)===1
+            &&count(array_filter($capSql,static fn($sql)=>str_contains($sql,'OFFSET 500000')))===1
+            &&!array_filter($capSql,static fn($sql)=>str_contains($sql,'record_json')),
+            'direct_recent_sparse_fence_probes_both_real_limits_without_payload');
+        $pdo->exec('DELETE FROM telegram_dialogue_messages WHERE id=9510501');
+
+        // Exercise both sides of each threshold on real SQL at fixture scale, using the
+        // same authorized snapshot and the original summary as an independent oracle.
+        $verifyCap=Closure::bind(function(int $cap,bool $pairs)use($connection):array{
+            return $this->read(1,$connection,function()use($cap,$pairs):array{
+                $this->checkRecentSourceLimit($this->fence(),$cap,$pairs);
+                return [];
+            });
+        },$qualityHistory,ArchiveResearchReadService::class);
+        foreach(['message_records'=>false,'account_chat_pairs'=>true] as $field=>$pairs){
+            $actual=$recentOverview['totals'][$field];
+            $check($actual>1 && $verifyCap($actual,$pairs)===[],
+                'direct_recent_accepts_exact_scoped_limit_'.$field);
+            $reject(fn()=>$verifyCap($actual-1,$pairs),'source_limit');
+        }
+        if($mysql){
+            $planQuery=$pdo->prepare('EXPLAIN '.$pairSql[0]);
+            $planQuery->execute(['anytour','99','100','101','105','107','108']);
+            $pairPlan=$planQuery->fetchAll(PDO::FETCH_ASSOC);
+            $check(count($pairPlan)===1 && $pairPlan[0]['key']==='uq_telegram_dialogue_message'
+                &&stripos((string)$pairPlan[0]['Extra'],'Using index')!==false,
+                'mysql_direct_recent_pair_upper_bound_uses_covering_chat_index');
+        }
         $recentRows=$recentFirst['recent_business_records']??[];
         $check($recentFirst['operation']==='recent_business_message_inventory'
             &&count($recentRows)===1&&$recentRows[0]['source_ref']==='archive_message:50090'
