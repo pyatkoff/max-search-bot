@@ -66,7 +66,12 @@ The client captures launch data in memory, then replaces the paid page address
 with its analytics-safe URL: original YCLID/region/campaign retained, raw MAX
 initData/user/signature and launch hints excluded. Only then does it initialize
 the existing counter for its automatic pageview and obtain ClientID through
-that counter's callback. No `defer:true`, manual pageview hit, extra goal,
+that counter's callback. For paid Apple/MAX launches, follow the installed
+MAX2 reference: pass the sanitized `metricUrl` explicitly as `init.url`, with
+an empty referrer, and queue `notBounce` once at initialization and once
+before confirmed navigation. The real URL is still normalized before init;
+this avoids exposing signed launch data to the analytics script. Telegram and
+other project clients retain their existing behavior. No `defer:true`, manual pageview hit, extra goal,
 reload, second visit writer or counter change is introduced. The authenticated
 POST retains its existing endpoint and exact signed launch body; only its
 acknowledged durable receipt permits the existing exact-post redirect.
@@ -94,9 +99,11 @@ visit; a transaction rechecks it after locking the scope cursor. An empty CID
 can acquire one immutable enrichment; a conflicting CID cannot replace it.
 Only a persisted/reused receipt allows the client to redirect. An unknown network
 outcome exposes a manual retry. Neither launch nor retry sends a bot message.
-The confirmed link opens through [MAX Bridge openMaxLink](https://dev.max.ru/docs/webapps/bridge/)
-when available. A missing/throwing bridge retains ordinary navigation and the
-visible confirmed link; an unsuccessful save opens neither route.
+For paid Apple/MAX only, the confirmed link uses ordinary `location.assign`
+first, as in installed MAX2; a throwing ordinary navigation falls back to
+[MAX Bridge openMaxLink](https://dev.max.ru/docs/webapps/bridge/). Other flows
+retain their native-bridge-first order. The visible confirmed link is retained;
+an unsuccessful save opens neither route.
 
 When the customer starts the business bot, the existing ingress writes a
 `project_funnel_entry` event in the same conversation transaction. It matches the
