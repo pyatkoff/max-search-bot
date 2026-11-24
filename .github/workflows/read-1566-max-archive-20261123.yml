@@ -19,7 +19,7 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == '55e386fbf73507556129fa45f905dc84ba5fe405' &&
+      github.event.before == '72c94f79256180ce1235691e02b22438ddc6262a' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -63,9 +63,19 @@ jobs:
                 outcomes.get('Pin established SSH host continuity and authentication identity') !== 'success' ||
                 outcomes.get('Read the full channel archive and occupied native identifiers') !== 'failure') throw Error('prior_read_state_unknown')
             const artifacts = await api('GET', base+'/artifacts?per_page=30')
-            const log = (await api.jobLog(138369656742)).toString('utf8')
-            if (artifacts.total_count !== 0 || artifacts.artifacts.length !== 0 ||
-                !/^\d{4}-\d{2}-\d{2}T\S+Z Archive read failed: READ_FAILED\r?$/m.test(log)) throw Error('prior_failed_receipt_mismatch')
+            if (artifacts.total_count !== 0 || artifacts.artifacts.length !== 0) throw Error('prior_failed_receipt_mismatch')
+            const stoppedPath = R.API_ROOT+'/actions/runs/45373090560'
+            const stopped = await api('GET', stoppedPath)
+            const stoppedJobs = (await api('GET', stoppedPath+'/attempts/1/jobs?per_page=30')).jobs
+            const observed = stoppedJobs[0]
+            if (stopped.id !== 45373090560 || stopped.run_attempt !== 1 || stopped.head_sha !== '72c94f79256180ce1235691e02b22438ddc6262a' ||
+                stopped.repository.id !== 1342493152 || stopped.head_branch !== run.head_branch || stopped.status !== 'completed' ||
+                stopped.conclusion !== 'failure' || stoppedJobs.length !== 1 || observed.id !== 138372075129 ||
+                observed.conclusion !== 'failure') throw Error('previous_preflight_mismatch')
+            const state = new Map(observed.steps.map(step=>[step.name,step.conclusion]))
+            if (state.get('Require current accepted release and actual application') !== 'failure' ||
+                state.get('Pin established SSH host continuity and authentication identity') !== 'skipped' ||
+                state.get('Read the full channel archive and occupied native identifiers') !== 'skipped') throw Error('previous_preflight_reached_server')
           }
           async function check() {
             const expected = process.env.READ_REPOSITORY_SHA
