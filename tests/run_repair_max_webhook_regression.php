@@ -33,6 +33,75 @@ function repairLatestStartEvidence(PDO $pdo, int $conversationId): array
 
 $catalog = AppleService39PilotCatalog::entries();
 repairCheck('catalog contains exactly the fifteen reviewed repair entries', count($catalog) === 15);
+$packageBytes = file_get_contents(dirname(__DIR__).'/resources/appleservice39-pilot-entries.json');
+$packageProvenance = json_decode(file_get_contents(dirname(__DIR__).'/resources/appleservice39/pilot/provenance.json'),
+    true, 16, JSON_THROW_ON_ERROR);
+$packageDigest = $packageProvenance['pilot_catalog_sha256'];
+$packageEqual = AppleService39PilotCatalog::comparePackage($packageBytes, $packageDigest);
+repairCheck('staged exact pilot package matches the preserved source hash and all fifteen active entries',
+    $packageEqual === [
+        'contract'=>'appleservice39-pilot-entries-v1', 'catalogue_sha256'=>$packageDigest,
+        'candidate_sha256'=>$packageDigest, 'entry_count'=>15, 'different_entries'=>0, 'same_bytes'=>true,
+    ]);
+$packageData = json_decode($packageBytes, true, 16, JSON_THROW_ON_ERROR);
+$changedPackage = $packageData;
+$changedPackage['entries'][0]['question'] .= ' Тестовый черновик.';
+$encodePackage = static fn(array $data): string => json_encode($data, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+$changedPackageBytes = $encodePackage($changedPackage);
+$changedComparison = AppleService39PilotCatalog::comparePackage($changedPackageBytes, hash('sha256',$changedPackageBytes));
+repairCheck('valid changed copy is reported as different without modifying the usual reader',
+    $changedComparison['same_bytes'] === false && $changedComparison['different_entries'] === 1
+    && $changedComparison['catalogue_sha256'] === $packageDigest
+    && AppleService39PilotCatalog::entries() === $catalog);
+try {
+    AppleService39PilotCatalog::comparePackage($changedPackageBytes, $packageDigest);
+    $pinRejected = false;
+} catch (RuntimeException $error) { $pinRejected = $error->getMessage() === 'appleservice39_pilot_package_digest_mismatch'; }
+repairCheck('bytes with a foreign digest cannot be inspected under the approved digest', $pinRejected);
+
+$invalidProject = $packageData; $invalidProject['project_key'] = 'anytour';
+$invalidBot = $packageData; $invalidBot['bot_key'] = 'foreign';
+$duplicateEntry = $packageData; $duplicateEntry['entries'][1] = $duplicateEntry['entries'][0];
+$incomplete = $packageData; array_pop($incomplete['entries']);
+foreach ([
+    'wrong project'=>$encodePackage($invalidProject), 'wrong bot'=>$encodePackage($invalidBot), 'duplicate ID'=>$encodePackage($duplicateEntry),
+    'missing entry'=>$encodePackage($incomplete), 'invalid JSON'=>'{',
+    'oversized bytes'=>str_repeat(' ', AppleService39PilotCatalog::MAX_PACKAGE_BYTES + 1),
+] as $reason => $badPackage) {
+    try {
+        AppleService39PilotCatalog::comparePackage($badPackage, hash('sha256',$badPackage));
+        $invalidRejected = false;
+    } catch (RuntimeException|JsonException $error) { $invalidRejected = true; }
+    repairCheck('staging rejects '.$reason.' using the normal catalogue contract', $invalidRejected);
+}
+
+$packagePath = tempnam(sys_get_temp_dir(), 'as39-package-check-');
+if ($packagePath === false) throw new RuntimeException('cannot_stage_test_catalogue');
+try {
+    $inspectPackage = static function (string $bytes, string $digest) use ($packagePath): array {
+        if (file_put_contents($packagePath, $bytes) !== strlen($bytes)) throw new RuntimeException('cannot_write_test_catalogue');
+        $command = [PHP_BINARY, dirname(__DIR__).'/tools/check_appleservice39_catalogue_package.php', $packagePath, $digest];
+        $process = proc_open($command, [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']], $pipes);
+        if (!is_resource($process)) throw new RuntimeException('cannot_run_test_catalogue');
+        fclose($pipes[0]);
+        $output = stream_get_contents($pipes[1]); fclose($pipes[1]);
+        $error = stream_get_contents($pipes[2]); fclose($pipes[2]);
+        return [proc_close($process), json_decode($output,true), trim($error)];
+    };
+    repairCheck('standalone tool reads a separate staged copy and emits the exact comparison',
+        $inspectPackage($packageBytes,$packageDigest) === [0,$packageEqual,'']);
+    repairCheck('standalone tool refuses a different staged file under the original digest',
+        $inspectPackage($changedPackageBytes,$packageDigest) === [1,null,'appleservice39_pilot_package_digest_mismatch']);
+    $equivalentBytes = $packageBytes."\n";
+    $equivalent = $inspectPackage($equivalentBytes,hash('sha256',$equivalentBytes));
+    repairCheck('standalone tool distinguishes identical entries from different package bytes',
+        $equivalent[0] === 2 && $equivalent[1]['different_entries'] === 0 && $equivalent[1]['same_bytes'] === false
+        && $equivalent[2] === '');
+    repairCheck('a later comparison of original bytes confirms a staged change never took effect',
+        AppleService39PilotCatalog::entries() === $catalog
+        && $inspectPackage($packageBytes,$packageDigest) === [0,$packageEqual,'']);
+} finally { unlink($packagePath); }
+
 foreach ($catalog as $entry) {
     $payload = AppleService39PilotCatalog::payloadForPost($entry['post_id']);
     repairCheck('canonical payload maps to reviewed model and service '.$entry['post_id'],

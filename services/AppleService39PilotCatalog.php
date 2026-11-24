@@ -7,6 +7,7 @@ final class AppleService39PilotCatalog
     public const PROJECT = 'appleservice39';
     public const BOT = 'id390521129062_bot';
     public const WARRANTY_MONTHS = 3;
+    public const MAX_PACKAGE_BYTES = 65536;
     public const WARRANTY_TEXT = 'Гарантия — 3 месяца.';
     private const MODELS = [
         'iphone-x'=>'iPhone X',
@@ -66,9 +67,50 @@ final class AppleService39PilotCatalog
     /** No provider request, runtime configuration or publication state is consulted. */
     public static function entries(): array
     {
-        if (self::$catalog !== null) return array_values(self::$catalog);
-        $raw = @file_get_contents(__DIR__.'/../resources/appleservice39-pilot-entries.json', false, null, 0, 65537);
-        self::check(is_string($raw) && strlen($raw) <= 65536);
+        return array_values(self::$catalog ??= self::decodeEntries(self::catalogueBytes()));
+    }
+
+    /** Compare a pinned staged file using the same reader, without changing the active cache. */
+    public static function comparePackage(string $candidate, string $expectedSha256): array
+    {
+        self::check(strlen($candidate) <= self::MAX_PACKAGE_BYTES
+            && preg_match('/\A[a-f0-9]{64}\z/D', $expectedSha256) === 1);
+        $candidateSha256 = hash('sha256', $candidate);
+        if (!hash_equals($expectedSha256, $candidateSha256)) {
+            throw new RuntimeException('appleservice39_pilot_package_digest_mismatch');
+        }
+
+        $current = self::catalogueBytes();
+        $currentSha256 = hash('sha256', $current);
+        $currentEntries = array_values(self::decodeEntries($current));
+        $candidateEntries = array_values(self::decodeEntries($candidate));
+        $differentEntries = 0;
+        foreach ($currentEntries as $index => $entry) {
+            if ($entry !== $candidateEntries[$index]) $differentEntries++;
+        }
+
+        return [
+            'contract' => 'appleservice39-pilot-entries-v1',
+            'catalogue_sha256' => $currentSha256,
+            'candidate_sha256' => $candidateSha256,
+            'entry_count' => count($candidateEntries),
+            'different_entries' => $differentEntries,
+            'same_bytes' => hash_equals($currentSha256, $candidateSha256),
+        ];
+    }
+
+    private static function catalogueBytes(): string
+    {
+        $raw = @file_get_contents(__DIR__.'/../resources/appleservice39-pilot-entries.json',
+            false, null, 0, self::MAX_PACKAGE_BYTES + 1);
+        self::check(is_string($raw));
+        return $raw;
+    }
+
+    /** Shared validation and projection for the current reader and the staging check. */
+    private static function decodeEntries(string $raw): array
+    {
+        self::check(strlen($raw) <= self::MAX_PACKAGE_BYTES);
         $data = json_decode($raw, true, 16, JSON_THROW_ON_ERROR);
         self::check(is_array($data) && ($data['schema'] ?? null) === 1
             && ($data['project_key'] ?? null) === self::PROJECT && ($data['bot_key'] ?? null) === self::BOT
@@ -100,8 +142,7 @@ final class AppleService39PilotCatalog
             $catalog[$id] = $entry;
         }
         self::check(count($catalog) === count($expected));
-        self::$catalog = $catalog;
-        return array_values($catalog);
+        return $catalog;
     }
 
     public static function forPost(string $postId): ?array

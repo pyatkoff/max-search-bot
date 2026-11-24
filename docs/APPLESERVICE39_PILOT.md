@@ -1,5 +1,24 @@
 # AppleService39 MAX pilot
 
+## Read-only catalogue package rehearsal
+
+The existing pilot's 15 repair entries can be checked from a separate local
+copy before any provider or release operation. Use the exact source SHA-256
+from `resources/appleservice39/pilot/provenance.json` for the same-version
+rehearsal. The command uses the same parser as ingress but does not update
+the active catalogue cache, connect to the application or activate a package.
+
+```sh
+php tools/check_appleservice39_catalogue_package.php /path/to/appleservice39-pilot-entries.json EXPECTED_SHA256
+```
+
+Exit 0 means the bytes and all parsed entries match the canonical file in this
+checkout. Exit 2 means the pinned candidate passed validation and differs. A
+bad digest, a bad file or invalid catalogue exits 1. A CLI usage error exits
+64. Treat this comparison as staging evidence. Independent activation still
+requires the existing owner's authorization, installed-core compatibility
+and publication manifest checks for prices, source URLs and artwork.
+
 ## Search-intent successor
 
 The fixed `search-intent-v1` source contains eight reviewed1254×1254 covers and
