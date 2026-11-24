@@ -51,9 +51,11 @@
     let busy=false,ctx,bridgeScript,metric=false;
     function load(src){const s=doc.createElement('script');s.src=src;s.async=true;doc.head.appendChild(s);return s;}
     function status(title,text,loading=false){el('status-title').textContent=title;el('status-copy').textContent=text;doc.querySelector('main').setAttribute('aria-busy',String(loading));}
+    // Match the installed MAX2 paid-visit measurement and navigation contract for Apple/MAX only.
+    function appleMaxPaid(){return !telegram&&cfg.project==='appleservice39'&&ctx?.payload.kind==='advertising';}
     async function cid(){
       if(!cfg.counter_id||ctx.payload.kind!=='advertising')return'';
-      if(!metric){metric=true;win.ym=win.ym||function(){(win.ym.a=win.ym.a||[]).push(arguments);};win.ym.l=Date.now();win.ym(cfg.counter_id,'init',{clickmap:false,trackLinks:false,webvisor:false});load('https://mc.yandex.ru/metrika/tag.js');}
+      if(!metric){metric=true;win.ym=win.ym||function(){(win.ym.a=win.ym.a||[]).push(arguments);};win.ym.l=Date.now();const opts={clickmap:false,trackLinks:false,webvisor:false};if(appleMaxPaid()){opts.url=ctx.metric;opts.referrer='';}win.ym(cfg.counter_id,'init',opts);load('https://mc.yandex.ru/metrika/tag.js');if(appleMaxPaid())win.ym(cfg.counter_id,'notBounce');}
       return await new Promise(resolve=>{let done=false;const end=v=>{if(!done){done=true;resolve(typeof v==='string'&&/^[1-9][0-9]{0,39}$/.test(v)?v:'');}};win.setTimeout(()=>end(''),3000);win.ym(cfg.counter_id,'getClientID',end);});
     }
     async function run(){
@@ -80,7 +82,8 @@
         if(metric)win.ym(cfg.counter_id,'notBounce');
         let opened=false;
         const open=telegram?'openTelegramLink':'openMaxLink';
-        if(typeof bridge()?.[open]==='function'){try{bridge()[open](data.redirect_url);opened=true;}catch(_){}}
+        if(appleMaxPaid()){try{win.location.assign(data.redirect_url);opened=true;}catch(_){}}
+        if(!opened&&typeof bridge()?.[open]==='function'){try{bridge()[open](data.redirect_url);opened=true;}catch(_){}}
         if(!opened){try{win.location.assign(data.redirect_url);}catch(_){}}
       }catch(_){status('Переход не выполнен','Откройте исходную ссылку в '+messenger+' и повторите переход.');el('retry').hidden=false;}
       finally{busy=false;}
