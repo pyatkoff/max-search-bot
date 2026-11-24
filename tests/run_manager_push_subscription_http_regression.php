@@ -71,10 +71,19 @@ try {
     if (!is_resource($process)) throw new RuntimeException('Cannot start push-proof HTTP fixture');fclose($pipes[0]);
     $ready=false;for ($i=0;$i<100;$i++) {if ($probe=@stream_socket_client('tcp://'.$address,$e,$s,.05)) {fclose($probe);$ready=true;break;}usleep(10000);}
     if (!$ready) throw new RuntimeException('Push-proof HTTP fixture did not start');
-    $request=static function(string $path,array $data=[],string $cookie='',string $method='POST',array $extraHeaders=[]) use ($address): array {
+    $request=static function(string $path,array $data=[],string $cookie='',string $method='POST',array $extraHeaders=[]) use ($address,$process): array {
         $headers=array_merge(['Content-Type: application/json'],$extraHeaders);if ($cookie!=='') $headers[]='Cookie: '.$cookie;
-        $ctx=stream_context_create(['http'=>['method'=>$method,'header'=>implode("\r\n",$headers),'content'=>$method==='POST'?json_encode($data):'','ignore_errors'=>true,'timeout'=>3]]);
-        $body=(string)file_get_contents('http://'.$address.$path,false,$ctx);$responseHeaders=$http_response_header??[];
+        // This fixture checks the response contract. A mutation is sent exactly once.
+        $ctx=stream_context_create(['http'=>['method'=>$method,'header'=>implode("\r\n",$headers),'content'=>$method==='POST'?json_encode($data):'','ignore_errors'=>true,'timeout'=>10]]);
+        $started=hrtime(true);
+        $body=@file_get_contents('http://'.$address.$path,false,$ctx);
+        if ($body===false) {
+            $elapsedMs=(hrtime(true)-$started)/1000000;
+            $running=proc_get_status($process)['running']?'running':'stopped';
+            throw new RuntimeException(sprintf('Loopback fixture received no HTTP response for %s %s after %.0f ms (child %s)',
+                $method,parse_url($path,PHP_URL_PATH),$elapsedMs,$running));
+        }
+        $responseHeaders=$http_response_header??[];
         preg_match('/^HTTP\/[^ ]+ ([0-9]+)/',(string)($responseHeaders[0]??''),$status);$responseCookie='';
         foreach ($responseHeaders as $header) if (preg_match('/^Set-Cookie: (anytour_manager_panel=[^;]+)/i',$header,$m)) $responseCookie=$m[1];
         return ['status'=>(int)($status[1]??0),'json'=>json_decode($body,true),'body'=>$body,'cookie'=>$responseCookie,'headers'=>$responseHeaders];

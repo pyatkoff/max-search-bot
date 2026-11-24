@@ -1385,20 +1385,91 @@ const UNSTARTED_FORWARD = {
     {"id":44102585942,"path":".github/workflows/max-production-health.yml","title":"deploy-proof:v1:44100865685:1"},
   ],
 };
-function forwardMarker(pr,head) {
+// The six source/installer job shapes are identical to the pre-install refusal in #1600.
+const UNSTARTED_FORWARD_1692 = Object.freeze({
+  pr: 1692, sha: 'cdde6f427f61bace3a5afbd943d2303f463d6531', head_sha: '13de19b7bf1902bdc67e4043c6c06b89cbacf7e9',
+  deploy: '45374266796', workflow_blob: '8163abe000ce5cef2b6e241a078663c89686b11b',
+  owner_id: 226193297, comment_id: 6818332618, updated_at: '2026-11-24T10:21:01Z',
+  application_sha: 'e3e1a9bdf29dd0d7530fe6b3b393f1286834d092', commit: '5635a6177635039d2668c8136ada5b33ca2265f2',
+  blob: 'fa6873d0b19c66c29ab254c80fdf3a03346e092c', record_digest: '0d78c6aec0f0ba2f48a48a938587416bbcaa1cb5b6b85c2bd36a700cef415950',
+  successor: 1694, branch: 'prep/1566-telegram-routes-resume-45372056681',
+  route_blob: 'a15fe913a429d2d54d3cc3b5c9b309a4f680361e',
+  fixture_blob: '85798fb368ee5c277f1da727048d56b0193d0839',
+  jobs: UNSTARTED_FORWARD.jobs.map(job => ({...job, id: ({
+    "verify-inventory": 138376135258,
+    "verify-syntax": 138376135783,
+    "verify / application": 138381768941,
+    "verify / diagnostics": 138381769132,
+    "deploy": 138382987719,
+    "verify": 138383083777
+  })[job.name]})),
+  children: [
+    [45376252183, 'modeled-pipeline-monitor-activation.yml', 'monitor-proof:v1:45376226512:1'],
+    [45376226363, 'telegram-production-health.yml', 'deploy-proof:v1:45374266796:1'],
+    [45376226320, 'max-production-health.yml', 'deploy-proof:v1:45374266796:1'],
+    [45376226512, 'modeled-conversion-monitor.yml', 'deploy-proof:v1:45374266796:1'],
+    [45376226248, 'max-tls-preflight.yml', 'deploy-proof:v1:45374266796:1'],
+    [45376226352, 'publish-conversation-diagnostics.yml', 'deploy-proof:v1:45374266796:1'],
+    [45376226674, 'modeled-conversion-value-export.yml', 'deploy-proof:v1:45374266796:1'],
+    [45376226258, 'live-session-diagnostics.yml', 'deploy-proof:v1:45374266796:1'],
+    [45376226560, 'tour-selection-host.yml', 'deploy-proof:v1:45374266796:1']
+  ].map(([id, file, title]) => ({id, path: PREFIX + file, title}))
+});
+
+function unstartedPin(previousPr) {
+  if (previousPr === 1692) return UNSTARTED_FORWARD_1692;
+  requireValue(previousPr === 1600, 'unknown_unstarted_predecessor');
+  return UNSTARTED_FORWARD;
+}
+
+async function requireRouteForwardSource(get, target, installation) {
+  const p = UNSTARTED_FORWARD_1692;
+  requireValue(target.number === p.successor && target.head.ref === p.branch, 'forward_successor_changed');
+  const route = 'hotel-posts-telegram-main19.php';
+  const fixture = 'tests/run_manager_push_subscription_http_regression.php';
+  const paths = ['.github/workflows/deploy.yml', route, 'resources/max2-common-v2/release-manifest.json',
+    'tests/run_deployment_release_regression.js', fixture, 'tests/run_partial_install_1662_forward_sync.py',
+    'tools/deployment_release.js', 'tools/release_priority.js'];
+  const changes = await get('/pulls/' + p.successor + '/files?per_page=100');
+  requireValue(Array.isArray(changes) && changes.length === paths.length
+    && same(changes.map(f => f.filename).sort(), paths)
+    && changes.every(f => f.status === 'modified' && sha(f.sha))
+    && changes.find(f => f.filename === route).sha === p.route_blob
+    && changes.find(f => f.filename === fixture).sha === p.fixture_blob, 'forward_source_scope_changed');
+  const runs = boundedList(await get('/actions/runs?head_sha=' + target.head.sha + '&per_page=100'),
+    'workflow_runs', 'forward_source_checks_incomplete');
+  for (const [workflow, id] of [['regression-tests.yml', 340550044], ['retired-domain-guard.yml', 348353174]]) {
+    const path = PREFIX + workflow;
+    const matches = runs.filter(r => r.event === 'pull_request' && r.head_branch === p.branch
+      && (r.path === path || r.workflow_id === id));
+    requireValue(matches.length === 1 && positive(matches[0].id), 'forward_source_checks_missing');
+    for (const r of [matches[0], await get('/actions/runs/' + matches[0].id)]) {
+      runIdentity(r, {id: matches[0].id, attempt: 1, head: target.head.sha,
+        branch: p.branch, workflow: path, event: 'pull_request'});
+      requireValue(r.workflow_id === id && r.repository?.id === 1342493152 && r.head_repository?.id === 1342493152
+        && Array.isArray(r.pull_requests) && ((installation && r.pull_requests.length === 0) ||
+        (r.pull_requests.length === 1 && r.pull_requests[0].number === target.number &&
+        r.pull_requests[0].head?.sha === target.head.sha && r.pull_requests[0].head?.ref === p.branch &&
+        r.pull_requests[0].base?.ref === 'main' && r.pull_requests[0].head?.repo?.id === 1342493152 &&
+        r.pull_requests[0].base?.repo?.id === 1342493152)), 'forward_source_check_changed');
+    }
+  }
+}
+
+function forwardMarker(pr,head,previousPr=1600) {
   const body=pr?.body;
   requireValue(typeof body==='string'&&body.length<=65536,'invalid_forward_marker');
   const matches=[...body.matchAll(/<!-- release-forward-unstarted:v1 (\{[^\r\n]*\}) -->/g)];
   requireValue((body.match(/<!--\s*release-forward-unstarted:/g)||[]).length===1&&matches.length===1,
     'invalid_forward_marker');
   let m;try{m=JSON.parse(matches[0][1]);}catch{throw new Refusal('invalid_forward_marker');}
-  const p=UNSTARTED_FORWARD;
+  const p=unstartedPin(previousPr);
   requireValue(keys(m,['previous_pr','previous_sha','previous_run_id','head_sha'])&&m.previous_pr===p.pr
     &&m.previous_sha===p.sha&&m.previous_run_id===p.deploy&&sha(head)&&m.head_sha===head,
     'invalid_forward_marker');return m;
 }
-async function proveUnstartedDeployment(api) {
-  const p=UNSTARTED_FORWARD,get=path=>api('GET',API_ROOT+path);
+async function proveUnstartedDeployment(api,previousPr=1600) {
+  const p=unstartedPin(previousPr),get=path=>api('GET',API_ROOT+path);
   const old=await get('/actions/runs/'+p.deploy);
   runIdentity(old,{id:p.deploy,attempt:1,head:p.sha,workflow:DEPLOY,event:'push',conclusion:'failure'});
   requireValue(old.head_commit?.id===p.sha,'forward_original_changed');
@@ -1440,8 +1511,8 @@ async function proveUnstartedDeployment(api) {
   }
   return {previous_pr:p.pr,previous_sha:p.sha,previous_run_id:p.deploy,installation:'not_started'};
 }
-async function proveUnstartedForward({api,pr,head,phase,source}) {
-  const p=UNSTARTED_FORWARD,C=require('./release_slot_close'),get=path=>api('GET',API_ROOT+path);
+async function proveUnstartedForward({api,pr,head,phase,source,previousPr=1600}) {
+  const p=unstartedPin(previousPr),C=require('./release_slot_close'),get=path=>api('GET',API_ROOT+path);
   requireValue(['before_handoff','after_handoff','installation'].includes(phase)&&positive(pr)&&pr!==p.pr&&sha(head),
     'invalid_forward_context');
   const installation=phase==='installation',main=installation?source:p.sha;
@@ -1451,7 +1522,8 @@ async function proveUnstartedForward({api,pr,head,phase,source}) {
     &&target.base?.ref==='main'&&target.base.repo?.full_name===REPOSITORY
     &&(installation?target.merged===true&&target.state==='closed'&&target.merge_commit_sha===source:
       target.state==='open'&&target.draft===false&&target.base.sha===p.sha),'forward_pull_changed');
-  forwardMarker(target,head);
+  forwardMarker(target,head,p.pr);
+  if (p.pr === 1692) await requireRouteForwardSource(get, target, installation);
   const original=C.binding(await get('/pulls/'+p.pr),p.sha);
   requireValue(original&&same(C.bindingSnapshot(original),{pr:p.pr,head_sha:p.head_sha,comment_id:p.comment_id,
     owner_id:p.owner_id,updated_at:p.updated_at}),'forward_original_binding_changed');
@@ -1468,7 +1540,7 @@ async function proveUnstartedForward({api,pr,head,phase,source}) {
     requireValue(commit?.sha===source&&Array.isArray(commit.parents)&&commit.parents.length===2
       &&commit.parents[0]?.sha===p.sha&&commit.parents[1]?.sha===head,'forward_not_direct_successor');
   }
-  const evidence=await proveUnstartedDeployment(api);
+  const evidence=await proveUnstartedDeployment(api,p.pr);
   const location=await readRecord(api);
   requireValue(location.blob===p.blob&&location.record_digest===p.record_digest,
     'forward_accepted_record_changed');
@@ -1483,7 +1555,7 @@ async function proveUnstartedForward({api,pr,head,phase,source}) {
   const snapshot=pr=>({number:pr.number,state:pr.state,merged:pr.merged,draft:pr.draft??null,merge_commit_sha:pr.merge_commit_sha??null,
     head:{sha:pr.head?.sha??null,repository:pr.head?.repo?.full_name??null},
     base:{ref:pr.base?.ref??null,sha:pr.base?.sha??null,repository:pr.base?.repo?.full_name??null}});
-  requireValue(same(snapshot(freshTarget),snapshot(target))&&same(forwardMarker(freshTarget,head),forwardMarker(target,head)),
+  requireValue(same(snapshot(freshTarget),snapshot(target))&&same(forwardMarker(freshTarget,head,p.pr),forwardMarker(target,head,p.pr)),
     'forward_pull_changed');
   const freshOriginal=C.binding(await get('/pulls/'+p.pr),p.sha);
   requireValue(same(C.bindingSnapshot(freshOriginal),C.bindingSnapshot(original)),'forward_original_binding_changed');
@@ -1500,7 +1572,7 @@ async function proveUnstartedForward({api,pr,head,phase,source}) {
   return {...evidence,phase,head_sha:head,binding:C.bindingSnapshot(binding),application_sha:accepted.application_sha};
 }
 async function admitForwardInstallation(api,c,event) {
-  const get=path=>api('GET',API_ROOT+path),p=UNSTARTED_FORWARD;
+  const get=path=>api('GET',API_ROOT+path);
   const commit=await get('/commits/'+c.sha);
   requireValue(commit?.sha===c.sha&&Array.isArray(commit.parents)&&commit.parents.length>=1&&commit.parents.length<=2
     &&commit.parents.every(parent=>sha(parent.sha)),'forward_source_unconfirmed');
@@ -1528,6 +1600,8 @@ async function admitForwardInstallation(api,c,event) {
     return proveExhaustedVerify1664Forward({api,pr:merged[0].number,head:commit.parents[1].sha,
       phase:'installation',source:c.sha,runId:c.id,event});
   }
+  const p = event.before === UNSTARTED_FORWARD_1692.sha || commit.parents.some(x => x.sha === UNSTARTED_FORWARD_1692.sha)
+    ? UNSTARTED_FORWARD_1692 : UNSTARTED_FORWARD;
   // Only the immediate successor of the fixed failed source is in scope.
   if(!commit.parents.some(parent=>parent.sha===p.sha)){
     requireValue(event.before!==p.sha,'forward_not_direct_successor');return;
@@ -1542,7 +1616,9 @@ async function admitForwardInstallation(api,c,event) {
   const deploys=runs.filter(r=>r.path===DEPLOY);
   requireValue(deploys.length===1&&String(deploys[0].id)===c.id&&deploys[0].run_attempt===1,
     'forward_deploy_replayed');
-  return proveUnstartedForward({api,pr:selected[0].number,head:selected[0].head.sha,phase:'installation',source:c.sha});
+  const proof = await proveUnstartedForward({api,pr:selected[0].number,head:selected[0].head.sha,
+    phase:'installation',source:c.sha,previousPr:p.pr});
+  return p.pr === 1692 ? {...proof,expectedCheckout:p.application_sha} : proof;
 }
 
 async function planDeployment({env,event,api,repository=process.cwd(),compare=v2}) {
@@ -2202,7 +2278,7 @@ function argumentsOf(argv,commands) {
 function outputs(value){for(const [key,v]of Object.entries(value)){
   requireValue(/^[a-z_]+$/.test(key)&&!/[\r\n]/.test(String(v)),'invalid_output');process.stdout.write(key+'='+String(v)+'\n');}}
 module.exports={rankedParentEvidence,proveClosedPrewriteOriginal,proveRankedResumeOriginal,proveOriginalNextTransfer,PUBLISHER_BODY_RECOVERY,publisherBodyRecovery,publisherBodySource,failedPublisherBodyTerminal,
-  UNSTARTED_FORWARD,forwardMarker,proveUnstartedDeployment,proveUnstartedForward,admitForwardInstallation,REPOSITORY,API_ROOT,PREFIX,DEPLOY,CLOSER,HOST,RECORD_PATH,PUBLICATION_FILE,PUBLICATION_PROTOCOL,
+  UNSTARTED_FORWARD,UNSTARTED_FORWARD_1692,forwardMarker,proveUnstartedDeployment,proveUnstartedForward,admitForwardInstallation,REPOSITORY,API_ROOT,PREFIX,DEPLOY,CLOSER,HOST,RECORD_PATH,PUBLICATION_FILE,PUBLICATION_PROTOCOL,
   TERMINAL_RECOVERY,GATE_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY,PRIOR_WAVE_RECOVERY,
   priorWaveRecovery,failedPriorWaveTerminal,terminalRecovery,gateRecovery,
   unpublishedTerminalRecovery,recoveryBranch,failedUnpublishedTerminal,authenticateFailedTerminal,

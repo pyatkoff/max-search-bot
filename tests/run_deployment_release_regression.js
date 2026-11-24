@@ -2205,8 +2205,8 @@ async function priorWaveCases(){
 }
 
 
-function unstartedFixture(){
-  const p=R.UNSTARTED_FORWARD,head=H('checked forward source'),source=H('forward merge');
+function unstartedFixture(p=R.UNSTARTED_FORWARD){
+  const head=H('checked forward source'),source=H('forward merge');
   const native={id:Number(p.deploy),path:R.DEPLOY,event:'push',name:'Deploy production',head_sha:p.sha,
     head_branch:'main',head_repository:{full_name:R.REPOSITORY},head_commit:{id:p.sha},run_attempt:1,
     status:'completed',conclusion:'failure',created_at:T,run_started_at:T,updated_at:T};
@@ -2281,7 +2281,65 @@ function acceptedForwardFixture(){
   x.api.jobLog=f.api.jobLog;x.fallback=(method,u)=>f.api(method,u);x.accepted=a;
   return x;
 }
+
+function routeForwardFixture() {
+  const p = R.UNSTARTED_FORWARD_1692;
+  const x = unstartedFixture(p);
+  x.target.number = p.successor;
+  x.target.head.ref = p.branch;
+  x.comment.body = 'PR1692: выпуск занят';
+  const repo = {id:1342493152,full_name:R.REPOSITORY};
+  const pull = {number:p.successor,head:{sha:x.head,ref:p.branch,repo},base:{sha:p.sha,ref:'main',repo}};
+  const expected = [
+    ['.github/workflows/deploy.yml',H('pinned sync')],
+    ['hotel-posts-telegram-main19.php',p.route_blob],
+    ['resources/max2-common-v2/release-manifest.json',H('manifest')],
+    ['tests/run_deployment_release_regression.js',H('regression')],
+    ['tests/run_manager_push_subscription_http_regression.php',p.fixture_blob],
+    ['tests/run_partial_install_1662_forward_sync.py',H('physical sync checks')],
+    ['tools/deployment_release.js',H('installer')],
+    ['tools/release_priority.js',H('priority')],
+  ];
+  x.files = expected.map(([filename,sha])=>({filename,sha,status:'modified'}));
+  x.checks = [['regression-tests.yml',340550044],['retired-domain-guard.yml',348353174]].map(([name,id],i)=>
+    ({...copy(x.native),id:951+i,workflow_id:id,path:R.PREFIX+name,conclusion:'success',event:'pull_request',
+      head_sha:x.head,head_branch:p.branch,repository:repo,head_repository:repo,pull_requests:[copy(pull)]}));
+  x.hook = async path => {
+    if (path === R.API_ROOT+'/pulls/1694/files?per_page=100') return copy(x.files);
+    if (path === R.API_ROOT+'/actions/runs?head_sha='+x.head+'&per_page=100')
+      return {total_count:x.checks.length,workflow_runs:copy(x.checks)};
+    const run = x.checks.find(r=>path===R.API_ROOT+'/actions/runs/'+r.id);
+    if (run) return copy(run);
+  };
+  x.admit = () => R.proveUnstartedForward({...x.options('before_handoff'),previousPr:1692});
+  return x;
+}
+
+async function routeForwardCases() {
+  const original = routeForwardFixture();
+  equal(await R.proveUnstartedDeployment(original.api,1692),
+    {previous_pr:1692,previous_sha:original.p.sha,previous_run_id:'45374266796',installation:'not_started'});
+  await refuses(original.admit,'fixture_reached_accepted_record');
+  await refuses(()=>R.proveUnstartedDeployment(original.api,1700),'unknown_unstarted_predecessor');
+  for (const [mutate,code] of [
+    [x=>x.target.head.ref+='-other','forward_successor_changed'],
+    [x=>x.files.find(f=>f.sha===x.p.route_blob).sha=H('changed twelve routes'),'forward_source_scope_changed'],
+    [x=>x.files.find(f=>f.sha===x.p.fixture_blob).sha=H('unaccepted Manager fixture'),'forward_source_scope_changed'],
+    [x=>x.files.pop(),'forward_source_scope_changed'],
+    [x=>x.checks[0].conclusion='failure','producer_not_successful'],
+    [x=>x.checks[0].pull_requests[0].number=1695,'forward_source_check_changed'],
+    [x=>x.checks.pop(),'forward_source_checks_missing'],
+    [x=>x.comment.body='PR1694: выпуск занят','record_changed'],
+    [x=>x.jobs.find(j=>j.name==='deploy').steps.find(s=>s.name.includes('private key')).conclusion='success','forward_installation_not_unstarted'],
+    [x=>x.artifacts.push({id:1}),'forward_original_published'],
+    [x=>[...x.childJobs.values()][0][0].steps.push(step('executed')),'forward_tail_executed'],
+  ]) {
+    const x=routeForwardFixture();mutate(x);await refuses(x.admit,code);
+  }
+}
+
 async function unstartedForwardCases(){
+  await routeForwardCases();
   {
     const x=acceptedForwardFixture();
     const before=await R.proveUnstartedForward(x.options('before_handoff'));
