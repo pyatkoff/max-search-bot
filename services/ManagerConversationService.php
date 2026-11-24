@@ -182,7 +182,6 @@ class ManagerConversationService
         $awaitingSql=self::awaitingFirstReplySql('c');
         $replySql=self::awaitingManagerReplySql('c');
         $replyProjection='CASE WHEN '.$replySql.' THEN 1 ELSE 0 END';
-        $currentWaitSql=ManagerReplyQueueService::waitStartedSql('c',ConversationDb::connection()->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql');
         $currentWaitOrder=in_array($queue,['waiting','attention'],true)&&!$rawWaiting;
         if(!$isAdmin)$where[]=RegionalRoutingScopeService::candidatePredicate($managerId,'c',$args,(array)($manager['projects']??[]));
         $whereSql=implode(' AND ',$where);
@@ -204,6 +203,16 @@ class ManagerConversationService
             // Other request-ranked queues keep their original query path.
             $fromSql='FROM (SELECT c.id FROM conversations c JOIN customers cu ON cu.id=c.customer_id WHERE '.$whereSql.' ORDER BY '.$orderSql.' LIMIT 200) inbox_page JOIN conversations c ON c.id=inbox_page.id JOIN customers cu ON cu.id=c.customer_id';
             $predicateSql='';
+        }
+        $mysql=ConversationDb::connection()->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+        if($currentWaitOrder){
+            // The queue predicate already excludes resolved and suspended conversations.
+            $replyProjection='1';
+            $currentWaitSql=ManagerReplyQueueService::pendingWaitStartedSql('c',$mysql);
+        }elseif($queue==='mine'){
+            $currentWaitSql='(CASE WHEN inbox_page.awaiting_manager_reply=1 THEN '.ManagerReplyQueueService::pendingWaitStartedSql('c',$mysql).' ELSE NULL END)';
+        }else{
+            $currentWaitSql=ManagerReplyQueueService::waitStartedSql('c',$mysql);
         }
         $unreadProjection='(SELECT COUNT(*) FROM messages um WHERE um.conversation_id=c.id AND '.ManagerReadService::messageSql('um').' AND um.id>COALESCE((SELECT rr.last_read_message_id FROM manager_conversation_reads rr WHERE rr.manager_id='.$mid.' AND rr.conversation_id=c.id LIMIT 1),0)) AS unread_count ';
         if($countsOnly){
