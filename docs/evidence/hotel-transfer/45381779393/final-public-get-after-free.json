@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "deployment_run": "45381779393",
+  "terminal_run": "45384012407",
+  "publisher_free_utc": "2026-11-24T11:28:55Z",
+  "verified_before_tracker_comment": "https://github.com/pyatkoff/tour-max/pull/211#issuecomment-7130176565",
+  "http_method": "GET",
+  "cache_ttl_seconds": 0,
+  "accepted": [
+    {
+      "offer_id": "tg_77914",
+      "source": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_77914",
+      "expected": "https://t.me/anytour/924",
+      "observed": "https://t.me/anytour/924",
+      "raw": "{\"offer_id\":\"tg_77914\",\"post_url\":\"https://t.me/anytour/924\"}"
+    },
+    {
+      "offer_id": "tg_435",
+      "source": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_435",
+      "expected": "https://t.me/anytour/906",
+      "observed": "https://t.me/anytour/906",
+      "raw": "{\"offer_id\":\"tg_435\",\"post_url\":\"https://t.me/anytour/906\"}"
+    },
+    {
+      "offer_id": "tg_56092",
+      "source": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_56092",
+      "expected": "https://t.me/anytour/915",
+      "observed": "https://t.me/anytour/915",
+      "raw": "{\"offer_id\":\"tg_56092\",\"post_url\":\"https://t.me/anytour/915\"}"
+    },
+    {
+      "offer_id": "tg_139",
+      "source": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_139",
+      "expected": "https://t.me/anytour/905",
+      "observed": "https://t.me/anytour/905",
+      "raw": "{\"offer_id\":\"tg_139\",\"post_url\":\"https://t.me/anytour/905\"}"
+    },
+    {
+      "offer_id": "tg_513",
+      "source": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_513",
+      "expected": "https://t.me/anytour/908",
+      "observed": "https://t.me/anytour/908",
+      "raw": "{\"offer_id\":\"tg_513\",\"post_url\":\"https://t.me/anytour/908\"}"
+    },
+    {
+      "offer_id": "tg_47025",
+      "source": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_47025",
+      "expected": "https://t.me/anytour/901",
+      "observed": "https://t.me/anytour/901",
+      "raw": "{\"offer_id\":\"tg_47025\",\"post_url\":\"https://t.me/anytour/901\"}"
+    },
+    {
+      "offer_id": "tg_106",
+      "source": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_106",
+      "expected": "https://t.me/anytour/928",
+      "observed": "https://t.me/anytour/928",
+      "raw": "{\"offer_id\":\"tg_106\",\"post_url\":\"https://t.me/anytour/928\"}"
+    },
+    {
+      "offer_id": "tg_466",
+      "source": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_466",
+      "expected": "https://t.me/anytour/925",
+      "observed": "https://t.me/anytour/925",
+      "raw": "{\"offer_id\":\"tg_466\",\"post_url\":\"https://t.me/anytour/925\"}"
+    },
+    {
+      "offer_id": "tg_59114",
+      "source": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_59114",
+      "expected": "https://t.me/anytour/917",
+      "observed": "https://t.me/anytour/917",
+      "raw": "{\"offer_id\":\"tg_59114\",\"post_url\":\"https://t.me/anytour/917\"}"
+    },
+    {
+      "offer_id": "tg_2470",
+      "source": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_2470",
+      "expected": "https://t.me/anytour/914",
+      "observed": "https://t.me/anytour/914",
+      "raw": "{\"offer_id\":\"tg_2470\",\"post_url\":\"https://t.me/anytour/914\"}"
+    },
+    {
+      "offer_id": "tg_63191",
+      "source": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_63191",
+      "expected": "https://t.me/anytour/918",
+      "observed": "https://t.me/anytour/918",
+      "raw": "{\"offer_id\":\"tg_63191\",\"post_url\":\"https://t.me/anytour/918\"}"
+    },
+    {
+      "offer_id": "tg_43689",
+      "source": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_43689",
+      "expected": "https://t.me/anytour/884",
+      "observed": "https://t.me/anytour/884",
+      "raw": "{\"offer_id\":\"tg_43689\",\"post_url\":\"https://t.me/anytour/884\"}"
+    }
+  ],
+  "failed": []
+}
