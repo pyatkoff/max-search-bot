@@ -263,6 +263,20 @@ async function verifyPreviousRelease(context, token, fetchImpl) {
   const logReader = R.makeReadApi(token, fetchImpl);
   logReader.transientReads = false;
   api.jobLog = logReader.jobLog;
+  const recovery1704 = require('./unstarted_1704_forward');
+  if (context.baseSha === recovery1704.BASE) {
+    const target = await api('GET', R.API_ROOT + '/pulls/' + context.prNumber);
+    if (target?.head?.ref === recovery1704.BRANCH) {
+      const proof = await recovery1704.proveUnstarted1704Forward({
+        api,pr:context.prNumber,head:context.headSha,
+        phase:context.publisher ? 'after_handoff' : 'before_handoff'
+      });
+      if (context.publisher && (proof.binding.comment_id !== context.publisher.comment_id ||
+        proof.binding.owner_id !== context.publisher.owner_id ||
+        proof.binding.updated_at !== context.publisher.updated_at)) refusal('forward_publisher_changed');
+      return;
+    }
+  }
   const unstarted = R.UNSTARTED_FORWARD_1692;
   if (context.prNumber === unstarted.successor && context.baseSha === unstarted.sha) {
     const proof = await R.proveUnstartedForward({api, pr: context.prNumber, head: context.headSha,
