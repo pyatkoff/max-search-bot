@@ -1,0 +1,127 @@
+{
+  "as_of_utc": "2026-11-24T15:51:16.979Z",
+  "route_acceptance": {
+    "public_checked_utc": "2026-11-24T15:14:18.220Z..2026-11-24T15:16:11.981Z",
+    "working_then": 59,
+    "changed": 59,
+    "catalog_large_channel_assignments": 102,
+    "catalog_total": 1055,
+    "report": "https://github.com/pyatkoff/max-search-bot/blob/871f5ec53f176b1151fe53acdd06210d5eb80886/docs/evidence/hotel-transfer/45416010115/59-public-advertising-links.json"
+  },
+  "recovery": {
+    "pull_request": 1704,
+    "base": "32155b9eb2c8606b61554951bfdc988d70bbcb39",
+    "head": "3a1f4c933653631b929b9a61ff92bcc2d8125d5a",
+    "source": "c3307bb811aefaa964c78f855b4d5e405fd606fb",
+    "tree": "270137bc2fa5a65f1db355e22e9137c1e2e9df3d",
+    "run_id": 45427028025,
+    "run_attempt": 1,
+    "job_id": 138571849473,
+    "original_conclusion": "failure",
+    "pre_scp_guard": "timeout, curl exit 28, zero response bytes",
+    "pre_scp_guard_utc": "2026-11-24T15:49:55.7342889Z",
+    "source_resolution": "success",
+    "physical_checkout_switch_by_this_run": false,
+    "artifact_count": 0,
+    "technical_release_slot": {
+      "comment_id": 6818332618,
+      "owner_id": 226193297,
+      "body": "PR1704: выпуск занят",
+      "updated_at": "2026-11-24T15:33:05Z"
+    },
+    "before_handoff": {
+      "provider_reads": 56,
+      "allowed": true,
+      "reason": "priority_owned",
+      "holder_pr": 1704,
+      "expires_at": "2026-11-24T15:49:18.000Z",
+      "active_reservations": 1
+    },
+    "after_handoff": {
+      "provider_reads": 64,
+      "allowed": true,
+      "reason": "active_publisher",
+      "holder_pr": 1704,
+      "expires_at": "2026-11-24T15:49:18.000Z",
+      "active_reservations": 1,
+      "ignored_later_reservations": 0,
+      "publisher_comment": 6818332618,
+      "publisher_acquired_at": "2026-11-24T15:33:05Z"
+    },
+    "independent_public_head403": {
+      "run": 45423348960,
+      "job": 138548534994,
+      "observed_at": "2026-11-24T15:15:23.8877273Z"
+    },
+    "downstream_workflows": [
+      {
+        "id": 45430099987,
+        "path": ".github/workflows/modeled-pipeline-monitor-activation.yml",
+        "conclusion": "skipped"
+      },
+      {
+        "id": 45430072320,
+        "path": ".github/workflows/publish-conversation-diagnostics.yml",
+        "conclusion": "skipped"
+      },
+      {
+        "id": 45430071990,
+        "path": ".github/workflows/modeled-conversion-monitor.yml",
+        "conclusion": "skipped"
+      },
+      {
+        "id": 45430071148,
+        "path": ".github/workflows/tour-selection-host.yml",
+        "conclusion": "skipped"
+      },
+      {
+        "id": 45430070786,
+        "path": ".github/workflows/modeled-conversion-value-export.yml",
+        "conclusion": "skipped"
+      },
+      {
+        "id": 45430071836,
+        "path": ".github/workflows/max-tls-preflight.yml",
+        "conclusion": "skipped"
+      },
+      {
+        "id": 45430071755,
+        "path": ".github/workflows/max-production-health.yml",
+        "conclusion": "skipped"
+      },
+      {
+        "id": 45430072022,
+        "path": ".github/workflows/live-session-diagnostics.yml",
+        "conclusion": "skipped"
+      },
+      {
+        "id": 45430071370,
+        "path": ".github/workflows/telegram-production-health.yml",
+        "conclusion": "skipped"
+      }
+    ]
+  },
+  "public_spot_check_after_failed_technical_recovery": {
+    "runner_observed_at": "2026-11-24T15:49:55.734Z",
+    "verified": 0,
+    "total": 2,
+    "observed": [
+      {
+        "offer_id": "tg_64918",
+        "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_64918",
+        "observed_at": "2026-11-24T15:51:16.979Z",
+        "expected": "https://t.me/anytour/1020",
+        "ok": false,
+        "reason": "timeout"
+      },
+      {
+        "offer_id": "tg_1055",
+        "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_1055",
+        "observed_at": "2026-11-24T15:51:16.979Z",
+        "expected": "https://t.me/anytour/1090",
+        "ok": false,
+        "reason": "timeout"
+      }
+    ]
+  }
+}
