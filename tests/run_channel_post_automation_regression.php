@@ -1588,6 +1588,17 @@ try {
     }
 }finally{rmdir($resumeDir);}
 
+// An explicit zero-write continuation cannot select another plan or reuse the old execution identity.
+foreach ([['wrong_plan',str_repeat('d',64),'999999',str_repeat('b',40),false],
+    ['old_run','c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab','45349080956',str_repeat('b',40),false],
+    ['old_application','c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab','999999','8d723f1c08f094fd845c7c34da29607fc294ff46',false],
+    ['ranked_resume','c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab','999999',str_repeat('b',40),true]] as [$case,$digest,$run,$app,$ranked]) {
+    $reason=null;
+    try { AnyTour\ExistingPostBatch\applyTransferPlan(__DIR__,$digest,$app,$run,$digest,false,$ranked,false,true); }
+    catch (RuntimeException $e) { $reason=$e->getMessage(); }
+    channelPostCheck('zero-write continuation rejects before runtime: '.$case,$reason,'transfer_closed_prewrite_scope_invalid');
+}
+
 channelPostCheck('ranked continuation selects exactly 37 untouched original rows',
     [$rankedTail['operation'], count($rankedTail['rows']), $rankedTail['rows'],
         array_intersect(['224','249','266'], array_column($rankedTail['rows'], 'target_message_id'))],

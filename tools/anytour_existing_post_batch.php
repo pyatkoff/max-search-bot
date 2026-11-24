@@ -1050,8 +1050,12 @@ function requireRankedOriginalPrefix(array $plan, string $digest): void
 }
 
 /** Only the explicit CLI branch below calls this; tick() remains unchanged. */
-function applyTransferPlan(string $root, string $approvedDigest, string $applicationSha, string $nativeRunId, bool|string $next = false, bool $remaining = false, bool $rankedContinuation = false, bool $rankedResume = false): array
+function applyTransferPlan(string $root, string $approvedDigest, string $applicationSha, string $nativeRunId, bool|string $next = false, bool $remaining = false, bool $rankedContinuation = false, bool $rankedResume = false, bool $prewriteResume = false): array
 {
+    requirePost(!$prewriteResume || (!$rankedContinuation && !$remaining
+        && $next==='c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab'
+        && $nativeRunId!=='45349080956' && $applicationSha!=='8d723f1c08f094fd845c7c34da29607fc294ff46'),
+        'transfer_closed_prewrite_scope_invalid');
     requirePost(!$rankedResume || ($rankedContinuation && $nativeRunId!==RANKED_RESUME_ORIGIN['native_run_id']
         && $applicationSha!==RANKED_RESUME_ORIGIN['application_sha']), 'transfer_resume_scope_invalid');
     requirePost($next === true || !$remaining, 'transfer_remaining_scope_invalid');
@@ -1216,6 +1220,7 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
                 'context'=>['native_run_id'=>$nativeRunId,'application_sha'=>$applicationSha,
                     'native_preflight'=>$plan['native_preflight']]
                     + ($rankedResume ? ['resume_after_native_run_id'=>RANKED_RESUME_ORIGIN['native_run_id']] : [])
+                    + ($prewriteResume ? ['closed_prewrite_origin_native_run_id'=>'45349080956'] : [])
                     + ($remaining ? ['continuation_of_native_run_id'=>ORIGINAL_NEXT_TRANSFER_RUN] : [])
                     + ($rankedContinuation ? ['continuation_of_ranked_run_id'=>RANKED_ORIGINAL_RUN] : []),
             ];
@@ -1267,12 +1272,13 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
     ini_set('display_errors', '0'); ini_set('log_errors', '0');
     $exitCode = 2;
     $command = $argv[1] ?? '';
+    $prewriteResume = $command==='--apply-closed-prewrite-resume';
     $rankedResume = in_array($command, ['--check-ranked-resume','--apply-ranked-resume'], true);
     $rankedContinuation = $rankedResume || in_array($command, ['--check-ranked-continuation','--apply-ranked-continuation'], true);
     $remaining = in_array($command, ['--check-remaining-transfer-plan','--apply-remaining-transfer'], true);
     $next = $remaining || in_array($command, ['--check-next-transfer-plan','--apply-next-transfer'], true);
     try {
-        if ($rankedContinuation || in_array($command, ['--check-ranked-transfer-plan','--apply-ranked-transfer'], true)) {
+        if ($rankedContinuation || $prewriteResume || in_array($command, ['--check-ranked-transfer-plan','--apply-ranked-transfer'], true)) {
             $selected = $argv[2] ?? '';
             transferRankedProfile($selected);
             $next = $selected;
@@ -1291,8 +1297,8 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
                 'rows'=>array_map(static fn(array $row): array => ['hotel_id'=>$row['hotel_id'],
                     'target_url'=>'https://t.me/anytour/'.$row['target_message_id'],
                     'caption_sha256'=>$row['next_caption_sha256']], $plan['rows'])];
-        } elseif (count($argv) === 5 && in_array($command, ['--apply-transfer','--apply-next-transfer','--apply-ranked-transfer','--apply-remaining-transfer','--apply-ranked-continuation','--apply-ranked-resume'], true)) {
-            $result = applyTransferPlan($root, $argv[2], $argv[3], $argv[4], $next, $remaining, $rankedContinuation, $rankedResume);
+        } elseif (count($argv) === 5 && in_array($command, ['--apply-transfer','--apply-next-transfer','--apply-ranked-transfer','--apply-remaining-transfer','--apply-ranked-continuation','--apply-ranked-resume','--apply-closed-prewrite-resume'], true)) {
+            $result = applyTransferPlan($root, $argv[2], $argv[3], $argv[4], $next, $remaining, $rankedContinuation, $rankedResume, $prewriteResume);
         } else {
             throw new RuntimeException('transfer_explicit_command_required');
         }
