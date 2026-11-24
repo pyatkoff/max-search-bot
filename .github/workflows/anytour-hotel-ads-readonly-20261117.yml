@@ -1,4 +1,4 @@
-name: "HOTEL: verify seven MAX sources, destinations and editing rights"
+name: "HOTEL: seven completed days of verified first-party hotel demand"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -19,7 +19,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '692f00c75234ff8083284cc130240b2b10811e86' &&
+      github.event.before == 'b73099c9288884d68b6081512373d88a176b5996' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 18
@@ -48,26 +48,11 @@ jobs:
             const slot = await api('GET',R.API_ROOT+'/issues/comments/6818332618')
             if (install.head_sha!==expected || install.run_attempt!==1 || install.status!=='completed' ||
                 install.conclusion!=='success' || slot.body!=='PR1694: установлено, выпуск свободен') throw Error('current_installation_not_accepted')
-            const stoppedPath=R.API_ROOT+'/actions/runs/45375790297'
-            const stopped=await api('GET',stoppedPath)
-            const jobs=(await api('GET',stoppedPath+'/attempts/1/jobs?per_page=30')).jobs
-            if (stopped.id!==45375790297 || stopped.repository.id!==1342493152 || stopped.head_sha!=='692f00c75234ff8083284cc130240b2b10811e86' ||
-                stopped.run_attempt!==1 || stopped.status!=='completed' || stopped.conclusion!=='failure' ||
-                jobs.length!==1 || jobs[0].id!==138381630176 || jobs[0].conclusion!=='failure') throw Error('prior_read_identity_changed')
-            const steps=new Map(jobs[0].steps.map(s=>[s.name,s.conclusion]))
-            if (steps.get('Verify current main and accepted application without mutations')!=='failure' ||
-                steps.get('Prepare the seven source and destination comparisons')!=='skipped' ||
-                steps.get('Pin established SSH host continuity and authentication identity')!=='skipped' ||
-                steps.get('Read the seven MAX sources and destinations')!=='skipped') throw Error('prior_read_contacted_server')
-            const prior = R.API_ROOT+'/actions/runs/45373389110'
-            const archive = await api('GET',prior)
-            const receipts = await api('GET',prior+'/artifacts?per_page=30')
-            const digest = 'sha256:c46ce092bfb91935ce829c871026a1136bf465920a3caa9184604f052c55798c'
-            if (archive.id!==45373389110 || archive.head_sha!=='e1e3d25e42522639e2b82b4bdf32b155a547a184' || archive.run_attempt!==1 ||
-                archive.repository.id!==1342493152 || archive.head_branch!=='ops/1566-max-archive-inventory-20261123' ||
-                archive.status!=='completed' || archive.conclusion!=='success' || receipts.total_count!==1 ||
-                receipts.artifacts[0].id!==14910511299 || receipts.artifacts[0].digest!==digest ||
-                receipts.artifacts[0].expired || receipts.artifacts[0].name!=='issue-1566-main-max-archive-inventory') throw Error('previous_archive_unverified')
+            const prior=await api('GET',R.API_ROOT+'/actions/runs/45384947065')
+            const receipts=await api('GET',R.API_ROOT+'/actions/runs/45384947065/artifacts?per_page=30')
+            if(prior.head_sha!=='b73099c9288884d68b6081512373d88a176b5996' || prior.run_attempt!==1 || prior.repository.id!==1342493152 ||
+                prior.status!=='completed' || prior.conclusion!=='success' || receipts.total_count!==1 || receipts.artifacts[0].id!==14915153351 ||
+                receipts.artifacts[0].digest!=='sha256:3cda5ee09d25fc35f8acfd91027b4b703d9934718772b2bf6fbe0797044b0cd9') throw Error('prior_archive_read_unverified')
             const record = await R.readRecord(api)
             const actual = await R.resolveCurrent(api, {sha:expected}, record)
             if (!actual.ready || !/^[a-f0-9]{40}$/.test(actual.application_sha) || actual.repository_sha !== expected) {
@@ -75,12 +60,12 @@ jobs:
             }
             await P.verifyPreviousRelease({repository:R.REPOSITORY,baseSha:expected}, process.env.GITHUB_TOKEN, fetch)
             if (await current() !== expected) throw Error('changed_release')
-            require('node:fs').appendFileSync(process.env.GITHUB_ENV,'VERIFIED_MAX_APP='+actual.application_sha+'\n')
-            console.log('MAX_SEVEN_RELEASE_ACCEPTED='+expected)
+            require('node:fs').appendFileSync(process.env.GITHUB_ENV,'VERIFIED_HOTEL_APP='+actual.application_sha+'\n')
+            console.log('RANK_RELEASE_ACCEPTED='+expected)
           }
           read().catch(e=>{console.error('release_refused='+(e.code||'accepted_release_unavailable'));process.exitCode=1})
           NODE
-      - name: Prepare the seven source and destination comparisons
+      - name: Prepare the aggregate-only hotel demand reader
         shell: bash
         run: |
           set -euo pipefail
@@ -89,107 +74,89 @@ jobs:
           cat > pub/read-only.php <<'PHP'
           <?php
           declare(strict_types=1);
-          use function AnyTour\ExistingPostBatch\{maxTransferRead,maxTransferNativeEditor};
-          ini_set('display_errors','0');
-          function expectRow(bool $ok, string $reason): void {
-              if (!$ok) throw new RuntimeException($reason);
+          ini_set('display_errors', '0');
+          function checked(bool $value, string $reason): void {
+              if (!$value) throw new RuntimeException($reason);
           }
-          function safeReason(Throwable $e): string {
-              return preg_match('/\A[A-Za-z_][A-Za-z0-9_]{1,63}\z/D',$e->getMessage()) ? $e->getMessage() : 'unexpected_read_error';
+          function installation(string $base, string $expected): bool {
+              return PHP_SAPI === 'cli' && getcwd() === $base && trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD')) === $expected
+                  && trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false status --porcelain --untracked-files=no')) === '';
           }
-          function observePair(PDO $pdo, ChannelPostRegistryService $registry, array $channel, array $r): array {
-              $id = $r['hotel_id'];
-              $publication = $registry->publication($r['source_id']);
-              expectRow(is_array($publication) && $publication['project_key'] === 'anytour' && $publication['platform'] === 'max'
-                  && $publication['bot_key'] === $channel['bot_key'] && $publication['channel_id'] === '-80492244209683'
-                  && $publication['state'] === 'sent' && $publication['message_id'] === $r['source_mid'], 'source_registry_identity');
-              $mid = $publication['message_id'];
-              [$source, $snap] = maxTransferRead(['message_id'=>$mid,'url'=>$r['source_url'],'channel_id'=>'-80492244209683']);
-              [$target, $before] = maxTransferRead(['message_id'=>$r['target_mid'],'url'=>$r['target_url'],'channel_id'=>'-68765999669267']);
-              $photo=$snap['attachments'][0];
-              $binding = $publication['snapshot']['metadata']['hotel_catalog_id'] ?? null;
-              $button = ChannelPostButtonTransport::buttonUrl($publication);
-              $resolved = ChannelPostEntryService::resolve('max',$publication['start_payload'],$registry);
-              $q=$pdo->prepare('SELECT COUNT(*) FROM post_publications WHERE post_channel_id=4 AND external_message_id=?');
-              $q->execute([$r['target_mid']]); $occupied=(int)$q->fetchColumn();$q->closeCursor();
-              $q=$pdo->prepare("SELECT COUNT(*) FROM post_versions WHERE publication_id=? AND (state IN ('claimed','write_started','unknown') OR claim_token IS NOT NULL OR claimed_at IS NOT NULL)");
-              $q->execute([$r['source_id']]);$claimed=(int)$q->fetchColumn();$q->closeCursor();
-              $q=$pdo->prepare("SELECT COUNT(*) FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id WHERE p.post_channel_id=4 AND (JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id'))=? OR p.external_message_id=?)");
-              $q->execute([(string)$id,$r['target_mid']]);$conflicts=(int)$q->fetchColumn();$q->closeCursor();
-              $nativeText=$snap['text'];$reg=$publication['snapshot'];
-              $buttons=[];foreach ($snap['keyboard']??[] as $buttonRow) foreach ($buttonRow as $key) $buttons[]=$key;
-              $oneRegistryUrl=count($buttons)===1 && $button!=='' && ($buttons[0]['url']??'')===$button
-                  && (!isset($buttons[0]['type'])||$buttons[0]['type']==='link') && trim((string)($buttons[0]['text']??''))!=='';
-              $samePublication=is_array($resolved)&&(int)($resolved['publication_id']??0)===$r['source_id']&&($resolved['message_id']??null)===$mid;
-              $hotelNameInNative=mb_stripos(mb_substr($nativeText,0,300),$r['name'])!==false;
-              $targetMatches=(int)$target['timestamp']===$r['target_ms'] && !$before['keyboard'] && empty($target['link'])
-                  && hash_equals($r['target_fingerprint'],ChannelPostIncomingAdapter::contentFingerprint($before));
-              $result=['hotel_id'=>$id,'source_id'=>$r['source_id'],'source_mid'=>$mid,'source_version'=>$publication['version_id'],
-                  'source_content_sha256'=>$publication['content_hash'],'source_photo_sha256'=>hash('sha256',(string)($photo['photo_id']??'')),
-                  'source_caption_sha256'=>hash('sha256',$nativeText),'source_caption_nonempty'=>trim($nativeText)!=='',
-                  'native_source_date_ms'=>$source['timestamp'],'native_source_photo_count'=>count($snap['attachments']),
-                  'native_source_photo_reusable'=>!empty($photo['photo_id'])&&is_string($photo['token']??null)&&preg_match('/\A[\x21-\x7e]{1,2048}\z/D',$photo['token'])===1,
-                  'source_caption_matches_registry'=>($reg['text']??null)===$nativeText,
-                  'source_photo_matches_registry'=>(string)($reg['attachments'][0]['photo_id']??'')===(string)($photo['photo_id']??''),
-                  'source_hotel_id_matches'=>(int)$binding===$id,
-                  'source_catalog_id'=>(int)$binding,'source_name_in_native_caption'=>$hotelNameInNative,
-                  'source_button_count'=>count($buttons),'source_one_button_matches_url'=>$oneRegistryUrl,
-                  'source_button_resolves_publication'=>$samePublication,
-                  'readable_source_hotel_identity'=>(int)$binding===$id||((int)$binding===0&&$hotelNameInNative),
-                  'source_single_registry_button'=>$button!=='' && ChannelPostIncomingAdapter::containsOnlyButton($snap,$button,(string)$publication['channel']['button_text']),
-                  'source_button_resolves_to_hotel'=>is_array($resolved)&&(int)($resolved['publication_id']??0)===$r['source_id']
-                    && ($resolved['message_id']??null)===$mid && (int)($resolved['snapshot']['metadata']['hotel_catalog_id']??0)===$id,
-                  'target_mid'=>$r['target_mid'],'target_url'=>$r['target_url'],'target_matches_native_archive'=>$targetMatches,
-                  'target_occupied'=>$occupied,'source_held'=>$claimed,'target_or_hotel_registry_conflicts'=>$conflicts];
-              $checks=['source_caption_nonempty','native_source_photo_reusable','source_caption_matches_registry','source_photo_matches_registry','source_hotel_id_matches','source_single_registry_button','source_button_resolves_to_hotel','target_matches_native_archive'];
-              $missing=array_values(array_filter($checks,static fn($k)=>!$result[$k]));
-              foreach (['target_occupied','source_held','target_or_hotel_registry_conflicts'] as $k) if($result[$k])$missing[]=$k;
-              $result['blockers']=$missing;
-              return $result;
+          function sources(string $base): array {
+              $catalogue = file_get_contents($base.'/feed/hotel-posts-telegram.xml', false, null, 0, 12000001);
+              $rawMap = file_get_contents($base.'/resources/max2-common-v2/canonical-map-v1055.json', false, null, 0, 3000001);
+              checked(is_string($catalogue) && strlen($catalogue) < 12000001 && !str_contains($catalogue,'<!DOCTYPE') && is_string($rawMap) && strlen($rawMap) < 3000001, 'catalogue_unavailable');
+              $map = json_decode($rawMap, true, 32, JSON_THROW_ON_ERROR);
+              checked($map['platform'] === 'max' && (string)$map['channel_id'] === '-80492244209683' && $map['binding_count'] === 1055 && count($map['bindings_by_post_id']) === 1055, 'map_coverage');
+              $xml=new DOMDocument();checked($xml->loadXML($catalogue, LIBXML_NONET | LIBXML_NOCDATA), 'catalogue_malformed');
+              $xpath=new DOMXPath($xml);$nodes=$xpath->query('/yml_catalog/shop/offers/offer');checked($nodes && $nodes->length>0,'missing_offers');
+              $tg = $hotels = $max = [];
+              foreach ($nodes as $offer) {
+                  $key=$offer->getAttribute('id');$links=$xpath->query('./url',$offer);$titles=$xpath->query('./name',$offer);checked($links->length===1 && $titles->length===1,'offer_shape');$url=$links->item(0)->textContent;
+                  checked(preg_match('/\Atg_([1-9][0-9]*)\z/D',$key,$m) === 1 && preg_match('~\Ahttps://t\.me/(any_toour|anytour)/([1-9][0-9]*)\z~D',$url,$mid) === 1, 'tg_feed_identity');
+                  $id=(int)$m[1]; checked(!isset($hotels[$id]),'duplicate_tg_offer');
+                  $name=trim($titles->item(0)->textContent);checked($name !== '' && mb_strlen($name) < 240, 'hotel_name');
+                  $hotels[$id]=['name'=>$name,'tg_url'=>$url];
+                  if ($mid[1]==='any_toour') {checked(!isset($tg[$mid[2]]),'duplicate_tg_post'); $tg[$mid[2]]=$id;}
+              }
+              foreach ($map['bindings_by_post_id'] as $pub=>$row) {
+                  $id=(int)$row['hotel_id'];checked((string)$pub===(string)$row['publication_id'] && (string)$pub===(string)$row['post_id'] && $row['offer_id']==='max_'.$id && isset($hotels[$id]) && !isset($hotels[$id]['max_url']) && preg_match('~\Ahttps://max\.ru/channel_anytour/([A-Za-z0-9_-]+)\z~D',$row['post_url'])===1,'max_map_identity');
+                  $max[(int)$pub]=['hotel_id'=>$id,'url'=>$row['post_url']]; $hotels[$id]['max_url']=$row['post_url'];
+              }
+              return [$tg,$max,$hotels,hash('sha256',$catalogue),hash('sha256',$rawMap)];
           }
-          $root='/var/www/anytoour/data/www/app.anytoour.ru';$expected='VERIFIED_MAX_APPLICATION_SHA';
-          $out=['ok'=>false,'operation'=>'max_seven_source_rights','repository_sha'=>'e56ae1d83b643afeca7d890030198e0bcdb71083','application_sha'=>$expected,
-              'archive_run'=>45373389110,'db_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,'rows'=>[]];
-          function installedHere(string $root, string $expected): bool {
-              return PHP_SAPI==='cli' && getcwd()===$root && trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'))===$expected
-                  && trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false status --porcelain --untracked-files=no'))==='';
+          function resolveId(array $row,array $tg,array $max): ?int {
+              $mid=(string)$row['external_message_id'];
+              if ((int)$row['post_channel_id']===10) return $tg[$mid]??null;
+              $candidate=$max[(int)$row['publication_id']]??null;
+              if (!$candidate || preg_match('/\Amid\.[0-9a-f]{16}([0-9a-f]{16})\z/D',$mid,$m)!==1) return null;
+              $slug=rtrim(strtr(base64_encode(hex2bin($m[1])),'+/','-_'),'=');
+              return $candidate['url']==='https://max.ru/channel_anytour/'.$slug?$candidate['hotel_id']:null;
           }
-          ob_start();
-          try {
-              expectRow(installedHere($root,$expected),'installed_release_changed');
-              require_once $root.'/config.php';
-              require_once $root.'/services/ChannelPostEntryService.php';
-              require_once $root.'/services/ChannelPostButtonTransport.php';
-              require_once $root.'/tools/anytour_existing_post_max_transfer.php';
-              expectRow(ProjectConfig::projectId()==='anytour','unexpected_project');
-              $lockPath='/var/www/anytoour/data/channel-post-operations/monitor-price-after-collection-v1.jsonl';
-              expectRow(is_file($lockPath)&&!is_link($lockPath),'editor_lock_unavailable');
-              $lock=fopen($lockPath,'rb'); expectRow(is_resource($lock)&&flock($lock,LOCK_SH|LOCK_NB),'editor_busy');
-              $pdo=ConversationDb::connection();$pdo->exec('SET TRANSACTION READ ONLY');$pdo->beginTransaction();
+          function rankedRows(array $rows,array $tg,array $max,array $hotels): array {
+              $result=[];$unmatched=0;$matched=0;
+              foreach ($rows as $row) {
+                  $id=resolveId($row,$tg,$max); if ($id===null) {++$unmatched;continue;}
+                  $meta=$row['declared_id']; if ($meta!==null && $meta!=='null' && $meta!=='' && (int)$meta!==0 && (string)$meta!==(string)$id) {++$unmatched;continue;}
+                  $d=(int)$row['dialogues'];$e=(int)$row['entries']; checked($d>=1 && $d<=$e,'invalid_counts');
+                  ++$matched;$channel=(int)$row['post_channel_id']===9?'max':'telegram';$observation=['platform'=>$channel,'distinct_dialogues'=>$d,'entries'=>$e];
+                  if (!isset($result[$id])) $result[$id]=['hotel_id'=>$id,'max_offer'=>'max_'.$id,'tg_offer'=>'tg_'.$id,'hotel_name'=>$hotels[$id]['name'],'source'=>$observation,'observed_posts'=>[]];
+                  $result[$id]['observed_posts'][]=$observation;
+                  $best=$result[$id]['source'];if ([$d,$e]>[$best['distinct_dialogues'],$best['entries']]) $result[$id]['source']=$observation;
+              }
+              usort($result,static fn($a,$b)=>$b['source']['distinct_dialogues']<=>$a['source']['distinct_dialogues']?:$b['source']['entries']<=>$a['source']['entries']?:$a['hotel_id']<=>$b['hotel_id']);
+              return [$result,$matched,$unmatched];
+          }
+          if (defined('HOTEL_RANK_LIBRARY_ONLY')) return;
+          $base='/var/www/anytoour/data/www/app.anytoour.ru';$expected='VERIFIED_HOTEL_APPLICATION_SHA';
+          $out=['ok'=>false,'operation'=>'first_party_hotel_entry_rank_v1','repository_sha'=>'e56ae1d83b643afeca7d890030198e0bcdb71083','application_sha'=>$expected,'db_writes'=>0,'provider_calls'=>0];
+          ob_start();try {
+              checked(installation($base,$expected),'installed_release_changed');
+              require_once $base.'/config.php'; require_once $base.'/services/ChannelPostEntryService.php';
+              checked(ProjectConfig::projectId()==='anytour','unexpected_project');
+              [$tg,$max,$hotels,$hashFeed,$hashMap]=sources($base);
+              $zone=new DateTimeZone('Europe/Moscow');$utc=new DateTimeZone('UTC');$end=(new DateTimeImmutable('today',$zone))->setTimezone($utc);$start=$end->modify('-7 days');
+              $db=ConversationDb::connection();$db->exec('SET TRANSACTION READ ONLY');$db->beginTransaction();
               try {
-                  $registry=new ChannelPostRegistryService($pdo);$identity=ChannelPostRuntime::identity('max');
-                  $channel=$registry->channel('anytour','max',(string)($identity['bot_key']??''),'-68765999669267');
-                  expectRow(is_array($channel)&&(int)$channel['id']===4,'unexpected_target_channel');
-                  maxTransferNativeEditor($channel,['channel_id'=>'-68765999669267','config_version'=>(int)$channel['config_version']]);
-                  $out['target_editor_rights']=true;$out['channel_config_version']=$channel['config_version'];
-                  foreach (json_decode('[{"hotel_id":241,"source_id":115,"source_url":"https://max.ru/channel_anytour/AaGa3GMLV1E","target_url":"https://max.ru/anytour/AZ87_EUJEiI","target_mid":"mid.ffffc1752b045fed019f3bfc45091222","target_ms":1783417816329,"target_fingerprint":"a94406a316645dd6589b3d58f4835f5d8af5bec43a8fbc50b41986dfbdf75e99","name":"Pickalbatros Makadi Resort","source_mid":"mid.ffffb6caf0606fed01a19adc630b5751"},{"hotel_id":15693,"source_id":1191,"source_url":"https://max.ru/channel_anytour/AaHQDVICNd0","target_url":"https://max.ru/anytour/AZ-yESbCL_Q","target_mid":"mid.ffffc1752b045fed019fb21126c22ff4","target_ms":1785398896322,"target_fingerprint":"75586399750be5d29b6d56a18c9e0cca284e8ffab7f1df2d870f81f3c4bb1c6d","name":"The Makadi Spa","source_mid":"mid.ffffb6caf0606fed01a1d00d520235dd"},{"hotel_id":293,"source_id":255,"source_url":"https://max.ru/channel_anytour/AaGePD60KYU","target_url":"https://max.ru/anytour/AZ-3aA0tG-E","target_mid":"mid.ffffc1752b045fed019fb7680d2d1be1","target_ms":1785488477485,"target_fingerprint":"567d536515421dbd147944caf2972277b3520fad527b1064cace958de07f30cf","name":"Pickalbatros Laguna Vista","source_mid":"mid.ffffb6caf0606fed01a19e3c3eb42985"},{"hotel_id":408,"source_id":324,"source_url":"https://max.ru/channel_anytour/AaGhJ7JODvU","target_url":"https://max.ru/anytour/AZ_bVraKfqs","target_mid":"mid.ffffc1752b045fed019fdb56b68a7eab","target_ms":1786091320970,"target_fingerprint":"3f1e6b5b8691f70a6b761c13dc75f4a9c66cc6171c4220d7c2254e8e5f3db7a5","name":"Savoy Sharm El Sheikh","source_mid":"mid.ffffb6caf0606fed01a1a127b24e0ef5"},{"hotel_id":949,"source_id":986,"source_url":"https://max.ru/channel_anytour/AaG3oYrTVTI","target_url":"https://max.ru/anytour/AZ_1bEjVO3Q","target_mid":"mid.ffffc1752b045fed019ff56c48d53b74","target_ms":1786528942293,"target_fingerprint":"f86acef0e2a385894f5ccde99638cfc9cb2be94987998ac700e11db81346c4fc","name":"Adam & Eve","source_mid":"mid.ffffb6caf0606fed01a1b7a18ad35532"},{"hotel_id":1260,"source_id":1230,"source_url":"https://max.ru/channel_anytour/AaHQYt4dcmY","target_url":"https://max.ru/anytour/AaAQRP74HIo","target_mid":"mid.ffffc1752b045fed01a01044fef81c8a","target_ms":1786979352312,"target_fingerprint":"688ef29b5ab084beb1776e7e0a9fd3515eac594ccc71755bc6cd68f2579f97b3","name":"IC Hotels Santai Family Resort","source_mid":"mid.ffffb6caf0606fed01a1d062de1d7266"},{"hotel_id":24909,"source_id":478,"source_url":"https://max.ru/channel_anytour/AaG1rsYqb1E","target_url":"https://max.ru/anytour/AZ_BkAiveNQ","target_mid":"mid.ffffc1752b045fed019fc19008af78d4","target_ms":1785658869935,"target_fingerprint":"69aee34cd7c9ddf4074c423a24669efd532fb662d1b0916661598c0dec933a5b","name":"Graceland Khao Lak Beach Resort","source_mid":"mid.ffffb6caf0606fed01a1b5aec62a6f51"}]',true,32,JSON_THROW_ON_ERROR) as $row) {
-                      try { $out['rows'][]=observePair($pdo,$registry,$channel,$row); }
-                      catch(Throwable $err) { $out['rows'][]=['hotel_id'=>$row['hotel_id'],'source_id'=>$row['source_id'],'target_url'=>$row['target_url'],'blockers'=>[safeReason($err)]]; }
-                  }
-              } finally { $pdo->rollBack();fclose($lock); }
-              expectRow(installedHere($root,$expected),'installed_release_changed');
-              $out['read_utc']=gmdate(DATE_ATOM);$out['ok']=true;
-          } catch(Throwable $err){ $out['failure']=safeReason($err); }
-          ob_end_clean();echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
-          exit($out['ok']?0:2);
+                  $channels=$db->query('SELECT id,platform,channel_id FROM post_channels WHERE id IN (9,10) ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+                  checked(count($channels)===2 && $channels[0]['platform']==='max' && (string)$channels[0]['channel_id']==='-80492244209683' && $channels[1]['platform']==='telegram' && (string)$channels[1]['channel_id']==='-1002262666616','hotel_channel_identity');
+                  $query=$db->prepare("SELECT p.id AS publication_id,p.post_channel_id,p.external_message_id,COUNT(*) AS entries,COUNT(DISTINCT e.conversation_id) AS dialogues, JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id')) AS declared_id FROM post_entries e JOIN post_publications p ON p.id=e.publication_id JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id WHERE p.post_channel_id IN (9,10) AND e.created_at>=? AND e.created_at<? GROUP BY p.id,p.post_channel_id,p.external_message_id,v.id,declared_id ORDER BY dialogues DESC,entries DESC,p.id LIMIT 6001");
+                  $query->execute([$start->format('Y-m-d H:i:s'),$end->format('Y-m-d H:i:s')]);$rows=$query->fetchAll(PDO::FETCH_ASSOC);$query->closeCursor();
+                  checked(count($rows)<=6000,'source_rows_exceed_bound');
+                  [$ranked,$matched,$unmatched]=rankedRows($rows,$tg,$max,$hotels);
+              } finally {$db->rollBack();}
+              checked(installation($base,$expected) && hash_file('sha256',$base.'/feed/hotel-posts-telegram.xml')===$hashFeed,'source_changed');
+              $out+=['from_utc'=>$start->format(DATE_ATOM),'until_utc_exclusive'=>$end->format(DATE_ATOM),'read_utc'=>gmdate(DATE_ATOM),'period'=>'7 completed Moscow calendar days','feed_sha256'=>$hashFeed,'map_sha256'=>$hashMap,'catalogue_pairs'=>count($max),'source_posts'=>count($rows),'matched_posts'=>$matched,'unmatched_posts'=>$unmatched,'ranked_hotels'=>count($ranked),'rows'=>$ranked,'measure'=>'Strongest one source post per hotel, distinct conversations then entries then TV ID. Paid clicks unknown.'];$out['ok']=true;
+          } catch(Throwable $error){$reason=$error->getMessage();$out['reason']=preg_match('/\A[a-z_]{1,70}\z/D',$reason)?$reason:'read_error';if($error instanceof PDOException) $out['sqlstate']=$error->getCode();}
+          ob_end_clean();echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),PHP_EOL;exit($out['ok']?0:2);
           PHP
           python3 - <<'PYBIND'
           import os,pathlib,re
           path=pathlib.Path('pub/read-only.php')
           source=path.read_text()
-          app=os.environ['VERIFIED_MAX_APP']
-          assert re.fullmatch('[a-f0-9]{40}',app) and source.count('VERIFIED_MAX_APPLICATION_SHA')==1
-          path.write_text(source.replace('VERIFIED_MAX_APPLICATION_SHA',app))
+          app=os.environ['VERIFIED_HOTEL_APP']
+          assert re.fullmatch('[a-f0-9]{40}',app) and source.count('VERIFIED_HOTEL_APPLICATION_SHA')==1
+          path.write_text(source.replace('VERIFIED_HOTEL_APPLICATION_SHA',app))
           PYBIND
           php -l pub/read-only.php
       - name: Pin established SSH host continuity and authentication identity
@@ -224,7 +191,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read the seven MAX sources and destinations
+      - name: Read the last seven completed days of first-party post entries
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -236,12 +203,20 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); assert d.get("ok") and d.get("provider_writes")==d.get("db_writes")==0 and d.get("target_editor_rights") is True and len(d["rows"])==7; print("MAX_SEVEN_NATIVE_READ",[(r["hotel_id"],r["blockers"]) for r in d["rows"]])'
+          python3 - <<'PYVERIFY'
+          import json
+          d=json.load(open('pub/registry.json'))
+          assert d['ok'] and d['db_writes']==d['provider_calls']==0
+          rows=d['rows'];assert len(rows)==len({r['hotel_id'] for r in rows})==d['ranked_hotels']
+          assert d['source_posts']==d['matched_posts']+d['unmatched_posts']
+          assert all(r['tg_offer']==f"tg_{r['hotel_id']}" and r['max_offer']==f"max_{r['hotel_id']}" and r['source']['entries']>=r['source']['distinct_dialogues']>0 for r in rows)
+          print('FIRST_PARTY_HOTEL_ENTRY_RANK',d['from_utc'],d['until_utc_exclusive'],d['ranked_hotels'],d['matched_posts'],d['unmatched_posts'])
+          PYVERIFY
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: max-seven-source-rights
+          name: first-party-hotel-entry-rank
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
@@ -249,3 +224,4 @@ jobs:
         if: always()
         shell: bash
         run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
+
