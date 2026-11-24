@@ -51,7 +51,10 @@ final class ManagerReplyQueueService
     {
         $alias=self::alias($alias);$message=self::cutoffSql($alias,false);$request=self::cutoffSql($alias,true);
         $suspended=ManagerDeliveryStateService::activeSuspensionSql($alias);$human=self::humanSql('ri');
-        $sql="($alias.status IN ('manager','waiting_manager') AND NOT ($suspended) AND (".self::legacyWaitingSql($alias).' OR '.self::requestSql($alias).">$request OR EXISTS(SELECT 1 FROM messages ri WHERE ri.conversation_id=$alias.id AND $human AND ri.id>$message)))";
+        // Only the newest genuine inbound can exceed the resolved message ID.
+        // Compare after its indexed lookup so older rows never repeat the cutoff calculation.
+        $latestHuman="(SELECT ri.id FROM messages ri WHERE ri.conversation_id=$alias.id AND $human ORDER BY ri.id DESC LIMIT 1)";
+        $sql="($alias.status IN ('manager','waiting_manager') AND NOT ($suspended) AND (".self::legacyWaitingSql($alias).' OR '.self::requestSql($alias).">$request OR COALESCE($latestHuman>$message,0)))";
         return $mysql?$sql:str_replace('JSON_UNQUOTE(','(',$sql);
     }
     public static function waitStartedSql(string $alias='c',bool $mysql=true): string
