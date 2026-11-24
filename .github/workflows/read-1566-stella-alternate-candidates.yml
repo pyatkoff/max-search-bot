@@ -1,4 +1,4 @@
-name: Validate alternate Telegram post 925 for Stella Makadi
+name: Read original Stella925 pre-write refusal without replay
 on:
   push:
     branches: [audit/1566-next-release-admission-1664]
@@ -6,7 +6,7 @@ on:
 permissions: {}
 jobs:
   read:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == '6297778264285e1186847f5a5d3399c9ca9b0c56' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -52,95 +52,50 @@ jobs:
           set -euo pipefail
           ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 \
             -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null \
-            -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$USER_VALUE@$HOST_VALUE" 'bash -s' <<'REMOTE'
+            -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$USER_VALUE@$HOST_VALUE" 'bash -s' <<'REMOTE' | tee stella-original-read.json
           set -eu
           cd /var/www/anytoour/data/www/app.anytoour.ru
-          test "$(git rev-parse HEAD)" = 'de6282c79cf533e316980a765acdd58a5227b05d' || test "$(git rev-parse HEAD)" = '0689691b5aa4b8cd5fbf2f3629d9e9dc76df7e9b'
+          test "$(git rev-parse HEAD)" = '8d723f1c08f094fd845c7c34da29607fc294ff46'
           php -d display_errors=0 <<'PHP'
           <?php
+          use function AnyTour\ExistingPostBatch\{requirePost,transferRuntime,transferPlanFromBytes,transferSource,transferNoTarget,parseTransferPublic,transferReason};
+          ini_set('display_errors','0');ini_set('log_errors','0');
           require 'tools/anytour_existing_post_batch.php';
-          use function AnyTour\ExistingPostBatch\requirePost;
-          use function AnyTour\ExistingPostBatch\transferChannelRights;
-          use function AnyTour\ExistingPostBatch\transferSource;
-          use function AnyTour\ExistingPostBatch\transferNoTarget;
-          use function AnyTour\ExistingPostBatch\transferPlanFromBytes;
-          use function AnyTour\ExistingPostBatch\transferMessageIdRejected;
-          
-          $id='925';
-          $plan=transferPlanFromBytes(file_get_contents('config/anytour_existing_post_transfer_next_20261123.json'),
-              '30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d', true);
-          $row=$plan['rows'][2];
-          requirePost($row['hotel_id']===466 && $row['source_message_id']==='473' && $row['target_message_id']==='1101','stella_scope_changed');
-          $journal=AnyTour\ExistingPostBatch\POST_OPS.'/anytour-issue1566-historical-tg-media-1101-v1/receipt.jsonl';
-          $events=array_map(static fn(string $l): array=>json_decode($l,true,64,JSON_THROW_ON_ERROR),
-              explode("\n",rtrim((string)file_get_contents($journal,false,null,0,1_000_001),"\r\n")));
-          $byState=array_column($events,null,'state');
-          requirePost(($byState['intent_saved']['execution']['native_run_id']??null)==='45272173038'
-              && ($byState['provider_message_id_rejected']['message_id']??null)==='1101'
-              && transferMessageIdRejected($byState['provider_response_saved']['response']??[]),'previous_stella_refusal_unconfirmed');
-          $row['target_message_id']=$id;
-          $target='https://t.me/anytour/'.$id;
-          $newJournal=AnyTour\ExistingPostBatch\POST_OPS.'/anytour-issue1566-historical-tg-media-'.$id.'-v1';
-          requirePost(!file_exists($newJournal)&&!is_link($newJournal),'alternate_telegram_journal_occupied');
-          ob_start();
-          try {
-              require_once 'config.php';
-              require_once 'services/ChannelPostRegistryService.php';
-              require_once 'services/ChannelPostButtonTransport.php';
-              require_once 'services/ChannelPostRuntime.php';
-              require_once 'integrations/ChannelPostApiTransport.php';
-              require_once 'hotel-posts-telegram-main19.php';
-          } finally { ob_end_clean(); }
-          $pdo=ConversationDb::connection();
-          $pdo->exec('SET TRANSACTION READ ONLY');
-          $pdo->beginTransaction();
-          try {
-              $registry=new ChannelPostRegistryService($pdo);
-              transferChannelRights($registry);
-              transferSource($pdo,$registry,$row);
-              transferNoTarget($pdo,$row);
-          } finally { $pdo->rollBack(); }
-          $feed=anytourTelegramFeedOfferUrls(anytourTelegramFeedRead());
-          $routes=anytourTelegramFeedDestinationPosts($feed);
-          requirePost(($feed['tg_466']??null)==='https://t.me/any_toour/473'
-              && ($routes['tg_466']??null)==='https://t.me/any_toour/473'
-              && !in_array($target,$routes,true) && !in_array($target,$feed,true),'alternate_telegram_feed_in_use');
-          $channel=ChannelPostApiTransport::buttonRequest('telegram','POST','getChat',[],['chat_id'=>'-1001845835645']);
-          $chat=$channel['data']['result']??[];
-          requirePost($channel['http']===200 && $channel['data']['ok']===true && ($chat['username']??null)==='anytour'
-              && (string)($chat['pinned_message']['message_id']??'')!==$id, 'alternate_telegram_pinned');
-          $context=stream_context_create(['http'=>['method'=>'GET','timeout'=>12,'follow_location'=>0,
-              'header'=>"User-Agent: Mozilla/5.0\r\n"],'ssl'=>['verify_peer'=>true,'verify_peer_name'=>true]]);
-          $body=file_get_contents($target.'?embed=1&mode=tme',false,$context,0,1_000_001);
-          requirePost(is_string($body)&&strlen($body)<=1_000_000,'alternate_telegram_public_unavailable');
-          $doc=new DOMDocument('1.0','UTF-8');
-          requirePost(@$doc->loadHTML($body,LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING),'alternate_telegram_public_invalid');
-          $xp=new DOMXPath($doc);
-          $posts=$xp->query('//*[@data-post="anytour/'.$id.'"]');
-          requirePost($posts&&$posts->length===1,'alternate_telegram_id_changed');
-          $p=$posts->item(0);
-          $ts=$xp->query('.//time[@datetime]',$p);
-          $caption=$xp->query('.//*[contains(concat(" ",normalize-space(@class)," ")," tgme_widget_message_text ")]',$p);
-          $media=$xp->query('.//*[contains(concat(" ",normalize-space(@class)," ")," tgme_widget_message_photo_wrap ")]',$p);
-          requirePost($ts&&$caption&&$media&&$ts->length===1&&$caption->length===1&&$media->length===1,'alternate_telegram_type_changed');
-          $html='';
-          foreach ($caption->item(0)->childNodes as $child) $html.=$doc->saveHTML($child);
-          $text=html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i',"\n",$html)),ENT_QUOTES|ENT_HTML5,'UTF-8');
-          $photo=$media->item(0);
-          $marker=trim($photo->getAttribute('class'));
-          $date=(new DateTimeImmutable($ts->item(0)->getAttribute('datetime')))->getTimestamp();
-          requirePost($date===1731241439&&hash('sha256',$text)==='f73587cf7dcc1fafa3c303bd8948dbafbdf3fc8ae07992acf5472e8f0d6a220e'
-              && hash('sha256',$marker)==='00581a7eaa9f78288dfc78567412b44ab4cd8b12ba195548a2cb3272f5a6573e'&& $photo->getAttribute('href')===$target,'alternate_public_fingerprint_changed');
-          requirePost(preg_match('~background-image:\s*url\([\'"]?(https://[^\'")]+)[\'"]?\)~',$photo->getAttribute('style'),$match)===1,'alternate_telegram_photo_missing');
-          $photoUrl=parse_url($match[1]);
-          requirePost(is_array($photoUrl)&&($photoUrl['scheme']??'')==='https'&&!isset($photoUrl['port'],$photoUrl['user'],$photoUrl['pass'])
-              && preg_match('/\A(?:[a-z0-9-]+\.)*(?:cdn-telegram\.org|telegram-cdn\.org|telesco\.pe)\z/D',$photoUrl['host']??'')===1,'alternate_telegram_photo_invalid');
-          echo json_encode(['hotel_id'=>466,'target'=>$id,'source'=>'473','date'=>$date,'caption_sha256'=>hash('sha256',$text),
-              'photo_sha256'=>hash('sha256',$marker),'previous_post_excerpt'=>mb_substr($text,0,1200),
-              'public_single_photo'=>true,'not_current_pinned_message'=>true,'vacant_registry_and_routing'=>true,
-              'source_current'=>true,'previous_explicit_rejection'=>true,'writes'=>0],JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),PHP_EOL;
+          $root=getcwd();$sha='8d723f1c08f094fd845c7c34da29607fc294ff46';
+          transferRuntime($root,$sha);
+          $digest='c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab';
+          $plan=transferPlanFromBytes(file_get_contents('config/anytour_stella_alternate_20261123.json'),$digest,$digest);
+          requirePost(count($plan['rows'])===1,'read_scope_changed');$row=$plan['rows'][0];
+          requirePost($row['hotel_id']===466&&$row['target_message_id']==='925'&&$row['source_message_id']==='473','read_scope_changed');
+          $dir=AnyTour\ExistingPostBatch\POST_OPS.'/anytour-issue1566-historical-tg-media-925-v1';
+          requirePost(!file_exists($dir)&&!is_link($dir),'stella_operation_present_do_not_replay');
+          $lease=AnyTour\ExistingPostBatch\POST_OPS.'/monitor-price-after-collection-v1.jsonl';
+          requirePost(is_file($lease)&&!is_link($lease),'price_lock_unavailable');$lock=fopen($lease,'rb');
+          requirePost(is_resource($lock)&&flock($lock,LOCK_SH|LOCK_NB),'price_content_busy');
+          ob_start();try{require_once 'config.php';require_once 'services/ChannelPostRegistryService.php';require_once 'services/ChannelPostButtonTransport.php';require_once 'services/ChannelPostRuntime.php';require_once 'integrations/ChannelPostApiTransport.php';}finally{ob_end_clean();}
+          $pdo=ConversationDb::connection();$pdo->exec('SET TRANSACTION READ ONLY');$pdo->beginTransaction();
+          try{$registry=new ChannelPostRegistryService($pdo);transferSource($pdo,$registry,$row);transferNoTarget($pdo,$row);}finally{$pdo->rollBack();}
+          $out=['ok'=>true,'original_run_id'=>'45349080956','application_sha'=>$sha,'operation_directory_absent'=>true,'target_registry_absent'=>true,'source_current'=>true,'provider_write_attempts'=>0,'db_writes'=>0,'bot_starts'=>0,'public'=>[]];
+          foreach([['any_toour','473'],['anytour','925']] as [$channel,$id])foreach(['embed','history'] as $kind){
+           $url=$kind==='embed'?'https://t.me/'.$channel.'/'.$id.'?embed=1&mode=tme':'https://t.me/s/'.$channel.'?before='.((int)$id+1);
+           $body='';$c=curl_init($url);curl_setopt_array($c,[CURLOPT_FOLLOWLOCATION=>false,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,CURLOPT_CONNECTTIMEOUT=>5,CURLOPT_TIMEOUT=>20,CURLOPT_USERAGENT=>'Mozilla/5.0',CURLOPT_WRITEFUNCTION=>static function($c,string $s)use(&$body):int{if(strlen($body)+strlen($s)>1000000)return 0;$body.=$s;return strlen($s);}]);
+           $ok=curl_exec($c)!==false&&curl_errno($c)===0;$http=(int)curl_getinfo($c,CURLINFO_HTTP_CODE);curl_close($c);
+           $p=['channel'=>$channel,'message_id'=>$id,'kind'=>$kind,'http'=>$http,'bytes'=>strlen($body),'sha256'=>hash('sha256',$body),'parsed'=>false];
+           try{requirePost($ok&&$http===200,'public_transport_unavailable');$v=parseTransferPublic($body,$channel,$id,$digest);$p+=['caption_sha256'=>$v['caption_sha256'],'single_photo'=>$v['single_photo'],'published_unixtime'=>$v['published_unixtime']];$p['parsed']=true;}catch(Throwable $e){$p['reason']=transferReason($e);}
+           $out['public'][]=$p;
+          }
+          transferRuntime($root,$sha);clearstatcache(true,$dir);requirePost(!file_exists($dir)&&!is_link($dir),'operation_changed_during_read');fclose($lock);
+          echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
           PHP
           REMOTE
+      - name: Preserve original bounded readback
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: stella925-original-readback
+          path: stella-original-read.json
+          retention-days: 7
+          if-no-files-found: warn
       - name: Remove authentication material
         if: always()
         shell: bash
