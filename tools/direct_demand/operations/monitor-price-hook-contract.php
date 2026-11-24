@@ -615,6 +615,46 @@ function monitor_hook_close_price81173_cycle(array $state,array $originalState,a
     $state['nightly_cycle']=$cycle;return $state;
 }
 
+/** Original attempt 44891762210 reached only the read of the saved-price export. */
+function monitor_hook_saved_read_failure_proof():array {
+    return [
+        'kind'=>'saved_price_read_failed_before_edit_v1',
+        'run_id'=>'44891762210','job_id'=>'136809068824',
+        'result_sha256'=>'93bd5546af4fd6adff04af92492437da2d98d06c5ff7a87e19896f8a0d338cc3',
+        'result_at'=>'2026-11-21T10:18:45+00:00',
+        'journal'=>['sha256'=>'1d42634f14d9fc461472bc21fc897053166b9a6b1403f07a28f523099a57247f','bytes'=>1874681123,'lines'=>11806],
+        'cycle'=>['night_date'=>'2026-11-21','state'=>'started','collector_run_id'=>'44891762210',
+            'collection_started_at'=>'2026-11-21T09:56:09+00:00','started_at'=>'2026-11-21T10:13:31+00:00',
+            'budget_seconds'=>1800,'finish_reserve_seconds'=>300],
+    ];
+}
+
+function monitor_hook_saved_read_failure_cycle_valid(array $cycle):bool {
+    $proof=monitor_hook_saved_read_failure_proof();
+    $closedAt=monitor_hook_preflight_utc_time($cycle['reconciled_at']??null);
+    if(($cycle['state']??null)!=='interrupted_reconciled'||($cycle['recovery']??null)!==$proof
+        ||$closedAt===null||$closedAt<monitor_price_time($proof['result_at']))return false;
+    unset($cycle['recovery'],$cycle['reconciled_at']);
+    $cycle['state']='started';
+    return $cycle===$proof['cycle'];
+}
+
+/** The caller holds the existing exclusive journal lock after checking installed source. */
+function monitor_hook_close_saved_read_failure(array $state,array $journalPin,int $now):?array {
+    $proof=monitor_hook_saved_read_failure_proof();
+    $cycle=$state['nightly_cycle']??null;
+    if(!is_array($cycle)||($cycle['collector_run_id']??null)!==$proof['run_id']||($cycle['state']??null)!=='started')return null;
+    monitor_price_require($journalPin===$proof['journal']&&$cycle===$proof['cycle']
+        &&($state['schema']??null)===1&&array_key_exists('pending',$state)&&$state['pending']===null,
+        'hook_saved_read_failure_recovery_state_changed');
+    monitor_price_require($now>=monitor_price_time($proof['result_at']),'hook_saved_read_failure_recovery_clock_invalid');
+    $cycle['state']='interrupted_reconciled';
+    $cycle['recovery']=$proof;
+    $cycle['reconciled_at']=gmdate('c',$now);
+    $state['nightly_cycle']=$cycle;
+    return $state;
+}
+
 /** Reuse the original append-only journal; a later collector never erases replay history. */
 function monitor_hook_attempted_collector_runs(array $journalLines):array {
     $runs=[];
@@ -626,7 +666,8 @@ function monitor_hook_attempted_collector_runs(array $journalLines):array {
             &&preg_match('/\A[1-9][0-9]{0,19}\z/D',$cycle['collector_run_id'])===1
             &&(in_array($cycle['state']??null,['started','completed','budget_exhausted'],true)
                 ||monitor_hook_reconciled_cycle_valid($cycle)||monitor_hook_expired_reconciled_cycle_valid($cycle)
-                ||monitor_hook_preflight_cycle_valid($cycle)||monitor_hook_price27316_cycle_valid($cycle)||monitor_hook_price81173_cycle_valid($cycle)),'hook_nightly_history_invalid');
+                ||monitor_hook_preflight_cycle_valid($cycle)||monitor_hook_price27316_cycle_valid($cycle)||monitor_hook_price81173_cycle_valid($cycle)
+                ||monitor_hook_saved_read_failure_cycle_valid($cycle)),'hook_nightly_history_invalid');
         $runs['run:'.$cycle['collector_run_id']]=true;
     }
     return $runs;
@@ -676,7 +717,8 @@ function monitor_hook_nightly_gate(array $state,int $now,?string $collectionStar
         monitor_price_require(is_array($prior)&&is_string($prior['night_date']??null)
             &&preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}\z/D',$prior['night_date'])===1
             &&(in_array($prior['state']??null,['started','completed','budget_exhausted'],true)||monitor_hook_reconciled_cycle_valid($prior)
-                ||monitor_hook_expired_reconciled_cycle_valid($prior)||monitor_hook_preflight_cycle_valid($prior)||monitor_hook_price27316_cycle_valid($prior)||monitor_hook_price81173_cycle_valid($prior))
+                ||monitor_hook_expired_reconciled_cycle_valid($prior)||monitor_hook_preflight_cycle_valid($prior)||monitor_hook_price27316_cycle_valid($prior)||monitor_hook_price81173_cycle_valid($prior)
+                ||monitor_hook_saved_read_failure_cycle_valid($prior))
             &&is_string($prior['collector_run_id']??null)&&preg_match('/\A[1-9][0-9]{0,19}\z/D',$prior['collector_run_id'])===1
             &&is_string($prior['collection_started_at']??null),'hook_nightly_cycle_invalid');
         monitor_price_require($prior['night_date']<=$night,'hook_nightly_clock_moved_back');

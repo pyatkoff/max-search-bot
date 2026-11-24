@@ -865,6 +865,38 @@ foreach(['services/ChannelPostAutomationService.php'=>'f5975ab95de5f45e087eb7a0f
 $runtimeFixturePins=$monitorPins;$runtimeFixturePins['services/ChannelPostRegistryService.php']='7304af19cc19666f00ca4ead1b04c2bdce719646';
 hook_test_reject(static fn()=>hook_test_runtime(),'pre_pr1612_surface_accepted');
 
+
+// A saved export timeout may close only its original journal entry, without replay.
+$readFailure=monitor_hook_saved_read_failure_proof();
+$repairAt=strtotime('2026-11-24T12:10:00Z');
+$readFailureState=['schema'=>1,'pending'=>null,'completed'=>[123=>['operation'=>'existing']],
+    'holds'=>[456=>['operation'=>'unrelated']],'nightly_cycle'=>$readFailure['cycle']];
+$readFailureClosed=monitor_hook_close_saved_read_failure($readFailureState,$readFailure['journal'],$repairAt);
+monitor_price_require(is_array($readFailureClosed)&&monitor_hook_saved_read_failure_cycle_valid($readFailureClosed['nightly_cycle']),
+    'saved_read_failure_expected_terminal');$cases++;
+$unrelatedState=$readFailureClosed;$unrelatedState['nightly_cycle']=$readFailureState['nightly_cycle'];
+monitor_price_require($unrelatedState===$readFailureState,'saved_read_failure_other_history_changed');$cases++;
+$readHistory=monitor_hook_attempted_collector_runs([json_encode($readFailureState),json_encode($readFailureClosed)]);
+monitor_price_require($readHistory===['run:44891762210'=>true],'saved_read_failure_lost_original_attempt');$cases++;
+$oldCycleGate=monitor_hook_nightly_gate($readFailureClosed,$repairAt,gmdate('c',$repairAt-60),'44891762210',$readHistory);
+$newCycleGate=monitor_hook_nightly_gate($readFailureClosed,$repairAt,gmdate('c',$repairAt-60),'99999999999',$readHistory);
+monitor_price_require(!$oldCycleGate['due']&&$oldCycleGate['reason']==='collector_cycle_already_attempted'&&$newCycleGate['due'],
+    'saved_read_failure_old_or_new_admission_wrong');$cases++;
+monitor_price_require(monitor_hook_close_saved_read_failure($readFailureClosed,$readFailure['journal'],$repairAt)===null,
+    'saved_read_failure_repeated_close');$cases++;
+foreach(['pending','pin','cycle','early'] as $bad){
+    $state=$readFailureState;$pin=$readFailure['journal'];$at=$repairAt;
+    if($bad==='pending')$state['pending']=['operation'=>'unknown'];
+    if($bad==='pin')$pin['sha256']=str_repeat('0',64);
+    if($bad==='cycle')$state['nightly_cycle']['started_at']='2026-11-21T10:13:32+00:00';
+    if($bad==='early')$at=strtotime('2026-11-21T10:18:44Z');
+    $rejected=false;
+    try{monitor_hook_close_saved_read_failure($state,$pin,$at);}catch(RuntimeException $e){$rejected=true;}
+    monitor_price_require($rejected,'saved_read_failure_unproved_close_'.$bad);$cases++;
+}
+$tampered=$readFailureClosed['nightly_cycle'];$tampered['recovery']['result_sha256']=str_repeat('0',64);
+monitor_price_require(!monitor_hook_saved_read_failure_cycle_valid($tampered),'saved_read_failure_tampered_proof_accepted');$cases++;
+
 echo 'MONITOR_PRICE_HOOK_OK cases='.$cases." no_provider_calls=1 no_writes=1\n";
 
 

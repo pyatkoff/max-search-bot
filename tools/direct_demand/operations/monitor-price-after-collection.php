@@ -330,6 +330,14 @@ try{
             hook_append($lock,$closed);$state=$closed;
             $out['reconciled_prior_collector']=['collector_run_id'=>$cycleRecovery['collector_run_id'],'state'=>'interrupted_reconciled','post_writes'=>0,'feed_writes'=>0];
         }
+        $closedReadFailure=monitor_hook_close_saved_read_failure($state,$history['pin'],$startedAt);
+        if($closedReadFailure!==null){
+            hook_append($lock,$closedReadFailure);$state=$closedReadFailure;
+            $proof=monitor_hook_saved_read_failure_proof();
+            $out['reconciled_prior_collector']=['collector_run_id'=>$proof['run_id'],
+                'original_job_id'=>$proof['job_id'],'original_result_sha256'=>$proof['result_sha256'],
+                'state'=>'interrupted_reconciled','post_writes'=>0,'feed_writes'=>0];
+        }
         $attemptedRuns=$history['attempted_runs'];
         $nightGate=monitor_hook_nightly_gate($state,$startedAt,getenv('ANYTOUR_MONITOR_COLLECTION_STARTED_AT')?:null,getenv('ANYTOUR_MONITOR_COLLECTOR_RUN_ID')?:null,$attemptedRuns);
         if(!$nightGate['due']){
