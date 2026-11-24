@@ -19,6 +19,7 @@ async function setup(options={}){
  return Object.assign(h,{arrive(value=[first,next]){messages=value},handoff(value){handoff=value},ownership(value){conversation={...conversation,...value}},failure(value){failure=value},intercept(value){hook=value}});
 }
 const detailCount=h=>h.calls.filter(r=>r.url==='api.php'&&r.action==='detail').length;
+const countRequests=h=>h.calls.filter(r=>r.action==='counts').length;
 
 test('opening a long owned chat positions the latest message after the composer becomes visible',async()=>{
  const h=createHarness(),box=h.ids.get('messages');let top=0;
@@ -48,6 +49,56 @@ test('focus and visible-tab events use the existing refresh path; hidden tabs ma
  const h=await setup();h.arrive();h.events.get('focus')();await flush();assert.equal(h.W.S.detail.messages.length,2);
  h.document.visibilityState='hidden';const count=h.calls.length;h.events.get('focus')();h.documentEvents.get('visibilitychange')();assert.equal(await h.C.refreshVisible(),false);await flush();assert.equal(h.calls.length,count);
  h.arrive([first,next,{...next,id:3}]);h.document.visibilityState='visible';h.documentEvents.get('visibilitychange')();await flush();assert.equal(h.W.S.detail.messages.length,3);
+});
+
+for(const mobile of [false,true])test('open chat updates on consecutive ticks while one Inbox is still pending, mobile='+mobile,async()=>{
+ const h=await setup({mobile}),pending=deferred();
+ let now=Date.now();h.loadAsset('manager-time.js',{Date:class extends Date{static now(){return now}}});
+ h.intercept((url,r)=>r.action==='list'?pending.promise:null);
+ await h.draft('Keep editing');const file={name:'keep.txt'};h.setFile(file);
+ const lists=listCount(h),details=detailCount(h),counts=countRequests(h);
+ try{
+  h.arrive();h.timers[0].fn();await flush();
+  assert.equal(h.W.S.detail.messages.at(-1).id,2,'the first update waits for the Inbox');
+  h.events.get('focus')();h.documentEvents.get('visibilitychange')();await flush();
+  assert.equal(detailCount(h),details+1);
+  now+=15000;h.arrive([first,next,{...next,id:3}]);h.timers[0].fn();await flush();
+  assert.equal(h.W.S.detail.messages.at(-1).id,3,'the next tick waits for the same Inbox');
+  assert.equal(detailCount(h),details+2);assert.equal(listCount(h),lists+1);assert.equal(countRequests(h),counts);
+  assert.equal(h.ids.get('replyText').value,'Keep editing');assert.equal(h.getFile(),file);assertNoMutations(h);
+ }finally{pending.resolve(response({ok:true,conversations:[h.conversation]}));await flush()}
+ assert.equal(detailCount(h),details+2,'a late list must not trigger another chat read');
+ assert.equal(countRequests(h),counts+1);
+});
+
+test('Inbox failure leaves the authorized active chat usable and counts untouched',async()=>{
+ const h=await setup(),counts=countRequests(h);
+ h.intercept((url,r)=>r.action==='list'?response({ok:false},500):null);
+ h.arrive();h.timers[0].fn();await flush();
+ assert.equal(h.W.S.detail.messages.at(-1).id,2);assert.equal(countRequests(h),counts);
+ assert.equal(h.window.WorkspaceV2Inbox.getLoadedSelectionStatus(),'unavailable');
+ assert.equal(hidden(h),false);assertNoMutations(h);
+});
+
+test('access loss in chat locks the composer before the held list completes',async()=>{
+ const h=await setup(),pending=deferred();
+ await h.draft('Private draft');h.setFile({name:'own.txt'});
+ h.intercept((url,r)=>r.action==='list'?pending.promise:url==='api.php'&&r.action==='detail'?response({ok:false},403):null);
+ try{
+  h.timers[0].fn();await flush();
+  assert.equal(h.ids.get('sendReply').disabled,true);assert.equal(h.ids.get('replyText').value,'');assert.equal(h.getFile(),null);
+ }finally{pending.resolve(response({ok:true,conversations:[]}));await flush()}
+ assert.equal(h.ids.get('sendReply').disabled,true);assertNoMutations(h);
+});
+
+test('Inbox session expiry fences a concurrent chat response and does not refresh counts',async()=>{
+ const h=await setup(),list=deferred(),chat=deferred(),counts=countRequests(h),details=detailCount(h);
+ h.intercept((url,r)=>r.action==='list'?list.promise:url==='api.php'&&r.action==='detail'?chat.promise:null);
+ try{
+  h.timers[0].fn();await flush();assert.equal(detailCount(h),details+1);
+  list.resolve(response({ok:false},401));await flush();assert.equal(h.W.S.authExpired,true);
+ }finally{list.resolve(response({ok:false},401));chat.resolve(response({ok:true,conversation:h.conversation,messages:[first,next]}));await flush()}
+ assert.ok((h.W.S.detail?.messages||[]).every(m=>m.id!==2));assert.equal(countRequests(h),counts);assertNoMutations(h);
 });
 
 test('mobile inbox and lead overlay never fetch read-marking detail; transcript does',async()=>{

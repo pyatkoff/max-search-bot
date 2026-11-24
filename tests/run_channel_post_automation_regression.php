@@ -1863,6 +1863,9 @@ try {
     channelPostCheck('MAX recovery refuses a previous write attempt', $error->getMessage(), 'max_transfer_original_journal_invalid');
 }
 
+require_once __DIR__ . '/ranked_telegram_public_cases.php';
+\AnyTour\Tests\RankedPublicReadback\runCases();
+
 echo 'Channel post automation: ' . $passed . ' passed, ' . $failed . ' failed' . PHP_EOL;
 exit($failed === 0 ? 0 : 1);
 

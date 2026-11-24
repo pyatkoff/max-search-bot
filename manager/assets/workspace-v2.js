@@ -9,6 +9,7 @@ canonicalizeManagerUrl();
 const S={csrf:'',manager:null,projects:[],filterSources:[],filterManagers:[],filterOptionsReady:false,current:0,queue:'waiting',viewMode:'list',leadProjectFilter:'*',leadSourceFilter:0,leadManagerFilter:'',leadStageFilter:'',leadTagFilter:0,leadOutcomeFilter:'',leadTaskFilter:'',leadSearch:'',pipeline:{stages:[],tags:[],outcomes:{},closeReasons:{}},detail:null,searchTimer:null,authExpired:false,authGeneration:0,workspaceBound:false,booting:false};
 let catalogReady=Promise.resolve();
 let logoutFlight=null;
+let initialIdentity=null;
 const $=id=>document.getElementById(id);
 function esc(v){const d=document.createElement('div');d.textContent=v??'';return d.innerHTML}
 function showFatal(message){const box=$('inboxList');if(box){box.innerHTML=`<div class="empty"><strong>${esc(message)}</strong></div>`}const composer=$('composer');if(composer)composer.classList.add('hidden')}
@@ -61,7 +62,13 @@ async function request(url,action,data={},options={}){
   if(S.logoutPending)throw new Error('logout_pending');
   if(S.authExpired){showAuthRecovery();throw new Error('unauthorized')}
   const generation=S.authGeneration;
-  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action,csrf:S.csrf,...data}),...(options.signal?{signal:options.signal}:{})});
+  return readResponse(post(url,action,data,options),generation,options);
+}
+function post(url,action,data,options){
+  return fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action,csrf:S.csrf,...data}),...(options.signal?{signal:options.signal}:{})});
+}
+async function readResponse(response,generation,options={}){
+  const r=await response;
   const j=await r.json().catch(()=>({ok:false,error:'invalid_response'}));
   if(generation!==S.authGeneration)return{ok:false,error:'stale_session'};
   // A read owner can revoke an obsolete response before global auth handling.
@@ -247,11 +254,22 @@ async function boot(){
   if(S.booting)return;
   S.booting=true;
   try{
-    const me=await api('me');
+    const firstRead=initialIdentity;
+    initialIdentity=null;
+    const generation=firstRead?.generation??S.authGeneration;
+    const me=await (firstRead?readResponse(firstRead.response,generation):api('me')).catch(()=>null);
+    if(generation!==S.authGeneration)return;
     if(!me?.ok){if(!S.authExpired)showStartupFailure();return}
     await resumeAuthenticated(me);
   }catch(e){if(!S.authExpired)showStartupFailure()}
   finally{S.booting=false}
+}
+// Start only the first identity read while the Manager2 feature scripts load.
+if(document.currentScript?.hasAttribute('data-early-identity')){
+  const response=post('api.php','me',{},{});
+  // A fast rejection is consumed by boot's normal retry UI once modules are ready.
+  response.catch(()=>{});
+  initialIdentity={response,generation:S.authGeneration};
 }
 window.WorkspaceV2={S,$,esc,api,pipe,request,notificationEvents,statusText,outcomeText,formatWait,val,tripField,boot,logout,showFatal,showAuthRecovery,showStartupFailure,openNotificationConversation,discardNotificationIntent,whenCatalogReady:()=>catalogReady};
 })();

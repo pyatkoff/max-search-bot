@@ -120,4 +120,26 @@ rqCheck('historical incoming rows cannot reevaluate the reply boundary inside th
     str_contains($neededSql,'SELECT ri.id FROM messages ri')
     &&str_contains($neededSql,'ORDER BY ri.id DESC LIMIT 1)>')
     &&!str_contains($neededSql,'AND ri.id>'));
+$pdo->exec("INSERT INTO conversations(id,customer_id,project_key,source_id,channel,status,manager_id) VALUES(205,1,'anytour',1,'telegram','manager',7)");
+rqCheck('empty manual and sent boundaries leave an empty conversation resolved',!rqView(7,205)['needed']);
+replyQueueMessage($pdo,100,205,'inbound','customer',$now-40);
+$firstRequest=replyQueueRequest($pdo,205,$now-35);
+rqCheck('an unresolved handoff uses its recorded request time',rqView(7,205)['waiting_since_unix']===$now-35);
+rqResolve('resolve-frontier-0001',null,7,205);
+$sendBoundary=static function(int $message,int $request):array {
+    return [ManagerReplyQueueService::SEND_BOUNDARY=>['version'=>1,'customer_message_id'=>$message,'request_event_id'=>$request]];
+};
+replyQueueMessage($pdo,101,205,'outbound','manager',$now-30,$sendBoundary(0,0));
+rqCheck('the greater manual cutoffs cover the question and request',!rqView(7,205)['needed']);
+replyQueueMessage($pdo,102,205,'outbound','manager',$now-25,$sendBoundary(100,$firstRequest));
+rqCheck('equal manual and sent cutoffs retain the resolution',!rqView(7,205)['needed']);
+replyQueueMessage($pdo,103,205,'inbound','customer',$now-20);
+$secondRequest=replyQueueRequest($pdo,205,$now-15);
+rqCheck('a newer request is beyond both cutoffs',rqView(7,205)['waiting_since_unix']===$now-15);
+replyQueueMessage($pdo,104,205,'outbound','manager',$now-10,$sendBoundary(103,$secondRequest));
+rqCheck('the greater sent cutoffs cover the new question and request',!rqView(7,205)['needed']);
+
+$plan=$pdo->query('EXPLAIN QUERY PLAN SELECT '.$neededSql.' FROM conversations c WHERE c.id=205')->fetchAll();
+$sentReads=array_filter(array_column($plan,'detail'),static fn(string $step):bool=>preg_match('/\b(?:SCAN|SEARCH) ro\b/',$step)===1);
+rqCheck('the query plan reads sent history once for each of the two distinct boundaries',count($sentReads)===2);
 echo 'TOTAL '.$passed.' | PASS '.$passed." | FAIL 0\n";

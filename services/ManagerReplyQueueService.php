@@ -17,7 +17,6 @@ final class ManagerReplyQueueService
         $alias=self::alias($alias);$type=$mysql?self::json($alias.'.metadata_json','$.type'):"JSON_EXTRACT(CASE WHEN JSON_VALID($alias.metadata_json) THEN $alias.metadata_json ELSE '{}' END,'$.type')";
         return "$alias.direction='inbound' AND $alias.sender_type='customer' AND COALESCE($type,'message') NOT IN ('callback','start','bot_started')";
     }
-    private static function maximum(string $a,string $b): string {return "(CASE WHEN ($a)>($b) THEN ($a) ELSE ($b) END)";}
     private static function manualSql(string $alias,string $field): string
     {
         $value=self::json('rq.payload_json','$.current.'.$field);
@@ -31,9 +30,13 @@ final class ManagerReplyQueueService
         $legacy=$request?"COALESCE((SELECT MAX(re.id) FROM conversation_events re WHERE re.conversation_id=$alias.id AND re.event_type='waiting_manager' AND re.created_at<=ro.created_at),0)":'ro.id';
         return "COALESCE((SELECT MAX(CASE WHEN $present IS NULL THEN $legacy WHEN $present=1 THEN CAST(COALESCE($cutoff,0) AS UNSIGNED) ELSE 0 END) FROM messages ro WHERE ro.conversation_id=$alias.id AND ro.direction='outbound' AND ro.sender_type='manager'),0)";
     }
-    private static function cutoffSql(string $alias,bool $request): string
+    private static function cutoffSql(string $alias,bool $request,bool $mysql): string
     {
-        return self::maximum(self::manualSql($alias,$request?'through_request_event_id':'through_message_id'),self::sentSql($alias,$request));
+        // Both scalar reads produce numeric IDs, with zero for an absent boundary.
+        $manual=self::manualSql($alias,$request?'through_request_event_id':'through_message_id');
+        $sent=self::sentSql($alias,$request);
+        $maximum=$mysql?'GREATEST':'MAX';
+        return "$maximum($manual,$sent)";
     }
     private static function requestSql(string $alias): string
     {
@@ -49,7 +52,7 @@ final class ManagerReplyQueueService
     }
     public static function neededSql(string $alias='c',bool $mysql=true): string
     {
-        $alias=self::alias($alias);$message=self::cutoffSql($alias,false);$request=self::cutoffSql($alias,true);
+        $alias=self::alias($alias);$message=self::cutoffSql($alias,false,$mysql);$request=self::cutoffSql($alias,true,$mysql);
         $suspended=ManagerDeliveryStateService::activeSuspensionSql($alias);$human=self::humanSql('ri');
         // Only the newest genuine inbound can exceed the resolved message ID.
         // Compare after its indexed lookup so older rows never repeat the cutoff calculation.
@@ -64,7 +67,7 @@ final class ManagerReplyQueueService
     /** The caller has already established that this conversation needs a reply. */
     public static function pendingWaitStartedSql(string $alias='c',bool $mysql=true): string
     {
-        $alias=self::alias($alias);$request=self::requestSql($alias);$resolved=self::cutoffSql($alias,true);$message=self::cutoffSql($alias,false);
+        $alias=self::alias($alias);$request=self::requestSql($alias);$resolved=self::cutoffSql($alias,true,$mysql);$message=self::cutoffSql($alias,false,$mysql);
         $requestClock=ConversationRecordClock::sql('s.payload_json',$mysql);$messageClock=ConversationRecordClock::sql('s.metadata_json',$mysql);$human=self::humanSql('s');
         // Before the first reply the manager's request starts the clock, not earlier bot collection.
         $sql='(CASE WHEN '.self::legacyWaitingSql($alias)." THEN NULL WHEN $request>$resolved THEN (SELECT $requestClock FROM conversation_events s WHERE s.id=$request AND s.conversation_id=$alias.id) ELSE (SELECT $messageClock FROM messages s WHERE s.conversation_id=$alias.id AND $human AND s.id>$message ORDER BY s.id LIMIT 1) END)";
