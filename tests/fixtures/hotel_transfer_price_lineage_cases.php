@@ -29,13 +29,13 @@ $first=$version(1001,$native($baseText));
 $row=['hotel_id'=>42,'source_message_id'=>'51','source_publication_id'=>101,'source_version_id'=>1001,
     'source_content_hash'=>$first['content_hash'],'source_caption_sha256'=>hash('sha256',$baseText),
     'source_file_id_sha256'=>hash('sha256','FILE_ID_FIXTURE'),'source_file_unique_id_sha256'=>hash('sha256','PHOTO_UNIQUE_FIXTURE'),
-    'target_message_id'=>'77','target_published_unixtime'=>1690000000,'target_caption_sha256'=>str_repeat('1',64),
+    'target_message_id'=>'77','target_published_unixtime'=>1690000000,'target_caption_sha256'=>hash('sha256','Original old target'),
     'target_photo_marker_sha256'=>str_repeat('2',64),'target_config_version'=>2,'next_caption'=>'Fixture Hotel — отдых у моря',
     'next_caption_sha256'=>hash('sha256','Fixture Hotel — отдых у моря'),'button_text'=>'✈️ Рассчитать на мои даты',
     'bot_url'=>'https://t.me/anyru_bot','price_template'=>'','price_record_id'=>null,'source_photo_marker_sha256'=>str_repeat('3',64)];
 $intent=['schema'=>'telegram_hotel_transfer_intent_v2','price_policy'=>'omit_previous_price_keep_hotel_calculation_button',
     'row'=>$row,'source_price_template'=>$template,'source_start_payload'=>$token,'source_published_at'=>$first['snapshot']['published_at'],
-    'source_logical_id'=>'commercial-hotel-42-v1','source_link'=>null,'feed_binding'=>$binding];
+    'source_logical_id'=>'commercial-hotel-42-v1','source_link'=>null,'feed_binding'=>$binding,'target_public_buttons'=>[]];
 $bytes=lineJson($intent);$digest=hash('sha256',$bytes);
 $run=fn(array $v,array $j)=>HotelTransferPriceLineage::candidate($bytes,$digest,$v,$j);
 $build=function(int $previous,int $next,string $record,int $amount,int $generated)use($template,$binding,$native,$version,$url,$token):array{
@@ -200,6 +200,14 @@ try{
         $dirs[]=$dir;$path=$dir.'/receipt.jsonl';$tmpFiles[]=$path;
         $saved[$path]=$encodeJournal($journalLines($j));file_put_contents($path,$saved[$path]);
     }
+    $global=['schema'=>1,'pending'=>null,'completed'=>[42=>['operation'=>$j3['operation'],
+        'at'=>'2026-11-21T00:05:00Z','feed_operation'=>monitor_hook_feed_operation($j3['operation'],'20261121')]]];
+    $globalRaw=lineJson($global)."\n";
+    $writeGlobal=static function(string $raw)use($lease):void{
+        if(!rewind($lease)||!ftruncate($lease,0)||fwrite($lease,$raw)!==strlen($raw)||!fflush($lease))
+            throw new RuntimeException('fixture_global');
+    };
+    $writeGlobal($globalRaw);
     $read=static fn()=>HotelTransferPriceEvidenceReader::candidate($pdo,$bytes,$digest,$root,$lease);
     $dbState=static function()use($pdo):array{
         $rows=[];
@@ -235,6 +243,77 @@ try{
     symlink($leasePath,$firstPath);try{lineReject($read,'symlink receipt rejected');}finally{unlink($firstPath);}
     file_put_contents($firstPath,$saved[$firstPath]);
     lineAssert($read()===$result&&$dbState()===$before,'same candidate after isolated negative fixtures');
+    lineAssert($result['global_price_proof']['journal']['sha256']===hash('sha256',$globalRaw)
+        &&$result['global_price_proof']['latest_completion']['operation']===$j3['operation'],
+        'candidate binds actual terminal global PRICE and feed receipt');
+    foreach(['pending','pending_other_hotel','hold','missing_completion','wrong_operation','wrong_feed','started','corrupt_prefix','partial','blank','empty'] as $case){
+        $g=$global;
+        switch($case){
+            case 'pending':$g['pending']=['tourvisor_hotel_id'=>42,'phase'=>'feed_started'];break;
+            case 'pending_other_hotel':$g['pending']=['tourvisor_hotel_id'=>99,'phase'=>'post_started'];break;
+            case 'hold':$g['holds']=[42=>['operation'=>$j3['operation']]];break;
+            case 'missing_completion':$g['completed']=[];break;
+            case 'wrong_operation':$g['completed'][42]['operation']=$j2['operation'];break;
+            case 'wrong_feed':$g['completed'][42]['feed_operation']=monitor_hook_feed_operation($j2['operation'],'20261121');break;
+            case 'started':$g['nightly_cycle']=['state'=>'started','collector_run_id'=>'123'];break;
+        }
+        $raw=lineJson($g)."\n";
+        if($case==='corrupt_prefix')$raw="broken\n".$raw;
+        if($case==='partial')$raw=rtrim($raw);
+        if($case==='blank')$raw.="\n";
+        if($case==='empty')$raw='';
+        $writeGlobal($raw);lineReject($read,'global PRICE '.$case);
+    }
+    $writeGlobal($globalRaw);
+    $sourcePublic=['url'=>'https://t.me/any_toour/51','caption'=>$third['snapshot']['text'],
+        'caption_sha256'=>hash('sha256',$third['snapshot']['text']),'single_photo'=>true,
+        'photo_marker_sha256'=>$row['source_photo_marker_sha256'],'published_unixtime'=>1700000000,
+        'html_sha256'=>str_repeat('4',64),'buttons'=>[['text'=>'✈️ Узнать стоимость тура','hotel_url'=>$url,'url_sha256'=>hash('sha256',$url)]]];
+    $targetPublic=['url'=>'https://t.me/anytour/77','caption'=>'Original old target','caption_sha256'=>$row['target_caption_sha256'],
+        'single_photo'=>true,'photo_marker_sha256'=>$row['target_photo_marker_sha256'],'published_unixtime'=>1690000000,
+        'html_sha256'=>str_repeat('5',64),'buttons'=>[]];
+    $observe=static fn(array $r)=>['source'=>$sourcePublic,'target'=>$targetPublic];
+    $prepared=HotelTransferPriceEvidenceReader::materialize($pdo,$bytes,$digest,$root,$lease,$observe);
+    lineAssert($prepared['schema']==='telegram_hotel_transfer_materialized_candidate_v2'
+        &&$prepared['row']===$expected&&$prepared['intent_digest']===$digest
+        &&$prepared['public_preimages']['source']['caption_sha256']===$expected['source_caption_sha256']
+        &&$prepared['public_preimages']['target']['caption_sha256']===$row['target_caption_sha256']
+        &&$prepared['execution_digest']!==$result['execution_digest'],'materialization binds current public source and approved target');
+    $body=$prepared;$actual=$body['execution_digest'];unset($body['execution_digest']);
+    lineAssert(hash('sha256',lineJson($body))===$actual,'execution digest binds global and public observations');
+    foreach(['source_url','source_caption','source_date','source_photo','source_button','target_url','target_caption','target_date','target_photo','target_button','target_missing_buttons'] as $case){
+        $a=$sourcePublic;$b=$targetPublic;
+        switch($case){
+            case 'source_url':$a['url']='https://t.me/any_toour/52';break;
+            case 'source_caption':$a['caption']=$baseText;break;
+            case 'source_date':$a['published_unixtime']++;break;
+            case 'source_photo':$a['photo_marker_sha256']=str_repeat('9',64);break;
+            case 'source_button':$a['buttons'][0]['hotel_url']='https://t.me/anyru_bot?start=p_other';break;
+            case 'target_url':$b['url']='https://t.me/anytour/78';break;
+            case 'target_caption':$b['caption']='Changed';break;
+            case 'target_date':$b['published_unixtime']++;break;
+            case 'target_photo':$b['single_photo']=false;break;
+            case 'target_button':$b['buttons']=[['text'=>'Other','url_sha256'=>str_repeat('6',64)]];break;
+            case 'target_missing_buttons':unset($b['buttons']);break;
+        }
+        lineReject(fn()=>HotelTransferPriceEvidenceReader::materialize($pdo,$bytes,$digest,$root,$lease,
+            static fn(array $r)=>['source'=>$a,'target'=>$b]),'public '.$case);
+    }
+    lineReject(fn()=>HotelTransferPriceEvidenceReader::materialize($pdo,$bytes,$digest,$root,$lease,
+        static function(array $r)use($pdo,$sourcePublic,$targetPublic){
+            $pdo->exec('UPDATE post_publications SET current_version_id=1003 WHERE id=101');
+            return ['source'=>$sourcePublic,'target'=>$targetPublic];
+        }),'source changes between materialization and final registry read');
+    $pdo->exec('UPDATE post_publications SET current_version_id=1008 WHERE id=101');
+    lineReject(fn()=>HotelTransferPriceEvidenceReader::materialize($pdo,$bytes,$digest,$root,$lease,
+        static function(array $r)use($lease,$sourcePublic,$targetPublic){
+            fseek($lease,0,SEEK_END);fwrite($lease,"\n");fflush($lease);
+            return ['source'=>$sourcePublic,'target'=>$targetPublic];
+        }),'global PRICE journal changes during public read');
+    $writeGlobal($globalRaw);
+    lineAssert($dbState()===$before&&file_get_contents($leasePath)===$globalRaw
+        &&HotelTransferPriceEvidenceReader::materialize($pdo,$bytes,$digest,$root,$lease,$observe)===$prepared,
+        'materialization has no DB writes and does not create or append operation journal');
 }finally{
     if(is_resource($other))fclose($other);
     if(is_resource($journalLock))fclose($journalLock);

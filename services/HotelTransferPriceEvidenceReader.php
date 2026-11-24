@@ -14,8 +14,8 @@ require_once __DIR__.'/ChannelPostRegistryService.php';
  * the existing canonical operations root, not request-controlled paths.
  *
  * A candidate is not permission to write: the owner must still authenticate
- * installed PRICE source/renderer provenance, check the actual public source
- * and target preimages, hold the existing target SQL lock and use the canonical
+ * installed PRICE source/renderer provenance, use materialize with the existing public reader,
+ * hold the existing target SQL lock and use the canonical
  * reservation/assert/complete/transport boundaries. Never invoke for old v1
  * batches or an already touched target.
  */
@@ -23,6 +23,7 @@ final class HotelTransferPriceEvidenceReader
 {
     private const JOURNAL_LIMIT=10_000_000;
     private const TOTAL_LIMIT=32_000_000;
+    private const GLOBAL_LIMIT=128_000_000;
     private const LEASE='monitor-price-after-collection-v1.jsonl';
 
     private static function need(bool $ok,string $reason):void
@@ -46,6 +47,60 @@ final class HotelTransferPriceEvidenceReader
             &&self::sameFile($lease,$root.'/'.self::LEASE)
             &&flock($lease,LOCK_EX|LOCK_NB)
             &&self::sameFile($lease,$root.'/'.self::LEASE),'lease_unavailable');
+    }
+
+    private static function globalStat(string $root,$lease):array
+    {
+        $path=$root.'/'.self::LEASE;
+        self::need(self::sameFile($lease,$path),'global_journal_changed');
+        $opened=fstat($lease);$named=lstat($path);$out=[];
+        foreach(['dev','ino','size','mtime','ctime'] as $field){
+            self::need(is_array($opened)&&is_array($named)&&isset($opened[$field],$named[$field])
+                &&$opened[$field]===$named[$field],'global_journal_changed');
+            $out[$field]=$opened[$field];
+        }
+        return $out;
+    }
+
+    /** Reuse the installed PRICE reader, not a last-line-only inference. */
+    private static function priceHistory(string $root,$lease):array
+    {
+        $stat=self::globalStat($root,$lease);
+        self::need($stat['size']>0&&$stat['size']<=self::GLOBAL_LIMIT,'global_journal_size');
+        $history=monitor_hook_read_history($lease);
+        $state=$history['state'];
+        self::need(self::globalStat($root,$lease)===$stat
+            &&$history['pin']['bytes']===$stat['size']&&$history['trailing_blank_lines']===0
+            &&is_array($state)&&($state['schema']??null)===1
+            &&array_key_exists('pending',$state)&&$state['pending']===null
+            &&is_array($state['completed']??null)
+            &&(!array_key_exists('holds',$state)||is_array($state['holds']))
+            &&($state['nightly_cycle']['state']??null)!=='started','global_price_unresolved');
+        return ['state'=>$state,'pin'=>$history['pin'],'stat'=>$stat];
+    }
+
+    /** The most recent source PRICE revision must have the corresponding
+     * completed pair/feed state, not merely a successful Telegram child.
+     * Earlier child receipts remain the separate lineage proof.
+     */
+    private static function priceProof(array $history,array $row,array $candidate):array
+    {
+        $state=$history['state'];$hotel=$row['hotel_id'];
+        self::need(!array_key_exists($hotel,$state['holds']??[]),'hotel_price_held');
+        $completion=null;
+        if($candidate['price_lineage']!==[]){
+            $last=end($candidate['price_lineage']);
+            $operation='commercial-monitor-price-h'.$hotel.'-'.$last['record_id'];
+            $receipt=$state['completed'][$hotel]??null;
+            $feed=is_array($receipt)?($receipt['feed_operation']??null):null;
+            self::need(is_array($receipt)&&($receipt['operation']??null)===$operation
+                &&is_string($feed)&&preg_match('/\Acommercial-channel-hotel-feeds-([0-9]{8})-update[0-9]+\z/D',$feed,$m)===1
+                &&$feed===monitor_hook_feed_operation($operation,$m[1])
+                &&is_string($receipt['at']??null),'price_pair_feed_not_completed');
+            monitor_price_time($receipt['at']);
+            $completion=['operation'=>$operation,'feed_operation'=>$feed,'at'=>$receipt['at']];
+        }
+        return ['journal'=>$history['pin'],'latest_completion'=>$completion];
     }
 
     private static function absent(string $path):void
@@ -142,7 +197,27 @@ final class HotelTransferPriceEvidenceReader
         return $versions;
     }
 
+    /**
+     * Read-only candidate without public observations, for internal preparation.
+     * Never use this result alone as a transfer authorization.
+     */
     public static function candidate(PDO $pdo,string $bytes,string $approvedDigest,string $root,$lease):array
+    {
+        return self::read($pdo,$bytes,$approvedDigest,$root,$lease,null);
+    }
+
+    /**
+     * Future existing editor's opt-in entry before intent_saved/reservation.
+     * The callback is the existing private, scope-checked public parser/reader:
+     * it receives the exact materialized row, returns ['source'=>..., 'target'=>...].
+     * It must not reserve, mutate, send or retry anything.
+     */
+    public static function materialize(PDO $pdo,string $bytes,string $approvedDigest,string $root,$lease,callable $publicRead):array
+    {
+        return self::read($pdo,$bytes,$approvedDigest,$root,$lease,$publicRead);
+    }
+
+    private static function read(PDO $pdo,string $bytes,string $approvedDigest,string $root,$lease,?callable $publicRead):array
     {
         self::need(PHP_SAPI==='cli'&&!$pdo->inTransaction()&&strlen($bytes)<=64000
             &&hash('sha256',$bytes)===$approvedDigest,'intent_unapproved');
@@ -157,6 +232,7 @@ final class HotelTransferPriceEvidenceReader
             &&is_string($row['target_message_id']??null)&&preg_match('/\A[1-9][0-9]{0,18}\z/D',$row['target_message_id'])===1
             &&is_string($intent['source_start_payload']??null),'intent_scope_invalid');
         self::lease($root,$lease);
+        $global=self::priceHistory($root,$lease);
         self::noOperation($pdo,$root,$row);
         $registry=new ChannelPostRegistryService($pdo);
         $current=self::current($registry,$row,$intent);
@@ -183,9 +259,23 @@ final class HotelTransferPriceEvidenceReader
             $journals[]=$raw;
         }
         $candidate=HotelTransferPriceLineage::candidate($bytes,$approvedDigest,$versions,$journals);
+        $priceProof=self::priceProof($global,$row,$candidate);
+        $candidate['global_price_proof']=$priceProof;
+        if($publicRead!==null){
+            $observed=$publicRead($candidate['row']);
+            self::need(is_array($observed)&&is_array($observed['source']??null)
+                &&is_array($observed['target']??null),'public_observation_missing');
+            $candidate['public_preimages']=HotelTransferPriceLineage::publicPreimages(
+                $bytes,$approvedDigest,$candidate['row'],$observed['source'],$observed['target']);
+            $candidate['schema']='telegram_hotel_transfer_materialized_candidate_v2';
+        }
+        unset($candidate['execution_digest']);
+        $candidate['execution_digest']=hash('sha256',json_encode($candidate,
+            JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
         // Detect native registry changes while reading historical receipts. The
         // later canonical source/target CAS is still required before any write.
         self::lease($root,$lease);
+        self::need(self::globalStat($root,$lease)===$global['stat'],'global_price_changed_during_read');
         self::noOperation($pdo,$root,$row);
         $after=self::current($registry,$row,$intent);
         self::need($after===$current&&self::versions($pdo,$row,$after)===$versions,'registry_changed_during_read');

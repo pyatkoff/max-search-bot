@@ -213,7 +213,7 @@ final class HotelTransferPriceLineage
         self::need(strlen($intentBytes)<=64000 && self::sha($intentBytes)===$approvedDigest,'approval_changed');
         $i=json_decode($intentBytes,true,32,JSON_THROW_ON_ERROR);
         self::need(is_array($i) && array_keys($i)===['schema','price_policy','row','source_price_template',
-            'source_start_payload','source_published_at','source_logical_id','source_link','feed_binding']
+            'source_start_payload','source_published_at','source_logical_id','source_link','feed_binding','target_public_buttons']
             && $i['schema']==='telegram_hotel_transfer_intent_v2'
             && $i['price_policy']==='omit_previous_price_keep_hotel_calculation_button'
             && is_array($i['row']) && is_string($i['source_price_template']) && $i['source_price_template']!==''
@@ -222,6 +222,7 @@ final class HotelTransferPriceLineage
             && is_string($i['source_published_at']) && $i['source_published_at']!==''
             && is_string($i['source_logical_id']) && $i['source_logical_id']!==''
             && ($i['source_link']===null || is_string($i['source_link']))
+            && self::buttonPins($i['target_public_buttons'])!==null
             && is_array($i['feed_binding']) && !array_key_exists('operation',$i['feed_binding'])
             && !array_key_exists('manifest_hash',$i['feed_binding']),
             'intent_schema');
@@ -277,5 +278,59 @@ final class HotelTransferPriceLineage
         $execution=['schema'=>'telegram_hotel_transfer_execution_candidate_v2',
             'intent_digest'=>$approvedDigest,'row'=>$candidate,'price_lineage'=>$proof];
         return $execution+['execution_digest'=>self::sha(self::json($execution))];
+    }
+
+    /** Only stable, approved button fields. Never trust an omitted keyboard. */
+    private static function buttonPins(mixed $buttons):?array
+    {
+        if(!is_array($buttons)||!array_is_list($buttons)||count($buttons)>20)return null;
+        $pins=[];
+        foreach($buttons as $button){
+            if(!is_array($button)||!is_string($button['text']??null)||$button['text']===''
+                ||!is_string($button['url_sha256']??null)||preg_match('/\A[a-f0-9]{64}\z/D',$button['url_sha256'])!==1)
+                return null;
+            $pins[]=['text'=>$button['text'],'url_sha256'=>$button['url_sha256']];
+        }
+        return $pins;
+    }
+
+    /** Bind the existing public parser's exact observations to approved intent.
+     * The caller must actually read the two exact URLs under the existing lease.
+     * Raw HTML hashes record the observation, not a future byte-for-byte web
+     * page requirement. Stable identity/caption/photo/date/button are the CAS.
+     */
+    public static function publicPreimages(string $bytes,string $approvedDigest,array $row,array $source,array $target):array
+    {
+        self::need(strlen($bytes)<=64000&&self::sha($bytes)===$approvedDigest,'public_approval_changed');
+        $intent=json_decode($bytes,true,32,JSON_THROW_ON_ERROR);
+        $approved=$intent['row']??[];
+        $fixed=$row;
+        foreach(['source_version_id','source_content_hash','source_caption_sha256'] as $key)
+            $fixed[$key]=$approved[$key]??null;
+        self::need(($intent['schema']??null)==='telegram_hotel_transfer_intent_v2'&&$fixed===$approved
+            &&is_int($row['source_version_id']??null)&&$row['source_version_id']>=$approved['source_version_id'],
+            'public_intent_changed');
+        $url='https://t.me/anyru_bot?start='.$intent['source_start_payload'];
+        $sourcePins=self::buttonPins($source['buttons']??null);
+        $targetPins=self::buttonPins($target['buttons']??null);
+        self::need($sourcePins===[['text'=>'✈️ Узнать стоимость тура','url_sha256'=>self::sha($url)]]
+            &&($source['buttons'][0]['hotel_url']??null)===$url
+            &&$targetPins!==null&&$targetPins===$intent['target_public_buttons'],'public_keyboard_changed');
+        foreach([['source',$source,'https://t.me/any_toour/'.$row['source_message_id'],$row['source_caption_sha256'],
+            $row['source_photo_marker_sha256']],['target',$target,'https://t.me/anytour/'.$row['target_message_id'],
+            $row['target_caption_sha256'],$row['target_photo_marker_sha256']]] as [$kind,$public,$expectedUrl,$captionHash,$photoHash]){
+            self::need(($public['url']??null)===$expectedUrl&&($public['single_photo']??null)===true
+                &&is_string($public['caption']??null)&&self::sha($public['caption'])===$captionHash
+                &&($public['caption_sha256']??null)===$captionHash&&($public['photo_marker_sha256']??null)===$photoHash
+                &&is_int($public['published_unixtime']??null)&&$public['published_unixtime']>0
+                &&is_string($public['html_sha256']??null)&&preg_match('/\A[a-f0-9]{64}\z/D',$public['html_sha256'])===1,
+                'public_'.$kind.'_changed');
+        }
+        self::need(gmdate('Y-m-d H:i:s',$source['published_unixtime'])===$intent['source_published_at']
+            &&$target['published_unixtime']===$row['target_published_unixtime'],'public_date_changed');
+        $project=static fn(array $v,array $buttons):array=>[
+            'url'=>$v['url'],'caption_sha256'=>$v['caption_sha256'],'photo_marker_sha256'=>$v['photo_marker_sha256'],
+            'published_unixtime'=>$v['published_unixtime'],'buttons'=>$buttons,'observed_html_sha256'=>$v['html_sha256']];
+        return ['source'=>$project($source,$sourcePins),'target'=>$project($target,$targetPins)];
     }
 }
