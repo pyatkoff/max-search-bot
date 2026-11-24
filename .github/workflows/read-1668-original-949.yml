@@ -1,4 +1,4 @@
-name: Read original ranked Telegram response for TV949
+name: Read original UNKNOWN594 and UNKNOWN716 from 45321557294
 on:
   push:
     branches: [audit/1566-ranked-response-949]
@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   read:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == '4d1bc49d924267fa899b05b4c1ff7ecb8d873af2' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 4
     steps:
@@ -46,7 +46,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read only TV949 saved response and registry
+      - name: Read only the two new saved responses and their current registry
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -61,88 +61,105 @@ jobs:
           php -d display_errors=stderr <<'PHP'
           <?php
           require 'tools/anytour_existing_post_batch.php';
-          use function AnyTour\ExistingPostBatch\{requirePost,transferPlanFromBytes,transferRegistryRow,transferRuntime,transferPublic,transferReason};
-          
-          $app = '/var/www/anytoour/data/www/app.anytoour.ru';
-          $sha = '0689691b5aa4b8cd5fbf2f3629d9e9dc76df7e9b';
-          $digest = '12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce';
-          transferRuntime($app, $sha);
-          $plan = transferPlanFromBytes(file_get_contents('config/anytour_ranked_46_20261123_01.json'), $digest, $digest);
-          $row = $plan['rows'][2];
-          requirePost($row['hotel_id'] === 949 && $row['target_message_id'] === '266', 'target_mismatch');
-          
-          $operations = '/var/www/anytoour/data/channel-post-operations/';
-          $lease = $operations.'monitor-price-after-collection-v1.jsonl';
-          requirePost(is_file($lease) && !is_link($lease), 'editor_lock_unavailable');
-          $lock = fopen($lease, 'rb');
-          requirePost(is_resource($lock) && flock($lock, LOCK_SH | LOCK_NB), 'editor_busy');
-          $path = $operations.'anytour-issue1566-historical-tg-media-266-v1/receipt.jsonl';
-          requirePost(realpath($path) === $path && filesize($path) < 1000000, 'journal_unavailable');
-          $bytes = file_get_contents($path);
-          $events = array_map(static fn(string $line) => json_decode($line, true, 64, JSON_THROW_ON_ERROR),
-              explode("\n", rtrim($bytes, "\r\n")));
-          $states = array_column($events, 'state');
-          requirePost($states === ['intent_saved','identity_reserved','request_prepared','provider_edit_started',
-              'provider_response_saved','response_saved_completion_requires_readback']
-              && ($events[0]['execution']['native_run_id'] ?? null) === '45277253456'
-              && ($events[0]['execution']['application_sha'] ?? null) === $sha
-              && $events[0]['plan_sha256'] === $digest && $events[0]['row'] === $row
-              && $events[3]['provider_write_attempts'] === 1 && $events[5]['provider_write_attempts'] === 1, 'journal_scope_mismatch');
-          $reservation = $events[1]['reservation'];
-          $response = $events[4]['response'];
-          $raw = $response['data']['result'] ?? [];
-          $out = ['application_sha'=>$sha, 'journal_sha256'=>hash('sha256',$bytes),'states'=>$states,
-              'original_error'=>$events[5]['reason'],'http'=>$response['http']??null,
-              'transport_error'=>$response['transport_error']??null,'provider_ok'=>$response['data']['ok']??null,
-              'error_code'=>$response['data']['error_code']??null,'message_id'=>$raw['message_id']??null,
-              'native_chat_matches'=>(string)($raw['chat']['id']??'')==='-1001845835645'&&($raw['chat']['username']??'')==='anytour',
-              'native_date_matches'=>($raw['date']??null)===$row['target_published_unixtime'],
-              'native_caption_matches'=>($raw['caption']??null)===$row['next_caption'],
-              'native_button_matches'=>($raw['reply_markup']['inline_keyboard']??null)===[[['text'=>$row['button_text'],'url'=>$reservation['button_url']]]],
-              'native_photo_matches'=>in_array($row['source_file_unique_id_sha256'],array_map(static fn($p)=>hash('sha256',(string)($p['file_unique_id']??'')),$raw['photo']??[]),true),
-              'native_caption_entities_count'=>count($raw['caption_entities']??[]),
-              'reserved_publication_id'=>$reservation['publication_id']];
-          ob_start();
+          use function AnyTour\ExistingPostBatch\{requirePost,transferPlanFromBytes,transferRegistryRow,transferRuntime,transferPublic,parseTransferPublic,transferReason};
+          $root='/var/www/anytoour/data/www/app.anytoour.ru';
+          $sha='fdcbf29f831b68005295dfa398ecb5878d94e6c7';
+          $digest='12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce';
+          $out=['original_run_id'=>'45321557294','application_sha'=>$sha,'read_only'=>true,
+              'provider_write_attempts'=>0,'supplier_requests'=>0,'bot_starts'=>0,'results'=>[]];
+          $lock=null;$pdo=null;
           try {
-              require_once 'config.php';
-              require_once 'services/ChannelPostRegistryService.php';
-              require_once 'services/ChannelPostButtonTransport.php';
-          } finally { ob_end_clean(); }
-          $verify = new ReflectionMethod(ChannelPostRegistryService::class, 'telegramHotelTransferResponse');
-          try {
-              $verify->invoke(null,$reservation,transferRegistryRow($row),$response);
-              $out['native_validator']='accepted';
-          } catch (Throwable $e) { $out['native_validator']=transferReason($e); }
-          
-          $pdo = ConversationDb::connection();
-          requirePost($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql', 'database_changed');
-          $pdo->exec('START TRANSACTION READ ONLY');
-          try {
-              $q=$pdo->prepare("SELECT p.id, p.current_version_id, v.state, v.write_attempts, v.claim_token IS NOT NULL AS claimed, v.error_reason, (SELECT COUNT(*) FROM post_observations o WHERE o.publication_id=p.id) AS observations FROM post_publications p JOIN post_channels c ON c.id=p.post_channel_id LEFT JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id WHERE c.id=6 AND c.platform='telegram' AND c.bot_key='anyru_bot' AND p.external_message_id='266' LIMIT 2");
-              $q->execute();
-              $db=$q->fetchAll(PDO::FETCH_ASSOC);
-              requirePost(count($db)===1 && (int)$db[0]['id']===(int)$reservation['publication_id'], 'registry_identity_mismatch');
-              $out['registry']=$db[0];
-              $registry = new ChannelPostRegistryService($pdo);
-              $resolved=$registry->resolveToken('anytour','telegram','anyru_bot',$reservation['start_payload']);
-              $out['context']=['message_id'=>$resolved['message_id']??null,'version_id'=>$resolved['version_id']??null,
-                  'hotel_id'=>$resolved['snapshot']['metadata']['hotel_catalog_id']??null,
-                  'transfer_provenance'=>isset($resolved['snapshot']['metadata']['hotel_transfer']),
-                  'caption_matches'=>isset($resolved['snapshot']['text']) && hash('sha256',$resolved['snapshot']['text'])===$row['next_caption_sha256'],
-                  'button_matches'=>is_array($resolved)&&ChannelPostButtonTransport::buttonUrl($resolved)===$reservation['button_url']];
-          } finally { $pdo->exec('ROLLBACK'); }
-          
-          try {
-              $public = transferPublic('anytour','266',$digest);
-              $out['public']=['caption_matches'=>$public['caption_sha256']===$row['next_caption_sha256'],
-                  'date_matches'=>$public['published_unixtime']===$row['target_published_unixtime'],
-                  'one_photo'=>$public['single_photo'],'buttons'=>count($public['buttons']),
-                  'button_matches'=>count($public['buttons'])===1&&$public['buttons'][0]['hotel_url']===$reservation['button_url']];
-          } catch (Throwable $e) { $out['public_error']=transferReason($e); }
-          transferRuntime($app,$sha);
-          requirePost(hash_file('sha256',$path)===$out['journal_sha256'], 'journal_changed_during_read');
-          fclose($lock);
-          echo 'TV949_READBACK ',json_encode($out,JSON_THROW_ON_ERROR),PHP_EOL;
+              transferRuntime($root,$sha);
+              $plan=transferPlanFromBytes(file_get_contents('config/anytour_ranked_46_20261123_01.json'),$digest,$digest);
+              $by=[];foreach($plan['rows'] as $r)$by[$r['hotel_id']]=$r;
+              $operations='/var/www/anytoour/data/channel-post-operations/';
+              $lease=$operations.'monitor-price-after-collection-v1.jsonl';
+              requirePost(is_file($lease)&&!is_link($lease),'editor_lock_unavailable');
+              $lock=fopen($lease,'rb');
+              requirePost(is_resource($lock)&&flock($lock,LOCK_SH|LOCK_NB),'editor_busy');
+              ob_start();
+              try {
+                  require_once 'config.php';
+                  require_once 'services/ChannelPostRegistryService.php';
+                  require_once 'services/ChannelPostButtonTransport.php';
+              } finally {ob_end_clean();}
+              $pdo=ConversationDb::connection();
+              requirePost($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql','database_changed');
+              $pdo->exec('START TRANSACTION READ ONLY');
+              foreach([[32342,'594',3718],[73343,'716',3721]] as [$hotel,$mid,$pid]){
+                  $entry=['hotel_id'=>$hotel,'message_id'=>$mid,'url'=>'https://t.me/anytour/'.$mid,'resolved'=>false];
+                  $journal=null;
+                  try {
+                      $row=$by[$hotel];requirePost($row['target_message_id']===$mid,'target_mismatch');
+                      $path=$operations.'anytour-issue1566-historical-tg-media-'.$mid.'-v1/receipt.jsonl';
+                      requirePost(is_file($path)&&!is_link($path)&&realpath($path)===$path&&filesize($path)<1000000,'journal_unavailable');
+                      $journal=fopen($path,'rb');
+                      requirePost(is_resource($journal)&&flock($journal,LOCK_SH|LOCK_NB),'journal_busy');
+                      $bytes=stream_get_contents($journal);
+                      requirePost(is_string($bytes)&&str_ends_with($bytes,"\n"),'journal_incomplete');
+                      $events=array_map(static fn($l)=>json_decode($l,true,64,JSON_THROW_ON_ERROR),explode("\n",rtrim($bytes,"\r\n")));
+                      $states=array_column($events,'state');
+                      requirePost($states===['intent_saved','identity_reserved','request_prepared','provider_edit_started','provider_response_saved','response_saved_completion_requires_readback']
+                          &&($events[0]['execution']['native_run_id']??null)==='45321557294'
+                          &&($events[0]['execution']['application_sha']??null)===$sha
+                          &&($events[0]['execution']['continuation_of_ranked_run_id']??null)==='45277253456'
+                          &&$events[0]['plan_sha256']===$digest&&$events[0]['row']===$row
+                          &&$events[3]['provider_write_attempts']===1&&$events[5]['provider_write_attempts']===1,'journal_scope_mismatch');
+                      $reservation=$events[1]['reservation'];$response=$events[4]['response'];
+                      requirePost((int)$reservation['publication_id']===$pid,'reservation_mismatch');
+                      $native=$response['data']['result']??[];
+                      $errors=[];
+                      foreach(['error','curl_error','message'] as $key)if(is_string($response[$key]??null))$errors[]=$response[$key];
+                      $error=implode("\n",$errors);
+                      $entry+=['journal_sha256'=>hash('sha256',$bytes),'states'=>$states,'reserved_publication_id'=>$pid,
+                          'http'=>$response['http']??null,'transport_error'=>$response['transport_error']??null,
+                          'provider_ok'=>$response['data']['ok']??null,'error_code'=>$response['data']['error_code']??null,
+                          'transport_error_sha256'=>hash('sha256',$error),'transport_timeout'=>preg_match('/time.?out|timed out/i',$error)===1,
+                          'transport_connectivity_error'=>preg_match('/connect|resolve|SSL|TLS/i',$error)===1];
+                      $validator=new ReflectionMethod(ChannelPostRegistryService::class,'telegramHotelTransferResponse');
+                      try {$validator->invoke(null,$reservation,transferRegistryRow($row),$response);$entry['native_validator']='accepted';}
+                      catch(Throwable $e){$entry['native_validator']=transferReason($e);}
+                      $q=$pdo->prepare("SELECT p.id,p.current_version_id,v.state,v.write_attempts,v.claim_token IS NOT NULL AS claimed,v.error_reason,(SELECT COUNT(*) FROM post_observations o WHERE o.publication_id=p.id) AS observations FROM post_publications p JOIN post_channels c ON c.id=p.post_channel_id LEFT JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id WHERE c.id=6 AND c.platform='telegram' AND c.bot_key='anyru_bot' AND p.external_message_id=? LIMIT 2");
+                      $q->execute([$mid]);$db=$q->fetchAll(PDO::FETCH_ASSOC);
+                      requirePost(count($db)===1&&(int)$db[0]['id']===$pid,'registry_identity_mismatch');
+                      $entry['registry']=$db[0];
+                      $registry=new ChannelPostRegistryService($pdo);
+                      $resolved=$registry->resolveToken('anytour','telegram','anyru_bot',$reservation['start_payload']);
+                      $entry['context']=['message_id'=>$resolved['message_id']??null,'version_id'=>$resolved['version_id']??null,
+                          'hotel_id'=>$resolved['snapshot']['metadata']['hotel_catalog_id']??null,
+                          'transfer_provenance'=>isset($resolved['snapshot']['metadata']['hotel_transfer']),
+                          'caption_matches'=>isset($resolved['snapshot']['text'])&&hash('sha256',$resolved['snapshot']['text'])===$row['next_caption_sha256'],
+                          'button_matches'=>is_array($resolved)&&ChannelPostButtonTransport::buttonUrl($resolved)===$reservation['button_url']];
+                      try {
+                          $p=transferPublic('anytour',$mid,$digest);
+                          if(count($p['buttons'])===0){
+                              $client=curl_init('https://t.me/s/anytour?before='.((int)$mid+1));$body='';
+                              curl_setopt_array($client,[CURLOPT_FOLLOWLOCATION=>false,CURLOPT_CONNECTTIMEOUT=>5,CURLOPT_TIMEOUT=>20,
+                                  CURLOPT_USERAGENT=>'Mozilla/5.0',CURLOPT_WRITEFUNCTION=>static function($c,string $s)use(&$body):int{
+                                      if(strlen($body)+strlen($s)>1000000)return 0;$body.=$s;return strlen($s);
+                                  }]);
+                              $ok=curl_exec($client);$http=curl_getinfo($client,CURLINFO_HTTP_CODE);curl_close($client);
+                              requirePost($ok!==false&&$http===200,'public_history_unavailable');
+                              $h=parseTransferPublic($body,'anytour',$mid,$digest);$p['buttons']=$h['buttons'];
+                          }
+                          $entry['public']=['caption_matches'=>$p['caption_sha256']===$row['next_caption_sha256'],
+                              'date_matches'=>$p['published_unixtime']===$row['target_published_unixtime'],
+                              'one_photo'=>$p['single_photo'],'buttons'=>count($p['buttons']),
+                              'button_matches'=>count($p['buttons'])===1&&$p['buttons'][0]['hotel_url']===$reservation['button_url']];
+                      }catch(Throwable $e){$entry['public_error']=transferReason($e);}
+                      requirePost(hash_file('sha256',$path)===$entry['journal_sha256'],'journal_changed_during_read');
+                  }catch(Throwable $e){$entry['read_error']=transferReason($e);}
+                  finally{if(is_resource($journal)){flock($journal,LOCK_UN);fclose($journal);}}
+                  $out['results'][]=$entry;
+              }
+              $pdo->exec('ROLLBACK');$pdo=null;
+              transferRuntime($root,$sha);
+              $out['read_complete']=count($out['results'])===2&&!in_array(true,array_map(static fn($r)=>isset($r['read_error']),$out['results']),true);
+          }catch(Throwable $e){$out['error']=transferReason($e);}
+          finally{if($pdo instanceof PDO){try{$pdo->exec('ROLLBACK');}catch(Throwable $ignored){}}if(is_resource($lock)){flock($lock,LOCK_UN);fclose($lock);}}
+          $out['observed_at_utc']=gmdate(DATE_ATOM);
+          echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          exit(($out['read_complete']??false)?0:2);
           PHP
           REMOTE
       - name: Remove authentication material
