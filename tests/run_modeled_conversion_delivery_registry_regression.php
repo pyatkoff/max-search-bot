@@ -386,6 +386,26 @@ function visitLedgerSnapshotAssertions(PDO $p, callable $check): void
         $check('paged snapshot returns all 4097 admitted V1 IDs once in order across nested iteration',
             !$p->inTransaction() && count($snapshot) === 4097 && $seen === array_reverse($ids) && $nestedFirst === $newest);
 
+        if ($p->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
+            // Adjacent unsigned IDs above PHP_INT_MAX must survive a native prepared cursor on both pages.
+            // A connection-local shadow preserves the fixture outbox's rows and AUTO_INCREMENT.
+            $p->exec('CREATE TEMPORARY TABLE unsigned_visit_page LIKE max_channel_conversion_outbox');
+            try {
+                $p->exec('INSERT INTO unsigned_visit_page SELECT * FROM max_channel_conversion_outbox ORDER BY id LIMIT 257');
+                $p->prepare('UPDATE unsigned_visit_page SET id=18446744073709551615 - (CAST(? AS DECIMAL(20,0)) - id) ORDER BY id DESC')
+                    ->execute([$ids[256]]);
+                $p->exec('ALTER TABLE unsigned_visit_page RENAME TO max_channel_conversion_outbox');
+                $expected = $p->query('SELECT CAST(id AS CHAR) FROM max_channel_conversion_outbox ORDER BY id DESC')->fetchAll(PDO::FETCH_COLUMN);
+                $actual = [];
+                foreach (ModeledConversionVisitLedgerSnapshot::capture($p) as $row) $actual[] = (string)$row['id'];
+                $check('native keyset reads all 257 adjacent unsigned BIGINT IDs through UINT64_MAX',
+                    count($actual) === 257 && $actual[0] === '18446744073709551615'
+                    && $actual[256] === '18446744073709551359' && $actual === $expected);
+            } finally {
+                $p->exec('DROP TEMPORARY TABLE IF EXISTS unsigned_visit_page, max_channel_conversion_outbox');
+            }
+        }
+
         // A late update below the cursor must not change an already captured snapshot.
         $p->prepare("UPDATE max_channel_conversion_outbox SET value_stage='invalid' WHERE id=?")->execute([$oldest]);
         $api = new class($day) {
