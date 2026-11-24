@@ -29,7 +29,9 @@ final class ManagerRequestContext
             'httponly' => true,
             'samesite' => 'Lax',
         ]);
-        session_start();
+        // PHP's native warning contains the session filename and can send headers
+        // before the API reports storage unavailability.
+        if(!@session_start())error_log('Manager session storage unavailable');
     }
 
     public static function managerId(): int

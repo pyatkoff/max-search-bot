@@ -427,6 +427,75 @@ async function pendingSetupCases() {
   console.log('PASS  key auth, invalid JSON and late account changes remain safe; optional confirmation failures never undo saved setup');
 }
 
+async function visiblePushArrivalCases(){
+  const {MessageChannel}=require('node:worker_threads');
+  const workerSource=fs.readFileSync(require('node:path').join(__dirname,'../manager/sw.js'),'utf8');
+  const origin='https://app.anytoour.ru',scope=origin+'/manager/',worker={scriptURL:scope+'sw.js'};
+  const handlers={},shown=[];
+  // Shorten only the idle peer deadline; the native ports still pass asynchronous messages.
+  const deadline=(fn,ms)=>setTimeout(fn,ms===1000?45:ms);
+  const captured={managerId:7,conversationId:11,openGeneration:9,authGeneration:2,refreshEpoch:3};
+  function makePage(options={}){
+    const calls={public:[],receipts:[],reads:[]},url=new URL(options.path||'/manager2/',origin).href;
+    const serviceWorker={addEventListener(type,fn){handlers[type+url]=fn;},
+      getRegistration:async requested=>{
+        assert.equal(requested,scope);
+        if(options.hold)await options.hold;
+        return {scope,active:options.registrationWorker||worker};
+      }};
+    const owner={capturePushTarget:()=>options.capture===null?null:{...captured,...options.capture},
+      refreshFromPush(target,id){calls.reads.push({target,id});}};
+    const window={WorkspaceV2Conversation:options.old?undefined:owner};
+    vm.runInNewContext(source,{URL,document:{URL:url,readyState:'loading',addEventListener(){}},navigator:{serviceWorker},window,setTimeout:deadline,clearTimeout});
+    const listener=handlers['message'+url];
+    return {calls,url,visibilityState:options.hidden?'hidden':'visible',postMessage(data,[port]){
+      calls.public.push(JSON.parse(JSON.stringify(data)));
+      port.on('message',reply=>calls.receipts.push(JSON.parse(JSON.stringify(reply))));
+      listener({data,ports:[port],source:options.sender||worker,isTrusted:options.trusted!==false,origin:options.origin||origin});
+    }};
+  }
+  const current=makePage(),otherAccount=makePage({path:'/manager2/?a',capture:{managerId:8}});
+  const otherChat=makePage({path:'/manager2/index.php',capture:{conversationId:12}});
+  const hidden=makePage({hidden:true}),otherOrigin=makePage({path:'https://other.test/manager2/'});
+  const outside=makePage({path:'/manager/push-enable.php'}),loggedOut=makePage({capture:null}),old=makePage({old:true});
+  const wrongScript=makePage({sender:{scriptURL:scope+'other-worker.js'}});
+  const untrusted=makePage({trusted:false}),wrongOrigin=makePage({origin:'https://other.test'});
+  const obsolete=makePage({sender:{scriptURL:worker.scriptURL}});
+  let release;const slow=makePage({hold:new Promise(resolve=>{release=resolve;})});
+  const windows=[current,otherChat,otherAccount,hidden,otherOrigin,outside,loggedOut,old,wrongScript,untrusted,wrongOrigin,obsolete,slow];
+  vm.runInNewContext(workerSource,{URL,MessageChannel,setTimeout:deadline,clearTimeout,importScripts(){},
+    WorkspaceSoundLedger:{validEvent:()=>true,supported:()=>false},
+    self:{location:{href:worker.scriptURL},clients:{matchAll:async({type,includeUncontrolled})=>{
+      assert.equal(type,'window');assert.equal(includeUncontrolled,true);return windows;}},
+      registration:{showNotification:async(title,options)=>{shown.push({title,options});}},
+      addEventListener(type,fn){handlers[type]=fn;}}});
+  const incoming={title:'New content',body:'Only an OS notification may carry this text',
+    notificationKind:'customer_message',conversationId:11,notificationManagerId:7,incomingMessageId:31};
+  function deliver(type,data){
+    let work;
+    handlers[type]({data:type==='push'?{json:()=>data}:{...data,type:'SHOW_NOTIFICATION'},waitUntil(p){work=p;}});
+    return work;
+  }
+  const first=deliver('push',incoming);
+  // OS display is independent of stale/old clients that never acknowledge their hint.
+  await new Promise(resolve=>setImmediate(resolve));assert.equal(shown.length,1);
+  await first;release();await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(current.calls.public,[{type:'CHECK_VISIBLE_ARRIVAL'}]);
+  assert.deepEqual(current.calls.receipts,[{incomingMessageId:31}]);
+  assert.deepEqual(current.calls.reads,[{target:captured,id:31}]);
+  for(const page of [otherChat,otherAccount,loggedOut,old,wrongScript,untrusted,wrongOrigin,obsolete,slow]){
+    assert.deepEqual(page.calls.public,[{type:'CHECK_VISIBLE_ARRIVAL'}]);
+    assert.deepEqual(page.calls.receipts,page===otherChat||page===otherAccount?[{}]:[]);assert.deepEqual(page.calls.reads,[]);
+  }
+  for(const page of [hidden,otherOrigin,outside])assert.deepEqual(page.calls.public,[]);
+  assert.equal(shown[0].options.body,incoming.body);
+  await deliver('message',incoming);
+  for(const item of [{...incoming,notificationKind:'reminder'},{...incoming,conversationId:0},
+    {...incoming,notificationManagerId:'7'},{...incoming,incomingMessageId:1.5}])await deliver('push',item);
+  assert.equal(shown.length,6);assert.equal(current.calls.public.length,1);
+  console.log('PASS  native customer push hints only the exact visible Manager2 actor and dialog; old/rejected peers, other messages and OS display stay independent');
+}
+
 async function notificationNavigationCases(){
   const workerSource=fs.readFileSync(require('path').join(__dirname,'../manager/sw.js'),'utf8');
   const origin='https://app.anytoour.ru',failures=[];let total=0;
@@ -586,6 +655,7 @@ async function run() {
   await registrationLifecycleCases();
   await currentBrowserCases();
   await notificationNavigationCases();
+  await visiblePushArrivalCases();
 }
 
 run().catch(error => {

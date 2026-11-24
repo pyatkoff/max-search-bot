@@ -399,7 +399,7 @@ PHP);
         touch($release);
         $changed=cardFinish($change);$late=cardFinish($held);
         cardCheck("late $action with a changed session returns no directory",$changedBefore&&$changed['status']===200
-            &&$late['status']===401&&$late['body']===['ok'=>false,'error'=>'unauthorized']);
+            &&$late['status']===($action==='catalog'?401:403)&&$late['body']===['ok'=>false,'error'=>$action==='catalog'?'unauthorized':'csrf']);
     }
     echo 'SYNTHETIC_DIRECTORY_CHAT_HTTP '.json_encode($directorySamples,JSON_THROW_ON_ERROR)."\n";
 
@@ -433,8 +433,17 @@ PHP);
         touch($tmp.'/list.release');
         $changed=cardFinish($change);$late=cardFinish($held);
         cardCheck("a changed account or CSRF withholds the late fallback list ($changedIdentity)",$changedBefore&&$changed['status']===200
-            &&$late['status']===401&&$late['body']===['ok'=>false,'error'=>'unauthorized']);
+            &&$late['status']===($changedIdentity==='7&rotate=1'?403:401)&&$late['body']===['ok'=>false,'error'=>$changedIdentity==='7&rotate=1'?'csrf':'unauthorized']);
     }
+    @unlink($tmp.'/list.entered');@unlink($tmp.'/list.release');
+    $held=cardStart($first,'/manager/api.php',$fallback,$cookies['own'],'list');
+    cardWait($tmp.'/list.entered');
+    rename($tmp.'/sessions',$tmp.'/sessions-paused');
+    try{
+        touch($tmp.'/list.release');$late=cardFinish($held);
+        cardCheck('session storage failing after the read withholds rows without expiring the login',
+            $late['status']===503&&$late['body']===['ok'=>false,'error'=>'session_unavailable']);
+    }finally{rename($tmp.'/sessions-paused',$tmp.'/sessions');}
 } catch(Throwable $error){cardCheck('bounded actual HTTP/session fixture completes',false);echo $error->getMessage()."\n";if(is_file($tmp.'/server.log'))echo substr((string)file_get_contents($tmp.'/server.log'),-4000);}
 finally {
     if(is_dir($tmp)){touch($tmp.'/read.release');touch($tmp.'/write.release');touch($tmp.'/list.release');touch($tmp.'/counts.release');touch($tmp.'/catalog.release');touch($tmp.'/filter_options.release');}

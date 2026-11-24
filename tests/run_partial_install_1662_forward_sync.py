@@ -12,6 +12,8 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = "302ba66b5739e369a4df94471c8cfe9c054dd070"
+PR1692_MAIN = "cdde6f427f61bace3a5afbd943d2303f463d6531"
+PR1692_INSTALLED = "e3e1a9bdf29dd0d7530fe6b3b393f1286834d092"
 PRODUCTION = "/var/www/anytoour/data/www/app.anytoour.ru"
 JOURNAL = "/var/www/anytoour/data/channel-post-operations/monitor-price-after-collection-v1.jsonl"
 GIT = shutil.which("git")
@@ -63,12 +65,15 @@ class ProductionSync(unittest.TestCase):
         self.successor = checked_git(self.checkout, "rev-parse", "HEAD")
         checked_git(self.checkout, "bundle", "create", str(self.root / "production-deploy.bundle"), "HEAD")
         checked_git(self.checkout, "reset", "--hard", self.original)
+        self.pin_checkout(BASE)
+
+    def pin_checkout(self, public_sha):
         # Represent the public predecessor ID using a local fixture object. No public
         # repository, credential, remote host, or actual application's files are used.
-        checked_git(self.checkout, "update-ref", "refs/replace/" + BASE, self.original)
+        checked_git(self.checkout, "update-ref", "refs/replace/" + public_sha, self.original)
         branch = checked_git(self.checkout, "symbolic-ref", "HEAD")
-        (self.checkout / ".git" / branch).write_text(BASE + "\n")
-        self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), BASE)
+        (self.checkout / ".git" / branch).write_text(public_sha + "\n")
+        self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), public_sha)
         self.assertEqual(checked_git(self.checkout, "status", "--porcelain"), "")
 
     def install_doubles(self):
@@ -172,6 +177,32 @@ class ProductionSync(unittest.TestCase):
         self.assertEqual(calls.count("http"), 1)
         self.assertEqual(calls[-1], "http")
         self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.successor)
+
+    def test_pr1692_sync_from_accepted_checkout(self):
+        self.pin_checkout(PR1692_INSTALLED)
+        calls = self.check_run(True, before=PR1692_MAIN, planned=PR1692_INSTALLED)
+        self.assertEqual(calls[:3], ["scp", "ssh", "locked git rev-parse HEAD"])
+        self.assertTrue(any(c.startswith("locked git fetch ") for c in calls))
+        self.assertTrue(any(c.startswith("locked git reset --hard ") for c in calls))
+        self.assertEqual(calls[-1], "http")
+        self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.successor)
+        self.assertEqual((self.checkout / "version").read_text(), "successor\n")
+
+    def test_pr1692_rejects_changed_physical_checkout_under_lock(self):
+        self.pin_checkout(PR1692_MAIN)
+        calls = self.check_run(False, before=PR1692_MAIN, planned=PR1692_INSTALLED)
+        self.assertEqual(calls, ["scp", "ssh", "locked git rev-parse HEAD"])
+        self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), PR1692_MAIN)
+        self.assertEqual((self.checkout / "version").read_text(), "original\n")
+
+    def test_pr1692_rejects_mismatched_plan_before_upload(self):
+        for before, planned in ((PR1692_MAIN, ""), (PR1692_MAIN, PR1692_MAIN),
+                                (PR1692_MAIN, BASE), (BASE, PR1692_INSTALLED),
+                                ("", PR1692_INSTALLED), (self.original, PR1692_INSTALLED)):
+            with self.subTest(before=before, planned=planned):
+                self.calls.write_text("")
+                self.assertEqual(self.check_run(False, before=before, planned=planned), [])
+                self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), BASE)
 
     def test_live_lock_blocks_work_until_prior_writer_releases_it(self):
         with self.journal.open("r") as prior_owner:
