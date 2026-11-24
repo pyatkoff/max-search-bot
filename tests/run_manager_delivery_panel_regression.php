@@ -22,9 +22,19 @@ mdpCheck('delivery state supports batched list lookup',strpos($state,'function a
 mdpCheck('manager list neutrally explains suspended MAX recipient',strpos($conversations,'Клиент недоступен в MAX')!==false && strpos($conversations,'🔴 Клиент недоступен в MAX')===false && strpos($conversations,"'delivery_failure_category'")!==false);
 mdpCheck('delivery state owns filtering already-decorated suspended recipients',strpos($state,'function withoutSuspendedRecipients(array $rows)')!==false && strpos($state,"['delivery_failure_category']")!==false);
 mdpCheck('urgent waiting list delegates actionable projection outside HTTP interface',strpos($api,'ManagerQueueProjectionService::actionableRows($queue,$rows)')!==false && strpos($api,'function withoutSuspendedWaiting')===false && strpos($queues,"in_array(\$queue,['waiting','attention'],true)")!==false);
-mdpCheck('queue counts materialize waiting requested and mine only once each',substr_count($queues,'ManagerConversationService::queueCountRows(')===3 && strpos($queues,"ManagerConversationService::queueCountRows(\$managerId,'waiting',\$projectKey)")!==false && strpos($queues,"ManagerConversationService::queueCountRows(\$managerId,'requested',\$projectKey)")!==false && strpos($queues,"ManagerConversationService::queueCountRows(\$managerId,'mine',\$projectKey)")!==false);
+[$tabBranch,$fullBranch]=array_pad(explode('$rawWaiting=', $queues, 2),2,'');
+$read='ManagerConversationService::queueCountRows(';
+mdpCheck('full queue counts materialize Waiting, Requested and Mine only once each',
+    substr_count($fullBranch,$read)===3
+    &&substr_count($fullBranch,$read."\$managerId,'waiting',\$projectKey)")===1
+    &&substr_count($fullBranch,$read."\$managerId,'requested',\$projectKey)")===1
+    &&substr_count($fullBranch,$read."\$managerId,'mine',\$projectKey)")===1);
+mdpCheck('complementary counter reads one allowed tab and returns before full counts',
+    str_contains($tabBranch,"if(\$inboxTabsOnly&&in_array(\$onlyTab,['waiting','mine'],true))")
+    &&substr_count($tabBranch,$read)===1&&str_contains($tabBranch,$read.'$managerId,$onlyTab,$projectKey)')
+    &&str_contains($tabBranch,'return [$onlyTab=>self::summarize($onlyTab,self::actionableRows($onlyTab,$rows))];'));
 mdpCheck('legacy conversation service no longer owns queue count business rules',strpos($conversations,'function queueCounts(')===false);
-mdpCheck('waiting counter excludes suspended recipients from current reply work without a duplicate HTTP-layer query',strpos($queues,"\$waiting=self::actionableRows('waiting',\$operationalWaiting)")!==false && strpos($queues,'ManagerConversationService::notificationWaitingRows(')!==false && strpos($api,'ManagerQueueProjectionService::counts')!==false && strpos($api,"ManagerConversationService::list((int)\$m['id'],'waiting',200")===false);
+mdpCheck('waiting counter excludes suspended recipients from current reply work without a duplicate HTTP-layer query',str_contains($fullBranch,"'waiting'=>self::summarize('waiting',self::actionableRows('waiting',\$operationalWaiting))") && strpos($queues,'ManagerConversationService::notificationWaitingRows(')!==false && strpos($api,'ManagerQueueProjectionService::counts')!==false && strpos($api,"ManagerConversationService::list((int)\$m['id'],'waiting',200")===false);
 mdpCheck('notification unread preserves raw waiting plus mine contract without requested double count',strpos($queues,'foreach(array_merge($rawWaiting,$mine) as $row)')!==false && strpos($queues,'array_merge($rawWaiting,$requested,$mine)')===false);
 mdpCheck('taken unanswered rows expose current wait separately from historical first-reply age',strpos($conversations,'reply_wait_age_seconds')!==false && strpos($conversations,'ManagerReplyQueueService::waitStartedSql')!==false && strpos($conversations,'TIMESTAMPDIFF(SECOND')!==false && strpos($conversations,'⏱ Без ответа')!==false && strpos($conversations,"\$hasCurrent?!empty(\$row['awaiting_manager_reply']):!empty(\$row['awaiting_first_reply'])")!==false);
 
