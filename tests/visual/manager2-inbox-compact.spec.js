@@ -109,6 +109,43 @@ for(const width of [390,430,768,1440])test(`current reply wait keeps its own clo
  const g=await geometry(page);expect(g.overflow).toBeLessThanOrEqual(1);expect(g.contained).toBe(true);await expect(row(page).locator('.unreadBadge')).toHaveText('999');
  await capture(page,browserName,{width,font:'normal',density:'comfortable',groups:0,captureSuffix:'current-wait'},420,testInfo);clean(s);
 });
+for(const width of [390,1440])test('repeated tap on a loading Inbox row only opens it once '+width,async({page})=>{
+ await page.setViewportSize({width,height:844});
+ const s=await setup(page,{rows:rows()});await settled(page,s);
+ const ids=[],gates=[];
+ await page.route('**/manager/api.php',async route=>{
+   const data=route.request().postDataJSON();
+   if(data.action!=='detail')return route.fallback();
+   ids.push(data.conversation_id);
+   await new Promise(resolve=>gates.push(resolve));
+   return route.fallback();
+ });
+ const tap=id=>row(page,id).locator('.m2RowOpen').click();
+ try{
+   await tap(11);await expect.poll(()=>ids.length).toBe(1);
+   await tap(11);await tap(14);await expect.poll(()=>ids.includes(14)).toBe(true);
+   await tap(11);await tap(11);
+   await expect.poll(()=>ids).toEqual([11,14,11]);
+   const cardIds=()=>s.calls.filter(c=>c.path==='/manager/pipeline-api.php'&&c.action==='detail').map(c=>c.conversation_id);
+   await expect.poll(cardIds).toEqual([11,14,11]);
+ }finally{for(const release of gates)release();}
+ await expect(page.locator('#conversationTitle')).toHaveText(longName);
+ await expect(page.locator('#replyText')).toBeEnabled();
+ await page.locator('#replyText').fill('Проверенный черновик');
+ if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();
+ let refused=0;
+ await page.unroute('**/manager/api.php');
+ await page.route('**/manager/api.php',async route=>{
+   const data=route.request().postDataJSON();
+   if(data.action==='detail'&&data.conversation_id===14&&++refused===1)return route.fulfill({status:500,json:{ok:false}});
+   return route.fallback();
+ });
+ await tap(14);await expect(page.getByText('Не удалось открыть диалог. Текущий диалог не изменён.')).toBeVisible();
+ await tap(14);await expect(page.locator('#conversationTitle')).toHaveText('Синтетический клиент 3');
+ if(await page.locator('#mobileBack').isVisible())await page.locator('#mobileBack').click();
+ await tap(11);await expect(page.locator('#replyText')).toHaveValue('Проверенный черновик');
+});
+
 const profiles=[
  {width:390,font:'normal',density:'comfortable',groups:0},{width:390,font:'normal',density:'compact',groups:1},
  {width:390,font:'large',density:'comfortable',groups:6},{width:390,font:'large',density:'compact',groups:6},

@@ -290,6 +290,10 @@ PHP);
     cardCheck('card reads release the session before secondary loaders',array_filter($loads,static fn($row)=>$row['action']==='detail'&&$row['kind']==='read'&&$row['active'])===[]&&count(array_filter($loads,static fn($row)=>$row['kind']==='write'&&$row['active']))===1);
     cardCheck('Inbox list releases the session before loading rows',count(array_filter($loads,static fn($row)=>$row['action']==='list'&&$row['kind']==='list'))===3&&array_filter($loads,static fn($row)=>$row['action']==='list'&&$row['active'])===[]);
     cardCheck('queue counts release the session before all four bounded list reads',count(array_filter($loads,static fn($row)=>$row['action']==='counts'&&$row['kind']==='counts'))===12&&array_filter($loads,static fn($row)=>$row['action']==='counts'&&$row['active'])===[]);
+    $tabs=cardRequest($second,'/manager/api.php',['action'=>'counts','scope'=>'inbox_tabs','project_key'=>'fixture','csrf'=>'fixture-csrf'],$cookies['own']);
+    $tabLoads=array_slice(file($tmp.'/loads.jsonl',FILE_IGNORE_NEW_LINES),count($loads));
+    $expectedTabs=array_intersect_key($counts['body']['counts'],['waiting'=>true,'mine'=>true]);
+    cardCheck('Manager2 tabs receive the same badges with just two unlocked queue reads',$tabs['status']===200&&$tabs['body']===['ok'=>true,'counts'=>$expectedTabs]&&count($tabLoads)===2&&array_filter($tabLoads,static function($line){$load=json_decode($line,true);return $load['kind']!=='counts'||$load['active'];})===[]);
     $queries=array_map(static fn($line)=>json_decode($line,true),file($tmp.'/queries.jsonl',FILE_IGNORE_NEW_LINES));
     cardCheck('card conversation visibility is checked while session is still locked',array_filter($queries,static fn($row)=>($row['path']??'')==='/manager/pipeline-api.php'&&str_starts_with($row['sql'],'SELECT c.id,c.project_key,c.source_id,c.channel,')&&str_ends_with($row['sql'],'WHERE c.id=? LIMIT 1')&&!$row['active'])===[]);
 
@@ -398,6 +402,39 @@ PHP);
             &&$late['status']===401&&$late['body']===['ok'=>false,'error'=>'unauthorized']);
     }
     echo 'SYNTHETIC_DIRECTORY_CHAT_HTTP '.json_encode($directorySamples,JSON_THROW_ON_ERROR)."\n";
+
+    $fallback=['action'=>'list','queue'=>'waiting','project_key'=>'fixture','csrf'=>'fixture-csrf'];
+    $chat=['action'=>'detail','conversation_id'=>42,'csrf'=>'fixture-csrf'];
+    $fallbackSamples=[];
+    for($cycle=0;$cycle<3;$cycle++){
+        @unlink($tmp.'/list.entered');@unlink($tmp.'/list.release');
+        $held=cardStart($first,'/manager/api.php',$fallback,$cookies['own'],'list');
+        cardWait($tmp.'/list.entered');
+        $detail=cardStart($second,'/manager/api.php',$chat,$cookies['own']);
+        $completed=cardPoll($detail,0.75);
+        $elapsed=round((hrtime(true)-$detail['start'])/1e6,2);
+        touch($tmp.'/list.release');
+        $list=cardFinish($held);$transcript=cardFinish($detail);
+        cardCheck("real chat opens while fallback list is held ($cycle)",$completed&&$transcript['status']===200
+            &&($transcript['body']['messages'][0]['text']??null)==='Synthetic transcript & retained');
+        cardCheck("fallback returns the original authorized list ($cycle)",$list['status']===200&&$list['body']===['ok'=>true,'conversations'=>[]]);
+        $fallbackSamples[]=['chat_before_fallback_release'=>$completed,'chat_observation_ms'=>$elapsed];
+    }
+    echo 'SYNTHETIC_FALLBACK_CHAT_HTTP '.json_encode($fallbackSamples,JSON_THROW_ON_ERROR)."\n";
+    foreach(['9','7&rotate=1'] as $changedIdentity){
+        $session=bin2hex(random_bytes(16));$cookie='anytour_manager_panel='.$session;
+        $seedPath='/manager/fixture-session.php?session='.$session.'&manager=';
+        if(cardRequest($second,$seedPath.'7')['status']!==200)throw new RuntimeException('Cannot seed fallback-change session');
+        @unlink($tmp.'/list.entered');@unlink($tmp.'/list.release');
+        $held=cardStart($first,'/manager/api.php',$fallback,$cookie,'list');
+        cardWait($tmp.'/list.entered');
+        $change=cardStart($second,$seedPath.$changedIdentity);
+        $changedBefore=cardPoll($change,0.75);
+        touch($tmp.'/list.release');
+        $changed=cardFinish($change);$late=cardFinish($held);
+        cardCheck("a changed account or CSRF withholds the late fallback list ($changedIdentity)",$changedBefore&&$changed['status']===200
+            &&$late['status']===401&&$late['body']===['ok'=>false,'error'=>'unauthorized']);
+    }
 } catch(Throwable $error){cardCheck('bounded actual HTTP/session fixture completes',false);echo $error->getMessage()."\n";if(is_file($tmp.'/server.log'))echo substr((string)file_get_contents($tmp.'/server.log'),-4000);}
 finally {
     if(is_dir($tmp)){touch($tmp.'/read.release');touch($tmp.'/write.release');touch($tmp.'/list.release');touch($tmp.'/counts.release');touch($tmp.'/catalog.release');touch($tmp.'/filter_options.release');}

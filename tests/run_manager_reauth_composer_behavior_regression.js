@@ -5,7 +5,7 @@ const vm = require('node:vm');
 
 // DOM behavior only: no layout, production session, transport, or credentials.
 // App logic comes directly from the canonical production asset files.
-function createHarness({storage, managerId=7, mobile=false, sessionHistory, inbox=false,replyQueue=false,tasks=false,clock} = {}) {
+function createHarness({storage, managerId=7, mobile=false, sessionHistory, inbox=false,replyQueue=false,tasks=false,clock,earlyIdentity} = {}) {
 if(!storage){const values=new Map();storage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,String(v)),removeItem:k=>values.delete(k)}}
 const ids = new Map();
 class Element {
@@ -102,7 +102,7 @@ add('composer', 'form', 'composer hidden'); add('replyText', 'textarea'); add('r
 if(replyQueue){const head=new Element('div');head.className='conversationHead';const actions=new Element('div');actions.className='actions';head.appendChild(actions);ids.get('conversationZone').appendChild(head);document.querySelector=selector=>ids.get('conversationZone').querySelector(selector);}
 
 const calls = [];
-let hook = null;
+let hook = earlyIdentity ? (url,request)=>request.action==='me'?earlyIdentity():null : null;
 let nextIdentity = null;
 const manager = {id:managerId, role:'manager', login:'synthetic', display_name:'Synthetic manager', is_working:true};
 const identity = {ok:true, csrf:'synthetic-csrf', manager, projects:[]};
@@ -137,6 +137,7 @@ history.listener=async state=>{const handler=events.get('popstate');if(handler)a
 const reloads=[];
 const context = vm.createContext({window,document,fetch,location:{pathname:'/manager/',search:'',hash:'',href:'https://example.invalid/manager/',reload:()=>reloads.push(history.state)},history,AbortController,setTimeout:clock?.setTimeout||(()=>0),clearTimeout:clock?.clearTimeout||(()=>{}),setInterval:(fn,ms)=>{timers.push({fn,ms});return timers.length},console,sessionStorage:storage,localStorage:storage});
 function loadAsset(file,globals={}){Object.assign(context,globals);vm.runInContext(fs.readFileSync(path.join(__dirname,'../manager/assets',file),'utf8'),context,{filename:file});}
+if(earlyIdentity)document.currentScript={hasAttribute:name=>name==='data-early-identity'};
 for (const file of ['manager-time.js','workspace-v2.js','workspace-v2-conversation.js',...(inbox?['workspace-v2-inbox.js']:[]),...(mobile?['workspace-v2-mobile.js']:[]),...(replyQueue?['workspace-v2-reply-queue.js']:[]),...(tasks?['workspace-v2-tasks.js']:[])]) loadAsset(file);
 
 const W=window.WorkspaceV2,C=window.WorkspaceV2Conversation;

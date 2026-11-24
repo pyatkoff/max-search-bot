@@ -505,6 +505,12 @@ try {
     $fullCounts=inboxNativeCountRun($pdo,true);$slimCounts=inboxNativeCountRun($pdo,false);
     inboxNativeCheck('native lightweight counters retain every full-list count and unread total',$slimCounts['counts']===$fullCounts['counts']);
     inboxNativeCheck('native counter update executes fewer SQL statements',$slimCounts['sql']<$fullCounts['sql']);
+    $pdo->resetEvidence();
+    $tabCounts=ManagerQueueProjectionService::counts(7,'native-inbox',true);
+    inboxNativeCheck('native two-tab counters preserve both badges and skip the two unused projections',
+        $tabCounts===array_intersect_key($slimCounts['counts'],['waiting'=>true,'mine'=>true])
+        &&$pdo->listWork===[$slimCounts['list'][1],$slimCounts['list'][3]]
+        &&$pdo->executeCount+$pdo->queryCount<$slimCounts['sql']);
     inboxNativeCheck('native counter update transfers fewer SQL values for the same candidate rows',array_column($slimCounts['list'],'rows')===array_column($fullCounts['list'],'rows')&&array_sum(array_column($slimCounts['list'],'value_bytes'))<array_sum(array_column($fullCounts['list'],'value_bytes')));
     echo 'COUNT_WORK '.json_encode(['driver'=>'mysql','before'=>$fullCounts,'after'=>$slimCounts,'production_latency'=>null],JSON_THROW_ON_ERROR)."\n";
     foreach([['manager',1,'*'],['manager',0,'native-inbox'],['admin',1,'native-inbox'],['manager',1,'denied-project'],['manager',1,'inactive-project']] as [$role,$working,$project]){
