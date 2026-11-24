@@ -466,6 +466,32 @@ function loadOlder(){return window.WorkspaceV2History?.loadOlder()||Promise.reso
 function renderHeader(c){renderHandoffContext();const name=c.display_name||'Турист';$('conversationTitle').textContent=name;if(window.WorkspaceV2CustomerAvatar)window.WorkspaceV2CustomerAvatar.setInitials($('conversationAvatar'),initials(name));else $('conversationAvatar').textContent=initials(name);const state=$('conversationState');state.textContent=statusText(c.status);state.className='conversationState '+String(c.status||'');const origin=[c.source_name,(c.channel||'').toUpperCase()].filter(Boolean).join(' · ');$('conversationMeta').textContent=[origin,c.manager_name?`Менеджер: ${c.manager_name}`:''].filter(Boolean).join(' · ');window.WorkspaceV2CustomerName?.enhanceHeader(c);window.WorkspaceV2CustomerAvatar?.enhanceHeader(c);W.HandoffCancellation?.render($('handoffCancellation'),!accessLost&&!S.authExpired&&c.status==='ai'&&Number(c.id)===Number(S.detail?.conversation?.id)?S.detail?.handoff_cancellation:null);window.WorkspaceV2AiDraft?.sync();window.WorkspaceV2Assistant?.sync(c);window.WorkspaceV2TourSelection?.sync(c);window.WorkspaceV2MessageNavigation?.sync(c);window.WorkspaceV2ConversationMaterials?.syncContext();window.WorkspaceV2ClientEvents?.enhanceCard(c);window.WorkspaceV2ReplyQueue?.sync(c)}
 function clearCurrentReply(target){drafts.delete(target);persistReplySession();$('replyText').value='';autoGrow();window.WorkspaceV2Media?.clear()}
 function canRefreshVisible(){const mobile=window.WorkspaceV2Mobile;return !!S.current&&Number(S.detail?.conversation?.id)===Number(S.current)&&!!S.manager?.id&&!S.authExpired&&!busy&&!opening&&!lifecycleBlocked()&&document.visibilityState!=='hidden'&&(!mobile?.isMobile()||mobile.getScreen?.()==='conversation')}
+// Match a push only to a conversation the manager is already viewing.
+function capturePushTarget(){
+  if(!canRefreshVisible()||accessLost||S.logoutPending)return null;
+  const conversation=S.detail.conversation,box=$('messages');
+  if(conversation.status!=='manager'||Number(conversation.manager_id)!==Number(S.manager.id)||!box||(box.getClientRects&&!box.getClientRects().length))return null;
+  return historyContext();
+}
+let pushScope=null;
+const PUSH_EVENT_LIMIT=128;
+function containsMessage(id){return S.detail?.messages?.some(message=>Number(message.id)===id);}
+function refreshFromPush(captured,messageId){
+  const current=capturePushTarget();
+  if(!current||!validId(messageId)||!Object.keys(current).every(key=>current[key]===captured?.[key])||containsMessage(messageId))return false;
+  const key=JSON.stringify(current);
+  if(pushScope?.key!==key)pushScope={key,seen:new Set()};
+  if(pushScope.seen.has(messageId))return false;
+  pushScope.seen.add(messageId);
+  if(pushScope.seen.size>PUSH_EVENT_LIMIT)pushScope.seen.delete(pushScope.seen.values().next().value);
+  if(refreshPending?.key===key){
+    // The active read may already have taken its snapshot. Group arrivals
+    // behind it and read again only when the returned history missed one.
+    const arrivals=refreshPending.arrivals??=new Set();
+    if(arrivals.size<PUSH_EVENT_LIMIT)arrivals.add(messageId);else refreshPending.overflow=true;
+  }else void refreshVisible();
+  return true;
+}
 async function refreshVisible(){
   if(!canRefreshVisible())return false;
   // A different confirmed context may proceed before an obsolete read settles.
@@ -474,6 +500,7 @@ async function refreshVisible(){
   const target=Number(S.current),generation=openSeq,epoch=refreshEpoch,owner=Number(S.manager.id),authGeneration=S.authGeneration;
   const stillCurrent=()=>canRefreshVisible()&&Number(S.current)===target&&openSeq===generation&&refreshEpoch===epoch&&Number(S.manager?.id)===owner&&S.authGeneration===authGeneration;
   const flight={key};refreshPending=flight;
+  let accepted=false;
   try{
     const d=await api('detail',{conversation_id:target},{isCurrent:stillCurrent});
     if(!stillCurrent())return false;
@@ -493,9 +520,14 @@ async function refreshVisible(){
     if(actionsChanged)renderActions(c);
     if(choicesChanged)window.WorkspaceV2TourChoices?.enhanceCard(c);
     if(Number(c.manager_id)!==Number(S.manager.id)||c.status!=='manager')clearCurrentReply(target);
-    acceptReadPage(d);window.WorkspaceV2RequestProfile?.refresh();void window.WorkspaceV2History?.recoverGap?.();return true;
+    acceptReadPage(d);window.WorkspaceV2RequestProfile?.refresh();void window.WorkspaceV2History?.recoverGap?.();accepted=true;return true;
   }catch(e){if(stillCurrent())setRefreshStatus('Не удалось обновить переписку. Показаны последние загруженные сообщения.');return false}
-  finally{if(refreshPending===flight)refreshPending=null}
+  finally{
+    if(refreshPending===flight){
+      refreshPending=null;
+      if(accepted&&flight.arrivals&&stillCurrent()&&capturePushTarget()&&(flight.overflow||[...flight.arrivals].some(id=>!containsMessage(id))))void refreshVisible();
+    }
+  }
 }
 function renderLeadLoading(c){
   const root=$('leadCard');if(!root)return;
@@ -678,11 +710,20 @@ async function change(a){
   }catch(e){if(feedbackCurrent())showLifecycleIssue(flight,confirmed?copy.success+'. Переписка пока не обновлена. Проверьте состояние перед следующим действием.':lifecycleUnknown,confirmed?'confirmed':'unknown')}
   finally{if(timer)clearTimeout(timer);if(lifecycleFlight===flight){lifecycleFlight=null;setBusy(false)}if(feedbackCurrent()&&lifecycleBlocked()&&(document.activeElement===flight.opener||document.activeElement===document.body&&flight.fromActions))$('conversationLifecycleStatus')?.querySelector('button')?.focus({preventScroll:true})}
 }
+function sendBusyControl(){
+  let held=false;
+  return value=>{
+    if(held===value)return;
+    held=value;setBusy(held);
+  };
+}
 async function sendReply(reconcileAction='send_receipt'){
   if(busy||(deliverySuspended()&&!pendingAttempt()))return;
   if(window.WorkspaceV2Media?.isRestoring?.())return;
   if(opening)return;
   if(accessLost||S.authExpired||lifecycleBlocked())return;
+  // Each delivery releases only its own controls, including its late finally.
+  const setBusy=sendBusyControl();
   const owner=replySessionOwner;let draftText=$('replyText').value;
   const target=Number(S.current||0),generation=openSeq,text=$('replyText').value.trim();let attempt=pendingAttempt(target),hasFile=!attempt&&window.WorkspaceV2Media?.hasFile();
   // Explicit send intent owns the text even when transport later refuses it.
@@ -765,6 +806,7 @@ async function sendReply(reconcileAction='send_receipt'){
         try{const refreshing=open(target,{stickToBottom:true,mobileHistory:'none',preserveAttachment:true,preserveHistory:true,...(calculation?.media||calculationAttempt(attempt)?{protectTaskDraft:true}:{})});refreshGeneration=openSeq;await refreshing}catch(e){}
         if(sameTarget()&&openSeq===refreshGeneration)setMediaReplyStatus(j.error_message||'Часть файлов отправлена. Проверьте оставшиеся вложения.','error',j.media_operation_id);
       }
+      setBusy(false);
       if(sameSession())try{await window.WorkspaceV2Inbox?.load({preserveScroll:true})}catch(e){}
       return;
     }
@@ -788,6 +830,7 @@ async function sendReply(reconcileAction='send_receipt'){
       }catch(e){}
       if(sameTarget()&&openSeq===refreshGeneration)setReplyStatus(refreshed?'Отправлено':'Отправлено. Переписку пока не удалось обновить.','success');
     }
+    setBusy(false);
     // Inbox owns its refresh errors; they are not message-delivery failures.
     if(sameSession())try{await window.WorkspaceV2Inbox?.load({preserveScroll:true})}catch(e){}
   }finally{setBusy(false);window.WorkspaceV2PromiseCalculation?.afterSend(calculationLink(attempt)?.calculation_intent_id||calculation?.media?.intentId,manager,target)}
@@ -815,5 +858,5 @@ function bind(){
   reply.addEventListener('keydown',e=>{if(!e.isComposing&&e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});
   document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>addQuickReply(b.dataset.reply))
 }
-window.WorkspaceV2Conversation={syncComposer:applyInteractionState,pendingCalculation:intentId=>{const a=pendingAttempt();return !!calculationAttempt(a)&&(!intentId||a.calculationIntentId===intentId)},hasReadAccess:()=>!accessLost&&!S.authExpired,renderHandoffContext,invalidateMessageAccess:loseHistoryAccess,renderMessageContext,canNavigateMessages:()=>isCurrentHistory(historyContext()),acceptReadPage,bind,open,cancelPendingOpen,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,settleMediaFeedback,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,captureQuickReplyReplacement,canReplaceQuickReply,insertQuickReply,insertAiDraft,previewAiDraft,discardAiPreview,aiDraftPreview,openSearch,nextWaiting};
+window.WorkspaceV2Conversation={syncComposer:applyInteractionState,pendingCalculation:intentId=>{const a=pendingAttempt();return !!calculationAttempt(a)&&(!intentId||a.calculationIntentId===intentId)},hasReadAccess:()=>!accessLost&&!S.authExpired,renderHandoffContext,invalidateMessageAccess:loseHistoryAccess,renderMessageContext,canNavigateMessages:()=>isCurrentHistory(historyContext()),acceptReadPage,bind,open,cancelPendingOpen,refreshVisible,capturePushTarget,refreshFromPush,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,settleMediaFeedback,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,captureQuickReplyReplacement,canReplaceQuickReply,insertQuickReply,insertAiDraft,previewAiDraft,discardAiPreview,aiDraftPreview,openSearch,nextWaiting};
 })();

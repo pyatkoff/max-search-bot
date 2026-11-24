@@ -9,7 +9,9 @@ self.addEventListener('activate',event=>{event.waitUntil(self.clients.claim());}
 // a browser installation's current intent; a worker must never revive an endpoint.
 function syncPushSubscription(){return Promise.resolve(false);}
 
-async function show(data){
+function windowClients(){return self.clients.matchAll({type:'window',includeUncontrolled:true});}
+
+async function show(data,getWindows=windowClients){
   const title=data.title||'AnyTour — новое сообщение';
   const options={
     body:data.body||'Клиент написал в диалог',
@@ -26,7 +28,7 @@ async function show(data){
     try{
       // A visible, explicitly enabled page may handle audio first. Its own feed
       // rechecks identity/access; the push payload never opens or reads a chat.
-      const clients=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+      const clients=await getWindows();
       await Promise.all(clients.filter(client=>client.visibilityState==='visible').slice(0,8).map(client=>new Promise(resolve=>{
         const channel=new MessageChannel();
         const timer=setTimeout(()=>{channel.port1.close();resolve();},1000);
@@ -54,10 +56,40 @@ self.addEventListener('message',event=>{
   event.waitUntil(Promise.allSettled([syncPushSubscription(),show(data)]));
 });
 
+async function signalVisibleConversation(data,getWindows){
+  if(data?.notificationKind!=='customer_message'||
+      ![data.conversationId,data.incomingMessageId,data.notificationManagerId].every(id=>Number.isSafeInteger(id)&&id>0))return;
+  const panel=new URL('../manager2/',self.location.href);
+  const windows=await getWindows();
+  const visible=windows.filter(client=>{
+    const url=new URL(client.url);
+    return client.visibilityState==='visible'&&url.origin===panel.origin&&
+      (url.pathname===panel.pathname||url.pathname===panel.pathname+'index.php');
+  });
+  await Promise.allSettled(visible.map(client=>new Promise(resolve=>{
+    const channel=new MessageChannel(),port=channel.port1;
+    const finish=()=>{clearTimeout(timer);port.close();resolve();};
+    const timer=setTimeout(finish,1000);
+    port.onmessage=reply=>{
+      try{
+        if(reply.data?.actor===data.notificationManagerId&&reply.data?.target===data.conversationId){
+          port.postMessage({incomingMessageId:data.incomingMessageId});
+        }else if(reply.data?.actor&&reply.data?.target){port.postMessage({});}
+      }finally{finish();}
+    };
+    // Every panel receives the same empty hint. Only the tab already showing
+    // the matching conversation can receive its message ID on this private port.
+    try{client.postMessage({type:'CHECK_VISIBLE_ARRIVAL'},[channel.port2]);}
+    catch(error){finish();}
+  })));
+}
+
 self.addEventListener('push',event=>{
   let data={};
   try{data=event.data?event.data.json():{};}catch(e){data={body:event.data?event.data.text():'Новое сообщение'};}
-  event.waitUntil(show(data));
+  let windows;
+  const getWindows=()=>windows||(windows=windowClients());
+  event.waitUntil(Promise.all([show(data,getWindows),signalVisibleConversation(data,getWindows).catch(()=>{})]));
 });
 
 self.addEventListener('notificationclick',event=>{

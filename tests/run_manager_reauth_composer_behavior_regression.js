@@ -466,6 +466,30 @@ for(const mode of ['detail-error','detail-throw','inbox-throw','render-throw'])t
   assert.doesNotMatch(h.ids.get('replyStatus').textContent,/не подтверждена|Не удалось отправить/);
   assert.equal(h.ids.get('replyText').value,'');assert.equal(h.calls.filter(r=>r.action==='send').length,1);
 });
+test('a delayed Inbox does not block the next reply or release a newer send',async()=>{
+  const h=createHarness();await h.start();await h.draft('First reply');
+  const started=deferred(),list=deferred(),sendingAgain=deferred(),secondResult=deferred();
+  let listReads=0;
+  h.window.WorkspaceV2Inbox.load=async()=>{
+    if(++listReads===1){started.resolve();await list.promise;}
+  };
+  h.setHook((url,r)=>{
+    if(r.action!=='send')return null;
+    if(r.text==='Second reply'){sendingAgain.resolve();return secondResult.promise;}
+    return response({ok:true});
+  });
+  const first=h.C.sendReply();await started.promise;await new Promise(setImmediate);
+  assert.equal(h.ids.get('replyStatus').textContent,'Отправлено');
+  assert.equal(h.ids.get('replyText').disabled,false,'the acknowledged send releases the editor before the list');
+  assert.equal(h.ids.get('sendReply').disabled,false);
+  await h.draft('Second reply');const second=h.C.sendReply();await sendingAgain.promise;
+  list.resolve();await first;
+  assert.equal(h.ids.get('replyText').disabled,true,'the older list cannot unlock the newer send');
+  assert.equal(h.ids.get('replyText').value,'Second reply');
+  await h.C.sendReply();assert.equal(h.calls.filter(r=>r.action==='send').length,2);
+  secondResult.resolve(response({ok:true}));await second;
+  assert.equal(h.ids.get('replyText').disabled,false);assert.equal(listReads,2);
+});
 test('confirmed readback clears an older uncertain warning without another send',async()=>{
   const h=createHarness();await h.start();await h.draft('Synthetic reply');
   h.setHook((url,r)=>r.action==='send'?response({ok:false,failure:{category:'unknown',message:'Old uncertainty'}},409):null);
