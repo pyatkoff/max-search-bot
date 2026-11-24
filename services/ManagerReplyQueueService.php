@@ -51,15 +51,23 @@ final class ManagerReplyQueueService
     {
         $alias=self::alias($alias);$message=self::cutoffSql($alias,false);$request=self::cutoffSql($alias,true);
         $suspended=ManagerDeliveryStateService::activeSuspensionSql($alias);$human=self::humanSql('ri');
-        $sql="($alias.status IN ('manager','waiting_manager') AND NOT ($suspended) AND (".self::legacyWaitingSql($alias).' OR '.self::requestSql($alias).">$request OR EXISTS(SELECT 1 FROM messages ri WHERE ri.conversation_id=$alias.id AND $human AND ri.id>$message)))";
+        // Only the newest genuine inbound can exceed the resolved message ID.
+        // Compare after its indexed lookup so older rows never repeat the cutoff calculation.
+        $latestHuman="(SELECT ri.id FROM messages ri WHERE ri.conversation_id=$alias.id AND $human ORDER BY ri.id DESC LIMIT 1)";
+        $sql="($alias.status IN ('manager','waiting_manager') AND NOT ($suspended) AND (".self::legacyWaitingSql($alias).' OR '.self::requestSql($alias).">$request OR COALESCE($latestHuman>$message,0)))";
         return $mysql?$sql:str_replace('JSON_UNQUOTE(','(',$sql);
     }
     public static function waitStartedSql(string $alias='c',bool $mysql=true): string
     {
+        return '(CASE WHEN '.self::neededSql($alias,$mysql).' THEN '.self::pendingWaitStartedSql($alias,$mysql).' ELSE NULL END)';
+    }
+    /** The caller has already established that this conversation needs a reply. */
+    public static function pendingWaitStartedSql(string $alias='c',bool $mysql=true): string
+    {
         $alias=self::alias($alias);$request=self::requestSql($alias);$resolved=self::cutoffSql($alias,true);$message=self::cutoffSql($alias,false);
         $requestClock=ConversationRecordClock::sql('s.payload_json',$mysql);$messageClock=ConversationRecordClock::sql('s.metadata_json',$mysql);$human=self::humanSql('s');
         // Before the first reply the manager's request starts the clock, not earlier bot collection.
-        $sql='(CASE WHEN '.self::neededSql($alias).' THEN CASE WHEN '.self::legacyWaitingSql($alias)." THEN NULL WHEN $request>$resolved THEN (SELECT $requestClock FROM conversation_events s WHERE s.id=$request AND s.conversation_id=$alias.id) ELSE (SELECT $messageClock FROM messages s WHERE s.conversation_id=$alias.id AND $human AND s.id>$message ORDER BY s.id LIMIT 1) END ELSE NULL END)";
+        $sql='(CASE WHEN '.self::legacyWaitingSql($alias)." THEN NULL WHEN $request>$resolved THEN (SELECT $requestClock FROM conversation_events s WHERE s.id=$request AND s.conversation_id=$alias.id) ELSE (SELECT $messageClock FROM messages s WHERE s.conversation_id=$alias.id AND $human AND s.id>$message ORDER BY s.id LIMIT 1) END)";
         return $mysql?$sql:str_replace('JSON_UNQUOTE(','(',$sql);
     }
     public static function decorate(array $rows,?int $now=null): array

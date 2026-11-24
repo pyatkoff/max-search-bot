@@ -105,4 +105,19 @@ rqCheck('unknown clock has its own deterministic position instead of a fake age'
 require_once dirname(__DIR__).'/services/ManagerQueueProjectionService.php';
 $counts=ManagerQueueProjectionService::counts(7,'anytour');rqResolve('ordered-resolve-00001',null,7,201);$after=ManagerQueueProjectionService::counts(7,'anytour');
 rqCheck('operational Waiting shrinks after resolution while all-assigned Mine and unread stay unchanged',$counts['waiting']['count']===3&&$after['waiting']['count']===2&&$counts['mine']['count']===3&&$after['mine']['count']===3&&$counts['notification_unread']===$after['notification_unread']&&$counts['mine']['unread']===$after['mine']['unread']);
+$pdo->exec("INSERT INTO conversations(id,customer_id,project_key,source_id,channel,status,manager_id) VALUES(204,1,'anytour',1,'telegram','manager',7)");
+rqCheck('a conversation without an actual incoming message has no pending customer reply',!rqView(7,204)['needed']);
+replyQueueMessage($pdo,40,204,'inbound','customer',$now-90);
+replyQueueMessage($pdo,41,204,'inbound','customer',$now-80);
+replyQueueMessage($pdo,42,204,'outbound','manager',$now-70,[ManagerReplyQueueService::SEND_BOUNDARY=>['version'=>1,'customer_message_id'=>40]]);
+replyQueueMessage($pdo,43,204,'inbound','customer',$now-60,['type'=>'callback']);
+rqCheck('latest genuine inbound above the recorded send boundary keeps its original wait',rqView(7,204)['waiting_since_unix']===$now-80);
+replyQueueMessage($pdo,44,204,'outbound','manager',$now-50,[ManagerReplyQueueService::SEND_BOUNDARY=>['version'=>1,'customer_message_id'=>41]]);
+replyQueueMessage($pdo,45,204,'inbound','customer',$now-40,['type'=>'bot_started']);
+rqCheck('newer callback or start cannot reopen an answered human message',!rqView(7,204)['needed']);
+$neededSql=ManagerReplyQueueService::neededSql('c',false);
+rqCheck('historical incoming rows cannot reevaluate the reply boundary inside the lookup',
+    str_contains($neededSql,'SELECT ri.id FROM messages ri')
+    &&str_contains($neededSql,'ORDER BY ri.id DESC LIMIT 1)>')
+    &&!str_contains($neededSql,'AND ri.id>'));
 echo 'TOTAL '.$passed.' | PASS '.$passed." | FAIL 0\n";
