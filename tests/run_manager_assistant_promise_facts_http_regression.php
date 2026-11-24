@@ -133,7 +133,8 @@ try{
         [$status,$r,$body]=aphRequest($address,$fixture,7,$request);
         $receipt=is_file($fixture['race_receipt'])?json_decode((string)file_get_contents($fixture['race_receipt']),true):null;
         aphCheck($action.' observes a real '.$mode.' session change during task read',is_array($receipt)&&$receipt===['mode'=>$mode,'before_actor'=>7,'changed'=>true]&&!is_file($fixture['race']),$receipt);
-        aphCheck($action.' final session fence removes stale '.$mode.' private facts',$status===401&&($r['error']??null)==='unauthorized'&&!isset($r['item'])&&!isset($r['items'])&&!str_contains($body,'promise_id')&&!str_contains($body,'Отправить согласованную'),$r);
+        [$expectedStatus,$expectedError]=$mode==='csrf'?[403,'csrf']:[401,'unauthorized'];
+        aphCheck($action.' final session fence removes stale '.$mode.' private facts',$status===$expectedStatus&&($r['error']??null)===$expectedError&&!isset($r['item'])&&!isset($r['items'])&&!str_contains($body,'promise_id')&&!str_contains($body,'Отправить согласованную'),$r);
     }
     aphSession($fixture['session_ids'][7],7);[$status,$r]=aphRequest($address,$fixture,7,$detail);
     aphCheck('unchanged valid session can read again without rebuilding or resubmitting anything',$status===200&&$r['viewer_id']===7&&$r['item']['promise_coverage']==='checked',$r);
