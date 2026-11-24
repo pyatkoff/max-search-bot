@@ -263,6 +263,15 @@ async function verifyPreviousRelease(context, token, fetchImpl) {
   const logReader = R.makeReadApi(token, fetchImpl);
   logReader.transientReads = false;
   api.jobLog = logReader.jobLog;
+  const unstarted = R.UNSTARTED_FORWARD_1692;
+  if (context.prNumber === unstarted.successor && context.baseSha === unstarted.sha) {
+    const proof = await R.proveUnstartedForward({api, pr: context.prNumber, head: context.headSha,
+      previousPr: unstarted.pr, phase: context.publisher ? 'after_handoff' : 'before_handoff'});
+    if (context.publisher && (proof.binding.comment_id !== context.publisher.comment_id ||
+      proof.binding.owner_id !== context.publisher.owner_id ||
+      proof.binding.updated_at !== context.publisher.updated_at)) refusal('forward_publisher_changed');
+    return;
+  }
   if (context.prNumber === 1667 && context.baseSha === '302ba66b5739e369a4df94471c8cfe9c054dd070') {
     const {provePartialInstall1662Forward} = require('./partial_install_1662_forward');
     const proof = await provePartialInstall1662Forward({
