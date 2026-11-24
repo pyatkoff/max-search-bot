@@ -156,4 +156,14 @@ $frozen = $work->query('SELECT delivery_state FROM anytour_umk_late_events WHERE
 checkUmk($frozen==='unknown' && count($posts($requests))===2,'uncertain outcome never reissued on later ticks');
 $worker->setDelivery($epoch,false);
 checkUmk($worker->tick()['status']==='COLLECT','pause preserves original activation cohort');
+// A long suffix of pre-activation inquiries and evaluated profiles costs one bounded page per tick.
+for ($id=23;$id<=102;$id++) profile($work,$id,11,$id+150,83000,0,$epoch);
+$work->exec('UPDATE anytour_umk_late_settings SET scan_after_source_id=22');
+checkUmk($worker->tick()['collection']==='IDLE' && (int)$worker->settings()['scan_after_source_id']===54,'scan stops after first 32 source rows');
+checkUmk($worker->tick()['collection']==='IDLE' && (int)$worker->settings()['scan_after_source_id']===86,'bounded progress on an ineligible suffix');
+$worker->tick();
+checkUmk((int)$worker->settings()['scan_after_source_id']===102,'last partial page observed');
+$worker->tick();
+checkUmk((int)$worker->settings()['scan_after_source_id']===(int)$worker->settings()['initial_source_id'],'idle scan wraps to its own prospective floor');
+checkUmk($worker->tick()['collection']==='EARLY_RESERVE_UNPROVED','unresolved earlier MAX entry is reconsidered');
 echo "UMK late value accounting and delivery PASS\n";

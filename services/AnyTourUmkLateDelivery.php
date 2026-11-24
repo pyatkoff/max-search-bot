@@ -51,18 +51,22 @@ final class AnyTourUmkLateDelivery
     {
         $floor = (int)$setting['initial_source_id'];
         $after = (int)$setting['scan_after_source_id'];
-        $row = $this->run("SELECT e.id FROM max2_common_value_events_v2 e
-            JOIN max2_common_value_accounts_v2 a ON a.id=e.account_id
-            LEFT JOIN anytour_umk_late_events u ON u.source_event_id=e.id
-            WHERE e.id>? AND e.counter_id=98615635 AND e.goal_id=687941321 AND e.target='anytour_modeled_value_v2_max2'
-                AND a.project_key='anytour' AND e.event_at_unix>? AND a.inquiry_recorded_at_unix>?
-                AND CAST(e.profile_id AS UNSIGNED)>? AND u.source_event_id IS NULL
-            ORDER BY e.id LIMIT 1", [max($floor,$after),$setting['activated_at_unix'],$setting['activated_at_unix'],$setting['initial_profile_id']])->fetchColumn();
-        // Advance after one row so an unresolved proof does not starve another inquiry.
-        // Wrap to the prospective floor so that an unresolved row remains discoverable.
-        $next = $row === false ? $floor : (int)$row;
+        // LIMIT precedes both joins. A mostly completed history must never require an
+        // unbounded search for the first gap when the cursor wraps to the activation floor.
+        $page = $this->run("SELECT e.id, CASE WHEN u.source_event_id IS NULL AND e.counter_id=98615635
+            AND e.goal_id=687941321 AND e.target='anytour_modeled_value_v2_max2' AND a.project_key='anytour'
+            AND e.event_at_unix>? AND a.inquiry_recorded_at_unix>? AND CAST(e.profile_id AS UNSIGNED)>?
+            THEN 1 ELSE 0 END AS eligible
+            FROM (SELECT id,account_id,counter_id,goal_id,target,event_at_unix,profile_id FROM max2_common_value_events_v2
+                WHERE id>? ORDER BY id LIMIT 32) e
+            LEFT JOIN max2_common_value_accounts_v2 a ON a.id=e.account_id
+            LEFT JOIN anytour_umk_late_events u ON u.source_event_id=e.id ORDER BY e.id",
+            [$setting['activated_at_unix'],$setting['activated_at_unix'],$setting['initial_profile_id'],max($floor,$after)])->fetchAll(PDO::FETCH_ASSOC);
+        $next = $floor;
         $status = 'IDLE';
-        if ($row !== false) {
+        foreach ($page as $row) {
+            $next = (int)$row['id'];
+            if ((int)$row['eligible'] !== 1) continue;
             $result = $this->ledger->reserve($next);
             if ($result['status'] === 'EARLY_RESERVE_UNPROVED') {
                 try {
@@ -73,6 +77,7 @@ final class AnyTourUmkLateDelivery
                 if (is_array($proof)) $result = $this->ledger->reserve($next, $proof);
             }
             $status = $result['status'];
+            break;
         }
         if ($after !== $next) {
             $this->run('UPDATE anytour_umk_late_settings SET scan_after_source_id=? WHERE id=1 AND activated_at_unix=? AND scan_after_source_id=?',
