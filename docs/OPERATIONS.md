@@ -407,12 +407,18 @@ ledger. The original request limit applies across the whole attempt.
 
 Once urgent candidates fill the batch, ordinary event archives cannot change
 the selection. The scan continues to check for higher-priority wire repairs
-and to count the frozen cohort. When urgent slots remain available, archive
-reads during candidate selection can still grow with the ledger. For a
-repeated deadline, compare the recorded phase and elapsed time with the actual
-5–20 second budget. Incremental selection would need to track updates to
-existing uploads, owner changes and changes in saved receipts and corrections.
-An insert-only high-water mark cannot certify a complete report.
+and to count the frozen cohort. With PDO SQLite, scheduled selection can cache
+the few archive fields it needs in the owner-only `selection-v1.sqlite` file.
+It reads every admitted ledger row and the current wire journal. An index hit
+must match the exact event fingerprint and source file version. The same owner
+invalidates affected keys before replacing any source receipt. Verification,
+calendar projections and individual status still use the original receipt files.
+The index builds incrementally as existing receipts are opened. Committed
+entries survive a deadline. An unreadable or absent index uses direct archive
+reads. If the receipt writer cannot invalidate an unreadable index, it removes
+the derived index before publication. The warm index still scans the admitted
+ledger. For a repeated deadline, compare the recorded phase and elapsed time
+with the actual 5–20 second budget.
 
 Only derived private evidence is written outside the webroot:
 `max-search-bot-modeled-visit-proof/{last-check.json,automatic.json,refresh.lock}`

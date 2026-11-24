@@ -382,6 +382,8 @@ final class ModeledConversionVisitProof
             }
         }
         self::directory(dirname(self::path()));
+        require_once __DIR__.'/ModeledConversionVisitArchiveIndex.php';
+        ModeledConversionVisitArchiveIndex::beforeArchiveSave($receipt['events']);
         // Keep per-row evidence after it rotates out of the bounded current report.
         foreach($receipt['events']as$e){
             $one=$receipt;unset($one['today_sent_cohort'],$one['yesterday_sent_cohort'],$one['followup_checkpoint_at'],$one['followup_sent_cohort']);$one['events']=[$e];$one['selected_rows']=1;
