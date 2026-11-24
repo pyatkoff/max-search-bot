@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "archive_run_id": "45373389110",
+  "archive_sha256": "c46ce092bfb91935ce829c871026a1136bf465920a3caa9184604f052c55798c",
+  "rows": [
+    {
+      "hotel_id": 241,
+      "source_id": 115,
+      "source_url": "https://max.ru/channel_anytour/AaGa3GMLV1E",
+      "target_url": "https://max.ru/anytour/AZ87_EUJEiI",
+      "target_mid": "mid.ffffc1752b045fed019f3bfc45091222",
+      "target_ms": 1783417816329,
+      "target_fingerprint": "a94406a316645dd6589b3d58f4835f5d8af5bec43a8fbc50b41986dfbdf75e99",
+      "name": "Pickalbatros Makadi Resort",
+      "source_mid": "mid.ffffb6caf0606fed01a19adc630b5751",
+      "caption_without_price": "✈️ Туры в Pickalbatros Makadi Resort\n📍 Макади-Бей, Египет.\n🏖 Свой пляж и лагуна с морской водой.\n🐠 К рифу ведёт понтон.\n💦 Аквапарки для взрослых и детей.\n🧸 Есть детский клуб и отдельные зоны для спокойного отдыха.\n✈️ Подберём подходящий номер и рассчитаем тур с перелётом на ваши даты."
+    },
+    {
+      "hotel_id": 15693,
+      "source_id": 1191,
+      "source_url": "https://max.ru/channel_anytour/AaHQDVICNd0",
+      "target_url": "https://max.ru/anytour/AZ-yESbCL_Q",
+      "target_mid": "mid.ffffc1752b045fed019fb21126c22ff4",
+      "target_ms": 1785398896322,
+      "target_fingerprint": "75586399750be5d29b6d56a18c9e0cca284e8ffab7f1df2d870f81f3c4bb1c6d",
+      "name": "The Makadi Spa",
+      "source_mid": "mid.ffffb6caf0606fed01a1d00d520235dd",
+      "caption_without_price": "✈️ Туры в The Makadi Spa\n📍 Макади-Бей, Египет.\nПляжный отель для отдыха вдвоём на Красном море. Принимает гостей от 18 лет.\n• Собственный пляж прямо у территории.\n• Панорамный бассейн с видом на море.\n• Просторные полулюксы и люксы.\n• Рестораны разных кухонь и фитнес-центр.\nПодогрев открытого бассейна сезонный. Некоторые блюда и напитки, обслуживание в номере и процедуры спа оплачиваются отдельно.\nУзнать стоимость тура"
+    },
+    {
+      "hotel_id": 293,
+      "source_id": 255,
+      "source_url": "https://max.ru/channel_anytour/AaGePD60KYU",
+      "target_url": "https://max.ru/anytour/AZ-3aA0tG-E",
+      "target_mid": "mid.ffffc1752b045fed019fb7680d2d1be1",
+      "target_ms": 1785488477485,
+      "target_fingerprint": "567d536515421dbd147944caf2972277b3520fad527b1064cace958de07f30cf",
+      "name": "Pickalbatros Laguna Vista",
+      "source_mid": "mid.ffffb6caf0606fed01a19e3c3eb42985",
+      "caption_without_price": "✈️ Туры в Pickalbatros Laguna Vista\n📍 Египет · Шарм эль Шейх\n• Песчаный пляж длиной 250 м.\n• Аквапарк с восемью взрослыми и шестью детскими горками.\n• Крытый бассейн и бассейн для серфинга.\nУзнать стоимость тура"
+    },
+    {
+      "hotel_id": 408,
+      "source_id": 324,
+      "source_url": "https://max.ru/channel_anytour/AaGhJ7JODvU",
+      "target_url": "https://max.ru/anytour/AZ_bVraKfqs",
+      "target_mid": "mid.ffffc1752b045fed019fdb56b68a7eab",
+      "target_ms": 1786091320970,
+      "target_fingerprint": "3f1e6b5b8691f70a6b761c13dc75f4a9c66cc6171c4220d7c2254e8e5f3db7a5",
+      "name": "Savoy Sharm El Sheikh",
+      "source_mid": "mid.ffffb6caf0606fed01a1a127b24e0ef5",
+      "caption_without_price": "✈️ Туры в Savoy Sharm El Sheikh\n📍 Египет · Шарм эль Шейх\n• Пляж White Knight с возможностями для снорклинга.\n• Три взрослых и два детских бассейна.\n• Детский клуб для ребят от 4 до 12 лет, игровая площадка и детская зона на пляже.\nУзнать стоимость тура"
+    },
+    {
+      "hotel_id": 949,
+      "source_id": 986,
+      "source_url": "https://max.ru/channel_anytour/AaG3oYrTVTI",
+      "target_url": "https://max.ru/anytour/AZ_1bEjVO3Q",
+      "target_mid": "mid.ffffc1752b045fed019ff56c48d53b74",
+      "target_ms": 1786528942293,
+      "target_fingerprint": "f86acef0e2a385894f5ccde99638cfc9cb2be94987998ac700e11db81346c4fc",
+      "name": "Adam & Eve",
+      "source_mid": "mid.ffffb6caf0606fed01a1b7a18ad35532",
+      "caption_without_price": "✈️ Туры в Adam & Eve\n📍 Белек, Турция.\nДля отдыха вдвоём с необычным дизайном и вечерними развлечениями. Отель принимает гостей от 16 лет.\n🏖 Собственный песчаный пляж.\n🏊 Бассейны и водные горки.\n🧖 Спа-центр.\n🎶 Живая музыка, вечеринки и дискотека.\nУзнать стоимость тура"
+    },
+    {
+      "hotel_id": 1260,
+      "source_id": 1230,
+      "source_url": "https://max.ru/channel_anytour/AaHQYt4dcmY",
+      "target_url": "https://max.ru/anytour/AaAQRP74HIo",
+      "target_mid": "mid.ffffc1752b045fed01a01044fef81c8a",
+      "target_ms": 1786979352312,
+      "target_fingerprint": "688ef29b5ab084beb1776e7e0a9fd3515eac594ccc71755bc6cd68f2579f97b3",
+      "name": "IC Hotels Santai Family Resort",
+      "source_mid": "mid.ffffb6caf0606fed01a1d062de1d7266",
+      "caption_without_price": "✈️ Туры в IC Hotels Santai Family Resort\n📍 Белек, Турция.\nСемейный курорт в Белеке с песчаным пляжем, водными развлечениями и детскими клубами.\n• Собственный песчаный пляж длиной 300 м.\n• Бассейны для активного и спокойного отдыха.\n• Детские бассейны и водные горки.\n• Крытый бассейн для плавания круглый год.\n• Игры и творческие занятия в детских клубах.\nОткрытые водные зоны работают с учётом сезона.\nУзнать стоимость тура"
+    },
+    {
+      "hotel_id": 24909,
+      "source_id": 478,
+      "source_url": "https://max.ru/channel_anytour/AaG1rsYqb1E",
+      "target_url": "https://max.ru/anytour/AZ_BkAiveNQ",
+      "target_mid": "mid.ffffc1752b045fed019fc19008af78d4",
+      "target_ms": 1785658869935,
+      "target_fingerprint": "69aee34cd7c9ddf4074c423a24669efd532fb662d1b0916661598c0dec933a5b",
+      "name": "Graceland Khao Lak Beach Resort",
+      "source_mid": "mid.ffffb6caf0606fed01a1b5aec62a6f51",
+      "caption_without_price": "✈️ Туры в GRACELAND KHAO LAK BEACH RESORT\n📍 Таиланд · Као Лак\n• Песчаный пляж у территории со взрослыми деревьями.\n• Два протяжённых бассейна у лагуны с зонами джакузи.\nУзнать стоимость тура"
+    }
+  ],
+  "archive_registry_sha256": "c65efd90090ab8669c0d7646d44d8927ea3658c39673696d2e147685f3ec7568"
+}
