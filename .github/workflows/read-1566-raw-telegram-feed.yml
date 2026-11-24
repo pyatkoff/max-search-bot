@@ -1,0 +1,43 @@
+name: Read public Telegram offer feed once
+on:
+  push:
+    branches: [audit/1566-raw-telegram-feed-20261124]
+    paths: ['.github/workflows/read-1566-raw-telegram-feed.yml']
+permissions: {}
+jobs:
+  read:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Read exact public XML bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/route-source"
+          cd "$RUNNER_TEMP/route-source"
+          curl --fail --silent --show-error --proto '=https' --max-time 35 --max-filesize 4000000 \
+            --header 'Cache-Control: no-cache' --header 'Accept-Encoding: identity' \
+            --output current.xml --write-out '%{response_code}' \
+            'https://app.anytoour.ru/feed/hotel-posts-telegram.xml' > status
+          test "$(cat status)" = 200
+          python3 - <<'PY'
+          import datetime, hashlib, json, pathlib, xml.etree.ElementTree as et
+          data = pathlib.Path('current.xml').read_bytes()
+          root = et.fromstring(data)
+          ids = [e.attrib['id'] for e in root.findall('./shop/offers/offer')]
+          assert root.tag == 'yml_catalog' and ids and len(ids) == len(set(ids))
+          receipt = dict(url='https://app.anytoour.ru/feed/hotel-posts-telegram.xml', http=200,
+                         checked_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                         bytes=len(data), sha256=hashlib.sha256(data).hexdigest(), offers=len(ids))
+          pathlib.Path('receipt.json').write_text(json.dumps(receipt, sort_keys=True) + '\n')
+          print(json.dumps(receipt, sort_keys=True))
+          PY
+      - name: Save the original body and its digest
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ranked-fresh-raw-telegram-feed
+          path: |
+            ${{ runner.temp }}/route-source/current.xml
+            ${{ runner.temp }}/route-source/receipt.json
+          retention-days: 1
+          if-no-files-found: error
