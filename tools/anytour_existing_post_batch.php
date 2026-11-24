@@ -1023,6 +1023,121 @@ function selectRankedContinuationRows(array $plan, string $digest): array
     return $plan;
 }
 
+const RANKED_UNREACHED_OPERATION = 'anytour_hotel_transfer_ranked_unreached_v1';
+
+/** The authenticated GitHub archive supplies the check, result and summary. Select its untouched suffix only. */
+function selectRankedUnreachedRows(array $scope, string $digest, array $parent): array
+{
+    $invalid = 'transfer_unreached_predecessor_invalid';
+    $check = $parent['check'] ?? [];
+    $receipt = $parent['receipt'] ?? [];
+    $summary = $parent['summary'] ?? [];
+    $operation = $receipt['operation'] ?? '';
+    requirePost($digest === RANKED_ORIGINAL_PLAN && ($scope['operation'] ?? '') === RANKED_CONTINUATION_OPERATION
+        && is_string($parent['parent_run_id'] ?? null) && preg_match('/\A[1-9][0-9]{0,19}\z/D', $parent['parent_run_id']) === 1
+        && is_string($parent['parent_application_sha'] ?? null) && preg_match('/\A[a-f0-9]{40}\z/D', $parent['parent_application_sha']) === 1
+        && is_string($parent['parent_artifact_sha256'] ?? null) && preg_match('/\A[a-f0-9]{64}\z/D', $parent['parent_artifact_sha256']) === 1
+        && ($receipt['native_run_id'] ?? null) === $parent['parent_run_id'] && ($receipt['application_sha'] ?? null) === $parent['parent_application_sha']
+        && ($receipt['schema'] ?? 0) === 1 && ($receipt['ok'] ?? null) === false && ($receipt['plan_sha256'] ?? '') === $digest
+        && ($receipt['bot_starts'] ?? null) === 0 && ($receipt['supplier_requests'] ?? null) === 0
+        && in_array($operation, [RANKED_RESUME_OPERATION, RANKED_UNREACHED_OPERATION], true)
+        && ($check['operation'] ?? null) === $operation && ($summary['operation'] ?? null) === $operation
+        && ($check['ok'] ?? false) === true && ($check['plan_sha256'] ?? '') === $digest && ($check['mode'] ?? '') === 'offline_plan_check'
+        && ($check['production_writes'] ?? null) === 0 && ($check['provider_writes'] ?? null) === 0
+        && ($summary['state'] ?? '') === 'partial_requires_readback'
+        && is_array($check['rows'] ?? null) && array_is_list($check['rows']) && $check['rows'] !== []
+        && is_array($receipt['results'] ?? null) && array_is_list($receipt['results']) && $receipt['results'] !== [], $invalid);
+    if ($operation === RANKED_UNREACHED_OPERATION) {
+        requirePost(is_string($receipt['parent_run_id'] ?? null) && preg_match('/\A[1-9][0-9]{0,19}\z/D', $receipt['parent_run_id']) === 1
+            && $receipt['parent_run_id'] !== $parent['parent_run_id'] && ($check['parent_run_id'] ?? null) === $receipt['parent_run_id'], $invalid);
+    }
+    $count = count($check['rows']);
+    $rows = array_slice($scope['rows'], -$count);
+    requirePost($count === count($rows) && ($operation !== RANKED_RESUME_OPERATION || $count === count($scope['rows'])), $invalid);
+    $hotels = array_column($rows, 'hotel_id');
+    requirePost(($summary['hotel_ids'] ?? []) === $hotels && ($summary['message_ids'] ?? []) === array_column($rows, 'target_message_id'), $invalid);
+    foreach ($rows as $index => $row) {
+        $checked = $check['rows'][$index];
+        requirePost(($checked['hotel_id'] ?? null) === $row['hotel_id'] && ($checked['target_url'] ?? '') === 'https://t.me/anytour/'.$row['target_message_id']
+            && ($checked['caption_sha256'] ?? '') === $row['next_caption_sha256'], $invalid);
+    }
+    $processed = $receipt['results'];
+    requirePost(count($processed) < $count, 'transfer_unreached_empty');
+    $confirmed = [];
+    $held = [];
+    $losses = [];
+    $attempts = 0;
+    foreach ($processed as $index => $result) {
+        $row = $rows[$index];
+        $state = $result['state'] ?? null;
+        $writes = $result['provider_write_attempts'] ?? null;
+        requirePost(($result['hotel_id'] ?? null) === $row['hotel_id'] && ($result['message_id'] ?? null) === $row['target_message_id']
+            && ($result['url'] ?? null) === 'https://t.me/anytour/'.$row['target_message_id']
+            && is_bool($result['ok'] ?? null) && in_array($writes, [0,1], true) && !isset($result['shared_access_error']), $invalid);
+        $attempts += $writes;
+        if ($result['ok']) {
+            requirePost($state === 'native_and_registry_verified' && $writes === 1 && ($result['hotel_id_verified'] ?? null) === true
+                && ($result['original_message_id_and_date_preserved'] ?? null) === true && ($result['photo_caption_button_verified'] ?? null) === true, $invalid);
+            $confirmed[] = $row['hotel_id'];
+            continue;
+        }
+        if ($state === 'response_saved_completion_requires_readback') {
+            requirePost($writes === 1 && ($result['reason'] ?? '') === 'hotel_transfer_response_unconfirmed'
+                && is_int($result['reserved_publication_id'] ?? null) && $result['reserved_publication_id'] > 0, $invalid);
+            $losses[] = $index;
+        } else {
+            requirePost(($state === 'provider_message_id_rejected' && $writes === 1) || ($state === 'held_before_provider' && $writes === 0
+                && in_array($result['reason'] ?? '', ['transfer_previous_run_journal_requires_readback','transfer_source_revision_advanced',
+                    'transfer_target_identity_exists','transfer_hotel_already_in_large_channel','transfer_ranked_source_offer_changed',
+                    'transfer_ranked_target_in_use','transfer_target_editor_busy','public_identity_changed'], true)), $invalid);
+        }
+        $savedHold = $summary['held'][count($held)] ?? null;
+        requirePost(is_array($savedHold), $invalid);
+        $expectedHold = array_intersect_key($result, array_flip(['hotel_id','message_id','state','reason','reserved_publication_id','provider_write_attempts',
+            'shared_access_rechecked','prior_journal_sha256','prior_terminal_state','prior_public_readback_verified','prior_readback_reason','local_prewrite_hold_recorded']));
+        ksort($savedHold);
+        ksort($expectedHold);
+        requirePost($savedHold === $expectedHold, $invalid);
+        $held[] = $row['hotel_id'];
+    }
+    requirePost($confirmed !== [] && ($summary['confirmed'] ?? null) === $confirmed && ($receipt['provider_write_attempts'] ?? null) === $attempts
+        && is_array($summary['held'] ?? null) && array_is_list($summary['held']) && count($summary['held']) === count($held)
+        && count($losses) === 2 && $losses[1] === array_key_last($processed)
+        && ($processed[$losses[0]]['shared_access_rechecked'] ?? null) === true && !isset($processed[$losses[1]]['shared_access_rechecked']), $invalid);
+    $unreached = array_slice($rows, count($processed));
+    requirePost(($summary['unreached'] ?? null) === array_column($unreached, 'hotel_id'), $invalid);
+    $scope['rows'] = $unreached;
+    $scope['operation'] = RANKED_UNREACHED_OPERATION;
+    return $scope;
+}
+
+/** Under the single publisher lock, bind both ambiguous outcomes to their authentic, immutable per-message journals. */
+function requireRankedUnreachedJournals(array $scope, array $parent, string $digest, string $operations = POST_OPS): void
+{
+    $byHotel = array_column($scope['rows'], null, 'hotel_id');
+    foreach ($parent['summary']['unreached'] as $hotel) {
+        $directory = $operations.'/anytour-issue1566-historical-tg-media-'.$byHotel[$hotel]['target_message_id'].'-v1';
+        requirePost(!file_exists($directory) && !is_link($directory), 'transfer_unreached_target_already_started');
+    }
+    foreach ($parent['receipt']['results'] as $result) {
+        if ($result['state'] !== 'response_saved_completion_requires_readback') continue;
+        $row = $byHotel[$result['hotel_id']];
+        $prior = transferCurrentRunJournal($operations.'/anytour-issue1566-historical-tg-media-'.$row['target_message_id'].'-v1',
+            $row, $digest, $parent['parent_run_id'], $parent['parent_application_sha']);
+        requirePost($prior['prior_terminal_state'] === $result['state'] && $prior['prior_publication_id'] === $result['reserved_publication_id'],
+            'transfer_unreached_journal_changed');
+    }
+}
+
+function rankedUnreachedEvidence(): array
+{
+    $bytes = stream_get_contents(STDIN, 1000001);
+    requirePost(is_string($bytes) && $bytes !== '' && strlen($bytes) <= 1000000, 'transfer_unreached_evidence_missing');
+    $evidence = json_decode($bytes, true, 64, JSON_THROW_ON_ERROR);
+    requirePost(is_array($evidence), 'transfer_unreached_evidence_missing');
+    return $evidence;
+}
+
 function requireRankedOriginalPrefix(array $plan, string $digest): void
 {
     foreach (array_slice($plan['rows'], 0, 3) as $index => $row) {
@@ -1050,8 +1165,10 @@ function requireRankedOriginalPrefix(array $plan, string $digest): void
 }
 
 /** Only the explicit CLI branch below calls this; tick() remains unchanged. */
-function applyTransferPlan(string $root, string $approvedDigest, string $applicationSha, string $nativeRunId, bool|string $next = false, bool $remaining = false, bool $rankedContinuation = false, bool $rankedResume = false, bool $prewriteResume = false): array
+function applyTransferPlan(string $root, string $approvedDigest, string $applicationSha, string $nativeRunId, bool|string $next = false, bool $remaining = false, bool $rankedContinuation = false, bool $rankedResume = false, bool $prewriteResume = false, ?array $unreachedParent = null): array
 {
+    requirePost($unreachedParent === null || ($rankedContinuation && !$rankedResume && !$prewriteResume && !$remaining
+        && ($unreachedParent['parent_run_id'] ?? null) !== $nativeRunId), 'transfer_unreached_scope_invalid');
     requirePost(!$prewriteResume || (!$rankedContinuation && !$remaining
         && $next==='c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab'
         && $nativeRunId!=='45349080956' && $applicationSha!=='8d723f1c08f094fd845c7c34da29607fc294ff46'),
@@ -1088,6 +1205,10 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
             $tail = selectRankedContinuationRows($plan, $approvedDigest);
             requireRankedOriginalPrefix($plan, $approvedDigest);
             $plan = $tail;
+            if ($unreachedParent !== null) {
+                $plan = selectRankedUnreachedRows($tail, $approvedDigest, $unreachedParent);
+                requireRankedUnreachedJournals($tail, $unreachedParent, $approvedDigest);
+            }
             if ($rankedResume) $plan['operation']=RANKED_RESUME_OPERATION;
         }
         // Scope only independently untouched rows; old accepted routes must never be rewound.
@@ -1121,6 +1242,7 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
                 continue;
             }
             if (file_exists($directory) || is_link($directory)) {
+                requirePost($unreachedParent === null, 'transfer_unreached_target_already_started');
                 requirePost($rankedContinuation, 'transfer_previous_operation_do_not_replay');
                 $prior = transferCurrentRunJournal($directory,$row,$approvedDigest,$nativeRunId,$applicationSha);
                 if ($prior['prior_terminal_state'] === 'response_saved_completion_requires_readback') {
@@ -1219,6 +1341,8 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
                 'runtime'=>$runtime,
                 'context'=>['native_run_id'=>$nativeRunId,'application_sha'=>$applicationSha,
                     'native_preflight'=>$plan['native_preflight']]
+                    + ($unreachedParent !== null ? ['unreached_after_native_run_id'=>$unreachedParent['parent_run_id'],
+                        'parent_artifact_sha256'=>$unreachedParent['parent_artifact_sha256']] : [])
                     + ($rankedResume ? ['resume_after_native_run_id'=>RANKED_RESUME_ORIGIN['native_run_id']] : [])
                     + ($prewriteResume ? ['closed_prewrite_origin_native_run_id'=>'45349080956'] : [])
                     + ($remaining ? ['continuation_of_native_run_id'=>ORIGINAL_NEXT_TRANSFER_RUN] : [])
@@ -1256,7 +1380,8 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
             'application_sha'=>$applicationSha,'plan_sha256'=>$approvedDigest,
             'ok'=>count($results) === count($plan['rows']) && !in_array(false, array_column($results, 'ok'), true),
             'provider_write_attempts'=>array_sum(array_column($results, 'provider_write_attempts')),
-            'supplier_requests'=>0,'bot_starts'=>0,'results'=>$results,'finished_at_utc'=>gmdate(DATE_ATOM)];
+            'supplier_requests'=>0,'bot_starts'=>0,'results'=>$results,'finished_at_utc'=>gmdate(DATE_ATOM)]
+            + ($unreachedParent !== null ? ['parent_run_id'=>$unreachedParent['parent_run_id']] : []);
     } finally {
         if ($pdo instanceof PDO) {
             foreach ($locks as $name) {
@@ -1273,8 +1398,9 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
     $exitCode = 2;
     $command = $argv[1] ?? '';
     $prewriteResume = $command==='--apply-closed-prewrite-resume';
+    $rankedUnreached = in_array($command, ['--check-ranked-unreached','--apply-ranked-unreached'], true);
     $rankedResume = in_array($command, ['--check-ranked-resume','--apply-ranked-resume'], true);
-    $rankedContinuation = $rankedResume || in_array($command, ['--check-ranked-continuation','--apply-ranked-continuation'], true);
+    $rankedContinuation = $rankedUnreached || $rankedResume || in_array($command, ['--check-ranked-continuation','--apply-ranked-continuation'], true);
     $remaining = in_array($command, ['--check-remaining-transfer-plan','--apply-remaining-transfer'], true);
     $next = $remaining || in_array($command, ['--check-next-transfer-plan','--apply-next-transfer'], true);
     try {
@@ -1284,21 +1410,23 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
             $next = $selected;
         }
         $root = dirname(__DIR__);
-        if (count($argv) === 3 && in_array($command, ['--check-transfer-plan','--check-next-transfer-plan','--check-ranked-transfer-plan','--check-remaining-transfer-plan','--check-ranked-continuation','--check-ranked-resume'], true)) {
+        $parent = $rankedUnreached ? rankedUnreachedEvidence() : null;
+        if (count($argv) === 3 && in_array($command, ['--check-transfer-plan','--check-next-transfer-plan','--check-ranked-transfer-plan','--check-remaining-transfer-plan','--check-ranked-continuation','--check-ranked-resume','--check-ranked-unreached'], true)) {
             $planFile = transferProfileFile($next);
             $raw = file_get_contents($root.'/'.$planFile, false, null, 0, 64001);
             requirePost(is_string($raw), 'transfer_plan_unavailable');
             $plan = transferPlanFromBytes($raw, $argv[2], $next);
             if ($remaining) $plan = selectRemainingTransferRows($plan);
             if ($rankedContinuation) $plan = selectRankedContinuationRows($plan, $argv[2]);
+            if ($rankedUnreached) $plan = selectRankedUnreachedRows($plan, $argv[2], $parent);
             if ($rankedResume) $plan['operation']=RANKED_RESUME_OPERATION;
             $result = ['ok'=>true,'operation'=>$plan['operation'],'mode'=>'offline_plan_check',
                 'production_writes'=>0,'provider_writes'=>0,'plan_sha256'=>hash('sha256',$raw),
                 'rows'=>array_map(static fn(array $row): array => ['hotel_id'=>$row['hotel_id'],
                     'target_url'=>'https://t.me/anytour/'.$row['target_message_id'],
-                    'caption_sha256'=>$row['next_caption_sha256']], $plan['rows'])];
-        } elseif (count($argv) === 5 && in_array($command, ['--apply-transfer','--apply-next-transfer','--apply-ranked-transfer','--apply-remaining-transfer','--apply-ranked-continuation','--apply-ranked-resume','--apply-closed-prewrite-resume'], true)) {
-            $result = applyTransferPlan($root, $argv[2], $argv[3], $argv[4], $next, $remaining, $rankedContinuation, $rankedResume, $prewriteResume);
+                    'caption_sha256'=>$row['next_caption_sha256']], $plan['rows'])] + ($rankedUnreached ? ['parent_run_id'=>$parent['parent_run_id']] : []);
+        } elseif (count($argv) === 5 && in_array($command, ['--apply-transfer','--apply-next-transfer','--apply-ranked-transfer','--apply-remaining-transfer','--apply-ranked-continuation','--apply-ranked-resume','--apply-closed-prewrite-resume','--apply-ranked-unreached'], true)) {
+            $result = applyTransferPlan($root, $argv[2], $argv[3], $argv[4], $next, $remaining, $rankedContinuation, $rankedResume, $prewriteResume, $parent);
         } else {
             throw new RuntimeException('transfer_explicit_command_required');
         }
@@ -1306,8 +1434,8 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
     } catch (Throwable $error) {
         // A global failure may occur after a row was confirmed. Do not infer zero
         // writes from this summary; each original per-target journal is retained.
-        $result = ['ok'=>false,'operation'=>$rankedResume ? RANKED_RESUME_OPERATION : ($rankedContinuation ? RANKED_CONTINUATION_OPERATION
-            : ($remaining ? REMAINING_TRANSFER_OPERATION : transferProfileOperation($next))),'state'=>'requires_readback',
+        $result = ['ok'=>false,'operation'=>$rankedUnreached ? RANKED_UNREACHED_OPERATION : ($rankedResume ? RANKED_RESUME_OPERATION : ($rankedContinuation ? RANKED_CONTINUATION_OPERATION
+            : ($remaining ? REMAINING_TRANSFER_OPERATION : transferProfileOperation($next)))),'state'=>'requires_readback',
             'reason'=>transferReason($error)];
     }
     echo json_encode($result, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), PHP_EOL;

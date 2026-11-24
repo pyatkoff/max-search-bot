@@ -83,6 +83,11 @@ const HOTEL_RANKED_CONTINUATION = Object.freeze({...HOTEL_RANKED_46,
   branch:'ops/anytour-hotel-ranked-37-continue-20261123',operation:'hotel_ranked_37_continuation'});
 const HOTEL_RANKED_RESUME = Object.freeze({...HOTEL_RANKED_46,
   branch:'ops/anytour-hotel-ranked-resume-20261124',operation:'hotel_ranked_resume'});
+const RANKED_AFTER_BRANCH = /^ops\/anytour-hotel-ranked-after-([1-9][0-9]{0,15})$/;
+const RANKED_RESUME_SEED = Object.freeze({
+  run:45372056681, job:138368539666, sha:'e3e1a9bdf29dd0d7530fe6b3b393f1286834d092',
+  artifact:14909137840, digest:'sha256:3f0e0462ddd4fd0ab0e186de8e2b17f4f92752cd5700525f54e9cf9f0dd3034c'});
+const RANKED_CHUNK_DIGEST = '12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce';
 const ORIGINAL_RANKED_CONTINUATION = Object.freeze({
   run:45321557294,job:138201073452,sha:'fdcbf29f831b68005295dfa398ecb5878d94e6c7',
   artifact:14887229025,digest:'sha256:14741cf575a1999287fbd8c2b73ceb9a8c2146edeb3ad8a345d173bf8bd34b81'});
@@ -1824,6 +1829,79 @@ async function proveRankedResumeOriginal(api) {
   requireValue(artifact.expired===false&&artifact.size_in_bytes===4063,'ranked_resume_artifact_unavailable');
 }
 
+/** Follow the native runs back to the authorized first resume. Each parent has
+ * exactly one canonical branch per predecessor. No target IDs come from the ref. */
+async function rankedParentEvidence(api, parentId, current) {
+  const profile = HOTEL_RANKED_RESUME;
+  const seed = RANKED_RESUME_SEED;
+  let id = parentId, childId = current.id, descendant = current.sha, evidence;
+  for (let depth = 0; depth < 37; depth++) {
+    requireValue(positive(id) && Number(id) < Number(childId), 'ranked_parent_chain_invalid');
+    const path = API_ROOT + '/actions/runs/' + id;
+    const source = await api('GET', path);
+    const first = Number(id) === seed.run;
+    const previous = RANKED_AFTER_BRANCH.exec(source?.head_branch);
+    requireValue(first || previous !== null, 'ranked_parent_branch_invalid');
+    runIdentity(source, {id, attempt:1, head:first ? seed.sha : source.head_sha, workflow:profile.workflow,
+      event:'push', branch:first ? profile.branch : source.head_branch, conclusion:'failure'});
+    requireValue(sha(source.head_sha) && source.repository?.id === profile.repository_id
+      && source.head_repository?.id === profile.repository_id && source.actor?.id === profile.owner_id
+      && source.triggering_actor?.id === profile.owner_id, 'ranked_parent_source_untrusted');
+    await requireAncestry(api, source.head_sha, descendant);
+    const historyPath = API_ROOT + '/actions/workflows/' + profile.workflow.slice(PREFIX.length)
+      + '/runs?branch=' + encodeURIComponent(source.head_branch) + '&per_page=100';
+    const [history, jobs] = await Promise.all([api('GET', historyPath), api('GET', path + '/attempts/1/jobs?per_page=100')]);
+    const original = boundedList(history, 'workflow_runs', 'ranked_parent_recreated');
+    const transfers = boundedList(jobs, 'jobs', 'ranked_parent_job_invalid');
+    const job = transfers[0];
+    requireValue(original.length === 1 && String(original[0].id) === String(id), 'ranked_parent_recreated');
+    requireValue(transfers.length === 1 && positive(job.id) && (!first || job.id === seed.job)
+      && job.run_id === Number(id) && job.run_attempt === 1 && job.name === profile.job
+      && job.head_sha === source.head_sha && job.status === 'completed' && job.conclusion === 'failure'
+      && Array.isArray(job.steps), 'ranked_parent_job_invalid');
+    for (const [name, outcome] of [
+      ['Resolve accepted repository and application', 'success'],
+      ['Require exact APPLY admission before loading credentials', 'success'],
+      ['Apply the installed editor once and retain its original receipts', 'failure'],
+      ['Save the original sanitized transfer result', 'success']
+    ]) {
+      const steps = job.steps.filter(step => step.name === name);
+      requireValue(steps.length === 1 && steps[0].status === 'completed' && steps[0].conclusion === outcome,
+        'ranked_parent_steps_invalid');
+    }
+    if (depth === 0) {
+      const all = boundedList(await api('GET', path + '/artifacts?per_page=100'), 'artifacts', 'ranked_parent_artifacts_invalid');
+      const artifact = all[0];
+      requireValue(all.length === 1 && positive(artifact.id) && artifact.expired === false
+        && artifact.name === 'issue-1566-hotel-ranked-46-transfer'
+        && artifact.workflow_run?.id === Number(id) && artifact.workflow_run.head_sha === source.head_sha
+        && artifact.workflow_run.repository_id === profile.repository_id && artifact.workflow_run.head_branch === source.head_branch
+        && Number.isSafeInteger(artifact.size_in_bytes) && artifact.size_in_bytes > 0 && artifact.size_in_bytes <= MAX_ARCHIVE
+        && /^sha256:[0-9a-f]{64}$/.test(artifact.digest)
+        && (!first || (artifact.id === seed.artifact && artifact.digest === seed.digest)), 'ranked_parent_artifact_invalid');
+      const bytes = await api.artifact(artifact);
+      const digest = artifact.digest.slice(7);
+      requireValue(Buffer.isBuffer(bytes) && bytes.length === artifact.size_in_bytes
+        && crypto.createHash('sha256').update(bytes).digest('hex') === digest, 'artifact_digest_mismatch');
+      const chunk = RANKED_CHUNK_DIGEST;
+      const receipt = archiveJson(bytes, 'result-' + chunk + '.json');
+      const summary = archiveJson(bytes, 'summary.json')[chunk];
+      const check = archiveJson(bytes, 'check-' + chunk + '.json');
+      requireValue(receipt.native_run_id === String(id) && receipt.application_sha === source.head_sha
+        && receipt.plan_sha256 === chunk && check.plan_sha256 === chunk && summary?.state === 'partial_requires_readback'
+        && (first || (receipt.parent_run_id === previous[1] && check.parent_run_id === previous[1])),
+        'ranked_parent_receipt_invalid');
+      evidence = {parent_run_id:String(id), parent_application_sha:source.head_sha, parent_artifact_sha256:digest,
+        receipt, summary, check};
+    }
+    if (first) return evidence;
+    childId = id;
+    id = previous[1];
+    descendant = source.head_sha;
+  }
+  throw new Refusal('ranked_parent_chain_invalid');
+}
+
 /** A proved zero-write predecessor is distinct from every reserved/UNKNOWN row. */
 async function proveClosedPrewriteOriginal(api) {
   const p={run:45349080956,job:138290722061,sha:'8d723f1c08f094fd845c7c34da29607fc294ff46',artifact:14898229789,
@@ -1940,12 +2018,14 @@ async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
   }
   const location=await readRecord(api),result=await resolveCurrent(api,c,location);
   requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
-  if(p===HOTEL_RANKED_RESUME||p===HOTEL_PREWRITE_RESUME)requireValue(result.application_sha===c.sha,'hotel_resume_editor_not_installed');
+  if(p===HOTEL_RANKED_RESUME||p===HOTEL_PREWRITE_RESUME||p.parent_run_id)requireValue(result.application_sha===c.sha,'hotel_resume_editor_not_installed');
   if(p===HOTEL_MAX_SUGAR_TRANSFER||p===HOTEL_MAX_SUGAR_PUBLIC_RECOVERY){
     requireValue(result.application_sha===c.sha,'max_transfer_editor_not_installed');
   }
+  const parent = p.parent_run_id ? await rankedParentEvidence(api, p.parent_run_id, c) : null;
   requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_transfer_branch_changed');
-  return {...await finalResolution(api,c,location,result),write_operation:p.operation};
+  return {...await finalResolution(api,c,location,result),write_operation:p.operation,
+    ...(parent ? {parent_evidence:JSON.stringify(parent)} : {})};
 }
 async function resolveRankedHotelTransfer(inputs,p=HOTEL_RANKED_46) {
   const run = await inputs.api('GET', API_ROOT+'/actions/runs/'+p.native_run);
@@ -1981,6 +2061,10 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_RANKED_46.branch)return resolveRankedHotelTransfer({env,event,api});
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_RANKED_CONTINUATION.branch)return resolveRankedHotelTransfer({env,event,api},HOTEL_RANKED_CONTINUATION);
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_RANKED_RESUME.branch)return resolveRankedHotelTransfer({env,event,api},HOTEL_RANKED_RESUME);
+  const rankedBranch = (env.GITHUB_REF || '').replace(/^refs\/heads\//, '');
+  const rankedAfter = RANKED_AFTER_BRANCH.exec(rankedBranch);
+  if (rankedAfter) return resolveRankedHotelTransfer({env,event,api},
+    {...HOTEL_RANKED_46, branch:rankedBranch, operation:'hotel_ranked_unreached', parent_run_id:rankedAfter[1]});
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_REMAINING_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_REMAINING_TRANSFER);
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_STELLA_ALTERNATE.branch)return resolveHotelTransfer({env,event,api},HOTEL_STELLA_ALTERNATE);
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_PREWRITE_RESUME.branch)return resolveHotelTransfer({env,event,api},HOTEL_PREWRITE_RESUME);
@@ -2117,7 +2201,7 @@ function argumentsOf(argv,commands) {
 }
 function outputs(value){for(const [key,v]of Object.entries(value)){
   requireValue(/^[a-z_]+$/.test(key)&&!/[\r\n]/.test(String(v)),'invalid_output');process.stdout.write(key+'='+String(v)+'\n');}}
-module.exports={proveClosedPrewriteOriginal,proveRankedResumeOriginal,proveOriginalNextTransfer,PUBLISHER_BODY_RECOVERY,publisherBodyRecovery,publisherBodySource,failedPublisherBodyTerminal,
+module.exports={rankedParentEvidence,proveClosedPrewriteOriginal,proveRankedResumeOriginal,proveOriginalNextTransfer,PUBLISHER_BODY_RECOVERY,publisherBodyRecovery,publisherBodySource,failedPublisherBodyTerminal,
   UNSTARTED_FORWARD,forwardMarker,proveUnstartedDeployment,proveUnstartedForward,admitForwardInstallation,REPOSITORY,API_ROOT,PREFIX,DEPLOY,CLOSER,HOST,RECORD_PATH,PUBLICATION_FILE,PUBLICATION_PROTOCOL,
   TERMINAL_RECOVERY,GATE_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY,PRIOR_WAVE_RECOVERY,
   priorWaveRecovery,failedPriorWaveTerminal,terminalRecovery,gateRecovery,

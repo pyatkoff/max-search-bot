@@ -113,6 +113,25 @@ function runCases(): void
         $resume = verifiedCandidates($plan, $resumeCheck, $resumeReceipt, $resumeSummary, $resumeContext);
         verify('resume excludes prior verified writes from fresh readback', $resume === $candidates);
     }
+    $operation = \AnyTour\ExistingPostBatch\RANKED_UNREACHED_OPERATION;
+    $tail = array_slice($rankedRows, -2);
+    $tailCheck = array_replace($check, ['operation'=>$operation, 'parent_run_id'=>'12344', 'rows'=>array_slice($check['rows'], -2)]);
+    $tailNative = array_replace($receipt['results'][0], ['hotel_id'=>$tail[0]['hotel_id'],
+        'message_id'=>$tail[0]['target_message_id'], 'url'=>$tailCheck['rows'][0]['target_url']]);
+    $tailResult = array_replace($receipt, ['operation'=>$operation, 'parent_run_id'=>'12344',
+        'results'=>[$tailNative], 'provider_write_attempts'=>1]);
+    $tailSummary = array_replace($summary, ['operation'=>$operation, 'hotel_ids'=>array_column($tail, 'hotel_id'),
+        'message_ids'=>array_column($tail, 'target_message_id'), 'unreached'=>[$tail[1]['hotel_id']],
+        'confirmed'=>[$tail[0]['hotel_id']], 'held'=>[]]);
+    $tailContext = array_replace($context, ['write_operation'=>'hotel_ranked_unreached', 'parent_run_id'=>'12344']);
+    verify('success from the authenticated untouched suffix can be publicly verified',
+        verifiedCandidates($plan, $tailCheck, $tailResult, $tailSummary, $tailContext) === [[$tail[0], $tailNative]]);
+    verify('a different parent cannot supply the public report', rejectsInvalidReceipt(
+        fn() => verifiedCandidates($plan, $tailCheck, $tailResult, $tailSummary, array_replace($tailContext, ['parent_run_id'=>'54321']))));
+    $swapped = $tailSummary;
+    $swapped['message_ids'][1] = $rankedRows[0]['target_message_id'];
+    verify('an unvisited row with a wrong message ID invalidates suffix provenance', rejectsInvalidReceipt(
+        fn() => verifiedCandidates($plan, $tailCheck, $tailResult, $swapped, $tailContext)));
     $wrongPost = $receipt;
     $wrongPost['results'][0]['url'] = 'https://t.me/other/316';
     verify('wrong post address rejected', rejectsInvalidReceipt(fn() => $select($wrongPost, $summary, $context)));

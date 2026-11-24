@@ -7,6 +7,7 @@ on:
       - ops/anytour-hotel-ranked-46-apply-20261123
       - ops/anytour-hotel-ranked-37-continue-20261123
       - ops/anytour-hotel-ranked-resume-20261124
+      - 'ops/anytour-hotel-ranked-after-*'
 permissions:
   contents: read
   actions: read
@@ -49,6 +50,12 @@ jobs:
             ops/anytour-hotel-ranked-46-apply-20261123) operation=hotel_ranked_46_transfer ;;
             ops/anytour-hotel-ranked-37-continue-20261123) operation=hotel_ranked_37_continuation ;;
             ops/anytour-hotel-ranked-resume-20261124) operation=hotel_ranked_resume ;;
+            ops/anytour-hotel-ranked-after-*)
+              parent=${NATIVE_BRANCH#ops/anytour-hotel-ranked-after-}
+              [[ "$parent" =~ ^[1-9][0-9]{0,15}$ && "$parent" != "$NATIVE_RUN_ID" ]]
+              printf 'NATIVE_PARENT_RUN_ID=%s\n' "$parent" >> "$GITHUB_ENV"
+              operation=hotel_ranked_unreached
+              ;;
             *) exit 2 ;;
           esac
           gh api "$run/attempts/1/jobs?per_page=100" > "$RUNNER_TEMP/native-jobs.json"

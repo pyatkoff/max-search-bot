@@ -4,8 +4,8 @@ declare(strict_types=1);
 namespace AnyTour\RankedPublicReadback;
 
 use Throwable;
-use function AnyTour\ExistingPostBatch\{requirePost, parseTransferPublic, transferPlanFromBytes, transferReason};
-use const AnyTour\ExistingPostBatch\{RANKED_CONTINUATION_OPERATION, RANKED_RESUME_OPERATION};
+use function AnyTour\ExistingPostBatch\{requirePost, parseTransferPublic, selectRankedContinuationRows, transferPlanFromBytes, transferReason};
+use const AnyTour\ExistingPostBatch\{RANKED_CONTINUATION_OPERATION, RANKED_RESUME_OPERATION, RANKED_UNREACHED_OPERATION};
 
 require_once __DIR__.'/anytour_existing_post_batch.php';
 
@@ -39,6 +39,7 @@ function verifiedCandidates(array $plan, array $check, array $result, array $sum
         'hotel_ranked_46_transfer' => $plan['operation'],
         'hotel_ranked_37_continuation' => RANKED_CONTINUATION_OPERATION,
         'hotel_ranked_resume' => RANKED_RESUME_OPERATION,
+        'hotel_ranked_unreached' => RANKED_UNREACHED_OPERATION,
         default => throw new \RuntimeException('unknown_write_operation'),
     };
     requirePost($check['operation'] === $operation && $result['operation'] === $operation && $summary['operation'] === $operation
@@ -59,6 +60,20 @@ function verifiedCandidates(array $plan, array $check, array $result, array $sum
         && $summary['unreached'] === array_slice($hotelIds, count($native))
         && $result['provider_write_attempts'] === array_sum(array_column($native, 'provider_write_attempts')),
         'native_receipt_rows_invalid');
+    if ($context['write_operation'] === 'hotel_ranked_unreached') {
+        $parent = $context['parent_run_id'] ?? null;
+        requirePost(is_string($parent) && preg_match('/\A[1-9][0-9]{0,15}\z/D', $parent) === 1
+            && $parent !== $context['run_id'] && ($check['parent_run_id'] ?? null) === $parent
+            && ($result['parent_run_id'] ?? null) === $parent && $hotelIds !== [], 'native_parent_run_mismatch');
+        $scope = selectRankedContinuationRows($plan, $digest)['rows'];
+        $suffix = array_slice($scope, -count($hotelIds));
+        requirePost(count($suffix) < count($scope) && array_column($suffix, 'hotel_id') === $hotelIds
+            && array_column($suffix, 'target_message_id') === $summary['message_ids'], 'native_unreached_scope_invalid');
+        foreach ($suffix as $i => $expected) {
+            requirePost(($check['rows'][$i]['target_url'] ?? null) === 'https://t.me/anytour/'.$expected['target_message_id']
+                && ($check['rows'][$i]['caption_sha256'] ?? null) === $expected['next_caption_sha256'], 'native_target_mismatch');
+        }
+    }
     $candidates = []; $held = [];
     foreach ($native as $i => $row) {
         $id = $row['hotel_id'];
@@ -122,6 +137,9 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
     $summary = $load($folder.'summary.json');
     $context = ['run_id'=>getenv('NATIVE_RUN_ID'), 'repository_sha'=>getenv('NATIVE_REPOSITORY_SHA'),
         'artifact_id'=>getenv('RECEIPT_ID'), 'artifact_sha256'=>getenv('RECEIPT_SHA256'), 'write_operation'=>getenv('WRITE_OPERATION')];
+    if ($context['write_operation'] === 'hotel_ranked_unreached') {
+        $context['parent_run_id'] = getenv('NATIVE_PARENT_RUN_ID');
+    }
     requirePost(preg_match('/\A[1-9][0-9]{0,19}\z/D', $context['run_id']) === 1
         && preg_match('/\A[a-f0-9]{40}\z/D', $context['repository_sha']) === 1
         && preg_match('/\A[1-9][0-9]{0,19}\z/D', $context['artifact_id']) === 1

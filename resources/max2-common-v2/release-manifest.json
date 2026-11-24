@@ -51,10 +51,10 @@
     "tests/max2_common_v2/worker/tests/support.php": "19c82e0f357fa67b362660497c6eedfeb3cf765a02901d458d0e3afa0a759f3e",
     "tests/max2_common_v2/worker/tests/worker.php": "6cf9476d2ed0ff5b969e7bda32ffc6803bcbc8ca48bbccd33925c305cbbd5e62",
     "tests/required_checks_manifest.php": "2eacaa991c18a41b64e3b13935066c92a43bdb2162a10334695007e2d1bd35c9",
-    "tests/run_deployment_release_regression.js": "f68d4ecd45677b7139b90ae89be21fe800a22c5034e2b2be78beb96b70b3553f",
+    "tests/run_deployment_release_regression.js": "3e2260ac36d4afde9dd8a2341813389c1fd0939aee1ea65b7777fecab13e9246",
     "tests/run_max2_common_value_state_operation_v2_regression.py": "f0354cc8c2df7961a0c3218359162a8b87453d7b3490a81ae7d220de95f4dc3e",
     "tests/run_max2_common_value_v2_regression.php": "d241826042456df3b036b7cb20f58b3a8856139a86fc144ca69c04800787c35d",
-    "tools/deployment_release.js": "b179df1f2313b08ea4d2e82c5f52d6be8353dd1bc64a9e322bdee4356a7fb7cc",
+    "tools/deployment_release.js": "392832fd9f2e3ed4f817e5ddc9f395efbce5d54d21a5739b055764b630e3c5d5",
     "tools/max2_common_value_state_operation_v2.py": "51b05208e5e8902d8721e3f8674adc49beafd8841dfae7ab1cef706869c448fe",
     "tools/max2_common_value_state_v2.php": "c9fa5aef544d77a8c31e704d20dd5019c7bf0ddeb6ddbe639e0665dc27efa5ce",
     "webhook.php": "030073f0162f69f3956d92e860ad0dffd60ca257fa7775c3db842a70b704dd50"
