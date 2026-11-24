@@ -70,8 +70,9 @@ final class Max2ValueLookupClientV2
         $receipt = $p::validateResult($reply['body'], $body, $received);
         $responseHash = hash('sha256', $reply['body']);
         $result = ['receipt' => $receipt, 'source_receipt_sha256' => $responseHash, 'received_at_unix' => $received];
-        if (($receipt['status'] ?? null) === 'match' && is_string($umkHeader) && strlen($umkHeader) === 134
-            && preg_match('/\A(1799|2636):([0-9a-f]{64}):([0-9a-f]{64})\z/D', $umkHeader, $match)
+        if (($receipt['status'] ?? null) === 'match' && is_string($umkHeader) && strlen($umkHeader) <= 138
+            && preg_match('/\A(0|[1-9][0-9]{0,7}):([0-9a-f]{64}):([0-9a-f]{64})\z/D', $umkHeader, $match)
+            && (int)$match[1] <= min(10000000, (int)$receipt['candidates'][0]['common_kopeks'])
             && hash_equals($requestHash, $match[2]) && hash_equals($responseHash, $match[3])) {
             $result['umk_point_proof'] = [
                 'amount_kopeks' => (int)$match[1],

@@ -262,7 +262,7 @@ $tests['optional_umk_bound_point_header_and_old_sidecar_compatibility'] = static
     $key=openssl_pkey_new(['private_key_type'=>OPENSSL_KEYTYPE_RSA,'private_key_bits'=>2048]);
     openssl_pkey_export($key,$private);
     $public=openssl_pkey_get_details($key)['key'];
-    foreach (['valid','old','foreign','bad_amount'] as $mode) {
+    foreach (['baseline','reduced','over_prior','zero','blank','old','foreign','bad_amount'] as $mode) {
         $calls=0;
         $transport=static function(array $request) use ($p,$public,$mode,&$calls): array {
             $calls++;
@@ -274,7 +274,10 @@ $tests['optional_umk_bound_point_header_and_old_sidecar_compatibility'] = static
             } else {
                 demand(openssl_verify("anytour-max2-umk-point-reserve-v1\n".$request['body'],
                     base64_decode($request['umk_signature'],true),$public,OPENSSL_ALGO_SHA256)===1,'distinct point signature');
-                if ($mode!=='old') $reply['umk_reserve']=($mode==='bad_amount'?'01799':'2636').':'
+                $amount = match ($mode) {
+                    'bad_amount' => '01799', 'reduced' => '500', 'over_prior' => '2637', 'zero' => '0', 'blank' => '', default => '2636'
+                };
+                if ($mode!=='old') $reply['umk_reserve']=$amount.':'
                     .hash('sha256',$mode==='foreign'?'other':$request['body']).':'.hash('sha256',$raw);
             }
             return $reply;
@@ -283,7 +286,12 @@ $tests['optional_umk_bound_point_header_and_old_sidecar_compatibility'] = static
         $list=$client->lookup('12345',context(),static fn()=>true);
         $point=$client->recheck($list,'1001',static fn()=>true);
         demand($calls===2 && $point['receipt']['status']==='match','legacy financial proof remains usable');
-        demand($mode==='valid' ? ($point['umk_point_proof']['amount_kopeks']??0)===2636 : !isset($point['umk_point_proof']));
+        $expectedAmounts = ['baseline'=>2636,'reduced'=>500,'zero'=>0];
+        if (array_key_exists($mode, $expectedAmounts)) {
+            demand(($point['umk_point_proof']['amount_kopeks'] ?? null) === $expectedAmounts[$mode]);
+        } else {
+            demand(!isset($point['umk_point_proof']));
+        }
     }
 };
 $tests['client_transport_failure_never_means_zero'] = static function(): void {

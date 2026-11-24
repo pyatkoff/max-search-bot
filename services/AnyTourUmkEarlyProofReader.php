@@ -21,7 +21,8 @@ final class AnyTourUmkEarlyProofReader
         if (($projection['status'] ?? null) !== 'READY' || ($binding['status'] ?? null) !== 'UNIQUE_OBSERVED_MAX2'
             || $db->inTransaction() || !is_array($point) || !is_int($point['issued_at_unix'] ?? null)
             || $point['issued_at_unix'] <= $epoch || $point['issued_at_unix'] > ($binding['inquiry_recorded_at_unix'] ?? 0)
-            || !in_array($point['amount_kopeks'] ?? null, [1799,2636], true)
+            || !is_int($point['amount_kopeks'] ?? null) || !is_int($binding['initial_common_kopeks'] ?? null)
+            || $point['amount_kopeks'] < 0 || $point['amount_kopeks'] > min(10000000, $binding['initial_common_kopeks'])
             || !Max2ValueLookupProtocolV2::hash($point['source_sha256'] ?? null)
             || !Max2ValueLookupProtocolV2::hash($binding['inquiry_key'] ?? null)
             || !Max2ValueLookupProtocolV2::hash($binding['immutable_tuple_sha256'] ?? null)
@@ -34,7 +35,12 @@ final class AnyTourUmkEarlyProofReader
                 $point['issued_at_unix'],$point['amount_kopeks'],$point['source_sha256'],$epoch,$epoch]);
         } catch (PDOException $error) {
             if ((string)$error->getCode() !== '23000') throw $error;
-            // A repeated observation of the same immutable amount needs no second row.
+            // Distinct rechecks have different receipt hashes. Confirm the same persisted facts.
+            $existing = $db->prepare('SELECT source_sha256 FROM anytour_umk_point_proofs
+                WHERE inquiry_key=? AND tracker_record_id=? AND tuple_sha256=? AND activated_at_unix=? AND issued_at_unix=? AND amount_kopeks=?');
+            $existing->execute([$binding['inquiry_key'],$binding['tracker_record_id'],$binding['immutable_tuple_sha256'],
+                $epoch,$point['issued_at_unix'],$point['amount_kopeks']]);
+            if (!Max2ValueLookupProtocolV2::hash($existing->fetchColumn())) throw $error;
         }
     }
 
@@ -42,7 +48,7 @@ final class AnyTourUmkEarlyProofReader
     {
         if ($sourceEventId < 1) return null;
         $q = $db->prepare("SELECT a.inquiry_key,a.binding_kind,a.tracker_record_id,a.immutable_tuple_sha256,
-                a.binding_proof_sha256,a.producer_contract_sha256,s.activated_at_unix
+                a.binding_proof_sha256,a.producer_contract_sha256,a.initial_common_kopeks,s.activated_at_unix
             FROM max2_common_value_events_v2 e JOIN max2_common_value_accounts_v2 a ON a.id=e.account_id
             JOIN anytour_umk_late_settings s ON s.id=1
             WHERE e.id=? AND e.counter_id=98615635 AND e.goal_id=687941321 AND e.target='anytour_modeled_value_v2_max2'
@@ -69,9 +75,11 @@ final class AnyTourUmkEarlyProofReader
             WHERE inquiry_key=? AND tracker_record_id=? AND tuple_sha256=? AND activated_at_unix=? LIMIT 2');
         $q->execute([$source['inquiry_key'],$source['tracker_record_id'],$source['immutable_tuple_sha256'],$source['activated_at_unix']]);
         $rows = $q->fetchAll(PDO::FETCH_ASSOC);
-        if (count($rows) !== 1 || !in_array((string)$rows[0]['amount_kopeks'],['1799','2636'],true)
+        if (count($rows) !== 1 || (int)$rows[0]['amount_kopeks'] < 0
+            || (int)$rows[0]['amount_kopeks'] > min(10000000, (int)$source['initial_common_kopeks'])
             || !Max2ValueLookupProtocolV2::hash($rows[0]['source_sha256'])) return null;
-        return $result + ['state'=>'issued_unconfirmed','complete'=>true,'record_id'=>(string)$source['tracker_record_id'],
+        $state = (int)$rows[0]['amount_kopeks'] === 0 ? 'no_reserve' : 'issued_unconfirmed';
+        return $result + ['state'=>$state,'complete'=>true,'record_id'=>(string)$source['tracker_record_id'],
             'amount_kopeks'=>(int)$rows[0]['amount_kopeks'],'issued_at_unix'=>(int)$rows[0]['issued_at_unix'],
             'source_sha256'=>$rows[0]['source_sha256']];
     }

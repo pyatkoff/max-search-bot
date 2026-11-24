@@ -78,5 +78,5 @@ CREATE TABLE IF NOT EXISTS anytour_umk_point_proofs (
     source_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     activated_at_unix BIGINT UNSIGNED NOT NULL,
     PRIMARY KEY (inquiry_key,tracker_record_id,tuple_sha256,activated_at_unix,issued_at_unix,amount_kopeks),
-    CONSTRAINT ck_umk_point_early CHECK (issued_at_unix>activated_at_unix AND amount_kopeks>0 AND amount_kopeks<=10000000)
+    CONSTRAINT ck_umk_point_early CHECK (issued_at_unix>activated_at_unix AND amount_kopeks>=0 AND amount_kopeks<=10000000)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
