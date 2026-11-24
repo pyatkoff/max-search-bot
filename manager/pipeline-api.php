@@ -103,18 +103,27 @@ if($action==='list'){
     // loaders perform their own fresh visibility checks without session writes.
     // A slow Inbox read must not serialize transcript or reply requests.
     session_write_close();
-    $rows=ManagerConversationService::list((int)$m['id'],$queue,200,(string)($data['project_key']??'*'),$managerFilter,(string)($data['lead_stage_key']??''),(int)($data['lead_tag_id']??0));
+    $projectKey=(string)($data['project_key']??'*');
+    $stageKey=(string)($data['lead_stage_key']??'');$tagId=(int)($data['lead_tag_id']??0);
+    $rows=ManagerConversationService::list((int)$m['id'],$queue,200,$projectKey,$managerFilter,$stageKey,$tagId);
+    $rows=ManagerQueueProjectionService::actionableRows($queue,$rows);
+    $extra=[];
+    if(($data['include_queue_count']??false)===true&&in_array($queue,['waiting','mine'],true)
+        &&$managerFilter===''&&$stageKey===''&&$tagId===0){
+        // Later filters affect the displayed list. Tab counts always use the whole project queue.
+        $extra['queue_count']=['queue'=>$queue,'project_key'=>$projectKey]+ManagerQueueProjectionService::summarize($queue,$rows);
+    }
     $sourceId=(int)($data['source_id']??0);
     if($sourceId===-1)$rows=array_values(array_filter($rows,static fn($r):bool=>(int)($r['source_id']??0)<=0));
     elseif($sourceId>0)$rows=array_values(array_filter($rows,static fn($r):bool=>(int)($r['source_id']??0)===$sourceId));
-    $rows=ManagerQueueProjectionService::actionableRows($queue,$rows);
-    $rows=ManagerLeadInboxService::decorate($rows,(int)$m['id']);
+    $outcome=(string)($data['lead_outcome']??'');$search=(string)($data['search']??'');
     $taskFilter=(string)($data['lead_task_filter']??'');
-    $rows=ManagerLeadInboxService::filter($rows,(string)($data['lead_outcome']??''),(string)($data['search']??''),$taskFilter);
+    $rows=ManagerLeadInboxService::decoratePageCandidates($rows,(int)$m['id'],$queue,$outcome,$search,$taskFilter,100);
+    $rows=ManagerLeadInboxService::filter($rows,$outcome,$search,$taskFilter);
     if($queue==='mine')$rows=ManagerLeadInboxService::sortMine($rows);
     foreach($rows as &$row)$row['can_edit_pipeline']=ManagerHttp::canEditConversation($row,$m);
     unset($row);
-    ManagerHttp::respond(['ok'=>true,'conversations'=>ManagerConversationService::displayRows(array_slice($rows,0,100))]);
+    ManagerHttp::respond(['ok'=>true,'conversations'=>ManagerConversationService::displayRows(array_slice($rows,0,100))]+$extra);
 }
 
 $id=(int)($data['conversation_id']??0);

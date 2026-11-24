@@ -35,6 +35,23 @@ class ManagerLeadInboxService
         return $rows;
     }
 
+    /** Source and availability filters have already chosen the authorized candidates. */
+    public static function decoratePageCandidates(array $rows,int $actor,string $queue,string $outcome,string $search,string $taskFilter,int $limit): array
+    {
+        if (count($rows)<=$limit || $queue==='mine' || $outcome!=='' || $search!=='' || $taskFilter!=='') {
+            return self::decorate($rows,$actor);
+        }
+
+        // These queues keep the supplied order. Only the returned page needs
+        // contact, summary and task data. The AI-status owner still sees the
+        // original candidate set for its bounded, viewer-specific job query.
+        $page=self::decorate(array_slice($rows,0,$limit));
+        if ($actor<=0) return $page;
+        require_once __DIR__.'/ManagerAiInboxStatusService.php';
+        $candidates=array_merge($page,array_slice($rows,$limit));
+        return array_slice(ManagerAiInboxStatusService::decorate($candidates,$actor),0,$limit);
+    }
+
     /** Read newest candidates in bounded pages; only unresolved leads continue. */
     private static function latestSummaries(PDO $pdo,array $ids): array
     {

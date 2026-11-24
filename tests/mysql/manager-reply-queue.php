@@ -87,6 +87,25 @@ try{
     nrqCheck('native bounded projection returns every current wait from retained histories',count($rows)===200&&array_sum(array_column($rows,'needed'))===200&&count(array_filter($rows,static fn($r)=>(int)$r['since_unix']!==$now-30))===0);
     $indexes=[];foreach($plan as $step)if(in_array($step['table']??'',['ro','rq','ri','rr','re','s'],true))$indexes[]=[$step['table'],$step['type'],$step['key']];
     nrqCheck('native correlated queue plan retains indexed conversation lookups',$indexes!==[]&&count(array_filter($indexes,static fn($r)=>$r[1]==='ALL'))===0);
+    if(ManagerReplyQueueService::supportsCorrelatedBoundary($pdo)){
+        $cid=3000;$insert->execute([$cid]);
+        for($i=0;$i<100;$i++){
+            $base=10000+2*$i;
+            replyQueueMessage($pdo,$base,$cid,'inbound','customer',$now-500+$i);
+            replyQueueMessage($pdo,$base+1,$cid,'outbound','manager',$now-500+$i);
+        }
+        replyQueueMessage($pdo,10200,$cid,'inbound','customer',$now-12);
+        $reads=static fn():int=>(int)$pdo->query("SHOW SESSION STATUS LIKE 'Handler_read_next'")->fetch(PDO::FETCH_NUM)[1];
+        $work=[];$clock=[];
+        foreach([false,true] as $materialize){
+            $before=$reads();
+            $expression=ManagerReplyQueueService::pendingWaitStartedSql('c',true,$materialize);
+            $clock[]=(int)$pdo->query("SELECT $expression FROM conversations c WHERE c.id=3000")->fetchColumn();
+            $work[]=$reads()-$before;
+        }
+        nrqCheck('the first unresolved inbound keeps its recorded time with one reply-boundary read per chat',
+            $clock===[$now-12,$now-12] && $work[0]>0 && $work[1]<$work[0]/2);
+    }
     echo 'MEASURE synthetic current-wait page200 messages2200+ events2200+ latency_ms='.$elapsed.' plan='.json_encode($indexes,JSON_THROW_ON_ERROR)."; not production latency\n";
     echo 'TOTAL '.$passed.' | PASS '.$passed." | FAIL 0\n";
 }finally{

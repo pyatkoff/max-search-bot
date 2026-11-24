@@ -294,6 +294,18 @@ PHP);
     $tabLoads=array_slice(file($tmp.'/loads.jsonl',FILE_IGNORE_NEW_LINES),count($loads));
     $expectedTabs=array_intersect_key($counts['body']['counts'],['waiting'=>true,'mine'=>true]);
     cardCheck('Manager2 tabs receive the same badges with just two unlocked queue reads',$tabs['status']===200&&$tabs['body']===['ok'=>true,'counts'=>$expectedTabs]&&count($tabLoads)===2&&array_filter($tabLoads,static function($line){$load=json_decode($line,true);return $load['kind']!=='counts'||$load['active'];})===[]);
+    foreach(['waiting'=>'mine','mine'=>'waiting']as$queue=>$other){
+        $base=['csrf'=>'fixture-csrf','project_key'=>'fixture'];
+        $before=count(file($tmp.'/loads.jsonl'));
+        $receipt=cardRequest($second,'/manager/pipeline-api.php',$base+['action'=>'list','queue'=>$queue,'include_queue_count'=>true],$cookies['own']);
+        $complement=cardRequest($second,'/manager/api.php',$base+['action'=>'counts','scope'=>'inbox_tabs','only_tab'=>$other],$cookies['own']);
+        $newLoads=array_slice(file($tmp.'/loads.jsonl'),$before);
+        cardCheck($queue.' list and complementary counts execute two authorized queue reads',$receipt['status']===200&&
+            $receipt['body']['queue_count']===['queue'=>$queue,'project_key'=>'fixture']+$expectedTabs[$queue]
+            &&$complement['body']===['ok'=>true,'counts'=>[$other=>$expectedTabs[$other]]]&&count($newLoads)===2);
+    }
+    $filtered=cardRequest($second,'/manager/pipeline-api.php',$base+['action'=>'list','queue'=>'waiting','include_queue_count'=>true,'lead_stage_key'=>'qualified'],$cookies['own']);
+    cardCheck('a SQL-filtered list cannot issue an incomplete global tab count',$filtered['status']===200&&!isset($filtered['body']['queue_count']));
     $queries=array_map(static fn($line)=>json_decode($line,true),file($tmp.'/queries.jsonl',FILE_IGNORE_NEW_LINES));
     cardCheck('card conversation visibility is checked while session is still locked',array_filter($queries,static fn($row)=>($row['path']??'')==='/manager/pipeline-api.php'&&str_starts_with($row['sql'],'SELECT c.id,c.project_key,c.source_id,c.channel,')&&str_ends_with($row['sql'],'WHERE c.id=? LIMIT 1')&&!$row['active'])===[]);
 
