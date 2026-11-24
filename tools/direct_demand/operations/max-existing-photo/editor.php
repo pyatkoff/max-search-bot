@@ -369,6 +369,11 @@ function maxEditRun(array $argv, ?array $batchApproval = null): int
 if (PHP_SAPI !== 'cli' || realpath((string)($_SERVER['SCRIPT_FILENAME'] ?? '')) !== __FILE__) {
     return;
 }
+if (($argv[1] ?? null) === '--correct-public-render-949') {
+    require_once __DIR__ . '/batch_entry.php';
+    require_once __DIR__ . '/public_render.php';
+    exit(maxRenderMain($argv));
+}
 if (in_array($argv[1] ?? '', ['--batch-plan','--batch-check','--batch-apply'], true)) {
     require_once __DIR__ . '/batch_input.php';
     require_once __DIR__ . '/batch_entry.php';

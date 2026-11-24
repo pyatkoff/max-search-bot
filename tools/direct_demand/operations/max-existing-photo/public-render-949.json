@@ -1,0 +1,22 @@
+{
+  "run_id": 45386430758,
+  "job_id": 138418427354,
+  "head_sha": "b62a8739ab56d1b7930c71b0b21e6c49837cb782",
+  "artifact_id": 14916511854,
+  "zip_sha256": "2a1abaf7fc4f896817666d43b5e7439d0afe0df1ebfd56f28f3a2c4dfe810046",
+  "summary_sha256": "1f6b0593f97746acfbe78d05fd54047d19dc8657b4e12f323b66ea2bb97a29f3",
+  "public_caption_before_sha256": "0d8fe8dfd10dc182942bbe25491260c26325ece55037ef5baa2a3e6c8ebf41d6",
+  "public_photo_sha256": "d0bcb4c0ce46860f59ba202ce0c20169e51c9fb53f93ba460bf918c446bf7ab1",
+  "post": {
+    "hotel": 949,
+    "target": "https://max.ru/anytour/AZ_1bEjVO3Q",
+    "source": "https://max.ru/channel_anytour/AaG3oYrTVTI",
+    "target_ms": 1786528942293,
+    "caption_sha256": "ed44d6c277c21dee4b86f6fc7a7bff2de03d63e0786c695f656379307150d959",
+    "photo_sha256": "ea38adc9aa6d43f051caa6e1a8da087c667f5fec83ca37fce6a7b16e954e3014",
+    "button_url_sha256": "5860882b30fb1521282c2a2609aa3d46e36242abb2426ddf788c9f5b650ab6f2",
+    "button_label_sha256": "7694fb3ee9ddbb3870e20590a5bac7fab9eaed207e955a939da4e8d47f9de8cd",
+    "publication_id": 3743,
+    "version_id": 14319
+  }
+}

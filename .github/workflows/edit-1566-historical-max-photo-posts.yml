@@ -17,7 +17,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '803dff9656877711f5c9cb05f73a20f44f3cf648' &&
+      github.event.before == 'b62a8739ab56d1b7930c71b0b21e6c49837cb782' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -36,7 +36,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: node tools/direct_demand/operations/max-existing-photo/admit.js
-      - name: Verify the checked editor and stage exactly the seven original plans
+      - name: Stage the single text-only representation correction for TV949
         shell: bash
         run: |
           set -euo pipefail
@@ -44,10 +44,11 @@ jobs:
           mkdir -p pub/stage
           src=tools/direct_demand/operations/max-existing-photo
           php tests/run_1566_max_existing_photo_batch.php
+          php tests/run_1566_max_public_render_949.php
           python3 tests/run_1566_max_existing_photo_partial.py
           for file in "$src"/*.php; do php -l "$file"; done
-          install -m600 "$src"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php,scope.json,native-targets.json,native-source.json,run_batch.py} pub/stage/
-          cp "$src/scope.json" pub/manifest.json
+          install -m600 "$src"/{editor.php,batch_entry.php,scope.json,public_render.php,public-render-949.json} pub/stage/
+          cp "$src/public-render-949.json" pub/manifest.json
           cat > pub/stage/execute.sh <<'SH'
           #!/usr/bin/env bash
           set -euo pipefail
@@ -56,10 +57,10 @@ jobs:
           stage="$(cd -- "$1" && pwd -P)"
           cd /var/www/anytoour/data/www/app.anytoour.ru
           test "$(git rev-parse HEAD)" = e56ae1d83b643afeca7d890030198e0bcdb71083
-          python3 "$stage/run_batch.py" "$stage"
+          php "$stage/editor.php" --correct-public-render-949
           SH
           bash -n pub/stage/execute.sh
-          tar -C pub/stage -cf pub/approved.tar editor.php batch_input.php batch_entry.php observe_pair.php scope.json native-targets.json native-source.json run_batch.py execute.sh
+          tar -C pub/stage -cf pub/approved.tar editor.php batch_entry.php scope.json execute.sh public_render.php public-render-949.json
       - name: Pin established SSH host continuity and authentication identity
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -92,11 +93,11 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Recheck the publisher immediately before transferring the sealed plans
+      - name: Recheck the existing publisher before transmitting the text-only correction
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: node tools/direct_demand/operations/max-existing-photo/admit.js
-      - name: Edit only each verified existing ID and capture its independent receipt
+      - name: Correct the literal ampersand using the existing text-only editor
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -110,27 +111,17 @@ jobs:
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'bash -c '"'"'set -euo pipefail; umask 077; stage=$(mktemp -d /tmp/anytour-1566-old-max.XXXXXXXX); trap "rm -f -- \"$stage\"/*; rmdir -- \"$stage\"" EXIT; tar --no-same-owner --no-same-permissions -C "$stage" -xf -; bash "$stage/execute.sh" "$stage"'"'"'' < pub/approved.tar | tee pub/native-results.txt
           python3 - <<'PY'
           import json,pathlib
-          expected = [r['hotel_id'] for r in json.loads(pathlib.Path('pub/manifest.json').read_bytes())['rows']]
-          rows = []
-          for line in pathlib.Path('pub/native-results.txt').read_text().splitlines():
-              if not line.startswith('RESULT '):
-                  continue
-              _, hotel, payload = line.split(' ', 2)
-              d = json.loads(payload)
-              assert d['hotel'] == int(hotel) and d.get('new_posts', 0) == 0 and d.get('ad_writes', 0) == 0
-              assert d['state'] in {'existing_max_message_updated_and_verified','stopped_before_edit','held_no_retry','untouched','unobserved'}
-              rows.append(d)
-          assert [r['hotel'] for r in rows] == expected
-          accepted = [r['hotel'] for r in rows if r['state'] == 'existing_max_message_updated_and_verified']
-          summary = {'state':'complete' if len(accepted)==len(expected) else 'partial' if accepted else 'none_accepted','native_accepted':accepted,'rows':rows}
-          pathlib.Path('pub/summary.json').write_text(json.dumps(summary,indent=2))
-          print('Native confirmations', len(accepted), 'of', len(expected), accepted)
+          out=json.loads(pathlib.Path('pub/native-results.txt').read_text())
+          assert out['state'] in {'public_already_exact','target_public_and_native_exact','native_preserved_public_rendering_persists','uncertain_no_retry','stopped_before_edit'}
+          assert out.get('new_posts',0)==0 and out.get('ad_writes',0)==0
+          pathlib.Path('pub/summary.json').write_text(json.dumps(out,indent=2))
+          print('TV949 public rendering:',out['state'])
           PY
       - name: Preserve exact original receipts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: issue-1566-max-edits-existing-only
+          name: issue-1566-max949-text-render-result
           path: |
             pub/manifest.json
             pub/native-results.txt
