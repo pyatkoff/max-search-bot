@@ -1,4 +1,4 @@
-name: Confirm public ranked hotel transfers from original 45321557294
+name: Confirm public Stella transfer from original 45372514171
 on:
   push:
     branches: [audit/1566-next-release-admission-1664]
@@ -8,13 +8,13 @@ permissions:
   actions: read
 jobs:
   read:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == '9a51489e1123163bd849b77c72d1787c220f6117' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == '8809aad881ea7aab6cd2e28cdb974e8770409f50' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: fdcbf29f831b68005295dfa398ecb5878d94e6c7
+          ref: e3e1a9bdf29dd0d7530fe6b3b393f1286834d092
           persist-credentials: false
       - uses: shivammathur/setup-php@v2
         with:
@@ -31,37 +31,37 @@ jobs:
           import subprocess,json,hashlib,zipfile,io,pathlib
           def api(p):
               return subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/'+p],timeout=40)
-          r=json.loads(api('actions/runs/45321557294'))
-          assert r['head_sha']=='fdcbf29f831b68005295dfa398ecb5878d94e6c7' and r['head_branch']=='ops/anytour-hotel-ranked-37-continue-20261123'
-          assert r['event']=='push' and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='failure'
-          assert r['path']=='.github/workflows/edit-1566-ranked-46-historical-telegram.yml' and r['actor']['login']=='pyatkoff'
-          j=json.loads(api('actions/jobs/138201073452'))
-          assert j['run_id']==r['id'] and j['name']=='transfer' and j['status']=='completed' and j['conclusion']=='failure'
+          r=json.loads(api('actions/runs/45372514171'))
+          assert r['head_sha']=='e3e1a9bdf29dd0d7530fe6b3b393f1286834d092' and r['head_branch']=='ops/anytour-hotel-prewrite-resume-20261124'
+          assert r['event']=='push' and r['run_attempt']==1 and r['status']=='completed' and r['conclusion']=='success'
+          assert r['path']=='.github/workflows/edit-1566-next-historical-telegram.yml' and r['actor']['login']=='pyatkoff'
+          j=json.loads(api('actions/jobs/138370105187'))
+          assert j['run_id']==r['id'] and j['name']=='transfer' and j['status']=='completed' and j['conclusion']=='success'
           steps={s['name']:s for s in j['steps']}
-          assert steps['Apply the installed editor once and retain its original receipts']['conclusion']=='failure'
+          assert steps['Apply the installed editor once and retain its original receipts']['conclusion']=='success'
           assert steps['Save the original sanitized transfer result']['conclusion']=='success'
-          a=json.loads(api('actions/artifacts/14887229025'))
-          digest='14741cf575a1999287fbd8c2b73ceb9a8c2146edeb3ad8a345d173bf8bd34b81'
-          assert not a['expired'] and a['size_in_bytes']==4063 and a['digest']=='sha256:'+digest and a['workflow_run']['id']==r['id']
-          b=api('actions/artifacts/14887229025/zip')
-          assert len(b)==4063 and hashlib.sha256(b).hexdigest()==digest
-          plan='12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce'
+          a=json.loads(api('actions/artifacts/14909996692'))
+          digest='4315c3e1e6b66d11c6a8c413ad886537d0de69ae219e864bf2ffd62a57b27ee4'
+          assert not a['expired'] and a['size_in_bytes']==1053 and a['digest']=='sha256:'+digest and a['workflow_run']['id']==r['id']
+          b=api('actions/artifacts/14909996692/zip')
+          assert len(b)==1053 and hashlib.sha256(b).hexdigest()==digest
+          plan='c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab'
           with zipfile.ZipFile(io.BytesIO(b)) as z:
-              assert set(z.namelist())=={'check-'+plan+'.json','result-'+plan+'.json','summary.json'} and len(z.namelist())==3
-              d=json.loads(z.read('result-'+plan+'.json'))
-          assert d['native_run_id']=='45321557294' and d['application_sha']==r['head_sha'] and d['plan_sha256']==plan
-          assert d['operation']=='anytour_hotel_transfer_ranked_remaining37_20261123' and d['provider_write_attempts']==7
+              assert set(z.namelist())=={'plan-check.json','result.json'} and len(z.namelist())==2
+              d=json.loads(z.read('result.json'))
+          assert d['native_run_id']=='45372514171' and d['application_sha']==r['head_sha'] and d['plan_sha256']==plan
+          assert d['operation']=='anytour_hotel_transfer_stella_alternate_20261123' and d['provider_write_attempts']==1
           assert d['supplier_requests']==d['bot_starts']==0
           rows=[x for x in d['results'] if x.get('ok') is True]
-          assert [x['hotel_id'] for x in rows]==[1972,2588,24909,57028,65877]
-          assert [x['message_id'] for x in rows]==['316','346','372','626','646']
+          assert [x['hotel_id'] for x in rows]==[466]
+          assert [x['message_id'] for x in rows]==['925']
           for x in rows:
               assert x['state']=='native_and_registry_verified' and x['provider_write_attempts']==1
               assert x['hotel_id_verified'] and x['photo_caption_button_verified'] and x['original_message_id_and_date_preserved']
           pathlib.Path('ranked-native-confirmed.json').write_text(json.dumps(rows))
-          print('ORIGINAL_RECEIPT_AUTHENTICATED_FIVE_CONFIRMED_TWO_UNKNOWN_NO_REPLAY')
+          print('ORIGINAL_RECEIPT_AUTHENTICATED_ONE_STELLA_NO_REPLAY')
           PY
-      - name: Read only the five confirmed public destination posts
+      - name: Read only the confirmed Stella destination post
         shell: bash
         run: |
           set -euo pipefail
@@ -69,8 +69,8 @@ jobs:
           <?php
           require 'tools/anytour_existing_post_batch.php';
           use function AnyTour\ExistingPostBatch\{requirePost,transferPlanFromBytes,parseTransferPublic,transferReason};
-          $digest='12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce';
-          $raw=file_get_contents('config/anytour_ranked_46_20261123_01.json');
+          $digest='c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab';
+          $raw=file_get_contents('config/anytour_stella_alternate_20261123.json');
           $plan=transferPlanFromBytes($raw,$digest,$digest);
           $by=[];
           foreach($plan['rows'] as $row)$by[$row['hotel_id']]=$row;
@@ -106,22 +106,23 @@ jobs:
                   $out['caption_sha256']=$p['caption_sha256'];
                   $out['button_url_sha256']=count($p['buttons'])===1?$p['buttons'][0]['url_sha256']:null;
                   $out['applied']=$out['caption']&&$out['new_photo']&&$out['original_date']&&$out['hotel_button'];
+                  if($out['applied'])$out['verified_at_utc']=gmdate(DATE_ATOM);
               } catch(Throwable $e) {$out['error']=transferReason($e);}
               $results[]=$out;
           }
-          $out=['original_run_id'=>'45321557294','application_sha'=>'fdcbf29f831b68005295dfa398ecb5878d94e6c7',
+          $out=['original_run_id'=>'45372514171','application_sha'=>'e3e1a9bdf29dd0d7530fe6b3b393f1286834d092',
               'read_only'=>true,'provider_write_attempts'=>0,'supplier_requests'=>0,'bot_starts'=>0,
               'results'=>$results,'public_verified'=>count(array_filter($results,static fn($r)=>$r['applied'])),
-              'unknown_excluded'=>[32342,73343],'verified_at_utc'=>gmdate(DATE_ATOM)];
-          file_put_contents('public-ranked-45321557294.json',json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+              'unknown_excluded'=>[],'verified_at_utc'=>gmdate(DATE_ATOM)];
+          file_put_contents('public-stella-45372514171.json',json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
           echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
-          exit(count($results)===5&&$out['public_verified']===5?0:1);
+          exit(count($results)===1&&$out['public_verified']===1?0:1);
           PHP
       - name: Save the exact public readback
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: ranked-45321557294-public-readback
-          path: public-ranked-45321557294.json
+          name: stella-45372514171-public-readback
+          path: public-stella-45372514171.json
           retention-days: 7
           if-no-files-found: warn
