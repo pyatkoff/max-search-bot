@@ -907,6 +907,7 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
     foreach(['MetrikaOfflineClient','ModeledConversionValueContract','ModeledConversionAttributionWindow']as$name)
         file_put_contents($isolated.'/app/services/'.$name.'.php','<?php require_once '.var_export(realpath(__DIR__.'/../services/'.$name.'.php'),true).';');
     copy(__DIR__.'/../services/ModeledConversionVisitProof.php',$isolated.'/app/services/ModeledConversionVisitProof.php');
+    copy(__DIR__.'/../services/ModeledConversionVisitArchiveIndex.php',$isolated.'/app/services/ModeledConversionVisitArchiveIndex.php');
     $fixtureScript= <<<'PHP'
 <?php
 require __FIXTURE_ROOT__.'/app/services/ModeledConversionWireValue.php';
@@ -993,11 +994,14 @@ $path=__FIXTURE_ROOT__.'/max-search-bot-modeled-visit-proof/wire-corrections/'.$
 $private=(fileperms($path)&0777)===0600&&(fileperms(dirname($path))&0777)===0700;
 chmod($path,0644);clearstatcache(true,$path);$blocked=false;
 try{ModeledConversionWireValue::read($r);}catch(RuntimeException $e){$blocked=true;}
+require __INDEX_FIXTURE__;
+$indexChecked=visitSelectionIndexAssertions($r,$now);
 echo json_encode(['ok'=>$first==='accepted'&&$again==='accepted'&&$last==='processed'
-&&$read['state']==='processed'&&$noReplay&&$api->writes===0&&$budgetRefused&&$expectedTotal&&$repairPriority&&$failedTerminal&&$failedPropagation&&$private&&$blocked,'late_repair_and_cohort'=>$lateRepair&&$lateCohort,'bounded_archive_reads'=>$readBound],JSON_THROW_ON_ERROR);
+&&$read['state']==='processed'&&$noReplay&&$api->writes===0&&$budgetRefused&&$expectedTotal&&$repairPriority&&$failedTerminal&&$failedPropagation&&$private&&$blocked,'late_repair_and_cohort'=>$lateRepair&&$lateCohort,'bounded_archive_reads'=>$readBound,'selection_index'=>$indexChecked],JSON_THROW_ON_ERROR);
 PHP;
-    $fixtureScript=str_replace(['__FIXTURE_ROOT__','__FIXTURE_ROWS__','__FIXTURE_NOW__'],
-        [var_export($isolated,true),var_export(json_encode([$wireFirst,$wireSecond],JSON_THROW_ON_ERROR),true),(string)$auditNow],$fixtureScript);
+    $fixtureScript=str_replace(['__FIXTURE_ROOT__','__FIXTURE_ROWS__','__FIXTURE_NOW__','__INDEX_FIXTURE__'],
+        [var_export($isolated,true),var_export(json_encode([$wireFirst,$wireSecond],JSON_THROW_ON_ERROR),true),(string)$auditNow,
+            var_export(__DIR__.'/fixtures/modeled_visit_selection_index.php',true)],$fixtureScript);
     try{
         $process=proc_open([PHP_BINARY,'-d','display_errors=stderr'],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
         if(!is_resource($process))throw new RuntimeException('wire_fixture_process');
@@ -1010,6 +1014,8 @@ PHP;
             ($observed['late_repair_and_cohort']??null)===true);
         $check('full urgent selection checks wire members without reading archives for lower-priority rows',
             ($observed['bounded_archive_reads']??null)===true);
+        $check('archive index preserves oldest order and re-reads a replaced, rebound or unsafe proof',
+            ($observed['selection_index']??null)===true);
     }finally{
         $remove=function(string $dir)use(&$remove):void{foreach(new DirectoryIterator($dir)as$f){
             if($f->isDot())continue;if($f->isDir()&&!$f->isLink())$remove($f->getPathname());else unlink($f->getPathname());

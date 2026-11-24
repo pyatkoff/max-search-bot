@@ -26,6 +26,7 @@ try{
     require_once dirname(__DIR__).'/services/MetrikaOfflineClient.php';
     require_once dirname(__DIR__).'/services/ModeledConversionVisitProof.php';
     require_once dirname(__DIR__).'/services/ModeledConversionVisitLedgerSnapshot.php';
+    require_once dirname(__DIR__).'/services/ModeledConversionVisitArchiveIndex.php';
     if(ProjectConfig::projectId()!=='anytour'||!defined('METRIKA_COUNTER_ID')||(string)METRIKA_COUNTER_ID!=='98615635'||!defined('METRIKA_OAUTH_TOKEN'))throw new RuntimeException();
     $dir=dirname(ModeledConversionVisitProof::path());$path=$dir.'/refresh.lock';
     if(is_link($dir)||(!is_dir($dir)&&!mkdir($dir,0700))||(fileperms($dir)&0777)!==0700||fileowner($dir)!==posix_geteuid()
@@ -65,8 +66,16 @@ try{
                         $e['checked_at']=gmdate('Y-m-d\\TH:i:s\\Z',$old['at']);$retained[(string)$r['id']]=$e;
                     }
                 }
-                $ids=ModeledConversionVisitProof::dueIds($ledger,$cutoff,$now,
-                    static fn(array $r):array=>ModeledConversionVisitProof::prior($r,$now),2);
+                $selectionIndex=ModeledConversionVisitArchiveIndex::open();
+                try {
+                    $readPrior=$selectionIndex===null
+                        ? static fn(array $r):array=>ModeledConversionVisitProof::prior($r,$now)
+                        : static fn(array $r):array=>$selectionIndex->prior($r,$now);
+                    $ids=ModeledConversionVisitProof::dueIds($ledger,$cutoff,$now,$readPrior,2);
+                } finally {
+                    $selectionIndex?->close();
+                    unset($selectionIndex, $readPrior);
+                }
             }else $cutoff=$checkpoint->getTimestamp();
             $followup=($cache['available']??false)&&is_string($cache['receipt']['followup_checkpoint_at']??null)
                 ?strtotime($cache['receipt']['followup_checkpoint_at']):false;
