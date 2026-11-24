@@ -1,0 +1,558 @@
+{
+  "schema": 1,
+  "kind": "hotel_max_caption_preparation",
+  "issue": 1566,
+  "goal": 330,
+  "price_gate": false,
+  "production_writes": 0,
+  "previous_prepared_count": 62,
+  "total_prepared_count": 84,
+  "first_party_demand": {
+    "run_id": 45385556709,
+    "artifact_id": 14915463382,
+    "moscow_completed_days": "2026-11-17 through 2026-11-23",
+    "scope": "distinct conversations and entries, no paid-click inference"
+  },
+  "source_evidence": {
+    "run_id": 45510222415,
+    "job_id": 138855735658,
+    "artifact_id": 14973829098,
+    "artifact_sha256": "sha256:e8b40b1d5e323abc99d2a1ea4d3fab254321a4d82b601312c734757be6f36fac",
+    "feed_sha256": "2d46078c045bcf735df873c30e7e12a2ae0ad29daea14af7c9839ab62478befb",
+    "canonical_map_blob": "ba5ac7207da7fe185c1d864726bc240ba273976d"
+  },
+  "retained_existing_posts": [
+    {
+      "exact_id": 174,
+      "hotel_name": "Pickalbatros Dana Beach Resort",
+      "existing_post_url": "https://max.ru/anytour/AaHzN34rD6Q",
+      "evidence_url": "https://github.com/pyatkoff/max-search-bot/issues/1566#issuecomment-7007373889"
+    },
+    {
+      "exact_id": 415,
+      "hotel_name": "Seagull Beach Resort",
+      "existing_post_url": "https://max.ru/anytour/AaFUVxlGPTg",
+      "evidence_url": "https://github.com/pyatkoff/max-search-bot/issues/1566#issuecomment-7007373889"
+    }
+  ],
+  "same_hotel_album_reserves": [
+    {
+      "exact_id": 954,
+      "hotel_name": "Akka Alinda Hotel",
+      "target_url": "https://max.ru/anytour/AZwpDhM0dC0",
+      "target_mid": "mid.ffffc1752b045fed019c290e1334742d",
+      "source_offer_id": "max_954",
+      "source_url": "https://max.ru/channel_anytour/AaG3WdL9MLk",
+      "assigned": false,
+      "state": "editor_format_and_previous_advertising_pending"
+    }
+  ],
+  "rows": [
+    {
+      "exact_id": 125,
+      "rank": 60,
+      "hotel_name": "Pickalbatros Aqua Blu Sharm",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Pickalbatros Aqua Blu Sharm\n📍 Шарм-эль-Шейх, Египет\nСемейный курорт с волновым бассейном и ленивой рекой. На территории есть аттракционы Midway Street и семейные велосипеды.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaGeHqk9YVc",
+        "publication_id": 239,
+        "offer_id": "max_125",
+        "offer_alias": "h1_26c2baa621f6e446e4156d15ff0f2c54",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 133,
+      "rank": 61,
+      "hotel_name": "Pickalbatros Aqua Park Hurghada",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Pickalbatros Aqua Park Hurghada\n📍 Хургада, Египет\nАквапарк и бассейн с искусственной волной, для детей — мини-клуб и игровые площадки. До собственного песчаного пляжа ходит шаттл.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHpvR49Ago",
+        "publication_id": 1626,
+        "offer_id": "max_133",
+        "offer_alias": "h1_d64be74e6c9e29259d86086dd505f7d9",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 195,
+      "rank": 63,
+      "hotel_name": "Dreams Beach Resort",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Dreams Beach Resort\n📍 Рас-Ум-эль-Сид, Шарм-эль-Шейх, Египет\nОтель у кораллового рифа со своим пляжем и детским клубом. К пляжу можно спуститься по лестнице или на лифте, в море заходят с понтонов.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHUrH76WKs",
+        "publication_id": 1361,
+        "offer_id": "max_195",
+        "offer_alias": "h1_3bc01180407960e41cd5298e60e1d295",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 247,
+      "rank": 65,
+      "hotel_name": "Long Beach Resort Hurghada",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Long Beach Resort Hurghada\n📍 Хургада, Египет\nКурорт с береговой линией около 1,1 км. В море можно зайти с берега или с понтона.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG15rQbQH0",
+        "publication_id": 516,
+        "offer_id": "max_247",
+        "offer_alias": "h1_3bf6f27fe74ebade4f378096d7cfd039",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 263,
+      "rank": 66,
+      "hotel_name": "Steigenberger Coraya Beach",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Steigenberger Coraya Beach\n📍 Марса-Алам, Египет\nСобственный песчаный пляж длиной около 800 м, коралловый риф для снорклинга и три бассейна.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaGePIPBMYk",
+        "publication_id": 262,
+        "offer_id": "max_263",
+        "offer_alias": "h1_de86b9d26ba0f4963b9fbe4dad11f06f",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 268,
+      "rank": 67,
+      "hotel_name": "JAZ Makadi Saraya Resort",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в JAZ Makadi Saraya Resort\n📍 Макади-Бей, Египет\nСемейный курорт с бассейнами, апартаментами и рифом у пляжа. Отель на второй линии, до моря нужно пройти. Подъём на этажи в корпусах по лестнице.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaGa3Hb2aNA",
+        "publication_id": 117,
+        "offer_id": "max_268",
+        "offer_alias": "h1_ee2fc47f5ffa0404431727cff52415a5",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 272,
+      "rank": 68,
+      "hotel_name": "Continental Hotel Hurghada",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Continental Hotel Hurghada\n📍 Хургада, Египет\nУ отеля собственный песчаный пляж, марина и большой бассейн. Дайвинг-центр находится у марины.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaGg3PJKAB8",
+        "publication_id": 318,
+        "offer_id": "max_272",
+        "offer_alias": "h1_c9f53525db7defe34cc0b386b0195e37",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 287,
+      "rank": 69,
+      "hotel_name": "Kempinski Hotel Soma Bay",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Kempinski Hotel Soma Bay\n📍 Сома-Бей, Египет\nЛенивая река огибает семейный бассейн. Для детей есть отдельный бассейн, на открытом воздухе — большое джакузи.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaGeijVYf9w",
+        "publication_id": 279,
+        "offer_id": "max_287",
+        "offer_alias": "h1_c8b5a2affe2e82e001d27afd527988c4",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 302,
+      "rank": 70,
+      "hotel_name": "Lotus Bay Beach Resort",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Lotus Bay Beach Resort\n📍 Сафага, Египет\nПервая линия и собственный песчаный пляж длиной около 350 м. Для отдыха у воды есть два открытых бассейна для взрослых.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG2ImjgQGM",
+        "publication_id": 549,
+        "offer_id": "max_302",
+        "offer_alias": "h1_f02325e67ed82923ef7d61bb624ac2a5",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 389,
+      "rank": 72,
+      "hotel_name": "Pickalbatros Royal Moderna",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Pickalbatros Royal Moderna\n📍 Набк, Шарм-эль-Шейх, Египет\nСемейный отель с собственным пляжем, детским клубом, теннисом и мини-гольфом. К рифу ведёт понтон около 600 м, примерно на середине есть спуск в песчаную лагуну.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaGePCsUN8U",
+        "publication_id": 253,
+        "offer_id": "max_389",
+        "offer_alias": "h1_5e4b967af19fee497f7305551b212f52",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 393,
+      "rank": 73,
+      "hotel_name": "Pickalbatros Royal Grand",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Pickalbatros Royal Grand\n📍 Шарм-эль-Шейх, Египет\nКурорт для гостей от 16 лет. Есть собственный песчаный пляж, пять бассейнов, рестораны и пляжный фудкорт.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaGePFLGSr0",
+        "publication_id": 257,
+        "offer_id": "max_393",
+        "offer_alias": "h1_8fa3dc8e3cfc6b66df5507796f6f6820",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 441,
+      "rank": 76,
+      "hotel_name": "Siva Grand Beach",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Siva Grand Beach\n📍 Хургада, Египет\nШирокий песчаный пляж с пологим входом, открытый бассейн с сезонным подогревом. Для детей есть клуб и игровая площадка.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaGhSGS2Sy4",
+        "publication_id": 326,
+        "offer_id": "max_441",
+        "offer_alias": "h1_ec92d34949fdf2c4352e025e18cd5012",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 497,
+      "rank": 77,
+      "hotel_name": "Titanic Resort & Aqua Park",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Titanic Resort & Aqua Park\n📍 Хургада, Египет\nСемейные номера и аквапарк с горками для разных возрастов. До пляжа Titanic Royal ходит шаттл. Для горок действуют ограничения по возрасту и росту.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHS6zgmfC0",
+        "publication_id": 1321,
+        "offer_id": "max_497",
+        "offer_alias": "h1_cafcb25bbb0d9f3394675f0b3ea3b2d8",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 599,
+      "rank": 79,
+      "hotel_name": "Centara Grand Mirage Beach Resort Pattaya",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Centara Grand Mirage Beach Resort Pattaya\n📍 Паттайя, Таиланд\nСемейный курорт рядом с песчаным пляжем Вонг-Амат. В отеле есть аквапарк с горками, бассейны и детский клуб.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHqRcKuSTA",
+        "publication_id": 1833,
+        "offer_id": "max_599",
+        "offer_alias": "h1_97ad14f0991da6a26c77e8e0b7a81926",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 632,
+      "rank": 80,
+      "hotel_name": "Dusit Thani Pattaya",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Dusit Thani Pattaya\n📍 Паттайя, Таиланд\nОтель у песчаного берега с двумя бассейнами. Для детей есть клуб и площадка, для взрослых — рестораны, теннис и спа.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHqkhAXIC4",
+        "publication_id": 2004,
+        "offer_id": "max_632",
+        "offer_alias": "h1_6a418b19cb3161c71cd3f6d46c2b00bb",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 706,
+      "rank": 81,
+      "hotel_name": "Paradox Resort Phuket",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Paradox Resort Phuket\n📍 Карон, Пхукет, Таиланд\nТропический сад, бассейны, рестораны и спа. Пляж Карон через дорогу, примерно в 400 м от главного корпуса. Для детей есть клуб.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHqR_qxM0w",
+        "publication_id": 1867,
+        "offer_id": "max_706",
+        "offer_alias": "h1_fce813a75db4327a1804e90da06d83d9",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 932,
+      "rank": 83,
+      "hotel_name": "Titanic Palace",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Titanic Palace\n📍 Хургада, Египет\nПляж у отеля, просторные бассейны и доступ к аквапарку соседнего Titanic Beach. Большие горки доступны с 10 лет при росте от 120 см. Для малышей есть отдельная водная зона.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHRo0CILKI",
+        "publication_id": 1281,
+        "offer_id": "max_932",
+        "offer_alias": "h1_06dc4d20e41d9b0a00d8ed47e9512595",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 948,
+      "rank": 84,
+      "hotel_name": "Adalya Bliss",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Adalya Bliss\n📍 Эвренсеки, Сиде, Турция\nОтель для гостей от 16 лет со спа. В отдельных категориях номеров есть джакузи. Зимой учитывайте сезонное закрытие пляжа, у крытого бассейна заявлен подогрев.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHR1-daXF8",
+        "publication_id": 1297,
+        "offer_id": "max_948",
+        "offer_alias": "h1_205609085497fb3176f5a4424da032bc",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 954,
+      "rank": 85,
+      "hotel_name": "Akka Alinda Hotel",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Akka Alinda Hotel\n📍 Кириш, Турция\nПервая линия и собственный пляж с песком и галькой. Для вечернего отдыха — живая музыка, дискотека и караоке.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG3WdL9MLk",
+        "publication_id": 889,
+        "offer_id": "max_954",
+        "offer_alias": "h1_219618e13aacd5eebce10c6c3d301998",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "verify_editor_support_and_advertising_before_assigning_album"
+    },
+    {
+      "exact_id": 955,
+      "rank": 86,
+      "hotel_name": "Akka Antedon Hotel",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Akka Antedon Hotel\n📍 Бельдиби, Турция\nПервая линия. У входа в море — песок и галька. По вечерам проходят программы с живой музыкой.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG3Wcn7UFc",
+        "publication_id": 888,
+        "offer_id": "max_955",
+        "offer_alias": "h1_c35820d09836a17452a31d8fbbc045e9",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 975,
+      "rank": 87,
+      "hotel_name": "Nirvana Dolce Vita",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Nirvana Dolce Vita\n📍 Текирова, Турция\nСобственный пляж на первой линии. Детские группы рассчитаны на 4–7 и 8–12 лет, подростковый клуб — на 13–16 лет. По вечерам звучит живая музыка.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG2Y3Z4EWo",
+        "publication_id": 615,
+        "offer_id": "max_975",
+        "offer_alias": "h1_cc274fbd1c6de29d51b57db5f2034fdc",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 996,
+      "rank": 88,
+      "hotel_name": "Corendon Playa Kemer",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Corendon Playa Kemer\n📍 Бельдиби, Турция\nПесчано-галечный пляж на первой линии. Вечером в отеле проходят программы с живой музыкой и дискотека.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG3AD9iGv0",
+        "publication_id": 755,
+        "offer_id": "max_996",
+        "offer_alias": "h1_a3e8a42ae9e57b565137aabc6a932857",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    }
+  ]
+}
