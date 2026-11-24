@@ -399,7 +399,7 @@ PHP);
         touch($release);
         $changed=cardFinish($change);$late=cardFinish($held);
         cardCheck("late $action with a changed session returns no directory",$changedBefore&&$changed['status']===200
-            &&$late['status']===401&&$late['body']===['ok'=>false,'error'=>'unauthorized']);
+            &&$late['status']===($action==='catalog'?401:403)&&$late['body']===['ok'=>false,'error'=>$action==='catalog'?'unauthorized':'csrf']);
     }
     echo 'SYNTHETIC_DIRECTORY_CHAT_HTTP '.json_encode($directorySamples,JSON_THROW_ON_ERROR)."\n";
 
@@ -433,7 +433,7 @@ PHP);
         touch($tmp.'/list.release');
         $changed=cardFinish($change);$late=cardFinish($held);
         cardCheck("a changed account or CSRF withholds the late fallback list ($changedIdentity)",$changedBefore&&$changed['status']===200
-            &&$late['status']===401&&$late['body']===['ok'=>false,'error'=>'unauthorized']);
+            &&$late['status']===($changedIdentity==='7&rotate=1'?403:401)&&$late['body']===['ok'=>false,'error'=>$changedIdentity==='7&rotate=1'?'csrf':'unauthorized']);
     }
     @unlink($tmp.'/list.entered');@unlink($tmp.'/list.release');
     $held=cardStart($first,'/manager/api.php',$fallback,$cookies['own'],'list');
