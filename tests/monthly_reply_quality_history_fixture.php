@@ -9,7 +9,8 @@ function monthlyReplyQualityReadRegression(PDO $pdo): int
     $mysql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
     if($mysql&&preg_match('/\Amaxbot_prepared_test(?:_[A-Za-z0-9_]+)?\z/D',(string)$pdo->query('SELECT DATABASE()')->fetchColumn())!==1)
         throw new RuntimeException('monthly_quality_fixture_database_rejected');
-    $tables=['modeled_conversion_profile_versions','manager_prepared_reply_input_links','manager_prepared_reply_inputs','manager_ai_draft_inputs',
+    $tables=['telegram_dialogue_messages','telegram_archive_accounts','telegram_dialogue_connections',
+        'modeled_conversion_profile_versions','manager_prepared_reply_input_links','manager_prepared_reply_inputs','manager_ai_draft_inputs',
         'manager_ai_drafts','manager_prepared_replies','virtual_reply_sampling_claims','virtual_reply_case_sampling',
         'virtual_reply_sampling_aliases','virtual_reply_sampling_groups','virtual_reply_jobs','virtual_reply_cases'];
     $drop=static function()use($pdo,$tables):void{foreach($tables as $table)$pdo->exec('DROP TABLE IF EXISTS '.$table);};
@@ -22,6 +23,12 @@ function monthlyReplyQualityReadRegression(PDO $pdo): int
     $json=static fn(array $v):string=>json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
     try{
         ProjectConfig::resetForTests(['id'=>'anytour']);
+        $pdo->exec("CREATE TABLE telegram_archive_accounts(project_key VARCHAR(64),bot_key VARCHAR(96),account_id BIGINT,connection_id VARCHAR(64),approved INTEGER,provider_enabled INTEGER,manager_id BIGINT)$engine");
+        $pdo->exec("CREATE TABLE telegram_dialogue_connections(project_key VARCHAR(64),bot_key VARCHAR(96),connection_id VARCHAR(64),account_id BIGINT,is_enabled INTEGER)$engine");
+        $pdo->exec("CREATE TABLE telegram_dialogue_messages(id BIGINT PRIMARY KEY,project_key VARCHAR(64),account_id BIGINT,chat_id BIGINT,message_id BIGINT,version_at BIGINT,source_kind VARCHAR(32),is_deleted INTEGER,record_json $long)$engine");
+        $pdo->exec('CREATE UNIQUE INDEX uq_telegram_dialogue_message ON telegram_dialogue_messages(project_key,account_id,chat_id,message_id)');
+        $pdo->exec("INSERT INTO telegram_archive_accounts VALUES('anytour','MonthlyArchiveFixture',8100,'monthly-fixture',1,1,NULL)");
+        $pdo->exec("INSERT INTO telegram_dialogue_connections VALUES('anytour','MonthlyArchiveFixture','monthly-fixture',8100,1)");
         $pdo->exec("CREATE TABLE manager_ai_drafts(draft_id VARCHAR(32) PRIMARY KEY,conversation_id BIGINT,manager_id BIGINT,project_key VARCHAR(64),context_revision VARCHAR(64),instruction_revision VARCHAR(64),latest_message_id BIGINT,proposal_json $long,created_at VARCHAR(32),preparation_job_id VARCHAR(64))$engine");
         $pdo->exec("CREATE TABLE manager_prepared_replies(job_id VARCHAR(64) PRIMARY KEY,conversation_id BIGINT,manager_id BIGINT,project_key VARCHAR(64),context_revision VARCHAR(64),instruction_revision VARCHAR(64),latest_message_id BIGINT,status VARCHAR(20),proposal_json $long,proposal_sha256 VARCHAR(64),prepared_at VARCHAR(32))$engine");
         $pdo->exec("CREATE TABLE manager_ai_draft_inputs(draft_id VARCHAR(32) PRIMARY KEY,input_json $long,input_sha256 VARCHAR(64))$engine");
@@ -76,6 +83,21 @@ function monthlyReplyQualityReadRegression(PDO $pdo): int
             ->execute([9999999,9001,'foreign_native_event','customer','{}']);
 
         $now=1793793600;$clock=static fn():int=>$now;$key=str_repeat('q',32);$connection=str_repeat('c',32);
+        $nativeMarker=['schema_version'=>1,'producer'=>'TelegramDialogueNormalizer.v1',
+            'source_format'=>'telegram_bot_api_message','kind'=>'text','text_origin'=>'unknown'];
+        foreach([[9100000,8800,20,'desktop_import','ARCHIVE_DESKTOP_ANCHOR'],
+            [9100001,8800,21,'business_message','ARCHIVE_OLDER_SIBLING'],
+            [9100002,90000008800,2,'business_message','ARCHIVE_SECOND_SELECTED'],
+            [9100003,90000008800,1,'business_message','ARCHIVE_NEWEST_SELECTED +7 999 123-45-67']] as [$id,$chat,$messageId,$source,$text]){
+            $record=['account_id'=>'8100','chat_id'=>(string)$chat,'message_id'=>(string)$messageId,
+                'sender_id'=>(string)$chat,'sender_type'=>'customer','direction'=>'inbound',
+                'created_at'=>$now-30,'version_at'=>$now-10,'text'=>$text,'links'=>[],'attachments'=>[],
+                'reply_to_message_id'=>null,'is_forwarded'=>false,'is_deleted'=>false,
+                'source_kind'=>$source,'content_coverage'=>'text_or_caption','bot_key'=>'MonthlyArchiveFixture'];
+            if($source==='business_message')$record['native_content']=$nativeMarker;
+            $pdo->prepare('INSERT INTO telegram_dialogue_messages VALUES(?,?,?,?,?,?,?,?,?)')
+                ->execute([$id,'anytour',8100,$chat,$messageId,$record['version_at'],$source,0,$json($record)]);
+        }
         $service=new MonthlyReplyQualityReadService($pdo,$clock,static fn():string=>$key);
         $fingerprint=static function()use($pdo,$tables):string{$rows=[];foreach([...$tables,'messages','conversations','customer_channels','conversation_events','manager_conversation_reads'] as $table)$rows[$table]=$pdo->query('SELECT * FROM '.$table)->fetchAll(PDO::FETCH_ASSOC);return hash('sha256',serialize($rows));};
         $before=$fingerprint();$first=$service->inventory(1,$connection,['cursor'=>'qh.manual.start','limit'=>1]);
@@ -118,6 +140,73 @@ function monthlyReplyQualityReadRegression(PDO $pdo): int
         $check(count($closedNative)===1,'separate_history_mode_includes_closed_native_dialogue');
         $nr=$service->context(1,$connection,['dialogue_ref'=>$closedNative[0]['record_ref']]);
         $check(($nr['saved_profile']['availability']??null)==='not_requested','historical_reply_review_does_not_disclose_unrequested_forecast');
+
+        // Exercise the real quality wrapper, including both independent grants, using returned references only.
+        $archiveKey=str_repeat('a',32);$qualityAllowed=true;$archiveAllowed=true;
+        $qualityProvider=static function()use(&$qualityAllowed,$key):string{if(!$qualityAllowed)throw new DomainException();return$key;};
+        $archiveProvider=static function()use(&$archiveAllowed,$archiveKey):string{if(!$archiveAllowed)throw new DomainException();return$archiveKey;};
+        $archiveService=new MonthlyReplyQualityReadService($pdo,$clock,$qualityProvider,$archiveProvider);
+        $archiveInventory=$archiveService->inventory(1,$connection,['cursor'=>'qh.archive.start','limit'=>1]);
+        $recentDescriptor=$archiveInventory['newest_retained']??[];
+        $check(is_string($recentDescriptor['start_cursor']??null)&&str_starts_with($recentDescriptor['start_cursor'],'qh.')
+            &&($recentDescriptor['order']??null)==='archive_record_id_desc'
+            &&($recentDescriptor['clock_basis']??null)==='stored_record_order_not_receipt_time'
+            &&($recentDescriptor['existing_row_edits_are_not_reordered']??null)===true,
+            'archive_recent_descriptor_is_wrapped_and_does_not_claim_receipt_or_edit_order');
+        $recent=$archiveService->inventory(1,$connection,['cursor'=>$recentDescriptor['start_cursor'],'limit'=>1]);
+        $selected=$recent['records'][0]??[];$selectedRef=$selected['record_ref']??'';
+        $recentJson=$json($recent);
+        $check(count($recent['records']??[])===1&&($selected['source_ref']??null)==='archive_message:9100003'
+            &&is_string($selectedRef)&&str_starts_with($selectedRef,'qh.')
+            &&!isset($selected['message_ref'])&&!isset($recent['recent_business_records'])
+            &&!str_contains($recentJson,'ARCHIVE_NEWEST_SELECTED')&&!str_contains($recentJson,'+7 999')
+            &&$recent['has_more']===true&&str_starts_with($recent['next_cursor'],'qh.'),
+            'archive_recent_metadata_wraps_exact_business_record_and_continuation_without_text');
+        $exact=$archiveService->context(1,$connection,['dialogue_ref'=>$selectedRef,'limit'=>100]);
+        $exactMessage=$exact['messages'][0]??[];
+        $check(count($exact['messages']??[])===1&&($exactMessage['source_ref']??null)==='archive_message:9100003'
+            &&($exactMessage['native_message_id']??null)==='1'&&($exactMessage['read_status']??null)==='available'
+            &&($exactMessage['native_content']??null)===$nativeMarker&&($exactMessage['role_verified']??null)===true
+            &&($exactMessage['role']??null)==='customer'&&($exactMessage['direction']??null)==='inbound'
+            &&str_starts_with($exactMessage['text']??'','ARCHIVE_NEWEST_SELECTED')
+            &&!str_contains($json($exact),'ARCHIVE_SECOND_SELECTED')&&!str_contains($json($exact),'+7 999'),
+            'wrapped_exact_archive_read_selects_business_only_chat_small_message_id_and_preserves_projection');
+        $check(($exact['selection_scope']??null)==='selected_record_only'
+            &&$exact['stored_records_within_fence']===1&&$exact['history_complete']===false
+            &&$exact['has_more']===false&&$exact['next_cursor']===null&&$exact['page_complete']===true
+            &&$exactMessage['historical_first_available_at']===null
+            &&$exact['dialogue_ref']===$selectedRef&&$exact['quality_period']['timezone']==='Europe/Moscow',
+            'wrapped_exact_archive_read_keeps_single_record_scope_and_unknown_historical_availability');
+        $recentIds=[$selected['source_ref']];$recentPage=$recent;
+        while($recentPage['has_more']){
+            $recentPage=$archiveService->inventory(1,$connection,['cursor'=>$recentPage['next_cursor'],'limit'=>1]);
+            array_push($recentIds,...array_column($recentPage['records'],'source_ref'));
+            if(count($recentIds)>3)throw new RuntimeException('monthly_recent_archive_paging_did_not_advance');
+        }
+        $check($recentIds===['archive_message:9100003','archive_message:9100002','archive_message:9100001']
+            &&$recentPage['next_cursor']===null,'wrapped_archive_recent_pages_descend_without_desktop_rows_or_duplicates');
+        $ordinaryArchive=new ArchiveResearchReadService($pdo,$clock,$archiveProvider);
+        $ordinaryInventory=$ordinaryArchive->inventory(1,$connection,['limit'=>25]);
+        $check(count($ordinaryInventory['chats'])===1&&!isset($ordinaryInventory['newest_retained']),
+            'ordinary_archive_inventory_keeps_desktop_anchor_and_no_quality_recent_descriptor');
+        $archiveAllowed=false;
+        $reject(fn()=>$archiveService->inventory(1,$connection,['cursor'=>$recentDescriptor['start_cursor']]),'forbidden');
+        $reject(fn()=>$archiveService->context(1,$connection,['dialogue_ref'=>$selectedRef]),'forbidden');
+        $archiveAllowed=true;$qualityAllowed=false;
+        $reject(fn()=>$archiveService->inventory(1,$connection,['cursor'=>$recentDescriptor['start_cursor']]),'forbidden');
+        $reject(fn()=>$archiveService->context(1,$connection,['dialogue_ref'=>$selectedRef]),'forbidden');
+        $qualityAllowed=true;$lateArchiveCalls=0;
+        $lateArchiveService=new MonthlyReplyQualityReadService($pdo,$clock,$qualityProvider,
+            static function()use(&$lateArchiveCalls,$archiveKey):string{if(++$lateArchiveCalls===3)throw new DomainException();return$archiveKey;});
+        $reject(fn()=>$lateArchiveService->context(1,$connection,['dialogue_ref'=>$selectedRef]),'permission_changed');
+        $lateQualityCalls=0;
+        $lateQualityService=new MonthlyReplyQualityReadService($pdo,$clock,
+            static function()use(&$lateQualityCalls,$key):string{if(++$lateQualityCalls===3)throw new DomainException();return$key;},$archiveProvider);
+        $reject(fn()=>$lateQualityService->context(1,$connection,['dialogue_ref'=>$selectedRef]),'permission_changed');
+        $check($lateArchiveCalls===3&&$lateQualityCalls===3,'exact_archive_context_rechecks_both_grants_after_source_read');
+        $forecastArchive=new MonthlyReplyQualityReadService($pdo,$clock,$qualityProvider,$archiveProvider,true);
+        $reject(fn()=>$forecastArchive->inventory(1,$connection,['cursor'=>$recentDescriptor['start_cursor']]),'invalid_arguments');
+        $reject(fn()=>$forecastArchive->context(1,$connection,['dialogue_ref'=>$selectedRef]),'invalid_arguments');
 
         $review=new MonthlyReplyQualityReadService($pdo,$clock,static fn():string=>$key,null,true);
         $rp=$review->inventory(1,$connection,['cursor'=>'qh.native.start','limit'=>25]);
