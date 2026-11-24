@@ -1,0 +1,33 @@
+name: Read installed Telegram advertising destinations
+on:
+  push:
+    branches: [audit/1566-raw-telegram-feed-20261124]
+    paths: ['.github/workflows/read-1702-installed-offers.yml']
+permissions:
+  contents: read
+jobs:
+  read:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Read the immutable audit package
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Check the installed advertising links
+        run: |
+          set -euo pipefail
+          python3 audit/1702-installed-offers/read_changes.py \
+            audit/1702-installed-offers/route-candidate.json a88d4d35110efe01b2e63e51e5f35e45d646936fc1bbf1b5031c7c48cc93ec56 ad-readback.json \
+            --observer audit/1702-installed-offers/reviewed_observer.py \
+            --deploy-run 45416010115 --installed-sha 32155b9eb2c8606b61554951bfdc988d70bbcb39 \
+            --installed-resolver-sha256 926b7bd6dcca3ca3aa955a549a65df8959394f77225aab4af41f6c1647fabaaf
+      - name: Save the exact HTTP evidence
+        if: ${{ !cancelled() && hashFiles('ad-readback.json') != '' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: verified-ad-route-45416010115
+          path: ad-readback.json
+          retention-days: 7
+          if-no-files-found: error
