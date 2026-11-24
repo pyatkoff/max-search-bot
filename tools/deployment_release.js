@@ -69,6 +69,11 @@ const HOTEL_MAX_SUGAR_TRANSFER = Object.freeze({...HOTEL_FOUR_TRANSFER,
   plan_path:'config/anytour_existing_post_transfer_max_800.json',plan_size:1387,
   plan_blob:'34a610598ddd0db2213851ef12af7b3347931d3a',
   plan_digest:'536eac513fc1491363b27d9a909043abfb3ef6fece67245327d1e49eac1f2ab6'});
+const HOTEL_MAX_SUGAR_PUBLIC_RECOVERY = Object.freeze({...HOTEL_MAX_SUGAR_TRANSFER,
+  branch:'ops/anytour-max-sugar-marina-800-recover-public-caption-20261124',operation:'hotel_max_sugar_public_recovery'});
+const ORIGINAL_MAX_SUGAR_PUBLIC_FAILURE = Object.freeze({
+  run:45286514435,job:138084128385,sha:'cb63be5342d575cf6515a1f5ea408b186a5908d9',
+  artifact:14872141610,digest:'sha256:f3bbc4498062ab72dd7bedae5b9b415ca2874761aedfbbad221dadc179ff9420'});
 const HOTEL_RANKED_46 = Object.freeze({...HOTEL_FOUR_TRANSFER,
   branch:'ops/anytour-hotel-ranked-46-apply-20261123',workflow:PREFIX+'edit-1566-ranked-46-historical-telegram.yml',operation:'hotel_ranked_46_transfer',
   plan_path:'config/anytour_ranked_46_20261123.json',plan_size:712,plan_blob:'f3e0d4ee289f189eb5c43aaf85f8024c3de801ba',
@@ -1806,6 +1811,37 @@ function proveOriginalNextTransfer(api) {
   return proveOriginalHotelTransfer(api,HOTEL_NEXT_TRANSFER,ORIGINAL_NEXT_TRANSFER,'issue-1566-hotel-next-transfer');
 }
 
+async function proveOriginalMaxPublicFailure(api) {
+  const {run,job,sha:head,artifact,digest:artifactDigest}=ORIGINAL_MAX_SUGAR_PUBLIC_FAILURE;
+  const p=HOTEL_MAX_SUGAR_TRANSFER;
+  const [source,jobs,list]=await Promise.all([
+    api('GET',API_ROOT+'/actions/runs/'+run),
+    api('GET',API_ROOT+'/actions/runs/'+run+'/attempts/1/jobs?per_page=100'),
+    api('GET',API_ROOT+'/actions/runs/'+run+'/artifacts?per_page=100')
+  ]);
+  runIdentity(source,{id:run,attempt:1,head,workflow:p.workflow,event:'push',branch:p.branch,conclusion:'failure'});
+  requireValue(source.actor?.id===p.owner_id&&source.triggering_actor?.id===p.owner_id,'original_max_transfer_actor_changed');
+  const rows=boundedList(jobs,'jobs','original_max_transfer_jobs_incomplete');
+  const prior=rows[0];
+  requireValue(rows.length===1&&prior.id===job&&prior.run_id===run&&prior.head_sha===head
+    &&prior.run_attempt===1&&prior.name===p.job&&prior.status==='completed'&&prior.conclusion==='failure'
+    &&Array.isArray(prior.steps),'original_max_transfer_job_changed');
+  for(const [name,outcome] of [
+    ['Require exact APPLY admission before loading credentials','success'],
+    ['Apply the installed editor once and retain its original receipts','failure'],
+    ['Save the original sanitized transfer result','success']]){
+    const steps=prior.steps.filter(step=>step.name===name);
+    requireValue(steps.length===1&&steps[0].status==='completed'&&steps[0].conclusion===outcome,
+      'original_max_transfer_result_changed');
+  }
+  const proofs=boundedList(list,'artifacts','original_max_transfer_artifacts_incomplete');
+  const saved=proofs[0];
+  requireValue(proofs.length===1&&saved.id===artifact&&saved.digest===artifactDigest
+    &&saved.name==='issue-1566-max-sugar-marina-transfer'&&saved.size_in_bytes===808
+    &&saved.workflow_run?.id===run&&saved.workflow_run.head_sha===head
+    &&saved.workflow_run.head_branch===p.branch&&!saved.expired,'original_max_transfer_artifact_changed');
+}
+
 async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
   const ref='refs/heads/'+p.branch;
   requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF===ref
@@ -1850,9 +1886,12 @@ async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
     &&crypto.createHash('sha256').update(bytes).digest('hex')===p.plan_digest,'hotel_transfer_plan_changed');
   if(p===HOTEL_REMAINING_TRANSFER)await proveOriginalNextTransfer(api);
   if(p===HOTEL_RANKED_CONTINUATION)await proveOriginalHotelTransfer(api,HOTEL_RANKED_46,ORIGINAL_RANKED_TRANSFER,'issue-1566-hotel-ranked-46-transfer');
+  if(p===HOTEL_MAX_SUGAR_PUBLIC_RECOVERY)await proveOriginalMaxPublicFailure(api);
   const location=await readRecord(api),result=await resolveCurrent(api,c,location);
   requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
-  if(p===HOTEL_MAX_SUGAR_TRANSFER)requireValue(result.application_sha===c.sha,'max_transfer_editor_not_installed');
+  if(p===HOTEL_MAX_SUGAR_TRANSFER||p===HOTEL_MAX_SUGAR_PUBLIC_RECOVERY){
+    requireValue(result.application_sha===c.sha,'max_transfer_editor_not_installed');
+  }
   requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_transfer_branch_changed');
   return {...await finalResolution(api,c,location,result),write_operation:p.operation};
 }
@@ -1886,6 +1925,7 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_FOUR_TRANSFER.branch)return resolveHotelTransfer({env,event,api});
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_NEXT_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_NEXT_TRANSFER);
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_MAX_SUGAR_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_MAX_SUGAR_TRANSFER);
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_MAX_SUGAR_PUBLIC_RECOVERY.branch)return resolveHotelTransfer({env,event,api},HOTEL_MAX_SUGAR_PUBLIC_RECOVERY);
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_RANKED_46.branch)return resolveRankedHotelTransfer({env,event,api});
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_RANKED_CONTINUATION.branch)return resolveRankedHotelTransfer({env,event,api},HOTEL_RANKED_CONTINUATION);
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_REMAINING_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_REMAINING_TRANSFER);
