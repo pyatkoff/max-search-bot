@@ -11,10 +11,88 @@ const APPLICATION_SHA = '__APPLICATION_SHA__';
 const REPOSITORY_SHA = '__REPOSITORY_SHA__';
 const NATIVE_RUN_ID = '__NATIVE_RUN_ID__';
 const PAIRS = [
-    64918 => ['name' => 'You & Me Maldives', 'source' => '1046', 'target' => '1020', 'date' => '2025-02-21T08:56:56Z'],
-    996 => ['name' => 'Corendon Playa Kemer', 'source' => '325', 'target' => '1063', 'date' => '2025-04-01T07:52:34Z'],
+    4091 => ['name' => 'Vinpearl Resort Nha Trang', 'source' => '264', 'target' => '1092', 'date' => '2025-05-07T07:22:16Z',
+        'rank' => 8, 'demand_platform' => 'max', 'dialogues' => 3, 'entries' => 3, 'previous_feed_price' => 157589, 'country' => 'VN', 'locality' => 'Хон Тре', 'archived_offer' => 'Bonjour — Нячанг'],
+    75100 => ['name' => 'Barut Goia', 'source' => '726', 'target' => '1380', 'date' => '2026-02-03T11:27:14Z',
+        'rank' => 11, 'demand_platform' => 'max', 'dialogues' => 2, 'entries' => 4, 'previous_feed_price' => 126096, 'country' => 'TR', 'locality' => 'Сиде', 'archived_offer' => 'Sorgun Akadia Luxury Hotel Adults Only — Сиде'],
+    150 => ['name' => 'Pickalbatros Citadel', 'source' => '71', 'target' => '1034', 'date' => '2025-03-04T12:02:50Z',
+        'rank' => 16, 'demand_platform' => 'max', 'dialogues' => 2, 'entries' => 2, 'previous_feed_price' => 115729, 'country' => 'EG', 'locality' => 'Хургада', 'archived_offer' => 'Long Beach Resort — Хургада'],
+    288 => ['name' => 'King Tut Aqua Park Beach Resort', 'source' => '471', 'target' => '1128', 'date' => '2025-06-18T09:43:42Z',
+        'rank' => 20, 'demand_platform' => 'max', 'dialogues' => 2, 'entries' => 2, 'previous_feed_price' => 90880, 'country' => 'EG', 'locality' => 'Хургада', 'archived_offer' => 'Pyramisa Beach Resort Sahl Hasheesh — Хургада, Сахл-Хашиш'],
+    483 => ['name' => 'SUNRISE Royal Makadi Resort', 'source' => '575', 'target' => '603', 'date' => '2024-05-08T10:18:54Z',
+        'rank' => 22, 'demand_platform' => 'max', 'dialogues' => 2, 'entries' => 2, 'previous_feed_price' => 132576, 'country' => 'EG', 'locality' => 'Хургада', 'archived_offer' => 'Reef Oasis Blue Bay — Шарм-эль-Шейх'],
+    713 => ['name' => 'Naithonburi Beach Resort', 'source' => '297', 'target' => '731', 'date' => '2024-07-07T10:49:46Z',
+        'rank' => 23, 'demand_platform' => 'max', 'dialogues' => 2, 'entries' => 2, 'previous_feed_price' => 192168, 'country' => 'TH', 'locality' => 'Наитон', 'archived_offer' => 'Ibis Phuket Kata — Пхукет, Ката'],
+    768 => ['name' => 'Royal Cliff Beach Terrace', 'source' => '855', 'target' => '516', 'date' => '2024-03-28T08:29:42Z',
+        'rank' => 24, 'demand_platform' => 'max', 'dialogues' => 2, 'entries' => 2, 'previous_feed_price' => 238250, 'country' => 'TH', 'locality' => 'Паттайя', 'archived_offer' => 'Cross Vibe Pattaya Seaphere — Паттайя'],
+    11791 => ['name' => 'Sofitel Mauritius L’Impérial Resort & Spa', 'source' => '1047', 'target' => '560', 'date' => '2024-04-19T09:04:19Z',
+        'rank' => 29, 'demand_platform' => 'max', 'dialogues' => 2, 'entries' => 2, 'previous_feed_price' => null, 'country' => 'MU', 'locality' => 'Маврикий', 'archived_offer' => 'Pirates Beach Club — Кемер · истёкшее предложение другого направления, как в принятом пилоте'],
+    26844 => ['name' => 'OUTRIGGER Mauritius Beach Resort', 'source' => '1048', 'target' => '799', 'date' => '2024-08-12T07:39:00Z',
+        'rank' => 32, 'demand_platform' => 'max', 'dialogues' => 2, 'entries' => 2, 'previous_feed_price' => null, 'country' => 'MU', 'locality' => 'Маврикий', 'archived_offer' => 'Erth Abu Dhabi — Абу-Даби · истёкшее предложение другого направления, как в принятом пилоте'],
+    28460 => ['name' => 'Akra V', 'source' => '743', 'target' => '1570', 'date' => '2026-06-09T07:37:56Z',
+        'rank' => 33, 'demand_platform' => 'max', 'dialogues' => 2, 'entries' => 2, 'previous_feed_price' => 93210, 'country' => 'TR', 'locality' => 'Анталья', 'archived_offer' => 'Средиземноморские курорты Турции'],
+    54605 => ['name' => 'Fairmont Fujairah Beach Resort', 'source' => '431', 'target' => '892', 'date' => '2024-10-07T07:23:45Z',
+        'rank' => 34, 'demand_platform' => 'max', 'dialogues' => 2, 'entries' => 2, 'previous_feed_price' => 107323, 'country' => 'AE', 'locality' => 'Фуджейра', 'archived_offer' => 'Miramar Al Aqah Beach Resort — Фуджейра'],
+    64914 => ['name' => 'Stella Di Mare Dubai Marina', 'source' => '426', 'target' => '938', 'date' => '2024-11-22T09:39:26Z',
+        'rank' => 35, 'demand_platform' => 'max', 'dialogues' => 2, 'entries' => 2, 'previous_feed_price' => 91367, 'country' => 'AE', 'locality' => 'Дубай', 'archived_offer' => '25hours Dubai One Central — Дубай'],
+    82106 => ['name' => 'Rixos Premium Alamein', 'source' => '754', 'target' => '983', 'date' => '2025-01-13T10:45:14Z',
+        'rank' => 36, 'demand_platform' => 'max', 'dialogues' => 2, 'entries' => 2, 'previous_feed_price' => null, 'country' => 'EG', 'locality' => 'Матрух', 'archived_offer' => 'Tamra Beach Resort — Шарм-эль-Шейх'],
+    107938 => ['name' => 'The Marin Phuket', 'source' => '224', 'target' => '783', 'date' => '2024-08-01T14:11:16Z',
+        'rank' => 37, 'demand_platform' => 'max', 'dialogues' => 2, 'entries' => 2, 'previous_feed_price' => 222195, 'country' => 'TH', 'locality' => 'Пхукет', 'archived_offer' => 'Avista Grande Phuket Karon M Gallery By Sofitel — Пхукет, Карон'],
+    236 => ['name' => 'Grand Rotana Resort & Spa', 'source' => '1110', 'target' => '1074', 'date' => '2025-04-12T07:56:08Z',
+        'rank' => 39, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 2, 'previous_feed_price' => null, 'country' => 'EG', 'locality' => 'Шарм эль Шейх', 'archived_offer' => 'Iberotel Redsina — Шарм-эль-Шейх, Набк-Бэй'],
+    454 => ['name' => 'JAZ Solaya', 'source' => '62', 'target' => '956', 'date' => '2024-12-12T10:40:55Z',
+        'rank' => 41, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 2, 'previous_feed_price' => 130040, 'country' => 'EG', 'locality' => 'Марса Алам', 'archived_offer' => 'Что привезти из Египта'],
+    1035 => ['name' => 'Lara Barut Collection', 'source' => '185', 'target' => '610', 'date' => '2024-05-11T11:04:45Z',
+        'rank' => 43, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 2, 'previous_feed_price' => 160603, 'country' => 'TR', 'locality' => 'Анталья', 'archived_offer' => 'Be Premium Bodrum — Бодрум'],
+    1105 => ['name' => 'Club Hotel Turan Prince World', 'source' => '349', 'target' => '1018', 'date' => '2025-02-18T07:10:29Z',
+        'rank' => 44, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 2, 'previous_feed_price' => 132452, 'country' => 'TR', 'locality' => 'Сиде', 'archived_offer' => 'Selectum Colours Resort Side — Сиде'],
+    1451 => ['name' => 'Delphin BE Grand Resort', 'source' => '151', 'target' => '702', 'date' => '2024-06-23T09:32:17Z',
+        'rank' => 45, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 2, 'previous_feed_price' => 150300, 'country' => 'TR', 'locality' => 'Анталья', 'archived_offer' => 'Marti Myra — Текирова, Кемер'],
+    1960 => ['name' => 'Amwaj Beach Club Abu Soma', 'source' => '203', 'target' => '578', 'date' => '2024-04-26T16:00:04Z',
+        'rank' => 46, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 2, 'previous_feed_price' => 94847, 'country' => 'EG', 'locality' => 'Сома Бей', 'archived_offer' => 'Направления для пляжного отпуска в мае'],
+    3415 => ['name' => 'Royal Holiday Palace', 'source' => '258', 'target' => '755', 'date' => '2024-07-18T07:56:13Z',
+        'rank' => 48, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 2, 'previous_feed_price' => 174973, 'country' => 'TR', 'locality' => 'Лара', 'archived_offer' => 'Sunrise Resort & Spa — Кызылагач'],
+    4270 => ['name' => 'Dusit Thani Laguna Phuket', 'source' => '857', 'target' => '911', 'date' => '2024-10-25T08:53:09Z',
+        'rank' => 49, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 2, 'previous_feed_price' => 198425, 'country' => 'TH', 'locality' => 'Пхукет', 'archived_offer' => 'Архивное предложение отдыха в Таиланде'],
+    51238 => ['name' => 'Radisson Blu Galle', 'source' => '514', 'target' => '431', 'date' => '2024-02-16T08:32:51Z',
+        'rank' => 51, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 2, 'previous_feed_price' => 193168, 'country' => 'LK', 'locality' => 'Галле', 'archived_offer' => 'Sooriya Resort & Spa — Шри-Ланка'],
+    79071 => ['name' => 'Wyndham Garden Grandworld Phu Quoc', 'source' => '234', 'target' => '846', 'date' => '2024-09-10T07:43:08Z',
+        'rank' => 55, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 2, 'previous_feed_price' => 187521, 'country' => 'VN', 'locality' => 'Фукуок', 'archived_offer' => 'The Cliff Resort & Residence — Муйне'],
+    85417 => ['name' => 'Jawakara Islands Maldives', 'source' => '638', 'target' => '737', 'date' => '2024-07-10T07:39:18Z',
+        'rank' => 56, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 2, 'previous_feed_price' => 376243, 'country' => 'MV', 'locality' => 'Мальдивы', 'archived_offer' => 'Malahini Kuda Bandos Resort — Мальдивы'],
+    109 => ['name' => 'Pickalbatros Aqua Vista', 'source' => '82', 'target' => '819', 'date' => '2024-08-26T07:53:27Z',
+        'rank' => 58, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 1, 'previous_feed_price' => 99467, 'country' => 'EG', 'locality' => 'Хургада', 'archived_offer' => 'Coral Rock By Bansei — Хиккадува · истёкшее предложение другого направления, как в принятом пилоте'],
+    125 => ['name' => 'Pickalbatros Aqua Blu Sharm', 'source' => '77', 'target' => '852', 'date' => '2024-09-13T07:37:38Z',
+        'rank' => 60, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 1, 'previous_feed_price' => 130801, 'country' => 'EG', 'locality' => 'Шарм эль Шейх', 'archived_offer' => 'The Cove Rotana Resort — Рас-эль-Хайма · истёкшее предложение другого направления, как в принятом пилоте'],
+    133 => ['name' => 'Pickalbatros Aqua Park Hurghada', 'source' => '735', 'target' => '867', 'date' => '2024-09-23T07:23:34Z',
+        'rank' => 61, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 1, 'previous_feed_price' => 99467, 'country' => 'EG', 'locality' => 'Хургада', 'archived_offer' => 'Tangerine Beach — Шри-Ланка · истёкшее предложение другого направления, как в принятом пилоте'],
+    247 => ['name' => 'Long Beach Resort Hurghada', 'source' => '206', 'target' => '889', 'date' => '2024-10-04T07:22:06Z',
+        'rank' => 65, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 1, 'previous_feed_price' => 107934, 'country' => 'EG', 'locality' => 'Хургада', 'archived_offer' => 'Club Bentota — Бентота · истёкшее предложение другого направления, как в принятом пилоте'],
+    272 => ['name' => 'Continental Hotel Hurghada', 'source' => '117', 'target' => '894', 'date' => '2024-10-08T07:31:26Z',
+        'rank' => 68, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 1, 'previous_feed_price' => 118323, 'country' => 'EG', 'locality' => 'Хургада', 'archived_offer' => 'Thaproban Pavilion Waves — Унаватуна · истёкшее предложение другого направления, как в принятом пилоте'],
+    287 => ['name' => 'Kempinski Hotel Soma Bay', 'source' => '95', 'target' => '964', 'date' => '2024-12-25T11:31:23Z',
+        'rank' => 69, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 1, 'previous_feed_price' => 144990, 'country' => 'EG', 'locality' => 'Хургада', 'archived_offer' => 'Тур в отель Rove Dubai Marina · истёкшее предложение другого направления, как в принятом пилоте'],
+    302 => ['name' => 'Lotus Bay Beach Resort', 'source' => '222', 'target' => '972', 'date' => '2025-01-08T09:25:11Z',
+        'rank' => 70, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 1, 'previous_feed_price' => null, 'country' => 'EG', 'locality' => 'Сафага', 'archived_offer' => 'The Cove Rotana Resort — Рас-эль-Хайма · истёкшее предложение другого направления, как в принятом пилоте'],
+    441 => ['name' => 'Siva Grand Beach', 'source' => '121', 'target' => '1001', 'date' => '2025-01-31T12:19:27Z',
+        'rank' => 76, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 1, 'previous_feed_price' => 97917, 'country' => 'EG', 'locality' => 'Хургада', 'archived_offer' => 'Voco Monaco Dubai — Дубай · истёкшее предложение другого направления, как в принятом пилоте'],
+    599 => ['name' => 'Centara Grand Mirage Beach Resort Pattaya', 'source' => '839', 'target' => '995', 'date' => '2025-01-17T10:26:03Z',
+        'rank' => 79, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 1, 'previous_feed_price' => 239394, 'country' => 'TH', 'locality' => 'Паттайя', 'archived_offer' => 'The Zign Hotel — Паттайя'],
+    632 => ['name' => 'Dusit Thani Pattaya', 'source' => '928', 'target' => '955', 'date' => '2024-12-11T11:51:20Z',
+        'rank' => 80, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 1, 'previous_feed_price' => 215376, 'country' => 'TH', 'locality' => 'Паттайя', 'archived_offer' => 'Sugar Marina Resort Lagoon Villas Naiyang Beach — Пхукет, Най-Янг'],
+    706 => ['name' => 'Paradox Resort Phuket', 'source' => '853', 'target' => '355', 'date' => '2024-01-22T12:03:24Z',
+        'rank' => 81, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 1, 'previous_feed_price' => 186619, 'country' => 'TH', 'locality' => 'Пхукет', 'archived_offer' => 'Island Escape by Burasari — Пхукет, Кокосовый остров'],
+    954 => ['name' => 'Akka Alinda Hotel', 'source' => '393', 'target' => '1055', 'date' => '2025-03-21T07:50:01Z',
+        'rank' => 85, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 1, 'previous_feed_price' => 99189, 'country' => 'TR', 'locality' => 'Кириш', 'archived_offer' => 'Bergiz Hotels & Resorts Kemer — Кемер'],
+    955 => ['name' => 'Akka Antedon Hotel', 'source' => '392', 'target' => '1095', 'date' => '2025-05-11T07:44:37Z',
+        'rank' => 86, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 1, 'previous_feed_price' => 112533, 'country' => 'TR', 'locality' => 'Бельдиби', 'archived_offer' => 'Fun&Sun Family Club Saphire'],
+    1032 => ['name' => 'Acanthus Cennet Barut Collection', 'source' => '387', 'target' => '1069', 'date' => '2025-04-07T08:06:05Z',
+        'rank' => 89, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 1, 'previous_feed_price' => 137977, 'country' => 'TR', 'locality' => 'Сиде', 'archived_offer' => 'Selectum Family Resort Side, прошедший бархатный сезон'],
+    1055 => ['name' => 'Blue Star Hotel', 'source' => '419', 'target' => '1090', 'date' => '2025-05-03T07:50:18Z',
+        'rank' => 91, 'demand_platform' => 'max', 'dialogues' => 1, 'entries' => 1, 'previous_feed_price' => 111242, 'country' => 'TR', 'locality' => 'Аланья', 'archived_offer' => 'Kaia Coracseium, сезон 2025'],
 ];
-const PAIR_DIGEST = '695a72171a90fdbe8daf3d94f5bf9bb82892c791e830f9758a25c5a4e532bd01';
+const PAIR_DIGEST = '0a73044324602de59bc00862c85454420d5b26f9021eb84e87882600fbf38e67';
 
 
 function requireRead(bool $ok, string $reason): void
@@ -208,10 +286,10 @@ try {
     foreach (PAIRS as $id => $row) {
         $data[] = [$id, (int) $row['source'], (int) $row['target'], $row['date']];
     }
-    requireRead(count($data) === 2 && count(array_unique(array_column($data, 1))) === 2
-        && count(array_unique(array_column($data, 2))) === 2
-        && !array_intersect(array_column($data, 0), [800,408,466,17595,393,358,1260])
-        && !array_intersect(array_column($data, 2), [1588,997,1101,862,1083,328,288,1678])
+    requireRead(count($data) === 40 && count(array_unique(array_column($data, 1))) === 40
+        && count(array_unique(array_column($data, 2))) === 40
+        && !array_intersect(array_column($data, 0), [800,408,466,17595,393,358,1260,64918,996])
+        && !array_intersect(array_column($data, 2), [17, 19, 23, 37, 48, 82, 192, 196, 204, 220, 224, 249, 266, 288, 316, 328, 346, 372, 402, 414, 455, 474, 483, 526, 540, 567, 588, 594, 626, 646, 716, 809, 862, 884, 901, 905, 906, 908, 909, 913, 914, 915, 917, 918, 920, 923, 924, 925, 927, 928, 930, 948, 949, 951, 952, 954, 957, 963, 969, 970, 982, 993, 997, 999, 1003, 1012, 1016, 1020, 1037, 1042, 1043, 1046, 1049, 1051, 1052, 1057, 1059, 1063, 1083, 1087, 1098, 1101, 1110, 1131, 1148, 1150, 1207, 1227, 1292, 1312, 1469, 1484, 1588, 1652, 1678, 1754, 1760, 1779, 1780, 1782, 1784, 1787, 1788, 1789, 1790, 1792])
         && hash_equals(PAIR_DIGEST, hash('sha256', jsonRead($data))), 'input_packet_changed');
     runtimeRead();
     requireRead(realpath(OPERATIONS) === OPERATIONS, 'operations_root_changed');
@@ -223,7 +301,19 @@ try {
     }
     runtimeRead();
     require_once APP . '/hotel-posts-telegram-main19.php';
-    $feed = anytourTelegramFeedOfferUrls(anytourTelegramFeedRead());
+    $catalogue = anytourTelegramFeedRead();
+    $out['ranked_feed_sha256'] = '22407f75b33b9d4e7da0c09c6d07ec352a7da5aaa16521b6c524a4284e75c56d';
+    $out['current_feed_sha256'] = hash('sha256',$catalogue);
+    $feed = anytourTelegramFeedOfferUrls($catalogue);
+    $catalogueDoc = new DOMDocument();
+    requireRead($catalogueDoc->loadXML($catalogue,LIBXML_NONET|LIBXML_NOCDATA), 'catalogue_xml_invalid');
+    $metadata = [];
+    foreach ($catalogueDoc->getElementsByTagName('offer') as $offer) {
+        $id = $offer->getAttribute('id');
+        if (!preg_match('/^tg_([1-9][0-9]*)$/D',$id,$match) || !isset(PAIRS[(int)$match[1]])) continue;
+        $metadata[$id] = ['locality'=>trim((string)$offer->getElementsByTagName('custom_label_1')->item(0)?->textContent),
+            'price'=>trim((string)$offer->getElementsByTagName('price')->item(0)?->textContent)];
+    }
     requireRead(count($feed) > 0, 'feed_inventory_unavailable');
     $landings = anytourTelegramFeedDestinationPosts($feed);
     // Both possible destinations of the two table-backed rows remain reserved.
@@ -337,6 +427,7 @@ try {
         $blockers = [];
         $targetUrl = 'https://t.me/anytour/' . $pair['target'];
         if (($feed['tg_' . $hotel] ?? null) !== 'https://t.me/any_toour/' . $pair['source']) $blockers[] = 'source_offer_changed';
+        if (($metadata['tg_'.$hotel]['locality'] ?? null) !== $pair['locality']) $blockers[] = 'selected_catalogue_locality_changed';
         if (isset($protectedTargets[$targetUrl])) $blockers[] = 'target_used_by_live_telegram_offer';
         if ($pair['target'] === $currentPin) $blockers[] = 'target_is_current_channel_pin';
         if (($targetPublic['buttons'] ?? null) !== []) $blockers[] = 'target_buttons_changed';
@@ -354,6 +445,10 @@ try {
             'target_media_lock_free' => $free !== false && $free !== null && (int) $free === 1,
             'prior_media_operation_directory_exists' => file_exists($directory), 'prior_media_operation' => $journal,
             'existing_large_channel_hotel_registry_matches' => $existing, 'large_max_hotel_already_registered' => $existingMax !== [],
+            'demand_rank' => $pair['rank'], 'demand_platform' => $pair['demand_platform'],
+            'distinct_dialogues' => $pair['dialogues'], 'entries' => $pair['entries'],
+            'previous_catalogue_price_rub' => $pair['previous_feed_price'], 'source_country' => $pair['country'],
+            'source_locality' => $pair['locality'], 'current_catalogue_price_raw' => $metadata['tg_'.$hotel]['price'] ?? null, 'previous_target_offer' => $pair['archived_offer'],
             'source_matches' => $sourceMatches,
             'historical_target_matches' => $targetMatches,
             'preview_blockers' => $blockers, 'preview_ready' => $blockers === []];
