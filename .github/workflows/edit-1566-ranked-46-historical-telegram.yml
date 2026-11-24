@@ -1,7 +1,7 @@
 name: "#1566 Apply approved ranked Telegram hotel transfers"
 on:
   push:
-    branches: [ops/anytour-hotel-ranked-46-apply-20261123, ops/anytour-hotel-ranked-37-continue-20261123]
+    branches: [ops/anytour-hotel-ranked-46-apply-20261123, ops/anytour-hotel-ranked-37-continue-20261123, ops/anytour-hotel-ranked-resume-20261124]
 permissions:
   contents: read
   actions: read
@@ -48,6 +48,8 @@ jobs:
               check=--check-ranked-transfer-plan ;;
             refs/heads/ops/anytour-hotel-ranked-37-continue-20261123:hotel_ranked_37_continuation)
               check=--check-ranked-continuation ;;
+            refs/heads/ops/anytour-hotel-ranked-resume-20261124:hotel_ranked_resume)
+              check=--check-ranked-resume ;;
             *) exit 2 ;;
           esac
           test "$REPOSITORY_SHA" = "$GITHUB_SHA"
@@ -76,10 +78,10 @@ jobs:
           chunks=[{'path': 'config/anytour_ranked_46_20261123_01.json', 'bytes': 62146, 'git_blob': '5a5c31c0e73784e203643ed51d8ec1c9d079b3bd', 'sha256': '12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce', 'hotels': [15693, 293, 949, 1972, 2588, 24909, 32342, 57028, 65877, 73343, 43689, 47025, 139, 435, 513, 2470, 56092, 59114, 63191, 76588, 77914, 106, 111, 114, 140, 195, 206, 231, 246, 263, 266, 371, 416, 465, 497, 932, 948, 964, 975, 1013], 'messages': ['224', '249', '266', '316', '346', '372', '594', '626', '646', '716', '884', '901', '905', '906', '908', '914', '915', '917', '918', '923', '924', '928', '930', '948', '949', '952', '963', '969', '970', '999', '1003', '1037', '1051', '1052', '1057', '1059', '1087', '1110', '1131', '920'], 'operation': 'anytour_hotel_transfer_46_20261123_01'}]
           out={}
           for item in chunks:
-              if os.environ['WRITE_OPERATION']=='hotel_ranked_37_continuation':
+              if os.environ['WRITE_OPERATION'] in {'hotel_ranked_37_continuation','hotel_ranked_resume'}:
                   item['hotels']=item['hotels'][3:]
                   item['messages']=item['messages'][3:]
-                  item['operation']='anytour_hotel_transfer_ranked_remaining37_20261123'
+                  item['operation']='anytour_hotel_transfer_ranked_resume_20261124' if os.environ['WRITE_OPERATION']=='hotel_ranked_resume' else 'anytour_hotel_transfer_ranked_remaining37_20261123'
               digest=item['sha256']
               checked=json.loads(pathlib.Path('pub/check-'+digest+'.json').read_bytes())
               assert checked['ok'] is True and checked['mode']=='offline_plan_check' and checked['operation']==item['operation']
@@ -141,6 +143,8 @@ jobs:
           apply=--apply-ranked-transfer
           if [[ "$GITHUB_REF" == refs/heads/ops/anytour-hotel-ranked-37-continue-20261123 ]]; then
             apply=--apply-ranked-continuation
+          elif [[ "$GITHUB_REF" == refs/heads/ops/anytour-hotel-ranked-resume-20261124 ]]; then
+            apply=--apply-ranked-resume
           fi
           remote='set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru'
           for digest in 12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce; do
@@ -186,7 +190,7 @@ jobs:
               else:
                   assert row.get('ok') is False
                   if i!=len(rows)-1:
-                      assert os.environ['GITHUB_REF']=='refs/heads/ops/anytour-hotel-ranked-37-continue-20261123'
+                      assert os.environ['GITHUB_REF'] in {'refs/heads/ops/anytour-hotel-ranked-37-continue-20261123','refs/heads/ops/anytour-hotel-ranked-resume-20261124'}
                       rejected=row['state']=='provider_message_id_rejected' and row['provider_write_attempts']==1
                       stale=(row['state']=='held_before_provider' and row.get('reason')=='transfer_source_revision_advanced'
                              and row['provider_write_attempts']==0 and ('reserved_publication_id' not in row
@@ -197,16 +201,21 @@ jobs:
                                 and row['provider_write_attempts']==1 and row.get('shared_access_rechecked') is True)
                       local_hold=(row['state']=='held_before_provider' and row['provider_write_attempts']==0
                                   and 'reserved_publication_id' not in row and row.get('reason') in {
-                                  'transfer_target_identity_exists','transfer_hotel_already_in_large_channel','transfer_target_editor_busy'})
+                                  'transfer_target_identity_exists','transfer_hotel_already_in_large_channel','transfer_target_editor_busy',
+                                  'transfer_ranked_source_offer_changed','transfer_ranked_target_in_use','public_identity_changed'})
                       prior=(row['state']=='held_before_provider' and row['provider_write_attempts']==0
-                             and row.get('reason')=='transfer_current_run_journal_requires_readback'
+                             and row.get('reason') in {'transfer_current_run_journal_requires_readback','transfer_previous_run_journal_requires_readback'}
+                             and (row.get('reason')!='transfer_previous_run_journal_requires_readback' or os.environ['GITHUB_REF']=='refs/heads/ops/anytour-hotel-ranked-resume-20261124')
                              and row.get('prior_terminal_state') in {'native_and_registry_verified','provider_message_id_rejected','response_saved_completion_requires_readback'}
                              and len(row.get('prior_journal_sha256',''))==64
                              and all(ch in '0123456789abcdef' for ch in row['prior_journal_sha256']))
-                      assert rejected or stale or isolated or local_hold or prior,'nonlocal_error_must_end_batch'
+                      prewrite=(row['state']=='held_before_provider' and row['provider_write_attempts']==0
+                                and row.get('reason')=='public_identity_changed' and row.get('local_prewrite_hold_recorded') is True
+                                and type(row.get('reserved_publication_id')) is int and row['reserved_publication_id']>0)
+                      assert rejected or stale or isolated or local_hold or prior or prewrite,'nonlocal_error_must_end_batch'
                       isolated_transport_loss |= isolated
                   held.append({k:row[k] for k in ('hotel_id','message_id','state','reason','reserved_publication_id',
-                      'provider_write_attempts','shared_access_rechecked','shared_access_error','prior_journal_sha256','prior_terminal_state') if k in row})
+                      'provider_write_attempts','shared_access_rechecked','shared_access_error','prior_journal_sha256','prior_terminal_state','prior_public_readback_verified','prior_readback_reason','local_prewrite_hold_recorded') if k in row})
           assert d.get('provider_write_attempts')==sum(r['provider_write_attempts'] for r in rows)
           ok=status==0 and d.get('ok') is True and confirmed==item['hotels'] and not held
           state.update(state='complete' if ok else 'partial_requires_readback',confirmed=confirmed,held=held,unreached=item['hotels'][len(rows):])
