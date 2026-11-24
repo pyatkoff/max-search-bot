@@ -7,18 +7,20 @@ const {BASELINE_DIGEST, DIAGNOSTICS, baselineBytes, historical} = require('./par
 const MAIN = '32155b9eb2c8606b61554951bfdc988d70bbcb39';
 const HEAD = '9b0a8a5a4dc252b977f95bee2b890287cdbbec1f';
 const INSTALL_JOB = 138531045324;
-// The observed independent preflight 45419815585/1 timed out without an HTTP response.
-// A successful independently authenticated run, exact job and native log digest are required.
-const PUBLIC_RECEIPT = null;
+// Original public job 138548534994 returned HTTP 403 after the earlier timeout.
+const PUBLIC_RECEIPT = Object.freeze({run:45423348960, job:138548534994, workflow:429184693,
+  source:'11383f149cc1758c56ae76197345742ace3aed92',
+  log:'a332f08bfdd84f690623724a4770d25fa08f7be1be3993a5d13f04a29c09e8b7'});
 const WORKFLOW = 'pr1702-partial-install-preflight.yml';
-const PROBE_BLOB = '5a471e84bfa5af39b2f02e4d8f25bc073770017d';
-const BRANCH = 'audit/pr1702-partial-install-preflight-20261124';
+const PROBE_BLOB = '1368bebd5f3a032a54f6b16ffd98b9c4e87590e5';
+const BRANCH = 'audit/pr1702-partial-install-preflight-recovered-20261124';
 const FILES = {
   '.github/workflows/deploy.yml':'modified',
   'resources/max2-common-v2/release-manifest.json':'modified',
   'tests/run_deployment_release_regression.js':'modified',
   'tests/run_partial_install_1662_forward_sync.py':'modified',
   'tests/run_partial_install_1702_forward_regression.js':'added',
+  'tests/fixtures/pr1702/public-containment-45423348960.json.gz':'added',
   'tools/deployment_release.js':'modified',
   'tools/partial_install_1662_forward.js':'modified',
   'tools/partial_install_1702_evidence.js':'added',
@@ -27,7 +29,7 @@ const FILES = {
 };
 
 function allowedLog(id) {
-  return id === INSTALL_JOB || (PUBLIC_RECEIPT !== null && id === PUBLIC_RECEIPT.job);
+  return id === INSTALL_JOB || id === PUBLIC_RECEIPT.job;
 }
 function requireProof(ok, reason) {
   if (!ok) throw new Error('partial-install-1702: ' + reason);
@@ -35,7 +37,6 @@ function requireProof(ok, reason) {
 
 async function publicEvidence(api) {
   const p = PUBLIC_RECEIPT;
-  requireProof(p !== null, 'positive public containment receipt pending');
   const [run, commit, relation, all, records, artifacts, rawLog] = await Promise.all([
     api.get('/actions/runs/' + p.run), api.get('/git/commits/' + p.source),
     api.get('/compare/' + MAIN + '...' + p.source + '?per_page=1'), census(api,p.source),
@@ -62,7 +63,6 @@ async function publicEvidence(api) {
 }
 
 async function provePartialInstall1702Forward(options) {
-  requireProof(PUBLIC_RECEIPT !== null, 'positive public containment receipt pending');
   const spec = {
     previousPr:1702, main:MAIN, head:HEAD,
     binding:{comment_id:6818332618, head_sha:HEAD, owner_id:226193297, updated_at:'2026-11-24T14:35:09Z'},

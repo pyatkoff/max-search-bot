@@ -14,13 +14,43 @@ test('an untrusted installation cannot read proof data or advance the publisher'
   assert.equal(count, 0);
 });
 
-test('the failed public preflight cannot release the occupied publisher', async () => {
+// These native response fields and the original log are retained from the successful
+// read-only job. The live admission performs its own authorized GitHub GETs.
+function publicSnapshot() {
+  const fs = require('node:fs'), zlib = require('node:zlib'), path = require('node:path');
+  return JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(__dirname,
+    'fixtures/pr1702/public-containment-45423348960.json.gz'))));
+}
+function publicApi(snapshot) {
+  return {get: async path => {
+    assert.ok(Object.hasOwn(snapshot.api,path), 'unexpected public API read: '+path);
+    return snapshot.api[path];
+  }, jobLog: async id => {
+    assert.equal(id,138548534994);
+    return snapshot.job_log;
+  }};
+}
+test('only the original successful public HEAD and installer logs are admitted', async () => {
   const proof = require('../tools/partial_install_1702_forward');
   assert.equal(proof.allowedLog(138531045324), true);
+  assert.equal(proof.allowedLog(138548534994), true);
   assert.equal(proof.allowedLog(138535934949), false);
   assert.equal(proof.allowedLog(null), false);
-  await assert.rejects(proof.publicEvidence({}), /positive public containment receipt pending/);
+  assert.equal(await proof.publicEvidence(publicApi(publicSnapshot())),403);
 });
+for (const [reason,change] of [
+  ['different log bytes', s => { s.job_log += 'x'; }],
+  ['foreign workflow source', s => { Object.entries(s.api).find(([url]) => url.startsWith('/compare/'))[1].files[0].sha='0'.repeat(40); }],
+  ['replayed public run', s => { s.api['/actions/runs/45423348960'].run_attempt=2; }],
+  ['editor not read-only', s => { s.api['/actions/runs/45423348960/artifacts?per_page=100']={total_count:1,artifacts:[{id:10}]}; }],
+  ['guard timeout', s => { s.api['/actions/runs/45423348960/attempts/1/jobs?per_page=100'].jobs[0].steps[2].conclusion='failure'; }],
+]) {
+  test('rejects public evidence with '+reason, async () => {
+    const snapshot=publicSnapshot();
+    change(snapshot);
+    await assert.rejects(require('../tools/partial_install_1702_forward').publicEvidence(publicApi(snapshot)));
+  });
+}
 
 const {proveCheckedSuccessor} = require('../tools/partial_install_1662_forward');
 
