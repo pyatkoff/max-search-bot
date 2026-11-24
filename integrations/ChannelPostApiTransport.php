@@ -163,7 +163,7 @@ final class ChannelPostApiTransport
         $raw = ''; $ch = curl_init($url);
         $options = $tls + [
             CURLOPT_RETURNTRANSFER => false, CURLOPT_FOLLOWLOCATION => false,
-            CURLOPT_CONNECTTIMEOUT => 2, CURLOPT_TIMEOUT => 6,
+            CURLOPT_CONNECTTIMEOUT => 2, CURLOPT_TIMEOUT => $hotelMedia ? 15 : 6,
             CURLOPT_CUSTOMREQUEST => $method, CURLOPT_HTTPHEADER => $headers,
             CURLOPT_WRITEFUNCTION => static function ($handle, string $chunk) use (&$raw): int {
                 if (strlen($raw) + strlen($chunk) > 2097152) return 0;
@@ -172,10 +172,16 @@ final class ChannelPostApiTransport
         ];
         if ($encoded !== null) $options[CURLOPT_POSTFIELDS] = $encoded;
         curl_setopt_array($ch, $options);
-        $ok = curl_exec($ch); $http = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE); $error = curl_errno($ch) !== 0 || $ok === false;
+        $ok = curl_exec($ch);
+        $http = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $errno = curl_errno($ch);
+        $error = $errno !== 0 || $ok === false;
+        $diagnostics = $hotelMedia && $error
+            ? ['curl_errno' => $errno, 'elapsed_ms' => (int)round(1000 * curl_getinfo($ch, CURLINFO_TOTAL_TIME))]
+            : [];
         curl_close($ch);
         $decoded = !$error ? json_decode($raw, true, 64) : null;
-        return ['http' => $http, 'data' => is_array($decoded) ? $decoded : null, 'transport_error' => $error];
+        return ['http' => $http, 'data' => is_array($decoded) ? $decoded : null, 'transport_error' => $error] + $diagnostics;
     }
 
     /** Fixed hosts, strict TLS, bounded bodies/deadlines; no raw provider logging. */

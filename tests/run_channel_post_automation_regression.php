@@ -1283,7 +1283,7 @@ foreach (['public_before_claim','public_before_write','config_before_write','nat
 // No application secrets are loaded and native curl can never contact Telegram.
 foreach (['CURLOPT_SSL_VERIFYPEER','CURLOPT_SSL_VERIFYHOST','CURLOPT_RETURNTRANSFER','CURLOPT_FOLLOWLOCATION',
     'CURLOPT_CONNECTTIMEOUT','CURLOPT_TIMEOUT','CURLOPT_CUSTOMREQUEST','CURLOPT_HTTPHEADER',
-    'CURLOPT_WRITEFUNCTION','CURLOPT_POSTFIELDS','CURLINFO_HTTP_CODE'] as $index => $constant) {
+    'CURLOPT_WRITEFUNCTION','CURLOPT_POSTFIELDS','CURLINFO_HTTP_CODE','CURLINFO_TOTAL_TIME'] as $index => $constant) {
     define('HotelMediaApiFixture\\'.$constant, 20000 + $index);
 }
 $GLOBALS['hotel_media_http'] = [];
@@ -1296,11 +1296,15 @@ function curl_init(string $url): object { return (object)['url'=>$url,'options'=
 function curl_setopt_array(object $handle, array $options): bool { $handle->options=$options; return true; }
 function curl_exec(object $handle): bool {
     $GLOBALS['hotel_media_http'][]=['url'=>$handle->url,'options'=>$handle->options];
+    if (!empty($GLOBALS['hotel_media_fixture_timeout'])) return false;
     ($handle->options[CURLOPT_WRITEFUNCTION])($handle,'{"ok":true,"result":{"message_id":862}}');
     return true;
 }
-function curl_getinfo(object $handle, int $option): int { return 200; }
-function curl_errno(object $handle): int { return 0; }
+function curl_getinfo(object $handle, int $option): int|float {
+    if ($option === CURLINFO_TOTAL_TIME) return 15.012;
+    return empty($GLOBALS['hotel_media_fixture_timeout']) ? 200 : 0;
+}
+function curl_errno(object $handle): int { return empty($GLOBALS['hotel_media_fixture_timeout']) ? 0 : 28; }
 function curl_close(object $handle): void {}
 FIXTURE);
 $hotelTransportSource = (string)file_get_contents(__DIR__.'/../integrations/ChannelPostApiTransport.php');
@@ -1333,7 +1337,19 @@ channelPostCheck('hotel media preserves strict TLS, no redirects and original de
         HotelMediaApiFixture\CURLOPT_SSL_VERIFYPEER,HotelMediaApiFixture\CURLOPT_SSL_VERIFYHOST,
         HotelMediaApiFixture\CURLOPT_FOLLOWLOCATION,HotelMediaApiFixture\CURLOPT_CONNECTTIMEOUT,
         HotelMediaApiFixture\CURLOPT_TIMEOUT,HotelMediaApiFixture\CURLOPT_CUSTOMREQUEST]),
-    [true,2,false,2,6,'POST']);
+    [true,2,false,2,15,'POST']);
+$GLOBALS['hotel_media_fixture_timeout'] = true;
+$attemptCount = count($GLOBALS['hotel_media_http']);
+$timeoutResult = HotelMediaApiFixture\ChannelPostApiTransport::hotelMediaRequest('-1001845835645','862',$hotelMediaBody);
+channelPostCheck('uncertain hotel media edit saves numeric transport facts after exactly one attempt',
+    [$timeoutResult, count($GLOBALS['hotel_media_http']) - $attemptCount],
+    [['http'=>0, 'data'=>null, 'transport_error'=>true, 'curl_errno'=>28, 'elapsed_ms'=>15012], 1]);
+$ordinary = HotelMediaApiFixture\ChannelPostApiTransport::buttonRequest('telegram','POST','getMe',[],[]);
+$ordinaryWire = end($GLOBALS['hotel_media_http']);
+channelPostCheck('ordinary Telegram calls retain their time budget and response shape',
+    [$ordinaryWire['options'][HotelMediaApiFixture\CURLOPT_CONNECTTIMEOUT], $ordinaryWire['options'][HotelMediaApiFixture\CURLOPT_TIMEOUT], $ordinary],
+    [2,6,['http'=>0, 'data'=>null, 'transport_error'=>true]]);
+unset($GLOBALS['hotel_media_fixture_timeout']);
 
 $hotelMediaDeny = static function(string $case, array $body, string $channel='-1001845835645', string $mid='862'): void {
     $before=count($GLOBALS['hotel_media_http']);
