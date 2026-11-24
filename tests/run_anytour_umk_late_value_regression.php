@@ -203,4 +203,6 @@ require_once dirname(__DIR__).'/services/AnyTourUmkEarlyProofReader.php';
     $db->exec('UPDATE anytour_umk_late_settings SET activated_at_unix=130');
     checkUmk(AnyTourUmkEarlyProofReader::read($db,5)===null,'old inquiries excluded');
 })();
+require_once __DIR__.'/fixtures/anytour_umk_operator.php';
+checkAnyTourUmkOperator($work,$worker,$epoch);
 echo "UMK late value accounting and delivery PASS\n";
