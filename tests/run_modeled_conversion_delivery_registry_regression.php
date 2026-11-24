@@ -349,6 +349,91 @@ function dailyReconciliationAssertions(PDO $p,callable $check):void
     }
 }
 
+function visitLedgerSnapshotAssertions(PDO $p, callable $check): void
+{
+    require_once dirname(__DIR__).'/services/ModeledConversionVisitLedgerSnapshot.php';
+    $day = strtotime('2026-11-02T08:00:00Z');
+    $now = $day + 6000;
+    $ids = [];
+    $p->beginTransaction();
+    try {
+        $oldest = deliveryRegistryFixtureEvent($p, 18000, 1, $day + 10, ['state'=>'processed', 'value'=>100]);
+        $ids[] = $oldest;
+        for ($i = 0; $i < 4095; ++$i) {
+            $ids[] = deliveryRegistryFixtureEvent($p, 18001, 1, $day + 20 + $i, ['predictive'=>true]);
+        }
+        $newest = deliveryRegistryFixtureEvent($p, 18000, 2, $day + 5000, ['state'=>'processed', 'value'=>17]);
+        $ids[] = $newest;
+        $bind = $p->prepare('UPDATE max_channel_conversion_outbox SET client_id=?,upload_id=? WHERE id=?');
+        $bind->execute(['900000000000000015','801',$oldest]);
+        $bind->execute(['900000000000000015','802',$newest]);
+        $foreign = deliveryRegistryFixtureEvent($p, 18002, 1, $day + 5100);
+        $p->prepare("UPDATE max_channel_conversion_outbox SET transport_target='anytour_modeled_value_v2_max2' WHERE id=?")->execute([$foreign]);
+        $p->commit();
+
+        $snapshot = ModeledConversionVisitLedgerSnapshot::capture($p);
+        $seen = [];
+        $nestedFirst = null;
+        foreach ($snapshot as $row) {
+            $seen[] = (string)$row['id'];
+            if (count($seen) === 3) {
+                foreach ($snapshot as $nested) {
+                    $nestedFirst = (string)$nested['id'];
+                    break;
+                }
+            }
+        }
+        $check('paged snapshot returns all 4097 admitted V1 IDs once in order across nested iteration',
+            !$p->inTransaction() && count($snapshot) === 4097 && $seen === array_reverse($ids) && $nestedFirst === $newest);
+
+        // A late update below the cursor must not change an already captured snapshot.
+        $p->prepare("UPDATE max_channel_conversion_outbox SET value_stage='invalid' WHERE id=?")->execute([$oldest]);
+        $api = new class($day) {
+            public array $polls = [];
+            public function __construct(private int $day) {}
+            public function poll(string $upload): array {
+                $this->polls[] = $upload;
+                return ['id'=>$upload, 'status'=>'PROCESSED', 'source_quantity'=>1, 'line_quantity'=>1];
+            }
+            public function modeledValueVisits(string $client, int $activation, int $now): array {
+                return ['status'=>'ok','visits'=>[['started_at'=>gmdate('c',$this->day),
+                    'visits'=>1,'goal_reaches'=>1,'revenue_rub'=>17]]];
+            }
+        };
+        $verify = static fn($ledger): array => ModeledConversionVisitProof::verify($ledger, $api, $day, $day, $now, [$newest]);
+        $receipt = $verify($snapshot);
+        $event = $receipt['events'][0];
+        $check('uploads for one ClientID on opposite pages cannot reconcile a visit that matches only the newest page',
+            $receipt['ledger_complete'] && $receipt['selected_rows'] === 1 && $receipt['other_rows_omitted'] === 4096
+            && $event['outbox_id'] === $newest && $event['reason'] === 'goal_count_or_value_mismatch'
+            && $event['linkage'] === 'unverified' && $event['expected_goal_reaches'] === 2
+            && (float)$event['expected_goal_value_rub'] === 117.0 && $api->polls === ['802','801']);
+        $check('daily claim and processing totals use both ends of the same snapshot',
+            $receipt['today_sent_cohort']['by_platform']['max']['sent'] === ['events'=>2,'conversations'=>1,'value_rub'=>117]
+            && $receipt['today_sent_cohort']['by_platform']['max']['processed']['events'] === 2);
+        $closed = false;
+        try {
+            $verify(ModeledConversionVisitLedgerSnapshot::capture($p));
+        } catch (RuntimeException $error) {
+            $closed = $error->getMessage() === 'verification_invalid_ledger';
+        }
+        $check('a fresh snapshot rejects an invalid oldest row before any provider lookup',
+            $closed && !$p->inTransaction() && $api->polls === ['802','801']);
+        $expired = false;
+        try {
+            ModeledConversionVisitLedgerSnapshot::capture($p, microtime(true) - 1);
+        } catch (RuntimeException $error) {
+            $expired = $error->getMessage() === 'verification_snapshot_deadline';
+        }
+        $check('an expired capture returns no snapshot and releases its transaction', $expired && !$p->inTransaction());
+    } finally {
+        if ($p->inTransaction()) $p->rollBack();
+        foreach (['max_channel_conversion_outbox','modeled_conversion_profile_versions','conversations','customer_channels','customers'] as $table) {
+            $p->exec('DELETE FROM '.$table);
+        }
+    }
+}
+
 function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
 {
     $day=(new DateTimeImmutable('2026-11-02 00:00:00',new DateTimeZone('Europe/Moscow')))->getTimestamp();$now=$day+8000;
@@ -1122,6 +1207,9 @@ function deliveryRegistryAssertions(PDO $p,callable $check):void
     forecastPaymentAssertions($p,$check);
     deliveryRegistrySchema($p);
     dailyReconciliationAssertions($p,$check);
+    visitLedgerSnapshotAssertions($p,$check);
+    require_once __DIR__.'/modeled_visit_summary_growth_fixture.php';
+    modeledVisitSummaryGrowthAssertions($check);
     deliveryPredictiveAndVisitAssertions($p,$check);
     deliveryRegistryValueCapAssertions($p,$check);
     deliveryRegistryMoscowAssertions($p,$check);
@@ -1288,5 +1376,8 @@ if(realpath((string)($_SERVER['SCRIPT_FILENAME']??''))===__FILE__){
     $passed=0;$check=static function(string $name,bool $ok)use(&$passed):void{
         if(!$ok)throw new RuntimeException('FAIL '.$name);++$passed;echo 'PASS '.$name.PHP_EOL;
     };
-    deliveryRegistryAssertions($p,$check);echo 'MODELED DELIVERY REGISTRY PASSED '.$passed.PHP_EOL;
+    deliveryRegistryAssertions($p,$check);
+    require_once __DIR__.'/fixtures/modeled_visit_snapshot_race.php';
+    modeledVisitSnapshotRaceAssertions($check);
+    echo 'MODELED DELIVERY REGISTRY PASSED '.$passed.PHP_EOL;
 }

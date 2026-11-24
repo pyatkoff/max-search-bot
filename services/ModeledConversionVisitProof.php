@@ -9,7 +9,7 @@ final class ModeledConversionVisitProof
 {
     public const VERSION='modeled_visit_reconciliation_v1';
     public const MAX_ROWS=32;
-    /** A complete admitted goal ledger is required before visit attribution; fail closed above this bound. */
+    /** Compatibility bound for callers supplying the complete ledger as a PHP array. */
     public const MAX_LEDGER_ROWS=4096;
     private const MAX_BYTES=49152;
     private const REPORT_ZONE='Europe/Moscow';
@@ -43,19 +43,20 @@ final class ModeledConversionVisitProof
 
     public static function ledger(PDO $pdo):array
     {
-        require_once __DIR__.'/ModeledConversionDeliveryRegistry.php';
+        require_once __DIR__.'/ModeledConversionVisitLedgerSnapshot.php';
         $mysql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
-        $q=$pdo->query('SELECT o.id,o.conversation_id,o.project_key,o.counter_id,o.transport_target,o.value_contract,o.platform,o.target,o.value_profile_id,'
-            .'o.value_stage,o.value_rub,o.event_unix,o.client_id,o.upload_id,o.external_user_id,o.state,o.upload_status,o.value_api_accepted_at_unix,o.value_processed_at_unix,o.claimed_at_unix,o.tracker_observed_unix '
-            .ModeledConversionDeliveryRegistry::sourceSql($mysql).' ORDER BY o.id DESC LIMIT '.(self::MAX_LEDGER_ROWS+1));
+        $q=$pdo->query(ModeledConversionVisitLedgerSnapshot::selectSql($mysql).' ORDER BY o.id DESC LIMIT '.(self::MAX_LEDGER_ROWS+1));
         $rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();
         if(count($rows)>self::MAX_LEDGER_ROWS)throw new RuntimeException('verification_ledger_bound');
         return $rows;
     }
-    public static function verify(array $ledger,object $api,int $activation,int $checkpoint,int $now,?array $selectedIds=null,?float $deadline=null,array $retained=[],?int $followupCheckpoint=null):array
+    public static function verify(array|ModeledConversionVisitLedgerSnapshot $ledger,object $api,int $activation,int $checkpoint,int $now,?array $selectedIds=null,?float $deadline=null,array $retained=[],?int $followupCheckpoint=null):array
     {
-        if(count($ledger)>self::MAX_LEDGER_ROWS||$activation<946684800||$checkpoint<$activation||$checkpoint>$now)throw new InvalidArgumentException('verification_scope');
+        if((is_array($ledger)&&count($ledger)>self::MAX_LEDGER_ROWS)||$activation<946684800||$checkpoint<$activation||$checkpoint>$now)throw new InvalidArgumentException('verification_scope');
         $cohort=[];$other=[];$ids=[];
+        $order=$selectedIds===null?null:array_flip($selectedIds);
+        // Snapshot capture already checked strict primary-key ordering across every page.
+        $checkDuplicateIds=is_array($ledger);
         foreach($ledger as$r){
             if(($r['project_key']??null)!=='anytour'||(string)($r['counter_id']??'')!=='98615635'
                 ||($r['transport_target']??null)!==ModeledConversionValueContract::TARGET
@@ -67,7 +68,7 @@ final class ModeledConversionVisitProof
                 ||preg_match('/\A[1-9][0-9]{0,19}\z/D',(string)($r['conversation_id']??''))!==1
                 ||!is_numeric($r['event_unix']??null)||(int)$r['event_unix']<946684800||(int)$r['event_unix']>$now
                 ||isset($ids[(string)$r['id']]))throw new RuntimeException('verification_invalid_ledger');
-            $ids[(string)$r['id']]=true;
+            if($checkDuplicateIds)$ids[(string)$r['id']]=true;
             if(!str_starts_with($r['target'],'anytour_value_pred_')){
                 $rank=array_search($r['value_stage'],ModeledConversionValueContract::STAGES,true);
                 if($rank===false||$r['target']!==ModeledConversionValueContract::key($rank))throw new RuntimeException('verification_stage_binding');
@@ -76,14 +77,14 @@ final class ModeledConversionVisitProof
                 continue;
             }
             if($r['target']!==ModeledConversionValueContract::predictionKey((string)$r['value_profile_id']))throw new RuntimeException('verification_binding');
-            $accepted=(int)($r['value_api_accepted_at_unix']??0);
-            $in=$accepted>0&&$accepted<=$checkpoint&&($r['value_processed_at_unix']===null||(int)$r['value_processed_at_unix']>$checkpoint);
-            if($in)$cohort[]=$r;else $other[]=$r;
+            if(self::inCheckpointCohort($r,$checkpoint)){
+                $cohort[]=$r;
+                if(count($cohort)>self::MAX_ROWS)throw new RuntimeException('verification_cohort_bound');
+            }elseif($order!==null?isset($order[(string)$r['id']]):count($other)<self::MAX_ROWS){
+                $other[]=$r;
+            }
         }
-        if(count($cohort)>self::MAX_ROWS)throw new RuntimeException('verification_cohort_bound');
-        if($selectedIds!==null){
-            $order=array_flip($selectedIds);
-            $other=array_values(array_filter($other,static fn(array $r):bool=>isset($order[(string)$r['id']])));
+        if($order!==null){
             usort($other,static fn(array $a,array $b):int=>$order[(string)$a['id']]<=>$order[(string)$b['id']]);
         }
         $retainedRecords=[];
@@ -187,6 +188,7 @@ final class ModeledConversionVisitProof
             $result['followup_checkpoint_at']=gmdate('Y-m-d\\TH:i:s\\Z',$followupCheckpoint);
             $result['followup_sent_cohort']=self::followupReport($ledger,$records,$followupCheckpoint,$now);
         }
+        if($deadline!==null&&microtime(true)>=$deadline)throw new RuntimeException('verification_request_bound');
         return $result;
     }
     public static function path():string{return dirname(__DIR__,2).'/max-search-bot-modeled-visit-proof/last-check.json';}
@@ -200,7 +202,7 @@ final class ModeledConversionVisitProof
         return $window['allowed']?'eligible_visit_but_provider_linkage_failed':'no_client_visit_in_attribution_window';
     }
     /** Evidence only. A provider failure never becomes delivery credit or permission to resend. */
-    public static function failureAudit(array $row,array $receipt,array $visits,array $goals,array $ledger,int $now,string $correctionStatus='not_recorded'):array
+    public static function failureAudit(array $row,array $receipt,array $visits,array $goals,array|ModeledConversionVisitLedgerSnapshot $ledger,int $now,string $correctionStatus='not_recorded'):array
     {
         $event=(int)$row['event_unix'];$claim=(int)($row['claimed_at_unix']??0);
         $created=is_string($receipt['create_time']??null)?strtotime($receipt['create_time']):false;
@@ -254,15 +256,22 @@ final class ModeledConversionVisitProof
         $a['attribution_source']=$window['source_class'];$a['window_days']=$window['window_days'];
         return $a;
     }
-    /** Newest half plus oldest unchecked half; stable terminal evidence is rechecked daily. */
-    public static function dueIds(array $ledger,int $checkpoint,int $now,callable $prior,int $batch=26):array
+    public static function inCheckpointCohort(array $row,int $checkpoint):bool
     {
-        $due=[];$urgent=[];$repairs=[];$repairKeys=[];$cohort=0;
+        $accepted=(int)($row['value_api_accepted_at_unix']??0);
+        return str_starts_with((string)($row['target']??''),'anytour_value_pred_')&&$accepted>0&&$accepted<=$checkpoint
+            &&($row['value_processed_at_unix']===null||(int)$row['value_processed_at_unix']>$checkpoint);
+    }
+    /** Newest half plus oldest unchecked half; stable terminal evidence is rechecked daily. */
+    public static function dueIds(array|ModeledConversionVisitLedgerSnapshot $ledger,int $checkpoint,int $now,callable $prior,int $batch=26):array
+    {
+        $capacity=max(0,min($batch,self::MAX_ROWS));
+        $newest=[];$oldest=[];$urgent=[];$repairs=[];$cohort=0;
+        $byAge=static fn(array $a,array $b):int=>$a['at']<=>$b['at'];
         foreach($ledger as$r){
             if(!ModeledConversionValueContract::isKey($r['target']??null)||empty($r['upload_id']))continue;
-            $accepted=(int)($r['value_api_accepted_at_unix']??0);
-            if(str_starts_with((string)$r['target'],'anytour_value_pred_')&&$accepted>0&&$accepted<=$checkpoint
-                &&($r['value_processed_at_unix']===null||(int)$r['value_processed_at_unix']>$checkpoint)){$cohort++;continue;}
+            if(self::inCheckpointCohort($r,$checkpoint)){$cohort++;continue;}
+            $id=(string)$r['id'];
             $old=$prior($r);$at=(int)($old['at']??0);$e=$old['event']??[];
             $journal=ModeledConversionWireValue::read($r);
             if($journal!==null&&isset($journal['members'][(string)$r['id']])
@@ -273,32 +282,37 @@ final class ModeledConversionVisitProof
                     ||($journal['state']==='failed'&&($at<$journal['checked_at_unix']
                         ||($e['failure_audit']['wire_correction_status']??null)!=='failed')))){
                 $key=$journal['wire_key'];
-                if($now-$at>=300){
-                    if(!isset($repairKeys[$key])){
-                        $repairKeys[$key]=count($repairs);$repairs[]=['id'=>(string)$r['id'],'at'=>$at];
-                    }elseif($at<$repairs[$repairKeys[$key]]['at'])$repairs[$repairKeys[$key]]=['id'=>(string)$r['id'],'at'=>$at];
-                }
+                // Insertion order retains the first eligible member's priority when groups tie.
+                if($now-$at>=300&&(!isset($repairs[$key])||$at<$repairs[$key]['at']))
+                    $repairs[$key]=['id'=>$id,'at'=>$at];
                 continue;
             }
 
             $db=$r['upload_status']??null;
             if(in_array($db,['PROCESSED','LINKAGE_FAILURE'],true)&&($e['upload_status']??null)!==$db
                 &&($at>0||(int)($r['value_processed_at_unix']??0)>=$now-900)){
-                $urgent[]=(string)$r['id'];continue;
+                if(count($urgent)<$capacity&&!in_array($id,$urgent,true))$urgent[]=$id;
+                continue;
             }
             $terminal=($e['linkage']??null)==='unique_visit_reconciled'
                 ||(($e['upload_status']??null)==='LINKAGE_FAILURE'&&!in_array($e['reason']??null,['provider_linkage_failure','client_visit_report_unavailable','same_wire_total_provider_and_visit_report_reconciled'],true));
             if(($e['failure_audit']['diagnosis']??null)==='wire_collision')$terminal=false;
-            if($at===0||$now-$at>=($terminal?86400:300))$due[]=['id'=>(string)$r['id'],'at'=>$at];
+            if($at!==0&&$now-$at<($terminal?86400:300))continue;
+            if(count($newest)<intdiv($capacity+1,2))$newest[]=$id;
+            if($capacity>0&&(count($oldest)<$capacity||$at<$oldest[$capacity-1]['at'])){
+                $oldest[]=['id'=>$id,'at'=>$at];
+                usort($oldest,$byAge);
+                if(count($oldest)>$capacity)array_pop($oldest);
+            }
         }
-        $limit=max(0,min($batch,self::MAX_ROWS-$cohort));
-        usort($repairs,static fn(array $a,array $b):int=>$a['at']<=>$b['at']);
-        $ids=$limit>0&&$repairs!==[]?[$repairs[0]['id']]:[];
+        $limit=max(0,min($capacity,self::MAX_ROWS-$cohort));
+        $repair=null;
+        foreach($repairs as$candidate)if($repair===null||$candidate['at']<$repair['at'])$repair=$candidate;
+        $ids=$limit>0&&$repair!==null?[$repair['id']]:[];
         foreach($urgent as$id)if(count($ids)<$limit&&!in_array($id,$ids,true))$ids[]=$id;
         $remaining=$limit-count($ids);
-        foreach(array_slice($due,0,(int)ceil($remaining/2))as$d)$ids[]=$d['id'];
-        usort($due,static fn(array $a,array $b):int=>$a['at']<=>$b['at']);
-        foreach($due as$d)if(count($ids)<$limit&&!in_array($d['id'],$ids,true))$ids[]=$d['id'];
+        foreach(array_slice($newest,0,intdiv($remaining+1,2))as$id)$ids[]=$id;
+        foreach($oldest as$d)if(count($ids)<$limit&&!in_array($d['id'],$ids,true))$ids[]=$d['id'];
         return $ids;
     }
     private static function eventPath(array $row):string
@@ -360,19 +374,40 @@ final class ModeledConversionVisitProof
         $raw=file_get_contents($path);if(!is_string($raw)||strlen($raw)!==$size)return ['available'=>false];
         if($budget!==null)$budget->consumeBytes(strlen($raw));
         try{$d=json_decode($raw,true,8,JSON_THROW_ON_ERROR);}catch(JsonException $ignored){return ['available'=>false];}
+        return self::automaticSummary($d,$now);
+    }
+    private static function automaticSummary(mixed $d,int $now):array
+    {
         if(($d['origin']??null)!=='server_cron'||!in_array($d['status']??null,['running','ok','failed'],true)
             ||!is_int($d['attempt_unix']??null)||$d['attempt_unix']<946684800||$d['attempt_unix']>$now
             ||!is_int($d['success_unix']??null)||$d['success_unix']<0||$d['success_unix']>$now
             ||!is_array($d['checks']??null)||count($d['checks'])>3)return ['available'=>false];
         foreach($d['checks']as$at)if(!is_int($at)||$at<946684800||$at>$now)return ['available'=>false];
-        return ['available'=>true,...$d,'fresh'=>$d['success_unix']>0&&$now-$d['success_unix']<=900,'interval_seconds'=>300];
+        $result=['available'=>true,'origin'=>'server_cron','status'=>$d['status'],'attempt_unix'=>$d['attempt_unix'],
+            'success_unix'=>$d['success_unix'],'checks'=>array_values($d['checks']),
+            'fresh'=>$d['success_unix']>0&&$now-$d['success_unix']<=900,'interval_seconds'=>300];
+        if(self::validAutomaticWork($d['work']??null))$result['work']=$d['work'];
+        return $result;
     }
-    public static function recordAutomatic(string $status,int $now,?array $previous):void
+    private static function validAutomaticWork(mixed $work):bool
+    {
+        if(!is_array($work)||array_keys($work)!==['phase','ledger_rows','elapsed_ms','budget_ms']
+            ||!in_array($work['phase'],['settings','snapshot','selection','verification','save'],true)
+            ||!is_int($work['elapsed_ms'])||$work['elapsed_ms']<0||!is_int($work['budget_ms'])
+            ||$work['budget_ms']<5000||$work['budget_ms']>20000||$work['budget_ms']%1000!==0)return false;
+        return in_array($work['phase'],['settings','snapshot'],true)?$work['ledger_rows']===null:
+            is_int($work['ledger_rows'])&&$work['ledger_rows']>=0;
+    }
+    public static function recordAutomatic(string $status,int $now,?array $previous,?array $work=null):void
     {
         $checks=$previous['checks']??[];
         if($status==='ok'){$checks[]=$now;$checks=array_slice(array_values(array_unique($checks)),-3);}
         $value=['origin'=>'server_cron','status'=>$status,'attempt_unix'=>$now,
             'success_unix'=>$status==='ok'?$now:(int)($previous['success_unix']??0),'checks'=>$checks];
+        if($work!==null){
+            if(!self::validAutomaticWork($work))throw new InvalidArgumentException('verification_automatic_work');
+            $value['work']=$work;
+        }
         $path=dirname(self::path()).'/automatic.json';$dir=dirname($path);
         if(is_link($dir)||is_link($path)||!is_dir($dir)||(fileperms($dir)&0777)!==0700||fileowner($dir)!==posix_geteuid())
             throw new RuntimeException('verification_cache_permissions');
@@ -433,13 +468,14 @@ final class ModeledConversionVisitProof
     private const DAILY_GROUPS=['sent','api_accepted','processed','visit_linked','linkage_failed','provider_processing',
         'unverified_visits','proof_missing','stale_proof','accepted_clock_unknown','wire_report_reconciled'];
     /** One fixed calendar and one sent-row cohort; all amounts remain private aggregates. */
-    public static function dailySentCohort(array $ledger,array $current,int $now,?callable $archive=null,?int $dayReference=null):array
+    public static function dailySentCohort(array|ModeledConversionVisitLedgerSnapshot $ledger,array $current,int $now,?callable $archive=null,?int $dayReference=null):array
     {
+        if(is_array($ledger)&&count($ledger)>self::MAX_LEDGER_ROWS)throw new RuntimeException('verification_daily_scope');
         return self::sentCohortForCalendar($ledger,$current,$now,$archive,$dayReference,self::REPORT_ZONE);
     }
-    private static function sentCohortForCalendar(array $ledger,array $current,int $now,?callable $archive,?int $dayReference,string $calendar):array
+    private static function sentCohortForCalendar(iterable $ledger,array $current,int $now,?callable $archive,?int $dayReference,string $calendar):array
     {
-        if(count($ledger)>self::MAX_LEDGER_ROWS||$now<946684800)throw new RuntimeException('verification_daily_scope');
+        if($now<946684800)throw new RuntimeException('verification_daily_scope');
         $dayReference??=$now;if($dayReference<946684800||$dayReference>$now)throw new RuntimeException('verification_daily_scope');
         $zone=new DateTimeZone($calendar);$day=(new DateTimeImmutable('@'.$dayReference))->setTimezone($zone)->setTime(0,0);
         $from=$day->getTimestamp();$until=$day->modify('+1 day')->getTimestamp();$out=[];$people=[];
@@ -488,6 +524,25 @@ final class ModeledConversionVisitProof
         return (new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone(self::REPORT_ZONE))
             ->setTime(0,0)->modify('-1 day')->getTimestamp();
     }
+    /** Validate the scalar totals independently of how many ledger pages supplied them. */
+    private static function validCohortGroup(mixed $group):bool
+    {
+        if(!is_array($group)||array_keys($group)!==['events','conversations','value_rub'])return false;
+        $events=$group['events'];$conversations=$group['conversations'];$value=$group['value_rub'];
+        if(!is_int($events)||!is_int($conversations)||!is_int($value)||$events<0)return false;
+        if($events===0)return $conversations===0&&$value===0;
+        if($conversations<1||$conversations>$events||$value<$events)return false;
+        // For positive integers this is value <= events * cap, with no overflowing product.
+        return intdiv($value-1,ModeledConversionValueContract::MAX_VALUE_RUB)<$events;
+    }
+    private static function partitionsTotal(int $total,int ...$parts):bool
+    {
+        foreach($parts as$part){
+            if($part>$total)return false;
+            $total-=$part;
+        }
+        return $total===0;
+    }
     private static function dailySummary(mixed $d,int $now,?int $dayReference=null,string $calendar=self::REPORT_ZONE):array
     {
         $fail=['available'=>false,'reason'=>'not_recorded'];
@@ -505,19 +560,15 @@ final class ModeledConversionVisitProof
         foreach(['max','telegram']as$p){
             $groups=$d['by_platform'][$p];if(!is_array($groups)||(array_keys($groups)!==self::DAILY_GROUPS&&array_keys($groups)!==array_slice(self::DAILY_GROUPS,0,-1)))return ['available'=>false,'reason'=>'invalid_daily_cache'];
             foreach($groups as$k=>$v){
-                if(!is_array($v)||array_keys($v)!==['events','conversations','value_rub']
-                    ||!is_int($v['events'])||!is_int($v['conversations'])||!is_int($v['value_rub'])||$v['events']<0||$v['events']>1000
-                    ||$v['conversations']<0||$v['conversations']>$v['events']||$v['value_rub']<0||$v['value_rub']>1000*ModeledConversionValueContract::MAX_VALUE_RUB
-                    ||$v['value_rub']<$v['events']||$v['value_rub']>$v['events']*ModeledConversionValueContract::MAX_VALUE_RUB
-                    ||($v['events']>0&&$v['conversations']===0)||($v['events']===0&&$v['value_rub']!==0))return ['available'=>false,'reason'=>'invalid_daily_cache'];
+                if(!self::validCohortGroup($v))return ['available'=>false,'reason'=>'invalid_daily_cache'];
                 if($k!=='sent'&&($v['events']>$groups['sent']['events']||$v['value_rub']>$groups['sent']['value_rub']||$v['conversations']>$groups['sent']['conversations']))return ['available'=>false,'reason'=>'invalid_daily_cache'];
             }
-            if($groups['processed']['events']+$groups['linkage_failed']['events']+$groups['provider_processing']['events']!==$groups['api_accepted']['events']
-                ||$groups['visit_linked']['events']+$groups['unverified_visits']['events']!==$groups['processed']['events'])return ['available'=>false,'reason'=>'invalid_daily_cache'];
-            if($groups['processed']['value_rub']+$groups['linkage_failed']['value_rub']+$groups['provider_processing']['value_rub']!==$groups['api_accepted']['value_rub']
-                ||$groups['visit_linked']['value_rub']+$groups['unverified_visits']['value_rub']!==$groups['processed']['value_rub']
-                ||$groups['accepted_clock_unknown']['events']>$groups['api_accepted']['events']
-                ||$groups['accepted_clock_unknown']['value_rub']>$groups['api_accepted']['value_rub'])return ['available'=>false,'reason'=>'invalid_daily_cache'];
+            foreach(['events','value_rub']as$metric){
+                if(!self::partitionsTotal($groups['api_accepted'][$metric],$groups['processed'][$metric],
+                        $groups['linkage_failed'][$metric],$groups['provider_processing'][$metric])
+                    ||!self::partitionsTotal($groups['processed'][$metric],$groups['visit_linked'][$metric],$groups['unverified_visits'][$metric])
+                    ||$groups['accepted_clock_unknown'][$metric]>$groups['api_accepted'][$metric])return ['available'=>false,'reason'=>'invalid_daily_cache'];
+            }
             $safe[$p]=$groups;
         }
         return ['available'=>true,'fresh'=>$now-$at<=900&&($dayReference!==null||$day->format('Y-m-d')===(new DateTimeImmutable('@'.$now))->setTimezone($zone)->format('Y-m-d')),
@@ -528,37 +579,65 @@ final class ModeledConversionVisitProof
 
 
     /** Preserve the frozen historical calendar and checkpoint; fresh daily reports use REPORT_ZONE. */
-    public static function followupReport(array $ledger,array $current,int $cut,int $now,?callable $archive=null):array
+    public static function followupReport(array|ModeledConversionVisitLedgerSnapshot $ledger,array $current,int $cut,int $now,?callable $archive=null):array
     {
         if($cut<946684800||$cut>$now)throw new RuntimeException('verification_followup_scope');
-        $zone=new DateTimeZone(self::HISTORICAL_REVIEW_ZONE);$day=(new DateTimeImmutable('@'.$cut))->setTimezone($zone)->setTime(0,0);
-        $from=$day->getTimestamp();$before=[];$processed=[];$remaining=[];$unknown=[];
-        foreach($ledger as$r){
-            $claim=(int)($r['claimed_at_unix']??0);if($claim<$from||$claim>$cut)continue;
-            $before[]=$r;$at=(int)($r['value_processed_at_unix']??0);
-            if($at>0&&$at<=$cut)$processed[]=$r;else $remaining[]=$r;
-            if($at<=0&&(($r['state']??null)==='processed'||($r['upload_status']??null)==='PROCESSED'))$unknown[]=$r;
+        $zone=new DateTimeZone(self::HISTORICAL_REVIEW_ZONE);
+        $from=(new DateTimeImmutable('@'.$cut))->setTimezone($zone)->setTime(0,0)->getTimestamp();
+        $claims=static function()use($ledger,$from,$cut):Generator{
+            foreach($ledger as$row){
+                $claim=(int)($row['claimed_at_unix']??0);
+                if($claim>=$from&&$claim<=$cut)yield $row;
+            }
+        };
+        $base=[];$conversations=[];
+        foreach(['max','telegram']as$platform){
+            foreach(['sent','processed_at_checkpoint','processing_clock_unknown']as$group){
+                $base[$platform][$group]=['events'=>0,'conversations'=>0,'value_rub'=>0];
+            }
         }
-        $empty=static fn(array $r):array=>[];
-        $a=self::sentCohortForCalendar($before,[],$now,$empty,$cut,self::HISTORICAL_REVIEW_ZONE);
-        $b=self::sentCohortForCalendar($processed,[],$now,$empty,$cut,self::HISTORICAL_REVIEW_ZONE);
-        $u=self::sentCohortForCalendar($unknown,[],$now,$empty,$cut,self::HISTORICAL_REVIEW_ZONE);
-        $out=self::sentCohortForCalendar($remaining,$current,$now,$archive,$cut,self::HISTORICAL_REVIEW_ZONE);$base=[];$failures=[];
+        $baselineRows=static function()use($claims,$cut,&$base,&$conversations):Generator{
+            foreach($claims()as$row){
+                // The shared calendar projector validates the row before counters use its binding.
+                yield $row;
+                $processedAt=(int)($row['value_processed_at_unix']??0);
+                if($processedAt>0&&$processedAt<=$cut)$group='processed_at_checkpoint';
+                elseif($processedAt<=0&&(($row['state']??null)==='processed'||($row['upload_status']??null)==='PROCESSED'))$group='processing_clock_unknown';
+                else continue;
+                $platform=$row['platform'];
+                $base[$platform][$group]['events']++;
+                $base[$platform][$group]['value_rub']+=(int)$row['value_rub'];
+                $conversations[$platform][$group][(string)$row['conversation_id']]=true;
+            }
+        };
+        $baseline=self::sentCohortForCalendar($baselineRows(),[],$now,static fn(array $r):array=>[],$cut,self::HISTORICAL_REVIEW_ZONE);
+        foreach(['max','telegram']as$platform){
+            $base[$platform]['sent']=$baseline['by_platform'][$platform]['sent'];
+            foreach(['processed_at_checkpoint','processing_clock_unknown']as$group){
+                $base[$platform][$group]['conversations']=count($conversations[$platform][$group]??[]);
+            }
+        }
+        unset($baselineRows,$conversations);
         $archive??=static fn(array $r):array=>self::prior($r,$now);
-        foreach(['max','telegram']as$p)$base[$p]=['sent'=>$a['by_platform'][$p]['sent'],
-            'processed_at_checkpoint'=>$b['by_platform'][$p]['sent'],'processing_clock_unknown'=>$u['by_platform'][$p]['sent']];
-        foreach($remaining as$r){
-            if(count($failures)>=16)break;
-            $e=$current[(string)$r['id']]??null;if(!is_array($e))$e=$archive($r)['event']??null;
-            if(!is_array($e)||!hash_equals((string)($e['fingerprint']??''),self::fingerprint($r))||($e['upload_status']??null)!=='LINKAGE_FAILURE')continue;
-            $clock=(int)($r['tracker_observed_unix']??0);$age=(int)$r['event_unix']-$clock;
-            $reason=$e['reason']??null;
-            if(!in_array($reason,['provider_linkage_failure','no_reported_client_visits','only_later_or_expired_client_visits',
-                'no_client_visit_in_attribution_window','eligible_visit_but_provider_linkage_failed','client_visit_report_unavailable','same_wire_total_provider_and_visit_report_reconciled'],true))$reason='unavailable';
-            $failures[]=['platform'=>$r['platform'],'increment_rub'=>(int)$r['value_rub'],'reason'=>$reason,
-                'source_clock'=>($r['platform']!=='max'||$clock<946684800)?'unknown':($age<0?'after_signal':($age>ModeledConversionAttributionWindow::MAX_SECONDS?'expired':($age>ModeledConversionAttributionWindow::UNKNOWN_SECONDS?'unknown':'within_window'))),
-                'audit'=>self::validatedFailureAudit($e['failure_audit']??null,$now)];
-        }
+        $failures=[];
+        $remainingRows=static function()use($claims,$cut,$current,$archive,$now,&$failures):Generator{
+            foreach($claims()as$r){
+                $processedAt=(int)($r['value_processed_at_unix']??0);
+                if($processedAt>0&&$processedAt<=$cut)continue;
+                yield $r;
+                if(count($failures)>=16)continue;
+                $e=$current[(string)$r['id']]??null;if(!is_array($e))$e=$archive($r)['event']??null;
+                if(!is_array($e)||!hash_equals((string)($e['fingerprint']??''),self::fingerprint($r))||($e['upload_status']??null)!=='LINKAGE_FAILURE')continue;
+                $clock=(int)($r['tracker_observed_unix']??0);$age=(int)$r['event_unix']-$clock;
+                $reason=$e['reason']??null;
+                if(!in_array($reason,['provider_linkage_failure','no_reported_client_visits','only_later_or_expired_client_visits',
+                    'no_client_visit_in_attribution_window','eligible_visit_but_provider_linkage_failed','client_visit_report_unavailable','same_wire_total_provider_and_visit_report_reconciled'],true))$reason='unavailable';
+                $failures[]=['platform'=>$r['platform'],'increment_rub'=>(int)$r['value_rub'],'reason'=>$reason,
+                    'source_clock'=>($r['platform']!=='max'||$clock<946684800)?'unknown':($age<0?'after_signal':($age>ModeledConversionAttributionWindow::MAX_SECONDS?'expired':($age>ModeledConversionAttributionWindow::UNKNOWN_SECONDS?'unknown':'within_window'))),
+                    'audit'=>self::validatedFailureAudit($e['failure_audit']??null,$now)];
+            }
+        };
+        $out=self::sentCohortForCalendar($remainingRows(),$current,$now,$archive,$cut,self::HISTORICAL_REVIEW_ZONE);
         return ['version'=>'modeled_followup_sent_cohort_v1','checkpoint_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$cut),
             'selection_basis'=>'claim_at_or_before_checkpoint_first_processing_observation_after_checkpoint_or_missing',
             'baseline_by_platform'=>$base,'failure_examples'=>$failures,'outcome'=>$out];
@@ -638,15 +717,11 @@ final class ModeledConversionVisitProof
         $base=$v['baseline_by_platform']??null;if(!is_array($base)||array_keys($base)!==['max','telegram'])return ['available'=>false,'reason'=>'invalid_followup_cache'];
         foreach($base as$p=>$groups){
             if(!is_array($groups)||array_keys($groups)!==['sent','processed_at_checkpoint','processing_clock_unknown'])return ['available'=>false,'reason'=>'invalid_followup_cache'];
-            foreach($groups as$g){
-                if(!is_array($g)||array_keys($g)!==['events','conversations','value_rub']
-                    ||!is_int($g['events'])||$g['events']<0||$g['events']>1000||!is_int($g['conversations'])
-                    ||$g['conversations']<0||$g['conversations']>$g['events']||!is_int($g['value_rub'])
-                    ||$g['value_rub']<$g['events']||$g['value_rub']>$g['events']*ModeledConversionValueContract::MAX_VALUE_RUB)return ['available'=>false,'reason'=>'invalid_followup_cache'];
+            foreach($groups as$g)if(!self::validCohortGroup($g))return ['available'=>false,'reason'=>'invalid_followup_cache'];
+            foreach(['events','value_rub']as$metric){
+                if(!self::partitionsTotal($groups['sent'][$metric],$groups['processed_at_checkpoint'][$metric],$d['by_platform'][$p]['sent'][$metric]))
+                    return ['available'=>false,'reason'=>'invalid_followup_cache'];
             }
-            if($groups['processed_at_checkpoint']['events']+$d['by_platform'][$p]['sent']['events']!==$groups['sent']['events']
-                ||$groups['processed_at_checkpoint']['value_rub']+$d['by_platform'][$p]['sent']['value_rub']!==$groups['sent']['value_rub'])
-                return ['available'=>false,'reason'=>'invalid_followup_cache'];
         }
         $failures=$v['failure_examples']??[];
         if(!is_array($failures)||count($failures)>16)return ['available'=>false,'reason'=>'invalid_followup_cache'];

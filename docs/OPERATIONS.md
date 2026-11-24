@@ -390,10 +390,14 @@ and uses a read-only DB session. It never retries an upload or changes identitie
 outbox rows, profiles, transcripts, read markers, goals or queues.
 The original-cohort checkpoint is retained from the validated current receipt.
 Stable original-cohort proofs are reused for at most a day. Each five-minute
-batch checks one newest due row and one oldest unchecked/due row; processing
-receipts are due after five minutes and terminal evidence after a day. The
-bounded ledger currently refuses more than 1,000 eligible value rows explicitly;
-it must be extended before that safety bound is reached.
+batch checks up to two additional due events and gives priority to repairs and
+new terminal receipts. Processing receipts are due after five minutes and
+terminal evidence after a day. The CLI captures the complete owner-admitted V1
+ledger in primary-key order in one read-only, repeatable-read transaction. It
+checks the row count and ordering, then releases the transaction before provider
+reads. All pages feed the same private, per-run snapshot. Its temporary file
+is unlinked before any rows are written. An incomplete capture or expired
+budget leaves the previous complete report at its original check time.
 
 Only derived private evidence is written outside the webroot:
 `max-search-bot-modeled-visit-proof/{last-check.json,automatic.json,refresh.lock}`
@@ -403,7 +407,9 @@ the current bounded report. Fingerprints bind row, dialogue, amount, time,
 ClientID and provider upload. Per-event check times remain truthful when reused.
 The owner page and fixed no-argument MCP status read these caches without live
 provider calls. Automatic status retains the last three successful natural
-checks, separate from manual verification. A failed/stuck refresh or a stale
+checks, separate from manual verification. A completed scheduled attempt also records
+its last phase, elapsed time, allotted time and the row count once capture completed.
+A failed/stuck refresh or a stale
 successful refresh enters the existing pipeline owner-alert role.
 
 A provider LINKAGE_FAILURE stays failed. An exact, complete, unsampled ClientID
