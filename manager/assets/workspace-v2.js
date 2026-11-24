@@ -58,14 +58,14 @@ function hideAuthRecovery(){
   const overlay=$('managerAuthRecovery');if(overlay)overlay.classList.add('hidden');
   document.body.classList.remove('managerAuthOpen');
 }
-function post(url,action,data,options){
-  return fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action,csrf:S.csrf,...data}),...(options.signal?{signal:options.signal}:{})});
-}
 async function request(url,action,data={},options={}){
   if(S.logoutPending)throw new Error('logout_pending');
   if(S.authExpired){showAuthRecovery();throw new Error('unauthorized')}
   const generation=S.authGeneration;
   return readResponse(post(url,action,data,options),generation,options);
+}
+function post(url,action,data,options){
+  return fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action,csrf:S.csrf,...data}),...(options.signal?{signal:options.signal}:{})});
 }
 async function readResponse(response,generation,options={}){
   const r=await response;
