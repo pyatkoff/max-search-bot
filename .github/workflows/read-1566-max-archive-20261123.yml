@@ -1,4 +1,4 @@
-name: "#1566 Read further ranked MAX hotel sources from the remaining verified demand cohort"
+name: "#1566 Read 56 MAX hotel sources against the refreshed demand register"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -15,28 +15,35 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == 'c23af3431ccb00de95a6becd898bc20194f98767' && github.run_attempt == 1
+      github.event.before == '608f09de97140b62180916c2570c568fb653510e' && github.run_attempt == 1
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        offset: [0, 28]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Observe ranked source cards and existing offer aliases
         env:
           GH_TOKEN: ${{ github.token }}
+          CANDIDATE_OFFSET: ${{ matrix.offset }}
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           mkdir pub
-          gh api /repos/pyatkoff/max-search-bot/actions/runs/45385556709 > pub/rank-run.json
-          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14915463382 > pub/rank-meta.json
+          gh api /repos/pyatkoff/max-search-bot/actions/runs/45513053442 > pub/rank-run.json
+          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14977425312 > pub/rank-meta.json
           curl -fsSL --max-time 25 --header "Authorization: Bearer $GH_TOKEN" \
-            https://api.github.com/repos/pyatkoff/max-search-bot/actions/artifacts/14915463382/zip -o pub/rank.zip
+            https://api.github.com/repos/pyatkoff/max-search-bot/actions/artifacts/14977425312/zip -o pub/rank.zip
           gh api /repos/pyatkoff/max-search-bot/git/blobs/ba5ac7207da7fe185c1d864726bc240ba273976d --jq .content | base64 --decode > pub/bindings.json
           python3 - <<'PY'
           import base64
           import hashlib
           import json
           import pathlib
+          import os
           import re
           import zipfile
           import urllib.error
@@ -46,18 +53,21 @@ jobs:
           from datetime import datetime, timezone
           from html.parser import HTMLParser
 
-          excluded = set([106,109,111,114,125,132,133,139,150,174,195,206,218,231,236,240,241,246,247,253,260,263,266,268,272,287,288,293,302,325,341,352,358,371,381,389,393,408,415,418,435,441,454,465,466,469,483,497,513,547,599,632,706,713,768,800,932,948,949,954,955,975,996,1032,1033,1035,1055,1067,1074,1096,1100,1105,1124,1142,1143,1149,1151,1221,1257,1260,1313,1334,1336,1344,1402,1420,1421,1429,1439,1451,1569,1588,1589,1647,1959,1960,1971,1972,1981,2435,2436,2457,2458,2470,2478,2493,2522,2588,2794,3405,3415,3452,4054,4060,4074,4079,4091,4181,4270,7458,8020,8094,9321,9373,11791,12107,12111,12114,12125,13870,14135,14140,15693,15873,15879,22791,23723,24909,26844,27426,27652,28272,28327,28460,28509,28581,28754,30158,32322,32342,37668,40222,41149,41495,43676,43689,45496,46670,47025,50869,51238,54605,56092,57028,59114,63191,64895,64914,64918,65877,70048,73343,73974,74503,75100,76588,77914,79071,82106,82606,85417,99713,107938,118475,132016])
+          excluded = set([106,109,111,114,125,132,133,139,150,174,195,206,218,231,236,240,241,246,247,253,260,263,266,268,272,287,288,293,302,325,341,352,358,371,381,389,393,408,415,418,435,441,454,465,466,469,483,497,513,547,599,632,706,713,768,800,932,948,949,954,955,975,996,1032,1033,1035,1055,1067,1074,1096,1100,1105,1124,1142,1143,1149,1151,1221,1257,1260,1313,1334,1336,1344,1402,1420,1421,1429,1439,1451,1569,1588,1589,1647,1959,1960,1971,1972,1981,2435,2436,2457,2458,2470,2478,2493,2522,2588,2794,3405,3415,3452,4054,4060,4074,4079,4091,4181,4270,7458,8020,8094,9321,9373,11791,12107,12111,12114,12125,13870,14135,14140,15693,15873,15879,22791,23723,24909,26844,27426,27652,28272,28327,28460,28509,28581,28754,30158,32322,32342,37668,40222,41149,41495,43676,43689,45496,46670,47025,49084,50869,51238,54193,54605,55511,56092,57028,57650,58088,59114,61159,61623,63191,64895,64914,64918,65108,65164,65712,65877,66547,66564,69116,70048,73082,73343,73477,73974,74503,75100,76318,76588,77914,79071,80713,82106,82504,82606,82716,85417,90236,91404,98723,99713,107938,115918,118475,126417,127988,131884,132016])
           reserve = json.loads("[{\"url\":\"https://max.ru/anytour/AZwEq2zVLGY\",\"mid\":\"mid.ffffc1752b045fed019c04ab6cd52c66\",\"hotel_name\":\"The Marin Phuket\"},{\"url\":\"https://max.ru/anytour/AZwpDhM0dC0\",\"mid\":\"mid.ffffc1752b045fed019c290e1334742d\",\"hotel_name\":\"Akka Alinda Hotel\"},{\"url\":\"https://max.ru/anytour/AZxcpmMWNUI\",\"mid\":\"mid.ffffc1752b045fed019c5ca663163542\",\"hotel_name\":\"Address Beach Resort Fujairah\"},{\"url\":\"https://max.ru/anytour/AZ82fl5vOjg\",\"mid\":\"mid.ffffc1752b045fed019f367e5e6f3a38\",\"hotel_name\":\"SO/ Ras Al Khaimah\"}]")
           rank_run = json.loads(pathlib.Path("pub/rank-run.json").read_bytes())
           rank_meta = json.loads(pathlib.Path("pub/rank-meta.json").read_bytes())
-          digest = "b41f4d47c1041204ed6830730d7ab8805af15a0647787aa5658eecca398314fe"
-          assert (rank_run["id"], rank_run["run_attempt"], rank_run["conclusion"]) == (45385556709, 1, "success")
-          assert rank_meta["id"] == 14915463382 and rank_meta["workflow_run"]["id"] == rank_run["id"] and not rank_meta["expired"]
+          digest = "53140c4e3c8636f20118a985f65cb72ef72ab5babd9306ffcb52e678113243de"
+          assert (rank_run["id"], rank_run["run_attempt"], rank_run["conclusion"]) == (45513053442, 1, "success")
+          assert rank_meta["id"] == 14977425312 and rank_meta["workflow_run"]["id"] == rank_run["id"] and not rank_meta["expired"]
           assert rank_meta["digest"] == "sha256:" + digest and hashlib.sha256(pathlib.Path("pub/rank.zip").read_bytes()).hexdigest() == digest
           with zipfile.ZipFile("pub/rank.zip") as source:
               assert source.namelist() == ["registry.json"] and source.getinfo("registry.json").file_size < 1_000_000
               ranked = json.loads(source.read("registry.json"))
-          assert ranked["ok"] and ranked["ranked_hotels"] == len(ranked["rows"]) == 184
+          assert ranked["ok"] and ranked["ranked_hotels"] == len(ranked["rows"]) == 312
+          assert ranked["application_sha"] and ranked["db_writes"] == ranked["provider_calls"] == 0
+          assert ranked["from_utc"] == "2026-11-10T21:00:00+00:00" and ranked["until_utc_exclusive"] == "2026-11-24T21:00:00+00:00"
+          assert rank_run["head_sha"] == "563fc7539262aa2bb060d1e93f5d02de4a74a97b" and rank_meta["workflow_run"]["head_sha"] == rank_run["head_sha"]
           map_bytes = pathlib.Path("pub/bindings.json").read_bytes()
           assert hashlib.sha1(b"blob " + str(len(map_bytes)).encode() + b"\0" + map_bytes).hexdigest() == "ba5ac7207da7fe185c1d864726bc240ba273976d"
           canonical = json.loads(map_bytes)
@@ -74,8 +84,11 @@ jobs:
               candidates.append({"hotel_id":row["hotel_id"],"rank":priority,"rank_name":row["hotel_name"],
                                  "offer_id":row["max_offer"],"source_url":binding["post_url"],"source_alias":binding["alias"],
                                  "publication_id":int(binding["publication_id"]),"demand":row["source"]})
-          assert 0 < len(candidates) <= 40
-          assert len(candidates) == len({x["offer_id"] for x in candidates})
+          eligible = len(candidates)
+          assert eligible == len({x["offer_id"] for x in candidates})
+          offset = int(os.environ["CANDIDATE_OFFSET"])
+          assert offset in (0, 28)
+          candidates = candidates[offset:offset + 28]
           feed_url = "https://app.anytoour.ru/feed/hotel-posts-max.xml"
 
           def load(url, limit):
@@ -172,7 +185,7 @@ jobs:
                   "offers":offers,"pages":pages,"candidates":candidates,"same_hotel_album_references":reserve_matches,"production_writes":0}
           pathlib.Path("pub/observation.json").write_text(json.dumps(result,ensure_ascii=False))
           print("MAX_MORE_PREPARATION=" + json.dumps({"feed_error":feed_error,"feed_sha256":feed_sha,"matched_offers":sum(x["binding_matches"] for x in offers),
-                 "source_public":sum(bool(source_present(x)) for x in pages),"reviewed":len(candidates),"retried":len(retry_indices),"unmatched_ranked":sum(row["hotel_id"] not in excluded for row in ranked["rows"])-len(candidates)}))
+                 "source_public":sum(bool(source_present(x)) for x in pages),"reviewed":len(candidates),"retried":len(retry_indices),"offset":offset,"eligible_ranked":eligible,"unmatched_ranked":sum(row["hotel_id"] not in excluded for row in ranked["rows"])-eligible}))
           by_address={x["url"]:x for x in pages}
           by_key={x["offer_id"]:x for x in offers}
           for candidate in candidates:
@@ -186,6 +199,6 @@ jobs:
       - name: Retain public preparation evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: hotel-max-ranked-public-observation
+          name: hotel-max-ranked-public-observation-${{ matrix.offset }}
           path: pub/observation.json
           retention-days: 7
