@@ -233,7 +233,18 @@ try {
     $lockPath = OPERATIONS . '/monitor-price-after-collection-v1.jsonl';
     requireRead(!is_link($lockPath) && is_file($lockPath), 'price_editor_lease_unknown');
     $priceLock = fopen($lockPath, 'rb');
-    requireRead(is_resource($priceLock) && flock($priceLock, LOCK_SH | LOCK_NB), 'price_editor_busy_or_unknown');
+    requireRead(is_resource($priceLock), 'price_read_lease_unavailable');
+    $lockStarted = hrtime(true);
+    $lockDeadline = $lockStarted + 240_000_000_000;
+    $shared = false;
+    do {
+        $shared = flock($priceLock, LOCK_SH | LOCK_NB);
+        if ($shared || hrtime(true) >= $lockDeadline) break;
+        usleep(2_000_000);
+    } while (true);
+    $out['price_lease_wait_ms'] = (int) ((hrtime(true) - $lockStarted) / 1_000_000);
+    requireRead($shared, 'price_editor_busy_or_unknown');
+    runtimeRead();
     $out['price_editor_shared_read_lease'] = true;
     $stage = 'initialize_registry';
     ob_start();

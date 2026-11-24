@@ -19,7 +19,7 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == 'db1157a5091ff0f708d7825acf6ca4e1dc9a5339' &&
+      github.event.before == '086df727b17ad248120ff371a2767a42f368cd67' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -58,6 +58,10 @@ jobs:
             const artifacts=(await api('GET',parent+'/artifacts?per_page=10')).artifacts
             if (run.id!==45385556709 || run.repository.id!==1342493152 || run.head_sha!=='9838b4301727c7969ad0ff4dc585460c5d27986a' || run.head_branch!=='audit/anytour-hotel-ads-20261117' || run.event!=='push' || run.run_attempt!==1 || run.status!=='completed' || run.conclusion!=='success') throw Error('demand_rank_run_changed')
             if (artifacts.length!==1 || artifacts[0].id!==14915463382 || artifacts[0].name!=='first-party-hotel-entry-rank' || artifacts[0].expired || artifacts[0].digest!=='sha256:b41f4d47c1041204ed6830730d7ab8805af15a0647787aa5658eecca398314fe') throw Error('demand_rank_artifact_changed')
+            const stopped=R.API_ROOT+'/actions/runs/45386596056'
+            const previousRead=await api('GET',stopped)
+            const oldArtifacts=(await api('GET',stopped+'/artifacts?per_page=10')).artifacts
+            if(previousRead.head_sha!=='086df727b17ad248120ff371a2767a42f368cd67' || previousRead.head_branch!=='ops/1566-telegram-46-native-read-20261123' || previousRead.run_attempt!==1 || previousRead.repository.id!==1342493152 || previousRead.status!=='completed' || previousRead.conclusion!=='failure' || oldArtifacts.length!==1 || oldArtifacts[0].id!==14915623771 || oldArtifacts[0].digest!=='sha256:4ffff039da32641f8d9b5f6ff228188d45b52726ec7e494f7f0dfbc7c0ba81f6') throw Error('previous_read_changed')
             const observed = await R.readRecord(api)
             const resolution = await R.resolveCurrent(api, {sha:expected}, observed)
             if (!resolution.ready || resolution.repository_sha !== expected || !/^[a-f0-9]{40}$/.test(resolution.application_sha)) throw Error('accepted_release_mismatch')
@@ -73,7 +77,7 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '56b8b8fc7b654ce7c9404a55096105c4881e9cac'
+          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '377135ca8a078ef7f510437e29b0facc61a0e2af'
           mkdir pub
           python3 - <<'PY'
           import os,pathlib,re
