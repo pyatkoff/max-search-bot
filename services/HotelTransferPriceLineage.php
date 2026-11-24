@@ -163,20 +163,31 @@ final class HotelTransferPriceLineage
             'source_start_payload','source_published_at','source_logical_id','source_link','feed_binding']
             && $i['schema']==='telegram_hotel_transfer_intent_v2'
             && $i['price_policy']==='omit_previous_price_keep_hotel_calculation_button'
-            && is_array($i['row']) && is_string($i['source_price_template']) && strlen($i['source_price_template'])<=8000
+            && is_array($i['row']) && is_string($i['source_price_template']) && $i['source_price_template']!==''
+            && mb_check_encoding($i['source_price_template'],'UTF-8') && strlen($i['source_price_template'])<=8000
             && is_string($i['source_start_payload']) && preg_match('/\Ap_[A-Za-z0-9_-]{8,60}\z/D',$i['source_start_payload'])===1
             && is_string($i['source_published_at']) && $i['source_published_at']!==''
             && is_string($i['source_logical_id']) && $i['source_logical_id']!==''
-            && is_array($i['feed_binding']) && !isset($i['feed_binding']['operation'],$i['feed_binding']['manifest_hash']),
+            && ($i['source_link']===null || is_string($i['source_link']))
+            && is_array($i['feed_binding']) && !array_key_exists('operation',$i['feed_binding'])
+            && !array_key_exists('manifest_hash',$i['feed_binding']),
             'intent_schema');
         $row=$i['row'];
+        $keys=['hotel_id','source_message_id','source_publication_id','source_version_id','source_content_hash',
+            'source_caption_sha256','source_file_id_sha256','source_file_unique_id_sha256','target_message_id',
+            'target_published_unixtime','target_caption_sha256','target_photo_marker_sha256','target_config_version',
+            'next_caption','next_caption_sha256','button_text','bot_url','price_template','price_record_id','source_photo_marker_sha256'];
+        $actual=array_keys($row);sort($actual);sort($keys);
+        self::need($actual===$keys,'intent_row_keys');
         self::need(is_int($row['hotel_id']??null)&&$row['hotel_id']>0
             && is_int($row['source_publication_id']??null)&&$row['source_publication_id']>0
             && is_int($row['source_version_id']??null)&&$row['source_version_id']>0
             && is_string($row['source_message_id']??null)&&preg_match('/\A[1-9][0-9]*\z/D',$row['source_message_id'])===1
             && is_string($row['target_message_id']??null)&&preg_match('/\A[1-9][0-9]*\z/D',$row['target_message_id'])===1
+            && is_int($row['target_published_unixtime']??null)&&$row['target_published_unixtime']>0
             && ($row['price_template']??null)==='' && array_key_exists('price_record_id',$row)&&$row['price_record_id']===null
             && is_string($row['next_caption']??null)&&$row['next_caption']!==''&&self::sha($row['next_caption'])===($row['next_caption_sha256']??null)
+            && mb_check_encoding($row['next_caption'],'UTF-8')&&strlen(mb_convert_encoding($row['next_caption'],'UTF-16LE','UTF-8'))<=2048
             && ($row['target_config_version']??null)===2 && ($row['button_text']??null)==='✈️ Рассчитать на мои даты'
             && ($row['bot_url']??null)==='https://t.me/anyru_bot'
             && ($i['feed_binding']['tourvisor_hotel_id']??null)===$row['hotel_id']
@@ -192,6 +203,11 @@ final class HotelTransferPriceLineage
             && $versions[0]['content_hash']===$row['source_content_hash']
             && self::sha($s['text'])===$row['source_caption_sha256'],'approved_baseline');
         $proof=[]; $seen=[];
+        $baselineRecord=$s['metadata']['monitor_price_record_id']??null;
+        if($baselineRecord!==null) {
+            self::need(is_string($baselineRecord)&&preg_match('/\A[a-f0-9]{64}\z/D',$baselineRecord)===1,'baseline_record');
+            $seen[$baselineRecord]=true;
+        }
         foreach($journals as $k=>$raw) {
             self::need(is_string($raw),'journal_type');
             $s=self::version($versions[$k+1],$row,$i);

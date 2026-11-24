@@ -119,4 +119,16 @@ foreach(['claim_token','claimed_at','state','hotel','token','fingerprint','date'
     lineReject(fn()=>$run([$first,$v],[$raw2]),$case);
 }
 lineReject(fn()=>HotelTransferPriceLineage::candidate($bytes.' ',$digest,[$first],[]),'immutable approved bytes');
+foreach(['extra_row_field','target_date','caption_length','binding_operation','binding_manifest'] as $case){
+    $i=$intent;
+    switch($case){
+        case 'extra_row_field':$i['row']['unapproved']='x';break;
+        case 'target_date':$i['row']['target_published_unixtime']=null;break;
+        case 'caption_length':$i['row']['next_caption']=str_repeat('x',1025);$i['row']['next_caption_sha256']=hash('sha256',$i['row']['next_caption']);break;
+        case 'binding_operation':$i['feed_binding']['operation']='x';break;
+        case 'binding_manifest':$i['feed_binding']['manifest_hash']=str_repeat('a',64);break;
+    }
+    $raw=lineJson($i);
+    lineReject(fn()=>HotelTransferPriceLineage::candidate($raw,hash('sha256',$raw),[$first],[]),$case);
+}
 echo "HOTEL TRANSFER PRICE LINEAGE REGRESSION PASSED\n";
