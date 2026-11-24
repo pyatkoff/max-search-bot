@@ -28,6 +28,9 @@ final class MonthlyReplyQualityReadService
         $lanes=[];
         foreach(['native','archive','manual','prepared','virtual'] as $lane)
             $lanes[$lane]=['start_cursor'=>'qh.'.$lane.'.start','required_scopes'=>$lane==='archive'?['quality:read','archive:read']:['quality:read']];
+        $lanes['archive']['newest_retained']=['start_cursor'=>'qh.archive.recent.start','operation'=>'recent_business_message_inventory',
+            'order'=>'archive_record_id_desc','clock_basis'=>'stored_record_order_not_receipt_time',
+            'text_materialized'=>false,'required_scopes'=>['quality:read','archive:read']];
         return ['requires_explicit_consent'=>true,'scope'=>'quality:read','lanes'=>$lanes,
             'period'=>'previous calendar month day at00:00 Moscow through the first lane read','max_inventory_limit'=>25,
             'retention'=>'retained rows only; deleted or overwritten versions may be absent',
@@ -39,16 +42,18 @@ final class MonthlyReplyQualityReadService
         return $this->run($admin,$connection,function(string $key)use($admin,$connection,$args):array{
             $cursor=$args['cursor']??'';$limit=$args['limit']??25;
             if(!is_string($cursor)||!is_int($limit)||$limit<1||$limit>50)self::fail('invalid_arguments');
-            if(preg_match('/\Aqh\.(native|archive|manual|prepared|virtual)\.start\z/D',$cursor,$m)){
+            $directRecent=$cursor==='qh.archive.recent.start';
+            if($directRecent||preg_match('/\Aqh\.(native|archive|manual|prepared|virtual)\.start\z/D',$cursor,$m)){
                 $until=$this->now();$date=(new DateTimeImmutable('@'.$until))->setTimezone(new DateTimeZone('Europe/Moscow'));
                 $previous=$date->modify('first day of last month')->setTime(0,0);
                 $from=$previous->setDate((int)$previous->format('Y'),(int)$previous->format('m'),min((int)$date->format('d'),(int)$previous->format('t')))->getTimestamp();
-                $s=['k'=>'inventory','l'=>$m[1],'f'=>$from,'t'=>$until];
+                $s=['k'=>'inventory','l'=>$directRecent?'archive':$m[1],'f'=>$from,'t'=>$until];
             }else{$s=$this->decode($cursor,$key,$admin,$connection);if($s['k']!=='inventory')self::fail('stale_cursor');}
             $lane=$s['l'];if($this->forecastReview&&$lane!=='native')self::fail('invalid_arguments');$limit=min($limit,25);
             if(in_array($lane,['native','archive'],true)){
                 $delegate=$this->delegate($lane,$admin,$connection);
                 $a=['limit'=>$limit];if(isset($s['x']))$a['cursor']=$s['x'];
+                if($lane==='archive'&&$directRecent)$a['recent_start']=true;
                 $r=$delegate->inventory($admin,$connection,$a);
                 $field=$lane==='native'?'dialogues':'chats';$ref=$lane==='native'?'dialogue_ref':'chat_ref';$records=[];
                 if($lane==='archive'&&array_key_exists('recent_business_records',$r)){$field='recent_business_records';$ref='message_ref';}

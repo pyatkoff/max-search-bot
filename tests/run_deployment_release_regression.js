@@ -2730,6 +2730,24 @@ async function rankedResumeOriginCases(){
   }
 }
 
+async function rankedApprovedInputCases() {
+  const source={head_sha:H('native-reader'),job_id:100,step:'Read the hotel pairs',artifact_name:'telegram-ranked'};
+  const index={schema:1,native_source:source,native_zip_bytes:123,plans:[{sha256:'a'.repeat(64)}],
+    native_preflight:{run_id:'99',run_attempt:1,artifact_id:101,artifact_zip_sha256:'b'.repeat(64)}};
+  const entry={path:'config/anytour_test.json',sha256:crypto.createHash('sha256').update(JSON.stringify(index)).digest('hex')};
+  const branch='ops/anytour-hotel-ranked-plan-'+entry.sha256, head=H('approved-release');
+  let approvals=[entry];
+  const api=async(method,url)=>{
+    const pathname=url.split('/contents/')[1]?.split('?')[0];
+    const content=Buffer.from(JSON.stringify(pathname==='config/anytour_ranked_approved_indexes.json'?approvals:index));
+    return {type:'file',path:pathname,size:content.length,sha:R.gitBlob(content),encoding:'base64',content:content.toString('base64')};
+  };
+  equal((await R.approvedRankedInput(api,head,entry.sha256,branch)).native_source,source,'original HOTEL source comes from the release-approved index');
+  approvals=[]; await refuses(()=>R.approvedRankedInput(api,head,entry.sha256,branch),'ranked_input_not_approved');
+  approvals=[entry,entry]; await refuses(()=>R.approvedRankedInput(api,head,entry.sha256,branch),'ranked_input_not_approved');
+  approvals=[entry]; index.native_source.job_id=102;
+  await refuses(()=>R.approvedRankedInput(api,head,entry.sha256,branch),'ranked_input_proof_invalid');
+}
 async function rankedParentCases() {
   const seed = 45372056681, child = seed + 10, leaf = child + 1;
   const seedSha = 'e3e1a9bdf29dd0d7530fe6b3b393f1286834d092', head = H('ranked-child');
@@ -2796,7 +2814,7 @@ async function rankedParentCases() {
   await assert.rejects(()=>R.rankedParentEvidence(good.api,String(child),{id:String(child),sha:head}));assertions++;
 }
 
-async function main(){await closedPrewriteOriginCases();await rankedParentCases();await rankedResumeOriginCases();hotelRegistryReadWorkflow();await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
+async function main(){await closedPrewriteOriginCases();await rankedApprovedInputCases();await rankedParentCases();await rankedResumeOriginCases();hotelRegistryReadWorkflow();await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_partial_install_1662_forward_regression.js')],{stdio:'inherit'});
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_exhausted_verify_1664_forward_regression.js')],{stdio:'inherit'});
   execFileSync('python3',[path.join(__dirname,'run_partial_install_1662_forward_sync.py')],{stdio:'inherit'});

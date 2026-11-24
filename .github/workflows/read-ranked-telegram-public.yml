@@ -8,6 +8,7 @@ on:
       - ops/anytour-hotel-ranked-37-continue-20261123
       - ops/anytour-hotel-ranked-resume-20261124
       - 'ops/anytour-hotel-ranked-after-*'
+      - 'ops/anytour-hotel-ranked-plan-*'
 permissions:
   contents: read
   actions: read
@@ -48,6 +49,10 @@ jobs:
              .status=="completed" and (.conclusion=="success" or .conclusion=="failure")' "$RUNNER_TEMP/native-run.json" >/dev/null
           case "$NATIVE_BRANCH" in
             ops/anytour-hotel-ranked-46-apply-20261123) operation=hotel_ranked_46_transfer ;;
+            ops/anytour-hotel-ranked-plan-*)
+              index_sha=${NATIVE_BRANCH#ops/anytour-hotel-ranked-plan-}
+              [[ "$index_sha" =~ ^[a-f0-9]{64}$ ]]
+              operation=hotel_ranked_approved_input ;;
             ops/anytour-hotel-ranked-37-continue-20261123) operation=hotel_ranked_37_continuation ;;
             ops/anytour-hotel-ranked-resume-20261124) operation=hotel_ranked_resume ;;
             ops/anytour-hotel-ranked-after-*)
@@ -58,6 +63,12 @@ jobs:
               ;;
             *) exit 2 ;;
           esac
+          index_sha=${index_sha:-30d58e6649877a0eb07deb7e2fddcfa99c92081aac5fbef8c3c2b1d7a4a92833}
+          index=$(jq -er --arg sha "$index_sha" '[.[] | select(.sha256==$sha)] | select(length==1) | .[0].path' config/anytour_ranked_approved_indexes.json)
+          [[ "$index" =~ ^config/anytour_[a-z0-9_]+\.json$ ]]
+          printf '%s  %s\n' "$index_sha" "$index" | sha256sum --check --status
+          export RANKED_APPROVED_INDEX="$index"
+          printf 'RANKED_APPROVED_INDEX=%s\n' "$index" >> "$GITHUB_ENV"
           gh api "$run/attempts/1/jobs?per_page=100" > "$RUNNER_TEMP/native-jobs.json"
           jq -e --arg run "$NATIVE_RUN_ID" --arg sha "$NATIVE_REPOSITORY_SHA" \
             '.total_count==1 and (.jobs|length)==1 and (.jobs[0] |
@@ -81,7 +92,7 @@ jobs:
           import json, os, pathlib, zipfile
           receipt = pathlib.Path(os.environ['RUNNER_TEMP'], 'native')
           receipt.mkdir()
-          plans = json.loads(pathlib.Path('config/anytour_ranked_46_20261123.json').read_bytes())['plans']
+          plans = json.loads(pathlib.Path(os.environ['RANKED_APPROVED_INDEX']).read_bytes())['plans']
           names = {'summary.json'} | {f"{kind}-{p['sha256']}.json" for p in plans for kind in ('check', 'result')}
           with zipfile.ZipFile(receipt.parent / 'native.zip') as archive:
               if sorted(archive.namelist()) != sorted(names):

@@ -36,18 +36,23 @@ function verifiedCandidates(array $plan, array $check, array $result, array $sum
 {
     $digest = $context['plan_sha256'];
     $operation = match ($context['write_operation']) {
-        'hotel_ranked_46_transfer' => $plan['operation'],
+        'hotel_ranked_46_transfer', 'hotel_ranked_approved_input' => $plan['operation'],
         'hotel_ranked_37_continuation' => RANKED_CONTINUATION_OPERATION,
         'hotel_ranked_resume' => RANKED_RESUME_OPERATION,
         'hotel_ranked_unreached' => RANKED_UNREACHED_OPERATION,
         default => throw new \RuntimeException('unknown_write_operation'),
     };
+    $busy = ($summary['state'] ?? null) === 'not_started_editor_busy';
+    if ($busy) requirePost($context['write_operation'] === 'hotel_ranked_approved_input'
+        && ($result['ok'] ?? null) === false && ($result['state'] ?? null) === 'not_started_editor_busy'
+        && ($result['reason'] ?? null) === 'transfer_content_editor_busy' && ($summary['reason'] ?? null) === $result['reason']
+        && ($result['results'] ?? null) === [] && ($result['provider_write_attempts'] ?? null) === 0, 'native_busy_scope_invalid');
     requirePost($check['operation'] === $operation && $result['operation'] === $operation && $summary['operation'] === $operation
         && $check['ok'] === true && $check['mode'] === 'offline_plan_check' && $check['production_writes'] === 0 && $check['provider_writes'] === 0
         && $result['native_run_id'] === $context['run_id'] && $result['application_sha'] === $context['application_sha']
         && $check['plan_sha256'] === $digest && $result['plan_sha256'] === $digest
         && $result['supplier_requests'] === 0 && $result['bot_starts'] === 0
-        && in_array($summary['state'], ['complete','partial_requires_readback'], true), 'native_receipt_context_invalid');
+        && ($busy || in_array($summary['state'], ['complete','partial_requires_readback'], true)), 'native_receipt_context_invalid');
 
     $planned = array_column($plan['rows'], null, 'hotel_id');
     $hotelIds = $summary['hotel_ids'];
@@ -133,7 +138,9 @@ function inspectPublic(array $candidates, string $digest, callable $read): array
 if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) {
     $folder = getenv('RUNNER_TEMP').'/native/';
     $load = static fn(string $file): array => json_decode(file_get_contents($file), true, 64, JSON_THROW_ON_ERROR);
-    $index = $load(__DIR__.'/../config/anytour_ranked_46_20261123.json');
+    $indexPath = getenv('RANKED_APPROVED_INDEX') ?: 'config/anytour_ranked_46_20261123.json';
+    requirePost(preg_match('~\Aconfig/anytour_[a-z0-9_]+\.json\z~D', $indexPath) === 1, 'native_plan_path_invalid');
+    $index = $load(__DIR__.'/../'.$indexPath);
     $summary = $load($folder.'summary.json');
     $context = ['run_id'=>getenv('NATIVE_RUN_ID'), 'repository_sha'=>getenv('NATIVE_REPOSITORY_SHA'),
         'artifact_id'=>getenv('RECEIPT_ID'), 'artifact_sha256'=>getenv('RECEIPT_SHA256'), 'write_operation'=>getenv('WRITE_OPERATION')];
