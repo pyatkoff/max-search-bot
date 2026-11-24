@@ -176,6 +176,7 @@ jobs:
           assert d.get('supplier_requests')==d.get('bot_starts')==0
           confirmed=[]
           held=[]
+          isolated_transport_loss=False
           for i,row in enumerate(rows):
               assert row['url']=='https://t.me/anytour/'+item['messages'][i]
               if row.get('ok') is True:
@@ -183,8 +184,29 @@ jobs:
                   assert row['hotel_id_verified'] and row['photo_caption_button_verified'] and row['original_message_id_and_date_preserved']
                   confirmed.append(row['hotel_id'])
               else:
-                  assert i==len(rows)-1 and row.get('ok') is False
-                  held.append({'hotel_id':row['hotel_id'],'state':row['state']})
+                  assert row.get('ok') is False
+                  if i!=len(rows)-1:
+                      assert os.environ['GITHUB_REF']=='refs/heads/ops/anytour-hotel-ranked-37-continue-20261123'
+                      rejected=row['state']=='provider_message_id_rejected' and row['provider_write_attempts']==1
+                      stale=(row['state']=='held_before_provider' and row.get('reason')=='transfer_source_revision_advanced'
+                             and row['provider_write_attempts']==0 and ('reserved_publication_id' not in row
+                             or (row.get('source_revision_hold_recorded') is True and type(row['reserved_publication_id']) is int
+                             and row['reserved_publication_id']>0)))
+                      isolated=(not isolated_transport_loss and row['state']=='response_saved_completion_requires_readback'
+                                and row.get('reason')=='hotel_transfer_response_unconfirmed'
+                                and row['provider_write_attempts']==1 and row.get('shared_access_rechecked') is True)
+                      local_hold=(row['state']=='held_before_provider' and row['provider_write_attempts']==0
+                                  and 'reserved_publication_id' not in row and row.get('reason') in {
+                                  'transfer_target_identity_exists','transfer_hotel_already_in_large_channel','transfer_target_editor_busy'})
+                      prior=(row['state']=='held_before_provider' and row['provider_write_attempts']==0
+                             and row.get('reason')=='transfer_current_run_journal_requires_readback'
+                             and row.get('prior_terminal_state') in {'native_and_registry_verified','provider_message_id_rejected','response_saved_completion_requires_readback'}
+                             and len(row.get('prior_journal_sha256',''))==64
+                             and all(ch in '0123456789abcdef' for ch in row['prior_journal_sha256']))
+                      assert rejected or stale or isolated or local_hold or prior,'nonlocal_error_must_end_batch'
+                      isolated_transport_loss |= isolated
+                  held.append({k:row[k] for k in ('hotel_id','message_id','state','reason','reserved_publication_id',
+                      'provider_write_attempts','shared_access_rechecked','shared_access_error','prior_journal_sha256','prior_terminal_state') if k in row})
           assert d.get('provider_write_attempts')==sum(r['provider_write_attempts'] for r in rows)
           ok=status==0 and d.get('ok') is True and confirmed==item['hotels'] and not held
           state.update(state='complete' if ok else 'partial_requires_readback',confirmed=confirmed,held=held,unreached=item['hotels'][len(rows):])
