@@ -1,4 +1,4 @@
-name: Read scoped ingress listeners and local vhost health
+name: Read PR1702 vhost response evidence and two local offers
 on:
   push:
     branches: [audit/1566-next-release-admission-1664]
@@ -6,7 +6,7 @@ on:
 permissions: {}
 jobs:
   read:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff'
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -43,7 +43,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read scoped HTTPS routing and historical upstream errors
+      - name: Read bounded vhost counts and two loopback offers
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -53,486 +53,169 @@ jobs:
           ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 \
             -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null \
             -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$USER_VALUE@$HOST_VALUE" 'timeout 115s env PYTHONDONTWRITEBYTECODE=1 python3 -' <<'REMOTE'
-          import collections, datetime, glob, gzip, hashlib, ipaddress, json, os, re, selectors, shlex, shutil, stat, subprocess, time, urllib.parse
+          import collections
+          import datetime as dt
+          import hashlib
+          import http.client
+          import json
+          import os
+          import re
+          import shlex
+          import stat
+          import subprocess
+          import time
           
-          HOST = 'app.anytoour.ru'
           APP = '/var/www/anytoour/data/www/app.anytoour.ru'
-          ALLOWED_APP = {'8d723f1c08f094fd845c7c34da29607fc294ff46','7ba8de9cd15acbe691148094c5e76e629914cbf4'}
-          START = time.monotonic()
-          MAX_CONFIG = 131072
-          MAX_LOG = 4194304
-          ROOTS = ('/etc/nginx/', '/etc/apache2/', '/etc/httpd/', '/etc/php/', '/opt/')
-          seen = set()
-          log_paths = {}
-          upstreams = []
-          listeners = []
-          handlers = set()
-          limits = {}
-          roots = []
-          coverage = collections.Counter()
-          proxy_headers = collections.defaultdict(set)
-          apache_modules = None
-          probe_started = None
-          
-          def emit(kind, **fields):
-              print(json.dumps({'kind': kind, **fields}, sort_keys=True), flush=True)
-          
-          def digest(value):
-              return hashlib.sha256(value.encode()).hexdigest()[:16]
-          
-          def command(argv, seconds=4):
+          HOST = 'app.anytoour.ru'
+          SHA = '32155b9eb2c8606b61554951bfdc988d70bbcb39'
+          LOGS = {key: '/var/www/httpd-logs/'+HOST+'.'+key+'.log' for key in ('access','error')}
+          VHOST = '/etc/nginx/vhosts/anytoour/'+HOST+'.conf'
+          NGINX = '/etc/nginx/nginx.conf'
+          WINDOWS = {'installation': ('14:51:45','14:53:15'), 'preflight': ('14:57:05','14:58:35'), 'root_head': ('15:02:30','15:04:00')}
+          def emit(kind, **values):
+              print(json.dumps({'kind':kind, **values}, sort_keys=True), flush=True)
+          def git(*args):
+              return subprocess.run(['git','--no-optional-locks','-C',APP,*args],stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,timeout=10)
+          def guard():
+              head = git('rev-parse','HEAD')
+              if head.returncode or head.stdout.decode().strip() != SHA:
+                  raise SystemExit('checkout_changed')
+              clean = []
+              for options in ([], ['--cached']):
+                  result = git('diff','--quiet','--no-ext-diff','--no-textconv',*options)
+                  clean.append({0:'clean',1:'dirty'}.get(result.returncode,'unknown'))
+              return clean
+          def read(path, limit, tail=False):
+              if path not in [*LOGS.values(),VHOST,NGINX]:
+                  raise ValueError('outside_scope')
               try:
-                  p = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-                  chunks=[];size=0;deadline=time.monotonic()+seconds
-                  with selectors.DefaultSelector() as sel:
-                      sel.register(p.stdout,selectors.EVENT_READ)
-                      while True:
-                          if time.monotonic()>=deadline:p.kill();p.wait();return -2,''
-                          events=sel.select(min(0.1,max(0,deadline-time.monotonic())))
-                          if not events:continue
-                          block=os.read(p.stdout.fileno(),16384)
-                          if not block:break
-                          size+=len(block)
-                          if size>524288:p.kill();p.wait();return -3,''
-                          chunks.append(block)
-                  p.wait(timeout=max(0.1,deadline-time.monotonic()))
-                  return p.returncode,b''.join(chunks).decode('utf-8','replace')
-              except Exception as e:
-                  return -1, ''
-          
-          def file_read(path, limit, tail=False, config=False):
-              # Follow only configuration symlinks whose final target stays in config roots.
-              resolved = os.path.realpath(path)
-              if config and not resolved.startswith(ROOTS):
-                  return None, {'state': 'outside_config_roots'}
-              if not config and resolved != path:
-                  return None, {'state': 'symlink_unavailable'}
-              try:
-                  fd = os.open(resolved, os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW)
-                  try:
-                      info = os.fstat(fd)
-                      if not stat.S_ISREG(info.st_mode):
-                          return None, {'state': 'not_regular'}
-                      if not tail and info.st_size > limit:
-                          return None, {'state': 'size_limit', 'size': info.st_size}
-                      offset = max(0, info.st_size-limit) if tail else 0
-                      os.lseek(fd, offset, os.SEEK_SET)
-                      raw = os.read(fd, limit)
-                      if offset:
-                          raw = raw.partition(b'\n')[2]
-                      return raw.decode('utf-8', 'replace'), {'state':'read', 'size':info.st_size, 'bytes_read':len(raw), 'offset':offset,
-                          'mtime_utc':datetime.datetime.fromtimestamp(info.st_mtime, datetime.timezone.utc).isoformat(),
-                          'sha256_read':hashlib.sha256(raw).hexdigest()}
-                  finally:
-                      os.close(fd)
-              except FileNotFoundError:
-                  return None, {'state':'not_found'}
-              except PermissionError:
-                  return None, {'state':'permission_denied'}
-              except Exception as e:
-                  return None, {'state':'read_error', 'error_class':type(e).__name__}
-          
-          def endpoint(value):
-              value = value.strip().strip(';')
-              if value.isdigit():return {'transport':'tcp','address_class':'wildcard','port':int(value)}
-              if value.startswith('proxy:'):value=value[6:]
-              if value.startswith('unix:'):
-                  return {'transport':'unix', 'socket_hash':digest(value[5:].split('|',1)[0])}
-              if '$' in value:
-                  return {'transport':'variable', 'value_hash':digest(value)}
-              parsed = urllib.parse.urlsplit(value if '://' in value else '//'+value)
-              name = parsed.hostname or ''
-              try:
-                  ip = ipaddress.ip_address(name)
-                  group = 'loopback' if ip.is_loopback else ('private' if ip.is_private else 'public')
-              except ValueError:
-                  group = 'localhost' if name == 'localhost' else ('this_host' if name == HOST else 'named')
-              try: port = parsed.port
-              except ValueError: port = None
-              return {'transport':parsed.scheme or 'tcp', 'address_class':group, 'address_hash':digest(name), 'port':port,
-                  'has_uri':bool(parsed.path and parsed.path!='/'), 'has_credentials':bool(parsed.username or parsed.password)}
-          
-          def nginx_nodes(data):
-              tokens = re.findall(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|#[^\n]*|[{};]|[^\s{};]+', data)
-              root = []; stack = [root]; words = []
-              for t in tokens:
-                  if t.startswith('#'): continue
-                  if t == '{':
-                      children=[]; stack[-1].append((words,children)); stack.append(children); words=[]
-                  elif t == '}':
-                      if words or len(stack)==1: raise ValueError('parse')
-                      stack.pop()
-                  elif t == ';':
-                      if words: stack[-1].append((words,None))
-                      words=[]
-                  else: words.append(t.strip('"\''))
-              if len(stack)!=1 or words: raise ValueError('parse')
-              return root
-          
-          def root_value(value, variables):
-              for name, replacement in variables.items(): value=value.replace(name,replacement)
-              return {'matches_checkout':os.path.normpath(value)==APP, 'unresolved_variable':'$' in value, 'path_hash':digest(value)}
-          
-          def include_read(pattern, parent, kind, context, depth, variables=None):
-              if depth > 3 or len(seen) >= 32:
-                  coverage['include_limit'] += 1; return
-              if not pattern.startswith('/'):
-                  prefix='/etc/nginx' if kind=='nginx' else ('/etc/httpd' if parent.startswith('/etc/httpd/') else '/etc/apache2')
-                  pattern=os.path.join(prefix,pattern);coverage['relative_include_default_prefix_used']+=1
-              if not os.path.realpath(pattern.split('*')[0]).startswith(ROOTS):
-                  coverage['include_outside_scope'] += 1; return
-              matches=sorted(glob.glob(pattern))
-              if not matches: coverage['include_unresolved'] += 1
-              if len(matches)>16: coverage['include_match_limit'] += 1; matches=matches[:16]
-              for path in matches: read_config(path,kind,context,depth+1,False,variables)
-          
-          def nginx_walk(nodes, source, context, depth, variables=None):
-              variables=dict(variables or {})
-              for words,children in nodes:
-                  if words and words[0]=='set' and len(words)==3 and words[1] in ('$root_path','$root','$document_root'):
-                      variables[words[1]]=words[2]
-              for words,children in nodes:
-                  if not words: continue
-                  key,args=words[0],words[1:]
-                  if key=='server':
-                      names=[w[1:] for w,c in (children or []) if w and w[0]=='server_name']
-                      if any(HOST in row for row in names):
-                          coverage['nginx_app_server_blocks']+=1
-                          listen_values=[w[1:] for w,c in (children or []) if w and w[0]=='listen']
-                          tls=any('ssl' in row or (row and endpoint(row[0]).get('port')==443) for row in listen_values)
-                          nginx_walk(children,source,'tls_app_server' if tls else 'http_app_server',depth,variables)
-                      continue
-                  if key in ('http','events','stream','mail'): continue
-                  if key=='location':
-                      pattern=' '.join(args)
-                      category=pattern if pattern in ('/','/poisk-turov/','/manager/sw.js') else ('php_regex' if 'php' in pattern else ('named' if pattern.startswith('@') else 'other'))
-                      emit('nginx_location',source=source,category=category,pattern_hash=digest(pattern),context=context)
-                      nginx_walk(children or [],source,context+'/location:'+category+':'+digest(pattern),depth,variables); continue
-                  if key=='include' and args: include_read(args[0],source,'nginx',context,depth,variables); continue
-                  if key=='listen' and args:
-                      listeners.append(args[0]); emit('nginx_listen',source=source,context=context,endpoint=endpoint(args[0]),ssl='ssl' in args,default_server='default_server' in args)
-                  elif key=='server_name': emit('nginx_server_name',source=source,context=context,app_present=HOST in args)
-                  elif key=='root' and args:
-                      roots.append(root_value(args[0],variables)); emit('document_root',source=source,context=context,**roots[-1])
-                  elif key in ('proxy_pass','fastcgi_pass') and args:
-                      upstreams.append((key,args[0],context)); handlers.add('fastcgi' if key=='fastcgi_pass' else 'http_proxy')
-                      emit('upstream',source=source,context=context,directive=key,endpoint=endpoint(args[0]))
-                      if endpoint(args[0]).get('address_class')=='named':coverage['named_upstream_resolution_unavailable']+=1
-                  elif key in ('proxy_set_header','fastcgi_param') and len(args)>1:
-                      if key=='proxy_set_header' and context.startswith('tls_'):proxy_headers[args[0].lower()].add(' '.join(args[1:]))
-                      if args[0].lower() in ('host','x-forwarded-host','x-forwarded-proto','x-forwarded-port','https','script_filename','server_name'):
-                          value=' '.join(args[1:]);safe=value in ('$host','$http_host','$server_name','$scheme','$server_port','$document_root$fastcgi_script_name','$realpath_root$fastcgi_script_name','$request_filename','http','https','on','off','443','80',HOST)
-                          emit('forwarding',source=source,context=context,name=args[0],value=value if safe else 'redacted',value_hash=digest(value))
-                  elif key in ('proxy_connect_timeout','proxy_read_timeout','fastcgi_connect_timeout','fastcgi_read_timeout','limit_req','limit_conn'):
-                      emit('route_setting',source=source,context=context,directive=key,value=args[0] if args and re.fullmatch(r'[0-9a-zA-Z_.=:-]+',args[0]) else 'unavailable')
-                  elif key in ('try_files','rewrite','return','error_page'):
-                      emit('route_rule',source=source,context=context,directive=key,argument_count=len(args),rule_hash=digest(' '.join(args)),status=args[0] if args and re.fullmatch('[0-9]{3}',args[0]) else None)
-                  elif key in ('error_log','access_log') and args and args[0].startswith('/'):
-                      log_paths[args[0]]='error' if key=='error_log' else 'access'
-                      emit('log_target',source=source,context=context,log_kind=log_paths[args[0]],path_hash=digest(args[0]),domain_scoped=HOST in args[0])
-                  if children is not None: nginx_walk(children,source,context+'/'+key,depth,variables)
-          
-          def apache_read(data,source,context,depth):
-              blocks=list(re.finditer(r'(?is)<VirtualHost\b([^>]*)>(.*?)</VirtualHost\s*>',data))
-              if blocks:
-                  selected=0
-                  for block in blocks:
-                      if re.search(r'(?im)^\s*ServerName\s+'+re.escape(HOST)+r'(?:\s|$)',block[2]):
-                          selected+=1;emit('apache_listener',source=source,endpoint=endpoint(block[1].strip().split()[0]))
-                          apache_read(block[2],source,'app_vhost',depth)
-                  if not selected:coverage['apache_wrong_vhost']+=1
-                  return
-              if context=='candidate' and not re.search(r'(?im)^\s*ServerName\s+'+re.escape(HOST)+r'(?:\s|$)',data):
-                  coverage['apache_wrong_vhost']+=1; return
-              conditions=[]
-              for raw in data.splitlines():
-                  raw=raw.strip()
-                  if not raw or raw.startswith('#'):continue
-                  module_match=re.match(r'(?i)<IfModule\s+([^>]+)>',raw)
-                  if module_match:
-                      wanted=module_match[1].strip();neg=wanted.startswith('!');wanted=re.sub(r'(?:\.c|_module)$','',re.sub(r'^mod_','',wanted.lstrip('!')))
-                      if apache_modules is None:conditions.append(None);coverage['apache_conditional_unverified']+=1
-                      else:conditions.append((wanted in apache_modules)!=neg)
-                      continue
-                  if re.match(r'(?i)</IfModule',raw):
-                      if conditions:conditions.pop()
-                      continue
-                  if False in conditions:continue
-                  try: words=shlex.split(raw)
-                  except ValueError: coverage['apache_parse_unavailable']+=1;continue
-                  if not words:continue
-                  key=words[0].lower();args=words[1:]
-                  if key in ('include','includeoptional') and args:
-                      include_read(args[0],source,'apache',context,depth)
-                  elif key=='servername': emit('apache_server_name',source=source,app_present=HOST in args)
-                  elif key=='documentroot' and args: emit('document_root',source=source,context='apache',**root_value(args[0],{}))
-                  elif key in ('sethandler','addhandler','addtype','action','fcgidwrapper','proxypassmatch','proxypass'):
-                      value=' '.join(args); mode='other'
-                      if 'fcgi' in value.lower():mode='fastcgi'
-                      elif key=='fcgidwrapper' or 'cgi' in value.lower():mode='cgi_or_fcgid'
-                      elif 'php' in value.lower():mode='php_module'
-                      handlers.add(mode);emit('php_handler_candidate',source=source,directive=key,mode=mode,value_hash=digest(value),conditional_effective=not any(x is None for x in conditions))
-                      for a in args:
-                          if a.startswith(('http://','https://','fcgi://','unix:','proxy:unix:','proxy:fcgi:')):upstreams.append((key,a,'apache'));emit('upstream',source=source,context='apache',directive=key,endpoint=endpoint(a))
-                  elif key in ('maxrequestworkers','maxclients','serverlimit','threadsperchild','threadlimit','maxconnectionsperchild','fcgidmaxprocesses','fcgidmaxprocessesperclass','fcgidbusytimeout','timeout','proxytimeout'):
-                      if args and re.fullmatch(r'[0-9]+',args[0]):limits[key]=int(args[0]);emit('worker_limit',source=source,directive=key,value=int(args[0]))
-                  elif key in ('errorlog','customlog','transferlog') and args and args[0].startswith('/'):
-                      log_paths[args[0]]='error' if key=='errorlog' else 'access';emit('log_target',source=source,log_kind=log_paths[args[0]],path_hash=digest(args[0]),domain_scoped=HOST in args[0])
-                  elif key=='<virtualhost' and args:
-                      emit('apache_listener',source=source,endpoint=endpoint(args[0].rstrip('>')))
-          
-          def read_config(path,kind,context,depth=0,candidate=False,variables=None):
-              key=(path,kind,context)
-              if key in seen:return
-              if len(seen)>=32:coverage['config_count_limit']+=1;return
-              seen.add(key)
-              data,meta=file_read(path,MAX_CONFIG,config=True)
-              emit('config_file',path=path,config_kind=kind,**meta)
-              if data is None:coverage['config_'+meta['state']]+=1;return
-              try:
-                  if kind=='nginx':nginx_walk(nginx_nodes(data),path,context,depth,variables)
-                  else:apache_read(data,path,'candidate' if candidate else context,depth)
-              except Exception as e:coverage['config_parse_unavailable']+=1;emit('config_parse',path=path,state='unavailable',error_class=type(e).__name__)
-          
-          ERRORS={
-           'upstream_header_timeout':r'upstream timed out.*reading response header',
-           'upstream_connect_timeout':r'upstream timed out.*connecting to upstream',
-           'upstream_connect_refused':r'connect\(\).*failed.*(?:refused|111)|failed to make connection to backend|AH00957',
-           'upstream_no_live':r'no live upstreams',
-           'upstream_premature_close':r'upstream prematurely closed|failed to read FastCGI header',
-           'apache_max_workers':r'reached MaxRequestWorkers|MaxRequestWorkers setting|server reached MaxClients|scoreboard is full',
-           'fpm_max_children':r'reached pm\.max_children|seems busy.*spawning',
-           'fcgid_process_limit':r'fcgid.*(?:process slot|MaxProcesses|spawn.*fail|busy timeout)',
-           'php_memory_limit':r'Allowed memory size.*exhausted',
-           'permission_denied':r'Permission denied',
-           'worker_connections_limit':r'worker_connections are not enough',
-           'server_reload':r'graceful restart|resuming normal operations|reconfiguring|start worker processes'
-          }
-          WINDOWS=[('before1664',datetime.datetime(2026,11,23,11,4,tzinfo=datetime.timezone.utc),datetime.datetime(2026,11,23,11,10,tzinfo=datetime.timezone.utc)),
-           ('verify1',datetime.datetime(2026,11,23,12,54,tzinfo=datetime.timezone.utc),datetime.datetime(2026,11,23,12,59,tzinfo=datetime.timezone.utc)),
-           ('verify2_and_diagnostics',datetime.datetime(2026,11,23,14,25,tzinfo=datetime.timezone.utc),datetime.datetime(2026,11,23,14,35,tzinfo=datetime.timezone.utc))]
-          
+                  real = os.path.realpath(path)
+                  if real != path and (path in LOGS.values() or not real.startswith('/etc/nginx/')):
+                      return '', 'different_path'
+                  fd = os.open(real,os.O_RDONLY|os.O_NONBLOCK|os.O_NOFOLLOW)
+                  with os.fdopen(fd,'rb') as f:
+                      meta = os.fstat(f.fileno())
+                      if not stat.S_ISREG(meta.st_mode):
+                          return '', 'not_regular'
+                      if meta.st_size>limit and not tail:
+                          return '', 'size_limit'
+                      offset=max(0,meta.st_size-limit)
+                      f.seek(offset)
+                      if offset: f.readline(limit)
+                      return f.read(limit).decode('utf-8','replace'), 'read'
+              except (OSError,ValueError) as e:
+                  return '',type(e).__name__
           def stamp(line):
-              m=re.search(r'\[(\d{2}/[A-Za-z]{3}/\d{4}:\d{2}:\d{2}:\d{2} [+-]\d{4})\]',line)
-              if m:return datetime.datetime.strptime(m[1],'%d/%b/%Y:%H:%M:%S %z').astimezone(datetime.timezone.utc)
-              m=re.search(r'\b(\d{4}/\d\d/\d\d \d\d:\d\d:\d\d)\b',line)
-              if m:return datetime.datetime.strptime(m[1],'%Y/%m/%d %H:%M:%S').astimezone(datetime.timezone.utc)
-              m=re.search(r'\[([A-Za-z]{3} [A-Za-z]{3}\s+\d{1,2} \d\d:\d\d:\d\d)(?:\.\d+)? (\d{4})\]',line)
-              if m:return datetime.datetime.strptime(m[1]+' '+m[2],'%a %b %d %H:%M:%S %Y').astimezone(datetime.timezone.utc)
-              m=re.search(r'\[(\d{2}-[A-Za-z]{3}-\d{4} \d\d:\d\d:\d\d)\]',line)
-              if m:return datetime.datetime.strptime(m[1],'%d-%b-%Y %H:%M:%S').astimezone(datetime.timezone.utc)
+              matched = re.search(r'\[(\d{2}/[A-Za-z]{3}/\d{4}:\d\d:\d\d:\d\d [+-]\d{4})\]',line)
+              if matched:
+                  return dt.datetime.strptime(matched[1],'%d/%b/%Y:%H:%M:%S %z').astimezone(dt.timezone.utc)
+              matched = re.search(r'\b(\d{4}/\d\d/\d\d \d\d:\d\d:\d\d)\b',line)
+              if matched:
+                  return dt.datetime.strptime(matched[1],'%Y/%m/%d %H:%M:%S').astimezone(dt.timezone.utc)
+              matched=re.search(r'\[([A-Za-z]{3} [A-Za-z]{3}\s+\d{1,2} \d\d:\d\d:\d\d)(?:\.\d+)? (\d{4})\]',line)
+              if matched:
+                  return dt.datetime.strptime(matched[1]+' '+matched[2],'%a %b %d %H:%M:%S %Y').astimezone(dt.timezone.utc)
               return None
-          
-          def inspect_log(path,kind,phase='before',archive_override=None):
-              data,meta=archive_override if archive_override is not None else file_read(path,MAX_LOG,tail=True)
-              summary={'path_hash':digest(path),'log_kind':kind,'phase':phase,**meta}
-              if data is None:emit('log_summary',**summary);return
-              counts=collections.Counter();first=None;last=None;scoped=HOST in path;untimed=0;matched=0;category_times={}
-              for line in data.splitlines():
-                  error_part=re.split(r',\s*(?:client|server|request|upstream|host|referrer):|, referer:|\sreferer:',line,maxsplit=1)[0]
-                  attributed=bool(re.search(r'(?:server:\s*|host:\s*"?)'+re.escape(HOST)+r'(?=[\s,":]|$)',line)) or APP+'/' in error_part
-                  if not scoped and not attributed:
-                      if kind!='shared_error' or not any(re.search(ERRORS[c],error_part,re.I) for c in ('apache_max_workers','fpm_max_children','fcgid_process_limit','worker_connections_limit','server_reload')):continue
-                  try:at=stamp(line)
-                  except Exception:at=None
-                  if at:
-                      first=min(first,at) if first else at;last=max(last,at) if last else at
-                  else:untimed+=1
-                  windows=[name for name,lo,hi in WINDOWS if at and lo<=at<=hi]
-                  if at and 0<=(datetime.datetime.now(datetime.timezone.utc)-at).total_seconds()<=900:windows.append('last15min')
-                  if at and phase=='after' and probe_started and at>=probe_started-datetime.timedelta(seconds=1):windows.append('diagnostic_pass')
-                  if not windows:continue
-                  matched+=1
-                  for name in windows:
-                      counts[name+':lines']+=1
-                      if kind in ('error','shared_error'):
-                          for category,pattern in ERRORS.items():
-                              if re.search(pattern,error_part,re.I):
-                                  key=name+':'+category;counts[key]+=1
-                                  old=category_times.get(key);iso=at.isoformat() if at else None
-                                  category_times[key]={'first_utc':min(old['first_utc'],iso) if old and iso else iso,'last_utc':max(old['last_utc'],iso) if old and iso else iso}
+          def configured_fields():
+              site, status=read(VHOST,131072)
+              declarations = re.findall(r'(?m)^\s*access_log\s+([^;]+);',site)
+              names=set()
+              for declaration in declarations:
+                  parts=shlex.split(declaration)
+                  if parts and parts[0]==LOGS['access']:
+                      names.add(parts[1] if len(parts)>1 and '=' not in parts[1] else 'combined')
+              all_conf, config_status=read(NGINX,131072)
+              known={}; flags={}
+              for name in names:
+                  if name=='combined':
+                      flags['combined']=[]
+                      continue
+                  if not re.fullmatch(r'[a-zA-Z0-9_]+',name): continue
+                  declaration=re.search(r'(?ms)^\s*log_format\s+'+re.escape(name)+r'\s+(.+?);',all_conf)
+                  if not declaration:
+                      flags['unresolved_custom']=[];continue
+                  fmt=''.join(x for x in shlex.split(declaration[1]) if not x.startswith('escape='))
+                  fields=re.findall(r'\$(\w+)',fmt)
+                  durations=[k for k in ('request_time','upstream_connect_time','upstream_header_time','upstream_response_time') if k in fields]
+                  flags['custom']=durations
+                  parts=re.split(r'(\$\w+)',fmt)
+                  seen=set();pattern=[]
+                  for part in parts:
+                      field=part[1:]
+                      if part.startswith('$'):
+                          pattern.append('(?P<'+field+'>.*?)' if field not in seen else '.*?')
+                          seen.add(field)
                       else:
-                          # Only aggregate the two diagnostic paths; never export request/query/IP.
-                          m=re.search(r'"(?:GET|HEAD)\s+([^\s?]+)(?:\?[^\s]*)?\s+HTTP/[0-9.]+"\s+(\d{3})',line)
-                          if m and m[1] in ('/poisk-turov/','/manager/sw.js'):
-                              counts[name+':'+('redirect' if m[1]=='/poisk-turov/' else 'static')+':http'+m[2]]+=1
-              window_coverage={name:('spans_window' if first and last and first<=lo and last>=hi else 'not_fully_covered') for name,lo,hi in WINDOWS}
-              emit('log_summary',**summary,counts=dict(counts),category_times=category_times,first_utc=first.isoformat() if first else None,last_utc=last.isoformat() if last else None,untimed_lines=untimed,matched_lines=matched,domain_scoped=scoped,window_coverage=window_coverage)
-          
-          def global_service_config():
-              # Shared daemon failures are reported as system evidence, never as this app's
-              # requests. No unrelated virtual hosts or access logs are traversed here.
-              for kind,path in [('nginx','/etc/nginx/nginx.conf'),('apache','/etc/apache2/apache2.conf'),('apache','/etc/httpd/conf/httpd.conf')]:
-                  data,meta=file_read(path,MAX_CONFIG,config=True)
-                  emit('service_config',path=path,**meta)
-                  if data is None:continue
-                  pattern=r'(?im)^\s*error_log\s+([^;\s]+)' if kind=='nginx' else r'(?im)^\s*ErrorLog\s+(\S+)'
-                  for value in re.findall(pattern,data):
-                      value=value.strip('"\'')
-                      if '${APACHE_LOG_DIR}' in value:
-                          env,emeta=file_read('/etc/apache2/envvars',MAX_CONFIG,config=True)
-                          m=re.search(r'(?m)^\s*export\s+APACHE_LOG_DIR=([/A-Za-z0-9_.-]+)\s*$',env or '')
-                          if m:value=value.replace('${APACHE_LOG_DIR}',m[1])
-                      if value.startswith('/') and '$' not in value:log_paths.setdefault(value,'shared_error')
-                      else:coverage['shared_error_log_path_unresolved']+=1
-              code,text=command(['systemctl','show','nginx','apache2','httpd','-p','Id','-p','ActiveState','-p','SubState','-p','ExecMainStartTimestamp','-p','ActiveEnterTimestamp'])
-              allowed={'Id','ActiveState','SubState','ExecMainStartTimestamp','ActiveEnterTimestamp'}
-              output=[]
-              for row in text.splitlines():
-                  k,sep,v=row.partition('=')
-                  if sep and k in allowed and re.fullmatch(r'[A-Za-z0-9 .:+_-]*',v):output.append({k:v})
-              emit('service_start_metadata',state='read' if code==0 else 'unavailable',fields=output)
-          
-          code,before=command(['git','-C',APP,'rev-parse','HEAD'])
-          if code or before.strip() not in ALLOWED_APP:
-              emit('runtime_guard',state='unexpected_source');raise SystemExit(1)
-          CAPTURE_SHA=before.strip()
-          emit('capture',application_sha=CAPTURE_SHA,at_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),server_timezone=list(time.tzname),server_utc_offset=datetime.datetime.now().astimezone().strftime('%z'))
-          apache_tool=next((shutil.which(x) for x in ('apache2ctl','apachectl','httpd','apache2') if shutil.which(x)),None)
-          if apache_tool:
-              code,raw=command([apache_tool,'-M'])
-              if code==0:apache_modules={re.sub(r'_module$','',m[1]) for m in re.finditer(r'\b([a-zA-Z0-9_]+_module)\b',raw)}
-              emit('apache_modules',state='read' if apache_modules is not None else 'unavailable',relevant=sorted(x for x in (apache_modules or []) if x.startswith(('mpm','php','fcgid','proxy','cgi'))),source='current_config_command_not_process_memory')
-              code,raw=command([apache_tool,'-t','-D','DUMP_RUN_CFG'])
-              if code==0:
-                  m=re.search(r'(?m)^Main ErrorLog:\s*"?([^"\r\n]+)',raw)
-                  if m and m[1].strip().startswith('/'):log_paths[m[1].strip()]='shared_error'
-              emit('apache_run_config',state='read' if code==0 else 'unavailable')
-          for kind,path in [('nginx','/etc/nginx/vhosts/anytoour/'+HOST+'.conf'),('apache','/etc/apache2/vhosts/anytoour/'+HOST+'.conf'),('apache','/etc/httpd/conf/vhosts/anytoour/'+HOST+'.conf')]:
-              read_config(path,kind,'candidate',candidate=True)
-          for path in sorted(glob.glob('/etc/apache2/mods-enabled/mpm_*.conf'))[:3]:read_config(path,'apache','global_mpm')
-          global_service_config()
-          
-          # Global process counts are explicitly separate from this host's handler/queue.
-          code,raw=command(['ps','-eo','comm=,etimes=,nlwp=,stat='])
-          stats={}
-          for row in raw.splitlines():
-              fields=row.split()
-              if len(fields)!=4:continue
-              name=fields[0]
-              if name not in ('nginx','apache2','httpd','php-cgi') and not name.startswith(('php-fpm','php-cgi')):continue
-              item=stats.setdefault(name,{'count':0,'min_age_seconds':None,'max_age_seconds':0,'threads':0,'states':{}})
-              try:age=int(fields[1]);threads=int(fields[2])
-              except ValueError:continue
-              item['count']+=1;item['threads']+=threads;item['max_age_seconds']=max(item['max_age_seconds'],age)
-              item['min_age_seconds']=min(item['min_age_seconds'],age) if item['min_age_seconds'] is not None else age
-              item['states'][fields[3][0]]=item['states'].get(fields[3][0],0)+1
-          emit('system_web_processes',state='read' if code==0 else 'unavailable',processes=stats,scope='system_not_host_queue')
-          
-          ports={80,443}
-          for _,value,_ in upstreams:
-              p=endpoint(value).get('port')
-              if p:ports.add(p)
-          code,raw=command(['ss','-ltnH'])
-          https_binds=set()
-          for row in raw.splitlines():
-              fields=row.split()
-              if len(fields)<5:continue
-              try:port=int(fields[3].rsplit(':',1)[1])
-              except ValueError:continue
-              if port in ports:emit('listener_queue',port=port,endpoint=endpoint(fields[3]),recvq=int(fields[1]),backlog=int(fields[2]))
-              if port==443:https_binds.add(fields[3].rsplit(':',1)[0].strip('[]'))
-          sockets=set()
-          for _,value,_ in upstreams:
-              m=re.search(r'(?:^|proxy:)unix:([^|;\s]+)',value)
-              if m:sockets.add(m[1])
-          if sockets:
-              code,raw=command(['ss','-lxH'])
-              for row in raw.splitlines():
-                  fields=row.split()
-                  for path in sockets:
-                      if path in fields:
-                          emit('unix_listener_queue',socket_hash=digest(path),recvq=int(fields[2]) if len(fields)>3 and fields[2].isdigit() else None,backlog=int(fields[3]) if len(fields)>3 and fields[3].isdigit() else None)
-          emit('php_queue_coverage',handlers=sorted(handlers),status_metrics_available=False,reason='no_existing_host_bound_status_reader_in_capture',worker_limits=limits)
-          
-          for path,kind in list(log_paths.items())[:8]:
-              if time.monotonic()-START>70:coverage['capture_time_limit']+=1;break
-              inspect_log(path,kind)
-              if kind in ('error','shared_error') and os.path.exists(path+'.1'):inspect_log(path+'.1',kind)
-          
-          # Archived evidence only. Never export a raw line, IP, URI, header or request body.
-          def archive_read(path):
+                          pattern.append(re.escape(part))
+                  if durations and 'request' in fields and 'status' in fields:
+                      known[name]=(re.compile('^'+''.join(pattern)+'$'),durations)
+              emit('vhost_log_format',vhost_state=status,global_format_state=config_status,format_metadata=flags)
+              return known
+          def log_view():
+              known=configured_fields()
+              patterns={
+                  'upstream_header_timeout':r'upstream timed out.*reading response header',
+                  'upstream_connect_timeout':r'upstream timed out.*connecting to upstream',
+                  'upstream_refusal':r'connect\(\).*failed.*(?:refused|111)|failed to make connection to backend|AH00957',
+                  'upstream_no_live':r'no live upstreams','upstream_closed':r'upstream prematurely closed|failed to read FastCGI header',
+                  'apache_capacity':r'reached MaxRequestWorkers|MaxRequestWorkers setting|scoreboard is full|AH00161|AH00484',
+                  'fpm_capacity':r'reached pm\.max_children|seems busy.*spawning','nginx_capacity':r'worker_connections are not enough',
+                  'fcgid_capacity':r'fcgid.*(?:process slot|MaxProcesses|spawn.*fail|busy timeout)'}
+              for kind,path in LOGS.items():
+                  raw,state=read(path,4194304,True)
+                  counts=collections.Counter();times=collections.defaultdict(list)
+                  first=None;last=None
+                  for line in raw.splitlines():
+                      try: at=stamp(line)
+                      except ValueError: continue
+                      if not at: continue
+                      first=at if first is None else min(first,at);last=at if last is None else max(last,at)
+                      if at.strftime('%Y-%m-%d')!='2026-11-24': continue
+                      windows=[w for w,(lo,hi) in WINDOWS.items() if lo<=at.strftime('%H:%M:%S')<=hi]
+                      if not windows: continue
+                      for w in windows:
+                          counts[w+'.lines']+=1
+                          if kind=='error':
+                              prefix=re.split(r',\s*(?:client|server|request|upstream|host|referrer):|, referer:|\sreferer:',line,maxsplit=1)[0]
+                              for label,pat in patterns.items():
+                                  if re.search(pat,prefix,re.I): counts[w+'.'+label]+=1
+                              continue
+                          req=re.search(r'"HEAD (/(?:structured_events\.log)?) HTTP/[0-9.]+"\s+(\d{3})',line)
+                          if not req: continue
+                          category='root' if req[1]=='/' else 'guard'
+                          key=w+'.'+category+'.http'+req[2];counts[key]+=1
+                          for regex,fields in known.values():
+                              m=regex.fullmatch(line)
+                              if not m or m['status']!=req[2] or m['request']!='HEAD '+req[1]+' HTTP/'+m['request'].rsplit('/',1)[-1]: continue
+                              for field in fields:
+                                  timing=m[field]
+                                  if re.fullmatch(r'\d{1,6}(?:\.\d{1,6})?',timing):
+                                      times[key+'.'+field].append(float(timing))
+                  emit('window_totals',log_kind=kind,state=state,coverage_begin=first.isoformat() if first else None,coverage_end=last.isoformat() if last else None,counters=dict(counts),timing_summaries={k:{'n':len(v),'min':min(v),'max':max(v)} for k,v in times.items()},raw_lines=0)
+          def offer(hotel, target):
+              conn=http.client.HTTPConnection('127.0.0.1',80,timeout=8)
+              begin=time.monotonic()
               try:
-                  fd=os.open(path,os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW)
-                  with os.fdopen(fd,'rb') as handle:
-                      info=os.fstat(handle.fileno())
-                      if not stat.S_ISREG(info.st_mode):
-                          return None,{'state':'not_regular'}
-                      if info.st_size>8388608:
-                          return None,{'state':'compressed_file_limit','size':info.st_size}
-                      if path.endswith('.gz'):
-                          with gzip.GzipFile(fileobj=handle,mode='rb') as z:
-                              blob=z.read(MAX_LOG+1)
-                      else:
-                          blob=handle.read(MAX_LOG+1)
-                      if len(blob)>MAX_LOG:
-                          return None,{'state':'decompressed_file_limit','size':info.st_size}
-                      return blob.decode('utf-8','replace'),{
-                          'state':'read','size':info.st_size,'bytes_read':len(blob),
-                          'mtime_utc':datetime.datetime.fromtimestamp(info.st_mtime,datetime.timezone.utc).isoformat(),
-                          'sha256_read':hashlib.sha256(blob).hexdigest()}
-              except FileNotFoundError:
-                  return None,{'state':'not_found'}
-              except PermissionError:
-                  return None,{'state':'permission_denied'}
-              except (OSError,EOFError,ValueError) as err:
-                  return None,{'state':'archive_error','error_class':type(err).__name__}
-          
-          for path,kind in list(log_paths.items())[:8]:
-              if kind not in ('error','access') or HOST not in path: continue
-              names=[]
-              for candidate in glob.glob(path+'*'):
-                  suffix=candidate[len(path):]
-                  if re.fullmatch(r'(?:\.(?:[1-9][0-9]{0,2}|20[0-9]{6})(?:\.gz)?|\.gz|\.20[0-9]{2}-[0-9]{2}-[0-9]{2}(?:\.gz)?|-20[0-9]{6}(?:\.gz)?)',suffix):
-                      names.append(candidate)
-              names=sorted(set(names),reverse=True)
-              emit('archive_inventory',log_kind=kind,log_path_hash=digest(path),candidates=len(names),
-                  scan_limit=8,read_limit_bytes=MAX_LOG,scope='this_vhost_only')
-              for candidate in names[:8]:
-                  if time.monotonic()-START>90:
-                      coverage['archive_time_limit']+=1;break
-                  result=archive_read(candidate)
-                  inspect_log(candidate,kind,'archive',result)
-          # Host-wide service events only: bounded read of already recorded systemd journal.
-          # Never output an original journal row, URL, client address, process args or secret.
-          journal_categories = {
-              'apache_capacity': r'MaxRequestWorkers|server reached MaxClients|scoreboard is full|AH00161|AH00484',
-              'fcgid_capacity': r'mod_fcgid.*(?:busy|slot|MaxProcesses|spawn|timeout)|fcgid:.*(?:limit|cannot|busy)',
-              'upstream_service': r'upstream (?:timed out|prematurely closed)|connect\\(\\) failed.*upstream',
-              'nginx_capacity': r'worker_connections are not enough|too many open files',
-              'service_interruption': r'Failed with result|Main process exited|failed to start|service hold-off',
-          }
-          for unit in ('nginx.service','apache2.service'):
-              rc,lines=command(['journalctl','--no-pager','--quiet','--output=short-iso',
-                  '--since=2026-11-23 14:00:00','--until=2026-11-23 21:30:00',
-                  '--unit='+unit,'--lines=4000'],seconds=7)
-              matched=collections.Counter()
-              for line in lines.splitlines():
-                  for category,pattern in journal_categories.items():
-                      if re.search(pattern,line,re.IGNORECASE): matched[category]+=1
-              emit('service_journal_summary',unit=unit,return_code=rc,
-                  state='bounded_read' if rc==0 and lines.strip() else ('no_visible_entries' if rc==0 else 'unavailable'),
-                  lines_scanned=len(lines.splitlines()),categories=dict(matched),
-                  coverage='last_4000_of_selected_window_only',raw_lines_emitted=0)
-          # Log rotation policy, if readable; never emit archive location or file contents.
-          for path in ('/etc/logrotate.d/nginx','/etc/logrotate.d/apache2'):
-              data,metadata=file_read(path,16384,config=False)
-              policy={}
-              if data is not None:
-                  for word in ('daily','weekly','monthly','compress','dateext','missingok','notifempty'):
-                      policy[word]=bool(re.search(r'(?m)^\\s*'+word+r'(?:\\s|$)',data))
-                  m=re.search(r'(?m)^\\s*rotate\\s+([0-9]+)',data)
-                  if m: policy['rotation_count']=int(m[1])
-                  policy['custom_archive_directory']=bool(re.search(r'(?m)^\\s*olddir\\s+',data))
-              emit('rotation_policy',config_basename=path.rsplit('/',1)[-1],state=metadata['state'],flags=policy)
-          emit('service_journal_scope',policy='read_existing_only',server_config_changes=0,service_restarts=0,privilege_changes=0)
-          # The first two public HEAD failures and the one approved live-probe pass are final;
-          # this scoped run does not repeat those public probes or call any business API.
-          emit('probe_policy',state='no_http_calls',scope='historical_rotated_logs_only')
-          code,after=command(['git','-C',APP,'rev-parse','HEAD'])
-          stable=code==0 and after.strip()==CAPTURE_SHA
-          emit('capture_complete',stable_application=stable,coverage_gaps=dict(coverage),config_files_seen=len(seen),elapsed_seconds=round(time.monotonic()-START,3),loaded_config_equivalence='unproven_without_reload_evidence')
-          if not stable:raise SystemExit(1)
+                  code='tg_'+str(hotel)
+                  conn.request('GET','/hotel-posts-telegram-main19.php?offer='+code,headers={'Host':HOST,'Accept':'application/json','Connection':'close'})
+                  r=conn.getresponse();first_byte=time.monotonic()-begin
+                  body=r.read(65537);value={}
+                  if len(body)<=65536:
+                      try: decoded=json.loads(body);value=decoded if isinstance(decoded,dict) else {}
+                      except (ValueError,UnicodeDecodeError): pass
+                  cache=r.getheader('Cache-Control','').lower()
+                  directives=[p.strip() for p in cache.split(',') if re.fullmatch(r'(?:public|private|no-store|no-cache|must-revalidate|(?:s-)?max-age=\d{1,8})',p.strip())]
+                  age=r.getheader('Age','')
+                  emit('loopback_offer',hotel=hotel,http=r.status,first_byte_seconds=round(first_byte,6),total_seconds=round(time.monotonic()-begin,6),expected_post=target,expected_post_matches=value.get('post_url')=='https://t.me/anytour/'+str(target),offer_matches=value.get('offer_id')==code,cache_control=directives,age_seconds=int(age) if age.isdigit() and len(age)<=8 else None)
+              except (OSError,http.client.HTTPException) as exc:
+                  emit('loopback_offer',hotel=hotel,error=type(exc).__name__,total_seconds=round(time.monotonic()-begin,6))
+              finally:
+                  conn.close()
+          emit('checkout',sha=SHA,worktree_index=guard())
+          log_view()
+          offer(64918,1020)
+          offer(996,1063)
+          emit('finished',sha=SHA,worktree_index=guard(),public_requests=0)
           REMOTE
       - name: Remove authentication material
         if: always()
