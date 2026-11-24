@@ -493,6 +493,39 @@ jobs:
                       coverage['archive_time_limit']+=1;break
                   result=archive_read(candidate)
                   inspect_log(candidate,kind,'archive',result)
+          # Host-wide service events only: bounded read of already recorded systemd journal.
+          # Never output an original journal row, URL, client address, process args or secret.
+          journal_categories = {
+              'apache_capacity': r'MaxRequestWorkers|server reached MaxClients|scoreboard is full|AH00161|AH00484',
+              'fcgid_capacity': r'mod_fcgid.*(?:busy|slot|MaxProcesses|spawn|timeout)|fcgid:.*(?:limit|cannot|busy)',
+              'upstream_service': r'upstream (?:timed out|prematurely closed)|connect\\(\\) failed.*upstream',
+              'nginx_capacity': r'worker_connections are not enough|too many open files',
+              'service_interruption': r'Failed with result|Main process exited|failed to start|service hold-off',
+          }
+          for unit in ('nginx.service','apache2.service'):
+              rc,lines=command(['journalctl','--no-pager','--quiet','--output=short-iso',
+                  '--since=2026-11-23 14:00:00','--until=2026-11-23 21:30:00',
+                  '--unit='+unit,'--lines=4000'],seconds=7)
+              matched=collections.Counter()
+              for line in lines.splitlines():
+                  for category,pattern in journal_categories.items():
+                      if re.search(pattern,line,re.IGNORECASE): matched[category]+=1
+              emit('service_journal_summary',unit=unit,return_code=rc,
+                  state='bounded_read' if rc==0 and lines.strip() else ('no_visible_entries' if rc==0 else 'unavailable'),
+                  lines_scanned=len(lines.splitlines()),categories=dict(matched),
+                  coverage='last_4000_of_selected_window_only',raw_lines_emitted=0)
+          # Log rotation policy, if readable; never emit archive location or file contents.
+          for path in ('/etc/logrotate.d/nginx','/etc/logrotate.d/apache2'):
+              data,metadata=file_read(path,16384,config=False)
+              policy={}
+              if data is not None:
+                  for word in ('daily','weekly','monthly','compress','dateext','missingok','notifempty'):
+                      policy[word]=bool(re.search(r'(?m)^\\s*'+word+r'(?:\\s|$)',data))
+                  m=re.search(r'(?m)^\\s*rotate\\s+([0-9]+)',data)
+                  if m: policy['rotation_count']=int(m[1])
+                  policy['custom_archive_directory']=bool(re.search(r'(?m)^\\s*olddir\\s+',data))
+              emit('rotation_policy',config_basename=path.rsplit('/',1)[-1],state=metadata['state'],flags=policy)
+          emit('service_journal_scope',policy='read_existing_only',server_config_changes=0,service_restarts=0,privilege_changes=0)
           # The first two public HEAD failures and the one approved live-probe pass are final;
           # this scoped run does not repeat those public probes or call any business API.
           emit('probe_policy',state='no_http_calls',scope='historical_rotated_logs_only')
