@@ -15,8 +15,9 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.created == true &&
-      github.event.before == '0000000000000000000000000000000000000000' &&
+      ((github.event.created == true && github.event.before == '0000000000000000000000000000000000000000') ||
+       (github.ref == 'refs/heads/ops/anytour-hotel-ranked-after-45372056681' && github.event.created == false &&
+        github.event.forced == false && github.event.before == 'dca4085f9a63ac1e7a5179c2a9b1b20febce4f82')) &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 130
@@ -37,7 +38,7 @@ jobs:
           PERFORM_ACTIONS: ${{ steps.release.outputs.perform_actions }}
           WRITE_OPERATION: ${{ steps.release.outputs.write_operation }}
           GH_TOKEN: ${{ github.token }}
-          INDEX_SHA: ${{ steps.release.outputs.ranked_index_sha256 }}
+          INDEX_SHA: ${{ steps.release.outputs.ranked_index_digest }}
           NATIVE_ARTIFACT_ID: ${{ steps.release.outputs.ranked_artifact_id }}
           PARENT_EVIDENCE: ${{ steps.release.outputs.parent_evidence }}
           REPOSITORY_SHA: ${{ steps.release.outputs.repository_sha }}

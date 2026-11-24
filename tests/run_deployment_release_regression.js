@@ -2748,7 +2748,55 @@ async function rankedApprovedInputCases() {
   approvals=[entry]; index.native_source.job_id=102;
   await refuses(()=>R.approvedRankedInput(api,head,entry.sha256,branch),'ranked_input_proof_invalid');
 }
+async function rankedPrewriteProofCases() {
+  const original=45403460387, jobId=138477791041;
+  const branch='ops/anytour-hotel-ranked-after-45372056681', sha='dca4085f9a63ac1e7a5179c2a9b1b20febce4f82';
+  const current={id:String(original+1),sha:H('installed ranked output correction')};
+  function fixture() {
+    const actor={id:226193297}, repository={full_name:'pyatkoff/max-search-bot',id:1342493152};
+    const previous={id:original,run_attempt:1,head_sha:sha,head_branch:branch,actor,triggering_actor:actor,
+      path:'.github/workflows/edit-1566-ranked-46-historical-telegram.yml',event:'push',head_repository:repository,
+      repository,created_at:'2026-11-24T13:26:32Z',status:'completed',conclusion:'failure'};
+    const next={...previous,id:Number(current.id),head_sha:current.sha,status:'in_progress',conclusion:null};
+    const job={id:jobId,run_id:original,run_attempt:1,head_sha:sha,name:'transfer',status:'completed',conclusion:'failure',
+      steps:[step('Check out the native run source'),step('Resolve accepted repository and application','failure'),
+        step('Require exact APPLY admission before loading credentials','skipped'),
+        step('Pin established SSH host continuity and authentication identity','skipped'),
+        step('Apply the installed editor once and retain its original receipts','skipped'),
+        step('Save the original sanitized transfer result')]};
+    const artifacts={total_count:0,artifacts:[]};
+    const ancestry={status:'ahead',merge_base_commit:{sha}};
+    const f={runs:[next,previous],previous,next,job,artifacts,ancestry,
+      log:Buffer.from('2026-11-24T13:26:49.1103064Z deployment_release=refused reason=invalid_output\n')};
+    f.api=async(method,path)=>{
+      if(method!=='GET')throw Error('unexpected writer');
+      if(path.endsWith('/runs/'+original+'/attempts/1/jobs?per_page=100'))return {total_count:1,jobs:[job]};
+      if(path.endsWith('/runs/'+original+'/artifacts?per_page=100'))return artifacts;
+      if(path.endsWith('/compare/'+sha+'...'+current.sha+'?per_page=1'))return ancestry;
+      throw Error('unexpected prewrite proof path '+path);
+    };
+    f.api.jobLog=async id=>{equal(id,jobId,'only the original failed native log is read');return f.log;};
+    return f;
+  }
+  const first=fixture();
+  equal(await R.proveRankedPrewriteHistory(first.api,first.runs,current),first.next,'one actual before-write refusal can precede this new run');
+  for(const change of [
+    f=>f.runs.pop(),f=>f.runs.push({...f.next,id:original+2}),f=>f.previous.run_attempt++,
+    f=>f.previous.head_branch='ops/foreign', f=>f.previous.actor={id:1},f=>f.previous.head_sha=H('other source'),
+    f=>f.next.head_sha=f.previous.head_sha,f=>f.job.id++,f=>f.job.run_id++,f=>f.job.run_attempt++,
+    f=>f.job.steps[1].conclusion='success', f=>f.job.steps[2].conclusion='success',
+    f=>f.job.steps[3].conclusion='success',f=>f.job.steps[4].conclusion='failure',
+    f=>f.job.steps.push(f.job.steps[4]),f=>f.artifacts.artifacts.push({id:1}),
+    f=>{f.artifacts.total_count=1;f.artifacts.artifacts.push({id:1});},
+    f=>f.log=Buffer.from('a different refusal'), f=>f.ancestry.status='diverged'
+  ]) {
+    const bad=fixture();change(bad);
+    await assert.rejects(()=>R.proveRankedPrewriteHistory(bad.api,bad.runs,current));assertions++;
+  }
+}
+
 async function rankedParentCases() {
+  await rankedPrewriteProofCases();
   const seed = 45372056681, child = seed + 10, leaf = child + 1;
   const seedSha = 'e3e1a9bdf29dd0d7530fe6b3b393f1286834d092', head = H('ranked-child');
   const chunk = '12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce';
@@ -2815,6 +2863,7 @@ async function rankedParentCases() {
 }
 
 async function main(){await closedPrewriteOriginCases();await rankedApprovedInputCases();await rankedParentCases();await rankedResumeOriginCases();hotelRegistryReadWorkflow();await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
+  execFileSync(process.execPath,[path.join(__dirname,'run_ranked_telegram_cli_regression.js')],{stdio:'inherit'});
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_partial_install_1662_forward_regression.js')],{stdio:'inherit'});
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_exhausted_verify_1664_forward_regression.js')],{stdio:'inherit'});
   execFileSync('python3',[path.join(__dirname,'run_partial_install_1662_forward_sync.py')],{stdio:'inherit'});
