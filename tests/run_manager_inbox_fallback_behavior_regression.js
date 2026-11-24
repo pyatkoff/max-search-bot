@@ -127,6 +127,19 @@ function renderHarness(overrides={}) {
   await tabCounts.inbox.refreshQueueCounts();
   assert.equal(tabCounts.calls[1].payload.scope,'inbox_tabs','Manager2 requests only its two displayed queue counts');
   assert.equal(tabCounts.calls[1].payload.project_key,'anytour');
+  const mineCount={queue:'mine',project_key:'anytour',count:155,unread:311};
+  const paired=harness({viewMode:'kanban'}, {ok:true,conversations:[{id:1}],queue_count:mineCount});
+  paired.window.Manager2Presentation={};
+  await paired.inbox.load();
+  assert.equal(paired.pipeCalls[0].payload.include_queue_count,true);
+  assert.equal(paired.calls[0].payload.only_tab,'waiting','complete Mine count is paired with one fresh Waiting count');
+  for(const receipt of [null,{...mineCount,queue:'waiting'},{...mineCount,project_key:'other'},{...mineCount,count:null}]){
+    const legacy=harness({viewMode:'kanban'}, {ok:true,conversations:[],queue_count:receipt});
+    legacy.window.Manager2Presentation={};
+    await legacy.inbox.load();
+    assert.equal(legacy.calls[0].payload.scope,'inbox_tabs');
+    assert.equal(legacy.calls[0].payload.only_tab,undefined,'missing, mismatched or partial receipt keeps both counter reads');
+  }
   const basic = harness();
   assert.equal((await basic.inbox.fetchRows())[0].id, 999, 'unfiltered My queue still has basic fallback');
   assert.equal(basic.calls[0].payload.project_key, 'anytour', 'fallback preserves the original project');

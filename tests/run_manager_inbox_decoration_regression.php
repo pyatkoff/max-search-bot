@@ -99,6 +99,21 @@ decorationCheck('only one task row per lead crosses PDO',($work['tasks']??PHP_IN
 decorationCheck('display count and urgency share one batch task query',InboxDecorationStatement::$taskQueries===1);
 decorationCheck('historical summary transfer is bounded to current candidates and unresolved fallback',($work['summaries']??PHP_INT_MAX)<1200);
 
+$candidates=array_slice($input,0,200);
+InboxDecorationStatement::$rows=[];
+$unlimited=ManagerLeadInboxService::decorate($candidates,7);
+$fullWork=InboxDecorationStatement::$rows;
+InboxDecorationStatement::$rows=[];
+$page=ManagerLeadInboxService::decoratePageCandidates($candidates,7,'waiting','','','',100);
+$pageWork=InboxDecorationStatement::$rows;
+decorationCheck('ordinary queue returns the same complete 100 authorized rows',$page===array_slice($unlimited,0,100));
+decorationCheck('off-page task and summary data stay in storage',$pageWork['tasks']===100 && $fullWork['tasks']===200 && $pageWork['summaries']<$fullWork['summaries']);
+foreach ([['mine','','',''],['waiting','','trip-200',''],['waiting','won','',''],['waiting','','','overdue']] as [$queue,$outcome,$search,$taskFilter]) {
+    $eligible=ManagerLeadInboxService::decoratePageCandidates($candidates,7,$queue,$outcome,$search,$taskFilter,100);
+    decorationCheck('late candidates stay eligible for '.implode('/',[$queue,$outcome,$search,$taskFilter]),$eligible===$unlimited);
+}
+echo 'QUEUE_PAGE_FIXTURE '.json_encode(['candidates'=>count($candidates),'page'=>count($page),'before'=>$fullWork,'after'=>$pageWork])."\n";
+
 // Native CI and local paired runs load the exact pinned pre-change source.
 $baselinePath=getenv('MANAGER_INBOX_DECORATION_BASELINE_FILE');
 if(is_string($baselinePath)&&$baselinePath!==''){
