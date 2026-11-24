@@ -87,7 +87,9 @@ final class ArchiveResearchReadService
     private function recentBusinessInventory(array$state,int$limit,string$key,int$admin,string$connection):array
     {
         if(!$this->qualityHistory||($state['c']??null)!=='0')self::fail('stale_cursor');
-        $fence=$state['f'];if($state['a']!=='0'&&self::decimalGreater($state['a'],$fence))self::fail('stale_cursor');
+        $fence=$state['f'];
+        if(self::decimalGreater($fence,$this->fence())
+            ||($state['a']!=='0'&&self::decimalGreater($state['a'],$fence)))self::fail('stale_cursor');
         [$where,$values]=$this->scope($fence,true);
         $after=$state['a']==='0'?'':' AND m.id<?';
         if($after!=='')$values[]=$state['a'];
