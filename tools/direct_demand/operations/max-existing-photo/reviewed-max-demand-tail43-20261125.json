@@ -1,0 +1,1081 @@
+{
+  "schema": 1,
+  "kind": "hotel_max_caption_preparation",
+  "issue": 1566,
+  "goal": 330,
+  "price_gate": false,
+  "production_writes": 0,
+  "previous_prepared_count": 218,
+  "total_prepared_count": 261,
+  "first_party_demand": {
+    "run_id": 45513053442,
+    "job_id": 138865409018,
+    "artifact_id": 14977425312,
+    "artifact_sha256": "sha256:53140c4e3c8636f20118a985f65cb72ef72ab5babd9306ffcb52e678113243de",
+    "moscow_completed_days": "2026-11-11 through 2026-11-24",
+    "ranked_hotels": 312,
+    "matched_posts": 314,
+    "unmatched_posts": 29,
+    "elapsed_seconds": 21,
+    "scope": "distinct conversations and entries, no paid-click inference"
+  },
+  "previous_preparation_commit": "44d2061acad2fa04deaa9d3add7e96f5b8d21385",
+  "source_evidence": {
+    "run_id": 45513956101,
+    "job_id": 138868461091,
+    "artifact_id": 14976238175,
+    "artifact_sha256": "sha256:a89698a64ffd7b3d351feab63bdfc511e40d8d37f77438bca78aafb7a2b96404",
+    "feed_sha256": "2d46078c045bcf735df873c30e7e12a2ae0ad29daea14af7c9839ab62478befb",
+    "canonical_map_blob": "ba5ac7207da7fe185c1d864726bc240ba273976d",
+    "public_pages_with_exact_channel_content": 23,
+    "matched_offers": 23,
+    "offset": 0
+  },
+  "additional_source_evidence": {
+    "run_id": 45513956101,
+    "job_id": 138868461552,
+    "artifact_id": 14976058498,
+    "artifact_sha256": "sha256:c7c6b4f725375317e28d00c0e606b69c6d951d88eaf9021be6dc6b19a7eb5f18",
+    "feed_sha256": "2d46078c045bcf735df873c30e7e12a2ae0ad29daea14af7c9839ab62478befb",
+    "canonical_map_blob": "ba5ac7207da7fe185c1d864726bc240ba273976d",
+    "public_pages_with_exact_channel_content": 23,
+    "matched_offers": 23,
+    "offset": 23
+  },
+  "source_read_elapsed_seconds": 26,
+  "unchecked_ranked_candidates_after_packet": 0,
+  "withheld_candidates": [
+    {
+      "exact_id": 2575,
+      "hotel_name": "Rixos Al Mairid Ras Al Khaimah",
+      "status": "prior_caption_and_destination_plan_requires_reconciliation",
+      "proposed_previous_target_url": "https://max.ru/anytour/AaBI6Jfvad8",
+      "evidence_url": "https://github.com/pyatkoff/max-search-bot/issues/1566#issuecomment-7008425094"
+    },
+    {
+      "exact_id": 63674,
+      "hotel_name": "Radisson Blu Resort Phu Quoc",
+      "status": "existing_large_channel_card_with_pending_route_review",
+      "existing_post_url": "https://max.ru/anytour/AaAuJeZbQAc",
+      "evidence_url": "https://github.com/pyatkoff/max-search-bot/issues/1566#issuecomment-7146182098"
+    },
+    {
+      "exact_id": 73055,
+      "hotel_name": "Address Beach Resort Fujairah",
+      "status": "existing_large_channel_photo_album_in_format_and_route_review",
+      "existing_post_url": "https://max.ru/anytour/AZxcpmMWNUI",
+      "existing_target_mid": "mid.ffffc1752b045fed019c5ca663163542",
+      "evidence_url": "https://github.com/pyatkoff/max-search-bot/issues/1566#issuecomment-7146182098"
+    }
+  ],
+  "rows": [
+    {
+      "exact_id": 2417,
+      "rank": 224,
+      "hotel_name": "Anantara Dhigu Maldives",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Anantara Dhigu Maldives\n📍 Атолл Южный Мале, Мальдивы\nСемейный курорт с песчаным пляжем, детским клубом и виллами у берега и над лагуной. Для большой семьи есть виллы с двумя спальнями и собственным бассейном.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHkMOqGMRs",
+        "publication_id": 1405,
+        "offer_id": "max_2417",
+        "offer_alias": "h1_5650dfe2a650a4fde58fa184afed8a98",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 2514,
+      "rank": 230,
+      "hotel_name": "Amwaj Rotana Jumeirah Beach",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Amwaj Rotana Jumeirah Beach\n📍 Дубай, ОАЭ\nОтель на прогулочной улице The Walk в районе JBR. До общественного песчаного пляжа около пяти минут пешком, а для детей в отеле есть бассейн и клуб Flipper’s.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG3k-8IWNo",
+        "publication_id": 962,
+        "offer_id": "max_2514",
+        "offer_alias": "h1_02ba8171c4545aa88224d199741dba85",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 2559,
+      "rank": 232,
+      "hotel_name": "Fujairah Rotana Resort & Spa",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Fujairah Rotana Resort & Spa\n📍 Фуджейра, ОАЭ\nКурорт среди садов с собственным песчаным пляжем. У моря есть лежаки и зонты, а на территории работают два теннисных корта и спа.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG3_YiLGwU",
+        "publication_id": 1127,
+        "offer_id": "max_2559",
+        "offer_alias": "h1_319eb213343cc0750481f0cbb15173aa",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 4032,
+      "rank": 235,
+      "hotel_name": "Anantara Mui Ne Resort",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Anantara Mui Ne Resort\n📍 Муйне, Вьетнам\nТропический сад и бассейн инфинити у песчаного пляжа. Есть виллы с собственным бассейном, детский клуб и спа.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHlfkaEN00",
+        "publication_id": 1445,
+        "offer_id": "max_4032",
+        "offer_alias": "h1_10c8e793863c41097d2217855c744a15",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 4184,
+      "rank": 236,
+      "hotel_name": "Sentido Reef Oasis Senses",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Sentido Reef Oasis Senses\n📍 Шарм-эль-Шейх, Египет\nСемейные номера и доступ к песчаному пляжу комплекса с домашним рифом. До пляжа около 500 метров, на пути есть ступени. С 10 января по 28 февраля 2027 года аквапарк закрыт на ремонт.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHTI_GNfDA",
+        "publication_id": 1326,
+        "offer_id": "max_4184",
+        "offer_alias": "h1_01b78ced17f45709693bd3d878e40ee9",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "supporting_sources": [
+        "https://www.reefoasisresorts.com/sentido-reef-oasis-senses-aqua-park-resort"
+      ],
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 5389,
+      "rank": 237,
+      "hotel_name": "Coral Sands",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Coral Sands\n📍 Хиккадува, Шри-Ланка\nОтель на берегу океана с видом на риф и рестораном у воды. На территории есть детский бассейн. Пляж общественный, лежаки и зонты на нём не предоставляются.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG3_ci5XaI",
+        "publication_id": 1134,
+        "offer_id": "max_5389",
+        "offer_alias": "h1_50ef9c1e6b425b8a644c98c18fe1ce96",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 7938,
+      "rank": 238,
+      "hotel_name": "Khaolak Emerald Beach Resort & Spa",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Khaolak Emerald Beach Resort & Spa\n📍 Као-Лак, Таиланд\nПесчаный пляж прямо у отеля, детский клуб и игровая площадка. Есть семейные номера и виллы, в отдельных категориях вилл предусмотрен собственный бассейн.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHR1_jOTN4",
+        "publication_id": 1299,
+        "offer_id": "max_7938",
+        "offer_alias": "h1_b2104f88946230246a36689ae57d332d",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 13853,
+      "rank": 242,
+      "hotel_name": "Bahi Ajman Palace",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Bahi Ajman Palace\n📍 Аджман, ОАЭ\nСобственный песчаный пляж в Аджмане. На территории есть открытый бассейн инфинити, отдельный детский бассейн и джакузи под открытым небом.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHsBRYzZ3M",
+        "publication_id": 2383,
+        "offer_id": "max_13853",
+        "offer_alias": "h1_e63202e12429a4ab36260a20a2d50bcb",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "supporting_sources": [
+        "https://www.hmhhotelgroup.com/bahi-hotels-resorts-bahi-ajman-palace/frequently-asked-question"
+      ],
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 13941,
+      "rank": 244,
+      "hotel_name": "Blue Pearl Hotel",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Blue Pearl Hotel\n📍 Нячанг, Вьетнам\nГородской отель примерно в 50 метрах от пляжа. На 14-м этаже есть бассейн с террасой.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG2QvvlA2g",
+        "publication_id": 587,
+        "offer_id": "max_13941",
+        "offer_alias": "h1_cfcd265f59538d1c0215b2030b36e9cf",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 14133,
+      "rank": 245,
+      "hotel_name": "Oriental Pearl Resort",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Oriental Pearl Resort\n📍 Муйне, Вьетнам\nКурорт в тропическом саду с собственным песчаным пляжем. На территории есть бассейн, детский центр, рестораны и спа.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG38HQ4RIc",
+        "publication_id": 1096,
+        "offer_id": "max_14133",
+        "offer_alias": "h1_f79f83744db202200a9919bd638a7101",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 20288,
+      "rank": 249,
+      "hotel_name": "Palm Beach Resort",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Palm Beach Resort\n📍 Хургада, Египет\nСобственный песчаный пляж с пологим входом в воду. Для детей есть неглубокий бассейн и клуб. В лобби идёт ремонт, по текущему графику до 1 декабря 2026 года.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHUrIfYTYo",
+        "publication_id": 1362,
+        "offer_id": "max_20288",
+        "offer_alias": "h1_52a24de9c851a4bea5659409f0a9d9ed",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "supporting_sources": [
+        "https://www.onlinetours.ru/oteli/egypt/hurghada/palm-beach-resort"
+      ],
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 21475,
+      "rank": 250,
+      "hotel_name": "Baron Palace Sahl Hasheesh",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Baron Palace Sahl Hasheesh\n📍 Сахль-Хашиш, Египет\nКурорт с дворцовыми арками у собственного песчаного пляжа длиной 600 метров. На территории семь бассейнов, спа с турецкой баней и ресторан морепродуктов Infinity.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaGdPTaZQts",
+        "publication_id": 209,
+        "offer_id": "max_21475",
+        "offer_alias": "h1_80d649bd3b6ce57bd240449f73f9ff28",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 21476,
+      "rank": 251,
+      "hotel_name": "Cleopatra Luxury Resort Makadi Bay",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Cleopatra Luxury Resort Makadi Bay\n📍 Макади-Бей, Египет\nСемейный курорт у Красного моря с бассейнами, детским клубом и семейными номерами. Зимой подогревают отдельные бассейны.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHRcgOIOD0",
+        "publication_id": 1269,
+        "offer_id": "max_21476",
+        "offer_alias": "h1_19c77410878890d7d5761cf22538fc8e",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 24492,
+      "rank": 254,
+      "hotel_name": "Citrus Waskaduwa",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Citrus Waskaduwa\n📍 Калутара, Шри-Ланка\nПесчаный общественный пляж примерно в 50 метрах от отеля. Лежаки и зонты на пляже не предоставляются. По вечерам в отеле бывают шоу.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG3loCfZK8",
+        "publication_id": 974,
+        "offer_id": "max_24492",
+        "offer_alias": "h1_7647fe01e1035fd742396a0912a045e9",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 24898,
+      "rank": 255,
+      "hotel_name": "Melissa Kata Beach Resort",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Melissa Kata Beach Resort\n📍 Пхукет, Таиланд\nКурорт на Кате с рестораном на территории. К общественному пляжу нужно перейти дорогу, в корпусах отеля нет лифтов.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG3R_DtRcw",
+        "publication_id": 867,
+        "offer_id": "max_24898",
+        "offer_alias": "h1_7d993b4d0ff389ae44440e47d4abf941",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 32356,
+      "rank": 262,
+      "hotel_name": "Galina Hotel & Spa",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Galina Hotel & Spa\n📍 Нячанг, Вьетнам\nГородской отель в пешей доступности от общественного пляжа. При отеле есть спа и комплекс минеральных грязевых ванн, процедуры оплачиваются отдельно.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHUrHYNHp0",
+        "publication_id": 1360,
+        "offer_id": "max_32356",
+        "offer_alias": "h1_75de9d5f065c1694891b3a289f40ba85",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "supporting_sources": [
+        "https://new.kompastour.com/kz/rus/country/vietnam/nhatrang/galina_nha_trang/"
+      ],
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 32577,
+      "rank": 263,
+      "hotel_name": "Sunrise Montemare Resort",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Sunrise Montemare Resort\n📍 Шарм-эль-Шейх, Египет\nАквапарк с шестью горками и клуб Kids Planet для детей от 4 до 12 лет. В ресторанах представлены итальянская, азиатская и египетская кухни.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaGcCXAYYwg",
+        "publication_id": 157,
+        "offer_id": "max_32577",
+        "offer_alias": "h1_3783aba25992db30d41627055952bd67",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 35313,
+      "rank": 264,
+      "hotel_name": "Mandarin Oriental, Bodrum",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Mandarin Oriental, Bodrum\n📍 Бодрум, Турция\nКурорт в бухте Paradise Bay с двумя песчаными пляжами. Для детей есть клуб и отдельный бассейн. Можно выбрать номер или виллу, наличие собственного бассейна зависит от категории.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHQKt7sLNo",
+        "publication_id": 1196,
+        "offer_id": "max_35313",
+        "offer_alias": "h1_c51a7dd7c1f39d74b6a904b5a675b39b",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 49083,
+      "rank": 267,
+      "hotel_name": "The Land of Legends Kingdom",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в The Land of Legends Kingdom\n📍 Белек, Турция\nСемейный отель с тематическими номерами и клубом Kingdom Club. Посещение тематического парка The Land of Legends входит в проживание для гостей отеля.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG3sCxXSZw",
+        "publication_id": 1027,
+        "offer_id": "max_49083",
+        "offer_alias": "h1_5d0be2e74b6e9ba7de1908ed7f7e7260",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "supporting_sources": [
+        "https://www.thelandoflegends.com/en/hotels"
+      ],
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 52925,
+      "rank": 269,
+      "hotel_name": "Bosphorus Sorgun",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Bosphorus Sorgun\n📍 Сиде, Турция\nОтель в Соргуне, рядом с местом, где река Манавгат впадает в море. На территории есть бассейны и аквапарк, по вечерам проходят шоу и выступления музыкантов.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG3sCGXdt4",
+        "publication_id": 1026,
+        "offer_id": "max_52925",
+        "offer_alias": "h1_30ae67872219b05047532900928a29ed",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "supporting_sources": [
+        "https://bosphorussorgun.com/en/hotels/bosphorus-sorgun-hotel",
+        "https://sorgunbosphours.com/olanaklar/havuz"
+      ],
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 55828,
+      "rank": 271,
+      "hotel_name": "Selectum Luxury Resort Belek",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Selectum Luxury Resort Belek\n📍 Белек, Турция\nСобственный песчаный пляж на первой линии. В Puppies World есть программы для детей от 4 до 12 лет и отдельные занятия для подростков.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG2eD-BQRg",
+        "publication_id": 638,
+        "offer_id": "max_55828",
+        "offer_alias": "h1_ee11abf0dec5a4492df14009459e3720",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 57039,
+      "rank": 272,
+      "hotel_name": "Amarin Resort & Spa",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Amarin Resort & Spa\n📍 Фукуок, Вьетнам\nСобственный пляж с лежаками и зонтами и открытый бассейн рядом с морем. Для детей есть клуб, на территории также работают спа и фитнес-зал.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG38vrMaGs",
+        "publication_id": 1111,
+        "offer_id": "max_57039",
+        "offer_alias": "h1_cb17f54cea326674c6fb9d5788184f83",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 57082,
+      "rank": 273,
+      "hotel_name": "ibis Styles Nha Trang",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в ibis Styles Nha Trang\n📍 Нячанг, Вьетнам\nГородской отель рядом с кафе и магазинами. До общественного пляжа около 200 метров через дорогу. В отеле есть открытый и детский бассейны и игровая зона.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG32UTMG84",
+        "publication_id": 1076,
+        "offer_id": "max_57082",
+        "offer_alias": "h1_9669f78d72468f84d3ee96180148d6b3",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 57217,
+      "rank": 274,
+      "hotel_name": "Wyndham Grand Phu Quoc",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Wyndham Grand Phu Quoc\n📍 Фукуок, Вьетнам\nСобственный пляж и семейный отдых с детским клубом. В Brew Bar бывают вечера живой музыки и караоке.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG2UhmGEHA",
+        "publication_id": 600,
+        "offer_id": "max_57217",
+        "offer_alias": "h1_516d6a04a26c03e1a25cb9b1888ff71d",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 57652,
+      "rank": 276,
+      "hotel_name": "Queen Ann Nha Trang Hotel",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Queen Ann Nha Trang Hotel\n📍 Нячанг, Вьетнам\nИз бассейна открывается вид на море. На территории есть детский бассейн, спа и тренажёрный зал, до пляжной зоны около 100 метров через дорогу.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG38D4qAVw",
+        "publication_id": 1090,
+        "offer_id": "max_57652",
+        "offer_alias": "h1_1edc44e54f1adfa9f3c6aa5b08502508",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 57682,
+      "rank": 277,
+      "hotel_name": "InterContinental Fujairah Resort",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в InterContinental Fujairah Resort\n📍 Фуджейра, ОАЭ\nКурорт у пляжа Аль-Ака с видом на Хаджарские горы. Пляжный день можно провести у моря, бассейна или в спа.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHsBU-ZRvM",
+        "publication_id": 2389,
+        "offer_id": "max_57682",
+        "offer_alias": "h1_58427b091ddf088b32a00cffac3301b2",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 65170,
+      "rank": 284,
+      "hotel_name": "Mandarin Oriental Jumeira, Dubai",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Mandarin Oriental Jumeira, Dubai\n📍 Дубай, ОАЭ\nКурорт в Джумейре с собственным песчаным пляжем, бассейнами и спа. Для детей работает клуб Little Nomads.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHp6YqPBFs",
+        "publication_id": 1686,
+        "offer_id": "max_65170",
+        "offer_alias": "h1_7455b2d0ee5e280b4ee675f68564e278",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 65266,
+      "rank": 285,
+      "hotel_name": "Palma Phu Quoc Resort",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Palma Phu Quoc Resort\n📍 Фукуок, Вьетнам\nДля семейной поездки можно выбрать два соединённых номера. До общественного пляжа примерно 550 метров, по пути нужно перейти дорогу.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG38wQzGoI",
+        "publication_id": 1112,
+        "offer_id": "max_65266",
+        "offer_alias": "h1_4fd414d2862613282d9559fa5f6941bc",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 68323,
+      "rank": 287,
+      "hotel_name": "Sunrise Solara Aqua Park Resort",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Sunrise Solara Aqua Park Resort\n📍 Хургада, Египет\nСобственный пляж, бассейны и водные горки. Детский клуб принимает гостей от 3 до 12 лет, а по вечерам проходят шоу и тематические вечеринки.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaF5iP7mCB0",
+        "publication_id": 72,
+        "offer_id": "max_68323",
+        "offer_alias": "h1_3736d5b20f94cf478bbff60a243f8498",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 68907,
+      "rank": 288,
+      "hotel_name": "Amarina Abu Soma Resort & Aquapark",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Amarina Abu Soma Resort & Aquapark\n📍 Абу-Сома, Египет\nСемейный курорт с собственным песчаным пляжем, аквапарком и отдельным детским бассейном. В клубе ждут детей от 4 до 12 лет. Работа горок зависит от сезона и погоды.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHQKvAPYFo",
+        "publication_id": 1198,
+        "offer_id": "max_68907",
+        "offer_alias": "h1_1b6c5744fec714a98cd495a33308c056",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 69261,
+      "rank": 289,
+      "hotel_name": "Virgo Hotel",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Virgo Hotel\n📍 Нячанг, Вьетнам\nГородской отель с бассейном, из которого видно Нячанг. На территории есть тренажёрный зал.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG2Qs8kYsU",
+        "publication_id": 582,
+        "offer_id": "max_69261",
+        "offer_alias": "h1_2e54068643538c720289af4172e91002",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 70030,
+      "rank": 290,
+      "hotel_name": "Utopia Beach Club",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Utopia Beach Club\n📍 Аланья, Турция\nСобственный пляж с выходом прямо к морю. Между купаниями можно отдохнуть у открытого бассейна с видом на море.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG7kl8qV4Y",
+        "publication_id": 1149,
+        "offer_id": "max_70030",
+        "offer_alias": "h1_71becf7bef0bb39c3c64cca2e4fe95e6",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 81173,
+      "rank": 295,
+      "hotel_name": "Sunrise White Hills Resort",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Sunrise White Hills Resort\n📍 Шарм-эль-Шейх, Египет\nКурорт с семью бассейнами и шестью ресторанами. Для детей работает отдельный клуб.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaGb6NgvJvM",
+        "publication_id": 147,
+        "offer_id": "max_81173",
+        "offer_alias": "h1_aab39b27cfc7a6250436ce517d5878ea",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 81578,
+      "rank": 296,
+      "hotel_name": "Arcanus Hotels Trendline Side",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Arcanus Hotels Trendline Side\n📍 Сиде, Турция\nАквапарк с семью горками и отдельные клубы для детей и подростков. До пляжа ходит бесплатный шаттл. Есть семейные номера с отдельными спальнями.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG3R969dm0",
+        "publication_id": 865,
+        "offer_id": "max_81578",
+        "offer_alias": "h1_5825323c3fb7dca983bfb6971bf892d2",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 82567,
+      "rank": 298,
+      "hotel_name": "Phuket Emerald Beach Resort",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Phuket Emerald Beach Resort\n📍 Пхукет, Таиланд\nВодная зона Emerald Adventure и детский клуб с сухим бассейном. Для взрослых на территории есть тренажёрный зал.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG2UlCIP10",
+        "publication_id": 606,
+        "offer_id": "max_82567",
+        "offer_alias": "h1_25f2549f63214a8943eec0b0e94b6949",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 83563,
+      "rank": 300,
+      "hotel_name": "Serry Beach Resort",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Serry Beach Resort\n📍 Хургада, Египет\nСемейный курорт с собственным песчаным пляжем и двумя открытыми бассейнами с подогревом. Для детей работает клуб Saraab Junior Club.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHQYvjrAzg",
+        "publication_id": 1233,
+        "offer_id": "max_83563",
+        "offer_alias": "h1_56ed6b7ff61aace30be44c1d5912a409",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 88169,
+      "rank": 301,
+      "hotel_name": "Anantara Koh Yao Yai Resort & Villas",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Anantara Koh Yao Yai Resort & Villas\n📍 Ко Яо Яй, Таиланд\nОстровной курорт с видом на залив Пханг Нга. Есть просторные семейные люксы, детский клуб и бассейн для отдыха с детьми, а также виллы с собственным бассейном.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHkMK5cNrk",
+        "publication_id": 1399,
+        "offer_id": "max_88169",
+        "offer_alias": "h1_7bc9b24cf0f9e8e0a0ac18dc845064d5",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 102774,
+      "rank": 303,
+      "hotel_name": "Hilton Luxor Resort & Spa",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Hilton Luxor Resort & Spa\n📍 Луксор, Египет\nОтель на берегу Нила с двумя бассейнами и видом на реку. Удобно чередовать отдых у воды с поездками к Карнакскому и Луксорскому храмам.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHQQzsnRJ8",
+        "publication_id": 1218,
+        "offer_id": "max_102774",
+        "offer_alias": "h1_af9674e588eb76479397a21046ce60cf",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 109900,
+      "rank": 304,
+      "hotel_name": "Dream Fun World",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Dream Fun World\n📍 Сиде, Турция\nОт отеля до собственного песчаного пляжа около четырёх минут на шаттле. На территории есть водные горки, детский бассейн и клуб для ребят от 4 до 12 лет.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaGbPG9QBVI",
+        "publication_id": 128,
+        "offer_id": "max_109900",
+        "offer_alias": "h1_882e007fbcff4c6d4bf1ebbbb716a2fa",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 111045,
+      "rank": 305,
+      "hotel_name": "Vox Maris Resort 16+",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Vox Maris Resort 16+\n📍 Сиде, Турция\nОтель для гостей от 16 лет, примерно в 700 метрах от пляжа. Есть кондитерская и ресторан на пляже, по вечерам проходят шоу и выступления музыкантов.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaGbWS7jGsU",
+        "publication_id": 133,
+        "offer_id": "max_111045",
+        "offer_alias": "h1_fa07b3e8b4adfb00656a4f1ea7faafdb",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 111801,
+      "rank": 306,
+      "hotel_name": "JAZ Elite Asteria",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в JAZ Elite Asteria\n📍 Хургада, Египет\nСемейные номера, аквапарк и детский клуб Jazy. На территории несколько бассейнов, а вечерние программы проходят в амфитеатре.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaGeYSK7AH0",
+        "publication_id": 270,
+        "offer_id": "max_111801",
+        "offer_alias": "h1_5a11b10a20cf267746af73bdded22e85",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 117935,
+      "rank": 308,
+      "hotel_name": "Avari Boutique Hotel",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Avari Boutique Hotel\n📍 Нячанг, Вьетнам\nГородской отель с бассейном на 20-м этаже. В ресторане Lucia готовят блюда вьетнамской и европейской кухни, до общественного пляжа около 350 метров через дорогу.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG31RTEWJg",
+        "publication_id": 1064,
+        "offer_id": "max_117935",
+        "offer_alias": "h1_2c38b135f0e0c0b6912b291a4c2fd910",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 129161,
+      "rank": 311,
+      "hotel_name": "Rewaya Majestic Resort",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Rewaya Majestic Resort\n📍 Хургада, Египет\nКурорт на первой линии с собственным пляжем длиной 150 метров. В отеле проходят дневные и вечерние программы, есть дискотека.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG2NOx8OsU",
+        "publication_id": 562,
+        "offer_id": "max_129161",
+        "offer_alias": "h1_299353cd0e47c1a9e3d8d8df1bbe0348",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    }
+  ]
+}
