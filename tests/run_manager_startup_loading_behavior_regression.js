@@ -20,6 +20,42 @@ function renderedIds(h){
   return h.ids.get('inboxList').querySelectorAll('.leadItem').map(node=>Number(node.dataset.conversationId));
 }
 
+test('one early Manager2 identity read authorizes the first Inbox only after boot',async()=>{
+  const held=deferred(),h=createHarness({inbox:true,earlyIdentity:()=>held.promise});
+  assert.deepEqual(h.calls.map(call=>call.action),['me']);
+  held.resolve(response(h.identity));await new Promise(setImmediate);
+  assert.equal(h.W.S.manager,null);assert.deepEqual(h.calls.map(call=>call.action),['me']);
+  withRows(h);await Promise.all([h.W.boot(),h.W.boot()]);
+  assert.equal(h.calls.filter(call=>call.action==='me').length,1);
+  assert.equal(h.W.S.manager.id,7);assert.equal(renderedIds(h).length,200);
+});
+
+test('early 401 opens recovery at boot and a fresh login can use the workspace',async()=>{
+  const h=createHarness({inbox:true,earlyIdentity:()=>response({ok:false},401)});
+  await new Promise(setImmediate);assert.equal(h.W.S.authExpired,false);
+  await h.W.boot();assert.equal(h.W.S.authExpired,true);assert.deepEqual(h.calls.map(call=>call.action),['me']);
+  withRows(h);await h.login();assert.equal(h.W.S.authExpired,false);assert.equal(renderedIds(h).length,200);
+  assert.equal(h.calls.filter(call=>call.action==='me').length,1);
+});
+
+for(const failure of ['forbidden','network'])test('early '+failure+' is retried only on explicit boot',async()=>{
+  const read=()=>failure==='network'?Promise.reject(new Error('offline')):response({ok:false},403);
+  const h=createHarness({inbox:true,earlyIdentity:read});await new Promise(setImmediate);
+  await h.W.boot();assert.equal(h.W.S.manager,null);assert.deepEqual(h.calls.map(call=>call.action),['me']);
+  assert.ok(h.ids.get('managerStartupRetry'));withRows(h);await h.W.boot();
+  assert.equal(h.calls.filter(call=>call.action==='me').length,2);assert.equal(renderedIds(h).length,200);
+});
+
+for(const failure of [false,true])test('a late early identity cannot overwrite a recovered account, rejected='+failure,async()=>{
+  const held=deferred(),h=createHarness({inbox:true,earlyIdentity:()=>held.promise});
+  h.W.showAuthRecovery();h.setIdentity({...h.identity,manager:{...h.identity.manager,id:8}});withRows(h);await h.login();
+  const initialRows=h.ids.get('inboxList').querySelectorAll('.leadItem');
+  held.resolve(failure?Promise.reject(new Error('offline')):response(h.identity));
+  await h.W.boot();assert.equal(h.W.S.manager.id,8);assert.equal(h.W.S.authExpired,false);
+  assert.equal(h.ids.get('inboxList').querySelectorAll('.leadItem')[0],initialRows[0]);assert.ok(!h.ids.get('managerStartupRetry'));
+  assert.equal(h.calls.filter(call=>call.action==='me').length,1);
+});
+
 for(const action of ['catalog','filter_options'])for(const mobile of [false,true])test(action+' never settling does not block Inbox or an authorized reply, mobile='+mobile,async()=>{
   const h=createHarness({inbox:true,mobile}),held=deferred();
   h.setHook((url,r)=>r.action===action?held.promise:r.action==='list'?response({ok:true,conversations:liveRows()}):null);

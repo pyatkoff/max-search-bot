@@ -89,16 +89,22 @@ if($action==='save_source'){
 if($action==='list'){
     require_once $baseDir.'/services/ManagerAiInboxStatusService.php';
     $queue=(string)($data['queue']??'waiting');
-    $rows=ManagerConversationService::list((int)$m['id'],$queue,100,(string)($data['project_key']??'*'),$isAdmin?(string)($data['manager_filter']??''):'');
+    $actor=(int)$m['id'];
+    session_write_close();
+    $rows=ManagerConversationService::list($actor,$queue,100,(string)($data['project_key']??'*'),$isAdmin?(string)($data['manager_filter']??''):'');
     $rows=ManagerQueueProjectionService::actionableRows($queue,$rows);
-    out(['ok'=>true,'conversations'=>ManagerConversationService::displayRows(ManagerAiInboxStatusService::decorate($rows,(int)$m['id']))]);
+    $rows=ManagerConversationService::displayRows(ManagerAiInboxStatusService::decorate($rows,$actor));
+    if(!session_start(['read_and_close'=>true])||ManagerHttp::managerId()!==$actor||!ManagerHttp::validCsrf((string)$data['csrf'])){
+        out(['ok'=>false,'error'=>'unauthorized'],401);
+    }
+    out(['ok'=>true,'conversations'=>$rows]);
 }
 if($action==='counts'){
     $projectKey=(string)($data['project_key']??'*');
     // Auth and CSRF are captured; these read-only projections must not hold
-    // the account's session lock while three bounded queue lists are loaded.
+    // the account's session lock while bounded queue lists are loaded.
     session_write_close();
-    out(['ok'=>true,'counts'=>ManagerQueueProjectionService::counts((int)$m['id'],$projectKey)]);
+    out(['ok'=>true,'counts'=>ManagerQueueProjectionService::counts((int)$m['id'],$projectKey,($data['scope']??null)==='inbox_tabs')]);
 }
 if($action==='detail'){
     $conversationId=(int)($data['conversation_id']??0);
