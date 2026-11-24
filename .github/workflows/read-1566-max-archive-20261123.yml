@@ -1,4 +1,4 @@
-name: "#1566 Read further ranked MAX hotel sources for six ambiguous public pages"
+name: "#1566 Read further ranked MAX hotel sources from the remaining verified demand cohort"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -15,7 +15,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == '7da4b5700d1f9eb2cad0bf50ad8fa5754c9e4418' && github.run_attempt == 1
+      github.event.before == 'c23af3431ccb00de95a6becd898bc20194f98767' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -46,7 +46,7 @@ jobs:
           from datetime import datetime, timezone
           from html.parser import HTMLParser
 
-          wanted_ids = {32322,40222,41149,41495,45496,46670}
+          excluded = set([106,109,111,114,125,132,133,139,150,174,195,206,218,231,236,240,241,246,247,253,260,263,266,268,272,287,288,293,302,325,341,352,358,371,381,389,393,408,415,418,435,441,454,465,466,469,483,497,513,547,599,632,706,713,768,800,932,948,949,954,955,975,996,1032,1033,1035,1055,1067,1074,1096,1100,1105,1124,1142,1143,1149,1151,1221,1257,1260,1313,1334,1336,1344,1402,1420,1421,1429,1439,1451,1569,1588,1589,1647,1959,1960,1971,1972,1981,2435,2436,2457,2458,2470,2478,2493,2522,2588,2794,3405,3415,3452,4054,4060,4074,4079,4091,4181,4270,7458,8020,8094,9321,9373,11791,12107,12111,12114,12125,13870,14135,14140,15693,15873,15879,22791,23723,24909,26844,27426,27652,28272,28327,28460,28509,28581,28754,30158,32322,32342,37668,40222,41149,41495,43676,43689,45496,46670,47025,50869,51238,54605,56092,57028,59114,63191,64895,64914,64918,65877,70048,73343,73974,74503,75100,76588,77914,79071,82106,82606,85417,99713,107938,118475,132016])
           reserve = json.loads("[{\"url\":\"https://max.ru/anytour/AZwEq2zVLGY\",\"mid\":\"mid.ffffc1752b045fed019c04ab6cd52c66\",\"hotel_name\":\"The Marin Phuket\"},{\"url\":\"https://max.ru/anytour/AZwpDhM0dC0\",\"mid\":\"mid.ffffc1752b045fed019c290e1334742d\",\"hotel_name\":\"Akka Alinda Hotel\"},{\"url\":\"https://max.ru/anytour/AZxcpmMWNUI\",\"mid\":\"mid.ffffc1752b045fed019c5ca663163542\",\"hotel_name\":\"Address Beach Resort Fujairah\"},{\"url\":\"https://max.ru/anytour/AZ82fl5vOjg\",\"mid\":\"mid.ffffc1752b045fed019f367e5e6f3a38\",\"hotel_name\":\"SO/ Ras Al Khaimah\"}]")
           rank_run = json.loads(pathlib.Path("pub/rank-run.json").read_bytes())
           rank_meta = json.loads(pathlib.Path("pub/rank-meta.json").read_bytes())
@@ -65,7 +65,7 @@ jobs:
           assert len(by_offer) == canonical["binding_count"] == 1055
           candidates = []
           for priority, row in enumerate(ranked["rows"], 1):
-              if row["hotel_id"] not in wanted_ids:
+              if row["hotel_id"] in excluded:
                   continue
               binding = by_offer.get(row["max_offer"])
               if not binding or int(binding["hotel_id"]) != row["hotel_id"]:
@@ -74,9 +74,8 @@ jobs:
               candidates.append({"hotel_id":row["hotel_id"],"rank":priority,"rank_name":row["hotel_name"],
                                  "offer_id":row["max_offer"],"source_url":binding["post_url"],"source_alias":binding["alias"],
                                  "publication_id":int(binding["publication_id"]),"demand":row["source"]})
-              if len(candidates) == 6:
-                  break
-          assert len(candidates)==len({x["offer_id"] for x in candidates})==6
+          assert 0 < len(candidates) <= 40
+          assert len(candidates) == len({x["offer_id"] for x in candidates})
           feed_url = "https://app.anytoour.ru/feed/hotel-posts-max.xml"
 
           def load(url, limit):
@@ -153,14 +152,27 @@ jobs:
               feed_error=f"HTTP_{error.code}"
           except (AssertionError, OSError, ValueError, ET.ParseError) as error:
               feed_error=type(error).__name__
-          with ThreadPoolExecutor(max_workers=2) as executor:
-              pages=list(executor.map(page,[x["source_url"] for x in candidates]))
-          assert len(pages)==len({p["url"] for p in pages})==6
+          def source_present(item):
+              title = item.get("title", "")
+              return (item.get("http") == 200 and item.get("has_preview_image") and
+                      "@channel_anytour" in item.get("visible_text", "") and "Горящие туры - AnyTour" in title)
+
+          with ThreadPoolExecutor(max_workers=4) as executor:
+              pages = list(executor.map(page, [x["source_url"] for x in candidates]))
+          retry_indices = [index for index, item in enumerate(pages) if not source_present(item)]
+          if retry_indices:
+              from time import sleep
+              sleep(2)
+              with ThreadPoolExecutor(max_workers=2) as executor:
+                  refreshed = executor.map(page, [pages[i]["url"] for i in retry_indices])
+                  for index, item in zip(retry_indices, refreshed):
+                      pages[index] = item
+          assert len(pages) == len({p["url"] for p in pages}) == len(candidates)
           result={"observed_utc":datetime.now(timezone.utc).isoformat(),"feed_sha256":feed_sha,"feed_error":feed_error,
                   "offers":offers,"pages":pages,"candidates":candidates,"same_hotel_album_references":reserve_matches,"production_writes":0}
           pathlib.Path("pub/observation.json").write_text(json.dumps(result,ensure_ascii=False))
           print("MAX_MORE_PREPARATION=" + json.dumps({"feed_error":feed_error,"feed_sha256":feed_sha,"matched_offers":sum(x["binding_matches"] for x in offers),
-                 "source_public":sum(x.get("http")==200 for x in pages)}))
+                 "source_public":sum(bool(source_present(x)) for x in pages),"reviewed":len(candidates),"retried":len(retry_indices),"unmatched_ranked":sum(row["hotel_id"] not in excluded for row in ranked["rows"])-len(candidates)}))
           by_address={x["url"]:x for x in pages}
           by_key={x["offer_id"]:x for x in offers}
           for candidate in candidates:
