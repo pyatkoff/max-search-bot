@@ -19,7 +19,7 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == '9d65cb01e8d7a04078db0c4427593c6ee667a676' &&
+      github.event.before == '55e386fbf73507556129fa45f905dc84ba5fe405' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -48,19 +48,24 @@ jobs:
           const R = require('./tools/deployment_release')
           const P = require('./tools/release_priority')
           const expectedMain = 'e3e1a9bdf29dd0d7530fe6b3b393f1286834d092'
-          async function proveStoppedBeforeSSH() {
+          async function proveFailedArchiveRead() {
             const api = R.makeReadApi(process.env.GITHUB_TOKEN)
-            const base = R.API_ROOT+'/actions/runs/45176027819'
+            const base = R.API_ROOT+'/actions/runs/45372382894'
             const run = await api('GET', base)
-            if (run.id !== 45176027819 || run.run_attempt !== 1 || run.conclusion !== 'failure' ||
-                run.status !== 'completed' || run.head_sha !== '9d65cb01e8d7a04078db0c4427593c6ee667a676' ||
+            if (run.id !== 45372382894 || run.run_attempt !== 1 || run.conclusion !== 'failure' ||
+                run.status !== 'completed' || run.head_sha !== '55e386fbf73507556129fa45f905dc84ba5fe405' ||
                 run.head_branch !== 'ops/1566-max-archive-inventory-20261123' || run.repository.id !== 1342493152) throw Error('prior_run_mismatch')
             const jobs = (await api('GET', base+'/attempts/1/jobs?per_page=30')).jobs
-            if (jobs.length !== 1 || jobs[0].id !== 137697375433 || jobs[0].conclusion !== 'failure') throw Error('prior_job_mismatch')
+            if (jobs.length !== 1 || jobs[0].id !== 138369656742 || jobs[0].conclusion !== 'failure') throw Error('prior_job_mismatch')
             const outcomes = new Map(jobs[0].steps.map(s=>[s.name,s.conclusion]))
-            if (outcomes.get('Require current accepted release and actual application') !== 'failure' ||
-                outcomes.get('Pin established SSH host continuity and authentication identity') !== 'skipped' ||
-                outcomes.get('Read the full channel archive and occupied native identifiers') !== 'skipped') throw Error('prior_provider_state_unknown')
+            if (outcomes.get('Require current accepted release and actual application') !== 'success' ||
+                outcomes.get('Bind the reviewed MAX reader to this installation and run') !== 'success' ||
+                outcomes.get('Pin established SSH host continuity and authentication identity') !== 'success' ||
+                outcomes.get('Read the full channel archive and occupied native identifiers') !== 'failure') throw Error('prior_read_state_unknown')
+            const artifacts = await api('GET', base+'/artifacts?per_page=30')
+            const log = (await api.jobLog(138369656742)).toString('utf8')
+            if (artifacts.total_count !== 0 || artifacts.artifacts.length !== 0 ||
+                !/^\d{4}-\d{2}-\d{2}T\S+Z Archive read failed: READ_FAILED\r?$/m.test(log)) throw Error('prior_failed_receipt_mismatch')
           }
           async function check() {
             const expected = process.env.READ_REPOSITORY_SHA
@@ -77,7 +82,7 @@ jobs:
             fs.appendFileSync(process.env.GITHUB_ENV, 'REPOSITORY_SHA='+expected+'\nAPPLICATION_SHA='+resolution.application_sha+'\n')
           }
           async function admit() {
-            await proveStoppedBeforeSSH()
+            await proveFailedArchiveRead()
             const until = Date.now() + 120000
             for (;;) {
               try { return await check() }
@@ -117,8 +122,11 @@ jobs:
               if (!is_resource($lease)) throw new RuntimeException('EDITOR_LEASE_UNKNOWN');
               try {
                   if (!flock($lease, LOCK_SH | LOCK_NB)) throw new RuntimeException('EDITOR_BUSY');
+                  $stage = 'ARCHIVE_BOOTSTRAP_FAILED';
                   require_once ARCHIVE_APP . '/config.php';
+                  require_once ARCHIVE_APP . '/services/ChannelPostEntryService.php';
                   if (ProjectConfig::projectId() !== 'anytour') throw new RuntimeException('WRONG_PROJECT');
+                  $stage = 'ARCHIVE_REGISTRY_READ_FAILED';
                   $pdo = ConversationDb::connection();
                   $stamp = static function () use ($pdo): string {
                       $pdo->exec('SET TRANSACTION READ ONLY');
@@ -131,11 +139,16 @@ jobs:
                       }
                   };
                   $before = $stamp();
+                  $stage = 'ARCHIVE_NATIVE_READ_FAILED';
                   $output = runArchive();
+                  $stage = 'ARCHIVE_REGISTRY_READ_FAILED';
                   if (!hash_equals($before, $stamp())) throw new RuntimeException('REGISTRY_CHANGED');
                   $output['price_content_shared_lease'] = true;
                   $output['registry_versions_before_after_sha256'] = $before;
                   return $output;
+              } catch (Throwable $error) {
+                  if (preg_match('/\A[A-Z_]{3,50}\z/D', $error->getMessage())) throw $error;
+                  throw new RuntimeException($stage ?? 'ARCHIVE_LEASE_FAILED', 0, $error);
               } finally {
                   fclose($lease);
               }
