@@ -938,6 +938,29 @@ $selection=ModeledConversionVisitProof::dueIds([$ordinary,...$rows],(int)$r['eve
 static fn(array $item):array=>['at'=>$now-400,'event'=>['upload_status'=>$item['id']==='999'?'UPLOADED':$item['upload_status'],
 'linkage'=>'failed','failure_audit'=>['diagnosis'=>'wire_collision']]],2);
 $repairPriority=count($selection)===2&&$selection[0]===(string)$rows[0]['id']&&in_array('999',$selection,true);
+// Fill both urgent slots before an ordinary row and a later real wire correction.
+$urgentRows=[];
+foreach(['999','998','997']as$id){
+    $item=$ordinary;$item['id']=$id;$item['upload_id']='8'.$id;$item['value_profile_id']=$id;
+    $item['target']=ModeledConversionValueContract::predictionKey($id);$urgentRows[]=$item;
+}
+$reads=[];
+$priorUrgent=static function(array $item)use(&$reads,$now):array{
+    $reads[]=(string)$item['id'];
+    return ['at'=>$now-400,'event'=>['upload_status'=>'UPLOADED','linkage'=>'failed']];
+};
+$saturated=[...$urgentRows,...$rows];
+$cut=(int)$r['event_unix']+5;
+$saturatedSelection=ModeledConversionVisitProof::dueIds($saturated,$cut,$now+602,$priorUrgent,2);
+$lateRepair=$saturatedSelection===[(string)$rows[0]['id'],'999'];
+$readBound=$reads===['999','998',...array_map(static fn(array $row):string=>(string)$row['id'],$rows)];
+// A late frozen cohort still owns its slots even when the urgent list is already full.
+for($i=1;$i<ModeledConversionVisitProof::MAX_ROWS;$i++){
+    $item=$ordinary;$item['id']=(string)(2000+$i);$item['upload_id']='9'.$item['id'];
+    $item['value_profile_id']=$item['id'];$item['target']=ModeledConversionValueContract::predictionKey($item['id']);
+    $item['value_api_accepted_at_unix']=$cut;$item['value_processed_at_unix']=null;$saturated[]=$item;
+}
+$lateCohort=ModeledConversionVisitProof::dueIds($saturated,$cut,$now+602,$priorUrgent,2)=== [(string)$rows[0]['id']];
 $failedJournal=$read;$failedJournal['state']='failed';$failedJournal['upload_status']='LINKAGE_FAILURE';$failedJournal['checked_at_unix']=$now+301;
 ModeledConversionWireValue::save($r,$failedJournal);
 $failureRows=$rows;foreach($failureRows as&$member){$member['state']='unmatched';$member['upload_status']='LINKAGE_FAILURE';$member['value_processed_at_unix']=null;}unset($member);
@@ -971,7 +994,7 @@ $private=(fileperms($path)&0777)===0600&&(fileperms(dirname($path))&0777)===0700
 chmod($path,0644);clearstatcache(true,$path);$blocked=false;
 try{ModeledConversionWireValue::read($r);}catch(RuntimeException $e){$blocked=true;}
 echo json_encode(['ok'=>$first==='accepted'&&$again==='accepted'&&$last==='processed'
-&&$read['state']==='processed'&&$noReplay&&$api->writes===0&&$budgetRefused&&$expectedTotal&&$repairPriority&&$failedTerminal&&$failedPropagation&&$private&&$blocked],JSON_THROW_ON_ERROR);
+&&$read['state']==='processed'&&$noReplay&&$api->writes===0&&$budgetRefused&&$expectedTotal&&$repairPriority&&$failedTerminal&&$failedPropagation&&$private&&$blocked,'late_repair_and_cohort'=>$lateRepair&&$lateCohort,'bounded_archive_reads'=>$readBound],JSON_THROW_ON_ERROR);
 PHP;
     $fixtureScript=str_replace(['__FIXTURE_ROOT__','__FIXTURE_ROWS__','__FIXTURE_NOW__'],
         [var_export($isolated,true),var_export(json_encode([$wireFirst,$wireSecond],JSON_THROW_ON_ERROR),true),(string)$auditNow],$fixtureScript);
@@ -980,8 +1003,13 @@ PHP;
         if(!is_resource($process))throw new RuntimeException('wire_fixture_process');
         fwrite($pipes[0],$fixtureScript);fclose($pipes[0]);$result=stream_get_contents($pipes[1],2048);fclose($pipes[1]);
         $error=stream_get_contents($pipes[2],2048);fclose($pipes[2]);$code=proc_close($process);
+        $observed=json_decode($result,true);
         $check('wire evidence keeps original allocations, one reported goal, bounded terminal-status propagation and lost-ack GET recovery',
-            $code===0&&json_decode($result,true)===['ok'=>true]&&$error==='');
+            $code===0&&($observed['ok']??null)===true&&$error==='');
+        $check('later wire repairs and frozen cohort members keep their slots after urgent selection fills',
+            ($observed['late_repair_and_cohort']??null)===true);
+        $check('full urgent selection checks wire members without reading archives for lower-priority rows',
+            ($observed['bounded_archive_reads']??null)===true);
     }finally{
         $remove=function(string $dir)use(&$remove):void{foreach(new DirectoryIterator($dir)as$f){
             if($f->isDot())continue;if($f->isDir()&&!$f->isLink())$remove($f->getPathname());else unlink($f->getPathname());

@@ -405,7 +405,10 @@ provider response is checked against the comment for each event. A response
 without a comment is usable only if the upload occurs once in the admitted
 ledger. The original request limit applies across the whole attempt.
 
-Archive reads during candidate selection still grow with the ledger. For a
+Once urgent candidates fill the batch, ordinary event archives cannot change
+the selection. The scan continues to check for higher-priority wire repairs
+and to count the frozen cohort. When urgent slots remain available, archive
+reads during candidate selection can still grow with the ledger. For a
 repeated deadline, compare the recorded phase and elapsed time with the actual
 5–20 second budget. Incremental selection would need to track updates to
 existing uploads, owner changes and changes in saved receipts and corrections.

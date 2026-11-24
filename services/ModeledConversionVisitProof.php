@@ -314,8 +314,10 @@ final class ModeledConversionVisitProof
             if(!ModeledConversionValueContract::isKey($r['target']??null)||empty($r['upload_id']))continue;
             if(self::inCheckpointCohort($r,$checkpoint)){$cohort++;continue;}
             $id=(string)$r['id'];
-            $old=$prior($r);$at=(int)($old['at']??0);$e=$old['event']??[];
             $journal=ModeledConversionWireValue::read($r);
+            // After urgent slots fill, only a wire repair can displace a selected row.
+            if($journal===null&&count($urgent)>=$capacity)continue;
+            $old=$prior($r);$at=(int)($old['at']??0);$e=$old['event']??[];
             if($journal!==null&&isset($journal['members'][(string)$r['id']])
                 &&hash_equals($journal['members'][(string)$r['id']],self::fingerprint($r))
                 &&(!in_array($journal['state'],['processed','failed'],true)
