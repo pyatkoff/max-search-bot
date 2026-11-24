@@ -47,7 +47,7 @@ jobs:
           const fs = require('node:fs')
           const R = require('./tools/deployment_release')
           const P = require('./tools/release_priority')
-          const expectedMain = 'b3386d558f72e9eb80acefad9e87b1ab91b4426f'
+          const expectedMain = '7859c73d8fb118755ab84f1de4788deafb19f14b'
           async function proveStoppedBeforeSSH() {
             const api = R.makeReadApi(process.env.GITHUB_TOKEN)
             const base = R.API_ROOT+'/actions/runs/45176027819'
