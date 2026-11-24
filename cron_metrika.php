@@ -63,6 +63,19 @@ register_shutdown_function(static function (): void {
             }
         }
     } catch (Throwable $ignoredMax2Value) { /* Preserve both existing shutdown paths. */ }
+    try {
+        if (!is_file(__DIR__.'/services/AnyTourUmkLateDelivery.php')) return;
+        require_once __DIR__.'/services/AnyTourUmkLateDelivery.php';
+        $umk = AnyTourUmkLateDelivery::runtime();
+        if ($umk['status'] !== 'OFF') {
+            require_once __DIR__.'/services/DiagnosticLogger.php';
+            DiagnosticLogger::log('anytour_umk_funnel_value','tick',$umk);
+        }
+    } catch (Throwable $ignoredUmk) {
+        try {
+            if (class_exists('DiagnosticLogger')) DiagnosticLogger::warning('anytour_umk_funnel_value','tick_unavailable');
+        } catch (Throwable $ignoredLog) {}
+    }
 });
 // MAX2 V2 independent shutdown observation ends.
 
