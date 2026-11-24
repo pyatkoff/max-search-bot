@@ -62,9 +62,10 @@ final class ManagerHttp
     public static function revalidateSession(int $actor,string $token): void
     {
         self::resumeSession();
-        if(self::managerId()!==$actor||!self::validCsrf($token)){
+        if(self::managerId()!==$actor){
             self::respond(['ok'=>false,'error'=>'unauthorized'],401);
         }
+        self::requireCsrf(['csrf'=>$token]);
     }
 
     public static function body(): array
