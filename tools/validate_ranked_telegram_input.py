@@ -57,6 +57,8 @@ def registry(zip_path, index):
 
 
 def compare(plan, row, channel):
+    require(isinstance(plan["next_caption"], str) and not re.search(r"₽|💰\s*От\s+\d|Цена найдена мониторингом",
+            plan["next_caption"], re.IGNORECASE), "historical monitor price in destination caption")
     require(row["preview_ready"] is True and row["preview_blockers"] == [] and row["source_matches"] is True
             and row["historical_target_matches"] is True and row["target_media_lock_free"] is True
             and row["prior_media_operation_directory_exists"] is False and row["target_current_pin_matches"] is False

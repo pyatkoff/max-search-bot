@@ -42,12 +42,17 @@ function verifiedCandidates(array $plan, array $check, array $result, array $sum
         'hotel_ranked_unreached' => RANKED_UNREACHED_OPERATION,
         default => throw new \RuntimeException('unknown_write_operation'),
     };
+    $busy = ($summary['state'] ?? null) === 'not_started_editor_busy';
+    if ($busy) requirePost($context['write_operation'] === 'hotel_ranked_approved_input'
+        && ($result['ok'] ?? null) === false && ($result['state'] ?? null) === 'not_started_editor_busy'
+        && ($result['reason'] ?? null) === 'transfer_content_editor_busy' && ($summary['reason'] ?? null) === $result['reason']
+        && ($result['results'] ?? null) === [] && ($result['provider_write_attempts'] ?? null) === 0, 'native_busy_scope_invalid');
     requirePost($check['operation'] === $operation && $result['operation'] === $operation && $summary['operation'] === $operation
         && $check['ok'] === true && $check['mode'] === 'offline_plan_check' && $check['production_writes'] === 0 && $check['provider_writes'] === 0
         && $result['native_run_id'] === $context['run_id'] && $result['application_sha'] === $context['application_sha']
         && $check['plan_sha256'] === $digest && $result['plan_sha256'] === $digest
         && $result['supplier_requests'] === 0 && $result['bot_starts'] === 0
-        && in_array($summary['state'], ['complete','partial_requires_readback'], true), 'native_receipt_context_invalid');
+        && ($busy || in_array($summary['state'], ['complete','partial_requires_readback'], true)), 'native_receipt_context_invalid');
 
     $planned = array_column($plan['rows'], null, 'hotel_id');
     $hotelIds = $summary['hotel_ids'];

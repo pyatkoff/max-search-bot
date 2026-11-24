@@ -347,6 +347,11 @@ function transferRankedOfferScope(array $rows): void
     }
 }
 
+function transferCaptionOmitsMonitorPrice(string $caption): bool
+{
+    return preg_match('/₽|💰\s*От\s+\d|Цена найдена мониторингом/iu', $caption) === 0;
+}
+
 function transferRegistryRow(array $row): array
 {
     unset($row['price_template'], $row['source_photo_marker_sha256']);
@@ -425,7 +430,7 @@ function transferPlanFromBytes(string $raw, string $approvedDigest, bool|string 
             && is_string($row['price_template']) && mb_check_encoding($row['price_template'], 'UTF-8')
             && strlen($row['price_template']) <= 8000, 'transfer_caption_invalid');
         requirePost($next
-            ? $row['price_record_id'] === null && $row['price_template'] === ''
+            ? $row['price_record_id'] === null && $row['price_template'] === '' && transferCaptionOmitsMonitorPrice($row['next_caption'])
             : is_string($row['price_record_id']) && preg_match('/\A[a-f0-9]{64}\z/D', $row['price_record_id']) === 1,
             'transfer_price_policy_invalid');
     }
@@ -1183,6 +1188,30 @@ function requireRankedOriginalPrefix(array $plan, string $digest): void
     }
 }
 
+/** Wait only for the established PRICE inode, before opening a database or reserving any row. */
+function acquireRankedPriceLease($file, string $path, int $waitMs): bool
+{
+    $deadline = hrtime(true) + $waitMs * 1_000_000;
+    $held = fstat($file);
+    do {
+        clearstatcache(true, $path);
+        $live = lstat($path);
+        requirePost(is_array($held) && is_array($live) && !is_link($path)
+            && $held['dev'] === $live['dev'] && $held['ino'] === $live['ino'], 'transfer_price_lease_unknown');
+        if (flock($file, LOCK_EX | LOCK_NB, $blocked)) {
+            clearstatcache(true, $path);
+            $live = lstat($path);
+            requirePost(is_array($live) && !is_link($path) && $held['dev'] === $live['dev']
+                && $held['ino'] === $live['ino'], 'transfer_price_lease_unknown');
+            return true;
+        }
+        requirePost($blocked === 1, 'transfer_price_lease_unknown');
+        $remaining = $deadline - hrtime(true);
+        if ($remaining <= 0) return false;
+        usleep(min(500_000, max(1, intdiv($remaining, 1000))));
+    } while (true);
+}
+
 /** Only the explicit CLI branch below calls this; tick() remains unchanged. */
 function applyTransferPlan(string $root, string $approvedDigest, string $applicationSha, string $nativeRunId, bool|string $next = false, bool $remaining = false, bool $rankedContinuation = false, bool $rankedResume = false, bool $prewriteResume = false, ?array $unreachedParent = null): array
 {
@@ -1221,7 +1250,18 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
     requirePost(is_resource($priceLease), 'transfer_price_lease_unavailable');
     $pdo = null; $locks = []; $results = []; $preflightHolds = []; $continuedAfterLoss = false; $oldUmask = umask(0077);
     try {
-        requirePost(flock($priceLease, LOCK_EX | LOCK_NB), 'transfer_content_editor_busy');
+        if ($approvedIndex !== null) {
+            if (!acquireRankedPriceLease($priceLease, $leasePath, 240_000)) {
+                return ['schema'=>1, 'operation'=>$plan['operation'], 'native_run_id'=>$nativeRunId,
+                    'application_sha'=>$applicationSha, 'plan_sha256'=>$approvedDigest, 'ok'=>false,
+                    'state'=>'not_started_editor_busy', 'reason'=>'transfer_content_editor_busy',
+                    'provider_write_attempts'=>0, 'supplier_requests'=>0, 'bot_starts'=>0, 'results'=>[],
+                    'finished_at_utc'=>gmdate(DATE_ATOM)];
+            }
+            transferRuntime($root, $applicationSha);
+        } else {
+            requirePost(flock($priceLease, LOCK_EX | LOCK_NB), 'transfer_content_editor_busy');
+        }
         if ($rankedContinuation) {
             $tail = selectRankedContinuationRows($plan, $approvedDigest);
             requireRankedOriginalPrefix($plan, $approvedDigest);

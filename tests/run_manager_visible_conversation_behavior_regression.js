@@ -208,6 +208,62 @@ test('only one visible refresh runs while its protected detail is pending',async
  pending.resolve(response({ok:true,conversation:h.conversation,messages:[first,next]}));assert.equal(await firstRefresh,true);
 });
 
+test('a matched push reads only the already visible conversation once and preserves its draft',async()=>{
+ const h=await setup(),ctx=h.C.capturePushTarget(),before=detailCount(h),lists=listCount(h),counts=countRequests(h);
+ await h.draft('Still editing');const file={name:'keep.png'};h.setFile(file);h.arrive();
+ assert.equal(ctx.conversationId,101);assert.equal(h.C.refreshFromPush(ctx,1),false);
+ assert.equal(h.C.refreshFromPush(ctx,2),true);assert.equal(h.C.refreshFromPush(ctx,2),false);await flush();
+ assert.equal(h.W.S.detail.messages.at(-1).id,2);assert.equal(h.C.refreshFromPush(ctx,2),false);
+ assert.equal(detailCount(h),before+1);assert.equal(listCount(h),lists);assert.equal(countRequests(h),counts);
+ assert.equal(h.ids.get('replyText').value,'Still editing');assert.equal(h.getFile(),file);assertNoMutations(h);
+});
+
+for(const snapshotIncludesArrival of [true,false])test('coalesce a burst behind an earlier snapshot, includes arrival='+snapshotIncludesArrival,async()=>{
+ const h=await setup(),ctx=h.C.capturePushTarget(),held=deferred(),before=detailCount(h),third={...next,id:3};
+ h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?held.promise:null);
+ const poll=h.C.refreshVisible();await flush();
+ for(let i=0;i<40;i++){
+   assert.equal(h.C.refreshFromPush(ctx,2),i===0);
+   assert.equal(h.C.refreshFromPush(ctx,3),i===0);
+ }
+ assert.equal(detailCount(h),before+1);
+ h.intercept(null);h.arrive([first,next,third]);held.resolve(response({ok:true,conversation:h.conversation,messages:snapshotIncludesArrival?[first,next,third]:[first,next]}));
+ assert.equal(await poll,true);await flush();
+ assert.equal(detailCount(h),before+(snapshotIncludesArrival?1:2));assert.equal(h.W.S.detail.messages.at(-1).id,3);assertNoMutations(h);
+});
+
+test('new events received during a push read share one follow-up even beyond the bounded deduplication window',async()=>{
+ const h=await setup(),ctx=h.C.capturePushTarget(),held=deferred(),before=detailCount(h);
+ h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?held.promise:null);
+ h.C.refreshFromPush(ctx,2);await flush();
+ for(let id=3;id<203;id++)h.C.refreshFromPush(ctx,id);
+ assert.equal(detailCount(h),before+1);
+ h.intercept(null);h.arrive([first,next,{...next,id:202}]);held.resolve(response({ok:true,conversation:h.conversation,messages:[first,next]}));
+ await flush();assert.equal(detailCount(h),before+2);assert.equal(h.W.S.detail.messages.at(-1).id,202);assertNoMutations(h);
+});
+
+test('an expired, changed, hidden, unowned or no longer selected chat cannot consume an arrival',async()=>{
+ const h=await setup({mobile:true}),ctx=h.C.capturePushTarget(),before=detailCount(h),S=h.W.S;
+ assert.equal(h.C.refreshFromPush({...ctx,managerId:99},2),false);
+ assert.equal(h.C.refreshFromPush({...ctx,conversationId:99},2),false);
+ assert.equal(h.C.refreshFromPush({...ctx,openGeneration:ctx.openGeneration+1},2),false);
+ S.logoutPending=true;assert.equal(h.C.refreshFromPush(ctx,2),false);S.logoutPending=false;
+ S.authExpired=true;assert.equal(h.C.refreshFromPush(ctx,2),false);S.authExpired=false;
+ S.authGeneration++;assert.equal(h.C.refreshFromPush(ctx,2),false);S.authGeneration--;
+ h.document.visibilityState='hidden';assert.equal(h.C.capturePushTarget(),null);h.document.visibilityState='visible';
+ const owner=S.detail.conversation.manager_id;S.detail.conversation.manager_id=99;assert.equal(h.C.capturePushTarget(),null);S.detail.conversation.manager_id=owner;
+ h.window.WorkspaceV2Mobile.showInbox({historyMode:'none'});assert.equal(h.C.refreshFromPush(ctx,2),false);
+ assert.equal(detailCount(h),before);assertNoMutations(h);
+});
+
+test('an arrival pending behind lost access cannot retry, repaint or navigate',async()=>{
+ const h=await setup(),ctx=h.C.capturePushTarget(),held=deferred(),before=detailCount(h);
+ h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?held.promise:null);
+ const poll=h.C.refreshVisible();await flush();assert.equal(h.C.refreshFromPush(ctx,2),true);
+ held.resolve(response({ok:false},403));assert.equal(await poll,false);await flush();
+ assert.equal(detailCount(h),before+1);assert.equal(h.C.capturePushTarget(),null);assert.equal(h.W.S.current,101);assertNoMutations(h);
+});
+
 test('navigation in progress blocks polling and late old refresh cannot overwrite the new conversation',async()=>{
  const h=await setup(),old=deferred(),navigation=deferred();h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?(r.conversation_id===101?old.promise:navigation.promise):null);
  const refresh=h.C.refreshVisible();await flush();const opening=h.C.open(102);await flush();assert.equal(await h.C.refreshVisible(),false);

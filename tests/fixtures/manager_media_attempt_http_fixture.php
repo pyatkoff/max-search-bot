@@ -9,6 +9,10 @@ function mediaAttemptHttpBootstrap(string $directory): void
         public function prepare(string $query,array $options=[]): PDOStatement|false
         {
             file_put_contents($GLOBALS['media_http_dir'].'/queries.jsonl',json_encode($query)."\n",FILE_APPEND|LOCK_EX);
+            // Text sends use the MySQL project UPSERT. The fixture has already seeded that project.
+            if(str_starts_with($query,'INSERT INTO projects ')&&str_contains($query,'ON DUPLICATE KEY UPDATE')){
+                $query='UPDATE projects SET display_name=?2,is_active=1 WHERE project_key=?1';
+            }
             return parent::prepare($query,$options);
         }
     }
@@ -28,6 +32,20 @@ function mediaAttemptHttpBootstrap(string $directory): void
         public static function forConversation(array $conversation,string $sender):object
         {
             return new class {
+                public function send($chat,string $text):bool
+                {
+                    $dir=$GLOBALS['media_http_dir'];
+                    file_put_contents($dir.'/text-calls', "send\n",FILE_APPEND|LOCK_EX);
+                    $deadline=microtime(true)+2;
+                    while(!is_file($dir.'/release-text')){
+                        if(microtime(true)>$deadline){
+                            touch($dir.'/text-timeout');
+                            throw new RuntimeException('Synthetic text sender timed out');
+                        }
+                        usleep(1000);
+                    }
+                    return true;
+                }
                 public function sendMedia($chat,string $type,string $path,string $name,string $mime,string $caption,string $preview):bool
                 {
                     $dir=$GLOBALS['media_http_dir'];$pdo=ConversationDb::connection();
@@ -71,7 +89,7 @@ function mediaAttemptHttpApp(string $directory):array
 {
     $root=dirname(__DIR__,2);
     foreach(['manager/lib','services','integrations','sessions'] as $path)mkdir($directory.'/'.$path,0700,true);
-    $actual=['manager/api.php','manager/media-upload.php','manager/lib/ManagerHttp.php','services/ManagerRequestContext.php','services/ManagerSendAttemptService.php','services/ManagerOutboundService.php','services/ManagerMediaCache.php','services/ConversationDb.php','services/ManagerConversationService.php','services/ManagerConversationAccessPolicy.php','services/ManagerAuthService.php','services/ProjectAccessService.php','services/RoutingAccessService.php','services/ManagerAvailabilityService.php','services/RegionalRoutingScopeService.php','services/RegionalTerritoryCatalog.php','services/ConversationEntryRegionService.php','services/ConversationRecordClock.php','services/TrafficAttributionService.php','services/YandexRegionCatalog.php'];
+    $actual=['manager/api.php','manager/media-upload.php','manager/lib/ManagerHttp.php','services/ManagerRequestContext.php','services/ManagerSendAttemptService.php','services/ManagerOutboundService.php','services/ManagerSendGuardService.php','services/ManagerMediaCache.php','services/ConversationDb.php','services/ManagerConversationService.php','services/ManagerConversationAccessPolicy.php','services/ManagerAuthService.php','services/ManagerSupervisorAccessService.php','services/ProjectAccessService.php','services/RoutingAccessService.php','services/ManagerAvailabilityService.php','services/RegionalRoutingScopeService.php','services/RegionalTerritoryCatalog.php','services/ConversationEntryRegionService.php','services/ConversationRecordClock.php','services/TrafficAttributionService.php','services/YandexRegionCatalog.php'];
     foreach($actual as $path)copy($root.'/'.$path,$directory.'/'.$path);
     // Unused modules required by the actual endpoint are inert, not alternative
     // API/ACL implementations. All selected production source stays byte-exact.

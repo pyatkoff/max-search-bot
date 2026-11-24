@@ -1533,6 +1533,28 @@ foreach (['complete'=>[null,[],true],'wrong run'=>[0,['execution'=>[]],false],
     }
     fclose($receipt);
 }
+channelPostCheck('no-price HOTEL input excludes the previous monitor quote with a valid caption digest',
+    [AnyTour\ExistingPostBatch\transferCaptionOmitsMonitorPrice("Пляж\n💰 От 108 689 ₽ за двоих"),
+     AnyTour\ExistingPostBatch\transferCaptionOmitsMonitorPrice("Цена найдена мониторингом 19.11.2026, 09:18 МСК."),
+     AnyTour\ExistingPostBatch\transferCaptionOmitsMonitorPrice('В ресторане H2O ужинают под водой.')], [false,false,true]);
+$pricePath = tempnam(sys_get_temp_dir(), 'hotel-price-lease-');
+$owner = fopen($pricePath, 'rb'); $worker = fopen($pricePath, 'rb');
+try {
+    flock($owner, LOCK_SH);
+    channelPostCheck('data plan waits for the established PRICE owner without taking its lock',
+        AnyTour\ExistingPostBatch\acquireRankedPriceLease($worker,$pricePath,10),false);
+    flock($owner, LOCK_UN);
+    channelPostCheck('data plan acquires the same free inode before any row',
+        AnyTour\ExistingPostBatch\acquireRankedPriceLease($worker,$pricePath,10),true);
+    flock($worker,LOCK_UN);
+    rename($pricePath,$pricePath.'.old'); touch($pricePath);
+    try {AnyTour\ExistingPostBatch\acquireRankedPriceLease($worker,$pricePath,10); $reason = 'allowed';}
+    catch (RuntimeException $e) {$reason=$e->getMessage();}
+    channelPostCheck('an exchanged PRICE inode never grants a write',$reason,'transfer_price_lease_unknown');
+} finally {
+    fclose($worker); fclose($owner); unlink($pricePath);
+    if (is_file($pricePath.'.old')) unlink($pricePath.'.old');
+}
 // A later HOTEL plan can isolate one journaled timeout only against its own installed receipt.
 $indexPath = __DIR__.'/../config/anytour_ranked_index_45387052894.json';
 $newIndex = json_decode(file_get_contents($indexPath), true, 16, JSON_THROW_ON_ERROR);

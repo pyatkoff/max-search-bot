@@ -235,6 +235,10 @@ jobs:
           assert d.get('provider_write_attempts')==sum(r['provider_write_attempts'] for r in rows)
           ok=status==0 and d.get('ok') is True and confirmed==item['hotels'] and not held
           state.update(state='complete' if ok else 'partial_requires_readback',confirmed=confirmed,held=held,unreached=item['hotels'][len(rows):])
+          if d.get('state')=='not_started_editor_busy':
+              assert os.environ['GITHUB_REF'].startswith('refs/heads/ops/anytour-hotel-ranked-plan-') and status==2
+              assert d.get('ok') is False and d.get('reason')=='transfer_content_editor_busy' and rows==[] and d['provider_write_attempts']==0
+              state.update(state='not_started_editor_busy',reason=d['reason'])
           summary.write_text(json.dumps(states))
           print(json.dumps(state))
           if not ok:

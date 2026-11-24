@@ -7,9 +7,18 @@ if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 // fixture identities never reach a database, external host or real account.
 $root=dirname(__DIR__);$tmp=sys_get_temp_dir().'/manager2-cookie-'.bin2hex(random_bytes(6));
 mkdir($tmp,0700);mkdir($tmp.'/sessions',0700);
+mkdir($tmp.'/manager',0700);
+copy($root.'/manager/customer-avatar.php',$tmp.'/manager/customer-avatar.php');
+symlink($root.'/manager/lib',$tmp.'/manager/lib');symlink($root.'/services',$tmp.'/services');
+file_put_contents($tmp.'/config.php',"<?php\n");
 $router=$tmp.'/router.php';
 file_put_contents($router,"<?php\n\$root=".var_export($root,true).";\n". <<<'PHP'
 $path=parse_url($_SERVER['REQUEST_URI'],PHP_URL_PATH);
+if($path==='/manager/customer-avatar.php'){
+    $_SERVER['SCRIPT_NAME']=$path;
+    require __DIR__.'/manager/customer-avatar.php';
+    return;
+}
 if($path==='/manager/api.php'){
     $_SERVER['SCRIPT_NAME']=$path;
     require $root.'/manager/lib/ManagerHttp.php';
@@ -67,6 +76,15 @@ try{
     $header=implode("\n",$login['set_cookie']);
     $sessionCookies=$cookies;$csrf=$login['json']['csrf']??'';
     cookieCheck('canonical cookie retains Manager path and secure attributes',stripos($header,'path=/manager/')!==false&&stripos($header,'secure')!==false&&stripos($header,'httponly')!==false&&stripos($header,'samesite=Lax')!==false);
+    rename($tmp.'/sessions',$tmp.'/sessions-paused');
+    try{
+        $unavailable=requestCookieFixture('/manager/api.php','me');
+        cookieCheck('session storage outage withholds identity without expiring the login',
+            $unavailable['status']===503&&($unavailable['json']['error']??'')==='session_unavailable');
+        $media=requestCookieFixture('/manager/customer-avatar.php?conversation_id=11');
+        cookieCheck('a protected media request reports session storage unavailability as JSON',
+            $media['status']===503&&($media['json']['error']??'')==='session_unavailable');
+    }finally{rename($tmp.'/sessions-paused',$tmp.'/sessions');}
     cookieCheck('authenticated API works before alternate navigation',(requestCookieFixture('/manager/api.php','me')['json']['manager_id']??0)===7);
     cookieCheck('canonical CSRF token is issued by protected API',strlen($csrf)===48);
     foreach(['/manager2/','/manager2/index.php','/manager2/admin.php','/manager2/admin.php','/manager/admin.php','/manager2/','/manager/'] as $path){
@@ -99,6 +117,7 @@ try{
 }finally{
     proc_terminate($server);fclose($pipes[0]);proc_close($server);
     foreach(glob($tmp.'/sessions/*') as $file)unlink($file);
+    unlink($tmp.'/manager/customer-avatar.php');unlink($tmp.'/manager/lib');rmdir($tmp.'/manager');unlink($tmp.'/services');unlink($tmp.'/config.php');
     rmdir($tmp.'/sessions');unlink($router);@unlink($tmp.'/server.log');rmdir($tmp);
 }
 echo 'MANAGER2 HTTP COOKIE CHECKS: '.($passed+$failed).' | PASS '.$passed.' | FAIL '.$failed."\n";

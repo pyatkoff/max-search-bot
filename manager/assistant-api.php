@@ -22,10 +22,7 @@ function assistantReadRespond(array $result,int $actor,string $csrf): never
 {
     // Reads release the session while they work. Match the canonical profile
     // reader: a logout, account switch or rotated CSRF revokes this response.
-    if (!session_start(['read_and_close'=>true]) || ManagerHttp::managerId() !== $actor
-        || !ManagerRequestContext::validCsrf($csrf)) {
-        assistantRespond(['ok'=>false,'error'=>'unauthorized']);
-    }
+    ManagerHttp::revalidateSession($actor,$csrf);
     assistantRespond($result + ['viewer_id'=>$actor]);
 }
 

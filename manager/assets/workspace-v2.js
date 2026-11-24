@@ -225,7 +225,11 @@ async function resumeAuthenticated(me){
   // Native push registration and its health request must not hold the Inbox or
   // a recovered conversation behind a slow/unavailable notification provider.
   void refreshNotificationHealth(generation,managerId);
-  await window.WorkspaceV2Inbox?.load({preserveScroll:true}).catch(()=>{});
+  const inbox=window.WorkspaceV2Inbox?.load({preserveScroll:true}).catch(()=>{});
+  // A reload can restore this manager's saved chat as soon as its own detail
+  // authorizes it. An explicit notification keeps its existing startup order.
+  const restoringSavedChat=savedConversationId&&!S.current&&!notificationId;
+  await (restoringSavedChat?undefined:inbox);
   if(!stillAuthenticated())return;
   // Keep the explicit target through expiry before startup becomes usable.
   if(notificationId&&notificationConversationId()===notificationId)notificationUrl();
