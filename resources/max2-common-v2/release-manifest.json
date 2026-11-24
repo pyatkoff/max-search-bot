@@ -4,7 +4,7 @@
   "counter_id": 98615635,
   "files": {
     ".github/workflows/max2-common-value-state-v2.yml": "479cadcc8b67069a93147ac2a7380e8610d5e0370921a537a790b3619c73995c",
-    "cron_metrika.php": "dc215d7603dee668cae15fca7d2aa40dc3f2e99981415cd86413d51846ee8aed",
+    "cron_metrika.php": "614ded4ceee5f0d28eb1224532d35269d1c65d247def97e4ab6540b9892c3f8b",
     "docs/MAX2_COMMON_VALUE_V2.md": "3120369575e2a92b5470d15f56c3cf505fea47c0efbd23b776f8e82cc84c9c83",
     "migrations/112_max2_common_value_v2.sql": "f090952953bed9f365ed26cc799748c3f93afcad93a4bd3b3512ab90837be70b",
     "migrations/113_max2_common_runtime_v2.sql": "092c123615aae8261c19b8aa7316b0631926698906491c03869f28373646ada9",

@@ -89,4 +89,71 @@ checkUmk($ledger->reserve(9,$incomplete)['status']==='EARLY_RESERVE_UNPROVED','u
 checkUmk($ledger->reserve(9,$zero)['delta_kopeks']===7300,'exact complete negative');
 checkUmk($floors === $ledger->activate(),'no floor movement');
 checkUmk((int)$db->query('SELECT COUNT(*) FROM anytour_umk_late_events')->fetchColumn()===6,'one row per admitted profile');
-echo "UMK late value accounting PASS\n";
+// A second independent database exercises the normal worker with only the provider stubbed.
+require_once dirname(__DIR__).'/services/AnyTourUmkLateDelivery.php';
+$work = new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+$work->exec('PRAGMA foreign_keys=ON');
+foreach (['modeled_conversion_profile_versions','max2_common_value_accounts_v2','max2_common_value_events_v2'] as $table) {
+    $ddl = $db->query("SELECT sql FROM sqlite_master WHERE type='table' AND name='$table'")->fetchColumn();
+    $work->exec($ddl);
+}
+$work->exec("ALTER TABLE max2_common_value_accounts_v2 ADD COLUMN client_id TEXT DEFAULT '123456789'");
+$work->exec($sql);
+$requests = [];
+$comments = [];
+$rejectCatalogue = false;
+$unknownPost = false;
+$badPoll = false;
+$transport = static function($method,$url,$body) use (&$requests,&$comments,&$rejectCatalogue,&$unknownPost,&$badPoll) {
+    $requests[] = [$method,$url,$body];
+    if (str_ends_with($url,'/goals')) {
+        $goal = ['id'=>696194739,'type'=>'action','name'=>'УМК','conditions'=>[['type'=>'exact','url'=>'anytour_umk_funnel_value']]];
+        $data = ['goals'=>$rejectCatalogue ? [] : [$goal]];
+    } elseif ($method === 'POST') {
+        if ($unknownPost) return ['http'=>0,'error'=>28,'body'=>''];
+        parse_str(parse_url($url,PHP_URL_QUERY), $query);
+        $comments[321] = $query['comment'];
+        $data = ['uploading'=>['id'=>321,'status'=>'UPLOADED','comment'=>$comments[321]]];
+    } else {
+        $data = ['uploading'=>['id'=>321,'status'=>'PROCESSED','comment'=>$badPoll ? 'another goal' : $comments[321],
+            'source_quantity'=>1,'line_quantity'=>1]];
+    }
+    return ['http'=>200,'error'=>0,'body'=>json_encode($data,JSON_THROW_ON_ERROR)];
+};
+$clock = time()+30;
+$worker = new AnyTourUmkLateDelivery($work,static fn() => null,
+    static fn()=>Max2CommonValueMetrikaClientV2::forUmk('synthetic',$transport),static fn()=>$clock);
+checkUmk($worker->tick() === ['status'=>'OFF'] && $requests===[],'OFF performs no provider work');
+$epoch = (int)(new AnyTourUmkLateLedger($work))->activate()['activated_at_unix'];
+// The original fixture helper uses positional INSERTs, so seed these two rows explicitly.
+$insert = $work->prepare("INSERT INTO max2_common_value_accounts_v2(id,counter_id,goal_id,target,project_key,platform,inquiry_key,
+    inquiry_recorded_at_unix,binding_kind,tracker_record_id,client_id) VALUES (?,98615635,687941321,'anytour_modeled_value_v2_max2',
+    'anytour',?,?,?,?,?,?)");
+$insert->execute([10,'max',hash('sha256','inquiry10'),$epoch+1,'UNIQUE_OBSERVED_MAX2','410','123456789']);
+$insert->execute([11,'telegram',hash('sha256','inquiry11'),$epoch+1,'PROVEN_NO_NEW_EARLY_RESERVE',null,'123456789']);
+profile($work,20,10,101,80000,78201,$epoch+2);
+profile($work,21,11,102,83300,83300,$epoch+3);
+checkUmk($worker->tick()['collection']==='EARLY_RESERVE_UNPROVED','MAX is held without UMK evidence');
+checkUmk($worker->tick()['collection']==='RESERVED' && $requests===[],'other eligible conversation still collected');
+$worker->setDelivery($epoch,true);
+$rejectCatalogue=true;
+checkUmk($worker->tick()['send']==='CATALOGUE_HOLD','misconfigured goal does not consume attempt');
+$rejectCatalogue=false;
+checkUmk($worker->tick()['send']==='ACCEPTED','durable attempt sent after catalogue admission');
+$badPoll=true;
+checkUmk($worker->tick()['poll']==='UNCONFIRMED','foreign receipt cannot confirm');
+$badPoll=false;
+checkUmk($worker->tick()['poll']==='PROCESSED','own exact receipt reconciled');
+$events = $work->query('SELECT * FROM anytour_umk_late_events')->fetchAll(PDO::FETCH_ASSOC);
+checkUmk(count($events)===1 && $events[0]['delivery_state']==='processed' && $events[0]['delta_kopeks']==83300
+    && strlen($events[0]['csv_sha256'])===64,'only own destination received completed result');
+$posts = static fn(array $log):array => array_values(array_filter($log,static fn($r)=>$r[0]==='POST'));
+checkUmk(count($posts($requests))===1 && str_contains($posts($requests)[0][2],',833.00,RUB'),'one correct upload');
+profile($work,22,11,103,83500,200,$epoch+4);
+$unknownPost=true;
+for ($i=0;$i<4;$i++) $worker->tick();
+$frozen = $work->query('SELECT delivery_state FROM anytour_umk_late_events WHERE source_event_id=22')->fetchColumn();
+checkUmk($frozen==='unknown' && count($posts($requests))===2,'uncertain outcome never reissued on later ticks');
+$worker->setDelivery($epoch,false);
+checkUmk($worker->tick()['status']==='COLLECT','pause preserves original activation cohort');
+echo "UMK late value accounting and delivery PASS\n";
