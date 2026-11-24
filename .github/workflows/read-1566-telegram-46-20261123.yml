@@ -1,4 +1,4 @@
-name: "#1566 Read 46 proposed Telegram hotel targets"
+name: "#1566 Verify two existing Telegram targets from the weekly hotel ranking"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -19,7 +19,7 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == '1cf8f0e6555c38c99549b7019428b3f608cbf6bc' &&
+      github.event.before == 'db1157a5091ff0f708d7825acf6ca4e1dc9a5339' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -53,6 +53,11 @@ jobs:
             const api = R.makeReadApi(token)
             const current = async () => (await api('GET', R.API_ROOT+'/git/ref/heads/main')).object.sha
             if (!/^[a-f0-9]{40}$/.test(expected) || await current() !== expected) throw Error('main_changed')
+            const parent=R.API_ROOT+'/actions/runs/45385556709'
+            const run=await api('GET',parent)
+            const artifacts=(await api('GET',parent+'/artifacts?per_page=10')).artifacts
+            if (run.id!==45385556709 || run.repository.id!==1342493152 || run.head_sha!=='9838b4301727c7969ad0ff4dc585460c5d27986a' || run.head_branch!=='audit/anytour-hotel-ads-20261117' || run.event!=='push' || run.run_attempt!==1 || run.status!=='completed' || run.conclusion!=='success') throw Error('demand_rank_run_changed')
+            if (artifacts.length!==1 || artifacts[0].id!==14915463382 || artifacts[0].name!=='first-party-hotel-entry-rank' || artifacts[0].expired || artifacts[0].digest!=='sha256:b41f4d47c1041204ed6830730d7ab8805af15a0647787aa5658eecca398314fe') throw Error('demand_rank_artifact_changed')
             const observed = await R.readRecord(api)
             const resolution = await R.resolveCurrent(api, {sha:expected}, observed)
             if (!resolution.ready || resolution.repository_sha !== expected || !/^[a-f0-9]{40}$/.test(resolution.application_sha)) throw Error('accepted_release_mismatch')
@@ -68,7 +73,7 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '05e988f1272f4290cff00496320f27e394fcc23d'
+          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '56b8b8fc7b654ce7c9404a55096105c4881e9cac'
           mkdir pub
           python3 - <<'PY'
           import os,pathlib,re
@@ -113,7 +118,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read the exact 46 source and target pairs without editing
+      - name: Read two exact hotel sources and historical Telegram targets
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -130,18 +135,19 @@ jobs:
           import json
           d=json.load(open('pub/registry.json'))
           if not d['ok']: print(json.dumps({k:d[k] for k in ('failure_stage','failure_reason') if k in d}))
-          assert d['ok'] and d['operation']=='hotel_archive_telegram_46_registry'
+          assert d['ok'] and d['operation']=='hotel_archive_telegram_ranked_registry'
           assert d['production_writes']==d['provider_writes']==d['bot_starts']==0
-          assert [r['hotel_id'] for r in d['rows']]==[241,15693,293,949,1972,2588,24909,32342,57028,65877,73343,43689,47025,139,435,513,2470,56092,59114,63191,76588,77914,106,111,114,140,178,195,206,231,246,263,266,268,310,371,381,389,416,465,497,932,948,964,975,1013]
-          assert [int(r['target_message_id']) for r in d['rows']]==[220,224,249,266,316,346,372,594,626,646,716,884,901,905,906,908,914,915,917,918,923,924,928,930,948,949,951,952,963,969,970,999,1003,1012,1016,1037,1042,1049,1051,1052,1057,1059,1087,1110,1131,920]
-          assert d['public_get_attempts']==92
+          assert [r['hotel_id'] for r in d['rows']]==[64918,996]
+          assert [int(r['target_message_id']) for r in d['rows']]==[1020,1063]
+          assert d['public_get_attempts']==4
           print(json.dumps({'checkpoint_sha256':d['checkpoint_sha256'],'read_at_utc':d['read_at_utc'],'rows':[{'hotel_id':r['hotel_id'],'target_message_id':r['target_message_id'],'preview_ready':r['preview_ready'],'blockers':r['preview_blockers'],'source_publication_id':(r['source_native'] or {}).get('publication_id'),'target_publication_id':(r['target_native'] or {}).get('publication_id')} for r in d['rows']]}))
           PY
+          test "$status" -eq 0
       - name: Save the bounded native observation
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: issue-1566-telegram-46-preflight
+          name: issue-1566-telegram-ranked-preflight
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
@@ -149,3 +155,4 @@ jobs:
         if: always()
         shell: bash
         run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
+

@@ -11,54 +11,10 @@ const APPLICATION_SHA = '__APPLICATION_SHA__';
 const REPOSITORY_SHA = '__REPOSITORY_SHA__';
 const NATIVE_RUN_ID = '__NATIVE_RUN_ID__';
 const PAIRS = [
-    241 => ['name' => 'Pickalbatros Makadi Resort', 'source' => '21', 'target' => '220', 'date' => '2023-12-07T12:09:28Z'],
-    15693 => ['name' => 'The Makadi Spa', 'source' => '532', 'target' => '224', 'date' => '2023-12-09T08:13:05Z'],
-    293 => ['name' => 'Pickalbatros Laguna Vista', 'source' => '83', 'target' => '249', 'date' => '2023-12-17T11:14:05Z'],
-    949 => ['name' => 'Adam & Eve', 'source' => '438', 'target' => '266', 'date' => '2023-12-23T07:29:10Z'],
-    1972 => ['name' => 'Moreno Horizon Spa & Resort', 'source' => '391', 'target' => '316', 'date' => '2024-01-09T12:12:17Z'],
-    2588 => ['name' => 'Jumeirah Beach Hotel', 'source' => '689', 'target' => '346', 'date' => '2024-01-19T12:37:53Z'],
-    24909 => ['name' => 'Graceland Khao Lak Beach Resort', 'source' => '188', 'target' => '372', 'date' => '2024-01-27T12:20:17Z'],
-    32342 => ['name' => 'Vinpearl Resort & Spa Phu Quoc', 'source' => '239', 'target' => '594', 'date' => '2024-05-04T11:34:16Z'],
-    57028 => ['name' => 'Pickalbatros Aqua Park Sharm', 'source' => '76', 'target' => '626', 'date' => '2024-05-19T08:21:52Z'],
-    65877 => ['name' => 'Vesna Hotel', 'source' => '227', 'target' => '646', 'date' => '2024-05-29T08:13:27Z'],
-    73343 => ['name' => 'The Grand Palace', 'source' => '562', 'target' => '716', 'date' => '2024-06-30T09:15:44Z'],
-    43689 => ['name' => 'Fusion Resort Cam Ranh', 'source' => '878', 'target' => '884', 'date' => '2024-10-02T07:37:49Z'],
-    47025 => ['name' => 'Adalya Elite Lara', 'source' => '271', 'target' => '901', 'date' => '2024-10-16T13:28:13Z'],
-    139 => ['name' => 'Brayka Bay Resort', 'source' => '140', 'target' => '905', 'date' => '2024-10-18T13:06:24Z'],
-    435 => ['name' => 'Sheraton Soma Bay Resort', 'source' => '96', 'target' => '906', 'date' => '2024-10-19T12:25:50Z'],
-    513 => ['name' => 'Naama Bay Hotel & Resort', 'source' => '217', 'target' => '908', 'date' => '2024-10-22T14:05:27Z'],
-    2470 => ['name' => 'Sun Siyam Olhuveli', 'source' => '658', 'target' => '914', 'date' => '2024-10-28T09:48:08Z'],
-    56092 => ['name' => 'Gravity Hotel & Aqua Park Hurghada', 'source' => '99', 'target' => '915', 'date' => '2024-10-29T08:07:35Z'],
-    59114 => ['name' => 'Akdora Elite Hotel & Spa', 'source' => '619', 'target' => '917', 'date' => '2024-10-30T14:43:35Z'],
-    63191 => ['name' => 'Jumeirah Saadiyat Island', 'source' => '674', 'target' => '918', 'date' => '2024-10-31T11:18:04Z'],
-    76588 => ['name' => 'LIU Resorts', 'source' => '308', 'target' => '923', 'date' => '2024-11-05T09:58:28Z'],
-    77914 => ['name' => 'Sunrise Tucana Resort', 'source' => '45', 'target' => '924', 'date' => '2024-11-08T09:35:10Z'],
-    106 => ['name' => 'Aladdin Beach Resort', 'source' => '468', 'target' => '928', 'date' => '2024-11-14T08:58:46Z'],
-    111 => ['name' => 'Pickalbatros Palace Resort Hurghada', 'source' => '134', 'target' => '930', 'date' => '2024-11-18T12:10:16Z'],
-    114 => ['name' => 'Ali Baba Palace', 'source' => '469', 'target' => '948', 'date' => '2024-11-27T14:53:37Z'],
-    140 => ['name' => 'Golden Beach Resort', 'source' => '209', 'target' => '949', 'date' => '2024-11-29T08:00:47Z'],
-    178 => ['name' => 'Desert Rose', 'source' => '79', 'target' => '951', 'date' => '2024-12-03T09:25:20Z'],
-    195 => ['name' => 'Dreams Beach Resort', 'source' => '617', 'target' => '952', 'date' => '2024-12-05T08:52:50Z'],
-    206 => ['name' => 'Palace Beach Hotel', 'source' => '622', 'target' => '963', 'date' => '2024-12-20T11:26:06Z'],
-    231 => ['name' => 'The Grand Makadi', 'source' => '598', 'target' => '969', 'date' => '2025-01-03T13:15:00Z'],
-    246 => ['name' => 'JAZ Fayrouz', 'source' => '106', 'target' => '970', 'date' => '2025-01-05T12:12:46Z'],
-    263 => ['name' => 'Steigenberger Coraya Beach', 'source' => '90', 'target' => '999', 'date' => '2025-01-27T15:11:03Z'],
-    266 => ['name' => 'Lido Sharm', 'source' => '757', 'target' => '1003', 'date' => '2025-02-04T12:17:15Z'],
-    268 => ['name' => 'JAZ Makadi Saraya Resort', 'source' => '23', 'target' => '1012', 'date' => '2025-02-09T12:23:25Z'],
-    310 => ['name' => 'Pickalbatros Golf Beach Resort', 'source' => '11', 'target' => '1016', 'date' => '2025-02-14T08:16:29Z'],
-    371 => ['name' => 'Reef Oasis Beach Resort', 'source' => '80', 'target' => '1037', 'date' => '2025-03-07T10:04:31Z'],
-    381 => ['name' => 'Rehana Royal Beach Resort Aqua Park & Spa', 'source' => '13', 'target' => '1042', 'date' => '2025-03-11T10:58:57Z'],
-    389 => ['name' => 'Pickalbatros Royal Moderna', 'source' => '81', 'target' => '1049', 'date' => '2025-03-15T07:59:06Z'],
-    416 => ['name' => 'Sunrise Crystal Bay Resort', 'source' => '42', 'target' => '1051', 'date' => '2025-03-18T07:45:07Z'],
-    465 => ['name' => 'Stella Di Mare Beach Hotel & Spa', 'source' => '116', 'target' => '1052', 'date' => '2025-03-19T07:49:50Z'],
-    497 => ['name' => 'Titanic Resort & Aqua Park', 'source' => '597', 'target' => '1057', 'date' => '2025-03-25T07:40:10Z'],
-    932 => ['name' => 'Titanic Palace', 'source' => '574', 'target' => '1059', 'date' => '2025-03-27T07:35:13Z'],
-    948 => ['name' => 'Adalya Bliss', 'source' => '582', 'target' => '1087', 'date' => '2025-04-29T07:38:50Z'],
-    964 => ['name' => 'Crystal Aura Aqua Collection', 'source' => '259', 'target' => '1110', 'date' => '2025-05-30T07:31:39Z'],
-    975 => ['name' => 'Nirvana Dolce Vita', 'source' => '254', 'target' => '1131', 'date' => '2025-06-22T10:20:22Z'],
-    1013 => ['name' => 'Sunis Elita Beach Resort & Spa', 'source' => '591', 'target' => '920', 'date' => '2024-11-03T14:23:42Z'],
+    64918 => ['name' => 'You & Me Maldives', 'source' => '1046', 'target' => '1020', 'date' => '2025-02-21T08:56:56Z'],
+    996 => ['name' => 'Corendon Playa Kemer', 'source' => '325', 'target' => '1063', 'date' => '2025-04-01T07:52:34Z'],
 ];
-const PAIR_DIGEST = 'f028a9a421803577d8137eaf6c13235f510a25a6bc4e70e8e5666ba9dd6df47b';
+const PAIR_DIGEST = '695a72171a90fdbe8daf3d94f5bf9bb82892c791e830f9758a25c5a4e532bd01';
 
 
 function requireRead(bool $ok, string $reason): void
@@ -240,7 +196,7 @@ function publicationRead(PDO $pdo, ChannelPostRegistryService $registry, int $ch
         'content_edit_journal' => receiptRead(OPERATIONS . '/issue-1566-edit-existing-' . $p['publication_id'] . '.jsonl')];
 }
 
-$out = ['schema' => 1, 'issue' => 1566, 'operation' => 'hotel_archive_telegram_46_registry', 'ok' => false,
+$out = ['schema' => 1, 'issue' => 1566, 'demand_run_id' => '45385556709', 'demand_artifact_id' => 14915463382, 'demand_registry_sha256' => '3cd1d3fd24410be051f562aaf71040eee29e7c6299d50fc4de4eb12030dc577d', 'operation' => 'hotel_archive_telegram_ranked_registry', 'ok' => false,
     'repository_sha' => REPOSITORY_SHA, 'application_sha' => APPLICATION_SHA,
     'native_run_id' => NATIVE_RUN_ID, 'native_run_attempt' => 1,
     'production_writes' => 0, 'provider_writes' => 0, 'bot_starts' => 0, 'public_get_attempts' => 0];
@@ -252,8 +208,8 @@ try {
     foreach (PAIRS as $id => $row) {
         $data[] = [$id, (int) $row['source'], (int) $row['target'], $row['date']];
     }
-    requireRead(count($data) === 46 && count(array_unique(array_column($data, 1))) === 46
-        && count(array_unique(array_column($data, 2))) === 46
+    requireRead(count($data) === 2 && count(array_unique(array_column($data, 1))) === 2
+        && count(array_unique(array_column($data, 2))) === 2
         && !array_intersect(array_column($data, 0), [800,408,466,17595,393,358,1260])
         && !array_intersect(array_column($data, 2), [1588,997,1101,862,1083,328,288,1678])
         && hash_equals(PAIR_DIGEST, hash('sha256', jsonRead($data))), 'input_packet_changed');
@@ -406,3 +362,4 @@ try {
 }
 echo json_encode($out, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR), PHP_EOL;
 exit($out['ok'] ? 0 : 2);
+
