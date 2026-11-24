@@ -230,6 +230,27 @@ The archive lane additionally requires `archive:read` and approved current
 account/bot/connection permissions; its separate history mode includes
 business-only chats without changing the normal archive study inventory.
 
+For an explicit recent-Business inspection, start with `qh.archive.start`,
+then follow the returned `recent_business.start_cursor` using the **same**
+`list_current_dialogues` tool. This cursor is quality-history-only and uses
+the existing `quality:read` plus `archive:read` authorization. It does not
+change the default archive inventory or add a new tool or privilege.
+The opt-in traversal selects only allowed retained `business_message` rows,
+in descending **storage row ID** order. It examines at most 200 metadata rows
+per request, returns at most 25 distinct chat references per page and never
+reads message bodies. Follow `has_more` and deduplicate `chat_key` across
+pages because a chat may appear again for a different stored message.
+Do not infer complete historical coverage from an early stop.
+
+Storage order is not Telegram activity order, source time or proof that a
+message first became available to the server after deployment. The displayed
+`latest_indexed_business_version_at` is a provider-declared source version
+clock (`timestamp_basis=provider_declared_not_server_recording`). Inspect
+the separately authorized message history for each candidate, and preserve
+`historical_first_available_at=null` when unavailable. Even a declared
+post-deploy message time and `native_content.kind=text` are not sufficient
+to prove original server receipt, manual input, purchase or DQ improvement.
+
 Each lane fixes its rolling month on its first request: the same day of the
 previous calendar month, clamped at month end, at00:00 Europe/Moscow, through
 that request. Preserve the explicit returned period. Native legacy DATETIME
