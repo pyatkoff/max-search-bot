@@ -65,3 +65,17 @@ CREATE TABLE IF NOT EXISTS anytour_umk_late_events (
         (delta_kopeks>0 AND delivery_state IN ('reserved','attempted','accepted','processed','unknown','failed'))
     )
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Only verified early observations for this destination are stored. A later proof
+-- may corroborate the first observation. Contradictory amounts remain visible to the reader.
+CREATE TABLE IF NOT EXISTS anytour_umk_point_proofs (
+    inquiry_key CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    tracker_record_id VARCHAR(20) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    tuple_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    issued_at_unix BIGINT UNSIGNED NOT NULL,
+    amount_kopeks BIGINT UNSIGNED NOT NULL,
+    source_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    activated_at_unix BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (inquiry_key,tracker_record_id,tuple_sha256,activated_at_unix,issued_at_unix,amount_kopeks),
+    CONSTRAINT ck_umk_point_early CHECK (issued_at_unix>activated_at_unix AND amount_kopeks>0 AND amount_kopeks<=10000000)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

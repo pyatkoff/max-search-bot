@@ -67,7 +67,12 @@ final class Max2CommonValueRuntimeV2
             require_once __DIR__.'/Max2ValueLookupHttpV2.php';
             require_once __DIR__.'/MaxTrackerLookupConfig.php';
             require_once dirname(__DIR__).'/maxsearchclass.php';
-            $lookup=new Max2ValueLookupClientV2(new Max2ValueLookupHttpV2(),[MaxTrackerLookupConfig::class,'privateKey']);
+            $umkEpoch = null;
+            try {
+                require_once __DIR__.'/AnyTourUmkEarlyProofReader.php';
+                $umkEpoch = AnyTourUmkEarlyProofReader::activeSince($pdo);
+            } catch (Throwable $ignored) { /* Independent UMK collection is optional. */ }
+            $lookup=new Max2ValueLookupClientV2(new Max2ValueLookupHttpV2(),[MaxTrackerLookupConfig::class,'privateKey'],null,$umkEpoch !== null);
             $ledger=static fn(array $a):Max2CommonValueRepositoryV2=>new Max2CommonValueRepositoryV2($pdo,$a);
             $provider=static function():Max2CommonValueMetrikaClientV2 {
                 if (!defined('METRIKA_COUNTER_ID') || (string)METRIKA_COUNTER_ID!=='98615635'
@@ -79,7 +84,7 @@ final class Max2CommonValueRuntimeV2
                 $rows=self::rows($pdo,"SELECT id FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND platform IN ('max','telegram') AND id>? AND observed_at_unix>=? ORDER BY id ASC LIMIT ".$limit,[$cursor,$floor]);
                 return array_map(static fn(array $r):array=>['profile_id'=>(string)$r['id']],$rows);
             };
-            $project=static function(array $row,Max2CommonValueLookupGatewayV2 $gateway,array $activation) use($pdo):array {
+            $project=static function(array $row,Max2CommonValueLookupGatewayV2 $gateway,array $activation) use($pdo,$umkEpoch):array {
                 $reader=new Max2ModeledValueReaderV2($pdo,static fn(string $chat):bool=>MaxSearchApi::metrikaGoalAllowed($chat));
                 $saved=$reader->read($row['profile_id'],$activation['activated_at_unix'],time());
                 if (($saved['status'] ?? null)!=='ADMITTED_SAVED_VALUE') return $saved;
@@ -94,7 +99,14 @@ final class Max2CommonValueRuntimeV2
                 }
                 $identity=new Max2CommonIdentityReadV2($pdo);
                 $binder=new Max2CommonValueBindingV2($pdo,self::map(),static fn(array $value,string $key):?array=>$identity->read($value,$key,time()));
-                return $binder->project($saved,$activation,$gateway,new Max2CommonValueRepositoryV2($pdo,$activation),time());
+                $projection = $binder->project($saved,$activation,$gateway,new Max2CommonValueRepositoryV2($pdo,$activation),time());
+                if ($umkEpoch !== null && isset($projection['umk_point_proof'])) {
+                    try {
+                        AnyTourUmkEarlyProofReader::capture($pdo, $projection, $umkEpoch);
+                    } catch (Throwable $ignored) { /* Missing proof holds only the UMK entry. */ }
+                    unset($projection['umk_point_proof']);
+                }
+                return $projection;
             };
             return (new Max2CommonValueWorkerV2($state,$ledger,$lookup,$provider,$page,$project))->tick();
         } catch (Throwable $ignored) {

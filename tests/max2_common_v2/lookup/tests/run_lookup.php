@@ -257,6 +257,35 @@ $tests['client_one_acknowledged_bounded_transport_and_exact_recheck'] = static f
     $lookup['receipt']['candidates'][0]['client_id'] = '111';
     demand($client->recheck($lookup, '1001', static fn(): bool => true) === null && count($calls) === 2);
 };
+$tests['optional_umk_bound_point_header_and_old_sidecar_compatibility'] = static function(): void {
+    $p=Max2ValueLookupProtocolV2::class;
+    $key=openssl_pkey_new(['private_key_type'=>OPENSSL_KEYTYPE_RSA,'private_key_bits'=>2048]);
+    openssl_pkey_export($key,$private);
+    $public=openssl_pkey_get_details($key)['key'];
+    foreach (['valid','old','foreign','bad_amount'] as $mode) {
+        $calls=0;
+        $transport=static function(array $request) use ($p,$public,$mode,&$calls): array {
+            $calls++;
+            $signed=$p::authenticate($request['body'],$request['signature'],$public,unixNow(),$request['evidence_header']);
+            $raw=$p::json(readFixture(new LookupFixturePDO([row()]),$request['body']));
+            $reply=['status_code'=>200,'body'=>$raw,'request_count'=>1,'redirects_followed'=>0,'tls_verified'=>true];
+            if ($signed['action']==='list') {
+                demand(!isset($request['umk_signature']));
+            } else {
+                demand(openssl_verify("anytour-max2-umk-point-reserve-v1\n".$request['body'],
+                    base64_decode($request['umk_signature'],true),$public,OPENSSL_ALGO_SHA256)===1,'distinct point signature');
+                if ($mode!=='old') $reply['umk_reserve']=($mode==='bad_amount'?'01799':'2636').':'
+                    .hash('sha256',$mode==='foreign'?'other':$request['body']).':'.hash('sha256',$raw);
+            }
+            return $reply;
+        };
+        $client=new Max2ValueLookupClientV2($transport,static fn()=>$private,static fn()=>unixNow(),true);
+        $list=$client->lookup('12345',context(),static fn()=>true);
+        $point=$client->recheck($list,'1001',static fn()=>true);
+        demand($calls===2 && $point['receipt']['status']==='match','legacy financial proof remains usable');
+        demand($mode==='valid' ? ($point['umk_point_proof']['amount_kopeks']??0)===2636 : !isset($point['umk_point_proof']));
+    }
+};
 $tests['client_transport_failure_never_means_zero'] = static function(): void {
     $key = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_RSA, 'private_key_bits' => 2048]); openssl_pkey_export($key, $private);
     foreach (['oversize', 'redirect', 'tls', 'twice', 'exception'] as $mode) {

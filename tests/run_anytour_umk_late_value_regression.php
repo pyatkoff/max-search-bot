@@ -166,4 +166,41 @@ checkUmk((int)$worker->settings()['scan_after_source_id']===102,'last partial pa
 $worker->tick();
 checkUmk((int)$worker->settings()['scan_after_source_id']===(int)$worker->settings()['initial_source_id'],'idle scan wraps to its own prospective floor');
 checkUmk($worker->tick()['collection']==='EARLY_RESERVE_UNPROVED','unresolved earlier MAX entry is reconsidered');
+
+require_once dirname(__DIR__).'/services/AnyTourUmkEarlyProofReader.php';
+(static function(): void {
+    $db=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+    checkUmk(AnyTourUmkEarlyProofReader::activeSince($db)===null,'missing UMK settings disabled');
+    $db->exec('CREATE TABLE anytour_umk_late_settings(id INTEGER PRIMARY KEY,activated_at_unix INTEGER);
+        INSERT INTO anytour_umk_late_settings VALUES(1,100);
+        CREATE TABLE max2_common_value_events_v2(id INTEGER,account_id INTEGER,counter_id INTEGER,goal_id INTEGER,target TEXT,event_at_unix INTEGER);
+        CREATE TABLE max2_common_value_accounts_v2(id INTEGER,inquiry_key TEXT,binding_kind TEXT,tracker_record_id TEXT,
+            immutable_tuple_sha256 TEXT,binding_proof_sha256 TEXT,producer_contract_sha256 TEXT,
+            counter_id INTEGER,goal_id INTEGER,target TEXT,project_key TEXT,platform TEXT,inquiry_recorded_at_unix INTEGER);');
+    $app=dirname(__DIR__);
+    $migration=file_get_contents($app.'/migrations/114_anytour_umk_late_value.sql');
+    $ddl=substr($migration,strpos($migration,'CREATE TABLE IF NOT EXISTS anytour_umk_point_proofs'));
+    $db->exec(str_replace([' CHARACTER SET ascii COLLATE ascii_bin',' ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'],['',''],$ddl));
+    $key=hash('sha256','inquiry'); $tuple=hash('sha256','tuple'); $source=hash('sha256','raw');
+    $db->prepare("INSERT INTO max2_common_value_accounts_v2 VALUES(1,?,'UNIQUE_OBSERVED_MAX2','42',?,?,?,
+        98615635,687941321,'anytour_modeled_value_v2_max2','anytour','max',120)")->execute([$key,$tuple,$source,Max2ValueLookupProtocolV2::PRODUCER_CONTRACT_SHA256]);
+    $db->exec("INSERT INTO max2_common_value_events_v2 VALUES(5,1,98615635,687941321,'anytour_modeled_value_v2_max2',125)");
+    $binding=['inquiry_key'=>$key,'status'=>'UNIQUE_OBSERVED_MAX2','immutable_tuple_sha256'=>$tuple,'inquiry_recorded_at_unix'=>120,'tracker_record_id'=>'42'];
+    $proof=['issued_at_unix'=>110,'source_sha256'=>$source,'amount_kopeks'=>1799];
+    $projection=['status'=>'READY','binding'=>$binding,'umk_point_proof'=>$proof];
+    checkUmk(AnyTourUmkEarlyProofReader::read($db,5)===null,'V2 alone cannot prove positive UMK amount');
+    $wrong=$projection; $wrong['binding']['tracker_record_id']='43';
+    AnyTourUmkEarlyProofReader::capture($db,$wrong,100);
+    checkUmk(AnyTourUmkEarlyProofReader::read($db,5)===null,'sibling row rejected');
+    AnyTourUmkEarlyProofReader::capture($db,$projection,100);
+    AnyTourUmkEarlyProofReader::capture($db,$projection,100);
+    checkUmk(AnyTourUmkEarlyProofReader::read($db,5)['amount_kopeks']===1799,'repeats retain one verified amount');
+    $projection['umk_point_proof']['amount_kopeks']=2636;
+    AnyTourUmkEarlyProofReader::capture($db,$projection,100);
+    checkUmk(AnyTourUmkEarlyProofReader::read($db,5)===null,'conflicting positive evidence holds');
+    $db->exec("UPDATE max2_common_value_accounts_v2 SET binding_kind='PROVEN_NO_NEW_EARLY_RESERVE',tracker_record_id=NULL,immutable_tuple_sha256=NULL");
+    checkUmk(AnyTourUmkEarlyProofReader::read($db,5)['state']==='no_reserve','complete future MAX absence');
+    $db->exec('UPDATE anytour_umk_late_settings SET activated_at_unix=130');
+    checkUmk(AnyTourUmkEarlyProofReader::read($db,5)===null,'old inquiries excluded');
+})();
 echo "UMK late value accounting and delivery PASS\n";

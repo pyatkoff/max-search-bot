@@ -119,7 +119,11 @@ final class Max2CommonValueBindingV2
                     'source_sha256'=>$checked['source_receipt_sha256'],'checked_at_unix'=>$rr['checked_at_unix']];
             } else { $identity=($this->identity)($saved,$key); $recheck=[]; }
             if (!is_array($identity)) return self::hold('SAVED_DELIVERY_IDENTITY_UNAVAILABLE');
-            return ['status'=>'READY','binding'=>$binding,'estimate'=>$saved['estimate'],'identity'=>$identity,'recheck'=>$recheck];
+            $projection = ['status'=>'READY','binding'=>$binding,'estimate'=>$saved['estimate'],'identity'=>$identity,'recheck'=>$recheck];
+            if (isset($checked['umk_point_proof']) && is_array($checked['umk_point_proof'])) {
+                $projection['umk_point_proof'] = $checked['umk_point_proof'] + ['issued_at_unix'=>$rc['recorded_at_unix']];
+            }
+            return $projection;
         } catch (Throwable $ignored) { return self::hold('BINDING_SOURCE_UNAVAILABLE'); }
     }
     private function telegram(array $saved,array $activation,string $key,int $now): array
