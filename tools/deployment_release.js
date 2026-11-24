@@ -1108,7 +1108,8 @@ function makeReadApi(token,fetchImpl=globalThis.fetch,{sleep=waitForRetry}={}) {
       TERMINAL_RECOVERY.read_failure_job_id,GATE_RECOVERY.tls_job_id,UNPUBLISHED_TERMINAL_RECOVERY.job_id,
       PRIOR_WAVE_RECOVERY.job_id,PRIOR_WAVE_RECOVERY.previous.verify_job_id,PUBLISHER_BODY_RECOVERY.job_id,
       137646126584,137658227484,137707302320,137760498372,RANKED_PREWRITE_REFUSAL.job].includes(job)
-      || require('./partial_install_1702_forward').allowedLog(job),'untrusted_terminal_log');
+      || require('./partial_install_1702_forward').allowedLog(job)
+      || job === require('./unstarted_1704_forward').JOB,'untrusted_terminal_log');
     const response=await request('https://api.github.com'+API_ROOT+'/actions/jobs/'+job+'/logs',headers(false),'manual',2*1024*1024);
     if(Buffer.isBuffer(response))return response;
     let url;try{url=new URL(response.headers.get('location'));}catch{throw new Refusal('invalid_log_redirect');}
@@ -1582,6 +1583,21 @@ async function admitForwardInstallation(api,c,event) {
   const commit=await get('/commits/'+c.sha);
   requireValue(commit?.sha===c.sha&&Array.isArray(commit.parents)&&commit.parents.length>=1&&commit.parents.length<=2
     &&commit.parents.every(parent=>sha(parent.sha)),'forward_source_unconfirmed');
+  const recovery1704 = require('./unstarted_1704_forward');
+  if (commit.parents.some(parent => parent.sha === recovery1704.BASE) || event.before === recovery1704.BASE) {
+    // Once the recovery publishes a normal receipt, no other successor of this
+    // failed source can enter the special path again.
+    requireValue(c.event === 'push' && c.attempt === 1 && event.forced === false &&
+      event.before === recovery1704.BASE && event.after === c.sha &&
+      commit.parents.length === 2 && commit.parents[0].sha === recovery1704.BASE,
+    'invalid_unstarted_1704_source');
+    const pulls = await get('/commits/' + c.sha + '/pulls?per_page=100');
+    requireValue(Array.isArray(pulls) && pulls.length === 1 && pulls[0].merge_commit_sha === c.sha &&
+      pulls[0].head?.ref === recovery1704.BRANCH, 'untrusted_1704_successor');
+    const proof = await recovery1704.proveUnstarted1704Forward({api,pr:pulls[0].number,
+      head:commit.parents[1].sha,phase:'installation',source:c.sha,runId:c.id,event});
+    return {expectedCheckout:proof.expected_checkout_sha};
+  }
   const routePartial = '32155b9eb2c8606b61554951bfdc988d70bbcb39';
   if (commit.parents.some(parent => parent.sha === routePartial) || event.before === routePartial) {
     requireValue(c.event === 'push' && c.attempt === 1 && event.forced === false && event.before === routePartial

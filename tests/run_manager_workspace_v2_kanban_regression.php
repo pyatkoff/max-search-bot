@@ -22,7 +22,7 @@ kbCheck('workspace loads board task and stage modules before board core',kbAsset
 kbCheck('workspace loads dedicated kanban stylesheet',kbAssetLoaded($workspace,'workspace-v2-kanban.css'));
 kbCheck('workspace exposes list and board toggle',strpos($workspace,'id="listViewBtn"')!==false&&strpos($workspace,'id="kanbanViewBtn"')!==false&&strpos($workspace,'id="kanbanBoard"')!==false);
 kbCheck('kanban mode is explicit UI state',strpos($core,"viewMode:'list'")!==false&&strpos($kanban,"S.viewMode=mode")!==false&&strpos($kanban,"mode==='kanban'")!==false);
-kbCheck('board reuses existing filtered lead list',strpos($inbox,'async function fetchRows()')!==false&&strpos($kanban,'WorkspaceV2Inbox')!==false&&strpos($inbox,"if(S.viewMode==='kanban')")!==false);
+kbCheck('board reuses existing filtered lead list',strpos($inbox,'async function fetchRows(')!==false&&strpos($kanban,'WorkspaceV2Inbox')!==false&&strpos($inbox,"if(S.viewMode==='kanban')")!==false);
 kbCheck('board groups only by business pipeline stage',strpos($kanban,'S.pipeline.stages')!==false&&strpos($kanban,'lead_stage?.stage_key')!==false&&strpos($kanban,'technical_status')===false&&strpos($kanban,'statusText(')===false);
 kbCheck('editable cards delegate explicit stage selector to focused stage module',strpos($stage,'c.can_edit_pipeline')!==false&&strpos($stage,'kanbanStageSelect')!==false&&strpos($kanban,'WorkspaceV2KanbanStage')!==false&&strpos($kanban,'stage?.control(c,currentStage)')!==false);
 kbCheck('stage mutation keeps centralized backend authorization',strpos($stage,"pipe('set_stage'")!==false&&strpos($api,"if(\$action==='set_stage'")!==false&&strpos($api,'ManagerHttp::requireConversationEdit($c,$m);')!==false&&strpos($http,"'error'=>'forbidden'")!==false);
