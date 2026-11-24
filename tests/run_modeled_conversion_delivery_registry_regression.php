@@ -349,6 +349,181 @@ function dailyReconciliationAssertions(PDO $p,callable $check):void
     }
 }
 
+/** Count underlying snapshot bytes while preserving seeks and read payload. */
+final class VisitLedgerSnapshotReadCounter extends php_user_filter
+{
+    public static int $bytes = 0;
+    public function filter($in, $out, &$consumed, bool $closing): int
+    {
+        while ($bucket = stream_bucket_make_writeable($in)) {
+            $consumed += $bucket->datalen;
+            self::$bytes += $bucket->datalen;
+            stream_bucket_append($out, $bucket);
+        }
+        return PSFS_PASS_ON;
+    }
+}
+
+function visitLedgerSnapshotAssertions(PDO $p, callable $check): void
+{
+    require_once dirname(__DIR__).'/services/ModeledConversionVisitLedgerSnapshot.php';
+    $day = strtotime('2026-11-02T08:00:00Z');
+    $now = $day + 6000;
+    $ids = [];
+    $p->beginTransaction();
+    try {
+        $oldest = deliveryRegistryFixtureEvent($p, 18000, 1, $day + 10, ['state'=>'processed', 'value'=>100]);
+        $ids[] = $oldest;
+        for ($i = 0; $i < 4095; ++$i) {
+            $ids[] = deliveryRegistryFixtureEvent($p, 18001, 1, $day + 20 + $i, ['predictive'=>true]);
+        }
+        $newest = deliveryRegistryFixtureEvent($p, 18000, 2, $day + 5000, ['state'=>'processed', 'value'=>17]);
+        $ids[] = $newest;
+        $bind = $p->prepare('UPDATE max_channel_conversion_outbox SET client_id=?,upload_id=? WHERE id=?');
+        $bind->execute(['900000000000000015','801',$oldest]);
+        $bind->execute(['900000000000000015','802',$newest]);
+        $foreign = deliveryRegistryFixtureEvent($p, 18002, 1, $day + 5100);
+        $p->prepare("UPDATE max_channel_conversion_outbox SET transport_target='anytour_modeled_value_v2_max2' WHERE id=?")->execute([$foreign]);
+        $p->commit();
+
+        $snapshot = ModeledConversionVisitLedgerSnapshot::capture($p);
+        $seen = [];
+        $nestedFirst = null;
+        foreach ($snapshot as $row) {
+            $seen[] = (string)$row['id'];
+            if (count($seen) === 3) {
+                foreach ($snapshot as $nested) {
+                    $nestedFirst = (string)$nested['id'];
+                    break;
+                }
+            }
+        }
+        $check('paged snapshot returns all 4097 admitted V1 IDs once in order across nested iteration',
+            !$p->inTransaction() && count($snapshot) === 4097 && $seen === array_reverse($ids) && $nestedFirst === $newest);
+
+        if ($p->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
+            // Adjacent unsigned IDs above PHP_INT_MAX must survive a native prepared cursor on both pages.
+            // A connection-local shadow preserves the fixture outbox's rows and AUTO_INCREMENT.
+            $p->exec('CREATE TEMPORARY TABLE unsigned_visit_page LIKE max_channel_conversion_outbox');
+            try {
+                $p->exec('INSERT INTO unsigned_visit_page SELECT * FROM max_channel_conversion_outbox ORDER BY id LIMIT 257');
+                $p->prepare('UPDATE unsigned_visit_page SET id=18446744073709551615 - (CAST(? AS DECIMAL(20,0)) - id) ORDER BY id DESC')
+                    ->execute([$ids[256]]);
+                $p->exec('ALTER TABLE unsigned_visit_page RENAME TO max_channel_conversion_outbox');
+                $expected = $p->query('SELECT CAST(id AS CHAR) FROM max_channel_conversion_outbox ORDER BY id DESC')->fetchAll(PDO::FETCH_COLUMN);
+                $actual = [];
+                foreach (ModeledConversionVisitLedgerSnapshot::capture($p) as $row) $actual[] = (string)$row['id'];
+                $check('native keyset reads all 257 adjacent unsigned BIGINT IDs through UINT64_MAX',
+                    count($actual) === 257 && $actual[0] === '18446744073709551615'
+                    && $actual[256] === '18446744073709551359' && $actual === $expected);
+            } finally {
+                $p->exec('DROP TEMPORARY TABLE IF EXISTS unsigned_visit_page, max_channel_conversion_outbox');
+            }
+        }
+
+        // A late update below the cursor must not change an already captured snapshot.
+        $p->prepare("UPDATE max_channel_conversion_outbox SET value_stage='invalid' WHERE id=?")->execute([$oldest]);
+        $api = new class($day) {
+            public array $polls = [];
+            public function __construct(private int $day) {}
+            public function poll(string $upload): array {
+                $this->polls[] = $upload;
+                return ['id'=>$upload, 'status'=>'PROCESSED', 'source_quantity'=>1, 'line_quantity'=>1];
+            }
+            public function modeledValueVisits(string $client, int $activation, int $now): array {
+                return ['status'=>'ok','visits'=>[['started_at'=>gmdate('c',$this->day),
+                    'visits'=>1,'goal_reaches'=>1,'revenue_rub'=>17]]];
+            }
+        };
+        $verify = static fn($ledger): array => ModeledConversionVisitProof::verify($ledger, $api, $day, $day, $now, [$newest]);
+        $receipt = $verify($snapshot);
+        $event = $receipt['events'][0];
+        $check('uploads for one ClientID on opposite pages cannot reconcile a visit that matches only the newest page',
+            $receipt['ledger_complete'] && $receipt['selected_rows'] === 1 && $receipt['other_rows_omitted'] === 4096
+            && $event['outbox_id'] === $newest && $event['reason'] === 'goal_count_or_value_mismatch'
+            && $event['linkage'] === 'unverified' && $event['expected_goal_reaches'] === 2
+            && (float)$event['expected_goal_value_rub'] === 117.0 && $api->polls === ['802','801']);
+        $check('daily claim and processing totals use both ends of the same snapshot',
+            $receipt['today_sent_cohort']['by_platform']['max']['sent'] === ['events'=>2,'conversations'=>1,'value_rub'=>117]
+            && $receipt['today_sent_cohort']['by_platform']['max']['processed']['events'] === 2);
+        $closed = false;
+        try {
+            $verify(ModeledConversionVisitLedgerSnapshot::capture($p));
+        } catch (RuntimeException $error) {
+            $closed = $error->getMessage() === 'verification_invalid_ledger';
+        }
+        $check('a fresh snapshot rejects an invalid oldest row before any provider lookup',
+            $closed && !$p->inTransaction() && $api->polls === ['802','801']);
+        $expired = false;
+        try {
+            ModeledConversionVisitLedgerSnapshot::capture($p, microtime(true) - 1);
+        } catch (RuntimeException $error) {
+            $expired = $error->getMessage() === 'verification_snapshot_deadline';
+        }
+        $check('an expired capture returns no snapshot and releases its transaction', $expired && !$p->inTransaction());
+
+        $p->prepare('UPDATE max_channel_conversion_outbox SET value_stage=?, client_id=?, upload_id=? WHERE id=?')
+            ->execute([ModeledConversionValueContract::STAGES[1], '900000000000000016', '802', $oldest]);
+        $api->polls = [];
+        $shared = $verify(ModeledConversionVisitLedgerSnapshot::capture($p));
+        $check('a commentless upload shared with an unselected different client on the oldest page proves neither event',
+            $shared['selected_rows'] === 1 && $shared['events'][0]['outbox_id'] === $newest
+            && $shared['events'][0]['reason'] === 'receipt_unavailable' && $shared['events'][0]['upload_status'] === null
+            && $shared['events'][0]['linkage'] === 'not_checked' && $api->polls === ['802']);
+
+        // Interleaved client histories each span page boundaries, including an unsigned decimal ClientID.
+        $bind->execute(['900000000000000015', '801', $oldest]);
+        $secondClient = '90000000000000000001';
+        $bindSecond = $p->prepare('UPDATE max_channel_conversion_outbox SET client_id=?,upload_id=?,value_rub=? WHERE id=?');
+        $bindSecond->execute([$secondClient,'803',23,$ids[1]]);
+        $bindSecond->execute([$secondClient,'804',42,$ids[500]]);
+        $several = ModeledConversionVisitLedgerSnapshot::capture($p);
+        $comments = [];
+        foreach ($several as $r) if (!empty($r['upload_id'])) $comments[(string)$r['upload_id']] = MetrikaOfflineClient::comment($r);
+        $api = new class($day, $secondClient, $comments) {
+            public array $calls = [];
+            public function __construct(private int $day, private string $second, private array $comments) {}
+            public function poll(string $upload): array {
+                $this->calls[] = $upload;
+                return ['status'=>'PROCESSED','comment'=>$this->comments[$upload],'source_quantity'=>1,'line_quantity'=>1];
+            }
+            public function modeledValueVisits(string $cid, int $activation, int $now): array {
+                $this->calls[] = $cid;
+                return ['status'=>'ok','visits'=>[['visits'=>1,'started_at'=>gmdate('c',$this->day),
+                    'goal_reaches'=>2,'revenue_rub'=>$cid===$this->second?65:17]]];
+            }
+        };
+        $stream = (new ReflectionProperty($several,'stream'))->getValue($several);
+        $snapshotBytes = fstat($stream)['size'];
+        $filterName = 'anytour.visit.ledger.read.counter';
+        if (!in_array($filterName,stream_get_filters(),true)) stream_filter_register($filterName,VisitLedgerSnapshotReadCounter::class);
+        $filter = stream_filter_append($stream,$filterName,STREAM_FILTER_READ);
+        try {
+            VisitLedgerSnapshotReadCounter::$bytes = 0;
+            $multi = ModeledConversionVisitProof::verify($several,$api,$day,$day,$now,[$newest,$ids[500]]);
+        } finally {
+            stream_filter_remove($filter);
+        }
+        // Validation, shared client index and two daily totals each replay the full snapshot once.
+        // Seek/read-ahead for the four indexed rows fits comfortably in another whole snapshot.
+        $check('multi-client evidence adds only one full snapshot read plus sparse selected history',
+            VisitLedgerSnapshotReadCounter::$bytes >= 4*$snapshotBytes && VisitLedgerSnapshotReadCounter::$bytes < 5*$snapshotBytes);
+        $events = array_column($multi['events'],null,'outbox_id');
+        $check('multiple selected clients retain independent complete cross-page totals and request order',
+            $multi['ledger_complete'] && count($events)===2
+            && $events[$newest]['reason']==='goal_count_or_value_mismatch'
+            && $events[$newest]['expected_goal_reaches']===2 && (float)$events[$newest]['expected_goal_value_rub']===117.0
+            && $events[$ids[500]]['linkage']==='unique_visit_reconciled'
+            && $events[$ids[500]]['expected_goal_reaches']===2 && (float)$events[$ids[500]]['expected_goal_value_rub']===65.0
+            && $api->calls===['802','804','801','900000000000000015','803',$secondClient]);
+    } finally {
+        if ($p->inTransaction()) $p->rollBack();
+        foreach (['max_channel_conversion_outbox','modeled_conversion_profile_versions','conversations','customer_channels','customers'] as $table) {
+            $p->exec('DELETE FROM '.$table);
+        }
+    }
+}
+
 function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
 {
     $day=(new DateTimeImmutable('2026-11-02 00:00:00',new DateTimeZone('Europe/Moscow')))->getTimestamp();$now=$day+8000;
@@ -372,6 +547,50 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
         }
     };
     $ledger=[$legacy,$a,$b];$before=serialize($ledger);
+    $shared = $b;
+    $shared['upload_id'] = $a['upload_id'];
+    $shared['value_rub'] = $a['value_rub'];
+    $boundReceipt = new class($day, $a['upload_id'], MetrikaOfflineClient::comment($a)) {
+        public array $polls = [];
+        public function __construct(private int $day, private string $signedUpload, public ?string $comment) {}
+        public function poll(string $id): array {
+            $this->polls[] = $id;
+            $receipt = ['id'=>$id, 'status'=>'PROCESSED', 'source_quantity'=>1, 'line_quantity'=>1];
+            if ($id === $this->signedUpload && $this->comment !== null) $receipt['comment'] = $this->comment;
+            return $receipt;
+        }
+        public function modeledValueVisits(string $client, int $activation, int $now): array {
+            return ['status'=>'ok', 'visits'=>[['started_at'=>gmdate('c', $this->day),
+                'visits'=>1, 'goal_reaches'=>1, 'revenue_rub'=>17]]];
+        }
+    };
+    foreach ([[$a, $shared], [$shared, $a]] as $rows) {
+        $boundReceipt->polls = [];
+        $observed = ModeledConversionVisitProof::verify($rows, $boundReceipt, $day, $day, $now, array_column($rows, 'id'));
+        $events = array_column($observed['events'], null, 'outbox_id');
+        $check('one provider GET credits only the comment-bound event when the first row is '.$rows[0]['id'],
+            $events[$a['id']]['linkage'] === 'unique_visit_reconciled'
+            && $events[$shared['id']]['reason'] === 'receipt_unavailable'
+            && $events[$shared['id']]['upload_status'] === null && $boundReceipt->polls === [$a['upload_id']]);
+    }
+    $shared['upload_id'] = $legacy['upload_id'];
+    $boundReceipt->polls = [];
+    $related = ModeledConversionVisitProof::verify([$a, $legacy, $shared], $boundReceipt, $day, $day, $now, [$a['id']]);
+    $check('another ambiguous commentless upload for a selected client withholds an otherwise matching visit',
+        $related['events'][0]['reason'] === 'other_receipts_unavailable'
+        && $related['events'][0]['linkage'] === 'unverified' && $related['events'][0]['expected_goal_reaches'] === 1
+        && $boundReceipt->polls === [$a['upload_id'], $legacy['upload_id']]);
+    $boundReceipt->comment = null;
+    $boundReceipt->polls = [];
+    $unique = ModeledConversionVisitProof::verify([$a], $boundReceipt, $day, $day, $now, [$a['id']]);
+    $check('a commentless single-row upload with just one ledger owner remains verifiable',
+        $unique['events'][0]['linkage'] === 'unique_visit_reconciled' && $boundReceipt->polls === [$a['upload_id']]);
+    $unknownUpload = $legacy;
+    $unknownUpload['upload_id'] = false;
+    $boundReceipt->polls = [];
+    $unknown = ModeledConversionVisitProof::verify([$a, $unknownUpload], $boundReceipt, $day, $day, $now, [$a['id']]);
+    $check('a malformed related upload in a legacy array withholds client proof',
+        $unknown['events'][0]['reason'] === 'other_receipts_unavailable' && $boundReceipt->polls === [$a['upload_id']]);
     $expanded=[];
     for($i=1;$i<=1002;$i++){
         $row=$legacy;$row['id']=(string)$i;$row['upload_id']=null;
@@ -719,6 +938,29 @@ $selection=ModeledConversionVisitProof::dueIds([$ordinary,...$rows],(int)$r['eve
 static fn(array $item):array=>['at'=>$now-400,'event'=>['upload_status'=>$item['id']==='999'?'UPLOADED':$item['upload_status'],
 'linkage'=>'failed','failure_audit'=>['diagnosis'=>'wire_collision']]],2);
 $repairPriority=count($selection)===2&&$selection[0]===(string)$rows[0]['id']&&in_array('999',$selection,true);
+// Fill both urgent slots before an ordinary row and a later real wire correction.
+$urgentRows=[];
+foreach(['999','998','997']as$id){
+    $item=$ordinary;$item['id']=$id;$item['upload_id']='8'.$id;$item['value_profile_id']=$id;
+    $item['target']=ModeledConversionValueContract::predictionKey($id);$urgentRows[]=$item;
+}
+$reads=[];
+$priorUrgent=static function(array $item)use(&$reads,$now):array{
+    $reads[]=(string)$item['id'];
+    return ['at'=>$now-400,'event'=>['upload_status'=>'UPLOADED','linkage'=>'failed']];
+};
+$saturated=[...$urgentRows,...$rows];
+$cut=(int)$r['event_unix']+5;
+$saturatedSelection=ModeledConversionVisitProof::dueIds($saturated,$cut,$now+602,$priorUrgent,2);
+$lateRepair=$saturatedSelection===[(string)$rows[0]['id'],'999'];
+$readBound=$reads===['999','998',...array_map(static fn(array $row):string=>(string)$row['id'],$rows)];
+// A late frozen cohort still owns its slots even when the urgent list is already full.
+for($i=1;$i<ModeledConversionVisitProof::MAX_ROWS;$i++){
+    $item=$ordinary;$item['id']=(string)(2000+$i);$item['upload_id']='9'.$item['id'];
+    $item['value_profile_id']=$item['id'];$item['target']=ModeledConversionValueContract::predictionKey($item['id']);
+    $item['value_api_accepted_at_unix']=$cut;$item['value_processed_at_unix']=null;$saturated[]=$item;
+}
+$lateCohort=ModeledConversionVisitProof::dueIds($saturated,$cut,$now+602,$priorUrgent,2)=== [(string)$rows[0]['id']];
 $failedJournal=$read;$failedJournal['state']='failed';$failedJournal['upload_status']='LINKAGE_FAILURE';$failedJournal['checked_at_unix']=$now+301;
 ModeledConversionWireValue::save($r,$failedJournal);
 $failureRows=$rows;foreach($failureRows as&$member){$member['state']='unmatched';$member['upload_status']='LINKAGE_FAILURE';$member['value_processed_at_unix']=null;}unset($member);
@@ -752,7 +994,7 @@ $private=(fileperms($path)&0777)===0600&&(fileperms(dirname($path))&0777)===0700
 chmod($path,0644);clearstatcache(true,$path);$blocked=false;
 try{ModeledConversionWireValue::read($r);}catch(RuntimeException $e){$blocked=true;}
 echo json_encode(['ok'=>$first==='accepted'&&$again==='accepted'&&$last==='processed'
-&&$read['state']==='processed'&&$noReplay&&$api->writes===0&&$budgetRefused&&$expectedTotal&&$repairPriority&&$failedTerminal&&$failedPropagation&&$private&&$blocked],JSON_THROW_ON_ERROR);
+&&$read['state']==='processed'&&$noReplay&&$api->writes===0&&$budgetRefused&&$expectedTotal&&$repairPriority&&$failedTerminal&&$failedPropagation&&$private&&$blocked,'late_repair_and_cohort'=>$lateRepair&&$lateCohort,'bounded_archive_reads'=>$readBound],JSON_THROW_ON_ERROR);
 PHP;
     $fixtureScript=str_replace(['__FIXTURE_ROOT__','__FIXTURE_ROWS__','__FIXTURE_NOW__'],
         [var_export($isolated,true),var_export(json_encode([$wireFirst,$wireSecond],JSON_THROW_ON_ERROR),true),(string)$auditNow],$fixtureScript);
@@ -761,8 +1003,13 @@ PHP;
         if(!is_resource($process))throw new RuntimeException('wire_fixture_process');
         fwrite($pipes[0],$fixtureScript);fclose($pipes[0]);$result=stream_get_contents($pipes[1],2048);fclose($pipes[1]);
         $error=stream_get_contents($pipes[2],2048);fclose($pipes[2]);$code=proc_close($process);
+        $observed=json_decode($result,true);
         $check('wire evidence keeps original allocations, one reported goal, bounded terminal-status propagation and lost-ack GET recovery',
-            $code===0&&json_decode($result,true)===['ok'=>true]&&$error==='');
+            $code===0&&($observed['ok']??null)===true&&$error==='');
+        $check('later wire repairs and frozen cohort members keep their slots after urgent selection fills',
+            ($observed['late_repair_and_cohort']??null)===true);
+        $check('full urgent selection checks wire members without reading archives for lower-priority rows',
+            ($observed['bounded_archive_reads']??null)===true);
     }finally{
         $remove=function(string $dir)use(&$remove):void{foreach(new DirectoryIterator($dir)as$f){
             if($f->isDot())continue;if($f->isDir()&&!$f->isLink())$remove($f->getPathname());else unlink($f->getPathname());
@@ -1122,6 +1369,9 @@ function deliveryRegistryAssertions(PDO $p,callable $check):void
     forecastPaymentAssertions($p,$check);
     deliveryRegistrySchema($p);
     dailyReconciliationAssertions($p,$check);
+    visitLedgerSnapshotAssertions($p,$check);
+    require_once __DIR__.'/modeled_visit_summary_growth_fixture.php';
+    modeledVisitSummaryGrowthAssertions($check);
     deliveryPredictiveAndVisitAssertions($p,$check);
     deliveryRegistryValueCapAssertions($p,$check);
     deliveryRegistryMoscowAssertions($p,$check);
@@ -1288,5 +1538,8 @@ if(realpath((string)($_SERVER['SCRIPT_FILENAME']??''))===__FILE__){
     $passed=0;$check=static function(string $name,bool $ok)use(&$passed):void{
         if(!$ok)throw new RuntimeException('FAIL '.$name);++$passed;echo 'PASS '.$name.PHP_EOL;
     };
-    deliveryRegistryAssertions($p,$check);echo 'MODELED DELIVERY REGISTRY PASSED '.$passed.PHP_EOL;
+    deliveryRegistryAssertions($p,$check);
+    require_once __DIR__.'/fixtures/modeled_visit_snapshot_race.php';
+    modeledVisitSnapshotRaceAssertions($check);
+    echo 'MODELED DELIVERY REGISTRY PASSED '.$passed.PHP_EOL;
 }

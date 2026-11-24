@@ -91,7 +91,7 @@ final class ModeledConversionWireValue
         }finally{if(is_file($tmp))unlink($tmp);}
     }
     /** Existing proof reader only observes the private correction; it can never replay it. */
-    public static function observe(array $row,array $ledger,object $api,int $now,?callable $admitRead=null):string
+    public static function observe(array $row,array|ModeledConversionVisitLedgerSnapshot $ledger,object $api,int $now,?callable $admitRead=null):string
     {
         static $seen=[];$key=self::key($row).'|'.$now;if(isset($seen[$key]))return $seen[$key];
         $r=self::read($row);if($r===null)return $seen[$key]='not_recorded';

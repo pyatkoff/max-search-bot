@@ -180,10 +180,18 @@ final class ModeledConversionDeliveryRegistry
             throw $error;
         }
     }
-    public static function sourceSql(bool $mysql,bool $profile=false):string
+    public static function sourceSql(bool $mysql,bool $profile=false,bool $idPage=false):string
     {
         $cast=$mysql?'CHAR':'TEXT';$peer=$mysql?"CONCAT('-',o.external_user_id)":"'-'||o.external_user_id";
-        return 'FROM max_channel_conversion_outbox o JOIN conversations c ON c.id=o.conversation_id AND HEX(c.project_key)=HEX(o.project_key) AND HEX(c.channel)=HEX(o.platform)'
+        // For an ID page, start at the outbox cursor and check owner bindings for each row.
+        // A conversation-first plan sorts the remaining journal again on every page.
+        $outbox='FROM max_channel_conversion_outbox o';
+        $join=' JOIN ';
+        if($idPage){
+            $outbox.=$mysql?' FORCE INDEX (PRIMARY)':' NOT INDEXED';
+            if($mysql)$join=' STRAIGHT_JOIN ';
+        }
+        return $outbox.$join.'conversations c ON c.id=o.conversation_id AND HEX(c.project_key)=HEX(o.project_key) AND HEX(c.channel)=HEX(o.platform)'
             .' JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id AND HEX(cc.project_key)=HEX(c.project_key) AND HEX(cc.channel)=HEX(c.channel)'
             .' JOIN customers cu ON cu.id=c.customer_id'
             .($profile?' LEFT JOIN modeled_conversion_profile_versions p ON p.id=o.value_profile_id AND HEX(p.project_key)=HEX(o.project_key) AND HEX(p.platform)=HEX(o.platform) AND p.conversation_id=o.conversation_id AND HEX(p.customer_key)=HEX(CAST(c.customer_id AS '.$cast.'))':'')
