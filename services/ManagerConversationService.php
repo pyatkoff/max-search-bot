@@ -49,9 +49,9 @@ class ManagerConversationService
     }
 
     /** Read state is independent of a recorded manager reply. Callbacks are not customer messages. */
-    public static function awaitingManagerReplySql(string $conversationAlias='c'): string
+    public static function awaitingManagerReplySql(string $conversationAlias='c',bool $mysql=true): string
     {
-        return ManagerReplyQueueService::neededSql($conversationAlias);
+        return ManagerReplyQueueService::neededSql($conversationAlias,$mysql);
     }
 
     private static function formatWaitAge(int $seconds): string
@@ -68,7 +68,8 @@ class ManagerConversationService
     private static function queuePredicate(string $queue,int $managerId,bool $isAdmin,array &$args,bool $rawWaiting=false): string
     {
         if($queue==='attention'||$queue==='waiting'){
-            $sql=$rawWaiting?"((c.status='waiting_manager' AND c.manager_id IS NULL) OR ".self::awaitingFirstReplySql('c').')':self::awaitingManagerReplySql('c');
+            $mysql=ConversationDb::connection()->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+            $sql=$rawWaiting?"((c.status='waiting_manager' AND c.manager_id IS NULL) OR ".self::awaitingFirstReplySql('c').')':self::awaitingManagerReplySql('c',$mysql);
             if($queue==='waiting'||!$isAdmin){$sql.=' AND (c.manager_id IS NULL OR c.manager_id=?)';$args[]=$managerId;}
             return '('.$sql.')';
         }
@@ -115,6 +116,7 @@ class ManagerConversationService
         }else{
             $projectKey=self::resolveProject($managerId,$projectKey);if($projectKey==='')return[];$where[]='c.project_key=?';$args[]=$projectKey;
         }
+        $mysql=ConversationDb::connection()->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
         $queues=$personalFilters['queues']??null;
         if(array_key_exists('queues',$personalFilters)){
             if(!is_array($queues)||!array_is_list($queues)||!$queues||count($queues)>4||count(array_unique($queues,SORT_REGULAR))!==count($queues))throw new InvalidArgumentException('Invalid personal queues');
@@ -167,7 +169,7 @@ class ManagerConversationService
             if($source>0){$where[]='c.source_id=?';$args[]=$source;}
             elseif($source===-1)$where[]='(c.source_id IS NULL OR c.source_id<=0)';
             if(isset($personalFilters['reply_needed'])&&!is_bool($personalFilters['reply_needed']))throw new InvalidArgumentException('Invalid personal reply filter');
-            if(!empty($personalFilters['reply_needed']))$where[]=self::awaitingManagerReplySql('c');
+            if(!empty($personalFilters['reply_needed']))$where[]=self::awaitingManagerReplySql('c',$mysql);
             if(array_key_exists('ids',$personalFilters)){
                 $ids=$personalFilters['ids'];
                 if(!is_array($ids)||!array_is_list($ids)||count($ids)>2000)throw new InvalidArgumentException('Invalid personal IDs');
@@ -180,7 +182,7 @@ class ManagerConversationService
         $mid=(int)$managerId;
         $requestSql=self::latestManagerRequestSql('c');
         $awaitingSql=self::awaitingFirstReplySql('c');
-        $replySql=self::awaitingManagerReplySql('c');
+        $replySql=self::awaitingManagerReplySql('c',$mysql);
         $replyProjection='CASE WHEN '.$replySql.' THEN 1 ELSE 0 END';
         $currentWaitOrder=in_array($queue,['waiting','attention'],true)&&!$rawWaiting;
         if(!$isAdmin)$where[]=RegionalRoutingScopeService::candidatePredicate($managerId,'c',$args,(array)($manager['projects']??[]));
@@ -204,7 +206,6 @@ class ManagerConversationService
             $fromSql='FROM (SELECT c.id FROM conversations c JOIN customers cu ON cu.id=c.customer_id WHERE '.$whereSql.' ORDER BY '.$orderSql.' LIMIT 200) inbox_page JOIN conversations c ON c.id=inbox_page.id JOIN customers cu ON cu.id=c.customer_id';
             $predicateSql='';
         }
-        $mysql=ConversationDb::connection()->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
         if($currentWaitOrder){
             // The queue predicate already excludes resolved and suspended conversations.
             $replyProjection='1';
