@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS anytour_umk_late_settings (
     id TINYINT UNSIGNED NOT NULL PRIMARY KEY,
     delivery_enabled TINYINT UNSIGNED NOT NULL DEFAULT 0,
     activated_at_unix BIGINT UNSIGNED NULL,
+    fresh_after_source_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
     scan_after_source_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
     initial_source_id BIGINT UNSIGNED NULL,
     initial_profile_id BIGINT UNSIGNED NULL,

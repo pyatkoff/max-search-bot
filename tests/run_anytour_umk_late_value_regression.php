@@ -156,16 +156,18 @@ $frozen = $work->query('SELECT delivery_state FROM anytour_umk_late_events WHERE
 checkUmk($frozen==='unknown' && count($posts($requests))===2,'uncertain outcome never reissued on later ticks');
 $worker->setDelivery($epoch,false);
 checkUmk($worker->tick()['status']==='COLLECT','pause preserves original activation cohort');
-// A long suffix of pre-activation inquiries and evaluated profiles costs one bounded page per tick.
+// The new-source watermark advances in bounded pages and never wraps backwards.
 for ($id=23;$id<=102;$id++) profile($work,$id,11,$id+150,83000,0,$epoch);
-$work->exec('UPDATE anytour_umk_late_settings SET scan_after_source_id=22');
-checkUmk($worker->tick()['collection']==='IDLE' && (int)$worker->settings()['scan_after_source_id']===54,'scan stops after first 32 source rows');
-checkUmk($worker->tick()['collection']==='IDLE' && (int)$worker->settings()['scan_after_source_id']===86,'bounded progress on an ineligible suffix');
+$work->exec('UPDATE anytour_umk_late_settings SET scan_after_source_id=22,fresh_after_source_id=22');
+checkUmk($worker->tick()['collection']==='IDLE' && (int)$worker->settings()['fresh_after_source_id']===54,'one bounded fresh page');
+checkUmk($worker->tick()['collection']==='IDLE' && (int)$worker->settings()['fresh_after_source_id']===86,'bounded progress');
 $worker->tick();
-checkUmk((int)$worker->settings()['scan_after_source_id']===102,'last partial page observed');
+checkUmk((int)$worker->settings()['fresh_after_source_id']===102,'partial page observed');
+$work->exec('UPDATE anytour_umk_late_settings SET scan_after_source_id=102');
 $worker->tick();
-checkUmk((int)$worker->settings()['scan_after_source_id']===(int)$worker->settings()['initial_source_id'],'idle scan wraps to its own prospective floor');
-checkUmk($worker->tick()['collection']==='EARLY_RESERVE_UNPROVED','unresolved earlier MAX entry is reconsidered');
+checkUmk((int)$worker->settings()['scan_after_source_id']===(int)$worker->settings()['initial_source_id']
+    && (int)$worker->settings()['fresh_after_source_id']===102,'only the retry cursor wraps');
+checkUmk($worker->tick()['revisited']==='EARLY_RESERVE_UNPROVED','unresolved earlier MAX entry is reconsidered');
 
 require_once dirname(__DIR__).'/services/AnyTourUmkEarlyProofReader.php';
 (static function(): void {
@@ -205,4 +207,18 @@ require_once dirname(__DIR__).'/services/AnyTourUmkEarlyProofReader.php';
 })();
 require_once __DIR__.'/fixtures/anytour_umk_operator.php';
 checkAnyTourUmkOperator($work,$worker,$epoch);
+// Model a completed 10,000-event history with the retry cursor just wrapped.
+$firstHistorical=103;
+$lastHistorical=10102;
+$work->exec("WITH RECURSIVE history(n) AS (VALUES($firstHistorical) UNION ALL SELECT n+1 FROM history WHERE n<$lastHistorical)
+    INSERT INTO max2_common_value_events_v2 SELECT n,11,98615635,687941321,'anytour_modeled_value_v2_max2',
+    CAST(n+5000 AS TEXT),printf('%064x',n+100000),".($epoch+5).",80000,0,'not_needed' FROM history");
+$work->exec("INSERT INTO anytour_umk_late_events (source_event_id,source_account_id,event_key,profile_id,total_kopeks,delta_kopeks,event_at_unix,delivery_state)
+    SELECT id,11,printf('%064x',id+200000),profile_id,80000,0,event_at_unix,'not_needed'
+    FROM max2_common_value_events_v2 WHERE id BETWEEN $firstHistorical AND $lastHistorical");
+$work->prepare('UPDATE anytour_umk_late_settings SET scan_after_source_id=initial_source_id,fresh_after_source_id=?')->execute([$lastHistorical]);
+profile($work,10103,11,25000,84000,500,$epoch+6);
+$newTick=$worker->tick();
+checkUmk($newTick['collection']==='RESERVED' && $newTick['revisited']==='EARLY_RESERVE_UNPROVED'
+    && (int)$worker->settings()['fresh_after_source_id']===10103,'new dialogue processed immediately across a 10k retry backlog');
 echo "UMK late value accounting and delivery PASS\n";

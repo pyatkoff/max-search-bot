@@ -47,10 +47,16 @@ final class AnyTourUmkLateDelivery
         return $state;
     }
 
-    private function collect(array $setting): string
+    private function collect(array $setting, bool $fresh): string
     {
         $floor = (int)$setting['initial_source_id'];
-        $after = (int)$setting['scan_after_source_id'];
+        $column = $fresh ? 'fresh_after_source_id' : 'scan_after_source_id';
+        $after = (int)$setting[$column];
+        $watermark = max($floor,(int)$setting['fresh_after_source_id']);
+        if (!$fresh && $watermark <= $floor) return 'IDLE';
+        $boundary = $fresh ? '' : ' AND id<=?';
+        $args = [$setting['activated_at_unix'],$setting['activated_at_unix'],$setting['initial_profile_id'],max($floor,$after)];
+        if (!$fresh) $args[] = $watermark;
         // LIMIT precedes both joins. A mostly completed history must never require an
         // unbounded search for the first gap when the cursor wraps to the activation floor.
         $page = $this->run("SELECT e.id, CASE WHEN u.source_event_id IS NULL AND e.counter_id=98615635
@@ -58,11 +64,11 @@ final class AnyTourUmkLateDelivery
             AND e.event_at_unix>? AND a.inquiry_recorded_at_unix>? AND CAST(e.profile_id AS UNSIGNED)>?
             THEN 1 ELSE 0 END AS eligible
             FROM (SELECT id,account_id,counter_id,goal_id,target,event_at_unix,profile_id FROM max2_common_value_events_v2
-                WHERE id>? ORDER BY id LIMIT 32) e
+                WHERE id>?$boundary ORDER BY id LIMIT 32) e
             LEFT JOIN max2_common_value_accounts_v2 a ON a.id=e.account_id
             LEFT JOIN anytour_umk_late_events u ON u.source_event_id=e.id ORDER BY e.id",
-            [$setting['activated_at_unix'],$setting['activated_at_unix'],$setting['initial_profile_id'],max($floor,$after)])->fetchAll(PDO::FETCH_ASSOC);
-        $next = $floor;
+            $args)->fetchAll(PDO::FETCH_ASSOC);
+        $next = $fresh ? max($after,$floor) : $floor;
         $status = 'IDLE';
         foreach ($page as $row) {
             $next = (int)$row['id'];
@@ -80,7 +86,7 @@ final class AnyTourUmkLateDelivery
             break;
         }
         if ($after !== $next) {
-            $this->run('UPDATE anytour_umk_late_settings SET scan_after_source_id=? WHERE id=1 AND activated_at_unix=? AND scan_after_source_id=?',
+            $this->run("UPDATE anytour_umk_late_settings SET $column=? WHERE id=1 AND activated_at_unix=? AND $column=?",
                 [$next,$setting['activated_at_unix'],$after]);
         }
         return $status;
@@ -166,12 +172,14 @@ final class AnyTourUmkLateDelivery
         if ($this->db->inTransaction()) throw new LogicException('UMK requires a separate transaction');
         $setting = $this->settings();
         if ($setting['activated_at_unix'] === null) return ['status'=>'OFF'];
-        try {
-            $collection = $this->collect($setting);
-        } catch (Throwable $ignored) {
-            $collection = 'UNAVAILABLE';
-        }
-        $result = ['status'=>(int)$setting['delivery_enabled'] === 1 ? 'SEND' : 'COLLECT', 'collection'=>$collection, 'send'=>'IDLE','poll'=>'IDLE'];
+        // Discover newly persisted profiles first on every tick. Rechecking an old gap has
+        // its own rotating cursor and cannot move the new-source watermark backwards.
+        try { $collection = $this->collect($setting, true); }
+        catch (Throwable $ignored) { $collection = 'UNAVAILABLE'; }
+        try { $revisited = $this->collect($setting, false); }
+        catch (Throwable $ignored) { $revisited = 'UNAVAILABLE'; }
+        $result = ['status'=>(int)$setting['delivery_enabled'] === 1 ? 'SEND' : 'COLLECT',
+            'collection'=>$collection, 'revisited'=>$revisited, 'send'=>'IDLE', 'poll'=>'IDLE'];
         if ($result['status'] === 'COLLECT') return $result;
         $now = ($this->clock)();
         $id = $this->run("SELECT source_event_id FROM anytour_umk_late_events WHERE delivery_state='reserved'
