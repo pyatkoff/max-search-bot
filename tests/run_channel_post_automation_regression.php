@@ -1763,7 +1763,14 @@ $transferReceiptRead = static function(string $path): array {
     if (!is_array($lines)) throw new RuntimeException('fixture_receipt_missing');
     return array_map(static fn($line)=>json_decode($line,true,64,JSON_THROW_ON_ERROR),$lines);
 };
-$transferScenario = static function(string $case) use ($transferFixtureRoot,&$transferFixtureDirectories,$transferReceiptRead,$hotelMediaBody): array {
+$rankedPublicPrewriteReasons = [
+    'public_identity_changed'=>true,
+    'transfer_source_public_changed'=>true,
+    'transfer_target_public_changed'=>true,
+    'public_post_missing'=>true,
+    'transfer_read_unavailable'=>false,
+];
+$transferScenario = static function(string $case) use ($transferFixtureRoot,&$transferFixtureDirectories,$transferReceiptRead,$hotelMediaBody,$rankedPublicPrewriteReasons): array {
     $operations=$transferFixtureRoot.'/'.$case;
     if (!mkdir($operations,0700)) throw new RuntimeException('fixture_case_creation_failed');
     $transferFixtureDirectories[]=$operations;
@@ -1783,10 +1790,10 @@ $transferScenario = static function(string $case) use ($transferFixtureRoot,&$tr
         'reserve'=>static function() use ($state,$reservation): array {
             $state->calls[]='reserve';return $reservation;
         },
-        'prepare'=>static function(array $received) use ($case,$state,$hotelMediaBody,$evidence): array {
+        'prepare'=>static function(array $received) use ($case,$state,$hotelMediaBody,$evidence,$rankedPublicPrewriteReasons): array {
             $state->calls[]='prepare';$state->reservation_arguments[]=$received;
             if ($case==='source_advanced_after_reservation') throw new RuntimeException('transfer_source_revision_advanced');
-            if ($case==='public_identity_after_reservation') throw new RuntimeException('public_identity_changed');
+            if (array_key_exists($case,$rankedPublicPrewriteReasons)) throw new RuntimeException($case);
             $body=$hotelMediaBody;
             if ($case==='invalid_payload') $body['media']['type']='video';
             if ($case==='invalid_prepared') return ['body'=>$body];
@@ -1831,7 +1838,9 @@ $transferScenario = static function(string $case) use ($transferFixtureRoot,&$tr
     ];
     // A context is optional and must not be necessary for a successful control flow.
     if ($case==='complete_busy') unset($effects['context']);
-    if (in_array($case,['source_advanced_after_reservation','public_identity_after_reservation'],true)) $effects['context']['continuation_of_ranked_run_id']=AnyTour\ExistingPostBatch\RANKED_ORIGINAL_RUN;
+    if ($case==='source_advanced_after_reservation' || array_key_exists($case,$rankedPublicPrewriteReasons)) {
+        $effects['context']['continuation_of_ranked_run_id']=AnyTour\ExistingPostBatch\RANKED_ORIGINAL_RUN;
+    }
     $result=AnyTour\ExistingPostBatch\transferExecuteRow($row,$digest,$effects,$operations);
     $events=$transferReceiptRead($receipt);
     $beforeReplay=clone $state;$beforeHash=hash_file('sha256',$receipt);
@@ -1840,7 +1849,6 @@ $transferScenario = static function(string $case) use ($transferFixtureRoot,&$tr
 };
 $transferExpected=[
     'success'=>[true,'native_and_registry_verified',null,1,1],
-    'public_identity_after_reservation'=>[false,'held_before_provider','public_identity_changed',0,0],
     'source_advanced_after_reservation'=>[false,'held_before_provider','transfer_source_revision_advanced',0,0],
     'prewrite_cas'=>[false,'held_before_provider','hotel_transfer_source_changed',0,0],
     'invalid_payload'=>[false,'held_before_provider','transfer_media_payload_invalid',0,0],
@@ -1857,11 +1865,19 @@ $transferExpected=[
     'complete_error'=>[false,'response_saved_completion_requires_readback','transfer_verification_failed',1,1],
     'runtime_after_response'=>[false,'response_saved_completion_requires_readback','transfer_runtime_changed',1,0],
 ];
+foreach ($rankedPublicPrewriteReasons as $reason=>$canContinue) {
+    $transferExpected[$reason]=[false,'held_before_provider',$reason,0,0];
+    channelPostCheck('real hotel editor classifies '.$reason.' before reserving a target',
+        AnyTour\ExistingPostBatch\transferLocalPublicHold($reason),$canContinue);
+}
 try {
     foreach ($transferExpected as $case=>$expected) {
         $flow=$transferScenario($case);$state=$flow['state'];$result=$flow['result'];
-        if ($case==='public_identity_after_reservation') channelPostCheck('public identity pre-write refusal keeps reservation and zero attempts',
-            [$result['local_prewrite_hold_recorded']??false,$result['reserved_publication_id'],$state->requests],[true,901,0]);
+        if (array_key_exists($case,$rankedPublicPrewriteReasons)) {
+            channelPostCheck('public pre-write refusal '.$case.' keeps reservation and zero attempts',
+                [$result['local_prewrite_hold_recorded']??false,$result['reserved_publication_id'],$state->requests],
+                [$rankedPublicPrewriteReasons[$case],901,0]);
+        }
         if ($case==='source_advanced_after_reservation') {
             channelPostCheck('durable late source change holds its reservation with zero provider attempts',
                 [$result['source_revision_hold_recorded'] ?? false,$result['reserved_publication_id'],$result['provider_write_attempts']],
