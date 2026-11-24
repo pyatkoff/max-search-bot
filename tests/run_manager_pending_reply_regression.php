@@ -9,7 +9,7 @@ function replyCheck(string $name,bool $ok):void {
 }
 $method=new ReflectionMethod(ManagerConversationService::class,'awaitingManagerReplySql');
 $method->setAccessible(true);
-$condition=$method->invoke(null,'c');
+$condition=$method->invoke(null,'c',false);
 // Execute the production SQL predicate against isolated message histories.
 // SQLite JSON_EXTRACT already unquotes scalar strings.
 $db=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
