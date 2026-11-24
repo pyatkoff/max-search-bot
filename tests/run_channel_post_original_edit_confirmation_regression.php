@@ -101,4 +101,5 @@ $old=$before['post_versions'][1];$new=$after['post_versions'][1];foreach(['state
 checkOriginal('failure retained',$now['receipt']['previous_failure']['receipt_json']===$before['post_versions'][1]['receipt_json']&&$now['receipt']['previous_failure']['reason']==='provider_read_failed');
 checkOriginal('no replay',!originalCall($service,$p,$e,$preview['confirmation_digest'],true)['ok']&&originalState($db)===$after);
 [$d,$rr,$ss,$pp,$ee]=originalFixture();$pv=originalCall($ss,$pp,$ee);$state=originalState($d);$d->exec("CREATE TRIGGER fail_confirm BEFORE UPDATE OF state ON post_versions WHEN NEW.state='sent' BEGIN SELECT RAISE(ABORT,'injected'); END");$answer=originalCall($ss,$pp,$ee,$pv['confirmation_digest'],true);checkOriginal('failed transaction unknown no retry',$answer['state']==='unknown'&&originalState($d)===$state);
+require __DIR__.'/fixtures/hotel_transfer_price_lineage_cases.php';
 echo 'ORIGINAL_EDIT_CONFIRMATION_OK checks='.$checks.PHP_EOL;

@@ -1,10 +1,11 @@
 <?php
 declare(strict_types=1);
 if (PHP_SAPI!=='cli') { http_response_code(404); exit; }
-require_once __DIR__.'/../services/HotelTransferPriceLineage.php';
+require_once __DIR__.'/../../services/HotelTransferPriceLineage.php';
 function lineJson(array $v):string {return json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);}
 function lineAssert(bool $ok,string $case):void {if(!$ok)throw new RuntimeException($case);echo "PASS $case\n";}
-function lineReject(callable $f,string $case):void {try{$f();}catch(Throwable $e){lineAssert(true,$case);return;}throw new RuntimeException('unexpected admission: '.$case);}
+function lineReject(callable $f,string $case):void {try{$f();}catch(RuntimeException|JsonException $e){lineAssert(true,$case);return;}throw new RuntimeException('unexpected admission: '.$case);}
+(static function():void {
 $token='p_'.str_repeat('x',24);$url='https://t.me/anyru_bot?start='.$token;
 $template="✈️ Туры в Fixture Hotel\n\nСемейный отдых у моря.\n\n💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]\n\nУзнать стоимость тура";
 $baseText="✈️ Туры в Fixture Hotel\n\nСемейный отдых у моря.\n\nУзнать стоимость тура";
@@ -21,7 +22,7 @@ $version=function(int $id,array $message,?array $price=null)use($token):array{
     if($price!==null){$s['metadata']['monitor_price_record_id']=$price['record_id'];
         $s['metadata']['monitor_price_basis']=$price['price_basis'];$s['metadata']['monitor_price_observed_at_relative']=$price['observed_at'];}
     return ['project_key'=>'anytour','platform'=>'telegram','bot_key'=>'anyru_bot','channel_id'=>'-1002262666616',
-        'message_id'=>'51','publication_id'=>101,'version_id'=>$id,'state'=>'sent','claim_token'=>null,'claimed_at'=>null,
+        'message_id'=>'51','publication_id'=>101,'version_id'=>$id,'version_number'=>[1001=>1,1003=>2,1008=>3][$id],'state'=>'sent','claim_token'=>null,'claimed_at'=>null,
         'start_payload'=>$token,'content_hash'=>ChannelPostIncomingAdapter::contentFingerprint($s),'snapshot'=>$s];
 };
 $first=$version(1001,$native($baseText));
@@ -75,7 +76,20 @@ $build=function(int $previous,int $next,string $record,int $amount,int $generate
 };
 [$second,$j2]=$build(1001,1003,str_repeat('b',64),123456,strtotime('2026-11-20T00:00:00Z'));
 [$third,$j3]=$build(1003,1008,str_repeat('c',64),124000,strtotime('2026-11-21T00:00:00Z'));
-$raw2=lineJson($j2)."\n";$raw3=lineJson($j3)."\n";
+// Synthetic append-only stage sequence with the actual existing TG child shape.
+$journalLines=static function(array $j):array {
+    $initial=$j;unset($initial['complete']);$initial['posts']=[];
+    $max=$initial;$max['posts']['max:fixture']=$j['posts']['max:fixture'];
+    $started=$max;$tg=$j['posts']['telegram:fixture'];
+    $started['posts']['telegram:fixture']=['state'=>'edit_started','plan'=>$tg['plan'],
+        'edit_request_start_ms'=>$tg['edit_request_start_ms']];
+    $responded=$started;$responded['posts']['telegram:fixture']['state']='provider_response_recorded';
+    $responded['posts']['telegram:fixture']['provider_response']=$tg['provider_response'];
+    $confirmed=$j;unset($confirmed['complete']);
+    return [$initial,$max,$started,$responded,$confirmed,$j];
+};
+$encodeJournal=static fn(array $lines):string=>implode("\n",array_map('lineJson',$lines))."\n";
+$raw2=$encodeJournal($journalLines($j2));$raw3=$encodeJournal($journalLines($j3));
 $zero=$run([$first],[]);lineAssert($zero['row']===$row&&$zero['intent_digest']===$digest,'unchanged full baseline');
 $one=$run([$first,$second],[$raw2]);lineAssert($one['row']['source_version_id']===1003&&count($one['price_lineage'])===1,'verified original PRICE transition');
 $two=$run([$first,$second,$third],[$raw2,$raw3]);$expected=$row;$expected['source_version_id']=1008;
@@ -103,9 +117,9 @@ foreach(['complete','previous_version','photo','button','native_http','native_ca
         case 'feed':$j['feed_binding']['posts']['telegram']='https://t.me/any_toour/52';break;
         case 'price_template':$v['snapshot']['text'].=' Extra editorial';$v['content_hash']=ChannelPostIncomingAdapter::contentFingerprint($v['snapshot']);break;
     }
-    lineReject(fn()=>$run([$first,$v],[lineJson($j)."\n"]),$case);
+    lineReject(fn()=>$run([$first,$v],[$encodeJournal($journalLines($j))]),$case);
 }
-foreach(['claim_token','claimed_at','state','hotel','token','fingerprint','date'] as $case){
+foreach(['claim_token','claimed_at','state','hotel','token','fingerprint','date','version_number','hidden_button'] as $case){
     $v=$second;
     switch($case){
         case 'claim_token':$v['claim_token']='held';break;
@@ -115,6 +129,8 @@ foreach(['claim_token','claimed_at','state','hotel','token','fingerprint','date'
         case 'token':$v['start_payload']='p_other';break;
         case 'fingerprint':$v['content_hash']=str_repeat('0',64);break;
         case 'date':$v['snapshot']['published_at']='other';break;
+        case 'version_number':$v['version_number']=4;break;
+        case 'hidden_button':$v['snapshot']['keyboard'][0][0]['callback_data']='hidden';break;
     }
     lineReject(fn()=>$run([$first,$v],[$raw2]),$case);
 }
@@ -131,4 +147,19 @@ foreach(['extra_row_field','target_date','caption_length','binding_operation','b
     $raw=lineJson($i);
     lineReject(fn()=>HotelTransferPriceLineage::candidate($raw,hash('sha256',$raw),[$first],[]),$case);
 }
+lineReject(fn()=>$run([$first,$second],[lineJson($j2)."\n"]),'terminal line alone cannot prove original stages');
+foreach(['missing_start','missing_response','duplicate_start','changed_saved_response','changed_plan','early_complete','stage_regression'] as $case){
+    $lines=$journalLines($j2);
+    switch($case){
+        case 'missing_start':array_splice($lines,2,1);break;
+        case 'missing_response':array_splice($lines,3,1);break;
+        case 'duplicate_start':array_splice($lines,3,0,[$lines[2]]);break;
+        case 'changed_saved_response':$lines[3]['posts']['telegram:fixture']['provider_response']['http']=0;break;
+        case 'changed_plan':$lines[2]['posts']['telegram:fixture']['plan']['old_version_id']=999;break;
+        case 'early_complete':$lines[4]['complete']=true;break;
+        case 'stage_regression':array_splice($lines,4,0,[$lines[1]]);break;
+    }
+    lineReject(fn()=>$run([$first,$second],[$encodeJournal($lines)]),$case);
+}
 echo "HOTEL TRANSFER PRICE LINEAGE REGRESSION PASSED\n";
+})();

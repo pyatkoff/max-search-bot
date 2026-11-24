@@ -37,7 +37,8 @@ final class HotelTransferPriceLineage
             && ($v['message_id']??null)===$row['source_message_id']
             && ($v['publication_id']??null)===$row['source_publication_id']
             && is_int($v['version_id']??null) && $v['version_id']>0
-            && in_array($v['state']??null,['sent','superseded'],true)
+            && is_int($v['version_number']??null) && $v['version_number']>0
+            && ($v['state']??null)==='sent'
             && array_key_exists('claim_token',$v) && $v['claim_token']===null
             && array_key_exists('claimed_at',$v) && $v['claimed_at']===null
             && ($v['start_payload']??null)===$intent['source_start_payload']
@@ -53,11 +54,69 @@ final class HotelTransferPriceLineage
             && is_string($m['telegram_file_id']??null) && is_string($m['file_unique_id']??null)
             && self::sha($m['telegram_file_id'])===$row['source_file_id_sha256']
             && self::sha($m['file_unique_id'])===$row['source_file_unique_id_sha256']
-            && ChannelPostIncomingAdapter::containsOnlyButton($s,
-                'https://t.me/anyru_bot?start='.$intent['source_start_payload'],'✈️ Узнать стоимость тура')
+            && self::onlyButton($s,'https://t.me/anyru_bot?start='.$intent['source_start_payload'])
             && ($v['content_hash']??null)===ChannelPostIncomingAdapter::contentFingerprint($s),
             'source_identity_or_content');
         return $s;
+    }
+
+    private static function onlyButton(array $s,string $url):bool
+    {
+        $keyboard=$s['keyboard']??null;
+        if(!is_array($keyboard)||!array_is_list($keyboard)||count($keyboard)!==1
+            ||!is_array($keyboard[0])||!array_is_list($keyboard[0])||count($keyboard[0])!==1
+            ||!is_array($keyboard[0][0])) return false;
+        $button=$keyboard[0][0];
+        if(array_key_exists('type',$button)){
+            if($button['type']!=='link')return false;
+            unset($button['type']);
+        }
+        ksort($button);
+        return $button===['text'=>'✈️ Узнать стоимость тура','url'=>$url];
+    }
+
+    /** Require the original durable transition sequence, not a terminal line alone.
+     * All stages refer to the same plan, request timestamp and saved response.
+     * A confirmed journal can be read; it cannot be used to retry an edit.
+     */
+    private static function history(string $raw,array $last,string $key):void
+    {
+        $final=$last['posts'][$key];
+        $lines=explode("\n",substr($raw,0,-1));
+        self::need(count($lines)>=5 && count($lines)<=1000,'journal_stage_count');
+        $stage=0;
+        foreach($lines as $n=>$line){
+            $e=json_decode($line,true,64,JSON_THROW_ON_ERROR);
+            self::need(is_array($e) && ($e['operation']??null)===$last['operation']
+                && ($e['manifest_hash']??null)===$last['manifest_hash']
+                && ($e['monitor_snapshot']??null)===$last['monitor_snapshot']
+                && ($e['feed_binding']??null)===$last['feed_binding']
+                && !array_key_exists('terminal',$e)
+                && (($e['complete']??false)===($n===count($lines)-1))
+                && is_array($e['posts']??null),'journal_history');
+            $post=$e['posts'][$key]??null;
+            if($post===null){
+                self::need($stage===0 && $n<count($lines)-1,'journal_stage_regressed');
+                continue;
+            }
+            self::need(is_array($post) && ($post['plan']??null)===$final['plan']
+                && ($post['edit_request_start_ms']??null)===$final['edit_request_start_ms'],'journal_request_changed');
+            switch($post['state']??null){
+                case 'edit_started':
+                    self::need($stage===0 && !array_key_exists('provider_response',$post)
+                        && !array_key_exists('receipt',$post),'journal_repeated_start');
+                    $stage=1;break;
+                case 'provider_response_recorded':
+                    self::need(in_array($stage,[1,2],true) && ($post['provider_response']??null)===$final['provider_response']
+                        && !array_key_exists('receipt',$post),'journal_response_changed');
+                    $stage=2;break;
+                case 'confirmed':
+                    self::need(in_array($stage,[2,3],true) && $post===$final,'journal_confirmation_changed');
+                    $stage=3;break;
+                default: self::need(false,'journal_stage_unknown');
+            }
+        }
+        self::need($stage===3,'journal_missing_confirmation');
     }
 
     /** Check the exact native text_link span, not a stripped caption comparison. */
@@ -75,30 +134,24 @@ final class HotelTransferPriceLineage
         self::need(strlen($raw)<=10000000 && $raw!=='' && str_ends_with($raw,"\n"),'journal_incomplete');
         $record=$s['metadata']['monitor_price_record_id']??null;
         self::need(is_string($record) && preg_match('/\A[a-f0-9]{64}\z/D',$record)===1
-            && $after['version_id']>$before['version_id'],'version_or_record');
+            && $after['version_id']>$before['version_id']
+            && $after['version_number']===$before['version_number']+1,'version_or_record');
         $op='commercial-monitor-price-h'.$row['hotel_id'].'-'.$record;
         $journal=monitor_hook_parse_journal($raw,$op);
         self::need(($journal['complete']??null)===true && !isset($journal['terminal'])
             && ($journal['feed_binding']??null)===$intent['feed_binding']
             && is_string($journal['manifest_hash']??null)
             && preg_match('/\A[a-f0-9]{64}\z/D',$journal['manifest_hash'])===1,'journal_binding');
-        // Refuse corruption or unrelated entries in the original append-only file,
-        // not just an apparently valid final JSON line.
-        foreach(explode("\n",substr($raw,0,-1)) as $line) {
-            $entry=json_decode($line,true,64,JSON_THROW_ON_ERROR);
-            self::need(is_array($entry) && ($entry['operation']??null)===$op
-                && ($entry['manifest_hash']??null)===$journal['manifest_hash']
-                && ($entry['monitor_snapshot']??null)===($journal['monitor_snapshot']??null)
-                && ($entry['feed_binding']??null)===$intent['feed_binding']
-                && !isset($entry['terminal']),'journal_history');
-        }
-        $post=null;
-        foreach($journal['posts']??[] as $item) {
+        $post=null;$key=null;
+        foreach($journal['posts']??[] as $k=>$item) {
             if (($item['receipt']['platform']??null)==='telegram') {
-                self::need($post===null,'duplicate_telegram_receipt');
-                $post=$item;
+                self::need($post===null && is_string($k) && str_starts_with($k,'telegram:'),'duplicate_telegram_receipt');
+                $post=$item;$key=$k;
             }
         }
+        self::need(is_string($key) && is_array($post) && is_array($post['plan']??null)
+            && is_array($post['provider_response']??null),'journal_telegram_missing');
+        self::history($raw,$journal,$key);
         $p=$post['plan']??[]; $r=$post['receipt']??[];
         $ms=$post['edit_request_start_ms']??null;
         self::need(is_int($ms)&&$ms>0,'request_time');
@@ -111,7 +164,7 @@ final class HotelTransferPriceLineage
         $text=monitor_hook_draft($intent['source_price_template'],$price);
         $url='https://t.me/anyru_bot?start='.$intent['source_start_payload'];
         $entities=self::entities($text,$url);
-        // intdiv makes exact UTF-16 counts canonical for strict comparison.
+        // Keep exact integral UTF-16 counts canonical for strict comparison.
         $entities[0]['offset']=(int)$entities[0]['offset'];
         $entities[0]['length']=(int)$entities[0]['length'];
         $response=$post['provider_response']??[];
@@ -143,7 +196,7 @@ final class HotelTransferPriceLineage
             && is_array($nativeSnapshot) && $nativeSnapshot['text']===$text && $nativeSnapshot['markup']===$entities
             && $nativeSnapshot['attachments']===$s['attachments']
             && $nativeSnapshot['post_url']===$s['post_url'] && $nativeSnapshot['published_at']===$s['published_at']
-            && ChannelPostIncomingAdapter::containsOnlyButton($nativeSnapshot,$url,'✈️ Узнать стоимость тура'),
+            && self::onlyButton($nativeSnapshot,$url),
             'price_transition_unproven');
         return ['previous_version_id'=>$before['version_id'],'version_id'=>$after['version_id'],
             'record_id'=>$record,'journal_sha256'=>self::sha($raw),'content_hash'=>$after['content_hash']];
