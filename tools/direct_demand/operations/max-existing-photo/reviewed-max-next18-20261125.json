@@ -1,0 +1,665 @@
+{
+  "schema": 1,
+  "kind": "hotel_max_caption_preparation",
+  "issue": 1566,
+  "goal": 330,
+  "price_gate": false,
+  "production_writes": 0,
+  "first_party_demand": {
+    "run_id": 45385556709,
+    "artifact_id": 14915463382,
+    "moscow_completed_days": "2026-11-17 through 2026-11-23",
+    "scope": "dialogues and entries, no paid-click inference"
+  },
+  "published_bindings": {
+    "canonical_map_blob": "ba5ac7207da7fe185c1d864726bc240ba273976d",
+    "feed_sha256": "2d46078c045bcf735df873c30e7e12a2ae0ad29daea14af7c9839ab62478befb"
+  },
+  "public_observation": {
+    "run_id": 45507825974,
+    "job_id": 138847497011,
+    "artifact_id": 14973766729,
+    "artifact_sha256": "sha256:6876da9b2e880d1eae608b73c8846ade7b5c843be3ddab1974e379a7914d15ba",
+    "observed_utc": "2026-11-24T23:11:48.325398+00:00"
+  },
+  "archive_screening": [
+    {
+      "url": "https://max.ru/anytour/AZvvdczbYAo",
+      "mid": "mid.ffffc1752b045fed019bef75ccdb600a",
+      "published_ms": 1769249033435,
+      "media": [
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image"
+      ],
+      "fingerprint": "f5f0bddff60d2bf78920b57d9ff1de0c2b2d457b29fddc56968a9af882ec3794",
+      "state": "protect_guest_review",
+      "context": "The X Belek",
+      "assigned_hotel_id": null
+    },
+    {
+      "url": "https://max.ru/anytour/AZwEq2zVLGY",
+      "mid": "mid.ffffc1752b045fed019c04ab6cd52c66",
+      "published_ms": 1769604869333,
+      "media": [
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image"
+      ],
+      "fingerprint": "abc161eeba2e055d655cccddac7e03df78fe6b8638c7a63313ea8c5d747c7694",
+      "state": "commercial_album_reserve",
+      "context": "The Marin Phuket",
+      "assigned_hotel_id": null,
+      "next_gate": "verify_route_and_editor_support_for_album_preimage"
+    },
+    {
+      "url": "https://max.ru/anytour/AZwpDhM0dC0",
+      "mid": "mid.ffffc1752b045fed019c290e1334742d",
+      "published_ms": 1770215314228,
+      "media": [
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image"
+      ],
+      "fingerprint": "c27142fb09a1f408fa0a7f56432a0784077a2c89a0bbaf45e79c838c44a8ba5d",
+      "state": "commercial_album_reserve",
+      "context": "Akka Alinda Hotel",
+      "assigned_hotel_id": null,
+      "next_gate": "verify_route_and_editor_support_for_album_preimage"
+    },
+    {
+      "url": "https://max.ru/anytour/AZwymV1GDrA",
+      "mid": "mid.ffffc1752b045fed019c32995d460eb0",
+      "published_ms": 1770375437638,
+      "media": [
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image"
+      ],
+      "fingerprint": "e4db114aad5a526a1cfa8c7755c5edba176dae441eb0e04542240ce869b08277",
+      "state": "protect_guest_review",
+      "context": "Chateau De Village",
+      "assigned_hotel_id": null
+    },
+    {
+      "url": "https://max.ru/anytour/AZxcpmMWNUI",
+      "mid": "mid.ffffc1752b045fed019c5ca663163542",
+      "published_ms": 1771080934166,
+      "media": [
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image"
+      ],
+      "fingerprint": "2f0b73392317d5ca16f0d76b3cb44632530a024144d3f7e5c434556469f8bfe7",
+      "state": "commercial_album_reserve",
+      "context": "Address Beach Resort Fujairah",
+      "assigned_hotel_id": null,
+      "next_gate": "verify_route_and_editor_support_for_album_preimage"
+    },
+    {
+      "url": "https://max.ru/anytour/AZyp_bIBa3I",
+      "mid": "mid.ffffc1752b045fed019ca9fdb2016b72",
+      "published_ms": 1772378501633,
+      "media": [],
+      "fingerprint": "67e8393a84cf55172161d4b2d5c1739f5a8a0da16f788ebdab3e4e1fc668f94c",
+      "state": "retain_editorial_text",
+      "context": "Советы туристам",
+      "assigned_hotel_id": null
+    },
+    {
+      "url": "https://max.ru/anytour/AZyz_0qwYkE",
+      "mid": "mid.ffffc1752b045fed019cb3ff4ab06241",
+      "published_ms": 1772546378416,
+      "media": [],
+      "fingerprint": "90baa9fb0534a6d0381685d000b960a7f2f87cf50f8865640f86df66f9a4df56",
+      "state": "retain_editorial_text",
+      "context": "Справка об отдыхе в Египте",
+      "assigned_hotel_id": null
+    },
+    {
+      "url": "https://max.ru/anytour/AZ82fl5vOjg",
+      "mid": "mid.ffffc1752b045fed019f367e5e6f3a38",
+      "published_ms": 1783325679215,
+      "media": [
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image"
+      ],
+      "fingerprint": "94614ea61390439daf9dc1b8a428c7f11eb5676a6fe59678fd82fa6eb4083697",
+      "state": "commercial_album_reserve",
+      "context": "SO/ Ras Al Khaimah",
+      "assigned_hotel_id": null,
+      "next_gate": "verify_route_and_editor_support_for_album_preimage"
+    },
+    {
+      "url": "https://max.ru/anytour/AZ-3aMozWT8",
+      "mid": "mid.ffffc1752b045fed019fb768ca33593f",
+      "published_ms": 1785488525875,
+      "media": [
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image"
+      ],
+      "fingerprint": "e6a6ecdec586cc69b2f6772e0f418ce3ce0b48e025381c28793076722e657fa9",
+      "state": "retain_live_hotel_photo_feature",
+      "context": "Chanalai Hillside Resort Karon",
+      "assigned_hotel_id": null
+    },
+    {
+      "url": "https://max.ru/anytour/AZ_RCJ53Xsw",
+      "mid": "mid.ffffc1752b045fed019fd1089e775ecc",
+      "published_ms": 1785918430839,
+      "media": [
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image"
+      ],
+      "fingerprint": "2a34b7f7d687d5118fc065682668712a21e984eebec3d5ae8dbfdcd8af528219",
+      "state": "retain_live_hotel_photo_feature",
+      "context": "The Marin Phuket",
+      "assigned_hotel_id": null
+    },
+    {
+      "url": "https://max.ru/anytour/AZ_bV9KmN9s",
+      "mid": "mid.ffffc1752b045fed019fdb57d2a637db",
+      "published_ms": 1786091393702,
+      "media": [
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image"
+      ],
+      "fingerprint": "d454a4417b060ac51e1e28da031dd8936c7dd900b04d55f6c528471eac981d8b",
+      "state": "retain_live_hotel_photo_feature",
+      "context": "Sugar Marina Resort Pop Kata Beach",
+      "assigned_hotel_id": null
+    },
+    {
+      "url": "https://max.ru/anytour/AaCqVlKZASo",
+      "mid": "mid.ffffc1752b045fed01a0aa565299012a",
+      "published_ms": 1789564179097,
+      "media": [
+        "image",
+        "image",
+        "image",
+        "image",
+        "image",
+        "image"
+      ],
+      "fingerprint": "3104fbf1774231d929e73be1ab8a798957954757269336833ed428ab64549b2d",
+      "state": "retain_shared_offer_context",
+      "context": "Nunia Aquarena и два отеля Stella Makadi",
+      "assigned_hotel_id": null
+    }
+  ],
+  "rows": [
+    {
+      "exact_id": 64918,
+      "rank": 1,
+      "demand": {
+        "distinct_dialogues": 9,
+        "entries": 10
+      },
+      "hotel_name": "You & Me Maldives",
+      "caption": "✈️ Туры в You & Me Maldives\n📍 атолл Раа, Мальдивы\nКурорт для взрослых на атолле Раа. В ресторане H2O можно поужинать под водой и наблюдать за рифом через панорамные окна.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHryMfSWo0",
+        "publication_id": 2255,
+        "offer_id": "max_64918",
+        "offer_alias": "h1_be282d699a6be3568fa8dacf857f3435",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "feed_has_preview_image": true,
+        "public_post_verified": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 358,
+      "rank": 4,
+      "demand": {
+        "distinct_dialogues": 3,
+        "entries": 4
+      },
+      "hotel_name": "Rixos Sharm El Sheikh",
+      "caption": "✈️ Туры в Rixos Sharm El Sheikh\n📍 Шарм-эль-Шейх, Египет\nУ отеля собственный песчаный пляж и семь бассейнов. Можно чередовать дни у моря и отдых у бассейна.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaGd4bFlag4",
+        "publication_id": 215,
+        "offer_id": "max_358",
+        "offer_alias": "h1_84170d0b84626b05e4f82e798ef57820",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "feed_has_preview_image": true,
+        "public_post_verified": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 1569,
+      "rank": 5,
+      "demand": {
+        "distinct_dialogues": 3,
+        "entries": 3
+      },
+      "hotel_name": "Utopia World",
+      "caption": "✈️ Туры в Utopia World\n📍 Каргыджак, Аланья, Турция\nКурорт на возвышенности с видом на море и водными горками среди сосен. Пляж расположен ниже отеля, за дорогой. Работа аквапарка зависит от сезона.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHRcgxpNoQ",
+        "publication_id": 1270,
+        "offer_id": "max_1569",
+        "offer_alias": "h1_c2796079f2af06b30305bae975ed2246",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "feed_has_preview_image": true,
+        "public_post_verified": true
+      },
+      "product_evidence": {
+        "detail_to_recheck_before_apply": "доступный маршрут к пляжу на даты поездки"
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 4091,
+      "rank": 8,
+      "demand": {
+        "distinct_dialogues": 3,
+        "entries": 3
+      },
+      "hotel_name": "Vinpearl Resort Nha Trang",
+      "caption": "✈️ Туры в Vinpearl Resort Nha Trang\n📍 остров Хон-Тре, Вьетнам\nСобственный песчаный пляж и живая музыка. До острова добираются катером или по канатной дороге.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG2eBrpNlk",
+        "publication_id": 634,
+        "offer_id": "max_4091",
+        "offer_alias": "h1_0fca3a6a4d373cf9bcbe570128072be0",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "feed_has_preview_image": true,
+        "public_post_verified": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 7458,
+      "rank": 9,
+      "demand": {
+        "distinct_dialogues": 3,
+        "entries": 3
+      },
+      "hotel_name": "Four Seasons Resort The Nam Hai, Hoi An",
+      "caption": "✈️ Туры в Four Seasons Resort The Nam Hai, Hoi An\n📍 Хойан, Вьетнам\nВиллы рядом с широким песчаным пляжем Ха Ми. В отеле три бассейна, включая семейный, и занятия по вьетнамской кухне.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHo8yRQb-A",
+        "publication_id": 1516,
+        "offer_id": "max_7458",
+        "offer_alias": "h1_2eab05f3e43dae3caed10cb36e10716d",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "feed_has_preview_image": true,
+        "public_post_verified": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 75100,
+      "rank": 11,
+      "demand": {
+        "distinct_dialogues": 2,
+        "entries": 4
+      },
+      "hotel_name": "Barut Goia",
+      "caption": "✈️ Туры в Barut Goia\n📍 Сиде, Турция\nСемейный отель с детскими клубами, бассейнами и летним аквапарком. Для малышей есть программа Baby Star. До собственного песчаного пляжа ходит шаттл.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHptpkZVn8",
+        "publication_id": 1608,
+        "offer_id": "max_75100",
+        "offer_alias": "h1_9f26af6bfb8c91ffaff159d5d8544472",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "feed_has_preview_image": true,
+        "public_post_verified": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 246,
+      "rank": 12,
+      "demand": {
+        "distinct_dialogues": 2,
+        "entries": 3
+      },
+      "hotel_name": "JAZ Fayrouz",
+      "caption": "✈️ Туры в JAZ Fayrouz\n📍 Шарм-эль-Шейх, Египет\nПять бассейнов, включая детский. Для детей 4–12 лет есть мини-клуб, площадка и мини-диско. В ресторанах подают блюда восточной и итальянской кухни.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaGgW_zLBIc",
+        "publication_id": 298,
+        "offer_id": "max_246",
+        "offer_alias": "h1_1a36cc87dae6e79620a54f211f319c87",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "feed_has_preview_image": true,
+        "public_post_verified": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 466,
+      "rank": 14,
+      "demand": {
+        "distinct_dialogues": 2,
+        "entries": 3
+      },
+      "hotel_name": "Stella Beach Resort & Spa Makadi Bay",
+      "caption": "✈️ Туры в Stella Beach Resort & Spa Makadi Bay\n📍 Макади-Бей, Египет\nОтель на первой линии со своим пляжем. В море заходят с понтона.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG31NW7Nsc",
+        "publication_id": 1057,
+        "offer_id": "max_466",
+        "offer_alias": "h1_85363fbeae9d7593de5d6829080b5ce7",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "feed_has_preview_image": true,
+        "public_post_verified": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 150,
+      "rank": 16,
+      "demand": {
+        "distinct_dialogues": 2,
+        "entries": 2
+      },
+      "hotel_name": "Pickalbatros Citadel",
+      "caption": "✈️ Туры в Pickalbatros Citadel\n📍 Хургада, Египет\nСобственный пляж длиной 1,6 км, домашний коралловый риф и три лагуны для купания, среди них песчаная.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaGeHm38ACE",
+        "publication_id": 233,
+        "offer_id": "max_150",
+        "offer_alias": "h1_d4583dec24a747fb44ea9bdf4c2fbc1a",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "feed_has_preview_image": true,
+        "public_post_verified": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 206,
+      "rank": 17,
+      "demand": {
+        "distinct_dialogues": 2,
+        "entries": 2
+      },
+      "hotel_name": "Palace Beach Hotel",
+      "caption": "✈️ Туры в Palace Beach Hotel\n📍 Хургада, Египет\nПримерно в 100 м от отеля — собственный песчаный пляж. Есть открытый бассейн. Доступ к соседнему аквапарку стоит уточнить перед бронированием.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHeTF_WRuU",
+        "publication_id": 1378,
+        "offer_id": "max_206",
+        "offer_alias": "h1_f5bc0058b80150cb0d07d9074aefd4b5",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "feed_has_preview_image": true,
+        "public_post_verified": true
+      },
+      "product_evidence": {
+        "facts_url": "https://intourist.ru/info/egypt/hurgada/hurgada/hotel/white-valley-palace?search_id=hatmhga5",
+        "second_facts_url": "https://anextour.ru/hotelgroup/hotels-weeks",
+        "detail_to_recheck_before_apply": "текущий статус ремонта номеров первого этажа"
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 231,
+      "rank": 18,
+      "demand": {
+        "distinct_dialogues": 2,
+        "entries": 2
+      },
+      "hotel_name": "The Grand Makadi",
+      "caption": "✈️ Туры в The Grand Makadi\n📍 Макади-Бей, Египет\nПляж и домашний риф рядом с отелем. К рифу спускаются с пирса. Открытый бассейн подогревают по сезону.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHS60D1FKA",
+        "publication_id": 1322,
+        "offer_id": "max_231",
+        "offer_alias": "h1_1fb1c932cfa1e11d727e72613e83ee4e",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "feed_has_preview_image": true,
+        "public_post_verified": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 266,
+      "rank": 19,
+      "demand": {
+        "distinct_dialogues": 2,
+        "entries": 2
+      },
+      "hotel_name": "Lido Sharm",
+      "caption": "✈️ Туры в Lido Sharm\n📍 Шарм-эль-Шейх, Египет\nКамерный отель на первой линии в бухте Наама-Бэй. Есть собственный пляж, бассейн и рестораны, рядом жизнь курорта.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHp6GvNUDc",
+        "publication_id": 1668,
+        "offer_id": "max_266",
+        "offer_alias": "h1_d408407bf20c064cad25864600ec27cb",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "feed_has_preview_image": true,
+        "public_post_verified": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 288,
+      "rank": 20,
+      "demand": {
+        "distinct_dialogues": 2,
+        "entries": 2
+      },
+      "hotel_name": "King Tut Aqua Park Beach Resort",
+      "caption": "✈️ Туры в King Tut Aqua Park Beach Resort\n📍 Хургада, Египет\nПесчаный пляж общий с отелем Sphinx. У берега встречаются кораллы, пригодится обувь для купания. По вечерам — шоу и живая музыка.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG3spagCP4",
+        "publication_id": 1045,
+        "offer_id": "max_288",
+        "offer_alias": "h1_29a643ecf4228a089e204266f814f934",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "feed_has_preview_image": true,
+        "public_post_verified": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 371,
+      "rank": 21,
+      "demand": {
+        "distinct_dialogues": 2,
+        "entries": 2
+      },
+      "hotel_name": "Reef Oasis Beach Resort",
+      "caption": "✈️ Туры в Reef Oasis Beach Resort\n📍 Хадаба, Шарм-эль-Шейх, Египет\nПесчаный пляж у Temple Reef, снорклинг и дайвинг-центр. На территории есть бассейны. Ремонт аквапарка запланирован с 10 января по 28 февраля 2027 года.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaGeHsjldCE",
+        "publication_id": 242,
+        "offer_id": "max_371",
+        "offer_alias": "h1_8785a85a35bddae9cb9603b732e57a00",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "feed_has_preview_image": true,
+        "public_post_verified": true
+      },
+      "product_evidence": {
+        "detail_to_recheck_before_apply": "график плановых работ аквапарка"
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 483,
+      "rank": 22,
+      "demand": {
+        "distinct_dialogues": 2,
+        "entries": 2
+      },
+      "hotel_name": "SUNRISE Royal Makadi Resort",
+      "caption": "✈️ Туры в SUNRISE Royal Makadi Resort\n📍 Макади-Бей, Египет\nСемейный курорт с собственным пляжем у отеля, аквапарком с детской зоной и детским клубом. Допуск детей на горки стоит уточнить на даты поездки.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHRo0l6WD8",
+        "publication_id": 1282,
+        "offer_id": "max_483",
+        "offer_alias": "h1_ed9974ffb1b017a8e1ec65f7eeb4aa82",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "feed_has_preview_image": true,
+        "public_post_verified": true
+      },
+      "product_evidence": {
+        "detail_to_recheck_before_apply": "допуск детей на горки и подогрев на даты поездки"
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 713,
+      "rank": 23,
+      "demand": {
+        "distinct_dialogues": 2,
+        "entries": 2
+      },
+      "hotel_name": "Naithonburi Beach Resort",
+      "caption": "✈️ Туры в Naithonburi Beach Resort\n📍 Наитон, Таиланд\nПляж Наитон через дорогу от отеля. На территории — бассейны и два бара у воды.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG2y3YGbx0",
+        "publication_id": 698,
+        "offer_id": "max_713",
+        "offer_alias": "h1_450a7e156c6f0de2402487930c908214",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "feed_has_preview_image": true,
+        "public_post_verified": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 768,
+      "rank": 24,
+      "demand": {
+        "distinct_dialogues": 2,
+        "entries": 2
+      },
+      "hotel_name": "Royal Cliff Beach Terrace",
+      "caption": "✈️ Туры в Royal Cliff Beach Terrace\n📍 Паттайя, Таиланд\nКамерный отель на Пратамнаке. Пляжи в нескольких шагах, на территории есть бассейны и ресторан у берега.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHqSA5jc8k",
+        "publication_id": 1869,
+        "offer_id": "max_768",
+        "offer_alias": "h1_5fc785b24202b7e73c6ccad003022654",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "feed_has_preview_image": true,
+        "public_post_verified": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 1096,
+      "rank": 25,
+      "demand": {
+        "distinct_dialogues": 2,
+        "entries": 2
+      },
+      "hotel_name": "Club Hotel Phaselis Rose",
+      "caption": "✈️ Туры в Club Hotel Phaselis Rose\n📍 Текирова, Турция\nСобственный пляж с песком и галькой прямо у отеля. Для детей 4–12 лет работает мини-клуб.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG2zhV2Rxw",
+        "publication_id": 712,
+        "offer_id": "max_1096",
+        "offer_alias": "h1_fc8552d86035e892459e671228a27cab",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "feed_has_preview_image": true,
+        "public_post_verified": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    }
+  ]
+}
