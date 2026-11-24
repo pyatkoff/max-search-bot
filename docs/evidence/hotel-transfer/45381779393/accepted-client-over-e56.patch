@@ -1,0 +1,170 @@
+diff --git a/hotel-posts-telegram-main19.php b/hotel-posts-telegram-main19.php
+index a15fe913a4..4dcb58087c 100644
+--- a/hotel-posts-telegram-main19.php
++++ b/hotel-posts-telegram-main19.php
+@@ -3,6 +3,7 @@ declare(strict_types=1);
+ 
+ const ANYTOUR_TELEGRAM_FEED_LIMIT = 4000000;
+ const ANYTOUR_TELEGRAM_OFFER_ID = 'tg_[1-9][0-9]{0,11}';
++const ANYTOUR_TELEGRAM_ACCEPTED_TABLE_PILOTS = ['tg_1972', 'tg_2588'];
+ 
+ function anytourTelegramFeedOfferUrls(string $xml, int $limit = ANYTOUR_TELEGRAM_FEED_LIMIT): array
+ {
+@@ -160,6 +161,21 @@ function anytourTelegramFeedResolve(string $xml, string $offerId, ?callable $rou
+         throw new InvalidArgumentException('Invalid Telegram offer identifier');
+     }
+     $landing = anytourTelegramFeedDestinationPosts(anytourTelegramFeedOfferUrls($xml));
++    if ($routeLookup !== null && isset($landing[$offerId]) && in_array($offerId, ANYTOUR_TELEGRAM_ACCEPTED_TABLE_PILOTS, true)) {
++        // These posts already serve paid traffic. The table may confirm the accepted URL only.
++        $accepted = ['offer_id' => $offerId, 'post_url' => $landing[$offerId]];
++        try {
++            $row = $routeLookup($offerId);
++        } catch (Throwable $error) {
++            return $accepted;
++        }
++        if (is_array($row) && ($row['offer_id'] ?? null) === $offerId
++            && ($row['post_url'] ?? null) === $accepted['post_url']
++            && is_int($row['version'] ?? null) && $row['version'] > 0) {
++            $accepted['route_table'] = 'max2-v1';
++        }
++        return $accepted;
++    }
+     $tableRoutes = [
+         'tg_118475' => ['https://t.me/any_toour/194', 'https://t.me/anytour/1780'],
+         'tg_3405' => ['https://t.me/any_toour/158', 'https://t.me/anytour/1760'],
+@@ -182,14 +198,21 @@ function anytourTelegramFeedResolve(string $xml, string $offerId, ?callable $rou
+ 
+ function anytourTelegramReadSharedRoute(string $offerId): ?array
+ {
+-    if (!in_array($offerId, ['tg_118475', 'tg_3405'], true)) {
++    $pilot = in_array($offerId, ANYTOUR_TELEGRAM_ACCEPTED_TABLE_PILOTS, true);
++    if (!$pilot && !in_array($offerId, ['tg_118475', 'tg_3405'], true)) {
++        return null;
++    }
++    if ($pilot && getenv('ANYTOUR_TELEGRAM_ACCEPTED_TABLE_PILOTS') !== '1') {
+         return null;
+     }
++    $timeouts = $pilot
++        ? [CURLOPT_CONNECTTIMEOUT_MS => 250, CURLOPT_TIMEOUT_MS => 500, CURLOPT_NOSIGNAL => true]
++        : [CURLOPT_CONNECTTIMEOUT => 2, CURLOPT_TIMEOUT => 4];
+     $request = curl_init('https://tour-max.ru/new/max2/telegram-hotel-route.php?offer='.$offerId);
+     try {
+         $buffer = '';
+-        $configured = curl_setopt_array($request, [
+-            CURLOPT_CONNECTTIMEOUT => 2, CURLOPT_TIMEOUT => 4, CURLOPT_FOLLOWLOCATION => false,
++        $configured = curl_setopt_array($request, $timeouts + [
++            CURLOPT_FOLLOWLOCATION => false,
+             CURLOPT_SSL_VERIFYPEER => true, CURLOPT_SSL_VERIFYHOST => 2,
+             CURLOPT_WRITEFUNCTION => static function ($handle, string $part) use (&$buffer): int {
+                 if (strlen($buffer) + strlen($part) > 4096) {
+diff --git a/tests/run_channel_post_automation_regression.php b/tests/run_channel_post_automation_regression.php
+index 784bfd3764..2c1eb28e5e 100644
+--- a/tests/run_channel_post_automation_regression.php
++++ b/tests/run_channel_post_automation_regression.php
+@@ -1425,6 +1425,8 @@ channelPostCheck('existing publisher route still edits only the accepted keyboar
+ // Exercise the real editor's durable once-only flow; only its internal effects
+ // are fixtures. Requiring the CLI file does not bootstrap or invoke its runner.
+ require_once __DIR__.'/../tools/anytour_existing_post_batch.php';
++require_once __DIR__.'/telegram_accepted_route_cases.php';
++AnyTour\Tests\TelegramAcceptedRoute\runCases();
+ $nextTransferRaw = file_get_contents(__DIR__.'/../'.AnyTour\ExistingPostBatch\NEXT_TRANSFER_PLAN_FILE);
+ $nextTransfer = AnyTour\ExistingPostBatch\transferPlanFromBytes($nextTransferRaw, '30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d', true);
+ channelPostCheck('next fixed hotel transfer carries no old price and preserves exact destinations',
+diff --git a/tests/telegram_accepted_route_cases.php b/tests/telegram_accepted_route_cases.php
+new file mode 100644
+index 0000000000..5d41858bba
+--- /dev/null
++++ b/tests/telegram_accepted_route_cases.php
+@@ -0,0 +1,92 @@
++<?php
++declare(strict_types=1);
++
++namespace AnyTour\Tests\TelegramAcceptedRoute;
++
++use LogicException;
++use RuntimeException;
++
++require_once dirname(__DIR__).'/hotel-posts-telegram-main19.php';
++
++function expectRoute($actual, $expected, string $label): void
++{
++    \channelPostCheck('Accepted Telegram route '.$label, $actual, $expected);
++}
++
++function runCases(): void
++{
++    $pilots = [
++        'tg_1972' => ['https://t.me/any_toour/391', 'https://t.me/anytour/316'],
++        'tg_2588' => ['https://t.me/any_toour/689', 'https://t.me/anytour/346'],
++    ];
++    $legacy = [
++        'tg_118475' => ['https://t.me/any_toour/194', 'https://t.me/anytour/1780'],
++        'tg_3405' => ['https://t.me/any_toour/158', 'https://t.me/anytour/1760'],
++    ];
++    $unrelated = ['tg_408' => ['https://t.me/any_toour/120', 'https://t.me/anytour/997']];
++    $xml = '<yml_catalog><shop><offers>';
++    foreach ($pilots + $legacy + $unrelated as $id => [$source]) {
++        $xml .= '<offer id="'.$id.'"><url>'.$source.'</url></offer>';
++    }
++    $xml .= '</offers></shop></yml_catalog>';
++    $calls = [];
++    $lookup = static function (string $id) use (&$calls, $pilots): array {
++        $calls[] = $id;
++        return ['offer_id' => $id, 'post_url' => $pilots[$id][1], 'version' => 7];
++    };
++    foreach ($pilots as $id => [$source, $direct]) {
++        $accepted = ['offer_id' => $id, 'post_url' => $direct];
++        $tagged = $accepted + ['route_table' => 'max2-v1'];
++        foreach ([$xml, str_replace($source, $direct, $xml)] as $input) {
++            expectRoute(anytourTelegramFeedResolve($input, $id), $accepted, $id.' accepted baseline');
++            expectRoute(anytourTelegramFeedResolve($input, $id, $lookup), $tagged, $id.' confirmed');
++        }
++        $other = $id === 'tg_1972' ? 'tg_2588' : 'tg_1972';
++        $rejected = [
++            null, [], 'malformed', $accepted,
++            ['offer_id' => $other, 'post_url' => $direct, 'version' => 3],
++            ['offer_id' => $id, 'post_url' => $source, 'version' => 3],
++            ['offer_id' => $id, 'post_url' => $pilots[$other][1], 'version' => 3],
++            ['offer_id' => $id, 'post_url' => $direct.'?x=1', 'version' => 3],
++        ];
++        foreach ([0, -1, '7', true, 1.5, null] as $invalidVersion) {
++            $rejected[] = $accepted + ['version' => $invalidVersion];
++        }
++        foreach ($rejected as $row) {
++            expectRoute(anytourTelegramFeedResolve($xml, $id, static fn () => $row), $accepted, $id.' fallback');
++        }
++        expectRoute(anytourTelegramFeedResolve($xml, $id, static fn () => throw new RuntimeException('offline')),
++            $accepted, $id.' offline');
++    }
++    $flag = 'ANYTOUR_TELEGRAM_ACCEPTED_TABLE_PILOTS';
++    $previous = getenv($flag);
++    try {
++        putenv($flag.'=0');
++        foreach ($pilots as $id => [$source, $direct]) {
++            expectRoute(anytourTelegramFeedResolve($xml, $id, 'anytourTelegramReadSharedRoute'),
++                ['offer_id' => $id, 'post_url' => $direct], $id.' disabled');
++        }
++    } finally {
++        putenv($previous === false ? $flag : $flag.'='.$previous);
++    }
++    expectRoute($calls, ['tg_1972', 'tg_1972', 'tg_2588', 'tg_2588'], 'pilot calls');
++    foreach ($legacy as $id => [$source, $direct]) {
++        foreach ([$source, $direct] as $url) {
++            $row = ['offer_id' => $id, 'post_url' => $url];
++            expectRoute(anytourTelegramFeedResolve($xml, $id, static fn () => $row), $row + ['route_table' => 'max2-v1'],
++                $id.' existing switch and rollback');
++        }
++        expectRoute(anytourTelegramFeedResolve($xml, $id, static fn () => null),
++            ['offer_id' => $id, 'post_url' => $source], $id.' existing fallback');
++        try {
++            anytourTelegramFeedResolve($xml, $id, static fn () => ['offer_id' => $id, 'post_url' => 'bad']);
++            throw new LogicException($id.' accepted an invalid route');
++        } catch (RuntimeException $error) {
++            expectRoute($error->getMessage(), 'Unexpected Telegram table destination', $id.' strict legacy check');
++        }
++    }
++    $never = static fn () => throw new LogicException('Unrelated offer reached the table');
++    expectRoute(anytourTelegramFeedResolve($xml, 'tg_408', $never),
++        ['offer_id' => 'tg_408', 'post_url' => $unrelated['tg_408'][1]], 'unrelated route');
++    expectRoute(anytourTelegramFeedResolve($xml, 'tg_9999999', $never), null, 'unknown offer');
++}
