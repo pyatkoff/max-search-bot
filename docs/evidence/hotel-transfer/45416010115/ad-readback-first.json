@@ -1,0 +1,1606 @@
+{
+  "started_at": "2026-11-24T14:53:37.406+00:00",
+  "finished_at": "2026-11-24T14:57:06.424+00:00",
+  "deploy_run_id": "45416010115",
+  "installed_sha": "32155b9eb2c8606b61554951bfdc988d70bbcb39",
+  "manifest_sha256": "a88d4d35110efe01b2e63e51e5f35e45d646936fc1bbf1b5031c7c48cc93ec56",
+  "candidate_resolver_sha256": "926b7bd6dcca3ca3aa955a549a65df8959394f77225aab4af41f6c1647fabaaf",
+  "observer_sha256": "db675f078929307153fc2f135fcb40717e78354ea894a242545c71e1f36a93ac",
+  "selected_changes": 59,
+  "verified_count": 0,
+  "observed": [
+    {
+      "offer_id": "tg_114",
+      "expected_post_url": "https://t.me/anytour/948",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_114",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_114",
+          "expected": "https://t.me/anytour/948",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:53:46.168+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_114",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_114",
+          "expected": "https://t.me/anytour/948",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:53:55.450+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_140",
+      "expected_post_url": "https://t.me/anytour/949",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_140",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_140",
+          "expected": "https://t.me/anytour/949",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:53:46.181+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_140",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_140",
+          "expected": "https://t.me/anytour/949",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:53:55.466+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_195",
+      "expected_post_url": "https://t.me/anytour/952",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_195",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_195",
+          "expected": "https://t.me/anytour/952",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:53:46.167+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_195",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_195",
+          "expected": "https://t.me/anytour/952",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:53:55.455+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_206",
+      "expected_post_url": "https://t.me/anytour/963",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_206",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_206",
+          "expected": "https://t.me/anytour/963",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:53:46.165+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_206",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_206",
+          "expected": "https://t.me/anytour/963",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:53:55.463+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_231",
+      "expected_post_url": "https://t.me/anytour/969",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_231",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_231",
+          "expected": "https://t.me/anytour/969",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:53:46.161+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_231",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_231",
+          "expected": "https://t.me/anytour/969",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:53:55.449+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_246",
+      "expected_post_url": "https://t.me/anytour/970",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_246",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_246",
+          "expected": "https://t.me/anytour/970",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:04.237+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_246",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_246",
+          "expected": "https://t.me/anytour/970",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:13.469+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_263",
+      "expected_post_url": "https://t.me/anytour/999",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_263",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_263",
+          "expected": "https://t.me/anytour/999",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:04.239+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_263",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_263",
+          "expected": "https://t.me/anytour/999",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:13.468+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_266",
+      "expected_post_url": "https://t.me/anytour/1003",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_266",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_266",
+          "expected": "https://t.me/anytour/1003",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:04.236+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_266",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_266",
+          "expected": "https://t.me/anytour/1003",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:13.475+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_371",
+      "expected_post_url": "https://t.me/anytour/1037",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_371",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_371",
+          "expected": "https://t.me/anytour/1037",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:04.240+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_371",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_371",
+          "expected": "https://t.me/anytour/1037",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:13.490+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_416",
+      "expected_post_url": "https://t.me/anytour/1051",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_416",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_416",
+          "expected": "https://t.me/anytour/1051",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:04.253+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_416",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_416",
+          "expected": "https://t.me/anytour/1051",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:13.479+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_465",
+      "expected_post_url": "https://t.me/anytour/1052",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_465",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_465",
+          "expected": "https://t.me/anytour/1052",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:21.778+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_465",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_465",
+          "expected": "https://t.me/anytour/1052",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:30.985+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_497",
+      "expected_post_url": "https://t.me/anytour/1057",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_497",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_497",
+          "expected": "https://t.me/anytour/1057",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:21.756+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_497",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_497",
+          "expected": "https://t.me/anytour/1057",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:30.992+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_932",
+      "expected_post_url": "https://t.me/anytour/1059",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_932",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_932",
+          "expected": "https://t.me/anytour/1059",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:21.769+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_932",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_932",
+          "expected": "https://t.me/anytour/1059",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:30.980+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_948",
+      "expected_post_url": "https://t.me/anytour/1087",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_948",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_948",
+          "expected": "https://t.me/anytour/1087",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:22.277+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_948",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_948",
+          "expected": "https://t.me/anytour/1087",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:31.072+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_964",
+      "expected_post_url": "https://t.me/anytour/1110",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_964",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_964",
+          "expected": "https://t.me/anytour/1110",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:22.287+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_964",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_964",
+          "expected": "https://t.me/anytour/1110",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:31.073+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_975",
+      "expected_post_url": "https://t.me/anytour/1131",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_975",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_975",
+          "expected": "https://t.me/anytour/1131",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:39.296+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_975",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_975",
+          "expected": "https://t.me/anytour/1131",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:48.591+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_1013",
+      "expected_post_url": "https://t.me/anytour/920",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_1013",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_1013",
+          "expected": "https://t.me/anytour/920",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:39.272+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_1013",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_1013",
+          "expected": "https://t.me/anytour/920",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:48.581+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_64918",
+      "expected_post_url": "https://t.me/anytour/1020",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_64918",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_64918",
+          "expected": "https://t.me/anytour/1020",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:39.284+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_64918",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_64918",
+          "expected": "https://t.me/anytour/1020",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:48.586+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_996",
+      "expected_post_url": "https://t.me/anytour/1063",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_996",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_996",
+          "expected": "https://t.me/anytour/1063",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:39.899+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_996",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_996",
+          "expected": "https://t.me/anytour/1063",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:48.695+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_4091",
+      "expected_post_url": "https://t.me/anytour/1092",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_4091",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_4091",
+          "expected": "https://t.me/anytour/1092",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:39.900+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_4091",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_4091",
+          "expected": "https://t.me/anytour/1092",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:48.696+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_75100",
+      "expected_post_url": "https://t.me/anytour/1380",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_75100",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_75100",
+          "expected": "https://t.me/anytour/1380",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:56.890+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_75100",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_75100",
+          "expected": "https://t.me/anytour/1380",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:05.684+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_150",
+      "expected_post_url": "https://t.me/anytour/1034",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_150",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_150",
+          "expected": "https://t.me/anytour/1034",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:56.872+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_150",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_150",
+          "expected": "https://t.me/anytour/1034",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:05.685+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_288",
+      "expected_post_url": "https://t.me/anytour/1128",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_288",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_288",
+          "expected": "https://t.me/anytour/1128",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:57.429+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_288",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_288",
+          "expected": "https://t.me/anytour/1128",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:06.240+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_483",
+      "expected_post_url": "https://t.me/anytour/603",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_483",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_483",
+          "expected": "https://t.me/anytour/603",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:57.428+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_483",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_483",
+          "expected": "https://t.me/anytour/603",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:06.225+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_713",
+      "expected_post_url": "https://t.me/anytour/731",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_713",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_713",
+          "expected": "https://t.me/anytour/731",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:54:57.429+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_713",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_713",
+          "expected": "https://t.me/anytour/731",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:06.226+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_768",
+      "expected_post_url": "https://t.me/anytour/516",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_768",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_768",
+          "expected": "https://t.me/anytour/516",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:13.978+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_768",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_768",
+          "expected": "https://t.me/anytour/516",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:22.792+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_11791",
+      "expected_post_url": "https://t.me/anytour/560",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_11791",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_11791",
+          "expected": "https://t.me/anytour/560",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:13.994+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_11791",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_11791",
+          "expected": "https://t.me/anytour/560",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:22.799+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_26844",
+      "expected_post_url": "https://t.me/anytour/799",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_26844",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_26844",
+          "expected": "https://t.me/anytour/799",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:15.028+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_26844",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_26844",
+          "expected": "https://t.me/anytour/799",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:23.844+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_28460",
+      "expected_post_url": "https://t.me/anytour/1570",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_28460",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_28460",
+          "expected": "https://t.me/anytour/1570",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:15.026+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_28460",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_28460",
+          "expected": "https://t.me/anytour/1570",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:23.832+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_54605",
+      "expected_post_url": "https://t.me/anytour/892",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_54605",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_54605",
+          "expected": "https://t.me/anytour/892",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:15.029+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_54605",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_54605",
+          "expected": "https://t.me/anytour/892",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:23.832+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_64914",
+      "expected_post_url": "https://t.me/anytour/938",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_64914",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_64914",
+          "expected": "https://t.me/anytour/938",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:31.101+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_64914",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_64914",
+          "expected": "https://t.me/anytour/938",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:39.904+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_82106",
+      "expected_post_url": "https://t.me/anytour/983",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_82106",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_82106",
+          "expected": "https://t.me/anytour/983",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:31.092+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_82106",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_82106",
+          "expected": "https://t.me/anytour/983",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:39.905+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_107938",
+      "expected_post_url": "https://t.me/anytour/783",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_107938",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_107938",
+          "expected": "https://t.me/anytour/783",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:32.127+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_107938",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_107938",
+          "expected": "https://t.me/anytour/783",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:40.935+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_236",
+      "expected_post_url": "https://t.me/anytour/1074",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_236",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_236",
+          "expected": "https://t.me/anytour/1074",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:32.130+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_236",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_236",
+          "expected": "https://t.me/anytour/1074",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:40.926+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_454",
+      "expected_post_url": "https://t.me/anytour/956",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_454",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_454",
+          "expected": "https://t.me/anytour/956",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:32.141+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_454",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_454",
+          "expected": "https://t.me/anytour/956",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:40.934+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_1035",
+      "expected_post_url": "https://t.me/anytour/610",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_1035",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_1035",
+          "expected": "https://t.me/anytour/610",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:48.197+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_1035",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_1035",
+          "expected": "https://t.me/anytour/610",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:57.010+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_1105",
+      "expected_post_url": "https://t.me/anytour/1018",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_1105",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_1105",
+          "expected": "https://t.me/anytour/1018",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:48.207+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_1105",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_1105",
+          "expected": "https://t.me/anytour/1018",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:57.009+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_1451",
+      "expected_post_url": "https://t.me/anytour/702",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_1451",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_1451",
+          "expected": "https://t.me/anytour/702",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:49.226+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_1451",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_1451",
+          "expected": "https://t.me/anytour/702",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:58.043+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_1960",
+      "expected_post_url": "https://t.me/anytour/578",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_1960",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_1960",
+          "expected": "https://t.me/anytour/578",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:49.234+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_1960",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_1960",
+          "expected": "https://t.me/anytour/578",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:58.032+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_3415",
+      "expected_post_url": "https://t.me/anytour/755",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_3415",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_3415",
+          "expected": "https://t.me/anytour/755",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:49.232+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_3415",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_3415",
+          "expected": "https://t.me/anytour/755",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:55:58.035+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_4270",
+      "expected_post_url": "https://t.me/anytour/911",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_4270",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_4270",
+          "expected": "https://t.me/anytour/911",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:05.305+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_4270",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_4270",
+          "expected": "https://t.me/anytour/911",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:14.117+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_51238",
+      "expected_post_url": "https://t.me/anytour/431",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_51238",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_51238",
+          "expected": "https://t.me/anytour/431",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:05.322+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_51238",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_51238",
+          "expected": "https://t.me/anytour/431",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:14.124+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_79071",
+      "expected_post_url": "https://t.me/anytour/846",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_79071",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_79071",
+          "expected": "https://t.me/anytour/846",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:06.333+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_79071",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_79071",
+          "expected": "https://t.me/anytour/846",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:15.142+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_85417",
+      "expected_post_url": "https://t.me/anytour/737",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_85417",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_85417",
+          "expected": "https://t.me/anytour/737",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:06.332+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_85417",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_85417",
+          "expected": "https://t.me/anytour/737",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:15.130+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_109",
+      "expected_post_url": "https://t.me/anytour/819",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_109",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_109",
+          "expected": "https://t.me/anytour/819",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:06.339+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_109",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_109",
+          "expected": "https://t.me/anytour/819",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:15.132+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_125",
+      "expected_post_url": "https://t.me/anytour/852",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_125",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_125",
+          "expected": "https://t.me/anytour/852",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:22.426+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_125",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_125",
+          "expected": "https://t.me/anytour/852",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:31.228+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_133",
+      "expected_post_url": "https://t.me/anytour/867",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_133",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_133",
+          "expected": "https://t.me/anytour/867",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:22.417+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_133",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_133",
+          "expected": "https://t.me/anytour/867",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:31.230+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_247",
+      "expected_post_url": "https://t.me/anytour/889",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_247",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_247",
+          "expected": "https://t.me/anytour/889",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:23.425+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_247",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_247",
+          "expected": "https://t.me/anytour/889",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:32.231+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_272",
+      "expected_post_url": "https://t.me/anytour/894",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_272",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_272",
+          "expected": "https://t.me/anytour/894",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:23.427+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_272",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_272",
+          "expected": "https://t.me/anytour/894",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:32.222+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_287",
+      "expected_post_url": "https://t.me/anytour/964",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_287",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_287",
+          "expected": "https://t.me/anytour/964",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:23.438+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_287",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_287",
+          "expected": "https://t.me/anytour/964",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:32.232+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_302",
+      "expected_post_url": "https://t.me/anytour/972",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_302",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_302",
+          "expected": "https://t.me/anytour/972",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:39.531+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_302",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_302",
+          "expected": "https://t.me/anytour/972",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:48.348+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_441",
+      "expected_post_url": "https://t.me/anytour/1001",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_441",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_441",
+          "expected": "https://t.me/anytour/1001",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:39.547+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_441",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_441",
+          "expected": "https://t.me/anytour/1001",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:48.349+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_599",
+      "expected_post_url": "https://t.me/anytour/995",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_599",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_599",
+          "expected": "https://t.me/anytour/995",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:40.520+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_599",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_599",
+          "expected": "https://t.me/anytour/995",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:49.327+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_632",
+      "expected_post_url": "https://t.me/anytour/955",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_632",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_632",
+          "expected": "https://t.me/anytour/955",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:40.527+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_632",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_632",
+          "expected": "https://t.me/anytour/955",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:49.323+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_706",
+      "expected_post_url": "https://t.me/anytour/355",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_706",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_706",
+          "expected": "https://t.me/anytour/355",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:40.526+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_706",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_706",
+          "expected": "https://t.me/anytour/355",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:49.322+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_954",
+      "expected_post_url": "https://t.me/anytour/1055",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_954",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_954",
+          "expected": "https://t.me/anytour/1055",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:56.638+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_954",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_954",
+          "expected": "https://t.me/anytour/1055",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:57:05.435+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_955",
+      "expected_post_url": "https://t.me/anytour/1095",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_955",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_955",
+          "expected": "https://t.me/anytour/1095",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:56.642+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_955",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_955",
+          "expected": "https://t.me/anytour/1095",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:57:05.442+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_1032",
+      "expected_post_url": "https://t.me/anytour/1069",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_1032",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_1032",
+          "expected": "https://t.me/anytour/1069",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:57.625+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_1032",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_1032",
+          "expected": "https://t.me/anytour/1069",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:57:06.423+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    },
+    {
+      "offer_id": "tg_1055",
+      "expected_post_url": "https://t.me/anytour/1090",
+      "ok": false,
+      "attempts": [
+        {
+          "offer_id": "tg_1055",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_1055",
+          "expected": "https://t.me/anytour/1090",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:56:57.628+00:00",
+          "attempt": 1,
+          "headers": {}
+        },
+        {
+          "offer_id": "tg_1055",
+          "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_1055",
+          "expected": "https://t.me/anytour/1090",
+          "ok": false,
+          "reason": "TimeoutError",
+          "observed_at": "2026-11-24T14:57:06.424+00:00",
+          "attempt": 2,
+          "headers": {}
+        }
+      ]
+    }
+  ]
+}

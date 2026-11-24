@@ -1,0 +1,76 @@
+{
+  "physical": {
+    "run_id": "45416010115",
+    "job_id": "138531045324",
+    "sha": "32155b9eb2c8606b61554951bfdc988d70bbcb39",
+    "checkout_at": "2026-11-24T14:51:49.2814497Z",
+    "sync_smoke": "curl 28 without an HTTP response",
+    "migration": "skipped",
+    "publication_accepted": false
+  },
+  "advertising_read": {
+    "run_id": "45419145599",
+    "job_id": "138533535542",
+    "artifact_id": "14933781891",
+    "archive_sha256": "0215f5c2150e92fa62bfc8c6f387de8a49f93cedd704bbe5a1ad1b693f27b13f",
+    "report_sha256": "faf3cb46ce0a990f1c081f9955d6fc1efef188a11554540aabfd1a4082b13ed6",
+    "observed": 59,
+    "verified": 0,
+    "http_responses": 0
+  },
+  "independent_sample": {
+    "runner_observed_at": "2026-11-24T14:57:06.424Z",
+    "verified": 0,
+    "total": 5,
+    "observed": [
+      {
+        "offer_id": "tg_114",
+        "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_114",
+        "observed_at": "2026-11-24T14:58:04.235Z",
+        "expected": "https://t.me/anytour/948",
+        "ok": false,
+        "reason": "timeout"
+      },
+      {
+        "offer_id": "tg_64918",
+        "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_64918",
+        "observed_at": "2026-11-24T14:58:04.235Z",
+        "expected": "https://t.me/anytour/1020",
+        "ok": false,
+        "reason": "timeout"
+      },
+      {
+        "offer_id": "tg_4091",
+        "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_4091",
+        "observed_at": "2026-11-24T14:58:04.235Z",
+        "expected": "https://t.me/anytour/1092",
+        "ok": false,
+        "reason": "timeout"
+      },
+      {
+        "offer_id": "tg_3415",
+        "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_3415",
+        "observed_at": "2026-11-24T14:58:04.235Z",
+        "expected": "https://t.me/anytour/755",
+        "ok": false,
+        "reason": "timeout"
+      },
+      {
+        "offer_id": "tg_1055",
+        "url": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_1055",
+        "observed_at": "2026-11-24T14:58:04.235Z",
+        "expected": "https://t.me/anytour/1090",
+        "ok": false,
+        "reason": "timeout"
+      }
+    ]
+  },
+  "containment_preflight": {
+    "run_id": "45419815585",
+    "job_id": "138535934949",
+    "observed_at": "2026-11-24T14:57:23Z",
+    "result": "curl 28 without an HTTP response"
+  },
+  "previous_verified": 43,
+  "candidate_catalog_total": 102
+}
