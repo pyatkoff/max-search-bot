@@ -321,7 +321,7 @@ function archiveResearchReadRegression(PDO $pdo): int
         $check(($candidateRef['a']??null)==='100'&&($candidateRef['c']??null)==='198'
             &&($recent['recent_business']['order']??null)==='retained_row_id_desc'&&$recent['has_more']
             &&($candidate['timestamp_basis']??null)==='provider_declared_not_server_recording'
-            &&($candidate['message_records']??false)===null,
+            &&array_key_exists('message_records',$candidate)&&$candidate['message_records']===null,
             'recent_business_candidates_order_by_stored_rows_without_fabricated_counts_or_server_time');
         $check(!array_filter(ArchiveResearchTraceStatement::$queries,
                 static fn($sql)=>str_contains($sql,'record_json')||!str_starts_with($sql,'SELECT '))
