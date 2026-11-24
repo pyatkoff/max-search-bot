@@ -1,10 +1,11 @@
-name: "#1566 Read the next MAX hotel source cards and non-video archive posts"
+name: "#1566 Read ranked MAX hotel sources for the next drafts"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
     paths: ['.github/workflows/read-1566-max-archive-20261123.yml']
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: hotel-1566-public-archive-observation
   cancel-in-progress: false
@@ -14,22 +15,30 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == '1b018261a5d835b15875eae5f7814c8c9a929727' && github.run_attempt == 1
+      github.event.before == '55e1db8a1456c0189695d383c1e4f9d26644f9d3' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Observe public listings and exact old publication URLs
+      - name: Observe ranked source cards and existing offer aliases
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           mkdir pub
+          gh api /repos/pyatkoff/max-search-bot/actions/runs/45385556709 > pub/rank-run.json
+          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14915463382 > pub/rank-meta.json
+          curl -fsSL --max-time 25 --header "Authorization: Bearer $GH_TOKEN" \
+            https://api.github.com/repos/pyatkoff/max-search-bot/actions/artifacts/14915463382/zip -o pub/rank.zip
+          gh api /repos/pyatkoff/max-search-bot/git/blobs/ba5ac7207da7fe185c1d864726bc240ba273976d --jq .content | base64 --decode > pub/bindings.json
           python3 - <<'PY'
           import base64
           import hashlib
           import json
           import pathlib
           import re
+          import zipfile
           import urllib.error
           import urllib.request
           import xml.etree.ElementTree as ET
@@ -37,8 +46,37 @@ jobs:
           from datetime import datetime, timezone
           from html.parser import HTMLParser
 
-          candidates = json.loads("[{\"hotel_id\":64918,\"offer_id\":\"max_64918\",\"source_url\":\"https://max.ru/channel_anytour/AaHryMfSWo0\",\"source_alias\":\"h1_be282d699a6be3568fa8dacf857f3435\"},{\"hotel_id\":358,\"offer_id\":\"max_358\",\"source_url\":\"https://max.ru/channel_anytour/AaGd4bFlag4\",\"source_alias\":\"h1_84170d0b84626b05e4f82e798ef57820\"},{\"hotel_id\":1569,\"offer_id\":\"max_1569\",\"source_url\":\"https://max.ru/channel_anytour/AaHRcgxpNoQ\",\"source_alias\":\"h1_c2796079f2af06b30305bae975ed2246\"},{\"hotel_id\":4091,\"offer_id\":\"max_4091\",\"source_url\":\"https://max.ru/channel_anytour/AaG2eBrpNlk\",\"source_alias\":\"h1_0fca3a6a4d373cf9bcbe570128072be0\"},{\"hotel_id\":7458,\"offer_id\":\"max_7458\",\"source_url\":\"https://max.ru/channel_anytour/AaHo8yRQb-A\",\"source_alias\":\"h1_2eab05f3e43dae3caed10cb36e10716d\"},{\"hotel_id\":75100,\"offer_id\":\"max_75100\",\"source_url\":\"https://max.ru/channel_anytour/AaHptpkZVn8\",\"source_alias\":\"h1_9f26af6bfb8c91ffaff159d5d8544472\"},{\"hotel_id\":246,\"offer_id\":\"max_246\",\"source_url\":\"https://max.ru/channel_anytour/AaGgW_zLBIc\",\"source_alias\":\"h1_1a36cc87dae6e79620a54f211f319c87\"},{\"hotel_id\":466,\"offer_id\":\"max_466\",\"source_url\":\"https://max.ru/channel_anytour/AaG31NW7Nsc\",\"source_alias\":\"h1_85363fbeae9d7593de5d6829080b5ce7\"},{\"hotel_id\":150,\"offer_id\":\"max_150\",\"source_url\":\"https://max.ru/channel_anytour/AaGeHm38ACE\",\"source_alias\":\"h1_d4583dec24a747fb44ea9bdf4c2fbc1a\"},{\"hotel_id\":206,\"offer_id\":\"max_206\",\"source_url\":\"https://max.ru/channel_anytour/AaHeTF_WRuU\",\"source_alias\":\"h1_f5bc0058b80150cb0d07d9074aefd4b5\"},{\"hotel_id\":231,\"offer_id\":\"max_231\",\"source_url\":\"https://max.ru/channel_anytour/AaHS60D1FKA\",\"source_alias\":\"h1_1fb1c932cfa1e11d727e72613e83ee4e\"},{\"hotel_id\":266,\"offer_id\":\"max_266\",\"source_url\":\"https://max.ru/channel_anytour/AaHp6GvNUDc\",\"source_alias\":\"h1_d408407bf20c064cad25864600ec27cb\"},{\"hotel_id\":288,\"offer_id\":\"max_288\",\"source_url\":\"https://max.ru/channel_anytour/AaG3spagCP4\",\"source_alias\":\"h1_29a643ecf4228a089e204266f814f934\"},{\"hotel_id\":371,\"offer_id\":\"max_371\",\"source_url\":\"https://max.ru/channel_anytour/AaGeHsjldCE\",\"source_alias\":\"h1_8785a85a35bddae9cb9603b732e57a00\"},{\"hotel_id\":483,\"offer_id\":\"max_483\",\"source_url\":\"https://max.ru/channel_anytour/AaHRo0l6WD8\",\"source_alias\":\"h1_ed9974ffb1b017a8e1ec65f7eeb4aa82\"},{\"hotel_id\":713,\"offer_id\":\"max_713\",\"source_url\":\"https://max.ru/channel_anytour/AaG2y3YGbx0\",\"source_alias\":\"h1_450a7e156c6f0de2402487930c908214\"},{\"hotel_id\":768,\"offer_id\":\"max_768\",\"source_url\":\"https://max.ru/channel_anytour/AaHqSA5jc8k\",\"source_alias\":\"h1_5fc785b24202b7e73c6ccad003022654\"},{\"hotel_id\":1096,\"offer_id\":\"max_1096\",\"source_url\":\"https://max.ru/channel_anytour/AaG2zhV2Rxw\",\"source_alias\":\"h1_fc8552d86035e892459e671228a27cab\"}]")
-          archive_urls = json.loads("[\"https://max.ru/anytour/AZvvdczbYAo\",\"https://max.ru/anytour/AZwEq2zVLGY\",\"https://max.ru/anytour/AZwpDhM0dC0\",\"https://max.ru/anytour/AZwymV1GDrA\",\"https://max.ru/anytour/AZxcpmMWNUI\",\"https://max.ru/anytour/AZyp_bIBa3I\",\"https://max.ru/anytour/AZyz_0qwYkE\",\"https://max.ru/anytour/AZ82fl5vOjg\",\"https://max.ru/anytour/AZ-3aMozWT8\",\"https://max.ru/anytour/AZ_RCJ53Xsw\",\"https://max.ru/anytour/AZ_bV9KmN9s\",\"https://max.ru/anytour/AaCqVlKZASo\"]")
+          excluded = set([106,111,114,132,139,150,206,218,231,240,241,246,253,260,266,288,293,325,341,352,358,371,408,418,435,466,469,483,513,547,713,768,800,949,1096,1260,1344,1569,1972,2470,2493,2588,3405,3452,4079,4091,4181,7458,12107,12111,12125,15693,24909,28581,32342,37668,43676,43689,47025,56092,57028,59114,63191,64895,64918,65877,70048,73343,73974,74503,75100,76588,77914,82606,99713,118475,132016])
+          reserve = json.loads("[{\"url\":\"https://max.ru/anytour/AZwEq2zVLGY\",\"mid\":\"mid.ffffc1752b045fed019c04ab6cd52c66\",\"hotel_name\":\"The Marin Phuket\"},{\"url\":\"https://max.ru/anytour/AZwpDhM0dC0\",\"mid\":\"mid.ffffc1752b045fed019c290e1334742d\",\"hotel_name\":\"Akka Alinda Hotel\"},{\"url\":\"https://max.ru/anytour/AZxcpmMWNUI\",\"mid\":\"mid.ffffc1752b045fed019c5ca663163542\",\"hotel_name\":\"Address Beach Resort Fujairah\"},{\"url\":\"https://max.ru/anytour/AZ82fl5vOjg\",\"mid\":\"mid.ffffc1752b045fed019f367e5e6f3a38\",\"hotel_name\":\"SO/ Ras Al Khaimah\"}]")
+          rank_run = json.loads(pathlib.Path("pub/rank-run.json").read_bytes())
+          rank_meta = json.loads(pathlib.Path("pub/rank-meta.json").read_bytes())
+          digest = "b41f4d47c1041204ed6830730d7ab8805af15a0647787aa5658eecca398314fe"
+          assert (rank_run["id"], rank_run["run_attempt"], rank_run["conclusion"]) == (45385556709, 1, "success")
+          assert rank_meta["id"] == 14915463382 and rank_meta["workflow_run"]["id"] == rank_run["id"] and not rank_meta["expired"]
+          assert rank_meta["digest"] == "sha256:" + digest and hashlib.sha256(pathlib.Path("pub/rank.zip").read_bytes()).hexdigest() == digest
+          with zipfile.ZipFile("pub/rank.zip") as source:
+              assert source.namelist() == ["registry.json"] and source.getinfo("registry.json").file_size < 1_000_000
+              ranked = json.loads(source.read("registry.json"))
+          assert ranked["ok"] and ranked["ranked_hotels"] == len(ranked["rows"]) == 184
+          map_bytes = pathlib.Path("pub/bindings.json").read_bytes()
+          assert hashlib.sha1(b"blob " + str(len(map_bytes)).encode() + b"\0" + map_bytes).hexdigest() == "ba5ac7207da7fe185c1d864726bc240ba273976d"
+          canonical = json.loads(map_bytes)
+          by_offer = {x["offer_id"]:x for x in canonical["bindings_by_post_id"].values()}
+          assert len(by_offer) == canonical["binding_count"] == 1055
+          candidates = []
+          for priority, row in enumerate(ranked["rows"], 1):
+              if row["hotel_id"] in excluded:
+                  continue
+              binding = by_offer.get(row["max_offer"])
+              if not binding or int(binding["hotel_id"]) != row["hotel_id"]:
+                  continue
+              assert re.fullmatch(r"https://max.ru/channel_anytour/[A-Za-z0-9_-]{11}",binding["post_url"])
+              candidates.append({"hotel_id":row["hotel_id"],"rank":priority,"rank_name":row["hotel_name"],
+                                 "offer_id":row["max_offer"],"source_url":binding["post_url"],"source_alias":binding["alias"],
+                                 "publication_id":int(binding["publication_id"]),"demand":row["source"]})
+              if len(candidates) == 24:
+                  break
+          assert len(candidates)==len({x["offer_id"] for x in candidates})==24
           feed_url = "https://app.anytoour.ru/feed/hotel-posts-max.xml"
 
           def load(url, limit):
@@ -86,6 +124,9 @@ jobs:
 
           wanted={row["offer_id"]:row for row in candidates}
           offers=[]
+          reserve_matches=[]
+          def normalized(name):
+              return re.sub(r'[^a-z0-9]+', '', re.sub(r'^(?:туры|путевки|путёвки) в ', '', name.strip().casefold()))
           feed_error=None
           feed_sha=None
           try:
@@ -99,6 +140,10 @@ jobs:
                   token=parts[1]+"="*(-len(parts[1])%4)
                   key=json.loads(base64.urlsafe_b64decode(token))
                   if key.get("offer_id") not in wanted:
+                      referenced = by_offer.get(key.get("offer_id"))
+                      for target in reserve:
+                          if normalized(item.findtext("name",""))==normalized(target["hotel_name"]) and referenced and key.get("post_id")==referenced["alias"]:
+                              reserve_matches.append({"target":target,"source":referenced})
                       continue
                   c=wanted[key["offer_id"]]
                   matches=key.get("post_id")==c["source_alias"] and all(part in url for part in ("{yclid}","{campaign_id}","{region_id}"))
@@ -109,18 +154,26 @@ jobs:
           except (AssertionError, OSError, ValueError, ET.ParseError) as error:
               feed_error=type(error).__name__
           with ThreadPoolExecutor(max_workers=6) as executor:
-              pages=list(executor.map(page,[*archive_urls,*[x["source_url"] for x in candidates]]))
-          assert len(pages)==len({p["url"] for p in pages})==30
+              pages=list(executor.map(page,[x["source_url"] for x in candidates]))
+          assert len(pages)==len({p["url"] for p in pages})==24
           result={"observed_utc":datetime.now(timezone.utc).isoformat(),"feed_sha256":feed_sha,"feed_error":feed_error,
-                  "offers":offers,"pages":pages,"production_writes":0}
+                  "offers":offers,"pages":pages,"candidates":candidates,"same_hotel_album_references":reserve_matches,"production_writes":0}
           pathlib.Path("pub/observation.json").write_text(json.dumps(result,ensure_ascii=False))
-          print("MAX_PREPARATION_PUBLIC=" + json.dumps({"feed_error":feed_error,"matched_offers":sum(x["binding_matches"] for x in offers),
-                 "archive_public":sum(x.get("http")==200 for x in pages[:len(archive_urls)]),
-                 "source_public":sum(x.get("http")==200 for x in pages[len(archive_urls):])}))
+          print("MAX_MORE_PREPARATION=" + json.dumps({"feed_error":feed_error,"feed_sha256":feed_sha,"matched_offers":sum(x["binding_matches"] for x in offers),
+                 "source_public":sum(x.get("http")==200 for x in pages)}))
+          by_address={x["url"]:x for x in pages}
+          by_key={x["offer_id"]:x for x in offers}
+          for candidate in candidates:
+              source = by_address[candidate["source_url"]]
+              offer = by_key.get(candidate["offer_id"],{})
+              public = source.get("visible_text","").split("Другие публикации канала",1)[0][:1550]
+              print("MAX_MORE_CARD="+json.dumps({"candidate":candidate,"http":source.get("http"),"picture":source.get("has_preview_image"),
+                      "description":offer.get("description"),"binding_matches":offer.get("binding_matches"),"public":public},ensure_ascii=False))
+          print("MAX_MORE_RESERVE="+json.dumps(reserve_matches,ensure_ascii=False))
           PY
       - name: Retain public preparation evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: hotel-max-next-public-observation
+          name: hotel-max-ranked-public-observation
           path: pub/observation.json
           retention-days: 7
