@@ -161,5 +161,87 @@ foreach(['missing_start','missing_response','duplicate_start','changed_saved_res
     }
     lineReject(fn()=>$run([$first,$second],[$encodeJournal($lines)]),$case);
 }
+// Real SQLite registry layout (the existing MySQL migration translated by
+// the canonical fixture), actual locked files and the same immutable intent.
+require_once __DIR__.'/../../services/HotelTransferPriceEvidenceReader.php';
+$root=sys_get_temp_dir().'/anytour-price-lineage-'.bin2hex(random_bytes(8));
+if(!mkdir($root,0700))throw new RuntimeException('fixture_root');
+$root=realpath($root);
+$leasePath=$root.'/monitor-price-after-collection-v1.jsonl';
+$lease=fopen($leasePath,'x+b');$other=null;$journalLock=null;
+if(!is_resource($lease))throw new RuntimeException('fixture_lease');
+$dirs=[];$tmpFiles=[$leasePath];
+try{
+    $pdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    createChannelPostRegistryFixture($pdo);
+    $pdo->exec("INSERT INTO projects VALUES(1,'anytour','AnyTour',1); INSERT INTO conversation_sources VALUES(11,1,'tg_fixture','TG','telegram',1,'manager');");
+    $pdo->exec("INSERT INTO post_channels (id,project_id,source_id,platform,bot_key,canonical_bot_username,channel_id,bot_url,button_text,is_enabled,config_version)
+        VALUES(10,1,11,'telegram','anyru_bot','anyru_bot','-1002262666616','https://t.me/anyru_bot','✈️ Узнать стоимость тура',1,2),
+        (6,1,11,'telegram','anyru_bot','anyru_bot','-1001845835645','https://t.me/anyru_bot','✈️ Рассчитать на мои даты',1,2)");
+    $pdo->prepare('INSERT INTO post_publications (id,post_channel_id,source_id,external_message_id,start_payload,current_version_id) VALUES(101,10,11,?,?,1008)')
+        ->execute(['51',$token]);
+    $withSource=static function(array $v,array $journal):array{
+        $event=$journal['operation'].':telegram:51';
+        $v['snapshot']['metadata']['source_event_id']=$event;
+        $v['snapshot']['metadata']['observation_kind']='authorized_admin_content_edit';
+        return $v;
+    };
+    $v2=$withSource($second,$j2);$v3=$withSource($third,$j3);
+    foreach([$first,$v2,$v3] as $v){
+        $pdo->prepare("INSERT INTO post_versions (id,publication_id,version_number,content_hash,snapshot_json,state) VALUES(?,101,?,?,?,'sent')")
+            ->execute([$v['version_id'],$v['version_number'],$v['content_hash'],lineJson($v['snapshot'])]);
+    }
+    $saved=[];
+    foreach([[$v2,$j2],[$v3,$j3]] as [$v,$j]){
+        $pdo->prepare('INSERT INTO post_observations (publication_id,source_event_key,version_id) VALUES(101,?,?)')
+            ->execute([hash('sha256',$v['snapshot']['metadata']['source_event_id']),$v['version_id']]);
+        $j['posts']['telegram:fixture']['receipt']['source_key']='tg_fixture';
+        $dir=$root.'/'.$j['operation'];if(!mkdir($dir,0700))throw new RuntimeException('fixture_journal_dir');
+        $dirs[]=$dir;$path=$dir.'/receipt.jsonl';$tmpFiles[]=$path;
+        $saved[$path]=$encodeJournal($journalLines($j));file_put_contents($path,$saved[$path]);
+    }
+    $read=static fn()=>HotelTransferPriceEvidenceReader::candidate($pdo,$bytes,$digest,$root,$lease);
+    $dbState=static function()use($pdo):array{
+        $rows=[];
+        foreach(['post_channels','post_publications','post_versions','post_observations'] as $table)
+            $rows[$table]=$pdo->query('SELECT * FROM '.$table)->fetchAll(PDO::FETCH_ASSOC);
+        return $rows;
+    };
+    $before=$dbState();$result=$read();
+    lineAssert($result['row']===$expected&&count($result['price_lineage'])===2,'reader real registry history and original locked journal files');
+    lineAssert($dbState()===$before&&array_map('file_get_contents',array_keys($saved))===array_values($saved)
+        &&!file_exists($root.'/anytour-issue1566-historical-tg-media-77-v1'),'reader creates no operation and changes no DB/journal bytes');
+    $other=fopen($leasePath,'rb');
+    lineAssert(is_resource($other)&&!flock($other,LOCK_EX|LOCK_NB),'reader retains caller-owned global lease');
+    lineReject(fn()=>HotelTransferPriceEvidenceReader::candidate($pdo,$bytes,$digest,$root,$other),'competing global lease');
+    fclose($other);$other=null;
+    $firstPath=array_key_first($saved);
+    $journalLock=fopen($firstPath,'rb');flock($journalLock,LOCK_EX|LOCK_NB);
+    lineReject($read,'original PRICE journal currently held');
+    fclose($journalLock);$journalLock=null;
+    $pdo->exec("UPDATE post_versions SET state='unknown' WHERE id=1001");lineReject($read,'historical UNKNOWN source fence');$pdo->exec("UPDATE post_versions SET state='sent' WHERE id=1001");
+    $pdo->exec("UPDATE post_versions SET claim_token='foreign' WHERE id=1001");lineReject($read,'historical source claim fence');$pdo->exec("UPDATE post_versions SET claim_token=NULL WHERE id=1001");
+    $pdo->exec('UPDATE post_publications SET current_version_id=1003 WHERE id=101');lineReject($read,'registry current pointer does not end history');$pdo->exec('UPDATE post_publications SET current_version_id=1008 WHERE id=101');
+    $pdo->exec('UPDATE post_observations SET version_id=1003 WHERE version_id=1008');lineReject($read,'original event points to wrong version');
+    // Restore through a bound predicate; no changes outside this in-memory fixture.
+    $pdo->prepare('UPDATE post_observations SET version_id=1008 WHERE source_event_key=?')->execute([hash('sha256',$v3['snapshot']['metadata']['source_event_id'])]);
+    $pdo->exec("INSERT INTO post_publications (id,post_channel_id,source_id,external_message_id,start_payload) VALUES(102,6,11,'77','p_reserved_fixture')");
+    lineReject($read,'target orphan reservation is not reusable');$pdo->exec('DELETE FROM post_publications WHERE id=102');
+    $prior=$root.'/anytour-issue1566-historical-tg-media-77-v1';mkdir($prior,0700);
+    try{lineReject($read,'existing old v1 target operation fence');}finally{rmdir($prior);}
+    $sourceJournal=$root.'/issue-1566-edit-existing-101.jsonl';file_put_contents($sourceJournal,'fixture');
+    try{lineReject($read,'source manual editor journal fence');}finally{unlink($sourceJournal);}
+    unlink($firstPath);lineReject($read,'missing original receipt file');
+    symlink($leasePath,$firstPath);try{lineReject($read,'symlink receipt rejected');}finally{unlink($firstPath);}
+    file_put_contents($firstPath,$saved[$firstPath]);
+    lineAssert($read()===$result&&$dbState()===$before,'same candidate after isolated negative fixtures');
+}finally{
+    if(is_resource($other))fclose($other);
+    if(is_resource($journalLock))fclose($journalLock);
+    flock($lease,LOCK_UN);fclose($lease);
+    foreach($tmpFiles as $path)if(is_file($path)||is_link($path))unlink($path);
+    foreach($dirs as $dir)if(is_dir($dir))rmdir($dir);
+    rmdir($root);
+}
 echo "HOTEL TRANSFER PRICE LINEAGE REGRESSION PASSED\n";
 })();

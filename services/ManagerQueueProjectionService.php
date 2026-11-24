@@ -10,11 +10,11 @@ class ManagerQueueProjectionService
         return ManagerDeliveryStateService::withoutSuspendedRecipients($rows);
     }
 
-    public static function counts(int $managerId,string $projectKey='*'): array
+    public static function counts(int $managerId,string $projectKey='*',bool $inboxTabsOnly=false): array
     {
-        $rawWaiting=ManagerConversationService::notificationWaitingRows($managerId,$projectKey);
+        $rawWaiting=$inboxTabsOnly?[]:ManagerConversationService::notificationWaitingRows($managerId,$projectKey);
         $operationalWaiting=ManagerConversationService::queueCountRows($managerId,'waiting',$projectKey);
-        $requested=ManagerConversationService::queueCountRows($managerId,'requested',$projectKey);
+        $requested=$inboxTabsOnly?[]:ManagerConversationService::queueCountRows($managerId,'requested',$projectKey);
         $mine=ManagerConversationService::queueCountRows($managerId,'mine',$projectKey);
         $waiting=self::actionableRows('waiting',$operationalWaiting);
 
@@ -33,6 +33,8 @@ class ManagerQueueProjectionService
                 'unread'=>array_sum(array_map(static function($row){return(int)($row['unread_count']??0);},$mine)),
             ],
         ];
+
+        if($inboxTabsOnly)return ['waiting'=>$out['waiting'],'mine'=>$out['mine']];
 
         // Preserve the existing notification badge contract: it is the unique
         // unread-message total across the raw waiting + mine projections. The
