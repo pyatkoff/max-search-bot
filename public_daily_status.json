@@ -1,43 +1,43 @@
 {
     "ok": true,
-    "generated_at": "2026-11-24T02:22:15+00:00",
+    "generated_at": "2026-11-24T03:40:53+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 21,
-        "raw_sessions": 21,
+        "sessions": 22,
+        "raw_sessions": 22,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 21,
+            "resolved": 22,
             "unresolved": 0
         },
-        "started": 18,
+        "started": 19,
         "needs_collected": 4,
         "tours_opened": 4,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 13,
+        "manager_requested": 14,
         "manager_replied": 2,
         "customer_replied_after_manager": 2,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 1,
-            "still_unanswered": 8,
+            "still_unanswered": 9,
             "measured_responses": 1,
             "avg_seconds": 2287,
             "max_seconds": 2287
         },
         "drop_points": {
-            "manager_requested": 11,
+            "manager_requested": 12,
             "collecting_needs": 5,
             "started_only": 3,
             "customer_replied_after_manager": 2
         },
         "flags": {
-            "manager_requested_no_reply": 8,
+            "manager_requested_no_reply": 9,
             "repeated_callback_input": 1
         },
         "calendar_day": {
@@ -46,13 +46,13 @@
             "tours_opened_from_started": 2,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
-            "manager_requested": 10,
+            "manager_requested": 11,
             "manager_replied": 0,
             "customer_replied_after_manager": 0
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-24T02:22:15Z",
+        "sampled_at": "2026-11-24T03:40:53Z",
         "available": true,
         "error": null,
         "mode": "send",
