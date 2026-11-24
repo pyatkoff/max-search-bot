@@ -1439,6 +1439,134 @@ $remainingTransfer = AnyTour\ExistingPostBatch\selectRemainingTransferRows($next
 channelPostCheck('continuation selects only the two untouched posts',
     [array_column($remainingTransfer['rows'],'hotel_id'),array_column($remainingTransfer['rows'],'target_message_id')],
     [[408,466],['997','1101']]);
+$rankedDigest = AnyTour\ExistingPostBatch\RANKED_ORIGINAL_PLAN;
+$rankedRaw = file_get_contents(__DIR__.'/../config/anytour_ranked_46_20261123_01.json');
+$rankedPlan = AnyTour\ExistingPostBatch\transferPlanFromBytes($rankedRaw, $rankedDigest, $rankedDigest);
+$rankedTail = AnyTour\ExistingPostBatch\selectRankedContinuationRows($rankedPlan, $rankedDigest);
+$rankedRow = $rankedTail['rows'][0];
+foreach (['occupied'=>[0,false],'occupied string'=>['0',false],'acquired'=>[1,true],'acquired string'=>['1',true],
+    'NULL'=>[null,'transfer_target_lock_unconfirmed'],'SQL failure'=>[false,'transfer_target_lock_unconfirmed'],
+    'unexpected result'=>[2,'transfer_target_lock_unconfirmed']] as $case=>[$reply,$expected]) {
+    try { $observed=AnyTour\ExistingPostBatch\transferTargetLockAcquired($reply); }
+    catch (RuntimeException $e) { $observed=$e->getMessage(); }
+    channelPostCheck('ranked destination lock '.$case,$observed,$expected);
+}
+$targetDb = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+$targetDb->sqliteCreateFunction('JSON_UNQUOTE',static fn($value)=>$value);
+$targetDb->exec('CREATE TABLE post_publications (id INTEGER, post_channel_id INTEGER, external_message_id TEXT,current_version_id INTEGER)');
+$targetDb->exec('CREATE TABLE post_versions (id INTEGER, publication_id INTEGER,snapshot_json TEXT)');
+foreach (['empty'=>null,'same hotel'=>'transfer_hotel_already_in_large_channel','same post'=>'transfer_target_identity_exists'] as $case=>$expected) {
+    if ($case==='same hotel') {
+        $targetDb->exec("INSERT INTO post_publications VALUES(1,6,'99999',1)");
+        $targetDb->prepare('INSERT INTO post_versions VALUES(1,1,?)')->execute([json_encode(['metadata'=>['hotel_catalog_id'=>(string)$rankedRow['hotel_id']]])]);
+    } elseif ($case==='same post') {
+        $targetDb->prepare('INSERT INTO post_publications VALUES(2,6,?,NULL)')->execute([$rankedRow['target_message_id']]);
+    }
+    $reason=null;
+    try { AnyTour\ExistingPostBatch\transferNoTarget($targetDb,$rankedRow); }
+    catch (RuntimeException $e) { $reason=$e->getMessage(); }
+    channelPostCheck('ranked destination inventory '.$case,$reason,$expected);
+}
+$sameSource = ['project_key'=>'anytour','platform'=>'telegram','bot_key'=>'anyru_bot','channel_id'=>'-1002262666616',
+    'channel'=>['id'=>10],'message_id'=>$rankedRow['source_message_id'],'state'=>'sent',
+    'publication_id'=>$rankedRow['source_publication_id'],'version_id'=>$rankedRow['source_version_id'] + 1,
+    'snapshot'=>['metadata'=>['hotel_catalog_id'=>$rankedRow['hotel_id']]]];
+foreach (['newer'=>[[],true],'unchanged'=>[['version_id'=>$rankedRow['source_version_id']],false],
+    'wrong hotel'=>[['snapshot'=>[]],false],'wrong source'=>[['publication_id'=>0],false],
+    'wrong channel'=>[['channel_id'=>'another'],false],'missing version'=>[['version_id'=>null],false]] as $case=>[$change,$expected]) {
+    channelPostCheck('independent source hold: '.$case,
+        AnyTour\ExistingPostBatch\transferSourceRevisionAdvanced(array_replace($sameSource, $change), $rankedRow), $expected);
+}
+$runContext = ['native_run_id'=>'12345','application_sha'=>str_repeat('a',40),
+    'continuation_of_ranked_run_id'=>AnyTour\ExistingPostBatch\RANKED_ORIGINAL_RUN];
+$lostResult = ['hotel_id'=>$rankedRow['hotel_id'],'message_id'=>$rankedRow['target_message_id'],
+    'ok'=>false,'state'=>'response_saved_completion_requires_readback','reason'=>'hotel_transfer_response_unconfirmed',
+    'provider_write_attempts'=>1,'reserved_publication_id'=>40];
+$lostRequest = ['chat_id'=>'-1001845835645','message_id'=>(int)$rankedRow['target_message_id']];
+$evidence = [
+    ['state'=>'intent_saved','operation'=>AnyTour\ExistingPostBatch\transferProfileOperation($rankedDigest),
+        'row'=>$rankedRow,'execution'=>$runContext,'plan_sha256'=>$rankedDigest],
+    ['state'=>'identity_reserved','plan_sha256'=>$rankedDigest,'reservation'=>['publication_id'=>40]],
+    ['state'=>'request_prepared','request'=>$lostRequest,'request_sha256'=>hash('sha256',json_encode($lostRequest))],
+    ['state'=>'provider_edit_started','provider_write_attempts'=>1],
+    ['state'=>'provider_response_saved','response'=>['http'=>0,'data'=>null,'transport_error'=>true]],
+    $lostResult,
+];
+foreach (['complete'=>[null,[],true],'wrong run'=>[0,['execution'=>[]],false],
+    'wrong target'=>[0,['row'=>[]],false],'wrong plan'=>[0,['plan_sha256'=>'foreign'],false],
+    'missing request digest'=>[2,['request_sha256'=>''],false], 'two requests'=>[3,['provider_write_attempts'=>2],false],
+    'API отказ'=>[4,['response'=>['http'=>403,'data'=>null,'transport_error'=>false]],false],
+    'changed terminal'=>[5,['reserved_publication_id'=>77],false],'missing terminal'=>[5,null,false]] as $case=>[$index,$change,$expected]) {
+    $rows = $evidence;
+    if ($index !== null && $change === null) array_pop($rows);
+    elseif ($index !== null) $rows[$index] = array_replace($rows[$index],$change);
+    $receipt = tmpfile();
+    foreach ($rows as $event) AnyTour\ExistingPostBatch\transferJournal($receipt,$event);
+    channelPostCheck('durable isolated transport failure: '.$case,
+        AnyTour\ExistingPostBatch\transferTransportLossRecorded($receipt,$rankedRow,$rankedDigest,$runContext,$lostResult), $expected);
+    foreach ([true,false] as $healthy) {
+        $pings = 0;
+        $effects = ['context'=>$runContext,'recheck_after_transport_loss'=>static function () use (&$pings,$healthy): void {
+            ++$pings;
+            if (!$healthy) throw new RuntimeException('transfer_native_rights_unconfirmed');
+        }];
+        $observed = AnyTour\ExistingPostBatch\transferCheckSharedAccess($receipt,$rankedRow,$rankedDigest,$effects,$lostResult);
+        channelPostCheck('shared check after '.$case.' '.($healthy ? 'healthy' : 'unavailable'),
+            [$pings,$observed['shared_access_rechecked'] ?? false,$observed['shared_access_error'] ?? null,$observed['ok']],
+            [$expected ? 1 : 0,$expected && $healthy,$expected && !$healthy ? 'transfer_native_rights_unconfirmed' : null,false]);
+    }
+    fclose($receipt);
+}
+$existingDir = sys_get_temp_dir().'/ranked-previous-operation-'.bin2hex(random_bytes(10));
+mkdir($existingDir,0700);
+try {
+    $cases=['authentic uncertain'=>null,'prior success'=>'success','false success'=>'false_success',
+        'foreign run'=>'foreign_run','foreign app'=>'foreign_app','broken final'=>'truncated',
+        'request changed'=>'changed_request','unconfirmed provider reply'=>'foreign_response',
+        'symlink'=>'link','missing journal'=>'missing'];
+    foreach ($cases as $case=>$change) {
+        $events=$evidence;
+        if ($change==='success' || $change==='false_success') {
+            $events[5]=array_replace($lostResult,['state'=>'native_and_registry_verified','ok'=>true,'publication_id'=>40,
+                'hotel_id_verified'=>true,'original_message_id_and_date_preserved'=>true,'photo_caption_button_verified'=>true]);
+            if ($change==='success') $events[4]['response']=['http'=>200,'transport_error'=>false,
+                'data'=>['ok'=>true,'result'=>['message_id'=>(int)$rankedRow['target_message_id']]]];
+        } elseif ($change==='truncated') array_pop($events);
+        elseif ($change==='changed_request') $events[2]['request']['message_id']=0;
+        elseif ($change==='foreign_response') $events[4]['response']['http']=401;
+        $path=$existingDir.'/receipt.jsonl';
+        $fixture=$change==='link' ? $existingDir.'/other.jsonl' : $path;
+        if ($change!=='missing') {
+            $journal=fopen($fixture,'x+b');
+            foreach ($events as $event) AnyTour\ExistingPostBatch\transferJournal($journal,$event);
+            fclose($journal);
+            if ($change==='link') symlink($fixture,$path);
+        }
+        try {
+            $prior=AnyTour\ExistingPostBatch\transferCurrentRunJournal($existingDir,$rankedRow,$rankedDigest,
+                $change==='foreign_run' ? '12346' : $runContext['native_run_id'],
+                $change==='foreign_app' ? str_repeat('b',40) : $runContext['application_sha']);
+            $observed=[$prior['reason'],$prior['prior_terminal_state'],$prior['prior_journal_sha256']===hash_file('sha256',$path)];
+        } catch (Throwable $error) { $observed=$error->getMessage(); }
+        $expected=$change===null || $change==='success' ? ['transfer_current_run_journal_requires_readback',
+            $change===null ? 'response_saved_completion_requires_readback' : 'native_and_registry_verified',true] : 'transfer_previous_operation_do_not_replay';
+        channelPostCheck('existing per-target operation: '.$case,$observed,$expected);
+        if (is_link($path) || file_exists($path)) unlink($path);
+        if ($change==='link') unlink($fixture);
+    }
+} finally { rmdir($existingDir); }
+channelPostCheck('ranked continuation selects exactly 37 untouched original rows',
+    [$rankedTail['operation'], count($rankedTail['rows']), $rankedTail['rows'],
+        array_intersect(['224','249','266'], array_column($rankedTail['rows'], 'target_message_id'))],
+    [AnyTour\ExistingPostBatch\RANKED_CONTINUATION_OPERATION, 37, array_slice($rankedPlan['rows'], 3), []]);
+$invalidRankedPlan = $rankedPlan;
+[$invalidRankedPlan['rows'][1], $invalidRankedPlan['rows'][2]] = [$rankedPlan['rows'][2], $rankedPlan['rows'][1]];
+foreach ([[$invalidRankedPlan, $rankedDigest], [$rankedPlan, str_repeat('0',64)]] as [$candidate, $digest]) {
+    $reason = null;
+    try { AnyTour\ExistingPostBatch\selectRankedContinuationRows($candidate, $digest); }
+    catch (RuntimeException $e) { $reason = $e->getMessage(); }
+    channelPostCheck('ranked continuation refuses changed prefix or plan digest', $reason, 'transfer_ranked_continuation_scope_invalid');
+}
 $rejectedTransfer = ['http'=>400,'transport_error'=>false,
     'data'=>['ok'=>false,'error_code'=>400,'description'=>'Bad Request: MESSAGE_ID_INVALID']];
 $firstTransferEvents = [
@@ -1552,6 +1680,7 @@ $transferScenario = static function(string $case) use ($transferFixtureRoot,&$tr
         },
         'prepare'=>static function(array $received) use ($case,$state,$hotelMediaBody,$evidence): array {
             $state->calls[]='prepare';$state->reservation_arguments[]=$received;
+            if ($case==='source_advanced_after_reservation') throw new RuntimeException('transfer_source_revision_advanced');
             $body=$hotelMediaBody;
             if ($case==='invalid_payload') $body['media']['type']='video';
             if ($case==='invalid_prepared') return ['body'=>$body];
@@ -1596,6 +1725,7 @@ $transferScenario = static function(string $case) use ($transferFixtureRoot,&$tr
     ];
     // A context is optional and must not be necessary for a successful control flow.
     if ($case==='complete_busy') unset($effects['context']);
+    if ($case==='source_advanced_after_reservation') $effects['context']['continuation_of_ranked_run_id']=AnyTour\ExistingPostBatch\RANKED_ORIGINAL_RUN;
     $result=AnyTour\ExistingPostBatch\transferExecuteRow($row,$digest,$effects,$operations);
     $events=$transferReceiptRead($receipt);
     $beforeReplay=clone $state;$beforeHash=hash_file('sha256',$receipt);
@@ -1604,6 +1734,7 @@ $transferScenario = static function(string $case) use ($transferFixtureRoot,&$tr
 };
 $transferExpected=[
     'success'=>[true,'native_and_registry_verified',null,1,1],
+    'source_advanced_after_reservation'=>[false,'held_before_provider','transfer_source_revision_advanced',0,0],
     'prewrite_cas'=>[false,'held_before_provider','hotel_transfer_source_changed',0,0],
     'invalid_payload'=>[false,'held_before_provider','transfer_media_payload_invalid',0,0],
     'invalid_prepared'=>[false,'held_before_provider','transfer_prepared_evidence_invalid',0,0],
@@ -1622,6 +1753,11 @@ $transferExpected=[
 try {
     foreach ($transferExpected as $case=>$expected) {
         $flow=$transferScenario($case);$state=$flow['state'];$result=$flow['result'];
+        if ($case==='source_advanced_after_reservation') {
+            channelPostCheck('durable late source change holds its reservation with zero provider attempts',
+                [$result['source_revision_hold_recorded'] ?? false,$result['reserved_publication_id'],$result['provider_write_attempts']],
+                [true,901,0]);
+        }
         channelPostCheck('real hotel editor '.$case.' has exact outcome and bounded effects',
             [$result['ok'],$result['state'],$result['reason']??null,$state->requests,$state->completions],$expected);
         channelPostCheck('real hotel editor '.$case.' refuses replay without effects or journal changes',
@@ -1673,6 +1809,59 @@ try {
     if (is_dir($transferFixtureRoot) && !is_link($transferFixtureRoot)) rmdir($transferFixtureRoot);
 }
 channelPostCheck('real hotel editor fixtures remove only their isolated operation directories',!file_exists($transferFixtureRoot));
+
+require_once __DIR__ . '/../tools/anytour_existing_post_max_transfer.php';
+$maxTransferPlan = \AnyTour\ExistingPostBatch\maxTransferPlan(dirname(__DIR__), \AnyTour\ExistingPostBatch\MAX_TRANSFER_DIGEST);
+channelPostCheck('MAX transfer plan binds just Sugar Marina and one unchanged old address', [
+    $maxTransferPlan['hotel_id'], $maxTransferPlan['source']['url'], $maxTransferPlan['target']['url'],
+    preg_match('/[0-9₽]/u', $maxTransferPlan['text']),
+], [800, 'https://max.ru/channel_anytour/AaG2GG5XH2I', 'https://max.ru/anytour/AZ7exN6EPIU', 0]);
+try {
+    \AnyTour\ExistingPostBatch\maxTransferPlan(dirname(__DIR__), str_repeat('0', 64));
+    channelPostCheck('MAX transfer rejects a different plan digest', false);
+} catch (RuntimeException $error) {
+    channelPostCheck('MAX transfer rejects a different plan digest', $error->getMessage(), 'max_transfer_plan_not_approved');
+}
+channelPostCheck('MAX transfer rejects any other historical post before native I/O',
+    ChannelPostApiTransport::maxHotelTransferRequest('-68765999669267', 'mid.ffffc1752b045fed019edec4de843c86',
+        $maxTransferPlan['text'], 'fixture', 'Рассчитать на мои даты', 'https://max.ru/fixture_bot?start=p_'.str_repeat('a', 24)),
+    ['http'=>0, 'data'=>null, 'transport_error'=>true]);
+
+
+$maxRecoveryTarget = $maxTransferPlan['target'];
+$oldPublicEnvelope = '<script>message:{id:116775577486376060,link:'
+    .json_encode($maxRecoveryTarget['url'], JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)
+    .',createdAt:"2026-06-19T07:25:04.516Z",updatedAt:null,text:"Sugar Marina\nA &amp; B"}</script>';
+channelPostCheck('MAX transfer reads the full primary caption from the current public envelope',
+    AnyTour\ExistingPostBatch\maxTransferPublicCaption($oldPublicEnvelope, $maxRecoveryTarget), "Sugar Marina\nA & B");
+foreach ([
+    str_replace('2026-06-19T07:25:04.516Z', '2026-06-19T07:25:04.517Z', $oldPublicEnvelope),
+    str_replace('/AZ7exN6EPIU', '/other', $oldPublicEnvelope),
+] as $wrongPublicEnvelope) {
+    try {
+        AnyTour\ExistingPostBatch\maxTransferPublicCaption($wrongPublicEnvelope, $maxRecoveryTarget);
+        channelPostCheck('MAX transfer refuses mismatched public identity', true, false);
+    } catch (RuntimeException $error) {
+        channelPostCheck('MAX transfer refuses mismatched public identity', $error->getMessage(), 'max_transfer_public_identity_changed');
+    }
+}
+$originalMaxFields = ['operation'=>AnyTour\ExistingPostBatch\MAX_TRANSFER_OPERATION, 'hotel_id'=>800, 'ok'=>false,
+    'provider_write_attempts'=>0, 'supplier_requests'=>0, 'bot_starts'=>0,
+    'target_url'=>$maxRecoveryTarget['url'], 'plan_sha256'=>AnyTour\ExistingPostBatch\MAX_TRANSFER_DIGEST,
+    'application_sha'=>AnyTour\ExistingPostBatch\MAX_TRANSFER_ORIGINAL_APPLICATION,
+    'native_run_id'=>AnyTour\ExistingPostBatch\MAX_TRANSFER_ORIGINAL_RUN];
+$maxStartLine = json_encode(['state'=>'preflight_started'] + $originalMaxFields, JSON_THROW_ON_ERROR)."\n";
+$maxHeldLine = json_encode(['state'=>'hold', 'reason'=>'max_public_caption_unavailable'] + $originalMaxFields, JSON_THROW_ON_ERROR)."\n";
+channelPostCheck('MAX recovery accepts the exact attempt with no write or reservation',
+    AnyTour\ExistingPostBatch\maxTransferOriginalNoWrite($maxStartLine.$maxHeldLine, $maxRecoveryTarget),
+    hash('sha256', $maxStartLine.$maxHeldLine));
+try {
+    AnyTour\ExistingPostBatch\maxTransferOriginalNoWrite(
+        $maxStartLine.str_replace('"provider_write_attempts":0', '"provider_write_attempts":1', $maxHeldLine), $maxRecoveryTarget);
+    channelPostCheck('MAX recovery refuses a previous write attempt', true, false);
+} catch (RuntimeException $error) {
+    channelPostCheck('MAX recovery refuses a previous write attempt', $error->getMessage(), 'max_transfer_original_journal_invalid');
+}
 
 echo 'Channel post automation: ' . $passed . ' passed, ' . $failed . ' failed' . PHP_EOL;
 exit($failed === 0 ? 0 : 1);

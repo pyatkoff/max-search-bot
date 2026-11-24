@@ -165,6 +165,68 @@ try {
 }
 require_once __DIR__.'/telegram_archive_setup_checks.php';
 runTelegramArchiveSetupChecks($pdo, $dsn);
+
+// Native body provenance is independent of words, authorship and ordinary callback routing.
+$nativeBase = ['message_id'=>800,'date'=>1792230100,'chat'=>['id'=>200,'type'=>'private'],'from'=>['id'=>200]];
+$nativeFile = ['file_id'=>'synthetic-native-file','file_unique_id'=>'synthetic-native-unique'];
+$nativePhoto = [$nativeFile + ['width'=>320,'height'=>200]];
+$nativeMarker = static fn(string $kind): array => ['schema_version'=>1,'producer'=>'TelegramDialogueNormalizer.v1',
+    'source_format'=>'telegram_bot_api_message','kind'=>$kind,'text_origin'=>'unknown'];
+$nativeNormalize = static fn(array $body): array => TelegramDialogueNormalizer::businessMessage(
+    array_replace($nativeBase,$body),'100','native-test','800');
+$nativeText = $nativeNormalize(['text'=>'Нужна помощь с выбором']);
+$nativeCaption = $nativeNormalize(['caption'=>'Нужна помощь с выбором','photo'=>$nativePhoto]);
+archiveCheck('same visible text preserves different native text and caption provenance',
+    $nativeText['text']===$nativeCaption['text']
+    &&($nativeText['native_content']??null)===$nativeMarker('text')
+    &&($nativeCaption['native_content']??null)===$nativeMarker('caption'));
+$nativeKeyboardLike = $nativeNormalize(['text'=>'Подобрать по шагам']);
+archiveCheck('native Message text cannot distinguish typing from a reply keyboard answer',
+    ($nativeKeyboardLike['native_content']??null)===$nativeMarker('text')
+    &&$nativeKeyboardLike['native_content']['text_origin']===$nativeText['native_content']['text_origin']);
+$nativeNested = ['message_id'=>799,'text'=>'NESTED_PRIVATE_TEXT','photo'=>$nativePhoto,
+    'contact'=>['phone_number'=>'+79991234567','first_name'=>'NESTED_PRIVATE_NAME']];
+$nativeReply = $nativeNormalize(['text'=>'Свой ответ','reply_to_message'=>$nativeNested,
+    'quote'=>['text'=>'NESTED_PRIVATE_TEXT','position'=>0]]);
+$nativeReplyOnly = $nativeNormalize(['reply_to_message'=>$nativeNested]);
+archiveCheck('nested reply and quote cannot become own body or contact metadata',
+    ($nativeReply['native_content']??null)===$nativeMarker('text')
+    &&($nativeReplyOnly['native_content']??null)===$nativeMarker('unknown')
+    &&$nativeReplyOnly['text']===''&&$nativeReplyOnly['attachments']===[]
+    &&$nativeReplyOnly['reply_to_message_id']==='799'
+    &&!str_contains(json_encode([$nativeReply,$nativeReplyOnly],JSON_THROW_ON_ERROR),'NESTED_PRIVATE'));
+$nativeAnimation = $nativeNormalize(['animation'=>$nativeFile,'document'=>$nativeFile]);
+archiveCheck('animation plus compatibility document remains legitimate media',
+    ($nativeAnimation['native_content']??null)===$nativeMarker('media')
+    &&count($nativeAnimation['attachments'])===1&&$nativeAnimation['attachments'][0]['type']==='video');
+$nativeEmptyCaption = $nativeNormalize(['caption'=>'','photo'=>$nativePhoto]);
+archiveCheck('empty caption on valid media remains media rather than invented caption',
+    ($nativeEmptyCaption['native_content']??null)===$nativeMarker('media'));
+$nativeUnknownBodies = [
+    'text_with_photo'=>['text'=>'Свой текст','photo'=>$nativePhoto],
+    'text_with_caption'=>['text'=>'Свой текст','caption'=>'Подпись'],
+    'text_with_contact'=>['text'=>'Свой текст','contact'=>['phone_number'=>'+79991234567','first_name'=>'PRIVATE']],
+    'caption_without_media'=>['caption'=>'Одинокая подпись'],
+    'sticker_caption'=>['caption'=>'Не поддержано','sticker'=>$nativeFile],
+    'video_note_caption'=>['caption'=>'Не поддержано','video_note'=>$nativeFile],
+    'two_unrelated_media'=>['photo'=>$nativePhoto,'video'=>$nativeFile],
+    'malformed_photo'=>['photo'=>[[]]],
+    'empty_file_identity'=>['document'=>['file_id'=>'']],
+    'malformed_contact'=>['contact'=>['phone_number'=>'+79991234567']],
+    'undecoded_service'=>['text'=>'Сопутствующий текст','message_auto_delete_timer_changed'=>['message_auto_delete_time'=>10]],
+    'undecoded_rich'=>['rich_message'=>['text'=>'UNDECODED_PRIVATE']],
+    'future_body'=>['text'=>'Сопутствующий текст','future_message_body'=>['value'=>'UNDECODED_PRIVATE']],
+];
+foreach($nativeUnknownBodies as$nativeName=>$nativeBody){
+    $nativeResult=$nativeNormalize($nativeBody);
+    archiveCheck('native ambiguous or unsupported body fails closed '.$nativeName,
+        ($nativeResult['native_content']??null)===$nativeMarker('unknown'));
+}
+archiveCheck('native provenance does not widen the business update or callback ingress allowlist',
+    TelegramDialogueNormalizer::UPDATE_TYPES===['business_connection','business_message','edited_business_message','deleted_business_messages']
+    &&!TelegramDialogueNormalizer::isBusinessUpdate(['callback_query'=>['data'=>'Подобрать по шагам']])
+    &&!TelegramDialogueNormalizer::isBusinessUpdate(['message'=>['text'=>'Подобрать по шагам']]));
+
 ProjectConfig::resetForTests(null);
 echo "TOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed ? 1 : 0);

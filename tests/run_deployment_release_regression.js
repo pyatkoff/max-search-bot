@@ -272,7 +272,9 @@ async function gitBridge(){
     await commonValueStateConsumer(f, a, a);
     await publicationOperationConsumer(f, a, a);
     await hotelRegistryReadConsumer(f, a, a);
+    await max2HoldPairReadConsumer(f, a, a);
     await hotelFourTransferConsumer(f, a, a);
+    await hotelMaxTransferConsumer(f, a, a);
     await remainingTransferOriginalProof();
     const nextRun={...context,event:'push'};
     const next=R.releaseRecord(receipt(a),nextRun,{kind:'application_unchanged',baseline:baseline.reference,
@@ -328,7 +330,9 @@ async function gitBridge(){
     await commonValueStateConsumer(f, r, a);
     await publicationOperationConsumer(f, r, a);
     await hotelRegistryReadConsumer(f, r, a);
+    await max2HoldPairReadConsumer(f, r, a);
     await hotelFourTransferConsumer(f, r, a);
+    await hotelMaxTransferConsumer(f, r, a);
     equal(f.calls.filter(c=>c.method==='PATCH'&&c.path.endsWith('/issues/comments/900')).length,2,
       'two independent waves each make exactly one terminal mutation');
     equal(f.calls.filter(c=>c.path.includes('/actions/artifacts/')).length,0,
@@ -631,6 +635,117 @@ async function hotelRegistryReadConsumer(f,repositorySha,applicationSha){
     closer.status=oldStatus;closer.conclusion=oldConclusion;
   }finally{f.hook=null;f.runs.delete(run.id);f.main=repositorySha;}
 }
+async function max2HoldPairReadConsumer(f,repositorySha,applicationSha){
+  const startAssertions=assertions,branch='ops/max2-hold-pair-read-20261123',ref='refs/heads/'+branch;
+  const workflow=R.PREFIX+'max2-hold-pair-read.yml',owner={id:226193297,login:'pyatkoff'};
+  const run={...copy(f.wave.parent),id:6506,path:workflow,event:'push',head_branch:branch,
+    status:'in_progress',conclusion:null,actor:copy(owner),triggering_actor:copy(owner)};
+  const own=job('diagnose',run,[],null);own.status='in_progress';own.runner_id=123;
+  f.runs.set(run.id,run);f.jobs.set(run.id,[own]);
+  const env={...consumerEnv(run,workflow,'push','diagnose'),GITHUB_REF:ref,
+    GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+workflow+'@'+ref,GITHUB_ACTOR:owner.login,GITHUB_TRIGGERING_ACTOR:owner.login};
+  const event={repository:{full_name:R.REPOSITORY,id:1342493152},sender:copy(owner),ref,
+    after:repositorySha,before:'0'.repeat(40),created:true,deleted:false,forced:false};
+  const inventoryPath=R.API_ROOT+'/actions/workflows/max2-hold-pair-read.yml/runs?branch='
+    +encodeURIComponent(branch)+'&per_page=100',jobsPath=R.API_ROOT+'/actions/runs/'+run.id+'/attempts/1/jobs?per_page=100';
+  let inventory=[run],total=null,jobsTotal=null,branchHead=repositorySha;
+  let mainReads=0,advanceMain=false,branchReads=0,advanceBranch=false;
+  f.hook=({path})=>{
+    if(path===inventoryPath)return {total_count:total??inventory.length,workflow_runs:inventory};
+    if(path===jobsPath&&jobsTotal!==null)return {total_count:jobsTotal,jobs:f.jobs.get(run.id)};
+    if(path===R.API_ROOT+'/git/ref/heads/'+branch)return {object:{sha:advanceBranch&&++branchReads>1?H('moved MAX2 read branch'):branchHead}};
+    if(path===R.API_ROOT+'/git/ref/heads/main'&&advanceMain&&++mainReads>1)return {object:{sha:H('new main after MAX2 admission')}};
+  };
+  const resolve=()=>R.resolveConsumer({env,event,api:f.api});
+  try{
+    const before=f.calls.length,result=await resolve();
+    equal([result.repository_sha,result.application_sha,result.ready,result.perform_actions,result.read_operation],
+      [repositorySha,applicationSha,true,true,'max2_hold_pair_20261123'],
+      'the original MAX2 pair read resolves the accepted application, including application_unchanged');
+    equal(result.write_operation,undefined,'MAX2 observation never grants a write operation');
+    equal(f.calls.slice(before).every(c=>c.method==='GET'),true,'MAX2 admission reads evidence without mutation');
+    run.status='queued';
+    equal((await resolve()).read_operation,'max2_hold_pair_20261123',
+      'a lagging run summary is admitted only with its exact assigned active native job');run.status='in_progress';
+    const rejectedBeforeApi=f.calls.length;
+    for(const [label,patch] of [['existing branch',{created:false}],['noninitial before',{before:H('old MAX2 read source')}],
+      ['forced',{forced:true}],['deleted',{deleted:true}],['wrong event source',{after:H('different source')}],
+      ['main event',{ref:'refs/heads/main'}],['foreign repository',{repository:{full_name:R.REPOSITORY,id:1}}],
+      ['foreign sender',{sender:{id:1,login:owner.login}}]]){
+      await refuses(()=>R.resolveConsumer({env,event:{...event,...patch},api:f.api}),
+        'untrusted_max2_hold_pair_read','MAX2 observation rejects '+label);
+    }
+    for(const [label,patch] of [['attempt2',{GITHUB_RUN_ATTEMPT:'2'}],['other job',{GITHUB_JOB:'registry'}],
+      ['manual dispatch',{GITHUB_EVENT_NAME:'workflow_dispatch'}],['scheduled run',{GITHUB_EVENT_NAME:'schedule'}],
+      ['deployment tail',{GITHUB_EVENT_NAME:'workflow_run'}],['foreign actor',{GITHUB_ACTOR:'other'}],
+      ['foreign triggering actor',{GITHUB_TRIGGERING_ACTOR:'other'}],['foreign repository',{GITHUB_REPOSITORY:'other/repository'}],
+      ['hotel workflow',{GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+R.PREFIX+'read-1566-main-hotel-registry.yml@'+ref}],
+      ['hotel writer',{GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+R.PREFIX+'edit-1566-historical-telegram-with-channel-default.yml@'+ref}]]){
+      await refuses(()=>R.resolveConsumer({env:{...env,...patch},event,api:f.api}),
+        'untrusted_max2_hold_pair_read','MAX2 observation refuses '+label);
+    }
+    equal(f.calls.length,rejectedBeforeApi,'invalid MAX2 envelopes fail before native metadata or private access');
+    await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_REF:'refs/heads/ops/another-max2-read'},event,api:f.api}),
+      'untrusted_context','the fixed read never admits an arbitrary operation branch');
+    for(const eventName of ['push','workflow_dispatch','workflow_run','schedule']){
+      const original=copy(run);run.head_branch='main';run.event=eventName;
+      await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_REF:'refs/heads/main',GITHUB_EVENT_NAME:eventName,
+        GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+workflow+'@refs/heads/main'},
+        event:{...event,ref:'refs/heads/main',schedule:'0 * * * *'},api:f.api}),
+        eventName==='push'?'untrusted_push_consumer':'untrusted_consumer_event',
+        'the fixed MAX2 registration does not admit '+eventName+' on main');Object.assign(run,original);
+    }
+    for(const [label,patch,code] of [['different source',{head_sha:H('foreign checkout')},'untrusted_workflow_run'],
+      ['different branch',{head_branch:'main'},'untrusted_workflow_run'],
+      ['different workflow',{path:R.PREFIX+'other.yml'},'untrusted_workflow_run'],
+      ['native rerun',{run_attempt:2},'untrusted_workflow_run'],
+      ['finished run',{status:'completed',conclusion:'success'},'workflow_not_active'],
+      ['foreign native actor',{actor:{id:1,login:owner.login}},'foreign_max2_hold_pair_read_actor'],
+      ['foreign native triggering actor',{triggering_actor:{id:1,login:owner.login}},'foreign_max2_hold_pair_read_actor']]){
+      const original=copy(run);Object.assign(run,patch);
+      await refuses(resolve,code,'MAX2 read authenticates '+label);Object.assign(run,original);
+    }
+    for(const [label,patch] of [['other job',{name:'registry'}],['other run',{run_id:run.id+1}],
+      ['other source',{head_sha:H('foreign job source')}],['second attempt',{run_attempt:2}],
+      ['queued job',{status:'queued'}],['finished job',{status:'completed',conclusion:'success'}],
+      ['missing runner',{runner_id:0}]]){
+      const original=copy(own);Object.assign(own,patch);
+      await refuses(resolve,'max2_hold_pair_read_job_not_active','MAX2 read refuses '+label);Object.assign(own,original);
+    }
+    f.jobs.set(run.id,[]);
+    await refuses(resolve,'max2_hold_pair_read_job_not_active','a run summary cannot replace the actual job');
+    f.jobs.set(run.id,[own,{...copy(own),id:own.id+1,name:'unexpected'}]);
+    await refuses(resolve,'max2_hold_pair_read_job_not_active','the one-time reader cannot acquire a second job');
+    f.jobs.set(run.id,[own]);jobsTotal=2;
+    await refuses(resolve,'max2_hold_pair_read_jobs_incomplete','a partial job inventory grants no authority');jobsTotal=null;
+    total=2;
+    await refuses(resolve,'max2_hold_pair_read_inventory_incomplete','a partial history cannot prove the first read');total=null;
+    inventory=[run,{...copy(run),id:run.id+1,status:'completed',conclusion:'success'}];
+    await refuses(resolve,'max2_hold_pair_read_replay_forbidden','deleting and recreating the branch cannot repeat the read');
+    inventory=[{...copy(run),id:run.id+1}];
+    await refuses(resolve,'max2_hold_pair_read_replay_forbidden','another native run cannot stand in for this read');
+    inventory=[run];branchHead=H('updated MAX2 read branch');
+    await refuses(resolve,'max2_hold_pair_read_branch_changed','the fixed branch must still name the current source');
+    branchHead=repositorySha;advanceBranch=true;branchReads=0;
+    await refuses(resolve,'max2_hold_pair_read_branch_changed','the operation ref is checked after accepted release resolution');
+    advanceBranch=false;f.main=H('new main before MAX2 admission');
+    await refuses(resolve,'main_changed','an older accepted release cannot admit a read of the new main');f.main=repositorySha;
+    advanceMain=true;mainReads=0;
+    await refuses(resolve,'main_changed','current main is rechecked after accepted release resolution');advanceMain=false;
+    const closer=f.wave.own,oldStatus=closer.status,oldConclusion=closer.conclusion;
+    closer.status='in_progress';closer.conclusion=null;
+    await refuses(resolve,'release_pending','an unfinished original terminal cannot reach SSH');
+    closer.status=oldStatus;closer.conclusion=oldConclusion;
+    const closureJob=f.jobs.get(closer.id).find(j=>j.name==='release-slot');
+    for(const [prefix,code] of [[R.TERMINAL_BINDING_STEP,'publication_step_unconfirmed'],
+      [R.TERMINAL_STEP,'terminal_step_unconfirmed']]){
+      const step=closureJob.steps.find(s=>s.name.startsWith(prefix)),old=step.conclusion;step.conclusion='failure';
+      await refuses(resolve,code,'an unconfirmed original terminal step cannot authorize MAX2 observation');step.conclusion=old;
+    }
+    equal(f.calls.slice(before).every(c=>c.method==='GET'),true,'all MAX2 admission failures remain read only');
+  }finally{f.hook=null;f.runs.delete(run.id);f.jobs.delete(run.id);f.main=repositorySha;}
+  return assertions-startAssertions;
+}
 async function remainingTransferOriginalProof(){
   const sha='bb7d0bde64092cbd24a69084e651ff44336ba8b5';
   const owned={id:226193297,login:'pyatkoff'};
@@ -752,6 +867,38 @@ async function hotelFourTransferConsumer(f,repositorySha,applicationSha){
     closer.status=oldStatus;closer.conclusion=oldConclusion;
   }finally{f.hook=null;f.runs.delete(run.id);f.jobs.delete(run.id);f.main=repositorySha;}
 }
+async function hotelMaxTransferConsumer(f,repositorySha,applicationSha){
+  const branch='ops/anytour-max-sugar-marina-800-apply-20261123',ref='refs/heads/'+branch;
+  const workflow=R.PREFIX+'edit-1566-max-sugar-marina.yml',owner={id:226193297,login:'pyatkoff'};
+  const planPath='config/anytour_existing_post_transfer_max_800.json',bytes=fs.readFileSync(path.join(__dirname,'..',planPath));
+  const plan={type:'file',path:planPath,sha:R.gitBlob(bytes),size:bytes.length,encoding:'base64',content:bytes.toString('base64')};
+  const run={...copy(f.wave.parent),id:6507,path:workflow,event:'push',head_branch:branch,
+    status:'in_progress',conclusion:null,actor:copy(owner),triggering_actor:copy(owner)};
+  const env={...consumerEnv(run,workflow,'push','transfer'),GITHUB_REF:ref,
+    GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+workflow+'@'+ref,GITHUB_ACTOR:owner.login,GITHUB_TRIGGERING_ACTOR:owner.login};
+  const event={repository:{full_name:R.REPOSITORY,id:1342493152},sender:copy(owner),ref,
+    after:repositorySha,before:'0'.repeat(40),created:true,deleted:false,forced:false};
+  f.runs.set(run.id,run);
+  f.jobs.set(run.id,[{...job('transfer',run,[],null),status:'in_progress'}]);
+  const inventory=R.API_ROOT+'/actions/workflows/'+workflow.slice(R.PREFIX.length)+'/runs?branch='
+    +encodeURIComponent(branch)+'&per_page=100';
+  f.hook=({path})=>{
+    if(path===inventory)return {total_count:1,workflow_runs:[run]};
+    if(path===R.API_ROOT+'/contents/'+planPath+'?ref='+repositorySha)return plan;
+    if(path===R.API_ROOT+'/git/ref/heads/'+branch)return {object:{sha:repositorySha}};
+  };
+  const resolve=()=>R.resolveConsumer({env,event,api:f.api});
+  try{
+    if(repositorySha!==applicationSha){
+      await refuses(resolve,'max_transfer_editor_not_installed','a repository-only release cannot select the MAX editor');
+    }else{
+      const result=await resolve();
+      equal([result.repository_sha,result.application_sha,result.write_operation],
+        [repositorySha,applicationSha,'hotel_max_sugar_transfer'],'the exact first MAX apply push binds the installed editor');
+    }
+  }finally{f.hook=null;f.runs.delete(run.id);f.jobs.delete(run.id);}
+}
+
 async function publicationOperationConsumer(f,repositorySha,applicationSha){
   const branch='ops/appleservice39-coverage-20261112',ref='refs/heads/'+branch;
   const workflow=R.PREFIX+'publish-appleservice39-pilot.yml';
@@ -2498,7 +2645,7 @@ async function main(){hotelRegistryReadWorkflow();await pureValidation();await g
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_exhausted_verify_1664_forward_regression.js')],{stdio:'inherit'});
   execFileSync('python3',[path.join(__dirname,'run_partial_install_1662_forward_sync.py')],{stdio:'inherit'});
   process.stdout.write('Deployment release regression: '+assertions+' assertions passed\n');}
-module.exports={main,fixture,receipt,observation,installed,installNoopJobs,storedZip,terminalContinuationCases,publisherBodyRecoveryCases};
+module.exports={main,fixture,receipt,observation,installed,installNoopJobs,storedZip,terminalContinuationCases,publisherBodyRecoveryCases,max2HoldPairReadConsumer};
 if(require.main===module)main().catch(e=>{process.stderr.write(String(e.stack||e)+'\n');process.exitCode=1;});
 
 

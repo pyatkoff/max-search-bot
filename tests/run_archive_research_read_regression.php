@@ -872,7 +872,207 @@ function archiveResearchReadRegression(PDO $pdo): int
         $drop();
     }
 }
+
+/** SQLite-only public API roundtrip, isolated from the existing MySQL and semantic fixtures. */
+function archiveNativeContentRoundtripRegression(): int
+{
+    require_once dirname(__DIR__).'/services/TelegramDialogueArchive.php';
+    $pdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+    $checks=0;
+    $check=static function(bool$ok,string$name)use(&$checks):void{
+        if(!$ok)throw new RuntimeException('archive_native_check_failed:'.$name);
+        $checks++;echo 'archive native PASS '.$name."\n";
+    };
+    $pdo->exec('CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT,is_active INTEGER)');
+    $pdo->exec('CREATE TABLE conversations(id INTEGER PRIMARY KEY,project_key TEXT,channel TEXT,customer_channel_id INTEGER,customer_id INTEGER)');
+    $pdo->exec('CREATE TABLE customer_channels(id INTEGER PRIMARY KEY,customer_id INTEGER,project_key TEXT,channel TEXT,external_user_id TEXT,external_chat_id TEXT)');
+    $pdo->exec('CREATE TABLE telegram_archive_accounts(project_key TEXT,bot_key TEXT,account_id INTEGER,connection_id TEXT,approved INTEGER,provider_enabled INTEGER,manager_id INTEGER)');
+    $pdo->exec('CREATE TABLE telegram_dialogue_connections(project_key TEXT,bot_key TEXT,connection_id TEXT,account_id INTEGER,is_enabled INTEGER,last_update_id INTEGER,PRIMARY KEY(project_key,bot_key,connection_id))');
+    $pdo->exec('CREATE TABLE telegram_dialogue_messages(id INTEGER PRIMARY KEY AUTOINCREMENT,project_key TEXT,account_id INTEGER,chat_id INTEGER,message_id INTEGER,version_at INTEGER,source_kind TEXT,is_deleted INTEGER,record_json TEXT)');
+    $pdo->exec('CREATE UNIQUE INDEX uq_telegram_dialogue_message ON telegram_dialogue_messages(project_key,account_id,chat_id,message_id)');
+    $pdo->exec("INSERT INTO projects VALUES(1,'anytour',1)");
+    $pdo->exec("INSERT INTO telegram_archive_accounts VALUES('anytour','NativeFixture',100,'native-connection',1,1,NULL)");
+    $archive=new TelegramDialogueArchive($pdo);
+    $archive->saveConnection('anytour','NativeFixture','native-connection','100',true,'1');
+    $desktop=TelegramDialogueNormalizer::desktop(['id'=>200,'type'=>'personal_chat','messages'=>[
+        ['id'=>1,'type'=>'message','date_unixtime'=>'1700000000','from_id'=>'user200','text'=>'Desktop anchor'],
+    ]],'100',['200']);
+    $check($archive->import('anytour',$desktop['messages'])['inserted']===1,'desktop_anchor_uses_real_import');
+    $check(!array_key_exists('native_content',$desktop['messages'][0]),'desktop_does_not_acquire_native_marker');
+    $marker=static fn(string$kind):array=>['schema_version'=>1,'producer'=>'TelegramDialogueNormalizer.v1',
+        'source_format'=>'telegram_bot_api_message','kind'=>$kind,'text_origin'=>'unknown'];
+    $unknown=['schema_version'=>null,'producer'=>null,'source_format'=>'unknown','kind'=>'unknown','text_origin'=>'unknown'];
+    $base=['date'=>1700000000,'chat'=>['id'=>200,'type'=>'private'],'from'=>['id'=>200]];
+    $file=['file_id'=>'fixture-native-file-id','file_unique_id'=>'fixture-native-unique-id'];
+    $photo=[$file+['width'=>640,'height'=>480]];
+    $normalize=static fn(int$id,array$body):array=>TelegramDialogueNormalizer::businessMessage(
+        array_replace($base,['message_id'=>$id],$body),'100','native-connection',(string)($id+1000));
+    $store=static function(array$record)use($archive):array{
+        $receipt=$archive->receive('anytour','NativeFixture','native-connection',[$record]);
+        if($receipt!==['state'=>'archived','stored'=>1])throw new RuntimeException('native_fixture_receive_failed');
+        return$record;
+    };
+    $raw=static function(int$id)use($pdo):string{
+        $q=$pdo->prepare('SELECT record_json FROM telegram_dialogue_messages WHERE account_id=100 AND chat_id=200 AND message_id=?');
+        $q->execute([$id]);$value=$q->fetchColumn();
+        if(!is_string($value))throw new RuntimeException('native_fixture_record_missing');
+        return$value;
+    };
+    $rewrite=static function(int$id,callable$mutate)use($pdo,$raw):void{
+        $record=json_decode($raw($id),true,64,JSON_THROW_ON_ERROR);$record=$mutate($record);
+        $pdo->prepare('UPDATE telegram_dialogue_messages SET record_json=? WHERE account_id=100 AND chat_id=200 AND message_id=?')
+            ->execute([json_encode($record,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),$id]);
+    };
+    $nested=['message_id'=>909,'text'=>'PRIVATE_NESTED_TEXT','photo'=>$photo,
+        'contact'=>['phone_number'=>'+79998887766','first_name'=>'PRIVATE_NESTED_NAME']];
+    $fixtures=[
+        'text'=>['text',['text'=>'Подобрать по шагам']],
+        'same_caption'=>['caption',['caption'=>'Подобрать по шагам','photo'=>$photo]],
+        'contact'=>['contact',['contact'=>['phone_number'=>'+79991234567','first_name'=>'PRIVATE_CONTACT_NAME',
+            'last_name'=>'PRIVATE_CONTACT_SURNAME','user_id'=>200,'vcard'=>'PRIVATE_CONTACT_VCARD']]],
+        'nested_only'=>['unknown',['reply_to_message'=>$nested]],
+        'own_reply'=>['text',['text'=>'Свой ответ','reply_to_message'=>$nested,'quote'=>['text'=>'PRIVATE_NESTED_TEXT','position'=>0]]],
+        'forwarded'=>['text',['text'=>'Пересланное сообщение','forward_origin'=>['type'=>'user','date'=>1699999999,'sender_user'=>['id'=>333]]]],
+        'manager_edit'=>['text',['text'=>'Первоначальный ответ','from'=>['id'=>100]]],
+        'animation_document'=>['media',['animation'=>$file,'document'=>$file]],
+        'empty_caption'=>['media',['caption'=>'','photo'=>$photo]],
+        'undecoded_service'=>['unknown',['message_auto_delete_timer_changed'=>['message_auto_delete_time'=>60]]],
+        'undecoded_rich'=>['unknown',['rich_message'=>['text'=>'PRIVATE_UNDECODED_BODY']]],
+        'future_body'=>['unknown',['future_message_body'=>['text'=>'PRIVATE_UNDECODED_BODY']]],
+        'conflicting_body'=>['unknown',['text'=>'Текст и media','photo'=>$photo]],
+    ];
+    $ids=[];$records=[];$next=100;
+    foreach($fixtures as$name=>[$kind,$body]){
+        $id=$next++;$ids[$name]=$id;$record=$store($normalize($id,$body));$records[$name]=$record;
+        $check(($record['native_content']??null)===$marker($kind),'normalizer_contract_'.$name);
+        $saved=json_decode($raw($id),true,64,JSON_THROW_ON_ERROR);
+        $check(($saved['native_content']??null)===$record['native_content']
+            &&$saved['text']===$record['text']&&$saved['attachments']===$record['attachments']
+            &&$saved['bot_key']==='NativeFixture','archive_json_preserves_producer_'.$name);
+    }
+    $key=str_repeat('n',32);$connection=str_repeat('c',43);
+    $provider=static function(int$admin,string$conn)use($key,$connection):string{
+        if($admin!==1||$conn!==$connection)throw new DomainException('native_fixture_auth_denied');return$key;
+    };
+    // The ordinary public history path admits this business data through its actual Desktop anchor.
+    $service=new ArchiveResearchReadService($pdo,static fn()=>1700000100,$provider);
+    $readAll=static function()use($pdo,$service,$connection,$check):array{
+        $before=hash('sha256',json_encode($pdo->query('SELECT * FROM telegram_dialogue_messages ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR));
+        $inventory=$service->inventory(1,$connection,['limit'=>5]);
+        $check(count($inventory['chats'])===1,'public_inventory_returns_only_admitted_anchor_chat');
+        $ref=$inventory['chats'][0]['chat_ref'];$cursor=null;$found=[];$pages=0;
+        do{
+            $args=['chat_ref'=>$ref,'limit'=>100];if($cursor!==null)$args['cursor']=$cursor;
+            $page=$service->history(1,$connection,$args);
+            $check($page['database_writes']===0&&$page['external_fetches']===0,'public_history_has_no_write_or_fetch');
+            foreach($page['messages']as$item){
+                if(isset($found[$item['native_message_id']]))throw new RuntimeException('native_fixture_duplicate_page_row');
+                $found[$item['native_message_id']]=$item;
+            }
+            $cursor=$page['next_cursor'];if(++$pages>10)throw new RuntimeException('native_fixture_pagination_did_not_advance');
+        }while($cursor!==null);
+        $after=hash('sha256',json_encode($pdo->query('SELECT * FROM telegram_dialogue_messages ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR));
+        $check($before===$after&&!$pdo->inTransaction(),'public_roundtrip_preserves_archive_and_closes_snapshot');
+        return$found;
+    };
+    $first=$readAll();
+    foreach($fixtures as$name=>[$kind]){
+        $item=$first[(string)$ids[$name]];
+        $check($item['read_status']==='available'&&($item['native_content']??null)===$marker($kind)
+            &&$item['record_sha256']===hash('sha256',$raw($ids[$name])),'public_dto_roundtrip_'.$name);
+    }
+    $check(($first['1']['native_content']??null)===$unknown,'desktop_reader_uses_exact_unknown_default');
+    $check($first[(string)$ids['text']]['text']===$first[(string)$ids['same_caption']]['text']
+        &&$first[(string)$ids['text']]['native_content']['kind']==='text'
+        &&$first[(string)$ids['same_caption']]['native_content']['kind']==='caption'
+        &&$first[(string)$ids['text']]['native_content']['text_origin']==='unknown'
+        &&$first[(string)$ids['same_caption']]['native_content']['text_origin']==='unknown',
+        'same_visible_string_never_erases_native_origin_or_claims_typing');
+    $check($first[(string)$ids['forwarded']]['forwarded']===true
+        &&$first[(string)$ids['forwarded']]['role']==='customer'
+        &&$first[(string)$ids['forwarded']]['role_verified']===true,'forward_flag_and_native_role_are_unchanged');
+    $check($first[(string)$ids['manager_edit']]['role']==='manager'
+        &&$first[(string)$ids['manager_edit']]['direction']==='outbound'
+        &&$first[(string)$ids['manager_edit']]['role_verified']===true,'native_manager_role_remains_verified');
+    $privacy=json_encode([$records['contact'],$records['nested_only'],$records['own_reply'],$first],JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
+    $check(!str_contains($privacy,'PRIVATE_CONTACT')&&!str_contains($privacy,'PRIVATE_NESTED')
+        &&!str_contains($privacy,'+79991234567')&&!str_contains($privacy,'+79998887766')
+        &&!str_contains(json_encode($first,JSON_THROW_ON_ERROR),'fixture-native-file-id'),
+        'contact_nested_identity_and_provider_file_reference_do_not_leak');
+    $editId=$ids['manager_edit'];
+    $edited=$normalize($editId,['from'=>['id'=>100],'edit_date'=>1700000002,'caption'=>'Подпись после правки','photo'=>$photo]);
+    $edited['update_id']='9000';$store($edited);
+    $afterEdit=$readAll();$editDto=$afterEdit[(string)$editId];
+    $check(($editDto['native_content']??null)===$marker('caption')&&$editDto['text']==='Подпись после правки'
+        &&$editDto['created_at']===1700000000&&$editDto['version_at']===1700000002
+        &&$editDto['role']==='manager'&&$editDto['role_verified']===true,
+        'real_archive_edit_updates_body_kind_without_rewriting_author_or_creation');
+
+    // Corrupt only disposable stored JSON, after real producer/Archive insertion, to test the public reader boundary.
+    $mutations=[
+        'legacy_missing_marker'=>static function(array$r):array{unset($r['native_content']);return$r;},
+        'marker_scalar'=>static function(array$r):array{$r['native_content']='text';return$r;},
+        'version_string'=>static function(array$r):array{$r['native_content']['schema_version']='1';return$r;},
+        'version_boolean'=>static function(array$r):array{$r['native_content']['schema_version']=true;return$r;},
+        'version_future'=>static function(array$r):array{$r['native_content']['schema_version']=2;return$r;},
+        'producer_missing'=>static function(array$r):array{unset($r['native_content']['producer']);return$r;},
+        'producer_untrusted'=>static function(array$r):array{$r['native_content']['producer']='Other.v1';return$r;},
+        'format_desktop'=>static function(array$r):array{$r['native_content']['source_format']='telegram_desktop_export';return$r;},
+        'origin_invented_typing'=>static function(array$r):array{$r['native_content']['text_origin']='typed';return$r;},
+        'future_kind'=>static function(array$r):array{$r['native_content']['kind']='service_v2';return$r;},
+        'extra_key'=>static function(array$r):array{$r['native_content']['raw_contact']='PRIVATE_MARKER_EXTRA';return$r;},
+        'text_with_media'=>static function(array$r):array{$r['native_content']['kind']='text';return$r;},
+        'media_with_text'=>static function(array$r):array{$r['native_content']['kind']='media';return$r;},
+        'contact_with_text_media'=>static function(array$r):array{$r['native_content']['kind']='contact';return$r;},
+        'caption_without_text'=>static function(array$r):array{$r['text']='';return$r;},
+        'caption_without_media'=>static function(array$r):array{$r['attachments']=[];return$r;},
+        'attachments_null'=>static function(array$r):array{$r['attachments']=null;return$r;},
+        'attachment_null_element'=>static function(array$r):array{$r['attachments']=[null];return$r;},
+        'attachment_empty_element'=>static function(array$r):array{$r['attachments']=[[]];return$r;},
+        'attachment_unknown_element'=>static function(array$r):array{$r['attachments']=[['type'=>'unknown']];return$r;},
+        'attachment_multiple'=>static function(array$r):array{$r['attachments'][]=$r['attachments'][0];return$r;},
+        'attachment_bad_type'=>static function(array$r):array{$r['attachments'][0]['type']='unknown';return$r;},
+        'attachment_bad_availability'=>static function(array$r):array{$r['attachments'][0]['availability']='not_checked';return$r;},
+        'attachment_missing_key'=>static function(array$r):array{unset($r['attachments'][0]['file_unique_id']);return$r;},
+        'attachment_extra_key'=>static function(array$r):array{$r['attachments'][0]['caption']='PRIVATE_ATTACHMENT_EXTRA';return$r;},
+        'attachment_empty_file_id'=>static function(array$r):array{$r['attachments'][0]['telegram_file_id']='';return$r;},
+        'attachment_boolean_file_id'=>static function(array$r):array{$r['attachments'][0]['telegram_file_id']=true;return$r;},
+        'attachment_numeric_unique_id'=>static function(array$r):array{$r['attachments'][0]['file_unique_id']=7;return$r;},
+    ];
+    $mutationIds=[];
+    foreach($mutations as$name=>$mutate){
+        $id=$next++;$mutationIds[$name]=$id;
+        $store($normalize($id,['caption'=>'Fixture caption','photo'=>$photo]));
+        $rewrite($id,$mutate);
+    }
+    $rewrite(1,static function(array$r)use($marker):array{$r['native_content']=$marker('text');return$r;});
+    $mismatchId=$next++;
+    $store($normalize($mismatchId,['text'=>'Source-kind mismatch']));
+    $rewrite($mismatchId,static function(array$r):array{$r['source_kind']='desktop_import';return$r;});
+    $corrupted=$readAll();
+    foreach($mutationIds as$name=>$id){
+        $item=$corrupted[(string)$id];
+        $check($item['read_status']==='available'&&($item['native_content']??null)===$unknown
+            &&$item['record_sha256']===hash('sha256',$raw($id)),'invalid_metadata_downgrades_only_projection_'.$name);
+    }
+    $check($corrupted['1']['read_status']==='available'&&($corrupted['1']['native_content']??null)===$unknown,
+        'forged_native_marker_cannot_promote_desktop_source');
+    $check($corrupted[(string)$mismatchId]['read_status']==='malformed_record'
+        &&($corrupted[(string)$mismatchId]['native_content']??null)===$unknown,
+        'row_and_record_source_kind_conflict_cannot_pass_native_projection');
+    $check(!str_contains(json_encode($corrupted,JSON_THROW_ON_ERROR),'PRIVATE_MARKER_EXTRA')
+        &&!str_contains(json_encode($corrupted,JSON_THROW_ON_ERROR),'PRIVATE_ATTACHMENT_EXTRA'),
+        'unsupported_marker_and_attachment_keys_never_escape_public_dto');
+    $pdo->exec("UPDATE telegram_archive_accounts SET approved=0 WHERE account_id=100");
+    $denied=false;
+    try{$service->inventory(1,$connection,['limit'=>5]);}catch(ArchiveResearchReadException$e){$denied=$e->reason==='forbidden';}
+    $check($denied&&!$pdo->inTransaction(),'native_marker_does_not_bypass_account_revocation');
+    echo 'Archive native SQLite roundtrip checks: '.$checks." passed.\n";
+    return$checks;
+}
+
 if(realpath((string)($_SERVER['SCRIPT_FILENAME']??''))===__FILE__){
     if(!extension_loaded('pdo_sqlite'))throw new RuntimeException('archive_fixture_sqlite_required');
     archiveResearchReadRegression(new PDO('sqlite::memory:'));
+    archiveNativeContentRoundtripRegression();
 }
