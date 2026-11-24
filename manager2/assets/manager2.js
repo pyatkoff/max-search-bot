@@ -349,6 +349,18 @@
     const activity=el.querySelector('.leadActivityTime'),formatted=formatInboxActivity(c.last_message_at||c.started_at||'',now);
     if(activity){if(formatted){activity.textContent=formatted.text;activity.title='Последняя активность: '+formatted.exact;activity.setAttribute('aria-label',activity.title);if(activity.parentElement!==line)line?.appendChild(activity)}else activity.remove()}
   }
+  let pendingInboxOpen=null;
+  function openInboxRow(id,openLead){
+    const conversation=window.WorkspaceV2Conversation,generation=conversation.getOpenGeneration(),auth=S.authGeneration;
+    if(pendingInboxOpen?.id===id&&pendingInboxOpen.generation===generation&&pendingInboxOpen.auth===auth)return pendingInboxOpen.promise;
+    const promise=openLead(),next=conversation.getOpenGeneration();
+    // A refused navigation (for example an unsaved task) never supersedes the current read.
+    if(next===generation)return promise;
+    const attempt={id,generation:next,auth,promise};pendingInboxOpen=attempt;
+    const settle=()=>{if(pendingInboxOpen===attempt)pendingInboxOpen=null;};
+    Promise.resolve(promise).then(settle,settle);
+    return promise;
+  }
   function enhanceInbox(rows,{changedNodes}={}){
     const searchToggle=$('m2InboxSearchToggle'),search=$('leadSearch'),searchRow=document.querySelector('.inboxSearchRow');
     if(searchToggle&&search&&searchRow){
@@ -402,7 +414,7 @@
       if(Number(c.id)===Number(S.current))open.setAttribute('aria-current','true');
       while(el.firstChild)open.appendChild(el.firstChild);
       el.onclick=null;el.onkeydown=null;el.removeAttribute('aria-label');el.removeAttribute('aria-describedby');el.setAttribute('role','listitem');el.removeAttribute('tabindex');
-      open.onclick=openLead;if(avatar)el.appendChild(avatar);el.appendChild(open);
+      open.onclick=()=>openInboxRow(Number(c.id),openLead);if(avatar)el.appendChild(avatar);el.appendChild(open);
     });
     syncPersonalChrome($('pwLane'));
   }

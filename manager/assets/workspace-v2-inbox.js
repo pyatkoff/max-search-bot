@@ -68,7 +68,16 @@ function messagePreview(text,senderType,displayText){text=String(displayText||te
 function originText(c){const origin=String(c?.origin_label||'').trim(),hasSourceId=Object.prototype.hasOwnProperty.call(c||{},'source_id'),unresolved=hasSourceId&&Number(c.source_id||0)<=0;if(unresolved&&!origin.includes('Источник не определён'))return[origin,'⚠ Источник не определён'].filter(Boolean).join(' · ');return origin}
 function contactOwnerSignals(c){const phone=String(c?.contact_phone||'').trim(),email=String(c?.contact_email||'').trim(),manager=String(c?.manager_name||'').trim(),parts=[];if(phone)parts.push(`<span class="leadContactSignal" title="Телефон туриста">☎ ${esc(phone)}</span>`);else if(email)parts.push(`<span class="leadContactSignal" title="Email туриста">✉ ${esc(email)}</span>`);parts.push(`<span class="leadManagerSignal${manager?'':' unassigned'}" title="Ответственный менеджер">👤 ${esc(manager||'Не назначен')}</span>`);return`<div class="leadContextRow">${parts.join('')}</div>`}
 function renderQueueCount(queue,meta){const button=document.querySelector(`.queueTabs button[data-q="${queue}"]`);if(!button)return;let badge=button.querySelector('.queueCount');if(!badge){badge=document.createElement('span');badge.className='filtersCount queueCount';badge.setAttribute('aria-hidden','true');button.appendChild(badge)}const count=Math.max(0,Number(meta?.count||0));badge.textContent=String(count);badge.classList.remove('hidden');const unread=Math.max(0,Number(meta?.unread||0));const labels={waiting:'Новые',requested:'Запросили менеджера',mine:'Мои'};const label=labels[queue]||queue;button.setAttribute('aria-label',`${label}: ${count}${unread?`, непрочитанных сообщений: ${unread}`:''}`);button.title=unread?`Всего диалогов: ${count} · непрочитанных сообщений: ${unread}`:`Всего диалогов: ${count}`}
-async function refreshQueueCounts(){const seq=++queueCountSeq;let j;try{j=await api('counts',{project_key:S.leadProjectFilter||'*'})}catch(e){return false}if(seq!==queueCountSeq||!j?.ok||!j.counts)return false;renderQueueCount('waiting',j.counts.waiting);renderQueueCount('requested',j.counts.requested);renderQueueCount('mine',j.counts.mine);return true}
+async function refreshQueueCounts(){
+ const seq=++queueCountSeq,payload={project_key:S.leadProjectFilter||'*'};
+ if(window.Manager2Presentation&&!document.querySelector('.queueTabs button[data-q="requested"]'))payload.scope='inbox_tabs';
+ let j;try{j=await api('counts',payload)}catch(e){return false}
+ if(seq!==queueCountSeq||!j?.ok||!j.counts)return false;
+ renderQueueCount('waiting',j.counts.waiting);
+ if(j.counts.requested)renderQueueCount('requested',j.counts.requested);
+ renderQueueCount('mine',j.counts.mine);
+ return true;
+}
 function ensureLoadStatus(){let el=$('inboxLoadStatus');if(el)return el;const box=$('inboxList');if(!box?.parentNode)return null;el=document.createElement('div');el.id='inboxLoadStatus';el.className='inboxLoadStatus hidden';el.setAttribute('role','status');el.setAttribute('aria-live','polite');box.parentNode.insertBefore(el,box);return el}
 function setLoadStatus(text='',kind='',retry=false){const el=ensureLoadStatus();if(!el)return;el.replaceChildren();el.className='inboxLoadStatus'+(kind?' '+kind:'')+(text?'':' hidden');if(!text)return;const copy=document.createElement('span');copy.textContent=text;el.appendChild(copy);if(retry){const b=document.createElement('button');b.type='button';b.textContent='Повторить';b.onclick=()=>load({preserveScroll:true});el.appendChild(b)}}
 function setInboxBusy(value){const busy=!!value;[$('inboxList'),$('kanbanBoard')].forEach(el=>{if(el)el.setAttribute('aria-busy',busy?'true':'false')})}
@@ -81,15 +90,28 @@ function autoRefresh(force=false){
   const scope=currentRefreshScope(),conversationScope=()=>JSON.stringify(window.WorkspaceV2Conversation?.captureRefreshContext?.()||null);
   // Keep list-load coalescing; detach only the obsolete transcript phase.
   if(scope.automatic?.conversation&&scope.automatic.conversation!==conversationScope())scope.automatic=null;
-  if(scope.pendingLoads||scope.automatic)return false;
-  const now=Date.now();if(!force&&now-scope.lastAutoRefreshAt<AUTO_REFRESH_MS-1000)return false;
+  const now=Date.now(),due=now-scope.lastAutoRefreshAt>=AUTO_REFRESH_MS-1000;
+  if(scope.pendingLoads||scope.automatic){
+    // Keep one list request. A visible chat can poll again on its normal
+    // cadence even while that same list is still loading.
+    if(!scope.pendingLoads||!S.current||!due)return false;
+    scope.lastAutoRefreshAt=now;
+    if(scope.automatic)scope.automatic.conversation=conversationScope();
+    void window.WorkspaceV2Conversation?.refreshVisible().catch(()=>{});
+    return true;
+  }
+  if(!force&&!due)return false;
   const cycle={};scope.lastAutoRefreshAt=now;scope.automatic=cycle;
   const generation=S.authGeneration,managerId=Number(S.manager?.id||0),refreshing=load({preserveScroll:true}),seq=loadSeq;
-  refreshing.then(loaded=>{
-    if(!loaded||seq!==loadSeq||S.authExpired||generation!==S.authGeneration||Number(S.manager?.id||0)!==managerId||document.visibilityState==='hidden')return;
+  // If a chat is already open, its authorized read can start with the list.
+  // A selection made during list loading can still refresh when the list lands.
+  const ready=S.current?Promise.resolve(true):refreshing;
+  const transcript=ready.then(loaded=>{
+    if(!loaded||cycle.conversation||seq!==loadSeq||S.authExpired||generation!==S.authGeneration||Number(S.manager?.id||0)!==managerId||document.visibilityState==='hidden')return;
     cycle.conversation=conversationScope();
     return window.WorkspaceV2Conversation?.refreshVisible();
-  }).catch(()=>{}).finally(()=>{if(scope.automatic===cycle)scope.automatic=null});
+  });
+  Promise.allSettled([refreshing,transcript]).then(()=>{if(scope.automatic===cycle)scope.automatic=null});
   return true;
 }
 function startAutoRefresh(){if(refreshTimer)return;refreshTimer=setInterval(()=>autoRefresh(false),AUTO_REFRESH_MS);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')autoRefresh(true)});window.addEventListener('focus',()=>autoRefresh(true))}
