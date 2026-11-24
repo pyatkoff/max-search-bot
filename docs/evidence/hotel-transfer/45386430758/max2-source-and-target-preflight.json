@@ -1,0 +1,290 @@
+{
+  "commissioning": {
+    "max_241": {
+      "value": {
+        "offer_id": "max_241",
+        "alias": "h1_af7f6dfd273d62c797cee20bd4029fdb",
+        "verified_target_binding": {
+          "post_id": "3739",
+          "source_id": 1516,
+          "channel_id": "-68765999669267",
+          "post_url": "https://max.ru/anytour/AZ87_EUJEiI"
+        },
+        "versions": 0,
+        "state": "original",
+        "static_collisions": 0,
+        "foreign_version_collisions": 0,
+        "regions": {
+          "1": {
+            "current": {
+              "post_id": "115",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaGa3GMLV1E"
+            },
+            "retained": {
+              "post_id": "115",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaGa3GMLV1E"
+            }
+          },
+          "213": {
+            "current": {
+              "post_id": "115",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaGa3GMLV1E"
+            },
+            "retained": {
+              "post_id": "115",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaGa3GMLV1E"
+            }
+          }
+        },
+        "observed_at": "2026-11-24T11:48:28+00:00"
+      }
+    },
+    "max_15693": {
+      "value": {
+        "offer_id": "max_15693",
+        "alias": "h1_cdc9e62558201c218da9adc368f6c438",
+        "verified_target_binding": {
+          "post_id": "3740",
+          "source_id": 1516,
+          "channel_id": "-68765999669267",
+          "post_url": "https://max.ru/anytour/AZ-yESbCL_Q"
+        },
+        "versions": 0,
+        "state": "original",
+        "static_collisions": 0,
+        "foreign_version_collisions": 0,
+        "regions": {
+          "1": {
+            "current": {
+              "post_id": "1191",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaHQDVICNd0"
+            },
+            "retained": {
+              "post_id": "1191",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaHQDVICNd0"
+            }
+          },
+          "213": {
+            "current": {
+              "post_id": "1191",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaHQDVICNd0"
+            },
+            "retained": {
+              "post_id": "1191",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaHQDVICNd0"
+            }
+          }
+        },
+        "observed_at": "2026-11-24T11:48:28+00:00"
+      }
+    },
+    "max_293": {
+      "value": {
+        "offer_id": "max_293",
+        "alias": "h1_c1934dac2e464e3216206c5ce7cd5731",
+        "verified_target_binding": {
+          "post_id": "3741",
+          "source_id": 1516,
+          "channel_id": "-68765999669267",
+          "post_url": "https://max.ru/anytour/AZ-3aA0tG-E"
+        },
+        "versions": 0,
+        "state": "original",
+        "static_collisions": 0,
+        "foreign_version_collisions": 0,
+        "regions": {
+          "1": {
+            "current": {
+              "post_id": "255",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaGePD60KYU"
+            },
+            "retained": {
+              "post_id": "255",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaGePD60KYU"
+            }
+          },
+          "213": {
+            "current": {
+              "post_id": "255",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaGePD60KYU"
+            },
+            "retained": {
+              "post_id": "255",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaGePD60KYU"
+            }
+          }
+        },
+        "observed_at": "2026-11-24T11:48:28+00:00"
+      }
+    },
+    "max_408": {
+      "value": {
+        "offer_id": "max_408",
+        "alias": "h1_6ef46a572707fc6dd0643f61446159b7",
+        "verified_target_binding": {
+          "post_id": "3742",
+          "source_id": 1516,
+          "channel_id": "-68765999669267",
+          "post_url": "https://max.ru/anytour/AZ_bVraKfqs"
+        },
+        "versions": 0,
+        "state": "original",
+        "static_collisions": 0,
+        "foreign_version_collisions": 0,
+        "regions": {
+          "1": {
+            "current": {
+              "post_id": "324",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaGhJ7JODvU"
+            },
+            "retained": {
+              "post_id": "324",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaGhJ7JODvU"
+            }
+          },
+          "213": {
+            "current": {
+              "post_id": "324",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaGhJ7JODvU"
+            },
+            "retained": {
+              "post_id": "324",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaGhJ7JODvU"
+            }
+          }
+        },
+        "observed_at": "2026-11-24T11:48:28+00:00"
+      }
+    },
+    "max_1260": {
+      "value": {
+        "offer_id": "max_1260",
+        "alias": "h1_00001fe87929366570ba209440d41312",
+        "verified_target_binding": {
+          "post_id": "3744",
+          "source_id": 1516,
+          "channel_id": "-68765999669267",
+          "post_url": "https://max.ru/anytour/AaAQRP74HIo"
+        },
+        "versions": 0,
+        "state": "original",
+        "static_collisions": 0,
+        "foreign_version_collisions": 0,
+        "regions": {
+          "1": {
+            "current": {
+              "post_id": "1230",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaHQYt4dcmY"
+            },
+            "retained": {
+              "post_id": "1230",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaHQYt4dcmY"
+            }
+          },
+          "213": {
+            "current": {
+              "post_id": "1230",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaHQYt4dcmY"
+            },
+            "retained": {
+              "post_id": "1230",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaHQYt4dcmY"
+            }
+          }
+        },
+        "observed_at": "2026-11-24T11:48:28+00:00"
+      }
+    },
+    "max_24909": {
+      "value": {
+        "offer_id": "max_24909",
+        "alias": "h1_78b9269e31f63e135e91d89c5ddaee54",
+        "verified_target_binding": {
+          "post_id": "3745",
+          "source_id": 1516,
+          "channel_id": "-68765999669267",
+          "post_url": "https://max.ru/anytour/AZ_BkAiveNQ"
+        },
+        "versions": 0,
+        "state": "original",
+        "static_collisions": 0,
+        "foreign_version_collisions": 0,
+        "regions": {
+          "1": {
+            "current": {
+              "post_id": "478",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaG1rsYqb1E"
+            },
+            "retained": {
+              "post_id": "478",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaG1rsYqb1E"
+            }
+          },
+          "213": {
+            "current": {
+              "post_id": "478",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaG1rsYqb1E"
+            },
+            "retained": {
+              "post_id": "478",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaG1rsYqb1E"
+            }
+          }
+        },
+        "observed_at": "2026-11-24T11:48:28+00:00"
+      }
+    }
+  },
+  "observed_at": "2026-11-24T11:48:28+00:00",
+  "route_writes": 0,
+  "post_writes": 0,
+  "ad_clicks": 0
+}
