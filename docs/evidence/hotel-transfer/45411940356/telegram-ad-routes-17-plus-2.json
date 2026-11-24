@@ -1,0 +1,270 @@
+{
+  "changes": [
+    {
+      "offer_id": "tg_114",
+      "hotel_id": 114,
+      "source_url": "https://t.me/any_toour/469",
+      "post_url": "https://t.me/anytour/948",
+      "publication_id": 3750,
+      "version_id": 14326,
+      "plan_sha256": "12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce",
+      "html_sha256": "26a3997d5d51704aa1d47b8bb4273d2b182c43e192e17b27d4487c5caa956d65",
+      "native_run_id": "45411462103"
+    },
+    {
+      "offer_id": "tg_140",
+      "hotel_id": 140,
+      "source_url": "https://t.me/any_toour/209",
+      "post_url": "https://t.me/anytour/949",
+      "publication_id": 3751,
+      "version_id": 14327,
+      "plan_sha256": "12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce",
+      "html_sha256": "fcc13f5f043b7aad0dfb0f376c6b41fe94746b4707683510e2526a995fed12e1",
+      "native_run_id": "45411462103"
+    },
+    {
+      "offer_id": "tg_195",
+      "hotel_id": 195,
+      "source_url": "https://t.me/any_toour/617",
+      "post_url": "https://t.me/anytour/952",
+      "publication_id": 3752,
+      "version_id": 14328,
+      "plan_sha256": "12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce",
+      "html_sha256": "e709dc3a2434d6f4af7583f807d8b12f0479dd36970e0afd2f1439b23f398c65",
+      "native_run_id": "45411462103"
+    },
+    {
+      "offer_id": "tg_206",
+      "hotel_id": 206,
+      "source_url": "https://t.me/any_toour/622",
+      "post_url": "https://t.me/anytour/963",
+      "publication_id": 3753,
+      "version_id": 14329,
+      "plan_sha256": "12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce",
+      "html_sha256": "fdd175234fbcb122f95227d55d57589a32957f68e04dd28887f7d30c3cb223b9",
+      "native_run_id": "45411462103"
+    },
+    {
+      "offer_id": "tg_231",
+      "hotel_id": 231,
+      "source_url": "https://t.me/any_toour/598",
+      "post_url": "https://t.me/anytour/969",
+      "publication_id": 3754,
+      "version_id": 14330,
+      "plan_sha256": "12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce",
+      "html_sha256": "2929ca63140be4093381f64b1001725571cd51075ceb4151ac63c5d2572edf05",
+      "native_run_id": "45411462103"
+    },
+    {
+      "offer_id": "tg_246",
+      "hotel_id": 246,
+      "source_url": "https://t.me/any_toour/106",
+      "post_url": "https://t.me/anytour/970",
+      "publication_id": 3755,
+      "version_id": 14331,
+      "plan_sha256": "12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce",
+      "html_sha256": "4c9ff1b4ee1e91b01750ae43c52867a42f3c191d0da9a943e0910e36e2359272",
+      "native_run_id": "45411462103"
+    },
+    {
+      "offer_id": "tg_263",
+      "hotel_id": 263,
+      "source_url": "https://t.me/any_toour/90",
+      "post_url": "https://t.me/anytour/999",
+      "publication_id": 3756,
+      "version_id": 14332,
+      "plan_sha256": "12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce",
+      "html_sha256": "e37c900dc3f144cbc015e61d57e162b416a820807217b7f17262b74678a62577",
+      "native_run_id": "45411462103"
+    },
+    {
+      "offer_id": "tg_266",
+      "hotel_id": 266,
+      "source_url": "https://t.me/any_toour/757",
+      "post_url": "https://t.me/anytour/1003",
+      "publication_id": 3757,
+      "version_id": 14333,
+      "plan_sha256": "12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce",
+      "html_sha256": "fb5e81aaa316c0614be364fdacba7f9cf90c71d84eb1d00db783154621e24d4a",
+      "native_run_id": "45411462103"
+    },
+    {
+      "offer_id": "tg_371",
+      "hotel_id": 371,
+      "source_url": "https://t.me/any_toour/80",
+      "post_url": "https://t.me/anytour/1037",
+      "publication_id": 3758,
+      "version_id": 14334,
+      "plan_sha256": "12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce",
+      "html_sha256": "028ab679129bb98bfabdeedeb7c3e63bdd899465efd947e779e9f58ab3134b87",
+      "native_run_id": "45411462103"
+    },
+    {
+      "offer_id": "tg_416",
+      "hotel_id": 416,
+      "source_url": "https://t.me/any_toour/42",
+      "post_url": "https://t.me/anytour/1051",
+      "publication_id": 3759,
+      "version_id": 14335,
+      "plan_sha256": "12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce",
+      "html_sha256": "18c77b4ebd03e64dda2dbc40c45eae1cf9f55dd71267a74550864e018ab08b4a",
+      "native_run_id": "45411462103"
+    },
+    {
+      "offer_id": "tg_465",
+      "hotel_id": 465,
+      "source_url": "https://t.me/any_toour/116",
+      "post_url": "https://t.me/anytour/1052",
+      "publication_id": 3760,
+      "version_id": 14336,
+      "plan_sha256": "12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce",
+      "html_sha256": "98658329f946efa6a55a7a506a5e3fc6f6bbe09a7872b60b390a83aba8e5d393",
+      "native_run_id": "45411462103"
+    },
+    {
+      "offer_id": "tg_497",
+      "hotel_id": 497,
+      "source_url": "https://t.me/any_toour/597",
+      "post_url": "https://t.me/anytour/1057",
+      "publication_id": 3761,
+      "version_id": 14337,
+      "plan_sha256": "12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce",
+      "html_sha256": "723d121dd5794c83cebbe20dcfd3373441524d69f7e0ecc3db0baffb3cc3be4e",
+      "native_run_id": "45411462103"
+    },
+    {
+      "offer_id": "tg_932",
+      "hotel_id": 932,
+      "source_url": "https://t.me/any_toour/574",
+      "post_url": "https://t.me/anytour/1059",
+      "publication_id": 3762,
+      "version_id": 14338,
+      "plan_sha256": "12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce",
+      "html_sha256": "ab57077729ef42190be0739da37dad391aefd2d4ebf5be1de293d512121e9fa6",
+      "native_run_id": "45411462103"
+    },
+    {
+      "offer_id": "tg_948",
+      "hotel_id": 948,
+      "source_url": "https://t.me/any_toour/582",
+      "post_url": "https://t.me/anytour/1087",
+      "publication_id": 3763,
+      "version_id": 14339,
+      "plan_sha256": "12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce",
+      "html_sha256": "aec753f1328a2be7283a1ec55335a024cdb9f8464a387649d536cbebd74c38e0",
+      "native_run_id": "45411462103"
+    },
+    {
+      "offer_id": "tg_964",
+      "hotel_id": 964,
+      "source_url": "https://t.me/any_toour/259",
+      "post_url": "https://t.me/anytour/1110",
+      "publication_id": 3764,
+      "version_id": 14340,
+      "plan_sha256": "12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce",
+      "html_sha256": "beb5661828e143d7e267eb50ff9780e523176b17b9e00f336b3b1b78c3a82f1c",
+      "native_run_id": "45411462103"
+    },
+    {
+      "offer_id": "tg_975",
+      "hotel_id": 975,
+      "source_url": "https://t.me/any_toour/254",
+      "post_url": "https://t.me/anytour/1131",
+      "publication_id": 3765,
+      "version_id": 14341,
+      "plan_sha256": "12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce",
+      "html_sha256": "640f74ff4f50665de1bb497c246ae43e958652bc20182a8dbc67bb5f8a337f80",
+      "native_run_id": "45411462103"
+    },
+    {
+      "offer_id": "tg_1013",
+      "hotel_id": 1013,
+      "source_url": "https://t.me/any_toour/591",
+      "post_url": "https://t.me/anytour/920",
+      "publication_id": 3766,
+      "version_id": 14342,
+      "plan_sha256": "12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce",
+      "html_sha256": "20b3f866f392073b07964dcf636e76ba16d46b3f43229cd9f1d8e529074494eb",
+      "native_run_id": "45411462103"
+    },
+    {
+      "offer_id": "tg_64918",
+      "hotel_id": 64918,
+      "source_url": "https://t.me/any_toour/1046",
+      "post_url": "https://t.me/anytour/1020",
+      "publication_id": 3767,
+      "version_id": 14343,
+      "plan_sha256": "5bc487fbfdd495a404ac985384da8123a9b0b417dd07a52366586e42a47580f0",
+      "html_sha256": "eefdff5f522887e8949bf263e254bfb4291a9dec112f9ad3b80fc517462ba3bf",
+      "native_run_id": "45411940356"
+    },
+    {
+      "offer_id": "tg_996",
+      "hotel_id": 996,
+      "source_url": "https://t.me/any_toour/325",
+      "post_url": "https://t.me/anytour/1063",
+      "publication_id": 3768,
+      "version_id": 14344,
+      "plan_sha256": "5bc487fbfdd495a404ac985384da8123a9b0b417dd07a52366586e42a47580f0",
+      "html_sha256": "322d7864cbdeaaed13a00198c2a0b163932adbe68b973ed643eabf5ef4ec3628",
+      "native_run_id": "45411940356"
+    }
+  ],
+  "already_configured": [],
+  "held": [],
+  "feed": {
+    "offers": 1055,
+    "unchanged": 1036,
+    "source_sha256": "22407f75b33b9d4e7da0c09c6d07ec352a7da5aaa16521b6c524a4284e75c56d",
+    "projection_sha256": "2de98f1d01decc648dc866dec1e657cc16a64ba0881276638c18be31ffb96216"
+  },
+  "resolver": {
+    "base_sha256": "e280787d911db26d021635e0325d7b27df20f9f0af7f464cf927e1c0fb935e5e",
+    "candidate_sha256": "8a3f2ecbae6094bcb37d37305977ee3f5935805fc672c2fae2ebc86dc8b3dd32"
+  },
+  "receipts": [
+    {
+      "native": {
+        "run_id": "45411462103",
+        "repository_sha": "5e0eeefd0a673fe492329a21f980351f80c2eccb",
+        "artifact_id": "14928567108",
+        "artifact_sha256": "3cdd2a7c7bba7519a12fc0f91325a912bf77416456e936b0057ae12534ae0704",
+        "write_operation": "hotel_ranked_unreached",
+        "parent_run_id": "45372056681",
+        "application_sha": "5e0eeefd0a673fe492329a21f980351f80c2eccb"
+      },
+      "public": {
+        "run_id": "45411887373",
+        "repository_sha": "5e0eeefd0a673fe492329a21f980351f80c2eccb",
+        "report_sha256": "81b559a29d67d39a295cf9ceaef16230a4e52e7f59c653edf9c4d8af7f601390",
+        "artifact_id": "14927568482",
+        "artifact_sha256": "4452f03c39a185b978abe288ed9b1ad76957eb8e491db6c785642e060d784a06"
+      },
+      "approved_index": {
+        "path": "config/anytour_ranked_46_20261123.json",
+        "sha256": "30d58e6649877a0eb07deb7e2fddcfa99c92081aac5fbef8c3c2b1d7a4a92833"
+      }
+    },
+    {
+      "native": {
+        "run_id": "45411940356",
+        "repository_sha": "5e0eeefd0a673fe492329a21f980351f80c2eccb",
+        "artifact_id": "14928087962",
+        "artifact_sha256": "8029b9413ba563c32e5ac331447141e87324ec5a68297fc4830930302c6765e0",
+        "write_operation": "hotel_ranked_approved_input",
+        "application_sha": "5e0eeefd0a673fe492329a21f980351f80c2eccb"
+      },
+      "public": {
+        "run_id": "45412058830",
+        "repository_sha": "5e0eeefd0a673fe492329a21f980351f80c2eccb",
+        "report_sha256": "3e2920fbb7c5a8ee1a34f6f217ff524182c05739a7d712d5774668b4a1c25384",
+        "artifact_id": "14930285289",
+        "artifact_sha256": "c468fd465dc4729daa307ce7bde67d3e9cf8cdeaae198df5444894a469992158"
+      },
+      "approved_index": {
+        "path": "config/anytour_ranked_index_45387052894.json",
+        "sha256": "0d9d9ed0e2bcb537d829acd36547d92ad3d468d48c1d508d35368acb5c879709"
+      }
+    }
+  ]
+}
