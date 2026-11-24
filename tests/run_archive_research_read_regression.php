@@ -310,6 +310,39 @@ function archiveResearchReadRegression(PDO $pdo): int
         $check(($qualityChats['100:201']['period_clock_metadata']['unknown_created_at_records']??0)===1,
             'quality_inventory_reports_unknown_clock_instead_of_silently_dropping_record');
         $check($fingerprint()===$historyFingerprint,'quality_archive_reads_leave_records_permissions_and_markers_unchanged');
+        // Newest stored Business candidates are a separate quality-only metadata traversal.
+        $check(!isset($final['recent_business'])&&is_string($qualityPage['recent_business']['start_cursor']??null),
+            'business_recent_cursor_advertised_only_to_quality_history');
+        $recentStart=$qualityPage['recent_business']['start_cursor'];
+        ArchiveResearchTraceStatement::$queries=[];
+        $recent=$qualityHistory->inventory(1,$connection,['cursor'=>$recentStart,'limit'=>1]);
+        $candidate=$recent['chats'][0]??[];$encoded=explode('.',($candidate['chat_ref']??''))[0];
+        $candidateRef=json_decode((string)base64_decode(strtr($encoded,'-_','+/')),true);
+        $check(($candidateRef['a']??null)==='100'&&($candidateRef['c']??null)==='198'
+            &&($recent['recent_business']['order']??null)==='retained_row_id_desc'&&$recent['has_more']
+            &&($candidate['timestamp_basis']??null)==='provider_declared_not_server_recording'
+            &&($candidate['message_records']??false)===null,
+            'recent_business_candidates_order_by_stored_rows_without_fabricated_counts_or_server_time');
+        $check(!array_filter(ArchiveResearchTraceStatement::$queries,
+                static fn($sql)=>str_contains($sql,'record_json')||!str_starts_with($sql,'SELECT '))
+            &&!str_contains(json_encode($recent,JSON_THROW_ON_ERROR),'BUSINESS ONLY')
+            &&$recent['candidate_rows_examined']===1,'recent_business_inventory_is_metadata_only_and_readonly');
+        $secondRecent=$qualityHistory->inventory(1,$connection,['cursor'=>$recent['next_cursor'],'limit'=>1]);
+        $thirdRecent=$qualityHistory->inventory(1,$connection,['cursor'=>$secondRecent['next_cursor'],'limit'=>1]);
+        $secondPayload=json_decode(base64_decode(strtr(explode('.',$secondRecent['chats'][0]['chat_ref'])[0],'-_','+/')),true);
+        $thirdPayload=json_decode(base64_decode(strtr(explode('.',$thirdRecent['chats'][0]['chat_ref'])[0],'-_','+/')),true);
+        $check(($secondPayload['a']??null)==='100'&&($secondPayload['c']??null)==='200'
+            &&($thirdPayload['a']??null)==='100'&&($thirdPayload['c']??null)==='200'
+            &&!$thirdRecent['has_more']&&$thirdRecent['next_cursor']===null,
+            'recent_business_cursor_moves_strictly_backward_and_chats_may_reappear');
+        $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$recentStart]),'stale_cursor');
+        $forged=$recentStart;$forged[strlen($forged)-1]=$forged[strlen($forged)-1]==='0'?'1':'0';
+        $reject(fn()=>$qualityHistory->inventory(1,$connection,['cursor'=>$forged]),'stale_cursor');
+        $now+=1201;
+        $reject(fn()=>$qualityHistory->inventory(1,$connection,['cursor'=>$recentStart]),'stale_cursor');
+        $now-=1201;
+        $check(!$pdo->inTransaction()&&$fingerprint()===$historyFingerprint,
+            'recent_business_keeps_scope_expiry_and_source_rows_unchanged');
         // Explicit feature mode is opt-in through a separate cursor; old inventory pages stay metadata-only.
         $seed(2400,100,197,1,'Готовы бронировать, пришлите ссылку на оплату. https://example.test/private +7 999 123-45-67 @synthetic_handle');
         $seed(2401,100,197,2,'Деньги поступили, оплату вижу.',['sender_id'=>'100','sender_type'=>'manager','direction'=>'outbound']);
