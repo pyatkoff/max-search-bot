@@ -12,7 +12,7 @@ function refuses(callable $test, string $reason): bool {
 
 $raw=file_get_contents($dir.'/scope.json');
 $scope=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
-check(hash('sha256',$raw)==='1398698f932d0aeb2a3c1f5d16707100bd468d3453a26bd721aec57f2ce2d641','scope digest');
+check(hash('sha256',$raw)===MAX_BATCH_SCOPE_SHA256,'scope digest');
 $ids=[241,15693,293,408,949,1260,24909];
 check(array_column($scope['rows'],'hotel_id')===$ids,'exact approved seven');
 $repo=str_repeat('a',40);
@@ -61,6 +61,24 @@ check(!maxBatchOriginalSourceApproved(null,str_repeat('0',64),$repo,$app),'absen
 check(!maxBatchOriginalSourceApproved(['run_id'=>1,'artifact_id'=>2,'json_sha256'=>str_repeat('0',64),'repository_sha'=>$repo,'application_sha'=>$app],str_repeat('1',64),$repo,$app),'wrong original bytes');
 check(refuses(fn()=>maxBatchInput($fixtureScope,hash('sha256',$fixtureScope),$fixtureArchive.' ',$encode($source),hash('sha256',$encode($source)),$repo,$app),'native_archive_digest_changed'),'archive preimage');
 
+// Exercise the genuine fixed source bytes and seven rows selected from the independently authenticated target archive.
+$nativeBytes=file_get_contents($dir.'/native-source.json');
+$targetBytes=file_get_contents($dir.'/native-targets.json');
+$realScope=json_decode($raw,true);
+$binding=$realScope['native_source'];
+$actual=maxBatchLoad($dir.'/native-targets.json',$dir.'/native-source.json',$binding['json_sha256'],$binding['repository_sha'],$binding['application_sha']);
+check(array_keys($actual['ready'])===$ids && !$actual['held'] && $actual['provider_writes']===0,'all genuine legacy sources matched');
+$measured=json_decode($nativeBytes,true)['rows'];
+foreach ($measured as $n) {
+    maxBatchVerifyCurrent($actual['ready'][$n['hotel_id']],$n,2);
+    foreach (['source_version'=>$n['source_version']+1,'source_content_sha256'=>str_repeat('5',64),'source_name_in_native_caption'=>false,
+        'source_button_count'=>2,'source_button_resolves_publication'=>false,'source_one_button_matches_url'=>false,'blockers'=>[...$n['blockers'],'unexpected_extra_blocker']] as $key=>$value) {
+        $other=array_replace($n,[$key=>$value]);
+        check(refuses(fn()=>maxBatchVerifyCurrent($actual['ready'][$n['hotel_id']],$other,2),'legacy_publication_identity_changed'),$key);
+    }
+    $other=array_replace($n,['source_catalog_id'=>999999]);
+    check(refuses(fn()=>maxBatchVerifyCurrent($actual['ready'][$n['hotel_id']],$other,2),'different_hotel_or_source'),'legacy cannot replace another catalogue hotel');
+}
 $temp=tempnam(sys_get_temp_dir(),'max-reviewed-plan');
 try {
     foreach ($ready['ready'] as $a) {

@@ -1,8 +1,7 @@
 <?php
 declare(strict_types=1);
 
-// The owner fills this one binding with the checked original source run and artifact after its successful native read.
-const MAX_BATCH_APPROVED_SOURCE = null;
+const MAX_BATCH_SCOPE_SHA256 = '0cff4a47fc29fba92eef0eea02bba7d88de334b66d590ef85af852c76d8e30ee';
 
 function maxBatchOriginalSourceApproved(?array $binding, string $digest, string $repo, string $app): bool
 {
@@ -20,7 +19,11 @@ function maxBatchLoad(string $archivePath, string $nativePath, string $trustedNa
         maxEditNeed(is_string($contents), 'invalid_input');
         return $contents;
     };
-    return maxBatchInput($bytes(__DIR__.'/scope.json'),'1398698f932d0aeb2a3c1f5d16707100bd468d3453a26bd721aec57f2ce2d641',
+    $scopeBytes=$bytes(__DIR__.'/scope.json');
+    maxEditNeed(hash_equals(MAX_BATCH_SCOPE_SHA256,hash('sha256',$scopeBytes)), 'approval_content_changed');
+    $scope=json_decode($scopeBytes,true,32,JSON_THROW_ON_ERROR);
+    maxEditNeed(maxBatchOriginalSourceApproved($scope['native_source'] ?? null,$trustedNativeDigest,$nativeRef,$app),'original_native_source_not_admitted');
+    return maxBatchInput($scopeBytes,MAX_BATCH_SCOPE_SHA256,
         $bytes($archivePath),$bytes($nativePath),$trustedNativeDigest,$nativeRef,$app);
 }
 
@@ -30,13 +33,16 @@ function maxBatchEntry(array $argv): int
     $path = null;
     try {
         $mode = $argv[1];
+        if ($mode === '--batch-plan') {
+            maxEditNeed(count($argv)===7, 'exact_batch_arguments_required');
+            $input=maxBatchLoad(...array_slice($argv,2));
+            echo maxEditJson(['ready'=>array_keys($input['ready']), 'held'=>$input['held'], 'provider_writes'=>0]), "\n";
+            return 0;
+        }
         maxEditNeed(($mode === '--batch-check' && count($argv) === 8) || ($mode === '--batch-apply' && count($argv) === 9), 'exact_batch_arguments_required');
         [, , $archive, $source, $sourceSha, $repo, $app, $id] = $argv;
         maxEditNeed(ctype_digit($id) && (string)(int)$id === $id, 'exact_hotel_required');
         $admitted = maxBatchLoad($archive, $source, $sourceSha, $repo, $app);
-        if ($mode === '--batch-apply') {
-            maxEditNeed(maxBatchOriginalSourceApproved(MAX_BATCH_APPROVED_SOURCE,$sourceSha,$repo,$app),'original_native_source_not_admitted');
-        }
         $approval = $admitted['ready'][(int)$id] ?? null;
         maxEditNeed(is_array($approval), $admitted['held'][(int)$id] ?? 'hotel_outside_reviewed_batch');
         $checkpoint = $argv[8] ?? null;

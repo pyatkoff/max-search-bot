@@ -5,6 +5,9 @@ on:
     paths: ['.github/workflows/edit-1566-historical-max-photo-posts.yml']
 permissions:
   contents: read
+  actions: read
+  issues: read
+  pull-requests: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
@@ -12,8 +15,9 @@ jobs:
   edit_existing:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
+      github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '74fc73b10d72c61ceafae5d36465f6a29dc4278f' &&
+      github.event.before == '803dff9656877711f5c9cb05f73a20f44f3cf648' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -22,14 +26,28 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Lint and seal the exact existing message plans
+      - name: Checkout the release used by the original source audit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: e56ae1d83b643afeca7d890030198e0bcdb71083
+          persist-credentials: false
+          path: accepted-release
+      - name: Verify the receipts, current release and existing publisher before credentials
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/direct_demand/operations/max-existing-photo/admit.js
+      - name: Verify the checked editor and stage exactly the seven original plans
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           mkdir -p pub/stage
+          src=tools/direct_demand/operations/max-existing-photo
           php tests/run_1566_max_existing_photo_batch.php
-          install -m600 tools/direct_demand/operations/max-existing-photo/{editor.php,batch_input.php,batch_entry.php,observe_pair.php,scope.json} pub/stage/
+          python3 tests/run_1566_max_existing_photo_partial.py
+          for file in "$src"/*.php; do php -l "$file"; done
+          install -m600 "$src"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php,scope.json,native-targets.json,native-source.json,run_batch.py} pub/stage/
+          cp "$src/scope.json" pub/manifest.json
           cat > pub/stage/execute.sh <<'SH'
           #!/usr/bin/env bash
           set -euo pipefail
@@ -37,39 +55,11 @@ jobs:
           unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
           stage="$(cd -- "$1" && pwd -P)"
           cd /var/www/anytoour/data/www/app.anytoour.ru
-          release='fe623086b716b3077e4ec0d4551095fc63db37e3'
-          for hotel in 12107 132 469 12111 70048 82606 1344 260 2493 3452 4181 37668 43676 64895 73974 74503 99713; do
-            f="$stage/$hotel.json"
-            digest="$(sha256sum "$f" | cut -d' ' -f1)"
-            if ! php "$stage/editor.php" --check "$f" "$digest" "$release" > "$stage/$hotel-check.out"; then
-              sed -e "s/^/RESULT $hotel /" "$stage/$hotel-check.out"
-              continue
-            fi
-            checkpoint="$(python3 -c 'import json,re,sys; d=json.load(open(sys.argv[1])); assert d["state"]=="ready_read_only" and d["provider_writes"]==0 and d["new_posts"]==0 and d["ad_writes"]==0; h=d["checkpoint_sha256"]; assert re.fullmatch("[a-f0-9]{64}",h); print(h)' "$stage/$hotel-check.out")" || continue
-            [[ "$checkpoint" =~ ^[a-f0-9]{64}$ ]] || continue
-            php "$stage/editor.php" --apply "$f" "$digest" "$release" "$checkpoint" > "$stage/$hotel-final.out" || true
-            sed -e "s/^/RESULT $hotel /" "$stage/$hotel-final.out"
-            sleep 2
-          done
+          test "$(git rev-parse HEAD)" = e56ae1d83b643afeca7d890030198e0bcdb71083
+          python3 "$stage/run_batch.py" "$stage"
           SH
-          cat > pub/manifest.json <<'JSON'
-          [{"kind":"expired_reviewed_photo_promotion","hotel":12107,"hotel_name":"JAZ Fanara Resort & Residence","target_mid":"mid.ffffc1752b045fed019c23699b782b3f","target_ms":1770120649592,"target_url":"https://max.ru/anytour/AZwjaZt4Kz8","target_fingerprint":"edf986a5656cba0248a7a7913b27baf2c29b3054b494d92b859280ac2a78f3fa","source_publication":1238,"source_version":10901,"source_content_hash":"c27c89dae73cf502e064ea9337ef8f88d3ad5d9f3ca6337d4dd0b83a927a3d93","source_mid":"mid.ffffb6caf0606fed01a1d06325306a13","source_url":"https://max.ru/channel_anytour/AaHQYyUwahM","source_aliases":["Fanara"],"caption":"✈️ JAZ Fanara Resort & Residence\n📍 Египет · Рас-Ум-эль-Сид, Шарм-эль-Шейх\n\nПесчаный пляж и коралловый риф у Рас-Ум-эль-Сида. В JAZ Fanara удобно чередовать отдых у моря со снорклингом. Если хочется погрузиться глубже, у отеля есть дайв-центр.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":132,"hotel_name":"Beach Albatros Resort","target_mid":"mid.ffffc1752b045fed019e6a822ba3465a","target_ms":1779903376291,"target_url":"https://max.ru/anytour/AZ5qgiujRlo","target_fingerprint":"13df3d817d417c5d501785ddd7d92aa536367eca09050432754b106cb0080343","source_publication":240,"source_version":11091,"source_content_hash":"2888846d0f48d881cd093fed7abbe656e51bccbc67345709b216227bfdfb8476","source_mid":"mid.ffffb6caf0606fed01a19e1eb55448bd","source_url":"https://max.ru/channel_anytour/AaGeHrVUSL0","source_aliases":["Beach Albatros"],"caption":"✈️ Beach Albatros Resort\n📍 Египет · Хургада\n\nСемейный отдых у Красного моря. У Beach Albatros Resort в Хургаде песчаный пляж с пологим входом в воду. Между купанием в море и отдыхом у бассейна — аквапарк с горками для взрослых и детей.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":469,"hotel_name":"Sultan Gardens Resort","target_mid":"mid.ffffc1752b045fed019eac5fd1c62d39","target_ms":1781008421318,"target_url":"https://max.ru/anytour/AZ6sX9HGLTk","target_fingerprint":"1f0ba493932b77f1cec273d926898ce0e3541ed68bc307df681eef16fda4edee","source_publication":69,"source_version":11411,"source_content_hash":"32fd58f806ff963a19ae99b92e47651c86b7c8fe53438a18f51d4620c01d445e","source_mid":"mid.ffffb6caf0606fed01a17988e3be47cc","source_url":"https://max.ru/channel_anytour/AaF5iOO-R8w","source_aliases":["Sultan Gardens"],"caption":"✈️ Sultan Gardens Resort\n📍 Египет · Шарм-эль-Шейх\n\nСемейный курорт у Красного моря. У пляжа есть риф, к которому ведут понтоны. Для активного и спокойного отдыха предусмотрены отдельные зоны пляжа. В Family Suite две спальни, а детский клуб рассчитан на гостей от 4 до 12 лет.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":12111,"hotel_name":"Mövenpick Sharm El Sheikh","target_mid":"mid.ffffc1752b045fed019eb06bad1c4e5c","target_ms":1781076307228,"target_url":"https://max.ru/anytour/AZ6wa60cTlw","target_fingerprint":"5bad3f15fc539bab6c1fe339d4be3fea108a04aba0bd06cdbba70ab2c74fb93a","source_publication":121,"source_version":10851,"source_content_hash":"0da4a0ab287e96ea0ff04d1f41ee74c9fcd75324ef157ff0237970aa5e51c3f2","source_mid":"mid.ffffb6caf0606fed01a19af894c82e28","source_url":"https://max.ru/channel_anytour/AaGa-JTILig","source_aliases":["Mövenpick Sharm","Movenpick Sharm"],"caption":"✈️ Mövenpick Sharm El Sheikh\n📍 Египет · Наама-Бей, Шарм-эль-Шейх\n\nОтель на склоне над бухтой Наама-Бей, с видом на море и собственными песчаными пляжами. На территории есть дайв-центр и конюшня, поэтому пляжный день можно дополнить погружением или прогулкой верхом.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":70048,"hotel_name":"Marina Gallery Resort Kacha Kalim Bay","target_mid":"mid.ffffc1752b045fed019eb5afafd07002","target_ms":1781164650448,"target_url":"https://max.ru/anytour/AZ61r6_QcAI","target_fingerprint":"06d34dba48a3d19d19e684c5bc732fbbfc48f3535fea2be92333faecffa5b0b2","source_publication":1155,"source_version":11341,"source_content_hash":"f9121eeb63ff3d1d53c9ce4b48e11d5458f1329b11f9663a4e19622d99e1e71d","source_mid":"mid.ffffb6caf0606fed01a1bb92957a0102","source_url":"https://max.ru/channel_anytour/AaG7kpV6AQI","source_aliases":["Marina Gallery","Kacha Kalim Bay"],"caption":"✈️ Marina Gallery Resort Kacha Kalim Bay\n📍 Таиланд · Пхукет\n\nКамерный отдых на Пхукете. У отеля открытый бассейн с садом и лежаками, а в ресторане Laikraam подают блюда местной кухни. До пляжа Калим около километра, в Патонг ходит бесплатный шаттл по расписанию.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":82606,"hotel_name":"Lonicera World Hotel","target_mid":"mid.ffffc1752b045fed019eca4fcca7326f","target_ms":1781510687911,"target_url":"https://max.ru/anytour/AZ7KT8ynMm8","target_fingerprint":"29c3943a5cee6909f7f5e1325237dd74c66f94e5fb33891c1c670b876137cace","source_publication":602,"source_version":11287,"source_content_hash":"49e90e631868f20e3dafd62303c74cdf5b1162ccbd8b58c31edef454086c248d","source_mid":"mid.ffffb6caf0606fed01a1b6522c01069b","source_url":"https://max.ru/channel_anytour/AaG2UiwBBps","source_aliases":["Lonicera World"],"caption":"✈️ Lonicera World Hotel\n📍 Турция · Аланья\n\nLonicera World стоит на первой линии в Аланье. Песчаный пляж и мелководье подойдут семьям с детьми. На территории World работают рестораны Aspera и Beach.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":1344,"hotel_name":"Lonicera Resort & Spa","target_mid":"mid.ffffc1752b045fed019ecf72f6e26c50","target_ms":1781596878562,"target_url":"https://max.ru/anytour/AZ7PcvbibFA","target_fingerprint":"15bdab6bd3f6feddd5b304d2b706f7e6decdf79493df616d83d1179891231969","source_publication":925,"source_version":8653,"source_content_hash":"bfa9739685aaf01cc5088616e8842e50b724cb9b74588885c211cc4164f134fa","source_mid":"mid.ffffb6caf0606fed01a1b77ec102631e","source_url":"https://max.ru/channel_anytour/AaG3fsECYx4","source_aliases":["Lonicera Resort"],"caption":"✈️ Lonicera Resort & Spa — семейный отдых в Аланье\n📍 Турция · Аланья\n\nПесчаный пляж с мелководьем в бухте, а на территории комплекса — бассейны и аквапарк. В детском клубе есть занятия для гостей от 4 до 12 лет.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":260,"hotel_name":"Park Regency Sharm El Sheikh","target_mid":"mid.ffffc1752b045fed019ed455b5ed78ff","target_ms":1781678847469,"target_url":"https://max.ru/anytour/AZ7UVbXteP8","target_fingerprint":"6fd428751ffe620b2c07ab59feab84c4c487ff0d3ddfd2b1ab7639045c45b75e","source_publication":319,"source_version":11575,"source_content_hash":"18a16b6f7b40fb14baf166b2c5da326bdc456bcb7d548212ca2d9d29ddd7f508","source_mid":"mid.ffffb6caf0606fed01a1a0dcfbfd745f","source_url":"https://max.ru/channel_anytour/AaGg3Pv9dF8","source_aliases":["Park Regency Sharm","Hyatt Regency Sharm"],"caption":"✈️ Park Regency Sharm El Sheikh — отдых у Красного моря\n📍 Египет · Шарм-эль-Шейх\n\nУ отеля три пляжа, каскадные бассейны, ленивая река и водная горка. Для детей есть клуб Oasis с игровой комнатой и затенённым бассейном.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":2493,"hotel_name":"W Maldives","target_mid":"mid.ffffc1752b045fed019ed9e0af4924d4","target_ms":1781771841353,"target_url":"https://max.ru/anytour/AZ7Z4K9JJNQ","target_fingerprint":"c9cb651a77bcc9b8cd23cd6e85000e9edd63d6e63c9fa209f017174eba2d3579","source_publication":1471,"source_version":11469,"source_content_hash":"805b15b3f260e7320d6b8c704446be0d3900e7d0ebab1d6526a83585bdff0e33","source_mid":"mid.ffffb6caf0606fed01a1e57fb94b4a39","source_url":"https://max.ru/channel_anytour/AaHlf7lLSjk","source_aliases":["W Maldives","W Retreat & Spa Maldives"],"caption":"✈️ W Maldives\n📍 Мальдивы · Северный Ари\n\nВиллы с собственными бассейнами на пляже и над водой, домашний риф и спа. Подойдёт тем, кто хочет чередовать уединение на вилле со снорклингом и ужинами у океана.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":3452,"hotel_name":"Liberty Hotels Lykia","target_mid":"mid.ffffc1752b045fed019ee95367b6667c","target_ms":1782031017910,"target_url":"https://max.ru/anytour/AZ7pU2e2Znw","target_fingerprint":"a119bc8a6f8c035e46cc05b2681fd7b6f6161630608d8f01e1fe0ed429722fff","source_publication":542,"source_version":11035,"source_content_hash":"1de9684cff1beb41bfcdf1d9a41b3f27407d043e074b595bfb59d919610f2d58","source_mid":"mid.ffffb6caf0606fed01a1b618773c6ef3","source_url":"https://max.ru/channel_anytour/AaG2GHc8bvM","source_aliases":["Liberty Hotels Lykia","Liberty Lykia"],"caption":"✈️ Liberty Hotels Lykia\n📍 Турция · Фетхие\n\nКурорт у бухты Олюдениз. У него свой песчано-галечный пляж с отдельной детской лагуной. Для детей от 3 до 12 лет работает Libby & Berty, для малышей от 6 до 36 месяцев — Baby Club.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":4181,"hotel_name":"Hilton Marsa Alam Nubian Resort","target_mid":"mid.ffffc1752b045fed019f034916691cdc","target_ms":1782466549353,"target_url":"https://max.ru/anytour/AZ8DSRZpHNw","target_fingerprint":"33b971ce477aa0162c440fd6b88925bb828f023f1c1a9b1595110bf0fb2e3abb","source_publication":1237,"source_version":11737,"source_content_hash":"731c7f54b320df2ac8ba3a9522d9dbe642caefe092e7ba66b29348a8877d476b","source_mid":"mid.ffffb6caf0606fed01a1d0631c0b60c6","source_url":"https://max.ru/channel_anytour/AaHQYxwLYMY","source_aliases":["Hilton Marsa Alam","Nubian Resort"],"caption":"✈️ Hilton Marsa Alam Nubian Resort\n📍 Египет · Марса-Алам\n\nОтель у бухты Абу-Даббаб для знакомства с подводным миром Красного моря. Есть доступ к песчаному пляжу, четыре бассейна и занятия для детей. Условия купания зависят от погоды и правил пляжа.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":37668,"hotel_name":"Rixos Premium Seagate","target_mid":"mid.ffffc1752b045fed019f2be11f6f4ff4","target_ms":1783147601775,"target_url":"https://max.ru/anytour/AZ8r4R9vT_Q","target_fingerprint":"4d8ff84dbea58cc84b9e12af27194c8f0259355ff4b790f42e21c442b62c6bf4","source_publication":216,"source_version":11057,"source_content_hash":"039be76b4ffd6d1f63b0004e7a2fd32e8617ffa3bd3b76f1c23ba3b19045941b","source_mid":"mid.ffffb6caf0606fed01a19de1bb8539dc","source_url":"https://max.ru/channel_anytour/AaGd4buFOdw","source_aliases":["Rixos Premium Seagate","Rixos Premium Sea Gate"],"caption":"✈️ Rixos Premium Seagate\n📍 Египет · Шарм-эль-Шейх\n\nСемейный курорт в Шарм-эль-Шейхе с собственным пляжем на Красном море. После моря можно отправиться в аквапарк Aquaventure, а для детей работает клуб Rixy.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":43676,"hotel_name":"Anantara Kalutara Resort","target_mid":"mid.ffffc1752b045fed019f64e8cbcd17de","target_ms":1784104405965,"target_url":"https://max.ru/anytour/AZ9k6MvNF94","target_fingerprint":"614aa5a97893c2cdc36801e4bff80935b611ae61c4580bd8271abc84d3b57008","source_publication":1428,"source_version":10729,"source_content_hash":"d629819e382917f66a74d2ce8805849b6f5378ad374abdc8d37a9280c58130f8","source_mid":"mid.ffffb6caf0606fed01a1e432417c4db3","source_url":"https://max.ru/channel_anytour/AaHkMkF8TbM","source_aliases":["Anantara Kalutara"],"caption":"✈️ Anantara Kalutara Resort\n📍 Шри-Ланка · Калутара\n\nКурорт между Индийским океаном и рекой Калу-Ганга. Бассейны, просторные номера и детский клуб — для семейного отдыха. Для поездки вдвоём — спа, рестораны и виды на воду.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":64895,"hotel_name":"Meraki Resort Hurghada","target_mid":"mid.ffffc1752b045fed019f8e52c68f2638","target_ms":1784799217295,"target_url":"https://max.ru/anytour/AZ-OUsaPJjg","target_fingerprint":"beb35286e8329030eaeb6619ea7b2ff5db9e7de1c049213168c478c97778856c","source_publication":185,"source_version":10151,"source_content_hash":"1b04dc40a593865276af2889d604ed1713331b3fa0653833840ac0056ce0ece3","source_mid":"mid.ffffb6caf0606fed01a19ce9c3e17de4","source_url":"https://max.ru/channel_anytour/AaGc6cPhfeQ","source_aliases":["Meraki Resort Hurghada","Meraki Resort Adults Only"],"caption":"✈️ Meraki Resort Hurghada\n📍 Египет · Хургада\n\nОтель в Хургаде для отдыха без детей, с длинным пляжем на Красном море. Днём можно отдыхать у воды, вечером — выбирать тематические вечеринки и клубную программу. На территории есть греческий и египетский рестораны.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":73974,"hotel_name":"Alma Resort Cam Ranh","target_mid":"mid.ffffc1752b045fed019fad2d1c7b273c","target_ms":1785316842619,"target_url":"https://max.ru/anytour/AZ-tLRx7Jzw","target_fingerprint":"593db3d3e3b2d56fe6e88b5a0d7cbefcaf17175a7f2387b08a16d10a28bca38e","source_publication":517,"source_version":10573,"source_content_hash":"f3e51198f098be0d4d68087b04695c82089f3807f65005d58994e2f12e747dca","source_mid":"mid.ffffb6caf0606fed01a1b5e6bd39135f","source_url":"https://max.ru/channel_anytour/AaG15r05E18","source_aliases":["Alma Resort Cam Ranh","Alma Resort"],"caption":"✈️ Alma Resort Cam Ranh\n📍 Вьетнам · Камрань\n\nСемейный курорт на пляже Бай-Дай в Камрани. В Splash Water Park есть ленивая река, волновой бассейн и семейные горки, так что день у моря легко совместить с аквапарком.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":74503,"hotel_name":"NG Phaselis Bay","target_mid":"mid.ffffc1752b045fed019fcc0d5d203bf2","target_ms":1785834855712,"target_url":"https://max.ru/anytour/AZ_MDV0gO_I","target_fingerprint":"2c46df18fb94204a2be40a24f8dc095d5923cf3fc1fb5a66541ae69624df33e0","source_publication":379,"source_version":10423,"source_content_hash":"90896ceef96522e5f0dd6b5281a5c217f01c01ca72d848c90bed5326057f1bb8","source_mid":"mid.ffffb6caf0606fed01a1a37482770fdb","source_url":"https://max.ru/channel_anytour/AaGjdIJ3D9s","source_aliases":["NG Phaselis"],"caption":"✈️ NG Phaselis Bay\n📍 Турция · Кемер\n\nОтель в Кемере с длинным песчаным пляжем и несколькими бассейнами. Подойдёт для семейного отдыха, а для детей есть клуб Beluga с играми и занятиями.\n\nПодберём тур на ваши даты."},{"kind":"expired_reviewed_photo_promotion","hotel":99713,"hotel_name":"Anantara Mina Al Arab Ras Al Khaimah","target_mid":"mid.ffffc1752b045fed019fd10771555c57","target_ms":1785918353749,"target_url":"https://max.ru/anytour/AZ_RB3FVXFc","target_fingerprint":"21e167f0c44d733ee107e0261b9c683c86ebe4d8c04526262a9a656d59caa7f1","source_publication":1427,"source_version":10735,"source_content_hash":"fe1f06a12601d69ad95103a37c9e7495a3ee39fff38c6970e31e850155518a9c","source_mid":"mid.ffffb6caf0606fed01a1e4323805155f","source_url":"https://max.ru/channel_anytour/AaHkMjgFFV8","source_aliases":["Anantara Mina Al Arab","Anantara Mina Ras Al Khaimah"],"caption":"✈️ Anantara Mina Al Arab Ras Al Khaimah\n📍 ОАЭ · Рас-эль-Хайма\n\nКурорт среди мангровых зарослей Рас-эль-Хаймы. Можно выбрать номер, люкс или отдельную виллу над водой с бассейном. Для семей работают детский и подростковый клубы.\n\nПодберём тур на ваши даты."}]
-          JSON
-          php -l pub/stage/editor.php
           bash -n pub/stage/execute.sh
-          python3 - <<'PY'
-          import json, pathlib
-          rows=json.load(open('pub/manifest.json'))
-          assert [r['hotel'] for r in rows]==[12107,132,469,12111,70048,82606,1344,260,2493,3452,4181,37668,43676,64895,73974,74503,99713]
-          assert len({r['target_mid'] for r in rows})==17
-          raw=pathlib.Path('pub/stage/editor.php').read_text()
-          assert "'PUT', '/messages'" in raw and "'POST', '/messages'" not in raw
-          assert "'DELETE', '/messages'" not in raw and '/uploads' not in raw
-          for row in rows:
-              assert row['target_url'].startswith('https://max.ru/anytour/')
-              pathlib.Path('pub/stage',f"{row['hotel']}.json").write_text(json.dumps(row,ensure_ascii=False,separators=(',',':')))
-          PY
-          tar -C pub/stage -cf pub/approved.tar editor.php execute.sh batch_input.php batch_entry.php observe_pair.php scope.json 12107.json 132.json 469.json 12111.json 70048.json 82606.json 1344.json 260.json 2493.json 3452.json 4181.json 37668.json 43676.json 64895.json 73974.json 74503.json 99713.json
+          tar -C pub/stage -cf pub/approved.tar editor.php batch_input.php batch_entry.php observe_pair.php scope.json native-targets.json native-source.json run_batch.py execute.sh
       - name: Pin established SSH host continuity and authentication identity
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -102,6 +92,10 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
+      - name: Recheck the publisher immediately before transferring the sealed plans
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/direct_demand/operations/max-existing-photo/admit.js
       - name: Edit only each verified existing ID and capture its independent receipt
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -116,15 +110,21 @@ jobs:
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'bash -c '"'"'set -euo pipefail; umask 077; stage=$(mktemp -d /tmp/anytour-1566-old-max.XXXXXXXX); trap "rm -f -- \"$stage\"/*; rmdir -- \"$stage\"" EXIT; tar --no-same-owner --no-same-permissions -C "$stage" -xf -; bash "$stage/execute.sh" "$stage"'"'"'' < pub/approved.tar | tee pub/native-results.txt
           python3 - <<'PY'
           import json,pathlib
-          summary = {}
+          expected = [r['hotel_id'] for r in json.loads(pathlib.Path('pub/manifest.json').read_bytes())['rows']]
+          rows = []
           for line in pathlib.Path('pub/native-results.txt').read_text().splitlines():
-              if not line.startswith('RESULT '): continue
+              if not line.startswith('RESULT '):
+                  continue
               _, hotel, payload = line.split(' ', 2)
-              d=json.loads(payload)
-              assert d.get('new_posts',0)==0 and d.get('ad_writes',0)==0
-              summary[hotel]=d
-          assert len(summary)==17
-          pathlib.Path('pub/summary.json').write_text(json.dumps(summary,indent=2,ensure_ascii=False))
+              d = json.loads(payload)
+              assert d['hotel'] == int(hotel) and d.get('new_posts', 0) == 0 and d.get('ad_writes', 0) == 0
+              assert d['state'] in {'existing_max_message_updated_and_verified','stopped_before_edit','held_no_retry','untouched','unobserved'}
+              rows.append(d)
+          assert [r['hotel'] for r in rows] == expected
+          accepted = [r['hotel'] for r in rows if r['state'] == 'existing_max_message_updated_and_verified']
+          summary = {'state':'complete' if len(accepted)==len(expected) else 'partial' if accepted else 'none_accepted','native_accepted':accepted,'rows':rows}
+          pathlib.Path('pub/summary.json').write_text(json.dumps(summary,indent=2))
+          print('Native confirmations', len(accepted), 'of', len(expected), accepted)
           PY
       - name: Preserve exact original receipts
         if: always()

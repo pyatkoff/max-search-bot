@@ -7,10 +7,13 @@ function maxBatchInput(string $approvedBytes, string $approvedHash, string $arch
     maxEditNeed(hash_equals(hash('sha256', $approvedBytes), $approvedHash), 'approval_content_changed');
     $scope = json_decode($approvedBytes, true, 32, JSON_THROW_ON_ERROR);
     maxEditNeed($scope['version'] === 1 && $scope['rows'] !== [], 'invalid_approved_scope');
-    maxEditNeed(is_string($scope['archive_registry_sha256'] ?? null) && hash_equals($scope['archive_registry_sha256'], hash('sha256', $archiveBytes)), 'native_archive_digest_changed');
+    $archiveHash=hash('sha256', $archiveBytes);
+    $selected=isset($scope['archive_selected_sha256']) && hash_equals($scope['archive_selected_sha256'],$archiveHash);
+    maxEditNeed($selected || hash_equals($scope['archive_registry_sha256'],$archiveHash), 'native_archive_digest_changed');
     maxEditNeed(preg_match('/\A[a-f0-9]{40}\z/D', $release) === 1 && preg_match('/\A[a-f0-9]{40}\z/D', $sourceRef) === 1
         && hash_equals($sourceArtifactHash, hash('sha256', $sourceBytes)), 'native_source_digest_changed');
     $archive = json_decode($archiveBytes, true, 32, JSON_THROW_ON_ERROR);
+    maxEditNeed(!$selected || ($archive['registry_json_sha256'] ?? null) === $scope['archive_registry_sha256'], 'native_archive_origin_changed');
     $source = json_decode($sourceBytes, true, 32, JSON_THROW_ON_ERROR);
     maxEditNeed(($archive['ok'] ?? false) === true && $archive['history_complete'] === true && $archive['price_content_shared_lease'] === true
         && $archive['native_run_id'] === $scope['archive_run_id'] && $archive['production_writes'] === 0 && $archive['provider_writes'] === 0, 'invalid_archive');
@@ -57,16 +60,32 @@ function maxBatchInput(string $approvedBytes, string $approvedHash, string $arch
 function maxBatchValidateNativeRow(array $row, array $observed): void
 {
     $id = $row['hotel_id'];
-    maxEditNeed(($observed['blockers'] ?? null) === [], 'native_source_or_target_unconfirmed');
-    maxEditNeed($observed['source_id'] === $row['source_id'] && $observed['source_mid'] === $row['source_mid']
-        && $observed['target_mid'] === $row['target_mid'] && $observed['target_url'] === $row['target_url']
-        && $observed['source_catalog_id'] === $id && $observed['native_source_photo_count'] === 1
-        && is_int($observed['source_version']) && $observed['source_version'] > 0, 'different_hotel_or_source');
+    $missing=$observed['blockers'] ?? null;
+    $catalog=$observed['source_catalog_id'] ?? null;
+    maxEditNeed(($observed['hotel_id'] ?? null) === $id && ($observed['source_id'] ?? null) === $row['source_id'] && ($observed['source_mid'] ?? null) === $row['source_mid']
+        && ($observed['target_mid'] ?? null) === $row['target_mid'] && ($observed['target_url'] ?? null) === $row['target_url']
+        && ($catalog === 0 || $catalog === $id) && ($observed['native_source_photo_count'] ?? null) === 1
+        && is_int($observed['source_version'] ?? null) && $observed['source_version'] > 0, 'different_hotel_or_source');
+    if ($catalog === 0) {
+        $identity=[];
+        foreach (['hotel_id','source_id','source_mid','native_source_date_ms','source_version','source_content_sha256','source_photo_sha256','source_caption_sha256','target_mid'] as $key) {
+            $identity[]=$observed[$key] ?? null;
+        }
+        maxEditNeed(isset($row['original_legacy_identity_sha256']) && hash_equals($row['original_legacy_identity_sha256'],hash('sha256',maxEditJson($identity)))
+            && $missing === ['source_hotel_id_matches','source_button_resolves_to_hotel']
+            && ($observed['source_hotel_id_matches'] ?? null) === false && ($observed['source_button_resolves_to_hotel'] ?? null) === false
+            && ($observed['source_name_in_native_caption'] ?? null) === true && ($observed['readable_source_hotel_identity'] ?? null) === true
+            && ($observed['source_button_count'] ?? null) === 1 && ($observed['source_one_button_matches_url'] ?? null) === true
+            && ($observed['source_button_resolves_publication'] ?? null) === true, 'legacy_publication_identity_changed');
+    } else {
+        maxEditNeed($missing === [] && ($observed['source_hotel_id_matches'] ?? null) === true
+            && ($observed['source_button_resolves_to_hotel'] ?? null) === true, 'missing_native_proof');
+    }
     foreach (['source_content_sha256','source_photo_sha256','source_caption_sha256'] as $field) {
         maxEditNeed(is_string($observed[$field]) && preg_match('/\A[a-f0-9]{64}\z/D', $observed[$field]) === 1, 'invalid_source_fingerprint');
     }
     foreach (['source_caption_nonempty','native_source_photo_reusable','source_caption_matches_registry','source_photo_matches_registry',
-        'source_hotel_id_matches','source_single_registry_button','source_button_resolves_to_hotel','target_matches_native_archive'] as $field) {
+        'source_single_registry_button','target_matches_native_archive'] as $field) {
         maxEditNeed(($observed[$field] ?? null) === true, 'missing_native_proof');
     }
     foreach (['target_occupied','source_held','target_or_hotel_registry_conflicts'] as $field) {

@@ -1,0 +1,110 @@
+{
+  "ok": true,
+  "history_complete": true,
+  "price_content_shared_lease": true,
+  "native_run_id": "45373389110",
+  "production_writes": 0,
+  "provider_writes": 0,
+  "original_receipt_sha256": "b8dd0185ef9bc2b1ee70cb41e6facd45c1d9d6c930779077632023504fc6e36f",
+  "registry_json_sha256": "c65efd90090ab8669c0d7646d44d8927ea3658c39673696d2e147685f3ec7568",
+  "rows": [
+    {
+      "mid": "mid.ffffc1752b045fed019f3bfc45091222",
+      "url": "https://max.ru/anytour/AZ87_EUJEiI",
+      "published_ms": 1783417816329,
+      "registered": false,
+      "previously_screened": true,
+      "media": [
+        "image"
+      ],
+      "keyboard_present": false,
+      "linked_message": false,
+      "fingerprint": "a94406a316645dd6589b3d58f4835f5d8af5bec43a8fbc50b41986dfbdf75e99",
+      "status": "already_known"
+    },
+    {
+      "mid": "mid.ffffc1752b045fed019fb21126c22ff4",
+      "url": "https://max.ru/anytour/AZ-yESbCL_Q",
+      "published_ms": 1785398896322,
+      "registered": false,
+      "previously_screened": true,
+      "media": [
+        "image"
+      ],
+      "keyboard_present": false,
+      "linked_message": false,
+      "fingerprint": "75586399750be5d29b6d56a18c9e0cca284e8ffab7f1df2d870f81f3c4bb1c6d",
+      "status": "already_known"
+    },
+    {
+      "mid": "mid.ffffc1752b045fed019fb7680d2d1be1",
+      "url": "https://max.ru/anytour/AZ-3aA0tG-E",
+      "published_ms": 1785488477485,
+      "registered": false,
+      "previously_screened": true,
+      "media": [
+        "image"
+      ],
+      "keyboard_present": false,
+      "linked_message": false,
+      "fingerprint": "567d536515421dbd147944caf2972277b3520fad527b1064cace958de07f30cf",
+      "status": "already_known"
+    },
+    {
+      "mid": "mid.ffffc1752b045fed019fc19008af78d4",
+      "url": "https://max.ru/anytour/AZ_BkAiveNQ",
+      "published_ms": 1785658869935,
+      "registered": false,
+      "previously_screened": true,
+      "media": [
+        "image"
+      ],
+      "keyboard_present": false,
+      "linked_message": false,
+      "fingerprint": "69aee34cd7c9ddf4074c423a24669efd532fb662d1b0916661598c0dec933a5b",
+      "status": "already_known"
+    },
+    {
+      "mid": "mid.ffffc1752b045fed019fdb56b68a7eab",
+      "url": "https://max.ru/anytour/AZ_bVraKfqs",
+      "published_ms": 1786091320970,
+      "registered": false,
+      "previously_screened": true,
+      "media": [
+        "image"
+      ],
+      "keyboard_present": false,
+      "linked_message": false,
+      "fingerprint": "3f1e6b5b8691f70a6b761c13dc75f4a9c66cc6171c4220d7c2254e8e5f3db7a5",
+      "status": "already_known"
+    },
+    {
+      "mid": "mid.ffffc1752b045fed019ff56c48d53b74",
+      "url": "https://max.ru/anytour/AZ_1bEjVO3Q",
+      "published_ms": 1786528942293,
+      "registered": false,
+      "previously_screened": true,
+      "media": [
+        "image"
+      ],
+      "keyboard_present": false,
+      "linked_message": false,
+      "fingerprint": "f86acef0e2a385894f5ccde99638cfc9cb2be94987998ac700e11db81346c4fc",
+      "status": "already_known"
+    },
+    {
+      "mid": "mid.ffffc1752b045fed01a01044fef81c8a",
+      "url": "https://max.ru/anytour/AaAQRP74HIo",
+      "published_ms": 1786979352312,
+      "registered": false,
+      "previously_screened": true,
+      "media": [
+        "image"
+      ],
+      "keyboard_present": false,
+      "linked_message": false,
+      "fingerprint": "688ef29b5ab084beb1776e7e0a9fd3515eac594ccc71755bc6cd68f2579f97b3",
+      "status": "already_known"
+    }
+  ]
+}

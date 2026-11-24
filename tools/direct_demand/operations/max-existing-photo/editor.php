@@ -334,7 +334,8 @@ function maxEditRun(array $argv, ?array $batchApproval = null): int
             && (int)($resolved['snapshot']['metadata']['hotel_catalog_id'] ?? 0) === $plan['hotel']
             && ($resolved['snapshot']['post_url'] ?? '') === $proof['target_url'], 'canonical_hotel_context_unconfirmed');
         $receipt = ['state' => 'existing_max_message_updated_and_verified', 'publication_id' => $id, 'version_id' => $version,
-            'body_photo_button_verified' => true, 'new_posts' => 0, 'ad_writes' => 0] + $proof;
+            'body_photo_button_verified' => true, 'button_url_sha256'=>hash('sha256',$button),
+            'button_label_sha256'=>hash('sha256',$channel['button_text']), 'source_photo_sha256'=>hash('sha256',$proof['source_photo_id']), 'new_posts' => 0, 'ad_writes' => 0] + $proof;
         maxEditReceipt($file, $receipt);
         echo maxEditJson($receipt), "\n";
         return 0;
@@ -368,7 +369,7 @@ function maxEditRun(array $argv, ?array $batchApproval = null): int
 if (PHP_SAPI !== 'cli' || realpath((string)($_SERVER['SCRIPT_FILENAME'] ?? '')) !== __FILE__) {
     return;
 }
-if (in_array($argv[1] ?? '', ['--batch-check','--batch-apply'], true)) {
+if (in_array($argv[1] ?? '', ['--batch-plan','--batch-check','--batch-apply'], true)) {
     require_once __DIR__ . '/batch_input.php';
     require_once __DIR__ . '/batch_entry.php';
     exit(maxBatchEntry($argv));
