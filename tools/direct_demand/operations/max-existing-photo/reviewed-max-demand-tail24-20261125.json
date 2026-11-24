@@ -1,0 +1,609 @@
+{
+  "schema": 1,
+  "kind": "hotel_max_caption_preparation",
+  "issue": 1566,
+  "goal": 330,
+  "price_gate": false,
+  "production_writes": 0,
+  "previous_prepared_count": 142,
+  "total_prepared_count": 166,
+  "first_party_demand": {
+    "run_id": 45385556709,
+    "artifact_id": 14915463382,
+    "moscow_completed_days": "2026-11-17 through 2026-11-23",
+    "scope": "distinct conversations and entries, no paid-click inference"
+  },
+  "previous_preparation_commit": "c23af3431ccb00de95a6becd898bc20194f98767",
+  "source_evidence": {
+    "run_id": 45512362716,
+    "job_id": 138863040663,
+    "artifact_id": 14975377778,
+    "artifact_sha256": "sha256:3e9f2bfc2cccdb4bdd6d4af0ae2bb87eb3659112dd020a5ce20318bbff1f8d6b",
+    "feed_sha256": "2d46078c045bcf735df873c30e7e12a2ae0ad29daea14af7c9839ab62478befb",
+    "canonical_map_blob": "ba5ac7207da7fe185c1d864726bc240ba273976d",
+    "matched_offers": 26,
+    "public_pages_with_exact_channel_content": 26,
+    "elapsed_seconds": 20
+  },
+  "remaining_ranked_source_candidates_in_this_snapshot": 0,
+  "withheld_candidates": [
+    {
+      "exact_id": 82716,
+      "hotel_name": "NH Collection Dubai The Palm",
+      "status": "existing_large_channel_post_already_bound_to_pending_operation",
+      "existing_post_url": "https://max.ru/anytour/AaBI6Jfvad8",
+      "evidence_url": "https://github.com/pyatkoff/max-search-bot/blob/c23af3431ccb00de95a6becd898bc20194f98767/tools/direct_demand/operations/max-existing-photo/next-native-input-20261124.json"
+    },
+    {
+      "exact_id": 90236,
+      "hotel_name": "The V Luxury Resort",
+      "status": "existing_large_channel_post_with_prior_native_receipt",
+      "existing_post_url": "https://max.ru/anytour/AaGL2WYPAfo",
+      "target_mid": "mid.ffffc1752b045fed01a18bd9660f01fa",
+      "evidence_url": "https://github.com/pyatkoff/max-search-bot/issues/1566#issuecomment-7054609724"
+    }
+  ],
+  "rows": [
+    {
+      "exact_id": 49084,
+      "rank": 155,
+      "hotel_name": "Titanic Luxury Collection Bodrum",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Titanic Luxury Collection Bodrum\n📍 Бодрум, Турция\nКурорт в бухте Эгейского моря с собственным пляжем и бассейнами. Для детей есть клуб и водные горки, а на ужин можно выбрать ресторан с любимой кухней.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHptmV3KDQ",
+        "publication_id": 1603,
+        "offer_id": "max_49084",
+        "offer_alias": "h1_ad15acadf883df8f8f3ba419bb796606",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 54193,
+      "rank": 156,
+      "hotel_name": "SOL by Meliá Phu Quoc",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в SOL by Meliá Phu Quoc\n📍 Фукуок, Вьетнам\nИз отеля можно выйти прямо к пляжу Труонг. У открытого бассейна инфинити видно море.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG15sYgRhQ",
+        "publication_id": 518,
+        "offer_id": "max_54193",
+        "offer_alias": "h1_ddb9b72c927dea1cd7525eee367cb7dc",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 55511,
+      "rank": 157,
+      "hotel_name": "Trendy Verbena Beach",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Trendy Verbena Beach\n📍 Эвренсеки, Сиде, Турция\nПесчаный пляж через променад, водные горки и семейные номера. Зимой в отеле подогревают крытые бассейны для взрослых и детей.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHRo2yZNPs",
+        "publication_id": 1286,
+        "offer_id": "max_55511",
+        "offer_alias": "h1_a96fbf90c74c87a4c330db7964a54942",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 57650,
+      "rank": 158,
+      "hotel_name": "Red Sun Nha Trang Hotel",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Red Sun Nha Trang Hotel\n📍 Нячанг, Вьетнам\nГородской отель с бассейном и видом на Нячанг. На крыше есть тренажёрный зал, а до общественного пляжа около 150 метров через дорогу.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG38Ebjbk0",
+        "publication_id": 1091,
+        "offer_id": "max_57650",
+        "offer_alias": "h1_b2f711fb1071396e34d063d6961f4b0d",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 58088,
+      "rank": 159,
+      "hotel_name": "Cape Kudu Hotel",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Cape Kudu Hotel\n📍 Ко Яо Ной, Таиланд\nОстровной отель с бассейном, спа и виллами. Пляж через дорогу, а добраться до острова можно на лодке.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHqkdqKDPI",
+        "publication_id": 2000,
+        "offer_id": "max_58088",
+        "offer_alias": "h1_db8270e9f2020335548872eed46d4333",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 61159,
+      "rank": 160,
+      "hotel_name": "Aloft Palm Jumeirah",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Aloft Palm Jumeirah\n📍 Дубай, ОАЭ\nОтель на Пальме Джумейра примерно в 300 метрах от собственного песчаного пляжа. В отеле бывает живая музыка.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG3k-ZDGFA",
+        "publication_id": 961,
+        "offer_id": "max_61159",
+        "offer_alias": "h1_9ff1c7f30bbbcd15a726bab24d38ba64",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 61623,
+      "rank": 161,
+      "hotel_name": "InterContinental Phu Quoc Long Beach Resort",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в InterContinental Phu Quoc Long Beach Resort\n📍 Фукуок, Вьетнам\nПесчаный пляж и четыре бассейна для семейного отдыха. Для детей есть клуб и площадка, для взрослых — спа и бар на крыше с видом на море.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHqSmdWAtI",
+        "publication_id": 1905,
+        "offer_id": "max_61623",
+        "offer_alias": "h1_376e2df248fb413cee7e4bf898f5fcef",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 65108,
+      "rank": 162,
+      "hotel_name": "The Westin Maldives Miriandhoo Resort",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в The Westin Maldives Miriandhoo Resort\n📍 Атолл Баа, Мальдивы\nВиллы у пляжа и над лагуной, в отдельных категориях есть собственный бассейн. На острове работают спа и детский клуб.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHlgLlQGGA",
+        "publication_id": 1486,
+        "offer_id": "max_65108",
+        "offer_alias": "h1_409b9a352fc931bb8a49e38c39f06189",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 65164,
+      "rank": 163,
+      "hotel_name": "Vinpearl Beachfront Nha Trang",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Vinpearl Beachfront Nha Trang\n📍 Нячанг, Вьетнам\nГородской отель со студиями и вариантами с двумя спальнями. На территории есть детский клуб и бассейн, до песчаного пляжа около 150 метров.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHqSo1XXBM",
+        "publication_id": 1909,
+        "offer_id": "max_65164",
+        "offer_alias": "h1_9bc013bb3d9a056f07c3a89652dfb8eb",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 65712,
+      "rank": 164,
+      "hotel_name": "Granada Luxury Beach",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Granada Luxury Beach\n📍 Авсаллар, Турция\nОтель на первой линии с песчаным пляжем в Авсалларе. По вечерам бывают живая музыка и дискотека.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG3XzamMEk",
+        "publication_id": 904,
+        "offer_id": "max_65712",
+        "offer_alias": "h1_4c292d5a978476c8619c43c91346d6c9",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 66547,
+      "rank": 166,
+      "hotel_name": "VARU by Atmosphere",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в VARU by Atmosphere\n📍 Северный Мале, Мальдивы\nПляжные и водные виллы, в том числе варианты с собственным бассейном. Для детей есть клуб, а в Kaagé можно попробовать мальдивскую кухню.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHlfnYDMGE",
+        "publication_id": 1450,
+        "offer_id": "max_66547",
+        "offer_alias": "h1_9424eae5625eda885bbf2ee0fd18943a",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 66564,
+      "rank": 167,
+      "hotel_name": "Erica Nha Trang",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Erica Nha Trang\n📍 Нячанг, Вьетнам\nНа крыше есть бассейн и бар с видом на Нячанг. До общественного пляжа около 200 метров, для семьи можно выбрать номера с соединяющей дверью.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHQKudjIiQ",
+        "publication_id": 1197,
+        "offer_id": "max_66564",
+        "offer_alias": "h1_8ca0c890f7c690126396ab7388954843",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 69116,
+      "rank": 168,
+      "hotel_name": "Selectum Noa Resort Cam Ranh",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Selectum Noa Resort Cam Ranh\n📍 Камрань, Вьетнам\nСобственный пляж длиной 400 метров и аквапарк с горками для взрослых и отдельной детской зоной. Клуб Selecto Kids принимает детей от 4 до 12 лет.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG2Y4jjcAg",
+        "publication_id": 617,
+        "offer_id": "max_69116",
+        "offer_alias": "h1_6a884220d15428c1c52d7d2c769565eb",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 73082,
+      "rank": 169,
+      "hotel_name": "Hilton Abu Dhabi Yas Island",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Hilton Abu Dhabi Yas Island\n📍 Остров Яс, ОАЭ\nОтель на набережной Яс-Бей с бассейном. Для каждого зарегистрированного гостя предусмотрено посещение одного тематического парка острова за ночь проживания.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHrhor5d2o",
+        "publication_id": 2214,
+        "offer_id": "max_73082",
+        "offer_alias": "h1_da6f798f159c6ee80b8353ab09e262ef",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "supporting_sources": [
+        "https://www.hilton.com/en/hotels/auhyihi-hilton-abu-dhabi-yas-island/yas-theme-parks/"
+      ],
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 73477,
+      "rank": 171,
+      "hotel_name": "Siyam World Maldives",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Siyam World Maldives\n📍 Атолл Нуну, Мальдивы\nКурорт для семейного отдыха на большом острове с пляжами и плавучим аквапарком. На территории есть несколько ресторанов.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHpO96bKEI",
+        "publication_id": 1532,
+        "offer_id": "max_73477",
+        "offer_alias": "h1_94af7443791127ab3dd1ff690c8f3ca7",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 76318,
+      "rank": 173,
+      "hotel_name": "Le Méridien Maldives Resort & Spa",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Le Méridien Maldives Resort & Spa\n📍 Атолл Лавиани, Мальдивы\nВиллы над лагуной и среди тропической зелени, включая варианты с несколькими спальнями. Есть детский клуб и семейный бассейн, а для взрослых выделен отдельный бассейн.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHlf8KeVQM",
+        "publication_id": 1472,
+        "offer_id": "max_76318",
+        "offer_alias": "h1_a079d28c4d010db65c029bf80878b497",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 80713,
+      "rank": 174,
+      "hotel_name": "Wyndham Residences The Palm",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Wyndham Residences The Palm\n📍 Дубай, ОАЭ\nАпарт-отель на Пальме Джумейра с собственным пляжем. Для семейного отдыха можно выбрать просторную студию с кухней.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG3llzeabw",
+        "publication_id": 970,
+        "offer_id": "max_80713",
+        "offer_alias": "h1_117f44d0e5c558bbba749b48756f97fb",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 82504,
+      "rank": 175,
+      "hotel_name": "Madifushi Private Island",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Madifushi Private Island\n📍 Атолл Мииму, Мальдивы\nУ вилл Sunset Aqua Pool Villa есть терраса с собственным бассейном и ступени прямо в лагуну. В этой категории можно встречать закат над океаном у своей виллы.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHryL5vM3o",
+        "publication_id": 2254,
+        "offer_id": "max_82504",
+        "offer_alias": "h1_3ba136b926a73a7fd1841bfb5c4ecca3",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "supporting_sources": [
+        "https://www.madifushiprivateisland.com/accommodation/sunset-aqua-pool-villa"
+      ],
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 91404,
+      "rank": 179,
+      "hotel_name": "Swissôtel Sharm El Sheikh",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Swissôtel Sharm El Sheikh\n📍 Шарм-эль-Шейх, Египет\nКурорт под управлением Rixos. Корпуса Aqua находятся на второй линии, примерно в 350 метрах от пляжа.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaG31PEWUw4",
+        "publication_id": 1060,
+        "offer_id": "max_91404",
+        "offer_alias": "h1_4ffeeeca9a108e062426d4f1576c514f",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 98723,
+      "rank": 180,
+      "hotel_name": "Cleopatra Luxury Resort Sharm Adults Only 16+",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Cleopatra Luxury Resort Sharm Adults Only 16+\n📍 Шарм-эль-Шейх, Египет\nОтель для гостей от 16 лет с четырьмя бассейнами. Есть тренажёрный зал и занятия йогой и растяжкой.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaGjHFTqWDo",
+        "publication_id": 366,
+        "offer_id": "max_98723",
+        "offer_alias": "h1_e393d7ed33e19a8d1ae58ce0223c7d34",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "supporting_sources": [
+        "https://joinup.ua/media/2023/05/Cleopatra-Luxury-Resort-Sharm-Adults-Only-16-Fact-Sheet-May-2023.pdf"
+      ],
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 115918,
+      "rank": 181,
+      "hotel_name": "Rixos Radamis Sharm El Sheikh",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Rixos Radamis Sharm El Sheikh\n📍 Шарм-эль-Шейх, Египет\nСемейный курорт с детским городком Rixy Kids Town. В течение дня для детей проводят занятия, на территории есть игровые комнаты и рестораны.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaGeimaBEmc",
+        "publication_id": 284,
+        "offer_id": "max_115918",
+        "offer_alias": "h1_0c72827d41f25e7952d0977a384354eb",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 126417,
+      "rank": 182,
+      "hotel_name": "Radisson RED Danang",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Radisson RED Danang\n📍 Дананг, Вьетнам\nГородской отель с бассейном и баром на крыше. До песчаного пляжа около 50 метров через дорогу, в отеле есть ресторан и спа.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHqlsYMYuE",
+        "publication_id": 2083,
+        "offer_id": "max_126417",
+        "offer_alias": "h1_21584d2de89e3cb935625bdf5c54181d",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 127988,
+      "rank": 183,
+      "hotel_name": "JW Marriott Hotel & Suites Saigon",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в JW Marriott Hotel & Suites Saigon\n📍 Хошимин, Вьетнам\nГородской отель рядом с M Plaza Saigon и достопримечательностями центра. После прогулок можно отдохнуть у открытого бассейна или в спа.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHqvsIyV_0",
+        "publication_id": 2182,
+        "offer_id": "max_127988",
+        "offer_alias": "h1_206c402781b0f84525e8da5fd447a31e",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    },
+    {
+      "exact_id": 131884,
+      "rank": 184,
+      "hotel_name": "Courtyard by Marriott Danang Han River",
+      "demand": {
+        "platform": "max",
+        "distinct_dialogues": 1,
+        "entries": 1
+      },
+      "caption": "✈️ Туры в Courtyard by Marriott Danang Han River\n📍 Дананг, Вьетнам\nОтель на берегу реки Хан с бассейном и баром на крыше. До пляжа Ми Кхе около трёх километров.",
+      "cta": "Рассчитать на мои даты",
+      "price_optional": true,
+      "source": {
+        "post_url": "https://max.ru/channel_anytour/AaHqlrL5AU0",
+        "publication_id": 2081,
+        "offer_id": "max_131884",
+        "offer_alias": "h1_665012f49b624aa8c0cdd51808a54efc",
+        "photo_policy": "reuse_native_hotel_attachment",
+        "public_photo_visible": true
+      },
+      "target": null,
+      "next_gate": "find_unused_existing_commercial_target"
+    }
+  ]
+}
