@@ -55,13 +55,16 @@ function showPendingAttempt(state='unknown',{checked=false,error=''}={}){
     const button=document.createElement('button');button.type='button';button.textContent='Отменить непринятую попытку';button.onclick=()=>sendReply('cancel_send_attempt');button.addEventListener('mousedown',e=>{if(e.button===0)e.preventDefault()});$('replyStatus')?.appendChild(button);
   }
 }
-async function readSendReceipt(data,isCurrent){
-  const controller=typeof AbortController==='function'?new AbortController():null;let active=true,timer=null;
+async function waitForAttemptResponse(start,isCurrent,controller=null){
+  let active=true,timer=null;
   try{
-    // This deadline bounds the read only. The original send remains fenced even
-    // if fetch ignores abort; a late response cannot change current auth or UI.
-    return await Promise.race([api('send_receipt',data,{isCurrent:()=>active&&isCurrent(),signal:controller?.signal}),new Promise((resolve,reject)=>{timer=setTimeout(()=>{active=false;reject(new Error('send_receipt_timeout'));controller?.abort()},20000)})]);
+    const deadline=new Promise((resolve,reject)=>{timer=setTimeout(()=>{active=false;reject(new Error('attempt_response_timeout'));controller?.abort()},20000)});
+    return await Promise.race([start({isCurrent:()=>active&&isCurrent(),signal:controller?.signal}),deadline]);
   }finally{active=false;if(timer!==null)clearTimeout(timer)}
+}
+function readSendReceipt(data,isCurrent){
+  const controller=typeof AbortController==='function'?new AbortController():null;
+  return waitForAttemptResponse(options=>api('send_receipt',data,options),isCurrent,controller);
 }
 function sendReceiptError(result){
   if(result?.http_status===403||['forbidden','send_attempt_mismatch'].includes(result?.error))return 'forbidden';
@@ -759,9 +762,10 @@ async function sendReply(reconcileAction='send_receipt'){
       if(hasFile)j=await (calculation?.media?window.WorkspaceV2Media.send(text,calculation.media):window.WorkspaceV2Media.send(text));
       else if(receiptRead)j=await readSendReceipt({conversation_id:target,operation_id:attempt.id,...(calculationAttempt(attempt)?{expected_manager_id:manager}:{})},currentAttempt);
       else if(reconcile)j=await api('cancel_send_attempt',{conversation_id:target,operation_id:attempt.id,...(calculationAttempt(attempt)?{expected_manager_id:manager}:{})},{isCurrent:currentAttempt});
-      else j=await api('send',{conversation_id:target,text,operation_id:attempt.id,...(validAiDraftId(aiDraftId)?{ai_draft_id:aiDraftId}:{}),...(calculationLink(attempt)?{...calculationLink(attempt),expected_manager_id:manager}:{})},{isCurrent:currentAttempt});
+      // Bound the UI wait only. The single original POST keeps its persisted operation ID and is never aborted or replayed.
+      else j=await waitForAttemptResponse(options=>api('send',{conversation_id:target,text,operation_id:attempt.id,...(validAiDraftId(aiDraftId)?{ai_draft_id:aiDraftId}:{}),...(calculationLink(attempt)?{...calculationLink(attempt),expected_manager_id:manager}:{})},options),currentAttempt);
     }catch(e){
-      if(receiptRead){if(currentAttempt())showPendingAttempt('unknown',{error:e?.message==='send_receipt_timeout'?'timeout':'network'});}
+      if(receiptRead){if(currentAttempt())showPendingAttempt('unknown',{error:e?.message==='attempt_response_timeout'?'timeout':'network'});}
       else if(currentAttempt()){if(attempt)showPendingAttempt();else setReplyStatus(sendFailureNotice(null),'error');}
       return;
     }

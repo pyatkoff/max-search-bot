@@ -530,6 +530,28 @@ for(const mode of ['forbidden','unavailable','invalid_json','network','missing_r
   assert.equal(h.ids.get('replyText').value,'Uncertain reply');assert.equal(h.ids.get('sendReply').textContent,'Проверить отправку');assert.equal(h.ids.get('sendReply').disabled,false);assert.equal(clock.count(20000),0);
   const send=h.calls.filter(r=>r.action==='send'),read=h.calls.filter(r=>r.action==='send_receipt');assert.equal(send.length,1);assert.equal(read.length,1);assert.equal(read[0].operation_id,send[0].operation_id);assert.equal(h.calls.some(r=>r.action==='cancel_send_attempt'),false);
 });
+for(const lateStatus of [200,401])test('a silent original text send releases only the UI and reconciles the same operation after reload: '+lateStatus,async()=>{
+  const clock=receiptClock(),storageValues=new Map(),storage={getItem:k=>storageValues.get(k)||null,setItem:(k,v)=>storageValues.set(k,String(v)),removeItem:k=>storageValues.delete(k)};
+  const h=createHarness({clock,storage});await h.start();await h.draft('Still my draft');
+  const entered=deferred(),held=deferred();let writeSignal;
+  h.setHook((url,r,options)=>{if(r.action==='send'){writeSignal=options.signal;entered.resolve();return held.promise}return null;});
+  const first=h.C.sendReply();await entered.promise;
+  assert.equal(writeSignal,undefined,'the client cannot cancel a dispatched message');
+  assert.equal(clock.count(20000),1,'a stalled original send must expose the existing receipt check');
+  clock.fire(20000);await first;
+  assert.match(h.ids.get('replyStatus').textContent,/Отправка не подтверждена/);
+  assert.equal(h.ids.get('sendReply').disabled,false);assert.equal(h.ids.get('sendReply').textContent,'Проверить отправку');
+  await h.draft('New draft after timeout');
+  const id=h.calls.find(r=>r.action==='send').operation_id;
+  held.resolve(response({ok:lateStatus===200,attempt:{state:'confirmed'}},lateStatus));await new Promise(setImmediate);
+  assert.equal(h.W.S.authExpired,false);assert.equal(h.ids.get('replyText').value,'New draft after timeout');
+  const reload=createHarness({clock,storage});await reload.start();
+  reload.setHook((url,r)=>r.action==='send_receipt'?response({ok:true,attempt:{state:'confirmed'}}):null);
+  assert.equal(reload.ids.get('sendReply').textContent,'Проверить отправку');await reload.C.sendReply();
+  assert.equal(reload.calls.filter(r=>r.action==='send_receipt').length,1);assert.equal(reload.calls.find(r=>r.action==='send_receipt').operation_id,id);
+  assert.equal(reload.calls.filter(r=>r.action==='send').length,0);assert.equal(h.calls.filter(r=>r.action==='send').length,1);
+  assert.equal(reload.ids.get('replyText').value,'New draft after timeout');assert.equal(clock.count(20000),0);
+});
 for(const lateStatus of [200,401])test('send receipt timeout ignores late '+lateStatus+' without changing a newer check or draft',async()=>{
   const clock=receiptClock(),h=createHarness({clock});await h.start();await h.draft('Uncertain reply');
   const old=deferred(),next=deferred(),entered=deferred(),nextEntered=deferred();let reads=0,signal;

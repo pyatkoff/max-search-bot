@@ -65,8 +65,7 @@ if($promiseAction){
             'promise_context'=>ManagerPromiseTaskService::context($actor,$cid,$command['task_id'],$command['source_message_id'],$command['kind']),
             'bind_promise'=>ManagerPromiseTaskService::bind($actor,$cid,$command),
             'promise_operation'=>ManagerPromiseTaskService::operation($actor,$cid,$command['operation_id'])};
-        if(!session_start(['read_and_close'=>true])||ManagerHttp::managerId()!==$actor
-            ||!ManagerHttp::validCsrf((string)$data['csrf']))ManagerHttp::respond(['ok'=>false,'error'=>'unauthorized'],401);
+        ManagerHttp::revalidateSession($actor,(string)$data['csrf']);
         $status=!empty($result['ok'])?200:match($result['error']??''){
             'forbidden'=>403,'task_not_found'=>404,
             'profile_changed','context_changed','source_changed','profile_source_changed','binding_conflict','operation_mismatch','task_closed'=>409,
@@ -90,11 +89,7 @@ if ($action === 'catalog' || $action === 'filter_options') {
         $directory = ['filters' => ManagerWorkspaceFilterService::snapshot($actor)];
     }
 
-    if (!session_start(['read_and_close' => true])
-        || ManagerHttp::managerId() !== $actor
-        || !ManagerHttp::validCsrf((string)$data['csrf'])) {
-        ManagerHttp::respond(['ok' => false, 'error' => 'unauthorized'], 401);
-    }
+    ManagerHttp::revalidateSession($actor,(string)$data['csrf']);
     ManagerHttp::respond(['ok' => true] + $directory);
 }
 if($action==='admin_catalog'){ManagerHttp::requireAdmin($m);ManagerHttp::respond(['ok'=>true,'catalog'=>SalesPipelineCatalogAdminService::snapshot()]);}
