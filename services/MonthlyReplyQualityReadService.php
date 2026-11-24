@@ -58,6 +58,8 @@ final class MonthlyReplyQualityReadService
                 unset($r[$field],$r['feature_scan'],$r['semantic_scan'],$r['historical_prefix_study']);
                 $r['records']=$records;$r['quality_period']=$this->period($s);
                 if(is_string($r['newest_retained']['start_cursor']??null))$r['newest_retained']['start_cursor']=$this->encode(['k'=>'inventory','l'=>$lane,'f'=>$s['f'],'t'=>$s['t'],'x'=>$r['newest_retained']['start_cursor']],$key,$admin,$connection);
+                if($lane==='archive'&&is_string($r['recent_business']['start_cursor']??null))
+                    $r['recent_business']['start_cursor']=$this->encode(['k'=>'inventory','l'=>$lane,'f'=>$s['f'],'t'=>$s['t'],'x'=>$r['recent_business']['start_cursor']],$key,$admin,$connection);
                 if(is_string($r['next_cursor']??null))$r['next_cursor']=$this->encode(['k'=>'inventory','l'=>$lane,'f'=>$s['f'],'t'=>$s['t'],'x'=>$r['next_cursor']],$key,$admin,$connection);
                 return$r;
             }
