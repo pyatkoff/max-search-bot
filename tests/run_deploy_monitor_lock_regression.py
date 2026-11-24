@@ -165,6 +165,8 @@ class DeployMonitorLockRegression(unittest.TestCase):
                 work.mkdir()
                 (work / "tools").mkdir()
                 (work / "tools/deploy_monitor_lock.sh").write_text(self.guard())
+                fence = (ROOT / "tools/check_public_runtime_log_fence.sh").read_bytes()
+                (work / "tools/check_public_runtime_log_fence.sh").write_bytes(fence)
                 binary = work / "bin"
                 binary.mkdir()
                 entered, release = work / "reset-entered", work / "reset-release"

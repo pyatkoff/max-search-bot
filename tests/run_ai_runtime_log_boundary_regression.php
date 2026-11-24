@@ -254,10 +254,13 @@ aiLogCheck('production smoke verifies external path and private modes',
     && str_contains($smoke, '$directoryMode === 0700')
     && str_contains($smoke, '$fileMode === 0600')
 );
+$publicFence = file_get_contents(__DIR__.'/../tools/check_public_runtime_log_fence.sh');
 aiLogCheck('deploy verifies public AI log paths are denied',
     str_contains($deploy, 'for path in ai_debug.log handlers/ai_debug.log handlers/ai_errors.log')
-    && str_contains($deploy, '403|404')
-    && str_contains($deploy, 'Public runtime log containment failed')
+    && str_contains($deploy, 'bash tools/check_public_runtime_log_fence.sh "$path"')
+    && str_contains($publicFence, 'ai_debug.log|handlers/ai_debug.log|handlers/ai_errors.log|')
+    && str_contains($publicFence, '403|404) exit 0 ;;')
+    && str_contains($publicFence, 'Public runtime log containment failed')
 );
 
 echo "\n--------------------------\n";

@@ -94,9 +94,12 @@ webhookLogCheck('production smoke verifies external path and private modes',
     && str_contains($smoke, '$directoryMode === 0700')
     && str_contains($smoke, '$fileMode === 0600')
 );
+$publicFence = file_get_contents(__DIR__.'/../tools/check_public_runtime_log_fence.sh');
 webhookLogCheck('deploy verifies public webhook log paths are denied',
     str_contains($deploy, 'handlers/ai_errors.log tmp_in.txt tmp_out.txt')
-    && str_contains($deploy, '403|404')
+    && str_contains($deploy, 'bash tools/check_public_runtime_log_fence.sh "$path"')
+    && str_contains($publicFence, '|tmp_in.txt|tmp_out.txt|')
+    && str_contains($publicFence, '403|404) exit 0 ;;')
 );
 
 echo "\n--------------------------\n";
