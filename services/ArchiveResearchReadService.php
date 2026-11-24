@@ -38,12 +38,17 @@ final class ArchiveResearchReadService
 
     public function inventory(int $admin,string $connection,array $args=[]): array
     {
-        self::arguments($args,['cursor','limit'],50);
+        self::arguments($args,['cursor','limit','recent_start'],50);
+        if(array_key_exists('recent_start',$args)&&($args['recent_start']!==true||!$this->qualityHistory||isset($args['cursor'])))self::fail('invalid_arguments');
         return $this->read($admin,$connection,function(string $key) use($admin,$connection,$args):array {
             $state=isset($args['cursor'])?$this->decode($args['cursor'],'inventory_or_features',$key,$admin,$connection):null;
             if(in_array($state['k']??null,['feature_inventory','semantic_inventory'],true)&&$state['a']!=='0'&&!isset($this->accountAliases[$state['a']]))self::fail('forbidden');
             $currentFence=$this->fence();$fence=$state['f']??$currentFence;
             if(self::decimalGreater($fence,$currentFence))self::fail('stale_cursor');
+            // Explicit quality-only shortcut: no whole-archive summary or chat inventory.
+            if(($args['recent_start']??false)===true)return$this->recentInventory([
+                'v'=>1,'k'=>'recent_inventory','a'=>'0','c'=>'0','f'=>$fence,'n'=>'0','e'=>$this->now()+self::CURSOR_TTL],
+                $args['limit']??25,$key,$admin,$connection);
             if(($state['k']??null)==='recent_inventory')return$this->recentInventory($state,$args['limit']??25,$key,$admin,$connection);
             if(in_array($state['k']??null,['feature_inventory','semantic_inventory'],true))return$this->featureInventory($state,$args['limit']??25,$key,$admin,$connection);
             $expiry=$this->now()+self::CURSOR_TTL;

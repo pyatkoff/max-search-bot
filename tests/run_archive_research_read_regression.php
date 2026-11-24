@@ -350,6 +350,20 @@ function archiveResearchReadRegression(PDO $pdo): int
         ArchiveResearchTraceStatement::$queries=[];
         $recentFirst=$qualityHistory->inventory(1,$connection,['cursor'=>$recentStart,'limit'=>1]);
         $recentSql=ArchiveResearchTraceStatement::$queries;
+        // Direct quality start must avoid all-archive aggregation and source payloads.
+        ArchiveResearchTraceStatement::$queries=[];
+        $direct=$qualityHistory->inventory(1,$connection,['recent_start'=>true,'limit'=>1]);
+        $directSql=ArchiveResearchTraceStatement::$queries;
+        $check(($direct['operation']??null)==='recent_business_message_inventory'
+            &&($direct['recent_business_records'][0]['source_ref']??null)==='archive_message:50090'
+            &&count(array_filter($directSql,static fn($sql)=>str_contains($sql,'ORDER BY m.id DESC')))==1
+            &&!array_filter($directSql,static fn($sql)=>str_contains($sql,'COUNT(DISTINCT m.chat_id)')
+                ||str_contains($sql,'GROUP BY m.account_id')||str_contains($sql,'record_json'))
+            &&!str_contains(json_encode($direct,JSON_THROW_ON_ERROR),'PRIVATE_RECENT_'),
+            'direct_recent_quality_start_skips_archive_summary_and_source_payload');
+        $reject(fn()=>$service->inventory(1,$connection,['recent_start'=>true,'limit'=>1]),'invalid_arguments');
+        $reject(fn()=>$qualityHistory->inventory(1,$connection,['recent_start'=>false,'limit'=>1]),'invalid_arguments');
+        $reject(fn()=>$qualityHistory->inventory(1,$connection,['recent_start'=>true,'cursor'=>$recentStart]),'invalid_arguments');
         $recentRows=$recentFirst['recent_business_records']??[];
         $check($recentFirst['operation']==='recent_business_message_inventory'
             &&count($recentRows)===1&&$recentRows[0]['source_ref']==='archive_message:50090'

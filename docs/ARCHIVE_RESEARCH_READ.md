@@ -105,6 +105,18 @@ reported separately.
 
 ## Evidence and limits
 
+### Direct bounded initial recent Business selection
+
+Use `quality_history.lanes.archive.newest_retained.start_cursor`
+(`qh.archive.recent.start`) from the initial `list_current_dialogues` descriptor.
+Pass this explicit cursor to the same tool to start a bounded indexed metadata
+page without first running the whole-archive summary or historical chat grouping.
+The existing `qh.archive.start` historical inventory remains unchanged.
+Both `quality:read` and `archive:read` are still required; this static selector
+is not itself a permission, and subsequent cursors remain connection-bound.
+An unavailable page is not evidence that no message exists. Do not increase
+the time/row budgets, scan older pages as a workaround, or infer a server receipt
+clock from storage order.
 ### Recent Business records in the quality-history lane
 
 The separately consented `quality_history.lanes.archive` route additionally
