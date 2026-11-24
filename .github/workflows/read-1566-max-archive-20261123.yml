@@ -1,117 +1,126 @@
-name: "#1566 Validate the next twelve native MAX receipts against the existing editor"
+name: "#1566 Read the next MAX hotel source cards and non-video archive posts"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
     paths: ['.github/workflows/read-1566-max-archive-20261123.yml']
 permissions:
   contents: read
-  actions: read
 concurrency:
-  group: anytour-issue-1566-registry-read
+  group: hotel-1566-public-archive-observation
   cancel-in-progress: false
 jobs:
-  reconcile:
+  observe:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == 'a5e9b42fb71fca13c3cce1bc2fc73ceffee28c1d' &&
-      github.run_attempt == 1
+      github.event.before == '1b018261a5d835b15875eae5f7814c8c9a929727' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Read the prepared allocation used by HOTEL
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          ref: 8d6c68aef6d97d77730fff9a32a8a1a1c200c366
-          persist-credentials: false
-          sparse-checkout: |
-            tools/direct_demand/operations/max-existing-photo/next-native-input-20261124.json
-          sparse-checkout-cone-mode: false
-      - name: Verify the native receipts with the existing MAX editor
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Observe public listings and exact old publication URLs
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          export DATA_DIR="$RUNNER_TEMP/hotel-max-next-twelve"
-          mkdir "$DATA_DIR"
-          gh api /repos/pyatkoff/max-search-bot/actions/runs/45506100672 > "$DATA_DIR/native-run.json"
-          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14973573608 > "$DATA_DIR/native-artifact.json"
-          curl --fail --silent --show-error --location --max-time 25 \
-            --header "Authorization: Bearer $GH_TOKEN" \
-            https://api.github.com/repos/pyatkoff/max-search-bot/actions/artifacts/14973573608/zip \
-            --output "$DATA_DIR/native.zip"
-          gh api '/repos/pyatkoff/max-search-bot/contents/tools/direct_demand/operations/max-existing-photo/batch_input.php?ref=b62a8739ab56d1b7930c71b0b21e6c49837cb782' \
-            --jq .content | base64 --decode > "$DATA_DIR/batch_input.php"
+          mkdir pub
           python3 - <<'PY'
-          import hashlib, json, os, pathlib, zipfile
-          folder = pathlib.Path(os.environ["DATA_DIR"])
-          run = json.loads((folder / "native-run.json").read_bytes())
-          artifact = json.loads((folder / "native-artifact.json").read_bytes())
-          head = "55d6947c9e1ba29d5774eed4509a2e4dc6bef63b"
-          assert (run["id"], run["head_sha"], run["run_attempt"], run["conclusion"]) == (45506100672, head, 1, "success")
-          assert artifact["id"] == 14973573608 and artifact["workflow_run"]["head_sha"] == head and not artifact["expired"]
-          digest = "c3c52b4a082a6775e73b4ff32b034d286858e0183ad18c33b6bcd818ad5a634b"
-          assert artifact["digest"] == "sha256:" + digest
-          archive_file = folder / "native.zip"
-          assert archive_file.stat().st_size == artifact["size_in_bytes"] <= 100_000
-          assert hashlib.sha256(archive_file.read_bytes()).hexdigest() == digest
-          with zipfile.ZipFile(archive_file) as archive:
-              assert archive.namelist() == ["registry.json"] and archive.getinfo("registry.json").file_size <= 100_000
-              data = archive.read("registry.json")
-          native = json.loads(data)
-          assert native["ok"] and native["operation"] == "max_next_twelve_read_only"
-          assert native["application_sha"] == native["repository_sha"] == "7b96c69c1f6974fb6ff09f52551a4581ffcdf171"
-          assert native["archive_run"] == 45373389110 and len(native["groups"]) == 3 and all("failure" not in group for group in native["groups"])
-          assert native["db_writes"] == native["provider_writes"] == native["bot_starts"] == 0
-          (folder / "native.json").write_bytes(data)
-          code = (folder / "batch_input.php").read_bytes()
-          assert hashlib.sha1(b"blob " + str(len(code)).encode() + b"\0" + code).hexdigest() == "979c91fddf879d792937f26aaac4a4f1d778346d"
+          import base64
+          import hashlib
+          import json
+          import pathlib
+          import re
+          import urllib.error
+          import urllib.request
+          import xml.etree.ElementTree as ET
+          from concurrent.futures import ThreadPoolExecutor
+          from datetime import datetime, timezone
+          from html.parser import HTMLParser
+
+          candidates = json.loads("[{\"hotel_id\":64918,\"offer_id\":\"max_64918\",\"source_url\":\"https://max.ru/channel_anytour/AaHryMfSWo0\",\"source_alias\":\"h1_be282d699a6be3568fa8dacf857f3435\"},{\"hotel_id\":358,\"offer_id\":\"max_358\",\"source_url\":\"https://max.ru/channel_anytour/AaGd4bFlag4\",\"source_alias\":\"h1_84170d0b84626b05e4f82e798ef57820\"},{\"hotel_id\":1569,\"offer_id\":\"max_1569\",\"source_url\":\"https://max.ru/channel_anytour/AaHRcgxpNoQ\",\"source_alias\":\"h1_c2796079f2af06b30305bae975ed2246\"},{\"hotel_id\":4091,\"offer_id\":\"max_4091\",\"source_url\":\"https://max.ru/channel_anytour/AaG2eBrpNlk\",\"source_alias\":\"h1_0fca3a6a4d373cf9bcbe570128072be0\"},{\"hotel_id\":7458,\"offer_id\":\"max_7458\",\"source_url\":\"https://max.ru/channel_anytour/AaHo8yRQb-A\",\"source_alias\":\"h1_2eab05f3e43dae3caed10cb36e10716d\"},{\"hotel_id\":75100,\"offer_id\":\"max_75100\",\"source_url\":\"https://max.ru/channel_anytour/AaHptpkZVn8\",\"source_alias\":\"h1_9f26af6bfb8c91ffaff159d5d8544472\"},{\"hotel_id\":246,\"offer_id\":\"max_246\",\"source_url\":\"https://max.ru/channel_anytour/AaGgW_zLBIc\",\"source_alias\":\"h1_1a36cc87dae6e79620a54f211f319c87\"},{\"hotel_id\":466,\"offer_id\":\"max_466\",\"source_url\":\"https://max.ru/channel_anytour/AaG31NW7Nsc\",\"source_alias\":\"h1_85363fbeae9d7593de5d6829080b5ce7\"},{\"hotel_id\":150,\"offer_id\":\"max_150\",\"source_url\":\"https://max.ru/channel_anytour/AaGeHm38ACE\",\"source_alias\":\"h1_d4583dec24a747fb44ea9bdf4c2fbc1a\"},{\"hotel_id\":206,\"offer_id\":\"max_206\",\"source_url\":\"https://max.ru/channel_anytour/AaHeTF_WRuU\",\"source_alias\":\"h1_f5bc0058b80150cb0d07d9074aefd4b5\"},{\"hotel_id\":231,\"offer_id\":\"max_231\",\"source_url\":\"https://max.ru/channel_anytour/AaHS60D1FKA\",\"source_alias\":\"h1_1fb1c932cfa1e11d727e72613e83ee4e\"},{\"hotel_id\":266,\"offer_id\":\"max_266\",\"source_url\":\"https://max.ru/channel_anytour/AaHp6GvNUDc\",\"source_alias\":\"h1_d408407bf20c064cad25864600ec27cb\"},{\"hotel_id\":288,\"offer_id\":\"max_288\",\"source_url\":\"https://max.ru/channel_anytour/AaG3spagCP4\",\"source_alias\":\"h1_29a643ecf4228a089e204266f814f934\"},{\"hotel_id\":371,\"offer_id\":\"max_371\",\"source_url\":\"https://max.ru/channel_anytour/AaGeHsjldCE\",\"source_alias\":\"h1_8785a85a35bddae9cb9603b732e57a00\"},{\"hotel_id\":483,\"offer_id\":\"max_483\",\"source_url\":\"https://max.ru/channel_anytour/AaHRo0l6WD8\",\"source_alias\":\"h1_ed9974ffb1b017a8e1ec65f7eeb4aa82\"},{\"hotel_id\":713,\"offer_id\":\"max_713\",\"source_url\":\"https://max.ru/channel_anytour/AaG2y3YGbx0\",\"source_alias\":\"h1_450a7e156c6f0de2402487930c908214\"},{\"hotel_id\":768,\"offer_id\":\"max_768\",\"source_url\":\"https://max.ru/channel_anytour/AaHqSA5jc8k\",\"source_alias\":\"h1_5fc785b24202b7e73c6ccad003022654\"},{\"hotel_id\":1096,\"offer_id\":\"max_1096\",\"source_url\":\"https://max.ru/channel_anytour/AaG2zhV2Rxw\",\"source_alias\":\"h1_fc8552d86035e892459e671228a27cab\"}]")
+          archive_urls = json.loads("[\"https://max.ru/anytour/AZvvdczbYAo\",\"https://max.ru/anytour/AZwEq2zVLGY\",\"https://max.ru/anytour/AZwpDhM0dC0\",\"https://max.ru/anytour/AZwymV1GDrA\",\"https://max.ru/anytour/AZxcpmMWNUI\",\"https://max.ru/anytour/AZyp_bIBa3I\",\"https://max.ru/anytour/AZyz_0qwYkE\",\"https://max.ru/anytour/AZ82fl5vOjg\",\"https://max.ru/anytour/AZ-3aMozWT8\",\"https://max.ru/anytour/AZ_RCJ53Xsw\",\"https://max.ru/anytour/AZ_bV9KmN9s\",\"https://max.ru/anytour/AaCqVlKZASo\"]")
+          feed_url = "https://app.anytoour.ru/feed/hotel-posts-max.xml"
+
+          def load(url, limit):
+              request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "*/*"})
+              with urllib.request.urlopen(request, timeout=10) as response:
+                  assert response.geturl() == url
+                  body = response.read(limit + 1)
+                  assert body and len(body) <= limit
+                  return body
+
+          class Page(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.meta = {}
+                  self.parts = []
+                  self.hidden = 0
+              def handle_starttag(self, tag, attributes):
+                  attrs = dict(attributes)
+                  if tag in ("script", "style"):
+                      self.hidden += 1
+                  if tag == "meta":
+                      key = attrs.get("property", attrs.get("name", ""))
+                      if key and attrs.get("content"):
+                          self.meta[key] = attrs["content"]
+              def handle_endtag(self, tag):
+                  if tag in ("script", "style") and self.hidden:
+                      self.hidden -= 1
+              def handle_data(self, data):
+                  if not self.hidden and data.strip():
+                      self.parts.append(data.strip())
+
+          def page(url):
+              try:
+                  raw = load(url, 3_000_000)
+                  parsed = Page()
+                  parsed.feed(raw.decode("utf-8", errors="replace"))
+                  return {"url":url,"http":200,"title":parsed.meta.get("og:title",""),
+                          "description":parsed.meta.get("og:description",parsed.meta.get("description","")),
+                          "has_preview_image":bool(parsed.meta.get("og:image")),
+                          "visible_text":"\n".join(parsed.parts)[:7000]}
+              except urllib.error.HTTPError as error:
+                  return {"url":url,"http":error.code}
+              except (AssertionError, OSError, ValueError) as error:
+                  return {"url":url,"error":type(error).__name__}
+
+          wanted={row["offer_id"]:row for row in candidates}
+          offers=[]
+          feed_error=None
+          feed_sha=None
+          try:
+              raw=load(feed_url, 4_000_000)
+              feed_sha=hashlib.sha256(raw).hexdigest()
+              for item in ET.fromstring(raw).findall(".//offer"):
+                  url=item.findtext("url","")
+                  parts=re.search(r"_ctx1_([A-Za-z0-9_-]+)",url)
+                  if not parts:
+                      continue
+                  token=parts[1]+"="*(-len(parts[1])%4)
+                  key=json.loads(base64.urlsafe_b64decode(token))
+                  if key.get("offer_id") not in wanted:
+                      continue
+                  c=wanted[key["offer_id"]]
+                  matches=key.get("post_id")==c["source_alias"] and all(part in url for part in ("{yclid}","{campaign_id}","{region_id}"))
+                  offers.append({"offer_id":key["offer_id"],"binding_matches":matches,"name":item.findtext("name",""),
+                                 "description":item.findtext("description",""),"has_preview_image":item.find("picture") is not None})
+          except urllib.error.HTTPError as error:
+              feed_error=f"HTTP_{error.code}"
+          except (AssertionError, OSError, ValueError, ET.ParseError) as error:
+              feed_error=type(error).__name__
+          with ThreadPoolExecutor(max_workers=6) as executor:
+              pages=list(executor.map(page,[*archive_urls,*[x["source_url"] for x in candidates]]))
+          assert len(pages)==len({p["url"] for p in pages})==30
+          result={"observed_utc":datetime.now(timezone.utc).isoformat(),"feed_sha256":feed_sha,"feed_error":feed_error,
+                  "offers":offers,"pages":pages,"production_writes":0}
+          pathlib.Path("pub/observation.json").write_text(json.dumps(result,ensure_ascii=False))
+          print("MAX_PREPARATION_PUBLIC=" + json.dumps({"feed_error":feed_error,"matched_offers":sum(x["binding_matches"] for x in offers),
+                 "archive_public":sum(x.get("http")==200 for x in pages[:len(archive_urls)]),
+                 "source_public":sum(x.get("http")==200 for x in pages[len(archive_urls):])}))
           PY
-          php <<'PHP'
-          <?php
-          declare(strict_types=1);
-          function maxEditNeed(bool $ok, string $reason): void {
-              if (!$ok) throw new RuntimeException($reason);
-          }
-          function maxEditJson(array $value): string {
-              return json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
-          }
-          $folder = getenv('DATA_DIR');
-          require $folder.'/batch_input.php';
-          $native = json_decode(file_get_contents($folder.'/native.json'), true, 32, JSON_THROW_ON_ERROR);
-          $allocation = file_get_contents('tools/direct_demand/operations/max-existing-photo/next-native-input-20261124.json');
-          maxEditNeed(hash('sha256', $allocation) === 'c8faafd2fba5652aa1abce95f09091e96f746049839cfc684966ccecdc7b0dca', 'allocation_changed');
-          $prepared = json_decode($allocation, true, 32, JSON_THROW_ON_ERROR);
-          $protected = ['AZ-DqmRQHF8','AaBhZRPRMt4','AZ6mZd9cP1Y','AZ-nsUrqXuU','AaB7HKAZCt0','AaCvgMVScas','AaCz6C1IGtk','AaAZbG-VQzQ'];
-          $planned = array_values(array_filter(array_slice($prepared['rows'], 5),
-              static fn(array $row): bool => !in_array(basename($row['target_url']), $protected, true)));
-          maxEditNeed(count($planned) === 12, 'target_scope_changed');
-          maxEditNeed(array_column($planned,'hotel_id') === array_column($native['rows'],'hotel_id'), 'source_scope_changed');
-          $ready = [];
-          $held = [];
-          foreach ($planned as $i => $row) {
-              $o = $native['rows'][$i];
-              $id = $row['hotel_id'];
-              try {
-                  $sourceSlug = rtrim(strtr(base64_encode(hex2bin(substr($o['source_mid'], -16))), '+/', '-_'), '=');
-                  maxEditNeed($row['source_url'] === 'https://max.ru/channel_anytour/'.$sourceSlug, 'public_source_identity_changed');
-                  maxEditNeed(!in_array(basename($row['target_url']), $protected, true), 'protected_review');
-                  $identity = [];
-                  foreach (['hotel_id','source_id','source_mid','native_source_date_ms','source_version','source_content_sha256','source_photo_sha256','source_caption_sha256','target_mid'] as $key) {
-                      $identity[] = $o[$key] ?? null;
-                  }
-                  $approved = [
-                      'hotel_id'=>$id, 'source_id'=>$row['source_publication_id'], 'source_mid'=>$o['source_mid'],
-                      'target_mid'=>$row['original_native_target']['mid'], 'target_url'=>$row['target_url'],
-                      'original_legacy_identity_sha256'=>hash('sha256', maxEditJson($identity))
-                  ];
-                  maxBatchValidateNativeRow($approved, $o);
-                  $ready[] = ['hotel_id'=>$id,'source_version'=>$o['source_version'],'legacy_identity_sha256'=>$approved['original_legacy_identity_sha256']];
-              } catch (RuntimeException $err) { $held[$id] = $err->getMessage(); }
-          }
-          echo 'MAX_NEXT_TWELVE_EDITOR_EVIDENCE=', maxEditJson(['ready_for_target_attribution_check'=>$ready, 'held'=>$held,
-              'writes'=>0, 'native_run'=>45506100672, 'price_is_publish_gate'=>false]), PHP_EOL;
-          PHP
+      - name: Retain public preparation evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: hotel-max-next-public-observation
+          path: pub/observation.json
+          retention-days: 7
