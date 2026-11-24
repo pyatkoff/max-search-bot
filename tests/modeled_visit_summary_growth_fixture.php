@@ -46,6 +46,37 @@ function modeledVisitSummaryGrowthAssertions(callable $check):void
     $check('overflowing group partitions cannot validate as complete',
         !$dailyReader->invoke(null,$overflow,$now)['available']);
 
+    // The failure audit counts all uploads of one client, including those outside this calendar.
+    foreach($rows as$i=>$row){
+        $rows[$i]['client_id']='900000000000000015';
+        $rows[$i]['event_unix']=$cut-60-$i;
+        $rows[$i]['state']='unmatched';$rows[$i]['upload_status']='LINKAGE_FAILURE';
+        $rows[$i]['value_processed_at_unix']=null;
+    }
+    $audit=ModeledConversionVisitProof::failureAudit($rows[0],['source_quantity'=>1,'line_quantity'=>1],
+        ['status'=>'ok','visits'=>[]],['status'=>'unavailable'],$rows,$now);
+    $failedEvent=['fingerprint'=>ModeledConversionVisitProof::fingerprint($rows[0]),'upload_status'=>'LINKAGE_FAILURE',
+        'checked_at'=>gmdate('c',$now),'reason'=>'no_reported_client_visits','failure_audit'=>$audit];
+    $followup=ModeledConversionVisitProof::followupReport($rows,[$rows[0]['id']=>$failedEvent],$cut,$now,$archive);
+    $projected=$followupReader->invoke(null,$followup,$now);
+    $check('historical failure projection retains counts and amounts for every upload of a 1001-event client',
+        ($projected['failure_examples'][0]['audit']??null)===$audit&&$audit['known_failed_events']===1001
+        &&$audit['known_wire_reaches']===1001&&$audit['known_failed_rub']===1001*$cap);
+
+    $auditReader=new ReflectionMethod(ModeledConversionVisitProof::class,'validatedFailureAudit');
+    $older=array_diff_key($audit,array_flip(['window_policy','attribution_source','window_days']));
+    $legacyAudit=array_diff_key($older,array_flip(['known_wire_reaches','known_wire_rub','report_visit_at','wire_correction_status']));
+    $large=array_replace($audit,['known_failed_events'=>10001,'known_failed_rub'=>10001*$cap,'known_wire_rub'=>10001*$cap]);
+    $check('previous audit shapes and known journal amounts above a billion rubles keep exact totals',
+        $auditReader->invoke(null,$older,$now)===$older&&$auditReader->invoke(null,$legacyAudit,$now)===$legacyAudit
+        &&$auditReader->invoke(null,$large,$now)===$large);
+    foreach([['known_failed_events'=>1001.5],['known_failed_events'=>-1],['known_wire_reaches'=>1002],
+        ['known_failed_rub'=>1001*$cap+1],['known_wire_rub'=>1],['other_unsettled_rows'=>PHP_INT_MAX],
+        ['source_rows'=>1000000001],['reported_goal_rub'=>1000000001]]as$bad){
+        $check('invalid failure audit stays unavailable for '.key($bad),
+            $auditReader->invoke(null,array_replace($audit,$bad),$now)===null);
+    }
+
     $automatic=new ReflectionMethod(ModeledConversionVisitProof::class,'automaticSummary');
     $legacy=['origin'=>'server_cron','status'=>'failed','attempt_unix'=>$now,'success_unix'=>$now-901,'checks'=>[$now-901]];
     $old=$automatic->invoke(null,$legacy,$now);

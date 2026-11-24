@@ -398,6 +398,18 @@ checks the row count and ordering, then releases the transaction before provider
 reads. All pages feed the same private, per-run snapshot. Its temporary file
 is unlinked before any rows are written. An incomplete capture or expired
 budget leaves the previous complete report at its original check time.
+When several processed clients are selected, one scan indexes their uploads by
+byte offset in the private snapshot. The index uses eight bytes per matching
+row. Each client still includes its full upload history across pages. A cached
+provider response is checked against the comment for each event. A response
+without a comment is usable only if the upload occurs once in the admitted
+ledger. The original request limit applies across the whole attempt.
+
+Archive reads during candidate selection still grow with the ledger. For a
+repeated deadline, compare the recorded phase and elapsed time with the actual
+5–20 second budget. Incremental selection would need to track updates to
+existing uploads, owner changes and changes in saved receipts and corrections.
+An insert-only high-water mark cannot certify a complete report.
 
 Only derived private evidence is written outside the webroot:
 `max-search-bot-modeled-visit-proof/{last-check.json,automatic.json,refresh.lock}`

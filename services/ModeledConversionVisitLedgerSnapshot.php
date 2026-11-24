@@ -149,6 +149,60 @@ final class ModeledConversionVisitLedgerSnapshot implements IteratorAggregate, C
         return $this->rows;
     }
 
+    /** One private index of byte offsets per selected ClientID, with no second copy of ledger rows. */
+    public function indexClientUploads(array $clientIds): Closure
+    {
+        if (count($clientIds) > ModeledConversionVisitProof::MAX_ROWS) {
+            throw new InvalidArgumentException('verification_client_bound');
+        }
+        $counts = array_fill_keys($clientIds, 0);
+        $files = [];
+        $offset = 0;
+        foreach ($this as $row) {
+            $cid = (string)($row['client_id'] ?? '');
+            if (isset($counts[$cid]) && (string)($row['upload_id'] ?? '') !== '') {
+                $files[$cid] ??= self::privateStream();
+                if (fwrite($files[$cid], pack('J', $offset)) !== 8) {
+                    throw new RuntimeException('verification_snapshot_write');
+                }
+                ++$counts[$cid];
+            }
+            $offset = ftell($this->stream);
+            if ($offset === false) throw new RuntimeException('verification_snapshot_seek');
+        }
+        foreach ($files as $file) {
+            if (!fflush($file)) throw new RuntimeException('verification_snapshot_write');
+        }
+
+        // Return only a row iterator; a client subset cannot be passed to verify() as a complete snapshot.
+        return function (string $client) use ($counts, $files): Generator {
+            $rows = $counts[$client] ?? 0;
+            for ($i = 0; $i < $rows; ++$i) {
+                if ($i % self::PAGE_ROWS === 0) self::checkDeadline($this->deadline);
+                $file = $files[$client];
+                // Iterator-local positions allow nested reads of either file.
+                if (ftell($file) !== $i * 8 && fseek($file, $i * 8) !== 0) {
+                    throw new RuntimeException('verification_snapshot_seek');
+                }
+                $raw = fread($file, 8);
+                if ($raw === false || strlen($raw) !== 8) throw new RuntimeException('verification_snapshot_read');
+                yield json_decode($this->lineAt(unpack('J', $raw)[1]), true, 16, JSON_THROW_ON_ERROR);
+            }
+        };
+    }
+
+    private function lineAt(int $offset): string
+    {
+        if (ftell($this->stream) !== $offset && fseek($this->stream, $offset) !== 0) {
+            throw new RuntimeException('verification_snapshot_seek');
+        }
+        $line = fgets($this->stream);
+        if ($line === false || !str_ends_with($line, "\n")) {
+            throw new RuntimeException('verification_snapshot_read');
+        }
+        return $line;
+    }
+
     public function getIterator(): Traversable
     {
         $offset = 0;
@@ -157,13 +211,7 @@ final class ModeledConversionVisitLedgerSnapshot implements IteratorAggregate, C
                 self::checkDeadline($this->deadline);
             }
             // Nested scans share a handle, but every iterator owns its next logical offset.
-            if (ftell($this->stream) !== $offset && fseek($this->stream, $offset) !== 0) {
-                throw new RuntimeException('verification_snapshot_seek');
-            }
-            $line = fgets($this->stream);
-            if ($line === false || !str_ends_with($line, "\n")) {
-                throw new RuntimeException('verification_snapshot_read');
-            }
+            $line = $this->lineAt($offset);
             $offset += strlen($line);
             yield json_decode($line, true, 16, JSON_THROW_ON_ERROR);
         }

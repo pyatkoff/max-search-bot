@@ -11,6 +11,7 @@ final class ModeledConversionVisitProof
     public const MAX_ROWS=32;
     /** Compatibility bound for callers supplying the complete ledger as a PHP array. */
     public const MAX_LEDGER_ROWS=4096;
+    private const MAX_PROVIDER_REQUESTS=96;
     private const MAX_BYTES=49152;
     private const REPORT_ZONE='Europe/Moscow';
     private const HISTORICAL_REVIEW_ZONE='Europe/Kaliningrad';
@@ -50,6 +51,33 @@ final class ModeledConversionVisitProof
         if(count($rows)>self::MAX_LEDGER_ROWS)throw new RuntimeException('verification_ledger_bound');
         return $rows;
     }
+    /** Count ledger owners for the bounded set of uploads which this verification can poll. */
+    private static function uploadBindingCounts(iterable $ledger, array $selected): array
+    {
+        $clients = [];
+        $counts = [];
+        foreach ($selected as $row) {
+            $upload = (string)($row['upload_id'] ?? '');
+            if ($upload !== '') $counts[$upload] = 0;
+            $client = (string)($row['client_id'] ?? '');
+            if (preg_match('/\A[1-9][0-9]{0,39}\z/D', $client) === 1) $clients[$client] = [];
+        }
+        foreach ($ledger as $row) {
+            $client = (string)($row['client_id'] ?? '');
+            $upload = (string)($row['upload_id'] ?? '');
+            // Per-client verification reads uploads in ledger order and has one shared GET budget.
+            if ($upload !== '' && isset($clients[$client]) && count($clients[$client]) < self::MAX_PROVIDER_REQUESTS) {
+                $clients[$client][$upload] = true;
+                $counts[$upload] = 0;
+            }
+        }
+        foreach ($ledger as $row) {
+            $upload = (string)($row['upload_id'] ?? '');
+            if (isset($counts[$upload])) ++$counts[$upload];
+        }
+        return $counts;
+    }
+
     public static function verify(array|ModeledConversionVisitLedgerSnapshot $ledger,object $api,int $activation,int $checkpoint,int $now,?array $selectedIds=null,?float $deadline=null,array $retained=[],?int $followupCheckpoint=null):array
     {
         if((is_array($ledger)&&count($ledger)>self::MAX_LEDGER_ROWS)||$activation<946684800||$checkpoint<$activation||$checkpoint>$now)throw new InvalidArgumentException('verification_scope');
@@ -94,17 +122,21 @@ final class ModeledConversionVisitProof
             $retainedRecords[(string)$r['id']]=$e;unset($cohort[$i]);
         }
         $selected=array_merge(array_values($cohort),array_slice($other,0,self::MAX_ROWS-count($cohort)-count($retainedRecords)));
-        $polls=[];$started=microtime(true);$requests=0;
-        $poll=static function(array $r)use($api,&$polls,&$requests,$started,$deadline):?array{
+        $polls=[];$bindingCounts=null;$started=microtime(true);$requests=0;
+        $poll=static function(array $r)use($api,$ledger,$selected,&$polls,&$bindingCounts,&$requests,$started,$deadline):?array{
             $id=(string)($r['upload_id']??'');if($id==='')return null;
-            if(array_key_exists($id,$polls))return $polls[$id];
-            if(++$requests>96||microtime(true)-$started>100||($deadline!==null&&microtime(true)>=$deadline))throw new RuntimeException('verification_request_bound');
-            $v=$api->poll($id);
-            if(is_array($v)&&isset($v['comment'])&&$v['comment']!==MetrikaOfflineClient::comment($r))$v=null;
-            return $polls[$id]=$v;
+            if(!array_key_exists($id,$polls)){
+                if(++$requests>self::MAX_PROVIDER_REQUESTS||microtime(true)-$started>100||($deadline!==null&&microtime(true)>=$deadline))throw new RuntimeException('verification_request_bound');
+                $polls[$id]=$api->poll($id);
+            }
+            $receipt=$polls[$id];
+            if(!is_array($receipt))return null;
+            if(isset($receipt['comment']))return $receipt['comment']===MetrikaOfflineClient::comment($r)?$receipt:null;
+            $bindingCounts??=self::uploadBindingCounts($ledger,$selected);
+            return ($bindingCounts[$id]??0)===1?$receipt:null;
         };
         $admitWireRead=static function()use(&$requests,$started,$deadline):void{
-            if(++$requests>96||microtime(true)-$started>100||($deadline!==null&&microtime(true)>=$deadline))
+            if(++$requests>self::MAX_PROVIDER_REQUESTS||microtime(true)-$started>100||($deadline!==null&&microtime(true)>=$deadline))
                 throw new RuntimeException('verification_request_bound');
         };
         $records=$retainedRecords;$clients=[];
@@ -121,10 +153,10 @@ final class ModeledConversionVisitProof
             if($status==='LINKAGE_FAILURE'){
                 $entry['linkage']='failed';$entry['reason']='provider_linkage_failure';
                 if(preg_match('/\\A[1-9][0-9]{0,39}\\z/D',$cid)===1){
-                    if(++$requests>96||($deadline!==null&&microtime(true)>=$deadline))throw new RuntimeException('verification_request_bound');
+                    if(++$requests>self::MAX_PROVIDER_REQUESTS||($deadline!==null&&microtime(true)>=$deadline))throw new RuntimeException('verification_request_bound');
                     $clientVisits=method_exists($api,'modeledAttributionVisits')?$api->modeledAttributionVisits($cid,(int)$r['event_unix'],$now,$admitWireRead):$api->modeledClientVisits($cid,(int)$r['event_unix'],$now);
                     $entry['reason']=self::failureReason($clientVisits,(int)$r['event_unix']);
-                    if(++$requests>96||($deadline!==null&&microtime(true)>=$deadline))throw new RuntimeException('verification_request_bound');
+                    if(++$requests>self::MAX_PROVIDER_REQUESTS||($deadline!==null&&microtime(true)>=$deadline))throw new RuntimeException('verification_request_bound');
                     $entry['failure_audit']=self::failureAudit($r,$v,$clientVisits,(method_exists($api,'modeledValueVisits')?$api->modeledValueVisits($cid,$activation,$now):['status'=>'unavailable']),$ledger,$now,ModeledConversionWireValue::observe($r,$ledger,$api,$now,$admitWireRead));
                     if(($entry['failure_audit']['diagnosis']??null)==='wire_value_reported'&&$entry['failure_audit']['wire_correction_status']==='processed'){
                         $entry['linkage']='wire_value_reconciled';$entry['reason']='same_wire_total_provider_and_visit_report_reconciled';
@@ -141,22 +173,32 @@ final class ModeledConversionVisitProof
             }
             $records[(string)$r['id']]=$entry;
         }
+        // A complete immutable snapshot needs one shared index pass for multiple processed clients.
+        // Arrays already have a finite size. A single client can read directly without temporary storage.
+        $uploadedRows = $ledger instanceof ModeledConversionVisitLedgerSnapshot && count($clients) > 1
+            ? $ledger->indexClientUploads(array_keys($clients))
+            : static function (string $client) use ($ledger): Generator {
+                foreach ($ledger as $row) {
+                    if ((string)($row['client_id'] ?? '') === $client && ($row['upload_id'] ?? '') !== '') {
+                        yield $row;
+                    }
+                }
+            };
         foreach($clients as$cid=>$eventIds){
-            $cid=(string)$cid;$expected=[];$complete=true;
-            foreach($ledger as$r)if((string)($r['client_id']??'')===$cid&&($r['upload_id']??'')!==''){
+            $cid=(string)$cid;$complete=true;$wireValues=[];$wireTimes=[];
+            foreach($uploadedRows($cid) as$r){
                 $v=$poll($r);if(!is_array($v)){$complete=false;continue;}
                 if(($v['status']??null)==='PROCESSED'){
                     if((int)($v['source_quantity']??0)!==1||(int)($v['line_quantity']??0)!==1)$complete=false;
-                    $expected[]=$r;
+                    $key=ModeledConversionWireValue::key($r);$wireValues[$key]=($wireValues[$key]??0)+(float)$r['value_rub'];$wireTimes[$key]=(int)$r['event_unix'];
                 }
             }
-            if(++$requests>96||microtime(true)-$started>100||($deadline!==null&&microtime(true)>=$deadline))throw new RuntimeException('verification_request_bound');
+            if(++$requests>self::MAX_PROVIDER_REQUESTS||microtime(true)-$started>100||($deadline!==null&&microtime(true)>=$deadline))throw new RuntimeException('verification_request_bound');
             $report=$api->modeledValueVisits($cid,$activation,$now);
             $valid=$complete&&($report['status']??null)==='ok';
             $visits=$report['visits']??[];$unique=$valid&&count($visits)===1&&($visits[0]['visits']??null)===1;
-            $wireValues=[];$wireTimes=[];
-            foreach($expected as$r){$key=ModeledConversionWireValue::key($r);$wireValues[$key]=($wireValues[$key]??0)+(float)$r['value_rub'];$wireTimes[$key]=(int)$r['event_unix'];}
-            foreach($ledger as$r)if((string)($r['client_id']??'')===$cid&&(string)($r['upload_id']??'')!==''){
+            foreach($uploadedRows($cid) as$r){
+                if ((string)$r['upload_id'] === '') continue;
                 $journal=ModeledConversionWireValue::read($r);
                 if($journal===null)continue;
                 if(ModeledConversionWireValue::observe($r,$ledger,$api,$now,$admitWireRead)==='processed'){
@@ -529,9 +571,13 @@ final class ModeledConversionVisitProof
     {
         if(!is_array($group)||array_keys($group)!==['events','conversations','value_rub'])return false;
         $events=$group['events'];$conversations=$group['conversations'];$value=$group['value_rub'];
-        if(!is_int($events)||!is_int($conversations)||!is_int($value)||$events<0)return false;
-        if($events===0)return $conversations===0&&$value===0;
-        if($conversations<1||$conversations>$events||$value<$events)return false;
+        return self::validEventValue($events,$value)&&$value>=$events&&is_int($conversations)
+            &&($events===0?$conversations===0:($conversations>=1&&$conversations<=$events));
+    }
+    private static function validEventValue(mixed $events,mixed $value):bool
+    {
+        if(!is_int($events)||!is_int($value)||$events<0||$value<0)return false;
+        if($value===0)return true;
         // For positive integers this is value <= events * cap, with no overflowing product.
         return intdiv($value-1,ModeledConversionValueContract::MAX_VALUE_RUB)<$events;
     }
@@ -655,6 +701,27 @@ final class ModeledConversionVisitProof
             ||$v['window_days']!==($v['attribution_source']==='yandex_direct'?10:3))return null;
         return $v;
     }
+    private static function validFailureAuditTotals(array $v):bool
+    {
+        $processed=$v['known_processed_events'];$failed=$v['known_failed_events'];$other=$v['other_unsettled_rows'];
+        if(!self::validEventValue($processed,$v['known_processed_rub'])
+            ||!self::validEventValue($failed,$v['known_failed_rub'])
+            ||!is_int($other)||$other<0||$processed>PHP_INT_MAX-$failed)return false;
+        $settled=$processed+$failed;
+        $collisions=$v['wire_collision_rows'];
+        if($settled>PHP_INT_MAX-$other||!is_int($collisions)||$collisions<0||$collisions>$settled+$other)return false;
+        if(array_key_exists('known_wire_reaches',$v)){
+            $reaches=$v['known_wire_reaches'];$rub=$v['known_wire_rub'];
+            if(!is_int($reaches)||$reaches<0||$reaches>$settled||!is_int($rub)||$rub<0
+                ||!self::partitionsTotal($rub,$v['known_processed_rub'],$v['known_failed_rub']))return false;
+        }
+        // Provider observations have their own numeric budget, independent of journal growth.
+        foreach(['source_rows','validated_rows','reported_goal_reaches','reported_goal_rub']as$k){
+            $n=$v[$k];
+            if($n!==null&&((!is_int($n)&&!is_float($n))||!is_finite((float)$n)||$n<0||$n>1000000000))return false;
+        }
+        return true;
+    }
     private static function validatedPreviousFailureAudit(mixed $v,int $now):?array
     {
         if(!is_array($v))return null;
@@ -669,12 +736,7 @@ final class ModeledConversionVisitProof
                 ||($at=strtotime($v[$k]))===false||$at<946684800||$at>$now)return null;
         }
         foreach(['eligible_at_signal','eligible_at_upload']as$k)if($v[$k]!==null&&!is_bool($v[$k]))return null;
-        foreach(['wire_collision_rows','known_processed_events','known_failed_events','other_unsettled_rows','known_wire_reaches']as$k)
-            if(!is_int($v[$k])||$v[$k]<0||$v[$k]>1000)return null;
-        foreach(['source_rows','validated_rows','known_processed_rub','known_failed_rub','known_wire_rub','reported_goal_reaches','reported_goal_rub']as$k){
-            if($v[$k]===null&&(str_starts_with($k,'reported_')||in_array($k,['source_rows','validated_rows'],true)))continue;
-            if((!is_int($v[$k])&&!is_float($v[$k]))||!is_finite((float)$v[$k])||$v[$k]<0||$v[$k]>1000000000)return null;
-        }
+        if(!self::validFailureAuditTotals($v))return null;
         if(!in_array($v['upload_clock'],['provider','claim'],true)
             ||!in_array($v['report_comparison'],['unavailable','unsettled','all_uploads','all_wire_value','processed_only','mismatch'],true)
             ||!in_array($v['diagnosis'],['unavailable','no_reported_visits','only_later_visits','outside_signal_window',
@@ -695,12 +757,7 @@ final class ModeledConversionVisitProof
                 ||($at=strtotime($v[$k]))===false||$at<946684800||$at>$now)return null;
         }
         foreach(['eligible_at_signal','eligible_at_upload']as$k)if($v[$k]!==null&&!is_bool($v[$k]))return null;
-        foreach(['wire_collision_rows','known_processed_events','known_failed_events','other_unsettled_rows']as$k)
-            if(!is_int($v[$k])||$v[$k]<0||$v[$k]>1000)return null;
-        foreach(['source_rows','validated_rows','known_processed_rub','known_failed_rub','reported_goal_reaches','reported_goal_rub']as$k){
-            if($v[$k]===null&&(str_starts_with($k,'reported_')||in_array($k,['source_rows','validated_rows'],true)))continue;
-            if((!is_int($v[$k])&&!is_float($v[$k]))||!is_finite((float)$v[$k])||$v[$k]<0||$v[$k]>1000000000)return null;
-        }
+        if(!self::validFailureAuditTotals($v))return null;
         if(!in_array($v['upload_clock'],['provider','claim'],true)
             ||!in_array($v['report_comparison'],['unavailable','unsettled','all_uploads','processed_only','mismatch'],true)
             ||!in_array($v['diagnosis'],['unavailable','no_reported_visits','only_later_visits','outside_signal_window',

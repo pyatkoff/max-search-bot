@@ -349,6 +349,21 @@ function dailyReconciliationAssertions(PDO $p,callable $check):void
     }
 }
 
+/** Count underlying snapshot bytes while preserving seeks and read payload. */
+final class VisitLedgerSnapshotReadCounter extends php_user_filter
+{
+    public static int $bytes = 0;
+    public function filter($in, $out, &$consumed, bool $closing): int
+    {
+        while ($bucket = stream_bucket_make_writeable($in)) {
+            $consumed += $bucket->datalen;
+            self::$bytes += $bucket->datalen;
+            stream_bucket_append($out, $bucket);
+        }
+        return PSFS_PASS_ON;
+    }
+}
+
 function visitLedgerSnapshotAssertions(PDO $p, callable $check): void
 {
     require_once dirname(__DIR__).'/services/ModeledConversionVisitLedgerSnapshot.php';
@@ -446,6 +461,61 @@ function visitLedgerSnapshotAssertions(PDO $p, callable $check): void
             $expired = $error->getMessage() === 'verification_snapshot_deadline';
         }
         $check('an expired capture returns no snapshot and releases its transaction', $expired && !$p->inTransaction());
+
+        $p->prepare('UPDATE max_channel_conversion_outbox SET value_stage=?, client_id=?, upload_id=? WHERE id=?')
+            ->execute([ModeledConversionValueContract::STAGES[1], '900000000000000016', '802', $oldest]);
+        $api->polls = [];
+        $shared = $verify(ModeledConversionVisitLedgerSnapshot::capture($p));
+        $check('a commentless upload shared with an unselected different client on the oldest page proves neither event',
+            $shared['selected_rows'] === 1 && $shared['events'][0]['outbox_id'] === $newest
+            && $shared['events'][0]['reason'] === 'receipt_unavailable' && $shared['events'][0]['upload_status'] === null
+            && $shared['events'][0]['linkage'] === 'not_checked' && $api->polls === ['802']);
+
+        // Interleaved client histories each span page boundaries, including an unsigned decimal ClientID.
+        $bind->execute(['900000000000000015', '801', $oldest]);
+        $secondClient = '90000000000000000001';
+        $bindSecond = $p->prepare('UPDATE max_channel_conversion_outbox SET client_id=?,upload_id=?,value_rub=? WHERE id=?');
+        $bindSecond->execute([$secondClient,'803',23,$ids[1]]);
+        $bindSecond->execute([$secondClient,'804',42,$ids[500]]);
+        $several = ModeledConversionVisitLedgerSnapshot::capture($p);
+        $comments = [];
+        foreach ($several as $r) if (!empty($r['upload_id'])) $comments[(string)$r['upload_id']] = MetrikaOfflineClient::comment($r);
+        $api = new class($day, $secondClient, $comments) {
+            public array $calls = [];
+            public function __construct(private int $day, private string $second, private array $comments) {}
+            public function poll(string $upload): array {
+                $this->calls[] = $upload;
+                return ['status'=>'PROCESSED','comment'=>$this->comments[$upload],'source_quantity'=>1,'line_quantity'=>1];
+            }
+            public function modeledValueVisits(string $cid, int $activation, int $now): array {
+                $this->calls[] = $cid;
+                return ['status'=>'ok','visits'=>[['visits'=>1,'started_at'=>gmdate('c',$this->day),
+                    'goal_reaches'=>2,'revenue_rub'=>$cid===$this->second?65:17]]];
+            }
+        };
+        $stream = (new ReflectionProperty($several,'stream'))->getValue($several);
+        $snapshotBytes = fstat($stream)['size'];
+        $filterName = 'anytour.visit.ledger.read.counter';
+        if (!in_array($filterName,stream_get_filters(),true)) stream_filter_register($filterName,VisitLedgerSnapshotReadCounter::class);
+        $filter = stream_filter_append($stream,$filterName,STREAM_FILTER_READ);
+        try {
+            VisitLedgerSnapshotReadCounter::$bytes = 0;
+            $multi = ModeledConversionVisitProof::verify($several,$api,$day,$day,$now,[$newest,$ids[500]]);
+        } finally {
+            stream_filter_remove($filter);
+        }
+        // Validation, shared client index and two daily totals each replay the full snapshot once.
+        // Seek/read-ahead for the four indexed rows fits comfortably in another whole snapshot.
+        $check('multi-client evidence adds only one full snapshot read plus sparse selected history',
+            VisitLedgerSnapshotReadCounter::$bytes >= 4*$snapshotBytes && VisitLedgerSnapshotReadCounter::$bytes < 5*$snapshotBytes);
+        $events = array_column($multi['events'],null,'outbox_id');
+        $check('multiple selected clients retain independent complete cross-page totals and request order',
+            $multi['ledger_complete'] && count($events)===2
+            && $events[$newest]['reason']==='goal_count_or_value_mismatch'
+            && $events[$newest]['expected_goal_reaches']===2 && (float)$events[$newest]['expected_goal_value_rub']===117.0
+            && $events[$ids[500]]['linkage']==='unique_visit_reconciled'
+            && $events[$ids[500]]['expected_goal_reaches']===2 && (float)$events[$ids[500]]['expected_goal_value_rub']===65.0
+            && $api->calls===['802','804','801','900000000000000015','803',$secondClient]);
     } finally {
         if ($p->inTransaction()) $p->rollBack();
         foreach (['max_channel_conversion_outbox','modeled_conversion_profile_versions','conversations','customer_channels','customers'] as $table) {
@@ -477,6 +547,50 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
         }
     };
     $ledger=[$legacy,$a,$b];$before=serialize($ledger);
+    $shared = $b;
+    $shared['upload_id'] = $a['upload_id'];
+    $shared['value_rub'] = $a['value_rub'];
+    $boundReceipt = new class($day, $a['upload_id'], MetrikaOfflineClient::comment($a)) {
+        public array $polls = [];
+        public function __construct(private int $day, private string $signedUpload, public ?string $comment) {}
+        public function poll(string $id): array {
+            $this->polls[] = $id;
+            $receipt = ['id'=>$id, 'status'=>'PROCESSED', 'source_quantity'=>1, 'line_quantity'=>1];
+            if ($id === $this->signedUpload && $this->comment !== null) $receipt['comment'] = $this->comment;
+            return $receipt;
+        }
+        public function modeledValueVisits(string $client, int $activation, int $now): array {
+            return ['status'=>'ok', 'visits'=>[['started_at'=>gmdate('c', $this->day),
+                'visits'=>1, 'goal_reaches'=>1, 'revenue_rub'=>17]]];
+        }
+    };
+    foreach ([[$a, $shared], [$shared, $a]] as $rows) {
+        $boundReceipt->polls = [];
+        $observed = ModeledConversionVisitProof::verify($rows, $boundReceipt, $day, $day, $now, array_column($rows, 'id'));
+        $events = array_column($observed['events'], null, 'outbox_id');
+        $check('one provider GET credits only the comment-bound event when the first row is '.$rows[0]['id'],
+            $events[$a['id']]['linkage'] === 'unique_visit_reconciled'
+            && $events[$shared['id']]['reason'] === 'receipt_unavailable'
+            && $events[$shared['id']]['upload_status'] === null && $boundReceipt->polls === [$a['upload_id']]);
+    }
+    $shared['upload_id'] = $legacy['upload_id'];
+    $boundReceipt->polls = [];
+    $related = ModeledConversionVisitProof::verify([$a, $legacy, $shared], $boundReceipt, $day, $day, $now, [$a['id']]);
+    $check('another ambiguous commentless upload for a selected client withholds an otherwise matching visit',
+        $related['events'][0]['reason'] === 'other_receipts_unavailable'
+        && $related['events'][0]['linkage'] === 'unverified' && $related['events'][0]['expected_goal_reaches'] === 1
+        && $boundReceipt->polls === [$a['upload_id'], $legacy['upload_id']]);
+    $boundReceipt->comment = null;
+    $boundReceipt->polls = [];
+    $unique = ModeledConversionVisitProof::verify([$a], $boundReceipt, $day, $day, $now, [$a['id']]);
+    $check('a commentless single-row upload with just one ledger owner remains verifiable',
+        $unique['events'][0]['linkage'] === 'unique_visit_reconciled' && $boundReceipt->polls === [$a['upload_id']]);
+    $unknownUpload = $legacy;
+    $unknownUpload['upload_id'] = false;
+    $boundReceipt->polls = [];
+    $unknown = ModeledConversionVisitProof::verify([$a, $unknownUpload], $boundReceipt, $day, $day, $now, [$a['id']]);
+    $check('a malformed related upload in a legacy array withholds client proof',
+        $unknown['events'][0]['reason'] === 'other_receipts_unavailable' && $boundReceipt->polls === [$a['upload_id']]);
     $expanded=[];
     for($i=1;$i<=1002;$i++){
         $row=$legacy;$row['id']=(string)$i;$row['upload_id']=null;
