@@ -690,7 +690,8 @@ function transferCurrentRunJournal(string $directory, array $row, string $digest
         };
         requirePost($matches, 'transfer_previous_operation_do_not_replay');
         return ['reason'=>'transfer_current_run_journal_requires_readback','prior_journal_sha256'=>hash('sha256',$raw),
-            'prior_terminal_state'=>$last['state']];
+            'prior_terminal_state'=>$last['state'],'prior_publication_id'=>$reservation,
+            'prior_version_id'=>$confirmed ? ($last['version_id'] ?? null) : null];
     } finally {
         fclose($handle);
     }
@@ -708,20 +709,22 @@ function transferResumePrior(string $directory, array $row, string $digest, arra
     // UNKNOWN and explicit rejection have no completion, token repair or provider effect.
     $prior['prior_public_readback_verified']=false;
     if ($prior['prior_terminal_state']==='native_and_registry_verified') {
-        try { $readback(); $prior['prior_public_readback_verified']=true; }
+        requirePost(is_int($prior['prior_version_id'])&&$prior['prior_version_id']>0,'transfer_resume_prior_identity_invalid');
+        try { $readback($prior); $prior['prior_public_readback_verified']=true; }
         catch (RuntimeException $error) { $prior['prior_readback_reason']=transferReason($error); }
     }
     return $prior;
 }
 
 /** Fresh readback of an already completed post; deliberately contains no writer. */
-function transferResumeReadback(PDO $pdo, ChannelPostRegistryService $registry, array $row, string $digest): void
+function transferResumeReadback(PDO $pdo, ChannelPostRegistryService $registry, array $row, string $digest, array $original): void
 {
     $q=$pdo->prepare('SELECT id FROM post_publications WHERE post_channel_id=6 AND external_message_id=? LIMIT 2');
     $q->execute([$row['target_message_id']]);$ids=$q->fetchAll(PDO::FETCH_COLUMN);$q->closeCursor();
     requirePost(count($ids)===1,'transfer_resume_registry_unconfirmed');
     $p=$registry->publication((int)$ids[0]);
-    requirePost(is_array($p)&&$p['state']==='sent'&&$p['platform']==='telegram'
+    requirePost(is_array($p)&&$p['publication_id']===$original['prior_publication_id']
+        &&$p['version_id']===$original['prior_version_id']&&$p['state']==='sent'&&$p['platform']==='telegram'
         &&$p['bot_key']==='anyru_bot'&&$p['message_id']===$row['target_message_id']
         &&(int)($p['snapshot']['metadata']['hotel_catalog_id']??0)===$row['hotel_id']
         &&hash('sha256',$p['snapshot']['text'])===$row['next_caption_sha256'], 'transfer_resume_registry_unconfirmed');
@@ -1106,7 +1109,7 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
             $directory = POST_OPS.'/'.$operation;
             if ($rankedResume && array_key_exists($row['hotel_id'],RANKED_RESUME_PRIOR)) {
                 $prior=transferResumePrior($directory,$row,$approvedDigest,RANKED_RESUME_ORIGIN,
-                    static function()use($pdo,$registry,$row,$approvedDigest):void { transferResumeReadback($pdo,$registry,$row,$approvedDigest); });
+                    static function(array $original)use($pdo,$registry,$row,$approvedDigest):void { transferResumeReadback($pdo,$registry,$row,$approvedDigest,$original); });
                 requirePost($prior['prior_terminal_state']===RANKED_RESUME_PRIOR[$row['hotel_id']], 'transfer_resume_original_state_changed');
                 if (array_key_exists($row['hotel_id'],RANKED_RESUME_UNKNOWN_HASHES))
                     requirePost(hash_equals(RANKED_RESUME_UNKNOWN_HASHES[$row['hotel_id']],$prior['prior_journal_sha256']),'transfer_resume_unknown_changed');
