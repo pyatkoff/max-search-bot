@@ -15,6 +15,7 @@ const FILES = {
   '.github/workflows/deploy.yml':'modified',
   'resources/max2-common-v2/release-manifest.json':'modified',
   'tests/run_deploy_monitor_lock_regression.py':'modified',
+  'tests/run_deploy_diagnostics_contract_regression.php':'modified',
   'tests/run_deployment_release_regression.js':'modified',
   'tests/run_partial_install_1662_forward_sync.py':'modified',
   'tools/check_public_runtime_log_fence.sh':'added',
