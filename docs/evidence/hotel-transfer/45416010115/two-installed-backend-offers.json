@@ -1,0 +1,75 @@
+{
+  "route_pr": 1702,
+  "physical_commit": "32155b9eb2c8606b61554951bfdc988d70bbcb39",
+  "audit": {
+    "run_id": "45422758792",
+    "job_id": "138546430882",
+    "source_commit": "69bd60a20004b2213b111937add5e8237eed0989"
+  },
+  "observation_scope": "Host-header HTTP GET against Apache loopback selected by the configured HTTPS virtual host. This independent diagnostic made zero public requests.",
+  "events": [
+    {
+      "timestamp": "2026-11-24T15:12:26.2631810Z",
+      "config_state": "read",
+      "kind": "apache",
+      "loopback_ports": [
+        8080
+      ]
+    },
+    {
+      "timestamp": "2026-11-24T15:12:26.3139144Z",
+      "config_state": "read",
+      "coverage": {
+        "unreadable_includes": 2
+      },
+      "document_exists": true,
+      "handler": "apache_loopback_http",
+      "kind": "https_resolver",
+      "known_apache_named_fallbacks": 2,
+      "location_hash": "0b36652ad1868ff4",
+      "location_kind": "regex",
+      "plain_listen": [
+        "non_loopback"
+      ],
+      "proven_loopback_port": 8080,
+      "running_loaded_config": "not_separately_proven",
+      "selected_named_fallback": true,
+      "tls_vhost_count": 1
+    },
+    {
+      "timestamp": "2026-11-24T15:12:26.3415802Z",
+      "cache_control": [
+        "public",
+        "max-age=60"
+      ],
+      "expected_post": 1020,
+      "first_byte_seconds": 0.027431,
+      "hotel": 64918,
+      "http": 200,
+      "kind": "internal_offer",
+      "offer_matches": true,
+      "post_matches": true
+    },
+    {
+      "timestamp": "2026-11-24T15:12:26.3612445Z",
+      "cache_control": [
+        "public",
+        "max-age=60"
+      ],
+      "expected_post": 1063,
+      "first_byte_seconds": 0.019155,
+      "hotel": 996,
+      "http": 200,
+      "kind": "internal_offer",
+      "offer_matches": true,
+      "post_matches": true
+    },
+    {
+      "timestamp": "2026-11-24T15:12:26.3642471Z",
+      "external_requests": 0,
+      "kind": "finished",
+      "loopback_offer_requests": 2,
+      "sha": "32155b9eb2c8606b61554951bfdc988d70bbcb39"
+    }
+  ]
+}
