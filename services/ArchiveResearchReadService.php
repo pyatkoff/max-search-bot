@@ -44,6 +44,7 @@ final class ArchiveResearchReadService
             if(in_array($state['k']??null,['feature_inventory','semantic_inventory'],true)&&$state['a']!=='0'&&!isset($this->accountAliases[$state['a']]))self::fail('forbidden');
             $currentFence=$this->fence();$fence=$state['f']??$currentFence;
             if(self::decimalGreater($fence,$currentFence))self::fail('stale_cursor');
+            if(($state['k']??null)==='recent_inventory')return$this->recentInventory($state,$args['limit']??25,$key,$admin,$connection);
             if(in_array($state['k']??null,['feature_inventory','semantic_inventory'],true))return$this->featureInventory($state,$args['limit']??25,$key,$admin,$connection);
             $expiry=$this->now()+self::CURSOR_TTL;
             $summary=$state===null?$this->summary($fence):null;
@@ -68,6 +69,7 @@ final class ArchiveResearchReadService
                 'historical_prefix_study'=>ArchivePredictiveStudyStore::summaryForScope(hash('sha256',self::json($this->permissionRows))),
                 'summary_not_recomputed'=>$state!==null,'feature_scan'=>$this->featureDescriptor($fence,$key,$admin,$connection),
                 'semantic_scan'=>$this->semanticDescriptor($fence,$key,$admin,$connection,$state),
+                ...($this->qualityHistory?['newest_retained'=>$this->recentDescriptor($fence,$key,$admin,$connection)]:[]),
                 'chats'=>$chats,'has_more'=>$more,'next_cursor'=>$next];
         });
     }
@@ -77,7 +79,9 @@ final class ArchiveResearchReadService
         self::arguments($args,['chat_ref','cursor','limit'],100);
         if(!isset($args['chat_ref'])||!is_string($args['chat_ref'])||$args['chat_ref']==='')self::fail('invalid_arguments');
         return $this->read($admin,$connection,function(string$key)use($admin,$connection,$args):array {
-            $chat=$this->decode($args['chat_ref'],'chat',$key,$admin,$connection);
+            $chat=$this->decode($args['chat_ref'],'chat_or_exact_message',$key,$admin,$connection);
+            $exact=$chat['k']==='exact_message';
+            if($exact&&isset($args['cursor']))self::fail('invalid_arguments');
             // Current account denial takes precedence over an older cursor's now-smaller fence.
             if(!isset($this->accountAliases[$chat['a']]))self::fail('forbidden');
             if(self::decimalGreater($chat['f'],$this->fence()))self::fail('stale_cursor');
@@ -87,6 +91,7 @@ final class ArchiveResearchReadService
                 ||$cursor['r']!==$ref||$cursor['e']!==$chat['e']))self::fail('stale_cursor');
             [$where,$values]=$this->scope($chat['f'],false);
             $where.=' AND m.account_id=? AND m.chat_id=?';array_push($values,$chat['a'],$chat['c']);
+            if($exact){$where.=" AND m.id=? AND m.message_id=? AND m.source_kind='business_message'";array_push($values,$chat['i'],$chat['n']);}
             $this->stage='history_stats';
             $stat=$this->q('SELECT COUNT(*) AS records,COALESCE(SUM('.$this->jsonBytes().'),0) AS bytes '
                 .'FROM telegram_dialogue_messages m JOIN projects p ON p.project_key=m.project_key WHERE '.$where,$values)->fetch(PDO::FETCH_ASSOC);
@@ -97,7 +102,7 @@ final class ArchiveResearchReadService
             $historical=$this->q('SELECT 1 FROM telegram_dialogue_messages m JOIN projects p ON p.project_key=m.project_key WHERE '
                 .$historicalWhere.' AND m.account_id=? AND m.chat_id=? LIMIT 1',[...$historicalValues,$chat['a'],$chat['c']])->fetchColumn();
             if($historical===false)self::fail('chat_unavailable');
-            $after=$cursor['n']??'0';$limit=$args['limit']??50;
+            $after=$cursor['n']??'0';$limit=$exact?1:($args['limit']??50);
             $jsonValid=$this->mysql?'JSON_VALID(m.record_json)':'json_valid(m.record_json)';
             $botType=$this->mysql?"JSON_TYPE(JSON_EXTRACT(m.record_json,'$.bot_key'))":"json_type(m.record_json,'$.bot_key')";
             $botValue=$this->mysql?"JSON_UNQUOTE(JSON_EXTRACT(m.record_json,'$.bot_key'))":"CAST(json_extract(m.record_json,'$.bot_key') AS TEXT)";
@@ -134,10 +139,12 @@ final class ArchiveResearchReadService
                 $messages[]=$item;$last=(string)$row['message_id'];
                 if($item['read_status']!=='available')$omitted++;
             }
-            $make=function(array$msgs,string$last,int$skipped,bool$more)use($chat,$ref,$args,$key,$admin,$connection,$stat,$bytes):array{
+            $make=function(array$msgs,string$last,int$skipped,bool$more)use($chat,$ref,$args,$key,$admin,$connection,$stat,$bytes,$exact):array{
+                if($exact)$more=false;
                 $next=$more?$this->encode(['v'=>1,'k'=>'history','a'=>$chat['a'],'c'=>$chat['c'],'f'=>$chat['f'],
                     'n'=>$last,'r'=>$ref,'e'=>$chat['e']],$key,$admin,$connection):null;
                 return $this->base($chat['f'])+['chat_ref'=>$args['chat_ref'],'account_alias'=>$this->accountAliases[$chat['a']],
+                    ...($exact?['selection_scope'=>'selected_record_only']:[]),
                     'stored_records_within_fence'=>(int)$stat['records'],'messages'=>$msgs,
                     'page_source_json_bytes'=>$bytes,'page_omitted_records'=>$skipped,'has_more'=>$more,'next_cursor'=>$next,
                     'history_complete'=>false,'page_complete'=>!$more&&$skipped===0,
@@ -419,6 +426,46 @@ final class ArchiveResearchReadService
             $rows[]=$metadata[$id];
         }
         return[$rows,$more];
+    }
+
+    /** Newly inserted row order is not a recording clock or an inventory of late edits. */
+    private function recentDescriptor(string$fence,string$key,int$admin,string$connection):array
+    {
+        return['operation'=>'recent_business_message_inventory','order'=>'archive_record_id_desc',
+            'clock_basis'=>'stored_record_order_not_receipt_time','existing_row_edits_are_not_reordered'=>true,
+            'latest_activity_inventory'=>false,'source_kind'=>'business_message','text_materialized'=>false,
+            'payload_admission'=>'checked_on_context_read',
+            'start_cursor'=>$this->encode(['v'=>1,'k'=>'recent_inventory','a'=>'0','c'=>'0','f'=>$fence,
+                'n'=>'0','e'=>$this->now()+self::CURSOR_TTL],$key,$admin,$connection)];
+    }
+
+    private function recentInventory(array$state,int$limit,string$key,int$admin,string$connection):array
+    {
+        if(!$this->qualityHistory)self::fail('stale_cursor');
+        $this->stage='inventory_page';[$where,$values]=$this->scope($state['f'],false);
+        $where.=" AND m.source_kind='business_message'";
+        if($state['n']!=='0'){$where.=' AND m.id<?';$values[]=$state['n'];}
+        // Scope and the original upper fence apply before LIMIT. No source JSON is materialized.
+        $rows=$this->q('SELECT m.id,m.account_id,m.chat_id,m.message_id,m.source_kind,m.version_at,m.is_deleted '
+            .'FROM telegram_dialogue_messages m'.($this->mysql?' FORCE INDEX (PRIMARY)':'')
+            .' JOIN projects p ON p.project_key=m.project_key WHERE '.$where
+            .' ORDER BY m.id DESC LIMIT '.($limit+1),$values)->fetchAll(PDO::FETCH_ASSOC);
+        $more=count($rows)>$limit;$rows=array_slice($rows,0,$limit);$records=[];$expiry=$this->now()+self::CURSOR_TTL;
+        foreach($rows as$row){
+            $records[]=['message_ref'=>$this->encode(['v'=>1,'k'=>'exact_message','a'=>(string)$row['account_id'],
+                'c'=>(string)$row['chat_id'],'f'=>$state['f'],'i'=>(string)$row['id'],'n'=>(string)$row['message_id'],'e'=>$expiry],$key,$admin,$connection),
+                'source_ref'=>'archive_message:'.(string)$row['id'],'account_alias'=>$this->accountAliases[(string)$row['account_id']],
+                'source_kind'=>'business_message','version_at'=>self::time($row['version_at']),'deleted'=>(int)$row['is_deleted']!==0,
+                'selection_scope'=>'selected_record_only'];
+        }
+        $next=null;
+        if($more&&$rows)$next=$this->encode(['v'=>1,'k'=>'recent_inventory','a'=>'0','c'=>'0','f'=>$state['f'],
+            'n'=>(string)$rows[count($rows)-1]['id'],'e'=>$expiry],$key,$admin,$connection);
+        return$this->base($state['f'])+['operation'=>'recent_business_message_inventory','order'=>'archive_record_id_desc',
+            'clock_basis'=>'stored_record_order_not_receipt_time','existing_row_edits_are_not_reordered'=>true,
+            'latest_activity_inventory'=>false,'text_materialized'=>false,'selection_scope'=>'selected_records_only',
+            'payload_admission'=>'checked_on_context_read',
+            'recent_business_records'=>$records,'has_more'=>$more,'next_cursor'=>$next];
     }
 
     private function featureDescriptor(string$fence,string$key,int$admin,string$connection):array
@@ -820,14 +867,25 @@ final class ArchiveResearchReadService
         if(!hash_equals($expected,$m[2]))self::fail('stale_cursor');
         $body=base64_decode(strtr($m[1],'-_','+/').str_repeat('=',(4-strlen($m[1])%4)%4),true);
         try{$v=json_decode((string)$body,true,16,JSON_THROW_ON_ERROR);}catch(Throwable$e){self::fail('stale_cursor');}
-        if($kind==='inventory_or_features')$kind=is_array($v)&&in_array($v['k']??null,['feature_inventory','semantic_inventory'],true)?$v['k']:'inventory';
-        $keys=$kind==='history'?['v','k','a','c','f','n','r','e']:(in_array($kind,['feature_inventory','semantic_inventory'],true)?['v','k','a','c','f','n','x','e']:['v','k','a','c','f','e']);
+        if($kind==='inventory_or_features')$kind=is_array($v)&&in_array($v['k']??null,['feature_inventory','semantic_inventory','recent_inventory'],true)?$v['k']:'inventory';
+        if($kind==='chat_or_exact_message')$kind=is_array($v)&&($v['k']??null)==='exact_message'?'exact_message':'chat';
+        if(in_array($kind,['recent_inventory','exact_message'],true)&&!$this->qualityHistory)self::fail('stale_cursor');
+        $keys=match($kind){
+            'history'=>['v','k','a','c','f','n','r','e'],
+            'exact_message'=>['v','k','a','c','f','i','n','e'],
+            'recent_inventory'=>['v','k','a','c','f','n','e'],
+            'feature_inventory','semantic_inventory'=>['v','k','a','c','f','n','x','e'],
+            default=>['v','k','a','c','f','e']};
         if($kind==='semantic_inventory'){
             $keys[]='s';if(is_array($v)&&array_key_exists('b',$v))$keys[]='b';
         }
         if(!is_array($v)||count($v)!==count($keys)||array_diff(array_keys($v),$keys)||($v['v']??null)!==1
             ||($v['k']??null)!==$kind||!is_int($v['e'])||$v['e']<$this->now()||$v['e']>$this->now()+self::CURSOR_TTL)self::fail('stale_cursor');
-        foreach(['a','c','f']as$field)if(!is_string($v[$field])||!self::decimal($v[$field],in_array($kind,['inventory','feature_inventory','semantic_inventory'],true)||$field==='f'))self::fail('stale_cursor');
+        foreach(['a','c','f']as$field)if(!is_string($v[$field])||!self::decimal($v[$field],in_array($kind,['inventory','feature_inventory','semantic_inventory','recent_inventory'],true)||$field==='f'))self::fail('stale_cursor');
+        if($kind==='recent_inventory'&&($v['a']!=='0'||$v['c']!=='0'||!is_string($v['n'])||!self::decimal($v['n'],true)
+            ||self::decimalGreater($v['n'],$v['f'])))self::fail('stale_cursor');
+        if($kind==='exact_message'&&(!is_string($v['i'])||!self::decimal($v['i'],false)||!is_string($v['n'])||!self::decimal($v['n'],false)
+            ||self::decimalGreater($v['i'],$v['f'])))self::fail('stale_cursor');
         if($kind==='history'&&(!is_string($v['n'])||!self::decimal($v['n'],true)||!is_string($v['r'])||!preg_match('/\A[a-f0-9]{64}\z/D',$v['r'])))self::fail('stale_cursor');
         if(in_array($kind,['feature_inventory','semantic_inventory'],true)&&(!is_string($v['n'])||!self::decimal($v['n'],true)
             ||!is_string($v['x'])||!preg_match('/\A[a-f0-9]{32}\z/D',$v['x'])

@@ -51,6 +51,7 @@ final class MonthlyReplyQualityReadService
                 $a=['limit'=>$limit];if(isset($s['x']))$a['cursor']=$s['x'];
                 $r=$delegate->inventory($admin,$connection,$a);
                 $field=$lane==='native'?'dialogues':'chats';$ref=$lane==='native'?'dialogue_ref':'chat_ref';$records=[];
+                if($lane==='archive'&&array_key_exists('recent_business_records',$r)){$field='recent_business_records';$ref='message_ref';}
                 foreach($r[$field]??[] as $row){
                     $row['record_ref']=$this->encode(['k'=>'record','l'=>$lane,'f'=>$s['f'],'t'=>$s['t'],'x'=>$row[$ref]],$key,$admin,$connection);
                     unset($row[$ref]);$row['kind']=$lane;$records[]=$row;

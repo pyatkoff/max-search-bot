@@ -42,6 +42,8 @@ function archiveResearchReadRegression(PDO $pdo): int
     try{
         $integer=$mysql?'BIGINT':'INTEGER';$text=$mysql?'LONGTEXT':'TEXT';
         $pdo->exec("CREATE TABLE projects(id $integer PRIMARY KEY,project_key VARCHAR(64) NOT NULL,is_active INTEGER NOT NULL)");
+        // Match migrations/003_projects_and_manager_access.sql for native query-plan checks.
+        $pdo->exec('CREATE UNIQUE INDEX uq_projects_key ON projects(project_key)');
         $pdo->exec("CREATE TABLE conversations(id $integer PRIMARY KEY,project_key VARCHAR(64),channel VARCHAR(32),customer_channel_id $integer,customer_id $integer)");
         $pdo->exec("CREATE TABLE customer_channels(id $integer PRIMARY KEY,customer_id $integer,project_key VARCHAR(64),channel VARCHAR(32),external_user_id VARCHAR(191),external_chat_id VARCHAR(191))");
         $pdo->exec("CREATE TABLE telegram_archive_accounts(project_key VARCHAR(64),bot_key VARCHAR(96),account_id $integer,connection_id VARCHAR(64),approved INTEGER,provider_enabled INTEGER,manager_id $integer)");
@@ -310,6 +312,192 @@ function archiveResearchReadRegression(PDO $pdo): int
         $check(($qualityChats['100:201']['period_clock_metadata']['unknown_created_at_records']??0)===1,
             'quality_inventory_reports_unknown_clock_instead_of_silently_dropping_record');
         $check($fingerprint()===$historyFingerprint,'quality_archive_reads_leave_records_permissions_and_markers_unchanged');
+        // One saved Business record must be reachable without walking account/chat IDs or its whole history.
+        $recentNative=['schema_version'=>1,'producer'=>'TelegramDialogueNormalizer.v1',
+            'source_format'=>'telegram_bot_api_message','kind'=>'text','text_origin'=>'unknown'];
+        $recentBusiness=['source_kind'=>'business_message','bot_key'=>'ArchiveA','native_content'=>$recentNative];
+        $seed(50000,100,900000000,20,'PRIVATE_RECENT_OLD_ROW',$recentBusiness);
+        $seed(50002,100,900000002,1,'PRIVATE_RECENT_WRONG_BOT',array_replace($recentBusiness,['bot_key'=>'NotApproved']));
+        $seed(50003,100,900000003,1,'PRIVATE_RECENT_TYPED_BOT',array_replace($recentBusiness,['bot_key'=>['secret'=>'PRIVATE_RECENT_BOT']]));
+        $seed(50004,100,900000004,1,'PRIVATE_RECENT_DELETED',array_replace($recentBusiness,['is_deleted'=>true]));
+        $seed(50005,100,900000005,1,'PRIVATE_RECENT_MALFORMED',$recentBusiness);
+        $pdo->exec("UPDATE telegram_dialogue_messages SET record_json='{' WHERE id=50005");
+        $seed(50006,100,900000006,1,str_repeat('p',ArchiveResearchReadService::MAX_PAGE_SOURCE_BYTES+100),$recentBusiness);
+        $seed(50007,100,900000007,1,str_repeat('r',ArchiveResearchReadService::MAX_RECORD_BYTES+100),$recentBusiness);
+        $seed(50008,100,900000008,1,'PRIVATE_RECENT_IDENTITY_MISMATCH',array_replace($recentBusiness,['account_id'=>'101']));
+        $seed(50009,100,900000009,1,'Recent unsupported marker',
+            array_replace($recentBusiness,['native_content'=>array_replace($recentNative,['schema_version'=>2])]));
+        $seed(50089,101,900000001,90000,'PRIVATE_RECENT_SIBLING',
+            ['source_kind'=>'business_message','bot_key'=>'ArchiveB','created_at'=>1700000050,'native_content'=>$recentNative]);
+        $seed(50090,101,900000001,1,'Recent selected body https://example.test/private +7 999 123-45-67 @synthetic_handle',
+            ['source_kind'=>'business_message','bot_key'=>'ArchiveB','created_at'=>1699999900,'native_content'=>$recentNative]);
+        $seed(50100,105,999,10,'PRIVATE_RECENT_OWNER',['source_kind'=>'business_message','bot_key'=>'OwnerOnly']);
+        $seed(50101,100,777000,10,'PRIVATE_RECENT_SERVICE',$recentBusiness);
+        $seed(50102,104,900000010,1,'PRIVATE_RECENT_FOREIGN',['source_kind'=>'business_message','bot_key'=>'Foreign'],'foreign');
+        $seed(50103,103,900000011,1,'PRIVATE_RECENT_DISCONNECTED',['source_kind'=>'business_message','bot_key'=>'Disconnected']);
+        $seed(50104,102,900000012,1,'PRIVATE_RECENT_REVOKED',['source_kind'=>'business_message','bot_key'=>'Revoked']);
+        $seed(50105,100,900000003,2,'PRIVATE_RECENT_DESKTOP');
+        $recentBefore=$fingerprint();$blockedWrite=false;
+        $recentOverview=$qualityHistory->inventory(1,$connection,['limit'=>1]);
+        $recentDescriptor=$recentOverview['newest_retained']??null;
+        $check(is_array($recentDescriptor)&&is_string($recentDescriptor['start_cursor']??null)
+            &&$recentDescriptor['order']==='archive_record_id_desc'
+            &&$recentDescriptor['clock_basis']==='stored_record_order_not_receipt_time'
+            &&$recentDescriptor['existing_row_edits_are_not_reordered']===true
+            &&!isset($final['newest_retained']),
+            'recent_business_selection_is_explicit_quality_only_and_not_a_clock_claim');
+        $recentStart=$recentDescriptor['start_cursor'];
+        ArchiveResearchTraceStatement::$queries=[];
+        $recentFirst=$qualityHistory->inventory(1,$connection,['cursor'=>$recentStart,'limit'=>1]);
+        $recentSql=ArchiveResearchTraceStatement::$queries;
+        $recentRows=$recentFirst['recent_business_records']??[];
+        $check($recentFirst['operation']==='recent_business_message_inventory'
+            &&count($recentRows)===1&&$recentRows[0]['source_ref']==='archive_message:50090'
+            &&$recentFirst['has_more']&&is_string($recentFirst['next_cursor']),
+            'recent_business_finds_high_chat_id_and_low_message_id_first');
+        $check(!array_filter($recentSql,static fn($sql)=>str_contains($sql,'record_json'))
+            &&!str_contains(json_encode($recentFirst,JSON_THROW_ON_ERROR),'PRIVATE_RECENT_')
+            &&!str_contains(json_encode($recentFirst,JSON_THROW_ON_ERROR),'example.test')
+            &&!array_key_exists('text',$recentRows[0])
+            &&!array_key_exists('record_json',$recentRows[0]),
+            'recent_inventory_does_not_read_or_return_source_json_or_message_text');
+        if($mysql){
+            $recentSelect=array_values(array_filter($recentSql,static fn($sql)=>str_contains($sql,'ORDER BY m.id DESC')));
+            if(count($recentSelect)!==1)throw new RuntimeException('recent_fixture_select_not_unique');
+            $recentInitial=json_decode(base64_decode(strtr(explode('.',$recentStart)[0],'-_','+/')),true);
+            // Synthetic fixture authorities only. Keep real query tracing free of bound source values.
+            $explain=$pdo->prepare('EXPLAIN '.$recentSelect[0]);
+            $explain->execute(['anytour','99','100','101','105','107','108',$recentInitial['f']]);
+            $plan=$explain->fetchAll(PDO::FETCH_ASSOC);
+            $mainPlan=array_values(array_filter($plan,static fn($row)=>in_array($row['select_type'],['SIMPLE','PRIMARY'],true)));
+            $messagePlan=array_values(array_filter($mainPlan,static fn($row)=>$row['table']==='m'));
+            $check(count($messagePlan)===1&&$messagePlan[0]['key']==='PRIMARY'
+                &&in_array($messagePlan[0]['type'],['range','index'],true)
+                &&!array_filter($mainPlan,static fn($row)=>stripos((string)($row['Extra']??''),'Using filesort')!==false),
+                'mysql_recent_inventory_uses_primary_range_or_index_without_filesort');
+        }
+        $exactRef=$recentRows[0]['message_ref'];
+        $exact=$qualityHistory->history(1,$connection,['chat_ref'=>$exactRef,'limit'=>100]);
+        $check(count($exact['messages'])===1&&$exact['messages'][0]['source_ref']==='archive_message:50090'
+            &&$exact['messages'][0]['native_message_id']==='1'
+            &&str_starts_with($exact['messages'][0]['text'],'Recent selected body')
+            &&$exact['messages'][0]['native_content']===$recentNative
+            &&!str_contains(json_encode($exact,JSON_THROW_ON_ERROR),'PRIVATE_RECENT_SIBLING')
+            &&!str_contains(json_encode($exact,JSON_THROW_ON_ERROR),'example.test')
+            &&!str_contains(json_encode($exact,JSON_THROW_ON_ERROR),'+7 999')
+            &&!str_contains(json_encode($exact,JSON_THROW_ON_ERROR),'@synthetic_handle'),
+            'exact_business_ref_reuses_canonical_projection_minimization_and_returns_no_sibling');
+        $check(($exact['selection_scope']??null)==='selected_record_only'
+            &&$exact['stored_records_within_fence']===1&&$exact['history_complete']===false
+            &&$exact['page_complete']===true&&$exact['has_more']===false&&$exact['next_cursor']===null
+            &&$exact['messages'][0]['historical_first_available_at']===null
+            &&$exact['messages'][0]['created_at']===1699999900,
+            'exact_selection_is_one_current_record_not_complete_history_or_server_receipt_time');
+        $check($recentBefore===$fingerprint()&&$blockedWrite&&!$pdo->inTransaction(),
+            'recent_inventory_and_exact_context_preserve_source_and_reject_writes');
+        $reject(fn()=>$qualityHistory->history(1,$connection,['chat_ref'=>$exactRef,'cursor'=>$first['next_cursor']]),'invalid_arguments');
+        $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$recentStart]),'stale_cursor');
+        $reject(fn()=>$service->history(1,$connection,['chat_ref'=>$exactRef]),'stale_cursor');
+        $reject(fn()=>$qualityHistory->inventory(2,$connection,['cursor'=>$recentStart]),'stale_cursor');
+        $reject(fn()=>$qualityHistory->history(2,$connection,['chat_ref'=>$exactRef]),'stale_cursor');
+        $reject(fn()=>$qualityHistory->history(1,str_repeat('d',43),['chat_ref'=>$exactRef]),'stale_cursor');
+        $recentDecode=static fn(string$token):array=>json_decode(base64_decode(strtr(explode('.',$token)[0],'-_','+/')),true);
+        $recentState=$recentDecode($recentStart);$exactState=$recentDecode($exactRef);
+        foreach([
+            array_replace($recentState,['k'=>'inventory']),
+            array_replace($recentState,['n'=>0]),
+            array_replace($recentState,['n'=>'-1']),
+            array_replace($recentState,['a'=>'100']),
+            array_replace($recentState,['e'=>$now-1]),
+            $recentState+['untrusted_extra'=>'x'],
+        ]as$badRecent)$reject(fn()=>$qualityHistory->inventory(1,$connection,['cursor'=>$sign($badRecent)]),'stale_cursor');
+        foreach([
+            array_replace($exactState,['i'=>50090]),
+            array_replace($exactState,['i'=>'-1']),
+            array_replace($exactState,['i'=>'99999999999999999999']),
+            array_replace($exactState,['n'=>1]),
+            array_replace($exactState,['e'=>$now-1]),
+            $exactState+['untrusted_extra'=>'x'],
+        ]as$badExact)$reject(fn()=>$qualityHistory->history(1,$connection,['chat_ref'=>$sign($badExact)]),'stale_cursor');
+        $reject(fn()=>$qualityHistory->history(1,$connection,['chat_ref'=>$sign(array_replace($exactState,['i'=>'50089']))]),'chat_unavailable');
+        $reject(fn()=>$qualityHistory->history(1,$connection,['chat_ref'=>$sign(array_replace($exactState,['c'=>'900000002']))]),'chat_unavailable');
+        $reject(fn()=>$qualityHistory->history(1,$connection,['chat_ref'=>$sign(array_replace($exactState,['i'=>'50091']))]),'chat_unavailable');
+        $reject(fn()=>$qualityHistory->history(1,$connection,['chat_ref'=>$sign(array_replace($exactState,['a'=>'102']))]),'forbidden');
+        // A later insertion cannot enter the old fence; an edit does not reorder its original record ID.
+        $seed(50106,101,900000001,2,'PRIVATE_RECENT_AFTER_FENCE',
+            ['source_kind'=>'business_message','bot_key'=>'ArchiveB','native_content'=>$recentNative]);
+        $recentReadBefore=$fingerprint();$recentAll=$recentRows;$recentCursor=$recentFirst['next_cursor'];$recentPages=1;
+        while($recentCursor!==null){
+            $recentPage=$qualityHistory->inventory(1,$connection,['cursor'=>$recentCursor,'limit'=>4]);
+            array_push($recentAll,...$recentPage['recent_business_records']);$recentCursor=$recentPage['next_cursor'];
+            if(++$recentPages>10)throw new RuntimeException('recent_business_pagination_did_not_advance');
+        }
+        $recentExpected=['archive_message:50090','archive_message:50089','archive_message:50009','archive_message:50008',
+            'archive_message:50007','archive_message:50006','archive_message:50005','archive_message:50004',
+            'archive_message:50003','archive_message:50002','archive_message:50000',
+            'archive_message:2303','archive_message:1000','archive_message:40'];
+        $check(array_column($recentAll,'source_ref')===$recentExpected
+            &&count(array_unique(array_column($recentAll,'source_ref')))===count($recentExpected)
+            &&$recentPage['has_more']===false&&$recentPage['next_cursor']===null,
+            'recent_keyset_covers_admitted_business_rows_once_and_excludes_future_owner_service_foreign_and_desktop');
+        $recentRefs=array_column($recentAll,'message_ref','source_ref');
+        $check($recentReadBefore===$fingerprint(),'recent_pagination_does_not_mutate_sources');
+        $recentEdited=$record(100,900000000,20,'Recent current edited body',
+            array_replace($recentBusiness,['version_at'=>1700000099]));
+        $pdo->prepare('UPDATE telegram_dialogue_messages SET version_at=?,record_json=? WHERE id=50000')
+            ->execute([1700000099,json_encode($recentEdited,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]);
+        $recentReadBefore=$fingerprint();
+        $recentEditedDto=$qualityHistory->history(1,$connection,['chat_ref'=>$recentRefs['archive_message:50000']]);
+        $recentAfterEdit=$qualityHistory->inventory(1,$connection,['cursor'=>$recentStart,'limit'=>1]);
+        $check($recentEditedDto['messages'][0]['text']==='Recent current edited body'
+            &&$recentEditedDto['messages'][0]['version_at']===1700000099
+            &&$recentAfterEdit['recent_business_records'][0]['source_ref']==='archive_message:50090'
+            &&$recentEditedDto['snapshot']['mutable_record_versions']===true,
+            'recent_ref_keeps_current_version_semantics_without_reordering_an_old_row');
+        foreach([50002=>'permission_unverified',50003=>'permission_unverified',50004=>'deleted',
+            50005=>'malformed_record',50006=>'record_exceeds_page_budget',50007=>'oversized_record',
+            50008=>'malformed_record']as$recentId=>$status){
+            ArchiveResearchTraceStatement::$queries=[];
+            $unavailable=$qualityHistory->history(1,$connection,['chat_ref'=>$recentRefs['archive_message:'.$recentId],'limit'=>100]);
+            $check(count($unavailable['messages'])===1&&$unavailable['messages'][0]['read_status']===$status
+                &&$unavailable['messages'][0]['text']===null&&$unavailable['has_more']===false
+                &&$unavailable['next_cursor']===null&&$unavailable['page_complete']===false
+                &&!str_contains(json_encode($unavailable,JSON_THROW_ON_ERROR),'PRIVATE_RECENT_'),
+                'exact_unavailable_preserves_status_without_neighbor_fallback_'.$status.'_'.$recentId);
+            if($recentId!==50008)$check(!array_filter(ArchiveResearchTraceStatement::$queries,
+                static fn($sql)=>str_contains($sql,'SELECT m.id,m.record_json')),
+                'exact_rejected_metadata_is_not_materialized_'.$recentId);
+        }
+        $unknownRecent=$qualityHistory->history(1,$connection,['chat_ref'=>$recentRefs['archive_message:50009']]);
+        $check($unknownRecent['messages'][0]['read_status']==='available'
+            &&$unknownRecent['messages'][0]['native_content']['kind']==='unknown'
+            &&$unknownRecent['messages'][0]['native_content']['producer']===null
+            &&$unknownRecent['messages'][0]['native_content']['text_origin']==='unknown',
+            'exact_context_does_not_promote_unsupported_native_metadata');
+        $recentEmpty=$recentDecode($recentFirst['next_cursor']);$recentEmpty['n']='1';
+        $recentEof=$qualityHistory->inventory(1,$connection,['cursor'=>$sign($recentEmpty),'limit'=>1]);
+        $check($recentEof['recent_business_records']===[]&&$recentEof['has_more']===false&&$recentEof['next_cursor']===null,
+            'recent_empty_terminal_page_is_explicit');
+        $pdo->exec("UPDATE telegram_archive_accounts SET approved=0 WHERE account_id=101");
+        $reject(fn()=>$qualityHistory->history(1,$connection,['chat_ref'=>$exactRef]),'forbidden');
+        $pdo->exec("UPDATE telegram_archive_accounts SET approved=1 WHERE account_id=101");
+        $recentAuthCalls=0;$recentReleased=null;
+        $recentRevoker=static function(int$a,string$c)use($pdo,&$recentAuthCalls,&$key):string{
+            if($pdo->inTransaction())throw new RuntimeException('recent_authority_in_old_snapshot');
+            if(++$recentAuthCalls===2)$pdo->exec("UPDATE telegram_archive_accounts SET approved=0 WHERE account_id=101");
+            return$key;
+        };
+        $recentRace=new ArchiveResearchReadService($pdo,$clock,$recentRevoker,true);
+        $reject(static function()use($recentRace,$connection,$exactRef,&$recentReleased):void{
+            $recentReleased=$recentRace->history(1,$connection,['chat_ref'=>$exactRef]);
+        },'permission_changed');
+        $check($recentAuthCalls===2&&$recentReleased===null&&!$pdo->inTransaction(),
+            'exact_read_withholds_result_when_account_authority_changes_after_snapshot');
+        $pdo->exec("UPDATE telegram_archive_accounts SET approved=1 WHERE account_id=101");
+        $check($recentReadBefore===$fingerprint()&&!$pdo->inTransaction(),
+            'recent_pages_and_failure_reads_leave_source_rows_unchanged');
+        $pdo->exec('DELETE FROM telegram_dialogue_messages WHERE id BETWEEN 50000 AND 50106');
+        $check($historyFingerprint===$fingerprint(),'recent_fixture_restores_original_source_for_existing_modes');
         // Explicit feature mode is opt-in through a separate cursor; old inventory pages stay metadata-only.
         $seed(2400,100,197,1,'Готовы бронировать, пришлите ссылку на оплату. https://example.test/private +7 999 123-45-67 @synthetic_handle');
         $seed(2401,100,197,2,'Деньги поступили, оплату вижу.',['sender_id'=>'100','sender_type'=>'manager','direction'=>'outbound']);
