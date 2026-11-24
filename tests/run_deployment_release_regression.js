@@ -2862,7 +2862,35 @@ async function rankedParentCases() {
   await assert.rejects(()=>R.rankedParentEvidence(good.api,String(child),{id:String(child),sha:head}));assertions++;
 }
 
-async function main(){await closedPrewriteOriginCases();await rankedApprovedInputCases();await rankedParentCases();await rankedResumeOriginCases();hotelRegistryReadWorkflow();await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
+async function unstarted1704Cases() {
+  const recovery = require('../tools/unstarted_1704_forward');
+  const anchor = ['##[endgroup]','curl: (28) Operation timed out after 15000 milliseconds with 0 bytes received',
+    '##[error]Process completed with exit code 28.','##[group]Run test "$PROVENANCE_OUTCOME" = success',
+    '  SYNC_OUTCOME: failure'];
+  assert.doesNotThrow(() => recovery.checkOriginalSync(anchor)); assertions++;
+  for (const changed of [
+    [anchor[0], ...anchor.slice(2)], [...anchor.slice(0,3),anchor[4]], [...anchor.slice(0,-1),'  SYNC_OUTCOME: success'],
+    [...anchor,'production_sha='+recovery.BASE], [...anchor,'monitor_journal_lock=acquired'], [...anchor,anchor[1]]
+  ]) {
+    assert.throws(() => recovery.checkOriginalSync(changed)); assertions++;
+  }
+  let requests=0;
+  const api = Object.assign(async () => {requests++;throw Error('unexpected read');},
+    {jobLog:async () => {requests++;throw Error('unexpected native log');}});
+  await assert.rejects(() => recovery.proveUnstarted1704Forward({api,pr:1704,
+    head:'a'.repeat(40),phase:'installation',source:'b'.repeat(40),runId:7,
+    event:{ref:'refs/heads/main',before:recovery.BASE,forced:true}}));
+  equal(requests,0,'invalid 1704 installation reads no proof');
+  await assert.rejects(() => R.admitForwardInstallation(async (method,url)=>{
+    equal(method,'GET','recovery uses read-only API');
+    if (url.includes('/commits/')) return {sha:'b'.repeat(40),parents:[{sha:recovery.BASE},{sha:'a'.repeat(40)}]};
+    throw Error('unexpected read');
+  },{event:'workflow_dispatch',attempt:1,sha:'b'.repeat(40)},{before:recovery.BASE}),
+  error=>error.code==='invalid_unstarted_1704_source');
+  assertions++;
+}
+
+async function main(){await unstarted1704Cases();await closedPrewriteOriginCases();await rankedApprovedInputCases();await rankedParentCases();await rankedResumeOriginCases();hotelRegistryReadWorkflow();await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
   execFileSync(process.execPath,[path.join(__dirname,'run_ranked_telegram_cli_regression.js')],{stdio:'inherit'});
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_partial_install_1702_forward_regression.js')],{stdio:'inherit'});
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_partial_install_1662_forward_regression.js')],{stdio:'inherit'});

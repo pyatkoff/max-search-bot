@@ -9,6 +9,16 @@ $downloadStart=strpos($workflow,'      - name: Download exact installed diagnost
 $sync=$syncStart!==false&&$migrationStart!==false?substr($workflow,$syncStart,$migrationStart-$syncStart):'';
 $smoke=$smokeStart!==false&&$downloadStart!==false?substr($workflow,$smokeStart,$downloadStart-$smokeStart):'';
 $reset=strpos($sync,'git reset --hard');$contain=strpos($sync,'php tools/structured_runtime_log_smoke.php;');
+$fence=(string)file_get_contents(__DIR__.'/../tools/check_public_runtime_log_fence.sh');
+$preflight=strpos($sync,'bash tools/check_public_runtime_log_fence.sh structured_events.log');
+$upload=strpos($sync,'scp "${ssh_opts[@]}"');
+$postflight=$upload!==false?strpos($sync,'bash tools/check_public_runtime_log_fence.sh structured_events.log',$upload):false;
+$anonymousFence=str_contains($fence,'curl -I -sS --max-time 15 -o /dev/null')
+    && str_contains($fence,'url="https://app.anytoour.ru/$1"')
+    && str_contains($fence,'case "$status" in')
+    && str_contains($fence,'403|404) exit 0 ;;')
+    && str_contains($fence,"*) echo 'Public runtime log containment failed' >&2; exit 1 ;;")
+    && str_contains($fence,'result != 28 || attempt == 2');
 $privateReaders=true;
 foreach (['export_debug_logs.php'=>2,'tools/production_snapshot.php'=>3,'tools/export_handoff_snapshot.php'=>1,'services/ProjectHealth.php'=>1] as $path=>$calls) {
     $reader=(string)file_get_contents(dirname(__DIR__).'/'.$path);
@@ -66,15 +76,12 @@ $checks = [
         && str_contains($sync,"= '\$EXPECTED_SHA'; php tools/structured_runtime_log_smoke.php;")
         && str_contains($workflow,"if: steps.sync.outcome == 'success'"),
     'early anonymous structured log probe discards headers and accepts only denied or missing' =>
-        str_contains($sync,"-o /dev/null -I -w '%{http_code}' 'https://app.anytoour.ru/structured_events.log'")
-        && str_contains($sync,'case "$status" in 403|404)')
-        && str_contains($sync,'Public structured log containment failed: HTTP $status')
-        && str_contains($sync,'exit 1;; esac'),
+        $anonymousFence && $preflight!==false && $upload!==false && $postflight!==false
+        && $preflight<$upload && $upload<$postflight,
     'later smoke verifies the existing private boundary and rechecks its public fence' =>
         str_contains($smoke,'php tools/structured_runtime_log_smoke.php --check-only')
         && str_contains($smoke,'tmp_out.txt structured_events.log; do')
-        && str_contains($smoke,"-o /dev/null -I -w '%{http_code}'")
-        && str_contains($smoke,'case "$status" in 403|404)')
+        && $anonymousFence && str_contains($smoke,'bash tools/check_public_runtime_log_fence.sh "$path"')
         && !str_contains($workflow,'rm -f structured_events.log'),
 ];
 
