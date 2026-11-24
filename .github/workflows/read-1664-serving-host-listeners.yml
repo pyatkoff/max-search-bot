@@ -53,11 +53,11 @@ jobs:
           ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 \
             -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null \
             -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$USER_VALUE@$HOST_VALUE" 'timeout 115s env PYTHONDONTWRITEBYTECODE=1 python3 -' <<'REMOTE'
-          import collections, datetime, glob, hashlib, ipaddress, json, os, re, selectors, shlex, shutil, stat, subprocess, time, urllib.parse
+          import collections, datetime, glob, gzip, hashlib, ipaddress, json, os, re, selectors, shlex, shutil, stat, subprocess, time, urllib.parse
           
           HOST = 'app.anytoour.ru'
           APP = '/var/www/anytoour/data/www/app.anytoour.ru'
-          EXPECTED = 'd1e4cdbae0f4cd6f80fd287c0e8d0b18f08b654a'
+          ALLOWED_APP = {'8d723f1c08f094fd845c7c34da29607fc294ff46','7ba8de9cd15acbe691148094c5e76e629914cbf4'}
           START = time.monotonic()
           MAX_CONFIG = 131072
           MAX_LOG = 4194304
@@ -323,8 +323,8 @@ jobs:
               if m:return datetime.datetime.strptime(m[1],'%d-%b-%Y %H:%M:%S').astimezone(datetime.timezone.utc)
               return None
           
-          def inspect_log(path,kind,phase='before'):
-              data,meta=file_read(path,MAX_LOG,tail=True)
+          def inspect_log(path,kind,phase='before',archive_override=None):
+              data,meta=archive_override if archive_override is not None else file_read(path,MAX_LOG,tail=True)
               summary={'path_hash':digest(path),'log_kind':kind,'phase':phase,**meta}
               if data is None:emit('log_summary',**summary);return
               counts=collections.Counter();first=None;last=None;scoped=HOST in path;untimed=0;matched=0;category_times={}
@@ -384,9 +384,10 @@ jobs:
               emit('service_start_metadata',state='read' if code==0 else 'unavailable',fields=output)
           
           code,before=command(['git','-C',APP,'rev-parse','HEAD'])
-          if code or before.strip()!=EXPECTED:
-              emit('runtime_guard',state='source_changed');raise SystemExit(1)
-          emit('capture',application_sha=EXPECTED,at_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),server_timezone=list(time.tzname),server_utc_offset=datetime.datetime.now().astimezone().strftime('%z'))
+          if code or before.strip() not in ALLOWED_APP:
+              emit('runtime_guard',state='unexpected_source');raise SystemExit(1)
+          CAPTURE_SHA=before.strip()
+          emit('capture',application_sha=CAPTURE_SHA,at_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),server_timezone=list(time.tzname),server_utc_offset=datetime.datetime.now().astimezone().strftime('%z'))
           apache_tool=next((shutil.which(x) for x in ('apache2ctl','apachectl','httpd','apache2') if shutil.which(x)),None)
           if apache_tool:
               code,raw=command([apache_tool,'-M'])
@@ -449,43 +450,54 @@ jobs:
               inspect_log(path,kind)
               if kind in ('error','shared_error') and os.path.exists(path+'.1'):inspect_log(path+'.1',kind)
           
-          # Six at most, all HEAD, no body/redirect/retry. Origin uses actual DNS/interface,
-          # never an unbound loopback:443. Backend probes require an unambiguous loopback HTTP.
-          def probe(label,url,extra=()):
-              fmt='http=%{http_code} connect=%{time_connect} tls=%{time_appconnect} first_byte=%{time_starttransfer} total=%{time_total}'
-              code,text=command(['curl','-q','--noproxy','*','--connect-timeout','3','--max-time','8','-s','-I','-o','/dev/null','-w',fmt,*extra,url],10)
-              values={k:v for k,v in re.findall(r'(http|connect|tls|first_byte|total)=([0-9.]+)',text)}
-              emit('probe',label=label,exit=code,**values)
+          # Archived evidence only. Never export a raw line, IP, URI, header or request body.
+          def archive_read(path):
+              try:
+                  fd=os.open(path,os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW)
+                  with os.fdopen(fd,'rb') as handle:
+                      info=os.fstat(handle.fileno())
+                      if not stat.S_ISREG(info.st_mode):
+                          return None,{'state':'not_regular'}
+                      if info.st_size>8388608:
+                          return None,{'state':'compressed_file_limit','size':info.st_size}
+                      if path.endswith('.gz'):
+                          with gzip.GzipFile(fileobj=handle,mode='rb') as z:
+                              blob=z.read(MAX_LOG+1)
+                      else:
+                          blob=handle.read(MAX_LOG+1)
+                      if len(blob)>MAX_LOG:
+                          return None,{'state':'decompressed_file_limit','size':info.st_size}
+                      return blob.decode('utf-8','replace'),{
+                          'state':'read','size':info.st_size,'bytes_read':len(blob),
+                          'mtime_utc':datetime.datetime.fromtimestamp(info.st_mtime,datetime.timezone.utc).isoformat(),
+                          'sha256_read':hashlib.sha256(blob).hexdigest()}
+              except FileNotFoundError:
+                  return None,{'state':'not_found'}
+              except PermissionError:
+                  return None,{'state':'permission_denied'}
+              except (OSError,EOFError,ValueError) as err:
+                  return None,{'state':'archive_error','error_class':type(err).__name__}
           
-          probe_started=datetime.datetime.now(datetime.timezone.utc)
-          code,raw=command(['getent','ahostsv4',HOST])
-          addresses=sorted({line.split()[0] for line in raw.splitlines() if line.split() and re.fullmatch(r'[0-9.]+',line.split()[0])})
-          code,raw=command(['ip','-o','-4','addr','show'])
-          local={m[1] for m in re.finditer(r'\binet ([0-9.]+)/',raw)}
-          origin=[a for a in addresses if a in local and (a in https_binds or bool(https_binds & {'0.0.0.0','*'}))]
-          emit('origin_resolution',ipv4_count=len(addresses),matching_interfaces=len(origin))
-          for name,path in [('static','/manager/sw.js'),('redirect','/poisk-turov/')]:
-              if time.monotonic()-START>85:coverage['probe_time_limit']+=1;break
-              probe('public_'+name,'https://'+HOST+path)
-              if len(origin)==1:probe('origin_'+name,'https://'+HOST+path,('--resolve',HOST+':443:'+origin[0]))
-          backend_values=sorted({v for k,v,c in upstreams if k=='proxy_pass' and v.startswith('http://') and c.startswith('tls_')})
-          if len(backend_values)==1:
-              parsed=urllib.parse.urlsplit(backend_values[0]);ep=endpoint(backend_values[0])
-              host_ok=len(proxy_headers.get('host',set()))==1 and proxy_headers['host']<={'$host','$http_host',HOST}
-              proto=proxy_headers.get('x-forwarded-proto',set())
-              proto_ok=not proto or len(proto)==1 and proto<={'$scheme','https'}
-              if ep.get('address_class') in ('loopback','localhost') and not ep.get('has_credentials',True) and not ep.get('has_uri',True) and not parsed.query and not parsed.fragment and host_ok and proto_ok and time.monotonic()-START<90:
-                  extra=['-H','Host: '+HOST]
-                  if proto:extra+=['-H','X-Forwarded-Proto: https']
-                  emit('direct_backend_basis',state='single_tls_upstream_and_compatible_host_headers',route_selection='candidate_location_not_runtime_proven')
-                  for name,path in [('static','/manager/sw.js'),('redirect','/poisk-turov/')]:probe('backend_candidate_'+name,backend_values[0].rstrip('/')+path,tuple(extra))
-              else:coverage['direct_backend_not_safe_or_ambiguous']+=1
-          else:coverage['direct_backend_not_safe_or_ambiguous']+=1
           for path,kind in list(log_paths.items())[:8]:
-              if time.monotonic()-START>110:coverage['post_probe_log_time_limit']+=1;break
-              inspect_log(path,kind,'after')
+              if kind not in ('error','access') or HOST not in path: continue
+              names=[]
+              for candidate in glob.glob(path+'*'):
+                  suffix=candidate[len(path):]
+                  if re.fullmatch(r'(?:\.(?:[1-9][0-9]{0,2}|20[0-9]{6})(?:\.gz)?|\.gz|\.20[0-9]{2}-[0-9]{2}-[0-9]{2}(?:\.gz)?|-20[0-9]{6}(?:\.gz)?)',suffix):
+                      names.append(candidate)
+              names=sorted(set(names),reverse=True)
+              emit('archive_inventory',log_kind=kind,log_path_hash=digest(path),candidates=len(names),
+                  scan_limit=8,read_limit_bytes=MAX_LOG,scope='this_vhost_only')
+              for candidate in names[:8]:
+                  if time.monotonic()-START>90:
+                      coverage['archive_time_limit']+=1;break
+                  result=archive_read(candidate)
+                  inspect_log(candidate,kind,'archive',result)
+          # The first two public HEAD failures and the one approved live-probe pass are final;
+          # this scoped run does not repeat those public probes or call any business API.
+          emit('probe_policy',state='no_http_calls',scope='historical_rotated_logs_only')
           code,after=command(['git','-C',APP,'rev-parse','HEAD'])
-          stable=code==0 and after.strip()==EXPECTED
+          stable=code==0 and after.strip()==CAPTURE_SHA
           emit('capture_complete',stable_application=stable,coverage_gaps=dict(coverage),config_files_seen=len(seen),elapsed_seconds=round(time.monotonic()-START,3),loaded_config_equivalence='unproven_without_reload_evidence')
           if not stable:raise SystemExit(1)
           REMOTE
