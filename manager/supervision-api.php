@@ -20,7 +20,8 @@ try {
     }
     if($action==='analytics'){
         session_write_close();$result=ManagerDialogueAnalyticsService::read($actor,$data);
-        if(!session_start(['read_and_close'=>true])||ManagerHttp::managerId()!==$actor||!ManagerRequestContext::validCsrf((string)$data['csrf']))supervisionRespond(['ok'=>false,'error'=>'unauthorized'],401);
+        ManagerHttp::resumeSession();
+        if(ManagerHttp::managerId()!==$actor||!ManagerRequestContext::validCsrf((string)$data['csrf']))supervisionRespond(['ok'=>false,'error'=>'unauthorized'],401);
         supervisionRespond($result,!empty($result['ok'])?200:(($result['error']??'')==='forbidden'?403:(($result['error']??'')==='analytics_unavailable'?503:422)));
     }
     ManagerHttp::requireAdmin($manager);

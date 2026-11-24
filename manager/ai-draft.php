@@ -80,8 +80,7 @@ try {
             // if immediate callback delivery is temporarily unavailable.
             try { $events->deliverPending(); } catch (Throwable $ignored) {}
         }
-        if (!session_start(['read_and_close'=>true]) || ManagerHttp::managerId() !== $actor
-            || !ManagerRequestContext::validCsrf((string)$data['csrf'])) aiDraftRespond(['ok'=>false,'error'=>'unauthorized']);
+        ManagerHttp::revalidateSession($actor,(string)$data['csrf']);
         $after = ManagerAiDraftContextService::viewerSnapshot($cid,$actor);
         if (empty($after['ok'])) aiDraftRespond($after);
         if (!empty($after['supervisor_read']) && empty($after['owner_read'])) aiDraftRespond(['ok'=>false,'error'=>'forbidden']);
@@ -100,8 +99,7 @@ try {
         session_write_close();
         $prepared=ManagerPreparedReplyService::prepared($cid,$owner,$before,$action!=='prepared');
         if($supervisor||$passivePreview){
-            if (!session_start(['read_and_close'=>true]) || ManagerHttp::managerId() !== $actor
-                || !ManagerRequestContext::validCsrf((string)$data['csrf'])) aiDraftRespond(['ok'=>false,'error'=>'unauthorized']);
+            ManagerHttp::revalidateSession($actor,(string)$data['csrf']);
             $access=ManagerAiDraftContextService::viewerSnapshot($cid,$actor);
             if(empty($access['ok']))aiDraftRespond($access);
             if(!hash_equals($before['revision'],$access['revision'])||($access['viewer_access_revision']??null)!==($before['viewer_access_revision']??null))aiDraftRespond(['ok'=>false,'error'=>'context_stale']);
@@ -120,8 +118,7 @@ try {
             $proposal=$prepared['proposal'];unset($prepared['proposal']);
             // Passive full-text reads stay read-only, including for the reply owner.
             // Explicit acceptance loads `prepared` before its existing validation.
-            if(!$supervisor&&!$passivePreview&&(!session_start(['read_and_close'=>true])||ManagerHttp::managerId()!==$actor
-                ||!ManagerRequestContext::validCsrf((string)$data['csrf'])))aiDraftRespond(['ok'=>false,'error'=>'unauthorized']);
+            if(!$supervisor&&!$passivePreview)ManagerHttp::revalidateSession($actor,(string)$data['csrf']);
             $after=$passivePreview?$access:ManagerAiDraftContextService::viewerSnapshot($cid,$actor);
             if (empty($after['ok'])) aiDraftRespond($after);
             if (!hash_equals($before['revision'],$after['revision'])||($after['viewer_access_revision']??null)!==($before['viewer_access_revision']??null)) aiDraftRespond(['ok'=>false,'error'=>'context_stale']);
@@ -173,12 +170,7 @@ try {
 
     // Reload the same session without writing it. A logout/account/CSRF change
     // while the model was running invalidates the entire response.
-    if (!session_start(['read_and_close'=>true])) {
-        aiDraftRespond(['ok'=>false,'error'=>'unauthorized']);
-    }
-    if (ManagerHttp::managerId() !== $actor || !ManagerRequestContext::validCsrf((string)$data['csrf'])) {
-        aiDraftRespond(['ok'=>false,'error'=>'unauthorized']);
-    }
+    ManagerHttp::revalidateSession($actor,(string)$data['csrf']);
     $after = ManagerAiDraftContextService::viewerSnapshot($cid,$actor);
     if (empty($after['ok'])) aiDraftRespond($after);
     if (!hash_equals($before['revision'],$after['revision'])||($after['viewer_access_revision']??null)!==($before['viewer_access_revision']??null)) {
