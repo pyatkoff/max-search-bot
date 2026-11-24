@@ -1,4 +1,4 @@
-name: "#1566 Read further ranked MAX hotel sources after the first 84 drafts"
+name: "#1566 Read further ranked MAX hotel sources for the remainder of the November preparation batch"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -15,7 +15,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == '450c2382e57d48b5926e9aea64fee0a913735d3d' && github.run_attempt == 1
+      github.event.before == 'c077fd0ecd1d15d634cb5e28695339eff66509e3' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -46,7 +46,7 @@ jobs:
           from datetime import datetime, timezone
           from html.parser import HTMLParser
 
-          excluded = set([106,109,111,114,125,132,133,139,150,174,195,206,218,231,236,240,241,246,247,253,260,263,266,268,272,287,288,293,302,325,341,352,358,371,381,389,393,408,415,418,435,441,454,465,466,469,483,497,513,547,599,632,706,713,768,800,932,948,949,954,955,975,996,1035,1096,1105,1257,1260,1344,1451,1569,1960,1972,2470,2493,2588,3405,3415,3452,4079,4091,4181,4270,7458,11791,12107,12111,12125,14140,15693,24909,26844,28460,28581,32342,37668,43676,43689,47025,50869,51238,54605,56092,57028,59114,63191,64895,64914,64918,65877,70048,73343,73974,74503,75100,76588,77914,79071,82106,82606,85417,99713,107938,118475,132016])
+          excluded = set([106,109,111,114,125,132,133,139,150,174,195,206,218,231,236,240,241,246,247,253,260,263,266,268,272,287,288,293,302,325,341,352,358,371,381,389,393,408,415,418,435,441,454,465,466,469,483,497,513,547,599,632,706,713,768,800,932,948,949,954,955,975,996,1032,1033,1035,1055,1067,1074,1096,1100,1105,1124,1142,1143,1149,1151,1221,1257,1260,1313,1334,1336,1344,1402,1420,1421,1429,1439,1451,1569,1588,1589,1647,1959,1960,1972,2470,2493,2588,3405,3415,3452,4079,4091,4181,4270,7458,11791,12107,12111,12125,14140,15693,24909,26844,28460,28581,32342,37668,43676,43689,47025,50869,51238,54605,56092,57028,59114,63191,64895,64914,64918,65877,70048,73343,73974,74503,75100,76588,77914,79071,82106,82606,85417,99713,107938,118475,132016])
           reserve = json.loads("[{\"url\":\"https://max.ru/anytour/AZwEq2zVLGY\",\"mid\":\"mid.ffffc1752b045fed019c04ab6cd52c66\",\"hotel_name\":\"The Marin Phuket\"},{\"url\":\"https://max.ru/anytour/AZwpDhM0dC0\",\"mid\":\"mid.ffffc1752b045fed019c290e1334742d\",\"hotel_name\":\"Akka Alinda Hotel\"},{\"url\":\"https://max.ru/anytour/AZxcpmMWNUI\",\"mid\":\"mid.ffffc1752b045fed019c5ca663163542\",\"hotel_name\":\"Address Beach Resort Fujairah\"},{\"url\":\"https://max.ru/anytour/AZ82fl5vOjg\",\"mid\":\"mid.ffffc1752b045fed019f367e5e6f3a38\",\"hotel_name\":\"SO/ Ras Al Khaimah\"}]")
           rank_run = json.loads(pathlib.Path("pub/rank-run.json").read_bytes())
           rank_meta = json.loads(pathlib.Path("pub/rank-meta.json").read_bytes())
@@ -74,9 +74,9 @@ jobs:
               candidates.append({"hotel_id":row["hotel_id"],"rank":priority,"rank_name":row["hotel_name"],
                                  "offer_id":row["max_offer"],"source_url":binding["post_url"],"source_alias":binding["alias"],
                                  "publication_id":int(binding["publication_id"]),"demand":row["source"]})
-              if len(candidates) == 24:
+              if len(candidates) == 36:
                   break
-          assert len(candidates)==len({x["offer_id"] for x in candidates})==24
+          assert len(candidates)==len({x["offer_id"] for x in candidates})==36
           feed_url = "https://app.anytoour.ru/feed/hotel-posts-max.xml"
 
           def load(url, limit):
@@ -155,7 +155,7 @@ jobs:
               feed_error=type(error).__name__
           with ThreadPoolExecutor(max_workers=6) as executor:
               pages=list(executor.map(page,[x["source_url"] for x in candidates]))
-          assert len(pages)==len({p["url"] for p in pages})==24
+          assert len(pages)==len({p["url"] for p in pages})==36
           result={"observed_utc":datetime.now(timezone.utc).isoformat(),"feed_sha256":feed_sha,"feed_error":feed_error,
                   "offers":offers,"pages":pages,"candidates":candidates,"same_hotel_album_references":reserve_matches,"production_writes":0}
           pathlib.Path("pub/observation.json").write_text(json.dumps(result,ensure_ascii=False))
