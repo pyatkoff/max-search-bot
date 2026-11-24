@@ -1,0 +1,232 @@
+{
+  "source": {
+    "install": "e56ae1d83b643afeca7d890030198e0bcdb71083",
+    "feed_offers": 1055,
+    "configured_main_channel_offers": 43,
+    "configured_small_channel_offers": 1012
+  },
+  "verified_at_utc": "2026-11-24T11:41:11.702Z",
+  "cache_ttl_seconds": 0,
+  "verified_live": 43,
+  "new_current_batch": 12,
+  "other_verified": 31,
+  "current_batch_source": "https://github.com/pyatkoff/max-search-bot/blob/399f6b104cb9d07dbe880ae7a82a4abcc707b873/docs/evidence/hotel-transfer/45381779393/final-public-get-after-free.json",
+  "scope": "Resolver destinations only. Date, body, photo and hotel-button acceptance of all 43 posts was not asserted by these GETs.",
+  "accepted": [
+    {
+      "offer_id": "tg_12111",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_12111",
+      "observed": "https://t.me/anytour/23"
+    },
+    {
+      "offer_id": "tg_64895",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_64895",
+      "observed": "https://t.me/anytour/993"
+    },
+    {
+      "offer_id": "tg_358",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_358",
+      "observed": "https://t.me/anytour/328"
+    },
+    {
+      "offer_id": "tg_37668",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_37668",
+      "observed": "https://t.me/anytour/402"
+    },
+    {
+      "offer_id": "tg_174",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_174",
+      "observed": "https://t.me/anytour/1792"
+    },
+    {
+      "offer_id": "tg_57028",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_57028",
+      "observed": "https://t.me/anytour/626"
+    },
+    {
+      "offer_id": "tg_132",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_132",
+      "observed": "https://t.me/anytour/17"
+    },
+    {
+      "offer_id": "tg_293",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_293",
+      "observed": "https://t.me/anytour/249"
+    },
+    {
+      "offer_id": "tg_393",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_393",
+      "observed": "https://t.me/anytour/1083"
+    },
+    {
+      "offer_id": "tg_260",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_260",
+      "observed": "https://t.me/anytour/192"
+    },
+    {
+      "offer_id": "tg_469",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_469",
+      "observed": "https://t.me/anytour/19"
+    },
+    {
+      "offer_id": "tg_408",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_408",
+      "observed": "https://t.me/anytour/997"
+    },
+    {
+      "offer_id": "tg_74503",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_74503",
+      "observed": "https://t.me/anytour/474"
+    },
+    {
+      "offer_id": "tg_24909",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_24909",
+      "observed": "https://t.me/anytour/372"
+    },
+    {
+      "offer_id": "tg_73974",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_73974",
+      "observed": "https://t.me/anytour/455"
+    },
+    {
+      "offer_id": "tg_3452",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_3452",
+      "observed": "https://t.me/anytour/1148"
+    },
+    {
+      "offer_id": "tg_65877",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_65877",
+      "observed": "https://t.me/anytour/646"
+    },
+    {
+      "offer_id": "tg_82606",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_82606",
+      "observed": "https://t.me/anytour/48"
+    },
+    {
+      "offer_id": "tg_1972",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_1972",
+      "observed": "https://t.me/anytour/316"
+    },
+    {
+      "offer_id": "tg_1344",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_1344",
+      "observed": "https://t.me/anytour/82"
+    },
+    {
+      "offer_id": "tg_17595",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_17595",
+      "observed": "https://t.me/anytour/862"
+    },
+    {
+      "offer_id": "tg_415",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_415",
+      "observed": "https://t.me/anytour/1754"
+    },
+    {
+      "offer_id": "tg_70048",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_70048",
+      "observed": "https://t.me/anytour/37"
+    },
+    {
+      "offer_id": "tg_15693",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_15693",
+      "observed": "https://t.me/anytour/224"
+    },
+    {
+      "offer_id": "tg_1260",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_1260",
+      "observed": "https://t.me/anytour/288"
+    },
+    {
+      "offer_id": "tg_4181",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_4181",
+      "observed": "https://t.me/anytour/204"
+    },
+    {
+      "offer_id": "tg_12107",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_12107",
+      "observed": "https://t.me/anytour/809"
+    },
+    {
+      "offer_id": "tg_99713",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_99713",
+      "observed": "https://t.me/anytour/483"
+    },
+    {
+      "offer_id": "tg_43676",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_43676",
+      "observed": "https://t.me/anytour/414"
+    },
+    {
+      "offer_id": "tg_2493",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_2493",
+      "observed": "https://t.me/anytour/196"
+    },
+    {
+      "offer_id": "tg_2588",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_2588",
+      "observed": "https://t.me/anytour/346"
+    },
+    {
+      "offer_id": "tg_77914",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_77914",
+      "observed": "https://t.me/anytour/924"
+    },
+    {
+      "offer_id": "tg_435",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_435",
+      "observed": "https://t.me/anytour/906"
+    },
+    {
+      "offer_id": "tg_56092",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_56092",
+      "observed": "https://t.me/anytour/915"
+    },
+    {
+      "offer_id": "tg_139",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_139",
+      "observed": "https://t.me/anytour/905"
+    },
+    {
+      "offer_id": "tg_513",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_513",
+      "observed": "https://t.me/anytour/908"
+    },
+    {
+      "offer_id": "tg_47025",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_47025",
+      "observed": "https://t.me/anytour/901"
+    },
+    {
+      "offer_id": "tg_106",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_106",
+      "observed": "https://t.me/anytour/928"
+    },
+    {
+      "offer_id": "tg_466",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_466",
+      "observed": "https://t.me/anytour/925"
+    },
+    {
+      "offer_id": "tg_59114",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_59114",
+      "observed": "https://t.me/anytour/917"
+    },
+    {
+      "offer_id": "tg_2470",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_2470",
+      "observed": "https://t.me/anytour/914"
+    },
+    {
+      "offer_id": "tg_63191",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_63191",
+      "observed": "https://t.me/anytour/918"
+    },
+    {
+      "offer_id": "tg_43689",
+      "public_resolver": "https://app.anytoour.ru/hotel-posts-telegram-main19.php?offer=tg_43689",
+      "observed": "https://t.me/anytour/884"
+    }
+  ]
+}
