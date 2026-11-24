@@ -158,8 +158,7 @@ try{
     // Reopen the current session and recheck live authorization after the private read,
     // including a failed tracker read. Never return results to a changed/revoked actor.
     if($pdo->inTransaction())throw new RuntimeException('auth_snapshot');
-    ManagerHttp::resumeSession();
-    if(ManagerHttp::managerId()!==$actor)
+    if(!session_start(['read_and_close'=>true])||ManagerHttp::managerId()!==$actor)
         ManagerHttp::respond(['ok'=>false,'error'=>'unauthorized'],401);
     $fresh=ManagerHttp::requireManager();
     ManagerHttp::requireAdmin($fresh);
