@@ -82,6 +82,18 @@ function anytourTelegramFeedDestinationPosts(array $source): array
         'tg_24909' => ['https://t.me/any_toour/188', 'https://t.me/anytour/372'],
         'tg_57028' => ['https://t.me/any_toour/76', 'https://t.me/anytour/626'],
         'tg_65877' => ['https://t.me/any_toour/227', 'https://t.me/anytour/646'],
+        'tg_43689' => ['https://t.me/any_toour/878', 'https://t.me/anytour/884'],
+        'tg_47025' => ['https://t.me/any_toour/271', 'https://t.me/anytour/901'],
+        'tg_139' => ['https://t.me/any_toour/140', 'https://t.me/anytour/905'],
+        'tg_435' => ['https://t.me/any_toour/96', 'https://t.me/anytour/906'],
+        'tg_513' => ['https://t.me/any_toour/217', 'https://t.me/anytour/908'],
+        'tg_2470' => ['https://t.me/any_toour/658', 'https://t.me/anytour/914'],
+        'tg_56092' => ['https://t.me/any_toour/99', 'https://t.me/anytour/915'],
+        'tg_59114' => ['https://t.me/any_toour/619', 'https://t.me/anytour/917'],
+        'tg_63191' => ['https://t.me/any_toour/674', 'https://t.me/anytour/918'],
+        'tg_77914' => ['https://t.me/any_toour/45', 'https://t.me/anytour/924'],
+        'tg_106' => ['https://t.me/any_toour/468', 'https://t.me/anytour/928'],
+        'tg_466' => ['https://t.me/any_toour/473', 'https://t.me/anytour/925'],
     ];
     $landing = $source;
     foreach ($source as $id => $url) {
