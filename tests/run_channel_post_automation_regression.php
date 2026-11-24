@@ -1555,6 +1555,50 @@ try {
         if ($change==='link') unlink($fixture);
     }
 } finally { rmdir($existingDir); }
+// Synthetic closed predecessor on real files; never a live provider receipt.
+$resumeDir=sys_get_temp_dir().'/ranked-cross-run-'.bin2hex(random_bytes(10));mkdir($resumeDir,0700);
+try {
+    foreach (['unknown','success','changed_run','changed_app','partial','active','failed_readback','missing_version'] as $case) {
+        $events=$evidence;
+        if (in_array($case,['success','failed_readback','missing_version'],true)) {
+            $events[4]['response']=['http'=>200,'transport_error'=>false,'data'=>['ok'=>true,'result'=>['message_id'=>(int)$rankedRow['target_message_id']]]];
+            $events[5]=array_replace($lostResult,['state'=>'native_and_registry_verified','ok'=>true,'publication_id'=>40,'version_id'=>41,
+                'hotel_id_verified'=>true,'original_message_id_and_date_preserved'=>true,'photo_caption_button_verified'=>true]);
+        }
+        if($case==='missing_version')unset($events[5]['version_id']);
+        if($case==='partial')array_pop($events);
+        $path=$resumeDir.'/receipt.jsonl';$h=fopen($path,'x+b');
+        foreach($events as $event)AnyTour\ExistingPostBatch\transferJournal($h,$event);
+        if($case==='active')flock($h,LOCK_EX|LOCK_NB);else fclose($h);
+        $origin=['native_run_id'=>$case==='changed_run'?'999999':$runContext['native_run_id'],
+            'application_sha'=>$case==='changed_app'?str_repeat('b',40):$runContext['application_sha']];
+        $reads=0;$before=hash_file('sha256',$path);
+        try {
+            $prior=AnyTour\ExistingPostBatch\transferResumePrior($resumeDir,$rankedRow,$rankedDigest,$origin,
+                static function(array $original)use(&$reads,$case):void{++$reads;if($original['prior_publication_id']!==40||$original['prior_version_id']!==41)throw new RuntimeException('original_identity_changed');if($case==='failed_readback')throw new RuntimeException('transfer_resume_route_unconfirmed');});
+            $observed=[$prior['reason'],$prior['prior_terminal_state'],$prior['prior_public_readback_verified'],$reads];
+        }catch(Throwable $e){$observed=$e->getMessage();}
+        $expected=in_array($case,['success','failed_readback'],true)
+            ?['transfer_previous_run_journal_requires_readback','native_and_registry_verified',$case==='success',1]
+            :($case==='unknown'?['transfer_previous_run_journal_requires_readback','response_saved_completion_requires_readback',false,0]
+            :($case==='missing_version'?'transfer_resume_prior_identity_invalid':'transfer_previous_operation_do_not_replay'));
+        channelPostCheck('cross-run exact closed predecessor: '.$case,$observed,$expected);
+        channelPostCheck('cross-run original journal unchanged: '.$case,hash_file('sha256',$path),$before);
+        if($case==='active')fclose($h);unlink($path);
+    }
+}finally{rmdir($resumeDir);}
+
+// An explicit zero-write continuation cannot select another plan or reuse the old execution identity.
+foreach ([['wrong_plan',str_repeat('d',64),'999999',str_repeat('b',40),false],
+    ['old_run','c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab','45349080956',str_repeat('b',40),false],
+    ['old_application','c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab','999999','8d723f1c08f094fd845c7c34da29607fc294ff46',false],
+    ['ranked_resume','c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab','999999',str_repeat('b',40),true]] as [$case,$digest,$run,$app,$ranked]) {
+    $reason=null;
+    try { AnyTour\ExistingPostBatch\applyTransferPlan(__DIR__,$digest,$app,$run,$digest,false,$ranked,false,true); }
+    catch (RuntimeException $e) { $reason=$e->getMessage(); }
+    channelPostCheck('zero-write continuation rejects before runtime: '.$case,$reason,'transfer_closed_prewrite_scope_invalid');
+}
+
 channelPostCheck('ranked continuation selects exactly 37 untouched original rows',
     [$rankedTail['operation'], count($rankedTail['rows']), $rankedTail['rows'],
         array_intersect(['224','249','266'], array_column($rankedTail['rows'], 'target_message_id'))],
@@ -1681,6 +1725,7 @@ $transferScenario = static function(string $case) use ($transferFixtureRoot,&$tr
         'prepare'=>static function(array $received) use ($case,$state,$hotelMediaBody,$evidence): array {
             $state->calls[]='prepare';$state->reservation_arguments[]=$received;
             if ($case==='source_advanced_after_reservation') throw new RuntimeException('transfer_source_revision_advanced');
+            if ($case==='public_identity_after_reservation') throw new RuntimeException('public_identity_changed');
             $body=$hotelMediaBody;
             if ($case==='invalid_payload') $body['media']['type']='video';
             if ($case==='invalid_prepared') return ['body'=>$body];
@@ -1725,7 +1770,7 @@ $transferScenario = static function(string $case) use ($transferFixtureRoot,&$tr
     ];
     // A context is optional and must not be necessary for a successful control flow.
     if ($case==='complete_busy') unset($effects['context']);
-    if ($case==='source_advanced_after_reservation') $effects['context']['continuation_of_ranked_run_id']=AnyTour\ExistingPostBatch\RANKED_ORIGINAL_RUN;
+    if (in_array($case,['source_advanced_after_reservation','public_identity_after_reservation'],true)) $effects['context']['continuation_of_ranked_run_id']=AnyTour\ExistingPostBatch\RANKED_ORIGINAL_RUN;
     $result=AnyTour\ExistingPostBatch\transferExecuteRow($row,$digest,$effects,$operations);
     $events=$transferReceiptRead($receipt);
     $beforeReplay=clone $state;$beforeHash=hash_file('sha256',$receipt);
@@ -1734,6 +1779,7 @@ $transferScenario = static function(string $case) use ($transferFixtureRoot,&$tr
 };
 $transferExpected=[
     'success'=>[true,'native_and_registry_verified',null,1,1],
+    'public_identity_after_reservation'=>[false,'held_before_provider','public_identity_changed',0,0],
     'source_advanced_after_reservation'=>[false,'held_before_provider','transfer_source_revision_advanced',0,0],
     'prewrite_cas'=>[false,'held_before_provider','hotel_transfer_source_changed',0,0],
     'invalid_payload'=>[false,'held_before_provider','transfer_media_payload_invalid',0,0],
@@ -1753,6 +1799,8 @@ $transferExpected=[
 try {
     foreach ($transferExpected as $case=>$expected) {
         $flow=$transferScenario($case);$state=$flow['state'];$result=$flow['result'];
+        if ($case==='public_identity_after_reservation') channelPostCheck('public identity pre-write refusal keeps reservation and zero attempts',
+            [$result['local_prewrite_hold_recorded']??false,$result['reserved_publication_id'],$state->requests],[true,901,0]);
         if ($case==='source_advanced_after_reservation') {
             channelPostCheck('durable late source change holds its reservation with zero provider attempts',
                 [$result['source_revision_hold_recorded'] ?? false,$result['reserved_publication_id'],$result['provider_write_attempts']],

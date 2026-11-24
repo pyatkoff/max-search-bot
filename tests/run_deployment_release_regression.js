@@ -2640,12 +2640,44 @@ async function publisherBodyFixtureCases(){
   return assertions-startAssertions;
 }
 
-async function main(){hotelRegistryReadWorkflow();await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
+async function closedPrewriteOriginCases(){
+  function fixture(){
+    const source={id:45349080956,run_attempt:1,path:'.github/workflows/edit-1566-next-historical-telegram.yml',head_sha:'8d723f1c08f094fd845c7c34da29607fc294ff46',head_branch:'ops/anytour-hotel-stella-alternate-apply-20261123',head_repository:{full_name:'pyatkoff/max-search-bot'},event:'push',created_at:'2026-11-24T07:34:40Z',status:'completed',conclusion:'failure',actor:{id:226193297},triggering_actor:{id:226193297}};
+    const own={id:138290722061,run_id:source.id,head_sha:source.head_sha,run_attempt:1,name:'transfer',status:'completed',conclusion:'failure',steps:[{name:'Apply the installed editor once and retain its original receipts',status:'completed',conclusion:'failure'},{name:'Save the original sanitized transfer result',status:'completed',conclusion:'success'}]};
+    const original={id:14898229789,digest:'sha256:9245b40e6ebd9a0ff0f4e3f37870d2d410b9d5b5805bd648138e1421676f6259',name:'issue-1566-hotel-next-transfer',workflow_run:{id:source.id,head_sha:source.head_sha,head_branch:source.head_branch},expired:false,size_in_bytes:634};
+    const read={...copy(source),id:45349424365,path:'.github/workflows/read-1566-stella-alternate-candidates.yml',head_sha:'162e2653e5617ff28f48a9168ccc62ac34a55006',head_branch:'audit/1566-next-release-admission-1664',conclusion:'success'};
+    const readJob={id:138291848487,run_id:read.id,head_sha:read.head_sha,run_attempt:1,name:'read',status:'completed',conclusion:'success',steps:[{name:'Read existing archive posts, registry, and current ads',status:'completed',conclusion:'success'}]};
+    const proof={id:14898804239,digest:'sha256:9b071432b9713f8ca46a4820ae2f8ed719f9a39d1cf20206b68e30ba7deda4a9',name:'stella925-original-readback',workflow_run:{id:read.id,head_sha:read.head_sha,head_branch:read.head_branch},expired:false,size_in_bytes:738};
+    let reads=0;const api=async(method,p)=>{assert.equal(method,'GET');reads++;for(const r of [source,read])if(p.endsWith('/actions/runs/'+r.id))return copy(r);for(const j of [own,readJob])if(p.includes('/actions/runs/'+j.run_id+'/attempts/1/jobs?'))return {total_count:1,jobs:[copy(j)]};for(const a of [original,proof])if(p.endsWith('/actions/artifacts/'+a.id))return copy(a);throw Error('unlisted_request');};
+    return {source,own,original,read,readJob,proof,api,reads:()=>reads};
+  }
+  const good=fixture();await R.proveClosedPrewriteOriginal(good.api);equal(good.reads(),6,'zero-write admission authenticates both the failed operation and its exact independent read');
+  for(const mutate of [x=>x.source.status='in_progress',x=>x.original.digest='sha256:'+'0'.repeat(64),x=>x.original.size_in_bytes++,x=>x.read.conclusion='failure',x=>x.read.head_sha='a'.repeat(40),x=>x.read.triggering_actor.id++,x=>x.readJob.steps=[],x=>x.proof.workflow_run.id++,x=>x.proof.expired=true,x=>x.proof.digest='sha256:'+'0'.repeat(64)]){
+    const x=fixture();mutate(x);await assert.rejects(()=>R.proveClosedPrewriteOriginal(x.api));assertions++;
+  }
+}
+
+async function rankedResumeOriginCases(){
+  const run=45321557294,job=138201073452,artifact=14887229025;
+  function fixture(){
+    const source={id:run,run_attempt:1,path:'.github/workflows/edit-1566-ranked-46-historical-telegram.yml',head_sha:'fdcbf29f831b68005295dfa398ecb5878d94e6c7',head_branch:'ops/anytour-hotel-ranked-37-continue-20261123',head_repository:{full_name:'pyatkoff/max-search-bot'},event:'push',created_at:'2026-11-24T03:43:00Z',status:'completed',conclusion:'failure',actor:{id:226193297},triggering_actor:{id:226193297}};
+    const own={id:job,run_id:run,head_sha:source.head_sha,run_attempt:1,name:'transfer',status:'completed',conclusion:'failure',steps:[{name:'Apply the installed editor once and retain its original receipts',status:'completed',conclusion:'failure'},{name:'Save the original sanitized transfer result',status:'completed',conclusion:'success'}]};
+    const proof={id:artifact,digest:'sha256:14741cf575a1999287fbd8c2b73ceb9a8c2146edeb3ad8a345d173bf8bd34b81',name:'issue-1566-hotel-ranked-46-transfer',workflow_run:{id:run,head_sha:source.head_sha,head_branch:source.head_branch},expired:false,size_in_bytes:4063};
+    let reads=0;const api=async(method,p)=>{assert.equal(method,'GET');reads++;if(p.endsWith('/actions/runs/'+run))return copy(source);if(p.includes('/actions/runs/'+run+'/attempts/1/jobs?'))return {total_count:1,jobs:[copy(own)]};if(p.endsWith('/actions/artifacts/'+artifact))return copy(proof);throw Error('unlisted_request');};
+    return {source,own,proof,api,reads:()=>reads};
+  }
+  const good=fixture();await R.proveRankedResumeOriginal(good.api);equal(good.reads(),3,'closed original and exact artifact require only authenticated reads');
+  for(const mutate of [x=>x.source.status='in_progress',x=>x.source.head_sha='a'.repeat(40),x=>x.source.triggering_actor.id++,x=>x.own.run_attempt=2,x=>x.own.steps.pop(),x=>x.proof.digest='sha256:'+'0'.repeat(64),x=>x.proof.expired=true,x=>x.proof.size_in_bytes++,x=>x.proof.workflow_run.id++]){
+    const x=fixture();mutate(x);await assert.rejects(()=>R.proveRankedResumeOriginal(x.api));assertions++;
+  }
+}
+
+async function main(){await closedPrewriteOriginCases();await rankedResumeOriginCases();hotelRegistryReadWorkflow();await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_partial_install_1662_forward_regression.js')],{stdio:'inherit'});
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_exhausted_verify_1664_forward_regression.js')],{stdio:'inherit'});
   execFileSync('python3',[path.join(__dirname,'run_partial_install_1662_forward_sync.py')],{stdio:'inherit'});
   process.stdout.write('Deployment release regression: '+assertions+' assertions passed\n');}
-module.exports={main,fixture,receipt,observation,installed,installNoopJobs,storedZip,terminalContinuationCases,publisherBodyRecoveryCases,max2HoldPairReadConsumer};
+module.exports={closedPrewriteOriginCases,rankedResumeOriginCases,main,fixture,receipt,observation,installed,installNoopJobs,storedZip,terminalContinuationCases,publisherBodyRecoveryCases,max2HoldPairReadConsumer};
 if(require.main===module)main().catch(e=>{process.stderr.write(String(e.stack||e)+'\n');process.exitCode=1;});
 
 
