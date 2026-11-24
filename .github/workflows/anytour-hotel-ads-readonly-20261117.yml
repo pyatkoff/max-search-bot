@@ -19,7 +19,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'de45cb307606e9cca9fbe45f1da2e6d32fe36a6f' &&
+      github.event.before == 'da473d4db42942ac50ec88828e9afc1e0a4b8be5' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 18
@@ -44,21 +44,25 @@ jobs:
             const api = R.makeReadApi(process.env.GITHUB_TOKEN)
             const current = async () => (await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha
             if (await current() !== expected) throw Error('changed_release')
-            const stoppedPath = R.API_ROOT+'/actions/runs/45501071378'
-            const [stopped, stoppedJobs, stoppedArtifacts] = await Promise.all([
-              api('GET', stoppedPath),
-              api('GET', stoppedPath+'/attempts/1/jobs?per_page=30'),
-              api('GET', stoppedPath+'/artifacts?per_page=30'),
+            async function proveStopped(runId, head, jobId) {
+              const path = R.API_ROOT+'/actions/runs/'+runId
+              const [stopped, jobs, artifacts] = await Promise.all([
+                api('GET', path), api('GET', path+'/attempts/1/jobs?per_page=30'), api('GET', path+'/artifacts?per_page=30'),
+              ])
+              const job = jobs.jobs[0]
+              const outcomes = new Map(job.steps.map(step => [step.name, step.conclusion]))
+              if (stopped.repository.id !== 1342493152 || stopped.head_sha !== head || stopped.run_attempt !== 1 ||
+                  stopped.status !== 'completed' || stopped.conclusion !== 'failure' || jobs.jobs.length !== 1 ||
+                  job.id !== jobId || job.conclusion !== 'failure' ||
+                  outcomes.get('Verify current main and accepted application without mutations') !== 'failure' ||
+                  outcomes.get('Pin established SSH host continuity and authentication identity') !== 'skipped' ||
+                  outcomes.get('Read the five MAX sources and destinations') !== 'skipped' ||
+                  artifacts.total_count !== 0) throw Error('previous_read_outcome_unknown')
+            }
+            await Promise.all([
+              proveStopped(45501071378, 'de45cb307606e9cca9fbe45f1da2e6d32fe36a6f', 138824190740),
+              proveStopped(45503905516, 'da473d4db42942ac50ec88828e9afc1e0a4b8be5', 138833998000),
             ])
-            const stoppedJob = stoppedJobs.jobs[0]
-            const steps = new Map(stoppedJob.steps.map(step => [step.name, step.conclusion]))
-            if (stopped.repository.id !== 1342493152 || stopped.head_sha !== 'de45cb307606e9cca9fbe45f1da2e6d32fe36a6f' ||
-                stopped.run_attempt !== 1 || stopped.conclusion !== 'failure' ||
-                stoppedJobs.jobs.length !== 1 || stoppedJob.id !== 138824190740 ||
-                steps.get('Verify current main and accepted application without mutations') !== 'failure' ||
-                steps.get('Pin established SSH host continuity and authentication identity') !== 'skipped' ||
-                steps.get('Read the five MAX sources and destinations') !== 'skipped' ||
-                stoppedArtifacts.total_count !== 0) throw Error('previous_read_outcome_unknown')
             const prior = R.API_ROOT+'/actions/runs/45373389110'
             const archive = await api('GET',prior)
             const receipts = await api('GET',prior+'/artifacts?per_page=30')
@@ -90,7 +94,7 @@ jobs:
                   console.log('MAX_FIVE_RANKED_RELEASE_ACCEPTED='+expected)
                   return
                 } catch (error) {
-                  if (error.code !== 'release_pending' && error.message !== 'accepted_release_mismatch') throw error
+                  if (!['release_pending','diagnostics_unconfirmed','accepted_release_mismatch'].includes(error.code || error.message)) throw error
                 }
               }
               if (attempt < 43) await pause(15000)
