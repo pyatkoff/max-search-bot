@@ -61,7 +61,8 @@ final class ManagerAssistantService
 
     private static function operationalRows(int $actor,?int $id=null,bool $ownOnly=false): array
     {
-        $reply=ManagerConversationService::awaitingManagerReplySql('c');
+        $pdo=ConversationDb::connection();
+        $reply=ManagerConversationService::awaitingManagerReplySql('c',$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql');
         $suspended=ManagerDeliveryStateService::activeSuspensionSql('c');
         $manager=ManagerAuthService::byId($actor);
         if($manager===null)return [];
@@ -77,7 +78,7 @@ final class ManagerAssistantService
         }
         if($ownOnly&&$owner){$sql.=" AND c.manager_id=? AND c.status='manager'";$args[]=$actor;}
         if($id!==null){$sql.=' AND c.id=?';$args[]=$id;}
-        $q=ConversationDb::connection()->prepare($sql.' ORDER BY awaiting_manager_reply DESC,CASE WHEN '.$due.' IS NULL THEN 1 ELSE 0 END,c.id DESC');
+        $q=$pdo->prepare($sql.' ORDER BY awaiting_manager_reply DESC,CASE WHEN '.$due.' IS NULL THEN 1 ELSE 0 END,c.id DESC');
         $q->execute($args);return $q->fetchAll(PDO::FETCH_ASSOC);
     }
 

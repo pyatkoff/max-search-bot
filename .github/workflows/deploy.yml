@@ -210,6 +210,10 @@ jobs:
             test "$PREVIOUS_MAIN_SHA" = b3386d558f72e9eb80acefad9e87b1ab91b4426f
             test "$EXPECTED_CHECKOUT_SHA" = "$PREVIOUS_MAIN_SHA"
             ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = b3386d558f72e9eb80acefad9e87b1ab91b4426f; php tools/search_destination_smoke.php --http'
+          elif [[ "$PREVIOUS_MAIN_SHA" == cdde6f427f61bace3a5afbd943d2303f463d6531 || "$EXPECTED_CHECKOUT_SHA" == e3e1a9bdf29dd0d7530fe6b3b393f1286834d092 ]]; then
+            # PR1692 advanced main before installation began; production still runs PR1685.
+            test "$PREVIOUS_MAIN_SHA" = cdde6f427f61bace3a5afbd943d2303f463d6531
+            test "$EXPECTED_CHECKOUT_SHA" = e3e1a9bdf29dd0d7530fe6b3b393f1286834d092
           elif [[ "$PREVIOUS_MAIN_SHA" == 302ba66b5739e369a4df94471c8cfe9c054dd070 || -n "$EXPECTED_CHECKOUT_SHA" ]]; then
             test "$PREVIOUS_MAIN_SHA" = 302ba66b5739e369a4df94471c8cfe9c054dd070
             test "$EXPECTED_CHECKOUT_SHA" = "$PREVIOUS_MAIN_SHA"
@@ -226,6 +230,14 @@ jobs:
             exit 1
           fi
           PR1664_CHECKOUT
+            elif [[ "$EXPECTED_CHECKOUT_SHA" == e3e1a9bdf29dd0d7530fe6b3b393f1286834d092 ]]; then
+              cat <<'PR1692_CHECKOUT'
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          if [[ "$(git rev-parse HEAD)" != e3e1a9bdf29dd0d7530fe6b3b393f1286834d092 ]]; then
+            echo 'PR1692 predecessor checkout changed' >&2
+            exit 1
+          fi
+          PR1692_CHECKOUT
             elif [[ -n "$EXPECTED_CHECKOUT_SHA" ]]; then
               cat <<'PR1662_CHECKOUT'
           cd /var/www/anytoour/data/www/app.anytoour.ru

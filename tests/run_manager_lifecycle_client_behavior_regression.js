@@ -7,12 +7,67 @@ const action=(h,name='Закрыть обращение')=>h.ids.get('conversati
 const notice=h=>h.ids.get('conversationLifecycleStatus')?.children[0]?.textContent||'';
 const check=h=>h.ids.get('conversationLifecycleStatus').querySelector('button').onclick();
 async function owned(){const h=createHarness();await h.start();await h.draft('Unsent lifecycle draft');const file={name:'never-sent.txt'};h.setFile(file);return{h,file}}
-for(const [error,copy] of [['unavailable','недоступен'],['closed','уже закрыт'],['owned_elsewhere','другому менеджеру'],['not_owned','не назначен вам'],['state_changed','Состояние диалога изменилось'],['not_working','не на смене'],['csrf','проверкой безопасности']])test('confirmed '+error+' explains refusal without guessing state or sending',async()=>{
+for(const [error,copy] of [['unavailable','недоступен'],['closed','уже закрыт'],['owned_elsewhere','другому менеджеру'],['not_owned','не назначен вам'],['state_changed','Состояние диалога изменилось'],['not_working','не на смене']])test('confirmed '+error+' explains refusal without guessing state or sending',async()=>{
   const{h,file}=await owned(),previous=h.W.S.detail,reads=h.calls.filter(r=>r.action==='detail').length;
-  h.setHook((url,r)=>r.action==='close'?response({ok:false,error,error_message:'Not a reason parser'},error==='csrf'?403:error==='not_working'?409:200):null);
+  h.setHook((url,r)=>r.action==='close'?response({ok:false,error,error_message:'Not a reason parser'},error==='not_working'?409:200):null);
   await action(h);assert.match(notice(h),new RegExp(copy));assert.equal(h.W.S.detail,previous);assert.equal(h.W.S.detail.conversation.status,'manager');
   assert.equal(h.ids.get('replyText').value,'Unsent lifecycle draft');assert.equal(h.getFile(),file);assert.equal(h.ids.get('replyText').disabled,false);assert.equal(h.ids.get('sendReply').disabled,true);
   await action(h);await h.C.sendReply();assert.equal(mutations(h).length,1);assert.equal(h.calls.filter(r=>r.action==='detail').length,reads);assert.equal(h.calls.some(r=>r.action==='lifecycle_state'),false);
+});
+for(const outcome of ['owner','other account','revoked access'])test('rejected close checks the session without replaying the action: '+outcome,async()=>{
+  const {h,file}=await owned(),identity=deferred(),detail=deferred();
+  const callsBefore=h.calls.length;
+  h.setHook((url,r)=>{
+    if(r.action==='close')return response({ok:false,error:'csrf'},403);
+    if(url==='api.php'&&r.action==='me')return identity.promise;
+    if(url==='api.php'&&r.action==='detail')return detail.promise;
+    return null;
+  });
+  await action(h);
+  const overlay=h.ids.get('managerAuthRecovery');
+  assert.equal(overlay.classList.contains('hidden'),false);
+  assert.equal(h.ids.get('managerAuthTitle').textContent,'Проверка сеанса');
+  assert.equal(hidden(h),true);
+  assert.equal(h.C.hasReadAccess(),false);
+  const requests=()=>h.calls.slice(callsBefore);
+  assert.equal(requests().filter(r=>r.action==='me').length,1);
+  assert.equal(requests().some(r=>r.action==='detail'),false);
+
+  const manager=outcome==='other account'?{...h.identity.manager,id:8}:h.identity.manager;
+  identity.resolve(response({...h.identity,manager,csrf:'fresh-owner-token'}));
+  await flush();
+  if(outcome==='other account'){
+    assert.equal(overlay.classList.contains('hidden'),false);
+    assert.equal(h.ids.get('managerAuthForm').classList.contains('hidden'),false);
+    assert.match(h.ids.get('managerAuthMessage').textContent,/Аккаунт.*изменился/);
+    assert.equal(requests().some(r=>r.action==='detail'),false);
+    assert.equal(h.W.S.manager.id,7);
+    await h.C.sendReply();
+  }else{
+    const reads=requests().filter(r=>r.url==='api.php'&&r.action==='detail');
+    assert.deepEqual(reads.map(r=>[r.conversation_id,r.csrf]),[[101,'fresh-owner-token']]);
+    assert.equal(hidden(h),true);
+    assert.equal(h.ids.get('sendReply').disabled,true);
+    await h.C.sendReply();
+    detail.resolve(outcome==='owner'
+      ?response({ok:true,conversation:h.conversation,messages:[]})
+      :response({ok:false,error:'not_found'},404));
+    await flush();
+    assert.equal(overlay.classList.contains('hidden'),true);
+  }
+  assert.equal(h.C.hasReadAccess(),outcome==='owner');
+  assert.equal(hidden(h),outcome!=='owner');
+  if(outcome==='owner'){
+    assert.equal(h.W.S.detail.conversation.status,'manager');
+    assert.equal(h.ids.get('replyText').value,'Unsent lifecycle draft');
+    assert.equal(h.getFile(),file);
+  }else if(outcome==='revoked access'){
+    assert.equal(h.C.getSavedSelection(),0);
+    assert.equal(h.ids.get('replyText').value,'');
+    assert.equal(h.getFile(),null);
+  }
+  assert.equal(requests().some(r=>r.action==='lifecycle_state'),false);
+  assert.deepEqual(mutations(h).map(r=>r.action),['close']);
 });
 for(const kind of ['network','legacy','malformed','server','bad-success'])test('uncertain '+kind+' stays UNKNOWN and never auto-replays',async()=>{
   const{h,file}=await owned();h.setHook((url,r)=>{if(r.action!=='close')return null;if(kind==='network')throw new Error('synthetic connection lost');return response(kind==='legacy'?{ok:false}:kind==='malformed'?null:kind==='server'?{ok:false,error:'closed'}:{ok:'true'},kind==='server'?500:200)});

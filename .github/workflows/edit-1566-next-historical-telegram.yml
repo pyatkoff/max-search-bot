@@ -5,6 +5,7 @@ on:
       - ops/anytour-hotel-next-apply-20261123
       - ops/anytour-hotel-remaining-apply-20261123
       - ops/anytour-hotel-stella-alternate-apply-20261123
+      - ops/anytour-hotel-prewrite-resume-20261124
 permissions:
   contents: read
   actions: read
@@ -58,6 +59,11 @@ jobs:
               ;;
             refs/heads/ops/anytour-hotel-stella-alternate-apply-20261123)
               test "$WRITE_OPERATION" = hotel_stella_alternate_transfer
+              scope=ranked
+              digest=c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab
+              ;;
+            refs/heads/ops/anytour-hotel-prewrite-resume-20261124)
+              test "$WRITE_OPERATION" = hotel_prewrite_resume
               scope=ranked
               digest=c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab
               ;;
@@ -122,12 +128,16 @@ jobs:
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           remote='set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru'
           [[ "$TRANSFER_DIGEST" =~ ^[a-f0-9]{64}$ ]]
+          apply="--apply-$TRANSFER_SCOPE-transfer"
+          if [[ "$GITHUB_REF" == refs/heads/ops/anytour-hotel-prewrite-resume-20261124 ]]; then
+            apply=--apply-closed-prewrite-resume
+          fi
           case "$TRANSFER_SCOPE" in
             next|remaining|ranked) ;;
             *) exit 1 ;;
           esac
           set +e
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" "$remote; php tools/anytour_existing_post_batch.php --apply-$TRANSFER_SCOPE-transfer $TRANSFER_DIGEST $APPLICATION_SHA $GITHUB_RUN_ID" > pub/result.json
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" "$remote; php tools/anytour_existing_post_batch.php $apply $TRANSFER_DIGEST $APPLICATION_SHA $GITHUB_RUN_ID" > pub/result.json
           status=$?
           set -e
           python3 - <<'PY'
