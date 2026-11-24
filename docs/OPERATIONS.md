@@ -189,7 +189,7 @@ samples and publishes fixed aggregate fields under `manager.resource_profile`.
 It reads CPU ticks and available-memory percentages on Linux and requests an
 allowlist of global MySQL status variables over the same PDO. The interval
 includes the probes and their instrumentation. The MySQL counters are global
-and the CPU figures cover the visible Linux host. Missing metrics or observed
+and the CPU figures cover the visible Linux host, counting I/O wait as idle. Missing metrics or observed
 counter decreases are null. The InnoDB row-lock time delta is in milliseconds.
 Compare these samples with background-job timestamps. This capture does not
 identify the worker responsible for contention, measure FPM pool saturation or

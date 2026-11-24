@@ -188,6 +188,7 @@ final class ManagerReadProfileResources
     public static function sample(PDO $pdo): array
     {
         $started = hrtime(true);
+        $sampledAt = gmdate('c');
         $status = [];
         try {
             if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
@@ -223,7 +224,7 @@ final class ManagerReadProfileResources
         }
 
         return [
-            'monotonic_ns'=>$started, 'sampled_at_utc'=>gmdate('c'),
+            'monotonic_ns'=>$started, 'sampled_at_utc'=>$sampledAt,
             'mysql_status'=>$status, 'cpu_ticks'=>$cpu, 'memory_available_pct'=>$available,
         ];
     }
@@ -258,6 +259,59 @@ final class ManagerReadProfileResources
             ],
             'mysql'=>['gauges'=>$gauges, 'global_counter_deltas'=>$deltas],
         ];
+    }
+
+    /** Treat the private snapshot's resource object as input to a closed public projection. */
+    public static function publicSummary(array $profile): ?array
+    {
+        if (($profile['scope']??null) !== 'host_and_mysql_global_during_manager_list_probes') return null;
+        $start = self::publicTime($profile['started_at_utc']??null);
+        $end = self::publicTime($profile['ended_at_utc']??null);
+        $elapsed = self::publicNumber($profile['elapsed_ms']??null);
+        if ($start === null || $end === null || $elapsed === null) return null;
+
+        $host = (array)($profile['host']??[]);
+        $memory = (array)($host['memory_available_pct']??[]);
+        $sourceMysql = (array)($profile['mysql']??[]);
+        $sourceGauges = (array)($sourceMysql['gauges']??[]);
+        $sourceDeltas = (array)($sourceMysql['global_counter_deltas']??[]);
+        $gauges = [];
+        foreach (self::GAUGES as $name) {
+            $sample = (array)($sourceGauges[$name]??[]);
+            $gauges[$name] = ['before'=>self::publicCount($sample['before']??null), 'after'=>self::publicCount($sample['after']??null)];
+        }
+        $deltas = [];
+        foreach (self::COUNTERS as $name) {
+            $deltas[$name] = self::publicCount($sourceDeltas[$name]??null);
+        }
+
+        return [
+            'scope'=>'host_and_mysql_global_during_manager_list_probes',
+            'started_at_utc'=>$start, 'ended_at_utc'=>$end, 'elapsed_ms'=>$elapsed,
+            'host'=>[
+                'cpu_non_idle_pct'=>self::publicNumber($host['cpu_non_idle_pct']??null, 100),
+                'memory_available_pct'=>[
+                    'before'=>self::publicNumber($memory['before']??null, 100),
+                    'after'=>self::publicNumber($memory['after']??null, 100),
+                ],
+            ],
+            'mysql'=>['gauges'=>$gauges, 'global_counter_deltas'=>$deltas],
+        ];
+    }
+
+    private static function publicTime(mixed $value): ?string
+    {
+        return is_string($value) && preg_match('/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+00:00\z/', $value) === 1 ? $value : null;
+    }
+
+    private static function publicNumber(mixed $value, float $max = PHP_FLOAT_MAX): int|float|null
+    {
+        return (is_int($value) || is_float($value)) && $value >= 0 && $value <= $max ? $value : null;
+    }
+
+    private static function publicCount(mixed $value): ?int
+    {
+        return is_int($value) && $value >= 0 ? $value : null;
     }
 
     private static function increase(?int $before, ?int $after): ?int

@@ -230,6 +230,14 @@ function readProfileResourceWindow(PDO $pdo, string $driver): void
     $statement->closeCursor();
     $second = ManagerReadProfileResources::sample($pdo);
     $window = ManagerReadProfileResources::summarize($first, $second);
+    if (PHP_OS_FAMILY === 'Linux' && is_readable('/proc/stat')) {
+        readProfileCheck($driver . ': actual Linux aggregate CPU ticks can be read', is_int($first['cpu_ticks']['total']??null) && ($first['cpu_ticks']['total']??0) > 0 && ($first['cpu_ticks']['idle']??-1) >= 0);
+    }
+    $meminfo = PHP_OS_FAMILY === 'Linux' ? (string)@file_get_contents('/proc/meminfo', false, null, 0, 4096) : '';
+    if (str_contains($meminfo, 'MemAvailable:')) {
+        $memory = $window['host']['memory_available_pct'];
+        readProfileCheck($driver . ': available memory is parsed from real Linux counters', is_float($memory['before']) && is_float($memory['after']) && $memory['before'] >= 0 && $memory['before'] <= 100 && $memory['after'] >= 0 && $memory['after'] <= 100);
+    }
     $mysql = $window['mysql'];
     $expectedRunning = $driver === 'mysql' ? is_int($mysql['gauges']['threads_running']['before']) : $mysql['gauges']['threads_running']['before'] === null;
     $expectedLocks = $driver === 'mysql' ? is_int($mysql['global_counter_deltas']['innodb_row_lock_waits']) : $mysql['global_counter_deltas']['innodb_row_lock_waits'] === null;
