@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once dirname(__DIR__).'/services/ArchiveResearchReadService.php';
+require_once dirname(__DIR__).'/services/MonthlyReplyQualityReadService.php';
 require_once __DIR__.'/support/archive-predictive-study-store.php';
 
 /** Fixture-only PDO instrumentation; records SQL structure, never bound source values. */
@@ -32,7 +33,7 @@ function archiveResearchReadRegression(PDO $pdo): int
     $pdo->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
     $statementClass=$pdo->getAttribute(PDO::ATTR_STATEMENT_CLASS);
     $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ArchiveResearchTraceStatement::class]);
-    $tables=['telegram_dialogue_messages','telegram_archive_accounts','telegram_dialogue_connections','customer_channels','conversations','projects'];
+    $tables=['telegram_dialogue_messages','telegram_archive_accounts','telegram_dialogue_connections','manager_projects','managers','customer_channels','conversations','projects'];
     $drop=static function()use($pdo,$tables):void{foreach($tables as$t)$pdo->exec('DROP TABLE IF EXISTS '.$t);};
     $drop();$checks=0;
     $check=static function(bool$ok,string$name)use(&$checks):void{if(!$ok)throw new RuntimeException('archive_read_check_failed:'.$name);$checks++;echo "archive read PASS ".$name."\n";};
@@ -49,6 +50,10 @@ function archiveResearchReadRegression(PDO $pdo): int
         $pdo->exec("CREATE TABLE telegram_dialogue_messages(id $integer PRIMARY KEY,project_key VARCHAR(64),account_id $integer,chat_id $integer,message_id $integer,version_at $integer,source_kind VARCHAR(32),is_deleted INTEGER,record_json $text)");
         $pdo->exec("CREATE UNIQUE INDEX uq_telegram_dialogue_message ON telegram_dialogue_messages(project_key,account_id,chat_id,message_id)");
         $pdo->exec("INSERT INTO projects VALUES(1,'anytour',1),(2,'foreign',1)");
+        $pdo->exec("CREATE TABLE managers(id $integer PRIMARY KEY,role VARCHAR(32),is_active INTEGER)");
+        $pdo->exec("CREATE TABLE manager_projects(manager_id $integer,project_id $integer)");
+        $pdo->exec("INSERT INTO managers VALUES(1,'admin',1),(2,'manager',1)");
+        $pdo->exec("INSERT INTO manager_projects VALUES(1,1),(2,1)");
         $pdo->exec("INSERT INTO conversations VALUES(1,'anytour','telegram',1,10)");
         $pdo->exec("INSERT INTO customer_channels VALUES(1,10,'anytour','telegram','999','999')");
         foreach([[100,'ArchiveA','a',1,1,'anytour'],[101,'ArchiveB','b',1,1,'anytour'],[102,'Revoked','c',0,1,'anytour'],[103,'Disconnected','d',1,0,'anytour'],[104,'Foreign','e',1,1,'foreign']]as[$a,$b,$c,$approved,$enabled,$project]){
@@ -310,6 +315,55 @@ function archiveResearchReadRegression(PDO $pdo): int
         $check(($qualityChats['100:201']['period_clock_metadata']['unknown_created_at_records']??0)===1,
             'quality_inventory_reports_unknown_clock_instead_of_silently_dropping_record');
         $check($fingerprint()===$historyFingerprint,'quality_archive_reads_leave_records_permissions_and_markers_unchanged');
+        // Newest stored Business candidates are a separate quality-only metadata traversal.
+        $check(!isset($final['recent_business'])&&is_string($qualityPage['recent_business']['start_cursor']??null),
+            'business_recent_cursor_advertised_only_to_quality_history');
+        $recentStart=$qualityPage['recent_business']['start_cursor'];
+        ArchiveResearchTraceStatement::$queries=[];
+        $recent=$qualityHistory->inventory(1,$connection,['cursor'=>$recentStart,'limit'=>1]);
+        $candidate=$recent['chats'][0]??[];$encoded=explode('.',($candidate['chat_ref']??''))[0];
+        $candidateRef=json_decode((string)base64_decode(strtr($encoded,'-_','+/')),true);
+        $check(($candidateRef['a']??null)==='100'&&($candidateRef['c']??null)==='198'
+            &&($recent['recent_business']['order']??null)==='retained_row_id_desc'&&$recent['has_more']
+            &&($candidate['timestamp_basis']??null)==='provider_declared_not_server_recording'
+            &&array_key_exists('message_records',$candidate)&&$candidate['message_records']===null,
+            'recent_business_candidates_order_by_stored_rows_without_fabricated_counts_or_server_time');
+        $check(!array_filter(ArchiveResearchTraceStatement::$queries,
+                static fn($sql)=>str_contains($sql,'record_json')||!str_starts_with($sql,'SELECT '))
+            &&!str_contains(json_encode($recent,JSON_THROW_ON_ERROR),'BUSINESS ONLY')
+            &&$recent['candidate_rows_examined']===1,'recent_business_inventory_is_metadata_only_and_readonly');
+        $secondRecent=$qualityHistory->inventory(1,$connection,['cursor'=>$recent['next_cursor'],'limit'=>1]);
+        $thirdRecent=$qualityHistory->inventory(1,$connection,['cursor'=>$secondRecent['next_cursor'],'limit'=>1]);
+        $secondPayload=json_decode(base64_decode(strtr(explode('.',$secondRecent['chats'][0]['chat_ref'])[0],'-_','+/')),true);
+        $thirdPayload=json_decode(base64_decode(strtr(explode('.',$thirdRecent['chats'][0]['chat_ref'])[0],'-_','+/')),true);
+        $check(($secondPayload['a']??null)==='100'&&($secondPayload['c']??null)==='200'
+            &&($thirdPayload['a']??null)==='100'&&($thirdPayload['c']??null)==='200'
+            &&!$thirdRecent['has_more']&&$thirdRecent['next_cursor']===null,
+            'recent_business_cursor_moves_strictly_backward_and_chats_may_reappear');
+        $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$recentStart]),'stale_cursor');
+        $forged=$recentStart;$forged[strlen($forged)-1]=$forged[strlen($forged)-1]==='0'?'1':'0';
+        $reject(fn()=>$qualityHistory->inventory(1,$connection,['cursor'=>$forged]),'stale_cursor');
+        $now+=1201;
+        $reject(fn()=>$qualityHistory->inventory(1,$connection,['cursor'=>$recentStart]),'stale_cursor');
+        $now-=1201;
+        $check(!$pdo->inTransaction()&&$fingerprint()===$historyFingerprint,
+            'recent_business_keeps_scope_expiry_and_source_rows_unchanged');
+        $qualityKey=str_repeat('q',32);$qualityConnection=str_repeat('d',32);
+        $monthly=new MonthlyReplyQualityReadService($pdo,$clock,static fn():string=>$qualityKey,static fn():string=>$key);
+        $parentPage=$monthly->inventory(1,$qualityConnection,['cursor'=>'qh.archive.start','limit'=>1]);
+        $check(str_starts_with($parentPage['recent_business']['start_cursor']??'','qh.')
+            &&str_starts_with($parentPage['records'][0]['record_ref']??'','qh.'),
+            'quality_parent_wraps_recent_business_cursor_with_existing_dual_grants');
+        $parentRecent=$monthly->inventory(1,$qualityConnection,['cursor'=>$parentPage['recent_business']['start_cursor'],'limit'=>1]);
+        $parentContext=$monthly->context(1,$qualityConnection,['dialogue_ref'=>$parentRecent['records'][0]['record_ref']]);
+        $check(count($parentRecent['records'])===1&&$parentRecent['has_more']===true
+            &&($parentContext['messages'][0]['source_kind']??null)==='business_message'
+            &&($parentContext['messages'][0]['native_content']['kind']??null)==='unknown',
+            'quality_parent_recent_cursor_resolves_canonical_business_history_without_legacy_upgrade');
+        try{$monthly->inventory(2,$qualityConnection,['cursor'=>'qh.archive.start']);$check(false,'expected_quality_admin_grant');}
+        catch(DialogueReviewReadException$e){$check($e->reason==='forbidden','quality_parent_admin_grant_is_rechecked');}
+        $check(!$pdo->inTransaction()&&$fingerprint()===$historyFingerprint,
+            'quality_parent_recent_read_is_readonly_and_preserves_archive');
         // Explicit feature mode is opt-in through a separate cursor; old inventory pages stay metadata-only.
         $seed(2400,100,197,1,'Готовы бронировать, пришлите ссылку на оплату. https://example.test/private +7 999 123-45-67 @synthetic_handle');
         $seed(2401,100,197,2,'Деньги поступили, оплату вижу.',['sender_id'=>'100','sender_type'=>'manager','direction'=>'outbound']);
