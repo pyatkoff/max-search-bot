@@ -1713,6 +1713,7 @@ $transferScenario = static function(string $case) use ($transferFixtureRoot,&$tr
         'prepare'=>static function(array $received) use ($case,$state,$hotelMediaBody,$evidence): array {
             $state->calls[]='prepare';$state->reservation_arguments[]=$received;
             if ($case==='source_advanced_after_reservation') throw new RuntimeException('transfer_source_revision_advanced');
+            if ($case==='public_identity_after_reservation') throw new RuntimeException('public_identity_changed');
             $body=$hotelMediaBody;
             if ($case==='invalid_payload') $body['media']['type']='video';
             if ($case==='invalid_prepared') return ['body'=>$body];
@@ -1757,7 +1758,7 @@ $transferScenario = static function(string $case) use ($transferFixtureRoot,&$tr
     ];
     // A context is optional and must not be necessary for a successful control flow.
     if ($case==='complete_busy') unset($effects['context']);
-    if ($case==='source_advanced_after_reservation') $effects['context']['continuation_of_ranked_run_id']=AnyTour\ExistingPostBatch\RANKED_ORIGINAL_RUN;
+    if (in_array($case,['source_advanced_after_reservation','public_identity_after_reservation'],true)) $effects['context']['continuation_of_ranked_run_id']=AnyTour\ExistingPostBatch\RANKED_ORIGINAL_RUN;
     $result=AnyTour\ExistingPostBatch\transferExecuteRow($row,$digest,$effects,$operations);
     $events=$transferReceiptRead($receipt);
     $beforeReplay=clone $state;$beforeHash=hash_file('sha256',$receipt);
@@ -1766,6 +1767,7 @@ $transferScenario = static function(string $case) use ($transferFixtureRoot,&$tr
 };
 $transferExpected=[
     'success'=>[true,'native_and_registry_verified',null,1,1],
+    'public_identity_after_reservation'=>[false,'held_before_provider','public_identity_changed',0,0],
     'source_advanced_after_reservation'=>[false,'held_before_provider','transfer_source_revision_advanced',0,0],
     'prewrite_cas'=>[false,'held_before_provider','hotel_transfer_source_changed',0,0],
     'invalid_payload'=>[false,'held_before_provider','transfer_media_payload_invalid',0,0],
@@ -1785,6 +1787,8 @@ $transferExpected=[
 try {
     foreach ($transferExpected as $case=>$expected) {
         $flow=$transferScenario($case);$state=$flow['state'];$result=$flow['result'];
+        if ($case==='public_identity_after_reservation') channelPostCheck('public identity pre-write refusal keeps reservation and zero attempts',
+            [$result['local_prewrite_hold_recorded']??false,$result['reserved_publication_id'],$state->requests],[true,901,0]);
         if ($case==='source_advanced_after_reservation') {
             channelPostCheck('durable late source change holds its reservation with zero provider attempts',
                 [$result['source_revision_hold_recorded'] ?? false,$result['reserved_publication_id'],$result['provider_write_attempts']],

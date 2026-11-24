@@ -209,10 +209,13 @@ jobs:
                              and row.get('prior_terminal_state') in {'native_and_registry_verified','provider_message_id_rejected','response_saved_completion_requires_readback'}
                              and len(row.get('prior_journal_sha256',''))==64
                              and all(ch in '0123456789abcdef' for ch in row['prior_journal_sha256']))
-                      assert rejected or stale or isolated or local_hold or prior,'nonlocal_error_must_end_batch'
+                      prewrite=(row['state']=='held_before_provider' and row['provider_write_attempts']==0
+                                and row.get('reason')=='public_identity_changed' and row.get('local_prewrite_hold_recorded') is True
+                                and type(row.get('reserved_publication_id')) is int and row['reserved_publication_id']>0)
+                      assert rejected or stale or isolated or local_hold or prior or prewrite,'nonlocal_error_must_end_batch'
                       isolated_transport_loss |= isolated
                   held.append({k:row[k] for k in ('hotel_id','message_id','state','reason','reserved_publication_id',
-                      'provider_write_attempts','shared_access_rechecked','shared_access_error','prior_journal_sha256','prior_terminal_state','prior_public_readback_verified','prior_readback_reason') if k in row})
+                      'provider_write_attempts','shared_access_rechecked','shared_access_error','prior_journal_sha256','prior_terminal_state','prior_public_readback_verified','prior_readback_reason','local_prewrite_hold_recorded') if k in row})
           assert d.get('provider_write_attempts')==sum(r['provider_write_attempts'] for r in rows)
           ok=status==0 and d.get('ok') is True and confirmed==item['hotels'] and not held
           state.update(state='complete' if ok else 'partial_requires_readback',confirmed=confirmed,held=held,unreached=item['hotels'][len(rows):])

@@ -936,6 +936,11 @@ function transferExecuteRow(array $row, string $planDigest, array $effects, stri
                     && is_int($result['reserved_publication_id'] ?? null) && $result['reserved_publication_id'] > 0) {
                     $result['source_revision_hold_recorded'] = true;
                 }
+                if (($effects['context']['continuation_of_ranked_run_id'] ?? null) === RANKED_ORIGINAL_RUN
+                    && $result['reason'] === 'public_identity_changed' && $attempts === 0
+                    && is_int($result['reserved_publication_id'] ?? null) && $result['reserved_publication_id'] > 0) {
+                    $result['local_prewrite_hold_recorded'] = true;
+                }
                 $result = transferCheckSharedAccess($record, $row, $planDigest, $effects, $result);
             } catch (Throwable $ignored) {
                 // The target remains held. Failure to prove the journal or shared health stops the batch.
@@ -1230,7 +1235,8 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
             }
             $result = transferExecuteRow($row, $approvedDigest, $effects, POST_OPS, $next);
             $results[] = $result;
-            if ($rankedContinuation && ($result['source_revision_hold_recorded'] ?? false) === true) continue;
+            if ($rankedContinuation && (($result['source_revision_hold_recorded'] ?? false) === true
+                || ($result['local_prewrite_hold_recorded'] ?? false) === true)) continue;
             if (($result['shared_access_rechecked'] ?? false) === true) {
                 // One uncertain edit per run may be isolated. A second stops even when read APIs remain healthy.
                 $continuedAfterLoss = true;
