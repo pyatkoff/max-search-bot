@@ -272,9 +272,11 @@ async function verifyPreviousRelease(context, token, fetchImpl) {
       proof.binding.updated_at !== context.publisher.updated_at)) refusal('forward_publisher_changed');
     return;
   }
-  if (context.prNumber === 1667 && context.baseSha === '302ba66b5739e369a4df94471c8cfe9c054dd070') {
-    const {provePartialInstall1662Forward} = require('./partial_install_1662_forward');
-    const proof = await provePartialInstall1662Forward({
+  const partial1702 = context.prNumber === 1704 && context.baseSha === '32155b9eb2c8606b61554951bfdc988d70bbcb39';
+  if (partial1702 || (context.prNumber === 1667 && context.baseSha === '302ba66b5739e369a4df94471c8cfe9c054dd070')) {
+    const prove = partial1702 ? require('./partial_install_1702_forward').provePartialInstall1702Forward :
+      require('./partial_install_1662_forward').provePartialInstall1662Forward;
+    const proof = await prove({
       api, pr: context.prNumber, head: context.headSha,
       phase: context.publisher ? 'after_handoff' : 'before_handoff'
     });
