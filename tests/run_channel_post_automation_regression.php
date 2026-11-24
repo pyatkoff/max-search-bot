@@ -1425,6 +1425,8 @@ channelPostCheck('existing publisher route still edits only the accepted keyboar
 // Exercise the real editor's durable once-only flow; only its internal effects
 // are fixtures. Requiring the CLI file does not bootstrap or invoke its runner.
 require_once __DIR__.'/../tools/anytour_existing_post_batch.php';
+require_once __DIR__.'/telegram_accepted_route_cases.php';
+AnyTour\Tests\TelegramAcceptedRoute\runCases();
 $nextTransferRaw = file_get_contents(__DIR__.'/../'.AnyTour\ExistingPostBatch\NEXT_TRANSFER_PLAN_FILE);
 $nextTransfer = AnyTour\ExistingPostBatch\transferPlanFromBytes($nextTransferRaw, '30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d', true);
 channelPostCheck('next fixed hotel transfer carries no old price and preserves exact destinations',

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 const ANYTOUR_TELEGRAM_FEED_LIMIT = 4000000;
 const ANYTOUR_TELEGRAM_OFFER_ID = 'tg_[1-9][0-9]{0,11}';
+const ANYTOUR_TELEGRAM_ACCEPTED_TABLE_PILOTS = ['tg_1972', 'tg_2588'];
 
 function anytourTelegramFeedOfferUrls(string $xml, int $limit = ANYTOUR_TELEGRAM_FEED_LIMIT): array
 {
@@ -148,6 +149,21 @@ function anytourTelegramFeedResolve(string $xml, string $offerId, ?callable $rou
         throw new InvalidArgumentException('Invalid Telegram offer identifier');
     }
     $landing = anytourTelegramFeedDestinationPosts(anytourTelegramFeedOfferUrls($xml));
+    if ($routeLookup !== null && isset($landing[$offerId]) && in_array($offerId, ANYTOUR_TELEGRAM_ACCEPTED_TABLE_PILOTS, true)) {
+        // These posts already serve paid traffic. The table may confirm the accepted URL only.
+        $accepted = ['offer_id' => $offerId, 'post_url' => $landing[$offerId]];
+        try {
+            $row = $routeLookup($offerId);
+        } catch (Throwable $error) {
+            return $accepted;
+        }
+        if (is_array($row) && ($row['offer_id'] ?? null) === $offerId
+            && ($row['post_url'] ?? null) === $accepted['post_url']
+            && is_int($row['version'] ?? null) && $row['version'] > 0) {
+            $accepted['route_table'] = 'max2-v1';
+        }
+        return $accepted;
+    }
     $tableRoutes = [
         'tg_118475' => ['https://t.me/any_toour/194', 'https://t.me/anytour/1780'],
         'tg_3405' => ['https://t.me/any_toour/158', 'https://t.me/anytour/1760'],
@@ -170,14 +186,21 @@ function anytourTelegramFeedResolve(string $xml, string $offerId, ?callable $rou
 
 function anytourTelegramReadSharedRoute(string $offerId): ?array
 {
-    if (!in_array($offerId, ['tg_118475', 'tg_3405'], true)) {
+    $pilot = in_array($offerId, ANYTOUR_TELEGRAM_ACCEPTED_TABLE_PILOTS, true);
+    if (!$pilot && !in_array($offerId, ['tg_118475', 'tg_3405'], true)) {
         return null;
     }
+    if ($pilot && getenv('ANYTOUR_TELEGRAM_ACCEPTED_TABLE_PILOTS') !== '1') {
+        return null;
+    }
+    $timeouts = $pilot
+        ? [CURLOPT_CONNECTTIMEOUT_MS => 250, CURLOPT_TIMEOUT_MS => 500, CURLOPT_NOSIGNAL => true]
+        : [CURLOPT_CONNECTTIMEOUT => 2, CURLOPT_TIMEOUT => 4];
     $request = curl_init('https://tour-max.ru/new/max2/telegram-hotel-route.php?offer='.$offerId);
     try {
         $buffer = '';
-        $configured = curl_setopt_array($request, [
-            CURLOPT_CONNECTTIMEOUT => 2, CURLOPT_TIMEOUT => 4, CURLOPT_FOLLOWLOCATION => false,
+        $configured = curl_setopt_array($request, $timeouts + [
+            CURLOPT_FOLLOWLOCATION => false,
             CURLOPT_SSL_VERIFYPEER => true, CURLOPT_SSL_VERIFYHOST => 2,
             CURLOPT_WRITEFUNCTION => static function ($handle, string $part) use (&$buffer): int {
                 if (strlen($buffer) + strlen($part) > 4096) {
