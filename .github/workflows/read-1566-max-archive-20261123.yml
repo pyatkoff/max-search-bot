@@ -1,4 +1,4 @@
-name: "#1566 Check admission for the existing MAX PRICE release"
+name: "#1566 Compile and verify three MAX hotel plans without writes"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -15,15 +15,217 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == '0755b7ba83dd276d0309a5cf85b7a4a32709b644' && github.run_attempt == 1
+      github.event.before == 'b01cb3f92607e7efa346f160f0796d54aabda70f' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: d8a0d794321ea89d8ac62205a22079656aa73d6a
+          ref: 29f5b6fe8054195407179b608599aad7409e7b41
           persist-credentials: false
-      - name: Read the official release admission without claiming the publisher slot
+          path: existing-writer
+      - name: Check native receipts and compile the exact three plans
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: node tools/release_priority.js --admit 1716 d62af590516c0e9d832a95217c258f53f658b329 d8a0d794321ea89d8ac62205a22079656aa73d6a
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p stage
+          src=existing-writer/tools/direct_demand/operations/max-existing-photo
+          install -m600 "$src"/{editor.php,batch_entry.php} stage/
+          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14910511299/zip > archive.zip
+          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14995276346/zip > native.zip
+          cat > stage/batch_input.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          
+          /** Compile inputs only. The caller authenticates the native artifact and the approved scope independently. */
+          function maxBatchInput(string $approvedBytes, string $approvedHash, string $archiveBytes, string $sourceBytes, string $sourceArtifactHash, string $sourceRef, string $release): array
+          {
+              maxEditNeed(hash_equals(hash('sha256', $approvedBytes), $approvedHash), 'approval_content_changed');
+              $scope = json_decode($approvedBytes, true, 32, JSON_THROW_ON_ERROR);
+              maxEditNeed($scope['version'] === 1 && $scope['rows'] !== [], 'invalid_approved_scope');
+              $archiveHash=hash('sha256', $archiveBytes);
+              $selected=isset($scope['archive_selected_sha256']) && hash_equals($scope['archive_selected_sha256'],$archiveHash);
+              maxEditNeed($selected || hash_equals($scope['archive_registry_sha256'],$archiveHash), 'native_archive_digest_changed');
+              maxEditNeed(preg_match('/\A[a-f0-9]{40}\z/D', $release) === 1 && preg_match('/\A[a-f0-9]{40}\z/D', $sourceRef) === 1
+                  && hash_equals($sourceArtifactHash, hash('sha256', $sourceBytes)), 'native_source_digest_changed');
+              $archive = json_decode($archiveBytes, true, 32, JSON_THROW_ON_ERROR);
+              maxEditNeed(!$selected || ($archive['registry_json_sha256'] ?? null) === $scope['archive_registry_sha256'], 'native_archive_origin_changed');
+              $source = json_decode($sourceBytes, true, 32, JSON_THROW_ON_ERROR);
+              maxEditNeed(($archive['ok'] ?? false) === true && $archive['history_complete'] === true && $archive['price_content_shared_lease'] === true
+                  && $archive['native_run_id'] === $scope['archive_run_id'] && $archive['production_writes'] === 0 && $archive['provider_writes'] === 0, 'invalid_archive');
+              $sourceOperation = $scope['native_source']['operation'] ?? 'max_seven_source_rights';
+              maxEditNeed(in_array($sourceOperation, ['max_seven_source_rights', 'max_five_ranked_read_only', 'max_next_twelve_read_only', 'max_next_nine_read_only', 'max_three_matched_candidates_read_only'], true), 'invalid_native_operation');
+              maxEditNeed(($source['ok'] ?? false) === true && $source['operation'] === $sourceOperation
+                  && $source['application_sha'] === $release && $source['repository_sha'] === $sourceRef && $source['archive_run'] === (int)$scope['archive_run_id']
+                  && $source['provider_writes'] === 0 && $source['db_writes'] === 0 && $source['bot_starts'] === 0, 'invalid_native_evidence');
+              if ($sourceOperation === 'max_next_twelve_read_only') {
+                  // The authenticated reader only includes groups after checking the editor right in each native response.
+                  $groups = $source['groups'] ?? [];
+                  maxEditNeed(count($groups) === 3, 'invalid_native_reader_groups');
+                  foreach ($groups as $group) {
+                      maxEditNeed(isset($group['read_utc']) && !isset($group['failure']) && count($group['ids'] ?? []) === 4, 'invalid_native_reader_group');
+                  }
+                  maxEditNeed(array_merge(...array_column($groups, 'ids')) === array_column($source['rows'], 'hotel_id'), 'invalid_native_reader_membership');
+                  $source['target_editor_rights'] = true;
+              }
+              maxEditNeed(($source['target_editor_rights'] ?? null) === true && (is_int($source['channel_config_version'] ?? null) || is_string($source['channel_config_version'] ?? null))
+                  && filter_var($source['channel_config_version'], FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]) !== false, 'main_channel_edit_not_ready');
+              $rows = $scope['rows'];
+              foreach (['hotel_id','source_id','source_mid','source_url','target_mid','target_url'] as $field) {
+                  maxEditNeed(count(array_unique(array_column($rows, $field))) === count($rows), 'duplicate_or_missing_scope_key');
+              }
+              $targets = array_column($archive['rows'], null, 'mid');
+              $native = array_column($source['rows'], null, 'hotel_id');
+              maxEditNeed(count($targets) === count($archive['rows']) && count($native) === count($source['rows'])
+                  && array_diff(array_keys($native), array_column($rows, 'hotel_id')) === [], 'conflicting_evidence');
+              $out = ['ready'=>[], 'held'=>[], 'provider_writes'=>0];
+              foreach ($rows as $row) {
+                  $id = $row['hotel_id'];
+                  try {
+                      $target = $targets[$row['target_mid']] ?? null;
+                      maxEditNeed(is_array($target) && $target['registered'] === false && $target['media'] === ['image']
+                          && $target['keyboard_present'] === false && $target['linked_message'] === false
+                          && $target['published_ms'] === $row['target_ms'] && $target['url'] === $row['target_url']
+                          && hash_equals($row['target_fingerprint'], $target['fingerprint']), 'target_changed_or_occupied');
+                      $observed = $native[$id] ?? [];
+                      maxBatchValidateNativeRow($row, $observed);
+                      $caption = $row['caption_without_price'];
+                      $displayName = $row['display_name'] ?? $row['name'];
+                      maxEditNeed($displayName === $row['name'] || $displayName === str_replace(' & ', ' and ', $row['name']), 'invalid_display_hotel_name');
+                      $plan = ['kind'=>'expired_reviewed_photo_promotion', 'hotel'=>$id, 'hotel_name'=>$displayName,
+                          'target_mid'=>$row['target_mid'],'target_ms'=>$row['target_ms'],'target_url'=>$row['target_url'],
+                          'target_fingerprint'=>$row['target_fingerprint'], 'source_publication'=>$row['source_id'],
+                          'source_version'=>$observed['source_version'],'source_content_hash'=>$observed['source_content_sha256'],
+                          'source_mid'=>$row['source_mid'],'source_url'=>$row['source_url'],'caption'=>$caption];
+                      if ($displayName !== $row['name']) {
+                          $plan['source_aliases'] = [$row['name']];
+                      }
+                      $out['ready'][$id] = ['plan'=>$plan, 'sha256'=>hash('sha256', maxEditJson($plan)),
+                          'source_photo_sha256'=>$observed['source_photo_sha256'], 'source_caption_sha256'=>$observed['source_caption_sha256'],
+                          'config_version'=>(int)$source['channel_config_version'], 'approved_row'=>$row];
+                  } catch (RuntimeException $e) {
+                      $out['held'][$id] = $e->getMessage();
+                  }
+              }
+              return $out;
+          }
+          
+          function maxBatchValidateNativeRow(array $row, array $observed): void
+          {
+              $id = $row['hotel_id'];
+              $missing=$observed['blockers'] ?? null;
+              $catalog=$observed['source_catalog_id'] ?? null;
+              maxEditNeed(($observed['hotel_id'] ?? null) === $id && ($observed['source_id'] ?? null) === $row['source_id'] && ($observed['source_mid'] ?? null) === $row['source_mid']
+                  && ($observed['target_mid'] ?? null) === $row['target_mid'] && ($observed['target_url'] ?? null) === $row['target_url']
+                  && ($catalog === 0 || $catalog === $id) && ($observed['native_source_photo_count'] ?? null) === 1
+                  && is_int($observed['source_version'] ?? null) && $observed['source_version'] > 0, 'different_hotel_or_source');
+              if ($catalog === 0) {
+                  $identity=[];
+                  foreach (['hotel_id','source_id','source_mid','native_source_date_ms','source_version','source_content_sha256','source_photo_sha256','source_caption_sha256','target_mid'] as $key) {
+                      $identity[]=$observed[$key] ?? null;
+                  }
+                  maxEditNeed(isset($row['original_legacy_identity_sha256']) && hash_equals($row['original_legacy_identity_sha256'],hash('sha256',maxEditJson($identity)))
+                      && $missing === ['source_hotel_id_matches','source_button_resolves_to_hotel']
+                      && ($observed['source_hotel_id_matches'] ?? null) === false && ($observed['source_button_resolves_to_hotel'] ?? null) === false
+                      && ($observed['source_name_in_native_caption'] ?? null) === true && ($observed['readable_source_hotel_identity'] ?? null) === true
+                      && ($observed['source_button_count'] ?? null) === 1 && ($observed['source_one_button_matches_url'] ?? null) === true
+                      && ($observed['source_button_resolves_publication'] ?? null) === true, 'legacy_publication_identity_changed');
+              } else {
+                  maxEditNeed($missing === [] && ($observed['source_hotel_id_matches'] ?? null) === true
+                      && ($observed['source_button_resolves_to_hotel'] ?? null) === true, 'missing_native_proof');
+              }
+              foreach (['source_content_sha256','source_photo_sha256','source_caption_sha256'] as $field) {
+                  maxEditNeed(is_string($observed[$field]) && preg_match('/\A[a-f0-9]{64}\z/D', $observed[$field]) === 1, 'invalid_source_fingerprint');
+              }
+              foreach (['source_caption_nonempty','native_source_photo_reusable','source_caption_matches_registry','source_photo_matches_registry',
+                  'source_single_registry_button','target_matches_native_archive'] as $field) {
+                  maxEditNeed(($observed[$field] ?? null) === true, 'missing_native_proof');
+              }
+              foreach (['target_occupied','source_held','target_or_hotel_registry_conflicts'] as $field) {
+                  maxEditNeed(($observed[$field] ?? null) === 0, 'source_or_target_busy');
+              }
+          }
+          
+          /** Re-read under the common publisher lock. Compare check-time source, content and channel with the original native proof. */
+          function maxBatchVerifyCurrent(array $approval, array $current, int $channelVersion): void
+          {
+              maxBatchValidateNativeRow($approval['approved_row'], $current);
+              $plan = $approval['plan'];
+              maxEditNeed(($current['hotel_id'] ?? null) === $plan['hotel'] && $current['source_version'] === $plan['source_version']
+                  && hash_equals($plan['source_content_hash'], $current['source_content_sha256'])
+                  && hash_equals($approval['source_photo_sha256'], $current['source_photo_sha256'])
+                  && hash_equals($approval['source_caption_sha256'], $current['source_caption_sha256'])
+                  && $channelVersion === $approval['config_version'], 'changed_since_native_review');
+          }
+          PHP
+          php -l stage/batch_input.php
+          cat > draft.json <<'JSON'
+          {"version":1,"archive_run_id":"45373389110","archive_sha256":"c46ce092bfb91935ce829c871026a1136bf465920a3caa9184604f052c55798c","archive_registry_sha256":"c65efd90090ab8669c0d7646d44d8927ea3658c39673696d2e147685f3ec7568","rows":[{"hotel_id":63674,"source_id":643,"source_url":"https://max.ru/channel_anytour/AaG2erwGCro","target_url":"https://max.ru/anytour/AaAuJeZbQAc","target_mid":"mid.ffffc1752b045fed01a02e25e65b4007","target_ms":1787480630875,"target_fingerprint":"8fb9c0628fcea7df16218bd61670ac1221142da93f95545d710ffee84de529f3","name":"Radisson Blu Resort Phu Quoc","source_mid":"mid.ffffb6caf0606fed01a1b67abc060aba","original_legacy_identity_sha256":"ef37228c7e2d7ae1cd17a21ab0095d25e480159adab6524369de4861aa632676","caption_without_price":"✈️ Туры в Radisson Blu Resort Phu Quoc\n📍 Фукуок, Вьетнам\nКурорт с прямым выходом к пляжу. В ресторане Avenue есть детское меню и вегетарианские блюда, а в Annex Bar подают тапас."},{"hotel_id":64918,"name":"You & Me Maldives","source_id":2255,"source_url":"https://max.ru/channel_anytour/AaHryMfSWo0","target_mid":"mid.ffffc1752b045fed019c5c3691bc41f9","target_url":"https://max.ru/anytour/AZxcNpG8Qfk","target_ms":1771073606076,"target_fingerprint":"2eeb6d206073e689cb4f81ef68a4e33c407d8d19fd008c7b60c9fefae99b21b6","source_mid":"mid.ffffb6caf0606fed01a1ebc8c7d25a8d","original_legacy_identity_sha256":null,"caption_without_price":"✈️ Туры в You and Me Maldives\n📍 атолл Раа, Мальдивы\nКурорт для взрослых на атолле Раа. В ресторане H2O можно поужинать под водой и наблюдать за рифом через панорамные окна.","display_name":"You and Me Maldives"},{"hotel_id":358,"name":"Rixos Sharm El Sheikh","source_id":215,"source_url":"https://max.ru/channel_anytour/AaGd4bFlag4","target_mid":"mid.ffffc1752b045fed019ac4e4ade3085b","target_url":"https://max.ru/anytour/AZrE5K3jCFs","target_ms":1764239912419,"target_fingerprint":"d5620d2a739981dc2d6edb18fd55a1dfb705c2b7dba53116281d4224b9fea5ca","source_mid":"mid.ffffb6caf0606fed01a19de1b1656a0e","original_legacy_identity_sha256":null,"caption_without_price":"✈️ Туры в Rixos Sharm El Sheikh\n📍 Шарм-эль-Шейх, Египет\nУ отеля собственный песчаный пляж и семь бассейнов. Можно чередовать дни у моря и отдых у бассейна."}],"native_source":{"operation":"max_three_matched_candidates_read_only","run_id":45554603588,"attempt":1,"job_id":139003513834,"workflow_head":"924f82911f133f00d59ef9a196f0561245662d79","artifact_id":14995276346,"zip_sha256":"e75dd3c9c842eadae22f346878b5bab7d847c56a2b94d768e998594894590759","json_sha256":null,"repository_sha":"d8a0d794321ea89d8ac62205a22079656aa73d6a","application_sha":"d8a0d794321ea89d8ac62205a22079656aa73d6a"},"route_readback":{"repository":"pyatkoff/tour-max","run_id":45554605115,"job_id":139003518141,"observed_utc":"2026-11-25T05:35:21+00:00","write_calls":0},"price_review":{"mode":"caption_without_fixed_price"},"publisher":{"comment_id":6928374515,"body":"PR1715: установлено, выпуск свободен","owner_id":226193297}}
+          JSON
+          python3 - <<'PY'
+          import hashlib,json,pathlib,re,zipfile
+          digest=lambda data: hashlib.sha256(data).hexdigest()
+          scope=json.loads(pathlib.Path("draft.json").read_bytes())
+          for key,expected in (("archive",scope["archive_sha256"]),("native",scope["native_source"]["zip_sha256"])):
+              raw=pathlib.Path(key+".zip")
+              assert raw.stat().st_size<300000 and digest(raw.read_bytes())==expected
+              with zipfile.ZipFile(raw) as z:
+                  assert z.namelist()==["registry.json"] and z.getinfo("registry.json").file_size<2000000
+                  pathlib.Path("stage/"+key+".json").write_bytes(z.read("registry.json"))
+          stage=pathlib.Path("stage")
+          assert digest((stage/"archive.json").read_bytes())==scope["archive_registry_sha256"]
+          nativebytes=(stage/"native.json").read_bytes()
+          scope["native_source"]["json_sha256"]=digest(nativebytes)
+          observed=json.loads(nativebytes)
+          assert observed["ok"] is True and [r["hotel_id"] for r in observed["rows"]]==[r["hotel_id"] for r in scope["rows"]]
+          observations=[]
+          for row,source in zip(scope["rows"],observed["rows"]):
+              assert source["source_id"]==row["source_id"] and source["target_mid"]==row["target_mid"]
+              row["source_mid"]=source["source_mid"]
+              identity=[source[k] for k in ("hotel_id","source_id","source_mid","native_source_date_ms","source_version","source_content_sha256","source_photo_sha256","source_caption_sha256","target_mid")]
+              legacy=digest(json.dumps(identity,ensure_ascii=False,separators=(",",":")).encode())
+              assert row["original_legacy_identity_sha256"] in (None,legacy)
+              row["original_legacy_identity_sha256"]=legacy
+              assert re.fullmatch(r"mid\.[0-9a-f]{32}",row["source_mid"])
+              observations.append({"hotel_id":row["hotel_id"],"version":source["source_version"],"stored_price_record":source["source_price_record_ref"],"stored_price_observation":source["source_price_observation_text"]})
+          scope["price_review"].update({"source_versions":observations,"checked_utc":observed["groups"][-1]["read_utc"]})
+          scopebytes=(json.dumps(scope,ensure_ascii=False,indent=2)+"\n").encode()
+          (stage/"scope.json").write_bytes(scopebytes)
+          entry=stage/"batch_entry.php"
+          content,n=re.subn(r"(const MAX_BATCH_SCOPE_SHA256 = ')[a-f0-9]{64}(')",lambda m:m[1]+digest(scopebytes)+m[2],entry.read_text())
+          assert n==1
+          entry.write_text(content)
+          PY
+          php -l stage/batch_entry.php
+          php <<'PHP'
+          <?php
+          require 'stage/editor.php';
+          require 'stage/batch_input.php';
+          $scope=file_get_contents('stage/scope.json');
+          $binding=json_decode($scope,true,32,JSON_THROW_ON_ERROR)['native_source'];
+          $compiled=maxBatchInput($scope,hash('sha256',$scope),file_get_contents('stage/archive.json'),file_get_contents('stage/native.json'),$binding['json_sha256'],$binding['repository_sha'],$binding['application_sha']);
+          foreach ($compiled['ready'] as $approval) {
+              $file=tempnam(sys_get_temp_dir(),'reviewed-max-plan-');
+              try {
+                  file_put_contents($file,maxEditJson($approval['plan']));
+                  maxEditPlan($file,$approval['sha256'],$approval);
+              } finally { unlink($file); }
+          }
+          echo 'MAX_NEXT_THREE_COMPILER=',maxEditJson(['ready'=>array_keys($compiled['ready']),'held'=>$compiled['held'],'provider_writes'=>0]),PHP_EOL;
+          PHP
+          python3 - <<'PY'
+          import json,pathlib,hashlib
+          b=pathlib.Path("stage/scope.json").read_bytes()
+          print("MAX_NEXT_THREE_SCOPE_SHA="+hashlib.sha256(b).hexdigest())
+          print("MAX_NEXT_THREE_SCOPE="+json.dumps(json.loads(b),ensure_ascii=False,separators=(",",":")))
+          PY
+      - name: Preserve the compiled scope and price references
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: max-next-three-compiled-scope
+          path: stage/scope.json
+          retention-days: 7
