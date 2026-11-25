@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "archive_run_id": "45373389110",
+  "archive_sha256": "c46ce092bfb91935ce829c871026a1136bf465920a3caa9184604f052c55798c",
+  "archive_registry_sha256": "c65efd90090ab8669c0d7646d44d8927ea3658c39673696d2e147685f3ec7568",
+  "rows": [
+    {
+      "hotel_id": 107938,
+      "name": "The Marin Phuket",
+      "source_id": 551,
+      "source_mid": "mid.ffffb6caf0606fed01a1b6227bbc7333",
+      "source_url": "https://max.ru/channel_anytour/AaG2Inu8czM",
+      "target_mid": "mid.ffffc1752b045fed019c04ab6cd52c66",
+      "target_url": "https://max.ru/anytour/AZwEq2zVLGY",
+      "target_ms": 1769604869333,
+      "target_fingerprint": "abc161eeba2e055d655cccddac7e03df78fe6b8638c7a63313ea8c5d747c7694",
+      "target_photo_count": 6,
+      "caption_without_price": "✈️ Туры в The Marin Phuket\n📍 Пхукет, Таиланд\nКамала подойдёт для отдыха у моря и поездок по острову.",
+      "original_legacy_identity_sha256": "d4edc0c0e976076caaa27bb9595c8b6db9fdd10e53168b6d13f809083da174aa"
+    },
+    {
+      "hotel_id": 954,
+      "name": "Akka Alinda",
+      "source_id": 889,
+      "source_mid": "mid.ffffb6caf0606fed01a1b759d2fd30b9",
+      "source_url": "https://max.ru/channel_anytour/AaG3WdL9MLk",
+      "target_mid": "mid.ffffc1752b045fed019c290e1334742d",
+      "target_url": "https://max.ru/anytour/AZwpDhM0dC0",
+      "target_ms": 1770215314228,
+      "target_fingerprint": "c27142fb09a1f408fa0a7f56432a0784077a2c89a0bbaf45e79c838c44a8ba5d",
+      "target_photo_count": 8,
+      "caption_without_price": "✈️ Туры в Akka Alinda\n📍 Кириш, Кемер, Турция\nОтдых на побережье Кемера у подножия гор.",
+      "original_legacy_identity_sha256": "39a5a30f854c5dc4bf212d45a228cf270300187bd14bb8744ed4d59e0c10223f"
+    },
+    {
+      "hotel_id": 73055,
+      "name": "Address Fujairah Beach Resort",
+      "source_id": 1128,
+      "source_mid": "mid.ffffb6caf0606fed01a1b7fd91ec52d4",
+      "source_url": "https://max.ru/channel_anytour/AaG3_ZHsUtQ",
+      "target_mid": "mid.ffffc1752b045fed019c5ca663163542",
+      "target_url": "https://max.ru/anytour/AZxcpmMWNUI",
+      "target_ms": 1771080934166,
+      "target_fingerprint": "2f0b73392317d5ca16f0d76b3cb44632530a024144d3f7e5c434556469f8bfe7",
+      "target_photo_count": 6,
+      "caption_without_price": "✈️ Туры в Address Fujairah Beach Resort\n📍 Фуджейра, ОАЭ\nКурорт для отдыха у Оманского залива.",
+      "original_legacy_identity_sha256": "b02e6bf0b0102f86acca07ab3dda5958975f19779bb7c6668c754f1263812682"
+    }
+  ],
+  "native_source": {
+    "operation": "max_commercial_album_sources_read_only",
+    "run_id": 45587743141,
+    "attempt": 1,
+    "job_id": 139113582139,
+    "artifact_id": 15009736629,
+    "zip_sha256": "03f132e0fd07b4242def8bcc1b4ce332c887289020fe2b437982b6534c4d9446",
+    "json_sha256": "4260de9aa1bd0bbc75fa4b38f42110e4cb1325b25e1b9491b62f210c6a8d81ca",
+    "repository_sha": "6194e13ac5af4ba53263284a3a3002f7d6d22b31",
+    "application_sha": "6194e13ac5af4ba53263284a3a3002f7d6d22b31",
+    "workflow_head": "164081df57c7725b37ed0321a00971efec35f8d2"
+  },
+  "route_readback": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 45586865326,
+    "job_id": 139110571266,
+    "observed_utc": "2026-11-25T09:35:42+00:00",
+    "write_calls": 0
+  },
+  "price_review": {
+    "mode": "caption_without_fixed_price",
+    "source_versions": [
+      {
+        "hotel_id": 107938,
+        "version": 12844,
+        "stored_price_observation": "Цена найдена мониторингом 19.11.2026, 14:02 МСК. Стоимость и наличие могут измениться."
+      },
+      {
+        "hotel_id": 954,
+        "version": 14135,
+        "stored_price_observation": "Цена найдена мониторингом 19.11.2026, 23:18 МСК. Стоимость и наличие могут измениться."
+      },
+      {
+        "hotel_id": 73055,
+        "version": 13666,
+        "stored_price_observation": "Цена найдена мониторингом 20.11.2026, 14:05 МСК. Стоимость и наличие могут измениться."
+      }
+    ],
+    "checked_utc": "2026-11-25T09:41:27+00:00"
+  },
+  "publisher": {
+    "comment_id": 6928374515,
+    "body": "PR1718: установлено, выпуск свободен",
+    "owner_id": 226193297
+  }
+}
