@@ -1,4 +1,4 @@
-name: "#1566 Verify the existing PRICE reader fix against the two live MAX posts"
+name: "#1566 Check the four original MAX PRICE read failures against the same reader fix"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -15,7 +15,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == '9b5f5354a4ddc3256dfae0bdd4f1c71b3ae133ec' && github.run_attempt == 1
+      github.event.before == '43677dc59a74ec757ec4707662ea0ebe1344beb4' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -30,9 +30,9 @@ jobs:
           umask 077
           mkdir pub
           php -l services/PromotedHotelPriceWriter.php
-          php tests/run_promoted_hotel_price_writer_regression.php
+          php -l tests/run_promoted_hotel_price_writer_regression.php
           cat > pub/scope.json <<'JSON'
-          [{"hotel_id":65877,"url":"https://max.ru/anytour/AZ-d-XrfADw","caption":"✈️ Туры в Vesna Hotel\n📍 Нячанг, Вьетнам\nГородской отель для поездки с семьёй. До пляжа около 50 метров через дорогу."},{"hotel_id":2470,"url":"https://max.ru/anytour/AaC42fW_AY0","caption":"✈️ Туры в Sun Siyam Olhuveli\n📍 Южный Мале, Мальдивы\nПляжи, бассейны и водные развлечения. Для семей есть детский клуб и подходящие номера и виллы. Отдельная зона Romance предназначена для взрослых."}]
+          [{"hotel_id":99713,"url":"https://max.ru/anytour/AZ_RB3FVXFc","caption":null},{"hotel_id":12125,"url":"https://max.ru/anytour/AaDIF63rXLg","caption":null},{"hotel_id":4079,"url":"https://max.ru/anytour/AaD8zg3FDHM","caption":null},{"hotel_id":132016,"url":"https://max.ru/anytour/AaDtMfpbMO0","caption":null}]
           JSON
           php <<'PHP'
           <?php
@@ -59,10 +59,10 @@ jobs:
           }
           $out=['observed_utc'=>gmdate(DATE_ATOM),'provider_writes'=>0,'db_writes'=>0,'rows'=>$rows];
           file_put_contents('pub/observation.json',json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
-          echo 'MAX_PRICE_PUBLIC_READER_FIX=',json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          echo 'MAX_PRICE_READER_ORIGINAL_FAILURES=',json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
           PHP
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: max-price-public-caption-fix-proof
+          name: max-price-original-failure-readback
           path: pub/observation.json
           retention-days: 7
