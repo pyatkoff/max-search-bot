@@ -451,6 +451,7 @@ function transferReadBytes(string $url, bool|string $next = false): string
     $allowed = $next ? [] : [TRANSFER_MONITOR_URL];
     foreach ((transferProfilePairs($next)) as $pair) {
         $allowed[] = 'https://t.me/anytour/'.$pair['target'].'?embed=1&mode=tme';
+        $allowed[] = 'https://t.me/s/anytour?before='.((int)$pair['target']+1);
         $allowed[] = 'https://t.me/any_toour/'.$pair['source'].'?embed=1&mode=tme';
     }
     requirePost(in_array($url, $allowed, true), 'transfer_read_scope_invalid');
@@ -468,7 +469,8 @@ function transferReadBytes(string $url, bool|string $next = false): string
     $ok = curl_exec($curl) !== false && curl_errno($curl) === 0;
     $status = (int)curl_getinfo($curl, CURLINFO_HTTP_CODE);
     curl_close($curl);
-    if ($ok && str_starts_with($url, 'https://t.me/') && in_array($status, [404, 410], true)) {
+    if ($ok && str_starts_with($url, 'https://t.me/') && !str_starts_with($url, 'https://t.me/s/')
+        && in_array($status, [404, 410], true)) {
         throw new RuntimeException('public_post_missing');
     }
     requirePost($ok && $status === 200, 'transfer_read_unavailable');
@@ -535,6 +537,23 @@ function parseTransferPublic(string $body, string $channel, string $message, boo
         'published_unixtime' => (new DateTimeImmutable($dates->item(0)->getAttribute('datetime')))->getTimestamp(),
         'single_photo' => $single && $photoUrl !== '', 'photo_url' => $photoUrl,
         'photo_marker_sha256' => $marker !== '' ? hash('sha256', $marker) : null, 'buttons' => $buttons];
+}
+
+function transferGuardTargetKeyboard(array $embedded, array $archive): void
+{
+    requirePost($embedded['url'] === $archive['url']
+        && $embedded['published_unixtime'] === $archive['published_unixtime']
+        && $embedded['caption_sha256'] === $archive['caption_sha256'], 'transfer_target_public_changed');
+    requirePost($embedded['buttons'] === [] && $archive['buttons'] === [], 'transfer_target_keyboard_changed');
+}
+
+function transferTargetPublic(string $message, bool|string $next): array
+{
+    $embedded = transferPublic('anytour', $message, $next);
+    $archiveUrl = 'https://t.me/s/anytour?before='.((int)$message+1);
+    $archive = parseTransferPublic(transferReadBytes($archiveUrl, $next), 'anytour', $message, $next);
+    transferGuardTargetKeyboard($embedded, $archive);
+    return $embedded + ['archive_keyboard_verified'=>true, 'archive_html_sha256'=>$archive['html_sha256']];
 }
 
 function transferPublicPreimage(array $row, array $source, array $target): void
@@ -815,6 +834,7 @@ function transferLocalPublicHold(string $reason): bool
         'public_identity_changed',
         'transfer_source_public_changed',
         'transfer_target_public_changed',
+        'transfer_target_keyboard_changed',
     ], true);
 }
 
@@ -1127,7 +1147,8 @@ function selectRankedUnreachedRows(array $scope, string $digest, array $parent):
             requirePost(($state === 'provider_message_id_rejected' && $writes === 1) || ($state === 'held_before_provider' && $writes === 0
                 && in_array($result['reason'] ?? '', ['transfer_previous_run_journal_requires_readback','transfer_source_revision_advanced',
                     'transfer_target_identity_exists','transfer_hotel_already_in_large_channel','transfer_ranked_source_offer_changed',
-                    'transfer_ranked_target_in_use','transfer_target_editor_busy','public_identity_changed'], true)), $invalid);
+                    'transfer_ranked_target_in_use','transfer_target_editor_busy','public_identity_changed',
+            'transfer_target_keyboard_changed'], true)), $invalid);
         }
         $savedHold = $summary['held'][count($held)] ?? null;
         requirePost(is_array($savedHold), $invalid);
@@ -1354,7 +1375,7 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
             if (!$next) transferPrice($plan, $row, $export, time());
             try {
                 transferPublicPreimage($row, transferPublic('any_toour', $row['source_message_id'], $next),
-                    transferPublic('anytour', $row['target_message_id'], $next));
+                    transferTargetPublic($row['target_message_id'], $next));
             } catch (RuntimeException $error) {
                 $reason = $error->getMessage();
                 if (!$independentRows || !transferLocalPublicHold($reason)) throw $error;
@@ -1384,7 +1405,7 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
                 'prepare'=>static function (array $reservation) use ($pdo, $registry, $row, $plan, $next, $independentRows, &$preparedExport): array {
                     $source = transferSource($pdo, $registry, $row, $independentRows);
                     $sourcePublic = transferPublic('any_toour', $row['source_message_id'], $next);
-                    $targetPublic = transferPublic('anytour', $row['target_message_id'], $next);
+                    $targetPublic = transferTargetPublic($row['target_message_id'], $next);
                     transferPublicPreimage($row, $sourcePublic, $targetPublic);
                     $evidence = ['source_public'=>$sourcePublic,'target_public'=>$targetPublic];
                     if (!$next) {
