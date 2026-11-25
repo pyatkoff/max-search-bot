@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "archive_run_id": "45373389110",
+  "archive_sha256": "c46ce092bfb91935ce829c871026a1136bf465920a3caa9184604f052c55798c",
+  "archive_registry_sha256": "c65efd90090ab8669c0d7646d44d8927ea3658c39673696d2e147685f3ec7568",
+  "rows": [
+    {
+      "hotel_id": 2575,
+      "name": "Rixos Al Mairid Ras Al Khaimah",
+      "source_id": 1342,
+      "source_mid": "mid.ffffb6caf0606fed01a1d46c23c52cc7",
+      "source_url": "https://max.ru/channel_anytour/AaHUbCPFLMc",
+      "target_mid": "mid.ffffc1752b045fed01a048e897ef69df",
+      "target_url": "https://max.ru/anytour/AaBI6Jfvad8",
+      "target_ms": 1787929597935,
+      "target_fingerprint": "967f9773ea28deac5456206f76e4c467df3af6493742f7aab65b57cf72dae267",
+      "caption_without_price": "✈️ Туры в Rixos Al Mairid Ras Al Khaimah\n📍 Рас-эль-Хайма, ОАЭ\nПесчаный пляж и номера в виллах для семейного отдыха у моря."
+    }
+  ],
+  "route_readback": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 45597786095,
+    "job_id": 139148352152,
+    "observed_utc": "2026-11-25T10:44:09+00:00",
+    "write_calls": 0
+  },
+  "price_review": {
+    "mode": "caption_without_fixed_price"
+  },
+  "publisher": {
+    "comment_id": 6928374515,
+    "body": "PR1709: установлено, выпуск свободен",
+    "owner_id": 226193297
+  }
+}
