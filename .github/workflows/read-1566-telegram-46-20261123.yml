@@ -1,4 +1,4 @@
-name: "#1566 Read current native identities for the saved reserve58"
+name: "#1566 Observe50 remaining old Telegram targets without reserving or writing"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -6,211 +6,236 @@ on:
 permissions:
   contents: read
   actions: read
-  issues: read
-  pull-requests: read
-# Bounded reads of the same two prepared pairs; no provider writes; strict actual application fences.
 jobs:
   registry:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 &&
-      github.actor == 'pyatkoff' &&
-      github.event.sender.id == 226193297 &&
-      github.event.created == false &&
-      github.event.forced == false &&
-      github.event.before == '69116d7ada19a3d6487670568bb3e91e674a232a' &&
+      github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
+      github.event.created == false && github.event.forced == false &&
+      github.event.before == '7dbe2a00c2ea7e80e3068853c2de7985ba8d2cf0' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
-      - name: Check out the exact candidate packet
-        uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
         with:
-          ref: ${{ github.sha }}
-          persist-credentials: false
-      - name: Check out main for the existing release verifier
-        uses: actions/checkout@v4
-        with:
-          ref: fe28a6383d16139691300821dd4ce768a9c2d096
-          path: accepted
-          persist-credentials: false
-      - name: Authenticate original1729 terminal before bounded host observation
-        working-directory: accepted
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+          php-version: '8.2'
+          extensions: curl, dom, mbstring
+          coverage: none
+      - name: Observe only old target public bodies and their current feed occupancy
         shell: bash
         run: |
           set -euo pipefail
-          node - <<'NODE'
-          const fs=require('node:fs'),R=require('./tools/deployment_release');
-          async function check(){
-            const api=R.makeReadApi(process.env.GITHUB_TOKEN);
-            const before=await R.readRecord(api);
-            const r=R.validateRelease(before.record).release;
-            const expected='fe28a6383d16139691300821dd4ce768a9c2d096';
-            if(r.repository_sha!==expected||r.application_sha!==expected||r.kind!=='installed'
-              ||r.release.run_id!=='45701299919'||r.release.run_attempt!==1
-              ||r.closure?.binding?.pr!==1729
-              ||r.closure?.binding?.comment_id!==6818332618
-              ||r.closure?.binding?.owner_id!==226193297
-              ||r.closure?.binding?.head_sha!=='486ad11f6011ddf64d85149ee172132aaca3e012'
-              ||r.closure?.binding?.updated_at!=='2026-11-25T21:06:20Z')throw Error('original1729_changed');
-            const resolved=await R.resolveCurrent(api,{sha:expected},before);
-            if(!resolved.ready||resolved.repository_sha!==expected||resolved.application_sha!==expected)
-              throw Error('original1729_not_canonically_accepted');
-            const main=(await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha;
-            const after=await R.readRecord(api);
-            if(before.blob!==after.blob||before.record_digest!==after.record_digest)throw Error('accepted_record_changed');
-            fs.mkdirSync('../pub',{recursive:true});
-            fs.writeFileSync('../pub/accepted-read-admission.json',JSON.stringify({read_only:true,
-              current_main_sha:main,observed_repository_sha:expected,application_sha:expected,
-              technical_acceptance_complete:true,write_admission:false,canonical:resolved,
-              record_commit:before.commit,record_blob:before.blob,record_digest:before.record_digest,
-              original_installation_deploy:'45701299919',original_closer:r.closure.run_id,
-              original_guard_pr:1729,checked_at_utc:new Date().toISOString()})+'\n');
-            fs.appendFileSync(process.env.GITHUB_ENV,'REPOSITORY_SHA='+expected+'\nAPPLICATION_SHA='+expected+'\n');
+          cat > /tmp/pilot-public.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          function requireRead(bool $ok, string $reason): void
+          {
+              if (!$ok) throw new RuntimeException($reason);
           }
-          check().catch(e=>{console.error('readonly_accepted_installation_refused',e.code||e.message);process.exitCode=1});
-          NODE
-      - name: Bind immutable packet to the admitted release and native run
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '9931623d23b085d2f344dde163b8d75e6982a753'
-          mkdir -p pub
-          python3 - <<'PY'
-          import os,pathlib,re
-          p=pathlib.Path('tools/direct_demand/operations/read-1566-telegram-46-20261123.php')
-          program=p.read_text()
-          for name,pattern in [('APPLICATION_SHA',r'[a-f0-9]{40}'),('REPOSITORY_SHA',r'[a-f0-9]{40}'),('NATIVE_RUN_ID',r'[1-9][0-9]{0,19}')]:
-              value=os.environ['GITHUB_RUN_ID' if name=='NATIVE_RUN_ID' else name]
-              assert re.fullmatch(pattern,value) and program.count('__'+name+'__') == 1
-              program=program.replace('__'+name+'__',value)
-          # Execute the reviewed reader helpers for the same two prepared pairs.
-          # Preserve candidate holds, read-only SQL and the shared PRICE lease.
-          assert program.count("$out=['schema'=>1") == 1
-          program=program[:program.index("$out=['schema'=>1")]
-          entry=r'''$out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_telegram_reserve_source_identity_inventory',
-           'ok'=>false,'repository_sha'=>REPOSITORY_SHA,'application_sha'=>APPLICATION_SHA,'native_run_id'=>NATIVE_RUN_ID,
-           'native_run_attempt'=>1,'write_admission'=>false,'production_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,
-           'manager2_http_calls'=>0,'fresh_target_rights_verified'=>false,'complete_ready_pair_count'=>0,'rows'=>[]];
-          $scope=json_decode('[{"hotel_id":817,"source_message_id":"508","caption_sha256":"5a341d28b4c8efe29a0566aff6e308129c75bdc83002662afd26564fe9cd0f27","photo_marker_sha256":"8a533c6773e97ff691dfc8dd702e37b7ae5d016ed74d89814e0b45a229de14af"},{"hotel_id":116934,"source_message_id":"504","caption_sha256":"649ebfff230ec094fccefcd8e99d227a4cf9bda66e17b88a384001a50200ec79","photo_marker_sha256":"e41d5dd01513410083ec20649cf1e2930f696bd7db9873bb3f9d5b68546d2d02"},{"hotel_id":8008,"source_message_id":"506","caption_sha256":"10be212e17e2875db96623c4a5b9576604a56f741e6c0214fa383d69aec4f8ab","photo_marker_sha256":"784198488e227866d8d1bc3802c3e2567472141450e042aeb6d6cebbfca4bf2f"},{"hotel_id":71259,"source_message_id":"479","caption_sha256":"73398d6162e1d221dd2a55929a5d33988c48c5e8467250e4b8a92e253d9c3131","photo_marker_sha256":"5c34a4a1fb154886792afce2a3289e661e4a41a804fdf8e772456002153ccc1c"},{"hotel_id":81154,"source_message_id":"481","caption_sha256":"6fda2645949eea74d88a59cf736e5980b1274fd00daad23a4eec01796823457d","photo_marker_sha256":"63daaa2df8b1b06d82d8dd13976f04f7aedbae2d24949620db1aa5a73cf4ef32"},{"hotel_id":57066,"source_message_id":"260","caption_sha256":"1d956184a2433538d346798595fd5bbc5ea72aa0cec64a33d34b8bb270e02750","photo_marker_sha256":"c91640d99373bcde1a6641c0a90bbea876b6f47ab3700bc37e332d077d35d78d"},{"hotel_id":80915,"source_message_id":"499","caption_sha256":"3fbe0374a2c97252c7d6a54324bd239ff3925caa695b1b659c2e7e28354fe819","photo_marker_sha256":"24e6feef88ba11f369669f26937db715bf7882e7445c3273929085e0e6e2abca"},{"hotel_id":57064,"source_message_id":"501","caption_sha256":"20f4a38fde43de70a13ebc98694e740cda759b4787dbdc8368576b87c65907b0","photo_marker_sha256":"09a588cd43446cf12e831a3e9a69292ef2c88cfbc46185d70d2d0cf3808edaa4"},{"hotel_id":5389,"source_message_id":"516","caption_sha256":"ec0cee7787306fcba371aa19d43f5bdd9aa178105c153daaf6e03ead6b04e161","photo_marker_sha256":"16be6d61ce0e528e5499e02aacab2e0ad044b5f1c6fbc818bf0ae044b4fdfb08"},{"hotel_id":1494,"source_message_id":"361","caption_sha256":"7bc1237dd9a92179f0ac3a80f76a4758c09598aae9968a65f2020f97fa591394","photo_marker_sha256":"b612887fba43f47332a35d5b2db90e9228f206d3e29ae2635f6a16cbef6dd654"},{"hotel_id":1474,"source_message_id":"365","caption_sha256":"a5eabf7cd17d6d75710db2ceab477a03c7d9b3a15aec86657e7003d3f483e677","photo_marker_sha256":"3ca865241e445e002fbee43920e01b0a66dda5fb48b44c72b2e1a43f7c438efc"},{"hotel_id":1292,"source_message_id":"366","caption_sha256":"29feaa0d6450f590c3b2a24352bf2d6261c899ba69cce41daca6edeba51e947e","photo_marker_sha256":"7edbb09da177f78e8e54a5c3d7cf028d0184f0e3c134d12adda29dbc7863049f"},{"hotel_id":37396,"source_message_id":"358","caption_sha256":"a9e8f4cdb181ef5d23791425c76205041b33eff504cd55b4bdf98494a89a0f5c","photo_marker_sha256":"945c6e16ea243c9fee5bf9d7f23ab71c49285fb373b57c949d896ec9f4c72bc7"},{"hotel_id":9419,"source_message_id":"359","caption_sha256":"7707798b78ed3c4f1f4bb46f22025b91a64edaf6dda5a01891d936a0b120e0c2","photo_marker_sha256":"a301c3e3953cfc7da271230ee7c66b3395a824c424bfbbd7a9c2e0a6e823d585"},{"hotel_id":109655,"source_message_id":"464","caption_sha256":"cbf69c322167f6d3a6e3865b959118ddf31fdff938eb2e39a16f3a5540bf1b78","photo_marker_sha256":"0ea8114dceaf7ec3fa41359ef96e12ed528d9221793da87f76c4e5d2eb84ba89"},{"hotel_id":108942,"source_message_id":"465","caption_sha256":"23ff48cba569b04ebb62dd85e12a1f1c99d3723f3237ff4ab47b622e7d4e25b5","photo_marker_sha256":"a706cc1c14e6f81b0c56457b0227027eb24cf14cfb68d45b1fa5addb9a4e6554"},{"hotel_id":49083,"source_message_id":"460","caption_sha256":"449f67a13a0efc04bb22afd0fbf15294c549235f5a3f87458e789991d58497eb","photo_marker_sha256":"4ba0d815c426dc4cbd9e5692f7466733dd8696ed5a024a3b78225b5c560b0caa"},{"hotel_id":1198,"source_message_id":"403","caption_sha256":"592f13828f876b29c2ea590ed7e95f5226f08844d8b1bc4b089fb1aca87e4ad0","photo_marker_sha256":"0ae6df9b763bb0b01ad85ae0bfa9eeb9386468ff3422d19724b74e3b74efdb0d"},{"hotel_id":1165,"source_message_id":"405","caption_sha256":"426a34497bded047531716811d2663e8611b76b7fbd18a8c5a8a6dd1808970c9","photo_marker_sha256":"2c6de7f472e3667d59944ab6ebce451aeca8115224b313427e0767c87cf58c9a"},{"hotel_id":109786,"source_message_id":"406","caption_sha256":"db242a994b90ce8f40ba4f0592e47486a7e6ea00a04cdd1e5a1c519b1ca2b3e9","photo_marker_sha256":"3a48b492d3472957bcc24fa8a015a59f53e7d5ef8c5ef39b29a7ce7ba920c7d5"},{"hotel_id":1452,"source_message_id":"407","caption_sha256":"140252279a258535bbc7eef36b005332090df4a2bd467e6464d9b42b2e2e6e4b","photo_marker_sha256":"acc5e5e04c776ad770ee4f3d9ac47e64c44cdd189e76c013d915b28e61ab8d49"},{"hotel_id":1659,"source_message_id":"165","caption_sha256":"d94296c7ef6b8946a373093566fa936836a94fcfd39b7a3ec27cdfc2d5d8b375","photo_marker_sha256":"0b139c60dc7bddaf22859b9892e40e05186eed2247f6c587bf58ba9ca10a68cb"},{"hotel_id":21695,"source_message_id":"166","caption_sha256":"dafc7396c7dd27bf3b5e30df1aaff888d083e6c8845868dcf7da78458c859cb4","photo_marker_sha256":"8608ed7b0197d9d230a9e5fe0f000bc8bdf6edb8fef7883e5b110b5f6e1da054"},{"hotel_id":28668,"source_message_id":"167","caption_sha256":"a3df95799febf477eaaca98b14b4c897c6fc56cb6b509b05468b7f5d6bece62f","photo_marker_sha256":"267f8a5ee55f5a56ece878d02de663b18009858d1ada6f438df318e696d80fb2"},{"hotel_id":1715,"source_message_id":"170","caption_sha256":"01fc15ad32acbbdb7b250f718bf5bd8da95421a3984037156ab70b8ccb08e4b6","photo_marker_sha256":"f0e1f37e682ab3c2ea1aeb7a6ba325399f19574b4a1a2254fd4538da1e16072a"},{"hotel_id":1501,"source_message_id":"339","caption_sha256":"ace3b1df3cf75c9e8b7277c29bc6174a25bba2307fdf938f3a9410cccaf9d131","photo_marker_sha256":"0edb389f08359bb0c287047d48ffa235cc3a1dd337cc7176554dd35cb381d497"},{"hotel_id":233,"source_message_id":"56","caption_sha256":"910dde3977de56ac80b27e59ccadb623852e18a54f164384e33c48dd363cc7dc","photo_marker_sha256":"7cbb7cb7bf5333a298a93a0ee4f48e267f9439914847efe91d6d6721a4750088"},{"hotel_id":12117,"source_message_id":"51","caption_sha256":"72a3ee35febf9ba897f78f2bd8adda4912f5ed38a83da78ae0a7397712696717","photo_marker_sha256":"5a8c3dd5c2d13ba07eaa5a983a00c02ba335d92eac08a350c7d3b117c274daf4"},{"hotel_id":124,"source_message_id":"474","caption_sha256":"69ef22c86d223cc1f7dc84f19fd99f23b12c8a0db68b5c6df8a7b2a9a9f74d8e","photo_marker_sha256":"e7c194ada03199fa7499d0be5059533770e8c9d0c7f54b7ca5dd7a02481dd43a"},{"hotel_id":1962,"source_message_id":"475","caption_sha256":"b33279dc7a12a5d5bcbe62f157cd178c25f68a2d1b077abc63a7541e45a52b9b","photo_marker_sha256":"2fd996f09ad53b3065f9be8bcdfdb9ddff68e0413288abe7b9afbce5e8a73956"},{"hotel_id":134,"source_message_id":"477","caption_sha256":"7412147469d81504e3dca73ea950741dc62ab4f8576dd6c804e8072c9b6d2772","photo_marker_sha256":"2b7dbe5eac69f981261d9737966c4ebbe09066fb9abb809028d4524464fc5510"},{"hotel_id":71147,"source_message_id":"478","caption_sha256":"e1063a243385f7472e3af7fe8a1213b1dbb9f69f6abd98b062067aea747391dd","photo_marker_sha256":"9ccddc747762971aba7671eaa3c8f253859954d08d0af07900ba54406d172d68"},{"hotel_id":462,"source_message_id":"195","caption_sha256":"b3e009bdeb7f604825510792c8b76b52c00fc28edbcc43fc0111ab9850d4edcb","photo_marker_sha256":"91dcb9d26e5e1bc8e76bef4bf08b7a5ec986e1c67edb5feaf50c3f870053a1e5"},{"hotel_id":365,"source_message_id":"360","caption_sha256":"7316955ebc31955d73bdb42ee10ec99a40ca4b566e0c7b3f3fb4398f8c98d92a","photo_marker_sha256":"1b25ab409196fcb12bf5d9856d258f72eb9772157a4b5f5b06a216a6d24c980d"},{"hotel_id":264,"source_message_id":"103","caption_sha256":"beee24ddf84e40a9eee6973c08d487aeef163fb3e843e95146c96fd94b9486c4","photo_marker_sha256":"9bc5765ca48256f3d65ec40200f901c130b5fee81aa458aa40370035d6448ccc"},{"hotel_id":73342,"source_message_id":"104","caption_sha256":"46b5b7f8eb0dbcb509fe824c86a958d4ba176a80db56436d6505563f8aaecc52","photo_marker_sha256":"e3cc879d88fa2907e0cbc34fabd594534555644e29109471a99372d54058a1cc"},{"hotel_id":278,"source_message_id":"105","caption_sha256":"affebcc8bb5b088a6daa1848b922223b4282ef3467c0706a31207f21d3633843","photo_marker_sha256":"bccbf90f7e6f9e28c96750dab86d1fcb7af7cea63e4e2a77a5e1d6d77749f954"},{"hotel_id":380,"source_message_id":"250","caption_sha256":"d39c55a6d2882ad220ffbd6cd9fb315e7576a978dc68f303a732cef15c66cf27","photo_marker_sha256":"d1f4a1588d776276fdf9090ba53251fae6468646a92df8d836713f540fe5e404"},{"hotel_id":13869,"source_message_id":"108","caption_sha256":"eda0e849b19ff37b3d1e4531d8cf98a1d8ddd8ad13467ec396213d32e6caf9f0","photo_marker_sha256":"3a7a14b79f8c79fdda09e8bfa58bd7b9d2ec189a8c2801664fc1217027fd9d11"},{"hotel_id":267,"source_message_id":"109","caption_sha256":"afe34e7c0066988d19d6ff66356f3b328d985ce9d8a2349db2c7bd4a73186016","photo_marker_sha256":"34e67f2fc320a1be72e8b6d8a5323c6ee8482811c4c1d01f9596c6089d2a2106"},{"hotel_id":340,"source_message_id":"299","caption_sha256":"ae866e67671780ed54cfe2bb423cd21f7d99a738af91386fb6800e3c3cc02bae","photo_marker_sha256":"b7e4e0db02da7b82bb566b32d936c1a8a922cb3c2ff92eec76078df67c96b59f"},{"hotel_id":2514,"source_message_id":"429","caption_sha256":"a3d2cd3ab2ccce6fdf1670d448f943a3a0e98fd2dd9ea4a5d35a0cc5f090b934","photo_marker_sha256":"0f432faffc5ca494ae0adce9d5d0eb5d38dbebca08bf296c495d036250031477"},{"hotel_id":43060,"source_message_id":"511","caption_sha256":"d339ac78855db4788462e9032a51310697a60652dd7e949d82f6f09baacb717a","photo_marker_sha256":"d0d8c212e45ab9850eeac87346fa07098338c8b937239ab1d0578c448f726a69"},{"hotel_id":2536,"source_message_id":"512","caption_sha256":"ec08b8168723c9d478b4767c2d1f0bb14b2e41ce6e2757e7ecdc715483ec187c","photo_marker_sha256":"5c099ae84c74ed5318ac74c99a5540e6aa09e6a5b11ebebcf40a7bb2949c2761"},{"hotel_id":7985,"source_message_id":"372","caption_sha256":"e21a13fd15fe7d2153831abe12599c2157d5cd0287ee05c08a2e571568f0d344","photo_marker_sha256":"94e517795e7f1b4e57e5363ce9b8c57cefde23c1becd7bcd796736b8d3bff685"},{"hotel_id":2015,"source_message_id":"261","caption_sha256":"a6ffa3c5feb53d10f6b40b53e3fbb4a1ce38986b32dfe2d5983a42e1f568b474","photo_marker_sha256":"a678bdcb7973e0c9a86dafc1d91c434b25a8f27e5637c321d94c3daac0b30892"},{"hotel_id":681,"source_message_id":"505","caption_sha256":"e22965aa86409025ae40bce67e88f9d9483272c4c4cea574d09e2e2170ca1065","photo_marker_sha256":"b9cda5f2ae8f4e11804845f105ffbeac3caf4db514f15093e6975047a3bce99d"},{"hotel_id":119046,"source_message_id":"507","caption_sha256":"aa2dfcdddaee76f22d89ea5f6f00582415e206c50bf3d1ee9ae3a5f9b69b3a6e","photo_marker_sha256":"8acfa7ce731e24ae0de3491a448943cd0706174c9b9f7ff9fc6657a9ff6b12d6"},{"hotel_id":95159,"source_message_id":"294","caption_sha256":"3b25ae73f8a1c8876bfcb6a983dade12222ecec141673ca4e715ae60b75d25db","photo_marker_sha256":"24d4e8a322ae92f35eb5648a37ab96ddc6b6269faf6acb08ee162088909e19b4"},{"hotel_id":4432,"source_message_id":"247","caption_sha256":"535c1ba0b897df8cded9d23a569f4c76907cdb551cdb1d705979dc51d7394b65","photo_marker_sha256":"6a9c74afe7714e26ce4d7761fd07277b53e954575e1b47e3073e7367cb77f13e"},{"hotel_id":82567,"source_message_id":"252","caption_sha256":"443627ff703d0e863fb2e3bdb99b7d6f90cca0d887dee00882654a77fb92a730","photo_marker_sha256":"875f3b2edcc3d0f6ab78e5b6043a101224b8a7146d7317418ad89c7674e85820"},{"hotel_id":65020,"source_message_id":"292","caption_sha256":"d42236e9208d06b52ec5a0c785468b28d534cac16708293e95ea215421c33e5a","photo_marker_sha256":"b23882a00557c5f53bf6f527bc0236c5eaf0fd02c530c412d19f3fcd63065b45"},{"hotel_id":36451,"source_message_id":"482","caption_sha256":"77b550cbde229be37b91205ef09ad1493d530160c9a70dcef00fcec6cd93c271","photo_marker_sha256":"b84b8034f1321b12689a7a80ffeff2678b3fc4758b849f87e1738ec77ce0a021"},{"hotel_id":57039,"source_message_id":"502","caption_sha256":"9ebb979d0ad0bf199ef417da2b4c4b9c7c9a368058638f675901e28e7bc585cb","photo_marker_sha256":"4c730423783a1e9b7caaf1bdf130435397243d4a33235051e16e0f7e84d081d5"},{"hotel_id":65266,"source_message_id":"503","caption_sha256":"2cb019e817b6611eb109a1b1516a578f2db5a295b37546c819f76485d85ad3d9","photo_marker_sha256":"ac8f78ca1b72adcb8a7bf524069f23c70ea0fc905e22bb7ad3d8b35c7f060695"},{"hotel_id":57217,"source_message_id":"246","caption_sha256":"182318a8f7c8ce96efaa8c3b1ff16098701c828a741dd2f9741ac2e5e81f870f","photo_marker_sha256":"751a49b1123c04a4352a7c1d0d164d54c9a35af8d025b3e1a13f829356bf9638"},{"hotel_id":77625,"source_message_id":"382","caption_sha256":"df144903a8f2799c6e03e06c9b615afd81c02b9bd2591e0a2e5dac861674ca60","photo_marker_sha256":"22dcf83f07c7f3acbec2ecf47bf3add17e7616e0afa09d872b987cb8ad53a9e7"},{"hotel_id":2810,"source_message_id":"383","caption_sha256":"ea495666513d042dc55be508976232b1b501956c0a0534c8402bc456fb17ce41","photo_marker_sha256":"77255233e24036219e1d4e009076f77aff149c656e46e6fb88d5f4a617894489"}]',true,32,JSON_THROW_ON_ERROR);
-          $pdo=null;$lock=null;$acquired=null;$start=hrtime(true);$stage='runtime';
-          try{
-           requireRead(count($scope)===58,'reserve_scope_changed');runtimeRead();
-           $out['resources_before']=resourcesRead();$out['resource_budget']=serverReadBudgetRead($out['resources_before']);
-           requireRead($out['resource_budget']['allowed'],'server_resource_hold');
-           ob_start();try{require APP.'/config.php';require_once APP.'/services/ProjectConfig.php';
-            require_once APP.'/services/ChannelPostRegistryService.php';require_once APP.'/services/ChannelPostButtonTransport.php';
-            require_once APP.'/services/ChannelPostRuntime.php';}finally{ob_end_clean();}
-           requireRead(ProjectConfig::projectId()==='anytour','project_changed');
-           require_once APP.'/hotel-posts-telegram-main19.php';$xml=anytourTelegramFeedRead();$feed=anytourTelegramFeedOfferUrls($xml);$routes=anytourTelegramFeedDestinationPosts($feed);
-           $out['feed_count']=count($feed);$out['feed_sha256']=hash('sha256',$xml);
-           $pdo=ConversationDb::connection();$pdo->exec('SET SESSION TRANSACTION READ ONLY');$registry=new ChannelPostRegistryService($pdo);
-           $out['mysql_before']=mysqlResourcesRead($pdo);
-           $leasePath=OPERATIONS.'/monitor-price-after-collection-v1.jsonl';
-           requireRead(!is_link($leasePath)&&is_file($leasePath),'price_editor_lease_unknown');
-           $lock=fopen($leasePath,'rb');requireRead(is_resource($lock),'price_read_lease_unavailable');
-           $shared=flock($lock,LOCK_SH|LOCK_NB);$acquired=$shared?hrtime(true):null;
-           $out['price_editor_shared_read_lease']=$shared;$out['preparation_during_price_hold']=!$shared;
-           $budget=hrtime(true);$pdo->beginTransaction();
-           foreach($scope as $i=>$candidate){
-            if((hrtime(true)-$budget)>2500000000){$out['remaining_unread_count']=count($scope)-$i;break;}
-            $hotel=$candidate['hotel_id'];$mid=$candidate['source_message_id'];$stage='source_'.$hotel;
-            $row=$candidate+['native_source_ready'=>false,'target_checked'=>false,'write_admission'=>false];
-            try{
-             $n=publicationRead($pdo,$registry,10,$mid);$row['source_native']=$n;
-             $q=$pdo->prepare("SELECT p.id,p.external_message_id FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id WHERE p.post_channel_id=6 AND (JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id'))=? OR JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.logical_id')) IN (?,?)) LIMIT 3");
-             $q->execute([(string)$hotel,'commercial-hotel-'.$hotel.'-v1','commercial-main-hotel-'.$hotel.'-v1']);
-             $row['existing_large_hotel_matches']=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();
-             $url='https://t.me/any_toour/'.$mid;$offer='tg_'.$hotel;
-             $row['current_source_offer_matches']=($feed[$offer]??null)===$url&&($routes[$offer]??null)===$url;
-             $row['public_caption_observation_unchanged']=is_array($n)&&($n['caption_sha256']??null)===$candidate['caption_sha256'];
-             $a=is_array($n)&&count($n['attachments']??[])===1?$n['attachments'][0]:null;
-             $checks=['native_identity'=>is_array($n)&&($n['hotel_id']??null)===$hotel&&($n['post_url']??null)===$url,
-              'current_token'=>is_array($n)&&($n['current_token_resolves']??false)===true,
-              'source_sent'=>is_array($n)&&($n['state']??null)==='sent',
-              'no_active_or_unknown'=>is_array($n)&&($n['native_claim_held_or_unknown']??true)===false,
-              'one_reusable_photo'=>is_array($a)&&($a['reusable_telegram_photo']??false)===true,
-              'one_expected_button'=>is_array($n)&&($n['one_expected_button']??false)===true,
-              'current_feed_source'=>$row['current_source_offer_matches'],
-              'not_in_large_registry'=>$row['existing_large_hotel_matches']===[]];
-             $row['checks']=$checks;$row['native_source_ready']=!in_array(false,$checks,true);
-             $row['holds']=array_keys(array_filter($checks,static fn($v)=>!$v));
-            }catch(Throwable $e){$row['hold_reason']=reasonRead($e);}
-            $out['rows'][]=$row;
+          function jsonRead(array $value): string
+          {
+              return json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+          }
+          function reasonRead(Throwable $e): string
+          {
+              return get_class($e) === RuntimeException::class
+                  && preg_match('/\A[a-z_]{1,100}\z/D', $e->getMessage()) === 1 ? $e->getMessage() : 'read_evidence_unavailable';
+          }
+          function publicRetryLimit(?string $raw, int $now): array
+          {
+              if ($raw !== null && (strlen($raw)>160 || preg_match('/\A[\x20-\x7E]*\z/D',$raw)!==1)) $raw=null;
+              $seconds = null;
+              if ($raw !== null && preg_match('/\A[0-9]{1,8}\z/D',$raw) === 1) $seconds=(int)$raw;
+              elseif ($raw !== null) {
+                  $when=DateTimeImmutable::createFromFormat(DateTimeInterface::RFC7231,$raw,new DateTimeZone('UTC'));
+                  if ($when!==false && $when->format(DateTimeInterface::RFC7231)===$raw) $seconds=max(0,$when->getTimestamp()-$now);
+              }
+              return ['observed_at_utc'=>gmdate(DATE_ATOM,$now), 'retry_after_raw'=>$raw,
+                  'retry_after_seconds'=>$seconds, 'resume_not_before_unix'=>$seconds===null?null:$now+$seconds];
+          }
+          function albumStructureRead(DOMDocument $dom, DOMXPath $xp, DOMNode $node, string $url, string $message, string $body): array
+          {
+              $cls=static fn(string $c):string=>'contains(concat(" ",normalize-space(@class)," ")," '.$c.' ")';
+              $texts=$xp->query('.//*['.$cls('tgme_widget_message_text').']',$node);
+              $photos=$xp->query('.//*['.$cls('tgme_widget_message_photo_wrap').']',$node);
+              $other=$xp->query('.//video|.//audio|.//*['.$cls('tgme_widget_message_video_thumb').' or '.$cls('tgme_widget_message_roundvideo').']',$node);
+              $videos=$xp->query('.//video|.//*['.$cls('tgme_widget_message_video_thumb').']',$node);
+              $roundVideos=$xp->query('.//*['.$cls('tgme_widget_message_roundvideo').']',$node);
+              $times=$xp->query('.//time[@datetime]',$node);
+              $links=$xp->query('.//a[@href]',$node);
+              requireRead($texts&&$photos&&$other&&$times&&$links&&$texts->length<=6&&$photos->length<=6&&$other->length<=6&&$times->length<=6&&$links->length<=100,'album_structure_unbounded');
+              $captions=[];foreach($texts as $text){$html='';foreach($text->childNodes as $child)$html.=$dom->saveHTML($child);
+                  $plain=html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i',"\n",$html)),ENT_QUOTES|ENT_HTML5,'UTF-8');
+                  requireRead(mb_check_encoding($plain,'UTF-8')&&mb_strlen($plain,'UTF-8')<=12000,'album_text_unbounded');
+                  $captions[]=['text'=>$plain,'sha256'=>hash('sha256',$plain),'owner_data_post'=>$node->getAttribute('data-post')];}
+              $dates=[];foreach($times as $time)$dates[]=$time->getAttribute('datetime');
+              $members=[];$buttons=[];foreach($links as $link){$href=$link->getAttribute('href');
+                  if(preg_match('~\Ahttps://t\.me/anytour/(931|932|933|934|935|936)(?:\?[^\s<>]*)?\z~D',$href,$m))$members[]=$m[1];
+                  if(str_contains(' '.$link->getAttribute('class').' ',' tgme_widget_message_inline_button '))$buttons[]=['text'=>mb_substr(trim($link->textContent),0,180),'url_sha256'=>hash('sha256',$href)];}
+              $caption=count($captions)===1?$captions[0]['text']:null;
+              return ['url'=>$url,'caption'=>$caption,'caption_sha256'=>$caption===null?null:hash('sha256',$caption),'html_sha256'=>hash('sha256',$body),
+                  'published_at'=>count($dates)===1?$dates[0]:null,'published_unixtime'=>count($dates)===1?(new DateTimeImmutable($dates[0]))->getTimestamp():null,
+                  'single_photo'=>false,'photo_url'=>'','photo_marker_sha256'=>null,'photo_count'=>$photos->length,'other_media_count'=>$other->length,
+                  'video_count'=>$videos->length,'roundvideo_count'=>$roundVideos->length,'buttons'=>$buttons,
+                  'format_observation'=>['requested_mid'=>$message,'root_data_post'=>$node->getAttribute('data-post'),'caption_nodes'=>$captions,'dates'=>$dates,
+                      'linked_album_mids'=>array_values(array_unique($members)),'caption_mid_confirmed'=>false,'native_album_membership_confirmed'=>false,'keyboard_admission_confirmed'=>false]];
+          }
+          
+          function parsePublicRead(string $body, string $channel, string $message): array
+          {
+              $url = 'https://t.me/' . $channel . '/' . $message;
+              $doc = new DOMDocument('1.0', 'UTF-8');
+              $prior = libxml_use_internal_errors(true);
+              try { $loaded = $doc->loadHTML($body, LIBXML_NONET); }
+              finally { libxml_clear_errors(); libxml_use_internal_errors($prior); }
+              requireRead($loaded, 'public_post_invalid');
+              $xp = new DOMXPath($doc);
+              $nodes = $xp->query('//*[@data-post="' . $channel . '/' . $message . '"]');
+              requireRead($nodes && $nodes->length === 1, 'public_identity_changed');
+              $node = $nodes->item(0);
+              if($channel==='anytour' && in_array($message,['931','932','933','934','935','936'],true)) return albumStructureRead($doc,$xp,$node,$url,$message,$body);
+              $cls = static fn(string $c): string => 'contains(concat(" ",normalize-space(@class)," ")," ' . $c . ' ")';
+              $text = $xp->query('.//*[' . $cls('tgme_widget_message_text') . ']', $node);
+              $photos = $xp->query('.//*[' . $cls('tgme_widget_message_photo_wrap') . ']', $node);
+              $dates = $xp->query('.//time[@datetime]', $node);
+              $other = $xp->query('.//video|.//audio|.//*[' . $cls('tgme_widget_message_video_thumb')
+                  . ' or ' . $cls('tgme_widget_message_roundvideo') . ' or ' . $cls('tgme_widget_message_grouped') . ']', $node);
+              $videos = $xp->query('.//video|.//*['.$cls('tgme_widget_message_video_thumb').']', $node);
+              $roundVideos = $xp->query('.//*['.$cls('tgme_widget_message_roundvideo').']', $node);
+              requireRead($text && $photos && $dates && $other && $text->length === 1 && $dates->length === 1,
+                  'public_caption_or_date_unavailable');
+              $html = '';
+              foreach ($text->item(0)->childNodes as $child) $html .= $doc->saveHTML($child);
+              $caption = html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i', "\n", $html)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+              requireRead($caption !== '' && mb_check_encoding($caption, 'UTF-8') && mb_strlen($caption, 'UTF-8') <= 12000,
+                  'public_caption_invalid');
+              $single = $photos->length === 1 && $other->length === 0;
+              $photo = $single ? $photos->item(0) : null;
+              $marker = $photo ? trim($photo->getAttribute('class')) : '';
+              $photoUrl = '';
+              if ($photo && $photo->getAttribute('href') === $url
+                  && preg_match('/(?:^|\s)[0-9]{5,}(?:_[0-9]+)?(?:\s|$)/D', $marker) === 1
+                  && preg_match('~background-image:\s*url\([\'"]?(https://[^\'")]+)[\'"]?\)~', $photo->getAttribute('style'), $match) === 1) {
+                  $parsed = parse_url($match[1]);
+                  if (is_array($parsed) && ($parsed['scheme'] ?? '') === 'https'
+                      && preg_match('/\A(?:[a-z0-9-]+\.)*(?:cdn-telegram\.org|telegram-cdn\.org|telesco\.pe)\z/D', $parsed['host'] ?? '') === 1
+                      && !isset($parsed['user']) && !isset($parsed['pass']) && !isset($parsed['port'])) $photoUrl = $match[1];
+              }
+              $buttons = [];
+              $links = $xp->query('.//a[' . $cls('tgme_widget_message_inline_button') . ']', $node);
+              requireRead($links && $links->length <= 20, 'public_keyboard_unbounded');
+              foreach ($links as $link) {
+                  $href = $link->getAttribute('href');
+                  $buttons[] = ['text' => trim($link->textContent),
+                      'hotel_url' => preg_match('~\Ahttps://t\.me/anyru_bot\?start=p_[A-Za-z0-9_-]{8,60}\z~D', $href) === 1 ? $href : null,
+                      'url_sha256' => hash('sha256', $href)];
+              }
+              $captionLinks = [];
+              $anchors = $xp->query('.//a[@href]', $text->item(0));
+              if ($anchors) foreach ($anchors as $anchor) {
+                  if (count($captionLinks) >= 40) break;
+                  $href = $anchor->getAttribute('href');
+                  $captionLinks[] = ['text'=>mb_substr(trim($anchor->textContent),0,180),
+                      'url_sha256'=>hash('sha256',$href),
+                      'public_bot_url'=>preg_match('~\\Ahttps://t\\.me/anyru_bot\\?start=(?:tg_anytour_msk|p_[A-Za-z0-9_-]{8,60})\\z~D',$href) === 1 ? $href : null];
+              }
+              $documentAnchors = [];
+              $documentLinks = $xp->query('//a[@href]');
+              if ($documentLinks) foreach ($documentLinks as $anchor) {
+                  if (count($documentAnchors) >= 80) break;
+                  $href = $anchor->getAttribute('href');
+                  $documentAnchors[] = ['text'=>mb_substr(trim($anchor->textContent),0,180),
+                      'class'=>substr($anchor->getAttribute('class'),0,256), 'url_sha256'=>hash('sha256',$href),
+                      'public_start_url'=>preg_match('~\Ahttps://t\.me/[A-Za-z0-9_]{5,32}\?start=[A-Za-z0-9_-]{1,128}\z~D',$href)===1 ? $href : null];
+              }
+              return ['url' => $url, 'caption' => $caption, 'caption_sha256' => hash('sha256', $caption),
+                  'html_sha256' => hash('sha256', $body), 'published_at' => $dates->item(0)->getAttribute('datetime'),
+                  'published_unixtime' => (new DateTimeImmutable($dates->item(0)->getAttribute('datetime')))->getTimestamp(),
+                  'single_photo' => $single && $photoUrl !== '', 'photo_url' => $photoUrl,
+                  'photo_count' => $photos->length, 'other_media_count' => $other->length,
+                  'video_count'=>$videos->length, 'roundvideo_count'=>$roundVideos->length, 'caption_links'=>$captionLinks,
+                  'document_anchors'=>$documentAnchors, 'document_anchors_truncated'=>$documentLinks && $documentLinks->length>80,
+                  'photo_marker_sha256' => $marker !== '' ? hash('sha256', $marker) : null, 'buttons' => $buttons];
+          }
+          
+          function corroborateTargetKeyboard(array $embedded, array $archive): array
+          {
+              requireRead($embedded['url'] === $archive['url']
+                  && $embedded['published_unixtime'] === $archive['published_unixtime']
+                  && $embedded['caption_sha256'] === $archive['caption_sha256'],
+                  'target_keyboard_archive_identity_changed');
+              requireRead($embedded['buttons'] === [] || $embedded['buttons'] === $archive['buttons'],
+                  'target_keyboard_archive_changed');
+              $embedded['buttons'] = $archive['buttons'];
+              $embedded['target_keyboard_archive_verified'] = true;
+              return $embedded;
+          }
+          
+          
+          function captionPublicBytes(string $url,array &$rates,int $limit=1000000):array{
+           $host=(string)parse_url($url,PHP_URL_HOST);if(isset($rates[$host]))return ['ok'=>false,'reason'=>'public_retry_after_held','retry_after'=>$rates[$host],'http_attempts'=>0];
+           $body='';$retry=null;$c=curl_init($url);curl_setopt_array($c,[CURLOPT_FOLLOWLOCATION=>false,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,CURLOPT_CONNECTTIMEOUT=>5,CURLOPT_TIMEOUT=>15,CURLOPT_USERAGENT=>'Mozilla/5.0',CURLOPT_HEADERFUNCTION=>static function($c,string $line)use(&$retry):int{if(stripos($line,'retry-after:')===0)$retry=trim(substr($line,12));return strlen($line);},CURLOPT_WRITEFUNCTION=>static function($c,string $chunk)use(&$body,$limit):int{if(strlen($body)+strlen($chunk)>$limit)return 0;$body.=$chunk;return strlen($chunk);}]);$ok=curl_exec($c)!==false&&curl_errno($c)===0;$status=(int)curl_getinfo($c,CURLINFO_HTTP_CODE);curl_close($c);
+           if($status===429)$rates[$host]=publicRetryLimit($retry,time());return ['ok'=>$ok&&$status===200,'http'=>$status,'body'=>$body,'body_sha256'=>hash('sha256',$body),'http_attempts'=>1,'retry_after'=>$status===429?$rates[$host]:null];
+          }
+          
+          $scope=json_decode('["520","521","522","523","524","525","527","528","529","530","531","532","533","534","535","536","537","538","539","540","541","542","543","544","545","546","547","548","549","550","551","552","553","554","555","556","557","558","559","561","562","563","564","565","566","568","569","570","571","572"]',true,8,JSON_THROW_ON_ERROR);
+          requireRead(count($scope)===50&&count(array_unique($scope))===50,'target_scope_changed');
+          $rates=[];$used=null;
+          $out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_existing_target50_public_observation','native_run_id'=>getenv('GITHUB_RUN_ID'),
+           'reader_source_sha'=>getenv('GITHUB_SHA'),'write_admission'=>false,'provider_writes'=>0,'production_writes'=>0,
+           'server_calls'=>0,'sql_queries'=>0,'price_lease_acquisitions'=>0,'manager2_http_calls'=>0,
+           'native_target_occupancy_verified'=>false,'complete_ready_pair_count'=>0,'scope_count'=>50,'rows'=>[]];
+          $feed=captionPublicBytes('https://app.anytoour.ru/feed/hotel-posts-telegram.xml',$rates,5000000);
+          $out['feed_http']=$feed['http'];$out['feed_sha256']=$feed['body_sha256'];
+          if($feed['ok']){
+           $doc=new DOMDocument();$previous=libxml_use_internal_errors(true);
+           try{$loaded=$doc->loadXML($feed['body'],LIBXML_NONET);}finally{libxml_clear_errors();libxml_use_internal_errors($previous);}
+           if($loaded){$xp=new DOMXPath($doc);$offers=$xp->query('//offer');$links=$xp->query('//offer/url');
+            if($offers&&$links&&$offers->length===1055&&$links->length===1055){$used=[];
+             foreach($links as $link){$url=trim($link->textContent);if(preg_match('~\Ahttps://t\.me/anytour/([1-9][0-9]{0,9})\z~D',$url,$m))$used[$m[1]]=true;}
+             $out['feed_offer_count']=1055;$out['current_large_feed_target_count']=count($used);
+            }
            }
-           $pdo->rollBack();$out['mysql_after']=mysqlResourcesRead($pdo);runtimeRead();$out['ok']=true;
-          }catch(Throwable $e){$out['failure_stage']=$stage;$out['failure_reason']=reasonRead($e);}
-          finally{if($pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();if(is_resource($lock)){if($acquired!==null){$out['price_shared_lease_held_ms']=(int)((hrtime(true)-$acquired)/1000000);flock($lock,LOCK_UN);}fclose($lock);}}
-          $out['scope_count']=count($scope);$out['native_source_ready_count']=count(array_filter($out['rows'],static fn($r)=>$r['native_source_ready']));
-          $out['resources_after']=resourcesRead();$out['read_elapsed_ms']=(int)((hrtime(true)-$start)/1000000);$out['read_at_utc']=gmdate(DATE_ATOM);
-          $out['checkpoint_sha256']=hash('sha256',jsonRead($out));echo jsonRead($out),PHP_EOL;exit($out['ok']?0:2);
-          '''
-          pathlib.Path('pub/read-only.php').write_text(program+entry)
-          PY
-          php -l pub/read-only.php
-      - name: Pin established SSH host continuity and authentication identity
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
-          PY
-          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
-            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
-          chmod 600 "$RUNNER_TEMP/channel_key"
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-          python3 - <<'PY'
-          import base64,hashlib,os,pathlib,subprocess
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
-          for s in scan.stdout.splitlines():
-              q=s.split()
-              if len(q)<3 or q[0].startswith('#'):continue
-              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
-              except Exception:continue
-              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
-          assert found,'HOST_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
-          print('ESTABLISHED_HOST_PIN_VERIFIED')
-          PY
-      - name: Read only the native source58 identities and existing duplicate bindings
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
-                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
-                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          status=0
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json || status=$?
-          python3 - <<'PY'
-          import json
-          d=json.load(open('pub/registry.json'))
-          assert d['operation']=='hotel_telegram_reserve_source_identity_inventory' and d['issue']==1566
-          assert d['production_writes']==d['provider_writes']==d['bot_starts']==0 and d['write_admission'] is False
-          print(json.dumps({'ok':d['ok'],'failure_stage':d.get('failure_stage'),'reason':d.get('failure_reason'),'source_ready':d['native_source_ready_count'],'rows':len(d['rows']),'ready_pairs':d['complete_ready_pair_count'],'unread':d.get('remaining_unread_count',0)}))
-          PY
-          test "$status" -eq 0
-      - name: Preserve the original bounded pair observation
+          }
+          $out['feed_occupancy_known']=is_array($used);
+          foreach($scope as $mid){
+           $row=['target_message_id'=>$mid,'url'=>'https://t.me/anytour/'.$mid,'write_admission'=>false,'native_occupancy_verified'=>false,
+            'current_feed_occupied'=>$used===null?null:isset($used[$mid]),'full_text_and_photo_review_required'=>true];
+           if($used!==null&&isset($used[$mid])){$row['hold_reason']='already_used_in_live_feed';$out['rows'][]=$row;continue;}
+           $views=[];
+           foreach(['embed','archive']as $kind){
+            $url=$kind==='embed'?'https://t.me/anytour/'.$mid.'?embed=1&mode=tme':'https://t.me/s/anytour?before='.((int)$mid+1);
+            $r=captionPublicBytes($url,$rates);
+            try{requireRead($r['ok'],'public_post_unavailable');$views[$kind]=parsePublicRead($r['body'],'anytour',$mid);}
+            catch(Throwable $e){$views[$kind]=['ok'=>false,'reason'=>reasonRead($e),'http'=>$r['http'],'retry_after'=>$r['retry_after']??null];}
+           }
+           try{
+            requireRead(isset($views['embed']['url'],$views['archive']['url']),'public_pair_incomplete');
+            $v=corroborateTargetKeyboard($views['embed'],$views['archive']);
+            requireRead($views['embed']['photo_marker_sha256']===$views['archive']['photo_marker_sha256'],'public_photo_marker_disagrees');
+            $row['public']=$v;$row['protected_text_hint']=preg_match('/отзыв|впечатлен|впечатлён|наши турист|наша турист|туристы вернулись|туристы поделились|видео.*менеджер|менеджер.*видео/iu',$v['caption'])===1;
+            $row['structure_only_candidate']=$v['single_photo']&&$v['buttons']===[]&&$v['published_unixtime']<1751328000
+             &&($v['video_count']??0)===0&&($v['roundvideo_count']??0)===0&&!$row['protected_text_hint'];
+            $row['semantic_protection_review_complete']=false;
+           }catch(Throwable $e){$row['hold_reason']=reasonRead($e);$row['views']=$views;}
+           $out['rows'][]=$row;
+           file_put_contents('pub/target50-public.json',jsonRead($out)."\n");
+          }
+          $out['read_at_utc']=gmdate(DATE_ATOM);$out['retry_after_holds']=$rates;
+          $out['structure_only_candidate_count']=count(array_filter($out['rows'],static fn($r)=>($r['structure_only_candidate']??false)===true));
+          file_put_contents('pub/target50-public.json',jsonRead($out)."\n");
+          echo jsonRead(['observed'=>count($out['rows']),'structure_candidates'=>$out['structure_only_candidate_count'],'write_admission'=>false])."\n";
+          PHP
+          php -l /tmp/pilot-public.php
+          php /tmp/pilot-public.php
+      - name: Preserve the independent public result and actual photos
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: issue-1566-telegram-ranked-preflight
-          path: |
-            pub/registry.json
+          path: pub/*
           retention-days: 7
-          if-no-files-found: warn
+          if-no-files-found: error
 
