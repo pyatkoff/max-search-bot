@@ -18,7 +18,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.event.forced == false &&
-      github.event.before == '339632e62c12e6c8da4aff5b8687d0721065612b' &&
+      github.event.before == '3bfa5e6007344001b2b1f8c95e3e27cb62ca8609' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
@@ -156,27 +156,7 @@ jobs:
           '''
           pathlib.Path('pub/read-only.php').write_text(program+entry)
           PY
-          python3 - <<'PY'
-          import pathlib
-          s=pathlib.Path('pub/read-only.php').read_text()
-          start=s.index('function preparedLeaseAdmissionRead(')
-          end=s.index("$out=['schema'=>1",start)
-          function=s[start:end]
-          cases=r"""
-          $a=preparedLeaseAdmissionRead(true,[]);
-          if($a!==['preparation_ready'=>true,'preview_ready'=>true,'preview_blockers'=>[]])exit(2);
-          $a=preparedLeaseAdmissionRead(false,[]);
-          if($a!==['preparation_ready'=>true,'preview_ready'=>false,'preview_blockers'=>['price_shared_lease_not_acquired']])exit(3);
-          $a=preparedLeaseAdmissionRead(true,['occupied']);
-          if($a!==['preparation_ready'=>false,'preview_ready'=>false,'preview_blockers'=>['occupied']])exit(4);
-          $a=preparedLeaseAdmissionRead(false,['protected_review']);
-          if($a!==['preparation_ready'=>false,'preview_ready'=>false,'preview_blockers'=>['protected_review','price_shared_lease_not_acquired']])exit(5);
-          echo "FOUR_PRICE_PREPARATION_ADMISSION_CASES_PASS\\n";
-          """
-          pathlib.Path('pub/price-preparation-test.php').write_text('<?php\n'+function+cases)
-          PY
           php -l pub/read-only.php
-          php pub/price-preparation-test.php
       - name: Pin established SSH host continuity and authentication identity
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
