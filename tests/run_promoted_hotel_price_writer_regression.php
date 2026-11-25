@@ -27,6 +27,26 @@ promotedPriceCheck(str_starts_with($html,"<b>✈️ Seagull &amp; Sea</b>\n\n") 
 promotedPriceCheck(PromotedHotelPriceWriter::maxPublicCaption('message:{text:"JAZ Fanara &amp; Residence"}')
     === 'JAZ Fanara & Residence', 'max_public_html_entities_not_decoded');
 
+$maxPublicUrl = 'https://max.ru/anytour/AaC42fW_AY0';
+$otherMaxPublicUrl = 'https://max.ru/anytour/AZ-d-XrfADw';
+$currentMaxPayload = static fn(string $url, string $text): string =>
+    'message:{id:117296836581982610,link:'.json_encode($url, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)
+    .',createdAt:"2026-09-19T08:48:07.103Z",updatedAt:"2026-11-25T03:47:56.337Z",text:'
+    .json_encode($text, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR).',attachments:[]}';
+$currentMax = $currentMaxPayload($maxPublicUrl, "✈️ Туры в Sun Siyam\nМоре &amp; пляж");
+$foreignMax = $currentMaxPayload($otherMaxPublicUrl, 'Другой пост');
+promotedPriceCheck(PromotedHotelPriceWriter::maxPublicCaption($foreignMax."\n".$currentMax, $maxPublicUrl)
+    === "✈️ Туры в Sun Siyam\nМоре & пляж", 'current_max_public_link_or_caption_lost');
+foreach ([$foreignMax, $currentMax."\n".$currentMax] as $unsafeMaxPublic) {
+    try {
+        PromotedHotelPriceWriter::maxPublicCaption($unsafeMaxPublic, $maxPublicUrl);
+    } catch (RuntimeException $error) {
+        promotedPriceCheck($error->getMessage()==='max_public_caption_unavailable', 'unexpected_max_public_failure');
+        continue;
+    }
+    throw new RuntimeException('wrong_or_ambiguous_max_public_link_accepted');
+}
+
 foreach ([
     fn()=>PromotedHotelPriceWriter::revision('Старая цена 100 000 ₽',$price,true),
     fn()=>PromotedHotelPriceWriter::revision(str_repeat('😀',510),$price,true),
