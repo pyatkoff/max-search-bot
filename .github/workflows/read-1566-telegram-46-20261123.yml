@@ -19,304 +19,37 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == '46054867f569649a2c6ef59590b73123f894fab6' &&
+      github.event.before == '16647d7f5cb89523600aa79cea7126a17b169d43' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 25
     steps:
-      - name: Check out the exact candidate packet
+      - name: Check out the exact existing release admission code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: 878c680627d54297c364254687577a03ac5aef6b
           persist-credentials: false
-      - name: Check out main for the existing release verifier
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          path: accepted
-          persist-credentials: false
-      - name: Require current accepted release and actual application
-        working-directory: accepted
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+      - name: Wait for the original source checks and verify ordinary ROUTE release admission
         shell: bash
-        run: |
-          set -euo pipefail
-          export READ_REPOSITORY_SHA="$(git rev-parse HEAD)"
-          node - <<'NODE'
-          const fs = require('node:fs')
-          const R = require('./tools/deployment_release')
-          const P = require('./tools/release_priority')
-          async function check() {
-            const expected = process.env.READ_REPOSITORY_SHA
-            const token = process.env.GITHUB_TOKEN
-            const api = R.makeReadApi(token)
-            const current = async () => (await api('GET', R.API_ROOT+'/git/ref/heads/main')).object.sha
-            if (!/^[a-f0-9]{40}$/.test(expected) || await current() !== expected) throw Error('main_changed')
-            const parent=R.API_ROOT+'/actions/runs/45385556709'
-            const run=await api('GET',parent)
-            const artifacts=(await api('GET',parent+'/artifacts?per_page=10')).artifacts
-            if (run.id!==45385556709 || run.repository.id!==1342493152 || run.head_sha!=='9838b4301727c7969ad0ff4dc585460c5d27986a' || run.head_branch!=='audit/anytour-hotel-ads-20261117' || run.event!=='push' || run.run_attempt!==1 || run.status!=='completed' || run.conclusion!=='success') throw Error('demand_rank_run_changed')
-            if (artifacts.length!==1 || artifacts[0].id!==14915463382 || artifacts[0].name!=='first-party-hotel-entry-rank' || artifacts[0].expired || artifacts[0].digest!=='sha256:b41f4d47c1041204ed6830730d7ab8805af15a0647787aa5658eecca398314fe') throw Error('demand_rank_artifact_changed')
-            const stopped=R.API_ROOT+'/actions/runs/45403192159'
-            const previousRead=await api('GET',stopped)
-            const oldArtifacts=(await api('GET',stopped+'/artifacts?per_page=10')).artifacts
-            if(previousRead.head_sha!=='c31f69d4dcc5707669c643ee7ecd516ba1e3e027' || previousRead.head_branch!=='ops/1566-telegram-46-native-read-20261123' || previousRead.run_attempt!==1 || previousRead.repository.id!==1342493152 || previousRead.status!=='completed' || previousRead.conclusion!=='success' || oldArtifacts.length!==1 || oldArtifacts[0].id!==14923997818 || oldArtifacts[0].digest!=='sha256:c937ea1b3d3e7f1c0caa8c5b4a70c18e84a61f09ac120dade5e6000c7bb72a14') throw Error('previous_read_changed')
-            const stoppedSide=R.API_ROOT+'/actions/runs/45516928385'
-            const stoppedSideRun=await api('GET',stoppedSide)
-            R.runIdentity(stoppedSideRun,{id:45516928385,attempt:1,head:'bb37e203976b58e4e2fd108f77ec79250d8cd8e1',workflow:'.github/workflows/read-1566-telegram-46-20261123.yml',event:'push',branch:'ops/1566-telegram-46-native-read-20261123',conclusion:'failure'})
-            const stoppedJobs=R.boundedList(await api('GET',stoppedSide+'/attempts/1/jobs?per_page=100'),'jobs','previous_native_read_incomplete')
-            if(stoppedJobs.length!==1||stoppedJobs[0].id!==138878647602||stoppedJobs[0].conclusion!=='failure')throw Error('previous_native_read_changed')
-            const stoppedSteps=stoppedJobs[0].steps
-            const stoppedGate=stoppedSteps.filter(s=>s.name==='Require current accepted release and actual application'&&s.conclusion==='failure')
-            const notExecuted=['Bind immutable packet to the admitted release and native run','Pin established SSH host continuity and authentication identity','Read one new hotel source and its exact historical Telegram target']
-            if(stoppedGate.length!==1||notExecuted.some(name=>stoppedSteps.filter(s=>s.name===name&&s.conclusion==='skipped'&&s.number>stoppedGate[0].number).length!==1))throw Error('previous_native_read_executed_or_unknown')
-            if(R.boundedList(await api('GET',stoppedSide+'/artifacts?per_page=100'),'artifacts','previous_native_artifacts_incomplete').length!==0)throw Error('previous_native_observation_requires_readback')
-            const prior9=R.API_ROOT+'/actions/runs/45528209335'
-            const prior9Run=await api('GET',prior9)
-            R.runIdentity(prior9Run,{id:45528209335,attempt:1,head:'6d2d191a95cf85829a6045fedebcaec5225ab78a',workflow:'.github/workflows/read-1566-telegram-46-20261123.yml',event:'push',branch:'ops/1566-telegram-46-native-read-20261123',conclusion:'success'})
-            const prior9Jobs=R.boundedList(await api('GET',prior9+'/attempts/1/jobs?per_page=100'),'jobs','prior9_jobs_incomplete')
-            if(prior9Jobs.length!==1||prior9Jobs[0].id!==138916711801||prior9Jobs[0].conclusion!=='success'||prior9Jobs[0].steps.filter(s=>s.name==='Read the nine prepared sources and historical targets without mutation'&&s.conclusion==='success').length!==1)throw Error('prior9_observation_changed')
-            const prior9Artifacts=R.boundedList(await api('GET',prior9+'/artifacts?per_page=100'),'artifacts','prior9_artifacts_incomplete')
-            if(prior9Artifacts.length!==1||prior9Artifacts[0].id!==14982204723||prior9Artifacts[0].size_in_bytes!==19890||prior9Artifacts[0].digest!=='sha256:cae7d3109ea5d55ae76d3d7a3e65549514c9a62b8419d99ec593a562cbe4e12f'||prior9Artifacts[0].expired)throw Error('prior9_original_changed')
-            const prior5=R.API_ROOT+'/actions/runs/45531105688'
-            const prior5Run=await api('GET',prior5)
-            R.runIdentity(prior5Run,{id:45531105688,attempt:1,head:'1f0ab0a8024f6a473e5658026715d3b91a02c51e',workflow:'.github/workflows/read-1566-telegram-46-20261123.yml',event:'push',branch:'ops/1566-telegram-46-native-read-20261123',conclusion:'success'})
-            const prior5Jobs=R.boundedList(await api('GET',prior5+'/attempts/1/jobs?per_page=100'),'jobs','prior5_jobs_incomplete')
-            if(prior5Jobs.length!==1||prior5Jobs[0].id!==138926334781||prior5Jobs[0].conclusion!=='success'||prior5Jobs[0].steps.filter(s=>s.name==='Read the five frozen sources and historical targets without mutation'&&s.conclusion==='success').length!==1)throw Error('prior5_observation_changed')
-            const prior5Artifacts=R.boundedList(await api('GET',prior5+'/artifacts?per_page=100'),'artifacts','prior5_artifacts_incomplete')
-            if(prior5Artifacts.length!==1||prior5Artifacts[0].id!==14985261108||prior5Artifacts[0].size_in_bytes!==12179||prior5Artifacts[0].digest!=='sha256:931e597d9b937ad98cdcbdbfbd6a4f6c3e050c1f79bc4de9f8d2de59c0f7ca49'||prior5Artifacts[0].expired)throw Error('prior5_original_changed')
-            const prior30=R.API_ROOT+'/actions/runs/45535459936'
-            const prior30Run=await api('GET',prior30)
-            R.runIdentity(prior30Run,{id:45535459936,attempt:1,head:'63560f2ba2b45540b11c2146a8362bb983e8a915',workflow:'.github/workflows/read-1566-telegram-46-20261123.yml',event:'push',branch:'ops/1566-telegram-46-native-read-20261123',conclusion:'success'})
-            const prior30Jobs=R.boundedList(await api('GET',prior30+'/attempts/1/jobs?per_page=100'),'jobs','prior30_jobs_incomplete')
-            if(prior30Jobs.length!==1||prior30Jobs[0].id!==138940840839||prior30Jobs[0].conclusion!=='success'||prior30Jobs[0].steps.filter(s=>s.name==='Read the thirty prepared sources and historical targets without mutation'&&s.conclusion==='success').length!==1)throw Error('prior30_observation_changed')
-            const prior30Artifacts=R.boundedList(await api('GET',prior30+'/artifacts?per_page=100'),'artifacts','prior30_artifacts_incomplete')
-            if(prior30Artifacts.length!==1||prior30Artifacts[0].id!==14986877522||prior30Artifacts[0].size_in_bytes!==72015||prior30Artifacts[0].digest!=='sha256:ce7224f3ffd5059594806cdbedc766c561fc90908d08b391eac75d7bbec07fad'||prior30Artifacts[0].expired)throw Error('prior30_original_changed')
-            const unresolved=R.API_ROOT+'/actions/runs/45552156293'
-            R.runIdentity(await api('GET',unresolved),{id:45552156293,attempt:1,head:'d8a0d794321ea89d8ac62205a22079656aa73d6a',workflow:'.github/workflows/edit-1566-ranked-46-historical-telegram.yml',event:'push',branch:'ops/anytour-hotel-ranked-plan-bcd13436197d3c306ad562d2c77bb97e29f10dfceced6b783bb23bcde2d37e4b',conclusion:'failure'})
-            const unresolvedArtifacts=R.boundedList(await api('GET',unresolved+'/artifacts?per_page=100'),'artifacts','original_write_artifacts_incomplete')
-            if(unresolvedArtifacts.length!==1||unresolvedArtifacts[0].id!==14993862147||unresolvedArtifacts[0].size_in_bytes!==1900||unresolvedArtifacts[0].digest!=='sha256:16861ea9663452ac978c52c01f934a4034b837de2854b181545b434161f2ba40'||unresolvedArtifacts[0].expired)throw Error('original_write_receipt_changed')
-            const attempt=R.API_ROOT+'/actions/runs/45567178733'
-            R.runIdentity(await api('GET',attempt),{id:45567178733,attempt:1,head:'878c680627d54297c364254687577a03ac5aef6b',workflow:'.github/workflows/edit-1566-ranked-46-historical-telegram.yml',event:'push',branch:'ops/anytour-hotel-ranked-plan-c8a4b60e6b9fd340f08b94faae3ae048d5a3cbc2ba3148aba82591315bf39141',conclusion:'failure'})
-            const rejectedArtifacts=R.boundedList(await api('GET',attempt+'/artifacts?per_page=100'),'artifacts','rejected_artifacts_incomplete')
-            if(rejectedArtifacts.length!==1||rejectedArtifacts[0].id!==15000950069||rejectedArtifacts[0].size_in_bytes!==2690||rejectedArtifacts[0].digest!=='sha256:9c910eea8d09bc86d7a17a807d34d662820a0b17098342593698c7e36b2c6c42'||rejectedArtifacts[0].expired)throw Error('rejected_original_changed')
-            const observed = await R.readRecord(api)
-            const resolution = await R.resolveCurrent(api, {sha:expected}, observed)
-            if (!resolution.ready || resolution.repository_sha !== expected || !/^[a-f0-9]{40}$/.test(resolution.application_sha)) throw Error('accepted_release_mismatch')
-            await P.verifyPreviousRelease({repository:R.REPOSITORY,baseSha:expected}, token, fetch)
-            const latest = await R.readRecord(api)
-            if (latest.blob !== observed.blob || latest.record_digest !== observed.record_digest || await current() !== expected) throw Error('accepted_release_changed')
-            fs.appendFileSync(process.env.GITHUB_ENV, 'REPOSITORY_SHA='+expected+'\nAPPLICATION_SHA='+resolution.application_sha+'\n')
-          }
-          check().catch(error => { console.error('read_release_refused', error.code || 'release_not_accepted'); process.exitCode=1 })
-          NODE
-      - name: Bind immutable packet to the admitted release and native run
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '284eb7705e4ec69db3be0f190d0af23b8514a32b'
-          mkdir pub
-          python3 - <<'PY'
-          import os,pathlib,re
-          p=pathlib.Path('tools/direct_demand/operations/read-1566-telegram-46-20261123.php')
-          program=p.read_text()
-          for name,pattern in [('APPLICATION_SHA',r'[a-f0-9]{40}'),('REPOSITORY_SHA',r'[a-f0-9]{40}'),('NATIVE_RUN_ID',r'[1-9][0-9]{0,19}')]:
-              value=os.environ['GITHUB_RUN_ID' if name=='NATIVE_RUN_ID' else name]
-              assert re.fullmatch(pattern,value) and program.count('__'+name+'__') == 1
-              program=program.replace('__'+name+'__',value)
-          pathlib.Path('pub/read-only.php').write_text(program)
-          PY
-          php -l pub/read-only.php
-          python3 - <<'PY'
-          import pathlib,re
-          s=pathlib.Path('pub/read-only.php').read_text()
-          a=re.search(r'function publicRetryLimit\([\s\S]*?(?=\nfunction runtimeRead)',s).group()
-          b=re.search(r'function publicEvidence\([\s\S]*?(?=\nfunction publicRead)',s).group()
-          stub="""<?php
-          function reasonRead(Throwable $e): string { return $e->getMessage(); }
-          function publicRead(string $channel,string $message): array {
-           global $publicAttempts,$publicRateLimit;
-           $publicAttempts++;
-           if($message==='429') { $publicRateLimit=publicRetryLimit('17',1700000000); throw new RuntimeException('public_rate_limited'); }
-           return ['url'=>'fixture','single_photo'=>true];
-          }
-          """
-          checks="""
-          function verifyFixture(bool $ok): void { if(!$ok)throw new RuntimeException('readonly_rate_contract_failed'); }
-          verifyFixture(publicRetryLimit('17',1700000000)['resume_not_before_unix']===1700000017);
-          verifyFixture(publicRetryLimit('Tue, 14 Nov 2023 22:14:20 GMT',1700000000)['retry_after_seconds']===60);
-          verifyFixture(publicRetryLimit('0',1700000000)['retry_after_seconds']===0);
-          verifyFixture(publicRetryLimit('tomorrow',1700000000)['resume_not_before_unix']===null);
-          verifyFixture(publicRetryLimit('-1',1700000000)['retry_after_seconds']===null);
-          verifyFixture(publicRetryLimit("17\\r\\nInject",1700000000)['retry_after_raw']===null);
-          $publicAttempts=0; $publicRateLimit=null;
-          $r=publicEvidence('fixture','ok'); verifyFixture($r['ok']&&$r['http_attempts']===1&&$publicAttempts===1);
-          $r=publicEvidence('fixture','429'); verifyFixture(!$r['ok']&&$r['http_attempts']===1&&$publicAttempts===2);
-          $r=publicEvidence('fixture','remaining'); verifyFixture(!$r['ok']&&$r['http_attempts']===0&&$publicAttempts===2&&$r['reason']==='public_retry_after_held');
-          echo "READONLY_PUBLIC_429_CONTRACT=PASS\\n";
-          """
-          pathlib.Path('pub/read-rate-fixture.php').write_text(stub+a+b+checks)
-          PY
-          php pub/read-rate-fixture.php
-          python3 - <<'PYTEST'
-          import pathlib
-          s=pathlib.Path('pub/read-only.php').read_text()
-          a=s[s.index('function albumStructureRead('):s.index('function publicRead(')]
-          b=s[s.index('function parsePublicRead('):s.index('function receiptRead(')]
-          stub="<?php\nfunction requireRead(bool $ok,string $r):void {if(!$ok)throw new RuntimeException($r); }\n"
-          tests=r"""
-          function verifyFormat(bool $ok):void{if(!$ok)throw new RuntimeException('format_observation_contract_failed');}
-          $date='<time datetime="2024-11-19T12:35:05+00:00"></time>';
-          $photo='<a class="tgme_widget_message_photo_wrap" href="https://t.me/anytour/931"></a>';
-          $html='<div data-post="anytour/931">'.$photo.$photo.$date.'</div>';
-          $r=parsePublicRead($html,'anytour','931');verifyFormat($r['photo_count']===2&&$r['caption']===null&&$r['photo_marker_sha256']===null&&!$r['single_photo']);
-          verifyFormat(!$r['format_observation']['caption_mid_confirmed']&&!$r['format_observation']['native_album_membership_confirmed']&&!$r['format_observation']['keyboard_admission_confirmed']);
-          $caps='<div class="tgme_widget_message_text">first</div><div class="tgme_widget_message_text">second</div>';
-          $r=parsePublicRead('<div data-post="anytour/931">'.$caps.$photo.$date.'</div>','anytour','931');verifyFormat(count($r['format_observation']['caption_nodes'])===2&&$r['caption_sha256']===null);
-          $r=parsePublicRead('<div data-post="anytour/931"><video></video>'.$date.'</div>','anytour','931');verifyFormat($r['other_media_count']===1&&!$r['format_observation']['native_album_membership_confirmed']);
-          try{parsePublicRead(str_replace('data-post="anytour/931"','data-post="anytour/932"',$html),'anytour','931');throw new LogicException('wrong_identity_admitted');}catch(RuntimeException $e){verifyFormat($e->getMessage()==='public_identity_changed');}
-          $text='<div data-post="anytour/647"><div class="tgme_widget_message_text">old commercial text</div>'.$date.'</div>';
-          $r=parsePublicRead($text,'anytour','647');verifyFormat($r['photo_count']===0&&$r['other_media_count']===0&&$r['photo_marker_sha256']===null&&!$r['single_photo']);
-          $fixture='<div data-post="anytour/1047"><div class="tgme_widget_message_text">old offer</div>'.$date;
-          $embed=parsePublicRead($fixture.'</div>','anytour','1047');
-          $archive=parsePublicRead($fixture.'<a class="tgme_widget_message_inline_button" href="https://t.me/AnyTour_MSK">Contact</a></div>','anytour','1047');
-          $merged=corroborateTargetKeyboard($embed,$archive);
-          verifyFormat($embed['buttons']===[]&&$merged['target_keyboard_archive_verified']===true&&count($merged['buttons'])===1);
-          $clear=corroborateTargetKeyboard($embed,$embed);
-          verifyFormat($clear['target_keyboard_archive_verified']===true&&$clear['buttons']===[]);
-          $changed=$archive;$changed['caption_sha256']=str_repeat('0',64);
-          try{corroborateTargetKeyboard($embed,$changed);throw new LogicException('changed_caption_admitted');}catch(RuntimeException $e){verifyFormat($e->getMessage()==='target_keyboard_archive_identity_changed');}
-          try{corroborateTargetKeyboard($archive,$embed);throw new LogicException('changed_keyboard_admitted');}catch(RuntimeException $e){verifyFormat($e->getMessage()==='target_keyboard_archive_changed');}
-          echo "ARCHIVE_KEYBOARD_CONTRACT=PASS\n";
-          echo "EXPLICIT_FORMAT_OBSERVATION_CONTRACT=PASS\n";
-          """
-          pathlib.Path('pub/read-format-fixture.php').write_text(stub+a+b+tests)
-          PYTEST
-          php pub/read-format-fixture.php
-          rm -f pub/read-format-fixture.php
-          rm -f pub/read-rate-fixture.php
-      - name: Pin established SSH host continuity and authentication identity
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
-          PY
-          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
-            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
-          chmod 600 "$RUNNER_TEMP/channel_key"
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-          python3 - <<'PY'
-          import base64,hashlib,os,pathlib,subprocess
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
-          for s in scan.stdout.splitlines():
-              q=s.split()
-              if len(q)<3 or q[0].startswith('#'):continue
-              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
-              except Exception:continue
-              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
-          assert found,'HOST_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
-          print('ESTABLISHED_HOST_PIN_VERIFIED')
-          PY
-      - name: Observe explicit text647 and six album members without write admission
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
-                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
-                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          status=0
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json || status=$?
-          python3 - <<'PY'
-          import json
-          d=json.load(open('pub/registry.json'))
-          if not d['ok']: print(json.dumps({k:d[k] for k in ('failure_stage','failure_reason') if k in d}))
-          assert d['ok'] and d['operation']=='hotel_archive_telegram_ranked_registry'
-          assert d['production_writes']==d['provider_writes']==d['bot_starts']==0
-          assert [r['hotel_id'] for r in d['rows']]==[1494,82567]
-          assert [int(r['target_message_id']) for r in d['rows']]==[647,931]
-          assert 0 < d['public_get_attempts'] <= 10
-          text_target=d['rows'][0]['target_public']
-          assert text_target['ok'] and text_target['http_attempts']==2 and text_target['target_keyboard_archive_verified'] is True
-          assert d['public_get_attempts']==sum(r[p]['http_attempts'] for r in d['rows'] for p in ('source_public','target_public'))+sum(m['http_attempts'] for r in d['rows'] for k,m in (r['target_album_public_members'].items() if isinstance(r['target_album_public_members'],dict) else []) if k!='931')
-          assert d['format_support_observation_only'] is True and d['write_admission'] is False and all(r['preview_ready'] is False for r in d['rows'])
-          assert all('prepared_target_snapshot_not_bound' not in r['preview_blockers'] for r in d['rows'])
-          assert 65020 not in [r['hotel_id'] for r in d['rows']]
-          f=d['route_feed_source']; assert f['kind']=='canonical_local_raw_xml' and len(f['raw_utf8'].encode())==f['bytes']
-          import hashlib
-          assert hashlib.sha256(f['raw_utf8'].encode()).hexdigest()==f['sha256']==d['current_feed_sha256']
-          assert isinstance(d['price_lease_held_ms'],int) and isinstance(d['read_elapsed_ms'],int)
-          print(json.dumps({'checkpoint_sha256':d['checkpoint_sha256'],'read_at_utc':d['read_at_utc'],'rows':[{'hotel_id':r['hotel_id'],'target_message_id':r['target_message_id'],'preview_ready':r['preview_ready'],'blockers':r['preview_blockers'],'source_publication_id':(r['source_native'] or {}).get('publication_id'),'target_publication_id':(r['target_native'] or {}).get('publication_id')} for r in d['rows']]}))
-          PY
-          test "$status" -eq 0
-      - name: Save the bounded native observation
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: issue-1566-telegram-ranked-preflight
-          path: pub/registry.json
-          retention-days: 7
-          if-no-files-found: warn
-      - name: Remove runner connection material
-        if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
-      - name: Check out the existing ROUTE builder
-        uses: actions/checkout@v4
-        with:
-          ref: acf414301ac2f5bdab52e3de0e968b538d2c2dd1
-          path: route-preparation
-          persist-credentials: false
-      - name: Prepare the eighteen already verified routes from canonical receipts
         env:
           GH_TOKEN: ${{ github.token }}
-        shell: bash
+          GITHUB_TOKEN: ${{ github.token }}
+          EXPECTED_ROUTE_HEAD: e97ca8ac147cee8fd2db9149994d7026ca5378cc
         run: |
           set -euo pipefail
-          test "$(git -C accepted rev-parse HEAD)" = "$REPOSITORY_SHA"
-          test "$(git -C route-preparation rev-parse HEAD)" = "acf414301ac2f5bdab52e3de0e968b538d2c2dd1"
-          cp accepted/hotel-posts-telegram-main19.php route-preparation/
-          cp accepted/config/anytour_ranked_* route-preparation/config/
-          python3 - <<'PY'
-          import hashlib,json,pathlib
-          d=json.loads(pathlib.Path('pub/registry.json').read_bytes())
-          feed=d['route_feed_source']
-          raw=feed['raw_utf8'].encode('utf-8')
-          assert d['ok'] and d['production_writes']==d['provider_writes']==0
-          assert len(raw)==feed['bytes'] and hashlib.sha256(raw).hexdigest()==feed['sha256']==d['current_feed_sha256']
-          pathlib.Path('pub/route-feed.xml').write_bytes(raw)
-          PY
-          python3 route-preparation/tools/merge_ranked_telegram_routes.py \
-            "$PWD/pub/route-feed.xml" "$PWD/pub/route-candidate" 45533991881 45534197709 45538372322
-          php -l pub/route-candidate/hotel-posts-telegram-main19.php
-          python3 - <<'PY'
-          import json,pathlib
-          d=json.loads(pathlib.Path('pub/route-candidate/route-candidate.json').read_bytes())
-          expected=set(["tg_1067","tg_1100","tg_1142","tg_1151","tg_1221","tg_1334","tg_1336","tg_1421","tg_1429","tg_2522","tg_2794","tg_4060","tg_8020","tg_32322","tg_1014","tg_14140","tg_1402","tg_1959"])
-          assert len(d['changes'])==18 and {r['offer_id'] for r in d['changes']}==expected
-          assert d['already_configured']==d['held']==[] and d['feed']['offers']==1055 and d['feed']['unchanged']==1037
-          print(json.dumps({'candidate':d['resolver'],'feed':d['feed'],'changes':d['changes'],'source_runs':[r['public']['run_id'] for r in d['receipts']]},ensure_ascii=False))
-          PY
-      - name: Save prepared routes for the existing ROUTE owner
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: issue-1566-telegram-routes-18-candidate
-          path: pub/route-candidate/
-          retention-days: 7
-          if-no-files-found: error
-
+          test "$(git rev-parse HEAD)" = "878c680627d54297c364254687577a03ac5aef6b"
+          for run in 45582243573 45582243537; do
+            while true; do
+              result="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" --jq '[.head_sha, .event, (.run_attempt|tostring), .status, (.conclusion // "-")] | @tsv')"
+              IFS=$'\t' read -r head event attempt status conclusion <<< "$result"
+              test "$head" = "$EXPECTED_ROUTE_HEAD"
+              test "$event" = 'pull_request'
+              test "$attempt" = '1'
+              if [[ "$status" == 'completed' ]]; then
+                test "$conclusion" = 'success'
+                break
+              fi
+              sleep 20
+            done
+          done
+          node tools/release_priority.js --admit 1699 "$EXPECTED_ROUTE_HEAD" 878c680627d54297c364254687577a03ac5aef6b
