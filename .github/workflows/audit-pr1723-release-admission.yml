@@ -1,0 +1,72 @@
+name: Verify PR1723 release admission
+on:
+  push:
+    branches: [audit/pr1723-before-admission-20261125, audit/pr1723-bound-admission-20261125]
+permissions:
+  actions: read
+  contents: read
+  issues: read
+  pull-requests: read
+jobs:
+  admission:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.created && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    env:
+      SOURCE: 0743f8e71160021422e15fe0aad59bf76bcbb561
+      BASE: fe28a6383d16139691300821dd4ce768a9c2d096
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE }}
+          persist-credentials: false
+      - name: Verify the current base and the exact PR checks
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE"
+          python3 - <<'PY'
+          import json, os, time, urllib.request
+          root = 'https://api.github.com/repos/pyatkoff/max-search-bot/'
+          headers = {'Authorization': 'Bearer ' + os.environ['GITHUB_TOKEN']}
+          def get(path):
+              with urllib.request.urlopen(urllib.request.Request(root+path, headers=headers), timeout=10) as reply:
+                  return json.load(reply)
+          paths = {'.github/workflows/regression-tests.yml', '.github/workflows/retired-domain-guard.yml'}
+          visual = 'Workspace V2 visual QA'
+          until = time.monotonic()+1250
+          while time.monotonic()<until:
+              assert get('git/ref/heads/main')['object']['sha']==os.environ['BASE'], 'base changed'
+              pr = get('pulls/1723')
+              assert pr['state']=='open' and not pr['draft'] and pr['head']['sha']==os.environ['SOURCE']
+              response = get('actions/runs?head_sha='+os.environ['SOURCE']+'&per_page=100')
+              runs = response['workflow_runs']
+              assert len(runs)==response['total_count']<100
+              checks = [r for r in runs if r['path'] in paths or r['name']==visual]
+              assert len(checks)<=3 and all(r['head_sha']==os.environ['SOURCE'] and r['event']=='pull_request' for r in checks)
+              assert all(r['status']!='completed' or r['conclusion']=='success' for r in checks), 'exact-source CI failed'
+              if len(checks)==3 and paths.issubset({r['path'] for r in checks}) and any(r['name']==visual for r in checks) and all(r['status']=='completed' for r in checks):
+                  print('PR1723 required source checks: '+','.join(str(r['id']) for r in checks))
+                  break
+              time.sleep(20)
+          else:
+              raise SystemExit('Exact-source CI is still pending')
+          PY
+      - name: Reuse the canonical read-only admission
+        run: |
+          set -euo pipefail
+          args=(--admit 1723 "$SOURCE" "$BASE")
+          if [[ "$GITHUB_REF_NAME" == 'audit/pr1723-bound-admission-20261125' ]]; then
+            stamp="$(python3 - <<'PY'
+          import json, os, urllib.request
+          root = 'https://api.github.com/repos/pyatkoff/max-search-bot/'
+          headers = {'Authorization': 'Bearer ' + os.environ['GITHUB_TOKEN']}
+          with urllib.request.urlopen(urllib.request.Request(root+'issues/comments/6928374515', headers=headers), timeout=10) as reply:
+              slot = json.load(reply)
+          assert slot['id']==6928374515 and slot['body']=='PR1723: выпуск занят' and slot['user']['id']==226193297
+          print(slot['updated_at'])
+          PY
+          )"
+            args+=(--publisher 6928374515 226193297 "$stamp")
+          fi
+          node tools/release_priority.js "${args[@]}"
