@@ -1,4 +1,4 @@
-name: "#1566 Check existing scoped MAX PRICE admission on the current release"
+name: "#1566 Check the alternate existing commercial post for Adalya Elite Lara"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -19,16 +19,72 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '09692ba5b079463fe0d4973174ada26d4623dad5' &&
+      github.event.before == '70e80d14bea9d5a8e0747be716f9e02db49d4afc' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 29
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          ref: 84c8422b39c755b5c7ad396f05a58cf5870c9bec
-          persist-credentials: false
-      - name: Read the standard PRICE release admission
+      - name: Check exact archived MID and current public contents and offer identity
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: node tools/release_priority.js --admit 1719 e7ffb257449438f76a1636f1c98d38caa3e903bd 84c8422b39c755b5c7ad396f05a58cf5870c9bec
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14910511299/zip > original.zip
+          python3 - <<'PY'
+          import base64, hashlib, io, json, pathlib, re, urllib.request, zipfile
+          import xml.etree.ElementTree as ET
+          from concurrent.futures import ThreadPoolExecutor
+          from datetime import datetime, timezone
+          from html.parser import HTMLParser
+          scope={'hotel':47025,'offer':'max_47025','source':'https://max.ru/channel_anytour/AaG2esUuLcc','target':'https://max.ru/anytour/AZ82fl5vOjg'}
+          raw=pathlib.Path('original.zip').read_bytes()
+          assert hashlib.sha256(raw).hexdigest()=='c46ce092bfb91935ce829c871026a1136bf465920a3caa9184604f052c55798c'
+          with zipfile.ZipFile(io.BytesIO(raw)) as z:
+              assert z.namelist()==['registry.json']
+              data=z.read('registry.json')
+          assert hashlib.sha256(data).hexdigest()=='c65efd90090ab8669c0d7646d44d8927ea3658c39673696d2e147685f3ec7568'
+          archive=json.loads(data)
+          assert archive['history_complete'] and not archive['provider_writes']
+          match=[z for z in archive['rows'] if z['url']==scope['target']]
+          keys=('mid','url','published_ms','fingerprint','registered','media','keyboard_present','linked_message')
+          target={k:match[0][k] for k in keys} if len(match)==1 else None
+          def get(url, limit):
+              req=urllib.request.Request(url, headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
+              with urllib.request.urlopen(req,timeout=15) as r:
+                  assert r.status==200 and r.geturl()==url
+                  v=r.read(limit+1)
+              assert len(v)<=limit
+              return v
+          class Page(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True);self.meta={}
+              def handle_starttag(self, tag, attributes):
+                  if tag=='meta':
+                      d=dict(attributes);self.meta[d.get('property') or d.get('name')]=d.get('content','')
+          def post(name):
+              p=Page();p.feed(get(scope[name],3000000).decode())
+              desc=p.meta.get('og:description','')
+              return {'hotel_terms':bool(re.search(r'Adalya\s+Elite\s+Lara',desc,re.I)),'photo':bool(p.meta.get('og:image')),'description_start':desc[:210]}
+          def feed(name):
+              root=ET.fromstring(get('https://app.anytoour.ru/feed/hotel-posts-'+name+'.xml',8000000))
+              offers=root.findall('./shop/offers/offer')
+              ids=[x.get('id') for x in offers]
+              assert len(ids)==len(set(ids)) and all(ids)
+              direct=[o.get('id') for o in offers if scope['target'].split('/')[-1] in o.findtext('url','')]
+              found=next((o for o in offers if o.get('id')==scope['offer']),None)
+              if found is None:return {'offers':len(ids),'present':False}
+              href=found.findtext('url','')
+              token=re.search(r'_ctx1_([A-Za-z0-9_-]+)',href)
+              signed=json.loads(base64.urlsafe_b64decode(token[1]+'='*(-len(token[1])%4))) if token else {}
+              return {'offers':len(ids),'present':True,'alias':signed.get('post_id'),'context_offer':signed.get('offer_id'),'direct_target_offer_ids':direct,
+                      'attribution_macros':all(x in href for x in ('{yclid}','{campaign_id}','{region_id}')),'name':found.findtext('name','')}
+          with ThreadPoolExecutor(max_workers=3) as pool:
+              futures={key:pool.submit(fn,key) for fn, args in ((post,('source','target')),(feed,('max','all'))) for key in args}
+              results={}
+              for k,v in futures.items():
+                  try:results[k]=v.result()
+                  except Exception as e:results[k]={'error':type(e).__name__}
+          print('MAX_47025_RESERVE_EVIDENCE='+json.dumps({'at':datetime.now(timezone.utc).isoformat(),'target_archive':target,'checks':results,'writes':0,'ad_clicks':0},ensure_ascii=False,separators=(',',':')))
+          PY
