@@ -1099,9 +1099,13 @@ function publisherKeyboardPublic(string $archive, string $embedded, array $plan)
         foreach ($buttons as $button) {
             $url = $button->getAttribute('href');
             $text = trim($button->textContent);
+            // Telegram's public URL button adds this browser-only confirmation.
+            // Preserve the href; never execute JavaScript or accept other handlers.
+            $onclick = $button->hasAttribute('onclick') ? $button->getAttribute('onclick') : null;
             requirePost(strtolower($button->nodeName) === 'a' && $button->hasAttribute('href')
                 && preg_match('/(?:^|\s)url_button(?:\s|$)/D', $button->getAttribute('class')) === 1
-                && !$button->hasAttribute('onclick') && $text !== '' && mb_check_encoding($text, 'UTF-8')
+                && ($onclick === null || $onclick === "return confirm('Open this link?\\n\\n'+this.href);")
+                && $text !== '' && mb_check_encoding($text, 'UTF-8')
                 && mb_strlen($text, 'UTF-8') <= 120 && preg_match('/[\x00-\x1f\x7f]/u', $text) === 0
                 && preg_match('~\Ahttps://[^\s<>"\x00-\x1f]{1,2000}\z~uD', $url) === 1,
                 'publisher_pilot_keyboard_unsupported');
@@ -1197,6 +1201,9 @@ function publisherKeyboardExecute(array $plan, array $before, array $body, array
         $result = $base + ['ok'=>false, 'state'=>$attempts ? ($responseSaved ? 'response_saved_requires_readback'
             : 'provider_outcome_unknown') : 'held_before_provider', 'reason'=>transferReason($error),
             'provider_write_attempts'=>$attempts];
+        // A later public read failure must not hide the already classified answer
+        // to this single Telegram edit. Unknown responses remain unclassified.
+        if ($responseSaved && isset($state)) $result['native_state'] = $state;
         if ($responseSaved && isset($response['data']['error_code']) && is_int($response['data']['error_code'])) {
             $result['telegram_error_code'] = $response['data']['error_code'];
             $description = $response['data']['description'] ?? '';
