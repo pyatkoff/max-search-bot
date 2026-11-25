@@ -1,4 +1,4 @@
-name: "Verify the strict existing caption reader on the two held MAX posts"
+name: "Reproduce the MAX caption call on the exact before and after source"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -17,130 +17,70 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '8a71184e59ec5357d4e1c3ede92c0fcf907f2d91' &&
+      github.event.before == '6b048fd0deb930b1a1f883852fd218ee16f07912' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
-      - name: Pin established SSH host continuity and authentication identity
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 251331bb4cb4984e34e3c24e82fb8c2e7fdb29fe
+          path: before
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: caa0e2b376b1e7fc11eae261fcca9e29b8bf763b
+          path: after
+          persist-credentials: false
+      - name: Check the exact caller and production parser against a two-post landing page
         shell: bash
         run: |
           set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
-          PY
-          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
-            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
-          chmod 600 "$RUNNER_TEMP/channel_key"
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-          python3 - <<'PY'
-          import base64,hashlib,os,pathlib,subprocess
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
-          for s in scan.stdout.splitlines():
-              q=s.split()
-              if len(q)<3 or q[0].startswith('#'):continue
-              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
-              except Exception:continue
-              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
-          assert found,'HOST_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
-          print('ESTABLISHED_HOST_PIN_VERIFIED')
-          PY
-      - name: Read the existing caption and edit preconditions without starting the editor
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: |
-          set -euo pipefail
-          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
-                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
-                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' <<'PHP'
+          test "$(git -C before rev-parse HEAD)" = 251331bb4cb4984e34e3c24e82fb8c2e7fdb29fe
+          test "$(git -C after rev-parse HEAD)" = caa0e2b376b1e7fc11eae261fcca9e29b8bf763b
+          php -l after/tools/anytour_existing_post_batch.php
+          cat > "$RUNNER_TEMP/max-caption-call.php" <<'PHP'
           <?php
           declare(strict_types=1);
-          use function AnyTour\ExistingPostBatch\{readHotelMax,publicHotelPost,postPhotoIds,validHotelEditPlan};
-          ini_set('display_errors','0');
-          $root='/var/www/anytoour/data/www/app.anytoour.ru';
-          $ops='/var/www/anytoour/data/channel-post-operations';
-          $version=trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'));
-          $out=['at'=>gmdate('c'),'installed'=>$version,'rows'=>[],'provider_writes'=>0,'db_writes'=>0];
-          ob_start();
+          final class PromotedHotelPriceWriter {
+              public const URL='https://max.ru/anytour/AaBI6Jfvad8';
+              public static function publicBytes(string $url): string {
+                  if($url!==self::URL) throw new RuntimeException('wrong_fetch_url');
+                  return 'public_html_fixture';
+              }
+              public static function maxPublicCaption(string $html,?string $expectedUrl=null):string {
+                  if($html!=='public_html_fixture'||$expectedUrl!==self::URL)throw new RuntimeException('wrong_or_missing_public_url');
+                  return 'Moreno Horizon Spa & Resort';
+              }
+          }
+          require getcwd().'/'.$argv[1].'/tools/anytour_existing_post_batch.php';
           try {
-              if(getcwd()!==$root||!in_array($version,['3073195685c8d57808256af6836182262f25fead','251331bb4cb4984e34e3c24e82fb8c2e7fdb29fe'],true)) throw new RuntimeException('release_changed');
-              require_once $root.'/config.php';
-              require_once $root.'/tools/anytour_existing_post_batch.php';
-              require_once $root.'/services/PromotedHotelPriceWriter.php';
-              require_once $root.'/services/ChannelPostButtonTransport.php';
-              require_once $root.'/services/ChannelPostEntryService.php';
-              require_once $root.'/integrations/ChannelPostIncomingAdapter.php';
-              require_once $root.'/integrations/ChannelPostApiTransport.php';
-              $lock=$ops.'/monitor-price-after-collection-v1.jsonl';
-              $lease=is_file($lock)&&!is_link($lock)?fopen($lock,'rb'):null;
-              if(!is_resource($lease)||!flock($lease,LOCK_SH|LOCK_NB)) throw new RuntimeException('shared_lease_busy');
-              $db=ConversationDb::connection();
-              $db->exec('SET TRANSACTION READ ONLY');
-              $db->beginTransaction();
-              try {
-                  $registry=new ChannelPostRegistryService($db);
-                  foreach(json_decode('[{"hotel":1972,"mid":"mid.ffffc1752b045fed01a048e897ef69df","url":"https://max.ru/anytour/AaBI6Jfvad8"},{"hotel":32342,"mid":"mid.ffffc1752b045fed019febad19a5633d","url":"https://max.ru/anytour/AZ_rrRmlYz0"}]',true,16,JSON_THROW_ON_ERROR) as $r) {
-                      try {
-                          $q=$db->prepare('SELECT id FROM post_publications WHERE post_channel_id=4 AND external_message_id=?');
-                          $q->execute([$r['mid']]);
-                          $ids=$q->fetchAll(PDO::FETCH_COLUMN);
-                          if(count($ids)!==1) throw new RuntimeException('unverified_registry_identity');
-                          $id=(int)$ids[0];$post=$registry->publication($id);$snapshot=$post['snapshot']??[];
-                          if(($snapshot['post_url']??null)!==$r['url']||(int)($snapshot['metadata']['hotel_catalog_id']??0)!==$r['hotel']
-                              ||($post['project_key']??null)!=='anytour'||($post['state']??null)!=='sent') throw new RuntimeException('unverified_registry_identity');
-                          $r['publication_id']=$id;$r['version']=$post['version_id'];
-                          $q=$db->prepare("SELECT COUNT(*) FROM post_versions WHERE publication_id=? AND (state IN ('claimed','write_started','unknown') OR claim_token IS NOT NULL OR claimed_at IS NOT NULL)");
-                          $q->execute([$id]);$r['active_version_claims']=(int)$q->fetchColumn();
-                          $journal=$ops.'/issue-1566-edit-existing-'.$id.'.jsonl';
-                          $r['ordinary_editor_journal_present']=is_file($journal)&&filesize($journal)>0;
-                          $native=readHotelMax($r['mid'],'-68765999669267');
-                          $ordinary=null;
-                          try{$ordinary=publicHotelPost($r+['platform'=>'max']);}
-                          catch(Throwable $e){$r['ordinary_reader_failure']=$e->getMessage()==='max_public_caption_unavailable'?'max_public_caption_unavailable':'public_read_unavailable';}
-                          $raw=PromotedHotelPriceWriter::publicBytes($r['url']);
-                          $strict=PromotedHotelPriceWriter::maxPublicCaption($raw,$r['url']);
-                          $public=['text'=>$strict];
-                          $r['strict_reader_matches_native']=$strict===($native['text']??null);
-                          $r['ordinary_reader_matches_native']=is_array($ordinary)&&($ordinary['text']??null)===($native['text']??null);
-                          $button=ChannelPostButtonTransport::buttonUrl($post);
-                          $ctx=ChannelPostEntryService::resolve('max',$post['start_payload'],$registry);
-                          $r['native_registry_agree']=($native['text']??null)===($snapshot['text']??null);
-                          $r['public_reader_native_agree']=($public['text']??null)===($native['text']??null);
-                          $r['public_reader_sees_entity']=preg_match('/&amp;|&#0*38;|&#x0*26;/i',(string)($public['text']??''))===1;
-                          $r['photo_matches']=postPhotoIds($native,'max')===postPhotoIds($snapshot,'max')&&count(postPhotoIds($native,'max'))===1;
-                          $r['hotel_button_matches']=$button!==''&&(int)($ctx['publication_id']??0)===$id
-                              &&ChannelPostIncomingAdapter::containsOnlyButton($native,$button,$post['channel']['button_text']);
-                          $patch=[1972=>['Moreno Horizon Spa & Resort','Moreno Horizon Spa and Resort'],32342=>['Vinpearl Resort & Spa Phu Quoc','Vinpearl Resort and Spa Phu Quoc']];
-                          [$from,$to]=$patch[$r['hotel']];
-                          $orig=(string)$snapshot['text'];
-                          $next=str_replace($from,$to,$orig,$changes);
-                          $r['caption_change_count']=$changes;
-                          $r['safe_existing_editor_input']=false;
-                          if($changes===1&&$r['native_registry_agree']&&$r['public_reader_native_agree']&&$r['photo_matches']&&$r['hotel_button_matches']&&$r['active_version_claims']===0&&!$r['ordinary_editor_journal_present']) {
-                              $candidate=$r+['platform'=>'max','post'=>(string)$id,'button_sha'=>hash('sha256',$button),'old_caption_sha256'=>hash('sha256',$public['text']),'next'=>$next];
-                              $r['strict_reader_candidate_shape']=validHotelEditPlan($candidate);
-                              $r['safe_existing_editor_input']=$r['strict_reader_candidate_shape']&&$r['ordinary_reader_matches_native'];
-                              if($r['safe_existing_editor_input']) $r['candidate']=array_intersect_key($candidate,array_flip(['platform','hotel','post','mid','url','button_sha','old_caption_sha256','next']));
-                          }
-                      }catch(Throwable $e){$r['reason']=preg_match('/\A[a-z_]{3,63}\z/D',$e->getMessage())?$e->getMessage():'read_unavailable';}
-                      $out['rows'][]=$r;
-                  }
-              }finally{$db->rollBack();flock($lease,LOCK_UN);fclose($lease);}
-          }catch(Throwable $e){$out['reason']=preg_match('/\A[a-z_]{3,63}\z/D',$e->getMessage())?$e->getMessage():'read_unavailable';}
-          ob_end_clean();
-          echo 'MAX_HEADING_HELD_READ='.json_encode($out,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR).PHP_EOL;
+              $read=AnyTour\ExistingPostBatch\publicHotelPost(['platform'=>'max','url'=>PromotedHotelPriceWriter::URL]);
+              if($argv[1]!=='after'||$read!==['text'=>'Moreno Horizon Spa & Resort']) exit(1);
+              echo "CONTENT_READER_EXACT_URL=verified\n";
+          } catch(RuntimeException $e) {
+              if($argv[1]!=='before'||$e->getMessage()!=='wrong_or_missing_public_url') throw $e;
+              echo "PREVIOUS_CONTENT_READER_MISSING_URL=reproduced\n";
+          }
           PHP
-      - name: Remove runner-only connection material
-        if: always()
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
+          php "$RUNNER_TEMP/max-caption-call.php" before
+          php "$RUNNER_TEMP/max-caption-call.php" after
+          php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          require 'after/services/PromotedHotelPriceWriter.php';
+          $exact='https://max.ru/anytour/AaBI6Jfvad8';
+          $other='https://max.ru/anytour/AZ_rrRmlYz0';
+          $page=static fn($url,$text)=>'message:{id:1234,link:'.json_encode($url,JSON_UNESCAPED_SLASHES).
+              ',createdAt:"2026-11-20T09:03:17.000Z",updatedAt:null,text:'.json_encode($text).',attachments:[]}';
+          $body=$page($other,'Recommendation')."\n".$page($exact,'Moreno Horizon Spa &amp; Resort');
+          if(PromotedHotelPriceWriter::maxPublicCaption($body,$exact)!=='Moreno Horizon Spa & Resort') exit(1);
+          try {
+              PromotedHotelPriceWriter::maxPublicCaption($body,'https://max.ru/anytour/AaC42fW_AY0');
+          } catch(RuntimeException $e) {
+              if($e->getMessage()!=='max_public_caption_unavailable')throw $e;
+              echo "STRICT_MAX_CAPTION=exact_match_and_wrong_url_rejected\n";
+              exit(0);
+          }
+          exit(1);
+          PHP
