@@ -135,6 +135,16 @@ retains its exact regular-file check. Integration tests call that actual guard
 with the current producer and reject changed bytes, a missing file and a symlink
 to the correct bytes. They keep the Runtime source unchanged in every case.
 
+The 2026-11-25 producer review admits SHA256
+`55b4500baef1b0bdd1094ca60e66e3b70a6d0815c18b656c8a4b3c3e37ecadc7`
+after the exact AnyTour Telegram MID1047/publication3847 publisher-keyboard
+fence. `recordEntry()`, `recordUnavailableEntry()` and `now()` are byte-identical
+to commit `fe28a6383d16139691300821dd4ce768a9c2d096`; the fence holds automatic
+processing of that Telegram publication. UTC recording clocks and MAX2
+activation, profile-floor and cursor semantics are unchanged. The strict
+regular-file/hash guard and its changed, missing and symlink rejection cases
+remain in place.
+
 The release manifest's `originals` retain their historical source hashes. This
 pin correction preserves the existing activation epoch, profile floor and
 cursor. It does not replay preactivation profiles or invoke a manual tick; the
