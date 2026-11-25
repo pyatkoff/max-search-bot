@@ -1,4 +1,4 @@
-name: "#1566 Compile the admitted five MAX inputs on the current installed version"
+name: "#1566 Independently verify the five edited public MAX cards"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -15,321 +15,70 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == '86d882830be27b8bd2e6278ccfcc50a86f262ac2' && github.run_attempt == 1
+      github.event.before == '8aaa01e5ce0d6ad7a1b7d75293813119fef64ec1' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Verify existing input compiler against pinned native archives
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Read each same public MAX address independently
         run: |
           set -euo pipefail
           umask 077
-          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14910511299/zip > archive.zip
-          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14915153351/zip > legacy.zip
-          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14983956057/zip > five.zip
+          mkdir pub
           python3 - <<'PY'
-          import hashlib,json,pathlib,zipfile
-          inputs=json.loads('{"archive":"c46ce092bfb91935ce829c871026a1136bf465920a3caa9184604f052c55798c","legacy":"3cda5ee09d25fc35f8acfd91027b4b703d9934718772b2bf6fbe0797044b0cd9","five":"594f558a87311ed49355a5ea6e8407a10bd625ada3dfe9ae664a43ad1a7ffb4d"}')
-          for key,digest in inputs.items():
-              raw=pathlib.Path(key+'.zip')
-              assert raw.stat().st_size<200000 and hashlib.sha256(raw.read_bytes()).hexdigest()==digest
-              with zipfile.ZipFile(raw) as f:
-                  assert f.namelist()==['registry.json'] and f.getinfo('registry.json').file_size<400000
-                  pathlib.Path(key+'.json').write_bytes(f.read('registry.json'))
+          import json,urllib.request,urllib.error,hashlib,re,time
+          from html.parser import HTMLParser
+          from concurrent.futures import ThreadPoolExecutor
+          from pathlib import Path
+          from datetime import datetime,timezone
+          plans=json.loads('[{"id":1972,"url":"https://max.ru/anytour/AaBI6Jfvad8","title":"Moreno Horizon Spa & Resort","caption":"✈️ Туры в Moreno Horizon Spa & Resort\n📍 Хургада, Египет\nСобственный пляж, бассейны для взрослых и детей и аквапарк с горками. На территории проходят развлекательные программы."},{"id":2588,"url":"https://max.ru/anytour/AaAkdvyEBXQ","title":"Jumeirah Beach Hotel","caption":"✈️ Туры в Jumeirah Beach Hotel\n📍 Дубай, ОАЭ\nПляжный отдых с видом на Burj Al Arab. На территории есть бассейны, водные развлечения и отдельные программы для детей."},{"id":32342,"url":"https://max.ru/anytour/AZ_rrRmlYz0","title":"Vinpearl Resort & Spa Phu Quoc","caption":"✈️ Туры в Vinpearl Resort & Spa Phu Quoc\n📍 Фукуок, Вьетнам\nДо пляжа можно дойти пешком. Для отдыха с семьёй или компанией можно выбрать номер или виллу."},{"id":57028,"url":"https://max.ru/anytour/AZ9AsoswVYw","title":"Pickalbatros Aqua Park Sharm","caption":"✈️ Туры в Pickalbatros Aqua Park Sharm\n📍 Шарм-эль-Шейх, Египет\nАквапарк с детскими горками, аттракционы Midway Street и клуб Alba для детей от 4 до 12 лет."},{"id":65877,"url":"https://max.ru/anytour/AZ-d-XrfADw","title":"Vesna Hotel","caption":"✈️ Туры в Vesna Hotel\n📍 Нячанг, Вьетнам\nГородской отель для поездки с семьёй. До пляжа около 50 метров через дорогу."}]')
+          class Page(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.parts=[]; self.hide=0; self.meta={}
+              def handle_starttag(self,t,a):
+                  if t in ('script','style'): self.hide+=1
+                  if t=='meta':
+                      d=dict(a)
+                      key=d.get('property') or d.get('name')
+                      if key: self.meta[key]=d.get('content','')
+              def handle_endtag(self,t):
+                  if t in ('script','style') and self.hide: self.hide-=1
+              def handle_data(self,v):
+                  if not self.hide and v.strip(): self.parts.append(v.strip())
+          def norm(v):
+              return re.sub(r'\s+',' ',v).strip()
+          def read(row):
+              try:
+                  req=urllib.request.Request(row['url'],headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
+                  with urllib.request.urlopen(req,timeout=10) as r:
+                      raw=r.read(3000001)
+                      status,url=r.status,r.geturl()
+                  assert len(raw)<=3000000 and url==row['url']
+                  p=Page();p.feed(raw.decode('utf-8'))
+                  visible=norm('\n'.join(p.parts).split('Другие публикации канала',1)[0])
+                  declared=norm(p.meta.get('og:description',''))
+                  exact=norm(row['caption'])
+                  out={'hotel_id':row['id'],'url':url,'http':status,'named':row['title'] in visible or row['title'] in declared,
+                       'caption_matches':exact in visible or exact in declared,'photo_preview':bool(p.meta.get('og:image')),
+                       'public_button_label_visible':'Рассчитать на мои даты' in visible,
+                       'page_sha256':hashlib.sha256(raw).hexdigest(),
+                       'escaped_variant_visible': '&amp;' in visible or '&amp;' in declared}
+                  out['verified']=out['named'] and out['caption_matches'] and out['photo_preview']
+                  return out
+              except (OSError,ValueError,AssertionError) as e:
+                  return {'hotel_id':row['id'],'url':row['url'],'error':type(e).__name__,'verified':False}
+          with ThreadPoolExecutor(max_workers=3) as pool:
+              results=list(pool.map(read,plans))
+          if not all(r['verified'] for r in results):
+              time.sleep(5)
+              results=[r if r['verified'] else read(p) for r,p in zip(results,plans)]
+          out={'observed_utc':datetime.now(timezone.utc).isoformat(),'rows':results,'writes':0,'ad_clicks':0}
+          Path('pub/observation.json').write_text(json.dumps(out,ensure_ascii=False))
+          print('MAX_FIRST_FIVE_PUBLIC_READ='+json.dumps(out,ensure_ascii=False,separators=(',',':')))
           PY
-          cat > original.php <<'ORIGINAL'
-          <?php
-          declare(strict_types=1);
-          
-          /** Compile inputs only. The caller authenticates the native artifact and the approved scope independently. */
-          function maxBatchInput(string $approvedBytes, string $approvedHash, string $archiveBytes, string $sourceBytes, string $sourceArtifactHash, string $sourceRef, string $release): array
-          {
-              maxEditNeed(hash_equals(hash('sha256', $approvedBytes), $approvedHash), 'approval_content_changed');
-              $scope = json_decode($approvedBytes, true, 32, JSON_THROW_ON_ERROR);
-              maxEditNeed($scope['version'] === 1 && $scope['rows'] !== [], 'invalid_approved_scope');
-              $archiveHash=hash('sha256', $archiveBytes);
-              $selected=isset($scope['archive_selected_sha256']) && hash_equals($scope['archive_selected_sha256'],$archiveHash);
-              maxEditNeed($selected || hash_equals($scope['archive_registry_sha256'],$archiveHash), 'native_archive_digest_changed');
-              maxEditNeed(preg_match('/\A[a-f0-9]{40}\z/D', $release) === 1 && preg_match('/\A[a-f0-9]{40}\z/D', $sourceRef) === 1
-                  && hash_equals($sourceArtifactHash, hash('sha256', $sourceBytes)), 'native_source_digest_changed');
-              $archive = json_decode($archiveBytes, true, 32, JSON_THROW_ON_ERROR);
-              maxEditNeed(!$selected || ($archive['registry_json_sha256'] ?? null) === $scope['archive_registry_sha256'], 'native_archive_origin_changed');
-              $source = json_decode($sourceBytes, true, 32, JSON_THROW_ON_ERROR);
-              maxEditNeed(($archive['ok'] ?? false) === true && $archive['history_complete'] === true && $archive['price_content_shared_lease'] === true
-                  && $archive['native_run_id'] === $scope['archive_run_id'] && $archive['production_writes'] === 0 && $archive['provider_writes'] === 0, 'invalid_archive');
-              maxEditNeed(($source['ok'] ?? false) === true && $source['operation'] === 'max_seven_source_rights'
-                  && $source['application_sha'] === $release && $source['repository_sha'] === $sourceRef && $source['archive_run'] === (int)$scope['archive_run_id']
-                  && $source['provider_writes'] === 0 && $source['db_writes'] === 0 && $source['bot_starts'] === 0, 'invalid_native_evidence');
-              maxEditNeed(($source['target_editor_rights'] ?? null) === true && (is_int($source['channel_config_version'] ?? null) || is_string($source['channel_config_version'] ?? null))
-                  && filter_var($source['channel_config_version'], FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]) !== false, 'main_channel_edit_not_ready');
-              $rows = $scope['rows'];
-              foreach (['hotel_id','source_id','source_mid','source_url','target_mid','target_url'] as $field) {
-                  maxEditNeed(count(array_unique(array_column($rows, $field))) === count($rows), 'duplicate_or_missing_scope_key');
-              }
-              $targets = array_column($archive['rows'], null, 'mid');
-              $native = array_column($source['rows'], null, 'hotel_id');
-              maxEditNeed(count($targets) === count($archive['rows']) && count($native) === count($source['rows'])
-                  && array_diff(array_keys($native), array_column($rows, 'hotel_id')) === [], 'conflicting_evidence');
-              $out = ['ready'=>[], 'held'=>[], 'provider_writes'=>0];
-              foreach ($rows as $row) {
-                  $id = $row['hotel_id'];
-                  try {
-                      $target = $targets[$row['target_mid']] ?? null;
-                      maxEditNeed(is_array($target) && $target['registered'] === false && $target['media'] === ['image']
-                          && $target['keyboard_present'] === false && $target['linked_message'] === false
-                          && $target['published_ms'] === $row['target_ms'] && $target['url'] === $row['target_url']
-                          && hash_equals($row['target_fingerprint'], $target['fingerprint']), 'target_changed_or_occupied');
-                      $observed = $native[$id] ?? [];
-                      maxBatchValidateNativeRow($row, $observed);
-                      $caption = $row['caption_without_price'];
-                      $plan = ['kind'=>'expired_reviewed_photo_promotion', 'hotel'=>$id, 'hotel_name'=>$row['name'],
-                          'target_mid'=>$row['target_mid'],'target_ms'=>$row['target_ms'],'target_url'=>$row['target_url'],
-                          'target_fingerprint'=>$row['target_fingerprint'], 'source_publication'=>$row['source_id'],
-                          'source_version'=>$observed['source_version'],'source_content_hash'=>$observed['source_content_sha256'],
-                          'source_mid'=>$row['source_mid'],'source_url'=>$row['source_url'],'caption'=>$caption];
-                      $out['ready'][$id] = ['plan'=>$plan, 'sha256'=>hash('sha256', maxEditJson($plan)),
-                          'source_photo_sha256'=>$observed['source_photo_sha256'], 'source_caption_sha256'=>$observed['source_caption_sha256'],
-                          'config_version'=>(int)$source['channel_config_version'], 'approved_row'=>$row];
-                  } catch (RuntimeException $e) {
-                      $out['held'][$id] = $e->getMessage();
-                  }
-              }
-              return $out;
-          }
-          
-          function maxBatchValidateNativeRow(array $row, array $observed): void
-          {
-              $id = $row['hotel_id'];
-              $missing=$observed['blockers'] ?? null;
-              $catalog=$observed['source_catalog_id'] ?? null;
-              maxEditNeed(($observed['hotel_id'] ?? null) === $id && ($observed['source_id'] ?? null) === $row['source_id'] && ($observed['source_mid'] ?? null) === $row['source_mid']
-                  && ($observed['target_mid'] ?? null) === $row['target_mid'] && ($observed['target_url'] ?? null) === $row['target_url']
-                  && ($catalog === 0 || $catalog === $id) && ($observed['native_source_photo_count'] ?? null) === 1
-                  && is_int($observed['source_version'] ?? null) && $observed['source_version'] > 0, 'different_hotel_or_source');
-              if ($catalog === 0) {
-                  $identity=[];
-                  foreach (['hotel_id','source_id','source_mid','native_source_date_ms','source_version','source_content_sha256','source_photo_sha256','source_caption_sha256','target_mid'] as $key) {
-                      $identity[]=$observed[$key] ?? null;
-                  }
-                  maxEditNeed(isset($row['original_legacy_identity_sha256']) && hash_equals($row['original_legacy_identity_sha256'],hash('sha256',maxEditJson($identity)))
-                      && $missing === ['source_hotel_id_matches','source_button_resolves_to_hotel']
-                      && ($observed['source_hotel_id_matches'] ?? null) === false && ($observed['source_button_resolves_to_hotel'] ?? null) === false
-                      && ($observed['source_name_in_native_caption'] ?? null) === true && ($observed['readable_source_hotel_identity'] ?? null) === true
-                      && ($observed['source_button_count'] ?? null) === 1 && ($observed['source_one_button_matches_url'] ?? null) === true
-                      && ($observed['source_button_resolves_publication'] ?? null) === true, 'legacy_publication_identity_changed');
-              } else {
-                  maxEditNeed($missing === [] && ($observed['source_hotel_id_matches'] ?? null) === true
-                      && ($observed['source_button_resolves_to_hotel'] ?? null) === true, 'missing_native_proof');
-              }
-              foreach (['source_content_sha256','source_photo_sha256','source_caption_sha256'] as $field) {
-                  maxEditNeed(is_string($observed[$field]) && preg_match('/\A[a-f0-9]{64}\z/D', $observed[$field]) === 1, 'invalid_source_fingerprint');
-              }
-              foreach (['source_caption_nonempty','native_source_photo_reusable','source_caption_matches_registry','source_photo_matches_registry',
-                  'source_single_registry_button','target_matches_native_archive'] as $field) {
-                  maxEditNeed(($observed[$field] ?? null) === true, 'missing_native_proof');
-              }
-              foreach (['target_occupied','source_held','target_or_hotel_registry_conflicts'] as $field) {
-                  maxEditNeed(($observed[$field] ?? null) === 0, 'source_or_target_busy');
-              }
-          }
-          
-          /** Re-read under the common publisher lock. Compare check-time source, content and channel with the original native proof. */
-          function maxBatchVerifyCurrent(array $approval, array $current, int $channelVersion): void
-          {
-              maxBatchValidateNativeRow($approval['approved_row'], $current);
-              $plan = $approval['plan'];
-              maxEditNeed(($current['hotel_id'] ?? null) === $plan['hotel'] && $current['source_version'] === $plan['source_version']
-                  && hash_equals($plan['source_content_hash'], $current['source_content_sha256'])
-                  && hash_equals($approval['source_photo_sha256'], $current['source_photo_sha256'])
-                  && hash_equals($approval['source_caption_sha256'], $current['source_caption_sha256'])
-                  && $channelVersion === $approval['config_version'], 'changed_since_native_review');
-          }
-          ORIGINAL
-          cat > adapted.php <<'ADAPTED'
-          <?php
-          declare(strict_types=1);
-          
-          /** Compile inputs only. The caller authenticates the native artifact and the approved scope independently. */
-          function maxBatchInput(string $approvedBytes, string $approvedHash, string $archiveBytes, string $sourceBytes, string $sourceArtifactHash, string $sourceRef, string $release): array
-          {
-              maxEditNeed(hash_equals(hash('sha256', $approvedBytes), $approvedHash), 'approval_content_changed');
-              $scope = json_decode($approvedBytes, true, 32, JSON_THROW_ON_ERROR);
-              maxEditNeed($scope['version'] === 1 && $scope['rows'] !== [], 'invalid_approved_scope');
-              $archiveHash=hash('sha256', $archiveBytes);
-              $selected=isset($scope['archive_selected_sha256']) && hash_equals($scope['archive_selected_sha256'],$archiveHash);
-              maxEditNeed($selected || hash_equals($scope['archive_registry_sha256'],$archiveHash), 'native_archive_digest_changed');
-              maxEditNeed(preg_match('/\A[a-f0-9]{40}\z/D', $release) === 1 && preg_match('/\A[a-f0-9]{40}\z/D', $sourceRef) === 1
-                  && hash_equals($sourceArtifactHash, hash('sha256', $sourceBytes)), 'native_source_digest_changed');
-              $archive = json_decode($archiveBytes, true, 32, JSON_THROW_ON_ERROR);
-              maxEditNeed(!$selected || ($archive['registry_json_sha256'] ?? null) === $scope['archive_registry_sha256'], 'native_archive_origin_changed');
-              $source = json_decode($sourceBytes, true, 32, JSON_THROW_ON_ERROR);
-              maxEditNeed(($archive['ok'] ?? false) === true && $archive['history_complete'] === true && $archive['price_content_shared_lease'] === true
-                  && $archive['native_run_id'] === $scope['archive_run_id'] && $archive['production_writes'] === 0 && $archive['provider_writes'] === 0, 'invalid_archive');
-              $sourceOperation = $scope['native_source']['operation'] ?? 'max_seven_source_rights';
-              maxEditNeed(in_array($sourceOperation, ['max_seven_source_rights', 'max_five_ranked_read_only'], true), 'invalid_native_operation');
-              maxEditNeed(($source['ok'] ?? false) === true && $source['operation'] === $sourceOperation
-                  && $source['application_sha'] === $release && $source['repository_sha'] === $sourceRef && $source['archive_run'] === (int)$scope['archive_run_id']
-                  && $source['provider_writes'] === 0 && $source['db_writes'] === 0 && $source['bot_starts'] === 0, 'invalid_native_evidence');
-              maxEditNeed(($source['target_editor_rights'] ?? null) === true && (is_int($source['channel_config_version'] ?? null) || is_string($source['channel_config_version'] ?? null))
-                  && filter_var($source['channel_config_version'], FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]) !== false, 'main_channel_edit_not_ready');
-              $rows = $scope['rows'];
-              foreach (['hotel_id','source_id','source_mid','source_url','target_mid','target_url'] as $field) {
-                  maxEditNeed(count(array_unique(array_column($rows, $field))) === count($rows), 'duplicate_or_missing_scope_key');
-              }
-              $targets = array_column($archive['rows'], null, 'mid');
-              $native = array_column($source['rows'], null, 'hotel_id');
-              maxEditNeed(count($targets) === count($archive['rows']) && count($native) === count($source['rows'])
-                  && array_diff(array_keys($native), array_column($rows, 'hotel_id')) === [], 'conflicting_evidence');
-              $out = ['ready'=>[], 'held'=>[], 'provider_writes'=>0];
-              foreach ($rows as $row) {
-                  $id = $row['hotel_id'];
-                  try {
-                      $target = $targets[$row['target_mid']] ?? null;
-                      maxEditNeed(is_array($target) && $target['registered'] === false && $target['media'] === ['image']
-                          && $target['keyboard_present'] === false && $target['linked_message'] === false
-                          && $target['published_ms'] === $row['target_ms'] && $target['url'] === $row['target_url']
-                          && hash_equals($row['target_fingerprint'], $target['fingerprint']), 'target_changed_or_occupied');
-                      $observed = $native[$id] ?? [];
-                      maxBatchValidateNativeRow($row, $observed);
-                      $caption = $row['caption_without_price'];
-                      $plan = ['kind'=>'expired_reviewed_photo_promotion', 'hotel'=>$id, 'hotel_name'=>$row['name'],
-                          'target_mid'=>$row['target_mid'],'target_ms'=>$row['target_ms'],'target_url'=>$row['target_url'],
-                          'target_fingerprint'=>$row['target_fingerprint'], 'source_publication'=>$row['source_id'],
-                          'source_version'=>$observed['source_version'],'source_content_hash'=>$observed['source_content_sha256'],
-                          'source_mid'=>$row['source_mid'],'source_url'=>$row['source_url'],'caption'=>$caption];
-                      $out['ready'][$id] = ['plan'=>$plan, 'sha256'=>hash('sha256', maxEditJson($plan)),
-                          'source_photo_sha256'=>$observed['source_photo_sha256'], 'source_caption_sha256'=>$observed['source_caption_sha256'],
-                          'config_version'=>(int)$source['channel_config_version'], 'approved_row'=>$row];
-                  } catch (RuntimeException $e) {
-                      $out['held'][$id] = $e->getMessage();
-                  }
-              }
-              return $out;
-          }
-          
-          function maxBatchValidateNativeRow(array $row, array $observed): void
-          {
-              $id = $row['hotel_id'];
-              $missing=$observed['blockers'] ?? null;
-              $catalog=$observed['source_catalog_id'] ?? null;
-              maxEditNeed(($observed['hotel_id'] ?? null) === $id && ($observed['source_id'] ?? null) === $row['source_id'] && ($observed['source_mid'] ?? null) === $row['source_mid']
-                  && ($observed['target_mid'] ?? null) === $row['target_mid'] && ($observed['target_url'] ?? null) === $row['target_url']
-                  && ($catalog === 0 || $catalog === $id) && ($observed['native_source_photo_count'] ?? null) === 1
-                  && is_int($observed['source_version'] ?? null) && $observed['source_version'] > 0, 'different_hotel_or_source');
-              if ($catalog === 0) {
-                  $identity=[];
-                  foreach (['hotel_id','source_id','source_mid','native_source_date_ms','source_version','source_content_sha256','source_photo_sha256','source_caption_sha256','target_mid'] as $key) {
-                      $identity[]=$observed[$key] ?? null;
-                  }
-                  maxEditNeed(isset($row['original_legacy_identity_sha256']) && hash_equals($row['original_legacy_identity_sha256'],hash('sha256',maxEditJson($identity)))
-                      && $missing === ['source_hotel_id_matches','source_button_resolves_to_hotel']
-                      && ($observed['source_hotel_id_matches'] ?? null) === false && ($observed['source_button_resolves_to_hotel'] ?? null) === false
-                      && ($observed['source_name_in_native_caption'] ?? null) === true && ($observed['readable_source_hotel_identity'] ?? null) === true
-                      && ($observed['source_button_count'] ?? null) === 1 && ($observed['source_one_button_matches_url'] ?? null) === true
-                      && ($observed['source_button_resolves_publication'] ?? null) === true, 'legacy_publication_identity_changed');
-              } else {
-                  maxEditNeed($missing === [] && ($observed['source_hotel_id_matches'] ?? null) === true
-                      && ($observed['source_button_resolves_to_hotel'] ?? null) === true, 'missing_native_proof');
-              }
-              foreach (['source_content_sha256','source_photo_sha256','source_caption_sha256'] as $field) {
-                  maxEditNeed(is_string($observed[$field]) && preg_match('/\A[a-f0-9]{64}\z/D', $observed[$field]) === 1, 'invalid_source_fingerprint');
-              }
-              foreach (['source_caption_nonempty','native_source_photo_reusable','source_caption_matches_registry','source_photo_matches_registry',
-                  'source_single_registry_button','target_matches_native_archive'] as $field) {
-                  maxEditNeed(($observed[$field] ?? null) === true, 'missing_native_proof');
-              }
-              foreach (['target_occupied','source_held','target_or_hotel_registry_conflicts'] as $field) {
-                  maxEditNeed(($observed[$field] ?? null) === 0, 'source_or_target_busy');
-              }
-          }
-          
-          /** Re-read under the common publisher lock. Compare check-time source, content and channel with the original native proof. */
-          function maxBatchVerifyCurrent(array $approval, array $current, int $channelVersion): void
-          {
-              maxBatchValidateNativeRow($approval['approved_row'], $current);
-              $plan = $approval['plan'];
-              maxEditNeed(($current['hotel_id'] ?? null) === $plan['hotel'] && $current['source_version'] === $plan['source_version']
-                  && hash_equals($plan['source_content_hash'], $current['source_content_sha256'])
-                  && hash_equals($approval['source_photo_sha256'], $current['source_photo_sha256'])
-                  && hash_equals($approval['source_caption_sha256'], $current['source_caption_sha256'])
-                  && $channelVersion === $approval['config_version'], 'changed_since_native_review');
-          }
-          ADAPTED
-          cat > legacy-scope.json <<'SCOPE'
-          {"version":1,"archive_run_id":"45373389110","archive_sha256":"c46ce092bfb91935ce829c871026a1136bf465920a3caa9184604f052c55798c","rows":[{"hotel_id":241,"source_id":115,"source_url":"https://max.ru/channel_anytour/AaGa3GMLV1E","target_url":"https://max.ru/anytour/AZ87_EUJEiI","target_mid":"mid.ffffc1752b045fed019f3bfc45091222","target_ms":1783417816329,"target_fingerprint":"a94406a316645dd6589b3d58f4835f5d8af5bec43a8fbc50b41986dfbdf75e99","name":"Pickalbatros Makadi Resort","source_mid":"mid.ffffb6caf0606fed01a19adc630b5751","caption_without_price":"✈️ Туры в Pickalbatros Makadi Resort\n📍 Макади-Бей, Египет.\n🏖 Свой пляж и лагуна с морской водой.\n🐠 К рифу ведёт понтон.\n💦 Аквапарки для взрослых и детей.\n🧸 Есть детский клуб и отдельные зоны для спокойного отдыха.\n✈️ Подберём подходящий номер и рассчитаем тур с перелётом на ваши даты.","original_legacy_identity_sha256":"1091bc11894b9a6bd497e69c6f5a7125710bd4a158aa2edad31dd7bb79a6e921"},{"hotel_id":15693,"source_id":1191,"source_url":"https://max.ru/channel_anytour/AaHQDVICNd0","target_url":"https://max.ru/anytour/AZ-yESbCL_Q","target_mid":"mid.ffffc1752b045fed019fb21126c22ff4","target_ms":1785398896322,"target_fingerprint":"75586399750be5d29b6d56a18c9e0cca284e8ffab7f1df2d870f81f3c4bb1c6d","name":"The Makadi Spa","source_mid":"mid.ffffb6caf0606fed01a1d00d520235dd","caption_without_price":"✈️ Туры в The Makadi Spa\n📍 Макади-Бей, Египет.\nПляжный отель для отдыха вдвоём на Красном море. Принимает гостей от 18 лет.\n• Собственный пляж прямо у территории.\n• Панорамный бассейн с видом на море.\n• Просторные полулюксы и люксы.\n• Рестораны разных кухонь и фитнес-центр.\nПодогрев открытого бассейна сезонный. Некоторые блюда и напитки, обслуживание в номере и процедуры спа оплачиваются отдельно.\nУзнать стоимость тура","original_legacy_identity_sha256":"43471116b3817dd644a8883c4c5e2ec32640a75be02578166eadd27f39cdba18"},{"hotel_id":293,"source_id":255,"source_url":"https://max.ru/channel_anytour/AaGePD60KYU","target_url":"https://max.ru/anytour/AZ-3aA0tG-E","target_mid":"mid.ffffc1752b045fed019fb7680d2d1be1","target_ms":1785488477485,"target_fingerprint":"567d536515421dbd147944caf2972277b3520fad527b1064cace958de07f30cf","name":"Pickalbatros Laguna Vista","source_mid":"mid.ffffb6caf0606fed01a19e3c3eb42985","caption_without_price":"✈️ Туры в Pickalbatros Laguna Vista\n📍 Египет · Шарм эль Шейх\n• Песчаный пляж длиной 250 м.\n• Аквапарк с восемью взрослыми и шестью детскими горками.\n• Крытый бассейн и бассейн для серфинга.\nУзнать стоимость тура","original_legacy_identity_sha256":"cbbfbd78575d7b69b24cdeeea838b700e09aa2b385b5b8373793a0dac17e4eb8"},{"hotel_id":408,"source_id":324,"source_url":"https://max.ru/channel_anytour/AaGhJ7JODvU","target_url":"https://max.ru/anytour/AZ_bVraKfqs","target_mid":"mid.ffffc1752b045fed019fdb56b68a7eab","target_ms":1786091320970,"target_fingerprint":"3f1e6b5b8691f70a6b761c13dc75f4a9c66cc6171c4220d7c2254e8e5f3db7a5","name":"Savoy Sharm El Sheikh","source_mid":"mid.ffffb6caf0606fed01a1a127b24e0ef5","caption_without_price":"✈️ Туры в Savoy Sharm El Sheikh\n📍 Египет · Шарм эль Шейх\n• Пляж White Knight с возможностями для снорклинга.\n• Три взрослых и два детских бассейна.\n• Детский клуб для ребят от 4 до 12 лет, игровая площадка и детская зона на пляже.\nУзнать стоимость тура","original_legacy_identity_sha256":"380a3287150c24e10c1f1c8b05cc71ffaace201182887bf1b0686972e113fd54"},{"hotel_id":949,"source_id":986,"source_url":"https://max.ru/channel_anytour/AaG3oYrTVTI","target_url":"https://max.ru/anytour/AZ_1bEjVO3Q","target_mid":"mid.ffffc1752b045fed019ff56c48d53b74","target_ms":1786528942293,"target_fingerprint":"f86acef0e2a385894f5ccde99638cfc9cb2be94987998ac700e11db81346c4fc","name":"Adam & Eve","source_mid":"mid.ffffb6caf0606fed01a1b7a18ad35532","caption_without_price":"✈️ Туры в Adam & Eve\n📍 Белек, Турция.\nДля отдыха вдвоём с необычным дизайном и вечерними развлечениями. Отель принимает гостей от 16 лет.\n🏖 Собственный песчаный пляж.\n🏊 Бассейны и водные горки.\n🧖 Спа-центр.\n🎶 Живая музыка, вечеринки и дискотека.\nУзнать стоимость тура","original_legacy_identity_sha256":"f7351c96b76822b147e56eb3e67c9f72a63656c34d4aa01b0110d034f9dcad37"},{"hotel_id":1260,"source_id":1230,"source_url":"https://max.ru/channel_anytour/AaHQYt4dcmY","target_url":"https://max.ru/anytour/AaAQRP74HIo","target_mid":"mid.ffffc1752b045fed01a01044fef81c8a","target_ms":1786979352312,"target_fingerprint":"688ef29b5ab084beb1776e7e0a9fd3515eac594ccc71755bc6cd68f2579f97b3","name":"IC Hotels Santai Family Resort","source_mid":"mid.ffffb6caf0606fed01a1d062de1d7266","caption_without_price":"✈️ Туры в IC Hotels Santai Family Resort\n📍 Белек, Турция.\nСемейный курорт в Белеке с песчаным пляжем, водными развлечениями и детскими клубами.\n• Собственный песчаный пляж длиной 300 м.\n• Бассейны для активного и спокойного отдыха.\n• Детские бассейны и водные горки.\n• Крытый бассейн для плавания круглый год.\n• Игры и творческие занятия в детских клубах.\nОткрытые водные зоны работают с учётом сезона.\nУзнать стоимость тура","original_legacy_identity_sha256":"36d5f28c3a8b700297fe3394e4fe0d65822438ac550b47d6154eb2c65bf9e38d"},{"hotel_id":24909,"source_id":478,"source_url":"https://max.ru/channel_anytour/AaG1rsYqb1E","target_url":"https://max.ru/anytour/AZ_BkAiveNQ","target_mid":"mid.ffffc1752b045fed019fc19008af78d4","target_ms":1785658869935,"target_fingerprint":"69aee34cd7c9ddf4074c423a24669efd532fb662d1b0916661598c0dec933a5b","name":"Graceland Khao Lak Beach Resort","source_mid":"mid.ffffb6caf0606fed01a1b5aec62a6f51","caption_without_price":"✈️ Туры в GRACELAND KHAO LAK BEACH RESORT\n📍 Таиланд · Као Лак\n• Песчаный пляж у территории со взрослыми деревьями.\n• Два протяжённых бассейна у лагуны с зонами джакузи.\nУзнать стоимость тура","original_legacy_identity_sha256":"1d3fb359a2b7cd51a65afe9848b69ea4067718bc673ad87284579d2444d431a0"}],"archive_registry_sha256":"c65efd90090ab8669c0d7646d44d8927ea3658c39673696d2e147685f3ec7568","native_source":{"run_id":45384947065,"attempt":1,"job_id":138413330996,"workflow_head":"b73099c9288884d68b6081512373d88a176b5996","artifact_id":14915153351,"zip_sha256":"3cda5ee09d25fc35f8acfd91027b4b703d9934718772b2bf6fbe0797044b0cd9","json_sha256":"42839d9aed3b6e825ac3b11aa8529f9fd45edc96f319e85dcafcf613e5cb54ab","application_sha":"e56ae1d83b643afeca7d890030198e0bcdb71083","repository_sha":"e56ae1d83b643afeca7d890030198e0bcdb71083"},"archive_selected_sha256":"8f7a0a3733d67256ad19c13babcfa16d4ddfa7eba373f5592e7eedc81d8ce53d"}
-          SCOPE
-          cat > five-rows.json <<'SCOPE'
-          [{"hotel_id":1972,"name":"Moreno Horizon Spa & Resort","source_id":887,"source_url":"https://max.ru/channel_anytour/AaG3WcDqe3Y","source_mid":"mid.ffffb6caf0606fed01a1b759c0ea7b76","target_url":"https://max.ru/anytour/AaBI6Jfvad8","target_mid":"mid.ffffc1752b045fed01a048e897ef69df","target_ms":1787929597935,"target_fingerprint":"967f9773ea28deac5456206f76e4c467df3af6493742f7aab65b57cf72dae267","original_legacy_identity_sha256":"b2900964c6631f50c9af1ed2cf840c5213648f2a00c8f1f1842e282b9f4091a3","caption_without_price":"✈️ Туры в Moreno Horizon Spa & Resort\n📍 Хургада, Египет\nСобственный пляж, бассейны для взрослых и детей и аквапарк с горками. На территории проходят развлекательные программы."},{"hotel_id":2588,"name":"Jumeirah Beach Hotel","source_id":1533,"source_url":"https://max.ru/channel_anytour/AaHpO-hTO-w","source_mid":"mid.ffffb6caf0606fed01a1e93be8533bec","target_url":"https://max.ru/anytour/AaAkdvyEBXQ","target_mid":"mid.ffffc1752b045fed01a02476fc840574","target_ms":1787318172804,"target_fingerprint":"74e88ae75c0734d28829e22468798a6c7a9f3efc77f2753c9490847b1ded81d2","original_legacy_identity_sha256":"7f78a076a711c0f1254a6274f8d452645eb4dd61ae58437b7d13626c77852e84","caption_without_price":"✈️ Туры в Jumeirah Beach Hotel\n📍 Дубай, ОАЭ\nПляжный отдых с видом на Burj Al Arab. На территории есть бассейны, водные развлечения и отдельные программы для детей."},{"hotel_id":32342,"name":"Vinpearl Resort & Spa Phu Quoc","source_id":584,"source_url":"https://max.ru/channel_anytour/AaG2QuDYdKE","source_mid":"mid.ffffb6caf0606fed01a1b642e0d874a1","target_url":"https://max.ru/anytour/AZ_rrRmlYz0","target_mid":"mid.ffffc1752b045fed019febad19a5633d","target_ms":1786365417893,"target_fingerprint":"85319aa3afcc1755790733c24b7802320da0213a39de3c0213f1a681b5465126","original_legacy_identity_sha256":"cde5d40f8a20c09ce5a234b22951ee8461c7b4b235a12bbeccdd30761ad11ba3","caption_without_price":"✈️ Туры в Vinpearl Resort & Spa Phu Quoc\n📍 Фукуок, Вьетнам\nДо пляжа можно дойти пешком. Для отдыха с семьёй или компанией можно выбрать номер или виллу."},{"hotel_id":57028,"name":"Pickalbatros Aqua Park Sharm","source_id":238,"source_url":"https://max.ru/channel_anytour/AaGeHp92NlE","source_mid":"mid.ffffb6caf0606fed01a19e1e9f763651","target_url":"https://max.ru/anytour/AZ9AsoswVYw","target_mid":"mid.ffffc1752b045fed019f40b28b30558c","target_ms":1783496870704,"target_fingerprint":"300f751d6d705e041dcafd9faae7e82402f68a59b990608774f6064fb2bbe415","original_legacy_identity_sha256":"682f39895b3cb794eb5e1a91ef72e57e1d5ce00f0e7db709404301db29185c06","caption_without_price":"✈️ Туры в Pickalbatros Aqua Park Sharm\n📍 Шарм-эль-Шейх, Египет\nАквапарк с детскими горками, аттракционы Midway Street и клуб Alba для детей от 4 до 12 лет."},{"hotel_id":65877,"name":"Vesna Hotel","source_id":563,"source_url":"https://max.ru/channel_anytour/AaG2NPXdL0M","source_mid":"mid.ffffb6caf0606fed01a1b634f5dd2f43","target_url":"https://max.ru/anytour/AZ-d-XrfADw","target_mid":"mid.ffffc1752b045fed019f9df97adf003c","target_ms":1785061800671,"target_fingerprint":"f8a1b0819559ae0afa1d3d2caee50811c47c06a40e1a6211e62307baa770bbd3","original_legacy_identity_sha256":"4947a41247b297290dbda9a681d7f91dffa4dbcc97a84b3dff0fb007f65edfc0","caption_without_price":"✈️ Туры в Vesna Hotel\n📍 Нячанг, Вьетнам\nГородской отель для поездки с семьёй. До пляжа около 50 метров через дорогу."}]
-          SCOPE
-          cat > check.php <<'PHP'
-          <?php
-          function maxEditNeed($ok,$reason){if(!$ok)throw new RuntimeException($reason);}
-          function maxEditJson(array $data): string {
-              return json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
-          }
-          require $argv[1].'.php';
-          $scope=json_decode(file_get_contents('legacy-scope.json'),true,32,JSON_THROW_ON_ERROR);
-          $archive=file_get_contents('archive.json');
-          $compile=static function($key,array $plan)use($archive):array{
-              $bytes=maxEditJson($plan);
-              $source=file_get_contents($key.'.json');
-              $s=json_decode($source,true,32,JSON_THROW_ON_ERROR);
-              return maxBatchInput($bytes,hash('sha256',$bytes),$archive,$source,hash('sha256',$source),$s['repository_sha'],$s['application_sha']);
-          };
-          $old=$compile('legacy',$scope);
-          maxEditNeed(count($old['ready'])===7 && $old['held']===[] && $old['provider_writes']===0,'legacy_scope_changed');
-          $five=$scope;
-          $five['rows']=json_decode(file_get_contents('five-rows.json'),true,32,JSON_THROW_ON_ERROR);
-          $five['native_source']=['operation'=>'max_five_ranked_read_only','run_id'=>45527918795,'attempt'=>1,'job_id'=>138915747851,'workflow_head'=>'3d6b1fc2f1e3bb70c28d81c8eaaf0a559d64d2e3',
-            'artifact_id'=>14983956057,'zip_sha256'=>'594f558a87311ed49355a5ea6e8407a10bd625ada3dfe9ae664a43ad1a7ffb4d','json_sha256'=>hash_file('sha256','five.json'),'repository_sha'=>'73c80433c4d18edaff5cff2d4344a41511c6134b','application_sha'=>'73c80433c4d18edaff5cff2d4344a41511c6134b'];
-          try {$new=$compile('five',$five);$error=null;} catch(RuntimeException $e){$new=null;$error=$e->getMessage();}
-          if($argv[1]==='original'){
-              maxEditNeed($error==='invalid_native_evidence','original_defect_not_reproduced');
-          }else{
-              maxEditNeed($new!==null && array_keys($new['ready'])===[1972,2588,32342,57028,65877] && $new['held']===[] && $new['provider_writes']===0, 'five_scope_not_accepted');
-              $scopeBytes=maxEditJson($five)."\n";
-              echo 'MAX_FIRST_FIVE_SCOPE_SHA256=',hash('sha256',$scopeBytes),PHP_EOL;
-              echo 'MAX_FIRST_FIVE_SCOPE_BASE64=',base64_encode($scopeBytes),PHP_EOL;
-              foreach(['unsupported_operation','max_seven_source_rights'] as $wrong){
-                  $five['native_source']['operation']=$wrong;
-                  try {$compile('five',$five);throw new LogicException('wrong_operation_accepted');}
-                  catch(RuntimeException $e){maxEditNeed(in_array($e->getMessage(),['invalid_native_evidence','invalid_native_operation'],true),'wrong_reject_reason');}
-              }
-          }
-          echo 'MAX_BATCH_COMPILER_PROOF=',maxEditJson(['compiler'=>$argv[1],'legacy_ready'=>count($old['ready']),
-              'legacy_plan_hashes'=>array_column($old['ready'],'sha256'),
-              'five_ids'=>$new===null?[]:array_keys($new['ready']),
-              'five_plan_hashes'=>$new===null?[]:array_column($new['ready'],'sha256'),'failure'=>$error,'writes'=>0]),PHP_EOL;
-          PHP
-          php -l original.php
-          php -l adapted.php
-          php check.php original
-          php check.php adapted
-
-          python3 - <<'PY'
-          import json,urllib.request,urllib.parse
-          from datetime import date
-          start=date(2026,11,25)
-          params=[('tourvisorHotelIds[]',str(x)) for x in (1972,2588,32342,57028,65877)]
-          url='https://anytoour.ru/data/hotel-monitor-prices-read-v1.php?'+urllib.parse.urlencode(params+[('departureId','1'),('dateFrom',str(start)),('dateTo','2027-10-31')])
-          try:
-              req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0","Cache-Control":"no-cache"})
-              with urllib.request.urlopen(req,timeout=12) as res:
-                  raw=res.read(3000001)
-              assert 0<len(raw)<=3000000
-              obj=json.loads(raw)
-              from pathlib import Path
-              Path('price.json').write_bytes(raw)
-              arrays={}
-              def compact(x,where=''):
-                  if isinstance(x,dict):
-                      for k,v in x.items():
-                          if isinstance(v,(dict,list)): compact(v,where+'/'+k)
-                  elif isinstance(x,list) and x and isinstance(x[0],dict):
-                      arrays[where]={'count':len(x),'first':dict(list(x[0].items())[:32])}
-              compact(obj)
-              print('MAX_FIRST_FIVE_PRICE_READ='+json.dumps({'keys':list(obj) if isinstance(obj,dict) else [],'arrays':arrays},ensure_ascii=False)[:4500])
-          except Exception as e:
-              print('MAX_FIRST_FIVE_PRICE_READ='+json.dumps({'error':type(e).__name__}))
-          PY
+      - name: Preserve independent public readback
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: max-first-five-independent-public-readback
+          path: pub/observation.json
+          retention-days: 7
