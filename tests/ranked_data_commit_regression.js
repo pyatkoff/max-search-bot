@@ -4,7 +4,7 @@ const crypto=require('node:crypto');
 
 // Called by the existing required lifecycle regression, with no production I/O.
 module.exports=async function verifyRankedDataCommit(check){
-  const R=require('../tools/deployment_release');
+  const R={...require('../tools/deployment_release'),...require('../tools/ranked_telegram_data_input')};
   const base='1'.repeat(40),head='2'.repeat(40),root='3'.repeat(40),config='4'.repeat(40);
   const approvalsPath='config/anytour_ranked_approved_indexes.json';
   const indexPath='config/anytour_ranked_index_fixture.json',planPath='config/anytour_ranked_pairs_fixture.json';
