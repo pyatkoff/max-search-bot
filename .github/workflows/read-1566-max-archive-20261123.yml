@@ -1,4 +1,4 @@
-name: "#1566 Check release 1728 with its exact existing publisher binding"
+name: "Validate the two-row MAX heading operation without production access"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -17,67 +17,135 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.event.forced == false &&
-      github.event.before == '9a568f8eb06c92558045ccbda50777e49a153387' &&
+      github.event.before == 'fd9bb9ef227f609fbd9f62763b6bc65052caf444' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - name: Check out the accepted existing admission mechanism
-        uses: actions/checkout@v4
-        with:
-          ref: 703b239adbcfb1f480265f3a7beea566f6d07002
-          persist-credentials: false
-      - name: Read exact source CI and final ordinary1728 admission
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        shell: bash
+      - name: Lint the scoped invocation of the installed editor
         run: |
           set -euo pipefail
-          mkdir -p pub
-          node - <<'NODE'
-          const fs=require('node:fs'),P=require('./tools/release_priority'),R=require('./tools/deployment_release');
-          async function check(){
-            const api=R.makeReadApi(process.env.GITHUB_TOKEN),root=R.API_ROOT;
-            const head='59f8cb22491e943b4aa0bb99e957277e4f948217',base='703b239adbcfb1f480265f3a7beea566f6d07002';
-            const pr=await api('GET',root+'/pulls/1728');
-            if(pr.state!=='open'||pr.draft||pr.head.sha!==head||pr.base.sha!==base)throw Error('target_changed');
-            const checks=[];
-            for(const [id,path] of [['45687369928','.github/workflows/regression-tests.yml'],['45687369924','.github/workflows/retired-domain-guard.yml']]){
-              let run;
-              const started=performance.now();
-              for(let observation=0;observation<11;observation++){
-                run=await api('GET',root+'/actions/runs/'+id);
-                if(run.head_sha!==head||run.event!=='pull_request'||run.run_attempt!==1||run.path!==path)throw Error('required_ci_identity_changed');
-                if(run.status==='completed')break;
-                if(!['queued','in_progress','waiting','pending'].includes(run.status)||run.conclusion!==null||observation===10||performance.now()-started>300000)throw Error('required_ci_wait_exhausted');
-                await new Promise(resolve=>setTimeout(resolve,30000));
-              }
-              if(run.status!=='completed'||run.conclusion!=='success')throw Error('required_ci_not_complete');
-              checks.push({id,path,status:run.status,conclusion:run.conclusion,head_sha:run.head_sha});
-            }
-            const publisher=await api('GET',root+'/issues/comments/6818332618');
-            if(publisher.user.id!==226193297||publisher.body!=='PR1728: выпуск занят'||publisher.updated_at!=='2026-11-25T20:41:12Z')throw Error('own_publisher_changed');
-            const result=await P.runGuard({env:process.env,fetchImpl:fetch,admission:{repository:'pyatkoff/max-search-bot',prNumber:1728,headSha:head,baseSha:base,publisher:{comment_id:publisher.id,owner_id:publisher.user.id,updated_at:publisher.updated_at}}});
-            fs.writeFileSync('pub/admission.json',JSON.stringify({read_only:true,provider_writes:0,production_writes:0,pr:1728,head,base,checks,publisher:{id:publisher.id,owner:publisher.user.id,body:publisher.body,updated_at:publisher.updated_at},result,checked_at_utc:new Date().toISOString()})+'\n');
-            console.log(JSON.stringify({read_only:true,pr:1728,head,base,result}));
-            if(!result.allowed)throw Error('ordinary_admission_refused');
+          cat > "$RUNNER_TEMP/max-headings.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          use function AnyTour\ExistingPostBatch\{editHotelExisting,publicHotelPost,readHotelMax,postPhotoIds,validHotelEditPlan};
+          ini_set('display_errors','0');
+          $root='/var/www/anytoour/data/www/app.anytoour.ru';
+          $ops='/var/www/anytoour/data/channel-post-operations';
+          $app='4d1ac4a25c5403223d3811e61def23040b1872e3';
+          $ids=[
+            ['hotel'=>1972,'id'=>3824,'mid'=>'mid.ffffc1752b045fed01a048e897ef69df','url'=>'https://max.ru/anytour/AaBI6Jfvad8',
+             'from'=>'Moreno Horizon Spa & Resort','to'=>'Moreno Horizon Spa and Resort'],
+            ['hotel'=>32342,'id'=>3826,'mid'=>'mid.ffffc1752b045fed019febad19a5633d','url'=>'https://max.ru/anytour/AZ_rrRmlYz0',
+             'from'=>'Vinpearl Resort & Spa Phu Quoc','to'=>'Vinpearl Resort and Spa Phu Quoc'],
+          ];
+          function ensureHeading(bool $ok,string $reason):void{if(!$ok)throw new RuntimeException($reason);}
+          function compactHeadingError(Throwable $e):string{return preg_match('/\A[a-z_]{3,80}\z/D',$e->getMessage())?$e->getMessage():'unclassified_read_or_write';}
+          ob_start();
+          $status=[];
+          try {
+             ensureHeading(getcwd()===$root&&trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'))===$app,'installed_head_changed');
+             $mode=$argv[1]??'';
+             ensureHeading(in_array($mode,['apply','read'],true),'unknown_operation_mode');
+             $receiptAt=strtotime('2026-11-25T20:45:00+00:00');
+             if($mode==='apply')ensureHeading($receiptAt>0&&time()>=$receiptAt&&time()-$receiptAt<=480,'route_receipt_not_fresh');
+             require_once $root.'/config.php';
+             require_once $root.'/tools/anytour_existing_post_batch.php';
+             require_once $root.'/services/PromotedHotelPriceWriter.php';
+             require_once $root.'/services/ChannelPostButtonTransport.php';
+             require_once $root.'/services/ChannelPostEntryService.php';
+             require_once $root.'/integrations/ChannelPostIncomingAdapter.php';
+             require_once $root.'/integrations/ChannelPostApiTransport.php';
+             ensureHeading(ProjectConfig::projectId()==='anytour','wrong_project');
+             $lock=$ops.'/monitor-price-after-collection-v1.jsonl';
+             ensureHeading(is_file($lock)&&!is_link($lock),'price_lock_missing');
+             $lease=fopen($lock,'rb');
+             ensureHeading(is_resource($lease)&&flock($lease,($mode==='apply'?LOCK_EX:LOCK_SH)|LOCK_NB),'shared_editor_busy');
+             $pdo=ConversationDb::connection();
+             if($mode==='read'){$pdo->exec('SET TRANSACTION READ ONLY');$pdo->beginTransaction();}
+             try{
+                $registry=new ChannelPostRegistryService($pdo);
+                foreach($ids as $t){
+                   $id=$t['id'];$base=['hotel_id'=>$t['hotel'],'publication_id'=>$id,'mid'=>$t['mid'],'url'=>$t['url']];
+                   $journal=$ops.'/issue-1566-edit-existing-'.$id.'.jsonl';
+                   $began=false;
+                   try{
+                      $post=$registry->publication($id);
+                      $snapshot=$post['snapshot']??[];
+                      ensureHeading(is_array($post)&&($post['state']??null)==='sent'
+                        &&($post['project_key']??null)==='anytour'&&($post['platform']??null)==='max'
+                        &&($post['channel_id']??null)==='-68765999669267'
+                        &&($post['message_id']??$post['external_message_id']??null)===$t['mid']
+                        &&($snapshot['post_url']??null)===$t['url']
+                        &&(int)($snapshot['metadata']['hotel_catalog_id']??0)===$t['hotel'],'publication_identity_changed');
+                      $check=$pdo->prepare("SELECT COUNT(*) FROM post_versions WHERE publication_id=? AND (state IN ('claimed','write_started','unknown') OR claim_token IS NOT NULL OR claimed_at IS NOT NULL)");
+                      $check->execute([$id]);
+                      ensureHeading((int)$check->fetchColumn()===0,'publication_has_active_writer');
+                      $check->closeCursor();
+                      $raw=PromotedHotelPriceWriter::publicBytes($t['url']);
+                      $caption=PromotedHotelPriceWriter::maxPublicCaption($raw,$t['url']);
+                      $publicPage=new DOMDocument();
+                      ensureHeading(@$publicPage->loadHTML('<?xml encoding="UTF-8">'.$raw,LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING),'public_html_unavailable');
+                      $xpath=new DOMXPath($publicPage);
+                      $photo=$xpath->query('//meta[@property="og:image"]')->item(0);
+                      $title=$xpath->query('//meta[@property="og:description"]')->item(0);
+                      $preview=$title instanceof DOMElement?strtok($title->getAttribute('content'),"\r\n"):'';
+                      $native=readHotelMax($t['mid'],'-68765999669267');
+                      $button=ChannelPostButtonTransport::buttonUrl($post);
+                      $context=ChannelPostEntryService::resolve('max',$post['start_payload'],$registry);
+                      $base['current_version']=(int)$post['version_id'];
+                      $base['photo_fingerprint']=hash('sha256',json_encode(postPhotoIds($native,'max'),JSON_THROW_ON_ERROR));
+                      $base['button_fingerprint']=hash('sha256',$button);
+                      ensureHeading($caption===($snapshot['text']??null)&&($native['text']??null)===$caption,'public_or_native_caption_differs');
+                      ensureHeading(count(postPhotoIds($native,'max'))===1&&postPhotoIds($native,'max')===postPhotoIds($snapshot,'max')
+                         &&$photo instanceof DOMElement&&$photo->getAttribute('content')!=='','photo_identity_changed');
+                      ensureHeading($button!==''&&(int)($context['publication_id']??0)===$id
+                          &&(string)($context['external_message_id']??'')===$t['mid']
+                          &&ChannelPostIncomingAdapter::containsOnlyButton($native,$button,$post['channel']['button_text']),'hotel_button_changed');
+                      if(str_contains($caption,$t['to'])&&!str_contains($caption,$t['from'])&&str_contains((string)$preview,$t['to'])){
+                         $status[]=$base+['state'=>'already_publicly_verified','provider_writes'=>0,'caption_and_button_verified'=>true,'public_heading'=>$preview];
+                         continue;
+                      }
+                      if($mode==='read'){
+                         $status[]=$base+['state'=>'original_heading_retained','provider_writes'=>0,'public_heading'=>$preview,
+                            'journal_present'=>is_file($journal)&&filesize($journal)>0];
+                         continue;
+                      }
+                      ensureHeading(!is_link($journal)&&(!is_file($journal)||filesize($journal)===0),'previous_edit_needs_independent_read');
+                      if(preg_match('/\d[\d\s\x{00a0}\x{202f}]*(?:₽|руб)/iu',$caption)){
+                         $priceAt=strtotime((string)($snapshot['metadata']['promoted_price_observed_at']??''));
+                         ensureHeading($priceAt>0&&$priceAt<=time()&&time()-$priceAt<=129600,'fixed_price_not_current');
+                      }
+                      [$titleLine]=explode("\n",$caption,2);
+                      ensureHeading(str_contains($titleLine,$t['from']),'expected_original_heading_missing');
+                      $newLine=str_replace($t['from'],$t['to'],$titleLine,$changes);
+                      ensureHeading($changes===1&&!str_contains($newLine,'&'),'heading_replacement_not_exact');
+                      $next=$newLine.substr($caption,strlen($titleLine));
+                      $row=['platform'=>'max','hotel'=>$t['hotel'],'post'=>(string)$id,'mid'=>$t['mid'],'url'=>$t['url'],
+                         'button_sha'=>hash('sha256',$button),'old_caption_sha256'=>hash('sha256',$caption),'next'=>$next];
+                      ensureHeading(validHotelEditPlan($row),'editor_input_not_valid');
+                      ensureHeading(trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'))===$app,'installed_head_changed');
+                      $began=true;
+                      $status[]=$base+editHotelExisting($pdo,$registry,$row);
+                   }catch(Throwable $e){
+                      $state=$began&&is_file($journal)&&filesize($journal)>0?'unknown_read_before_retry':'held_before_verified_write';
+                      $status[]=$base+['state'=>$state,'reason'=>compactHeadingError($e)];
+                   }
+                }
+             }finally{
+                if($pdo->inTransaction())$pdo->rollBack();
+                flock($lease,LOCK_UN);fclose($lease);
+             }
+          }catch(Throwable $e){
+             $status[]=['state'=>'operation_held','reason'=>compactHeadingError($e)];
           }
-          async function checkedRead(){
-            for(let n=0;n<3;n++){
-              try{return await check();}
-              catch(e){
-                if((e.code||e.message)!=='record_changed'||n===2)throw e;
-                await new Promise(resolve=>setTimeout(resolve,3000));
-              }
-            }
-          }
-          checkedRead().catch(e=>{console.error('ordinary1728_read_refused',e.code||e.message);process.exitCode=1});
-          NODE
-      - name: Preserve exact original admission
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: issue-1566-ordinary1728-admission
-          path: pub/admission.json
-          retention-days: 7
-          if-no-files-found: warn
+          ob_end_clean();
+          echo 'MAX_1728_OPERATION='.json_encode(['app'=>$app,'mode'=>$argv[1]??'','at'=>gmdate('c'),'rows'=>$status],
+             JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR).PHP_EOL;
+          PHP
+          php -l "$RUNNER_TEMP/max-headings.php"
+          php /dev/stdin read <<'PHP'
+          <?php
+          if(($argv[1]??null)!=='read')exit(1);
+          echo "MAX_HEADING_STDIN_MODE_VERIFIED\n";
+          PHP
