@@ -13,7 +13,7 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == '0657f6c97b12856fd84593a6213182792fa15b0b' &&
+      github.event.before == '7bcb1a2bc75307c9fbfb0883c9e63e5a06b34ecf' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -186,7 +186,7 @@ jobs:
            'native_run_id'=>getenv('GITHUB_RUN_ID'),'reader_source_sha'=>getenv('GITHUB_SHA'),'write_admission'=>false,
            'provider_writes'=>0,'production_writes'=>0,'server_calls'=>0,'sql_queries'=>0,'rows'=>[],'windows'=>[]];
           $seen=[];
-          foreach([900,1100,1300,1500]as $before){
+          foreach([700,800,1600,1750]as $before){
            $r=captionPublicBytes('https://t.me/s/anytour?before='.$before,$rates);
            $window=['before'=>$before,'http'=>$r['http'],'body_sha256'=>$r['body_sha256'],'retry_after'=>$r['retry_after']??null];
            if(!$r['ok']){$window['hold_reason']='archive_window_unavailable';$out['windows'][]=$window;continue;}
