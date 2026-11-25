@@ -1,4 +1,4 @@
-name: "#1566 Read public ad feed context for three MAX candidates"
+name: "#1566 Read-only evaluation for the 15 new PRICE targets"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -15,73 +15,42 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == 'a6bd4f2166ab6645fe778072d6deedf062a7534a' && github.run_attempt == 1
+      github.event.before == '354eb4208bcace4a44b69fcb0f5a2daf0a7679a6' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Compare the MAX and combined public XML without opening advertising URLs
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: d62af590516c0e9d832a95217c258f53f658b329
+          persist-credentials: false
+      - name: Compare live public prices with the unchanged PRICE planner
+        shell: bash
         run: |
           set -euo pipefail
           umask 077
           mkdir pub
           python3 - <<'PY'
-          import base64
-          import hashlib
-          import json
-          import pathlib
-          import re
-          import urllib.request
-          import xml.etree.ElementTree as ET
-          from concurrent.futures import ThreadPoolExecutor
-          from datetime import datetime, timezone
-          from urllib.parse import unquote
-
-          plans = json.loads('[{"offer":"max_64918","alias":"h1_be282d699a6be3568fa8dacf857f3435","source_id":"2255","source_url":"https://max.ru/channel_anytour/AaHryMfSWo0","slug":"AZxcNpG8Qfk"},{"offer":"max_358","alias":"h1_84170d0b84626b05e4f82e798ef57820","source_id":"215","source_url":"https://max.ru/channel_anytour/AaGd4bFlag4","slug":"AZrE5K3jCFs"},{"offer":"max_63674","alias":"h1_fb0ba4c1be60cab4c2698362dd707b81","source_id":"643","source_url":"https://max.ru/channel_anytour/AaG2erwGCro","slug":"AaAuJeZbQAc"}]')
-          expected = {p["offer"]: p for p in plans}
-          assert len(expected) == len({p["slug"] for p in plans}) == 3
-          endpoints = {"max":"https://app.anytoour.ru/feed/hotel-posts-max.xml","combined":"https://app.anytoour.ru/feed/hotel-posts-all.xml"}
-
-          def inspect(label):
-              url = endpoints[label]
-              req = urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0","Cache-Control":"no-cache"})
-              with urllib.request.urlopen(req, timeout=12) as response:
-                  assert response.status == 200 and response.geturl() == url
-                  raw = response.read(8000001)
-              assert 0 < len(raw) <= 8000000 and b"<!DOCTYPE" not in raw.upper()
-              offers = ET.fromstring(raw).findall("./shop/offers/offer")
-              by_id = {}
-              target_references = {p["slug"]:[] for p in plans}
-              for item in offers:
-                  offer = item.get("id")
-                  assert offer and offer not in by_id
-                  href = item.findtext("url", "")
-                  by_id[offer] = href
-                  urls = [unquote(n.text or "") for n in item if n.tag in ("url","mobile_url")]
-                  for slug, linked_offers in target_references.items():
-                      if any(re.search(r"https?://max[.]ru/[A-Za-z0-9_-]+/"+re.escape(slug)+r"(?![A-Za-z0-9_-])", value) for value in urls):
-                          linked_offers.append(offer)
-              assert by_id
-              rows = {}
-              for offer, p in expected.items():
-                  href = by_id.get(offer, "")
-                  token = re.search(r"_ctx1_([A-Za-z0-9_-]+)",href)
-                  data = json.loads(base64.urlsafe_b64decode(token[1]+"="*(-len(token[1])%4))) if token else {}
-                  rows[offer] = {"source_alias_matches":data.get("post_id")==p["alias"] and data.get("offer_id")==offer,
-                      "has_attribution_macros":all(k in href for k in ("{yclid}","{campaign_id}","{region_id}")),
-                      "ad_url_sha256":hashlib.sha256(href.encode()).hexdigest() if href else None,
-                      "direct_target_offer_ids":target_references[p["slug"]]}
-              return {"offer_count":len(by_id),"max_offer_count":sum(key.startswith("max_") for key in by_id),
-                  "tg_offer_count":sum(key.startswith("tg_") for key in by_id),"sha256":hashlib.sha256(raw).hexdigest(),"rows":rows}
-
-          with ThreadPoolExecutor(max_workers=2) as executor:
-              reads = dict(zip(endpoints,executor.map(inspect,endpoints)))
-          result = {"observed_at":datetime.now(timezone.utc).isoformat(),"reads":reads,"ad_urls_opened":0,"writes":0}
-          pathlib.Path("pub/observation.json").write_text(json.dumps(result,ensure_ascii=False))
-          print("MAX_THREE_CANDIDATE_FEED_READ="+json.dumps(result,separators=(",",":")))
+          import hashlib,json,pathlib,urllib.request
+          from datetime import datetime,timezone
+          from tools import prepare_promoted_hotel_prices as price
+          source="https://app.anytoour.ru/feed/hotel-posts-all.xml"
+          wanted=set([2588,57028,65877,73343,43689,139,2470,56092,59114,63191,76588,77914,106,111,114])
+          request=urllib.request.Request(source,headers={"User-Agent":"Mozilla/5.0","Cache-Control":"no-cache"})
+          with urllib.request.urlopen(request,timeout=15) as r:
+              assert r.status==200 and r.geturl()==source
+              body=r.read(price.MAX_XML_BYTES+1)
+          result=price.prepare(body,datetime.now(timezone.utc))
+          ready=[{"hotel_id":p["hotel_id"],"max_publication_id":p["max_publication_id"],"observed_at":p["observed_at"]}
+                 for p in result["plans"] if p["hotel_id"] in wanted]
+          held=[p for p in result["held"] if p["hotel_id"] in wanted]
+          assert {p["hotel_id"] for p in ready+held}==wanted and len(ready)+len(held)==15
+          out={"checked_at":result["checked_at"],"config_sha256":result["targets_sha256"],"xml_sha256":hashlib.sha256(body).hexdigest(),
+               "eligible":ready,"held":held,"production_writes":0,"supplier_requests":0,"ad_clicks":0}
+          pathlib.Path("pub/price-readback.json").write_text(json.dumps(out,ensure_ascii=False))
+          print("MAX15_PRICE_DRY_READ="+json.dumps(out,ensure_ascii=False,separators=(",",":")))
           PY
-      - name: Save the current feed readback
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: max-three-candidate-feed-readback
-          path: pub/observation.json
+          name: hotel-max15-price-planner-readback
+          path: pub/price-readback.json
           retention-days: 7
