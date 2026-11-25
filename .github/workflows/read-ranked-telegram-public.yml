@@ -112,10 +112,30 @@ jobs:
       - name: Read and verify published Telegram cards
         run: php tools/verify_ranked_telegram_public.php
       - name: Save verified destinations for the existing route publisher
+        id: public_receipt
         if: ${{ !cancelled() && hashFiles('ranked-public-readback.json') != '' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: ranked-public-readback-${{ github.event.workflow_run.id }}
           path: ranked-public-readback.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Prepare the verified subset for the route owner
+        id: route
+        if: ${{ !cancelled() && steps.public_receipt.outcome == 'success' }}
+        env:
+          PUBLIC_ARTIFACT_ID: ${{ steps.public_receipt.outputs.artifact-id }}
+          PUBLIC_ARTIFACT_DIGEST: ${{ steps.public_receipt.outputs.artifact-digest }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --proto '=https' --max-time 30 --max-filesize 4000000 \
+            --output "$RUNNER_TEMP/hotel-source.xml" https://app.anytoour.ru/feed/hotel-posts-telegram.xml
+          python3 tools/prepare_ranked_telegram_routes.py "$RUNNER_TEMP/hotel-source.xml" ranked-public-readback.json ranked-route-candidate
+      - name: Save the route candidate for owner admission
+        if: ${{ !cancelled() && steps.route.outcome == 'success' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ranked-route-candidate-${{ github.event.workflow_run.id }}
+          path: ranked-route-candidate/
           retention-days: 7
           if-no-files-found: error

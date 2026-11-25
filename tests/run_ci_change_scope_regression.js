@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { execFileSync, spawnSync } = require('node:child_process');
-const { classifyChanges, parseRawDiff, oauthSpecOnlyChange, editorManifestVersionOnlyChange } = require('../tools/ci_change_scope');
+const { classifyChanges, parseRawDiff, oauthSpecOnlyChange, editorManifestVersionOnlyChange, hotelCatalogueAddition } = require('../tools/ci_change_scope');
 const selector = path.resolve(__dirname, '../tools/ci_change_scope.js');
 const oauth = 'manager/ai-oauth.php';
 const fixture = 'tests/visual/fixtures/oauth-consent.js';
@@ -45,6 +45,49 @@ const fixtureImport = "const {startOAuthFixture}=require('./fixtures/oauth-conse
 const consentLoop = "\nfor(const choice of ['allow','deny','legacy policy'])test('OAuth native '+choice,async()=>{\n  await startOAuthFixture(choice);\n});\n";
 let assertions = 0;
 function check(actual, expected, message) { assert.equal(actual, expected, message); assertions++; }
+const hotelDir = 'knowledge/hotels/';
+const hotelIndex = 'catalogue.json', hotelManifest = 'manifest.json';
+const hotelBundle = 'anytour-2376-local46.json';
+const originalBinding = { bundle_file: 'anytour-214-retained91.json', binding_revision: 'old' };
+const addedBinding = { bundle_file: hotelBundle, binding_revision: 'new' };
+const hotelManifestValue = bindings => ({ project_key:'anytour', version:'approved', schema_version:1, bindings });
+const hotelIndexValue = shards => ({ project_key:'anytour', schema_version:'hotel_catalogue_v1', shards });
+const pin = (file, digit) => ({ file, git_blob_sha: digit.repeat(40) });
+const originalIndex = hotelIndexValue([pin(hotelManifest,'a')]);
+const addedIndex = hotelIndexValue([pin(hotelManifest,'b')]);
+const modifyHotel = path => ({ path:hotelDir+path, status:'M', oldMode:'100644', newMode:'100644' });
+const addHotel = path => ({ path:hotelDir+path, status:'A', oldMode:'000000', newMode:'100644' });
+const hotelChanges = [modifyHotel(hotelIndex),modifyHotel(hotelManifest),addHotel(hotelBundle)];
+const hotelFixture = {
+  base: { [hotelIndex]:originalIndex, [hotelManifest]:hotelManifestValue([originalBinding]) },
+  head: { [hotelIndex]:addedIndex, [hotelManifest]:hotelManifestValue([originalBinding, addedBinding]) },
+};
+const hotelRead = fixture => (side,path) => JSON.stringify(fixture[side][path.slice(hotelDir.length)]);
+check(hotelCatalogueAddition(hotelChanges,hotelRead(hotelFixture)),true,'append-only catalogue paths select the dedicated proof');
+for (const change of [
+  {path:'assets/project-funnel.js',status:'M',oldMode:'100644',newMode:'100644'},
+  {path:'tools/ci_change_scope.js',status:'M',oldMode:'100644',newMode:'100644'},
+  modifyHotel(hotelBundle),addHotel('other.json'),addHotel('nested/'+hotelBundle),
+  {...addHotel(hotelBundle), path:hotelDir+'anytour-2847-local46.json',newMode:'120000'},
+]) check(hotelCatalogueAddition([...hotelChanges,change],hotelRead(hotelFixture)),false,'mixed, existing bundle/unknown path, symlink and duplicate fall back');
+for (const [bindings, reason] of [
+  [[addedBinding],'previous row removed'],
+  [[{...originalBinding,binding_revision:'changed'},addedBinding],'previous row changed'],
+  [[addedBinding,originalBinding],'previous row reordered'],
+  [[originalBinding,addedBinding,addedBinding],'a new bundle reused'],
+  [[originalBinding,{...addedBinding,bundle_file:'anytour-2847-local46.json'}],'an unshipped bundle referenced'],
+]) {
+  const changed = {...hotelFixture,head:{...hotelFixture.head,[hotelManifest]:hotelManifestValue(bindings)}};
+  check(hotelCatalogueAddition(hotelChanges,hotelRead(changed)),false,reason);
+}
+const appendedShard = 'manifest-0001.json';
+const newShardFixture = {
+  ...hotelFixture,
+  head: {[hotelIndex]:hotelIndexValue([pin(hotelManifest,'a'),pin(appendedShard,'b')]),[appendedShard]:hotelManifestValue([addedBinding])},
+};
+check(hotelCatalogueAddition([modifyHotel(hotelIndex),addHotel(appendedShard),addHotel(hotelBundle)],hotelRead(newShardFixture)),true,'existing pins plus a newly approved shard');
+check(hotelCatalogueAddition(hotelChanges,()=>'{'),false,'unreadable/malformed Git data keeps full coverage');
+
 const classify = changes => classifyChanges(changes).mode;
 check(classify([{ status: 'M', path: oauth }]), 'oauth', 'bounded OAuth modification');
 check(classify([{ status: 'M', path: oauth }, { status: 'M', path: doc }]), 'oauth', 'OAuth with documentation');
@@ -200,7 +243,7 @@ try {
     const result = JSON.parse(execFileSync(process.execPath, [selector], { cwd: temp, env, encoding: 'utf8' }));
     lastProof=result.proveTourSelection===true;
     lastBackend=result.backend;
-    check(fs.readFileSync(outputPath, 'utf8'), `mode=${result.mode}\ntour-proof=${lastProof}\n`, 'GitHub outputs match JSON');
+    check(fs.readFileSync(outputPath, 'utf8'), `mode=${result.mode}\ntour-proof=${lastProof}\nhotel-proof=${result.proveHotelCatalogue === true}\n`, 'GitHub outputs match JSON');
     return result.mode;
   }
   const event = head => ({ pull_request: { base: { sha: base }, head: { sha: head } } });
@@ -375,6 +418,20 @@ try {
   git(['add', '-A']); git(['commit', '-qm', 'style change with unavailable remote snapshot']);
   check(run(mainEvent(advancedBase, git(['rev-parse', 'HEAD']))), 'full', 'unavailable snapshot keeps styling changes full');
   check(lastBackend, 'full', 'conservative fallback cannot apply the styling backend shortcut');
+  put(hotelDir+hotelIndex,JSON.stringify(originalIndex));
+  put(hotelDir+hotelManifest,JSON.stringify(hotelFixture.base[hotelManifest]));
+  git(['add','-A']); git(['commit','-qm','hotel catalogue base']);
+  const dataBase = git(['rev-parse','HEAD']);
+  git(['update-ref','refs/remotes/origin/main',dataBase]);
+  put(hotelDir+hotelIndex,JSON.stringify(addedIndex));
+  put(hotelDir+hotelManifest,JSON.stringify(hotelFixture.head[hotelManifest]));
+  put(hotelDir+hotelBundle,'{}');
+  git(['add','-A']); git(['commit','-qm','catalogue append proposal']);
+  const dataEvent = mainEvent(dataBase,git(['rev-parse','HEAD']));
+  check(run(dataEvent),'full','hotel data scope preserves other workflow mode');
+  check(lastBackend,'hotel-catalogue-data','native Git diff selects only the hotel data backend');
+  check(run(dataEvent,{GITHUB_EVENT_NAME:'workflow_dispatch'}),'full','manual event remains full');
+  check(lastBackend,undefined,'manual workflow never selects a component profile');
   git(['reset', '--hard', '-q', integratedHead]);
 
   const brokenHead = git(['rev-parse', 'HEAD']);

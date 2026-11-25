@@ -135,6 +135,41 @@ function inspectPublic(array $candidates, string $digest, callable $read): array
         'verified_destinations'=>$routes];
 }
 
+/** Reconcile the report produced by this observer with its authenticated native rows. */
+function routeInput(array $groups, array $context, array $report): array
+{
+    foreach ($context as $key => $value) {
+        requirePost(($report[$key] ?? null) === $value, 'route_receipt_context_invalid');
+    }
+    requirePost(($report['read_only'] ?? null) === true && ($report['provider_write_attempts'] ?? null) === 0
+        && array_keys($groups) === array_keys($report['plans']), 'route_receipt_context_invalid');
+    $accepted = [];
+    foreach ($groups as $digest => $candidates) {
+        $block = $report['plans'][$digest];
+        requirePost(array_is_list($block['results']) && count($candidates) === count($block['results']),
+            'route_public_coverage_invalid');
+        $expected = [];
+        foreach ($candidates as $i => [$plan, $native]) {
+            $public = $block['results'][$i];
+            foreach (['hotel_id','message_id','url','publication_id','version_id'] as $key) {
+                requirePost(($public[$key] ?? null) === $native[$key], 'route_public_identity_invalid');
+            }
+            if ($public['applied'] === false) continue;
+            foreach (['applied','native_photo_identity_verified','caption','public_new_photo_marker','original_date','hotel_button'] as $check) {
+                requirePost(($public[$check] ?? null) === true, 'route_public_proof_incomplete');
+            }
+            requirePost(preg_match('/\A[a-f0-9]{64}\z/D', $public['html_sha256']) === 1, 'route_public_html_invalid');
+            $row = ['hotel_id'=>$native['hotel_id'], 'source_url'=>'https://t.me/any_toour/'.$plan['source_message_id'],
+                'post_url'=>$native['url'], 'publication_id'=>$native['publication_id'], 'version_id'=>$native['version_id']];
+            $expected[] = $row;
+            $accepted[] = $row + ['plan_sha256'=>$digest, 'html_sha256'=>$public['html_sha256']];
+        }
+        requirePost($block['public_verified'] === count($expected) && $block['verified_destinations'] === $expected
+            && $block['public_unverified'] === count($candidates) - count($expected), 'route_destinations_mismatch');
+    }
+    return ['native'=>$context, 'accepted'=>$accepted];
+}
+
 if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) {
     $folder = getenv('RUNNER_TEMP').'/native/';
     $load = static fn(string $file): array => json_decode(file_get_contents($file), true, 64, JSON_THROW_ON_ERROR);
@@ -162,6 +197,10 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
         requirePost(preg_match('/\A[a-f0-9]{40}\z/D', $context['application_sha']) === 1, 'native_application_unconfirmed');
         $groups[$digest] = verifiedCandidates($plan, $load($folder.'check-'.$digest.'.json'), $result,
             $summary[$digest], $context + ['plan_sha256'=>$digest]);
+    }
+    if ($argc === 3 && $argv[1] === '--route-input') {
+        echo json_encode(routeInput($groups, $context, $load($argv[2])), JSON_THROW_ON_ERROR);
+        exit(0);
     }
     $report = $context + ['read_only'=>true, 'provider_write_attempts'=>0, 'plans'=>[]];
     foreach ($groups as $digest => $candidates) {
