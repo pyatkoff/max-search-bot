@@ -11,10 +11,26 @@ const APPLICATION_SHA = '__APPLICATION_SHA__';
 const REPOSITORY_SHA = '__REPOSITORY_SHA__';
 const NATIVE_RUN_ID = '__NATIVE_RUN_ID__';
 const PAIRS = [
-    1494 => ['name'=>'Rixos Downtown Antalya', 'source'=>'361', 'target'=>'647', 'date'=>'2024-05-29T12:05:19Z', 'rank'=>null, 'demand_platform'=>'not_measured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TR', 'locality'=>'Анталья', 'archived_offer'=>'Старый коммерческий текстовый пост, кандидат на text_to_photo; WRITE не допущен', 'archived_countries'=>['TR'], 'different_direction'=>false, 'target_caption_sha256'=>'2d431a35a8dcaaa267fce9237ebd71276b7a52d0349cc9902b2d45671752d1c8', 'target_photo_marker_sha256'=>null],
-    82567 => ['name'=>'Phuket Emerald Beach Resort', 'source'=>'252', 'target'=>'931', 'date'=>'2024-11-19T12:35:05Z', 'rank'=>null, 'demand_platform'=>'not_measured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TH', 'locality'=>'Пхукет', 'archived_offer'=>'Предварительный альбом931–936: читаем все6 native записей, WRITE не допущен', 'archived_countries'=>['TH'], 'different_direction'=>false, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null]
+    1067 => ['source'=>'273', 'target'=>'1066', 'publication_id'=>3809, 'version_id'=>14385, 'published_unixtime'=>1743668442, 'expected_caption_sha256'=>'a3288991e0a486cfc95e6c919799ec56a4a8d561271e41be4a29765644d5af76'],
+    1100 => ['source'=>'173', 'target'=>'1072', 'publication_id'=>3810, 'version_id'=>14386, 'published_unixtime'=>1744183638, 'expected_caption_sha256'=>'c1218aed2f0f27a129861a9a124e6ede79c9cc26d07ceaa03a78c18a941c9c3b'],
+    1142 => ['source'=>'343', 'target'=>'1081', 'publication_id'=>3811, 'version_id'=>14387, 'published_unixtime'=>1745137076, 'expected_caption_sha256'=>'55c309a1c7ec7e03d69c7002e66ac8fea136ee0afd7e44927679f0074bf41f02'],
+    1151 => ['source'=>'152', 'target'=>'1102', 'publication_id'=>3812, 'version_id'=>14388, 'published_unixtime'=>1747906898, 'expected_caption_sha256'=>'581edb2313482564c33a22fb69f2cb63f83a3e07519adfbbd608d1ca4968ea38'],
+    1221 => ['source'=>'238', 'target'=>'1078', 'publication_id'=>3813, 'version_id'=>14389, 'published_unixtime'=>1744879625, 'expected_caption_sha256'=>'bb6422aa8d298908f599f664968abe026422310b62d628698cfc09edce28f53a'],
+    1334 => ['source'=>'169', 'target'=>'664', 'publication_id'=>3814, 'version_id'=>14390, 'published_unixtime'=>1717660536, 'expected_caption_sha256'=>'2aa882407364767a2a96199f17746fefaf85c7819554c93d27c53733ed923ab0'],
+    1336 => ['source'=>'453', 'target'=>'1032', 'publication_id'=>3815, 'version_id'=>14391, 'published_unixtime'=>1740738279, 'expected_caption_sha256'=>'603c4374f0f1d6214f5053b247085e0edebd36d0c4ad024aa19d272c3e17ac72'],
+    1421 => ['source'=>'552', 'target'=>'1076', 'publication_id'=>3816, 'version_id'=>14392, 'published_unixtime'=>1744616938, 'expected_caption_sha256'=>'0ca9e9eb3720ee7ad56eff44caf49e4deff53d8e82103698b13b4025a6ce0d36'],
+    1429 => ['source'=>'285', 'target'=>'1125', 'publication_id'=>3817, 'version_id'=>14393, 'published_unixtime'=>1749973243, 'expected_caption_sha256'=>'684e6e02abba525347602ab36b40e6cb45a5844e1801665bf7fb2f0b97aaa3e8'],
+    2522 => ['source'=>'1049', 'target'=>'1120', 'publication_id'=>3818, 'version_id'=>14394, 'published_unixtime'=>1749547449, 'expected_caption_sha256'=>'51d77e5e203fbaeab5b0e17c431b460b4b9c9ec761baf03f5c267e690dd8f8f8'],
+    2794 => ['source'=>'1056', 'target'=>'768', 'publication_id'=>3819, 'version_id'=>14395, 'published_unixtime'=>1721806548, 'expected_caption_sha256'=>'aa38cc43bdb9aa3c55f1aabad93ae9bbcedf3c8919c0ca9e1f597a6cd80caf51'],
+    4060 => ['source'=>'289', 'target'=>'916', 'publication_id'=>3820, 'version_id'=>14396, 'published_unixtime'=>1730274008, 'expected_caption_sha256'=>'97b8f674fdee0fddea0de997765a81e2c65ef11cfa7e4c9fc6a82b9f2f006744'],
+    8020 => ['source'=>'899', 'target'=>'839', 'publication_id'=>3821, 'version_id'=>14397, 'published_unixtime'=>1725540621, 'expected_caption_sha256'=>'ee9b6cc5ec50518d38efbf59fb4b4be184cbb2807341c6de4ab542a4e535dcec'],
+    32322 => ['source'=>'682', 'target'=>'1603', 'publication_id'=>3822, 'version_id'=>14398, 'published_unixtime'=>1783062911, 'expected_caption_sha256'=>'7334e84756845f710adbf941e4783c92bbca2d963425673efc26fa163b6086e9'],
+    1014 => ['source'=>'345', 'target'=>'1604', 'publication_id'=>3823, 'version_id'=>14399, 'published_unixtime'=>1783149311, 'expected_caption_sha256'=>'7b72e3c77f575d2b3b754b17980097fca480bea18cbf94f175d9383938fdba2d'],
+    14140 => ['source'=>'593', 'target'=>'909', 'publication_id'=>3829, 'version_id'=>14405, 'published_unixtime'=>1729674071, 'expected_caption_sha256'=>'e90f9d7229796a03f84eb0a6e6d4da19818b6ef8ad416d1f3fedcd588be16976'],
+    1402 => ['source'=>'312', 'target'=>'1085', 'publication_id'=>3830, 'version_id'=>14406, 'published_unixtime'=>1745566590, 'expected_caption_sha256'=>'97dcba158a72652ee5c4c7ae3463028d5ab02575a824e53cf37ba2ab1956d7d8'],
+    1959 => ['source'=>'470', 'target'=>'526', 'publication_id'=>3831, 'version_id'=>14407, 'published_unixtime'=>1712046057, 'expected_caption_sha256'=>'541714c591f8d4be03b2e9c9e600760ccd805bd7fd87e8f2b0376ee719734c83'],
 ];
-const PAIR_DIGEST = 'ce948e2d56ea81d9e11a8d63e4363fd37cfdc7fb00b4ccf20eadcf39f8cdb7c0';
+const PAIR_DIGEST = '91ad991e49fcc3848b71c307573d91616d8e1de6644f324f10834979b9c0c2fa';
 
 
 function requireRead(bool $ok, string $reason): void
@@ -277,7 +293,7 @@ function corroborateTargetKeyboard(array $embedded, array $archive): array
     return $embedded;
 }
 
-/** Do not fetch source content for a previously consumed destination. */
+/** Read-only evidence helpers. Accepted route readback never takes a candidate early exit. */
 function telegramCandidatePublicRead(array $pair, bool $priorOperationExists, callable $read): array
 {
     if (!$priorOperationExists) return [$read('any_toour', $pair['source']), $read('anytour', $pair['target'])];
@@ -286,11 +302,6 @@ function telegramCandidatePublicRead(array $pair, bool $priorOperationExists, ca
         $skipped + ['url'=>'https://t.me/anytour/'.$pair['target']]];
 }
 
-/**
- * Project only observed Bot API fields. Channel names, photo CSS IDs and missing
- * fields never identify a publisher. A stored snapshot is not a fresh capability
- * probe; Bot API has no per-message can_edit_media read.
- */
 function telegramNativeEditEvidenceRead(array $snapshot, string $chat, string $message): array
 {
     $raw = $snapshot['raw_body'] ?? null;
@@ -337,24 +348,31 @@ function telegramNativeEditEvidenceRead(array $snapshot, string $chat, string $m
         'original_send_method'=>null, 'can_be_edited'=>null, 'can_edit_media'=>null];
 }
 
-/**
- * Read-only evidence classification, never authorization to edit. Keep unknown
- * candidates distinct from proven exclusions. Ordinary other-author channel posts,
- * age and protected-content flags alone are not editing prohibitions.
- */
 function telegramTargetEditabilityRead(string $message, ?array $native, array $journal,
-    array $public, ?string $editorBotId, bool $rightsReady, bool $directoryExists = false): array
+    array $public, ?string $editorBotId, ?bool $rightsReady, bool $directoryExists = false,
+    string $readPurpose = 'candidate_preparation'): array
 {
+    requireRead(in_array($readPurpose, ['candidate_preparation','accepted_readback'], true), 'read_purpose_invalid');
+    $acceptedReadback = $readPurpose === 'accepted_readback';
+    // This readback observes accepted destinations; it does not read getMe or current edit rights.
+    if ($acceptedReadback) { $editorBotId = null; $rightsReady = null; }
     $result = ['schema'=>1, 'chat_id'=>'-1001845835645', 'message_id'=>$message,
         'method'=>'editMessageMedia', 'editor_bot_id'=>$editorBotId,
         'channel_rights_verified'=>$rightsReady, 'per_message_capability'=>null,
         'editability_guaranteed'=>false, 'success_probability'=>null, 'probability_basis'=>'not_calibrated',
-        'state'=>'unknown_editability', 'evidence_tier'=>'unknown',
-        'preparation_blocked'=>false, 'no_retry'=>false, 'reasons'=>[]];
+        'state'=>'unknown_editability', 'evidence_tier'=>'unknown', 'read_purpose'=>$readPurpose,
+        'readback_required'=>$acceptedReadback,
+        'preparation_blocked'=>false, 'candidate_preparation_allowed'=>true, 'no_retry'=>false, 'reasons'=>[]];
     $finish = static fn(string $state, string $tier, bool $blocked, bool $noRetry, array $reasons): array
         => array_replace($result, ['state'=>$state, 'evidence_tier'=>$tier,
-            'preparation_blocked'=>$blocked, 'no_retry'=>$noRetry, 'reasons'=>$reasons]);
+            'preparation_blocked'=>$acceptedReadback || $blocked,
+            'candidate_preparation_allowed'=>!($acceptedReadback || $blocked),
+            'no_retry'=>$acceptedReadback || $noRetry,
+            'reasons'=>array_values(array_unique(array_merge(
+                $acceptedReadback ? ['accepted_destination_scope'] : [], $reasons)))]);
     if (($journal['state'] ?? null) !== 'absent' || $directoryExists) {
+        if (($journal['state'] ?? null) === 'unavailable' && !$directoryExists)
+            return $finish('operation_requires_readback', 'unavailable', true, true, ['media_operation_evidence_unavailable']);
         $states = $journal['states'] ?? [];
         $events = $journal['events'] ?? [];
         $prefix = ['intent_saved','identity_reserved','request_prepared','provider_edit_started','provider_response_saved'];
@@ -394,6 +412,10 @@ function telegramTargetEditabilityRead(string $message, ?array $native, array $j
         && (($evidence['chat_id'] ?? null) !== $result['chat_id']
             || ($evidence['message_id'] ?? null) !== $message))
         return $finish('evidence_conflict', 'unusable_snapshot', true, false, ['native_message_identity_mismatch']);
+    // An expected hotel button is positive readback evidence, not a candidate veto.
+    // Missing historical media proof never makes an accepted destination reusable.
+    if ($acceptedReadback)
+        return $finish('accepted_target_not_for_reuse', 'accepted_scope', true, true, []);
     $caption = is_string($public['caption'] ?? null) ? $public['caption'] : '';
     // Albums may expose several DOM copies with caption=null; inspect the
     // already bounded text nodes without inventing a native caption member.
@@ -549,7 +571,7 @@ function publicationRead(PDO $pdo, ChannelPostRegistryService $registry, int $ch
     $r = $p['receipt'];
     return ['publication_id' => $p['publication_id'], 'version_id' => $p['version_id'],
         'version_number' => $p['version_number'], 'content_hash' => $p['content_hash'], 'state' => $p['state'],
-        'post_url' => $s['post_url'] ?? '', 'caption_sha256' => hash('sha256', $s['text'] ?? ''),
+        'published_at' => $s['published_at'] ?? '', 'post_url' => $s['post_url'] ?? '', 'caption_sha256' => hash('sha256', $s['text'] ?? ''),
         'hotel_id' => $s['metadata']['hotel_catalog_id'] ?? null, 'logical_id' => $s['metadata']['logical_id'] ?? null,
         'monitor_price_record_id' => $s['metadata']['monitor_price_record_id'] ?? null,
         'attachments' => $media, 'button_url' => $url,
@@ -563,277 +585,163 @@ function publicationRead(PDO $pdo, ChannelPostRegistryService $registry, int $ch
         'content_edit_journal' => receiptRead(OPERATIONS . '/issue-1566-edit-existing-' . $p['publication_id'] . '.jsonl')];
 }
 
-$out = ['schema' => 1, 'issue' => 1566, 'demand_run_id' => null, 'demand_artifact_id' => null, 'demand_registry_sha256' => null, 'operation' => 'hotel_archive_telegram_ranked_registry', 'ok' => false,
-    'repository_sha' => REPOSITORY_SHA, 'application_sha' => APPLICATION_SHA,
-    'native_run_id' => NATIVE_RUN_ID, 'native_run_attempt' => 1, 'format_support_observation_only'=>true, 'write_admission'=>false,
-    'production_writes' => 0, 'provider_writes' => 0, 'bot_starts' => 0, 'public_get_attempts' => 0];
-$pdo = null;
-$priceLock = null;
-$publicAttempts = 0;
-$publicRateLimit = null;
-$stage = 'installed_release';
-$readStarted = hrtime(true);
-$priceLeaseAcquired = null;
-try {
-    $data = [];
-    foreach (PAIRS as $id => $row) {
-        $data[] = [$id, (int) $row['source'], (int) $row['target'], $row['date']];
-    }
-    requireRead(count($data) === 2 && count(array_unique(array_column($data, 1))) === 2
-        && count(array_unique(array_column($data, 2))) === 2
-        && !array_intersect(array_column($data, 0), [106, 109, 111, 114, 125, 132, 133, 139, 140, 150, 174, 195, 206, 231, 236, 246, 247, 260, 263, 266, 272, 287, 288, 293, 302, 358, 371, 393, 408, 415, 416, 435, 441, 454, 465, 466, 469, 483, 497, 513, 599, 632, 706, 713, 768, 800, 932, 948, 949, 954, 955, 964, 975, 996, 1013, 1032, 1035, 1055, 1105, 1260, 1344, 1451, 1960, 1972, 2470, 2493, 2588, 3405, 3415, 3452, 4091, 4181, 4270, 11791, 12107, 12111, 15693, 17595, 24909, 26844, 28460, 32342, 37668, 43676, 43689, 47025, 51238, 54605, 56092, 57028, 59114, 63191, 64895, 64914, 64918, 65877, 70048, 73343, 73974, 74503, 75100, 76588, 77914, 79071, 82106, 82606, 85417, 99713, 107938, 118475])
-        && !array_intersect(array_column($data, 2), [17, 19, 23, 37, 48, 82, 192, 196, 204, 220, 224, 249, 266, 288, 316, 328, 346, 355, 372, 402, 414, 431, 455, 474, 483, 516, 540, 560, 578, 594, 603, 610, 626, 646, 702, 716, 731, 737, 755, 783, 799, 809, 819, 846, 852, 862, 867, 884, 889, 892, 894, 901, 905, 906, 908, 911, 913, 914, 915, 917, 918, 920, 923, 924, 925, 927, 928, 930, 938, 948, 949, 951, 952, 954, 955, 956, 963, 964, 969, 970, 972, 982, 983, 993, 995, 997, 999, 1001, 1003, 1012, 1016, 1018, 1020, 1034, 1037, 1042, 1043, 1046, 1049, 1051, 1052, 1055, 1057, 1059, 1063, 1069, 1074, 1083, 1087, 1090, 1092, 1095, 1098, 1101, 1110, 1128, 1131, 1148, 1150, 1207, 1227, 1292, 1312, 1380, 1469, 1484, 1570, 1588, 1652, 1678, 1754, 1760, 1779, 1780, 1782, 1784, 1787, 1788, 1789, 1790, 1792])
-        && hash_equals(PAIR_DIGEST, hash('sha256', jsonRead($data))), 'input_packet_changed');
-    runtimeRead();
-    requireRead(realpath(OPERATIONS) === OPERATIONS, 'operations_root_changed');
-    $out['resources_before'] = resourcesRead();
-    $stage = 'bounded_public_photos';
-    $public = []; $publicAlbum = []; $priorObserved = [];
-    foreach (PAIRS as $hotel => $pair) {
-        // Presence can only hold a target. Read the immutable journal later under
-        // the existing shared lease; never convert a vanished directory to free.
-        $directory = OPERATIONS.'/anytour-issue1566-historical-tg-media-'.$pair['target'].'-v1';
-        $priorObserved[$hotel] = file_exists($directory) || is_link($directory);
-        $public[$hotel] = telegramCandidatePublicRead($pair, $priorObserved[$hotel], 'publicEvidence');
-        if($hotel===82567 && !$priorObserved[$hotel])
-            foreach(['932','933','934','935','936'] as $member) $publicAlbum[$member]=publicEvidence('anytour',$member);
-        $out['public_get_attempts'] = $publicAttempts;
-        $out['public_rate_limit'] = $publicRateLimit;
-    }
-    runtimeRead();
-    require_once APP . '/hotel-posts-telegram-main19.php';
-    $catalogue = anytourTelegramFeedRead();
-    $out['ranked_feed_sha256'] = '22407f75b33b9d4e7da0c09c6d07ec352a7da5aaa16521b6c524a4284e75c56d';
-    $out['current_feed_sha256'] = hash('sha256',$catalogue);
-    $feed = anytourTelegramFeedOfferUrls($catalogue);
-    $catalogueDoc = new DOMDocument();
-    requireRead($catalogueDoc->loadXML($catalogue,LIBXML_NONET|LIBXML_NOCDATA), 'catalogue_xml_invalid');
-    $metadata = [];
-    foreach ($catalogueDoc->getElementsByTagName('offer') as $offer) {
-        $id = $offer->getAttribute('id');
-        if (!preg_match('/^tg_([1-9][0-9]*)$/D',$id,$match) || !isset(PAIRS[(int)$match[1]])) continue;
-        $metadata[$id] = ['locality'=>trim((string)$offer->getElementsByTagName('custom_label_1')->item(0)?->textContent),
-            'price'=>trim((string)$offer->getElementsByTagName('price')->item(0)?->textContent)];
-    }
-    requireRead(count($feed) > 0, 'feed_inventory_unavailable');
-    // The canonical complete public feed source is carried once for existing ROUTE preparation.
-    // This is not an HTTP probe or a live route acceptance. No private database fields are exported.
-    $out['route_feed_source'] = ['kind'=>'canonical_local_raw_xml', 'raw_utf8'=>$catalogue,
-        'bytes'=>strlen($catalogue), 'sha256'=>hash('sha256',$catalogue), 'offer_count'=>count($feed)];
-    $landings = anytourTelegramFeedDestinationPosts($feed);
-    // Both possible destinations of the two table-backed rows remain reserved.
-    $protectedTargets = array_fill_keys(array_merge(array_values($landings), [
-        'https://t.me/anytour/1780', 'https://t.me/anytour/1760',
-    ]), true);
-    $lockPath = OPERATIONS . '/monitor-price-after-collection-v1.jsonl';
-    requireRead(!is_link($lockPath) && is_file($lockPath), 'price_editor_lease_unknown');
-    $priceLock = fopen($lockPath, 'rb');
-    requireRead(is_resource($priceLock), 'price_read_lease_unavailable');
-    $lockStarted = hrtime(true);
-    $lockDeadline = $lockStarted + 240_000_000_000;
-    $shared = false;
-    do {
-        $shared = flock($priceLock, LOCK_SH | LOCK_NB);
-        if ($shared || hrtime(true) >= $lockDeadline) break;
-        usleep(2_000_000);
-    } while (true);
-    $out['price_lease_wait_ms'] = (int) ((hrtime(true) - $lockStarted) / 1_000_000);
-    requireRead($shared, 'price_editor_busy_or_unknown');
-    runtimeRead();
-    $out['price_editor_shared_read_lease'] = true;
-    $priceLeaseAcquired = hrtime(true);
-    $stage = 'initialize_registry';
-    ob_start();
+
+/** Optional bounded journal evidence; failures affect only the accepted-row annotation. */
+function telegramAcceptedCandidateAssessmentRead(string $message, ?array $native, array $public): array
+{
+    $directoryExists = null;
+    $directorySymlink = null;
+    $journal = ['state'=>'unavailable', 'reason'=>'media_operation_not_observed'];
+    // Optional filesystem warnings must not corrupt the reader JSON or disclose a host path.
+    set_error_handler(static function (int $severity, string $ignored): bool {
+        throw new RuntimeException('optional_media_observation_failed');
+    });
     try {
-        require APP . '/config.php';
-        require_once APP . '/services/ChannelPostRegistryService.php';
-        require_once APP . '/services/ChannelPostButtonTransport.php';
-        require_once APP . '/services/ChannelPostRuntime.php';
-    } finally { ob_end_clean(); }
-    requireRead(ProjectConfig::projectId() === 'anytour', 'project_changed');
-    $pdo = ConversationDb::connection();
-    $pdo->exec('SET SESSION TRANSACTION READ ONLY');
-    $registry = new ChannelPostRegistryService($pdo);
-    $target = $registry->channel('anytour', 'telegram', 'anyru_bot', '-1001845835645');
-    $source = $registry->channel('anytour', 'telegram', 'anyru_bot', '-1002262666616');
-    $identity = ChannelPostRuntime::identity('telegram');
-    $q = $pdo->query("SELECT pc.id,pc.platform,pc.channel_id FROM post_channels pc JOIN projects p ON p.id=pc.project_id "
-        . "WHERE p.project_key='anytour' AND pc.id=4");
-    $mainMax = $q->fetch(PDO::FETCH_ASSOC);
-    requireRead(is_array($target) && (int) $target['id'] === 6 && $target['source_key'] === 'tg_anytour_msk'
-        && ($target['post_mode'] ?? 'append_button') === 'append_button'
-        && is_array($source) && (int) $source['id'] === 10
-        && ($identity['project_key'] ?? '') === 'anytour' && ($identity['bot_key'] ?? '') === 'anyru_bot',
-        'channel_identity_changed');
-    requireRead(is_array($mainMax) && $mainMax['platform'] === 'max' && $mainMax['channel_id'] === '-68765999669267',
-        'large_max_registry_identity_changed');
-    $out['target_channel'] = ['registry_id' => 6, 'chat_id' => '-1001845835645', 'url' => 'https://t.me/anytour',
-        'config_version' => (int) $target['config_version'], 'button_text' => $target['button_text'], 'bot_url' => $target['bot_url']];
-    $stage = 'native_channel_rights';
-    $targetUsernameMatches = false;
-    $currentPin = null;
-    $editorBotId = null;
-    $readTransport = static function (string $platform, string $method, string $path, array $query, ?array $body) use (&$targetUsernameMatches, &$currentPin, &$editorBotId): array {
-        requireRead($platform === 'telegram' && $method === 'POST' && $query === []
-            && in_array($path, ['getMe', 'getChatMember', 'getChat'], true)
-            && ($path === 'getMe' || (string) ($body['chat_id'] ?? '') === '-1001845835645'), 'provider_read_scope_changed');
-        $response = ChannelPostApiTransport::buttonRequest($platform, $method, $path, $query, $body);
-        if ($path === 'getMe' && ($response['http'] ?? null) === 200
-            && ($response['transport_error'] ?? null) === false && ($response['data']['ok'] ?? null) === true) {
-            $me = $response['data']['result'] ?? [];
-            if (($me['is_bot'] ?? null) === true && ($me['username'] ?? null) === 'anyru_bot'
-                && (is_int($me['id'] ?? null) || is_string($me['id'] ?? null))
-                && preg_match('/\A[1-9][0-9]{0,19}\z/D', (string)$me['id']) === 1) $editorBotId = (string)$me['id'];
+        if (preg_match('/\A[1-9][0-9]{0,19}\z/D', $message) !== 1) {
+            $journal = ['state'=>'unavailable', 'reason'=>'invalid_target_message_id'];
+        } else {
+            $directory = OPERATIONS.'/anytour-issue1566-historical-tg-media-'.$message.'-v1';
+            $directorySymlink = is_link($directory);
+            $directoryExists = $directorySymlink || file_exists($directory);
+            if ($directorySymlink) {
+                $journal = ['state'=>'unavailable', 'reason'=>'operation_directory_symlink'];
+            } elseif ($directoryExists && (!is_dir($directory) || !is_readable($directory) || !is_executable($directory))) {
+                $journal = ['state'=>'unavailable', 'reason'=>'operation_directory_unreadable'];
+            } elseif (is_link($directory.'/receipt.jsonl')) {
+                $journal = ['state'=>'unavailable', 'reason'=>'operation_receipt_symlink'];
+            } else {
+                $journal = receiptRead($directory.'/receipt.jsonl', $message);
+            }
         }
-        if ($path === 'getChat') {
-            $chat = $response['data']['result'] ?? [];
-            $targetUsernameMatches = strtolower((string) ($chat['username'] ?? '')) === 'anytour';
-            $currentPin = isset($chat['pinned_message']['message_id']) ? (string) $chat['pinned_message']['message_id'] : null;
-        }
-        return $response;
-    };
-    $out['native_channel_rights'] = (new ChannelPostButtonTransport($readTransport))->verifyChannel($target);
-    requireRead(($out['native_channel_rights']['receipt']['write_attempts'] ?? null) === 0, 'read_only_transport_contract_changed');
-    if (($out['native_channel_rights']['state'] ?? '') !== 'ready') $editorBotId = null;
-    $out['native_editor'] = ['bot_id'=>$editorBotId, 'username'=>'anyru_bot', 'source'=>'getMe',
-        'verified'=>$editorBotId !== null, 'capability_scope'=>'channel_only', 'per_message_checked'=>false];
-    $sourceChatRead = ChannelPostApiTransport::buttonRequest('telegram', 'POST', 'getChat', [], ['chat_id' => '-1002262666616']);
-    $sourceChat = $sourceChatRead['data']['result'] ?? [];
-    $sourceUsernameMatches = ($sourceChatRead['http'] ?? 0) === 200 && empty($sourceChatRead['transport_error'])
-        && ($sourceChatRead['data']['ok'] ?? null) === true && ($sourceChat['type'] ?? '') === 'channel'
-        && (string) ($sourceChat['id'] ?? '') === '-1002262666616'
-        && strtolower((string) ($sourceChat['username'] ?? '')) === 'any_toour';
-    $out['native_public_channel_binding'] = ['anytour' => $targetUsernameMatches, 'any_toour' => $sourceUsernameMatches];
-    $out['native_read_request_count'] = (int) ($out['native_channel_rights']['receipt']['request_count'] ?? 0) + 1;
-    $out['mysql_resources_before'] = mysqlResourcesRead($pdo);
-    $pdo->beginTransaction(); // Native HTTP reads above must not hold a SQL transaction.
-    $out['rows'] = [];
-    foreach (PAIRS as $hotel => $pair) {
-        $stage = 'hotel_' . $hotel;
-        $operation = 'anytour-issue1566-historical-tg-media-' . $pair['target'] . '-v1';
-        $q = $pdo->prepare('SELECT IS_FREE_LOCK(?)');
-        $q->execute([$operation]);
-        $free = $q->fetchColumn();
-        $q->closeCursor();
-        $directory = OPERATIONS . '/' . $operation;
-        requireRead(!is_link($directory), 'operation_directory_symlink');
-        $journal = receiptRead($directory . '/receipt.jsonl', $pair['target']);
-        $directoryObserved = $priorObserved[$hotel] || file_exists($directory);
-        $rightsReady = ($out['native_channel_rights']['state'] ?? '') === 'ready';
-        [$sourcePublic, $targetPublic] = $public[$hotel];
-        $targetNative = null;
-        $editability = telegramTargetEditabilityRead($pair['target'], null, $journal,
-            $targetPublic, $editorBotId, $rightsReady, $directoryObserved);
-        if (!$editability['preparation_blocked']) {
-            $targetNative = publicationRead($pdo, $registry, 6, $pair['target']);
-            $editability = telegramTargetEditabilityRead($pair['target'], $targetNative, $journal,
-                $targetPublic, $editorBotId, $rightsReady, $directoryObserved);
-        }
-        // Known exclusions stop before source-native preparation. Public reads
-        // preceded SQL; only an already observed media operation skips those GETs.
-        if ($editability['preparation_blocked']) {
-            $out['rows'][] = ['hotel_id'=>$hotel, 'name'=>$pair['name'], 'source_message_id'=>$pair['source'],
-                'target_message_id'=>$pair['target'], 'source_native'=>null, 'target_native'=>$targetNative,
-                'source_public'=>$sourcePublic, 'target_public'=>$targetPublic,
-                'target_album_native_members'=>[],
-                'target_album_public_members'=>$hotel===82567 && !$priorObserved[$hotel] ? ['931'=>$public[$hotel][1]]+$publicAlbum : [],
-                'target_media_lock_free'=>$free !== false && $free !== null && (int)$free === 1,
-                'prior_media_operation_directory_exists'=>$directoryObserved, 'prior_media_operation'=>$journal,
-                'telegram_editability'=>$editability, 'candidate_preparation_skipped'=>true,
-                'preflight_scope'=>'content_format_and_channel_rights',
-                'source_matches'=>false, 'historical_target_matches'=>false,
-                'preview_blockers'=>['telegram_destination_'.$editability['state']], 'preview_ready'=>false];
-            continue;
-        }
-        $sourceNative = publicationRead($pdo, $registry, 10, $pair['source']);
-        $albumMembers = [];
-        if ($hotel === 82567) foreach (['931','932','933','934','935','936'] as $member) {
-            $albumMembers[] = ['message_id'=>$member, 'native'=>publicationRead($pdo, $registry, 6, $member)];
-        }
-        $q = $pdo->prepare("SELECT p.id AS publication_id,p.post_channel_id,p.external_message_id,v.id AS version_id,v.state,"
-            . "JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.post_url')) AS post_url FROM post_publications p "
-            . "JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id "
-            . "WHERE p.post_channel_id IN (4,6) AND (JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id'))=? "
-            . "OR JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.logical_id')) IN (?,?)) ORDER BY p.id LIMIT 101");
-        $q->execute([(string) $hotel, 'commercial-hotel-' . $hotel . '-v1', 'commercial-main-hotel-' . $hotel . '-v1']);
-        $existing = $q->fetchAll(PDO::FETCH_ASSOC);
-        requireRead(count($existing) <= 100, 'existing_hotel_inventory_incomplete');
-        $sourceMatches = $sourcePublic['ok'] && is_array($sourceNative) && $sourceNative['state'] === 'sent'
-            && $sourceNative['post_url'] === $sourcePublic['url'] && $sourceNative['caption_sha256'] === $sourcePublic['caption_sha256']
-            && (string) $sourceNative['hotel_id'] === (string) $hotel && !$sourceNative['native_claim_held_or_unknown']
-            && count($sourceNative['attachments']) === 1 && $sourceNative['attachments'][0]['reusable_telegram_photo']
-            && $sourcePublic['single_photo'] && $sourceNative['current_token_resolves'];
-        // Current checks must match exact preimages independently reviewed from original45535459936.
-        $targetMatches = false; // Format observation is never write admission.
-        $existingTg = array_values(array_filter($existing, static fn($p) => (int) $p['post_channel_id'] === 6));
-        $existingMax = array_values(array_filter($existing, static fn($p) => (int) $p['post_channel_id'] === 4));
-        $blockers = [];
-        if ($editability['preparation_blocked']) $blockers[] = 'telegram_destination_'.$editability['state'];
-        // These fourteen targets previously carried generic search attribution.
-        // An empty embedded-button parser alone cannot clear that recorded condition.
-        if (in_array($pair['target'], ['1700','1705','1706','1709','1723','1724','1735','1739','1741','1742','1743','1744','1746','1748'], true)) {
-            $blockers[] = 'legacy_target_keyboard_attribution_not_confirmed';
-        }
-        if (($sourceNative['one_expected_button'] ?? false) !== true) $blockers[] = 'source_keyboard_requires_exact_review';
-        $blockers[] = $hotel===1494 ? 'text_to_photo_requires_explicit_prospective_contract' : 'album_membership_caption_and_keyboard_not_admitted';
-        $targetUrl = 'https://t.me/anytour/' . $pair['target'];
-        if (($feed['tg_' . $hotel] ?? null) !== 'https://t.me/any_toour/' . $pair['source']) $blockers[] = 'source_offer_changed';
-        if (($metadata['tg_'.$hotel]['locality'] ?? null) !== $pair['locality']) $blockers[] = 'selected_catalogue_locality_changed';
-        if (isset($protectedTargets[$targetUrl])) $blockers[] = 'target_used_by_live_telegram_offer';
-        if ($pair['target'] === $currentPin) $blockers[] = 'target_is_current_channel_pin';
-        if (($targetPublic['ok'] ?? false) !== true) $blockers[] = 'target_keyboard_not_observed';
-        elseif (($targetPublic['buttons'] ?? null) !== []) $blockers[] = 'target_buttons_changed';
-        if (!$sourceMatches) $blockers[] = 'source_snapshot_or_photo_not_confirmed';
-        if (!$targetMatches) $blockers[] = 'historical_target_not_confirmed';
-        if ($free === false || $free === null || (int) $free !== 1) $blockers[] = 'target_editor_busy_or_unknown';
-        if (file_exists($directory)) $blockers[] = 'existing_media_operation_do_not_replay';
-        if ($targetNative !== null && $targetNative['content_edit_journal']['state'] !== 'absent') $blockers[] = 'existing_content_operation_requires_readback';
-        if ($existingTg !== []) $blockers[] = 'hotel_already_registered_in_large_telegram';
-        if (($out['native_channel_rights']['state'] ?? '') !== 'ready') $blockers[] = 'channel_edit_rights_not_confirmed';
-        if (!$targetUsernameMatches || !$sourceUsernameMatches) $blockers[] = 'native_public_channel_binding_not_confirmed';
-        $out['rows'][] = ['target_current_pin_matches' => $currentPin === $pair['target'], 'hotel_id' => $hotel, 'name' => $pair['name'], 'source_message_id' => $pair['source'],
-            'target_message_id' => $pair['target'], 'source_native' => $sourceNative, 'target_native' => $targetNative,
-            'target_album_native_members' => $albumMembers, 'target_album_public_members'=>$hotel===82567?['931'=>$targetPublic]+$publicAlbum:[],
-            'source_public' => $sourcePublic, 'target_public' => $targetPublic,
-            'telegram_editability'=>$editability, 'candidate_preparation_skipped'=>false,
-            'preflight_scope'=>'content_format_and_channel_rights',
-            'target_media_lock_free' => $free !== false && $free !== null && (int) $free === 1,
-            'prior_media_operation_directory_exists' => file_exists($directory), 'prior_media_operation' => $journal,
-            'existing_large_channel_hotel_registry_matches' => $existing, 'large_max_hotel_already_registered' => $existingMax !== [],
-            'demand_rank' => $pair['rank'], 'demand_platform' => $pair['demand_platform'],
-            'distinct_dialogues' => $pair['dialogues'], 'entries' => $pair['entries'],
-            'previous_catalogue_price_rub' => $pair['previous_feed_price'], 'source_country' => $pair['country'],
-            'source_locality' => $pair['locality'], 'current_catalogue_price_raw' => $metadata['tg_'.$hotel]['price'] ?? null, 'previous_target_offer' => $pair['archived_offer'], 'archived_countries' => $pair['archived_countries'], 'different_direction' => $pair['different_direction'],
-            'source_matches' => $sourceMatches,
-            'historical_target_matches' => $targetMatches,
-            'target_public_preimage_unchanged' => $hotel===1494 && ($targetPublic['photo_count']??-1)===0 && ($targetPublic['other_media_count']??-1)===0 && $pair['date'] !== null && ($targetPublic['ok']??false) && $targetPublic['caption_sha256']===$pair['target_caption_sha256'] && $targetPublic['photo_marker_sha256']===$pair['target_photo_marker_sha256'] && $targetPublic['published_unixtime']===(new DateTimeImmutable($pair['date']))->getTimestamp(),
-            'preview_blockers' => $blockers, 'preview_ready' => $blockers === []];
+    } catch (Throwable $ignored) {
+        $journal = ['state'=>'unavailable', 'reason'=>'media_operation_read_unavailable'];
+    } finally {
+        restore_error_handler();
     }
-    $out['mysql_resources_after'] = mysqlResourcesRead($pdo);
-    $pdo->rollBack();
-    runtimeRead();
-    $out['read_at_utc'] = gmdate(DATE_ATOM);
-    $out['ok'] = true;
-} catch (Throwable $e) {
-    $out['failure_stage'] = $stage;
-    // Only our fixed machine reason is exposed; PDO/provider diagnostics may contain secrets.
-    $out['failure_reason'] = reasonRead($e);
-} finally {
-    if ($pdo instanceof PDO && $pdo->inTransaction()) $pdo->rollBack();
-    if (is_resource($priceLock)) {
-        $out['price_lease_held_ms'] = $priceLeaseAcquired === null ? 0 : (int) ((hrtime(true) - $priceLeaseAcquired) / 1_000_000);
-        flock($priceLock, LOCK_UN); fclose($priceLock);
+    try {
+        $assessment = telegramTargetEditabilityRead($message, $native, $journal, $public,
+            null, null, $directoryExists === true, 'accepted_readback');
+    } catch (Throwable $ignored) {
+        // Optional evidence must not suppress the existing route/date/photo readback.
+        $journal = ['state'=>'unavailable', 'reason'=>'candidate_assessment_unavailable'];
+        $assessment = telegramTargetEditabilityRead($message, null, $journal, [],
+            null, null, $directoryExists === true, 'accepted_readback');
     }
+    $assessment['prior_media_operation_directory_exists'] = $directoryExists;
+    $assessment['prior_media_operation_directory_symlink'] = $directorySymlink;
+    $assessment['prior_media_operation'] = $journal;
+    return $assessment;
 }
-$out['resources_after'] = resourcesRead();
-$out['read_elapsed_ms'] = (int) ((hrtime(true) - $readStarted) / 1_000_000);
-if ($out['ok']) $out['checkpoint_sha256'] = hash('sha256', jsonRead($out));
-echo json_encode($out, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR), PHP_EOL;
-exit($out['ok'] ? 0 : 2);
+
+/** The current accepted ROUTE readback checks remain independent of candidate reuse policy. */
+function telegramAcceptedReadbackRowRead(int $hotel, array $pair, ?array $src, ?array $dst,
+    array $pub, array $feed, array $landings, ?string $rowError = null): array
+{
+    $assessment = telegramAcceptedCandidateAssessmentRead($pair['target'], $dst, $pub);
+    $context = ['read_purpose'=>'accepted_readback', 'readback_required'=>true, 'candidate_preparation_allowed'=>false,
+        'no_retry'=>true, 'candidate_assessment'=>$assessment];
+    if ($rowError !== null) {
+        return ['hotel_id'=>$hotel,'source_message_id'=>$pair['source'],'target_message_id'=>$pair['target'],
+            'verified'=>false,'checks'=>['row_available'=>false],'reason'=>$rowError,
+            'real_ad_contact_attribution'=>'not_exercised_no_synthetic_entry'] + $context;
+    }
+        $expected='https://t.me/anytour/'.$pair['target']; $old='https://t.me/any_toour/'.$pair['source'];
+        $native=is_array($dst)&&(int)$dst['publication_id']===$pair['publication_id']
+            &&$dst['state']==='sent'&&(string)$dst['hotel_id']===(string)$hotel
+            &&$dst['post_url']===$expected&&!$dst['native_claim_held_or_unknown'];
+        $sameVersion=$native&&(int)$dst['version_id']===$pair['version_id'];
+        $photo=$native&&is_array($src)&&count($dst['attachments'])===1&&count($src['attachments'])===1
+            &&$dst['attachments'][0]['reusable_telegram_photo']&&$src['attachments'][0]['reusable_telegram_photo']
+            &&$dst['attachments'][0]['file_unique_id_sha256']!==null
+            &&$dst['attachments'][0]['file_unique_id_sha256']===$src['attachments'][0]['file_unique_id_sha256'];
+        $caption=$native&&($pub['ok']??false)&&$dst['caption_sha256']===$pub['caption_sha256'];
+        $buttons=$native&&($pub['ok']??false)&&$dst['one_expected_button']&&$dst['current_token_resolves']
+            &&($pub['target_keyboard_archive_verified']??false)&&count($pub['buttons'])===1
+            &&$pub['buttons'][0]['hotel_url']===$dst['button_url'];
+        $route=($feed['tg_'.$hotel]??null)===$old&&($landings['tg_'.$hotel]??null)===$expected;
+        $date=($pub['ok']??false)&&$pair['published_unixtime']===$pub['published_unixtime'];
+        $originalCaption=($pub['ok']??false)&&$pair['expected_caption_sha256']===$pub['caption_sha256'];
+        $checks=['registered_identity'=>$native,'original_version_current'=>$sameVersion,'native_source_photo'=>$photo,
+            'public_caption'=>$caption,'public_single_photo'=>($pub['ok']??false)&&$pub['single_photo'],
+            'one_hotel_button_and_exact_token_context'=>$buttons,'accepted_original_date'=>$date,'accepted_original_caption'=>$originalCaption,'installed_route'=>$route];
+        return ['hotel_id'=>$hotel,'source_message_id'=>$pair['source'],'target_message_id'=>$pair['target'],
+            'source_native'=>$src,'target_native'=>$dst,'target_public'=>$pub,'checks'=>$checks,
+            'verified'=>!in_array(false,$checks,true),'real_ad_contact_attribution'=>'not_exercised_no_synthetic_entry'] + $context;
+}
 
 
-
-
-
-
-
+$out = ['schema'=>1, 'issue'=>1566, 'operation'=>'hotel_accepted_telegram_routes_readback',
+    'ok'=>false, 'repository_sha'=>REPOSITORY_SHA, 'application_sha'=>APPLICATION_SHA,
+    'native_run_id'=>NATIVE_RUN_ID, 'native_run_attempt'=>1, 'write_admission'=>false,
+    'production_writes'=>0, 'provider_writes'=>0, 'bot_starts'=>0, 'native_read_request_count'=>0];
+$pdo=null; $priceLock=null; $priceLeaseAcquired=null; $publicAttempts=0; $publicRateLimit=null;
+$readStarted=hrtime(true); $stage='installed_release';
+try {
+    $data=[];
+    foreach(PAIRS as $h=>$r) $data[]=[$h,(int)$r['source'],(int)$r['target'],$r['publication_id'],$r['version_id'],$r['published_unixtime'],$r['expected_caption_sha256']];
+    requireRead(count($data)===18 && hash_equals(PAIR_DIGEST,hash('sha256',jsonRead($data))),'input_packet_changed');
+    runtimeRead();
+    requireRead(realpath(OPERATIONS)===OPERATIONS,'operations_root_changed');
+    $out['resources_before']=resourcesRead();
+    // All external reads precede the SQL transaction and shared PRICE lease.
+    $stage='accepted_public_posts'; $public=[];
+    foreach(PAIRS as $hotel=>$pair) $public[$hotel]=publicEvidence('anytour',$pair['target']);
+    $out['public_observations']=$public;
+    $out['public_get_attempts']=$publicAttempts; $out['public_rate_limit']=$publicRateLimit;
+    runtimeRead();
+    require_once APP.'/hotel-posts-telegram-main19.php';
+    $catalogue=anytourTelegramFeedRead(); $feed=anytourTelegramFeedOfferUrls($catalogue);
+    requireRead(count($feed)===1055,'feed_inventory_changed');
+    $landings=anytourTelegramFeedDestinationPosts($feed);
+    $out['current_feed_sha256']=hash('sha256',$catalogue);
+    $out['route_feed_source']=['kind'=>'canonical_local_raw_xml','raw_utf8'=>$catalogue,
+        'bytes'=>strlen($catalogue),'sha256'=>hash('sha256',$catalogue),'offer_count'=>count($feed)];
+    $out['resolver_sha256']=hash_file('sha256',APP.'/hotel-posts-telegram-main19.php');
+    $lockPath=OPERATIONS.'/monitor-price-after-collection-v1.jsonl';
+    requireRead(!is_link($lockPath)&&is_file($lockPath),'price_editor_lease_unknown');
+    $priceLock=fopen($lockPath,'rb'); requireRead(is_resource($priceLock),'price_read_lease_unavailable');
+    $lockStarted=hrtime(true); $deadline=$lockStarted+240_000_000_000; $shared=false;
+    do { $shared=flock($priceLock,LOCK_SH|LOCK_NB); if($shared||hrtime(true)>=$deadline)break; usleep(2_000_000); } while(true);
+    $out['price_lease_wait_ms']=(int)((hrtime(true)-$lockStarted)/1_000_000);
+    requireRead($shared,'price_editor_busy_or_unknown'); $priceLeaseAcquired=hrtime(true);
+    $out['price_editor_shared_read_lease']=true; runtimeRead();
+    $stage='initialize_registry';
+    ob_start();
+    try { require APP.'/config.php'; require_once APP.'/services/ProjectConfig.php'; require_once APP.'/services/ChannelPostRegistryService.php';
+        require_once APP.'/services/ChannelPostButtonTransport.php'; }
+    finally {ob_end_clean();}
+    $stage='configuration_identity';
+    requireRead(ProjectConfig::projectId()==='anytour','project_changed');
+    $stage='readonly_database';
+    $pdo=ConversationDb::connection(); $pdo->exec('SET SESSION TRANSACTION READ ONLY');
+    $registry=new ChannelPostRegistryService($pdo);
+    $stage='canonical_channels';
+    $target=$registry->channel('anytour','telegram','anyru_bot','-1001845835645');
+    $source=$registry->channel('anytour','telegram','anyru_bot','-1002262666616');
+    requireRead(is_array($target)&&(int)$target['id']===6&&$target['source_key']==='tg_anytour_msk'
+        &&is_array($source)&&(int)$source['id']===10,'channel_identity_changed');
+    $out['target_channel']=['registry_id'=>6,'source_key'=>$target['source_key'],
+        'config_version'=>(int)$target['config_version'],'button_text'=>$target['button_text']];
+    $out['mysql_resources_before']=mysqlResourcesRead($pdo);
+    $pdo->beginTransaction(); $out['rows']=[];
+    foreach(PAIRS as $hotel=>$pair) {
+      try {
+        $stage='hotel_'.$hotel; $src=publicationRead($pdo,$registry,10,$pair['source']);
+        $dst=publicationRead($pdo,$registry,6,$pair['target']); $pub=$public[$hotel];
+        $out['rows'][]=telegramAcceptedReadbackRowRead($hotel,$pair,$src,$dst,$pub,$feed,$landings);
+      } catch(Throwable $rowError) {
+        $out['rows'][]=telegramAcceptedReadbackRowRead($hotel,$pair,null,null,[],$feed,$landings,reasonRead($rowError));
+      }
+    }
+    $out['mysql_resources_after']=mysqlResourcesRead($pdo); $pdo->rollBack(); runtimeRead();
+    $out['verified_count']=count(array_filter($out['rows'],static fn($r)=>$r['verified']));
+    $out['read_at_utc']=gmdate(DATE_ATOM); $out['ok']=true;
+} catch(Throwable $e) {$out['failure_stage']=$stage; $out['failure_reason']=reasonRead($e); $out['failure_type']=get_class($e);}
+finally {
+    if($pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();
+    if(is_resource($priceLock)) {$out['price_lease_held_ms']=$priceLeaseAcquired===null?0:(int)((hrtime(true)-$priceLeaseAcquired)/1_000_000); flock($priceLock,LOCK_UN); fclose($priceLock);}
+}
+$out['resources_after']=resourcesRead(); $out['read_elapsed_ms']=(int)((hrtime(true)-$readStarted)/1_000_000);
+if($out['ok'])$out['checkpoint_sha256']=hash('sha256',jsonRead($out));
+echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT|JSON_THROW_ON_ERROR),PHP_EOL;
+exit($out['ok']?0:2);

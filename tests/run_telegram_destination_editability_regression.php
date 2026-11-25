@@ -9,7 +9,8 @@ if (!is_string($readerSource) || ($runtimeStart = strpos($readerSource, "\n\$out
     throw new RuntimeException('Reader declaration boundary unavailable');
 $wanted = array_fill_keys(['requireRead', 'jsonRead', 'telegramCandidatePublicRead',
     'telegramNativeEditEvidenceRead', 'telegramTargetEditabilityRead', 'receiptRead',
-    'parsePublicRead', 'albumStructureRead', 'corroborateTargetKeyboard', 'publicationRead'], false);
+    'parsePublicRead', 'albumStructureRead', 'corroborateTargetKeyboard', 'publicationRead',
+    'telegramAcceptedCandidateAssessmentRead', 'telegramAcceptedReadbackRowRead'], false);
 $tokens = token_get_all(substr($readerSource, 0, $runtimeStart));
 for ($i = 0, $count = count($tokens); $i < $count; $i++) {
     if (!is_array($tokens[$i]) || $tokens[$i][0] !== T_FUNCTION) continue;
@@ -278,8 +279,13 @@ if (!is_dir($tempBase) || !is_writable($tempBase)) throw new RuntimeException('W
 $tempDirectory = rtrim($tempBase, DIRECTORY_SEPARATOR) . '/telegram-editability-' . bin2hex(random_bytes(6));
 if (!mkdir($tempDirectory, 0700)) throw new RuntimeException('Cannot create synthetic journal directory');
 register_shutdown_function(static function () use ($tempDirectory): void {
-    foreach (glob($tempDirectory . '/*') ?: [] as $file) if (is_file($file) || is_link($file)) unlink($file);
-    rmdir($tempDirectory);
+    $remove = static function (string $path) use (&$remove): void {
+        if (is_link($path) || is_file($path)) { unlink($path); return; }
+        if (!is_dir($path)) return;
+        foreach (glob($path . '/*') ?: [] as $child) $remove($child);
+        rmdir($path);
+    };
+    $remove($tempDirectory);
 });
 function editabilityRawJournal(bool $success): array
 {
@@ -475,6 +481,225 @@ editabilityCheck($calls === [['any_toour', '9000002'], ['anytour', TEST_EDIT_MID
     && $readResult[0]['ok'] === true && $readResult[0]['channel'] === 'any_toour'
     && $readResult[1]['ok'] === true && $readResult[1]['channel'] === 'anytour',
     'unknown candidate preserves the existing public source-target reads and return order');
+
+
+// The current CLI reads accepted routes. Candidate policy must annotate that
+// readback without skipping its public/native reads or changing its nine checks.
+$acceptedPurpose = telegramTargetEditabilityRead(TEST_EDIT_MID, null, ['state'=>'absent'],
+    ['buttons'=>[['text'=>'Synthetic accepted hotel button']]], TEST_EDIT_BOT, true, false, 'accepted_readback');
+editabilityState($acceptedPurpose, 'accepted_target_not_for_reuse', true, true, 'accepted scope never becomes a fresh candidate');
+editabilityCheck($acceptedPurpose['read_purpose'] === 'accepted_readback'
+    && $acceptedPurpose['readback_required'] === true && $acceptedPurpose['candidate_preparation_allowed'] === false
+    && $acceptedPurpose['channel_rights_verified'] === null && $acceptedPurpose['editor_bot_id'] === null
+    && $acceptedPurpose['reasons'] === ['accepted_destination_scope'], 'accepted purpose does not invent editor or channel rights');
+editabilityState(telegramTargetEditabilityRead(TEST_EDIT_MID, null, ['state'=>'absent'], [], null, null),
+    'channel_not_verified', true, false, 'nullable candidate rights remain unverified');
+$invalidPurpose = false;
+try { telegramTargetEditabilityRead(TEST_EDIT_MID, null, ['state'=>'absent'], [], null, null, false, 'arbitrary_mode'); }
+catch (RuntimeException $error) { $invalidPurpose = $error->getMessage() === 'read_purpose_invalid'; }
+editabilityCheck($invalidPurpose, 'only the two internal literal read purposes are accepted');
+foreach ([
+    'reservation'=>[['state'=>'unaccepted_reserved_identity'], 'reserved_no_retry'],
+    'claim'=>[['native_claim_held_or_unknown'=>true], 'operation_requires_readback'],
+    'unknown'=>[['state'=>'unknown'], 'operation_requires_readback'],
+    'content operation'=>[['content_edit_journal'=>['state'=>'present_do_not_replay']], 'operation_requires_readback'],
+    'identity conflict'=>[['telegram_message'=>['state'=>'identity_mismatch']], 'evidence_conflict'],
+] as $label => [$nativeCase, $state]) {
+    $assessment = telegramTargetEditabilityRead(TEST_EDIT_MID, $nativeCase, ['state'=>'absent'], [],
+        null, null, false, 'accepted_readback');
+    editabilityState($assessment, $state, true, true, 'accepted scope retains precise ' . $label);
+    editabilityCheck(in_array('accepted_destination_scope', $assessment['reasons'], true),
+        'accepted no-reuse reason survives detailed ' . $label);
+}
+$unreadAcceptedJournal = telegramTargetEditabilityRead(TEST_EDIT_MID, null, ['state'=>'unavailable'], [],
+    null, null, false, 'accepted_readback');
+editabilityState($unreadAcceptedJournal, 'operation_requires_readback', true, true,
+    'unread accepted journal cannot become absence or completion');
+editabilityCheck($unreadAcceptedJournal['evidence_tier'] === 'unavailable'
+    && $unreadAcceptedJournal['reasons'] === ['accepted_destination_scope','media_operation_evidence_unavailable'],
+    'unread journal without an observed directory is unavailable evidence, not a proven prior operation');
+
+// Parse only literal PAIRS data, never the production bootstrap or its constants.
+editabilityCheck(preg_match('/^const PAIRS = (\[.*?^\]);/ms', $readerSource, $pairMatch) === 1
+    && preg_match("/^const PAIR_DIGEST = '([a-f0-9]{64})';/m", $readerSource, $digestMatch) === 1,
+    'current accepted packet is present');
+foreach (token_get_all('<?php ' . $pairMatch[1]) as $token) {
+    if (is_array($token)) {
+        if (!in_array($token[0], [T_OPEN_TAG,T_WHITESPACE,T_LNUMBER,T_CONSTANT_ENCAPSED_STRING,T_DOUBLE_ARROW], true))
+            throw new RuntimeException('Accepted packet must contain only literal data');
+    } elseif (!in_array($token, ['[',']',','], true)) throw new RuntimeException('Non-literal accepted packet');
+}
+$acceptedPairs = eval('return ' . $pairMatch[1] . ';');
+$packet = [];
+foreach ($acceptedPairs as $hotel => $pair)
+    $packet[] = [$hotel,(int)$pair['source'],(int)$pair['target'],$pair['publication_id'],$pair['version_id'],
+        $pair['published_unixtime'],$pair['expected_caption_sha256']];
+$historicalAccepted = array_column(array_filter($fixture['observations'],
+    static fn(array $row): bool => $row['outcome'] !== 'message_id_invalid'), 'message_id');
+$currentAccepted = array_column($acceptedPairs, 'target'); sort($historicalAccepted); sort($currentAccepted);
+editabilityCheck(count($packet) === 18 && $currentAccepted === $historicalAccepted,
+    'only the existing18 accepted destinations remain selected');
+editabilityCheck($digestMatch[1] === '91ad991e49fcc3848b71c307573d91616d8e1de6644f324f10834979b9c0c2fa'
+    && hash('sha256', jsonRead($packet)) === $digestMatch[1],
+    'exact upstream90 publication/version/original-date/caption packet is preserved');
+$runtimeSource = substr($readerSource, $runtimeStart);
+editabilityCheck(str_contains($runtimeSource, '$out[\'rows\'][]=telegramAcceptedReadbackRowRead($hotel,$pair,$src,$dst,$pub,$feed,$landings);')
+    && str_contains($runtimeSource, '$out[\'rows\'][]=telegramAcceptedReadbackRowRead($hotel,$pair,null,null,[],$feed,$landings,reasonRead($rowError));'),
+    'success and error CLI rows call the actual tested readback helper without stale native reuse');
+editabilityCheck(!str_contains($runtimeSource, 'telegramCandidatePublicRead(')
+    && !str_contains($runtimeSource, 'getMe') && !str_contains($runtimeSource, 'ChannelPostRuntime')
+    && str_contains($runtimeSource, "'native_read_request_count'=>0"),
+    'accepted CLI does not restore candidate skips or native API identity probes');
+
+$readbackHotel = 900099;
+$readbackHash = hash('sha256', 'Synthetic accepted caption');
+$readbackPair = ['source'=>'9000002','target'=>TEST_EDIT_MID,'publication_id'=>9000031,'version_id'=>9000032,
+    'published_unixtime'=>1609459200,'expected_caption_sha256'=>$readbackHash];
+$readbackPhoto = ['reusable_telegram_photo'=>true,'file_unique_id_sha256'=>hash('sha256','Synthetic accepted photo')];
+$readbackSource = ['attachments'=>[$readbackPhoto]];
+$readbackTarget = ['publication_id'=>9000031,'version_id'=>9000032,'state'=>'sent','hotel_id'=>$readbackHotel,
+    'post_url'=>'https://t.me/anytour/'.TEST_EDIT_MID,'native_claim_held_or_unknown'=>false,
+    'attachments'=>[$readbackPhoto],'caption_sha256'=>$readbackHash,'one_expected_button'=>true,
+    'current_token_resolves'=>true,'button_url'=>'https://t.me/anyru_bot?start=p_SYNTHETIC_READBACK_ONLY',
+    'content_edit_journal'=>['state'=>'absent'],'telegram_message'=>$missing,
+    'published_at'=>'2021-01-01T00:00:00+00:00'];
+$readbackPublic = ['ok'=>true,'single_photo'=>true,'caption_sha256'=>$readbackHash,'published_unixtime'=>1609459200,
+    'target_keyboard_archive_verified'=>true,'buttons'=>[['hotel_url'=>$readbackTarget['button_url']]]];
+$readbackFeed = ['tg_'.$readbackHotel=>'https://t.me/any_toour/'.$readbackPair['source']];
+$readbackLandings = ['tg_'.$readbackHotel=>$readbackTarget['post_url']];
+$readback = static function (?array $src = null, ?array $dst = null, ?array $pub = null,
+    ?array $feed = null, ?array $landings = null) use ($readbackHotel,$readbackPair,$readbackSource,
+    $readbackTarget,$readbackPublic,$readbackFeed,$readbackLandings): array {
+    return telegramAcceptedReadbackRowRead($readbackHotel,$readbackPair,$src ?? $readbackSource,
+        $dst ?? $readbackTarget,$pub ?? $readbackPublic,$feed ?? $readbackFeed,$landings ?? $readbackLandings);
+};
+$goodRow = $readback();
+$checkNames = ['registered_identity','original_version_current','native_source_photo','public_caption',
+    'public_single_photo','one_hotel_button_and_exact_token_context','accepted_original_date',
+    'accepted_original_caption','installed_route'];
+editabilityCheck($goodRow['verified'] === true && array_keys($goodRow['checks']) === $checkNames
+    && !in_array(false,$goodRow['checks'],true), 'actual accepted row helper preserves all9 successful upstream checks');
+editabilityCheck($goodRow['read_purpose'] === 'accepted_readback' && $goodRow['readback_required']
+    && $goodRow['candidate_assessment']['readback_required'] && !$goodRow['candidate_preparation_allowed']
+    && $goodRow['no_retry'] === true && $goodRow['candidate_assessment']['state'] === 'accepted_target_not_for_reuse'
+    && $goodRow['candidate_assessment']['prior_media_operation'] === ['state'=>'absent'],
+    'accepted button and genuinely absent journal allow readback but never reuse');
+$badCases = [
+    'registered_identity'=>['dst'=>['publication_id'=>9000999]],
+    'original_version_current'=>['dst'=>['version_id'=>9000999]],
+    'native_source_photo'=>['src'=>['attachments'=>[array_replace($readbackPhoto,['file_unique_id_sha256'=>'different'])]]],
+    'public_caption'=>['dst'=>['caption_sha256'=>hash('sha256','Different native caption')]],
+    'public_single_photo'=>['pub'=>['single_photo'=>false]],
+    'one_hotel_button_and_exact_token_context'=>['dst'=>['current_token_resolves'=>false]],
+    'accepted_original_date'=>['pub'=>['published_unixtime'=>1609459201]],
+    'accepted_original_caption'=>['dst'=>['caption_sha256'=>hash('sha256','Changed accepted caption')],
+        'pub'=>['caption_sha256'=>hash('sha256','Changed accepted caption')]],
+    'installed_route'=>['landings'=>['tg_'.$readbackHotel=>'https://t.me/anytour/9000999']],
+];
+foreach ($badCases as $check => $changes) {
+    $row = $readback(array_replace($readbackSource,$changes['src']??[]),
+        array_replace($readbackTarget,$changes['dst']??[]),array_replace($readbackPublic,$changes['pub']??[]),
+        $readbackFeed,array_replace($readbackLandings,$changes['landings']??[]));
+    editabilityCheck($row['verified'] === false && $row['checks'][$check] === false
+        && $row['no_retry'] === true && !$row['candidate_preparation_allowed'],
+        'actual readback retains failing upstream check: '.$check);
+}
+$heldRow = $readback(null,array_replace($readbackTarget,['native_claim_held_or_unknown'=>true]));
+editabilityCheck(!$heldRow['verified'] && !$heldRow['checks']['registered_identity']
+    && $heldRow['candidate_assessment']['state'] === 'operation_requires_readback',
+    'actual accepted row does not waive a held native claim');
+$nativeDateDrift = $readback(null,array_replace($readbackTarget,['published_at'=>'2099-01-01T00:00:00Z']));
+editabilityCheck($nativeDateDrift['verified'] && $nativeDateDrift['checks']['accepted_original_date'],
+    'upstream90 original date comparison is not replaced with obsolete native date equality');
+$errorRow = telegramAcceptedReadbackRowRead($readbackHotel,$readbackPair,null,null,[],$readbackFeed,$readbackLandings,
+    'registry_identity_changed');
+editabilityCheck(!$errorRow['verified'] && $errorRow['checks'] === ['row_available'=>false]
+    && $errorRow['reason'] === 'registry_identity_changed' && $errorRow['no_retry']
+    && !$errorRow['candidate_preparation_allowed'] && $errorRow['readback_required']
+    && $errorRow['candidate_assessment']['readback_required'] && $errorRow['candidate_assessment']['editor_bot_id'] === null,
+    'actual error-row output retains accepted scope without stale native data');
+
+$mediaDirectory = OPERATIONS.'/anytour-issue1566-historical-tg-media-'.TEST_EDIT_MID.'-v1';
+mkdir($mediaDirectory,0700);
+$mediaReceipt = $mediaDirectory.'/receipt.jsonl';
+foreach ([false=>'rejected_no_retry',true=>'completed_no_retry'] as $success => $state) {
+    file_put_contents($mediaReceipt,implode("\n",array_map('jsonRead',editabilityRawJournal((bool)$success)))."\n");
+    $row = $readback();
+    editabilityCheck($row['verified'] && $row['checks'] === $goodRow['checks'],
+        'journal annotation cannot change accepted checks: '.$state);
+    editabilityState($row['candidate_assessment'],$state,true,true,'accepted actual journal: '.$state);
+    editabilityCheck(!str_contains(jsonRead($row['candidate_assessment']),'SYNTHETIC_PRIVATE_FILE')
+        && $row['candidate_assessment']['channel_rights_verified'] === null,
+        'accepted journal projection remains bounded and does not invent rights: '.$state);
+}
+foreach (['malformed'=>'{not valid JSON','oversized'=>str_repeat('x',1000001)] as $case => $bytes) {
+    file_put_contents($mediaReceipt,$bytes);clearstatcache(true,$mediaReceipt);
+    $row = $readback();
+    editabilityCheck($row['verified'] && $row['checks'] === $goodRow['checks']
+        && $row['candidate_assessment']['state'] === 'operation_requires_readback'
+        && $row['candidate_assessment']['prior_media_operation'] ===
+            ['state'=>'unavailable','reason'=>'media_operation_read_unavailable'],
+        'optional '.$case.' journal changes annotation only');
+}
+// A malformed optional journal must restore the caller's error handler even on exception.
+$callerNotices = 0;
+set_error_handler(static function (int $severity, string $ignored) use (&$callerNotices): bool {
+    $callerNotices++;
+    return true;
+});
+try {
+    file_put_contents($mediaReceipt,'{malformed optional journal');clearstatcache(true,$mediaReceipt);
+    $restorationRow = $readback();
+    trigger_error('Synthetic caller handler probe',E_USER_NOTICE);
+    editabilityCheck($callerNotices === 1 && $restorationRow['verified'],
+        'optional journal exception restores the caller handler and preserves readback');
+    file_put_contents($mediaReceipt,implode("\n",array_map('jsonRead',editabilityRawJournal(true)))."\n");
+    clearstatcache(true,$mediaReceipt);
+    $restorationRow = $readback();
+    trigger_error('Synthetic caller handler probe',E_USER_NOTICE);
+    editabilityCheck($callerNotices === 2 && $restorationRow['verified'],
+        'successful optional journal observation restores the caller handler');
+} finally {
+    restore_error_handler();
+}
+file_put_contents($mediaReceipt,implode("\n",array_map('jsonRead',editabilityRawJournal(true)))."\n");
+$otherDirectory = OPERATIONS.'/synthetic-unfollowed-operation';
+rename($mediaDirectory,$otherDirectory);symlink($otherDirectory,$mediaDirectory);clearstatcache();
+$symlinkRow = $readback();
+editabilityCheck($symlinkRow['verified'] && $symlinkRow['candidate_assessment']['state'] === 'operation_requires_readback'
+    && $symlinkRow['candidate_assessment']['prior_media_operation'] ===
+        ['state'=>'unavailable','reason'=>'operation_directory_symlink'],
+    'operation directory symlink is not followed and does not suppress accepted readback');
+unlink($mediaDirectory);mkdir($mediaDirectory,0700);symlink($otherDirectory.'/receipt.jsonl',$mediaReceipt);clearstatcache();
+$symlinkRow = $readback();
+editabilityCheck($symlinkRow['verified'] && $symlinkRow['candidate_assessment']['state'] === 'operation_requires_readback'
+    && $symlinkRow['candidate_assessment']['prior_media_operation'] ===
+        ['state'=>'unavailable','reason'=>'operation_receipt_symlink'],
+    'receipt symlink is not followed and does not suppress accepted readback');
+unlink($mediaReceipt);clearstatcache();
+$emptyDirectoryRow = $readback();
+editabilityCheck($emptyDirectoryRow['verified'] && $emptyDirectoryRow['candidate_assessment']['state'] === 'operation_requires_readback'
+    && $emptyDirectoryRow['candidate_assessment']['prior_media_operation'] === ['state'=>'absent']
+    && $emptyDirectoryRow['candidate_assessment']['prior_media_operation_directory_exists'] === true,
+    'existing operation directory without receipt stays held while readback runs');
+rmdir($mediaDirectory);clearstatcache();
+foreach (['../escape','0','09000001'] as $invalidMid) {
+    $assessment = telegramAcceptedCandidateAssessmentRead($invalidMid,null,[]);
+    editabilityCheck($assessment['state'] === 'operation_requires_readback'
+        && $assessment['prior_media_operation_directory_exists'] === null
+        && $assessment['prior_media_operation'] === ['state'=>'unavailable','reason'=>'invalid_target_message_id'],
+        'invalid MID is rejected before constructing an operation path: '.$invalidMid);
+}
+editabilityCheck($assessment['evidence_tier'] === 'unavailable'
+    && $assessment['reasons'] === ['accepted_destination_scope','media_operation_evidence_unavailable'],
+    'invalid MID without filesystem observation does not invent a prior media operation');
+$nativeWithDate = publicationRead($readDb,$readRegistry,6,$sqlCases['sent']);
+editabilityCheck(is_string($nativeWithDate['published_at']??null) && strtotime($nativeWithDate['published_at']) === 1609459200
+    && $nativeWithDate['telegram_message']['date'] === 1609459200,
+    'actual readonly SQL retains upstream published_at alongside native evidence');
+editabilityCheck((int)$readDb->query('SELECT total_changes()')->fetchColumn() === $changesBefore
+    && editabilityDatabaseSnapshot($readDb) === $databaseBefore,
+    'accepted assessment and readonly SQL projection leave the fixture database unchanged');
 
 echo 'OK ' . $checks . ' destination-editability checks; historical 33 before/15 rejected/18 accepted; '
     . "synthetic native/journal/SQL cases; provider calls 0\n";
