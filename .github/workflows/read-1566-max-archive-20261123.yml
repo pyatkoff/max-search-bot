@@ -1,4 +1,4 @@
-name: "Verify Sultan Gardens photo for the existing FEED and current MAX XML context"
+name: "Read current AnyTour MAX feeds and Sultan Gardens image"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -17,7 +17,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '2ff786a8b0fb2c5c02121ce5c9fe88f092205c79' &&
+      github.event.before == 'f48d57ef55181ccf5024be414d530a3bbf00cfd3' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
