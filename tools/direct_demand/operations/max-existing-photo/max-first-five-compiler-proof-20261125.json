@@ -1,0 +1,158 @@
+{
+  "schema": 1,
+  "kind": "max_existing_photo_first_five_input_proof",
+  "issue": 1566,
+  "goal": 330,
+  "checked_at_artifact": "2026-11-25T01:41:54Z",
+  "proof": {
+    "run_id": 45527626058,
+    "job_id": 138914773234,
+    "stock": {
+      "compiler": "original",
+      "legacy_ready": 7,
+      "legacy_plan_hashes": [
+        "07cf734e6d2bc709ff1f4c45d4c91d093b8c57978caf69e6fc91d7cca8e23440",
+        "b4fd795455ee6a509733539585ef51c78b515c54bf1319222c8ec6239ab607b1",
+        "3b678b733ceb1fbaa747ada6b1e443b270a31446942ee44b5afe9938a6c0c2fd",
+        "f2f99e754947c39c176b35451f8192976f9cc23c65fd5e8c416d0c41453f987d",
+        "5006c7f289e198b77b52824585c4ae859c9df12f10b5b5c6f1ce0e92e70d6de3",
+        "af8093387c65912943f966ac461f8faa8cd69bb608736a8bd95ef758ea015488",
+        "907c862d4c23e466ca78ddb37784566674b2c29e3a615c65b91dcc192ce7cdd3"
+      ],
+      "five_ids": [],
+      "five_plan_hashes": [],
+      "failure": "invalid_native_evidence",
+      "writes": 0
+    },
+    "verified_compiler": {
+      "compiler": "adapted",
+      "legacy_ready": 7,
+      "legacy_plan_hashes": [
+        "07cf734e6d2bc709ff1f4c45d4c91d093b8c57978caf69e6fc91d7cca8e23440",
+        "b4fd795455ee6a509733539585ef51c78b515c54bf1319222c8ec6239ab607b1",
+        "3b678b733ceb1fbaa747ada6b1e443b270a31446942ee44b5afe9938a6c0c2fd",
+        "f2f99e754947c39c176b35451f8192976f9cc23c65fd5e8c416d0c41453f987d",
+        "5006c7f289e198b77b52824585c4ae859c9df12f10b5b5c6f1ce0e92e70d6de3",
+        "af8093387c65912943f966ac461f8faa8cd69bb608736a8bd95ef758ea015488",
+        "907c862d4c23e466ca78ddb37784566674b2c29e3a615c65b91dcc192ce7cdd3"
+      ],
+      "five_ids": [
+        1972,
+        2588,
+        32342,
+        57028,
+        65877
+      ],
+      "five_plan_hashes": [
+        "7e4dd288599744edd3c48b5cb19f5ed02dfe57530ecbc5d6eac8287d6df48f0e",
+        "6749cda579a83685049c2b75469a10fa928cec26741d0747b826ef79f4ed64b8",
+        "182fc538a5997589ea64e3c32c8746f61f0ff55e743d0ad6b6ee35f8c698b726",
+        "ad61b42b8d863c982abd316c911cb217355c95b4c20b835459365b651f7f515a",
+        "9cebcb52848541504dfdafb26a9f248ea447147ede31d3decb9534e17c356627"
+      ],
+      "failure": null,
+      "writes": 0
+    },
+    "writer_ref": "a85826a70bb3d1be89fd67e09850ad547244687e",
+    "writer_blob": "16b5477282016b06fed4a8cc454d3269b7e60ca0",
+    "legacy_result_preserved": true
+  },
+  "pinned_read": {
+    "run_id": 45519776732,
+    "artifact_id": 14979199786,
+    "digest": "sha256:5c689814bf38f3c906a8f50d4f90a06b983474b991093b971f18b6df151da335",
+    "application_sha": "7b96c69c1f6974fb6ff09f52551a4581ffcdf171"
+  },
+  "release": {
+    "deploy": 45525533516,
+    "deploy_status": "in_progress",
+    "main": "73c80433c4d18edaff5cff2d4344a41511c6134b",
+    "last_confirmed_application": "7b96c69c1f6974fb6ff09f52551a4581ffcdf171",
+    "slot": "PR1713: выпуск занят",
+    "slot_updated_at": "2026-11-25T01:23:08Z",
+    "terminal_confirmed": false
+  },
+  "next_scope": [
+    {
+      "hotel_id": 1972,
+      "name": "Moreno Horizon Spa & Resort",
+      "source_id": 887,
+      "source_url": "https://max.ru/channel_anytour/AaG3WcDqe3Y",
+      "source_mid": "mid.ffffb6caf0606fed01a1b759c0ea7b76",
+      "target_url": "https://max.ru/anytour/AaBI6Jfvad8",
+      "target_mid": "mid.ffffc1752b045fed01a048e897ef69df",
+      "target_ms": 1787929597935,
+      "target_fingerprint": "967f9773ea28deac5456206f76e4c467df3af6493742f7aab65b57cf72dae267",
+      "original_legacy_identity_sha256": "b2900964c6631f50c9af1ed2cf840c5213648f2a00c8f1f1842e282b9f4091a3",
+      "caption_without_price": "✈️ Туры в Moreno Horizon Spa & Resort\n📍 Хургада, Египет\nСобственный пляж, бассейны для взрослых и детей и аквапарк с горками. На территории проходят развлекательные программы.",
+      "previous_read_plan_sha256": "7e4dd288599744edd3c48b5cb19f5ed02dfe57530ecbc5d6eac8287d6df48f0e"
+    },
+    {
+      "hotel_id": 2588,
+      "name": "Jumeirah Beach Hotel",
+      "source_id": 1533,
+      "source_url": "https://max.ru/channel_anytour/AaHpO-hTO-w",
+      "source_mid": "mid.ffffb6caf0606fed01a1e93be8533bec",
+      "target_url": "https://max.ru/anytour/AaAkdvyEBXQ",
+      "target_mid": "mid.ffffc1752b045fed01a02476fc840574",
+      "target_ms": 1787318172804,
+      "target_fingerprint": "74e88ae75c0734d28829e22468798a6c7a9f3efc77f2753c9490847b1ded81d2",
+      "original_legacy_identity_sha256": "7f78a076a711c0f1254a6274f8d452645eb4dd61ae58437b7d13626c77852e84",
+      "caption_without_price": "✈️ Туры в Jumeirah Beach Hotel\n📍 Дубай, ОАЭ\nПляжный отдых с видом на Burj Al Arab. На территории есть бассейны, водные развлечения и отдельные программы для детей.",
+      "previous_read_plan_sha256": "6749cda579a83685049c2b75469a10fa928cec26741d0747b826ef79f4ed64b8"
+    },
+    {
+      "hotel_id": 32342,
+      "name": "Vinpearl Resort & Spa Phu Quoc",
+      "source_id": 584,
+      "source_url": "https://max.ru/channel_anytour/AaG2QuDYdKE",
+      "source_mid": "mid.ffffb6caf0606fed01a1b642e0d874a1",
+      "target_url": "https://max.ru/anytour/AZ_rrRmlYz0",
+      "target_mid": "mid.ffffc1752b045fed019febad19a5633d",
+      "target_ms": 1786365417893,
+      "target_fingerprint": "85319aa3afcc1755790733c24b7802320da0213a39de3c0213f1a681b5465126",
+      "original_legacy_identity_sha256": "cde5d40f8a20c09ce5a234b22951ee8461c7b4b235a12bbeccdd30761ad11ba3",
+      "caption_without_price": "✈️ Туры в Vinpearl Resort & Spa Phu Quoc\n📍 Фукуок, Вьетнам\nДо пляжа можно дойти пешком. Для отдыха с семьёй или компанией можно выбрать номер или виллу.",
+      "previous_read_plan_sha256": "182fc538a5997589ea64e3c32c8746f61f0ff55e743d0ad6b6ee35f8c698b726"
+    },
+    {
+      "hotel_id": 57028,
+      "name": "Pickalbatros Aqua Park Sharm",
+      "source_id": 238,
+      "source_url": "https://max.ru/channel_anytour/AaGeHp92NlE",
+      "source_mid": "mid.ffffb6caf0606fed01a19e1e9f763651",
+      "target_url": "https://max.ru/anytour/AZ9AsoswVYw",
+      "target_mid": "mid.ffffc1752b045fed019f40b28b30558c",
+      "target_ms": 1783496870704,
+      "target_fingerprint": "300f751d6d705e041dcafd9faae7e82402f68a59b990608774f6064fb2bbe415",
+      "original_legacy_identity_sha256": "682f39895b3cb794eb5e1a91ef72e57e1d5ce00f0e7db709404301db29185c06",
+      "caption_without_price": "✈️ Туры в Pickalbatros Aqua Park Sharm\n📍 Шарм-эль-Шейх, Египет\nАквапарк с детскими горками, аттракционы Midway Street и клуб Alba для детей от 4 до 12 лет.",
+      "previous_read_plan_sha256": "ad61b42b8d863c982abd316c911cb217355c95b4c20b835459365b651f7f515a"
+    },
+    {
+      "hotel_id": 65877,
+      "name": "Vesna Hotel",
+      "source_id": 563,
+      "source_url": "https://max.ru/channel_anytour/AaG2NPXdL0M",
+      "source_mid": "mid.ffffb6caf0606fed01a1b634f5dd2f43",
+      "target_url": "https://max.ru/anytour/AZ-d-XrfADw",
+      "target_mid": "mid.ffffc1752b045fed019f9df97adf003c",
+      "target_ms": 1785061800671,
+      "target_fingerprint": "f8a1b0819559ae0afa1d3d2caee50811c47c06a40e1a6211e62307baa770bbd3",
+      "original_legacy_identity_sha256": "4947a41247b297290dbda9a681d7f91dffa4dbcc97a84b3dff0fb007f65edfc0",
+      "caption_without_price": "✈️ Туры в Vesna Hotel\n📍 Нячанг, Вьетнам\nГородской отель для поездки с семьёй. До пляжа около 50 метров через дорогу.",
+      "previous_read_plan_sha256": "9cebcb52848541504dfdafb26a9f248ea447147ede31d3decb9534e17c356627"
+    }
+  ],
+  "requires_fresh_source_and_admission_at_apply": true,
+  "counts": {
+    "prepared": 262,
+    "structurally_checked": 18,
+    "previously_edited": 25,
+    "active_routes_last_mass_check": 34,
+    "fully_confirmed": 0
+  },
+  "post_writes": 0,
+  "route_writes": 0,
+  "feed_writes": 0
+}
