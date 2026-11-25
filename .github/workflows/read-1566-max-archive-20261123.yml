@@ -1,4 +1,4 @@
-name: "#1566 Independently verify the nine edited public MAX cards"
+name: "#1566 Screen additional unassigned commercial MAX photo targets"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -7,78 +7,153 @@ permissions:
   contents: read
   actions: read
 concurrency:
-  group: hotel-1566-public-archive-observation
+  group: anytour-issue-1566-registry-read
   cancel-in-progress: false
 jobs:
-  observe:
+  reconcile:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == 'dfbb6aebf24fc74d618c90de9686ebda08508784' && github.run_attempt == 1
+      github.event.before == '11df23f60dfe265189b23bf4a25c0560ad706ecf' &&
+      github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
     steps:
-      - name: Read each same public MAX address independently
+      - name: Read the prepared allocation used by HOTEL
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 8d6c68aef6d97d77730fff9a32a8a1a1c200c366
+          persist-credentials: false
+          sparse-checkout: |
+            tools/direct_demand/operations/max-existing-photo/next-native-input-20261124.json
+          sparse-checkout-cone-mode: false
+      - name: Verify the original archive receipt and count fit for the existing editor
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
           set -euo pipefail
           umask 077
-          mkdir pub
+          export DATA_DIR="$RUNNER_TEMP/hotel-max-capacity"
+          mkdir "$DATA_DIR"
+          gh api /repos/pyatkoff/max-search-bot/actions/runs/45373389110 > "$DATA_DIR/run.json"
+          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14910511299 > "$DATA_DIR/artifact.json"
+          curl --fail --silent --show-error --location --max-time 25 \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            https://api.github.com/repos/pyatkoff/max-search-bot/actions/artifacts/14910511299/zip \
+            --output "$DATA_DIR/archive.zip"
           python3 - <<'PY'
-          import json,urllib.request,urllib.error,hashlib,re,time
-          from html.parser import HTMLParser
+          import collections
+          import hashlib
+          import json
+          import os
+          import pathlib
+          import zipfile
+
+          directory = pathlib.Path(os.environ["DATA_DIR"])
+          run = json.loads((directory / "run.json").read_bytes())
+          artifact = json.loads((directory / "artifact.json").read_bytes())
+          expected = "e1e3d25e42522639e2b82b4bdf32b155a547a184"
+          digest = "c46ce092bfb91935ce829c871026a1136bf465920a3caa9184604f052c55798c"
+          assert (run["id"], run["head_sha"], run["run_attempt"], run["conclusion"]) == (45373389110, expected, 1, "success")
+          assert artifact["id"] == 14910511299 and not artifact["expired"] and artifact["digest"] == "sha256:" + digest
+          assert artifact["workflow_run"]["id"] == run["id"] and artifact["workflow_run"]["head_sha"] == expected
+          archive_file = directory / "archive.zip"
+          assert archive_file.stat().st_size == artifact["size_in_bytes"]
+          assert hashlib.sha256(archive_file.read_bytes()).hexdigest() == digest
+          with zipfile.ZipFile(archive_file) as archive:
+              assert archive.namelist() == ["registry.json"] and archive.getinfo("registry.json").file_size <= 1_000_000
+              receipt = json.loads(archive.read("registry.json"))
+          assert receipt["history_complete"] and receipt["production_writes"] == receipt["provider_writes"] == 0
+          assert receipt["operation"] == "hotel_archive_main_max_registry" and str(receipt["native_run_id"]) == str(run["id"])
+          rows = receipt["rows"]
+          by_url = {row["url"]: row for row in rows}
+          assert len(rows) == len(by_url) == len({row["mid"] for row in rows}) == receipt["messages"]
+          status = collections.Counter(row["status"] for row in rows)
+          assert dict(status) == receipt["categories"]
+
+          completed = set(["https://max.ru/anytour/AZwjaZt4Kz8","https://max.ru/anytour/AZ5qgiujRlo","https://max.ru/anytour/AZ6sX9HGLTk","https://max.ru/anytour/AZ6wa60cTlw","https://max.ru/anytour/AZ61r6_QcAI","https://max.ru/anytour/AZ7KT8ynMm8","https://max.ru/anytour/AZ7PcvbibFA","https://max.ru/anytour/AZ7UVbXteP8","https://max.ru/anytour/AZ7Z4K9JJNQ","https://max.ru/anytour/AZ7pU2e2Znw","https://max.ru/anytour/AZ8DSRZpHNw","https://max.ru/anytour/AZ8r4R9vT_Q","https://max.ru/anytour/AZ9k6MvNF94","https://max.ru/anytour/AZ-OUsaPJjg","https://max.ru/anytour/AZ-tLRx7Jzw","https://max.ru/anytour/AZ_MDV0gO_I","https://max.ru/anytour/AZ_RB3FVXFc","https://max.ru/anytour/AZ7exN6EPIU","https://max.ru/anytour/AZ87_EUJEiI","https://max.ru/anytour/AZ-yESbCL_Q","https://max.ru/anytour/AZ-3aA0tG-E","https://max.ru/anytour/AZ_bVraKfqs","https://max.ru/anytour/AZ_1bEjVO3Q","https://max.ru/anytour/AaAQRP74HIo","https://max.ru/anytour/AZ_BkAiveNQ"])
+          assert len(completed) == 25 and completed <= by_url.keys()
+          pending = [row for row in rows if row["url"] not in completed]
+          def present_shape(row):
+              return row["media"] == ["image"] and not row["keyboard_present"] and not row["linked_message"]
+          format_compatible = [row for row in pending if present_shape(row)]
+          unoccupied = [row for row in format_compatible if not row["registered"]]
+
+          prepared_path = pathlib.Path("tools/direct_demand/operations/max-existing-photo/next-native-input-20261124.json")
+          assert hashlib.sha256(prepared_path.read_bytes()).hexdigest() == "c8faafd2fba5652aa1abce95f09091e96f746049839cfc684966ccecdc7b0dca"
+          prepared = json.loads(prepared_path.read_bytes())
+          targets = prepared["rows"]
+          assert len(targets) == len({row["target_url"] for row in targets}) == 20
+          for target in targets:
+              match = by_url[target["target_url"]]
+              assert match["url"] not in completed and match["mid"] == target["original_native_target"]["mid"]
+              assert present_shape(match) and not match["registered"]
+
+          blocked = [row for row in pending if row["status"] == "other_format"]
+          output = {
+              "goal": 330,
+              "archive_run": run["id"],
+              "archive_read_utc": receipt["read_utc"],
+              "archive_messages": len(rows),
+              "completed_old_mids": len(completed),
+              "pending_old_mids": len(pending),
+              "without_single_photo": sum(row["media"] != ["image"] for row in pending),
+              "with_keyboard": sum(row["keyboard_present"] for row in pending),
+              "with_linked_message": sum(row["linked_message"] for row in pending),
+              "registered_pending": sum(row["registered"] for row in pending),
+              "other_format_pending": len(blocked),
+              "single_photo_no_keyboard_no_link_pending": len(format_compatible),
+              "unoccupied_structural_upper_bound_pending": len(unoccupied),
+              "absolute_bound_current_editor_with_25": len(completed) + len(unoccupied),
+              "gap_to_330_current_editor_at_minimum": max(0, 330 - len(completed) - len(unoccupied)),
+              "unoccupied_by_historical_status": dict(collections.Counter(row["status"] for row in unoccupied)),
+              "prepared_targets_in_archive": len(targets),
+              "prepared_first_five": [row["hotel_id"] for row in targets[:5]],
+              "production_requests": 0,
+              "writes": 0,
+          }
+
+          import re
+          import urllib.request
           from concurrent.futures import ThreadPoolExecutor
-          from pathlib import Path
-          from datetime import datetime,timezone
-          plans=json.loads(r'[{"id":2470,"url":"https://max.ru/anytour/AaC42fW_AY0","title":"Sun Siyam Olhuveli","caption":"✈️ Туры в Sun Siyam Olhuveli\n📍 Южный Мале, Мальдивы\nПляжи, бассейны и водные развлечения. Для семей есть детский клуб и подходящие номера и виллы. Отдельная зона Romance предназначена для взрослых."},{"id":56092,"url":"https://max.ru/anytour/AaDD8UQLQ4U","title":"Gravity Hotel and Aqua Park Hurghada","caption":"✈️ Туры в Gravity Hotel and Aqua Park Hurghada\n📍 Хургада, Египет\nСобственный пляж у лагуны и аквапарк с десятью горками. Помимо основного ресторана работают итальянский La Piazza и азиатский Akina."},{"id":59114,"url":"https://max.ru/anytour/AaDYcRGJKpQ","title":"Akdora Elite Hotel and Spa","caption":"✈️ Туры в Akdora Elite Hotel and Spa\n📍 Сиде, Турция\nДо собственного песчаного пляжа около 300 м. На территории открытые бассейны и спа. Рядом стройка, возможен шум."},{"id":63191,"url":"https://max.ru/anytour/AaELd0cFVAQ","title":"Jumeirah Saadiyat Island","caption":"✈️ Туры в Jumeirah Saadiyat Island\n📍 Саадият, Абу-Даби, ОАЭ\nПесчаный пляж, бассейны и просторные номера. Для детей и подростков есть отдельные клубы, для взрослых — спа и рестораны у моря."},{"id":76588,"url":"https://max.ru/anytour/AaEba-dgJKk","title":"Liu Resorts","caption":"✈️ Туры в Liu Resorts\n📍 Сиде, Турция\nСобственный песчаный пляж примерно в 300 м. В Breeze выступают живые группы и диджеи. Для поездки вдвоём можно рассмотреть Superior Corner с видом на море."},{"id":77914,"url":"https://max.ru/anytour/AaEl-MVcT8Q","title":"Sunrise Tucana Resort","caption":"✈️ Туры в Sunrise Tucana Resort\n📍 Хургада, Египет\nСобственный пляж и рестораны с обслуживанием по меню. Для отдыха с детьми есть клуб для ребят от 3 до 12 лет."},{"id":106,"url":"https://max.ru/anytour/AaEwSMavEQU","title":"Aladdin Beach Resort","caption":"✈️ Туры в Aladdin Beach Resort\n📍 Хургада, Египет\nОтель на первой линии с песчано-галечным пляжем. По вечерам проходят шоу и выступают музыканты."},{"id":111,"url":"https://max.ru/anytour/AaE0q57XSGk","title":"Pickalbatros Palace Resort Hurghada","caption":"✈️ Туры в Pickalbatros Palace Resort Hurghada\n📍 Хургада, Египет\nСобственный пляж, четыре бассейна и пять детских горок для ребят от 4 до 12 лет. Два бассейна подогревают с ноября по апрель в зависимости от погоды."},{"id":114,"url":"https://max.ru/anytour/AaE6sgknSuc","title":"Ali Baba Palace","caption":"✈️ Туры в Ali Baba Palace\n📍 Хургада, Египет\nСобственный песчаный пляж. У входа в море встречается галька, поэтому для купания удобно взять специальную обувь."}]')
-          class Page(HTMLParser):
+          from html.parser import HTMLParser
+          reserved={x["target_url"] for x in targets} | completed | set(["https://max.ru/anytour/AZ-DqmRQHF8","https://max.ru/anytour/AaBhZRPRMt4","https://max.ru/anytour/AZ6mZd9cP1Y","https://max.ru/anytour/AZ-nsUrqXuU","https://max.ru/anytour/AaAuJeZbQAc"])
+          pending_targets=[x for x in unoccupied if x["status"]=="needs_content_and_route_review" and x["url"] not in reserved]
+          assert len(pending_targets)<=25
+          class Preview(HTMLParser):
               def __init__(self):
                   super().__init__(convert_charrefs=True)
-                  self.parts=[]; self.hide=0; self.meta={}
-              def handle_starttag(self,t,a):
-                  if t in ('script','style'): self.hide+=1
-                  if t=='meta':
-                      d=dict(a)
-                      key=d.get('property') or d.get('name')
-                      if key: self.meta[key]=d.get('content','')
-              def handle_endtag(self,t):
-                  if t in ('script','style') and self.hide: self.hide-=1
-              def handle_data(self,v):
-                  if not self.hide and v.strip(): self.parts.append(v.strip())
-          def norm(v):
-              return re.sub(r'\s+',' ',v).strip()
-          def read(row):
+                  self.metadata={}
+              def handle_starttag(self,tag,attributes):
+                  if tag=="meta":
+                      d=dict(attributes)
+                      if d.get("property"): self.metadata[d["property"]]=d.get("content","")
+          def review(row):
+              result={field:row[field] for field in ("mid","url","published_ms","fingerprint","status")}
               try:
-                  req=urllib.request.Request(row['url'],headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
-                  with urllib.request.urlopen(req,timeout=10) as r:
-                      raw=r.read(3000001)
-                      status,url=r.status,r.geturl()
-                  assert len(raw)<=3000000 and url==row['url']
-                  p=Page();p.feed(raw.decode('utf-8'))
-                  visible=norm('\n'.join(p.parts).split('Другие публикации канала',1)[0])
-                  declared=norm(p.meta.get('og:description',''))
-                  exact=norm(row['caption'])
-                  out={'hotel_id':row['id'],'url':url,'http':status,'named':row['title'] in visible or row['title'] in declared,
-                       'caption_matches':exact in visible or exact in declared,'photo_preview':bool(p.meta.get('og:image')),
-                       'public_button_label_visible':'Рассчитать на мои даты' in visible,
-                       'page_sha256':hashlib.sha256(raw).hexdigest(),
-                       'escaped_variant_visible': '&amp;' in visible or '&amp;' in declared}
-                  out['verified']=out['named'] and out['caption_matches'] and out['photo_preview']
-                  return out
-              except (OSError,ValueError,AssertionError) as e:
-                  return {'hotel_id':row['id'],'url':row['url'],'error':type(e).__name__,'verified':False}
-          with ThreadPoolExecutor(max_workers=3) as pool:
-              results=list(pool.map(read,plans))
-          if not all(r['verified'] for r in results):
-              time.sleep(5)
-              results=[r if r['verified'] else read(p) for r,p in zip(results,plans)]
-          out={'observed_utc':datetime.now(timezone.utc).isoformat(),'rows':results,'writes':0,'ad_clicks':0}
-          Path('pub/observation.json').write_text(json.dumps(out,ensure_ascii=False))
-          print('MAX_NEXT_NINE_PUBLIC_READ='+json.dumps(out,ensure_ascii=False,separators=(',',':')))
+                  req=urllib.request.Request(row["url"],headers={"User-Agent":"Mozilla/5.0","Cache-Control":"no-cache"})
+                  with urllib.request.urlopen(req,timeout=10) as response:
+                      assert response.geturl()==row["url"] and response.status==200
+                      raw=response.read(3000001)
+                  assert len(raw)<=3000000
+                  p=Preview()
+                  p.feed(raw.decode("utf-8"))
+                  snippet=re.sub(r"\s+"," ",p.metadata.get("og:description","")).strip()
+                  negative=re.search(r"отзыв|отдыхал[аи]?|мы отдых|мы жили|вернул[аи]сь|вернулся|наш[аи]? турист|от турист|видео|влог|обзор от менеджера|доминикан|пунта.кан",snippet,re.I)
+                  positive=re.search(r"подборк|пут[её]вк|горящ|предложен|путешестви|туры?\b|тур[ауы]\b|заброниров|стоимость|₽|руб[.л]",snippet,re.I)
+                  result["screen"]="protected_or_ambiguous" if negative or not snippet or not positive or not p.metadata.get("og:image") else "public_commercial_candidate"
+                  if result["screen"]=="public_commercial_candidate":
+                      result["commercial_preview"]=snippet[:190]
+              except (OSError,ValueError,AssertionError):
+                  result["screen"]="public_read_unavailable"
+              return result
+          with ThreadPoolExecutor(max_workers=3) as workers:
+              candidates=list(workers.map(review,pending_targets))
+          output["existing_editor_candidates_after_exclusions"]=candidates
+          output["screen_only"]=True
+          output["production_requests"]=0
+          output["public_reads"]=len(candidates)
+          print("MAX_ADDITIONAL_COMMERCIAL_TARGETS=" + json.dumps(output,ensure_ascii=False,separators=(",",":")))
           PY
-      - name: Preserve independent public readback
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: max-next-nine-independent-public-readback
-          path: pub/observation.json
-          retention-days: 7
