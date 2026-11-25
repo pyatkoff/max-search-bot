@@ -1,4 +1,4 @@
-name: "#1566 Check the identity of the Ras Al Khaimah reserve album in both live feeds"
+name: "#1566 Check the live public caption contract of the installed PRICE reader"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -15,66 +15,52 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == '813b4d94d0ad8661a1e5396fd1a5de4cbe5dd9ef' && github.run_attempt == 1
+      github.event.before == '52db059d7a0a9f24c844d18c455257c8c544737a' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Inspect only current offer identities and context macros
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: "7aa0a9a05a250cbd19d7dfab5745927012be5546"
+          persist-credentials: false
+      - name: Read two live captions using the production PRICE reader without invoking its writer
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           mkdir pub
-          python3 - <<'PY'
-          import base64,hashlib,json,pathlib,re,urllib.request,xml.etree.ElementTree as ET
-          from concurrent.futures import ThreadPoolExecutor
-          from datetime import datetime,timezone
-          urls={'max':'https://app.anytoour.ru/feed/hotel-posts-max.xml',
-                'all':'https://app.anytoour.ru/feed/hotel-posts-all.xml'}
-          identity=re.compile(r'(?:\bSO\s*/?\s*(?:Ras[\s-]+Al[\s-]+Khaimah|Рас[\s-]+Аль[\s-]+Хайма)|\bSO\s*/\s*Ras\b)',re.I)
-          known={'max_107938','max_954','max_73055'}
-          def inspect(entry):
-              label,url=entry
-              req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
-              with urllib.request.urlopen(req,timeout=12) as r:
-                  assert r.status==200 and r.geturl()==url
-                  raw=r.read(8000001)
-              assert 0<len(raw)<=8000000 and b'<!DOCTYPE' not in raw.upper()
-              offers=ET.fromstring(raw).findall('./shop/offers/offer')
-              seen=set()
-              rows=[]
-              near=[]
-              for offer in offers:
-                  offer_id=offer.get('id')
-                  assert offer_id and offer_id not in seen
-                  seen.add(offer_id)
-                  if not offer_id.startswith("max_"):
-                      continue
-                  title=offer.findtext('name','')
-                  names=" ".join([title,offer.findtext('model','')]+[(x.text or '') for x in offer.findall('param')])
-                  test=offer_id in known or bool(identity.search(names))
-                  if not test and title and re.search(r'Ras\s+Al\s+Khaimah|Рас[- ]эль[- ]Хайм',title,re.I):
-                      near.append({'offer_id':offer_id,'name':title[:160]})
-                  if not test:
-                      continue
-                  href=offer.findtext('url','')
-                  token=re.search(r'_ctx1_([A-Za-z0-9_-]+)',href)
-                  c=json.loads(base64.urlsafe_b64decode(token[1]+'='*(-len(token[1])%4))) if token else {}
-                  item={'offer_id':offer_id,'name':title[:170],'exact_brand_match':bool(identity.search(names)),
-                        'context_offer_matches':c.get('offer_id')==offer_id,'source_alias':c.get('post_id'),
-                        'has_attribution_macros':all(k in href for k in ('{yclid}','{campaign_id}','{region_id}')),
-                        'ad_url_sha256':hashlib.sha256(href.encode()).hexdigest() if href else None,
-                        'image_present':bool(offer.findtext('picture',''))}
-                  rows.append(item)
-              return label,{'offer_count':len(seen),'exact_and_reference_rows':rows,'other_ras_titles':near[:12]}
-          with ThreadPoolExecutor(max_workers=2) as pool:
-              reads=dict(pool.map(inspect,urls.items()))
-          out={'observed_utc':datetime.now(timezone.utc).isoformat(),'reads':reads,'ad_clicks':0,'writes':0}
-          pathlib.Path('pub/observed.json').write_text(json.dumps(out,ensure_ascii=False))
-          print('MAX_ALBUM_EXACT_FEED_READ='+json.dumps(out,ensure_ascii=False,separators=(',',':')))
-          PY
+          cat > pub/scope.json <<'JSON'
+          [{"hotel_id":65877,"url":"https://max.ru/anytour/AZ-d-XrfADw","caption":"✈️ Туры в Vesna Hotel\n📍 Нячанг, Вьетнам\nГородской отель для поездки с семьёй. До пляжа около 50 метров через дорогу."},{"hotel_id":2470,"url":"https://max.ru/anytour/AaC42fW_AY0","caption":"✈️ Туры в Sun Siyam Olhuveli\n📍 Южный Мале, Мальдивы\nПляжи, бассейны и водные развлечения. Для семей есть детский клуб и подходящие номера и виллы. Отдельная зона Romance предназначена для взрослых."}]
+          JSON
+          php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          require 'services/PromotedHotelPriceWriter.php';
+          $plans=json_decode(file_get_contents('pub/scope.json'),true,16,JSON_THROW_ON_ERROR);
+          $rows=[];
+          foreach($plans as $p) {
+              $r=['hotel_id'=>$p['hotel_id'],'url'=>$p['url'],'public_read'=>false,'production_parser'=>false,'exact_expected_caption'=>false];
+              try {
+                  $html=PromotedHotelPriceWriter::publicBytes($p['url']);
+                  $r['public_read']=true;
+                  $r['html_sha256']=hash('sha256',$html);
+                  $r['old_ssr_marker_present']=str_contains($html,'message:{text:');
+                  $r['exact_post_slug_present']=str_contains($html,basename($p['url']));
+                  $r['new_ssr_field_markers']=array_values(array_filter(['"message":','"text":','message:','post__description','post__text','og:description','data-page'],static fn($x)=>str_contains($html,$x)));
+                  $caption=PromotedHotelPriceWriter::maxPublicCaption($html);
+                  $r['production_parser']=true;
+                  $r['exact_expected_caption']=$caption===$p['caption'];
+              } catch(Throwable $error) {
+                  $r['failure']=preg_match('/\A[a-z_]{3,65}\z/D',$error->getMessage())?$error->getMessage():'public_read_failed';
+              }
+              $rows[]=$r;
+          }
+          $out=['observed_utc'=>gmdate(DATE_ATOM),'provider_writes'=>0,'db_writes'=>0,'rows'=>$rows];
+          file_put_contents('pub/observation.json',json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+          echo 'MAX_PRICE_PUBLIC_READER_CONTRACT=',json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          PHP
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: max-album-exact-offer-readback
-          path: pub/observed.json
+          name: max-price-public-caption-contract
+          path: pub/observation.json
           retention-days: 7
