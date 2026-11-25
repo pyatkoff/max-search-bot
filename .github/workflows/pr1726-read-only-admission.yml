@@ -1,0 +1,73 @@
+name: Check Manager2 release 1726 admission
+on:
+  push:
+    branches:
+      - audit/pr1726-before-handoff-20261125
+      - audit/pr1726-after-handoff-20261125
+permissions:
+  actions: read
+  contents: read
+  issues: read
+  pull-requests: read
+jobs:
+  admission:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.created && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    env:
+      SOURCE: 67619658dfd2298b99c4a37c7d4434266aad8680
+      BASE: 3073195685c8d57808256af6836182262f25fead
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout exact PR source without retaining credentials
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE }}
+          persist-credentials: false
+      - name: Wait for the original exact-source checks
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE"
+          python3 - <<'PY'
+          import json, os, time, urllib.request
+          timeout=time.monotonic()+760
+          api="https://api.github.com/repos/pyatkoff/max-search-bot/"
+          sha=os.environ["SOURCE"]
+          headers={"Authorization":"Bearer "+os.environ["GITHUB_TOKEN"],"X-GitHub-Api-Version":"2022-11-28"}
+          want={".github/workflows/regression-tests.yml",".github/workflows/retired-domain-guard.yml"}
+          while time.monotonic()<timeout:
+              ref=urllib.request.Request(api+"git/ref/heads/main",headers=headers)
+              with urllib.request.urlopen(ref,timeout=10) as response:
+                  assert json.load(response)["object"]["sha"]==os.environ["BASE"],"main changed"
+              req=urllib.request.Request(api+"actions/runs?head_sha="+sha+"&per_page=100",headers=headers)
+              with urllib.request.urlopen(req,timeout=10) as response:
+                  census=json.load(response)
+              assert census["total_count"]==len(census["workflow_runs"])<100
+              checks=[row for row in census["workflow_runs"] if row["path"] in want]
+              assert len(checks)<=len(want)
+              assert all(row["run_attempt"]==1 and row["event"]=="pull_request" for row in checks)
+              assert all(row["status"]!="completed" or row["conclusion"]=="success" for row in checks),"source check failed"
+              if set(row["path"] for row in checks)==want and all(row["status"]=="completed" for row in checks):
+                  break
+              time.sleep(15)
+          else:
+              raise SystemExit("required original CI is still pending")
+          PY
+      - name: Verify the predecessor and current publisher through the canonical reader
+        run: |
+          set -euo pipefail
+          args=(--admit 1726 "$SOURCE" "$BASE")
+          if [[ "$GITHUB_REF_NAME" == "audit/pr1726-after-handoff-20261125" ]]; then
+            timestamp="$(python3 - <<'PY'
+          import json, os, urllib.request
+          req=urllib.request.Request("https://api.github.com/repos/pyatkoff/max-search-bot/issues/comments/6928374515",
+                                     headers={"Authorization":"Bearer "+os.environ["GITHUB_TOKEN"]})
+          with urllib.request.urlopen(req,timeout=12) as response:
+              row=json.load(response)
+          assert row["body"]=="PR1726: выпуск занят" and row["user"]["id"]==226193297
+          print(row["updated_at"])
+          PY
+          )"
+            args+=(--publisher 6928374515 226193297 "$timestamp")
+          fi
+          node tools/release_priority.js "${args[@]}"
