@@ -1,4 +1,4 @@
-name: "#1566 Observe50 remaining old Telegram targets without reserving or writing"
+name: "#1566 Read actual old channel archive windows for target selection"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -13,7 +13,7 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == '910329fef2f8279542266d94487a9fd0de44a32c' &&
+      github.event.before == '0657f6c97b12856fd84593a6213182792fa15b0b' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -23,7 +23,7 @@ jobs:
           php-version: '8.2'
           extensions: curl, dom, mbstring
           coverage: none
-      - name: Observe only old target public bodies and their current feed occupancy
+      - name: Read four actual archive windows without enumerating nonexistent message IDs
         shell: bash
         run: |
           set -euo pipefail
@@ -182,53 +182,35 @@ jobs:
            if($status===429)$rates[$host]=publicRetryLimit($retry,time());return ['ok'=>$ok&&$status===200,'http'=>$status,'body'=>$body,'body_sha256'=>hash('sha256',$body),'http_attempts'=>1,'retry_after'=>$status===429?$rates[$host]:null];
           }
           
-          $scope=json_decode('["520","521","522","523","524","525","527","528","529","530","531","532","533","534","535","536","537","538","539","540","541","542","543","544","545","546","547","548","549","550","551","552","553","554","555","556","557","558","559","561","562","563","564","565","566","568","569","570","571","572"]',true,8,JSON_THROW_ON_ERROR);
-          requireRead(count($scope)===50&&count(array_unique($scope))===50,'target_scope_changed');
-          $rates=[];$used=null;
-          $out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_existing_target50_public_observation','native_run_id'=>getenv('GITHUB_RUN_ID'),
-           'reader_source_sha'=>getenv('GITHUB_SHA'),'write_admission'=>false,'provider_writes'=>0,'production_writes'=>0,
-           'server_calls'=>0,'sql_queries'=>0,'price_lease_acquisitions'=>0,'manager2_http_calls'=>0,
-           'native_target_occupancy_verified'=>false,'complete_ready_pair_count'=>0,'scope_count'=>50,'rows'=>[]];
-          $feed=captionPublicBytes('https://app.anytoour.ru/feed/hotel-posts-telegram.xml',$rates,5000000);
-          $out['feed_http']=$feed['http'];$out['feed_sha256']=$feed['body_sha256'];
-          if($feed['ok']){
-           $doc=new DOMDocument();$previous=libxml_use_internal_errors(true);
-           try{$loaded=$doc->loadXML($feed['body'],LIBXML_NONET);}finally{libxml_clear_errors();libxml_use_internal_errors($previous);}
-           if($loaded){$xp=new DOMXPath($doc);$offers=$xp->query('//offer');$links=$xp->query('//offer/url');
-            if($offers&&$links&&$offers->length===1055&&$links->length===1055){$used=[];
-             foreach($links as $link){$url=trim($link->textContent);if(preg_match('~\Ahttps://t\.me/anytour/([1-9][0-9]{0,9})\z~D',$url,$m))$used[$m[1]]=true;}
-             $out['feed_offer_count']=1055;$out['current_large_feed_target_count']=count($used);
-            }
+          $rates=[];$out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_known_archive_windows_public_observation',
+           'native_run_id'=>getenv('GITHUB_RUN_ID'),'reader_source_sha'=>getenv('GITHUB_SHA'),'write_admission'=>false,
+           'provider_writes'=>0,'production_writes'=>0,'server_calls'=>0,'sql_queries'=>0,'rows'=>[],'windows'=>[]];
+          $seen=[];
+          foreach([900,1100,1300,1500]as $before){
+           $r=captionPublicBytes('https://t.me/s/anytour?before='.$before,$rates);
+           $window=['before'=>$before,'http'=>$r['http'],'body_sha256'=>$r['body_sha256'],'retry_after'=>$r['retry_after']??null];
+           if(!$r['ok']){$window['hold_reason']='archive_window_unavailable';$out['windows'][]=$window;continue;}
+           $doc=new DOMDocument();$prior=libxml_use_internal_errors(true);
+           try{$loaded=$doc->loadHTML($r['body'],LIBXML_NONET);}finally{libxml_clear_errors();libxml_use_internal_errors($prior);}
+           requireRead($loaded,'archive_html_invalid');$xp=new DOMXPath($doc);$nodes=$xp->query('//*[@data-post]');
+           requireRead($nodes&&$nodes->length<=100,'archive_unbounded');$mids=[];
+           foreach($nodes as $node){if(!preg_match('~\Aanytour/([1-9][0-9]{0,9})\z~D',$node->getAttribute('data-post'),$m))continue;
+            $mid=$m[1];if(isset($seen[$mid]))continue;$seen[$mid]=true;$mids[]=$mid;
+            $row=['target_message_id'=>$mid,'url'=>'https://t.me/anytour/'.$mid,'write_admission'=>false,'native_occupancy_verified'=>false,
+             'semantic_protection_review_complete'=>false,'actual_photo_review_complete'=>false];
+            try{$v=parsePublicRead($r['body'],'anytour',$mid);$row['public']=$v;
+             $row['protected_text_hint']=preg_match('/отзыв|впечатлен|впечатлён|наши турист|наша турист|туристы вернулись|туристы поделились|видео.*менеджер|менеджер.*видео/iu',$v['caption'])===1;
+             $row['single_photo_no_keyboard_structure']=$v['single_photo']&&$v['buttons']===[]&&!$row['protected_text_hint'];
+            }catch(Throwable $e){$row['hold_reason']=reasonRead($e);$row['bounded_visible_text']=mb_substr(trim($node->textContent),0,12000);}
+            $out['rows'][]=$row;
            }
+           $window['actual_mids']=$mids;$out['windows'][]=$window;
+           requireRead(file_put_contents('pub/archive-window-'.$before.'.html',$r['body'])!==false,'archive_snapshot_save_failed');
+           requireRead(file_put_contents('pub/archive-windows.json',jsonRead($out)."\n")!==false,'observation_save_failed');
           }
-          $out['feed_occupancy_known']=is_array($used);
-          foreach($scope as $mid){
-           $row=['target_message_id'=>$mid,'url'=>'https://t.me/anytour/'.$mid,'write_admission'=>false,'native_occupancy_verified'=>false,
-            'current_feed_occupied'=>$used===null?null:isset($used[$mid]),'full_text_and_photo_review_required'=>true];
-           if($used!==null&&isset($used[$mid])){$row['hold_reason']='already_used_in_live_feed';$out['rows'][]=$row;continue;}
-           $views=[];
-           foreach(['embed','archive']as $kind){
-            $url=$kind==='embed'?'https://t.me/anytour/'.$mid.'?embed=1&mode=tme':'https://t.me/s/anytour?before='.((int)$mid+1);
-            $r=captionPublicBytes($url,$rates);
-            try{requireRead($r['ok'],'public_post_unavailable');$views[$kind]=parsePublicRead($r['body'],'anytour',$mid);}
-            catch(Throwable $e){$views[$kind]=['ok'=>false,'reason'=>reasonRead($e),'http'=>$r['http'],'retry_after'=>$r['retry_after']??null];}
-           }
-           try{
-            requireRead(isset($views['embed']['url'],$views['archive']['url']),'public_pair_incomplete');
-            $v=corroborateTargetKeyboard($views['embed'],$views['archive']);
-            requireRead($views['embed']['photo_marker_sha256']===$views['archive']['photo_marker_sha256'],'public_photo_marker_disagrees');
-            $row['public']=$v;$row['protected_text_hint']=preg_match('/отзыв|впечатлен|впечатлён|наши турист|наша турист|туристы вернулись|туристы поделились|видео.*менеджер|менеджер.*видео/iu',$v['caption'])===1;
-            $row['structure_only_candidate']=$v['single_photo']&&$v['buttons']===[]&&$v['published_unixtime']<1751328000
-             &&($v['video_count']??0)===0&&($v['roundvideo_count']??0)===0&&!$row['protected_text_hint'];
-            $row['semantic_protection_review_complete']=false;
-           }catch(Throwable $e){$row['hold_reason']=reasonRead($e);$row['views']=$views;}
-           $out['rows'][]=$row;
-           requireRead(file_put_contents('pub/target50-public.json',jsonRead($out)."\n")!==false,'observation_save_failed');
-          }
-          $out['read_at_utc']=gmdate(DATE_ATOM);$out['retry_after_holds']=$rates;
-          $out['structure_only_candidate_count']=count(array_filter($out['rows'],static fn($r)=>($r['structure_only_candidate']??false)===true));
-          requireRead(file_put_contents('pub/target50-public.json',jsonRead($out)."\n")!==false,'observation_save_failed');
-          echo jsonRead(['observed'=>count($out['rows']),'structure_candidates'=>$out['structure_only_candidate_count'],'write_admission'=>false,'retry_after_holds'=>$rates,'holds'=>array_map(static fn($r)=>['mid'=>$r['target_message_id'],'hold'=>$r['hold_reason']??null,'structure'=>$r['structure_only_candidate']??false],$out['rows'])])."\n";
+          $out['retry_after_holds']=$rates;$out['read_at_utc']=gmdate(DATE_ATOM);
+          requireRead(file_put_contents('pub/archive-windows.json',jsonRead($out)."\n")!==false,'observation_save_failed');
+          echo jsonRead(['observed'=>count($out['rows']),'windows'=>count($out['windows']),'write_admission'=>false,'retry_after_holds'=>$rates])."\n";
           PHP
           php -l /tmp/pilot-public.php
           php /tmp/pilot-public.php
