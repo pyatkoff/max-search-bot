@@ -35,8 +35,9 @@ async function admit() {
         original(45373389110,'e1e3d25e42522639e2b82b4bdf32b155a547a184','.github/workflows/read-1566-max-archive-20261123.yml',138373110912,14910511299,'issue-1566-main-max-archive-inventory',scope.archive_sha256),
         original(expected.run_id,expected.workflow_head,'.github/workflows/read-1566-max-archive-20261123.yml',expected.job_id,expected.artifact_id,'max-commercial-album-sources',expected.zip_sha256)
     ]);
-    assert(scope.rows.map(row=>row.hotel_id).join(',')==='2575' &&
-        scope.route_readback.write_calls===0 && scope.price_review.mode==='caption_without_fixed_price','scoped_rixos_target_changed');
+    assert(scope.rows.map(row=>row.hotel_id).join(',')==='2575,47025' &&
+        scope.route_readback.write_calls===0 && scope.additional_route_readback.write_calls===0 &&
+        scope.additional_public_readback.write_calls===0 && scope.price_review.mode==='caption_without_fixed_price','scoped_commercial_pair_changed');
     await current();
     console.log('original source, target archive and current HOTEL application verified');
 }
