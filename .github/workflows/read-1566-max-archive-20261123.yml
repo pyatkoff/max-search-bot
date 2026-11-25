@@ -1,4 +1,4 @@
-name: "#1566 Check the four original MAX PRICE read failures against the same reader fix"
+name: "#1566 Wait for exact PRICE fix checks and read release admission"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -6,6 +6,8 @@ on:
 permissions:
   contents: read
   actions: read
+  issues: read
+  pull-requests: read
 concurrency:
   group: hotel-1566-public-archive-observation
   cancel-in-progress: false
@@ -15,54 +17,27 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == '43677dc59a74ec757ec4707662ea0ebe1344beb4' && github.run_attempt == 1
+      github.event.before == '88ce4df772005fd1b61004e8a73155de72578753' && github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: "4da1c3b125e31672e7bec1fdfb4995a8cb0f9d90"
+          ref: c0fc7cb2f256f2adec8ef2433ea4cf6a4a73f512
           persist-credentials: false
-      - name: Read two live captions using the production PRICE reader without invoking its writer
+      - name: Await exact required source checks and inspect native release eligibility
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          umask 077
-          mkdir pub
-          php -l services/PromotedHotelPriceWriter.php
-          php -l tests/run_promoted_hotel_price_writer_regression.php
-          cat > pub/scope.json <<'JSON'
-          [{"hotel_id":99713,"url":"https://max.ru/anytour/AZ_RB3FVXFc","caption":null},{"hotel_id":12125,"url":"https://max.ru/anytour/AaDIF63rXLg","caption":null},{"hotel_id":4079,"url":"https://max.ru/anytour/AaD8zg3FDHM","caption":null},{"hotel_id":132016,"url":"https://max.ru/anytour/AaDtMfpbMO0","caption":null}]
-          JSON
-          php <<'PHP'
-          <?php
-          declare(strict_types=1);
-          require 'services/PromotedHotelPriceWriter.php';
-          $plans=json_decode(file_get_contents('pub/scope.json'),true,16,JSON_THROW_ON_ERROR);
-          $rows=[];
-          foreach($plans as $p) {
-              $r=['hotel_id'=>$p['hotel_id'],'url'=>$p['url'],'public_read'=>false,'production_parser'=>false,'exact_expected_caption'=>false];
-              try {
-                  $html=PromotedHotelPriceWriter::publicBytes($p['url']);
-                  $r['public_read']=true;
-                  $r['html_sha256']=hash('sha256',$html);
-                  $r['old_ssr_marker_present']=str_contains($html,'message:{text:');
-                  $r['exact_post_slug_present']=str_contains($html,basename($p['url']));
-                  $r['new_ssr_field_markers']=array_values(array_filter(['"message":','"text":','message:','post__description','post__text','og:description','data-page'],static fn($x)=>str_contains($html,$x)));
-                  $caption=PromotedHotelPriceWriter::maxPublicCaption($html, $p['url']);
-                  $r['production_parser']=true;
-                  $r['exact_expected_caption']=$caption===$p['caption'];
-              } catch(Throwable $error) {
-                  $r['failure']=preg_match('/\A[a-z_]{3,65}\z/D',$error->getMessage())?$error->getMessage():'public_read_failed';
-              }
-              $rows[]=$r;
-          }
-          $out=['observed_utc'=>gmdate(DATE_ATOM),'provider_writes'=>0,'db_writes'=>0,'rows'=>$rows];
-          file_put_contents('pub/observation.json',json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
-          echo 'MAX_PRICE_READER_ORIGINAL_FAILURES=',json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
-          PHP
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: max-price-original-failure-readback
-          path: pub/observation.json
-          retention-days: 7
+          result=""
+          for attempt in $(seq 1 26); do
+            result="$(gh api repos/pyatkoff/max-search-bot/commits/4da1c3b125e31672e7bec1fdfb4995a8cb0f9d90/check-runs?per_page=40 --jq '[.check_runs[] | select(.name=="regression" or .name=="guard") | [.name,.conclusion]] | unique | sort')"
+            if [[ "$result" == '[["guard","success"],["regression","success"]]' ]]; then break; fi
+            if [[ "$result" == *'"failure"'* || "$result" == *'"cancelled"'* || "$result" == *'"timed_out"'* ]]; then exit 2; fi
+            if [[ "$attempt" -lt 26 ]]; then sleep 15; fi
+          done
+          test "$result" = '[["guard","success"],["regression","success"]]'
+          node tools/release_priority.js --admit 1718 4da1c3b125e31672e7bec1fdfb4995a8cb0f9d90 c0fc7cb2f256f2adec8ef2433ea4cf6a4a73f512
