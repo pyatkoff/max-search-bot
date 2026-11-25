@@ -32,7 +32,9 @@ function requirePost(bool $ok, string $message): void
 function publicHotelPost(array $row): array
 {
     if ($row['platform'] === 'max') {
-        return ['text' => PromotedHotelPriceWriter::maxPublicCaption(PromotedHotelPriceWriter::publicBytes($row['url']))];
+        return ['text' => PromotedHotelPriceWriter::maxPublicCaption(
+            PromotedHotelPriceWriter::publicBytes($row['url']), $row['url']
+        )];
     }
     $raw = PromotedHotelPriceWriter::publicBytes('https://t.me/s/anytour/'.$row['mid']);
     $dom = new DOMDocument();
