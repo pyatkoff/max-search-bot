@@ -1,4 +1,4 @@
-name: "#1566 Identify the already occupied Rixos target without writes"
+name: "#1566 Refresh commercial MAX archive and occupied post registry"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -16,162 +16,133 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 &&
+      github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.actor == 'pyatkoff' &&
-      github.event.before == 'a5a8b4a3701b92e0a71a26735643d562e01f5c14' &&
+      github.event.before == '187ed41e387e3a4be5cf96fdd23619202a725557' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 29
+    timeout-minutes: 40
     steps:
-      - name: Checkout exact installed provenance source
+      - name: Check out the exact candidate packet
         uses: actions/checkout@v4
         with:
-          ref: 938d86d69864c41569f6c6225b0576dffaa5854e
+          ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Verify current main and accepted application without mutations
+      - name: Check out main for the existing release verifier
+        uses: actions/checkout@v4
+        with:
+          ref: ad970aaa2c89ccc6eb2fcded3c56b5146fffeaf5
+          path: accepted
+          persist-credentials: false
+      - name: Require current accepted release and actual application
+        working-directory: accepted
         env:
           GITHUB_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = '938d86d69864c41569f6c6225b0576dffaa5854e'
+          export READ_REPOSITORY_SHA="$(git rev-parse HEAD)"
           node - <<'NODE'
+          const fs = require('node:fs')
           const R = require('./tools/deployment_release')
-          const expected = '938d86d69864c41569f6c6225b0576dffaa5854e'
-          async function read() {
-            const api = R.makeReadApi(process.env.GITHUB_TOKEN)
-            const current = async () => (await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha
-            if (await current() !== expected) throw Error('changed_release')
-            const prior = R.API_ROOT+'/actions/runs/45373389110'
-            const archive = await api('GET',prior)
-            const receipts = await api('GET',prior+'/artifacts?per_page=30')
-            const digest = 'sha256:c46ce092bfb91935ce829c871026a1136bf465920a3caa9184604f052c55798c'
-            if (archive.id!==45373389110 || archive.head_sha!=='e1e3d25e42522639e2b82b4bdf32b155a547a184' || archive.run_attempt!==1 ||
-                archive.repository.id!==1342493152 || archive.head_branch!=='ops/1566-max-archive-inventory-20261123' ||
-                archive.status!=='completed' || archive.conclusion!=='success' || receipts.total_count!==1 ||
-                receipts.artifacts[0].id!==14910511299 || receipts.artifacts[0].digest!==digest ||
-                receipts.artifacts[0].expired || receipts.artifacts[0].name!=='issue-1566-main-max-archive-inventory') throw Error('previous_archive_unverified')
-            const {setTimeout: pause} = require('node:timers/promises')
-            for (let attempt = 0; attempt < 80; attempt++) {
-              if (await current() !== expected) throw Error('changed_release')
-              const install = await api('GET',R.API_ROOT+'/actions/runs/45625610061')
-              if (install.id !== 45625610061 || install.repository.id !== 1342493152 ||
-                  install.head_sha !== expected || install.run_attempt !== 1 ||
-                  install.event !== 'push' || install.path !== '.github/workflows/deploy.yml') throw Error('installation_identity_changed')
-              if (install.status === 'completed') {
-                if (install.conclusion !== 'success') throw Error('current_installation_failed')
-                try {
-                  const record = await R.readRecord(api)
-                  const actual = await R.resolveCurrent(api, {sha:expected}, record)
-                  if (!actual.ready || !/^[a-f0-9]{40}$/.test(actual.application_sha) ||
-                      actual.repository_sha !== expected) throw Error('accepted_release_mismatch')
-                  // This job uses the installed reader under the shared read lease.
-                  // Publisher admission remains in the write workflow.
-                  const latest = await R.readRecord(api)
-                  if (record.blob !== latest.blob || record.record_digest !== latest.record_digest ||
-                      await current() !== expected) throw Error('accepted_release_changed')
-                  require('node:fs').appendFileSync(process.env.GITHUB_ENV, 'VERIFIED_MAX_APP='+actual.application_sha+'\n')
-                  console.log('MAX15_PRICE_RELEASE_ACCEPTED='+expected)
-                  return
-                } catch (error) {
-                  if (!['release_pending','diagnostics_unconfirmed','accepted_release_mismatch','record_changed'].includes(error.code || error.message)) throw error
-                }
-              }
-              if (attempt < 79) await pause(18000)
-            }
-            throw Error('current_installation_timeout')
+          const P = require('./tools/release_priority')
+          const expectedMain = 'ad970aaa2c89ccc6eb2fcded3c56b5146fffeaf5'
+          async function check() {
+            const expected = process.env.READ_REPOSITORY_SHA
+            const token = process.env.GITHUB_TOKEN
+            const api = R.makeReadApi(token)
+            const current = async () => (await api('GET', R.API_ROOT+'/git/ref/heads/main')).object.sha
+            if (expected !== expectedMain || await current() !== expected) throw Error('main_changed')
+            const slot = await api('GET',R.API_ROOT+'/issues/comments/6928374515')
+            const deploy = await api('GET',R.API_ROOT+'/actions/runs/45629187135')
+            if(slot.user.id!==226193297 || deploy.head_sha!==expected || deploy.run_attempt!==1 || deploy.path!=='.github/workflows/deploy.yml') throw Error('release_identity_changed')
+            if(deploy.status==='completed' && deploy.conclusion!=='success') throw Error('deployment_failed')
+            if(slot.body==='PR1719: выпуск занят' || deploy.status!=='completed') throw Object.assign(Error('release_pending'),{code:'release_pending'})
+            if(slot.body!=='PR1719: установлено, выпуск свободен') throw Error('release_slot_changed')
+            const observed = await R.readRecord(api)
+            const resolution = await R.resolveCurrent(api, {sha:expected}, observed)
+            if (!resolution.ready || resolution.repository_sha !== expected || !/^[a-f0-9]{40}$/.test(resolution.application_sha)) throw Object.assign(Error('release_pending'),{code:'release_pending'})
+            await P.verifyPreviousRelease({repository:R.REPOSITORY,baseSha:expected}, token, fetch)
+            const latest = await R.readRecord(api)
+            if (latest.blob !== observed.blob || latest.record_digest !== observed.record_digest || await current() !== expected) throw Error('accepted_release_changed')
+            fs.appendFileSync(process.env.GITHUB_ENV, 'REPOSITORY_SHA='+expected+'\nAPPLICATION_SHA='+resolution.application_sha+'\n')
           }
-          read().catch(e=>{console.error('release_refused='+(e.code||e.message||'accepted_release_unavailable'));process.exitCode=1})
+          async function admit() {
+            const until = Date.now() + 1410000
+            for (;;) {
+              try { return await check() }
+              catch (e) {
+                if (!['release_pending','record_changed'].includes(e.code || e.message) || Date.now() >= until) throw e
+                await new Promise(resolve=>setTimeout(resolve, 10000))
+              }
+            }
+          }
+          admit().catch(error => { console.error('read_release_refused', error.code || error.message || 'release_not_accepted'); process.exitCode=1 })
           NODE
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          ref: 59d8e86437049fb0a859fea8072624aa8a4763a8
-          path: album-editor
-          persist-credentials: false
-      - name: Stage read-only invocation of the existing hotel observer
+      - name: Bind the reviewed MAX reader to this installation and run
         shell: bash
-        env:
-          NATIVE_REPO: 938d86d69864c41569f6c6225b0576dffaa5854e
         run: |
           set -euo pipefail
           umask 077
           mkdir pub
-          cat > pub/reader-tail.php <<'PHP'
-          $root='/var/www/anytoour/data/www/app.anytoour.ru';
-          $app='VERIFIED_NATIVE_APP_PIN';
-          $out=['ok'=>false,'operation'=>'max_commercial_album_sources_read_only','repository_sha'=>'VERIFIED_NATIVE_REPO_PIN','application_sha'=>$app,
-              'archive_run'=>45373389110,'provider_writes'=>0,'db_writes'=>0,'bot_starts'=>0,'rows'=>[]];
-          ob_start();
-          try {
-              maxEditInstalled($app);
-              require $root.'/config.php';
-              require_once $root.'/services/ChannelPostRuntime.php';
-              require_once $root.'/services/ChannelPostEntryService.php';
-              require_once $root.'/services/ChannelPostAutomationService.php';
-              require_once $root.'/services/MaxTransport.php';
-              require_once $root.'/tools/anytour_existing_post_max_transfer.php';
-              $path='/var/www/anytoour/data/channel-post-operations/monitor-price-after-collection-v1.jsonl';
-              maxEditNeed(is_file($path)&&!is_link($path),'editor_lock_unavailable');
-              $lease=fopen($path,'rb');
-              maxEditNeed(is_resource($lease)&&flock($lease,LOCK_SH|LOCK_NB),'editor_busy');
-              $db=ConversationDb::connection();
-              $db->exec('SET TRANSACTION READ ONLY');
-              $db->beginTransaction();
-              try {
-                  $registry=new ChannelPostRegistryService($db);
-                  $channel=$registry->channel(MAX_PROJECT,'max',MAX_BOT,MAIN_MAX);
-                  $out['channel_id_in_registry']=$channel['id']??null;
-                  $out['button_text']=$channel['button_text']??null;
-                  maxEditNeed(is_array($channel)&&(int)$channel['id']===MAIN_REGISTRY
-                      &&is_string($out['button_text'])&&trim($out['button_text'])!=='','main_channel_edit_not_ready');
-                  $out['channel_config_version']=(int)$channel['config_version'];
-                  maxTransferNativeEditor($channel,['channel_id'=>MAIN_MAX,'config_version'=>$out['channel_config_version']]);
-                  $out['target_editor_rights']=true;
-                  $mid='mid.ffffc1752b045fed01a048e897ef69df';
-                  $q=$db->prepare('SELECT id FROM post_publications WHERE post_channel_id=? AND external_message_id=?');
-                  $q->execute([MAIN_REGISTRY,$mid]);
-                  $ids=$q->fetchAll(PDO::FETCH_COLUMN);$q->closeCursor();
-                  maxEditNeed(count($ids)===1,'occupied_registry_row_unresolved');
-                  $pub=$registry->publication((int)$ids[0]);
-                  maxEditNeed(is_array($pub)&&$pub['message_id']===$mid,'occupied_registry_identity_changed');
-                  $native=maxEditRead($mid,MAIN_MAX)['snapshot'];
-                  $source=maxEditRead('mid.ffffb6caf0606fed01a1d46c23c52cc7',HOTEL_MAX)['snapshot'];
-                  $resolved=ChannelPostEntryService::resolve('max',$pub['start_payload'],$registry);
-                  $button=ChannelPostButtonTransport::buttonUrl($pub);
-                  $out['rows'][]=['target_mid'=>$mid,'target_url'=>$native['post_url'],'publication_id'=>$pub['publication_id'],
-                      'version_id'=>$pub['version_id'],'state'=>$pub['state'],
-                      'hotel_id'=>(int)($pub['snapshot']['metadata']['hotel_catalog_id']??0),
-                      'title'=>mb_substr(explode("\n",(string)$native['text'],2)[0],0,160),
-                      'native_text_matches_registry'=>$native['text']===$pub['snapshot']['text'],
-                      'rixos_source_photo_matches'=>maxEditPhotos($source)===maxEditPhotos($native),
-                      'native_button_matches'=>$button!==''&&ChannelPostIncomingAdapter::containsOnlyButton($native,$button,$pub['channel']['button_text']),
-                      'button_context_matches'=>(int)($resolved['publication_id']??0)===$pub['publication_id']];
-                  $out['ok']=true;
-              } finally { $db->rollBack();fclose($lease); }
-              maxEditInstalled($app);
-              $out['observed_utc']=gmdate(DATE_ATOM);
-          } catch (Throwable $e) {
-              $out['ok']=false;
-              $out['failure']=preg_match('/\A[a-z_]{3,85}\z/D',$e->getMessage())?$e->getMessage():'read_unavailable';
-          }
-          ob_end_clean();
-          echo maxEditJson($out),PHP_EOL;
-          exit($out['ok']?0:2);
-          PHP
           python3 - <<'PY'
-          import os,pathlib,re
-          home=pathlib.Path('album-editor/tools/direct_demand/operations/max-existing-photo')
-          editor=(home/'editor.php').read_text().split("if (PHP_SAPI !== 'cli' || realpath(",1)[0]
-          observer=(home/'observe_pair.php').read_text().split('declare(strict_types=1);',1)[1]
-          tail=pathlib.Path('pub/reader-tail.php').read_text()
-          match={'VERIFIED_NATIVE_APP_PIN':os.environ['VERIFIED_MAX_APP'],'VERIFIED_NATIVE_REPO_PIN':os.environ['NATIVE_REPO']}
-          for key,val in match.items():
-              assert re.fullmatch('[a-f0-9]{40}',val) and tail.count(key)==1
-              tail=tail.replace(key,val)
-          pathlib.Path('pub/source-reader.php').write_text(editor+observer+'\n'+tail)
+          import hashlib, os, pathlib, re
+          source = pathlib.Path('tools/direct_demand/operations/read-1566-max-archive-20261123.php').read_bytes()
+          assert hashlib.sha256(source).hexdigest() == '55076c54733c655d08b87540cc66fb3588c51542322356ca4e270043e9347475'
+          app = os.environ['APPLICATION_SHA']
+          repo = os.environ['REPOSITORY_SHA']
+          run = os.environ['GITHUB_RUN_ID']
+          assert re.fullmatch(r'[a-f0-9]{40}', app) and re.fullmatch(r'[a-f0-9]{40}', repo) and re.fullmatch(r'[1-9][0-9]*', run)
+          original = source.decode()
+          guard = "if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) {"
+          call = '        $output = runArchive();'
+          assert original.count(guard) == original.count(call) == 1
+          check = "if (trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD')) !== '" + app + "' || trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git status --porcelain --untracked-files=no')) !== '') { throw new RuntimeException('RELEASE_CHANGED'); }"
+          provenance = "$output += ['native_run_id'=>'" + run + "', 'application_sha'=>'" + app + "', 'repository_sha'=>'" + repo + "'];"
+          isolation = r"""function readArchiveWithEditorLease(): array
+          {
+              $path = '/var/www/anytoour/data/channel-post-operations/monitor-price-after-collection-v1.jsonl';
+              if (is_link($path) || !is_file($path)) throw new RuntimeException('EDITOR_LEASE_UNKNOWN');
+              $lease = fopen($path, 'rb');
+              if (!is_resource($lease)) throw new RuntimeException('EDITOR_LEASE_UNKNOWN');
+              try {
+                  if (!flock($lease, LOCK_SH | LOCK_NB)) throw new RuntimeException('EDITOR_BUSY');
+                  $stage = 'ARCHIVE_BOOTSTRAP_FAILED';
+                  require_once ARCHIVE_APP . '/config.php';
+                  require_once ARCHIVE_APP . '/services/ChannelPostEntryService.php';
+                  if (ProjectConfig::projectId() !== 'anytour') throw new RuntimeException('WRONG_PROJECT');
+                  $stage = 'ARCHIVE_REGISTRY_READ_FAILED';
+                  $pdo = ConversationDb::connection();
+                  $stamp = static function () use ($pdo): string {
+                      $pdo->exec('SET TRANSACTION READ ONLY');
+                      $pdo->beginTransaction();
+                      try {
+                          $q = $pdo->query('SELECT id,external_message_id,current_version_id,observed_revision_ms FROM post_publications WHERE post_channel_id=4 ORDER BY id');
+                          return hash('sha256', json_encode($q->fetchAll(PDO::FETCH_NUM), JSON_THROW_ON_ERROR));
+                      } finally {
+                          $pdo->rollBack();
+                      }
+                  };
+                  $before = $stamp();
+                  $stage = 'ARCHIVE_NATIVE_READ_FAILED';
+                  $output = runArchive();
+                  $stage = 'ARCHIVE_REGISTRY_READ_FAILED';
+                  if (!hash_equals($before, $stamp())) throw new RuntimeException('REGISTRY_CHANGED');
+                  $output['price_content_shared_lease'] = true;
+                  $output['registry_versions_before_after_sha256'] = $before;
+                  return $output;
+              } catch (Throwable $error) {
+                  if (preg_match('/\A[A-Z_]{3,50}\z/D', $error->getMessage())) throw $error;
+                  throw new RuntimeException($stage ?? 'ARCHIVE_LEASE_FAILED', 0, $error);
+              } finally {
+                  fclose($lease);
+              }
+          }"""
+          program = original.replace(call, "        " + check + "\n        $output = readArchiveWithEditorLease();\n        " + check + "\n        " + provenance).replace(guard, isolation + "\n\nif (PHP_SAPI === 'cli') {")
+          pathlib.Path('pub/read-only.php').write_text(program)
           PY
-          php -l pub/source-reader.php
+          php -l pub/read-only.php
       - name: Pin established SSH host continuity and authentication identity
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -204,7 +175,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read scoped PRICE configuration, canonical registry and original receipts
+      - name: Read the full channel archive and occupied native identifiers
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -213,25 +184,59 @@ jobs:
           set -euo pipefail
           umask 077
           options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
-            -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
-            -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          for attempt in 1 2 3 4 5; do
-            ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/source-reader.php > pub/registry.json || true
-            if ! python3 -c 'import json,sys; sys.exit(0 if json.load(open("pub/registry.json")).get("failure")=="editor_busy" else 1)' 2>/dev/null; then break; fi
-            if [[ "$attempt" -lt 5 ]]; then sleep 20; fi
-          done
-          python3 - <<'PY'
-          import hashlib,json,pathlib
-          raw=pathlib.Path('pub/registry.json').read_bytes()
-          d=json.loads(raw)
-          print('MAX_RIXOS_OCCUPIED_READ='+json.dumps(d,ensure_ascii=False,separators=(',',':')))
-          print('MAX_RIXOS_OCCUPIED_SHA256='+hashlib.sha256(raw).hexdigest())
-          assert d['ok'] and d['provider_writes']==0 and d['db_writes']==0
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          status=0
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > "$RUNNER_TEMP/max-archive-original.json" || status=$?
+          if test "$status" -ne 0; then
+            python3 - <<'PY'
+          import json, os, pathlib
+          p = pathlib.Path(os.environ['RUNNER_TEMP']) / 'max-archive-original.json'
+          try:
+              d = json.loads(p.read_bytes())
+              print("Archive read failed:", str(d.get('error', 'NO_RECEIPT'))[:80])
+          except (OSError, ValueError):
+              print("Archive read failed before a receipt was produced")
           PY
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+            exit "$status"
+          fi
+          python3 - <<'PY'
+          import collections, hashlib, json, os, pathlib, re
+          original = (pathlib.Path(os.environ['RUNNER_TEMP']) / 'max-archive-original.json').read_bytes()
+          d = json.loads(original)
+          assert d['ok'] and d['history_complete'] and d['messages'] > 0 and d['price_content_shared_lease'] is True
+          assert re.fullmatch(r'[a-f0-9]{64}', d['registry_versions_before_after_sha256'])
+          assert d['native_run_id'] == os.environ['GITHUB_RUN_ID']
+          assert d['application_sha'] == os.environ['APPLICATION_SHA'] and d['repository_sha'] == os.environ['REPOSITORY_SHA']
+          rows = d['rows']
+          assert len(rows) == len({r['mid'] for r in rows}) == len({r['url'] for r in rows}) == d['messages']
+          assert collections.Counter(r['status'] for r in rows) == d['categories']
+          for row in rows:
+              assert re.fullmatch(r'mid\.ffffc1752b045fed[0-9a-f]{16}', row['mid']) and re.fullmatch(r'https://max\.ru/anytour/[A-Za-z0-9_-]{11}', row['url'])
+              text = row.pop('text', None)
+              if text is None:
+                  continue
+              assert row['status'] == 'needs_content_and_route_review'
+              assert not row['registered'] and not row['previously_screened'] and row['media'] == ['image']
+              # Keep publication text and original links in the existing operator boundary.
+              row['public_text_sha256'] = hashlib.sha256(text.encode()).hexdigest()
+              row['hotel_star_mentions'] = len(re.findall(r'[2-5]\s*[*★]', text))
+              row['price_mentions'] = len(re.findall(r'(?:RUB|₽|руб[.\s])', text, re.I))
+              row['roundup_terms'] = bool(re.search(r'подборк|предложения в|несколько отелей|проверенные отели|цены на туры|горящие туры', text, re.I))
+          d.update(operation='hotel_archive_main_max_registry', production_writes=0, provider_writes=0,
+                   original_receipt_sha256=hashlib.sha256(original).hexdigest())
+          pathlib.Path('pub/registry.json').write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
+          print(json.dumps({k:d[k] for k in ('operation','native_run_id','read_utc','pages','messages','categories','application_sha','repository_sha','original_receipt_sha256')}, sort_keys=True))
+          PY
+      - name: Save the bounded native observation
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: max-occupied-target-readback
+          name: issue-1566-main-max-archive-inventory
           path: pub/registry.json
           retention-days: 7
-      - if: always()
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/source-reader.php
+          if-no-files-found: warn
+      - name: Remove runner connection material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/max-archive-original.json" pub/read-only.php
