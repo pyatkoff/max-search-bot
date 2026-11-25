@@ -104,7 +104,7 @@ function snapshotSeal(files) {
   return digest(JSON.stringify([...files.keys()].sort().map(name => [name, digest(files.get(name))])));
 }
 
-function createPackage(current, staged, reader) {
+function sealPackage(current, staged, reader) {
   const previous_catalogue_sha256 = snapshotSeal(current);
   const catalogue_sha256 = snapshotSeal(staged);
   const changes = [];
@@ -118,10 +118,26 @@ function createPackage(current, staged, reader) {
     utf8.decode((side === 'base' ? current : staged).get(filename.slice(DATA_ROOT.length))))) {
     throw new Error('catalogue_append_not_admitted');
   }
-  const seal = {contract:CONTRACT, reader_sha256:digest(reader), previous_catalogue_sha256, catalogue_sha256};
-  const files = [...staged.keys()].sort().map(name => [name, staged.get(name).toString('base64')]);
-  const bytes = Buffer.from(JSON.stringify({...seal, files}) + '\n');
-  return {bytes, receipt:{...seal, package_sha256:digest(bytes), file_count:files.length, bytes:bytes.length}};
+  return {contract:CONTRACT, reader_sha256:digest(reader), previous_catalogue_sha256, catalogue_sha256};
+}
+
+function packageReceipt(seal, staged, output = null) {
+  const hash = createHash('sha256');
+  let bytes = 0;
+  const emit = chunk => {
+    const data = Buffer.from(chunk);
+    hash.update(data);
+    bytes += data.length;
+    if (output !== null) fs.writeFileSync(output, data);
+  };
+  emit(JSON.stringify(seal).slice(0, -1) + ',"files":[');
+  let separator = '';
+  for (const name of [...staged.keys()].sort()) {
+    emit(separator + JSON.stringify([name, staged.get(name).toString('base64')]));
+    separator = ',';
+  }
+  emit(']}\n');
+  return {...seal, package_sha256:hash.digest('hex'), file_count:staged.size, bytes};
 }
 
 function verifyPackage(current, reader, bytes, expectedSha) {
@@ -142,9 +158,9 @@ function verifyPackage(current, reader, bytes, expectedSha) {
     if (data.length > limit) throw new Error('invalid_package_member');
     staged.set(name, data);
   }
-  const rebuilt = createPackage(current, staged, reader);
-  if (!rebuilt.bytes.equals(bytes)) throw new Error('package_binding_mismatch');
-  return rebuilt.receipt;
+  const receipt = packageReceipt(sealPackage(current, staged, reader), staged);
+  if (receipt.package_sha256 !== expectedSha) throw new Error('package_binding_mismatch');
+  return receipt;
 }
 
 function main(args) {
@@ -156,18 +172,22 @@ function main(args) {
   const contract = readFile(reader, 131072);
   if (action === 'verify') return verifyPackage(baseline, contract, readFile(inputs, MAX_PACKAGE), last);
 
-  const {bytes, receipt} = createPackage(baseline, readSnapshot(inputs), contract);
+  const staged = readSnapshot(inputs);
+  const seal = sealPackage(baseline, staged, contract);
   const output = path.resolve(last);
   // Publish a completed private staging file without replacing an existing one.
   const dir = fs.mkdtempSync(path.join(path.dirname(output), '.hotel-package-'));
   try {
     const temporary = path.join(dir, 'package.json');
-    fs.writeFileSync(temporary, bytes, {mode:0o600, flag:'wx'});
+    const file = fs.openSync(temporary, 'wx', 0o600);
+    let receipt;
+    try { receipt = packageReceipt(seal, staged, file); }
+    finally { fs.closeSync(file); }
     fs.linkSync(temporary, output);
+    return receipt;
   } finally {
     fs.rmSync(dir, {recursive:true, force:true});
   }
-  return receipt;
 }
 
 try {
