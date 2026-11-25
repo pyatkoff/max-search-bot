@@ -1,4 +1,4 @@
-name: "#1566 Compile and verify twelve MAX hotel plans without writes"
+name: "#1566 Independently verify the three attempted MAX cards"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -15,213 +15,132 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == 'd1653e9d7f153dbc9f32e807f7556e672167268e' && github.run_attempt == 1
+      github.event.before == '8953c1f92426d9c7cf580e687af2d374f6eaa8d9' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          ref: 4dccfb02baac24c9ed4352f0894bdf7ab1db89a7
-          persist-credentials: false
-          path: existing-writer
-      - name: Check native receipts and compile the exact twelve plans
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
+      - name: Read each same public MAX address independently
         run: |
           set -euo pipefail
           umask 077
-          mkdir -p stage
-          src=existing-writer/tools/direct_demand/operations/max-existing-photo
-          install -m600 "$src"/{editor.php,batch_entry.php} stage/
-          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14910511299/zip > archive.zip
-          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14988933074/zip > native.zip
-          cat > stage/batch_input.php <<'PHP'
-          <?php
-          declare(strict_types=1);
-          
-          /** Compile inputs only. The caller authenticates the native artifact and the approved scope independently. */
-          function maxBatchInput(string $approvedBytes, string $approvedHash, string $archiveBytes, string $sourceBytes, string $sourceArtifactHash, string $sourceRef, string $release): array
-          {
-              maxEditNeed(hash_equals(hash('sha256', $approvedBytes), $approvedHash), 'approval_content_changed');
-              $scope = json_decode($approvedBytes, true, 32, JSON_THROW_ON_ERROR);
-              maxEditNeed($scope['version'] === 1 && $scope['rows'] !== [], 'invalid_approved_scope');
-              $archiveHash=hash('sha256', $archiveBytes);
-              $selected=isset($scope['archive_selected_sha256']) && hash_equals($scope['archive_selected_sha256'],$archiveHash);
-              maxEditNeed($selected || hash_equals($scope['archive_registry_sha256'],$archiveHash), 'native_archive_digest_changed');
-              maxEditNeed(preg_match('/\A[a-f0-9]{40}\z/D', $release) === 1 && preg_match('/\A[a-f0-9]{40}\z/D', $sourceRef) === 1
-                  && hash_equals($sourceArtifactHash, hash('sha256', $sourceBytes)), 'native_source_digest_changed');
-              $archive = json_decode($archiveBytes, true, 32, JSON_THROW_ON_ERROR);
-              maxEditNeed(!$selected || ($archive['registry_json_sha256'] ?? null) === $scope['archive_registry_sha256'], 'native_archive_origin_changed');
-              $source = json_decode($sourceBytes, true, 32, JSON_THROW_ON_ERROR);
-              maxEditNeed(($archive['ok'] ?? false) === true && $archive['history_complete'] === true && $archive['price_content_shared_lease'] === true
-                  && $archive['native_run_id'] === $scope['archive_run_id'] && $archive['production_writes'] === 0 && $archive['provider_writes'] === 0, 'invalid_archive');
-              $sourceOperation = $scope['native_source']['operation'] ?? 'max_seven_source_rights';
-              maxEditNeed(in_array($sourceOperation, ['max_seven_source_rights', 'max_five_ranked_read_only', 'max_next_twelve_read_only'], true), 'invalid_native_operation');
-              maxEditNeed(($source['ok'] ?? false) === true && $source['operation'] === $sourceOperation
-                  && $source['application_sha'] === $release && $source['repository_sha'] === $sourceRef && $source['archive_run'] === (int)$scope['archive_run_id']
-                  && $source['provider_writes'] === 0 && $source['db_writes'] === 0 && $source['bot_starts'] === 0, 'invalid_native_evidence');
-              if ($sourceOperation === 'max_next_twelve_read_only') {
-                  // The authenticated reader only includes groups after checking the editor right in each native response.
-                  $groups = $source['groups'] ?? [];
-                  maxEditNeed(count($groups) === 3, 'invalid_native_reader_groups');
-                  foreach ($groups as $group) {
-                      maxEditNeed(isset($group['read_utc']) && !isset($group['failure']) && count($group['ids'] ?? []) === 4, 'invalid_native_reader_group');
-                  }
-                  maxEditNeed(array_merge(...array_column($groups, 'ids')) === array_column($source['rows'], 'hotel_id'), 'invalid_native_reader_membership');
-                  $source['target_editor_rights'] = true;
-              }
-              maxEditNeed(($source['target_editor_rights'] ?? null) === true && (is_int($source['channel_config_version'] ?? null) || is_string($source['channel_config_version'] ?? null))
-                  && filter_var($source['channel_config_version'], FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]) !== false, 'main_channel_edit_not_ready');
-              $rows = $scope['rows'];
-              foreach (['hotel_id','source_id','source_mid','source_url','target_mid','target_url'] as $field) {
-                  maxEditNeed(count(array_unique(array_column($rows, $field))) === count($rows), 'duplicate_or_missing_scope_key');
-              }
-              $targets = array_column($archive['rows'], null, 'mid');
-              $native = array_column($source['rows'], null, 'hotel_id');
-              maxEditNeed(count($targets) === count($archive['rows']) && count($native) === count($source['rows'])
-                  && array_diff(array_keys($native), array_column($rows, 'hotel_id')) === [], 'conflicting_evidence');
-              $out = ['ready'=>[], 'held'=>[], 'provider_writes'=>0];
-              foreach ($rows as $row) {
-                  $id = $row['hotel_id'];
-                  try {
-                      $target = $targets[$row['target_mid']] ?? null;
-                      maxEditNeed(is_array($target) && $target['registered'] === false && $target['media'] === ['image']
-                          && $target['keyboard_present'] === false && $target['linked_message'] === false
-                          && $target['published_ms'] === $row['target_ms'] && $target['url'] === $row['target_url']
-                          && hash_equals($row['target_fingerprint'], $target['fingerprint']), 'target_changed_or_occupied');
-                      $observed = $native[$id] ?? [];
-                      maxBatchValidateNativeRow($row, $observed);
-                      $caption = $row['caption_without_price'];
-                      $displayName = $row['display_name'] ?? $row['name'];
-                      maxEditNeed($displayName === $row['name'] || $displayName === str_replace(' & ', ' and ', $row['name']), 'invalid_display_hotel_name');
-                      $plan = ['kind'=>'expired_reviewed_photo_promotion', 'hotel'=>$id, 'hotel_name'=>$displayName,
-                          'target_mid'=>$row['target_mid'],'target_ms'=>$row['target_ms'],'target_url'=>$row['target_url'],
-                          'target_fingerprint'=>$row['target_fingerprint'], 'source_publication'=>$row['source_id'],
-                          'source_version'=>$observed['source_version'],'source_content_hash'=>$observed['source_content_sha256'],
-                          'source_mid'=>$row['source_mid'],'source_url'=>$row['source_url'],'caption'=>$caption];
-                      if ($displayName !== $row['name']) {
-                          $plan['source_aliases'] = [$row['name']];
-                      }
-                      $out['ready'][$id] = ['plan'=>$plan, 'sha256'=>hash('sha256', maxEditJson($plan)),
-                          'source_photo_sha256'=>$observed['source_photo_sha256'], 'source_caption_sha256'=>$observed['source_caption_sha256'],
-                          'config_version'=>(int)$source['channel_config_version'], 'approved_row'=>$row];
-                  } catch (RuntimeException $e) {
-                      $out['held'][$id] = $e->getMessage();
-                  }
-              }
-              return $out;
-          }
-          
-          function maxBatchValidateNativeRow(array $row, array $observed): void
-          {
-              $id = $row['hotel_id'];
-              $missing=$observed['blockers'] ?? null;
-              $catalog=$observed['source_catalog_id'] ?? null;
-              maxEditNeed(($observed['hotel_id'] ?? null) === $id && ($observed['source_id'] ?? null) === $row['source_id'] && ($observed['source_mid'] ?? null) === $row['source_mid']
-                  && ($observed['target_mid'] ?? null) === $row['target_mid'] && ($observed['target_url'] ?? null) === $row['target_url']
-                  && ($catalog === 0 || $catalog === $id) && ($observed['native_source_photo_count'] ?? null) === 1
-                  && is_int($observed['source_version'] ?? null) && $observed['source_version'] > 0, 'different_hotel_or_source');
-              if ($catalog === 0) {
-                  $identity=[];
-                  foreach (['hotel_id','source_id','source_mid','native_source_date_ms','source_version','source_content_sha256','source_photo_sha256','source_caption_sha256','target_mid'] as $key) {
-                      $identity[]=$observed[$key] ?? null;
-                  }
-                  maxEditNeed(isset($row['original_legacy_identity_sha256']) && hash_equals($row['original_legacy_identity_sha256'],hash('sha256',maxEditJson($identity)))
-                      && $missing === ['source_hotel_id_matches','source_button_resolves_to_hotel']
-                      && ($observed['source_hotel_id_matches'] ?? null) === false && ($observed['source_button_resolves_to_hotel'] ?? null) === false
-                      && ($observed['source_name_in_native_caption'] ?? null) === true && ($observed['readable_source_hotel_identity'] ?? null) === true
-                      && ($observed['source_button_count'] ?? null) === 1 && ($observed['source_one_button_matches_url'] ?? null) === true
-                      && ($observed['source_button_resolves_publication'] ?? null) === true, 'legacy_publication_identity_changed');
-              } else {
-                  maxEditNeed($missing === [] && ($observed['source_hotel_id_matches'] ?? null) === true
-                      && ($observed['source_button_resolves_to_hotel'] ?? null) === true, 'missing_native_proof');
-              }
-              foreach (['source_content_sha256','source_photo_sha256','source_caption_sha256'] as $field) {
-                  maxEditNeed(is_string($observed[$field]) && preg_match('/\A[a-f0-9]{64}\z/D', $observed[$field]) === 1, 'invalid_source_fingerprint');
-              }
-              foreach (['source_caption_nonempty','native_source_photo_reusable','source_caption_matches_registry','source_photo_matches_registry',
-                  'source_single_registry_button','target_matches_native_archive'] as $field) {
-                  maxEditNeed(($observed[$field] ?? null) === true, 'missing_native_proof');
-              }
-              foreach (['target_occupied','source_held','target_or_hotel_registry_conflicts'] as $field) {
-                  maxEditNeed(($observed[$field] ?? null) === 0, 'source_or_target_busy');
-              }
-          }
-          
-          /** Re-read under the common publisher lock. Compare check-time source, content and channel with the original native proof. */
-          function maxBatchVerifyCurrent(array $approval, array $current, int $channelVersion): void
-          {
-              maxBatchValidateNativeRow($approval['approved_row'], $current);
-              $plan = $approval['plan'];
-              maxEditNeed(($current['hotel_id'] ?? null) === $plan['hotel'] && $current['source_version'] === $plan['source_version']
-                  && hash_equals($plan['source_content_hash'], $current['source_content_sha256'])
-                  && hash_equals($approval['source_photo_sha256'], $current['source_photo_sha256'])
-                  && hash_equals($approval['source_caption_sha256'], $current['source_caption_sha256'])
-                  && $channelVersion === $approval['config_version'], 'changed_since_native_review');
-          }
-          PHP
-          php -l stage/batch_input.php
-          cat > draft.json <<'JSON'
-          {"version":1,"archive_run_id":"45373389110","archive_sha256":"c46ce092bfb91935ce829c871026a1136bf465920a3caa9184604f052c55798c","archive_registry_sha256":"c65efd90090ab8669c0d7646d44d8927ea3658c39673696d2e147685f3ec7568","rows":[{"hotel_id":73343,"name":"The Grand Palace","source_id":1253,"source_url":"https://max.ru/channel_anytour/AaHQ_ZjzcEA","source_mid":null,"target_url":"https://max.ru/anytour/AaBnNxELfuU","target_mid":"mid.ffffc1752b045fed01a06737110b7ee5","target_ms":1788438057227,"target_fingerprint":"f2941e0561a6b769be868554dd9cf0b30501b59bbee90ba74460bb49d8ced2a8","original_legacy_identity_sha256":"52bf1329a3e552d89529bc1b240502b8575c6aaed9a3ff22d750dbcccd58f024","caption_without_price":"✈️ Туры в The Grand Palace\n📍 Хургада, Египет\nПляжный отдых вдвоём в отеле 18+. Песчаный пляж, бассейны и просторные Junior Suite. Есть категория с выходом в общий бассейн."},{"hotel_id":43689,"name":"Fusion Resort Cam Ranh","source_id":1912,"source_url":"https://max.ru/channel_anytour/AaHqSql-Q40","source_mid":null,"target_url":"https://max.ru/anytour/AaBxuxe-Jxk","target_mid":"mid.ffffc1752b045fed01a071bb17be2719","target_ms":1788614481854,"target_fingerprint":"94291066bd05573d38af7b11884da2fa35a9519b2d65655bfe03f455c0566fc9","original_legacy_identity_sha256":"79403cf2e1b3754b1317b0f6b6c9edca24d5f066ef5cc971cb496882f2699e35","caption_without_price":"✈️ Туры в Fusion Resort Cam Ranh\n📍 Камрань, Вьетнам\nСьюты и виллы для спокойного отдыха у моря. Рядом песчаный пляж, на территории — спа и бассейны. Для детей есть отдельный бассейн и игровая площадка."},{"hotel_id":139,"name":"Brayka Bay Resort","source_id":367,"source_url":"https://max.ru/channel_anytour/AaGjHF7dGOQ","source_mid":null,"target_url":"https://max.ru/anytour/AaCAxCRDffc","target_mid":"mid.ffffc1752b045fed01a080c424437df7","target_ms":1788866733123,"target_fingerprint":"51279825e0ba5c5ae369640991984d58a8f36f29219dc1f093a1b7062072406c","original_legacy_identity_sha256":"a56f2358ccbd23e7bd9dc0ed13d5ce0b21930c27f20c389e656a7c2a558b7a6a","caption_without_price":"✈️ Туры в Brayka Bay Resort\n📍 Марса-Алам, Египет\nСобственный песчаный пляж в бухте, сады и пальмы на территории. Для семейного отдыха есть бассейны и занятия для детей."},{"hotel_id":2470,"name":"Sun Siyam Olhuveli","source_id":1468,"source_url":"https://max.ru/channel_anytour/AaHlf5z_ODQ","source_mid":null,"target_url":"https://max.ru/anytour/AaC42fW_AY0","target_mid":"mid.ffffc1752b045fed01a0b8d9f5bf018d","target_ms":1789807687103,"target_fingerprint":"737aabd9ac6837e47e3d2e0f768f2386db5a93c11d24203be57d092b5f410c8a","original_legacy_identity_sha256":"2ee1236d1296ef9f24a752506555ddd5d03f9f2de6ab681c192202aa5569bc34","caption_without_price":"✈️ Туры в Sun Siyam Olhuveli\n📍 Южный Мале, Мальдивы\nПляжи, бассейны и водные развлечения. Для семей есть детский клуб и подходящие номера и виллы. Отдельная зона Romance предназначена для взрослых."},{"hotel_id":56092,"name":"Gravity Hotel & Aqua Park Hurghada","source_id":283,"source_url":"https://max.ru/channel_anytour/AaGeilyCad0","source_mid":null,"target_url":"https://max.ru/anytour/AaDD8UQLQ4U","target_mid":"mid.ffffc1752b045fed01a0c3f1440b4385","target_ms":1789993763851,"target_fingerprint":"3daf2a678a4fd0557ea60a9aaf72478cd1d3acb28722867566d6264b5ffa223e","original_legacy_identity_sha256":"f9a989f2a9b606336b5b534307ce5a230a57b5111f9d52200afdf266029af10f","caption_without_price":"✈️ Туры в Gravity Hotel and Aqua Park Hurghada\n📍 Хургада, Египет\nСобственный пляж у лагуны и аквапарк с десятью горками. Помимо основного ресторана работают итальянский La Piazza и азиатский Akina.","display_name":"Gravity Hotel and Aqua Park Hurghada"},{"hotel_id":59114,"name":"Akdora Elite Hotel & Spa","source_id":1374,"source_url":"https://max.ru/channel_anytour/AaHcqEDjA3Y","source_mid":null,"target_url":"https://max.ru/anytour/AaDYcRGJKpQ","target_mid":"mid.ffffc1752b045fed01a0d87111892a94","target_ms":1790337683849,"target_fingerprint":"29e99e1737fe183e5c13269cfde5ea8b5eb3376d512efced12a2863b7c436243","original_legacy_identity_sha256":"bab7cf2ae726b257097b07e5586f2b21deca435689994799053dd4c8f5c52b31","caption_without_price":"✈️ Туры в Akdora Elite Hotel and Spa\n📍 Сиде, Турция\nДо собственного песчаного пляжа около 300 м. На территории открытые бассейны и спа. Рядом стройка, возможен шум.","display_name":"Akdora Elite Hotel and Spa"},{"hotel_id":63191,"name":"Jumeirah Saadiyat Island","source_id":1496,"source_url":"https://max.ru/channel_anytour/AaHlgTobEZw","source_mid":null,"target_url":"https://max.ru/anytour/AaELd0cFVAQ","target_mid":"mid.ffffc1752b045fed01a10b7747055404","target_ms":1791193728773,"target_fingerprint":"46e816edf55ef86c71d58b25e78ea26d26fe5ee87444f2d2fba87d50b3d136af","original_legacy_identity_sha256":"a8182db4f62ebd0a2a4ac2f0d76e8407fb60c15112ed5e79b1a21660cbd91051","caption_without_price":"✈️ Туры в Jumeirah Saadiyat Island\n📍 Саадият, Абу-Даби, ОАЭ\nПесчаный пляж, бассейны и просторные номера. Для детей и подростков есть отдельные клубы, для взрослых — спа и рестораны у моря."},{"hotel_id":76588,"name":"Liu Resorts","source_id":718,"source_url":"https://max.ru/channel_anytour/AaG2zkytfiM","source_mid":null,"target_url":"https://max.ru/anytour/AaEba-dgJKk","target_mid":"mid.ffffc1752b045fed01a11b6be76024a9","target_ms":1791461418848,"target_fingerprint":"f5725724b78bb616225f2171dc4878201c1cd842aa4d7f3d96bf3f58f03c03dd","original_legacy_identity_sha256":"4badb66291610e50ab5124eb67a52c72a9bf969a1a77603db32a656abadedc08","caption_without_price":"✈️ Туры в Liu Resorts\n📍 Сиде, Турция\nСобственный песчаный пляж примерно в 300 м. В Breeze выступают живые группы и диджеи. Для поездки вдвоём можно рассмотреть Superior Corner с видом на море."},{"hotel_id":77914,"name":"Sunrise Tucana Resort","source_id":181,"source_url":"https://max.ru/channel_anytour/AaGc6ZyuFlA","source_mid":null,"target_url":"https://max.ru/anytour/AaEl-MVcT8Q","target_mid":"mid.ffffc1752b045fed01a125f8c55c4fc4","target_ms":1791638422876,"target_fingerprint":"db6e6af8df6138f132a927485f4b72b7864399866bfe21d9d066254a51974873","original_legacy_identity_sha256":"8d4ba079aa6268260f5087dcab2779082308211bd400e823bf086cdbfde20fc3","caption_without_price":"✈️ Туры в Sunrise Tucana Resort\n📍 Хургада, Египет\nСобственный пляж и рестораны с обслуживанием по меню. Для отдыха с детьми есть клуб для ребят от 3 до 12 лет."},{"hotel_id":106,"name":"Aladdin Beach Resort","source_id":1042,"source_url":"https://max.ru/channel_anytour/AaG3snxOWfo","source_mid":null,"target_url":"https://max.ru/anytour/AaEwSMavEQU","target_mid":"mid.ffffc1752b045fed01a13048c6af1105","target_ms":1791811438255,"target_fingerprint":"0907be808fe30854293c6edf63c403c4221fc7801909e927404474658fd70dc2","original_legacy_identity_sha256":"48a66bdc68037f2c31ba6f844b1af9ea2ba0197167766bf473d74aedc0052dd6","caption_without_price":"✈️ Туры в Aladdin Beach Resort\n📍 Хургада, Египет\nОтель на первой линии с песчано-галечным пляжем. По вечерам проходят шоу и выступают музыканты."},{"hotel_id":111,"name":"Pickalbatros Palace Resort Hurghada","source_id":355,"source_url":"https://max.ru/channel_anytour/AaGisi-ve3Q","source_mid":null,"target_url":"https://max.ru/anytour/AaE0q57XSGk","target_mid":"mid.ffffc1752b045fed01a134ab9ed74869","target_ms":1791885024983,"target_fingerprint":"28cdc2545fb89806feee400a6acb5cb892db1c9c0e6c17b87bae69c984c70d16","original_legacy_identity_sha256":"ce68d271e3f8cdb99649d296ff3e8cc092579a4b0d278ac2969620e5d9ac7796","caption_without_price":"✈️ Туры в Pickalbatros Palace Resort Hurghada\n📍 Хургада, Египет\nСобственный пляж, четыре бассейна и пять детских горок для ребят от 4 до 12 лет. Два бассейна подогревают с ноября по апрель в зависимости от погоды."},{"hotel_id":114,"name":"Ali Baba Palace","source_id":1043,"source_url":"https://max.ru/channel_anytour/AaG3soUIZh0","source_mid":null,"target_url":"https://max.ru/anytour/AaE6sgknSuc","target_mid":"mid.ffffc1752b045fed01a13ab209274ae7","target_ms":1791986108711,"target_fingerprint":"f490eaff0990f02815f154b52aa6c0f8955211f348768498c0eaffc2cb28e0e3","original_legacy_identity_sha256":"3bc57bf282332540f333fc71444bcdd8724d88ef1e9cf28e1ba870d7709d37b5","caption_without_price":"✈️ Туры в Ali Baba Palace\n📍 Хургада, Египет\nСобственный песчаный пляж. У входа в море встречается галька, поэтому для купания удобно взять специальную обувь."}],"native_source":{"operation":"max_next_twelve_read_only","run_id":45541081505,"attempt":1,"job_id":138959464966,"workflow_head":"9a5340c27476b96afe94b9c29bea3483a1b451d5","artifact_id":14988933074,"zip_sha256":"cb8854ec006b81bb14246162a114f81ec93cc224c9fe808eda8f5e284ac8b49a","json_sha256":null,"repository_sha":"21b8e93418be0357cc2c7858cd1b0d970a62f4a7","application_sha":"21b8e93418be0357cc2c7858cd1b0d970a62f4a7"},"route_readback":{"repository":"pyatkoff/tour-max","run_id":45541157404,"job_id":138959723457,"observed_utc":"2026-11-25T03:36:48+00:00","write_calls":0},"price_review":{"mode":"caption_without_fixed_price"},"publisher":{"comment_id":6928374515,"body":"PR1714: установлено, выпуск свободен","owner_id":226193297}}
-          JSON
+          mkdir pub
           python3 - <<'PY'
-          import hashlib,json,pathlib,re,zipfile
-          digest=lambda data: hashlib.sha256(data).hexdigest()
-          scope=json.loads(pathlib.Path("draft.json").read_bytes())
-          for key,expected in (("archive",scope["archive_sha256"]),("native",scope["native_source"]["zip_sha256"])):
-              raw=pathlib.Path(key+".zip")
-              assert raw.stat().st_size<300000 and digest(raw.read_bytes())==expected
-              with zipfile.ZipFile(raw) as z:
-                  assert z.namelist()==["registry.json"] and z.getinfo("registry.json").file_size<2000000
-                  pathlib.Path("stage/"+key+".json").write_bytes(z.read("registry.json"))
-          stage=pathlib.Path("stage")
-          assert digest((stage/"archive.json").read_bytes())==scope["archive_registry_sha256"]
-          nativebytes=(stage/"native.json").read_bytes()
-          scope["native_source"]["json_sha256"]=digest(nativebytes)
-          observed=json.loads(nativebytes)
-          assert observed["ok"] is True and [r["hotel_id"] for r in observed["rows"]]==[r["hotel_id"] for r in scope["rows"]]
-          observations=[]
-          for row,source in zip(scope["rows"],observed["rows"]):
-              assert source["source_id"]==row["source_id"] and source["target_mid"]==row["target_mid"]
-              row["source_mid"]=source["source_mid"]
-              assert re.fullmatch(r"mid\.[0-9a-f]{32}",row["source_mid"])
-              observations.append({"hotel_id":row["hotel_id"],"version":source["source_version"],"stored_price_record":source["source_price_record_ref"],"stored_price_observation":source["source_price_observation_text"]})
-          scope["price_review"].update({"source_versions":observations,"checked_utc":observed["groups"][-1]["read_utc"]})
-          scopebytes=(json.dumps(scope,ensure_ascii=False,indent=2)+"\n").encode()
-          (stage/"scope.json").write_bytes(scopebytes)
-          entry=stage/"batch_entry.php"
-          content,n=re.subn(r"(const MAX_BATCH_SCOPE_SHA256 = ')[a-f0-9]{64}(')",lambda m:m[1]+digest(scopebytes)+m[2],entry.read_text())
-          assert n==1
-          entry.write_text(content)
+          import json,urllib.request,urllib.error,hashlib,re,time
+          from html.parser import HTMLParser
+          from concurrent.futures import ThreadPoolExecutor
+          from pathlib import Path
+          from datetime import datetime,timezone
+          plans=json.loads(r'[{"id":73343,"url":"https://max.ru/anytour/AaBnNxELfuU","title":"The Grand Palace","caption":"✈️ Туры в The Grand Palace\n📍 Хургада, Египет\nПляжный отдых вдвоём в отеле 18+. Песчаный пляж, бассейны и просторные Junior Suite. Есть категория с выходом в общий бассейн."},{"id":43689,"url":"https://max.ru/anytour/AaBxuxe-Jxk","title":"Fusion Resort Cam Ranh","caption":"✈️ Туры в Fusion Resort Cam Ranh\n📍 Камрань, Вьетнам\nСьюты и виллы для спокойного отдыха у моря. Рядом песчаный пляж, на территории — спа и бассейны. Для детей есть отдельный бассейн и игровая площадка."},{"id":139,"url":"https://max.ru/anytour/AaCAxCRDffc","title":"Brayka Bay Resort","caption":"✈️ Туры в Brayka Bay Resort\n📍 Марса-Алам, Египет\nСобственный песчаный пляж в бухте, сады и пальмы на территории. Для семейного отдыха есть бассейны и занятия для детей."}]')
+          class Page(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.parts=[]; self.hide=0; self.meta={}
+              def handle_starttag(self,t,a):
+                  if t in ('script','style'): self.hide+=1
+                  if t=='meta':
+                      d=dict(a)
+                      key=d.get('property') or d.get('name')
+                      if key: self.meta[key]=d.get('content','')
+              def handle_endtag(self,t):
+                  if t in ('script','style') and self.hide: self.hide-=1
+              def handle_data(self,v):
+                  if not self.hide and v.strip(): self.parts.append(v.strip())
+          def norm(v):
+              return re.sub(r'\s+',' ',v).strip()
+          def read(row):
+              try:
+                  req=urllib.request.Request(row['url'],headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
+                  with urllib.request.urlopen(req,timeout=10) as r:
+                      raw=r.read(3000001)
+                      status,url=r.status,r.geturl()
+                  assert len(raw)<=3000000 and url==row['url']
+                  p=Page();p.feed(raw.decode('utf-8'))
+                  visible=norm('\n'.join(p.parts).split('Другие публикации канала',1)[0])
+                  declared=norm(p.meta.get('og:description',''))
+                  exact=norm(row['caption'])
+                  out={'hotel_id':row['id'],'url':url,'http':status,'named':row['title'] in visible or row['title'] in declared,
+                       'caption_matches':exact in visible or exact in declared,'photo_preview':bool(p.meta.get('og:image')),
+                       'public_button_label_visible':'Рассчитать на мои даты' in visible,
+                       'page_sha256':hashlib.sha256(raw).hexdigest(),
+                       'escaped_variant_visible': '&amp;' in visible or '&amp;' in declared}
+                  out['verified']=out['named'] and out['caption_matches'] and out['photo_preview']
+                  return out
+              except (OSError,ValueError,AssertionError) as e:
+                  return {'hotel_id':row['id'],'url':row['url'],'error':type(e).__name__,'verified':False}
+          with ThreadPoolExecutor(max_workers=3) as pool:
+              results=list(pool.map(read,plans))
+          if not all(r['verified'] for r in results):
+              time.sleep(5)
+              results=[r if r['verified'] else read(p) for r,p in zip(results,plans)]
+          out={'observed_utc':datetime.now(timezone.utc).isoformat(),'rows':results,'writes':0,'ad_clicks':0}
+          Path('pub/observation.json').write_text(json.dumps(out,ensure_ascii=False))
+          print('MAX_NEXT_BATCH_PUBLIC_READ='+json.dumps(out,ensure_ascii=False,separators=(',',':')))
           PY
-          php -l stage/batch_entry.php
-          php <<'PHP'
-          <?php
-          require 'stage/editor.php';
-          require 'stage/batch_input.php';
-          $scope=file_get_contents('stage/scope.json');
-          $binding=json_decode($scope,true,32,JSON_THROW_ON_ERROR)['native_source'];
-          $compiled=maxBatchInput($scope,hash('sha256',$scope),file_get_contents('stage/archive.json'),file_get_contents('stage/native.json'),$binding['json_sha256'],$binding['repository_sha'],$binding['application_sha']);
-          foreach ($compiled['ready'] as $approval) {
-              $file=tempnam(sys_get_temp_dir(),'reviewed-max-plan-');
-              try {
-                  file_put_contents($file,maxEditJson($approval['plan']));
-                  maxEditPlan($file,$approval['sha256'],$approval);
-              } finally { unlink($file); }
-          }
-          echo 'MAX_NEXT_TWELVE_COMPILER=',maxEditJson(['ready'=>array_keys($compiled['ready']),'held'=>$compiled['held'],'provider_writes'=>0]),PHP_EOL;
-          PHP
+      - name: Compare the MAX and combined public XML without opening advertising URLs
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p pub
           python3 - <<'PY'
-          import json,pathlib,hashlib
-          b=pathlib.Path("stage/scope.json").read_bytes()
-          print("MAX_NEXT_TWELVE_SCOPE_SHA="+hashlib.sha256(b).hexdigest())
-          print("MAX_NEXT_TWELVE_SCOPE="+json.dumps(json.loads(b),ensure_ascii=False,separators=(",",":")))
+          import base64
+          import hashlib
+          import json
+          import pathlib
+          import re
+          import urllib.request
+          import xml.etree.ElementTree as ET
+          from concurrent.futures import ThreadPoolExecutor
+          from datetime import datetime, timezone
+          from urllib.parse import unquote
+
+          plans = json.loads('[{"offer":"max_2588","alias":"h1_b0ad50d1f7b72fbb0d8d3f44d551294a","source_id":"1533","source_url":"https://max.ru/channel_anytour/AaHpO-hTO-w","slug":"AaAkdvyEBXQ"},{"offer":"max_57028","alias":"h1_4e6688447a8d76c946868b2d04224fd8","source_id":"238","source_url":"https://max.ru/channel_anytour/AaGeHp92NlE","slug":"AZ9AsoswVYw"},{"offer":"max_65877","alias":"h1_12c9e98c83db2198ba35799b9e761ec7","source_id":"563","source_url":"https://max.ru/channel_anytour/AaG2NPXdL0M","slug":"AZ-d-XrfADw"},{"offer":"max_73343","alias":"h1_d5c8a692e27557a88b5dd2ddf469c74d","source_id":"1253","source_url":"https://max.ru/channel_anytour/AaHQ_ZjzcEA","slug":"AaBnNxELfuU"},{"offer":"max_43689","alias":"h1_2a8f28fdeb4e5e47932fa629571e0f86","source_id":"1912","source_url":"https://max.ru/channel_anytour/AaHqSql-Q40","slug":"AaBxuxe-Jxk"},{"offer":"max_139","alias":"h1_0dd8e79eb59d7c04a8ebba12384fd9f8","source_id":"367","source_url":"https://max.ru/channel_anytour/AaGjHF7dGOQ","slug":"AaCAxCRDffc"},{"offer":"max_2470","alias":"h1_f6ff5a979401dbe0a1a4d6eb763fe29a","source_id":"1468","source_url":"https://max.ru/channel_anytour/AaHlf5z_ODQ","slug":"AaC42fW_AY0"},{"offer":"max_56092","alias":"h1_f8a64964fafb102a6f0c82703205f9b2","source_id":"283","source_url":"https://max.ru/channel_anytour/AaGeilyCad0","slug":"AaDD8UQLQ4U"},{"offer":"max_59114","alias":"h1_43c901391df4e5c2132497a01db66fca","source_id":"1374","source_url":"https://max.ru/channel_anytour/AaHcqEDjA3Y","slug":"AaDYcRGJKpQ"},{"offer":"max_63191","alias":"h1_b0abe530d9ef80315f4ce241ee2acd1c","source_id":"1496","source_url":"https://max.ru/channel_anytour/AaHlgTobEZw","slug":"AaELd0cFVAQ"},{"offer":"max_76588","alias":"h1_a710b1b43c4287fe5e8f8c11bcb9b887","source_id":"718","source_url":"https://max.ru/channel_anytour/AaG2zkytfiM","slug":"AaEba-dgJKk"},{"offer":"max_77914","alias":"h1_464e4ce1c4a476d9f8a9b7e1fb3dad4a","source_id":"181","source_url":"https://max.ru/channel_anytour/AaGc6ZyuFlA","slug":"AaEl-MVcT8Q"},{"offer":"max_106","alias":"h1_ffd75d0ae4d3b308154fa24f436f95b7","source_id":"1042","source_url":"https://max.ru/channel_anytour/AaG3snxOWfo","slug":"AaEwSMavEQU"},{"offer":"max_111","alias":"h1_b25fef02b0842659d3da3dbe12e66f76","source_id":"355","source_url":"https://max.ru/channel_anytour/AaGisi-ve3Q","slug":"AaE0q57XSGk"},{"offer":"max_114","alias":"h1_17116714af190238cf991ca60d867ae6","source_id":"1043","source_url":"https://max.ru/channel_anytour/AaG3soUIZh0","slug":"AaE6sgknSuc"}]')
+          expected = {p["offer"]: p for p in plans}
+          assert len(expected) == len({p["slug"] for p in plans}) == 15
+          endpoints = {"max":"https://app.anytoour.ru/feed/hotel-posts-max.xml","combined":"https://app.anytoour.ru/feed/hotel-posts-all.xml"}
+
+          def inspect(label):
+              url = endpoints[label]
+              req = urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0","Cache-Control":"no-cache"})
+              with urllib.request.urlopen(req, timeout=12) as response:
+                  assert response.status == 200 and response.geturl() == url
+                  raw = response.read(8000001)
+              assert 0 < len(raw) <= 8000000 and b"<!DOCTYPE" not in raw.upper()
+              offers = ET.fromstring(raw).findall("./shop/offers/offer")
+              by_id = {}
+              target_references = {p["slug"]:[] for p in plans}
+              for item in offers:
+                  offer = item.get("id")
+                  assert offer and offer not in by_id
+                  href = item.findtext("url", "")
+                  by_id[offer] = href
+                  urls = [unquote(n.text or "") for n in item if n.tag in ("url","mobile_url")]
+                  for slug, linked_offers in target_references.items():
+                      if any(re.search(r"https?://max[.]ru/[A-Za-z0-9_-]+/"+re.escape(slug)+r"(?![A-Za-z0-9_-])", value) for value in urls):
+                          linked_offers.append(offer)
+              assert by_id
+              rows = {}
+              for offer, p in expected.items():
+                  href = by_id.get(offer, "")
+                  token = re.search(r"_ctx1_([A-Za-z0-9_-]+)",href)
+                  data = json.loads(base64.urlsafe_b64decode(token[1]+"="*(-len(token[1])%4))) if token else {}
+                  rows[offer] = {"source_alias_matches":data.get("post_id")==p["alias"] and data.get("offer_id")==offer,
+                      "has_attribution_macros":all(k in href for k in ("{yclid}","{campaign_id}","{region_id}")),
+                      "ad_url_sha256":hashlib.sha256(href.encode()).hexdigest() if href else None,
+                      "direct_target_offer_ids":target_references[p["slug"]]}
+              return {"offer_count":len(by_id),"max_offer_count":sum(key.startswith("max_") for key in by_id),
+                  "tg_offer_count":sum(key.startswith("tg_") for key in by_id),"sha256":hashlib.sha256(raw).hexdigest(),"rows":rows}
+
+          with ThreadPoolExecutor(max_workers=2) as executor:
+              reads = dict(zip(endpoints,executor.map(inspect,endpoints)))
+          result = {"observed_at":datetime.now(timezone.utc).isoformat(),"reads":reads,"ad_urls_opened":0,"writes":0}
+          pathlib.Path("pub/feed-observation.json").write_text(json.dumps(result,ensure_ascii=False))
+          print("MAX_NEXT_AND_HANDOFF_FEED_READ="+json.dumps(result,separators=(",",":")))
           PY
-      - name: Preserve the compiled scope and price references
-        if: success()
+      - name: Preserve independent public readback
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: max-next-twelve-compiled-scope
-          path: stage/scope.json
+          name: max-next-batch-independent-readback
+          path: |
+            pub/observation.json
+            pub/feed-observation.json
           retention-days: 7
