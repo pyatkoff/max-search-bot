@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-11-25T20:59:49+00:00",
+    "generated_at": "2026-11-25T21:25:47+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
@@ -39,7 +39,7 @@
         "flags": []
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-25T20:59:49Z",
+        "sampled_at": "2026-11-25T21:25:47Z",
         "available": true,
         "error": null,
         "mode": "send",
@@ -58,6 +58,6 @@
         },
         "queue_total": 105
     },
-    "since_utc": "2026-11-25 19:59:49",
+    "since_utc": "2026-11-25 20:25:47",
     "public_redacted": true
 }
