@@ -17,7 +17,9 @@ function maxBatchInput(string $approvedBytes, string $approvedHash, string $arch
     $source = json_decode($sourceBytes, true, 32, JSON_THROW_ON_ERROR);
     maxEditNeed(($archive['ok'] ?? false) === true && $archive['history_complete'] === true && $archive['price_content_shared_lease'] === true
         && $archive['native_run_id'] === $scope['archive_run_id'] && $archive['production_writes'] === 0 && $archive['provider_writes'] === 0, 'invalid_archive');
-    maxEditNeed(($source['ok'] ?? false) === true && $source['operation'] === 'max_seven_source_rights'
+    $sourceOperation = $scope['native_source']['operation'] ?? 'max_seven_source_rights';
+    maxEditNeed(in_array($sourceOperation, ['max_seven_source_rights', 'max_five_ranked_read_only'], true), 'invalid_native_operation');
+    maxEditNeed(($source['ok'] ?? false) === true && $source['operation'] === $sourceOperation
         && $source['application_sha'] === $release && $source['repository_sha'] === $sourceRef && $source['archive_run'] === (int)$scope['archive_run_id']
         && $source['provider_writes'] === 0 && $source['db_writes'] === 0 && $source['bot_starts'] === 0, 'invalid_native_evidence');
     maxEditNeed(($source['target_editor_rights'] ?? null) === true && (is_int($source['channel_config_version'] ?? null) || is_string($source['channel_config_version'] ?? null))
