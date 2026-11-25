@@ -94,20 +94,43 @@ def approved_input(index_sha, archive):
     return checked_index(index, archive, ROOT)
 
 
-def checked_index(index, archive, root):
-    require(index["schema"] == 1 and len(index["plans"]) == 1, "expected one independently executable chunk")
+ROW_IDENTITY = ("hotel_id", "source_message_id", "target_message_id")
+MAX_CHUNK_ROWS = 40
+MAX_INSPECTION_ROWS = 100
+
+
+def checked_index(index, archive, root, *, inspection=False):
+    plans = index["plans"]
+    if inspection:
+        require(index["schema"] == 1 and 0 < len(plans) <= MAX_INSPECTION_ROWS, "invalid inspection index")
+    else:
+        require(index["schema"] == 1 and len(plans) == 1, "expected one independently executable chunk")
     by_hotel, channel = registry(archive, index)
-    item = index["plans"][0]
-    plan, raw = document(item, 64000, root)
-    require(len(raw) == item["bytes"] and hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest() == item["git_blob"]
-            and plan["native_preflight"] == index["native_preflight"] and 0 < len(plan["rows"]) <= 40, "approved chunk changed")
-    for key in ("hotel_id", "source_message_id", "target_message_id"):
-        values = [row[key] for row in plan["rows"]]
-        require(len(set(values)) == len(values), "duplicate approved " + key)
-    for row in plan["rows"]:
-        compare(row, by_hotel[row["hotel_id"]], channel)
-    return [dict(sha256=item["sha256"], operation=plan["operation"],
-                 hotels=[r["hotel_id"] for r in plan["rows"]], messages=[r["target_message_id"] for r in plan["rows"]])]
+    identities = {key: set() for key in ROW_IDENTITY}
+    operations = set()
+    chunks = []
+    for item in plans:
+        plan, raw = document(item, 64000, root)
+        rows = plan["rows"]
+        require(len(raw) == item["bytes"]
+                and hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest() == item["git_blob"]
+                and plan["native_preflight"] == index["native_preflight"]
+                and 0 < len(rows) <= MAX_CHUNK_ROWS, "approved chunk changed")
+        require(len(identities["hotel_id"]) + len(rows) <= MAX_INSPECTION_ROWS, "inspection row limit exceeded")
+        operation = plan["operation"]
+        if inspection:
+            require(isinstance(operation, str) and bool(operation) and operation not in operations,
+                    "invalid or duplicate inspection operation")
+            operations.add(operation)
+        for key, seen in identities.items():
+            values = {row[key] for row in rows}
+            require(len(values) == len(rows) and seen.isdisjoint(values), "duplicate approved " + key)
+            seen.update(values)
+        for row in rows:
+            compare(row, by_hotel[row["hotel_id"]], channel)
+        chunks.append(dict(sha256=item["sha256"], operation=operation,
+                           hotels=[r["hotel_id"] for r in rows], messages=[r["target_message_id"] for r in rows]))
+    return chunks
 
 
 def inspect_input(index_sha, archive, root, index_path):
@@ -117,7 +140,7 @@ def inspect_input(index_sha, archive, root, index_path):
             "invalid inspection root")
     index, _ = document({"path": index_path, "sha256": index_sha}, 64000, root)
     return {"evidence_only": True, "approval_verified": False, "write_admission": False,
-            "index_sha256": index_sha, "chunks": checked_index(index, archive, root)}
+            "index_sha256": index_sha, "chunks": checked_index(index, archive, root, inspection=True)}
 
 
 if __name__ == "__main__":

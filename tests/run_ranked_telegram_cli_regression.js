@@ -103,6 +103,11 @@ function offlineFetch(digest) {
 }
 
 function runTests() {
+  const packetTests = spawnSync('python3', [path.join(__dirname, 'test_ranked_telegram_data_input.py')],
+    {cwd: root, stdio: 'inherit'});
+  if (packetTests.error) throw packetTests.error;
+  assert.equal(packetTests.status, 0, 'Ranked Telegram packet fixtures failed');
+
   const workflow = fs.readFileSync(path.join(root, editor), 'utf8');
   const command = 'node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"';
   assert.ok(workflow.includes('run: ' + command));
