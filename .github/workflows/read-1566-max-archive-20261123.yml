@@ -1,4 +1,4 @@
-name: "#1566 Wait for exact PRICE fix checks and read release admission"
+name: "#1566 Verify the exact acquired PRICE fix publisher before merge"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -17,7 +17,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == '88ce4df772005fd1b61004e8a73155de72578753' && github.run_attempt == 1
+      github.event.before == 'cd343613d7d32f81c2c716681bd4f56b7367d622' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -40,4 +40,4 @@ jobs:
             if [[ "$attempt" -lt 26 ]]; then sleep 15; fi
           done
           test "$result" = '[["guard","success"],["regression","success"]]'
-          node tools/release_priority.js --admit 1718 4da1c3b125e31672e7bec1fdfb4995a8cb0f9d90 c0fc7cb2f256f2adec8ef2433ea4cf6a4a73f512
+          node tools/release_priority.js --admit 1718 4da1c3b125e31672e7bec1fdfb4995a8cb0f9d90 c0fc7cb2f256f2adec8ef2433ea4cf6a4a73f512 --publisher 6928374515 226193297 2026-11-25T06:57:24Z
