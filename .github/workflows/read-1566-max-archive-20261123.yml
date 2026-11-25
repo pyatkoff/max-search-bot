@@ -19,7 +19,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '49ea499dd2fb2ac957a98befd3702a9613802a5f' &&
+      github.event.before == 'c329eb419c8ca68b1068f094c824ce122fd2ebb3' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 29
