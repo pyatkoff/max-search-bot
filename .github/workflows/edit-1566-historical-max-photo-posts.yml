@@ -1,4 +1,4 @@
-name: "#1566 Verify ongoing PRICE on the existing Anantara MAX post"
+name: "#1566 Apply fresh PRICE only to the two verified existing MAX posts"
 on:
   push:
     branches: [audit/1566-main-hotel-registry-20261119]
@@ -17,10 +17,10 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'f0ac8ff44afc64386be1802068102ccc9c0a55d4' &&
+      github.event.before == '2e400d92c85012e8adfaa5d8886a49be147a326b' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 32
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -69,7 +69,7 @@ jobs:
             return true;
           }
           async function admit(once) {
-            const limit=once?3:58;
+            const limit=3;
             for(let n=0;n<limit;n++) {
               try {
                 if(await check()) {
@@ -79,7 +79,7 @@ jobs:
               } catch(error) {
                 if(error.message!=='record_changed') throw error;
               }
-              if(n+1<limit) await wait(once?1500:25000);
+              if(n+1<limit) await wait(1500);
             }
             throw Error('write_slot_or_release_not_ready');
           }
@@ -118,7 +118,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Recheck release and call the installed PRICE writer for MAX publication 3620
+      - name: Recheck release and call the installed PRICE writer for existing MAX publications 3835 and 3828
         env:
           GH_TOKEN: ${{ github.token }}
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -129,43 +129,73 @@ jobs:
           options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          for attempt in 1 2 3; do
-            node pub/price-admit.cjs --once
-            set +e
-            ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'bash -se' > pub/native-price-result.txt <<'SH'
+          cat > pub/price-scope.sh <<'SH'
           set -euo pipefail
           unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
           cd /var/www/anytoour/data/www/app.anytoour.ru
           test "$(git rev-parse HEAD)" = "ad970aaa2c89ccc6eb2fcded3c56b5146fffeaf5"
-          php tools/apply_promoted_hotel_prices.php --apply-max-publication 3620
+          mode="$1"
+          publication="$2"
+          case "$mode/$publication" in
+            inspect/3835|inspect/3828|apply/3835|apply/3828) ;;
+            *) exit 41 ;;
+          esac
+          php tools/apply_promoted_hotel_prices.php "--$mode-max-publication" "$publication"
           SH
-            rc=$?
-            set -e
-            cat pub/native-price-result.txt
-            if [[ "$rc" == 0 ]]; then break; fi
-            if [[ "$rc" != 1 || "$(cat pub/native-price-result.txt)" != "PROMOTED_HOTEL_PRICE_ERROR=shared_editor_busy" || "$attempt" == 3 ]]; then exit "$rc"; fi
-            sleep 7
-          done
-          python3 - <<'PY'
-          import json
+          for pair in 2470:3835 65877:3828; do
+            hotel="$(cut -d: -f1 <<< "$pair")"
+            id="$(cut -d: -f2 <<< "$pair")"
+            node pub/price-admit.cjs --once
+            inspect="pub/price-inspect-$id.txt"
+            result="pub/price-result-$id.txt"
+            if ! ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" "bash -s -- inspect $id" < pub/price-scope.sh > "$inspect"; then
+              printf 'PRICE_INSPECTION_HELD=%s %s\n' "$id" "$(cat "$inspect")"
+              continue
+            fi
+            eligible="$(python3 - "$hotel" "$id" "$inspect" <<'PY'
           from pathlib import Path
-          p=Path("pub/native-price-result.txt").read_text().splitlines()
+          import json,sys
           prefix="PROMOTED_HOTEL_PRICE_RESULT="
-          s=[line[len(prefix):] for line in p if line.startswith(prefix)]
-          assert len(s)==1, "exact native receipt missing"
-          data=json.loads(s[0])
-          assert data["mode"]=="--apply-max-publication"
-          assert len(data["rows"])==1, "expected only the existing scoped MAX publication"
-          row=data["rows"][0]
-          assert (row["hotel"],row["platform"],row["publication"])==(99713,"max",3620)
-          print("PRICE_3620_RECEIPT="+json.dumps(row,ensure_ascii=False,separators=(",",":")))
+          lines=[line[len(prefix):] for line in Path(sys.argv[3]).read_text().splitlines() if line.startswith(prefix)]
+          assert len(lines)==1
+          data=json.loads(lines[0])
+          assert data["mode"]=="--inspect-max-publication"
+          rows=data["rows"]
+          if len(rows)!=1:
+              print("held")
+          else:
+              row=rows[0]
+              assert (row["hotel"],row["platform"],row["publication"])==(int(sys.argv[1]),"max",int(sys.argv[2]))
+              print(row["result"])
           PY
+          )" || { printf 'PRICE_INSPECTION_UNCONFIRMED=%s\n' "$id"; continue; }
+            printf 'PRICE_INSPECTION=%s %s\n' "$id" "$eligible"
+            if [[ "$eligible" != eligible ]]; then continue; fi
+            node pub/price-admit.cjs --once
+            if ! ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" "bash -s -- apply $id" < pub/price-scope.sh > "$result"; then
+              printf 'PRICE_APPLY_STOPPED=%s %s\n' "$id" "$(cat "$result")"
+              continue
+            fi
+            python3 - "$hotel" "$id" "$result" <<'PY'
+          from pathlib import Path
+          import json,sys
+          prefix="PROMOTED_HOTEL_PRICE_RESULT="
+          lines=[line[len(prefix):] for line in Path(sys.argv[3]).read_text().splitlines() if line.startswith(prefix)]
+          assert len(lines)==1
+          data=json.loads(lines[0])
+          assert data["mode"]=="--apply-max-publication"
+          assert len(data["rows"])==1
+          row=data["rows"][0]
+          assert (row["hotel"],row["platform"],row["publication"])==(int(sys.argv[1]),"max",int(sys.argv[2]))
+          print("EXISTING_MAX_PRICE_RECEIPT="+json.dumps(row,ensure_ascii=False,separators=(",",":")))
+          PY
+          done
       - name: Preserve the original receipt
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa023
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: issue-1566-max-price-3620
-          path: pub/native-price-result.txt
+          name: issue-1566-max-price-3835-and-3828
+          path: pub/price-*.txt
           retention-days: 7
           if-no-files-found: ignore
       - name: Remove runner-only connection material
