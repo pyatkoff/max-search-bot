@@ -77,6 +77,25 @@ $held['eligible_hotels'] = 1;
 $held['held'][] = ['hotel_id'=>174,'reason'=>'missing_or_duplicate_feed_offer'];
 promotedPriceCheck(count(PromotedHotelPriceWriter::jobsForPlan($held, $feedHash, $targetBytes)) === 1, 'held_hotel_edited');
 
+promotedPriceCheck(PromotedHotelPriceWriter::jobsForPlan($plan, $feedHash, $targetBytes, 3574) === [$jobs[1]],
+    'scoped_max_price_selected_another_publication');
+foreach ([[$plan, 20], [$plan, 100], [$held, 3574]] as [$scopedPlan, $id]) {
+    try {
+        PromotedHotelPriceWriter::jobsForPlan($scopedPlan, $feedHash, $targetBytes, $id);
+        throw new LogicException('unapproved_scoped_price_selected');
+    } catch (RuntimeException $error) {
+        promotedPriceCheck($error->getMessage() === 'max_publication_price_not_eligible', 'wrong_scoped_price_rejection');
+    }
+}
+$badOtherPlatform = $plan;
+$badOtherPlatform['plans'][0]['telegram_url'] = 'https://t.me/anytour/9999';
+try {
+    PromotedHotelPriceWriter::jobsForPlan($badOtherPlatform, $feedHash, $targetBytes, 3574);
+    throw new LogicException('scoped_price_skipped_plan_validation');
+} catch (RuntimeException $error) {
+    promotedPriceCheck($error->getMessage() === 'price_plan_mismatch', 'wrong_scoped_plan_rejection');
+}
+
 $rejectPlan = static function (array $p, array $scope, string $reason) use ($feedHash): void {
     $raw = json_encode($scope, JSON_THROW_ON_ERROR);
     $p['targets_sha256'] = hash('sha256', $raw);
