@@ -279,7 +279,7 @@ function publicationRead(PDO $pdo, ChannelPostRegistryService $registry, int $ch
         // Failed original reserved identities have no accepted native message receipt.
         // Observe them without treating a reservation as a sent publication or loosening a write gate.
         requireRead(in_array((int)$ids[0], range(3847,3861),true),'unexpected_target_registry_identity');
-        $observed=$pdo->prepare('SELECT p.id AS publication_id,p.external_message_id,v.state,v.attempt_count,v.write_attempts,v.claim_token IS NOT NULL AS has_claim FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id WHERE p.id=? AND p.post_channel_id=6');
+        $observed=$pdo->prepare('SELECT p.id AS publication_id,p.external_message_id,v.state,v.attempt_count,v.write_attempts,v.claim_token IS NOT NULL AS has_claim FROM post_publications p LEFT JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id WHERE p.id=? AND p.post_channel_id=6');
         $observed->execute([(int)$ids[0]]);$native=$observed->fetch(PDO::FETCH_ASSOC);
         requireRead(is_array($native),'reserved_native_observation_unavailable');
         return ['publication_id'=>(int)$ids[0],'state'=>'unaccepted_reserved_identity','persisted_native'=>$native,
@@ -540,7 +540,7 @@ try {
         if (($out['native_channel_rights']['state'] ?? '') !== 'ready') $blockers[] = 'channel_edit_rights_not_confirmed';
         if (!$targetUsernameMatches || !$sourceUsernameMatches) $blockers[] = 'native_public_channel_binding_not_confirmed';
         $reservedIds = [1501=>3847,2514=>3848,8964=>3849,1962=>3850,36451=>3851,278=>3852,143372=>3853,7985=>3854,68984=>3855,233=>3856,66860=>3857,119046=>3858,37396=>3859,95159=>3860,57217=>3861];
-        $reservedQuery=$pdo->prepare('SELECT p.id AS publication_id,p.external_message_id,p.current_version_id,v.state,v.attempt_count,v.write_attempts,v.claim_token IS NOT NULL AS has_claim,v.claimed_at IS NOT NULL AS has_claimed_at FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id WHERE p.id=? AND p.post_channel_id=6');
+        $reservedQuery=$pdo->prepare('SELECT p.id AS publication_id,p.external_message_id,p.current_version_id,v.state,v.attempt_count,v.write_attempts,v.claim_token IS NOT NULL AS has_claim,v.claimed_at IS NOT NULL AS has_claimed_at FROM post_publications p LEFT JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id WHERE p.id=? AND p.post_channel_id=6');
         $reservedQuery->execute([$reservedIds[$hotel]]);
         $reservedRead=$reservedQuery->fetch(PDO::FETCH_ASSOC);
         $out['rows'][] = ['original_reserved_publication'=>$reservedRead, 'target_current_pin_matches' => $currentPin === $pair['target'], 'hotel_id' => $hotel, 'name' => $pair['name'], 'source_message_id' => $pair['source'],
