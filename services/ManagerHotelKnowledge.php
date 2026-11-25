@@ -65,12 +65,50 @@ HOTEL;
         } catch (Throwable $ignored) { return self::held('selector_unavailable'); }
     }
 
+    /** Resolve the active version once so later member reads cannot cross a switch. */
+    private static function catalogueSnapshot(): ?array
+    {
+        $root = dirname(__DIR__);
+        $directory = $root.'/knowledge/hotels';
+        $releases = dirname($root).'/max-search-bot-private-logs/hotel-catalogue-releases';
+        $pointer = $releases.'/current';
+        $indexSha = null;
+        clearstatcache(true, $pointer);
+        if (is_dir($releases) || is_link($releases)) {
+            if (realpath($releases) !== $releases || !is_readable($releases) || !is_executable($releases)) return null;
+            if (@lstat($pointer) !== false) {
+                $target = is_link($pointer) ? readlink($pointer) : false;
+                if (!is_string($target) || !preg_match('~\A'.preg_quote($releases, '~')
+                    .'/([a-f0-9]{64})-([a-f0-9]{64})\z~D', $target, $identity) || realpath($target) !== $target) return null;
+                $receipt = self::read($target, 'release.json', 4096);
+                if ($receipt === null) return null;
+                try { $seal = json_decode($receipt, true, 8, JSON_THROW_ON_ERROR); }
+                catch (Throwable $ignored) { return null; }
+                if (!is_array($seal) || !self::keys($seal, ['contract','package_sha256','reader_sha256','catalogue_index_sha256'])
+                    || $seal['contract'] !== 'anytour-hotel-catalogue-package-v1'
+                    || $seal['package_sha256'] !== $identity[1] || $seal['reader_sha256'] !== $identity[2]
+                    || $seal['reader_sha256'] !== hash_file('sha256', __FILE__)
+                    || !self::hex($seal['catalogue_index_sha256'])) return null;
+                $indexSha = $seal['catalogue_index_sha256'];
+                $directory = $target.'/hotels';
+            }
+        } elseif (file_exists($releases)) return null;
+        $rawCatalogue = self::read($directory, 'catalogue.json', self::MAX_CATALOGUE_BYTES);
+        if ($rawCatalogue === null || ($indexSha !== null && !hash_equals($indexSha, hash('sha256', $rawCatalogue)))) return null;
+        return [$directory, $rawCatalogue];
+    }
+
     /** Both authorized selector owners use the same complete admission pipeline. */
     private static function captureValidatedSelector(array $selector, int $now): array
     {
-        $directory = dirname(__DIR__).'/knowledge/hotels';
-        $rawCatalogue = self::read($directory, 'catalogue.json', self::MAX_CATALOGUE_BYTES);
-        if ($rawCatalogue === null) return self::held('knowledge_unavailable');
+        $snapshot = self::catalogueSnapshot();
+        return $snapshot === null ? self::held('knowledge_unavailable')
+            : self::captureFromSnapshot($snapshot, $selector, $now);
+    }
+
+    private static function captureFromSnapshot(array $snapshot, array $selector, int $now): array
+    {
+        [$directory, $rawCatalogue] = $snapshot;
         try { $catalogue = json_decode($rawCatalogue, true, 16, JSON_THROW_ON_ERROR); }
         catch (Throwable $ignored) { return self::held('manifest_invalid'); }
         [$entry, $reason] = self::catalogueBinding($catalogue, $selector,

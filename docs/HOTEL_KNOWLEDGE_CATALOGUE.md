@@ -148,9 +148,31 @@ received package. It needs neither a Git checkout nor the staging directory.
 
 This prepares and verifies transport. Independent content approvals, the full
 typed checks in `ManagerHotelKnowledge` and production release admission are
-still needed for activation. Runtime continues to read the catalogue through
-the existing path. The command has no activation, rollback or provider-write
-entry point.
+still needed for activation. The command prepares private data and has no
+activation, rollback or provider-write entry point.
+
+## Read a selected immutable version
+
+The reader uses the checkout catalogue when no active selection exists. An
+active selection is a single `current` pointer under the checkout's existing
+sibling private-data directory, `max-search-bot-private-logs/hotel-catalogue-releases`.
+It must identify a canonical immutable child named `<package SHA-256>-<reader
+SHA-256>`. That child contains `hotels/` and a regular `release.json` bearing
+`contract: anytour-hotel-catalogue-package-v1`, `package_sha256`,
+`reader_sha256` and `catalogue_index_sha256`. The receipt binds the staged
+index to the installed reader bytes. The reader resolves the directory once
+per reference and uses that same directory for every manifest and bundle.
+An invalid published pointer or receipt holds the reference.
+
+The hotel regression exercises preparation, version selection and rollback
+using the editor publisher's existing lock and atomic pointer primitives in
+an isolated directory. The public reader returns original approved references
+before publication, data from the new snapshot after publication and the old
+references after rollback. It also tests a reader already pinned to the prior
+snapshot, corruption and rollback replay. The fixture does not authorize a
+production pointer. Production activation still requires the shared installer
+to authenticate the operation, preserve an accepted compatible package and
+reject reader incompatibility before changing the core.
 
 ## Verification
 
