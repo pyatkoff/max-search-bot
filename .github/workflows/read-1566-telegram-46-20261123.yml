@@ -19,7 +19,7 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == '099d6d8e776ab769c6772e4891d1f4478d593948' &&
+      github.event.before == '2aa7016eb30969127b4670968ce8725794036644' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -250,7 +250,9 @@ jobs:
           assert d['production_writes']==d['provider_writes']==d['bot_starts']==0
           assert [r['hotel_id'] for r in d['rows']]==[1494,82567]
           assert [int(r['target_message_id']) for r in d['rows']]==[647,931]
-          assert 0 < d['public_get_attempts'] <= 9
+          assert 0 < d['public_get_attempts'] <= 10
+          text_target=d['rows'][0]['target_public']
+          assert text_target['ok'] and text_target['http_attempts']==2 and text_target['target_keyboard_archive_verified'] is True
           assert d['public_get_attempts']==sum(r[p]['http_attempts'] for r in d['rows'] for p in ('source_public','target_public'))+sum(m['http_attempts'] for r in d['rows'] for k,m in (r['target_album_public_members'].items() if isinstance(r['target_album_public_members'],dict) else []) if k!='931')
           assert d['format_support_observation_only'] is True and d['write_admission'] is False and all(r['preview_ready'] is False for r in d['rows'])
           assert all('prepared_target_snapshot_not_bound' not in r['preview_blockers'] for r in d['rows'])
