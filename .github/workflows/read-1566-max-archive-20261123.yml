@@ -1,4 +1,4 @@
-name: "Read the exact correction input for two held MAX headings after release 1726"
+name: "Read exact CONTENT inputs after the shared PRICE lease becomes available"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -17,7 +17,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '9b8b52fd5cfcc97d112982da4610e07dff96168c' &&
+      github.event.before == '386a5a52ffc9d220d20e1bbf2bc0fba09f1263b6' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -84,7 +84,14 @@ jobs:
               require_once $root.'/integrations/ChannelPostApiTransport.php';
               $lock=$ops.'/monitor-price-after-collection-v1.jsonl';
               $lease=is_file($lock)&&!is_link($lock)?fopen($lock,'rb'):null;
-              if(!is_resource($lease)||!flock($lease,LOCK_SH|LOCK_NB)) throw new RuntimeException('shared_lease_busy');
+              if(!is_resource($lease)) throw new RuntimeException('shared_lease_missing');
+              $readLease=false;
+              for($attempt=0;$attempt<8;$attempt++){
+                  $readLease=flock($lease,LOCK_SH|LOCK_NB);
+                  if($readLease)break;
+                  if($attempt<7)usleep(750000);
+              }
+              if(!$readLease)throw new RuntimeException('shared_lease_busy');
               $db=ConversationDb::connection();
               $db->exec('SET TRANSACTION READ ONLY');
               $db->beginTransaction();
