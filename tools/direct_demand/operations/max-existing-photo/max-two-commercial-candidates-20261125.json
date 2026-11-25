@@ -1,0 +1,125 @@
+{
+  "date_msk": "2026-11-25",
+  "installed_application": "d8a0d794321ea89d8ac62205a22079656aa73d6a",
+  "kind": "prepared_max_existing_commercial_scope",
+  "status": "awaiting_shared_editor_lease",
+  "source_demand_packet": "55e1db8a1456c0189695d383c1e4f9d26644f9d3/tools/direct_demand/operations/max-existing-photo/reviewed-max-next18-20261125.json",
+  "routes": {
+    "run_id": 45548353475,
+    "job_id": 138983283792,
+    "observed_at": "2026-11-25T04:40:18+00:00"
+  },
+  "feeds": {
+    "run_id": 45548355478,
+    "job_id": 138983289432,
+    "observed_at": "2026-11-25T04:40:19.422782+00:00",
+    "max_offer_count": 1055,
+    "common_offer_count": 2110
+  },
+  "editor_preflight": {
+    "run_id": 45548632244,
+    "job_id": 138984189615,
+    "state": "editor_busy"
+  },
+  "rows": [
+    {
+      "hotel_id": 64918,
+      "name": "You & Me Maldives",
+      "source_id": 2255,
+      "source_url": "https://max.ru/channel_anytour/AaHryMfSWo0",
+      "target_mid": "mid.ffffc1752b045fed019c5c3691bc41f9",
+      "target_url": "https://max.ru/anytour/AZxcNpG8Qfk",
+      "target_ms": 1771073606076,
+      "target_fingerprint": "2eeb6d206073e689cb4f81ef68a4e33c407d8d19fd008c7b60c9fefae99b21b6",
+      "offer": "max_64918",
+      "alias": "h1_be282d699a6be3568fa8dacf857f3435",
+      "caption": "✈️ Туры в You and Me Maldives\n📍 атолл Раа, Мальдивы\nКурорт для взрослых на атолле Раа. В ресторане H2O можно поужинать под водой и наблюдать за рифом через панорамные окна.",
+      "rank": 1,
+      "distinct_dialogues": 9,
+      "cta": "Рассчитать на мои даты",
+      "price_mode": "caption_without_fixed_price_until_accepted_observation",
+      "prior_route_regions": {
+        "1": {
+          "current": {
+            "post_id": "2255",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaHryMfSWo0"
+          },
+          "retained": {
+            "post_id": "2255",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaHryMfSWo0"
+          }
+        },
+        "213": {
+          "current": {
+            "post_id": "2255",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaHryMfSWo0"
+          },
+          "retained": {
+            "post_id": "2255",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaHryMfSWo0"
+          }
+        }
+      },
+      "ad_url_sha256": "5ce478bfdb4a5cf1f5e6e812cbd6f34e9dd533f6fc57cb705e941df4d5ba63f1",
+      "canonical_status": "paired_pending_live_native_editor_checks"
+    },
+    {
+      "hotel_id": 358,
+      "name": "Rixos Sharm El Sheikh",
+      "source_id": 215,
+      "source_url": "https://max.ru/channel_anytour/AaGd4bFlag4",
+      "target_mid": "mid.ffffc1752b045fed019ac4e4ade3085b",
+      "target_url": "https://max.ru/anytour/AZrE5K3jCFs",
+      "target_ms": 1764239912419,
+      "target_fingerprint": "d5620d2a739981dc2d6edb18fd55a1dfb705c2b7dba53116281d4224b9fea5ca",
+      "offer": "max_358",
+      "alias": "h1_84170d0b84626b05e4f82e798ef57820",
+      "caption": "✈️ Туры в Rixos Sharm El Sheikh\n📍 Шарм-эль-Шейх, Египет\nУ отеля собственный песчаный пляж и семь бассейнов. Можно чередовать дни у моря и отдых у бассейна.",
+      "rank": 4,
+      "distinct_dialogues": 3,
+      "cta": "Рассчитать на мои даты",
+      "price_mode": "caption_without_fixed_price_until_accepted_observation",
+      "prior_route_regions": {
+        "1": {
+          "current": {
+            "post_id": "215",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaGd4bFlag4"
+          },
+          "retained": {
+            "post_id": "215",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaGd4bFlag4"
+          }
+        },
+        "213": {
+          "current": {
+            "post_id": "215",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaGd4bFlag4"
+          },
+          "retained": {
+            "post_id": "215",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaGd4bFlag4"
+          }
+        }
+      },
+      "ad_url_sha256": "4b9be12b7bb10a10cad2299663c890338abfb7a8f1dc9c5014fc9129d8aa8185",
+      "canonical_status": "paired_pending_live_native_editor_checks"
+    }
+  ],
+  "production_writes": 0
+}
