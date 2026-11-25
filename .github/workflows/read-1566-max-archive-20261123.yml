@@ -1,4 +1,4 @@
-name: "#1566 Read the remaining 46 ranked MAX hotel sources"
+name: "#1566 Read public ad feed context for 17 MAX hotel targets"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -15,190 +15,73 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == '44d2061acad2fa04deaa9d3add7e96f5b8d21385' && github.run_attempt == 1
-    strategy:
-      fail-fast: false
-      max-parallel: 2
-      matrix:
-        offset: [0, 23]
+      github.event.before == '60bfd0fa800598f31bf4e30de8a4e40d5a90c2d6' && github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 3
     steps:
-      - name: Observe ranked source cards and existing offer aliases
-        env:
-          GH_TOKEN: ${{ github.token }}
-          CANDIDATE_OFFSET: ${{ matrix.offset }}
-        shell: bash
+      - name: Compare the MAX and combined public XML without opening advertising URLs
         run: |
           set -euo pipefail
           umask 077
           mkdir pub
-          gh api /repos/pyatkoff/max-search-bot/actions/runs/45513053442 > pub/rank-run.json
-          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14977425312 > pub/rank-meta.json
-          curl -fsSL --max-time 25 --header "Authorization: Bearer $GH_TOKEN" \
-            https://api.github.com/repos/pyatkoff/max-search-bot/actions/artifacts/14977425312/zip -o pub/rank.zip
-          gh api /repos/pyatkoff/max-search-bot/git/blobs/ba5ac7207da7fe185c1d864726bc240ba273976d --jq .content | base64 --decode > pub/bindings.json
           python3 - <<'PY'
           import base64
           import hashlib
           import json
           import pathlib
-          import os
           import re
-          import zipfile
-          import urllib.error
           import urllib.request
           import xml.etree.ElementTree as ET
           from concurrent.futures import ThreadPoolExecutor
           from datetime import datetime, timezone
-          from html.parser import HTMLParser
+          from urllib.parse import unquote
 
-          excluded = set([106,109,110,111,114,125,132,133,134,139,140,150,174,178,195,206,218,231,236,240,241,246,247,250,253,260,263,266,268,272,273,278,281,282,287,288,293,302,310,315,325,341,342,352,358,365,371,381,386,389,393,408,415,416,418,435,441,454,465,466,469,473,476,482,483,497,501,512,513,547,599,632,649,706,713,768,800,932,948,949,954,955,964,969,975,996,1013,1032,1033,1035,1055,1067,1074,1096,1100,1105,1124,1142,1143,1149,1151,1196,1201,1216,1221,1246,1257,1258,1260,1273,1287,1313,1334,1336,1344,1346,1352,1354,1402,1410,1420,1421,1422,1429,1439,1451,1456,1465,1491,1569,1582,1583,1588,1589,1591,1647,1684,1959,1960,1962,1963,1971,1972,1981,1983,2050,2222,2435,2436,2457,2458,2470,2478,2493,2522,2588,2794,3405,3415,3452,4054,4060,4074,4079,4091,4181,4270,7458,8020,8094,9321,9373,11791,12107,12111,12112,12114,12125,13870,14135,14140,15693,15873,15879,17595,22791,23723,24909,26844,27426,27652,28272,28327,28460,28509,28581,28754,30158,32322,32342,37668,40222,41149,41495,43676,43689,45496,46670,47025,49084,50869,51238,54193,54605,55511,55574,56092,57028,57650,58088,59114,61159,61591,61623,63191,64895,64914,64918,65108,65164,65712,65877,66547,66564,67910,69116,70048,73082,73343,73477,73974,74503,75100,76318,76588,77914,79071,80713,80964,82106,82504,82606,82716,85417,90236,91404,98723,99713,107938,112914,115918,118475,119046,126417,127988,131884,132016])
-          reserve = json.loads("[{\"url\":\"https://max.ru/anytour/AZwEq2zVLGY\",\"mid\":\"mid.ffffc1752b045fed019c04ab6cd52c66\",\"hotel_name\":\"The Marin Phuket\"},{\"url\":\"https://max.ru/anytour/AZwpDhM0dC0\",\"mid\":\"mid.ffffc1752b045fed019c290e1334742d\",\"hotel_name\":\"Akka Alinda Hotel\"},{\"url\":\"https://max.ru/anytour/AZxcpmMWNUI\",\"mid\":\"mid.ffffc1752b045fed019c5ca663163542\",\"hotel_name\":\"Address Beach Resort Fujairah\"},{\"url\":\"https://max.ru/anytour/AZ82fl5vOjg\",\"mid\":\"mid.ffffc1752b045fed019f367e5e6f3a38\",\"hotel_name\":\"SO/ Ras Al Khaimah\"}]")
-          rank_run = json.loads(pathlib.Path("pub/rank-run.json").read_bytes())
-          rank_meta = json.loads(pathlib.Path("pub/rank-meta.json").read_bytes())
-          digest = "53140c4e3c8636f20118a985f65cb72ef72ab5babd9306ffcb52e678113243de"
-          assert (rank_run["id"], rank_run["run_attempt"], rank_run["conclusion"]) == (45513053442, 1, "success")
-          assert rank_meta["id"] == 14977425312 and rank_meta["workflow_run"]["id"] == rank_run["id"] and not rank_meta["expired"]
-          assert rank_meta["digest"] == "sha256:" + digest and hashlib.sha256(pathlib.Path("pub/rank.zip").read_bytes()).hexdigest() == digest
-          with zipfile.ZipFile("pub/rank.zip") as source:
-              assert source.namelist() == ["registry.json"] and source.getinfo("registry.json").file_size < 1_000_000
-              ranked = json.loads(source.read("registry.json"))
-          assert ranked["ok"] and ranked["ranked_hotels"] == len(ranked["rows"]) == 312
-          assert ranked["application_sha"] and ranked["db_writes"] == ranked["provider_calls"] == 0
-          assert ranked["from_utc"] == "2026-11-10T21:00:00+00:00" and ranked["until_utc_exclusive"] == "2026-11-24T21:00:00+00:00"
-          assert rank_run["head_sha"] == "563fc7539262aa2bb060d1e93f5d02de4a74a97b" and rank_meta["workflow_run"]["head_sha"] == rank_run["head_sha"]
-          map_bytes = pathlib.Path("pub/bindings.json").read_bytes()
-          assert hashlib.sha1(b"blob " + str(len(map_bytes)).encode() + b"\0" + map_bytes).hexdigest() == "ba5ac7207da7fe185c1d864726bc240ba273976d"
-          canonical = json.loads(map_bytes)
-          by_offer = {x["offer_id"]:x for x in canonical["bindings_by_post_id"].values()}
-          assert len(by_offer) == canonical["binding_count"] == 1055
-          candidates = []
-          for priority, row in enumerate(ranked["rows"], 1):
-              if row["hotel_id"] in excluded:
-                  continue
-              binding = by_offer.get(row["max_offer"])
-              if not binding or int(binding["hotel_id"]) != row["hotel_id"]:
-                  continue
-              assert re.fullmatch(r"https://max.ru/channel_anytour/[A-Za-z0-9_-]{11}",binding["post_url"])
-              candidates.append({"hotel_id":row["hotel_id"],"rank":priority,"rank_name":row["hotel_name"],
-                                 "offer_id":row["max_offer"],"source_url":binding["post_url"],"source_alias":binding["alias"],
-                                 "publication_id":int(binding["publication_id"]),"demand":row["source"]})
-          eligible = len(candidates)
-          assert eligible == len({x["offer_id"] for x in candidates})
-          offset = int(os.environ["CANDIDATE_OFFSET"])
-          assert offset in (0, 23)
-          candidates = candidates[offset:offset + 23]
-          feed_url = "https://app.anytoour.ru/feed/hotel-posts-max.xml"
+          plans = json.loads('[{"offer":"max_1972","alias":"h1_7cdc48f2dd799f91ad74d98b53f7c324","source_id":"887","source_url":"https://max.ru/channel_anytour/AaG3WcDqe3Y","slug":"AaBI6Jfvad8"},{"offer":"max_2588","alias":"h1_b0ad50d1f7b72fbb0d8d3f44d551294a","source_id":"1533","source_url":"https://max.ru/channel_anytour/AaHpO-hTO-w","slug":"AaAkdvyEBXQ"},{"offer":"max_32342","alias":"h1_832e474d233e3ff903264f8017890723","source_id":"584","source_url":"https://max.ru/channel_anytour/AaG2QuDYdKE","slug":"AZ_rrRmlYz0"},{"offer":"max_57028","alias":"h1_4e6688447a8d76c946868b2d04224fd8","source_id":"238","source_url":"https://max.ru/channel_anytour/AaGeHp92NlE","slug":"AZ9AsoswVYw"},{"offer":"max_65877","alias":"h1_12c9e98c83db2198ba35799b9e761ec7","source_id":"563","source_url":"https://max.ru/channel_anytour/AaG2NPXdL0M","slug":"AZ-d-XrfADw"},{"offer":"max_73343","alias":"h1_d5c8a692e27557a88b5dd2ddf469c74d","source_id":"1253","source_url":"https://max.ru/channel_anytour/AaHQ_ZjzcEA","slug":"AaBnNxELfuU"},{"offer":"max_43689","alias":"h1_2a8f28fdeb4e5e47932fa629571e0f86","source_id":"1912","source_url":"https://max.ru/channel_anytour/AaHqSql-Q40","slug":"AaBxuxe-Jxk"},{"offer":"max_139","alias":"h1_0dd8e79eb59d7c04a8ebba12384fd9f8","source_id":"367","source_url":"https://max.ru/channel_anytour/AaGjHF7dGOQ","slug":"AaCAxCRDffc"},{"offer":"max_2470","alias":"h1_f6ff5a979401dbe0a1a4d6eb763fe29a","source_id":"1468","source_url":"https://max.ru/channel_anytour/AaHlf5z_ODQ","slug":"AaC42fW_AY0"},{"offer":"max_56092","alias":"h1_f8a64964fafb102a6f0c82703205f9b2","source_id":"283","source_url":"https://max.ru/channel_anytour/AaGeilyCad0","slug":"AaDD8UQLQ4U"},{"offer":"max_59114","alias":"h1_43c901391df4e5c2132497a01db66fca","source_id":"1374","source_url":"https://max.ru/channel_anytour/AaHcqEDjA3Y","slug":"AaDYcRGJKpQ"},{"offer":"max_63191","alias":"h1_b0abe530d9ef80315f4ce241ee2acd1c","source_id":"1496","source_url":"https://max.ru/channel_anytour/AaHlgTobEZw","slug":"AaELd0cFVAQ"},{"offer":"max_76588","alias":"h1_a710b1b43c4287fe5e8f8c11bcb9b887","source_id":"718","source_url":"https://max.ru/channel_anytour/AaG2zkytfiM","slug":"AaEba-dgJKk"},{"offer":"max_77914","alias":"h1_464e4ce1c4a476d9f8a9b7e1fb3dad4a","source_id":"181","source_url":"https://max.ru/channel_anytour/AaGc6ZyuFlA","slug":"AaEl-MVcT8Q"},{"offer":"max_106","alias":"h1_ffd75d0ae4d3b308154fa24f436f95b7","source_id":"1042","source_url":"https://max.ru/channel_anytour/AaG3snxOWfo","slug":"AaEwSMavEQU"},{"offer":"max_111","alias":"h1_b25fef02b0842659d3da3dbe12e66f76","source_id":"355","source_url":"https://max.ru/channel_anytour/AaGisi-ve3Q","slug":"AaE0q57XSGk"},{"offer":"max_114","alias":"h1_17116714af190238cf991ca60d867ae6","source_id":"1043","source_url":"https://max.ru/channel_anytour/AaG3soUIZh0","slug":"AaE6sgknSuc"}]')
+          expected = {p["offer"]: p for p in plans}
+          assert len(expected) == len({p["slug"] for p in plans}) == 17
+          endpoints = {"max":"https://app.anytoour.ru/feed/hotel-posts-max.xml","combined":"https://app.anytoour.ru/feed/hotel-posts-all.xml"}
 
-          def load(url, limit):
-              request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "*/*"})
-              with urllib.request.urlopen(request, timeout=10) as response:
-                  assert response.geturl() == url
-                  body = response.read(limit + 1)
-                  assert body and len(body) <= limit
-                  return body
+          def inspect(label):
+              url = endpoints[label]
+              req = urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0","Cache-Control":"no-cache"})
+              with urllib.request.urlopen(req, timeout=12) as response:
+                  assert response.status == 200 and response.geturl() == url
+                  raw = response.read(8000001)
+              assert 0 < len(raw) <= 8000000 and b"<!DOCTYPE" not in raw.upper()
+              offers = ET.fromstring(raw).findall("./shop/offers/offer")
+              by_id = {}
+              target_references = {p["slug"]:[] for p in plans}
+              for item in offers:
+                  offer = item.get("id")
+                  assert offer and offer not in by_id
+                  href = item.findtext("url", "")
+                  by_id[offer] = href
+                  urls = [unquote(n.text or "") for n in item if n.tag in ("url","mobile_url")]
+                  for slug, linked_offers in target_references.items():
+                      if any(re.search(r"https?://max[.]ru/[A-Za-z0-9_-]+/"+re.escape(slug)+r"(?![A-Za-z0-9_-])", value) for value in urls):
+                          linked_offers.append(offer)
+              assert by_id
+              rows = {}
+              for offer, p in expected.items():
+                  href = by_id.get(offer, "")
+                  token = re.search(r"_ctx1_([A-Za-z0-9_-]+)",href)
+                  data = json.loads(base64.urlsafe_b64decode(token[1]+"="*(-len(token[1])%4))) if token else {}
+                  rows[offer] = {"source_alias_matches":data.get("post_id")==p["alias"] and data.get("offer_id")==offer,
+                      "has_attribution_macros":all(k in href for k in ("{yclid}","{campaign_id}","{region_id}")),
+                      "ad_url_sha256":hashlib.sha256(href.encode()).hexdigest() if href else None,
+                      "direct_target_offer_ids":target_references[p["slug"]]}
+              return {"offer_count":len(by_id),"max_offer_count":sum(key.startswith("max_") for key in by_id),
+                  "tg_offer_count":sum(key.startswith("tg_") for key in by_id),"sha256":hashlib.sha256(raw).hexdigest(),"rows":rows}
 
-          class Page(HTMLParser):
-              def __init__(self):
-                  super().__init__(convert_charrefs=True)
-                  self.meta = {}
-                  self.parts = []
-                  self.hidden = 0
-              def handle_starttag(self, tag, attributes):
-                  attrs = dict(attributes)
-                  if tag in ("script", "style"):
-                      self.hidden += 1
-                  if tag == "meta":
-                      key = attrs.get("property", attrs.get("name", ""))
-                      if key and attrs.get("content"):
-                          self.meta[key] = attrs["content"]
-              def handle_endtag(self, tag):
-                  if tag in ("script", "style") and self.hidden:
-                      self.hidden -= 1
-              def handle_data(self, data):
-                  if not self.hidden and data.strip():
-                      self.parts.append(data.strip())
-
-          def page(url):
-              try:
-                  raw = load(url, 3_000_000)
-                  parsed = Page()
-                  parsed.feed(raw.decode("utf-8", errors="replace"))
-                  return {"url":url,"http":200,"title":parsed.meta.get("og:title",""),
-                          "description":parsed.meta.get("og:description",parsed.meta.get("description","")),
-                          "has_preview_image":bool(parsed.meta.get("og:image")),
-                          "visible_text":"\n".join(parsed.parts)[:7000]}
-              except urllib.error.HTTPError as error:
-                  return {"url":url,"http":error.code}
-              except (AssertionError, OSError, ValueError) as error:
-                  return {"url":url,"error":type(error).__name__}
-
-          wanted={row["offer_id"]:row for row in candidates}
-          offers=[]
-          reserve_matches=[]
-          def normalized(name):
-              return re.sub(r'[^a-z0-9]+', '', re.sub(r'^(?:туры|путевки|путёвки) в ', '', name.strip().casefold()))
-          feed_error=None
-          feed_sha=None
-          try:
-              raw=load(feed_url, 4_000_000)
-              feed_sha=hashlib.sha256(raw).hexdigest()
-              for item in ET.fromstring(raw).findall(".//offer"):
-                  url=item.findtext("url","")
-                  parts=re.search(r"_ctx1_([A-Za-z0-9_-]+)",url)
-                  if not parts:
-                      continue
-                  token=parts[1]+"="*(-len(parts[1])%4)
-                  key=json.loads(base64.urlsafe_b64decode(token))
-                  referenced = by_offer.get(key.get("offer_id"))
-                  for target in reserve:
-                      if normalized(item.findtext("name",""))==normalized(target["hotel_name"]) and referenced and key.get("post_id")==referenced["alias"]:
-                          reserve_matches.append({"target":target,"source":referenced})
-                  if key.get("offer_id") not in wanted:
-                      continue
-                  c=wanted[key["offer_id"]]
-                  matches=key.get("post_id")==c["source_alias"] and all(part in url for part in ("{yclid}","{campaign_id}","{region_id}"))
-                  offers.append({"offer_id":key["offer_id"],"binding_matches":matches,"name":item.findtext("name",""),
-                                 "description":item.findtext("description",""),"has_preview_image":item.find("picture") is not None})
-          except urllib.error.HTTPError as error:
-              feed_error=f"HTTP_{error.code}"
-          except (AssertionError, OSError, ValueError, ET.ParseError) as error:
-              feed_error=type(error).__name__
-          def source_present(item):
-              title = item.get("title", "")
-              return (item.get("http") == 200 and item.get("has_preview_image") and
-                      "@channel_anytour" in item.get("visible_text", "") and "Горящие туры - AnyTour" in title)
-
-          with ThreadPoolExecutor(max_workers=4) as executor:
-              pages = list(executor.map(page, [x["source_url"] for x in candidates]))
-          retry_indices = [index for index, item in enumerate(pages) if not source_present(item)]
-          if retry_indices:
-              from time import sleep
-              sleep(2)
-              with ThreadPoolExecutor(max_workers=2) as executor:
-                  refreshed = executor.map(page, [pages[i]["url"] for i in retry_indices])
-                  for index, item in zip(retry_indices, refreshed):
-                      pages[index] = item
-          assert len(pages) == len({p["url"] for p in pages}) == len(candidates)
-          result={"observed_utc":datetime.now(timezone.utc).isoformat(),"feed_sha256":feed_sha,"feed_error":feed_error,
-                  "offers":offers,"pages":pages,"candidates":candidates,"same_hotel_album_references":reserve_matches,"production_writes":0}
+          with ThreadPoolExecutor(max_workers=2) as executor:
+              reads = dict(zip(endpoints,executor.map(inspect,endpoints)))
+          result = {"observed_at":datetime.now(timezone.utc).isoformat(),"reads":reads,"ad_urls_opened":0,"writes":0}
           pathlib.Path("pub/observation.json").write_text(json.dumps(result,ensure_ascii=False))
-          print("MAX_MORE_PREPARATION=" + json.dumps({"feed_error":feed_error,"feed_sha256":feed_sha,"matched_offers":sum(x["binding_matches"] for x in offers),
-                 "source_public":sum(bool(source_present(x)) for x in pages),"reviewed":len(candidates),"retried":len(retry_indices),"offset":offset,"eligible_ranked":eligible,"unmatched_ranked":sum(row["hotel_id"] not in excluded for row in ranked["rows"])-eligible}))
-          by_address={x["url"]:x for x in pages}
-          by_key={x["offer_id"]:x for x in offers}
-          for candidate in candidates:
-              source = by_address[candidate["source_url"]]
-              offer = by_key.get(candidate["offer_id"],{})
-              public = source.get("visible_text","").split("Другие публикации канала",1)[0][:1550]
-              print("MAX_MORE_CARD="+json.dumps({"candidate":candidate,"http":source.get("http"),"picture":source.get("has_preview_image"),
-                      "description":offer.get("description"),"binding_matches":offer.get("binding_matches"),"public":public},ensure_ascii=False))
-          print("MAX_MORE_RESERVE="+json.dumps(reserve_matches,ensure_ascii=False))
+          print("MAX_FIVE_AND_TWELVE_FEED_READ="+json.dumps(result,separators=(",",":")))
           PY
-      - name: Retain public preparation evidence
+      - name: Save the current feed readback
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: hotel-max-ranked-public-observation-${{ matrix.offset }}
+          name: max-17-feed-and-attribution-readback
           path: pub/observation.json
           retention-days: 7
