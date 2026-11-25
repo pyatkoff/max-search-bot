@@ -12,6 +12,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = "302ba66b5739e369a4df94471c8cfe9c054dd070"
+PR1702_MAIN = "32155b9eb2c8606b61554951bfdc988d70bbcb39"
 PR1692_MAIN = "cdde6f427f61bace3a5afbd943d2303f463d6531"
 PR1692_INSTALLED = "e3e1a9bdf29dd0d7530fe6b3b393f1286834d092"
 PRODUCTION = "/var/www/anytoour/data/www/app.anytoour.ru"
@@ -49,6 +50,8 @@ class ProductionSync(unittest.TestCase):
         lock = (ROOT / "tools/deploy_monitor_lock.sh").read_text()
         self.assertIn(JOURNAL, lock)
         (self.tools / "deploy_monitor_lock.sh").write_text(lock.replace(JOURNAL, str(self.journal)))
+        fence = (ROOT / "tools/check_public_runtime_log_fence.sh").read_bytes()
+        (self.tools / "check_public_runtime_log_fence.sh").write_bytes(fence)
         self.make_git_checkout()
         self.install_doubles()
 
@@ -83,7 +86,8 @@ class ProductionSync(unittest.TestCase):
                    "${@: -1}" == https://app.anytoour.ru/structured_events.log ]]
                 count=$(grep -c '^http$' "$CALLS" || true)
                 echo http >> "$CALLS"
-                if [[ "$count" == 0 ]]; then code="$FIRST_HTTP"; else code="$NEXT_HTTP"; fi
+                read -r -a statuses <<< "$HTTP_STATUS_SEQUENCE"
+                code="${statuses[count]:-${statuses[-1]}}"
                 [[ "$code" != timeout ]] || exit 28
                 printf %s "$code"
             """,
@@ -116,11 +120,11 @@ class ProductionSync(unittest.TestCase):
             path.write_text("#!/usr/bin/env bash\nset -euo pipefail\n" + textwrap.dedent(body))
             path.chmod(0o700)
 
-    def options(self, before=BASE, planned=BASE, first="403", last="403"):
+    def options(self, before=BASE, planned=BASE, first="403", last="403", responses=None):
         env = dict(os.environ, PATH=str(self.bin) + ":" + os.environ["PATH"],
                    RUNNER_TEMP=str(self.root), DEPLOY_USER="local", DEPLOY_HOST="fixture",
                    PREVIOUS_MAIN_SHA=before, EXPECTED_CHECKOUT_SHA=planned, EXPECTED_SHA=self.successor,
-                   FIRST_HTTP=first, NEXT_HTTP=last, CALLS=str(self.calls),
+                   HTTP_STATUS_SEQUENCE=" ".join(responses or [first, last]), CALLS=str(self.calls),
                    REAL_GIT=GIT, LOCAL_JOURNAL=str(self.journal))
         return dict(args=["bash", "-c", self.shell], cwd=self.root, env=env, text=True,
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -147,14 +151,14 @@ class ProductionSync(unittest.TestCase):
         self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.original)
 
     def test_mismatched_or_missing_plan_and_bad_http_stop_before_upload(self):
-        for before, planned, first, expected in (
-                (BASE, "", "403", []), (BASE, self.original, "403", []),
-                (self.original, BASE, "403", []), ("", BASE, "403", []),
-                (BASE, BASE, "200", ["http"]), (BASE, BASE, "500", ["http"]),
-                (BASE, BASE, "timeout", ["http"])):
+        for before, planned, first, last, expected in (
+                (BASE, "", "403", "403", []), (BASE, self.original, "403", "403", []),
+                (self.original, BASE, "403", "403", []), ("", BASE, "403", "403", []),
+                (BASE, BASE, "200", "403", ["http"]), (BASE, BASE, "500", "403", ["http"]),
+                (BASE, BASE, "timeout", "timeout", ["http", "http"])):
             with self.subTest(before=before, planned=planned, first=first):
                 self.calls.write_text("")
-                self.assertEqual(self.check_run(False, before=before, planned=planned, first=first), expected)
+                self.assertEqual(self.check_run(False, before=before, planned=planned, first=first, last=last), expected)
                 self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), BASE)
 
     def test_dirty_worktree_and_index_still_stop_before_fetch(self):
@@ -176,6 +180,57 @@ class ProductionSync(unittest.TestCase):
         self.assertEqual(calls[:2], ["scp", "ssh"])
         self.assertEqual(calls.count("http"), 1)
         self.assertEqual(calls[-1], "http")
+        self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.successor)
+
+    def test_both_transient_http_timeouts_recover_without_repeating_sync(self):
+        self.pin_checkout(PR1702_MAIN)
+        calls = self.check_run(True, before=PR1702_MAIN, planned=PR1702_MAIN,
+                               responses=["timeout", "403", "timeout", "404"])
+        self.assertEqual(calls[:4], ["http", "http", "scp", "ssh"])
+        self.assertEqual(calls[-2:], ["http", "http"])
+        self.assertEqual(calls.count("scp"), 1)
+        self.assertEqual(calls.count("ssh"), 1)
+        self.assertEqual(sum(c.startswith("locked git reset --hard ") for c in calls), 1)
+        self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.successor)
+
+    def test_pr1702_requires_public_containment_then_exact_physical_checkout_under_lock(self):
+        self.pin_checkout(PR1702_MAIN)
+        for status in ("200", "500", "timeout"):
+            self.calls.write_text("")
+            expected = ["http", "http"] if status == "timeout" else ["http"]
+            self.assertEqual(self.check_run(False, before=PR1702_MAIN, planned=PR1702_MAIN,
+                                            first=status, last=status), expected)
+        self.calls.write_text("")
+        self.assertEqual(self.check_run(False, before=PR1702_MAIN, planned=BASE), [])
+        self.calls.write_text("")
+        calls = self.check_run(True, before=PR1702_MAIN, planned=PR1702_MAIN)
+        self.assertEqual(calls[:4], ["http", "scp", "ssh", "locked git rev-parse HEAD"])
+        self.assertEqual(calls[-1], "http")
+        self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.successor)
+        self.calls.write_text("")
+        self.assertEqual(self.check_run(False, before=PR1702_MAIN, planned=PR1702_MAIN),
+                         ["http", "scp", "ssh", "locked git rev-parse HEAD"])
+        self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.successor)
+
+    def test_pr1704_requires_prior_checkout_and_never_retries_writes(self):
+        current_main = "c3307bb811aefaa964c78f855b4d5e405fd606fb"
+        for expected in ("", current_main, BASE):
+            with self.subTest(expected=expected):
+                self.assertEqual(self.check_run(False, before=current_main, planned=expected), [])
+        self.pin_checkout(PR1702_MAIN)
+        self.assertEqual(self.check_run(False, before=current_main, planned=PR1702_MAIN,
+                                        responses=["timeout", "timeout"]), ["http", "http"])
+        self.calls.write_text("")
+        calls = self.check_run(True, before=current_main, planned=PR1702_MAIN,
+                               responses=["timeout", "403", "404"])
+        self.assertEqual(calls[:5], ["http", "http", "scp", "ssh", "locked git rev-parse HEAD"])
+        self.assertEqual(calls.count("scp"), 1)
+        self.assertEqual(calls.count("ssh"), 1)
+        self.assertEqual(sum(c.startswith("locked git reset --hard ") for c in calls), 1)
+        self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.successor)
+        self.calls.write_text("")
+        calls = self.check_run(False, before=current_main, planned=PR1702_MAIN)
+        self.assertEqual(calls, ["http", "scp", "ssh", "locked git rev-parse HEAD"])
         self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.successor)
 
     def test_pr1692_sync_from_accepted_checkout(self):

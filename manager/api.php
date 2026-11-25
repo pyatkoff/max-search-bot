@@ -102,7 +102,7 @@ if($action==='counts'){
     // Auth and CSRF are captured; these read-only projections must not hold
     // the account's session lock while bounded queue lists are loaded.
     session_write_close();
-    out(['ok'=>true,'counts'=>ManagerQueueProjectionService::counts((int)$m['id'],$projectKey,($data['scope']??null)==='inbox_tabs')]);
+    out(['ok'=>true,'counts'=>ManagerQueueProjectionService::counts((int)$m['id'],$projectKey,($data['scope']??null)==='inbox_tabs',is_string($data['only_tab']??null)?$data['only_tab']:null)]);
 }
 if($action==='detail'){
     $conversationId=(int)($data['conversation_id']??0);

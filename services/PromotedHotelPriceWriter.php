@@ -381,7 +381,7 @@ final class PromotedHotelPriceWriter
     {
         if ($platform === 'max') {
             self::need(preg_match('~\Ahttps://max\.ru/anytour/[A-Za-z0-9_-]{11}\z~D', $url) === 1, 'max_public_url_invalid');
-            return ['caption'=>self::maxPublicCaption(self::publicBytes($url)),'buttons'=>[]];
+            return ['caption'=>self::maxPublicCaption(self::publicBytes($url), $url),'buttons'=>[]];
         }
         self::need(preg_match('~\Ahttps://t\.me/anytour/([1-9][0-9]{0,9})\z~D', $url, $match) === 1, 'telegram_public_url_invalid');
         $mid = $match[1];
@@ -405,10 +405,28 @@ final class PromotedHotelPriceWriter
         return ['caption'=>$caption,'buttons'=>$buttons];
     }
 
-    public static function maxPublicCaption(string $html): string
+    public static function maxPublicCaption(string $html, ?string $expectedUrl = null): string
     {
-        self::need(preg_match('~message:\{text:("(?:[^"\\\\]|\\\\.)*")~', $html, $match) === 1, 'max_public_caption_unavailable');
-        $caption = json_decode($match[1], true, 16, JSON_THROW_ON_ERROR);
+        $encoded = null;
+        if ($expectedUrl !== null) {
+            // Current MAX pages put the public link and timestamps before the caption.
+            $quoted = '"(?:[^"\\\\]|\\\\.)*"';
+            $pattern = '~\bmessage:\{id:[1-9][0-9]{0,19},link:('.$quoted.'),createdAt:'.$quoted
+                .',updatedAt:(?:'.$quoted.'|null),text:('.$quoted.')(?=[,}])~';
+            $count = preg_match_all($pattern, $html, $messages, PREG_SET_ORDER);
+            self::need($count !== false, 'max_public_caption_unavailable');
+            if ($count > 0) {
+                $matches = array_values(array_filter($messages, static fn(array $message): bool =>
+                    json_decode($message[1], true, 16, JSON_THROW_ON_ERROR) === $expectedUrl));
+                self::need(count($matches) === 1, 'max_public_caption_unavailable');
+                $encoded = $matches[0][2];
+            }
+        }
+        if ($encoded === null) {
+            self::need(preg_match('~message:\{text:("(?:[^"\\\\]|\\\\.)*")~', $html, $match) === 1, 'max_public_caption_unavailable');
+            $encoded = $match[1];
+        }
+        $caption = json_decode($encoded, true, 16, JSON_THROW_ON_ERROR);
         // The MAX public renderer stores an HTML-escaped text value in its data block.
         return html_entity_decode($caption, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }

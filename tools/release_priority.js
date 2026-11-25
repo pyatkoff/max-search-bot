@@ -263,6 +263,20 @@ async function verifyPreviousRelease(context, token, fetchImpl) {
   const logReader = R.makeReadApi(token, fetchImpl);
   logReader.transientReads = false;
   api.jobLog = logReader.jobLog;
+  const recovery1704 = require('./unstarted_1704_forward');
+  if (context.baseSha === recovery1704.BASE) {
+    const target = await api('GET', R.API_ROOT + '/pulls/' + context.prNumber);
+    if (target?.head?.ref === recovery1704.BRANCH) {
+      const proof = await recovery1704.proveUnstarted1704Forward({
+        api,pr:context.prNumber,head:context.headSha,
+        phase:context.publisher ? 'after_handoff' : 'before_handoff'
+      });
+      if (context.publisher && (proof.binding.comment_id !== context.publisher.comment_id ||
+        proof.binding.owner_id !== context.publisher.owner_id ||
+        proof.binding.updated_at !== context.publisher.updated_at)) refusal('forward_publisher_changed');
+      return;
+    }
+  }
   const unstarted = R.UNSTARTED_FORWARD_1692;
   if (context.prNumber === unstarted.successor && context.baseSha === unstarted.sha) {
     const proof = await R.proveUnstartedForward({api, pr: context.prNumber, head: context.headSha,
@@ -272,9 +286,11 @@ async function verifyPreviousRelease(context, token, fetchImpl) {
       proof.binding.updated_at !== context.publisher.updated_at)) refusal('forward_publisher_changed');
     return;
   }
-  if (context.prNumber === 1667 && context.baseSha === '302ba66b5739e369a4df94471c8cfe9c054dd070') {
-    const {provePartialInstall1662Forward} = require('./partial_install_1662_forward');
-    const proof = await provePartialInstall1662Forward({
+  const partial1702 = context.prNumber === 1704 && context.baseSha === '32155b9eb2c8606b61554951bfdc988d70bbcb39';
+  if (partial1702 || (context.prNumber === 1667 && context.baseSha === '302ba66b5739e369a4df94471c8cfe9c054dd070')) {
+    const prove = partial1702 ? require('./partial_install_1702_forward').provePartialInstall1702Forward :
+      require('./partial_install_1662_forward').provePartialInstall1662Forward;
+    const proof = await prove({
       api, pr: context.prNumber, head: context.headSha,
       phase: context.publisher ? 'after_handoff' : 'before_handoff'
     });
@@ -309,21 +325,30 @@ async function verifyPreviousRelease(context, token, fetchImpl) {
   if (r.repository_sha !== context.baseSha || r.release.run_id !== String(native.id) ||
       r.release.run_attempt !== native.run_attempt || r.release.event !== 'push')
     refusal('previous_release_source_changed');
+  let binding;
+  let terminal;
   if (r.phase !== 'pending_terminal') {
-    if (context.prNumber !== 1631 || context.baseSha !== UNBOUND_PREDECESSOR.source)
-      refusal('previous_release_unclosed');
-    await verifyUnboundPredecessor(api, location, native);
-    return;
+    const recovery = require('./release_slot_1701_recovery');
+    if (context.baseSha === recovery.P.sha) {
+      binding = await recovery.verifyClosed(api, location);
+      terminal = recovery.TERMINAL;
+    } else {
+      if (context.prNumber !== 1631 || context.baseSha !== UNBOUND_PREDECESSOR.source)
+        refusal('previous_release_unclosed');
+      await verifyUnboundPredecessor(api, location, native);
+      return;
+    }
+  } else {
+    // Authenticate the original native terminal and supported recovery lineage.
+    const resolved = await R.resolveCurrent(api, { sha: context.baseSha }, location);
+    if (resolved.ready !== true || resolved.repository_sha !== context.baseSha ||
+        resolved.application_sha !== r.application_sha) refusal('previous_release_unconfirmed');
+    binding = await R.currentBinding(api, context.baseSha);
+    const bound = binding && Object.fromEntries(['pr', 'head_sha', 'comment_id', 'owner_id', 'updated_at']
+      .map(key => [key, binding[key]]));
+    if (!binding || !R.same(bound, r.closure.binding)) refusal('previous_binding_changed');
+    terminal = r.closure.expected_terminal;
   }
-  // The canonical resolver authenticates actual installation, exact digest-bound
-  // terminal job, and any already supported, explicitly typed recovery lineage.
-  const resolved = await R.resolveCurrent(api, { sha: context.baseSha }, location);
-  if (resolved.ready !== true || resolved.repository_sha !== context.baseSha ||
-      resolved.application_sha !== r.application_sha) refusal('previous_release_unconfirmed');
-  const binding = await R.currentBinding(api, context.baseSha);
-  const bound = binding && Object.fromEntries(['pr', 'head_sha', 'comment_id', 'owner_id', 'updated_at']
-    .map(key => [key, binding[key]]));
-  if (!binding || !R.same(bound, r.closure.binding)) refusal('previous_binding_changed');
   const path = R.API_ROOT + '/issues/comments/' + binding.comment_id;
   // A completed shared publisher can already belong to this exact next PR.
   // Its old native terminal remains authoritative; validate the new acquisition
@@ -339,7 +364,7 @@ async function verifyPreviousRelease(context, token, fetchImpl) {
   const verifyRecord = value => {
     if (shared) verifyPublisherRecord(value, context, context.publisher);
     else if (C.recordState(value, binding) !== 'released' ||
-        value.body !== r.closure.expected_terminal) refusal('previous_publisher_unclosed');
+        value.body !== terminal) refusal('previous_publisher_unclosed');
   };
   await verifyAcquisition();
   const record = await api('GET', path);

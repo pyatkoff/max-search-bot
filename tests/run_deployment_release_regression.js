@@ -2748,7 +2748,55 @@ async function rankedApprovedInputCases() {
   approvals=[entry]; index.native_source.job_id=102;
   await refuses(()=>R.approvedRankedInput(api,head,entry.sha256,branch),'ranked_input_proof_invalid');
 }
+async function rankedPrewriteProofCases() {
+  const original=45403460387, jobId=138477791041;
+  const branch='ops/anytour-hotel-ranked-after-45372056681', sha='dca4085f9a63ac1e7a5179c2a9b1b20febce4f82';
+  const current={id:String(original+1),sha:H('installed ranked output correction')};
+  function fixture() {
+    const actor={id:226193297}, repository={full_name:'pyatkoff/max-search-bot',id:1342493152};
+    const previous={id:original,run_attempt:1,head_sha:sha,head_branch:branch,actor,triggering_actor:actor,
+      path:'.github/workflows/edit-1566-ranked-46-historical-telegram.yml',event:'push',head_repository:repository,
+      repository,created_at:'2026-11-24T13:26:32Z',status:'completed',conclusion:'failure'};
+    const next={...previous,id:Number(current.id),head_sha:current.sha,status:'in_progress',conclusion:null};
+    const job={id:jobId,run_id:original,run_attempt:1,head_sha:sha,name:'transfer',status:'completed',conclusion:'failure',
+      steps:[step('Check out the native run source'),step('Resolve accepted repository and application','failure'),
+        step('Require exact APPLY admission before loading credentials','skipped'),
+        step('Pin established SSH host continuity and authentication identity','skipped'),
+        step('Apply the installed editor once and retain its original receipts','skipped'),
+        step('Save the original sanitized transfer result')]};
+    const artifacts={total_count:0,artifacts:[]};
+    const ancestry={status:'ahead',merge_base_commit:{sha}};
+    const f={runs:[next,previous],previous,next,job,artifacts,ancestry,
+      log:Buffer.from('2026-11-24T13:26:49.1103064Z deployment_release=refused reason=invalid_output\n')};
+    f.api=async(method,path)=>{
+      if(method!=='GET')throw Error('unexpected writer');
+      if(path.endsWith('/runs/'+original+'/attempts/1/jobs?per_page=100'))return {total_count:1,jobs:[job]};
+      if(path.endsWith('/runs/'+original+'/artifacts?per_page=100'))return artifacts;
+      if(path.endsWith('/compare/'+sha+'...'+current.sha+'?per_page=1'))return ancestry;
+      throw Error('unexpected prewrite proof path '+path);
+    };
+    f.api.jobLog=async id=>{equal(id,jobId,'only the original failed native log is read');return f.log;};
+    return f;
+  }
+  const first=fixture();
+  equal(await R.proveRankedPrewriteHistory(first.api,first.runs,current),first.next,'one actual before-write refusal can precede this new run');
+  for(const change of [
+    f=>f.runs.pop(),f=>f.runs.push({...f.next,id:original+2}),f=>f.previous.run_attempt++,
+    f=>f.previous.head_branch='ops/foreign', f=>f.previous.actor={id:1},f=>f.previous.head_sha=H('other source'),
+    f=>f.next.head_sha=f.previous.head_sha,f=>f.job.id++,f=>f.job.run_id++,f=>f.job.run_attempt++,
+    f=>f.job.steps[1].conclusion='success', f=>f.job.steps[2].conclusion='success',
+    f=>f.job.steps[3].conclusion='success',f=>f.job.steps[4].conclusion='failure',
+    f=>f.job.steps.push(f.job.steps[4]),f=>f.artifacts.artifacts.push({id:1}),
+    f=>{f.artifacts.total_count=1;f.artifacts.artifacts.push({id:1});},
+    f=>f.log=Buffer.from('a different refusal'), f=>f.ancestry.status='diverged'
+  ]) {
+    const bad=fixture();change(bad);
+    await assert.rejects(()=>R.proveRankedPrewriteHistory(bad.api,bad.runs,current));assertions++;
+  }
+}
+
 async function rankedParentCases() {
+  await rankedPrewriteProofCases();
   const seed = 45372056681, child = seed + 10, leaf = child + 1;
   const seedSha = 'e3e1a9bdf29dd0d7530fe6b3b393f1286834d092', head = H('ranked-child');
   const chunk = '12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce';
@@ -2814,7 +2862,71 @@ async function rankedParentCases() {
   await assert.rejects(()=>R.rankedParentEvidence(good.api,String(child),{id:String(child),sha:head}));assertions++;
 }
 
-async function main(){await closedPrewriteOriginCases();await rankedApprovedInputCases();await rankedParentCases();await rankedResumeOriginCases();hotelRegistryReadWorkflow();await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
+async function unstarted1704Cases() {
+  const recovery = require('../tools/unstarted_1704_forward');
+  const anchor = ['##[endgroup]','curl: (28) Operation timed out after 15000 milliseconds with 0 bytes received',
+    '##[error]Process completed with exit code 28.','##[group]Run test "$PROVENANCE_OUTCOME" = success',
+    '  SYNC_OUTCOME: failure'];
+  assert.doesNotThrow(() => recovery.checkOriginalSync(anchor)); assertions++;
+  for (const changed of [
+    [anchor[0], ...anchor.slice(2)], [...anchor.slice(0,3),anchor[4]], [...anchor.slice(0,-1),'  SYNC_OUTCOME: success'],
+    [...anchor,'production_sha='+recovery.BASE], [...anchor,'monitor_journal_lock=acquired'], [...anchor,anchor[1]]
+  ]) {
+    assert.throws(() => recovery.checkOriginalSync(changed)); assertions++;
+  }
+  let requests=0;
+  const api = Object.assign(async () => {requests++;throw Error('unexpected read');},
+    {jobLog:async () => {requests++;throw Error('unexpected native log');}});
+  await assert.rejects(() => recovery.proveUnstarted1704Forward({api,pr:1704,
+    head:'a'.repeat(40),phase:'installation',source:'b'.repeat(40),runId:7,
+    event:{ref:'refs/heads/main',before:recovery.BASE,forced:true}}));
+  equal(requests,0,'invalid 1704 installation reads no proof');
+  await assert.rejects(() => R.admitForwardInstallation(async (method,url)=>{
+    equal(method,'GET','recovery uses read-only API');
+    if (url.includes('/commits/')) return {sha:'b'.repeat(40),parents:[{sha:recovery.BASE},{sha:'a'.repeat(40)}]};
+    throw Error('unexpected read');
+  },{event:'workflow_dispatch',attempt:1,sha:'b'.repeat(40)},{before:recovery.BASE}),
+  error=>error.code==='invalid_unstarted_1704_source');
+  assertions++;
+}
+
+async function superseded1701Cases() {
+  const recovery = require('../tools/release_slot_1701_recovery');
+  const branchRef = 'refs/heads/' + recovery.P.branch;
+  const env = {GITHUB_REPOSITORY:R.REPOSITORY, GITHUB_EVENT_NAME:'push', GITHUB_REF:branchRef,
+    GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+C.CLOSER+'@'+branchRef, GITHUB_JOB:'release-slot-recovery',
+    GITHUB_RUN_ATTEMPT:'1', GITHUB_ACTOR:'pyatkoff', GITHUB_TRIGGERING_ACTOR:'pyatkoff',
+    GITHUB_SHA:'a'.repeat(40), GITHUB_RUN_ID:'45510000000'};
+  const event = {repository:{full_name:R.REPOSITORY,id:1342493152},sender:{id:recovery.P.owner,login:'pyatkoff'},
+    ref:branchRef,after:env.GITHUB_SHA,before:'0'.repeat(40),created:true,deleted:false,forced:false};
+  assert.doesNotThrow(()=>recovery.authorizeEvent(env,event)); assertions++;
+  const calls=[];
+  const api=async (method,url)=>{calls.push([method,url]);throw Error('unexpected API call');};
+  for (const [changedEnv,changedEvent] of [
+    [{...env,GITHUB_RUN_ATTEMPT:'2'},event],
+    [{...env,GITHUB_EVENT_NAME:'workflow_dispatch'},event],
+    [env,{...event,sender:{id:1,login:'pyatkoff'}}],
+    [env,{...event,created:false,before:'b'.repeat(40)}],
+    [env,{...event,forced:true}],
+  ]) await refuses(()=>recovery.resume({env:changedEnv,event:changedEvent,api}), 'untrusted_recovery_event');
+  equal(calls,[],'untrusted recovery event cannot read or modify a publisher');
+  const retry={id:recovery.P.diagnosticRetry,status:'completed',conclusion:'failure',steps:[
+    step(R.RESOLVER_STEP,'failure'),
+    ...['Prepare evidence encryption','Prepare SSH private key','Verify deployed SHA and capture production',
+      'Publish production snapshot','Upload encrypted dialogue evidence','Upload Metrika delivery diagnostic']
+      .map(name=>step(name,'skipped'))]};
+  assert.doesNotThrow(()=>recovery.diagnosticRetry(retry)); assertions++;
+  for(const name of ['Prepare SSH private key','Publish production snapshot']) {
+    const changed=copy(retry);
+    changed.steps.find(s=>s.name===name).conclusion='success';
+    await refuses(()=>recovery.diagnosticRetry(changed),'diagnostic_retry_executed');
+  }
+  await refuses(()=>recovery.diagnosticRetry({...retry,id:1}),'diagnostic_retry_executed');
+}
+
+async function main(){await superseded1701Cases();await unstarted1704Cases();await closedPrewriteOriginCases();await rankedApprovedInputCases();await rankedParentCases();await rankedResumeOriginCases();hotelRegistryReadWorkflow();await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
+  execFileSync(process.execPath,[path.join(__dirname,'run_ranked_telegram_cli_regression.js')],{stdio:'inherit'});
+  execFileSync(process.execPath,['--test',path.join(__dirname,'run_partial_install_1702_forward_regression.js')],{stdio:'inherit'});
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_partial_install_1662_forward_regression.js')],{stdio:'inherit'});
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_exhausted_verify_1664_forward_regression.js')],{stdio:'inherit'});
   execFileSync('python3',[path.join(__dirname,'run_partial_install_1662_forward_sync.py')],{stdio:'inherit'});

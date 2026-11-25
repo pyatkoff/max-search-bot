@@ -15,8 +15,9 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' &&
-      github.event.created == true &&
-      github.event.before == '0000000000000000000000000000000000000000' &&
+      ((github.event.created == true && github.event.before == '0000000000000000000000000000000000000000') ||
+       (github.ref == 'refs/heads/ops/anytour-hotel-ranked-after-45372056681' && github.event.created == false &&
+        github.event.forced == false && github.event.before == 'dca4085f9a63ac1e7a5179c2a9b1b20febce4f82')) &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 130
@@ -37,7 +38,7 @@ jobs:
           PERFORM_ACTIONS: ${{ steps.release.outputs.perform_actions }}
           WRITE_OPERATION: ${{ steps.release.outputs.write_operation }}
           GH_TOKEN: ${{ github.token }}
-          INDEX_SHA: ${{ steps.release.outputs.ranked_index_sha256 }}
+          INDEX_SHA: ${{ steps.release.outputs.ranked_index_digest }}
           NATIVE_ARTIFACT_ID: ${{ steps.release.outputs.ranked_artifact_id }}
           PARENT_EVIDENCE: ${{ steps.release.outputs.parent_evidence }}
           REPOSITORY_SHA: ${{ steps.release.outputs.repository_sha }}
@@ -193,6 +194,10 @@ jobs:
           confirmed=[]
           held=[]
           isolated_transport_loss=False
+          public_holds={
+              'public_post_missing','public_identity_changed',
+              'transfer_source_public_changed','transfer_target_public_changed',
+          }
           for i,row in enumerate(rows):
               assert row['url']=='https://t.me/anytour/'+item['messages'][i]
               if row.get('ok') is True:
@@ -215,7 +220,7 @@ jobs:
                       local_hold=(row['state']=='held_before_provider' and row['provider_write_attempts']==0
                                   and 'reserved_publication_id' not in row and row.get('reason') in {
                                   'transfer_target_identity_exists','transfer_hotel_already_in_large_channel','transfer_target_editor_busy',
-                                  'transfer_ranked_source_offer_changed','transfer_ranked_target_in_use','public_identity_changed'})
+                                  'transfer_ranked_source_offer_changed','transfer_ranked_target_in_use'} | public_holds)
                       prior=(row['state']=='held_before_provider' and row['provider_write_attempts']==0
                              and row.get('reason') in {'transfer_current_run_journal_requires_readback','transfer_previous_run_journal_requires_readback'}
                              and (row.get('reason')!='transfer_previous_run_journal_requires_readback' or os.environ['GITHUB_REF']=='refs/heads/ops/anytour-hotel-ranked-resume-20261124')
@@ -223,7 +228,7 @@ jobs:
                              and len(row.get('prior_journal_sha256',''))==64
                              and all(ch in '0123456789abcdef' for ch in row['prior_journal_sha256']))
                       prewrite=(row['state']=='held_before_provider' and row['provider_write_attempts']==0
-                                and row.get('reason')=='public_identity_changed' and row.get('local_prewrite_hold_recorded') is True
+                                and row.get('reason') in public_holds and row.get('local_prewrite_hold_recorded') is True
                                 and type(row.get('reserved_publication_id')) is int and row['reserved_publication_id']>0)
                       previous_target=(os.environ['GITHUB_REF'].startswith('refs/heads/ops/anytour-hotel-ranked-plan-')
                                        and row['state']=='held_before_provider' and row['provider_write_attempts']==0

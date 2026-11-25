@@ -88,6 +88,10 @@ const RANKED_AFTER_BRANCH = /^ops\/anytour-hotel-ranked-after-([1-9][0-9]{0,15})
 const RANKED_RESUME_SEED = Object.freeze({
   run:45372056681, job:138368539666, sha:'e3e1a9bdf29dd0d7530fe6b3b393f1286834d092',
   artifact:14909137840, digest:'sha256:3f0e0462ddd4fd0ab0e186de8e2b17f4f92752cd5700525f54e9cf9f0dd3034c'});
+const RANKED_PREWRITE_REFUSAL = Object.freeze({
+  branch:'ops/anytour-hotel-ranked-after-45372056681', run:45403460387, job:138477791041,
+  sha:'dca4085f9a63ac1e7a5179c2a9b1b20febce4f82'
+});
 const RANKED_CHUNK_DIGEST = '12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce';
 const ORIGINAL_RANKED_CONTINUATION = Object.freeze({
   run:45321557294,job:138201073452,sha:'fdcbf29f831b68005295dfa398ecb5878d94e6c7',
@@ -1103,7 +1107,10 @@ function makeReadApi(token,fetchImpl=globalThis.fetch,{sleep=waitForRetry}={}) {
     requireValue([TERMINAL_RECOVERY.job_id,TERMINAL_RECOVERY.continuation_job_id,TERMINAL_RECOVERY.observation_job_id,
       TERMINAL_RECOVERY.read_failure_job_id,GATE_RECOVERY.tls_job_id,UNPUBLISHED_TERMINAL_RECOVERY.job_id,
       PRIOR_WAVE_RECOVERY.job_id,PRIOR_WAVE_RECOVERY.previous.verify_job_id,PUBLISHER_BODY_RECOVERY.job_id,
-      137646126584,137658227484,137707302320,137760498372].includes(job),'untrusted_terminal_log');
+      137646126584,137658227484,137707302320,137760498372,RANKED_PREWRITE_REFUSAL.job].includes(job)
+      || require('./partial_install_1702_forward').allowedLog(job)
+      || job === require('./unstarted_1704_forward').JOB
+      || [138826764785,138849924897].includes(job),'untrusted_terminal_log');
     const response=await request('https://api.github.com'+API_ROOT+'/actions/jobs/'+job+'/logs',headers(false),'manual',2*1024*1024);
     if(Buffer.isBuffer(response))return response;
     let url;try{url=new URL(response.headers.get('location'));}catch{throw new Refusal('invalid_log_redirect');}
@@ -1577,6 +1584,31 @@ async function admitForwardInstallation(api,c,event) {
   const commit=await get('/commits/'+c.sha);
   requireValue(commit?.sha===c.sha&&Array.isArray(commit.parents)&&commit.parents.length>=1&&commit.parents.length<=2
     &&commit.parents.every(parent=>sha(parent.sha)),'forward_source_unconfirmed');
+  const recovery1704 = require('./unstarted_1704_forward');
+  if (commit.parents.some(parent => parent.sha === recovery1704.BASE) || event.before === recovery1704.BASE) {
+    // Once the recovery publishes a normal receipt, no other successor of this
+    // failed source can enter the special path again.
+    requireValue(c.event === 'push' && c.attempt === 1 && event.forced === false &&
+      event.before === recovery1704.BASE && event.after === c.sha &&
+      commit.parents.length === 2 && commit.parents[0].sha === recovery1704.BASE,
+    'invalid_unstarted_1704_source');
+    const pulls = await get('/commits/' + c.sha + '/pulls?per_page=100');
+    requireValue(Array.isArray(pulls) && pulls.length === 1 && pulls[0].merge_commit_sha === c.sha &&
+      pulls[0].head?.ref === recovery1704.BRANCH, 'untrusted_1704_successor');
+    const proof = await recovery1704.proveUnstarted1704Forward({api,pr:pulls[0].number,
+      head:commit.parents[1].sha,phase:'installation',source:c.sha,runId:c.id,event});
+    return {expectedCheckout:proof.expected_checkout_sha};
+  }
+  const routePartial = '32155b9eb2c8606b61554951bfdc988d70bbcb39';
+  if (commit.parents.some(parent => parent.sha === routePartial) || event.before === routePartial) {
+    requireValue(c.event === 'push' && c.attempt === 1 && event.forced === false && event.before === routePartial
+      && event.after === c.sha && commit.parents.length === 2 && commit.parents[0].sha === routePartial,
+      'invalid_partial_forward_source');
+    const {provePartialInstall1702Forward} = require('./partial_install_1702_forward');
+    await provePartialInstall1702Forward({api, pr:1704, head:commit.parents[1].sha,
+      phase:'installation', source:c.sha, runId:c.id, event});
+    return {expectedCheckout:routePartial};
+  }
   // Only PR1667 may succeed the pinned partially installed #1662 on the first main push.
   const partialBase='302ba66b5739e369a4df94471c8cfe9c054dd070';
   if(commit.parents.some(parent=>parent.sha===partialBase)||event.before===partialBase){
@@ -1906,6 +1938,46 @@ async function proveRankedResumeOriginal(api) {
   requireValue(artifact.expired===false&&artifact.size_in_bytes===4063,'ranked_resume_artifact_unavailable');
 }
 
+// Only this immutable original stopped before credentials, provider access or a write receipt.
+async function proveRankedPrewriteHistory(api, runs, current) {
+  const p=RANKED_PREWRITE_REFUSAL, profile=HOTEL_RANKED_46;
+  const prior=runs.find(run=>run.id===p.run), next=runs.find(run=>String(run.id)===String(current.id));
+  requireValue(runs.length===2 && prior && next && Number(current.id)>p.run && current.sha!==p.sha,
+    'ranked_prewrite_history_changed');
+  runIdentity(prior,{id:p.run,attempt:1,head:p.sha,workflow:profile.workflow,event:'push',branch:p.branch,conclusion:'failure'});
+  requireValue(prior.repository?.id===profile.repository_id && prior.head_repository?.id===profile.repository_id
+    && prior.actor?.id===profile.owner_id && prior.triggering_actor?.id===profile.owner_id
+    && next.head_sha===current.sha && next.head_branch===p.branch && next.run_attempt===1,
+    'ranked_prewrite_origin_changed');
+  const path=API_ROOT+'/actions/runs/'+p.run;
+  const [jobList,artifactList]=await Promise.all([api('GET',path+'/attempts/1/jobs?per_page=100'),
+    api('GET',path+'/artifacts?per_page=100')]);
+  const jobs=boundedList(jobList,'jobs','ranked_prewrite_jobs_changed');
+  const job=jobs[0];
+  requireValue(jobs.length===1 && job.id===p.job && job.run_id===p.run && job.run_attempt===1
+    && job.head_sha===p.sha && job.name===profile.job && job.status==='completed' && job.conclusion==='failure'
+    && Array.isArray(job.steps) && boundedList(artifactList,'artifacts','ranked_prewrite_artifacts_changed').length===0,
+    'ranked_prewrite_proof_changed');
+  for(const [name,conclusion] of [
+    ['Check out the native run source','success'], ['Resolve accepted repository and application','failure'],
+    ['Require exact APPLY admission before loading credentials','skipped'],
+    ['Pin established SSH host continuity and authentication identity','skipped'],
+    ['Apply the installed editor once and retain its original receipts','skipped'],
+    ['Save the original sanitized transfer result','success']
+  ]) {
+    const steps=job.steps.filter(step=>step.name===name);
+    requireValue(steps.length===1 && steps[0].status==='completed' && steps[0].conclusion===conclusion,
+      'ranked_prewrite_steps_changed');
+  }
+  requireValue(typeof api.jobLog==='function','ranked_prewrite_log_unavailable');
+  const log=await api.jobLog(p.job);
+  requireValue(Buffer.isBuffer(log) && log.toString('utf8').split(/\r?\n/).filter(line=>
+    /^\d{4}-\d\d-\d\dT[\d:.]+Z deployment_release=refused reason=invalid_output$/.test(line)).length===1,
+    'ranked_prewrite_reason_changed');
+  await requireAncestry(api,p.sha,current.sha);
+  return next;
+}
+
 /** Follow the native runs back to the authorized first resume. Each parent has
  * exactly one canonical branch per predecessor. No target IDs come from the ref. */
 async function rankedParentEvidence(api, parentId, current) {
@@ -1931,7 +2003,11 @@ async function rankedParentEvidence(api, parentId, current) {
     const original = boundedList(history, 'workflow_runs', 'ranked_parent_recreated');
     const transfers = boundedList(jobs, 'jobs', 'ranked_parent_job_invalid');
     const job = transfers[0];
-    requireValue(original.length === 1 && String(original[0].id) === String(id), 'ranked_parent_recreated');
+    if(source.head_branch===RANKED_PREWRITE_REFUSAL.branch && original.length>1) {
+      await proveRankedPrewriteHistory(api,original,{id,sha:source.head_sha});
+    } else {
+      requireValue(original.length === 1 && String(original[0].id) === String(id), 'ranked_parent_recreated');
+    }
     requireValue(transfers.length === 1 && positive(job.id) && (!first || job.id === seed.job)
       && job.run_id === Number(id) && job.run_attempt === 1 && job.name === profile.job
       && job.head_sha === source.head_sha && job.status === 'completed' && job.conclusion === 'failure'
@@ -2041,6 +2117,8 @@ async function proveOriginalMaxPublicFailure(api) {
 
 async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
   const ref='refs/heads/'+p.branch;
+  const recovery=p.branch===RANKED_PREWRITE_REFUSAL.branch && event?.created===false
+    && event.before===RANKED_PREWRITE_REFUSAL.sha;
   requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF===ref
     &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+p.workflow+'@'+ref
     &&env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_JOB===p.job
@@ -2048,8 +2126,8 @@ async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
     &&env.GITHUB_ACTOR===p.owner&&env.GITHUB_TRIGGERING_ACTOR===p.owner
     &&event?.repository?.full_name===REPOSITORY&&event.repository.id===p.repository_id
     &&event.sender?.id===p.owner_id&&event.sender.login===p.owner
-    &&event.ref===ref&&event.after===env.GITHUB_SHA&&event.before==='0'.repeat(40)
-    &&event.created===true&&event.deleted===false&&event.forced===false,
+    &&event.ref===ref&&event.after===env.GITHUB_SHA&&event.deleted===false&&event.forced===false
+    &&((event.before==='0'.repeat(40)&&event.created===true)||recovery),
     'untrusted_hotel_four_transfer');
   const c={sha:env.GITHUB_SHA,id:String(env.GITHUB_RUN_ID),attempt:1,event:'push',workflow:p.workflow,job:p.job};
   requireValue((await api('GET',API_ROOT+'/git/ref/heads/main'))?.object?.sha===c.sha,'main_changed');
@@ -2063,8 +2141,9 @@ async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
   const runs=boundedList(await api('GET',API_ROOT+'/actions/workflows/'+p.workflow.slice(PREFIX.length)
     +'/runs?branch='+encodeURIComponent(p.branch)+'&per_page=100'),
     'workflow_runs','hotel_transfer_inventory_incomplete');
-  requireValue(runs.length===1&&String(runs[0].id)===c.id,'hotel_transfer_replay_forbidden');
-  runIdentity(runs[0],{id:c.id,attempt:1,head:c.sha,workflow:p.workflow,event:'push',completed:false,branch:p.branch});
+  const currentRun=recovery ? await proveRankedPrewriteHistory(api,runs,c) : runs[0];
+  requireValue((recovery || runs.length===1) && String(currentRun?.id)===c.id,'hotel_transfer_replay_forbidden');
+  runIdentity(currentRun,{id:c.id,attempt:1,head:c.sha,workflow:p.workflow,event:'push',completed:false,branch:p.branch});
   const jobs=boundedList(await api('GET',API_ROOT+'/actions/runs/'+c.id+'/attempts/1/jobs?per_page=100'),
     'jobs','hotel_transfer_jobs_incomplete');
   const own=jobs.filter(j=>j.name===p.job);
@@ -2157,7 +2236,7 @@ async function resolveRankedHotelTransfer(inputs,p=HOTEL_RANKED_46) {
       && job.conclusion==='success' && step?.length===1 && step[0].status==='completed' && step[0].conclusion==='success',
       'ranked_native_job_unverified');
   }
-  return {...await resolveHotelTransfer(inputs,p), ranked_index_sha256:p.plan_digest, ranked_artifact_id:String(p.native_artifact)};
+  return {...await resolveHotelTransfer(inputs,p), ranked_index_digest:p.plan_digest, ranked_artifact_id:String(p.native_artifact)};
 }
 async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms)),now=()=>performance.now()}) {
   if(env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_REF==='refs/heads/'+GATE_RECOVERY.branch){
@@ -2317,7 +2396,7 @@ function argumentsOf(argv,commands) {
 }
 function outputs(value){for(const [key,v]of Object.entries(value)){
   requireValue(/^[a-z_]+$/.test(key)&&!/[\r\n]/.test(String(v)),'invalid_output');process.stdout.write(key+'='+String(v)+'\n');}}
-module.exports={approvedRankedInput,rankedParentEvidence,proveClosedPrewriteOriginal,proveRankedResumeOriginal,proveOriginalNextTransfer,PUBLISHER_BODY_RECOVERY,publisherBodyRecovery,publisherBodySource,failedPublisherBodyTerminal,
+module.exports={proveRankedPrewriteHistory,approvedRankedInput,rankedParentEvidence,proveClosedPrewriteOriginal,proveRankedResumeOriginal,proveOriginalNextTransfer,PUBLISHER_BODY_RECOVERY,publisherBodyRecovery,publisherBodySource,failedPublisherBodyTerminal,
   UNSTARTED_FORWARD,UNSTARTED_FORWARD_1692,forwardMarker,proveUnstartedDeployment,proveUnstartedForward,admitForwardInstallation,REPOSITORY,API_ROOT,PREFIX,DEPLOY,CLOSER,HOST,RECORD_PATH,PUBLICATION_FILE,PUBLICATION_PROTOCOL,
   TERMINAL_RECOVERY,GATE_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY,PRIOR_WAVE_RECOVERY,
   priorWaveRecovery,failedPriorWaveTerminal,terminalRecovery,gateRecovery,

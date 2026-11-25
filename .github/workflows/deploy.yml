@@ -214,11 +214,17 @@ jobs:
             # PR1692 advanced main before installation began; production still runs PR1685.
             test "$PREVIOUS_MAIN_SHA" = cdde6f427f61bace3a5afbd943d2303f463d6531
             test "$EXPECTED_CHECKOUT_SHA" = e3e1a9bdf29dd0d7530fe6b3b393f1286834d092
-          elif [[ "$PREVIOUS_MAIN_SHA" == 302ba66b5739e369a4df94471c8cfe9c054dd070 || -n "$EXPECTED_CHECKOUT_SHA" ]]; then
-            test "$PREVIOUS_MAIN_SHA" = 302ba66b5739e369a4df94471c8cfe9c054dd070
+          elif [[ "$PREVIOUS_MAIN_SHA" == c3307bb811aefaa964c78f855b4d5e405fd606fb ]]; then
+            # PR1704 failed before sync. The earlier PR1702 checkout still needs verification.
+            test "$EXPECTED_CHECKOUT_SHA" = 32155b9eb2c8606b61554951bfdc988d70bbcb39
+            bash tools/check_public_runtime_log_fence.sh structured_events.log
+          elif [[ "$PREVIOUS_MAIN_SHA" == 302ba66b5739e369a4df94471c8cfe9c054dd070 || "$PREVIOUS_MAIN_SHA" == 32155b9eb2c8606b61554951bfdc988d70bbcb39 || -n "$EXPECTED_CHECKOUT_SHA" ]]; then
+            case "$PREVIOUS_MAIN_SHA" in
+              302ba66b5739e369a4df94471c8cfe9c054dd070|32155b9eb2c8606b61554951bfdc988d70bbcb39) ;;
+              *) exit 1 ;;
+            esac
             test "$EXPECTED_CHECKOUT_SHA" = "$PREVIOUS_MAIN_SHA"
-            prior_status="$(curl --max-time 15 -sS -o /dev/null -I -w '%{http_code}' 'https://app.anytoour.ru/structured_events.log')"
-            case "$prior_status" in 403|404) ;; *) exit 1;; esac
+            bash tools/check_public_runtime_log_fence.sh structured_events.log
           fi
           {
             cat tools/deploy_monitor_lock.sh
@@ -238,6 +244,14 @@ jobs:
             exit 1
           fi
           PR1692_CHECKOUT
+            elif [[ "$EXPECTED_CHECKOUT_SHA" == 32155b9eb2c8606b61554951bfdc988d70bbcb39 ]]; then
+              cat <<'PR1702_CHECKOUT'
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          if [[ "$(git rev-parse HEAD)" != 32155b9eb2c8606b61554951bfdc988d70bbcb39 ]]; then
+            echo 'PR1702 predecessor checkout changed' >&2
+            exit 1
+          fi
+          PR1702_CHECKOUT
             elif [[ -n "$EXPECTED_CHECKOUT_SHA" ]]; then
               cat <<'PR1662_CHECKOUT'
           cd /var/www/anytoour/data/www/app.anytoour.ru
@@ -251,8 +265,7 @@ jobs:
           } > "$sync_script"
           scp "${ssh_opts[@]}" "$bundle_file" "$DEPLOY_USER@$DEPLOY_HOST:$remote_bundle"
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'bash -s' < "$sync_script"
-          status="$(curl --max-time 15 -sS -o /dev/null -I -w '%{http_code}' 'https://app.anytoour.ru/structured_events.log')"
-          case "$status" in 403|404) ;; *) echo "Public structured log containment failed: HTTP $status" >&2; exit 1;; esac
+          bash tools/check_public_runtime_log_fence.sh structured_events.log
 
       - name: Apply database migrations and fence the old hotel contour
         id: migration
@@ -573,8 +586,7 @@ jobs:
           php tools/structured_runtime_log_smoke.php --check-only
           CHECK_REMOTE
           for path in ai_debug.log handlers/ai_debug.log handlers/ai_errors.log tmp_in.txt tmp_out.txt structured_events.log; do
-            status="$(curl --max-time 15 -sS -o /dev/null -I -w '%{http_code}' "https://app.anytoour.ru/$path")"
-            case "$status" in 403|404) ;; *) echo "Public runtime log containment failed for $path: HTTP $status" >&2; exit 1;; esac
+            bash tools/check_public_runtime_log_fence.sh "$path"
           done
 
       - name: Download exact installed diagnostic snapshot
