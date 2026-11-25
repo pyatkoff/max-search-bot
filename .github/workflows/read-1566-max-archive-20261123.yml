@@ -1,4 +1,4 @@
-name: "#1566 Independently read the two MAX posts held for public title rendering"
+name: "#1566 Read the original hotel and public links in the commercial Phuket album"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -15,7 +15,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == '4a18d8d766776b22abd742cef8e4409575a08cda' && github.run_attempt == 1
+      github.event.before == 'ec6f573096187f7fc8813777379c7f864afe61ed' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -30,7 +30,8 @@ jobs:
           from concurrent.futures import ThreadPoolExecutor
           from pathlib import Path
           from datetime import datetime,timezone
-          plans=json.loads(r'[{"id":1972,"url":"https://max.ru/anytour/AaBI6Jfvad8","title":"Moreno Horizon Spa & Resort","caption":"✈️ Туры в Moreno Horizon Spa & Resort\n📍 Хургада, Египет\nСобственный пляж, бассейны для взрослых и детей и аквапарк с горками. На территории проходят развлекательные программы."},{"id":32342,"url":"https://max.ru/anytour/AZ_rrRmlYz0","title":"Vinpearl Resort & Spa Phu Quoc","caption":"✈️ Туры в Vinpearl Resort & Spa Phu Quoc\n📍 Фукуок, Вьетнам\nДо пляжа можно дойти пешком. Для отдыха с семьёй или компанией можно выбрать номер или виллу."}]')
+          from urllib.parse import urlparse,parse_qs
+          target="https://max.ru/anytour/AZwEq2zVLGY"
           class Page(HTMLParser):
               def __init__(self):
                   super().__init__(convert_charrefs=True)
@@ -47,38 +48,33 @@ jobs:
                   if not self.hide and v.strip(): self.parts.append(v.strip())
           def norm(v):
               return re.sub(r'\s+',' ',v).strip()
-          def read(row):
-              try:
-                  req=urllib.request.Request(row['url'],headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
-                  with urllib.request.urlopen(req,timeout=10) as r:
-                      raw=r.read(3000001)
-                      status,url=r.status,r.geturl()
-                  assert len(raw)<=3000000 and url==row['url']
-                  p=Page();p.feed(raw.decode('utf-8'))
-                  visible=norm('\n'.join(p.parts).split('Другие публикации канала',1)[0])
-                  declared=norm(p.meta.get('og:description',''))
-                  exact=norm(row['caption'])
-                  out={'hotel_id':row['id'],'url':url,'http':status,'named':row['title'] in visible or row['title'] in declared,
-                       'caption_matches':exact in visible or exact in declared,'photo_preview':bool(p.meta.get('og:image')),
-                       'public_button_label_visible':'Рассчитать на мои даты' in visible,
-                       'page_sha256':hashlib.sha256(raw).hexdigest(),
-                       'escaped_variant_visible': '&amp;' in visible or '&amp;' in declared}
-                  out['verified']=out['named'] and out['caption_matches'] and out['photo_preview']
-                  return out
-              except (OSError,ValueError,AssertionError) as e:
-                  return {'hotel_id':row['id'],'url':row['url'],'error':type(e).__name__,'verified':False}
-          with ThreadPoolExecutor(max_workers=3) as pool:
-              results=list(pool.map(read,plans))
-          if not all(r['verified'] for r in results):
-              time.sleep(5)
-              results=[r if r['verified'] else read(p) for r,p in zip(results,plans)]
-          out={'observed_utc':datetime.now(timezone.utc).isoformat(),'rows':results,'writes':0,'ad_clicks':0}
+          req=urllib.request.Request(target,headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
+          with urllib.request.urlopen(req,timeout=10) as r:
+              raw=r.read(3000001)
+              assert r.status==200 and r.geturl()==target and len(raw)<=3000000
+          p=Page()
+          p.feed(raw.decode('utf-8'))
+          visible=norm('\n'.join(p.parts).split('Другие публикации канала',1)[0])
+          class Links(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.urls=[]
+              def handle_starttag(self,tag,attrs):
+                  if tag=='a':
+                      href=dict(attrs).get('href','')
+                      if href.startswith('https://'): self.urls.append(href)
+          anchors=Links();anchors.feed(raw.decode('utf-8'))
+          out=dict(url=target,text_excerpt=visible[:2200],preview_image=bool(p.meta.get("og:image")),
+                   outbound_hosts=sorted({urlparse(h).hostname for h in anchors.urls if urlparse(h).hostname not in ('max.ru','apps.apple.com','play.google.com')}),
+                   has_attribution_markers=any(re.search(r'ctx1_|yclid|region_id|campaign_id|/channel_anytour/|/any_toour/',h,re.I) for h in anchors.urls),
+                   writes=0,ad_clicks=0,raw_sha256=hashlib.sha256(raw).hexdigest(),
+                   observed_utc=datetime.now(timezone.utc).isoformat())
           Path('pub/observation.json').write_text(json.dumps(out,ensure_ascii=False))
-          print('MAX_TWO_HELD_RENDER_READ='+json.dumps(out,ensure_ascii=False,separators=(',',':')))
+          print('MAX_ALBUM_ORIGINAL_PUBLIC_READ='+json.dumps(out,ensure_ascii=False,separators=(',',':')))
           PY
       - name: Preserve independent public readback
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: max-two-held-render-readback
+          name: max-phuket-album-public-readback
           path: pub/observation.json
           retention-days: 7
