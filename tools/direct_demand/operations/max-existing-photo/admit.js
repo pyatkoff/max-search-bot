@@ -2,7 +2,7 @@
 
 const R = require('../../../../accepted-release/tools/deployment_release');
 const P = require('../../../../accepted-release/tools/release_priority');
-const scope = require('./scope-next-twelve-20261125.json');
+const scope = require('./scope-next-nine-20261125.json');
 const expected = scope.native_source;
 const api = R.makeReadApi(process.env.GITHUB_TOKEN);
 const root = R.API_ROOT;
@@ -33,10 +33,10 @@ async function current() {
 async function admit() {
     await Promise.all([
         original(45373389110,'e1e3d25e42522639e2b82b4bdf32b155a547a184','.github/workflows/read-1566-max-archive-20261123.yml',138373110912,14910511299,'issue-1566-main-max-archive-inventory',scope.archive_sha256),
-        original(expected.run_id,expected.workflow_head,'.github/workflows/anytour-hotel-ads-readonly-20261117.yml',expected.job_id,expected.artifact_id,'max-next-twelve-source-rights',expected.zip_sha256)
+        original(expected.run_id,expected.workflow_head,'.github/workflows/anytour-hotel-ads-readonly-20261117.yml',expected.job_id,expected.artifact_id,'max-next-nine-source-rights',expected.zip_sha256)
     ]);
-    assert(scope.rows.map(row=>row.hotel_id).join(',')==='73343,43689,139,2470,56092,59114,63191,76588,77914,106,111,114' &&
-        scope.route_readback.write_calls===0 && scope.price_review.mode==='caption_without_fixed_price','scoped_next_twelve_changed');
+    assert(scope.rows.map(row=>row.hotel_id).join(',')==='2470,56092,59114,63191,76588,77914,106,111,114' &&
+        scope.route_readback.write_calls===0 && scope.price_review.mode==='caption_without_fixed_price','scoped_next_nine_changed');
     await current();
     console.log('original source, target archive and current HOTEL application verified');
 }

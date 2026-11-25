@@ -17,7 +17,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '4dccfb02baac24c9ed4352f0894bdf7ab1db89a7' &&
+      github.event.before == 'ccebfa8783621c29f3f8349f9d2338ff5f073f92' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -36,7 +36,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: node tools/direct_demand/operations/max-existing-photo/admit.js
-      - name: Verify the existing editor and stage the next twelve confirmed plans
+      - name: Verify the existing editor and stage the nine untouched plans
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -49,15 +49,15 @@ jobs:
           python3 tests/run_1566_max_existing_photo_partial.py
           for file in "$src"/*.php; do php -l "$file"; done
           install -m600 "$src"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php,run_batch.py} pub/stage/
-          install -m600 "$src"/scope-next-twelve-20261125.json pub/stage/scope.json
+          install -m600 "$src"/scope-next-nine-20261125.json pub/stage/scope.json
           cp pub/stage/scope.json pub/manifest.json
           gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14910511299/zip > pub/archive.zip
-          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14988933074/zip > pub/native.zip
+          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14989602374/zip > pub/native.zip
           python3 - <<'PY'
           import hashlib,json,pathlib,re,zipfile
           stage=pathlib.Path('pub/stage')
           scope_bytes=(stage/'scope.json').read_bytes()
-          assert hashlib.sha256(scope_bytes).hexdigest()=="ff442aead8e4e10d1bc701ab0a0ed3d941afcc69a888278c9c06c74d8d8e8010"
+          assert hashlib.sha256(scope_bytes).hexdigest()=="0688c55c44dcdc4ec9e87cc22598f4acf7421cdcdceae942992597b900e2a3fe"
           scope=json.loads(scope_bytes)
           for key,zip_hash,json_hash,output in [
               ('archive',scope['archive_sha256'],scope['archive_registry_sha256'],'native-targets.json'),
@@ -76,11 +76,11 @@ jobs:
           entry.write_text(src)
           PY
           php -l pub/stage/batch_entry.php
-          php pub/stage/editor.php --batch-plan pub/stage/native-targets.json pub/stage/native-source.json 0853d351734156f6b80fed326f2cbe7892e47fec24baac299437bbc245d5aeaa 21b8e93418be0357cc2c7858cd1b0d970a62f4a7 21b8e93418be0357cc2c7858cd1b0d970a62f4a7 > pub/batch-plan.json
+          php pub/stage/editor.php --batch-plan pub/stage/native-targets.json pub/stage/native-source.json 1c5ae095e22acd7db7b6fce367b258a1a811aecbf1552130248240013693179a 21b8e93418be0357cc2c7858cd1b0d970a62f4a7 21b8e93418be0357cc2c7858cd1b0d970a62f4a7 > pub/batch-plan.json
           python3 - <<'PY'
           import json
           data=json.load(open('pub/batch-plan.json'))
-          assert data['ready']==[73343,43689,139,2470,56092,59114,63191,76588,77914,106,111,114] and not data['held'] and data['provider_writes']==0
+          assert data['ready']==[2470,56092,59114,63191,76588,77914,106,111,114] and not data['held'] and data['provider_writes']==0
           PY
           cat > pub/stage/execute.sh <<'SH'
           #!/usr/bin/env bash
