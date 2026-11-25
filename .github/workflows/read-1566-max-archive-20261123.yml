@@ -1,4 +1,4 @@
-name: "#1566 Verify the first five inputs in the current MAX editor compiler"
+name: "#1566 Compile the admitted five MAX inputs on the current installed version"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -15,7 +15,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == '0d221f415c142fcfa54ac28dfac56d6d91011146' && github.run_attempt == 1
+      github.event.before == '86d882830be27b8bd2e6278ccfcc50a86f262ac2' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -27,10 +27,10 @@ jobs:
           umask 077
           gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14910511299/zip > archive.zip
           gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14915153351/zip > legacy.zip
-          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14979199786/zip > five.zip
+          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14983956057/zip > five.zip
           python3 - <<'PY'
           import hashlib,json,pathlib,zipfile
-          inputs=json.loads('{"archive":"c46ce092bfb91935ce829c871026a1136bf465920a3caa9184604f052c55798c","legacy":"3cda5ee09d25fc35f8acfd91027b4b703d9934718772b2bf6fbe0797044b0cd9","five":"5c689814bf38f3c906a8f50d4f90a06b983474b991093b971f18b6df151da335"}')
+          inputs=json.loads('{"archive":"c46ce092bfb91935ce829c871026a1136bf465920a3caa9184604f052c55798c","legacy":"3cda5ee09d25fc35f8acfd91027b4b703d9934718772b2bf6fbe0797044b0cd9","five":"594f558a87311ed49355a5ea6e8407a10bd625ada3dfe9ae664a43ad1a7ffb4d"}')
           for key,digest in inputs.items():
               raw=pathlib.Path(key+'.zip')
               assert raw.stat().st_size<200000 and hashlib.sha256(raw.read_bytes()).hexdigest()==digest
@@ -281,12 +281,16 @@ jobs:
           maxEditNeed(count($old['ready'])===7 && $old['held']===[] && $old['provider_writes']===0,'legacy_scope_changed');
           $five=$scope;
           $five['rows']=json_decode(file_get_contents('five-rows.json'),true,32,JSON_THROW_ON_ERROR);
-          $five['native_source']['operation']='max_five_ranked_read_only';
+          $five['native_source']=['operation'=>'max_five_ranked_read_only','run_id'=>45527918795,'attempt'=>1,'job_id'=>138915747851,'workflow_head'=>'3d6b1fc2f1e3bb70c28d81c8eaaf0a559d64d2e3',
+            'artifact_id'=>14983956057,'zip_sha256'=>'594f558a87311ed49355a5ea6e8407a10bd625ada3dfe9ae664a43ad1a7ffb4d','json_sha256'=>hash_file('sha256','five.json'),'repository_sha'=>'73c80433c4d18edaff5cff2d4344a41511c6134b','application_sha'=>'73c80433c4d18edaff5cff2d4344a41511c6134b'];
           try {$new=$compile('five',$five);$error=null;} catch(RuntimeException $e){$new=null;$error=$e->getMessage();}
           if($argv[1]==='original'){
               maxEditNeed($error==='invalid_native_evidence','original_defect_not_reproduced');
           }else{
               maxEditNeed($new!==null && array_keys($new['ready'])===[1972,2588,32342,57028,65877] && $new['held']===[] && $new['provider_writes']===0, 'five_scope_not_accepted');
+              $scopeBytes=maxEditJson($five)."\n";
+              echo 'MAX_FIRST_FIVE_SCOPE_SHA256=',hash('sha256',$scopeBytes),PHP_EOL;
+              echo 'MAX_FIRST_FIVE_SCOPE_BASE64=',base64_encode($scopeBytes),PHP_EOL;
               foreach(['unsupported_operation','max_seven_source_rights'] as $wrong){
                   $five['native_source']['operation']=$wrong;
                   try {$compile('five',$five);throw new LogicException('wrong_operation_accepted');}
@@ -302,3 +306,30 @@ jobs:
           php -l adapted.php
           php check.php original
           php check.php adapted
+
+          python3 - <<'PY'
+          import json,urllib.request,urllib.parse
+          from datetime import date
+          start=date(2026,11,25)
+          params=[('tourvisorHotelIds[]',str(x)) for x in (1972,2588,32342,57028,65877)]
+          url='https://anytoour.ru/data/hotel-monitor-prices-read-v1.php?'+urllib.parse.urlencode(params+[('departureId','1'),('dateFrom',str(start)),('dateTo','2027-10-31')])
+          try:
+              req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0","Cache-Control":"no-cache"})
+              with urllib.request.urlopen(req,timeout=12) as res:
+                  raw=res.read(3000001)
+              assert 0<len(raw)<=3000000
+              obj=json.loads(raw)
+              from pathlib import Path
+              Path('price.json').write_bytes(raw)
+              arrays={}
+              def compact(x,where=''):
+                  if isinstance(x,dict):
+                      for k,v in x.items():
+                          if isinstance(v,(dict,list)): compact(v,where+'/'+k)
+                  elif isinstance(x,list) and x and isinstance(x[0],dict):
+                      arrays[where]={'count':len(x),'first':dict(list(x[0].items())[:32])}
+              compact(obj)
+              print('MAX_FIRST_FIVE_PRICE_READ='+json.dumps({'keys':list(obj) if isinstance(obj,dict) else [],'arrays':arrays},ensure_ascii=False)[:4500])
+          except Exception as e:
+              print('MAX_FIRST_FIVE_PRICE_READ='+json.dumps({'error':type(e).__name__}))
+          PY
