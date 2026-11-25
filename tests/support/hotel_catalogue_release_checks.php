@@ -51,19 +51,10 @@ function hotelCatalogueReleaseChecks(array $manifest, int $now): void
             $built = $run(['node', $node, 'build', $current, $reader, $candidate, $archive]);
             $verified = $run(['node', $node, 'verify', $current, $reader, $archive, $built['package_sha256']]);
             if ($built !== $verified) throw new RuntimeException('hotel_release_verified_receipt_changed');
-            $target = $releases.'/'.$verified['package_sha256'].'-'.$verified['reader_sha256'];
-            mkdir($target.'/hotels', 0700, true);
-            $payload = json_decode(file_get_contents($archive), true, 32, JSON_THROW_ON_ERROR);
-            foreach ($payload['files'] as [$file, $bytes]) {
-                if ($file !== basename($file) || in_array($file, ['.', '..'], true)
-                    || file_put_contents($target.'/hotels/'.$file, base64_decode($bytes, true)) === false) {
-                    throw new RuntimeException('hotel_release_fixture_materialization_failed');
-                }
-            }
-            $seal = array_intersect_key($verified, array_flip(['contract','package_sha256','reader_sha256']));
-            $seal['catalogue_index_sha256'] = hash_file('sha256', $target.'/hotels/catalogue.json');
-            file_put_contents($target.'/release.json', json_encode($seal, JSON_THROW_ON_ERROR));
-            return $target;
+            $prepared = $run(['node', $node, 'stage', $current, $reader, $archive, $built['package_sha256'], $releases]);
+            $version = $built['package_sha256'].'-'.$built['reader_sha256'];
+            if (($prepared['staged_version'] ?? null) !== $version) throw new RuntimeException('hotel_release_stage_identity_changed');
+            return $releases.'/'.$version;
         };
         $base = $stage('base', $root.'/empty', $app.'/knowledge/hotels');
         $next = $stage('next', $app.'/knowledge/hotels', $root.'/next');

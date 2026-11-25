@@ -136,6 +136,7 @@ with their exact source bytes. Use the approved deployed reader file as
 ```sh
 node tools/hotel_catalogue_package.js build "$CURRENT" "$READER" "$STAGED" "$PACKAGE"
 node tools/hotel_catalogue_package.js verify "$CURRENT" "$READER" "$PACKAGE" "$EXPECTED_SHA256"
+node tools/hotel_catalogue_package.js stage "$CURRENT" "$READER" "$PACKAGE" "$EXPECTED_SHA256" "$RELEASES"
 ```
 
 Build creates a private file at a previously unused path and emits a JSON
@@ -146,10 +147,15 @@ pin and recomputes the append-only decision against the supplied current
 snapshot. It checks the same file and size boundaries on input and on the
 received package. It needs neither a Git checkout nor the staging directory.
 
-This prepares and verifies transport. Independent content approvals, the full
-typed checks in `ManagerHotelKnowledge` and production release admission are
-still needed for activation. The command prepares private data and has no
-activation, rollback or provider-write entry point.
+Stage verifies the archive against the same current snapshot and reader bytes
+before creating a version in the existing private `RELEASES` directory. It
+preserves each member byte, reserves the version without replacing an existing
+directory, and writes the readiness seal after the members. A duplicate stage
+fails with `EEXIST`. The active pointer is untouched.
+
+Independent content approvals, the full typed checks in
+`ManagerHotelKnowledge` and production release admission are needed for
+activation.
 
 ## Read a selected immutable version
 

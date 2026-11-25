@@ -160,17 +160,51 @@ function verifyPackage(current, reader, bytes, expectedSha) {
   }
   const receipt = packageReceipt(sealPackage(current, staged, reader), staged);
   if (receipt.package_sha256 !== expectedSha) throw new Error('package_binding_mismatch');
-  return receipt;
+  return {receipt, staged};
+}
+
+function stageVersion(root, {receipt, staged}) {
+  const releases = path.resolve(root);
+  const stat = fs.lstatSync(releases);
+  if (!stat.isDirectory() || fs.realpathSync(releases) !== releases || (stat.mode & 0o022) !== 0) {
+    throw new Error('invalid_catalogue_release_directory');
+  }
+  const version = receipt.package_sha256 + '-' + receipt.reader_sha256;
+  const target = path.join(releases, version);
+  // Reserve the version exclusively. A duplicate request must never clean up or alter it.
+  fs.mkdirSync(target, {mode:0o700});
+  try {
+    const hotels = path.join(target, 'hotels');
+    fs.mkdirSync(hotels, {mode:0o700});
+    for (const [name, data] of staged) {
+      fs.writeFileSync(path.join(hotels, name), data, {flag:'wx', mode:0o600});
+    }
+    const catalogue_index_sha256 = digest(staged.get(INDEX));
+    const {contract, package_sha256, reader_sha256} = receipt;
+    const seal = {contract, package_sha256, reader_sha256, catalogue_index_sha256};
+    const temporarySeal = path.join(target, '.release.json');
+    fs.writeFileSync(temporarySeal, JSON.stringify(seal) + '\n', {flag:'wx', mode:0o600});
+    // The serving reader cannot use this directory before its seal is present.
+    fs.renameSync(temporarySeal, path.join(target, 'release.json'));
+    return {...receipt, catalogue_index_sha256, staged_version:version};
+  } catch (error) {
+    fs.rmSync(target, {recursive:true, force:true});
+    throw error;
+  }
 }
 
 function main(args) {
-  const [action, current, reader, inputs, last] = args;
-  if (args.length !== 5 || !['build', 'verify'].includes(action)) {
-    throw new Error('usage: build CURRENT READER STAGED PACKAGE | verify CURRENT READER PACKAGE SHA256');
+  const [action, current, reader, inputs, last, releases] = args;
+  const actionArity = {build:5, verify:5, stage:6};
+  if (args.length !== actionArity[action]) {
+    throw new Error('usage: build CURRENT READER STAGED PACKAGE | verify CURRENT READER PACKAGE SHA256 | stage CURRENT READER PACKAGE SHA256 RELEASES');
   }
   const baseline = readSnapshot(current);
   const contract = readFile(reader, 131072);
-  if (action === 'verify') return verifyPackage(baseline, contract, readFile(inputs, MAX_PACKAGE), last);
+  if (action !== 'build') {
+    const verified = verifyPackage(baseline, contract, readFile(inputs, MAX_PACKAGE), last);
+    return action === 'stage' ? stageVersion(releases, verified) : verified.receipt;
+  }
 
   const staged = readSnapshot(inputs);
   const seal = sealPackage(baseline, staged, contract);

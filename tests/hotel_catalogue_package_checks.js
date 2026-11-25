@@ -61,6 +61,40 @@ try {
   const verify = (file, hash, error, current = base, contract = reader) =>
     assertCommand(['verify', current, contract, file, hash], error);
   assert.deepEqual(verify(packageFile, receipt.package_sha256), receipt);
+  const releases = path.join(root, 'releases');
+  fs.mkdirSync(releases, {mode:0o700});
+  const pointer = path.join(releases, 'current');
+  fs.symlinkSync(base, pointer);
+  const stage = (hash, error, current = base, contract = reader, target = releases) =>
+    assertCommand(['stage', current, contract, packageFile, hash, target], error);
+  stage('0'.repeat(64), /package_digest_mismatch/);
+  stage(receipt.package_sha256, /package_binding_mismatch/, base, otherReader);
+  stage(receipt.package_sha256, /catalogue_append_not_admitted/, candidate);
+  const rootAlias = path.join(root, 'release-alias');
+  fs.symlinkSync(releases, rootAlias);
+  stage(receipt.package_sha256, /invalid_catalogue_release_directory/, base, reader, rootAlias);
+  assert.deepEqual(fs.readdirSync(releases), ['current']);
+  const staged = stage(receipt.package_sha256);
+  const version = receipt.package_sha256 + '-' + receipt.reader_sha256;
+  const target = path.join(releases, version);
+  const catalogue_index_sha256 = digest(fs.readFileSync(path.join(candidate, 'catalogue.json')));
+  assert.deepEqual(staged, {...receipt, catalogue_index_sha256, staged_version:version});
+  const members = fs.readdirSync(candidate).sort();
+  assert.deepEqual(fs.readdirSync(path.join(target, 'hotels')).sort(), members);
+  for (const member of members) {
+    const installed = path.join(target, 'hotels', member);
+    assert.deepEqual(fs.readFileSync(installed), fs.readFileSync(path.join(candidate, member)));
+    assert.equal(fs.statSync(installed).mode & 0o777, 0o600);
+  }
+  const seal = path.join(target, 'release.json');
+  const originalSeal = fs.readFileSync(seal);
+  assert.deepEqual(JSON.parse(originalSeal), {contract:receipt.contract, package_sha256:receipt.package_sha256,
+    reader_sha256:receipt.reader_sha256, catalogue_index_sha256});
+  assert.equal(fs.statSync(target).mode & 0o777, 0o700);
+  assert.deepEqual(fs.readdirSync(target).sort(), ['hotels', 'release.json']);
+  stage(receipt.package_sha256, /EEXIST/);
+  assert.deepEqual(fs.readFileSync(seal), originalSeal);
+  assert.equal(fs.readlinkSync(pointer), base);
   assert.deepEqual(assertCommand(['build', base, reader, candidate, secondPackage]), receipt);
   assert.deepEqual(fs.readFileSync(packageFile), fs.readFileSync(secondPackage));
   assertCommand(['build', base, reader, candidate, secondPackage], /EEXIST/);
