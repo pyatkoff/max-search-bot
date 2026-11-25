@@ -1,4 +1,4 @@
-name: "HOTEL: refresh nine MAX pairs after the PR1714 release"
+name: "HOTEL: verify the Radisson Blu reserve photo post"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -19,7 +19,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '33ba544afde73255d0e69f053090be29c7cf81a1' &&
+      github.event.before == '3e35f7a0d55c7b17a508f9700518685d413f727c' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 18
@@ -72,7 +72,7 @@ jobs:
                   if (record.blob !== latest.blob || record.record_digest !== latest.record_digest ||
                       await current() !== expected) throw Error('accepted_release_changed')
                   require('node:fs').appendFileSync(process.env.GITHUB_ENV, 'VERIFIED_MAX_APP='+actual.application_sha+'\n')
-                  console.log('MAX_NEXT_NINE_RELEASE_ACCEPTED='+expected)
+                  console.log('MAX_RADISSON_RESERVE_RELEASE_ACCEPTED='+expected)
                   return
                 } catch (error) {
                   if (!['release_pending','diagnostics_unconfirmed','accepted_release_mismatch'].includes(error.code || error.message)) throw error
@@ -84,7 +84,7 @@ jobs:
           }
           read().catch(e=>{console.error('release_refused='+(e.code||e.message||'accepted_release_unavailable'));process.exitCode=1})
           NODE
-      - name: Prepare the next nine source and destination comparisons
+      - name: Prepare the exact Radisson Blu source and reserve target
         shell: bash
         run: |
           set -euo pipefail
@@ -136,8 +136,6 @@ jobs:
                   'source_caption_matches_registry'=>($reg['text']??null)===$nativeText,
                   'source_photo_matches_registry'=>(string)($reg['attachments'][0]['photo_id']??'')===(string)($photo['photo_id']??''),
                   'source_hotel_id_matches'=>(int)$binding===$id,
-                  'source_price_record_ref'=>(int)($reg['metadata']['monitor_price_record_id']??0),
-                  'source_price_observation_text'=>preg_match('/Цена найдена мониторингом[^\r\n]*/u',$nativeText,$obs)===1?mb_substr($obs[0],0,140):null,
                   'source_catalog_id'=>(int)$binding,'source_name_in_native_caption'=>$hotelNameInNative,
                   'source_button_count'=>count($buttons),'source_one_button_matches_url'=>$oneRegistryUrl,
                   'source_button_resolves_publication'=>$samePublication,
@@ -146,6 +144,8 @@ jobs:
                   'source_button_resolves_to_hotel'=>is_array($resolved)&&(int)($resolved['publication_id']??0)===$r['source_id']
                     && ($resolved['message_id']??null)===$mid && (int)($resolved['snapshot']['metadata']['hotel_catalog_id']??0)===$id,
                   'target_mid'=>$r['target_mid'],'target_url'=>$r['target_url'],'target_matches_native_archive'=>$targetMatches,
+                  'target_public_caption'=>mb_substr((string)($before['text']??''),0,1300),
+                  'target_single_photo'=>count($before['attachments']??[])===1&&($before['attachments'][0]['type']??'')==='image',
                   'target_occupied'=>$occupied,'source_held'=>$claimed,'target_or_hotel_registry_conflicts'=>$conflicts];
               $checks=['source_caption_nonempty','native_source_photo_reusable','source_caption_matches_registry','source_photo_matches_registry','source_hotel_id_matches','source_single_registry_button','source_button_resolves_to_hotel','target_matches_native_archive'];
               $missing=array_values(array_filter($checks,static fn($k)=>!$result[$k]));
@@ -154,7 +154,7 @@ jobs:
               return $result;
           }
           $root='/var/www/anytoour/data/www/app.anytoour.ru';$expected='VERIFIED_MAX_APPLICATION_SHA';
-          $out=['ok'=>false,'operation'=>'max_next_nine_read_only','repository_sha'=>'21b8e93418be0357cc2c7858cd1b0d970a62f4a7','application_sha'=>$expected,
+          $out=['ok'=>false,'operation'=>'max_radisson_reserve_read_only','repository_sha'=>'21b8e93418be0357cc2c7858cd1b0d970a62f4a7','application_sha'=>$expected,
               'archive_run'=>45373389110,'db_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,'rows'=>[]];
           function installedHere(string $root, string $expected): bool {
               return PHP_SAPI==='cli' && getcwd()===$root && trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'))===$expected
@@ -178,7 +178,6 @@ jobs:
                   expectRow(is_array($channel)&&(int)$channel['id']===4,'unexpected_target_channel');
                   maxTransferNativeEditor($channel,['channel_id'=>'-68765999669267','config_version'=>(int)$channel['config_version']]);
                   $out['target_editor_rights']=true;$out['channel_config_version']=$channel['config_version'];
-                  $out['channel_button_text']=$channel['button_text'];
                   foreach (json_decode('__MAX_ROWS_JSON__',true,32,JSON_THROW_ON_ERROR) as $row) {
                       try { $out['rows'][]=observePair($pdo,$registry,$channel,$row); }
                       catch(Throwable $err) { $out['rows'][]=['hotel_id'=>$row['hotel_id'],'source_id'=>$row['source_id'],'target_url'=>$row['target_url'],'blockers'=>[safeReason($err)]]; }
@@ -192,19 +191,19 @@ jobs:
           PHP
           python3 - <<'PYBIND'
           import json,os,pathlib,re
-          plans=json.loads("[{\"hotel_id\":2470,\"source_id\":1468,\"source_url\":\"https://max.ru/channel_anytour/AaHlf5z_ODQ\",\"target_url\":\"https://max.ru/anytour/AaC42fW_AY0\",\"target_mid\":\"mid.ffffc1752b045fed01a0b8d9f5bf018d\",\"target_ms\":1789807687103,\"target_fingerprint\":\"737aabd9ac6837e47e3d2e0f768f2386db5a93c11d24203be57d092b5f410c8a\",\"name\":\"Sun Siyam Olhuveli\"},{\"hotel_id\":56092,\"source_id\":283,\"source_url\":\"https://max.ru/channel_anytour/AaGeilyCad0\",\"target_url\":\"https://max.ru/anytour/AaDD8UQLQ4U\",\"target_mid\":\"mid.ffffc1752b045fed01a0c3f1440b4385\",\"target_ms\":1789993763851,\"target_fingerprint\":\"3daf2a678a4fd0557ea60a9aaf72478cd1d3acb28722867566d6264b5ffa223e\",\"name\":\"Gravity Hotel & Aqua Park Hurghada\"},{\"hotel_id\":59114,\"source_id\":1374,\"source_url\":\"https://max.ru/channel_anytour/AaHcqEDjA3Y\",\"target_url\":\"https://max.ru/anytour/AaDYcRGJKpQ\",\"target_mid\":\"mid.ffffc1752b045fed01a0d87111892a94\",\"target_ms\":1790337683849,\"target_fingerprint\":\"29e99e1737fe183e5c13269cfde5ea8b5eb3376d512efced12a2863b7c436243\",\"name\":\"Akdora Elite Hotel & Spa\"},{\"hotel_id\":63191,\"source_id\":1496,\"source_url\":\"https://max.ru/channel_anytour/AaHlgTobEZw\",\"target_url\":\"https://max.ru/anytour/AaELd0cFVAQ\",\"target_mid\":\"mid.ffffc1752b045fed01a10b7747055404\",\"target_ms\":1791193728773,\"target_fingerprint\":\"46e816edf55ef86c71d58b25e78ea26d26fe5ee87444f2d2fba87d50b3d136af\",\"name\":\"Jumeirah Saadiyat Island\"},{\"hotel_id\":76588,\"source_id\":718,\"source_url\":\"https://max.ru/channel_anytour/AaG2zkytfiM\",\"target_url\":\"https://max.ru/anytour/AaEba-dgJKk\",\"target_mid\":\"mid.ffffc1752b045fed01a11b6be76024a9\",\"target_ms\":1791461418848,\"target_fingerprint\":\"f5725724b78bb616225f2171dc4878201c1cd842aa4d7f3d96bf3f58f03c03dd\",\"name\":\"Liu Resorts\"},{\"hotel_id\":77914,\"source_id\":181,\"source_url\":\"https://max.ru/channel_anytour/AaGc6ZyuFlA\",\"target_url\":\"https://max.ru/anytour/AaEl-MVcT8Q\",\"target_mid\":\"mid.ffffc1752b045fed01a125f8c55c4fc4\",\"target_ms\":1791638422876,\"target_fingerprint\":\"db6e6af8df6138f132a927485f4b72b7864399866bfe21d9d066254a51974873\",\"name\":\"Sunrise Tucana Resort\"},{\"hotel_id\":106,\"source_id\":1042,\"source_url\":\"https://max.ru/channel_anytour/AaG3snxOWfo\",\"target_url\":\"https://max.ru/anytour/AaEwSMavEQU\",\"target_mid\":\"mid.ffffc1752b045fed01a13048c6af1105\",\"target_ms\":1791811438255,\"target_fingerprint\":\"0907be808fe30854293c6edf63c403c4221fc7801909e927404474658fd70dc2\",\"name\":\"Aladdin Beach Resort\"},{\"hotel_id\":111,\"source_id\":355,\"source_url\":\"https://max.ru/channel_anytour/AaGisi-ve3Q\",\"target_url\":\"https://max.ru/anytour/AaE0q57XSGk\",\"target_mid\":\"mid.ffffc1752b045fed01a134ab9ed74869\",\"target_ms\":1791885024983,\"target_fingerprint\":\"28cdc2545fb89806feee400a6acb5cb892db1c9c0e6c17b87bae69c984c70d16\",\"name\":\"Pickalbatros Palace Resort Hurghada\"},{\"hotel_id\":114,\"source_id\":1043,\"source_url\":\"https://max.ru/channel_anytour/AaG3soUIZh0\",\"target_url\":\"https://max.ru/anytour/AaE6sgknSuc\",\"target_mid\":\"mid.ffffc1752b045fed01a13ab209274ae7\",\"target_ms\":1791986108711,\"target_fingerprint\":\"f490eaff0990f02815f154b52aa6c0f8955211f348768498c0eaffc2cb28e0e3\",\"name\":\"Ali Baba Palace\"}]")
+          plans=json.loads("[{\"hotel_id\":63674,\"source_id\":643,\"source_url\":\"https://max.ru/channel_anytour/AaG2erwGCro\",\"target_url\":\"https://max.ru/anytour/AaAuJeZbQAc\",\"target_mid\":\"mid.ffffc1752b045fed01a02e25e65b4007\",\"target_ms\":1787480630875,\"target_fingerprint\":\"8fb9c0628fcea7df16218bd61670ac1221142da93f95545d710ffee84de529f3\",\"name\":\"Radisson Blu Resort Phu Quoc\"}]")
           path=pathlib.Path('pub/read-only.php')
           source=path.read_text()
           app=os.environ['VERIFIED_MAX_APP']
           assert re.fullmatch('[a-f0-9]{40}',app) and source.count('VERIFIED_MAX_APPLICATION_SHA')==source.count('__MAX_ROWS_JSON__')==1
-          assert len(plans)==len({r['hotel_id'] for r in plans})==len({r['target_mid'] for r in plans})==9
+          assert len(plans)==len({r['hotel_id'] for r in plans})==len({r['target_mid'] for r in plans})==1
           source=source.replace('VERIFIED_MAX_APPLICATION_SHA',app)
-          for start in range(0,len(plans),3):
-              data=json.dumps(plans[start:start+3],ensure_ascii=False,separators=(',',':'))
+          for start in range(0,len(plans),4):
+              data=json.dumps(plans[start:start+4],ensure_ascii=False,separators=(',',':'))
               data=data.replace(chr(92),chr(92)*2).replace(chr(39),chr(92)+chr(39))
-              pathlib.Path(f'pub/read-{start//3+1}.php').write_text(source.replace('__MAX_ROWS_JSON__',data))
+              pathlib.Path(f'pub/read-{start//4+1}.php').write_text(source.replace('__MAX_ROWS_JSON__',data))
           PYBIND
-          for part in 1 2 3; do php -l "pub/read-$part.php"; done
+          for part in 1; do php -l "pub/read-$part.php"; done
       - name: Pin established SSH host continuity and authentication identity
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -237,7 +236,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read the next nine MAX source and destination pairs
+      - name: Read the Radisson Blu source and old target
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -248,13 +247,13 @@ jobs:
           options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          for part in 1 2 3; do
+          for part in 1; do
             ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < "pub/read-$part.php" > "pub/native-$part.json" || true
           done
           python3 - <<'PY'
           import json,pathlib
-          output={"operation":"max_next_nine_read_only","provider_writes":0,"db_writes":0,"bot_starts":0,"groups":[],"rows":[]}
-          planned=[[2470,56092,59114],[63191,76588,77914],[106,111,114]]
+          output={"operation":"max_radisson_reserve_read_only","provider_writes":0,"db_writes":0,"bot_starts":0,"groups":[],"rows":[]}
+          planned=[[63674]]
           for index,ids in enumerate(planned,1):
               try:
                   part=json.loads(pathlib.Path(f'pub/native-{index}.json').read_bytes())
@@ -266,21 +265,23 @@ jobs:
                   output["groups"].append({"ids":ids,"failure":part.get("failure","group_failed")})
                   continue
               assert part["target_editor_rights"] is True and [row["hotel_id"] for row in part["rows"]]==ids
-              for key in ("application_sha","repository_sha","archive_run","channel_config_version","target_editor_rights","channel_button_text"):
+              for key in ("application_sha","repository_sha","archive_run","channel_config_version"):
                   assert output.setdefault(key,part[key])==part[key]
               output["groups"].append({"ids":ids,"read_utc":part["read_utc"]})
               output["rows"].extend(part["rows"])
-          output["ok"]=len(output["rows"])==9
+          output["ok"]=len(output["rows"])==1
           pathlib.Path("pub/registry.json").write_text(json.dumps(output,ensure_ascii=False))
-          print("MAX_NEXT_NINE_GROUPS="+json.dumps(output["groups"]))
-          print("MAX_NEXT_NINE_BLOCKERS="+json.dumps([[row["hotel_id"],row["blockers"]] for row in output["rows"]]))
+          print("MAX_RADISSON_RESERVE_GROUPS="+json.dumps(output["groups"]))
+          print("MAX_RADISSON_RESERVE_BLOCKERS="+json.dumps([[row["hotel_id"],row["blockers"]] for row in output["rows"]]))
+          if output["ok"]:
+              print("MAX_RADISSON_RESERVE_ROW="+json.dumps(output["rows"][0],ensure_ascii=False))
           if not output["ok"]: raise SystemExit(2)
           PY
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: max-next-nine-source-rights
+          name: max-radisson-reserve-source-rights
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
