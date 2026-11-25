@@ -1,4 +1,4 @@
-name: "#1566 Identify the active public MAX caption fields for PRICE"
+name: "#1566 Verify the existing PRICE reader fix against the two live MAX posts"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -15,63 +15,54 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == '5db142ac5925f235894f81cef10a40064ab6eb8c' && github.run_attempt == 1
+      github.event.before == '9b5f5354a4ddc3256dfae0bdd4f1c71b3ae133ec' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Inspect the exact public post layout without calling the editor
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: "4da1c3b125e31672e7bec1fdfb4995a8cb0f9d90"
+          persist-credentials: false
+      - name: Read two live captions using the production PRICE reader without invoking its writer
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           mkdir pub
-          python3 - <<'PY'
-          import json,re,urllib.request,html
-          from html.parser import HTMLParser
-          from datetime import datetime,timezone
-          from pathlib import Path
-          expected=[('https://max.ru/anytour/AZ-d-XrfADw','Туры в Vesna Hotel'),
-                    ('https://max.ru/anytour/AaC42fW_AY0','Туры в Sun Siyam Olhuveli')]
-          class PostLayout(HTMLParser):
-              def __init__(self, title):
-                  super().__init__(convert_charrefs=True)
-                  self.title=title
-                  self.stack=[]
-                  self.paths=[]
-              def handle_starttag(self,tag,attrs):
-                  if tag not in ('area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'):
-                      attrs=dict(attrs)
-                      self.stack.append((tag,attrs.get('class','')[:100],list(attrs.keys())[:10]))
-              def handle_endtag(self,tag):
-                  for i in range(len(self.stack)-1,-1,-1):
-                      if self.stack[i][0]==tag:
-                          self.stack=self.stack[:i]
-                          break
-              def handle_data(self,text):
-                  if self.title in text and self.stack and self.stack[-1][0] != 'script':
-                      self.paths.append(self.stack[-8:])
-          out=[]
-          for url,title in expected:
-              request=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
-              with urllib.request.urlopen(request,timeout=12) as r:
-                  b=r.read(3000001)
-                  assert len(b)<=3000000 and r.status==200 and r.geturl()==url
-              body=b.decode('utf-8')
-              paths=PostLayout(title);paths.feed(body)
-              args=[]
-              for m in list(re.finditer(r'\bmessage\s*:',body))[:5]:
-                  around=body[max(0,m.start()-25):m.start()+200]
-                  args.append(re.sub(r'(?s)(["\'])(?:[^"\'\\]|\\.)*\1','"..."',around))
-              snippets=[]
-              for match in list(re.finditer(re.escape(title),body))[:8]:
-                  snippets.append(body[max(0,match.start()-115):match.start()+len(title)+32])
-              out.append({'url':url,'message_shapes':args,'title_containers':paths.paths[:6],'title_markup_snippets':snippets})
-          value={'observed_utc':datetime.now(timezone.utc).isoformat(),'rows':out,'writes':0}
-          Path('pub/structure.json').write_text(json.dumps(value,ensure_ascii=False))
-          print('MAX_PRICE_PUBLIC_LAYOUT='+json.dumps(value,ensure_ascii=False,separators=(',',':')))
-          PY
+          php -l services/PromotedHotelPriceWriter.php
+          php tests/run_promoted_hotel_price_writer_regression.php
+          cat > pub/scope.json <<'JSON'
+          [{"hotel_id":65877,"url":"https://max.ru/anytour/AZ-d-XrfADw","caption":"✈️ Туры в Vesna Hotel\n📍 Нячанг, Вьетнам\nГородской отель для поездки с семьёй. До пляжа около 50 метров через дорогу."},{"hotel_id":2470,"url":"https://max.ru/anytour/AaC42fW_AY0","caption":"✈️ Туры в Sun Siyam Olhuveli\n📍 Южный Мале, Мальдивы\nПляжи, бассейны и водные развлечения. Для семей есть детский клуб и подходящие номера и виллы. Отдельная зона Romance предназначена для взрослых."}]
+          JSON
+          php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          require 'services/PromotedHotelPriceWriter.php';
+          $plans=json_decode(file_get_contents('pub/scope.json'),true,16,JSON_THROW_ON_ERROR);
+          $rows=[];
+          foreach($plans as $p) {
+              $r=['hotel_id'=>$p['hotel_id'],'url'=>$p['url'],'public_read'=>false,'production_parser'=>false,'exact_expected_caption'=>false];
+              try {
+                  $html=PromotedHotelPriceWriter::publicBytes($p['url']);
+                  $r['public_read']=true;
+                  $r['html_sha256']=hash('sha256',$html);
+                  $r['old_ssr_marker_present']=str_contains($html,'message:{text:');
+                  $r['exact_post_slug_present']=str_contains($html,basename($p['url']));
+                  $r['new_ssr_field_markers']=array_values(array_filter(['"message":','"text":','message:','post__description','post__text','og:description','data-page'],static fn($x)=>str_contains($html,$x)));
+                  $caption=PromotedHotelPriceWriter::maxPublicCaption($html, $p['url']);
+                  $r['production_parser']=true;
+                  $r['exact_expected_caption']=$caption===$p['caption'];
+              } catch(Throwable $error) {
+                  $r['failure']=preg_match('/\A[a-z_]{3,65}\z/D',$error->getMessage())?$error->getMessage():'public_read_failed';
+              }
+              $rows[]=$r;
+          }
+          $out=['observed_utc'=>gmdate(DATE_ATOM),'provider_writes'=>0,'db_writes'=>0,'rows'=>$rows];
+          file_put_contents('pub/observation.json',json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+          echo 'MAX_PRICE_PUBLIC_READER_FIX=',json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          PHP
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: max-price-public-layout-posts-only
-          path: pub/structure.json
+          name: max-price-public-caption-fix-proof
+          path: pub/observation.json
           retention-days: 7
