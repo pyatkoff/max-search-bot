@@ -1,4 +1,4 @@
-name: "#1566 Read saved1981 source and old957 photos without server access"
+name: "#1566 Read original1727 installation and technical closure"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -6,6 +6,8 @@ on:
 permissions:
   contents: read
   actions: read
+  issues: read
+  pull-requests: read
 jobs:
   registry:
     if: >-
@@ -13,68 +15,75 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == '1350fb49087058eb13b4d7504cfb867906e277da' &&
+      github.event.before == 'd4f6f6c6851020239f5fc7a16e55c9cbdabe72ba' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 23
     steps:
-      - name: Read the two photos from the exact original public observation
+      - name: Check out the exact merged existing canonical resolver
+        uses: actions/checkout@v4
+        with:
+          ref: 703b239adbcfb1f480265f3a7beea566f6d07002
+          persist-credentials: false
+      - name: Observe only the original1727 deploy and original technical closer
         env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          umask 077
           mkdir -p pub
-          gh api repos/pyatkoff/max-search-bot/actions/artifacts/15057327244/zip > "$RUNNER_TEMP/public.zip"
-          python3 - <<'PY'
-          import pathlib,zipfile,hashlib,json,os,urllib.request,urllib.parse,urllib.error,datetime,re
-          zpath=pathlib.Path(os.environ['RUNNER_TEMP'],'public.zip')
-          raw=zpath.read_bytes()
-          assert len(raw)==8923 and hashlib.sha256(raw).hexdigest()=='9f132c15b2c96253a9f32ad5fee1445ce88d0a2a78c8fedc542b100023c5867e'
-          with zipfile.ZipFile(zpath) as z:
-              assert z.namelist()==['prepared4-pair-public.json'] and z.testzip() is None
-              data=z.read('prepared4-pair-public.json')
-          assert hashlib.sha256(data).hexdigest()=='e7dbe7c5a5ab167b11722402ee4bab051c39e878493c0b56c2194b61535945c8'
-          d=json.loads(data)
-          assert d['native_run_id']=='45688118739' and d['reader_source_sha']=='1350fb49087058eb13b4d7504cfb867906e277da'
-          rows=[r for r in d['rows'] if r['hotel_id']==1981]
-          assert len(rows)==2 and {r['role'] for r in rows}=={'source','target'}
-          class NoRedirect(urllib.request.HTTPRedirectHandler):
-              def redirect_request(self,*args,**kwargs):return None
-          opener=urllib.request.build_opener(NoRedirect)
-          out={'issue':1566,'operation':'existing_reader_prepared1981_photo_observation','original_public_run':'45688118739','original_public_artifact':15057327244,'native_run_id':os.environ['GITHUB_RUN_ID'],'reader_source_sha':os.environ['GITHUB_SHA'],'write_admission':False,'server_calls':0,'provider_writes':0,'production_writes':0,'rows':[]}
-          for r in rows:
-              v=r['public'];url=v['photo_url'];u=urllib.parse.urlsplit(url)
-              assert v['single_photo'] is True and r['message_id']==('25' if r['role']=='source' else '957')
-              assert u.scheme=='https' and not u.username and not u.password and u.port is None
-              assert re.fullmatch(r'(?:[a-z0-9-]+\.)*(?:cdn-telegram\.org|telegram-cdn\.org|telesco\.pe)',u.hostname)
-              try:
-                  with opener.open(urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'}),timeout=15) as response:
-                      assert response.status==200
-                      body=response.read(2000001)
-              except urllib.error.HTTPError as e:
-                  if e.code==429:
-                      out['retry_after_raw']=e.headers.get('Retry-After')
-                      out['host_hold']=u.hostname
-                      break
-                  raise
-              assert 0<len(body)<=2000000
-              ext=('jpg' if body.startswith(b'\xff\xd8\xff') else 'png' if body.startswith(b'\x89PNG\r\n\x1a\n') else 'webp' if body[:4]==b'RIFF' and body[8:12]==b'WEBP' else None)
-              assert ext is not None
-              name=r['role']+'-1981-'+r['message_id']+'.'+ext
-              pathlib.Path('pub',name).write_bytes(body)
-              out['rows'].append({'hotel_id':1981,'role':r['role'],'channel':r['channel'],'message_id':r['message_id'],'public_url':v['url'],'photo_url_sha256':hashlib.sha256(url.encode()).hexdigest(),'caption_sha256':v['caption_sha256'],'published_unixtime':v['published_unixtime'],'path':name,'bytes':len(body),'sha256':hashlib.sha256(body).hexdigest()})
-          out['read_at_utc']=datetime.datetime.now(datetime.timezone.utc).isoformat()
-          pathlib.Path('pub/photos.json').write_text(json.dumps(out,ensure_ascii=False))
-          print(json.dumps({'downloaded':len(out['rows']),'write_admission':False,'server_calls':0,'retry_after':out.get('retry_after_raw')}))
-          assert len(out['rows'])==2 and 'host_hold' not in out
-          PY
-      - name: Preserve original public photos for independent visual review
+          node - <<'NODE'
+          const fs=require('node:fs'),R=require('./tools/deployment_release');
+          async function check(){
+            const api=R.makeReadApi(process.env.GITHUB_TOKEN),root=R.API_ROOT;
+            const sha='703b239adbcfb1f480265f3a7beea566f6d07002',deploy='45687100028';
+            const begun=performance.now();let closer;
+            for(let observation=0;observation<61;observation++){
+              if((await api('GET',root+'/git/ref/heads/main')).object.sha!==sha)throw Error('main_changed');
+              const original=await api('GET',root+'/actions/runs/'+deploy);
+              if(String(original.id)!==deploy||original.run_attempt!==1||original.head_sha!==sha||original.event!=='push'||original.path!=='.github/workflows/deploy.yml')throw Error('original_deploy_changed');
+              if(original.status==='completed'&&original.conclusion!=='success')throw Error('original_deploy_not_successful');
+              if(original.status==='completed'){
+                const inventory=await api('GET',root+'/actions/runs?head_sha='+sha+'&per_page=100');
+                if(!Array.isArray(inventory.workflow_runs)||inventory.total_count!==inventory.workflow_runs.length||inventory.workflow_runs.length>=100)throw Error('incomplete_native_inventory');
+                const matches=inventory.workflow_runs.filter(x=>x.path==='.github/workflows/modeled-conversion-value-export.yml'&&x.event==='workflow_run'&&x.display_title==='deploy-proof:v1:'+deploy+':1');
+                if(matches.length>1)throw Error('ambiguous_original_closer');
+                if(matches.length===1){
+                  closer=matches[0];
+                  if(closer.run_attempt!==1||closer.head_sha!==sha)throw Error('original_closer_changed');
+                  if(closer.status==='completed'){
+                    if(closer.conclusion!=='success')throw Error('original_closer_not_successful');
+                    break;
+                  }
+                }
+              }
+              if(observation===60||performance.now()-begun>1200000)throw Error('original_technical_acceptance_still_pending');
+              console.log(JSON.stringify({read_only:true,observation,original_deploy:deploy,deploy_status:original.status,closer_id:closer?.id||null,closer_status:closer?.status||null}));
+              await new Promise(resolve=>setTimeout(resolve,20000));
+            }
+            if(!closer||closer.status!=='completed'||closer.conclusion!=='success')throw Error('original_terminal_not_proved');
+            const before=await R.readRecord(api),r=R.validateRelease(before.record).release;
+            if(r.repository_sha!==sha||r.application_sha!==sha||r.kind!=='installed'||r.release.run_id!==deploy||r.release.run_attempt!==1
+              ||r.closure?.run_id!==String(closer.id)||r.closure?.binding?.pr!==1727||r.closure?.binding?.comment_id!==6818332618
+              ||r.closure?.binding?.owner_id!==226193297||r.closure?.binding?.head_sha!=='5ce043349e1d5ede9bd02c4b71e52bf2a3c01fb4'
+              ||r.closure?.binding?.updated_at!=='2026-11-25T19:37:25Z')throw Error('original1727_record_changed');
+            const resolved=await R.resolveCurrent(api,{sha},before);
+            if(!resolved.ready||resolved.repository_sha!==sha||resolved.application_sha!==sha)throw Error('original1727_not_canonically_accepted');
+            const publisher=await api('GET',root+'/issues/comments/6818332618');
+            if(publisher.user.id!==226193297||publisher.body!=='PR1727: установлено, выпуск свободен')throw Error('own_publisher_not_technically_free');
+            const after=await R.readRecord(api);
+            if(before.blob!==after.blob||before.record_digest!==after.record_digest||(await api('GET',root+'/git/ref/heads/main')).object.sha!==sha)throw Error('accepted_record_changed');
+            const proof={read_only:true,write_admission:false,provider_writes:0,production_writes:0,pr:1727,original_deploy:deploy,original_closer:String(closer.id),repository_sha:sha,application_sha:sha,technical_acceptance_complete:true,canonical:resolved,record_commit:before.commit,record_blob:before.blob,record_digest:before.record_digest,publisher:{id:publisher.id,owner:publisher.user.id,body:publisher.body,updated_at:publisher.updated_at},native_run_id:process.env.GITHUB_RUN_ID,reader_source_sha:process.env.GITHUB_SHA,checked_at_utc:new Date().toISOString()};
+            fs.writeFileSync('pub/accepted1727.json',JSON.stringify(proof)+'\n');
+            console.log(JSON.stringify({accepted:true,sha,original_deploy:deploy,original_closer:closer.id,write_admission:false}));
+          }
+          check().catch(e=>{console.error('original1727_read_refused',e.code||e.message);process.exitCode=1});
+          NODE
+      - name: Preserve original canonical1727 acceptance
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: issue-1566-telegram-ranked-preflight
-          path: pub/*
+          path: pub/accepted1727.json
           retention-days: 7
-          if-no-files-found: error
+          if-no-files-found: warn
