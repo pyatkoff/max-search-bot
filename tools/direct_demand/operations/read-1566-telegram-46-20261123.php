@@ -365,7 +365,16 @@ function telegramTargetEditabilityRead(string $message, ?array $native, array $j
     $nodes = $public['format_observation']['caption_nodes'] ?? [];
     if (is_array($nodes)) foreach (array_slice($nodes, 0, 6) as $node)
         if (is_string($node['text'] ?? null)) $caption .= "\n".mb_substr($node['text'], 0, 12000);
-    if (preg_match('/(?<![\pL\pN])(?:отзыв\pL*|видеокруж\pL*|видео\s+от\s+менеджер\pL*)(?![\pL\pN])/iu', $caption) === 1
+    // Conservative screening includes paraphrases, trip impressions and quoted
+    // or screenshot reviews. No matching signal is an editorial approval.
+    $protectedText = '/(?<![\pL\pN])(?:отзыв\pL*|впечатлен\pL*|впечатлён\pL*|цитат\pL*|скриншот\pL*|видеокруж\pL*'
+        . '|видео\s+(?:от\s+)?менеджер\pL*'
+        . '|(?:турист|гост|клиент|сотрудник|менеджер)\pL*\s+(?:\pL+\s+){0,3}(?:отмеча|рассказыва|поделил|делят|пиш|написа|говор|вернул|побыва|посетил|остал|оценил)\pL*'
+        . '|(?:я|мы|наш\pL*)\s+(?:\pL+\s+){0,3}(?:побыва|посетил|вернул|ездил|отдыхал)\pL*'
+        . '|(?:по\s+словам|со?\s+слов)\s+(?:\pL+\s+){0,2}(?:турист|гост|клиент|сотрудник|менеджер)\pL*'
+        . '|(?:поездк|инфотур)\pL*\s+(?:\pL+\s+){0,2}(?:сотрудник|менеджер)\pL*'
+        . ')(?![\pL\pN])/iu';
+    if (preg_match($protectedText, $caption) === 1
         || ($evidence['media_kind'] ?? null) === 'video_note'
         || (is_int($public['roundvideo_count'] ?? null) && $public['roundvideo_count'] > 0))
         return $finish('protected_by_owner', 'owner_policy', true, false, ['reviews_and_manager_video_excluded']);
@@ -709,3 +718,4 @@ $out['mysql_before']=mysqlResourcesRead($pdo);$pdo->beginTransaction();$stage='s
 }catch(Throwable $e){$out['failure_stage']=$stage;$out['failure_reason']=reasonRead($e);}
 finally{if($pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();if(is_resource($lock)){if($acquired!==null)$out['price_lease_held_ms']=(int)((hrtime(true)-$acquired)/1000000);flock($lock,LOCK_UN);fclose($lock);}}
 $out['resources_after']=resourcesRead();$out['read_at_utc']=gmdate(DATE_ATOM);$out['read_elapsed_ms']=(int)((hrtime(true)-$start)/1000000);echo jsonRead($out),PHP_EOL;exit($out['ok']?0:2);
+

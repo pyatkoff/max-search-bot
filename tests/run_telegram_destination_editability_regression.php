@@ -635,6 +635,41 @@ $sqlNormal = telegramPreparedPairNativeRead($pairHotel, $preparedPair, $prepared
 editabilityCheck($sqlBoundaryCalls === ['operation', 'target', 'source'] && $sqlNormal === $normal,
     'normal CLI helper boundary executes the actual journal and SQL readers with the same result');
 
+// Protected content must stop this row before either SQL target or source
+// preparation. Exercise the public caption and album-caption-node boundaries;
+// the following ordinary commercial row must remain independently preparable.
+$protectedCaptions = [
+    'Многие туристы отмечают, что здесь отличный сервис.',
+    'Впечатления от нашей поездки в отель.',
+    'Наш менеджер вернулся из поездки.',
+    'Мы побывали в этом отеле и делимся подробностями.',
+    'Туристы поделились впечатлениями о поездке.',
+    'По словам наших гостей, всё понравилось.',
+    'Цитата туриста о поездке.',
+    'Скриншоты сообщений после отдыха.',
+    'Видео менеджера из отеля.',
+    'Поездка нашего сотрудника в отель.',
+];
+foreach ($protectedCaptions as $caption) foreach (['caption', 'album_node'] as $representation) {
+    $input = $preparedInput;
+    if ($representation === 'caption') $input['public']['target']['caption'] = $caption;
+    else {
+        $input['public']['target']['caption'] = null;
+        $input['public']['target']['format_observation']['caption_nodes'] = [['text' => $caption]];
+    }
+    [$protected, $calls] = editabilityPreparedCase($input);
+    editabilityState($protected['candidate_assessment'], 'protected_by_owner', true, false,
+        'protected ' . $representation . ': ' . $caption);
+    editabilityCheck($calls === ['operation'] && $protected['candidate_preparation_allowed'] === false
+        && $protected['prepared_checks_pass'] === false && $protected['write_admission'] === false,
+        'protected content does not reach target or source preparation');
+}
+[$afterProtected, $afterProtectedCalls] = editabilityPreparedCase($preparedInput);
+editabilityCheck($afterProtectedCalls === ['operation', 'target', 'source']
+    && $afterProtected['candidate_preparation_allowed'] === true
+    && $afterProtected['prepared_checks_pass'] === true && $afterProtected['write_admission'] === false,
+    'protected row does not block the following ordinary commercial photo row');
+
 // A new operation can appear after the refreshed journal observation. The
 // owner's final filesystem check must still prevent preparation admission.
 $lateOperationPath = OPERATIONS . '/anytour-issue1566-historical-tg-media-' . $preparedPair['target'] . '-v1';
@@ -808,3 +843,4 @@ editabilityCheck((int)$readDb->query('PRAGMA query_only')->fetchColumn() === 1
 
 echo 'OK ' . $checks . ' destination-editability checks; historical 33 before/15 rejected/18 accepted; '
     . "synthetic native/journal/SQL/current prepared-pair cases; provider calls 0\n";
+

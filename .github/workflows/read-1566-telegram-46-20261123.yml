@@ -25,7 +25,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = 'd5df2d7c81f9863084845bcfc15e374afbd499ef'
+          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '9931623d23b085d2f344dde163b8d75e6982a753'
           php -l tools/direct_demand/operations/read-1566-telegram-46-20261123.php
           mkdir -p pub
           python3 - <<'PYFIX'
@@ -58,3 +58,4 @@ jobs:
           path: pub/resource-budget.json
           retention-days: 7
           if-no-files-found: warn
+
