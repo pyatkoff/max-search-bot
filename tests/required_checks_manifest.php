@@ -58,6 +58,7 @@ return [
         'python3 tests/run_deployment_content_plan_regression.py',
         'python3 tests/run_deployment_release_preview_regression.py',
         'node tests/run_deployment_release_regression.js',
+        'php tests/run_telegram_destination_editability_regression.php',
         'php tests/run_deployment_runtime_fingerprint_regression.php',
         'bash tests/run_deploy_main_provenance_regression.sh',
         'python3 tests/run_deploy_monitor_lock_regression.py',

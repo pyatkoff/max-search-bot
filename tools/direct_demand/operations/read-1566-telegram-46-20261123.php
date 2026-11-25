@@ -119,6 +119,8 @@ function albumStructureRead(DOMDocument $dom, DOMXPath $xp, DOMNode $node, strin
     $texts=$xp->query('.//*['.$cls('tgme_widget_message_text').']',$node);
     $photos=$xp->query('.//*['.$cls('tgme_widget_message_photo_wrap').']',$node);
     $other=$xp->query('.//video|.//audio|.//*['.$cls('tgme_widget_message_video_thumb').' or '.$cls('tgme_widget_message_roundvideo').']',$node);
+    $videos=$xp->query('.//video|.//*['.$cls('tgme_widget_message_video_thumb').']',$node);
+    $roundVideos=$xp->query('.//*['.$cls('tgme_widget_message_roundvideo').']',$node);
     $times=$xp->query('.//time[@datetime]',$node);
     $links=$xp->query('.//a[@href]',$node);
     requireRead($texts&&$photos&&$other&&$times&&$links&&$texts->length<=6&&$photos->length<=6&&$other->length<=6&&$times->length<=6&&$links->length<=100,'album_structure_unbounded');
@@ -133,7 +135,8 @@ function albumStructureRead(DOMDocument $dom, DOMXPath $xp, DOMNode $node, strin
     $caption=count($captions)===1?$captions[0]['text']:null;
     return ['url'=>$url,'caption'=>$caption,'caption_sha256'=>$caption===null?null:hash('sha256',$caption),'html_sha256'=>hash('sha256',$body),
         'published_at'=>count($dates)===1?$dates[0]:null,'published_unixtime'=>count($dates)===1?(new DateTimeImmutable($dates[0]))->getTimestamp():null,
-        'single_photo'=>false,'photo_url'=>'','photo_marker_sha256'=>null,'photo_count'=>$photos->length,'other_media_count'=>$other->length,'buttons'=>$buttons,
+        'single_photo'=>false,'photo_url'=>'','photo_marker_sha256'=>null,'photo_count'=>$photos->length,'other_media_count'=>$other->length,
+        'video_count'=>$videos->length,'roundvideo_count'=>$roundVideos->length,'buttons'=>$buttons,
         'format_observation'=>['requested_mid'=>$message,'root_data_post'=>$node->getAttribute('data-post'),'caption_nodes'=>$captions,'dates'=>$dates,
             'linked_album_mids'=>array_values(array_unique($members)),'caption_mid_confirmed'=>false,'native_album_membership_confirmed'=>false,'keyboard_admission_confirmed'=>false]];
 }
@@ -203,6 +206,8 @@ function parsePublicRead(string $body, string $channel, string $message): array
     $dates = $xp->query('.//time[@datetime]', $node);
     $other = $xp->query('.//video|.//audio|.//*[' . $cls('tgme_widget_message_video_thumb')
         . ' or ' . $cls('tgme_widget_message_roundvideo') . ' or ' . $cls('tgme_widget_message_grouped') . ']', $node);
+    $videos = $xp->query('.//video|.//*['.$cls('tgme_widget_message_video_thumb').']', $node);
+    $roundVideos = $xp->query('.//*['.$cls('tgme_widget_message_roundvideo').']', $node);
     requireRead($text && $photos && $dates && $other && $text->length === 1 && $dates->length === 1,
         'public_caption_or_date_unavailable');
     $html = '';
@@ -253,7 +258,8 @@ function parsePublicRead(string $body, string $channel, string $message): array
         'html_sha256' => hash('sha256', $body), 'published_at' => $dates->item(0)->getAttribute('datetime'),
         'published_unixtime' => (new DateTimeImmutable($dates->item(0)->getAttribute('datetime')))->getTimestamp(),
         'single_photo' => $single && $photoUrl !== '', 'photo_url' => $photoUrl,
-        'photo_count' => $photos->length, 'other_media_count' => $other->length, 'caption_links'=>$captionLinks,
+        'photo_count' => $photos->length, 'other_media_count' => $other->length,
+        'video_count'=>$videos->length, 'roundvideo_count'=>$roundVideos->length, 'caption_links'=>$captionLinks,
         'document_anchors'=>$documentAnchors, 'document_anchors_truncated'=>$documentLinks && $documentLinks->length>80,
         'photo_marker_sha256' => $marker !== '' ? hash('sha256', $marker) : null, 'buttons' => $buttons];
 }
@@ -271,8 +277,157 @@ function corroborateTargetKeyboard(array $embedded, array $archive): array
     return $embedded;
 }
 
+/** Do not fetch source content for a previously consumed destination. */
+function telegramCandidatePublicRead(array $pair, bool $priorOperationExists, callable $read): array
+{
+    if (!$priorOperationExists) return [$read('any_toour', $pair['source']), $read('anytour', $pair['target'])];
+    $skipped = ['ok'=>false, 'reason'=>'prior_operation_do_not_replay', 'http_attempts'=>0];
+    return [$skipped + ['url'=>'https://t.me/any_toour/'.$pair['source']],
+        $skipped + ['url'=>'https://t.me/anytour/'.$pair['target']]];
+}
+
+/**
+ * Project only observed Bot API fields. Channel names, photo CSS IDs and missing
+ * fields never identify a publisher. A stored snapshot is not a fresh capability
+ * probe; Bot API has no per-message can_edit_media read.
+ */
+function telegramNativeEditEvidenceRead(array $snapshot, string $chat, string $message): array
+{
+    $raw = $snapshot['raw_body'] ?? null;
+    if (!is_array($raw) || $raw === []) return ['state'=>'unavailable'];
+    if ((string)($raw['chat']['id'] ?? '') !== $chat
+        || (string)($raw['message_id'] ?? '') !== $message) return ['state'=>'identity_mismatch'];
+    $id = static fn($value): ?string => (is_int($value) || is_string($value))
+        && preg_match('/\A[1-9][0-9]{0,19}\z/D', (string)$value) === 1 ? (string)$value : null;
+    $flag = static fn(string $field): ?bool => is_bool($raw[$field] ?? null) ? $raw[$field] : null;
+    $via = is_array($raw['via_bot'] ?? null) ? $raw['via_bot'] : [];
+    $from = is_array($raw['from'] ?? null) ? $raw['from'] : [];
+    $sender = $raw['sender_chat']['id'] ?? null;
+    $kind = isset($raw['photo']) ? 'photo' : (isset($raw['text']) ? 'text' : 'unknown');
+    foreach (['video','video_note','animation','audio','voice','document','sticker','paid_media','poll'] as $field)
+        if (isset($raw[$field])) $kind = $field;
+    $forward = $raw['forward_origin']['type'] ?? null;
+    $forwarded = isset($raw['forward_origin']) || isset($raw['forward_date'])
+        || isset($raw['forward_from']) || isset($raw['forward_from_chat']);
+    $markup = $raw['reply_markup'] ?? null;
+    $markupKind = $markup === null ? null
+        : (is_array($markup) && isset($markup['inline_keyboard']) ? 'inline'
+            : (is_array($markup) && isset($markup['keyboard']) ? 'reply_keyboard' : 'unknown'));
+    $signature = $raw['author_signature'] ?? null;
+    $suggested = $raw['suggested_post_info']['state'] ?? null;
+    return ['state'=>'native_snapshot', 'observation'=>'saved_bot_api_message',
+        'chat_id'=>$chat, 'message_id'=>$message,
+        'raw_message_sha256'=>hash('sha256', jsonRead($raw)),
+        'from_id_sha256'=>$id($from['id'] ?? null) !== null ? hash('sha256', (string)$from['id']) : null,
+        'from_bot_id'=>($from['is_bot'] ?? null) === true ? $id($from['id'] ?? null) : null,
+        'sender_chat_id'=>(is_int($sender) || is_string($sender))
+            && preg_match('/\A-?[1-9][0-9]{0,19}\z/D', (string)$sender) === 1 ? (string)$sender : null,
+        'via_bot_id'=>($via['is_bot'] ?? null) === true ? $id($via['id'] ?? null) : null,
+        'author_signature'=>is_string($signature) ? mb_substr($signature, 0, 256) : null,
+        'forwarded'=>$forwarded ? true : null,
+        'forward_origin_type'=>in_array($forward, ['user','hidden_user','chat','channel'], true) ? $forward : null,
+        'is_paid_post'=>$flag('is_paid_post'), 'has_protected_content'=>$flag('has_protected_content'),
+        'is_from_offline'=>$flag('is_from_offline'),
+        'suggested_post_state'=>in_array($suggested, ['pending','approved','declined'], true) ? $suggested : null,
+        'media_group_id_sha256'=>is_string($raw['media_group_id'] ?? null)
+            ? hash('sha256', $raw['media_group_id']) : null,
+        'media_kind'=>$kind, 'reply_markup_kind'=>$markupKind,
+        'date'=>is_int($raw['date'] ?? null) ? $raw['date'] : null,
+        'edit_date'=>is_int($raw['edit_date'] ?? null) ? $raw['edit_date'] : null,
+        'original_send_method'=>null, 'can_be_edited'=>null, 'can_edit_media'=>null];
+}
+
+/**
+ * Read-only evidence classification, never authorization to edit. Keep unknown
+ * candidates distinct from proven exclusions. Ordinary other-author channel posts,
+ * age and protected-content flags alone are not editing prohibitions.
+ */
+function telegramTargetEditabilityRead(string $message, ?array $native, array $journal,
+    array $public, ?string $editorBotId, bool $rightsReady, bool $directoryExists = false): array
+{
+    $result = ['schema'=>1, 'chat_id'=>'-1001845835645', 'message_id'=>$message,
+        'method'=>'editMessageMedia', 'editor_bot_id'=>$editorBotId,
+        'channel_rights_verified'=>$rightsReady, 'per_message_capability'=>null,
+        'editability_guaranteed'=>false, 'success_probability'=>null, 'probability_basis'=>'not_calibrated',
+        'state'=>'unknown_editability', 'evidence_tier'=>'unknown',
+        'preparation_blocked'=>false, 'no_retry'=>false, 'reasons'=>[]];
+    $finish = static fn(string $state, string $tier, bool $blocked, bool $noRetry, array $reasons): array
+        => array_replace($result, ['state'=>$state, 'evidence_tier'=>$tier,
+            'preparation_blocked'=>$blocked, 'no_retry'=>$noRetry, 'reasons'=>$reasons]);
+    if (($journal['state'] ?? null) !== 'absent' || $directoryExists) {
+        $states = $journal['states'] ?? [];
+        $events = $journal['events'] ?? [];
+        $prefix = ['intent_saved','identity_reserved','request_prepared','provider_edit_started','provider_response_saved'];
+        $bound = count($states) === 6 && array_slice($states, 0, 5) === $prefix
+            && count($events) === 6 && array_column($events, 'state') === $states
+            && ($events[0]['target_matches'] ?? null) === true
+            && ($events[2]['target_matches'] ?? null) === true
+            && ($events[5]['target_matches'] ?? null) === true
+            && ($events[3]['provider_write_attempts'] ?? null) === 1
+            && ($events[5]['provider_write_attempts'] ?? null) === 1;
+        if ($bound && $states[5] === 'provider_message_id_rejected'
+            && ($events[4]['provider_http'] ?? null) === 400
+            && ($events[4]['transport_error'] ?? null) === false
+            && ($events[4]['provider_ok'] ?? null) === false
+            && ($events[4]['provider_error_code'] ?? null) === 400
+            && ($events[4]['message_id_invalid'] ?? null) === true)
+            return $finish('rejected_no_retry', 'confirmed_rejection', true, true, ['previous_message_id_invalid']);
+        if ($bound && $states[5] === 'native_and_registry_verified'
+            && ($events[4]['provider_http'] ?? null) === 200
+            && ($events[4]['transport_error'] ?? null) === false
+            && ($events[4]['provider_ok'] ?? null) === true
+            && ($events[4]['target_matches'] ?? null) === true)
+            return $finish('completed_no_retry', 'historical_media_edit', true, true, ['previous_transfer_completed']);
+        return $finish('operation_requires_readback', 'prior_operation', true, true, ['existing_operation_do_not_replay']);
+    }
+    if (($native['state'] ?? '') === 'unaccepted_reserved_identity')
+        return $finish('reserved_no_retry', 'reservation', true, true, ['unaccepted_identity_is_not_a_message']);
+    if (($native['native_claim_held_or_unknown'] ?? false) === true
+        || in_array($native['state'] ?? null, ['claimed','write_started','unknown'], true))
+        return $finish('operation_requires_readback', 'native_operation', true, true, ['native_claim_or_outcome_requires_readback']);
+    if (isset($native['content_edit_journal']) && ($native['content_edit_journal']['state'] ?? null) !== 'absent')
+        return $finish('operation_requires_readback', 'native_operation', true, true, ['existing_content_operation_do_not_replay']);
+    $evidence = $native['telegram_message'] ?? ['state'=>'unavailable'];
+    if (($evidence['state'] ?? '') === 'identity_mismatch')
+        return $finish('evidence_conflict', 'unusable_snapshot', true, false, ['native_message_identity_mismatch']);
+    if (($evidence['state'] ?? '') === 'native_snapshot'
+        && (($evidence['chat_id'] ?? null) !== $result['chat_id']
+            || ($evidence['message_id'] ?? null) !== $message))
+        return $finish('evidence_conflict', 'unusable_snapshot', true, false, ['native_message_identity_mismatch']);
+    $caption = is_string($public['caption'] ?? null) ? $public['caption'] : '';
+    // Albums may expose several DOM copies with caption=null; inspect the
+    // already bounded text nodes without inventing a native caption member.
+    $nodes = $public['format_observation']['caption_nodes'] ?? [];
+    if (is_array($nodes)) foreach (array_slice($nodes, 0, 6) as $node)
+        if (is_string($node['text'] ?? null)) $caption .= "\n".mb_substr($node['text'], 0, 12000);
+    if (preg_match('/(?<![\pL\pN])(?:отзыв\pL*|видеокруж\pL*|видео\s+от\s+менеджер\pL*)(?![\pL\pN])/iu', $caption) === 1
+        || ($evidence['media_kind'] ?? null) === 'video_note'
+        || (is_int($public['roundvideo_count'] ?? null) && $public['roundvideo_count'] > 0))
+        return $finish('protected_by_owner', 'owner_policy', true, false, ['reviews_and_manager_video_excluded']);
+    if (($evidence['media_kind'] ?? null) === 'video'
+        || (is_int($public['video_count'] ?? null) && $public['video_count'] > 0))
+        return $finish('format_requires_review', 'content_review_required', true, false, ['video_content_not_approved']);
+    if (is_array($public['buttons'] ?? null) && $public['buttons'] !== [])
+        return $finish('existing_keyboard_review', 'existing_attribution', true, false, ['target_keyboard_requires_exact_review']);
+    if (!$rightsReady)
+        return $finish('channel_not_verified', 'channel_precondition', true, false, ['channel_edit_rights_not_confirmed']);
+    if (($evidence['state'] ?? '') !== 'native_snapshot') return $result;
+    $constraints = [];
+    if (($evidence['is_paid_post'] ?? null) === true) $constraints[] = 'native_paid_post';
+    if (in_array($evidence['suggested_post_state'] ?? null, ['approved','declined'], true)) $constraints[] = 'native_closed_suggested_post';
+    if (($evidence['forwarded'] ?? null) === true) $constraints[] = 'native_forwarded_message';
+    if (($evidence['reply_markup_kind'] ?? null) === 'reply_keyboard') $constraints[] = 'native_non_inline_keyboard';
+    if ($editorBotId !== null && ($evidence['via_bot_id'] ?? null) !== null
+        && $evidence['via_bot_id'] !== $editorBotId) $constraints[] = 'native_other_inline_bot';
+    if ($constraints !== []) return $finish('native_constraint', 'observed_native_restriction', true, false, $constraints);
+    if ($editorBotId !== null && (($evidence['from_bot_id'] ?? null) === $editorBotId
+        || ($evidence['via_bot_id'] ?? null) === $editorBotId))
+        return $finish('bot_origin_observed', 'origin_only', false, false, ['current_bot_origin_is_not_edit_capability']);
+    return $result;
+}
+
 /** No raw receipt, provider file id, media token or claim token leaves the host. */
-function receiptRead(string $path): array
+function receiptRead(string $path, ?string $message = null): array
 {
     if (!file_exists($path) && !is_link($path)) return ['state' => 'absent'];
     requireRead(!is_link($path) && is_file($path) && filesize($path) <= 1_000_000, 'operation_receipt_unreadable');
@@ -297,12 +452,31 @@ function receiptRead(string $path): array
             $safe['provider_ok']=is_bool($response['data']['ok']??null)?$response['data']['ok']:null;
             $safe['provider_error_code']=is_int($response['data']['error_code']??null)?$response['data']['error_code']:null;
             $safe['message_id_invalid']=($response['data']['description']??null)==='Bad Request: MESSAGE_ID_INVALID';
+            $safe['target_matches']=$message !== null
+                && (string)($response['data']['result']['message_id']??'') === $message
+                && (string)($response['data']['result']['chat']['id']??'') === '-1001845835645';
         }
         if($state==='intent_saved') {
             $x=$record['execution']??[];
             $safe['original_native_run_id']=preg_match('/\A[0-9]{1,20}\z/D',$x['native_run_id']??'')?$x['native_run_id']:null;
             $safe['original_application_sha']=preg_match('/\A[a-f0-9]{40}\z/D',$x['application_sha']??'')?$x['application_sha']:null;
+            $safe['target_matches']=$message !== null && ($record['row']['target_message_id']??null) === $message
+                && $safe['original_native_run_id'] !== null && $safe['original_application_sha'] !== null;
         }
+        if ($state === 'request_prepared') {
+            $request = $record['request'] ?? null;
+            $safe['target_matches']=$message !== null && is_array($request)
+                && (string)($request['chat_id']??'') === '-1001845835645'
+                && (string)($request['message_id']??'') === $message
+                && array_keys($request) === ['chat_id','message_id','media','reply_markup']
+                && is_array($request['media']??null) && ($request['media']['type']??null) === 'photo'
+                && (!isset($record['method']) || $record['method'] === 'editMessageMedia')
+                && (!isset($record['path']) || $record['path'] === 'editMessageMedia')
+                && ($record['request_sha256']??null) === hash('sha256', jsonRead($request));
+        }
+        if (in_array($state, ['provider_message_id_rejected','native_and_registry_verified'], true))
+            $safe['target_matches']=$message !== null && ($record['message_id']??null) === $message
+                && ($record['url']??null) === 'https://t.me/anytour/'.$message;
         $events[]=$safe;
     }
     return ['state' => 'present_do_not_replay', 'sha256' => hash('sha256', $raw), 'line_count' => count($lines), 'states' => $states, 'events'=>$events];
@@ -315,6 +489,19 @@ function publicationRead(PDO $pdo, ChannelPostRegistryService $registry, int $ch
     requireRead(count($ids) <= 1, 'registry_identity_ambiguous');
     if ($ids === []) return null;
     $p = $registry->publication((int) $ids[0]);
+    if ($p === null && $channel === 6) {
+        // An existing reservation without an accepted version is not a native
+        // message. It remains held even if its operation journal is unavailable.
+        $reserved = $pdo->prepare('SELECT id,external_message_id,current_version_id FROM post_publications '
+            . 'WHERE id=? AND post_channel_id=? LIMIT 1');
+        $reserved->execute([(int)$ids[0], $channel]);
+        $identity = $reserved->fetch(PDO::FETCH_ASSOC);
+        requireRead(is_array($identity) && (string)$identity['external_message_id'] === $message
+            && $identity['current_version_id'] === null, 'reserved_native_observation_unavailable');
+        return ['publication_id'=>(int)$ids[0], 'state'=>'unaccepted_reserved_identity',
+            'accepted_message_receipt_verified'=>false, 'telegram_message'=>['state'=>'unavailable'],
+            'content_edit_journal'=>receiptRead(OPERATIONS.'/issue-1566-edit-existing-'.(int)$ids[0].'.jsonl')];
+    }
     requireRead(is_array($p) && $p['project_key'] === 'anytour' && $p['platform'] === 'telegram'
         && $p['bot_key'] === 'anyru_bot' && $p['message_id'] === $message
         && (int) $p['channel']['id'] === $channel, 'registry_identity_changed');
@@ -366,6 +553,7 @@ function publicationRead(PDO $pdo, ChannelPostRegistryService $registry, int $ch
         'hotel_id' => $s['metadata']['hotel_catalog_id'] ?? null, 'logical_id' => $s['metadata']['logical_id'] ?? null,
         'monitor_price_record_id' => $s['metadata']['monitor_price_record_id'] ?? null,
         'attachments' => $media, 'button_url' => $url,
+        'telegram_message'=>telegramNativeEditEvidenceRead($s, (string)$p['channel']['channel_id'], $message),
         'one_expected_button' => $url !== '' && ChannelPostIncomingAdapter::containsOnlyButton($s, $url, $p['channel']['button_text']),
         'keyboard_observation'=>$keyboardObservation, 'keyboard_rows_count'=>count($keyboardRows), 'keyboard_unbounded'=>$keyboardUnbounded,
         'current_token_resolves' => $same, 'native_claim_held_or_unknown' => $held, 'version_history' => $history,
@@ -400,10 +588,15 @@ try {
     requireRead(realpath(OPERATIONS) === OPERATIONS, 'operations_root_changed');
     $out['resources_before'] = resourcesRead();
     $stage = 'bounded_public_photos';
-    $public = []; $publicAlbum = [];
+    $public = []; $publicAlbum = []; $priorObserved = [];
     foreach (PAIRS as $hotel => $pair) {
-        $public[$hotel] = [publicEvidence('any_toour', $pair['source']), publicEvidence('anytour', $pair['target'])];
-        if($hotel===82567) foreach(['932','933','934','935','936'] as $member) $publicAlbum[$member]=publicEvidence('anytour',$member);
+        // Presence can only hold a target. Read the immutable journal later under
+        // the existing shared lease; never convert a vanished directory to free.
+        $directory = OPERATIONS.'/anytour-issue1566-historical-tg-media-'.$pair['target'].'-v1';
+        $priorObserved[$hotel] = file_exists($directory) || is_link($directory);
+        $public[$hotel] = telegramCandidatePublicRead($pair, $priorObserved[$hotel], 'publicEvidence');
+        if($hotel===82567 && !$priorObserved[$hotel])
+            foreach(['932','933','934','935','936'] as $member) $publicAlbum[$member]=publicEvidence('anytour',$member);
         $out['public_get_attempts'] = $publicAttempts;
         $out['public_rate_limit'] = $publicRateLimit;
     }
@@ -479,11 +672,19 @@ try {
     $stage = 'native_channel_rights';
     $targetUsernameMatches = false;
     $currentPin = null;
-    $readTransport = static function (string $platform, string $method, string $path, array $query, ?array $body) use (&$targetUsernameMatches, &$currentPin): array {
+    $editorBotId = null;
+    $readTransport = static function (string $platform, string $method, string $path, array $query, ?array $body) use (&$targetUsernameMatches, &$currentPin, &$editorBotId): array {
         requireRead($platform === 'telegram' && $method === 'POST' && $query === []
             && in_array($path, ['getMe', 'getChatMember', 'getChat'], true)
             && ($path === 'getMe' || (string) ($body['chat_id'] ?? '') === '-1001845835645'), 'provider_read_scope_changed');
         $response = ChannelPostApiTransport::buttonRequest($platform, $method, $path, $query, $body);
+        if ($path === 'getMe' && ($response['http'] ?? null) === 200
+            && ($response['transport_error'] ?? null) === false && ($response['data']['ok'] ?? null) === true) {
+            $me = $response['data']['result'] ?? [];
+            if (($me['is_bot'] ?? null) === true && ($me['username'] ?? null) === 'anyru_bot'
+                && (is_int($me['id'] ?? null) || is_string($me['id'] ?? null))
+                && preg_match('/\A[1-9][0-9]{0,19}\z/D', (string)$me['id']) === 1) $editorBotId = (string)$me['id'];
+        }
         if ($path === 'getChat') {
             $chat = $response['data']['result'] ?? [];
             $targetUsernameMatches = strtolower((string) ($chat['username'] ?? '')) === 'anytour';
@@ -493,6 +694,9 @@ try {
     };
     $out['native_channel_rights'] = (new ChannelPostButtonTransport($readTransport))->verifyChannel($target);
     requireRead(($out['native_channel_rights']['receipt']['write_attempts'] ?? null) === 0, 'read_only_transport_contract_changed');
+    if (($out['native_channel_rights']['state'] ?? '') !== 'ready') $editorBotId = null;
+    $out['native_editor'] = ['bot_id'=>$editorBotId, 'username'=>'anyru_bot', 'source'=>'getMe',
+        'verified'=>$editorBotId !== null, 'capability_scope'=>'channel_only', 'per_message_checked'=>false];
     $sourceChatRead = ChannelPostApiTransport::buttonRequest('telegram', 'POST', 'getChat', [], ['chat_id' => '-1002262666616']);
     $sourceChat = $sourceChatRead['data']['result'] ?? [];
     $sourceUsernameMatches = ($sourceChatRead['http'] ?? 0) === 200 && empty($sourceChatRead['transport_error'])
@@ -513,13 +717,39 @@ try {
         $q->closeCursor();
         $directory = OPERATIONS . '/' . $operation;
         requireRead(!is_link($directory), 'operation_directory_symlink');
+        $journal = receiptRead($directory . '/receipt.jsonl', $pair['target']);
+        $directoryObserved = $priorObserved[$hotel] || file_exists($directory);
+        $rightsReady = ($out['native_channel_rights']['state'] ?? '') === 'ready';
+        [$sourcePublic, $targetPublic] = $public[$hotel];
+        $targetNative = null;
+        $editability = telegramTargetEditabilityRead($pair['target'], null, $journal,
+            $targetPublic, $editorBotId, $rightsReady, $directoryObserved);
+        if (!$editability['preparation_blocked']) {
+            $targetNative = publicationRead($pdo, $registry, 6, $pair['target']);
+            $editability = telegramTargetEditabilityRead($pair['target'], $targetNative, $journal,
+                $targetPublic, $editorBotId, $rightsReady, $directoryObserved);
+        }
+        // Known exclusions stop before source-native preparation. Public reads
+        // preceded SQL; only an already observed media operation skips those GETs.
+        if ($editability['preparation_blocked']) {
+            $out['rows'][] = ['hotel_id'=>$hotel, 'name'=>$pair['name'], 'source_message_id'=>$pair['source'],
+                'target_message_id'=>$pair['target'], 'source_native'=>null, 'target_native'=>$targetNative,
+                'source_public'=>$sourcePublic, 'target_public'=>$targetPublic,
+                'target_album_native_members'=>[],
+                'target_album_public_members'=>$hotel===82567 && !$priorObserved[$hotel] ? ['931'=>$public[$hotel][1]]+$publicAlbum : [],
+                'target_media_lock_free'=>$free !== false && $free !== null && (int)$free === 1,
+                'prior_media_operation_directory_exists'=>$directoryObserved, 'prior_media_operation'=>$journal,
+                'telegram_editability'=>$editability, 'candidate_preparation_skipped'=>true,
+                'preflight_scope'=>'content_format_and_channel_rights',
+                'source_matches'=>false, 'historical_target_matches'=>false,
+                'preview_blockers'=>['telegram_destination_'.$editability['state']], 'preview_ready'=>false];
+            continue;
+        }
         $sourceNative = publicationRead($pdo, $registry, 10, $pair['source']);
-        $targetNative = publicationRead($pdo, $registry, 6, $pair['target']);
         $albumMembers = [];
         if ($hotel === 82567) foreach (['931','932','933','934','935','936'] as $member) {
             $albumMembers[] = ['message_id'=>$member, 'native'=>publicationRead($pdo, $registry, 6, $member)];
         }
-        [$sourcePublic, $targetPublic] = $public[$hotel];
         $q = $pdo->prepare("SELECT p.id AS publication_id,p.post_channel_id,p.external_message_id,v.id AS version_id,v.state,"
             . "JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.post_url')) AS post_url FROM post_publications p "
             . "JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id "
@@ -535,10 +765,10 @@ try {
             && $sourcePublic['single_photo'] && $sourceNative['current_token_resolves'];
         // Current checks must match exact preimages independently reviewed from original45535459936.
         $targetMatches = false; // Format observation is never write admission.
-        $journal = receiptRead($directory . '/receipt.jsonl');
         $existingTg = array_values(array_filter($existing, static fn($p) => (int) $p['post_channel_id'] === 6));
         $existingMax = array_values(array_filter($existing, static fn($p) => (int) $p['post_channel_id'] === 4));
         $blockers = [];
+        if ($editability['preparation_blocked']) $blockers[] = 'telegram_destination_'.$editability['state'];
         // These fourteen targets previously carried generic search attribution.
         // An empty embedded-button parser alone cannot clear that recorded condition.
         if (in_array($pair['target'], ['1700','1705','1706','1709','1723','1724','1735','1739','1741','1742','1743','1744','1746','1748'], true)) {
@@ -565,6 +795,8 @@ try {
             'target_message_id' => $pair['target'], 'source_native' => $sourceNative, 'target_native' => $targetNative,
             'target_album_native_members' => $albumMembers, 'target_album_public_members'=>$hotel===82567?['931'=>$targetPublic]+$publicAlbum:[],
             'source_public' => $sourcePublic, 'target_public' => $targetPublic,
+            'telegram_editability'=>$editability, 'candidate_preparation_skipped'=>false,
+            'preflight_scope'=>'content_format_and_channel_rights',
             'target_media_lock_free' => $free !== false && $free !== null && (int) $free === 1,
             'prior_media_operation_directory_exists' => file_exists($directory), 'prior_media_operation' => $journal,
             'existing_large_channel_hotel_registry_matches' => $existing, 'large_max_hotel_already_registered' => $existingMax !== [],

@@ -1,0 +1,1780 @@
+{
+  "schema": 1,
+  "description": "Observed historical evidence, 2026-11-25. Not candidate assignments or retry authorization. Missing fields remain unknown. This selected, non-random sample does not calibrate a success probability.",
+  "counts": {
+    "accepted": 18,
+    "message_id_invalid": 15
+  },
+  "target_chat_id": "-1001845835645",
+  "edit_method": "editMessageMedia",
+  "common_before": {
+    "target_native": null,
+    "prior_media_operation": {
+      "state": "absent"
+    },
+    "prior_media_operation_directory_exists": false,
+    "preview_ready": true,
+    "native_channel_rights_state": "ready"
+  },
+  "unavailable_before_fields": [
+    "native from",
+    "native sender_chat",
+    "native author_signature",
+    "native via_bot",
+    "native forward_origin",
+    "native is_automatic_forward",
+    "native media_group_id",
+    "native has_protected_content",
+    "native is_paid_post",
+    "native can_be_edited",
+    "native can_edit_media",
+    "publisher identity",
+    "initial send/copy/forward method"
+  ],
+  "historical_journal_projection_note": "The original 15 journals were exported before target_matches was introduced. No missing target_matches has been fabricated. Accepted native/public results do not include their complete original journals.",
+  "evidence": {
+    "rejected_preflight": {
+      "kind": "read_only_registry",
+      "run_id": "45552458333",
+      "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/45552458333",
+      "application_sha": "d8a0d794321ea89d8ac62205a22079656aa73d6a",
+      "read_at_utc": "2026-11-25T05:17:25+00:00",
+      "registry_sha256": "96d258a0c1eba4cce3b8cf7b9761281e82be4e648a29a6bb7728de89f0b91fb1",
+      "zip_sha256": "ad635b3bd3bdb169f0cca5feaf30c90b1e2f0f03a7f5f9e0dd71dc8ea5ee1bbd",
+      "zip_bytes": 190125,
+      "checkpoint_sha256": "d1fa1075c02d68298611dc246001b77ed98bb96cd9e7d5f78e7058111ce1380b"
+    },
+    "rejected_readback": {
+      "kind": "read_only_registry",
+      "run_id": "45568283926",
+      "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/45568283926",
+      "application_sha": "878c680627d54297c364254687577a03ac5aef6b",
+      "read_at_utc": "2026-11-25T07:28:13+00:00",
+      "registry_sha256": "f222db4ea61b1ebb94293e3734543feb006fdbe13ad11837fcf4f2bfb7e4b297",
+      "zip_sha256": "5f22bce6e0406d21feb437c18ef8a6a91647cb5dc4d52bb26accb8617abd1544",
+      "zip_bytes": 192675,
+      "checkpoint_sha256": "d2d89f3dba75073ec6b583bf4ea0a6ef97a72b623b3d589807d6036a749e1e3a"
+    },
+    "success_14_preflight": {
+      "kind": "read_only_registry",
+      "run_id": "45403192159",
+      "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/45403192159",
+      "application_sha": "dca4085f9a63ac1e7a5179c2a9b1b20febce4f82",
+      "read_at_utc": "2026-11-24T13:25:59+00:00",
+      "registry_sha256": "84dee62f3bcd7a835c64a624d232dcd824a89777bc0a2801e27b47893c6f3611",
+      "zip_sha256": "c937ea1b3d3e7f1c0caa8c5b4a70c18e84a61f09ac120dade5e6000c7bb72a14",
+      "zip_bytes": 37123,
+      "checkpoint_sha256": "986466ab88a892fa2d0c2911282eee9f07619f4a6337d775d9020a9086a55be7"
+    },
+    "success_1_preflight": {
+      "kind": "read_only_registry",
+      "run_id": "45528209335",
+      "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/45528209335",
+      "application_sha": "73c80433c4d18edaff5cff2d4344a41511c6134b",
+      "read_at_utc": "2026-11-25T01:47:15+00:00",
+      "registry_sha256": "93397de5a22a5492bd34b00efbec4f594f91d93516a9da7cd6bdea8481161215",
+      "zip_sha256": "cae7d3109ea5d55ae76d3d7a3e65549514c9a62b8419d99ec593a562cbe4e12f",
+      "zip_bytes": 19890,
+      "checkpoint_sha256": "a5e27ca69df74652334a7e192459d9f16ab04fbb34c59fba096bf07703101dda"
+    },
+    "success_3_preflight": {
+      "kind": "read_only_registry",
+      "run_id": "45531105688",
+      "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/45531105688",
+      "application_sha": "dd31a8bd9dee0f3ac66d3fc7ce30021b59256d35",
+      "read_at_utc": "2026-11-25T02:11:31+00:00",
+      "registry_sha256": "81883796c3403868342072357ff89ccbd04f577bea29273e26c04efc8d015e45",
+      "zip_sha256": "931e597d9b937ad98cdcbdbfbd6a4f6c3e050c1f79bc4de9f8d2de59c0f7ca49",
+      "zip_bytes": 12179,
+      "checkpoint_sha256": "8e0efdbd708717b1eea33e0cdce6e55307f5fa0cc26e5a308955efebe8bdc307"
+    },
+    "success_14_native": {
+      "kind": "native_result",
+      "run_id": "45533762784",
+      "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/45533762784",
+      "artifact_id": "14986280965",
+      "application_sha": "b0d996f26f2291bc0a8bdc3cbdddae7ec1ab0a2f",
+      "finished_at_utc": "2026-11-25T02:34:54+00:00",
+      "result_sha256": "b03452ba37958580bf3167365a8bccef050880ae16f5ea40f1a49fbf2ac8fd28",
+      "zip_sha256": "57da3588ddd111dfaf28fa74249b4cef7d5bd26aeb914d9c586f55e55c0616fa",
+      "zip_bytes": 3429,
+      "public_readback_sha256": "62efca96627edf7616d11cb3c9c43571e5e26b6e082359b279166a3e709cb8f2",
+      "public_verified_at_utc": "2026-11-25T02:35:28+00:00"
+    },
+    "success_1_native": {
+      "kind": "native_result",
+      "run_id": "45534142270",
+      "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/45534142270",
+      "artifact_id": "14986705615",
+      "application_sha": "b0d996f26f2291bc0a8bdc3cbdddae7ec1ab0a2f",
+      "finished_at_utc": "2026-11-25T02:36:37+00:00",
+      "result_sha256": "907d98f1e56701d7fb1e497572cf5a594721e03e5fd0738b111ce475dcb37ae6",
+      "zip_sha256": "d4db526de5d716b279c40f732921a212bc9fbd713fea21e1ac32e40a2bf52912",
+      "zip_bytes": 1592,
+      "public_readback_sha256": "bbdb37a557baea32ba39a8f1868589946ed6d9882aa93c71b482e2f776d7e454",
+      "public_verified_at_utc": "2026-11-25T02:37:08+00:00"
+    },
+    "success_3_native": {
+      "kind": "native_result",
+      "run_id": "45538284898",
+      "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/45538284898",
+      "artifact_id": "14988096483",
+      "application_sha": "21b8e93418be0357cc2c7858cd1b0d970a62f4a7",
+      "finished_at_utc": "2026-11-25T03:12:30+00:00",
+      "result_sha256": "b037fa73b611d2b01a97070bbc496be2c36ca1a4dfcabb8bebfd1fff774c660e",
+      "zip_sha256": "41eb00ec10acc8bc1450bbabe5bda6919897d96846f68d7185004869704d0468",
+      "zip_bytes": 1901,
+      "public_readback_sha256": "a6f01a8d41e5f6a1c3c68cd7d6153c4d395129ea248370dd5adc4632d6900396",
+      "public_verified_at_utc": "2026-11-25T03:12:55+00:00"
+    },
+    "rejected_native": {
+      "kind": "native_result",
+      "run_id": "45567178733",
+      "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/45567178733",
+      "artifact_id": "15000950069",
+      "application_sha": "878c680627d54297c364254687577a03ac5aef6b",
+      "finished_at_utc": "2026-11-25T07:19:40+00:00",
+      "zip_sha256": "9c910eea8d09bc86d7a17a807d34d662820a0b17098342593698c7e36b2c6c42",
+      "zip_bytes": 2690
+    }
+  },
+  "observations": [
+    {
+      "hotel_id": 1959,
+      "message_id": "526",
+      "before_evidence": "success_3_preflight",
+      "published_at": "2024-04-02T08:20:57+00:00",
+      "single_photo": true,
+      "outcome": "accepted",
+      "after_evidence": "success_3_native",
+      "photo_count": 1,
+      "other_media_count": 0,
+      "accepted_native_result": {
+        "ok": true,
+        "state": "native_and_registry_verified",
+        "provider_write_attempts": 1,
+        "publication_id": 3831,
+        "version_id": 14407,
+        "hotel_id_verified": true,
+        "photo_caption_button_verified": true,
+        "original_message_id_and_date_preserved": true
+      },
+      "accepted_public_result": {
+        "native_photo_identity_verified": true,
+        "applied": true,
+        "caption": true,
+        "public_new_photo_marker": true,
+        "original_date": true,
+        "hotel_button": true
+      },
+      "full_journal_available_in_export": false
+    },
+    {
+      "hotel_id": 1334,
+      "message_id": "664",
+      "before_evidence": "success_14_preflight",
+      "published_at": "2024-06-06T07:55:36+00:00",
+      "single_photo": true,
+      "outcome": "accepted",
+      "after_evidence": "success_14_native",
+      "accepted_native_result": {
+        "ok": true,
+        "state": "native_and_registry_verified",
+        "provider_write_attempts": 1,
+        "publication_id": 3814,
+        "version_id": 14390,
+        "hotel_id_verified": true,
+        "photo_caption_button_verified": true,
+        "original_message_id_and_date_preserved": true
+      },
+      "accepted_public_result": {
+        "native_photo_identity_verified": true,
+        "applied": true,
+        "caption": true,
+        "public_new_photo_marker": true,
+        "original_date": true,
+        "hotel_button": true
+      },
+      "full_journal_available_in_export": false
+    },
+    {
+      "hotel_id": 2794,
+      "message_id": "768",
+      "before_evidence": "success_14_preflight",
+      "published_at": "2024-07-24T07:35:48+00:00",
+      "single_photo": true,
+      "outcome": "accepted",
+      "after_evidence": "success_14_native",
+      "accepted_native_result": {
+        "ok": true,
+        "state": "native_and_registry_verified",
+        "provider_write_attempts": 1,
+        "publication_id": 3819,
+        "version_id": 14395,
+        "hotel_id_verified": true,
+        "photo_caption_button_verified": true,
+        "original_message_id_and_date_preserved": true
+      },
+      "accepted_public_result": {
+        "native_photo_identity_verified": true,
+        "applied": true,
+        "caption": true,
+        "public_new_photo_marker": true,
+        "original_date": true,
+        "hotel_button": true
+      },
+      "full_journal_available_in_export": false
+    },
+    {
+      "hotel_id": 8020,
+      "message_id": "839",
+      "before_evidence": "success_14_preflight",
+      "published_at": "2024-09-05T12:50:21+00:00",
+      "single_photo": true,
+      "outcome": "accepted",
+      "after_evidence": "success_14_native",
+      "accepted_native_result": {
+        "ok": true,
+        "state": "native_and_registry_verified",
+        "provider_write_attempts": 1,
+        "publication_id": 3821,
+        "version_id": 14397,
+        "hotel_id_verified": true,
+        "photo_caption_button_verified": true,
+        "original_message_id_and_date_preserved": true
+      },
+      "accepted_public_result": {
+        "native_photo_identity_verified": true,
+        "applied": true,
+        "caption": true,
+        "public_new_photo_marker": true,
+        "original_date": true,
+        "hotel_button": true
+      },
+      "full_journal_available_in_export": false
+    },
+    {
+      "hotel_id": 14140,
+      "message_id": "909",
+      "before_evidence": "success_3_preflight",
+      "published_at": "2024-10-23T09:01:11+00:00",
+      "single_photo": true,
+      "outcome": "accepted",
+      "after_evidence": "success_3_native",
+      "photo_count": 1,
+      "other_media_count": 0,
+      "accepted_native_result": {
+        "ok": true,
+        "state": "native_and_registry_verified",
+        "provider_write_attempts": 1,
+        "publication_id": 3829,
+        "version_id": 14405,
+        "hotel_id_verified": true,
+        "photo_caption_button_verified": true,
+        "original_message_id_and_date_preserved": true
+      },
+      "accepted_public_result": {
+        "native_photo_identity_verified": true,
+        "applied": true,
+        "caption": true,
+        "public_new_photo_marker": true,
+        "original_date": true,
+        "hotel_button": true
+      },
+      "full_journal_available_in_export": false
+    },
+    {
+      "hotel_id": 4060,
+      "message_id": "916",
+      "before_evidence": "success_14_preflight",
+      "published_at": "2024-10-30T07:40:08+00:00",
+      "single_photo": true,
+      "outcome": "accepted",
+      "after_evidence": "success_14_native",
+      "accepted_native_result": {
+        "ok": true,
+        "state": "native_and_registry_verified",
+        "provider_write_attempts": 1,
+        "publication_id": 3820,
+        "version_id": 14396,
+        "hotel_id_verified": true,
+        "photo_caption_button_verified": true,
+        "original_message_id_and_date_preserved": true
+      },
+      "accepted_public_result": {
+        "native_photo_identity_verified": true,
+        "applied": true,
+        "caption": true,
+        "public_new_photo_marker": true,
+        "original_date": true,
+        "hotel_button": true
+      },
+      "full_journal_available_in_export": false
+    },
+    {
+      "hotel_id": 1336,
+      "message_id": "1032",
+      "before_evidence": "success_14_preflight",
+      "published_at": "2025-02-28T10:24:39+00:00",
+      "single_photo": true,
+      "outcome": "accepted",
+      "after_evidence": "success_14_native",
+      "accepted_native_result": {
+        "ok": true,
+        "state": "native_and_registry_verified",
+        "provider_write_attempts": 1,
+        "publication_id": 3815,
+        "version_id": 14391,
+        "hotel_id_verified": true,
+        "photo_caption_button_verified": true,
+        "original_message_id_and_date_preserved": true
+      },
+      "accepted_public_result": {
+        "native_photo_identity_verified": true,
+        "applied": true,
+        "caption": true,
+        "public_new_photo_marker": true,
+        "original_date": true,
+        "hotel_button": true
+      },
+      "full_journal_available_in_export": false
+    },
+    {
+      "hotel_id": 1501,
+      "message_id": "1047",
+      "before_evidence": "rejected_preflight",
+      "published_at": "2025-03-14T07:11:44+00:00",
+      "single_photo": true,
+      "outcome": "message_id_invalid",
+      "after_evidence": [
+        "rejected_native",
+        "rejected_readback"
+      ],
+      "photo_count": 1,
+      "other_media_count": 0,
+      "historical_journal_projection": {
+        "state": "present_do_not_replay",
+        "sha256": "776bc30a00f0a81a3782ae6048282f07fc3b8f1c08c8de126725abff48a742c0",
+        "line_count": 6,
+        "states": [
+          "intent_saved",
+          "identity_reserved",
+          "request_prepared",
+          "provider_edit_started",
+          "provider_response_saved",
+          "provider_message_id_rejected"
+        ],
+        "events": [
+          {
+            "state": "intent_saved",
+            "at_utc": "2026-11-25T07:19:31+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1",
+            "original_native_run_id": "45567178733",
+            "original_application_sha": "878c680627d54297c364254687577a03ac5aef6b"
+          },
+          {
+            "state": "identity_reserved",
+            "at_utc": "2026-11-25T07:19:31+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1"
+          },
+          {
+            "state": "request_prepared",
+            "at_utc": "2026-11-25T07:19:31+00:00"
+          },
+          {
+            "state": "provider_edit_started",
+            "at_utc": "2026-11-25T07:19:31+00:00",
+            "provider_write_attempts": 1
+          },
+          {
+            "state": "provider_response_saved",
+            "at_utc": "2026-11-25T07:19:31+00:00",
+            "provider_http": 400,
+            "transport_error": false,
+            "provider_ok": false,
+            "provider_error_code": 400,
+            "message_id_invalid": true
+          },
+          {
+            "state": "provider_message_id_rejected",
+            "at_utc": "2026-11-25T07:19:32+00:00",
+            "provider_write_attempts": 1
+          }
+        ]
+      },
+      "reservation": {
+        "publication_id": 3847,
+        "external_message_id": "1047",
+        "current_version_id": null,
+        "state": null,
+        "attempt_count": null,
+        "write_attempts": null,
+        "has_claim": 0,
+        "has_claimed_at": 0
+      },
+      "target_public_preimage_unchanged": true
+    },
+    {
+      "hotel_id": 2514,
+      "message_id": "1058",
+      "before_evidence": "rejected_preflight",
+      "published_at": "2025-03-26T08:11:55+00:00",
+      "single_photo": true,
+      "outcome": "message_id_invalid",
+      "after_evidence": [
+        "rejected_native",
+        "rejected_readback"
+      ],
+      "photo_count": 1,
+      "other_media_count": 0,
+      "historical_journal_projection": {
+        "state": "present_do_not_replay",
+        "sha256": "b30bddac7fb9ddcb40e2f41c44bec8988e7fc0e98ddb3a0ca9f825e38492aeb0",
+        "line_count": 6,
+        "states": [
+          "intent_saved",
+          "identity_reserved",
+          "request_prepared",
+          "provider_edit_started",
+          "provider_response_saved",
+          "provider_message_id_rejected"
+        ],
+        "events": [
+          {
+            "state": "intent_saved",
+            "at_utc": "2026-11-25T07:19:32+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1",
+            "original_native_run_id": "45567178733",
+            "original_application_sha": "878c680627d54297c364254687577a03ac5aef6b"
+          },
+          {
+            "state": "identity_reserved",
+            "at_utc": "2026-11-25T07:19:32+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1"
+          },
+          {
+            "state": "request_prepared",
+            "at_utc": "2026-11-25T07:19:32+00:00"
+          },
+          {
+            "state": "provider_edit_started",
+            "at_utc": "2026-11-25T07:19:32+00:00",
+            "provider_write_attempts": 1
+          },
+          {
+            "state": "provider_response_saved",
+            "at_utc": "2026-11-25T07:19:32+00:00",
+            "provider_http": 400,
+            "transport_error": false,
+            "provider_ok": false,
+            "provider_error_code": 400,
+            "message_id_invalid": true
+          },
+          {
+            "state": "provider_message_id_rejected",
+            "at_utc": "2026-11-25T07:19:32+00:00",
+            "provider_write_attempts": 1
+          }
+        ]
+      },
+      "reservation": {
+        "publication_id": 3848,
+        "external_message_id": "1058",
+        "current_version_id": null,
+        "state": null,
+        "attempt_count": null,
+        "write_attempts": null,
+        "has_claim": 0,
+        "has_claimed_at": 0
+      },
+      "target_public_preimage_unchanged": true
+    },
+    {
+      "hotel_id": 1067,
+      "message_id": "1066",
+      "before_evidence": "success_14_preflight",
+      "published_at": "2025-04-03T08:20:42+00:00",
+      "single_photo": true,
+      "outcome": "accepted",
+      "after_evidence": "success_14_native",
+      "accepted_native_result": {
+        "ok": true,
+        "state": "native_and_registry_verified",
+        "provider_write_attempts": 1,
+        "publication_id": 3809,
+        "version_id": 14385,
+        "hotel_id_verified": true,
+        "photo_caption_button_verified": true,
+        "original_message_id_and_date_preserved": true
+      },
+      "accepted_public_result": {
+        "native_photo_identity_verified": true,
+        "applied": true,
+        "caption": true,
+        "public_new_photo_marker": true,
+        "original_date": true,
+        "hotel_button": true
+      },
+      "full_journal_available_in_export": false
+    },
+    {
+      "hotel_id": 1100,
+      "message_id": "1072",
+      "before_evidence": "success_14_preflight",
+      "published_at": "2025-04-09T07:27:18+00:00",
+      "single_photo": true,
+      "outcome": "accepted",
+      "after_evidence": "success_14_native",
+      "accepted_native_result": {
+        "ok": true,
+        "state": "native_and_registry_verified",
+        "provider_write_attempts": 1,
+        "publication_id": 3810,
+        "version_id": 14386,
+        "hotel_id_verified": true,
+        "photo_caption_button_verified": true,
+        "original_message_id_and_date_preserved": true
+      },
+      "accepted_public_result": {
+        "native_photo_identity_verified": true,
+        "applied": true,
+        "caption": true,
+        "public_new_photo_marker": true,
+        "original_date": true,
+        "hotel_button": true
+      },
+      "full_journal_available_in_export": false
+    },
+    {
+      "hotel_id": 1421,
+      "message_id": "1076",
+      "before_evidence": "success_14_preflight",
+      "published_at": "2025-04-14T07:48:58+00:00",
+      "single_photo": true,
+      "outcome": "accepted",
+      "after_evidence": "success_14_native",
+      "accepted_native_result": {
+        "ok": true,
+        "state": "native_and_registry_verified",
+        "provider_write_attempts": 1,
+        "publication_id": 3816,
+        "version_id": 14392,
+        "hotel_id_verified": true,
+        "photo_caption_button_verified": true,
+        "original_message_id_and_date_preserved": true
+      },
+      "accepted_public_result": {
+        "native_photo_identity_verified": true,
+        "applied": true,
+        "caption": true,
+        "public_new_photo_marker": true,
+        "original_date": true,
+        "hotel_button": true
+      },
+      "full_journal_available_in_export": false
+    },
+    {
+      "hotel_id": 1221,
+      "message_id": "1078",
+      "before_evidence": "success_14_preflight",
+      "published_at": "2025-04-17T08:47:05+00:00",
+      "single_photo": true,
+      "outcome": "accepted",
+      "after_evidence": "success_14_native",
+      "accepted_native_result": {
+        "ok": true,
+        "state": "native_and_registry_verified",
+        "provider_write_attempts": 1,
+        "publication_id": 3813,
+        "version_id": 14389,
+        "hotel_id_verified": true,
+        "photo_caption_button_verified": true,
+        "original_message_id_and_date_preserved": true
+      },
+      "accepted_public_result": {
+        "native_photo_identity_verified": true,
+        "applied": true,
+        "caption": true,
+        "public_new_photo_marker": true,
+        "original_date": true,
+        "hotel_button": true
+      },
+      "full_journal_available_in_export": false
+    },
+    {
+      "hotel_id": 1142,
+      "message_id": "1081",
+      "before_evidence": "success_14_preflight",
+      "published_at": "2025-04-20T08:17:56+00:00",
+      "single_photo": true,
+      "outcome": "accepted",
+      "after_evidence": "success_14_native",
+      "accepted_native_result": {
+        "ok": true,
+        "state": "native_and_registry_verified",
+        "provider_write_attempts": 1,
+        "publication_id": 3811,
+        "version_id": 14387,
+        "hotel_id_verified": true,
+        "photo_caption_button_verified": true,
+        "original_message_id_and_date_preserved": true
+      },
+      "accepted_public_result": {
+        "native_photo_identity_verified": true,
+        "applied": true,
+        "caption": true,
+        "public_new_photo_marker": true,
+        "original_date": true,
+        "hotel_button": true
+      },
+      "full_journal_available_in_export": false
+    },
+    {
+      "hotel_id": 1402,
+      "message_id": "1085",
+      "before_evidence": "success_3_preflight",
+      "published_at": "2025-04-25T07:36:30+00:00",
+      "single_photo": true,
+      "outcome": "accepted",
+      "after_evidence": "success_3_native",
+      "photo_count": 1,
+      "other_media_count": 0,
+      "accepted_native_result": {
+        "ok": true,
+        "state": "native_and_registry_verified",
+        "provider_write_attempts": 1,
+        "publication_id": 3830,
+        "version_id": 14406,
+        "hotel_id_verified": true,
+        "photo_caption_button_verified": true,
+        "original_message_id_and_date_preserved": true
+      },
+      "accepted_public_result": {
+        "native_photo_identity_verified": true,
+        "applied": true,
+        "caption": true,
+        "public_new_photo_marker": true,
+        "original_date": true,
+        "hotel_button": true
+      },
+      "full_journal_available_in_export": false
+    },
+    {
+      "hotel_id": 1151,
+      "message_id": "1102",
+      "before_evidence": "success_14_preflight",
+      "published_at": "2025-05-22T09:41:38+00:00",
+      "single_photo": true,
+      "outcome": "accepted",
+      "after_evidence": "success_14_native",
+      "accepted_native_result": {
+        "ok": true,
+        "state": "native_and_registry_verified",
+        "provider_write_attempts": 1,
+        "publication_id": 3812,
+        "version_id": 14388,
+        "hotel_id_verified": true,
+        "photo_caption_button_verified": true,
+        "original_message_id_and_date_preserved": true
+      },
+      "accepted_public_result": {
+        "native_photo_identity_verified": true,
+        "applied": true,
+        "caption": true,
+        "public_new_photo_marker": true,
+        "original_date": true,
+        "hotel_button": true
+      },
+      "full_journal_available_in_export": false
+    },
+    {
+      "hotel_id": 8964,
+      "message_id": "1103",
+      "before_evidence": "rejected_preflight",
+      "published_at": "2025-05-24T08:09:11+00:00",
+      "single_photo": true,
+      "outcome": "message_id_invalid",
+      "after_evidence": [
+        "rejected_native",
+        "rejected_readback"
+      ],
+      "photo_count": 1,
+      "other_media_count": 0,
+      "historical_journal_projection": {
+        "state": "present_do_not_replay",
+        "sha256": "6fa41d8256c4ed6ac439380f2c343583c4c86a0faefb4956e2f4369e0a4c3308",
+        "line_count": 6,
+        "states": [
+          "intent_saved",
+          "identity_reserved",
+          "request_prepared",
+          "provider_edit_started",
+          "provider_response_saved",
+          "provider_message_id_rejected"
+        ],
+        "events": [
+          {
+            "state": "intent_saved",
+            "at_utc": "2026-11-25T07:19:32+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1",
+            "original_native_run_id": "45567178733",
+            "original_application_sha": "878c680627d54297c364254687577a03ac5aef6b"
+          },
+          {
+            "state": "identity_reserved",
+            "at_utc": "2026-11-25T07:19:32+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1"
+          },
+          {
+            "state": "request_prepared",
+            "at_utc": "2026-11-25T07:19:32+00:00"
+          },
+          {
+            "state": "provider_edit_started",
+            "at_utc": "2026-11-25T07:19:32+00:00",
+            "provider_write_attempts": 1
+          },
+          {
+            "state": "provider_response_saved",
+            "at_utc": "2026-11-25T07:19:33+00:00",
+            "provider_http": 400,
+            "transport_error": false,
+            "provider_ok": false,
+            "provider_error_code": 400,
+            "message_id_invalid": true
+          },
+          {
+            "state": "provider_message_id_rejected",
+            "at_utc": "2026-11-25T07:19:33+00:00",
+            "provider_write_attempts": 1
+          }
+        ]
+      },
+      "reservation": {
+        "publication_id": 3849,
+        "external_message_id": "1103",
+        "current_version_id": null,
+        "state": null,
+        "attempt_count": null,
+        "write_attempts": null,
+        "has_claim": 0,
+        "has_claimed_at": 0
+      },
+      "target_public_preimage_unchanged": true
+    },
+    {
+      "hotel_id": 1962,
+      "message_id": "1109",
+      "before_evidence": "rejected_preflight",
+      "published_at": "2025-05-29T08:16:41+00:00",
+      "single_photo": true,
+      "outcome": "message_id_invalid",
+      "after_evidence": [
+        "rejected_native",
+        "rejected_readback"
+      ],
+      "photo_count": 1,
+      "other_media_count": 0,
+      "historical_journal_projection": {
+        "state": "present_do_not_replay",
+        "sha256": "dd4ebbd0a68f82c1c027b60ed3d00e421d41ff42db73ada07e310a6e9916bbc0",
+        "line_count": 6,
+        "states": [
+          "intent_saved",
+          "identity_reserved",
+          "request_prepared",
+          "provider_edit_started",
+          "provider_response_saved",
+          "provider_message_id_rejected"
+        ],
+        "events": [
+          {
+            "state": "intent_saved",
+            "at_utc": "2026-11-25T07:19:33+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1",
+            "original_native_run_id": "45567178733",
+            "original_application_sha": "878c680627d54297c364254687577a03ac5aef6b"
+          },
+          {
+            "state": "identity_reserved",
+            "at_utc": "2026-11-25T07:19:33+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1"
+          },
+          {
+            "state": "request_prepared",
+            "at_utc": "2026-11-25T07:19:33+00:00"
+          },
+          {
+            "state": "provider_edit_started",
+            "at_utc": "2026-11-25T07:19:33+00:00",
+            "provider_write_attempts": 1
+          },
+          {
+            "state": "provider_response_saved",
+            "at_utc": "2026-11-25T07:19:34+00:00",
+            "provider_http": 400,
+            "transport_error": false,
+            "provider_ok": false,
+            "provider_error_code": 400,
+            "message_id_invalid": true
+          },
+          {
+            "state": "provider_message_id_rejected",
+            "at_utc": "2026-11-25T07:19:34+00:00",
+            "provider_write_attempts": 1
+          }
+        ]
+      },
+      "reservation": {
+        "publication_id": 3850,
+        "external_message_id": "1109",
+        "current_version_id": null,
+        "state": null,
+        "attempt_count": null,
+        "write_attempts": null,
+        "has_claim": 0,
+        "has_claimed_at": 0
+      },
+      "target_public_preimage_unchanged": true
+    },
+    {
+      "hotel_id": 2522,
+      "message_id": "1120",
+      "before_evidence": "success_14_preflight",
+      "published_at": "2025-06-10T09:24:09+00:00",
+      "single_photo": true,
+      "outcome": "accepted",
+      "after_evidence": "success_14_native",
+      "accepted_native_result": {
+        "ok": true,
+        "state": "native_and_registry_verified",
+        "provider_write_attempts": 1,
+        "publication_id": 3818,
+        "version_id": 14394,
+        "hotel_id_verified": true,
+        "photo_caption_button_verified": true,
+        "original_message_id_and_date_preserved": true
+      },
+      "accepted_public_result": {
+        "native_photo_identity_verified": true,
+        "applied": true,
+        "caption": true,
+        "public_new_photo_marker": true,
+        "original_date": true,
+        "hotel_button": true
+      },
+      "full_journal_available_in_export": false
+    },
+    {
+      "hotel_id": 1429,
+      "message_id": "1125",
+      "before_evidence": "success_14_preflight",
+      "published_at": "2025-06-15T07:40:43+00:00",
+      "single_photo": true,
+      "outcome": "accepted",
+      "after_evidence": "success_14_native",
+      "accepted_native_result": {
+        "ok": true,
+        "state": "native_and_registry_verified",
+        "provider_write_attempts": 1,
+        "publication_id": 3817,
+        "version_id": 14393,
+        "hotel_id_verified": true,
+        "photo_caption_button_verified": true,
+        "original_message_id_and_date_preserved": true
+      },
+      "accepted_public_result": {
+        "native_photo_identity_verified": true,
+        "applied": true,
+        "caption": true,
+        "public_new_photo_marker": true,
+        "original_date": true,
+        "hotel_button": true
+      },
+      "full_journal_available_in_export": false
+    },
+    {
+      "hotel_id": 36451,
+      "message_id": "1584",
+      "before_evidence": "rejected_preflight",
+      "published_at": "2026-06-16T07:39:30+00:00",
+      "single_photo": true,
+      "outcome": "message_id_invalid",
+      "after_evidence": [
+        "rejected_native",
+        "rejected_readback"
+      ],
+      "photo_count": 1,
+      "other_media_count": 0,
+      "historical_journal_projection": {
+        "state": "present_do_not_replay",
+        "sha256": "fa00e07d7e30c1e8b501683857c1b9e413f2a61640a7fe17e68e3b5f3a6b88ce",
+        "line_count": 6,
+        "states": [
+          "intent_saved",
+          "identity_reserved",
+          "request_prepared",
+          "provider_edit_started",
+          "provider_response_saved",
+          "provider_message_id_rejected"
+        ],
+        "events": [
+          {
+            "state": "intent_saved",
+            "at_utc": "2026-11-25T07:19:34+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1",
+            "original_native_run_id": "45567178733",
+            "original_application_sha": "878c680627d54297c364254687577a03ac5aef6b"
+          },
+          {
+            "state": "identity_reserved",
+            "at_utc": "2026-11-25T07:19:34+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1"
+          },
+          {
+            "state": "request_prepared",
+            "at_utc": "2026-11-25T07:19:34+00:00"
+          },
+          {
+            "state": "provider_edit_started",
+            "at_utc": "2026-11-25T07:19:34+00:00",
+            "provider_write_attempts": 1
+          },
+          {
+            "state": "provider_response_saved",
+            "at_utc": "2026-11-25T07:19:35+00:00",
+            "provider_http": 400,
+            "transport_error": false,
+            "provider_ok": false,
+            "provider_error_code": 400,
+            "message_id_invalid": true
+          },
+          {
+            "state": "provider_message_id_rejected",
+            "at_utc": "2026-11-25T07:19:35+00:00",
+            "provider_write_attempts": 1
+          }
+        ]
+      },
+      "reservation": {
+        "publication_id": 3851,
+        "external_message_id": "1584",
+        "current_version_id": null,
+        "state": null,
+        "attempt_count": null,
+        "write_attempts": null,
+        "has_claim": 0,
+        "has_claimed_at": 0
+      },
+      "target_public_preimage_unchanged": true
+    },
+    {
+      "hotel_id": 278,
+      "message_id": "1585",
+      "before_evidence": "rejected_preflight",
+      "published_at": "2026-06-17T07:54:59+00:00",
+      "single_photo": true,
+      "outcome": "message_id_invalid",
+      "after_evidence": [
+        "rejected_native",
+        "rejected_readback"
+      ],
+      "photo_count": 1,
+      "other_media_count": 0,
+      "historical_journal_projection": {
+        "state": "present_do_not_replay",
+        "sha256": "fc48c22f3ceae7b971c677b30e69b83b59faf60838b179082aed819e86bd994a",
+        "line_count": 6,
+        "states": [
+          "intent_saved",
+          "identity_reserved",
+          "request_prepared",
+          "provider_edit_started",
+          "provider_response_saved",
+          "provider_message_id_rejected"
+        ],
+        "events": [
+          {
+            "state": "intent_saved",
+            "at_utc": "2026-11-25T07:19:35+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1",
+            "original_native_run_id": "45567178733",
+            "original_application_sha": "878c680627d54297c364254687577a03ac5aef6b"
+          },
+          {
+            "state": "identity_reserved",
+            "at_utc": "2026-11-25T07:19:35+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1"
+          },
+          {
+            "state": "request_prepared",
+            "at_utc": "2026-11-25T07:19:35+00:00"
+          },
+          {
+            "state": "provider_edit_started",
+            "at_utc": "2026-11-25T07:19:35+00:00",
+            "provider_write_attempts": 1
+          },
+          {
+            "state": "provider_response_saved",
+            "at_utc": "2026-11-25T07:19:35+00:00",
+            "provider_http": 400,
+            "transport_error": false,
+            "provider_ok": false,
+            "provider_error_code": 400,
+            "message_id_invalid": true
+          },
+          {
+            "state": "provider_message_id_rejected",
+            "at_utc": "2026-11-25T07:19:35+00:00",
+            "provider_write_attempts": 1
+          }
+        ]
+      },
+      "reservation": {
+        "publication_id": 3852,
+        "external_message_id": "1585",
+        "current_version_id": null,
+        "state": null,
+        "attempt_count": null,
+        "write_attempts": null,
+        "has_claim": 0,
+        "has_claimed_at": 0
+      },
+      "target_public_preimage_unchanged": true
+    },
+    {
+      "hotel_id": 143372,
+      "message_id": "1586",
+      "before_evidence": "rejected_preflight",
+      "published_at": "2026-06-18T07:47:41+00:00",
+      "single_photo": true,
+      "outcome": "message_id_invalid",
+      "after_evidence": [
+        "rejected_native",
+        "rejected_readback"
+      ],
+      "photo_count": 1,
+      "other_media_count": 0,
+      "historical_journal_projection": {
+        "state": "present_do_not_replay",
+        "sha256": "526535cca6565d000b0865243fb036c6b11818d3adf630f219df7c76e23725ce",
+        "line_count": 6,
+        "states": [
+          "intent_saved",
+          "identity_reserved",
+          "request_prepared",
+          "provider_edit_started",
+          "provider_response_saved",
+          "provider_message_id_rejected"
+        ],
+        "events": [
+          {
+            "state": "intent_saved",
+            "at_utc": "2026-11-25T07:19:35+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1",
+            "original_native_run_id": "45567178733",
+            "original_application_sha": "878c680627d54297c364254687577a03ac5aef6b"
+          },
+          {
+            "state": "identity_reserved",
+            "at_utc": "2026-11-25T07:19:35+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1"
+          },
+          {
+            "state": "request_prepared",
+            "at_utc": "2026-11-25T07:19:35+00:00"
+          },
+          {
+            "state": "provider_edit_started",
+            "at_utc": "2026-11-25T07:19:35+00:00",
+            "provider_write_attempts": 1
+          },
+          {
+            "state": "provider_response_saved",
+            "at_utc": "2026-11-25T07:19:36+00:00",
+            "provider_http": 400,
+            "transport_error": false,
+            "provider_ok": false,
+            "provider_error_code": 400,
+            "message_id_invalid": true
+          },
+          {
+            "state": "provider_message_id_rejected",
+            "at_utc": "2026-11-25T07:19:36+00:00",
+            "provider_write_attempts": 1
+          }
+        ]
+      },
+      "reservation": {
+        "publication_id": 3853,
+        "external_message_id": "1586",
+        "current_version_id": null,
+        "state": null,
+        "attempt_count": null,
+        "write_attempts": null,
+        "has_claim": 0,
+        "has_claimed_at": 0
+      },
+      "target_public_preimage_unchanged": true
+    },
+    {
+      "hotel_id": 32322,
+      "message_id": "1603",
+      "before_evidence": "success_14_preflight",
+      "published_at": "2026-07-03T07:15:11+00:00",
+      "single_photo": true,
+      "outcome": "accepted",
+      "after_evidence": "success_14_native",
+      "accepted_native_result": {
+        "ok": true,
+        "state": "native_and_registry_verified",
+        "provider_write_attempts": 1,
+        "publication_id": 3822,
+        "version_id": 14398,
+        "hotel_id_verified": true,
+        "photo_caption_button_verified": true,
+        "original_message_id_and_date_preserved": true
+      },
+      "accepted_public_result": {
+        "native_photo_identity_verified": true,
+        "applied": true,
+        "caption": true,
+        "public_new_photo_marker": true,
+        "original_date": true,
+        "hotel_button": true
+      },
+      "full_journal_available_in_export": false
+    },
+    {
+      "hotel_id": 1014,
+      "message_id": "1604",
+      "before_evidence": "success_1_preflight",
+      "published_at": "2026-07-04T07:15:11+00:00",
+      "single_photo": true,
+      "outcome": "accepted",
+      "after_evidence": "success_1_native",
+      "photo_count": 1,
+      "other_media_count": 0,
+      "accepted_native_result": {
+        "ok": true,
+        "state": "native_and_registry_verified",
+        "provider_write_attempts": 1,
+        "publication_id": 3823,
+        "version_id": 14399,
+        "hotel_id_verified": true,
+        "photo_caption_button_verified": true,
+        "original_message_id_and_date_preserved": true
+      },
+      "accepted_public_result": {
+        "native_photo_identity_verified": true,
+        "applied": true,
+        "caption": true,
+        "public_new_photo_marker": true,
+        "original_date": true,
+        "hotel_button": true
+      },
+      "full_journal_available_in_export": false
+    },
+    {
+      "hotel_id": 7985,
+      "message_id": "1620",
+      "before_evidence": "rejected_preflight",
+      "published_at": "2026-07-15T07:29:57+00:00",
+      "single_photo": true,
+      "outcome": "message_id_invalid",
+      "after_evidence": [
+        "rejected_native",
+        "rejected_readback"
+      ],
+      "photo_count": 1,
+      "other_media_count": 0,
+      "historical_journal_projection": {
+        "state": "present_do_not_replay",
+        "sha256": "bd19c7a93d6dff1158268d2c2545381d7c8af692607276ab5d7b1cc25c98e370",
+        "line_count": 6,
+        "states": [
+          "intent_saved",
+          "identity_reserved",
+          "request_prepared",
+          "provider_edit_started",
+          "provider_response_saved",
+          "provider_message_id_rejected"
+        ],
+        "events": [
+          {
+            "state": "intent_saved",
+            "at_utc": "2026-11-25T07:19:36+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1",
+            "original_native_run_id": "45567178733",
+            "original_application_sha": "878c680627d54297c364254687577a03ac5aef6b"
+          },
+          {
+            "state": "identity_reserved",
+            "at_utc": "2026-11-25T07:19:36+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1"
+          },
+          {
+            "state": "request_prepared",
+            "at_utc": "2026-11-25T07:19:36+00:00"
+          },
+          {
+            "state": "provider_edit_started",
+            "at_utc": "2026-11-25T07:19:36+00:00",
+            "provider_write_attempts": 1
+          },
+          {
+            "state": "provider_response_saved",
+            "at_utc": "2026-11-25T07:19:36+00:00",
+            "provider_http": 400,
+            "transport_error": false,
+            "provider_ok": false,
+            "provider_error_code": 400,
+            "message_id_invalid": true
+          },
+          {
+            "state": "provider_message_id_rejected",
+            "at_utc": "2026-11-25T07:19:36+00:00",
+            "provider_write_attempts": 1
+          }
+        ]
+      },
+      "reservation": {
+        "publication_id": 3854,
+        "external_message_id": "1620",
+        "current_version_id": null,
+        "state": null,
+        "attempt_count": null,
+        "write_attempts": null,
+        "has_claim": 0,
+        "has_claimed_at": 0
+      },
+      "target_public_preimage_unchanged": true
+    },
+    {
+      "hotel_id": 68984,
+      "message_id": "1651",
+      "before_evidence": "rejected_preflight",
+      "published_at": "2026-08-02T08:05:10+00:00",
+      "single_photo": true,
+      "outcome": "message_id_invalid",
+      "after_evidence": [
+        "rejected_native",
+        "rejected_readback"
+      ],
+      "photo_count": 1,
+      "other_media_count": 0,
+      "historical_journal_projection": {
+        "state": "present_do_not_replay",
+        "sha256": "cbd63e70f5ec9d40db57bfd71a613ca65b45ab9d94ce0eb6d9772cff3a2ae593",
+        "line_count": 6,
+        "states": [
+          "intent_saved",
+          "identity_reserved",
+          "request_prepared",
+          "provider_edit_started",
+          "provider_response_saved",
+          "provider_message_id_rejected"
+        ],
+        "events": [
+          {
+            "state": "intent_saved",
+            "at_utc": "2026-11-25T07:19:36+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1",
+            "original_native_run_id": "45567178733",
+            "original_application_sha": "878c680627d54297c364254687577a03ac5aef6b"
+          },
+          {
+            "state": "identity_reserved",
+            "at_utc": "2026-11-25T07:19:36+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1"
+          },
+          {
+            "state": "request_prepared",
+            "at_utc": "2026-11-25T07:19:36+00:00"
+          },
+          {
+            "state": "provider_edit_started",
+            "at_utc": "2026-11-25T07:19:37+00:00",
+            "provider_write_attempts": 1
+          },
+          {
+            "state": "provider_response_saved",
+            "at_utc": "2026-11-25T07:19:37+00:00",
+            "provider_http": 400,
+            "transport_error": false,
+            "provider_ok": false,
+            "provider_error_code": 400,
+            "message_id_invalid": true
+          },
+          {
+            "state": "provider_message_id_rejected",
+            "at_utc": "2026-11-25T07:19:37+00:00",
+            "provider_write_attempts": 1
+          }
+        ]
+      },
+      "reservation": {
+        "publication_id": 3855,
+        "external_message_id": "1651",
+        "current_version_id": null,
+        "state": null,
+        "attempt_count": null,
+        "write_attempts": null,
+        "has_claim": 0,
+        "has_claimed_at": 0
+      },
+      "target_public_preimage_unchanged": true
+    },
+    {
+      "hotel_id": 233,
+      "message_id": "1653",
+      "before_evidence": "rejected_preflight",
+      "published_at": "2026-08-04T07:21:06+00:00",
+      "single_photo": true,
+      "outcome": "message_id_invalid",
+      "after_evidence": [
+        "rejected_native",
+        "rejected_readback"
+      ],
+      "photo_count": 1,
+      "other_media_count": 0,
+      "historical_journal_projection": {
+        "state": "present_do_not_replay",
+        "sha256": "c44cdfdf335d54e1157aa1e94f7954b7e01c89abc73527d1663517c2029a7012",
+        "line_count": 6,
+        "states": [
+          "intent_saved",
+          "identity_reserved",
+          "request_prepared",
+          "provider_edit_started",
+          "provider_response_saved",
+          "provider_message_id_rejected"
+        ],
+        "events": [
+          {
+            "state": "intent_saved",
+            "at_utc": "2026-11-25T07:19:37+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1",
+            "original_native_run_id": "45567178733",
+            "original_application_sha": "878c680627d54297c364254687577a03ac5aef6b"
+          },
+          {
+            "state": "identity_reserved",
+            "at_utc": "2026-11-25T07:19:37+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1"
+          },
+          {
+            "state": "request_prepared",
+            "at_utc": "2026-11-25T07:19:37+00:00"
+          },
+          {
+            "state": "provider_edit_started",
+            "at_utc": "2026-11-25T07:19:37+00:00",
+            "provider_write_attempts": 1
+          },
+          {
+            "state": "provider_response_saved",
+            "at_utc": "2026-11-25T07:19:37+00:00",
+            "provider_http": 400,
+            "transport_error": false,
+            "provider_ok": false,
+            "provider_error_code": 400,
+            "message_id_invalid": true
+          },
+          {
+            "state": "provider_message_id_rejected",
+            "at_utc": "2026-11-25T07:19:37+00:00",
+            "provider_write_attempts": 1
+          }
+        ]
+      },
+      "reservation": {
+        "publication_id": 3856,
+        "external_message_id": "1653",
+        "current_version_id": null,
+        "state": null,
+        "attempt_count": null,
+        "write_attempts": null,
+        "has_claim": 0,
+        "has_claimed_at": 0
+      },
+      "target_public_preimage_unchanged": true
+    },
+    {
+      "hotel_id": 66860,
+      "message_id": "1654",
+      "before_evidence": "rejected_preflight",
+      "published_at": "2026-08-05T07:26:04+00:00",
+      "single_photo": true,
+      "outcome": "message_id_invalid",
+      "after_evidence": [
+        "rejected_native",
+        "rejected_readback"
+      ],
+      "photo_count": 1,
+      "other_media_count": 0,
+      "historical_journal_projection": {
+        "state": "present_do_not_replay",
+        "sha256": "16c13ce0cf7efa851389146248403589d8d522255155e9c9e11bf6295646ddad",
+        "line_count": 6,
+        "states": [
+          "intent_saved",
+          "identity_reserved",
+          "request_prepared",
+          "provider_edit_started",
+          "provider_response_saved",
+          "provider_message_id_rejected"
+        ],
+        "events": [
+          {
+            "state": "intent_saved",
+            "at_utc": "2026-11-25T07:19:37+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1",
+            "original_native_run_id": "45567178733",
+            "original_application_sha": "878c680627d54297c364254687577a03ac5aef6b"
+          },
+          {
+            "state": "identity_reserved",
+            "at_utc": "2026-11-25T07:19:37+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1"
+          },
+          {
+            "state": "request_prepared",
+            "at_utc": "2026-11-25T07:19:37+00:00"
+          },
+          {
+            "state": "provider_edit_started",
+            "at_utc": "2026-11-25T07:19:37+00:00",
+            "provider_write_attempts": 1
+          },
+          {
+            "state": "provider_response_saved",
+            "at_utc": "2026-11-25T07:19:38+00:00",
+            "provider_http": 400,
+            "transport_error": false,
+            "provider_ok": false,
+            "provider_error_code": 400,
+            "message_id_invalid": true
+          },
+          {
+            "state": "provider_message_id_rejected",
+            "at_utc": "2026-11-25T07:19:38+00:00",
+            "provider_write_attempts": 1
+          }
+        ]
+      },
+      "reservation": {
+        "publication_id": 3857,
+        "external_message_id": "1654",
+        "current_version_id": null,
+        "state": null,
+        "attempt_count": null,
+        "write_attempts": null,
+        "has_claim": 0,
+        "has_claimed_at": 0
+      },
+      "target_public_preimage_unchanged": true
+    },
+    {
+      "hotel_id": 119046,
+      "message_id": "1665",
+      "before_evidence": "rejected_preflight",
+      "published_at": "2026-08-07T07:27:29+00:00",
+      "single_photo": true,
+      "outcome": "message_id_invalid",
+      "after_evidence": [
+        "rejected_native",
+        "rejected_readback"
+      ],
+      "photo_count": 1,
+      "other_media_count": 0,
+      "historical_journal_projection": {
+        "state": "present_do_not_replay",
+        "sha256": "7d2865ec6f77fcf79d2f925130452d270fd93cbf81cf3211e23e7ac454f2bf31",
+        "line_count": 6,
+        "states": [
+          "intent_saved",
+          "identity_reserved",
+          "request_prepared",
+          "provider_edit_started",
+          "provider_response_saved",
+          "provider_message_id_rejected"
+        ],
+        "events": [
+          {
+            "state": "intent_saved",
+            "at_utc": "2026-11-25T07:19:38+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1",
+            "original_native_run_id": "45567178733",
+            "original_application_sha": "878c680627d54297c364254687577a03ac5aef6b"
+          },
+          {
+            "state": "identity_reserved",
+            "at_utc": "2026-11-25T07:19:38+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1"
+          },
+          {
+            "state": "request_prepared",
+            "at_utc": "2026-11-25T07:19:38+00:00"
+          },
+          {
+            "state": "provider_edit_started",
+            "at_utc": "2026-11-25T07:19:38+00:00",
+            "provider_write_attempts": 1
+          },
+          {
+            "state": "provider_response_saved",
+            "at_utc": "2026-11-25T07:19:38+00:00",
+            "provider_http": 400,
+            "transport_error": false,
+            "provider_ok": false,
+            "provider_error_code": 400,
+            "message_id_invalid": true
+          },
+          {
+            "state": "provider_message_id_rejected",
+            "at_utc": "2026-11-25T07:19:38+00:00",
+            "provider_write_attempts": 1
+          }
+        ]
+      },
+      "reservation": {
+        "publication_id": 3858,
+        "external_message_id": "1665",
+        "current_version_id": null,
+        "state": null,
+        "attempt_count": null,
+        "write_attempts": null,
+        "has_claim": 0,
+        "has_claimed_at": 0
+      },
+      "target_public_preimage_unchanged": true
+    },
+    {
+      "hotel_id": 37396,
+      "message_id": "1679",
+      "before_evidence": "rejected_preflight",
+      "published_at": "2026-08-12T07:12:36+00:00",
+      "single_photo": true,
+      "outcome": "message_id_invalid",
+      "after_evidence": [
+        "rejected_native",
+        "rejected_readback"
+      ],
+      "photo_count": 1,
+      "other_media_count": 0,
+      "historical_journal_projection": {
+        "state": "present_do_not_replay",
+        "sha256": "a64a6e0dfbf622f71e20f46150b9e2e7b646c13febe7ca69a59af7cc96beb313",
+        "line_count": 6,
+        "states": [
+          "intent_saved",
+          "identity_reserved",
+          "request_prepared",
+          "provider_edit_started",
+          "provider_response_saved",
+          "provider_message_id_rejected"
+        ],
+        "events": [
+          {
+            "state": "intent_saved",
+            "at_utc": "2026-11-25T07:19:38+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1",
+            "original_native_run_id": "45567178733",
+            "original_application_sha": "878c680627d54297c364254687577a03ac5aef6b"
+          },
+          {
+            "state": "identity_reserved",
+            "at_utc": "2026-11-25T07:19:38+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1"
+          },
+          {
+            "state": "request_prepared",
+            "at_utc": "2026-11-25T07:19:39+00:00"
+          },
+          {
+            "state": "provider_edit_started",
+            "at_utc": "2026-11-25T07:19:39+00:00",
+            "provider_write_attempts": 1
+          },
+          {
+            "state": "provider_response_saved",
+            "at_utc": "2026-11-25T07:19:39+00:00",
+            "provider_http": 400,
+            "transport_error": false,
+            "provider_ok": false,
+            "provider_error_code": 400,
+            "message_id_invalid": true
+          },
+          {
+            "state": "provider_message_id_rejected",
+            "at_utc": "2026-11-25T07:19:39+00:00",
+            "provider_write_attempts": 1
+          }
+        ]
+      },
+      "reservation": {
+        "publication_id": 3859,
+        "external_message_id": "1679",
+        "current_version_id": null,
+        "state": null,
+        "attempt_count": null,
+        "write_attempts": null,
+        "has_claim": 0,
+        "has_claimed_at": 0
+      },
+      "target_public_preimage_unchanged": true
+    },
+    {
+      "hotel_id": 95159,
+      "message_id": "1695",
+      "before_evidence": "rejected_preflight",
+      "published_at": "2026-08-21T11:38:53+00:00",
+      "single_photo": true,
+      "outcome": "message_id_invalid",
+      "after_evidence": [
+        "rejected_native",
+        "rejected_readback"
+      ],
+      "photo_count": 1,
+      "other_media_count": 0,
+      "historical_journal_projection": {
+        "state": "present_do_not_replay",
+        "sha256": "4223fa28b9289db03925f38a0fd8f13a68c8173e9bb283e85c2fa9ae4abe4a02",
+        "line_count": 6,
+        "states": [
+          "intent_saved",
+          "identity_reserved",
+          "request_prepared",
+          "provider_edit_started",
+          "provider_response_saved",
+          "provider_message_id_rejected"
+        ],
+        "events": [
+          {
+            "state": "intent_saved",
+            "at_utc": "2026-11-25T07:19:39+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1",
+            "original_native_run_id": "45567178733",
+            "original_application_sha": "878c680627d54297c364254687577a03ac5aef6b"
+          },
+          {
+            "state": "identity_reserved",
+            "at_utc": "2026-11-25T07:19:39+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1"
+          },
+          {
+            "state": "request_prepared",
+            "at_utc": "2026-11-25T07:19:39+00:00"
+          },
+          {
+            "state": "provider_edit_started",
+            "at_utc": "2026-11-25T07:19:39+00:00",
+            "provider_write_attempts": 1
+          },
+          {
+            "state": "provider_response_saved",
+            "at_utc": "2026-11-25T07:19:39+00:00",
+            "provider_http": 400,
+            "transport_error": false,
+            "provider_ok": false,
+            "provider_error_code": 400,
+            "message_id_invalid": true
+          },
+          {
+            "state": "provider_message_id_rejected",
+            "at_utc": "2026-11-25T07:19:39+00:00",
+            "provider_write_attempts": 1
+          }
+        ]
+      },
+      "reservation": {
+        "publication_id": 3860,
+        "external_message_id": "1695",
+        "current_version_id": null,
+        "state": null,
+        "attempt_count": null,
+        "write_attempts": null,
+        "has_claim": 0,
+        "has_claimed_at": 0
+      },
+      "target_public_preimage_unchanged": true
+    },
+    {
+      "hotel_id": 57217,
+      "message_id": "1696",
+      "before_evidence": "rejected_preflight",
+      "published_at": "2026-08-23T10:03:05+00:00",
+      "single_photo": true,
+      "outcome": "message_id_invalid",
+      "after_evidence": [
+        "rejected_native",
+        "rejected_readback"
+      ],
+      "photo_count": 1,
+      "other_media_count": 0,
+      "historical_journal_projection": {
+        "state": "present_do_not_replay",
+        "sha256": "36d58dd8954c1e2393adfcdff0a9749a70b6c50d8de942176760e6e2fdc0b310",
+        "line_count": 6,
+        "states": [
+          "intent_saved",
+          "identity_reserved",
+          "request_prepared",
+          "provider_edit_started",
+          "provider_response_saved",
+          "provider_message_id_rejected"
+        ],
+        "events": [
+          {
+            "state": "intent_saved",
+            "at_utc": "2026-11-25T07:19:39+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1",
+            "original_native_run_id": "45567178733",
+            "original_application_sha": "878c680627d54297c364254687577a03ac5aef6b"
+          },
+          {
+            "state": "identity_reserved",
+            "at_utc": "2026-11-25T07:19:39+00:00",
+            "plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1"
+          },
+          {
+            "state": "request_prepared",
+            "at_utc": "2026-11-25T07:19:40+00:00"
+          },
+          {
+            "state": "provider_edit_started",
+            "at_utc": "2026-11-25T07:19:40+00:00",
+            "provider_write_attempts": 1
+          },
+          {
+            "state": "provider_response_saved",
+            "at_utc": "2026-11-25T07:19:40+00:00",
+            "provider_http": 400,
+            "transport_error": false,
+            "provider_ok": false,
+            "provider_error_code": 400,
+            "message_id_invalid": true
+          },
+          {
+            "state": "provider_message_id_rejected",
+            "at_utc": "2026-11-25T07:19:40+00:00",
+            "provider_write_attempts": 1
+          }
+        ]
+      },
+      "reservation": {
+        "publication_id": 3861,
+        "external_message_id": "1696",
+        "current_version_id": null,
+        "state": null,
+        "attempt_count": null,
+        "write_attempts": null,
+        "has_claim": 0,
+        "has_claimed_at": 0
+      },
+      "target_public_preimage_unchanged": true
+    }
+  ]
+}
