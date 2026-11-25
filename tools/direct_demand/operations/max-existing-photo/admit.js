@@ -2,9 +2,8 @@
 
 const R = require('../../../../accepted-release/tools/deployment_release');
 const P = require('../../../../accepted-release/tools/release_priority');
-const scope = require('./scope.json');
+const scope = require('./scope-next-five-20261125.json');
 const expected = scope.native_source;
-const rendering = require('./public-render-949.json');
 const api = R.makeReadApi(process.env.GITHUB_TOKEN);
 const root = R.API_ROOT;
 const assert = (condition, reason) => { if (!condition) throw Error(reason); };
@@ -23,8 +22,8 @@ async function original(runId, head, workflow, jobId, artifactId, artifactName, 
 async function current() {
     const main = (await api('GET',root+'/git/ref/heads/main')).object.sha;
     assert(main === expected.repository_sha,'main_changed');
-    const slot = await api('GET',root+'/issues/comments/6818332618');
-    assert(slot.user.id === 226193297 && slot.body === 'PR1694: установлено, выпуск свободен','publisher_busy_or_changed');
+    const slot = await api('GET',root+'/issues/comments/'+scope.publisher.comment_id);
+    assert(slot.user.id === scope.publisher.owner_id && slot.body === scope.publisher.body,'publisher_busy_or_changed');
     const record = await R.readRecord(api);
     const binding = await R.resolveCurrent(api,{sha:main},record);
     assert(binding.ready && binding.application_sha === expected.application_sha && binding.repository_sha === main,'accepted_application_changed');
@@ -33,10 +32,11 @@ async function current() {
 
 async function admit() {
     await Promise.all([
-        original(rendering.run_id,rendering.head_sha,'.github/workflows/edit-1566-historical-max-photo-posts.yml',rendering.job_id,rendering.artifact_id,'issue-1566-max-edits-existing-only',rendering.zip_sha256),
         original(45373389110,'e1e3d25e42522639e2b82b4bdf32b155a547a184','.github/workflows/read-1566-max-archive-20261123.yml',138373110912,14910511299,'issue-1566-main-max-archive-inventory',scope.archive_sha256),
-        original(expected.run_id,expected.workflow_head,'.github/workflows/anytour-hotel-ads-readonly-20261117.yml',expected.job_id,expected.artifact_id,'max-seven-source-rights',expected.zip_sha256)
+        original(expected.run_id,expected.workflow_head,'.github/workflows/anytour-hotel-ads-readonly-20261117.yml',expected.job_id,expected.artifact_id,'max-five-ranked-refresh-source-rights',expected.zip_sha256)
     ]);
+    assert(scope.rows.map(row=>row.hotel_id).join(',')==='1972,2588,32342,57028,65877' &&
+        scope.route_readback.write_calls===0 && scope.price_review.mode==='caption_without_fixed_price','scoped_first_five_changed');
     await current();
     console.log('original source, target archive and current HOTEL application verified');
 }

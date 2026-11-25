@@ -17,7 +17,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'b62a8739ab56d1b7930c71b0b21e6c49837cb782' &&
+      github.event.before == 'a85826a70bb3d1be89fd67e09850ad547244687e' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -29,26 +29,58 @@ jobs:
       - name: Checkout the release used by the original source audit
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: e56ae1d83b643afeca7d890030198e0bcdb71083
+          ref: b0d996f26f2291bc0a8bdc3cbdddae7ec1ab0a2f
           persist-credentials: false
           path: accepted-release
       - name: Verify the receipts, current release and existing publisher before credentials
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: node tools/direct_demand/operations/max-existing-photo/admit.js
-      - name: Stage the single text-only representation correction for TV949
+      - name: Verify the existing editor and stage exactly the first five confirmed plans
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           umask 077
           mkdir -p pub/stage
           src=tools/direct_demand/operations/max-existing-photo
           php tests/run_1566_max_existing_photo_batch.php
-          php tests/run_1566_max_public_render_949.php
           python3 tests/run_1566_max_existing_photo_partial.py
           for file in "$src"/*.php; do php -l "$file"; done
-          install -m600 "$src"/{editor.php,batch_entry.php,scope.json,public_render.php,public-render-949.json} pub/stage/
-          cp "$src/public-render-949.json" pub/manifest.json
+          install -m600 "$src"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php,run_batch.py} pub/stage/
+          install -m600 "$src"/scope-next-five-20261125.json pub/stage/scope.json
+          cp pub/stage/scope.json pub/manifest.json
+          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14910511299/zip > pub/archive.zip
+          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14986516034/zip > pub/native.zip
+          python3 - <<'PY'
+          import hashlib,json,pathlib,re,zipfile
+          stage=pathlib.Path('pub/stage')
+          scope_bytes=(stage/'scope.json').read_bytes()
+          scope=json.loads(scope_bytes)
+          for key,zip_hash,json_hash,output in [
+              ('archive',scope['archive_sha256'],scope['archive_registry_sha256'],'native-targets.json'),
+              ('native',scope['native_source']['zip_sha256'],scope['native_source']['json_sha256'],'native-source.json')]:
+              artifact=pathlib.Path('pub/'+key+'.zip')
+              assert artifact.stat().st_size<300000 and hashlib.sha256(artifact.read_bytes()).hexdigest()==zip_hash
+              with zipfile.ZipFile(artifact) as z:
+                  assert z.namelist()==['registry.json'] and z.getinfo('registry.json').file_size<=2000000
+                  data=z.read('registry.json')
+              assert hashlib.sha256(data).hexdigest()==json_hash
+              (stage/output).write_bytes(data)
+          entry=stage/'batch_entry.php'
+          src=entry.read_text()
+          src,count=re.subn(r"(const MAX_BATCH_SCOPE_SHA256 = ')[a-f0-9]{64}(')",lambda m:m[1]+hashlib.sha256(scope_bytes).hexdigest()+m[2],src)
+          assert count==1
+          entry.write_text(src)
+          PY
+          php -l pub/stage/batch_entry.php
+          php pub/stage/editor.php --batch-plan pub/stage/native-targets.json pub/stage/native-source.json 16ff4b6b2c5d546ab6230f2d3b85827da522e6b6ec771c146f13c31703998cc3 b0d996f26f2291bc0a8bdc3cbdddae7ec1ab0a2f b0d996f26f2291bc0a8bdc3cbdddae7ec1ab0a2f > pub/batch-plan.json
+          python3 - <<'PY'
+          import json
+          data=json.load(open('pub/batch-plan.json'))
+          assert data['ready']==[1972,2588,32342,57028,65877] and not data['held'] and data['provider_writes']==0
+          PY
           cat > pub/stage/execute.sh <<'SH'
           #!/usr/bin/env bash
           set -euo pipefail
@@ -56,11 +88,11 @@ jobs:
           unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
           stage="$(cd -- "$1" && pwd -P)"
           cd /var/www/anytoour/data/www/app.anytoour.ru
-          test "$(git rev-parse HEAD)" = e56ae1d83b643afeca7d890030198e0bcdb71083
-          php "$stage/editor.php" --correct-public-render-949
+          test "$(git rev-parse HEAD)" = b0d996f26f2291bc0a8bdc3cbdddae7ec1ab0a2f
+          python3 "$stage/run_batch.py" "$stage"
           SH
           bash -n pub/stage/execute.sh
-          tar -C pub/stage -cf pub/approved.tar editor.php batch_entry.php scope.json execute.sh public_render.php public-render-949.json
+          tar -C pub/stage -cf pub/approved.tar editor.php batch_input.php batch_entry.php observe_pair.php scope.json native-targets.json native-source.json run_batch.py execute.sh
       - name: Pin established SSH host continuity and authentication identity
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -93,11 +125,11 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Recheck the existing publisher before transmitting the text-only correction
+      - name: Recheck the publisher immediately before transferring the sealed plans
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: node tools/direct_demand/operations/max-existing-photo/admit.js
-      - name: Correct the literal ampersand using the existing text-only editor
+      - name: Edit only each verified existing ID and capture its independent receipt
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -111,17 +143,27 @@ jobs:
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'bash -c '"'"'set -euo pipefail; umask 077; stage=$(mktemp -d /tmp/anytour-1566-old-max.XXXXXXXX); trap "rm -f -- \"$stage\"/*; rmdir -- \"$stage\"" EXIT; tar --no-same-owner --no-same-permissions -C "$stage" -xf -; bash "$stage/execute.sh" "$stage"'"'"'' < pub/approved.tar | tee pub/native-results.txt
           python3 - <<'PY'
           import json,pathlib
-          out=json.loads(pathlib.Path('pub/native-results.txt').read_text())
-          assert out['state'] in {'public_already_exact','target_public_and_native_exact','native_preserved_public_rendering_persists','uncertain_no_retry','stopped_before_edit'}
-          assert out.get('new_posts',0)==0 and out.get('ad_writes',0)==0
-          pathlib.Path('pub/summary.json').write_text(json.dumps(out,indent=2))
-          print('TV949 public rendering:',out['state'])
+          expected = [r['hotel_id'] for r in json.loads(pathlib.Path('pub/manifest.json').read_bytes())['rows']]
+          rows = []
+          for line in pathlib.Path('pub/native-results.txt').read_text().splitlines():
+              if not line.startswith('RESULT '):
+                  continue
+              _, hotel, payload = line.split(' ', 2)
+              d = json.loads(payload)
+              assert d['hotel'] == int(hotel) and d.get('new_posts', 0) == 0 and d.get('ad_writes', 0) == 0
+              assert d['state'] in {'existing_max_message_updated_and_verified','stopped_before_edit','held_no_retry','untouched','unobserved'}
+              rows.append(d)
+          assert [r['hotel'] for r in rows] == expected
+          accepted = [r['hotel'] for r in rows if r['state'] == 'existing_max_message_updated_and_verified']
+          summary = {'state':'complete' if len(accepted)==len(expected) else 'partial' if accepted else 'none_accepted','native_accepted':accepted,'rows':rows}
+          pathlib.Path('pub/summary.json').write_text(json.dumps(summary,indent=2))
+          print('Native confirmations', len(accepted), 'of', len(expected), accepted)
           PY
       - name: Preserve exact original receipts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: issue-1566-max949-text-render-result
+          name: issue-1566-max-edits-existing-only
           path: |
             pub/manifest.json
             pub/native-results.txt

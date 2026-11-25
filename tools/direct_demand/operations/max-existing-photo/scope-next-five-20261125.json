@@ -1,0 +1,134 @@
+{
+  "version": 1,
+  "archive_run_id": "45373389110",
+  "archive_sha256": "c46ce092bfb91935ce829c871026a1136bf465920a3caa9184604f052c55798c",
+  "rows": [
+    {
+      "hotel_id": 1972,
+      "name": "Moreno Horizon Spa & Resort",
+      "source_id": 887,
+      "source_url": "https://max.ru/channel_anytour/AaG3WcDqe3Y",
+      "source_mid": "mid.ffffb6caf0606fed01a1b759c0ea7b76",
+      "target_url": "https://max.ru/anytour/AaBI6Jfvad8",
+      "target_mid": "mid.ffffc1752b045fed01a048e897ef69df",
+      "target_ms": 1787929597935,
+      "target_fingerprint": "967f9773ea28deac5456206f76e4c467df3af6493742f7aab65b57cf72dae267",
+      "original_legacy_identity_sha256": "b2900964c6631f50c9af1ed2cf840c5213648f2a00c8f1f1842e282b9f4091a3",
+      "caption_without_price": "✈️ Туры в Moreno Horizon Spa & Resort\n📍 Хургада, Египет\nСобственный пляж, бассейны для взрослых и детей и аквапарк с горками. На территории проходят развлекательные программы."
+    },
+    {
+      "hotel_id": 2588,
+      "name": "Jumeirah Beach Hotel",
+      "source_id": 1533,
+      "source_url": "https://max.ru/channel_anytour/AaHpO-hTO-w",
+      "source_mid": "mid.ffffb6caf0606fed01a1e93be8533bec",
+      "target_url": "https://max.ru/anytour/AaAkdvyEBXQ",
+      "target_mid": "mid.ffffc1752b045fed01a02476fc840574",
+      "target_ms": 1787318172804,
+      "target_fingerprint": "74e88ae75c0734d28829e22468798a6c7a9f3efc77f2753c9490847b1ded81d2",
+      "original_legacy_identity_sha256": "7f78a076a711c0f1254a6274f8d452645eb4dd61ae58437b7d13626c77852e84",
+      "caption_without_price": "✈️ Туры в Jumeirah Beach Hotel\n📍 Дубай, ОАЭ\nПляжный отдых с видом на Burj Al Arab. На территории есть бассейны, водные развлечения и отдельные программы для детей."
+    },
+    {
+      "hotel_id": 32342,
+      "name": "Vinpearl Resort & Spa Phu Quoc",
+      "source_id": 584,
+      "source_url": "https://max.ru/channel_anytour/AaG2QuDYdKE",
+      "source_mid": "mid.ffffb6caf0606fed01a1b642e0d874a1",
+      "target_url": "https://max.ru/anytour/AZ_rrRmlYz0",
+      "target_mid": "mid.ffffc1752b045fed019febad19a5633d",
+      "target_ms": 1786365417893,
+      "target_fingerprint": "85319aa3afcc1755790733c24b7802320da0213a39de3c0213f1a681b5465126",
+      "original_legacy_identity_sha256": "cde5d40f8a20c09ce5a234b22951ee8461c7b4b235a12bbeccdd30761ad11ba3",
+      "caption_without_price": "✈️ Туры в Vinpearl Resort & Spa Phu Quoc\n📍 Фукуок, Вьетнам\nДо пляжа можно дойти пешком. Для отдыха с семьёй или компанией можно выбрать номер или виллу."
+    },
+    {
+      "hotel_id": 57028,
+      "name": "Pickalbatros Aqua Park Sharm",
+      "source_id": 238,
+      "source_url": "https://max.ru/channel_anytour/AaGeHp92NlE",
+      "source_mid": "mid.ffffb6caf0606fed01a19e1e9f763651",
+      "target_url": "https://max.ru/anytour/AZ9AsoswVYw",
+      "target_mid": "mid.ffffc1752b045fed019f40b28b30558c",
+      "target_ms": 1783496870704,
+      "target_fingerprint": "300f751d6d705e041dcafd9faae7e82402f68a59b990608774f6064fb2bbe415",
+      "original_legacy_identity_sha256": "682f39895b3cb794eb5e1a91ef72e57e1d5ce00f0e7db709404301db29185c06",
+      "caption_without_price": "✈️ Туры в Pickalbatros Aqua Park Sharm\n📍 Шарм-эль-Шейх, Египет\nАквапарк с детскими горками, аттракционы Midway Street и клуб Alba для детей от 4 до 12 лет."
+    },
+    {
+      "hotel_id": 65877,
+      "name": "Vesna Hotel",
+      "source_id": 563,
+      "source_url": "https://max.ru/channel_anytour/AaG2NPXdL0M",
+      "source_mid": "mid.ffffb6caf0606fed01a1b634f5dd2f43",
+      "target_url": "https://max.ru/anytour/AZ-d-XrfADw",
+      "target_mid": "mid.ffffc1752b045fed019f9df97adf003c",
+      "target_ms": 1785061800671,
+      "target_fingerprint": "f8a1b0819559ae0afa1d3d2caee50811c47c06a40e1a6211e62307baa770bbd3",
+      "original_legacy_identity_sha256": "4947a41247b297290dbda9a681d7f91dffa4dbcc97a84b3dff0fb007f65edfc0",
+      "caption_without_price": "✈️ Туры в Vesna Hotel\n📍 Нячанг, Вьетнам\nГородской отель для поездки с семьёй. До пляжа около 50 метров через дорогу."
+    }
+  ],
+  "archive_registry_sha256": "c65efd90090ab8669c0d7646d44d8927ea3658c39673696d2e147685f3ec7568",
+  "native_source": {
+    "operation": "max_five_ranked_read_only",
+    "run_id": 45534556620,
+    "attempt": 1,
+    "job_id": 138937847484,
+    "workflow_head": "9523f62ab0d18f5f2d34a004355039b876d2df16",
+    "artifact_id": 14986516034,
+    "zip_sha256": "b4d6b9725cc44d1977099e496a9fcde84539b942fada690f2d7199d20f1b75e4",
+    "json_sha256": "16ff4b6b2c5d546ab6230f2d3b85827da522e6b6ec771c146f13c31703998cc3",
+    "repository_sha": "b0d996f26f2291bc0a8bdc3cbdddae7ec1ab0a2f",
+    "application_sha": "b0d996f26f2291bc0a8bdc3cbdddae7ec1ab0a2f"
+  },
+  "archive_selected_sha256": "8f7a0a3733d67256ad19c13babcfa16d4ddfa7eba373f5592e7eedc81d8ce53d",
+  "route_readback": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 45534554724,
+    "job_id": 138937840121,
+    "observed_utc": "2026-11-25T02:39:57+00:00",
+    "write_calls": 0
+  },
+  "price_review": {
+    "checked_utc": "2026-11-25T02:40:15+00:00",
+    "mode": "caption_without_fixed_price",
+    "source_versions": [
+      {
+        "hotel_id": 1972,
+        "version": 14065,
+        "stored_price_record": 8,
+        "stored_price_observation": "Цена найдена мониторингом 20.11.2026, 05:17 МСК. Стоимость и наличие могут измениться."
+      },
+      {
+        "hotel_id": 2588,
+        "version": 13993,
+        "stored_price_record": 0,
+        "stored_price_observation": "Цена найдена мониторингом 20.11.2026, 07:46 МСК. Стоимость и наличие могут измениться."
+      },
+      {
+        "hotel_id": 32342,
+        "version": 14254,
+        "stored_price_record": 0,
+        "stored_price_observation": "Цена найдена мониторингом 21.11.2026, 02:14 МСК. Стоимость и наличие могут измениться."
+      },
+      {
+        "hotel_id": 57028,
+        "version": 13883,
+        "stored_price_record": 533,
+        "stored_price_observation": "Цена найдена мониторингом 20.11.2026, 02:20 МСК. Стоимость и наличие могут измениться."
+      },
+      {
+        "hotel_id": 65877,
+        "version": 12198,
+        "stored_price_record": 0,
+        "stored_price_observation": "Цена найдена мониторингом 19.11.2026, 14:01 МСК. Стоимость и наличие могут измениться."
+      }
+    ]
+  },
+  "publisher": {
+    "comment_id": 6928374515,
+    "body": "PR1703: установлено, выпуск свободен",
+    "owner_id": 226193297
+  }
+}
