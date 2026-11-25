@@ -19,7 +19,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '88c14f4648e20ec7c8b955b3f971883d8dbe5474' &&
+      github.event.before == '67cbd54238f98a67704c915658d0ed24c22bca38' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 18
@@ -250,10 +250,10 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           for part in 1; do
-            for attempt in 1 2 3; do
+            for attempt in 1 2 3 4 5 6; do
               ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < "pub/read-$part.php" > "pub/native-$part.json" || true
               if ! python3 -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("failure")=="editor_busy" else 1)' "pub/native-$part.json" 2>/dev/null; then break; fi
-              if [[ "$attempt" -lt 3 ]]; then sleep 8; fi
+              if [[ "$attempt" -lt 6 ]]; then sleep 20; fi
             done
           done
           python3 - <<'PY'
