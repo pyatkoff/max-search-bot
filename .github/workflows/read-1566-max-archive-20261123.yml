@@ -1,4 +1,4 @@
-name: "#1566 Read-only evaluation for the 15 new PRICE targets"
+name: "#1566 Check admission for the existing MAX PRICE release"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -15,42 +15,15 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == '354eb4208bcace4a44b69fcb0f5a2daf0a7679a6' && github.run_attempt == 1
+      github.event.before == '0755b7ba83dd276d0309a5cf85b7a4a32709b644' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: d62af590516c0e9d832a95217c258f53f658b329
+          ref: d8a0d794321ea89d8ac62205a22079656aa73d6a
           persist-credentials: false
-      - name: Compare live public prices with the unchanged PRICE planner
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          mkdir pub
-          python3 - <<'PY'
-          import hashlib,json,pathlib,urllib.request
-          from datetime import datetime,timezone
-          from tools import prepare_promoted_hotel_prices as price
-          source="https://app.anytoour.ru/feed/hotel-posts-all.xml"
-          wanted=set([2588,57028,65877,73343,43689,139,2470,56092,59114,63191,76588,77914,106,111,114])
-          request=urllib.request.Request(source,headers={"User-Agent":"Mozilla/5.0","Cache-Control":"no-cache"})
-          with urllib.request.urlopen(request,timeout=15) as r:
-              assert r.status==200 and r.geturl()==source
-              body=r.read(price.MAX_XML_BYTES+1)
-          result=price.prepare(body,datetime.now(timezone.utc))
-          ready=[{"hotel_id":p["hotel_id"],"max_publication_id":p["max_publication_id"],"observed_at":p["observed_at"]}
-                 for p in result["plans"] if p["hotel_id"] in wanted]
-          held=[p for p in result["held"] if p["hotel_id"] in wanted]
-          assert {p["hotel_id"] for p in ready+held}==wanted and len(ready)+len(held)==15
-          out={"checked_at":result["checked_at"],"config_sha256":result["targets_sha256"],"xml_sha256":hashlib.sha256(body).hexdigest(),
-               "eligible":ready,"held":held,"production_writes":0,"supplier_requests":0,"ad_clicks":0}
-          pathlib.Path("pub/price-readback.json").write_text(json.dumps(out,ensure_ascii=False))
-          print("MAX15_PRICE_DRY_READ="+json.dumps(out,ensure_ascii=False,separators=(",",":")))
-          PY
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: hotel-max15-price-planner-readback
-          path: pub/price-readback.json
-          retention-days: 7
+      - name: Read the official release admission without claiming the publisher slot
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/release_priority.js --admit 1716 d62af590516c0e9d832a95217c258f53f658b329 d8a0d794321ea89d8ac62205a22079656aa73d6a
