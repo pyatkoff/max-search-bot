@@ -18,7 +18,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.event.forced == false &&
-      github.event.before == '929cf09c8748f0bf57c6ad83030cc39ed938fed8' &&
+      github.event.before == '1fd33f2afa8ff213ec747b9ca823fd2d09a11182' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 16
@@ -53,7 +53,10 @@ jobs:
               const original = await api('GET', release.API_ROOT + '/actions/runs/45697913521');
               if (original.head_sha !== expected || original.run_attempt !== 1) throw new Error('original_deploy_changed');
               if (original.status === 'completed' && original.conclusion !== 'success') throw new Error('original_deploy_failed');
-              if (original.status === 'completed') {
+              const closer = await api('GET', release.API_ROOT + '/actions/runs/45700105177');
+              if (closer.head_sha !== expected || closer.run_attempt !== 1) throw new Error('original_closer_changed');
+              if (closer.status === 'completed' && closer.conclusion !== 'success') throw new Error('original_closer_failed');
+              if (original.status === 'completed' && closer.status === 'completed') {
                 const before = await release.readRecord(api);
                 const accepted = release.validateRelease(before.record).release;
                 if (accepted.repository_sha === expected && accepted.application_sha === expected
