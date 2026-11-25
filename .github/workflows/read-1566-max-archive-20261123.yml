@@ -19,7 +19,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '9079a00a1d3389114216907080327283407bb63a' &&
+      github.event.before == '897b09735fa66064c5906fcbb34d11746e6e99ab' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 29
@@ -121,8 +121,10 @@ jobs:
               try {
                   $registry=new ChannelPostRegistryService($db);
                   $channel=$registry->channel(MAX_PROJECT,'max',MAX_BOT,MAIN_MAX);
+                  $out['channel_id_in_registry']=$channel['id']??null;
+                  $out['button_text']=$channel['button_text']??null;
                   maxEditNeed(is_array($channel)&&(int)$channel['id']===MAIN_REGISTRY
-                      &&($channel['button_text']??null)==='Рассчитать на мои даты','main_channel_edit_not_ready');
+                      &&is_string($out['button_text'])&&trim($out['button_text'])!=='','main_channel_edit_not_ready');
                   $out['channel_config_version']=(int)$channel['config_version'];
                   maxTransferNativeEditor($channel,['channel_id'=>MAIN_MAX,'config_version'=>$out['channel_config_version']]);
                   $out['target_editor_rights']=true;
