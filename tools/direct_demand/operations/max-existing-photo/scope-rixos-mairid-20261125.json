@@ -15,6 +15,19 @@
       "target_ms": 1787929597935,
       "target_fingerprint": "967f9773ea28deac5456206f76e4c467df3af6493742f7aab65b57cf72dae267",
       "caption_without_price": "✈️ Туры в Rixos Al Mairid Ras Al Khaimah\n📍 Рас-эль-Хайма, ОАЭ\nПесчаный пляж и номера в виллах для семейного отдыха у моря."
+    },
+    {
+      "hotel_id": 47025,
+      "name": "Adalya Elite Lara",
+      "source_id": 644,
+      "source_mid": "mid.ffffb6caf0606fed01a1b67ac52e2dc7",
+      "source_url": "https://max.ru/channel_anytour/AaG2esUuLcc",
+      "target_mid": "mid.ffffc1752b045fed019f367e5e6f3a38",
+      "target_url": "https://max.ru/anytour/AZ82fl5vOjg",
+      "target_ms": 1783325679215,
+      "target_fingerprint": "94614ea61390439daf9dc1b8a428c7f11eb5676a6fe59678fd82fa6eb4083697",
+      "target_photo_count": 6,
+      "caption_without_price": "✈️ Туры в Adalya Elite Lara\n📍 Лара, Турция\nПервая линия и собственный песчаный пляж. Для активного отдыха есть теннис и волейбол, для спокойного — отдельный бассейн для гостей 18+."
     }
   ],
   "route_readback": {
@@ -31,5 +44,19 @@
     "comment_id": 6928374515,
     "body": "PR1709: установлено, выпуск свободен",
     "owner_id": 226193297
+  },
+  "additional_route_readback": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 45606271045,
+    "job_id": 139177816070,
+    "observed_utc": "2026-11-25T11:38:18+00:00",
+    "write_calls": 0
+  },
+  "additional_public_readback": {
+    "repository": "pyatkoff/max-search-bot",
+    "run_id": 45606323632,
+    "job_id": 139177997832,
+    "observed_utc": "2026-11-25T11:38:37.998874+00:00",
+    "write_calls": 0
   }
 }
