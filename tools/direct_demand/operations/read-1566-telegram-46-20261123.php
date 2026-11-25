@@ -11,23 +11,10 @@ const APPLICATION_SHA = '__APPLICATION_SHA__';
 const REPOSITORY_SHA = '__REPOSITORY_SHA__';
 const NATIVE_RUN_ID = '__NATIVE_RUN_ID__';
 const PAIRS = [
-    1501 => ['name'=>'Selectum Family Resort Side', 'source'=>'339', 'target'=>'1047', 'date'=>'2025-03-14T07:11:44Z', 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TR', 'locality'=>'Сиде', 'archived_offer'=>'Коммерческий фотопост с истёкшим предложением; подпись и тип вложения приняты из original45535459936; отзывы и видео защищены', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>'1d5905b0f0827e9119ac6e93d3278a6d86166ae6fe3f642e6a46e0ad3b6d43a2', 'target_photo_marker_sha256'=>'8a6db8c7d5e110c302e05058d272f7e9ce24e69ab1c07bc4c9b186a3acc38a5a'],
-    2514 => ['name'=>'Amwaj Rotana Jumeirah Beach', 'source'=>'429', 'target'=>'1058', 'date'=>'2025-03-26T08:11:55Z', 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'AE', 'locality'=>'Дубай', 'archived_offer'=>'Коммерческий фотопост с истёкшим предложением; подпись и тип вложения приняты из original45535459936; отзывы и видео защищены', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>'4be2e1f8c17ea5d0c44898de06c41bbfd9c799f46e1ed914b73d1b5e2f207359', 'target_photo_marker_sha256'=>'9721538fd57841ea1c435665e46f99678c732d0a7ada488b059e079a8e761c08'],
-    8964 => ['name'=>'Rixos The Palm Dubai Hotel & Suites', 'source'=>'423', 'target'=>'1103', 'date'=>'2025-05-24T08:09:11Z', 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'AE', 'locality'=>'Дубай', 'archived_offer'=>'Коммерческий фотопост с истёкшим предложением; подпись и тип вложения приняты из original45535459936; отзывы и видео защищены', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>'e9108bba3b78f23258aa3d01df6d642a171a59f92d77b97c4d84ff55050da9d4', 'target_photo_marker_sha256'=>'d20079a1f9045b4491da8f09a10ff109c9ab881d97fd6b3cfe3606d050bbb970'],
-    1962 => ['name'=>'Baron Palms Resort', 'source'=>'475', 'target'=>'1109', 'date'=>'2025-05-29T08:16:41Z', 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'EG', 'locality'=>'Шарм-эль-Шейх', 'archived_offer'=>'Коммерческий фотопост с истёкшим предложением; подпись и тип вложения приняты из original45535459936; отзывы и видео защищены', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>'9319f85290d31c8a8544fe8baedc0bd21a3b330b279a6f4d382472830de85d5b', 'target_photo_marker_sha256'=>'17d20c1df8cd8622b93d8e5cb462f7cd3d4126d752eb7ead3b191db2892c89a8'],
-    36451 => ['name'=>'Edele Hotel Nha Trang', 'source'=>'482', 'target'=>'1584', 'date'=>'2026-06-16T07:39:30Z', 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'VN', 'locality'=>'Нячанг', 'archived_offer'=>'Коммерческий фотопост с истёкшим предложением; подпись и тип вложения приняты из original45535459936; отзывы и видео защищены', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>'dda17e838f10abf6cf2161debc9589ce4bbe5a01458c402f38f6c324eaed30d2', 'target_photo_marker_sha256'=>'e17817561f1a057a8904d5ec775f59f0d1e7f3693094bc5d7fb05bd0772816e0'],
-    278 => ['name'=>'JAZ Belvedere', 'source'=>'105', 'target'=>'1585', 'date'=>'2026-06-17T07:54:59Z', 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'EG', 'locality'=>'Шарм эль Шейх', 'archived_offer'=>'Коммерческий фотопост с истёкшим предложением; подпись и тип вложения приняты из original45535459936; отзывы и видео защищены', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>'d92180e85f7c9196036e9fcef735f429b8a1df411f3f110f33e7fd2fc075985a', 'target_photo_marker_sha256'=>'f624355840ab852222db8d7692e506bda79f3e2f5ca738078cb1c20e6584a57f'],
-    143372 => ['name'=>'Four Points by Sheraton Nha Trang', 'source'=>'977', 'target'=>'1586', 'date'=>'2026-06-18T07:47:41Z', 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'VN', 'locality'=>'Нячанг', 'archived_offer'=>'Коммерческий фотопост с истёкшим предложением; подпись и тип вложения приняты из original45535459936; отзывы и видео защищены', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>'8a8585bb8fafe2361845695f92bc96134f51b8bd0c13472dedea9ef1a1ba6859', 'target_photo_marker_sha256'=>'297f4d4bd9b59bf919b48463d43135dba196c09fced617322ff435665bf32945'],
-    7985 => ['name'=>'Kata Silver Sand', 'source'=>'372', 'target'=>'1620', 'date'=>'2026-07-15T07:29:57Z', 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TH', 'locality'=>'Ката, Пхукет', 'archived_offer'=>'Коммерческий фотопост с истёкшим предложением; подпись и тип вложения приняты из original45535459936; отзывы и видео защищены', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>'da6111adbe74ca121b0cb94690467f1e15ecc09a6584f0f84cd24edd6aa5fd72', 'target_photo_marker_sha256'=>'f83c5fe02f732574ff09c73f3c42cc884ce2a6ca87c0feeb6c4a7fdcfba80ba0'],
-    68984 => ['name'=>'Le Meridien Khao Lak Resort & Spa', 'source'=>'192', 'target'=>'1651', 'date'=>'2026-08-02T08:05:10Z', 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TH', 'locality'=>'Као Лак', 'archived_offer'=>'Коммерческий фотопост с истёкшим предложением; подпись и тип вложения приняты из original45535459936; отзывы и видео защищены', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>'3a442e11bd45169e542aefaf70d3268859c5b6302f3a133226cc610c16236580', 'target_photo_marker_sha256'=>'2f9d5d700310b10021dad0b1ef864b117c60040a3d556a852457f97ea8db9580'],
-    233 => ['name'=>'JAZ Casa del Mar Resort', 'source'=>'56', 'target'=>'1653', 'date'=>'2026-08-04T07:21:06Z', 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'EG', 'locality'=>'Хургада', 'archived_offer'=>'Коммерческий фотопост с истёкшим предложением; подпись и тип вложения приняты из original45535459936; отзывы и видео защищены', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>'be7c29cc487ee59a5b3bebffff705170fdebd69bb8e68c739f31ba071b97d39d', 'target_photo_marker_sha256'=>'572a6189727bb6c5a31beaa4b4ae6d8f00fc5347a629646a757f71c06e015cb2'],
-    66860 => ['name'=>'InterContinental Phuket Resort', 'source'=>'827', 'target'=>'1654', 'date'=>'2026-08-05T07:26:04Z', 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TH', 'locality'=>'Пхукет', 'archived_offer'=>'Коммерческий фотопост с истёкшим предложением; подпись и тип вложения приняты из original45535459936; отзывы и видео защищены', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>'3186ead1ff88c733105f40208767b801ebb185cafa2493d165cbc41c4c5c2e1e', 'target_photo_marker_sha256'=>'fc9d39a881f52b746d50661604040efa6a96cb661a752685a49f90c797b1f96d'],
-    119046 => ['name'=>'Sugar Marina Resort Pop Kata Beach', 'source'=>'507', 'target'=>'1665', 'date'=>'2026-08-07T07:27:29Z', 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TH', 'locality'=>'Пхукет', 'archived_offer'=>'Коммерческий фотопост с истёкшим предложением; подпись и тип вложения приняты из original45535459936; отзывы и видео защищены', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>'2aea18b6f3dd93fe5ab53a23f79ef6dd04302ba76fafdc66c51da58bfbbfe555', 'target_photo_marker_sha256'=>'4ccb3dd5f4622dadfb80c5d8ce3209e75d858da15b6a7b0bc443ce65707450ad'],
-    37396 => ['name'=>'Orka Lotus Beach', 'source'=>'358', 'target'=>'1679', 'date'=>'2026-08-12T07:12:36Z', 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TR', 'locality'=>'Ичмелер', 'archived_offer'=>'Коммерческий фотопост с истёкшим предложением; подпись и тип вложения приняты из original45535459936; отзывы и видео защищены', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>'e7fdb7d4102d276ad0847110e8f81977b8cac1636994a861a62fd333b9cf8430', 'target_photo_marker_sha256'=>'5883e4d705c4cdd21b23ef85d75c2cb272f9e0f7efbc7d45576e1da6ef4c8ab7'],
-    95159 => ['name'=>'Phuket Kata Resotel', 'source'=>'294', 'target'=>'1695', 'date'=>'2026-08-21T11:38:53Z', 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TH', 'locality'=>'Ката', 'archived_offer'=>'Коммерческий фотопост с истёкшим предложением; подпись и тип вложения приняты из original45535459936; отзывы и видео защищены', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>'4def9a4c15b3d6d69be3702e398e06e1b3c5ff26c508400ba0de0520d6e0e097', 'target_photo_marker_sha256'=>'0d288ee5d79eb1f3bcfc9212e26a2bf8149f842af070a68f927527cf75cf9c69'],
-    57217 => ['name'=>'Wyndham Grand Phu Quoc', 'source'=>'246', 'target'=>'1696', 'date'=>'2026-08-23T10:03:05Z', 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'VN', 'locality'=>'Фукуок', 'archived_offer'=>'Коммерческий фотопост с истёкшим предложением; подпись и тип вложения приняты из original45535459936; отзывы и видео защищены', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>'533479257f03b96cd6b14f3fb3dad61c5fdcb7efee4730dc5b3325794d70fe16', 'target_photo_marker_sha256'=>'94839c5e812cd76468983bb3202d5be5d24219c9784f2e7f4771a2656d161b5b']
+    1494 => ['name'=>'Rixos Downtown Antalya', 'source'=>'361', 'target'=>'647', 'date'=>'2024-05-29T12:05:19Z', 'rank'=>null, 'demand_platform'=>'not_measured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TR', 'locality'=>'Анталья', 'archived_offer'=>'Старый коммерческий текстовый пост, кандидат на text_to_photo; WRITE не допущен', 'archived_countries'=>['TR'], 'different_direction'=>false, 'target_caption_sha256'=>'2d431a35a8dcaaa267fce9237ebd71276b7a52d0349cc9902b2d45671752d1c8', 'target_photo_marker_sha256'=>null],
+    82567 => ['name'=>'Phuket Emerald Beach Resort', 'source'=>'252', 'target'=>'931', 'date'=>'2024-11-19T12:35:05Z', 'rank'=>null, 'demand_platform'=>'not_measured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TH', 'locality'=>'Пхукет', 'archived_offer'=>'Предварительный альбом931–936: читаем все6 native записей, WRITE не допущен', 'archived_countries'=>['TH'], 'different_direction'=>false, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null]
 ];
-const PAIR_DIGEST = 'f65c7aa560e9485f4fe0bb5ce0bb77ab1e8706cab8b4623f2b48eb25ada157dc';
+const PAIR_DIGEST = 'ce948e2d56ea81d9e11a8d63e4363fd37cfdc7fb00b4ccf20eadcf39f8cdb7c0';
 
 
 function requireRead(bool $ok, string $reason): void
@@ -124,11 +111,38 @@ function publicEvidence(string $channel, string $message): array
             'rate_limit'=>$publicRateLimit];
     }
 }
+
+/** Public structural observation only: no album membership or keyboard admission is inferred. */
+function albumStructureRead(DOMDocument $dom, DOMXPath $xp, DOMNode $node, string $url, string $message, string $body): array
+{
+    $cls=static fn(string $c):string=>'contains(concat(" ",normalize-space(@class)," ")," '.$c.' ")';
+    $texts=$xp->query('.//*['.$cls('tgme_widget_message_text').']',$node);
+    $photos=$xp->query('.//*['.$cls('tgme_widget_message_photo_wrap').']',$node);
+    $other=$xp->query('.//video|.//audio|.//*['.$cls('tgme_widget_message_video_thumb').' or '.$cls('tgme_widget_message_roundvideo').']',$node);
+    $times=$xp->query('.//time[@datetime]',$node);
+    $links=$xp->query('.//a[@href]',$node);
+    requireRead($texts&&$photos&&$other&&$times&&$links&&$texts->length<=6&&$photos->length<=6&&$other->length<=6&&$times->length<=6&&$links->length<=100,'album_structure_unbounded');
+    $captions=[];foreach($texts as $text){$html='';foreach($text->childNodes as $child)$html.=$dom->saveHTML($child);
+        $plain=html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i',"\n",$html)),ENT_QUOTES|ENT_HTML5,'UTF-8');
+        requireRead(mb_check_encoding($plain,'UTF-8')&&mb_strlen($plain,'UTF-8')<=12000,'album_text_unbounded');
+        $captions[]=['text'=>$plain,'sha256'=>hash('sha256',$plain),'owner_data_post'=>$node->getAttribute('data-post')];}
+    $dates=[];foreach($times as $time)$dates[]=$time->getAttribute('datetime');
+    $members=[];$buttons=[];foreach($links as $link){$href=$link->getAttribute('href');
+        if(preg_match('~\Ahttps://t\.me/anytour/(931|932|933|934|935|936)(?:\?[^\s<>]*)?\z~D',$href,$m))$members[]=$m[1];
+        if(str_contains(' '.$link->getAttribute('class').' ',' tgme_widget_message_inline_button '))$buttons[]=['text'=>mb_substr(trim($link->textContent),0,180),'url_sha256'=>hash('sha256',$href)];}
+    $caption=count($captions)===1?$captions[0]['text']:null;
+    return ['url'=>$url,'caption'=>$caption,'caption_sha256'=>$caption===null?null:hash('sha256',$caption),'html_sha256'=>hash('sha256',$body),
+        'published_at'=>count($dates)===1?$dates[0]:null,'published_unixtime'=>count($dates)===1?(new DateTimeImmutable($dates[0]))->getTimestamp():null,
+        'single_photo'=>false,'photo_url'=>'','photo_marker_sha256'=>null,'photo_count'=>$photos->length,'other_media_count'=>$other->length,'buttons'=>$buttons,
+        'format_observation'=>['requested_mid'=>$message,'root_data_post'=>$node->getAttribute('data-post'),'caption_nodes'=>$captions,'dates'=>$dates,
+            'linked_album_mids'=>array_values(array_unique($members)),'caption_mid_confirmed'=>false,'native_album_membership_confirmed'=>false,'keyboard_admission_confirmed'=>false]];
+}
+
 function publicRead(string $channel, string $message): array
 {
     global $publicAttempts, $publicRateLimit;
     $retryAfter = null;
-    $allowed = $channel === 'anytour' ? array_column(PAIRS, 'target')
+    $allowed = $channel === 'anytour' ? array_merge(array_column(PAIRS, 'target'),['932','933','934','935','936'])
         : ($channel === 'any_toour' ? array_column(PAIRS, 'source') : []);
     requireRead(in_array($message, $allowed, true), 'public_scope_invalid');
     $url = 'https://t.me/' . $channel . '/' . $message;
@@ -171,6 +185,7 @@ function parsePublicRead(string $body, string $channel, string $message): array
     $nodes = $xp->query('//*[@data-post="' . $channel . '/' . $message . '"]');
     requireRead($nodes && $nodes->length === 1, 'public_identity_changed');
     $node = $nodes->item(0);
+    if($channel==='anytour' && in_array($message,['931','932','933','934','935','936'],true)) return albumStructureRead($doc,$xp,$node,$url,$message,$body);
     $cls = static fn(string $c): string => 'contains(concat(" ",normalize-space(@class)," ")," ' . $c . ' ")';
     $text = $xp->query('.//*[' . $cls('tgme_widget_message_text') . ']', $node);
     $photos = $xp->query('.//*[' . $cls('tgme_widget_message_photo_wrap') . ']', $node);
@@ -275,17 +290,6 @@ function publicationRead(PDO $pdo, ChannelPostRegistryService $registry, int $ch
     $ids = $q->fetchAll(PDO::FETCH_COLUMN);
     requireRead(count($ids) <= 1, 'registry_identity_ambiguous');
     if ($ids === []) return null;
-    if ($channel === 6) {
-        // Failed original reserved identities have no accepted native message receipt.
-        // Observe them without treating a reservation as a sent publication or loosening a write gate.
-        requireRead(in_array((int)$ids[0], range(3847,3861),true),'unexpected_target_registry_identity');
-        $observed=$pdo->prepare('SELECT p.id AS publication_id,p.external_message_id,v.state,v.attempt_count,v.write_attempts,v.claim_token IS NOT NULL AS has_claim FROM post_publications p LEFT JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id WHERE p.id=? AND p.post_channel_id=6');
-        $observed->execute([(int)$ids[0]]);$native=$observed->fetch(PDO::FETCH_ASSOC);
-        requireRead(is_array($native),'reserved_native_observation_unavailable');
-        return ['publication_id'=>(int)$ids[0],'state'=>'unaccepted_reserved_identity','persisted_native'=>$native,
-            'accepted_message_receipt_verified'=>false,
-            'content_edit_journal'=>receiptRead(OPERATIONS.'/issue-1566-edit-existing-'.(int)$ids[0].'.jsonl')];
-    }
     $p = $registry->publication((int) $ids[0]);
     requireRead(is_array($p) && $p['project_key'] === 'anytour' && $p['platform'] === 'telegram'
         && $p['bot_key'] === 'anyru_bot' && $p['message_id'] === $message
@@ -349,7 +353,7 @@ function publicationRead(PDO $pdo, ChannelPostRegistryService $registry, int $ch
 
 $out = ['schema' => 1, 'issue' => 1566, 'demand_run_id' => null, 'demand_artifact_id' => null, 'demand_registry_sha256' => null, 'operation' => 'hotel_archive_telegram_ranked_registry', 'ok' => false,
     'repository_sha' => REPOSITORY_SHA, 'application_sha' => APPLICATION_SHA,
-    'native_run_id' => NATIVE_RUN_ID, 'native_run_attempt' => 1, 'reconciles_original_native_run_id'=>'45567178733', 'replay_allowed'=>false,
+    'native_run_id' => NATIVE_RUN_ID, 'native_run_attempt' => 1, 'format_support_observation_only'=>true, 'write_admission'=>false,
     'production_writes' => 0, 'provider_writes' => 0, 'bot_starts' => 0, 'public_get_attempts' => 0];
 $pdo = null;
 $priceLock = null;
@@ -363,8 +367,8 @@ try {
     foreach (PAIRS as $id => $row) {
         $data[] = [$id, (int) $row['source'], (int) $row['target'], $row['date']];
     }
-    requireRead(count($data) === 15 && count(array_unique(array_column($data, 1))) === 15
-        && count(array_unique(array_column($data, 2))) === 15
+    requireRead(count($data) === 2 && count(array_unique(array_column($data, 1))) === 2
+        && count(array_unique(array_column($data, 2))) === 2
         && !array_intersect(array_column($data, 0), [106, 109, 111, 114, 125, 132, 133, 139, 140, 150, 174, 195, 206, 231, 236, 246, 247, 260, 263, 266, 272, 287, 288, 293, 302, 358, 371, 393, 408, 415, 416, 435, 441, 454, 465, 466, 469, 483, 497, 513, 599, 632, 706, 713, 768, 800, 932, 948, 949, 954, 955, 964, 975, 996, 1013, 1032, 1035, 1055, 1105, 1260, 1344, 1451, 1960, 1972, 2470, 2493, 2588, 3405, 3415, 3452, 4091, 4181, 4270, 11791, 12107, 12111, 15693, 17595, 24909, 26844, 28460, 32342, 37668, 43676, 43689, 47025, 51238, 54605, 56092, 57028, 59114, 63191, 64895, 64914, 64918, 65877, 70048, 73343, 73974, 74503, 75100, 76588, 77914, 79071, 82106, 82606, 85417, 99713, 107938, 118475])
         && !array_intersect(array_column($data, 2), [17, 19, 23, 37, 48, 82, 192, 196, 204, 220, 224, 249, 266, 288, 316, 328, 346, 355, 372, 402, 414, 431, 455, 474, 483, 516, 540, 560, 578, 594, 603, 610, 626, 646, 702, 716, 731, 737, 755, 783, 799, 809, 819, 846, 852, 862, 867, 884, 889, 892, 894, 901, 905, 906, 908, 911, 913, 914, 915, 917, 918, 920, 923, 924, 925, 927, 928, 930, 938, 948, 949, 951, 952, 954, 955, 956, 963, 964, 969, 970, 972, 982, 983, 993, 995, 997, 999, 1001, 1003, 1012, 1016, 1018, 1020, 1034, 1037, 1042, 1043, 1046, 1049, 1051, 1052, 1055, 1057, 1059, 1063, 1069, 1074, 1083, 1087, 1090, 1092, 1095, 1098, 1101, 1110, 1128, 1131, 1148, 1150, 1207, 1227, 1292, 1312, 1380, 1469, 1484, 1570, 1588, 1652, 1678, 1754, 1760, 1779, 1780, 1782, 1784, 1787, 1788, 1789, 1790, 1792])
         && hash_equals(PAIR_DIGEST, hash('sha256', jsonRead($data))), 'input_packet_changed');
@@ -372,9 +376,10 @@ try {
     requireRead(realpath(OPERATIONS) === OPERATIONS, 'operations_root_changed');
     $out['resources_before'] = resourcesRead();
     $stage = 'bounded_public_photos';
-    $public = [];
+    $public = []; $publicAlbum = [];
     foreach (PAIRS as $hotel => $pair) {
         $public[$hotel] = [publicEvidence('any_toour', $pair['source']), publicEvidence('anytour', $pair['target'])];
+        if($hotel===82567) foreach(['932','933','934','935','936'] as $member) $publicAlbum[$member]=publicEvidence('anytour',$member);
         $out['public_get_attempts'] = $publicAttempts;
         $out['public_rate_limit'] = $publicRateLimit;
     }
@@ -505,14 +510,7 @@ try {
             && count($sourceNative['attachments']) === 1 && $sourceNative['attachments'][0]['reusable_telegram_photo']
             && $sourcePublic['single_photo'] && $sourceNative['current_token_resolves'];
         // Current checks must match exact preimages independently reviewed from original45535459936.
-        $targetMatches = $pair['date'] !== null && $targetPublic['ok'] &&
-            $targetPublic['caption_sha256'] === $pair['target_caption_sha256']
-            && $targetPublic['photo_marker_sha256'] === $pair['target_photo_marker_sha256'] && $targetPublic['published_unixtime'] === (new DateTimeImmutable($pair['date']))->getTimestamp()
-            && $targetPublic['single_photo'] && preg_match('/(?<![\pL\pN])(?:отзыв\pL*|видеокруж\pL*|видео\s+от\s+менеджер\pL*)(?![\pL\pN])/iu', $targetPublic['caption']) === 0
-            && ($targetNative === null || ($targetNative['state'] === 'sent' && !$targetNative['native_claim_held_or_unknown']
-                && $targetNative['post_url'] === $targetPublic['url'] && $targetNative['caption_sha256'] === $targetPublic['caption_sha256']
-                && count($targetNative['attachments']) === 1 && $targetNative['attachments'][0]['type'] === 'image'
-                && empty($targetNative['monitor_price_record_id'])));
+        $targetMatches = false; // Format observation is never write admission.
         $journal = receiptRead($directory . '/receipt.jsonl');
         $existingTg = array_values(array_filter($existing, static fn($p) => (int) $p['post_channel_id'] === 6));
         $existingMax = array_values(array_filter($existing, static fn($p) => (int) $p['post_channel_id'] === 4));
@@ -523,7 +521,7 @@ try {
             $blockers[] = 'legacy_target_keyboard_attribution_not_confirmed';
         }
         if (($sourceNative['one_expected_button'] ?? false) !== true) $blockers[] = 'source_keyboard_requires_exact_review';
-        if ($hotel === 82567) $blockers[] = 'album_membership_caption_and_keyboard_not_admitted';
+        $blockers[] = $hotel===1494 ? 'text_to_photo_requires_explicit_prospective_contract' : 'album_membership_caption_and_keyboard_not_admitted';
         $targetUrl = 'https://t.me/anytour/' . $pair['target'];
         if (($feed['tg_' . $hotel] ?? null) !== 'https://t.me/any_toour/' . $pair['source']) $blockers[] = 'source_offer_changed';
         if (($metadata['tg_'.$hotel]['locality'] ?? null) !== $pair['locality']) $blockers[] = 'selected_catalogue_locality_changed';
@@ -539,13 +537,9 @@ try {
         if ($existingTg !== []) $blockers[] = 'hotel_already_registered_in_large_telegram';
         if (($out['native_channel_rights']['state'] ?? '') !== 'ready') $blockers[] = 'channel_edit_rights_not_confirmed';
         if (!$targetUsernameMatches || !$sourceUsernameMatches) $blockers[] = 'native_public_channel_binding_not_confirmed';
-        $reservedIds = [1501=>3847,2514=>3848,8964=>3849,1962=>3850,36451=>3851,278=>3852,143372=>3853,7985=>3854,68984=>3855,233=>3856,66860=>3857,119046=>3858,37396=>3859,95159=>3860,57217=>3861];
-        $reservedQuery=$pdo->prepare('SELECT p.id AS publication_id,p.external_message_id,p.current_version_id,v.state,v.attempt_count,v.write_attempts,v.claim_token IS NOT NULL AS has_claim,v.claimed_at IS NOT NULL AS has_claimed_at FROM post_publications p LEFT JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id WHERE p.id=? AND p.post_channel_id=6');
-        $reservedQuery->execute([$reservedIds[$hotel]]);
-        $reservedRead=$reservedQuery->fetch(PDO::FETCH_ASSOC);
-        $out['rows'][] = ['original_reserved_publication'=>$reservedRead, 'target_current_pin_matches' => $currentPin === $pair['target'], 'hotel_id' => $hotel, 'name' => $pair['name'], 'source_message_id' => $pair['source'],
+        $out['rows'][] = ['target_current_pin_matches' => $currentPin === $pair['target'], 'hotel_id' => $hotel, 'name' => $pair['name'], 'source_message_id' => $pair['source'],
             'target_message_id' => $pair['target'], 'source_native' => $sourceNative, 'target_native' => $targetNative,
-            'target_album_native_members' => $albumMembers,
+            'target_album_native_members' => $albumMembers, 'target_album_public_members'=>$hotel===82567?['931'=>$targetPublic]+$publicAlbum:[],
             'source_public' => $sourcePublic, 'target_public' => $targetPublic,
             'target_media_lock_free' => $free !== false && $free !== null && (int) $free === 1,
             'prior_media_operation_directory_exists' => file_exists($directory), 'prior_media_operation' => $journal,
@@ -556,7 +550,7 @@ try {
             'source_locality' => $pair['locality'], 'current_catalogue_price_raw' => $metadata['tg_'.$hotel]['price'] ?? null, 'previous_target_offer' => $pair['archived_offer'], 'archived_countries' => $pair['archived_countries'], 'different_direction' => $pair['different_direction'],
             'source_matches' => $sourceMatches,
             'historical_target_matches' => $targetMatches,
-            'target_public_preimage_unchanged' => $pair['date'] !== null && ($targetPublic['ok']??false) && $targetPublic['caption_sha256']===$pair['target_caption_sha256'] && $targetPublic['photo_marker_sha256']===$pair['target_photo_marker_sha256'] && $targetPublic['published_unixtime']===(new DateTimeImmutable($pair['date']))->getTimestamp(),
+            'target_public_preimage_unchanged' => $hotel===1494 && ($targetPublic['photo_count']??-1)===0 && ($targetPublic['other_media_count']??-1)===0 && $pair['date'] !== null && ($targetPublic['ok']??false) && $targetPublic['caption_sha256']===$pair['target_caption_sha256'] && $targetPublic['photo_marker_sha256']===$pair['target_photo_marker_sha256'] && $targetPublic['published_unixtime']===(new DateTimeImmutable($pair['date']))->getTimestamp(),
             'preview_blockers' => $blockers, 'preview_ready' => $blockers === []];
     }
     $out['mysql_resources_after'] = mysqlResourcesRead($pdo);

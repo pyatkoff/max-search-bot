@@ -19,7 +19,7 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == '45dfb0d5906d75185913772c975ef3f077e48921' &&
+      github.event.before == 'c50c2ba66d60f99184fa92309b2b61c4563eff2e' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -116,7 +116,7 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '1b56ce4d9f5ba9c7c6738c16a9bd89d0023d68c4'
+          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '695246fe384210754a5aee710306ac81f4268165'
           mkdir pub
           python3 - <<'PY'
           import os,pathlib,re
@@ -160,6 +160,31 @@ jobs:
           pathlib.Path('pub/read-rate-fixture.php').write_text(stub+a+b+checks)
           PY
           php pub/read-rate-fixture.php
+          python3 - <<'PYTEST'
+          import pathlib
+          s=pathlib.Path('pub/read-only.php').read_text()
+          a=s[s.index('function albumStructureRead('):s.index('function publicRead(')]
+          b=s[s.index('function parsePublicRead('):s.index('function receiptRead(')]
+          stub="<?php\nfunction requireRead(bool $ok,string $r):void {if(!$ok)throw new RuntimeException($r); }\n"
+          tests=r"""
+          function verifyFormat(bool $ok):void{if(!$ok)throw new RuntimeException('format_observation_contract_failed');}
+          $date='<time datetime="2024-11-19T12:35:05+00:00"></time>';
+          $photo='<a class="tgme_widget_message_photo_wrap" href="https://t.me/anytour/931"></a>';
+          $html='<div data-post="anytour/931">'.$photo.$photo.$date.'</div>';
+          $r=parsePublicRead($html,'anytour','931');verifyFormat($r['photo_count']===2&&$r['caption']===null&&$r['photo_marker_sha256']===null&&!$r['single_photo']);
+          verifyFormat(!$r['format_observation']['caption_mid_confirmed']&&!$r['format_observation']['native_album_membership_confirmed']&&!$r['format_observation']['keyboard_admission_confirmed']);
+          $caps='<div class="tgme_widget_message_text">first</div><div class="tgme_widget_message_text">second</div>';
+          $r=parsePublicRead('<div data-post="anytour/931">'.$caps.$photo.$date.'</div>','anytour','931');verifyFormat(count($r['format_observation']['caption_nodes'])===2&&$r['caption_sha256']===null);
+          $r=parsePublicRead('<div data-post="anytour/931"><video></video>'.$date.'</div>','anytour','931');verifyFormat($r['other_media_count']===1&&!$r['format_observation']['native_album_membership_confirmed']);
+          try{parsePublicRead(str_replace('data-post="anytour/931"','data-post="anytour/932"',$html),'anytour','931');throw new LogicException('wrong_identity_admitted');}catch(RuntimeException $e){verifyFormat($e->getMessage()==='public_identity_changed');}
+          $text='<div data-post="anytour/647"><div class="tgme_widget_message_text">old commercial text</div>'.$date.'</div>';
+          $r=parsePublicRead($text,'anytour','647');verifyFormat($r['photo_count']===0&&$r['other_media_count']===0&&$r['photo_marker_sha256']===null&&!$r['single_photo']);
+          echo "EXPLICIT_FORMAT_OBSERVATION_CONTRACT=PASS\n";
+          """
+          pathlib.Path('pub/read-format-fixture.php').write_text(stub+a+b+tests)
+          PYTEST
+          php pub/read-format-fixture.php
+          rm -f pub/read-format-fixture.php
           rm -f pub/read-rate-fixture.php
       - name: Pin established SSH host continuity and authentication identity
         env:
@@ -193,7 +218,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read rejected reservations including absent current versions without replay
+      - name: Observe explicit text647 and six album members without write admission
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -212,10 +237,11 @@ jobs:
           if not d['ok']: print(json.dumps({k:d[k] for k in ('failure_stage','failure_reason') if k in d}))
           assert d['ok'] and d['operation']=='hotel_archive_telegram_ranked_registry'
           assert d['production_writes']==d['provider_writes']==d['bot_starts']==0
-          assert [r['hotel_id'] for r in d['rows']]==[1501,2514,8964,1962,36451,278,143372,7985,68984,233,66860,119046,37396,95159,57217]
-          assert [int(r['target_message_id']) for r in d['rows']]==[1047,1058,1103,1109,1584,1585,1586,1620,1651,1653,1654,1665,1679,1695,1696]
-          assert 0 < d['public_get_attempts'] <= 30
-          assert d['public_get_attempts']==sum(r[p]['http_attempts'] for r in d['rows'] for p in ('source_public','target_public'))
+          assert [r['hotel_id'] for r in d['rows']]==[1494,82567]
+          assert [int(r['target_message_id']) for r in d['rows']]==[647,931]
+          assert 0 < d['public_get_attempts'] <= 9
+          assert d['public_get_attempts']==sum(r[p]['http_attempts'] for r in d['rows'] for p in ('source_public','target_public'))+sum(m['http_attempts'] for r in d['rows'] for k,m in (r['target_album_public_members'].items() if isinstance(r['target_album_public_members'],dict) else []) if k!='931')
+          assert d['format_support_observation_only'] is True and d['write_admission'] is False and all(r['preview_ready'] is False for r in d['rows'])
           assert all('prepared_target_snapshot_not_bound' not in r['preview_blockers'] for r in d['rows'])
           assert 65020 not in [r['hotel_id'] for r in d['rows']]
           f=d['route_feed_source']; assert f['kind']=='canonical_local_raw_xml' and len(f['raw_utf8'].encode())==f['bytes']
