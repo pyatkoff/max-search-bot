@@ -1,0 +1,627 @@
+{
+  "date_msk": "2026-11-25",
+  "production_sha": "21b8e93418be0357cc2c7858cd1b0d970a62f4a7",
+  "writer": {
+    "run_id": 45542371555,
+    "job_id": 138963711571,
+    "artifact_id": 14989258557,
+    "artifact_digest": "sha256:1bcdfe23a85b91c68044b5c01950fa50d76866e83eb679dcb458c58df41bf23c"
+  },
+  "readback": {
+    "public": {
+      "run_id": 45542516702,
+      "job_id": 138964183920,
+      "observed_utc": "2026-11-25T03:48:47.622990+00:00"
+    },
+    "prior_routes": {
+      "run_id": 45542034056,
+      "job_id": 138962604780,
+      "observed_utc": "2026-11-25T03:44:33+00:00"
+    }
+  },
+  "rows": [
+    {
+      "exact_id": "TV2470",
+      "offer_id": "max_2470",
+      "source": {
+        "publication_id": 1468,
+        "version_id": 13413,
+        "mid": "mid.ffffb6caf0606fed01a1e57f9cff3834",
+        "url": "https://max.ru/channel_anytour/AaHlf5z_ODQ"
+      },
+      "target": {
+        "publication_id": 3835,
+        "version_id": 14411,
+        "mid": "mid.ffffc1752b045fed01a0b8d9f5bf018d",
+        "url": "https://max.ru/anytour/AaC42fW_AY0"
+      },
+      "original_editor_receipt": {
+        "observed_utc": "2026-11-25T03:47:56.6997043Z",
+        "state": "existing_max_message_updated_and_verified",
+        "photo_button_text_verified": true,
+        "source_photo_sha256": "a3d4aad02dfa7e4521a3ca499122fbc5b743d543915c9fde000fe573ffec7d50",
+        "button_url_sha256": "4cf561ca65c9e7683dc7400ae1021e8753ea2f412d7de1baeec3a2fbc1b80a5a"
+      },
+      "public_read": {
+        "hotel_id": 2470,
+        "url": "https://max.ru/anytour/AaC42fW_AY0",
+        "http": 200,
+        "named": true,
+        "caption_matches": true,
+        "photo_preview": true,
+        "public_button_label_visible": false,
+        "page_sha256": "3606b4b73412f4f82ac6f6bf5e9fff5b69e9dc8708ac6191369db587907fc5ac",
+        "escaped_variant_visible": false,
+        "verified": true
+      },
+      "prior_route_regions": {
+        "1": {
+          "current": {
+            "post_id": "1468",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaHlf5z_ODQ"
+          },
+          "retained": {
+            "post_id": "1468",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaHlf5z_ODQ"
+          }
+        },
+        "213": {
+          "current": {
+            "post_id": "1468",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaHlf5z_ODQ"
+          },
+          "retained": {
+            "post_id": "1468",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaHlf5z_ODQ"
+          }
+        }
+      },
+      "fully_confirmed": false,
+      "next_state": "verified_post_pending_max2"
+    },
+    {
+      "exact_id": "TV56092",
+      "offer_id": "max_56092",
+      "source": {
+        "publication_id": 283,
+        "version_id": 12862,
+        "mid": "mid.ffffb6caf0606fed01a19e8a5c8269dd",
+        "url": "https://max.ru/channel_anytour/AaGeilyCad0"
+      },
+      "target": {
+        "publication_id": 3836,
+        "version_id": 14412,
+        "mid": "mid.ffffc1752b045fed01a0c3f1440b4385",
+        "url": "https://max.ru/anytour/AaDD8UQLQ4U"
+      },
+      "original_editor_receipt": {
+        "observed_utc": "2026-11-25T03:47:59.1611035Z",
+        "state": "existing_max_message_updated_and_verified",
+        "photo_button_text_verified": true,
+        "source_photo_sha256": "102e5fc933c7c10e7cec713696aabaf56f6a0e353e5e5ffbc12049c29d9b15b0",
+        "button_url_sha256": "7312a63c5a95a8f3795256952dc9712924519d80b73123c589893a81fd839f0f"
+      },
+      "public_read": {
+        "hotel_id": 56092,
+        "url": "https://max.ru/anytour/AaDD8UQLQ4U",
+        "http": 200,
+        "named": true,
+        "caption_matches": true,
+        "photo_preview": true,
+        "public_button_label_visible": false,
+        "page_sha256": "1ba62e125cfc91bcd0b4f76ca3919a244380f46ae2ccce85944067673032dc3a",
+        "escaped_variant_visible": false,
+        "verified": true
+      },
+      "prior_route_regions": {
+        "1": {
+          "current": {
+            "post_id": "283",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaGeilyCad0"
+          },
+          "retained": {
+            "post_id": "283",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaGeilyCad0"
+          }
+        },
+        "213": {
+          "current": {
+            "post_id": "283",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaGeilyCad0"
+          },
+          "retained": {
+            "post_id": "283",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaGeilyCad0"
+          }
+        }
+      },
+      "fully_confirmed": false,
+      "next_state": "verified_post_pending_max2"
+    },
+    {
+      "exact_id": "TV59114",
+      "offer_id": "max_59114",
+      "source": {
+        "publication_id": 1374,
+        "version_id": 13824,
+        "mid": "mid.ffffb6caf0606fed01a1dca840e30376",
+        "url": "https://max.ru/channel_anytour/AaHcqEDjA3Y"
+      },
+      "target": {
+        "publication_id": 3837,
+        "version_id": 14413,
+        "mid": "mid.ffffc1752b045fed01a0d87111892a94",
+        "url": "https://max.ru/anytour/AaDYcRGJKpQ"
+      },
+      "original_editor_receipt": {
+        "observed_utc": "2026-11-25T03:48:01.9639143Z",
+        "state": "existing_max_message_updated_and_verified",
+        "photo_button_text_verified": true,
+        "source_photo_sha256": "14471135d76a14cb316dbfaee2386f93c3e6e816f5ce8701f3958793ed724d58",
+        "button_url_sha256": "893e4e616a09202108dda671c3b3f0365eb0e326c3a86e0141aeaa5f4afc74e7"
+      },
+      "public_read": {
+        "hotel_id": 59114,
+        "url": "https://max.ru/anytour/AaDYcRGJKpQ",
+        "http": 200,
+        "named": true,
+        "caption_matches": true,
+        "photo_preview": true,
+        "public_button_label_visible": false,
+        "page_sha256": "b63fc005fb74e87fbcce50bc36500f744d88161e40fcb933da1bc53410d743f8",
+        "escaped_variant_visible": false,
+        "verified": true
+      },
+      "prior_route_regions": {
+        "1": {
+          "current": {
+            "post_id": "1374",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaHcqEDjA3Y"
+          },
+          "retained": {
+            "post_id": "1374",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaHcqEDjA3Y"
+          }
+        },
+        "213": {
+          "current": {
+            "post_id": "1374",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaHcqEDjA3Y"
+          },
+          "retained": {
+            "post_id": "1374",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaHcqEDjA3Y"
+          }
+        }
+      },
+      "fully_confirmed": false,
+      "next_state": "verified_post_pending_max2"
+    },
+    {
+      "exact_id": "TV63191",
+      "offer_id": "max_63191",
+      "source": {
+        "publication_id": 1496,
+        "version_id": 13736,
+        "mid": "mid.ffffb6caf0606fed01a1e5813a1b119c",
+        "url": "https://max.ru/channel_anytour/AaHlgTobEZw"
+      },
+      "target": {
+        "publication_id": 3838,
+        "version_id": 14414,
+        "mid": "mid.ffffc1752b045fed01a10b7747055404",
+        "url": "https://max.ru/anytour/AaELd0cFVAQ"
+      },
+      "original_editor_receipt": {
+        "observed_utc": "2026-11-25T03:48:04.6838760Z",
+        "state": "existing_max_message_updated_and_verified",
+        "photo_button_text_verified": true,
+        "source_photo_sha256": "c0af0406fcd7836c8f714ef1ad4a39b486eabc23354c7683d97a13510b56b403",
+        "button_url_sha256": "d510480dfdf4279a06cf5e45d9aa475ee5630242241e46a4be35375cf66751e7"
+      },
+      "public_read": {
+        "hotel_id": 63191,
+        "url": "https://max.ru/anytour/AaELd0cFVAQ",
+        "http": 200,
+        "named": true,
+        "caption_matches": true,
+        "photo_preview": true,
+        "public_button_label_visible": false,
+        "page_sha256": "65cc16b19253e63bfb7be6f9f973b1045489c63d91db658b8bbcf8f39cec916d",
+        "escaped_variant_visible": false,
+        "verified": true
+      },
+      "prior_route_regions": {
+        "1": {
+          "current": {
+            "post_id": "1496",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaHlgTobEZw"
+          },
+          "retained": {
+            "post_id": "1496",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaHlgTobEZw"
+          }
+        },
+        "213": {
+          "current": {
+            "post_id": "1496",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaHlgTobEZw"
+          },
+          "retained": {
+            "post_id": "1496",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaHlgTobEZw"
+          }
+        }
+      },
+      "fully_confirmed": false,
+      "next_state": "verified_post_pending_max2"
+    },
+    {
+      "exact_id": "TV76588",
+      "offer_id": "max_76588",
+      "source": {
+        "publication_id": 718,
+        "version_id": 13262,
+        "mid": "mid.ffffb6caf0606fed01a1b6ce4cad7e23",
+        "url": "https://max.ru/channel_anytour/AaG2zkytfiM"
+      },
+      "target": {
+        "publication_id": 3839,
+        "version_id": 14415,
+        "mid": "mid.ffffc1752b045fed01a11b6be76024a9",
+        "url": "https://max.ru/anytour/AaEba-dgJKk"
+      },
+      "original_editor_receipt": {
+        "observed_utc": "2026-11-25T03:48:07.1872286Z",
+        "state": "existing_max_message_updated_and_verified",
+        "photo_button_text_verified": true,
+        "source_photo_sha256": "01d91b1e935dfdd4ba9026d19205446f0f6b9b8c983d1fbcd17ffb5731120327",
+        "button_url_sha256": "301f2767f9c0b8c394e79a511f1a9ae9f93e16bcc915b71d7da797c13e450dd8"
+      },
+      "public_read": {
+        "hotel_id": 76588,
+        "url": "https://max.ru/anytour/AaEba-dgJKk",
+        "http": 200,
+        "named": true,
+        "caption_matches": true,
+        "photo_preview": true,
+        "public_button_label_visible": false,
+        "page_sha256": "f41a2a13015bdd82a1a635494b283587e7c00be126a4ffea0e92b4e7a2852c3e",
+        "escaped_variant_visible": false,
+        "verified": true
+      },
+      "prior_route_regions": {
+        "1": {
+          "current": {
+            "post_id": "718",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaG2zkytfiM"
+          },
+          "retained": {
+            "post_id": "718",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaG2zkytfiM"
+          }
+        },
+        "213": {
+          "current": {
+            "post_id": "718",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaG2zkytfiM"
+          },
+          "retained": {
+            "post_id": "718",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaG2zkytfiM"
+          }
+        }
+      },
+      "fully_confirmed": false,
+      "next_state": "verified_post_pending_max2"
+    },
+    {
+      "exact_id": "TV77914",
+      "offer_id": "max_77914",
+      "source": {
+        "publication_id": 181,
+        "version_id": 13544,
+        "mid": "mid.ffffb6caf0606fed01a19ce99cae1650",
+        "url": "https://max.ru/channel_anytour/AaGc6ZyuFlA"
+      },
+      "target": {
+        "publication_id": 3840,
+        "version_id": 14416,
+        "mid": "mid.ffffc1752b045fed01a125f8c55c4fc4",
+        "url": "https://max.ru/anytour/AaEl-MVcT8Q"
+      },
+      "original_editor_receipt": {
+        "observed_utc": "2026-11-25T03:48:09.7103645Z",
+        "state": "existing_max_message_updated_and_verified",
+        "photo_button_text_verified": true,
+        "source_photo_sha256": "54b419b87cb91a68ced025ce73d346a21a1e65a8b3e0a433e595737614a796b0",
+        "button_url_sha256": "5d8a9e6c113ed3c6480cb0288e0e563177bfb2537a9ae0741240fd63638638d3"
+      },
+      "public_read": {
+        "hotel_id": 77914,
+        "url": "https://max.ru/anytour/AaEl-MVcT8Q",
+        "http": 200,
+        "named": true,
+        "caption_matches": true,
+        "photo_preview": true,
+        "public_button_label_visible": false,
+        "page_sha256": "a4863981cc7a2de81596e5d11fb8b426a806ba69d514839b56010d4b7c027c3a",
+        "escaped_variant_visible": false,
+        "verified": true
+      },
+      "prior_route_regions": {
+        "1": {
+          "current": {
+            "post_id": "181",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaGc6ZyuFlA"
+          },
+          "retained": {
+            "post_id": "181",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaGc6ZyuFlA"
+          }
+        },
+        "213": {
+          "current": {
+            "post_id": "181",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaGc6ZyuFlA"
+          },
+          "retained": {
+            "post_id": "181",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaGc6ZyuFlA"
+          }
+        }
+      },
+      "fully_confirmed": false,
+      "next_state": "verified_post_pending_max2"
+    },
+    {
+      "exact_id": "TV106",
+      "offer_id": "max_106",
+      "source": {
+        "publication_id": 1042,
+        "version_id": 14169,
+        "mid": "mid.ffffb6caf0606fed01a1b7b27c4e59fa",
+        "url": "https://max.ru/channel_anytour/AaG3snxOWfo"
+      },
+      "target": {
+        "publication_id": 3841,
+        "version_id": 14417,
+        "mid": "mid.ffffc1752b045fed01a13048c6af1105",
+        "url": "https://max.ru/anytour/AaEwSMavEQU"
+      },
+      "original_editor_receipt": {
+        "observed_utc": "2026-11-25T03:48:12.2161263Z",
+        "state": "existing_max_message_updated_and_verified",
+        "photo_button_text_verified": true,
+        "source_photo_sha256": "9caf2479340d06d667845d3b9c459db37c41fbfe99e32664c793faf9e09a51e9",
+        "button_url_sha256": "8a15abc8dde592f493f418a1c7eef3d5443134b5fb6e097da2bc435289f02a61"
+      },
+      "public_read": {
+        "hotel_id": 106,
+        "url": "https://max.ru/anytour/AaEwSMavEQU",
+        "http": 200,
+        "named": true,
+        "caption_matches": true,
+        "photo_preview": true,
+        "public_button_label_visible": false,
+        "page_sha256": "928643071b9ff4748297f837b3a7362c5fbcdad6e2a9ef925303b710047f6075",
+        "escaped_variant_visible": false,
+        "verified": true
+      },
+      "prior_route_regions": {
+        "1": {
+          "current": {
+            "post_id": "1042",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaG3snxOWfo"
+          },
+          "retained": {
+            "post_id": "1042",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaG3snxOWfo"
+          }
+        },
+        "213": {
+          "current": {
+            "post_id": "1042",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaG3snxOWfo"
+          },
+          "retained": {
+            "post_id": "1042",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaG3snxOWfo"
+          }
+        }
+      },
+      "fully_confirmed": false,
+      "next_state": "verified_post_pending_max2"
+    },
+    {
+      "exact_id": "TV111",
+      "offer_id": "max_111",
+      "source": {
+        "publication_id": 355,
+        "version_id": 13865,
+        "mid": "mid.ffffb6caf0606fed01a1a2b22faf7b74",
+        "url": "https://max.ru/channel_anytour/AaGisi-ve3Q"
+      },
+      "target": {
+        "publication_id": 3842,
+        "version_id": 14418,
+        "mid": "mid.ffffc1752b045fed01a134ab9ed74869",
+        "url": "https://max.ru/anytour/AaE0q57XSGk"
+      },
+      "original_editor_receipt": {
+        "observed_utc": "2026-11-25T03:48:14.7810437Z",
+        "state": "existing_max_message_updated_and_verified",
+        "photo_button_text_verified": true,
+        "source_photo_sha256": "ef9fc0a5846afc8e15c27c12e368da26cd99d4ca12f2a16bc70d59166c48bc8e",
+        "button_url_sha256": "d482e6f51ea5de9130eb27606372a9b67f7904f5d5649f7ad14942b4baabdd9c"
+      },
+      "public_read": {
+        "hotel_id": 111,
+        "url": "https://max.ru/anytour/AaE0q57XSGk",
+        "http": 200,
+        "named": true,
+        "caption_matches": true,
+        "photo_preview": true,
+        "public_button_label_visible": false,
+        "page_sha256": "ca1287f866846c0f9589b2df37f55aec6a9a63a4d9feb01100a5337e4b753993",
+        "escaped_variant_visible": false,
+        "verified": true
+      },
+      "prior_route_regions": {
+        "1": {
+          "current": {
+            "post_id": "355",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaGisi-ve3Q"
+          },
+          "retained": {
+            "post_id": "355",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaGisi-ve3Q"
+          }
+        },
+        "213": {
+          "current": {
+            "post_id": "355",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaGisi-ve3Q"
+          },
+          "retained": {
+            "post_id": "355",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaGisi-ve3Q"
+          }
+        }
+      },
+      "fully_confirmed": false,
+      "next_state": "verified_post_pending_max2"
+    },
+    {
+      "exact_id": "TV114",
+      "offer_id": "max_114",
+      "source": {
+        "publication_id": 1043,
+        "version_id": 14055,
+        "mid": "mid.ffffb6caf0606fed01a1b7b28508661d",
+        "url": "https://max.ru/channel_anytour/AaG3soUIZh0"
+      },
+      "target": {
+        "publication_id": 3843,
+        "version_id": 14419,
+        "mid": "mid.ffffc1752b045fed01a13ab209274ae7",
+        "url": "https://max.ru/anytour/AaE6sgknSuc"
+      },
+      "original_editor_receipt": {
+        "observed_utc": "2026-11-25T03:48:17.2418271Z",
+        "state": "existing_max_message_updated_and_verified",
+        "photo_button_text_verified": true,
+        "source_photo_sha256": "1213aae8065be46ed5fb7523615a87cff29daf3519ec716547e214b57235f57c",
+        "button_url_sha256": "c733980c6cf67610ee146b40bdb599c08eb21ee8f55e25d5317fbab7c2cc966c"
+      },
+      "public_read": {
+        "hotel_id": 114,
+        "url": "https://max.ru/anytour/AaE6sgknSuc",
+        "http": 200,
+        "named": true,
+        "caption_matches": true,
+        "photo_preview": true,
+        "public_button_label_visible": false,
+        "page_sha256": "33e501a003b32b1e18b9f459ab4bcfd0ff60879d1d060ced9b4b77863702d4bd",
+        "escaped_variant_visible": false,
+        "verified": true
+      },
+      "prior_route_regions": {
+        "1": {
+          "current": {
+            "post_id": "1043",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaG3soUIZh0"
+          },
+          "retained": {
+            "post_id": "1043",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaG3soUIZh0"
+          }
+        },
+        "213": {
+          "current": {
+            "post_id": "1043",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaG3soUIZh0"
+          },
+          "retained": {
+            "post_id": "1043",
+            "source_id": 1576,
+            "channel_id": "-80492244209683",
+            "post_url": "https://max.ru/channel_anytour/AaG3soUIZh0"
+          }
+        }
+      },
+      "fully_confirmed": false,
+      "next_state": "verified_post_pending_max2"
+    }
+  ]
+}
