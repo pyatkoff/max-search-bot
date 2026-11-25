@@ -19,7 +19,7 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == '02b6a3291b7fcc2bac00e5e41f6e04d00202be34' &&
+      github.event.before == '29a040d113dd1024e498a9e01ea3665c29bb8768' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -97,6 +97,10 @@ jobs:
             R.runIdentity(await api('GET',unresolved),{id:45552156293,attempt:1,head:'d8a0d794321ea89d8ac62205a22079656aa73d6a',workflow:'.github/workflows/edit-1566-ranked-46-historical-telegram.yml',event:'push',branch:'ops/anytour-hotel-ranked-plan-bcd13436197d3c306ad562d2c77bb97e29f10dfceced6b783bb23bcde2d37e4b',conclusion:'failure'})
             const unresolvedArtifacts=R.boundedList(await api('GET',unresolved+'/artifacts?per_page=100'),'artifacts','original_write_artifacts_incomplete')
             if(unresolvedArtifacts.length!==1||unresolvedArtifacts[0].id!==14993862147||unresolvedArtifacts[0].size_in_bytes!==1900||unresolvedArtifacts[0].digest!=='sha256:16861ea9663452ac978c52c01f934a4034b837de2854b181545b434161f2ba40'||unresolvedArtifacts[0].expired)throw Error('original_write_receipt_changed')
+            const attempt=R.API_ROOT+'/actions/runs/45567178733'
+            R.runIdentity(await api('GET',attempt),{id:45567178733,attempt:1,head:'878c680627d54297c364254687577a03ac5aef6b',workflow:'.github/workflows/edit-1566-ranked-46-historical-telegram.yml',event:'push',branch:'ops/anytour-hotel-ranked-plan-c8a4b60e6b9fd340f08b94faae3ae048d5a3cbc2ba3148aba82591315bf39141',conclusion:'failure'})
+            const rejectedArtifacts=R.boundedList(await api('GET',attempt+'/artifacts?per_page=100'),'artifacts','rejected_artifacts_incomplete')
+            if(rejectedArtifacts.length!==1||rejectedArtifacts[0].id!==15000950069||rejectedArtifacts[0].size_in_bytes!==2690||rejectedArtifacts[0].digest!=='sha256:9c910eea8d09bc86d7a17a807d34d662820a0b17098342593698c7e36b2c6c42'||rejectedArtifacts[0].expired)throw Error('rejected_original_changed')
             const observed = await R.readRecord(api)
             const resolution = await R.resolveCurrent(api, {sha:expected}, observed)
             if (!resolution.ready || resolution.repository_sha !== expected || !/^[a-f0-9]{40}$/.test(resolution.application_sha)) throw Error('accepted_release_mismatch')
@@ -112,7 +116,7 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '10f01573e76608d2beb4c4ccf3ba5ea5e2e4cdb5'
+          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '4234d7d4d8dafb753a1d1cfbdf3cfde606df0f0e'
           mkdir pub
           python3 - <<'PY'
           import os,pathlib,re
@@ -189,7 +193,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Reconcile original fifteen journals and live posts without replay
+      - name: Read fifteen saved MESSAGE_ID_INVALID outcomes without replay
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}

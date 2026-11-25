@@ -251,6 +251,19 @@ function receiptRead(string $path): array
             $v=$record[$key]??null;
             if(is_int($v) || (is_string($v)&&strlen($v)<=100&&preg_match('/\A[a-zA-Z0-9_:T.+-]{1,100}\z/D',$v)===1))$safe[$key]=$v;
         }
+        if($state==='provider_response_saved') {
+            $response=$record['response']??[];
+            $safe['provider_http']=is_int($response['http']??null)?$response['http']:null;
+            $safe['transport_error']=is_bool($response['transport_error']??null)?$response['transport_error']:null;
+            $safe['provider_ok']=is_bool($response['data']['ok']??null)?$response['data']['ok']:null;
+            $safe['provider_error_code']=is_int($response['data']['error_code']??null)?$response['data']['error_code']:null;
+            $safe['message_id_invalid']=($response['data']['description']??null)==='Bad Request: MESSAGE_ID_INVALID';
+        }
+        if($state==='intent_saved') {
+            $x=$record['execution']??[];
+            $safe['original_native_run_id']=preg_match('/\A[0-9]{1,20}\z/D',$x['native_run_id']??'')?$x['native_run_id']:null;
+            $safe['original_application_sha']=preg_match('/\A[a-f0-9]{40}\z/D',$x['application_sha']??'')?$x['application_sha']:null;
+        }
         $events[]=$safe;
     }
     return ['state' => 'present_do_not_replay', 'sha256' => hash('sha256', $raw), 'line_count' => count($lines), 'states' => $states, 'events'=>$events];
@@ -325,7 +338,7 @@ function publicationRead(PDO $pdo, ChannelPostRegistryService $registry, int $ch
 
 $out = ['schema' => 1, 'issue' => 1566, 'demand_run_id' => null, 'demand_artifact_id' => null, 'demand_registry_sha256' => null, 'operation' => 'hotel_archive_telegram_ranked_registry', 'ok' => false,
     'repository_sha' => REPOSITORY_SHA, 'application_sha' => APPLICATION_SHA,
-    'native_run_id' => NATIVE_RUN_ID, 'native_run_attempt' => 1, 'reconciles_original_native_run_id'=>'45552156293', 'replay_allowed'=>false,
+    'native_run_id' => NATIVE_RUN_ID, 'native_run_attempt' => 1, 'reconciles_original_native_run_id'=>'45567178733', 'replay_allowed'=>false,
     'production_writes' => 0, 'provider_writes' => 0, 'bot_starts' => 0, 'public_get_attempts' => 0];
 $pdo = null;
 $priceLock = null;
@@ -515,7 +528,11 @@ try {
         if ($existingTg !== []) $blockers[] = 'hotel_already_registered_in_large_telegram';
         if (($out['native_channel_rights']['state'] ?? '') !== 'ready') $blockers[] = 'channel_edit_rights_not_confirmed';
         if (!$targetUsernameMatches || !$sourceUsernameMatches) $blockers[] = 'native_public_channel_binding_not_confirmed';
-        $out['rows'][] = ['target_current_pin_matches' => $currentPin === $pair['target'], 'hotel_id' => $hotel, 'name' => $pair['name'], 'source_message_id' => $pair['source'],
+        $reservedIds = [1501=>3847,2514=>3848,8964=>3849,1962=>3850,36451=>3851,278=>3852,143372=>3853,7985=>3854,68984=>3855,233=>3856,66860=>3857,119046=>3858,37396=>3859,95159=>3860,57217=>3861];
+        $reservedQuery=$pdo->prepare('SELECT p.id AS publication_id,p.external_message_id,p.current_version_id,v.state,v.attempt_count,v.write_attempts,v.claim_token IS NOT NULL AS has_claim,v.claimed_at IS NOT NULL AS has_claimed_at FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id WHERE p.id=? AND p.post_channel_id=6');
+        $reservedQuery->execute([$reservedIds[$hotel]]);
+        $reservedRead=$reservedQuery->fetch(PDO::FETCH_ASSOC);
+        $out['rows'][] = ['original_reserved_publication'=>$reservedRead, 'target_current_pin_matches' => $currentPin === $pair['target'], 'hotel_id' => $hotel, 'name' => $pair['name'], 'source_message_id' => $pair['source'],
             'target_message_id' => $pair['target'], 'source_native' => $sourceNative, 'target_native' => $targetNative,
             'target_album_native_members' => $albumMembers,
             'source_public' => $sourcePublic, 'target_public' => $targetPublic,
