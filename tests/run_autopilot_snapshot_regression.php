@@ -15,6 +15,12 @@ $fixtures['production.json']['paid_daily']=['ok'=>true,'days'=>[['date'=>'2026-0
 $fixtures['production.json']['channel_daily']=['ok'=>true,'days'=>[['date'=>'2026-08-27','channels'=>[['channel'=>'telegram','new_conversations'=>3]]]]];
 $fixtures['production.json']['manager_ai_feedback']=['ok'=>true,'error'=>null,'generated_at'=>'2026-08-27T17:00:00Z','complete'=>false,'draft_limit_reached'=>true,'message_limit_reached'=>false,'counts'=>[],'window'=>['since'=>'2026-08-20 17:00:00','until'=>'2026-08-27 17:00:00','timezone'=>'UTC','days'=>7,'basis'=>'persisted_generation_cohort'],'limits'=>['draft_rows'=>1000,'message_rows'=>5000,'samples'=>10,'sample_characters'=>2000],'private_canary'=>'PRIVATE AI SUMMARY'];
 $fixtures['production.json']['manager_ai_feedback_private']=[['proposed_text'=>'PRIVATE AI PROPOSAL','current_sent_text'=>'PRIVATE AI SENT','draft_id'=>str_repeat('a',32)]];
+$fixtures['production.json']['manager_resource_profile']=[
+    'scope'=>'host_and_mysql_global_during_manager_list_probes','started_at_utc'=>'2026-01-01T00:00:00+00:00','ended_at_utc'=>'2026-01-01T00:00:01+00:00','elapsed_ms'=>200,
+    'host'=>['cpu_non_idle_pct'=>43.2,'memory_available_pct'=>['before'=>110,'after'=>40],'secret'=>'PRIVATE RESOURCE HOST'],
+    'mysql'=>['gauges'=>['threads_running'=>['before'=>2,'after'=>'PRIVATE MYSQL TEXT']],'global_counter_deltas'=>['innodb_row_lock_waits'=>null,'innodb_row_lock_time'=>3,'unknown'=>'PRIVATE RESOURCE COUNTER']],
+    'extra'=>'PRIVATE RESOURCE ROOT',
+];
 $fixtures['production.json']['manager_visibility'][0]['load_ms']=['all'=>12.3,'mine'=>4.5,'waiting'=>2.1];
 $fixtures['production.json']['manager_mcp_discovery']=['sampled_count'=>1,'recent_attempts'=>[
     ['at'=>'2026-10-19T13:39:00Z','credential_header'=>'missing','http_status'=>401,'stage'=>'credentials','rpc_error'=>-32001]]];
@@ -66,6 +72,8 @@ file_put_contents($tmp.'/composed.json',$raw);
 $publicLines=[];exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg($root.'/tools/sanitize_public_diagnostics.php').' '.escapeshellarg($tmp.'/composed.json'),$publicLines,$publicCode);
 $publicRaw=implode("\n",$publicLines);$public=json_decode($publicRaw,true);
 aCheck('public diagnostics retain fixed-category MCP failure evidence',($public['manager_mcp_discovery']??null)===$fixtures['production.json']['manager_mcp_discovery']);
+$resource=$public['manager']['resource_profile']??[];
+aCheck('public diagnostics retain only typed aggregate resource metrics', ($resource['elapsed_ms']??null)===200 && ($resource['host']['cpu_non_idle_pct']??null)===43.2 && ($resource['host']['memory_available_pct']??null)===['before'=>null,'after'=>40] && ($resource['mysql']['gauges']['threads_running']??null)===['before'=>2,'after'=>null] && array_key_exists('innodb_row_lock_waits',$resource['mysql']['global_counter_deltas']??[]) && $resource['mysql']['global_counter_deltas']['innodb_row_lock_waits']===null && ($resource['mysql']['global_counter_deltas']['innodb_row_lock_time']??null)===3 && !str_contains($raw,'PRIVATE RESOURCE') && !str_contains($raw,'PRIVATE MYSQL TEXT'));
 aCheck('public diagnostics retain aggregate preparation health',($public['manager_preparation']??null)===$fixtures['production.json']['manager_preparation']);
 aCheck('actual public sanitizer preserves only the safe composed setup summary',$publicCode===0&&!empty($public['public_redacted'])&&($public['manager']['push_setup']??null)===$pushSetup&&!str_contains($publicRaw,'PRIVATE PUSH')&&!str_contains($publicRaw,'manager_id'));
 @unlink($tmp.'/composed.json');
