@@ -2048,6 +2048,24 @@ channelPostCheck('publisher pilot observes the keyboard hidden by embed', $pilot
 channelPostCheck('publisher pilot preserves URLs and changes exactly the first label', $pilotBody,
     ['chat_id'=>'-1001845835645','message_id'=>1047,'reply_markup'=>['inline_keyboard'=>[[
         ['text'=>'Менеджер →','url'=>'https://t.me/AnyTour_MSK'],['text'=>'Другие туры','url'=>'https://t.me/Any_tour_bot?start=old']]]]]);
+// Actual MID1047 DOM from read-only run45718436590/artifact15071411390.
+// Its node bytes are retained verbatim with the archive's UTF-8 document metadata.
+// The old parser rejected this ordinary URL button solely for its confirm handler.
+$pilotRealHtml = file_get_contents(__DIR__.'/fixtures/telegram-publisher-1047-public.html');
+$pilotRealBefore = AnyTour\ExistingPostBatch\publisherKeyboardPublic($pilotRealHtml, $pilotRealHtml, $pilotPlan);
+channelPostCheck('publisher pilot accepts the real Telegram confirmation wrapper', $pilotRealBefore['reply_markup'],
+    ['inline_keyboard'=>[[['text'=>'СВЯЗАТЬСЯ С МЕНЕДЖЕРОМ 📱','url'=>'https://t.me/AnyTour_MSK']]]]);
+channelPostCheck('real public button keeps its exact URL and only gains the approved label suffix',
+    AnyTour\ExistingPostBatch\publisherKeyboardBody($pilotRealBefore,$pilotPlan),
+    ['chat_id'=>'-1001845835645','message_id'=>1047,'reply_markup'=>['inline_keyboard'=>[[
+        ['text'=>'СВЯЗАТЬСЯ С МЕНЕДЖЕРОМ 📱 →','url'=>'https://t.me/AnyTour_MSK']]]]]);
+foreach ([
+    'unknown onclick'=>str_replace("return confirm('Open this link?\\n\\n'+this.href);",'return otherAction();',$pilotRealHtml),
+    'confirmation without URL type'=>str_replace('inline_button url_button','inline_button',$pilotRealHtml),
+    'confirmation with non-HTTPS URL'=>str_replace('href="https://t.me/AnyTour_MSK"','href="javascript:otherAction()"',$pilotRealHtml),
+] as $label=>$html) $pilotRefuses('real publisher button refuses '.$label,
+    static fn()=>AnyTour\ExistingPostBatch\publisherKeyboardPublic($html,$pilotRealHtml,$pilotPlan),
+    'publisher_pilot_keyboard_unsupported');
 foreach ([
     'hidden row'=>str_replace('tgme_widget_message_inline_row','other_row',$pilotHtml()),
     'callback'=>str_replace('https://t.me/AnyTour_MSK','javascript:callback()',$pilotHtml()),
@@ -2123,6 +2141,10 @@ try {
         $expected=match($case){'success','success_without_edit_date'=>'publisher_keyboard_verified','rejected'=>'provider_message_id_rejected',
             'noop'=>'message_not_modified','timeout'=>'provider_outcome_unknown','payload_changed'=>'held_before_provider',default=>'response_saved_requires_readback'};
         channelPostCheck('publisher pilot retains honest '.$case.' outcome',[$result['state'],$result['full_transfer'],$writes],[$expected,false,$case==='payload_changed'?0:1]);
+        if ($case === 'public_changed') channelPostCheck('public read failure retains the accepted Telegram answer',
+            $result['native_state'] ?? null, 'native_keyboard_edit_accepted');
+        if (in_array($case,['timeout','wrong_target_without_edit_date'],true))
+            channelPostCheck('unconfirmed '.$case.' has no invented native acceptance', isset($result['native_state']), false);
         channelPostCheck('publisher pilot preserves consumed parent on '.$case,hash_file('sha256',$dir.'/receipt.jsonl'),$parentSha);
         if($case==='payload_changed')continue;
         channelPostCheck('publisher pilot durable marker precedes '.$case.' HTTP',$startedBeforeRequest);
