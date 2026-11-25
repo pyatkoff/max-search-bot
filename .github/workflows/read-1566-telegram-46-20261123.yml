@@ -1,4 +1,4 @@
-name: "#1566 Read the next sixteen archived Telegram pairs in the weekly hotel ranking"
+name: "#1566 Read the new Side Star Elegance historical Telegram candidate without mutations"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -19,7 +19,7 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == '726acf6533c8e357d6596cf228dfe41826e4cddc' &&
+      github.event.before == 'c31f69d4dcc5707669c643ee7ecd516ba1e3e027' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -58,10 +58,10 @@ jobs:
             const artifacts=(await api('GET',parent+'/artifacts?per_page=10')).artifacts
             if (run.id!==45385556709 || run.repository.id!==1342493152 || run.head_sha!=='9838b4301727c7969ad0ff4dc585460c5d27986a' || run.head_branch!=='audit/anytour-hotel-ads-20261117' || run.event!=='push' || run.run_attempt!==1 || run.status!=='completed' || run.conclusion!=='success') throw Error('demand_rank_run_changed')
             if (artifacts.length!==1 || artifacts[0].id!==14915463382 || artifacts[0].name!=='first-party-hotel-entry-rank' || artifacts[0].expired || artifacts[0].digest!=='sha256:b41f4d47c1041204ed6830730d7ab8805af15a0647787aa5658eecca398314fe') throw Error('demand_rank_artifact_changed')
-            const stopped=R.API_ROOT+'/actions/runs/45391902070'
+            const stopped=R.API_ROOT+'/actions/runs/45403192159'
             const previousRead=await api('GET',stopped)
             const oldArtifacts=(await api('GET',stopped+'/artifacts?per_page=10')).artifacts
-            if(previousRead.head_sha!=='726acf6533c8e357d6596cf228dfe41826e4cddc' || previousRead.head_branch!=='ops/1566-telegram-46-native-read-20261123' || previousRead.run_attempt!==1 || previousRead.repository.id!==1342493152 || previousRead.status!=='completed' || previousRead.conclusion!=='success' || oldArtifacts.length!==1 || oldArtifacts[0].id!==14918942298 || oldArtifacts[0].digest!=='sha256:b2653b48e99bbb57fe3786e3b6476532048d9f01cc8c8b35443bc3918826e632') throw Error('previous_read_changed')
+            if(previousRead.head_sha!=='c31f69d4dcc5707669c643ee7ecd516ba1e3e027' || previousRead.head_branch!=='ops/1566-telegram-46-native-read-20261123' || previousRead.run_attempt!==1 || previousRead.repository.id!==1342493152 || previousRead.status!=='completed' || previousRead.conclusion!=='success' || oldArtifacts.length!==1 || oldArtifacts[0].id!==14923997818 || oldArtifacts[0].digest!=='sha256:c937ea1b3d3e7f1c0caa8c5b4a70c18e84a61f09ac120dade5e6000c7bb72a14') throw Error('previous_read_changed')
             const observed = await R.readRecord(api)
             const resolution = await R.resolveCurrent(api, {sha:expected}, observed)
             if (!resolution.ready || resolution.repository_sha !== expected || !/^[a-f0-9]{40}$/.test(resolution.application_sha)) throw Error('accepted_release_mismatch')
@@ -77,7 +77,7 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = 'd2253d46d43ebb4d1fdcb1289f1768c7685412ef'
+          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '90737deb286595421cf2c96be4b3f1f2c055a1f8'
           mkdir pub
           python3 - <<'PY'
           import os,pathlib,re
@@ -122,7 +122,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read sixteen hotel sources and their exact historical Telegram targets
+      - name: Read one new hotel source and its exact historical Telegram target
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -141,9 +141,9 @@ jobs:
           if not d['ok']: print(json.dumps({k:d[k] for k in ('failure_stage','failure_reason') if k in d}))
           assert d['ok'] and d['operation']=='hotel_archive_telegram_ranked_registry'
           assert d['production_writes']==d['provider_writes']==d['bot_starts']==0
-          assert [r['hotel_id'] for r in d['rows']]==[1067, 1100, 1142, 1151, 1221, 1313, 1334, 1336, 1421, 1429, 2522, 2794, 4054, 4060, 8020, 32322]
-          assert [int(r['target_message_id']) for r in d['rows']]==[1066, 1072, 1081, 1102, 1078, 1136, 664, 1032, 1076, 1125, 1120, 768, 907, 916, 839, 1603]
-          assert d['public_get_attempts']==32
+          assert [r['hotel_id'] for r in d['rows']]==[1014]
+          assert [int(r['target_message_id']) for r in d['rows']]==[1604]
+          assert d['public_get_attempts']==2
           print(json.dumps({'checkpoint_sha256':d['checkpoint_sha256'],'read_at_utc':d['read_at_utc'],'rows':[{'hotel_id':r['hotel_id'],'target_message_id':r['target_message_id'],'preview_ready':r['preview_ready'],'blockers':r['preview_blockers'],'source_publication_id':(r['source_native'] or {}).get('publication_id'),'target_publication_id':(r['target_native'] or {}).get('publication_id')} for r in d['rows']]}))
           PY
           test "$status" -eq 0

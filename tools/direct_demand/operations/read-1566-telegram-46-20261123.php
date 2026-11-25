@@ -11,40 +11,9 @@ const APPLICATION_SHA = '__APPLICATION_SHA__';
 const REPOSITORY_SHA = '__REPOSITORY_SHA__';
 const NATIVE_RUN_ID = '__NATIVE_RUN_ID__';
 const PAIRS = [
-    1067 => ['name'=>'Catamaran Quality Times', 'source'=>'273', 'target'=>'1066', 'date'=>'2025-04-03T08:20:42Z',
-        'rank'=>92, 'demand_platform'=>'max', 'dialogues'=>1, 'entries'=>1, 'previous_feed_price'=>86546, 'country'=>'TR', 'locality'=>'Бельдиби', 'archived_offer'=>'Прошедший весенний тур в Стамбул, Akka Suites', 'archived_countries'=>['TR'], 'different_direction'=>false],
-    1100 => ['name'=>'Club Hotel Sera', 'source'=>'173', 'target'=>'1072', 'date'=>'2025-04-09T07:27:18Z',
-        'rank'=>94, 'demand_platform'=>'max', 'dialogues'=>1, 'entries'=>1, 'previous_feed_price'=>101653, 'country'=>'TR', 'locality'=>'Анталья', 'archived_offer'=>'Marvida Senses Very Chic Adults Only — Бодрум', 'archived_countries'=>['TR'], 'different_direction'=>false],
-    1142 => ['name'=>'Crystal Flora Beach Resort', 'source'=>'343', 'target'=>'1081', 'date'=>'2025-04-20T08:17:56Z',
-        'rank'=>96, 'demand_platform'=>'max', 'dialogues'=>1, 'entries'=>1, 'previous_feed_price'=>129091, 'country'=>'TR', 'locality'=>'Бельдиби', 'archived_offer'=>'Prime Beach Hotel — Мармарис', 'archived_countries'=>['TR'], 'different_direction'=>false],
-    1151 => ['name'=>'Delphin Palace', 'source'=>'152', 'target'=>'1102', 'date'=>'2025-05-22T09:41:38Z',
-        'rank'=>99, 'demand_platform'=>'max', 'dialogues'=>1, 'entries'=>1, 'previous_feed_price'=>170369, 'country'=>'TR', 'locality'=>'Анталья', 'archived_offer'=>'Duja Didim — Дидим', 'archived_countries'=>['TR'], 'different_direction'=>false],
-    1221 => ['name'=>'Megasaray Resort Side', 'source'=>'238', 'target'=>'1078', 'date'=>'2025-04-17T08:47:05Z',
-        'rank'=>100, 'demand_platform'=>'max', 'dialogues'=>1, 'entries'=>1, 'previous_feed_price'=>184807, 'country'=>'TR', 'locality'=>'Сиде', 'archived_offer'=>'Lusso Sorgun — Сиде', 'archived_countries'=>['TR'], 'different_direction'=>false],
-    1313 => ['name'=>'L\'oceanica Beach Resort', 'source'=>'329', 'target'=>'1136', 'date'=>'2025-06-26T08:07:17Z',
-        'rank'=>101, 'demand_platform'=>'max', 'dialogues'=>1, 'entries'=>1, 'previous_feed_price'=>118293, 'country'=>'TR', 'locality'=>'Кемер', 'archived_offer'=>'Incekum West Hotel — Аланья', 'archived_countries'=>['TR'], 'different_direction'=>false],
-    1334 => ['name'=>'Leodikya Kirman Premium', 'source'=>'169', 'target'=>'664', 'date'=>'2024-06-06T07:55:36Z',
-        'rank'=>102, 'demand_platform'=>'max', 'dialogues'=>1, 'entries'=>1, 'previous_feed_price'=>156167, 'country'=>'TR', 'locality'=>'Аланья', 'archived_offer'=>'Calista Luxury Resort — Белек', 'archived_countries'=>['TR'], 'different_direction'=>false],
-    1336 => ['name'=>'Limak Arcadia Sport Resort', 'source'=>'453', 'target'=>'1032', 'date'=>'2025-02-28T10:24:39Z',
-        'rank'=>103, 'demand_platform'=>'max', 'dialogues'=>1, 'entries'=>1, 'previous_feed_price'=>122603, 'country'=>'TR', 'locality'=>'Белек', 'archived_offer'=>'The Orangers Garden Villas & Bungalows — Хаммамет', 'archived_countries'=>['TN'], 'different_direction'=>true],
-    1421 => ['name'=>'Papillon Belvil', 'source'=>'552', 'target'=>'1076', 'date'=>'2025-04-14T07:48:58Z',
-        'rank'=>107, 'demand_platform'=>'max', 'dialogues'=>1, 'entries'=>1, 'previous_feed_price'=>151245, 'country'=>'TR', 'locality'=>'Белек', 'archived_offer'=>'Sanctuary White Sands — Кайо-Крус', 'archived_countries'=>['CU'], 'different_direction'=>true],
-    1429 => ['name'=>'Dobedan World Palace', 'source'=>'285', 'target'=>'1125', 'date'=>'2025-06-15T07:40:43Z',
-        'rank'=>108, 'demand_platform'=>'max', 'dialogues'=>1, 'entries'=>1, 'previous_feed_price'=>170481, 'country'=>'TR', 'locality'=>'Кириш', 'archived_offer'=>'Viva Glamp — Цандрипш', 'archived_countries'=>['AB'], 'different_direction'=>true],
-    2522 => ['name'=>'Beach Rotana', 'source'=>'1049', 'target'=>'1120', 'date'=>'2025-06-10T09:24:09Z',
-        'rank'=>121, 'demand_platform'=>'max', 'dialogues'=>1, 'entries'=>1, 'previous_feed_price'=>null, 'country'=>'AE', 'locality'=>'Абу Даби', 'archived_offer'=>'Vida Beach Resort Umm Al Quwain — Умм-эль-Кувейн', 'archived_countries'=>['AE'], 'different_direction'=>false],
-    2794 => ['name'=>'Cinnamon Bentota Beach', 'source'=>'1056', 'target'=>'768', 'date'=>'2024-07-24T07:35:48Z',
-        'rank'=>122, 'demand_platform'=>'max', 'dialogues'=>1, 'entries'=>1, 'previous_feed_price'=>null, 'country'=>'LK', 'locality'=>'Бентота', 'archived_offer'=>'Hikka Tranz By Cinnamon — Хиккадува', 'archived_countries'=>['LK'], 'different_direction'=>false],
-    4054 => ['name'=>'Muine Century Beach Resort & Spa', 'source'=>'495', 'target'=>'907', 'date'=>'2024-10-21T13:19:56Z',
-        'rank'=>125, 'demand_platform'=>'max', 'dialogues'=>1, 'entries'=>1, 'previous_feed_price'=>154788, 'country'=>'VN', 'locality'=>'Муйне', 'archived_offer'=>'Прошедшее предложение во Вьетнам, Фантьет', 'archived_countries'=>['VN'], 'different_direction'=>false],
-    4060 => ['name'=>'Ocean Star Resort', 'source'=>'289', 'target'=>'916', 'date'=>'2024-10-30T07:40:08Z',
-        'rank'=>126, 'demand_platform'=>'max', 'dialogues'=>1, 'entries'=>1, 'previous_feed_price'=>152822, 'country'=>'VN', 'locality'=>'Муйне', 'archived_offer'=>'Ноябрьская подборка стран для пляжного отдыха', 'archived_countries'=>['TH','AE','VN'], 'different_direction'=>false],
-    8020 => ['name'=>'The Lamai Samui', 'source'=>'899', 'target'=>'839', 'date'=>'2024-09-05T12:50:21Z',
-        'rank'=>128, 'demand_platform'=>'max', 'dialogues'=>1, 'entries'=>1, 'previous_feed_price'=>null, 'country'=>'TH', 'locality'=>'Самуи', 'archived_offer'=>'Ботанический сад Нонг Нуч', 'archived_countries'=>['TH'], 'different_direction'=>false],
-    32322 => ['name'=>'Four Seasons Resort Dubai at Jumeirah Beach', 'source'=>'682', 'target'=>'1603', 'date'=>'2026-07-03T07:15:11Z',
-        'rank'=>148, 'demand_platform'=>'max', 'dialogues'=>1, 'entries'=>1, 'previous_feed_price'=>385512, 'country'=>'AE', 'locality'=>'Дубай', 'archived_offer'=>'Летнее предложение по Фуджейре', 'archived_countries'=>['AE'], 'different_direction'=>false],
+    1014 => ['name'=>'Side Star Elegance', 'source'=>'345', 'target'=>'1604', 'date'=>'2026-07-04T07:15:11Z', 'rank'=>null, 'demand_platform'=>'not_measured', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TR', 'locality'=>'Сиде', 'archived_offer'=>'Истёкшее июльское коммерческое предложение по турецким отелям, включая Сиде', 'archived_countries'=>['TR'], 'different_direction'=>false]
 ];
-const PAIR_DIGEST = '39ef16f43778c606c99411c876b55557b60a4a577964e4dc25f0bd7e7419fdf8';
+const PAIR_DIGEST = '7c8c3a02c4831c3debf571163690dc95247a6f15a67f2989cf169fbd72da4163';
 
 
 function requireRead(bool $ok, string $reason): void
@@ -226,7 +195,7 @@ function publicationRead(PDO $pdo, ChannelPostRegistryService $registry, int $ch
         'content_edit_journal' => receiptRead(OPERATIONS . '/issue-1566-edit-existing-' . $p['publication_id'] . '.jsonl')];
 }
 
-$out = ['schema' => 1, 'issue' => 1566, 'demand_run_id' => '45385556709', 'demand_artifact_id' => 14915463382, 'demand_registry_sha256' => '3cd1d3fd24410be051f562aaf71040eee29e7c6299d50fc4de4eb12030dc577d', 'operation' => 'hotel_archive_telegram_ranked_registry', 'ok' => false,
+$out = ['schema' => 1, 'issue' => 1566, 'demand_run_id' => null, 'demand_artifact_id' => null, 'demand_registry_sha256' => null, 'operation' => 'hotel_archive_telegram_ranked_registry', 'ok' => false,
     'repository_sha' => REPOSITORY_SHA, 'application_sha' => APPLICATION_SHA,
     'native_run_id' => NATIVE_RUN_ID, 'native_run_attempt' => 1,
     'production_writes' => 0, 'provider_writes' => 0, 'bot_starts' => 0, 'public_get_attempts' => 0];
@@ -238,8 +207,8 @@ try {
     foreach (PAIRS as $id => $row) {
         $data[] = [$id, (int) $row['source'], (int) $row['target'], $row['date']];
     }
-    requireRead(count($data) === 16 && count(array_unique(array_column($data, 1))) === 16
-        && count(array_unique(array_column($data, 2))) === 16
+    requireRead(count($data) === 1 && count(array_unique(array_column($data, 1))) === 1
+        && count(array_unique(array_column($data, 2))) === 1
         && !array_intersect(array_column($data, 0), [106, 109, 111, 114, 125, 132, 133, 139, 140, 150, 174, 195, 206, 231, 236, 246, 247, 260, 263, 266, 272, 287, 288, 293, 302, 358, 371, 393, 408, 415, 416, 435, 441, 454, 465, 466, 469, 483, 497, 513, 599, 632, 706, 713, 768, 800, 932, 948, 949, 954, 955, 964, 975, 996, 1013, 1032, 1035, 1055, 1105, 1260, 1344, 1451, 1960, 1972, 2470, 2493, 2588, 3405, 3415, 3452, 4091, 4181, 4270, 11791, 12107, 12111, 15693, 17595, 24909, 26844, 28460, 32342, 37668, 43676, 43689, 47025, 51238, 54605, 56092, 57028, 59114, 63191, 64895, 64914, 64918, 65877, 70048, 73343, 73974, 74503, 75100, 76588, 77914, 79071, 82106, 82606, 85417, 99713, 107938, 118475])
         && !array_intersect(array_column($data, 2), [17, 19, 23, 37, 48, 82, 192, 196, 204, 220, 224, 249, 266, 288, 316, 328, 346, 355, 372, 402, 414, 431, 455, 474, 483, 516, 526, 540, 560, 567, 578, 588, 594, 603, 610, 626, 646, 702, 716, 731, 737, 755, 783, 799, 809, 819, 846, 852, 862, 867, 884, 889, 892, 894, 901, 905, 906, 908, 909, 911, 913, 914, 915, 917, 918, 920, 923, 924, 925, 927, 928, 930, 938, 948, 949, 951, 952, 954, 955, 956, 957, 963, 964, 969, 970, 972, 982, 983, 993, 995, 997, 999, 1001, 1003, 1012, 1016, 1018, 1020, 1034, 1037, 1042, 1043, 1046, 1049, 1051, 1052, 1055, 1057, 1059, 1063, 1069, 1074, 1083, 1087, 1090, 1092, 1095, 1098, 1101, 1110, 1128, 1131, 1148, 1150, 1207, 1227, 1292, 1312, 1380, 1469, 1484, 1570, 1588, 1652, 1678, 1754, 1760, 1779, 1780, 1782, 1784, 1787, 1788, 1789, 1790, 1792])
         && hash_equals(PAIR_DIGEST, hash('sha256', jsonRead($data))), 'input_packet_changed');
@@ -299,7 +268,6 @@ try {
     requireRead(ProjectConfig::projectId() === 'anytour', 'project_changed');
     $pdo = ConversationDb::connection();
     $pdo->exec('SET SESSION TRANSACTION READ ONLY');
-    $pdo->beginTransaction();
     $registry = new ChannelPostRegistryService($pdo);
     $target = $registry->channel('anytour', 'telegram', 'anyru_bot', '-1001845835645');
     $source = $registry->channel('anytour', 'telegram', 'anyru_bot', '-1002262666616');
@@ -341,6 +309,7 @@ try {
         && strtolower((string) ($sourceChat['username'] ?? '')) === 'any_toour';
     $out['native_public_channel_binding'] = ['anytour' => $targetUsernameMatches, 'any_toour' => $sourceUsernameMatches];
     $out['native_read_request_count'] = (int) ($out['native_channel_rights']['receipt']['request_count'] ?? 0) + 1;
+    $pdo->beginTransaction(); // Native HTTP reads above must not hold a SQL transaction.
     $out['rows'] = [];
     foreach (PAIRS as $hotel => $pair) {
         $stage = 'hotel_' . $hotel;
@@ -367,7 +336,9 @@ try {
             && (string) $sourceNative['hotel_id'] === (string) $hotel && !$sourceNative['native_claim_held_or_unknown']
             && count($sourceNative['attachments']) === 1 && $sourceNative['attachments'][0]['reusable_telegram_photo']
             && $sourcePublic['single_photo'] && $sourceNative['current_token_resolves'];
-        $targetMatches = $targetPublic['ok'] && $targetPublic['published_unixtime'] === (new DateTimeImmutable($pair['date']))->getTimestamp()
+        $targetMatches = $targetPublic['ok'] &&
+            $targetPublic['caption_sha256'] === '5ac7a6cf88708c8968296c91758e6f7dafd4ebfa160168ad465b591fb6b6eb8d'
+            && $targetPublic['photo_marker_sha256'] === '3407aa478725b034e2e252f2b9169e335b80f344a0c99344c3f3de8619e0bd3d' && $targetPublic['published_unixtime'] === (new DateTimeImmutable($pair['date']))->getTimestamp()
             && $targetPublic['single_photo'] && preg_match('/(?<![\pL\pN])(?:отзыв\pL*|видеокруж\pL*|видео\s+от\s+менеджер\pL*)(?![\pL\pN])/iu', $targetPublic['caption']) === 0
             && ($targetNative === null || ($targetNative['state'] === 'sent' && !$targetNative['native_claim_held_or_unknown']
                 && $targetNative['post_url'] === $targetPublic['url'] && $targetNative['caption_sha256'] === $targetPublic['caption_sha256']
@@ -420,4 +391,5 @@ try {
 }
 echo json_encode($out, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR), PHP_EOL;
 exit($out['ok'] ? 0 : 2);
+
 
