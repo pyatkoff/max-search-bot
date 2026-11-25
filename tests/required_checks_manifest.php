@@ -63,6 +63,7 @@ return [
         'python3 tests/run_deploy_monitor_lock_regression.py',
         'python3 tests/run_production_gate_sequence_regression.py',
         'php tests/run_dialogue_mutation_inventory_regression.php',
+        'php tests/run_telegram_destination_editability_regression.php',
     ],
     'dialogue' => [
         'php tests/run_regression.php',

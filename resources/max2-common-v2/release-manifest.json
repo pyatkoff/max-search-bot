@@ -50,7 +50,7 @@
     "tests/max2_common_v2/worker/tests/state.php": "2b5ebe79e909dba6d444a3cf9c35746c4edab596d55c1a8eb259b2137d115652",
     "tests/max2_common_v2/worker/tests/support.php": "19c82e0f357fa67b362660497c6eedfeb3cf765a02901d458d0e3afa0a759f3e",
     "tests/max2_common_v2/worker/tests/worker.php": "6cf9476d2ed0ff5b969e7bda32ffc6803bcbc8ca48bbccd33925c305cbbd5e62",
-    "tests/required_checks_manifest.php": "9bd0cacbcb4064e73e275c2789bf685e13ebc40d17bb973ff071a8af72fb7c80",
+    "tests/required_checks_manifest.php": "67d82329a5973be289834aafb92c178ec450fdeb6ac48db4a1d1fb61fc8deb2f",
     "tests/run_deployment_release_regression.js": "061b6b94be6b7e831e049a7ed8ff3761424e608649b6cdd11fb3a798016a94f2",
     "tests/run_max2_common_value_state_operation_v2_regression.py": "f0354cc8c2df7961a0c3218359162a8b87453d7b3490a81ae7d220de95f4dc3e",
     "tests/run_max2_common_value_v2_regression.php": "d241826042456df3b036b7cb20f58b3a8856139a86fc144ca69c04800787c35d",
