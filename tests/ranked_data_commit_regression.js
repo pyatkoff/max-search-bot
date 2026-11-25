@@ -53,7 +53,8 @@ module.exports=async function verifyRankedDataCommit(check){
   check(result.data_sha,head,'data inspection: data commit is distinct');
   check(result.repository_sha,base,'data inspection: installation source stays separate');
   check(result.plan_sha256,item.sha256,'data inspection: exact immutable plan');
-  check(result.changed_paths,[approvalsPath,indexPath,planPath].sort(),'data inspection: complete bounded delta');
+  assert.deepEqual(result.changed_paths,[approvalsPath,indexPath,planPath].sort());
+  check(true,true,'data inspection: complete bounded delta');
   const relation=R.API_ROOT+'/compare/'+base+'...'+head+'?per_page=100';
   const commit=R.API_ROOT+'/git/commits/'+head,tree=R.API_ROOT+'/git/trees/'+config;
   const refusals=[
