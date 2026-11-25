@@ -11,9 +11,17 @@ const APPLICATION_SHA = '__APPLICATION_SHA__';
 const REPOSITORY_SHA = '__REPOSITORY_SHA__';
 const NATIVE_RUN_ID = '__NATIVE_RUN_ID__';
 const PAIRS = [
-    1014 => ['name'=>'Side Star Elegance', 'source'=>'345', 'target'=>'1604', 'date'=>'2026-07-04T07:15:11Z', 'rank'=>null, 'demand_platform'=>'not_measured', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TR', 'locality'=>'Сиде', 'archived_offer'=>'Истёкшее июльское коммерческое предложение по турецким отелям, включая Сиде', 'archived_countries'=>['TR'], 'different_direction'=>false]
+    1014 => ['name'=>'Side Star Elegance', 'source'=>'345', 'target'=>'1604', 'date'=>'2026-07-04T07:15:11Z', 'rank'=>null, 'demand_platform'=>'not_measured', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TR', 'locality'=>'Сиде', 'archived_offer'=>'Истёкшее июльское коммерческое предложение по турецким отелям, включая Сиде', 'archived_countries'=>['TR'], 'different_direction'=>false],
+    14140 => ['name'=>'Stella Makadi Gardens Resort & Spa', 'source'=>'593', 'target'=>'909', 'date'=>null, 'rank'=>null, 'demand_platform'=>'not_measured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'EG', 'locality'=>'Хургада', 'archived_offer'=>'Ранее подобранная коммерческая фотоцель; точный preimage ещё не закреплён', 'archived_countries'=>[], 'different_direction'=>null],
+    1402 => ['name'=>'Orange County Kemer', 'source'=>'312', 'target'=>'1085', 'date'=>null, 'rank'=>null, 'demand_platform'=>'not_measured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TR', 'locality'=>'Кемер', 'archived_offer'=>'Ранее подобранная коммерческая фотоцель; точный preimage ещё не закреплён', 'archived_countries'=>[], 'different_direction'=>null],
+    1959 => ['name'=>'AMC Royal Hotel & Spa', 'source'=>'470', 'target'=>'526', 'date'=>null, 'rank'=>null, 'demand_platform'=>'not_measured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'EG', 'locality'=>'Хургада', 'archived_offer'=>'Ранее подобранная коммерческая фотоцель; точный preimage ещё не закреплён', 'archived_countries'=>[], 'different_direction'=>null],
+    1981 => ['name'=>'JAZ Neo Naama Bay', 'source'=>'25', 'target'=>'957', 'date'=>null, 'rank'=>null, 'demand_platform'=>'not_measured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'EG', 'locality'=>'Шарм эль Шейх', 'archived_offer'=>'Ранее подобранная коммерческая фотоцель; точный preimage ещё не закреплён', 'archived_countries'=>[], 'different_direction'=>null],
+    73082 => ['name'=>'Hilton Abu Dhabi Yas Island', 'source'=>'1025', 'target'=>'588', 'date'=>null, 'rank'=>null, 'demand_platform'=>'not_measured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'AE', 'locality'=>'Абу Даби', 'archived_offer'=>'Ранее подобранная коммерческая фотоцель; точный preimage ещё не закреплён', 'archived_countries'=>[], 'different_direction'=>null],
+    8094 => ['name'=>'Phulay Bay, a Ritz Carlton Reserve', 'source'=>'905', 'target'=>'567', 'date'=>null, 'rank'=>null, 'demand_platform'=>'not_measured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TH', 'locality'=>'Краби', 'archived_offer'=>'Ранее подобранная коммерческая фотоцель; точный preimage ещё не закреплён', 'archived_countries'=>[], 'different_direction'=>null],
+    1494 => ['name'=>'Rixos Downtown Antalya', 'source'=>'361', 'target'=>'647', 'date'=>'2024-05-29T12:05:19Z', 'rank'=>null, 'demand_platform'=>'not_measured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TR', 'locality'=>'Анталья', 'archived_offer'=>'Старый коммерческий текстовый пост, кандидат на text_to_photo; WRITE не допущен', 'archived_countries'=>['TR'], 'different_direction'=>false],
+    82567 => ['name'=>'Phuket Emerald Beach Resort', 'source'=>'252', 'target'=>'931', 'date'=>'2024-11-19T12:35:05Z', 'rank'=>null, 'demand_platform'=>'not_measured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TH', 'locality'=>'Пхукет', 'archived_offer'=>'Предварительный альбом931–936: читаем все6 native записей, WRITE не допущен', 'archived_countries'=>['TH'], 'different_direction'=>false]
 ];
-const PAIR_DIGEST = '7c8c3a02c4831c3debf571163690dc95247a6f15a67f2989cf169fbd72da4163';
+const PAIR_DIGEST = '57c93a1f2a0d70b1b956daad4be4d350178506c1ef03c1cd2993e9b33ef40078';
 
 
 function requireRead(bool $ok, string $reason): void
@@ -124,6 +132,7 @@ function parsePublicRead(string $body, string $channel, string $message): array
         'html_sha256' => hash('sha256', $body), 'published_at' => $dates->item(0)->getAttribute('datetime'),
         'published_unixtime' => (new DateTimeImmutable($dates->item(0)->getAttribute('datetime')))->getTimestamp(),
         'single_photo' => $single && $photoUrl !== '', 'photo_url' => $photoUrl,
+        'photo_count' => $photos->length, 'other_media_count' => $other->length,
         'photo_marker_sha256' => $marker !== '' ? hash('sha256', $marker) : null, 'buttons' => $buttons];
 }
 
@@ -202,15 +211,17 @@ $out = ['schema' => 1, 'issue' => 1566, 'demand_run_id' => null, 'demand_artifac
 $pdo = null;
 $priceLock = null;
 $stage = 'installed_release';
+$readStarted = hrtime(true);
+$priceLeaseAcquired = null;
 try {
     $data = [];
     foreach (PAIRS as $id => $row) {
         $data[] = [$id, (int) $row['source'], (int) $row['target'], $row['date']];
     }
-    requireRead(count($data) === 1 && count(array_unique(array_column($data, 1))) === 1
-        && count(array_unique(array_column($data, 2))) === 1
+    requireRead(count($data) === 9 && count(array_unique(array_column($data, 1))) === 9
+        && count(array_unique(array_column($data, 2))) === 9
         && !array_intersect(array_column($data, 0), [106, 109, 111, 114, 125, 132, 133, 139, 140, 150, 174, 195, 206, 231, 236, 246, 247, 260, 263, 266, 272, 287, 288, 293, 302, 358, 371, 393, 408, 415, 416, 435, 441, 454, 465, 466, 469, 483, 497, 513, 599, 632, 706, 713, 768, 800, 932, 948, 949, 954, 955, 964, 975, 996, 1013, 1032, 1035, 1055, 1105, 1260, 1344, 1451, 1960, 1972, 2470, 2493, 2588, 3405, 3415, 3452, 4091, 4181, 4270, 11791, 12107, 12111, 15693, 17595, 24909, 26844, 28460, 32342, 37668, 43676, 43689, 47025, 51238, 54605, 56092, 57028, 59114, 63191, 64895, 64914, 64918, 65877, 70048, 73343, 73974, 74503, 75100, 76588, 77914, 79071, 82106, 82606, 85417, 99713, 107938, 118475])
-        && !array_intersect(array_column($data, 2), [17, 19, 23, 37, 48, 82, 192, 196, 204, 220, 224, 249, 266, 288, 316, 328, 346, 355, 372, 402, 414, 431, 455, 474, 483, 516, 526, 540, 560, 567, 578, 588, 594, 603, 610, 626, 646, 702, 716, 731, 737, 755, 783, 799, 809, 819, 846, 852, 862, 867, 884, 889, 892, 894, 901, 905, 906, 908, 909, 911, 913, 914, 915, 917, 918, 920, 923, 924, 925, 927, 928, 930, 938, 948, 949, 951, 952, 954, 955, 956, 957, 963, 964, 969, 970, 972, 982, 983, 993, 995, 997, 999, 1001, 1003, 1012, 1016, 1018, 1020, 1034, 1037, 1042, 1043, 1046, 1049, 1051, 1052, 1055, 1057, 1059, 1063, 1069, 1074, 1083, 1087, 1090, 1092, 1095, 1098, 1101, 1110, 1128, 1131, 1148, 1150, 1207, 1227, 1292, 1312, 1380, 1469, 1484, 1570, 1588, 1652, 1678, 1754, 1760, 1779, 1780, 1782, 1784, 1787, 1788, 1789, 1790, 1792])
+        && !array_intersect(array_column($data, 2), [17, 19, 23, 37, 48, 82, 192, 196, 204, 220, 224, 249, 266, 288, 316, 328, 346, 355, 372, 402, 414, 431, 455, 474, 483, 516, 540, 560, 578, 594, 603, 610, 626, 646, 702, 716, 731, 737, 755, 783, 799, 809, 819, 846, 852, 862, 867, 884, 889, 892, 894, 901, 905, 906, 908, 911, 913, 914, 915, 917, 918, 920, 923, 924, 925, 927, 928, 930, 938, 948, 949, 951, 952, 954, 955, 956, 963, 964, 969, 970, 972, 982, 983, 993, 995, 997, 999, 1001, 1003, 1012, 1016, 1018, 1020, 1034, 1037, 1042, 1043, 1046, 1049, 1051, 1052, 1055, 1057, 1059, 1063, 1069, 1074, 1083, 1087, 1090, 1092, 1095, 1098, 1101, 1110, 1128, 1131, 1148, 1150, 1207, 1227, 1292, 1312, 1380, 1469, 1484, 1570, 1588, 1652, 1678, 1754, 1760, 1779, 1780, 1782, 1784, 1787, 1788, 1789, 1790, 1792])
         && hash_equals(PAIR_DIGEST, hash('sha256', jsonRead($data))), 'input_packet_changed');
     runtimeRead();
     requireRead(realpath(OPERATIONS) === OPERATIONS, 'operations_root_changed');
@@ -257,6 +268,7 @@ try {
     requireRead($shared, 'price_editor_busy_or_unknown');
     runtimeRead();
     $out['price_editor_shared_read_lease'] = true;
+    $priceLeaseAcquired = hrtime(true);
     $stage = 'initialize_registry';
     ob_start();
     try {
@@ -322,6 +334,10 @@ try {
         requireRead(!is_link($directory), 'operation_directory_symlink');
         $sourceNative = publicationRead($pdo, $registry, 10, $pair['source']);
         $targetNative = publicationRead($pdo, $registry, 6, $pair['target']);
+        $albumMembers = [];
+        if ($hotel === 82567) foreach (['931','932','933','934','935','936'] as $member) {
+            $albumMembers[] = ['message_id'=>$member, 'native'=>publicationRead($pdo, $registry, 6, $member)];
+        }
         [$sourcePublic, $targetPublic] = $public[$hotel];
         $q = $pdo->prepare("SELECT p.id AS publication_id,p.post_channel_id,p.external_message_id,v.id AS version_id,v.state,"
             . "JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.post_url')) AS post_url FROM post_publications p "
@@ -336,7 +352,8 @@ try {
             && (string) $sourceNative['hotel_id'] === (string) $hotel && !$sourceNative['native_claim_held_or_unknown']
             && count($sourceNative['attachments']) === 1 && $sourceNative['attachments'][0]['reusable_telegram_photo']
             && $sourcePublic['single_photo'] && $sourceNative['current_token_resolves'];
-        $targetMatches = $targetPublic['ok'] &&
+        // The eight provisional targets, including text and album, are observations only.
+        $targetMatches = $hotel === 1014 && $pair['date'] !== null && $targetPublic['ok'] &&
             $targetPublic['caption_sha256'] === '5ac7a6cf88708c8968296c91758e6f7dafd4ebfa160168ad465b591fb6b6eb8d'
             && $targetPublic['photo_marker_sha256'] === '3407aa478725b034e2e252f2b9169e335b80f344a0c99344c3f3de8619e0bd3d' && $targetPublic['published_unixtime'] === (new DateTimeImmutable($pair['date']))->getTimestamp()
             && $targetPublic['single_photo'] && preg_match('/(?<![\pL\pN])(?:отзыв\pL*|видеокруж\pL*|видео\s+от\s+менеджер\pL*)(?![\pL\pN])/iu', $targetPublic['caption']) === 0
@@ -348,6 +365,8 @@ try {
         $existingTg = array_values(array_filter($existing, static fn($p) => (int) $p['post_channel_id'] === 6));
         $existingMax = array_values(array_filter($existing, static fn($p) => (int) $p['post_channel_id'] === 4));
         $blockers = [];
+        if ($hotel !== 1014) $blockers[] = 'prepared_target_snapshot_not_bound';
+        if ($hotel === 82567) $blockers[] = 'album_membership_caption_and_keyboard_not_admitted';
         $targetUrl = 'https://t.me/anytour/' . $pair['target'];
         if (($feed['tg_' . $hotel] ?? null) !== 'https://t.me/any_toour/' . $pair['source']) $blockers[] = 'source_offer_changed';
         if (($metadata['tg_'.$hotel]['locality'] ?? null) !== $pair['locality']) $blockers[] = 'selected_catalogue_locality_changed';
@@ -364,6 +383,7 @@ try {
         if (!$targetUsernameMatches || !$sourceUsernameMatches) $blockers[] = 'native_public_channel_binding_not_confirmed';
         $out['rows'][] = ['target_current_pin_matches' => $currentPin === $pair['target'], 'hotel_id' => $hotel, 'name' => $pair['name'], 'source_message_id' => $pair['source'],
             'target_message_id' => $pair['target'], 'source_native' => $sourceNative, 'target_native' => $targetNative,
+            'target_album_native_members' => $albumMembers,
             'source_public' => $sourcePublic, 'target_public' => $targetPublic,
             'target_media_lock_free' => $free !== false && $free !== null && (int) $free === 1,
             'prior_media_operation_directory_exists' => file_exists($directory), 'prior_media_operation' => $journal,
@@ -380,16 +400,23 @@ try {
     runtimeRead();
     $out['read_at_utc'] = gmdate(DATE_ATOM);
     $out['ok'] = true;
-    $out['checkpoint_sha256'] = hash('sha256', jsonRead($out));
 } catch (Throwable $e) {
     $out['failure_stage'] = $stage;
     // Only our fixed machine reason is exposed; PDO/provider diagnostics may contain secrets.
     $out['failure_reason'] = reasonRead($e);
 } finally {
     if ($pdo instanceof PDO && $pdo->inTransaction()) $pdo->rollBack();
-    if (is_resource($priceLock)) { flock($priceLock, LOCK_UN); fclose($priceLock); }
+    if (is_resource($priceLock)) {
+        $out['price_lease_held_ms'] = $priceLeaseAcquired === null ? 0 : (int) ((hrtime(true) - $priceLeaseAcquired) / 1_000_000);
+        flock($priceLock, LOCK_UN); fclose($priceLock);
+    }
 }
+$out['read_elapsed_ms'] = (int) ((hrtime(true) - $readStarted) / 1_000_000);
+if ($out['ok']) $out['checkpoint_sha256'] = hash('sha256', jsonRead($out));
 echo json_encode($out, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR), PHP_EOL;
 exit($out['ok'] ? 0 : 2);
+
+
+
 
 

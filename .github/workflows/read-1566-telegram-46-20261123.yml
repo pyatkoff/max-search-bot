@@ -1,4 +1,4 @@
-name: "#1566 Read the new Side Star Elegance historical Telegram candidate without mutations"
+name: "#1566 Continue native observation of nine prepared historical Telegram candidates"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -19,7 +19,7 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == 'c31f69d4dcc5707669c643ee7ecd516ba1e3e027' &&
+      github.event.before == 'bb37e203976b58e4e2fd108f77ec79250d8cd8e1' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -62,6 +62,16 @@ jobs:
             const previousRead=await api('GET',stopped)
             const oldArtifacts=(await api('GET',stopped+'/artifacts?per_page=10')).artifacts
             if(previousRead.head_sha!=='c31f69d4dcc5707669c643ee7ecd516ba1e3e027' || previousRead.head_branch!=='ops/1566-telegram-46-native-read-20261123' || previousRead.run_attempt!==1 || previousRead.repository.id!==1342493152 || previousRead.status!=='completed' || previousRead.conclusion!=='success' || oldArtifacts.length!==1 || oldArtifacts[0].id!==14923997818 || oldArtifacts[0].digest!=='sha256:c937ea1b3d3e7f1c0caa8c5b4a70c18e84a61f09ac120dade5e6000c7bb72a14') throw Error('previous_read_changed')
+            const stoppedSide=R.API_ROOT+'/actions/runs/45516928385'
+            const stoppedSideRun=await api('GET',stoppedSide)
+            R.runIdentity(stoppedSideRun,{id:45516928385,attempt:1,head:'bb37e203976b58e4e2fd108f77ec79250d8cd8e1',workflow:'.github/workflows/read-1566-telegram-46-20261123.yml',event:'push',branch:'ops/1566-telegram-46-native-read-20261123',conclusion:'failure'})
+            const stoppedJobs=R.boundedList(await api('GET',stoppedSide+'/attempts/1/jobs?per_page=100'),'jobs','previous_native_read_incomplete')
+            if(stoppedJobs.length!==1||stoppedJobs[0].id!==138878647602||stoppedJobs[0].conclusion!=='failure')throw Error('previous_native_read_changed')
+            const stoppedSteps=stoppedJobs[0].steps
+            const stoppedGate=stoppedSteps.filter(s=>s.name==='Require current accepted release and actual application'&&s.conclusion==='failure')
+            const notExecuted=['Bind immutable packet to the admitted release and native run','Pin established SSH host continuity and authentication identity','Read one new hotel source and its exact historical Telegram target']
+            if(stoppedGate.length!==1||notExecuted.some(name=>stoppedSteps.filter(s=>s.name===name&&s.conclusion==='skipped'&&s.number>stoppedGate[0].number).length!==1))throw Error('previous_native_read_executed_or_unknown')
+            if(R.boundedList(await api('GET',stoppedSide+'/artifacts?per_page=100'),'artifacts','previous_native_artifacts_incomplete').length!==0)throw Error('previous_native_observation_requires_readback')
             const observed = await R.readRecord(api)
             const resolution = await R.resolveCurrent(api, {sha:expected}, observed)
             if (!resolution.ready || resolution.repository_sha !== expected || !/^[a-f0-9]{40}$/.test(resolution.application_sha)) throw Error('accepted_release_mismatch')
@@ -77,7 +87,7 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '90737deb286595421cf2c96be4b3f1f2c055a1f8'
+          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '0934dff997507cb0fb653cb1a18deba98244b9ed'
           mkdir pub
           python3 - <<'PY'
           import os,pathlib,re
@@ -122,7 +132,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read one new hotel source and its exact historical Telegram target
+      - name: Read the nine prepared sources and historical targets without mutation
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -141,9 +151,11 @@ jobs:
           if not d['ok']: print(json.dumps({k:d[k] for k in ('failure_stage','failure_reason') if k in d}))
           assert d['ok'] and d['operation']=='hotel_archive_telegram_ranked_registry'
           assert d['production_writes']==d['provider_writes']==d['bot_starts']==0
-          assert [r['hotel_id'] for r in d['rows']]==[1014]
-          assert [int(r['target_message_id']) for r in d['rows']]==[1604]
-          assert d['public_get_attempts']==2
+          assert [r['hotel_id'] for r in d['rows']]==[1014,14140,1402,1959,1981,73082,8094,1494,82567]
+          assert [int(r['target_message_id']) for r in d['rows']]==[1604,909,1085,526,957,588,567,647,931]
+          assert d['public_get_attempts']==18
+          assert all(not r['preview_ready'] and 'prepared_target_snapshot_not_bound' in r['preview_blockers'] for r in d['rows'] if r['hotel_id']!=1014)
+          assert isinstance(d['price_lease_held_ms'],int) and isinstance(d['read_elapsed_ms'],int)
           print(json.dumps({'checkpoint_sha256':d['checkpoint_sha256'],'read_at_utc':d['read_at_utc'],'rows':[{'hotel_id':r['hotel_id'],'target_message_id':r['target_message_id'],'preview_ready':r['preview_ready'],'blockers':r['preview_blockers'],'source_publication_id':(r['source_native'] or {}).get('publication_id'),'target_publication_id':(r['target_native'] or {}).get('publication_id')} for r in d['rows']]}))
           PY
           test "$status" -eq 0
@@ -159,4 +171,7 @@ jobs:
         if: always()
         shell: bash
         run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
+
+
+
 
