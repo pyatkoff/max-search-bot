@@ -72,23 +72,41 @@ function hotelCatalogueReleaseChecks(array $manifest, int $now): void
             'selected_hotel'=>$entry['accepted_source_names'][0], 'selected_room'=>'Fixture room',
             'provenance'=>['message_id'=>1,'event_id'=>1,'publication_sha256'=>str_repeat('a',64),'source_sha256'=>str_repeat('b',64)],
         ], $entries);
+        $timestamp = static fn(int $instant): string => gmdate('Y-m-d\TH:i:s\Z', $instant);
+        $candidates = array_map(static fn(array $entry): array => [
+            'hotel'=>['anytour_hotel_id'=>$entry['accepted_binding']['hotel_ref']['id'],
+                'name'=>$entry['accepted_source_names'][0], 'category'=>null, 'country'=>'Egypt', 'region'=>null],
+            'provider'=>'tourvisor', 'operator_raw'=>null, 'offer_digest'=>str_repeat('b', 64), 'source_scope_digest'=>str_repeat('c', 64),
+            'checkin'=>gmdate('Y-m-d', $now+86400), 'nights'=>7, 'party'=>['adults'=>2, 'children'=>0, 'child_ages'=>[]],
+            'room_raw'=>null, 'meal_raw'=>null, 'placement_raw'=>null,
+            'price'=>['amount'=>'100000', 'currency'=>'RUB', 'basis'=>'whole_party',
+                'source_listing_state'=>'final_ready_estimate', 'source_final_price_verified'=>false,
+                'current_price_verified'=>false, 'refresh_required'=>true],
+            'observed_at'=>$timestamp($now-120), 'last_seen_at'=>$timestamp($now-60), 'expires_at'=>$timestamp($now+3600),
+            'availability'=>'unverified', 'booking_enabled'=>false, 'photos_read'=>false,
+        ], $entries);
         $code = <<<'READER'
 require $argv[1];
-$selectors = json_decode($argv[2], true, 16, JSON_THROW_ON_ERROR);
+[$selectors, $candidates] = json_decode($argv[2], true, 16, JSON_THROW_ON_ERROR);
 $now = (int)$argv[3];
+$captureRetained = ManagerHotelKnowledge::retainedCandidateCapture(str_repeat('d', 64),
+    gmdate('Y-m-d\TH:i:s\Z', $now), 'Egypt', $now);
 if (($argv[4] ?? '') === 'hold') {
     $snapshot = (new ReflectionMethod(ManagerHotelKnowledge::class, 'catalogueSnapshot'))->invoke(null);
     if ($snapshot === null) exit(2);
+    $retained = [$captureRetained($candidates[0])];
     echo "ready\n"; fflush(STDOUT);
     if (fgets(STDIN) !== "continue\n") exit(3);
     $capture = new ReflectionMethod(ManagerHotelKnowledge::class, 'captureFromSnapshot');
     $results = array_map(static fn($selector) => $capture->invoke(null, $snapshot, $selector, $now), $selectors);
+    $retained[] = $captureRetained($candidates[1]);
 } else {
     $results = array_map(static fn($selector) => ManagerHotelKnowledge::capture($selector, $now), $selectors);
+    $retained = array_map($captureRetained, $candidates);
 }
-echo json_encode($results, JSON_THROW_ON_ERROR);
+echo json_encode(['native'=>$results, 'retained'=>$retained], JSON_THROW_ON_ERROR);
 READER;
-        $args = [PHP_BINARY, '-r', $code, $reader, json_encode($selectors, JSON_THROW_ON_ERROR), (string)$now];
+        $args = [PHP_BINARY, '-r', $code, $reader, json_encode([$selectors, $candidates], JSON_THROW_ON_ERROR), (string)$now];
         $fallback = $run($args);
         $deployment = new TourSelectionEditorDeployment($app, $site, $releases);
         $exclusive = new ReflectionMethod($deployment, 'exclusive');
@@ -100,7 +118,9 @@ READER;
             return [];
         });
         draftContextCheck('sealed hotel baseline matches ordinary approved capture',
-            $run($args) === $fallback && $fallback[0]['status'] === 'available' && $fallback[1]['reason'] === 'binding_unresolved');
+            $run($args) === $fallback && $fallback['native'][0]['status'] === 'available'
+            && $fallback['native'][1]['reason'] === 'binding_unresolved'
+            && $fallback['retained'][0]['status'] === 'available' && $fallback['retained'][1]['reason'] === 'binding_unresolved');
         $held = proc_open([...$args, 'hold'], [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']], $heldIo);
         if (!is_resource($held)) throw new RuntimeException('hotel_held_reader_unavailable');
         stream_set_timeout($heldIo[1], 10);
@@ -121,17 +141,23 @@ READER;
         $old = stream_get_contents($heldIo[1]); fclose($heldIo[1]);
         $err = stream_get_contents($heldIo[2]); fclose($heldIo[2]);
         $heldStatus = proc_close($held); $held = null;
-        draftContextCheck('in-flight hotel capture uses all members of the old immutable version',
-            $heldStatus === 0 && $err === '' && json_decode($old, true, 32, JSON_THROW_ON_ERROR) === $fallback);
+        $old = json_decode($old, true, 32, JSON_THROW_ON_ERROR);
+        draftContextCheck('in-flight native hotel capture uses all members of the old immutable version',
+            $heldStatus === 0 && $err === '' && $old['native'] === $fallback['native']);
+        draftContextCheck('one retained Search3 response keeps the same version across two candidate reads',
+            $heldStatus === 0 && $err === '' && $old['retained'] === $fallback['retained']
+            && $updated['retained'][0] === $fallback['retained'][0] && $updated['retained'][1]['status'] === 'available');
         draftContextCheck('new hotel capture reads the added dossier with the same reader and unchanged old reference',
-            $updated[0] === $fallback[0] && $updated[1]['status'] === 'available' && hash_file('sha256', $reader) === $readerSha);
+            $updated['native'][0] === $fallback['native'][0] && $updated['native'][1]['status'] === 'available'
+            && hash_file('sha256', $reader) === $readerSha);
 
         $index = $next.'/hotels/catalogue.json';
         $indexBytes = file_get_contents($index);
         file_put_contents($index, $indexBytes."\n");
         $rejected = $run($args);
         draftContextCheck('active hotel index checksum failure holds instead of reading another version',
-            $rejected[0]['reason'] === 'knowledge_unavailable' && $rejected[1]['reason'] === 'knowledge_unavailable');
+            $rejected['native'][0]['reason'] === 'knowledge_unavailable' && $rejected['native'][1]['reason'] === 'knowledge_unavailable'
+            && $rejected['retained'][0]['reason'] === 'knowledge_unavailable' && $rejected['retained'][1]['reason'] === 'knowledge_unavailable');
         file_put_contents($index, $indexBytes);
 
         try { $deployment->rollbackIndependent('foreign-hotel-operation'); $foreign = false; }

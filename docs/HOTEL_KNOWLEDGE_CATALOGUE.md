@@ -161,8 +161,10 @@ SHA-256>`. That child contains `hotels/` and a regular `release.json` bearing
 `contract: anytour-hotel-catalogue-package-v1`, `package_sha256`,
 `reader_sha256` and `catalogue_index_sha256`. The receipt binds the staged
 index to the installed reader bytes. The reader resolves the directory once
-per reference and uses that same directory for every manifest and bundle.
-An invalid published pointer or receipt holds the reference.
+per standalone reference and uses that directory for every manifest and bundle.
+The retained Search3 reader pins the version for all references in one response,
+including an unavailable catalogue. A later response resolves the current version.
+An invalid published pointer or receipt holds the affected references.
 
 The hotel regression exercises preparation, version selection and rollback
 using the editor publisher's existing lock and atomic pointer primitives in

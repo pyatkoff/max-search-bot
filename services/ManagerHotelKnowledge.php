@@ -39,6 +39,29 @@ HOTEL;
     /** Only the retained reader supplies its complete, already validated projection. */
     public static function captureRetainedCandidate(array $candidate, string $requestScopeDigest, string $sourceGeneratedAt, string $requestCountry, int $now): array
     {
+        $capture = self::retainedCandidateCapture($requestScopeDigest, $sourceGeneratedAt, $requestCountry, $now);
+        return $capture($candidate);
+    }
+
+    /** Create one capture function for the whole retained response. */
+    public static function retainedCandidateCapture(string $requestScopeDigest, string $sourceGeneratedAt, string $requestCountry, int $now): Closure
+    {
+        $snapshot = null;
+        $resolved = false;
+        $resolve = static function () use (&$snapshot, &$resolved): ?array {
+            if (!$resolved) {
+                $resolved = true;
+                $snapshot = self::catalogueSnapshot();
+            }
+            return $snapshot;
+        };
+        return static fn(array $candidate): array => self::captureRetainedFrom($candidate, $requestScopeDigest,
+            $sourceGeneratedAt, $requestCountry, $now, $resolve);
+    }
+
+    private static function captureRetainedFrom(array $candidate, string $requestScopeDigest, string $sourceGeneratedAt,
+        string $requestCountry, int $now, Closure $resolve): array
+    {
         try {
             if ($now <= 0 || !self::hex($requestScopeDigest) || !self::retainedText($requestCountry, 400)
                 || !self::validRetainedCandidate($candidate, $sourceGeneratedAt, $now)) return self::held('selector_unavailable');
@@ -61,7 +84,9 @@ HOTEL;
                 ],
             ];
             if (!self::validRetainedSelector($selector)) return self::held('selector_unavailable');
-            return self::captureValidatedSelector($selector, $now);
+            $snapshot = $resolve();
+            return $snapshot === null ? self::held('knowledge_unavailable')
+                : self::captureFromSnapshot($snapshot, $selector, $now);
         } catch (Throwable $ignored) { return self::held('selector_unavailable'); }
     }
 
