@@ -19,7 +19,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '897b09735fa66064c5906fcbb34d11746e6e99ab' &&
+      github.event.before == '164081df57c7725b37ed0321a00971efec35f8d2' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 29
@@ -27,7 +27,7 @@ jobs:
       - name: Checkout exact installed provenance source
         uses: actions/checkout@v4
         with:
-          ref: 6194e13ac5af4ba53263284a3a3002f7d6d22b31
+          ref: 4980fac645b5e81878b1280fc3ea079b1b187623
           persist-credentials: false
       - name: Verify current main and accepted application without mutations
         env:
@@ -35,10 +35,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = '6194e13ac5af4ba53263284a3a3002f7d6d22b31'
+          test "$(git rev-parse HEAD)" = '4980fac645b5e81878b1280fc3ea079b1b187623'
           node - <<'NODE'
           const R = require('./tools/deployment_release')
-          const expected = '6194e13ac5af4ba53263284a3a3002f7d6d22b31'
+          const expected = '4980fac645b5e81878b1280fc3ea079b1b187623'
           async function read() {
             const api = R.makeReadApi(process.env.GITHUB_TOKEN)
             const current = async () => (await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha
@@ -55,8 +55,8 @@ jobs:
             const {setTimeout: pause} = require('node:timers/promises')
             for (let attempt = 0; attempt < 80; attempt++) {
               if (await current() !== expected) throw Error('changed_release')
-              const install = await api('GET',R.API_ROOT+'/actions/runs/45584366107')
-              if (install.id !== 45584366107 || install.repository.id !== 1342493152 ||
+              const install = await api('GET',R.API_ROOT+'/actions/runs/45588055421')
+              if (install.id !== 45588055421 || install.repository.id !== 1342493152 ||
                   install.head_sha !== expected || install.run_attempt !== 1 ||
                   install.event !== 'push' || install.path !== '.github/workflows/deploy.yml') throw Error('installation_identity_changed')
               if (install.status === 'completed') {
@@ -92,7 +92,7 @@ jobs:
       - name: Stage read-only invocation of the existing hotel observer
         shell: bash
         env:
-          NATIVE_REPO: 6194e13ac5af4ba53263284a3a3002f7d6d22b31
+          NATIVE_REPO: 4980fac645b5e81878b1280fc3ea079b1b187623
         run: |
           set -euo pipefail
           umask 077
