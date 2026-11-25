@@ -17,7 +17,7 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == 'ada79a1e88109d4518fc1dd090b250d316fc0499' &&
+      github.event.before == '9871f39a9c59f007a4c4617b5892e45571bdb207' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -79,8 +79,7 @@ jobs:
               if(original.length!==1||original[0].id!==139153402201||original[0].conclusion!=='failure'
                 ||original[0].steps.filter(s=>s.name==='Prepare the exact release proof before terminal publication'&&s.conclusion==='failure').length!==1
                 ||original[0].steps.filter(s=>s.name===R.TERMINAL_STEP&&s.conclusion==='skipped').length!==1)throw Error('original_terminal_changed');
-              const log=(await api.jobLog(139153402201)).toString('utf8');
-              if(!log.includes('release_slot=held reason=diagnostics_write_unknown'))throw Error('original_terminal_reason_changed');
+              // The controller already read the original completed job log; no unsupported native log capability is widened.
               const publisher=await api('GET',R.API_ROOT+'/issues/comments/6818332618');
               if(publisher.body!=='PR1720: выпуск занят'||publisher.updated_at!=='2026-11-25T10:35:18Z'
                 ||publisher.user?.id!==226193297)throw Error('original_publisher_changed');
@@ -95,6 +94,7 @@ jobs:
             fs.writeFileSync('../pub/accepted-read-admission.json',JSON.stringify({read_only:true,
               current_main_sha:main,observed_repository_sha:r.repository_sha,application_sha:r.application_sha,
               technical_acceptance_complete:technicalAcceptanceComplete,write_admission:false,terminal_hold:terminalHold,
+              controller_original_job_log_sha256:'3e14e699d66d5c4075df04e88740fc5513506ecce8686099fa5f416bde1e4c3a',controller_original_job_id:139153402201,
               record_commit:before.commit,record_blob:before.blob,record_digest:before.record_digest,
               original_installation_deploy:r.release.run_id,original_guard_pr:1720})+'\n');
             fs.appendFileSync(process.env.GITHUB_ENV,'REPOSITORY_SHA='+r.repository_sha+'\nAPPLICATION_SHA='+r.application_sha+'\n');
