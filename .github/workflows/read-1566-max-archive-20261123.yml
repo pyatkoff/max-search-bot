@@ -19,7 +19,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '8bca2069d030f7255676033aa325f5489eb914cd' &&
+      github.event.before == '49ea499dd2fb2ac957a98befd3702a9613802a5f' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 29
@@ -227,6 +227,20 @@ jobs:
             if [[ "$attempt" -lt 5 ]]; then sleep 20; fi
           done
           python3 -c 'import json; d=json.load(open("pub/registry.json")); print("MAX15_INSTALLED_PRICE_READ="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d["ok"] and len(d["rows"])==15 and not d["provider_writes"] and not d["db_writes"]'
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD)" = 878c680627d54297c364254687577a03ac5aef6b; timeout 90s php tools/apply_promoted_hotel_prices.php --inspect; test "$(GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD)" = 878c680627d54297c364254687577a03ac5aef6b' > pub/inspect.raw
+          python3 - <<'PY'
+          import json,pathlib
+          all_lines=pathlib.Path("pub/inspect.raw").read_text().splitlines()
+          prefix="PROMOTED_HOTEL_PRICE_RESULT="
+          lines=[s[len(prefix):] for s in all_lines if s.startswith(prefix)]
+          assert len(lines)==1,"missing_native_inspect_receipt"
+          result=json.loads(lines[0])
+          assert result["mode"]=="--inspect"
+          scope={2588,57028,65877,73343,43689,139,2470,56092,59114,63191,76588,77914,106,111,114}
+          rows=[{k:x[k] for k in ("hotel","publication","result","reason","public_verified") if k in x} for x in result["rows"] if x.get("platform")=="max" and x.get("hotel") in scope]
+          print("MAX15_NATIVE_PRICE_INSPECT="+json.dumps({"feed_sha256":result["feed_sha256"],"rows":rows},separators=(",",":")))
+          PY
+          rm -f pub/inspect.raw
       - if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
