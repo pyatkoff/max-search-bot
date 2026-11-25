@@ -1,4 +1,4 @@
-name: "#1566 Check the alternate existing commercial post for Adalya Elite Lara"
+name: "#1566 Read both prepared MAX hotel sources after the canonical release"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -19,72 +19,213 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '70e80d14bea9d5a8e0747be716f9e02db49d4afc' &&
+      github.event.before == 'bfc2f58adb6b651bdcc5bd067de2a19ee598c5c7' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 29
     steps:
-      - name: Check exact archived MID and current public contents and offer identity
+      - name: Checkout exact installed provenance source
+        uses: actions/checkout@v4
+        with:
+          ref: 938d86d69864c41569f6c6225b0576dffaa5854e
+          persist-credentials: false
+      - name: Verify current main and accepted application without mutations
         env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = '938d86d69864c41569f6c6225b0576dffaa5854e'
+          node - <<'NODE'
+          const R = require('./tools/deployment_release')
+          const expected = '938d86d69864c41569f6c6225b0576dffaa5854e'
+          async function read() {
+            const api = R.makeReadApi(process.env.GITHUB_TOKEN)
+            const current = async () => (await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha
+            if (await current() !== expected) throw Error('changed_release')
+            const prior = R.API_ROOT+'/actions/runs/45373389110'
+            const archive = await api('GET',prior)
+            const receipts = await api('GET',prior+'/artifacts?per_page=30')
+            const digest = 'sha256:c46ce092bfb91935ce829c871026a1136bf465920a3caa9184604f052c55798c'
+            if (archive.id!==45373389110 || archive.head_sha!=='e1e3d25e42522639e2b82b4bdf32b155a547a184' || archive.run_attempt!==1 ||
+                archive.repository.id!==1342493152 || archive.head_branch!=='ops/1566-max-archive-inventory-20261123' ||
+                archive.status!=='completed' || archive.conclusion!=='success' || receipts.total_count!==1 ||
+                receipts.artifacts[0].id!==14910511299 || receipts.artifacts[0].digest!==digest ||
+                receipts.artifacts[0].expired || receipts.artifacts[0].name!=='issue-1566-main-max-archive-inventory') throw Error('previous_archive_unverified')
+            const {setTimeout: pause} = require('node:timers/promises')
+            for (let attempt = 0; attempt < 80; attempt++) {
+              if (await current() !== expected) throw Error('changed_release')
+              const install = await api('GET',R.API_ROOT+'/actions/runs/45625610061')
+              if (install.id !== 45625610061 || install.repository.id !== 1342493152 ||
+                  install.head_sha !== expected || install.run_attempt !== 1 ||
+                  install.event !== 'push' || install.path !== '.github/workflows/deploy.yml') throw Error('installation_identity_changed')
+              if (install.status === 'completed') {
+                if (install.conclusion !== 'success') throw Error('current_installation_failed')
+                try {
+                  const record = await R.readRecord(api)
+                  const actual = await R.resolveCurrent(api, {sha:expected}, record)
+                  if (!actual.ready || !/^[a-f0-9]{40}$/.test(actual.application_sha) ||
+                      actual.repository_sha !== expected) throw Error('accepted_release_mismatch')
+                  // This job uses the installed reader under the shared read lease.
+                  // Publisher admission remains in the write workflow.
+                  const latest = await R.readRecord(api)
+                  if (record.blob !== latest.blob || record.record_digest !== latest.record_digest ||
+                      await current() !== expected) throw Error('accepted_release_changed')
+                  require('node:fs').appendFileSync(process.env.GITHUB_ENV, 'VERIFIED_MAX_APP='+actual.application_sha+'\n')
+                  console.log('MAX15_PRICE_RELEASE_ACCEPTED='+expected)
+                  return
+                } catch (error) {
+                  if (!['release_pending','diagnostics_unconfirmed','accepted_release_mismatch','record_changed'].includes(error.code || error.message)) throw error
+                }
+              }
+              if (attempt < 79) await pause(18000)
+            }
+            throw Error('current_installation_timeout')
+          }
+          read().catch(e=>{console.error('release_refused='+(e.code||e.message||'accepted_release_unavailable'));process.exitCode=1})
+          NODE
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 59d8e86437049fb0a859fea8072624aa8a4763a8
+          path: album-editor
+          persist-credentials: false
+      - name: Stage read-only invocation of the existing hotel observer
+        shell: bash
+        env:
+          NATIVE_REPO: 938d86d69864c41569f6c6225b0576dffaa5854e
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir pub
+          cat > pub/reader-tail.php <<'PHP'
+          $root='/var/www/anytoour/data/www/app.anytoour.ru';
+          $app='VERIFIED_NATIVE_APP_PIN';
+          $out=['ok'=>false,'operation'=>'max_commercial_album_sources_read_only','repository_sha'=>'VERIFIED_NATIVE_REPO_PIN','application_sha'=>$app,
+              'archive_run'=>45373389110,'provider_writes'=>0,'db_writes'=>0,'bot_starts'=>0,'rows'=>[]];
+          ob_start();
+          try {
+              maxEditInstalled($app);
+              require $root.'/config.php';
+              require_once $root.'/services/ChannelPostRuntime.php';
+              require_once $root.'/services/ChannelPostEntryService.php';
+              require_once $root.'/services/ChannelPostAutomationService.php';
+              require_once $root.'/services/MaxTransport.php';
+              require_once $root.'/tools/anytour_existing_post_max_transfer.php';
+              $path='/var/www/anytoour/data/channel-post-operations/monitor-price-after-collection-v1.jsonl';
+              maxEditNeed(is_file($path)&&!is_link($path),'editor_lock_unavailable');
+              $lease=fopen($path,'rb');
+              maxEditNeed(is_resource($lease)&&flock($lease,LOCK_SH|LOCK_NB),'editor_busy');
+              $db=ConversationDb::connection();
+              $db->exec('SET TRANSACTION READ ONLY');
+              $db->beginTransaction();
+              try {
+                  $registry=new ChannelPostRegistryService($db);
+                  $channel=$registry->channel(MAX_PROJECT,'max',MAX_BOT,MAIN_MAX);
+                  $out['channel_id_in_registry']=$channel['id']??null;
+                  $out['button_text']=$channel['button_text']??null;
+                  maxEditNeed(is_array($channel)&&(int)$channel['id']===MAIN_REGISTRY
+                      &&is_string($out['button_text'])&&trim($out['button_text'])!=='','main_channel_edit_not_ready');
+                  $out['channel_config_version']=(int)$channel['config_version'];
+                  maxTransferNativeEditor($channel,['channel_id'=>MAIN_MAX,'config_version'=>$out['channel_config_version']]);
+                  $out['target_editor_rights']=true;
+                  foreach (json_decode('[{"hotel_id":2575,"name":"Rixos Al Mairid Ras Al Khaimah","source_id":1342,"source_mid":"mid.ffffb6caf0606fed01a1d46c23c52cc7","source_url":"https://max.ru/channel_anytour/AaHUbCPFLMc","target_mid":"mid.ffffc1752b045fed01a048e897ef69df","target_url":"https://max.ru/anytour/AaBI6Jfvad8","target_ms":1787929597935,"target_fingerprint":"967f9773ea28deac5456206f76e4c467df3af6493742f7aab65b57cf72dae267"},{"hotel_id":47025,"name":"Adalya Elite Lara","source_id":644,"source_mid":"mid.ffffb6caf0606fed01a1b67ac52e2dc7","source_url":"https://max.ru/channel_anytour/AaG2esUuLcc","target_mid":"mid.ffffc1752b045fed019f367e5e6f3a38","target_url":"https://max.ru/anytour/AZ82fl5vOjg","target_ms":1783325679215,"target_fingerprint":"94614ea61390439daf9dc1b8a428c7f11eb5676a6fe59678fd82fa6eb4083697","target_photo_count":6}]',true,16,JSON_THROW_ON_ERROR) as $row) {
+                      try {
+                          $proof=maxBatchObservePair($db,$registry,$channel,$row);
+                          $pub=$registry->publication($row['source_id']);
+                          preg_match('/^Цена найдена мониторингом [^\r\n]+/mu',(string)($pub['snapshot']['text']??''),$price);
+                          $proof['observed_source_price_stamp']=$price[0]??null;
+                          $identity=[];foreach (['hotel_id','source_id','source_mid','native_source_date_ms','source_version','source_content_sha256','source_photo_sha256','source_caption_sha256','target_mid'] as $key) $identity[]=$proof[$key]??null;
+                          $proof['original_legacy_identity_sha256']=hash('sha256',maxEditJson($identity));
+                          $out['rows'][]=$proof;
+                      } catch (Throwable $e) {
+                          $out['row_errors'][$row['hotel_id']]=preg_match('/\A[a-z_]{3,85}\z/D',$e->getMessage())?$e->getMessage():'read_unavailable';
+                      }
+                  }
+                  $out['ok']=true;
+              } finally { $db->rollBack();fclose($lease); }
+              maxEditInstalled($app);
+              $out['observed_utc']=gmdate(DATE_ATOM);
+          } catch (Throwable $e) {
+              $out['ok']=false;
+              $out['failure']=preg_match('/\A[a-z_]{3,85}\z/D',$e->getMessage())?$e->getMessage():'read_unavailable';
+          }
+          ob_end_clean();
+          echo maxEditJson($out),PHP_EOL;
+          exit($out['ok']?0:2);
+          PHP
+          python3 - <<'PY'
+          import os,pathlib,re
+          home=pathlib.Path('album-editor/tools/direct_demand/operations/max-existing-photo')
+          editor=(home/'editor.php').read_text().split("if (PHP_SAPI !== 'cli' || realpath(",1)[0]
+          observer=(home/'observe_pair.php').read_text().split('declare(strict_types=1);',1)[1]
+          tail=pathlib.Path('pub/reader-tail.php').read_text()
+          match={'VERIFIED_NATIVE_APP_PIN':os.environ['VERIFIED_MAX_APP'],'VERIFIED_NATIVE_REPO_PIN':os.environ['NATIVE_REPO']}
+          for key,val in match.items():
+              assert re.fullmatch('[a-f0-9]{40}',val) and tail.count(key)==1
+              tail=tail.replace(key,val)
+          pathlib.Path('pub/source-reader.php').write_text(editor+observer+'\n'+tail)
+          PY
+          php -l pub/source-reader.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14910511299/zip > original.zip
           python3 - <<'PY'
-          import base64, hashlib, io, json, pathlib, re, urllib.request, zipfile
-          import xml.etree.ElementTree as ET
-          from concurrent.futures import ThreadPoolExecutor
-          from datetime import datetime, timezone
-          from html.parser import HTMLParser
-          scope={'hotel':47025,'offer':'max_47025','source':'https://max.ru/channel_anytour/AaG2esUuLcc','target':'https://max.ru/anytour/AZ82fl5vOjg'}
-          raw=pathlib.Path('original.zip').read_bytes()
-          assert hashlib.sha256(raw).hexdigest()=='c46ce092bfb91935ce829c871026a1136bf465920a3caa9184604f052c55798c'
-          with zipfile.ZipFile(io.BytesIO(raw)) as z:
-              assert z.namelist()==['registry.json']
-              data=z.read('registry.json')
-          assert hashlib.sha256(data).hexdigest()=='c65efd90090ab8669c0d7646d44d8927ea3658c39673696d2e147685f3ec7568'
-          archive=json.loads(data)
-          assert archive['history_complete'] and not archive['provider_writes']
-          match=[z for z in archive['rows'] if z['url']==scope['target']]
-          keys=('mid','url','published_ms','fingerprint','registered','media','keyboard_present','linked_message')
-          target={k:match[0][k] for k in keys} if len(match)==1 else None
-          def get(url, limit):
-              req=urllib.request.Request(url, headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
-              with urllib.request.urlopen(req,timeout=15) as r:
-                  assert r.status==200 and r.geturl()==url
-                  v=r.read(limit+1)
-              assert len(v)<=limit
-              return v
-          class Page(HTMLParser):
-              def __init__(self):
-                  super().__init__(convert_charrefs=True);self.meta={}
-              def handle_starttag(self, tag, attributes):
-                  if tag=='meta':
-                      d=dict(attributes);self.meta[d.get('property') or d.get('name')]=d.get('content','')
-          def post(name):
-              p=Page();p.feed(get(scope[name],3000000).decode())
-              desc=p.meta.get('og:description','')
-              return {'hotel_terms':bool(re.search(r'Adalya\s+Elite\s+Lara',desc,re.I)),'photo':bool(p.meta.get('og:image')),'description_start':desc[:210]}
-          def feed(name):
-              root=ET.fromstring(get('https://app.anytoour.ru/feed/hotel-posts-'+name+'.xml',8000000))
-              offers=root.findall('./shop/offers/offer')
-              ids=[x.get('id') for x in offers]
-              assert len(ids)==len(set(ids)) and all(ids)
-              direct=[o.get('id') for o in offers if scope['target'].split('/')[-1] in o.findtext('url','')]
-              found=next((o for o in offers if o.get('id')==scope['offer']),None)
-              if found is None:return {'offers':len(ids),'present':False}
-              href=found.findtext('url','')
-              token=re.search(r'_ctx1_([A-Za-z0-9_-]+)',href)
-              signed=json.loads(base64.urlsafe_b64decode(token[1]+'='*(-len(token[1])%4))) if token else {}
-              return {'offers':len(ids),'present':True,'alias':signed.get('post_id'),'context_offer':signed.get('offer_id'),'direct_target_offer_ids':direct,
-                      'attribution_macros':all(x in href for x in ('{yclid}','{campaign_id}','{region_id}')),'name':found.findtext('name','')}
-          with ThreadPoolExecutor(max_workers=3) as pool:
-              futures={key:pool.submit(fn,key) for fn, args in ((post,('source','target')),(feed,('max','all'))) for key in args}
-              results={}
-              for k,v in futures.items():
-                  try:results[k]=v.result()
-                  except Exception as e:results[k]={'error':type(e).__name__}
-          print('MAX_47025_RESERVE_EVIDENCE='+json.dumps({'at':datetime.now(timezone.utc).isoformat(),'target_archive':target,'checks':results,'writes':0,'ad_clicks':0},ensure_ascii=False,separators=(',',':')))
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
           PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read scoped PRICE configuration, canonical registry and original receipts
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+            -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+            -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          for attempt in 1 2 3 4 5; do
+            ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/source-reader.php > pub/registry.json || true
+            if ! python3 -c 'import json,sys; sys.exit(0 if json.load(open("pub/registry.json")).get("failure")=="editor_busy" else 1)' 2>/dev/null; then break; fi
+            if [[ "$attempt" -lt 5 ]]; then sleep 20; fi
+          done
+          python3 - <<'PY'
+          import hashlib,json,pathlib
+          raw=pathlib.Path('pub/registry.json').read_bytes()
+          d=json.loads(raw)
+          print('MAX_ALBUM_SCOPED_READ='+json.dumps(d,ensure_ascii=False,separators=(',',':')))
+          print('MAX_ALBUM_SCOPED_SHA256='+hashlib.sha256(raw).hexdigest())
+          assert d['ok'] and d['provider_writes']==0 and d['db_writes']==0
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: max-commercial-album-sources
+          path: pub/registry.json
+          retention-days: 7
+      - if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/source-reader.php
