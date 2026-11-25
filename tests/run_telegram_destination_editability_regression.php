@@ -5,12 +5,14 @@ declare(strict_types=1);
 $readerPath = getenv('TELEGRAM_EDITABILITY_READER') ?: dirname(__DIR__)
     . '/tools/direct_demand/operations/read-1566-telegram-46-20261123.php';
 $readerSource = file_get_contents($readerPath);
-if (!is_string($readerSource) || ($runtimeStart = strpos($readerSource, "\n\$out =")) === false)
+if (!is_string($readerSource) || preg_match('/\n\$out\s*=/', $readerSource, $runtimeBoundary, PREG_OFFSET_CAPTURE) !== 1)
     throw new RuntimeException('Reader declaration boundary unavailable');
-$wanted = array_fill_keys(['requireRead', 'jsonRead', 'telegramCandidatePublicRead',
+$runtimeStart = $runtimeBoundary[0][1];
+$wanted = array_fill_keys(['requireRead', 'jsonRead', 'reasonRead', 'telegramCandidatePublicRead',
     'telegramNativeEditEvidenceRead', 'telegramTargetEditabilityRead', 'receiptRead',
     'parsePublicRead', 'albumStructureRead', 'corroborateTargetKeyboard', 'publicationRead',
-    'telegramAcceptedCandidateAssessmentRead', 'telegramAcceptedReadbackRowRead'], false);
+    'telegramMediaOperationRead', 'telegramMediaOperationHeldRead', 'telegramPreparedPairPublicRead',
+    'telegramPreparedPairTargetRead', 'telegramPreparedPairSourceRead', 'telegramPreparedPairNativeRead'], false);
 $tokens = token_get_all(substr($readerSource, 0, $runtimeStart));
 for ($i = 0, $count = count($tokens); $i < $count; $i++) {
     if (!is_array($tokens[$i]) || $tokens[$i][0] !== T_FUNCTION) continue;
@@ -411,6 +413,27 @@ foreach (['unknown', 'claimed', 'write_started', 'sent_with_claim', 'historical_
     }
     $sqlCases[$case] = $mid;
 }
+// Add a source and an unrelated assigned hotel using the same real registry.
+// These are synthetic local records, never new owner-selected destinations.
+$pairHotel = 900002;
+$sourceRaw = editabilityRaw(['message_id' => 9000201, 'caption' => 'Synthetic prepared hotel fixture',
+    'chat' => ['id' => -1002262666616, 'type' => 'channel', 'username' => 'any_toour']]);
+$sourceSnapshot = ChannelPostIncomingAdapter::telegramSnapshot($sourceRaw);
+$sourceSnapshot['metadata']['hotel_catalog_id'] = $pairHotel;
+$sourceRegistered = $readRegistry->registerPublication('anytour', 'telegram', 'anyru_bot',
+    '-1002262666616', '9000201', $sourceSnapshot);
+if (!is_array($sourceRegistered)) throw new RuntimeException('Synthetic source registration failed');
+$readDb->prepare("UPDATE post_versions SET state='sent' WHERE id=?")->execute([$sourceRegistered['version_id']]);
+$duplicateSnapshot = ChannelPostIncomingAdapter::telegramSnapshot(editabilityRaw(['message_id' => 9000301]));
+$duplicateSnapshot['metadata']['hotel_catalog_id'] = 900003;
+$duplicateSnapshot['metadata']['logical_id'] = 'commercial-hotel-900003-v1';
+$duplicateRegistered = $readRegistry->registerPublication('anytour', 'telegram', 'anyru_bot',
+    TEST_EDIT_CHAT, '9000301', $duplicateSnapshot);
+if (!is_array($duplicateRegistered)) throw new RuntimeException('Synthetic duplicate registration failed');
+$readDb->prepare("UPDATE post_versions SET state='sent' WHERE id=?")->execute([$duplicateRegistered['version_id']]);
+// SQLite JSON_EXTRACT already returns an unquoted scalar; keep the actual
+// MySQL query intact with this syntax-only fixture adapter.
+$readDb->sqliteCreateFunction('JSON_UNQUOTE', static fn($value) => $value, 1);
 function editabilityDatabaseSnapshot(PDO $pdo): string
 {
     $tables = $pdo->query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")->fetchAll(PDO::FETCH_COLUMN);
@@ -462,8 +485,7 @@ editabilityCheck((int)$readDb->query('PRAGMA query_only')->fetchColumn() === 1
 editabilityCheck(!defined('APP') && !defined('APPLICATION_SHA') && !defined('CONVERSATION_DB_HOST')
     && !function_exists('runtimeRead') && !function_exists('publicRead') && !function_exists('readTelegramPublicHtml'),
     'production runtime configuration and HTTP entry points were never loaded');
-// This integration covers publicationRead plus classification only. The CLI
-// per-row source-skipping branch is intentionally not copied or executed here.
+// The current prepared-pair functions called by the CLI are exercised below.
 
 $calls = [];
 $read = static function (string $channel, string $mid) use (&$calls): array {
@@ -482,224 +504,307 @@ editabilityCheck($calls === [['any_toour', '9000002'], ['anytour', TEST_EDIT_MID
     && $readResult[1]['ok'] === true && $readResult[1]['channel'] === 'anytour',
     'unknown candidate preserves the existing public source-target reads and return order');
 
-
-// The current CLI reads accepted routes. Candidate policy must annotate that
-// readback without skipping its public/native reads or changing its nine checks.
-$acceptedPurpose = telegramTargetEditabilityRead(TEST_EDIT_MID, null, ['state'=>'absent'],
-    ['buttons'=>[['text'=>'Synthetic accepted hotel button']]], TEST_EDIT_BOT, true, false, 'accepted_readback');
-editabilityState($acceptedPurpose, 'accepted_target_not_for_reuse', true, true, 'accepted scope never becomes a fresh candidate');
-editabilityCheck($acceptedPurpose['read_purpose'] === 'accepted_readback'
-    && $acceptedPurpose['readback_required'] === true && $acceptedPurpose['candidate_preparation_allowed'] === false
-    && $acceptedPurpose['channel_rights_verified'] === null && $acceptedPurpose['editor_bot_id'] === null
-    && $acceptedPurpose['reasons'] === ['accepted_destination_scope'], 'accepted purpose does not invent editor or channel rights');
-editabilityState(telegramTargetEditabilityRead(TEST_EDIT_MID, null, ['state'=>'absent'], [], null, null),
-    'channel_not_verified', true, false, 'nullable candidate rights remain unverified');
-$invalidPurpose = false;
-try { telegramTargetEditabilityRead(TEST_EDIT_MID, null, ['state'=>'absent'], [], null, null, false, 'arbitrary_mode'); }
-catch (RuntimeException $error) { $invalidPurpose = $error->getMessage() === 'read_purpose_invalid'; }
-editabilityCheck($invalidPurpose, 'only the two internal literal read purposes are accepted');
-foreach ([
-    'reservation'=>[['state'=>'unaccepted_reserved_identity'], 'reserved_no_retry'],
-    'claim'=>[['native_claim_held_or_unknown'=>true], 'operation_requires_readback'],
-    'unknown'=>[['state'=>'unknown'], 'operation_requires_readback'],
-    'content operation'=>[['content_edit_journal'=>['state'=>'present_do_not_replay']], 'operation_requires_readback'],
-    'identity conflict'=>[['telegram_message'=>['state'=>'identity_mismatch']], 'evidence_conflict'],
-] as $label => [$nativeCase, $state]) {
-    $assessment = telegramTargetEditabilityRead(TEST_EDIT_MID, $nativeCase, ['state'=>'absent'], [],
-        null, null, false, 'accepted_readback');
-    editabilityState($assessment, $state, true, true, 'accepted scope retains precise ' . $label);
-    editabilityCheck(in_array('accepted_destination_scope', $assessment['reasons'], true),
-        'accepted no-reuse reason survives detailed ' . $label);
+// Only these literal owner constants are parsed. Never evaluate the bootstrap,
+// runtime constants, provider setup, or selected-destination CLI loop.
+function editabilityReaderLiteral(string $source, string $name): array
+{
+    if (preg_match('/^const ' . preg_quote($name, '/') . '\s*=\s*(\[[\s\S]*?\]);/m', $source, $match) !== 1)
+        throw new RuntimeException('Owner constant missing: ' . $name);
+    foreach (token_get_all('<?php ' . $match[1]) as $token) {
+        if (is_array($token) && !in_array($token[0], [T_OPEN_TAG, T_WHITESPACE, T_LNUMBER,
+            T_CONSTANT_ENCAPSED_STRING, T_DOUBLE_ARROW], true))
+            throw new RuntimeException('Owner constant is not a literal array');
+        if (is_string($token) && !in_array($token, ['[', ']', ','], true))
+            throw new RuntimeException('Owner constant contains an expression');
+    }
+    return eval('return ' . $match[1] . ';');
 }
-$unreadAcceptedJournal = telegramTargetEditabilityRead(TEST_EDIT_MID, null, ['state'=>'unavailable'], [],
-    null, null, false, 'accepted_readback');
-editabilityState($unreadAcceptedJournal, 'operation_requires_readback', true, true,
-    'unread accepted journal cannot become absence or completion');
-editabilityCheck($unreadAcceptedJournal['evidence_tier'] === 'unavailable'
-    && $unreadAcceptedJournal['reasons'] === ['accepted_destination_scope','media_operation_evidence_unavailable'],
-    'unread journal without an observed directory is unavailable evidence, not a proven prior operation');
+editabilityCheck(editabilityReaderLiteral($readerSource, 'INSTALLED_BLOBS') === [
+    '.github/workflows/edit-1566-ranked-46-historical-telegram.yml' => 'bf59d830df21fe9bc1cc4ba46d5ea01d14a4c972',
+    'tests/run_channel_post_automation_regression.php' => '2d64bee3b446bb3569356e1d46b22ce4f8733786',
+    'tools/anytour_existing_post_batch.php' => '444ba4561802ae96e9c65bb5c9e85b731e61022d',
+], 'current owner installed source requirements remain exact');
+editabilityCheck(editabilityReaderLiteral($readerSource, 'SMALL_CAPTION_SCOPE') === [
+    102203 => ['telegram' => '1561', 'max' => 'AaHwVf1OCGc'],
+    37931 => ['telegram' => '1554', 'max' => 'AaHwVbsRYzs'],
+    102201 => ['telegram' => '1580', 'max' => 'AaHwWbJMJac'],
+], 'current small-caption scope remains exact');
+editabilityCheck(editabilityReaderLiteral($readerSource, 'PREPARED_PAIRS') === [
+    8094 => ['source' => '905', 'source_publication' => 1951, 'target' => '567', 'target_date' => 1713769144,
+        'target_caption' => '37fd47408b3e74a0dff1233df09f1f45ce5b94f3aa5a0b05c7a1f88fbffb4870',
+        'target_photo' => '07989c88a8f257d8580905c1b368649dca1b00099b531c173b048f0930141a4a'],
+    73082 => ['source' => '1025', 'source_publication' => 2204, 'target' => '588', 'target_date' => 1714555735,
+        'target_caption' => '80a7b342b26fdf2f1310fc1125d5f8549c18f0cc8b350013f3d11823a033a252',
+        'target_photo' => 'd5abd6334904eb43a00a531e64b5e812775524df8d7547e28c09087f130ec7c5'],
+], 'current prepared pairs and preimages remain exact');
 
-// Parse only literal PAIRS data, never the production bootstrap or its constants.
-editabilityCheck(preg_match('/^const PAIRS = (\[.*?^\]);/ms', $readerSource, $pairMatch) === 1
-    && preg_match("/^const PAIR_DIGEST = '([a-f0-9]{64})';/m", $readerSource, $digestMatch) === 1,
-    'current accepted packet is present');
-foreach (token_get_all('<?php ' . $pairMatch[1]) as $token) {
-    if (is_array($token)) {
-        if (!in_array($token[0], [T_OPEN_TAG,T_WHITESPACE,T_LNUMBER,T_CONSTANT_ENCAPSED_STRING,T_DOUBLE_ARROW], true))
-            throw new RuntimeException('Accepted packet must contain only literal data');
-    } elseif (!in_array($token, ['[',']',','], true)) throw new RuntimeException('Non-literal accepted packet');
-}
-$acceptedPairs = eval('return ' . $pairMatch[1] . ';');
-$packet = [];
-foreach ($acceptedPairs as $hotel => $pair)
-    $packet[] = [$hotel,(int)$pair['source'],(int)$pair['target'],$pair['publication_id'],$pair['version_id'],
-        $pair['published_unixtime'],$pair['expected_caption_sha256']];
-$historicalAccepted = array_column(array_filter($fixture['observations'],
-    static fn(array $row): bool => $row['outcome'] !== 'message_id_invalid'), 'message_id');
-$currentAccepted = array_column($acceptedPairs, 'target'); sort($historicalAccepted); sort($currentAccepted);
-editabilityCheck(count($packet) === 18 && $currentAccepted === $historicalAccepted,
-    'only the existing18 accepted destinations remain selected');
-editabilityCheck($digestMatch[1] === '91ad991e49fcc3848b71c307573d91616d8e1de6644f324f10834979b9c0c2fa'
-    && hash('sha256', jsonRead($packet)) === $digestMatch[1],
-    'exact upstream90 publication/version/original-date/caption packet is preserved');
-$runtimeSource = substr($readerSource, $runtimeStart);
-editabilityCheck(str_contains($runtimeSource, '$out[\'rows\'][]=telegramAcceptedReadbackRowRead($hotel,$pair,$src,$dst,$pub,$feed,$landings);')
-    && str_contains($runtimeSource, '$out[\'rows\'][]=telegramAcceptedReadbackRowRead($hotel,$pair,null,null,[],$feed,$landings,reasonRead($rowError));'),
-    'success and error CLI rows call the actual tested readback helper without stale native reuse');
-editabilityCheck(!str_contains($runtimeSource, 'telegramCandidatePublicRead(')
-    && !str_contains($runtimeSource, 'getMe') && !str_contains($runtimeSource, 'ChannelPostRuntime')
-    && str_contains($runtimeSource, "'native_read_request_count'=>0"),
-    'accepted CLI does not restore candidate skips or native API identity probes');
-
-$readbackHotel = 900099;
-$readbackHash = hash('sha256', 'Synthetic accepted caption');
-$readbackPair = ['source'=>'9000002','target'=>TEST_EDIT_MID,'publication_id'=>9000031,'version_id'=>9000032,
-    'published_unixtime'=>1609459200,'expected_caption_sha256'=>$readbackHash];
-$readbackPhoto = ['reusable_telegram_photo'=>true,'file_unique_id_sha256'=>hash('sha256','Synthetic accepted photo')];
-$readbackSource = ['attachments'=>[$readbackPhoto]];
-$readbackTarget = ['publication_id'=>9000031,'version_id'=>9000032,'state'=>'sent','hotel_id'=>$readbackHotel,
-    'post_url'=>'https://t.me/anytour/'.TEST_EDIT_MID,'native_claim_held_or_unknown'=>false,
-    'attachments'=>[$readbackPhoto],'caption_sha256'=>$readbackHash,'one_expected_button'=>true,
-    'current_token_resolves'=>true,'button_url'=>'https://t.me/anyru_bot?start=p_SYNTHETIC_READBACK_ONLY',
-    'content_edit_journal'=>['state'=>'absent'],'telegram_message'=>$missing,
-    'published_at'=>'2021-01-01T00:00:00+00:00'];
-$readbackPublic = ['ok'=>true,'single_photo'=>true,'caption_sha256'=>$readbackHash,'published_unixtime'=>1609459200,
-    'target_keyboard_archive_verified'=>true,'buttons'=>[['hotel_url'=>$readbackTarget['button_url']]]];
-$readbackFeed = ['tg_'.$readbackHotel=>'https://t.me/any_toour/'.$readbackPair['source']];
-$readbackLandings = ['tg_'.$readbackHotel=>$readbackTarget['post_url']];
-$readback = static function (?array $src = null, ?array $dst = null, ?array $pub = null,
-    ?array $feed = null, ?array $landings = null) use ($readbackHotel,$readbackPair,$readbackSource,
-    $readbackTarget,$readbackPublic,$readbackFeed,$readbackLandings): array {
-    return telegramAcceptedReadbackRowRead($readbackHotel,$readbackPair,$src ?? $readbackSource,
-        $dst ?? $readbackTarget,$pub ?? $readbackPublic,$feed ?? $readbackFeed,$landings ?? $readbackLandings);
-};
-$goodRow = $readback();
-$checkNames = ['registered_identity','original_version_current','native_source_photo','public_caption',
-    'public_single_photo','one_hotel_button_and_exact_token_context','accepted_original_date',
-    'accepted_original_caption','installed_route'];
-editabilityCheck($goodRow['verified'] === true && array_keys($goodRow['checks']) === $checkNames
-    && !in_array(false,$goodRow['checks'],true), 'actual accepted row helper preserves all9 successful upstream checks');
-editabilityCheck($goodRow['read_purpose'] === 'accepted_readback' && $goodRow['readback_required']
-    && $goodRow['candidate_assessment']['readback_required'] && !$goodRow['candidate_preparation_allowed']
-    && $goodRow['no_retry'] === true && $goodRow['candidate_assessment']['state'] === 'accepted_target_not_for_reuse'
-    && $goodRow['candidate_assessment']['prior_media_operation'] === ['state'=>'absent'],
-    'accepted button and genuinely absent journal allow readback but never reuse');
-$badCases = [
-    'registered_identity'=>['dst'=>['publication_id'=>9000999]],
-    'original_version_current'=>['dst'=>['version_id'=>9000999]],
-    'native_source_photo'=>['src'=>['attachments'=>[array_replace($readbackPhoto,['file_unique_id_sha256'=>'different'])]]],
-    'public_caption'=>['dst'=>['caption_sha256'=>hash('sha256','Different native caption')]],
-    'public_single_photo'=>['pub'=>['single_photo'=>false]],
-    'one_hotel_button_and_exact_token_context'=>['dst'=>['current_token_resolves'=>false]],
-    'accepted_original_date'=>['pub'=>['published_unixtime'=>1609459201]],
-    'accepted_original_caption'=>['dst'=>['caption_sha256'=>hash('sha256','Changed accepted caption')],
-        'pub'=>['caption_sha256'=>hash('sha256','Changed accepted caption')]],
-    'installed_route'=>['landings'=>['tg_'.$readbackHotel=>'https://t.me/anytour/9000999']],
+$noOperation = ['directory_exists' => false, 'directory_symlink' => false, 'journal' => ['state' => 'absent']];
+$heldObservations = [
+    'known journal' => array_replace($noOperation, ['directory_exists' => true,
+        'journal' => ['state' => 'present_do_not_replay', 'states' => []]]),
+    'directory without journal' => array_replace($noOperation, ['directory_exists' => true]),
+    'unread evidence' => ['directory_exists' => null, 'directory_symlink' => null,
+        'journal' => ['state' => 'unavailable']],
 ];
-foreach ($badCases as $check => $changes) {
-    $row = $readback(array_replace($readbackSource,$changes['src']??[]),
-        array_replace($readbackTarget,$changes['dst']??[]),array_replace($readbackPublic,$changes['pub']??[]),
-        $readbackFeed,array_replace($readbackLandings,$changes['landings']??[]));
-    editabilityCheck($row['verified'] === false && $row['checks'][$check] === false
-        && $row['no_retry'] === true && !$row['candidate_preparation_allowed'],
-        'actual readback retains failing upstream check: '.$check);
+foreach ($heldObservations as $label => $operation) {
+    $calls = [];
+    $result = telegramPreparedPairPublicRead($pair, $operation, $read);
+    editabilityCheck(telegramMediaOperationHeldRead($operation) && $calls === []
+        && $result[0]['http_attempts'] === 0 && $result[1]['http_attempts'] === 0
+        && $result[0]['ok'] === false && $result[1]['ok'] === false,
+        'actual public pair helper makes zero callbacks: ' . $label);
 }
-$heldRow = $readback(null,array_replace($readbackTarget,['native_claim_held_or_unknown'=>true]));
-editabilityCheck(!$heldRow['verified'] && !$heldRow['checks']['registered_identity']
-    && $heldRow['candidate_assessment']['state'] === 'operation_requires_readback',
-    'actual accepted row does not waive a held native claim');
-$nativeDateDrift = $readback(null,array_replace($readbackTarget,['published_at'=>'2099-01-01T00:00:00Z']));
-editabilityCheck($nativeDateDrift['verified'] && $nativeDateDrift['checks']['accepted_original_date'],
-    'upstream90 original date comparison is not replaced with obsolete native date equality');
-$errorRow = telegramAcceptedReadbackRowRead($readbackHotel,$readbackPair,null,null,[],$readbackFeed,$readbackLandings,
-    'registry_identity_changed');
-editabilityCheck(!$errorRow['verified'] && $errorRow['checks'] === ['row_available'=>false]
-    && $errorRow['reason'] === 'registry_identity_changed' && $errorRow['no_retry']
-    && !$errorRow['candidate_preparation_allowed'] && $errorRow['readback_required']
-    && $errorRow['candidate_assessment']['readback_required'] && $errorRow['candidate_assessment']['editor_bot_id'] === null,
-    'actual error-row output retains accepted scope without stale native data');
+$calls = [];
+$result = telegramPreparedPairPublicRead($pair, $noOperation, $read);
+editabilityCheck(!telegramMediaOperationHeldRead($noOperation)
+    && $calls === [['any_toour', '9000002'], ['anytour', TEST_EDIT_MID]]
+    && $result === [['ok' => true, 'channel' => 'any_toour', 'mid' => '9000002'],
+        ['ok' => true, 'channel' => 'anytour', 'mid' => TEST_EDIT_MID]],
+    'actual public pair helper preserves normal public reads and observations');
 
-$mediaDirectory = OPERATIONS.'/anytour-issue1566-historical-tg-media-'.TEST_EDIT_MID.'-v1';
-mkdir($mediaDirectory,0700);
-$mediaReceipt = $mediaDirectory.'/receipt.jsonl';
-foreach ([false=>'rejected_no_retry',true=>'completed_no_retry'] as $success => $state) {
-    file_put_contents($mediaReceipt,implode("\n",array_map('jsonRead',editabilityRawJournal((bool)$success)))."\n");
-    $row = $readback();
-    editabilityCheck($row['verified'] && $row['checks'] === $goodRow['checks'],
-        'journal annotation cannot change accepted checks: '.$state);
-    editabilityState($row['candidate_assessment'],$state,true,true,'accepted actual journal: '.$state);
-    editabilityCheck(!str_contains(jsonRead($row['candidate_assessment']),'SYNTHETIC_PRIVATE_FILE')
-        && $row['candidate_assessment']['channel_rights_verified'] === null,
-        'accepted journal projection remains bounded and does not invent rights: '.$state);
+$preparedPair = ['source' => '9000201', 'source_publication' => $sourceRegistered['publication_id'],
+    'target' => '9000401', 'target_date' => 1609459200,
+    'target_caption' => hash('sha256', 'Synthetic destination fixture'),
+    'target_photo' => hash('sha256', 'Synthetic destination photo marker')];
+$preparedSource = telegramPreparedPairSourceRead($readDb, $readRegistry, $pairHotel, $preparedPair);
+$preparedPublic = ['source' => ['ok' => true, 'single_photo' => true,
+    'caption_sha256' => hash('sha256', $sourceSnapshot['text']),
+    'buttons' => [['hotel_url' => $preparedSource['button']]]],
+    'target' => ['ok' => true, 'single_photo' => true, 'caption' => 'Synthetic destination fixture',
+        'caption_sha256' => $preparedPair['target_caption'], 'published_unixtime' => $preparedPair['target_date'],
+        'photo_marker_sha256' => $preparedPair['target_photo'], 'buttons' => []]];
+$pairFeed = ['tg_' . $pairHotel => 'https://t.me/any_toour/' . $preparedPair['source']];
+$ownerNames = ['source_native_identity', 'source_public_body', 'source_one_live_button', 'source_token_context',
+    'source_photo', 'source_no_writer', 'target_no_registry_or_duplicate', 'target_no_prior_media_operation',
+    'target_preimage', 'target_no_keyboard', 'canonical_feed_and_route', 'native_channel_rights'];
+$preparedInput = ['hotel' => $pairHotel, 'pair' => $preparedPair, 'public' => $preparedPublic,
+    'prior' => $noOperation, 'fresh' => $noOperation, 'rights' => true, 'feed' => $pairFeed, 'routes' => $pairFeed,
+    'target' => telegramPreparedPairTargetRead($readDb, $readRegistry, $pairHotel, $preparedPair),
+    'source' => $preparedSource];
+function editabilityPreparedCase(array $input): array
+{
+    $calls = [];
+    $row = telegramPreparedPairNativeRead($input['hotel'], $input['pair'], $input['public'], $input['prior'],
+        $input['rights'], $input['feed'], $input['routes'],
+        static function (int $hotel, array $pair) use (&$calls, $input): array {
+            $calls[] = 'target';
+            if (($input['throw'] ?? '') === 'target') throw new RuntimeException('Synthetic target failure /private/path');
+            return $input['target'];
+        },
+        static function (int $hotel, array $pair) use (&$calls, $input): array {
+            $calls[] = 'source';
+            if (($input['throw'] ?? '') === 'source') throw new RuntimeException('Synthetic source failure /private/path');
+            return $input['source'];
+        },
+        static function (string $mid) use (&$calls, $input): array {
+            $calls[] = 'operation';
+            if (($input['throw'] ?? '') === 'operation') throw new RuntimeException('Synthetic journal failure /private/path');
+            return $input['fresh'];
+        });
+    return [$row, $calls];
 }
-foreach (['malformed'=>'{not valid JSON','oversized'=>str_repeat('x',1000001)] as $case => $bytes) {
-    file_put_contents($mediaReceipt,$bytes);clearstatcache(true,$mediaReceipt);
-    $row = $readback();
-    editabilityCheck($row['verified'] && $row['checks'] === $goodRow['checks']
-        && $row['candidate_assessment']['state'] === 'operation_requires_readback'
-        && $row['candidate_assessment']['prior_media_operation'] ===
-            ['state'=>'unavailable','reason'=>'media_operation_read_unavailable'],
-        'optional '.$case.' journal changes annotation only');
-}
-// A malformed optional journal must restore the caller's error handler even on exception.
-$callerNotices = 0;
-set_error_handler(static function (int $severity, string $ignored) use (&$callerNotices): bool {
-    $callerNotices++;
-    return true;
-});
+[$normal, $normalCalls] = editabilityPreparedCase($preparedInput);
+editabilityCheck($normalCalls === ['operation', 'target', 'source']
+    && array_keys($normal['checks']) === $ownerNames && array_values($normal['checks']) === array_fill(0, 12, true)
+    && $normal['prepared_checks_pass'] === true && $normal['candidate_preparation_allowed'] === true
+    && $normal['candidate_preparation_skipped'] === false && $normal['write_admission'] === false,
+    'actual prepared pair passes all twelve owner checks after target-before-source reads');
+editabilityState($normal['candidate_assessment'], 'unknown_editability', false, false,
+    'normal preparation does not prove per-message editability');
+editabilityCheck($normal['candidate_assessment']['editor_bot_id'] === null
+    && $normal['candidate_assessment']['channel_rights_verified'] === true
+    && $normal['candidate_assessment']['method'] === 'editMessageMedia'
+    && $normal['candidate_assessment']['read_purpose'] === 'candidate_preparation',
+    'actual channel-rights result is not fabricated bot identity or method capability');
+editabilityCheck($preparedInput['public'] === $preparedPublic, 'prepared helper does not rewrite public observations');
+$sqlBoundaryCalls = [];
+$sqlNormal = telegramPreparedPairNativeRead($pairHotel, $preparedPair, $preparedPublic, $noOperation,
+    true, $pairFeed, $pairFeed,
+    static function (int $hotel, array $pair) use ($readDb, $readRegistry, &$sqlBoundaryCalls): array {
+        $sqlBoundaryCalls[] = 'target';
+        return telegramPreparedPairTargetRead($readDb, $readRegistry, $hotel, $pair);
+    },
+    static function (int $hotel, array $pair) use ($readDb, $readRegistry, &$sqlBoundaryCalls): array {
+        $sqlBoundaryCalls[] = 'source';
+        return telegramPreparedPairSourceRead($readDb, $readRegistry, $hotel, $pair);
+    },
+    static function (string $mid) use (&$sqlBoundaryCalls): array {
+        $sqlBoundaryCalls[] = 'operation';
+        return telegramMediaOperationRead($mid);
+    });
+editabilityCheck($sqlBoundaryCalls === ['operation', 'target', 'source'] && $sqlNormal === $normal,
+    'normal CLI helper boundary executes the actual journal and SQL readers with the same result');
+
+// A new operation can appear after the refreshed journal observation. The
+// owner's final filesystem check must still prevent preparation admission.
+$lateOperationPath = OPERATIONS . '/anytour-issue1566-historical-tg-media-' . $preparedPair['target'] . '-v1';
+$lateOperationCalls = []; $lateOperationObserved = null;
 try {
-    file_put_contents($mediaReceipt,'{malformed optional journal');clearstatcache(true,$mediaReceipt);
-    $restorationRow = $readback();
-    trigger_error('Synthetic caller handler probe',E_USER_NOTICE);
-    editabilityCheck($callerNotices === 1 && $restorationRow['verified'],
-        'optional journal exception restores the caller handler and preserves readback');
-    file_put_contents($mediaReceipt,implode("\n",array_map('jsonRead',editabilityRawJournal(true)))."\n");
-    clearstatcache(true,$mediaReceipt);
-    $restorationRow = $readback();
-    trigger_error('Synthetic caller handler probe',E_USER_NOTICE);
-    editabilityCheck($callerNotices === 2 && $restorationRow['verified'],
-        'successful optional journal observation restores the caller handler');
+    $lateOperationRow = telegramPreparedPairNativeRead($pairHotel, $preparedPair, $preparedPublic, $noOperation,
+        true, $pairFeed, $pairFeed,
+        static function (int $hotel, array $pair) use ($readDb, $readRegistry, &$lateOperationCalls): array {
+            $lateOperationCalls[] = 'target';
+            return telegramPreparedPairTargetRead($readDb, $readRegistry, $hotel, $pair);
+        },
+        static function (int $hotel, array $pair) use ($readDb, $readRegistry, $lateOperationPath, &$lateOperationCalls): array {
+            $lateOperationCalls[] = 'source';
+            requireRead(mkdir($lateOperationPath, 0700), 'synthetic_late_operation_unavailable');
+            return telegramPreparedPairSourceRead($readDb, $readRegistry, $hotel, $pair);
+        },
+        static function (string $mid) use (&$lateOperationCalls, &$lateOperationObserved): array {
+            $lateOperationCalls[] = 'operation';
+            $lateOperationObserved = telegramMediaOperationRead($mid);
+            return $lateOperationObserved;
+        });
+    editabilityCheck($lateOperationObserved === $noOperation
+        && $lateOperationCalls === ['operation', 'target', 'source']
+        && $lateOperationRow['checks']['target_no_prior_media_operation'] === false
+        && $lateOperationRow['prepared_checks_pass'] === false
+        && $lateOperationRow['candidate_preparation_allowed'] === false
+        && $lateOperationRow['write_admission'] === false,
+        'operation appearing during the sole source callback fails the final owner check and admission');
 } finally {
-    restore_error_handler();
+    if (is_dir($lateOperationPath)) rmdir($lateOperationPath);
 }
-file_put_contents($mediaReceipt,implode("\n",array_map('jsonRead',editabilityRawJournal(true)))."\n");
-$otherDirectory = OPERATIONS.'/synthetic-unfollowed-operation';
-rename($mediaDirectory,$otherDirectory);symlink($otherDirectory,$mediaDirectory);clearstatcache();
-$symlinkRow = $readback();
-editabilityCheck($symlinkRow['verified'] && $symlinkRow['candidate_assessment']['state'] === 'operation_requires_readback'
-    && $symlinkRow['candidate_assessment']['prior_media_operation'] ===
-        ['state'=>'unavailable','reason'=>'operation_directory_symlink'],
-    'operation directory symlink is not followed and does not suppress accepted readback');
-unlink($mediaDirectory);mkdir($mediaDirectory,0700);symlink($otherDirectory.'/receipt.jsonl',$mediaReceipt);clearstatcache();
-$symlinkRow = $readback();
-editabilityCheck($symlinkRow['verified'] && $symlinkRow['candidate_assessment']['state'] === 'operation_requires_readback'
-    && $symlinkRow['candidate_assessment']['prior_media_operation'] ===
-        ['state'=>'unavailable','reason'=>'operation_receipt_symlink'],
-    'receipt symlink is not followed and does not suppress accepted readback');
-unlink($mediaReceipt);clearstatcache();
-$emptyDirectoryRow = $readback();
-editabilityCheck($emptyDirectoryRow['verified'] && $emptyDirectoryRow['candidate_assessment']['state'] === 'operation_requires_readback'
-    && $emptyDirectoryRow['candidate_assessment']['prior_media_operation'] === ['state'=>'absent']
-    && $emptyDirectoryRow['candidate_assessment']['prior_media_operation_directory_exists'] === true,
-    'existing operation directory without receipt stays held while readback runs');
-rmdir($mediaDirectory);clearstatcache();
-foreach (['../escape','0','09000001'] as $invalidMid) {
-    $assessment = telegramAcceptedCandidateAssessmentRead($invalidMid,null,[]);
-    editabilityCheck($assessment['state'] === 'operation_requires_readback'
-        && $assessment['prior_media_operation_directory_exists'] === null
-        && $assessment['prior_media_operation'] === ['state'=>'unavailable','reason'=>'invalid_target_message_id'],
-        'invalid MID is rejected before constructing an operation path: '.$invalidMid);
+
+foreach ($heldObservations as $label => $operation) {
+    [$held, $heldCalls] = editabilityPreparedCase(array_replace($preparedInput, ['prior' => $operation]));
+    editabilityCheck($heldCalls === ['operation'] && $held['candidate_preparation_allowed'] === false
+        && $held['prepared_checks_pass'] === false && $held['write_admission'] === false
+        && $held['candidate_assessment']['no_retry'] === true,
+        'earlier hold survives directory disappearance without native callbacks: ' . $label);
 }
-editabilityCheck($assessment['evidence_tier'] === 'unavailable'
-    && $assessment['reasons'] === ['accepted_destination_scope','media_operation_evidence_unavailable'],
-    'invalid MID without filesystem observation does not invent a prior media operation');
-$nativeWithDate = publicationRead($readDb,$readRegistry,6,$sqlCases['sent']);
-editabilityCheck(is_string($nativeWithDate['published_at']??null) && strtotime($nativeWithDate['published_at']) === 1609459200
-    && $nativeWithDate['telegram_message']['date'] === 1609459200,
-    'actual readonly SQL retains upstream published_at alongside native evidence');
-editabilityCheck((int)$readDb->query('SELECT total_changes()')->fetchColumn() === $changesBefore
+foreach ([null, false] as $rights) {
+    [$held, $heldCalls] = editabilityPreparedCase(array_replace($preparedInput, ['rights' => $rights]));
+    editabilityCheck($heldCalls === ['operation'] && $held['candidate_preparation_allowed'] === false
+        && $held['prepared_checks_pass'] === false
+        && $held['candidate_assessment']['channel_rights_verified'] === $rights
+        && $held['candidate_assessment']['editor_bot_id'] === null,
+        'missing or failed actual rights cannot become a fabricated ready result');
+}
+
+// Actual SQL reads exercise reserved, broken-version, all existing states, and
+// the hotel's existing assignment. No target may reach source preparation.
+$targetCases = ['reserve without version' => '9000011', 'broken current version' => '9000012'] + $sqlCases;
+foreach ($targetCases as $label => $mid) {
+    $casePair = array_replace($preparedPair, ['target' => $mid]);
+    $actualTarget = telegramPreparedPairTargetRead($readDb, $readRegistry, $pairHotel, $casePair);
+    [$held, $heldCalls] = editabilityPreparedCase(array_replace($preparedInput,
+        ['pair' => $casePair, 'target' => $actualTarget]));
+    editabilityCheck(count($actualTarget['target_native_ids']) === 1 && $heldCalls === ['operation', 'target']
+        && $held['candidate_preparation_allowed'] === false && $held['prepared_checks_pass'] === false
+        && $held['checks']['target_no_registry_or_duplicate'] === false && $held['write_admission'] === false,
+        'real registered target prevents source preparation: ' . $label);
+    if ($label === 'reserve without version')
+        editabilityCheck($held['candidate_assessment']['state'] === 'reserved_no_retry'
+            && $actualTarget['target_native']['state'] === 'unaccepted_reserved_identity',
+            'real null-version reserve retains its precise reason');
+    if ($label === 'broken current version')
+        editabilityCheck($actualTarget['target_native'] === null
+            && $actualTarget['target_native_projection_reason'] === 'target_native_projection_unavailable'
+            && $held['candidate_assessment']['state'] === 'existing_registry_assignment',
+            'projection failure cannot erase a real target identity');
+}
+$duplicateTarget = telegramPreparedPairTargetRead($readDb, $readRegistry, 900003, $preparedPair);
+[$duplicateHeld, $duplicateCalls] = editabilityPreparedCase(array_replace($preparedInput,
+    ['hotel' => 900003, 'target' => $duplicateTarget]));
+editabilityCheck($duplicateTarget['target_native_ids'] === []
+    && $duplicateTarget['hotel_duplicate_publication_ids'] === [$duplicateRegistered['publication_id']]
+    && $duplicateCalls === ['operation', 'target'] && $duplicateHeld['candidate_preparation_allowed'] === false,
+    'actual duplicate-hotel query prevents source preparation without a target identity');
+// The canonical schema normally enforces one identity. If the query ever
+// observes more than one, an unavailable projection must still prevent reuse.
+$ambiguousTarget = array_replace($preparedInput['target'], ['target_native_ids' => [900098, 900099],
+    'target_native' => null, 'target_native_projection_reason' => 'target_native_projection_unavailable']);
+[$ambiguousHeld, $ambiguousCalls] = editabilityPreparedCase(array_replace($preparedInput,
+    ['target' => $ambiguousTarget]));
+editabilityCheck($ambiguousCalls === ['operation', 'target']
+    && $ambiguousHeld['checks']['target_no_registry_or_duplicate'] === false
+    && $ambiguousHeld['candidate_preparation_allowed'] === false
+    && $ambiguousHeld['prepared_checks_pass'] === false && $ambiguousHeld['write_admission'] === false,
+    'multiple observed identities cannot release a target with no native projection');
+
+$ownerFailures = [
+    'source_native_identity' => static function (array &$in): void { $in['source']['source']['state'] = 'pending'; },
+    'source_public_body' => static function (array &$in): void { $in['public']['source']['caption_sha256'] = str_repeat('0', 64); },
+    'source_one_live_button' => static function (array &$in): void { $in['public']['source']['buttons'] = []; },
+    'source_token_context' => static function (array &$in): void { $in['source']['context']['version_id']++; },
+    'source_photo' => static function (array &$in): void { $in['source']['source']['snapshot']['attachments'] = []; },
+    'source_no_writer' => static function (array &$in): void { $in['source']['native_writer_ids'] = [900099]; },
+    'target_no_registry_or_duplicate' => static function (array &$in): void { $in['target']['target_native_ids'] = [900099]; },
+    'target_no_prior_media_operation' => static function (array &$in): void { $in['fresh']['directory_exists'] = true; },
+    'target_preimage' => static function (array &$in): void { $in['public']['target']['published_unixtime']++; },
+    'target_no_keyboard' => static function (array &$in): void { $in['public']['target']['buttons'] = [['hotel_url' => 'https://example.invalid/fixture']]; },
+    'canonical_feed_and_route' => static function (array &$in): void { $in['routes'] = []; },
+    'native_channel_rights' => static function (array &$in): void { $in['rights'] = false; },
+];
+editabilityCheck(array_keys($ownerFailures) === $ownerNames, 'every existing owner condition has a negative case');
+foreach ($ownerFailures as $name => $mutate) {
+    $input = $preparedInput; $mutate($input);
+    [$failed] = editabilityPreparedCase($input);
+    editabilityCheck($failed['prepared_checks_pass'] === false && $failed['candidate_preparation_allowed'] === false
+        && $failed['write_admission'] === false && ($failed['checks'][$name] ?? false) !== true,
+        'existing owner condition remains required for preparation: ' . $name);
+}
+foreach (['operation', 'target', 'source'] as $boundary) {
+    [$failed, $failedCalls] = editabilityPreparedCase(array_replace($preparedInput, ['throw' => $boundary]));
+    editabilityCheck($failed['candidate_preparation_allowed'] === false && $failed['prepared_checks_pass'] === false
+        && $failed['write_admission'] === false && $failed['candidate_assessment']['evidence_tier'] === 'unavailable'
+        && !str_contains(jsonRead($failed), '/private/path')
+        && ($boundary !== 'target' || !in_array('source', $failedCalls, true)),
+        'failed read boundary holds preparation with a bounded reason: ' . $boundary);
+}
+
+// The actual journal observer is local, bounded, symlink-safe and restores any
+// outer error handler on success and on failed optional observations.
+$operationPath = OPERATIONS . '/anytour-issue1566-historical-tg-media-' . TEST_EDIT_MID . '-v1';
+editabilityCheck(telegramMediaOperationRead(TEST_EDIT_MID) === $noOperation,
+    'actual optional journal observer distinguishes confirmed absence');
+mkdir($operationPath, 0700);
+editabilityCheck(telegramMediaOperationHeldRead(telegramMediaOperationRead(TEST_EDIT_MID)),
+    'actual existing empty operation directory remains held');
+$receiptPath = $operationPath . '/receipt.jsonl';
+file_put_contents($receiptPath, implode("\n", array_map('jsonRead', editabilityRawJournal(false))) . "\n");
+$rejectedOperation = telegramMediaOperationRead(TEST_EDIT_MID);
+editabilityState(telegramTargetEditabilityRead(TEST_EDIT_MID, null, $rejectedOperation['journal'], [], null,
+    true, $rejectedOperation['directory_exists']), 'rejected_no_retry', true, true,
+    'actual optional journal read retains exact method-bound rejection');
+file_put_contents($receiptPath, '{bad synthetic JSON');
+$outerWarnings = 0;
+set_error_handler(static function (int $severity, string $message) use (&$outerWarnings): bool { $outerWarnings++; return true; });
+$malformedOperation = telegramMediaOperationRead(TEST_EDIT_MID);
+trigger_error('Synthetic restoration check', E_USER_NOTICE);
+restore_error_handler();
+editabilityCheck($malformedOperation['journal'] === ['state' => 'unavailable', 'reason' => 'media_operation_read_unavailable']
+    && $outerWarnings === 1 && telegramMediaOperationHeldRead($malformedOperation),
+    'malformed optional journal is held and the caller error handler is restored');
+file_put_contents($receiptPath, str_repeat('x', 1_000_001));
+editabilityCheck(telegramMediaOperationRead(TEST_EDIT_MID)['journal']['state'] === 'unavailable',
+    'actual optional journal enforces the byte bound');
+file_put_contents($receiptPath, str_repeat("{}\n", 501));
+editabilityCheck(telegramMediaOperationRead(TEST_EDIT_MID)['journal']['state'] === 'unavailable',
+    'actual optional journal enforces the event bound');
+unlink($receiptPath);
+$symlinkReceiptTarget = $tempDirectory . '/synthetic-linked-journal.jsonl';
+file_put_contents($symlinkReceiptTarget, "{}\n");
+symlink($symlinkReceiptTarget, $receiptPath);
+editabilityCheck(telegramMediaOperationRead(TEST_EDIT_MID)['journal']['reason'] === 'operation_receipt_symlink',
+    'actual optional journal refuses a symlink receipt');
+unlink($receiptPath); rmdir($operationPath);
+symlink($tempDirectory, $operationPath);
+editabilityCheck(telegramMediaOperationRead(TEST_EDIT_MID)['journal']['reason'] === 'operation_directory_symlink',
+    'actual optional journal refuses a symlink operation directory');
+unlink($operationPath);
+foreach (['0', '01', '../9000001', str_repeat('9', 21)] as $invalidMid) {
+    $unread = telegramMediaOperationRead($invalidMid);
+    editabilityCheck($unread['directory_exists'] === null && $unread['journal']['state'] === 'unavailable'
+        && $unread['journal']['reason'] === 'invalid_target_message_id' && telegramMediaOperationHeldRead($unread),
+        'invalid MID cannot select an operation path: ' . $invalidMid);
+}
+editabilityCheck((int)$readDb->query('PRAGMA query_only')->fetchColumn() === 1
+    && (int)$readDb->query('SELECT total_changes()')->fetchColumn() === $changesBefore
     && editabilityDatabaseSnapshot($readDb) === $databaseBefore,
-    'accepted assessment and readonly SQL projection leave the fixture database unchanged');
+    'current actual prepared-pair source and target queries leave every SQL table unchanged');
 
 echo 'OK ' . $checks . ' destination-editability checks; historical 33 before/15 rejected/18 accepted; '
-    . "synthetic native/journal/SQL cases; provider calls 0\n";
+    . "synthetic native/journal/SQL/current prepared-pair cases; provider calls 0\n";
