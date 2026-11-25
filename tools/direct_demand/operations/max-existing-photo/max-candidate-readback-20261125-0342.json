@@ -1,0 +1,492 @@
+{
+  "schema": 1,
+  "kind": "max_hotel_readiness_delta",
+  "issue": 1566,
+  "goal": 330,
+  "counts": {
+    "prepared_before": 261,
+    "prepared_after": 262,
+    "structurally_checked_before": 17,
+    "structurally_checked_after": 18,
+    "previously_edited": 25,
+    "active_routes_last_mass_read": 34,
+    "fully_confirmed": 0
+  },
+  "release": {
+    "slot_comment_id": 6928374515,
+    "slot_observed_at": "2026-11-25T00:37:24Z",
+    "slot_state": "PR1701: установлено в составе PR1706, выпуск свободен",
+    "terminal_recovery_run": 45519437449,
+    "installed_sha": "7b96c69c1f6974fb6ff09f52551a4581ffcdf171",
+    "diagnostics_phase": "pending_closure",
+    "writer_verdict": "previous_release_unclosed"
+  },
+  "first_five": {
+    "native_run": 45519776732,
+    "job_id": 138888416665,
+    "artifact_id": 14979199786,
+    "artifact_sha256": "sha256:5c689814bf38f3c906a8f50d4f90a06b983474b991093b971f18b6df151da335",
+    "observed_at": "2026-11-25T00:39:49+00:00",
+    "rows": [
+      {
+        "hotel_id": 1972,
+        "source_id": 887,
+        "source_mid": "mid.ffffb6caf0606fed01a1b759c0ea7b76",
+        "source_version": 14065,
+        "source_content_sha256": "ab25c30843f5b8b49ad2d70f53a04bf402387644953e3205a940660d5a7fb815",
+        "source_photo_sha256": "2a7b66f2b20d9236752f6e5a1490ce167c825f14979f0d166437af1daaab2eac",
+        "source_caption_sha256": "05a409b6c192f3537392f00ad7d8aa5883ea29b3d21ff98678e929b9538c678f",
+        "source_caption_nonempty": true,
+        "native_source_date_ms": 1794077475050,
+        "native_source_photo_count": 1,
+        "native_source_photo_reusable": true,
+        "source_caption_matches_registry": true,
+        "source_photo_matches_registry": true,
+        "source_hotel_id_matches": false,
+        "source_catalog_id": 0,
+        "source_name_in_native_caption": true,
+        "source_button_count": 1,
+        "source_one_button_matches_url": true,
+        "source_button_resolves_publication": true,
+        "readable_source_hotel_identity": true,
+        "source_single_registry_button": true,
+        "source_button_resolves_to_hotel": false,
+        "target_mid": "mid.ffffc1752b045fed01a048e897ef69df",
+        "target_url": "https://max.ru/anytour/AaBI6Jfvad8",
+        "target_matches_native_archive": true,
+        "target_occupied": 0,
+        "source_held": 0,
+        "target_or_hotel_registry_conflicts": 0,
+        "blockers": [
+          "source_hotel_id_matches",
+          "source_button_resolves_to_hotel"
+        ]
+      },
+      {
+        "hotel_id": 2588,
+        "source_id": 1533,
+        "source_mid": "mid.ffffb6caf0606fed01a1e93be8533bec",
+        "source_version": 13993,
+        "source_content_sha256": "5437548e285a37d5df1f88e383d56a22e77c7059d56aa78f69e3f59d289e5e32",
+        "source_photo_sha256": "c758af42ba3f16e85cff0b1e26b131a062542f852412d24bac7042af67a15ce4",
+        "source_caption_sha256": "c41602e8c315caf9ac2cdf2e330847f83ddb531bc270be70c7adc4d82da3db9b",
+        "source_caption_nonempty": true,
+        "native_source_date_ms": 1794914379859,
+        "native_source_photo_count": 1,
+        "native_source_photo_reusable": true,
+        "source_caption_matches_registry": true,
+        "source_photo_matches_registry": true,
+        "source_hotel_id_matches": false,
+        "source_catalog_id": 0,
+        "source_name_in_native_caption": true,
+        "source_button_count": 1,
+        "source_one_button_matches_url": true,
+        "source_button_resolves_publication": true,
+        "readable_source_hotel_identity": true,
+        "source_single_registry_button": true,
+        "source_button_resolves_to_hotel": false,
+        "target_mid": "mid.ffffc1752b045fed01a02476fc840574",
+        "target_url": "https://max.ru/anytour/AaAkdvyEBXQ",
+        "target_matches_native_archive": true,
+        "target_occupied": 0,
+        "source_held": 0,
+        "target_or_hotel_registry_conflicts": 0,
+        "blockers": [
+          "source_hotel_id_matches",
+          "source_button_resolves_to_hotel"
+        ]
+      },
+      {
+        "hotel_id": 32342,
+        "source_id": 584,
+        "source_mid": "mid.ffffb6caf0606fed01a1b642e0d874a1",
+        "source_version": 14254,
+        "source_content_sha256": "19545800e8973762d5b17db921c3029c3a4b97b4d185bfc670791f7fbddf5884",
+        "source_photo_sha256": "a30967b634f9c0dde8d636663ed3c27f51b7ca8f371c3b86acb02f5ec55e40fb",
+        "source_caption_sha256": "5bd99dd51a2bf7c3316847daaaf6fc9f3c23bf27df6db48979f54f3575a12a48",
+        "source_caption_nonempty": true,
+        "native_source_date_ms": 1794059198680,
+        "native_source_photo_count": 1,
+        "native_source_photo_reusable": true,
+        "source_caption_matches_registry": true,
+        "source_photo_matches_registry": true,
+        "source_hotel_id_matches": false,
+        "source_catalog_id": 0,
+        "source_name_in_native_caption": true,
+        "source_button_count": 1,
+        "source_one_button_matches_url": true,
+        "source_button_resolves_publication": true,
+        "readable_source_hotel_identity": true,
+        "source_single_registry_button": true,
+        "source_button_resolves_to_hotel": false,
+        "target_mid": "mid.ffffc1752b045fed019febad19a5633d",
+        "target_url": "https://max.ru/anytour/AZ_rrRmlYz0",
+        "target_matches_native_archive": true,
+        "target_occupied": 0,
+        "source_held": 0,
+        "target_or_hotel_registry_conflicts": 0,
+        "blockers": [
+          "source_hotel_id_matches",
+          "source_button_resolves_to_hotel"
+        ]
+      },
+      {
+        "hotel_id": 57028,
+        "source_id": 238,
+        "source_mid": "mid.ffffb6caf0606fed01a19e1e9f763651",
+        "source_version": 13883,
+        "source_content_sha256": "8268dd361b66dc0f3970f6f0b4019a4754ec15ffa64a6fe3d057e8f60de0bbb1",
+        "source_photo_sha256": "bccd470562df9e16ce49d7ecbe3e2a33b6df99dbc9e6d15deeecaaef08ca1b10",
+        "source_caption_sha256": "66de9f83de10cae423844333dac33c8ecf1e9239e6f3935603429837c39d4a1a",
+        "source_caption_nonempty": true,
+        "native_source_date_ms": 1793654169462,
+        "native_source_photo_count": 1,
+        "native_source_photo_reusable": true,
+        "source_caption_matches_registry": true,
+        "source_photo_matches_registry": true,
+        "source_hotel_id_matches": false,
+        "source_catalog_id": 0,
+        "source_name_in_native_caption": true,
+        "source_button_count": 1,
+        "source_one_button_matches_url": true,
+        "source_button_resolves_publication": true,
+        "readable_source_hotel_identity": true,
+        "source_single_registry_button": true,
+        "source_button_resolves_to_hotel": false,
+        "target_mid": "mid.ffffc1752b045fed019f40b28b30558c",
+        "target_url": "https://max.ru/anytour/AZ9AsoswVYw",
+        "target_matches_native_archive": true,
+        "target_occupied": 0,
+        "source_held": 0,
+        "target_or_hotel_registry_conflicts": 0,
+        "blockers": [
+          "source_hotel_id_matches",
+          "source_button_resolves_to_hotel"
+        ]
+      },
+      {
+        "hotel_id": 65877,
+        "source_id": 563,
+        "source_mid": "mid.ffffb6caf0606fed01a1b634f5dd2f43",
+        "source_version": 12198,
+        "source_content_sha256": "2218f164776cd95a6b3eac4ef07bcecc997372f04a0a9fafa9dc0940c708d4b2",
+        "source_photo_sha256": "d8266979b69824bac2064731621d25160cbf784fcb985d643b15319d6cab6241",
+        "source_caption_sha256": "613ba996d86d31215000008dc67259409785dbfacbef49c64edd8fd20f7dc191",
+        "source_caption_nonempty": true,
+        "native_source_date_ms": 1794058286557,
+        "native_source_photo_count": 1,
+        "native_source_photo_reusable": true,
+        "source_caption_matches_registry": true,
+        "source_photo_matches_registry": true,
+        "source_hotel_id_matches": false,
+        "source_catalog_id": 0,
+        "source_name_in_native_caption": true,
+        "source_button_count": 1,
+        "source_one_button_matches_url": true,
+        "source_button_resolves_publication": true,
+        "readable_source_hotel_identity": true,
+        "source_single_registry_button": true,
+        "source_button_resolves_to_hotel": false,
+        "target_mid": "mid.ffffc1752b045fed019f9df97adf003c",
+        "target_url": "https://max.ru/anytour/AZ-d-XrfADw",
+        "target_matches_native_archive": true,
+        "target_occupied": 0,
+        "source_held": 0,
+        "target_or_hotel_registry_conflicts": 0,
+        "blockers": [
+          "source_hotel_id_matches",
+          "source_button_resolves_to_hotel"
+        ]
+      }
+    ]
+  },
+  "reserve": {
+    "hotel_id": 63674,
+    "hotel_name": "Radisson Blu Resort Phu Quoc",
+    "caption": "✈️ Туры в Radisson Blu Resort Phu Quoc\n📍 Фукуок, Вьетнам\nКурорт с прямым выходом к пляжу. В ресторане Avenue есть детское меню и вегетарианские блюда, а в Annex Bar подают тапас.",
+    "cta": "Рассчитать на мои даты",
+    "price_optional": true,
+    "native_run": 45519536529,
+    "job_id": 138887597243,
+    "artifact_id": 14979816206,
+    "artifact_sha256": "sha256:1a32e9ca9edc236e5456442df1c213d8e4558eeea047b610d383f7d0b0b52504",
+    "source": {
+      "hotel_id": 63674,
+      "offer": "max_63674",
+      "alias": "h1_fb0ba4c1be60cab4c2698362dd707b81",
+      "original_id": "643",
+      "source_url": "https://max.ru/channel_anytour/AaG2erwGCro",
+      "target_url": "https://max.ru/anytour/AaAuJeZbQAc",
+      "mid": "mid.ffffc1752b045fed01a02e25e65b4007"
+    },
+    "native": {
+      "hotel_id": 63674,
+      "source_id": 643,
+      "source_mid": "mid.ffffb6caf0606fed01a1b67abc060aba",
+      "source_version": 14248,
+      "source_content_sha256": "c6792b536b4b75955ac045a0b0b19f51b0816d9e63d0d4b2ee4dc4d304ed27d8",
+      "source_photo_sha256": "580be90663897061d23120fec6a52429c9015dda2a2d23eab46d3277c873474f",
+      "source_caption_sha256": "3660a05586f2077c6cbc70c415e915e6c1d7bf7e6cff43572b0b83849029e9f7",
+      "source_caption_nonempty": true,
+      "native_source_date_ms": 1794062859270,
+      "native_source_photo_count": 1,
+      "native_source_photo_reusable": true,
+      "source_caption_matches_registry": true,
+      "source_photo_matches_registry": true,
+      "source_hotel_id_matches": false,
+      "source_catalog_id": 0,
+      "source_name_in_native_caption": true,
+      "source_button_count": 1,
+      "source_one_button_matches_url": true,
+      "source_button_resolves_publication": true,
+      "readable_source_hotel_identity": true,
+      "source_single_registry_button": true,
+      "source_button_resolves_to_hotel": false,
+      "target_mid": "mid.ffffc1752b045fed01a02e25e65b4007",
+      "target_url": "https://max.ru/anytour/AaAuJeZbQAc",
+      "target_matches_native_archive": true,
+      "target_single_photo": true,
+      "target_occupied": 0,
+      "source_held": 0,
+      "target_or_hotel_registry_conflicts": 0,
+      "blockers": [
+        "source_hotel_id_matches",
+        "source_button_resolves_to_hotel"
+      ]
+    }
+  },
+  "validator": {
+    "run_id": 45519944031,
+    "job_id": 138888968945,
+    "accepted": [
+      {
+        "hotel_id": 1972,
+        "source_version": 14065,
+        "legacy_identity_sha256": "b2900964c6631f50c9af1ed2cf840c5213648f2a00c8f1f1842e282b9f4091a3"
+      },
+      {
+        "hotel_id": 2588,
+        "source_version": 13993,
+        "legacy_identity_sha256": "7f78a076a711c0f1254a6274f8d452645eb4dd61ae58437b7d13626c77852e84"
+      },
+      {
+        "hotel_id": 32342,
+        "source_version": 14254,
+        "legacy_identity_sha256": "cde5d40f8a20c09ce5a234b22951ee8461c7b4b235a12bbeccdd30761ad11ba3"
+      },
+      {
+        "hotel_id": 57028,
+        "source_version": 13883,
+        "legacy_identity_sha256": "682f39895b3cb794eb5e1a91ef72e57e1d5ce00f0e7db709404301db29185c06"
+      },
+      {
+        "hotel_id": 65877,
+        "source_version": 12198,
+        "legacy_identity_sha256": "4947a41247b297290dbda9a681d7f91dffa4dbcc97a84b3dff0fb007f65edfc0"
+      },
+      {
+        "hotel_id": 63674,
+        "source_version": 14248,
+        "legacy_identity_sha256": "ef37228c7e2d7ae1cd17a21ab0095d25e480159adab6524369de4861aa632676"
+      }
+    ]
+  },
+  "archive_route_read": {
+    "run_id": 45519426359,
+    "job_id": 138887215884,
+    "observed_at": "2026-11-25T00:36:54+00:00",
+    "rows": [
+      {
+        "hotel_id": 107938,
+        "offer_id": "max_107938",
+        "target_mid": "mid.ffffc1752b045fed019c04ab6cd52c66",
+        "target_url": "https://max.ru/anytour/AZwEq2zVLGY",
+        "static_matches": [],
+        "route_version_matches": [],
+        "regions": {
+          "1": {
+            "current": {
+              "post_id": "551",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaG2Inu8czM"
+            },
+            "retained": {
+              "post_id": "551",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaG2Inu8czM"
+            }
+          },
+          "213": {
+            "current": {
+              "post_id": "551",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaG2Inu8czM"
+            },
+            "retained": {
+              "post_id": "551",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaG2Inu8czM"
+            }
+          }
+        },
+        "blockers": [],
+        "feed_ad_url_sha256": "448d9d2b33f8abb14b22b02d44c2b709e73b65a825b94e22bb38b82523db7b81",
+        "state": "commercial_photo_album_current_editor_requires_single_photo"
+      },
+      {
+        "hotel_id": 954,
+        "offer_id": "max_954",
+        "target_mid": "mid.ffffc1752b045fed019c290e1334742d",
+        "target_url": "https://max.ru/anytour/AZwpDhM0dC0",
+        "static_matches": [],
+        "route_version_matches": [],
+        "regions": {
+          "1": {
+            "current": {
+              "post_id": "889",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaG3WdL9MLk"
+            },
+            "retained": {
+              "post_id": "889",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaG3WdL9MLk"
+            }
+          },
+          "213": {
+            "current": {
+              "post_id": "889",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaG3WdL9MLk"
+            },
+            "retained": {
+              "post_id": "889",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaG3WdL9MLk"
+            }
+          }
+        },
+        "blockers": [],
+        "feed_ad_url_sha256": "eceb7e1875e973dd356095163beb6912af30d20a8afac009ad48e53b22036111",
+        "state": "commercial_photo_album_current_editor_requires_single_photo"
+      },
+      {
+        "hotel_id": 73055,
+        "offer_id": "max_73055",
+        "target_mid": "mid.ffffc1752b045fed019c5ca663163542",
+        "target_url": "https://max.ru/anytour/AZxcpmMWNUI",
+        "static_matches": [],
+        "route_version_matches": [],
+        "regions": {
+          "1": {
+            "current": {
+              "post_id": "1128",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaG3_ZHsUtQ"
+            },
+            "retained": {
+              "post_id": "1128",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaG3_ZHsUtQ"
+            }
+          },
+          "213": {
+            "current": {
+              "post_id": "1128",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaG3_ZHsUtQ"
+            },
+            "retained": {
+              "post_id": "1128",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaG3_ZHsUtQ"
+            }
+          }
+        },
+        "blockers": [],
+        "feed_ad_url_sha256": "6a63b8d41e20510bf49d1a3dd06354ea295cacdb18ceb83e1f3b15e560594699",
+        "state": "commercial_photo_album_current_editor_requires_single_photo"
+      },
+      {
+        "hotel_id": 63674,
+        "offer_id": "max_63674",
+        "target_mid": "mid.ffffc1752b045fed01a02e25e65b4007",
+        "target_url": "https://max.ru/anytour/AaAuJeZbQAc",
+        "static_matches": [],
+        "route_version_matches": [],
+        "regions": {
+          "1": {
+            "current": {
+              "post_id": "643",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaG2erwGCro"
+            },
+            "retained": {
+              "post_id": "643",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaG2erwGCro"
+            }
+          },
+          "213": {
+            "current": {
+              "post_id": "643",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaG2erwGCro"
+            },
+            "retained": {
+              "post_id": "643",
+              "source_id": 1576,
+              "channel_id": "-80492244209683",
+              "post_url": "https://max.ru/channel_anytour/AaG2erwGCro"
+            }
+          }
+        },
+        "blockers": [],
+        "feed_ad_url_sha256": "31f1142911cae7a9906a1388e220366bb633c3c8ef40eaad11a1fe9a06b43d42",
+        "state": "structurally_checked_reserve"
+      },
+      {
+        "hotel_id": null,
+        "offer_id": null,
+        "target_mid": "mid.ffffc1752b045fed019f367e5e6f3a38",
+        "target_url": "https://max.ru/anytour/AZ82fl5vOjg",
+        "static_matches": [],
+        "route_version_matches": [],
+        "regions": [],
+        "blockers": [
+          "SOURCE_OFFER_NOT_VERIFIED"
+        ],
+        "feed_ad_url_sha256": null,
+        "state": "commercial_photo_album_source_offer_not_verified"
+      }
+    ]
+  },
+  "public_xml_read": {
+    "run_id": 45520037587,
+    "job_id": 138889286198,
+    "artifact_id": 14980050552,
+    "artifact_sha256": "sha256:b17df5028cbddab0d0c50343d52a02087a8029d5be529df32648aaac25505d18",
+    "observed_at": "2026-11-25T00:41:38.325360+00:00",
+    "max_offer_count": 1055,
+    "combined_offer_count": 2110
+  },
+  "post_writes": 0,
+  "route_writes": 0,
+  "feed_writes": 0,
+  "paid_clicks": 0
+}
