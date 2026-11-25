@@ -172,9 +172,24 @@ an isolated directory. The public reader returns original approved references
 before publication, data from the new snapshot after publication and the old
 references after rollback. It also tests a reader already pinned to the prior
 snapshot, corruption and rollback replay. The fixture does not authorize a
-production pointer. Production activation still requires the shared installer
-to authenticate the operation, preserve an accepted compatible package and
-reject reader incompatibility before changing the core.
+production pointer.
+
+## Check an active catalogue against an incoming core
+
+Run the read-only check from the verified candidate source. Pass the canonical
+absolute application root and the exact staged reader file from that source.
+
+```sh
+php tools/hotel_catalogue_compatibility.php "$APPLICATION_ROOT" "$CANDIDATE_READER"
+```
+
+The check uses the same active pointer, receipt and index verification as the
+serving reader. It admits the bundled state or exact reader bytes and returns a
+failure for a corrupted active package or incompatible reader. It reads files
+only and does not change the active selection. The stand-alone check is a
+rehearsal prerequisite. Production use requires the shared installer to verify
+the candidate source and repeat the check while holding the publication lock
+through the core switch.
 
 ## Verification
 

@@ -21,12 +21,12 @@ function hotelCatalogueReleaseChecks(array $manifest, int $now): void
         if (!copy($repo.'/services/ManagerHotelKnowledge.php', $reader)) throw new RuntimeException('hotel_reader_fixture_copy_failed');
         $readerSha = hash_file('sha256', $reader);
         $node = $repo.'/tools/hotel_catalogue_package.js';
-        $run = static function (array $args): array {
+        $run = static function (array $args, int $expectedExit = 0): array {
             $p = proc_open($args, [0=>['file','/dev/null','r'],1=>['pipe','w'],2=>['pipe','w']], $io);
             if (!is_resource($p)) throw new RuntimeException('hotel_release_fixture_process_failed');
             $value = stream_get_contents($io[1]); fclose($io[1]);
             $error = stream_get_contents($io[2]); fclose($io[2]);
-            if (proc_close($p) !== 0 || $error !== '') throw new RuntimeException('hotel_release_fixture_command_failed: '.$error);
+            if (proc_close($p) !== $expectedExit || $error !== '') throw new RuntimeException('hotel_release_fixture_command_failed: '.$error);
             return json_decode($value, true, 32, JSON_THROW_ON_ERROR);
         };
         $entries = array_slice($manifest['bindings'], 0, 2);
@@ -108,6 +108,16 @@ echo json_encode(['native'=>$results, 'retained'=>$retained], JSON_THROW_ON_ERRO
 READER;
         $args = [PHP_BINARY, '-r', $code, $reader, json_encode([$selectors, $candidates], JSON_THROW_ON_ERROR), (string)$now];
         $fallback = $run($args);
+        $guard = [PHP_BINARY, $repo.'/tools/hotel_catalogue_compatibility.php', $app];
+        $changedReader = $root.'/candidate-reader.php';
+        if (file_put_contents($changedReader, file_get_contents($reader)."\n") === false) {
+            throw new RuntimeException('hotel_candidate_reader_fixture_failed');
+        }
+        draftContextCheck('core preflight refuses a wrong application root',
+            $run([PHP_BINARY, $repo.'/tools/hotel_catalogue_compatibility.php', $site, $reader], 1)
+                === ['ok'=>false, 'status'=>'invalid_input']);
+        draftContextCheck('core preflight admits a checked reader when the catalogue is bundled',
+            $run([...$guard, $changedReader]) === ['ok'=>true, 'status'=>'bundled']);
         $deployment = new TourSelectionEditorDeployment($app, $site, $releases);
         $exclusive = new ReflectionMethod($deployment, 'exclusive');
         $point = new ReflectionMethod($deployment, 'point');
@@ -137,6 +147,11 @@ READER;
             return [];
         });
         $updated = $run($args);
+        draftContextCheck('core preflight admits the exact active reader bytes',
+            $run([...$guard, $reader]) === ['ok'=>true, 'status'=>'compatible']);
+        draftContextCheck('core preflight refuses different reader bytes and leaves the active package selected',
+            $run([...$guard, $changedReader], 1) === ['ok'=>false, 'status'=>'incompatible_reader']
+            && $current->invoke($deployment) === $next && $run($args) === $updated);
         fwrite($heldIo[0], "continue\n"); fclose($heldIo[0]);
         $old = stream_get_contents($heldIo[1]); fclose($heldIo[1]);
         $err = stream_get_contents($heldIo[2]); fclose($heldIo[2]);
@@ -155,6 +170,8 @@ READER;
         $indexBytes = file_get_contents($index);
         file_put_contents($index, $indexBytes."\n");
         $rejected = $run($args);
+        draftContextCheck('core preflight treats a corrupt active index as a refusal',
+            $run([...$guard, $reader], 1) === ['ok'=>false, 'status'=>'invalid_active_catalogue']);
         draftContextCheck('active hotel index checksum failure holds instead of reading another version',
             $rejected['native'][0]['reason'] === 'knowledge_unavailable' && $rejected['native'][1]['reason'] === 'knowledge_unavailable'
             && $rejected['retained'][0]['reason'] === 'knowledge_unavailable' && $rejected['retained'][1]['reason'] === 'knowledge_unavailable');
@@ -165,6 +182,8 @@ READER;
         draftContextCheck('foreign operation cannot roll back the hotel packet', $foreign && $run($args) === $updated);
         $result = $deployment->rollbackIndependent($operation);
         $receipt = $releases.'/operations/'.$operation.'.json';
+        draftContextCheck('core preflight accepts the previous package after a verified rollback',
+            $run([...$guard, $reader]) === ['ok'=>true, 'status'=>'compatible']);
         draftContextCheck('existing rollback restores the prior hotel version and emits a receipt',
             $result === ['ok'=>true,'rolled_back'=>true] && $run($args) === $fallback
             && ManagerTourSelectionEditorHost::json($receipt) === ['state'=>'rolled_back','package_id'=>basename($next)]
