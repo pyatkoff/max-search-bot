@@ -88,60 +88,167 @@ function runtimeRead(): void
 }
 
 
-function receiptRead(string $path): array
+function albumStructureRead(DOMDocument $dom, DOMXPath $xp, DOMNode $node, string $url, string $message, string $body): array
 {
-    if (!file_exists($path) && !is_link($path)) return ['state' => 'absent'];
-    requireRead(!is_link($path) && is_file($path) && filesize($path) <= 1_000_000, 'operation_receipt_unreadable');
-    $raw = file_get_contents($path);
-    requireRead(is_string($raw), 'operation_receipt_unreadable');
-    $lines = array_values(array_filter(explode("\n", $raw), static fn($s) => trim($s) !== ''));
-    requireRead(count($lines) <= 500, 'operation_receipt_unbounded');
-    $states = []; $events = [];
-    foreach ($lines as $line) {
-        $record = json_decode($line, true, 32, JSON_THROW_ON_ERROR);
-        $state = $record['state'] ?? '';
-        $states[] = is_string($state) && preg_match('/\A[a-z0-9_:-]{1,100}\z/D', $state) === 1 ? $state : 'unclassified';
-        $safe = ['state'=>end($states)];
-        foreach (['at_utc','reason','publication_id','version_id','provider_write_attempts','plan_sha256'] as $key) {
-            $v=$record[$key]??null;
-            if(is_int($v) || (is_string($v)&&strlen($v)<=100&&preg_match('/\A[a-zA-Z0-9_:T.+-]{1,100}\z/D',$v)===1))$safe[$key]=$v;
-        }
-        if($state==='provider_response_saved') {
-            $response=$record['response']??[];
-            $safe['provider_http']=is_int($response['http']??null)?$response['http']:null;
-            $safe['transport_error']=is_bool($response['transport_error']??null)?$response['transport_error']:null;
-            $safe['provider_ok']=is_bool($response['data']['ok']??null)?$response['data']['ok']:null;
-            $safe['provider_error_code']=is_int($response['data']['error_code']??null)?$response['data']['error_code']:null;
-            $safe['message_id_invalid']=($response['data']['description']??null)==='Bad Request: MESSAGE_ID_INVALID';
-        }
-        if($state==='intent_saved') {
-            $x=$record['execution']??[];
-            $safe['original_native_run_id']=preg_match('/\A[0-9]{1,20}\z/D',$x['native_run_id']??'')?$x['native_run_id']:null;
-            $safe['original_application_sha']=preg_match('/\A[a-f0-9]{40}\z/D',$x['application_sha']??'')?$x['application_sha']:null;
-        }
-        $events[]=$safe;
-    }
-    return ['state' => 'present_do_not_replay', 'sha256' => hash('sha256', $raw), 'line_count' => count($lines), 'states' => $states, 'events'=>$events];
+    $cls=static fn(string $c):string=>'contains(concat(" ",normalize-space(@class)," ")," '.$c.' ")';
+    $texts=$xp->query('.//*['.$cls('tgme_widget_message_text').']',$node);
+    $photos=$xp->query('.//*['.$cls('tgme_widget_message_photo_wrap').']',$node);
+    $other=$xp->query('.//video|.//audio|.//*['.$cls('tgme_widget_message_video_thumb').' or '.$cls('tgme_widget_message_roundvideo').']',$node);
+    $times=$xp->query('.//time[@datetime]',$node);
+    $links=$xp->query('.//a[@href]',$node);
+    requireRead($texts&&$photos&&$other&&$times&&$links&&$texts->length<=6&&$photos->length<=6&&$other->length<=6&&$times->length<=6&&$links->length<=100,'album_structure_unbounded');
+    $captions=[];foreach($texts as $text){$html='';foreach($text->childNodes as $child)$html.=$dom->saveHTML($child);
+        $plain=html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i',"\n",$html)),ENT_QUOTES|ENT_HTML5,'UTF-8');
+        requireRead(mb_check_encoding($plain,'UTF-8')&&mb_strlen($plain,'UTF-8')<=12000,'album_text_unbounded');
+        $captions[]=['text'=>$plain,'sha256'=>hash('sha256',$plain),'owner_data_post'=>$node->getAttribute('data-post')];}
+    $dates=[];foreach($times as $time)$dates[]=$time->getAttribute('datetime');
+    $members=[];$buttons=[];foreach($links as $link){$href=$link->getAttribute('href');
+        if(preg_match('~\Ahttps://t\.me/anytour/(931|932|933|934|935|936)(?:\?[^\s<>]*)?\z~D',$href,$m))$members[]=$m[1];
+        if(str_contains(' '.$link->getAttribute('class').' ',' tgme_widget_message_inline_button '))$buttons[]=['text'=>mb_substr(trim($link->textContent),0,180),'url_sha256'=>hash('sha256',$href)];}
+    $caption=count($captions)===1?$captions[0]['text']:null;
+    return ['url'=>$url,'caption'=>$caption,'caption_sha256'=>$caption===null?null:hash('sha256',$caption),'html_sha256'=>hash('sha256',$body),
+        'published_at'=>count($dates)===1?$dates[0]:null,'published_unixtime'=>count($dates)===1?(new DateTimeImmutable($dates[0]))->getTimestamp():null,
+        'single_photo'=>false,'photo_url'=>'','photo_marker_sha256'=>null,'photo_count'=>$photos->length,'other_media_count'=>$other->length,'buttons'=>$buttons,
+        'format_observation'=>['requested_mid'=>$message,'root_data_post'=>$node->getAttribute('data-post'),'caption_nodes'=>$captions,'dates'=>$dates,
+            'linked_album_mids'=>array_values(array_unique($members)),'caption_mid_confirmed'=>false,'native_album_membership_confirmed'=>false,'keyboard_admission_confirmed'=>false]];
 }
 
-$observed=json_decode('[{"publication_id":3600,"version_id":11845,"message_id":"809","hotel_id":12107,"caption_sha256":"6e34811950abe39d6951f87bc8477b6326fcd1d2bc6a1401fbe9c3abd2627800","button_url":"https://t.me/anyru_bot?start=p_nY39Mjv3PzQmiCjYXbOWgLUd","button_text":"\u2708\ufe0f \u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044c \u043d\u0430 \u043c\u043e\u0438 \u0434\u0430\u0442\u044b","published_at":"2024-08-19T07:46:00+00:00"},{"publication_id":3602,"version_id":11847,"message_id":"1148","hotel_id":3452,"caption_sha256":"e4a789955b08c410bedef1254e3dcdd72a1c3cd7ef3acb73acd36faaed8faf49","button_url":"https://t.me/anyru_bot?start=p_GBgs9ScuVsvXWJXNhHOudn83","button_text":"\u2708\ufe0f \u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044c \u043d\u0430 \u043c\u043e\u0438 \u0434\u0430\u0442\u044b","published_at":"2025-07-13T07:46:39+00:00"},{"publication_id":3621,"version_id":11866,"message_id":"17","hotel_id":132,"caption_sha256":"727e7d0cd6d094c4ed943fdef0225667a7328ff43c00d72e43ae427314a5706c","button_url":"https://t.me/anyru_bot?start=p_-NJMLjoQ_ETN_tNQiOndFfNd","button_text":"\u2708\ufe0f \u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044c \u043d\u0430 \u043c\u043e\u0438 \u0434\u0430\u0442\u044b","published_at":"2023-09-30T15:00:06+00:00"},{"publication_id":3622,"version_id":11867,"message_id":"19","hotel_id":469,"caption_sha256":"960f26d6c8b5c716341a39fb2e8b8185e1832e56273d0b2464224317b814dc98","button_url":"https://t.me/anyru_bot?start=p_nOc9jH-DUifrV4MHuNMbQR39","button_text":"\u2708\ufe0f \u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044c \u043d\u0430 \u043c\u043e\u0438 \u0434\u0430\u0442\u044b","published_at":"2023-10-01T18:23:18+00:00"},{"publication_id":3624,"version_id":11869,"message_id":"37","hotel_id":70048,"caption_sha256":"a462a9c22f118047771591faad4515ad735479054450bad1fb40f2c0dca645e5","button_url":"https://t.me/anyru_bot?start=p_iO0lZZb3gRZfLMpeCEcB28qs","button_text":"\u2708\ufe0f \u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044c \u043d\u0430 \u043c\u043e\u0438 \u0434\u0430\u0442\u044b","published_at":"2023-10-08T07:00:12+00:00"},{"publication_id":3626,"version_id":11871,"message_id":"82","hotel_id":1344,"caption_sha256":"d68501a13b77ba5de1d788d55f0d216870de6681fd23b3459e1ade835e8b5a94","button_url":"https://t.me/anyru_bot?start=p_XMnmab6nfFYauSCTCmZe2meb","button_text":"\u2708\ufe0f \u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044c \u043d\u0430 \u043c\u043e\u0438 \u0434\u0430\u0442\u044b","published_at":"2023-10-22T07:15:00+00:00"},{"publication_id":3627,"version_id":11872,"message_id":"192","hotel_id":260,"caption_sha256":"ce29ee61fd54212ec026a51eb67dc4a319fb6b096dca38a4df6d67f881abd8bc","button_url":"https://t.me/anyru_bot?start=p_BA6YSdmYQBn2LTOeVTfyT4Nf","button_text":"\u2708\ufe0f \u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044c \u043d\u0430 \u043c\u043e\u0438 \u0434\u0430\u0442\u044b","published_at":"2023-11-28T17:45:00+00:00"},{"publication_id":3628,"version_id":11873,"message_id":"196","hotel_id":2493,"caption_sha256":"8de9f87308708dcadfce4758ca5d858a3073970f3a8811225ab0378d98a527f0","button_url":"https://t.me/anyru_bot?start=p_AsFVp4z4J_JlmbNXmu2CKhPx","button_text":"\u2708\ufe0f \u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044c \u043d\u0430 \u043c\u043e\u0438 \u0434\u0430\u0442\u044b","published_at":"2023-11-30T07:15:00+00:00"},{"publication_id":3629,"version_id":11874,"message_id":"204","hotel_id":4181,"caption_sha256":"844d119b604a02d0e20b9a5e94db8ad7eb6d44ac320f6e998c009c190e13a226","button_url":"https://t.me/anyru_bot?start=p_JdrHLHnSkOYHx7JFaIG0LZpk","button_text":"\u2708\ufe0f \u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044c \u043d\u0430 \u043c\u043e\u0438 \u0434\u0430\u0442\u044b","published_at":"2023-12-01T18:00:03+00:00"},{"publication_id":3631,"version_id":11876,"message_id":"414","hotel_id":43676,"caption_sha256":"5e026aaec4439b7c18a538a88baf9b6e49872dc3c2e8fc39a2d6da3c1dbdc4b3","button_url":"https://t.me/anyru_bot?start=p_pJuLnqOfEKIJnQZYIoAz_Fgg","button_text":"\u2708\ufe0f \u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044c \u043d\u0430 \u043c\u043e\u0438 \u0434\u0430\u0442\u044b","published_at":"2024-02-10T12:21:45+00:00"},{"publication_id":3632,"version_id":11877,"message_id":"455","hotel_id":73974,"caption_sha256":"063fcb2e626e839c6fc5d47662e4f17a08c27d312ce3fc914dca42eabbd43ba7","button_url":"https://t.me/anyru_bot?start=p_k771AKDbNHMJuo5B6760KS33","button_text":"\u2708\ufe0f \u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044c \u043d\u0430 \u043c\u043e\u0438 \u0434\u0430\u0442\u044b","published_at":"2024-02-27T06:57:34+00:00"},{"publication_id":3634,"version_id":11879,"message_id":"483","hotel_id":99713,"caption_sha256":"cbbbb62b2c8df800007d96fe24139a76f08c7b5dbf6b6b2eb29613827f828377","button_url":"https://t.me/anyru_bot?start=p_bdWJQJiU2vvdCMnJWxH7I2Ey","button_text":"\u2708\ufe0f \u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044c \u043d\u0430 \u043c\u043e\u0438 \u0434\u0430\u0442\u044b","published_at":"2024-03-11T07:53:49+00:00"},{"publication_id":3672,"version_id":13065,"message_id":"612","hotel_id":253,"caption_sha256":"3fab7b6b11a28c7b2cc07bd1642fc112db1a6ffb2910efcbdc6eec6dea89b781","button_url":"https://t.me/anyru_bot?start=p_Z7JroaPNw2OtOCRhJU0wkE4D","button_text":"\u2708\ufe0f \u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044c \u043d\u0430 \u043c\u043e\u0438 \u0434\u0430\u0442\u044b","published_at":"2024-05-12T10:36:58+00:00"},{"publication_id":3674,"version_id":13067,"message_id":"230","hotel_id":12125,"caption_sha256":"8f9f6bade83f02b50e85042db1d76e0310bfb1bdb33d6c9cdce5b8a6235eefd5","button_url":"https://t.me/anyru_bot?start=p_mKEYgVBSxa2-U0--KBjpL_S4","button_text":"\u2708\ufe0f \u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044c \u043d\u0430 \u043c\u043e\u0438 \u0434\u0430\u0442\u044b","published_at":"2023-12-11T07:54:15+00:00"},{"publication_id":3675,"version_id":13068,"message_id":"237","hotel_id":547,"caption_sha256":"221dae549e0554b218dda732b0ba01799bfd5e8631a8a8f44fc5c9a008c5738d","button_url":"https://t.me/anyru_bot?start=p_Ij2wd8r3kHNa_gB7-F00Xq52","button_text":"\u2708\ufe0f \u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044c \u043d\u0430 \u043c\u043e\u0438 \u0434\u0430\u0442\u044b","published_at":"2023-12-13T15:24:34+00:00"},{"publication_id":3680,"version_id":13073,"message_id":"277","hotel_id":341,"caption_sha256":"4bd1b4f10b601fd8791983316fd387d27f34dcd14e0c27971c9e550ec830c697","button_url":"https://t.me/anyru_bot?start=p_Sxorh2MILY_Cpvu0BW7EiGPi","button_text":"\u2708\ufe0f \u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044c \u043d\u0430 \u043c\u043e\u0438 \u0434\u0430\u0442\u044b","published_at":"2023-12-26T15:25:14+00:00"},{"publication_id":3682,"version_id":13075,"message_id":"325","hotel_id":132016,"caption_sha256":"950cad41305c64dfb43e782b78c303dc17a352fa3acc7a577d513078e462a9ce","button_url":"https://t.me/anyru_bot?start=p_vcy9NZZwXaVtvOrRkPoyQGMK","button_text":"\u2708\ufe0f \u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044c \u043d\u0430 \u043c\u043e\u0438 \u0434\u0430\u0442\u044b","published_at":"2024-01-12T12:09:02+00:00"},{"publication_id":3684,"version_id":13077,"message_id":"805","hotel_id":4079,"caption_sha256":"11f6b8083d3be8162ec039464cb6a0feca27648594b616d3ff71ff32b33947ab","button_url":"https://t.me/anyru_bot?start=p_kxf8Ybu5hX_5CND_q7Y9RgLH","button_text":"\u2708\ufe0f \u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044c \u043d\u0430 \u043c\u043e\u0438 \u0434\u0430\u0442\u044b","published_at":"2024-08-15T07:48:50+00:00"}]',true,32,JSON_THROW_ON_ERROR);
-$out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_telegram_unknown_evidence_read','ok'=>false,'repository_sha'=>REPOSITORY_SHA,'application_sha'=>APPLICATION_SHA,'native_run_id'=>NATIVE_RUN_ID,'write_admission'=>false,'production_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,'rows'=>[]];
-$pdo=null;$lock=null;$acquired=null;$stage='runtime';$start=hrtime(true);
-try{
- runtimeRead();requireRead(realpath(OPERATIONS)===OPERATIONS,'operations_root_changed');$out['public_evidence_artifacts']=[15012438524,15013182107];$out['resources_before']=resourcesRead();
- $path=OPERATIONS.'/monitor-price-after-collection-v1.jsonl';requireRead(!is_link($path)&&is_file($path),'price_editor_lease_unknown');$lock=fopen($path,'rb');requireRead(is_resource($lock),'price_read_lease_unavailable');
- $wait=hrtime(true);requireRead(flock($lock,LOCK_SH|LOCK_NB),'price_editor_busy_or_unknown');$acquired=hrtime(true);$out['price_lease_wait_ms']=(int)(($acquired-$wait)/1000000);runtimeRead();
- $stage='configuration';ob_start();try{require APP.'/config.php';require_once APP.'/services/ProjectConfig.php';require_once APP.'/services/ChannelPostRegistryService.php';require_once APP.'/services/ChannelPostButtonTransport.php';}finally{ob_end_clean();}
- requireRead(ProjectConfig::projectId()==='anytour','project_changed');$pdo=ConversationDb::connection();$pdo->exec('SET SESSION TRANSACTION READ ONLY');$registry=new ChannelPostRegistryService($pdo);
- $target=$registry->channel('anytour','telegram','anyru_bot','-1001845835645');requireRead(is_array($target)&&(int)$target['id']===6&&$target['source_key']==='tg_anytour_msk','channel_identity_changed');
- $out['mysql_before']=mysqlResourcesRead($pdo);$stage='pending_read';$pdo->beginTransaction();
+function parsePublicRead(string $body, string $channel, string $message): array
+{
+    $url = 'https://t.me/' . $channel . '/' . $message;
+    $doc = new DOMDocument('1.0', 'UTF-8');
+    $prior = libxml_use_internal_errors(true);
+    try { $loaded = $doc->loadHTML($body, LIBXML_NONET); }
+    finally { libxml_clear_errors(); libxml_use_internal_errors($prior); }
+    requireRead($loaded, 'public_post_invalid');
+    $xp = new DOMXPath($doc);
+    $nodes = $xp->query('//*[@data-post="' . $channel . '/' . $message . '"]');
+    requireRead($nodes && $nodes->length === 1, 'public_identity_changed');
+    $node = $nodes->item(0);
+    if($channel==='anytour' && in_array($message,['931','932','933','934','935','936'],true)) return albumStructureRead($doc,$xp,$node,$url,$message,$body);
+    $cls = static fn(string $c): string => 'contains(concat(" ",normalize-space(@class)," ")," ' . $c . ' ")';
+    $text = $xp->query('.//*[' . $cls('tgme_widget_message_text') . ']', $node);
+    $photos = $xp->query('.//*[' . $cls('tgme_widget_message_photo_wrap') . ']', $node);
+    $dates = $xp->query('.//time[@datetime]', $node);
+    $other = $xp->query('.//video|.//audio|.//*[' . $cls('tgme_widget_message_video_thumb')
+        . ' or ' . $cls('tgme_widget_message_roundvideo') . ' or ' . $cls('tgme_widget_message_grouped') . ']', $node);
+    requireRead($text && $photos && $dates && $other && $text->length === 1 && $dates->length === 1,
+        'public_caption_or_date_unavailable');
+    $html = '';
+    foreach ($text->item(0)->childNodes as $child) $html .= $doc->saveHTML($child);
+    $caption = html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i', "\n", $html)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    requireRead($caption !== '' && mb_check_encoding($caption, 'UTF-8') && mb_strlen($caption, 'UTF-8') <= 12000,
+        'public_caption_invalid');
+    $single = $photos->length === 1 && $other->length === 0;
+    $photo = $single ? $photos->item(0) : null;
+    $marker = $photo ? trim($photo->getAttribute('class')) : '';
+    $photoUrl = '';
+    if ($photo && $photo->getAttribute('href') === $url
+        && preg_match('/(?:^|\s)[0-9]{5,}(?:_[0-9]+)?(?:\s|$)/D', $marker) === 1
+        && preg_match('~background-image:\s*url\([\'"]?(https://[^\'")]+)[\'"]?\)~', $photo->getAttribute('style'), $match) === 1) {
+        $parsed = parse_url($match[1]);
+        if (is_array($parsed) && ($parsed['scheme'] ?? '') === 'https'
+            && preg_match('/\A(?:[a-z0-9-]+\.)*(?:cdn-telegram\.org|telegram-cdn\.org|telesco\.pe)\z/D', $parsed['host'] ?? '') === 1
+            && !isset($parsed['user']) && !isset($parsed['pass']) && !isset($parsed['port'])) $photoUrl = $match[1];
+    }
+    $buttons = [];
+    $links = $xp->query('.//a[' . $cls('tgme_widget_message_inline_button') . ']', $node);
+    requireRead($links && $links->length <= 20, 'public_keyboard_unbounded');
+    foreach ($links as $link) {
+        $href = $link->getAttribute('href');
+        $buttons[] = ['text' => trim($link->textContent),
+            'hotel_url' => preg_match('~\Ahttps://t\.me/anyru_bot\?start=p_[A-Za-z0-9_-]{8,60}\z~D', $href) === 1 ? $href : null,
+            'url_sha256' => hash('sha256', $href)];
+    }
+    $captionLinks = [];
+    $anchors = $xp->query('.//a[@href]', $text->item(0));
+    if ($anchors) foreach ($anchors as $anchor) {
+        if (count($captionLinks) >= 40) break;
+        $href = $anchor->getAttribute('href');
+        $captionLinks[] = ['text'=>mb_substr(trim($anchor->textContent),0,180),
+            'url_sha256'=>hash('sha256',$href),
+            'public_bot_url'=>preg_match('~\\Ahttps://t\\.me/anyru_bot\\?start=(?:tg_anytour_msk|p_[A-Za-z0-9_-]{8,60})\\z~D',$href) === 1 ? $href : null];
+    }
+    $documentAnchors = [];
+    $documentLinks = $xp->query('//a[@href]');
+    if ($documentLinks) foreach ($documentLinks as $anchor) {
+        if (count($documentAnchors) >= 80) break;
+        $href = $anchor->getAttribute('href');
+        $documentAnchors[] = ['text'=>mb_substr(trim($anchor->textContent),0,180),
+            'class'=>substr($anchor->getAttribute('class'),0,256), 'url_sha256'=>hash('sha256',$href),
+            'public_start_url'=>preg_match('~\Ahttps://t\.me/[A-Za-z0-9_]{5,32}\?start=[A-Za-z0-9_-]{1,128}\z~D',$href)===1 ? $href : null];
+    }
+    return ['url' => $url, 'caption' => $caption, 'caption_sha256' => hash('sha256', $caption),
+        'html_sha256' => hash('sha256', $body), 'published_at' => $dates->item(0)->getAttribute('datetime'),
+        'published_unixtime' => (new DateTimeImmutable($dates->item(0)->getAttribute('datetime')))->getTimestamp(),
+        'single_photo' => $single && $photoUrl !== '', 'photo_url' => $photoUrl,
+        'photo_count' => $photos->length, 'other_media_count' => $other->length, 'caption_links'=>$captionLinks,
+        'document_anchors'=>$documentAnchors, 'document_anchors_truncated'=>$documentLinks && $documentLinks->length>80,
+        'photo_marker_sha256' => $marker !== '' ? hash('sha256', $marker) : null, 'buttons' => $buttons];
+}
 
- foreach($observed as $o){$row=['publication_id'=>$o['publication_id'],'version_id'=>$o['version_id'],'message_id'=>$o['message_id'],'write_admission'=>false];try{
-  $r=$registry->publication($o['publication_id']);requireRead(is_array($r)&&$r['project_key']==='anytour'&&$r['platform']==='telegram'&&$r['bot_key']==='anyru_bot'&&(int)$r['channel']['id']===6&&$r['version_id']===$o['version_id']&&$r['message_id']===$o['message_id'],'publication_identity_changed');
-  $snapshot=$r['snapshot'];$receipt=$r['receipt'];requireRead($r['state']==='unknown','original_unknown_state_changed');requireRead(preg_match('~\Ahttps://t\.me/anyru_bot\?start=(p_[A-Za-z0-9_-]{24})\z~D',$o['button_url'],$m)===1,'observed_button_invalid');
-  $context=$registry->resolveToken('anytour','telegram','anyru_bot',$m[1]);
-  $row+=['state'=>$r['state'],'error_reason'=>$r['error_reason'],'write_attempts'=>$r['write_attempts'],'attempt_count'=>$r['attempt_count'],'claim_present'=>$r['claim_token']!==null||$r['claimed_at']!==null,'hotel_id'=>$snapshot['metadata']['hotel_catalog_id']??null,'caption_equal'=>hash('sha256',$snapshot['text']??'')===$o['caption_sha256'],'published_at'=>$snapshot['published_at']??null,'observed_public_date'=>$o['published_at'],'expected_button_equal'=>ChannelPostButtonTransport::buttonUrl($r)===$o['button_url'],'observed_button_url'=>$o['button_url'],'receipt_sha256'=>hash('sha256',jsonRead($receipt)),'receipt_content_preserved'=>$receipt['content_preserved']??null,'receipt_button_verified'=>$receipt['button_verified']??null,'context_same_publication_version'=>is_array($context)&&$context['publication_id']===$r['publication_id']&&$context['version_id']===$r['version_id'],'context_hotel_id'=>$context['snapshot']['metadata']['hotel_catalog_id']??null,'context_source_id'=>$context['source_id']??null,'context_source_key'=>$context['channel']['source_key']??null,'photo_unique_hashes'=>array_map(static fn($a)=>empty($a['file_unique_id'])?null:hash('sha256',$a['file_unique_id']),$snapshot['attachments']??[]),'original_content_journal'=>receiptRead(OPERATIONS.'/issue-1566-edit-existing-'.$r['publication_id'].'.jsonl')];
- }catch(Throwable $e){$row['hold_reason']=reasonRead($e);}$out['rows'][]=$row;}
+function corroborateTargetKeyboard(array $embedded, array $archive): array
+{
+    requireRead($embedded['url'] === $archive['url']
+        && $embedded['published_unixtime'] === $archive['published_unixtime']
+        && $embedded['caption_sha256'] === $archive['caption_sha256'],
+        'target_keyboard_archive_identity_changed');
+    requireRead($embedded['buttons'] === [] || $embedded['buttons'] === $archive['buttons'],
+        'target_keyboard_archive_changed');
+    $embedded['buttons'] = $archive['buttons'];
+    $embedded['target_keyboard_archive_verified'] = true;
+    return $embedded;
+}
+
+
+const INSTALLED_BLOBS=[
+ '.github/workflows/edit-1566-ranked-46-historical-telegram.yml'=>'bf59d830df21fe9bc1cc4ba46d5ea01d14a4c972',
+ 'tests/run_channel_post_automation_regression.php'=>'2d64bee3b446bb3569356e1d46b22ce4f8733786',
+ 'tools/anytour_existing_post_batch.php'=>'444ba4561802ae96e9c65bb5c9e85b731e61022d',
+];
+const SMALL_CAPTION_SCOPE=[
+ 102203=>['telegram'=>'1561','max'=>'AaHwVf1OCGc'],
+ 37931=>['telegram'=>'1554','max'=>'AaHwVbsRYzs'],
+ 102201=>['telegram'=>'1580','max'=>'AaHwWbJMJac'],
+];
+const PREPARED_PAIRS=[
+ 8094=>['source'=>'905','source_publication'=>1951,'target'=>'567','target_date'=>1713769144,'target_caption'=>'37fd47408b3e74a0dff1233df09f1f45ce5b94f3aa5a0b05c7a1f88fbffb4870','target_photo'=>'07989c88a8f257d8580905c1b368649dca1b00099b531c173b048f0930141a4a'],
+ 73082=>['source'=>'1025','source_publication'=>2204,'target'=>'588','target_date'=>1714555735,'target_caption'=>'80a7b342b26fdf2f1310fc1125d5f8549c18f0cc8b350013f3d11823a033a252','target_photo'=>'d5abd6334904eb43a00a531e64b5e812775524df8d7547e28c09087f130ec7c5'],
+];
+function captionPublicBytes(string $url,array &$rates):array{
+ $host=(string)parse_url($url,PHP_URL_HOST);if(isset($rates[$host]))return ['ok'=>false,'reason'=>'public_retry_after_held','retry_after'=>$rates[$host],'http_attempts'=>0];
+ $body='';$retry=null;$c=curl_init($url);curl_setopt_array($c,[CURLOPT_FOLLOWLOCATION=>false,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,CURLOPT_CONNECTTIMEOUT=>5,CURLOPT_TIMEOUT=>15,CURLOPT_USERAGENT=>'Mozilla/5.0',CURLOPT_HEADERFUNCTION=>static function($c,string $line)use(&$retry):int{if(stripos($line,'retry-after:')===0)$retry=trim(substr($line,12));return strlen($line);},CURLOPT_WRITEFUNCTION=>static function($c,string $chunk)use(&$body):int{if(strlen($body)+strlen($chunk)>1000000)return 0;$body.=$chunk;return strlen($chunk);}]);$ok=curl_exec($c)!==false&&curl_errno($c)===0;$status=(int)curl_getinfo($c,CURLINFO_HTTP_CODE);curl_close($c);
+ if($status===429)$rates[$host]=publicRetryLimit($retry,time());return ['ok'=>$ok&&$status===200,'http'=>$status,'body'=>$body,'body_sha256'=>hash('sha256',$body),'http_attempts'=>1,'retry_after'=>$status===429?$rates[$host]:null];
+}
+$out=['schema'=>1,'operation'=>'hotel_1720_installed_read_and_existing_small_caption_context','ok'=>false,'repository_sha'=>REPOSITORY_SHA,'application_sha'=>APPLICATION_SHA,'native_run_id'=>NATIVE_RUN_ID,'write_admission'=>false,'production_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,'installed_blobs'=>[],'public_rows'=>[],'native_rows'=>[],'pair_public'=>[],'pair_native'=>[]];
+$pdo=null;$lock=null;$acquired=null;$stage='installed_runtime';$start=hrtime(true);$rates=[];
+try{
+ runtimeRead();requireRead(realpath(OPERATIONS)===OPERATIONS,'operations_root_changed');
+ foreach(INSTALLED_BLOBS as $path=>$expected){$lines=[];exec('GIT_OPTIONAL_LOCKS=0 git rev-parse '.escapeshellarg('HEAD:'.$path).' 2>/dev/null',$lines,$status);$actual=implode("\n",$lines);requireRead($status===0&&$actual===$expected,'installed_keyboard_guard_source_changed');$worktree=null;if($path==='tools/anytour_existing_post_batch.php'){$lines=[];exec('GIT_OPTIONAL_LOCKS=0 git hash-object -- '.escapeshellarg($path).' 2>/dev/null',$lines,$status);$worktree=implode("\n",$lines);requireRead($status===0&&$worktree===$expected,'installed_keyboard_guard_changed');}$out['installed_blobs'][$path]=['installed_git_blob'=>$actual,'actual_editor_worktree_blob'=>$worktree];}
+ $out['resources_before']=resourcesRead();$stage='public_caption_read';
+ // Independent public reads precede both SQL transaction and shared PRICE lease.
+ foreach(SMALL_CAPTION_SCOPE as $hotel=>$ids)foreach(['telegram','max'] as $platform){$url=$platform==='telegram'?'https://t.me/any_toour/'.$ids[$platform].'?embed=1&mode=tme':'https://max.ru/channel_anytour/'.$ids[$platform];$r=captionPublicBytes($url,$rates);$row=['hotel_id'=>$hotel,'platform'=>$platform,'url'=>$url,'http'=>$r['http']??null,'http_attempts'=>$r['http_attempts'],'raw_sha256'=>$r['body_sha256']??null,'retry_after'=>$r['retry_after']??null,'ok'=>false];
+  if($r['ok'])try{if($platform==='telegram'){$seen=parsePublicRead($r['body'],'any_toour',$ids[$platform]);$row['public']=$seen;$row['ok']=true;}else{require_once APP.'/services/PromotedHotelPriceWriter.php';$caption=PromotedHotelPriceWriter::maxPublicCaption($r['body']);$row['caption']=$caption;$row['caption_sha256']=hash('sha256',$caption);$row['native_photo_button_verified']=false;$row['ok']=true;}}catch(Throwable $e){$row['hold_reason']=reasonRead($e);}else$row['hold_reason']=$r['reason']??'public_caption_unavailable';$out['public_rows'][]=$row;
+ }
+ ob_start();try{require APP.'/config.php';require_once APP.'/services/ProjectConfig.php';require_once APP.'/services/ChannelPostRegistryService.php';require_once APP.'/services/ChannelPostButtonTransport.php';}finally{ob_end_clean();}requireRead(ProjectConfig::projectId()==='anytour','project_changed');
+
+ foreach(PREPARED_PAIRS as $hotel=>$pair){$out['pair_public'][$hotel]=[];foreach(['source'=>'any_toour','target'=>'anytour'] as $which=>$channel){$snapshots=[];foreach(['embed','archive'] as $kind){$url=$kind==='embed'?'https://t.me/'.$channel.'/'.$pair[$which].'?embed=1&mode=tme':'https://t.me/s/'.$channel.'?before='.((int)$pair[$which]+1);$r=captionPublicBytes($url,$rates);try{requireRead($r['ok'],'pair_public_unavailable');$snapshots[$kind]=parsePublicRead($r['body'],$channel,$pair[$which]);}catch(Throwable $e){$snapshots[$kind]=['ok'=>false,'reason'=>reasonRead($e),'http'=>$r['http']??null,'retry_after'=>$r['retry_after']??null];}}
+ try{requireRead(isset($snapshots['embed']['url'],$snapshots['archive']['url']),'pair_public_representation_unavailable');$combined=corroborateTargetKeyboard($snapshots['embed'],$snapshots['archive']);$combined['ok']=true;$out['pair_public'][$hotel][$which]=$combined;}catch(Throwable $e){$out['pair_public'][$hotel][$which]=['ok'=>false,'reason'=>reasonRead($e)];}}
+ }
+ require_once APP.'/hotel-posts-telegram-main19.php';$feed=anytourTelegramFeedOfferUrls(anytourTelegramFeedRead());$routes=anytourTelegramFeedDestinationPosts($feed);$out['feed_count']=count($feed);
+ $pdo=ConversationDb::connection();$pdo->exec('SET SESSION TRANSACTION READ ONLY');$registry=new ChannelPostRegistryService($pdo);$channel=$registry->channel('anytour','telegram','anyru_bot','-1002262666616');requireRead(is_array($channel)&&(int)$channel['id']===10,'small_channel_identity_changed');try{require_once APP.'/services/ChannelPostRuntime.php';require_once APP.'/tools/anytour_existing_post_batch.php';$rights=\AnyTour\ExistingPostBatch\transferChannelRights($registry);$out['native_channel_rights']=['ok'=>true,'state'=>'ready','channel_registry_id'=>(int)$rights['id'],'per_message_editability_guaranteed'=>false];}catch(Throwable $e){$out['native_channel_rights']=['ok'=>false,'reason'=>reasonRead($e),'per_message_editability_guaranteed'=>false];}
+ $stage='price_shared_lease';$path=OPERATIONS.'/monitor-price-after-collection-v1.jsonl';requireRead(!is_link($path)&&is_file($path),'price_editor_lease_unknown');$lock=fopen($path,'rb');requireRead(is_resource($lock),'price_read_lease_unavailable');$wait=hrtime(true);requireRead(flock($lock,LOCK_SH|LOCK_NB),'price_editor_busy_or_unknown');$acquired=hrtime(true);$out['price_lease_wait_ms']=(int)(($acquired-$wait)/1000000);runtimeRead();
+$out['mysql_before']=mysqlResourcesRead($pdo);$pdo->beginTransaction();$stage='small_native_context';
+ foreach(SMALL_CAPTION_SCOPE as $hotel=>$ids){$row=['hotel_id'=>$hotel,'message_id'=>$ids['telegram'],'ok'=>false];try{$q=$pdo->prepare('SELECT id FROM post_publications WHERE post_channel_id=10 AND external_message_id=? LIMIT 2');$q->execute([$ids['telegram']]);$found=$q->fetchAll(PDO::FETCH_COLUMN);requireRead(count($found)===1,'small_publication_unconfirmed');$p=$registry->publication((int)$found[0]);requireRead(is_array($p)&&$p['platform']==='telegram'&&$p['bot_key']==='anyru_bot'&&$p['message_id']===$ids['telegram'],'small_publication_identity_changed');$s=$p['snapshot'];$row+=['publication_id'=>$p['publication_id'],'version_id'=>$p['version_id'],'state'=>$p['state'],'native_hotel_id'=>$s['metadata']['hotel_catalog_id']??null,'logical_id'=>$s['metadata']['logical_id']??null,'caption'=>$s['text'],'caption_sha256'=>hash('sha256',$s['text']),'entities'=>$s['entities']??null,'published_at'=>$s['published_at']??null,'button_url'=>ChannelPostButtonTransport::buttonUrl($p),'attachment_types'=>array_column($s['attachments']??[],'type'),'photo_unique_hashes'=>array_map(static fn($a)=>empty($a['file_unique_id'])?null:hash('sha256',$a['file_unique_id']),$s['attachments']??[])];$row['ok']=true;}catch(Throwable $e){$row['hold_reason']=reasonRead($e);}$out['native_rows'][]=$row;}
+
+ foreach(PREPARED_PAIRS as $hotel=>$pair){$row=['hotel_id'=>$hotel,'source_message_id'=>$pair['source'],'target_message_id'=>$pair['target'],'write_admission'=>false];try{$source=$registry->publication($pair['source_publication']);requireRead(is_array($source)&&$source['project_key']==='anytour'&&$source['platform']==='telegram'&&$source['bot_key']==='anyru_bot'&&(int)$source['channel']['id']===10&&$source['message_id']===$pair['source'],'pair_source_identity_changed');$snapshot=$source['snapshot'];
+ $q=$pdo->prepare('SELECT id FROM post_publications WHERE post_channel_id=6 AND external_message_id=? LIMIT 2');$q->execute([$pair['target']]);$targets=$q->fetchAll(PDO::FETCH_COLUMN);
+ $q=$pdo->prepare("SELECT p.id FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id WHERE p.post_channel_id=6 AND (JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id'))=? OR JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.logical_id')) IN (?,?)) LIMIT 2");$q->execute([(string)$hotel,'commercial-hotel-'.$hotel.'-v1','commercial-main-hotel-'.$hotel.'-v1']);$duplicates=$q->fetchAll(PDO::FETCH_COLUMN);
+ $q=$pdo->prepare("SELECT id FROM post_versions WHERE publication_id=? AND (state IN ('claimed','write_started','unknown') OR claim_token IS NOT NULL OR claimed_at IS NOT NULL) LIMIT 2");$q->execute([$pair['source_publication']]);$held=$q->fetchAll(PDO::FETCH_COLUMN);
+ $sp=$out['pair_public'][$hotel]['source'];$tp=$out['pair_public'][$hotel]['target'];$button=ChannelPostButtonTransport::buttonUrl($source);$context=$registry->resolveToken('anytour','telegram','anyru_bot',$source['start_payload']);$directory=OPERATIONS.'/anytour-issue1566-historical-tg-media-'.$pair['target'].'-v1';$media=$snapshot['attachments']??[];
+ $checks=['source_native_identity'=>$source['state']==='sent'&&(int)($snapshot['metadata']['hotel_catalog_id']??0)===$hotel,'source_public_body'=>(($sp['ok']??false)&&($sp['single_photo']??false)&&($sp['caption_sha256']??null)===hash('sha256',$snapshot['text'])),'source_one_live_button'=>(($sp['ok']??false)&&count($sp['buttons']??[])===1&&($sp['buttons'][0]['hotel_url']??null)===$button),'source_token_context'=>is_array($context)&&$context['publication_id']===$source['publication_id']&&$context['version_id']===$source['version_id'],'source_photo'=>count($media)===1&&($media[0]['type']??null)==='image'&&!empty($media[0]['telegram_file_id'])&&!empty($media[0]['file_unique_id']),'source_no_writer'=>$held===[],'target_no_registry_or_duplicate'=>$targets===[]&&$duplicates===[],'target_no_prior_media_operation'=>!file_exists($directory)&&!is_link($directory),'target_preimage'=>(($tp['ok']??false)&&($tp['single_photo']??false)&&($tp['caption_sha256']??null)===$pair['target_caption']&&($tp['published_unixtime']??null)===$pair['target_date']&&($tp['photo_marker_sha256']??null)===$pair['target_photo']),'target_no_keyboard'=>(($tp['ok']??false)&&($tp['buttons']??null)===[]),'canonical_feed_and_route'=>($feed['tg_'.$hotel]??null)==='https://t.me/any_toour/'.$pair['source']&&($routes['tg_'.$hotel]??null)==='https://t.me/any_toour/'.$pair['source']&&!in_array('https://t.me/anytour/'.$pair['target'],$routes,true),'native_channel_rights'=>($out['native_channel_rights']['ok']??false)];
+ $row+=['source_publication_id'=>$source['publication_id'],'source_version_id'=>$source['version_id'],'source_content_hash'=>$source['content_hash'],'source_caption'=>$snapshot['text'],'source_caption_sha256'=>hash('sha256',$snapshot['text']),'source_photo_file_id_sha256'=>count($media)===1?hash('sha256',$media[0]['telegram_file_id']??''):null,'source_photo_file_unique_id_sha256'=>count($media)===1?hash('sha256',$media[0]['file_unique_id']??''):null,'checks'=>$checks,'prepared_checks_pass'=>!in_array(false,$checks,true),'target_native_ids'=>$targets,'hotel_duplicate_publication_ids'=>$duplicates,'native_writer_ids'=>$held,'advertising_scope'=>'canonical existing feed and resolver; no advertiser campaign changes'];
+ }catch(Throwable $e){$row['hold_reason']=reasonRead($e);}$out['pair_native'][]=$row;}
  $pdo->rollBack();$out['mysql_after']=mysqlResourcesRead($pdo);runtimeRead();$out['ok']=true;
 }catch(Throwable $e){$out['failure_stage']=$stage;$out['failure_reason']=reasonRead($e);}
 finally{if($pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();if(is_resource($lock)){if($acquired!==null)$out['price_lease_held_ms']=(int)((hrtime(true)-$acquired)/1000000);flock($lock,LOCK_UN);fclose($lock);}}
