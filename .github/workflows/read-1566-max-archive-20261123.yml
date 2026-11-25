@@ -1,4 +1,4 @@
-name: "#1566 Re-read the bound MAX editor release after diagnostics advanced"
+name: "#1566 Check release 1728 with its exact existing publisher binding"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -17,7 +17,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.event.forced == false &&
-      github.event.before == '100a04d6ad6d812b24a5dd993c32de18b05adb21' &&
+      github.event.before == '9a568f8eb06c92558045ccbda50777e49a153387' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
@@ -57,7 +57,7 @@ jobs:
             }
             const publisher=await api('GET',root+'/issues/comments/6818332618');
             if(publisher.user.id!==226193297||publisher.body!=='PR1728: выпуск занят'||publisher.updated_at!=='2026-11-25T20:41:12Z')throw Error('own_publisher_changed');
-            const result=await P.runGuard({env:process.env,fetchImpl:fetch,admission:{repository:'pyatkoff/max-search-bot',prNumber:1728,headSha:head,baseSha:base}});
+            const result=await P.runGuard({env:process.env,fetchImpl:fetch,admission:{repository:'pyatkoff/max-search-bot',prNumber:1728,headSha:head,baseSha:base,publisher:{comment_id:publisher.id,owner_id:publisher.user.id,updated_at:publisher.updated_at}}});
             fs.writeFileSync('pub/admission.json',JSON.stringify({read_only:true,provider_writes:0,production_writes:0,pr:1728,head,base,checks,publisher:{id:publisher.id,owner:publisher.user.id,body:publisher.body,updated_at:publisher.updated_at},result,checked_at_utc:new Date().toISOString()})+'\n');
             console.log(JSON.stringify({read_only:true,pr:1728,head,base,result}));
             if(!result.allowed)throw Error('ordinary_admission_refused');
