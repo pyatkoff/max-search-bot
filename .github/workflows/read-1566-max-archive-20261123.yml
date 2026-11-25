@@ -1,4 +1,4 @@
-name: "#1566 Read the original hotel and public links in the commercial Phuket album"
+name: "#1566 Check the identity of the Ras Al Khaimah reserve album in both live feeds"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -15,66 +15,66 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == 'ec6f573096187f7fc8813777379c7f864afe61ed' && github.run_attempt == 1
+      github.event.before == '813b4d94d0ad8661a1e5396fd1a5de4cbe5dd9ef' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - name: Read each same public MAX address independently
+      - name: Inspect only current offer identities and context macros
+        shell: bash
         run: |
           set -euo pipefail
           umask 077
           mkdir pub
           python3 - <<'PY'
-          import json,urllib.request,urllib.error,hashlib,re,time
-          from html.parser import HTMLParser
+          import base64,hashlib,json,pathlib,re,urllib.request,xml.etree.ElementTree as ET
           from concurrent.futures import ThreadPoolExecutor
-          from pathlib import Path
           from datetime import datetime,timezone
-          from urllib.parse import urlparse,parse_qs
-          target="https://max.ru/anytour/AZwEq2zVLGY"
-          class Page(HTMLParser):
-              def __init__(self):
-                  super().__init__(convert_charrefs=True)
-                  self.parts=[]; self.hide=0; self.meta={}
-              def handle_starttag(self,t,a):
-                  if t in ('script','style'): self.hide+=1
-                  if t=='meta':
-                      d=dict(a)
-                      key=d.get('property') or d.get('name')
-                      if key: self.meta[key]=d.get('content','')
-              def handle_endtag(self,t):
-                  if t in ('script','style') and self.hide: self.hide-=1
-              def handle_data(self,v):
-                  if not self.hide and v.strip(): self.parts.append(v.strip())
-          def norm(v):
-              return re.sub(r'\s+',' ',v).strip()
-          req=urllib.request.Request(target,headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
-          with urllib.request.urlopen(req,timeout=10) as r:
-              raw=r.read(3000001)
-              assert r.status==200 and r.geturl()==target and len(raw)<=3000000
-          p=Page()
-          p.feed(raw.decode('utf-8'))
-          visible=norm('\n'.join(p.parts).split('Другие публикации канала',1)[0])
-          class Links(HTMLParser):
-              def __init__(self):
-                  super().__init__()
-                  self.urls=[]
-              def handle_starttag(self,tag,attrs):
-                  if tag=='a':
-                      href=dict(attrs).get('href','')
-                      if href.startswith('https://'): self.urls.append(href)
-          anchors=Links();anchors.feed(raw.decode('utf-8'))
-          out=dict(url=target,text_excerpt=visible[:2200],preview_image=bool(p.meta.get("og:image")),
-                   outbound_hosts=sorted({urlparse(h).hostname for h in anchors.urls if urlparse(h).hostname not in ('max.ru','apps.apple.com','play.google.com')}),
-                   has_attribution_markers=any(re.search(r'ctx1_|yclid|region_id|campaign_id|/channel_anytour/|/any_toour/',h,re.I) for h in anchors.urls),
-                   writes=0,ad_clicks=0,raw_sha256=hashlib.sha256(raw).hexdigest(),
-                   observed_utc=datetime.now(timezone.utc).isoformat())
-          Path('pub/observation.json').write_text(json.dumps(out,ensure_ascii=False))
-          print('MAX_ALBUM_ORIGINAL_PUBLIC_READ='+json.dumps(out,ensure_ascii=False,separators=(',',':')))
+          urls={'max':'https://app.anytoour.ru/feed/hotel-posts-max.xml',
+                'all':'https://app.anytoour.ru/feed/hotel-posts-all.xml'}
+          identity=re.compile(r'(?:\bSO\s*/?\s*(?:Ras[\s-]+Al[\s-]+Khaimah|Рас[\s-]+Аль[\s-]+Хайма)|\bSO\s*/\s*Ras\b)',re.I)
+          known={'max_107938','max_954','max_73055'}
+          def inspect(entry):
+              label,url=entry
+              req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
+              with urllib.request.urlopen(req,timeout=12) as r:
+                  assert r.status==200 and r.geturl()==url
+                  raw=r.read(8000001)
+              assert 0<len(raw)<=8000000 and b'<!DOCTYPE' not in raw.upper()
+              offers=ET.fromstring(raw).findall('./shop/offers/offer')
+              seen=set()
+              rows=[]
+              near=[]
+              for offer in offers:
+                  offer_id=offer.get('id')
+                  assert offer_id and offer_id not in seen
+                  seen.add(offer_id)
+                  if not offer_id.startswith("max_"):
+                      continue
+                  title=offer.findtext('name','')
+                  names=" ".join([title,offer.findtext('model','')]+[(x.text or '') for x in offer.findall('param')])
+                  test=offer_id in known or bool(identity.search(names))
+                  if not test and title and re.search(r'Ras\s+Al\s+Khaimah|Рас[- ]эль[- ]Хайм',title,re.I):
+                      near.append({'offer_id':offer_id,'name':title[:160]})
+                  if not test:
+                      continue
+                  href=offer.findtext('url','')
+                  token=re.search(r'_ctx1_([A-Za-z0-9_-]+)',href)
+                  c=json.loads(base64.urlsafe_b64decode(token[1]+'='*(-len(token[1])%4))) if token else {}
+                  item={'offer_id':offer_id,'name':title[:170],'exact_brand_match':bool(identity.search(names)),
+                        'context_offer_matches':c.get('offer_id')==offer_id,'source_alias':c.get('post_id'),
+                        'has_attribution_macros':all(k in href for k in ('{yclid}','{campaign_id}','{region_id}')),
+                        'ad_url_sha256':hashlib.sha256(href.encode()).hexdigest() if href else None,
+                        'image_present':bool(offer.findtext('picture',''))}
+                  rows.append(item)
+              return label,{'offer_count':len(seen),'exact_and_reference_rows':rows,'other_ras_titles':near[:12]}
+          with ThreadPoolExecutor(max_workers=2) as pool:
+              reads=dict(pool.map(inspect,urls.items()))
+          out={'observed_utc':datetime.now(timezone.utc).isoformat(),'reads':reads,'ad_clicks':0,'writes':0}
+          pathlib.Path('pub/observed.json').write_text(json.dumps(out,ensure_ascii=False))
+          print('MAX_ALBUM_EXACT_FEED_READ='+json.dumps(out,ensure_ascii=False,separators=(',',':')))
           PY
-      - name: Preserve independent public readback
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: max-phuket-album-public-readback
-          path: pub/observation.json
+          name: max-album-exact-offer-readback
+          path: pub/observed.json
           retention-days: 7
