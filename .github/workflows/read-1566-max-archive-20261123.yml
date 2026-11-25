@@ -1,4 +1,4 @@
-name: "Inspect the two held MAX headings through the installed CONTENT reader"
+name: "Verify the strict existing caption reader on the two held MAX posts"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -17,7 +17,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '04da430e9ede2325f010104b5e804d27dfeb2d2b' &&
+      github.event.before == '8a71184e59ec5357d4e1c3ede92c0fcf907f2d91' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -105,7 +105,14 @@ jobs:
                           $journal=$ops.'/issue-1566-edit-existing-'.$id.'.jsonl';
                           $r['ordinary_editor_journal_present']=is_file($journal)&&filesize($journal)>0;
                           $native=readHotelMax($r['mid'],'-68765999669267');
-                          $public=publicHotelPost($r+['platform'=>'max']);
+                          $ordinary=null;
+                          try{$ordinary=publicHotelPost($r+['platform'=>'max']);}
+                          catch(Throwable $e){$r['ordinary_reader_failure']=$e->getMessage()==='max_public_caption_unavailable'?'max_public_caption_unavailable':'public_read_unavailable';}
+                          $raw=PromotedHotelPriceWriter::publicBytes($r['url']);
+                          $strict=PromotedHotelPriceWriter::maxPublicCaption($raw,$r['url']);
+                          $public=['text'=>$strict];
+                          $r['strict_reader_matches_native']=$strict===($native['text']??null);
+                          $r['ordinary_reader_matches_native']=is_array($ordinary)&&($ordinary['text']??null)===($native['text']??null);
                           $button=ChannelPostButtonTransport::buttonUrl($post);
                           $ctx=ChannelPostEntryService::resolve('max',$post['start_payload'],$registry);
                           $r['native_registry_agree']=($native['text']??null)===($snapshot['text']??null);
@@ -122,7 +129,8 @@ jobs:
                           $r['safe_existing_editor_input']=false;
                           if($changes===1&&$r['native_registry_agree']&&$r['public_reader_native_agree']&&$r['photo_matches']&&$r['hotel_button_matches']&&$r['active_version_claims']===0&&!$r['ordinary_editor_journal_present']) {
                               $candidate=$r+['platform'=>'max','post'=>(string)$id,'button_sha'=>hash('sha256',$button),'old_caption_sha256'=>hash('sha256',$public['text']),'next'=>$next];
-                              $r['safe_existing_editor_input']=validHotelEditPlan($candidate);
+                              $r['strict_reader_candidate_shape']=validHotelEditPlan($candidate);
+                              $r['safe_existing_editor_input']=$r['strict_reader_candidate_shape']&&$r['ordinary_reader_matches_native'];
                               if($r['safe_existing_editor_input']) $r['candidate']=array_intersect_key($candidate,array_flip(['platform','hotel','post','mid','url','button_sha','old_caption_sha256','next']));
                           }
                       }catch(Throwable $e){$r['reason']=preg_match('/\A[a-z_]{3,63}\z/D',$e->getMessage())?$e->getMessage():'read_unavailable';}
