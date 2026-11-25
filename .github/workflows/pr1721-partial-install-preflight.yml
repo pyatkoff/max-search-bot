@@ -1,0 +1,71 @@
+name: Verify partial Manager2 deployment 1721
+on:
+  push:
+    branches: [audit/pr1721-partial-install-preflight-20261125]
+permissions:
+  actions: read
+  contents: read
+  issues: read
+  pull-requests: read
+jobs:
+  preflight:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.created && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Verify exact source, original job history and active publisher
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE: 3073195685c8d57808256af6836182262f25fead
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, urllib.request
+          root = 'https://api.github.com/repos/pyatkoff/max-search-bot/'
+          headers = {'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'X-GitHub-Api-Version': '2022-11-28'}
+          def api(path):
+              with urllib.request.urlopen(urllib.request.Request(root+path, headers=headers), timeout=12) as response:
+                  return json.load(response)
+          source = os.environ['SOURCE']
+          assert api('git/ref/heads/main')['object']['sha'] == source
+          parents = api('git/commits/' + os.environ['GITHUB_SHA'])['parents']
+          assert [p['sha'] for p in parents] == [source]
+          pr = api('pulls/1721')
+          assert pr['merged'] and pr['merge_commit_sha'] == source
+          assert pr['head']['sha'] == '3d1504663c3b109921ac5f2eb56dcfa35e4295f2'
+          publisher = api('issues/comments/6928374515')
+          assert (publisher['user']['id'],publisher['body'],publisher['updated_at']) == (226193297,'PR1721: выпуск занят','2026-11-25T14:48:12Z')
+          run = api('actions/runs/45638205090')
+          assert (run['event'],run['head_branch'],run['head_sha'],run['run_attempt'],run['path'],run['status'],run['conclusion']) == ('push','main',source,1,'.github/workflows/deploy.yml','completed','failure')
+          result = api('actions/runs/45638205090/attempts/1/jobs?per_page=100')
+          jobs = {j['name']: j for j in result['jobs']}
+          assert result['total_count'] == len(jobs) == 6
+          for j in ['verify-syntax','verify-inventory','verify / diagnostics','verify / application']:
+              assert jobs[j]['conclusion'] == 'success'
+          assert (jobs['deploy']['id'],jobs['deploy']['conclusion'])==(139299134637,'failure')
+          assert (jobs['verify']['id'],jobs['verify']['conclusion'])==(139301040565,'skipped')
+          steps={s['name']:s['conclusion'] for s in jobs['deploy']['steps']}
+          assert steps['Build exact deployment bundle']=='success' and steps['Fail failed installation']=='failure'
+          assert steps['Sync canonical production checkout']=='success'
+          artifacts=api('actions/runs/45638205090/artifacts?per_page=100')
+          assert artifacts['total_count']==0 and not artifacts['artifacts']
+          for step in ['Apply database migrations and fence the old hotel contour','Reconcile canonical MAX webhook ownership','Ensure Metrika offline uploader cron','Apply profile and retain exact diagnostic snapshot']:
+              assert steps[step]=='skipped',step
+          print('SOURCE='+source+' ORIGINAL=45638205090/1 INSTALLER=139299134637 FINAL_VERIFY=139301040565/skipped PUBLISHER=6928374515/held')
+          PY
+      - name: Check the original public containment header without reading content
+        shell: bash
+        run: |
+          set -euo pipefail
+          result=0
+          timings="$(curl --head --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code} %{time_connect} %{time_appconnect} %{time_starttransfer}' 'https://app.anytoour.ru/structured_events.log')" || result=$?
+          read -r status connect tls first_byte <<< "$timings"
+          printf 'original_guard_current_http=%s\n' "$status"
+          printf 'curl_exit=%s connect_s=%s tls_s=%s first_byte_s=%s\n' "$result" "$connect" "$tls" "$first_byte"
+          test "$result" -eq 0
+          case "$status" in 403|404) ;; *) exit 1;; esac
+      - name: Acknowledge preflight scope
+        shell: bash
+        run: |
+          echo 'Read-only preflight finished. The original failed installation, skipped stages and held publisher still require their own completion evidence.'
