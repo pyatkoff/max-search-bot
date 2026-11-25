@@ -1,4 +1,4 @@
-name: "HOTEL: verify twelve next MAX source and destination pairs"
+name: "HOTEL: refresh twelve MAX pairs after the PR1714 release"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -19,7 +19,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'f5cac7162c092d95335ef68ece732baec67361dd' &&
+      github.event.before == 'd30cb3908f3d020e33d7d3b10127ce1012571d11' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 18
@@ -136,6 +136,8 @@ jobs:
                   'source_caption_matches_registry'=>($reg['text']??null)===$nativeText,
                   'source_photo_matches_registry'=>(string)($reg['attachments'][0]['photo_id']??'')===(string)($photo['photo_id']??''),
                   'source_hotel_id_matches'=>(int)$binding===$id,
+                  'source_price_record_ref'=>(int)($reg['metadata']['monitor_price_record_id']??0),
+                  'source_price_observation_text'=>preg_match('/Цена найдена мониторингом[^\r\n]*/u',$nativeText,$obs)===1?mb_substr($obs[0],0,140):null,
                   'source_catalog_id'=>(int)$binding,'source_name_in_native_caption'=>$hotelNameInNative,
                   'source_button_count'=>count($buttons),'source_one_button_matches_url'=>$oneRegistryUrl,
                   'source_button_resolves_publication'=>$samePublication,
@@ -176,6 +178,7 @@ jobs:
                   expectRow(is_array($channel)&&(int)$channel['id']===4,'unexpected_target_channel');
                   maxTransferNativeEditor($channel,['channel_id'=>'-68765999669267','config_version'=>(int)$channel['config_version']]);
                   $out['target_editor_rights']=true;$out['channel_config_version']=$channel['config_version'];
+                  $out['channel_button_text']=$channel['button_text'];
                   foreach (json_decode('__MAX_ROWS_JSON__',true,32,JSON_THROW_ON_ERROR) as $row) {
                       try { $out['rows'][]=observePair($pdo,$registry,$channel,$row); }
                       catch(Throwable $err) { $out['rows'][]=['hotel_id'=>$row['hotel_id'],'source_id'=>$row['source_id'],'target_url'=>$row['target_url'],'blockers'=>[safeReason($err)]]; }
