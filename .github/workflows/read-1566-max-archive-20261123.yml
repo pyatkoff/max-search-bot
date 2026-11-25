@@ -1,4 +1,4 @@
-name: "#1566 Verify the installed PRICE caption reader and exact written receipts"
+name: "#1566 Read exact native photo album reserve and PRICE receipts"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -19,7 +19,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'c329eb419c8ca68b1068f094c824ce122fd2ebb3' &&
+      github.event.before == 'f20fc1d30d9e159c20f4bcbec75a420b4ee21f33' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 29
@@ -161,6 +161,61 @@ jobs:
                           $out['rows'][]=$item;
                       } catch(Throwable $e) { $out['rows'][]=$item+['failure'=>priceReadReason($e)]; }
                   }
+                  $out['album_candidates']=[];
+                  foreach (json_decode('[{"hotel":107938,"hotel_name":"The Marin Phuket","source_id":551,"source_url":"https://max.ru/channel_anytour/AaG2Inu8czM","target_mid":"mid.ffffc1752b045fed019c04ab6cd52c66","target_url":"https://max.ru/anytour/AZwEq2zVLGY","historical_fingerprint":null},{"hotel":954,"hotel_name":"Akka Alinda","source_id":889,"source_url":"https://max.ru/channel_anytour/AaG3WdL9MLk","target_mid":"mid.ffffc1752b045fed019c290e1334742d","target_url":"https://max.ru/anytour/AZwpDhM0dC0","historical_fingerprint":"c27142fb09a1f408fa0a7f56432a0784077a2c89a0bbaf45e79c838c44a8ba5d"},{"hotel":73055,"hotel_name":"Address Beach Resort Fujairah","source_id":1128,"source_url":"https://max.ru/channel_anytour/AaG3_ZHsUtQ","target_mid":"mid.ffffc1752b045fed019c5ca663163542","target_url":"https://max.ru/anytour/AZxcpmMWNUI","historical_fingerprint":"2f0b73392317d5ca16f0d76b3cb44632530a024144d3f7e5c434556469f8bfe7"}]',true,16,JSON_THROW_ON_ERROR) as $candidate) {
+                      $item=$candidate;
+                      try {
+                          $source=$registry->publication($candidate['source_id']);
+                          $stats=$source['snapshot']??[];
+                          $small='-80492244209683';$large='-68765999669267';
+                          needPriceRead(is_array($source)&&$source['state']==='sent'&&$source['channel_id']===$small
+                              &&$source['platform']==='max'&&$source['project_key']==='anytour'
+                              &&($stats['post_url']??null)===$candidate['source_url'],'source_registry_identity');
+                          $item['source_mid']=$source['message_id'];$item['source_version']=$source['version_id'];
+                          $item['source_fingerprint']=$source['content_hash'];
+                          [$nativeSource,$src]=maxTransferRead(['message_id'=>$source['message_id'],'url'=>$candidate['source_url'],'channel_id'=>$small]);
+                          $item['source_name_matches']=mb_stripos(mb_substr($src['text'],0,300),$candidate['hotel_name'])!==false;
+                          $item['source_catalog_id']=(int)($stats['metadata']['hotel_catalog_id']??0);
+                          $item['source_identity']=($item['source_catalog_id']===$candidate['hotel'] || ($item['source_catalog_id']===0 && $item['source_name_matches']))
+                              &&$src['text']===($stats['text']??null);
+                          $photo=$src['attachments'][0];
+                          $item['source_photo_matches']=count($stats['attachments']??[])===1&&isset($photo['photo_id'])
+                              &&(string)$photo['photo_id']===(string)($stats['attachments'][0]['photo_id']??'')
+                              &&is_string($photo['token']??null)&&strlen($photo['token'])>0;
+                          $item['source_photo_sha256']=hash('sha256',(string)($photo['photo_id']??''));
+                          $context=ChannelPostEntryService::resolve('max',$source['start_payload'],$registry);
+                          $sourceBtn=ChannelPostButtonTransport::buttonUrl($source);
+                          $item['source_context_matches']=is_array($context)&&(int)($context['publication_id']??0)===$candidate['source_id']
+                              &&$sourceBtn!==''&&ChannelPostIncomingAdapter::containsOnlyButton($src,$sourceBtn,$source['channel']['button_text']);
+                          $mid=$candidate['target_mid'];
+                          $response=ChannelPostApiTransport::buttonRequest('max','GET','/messages/'.$mid,[],null);
+                          $native=$response['data']??null;
+                          needPriceRead(($response['http']??0)===200&&empty($response['transport_error'])&&is_array($native)
+                              &&($native['body']['mid']??null)===$mid&&($native['recipient']['chat_type']??null)==='channel'
+                              &&(string)($native['recipient']['chat_id']??'')===$large&&($native['url']??null)===$candidate['target_url'],'target_native_identity');
+                          $target=ChannelPostIncomingAdapter::maxSnapshot($native);
+                          needPriceRead(is_array($target),'target_snapshot_unavailable');
+                          $media=$target['attachments']??[];
+                          $item['target_photo_count']=count($media);
+                          $item['target_all_photos']=count($media)>=2&&count($media)<=11&&count(array_filter($media,static fn($m)=>(($m['type']??null)==='image'&&isset($m['photo_id']))))===count($media);
+                          $item['target_public_link_matches']=($target['post_url']??null)===$candidate['target_url'];
+                          $item['target_name_matches']=mb_stripos(mb_substr($target['text'],0,420),$candidate['hotel_name'])!==false;
+                          $item['target_excluded_text']=preg_match('/отзыв\s+(?:турист|гост|семь)|видеокружок|кружок менеджера|доминикан/iu',$target['text'])===1;
+                          $item['target_legacy_keyboard_or_forward']=!empty($target['keyboard'])||!empty($native['link']);
+                          $item['target_published_ms']=$native['timestamp']??null;
+                          $item['target_fingerprint']=ChannelPostIncomingAdapter::contentFingerprint($target);
+                          $item['historical_fingerprint_matches']=$candidate['historical_fingerprint']===null?null:hash_equals($candidate['historical_fingerprint'],$item['target_fingerprint']);
+                          $pub=PromotedHotelPriceWriter::maxPublicCaption(PromotedHotelPriceWriter::publicBytes($candidate['target_url']),$candidate['target_url']);
+                          $item['target_public_name_matches']=mb_stripos(mb_substr($pub,0,420),$candidate['hotel_name'])!==false;
+                          $q=$db->prepare("SELECT COUNT(*) FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id WHERE p.post_channel_id=4 AND (p.external_message_id=? OR JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id'))=?)");
+                          $q->execute([$mid,(string)$candidate['hotel']]);
+                          $item['target_or_hotel_occupied']=(int)$q->fetchColumn()>0;$q->closeCursor();
+                          $q=$db->prepare("SELECT COUNT(*) FROM post_versions WHERE publication_id=? AND (state IN ('claimed','write_started','unknown') OR claim_token IS NOT NULL OR claimed_at IS NOT NULL)");
+                          $q->execute([$candidate['source_id']]);$item['source_held']=(int)$q->fetchColumn()>0;$q->closeCursor();
+                          $item['eligible_current_editor']=false;
+                      } catch(Throwable $e) { $item['failure']=priceReadReason($e); }
+                      $out['album_candidates'][]=$item;
+                  }
               } finally { $db->rollBack();fclose($lease); }
               needPriceRead(trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'))===$app,'installed_release_changed');
               $out['observed_utc']=gmdate(DATE_ATOM);$out['ok']=true;
@@ -227,20 +282,7 @@ jobs:
             if [[ "$attempt" -lt 5 ]]; then sleep 20; fi
           done
           python3 -c 'import json; d=json.load(open("pub/registry.json")); print("MAX15_INSTALLED_PRICE_READ="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d["ok"] and len(d["rows"])==15 and not d["provider_writes"] and not d["db_writes"]'
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD)" = 878c680627d54297c364254687577a03ac5aef6b; timeout 90s php tools/apply_promoted_hotel_prices.php --inspect; test "$(GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD)" = 878c680627d54297c364254687577a03ac5aef6b' > pub/inspect.raw
-          python3 - <<'PY'
-          import json,pathlib
-          all_lines=pathlib.Path("pub/inspect.raw").read_text().splitlines()
-          prefix="PROMOTED_HOTEL_PRICE_RESULT="
-          lines=[s[len(prefix):] for s in all_lines if s.startswith(prefix)]
-          assert len(lines)==1,"missing_native_inspect_receipt"
-          result=json.loads(lines[0])
-          assert result["mode"]=="--inspect"
-          scope={2588,57028,65877,73343,43689,139,2470,56092,59114,63191,76588,77914,106,111,114}
-          rows=[{k:x[k] for k in ("hotel","publication","result","reason","public_verified") if k in x} for x in result["rows"] if x.get("platform")=="max" and x.get("hotel") in scope]
-          print("MAX15_NATIVE_PRICE_INSPECT="+json.dumps({"feed_sha256":result["feed_sha256"],"rows":rows},separators=(",",":")))
-          PY
-          rm -f pub/inspect.raw
+          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("MAX_ALBUM_NATIVE_RESERVE="+json.dumps({"rows":d["album_candidates"],"observed_utc":d["observed_utc"],"provider_writes":d["provider_writes"],"db_writes":d["db_writes"]},ensure_ascii=False,separators=(",",":"))); assert len(d["album_candidates"])==3'
       - if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
