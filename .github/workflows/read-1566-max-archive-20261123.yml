@@ -1,4 +1,4 @@
-name: "Validate the two-row MAX heading operation without production access"
+name: "Read both registered MAX heading preimages before the 1728 installation"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -17,22 +17,60 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.event.forced == false &&
-      github.event.before == 'fd9bb9ef227f609fbd9f62763b6bc65052caf444' &&
+      github.event.before == 'e3b86af5b54bf701e7219b2f4a5c5527f9cb4b12' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - name: Lint the scoped invocation of the installed editor
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
         run: |
           set -euo pipefail
-          cat > "$RUNNER_TEMP/max-headings.php" <<'PHP'
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Capture exact existing MAX identity while the new release is being verified
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; cd /var/www/anytoour/data/www/app.anytoour.ru; php /dev/stdin read' <<'SOURCE'
           <?php
           declare(strict_types=1);
           use function AnyTour\ExistingPostBatch\{editHotelExisting,publicHotelPost,readHotelMax,postPhotoIds,validHotelEditPlan};
           ini_set('display_errors','0');
           $root='/var/www/anytoour/data/www/app.anytoour.ru';
           $ops='/var/www/anytoour/data/channel-post-operations';
-          $app='4d1ac4a25c5403223d3811e61def23040b1872e3';
+          $app='703b239adbcfb1f480265f3a7beea566f6d07002';
           $ids=[
             ['hotel'=>1972,'id'=>3824,'mid'=>'mid.ffffc1752b045fed01a048e897ef69df','url'=>'https://max.ru/anytour/AaBI6Jfvad8',
              'from'=>'Moreno Horizon Spa & Resort','to'=>'Moreno Horizon Spa and Resort'],
@@ -94,6 +132,10 @@ jobs:
                       $button=ChannelPostButtonTransport::buttonUrl($post);
                       $context=ChannelPostEntryService::resolve('max',$post['start_payload'],$registry);
                       $base['current_version']=(int)$post['version_id'];
+                      $base['public_preview_fingerprint']=hash('sha256',$photo instanceof DOMElement?$photo->getAttribute('content'):'');
+                      $base['public_button_label_visible']=str_contains($raw,$post['channel']['button_text']);
+                      $base['price_observed_at']=$snapshot['metadata']['promoted_price_observed_at']??null;
+                      $base['fixed_price_present']=preg_match('/\d[\d\s\x{00a0}\x{202f}]*(?:₽|руб)/iu',$caption)===1;
                       $base['photo_fingerprint']=hash('sha256',json_encode(postPhotoIds($native,'max'),JSON_THROW_ON_ERROR));
                       $base['button_fingerprint']=hash('sha256',$button);
                       ensureHeading($caption===($snapshot['text']??null)&&($native['text']??null)===$caption,'public_or_native_caption_differs');
@@ -142,10 +184,7 @@ jobs:
           ob_end_clean();
           echo 'MAX_1728_OPERATION='.json_encode(['app'=>$app,'mode'=>$argv[1]??'','at'=>gmdate('c'),'rows'=>$status],
              JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR).PHP_EOL;
-          PHP
-          php -l "$RUNNER_TEMP/max-headings.php"
-          php /dev/stdin read <<'PHP'
-          <?php
-          if(($argv[1]??null)!=='read')exit(1);
-          echo "MAX_HEADING_STDIN_MODE_VERIFIED\n";
-          PHP
+          SOURCE
+      - name: Remove runner-only connection material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
