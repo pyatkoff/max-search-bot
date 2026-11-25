@@ -1,4 +1,4 @@
-name: "#1566 Independently verify the three edited public MAX cards"
+name: "#1566 Recheck exact PRICE publisher binding before merge"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -15,93 +15,15 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == '5e475232ab626acc4c1a9d5c220fba650979fa8c' && github.run_attempt == 1
+      github.event.before == '56246019aecb230c80ee0062d7c4e9ad57e16b91' && github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 3
-    steps:
-      - name: Read each same public MAX address independently
-        run: |
-          set -euo pipefail
-          umask 077
-          mkdir pub
-          python3 - <<'PY'
-          import json,urllib.request,urllib.error,hashlib,re,time
-          from html.parser import HTMLParser
-          from concurrent.futures import ThreadPoolExecutor
-          from pathlib import Path
-          from datetime import datetime,timezone
-          plans=json.loads(r'[{"id":63674,"url":"https://max.ru/anytour/AaAuJeZbQAc","title":"Radisson Blu Resort Phu Quoc","caption":"✈️ Туры в Radisson Blu Resort Phu Quoc\n📍 Фукуок, Вьетнам\nКурорт с прямым выходом к пляжу. В ресторане Avenue есть детское меню и вегетарианские блюда, а в Annex Bar подают тапас."},{"id":64918,"url":"https://max.ru/anytour/AZxcNpG8Qfk","title":"You and Me Maldives","caption":"✈️ Туры в You and Me Maldives\n📍 атолл Раа, Мальдивы\nКурорт для взрослых на атолле Раа. В ресторане H2O можно поужинать под водой и наблюдать за рифом через панорамные окна."},{"id":358,"url":"https://max.ru/anytour/AZrE5K3jCFs","title":"Rixos Sharm El Sheikh","caption":"✈️ Туры в Rixos Sharm El Sheikh\n📍 Шарм-эль-Шейх, Египет\nУ отеля собственный песчаный пляж и семь бассейнов. Можно чередовать дни у моря и отдых у бассейна."}]')
-          class Page(HTMLParser):
-              def __init__(self):
-                  super().__init__(convert_charrefs=True)
-                  self.parts=[]; self.hide=0; self.meta={}
-              def handle_starttag(self,t,a):
-                  if t in ('script','style'): self.hide+=1
-                  if t=='meta':
-                      d=dict(a)
-                      key=d.get('property') or d.get('name')
-                      if key: self.meta[key]=d.get('content','')
-              def handle_endtag(self,t):
-                  if t in ('script','style') and self.hide: self.hide-=1
-              def handle_data(self,v):
-                  if not self.hide and v.strip(): self.parts.append(v.strip())
-          def norm(v):
-              return re.sub(r'\s+',' ',v).strip()
-          def read(row):
-              try:
-                  req=urllib.request.Request(row['url'],headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
-                  with urllib.request.urlopen(req,timeout=10) as r:
-                      raw=r.read(3000001)
-                      status,url=r.status,r.geturl()
-                  assert len(raw)<=3000000 and url==row['url']
-                  p=Page();p.feed(raw.decode('utf-8'))
-                  visible=norm('\n'.join(p.parts).split('Другие публикации канала',1)[0])
-                  declared=norm(p.meta.get('og:description',''))
-                  exact=norm(row['caption'])
-                  out={'hotel_id':row['id'],'url':url,'http':status,'named':row['title'] in visible or row['title'] in declared,
-                       'caption_matches':exact in visible or exact in declared,'photo_preview':bool(p.meta.get('og:image')),
-                       'public_button_label_visible':'Рассчитать на мои даты' in visible,
-                       'page_sha256':hashlib.sha256(raw).hexdigest(),
-                       'escaped_variant_visible': '&amp;' in visible or '&amp;' in declared}
-                  out['verified']=out['named'] and out['caption_matches'] and out['photo_preview']
-                  return out
-              except (OSError,ValueError,AssertionError) as e:
-                  return {'hotel_id':row['id'],'url':row['url'],'error':type(e).__name__,'verified':False}
-          with ThreadPoolExecutor(max_workers=3) as pool:
-              results=list(pool.map(read,plans))
-          if not all(r['verified'] for r in results):
-              time.sleep(5)
-              results=[r if r['verified'] else read(p) for r,p in zip(results,plans)]
-          out={'observed_utc':datetime.now(timezone.utc).isoformat(),'rows':results,'writes':0,'ad_clicks':0}
-          Path('pub/observation.json').write_text(json.dumps(out,ensure_ascii=False))
-          print('MAX_NEXT_THREE_PUBLIC_READ='+json.dumps(out,ensure_ascii=False,separators=(',',':')))
-          PY
-      - name: Preserve independent public readback
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: max-next-three-independent-public-readback
-          path: pub/observation.json
-          retention-days: 7
-
-  price_admission:
-    if: >-
-      github.repository == 'pyatkoff/max-search-bot' &&
-      github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
-      github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == '5e475232ab626acc4c1a9d5c220fba650979fa8c' && github.run_attempt == 1
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: read
-      issues: read
-      actions: read
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: d8a0d794321ea89d8ac62205a22079656aa73d6a
           persist-credentials: false
-      - name: Confirm fresh native PRICE release admission
+      - name: Verify the exact existing publisher acquisition and release priority
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node tools/release_priority.js --admit 1716 d62af590516c0e9d832a95217c258f53f658b329 d8a0d794321ea89d8ac62205a22079656aa73d6a
+        run: node tools/release_priority.js --admit 1716 d62af590516c0e9d832a95217c258f53f658b329 d8a0d794321ea89d8ac62205a22079656aa73d6a --publisher 6928374515 226193297 2026-11-25T05:39:22Z
