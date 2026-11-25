@@ -1,4 +1,4 @@
-name: "#1566 Continue native observation of twenty-nine reviewed and pinned Telegram targets"
+name: "#1566 Continue native observation of original unresolved fifteen Telegram transfers"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -19,7 +19,7 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == '63560f2ba2b45540b11c2146a8362bb983e8a915' &&
+      github.event.before == '02b6a3291b7fcc2bac00e5e41f6e04d00202be34' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -93,6 +93,10 @@ jobs:
             if(prior30Jobs.length!==1||prior30Jobs[0].id!==138940840839||prior30Jobs[0].conclusion!=='success'||prior30Jobs[0].steps.filter(s=>s.name==='Read the thirty prepared sources and historical targets without mutation'&&s.conclusion==='success').length!==1)throw Error('prior30_observation_changed')
             const prior30Artifacts=R.boundedList(await api('GET',prior30+'/artifacts?per_page=100'),'artifacts','prior30_artifacts_incomplete')
             if(prior30Artifacts.length!==1||prior30Artifacts[0].id!==14986877522||prior30Artifacts[0].size_in_bytes!==72015||prior30Artifacts[0].digest!=='sha256:ce7224f3ffd5059594806cdbedc766c561fc90908d08b391eac75d7bbec07fad'||prior30Artifacts[0].expired)throw Error('prior30_original_changed')
+            const unresolved=R.API_ROOT+'/actions/runs/45552156293'
+            R.runIdentity(await api('GET',unresolved),{id:45552156293,attempt:1,head:'d8a0d794321ea89d8ac62205a22079656aa73d6a',workflow:'.github/workflows/edit-1566-ranked-46-historical-telegram.yml',event:'push',branch:'ops/anytour-hotel-ranked-plan-bcd13436197d3c306ad562d2c77bb97e29f10dfceced6b783bb23bcde2d37e4b',conclusion:'failure'})
+            const unresolvedArtifacts=R.boundedList(await api('GET',unresolved+'/artifacts?per_page=100'),'artifacts','original_write_artifacts_incomplete')
+            if(unresolvedArtifacts.length!==1||unresolvedArtifacts[0].id!==14993862147||unresolvedArtifacts[0].size_in_bytes!==1900||unresolvedArtifacts[0].digest!=='sha256:16861ea9663452ac978c52c01f934a4034b837de2854b181545b434161f2ba40'||unresolvedArtifacts[0].expired)throw Error('original_write_receipt_changed')
             const observed = await R.readRecord(api)
             const resolution = await R.resolveCurrent(api, {sha:expected}, observed)
             if (!resolution.ready || resolution.repository_sha !== expected || !/^[a-f0-9]{40}$/.test(resolution.application_sha)) throw Error('accepted_release_mismatch')
@@ -108,7 +112,7 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = 'faeee2802390bd482421573abde03fdff445ab4f'
+          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '10f01573e76608d2beb4c4ccf3ba5ea5e2e4cdb5'
           mkdir pub
           python3 - <<'PY'
           import os,pathlib,re
@@ -185,7 +189,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read the twenty-nine frozen sources and historical targets without mutation
+      - name: Reconcile original fifteen journals and live posts without replay
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -204,9 +208,9 @@ jobs:
           if not d['ok']: print(json.dumps({k:d[k] for k in ('failure_stage','failure_reason') if k in d}))
           assert d['ok'] and d['operation']=='hotel_archive_telegram_ranked_registry'
           assert d['production_writes']==d['provider_writes']==d['bot_starts']==0
-          assert [r['hotel_id'] for r in d['rows']]==[1501,2514,8964,1962,36451,278,143372,7985,68984,233,66860,119046,37396,95159,57217,2931,98713,54914,4294,61591,2559,61760,1582,140013,262,71241,1292,20971,82751]
-          assert [int(r['target_message_id']) for r in d['rows']]==[1047,1058,1103,1109,1584,1585,1586,1620,1651,1653,1654,1665,1679,1695,1696,1700,1705,1706,1709,1723,1724,1735,1739,1741,1742,1743,1744,1746,1748]
-          assert 0 < d['public_get_attempts'] <= 58
+          assert [r['hotel_id'] for r in d['rows']]==[1501,2514,8964,1962,36451,278,143372,7985,68984,233,66860,119046,37396,95159,57217]
+          assert [int(r['target_message_id']) for r in d['rows']]==[1047,1058,1103,1109,1584,1585,1586,1620,1651,1653,1654,1665,1679,1695,1696]
+          assert 0 < d['public_get_attempts'] <= 30
           assert d['public_get_attempts']==sum(r[p]['http_attempts'] for r in d['rows'] for p in ('source_public','target_public'))
           assert all('prepared_target_snapshot_not_bound' not in r['preview_blockers'] for r in d['rows'])
           assert 65020 not in [r['hotel_id'] for r in d['rows']]
