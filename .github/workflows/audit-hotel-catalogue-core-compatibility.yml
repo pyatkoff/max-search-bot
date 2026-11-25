@@ -1,0 +1,31 @@
+name: Rehearse hotel catalogue compatibility before a core switch
+on:
+  push:
+    branches: [audit/hotel-catalogue-core-compatibility-20261125]
+permissions:
+  contents: read
+jobs:
+  catalogue:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.created && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 21bdeb850c18486a8e113419ef38d02da13ea8d8
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo, pdo_sqlite, mbstring
+          coverage: none
+      - name: Validate exact source and hotel catalogue consumers
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = '21bdeb850c18486a8e113419ef38d02da13ea8d8'
+          php -l tools/hotel_catalogue_compatibility.php
+          php -l services/ManagerHotelKnowledge.php
+          php tests/run_manager_ai_draft_context_regression.php --hotel-knowledge-read
+          php tests/run_manager_ai_draft_context_regression.php --hotel-knowledge-http
+          php tests/run_manager_ai_draft_service_regression.php
+          php tests/run_manager_preparation_mcp_regression.php
