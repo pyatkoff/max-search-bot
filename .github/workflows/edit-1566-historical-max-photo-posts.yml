@@ -1,4 +1,4 @@
-name: "#1566 Move three hotel cards into exact existing MAX photo posts"
+name: "#1566 Edit the exact Rixos commercial MAX post after standard admission"
 on:
   push:
     branches: [audit/1566-main-hotel-registry-20261119]
@@ -17,7 +17,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '1288da57b66eea768b9df99aa4706cdd2eeb0850' &&
+      github.event.before == '1e24e9443446e1a9fd8f0ad3fc8f3cbc7fa7b429' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 35
@@ -29,7 +29,7 @@ jobs:
       - name: Checkout the release used by the original source audit
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 60003591337ff2ebf74a2e5fe6d79c92c0a6137e
+          ref: 84c8422b39c755b5c7ad396f05a58cf5870c9bec
           persist-credentials: false
           path: accepted-release
       - name: Bind the same three plans to the accepted release and fresh native artifact
@@ -39,8 +39,8 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          scope=tools/direct_demand/operations/max-existing-photo/scope-commercial-albums-20261125.json
-          test "$(git hash-object "$scope")" = c2bfcce7329f8de60c5d21a3c15f62cae6ea7489
+          scope=tools/direct_demand/operations/max-existing-photo/scope-rixos-mairid-20261125.json
+          test "$(git hash-object "$scope")" = a5e2d31b46cf52e077af3b589102fc7f8dd37dd8
           mkdir -p pub
           node - <<'NODE'
           const R=require('./accepted-release/tools/deployment_release')
@@ -48,11 +48,11 @@ jobs:
           const {setTimeout:wait}=require('node:timers/promises')
           const {writeFileSync}=require('node:fs')
           async function run() {
-            const main='60003591337ff2ebf74a2e5fe6d79c92c0a6137e', root=R.API_ROOT, id=45591032787
+            const main='84c8422b39c755b5c7ad396f05a58cf5870c9bec', root=R.API_ROOT, id=45597924032
             for(let n=0;n<108;n++) {
               if ((await api('GET',root+'/git/ref/heads/main')).object.sha!==main) throw Error('main_changed')
               const x=await api('GET',root+'/actions/runs/'+id)
-              if(x.repository.id!==1342493152||x.head_sha!=='f5d033ec4f99363c9b26eb0243a687ce6d46d515'||x.run_attempt!==1||x.event!=='push'||x.path!=='.github/workflows/read-1566-max-archive-20261123.yml') throw Error('native_run_changed')
+              if(x.repository.id!==1342493152||x.head_sha!=='09692ba5b079463fe0d4973174ada26d4623dad5'||x.run_attempt!==1||x.event!=='push'||x.path!=='.github/workflows/read-1566-max-archive-20261123.yml') throw Error('native_run_changed')
               if(x.status==='completed') {
                 if(x.conclusion!=='success') throw Error('native_read_failed')
                 const slot=await api('GET',root+'/issues/comments/6928374515')
@@ -88,11 +88,11 @@ jobs:
           assert read['ok'] and read['operation']=='max_commercial_album_sources_read_only' and read['target_editor_rights'] is True
           assert read['repository_sha']==b['main'] and read['application_sha']==b['app']
           assert read['provider_writes']==read['db_writes']==read['bot_starts']==0
-          assert read['button_text']=='✈️ Рассчитать на мои даты' and len(read['rows'])==3
+          assert read['button_text']=='✈️ Рассчитать на мои даты' and len(read['rows'])==1
           expected={r['hotel_id']:r for r in read['rows']}
           path=pathlib.Path(sys.argv[1])
           scope=json.loads(path.read_bytes())
-          assert [r['hotel_id'] for r in scope['rows']]==[107938,954,73055] and set(expected)=={107938,954,73055}
+          assert [r['hotel_id'] for r in scope['rows']]==[2575] and set(expected)=={2575}
           for r in scope['rows']:
               proof=expected[r['hotel_id']]
               for key in ('source_id','source_mid','target_mid','target_url'):
@@ -102,8 +102,8 @@ jobs:
               assert re.fullmatch('[a-f0-9]{64}',proof['original_legacy_identity_sha256'])
               r['original_legacy_identity_sha256']=proof['original_legacy_identity_sha256']
           digest=hashlib.sha256(content).hexdigest()
-          scope['native_source']={'operation':read['operation'],'run_id':45591032787,'attempt':1,'job_id':b['job'],'artifact_id':b['artifact'],
-              'zip_sha256':b['digest'],'json_sha256':digest,'repository_sha':b['main'],'application_sha':b['app'],'workflow_head':'f5d033ec4f99363c9b26eb0243a687ce6d46d515'}
+          scope['native_source']={'operation':read['operation'],'run_id':45597924032,'attempt':1,'job_id':b['job'],'artifact_id':b['artifact'],
+              'zip_sha256':b['digest'],'json_sha256':digest,'repository_sha':b['main'],'application_sha':b['app'],'workflow_head':'09692ba5b079463fe0d4973174ada26d4623dad5'}
           scope['publisher']['body']=b['slot']
           scope['price_review']['source_versions']=[{'hotel_id':r['hotel_id'],'version':r['source_version'],'stored_price_observation':r['observed_source_price_stamp']} for r in read['rows']]
           scope['price_review']['checked_utc']=read['observed_utc']
@@ -141,7 +141,7 @@ jobs:
           python3 tests/run_1566_max_existing_photo_partial.py
           for file in "$src"/*.php; do php -l "$file"; done
           install -m600 "$src"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php,run_batch.py} pub/stage/
-          install -m600 "$src"/scope-commercial-albums-20261125.json pub/stage/scope.json
+          install -m600 "$src"/scope-rixos-mairid-20261125.json pub/stage/scope.json
           cp pub/stage/scope.json pub/manifest.json
           gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14910511299/zip > pub/archive.zip
           python3 - <<'PY'
@@ -170,7 +170,7 @@ jobs:
           python3 - <<'PY'
           import json
           data=json.load(open('pub/batch-plan.json'))
-          assert data['ready']==[107938,954,73055] and not data['held'] and data['provider_writes']==0
+          assert data['ready']==[2575] and not data['held'] and data['provider_writes']==0
           PY
           cat > pub/stage/execute.sh <<'SH'
           #!/usr/bin/env bash
