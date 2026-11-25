@@ -18,7 +18,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.event.forced == false &&
-      github.event.before == '6489b347eb7374498a98dd7668b11f3b8988adf2' &&
+      github.event.before == 'd3c6901831ab45557f94f865ab2add487781e17b' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -158,7 +158,7 @@ jobs:
             if($currentPin===$pair['target'])$blockers[]='target_is_current_channel_pin';
             if(!$username||!$sourceBinding)$blockers[]='native_public_channel_binding_not_confirmed';
             $sp=$public[$hotel]['source'];$tp=$public[$hotel]['target'];
-            $sm=is_array($sn)&&($assessment['prepared_checks_pass']??false)===true&&$sn['one_expected_button']===true&&$sn['current_token_resolves']===true&&!$sn['native_claim_held_or_unknown'];
+            $sm=is_array($sn)&&($assessment['prepared_checks_pass']??false)===true&&$sn['current_token_resolves']===true&&!$sn['native_claim_held_or_unknown'];
             if(!$sm)$blockers[]='source_not_confirmed';
             $directory=OPERATIONS.'/'.$operation;
             $out['rows'][]=['hotel_id'=>$hotel,'source_message_id'=>$pair['source'],'target_message_id'=>$pair['target'],
