@@ -1109,7 +1109,8 @@ function makeReadApi(token,fetchImpl=globalThis.fetch,{sleep=waitForRetry}={}) {
       PRIOR_WAVE_RECOVERY.job_id,PRIOR_WAVE_RECOVERY.previous.verify_job_id,PUBLISHER_BODY_RECOVERY.job_id,
       137646126584,137658227484,137707302320,137760498372,RANKED_PREWRITE_REFUSAL.job].includes(job)
       || require('./partial_install_1702_forward').allowedLog(job)
-      || job === require('./unstarted_1704_forward').JOB,'untrusted_terminal_log');
+      || job === require('./unstarted_1704_forward').JOB
+      || [138826764785,138849924897].includes(job),'untrusted_terminal_log');
     const response=await request('https://api.github.com'+API_ROOT+'/actions/jobs/'+job+'/logs',headers(false),'manual',2*1024*1024);
     if(Buffer.isBuffer(response))return response;
     let url;try{url=new URL(response.headers.get('location'));}catch{throw new Refusal('invalid_log_redirect');}

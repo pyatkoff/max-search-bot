@@ -174,6 +174,26 @@ release both skipped. It creates no PR1630 binding, terminal artifact or server
 installation. PR1631 still requires its own ordinary binding before merge and
 its own original completion receipt with technical gates.
 
+### Reconciliation of the superseded PR1701 slot
+
+The original PR1701 Deploy 45499396729 stopped before credentials after main
+advanced. Only the subsequent original Deploy 45501864193 installed both PR1701
+and PR1706. PR1706 had no publisher binding, so the original closer completed
+with the proof upload and terminal write explicitly skipped.
+
+The existing serialized recovery job admits one initial owner push of
+`ops/recover-pr1701-terminal-20261125` at its exact CI-checked source. It
+authenticates the original installation, the binding from PR1701, the skipped
+old downstream wave, the original successful diagnostics and the later refused
+diagnostic attempt. The recovery binds its proof digest to the native job,
+publishes the proof artifact, and makes one terminal write to the original
+publisher. The original application receipt remains readable by the deployed
+resolvers. No installation, business job or diagnostic rerun is part of recovery.
+
+Final admission on the exact PR1706 base independently authenticates that native
+proof and the publisher readback before allowing a fresh ordinary claim.
+Ambiguous reads or any unknown write stop recovery and do not authorize a retry.
+
 ### Continuing an already admitted publisher
 
 A reservation created after the existing publisher was acquired must not make
