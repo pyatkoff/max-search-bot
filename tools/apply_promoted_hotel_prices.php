@@ -14,9 +14,18 @@ const PROMOTED_PLAN_MAX_BYTES = 4_000_000;
 
 $lock = null;
 try {
-    if (realpath(__DIR__.'/..') !== PROMOTED_APP || count($argv) !== 2
-        || !in_array($argv[1], ['--inspect','--apply'], true)) throw new RuntimeException('invalid_invocation');
-    $apply = $argv[1] === '--apply';
+    $mode = $argv[1] ?? '';
+    $maxOnly = in_array($mode, ['--inspect-max-publication','--apply-max-publication'], true);
+    $maxPublicationId = null;
+    if ($maxOnly && isset($argv[2]) && preg_match('/\A[1-9][0-9]{0,9}\z/D', $argv[2]) === 1) {
+        $maxPublicationId = (int)$argv[2];
+    }
+    if (realpath(__DIR__.'/..') !== PROMOTED_APP
+        || ($maxOnly && (count($argv) !== 3 || $maxPublicationId === null))
+        || (!$maxOnly && (count($argv) !== 2 || !in_array($mode, ['--inspect','--apply'], true)))) {
+        throw new RuntimeException('invalid_invocation');
+    }
+    $apply = $mode === '--apply' || $mode === '--apply-max-publication';
     $path = PROMOTED_OPERATIONS.'/monitor-price-after-collection-v1.jsonl';
     if (!is_file($path) || is_link($path)) throw new RuntimeException('original_price_lock_missing');
     $lock = fopen($path,'rb');
@@ -57,7 +66,7 @@ try {
     $pdo = ConversationDb::connection();
     $registry = new ChannelPostRegistryService($pdo);
     $writer = new PromotedHotelPriceWriter($pdo,$registry,$journal);
-    $rows = $writer->run($plan,$feedHash,$apply);
+    $rows = $writer->run($plan,$feedHash,$apply,$maxPublicationId);
     echo 'PROMOTED_HOTEL_PRICE_RESULT='.json_encode(['mode'=>$argv[1],'feed_sha256'=>$plan['feed_sha256'],
         'source_held'=>$plan['held'],'rows'=>$rows],JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES),PHP_EOL;
 } catch (Throwable $error) {

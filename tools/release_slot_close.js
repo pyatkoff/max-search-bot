@@ -130,7 +130,7 @@ function gateState(snapshot, c, pending = []) {
   const own = runs.filter(r => r.path === CLOSER && r.event === 'workflow_run');
   requireValue(own.length === 1 && own[0].id === c.run, 'ambiguous_closer');
   validRun(own[0], c, CLOSER, 'workflow_run', 'Configure AnyTour modeled value goal', origin('modeled-conversion-value-export.yml'));
-  if(c.terminalRecovery)requireValue(String(own[0].id)===(c.publisherBodyRecovery?release.PUBLISHER_BODY_RECOVERY.run_id:c.priorWaveRecovery?release.PRIOR_WAVE_RECOVERY.run_id:c.unpublishedRecovery?release.UNPUBLISHED_TERMINAL_RECOVERY.run_id:
+  if(c.terminalRecovery)requireValue(String(own[0].id)===(c.publisherBodyRecovery?release.PUBLISHER_BODY_RECOVERY.run_id:c.priorWaveRecovery?release.PRIOR_WAVE_RECOVERY.run_id:c.unpublishedRecovery?(c.unpublishedRecoveryPr===1720?release.UNPUBLISHED_TERMINAL_RECOVERY_1720:release.UNPUBLISHED_TERMINAL_RECOVERY).run_id:
     c.gateRecovery?release.GATE_RECOVERY.run_id:release.TERMINAL_RECOVERY.run_id)
     &&own[0].status==='completed'&&own[0].conclusion==='failure','original_terminal_not_failed');
   else if (c.skippedTerminal) requireValue(own[0].status === 'completed' && own[0].conclusion === 'success', 'original_terminal_not_skipped');
@@ -956,7 +956,7 @@ async function resumeTerminal({env,event,api,prepare=false,proofFile=null,readOp
     return resumePublisherBodyTerminal({env,event,api,prepare,proofFile});
   if(env.GITHUB_REF==='refs/heads/'+release.PRIOR_WAVE_RECOVERY.branch)
     return resumePriorWaveTerminal({env,event,api,prepare,proofFile});
-  if(env.GITHUB_REF==='refs/heads/'+release.UNPUBLISHED_TERMINAL_RECOVERY.branch)
+  if(release.unpublishedTerminalProfileForRef(env.GITHUB_REF))
     return resumeUnpublishedTerminal({env,event,api,prepare,proofFile});
   if(event?.before===release.GATE_RECOVERY.before)
     return resumeGateTerminal({env,event,api,prepare,proofFile});
@@ -1275,7 +1275,7 @@ async function resumePriorWaveTerminal({env,event,api,prepare=false,proofFile=nu
   await finish(b,b.released);return 'released';
 }
 async function resumeUnpublishedTerminal({env,event,api,prepare=false,proofFile=null}){
-  const p=release.UNPUBLISHED_TERMINAL_RECOVERY,root=release.API_ROOT,get=path=>api('GET',root+path);
+  const p=release.unpublishedTerminalProfileForRef(env.GITHUB_REF)||release.UNPUBLISHED_TERMINAL_RECOVERY,root=release.API_ROOT,get=path=>api('GET',root+path);
   const ref='refs/heads/'+p.branch,source=env.GITHUB_SHA;
   requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_REF===ref
     &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+CLOSER+'@'+ref&&env.GITHUB_JOB==='release-slot-recovery'
@@ -1305,7 +1305,7 @@ async function resumeUnpublishedTerminal({env,event,api,prepare=false,proofFile=
     requireValue(rows.length===1&&rows[0].path===path&&rows[0].head_sha===source&&rows[0].head_repository?.full_name===REPOSITORY
       &&rows[0].run_attempt===1&&rows[0].status==='completed'&&rows[0].conclusion==='success','recovery_ci_unconfirmed');
   }
-  const original=await release.failedUnpublishedTerminal(api),pr=await get('/pulls/'+p.pr),b=binding(pr,p.sha);
+  const original=await release.failedUnpublishedTerminal(api,p),pr=await get('/pulls/'+p.pr),b=binding(pr,p.sha);
   requireValue(b&&release.same(bindingSnapshot(b),original.record.repository_release.closure.binding),'binding_changed');
   const active=async()=>requireValue(recordState(await get('/issues/comments/'+p.comment_id),b)==='active','prepared_terminal_already_released');
   await active();await release.requireOps(api,p.sha);await main();
@@ -1325,7 +1325,7 @@ async function resumeUnpublishedTerminal({env,event,api,prepare=false,proofFile=
   requireValue(env.PREPARED_RECORD_DIGEST===release.digest(record)&&release.same(location.record,record),'prepared_result_changed');
   await release.authenticatePublication(api,location);
   // Every original gate and binding is read again before the one terminal write.
-  await release.failedUnpublishedTerminal(api);
+  await release.failedUnpublishedTerminal(api,p);
   requireValue(release.same(bindingSnapshot(binding(await get('/pulls/'+p.pr),p.sha)),r.closure.binding),'binding_changed');
   const last=await release.readRecord(api);
   requireValue(last.blob===location.blob&&last.record_digest===location.record_digest,'deployment_result_changed');
@@ -1388,5 +1388,6 @@ if (typeof require === 'function' && require.main === module) {
     process.exitCode = 1;
   });
 }
+
 
 
