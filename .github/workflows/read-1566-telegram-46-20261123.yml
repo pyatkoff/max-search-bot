@@ -19,7 +19,7 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == 'ed08736be6546cc67cfa1acf4ab4b45c35889ec5' &&
+      github.event.before == '45bc745446f1e36127d124646d4cfb089726ed2b' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -61,7 +61,7 @@ jobs:
           done
           node - <<'NODE'
           const {verifyPreviousRelease} = require('./tools/release_priority')
-          verifyPreviousRelease({repository:process.env.GITHUB_REPOSITORY,baseSha:process.env.EXPECTED_APP},process.env.GITHUB_TOKEN)
+          verifyPreviousRelease({repository:process.env.GITHUB_REPOSITORY,baseSha:process.env.EXPECTED_APP},process.env.GITHUB_TOKEN,fetch)
             .then(()=>console.log('ROUTE_ACCEPTED_RELEASE_VERIFIED'))
             .catch(error=>{ console.error('route_release_read_refused', error.code || error.message);process.exitCode=1 })
           NODE
