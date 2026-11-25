@@ -468,6 +468,9 @@ function transferReadBytes(string $url, bool|string $next = false): string
     $ok = curl_exec($curl) !== false && curl_errno($curl) === 0;
     $status = (int)curl_getinfo($curl, CURLINFO_HTTP_CODE);
     curl_close($curl);
+    if ($ok && str_starts_with($url, 'https://t.me/') && in_array($status, [404, 410], true)) {
+        throw new RuntimeException('public_post_missing');
+    }
     requirePost($ok && $status === 200, 'transfer_read_unavailable');
     return $body;
 }
@@ -804,6 +807,17 @@ function transferReason(Throwable $error): string
         ? $error->getMessage() : 'transfer_verification_failed';
 }
 
+/** A specific public post is missing or no longer matches its approved preimage. */
+function transferLocalPublicHold(string $reason): bool
+{
+    return in_array($reason, [
+        'public_post_missing',
+        'public_identity_changed',
+        'transfer_source_public_changed',
+        'transfer_target_public_changed',
+    ], true);
+}
+
 /** A generic input is determined by the installed HOTEL index, never by an offset or run flag. */
 function transferApprovedRankedIndex(bool|string $next): ?string
 {
@@ -964,7 +978,7 @@ function transferExecuteRow(array $row, string $planDigest, array $effects, stri
                     $result['source_revision_hold_recorded'] = true;
                 }
                 if ($independentRow
-                    && $result['reason'] === 'public_identity_changed' && $attempts === 0
+                    && transferLocalPublicHold($result['reason']) && $attempts === 0
                     && is_int($result['reserved_publication_id'] ?? null) && $result['reserved_publication_id'] > 0) {
                     $result['local_prewrite_hold_recorded'] = true;
                 }
@@ -1342,8 +1356,9 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
                 transferPublicPreimage($row, transferPublic('any_toour', $row['source_message_id'], $next),
                     transferPublic('anytour', $row['target_message_id'], $next));
             } catch (RuntimeException $error) {
-                if (!$independentRows || $error->getMessage()!=='public_identity_changed') throw $error;
-                $preflightHolds[$row['target_message_id']]=['reason'=>'public_identity_changed'];
+                $reason = $error->getMessage();
+                if (!$independentRows || !transferLocalPublicHold($reason)) throw $error;
+                $preflightHolds[$row['target_message_id']] = ['reason'=>$reason];
             }
         }
         transferRuntime($root, $applicationSha);
