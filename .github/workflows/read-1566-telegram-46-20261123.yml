@@ -1,4 +1,4 @@
-name: "#1566 Read only three existing small MAX and Telegram caption pairs"
+name: "#1566 Read native identity details for held small MAX and Telegram pairs"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -18,7 +18,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.event.forced == false &&
-      github.event.before == '3bfa5e6007344001b2b1f8c95e3e27cb62ca8609' &&
+      github.event.before == '505fcdaf5b4cf166613c56a52918617d68b6b394' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
@@ -120,7 +120,9 @@ jobs:
              $p=$registry->publication((int)$found[0]);$s=$p['snapshot']??[];
              requireRead(is_array($p)&&$p['project_key']==='anytour'&&$p['platform']===$platform&&(int)$p['channel']['id']===$channel&&$p['state']==='sent'&&($s['post_url']??null)===$url,'small_pair_identity_changed');
              $native=$s['metadata']['hotel_catalog_id']??null;$logical=$s['metadata']['logical_id']??null;
-             requireRead((int)$native===$hotel&&$logical==='commercial-hotel-'.$hotel.'-v1','small_hotel_identity_changed');
+             $row['native_identity_matches_expected']=(int)$native===$hotel&&$logical==='commercial-hotel-'.$hotel.'-v1';
+             $row['native_metadata']=array_intersect_key($s['metadata']??[],array_flip(['hotel_catalog_id','hotel_id','tv_hotel_id','logical_id','source_key','original_offer_id','caption_correction_operation']));
+             if(!$row['native_identity_matches_expected'])$row['identity_hold_reason']='small_hotel_identity_changed';
              if($platform==='telegram')requireRead($p['message_id']===$ids[$platform]&&$p['bot_key']==='anyru_bot','small_telegram_identity_changed');
              $q=$pdo->prepare("SELECT COUNT(*) FROM post_versions WHERE publication_id=? AND (state IN ('claimed','write_started','unknown') OR claim_token IS NOT NULL OR claimed_at IS NOT NULL)");$q->execute([$p['publication_id']]);$active=(int)$q->fetchColumn();
              $button=ChannelPostButtonTransport::buttonUrl($p);$resolved=ChannelPostEntryService::resolve($platform,$p['start_payload'],$registry);
