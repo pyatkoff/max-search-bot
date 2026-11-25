@@ -7,6 +7,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { execFileSync, spawnSync } = require('node:child_process');
 const { classifyChanges, parseRawDiff, oauthSpecOnlyChange, editorManifestVersionOnlyChange, hotelCatalogueAddition } = require('../tools/ci_change_scope');
+const { selectDeployScope } = require('../tools/deploy_hotel_catalogue_scope');
 const selector = path.resolve(__dirname, '../tools/ci_change_scope.js');
 const oauth = 'manager/ai-oauth.php';
 const fixture = 'tests/visual/fixtures/oauth-consent.js';
@@ -441,7 +442,45 @@ try {
 } finally { fs.rmSync(temp, { recursive: true, force: true }); }
 // Release checks remain mandatory here, but their implementation is isolated
 // from the selector file watched by native browser QA.
-require('./release_lifecycle_regression')(check).then(() => {
+async function productionCatalogueScope() {
+  const base = '1'.repeat(40), head = '2'.repeat(40);
+  const repository = 'pyatkoff/max-search-bot', branch = 'refs/heads/main';
+  const env = {GITHUB_REPOSITORY:repository,GITHUB_EVENT_NAME:'push',
+    GITHUB_WORKFLOW_REF:repository+'/.github/workflows/deploy.yml@'+branch,
+    GITHUB_JOB:'verify-inventory',GITHUB_RUN_ATTEMPT:'1',GITHUB_REF:branch,GITHUB_SHA:head};
+  const event = {before:base,after:head,ref:branch,repository:{full_name:repository},
+    forced:false,created:false,deleted:false};
+  const rawDiff = changes => changes.map(change => ':'+change.oldMode+' '+change.newMode+' '+
+    'a'.repeat(40)+' '+'b'.repeat(40)+' '+change.status+'\0'+change.path+'\0').join('');
+  const gitFixture = (changes=hotelChanges,parent=base) => args => {
+    if(args[0]==='rev-parse')return args[1]==='HEAD'?head+'\n':parent+'\n';
+    if(args[0]==='diff')return rawDiff(changes);
+    if(args[0]==='show'){
+      const [commit,file]=args[1].split(':');
+      return hotelRead(hotelFixture)(commit===base?'base':'head',file);
+    }
+    throw new Error('unexpected fixture command');
+  };
+  let reads=0;
+  const approved = async (b,h) => {reads++;return b===base&&h===head;};
+  const ctx = {env,event,git:gitFixture(),acceptedBaseline:approved};
+  check(await selectDeployScope(ctx),'hotel-catalogue-data','verified exact production append selects catalogue release checks');
+  check(await selectDeployScope({...ctx,acceptedBaseline:async()=>false}),'full','uninstalled parent keeps the full release');
+  check(await selectDeployScope({...ctx,acceptedBaseline:async()=>{throw Error('unknown receipt');}}),'full','unknown baseline keeps the full release');
+  for(const denied of [
+    {env:{...env,GITHUB_EVENT_NAME:'workflow_dispatch'}},
+    {env:{...env,GITHUB_RUN_ATTEMPT:'2'}},
+    {env:{...env,GITHUB_JOB:'deploy'}},
+    {env:{...env,GITHUB_SHA:base}},
+    {event:undefined},
+    {event:{...event,forced:true}},
+    {event:{...event,before:'0'.repeat(40)}},
+    {git:gitFixture(hotelChanges,'3'.repeat(40))},
+    {git:gitFixture([...hotelChanges,{path:'manager/api.php',status:'M',oldMode:'100644',newMode:'100644'}])},
+  ])check(await selectDeployScope({...ctx,...denied}),'full','manual, mixed or ambiguous production source keeps full coverage');
+  check(reads,1,'only the exact clean data source consults authenticated installation evidence');
+}
+productionCatalogueScope().then(() => require('./release_lifecycle_regression')(check)).then(() => {
   process.stdout.write('CI scope, release priority and release slot regression: ' + assertions + ' assertions passed\n');
 }).catch(error => { process.stderr.write(String(error.stack || error) + '\n'); process.exitCode = 1; });
 

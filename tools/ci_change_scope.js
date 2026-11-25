@@ -92,7 +92,9 @@ const HOTEL_SHARD = /^(?:manifest|manifest-[0-9]{4})\.json$/;
 const HOTEL_BUNDLE = /^anytour-[1-9][0-9]{0,8}-[a-z0-9]+(?:-[a-z0-9]+)*\.json$/;
 const HOTEL_CI_PROOF_PATHS = new Set([
   'tools/ci_change_scope.js', '.github/workflows/ci-change-scope.yml',
-  '.github/workflows/regression-tests.yml', 'tests/hotel_catalogue_checks.php',
+  '.github/workflows/regression-tests.yml', '.github/workflows/deploy.yml',
+  'tests/hotel_catalogue_checks.php', 'tools/deploy_hotel_catalogue_scope.js',
+  'tools/check_hotel_catalogue_scope.sh',
 ]);
 
 // Classify only a positive, bounded append. The ordinary reader in the

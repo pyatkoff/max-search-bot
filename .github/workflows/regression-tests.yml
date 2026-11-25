@@ -193,11 +193,7 @@ jobs:
           extensions: mbstring, pdo_sqlite, dom
           coverage: none
       - name: Validate catalogue bytes and consumer boundaries
-        run: |
-          php tests/run_manager_ai_draft_context_regression.php --hotel-knowledge-read
-          php tests/run_manager_ai_draft_context_regression.php --hotel-knowledge-http
-          php tests/run_manager_ai_draft_service_regression.php
-          php tests/run_manager_preparation_mcp_regression.php
+        run: bash tools/check_hotel_catalogue_scope.sh
 
   oauth:
     needs: change-scope

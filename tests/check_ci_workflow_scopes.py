@@ -4,6 +4,7 @@ import itertools
 import fnmatch
 import json
 import os
+import tempfile
 from pathlib import Path
 import subprocess
 import yaml
@@ -85,8 +86,10 @@ check(hotel_job['needs'] == 'change-scope' and hotel_job['if'] ==
 check(hotel_job['permissions'] == {'contents':'read'} and
       all(not s.get('if') and not s.get('continue-on-error', False) for s in hotel_job['steps']),
       'hotel data verification stays read-only and fatal')
-hotel_commands = hotel_job['steps'][-1]['run'].splitlines()
-check(hotel_commands == [
+hotel_check_script = root/'tools/check_hotel_catalogue_scope.sh'
+check(hotel_job['steps'][-1]['run'] == 'bash tools/check_hotel_catalogue_scope.sh', 'PR catalogue uses the canonical suite')
+check(hotel_check_script.read_text().splitlines() == [
+    '#!/usr/bin/env bash', 'set -euo pipefail', '',
     'php tests/run_manager_ai_draft_context_regression.php --hotel-knowledge-read',
     'php tests/run_manager_ai_draft_context_regression.php --hotel-knowledge-http',
     'php tests/run_manager_ai_draft_service_regression.php',
@@ -404,6 +407,40 @@ check(dj['deploy']['needs'] == ['verify-inventory','verify-syntax','verify-group
 check(dj['deploy']['steps'][0]['name'] == 'Require the complete deployment verification'
       and 'test "$GITHUB_RUN_ATTEMPT" = 1' in dj['deploy']['steps'][0]['run'],
       'installer replay stopped before checkout or protected access')
+production_scope = next(s for s in dj['verify-inventory']['steps'] if s.get('id') == 'hotel_scope')
+check(production_scope['run'] == 'node tools/deploy_hotel_catalogue_scope.js'
+      and not production_scope.get('if') and not production_scope.get('continue-on-error')
+      and dj['verify-inventory']['permissions'] == {'contents':'read','actions':'read'},
+      'production catalogue scope is selected by one fatal, read-only source gate')
+production_group = next(s for s in dj['verify-groups']['steps'] if s.get('name') == 'Run every required group in this lane')
+check(dj['verify-groups']['needs'] == 'verify-inventory'
+      and production_group['env']['DEPLOY_CHECK_PROFILE'] == '${{ needs.verify-inventory.outputs.profile }}'
+      and 'bash tools/check_hotel_catalogue_scope.sh' in production_group['run']
+      and all(not s.get('if') and not s.get('continue-on-error') for job in
+              [dj['verify-inventory'],dj['verify-syntax'],dj['verify-groups']] for s in job['steps']),
+      'every existing required deployment job still runs and propagates catalogue and group failures')
+with tempfile.TemporaryDirectory() as stub_dir:
+    php_stub = Path(stub_dir)/'php'
+    php_stub.write_text('#!/usr/bin/env bash\nset -eu\nif [[ "$1" == tests/run_required_group.php ]]; then printf "%s\\n" "$2"; else printf "catalogue:%s\\n" "$1"; fi\n')
+    php_stub.chmod(0o755)
+    for profile, lane, groups, expected in [
+        ('full','application','dialogue website manager',['dialogue','website','manager']),
+        ('hotel-catalogue-data','application','dialogue website manager',
+            ['dialogue','website','catalogue:tests/run_manager_ai_draft_context_regression.php',
+             'catalogue:tests/run_manager_ai_draft_context_regression.php',
+             'catalogue:tests/run_manager_ai_draft_service_regression.php',
+             'catalogue:tests/run_manager_preparation_mcp_regression.php']),
+        ('full','diagnostics','diagnostics',['diagnostics']),
+        ('hotel-catalogue-data','diagnostics','diagnostics',['diagnostics']),
+        ('','application','dialogue website manager',None),
+        ('unknown','diagnostics','diagnostics',None),
+    ]:
+        probe = subprocess.run(['bash','-e','-c',production_group['run']], capture_output=True, text=True,
+            env={**os.environ,'PATH':stub_dir+os.pathsep+os.environ['PATH'],
+                 'DEPLOY_CHECK_PROFILE':profile,'DEPLOY_CHECK_LANE':lane,'DEPLOY_CHECK_GROUPS':groups})
+        check((probe.returncode == 1 and not probe.stdout) if expected is None else
+              (probe.returncode == 0 and probe.stdout.splitlines() == expected),
+              'actual deployment command routing for '+profile+'/'+lane)
 check(dj['verify']['needs'] == 'deploy', 'verification cannot precede installation')
 vs = dj['verify']['steps']
 admit = next(i for i,s in enumerate(vs) if s.get('id') == 'admission')
