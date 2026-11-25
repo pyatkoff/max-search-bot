@@ -1,4 +1,4 @@
-name: "#1566 Edit existing historical MAX photo messages only"
+name: "#1566 Move three hotel cards into exact existing MAX photo posts"
 on:
   push:
     branches: [audit/1566-main-hotel-registry-20261119]
@@ -17,7 +17,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '29f5b6fe8054195407179b608599aad7409e7b41' &&
+      github.event.before == '7ae87381c80f8a555561aaf8aeb5fda02b176090' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -29,7 +29,7 @@ jobs:
       - name: Checkout the release used by the original source audit
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: d8a0d794321ea89d8ac62205a22079656aa73d6a
+          ref: 6194e13ac5af4ba53263284a3a3002f7d6d22b31
           persist-credentials: false
           path: accepted-release
       - name: Verify the receipts, current release and existing publisher before credentials
@@ -49,15 +49,15 @@ jobs:
           python3 tests/run_1566_max_existing_photo_partial.py
           for file in "$src"/*.php; do php -l "$file"; done
           install -m600 "$src"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php,run_batch.py} pub/stage/
-          install -m600 "$src"/scope-next-three-20261125.json pub/stage/scope.json
+          install -m600 "$src"/scope-commercial-albums-20261125.json pub/stage/scope.json
+          test "$(git hash-object pub/stage/scope.json)" = c2bfcce7329f8de60c5d21a3c15f62cae6ea7489
           cp pub/stage/scope.json pub/manifest.json
           gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14910511299/zip > pub/archive.zip
-          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14995276346/zip > pub/native.zip
+          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/15009736629/zip > pub/native.zip
           python3 - <<'PY'
           import hashlib,json,pathlib,re,zipfile
           stage=pathlib.Path('pub/stage')
           scope_bytes=(stage/'scope.json').read_bytes()
-          assert hashlib.sha256(scope_bytes).hexdigest()=="276414d9f9534549bbbd1b01e64a1091eada3613e36749022c5cf67008c169ec"
           scope=json.loads(scope_bytes)
           for key,zip_hash,json_hash,output in [
               ('archive',scope['archive_sha256'],scope['archive_registry_sha256'],'native-targets.json'),
@@ -76,11 +76,11 @@ jobs:
           entry.write_text(src)
           PY
           php -l pub/stage/batch_entry.php
-          php pub/stage/editor.php --batch-plan pub/stage/native-targets.json pub/stage/native-source.json ef7cd1494340628be9d7a4aa390dad3b4b2b6be7efe14f4b6cb60bbfb851fb7c d8a0d794321ea89d8ac62205a22079656aa73d6a d8a0d794321ea89d8ac62205a22079656aa73d6a > pub/batch-plan.json
+          php pub/stage/editor.php --batch-plan pub/stage/native-targets.json pub/stage/native-source.json 4260de9aa1bd0bbc75fa4b38f42110e4cb1325b25e1b9491b62f210c6a8d81ca 6194e13ac5af4ba53263284a3a3002f7d6d22b31 6194e13ac5af4ba53263284a3a3002f7d6d22b31 > pub/batch-plan.json
           python3 - <<'PY'
           import json
           data=json.load(open('pub/batch-plan.json'))
-          assert data['ready']==[63674,64918,358] and not data['held'] and data['provider_writes']==0
+          assert data['ready']==[107938,954,73055] and not data['held'] and data['provider_writes']==0
           PY
           cat > pub/stage/execute.sh <<'SH'
           #!/usr/bin/env bash
@@ -89,7 +89,7 @@ jobs:
           unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
           stage="$(cd -- "$1" && pwd -P)"
           cd /var/www/anytoour/data/www/app.anytoour.ru
-          test "$(git rev-parse HEAD)" = d8a0d794321ea89d8ac62205a22079656aa73d6a
+          test "$(git rev-parse HEAD)" = 6194e13ac5af4ba53263284a3a3002f7d6d22b31
           python3 "$stage/run_batch.py" "$stage"
           SH
           bash -n pub/stage/execute.sh
@@ -160,6 +160,67 @@ jobs:
           pathlib.Path('pub/summary.json').write_text(json.dumps(summary,indent=2))
           print('Native confirmations', len(accepted), 'of', len(expected), accepted)
           PY
+      - name: Read each same public MAX address independently
+        if: always()
+        run: |
+          set -euo pipefail
+          umask 077
+          test -f pub/native-results.txt || exit 0
+          python3 - <<'PY'
+          import json,urllib.request,urllib.error,hashlib,re,time
+          from html.parser import HTMLParser
+          from concurrent.futures import ThreadPoolExecutor
+          from pathlib import Path
+          from datetime import datetime,timezone
+          original=json.loads(Path('pub/manifest.json').read_text())['rows']
+          native=[json.loads(line.split(' ',2)[2]) for line in Path('pub/native-results.txt').read_text().splitlines() if line.startswith('RESULT ')]
+          accepted={r['hotel'] for r in native if r.get('state')=='existing_max_message_updated_and_verified'}
+          plans=[{'id':r['hotel_id'],'url':r['target_url'],'title':r['name'],'caption':r['caption_without_price']} for r in original if r['hotel_id'] in accepted]
+          class Page(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.parts=[]; self.hide=0; self.meta={}
+              def handle_starttag(self,t,a):
+                  if t in ('script','style'): self.hide+=1
+                  if t=='meta':
+                      d=dict(a)
+                      key=d.get('property') or d.get('name')
+                      if key: self.meta[key]=d.get('content','')
+              def handle_endtag(self,t):
+                  if t in ('script','style') and self.hide: self.hide-=1
+              def handle_data(self,v):
+                  if not self.hide and v.strip(): self.parts.append(v.strip())
+          def norm(v):
+              return re.sub(r'\s+',' ',v).strip()
+          def read(row):
+              try:
+                  req=urllib.request.Request(row['url'],headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
+                  with urllib.request.urlopen(req,timeout=10) as r:
+                      raw=r.read(3000001)
+                      status,url=r.status,r.geturl()
+                  assert len(raw)<=3000000 and url==row['url']
+                  p=Page();p.feed(raw.decode('utf-8'))
+                  visible=norm('\n'.join(p.parts).split('Другие публикации канала',1)[0])
+                  declared=norm(p.meta.get('og:description',''))
+                  exact=norm(row['caption'])
+                  out={'hotel_id':row['id'],'url':url,'http':status,'named':row['title'] in visible or row['title'] in declared,
+                       'caption_matches':exact in visible or exact in declared,'photo_preview':bool(p.meta.get('og:image')),
+                       'public_button_label_visible':'Рассчитать на мои даты' in visible,
+                       'page_sha256':hashlib.sha256(raw).hexdigest(),
+                       'escaped_variant_visible': '&amp;' in visible or '&amp;' in declared}
+                  out['verified']=out['named'] and out['caption_matches'] and out['photo_preview']
+                  return out
+              except (OSError,ValueError,AssertionError) as e:
+                  return {'hotel_id':row['id'],'url':row['url'],'error':type(e).__name__,'verified':False}
+          with ThreadPoolExecutor(max_workers=3) as pool:
+              results=list(pool.map(read,plans))
+          if not all(r['verified'] for r in results):
+              time.sleep(5)
+              results=[r if r['verified'] else read(p) for r,p in zip(results,plans)]
+          out={'observed_utc':datetime.now(timezone.utc).isoformat(),'rows':results,'writes':0,'ad_clicks':0}
+          Path('pub/observation.json').write_text(json.dumps(out,ensure_ascii=False))
+          print('MAX_COMMERCIAL_ALBUM_PUBLIC_READ='+json.dumps(out,ensure_ascii=False,separators=(',',':')))
+          PY
       - name: Preserve exact original receipts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -169,6 +230,7 @@ jobs:
             pub/manifest.json
             pub/native-results.txt
             pub/summary.json
+            pub/observation.json
           retention-days: 7
           if-no-files-found: warn
       - name: Remove runner-only connection material
