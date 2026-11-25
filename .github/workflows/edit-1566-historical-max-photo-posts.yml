@@ -1,4 +1,4 @@
-name: "#1566 Move three hotel cards into exact existing MAX photo posts"
+name: "#1566 Compile the three existing MAX editor plans without writes"
 on:
   push:
     branches: [audit/1566-main-hotel-registry-20261119]
@@ -17,7 +17,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '7ae87381c80f8a555561aaf8aeb5fda02b176090' &&
+      github.event.before == '196b379a830a2888ba3858ee4bfa9b475080dc3f' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -26,16 +26,6 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Checkout the release used by the original source audit
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          ref: 6194e13ac5af4ba53263284a3a3002f7d6d22b31
-          persist-credentials: false
-          path: accepted-release
-      - name: Verify the receipts, current release and existing publisher before credentials
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: node tools/direct_demand/operations/max-existing-photo/admit.js
       - name: Verify the existing editor and stage the three matched plans
         shell: bash
         env:
@@ -94,145 +84,5 @@ jobs:
           SH
           bash -n pub/stage/execute.sh
           tar -C pub/stage -cf pub/approved.tar editor.php batch_input.php batch_entry.php observe_pair.php scope.json native-targets.json native-source.json run_batch.py execute.sh
-      - name: Pin established SSH host continuity and authentication identity
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
-          PY
-          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
-            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
-          chmod 600 "$RUNNER_TEMP/channel_key"
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-          python3 - <<'PY'
-          import base64,hashlib,os,pathlib,subprocess
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
-          for s in scan.stdout.splitlines():
-              q=s.split()
-              if len(q)<3 or q[0].startswith('#'):continue
-              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
-              except Exception:continue
-              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
-          assert found,'HOST_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
-          print('ESTABLISHED_HOST_PIN_VERIFIED')
-          PY
-      - name: Recheck the publisher immediately before transferring the sealed plans
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: node tools/direct_demand/operations/max-existing-photo/admit.js
-      - name: Edit only each verified existing ID and capture its independent receipt
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
-                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
-                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'bash -c '"'"'set -euo pipefail; umask 077; stage=$(mktemp -d /tmp/anytour-1566-old-max.XXXXXXXX); trap "rm -f -- \"$stage\"/*; rmdir -- \"$stage\"" EXIT; tar --no-same-owner --no-same-permissions -C "$stage" -xf -; bash "$stage/execute.sh" "$stage"'"'"'' < pub/approved.tar | tee pub/native-results.txt
-          python3 - <<'PY'
-          import json,pathlib
-          expected = [r['hotel_id'] for r in json.loads(pathlib.Path('pub/manifest.json').read_bytes())['rows']]
-          rows = []
-          for line in pathlib.Path('pub/native-results.txt').read_text().splitlines():
-              if not line.startswith('RESULT '):
-                  continue
-              _, hotel, payload = line.split(' ', 2)
-              d = json.loads(payload)
-              assert d['hotel'] == int(hotel) and d.get('new_posts', 0) == 0 and d.get('ad_writes', 0) == 0
-              assert d['state'] in {'existing_max_message_updated_and_verified','stopped_before_edit','held_no_retry','untouched','unobserved'}
-              rows.append(d)
-          assert [r['hotel'] for r in rows] == expected
-          accepted = [r['hotel'] for r in rows if r['state'] == 'existing_max_message_updated_and_verified']
-          summary = {'state':'complete' if len(accepted)==len(expected) else 'partial' if accepted else 'none_accepted','native_accepted':accepted,'rows':rows}
-          pathlib.Path('pub/summary.json').write_text(json.dumps(summary,indent=2))
-          print('Native confirmations', len(accepted), 'of', len(expected), accepted)
-          PY
-      - name: Read each same public MAX address independently
-        if: always()
-        run: |
-          set -euo pipefail
-          umask 077
-          test -f pub/native-results.txt || exit 0
-          python3 - <<'PY'
-          import json,urllib.request,urllib.error,hashlib,re,time
-          from html.parser import HTMLParser
-          from concurrent.futures import ThreadPoolExecutor
-          from pathlib import Path
-          from datetime import datetime,timezone
-          original=json.loads(Path('pub/manifest.json').read_text())['rows']
-          native=[json.loads(line.split(' ',2)[2]) for line in Path('pub/native-results.txt').read_text().splitlines() if line.startswith('RESULT ')]
-          accepted={r['hotel'] for r in native if r.get('state')=='existing_max_message_updated_and_verified'}
-          plans=[{'id':r['hotel_id'],'url':r['target_url'],'title':r['name'],'caption':r['caption_without_price']} for r in original if r['hotel_id'] in accepted]
-          class Page(HTMLParser):
-              def __init__(self):
-                  super().__init__(convert_charrefs=True)
-                  self.parts=[]; self.hide=0; self.meta={}
-              def handle_starttag(self,t,a):
-                  if t in ('script','style'): self.hide+=1
-                  if t=='meta':
-                      d=dict(a)
-                      key=d.get('property') or d.get('name')
-                      if key: self.meta[key]=d.get('content','')
-              def handle_endtag(self,t):
-                  if t in ('script','style') and self.hide: self.hide-=1
-              def handle_data(self,v):
-                  if not self.hide and v.strip(): self.parts.append(v.strip())
-          def norm(v):
-              return re.sub(r'\s+',' ',v).strip()
-          def read(row):
-              try:
-                  req=urllib.request.Request(row['url'],headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
-                  with urllib.request.urlopen(req,timeout=10) as r:
-                      raw=r.read(3000001)
-                      status,url=r.status,r.geturl()
-                  assert len(raw)<=3000000 and url==row['url']
-                  p=Page();p.feed(raw.decode('utf-8'))
-                  visible=norm('\n'.join(p.parts).split('Другие публикации канала',1)[0])
-                  declared=norm(p.meta.get('og:description',''))
-                  exact=norm(row['caption'])
-                  out={'hotel_id':row['id'],'url':url,'http':status,'named':row['title'] in visible or row['title'] in declared,
-                       'caption_matches':exact in visible or exact in declared,'photo_preview':bool(p.meta.get('og:image')),
-                       'public_button_label_visible':'Рассчитать на мои даты' in visible,
-                       'page_sha256':hashlib.sha256(raw).hexdigest(),
-                       'escaped_variant_visible': '&amp;' in visible or '&amp;' in declared}
-                  out['verified']=out['named'] and out['caption_matches'] and out['photo_preview']
-                  return out
-              except (OSError,ValueError,AssertionError) as e:
-                  return {'hotel_id':row['id'],'url':row['url'],'error':type(e).__name__,'verified':False}
-          with ThreadPoolExecutor(max_workers=3) as pool:
-              results=list(pool.map(read,plans))
-          if not all(r['verified'] for r in results):
-              time.sleep(5)
-              results=[r if r['verified'] else read(p) for r,p in zip(results,plans)]
-          out={'observed_utc':datetime.now(timezone.utc).isoformat(),'rows':results,'writes':0,'ad_clicks':0}
-          Path('pub/observation.json').write_text(json.dumps(out,ensure_ascii=False))
-          print('MAX_COMMERCIAL_ALBUM_PUBLIC_READ='+json.dumps(out,ensure_ascii=False,separators=(',',':')))
-          PY
-      - name: Preserve exact original receipts
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: issue-1566-max-edits-existing-only
-          path: |
-            pub/manifest.json
-            pub/native-results.txt
-            pub/summary.json
-            pub/observation.json
-          retention-days: 7
-          if-no-files-found: warn
-      - name: Remove runner-only connection material
-        if: always()
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
+      - name: Report sealed editor plans without server writes
+        run: cat pub/batch-plan.json
