@@ -8,7 +8,7 @@ permissions:
   actions: read
   issues: read
   pull-requests: read
-# Resource-only observation: no SQL, provider, Manager2 HTTP or PRICE lease; strict actual application fences.
+# Bounded reads of the same two prepared pairs; no provider writes; strict actual application fences.
 jobs:
   registry:
     if: >-
@@ -18,7 +18,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.event.forced == false &&
-      github.event.before == 'd3c6901831ab45557f94f865ab2add487781e17b' &&
+      github.event.before == '0a3035234b9184d8a8195c581e1f9d7204bb2328' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -31,10 +31,10 @@ jobs:
       - name: Check out main for the existing release verifier
         uses: actions/checkout@v4
         with:
-          ref: 938d86d69864c41569f6c6225b0576dffaa5854e
+          ref: ad970aaa2c89ccc6eb2fcded3c56b5146fffeaf5
           path: accepted
           persist-credentials: false
-      - name: Authenticate original1725 terminal before bounded host observation
+      - name: Authenticate original1719 terminal before bounded host observation
         working-directory: accepted
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -46,17 +46,17 @@ jobs:
           async function check(){
             const api=R.makeReadApi(process.env.GITHUB_TOKEN),before=await R.readRecord(api);
             const r=R.validateRelease(before.record).release;
-            const expected='938d86d69864c41569f6c6225b0576dffaa5854e';
+            const expected='ad970aaa2c89ccc6eb2fcded3c56b5146fffeaf5';
             if(r.repository_sha!==expected||r.application_sha!==expected||r.kind!=='installed'
-              ||r.release.run_id!=='45625610061'||r.release.run_attempt!==1
-              ||r.closure?.run_id!=='45628359407'||r.closure?.binding?.pr!==1725
-              ||r.closure?.binding?.comment_id!==6818332618
+              ||r.release.run_id!=='45629187135'||r.release.run_attempt!==1
+              ||r.closure?.run_id!=='45632250339'||r.closure?.binding?.pr!==1719
+              ||r.closure?.binding?.comment_id!==6928374515
               ||r.closure?.binding?.owner_id!==226193297
-              ||r.closure?.binding?.head_sha!=='a0d31903c21d1630fbdf0338cdd0511ba618f6df'
-              ||r.closure?.binding?.updated_at!=='2026-11-25T13:37:37Z')throw Error('original1725_changed');
+              ||r.closure?.binding?.head_sha!=='cdac2729bd4849c871a93db053ed412bdbe80e7f'
+              ||r.closure?.binding?.updated_at!=='2026-11-25T13:58:58Z')throw Error('original1719_changed');
             const resolved=await R.resolveCurrent(api,{sha:expected},before);
             if(!resolved.ready||resolved.repository_sha!==expected||resolved.application_sha!==expected)
-              throw Error('original1725_not_canonically_accepted');
+              throw Error('original1719_not_canonically_accepted');
             const main=(await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha;
             const after=await R.readRecord(api);
             if(before.blob!==after.blob||before.record_digest!==after.record_digest)throw Error('accepted_record_changed');
@@ -65,8 +65,8 @@ jobs:
               current_main_sha:main,observed_repository_sha:expected,application_sha:expected,
               technical_acceptance_complete:true,write_admission:false,canonical:resolved,
               record_commit:before.commit,record_blob:before.blob,record_digest:before.record_digest,
-              original_installation_deploy:'45625610061',original_closer:'45628359407',
-              original_guard_pr:1725,checked_at_utc:new Date().toISOString()})+'\n');
+              original_installation_deploy:'45629187135',original_closer:'45632250339',
+              original_guard_pr:1719,checked_at_utc:new Date().toISOString()})+'\n');
             fs.appendFileSync(process.env.GITHUB_ENV,'REPOSITORY_SHA='+expected+'\nAPPLICATION_SHA='+expected+'\n');
           }
           check().catch(e=>{console.error('readonly_accepted_installation_refused',e.code||e.message);process.exitCode=1});
@@ -86,8 +86,8 @@ jobs:
               value=os.environ['GITHUB_RUN_ID' if name=='NATIVE_RUN_ID' else name]
               assert re.fullmatch(pattern,value) and program.count('__'+name+'__') == 1
               program=program.replace('__'+name+'__',value)
-          # Execute declarations plus a resource-only entry, never the existing
-          # public/native pair preparation, DB connection, lease or provider calls.
+          # Execute the reviewed reader helpers for the same two prepared pairs.
+          # Preserve candidate holds, read-only SQL and the shared PRICE lease.
           assert program.count("$out=['schema'=>1") == 1
           program=program[:program.index("$out=['schema'=>1")]
           entry=r'''$out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_archive_telegram_ranked_registry','ok'=>false,
@@ -210,7 +210,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Observe only host resources using the current fenced reader declarations
+      - name: Read the two existing prepared pairs using the current fenced reader
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -231,7 +231,7 @@ jobs:
           print(json.dumps({'ok':d['ok'],'failure_stage':d.get('failure_stage'),'reason':d.get('failure_reason'),'rows':[{'hotel_id':r['hotel_id'],'ready':r['preview_ready'],'blockers':r['preview_blockers']} for r in d['rows']]}))
           PY
           test "$status" -eq 0
-      - name: Preserve the original bounded resource observation
+      - name: Preserve the original bounded pair observation
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
