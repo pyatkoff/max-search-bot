@@ -8,9 +8,9 @@ permissions:
   actions: read
   issues: read
   pull-requests: read
-concurrency:
-  group: anytour-issue-1566-registry-read
-  cancel-in-progress: false
+# Read-only public observations and a bounded READ ONLY SQL snapshot do not occupy
+# the writer or wait behind another reader's unrelated release admission.
+# The canonical shared PRICE lease and actual application checks remain in PHP.
 jobs:
   registry:
     if: >-
@@ -19,7 +19,7 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == 'ba12eb03dec1395e557e4a888ebd8295a12ec0b0' &&
+      github.event.before == 'b5c27d76186db4e8e5ff9c5c4fa2a03491720dce' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 40
