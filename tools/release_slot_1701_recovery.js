@@ -205,13 +205,14 @@ const changedFiles = [
   'docs/RELEASE_PRIORITY.md',
   'tests/check_ci_workflow_scopes.py',
   'tests/run_deployment_release_regression.js',
+  'tools/deployment_release.js',
   'tools/release_priority.js',
   'tools/release_slot_1701_recovery.js',
   'tools/release_slot_close.js',
 ];
 async function sourceProof(get, source) {
   const relation = await get('/compare/'+P.sha+'...'+source+'?per_page=100');
-  ok(R.sha(source) && source !== P.sha && relation.status === 'ahead' && relation.ahead_by === 1
+  ok(R.sha(source) && source !== P.sha && relation.status === 'ahead' && relation.ahead_by === 2
     && relation.behind_by === 0 && relation.merge_base_commit?.sha === P.sha
     && R.same(relation.files.map(f => f.filename).sort(), changedFiles)
     && relation.files.every(f => !f.previous_filename && f.status ===
@@ -259,6 +260,7 @@ async function uploaded(get, run, job, proof, closed) {
   const name = R.publicationName('pending_terminal', run.id, 1);
   ok(artifacts.length === 1 && artifacts[0].name === name
     && /^sha256:[0-9a-f]{64}$/.test(artifacts[0].digest)
+    && Number.isSafeInteger(artifacts[0].size_in_bytes) && artifacts[0].size_in_bytes > 0
     && artifacts[0].workflow_run?.id === run.id && artifacts[0].workflow_run.head_sha === run.head_sha
     && artifacts[0].workflow_run.head_branch === P.branch, reason);
 }
