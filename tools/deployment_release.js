@@ -91,6 +91,10 @@ const HOTEL_PUBLISHER_KEYBOARD_PILOT = Object.freeze({...HOTEL_FOUR_TRANSFER,
   plan_path:'config/anytour_publisher_keyboard_pilot_20261125.json',plan_size:1026,
   plan_blob:'72453334d2ca09dfbe690ba8310e72f6b4e168df',
   plan_digest:'a92092aed3523efd38931a8a32f1b78db3d3946c3e449e7d4d4f0a781d1dbca1'});
+const PUBLISHER_KEYBOARD_PREWRITE_REFUSAL = Object.freeze({
+  run:45716283534,job:139563054439,sha:'58f15d1a147353a4b807f122525d75e1f4f35c1c',
+  artifact:15070650654,size:1094,
+  digest:'sha256:0412466a22de61baaeae4849c6d52d9ee9f74542014e6a4df495f5ddbdc23c9b'});
 const RANKED_INPUT_BRANCH = /^ops\/anytour-hotel-ranked-plan-([0-9a-f]{64})$/;
 const RANKED_AFTER_BRANCH = /^ops\/anytour-hotel-ranked-after-([1-9][0-9]{0,15})$/;
 const RANKED_RESUME_SEED = Object.freeze({
@@ -2023,6 +2027,51 @@ async function proveRankedPrewriteHistory(api, runs, current) {
   return next;
 }
 
+// The pinned original ZIP records publisher_pilot_keyboard_unsupported in the
+// outer preflight envelope. At its immutable source that envelope precedes
+// publisherKeyboardExecute; it is not a provider receipt or a general retry.
+async function provePublisherKeyboardPrewriteHistory(api,runs,current) {
+  const p=PUBLISHER_KEYBOARD_PREWRITE_REFUSAL,profile=HOTEL_PUBLISHER_KEYBOARD_PILOT;
+  const prior=runs.find(run=>run.id===p.run),next=runs.find(run=>String(run.id)===String(current.id));
+  requireValue(runs.length===2&&prior&&next&&Number(current.id)>p.run&&current.sha!==p.sha,
+    'publisher_keyboard_prewrite_history_changed');
+  runIdentity(prior,{id:p.run,attempt:1,head:p.sha,workflow:profile.workflow,event:'push',branch:profile.branch,conclusion:'failure'});
+  requireValue([prior,next].every(run=>run.repository?.id===profile.repository_id
+    &&run.head_repository?.id===profile.repository_id&&run.actor?.id===profile.owner_id
+    &&run.actor.login===profile.owner&&run.triggering_actor?.id===profile.owner_id
+    &&run.triggering_actor.login===profile.owner)
+    &&next.head_sha===current.sha&&next.head_branch===profile.branch&&next.run_attempt===1,
+    'publisher_keyboard_prewrite_origin_changed');
+  const original=API_ROOT+'/actions/runs/'+p.run;
+  const [jobList,artifactList]=await Promise.all([
+    api('GET',original+'/attempts/1/jobs?per_page=100'),api('GET',original+'/artifacts?per_page=100')]);
+  const jobs=boundedList(jobList,'jobs','publisher_keyboard_prewrite_jobs_changed'),job=jobs[0];
+  requireValue(jobs.length===1&&job.id===p.job&&job.run_id===p.run&&job.run_attempt===1
+    &&job.head_sha===p.sha&&job.name===profile.job&&job.status==='completed'&&job.conclusion==='failure'
+    &&Array.isArray(job.steps),'publisher_keyboard_prewrite_proof_changed');
+  for(const [name,conclusion] of [
+    ['Check out the native run source','success'],['Resolve accepted repository and application','success'],
+    ['Require exact APPLY admission before loading credentials','success'],
+    ['Pin established SSH host continuity and authentication identity','success'],
+    ['Apply the installed editor once and retain its original receipts','failure'],
+    ['Save the original sanitized transfer result','success'],['Remove runner connection material','success']]){
+    const steps=job.steps.filter(step=>step.name===name);
+    requireValue(steps.length===1&&steps[0].status==='completed'&&steps[0].conclusion===conclusion,
+      'publisher_keyboard_prewrite_steps_changed');
+  }
+  const artifacts=boundedList(artifactList,'artifacts','publisher_keyboard_prewrite_artifacts_changed'),artifact=artifacts[0];
+  requireValue(artifacts.length===1&&artifact.id===p.artifact&&artifact.expired===false
+    &&artifact.size_in_bytes===p.size&&artifact.digest===p.digest
+    &&artifact.name==='issue-1566-hotel-ranked-46-transfer'
+    &&artifact.workflow_run?.id===p.run&&artifact.workflow_run.head_sha===p.sha
+    &&artifact.workflow_run.head_branch===profile.branch
+    &&artifact.workflow_run.repository_id===profile.repository_id
+    &&artifact.workflow_run.head_repository_id===profile.repository_id,
+    'publisher_keyboard_prewrite_artifact_changed');
+  await requireAncestry(api,p.sha,current.sha);
+  return next;
+}
+
 /** Follow the native runs back to the authorized first resume. Each parent has
  * exactly one canonical branch per predecessor. No target IDs come from the ref. */
 async function rankedParentEvidence(api, parentId, current) {
@@ -2162,8 +2211,11 @@ async function proveOriginalMaxPublicFailure(api) {
 
 async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
   const ref='refs/heads/'+p.branch;
-  const recovery=p.branch===RANKED_PREWRITE_REFUSAL.branch && event?.created===false
+  const rankedRecovery=p.branch===RANKED_PREWRITE_REFUSAL.branch && event?.created===false
     && event.before===RANKED_PREWRITE_REFUSAL.sha;
+  const publisherRecovery=p===HOTEL_PUBLISHER_KEYBOARD_PILOT&&event?.created===false
+    &&event.before===PUBLISHER_KEYBOARD_PREWRITE_REFUSAL.sha;
+  const recovery=rankedRecovery||publisherRecovery;
   requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF===ref
     &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+p.workflow+'@'+ref
     &&env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_JOB===p.job
@@ -2186,7 +2238,8 @@ async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
   const runs=boundedList(await api('GET',API_ROOT+'/actions/workflows/'+p.workflow.slice(PREFIX.length)
     +'/runs?branch='+encodeURIComponent(p.branch)+'&per_page=100'),
     'workflow_runs','hotel_transfer_inventory_incomplete');
-  const currentRun=recovery ? await proveRankedPrewriteHistory(api,runs,c) : runs[0];
+  const currentRun=publisherRecovery ? await provePublisherKeyboardPrewriteHistory(api,runs,c)
+    : rankedRecovery ? await proveRankedPrewriteHistory(api,runs,c) : runs[0];
   requireValue((recovery || runs.length===1) && String(currentRun?.id)===c.id,'hotel_transfer_replay_forbidden');
   runIdentity(currentRun,{id:c.id,attempt:1,head:c.sha,workflow:p.workflow,event:'push',completed:false,branch:p.branch});
   const jobs=boundedList(await api('GET',API_ROOT+'/actions/runs/'+c.id+'/attempts/1/jobs?per_page=100'),
@@ -2446,7 +2499,7 @@ function argumentsOf(argv,commands) {
 }
 function outputs(value){for(const [key,v]of Object.entries(value)){
   requireValue(/^[a-z_]+$/.test(key)&&!/[\r\n]/.test(String(v)),'invalid_output');process.stdout.write(key+'='+String(v)+'\n');}}
-module.exports={proveRankedPrewriteHistory,approvedRankedInput,rankedParentEvidence,proveClosedPrewriteOriginal,proveRankedResumeOriginal,proveOriginalNextTransfer,PUBLISHER_BODY_RECOVERY,publisherBodyRecovery,publisherBodySource,failedPublisherBodyTerminal,
+module.exports={provePublisherKeyboardPrewriteHistory,proveRankedPrewriteHistory,approvedRankedInput,rankedParentEvidence,proveClosedPrewriteOriginal,proveRankedResumeOriginal,proveOriginalNextTransfer,PUBLISHER_BODY_RECOVERY,publisherBodyRecovery,publisherBodySource,failedPublisherBodyTerminal,
   UNSTARTED_FORWARD,UNSTARTED_FORWARD_1692,forwardMarker,proveUnstartedDeployment,proveUnstartedForward,admitForwardInstallation,REPOSITORY,API_ROOT,PREFIX,DEPLOY,CLOSER,HOST,RECORD_PATH,PUBLICATION_FILE,PUBLICATION_PROTOCOL,
   TERMINAL_RECOVERY,GATE_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY_1720,unpublishedTerminalProfile,unpublishedTerminalProfileForRef,PRIOR_WAVE_RECOVERY,
   priorWaveRecovery,failedPriorWaveTerminal,terminalRecovery,gateRecovery,
