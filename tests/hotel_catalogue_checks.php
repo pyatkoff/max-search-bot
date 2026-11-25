@@ -5,6 +5,9 @@ require_once dirname(__DIR__).'/services/ManagerHotelKnowledge.php';
 /** Synthetic capacity checks; no research, approvals, provider or database writes. */
 function hotelCatalogueChecks(): void
 {
+    passthru('node '.escapeshellarg(__DIR__.'/hotel_catalogue_package_checks.js'), $packageStatus);
+    draftContextCheck('catalogue sealed transport CLI', $packageStatus === 0);
+
     $canonicalMethod = new ReflectionMethod(ManagerHotelKnowledge::class, 'canonical');
     $canonical = static fn($v): string => $canonicalMethod->invoke(null, $v);
     $lookup = new ReflectionMethod(ManagerHotelKnowledge::class, 'catalogueBinding');
