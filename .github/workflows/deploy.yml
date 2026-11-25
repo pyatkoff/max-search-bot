@@ -101,9 +101,9 @@ jobs:
           for check_group in $DEPLOY_CHECK_GROUPS; do
             php tests/run_required_group.php "$check_group"
           done
-      - name: Validate catalogue bytes and consumer boundaries
-        if: matrix.lane == 'application' && needs.verify-inventory.outputs.profile == 'hotel-catalogue-data'
-        run: bash tools/check_hotel_catalogue_scope.sh
+          if [[ "$DEPLOY_CHECK_PROFILE:$DEPLOY_CHECK_LANE" == 'hotel-catalogue-data:application' ]]; then
+            bash tools/check_hotel_catalogue_scope.sh
+          fi
 
   deploy:
     if: always()

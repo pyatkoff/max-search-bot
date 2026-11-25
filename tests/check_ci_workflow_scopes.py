@@ -413,20 +413,23 @@ check(production_scope['run'] == 'node tools/deploy_hotel_catalogue_scope.js'
       and dj['verify-inventory']['permissions'] == {'contents':'read','actions':'read'},
       'production catalogue scope is selected by one fatal, read-only source gate')
 production_group = next(s for s in dj['verify-groups']['steps'] if s.get('name') == 'Run every required group in this lane')
-production_catalogue = next(s for s in dj['verify-groups']['steps'] if s.get('name') == 'Validate catalogue bytes and consumer boundaries')
 check(dj['verify-groups']['needs'] == 'verify-inventory'
       and production_group['env']['DEPLOY_CHECK_PROFILE'] == '${{ needs.verify-inventory.outputs.profile }}'
-      and production_catalogue['if'] == "matrix.lane == 'application' && needs.verify-inventory.outputs.profile == 'hotel-catalogue-data'"
-      and production_catalogue['run'] == 'bash tools/check_hotel_catalogue_scope.sh'
-      and not production_catalogue.get('continue-on-error'),
-      'production data-only verification retains the canonical catalogue suite in the required lane')
+      and 'bash tools/check_hotel_catalogue_scope.sh' in production_group['run']
+      and all(not s.get('if') and not s.get('continue-on-error') for job in
+              [dj['verify-inventory'],dj['verify-syntax'],dj['verify-groups']] for s in job['steps']),
+      'every existing required deployment job still runs and propagates catalogue and group failures')
 with tempfile.TemporaryDirectory() as stub_dir:
     php_stub = Path(stub_dir)/'php'
-    php_stub.write_text('#!/usr/bin/env bash\nset -eu\nprintf "%s\\n" "$2"\n')
+    php_stub.write_text('#!/usr/bin/env bash\nset -eu\nif [[ "$1" == tests/run_required_group.php ]]; then printf "%s\\n" "$2"; else printf "catalogue:%s\\n" "$1"; fi\n')
     php_stub.chmod(0o755)
     for profile, lane, groups, expected in [
         ('full','application','dialogue website manager',['dialogue','website','manager']),
-        ('hotel-catalogue-data','application','dialogue website manager',['dialogue','website']),
+        ('hotel-catalogue-data','application','dialogue website manager',
+            ['dialogue','website','catalogue:tests/run_manager_ai_draft_context_regression.php',
+             'catalogue:tests/run_manager_ai_draft_context_regression.php',
+             'catalogue:tests/run_manager_ai_draft_service_regression.php',
+             'catalogue:tests/run_manager_preparation_mcp_regression.php']),
         ('full','diagnostics','diagnostics',['diagnostics']),
         ('hotel-catalogue-data','diagnostics','diagnostics',['diagnostics']),
         ('','application','dialogue website manager',None),
