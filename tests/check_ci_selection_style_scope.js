@@ -88,7 +88,8 @@ try {
     const selected=JSON.parse(result.stdout);
     check(selected.mode,expectedMode,label+' browser scope');
     const fields=Object.fromEntries(fs.readFileSync(output,'utf8').trim().split('\n').map(line=>line.split('=')));
-    check(fields,{mode:expectedMode,'tour-proof':String(selected.proveTourSelection===true),backend:expectedBackend},label+' exact transported outputs');
+    check(fields,{mode:expectedMode,'tour-proof':String(selected.proveTourSelection===true),
+      'hotel-proof':String(selected.proveHotelCatalogue===true),backend:expectedBackend},label+' exact transported outputs');
     return selected;
   }
   function scenario(label, mutate, mode='tour-selection', backend='full') {

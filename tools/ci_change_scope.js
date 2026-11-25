@@ -86,6 +86,92 @@ const TOUR_CI_PROOF_PATHS = new Set([
   'tools/manager2_visual_shards.js',
   '.github/workflows/ci-change-scope.yml', '.github/workflows/workspace-v2-visual-qa.yml',
 ]);
+const HOTEL_DATA_DIR = 'knowledge/hotels/';
+const HOTEL_INDEX = 'catalogue.json';
+const HOTEL_SHARD = /^(?:manifest|manifest-[0-9]{4})\.json$/;
+const HOTEL_BUNDLE = /^anytour-[1-9][0-9]{0,8}-[a-z0-9]+(?:-[a-z0-9]+)*\.json$/;
+const HOTEL_CI_PROOF_PATHS = new Set([
+  'tools/ci_change_scope.js', '.github/workflows/ci-change-scope.yml',
+  '.github/workflows/regression-tests.yml', 'tests/hotel_catalogue_checks.php',
+]);
+
+// Classify only a positive, bounded append. The ordinary reader in the
+// mandatory data job verifies Git pins, duplicate identities and every bundle.
+function hotelCatalogueAddition(changes, read) {
+  if (!Array.isArray(changes) || changes.length < 3) return false;
+  const files = new Map();
+  for (const change of changes) {
+    if (!change || typeof change.path !== 'string' || !change.path.startsWith(HOTEL_DATA_DIR) ||
+        change.previousPath !== undefined || change.newMode !== '100644') return false;
+    const name = change.path.slice(HOTEL_DATA_DIR.length);
+    if (files.has(name)) return false;
+    if (change.status === 'M' && change.oldMode === '100644') {
+      if (name !== HOTEL_INDEX && !HOTEL_SHARD.test(name)) return false;
+    } else if (change.status === 'A' && change.oldMode === '000000') {
+      if (!HOTEL_BUNDLE.test(name) && (!HOTEL_SHARD.test(name) || name === 'manifest.json')) return false;
+    } else return false;
+    files.set(name, change.status);
+  }
+  if (files.get(HOTEL_INDEX) !== 'M') return false;
+  const bundles = [...files.keys()].filter(name => HOTEL_BUNDLE.test(name));
+  if (!bundles.length) return false;
+
+  try {
+    const readJson = (side, name, limit) => {
+      const bytes = read(side, HOTEL_DATA_DIR + name);
+      if (typeof bytes !== 'string' || Buffer.byteLength(bytes) > limit) throw new Error('invalid_hotel_data');
+      return JSON.parse(bytes);
+    };
+    const before = readJson('base', HOTEL_INDEX, 16384);
+    const after = readJson('head', HOTEL_INDEX, 16384);
+    const indexFiles = index => {
+      if (!index || !isDeepStrictEqual(Object.keys(index).sort(), ['project_key','schema_version','shards']) ||
+          index.project_key !== 'anytour' || index.schema_version !== 'hotel_catalogue_v1' ||
+          !Array.isArray(index.shards) || index.shards.length < 1 || index.shards.length > 32) {
+        throw new Error('invalid_catalogue_index');
+      }
+      const pins = new Map();
+      for (const [position, shard] of index.shards.entries()) {
+        if (!shard || !isDeepStrictEqual(Object.keys(shard).sort(), ['file','git_blob_sha']) ||
+            typeof shard.file !== 'string' ||
+            (position === 0 ? shard.file !== 'manifest.json' : !/^manifest-[0-9]{4}\.json$/.test(shard.file)) ||
+            typeof shard.git_blob_sha !== 'string' || !/^[a-f0-9]{40}$/.test(shard.git_blob_sha) ||
+            pins.has(shard.file)) throw new Error('invalid_catalogue_pin');
+        pins.set(shard.file, shard.git_blob_sha);
+      }
+      return pins;
+    };
+    const previousPins = indexFiles(before);
+    const newPins = indexFiles(after);
+    if (!isDeepStrictEqual([...newPins.keys()].slice(0, previousPins.size), [...previousPins.keys()])) return false;
+
+    const touchedShards = new Set();
+    const referencedBundles = [];
+    for (const [name, pin] of newPins) {
+      const previousPin = previousPins.get(name);
+      if (pin === previousPin) continue;
+      if (files.get(name) !== (previousPin === undefined ? 'A' : 'M')) return false;
+      touchedShards.add(name);
+      const next = readJson('head', name, 65536);
+      if (!next || !isDeepStrictEqual(Object.keys(next).sort(), ['bindings','project_key','schema_version','version']) ||
+          next.schema_version !== 1 || next.project_key !== 'anytour' || typeof next.version !== 'string' ||
+          !Array.isArray(next.bindings) || next.bindings.length > 32) return false;
+      const prior = previousPin === undefined ? [] : readJson('base', name, 65536).bindings;
+      if (!Array.isArray(prior) || next.bindings.length <= prior.length ||
+          !isDeepStrictEqual(next.bindings.slice(0, prior.length), prior)) return false;
+      for (const entry of next.bindings.slice(prior.length)) {
+        const file = entry?.bundle_file;
+        if (typeof file !== 'string' || !HOTEL_BUNDLE.test(file) || files.get(file) !== 'A') return false;
+        referencedBundles.push(file);
+      }
+    }
+    const writtenShards = [...files.keys()].filter(name => HOTEL_SHARD.test(name));
+    return writtenShards.length === touchedShards.size &&
+      writtenShards.every(name => touchedShards.has(name)) &&
+      isDeepStrictEqual(referencedBundles.sort(), bundles.sort());
+  } catch (_) { return false; }
+}
+
 const full = reason => ({ mode: 'full', reason });
 const regular = mode => mode === '100644' || mode === '100755';
 
@@ -310,11 +396,14 @@ function selectScope(env = process.env) {
     // CI-rule edits retain full coverage AND exercise the new scoped runner.
     // Ordinary full changes do not pay for this additional commissioning proof.
     const workspaceStyle = !snapshotFallback && result.mode === 'full' && workspaceStyleOnlyChanges(changes);
+    const hotelData = !snapshotFallback && baseRef === 'main' && result.mode === 'full' &&
+      hotelCatalogueAddition(changes, (side, file) => git(['show', `${side === 'base' ? base : head}:${file}`]));
     return { ...result,
-      reason: workspaceStyle ? 'bounded_workspace_style_only' : result.reason,
+      reason: hotelData ? 'bounded_hotel_catalogue_addition' : workspaceStyle ? 'bounded_workspace_style_only' : result.reason,
       backend: result.mode === 'tour-selection' && selectionStyleOnlyChanges(changes) ? 'selection-style' :
-        workspaceStyle ? 'workspace-style' : 'full',
-      proveTourSelection: result.mode === 'full' && changes.some(change => TOUR_CI_PROOF_PATHS.has(change.path)) };
+        workspaceStyle ? 'workspace-style' : hotelData ? 'hotel-catalogue-data' : 'full',
+      proveTourSelection: result.mode === 'full' && changes.some(change => TOUR_CI_PROOF_PATHS.has(change.path)),
+      proveHotelCatalogue: result.mode === 'full' && changes.some(change => HOTEL_CI_PROOF_PATHS.has(change.path)) };
   } catch (_) { return full('diff_unavailable'); }
 }
 
@@ -327,9 +416,9 @@ if (require.main === module) {
       : 'PR branch is behind its event base; integrate the current main before final CI.\n');
     process.exitCode = 1;
   } else if (process.env.GITHUB_OUTPUT) {
-    fs.appendFileSync(process.env.GITHUB_OUTPUT, `mode=${result.mode}\ntour-proof=${result.proveTourSelection === true}\n`);
+    fs.appendFileSync(process.env.GITHUB_OUTPUT, `mode=${result.mode}\ntour-proof=${result.proveTourSelection === true}\nhotel-proof=${result.proveHotelCatalogue === true}\n`);
   }
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
 
-module.exports = { TOUR_SELECTION_PATHS, classifyChanges, parseRawDiff, oauthSpecOnlyChange, editorManifestVersionOnlyChange, publicManifestVersionOnlyChange, classifySelectionCompanionChanges, selectionStyleOnlyChanges, workspaceStyleOnlyChanges, selectScope };
+module.exports = { TOUR_SELECTION_PATHS, classifyChanges, parseRawDiff, oauthSpecOnlyChange, editorManifestVersionOnlyChange, publicManifestVersionOnlyChange, classifySelectionCompanionChanges, selectionStyleOnlyChanges, workspaceStyleOnlyChanges, hotelCatalogueAddition, selectScope };
