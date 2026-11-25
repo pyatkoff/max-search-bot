@@ -1,4 +1,4 @@
-name: "#1566 Continue native observation of original unresolved fifteen Telegram transfers"
+name: "#1566 Same-hotel public button candidates and canonical pending read"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -17,10 +17,10 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == '02609a265e4ec254ea4bb81d3ff0a154763ddee7' &&
+      github.event.before == '90d32f6d9cb2d92f565d5b08c8b77a3c6d95d1c7' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 12
     steps:
       - name: Check out the exact candidate packet
         uses: actions/checkout@v4
@@ -30,9 +30,18 @@ jobs:
       - name: Check out main for the existing release verifier
         uses: actions/checkout@v4
         with:
-          ref: 6194e13ac5af4ba53263284a3a3002f7d6d22b31
+          ref: 60003591337ff2ebf74a2e5fe6d79c92c0a6137e
           path: accepted
           persist-credentials: false
+      - name: Discover public same-hotel button candidates independently of release or PRICE
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p pub
+          test "$(git hash-object tools/direct_demand/operations/read-1566-public-button-candidates.php)" = 'a4da55f59762b8b36de68542a2edcdee7faad039'
+          php -l tools/direct_demand/operations/read-1566-public-button-candidates.php
+          php tools/direct_demand/operations/read-1566-public-button-candidates.php
       - name: Prove the current closed application for bounded read-only context
         working-directory: accepted
         env:
@@ -69,7 +78,7 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = 'd5305ff389930216f4b2b0f649bd13bfe30454e0'
+          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '00e44d500b2ab2710c8f7eb22f7bb4f750eef969'
           mkdir -p pub
           python3 - <<'PY'
           import os,pathlib,re
@@ -82,74 +91,6 @@ jobs:
           pathlib.Path('pub/read-only.php').write_text(program)
           PY
           php -l pub/read-only.php
-          python3 - <<'PY'
-          import pathlib,re
-          s=pathlib.Path('pub/read-only.php').read_text()
-          a=re.search(r'function publicRetryLimit\([\s\S]*?(?=\nfunction runtimeRead)',s).group()
-          b=re.search(r'function publicEvidence\([\s\S]*?(?=\nfunction publicRead)',s).group()
-          stub="""<?php
-          function reasonRead(Throwable $e): string { return $e->getMessage(); }
-          function publicRead(string $channel,string $message): array {
-           global $publicAttempts,$publicRateLimit;
-           $publicAttempts++;
-           if($message==='429') { $publicRateLimit=publicRetryLimit('17',1700000000); throw new RuntimeException('public_rate_limited'); }
-           return ['url'=>'fixture','single_photo'=>true];
-          }
-          """
-          checks="""
-          function verifyFixture(bool $ok): void { if(!$ok)throw new RuntimeException('readonly_rate_contract_failed'); }
-          verifyFixture(publicRetryLimit('17',1700000000)['resume_not_before_unix']===1700000017);
-          verifyFixture(publicRetryLimit('Tue, 14 Nov 2023 22:14:20 GMT',1700000000)['retry_after_seconds']===60);
-          verifyFixture(publicRetryLimit('0',1700000000)['retry_after_seconds']===0);
-          verifyFixture(publicRetryLimit('tomorrow',1700000000)['resume_not_before_unix']===null);
-          verifyFixture(publicRetryLimit('-1',1700000000)['retry_after_seconds']===null);
-          verifyFixture(publicRetryLimit("17\\r\\nInject",1700000000)['retry_after_raw']===null);
-          $publicAttempts=0; $publicRateLimit=null;
-          $r=publicEvidence('fixture','ok'); verifyFixture($r['ok']&&$r['http_attempts']===1&&$publicAttempts===1);
-          $r=publicEvidence('fixture','429'); verifyFixture(!$r['ok']&&$r['http_attempts']===1&&$publicAttempts===2);
-          $r=publicEvidence('fixture','remaining'); verifyFixture(!$r['ok']&&$r['http_attempts']===0&&$publicAttempts===2&&$r['reason']==='public_retry_after_held');
-          echo "READONLY_PUBLIC_429_CONTRACT=PASS\\n";
-          """
-          pathlib.Path('pub/read-rate-fixture.php').write_text(stub+a+b+checks)
-          PY
-          php pub/read-rate-fixture.php
-          python3 - <<'PYTEST'
-          import pathlib
-          s=pathlib.Path('pub/read-only.php').read_text()
-          a=s[s.index('function albumStructureRead('):s.index('function publicRead(')]
-          b=s[s.index('function parsePublicRead('):s.index('function receiptRead(')]
-          stub="<?php\nfunction requireRead(bool $ok,string $r):void {if(!$ok)throw new RuntimeException($r); }\n"
-          tests=r"""
-          function verifyFormat(bool $ok):void{if(!$ok)throw new RuntimeException('format_observation_contract_failed');}
-          $date='<time datetime="2024-11-19T12:35:05+00:00"></time>';
-          $photo='<a class="tgme_widget_message_photo_wrap" href="https://t.me/anytour/931"></a>';
-          $html='<div data-post="anytour/931">'.$photo.$photo.$date.'</div>';
-          $r=parsePublicRead($html,'anytour','931');verifyFormat($r['photo_count']===2&&$r['caption']===null&&$r['photo_marker_sha256']===null&&!$r['single_photo']);
-          verifyFormat(!$r['format_observation']['caption_mid_confirmed']&&!$r['format_observation']['native_album_membership_confirmed']&&!$r['format_observation']['keyboard_admission_confirmed']);
-          $caps='<div class="tgme_widget_message_text">first</div><div class="tgme_widget_message_text">second</div>';
-          $r=parsePublicRead('<div data-post="anytour/931">'.$caps.$photo.$date.'</div>','anytour','931');verifyFormat(count($r['format_observation']['caption_nodes'])===2&&$r['caption_sha256']===null);
-          $r=parsePublicRead('<div data-post="anytour/931"><video></video>'.$date.'</div>','anytour','931');verifyFormat($r['other_media_count']===1&&!$r['format_observation']['native_album_membership_confirmed']);
-          try{parsePublicRead(str_replace('data-post="anytour/931"','data-post="anytour/932"',$html),'anytour','931');throw new LogicException('wrong_identity_admitted');}catch(RuntimeException $e){verifyFormat($e->getMessage()==='public_identity_changed');}
-          $text='<div data-post="anytour/647"><div class="tgme_widget_message_text">old commercial text</div>'.$date.'</div>';
-          $r=parsePublicRead($text,'anytour','647');verifyFormat($r['photo_count']===0&&$r['other_media_count']===0&&$r['photo_marker_sha256']===null&&!$r['single_photo']);
-          $fixture='<div data-post="anytour/1047"><div class="tgme_widget_message_text">old offer</div>'.$date;
-          $embed=parsePublicRead($fixture.'</div>','anytour','1047');
-          $archive=parsePublicRead($fixture.'<a class="tgme_widget_message_inline_button" href="https://t.me/AnyTour_MSK">Contact</a></div>','anytour','1047');
-          $merged=corroborateTargetKeyboard($embed,$archive);
-          verifyFormat($embed['buttons']===[]&&$merged['target_keyboard_archive_verified']===true&&count($merged['buttons'])===1);
-          $clear=corroborateTargetKeyboard($embed,$embed);
-          verifyFormat($clear['target_keyboard_archive_verified']===true&&$clear['buttons']===[]);
-          $changed=$archive;$changed['caption_sha256']=str_repeat('0',64);
-          try{corroborateTargetKeyboard($embed,$changed);throw new LogicException('changed_caption_admitted');}catch(RuntimeException $e){verifyFormat($e->getMessage()==='target_keyboard_archive_identity_changed');}
-          try{corroborateTargetKeyboard($archive,$embed);throw new LogicException('changed_keyboard_admitted');}catch(RuntimeException $e){verifyFormat($e->getMessage()==='target_keyboard_archive_changed');}
-          echo "ARCHIVE_KEYBOARD_CONTRACT=PASS\n";
-          echo "EXPLICIT_FORMAT_OBSERVATION_CONTRACT=PASS\n";
-          """
-          pathlib.Path('pub/read-format-fixture.php').write_text(stub+a+b+tests)
-          PYTEST
-          php pub/read-format-fixture.php
-          rm -f pub/read-format-fixture.php
-          rm -f pub/read-rate-fixture.php
       - name: Pin established SSH host continuity and authentication identity
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -182,7 +123,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read the eighteen accepted public posts and exact registered hotel contexts
+      - name: Read at most fifty existing pending canonical publications without rearming
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -199,50 +140,16 @@ jobs:
           import json
           d=json.load(open('pub/registry.json'))
           if not d['ok']: print(json.dumps({k:d[k] for k in ('failure_stage','failure_reason') if k in d}))
-          assert d['ok'] and d['operation']=='hotel_accepted_telegram_routes_readback'
+          assert d['ok'] and d['operation']=='hotel_telegram_pending_button_inventory'
           assert d['production_writes']==d['provider_writes']==d['bot_starts']==0 and d['write_admission'] is False
-          assert len(d['rows'])==18 and len({r['hotel_id'] for r in d['rows']})==18
-          assert 0<d['public_get_attempts']<=36
-          f=d['route_feed_source']
-          import hashlib,pathlib
-          raw=f['raw_utf8'].encode()
-          assert len(raw)==f['bytes'] and hashlib.sha256(raw).hexdigest()==f['sha256']==d['current_feed_sha256']
-          pathlib.Path('pub/route-feed.xml').write_bytes(raw)
-          print(json.dumps({'checkpoint_sha256':d['checkpoint_sha256'],'read_at_utc':d['read_at_utc'],
-              'verified':d['verified_count'],'rows':[{'hotel_id':r['hotel_id'],'checks':r['checks']} for r in d['rows']]}))
+          assert len(d['rows'])<=50
+          print(json.dumps({'rows':len(d['rows']),'truncated':d['inventory_truncated'],'eligible':[r['publication_id'] for r in d['rows'] if r['canonical_zero_write_recovery_eligible']],'read_elapsed_ms':d['read_elapsed_ms']}))
           PY
           test "$status" -eq 0
       - name: Remove runner connection material
         if: always()
         shell: bash
         run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
-      - name: Authenticate the canonical accepted eighteen without replaying advertising reads
-        if: ${{ !cancelled() }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$(git -C accepted rev-parse HEAD)" = "6194e13ac5af4ba53263284a3a3002f7d6d22b31"
-          python3 - <<'PY'
-          import hashlib,io,json,pathlib,subprocess,sys,tempfile,zipfile
-          sys.path.insert(0,str(pathlib.Path('route-preparation/tools').resolve()))
-          meta=json.loads(subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/actions/artifacts/15005209639']))
-          assert meta['size_in_bytes']==7155 and meta['digest']=='sha256:a57efe4fa85a0c7059fbaf35ec664c4813bb2984737dc3dd5151af9c136926c0' and not meta['expired']
-          raw=subprocess.check_output(['gh','api','repos/pyatkoff/max-search-bot/actions/artifacts/15005209639/zip'])
-          assert len(raw)==7155 and hashlib.sha256(raw).hexdigest()==meta['digest'][7:]
-          folder=pathlib.Path('pub/original-candidate'); folder.mkdir()
-          with zipfile.ZipFile(io.BytesIO(raw)) as z:
-              assert set(z.namelist())=={'hotel-posts-telegram-main19.php','route-candidate.json'}
-              for item in z.infolist():
-                  assert 0<item.file_size<200000
-                  (folder/item.filename).write_bytes(z.read(item))
-          assert (folder/'hotel-posts-telegram-main19.php').read_bytes()==pathlib.Path('accepted/hotel-posts-telegram-main19.php').read_bytes()
-          PY
-      - name: Independently read Telegram and common XML without advertising entries
-        if: ${{ !cancelled() && hashFiles('pub/original-candidate/route-candidate.json') != '' }}
-        shell: bash
-        run: python3 tools/direct_demand/operations/read-1566-telegram-route-xml.py
       - name: Save the bounded independent acceptance in the existing reader
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -251,7 +158,6 @@ jobs:
           path: |
             pub/accepted-read-admission.json
             pub/registry.json
-            pub/xml-readback.json
-            pub/original-candidate/route-candidate.json
+            pub/public-button-candidates.json
           retention-days: 7
           if-no-files-found: warn
