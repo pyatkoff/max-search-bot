@@ -319,6 +319,27 @@ const UNPUBLISHED_TERMINAL_RECOVERY=Object.freeze({
   owner_id:226193297,updated_at:'2026-11-13T15:47:04Z',
   original_code:'5b81f5e8f4e2d98aff760fc5d093f2d8f7d8ea88'
 });
+// Exact same-owner continuation of1720; the1529 incident pins stay immutable.
+const UNPUBLISHED_TERMINAL_RECOVERY_1720=Object.freeze({
+  branch:'ops/recover-pr1720-terminal-20261125',sha:'84c8422b39c755b5c7ad396f05a58cf5870c9bec',
+  deploy:'45596624619',run_id:'45599238649',job_id:139153402201,
+  commit:'632833c51b869146d3998aac12a263afa85df06b',blob:'ff525900c47086bfd4621c15bf18b268a5408782',
+  record_digest:'eeeda54350fb008b3a16b168b7add4f250e60bd037c658aa2d861a73eefb16b4',
+  pending_commit:'ba97340e6cee700940e19c02b1d05e44afaffee0',pending_blob:'d8ba24e9c6eca71e6a20a347d49b073080ff9bb8',
+  pending_digest:'6c232503d124c1ba29e7208e7d9c8026211932793d5dc0c7d760d39c0e0c4c4f',
+  pr:1720,head_sha:'07c88cfafc1e4fb71a367e7717efd47f0a285494',comment_id:6818332618,
+  owner_id:226193297,updated_at:'2026-11-25T10:35:18Z',
+  original_code:'02bd4ab1625289911ecd7c40f310ccbd21d01d63'
+});
+function unpublishedTerminalProfile(r){
+  const run=r?.closure?.recovery?.original_run_id;
+  const p=[UNPUBLISHED_TERMINAL_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY_1720].find(p=>p.run_id===run);
+  requireValue(!!p,'invalid_unpublished_terminal_recovery');return p;
+}
+function unpublishedTerminalProfileForRef(ref){
+  return [UNPUBLISHED_TERMINAL_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY_1720]
+    .find(p=>ref==='refs/heads/'+p.branch)||null;
+}
 // Owner-transferred one-time metadata reconciliation of the 1596/1597 overlap.
 // Installation and failed original executions remain immutable.
 const PRIOR_WAVE_RECOVERY=Object.freeze({
@@ -414,7 +435,7 @@ function priorWaveRecovery(r){
     'invalid_prior_wave_recovery');return x;
 }
 function unpublishedTerminalRecovery(r){
-  const x=r.closure?.recovery,p=UNPUBLISHED_TERMINAL_RECOVERY;
+  const x=r.closure?.recovery,p=unpublishedTerminalProfile(r);
   requireValue(keys(x,['kind','source_sha','original_commit','original_blob','original_record_digest',
     'original_run_id','original_job_id'])&&x.kind==='unpublished_terminal_v1'&&sha(x.source_sha)&&x.source_sha!==p.sha
     &&r.repository_sha===p.sha&&r.kind==='installed'&&r.release.run_id===p.deploy&&r.release.run_attempt===1
@@ -427,7 +448,7 @@ function unpublishedTerminalRecovery(r){
 function recoveryBranch(r){
   if(r.closure?.recovery?.kind==='publisher_body_format_v1')return PUBLISHER_BODY_RECOVERY.branch;
   if(r.closure?.recovery?.kind==='prior_failed_wave_v1')return PRIOR_WAVE_RECOVERY.branch;
-  return r.closure?.recovery?.kind==='unpublished_terminal_v1'?UNPUBLISHED_TERMINAL_RECOVERY.branch:TERMINAL_RECOVERY.branch;
+  return r.closure?.recovery?.kind==='unpublished_terminal_v1'?unpublishedTerminalProfile(r).branch:TERMINAL_RECOVERY.branch;
 }
 function gateRecovery(r){
   const x=r.closure?.recovery,p=GATE_RECOVERY;
@@ -723,9 +744,9 @@ async function authenticateFailedTerminal(api,record,{closed=false}={}){
     requireValue(same(C.gateReferences(proof.snapshot),r.closure.gates),'gates_changed');return proof;
   }
   if(record.repository_release?.closure?.recovery?.kind==='unpublished_terminal_v1'){
-    const r=validateRelease(record).release,p=UNPUBLISHED_TERMINAL_RECOVERY;
+    const r=validateRelease(record).release,p=unpublishedTerminalProfile(r);
     unpublishedTerminalRecovery(r);
-    const original=await failedUnpublishedTerminal(api);
+    const original=await failedUnpublishedTerminal(api,p);
     const restored=clone(record);delete restored.repository_release.closure.recovery;
     restored.repository_release.closure.run_id=p.run_id;restored.repository_release.closure.job='release-slot';
     requireValue(same(restored,original.record),'original_unpublished_record_changed');return {original};
@@ -908,8 +929,9 @@ async function failedPriorWaveTerminal(api){
   requireValue(aj.jobs[0].steps.length===0,'activation_executed');
   return {original,snapshot:snapshot.runs,previousBinding};
 }
-async function failedUnpublishedTerminal(api){
-  const p=UNPUBLISHED_TERMINAL_RECOVERY,get=path=>api('GET',API_ROOT+path),C=require('./release_slot_close');
+async function failedUnpublishedTerminal(api,p=UNPUBLISHED_TERMINAL_RECOVERY){
+  requireValue(p===UNPUBLISHED_TERMINAL_RECOVERY||p===UNPUBLISHED_TERMINAL_RECOVERY_1720,'invalid_unpublished_terminal_recovery');
+  const get=path=>api('GET',API_ROOT+path),C=require('./release_slot_close');
   const original=await readRecord(api,p.commit),pending=await readRecord(api,p.pending_commit);
   requireValue(original.blob===p.blob&&original.record_digest===p.record_digest
     &&pending.blob===p.pending_blob&&pending.record_digest===p.pending_digest,'original_unpublished_record_changed');
@@ -946,7 +968,7 @@ async function failedUnpublishedTerminal(api){
   const lines=bytes.toString('utf8').split(/\r?\n/).filter(l=>/^\d{4}-\d\d-\d\dT[0-9:.]+Z release_slot=/.test(l));
   requireValue(lines.length===1&&lines[0].endsWith('Z release_slot=held reason=diagnostics_write_unknown'),'failed_terminal_reason_changed');
   const c={sha:p.sha,deploy:Number(p.deploy),run:Number(p.run_id),configure:'skipped',activation:false,
-    terminalRecovery:true,unpublishedRecovery:true};
+    terminalRecovery:true,unpublishedRecovery:true,unpublishedRecoveryPr:p.pr};
   const snapshot=await C.selectReleaseRuns(await get('/actions/runs?head_sha='+p.sha+'&per_page=100'),c,get);
   requireValue(!snapshot.waiting&&C.gateState(snapshot.runs,c)==='ready'
     &&same(C.gateReferences(snapshot.runs),r.closure.gates),'gates_changed');
@@ -1105,7 +1127,7 @@ function makeReadApi(token,fetchImpl=globalThis.fetch,{sleep=waitForRetry}={}) {
   };
   api.jobLog=async job=>{
     requireValue([TERMINAL_RECOVERY.job_id,TERMINAL_RECOVERY.continuation_job_id,TERMINAL_RECOVERY.observation_job_id,
-      TERMINAL_RECOVERY.read_failure_job_id,GATE_RECOVERY.tls_job_id,UNPUBLISHED_TERMINAL_RECOVERY.job_id,
+      TERMINAL_RECOVERY.read_failure_job_id,GATE_RECOVERY.tls_job_id,UNPUBLISHED_TERMINAL_RECOVERY.job_id,UNPUBLISHED_TERMINAL_RECOVERY_1720.job_id,
       PRIOR_WAVE_RECOVERY.job_id,PRIOR_WAVE_RECOVERY.previous.verify_job_id,PUBLISHER_BODY_RECOVERY.job_id,
       137646126584,137658227484,137707302320,137760498372,RANKED_PREWRITE_REFUSAL.job].includes(job)
       || require('./partial_install_1702_forward').allowedLog(job)
@@ -2398,7 +2420,7 @@ function outputs(value){for(const [key,v]of Object.entries(value)){
   requireValue(/^[a-z_]+$/.test(key)&&!/[\r\n]/.test(String(v)),'invalid_output');process.stdout.write(key+'='+String(v)+'\n');}}
 module.exports={proveRankedPrewriteHistory,approvedRankedInput,rankedParentEvidence,proveClosedPrewriteOriginal,proveRankedResumeOriginal,proveOriginalNextTransfer,PUBLISHER_BODY_RECOVERY,publisherBodyRecovery,publisherBodySource,failedPublisherBodyTerminal,
   UNSTARTED_FORWARD,UNSTARTED_FORWARD_1692,forwardMarker,proveUnstartedDeployment,proveUnstartedForward,admitForwardInstallation,REPOSITORY,API_ROOT,PREFIX,DEPLOY,CLOSER,HOST,RECORD_PATH,PUBLICATION_FILE,PUBLICATION_PROTOCOL,
-  TERMINAL_RECOVERY,GATE_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY,PRIOR_WAVE_RECOVERY,
+  TERMINAL_RECOVERY,GATE_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY_1720,unpublishedTerminalProfile,unpublishedTerminalProfileForRef,PRIOR_WAVE_RECOVERY,
   priorWaveRecovery,failedPriorWaveTerminal,terminalRecovery,gateRecovery,
   unpublishedTerminalRecovery,recoveryBranch,failedUnpublishedTerminal,authenticateFailedTerminal,
   failedGateJobs,failedGateEvidence,gateContinuationContext,continuationTls,
@@ -2440,4 +2462,5 @@ if(require.main===module){
     saveJson(args.output,await wrapInstalled({...common,installation:readJson(args.installation)}));
   })().catch(e=>{process.stderr.write('deployment_release=refused reason='+(e instanceof Refusal?e.code:'internal_failure')+'\n');process.exitCode=1;});
 }
+
 
