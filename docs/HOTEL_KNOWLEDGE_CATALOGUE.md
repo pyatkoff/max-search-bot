@@ -124,6 +124,34 @@ write MATCH/LOCAL, publish MAX/Telegram posts, extend those consumers' permissio
 or prove that facts influenced an AI selection. Their guarded writes and
 readbacks remain separate results.
 
+## Prepare a sealed data package
+
+The HOTEL owner can prepare a package from two complete private snapshots of
+the same catalogue. Use the current accepted snapshot as `CURRENT` and the
+independently admitted, append-only candidate as `STAGED`. Both directories
+contain the existing `catalogue.json`, listed manifests and referenced bundles
+with their exact source bytes. Use the approved deployed reader file as
+`READER`. The staging utility runs as a CLI outside the manager interface.
+
+```sh
+node tools/hotel_catalogue_package.js build "$CURRENT" "$READER" "$STAGED" "$PACKAGE"
+node tools/hotel_catalogue_package.js verify "$CURRENT" "$READER" "$PACKAGE" "$EXPECTED_SHA256"
+```
+
+Build creates a private file at a previously unused path and emits a JSON
+receipt. The deterministic package binds the old and new catalogue SHA-256,
+the reader SHA-256 and every member byte. Verify takes the expected package
+digest from the trusted staging receipt, checks every manifest and bundle
+pin and recomputes the append-only decision against the supplied current
+snapshot. It checks the same file and size boundaries on input and on the
+received package. It needs neither a Git checkout nor the staging directory.
+
+This prepares and verifies transport. Independent content approvals, the full
+typed checks in `ManagerHotelKnowledge` and production release admission are
+still needed for activation. Runtime continues to read the catalogue through
+the existing path. The command has no activation, rollback or provider-write
+entry point.
+
 ## Verification
 
 `tests/hotel_catalogue_checks.php` is included by the existing hotel knowledge
