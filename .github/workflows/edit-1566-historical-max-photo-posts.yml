@@ -1,4 +1,4 @@
-name: "#1566 Run the two prepared commercial MAX post transfers after admission"
+name: "#1566 Verify ongoing PRICE on the existing Anantara MAX post"
 on:
   push:
     branches: [audit/1566-main-hotel-registry-20261119]
@@ -12,182 +12,80 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
-  edit_existing:
+  verify_price:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'e2feda82220b05a7e9366e6ac940e855f69cd68f' &&
+      github.event.before == 'f0ac8ff44afc64386be1802068102ccc9c0a55d4' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 32
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Checkout the release used by the original source audit
+      - name: Checkout the exact PRICE release
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 938d86d69864c41569f6c6225b0576dffaa5854e
+          ref: ad970aaa2c89ccc6eb2fcded3c56b5146fffeaf5
           persist-credentials: false
           path: accepted-release
-      - name: Bind the same three plans to the accepted release and fresh native artifact
+      - name: Await the exact installed release and official end of its write slot
         env:
           GH_TOKEN: ${{ github.token }}
-        shell: bash
         run: |
           set -euo pipefail
           umask 077
-          scope=tools/direct_demand/operations/max-existing-photo/scope-rixos-mairid-20261125.json
-          test "$(git hash-object "$scope")" = 40152501df0ac1b488d5c9e96b76c4d9d4d6b01d
           mkdir -p pub
-          node - <<'NODE'
-          const R=require('./accepted-release/tools/deployment_release')
-          const api=R.makeReadApi(process.env.GH_TOKEN)
-          const {setTimeout:wait}=require('node:timers/promises')
-          const {writeFileSync}=require('node:fs')
-          async function run() {
-            const main='938d86d69864c41569f6c6225b0576dffaa5854e', root=R.API_ROOT, id=45625842702
-            for(let n=0;n<108;n++) {
-              if ((await api('GET',root+'/git/ref/heads/main')).object.sha!==main) throw Error('main_changed')
-              const x=await api('GET',root+'/actions/runs/'+id)
-              if(x.repository.id!==1342493152||x.head_sha!=='f0bd378370e80d94affe329593a67183c312d5c9'||x.run_attempt!==1||x.event!=='push'||x.path!=='.github/workflows/read-1566-max-archive-20261123.yml') throw Error('native_run_changed')
-              if(x.status==='completed') {
-                if(x.conclusion!=='success') throw Error('native_read_failed')
-                const slot=await api('GET',root+'/issues/comments/6928374515')
-                if(slot.user.id!==226193297||slot.body!=='PR1709: установлено, выпуск свободен') throw Error('publisher_busy_or_changed')
-                const artifact=await api('GET',root+'/actions/runs/'+id+'/artifacts?per_page=30')
-                const jobs=await api('GET',root+'/actions/runs/'+id+'/attempts/1/jobs?per_page=100')
-                const z=artifact.artifacts[0], j=jobs.jobs[0]
-                if(artifact.total_count!==1||z.expired||z.name!=='max-commercial-album-sources'||!/^sha256:[a-f0-9]{64}$/.test(z.digest)||!Number.isSafeInteger(z.id)||z.workflow_run.id!==id||
-                  jobs.total_count!==1||j.conclusion!=='success'||!Number.isSafeInteger(j.id)) throw Error('native_artifact_changed')
-                const record=await R.readRecord(api)
-                const actual=await R.resolveCurrent(api,{sha:main},record)
-                if(!actual.ready||actual.repository_sha!==main||!/^[a-f0-9]{40}$/.test(actual.application_sha))throw Error('application_unaccepted')
-                writeFileSync('pub/live-binding.json',JSON.stringify({job:j.id,artifact:z.id,digest:z.digest.slice(7),slot:slot.body,app:actual.application_sha,main}))
-                return
-              }
-              if(n<107)await wait(15000)
-            }
-            throw Error('native_read_timeout')
+          cat > pub/price-admit.cjs <<'NODE'
+          const R=require('../accepted-release/tools/deployment_release');
+          const P=require('../accepted-release/tools/release_priority');
+          const token=process.env.GH_TOKEN;
+          const api=R.makeReadApi(token);
+          const wait=require('node:timers/promises').setTimeout;
+          const root=R.API_ROOT, sha='ad970aaa2c89ccc6eb2fcded3c56b5146fffeaf5', runId=45629187135;
+          async function check() {
+            const [head, slot, run] = await Promise.all([
+              api('GET',root+'/git/ref/heads/main'),
+              api('GET',root+'/issues/comments/6928374515'),
+              api('GET',root+'/actions/runs/'+runId)
+            ]);
+            if(head.object.sha!==sha || slot.user.id!==226193297 ||
+                run.id!==runId || run.repository.id!==1342493152 || run.head_sha!==sha ||
+                run.path!=='.github/workflows/deploy.yml' || run.event!=='push' || run.run_attempt!==1)
+              throw Error('release_identity_changed');
+            if (run.status==='completed' && run.conclusion!=='success')
+              throw Error('deployment_failed');
+            if (slot.body==='PR1719: выпуск занят' ||
+                (slot.body==='PR1719: установлено, выпуск свободен' && run.status!=='completed')) return false;
+            if (slot.body!=='PR1719: установлено, выпуск свободен') throw Error('release_slot_changed');
+            const record=await R.readRecord(api);
+            const binding=await R.resolveCurrent(api,{sha},record);
+            if (!binding.ready) return false;
+            if (binding.repository_sha!==sha || binding.application_sha!==sha) throw Error('installed_release_changed');
+            await P.verifyPreviousRelease({repository:R.REPOSITORY,baseSha:sha},token,fetch);
+            return true;
           }
-          run().catch(e=>{console.error(e.message);process.exitCode=1})
+          async function admit(once) {
+            const limit=once?3:58;
+            for(let n=0;n<limit;n++) {
+              try {
+                if(await check()) {
+                  console.log('PRICE_RELEASE_ACCEPTED '+sha);
+                  return;
+                }
+              } catch(error) {
+                if(error.message!=='record_changed') throw error;
+              }
+              if(n+1<limit) await wait(once?1500:25000);
+            }
+            throw Error('write_slot_or_release_not_ready');
+          }
+          admit(process.argv[2]==='--once').catch(e=>{console.error(e.message);process.exitCode=1;});
           NODE
-          artifact="$(python3 -c 'import json; print(json.load(open("pub/live-binding.json"))["artifact"])')"
-          gh api "/repos/pyatkoff/max-search-bot/actions/artifacts/$artifact/zip" > pub/native.zip
-          python3 - "$scope" <<'PY'
-          import hashlib,json,os,pathlib,re,sys,zipfile
-          b=json.loads(pathlib.Path('pub/live-binding.json').read_bytes())
-          archive=pathlib.Path('pub/native.zip')
-          assert archive.stat().st_size<300000 and hashlib.sha256(archive.read_bytes()).hexdigest()==b['digest']
-          with zipfile.ZipFile(archive) as z:
-              assert z.namelist()==['registry.json'] and z.getinfo('registry.json').file_size<=2000000
-              content=z.read('registry.json')
-          read=json.loads(content)
-          assert read['ok'] and read['operation']=='max_commercial_album_sources_read_only' and read['target_editor_rights'] is True
-          assert read['repository_sha']==b['main'] and read['application_sha']==b['app']
-          assert read['provider_writes']==read['db_writes']==read['bot_starts']==0
-          assert read['button_text']=='✈️ Рассчитать на мои даты' and 0 <= len(read['rows']) <= 2
-          expected={r['hotel_id']:r for r in read['rows']}
-          path=pathlib.Path(sys.argv[1])
-          scope=json.loads(path.read_bytes())
-          assert [r['hotel_id'] for r in scope['rows']]==[2575,47025] and set(expected)<={2575,47025} and len(expected)==len(read['rows'])
-          for r in scope['rows']:
-              proof=expected.get(r['hotel_id'])
-              if proof is None: continue
-              if any(proof.get(k)!=r[k] for k in ('source_id','source_mid','target_mid','target_url')): continue
-              assert re.fullmatch('[a-f0-9]{64}',proof['original_legacy_identity_sha256'])
-              r['original_legacy_identity_sha256']=proof['original_legacy_identity_sha256']
-          digest=hashlib.sha256(content).hexdigest()
-          scope['native_source']={'operation':read['operation'],'run_id':45625842702,'attempt':1,'job_id':b['job'],'artifact_id':b['artifact'],
-              'zip_sha256':b['digest'],'json_sha256':digest,'repository_sha':b['main'],'application_sha':b['app'],'workflow_head':'f0bd378370e80d94affe329593a67183c312d5c9'}
-          scope['publisher']['body']=b['slot']
-          scope['route_readback']={'repository':'pyatkoff/tour-max','run_id':45625895355,'job_id':139245862871,'observed_utc':'2026-11-25T13:40:04+00:00','write_calls':0}
-          scope['additional_route_readback']=scope['route_readback']
-          scope['price_review']['source_versions']=[{'hotel_id':r['hotel_id'],'version':r['source_version'],'stored_price_observation':r['observed_source_price_stamp']} for r in read['rows']]
-          scope['price_review']['checked_utc']=read['observed_utc']
-          path.write_text(json.dumps(scope,ensure_ascii=False,indent=2)+'\n')
-          for k in (b['main'],b['app'],digest):
-              assert re.fullmatch('[a-f0-9]{40}|[a-f0-9]{64}',k)
-          with open(os.environ['GITHUB_ENV'],'a') as f:
-              f.write(f"ALBUM_NATIVE_SHA={digest}\nALBUM_APP={b['app']}\nALBUM_REPO={b['main']}\n")
-          PY
-      - name: Verify the receipts, current release and existing publisher before credentials
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          for attempt in 1 2 3; do
-            if output="$(node tools/direct_demand/operations/max-existing-photo/admit.js 2>&1)"; then
-              printf '%s\n' "$output"
-              exit 0
-            fi
-            printf '%s\n' "$output"
-            if [[ "$output" != "record_changed" || "$attempt" == 3 ]]; then exit 1; fi
-            sleep 4
-          done
-      - name: Verify the existing editor and stage the three matched plans
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          umask 077
-          mkdir -p pub/stage
-          src=tools/direct_demand/operations/max-existing-photo
-          php tests/run_1566_max_existing_photo_batch.php
-          python3 tests/run_1566_max_existing_photo_partial.py
-          for file in "$src"/*.php; do php -l "$file"; done
-          install -m600 "$src"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php,run_batch.py} pub/stage/
-          install -m600 "$src"/scope-rixos-mairid-20261125.json pub/stage/scope.json
-          cp pub/stage/scope.json pub/manifest.json
-          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14910511299/zip > pub/archive.zip
-          python3 - <<'PY'
-          import hashlib,json,pathlib,re,zipfile
-          stage=pathlib.Path('pub/stage')
-          scope_bytes=(stage/'scope.json').read_bytes()
-          scope=json.loads(scope_bytes)
-          for key,zip_hash,json_hash,output in [
-              ('archive',scope['archive_sha256'],scope['archive_registry_sha256'],'native-targets.json'),
-              ('native',scope['native_source']['zip_sha256'],scope['native_source']['json_sha256'],'native-source.json')]:
-              artifact=pathlib.Path('pub/'+key+'.zip')
-              assert artifact.stat().st_size<300000 and hashlib.sha256(artifact.read_bytes()).hexdigest()==zip_hash
-              with zipfile.ZipFile(artifact) as z:
-                  assert z.namelist()==['registry.json'] and z.getinfo('registry.json').file_size<=2000000
-                  data=z.read('registry.json')
-              assert hashlib.sha256(data).hexdigest()==json_hash
-              (stage/output).write_bytes(data)
-          entry=stage/'batch_entry.php'
-          src=entry.read_text()
-          src,count=re.subn(r"(const MAX_BATCH_SCOPE_SHA256 = ')[a-f0-9]{64}(')",lambda m:m[1]+hashlib.sha256(scope_bytes).hexdigest()+m[2],src)
-          assert count==1
-          entry.write_text(src)
-          PY
-          php -l pub/stage/batch_entry.php
-          php pub/stage/editor.php --batch-plan pub/stage/native-targets.json pub/stage/native-source.json "$ALBUM_NATIVE_SHA" "$ALBUM_REPO" "$ALBUM_APP" > pub/batch-plan.json
-          python3 - <<'PY'
-          import json
-          data=json.load(open('pub/batch-plan.json'))
-          assert data['provider_writes']==0
-          ready=set(data['ready'])
-          held={int(k) for k in data['held']}
-          assert ready.isdisjoint(held) and ready|held=={2575,47025}
-          PY
-          cat > pub/stage/execute.sh <<'SH'
-          #!/usr/bin/env bash
-          set -euo pipefail
-          umask 077
-          unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
-          stage="$(cd -- "$1" && pwd -P)"
-          cd /var/www/anytoour/data/www/app.anytoour.ru
-          app="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["native_source"]["application_sha"])' "$stage/scope.json")"
-          test "$(git rev-parse HEAD)" = "$app"
-          python3 "$stage/run_batch.py" "$stage"
-          SH
-          bash -n pub/stage/execute.sh
-          tar -C pub/stage -cf pub/approved.tar editor.php batch_input.php batch_entry.php observe_pair.php scope.json native-targets.json native-source.json run_batch.py execute.sh
+          node pub/price-admit.cjs
       - name: Pin established SSH host continuity and authentication identity
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -220,124 +118,56 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Recheck the publisher immediately before transferring the sealed plans
+      - name: Recheck release and call the installed PRICE writer for MAX publication 3620
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          for attempt in 1 2 3; do
-            if output="$(node tools/direct_demand/operations/max-existing-photo/admit.js 2>&1)"; then
-              printf '%s\n' "$output"
-              exit 0
-            fi
-            printf '%s\n' "$output"
-            if [[ "$output" != "record_changed" || "$attempt" == 3 ]]; then exit 1; fi
-            sleep 4
-          done
-      - name: Edit only each verified existing ID and capture its independent receipt
-        env:
+          GH_TOKEN: ${{ github.token }}
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
         run: |
           set -euo pipefail
           umask 077
           options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'bash -c '"'"'set -euo pipefail; umask 077; stage=$(mktemp -d /tmp/anytour-1566-old-max.XXXXXXXX); trap "rm -f -- \"$stage\"/*; rmdir -- \"$stage\"" EXIT; tar --no-same-owner --no-same-permissions -C "$stage" -xf -; bash "$stage/execute.sh" "$stage"'"'"'' < pub/approved.tar | tee pub/native-results.txt
-          python3 - <<'PY'
-          import json,pathlib
-          expected = [r['hotel_id'] for r in json.loads(pathlib.Path('pub/manifest.json').read_bytes())['rows']]
-          rows = []
-          for line in pathlib.Path('pub/native-results.txt').read_text().splitlines():
-              if not line.startswith('RESULT '):
-                  continue
-              _, hotel, payload = line.split(' ', 2)
-              d = json.loads(payload)
-              assert d['hotel'] == int(hotel) and d.get('new_posts', 0) == 0 and d.get('ad_writes', 0) == 0
-              assert d['state'] in {'existing_max_message_updated_and_verified','stopped_before_edit','held_no_retry','untouched','unobserved'}
-              rows.append(d)
-          assert [r['hotel'] for r in rows] == expected
-          accepted = [r['hotel'] for r in rows if r['state'] == 'existing_max_message_updated_and_verified']
-          summary = {'state':'complete' if len(accepted)==len(expected) else 'partial' if accepted else 'none_accepted','native_accepted':accepted,'rows':rows}
-          pathlib.Path('pub/summary.json').write_text(json.dumps(summary,indent=2))
-          print('Native confirmations', len(accepted), 'of', len(expected), accepted)
-          PY
-      - name: Read each same public MAX address independently
-        if: always()
-        run: |
+          for attempt in 1 2 3; do
+            node pub/price-admit.cjs --once
+            set +e
+            ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'bash -se' > pub/native-price-result.txt <<'SH'
           set -euo pipefail
-          umask 077
-          test -f pub/native-results.txt || exit 0
+          unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          test "$(git rev-parse HEAD)" = "ad970aaa2c89ccc6eb2fcded3c56b5146fffeaf5"
+          php tools/apply_promoted_hotel_prices.php --apply-max-publication 3620
+          SH
+            rc=$?
+            set -e
+            cat pub/native-price-result.txt
+            if [[ "$rc" == 0 ]]; then break; fi
+            if [[ "$rc" != 1 || "$(cat pub/native-price-result.txt)" != "PROMOTED_HOTEL_PRICE_ERROR=shared_editor_busy" || "$attempt" == 3 ]]; then exit "$rc"; fi
+            sleep 7
+          done
           python3 - <<'PY'
-          import json,urllib.request,urllib.error,hashlib,re,time
-          from html.parser import HTMLParser
-          from concurrent.futures import ThreadPoolExecutor
+          import json
           from pathlib import Path
-          from datetime import datetime,timezone
-          original=json.loads(Path('pub/manifest.json').read_text())['rows']
-          native=[json.loads(line.split(' ',2)[2]) for line in Path('pub/native-results.txt').read_text().splitlines() if line.startswith('RESULT ')]
-          accepted={r['hotel'] for r in native if r.get('state')=='existing_max_message_updated_and_verified'}
-          plans=[{'id':r['hotel_id'],'url':r['target_url'],'title':r['name'],'caption':r['caption_without_price']} for r in original if r['hotel_id'] in accepted]
-          class Page(HTMLParser):
-              def __init__(self):
-                  super().__init__(convert_charrefs=True)
-                  self.parts=[]; self.hide=0; self.meta={}
-              def handle_starttag(self,t,a):
-                  if t in ('script','style'): self.hide+=1
-                  if t=='meta':
-                      d=dict(a)
-                      key=d.get('property') or d.get('name')
-                      if key: self.meta[key]=d.get('content','')
-              def handle_endtag(self,t):
-                  if t in ('script','style') and self.hide: self.hide-=1
-              def handle_data(self,v):
-                  if not self.hide and v.strip(): self.parts.append(v.strip())
-          def norm(v):
-              return re.sub(r'\s+',' ',v).strip()
-          def read(row):
-              try:
-                  req=urllib.request.Request(row['url'],headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
-                  with urllib.request.urlopen(req,timeout=10) as r:
-                      raw=r.read(3000001)
-                      status,url=r.status,r.geturl()
-                  assert len(raw)<=3000000 and url==row['url']
-                  p=Page();p.feed(raw.decode('utf-8'))
-                  visible=norm('\n'.join(p.parts).split('Другие публикации канала',1)[0])
-                  declared=norm(p.meta.get('og:description',''))
-                  exact=norm(row['caption'])
-                  out={'hotel_id':row['id'],'url':url,'http':status,'named':row['title'] in visible or row['title'] in declared,
-                       'caption_matches':exact in visible or exact in declared,'photo_preview':bool(p.meta.get('og:image')),
-                       'public_button_label_visible':'Рассчитать на мои даты' in visible,
-                       'page_sha256':hashlib.sha256(raw).hexdigest(),
-                       'escaped_variant_visible': '&amp;' in visible or '&amp;' in declared}
-                  out['verified']=out['named'] and out['caption_matches'] and out['photo_preview']
-                  return out
-              except (OSError,ValueError,AssertionError) as e:
-                  return {'hotel_id':row['id'],'url':row['url'],'error':type(e).__name__,'verified':False}
-          with ThreadPoolExecutor(max_workers=3) as pool:
-              results=list(pool.map(read,plans))
-          if not all(r['verified'] for r in results):
-              time.sleep(5)
-              results=[r if r['verified'] else read(p) for r,p in zip(results,plans)]
-          out={'observed_utc':datetime.now(timezone.utc).isoformat(),'rows':results,'writes':0,'ad_clicks':0}
-          Path('pub/observation.json').write_text(json.dumps(out,ensure_ascii=False))
-          print('MAX_COMMERCIAL_ALBUM_PUBLIC_READ='+json.dumps(out,ensure_ascii=False,separators=(',',':')))
+          p=Path("pub/native-price-result.txt").read_text().splitlines()
+          prefix="PROMOTED_HOTEL_PRICE_RESULT="
+          s=[line[len(prefix):] for line in p if line.startswith(prefix)]
+          assert len(s)==1, "exact native receipt missing"
+          data=json.loads(s[0])
+          assert data["mode"]=="--apply-max-publication"
+          assert len(data["rows"])==1, "expected only the existing scoped MAX publication"
+          row=data["rows"][0]
+          assert (row["hotel"],row["platform"],row["publication"])==(99713,"max",3620)
+          print("PRICE_3620_RECEIPT="+json.dumps(row,ensure_ascii=False,separators=(",",":")))
           PY
-      - name: Preserve exact original receipts
+      - name: Preserve the original receipt
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa023
         with:
-          name: issue-1566-max-edits-existing-only
-          path: |
-            pub/manifest.json
-            pub/native-results.txt
-            pub/summary.json
-            pub/observation.json
+          name: issue-1566-max-price-3620
+          path: pub/native-price-result.txt
           retention-days: 7
-          if-no-files-found: warn
+          if-no-files-found: ignore
       - name: Remove runner-only connection material
         if: always()
         run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
