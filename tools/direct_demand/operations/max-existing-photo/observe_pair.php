@@ -13,7 +13,16 @@ function maxBatchObservePair(PDO $pdo, ChannelPostRegistryService $registry, arr
         && $publication['state'] === 'sent' && $publication['message_id'] === $r['source_mid'], 'source_registry_identity');
     $mid = $publication['message_id'];
     [$source, $snap] = maxTransferRead(['message_id'=>$mid,'url'=>$r['source_url'],'channel_id'=>'-80492244209683']);
-    [$target, $before] = maxTransferRead(['message_id'=>$r['target_mid'],'url'=>$r['target_url'],'channel_id'=>'-68765999669267']);
+    $photoCount = $r['target_photo_count'] ?? 1;
+    if ($photoCount === 1) {
+        [$target, $before] = maxTransferRead(['message_id'=>$r['target_mid'],'url'=>$r['target_url'],'channel_id'=>'-68765999669267']);
+    } else {
+        $read = maxEditRead($r['target_mid'], MAIN_MAX);
+        $target = $read['message'];
+        $before = $read['snapshot'];
+        maxBatchNeedNative(count(maxEditPhotos($before)) === $photoCount
+            && $before['post_url'] === $r['target_url'], 'reviewed_target_photo_count_changed');
+    }
     $photo=$snap['attachments'][0];
     $binding = $publication['snapshot']['metadata']['hotel_catalog_id'] ?? null;
     $button = ChannelPostButtonTransport::buttonUrl($publication);
