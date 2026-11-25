@@ -1763,10 +1763,28 @@ $transferReceiptRead = static function(string $path): array {
     if (!is_array($lines)) throw new RuntimeException('fixture_receipt_missing');
     return array_map(static fn($line)=>json_decode($line,true,64,JSON_THROW_ON_ERROR),$lines);
 };
+$historicalPost = '<div data-post="anytour/862"><div class="tgme_widget_message_text">Old offer</div>'
+    .'<time datetime="2024-09-19T12:22:11+00:00"></time>';
+$historicalWidget = AnyTour\ExistingPostBatch\parseTransferPublic($historicalPost.'</div>', 'anytour', '862');
+$historicalArchive = AnyTour\ExistingPostBatch\parseTransferPublic($historicalPost
+    .'<a class="tgme_widget_message_inline_button" href="https://t.me/AnyTour_MSK">Contact</a></div>', 'anytour', '862');
+AnyTour\ExistingPostBatch\transferGuardTargetKeyboard($historicalWidget, $historicalWidget);
+foreach ([
+    [$historicalWidget, $historicalArchive, 'transfer_target_keyboard_changed'],
+    [$historicalArchive, $historicalWidget, 'transfer_target_keyboard_changed'],
+    [$historicalWidget, array_replace($historicalWidget, ['published_unixtime'=>1]), 'transfer_target_public_changed'],
+] as [$embedded, $archive, $expectedHold]) {
+    $result = null;
+    try { AnyTour\ExistingPostBatch\transferGuardTargetKeyboard($embedded, $archive); }
+    catch (RuntimeException $error) { $result = $error->getMessage(); }
+    channelPostCheck('historical Telegram archive gate '.$expectedHold, $result, $expectedHold);
+}
+
 $rankedPublicPrewriteReasons = [
     'public_identity_changed'=>true,
     'transfer_source_public_changed'=>true,
     'transfer_target_public_changed'=>true,
+    'transfer_target_keyboard_changed'=>true,
     'public_post_missing'=>true,
     'transfer_read_unavailable'=>false,
 ];
