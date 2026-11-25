@@ -19,7 +19,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '3e35f7a0d55c7b17a508f9700518685d413f727c' &&
+      github.event.before == 'b9f06925817475878693353e9c0fad0670470355' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 18
@@ -27,7 +27,7 @@ jobs:
       - name: Checkout exact installed provenance source
         uses: actions/checkout@v4
         with:
-          ref: 21b8e93418be0357cc2c7858cd1b0d970a62f4a7
+          ref: d8a0d794321ea89d8ac62205a22079656aa73d6a
           persist-credentials: false
       - name: Verify current main and accepted application without mutations
         env:
@@ -35,10 +35,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = '21b8e93418be0357cc2c7858cd1b0d970a62f4a7'
+          test "$(git rev-parse HEAD)" = 'd8a0d794321ea89d8ac62205a22079656aa73d6a'
           node - <<'NODE'
           const R = require('./tools/deployment_release')
-          const expected = '21b8e93418be0357cc2c7858cd1b0d970a62f4a7'
+          const expected = 'd8a0d794321ea89d8ac62205a22079656aa73d6a'
           async function read() {
             const api = R.makeReadApi(process.env.GITHUB_TOKEN)
             const current = async () => (await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha
@@ -55,8 +55,8 @@ jobs:
             const {setTimeout: pause} = require('node:timers/promises')
             for (let attempt = 0; attempt < 44; attempt++) {
               if (await current() !== expected) throw Error('changed_release')
-              const install = await api('GET',R.API_ROOT+'/actions/runs/45535726710')
-              if (install.id !== 45535726710 || install.repository.id !== 1342493152 ||
+              const install = await api('GET',R.API_ROOT+'/actions/runs/45545262967')
+              if (install.id !== 45545262967 || install.repository.id !== 1342493152 ||
                   install.head_sha !== expected || install.run_attempt !== 1 ||
                   install.event !== 'push' || install.path !== '.github/workflows/deploy.yml') throw Error('installation_identity_changed')
               if (install.status === 'completed') {
@@ -136,6 +136,8 @@ jobs:
                   'source_caption_matches_registry'=>($reg['text']??null)===$nativeText,
                   'source_photo_matches_registry'=>(string)($reg['attachments'][0]['photo_id']??'')===(string)($photo['photo_id']??''),
                   'source_hotel_id_matches'=>(int)$binding===$id,
+                  'source_price_record_ref'=>(int)($reg['metadata']['monitor_price_record_id']??0),
+                  'source_price_observation_text'=>preg_match('/Цена найдена мониторингом[^\r\n]*/u',$nativeText,$obs)===1?mb_substr($obs[0],0,140):null,
                   'source_catalog_id'=>(int)$binding,'source_name_in_native_caption'=>$hotelNameInNative,
                   'source_button_count'=>count($buttons),'source_one_button_matches_url'=>$oneRegistryUrl,
                   'source_button_resolves_publication'=>$samePublication,
@@ -154,7 +156,7 @@ jobs:
               return $result;
           }
           $root='/var/www/anytoour/data/www/app.anytoour.ru';$expected='VERIFIED_MAX_APPLICATION_SHA';
-          $out=['ok'=>false,'operation'=>'max_radisson_reserve_read_only','repository_sha'=>'21b8e93418be0357cc2c7858cd1b0d970a62f4a7','application_sha'=>$expected,
+          $out=['ok'=>false,'operation'=>'max_radisson_reserve_read_only','repository_sha'=>'d8a0d794321ea89d8ac62205a22079656aa73d6a','application_sha'=>$expected,
               'archive_run'=>45373389110,'db_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,'rows'=>[]];
           function installedHere(string $root, string $expected): bool {
               return PHP_SAPI==='cli' && getcwd()===$root && trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'))===$expected
@@ -265,7 +267,7 @@ jobs:
                   output["groups"].append({"ids":ids,"failure":part.get("failure","group_failed")})
                   continue
               assert part["target_editor_rights"] is True and [row["hotel_id"] for row in part["rows"]]==ids
-              for key in ("application_sha","repository_sha","archive_run","channel_config_version"):
+              for key in ("application_sha","repository_sha","archive_run","channel_config_version","target_editor_rights"):
                   assert output.setdefault(key,part[key])==part[key]
               output["groups"].append({"ids":ids,"read_utc":part["read_utc"]})
               output["rows"].extend(part["rows"])
