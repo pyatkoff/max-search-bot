@@ -19,7 +19,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '8c5a9c23c258b28d44158c98c933d825488895f9' &&
+      github.event.before == '33ba544afde73255d0e69f053090be29c7cf81a1' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 18
@@ -197,12 +197,12 @@ jobs:
           source=path.read_text()
           app=os.environ['VERIFIED_MAX_APP']
           assert re.fullmatch('[a-f0-9]{40}',app) and source.count('VERIFIED_MAX_APPLICATION_SHA')==source.count('__MAX_ROWS_JSON__')==1
-          assert len(plans)==len({r['hotel_id'] for r in plans})==len({r['target_mid'] for r in plans})==12
+          assert len(plans)==len({r['hotel_id'] for r in plans})==len({r['target_mid'] for r in plans})==9
           source=source.replace('VERIFIED_MAX_APPLICATION_SHA',app)
-          for start in range(0,len(plans),4):
-              data=json.dumps(plans[start:start+4],ensure_ascii=False,separators=(',',':'))
+          for start in range(0,len(plans),3):
+              data=json.dumps(plans[start:start+3],ensure_ascii=False,separators=(',',':'))
               data=data.replace(chr(92),chr(92)*2).replace(chr(39),chr(92)+chr(39))
-              pathlib.Path(f'pub/read-{start//4+1}.php').write_text(source.replace('__MAX_ROWS_JSON__',data))
+              pathlib.Path(f'pub/read-{start//3+1}.php').write_text(source.replace('__MAX_ROWS_JSON__',data))
           PYBIND
           for part in 1 2 3; do php -l "pub/read-$part.php"; done
       - name: Pin established SSH host continuity and authentication identity
