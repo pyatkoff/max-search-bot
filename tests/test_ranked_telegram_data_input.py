@@ -4,6 +4,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import subprocess
 from pathlib import Path
 import tempfile
 import unittest
@@ -174,6 +175,79 @@ class PacketInspection(unittest.TestCase):
         index = json.loads((self.root / self.index_path).read_bytes())
         with self.assertRaisesRegex(ValueError, 'one independently executable chunk'):
             M.checked_index(index, self.archive, self.root)
+
+    def git(self, *args):
+        return subprocess.check_output(
+            ['git', '-C', str(self.repo), '-c', 'user.name=Offline fixture',
+             '-c', 'user.email=fixture@example.com', '-c', 'commit.gpgsign=false', *args]
+        ).decode().strip()
+
+    def git_baseline(self):
+        self.repo = self.root / 'repo'
+        self.repo.mkdir()
+        self.git('init', '-q')
+        (self.repo / 'config').mkdir()
+        self.approvals = 'config/anytour_ranked_approved_indexes.json'
+        self.previous = [{'path': 'config/anytour_prior_index.json', 'sha256': 'a' * 64}]
+        (self.repo / self.approvals).write_bytes(wire(self.previous))
+        (self.repo / 'editor.php').write_text('original editor')
+        self.git('add', '.')
+        self.git('commit', '-qm', 'Install original editor')
+        return self.git('rev-parse', 'HEAD')
+
+    def git_candidate(self, approvals=None):
+        index = json.loads((self.root / self.index_path).read_bytes())
+        for path in [self.index_path, *(item['path'] for item in index['plans'])]:
+            (self.repo / path).write_bytes((self.root / path).read_bytes())
+        if approvals is not None:
+            (self.repo / self.approvals).write_bytes(wire(approvals))
+        self.git('add', '.')
+        self.git('commit', '-qm', 'Prepare ranked Telegram data')
+        return self.git('rev-parse', 'HEAD')
+
+    def inspect_git(self, baseline, candidate):
+        return M.inspect_input(self.index_sha, self.archive, self.root, self.index_path,
+                               (self.repo, baseline, candidate))
+
+    def test_exact_git_scope_is_still_evidence_only(self):
+        baseline = self.git_baseline()
+        candidate = self.git_candidate(self.previous + [{'path': self.index_path, 'sha256': self.index_sha}])
+        result = self.inspect_git(baseline, candidate)
+        self.assertEqual(result['git_scope'], {'application_sha': baseline, 'data_source_sha': candidate})
+        self.assertFalse(result['approval_verified'])
+        self.assertFalse(result['write_admission'])
+
+    def test_git_scope_rejects_editor_change(self):
+        baseline = self.git_baseline()
+        (self.repo / 'editor.php').write_text('changed editor')
+        candidate = self.git_candidate()
+        with self.assertRaisesRegex(ValueError, 'outside the transfer data'):
+            self.inspect_git(baseline, candidate)
+
+    def test_git_scope_rejects_replaced_approval_history(self):
+        baseline = self.git_baseline()
+        candidate = self.git_candidate([{'path': self.index_path, 'sha256': self.index_sha}])
+        with self.assertRaisesRegex(ValueError, 'not a single append'):
+            self.inspect_git(baseline, candidate)
+
+    def test_git_scope_rejects_changed_packet_with_new_digests(self):
+        baseline = self.git_baseline()
+        candidate = self.git_candidate()
+        self.assertFalse(self.inspect_git(baseline, candidate)['write_admission'])
+        self.plan_row['next_caption'] = 'Different prepared caption'
+        self.write_packet()
+        with self.assertRaisesRegex(ValueError, 'Git data blob changed'):
+            self.inspect_git(baseline, candidate)
+
+    def test_git_scope_rejects_application_that_is_not_an_ancestor(self):
+        baseline = self.git_baseline()
+        candidate = self.git_candidate()
+        self.git('checkout', '--detach', baseline)
+        (self.repo / 'editor.php').write_text('different deployment')
+        self.git('add', '.')
+        self.git('commit', '-qm', 'Deploy unrelated changes')
+        with self.assertRaisesRegex(ValueError, 'Git source or application could not be verified'):
+            self.inspect_git(self.git('rev-parse', 'HEAD'), candidate)
 
     def test_native_hold_is_not_turned_into_permission(self):
         self.row['preview_ready'] = False
