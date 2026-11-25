@@ -1,4 +1,4 @@
-name: "HOTEL: refresh five ranked MAX pairs after the shared slot release"
+name: "HOTEL: refresh the five MAX editor inputs on PR1713 once its existing gate closes"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -19,7 +19,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'b4e72863d49a874e4f08525eb21bbf5739b325e1' &&
+      github.event.before == 'd3021a4ac9bc511d18f8e2d0de8222f09475f754' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 18
@@ -27,7 +27,7 @@ jobs:
       - name: Checkout exact installed provenance source
         uses: actions/checkout@v4
         with:
-          ref: 7b96c69c1f6974fb6ff09f52551a4581ffcdf171
+          ref: 73c80433c4d18edaff5cff2d4344a41511c6134b
           persist-credentials: false
       - name: Verify current main and accepted application without mutations
         env:
@@ -35,11 +35,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = '7b96c69c1f6974fb6ff09f52551a4581ffcdf171'
+          test "$(git rev-parse HEAD)" = '73c80433c4d18edaff5cff2d4344a41511c6134b'
           node - <<'NODE'
           const R = require('./tools/deployment_release')
           const P = require('./tools/release_priority')
-          const expected = '7b96c69c1f6974fb6ff09f52551a4581ffcdf171'
+          const expected = '73c80433c4d18edaff5cff2d4344a41511c6134b'
           async function read() {
             const api = R.makeReadApi(process.env.GITHUB_TOKEN)
             const current = async () => (await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha
@@ -74,10 +74,10 @@ jobs:
                 receipts.artifacts[0].id!==14910511299 || receipts.artifacts[0].digest!==digest ||
                 receipts.artifacts[0].expired || receipts.artifacts[0].name!=='issue-1566-main-max-archive-inventory') throw Error('previous_archive_unverified')
             const {setTimeout: pause} = require('node:timers/promises')
-            for (let attempt = 0; attempt < 44; attempt++) {
+            for (let attempt = 0; attempt < 13; attempt++) {
               if (await current() !== expected) throw Error('changed_release')
-              const install = await api('GET',R.API_ROOT+'/actions/runs/45501864193')
-              if (install.id !== 45501864193 || install.repository.id !== 1342493152 ||
+              const install = await api('GET',R.API_ROOT+'/actions/runs/45525533516')
+              if (install.id !== 45525533516 || install.repository.id !== 1342493152 ||
                   install.head_sha !== expected || install.run_attempt !== 1 ||
                   install.event !== 'push' || install.path !== '.github/workflows/deploy.yml') throw Error('installation_identity_changed')
               if (install.status === 'completed') {
@@ -97,16 +97,16 @@ jobs:
                     console.log('HOTEL_WRITER_RELEASE_CHECK=accepted');
                   } catch (error) {
                     const reason = String(error.code || error.message || 'read_unavailable');
-                    console.log('HOTEL_WRITER_RELEASE_CHECK='+(/^[a-z_]{3,90}$/.test(reason) ? reason : 'read_unavailable'));
+                    throw Error(/^[a-z_]{3,90}$/.test(reason) ? reason : 'read_unavailable');
                   }
                   require('node:fs').appendFileSync(process.env.GITHUB_ENV, 'VERIFIED_MAX_APP='+actual.application_sha+'\n')
                   console.log('MAX_FIVE_RANKED_RELEASE_ACCEPTED='+expected)
                   return
                 } catch (error) {
-                  if (!['release_pending','diagnostics_unconfirmed','accepted_release_mismatch'].includes(error.code || error.message)) throw error
+                  if (!['release_pending','diagnostics_unconfirmed','accepted_release_mismatch','previous_release_unclosed','previous_release_unconfirmed','previous_slot_not_free'].includes(error.code || error.message)) throw error
                 }
               }
-              if (attempt < 43) await pause(15000)
+              if (attempt < 12) await pause(10000)
             }
             throw Error('current_installation_timeout')
           }
@@ -180,7 +180,7 @@ jobs:
               return $result;
           }
           $root='/var/www/anytoour/data/www/app.anytoour.ru';$expected='VERIFIED_MAX_APPLICATION_SHA';
-          $out=['ok'=>false,'operation'=>'max_five_ranked_read_only','repository_sha'=>'7b96c69c1f6974fb6ff09f52551a4581ffcdf171','application_sha'=>$expected,
+          $out=['ok'=>false,'operation'=>'max_five_ranked_read_only','repository_sha'=>'73c80433c4d18edaff5cff2d4344a41511c6134b','application_sha'=>$expected,
               'archive_run'=>45373389110,'db_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,'rows'=>[]];
           function installedHere(string $root, string $expected): bool {
               return PHP_SAPI==='cli' && getcwd()===$root && trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'))===$expected
