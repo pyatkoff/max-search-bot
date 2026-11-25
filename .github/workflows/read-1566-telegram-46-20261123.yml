@@ -18,7 +18,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.event.forced == false &&
-      github.event.before == '52c2891e43d6c48dc4efe6f27276a5380ce3f27a' &&
+      github.event.before == '8c1045d98152e65d081222e0342a0c7af8756e33' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -90,7 +90,12 @@ jobs:
           # Preserve candidate holds, read-only SQL and the shared PRICE lease.
           assert program.count("$out=['schema'=>1") == 1
           program=program[:program.index("$out=['schema'=>1")]
-          entry=r'''$out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_archive_telegram_ranked_registry','ok'=>false,
+          entry=r'''function preparedLeaseAdmissionRead(bool $shared,array $blockers):array {
+           $prepared=$blockers===[];
+           if(!$shared)$blockers[]='price_shared_lease_not_acquired';
+           return ['preparation_ready'=>$prepared,'preview_ready'=>$blockers===[],'preview_blockers'=>$blockers];
+          }
+          $out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_archive_telegram_ranked_registry','ok'=>false,
            'repository_sha'=>REPOSITORY_SHA,'application_sha'=>APPLICATION_SHA,'native_run_id'=>NATIVE_RUN_ID,'native_run_attempt'=>1,
            'production_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,'write_admission'=>false,'rows'=>[]];
           $pdo=null;$lock=null;$acquired=null;$rates=[];$start=hrtime(true);$stage='runtime';
@@ -143,8 +148,9 @@ jobs:
            $out['native_read_request_count']=(int)($out['native_channel_rights']['receipt']['request_count']??0)+1;
            $stage='shared_price_lease';$path=OPERATIONS.'/monitor-price-after-collection-v1.jsonl';
            requireRead(!is_link($path)&&is_file($path),'price_editor_lease_unknown');$lock=fopen($path,'rb');requireRead(is_resource($lock),'price_read_lease_unavailable');
-           $wait=hrtime(true);requireRead(flock($lock,LOCK_SH|LOCK_NB),'price_editor_busy_or_unknown');$acquired=hrtime(true);
-           $out['price_editor_shared_read_lease']=true;$out['price_lease_wait_ms']=(int)(($acquired-$wait)/1000000);runtimeRead();
+           $wait=hrtime(true);$shared=flock($lock,LOCK_SH|LOCK_NB);$acquired=$shared?hrtime(true):null;
+           $out['price_editor_shared_read_lease']=$shared;$out['preparation_during_price_hold']=!$shared;
+           $out['price_lease_wait_ms']=(int)((hrtime(true)-$wait)/1000000);runtimeRead();
            $out['mysql_before']=mysqlResourcesRead($pdo);$pdo->beginTransaction();
            foreach(PREPARED_PAIRS as $hotel=>$pair){
             $stage='pair_'.$hotel;$assessment=telegramPreparedPairNativeRead($hotel,$pair,$public[$hotel],$prior[$hotel],($out['native_channel_rights']['state']??null)==='ready',$feed,$routes,
@@ -161,23 +167,44 @@ jobs:
             $sm=is_array($sn)&&($assessment['prepared_checks_pass']??false)===true&&$sn['current_token_resolves']===true&&!$sn['native_claim_held_or_unknown'];
             if(!$sm)$blockers[]='source_not_confirmed';
             $directory=OPERATIONS.'/'.$operation;
+            $admission=preparedLeaseAdmissionRead($out['price_editor_shared_read_lease'],$blockers);
             $out['rows'][]=['hotel_id'=>$hotel,'source_message_id'=>$pair['source'],'target_message_id'=>$pair['target'],
              'source_native'=>$sn,'target_native'=>$assessment['target_native']??null,'source_public'=>$sp,'target_public'=>$tp,
              'source_matches'=>$sm,'historical_target_matches'=>($assessment['checks']['target_preimage']??false)===true,
              'target_media_lock_free'=>$free!==false&&$free!==null&&(int)$free===1,'target_current_pin_matches'=>$currentPin===$pair['target'],
              'prior_media_operation_directory_exists'=>file_exists($directory)||is_link($directory),
              'existing_large_channel_hotel_registry_matches'=>array_merge($assessment['target_native_ids']??['unobserved'],$assessment['hotel_duplicate_publication_ids']??['unobserved']),
-             'prepared_assessment'=>$assessment,'preview_blockers'=>$blockers,'preview_ready'=>$blockers===[]];
+             'prepared_assessment'=>$assessment,'preparation_ready'=>$admission['preparation_ready'],'preview_blockers'=>$admission['preview_blockers'],'preview_ready'=>$admission['preview_ready']];
            }
            $pdo->rollBack();$out['mysql_after']=mysqlResourcesRead($pdo);runtimeRead();$out['ok']=true;
           }catch(Throwable $e){$out['failure_stage']=$stage;$out['failure_reason']=reasonRead($e);}
-          finally{if($pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();if(is_resource($lock)){if($acquired!==null)$out['price_lease_held_ms']=(int)((hrtime(true)-$acquired)/1000000);flock($lock,LOCK_UN);fclose($lock);}}
+          finally{if($pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();if(is_resource($lock)){if($acquired!==null)$out['price_lease_held_ms']=(int)((hrtime(true)-$acquired)/1000000);if($acquired!==null)flock($lock,LOCK_UN);fclose($lock);}}
           $out['public_retry_after_holds']=$rates;$out['resources_after']=resourcesRead();$out['read_at_utc']=gmdate(DATE_ATOM);$out['read_elapsed_ms']=(int)((hrtime(true)-$start)/1000000);
           if($out['ok'])$out['checkpoint_sha256']=hash('sha256',jsonRead($out));echo jsonRead($out),PHP_EOL;exit($out['ok']?0:2);
           '''
           pathlib.Path('pub/read-only.php').write_text(program+entry)
           PY
+          python3 - <<'PY'
+          import pathlib
+          s=pathlib.Path('pub/read-only.php').read_text()
+          start=s.index('function preparedLeaseAdmissionRead(')
+          end=s.index("$out=['schema'=>1",start)
+          function=s[start:end]
+          cases=r"""
+          $a=preparedLeaseAdmissionRead(true,[]);
+          if($a!==['preparation_ready'=>true,'preview_ready'=>true,'preview_blockers'=>[]])exit(2);
+          $a=preparedLeaseAdmissionRead(false,[]);
+          if($a!==['preparation_ready'=>true,'preview_ready'=>false,'preview_blockers'=>['price_shared_lease_not_acquired']])exit(3);
+          $a=preparedLeaseAdmissionRead(true,['occupied']);
+          if($a!==['preparation_ready'=>false,'preview_ready'=>false,'preview_blockers'=>['occupied']])exit(4);
+          $a=preparedLeaseAdmissionRead(false,['protected_review']);
+          if($a!==['preparation_ready'=>false,'preview_ready'=>false,'preview_blockers'=>['protected_review','price_shared_lease_not_acquired']])exit(5);
+          echo "FOUR_PRICE_PREPARATION_ADMISSION_CASES_PASS\\n";
+          """
+          pathlib.Path('pub/price-preparation-test.php').write_text('<?php\n'+function+cases)
+          PY
           php -l pub/read-only.php
+          php pub/price-preparation-test.php
       - name: Pin established SSH host continuity and authentication identity
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
