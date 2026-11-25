@@ -17,7 +17,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'ccebfa8783621c29f3f8349f9d2338ff5f073f92' &&
+      github.event.before == '29f5b6fe8054195407179b608599aad7409e7b41' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -29,14 +29,14 @@ jobs:
       - name: Checkout the release used by the original source audit
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 21b8e93418be0357cc2c7858cd1b0d970a62f4a7
+          ref: d8a0d794321ea89d8ac62205a22079656aa73d6a
           persist-credentials: false
           path: accepted-release
       - name: Verify the receipts, current release and existing publisher before credentials
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: node tools/direct_demand/operations/max-existing-photo/admit.js
-      - name: Verify the existing editor and stage the nine untouched plans
+      - name: Verify the existing editor and stage the three matched plans
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -49,15 +49,15 @@ jobs:
           python3 tests/run_1566_max_existing_photo_partial.py
           for file in "$src"/*.php; do php -l "$file"; done
           install -m600 "$src"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php,run_batch.py} pub/stage/
-          install -m600 "$src"/scope-next-nine-20261125.json pub/stage/scope.json
+          install -m600 "$src"/scope-next-three-20261125.json pub/stage/scope.json
           cp pub/stage/scope.json pub/manifest.json
           gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14910511299/zip > pub/archive.zip
-          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14989602374/zip > pub/native.zip
+          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/14995276346/zip > pub/native.zip
           python3 - <<'PY'
           import hashlib,json,pathlib,re,zipfile
           stage=pathlib.Path('pub/stage')
           scope_bytes=(stage/'scope.json').read_bytes()
-          assert hashlib.sha256(scope_bytes).hexdigest()=="0688c55c44dcdc4ec9e87cc22598f4acf7421cdcdceae942992597b900e2a3fe"
+          assert hashlib.sha256(scope_bytes).hexdigest()=="276414d9f9534549bbbd1b01e64a1091eada3613e36749022c5cf67008c169ec"
           scope=json.loads(scope_bytes)
           for key,zip_hash,json_hash,output in [
               ('archive',scope['archive_sha256'],scope['archive_registry_sha256'],'native-targets.json'),
@@ -76,11 +76,11 @@ jobs:
           entry.write_text(src)
           PY
           php -l pub/stage/batch_entry.php
-          php pub/stage/editor.php --batch-plan pub/stage/native-targets.json pub/stage/native-source.json 1c5ae095e22acd7db7b6fce367b258a1a811aecbf1552130248240013693179a 21b8e93418be0357cc2c7858cd1b0d970a62f4a7 21b8e93418be0357cc2c7858cd1b0d970a62f4a7 > pub/batch-plan.json
+          php pub/stage/editor.php --batch-plan pub/stage/native-targets.json pub/stage/native-source.json ef7cd1494340628be9d7a4aa390dad3b4b2b6be7efe14f4b6cb60bbfb851fb7c d8a0d794321ea89d8ac62205a22079656aa73d6a d8a0d794321ea89d8ac62205a22079656aa73d6a > pub/batch-plan.json
           python3 - <<'PY'
           import json
           data=json.load(open('pub/batch-plan.json'))
-          assert data['ready']==[2470,56092,59114,63191,76588,77914,106,111,114] and not data['held'] and data['provider_writes']==0
+          assert data['ready']==[63674,64918,358] and not data['held'] and data['provider_writes']==0
           PY
           cat > pub/stage/execute.sh <<'SH'
           #!/usr/bin/env bash
@@ -89,7 +89,7 @@ jobs:
           unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
           stage="$(cd -- "$1" && pwd -P)"
           cd /var/www/anytoour/data/www/app.anytoour.ru
-          test "$(git rev-parse HEAD)" = 21b8e93418be0357cc2c7858cd1b0d970a62f4a7
+          test "$(git rev-parse HEAD)" = d8a0d794321ea89d8ac62205a22079656aa73d6a
           python3 "$stage/run_batch.py" "$stage"
           SH
           bash -n pub/stage/execute.sh

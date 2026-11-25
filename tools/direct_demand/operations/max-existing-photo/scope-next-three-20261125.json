@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "archive_run_id": "45373389110",
+  "archive_sha256": "c46ce092bfb91935ce829c871026a1136bf465920a3caa9184604f052c55798c",
+  "archive_registry_sha256": "c65efd90090ab8669c0d7646d44d8927ea3658c39673696d2e147685f3ec7568",
+  "rows": [
+    {
+      "hotel_id": 63674,
+      "source_id": 643,
+      "source_url": "https://max.ru/channel_anytour/AaG2erwGCro",
+      "target_url": "https://max.ru/anytour/AaAuJeZbQAc",
+      "target_mid": "mid.ffffc1752b045fed01a02e25e65b4007",
+      "target_ms": 1787480630875,
+      "target_fingerprint": "8fb9c0628fcea7df16218bd61670ac1221142da93f95545d710ffee84de529f3",
+      "name": "Radisson Blu Resort Phu Quoc",
+      "source_mid": "mid.ffffb6caf0606fed01a1b67abc060aba",
+      "original_legacy_identity_sha256": "ef37228c7e2d7ae1cd17a21ab0095d25e480159adab6524369de4861aa632676",
+      "caption_without_price": "✈️ Туры в Radisson Blu Resort Phu Quoc\n📍 Фукуок, Вьетнам\nКурорт с прямым выходом к пляжу. В ресторане Avenue есть детское меню и вегетарианские блюда, а в Annex Bar подают тапас."
+    },
+    {
+      "hotel_id": 64918,
+      "name": "You & Me Maldives",
+      "source_id": 2255,
+      "source_url": "https://max.ru/channel_anytour/AaHryMfSWo0",
+      "target_mid": "mid.ffffc1752b045fed019c5c3691bc41f9",
+      "target_url": "https://max.ru/anytour/AZxcNpG8Qfk",
+      "target_ms": 1771073606076,
+      "target_fingerprint": "2eeb6d206073e689cb4f81ef68a4e33c407d8d19fd008c7b60c9fefae99b21b6",
+      "source_mid": "mid.ffffb6caf0606fed01a1ebc8c7d25a8d",
+      "original_legacy_identity_sha256": "366252b0adb9f5498eb2efde8dc583798e16cff22dbbeacf2e8bd7104d454d69",
+      "caption_without_price": "✈️ Туры в You and Me Maldives\n📍 атолл Раа, Мальдивы\nКурорт для взрослых на атолле Раа. В ресторане H2O можно поужинать под водой и наблюдать за рифом через панорамные окна.",
+      "display_name": "You and Me Maldives"
+    },
+    {
+      "hotel_id": 358,
+      "name": "Rixos Sharm El Sheikh",
+      "source_id": 215,
+      "source_url": "https://max.ru/channel_anytour/AaGd4bFlag4",
+      "target_mid": "mid.ffffc1752b045fed019ac4e4ade3085b",
+      "target_url": "https://max.ru/anytour/AZrE5K3jCFs",
+      "target_ms": 1764239912419,
+      "target_fingerprint": "d5620d2a739981dc2d6edb18fd55a1dfb705c2b7dba53116281d4224b9fea5ca",
+      "source_mid": "mid.ffffb6caf0606fed01a19de1b1656a0e",
+      "original_legacy_identity_sha256": "6d92899b7bb23c085152abed0c4c5a86b0694ba224cf813aba07debc10d6c4be",
+      "caption_without_price": "✈️ Туры в Rixos Sharm El Sheikh\n📍 Шарм-эль-Шейх, Египет\nУ отеля собственный песчаный пляж и семь бассейнов. Можно чередовать дни у моря и отдых у бассейна."
+    }
+  ],
+  "native_source": {
+    "operation": "max_three_matched_candidates_read_only",
+    "run_id": 45554603588,
+    "attempt": 1,
+    "job_id": 139003513834,
+    "workflow_head": "924f82911f133f00d59ef9a196f0561245662d79",
+    "artifact_id": 14995276346,
+    "zip_sha256": "e75dd3c9c842eadae22f346878b5bab7d847c56a2b94d768e998594894590759",
+    "json_sha256": "ef7cd1494340628be9d7a4aa390dad3b4b2b6be7efe14f4b6cb60bbfb851fb7c",
+    "repository_sha": "d8a0d794321ea89d8ac62205a22079656aa73d6a",
+    "application_sha": "d8a0d794321ea89d8ac62205a22079656aa73d6a"
+  },
+  "route_readback": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 45554605115,
+    "job_id": 139003518141,
+    "observed_utc": "2026-11-25T05:35:21+00:00",
+    "write_calls": 0
+  },
+  "price_review": {
+    "mode": "caption_without_fixed_price",
+    "source_versions": [
+      {
+        "hotel_id": 63674,
+        "version": 14248,
+        "stored_price_record": 0,
+        "stored_price_observation": "Цена найдена мониторингом 21.11.2026, 02:14 МСК. Стоимость и наличие могут измениться."
+      },
+      {
+        "hotel_id": 64918,
+        "version": 7784,
+        "stored_price_record": 0,
+        "stored_price_observation": null
+      },
+      {
+        "hotel_id": 358,
+        "version": 13796,
+        "stored_price_record": 0,
+        "stored_price_observation": "Цена найдена мониторингом 20.11.2026, 02:20 МСК. Стоимость и наличие могут измениться."
+      }
+    ],
+    "checked_utc": "2026-11-25T05:35:34+00:00"
+  },
+  "publisher": {
+    "comment_id": 6928374515,
+    "body": "PR1715: установлено, выпуск свободен",
+    "owner_id": 226193297
+  }
+}
