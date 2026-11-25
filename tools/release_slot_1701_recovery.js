@@ -203,6 +203,7 @@ async function verifyOriginal(api, location) {
 const changedFiles = [
   '.github/workflows/modeled-conversion-value-export.yml',
   'docs/RELEASE_PRIORITY.md',
+  'resources/max2-common-v2/release-manifest.json',
   'tests/check_ci_workflow_scopes.py',
   'tests/run_deployment_release_regression.js',
   'tools/deployment_release.js',
@@ -212,7 +213,7 @@ const changedFiles = [
 ];
 async function sourceProof(get, source) {
   const relation = await get('/compare/'+P.sha+'...'+source+'?per_page=100');
-  ok(R.sha(source) && source !== P.sha && relation.status === 'ahead' && relation.ahead_by === 2
+  ok(R.sha(source) && source !== P.sha && relation.status === 'ahead' && relation.ahead_by === 3
     && relation.behind_by === 0 && relation.merge_base_commit?.sha === P.sha
     && R.same(relation.files.map(f => f.filename).sort(), changedFiles)
     && relation.files.every(f => !f.previous_filename && f.status ===
