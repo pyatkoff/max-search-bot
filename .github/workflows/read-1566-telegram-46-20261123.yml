@@ -1,4 +1,4 @@
-name: "#1566 Fresh Hilton prewrite read after accepted1729"
+name: "#1566 Read current native identities for the saved reserve99"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -18,7 +18,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.event.forced == false &&
-      github.event.before == '801a3384ac8974633e49b92101bd90553d3ee130' &&
+      github.event.before == '6f340330c002ec90d913b9e5d5a88565975ccf70' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
@@ -91,125 +91,66 @@ jobs:
           # Preserve candidate holds, read-only SQL and the shared PRICE lease.
           assert program.count("$out=['schema'=>1") == 1
           program=program[:program.index("$out=['schema'=>1")]
-          entry=r'''function preparedLeaseAdmissionRead(bool $shared,array $blockers):array {
-           $prepared=$blockers===[];
-           if(!$shared)$blockers[]='price_shared_lease_not_acquired';
-           return ['preparation_ready'=>$prepared,'preview_ready'=>$blockers===[],'preview_blockers'=>$blockers];
-          }
-          $out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_archive_telegram_ranked_registry','ok'=>false,
-           'repository_sha'=>REPOSITORY_SHA,'application_sha'=>APPLICATION_SHA,'native_run_id'=>NATIVE_RUN_ID,'native_run_attempt'=>1,
-           'production_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,'write_admission'=>false,'rows'=>[]];
-          $pdo=null;$lock=null;$acquired=null;$rates=[];$start=hrtime(true);$stage='runtime';
-          $pairs=[73082=>PREPARED_PAIRS[73082]];
-          try {
-           runtimeRead();requireRead(realpath(OPERATIONS)===OPERATIONS,'operations_root_changed');
+          entry=r'''$out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_telegram_reserve_source_identity_inventory',
+           'ok'=>false,'repository_sha'=>REPOSITORY_SHA,'application_sha'=>APPLICATION_SHA,'native_run_id'=>NATIVE_RUN_ID,
+           'native_run_attempt'=>1,'write_admission'=>false,'production_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,
+           'manager2_http_calls'=>0,'fresh_target_rights_verified'=>false,'complete_ready_pair_count'=>0,'rows'=>[]];
+          $scope=json_decode('[{"hotel_id":232,"source_message_id":"55","caption_sha256":"29422e3f19a5c01dea065727ab982b1b5f111ea452dba350fdc1c975512b912c","photo_marker_sha256":"cc9b227d58c40b898e67b0a83f5013a58e84508c39d5e2576f52b5aee03c29e0"},{"hotel_id":13872,"source_message_id":"57","caption_sha256":"7f8d9963def51006e6d4bf7f9c3129edb317f627cdcd6b1499f50dc5a00c1e19","photo_marker_sha256":"1eeecf905a3d17dc6ab9c5474734543ee3b10bd155bcef3bd52f14e594a04ec4"},{"hotel_id":13873,"source_message_id":"58","caption_sha256":"da301a2008d70e9fb6842c82f8dc78ba4c38bce6983481ae59649d8029a3fe7d","photo_marker_sha256":"abe2c98c45b26b9af5b616524c94b7b6cbaf7e21a6714f8ef5e444273f1d7daf"},{"hotel_id":280,"source_message_id":"59","caption_sha256":"d7bc6d83174889013cd19523bef1a38f5146f668d4c7bd71ffe7e858cb716ca4","photo_marker_sha256":"c1f7ae5589dbfecd045a9fd1782d18018a33599d2799da554178f5c0bf92ae37"},{"hotel_id":456,"source_message_id":"60","caption_sha256":"76dbf3cb05a05bd5e7778a221a9b53caf949265190f47bc9dff853b2f8ef4bec","photo_marker_sha256":"4a7f0f12d02f9ad43a57084dffbf8094b85614f41836ebe7b4caf497e3c5ed1d"},{"hotel_id":265,"source_message_id":"61","caption_sha256":"c603bd2c2f29bffb0fbf3dfaad3ede5d7cd9fe84c1e786342f9d24e8aab57d34","photo_marker_sha256":"6052c82c3e456cb546cd6dfc7450810fd9b2ef800d9e4f89290195501d917e35"},{"hotel_id":21475,"source_message_id":"63","caption_sha256":"d6689a9e1156c2702122436b82fef633b7ba65f48aa737a6e2e0c245bb54e09a","photo_marker_sha256":"7f11982820b5ef7b73333f946402a2fae09116642326e00c1ccf00f12b12515b"},{"hotel_id":1963,"source_message_id":"64","caption_sha256":"fe838c110e7a55f9e06d309742baf06cd1ff8d45eaf368c3312363e6d1cc9b55","photo_marker_sha256":"f69afba729955d6a8e676078826dbf5c07e45d01fd50a8df693abb96f49f4794"},{"hotel_id":237,"source_message_id":"46","caption_sha256":"d2da8196d72b1996c115263d30c19276e61f6d4594b4fda913725db4ace84bee","photo_marker_sha256":"8a0ee75cacabd45a87f92c319189311ae16e784cc3d3cb3d593b83586f15c55f"},{"hotel_id":32575,"source_message_id":"47","caption_sha256":"cee4844d76419f92008ad9c54e83337a9cd2b2e74905c10f53eaa488c1b4f7ac","photo_marker_sha256":"51eedbf0601f6868a240a9c7cccd1cad672129c85e6f4c413368bc1b6dc89e04"},{"hotel_id":112914,"source_message_id":"48","caption_sha256":"3c2bfc92890e0103edd4138661b45aaaa8702a3dc104a8cae84025cc9e5793ed","photo_marker_sha256":"4ce9135951179bf9a2a3c59db5fd7396bb68d1adffa118c6018aadf5a8f6e936"},{"hotel_id":262,"source_message_id":"50","caption_sha256":"3fd1eb17fc19171ead300ba9d1a2a23c10be73f35982c3e9dbe50a1808f52bf8","photo_marker_sha256":"c155b76db4c4df6a5ec8b1be1d0814f49fe9c561c4159eb87425d7668a0d7dd0"},{"hotel_id":12119,"source_message_id":"52","caption_sha256":"15df453b7c694f71910e05c617dc831d75d4a59fed7f98e309b23583e6f6517a","photo_marker_sha256":"22f8e2b51c2258999213d8d7878581e7bc74ff136386cac8f47db4caa38b1206"},{"hotel_id":26044,"source_message_id":"53","caption_sha256":"8decaae90c9b2dc31c72df82b8811a2e68c2223675bc2e25c16f5beff75f4f2b","photo_marker_sha256":"d262b768d725478547ffcb600c57954921fcfaa33ef13181cb7e2b53fed7cc38"},{"hotel_id":66150,"source_message_id":"54","caption_sha256":"f1d9c926ff8f1b7ae815557dbc6a78323d137915866040efa5c3d86f2a2cc6a1","photo_marker_sha256":"af1a923e52e4312a8e2a535d8b89421be842fe02b97194051dde9fcbcf3cd441"},{"hotel_id":108146,"source_message_id":"190","caption_sha256":"34153d3d35dc251848b10fb800b295d3f0b615fbf23813d1f14755a79591b434","photo_marker_sha256":"817647194b08dc8e42eeb8be9ed2d8933ebf36eb7564be5d074861bc56ab142d"},{"hotel_id":1362,"source_message_id":"191","caption_sha256":"20ac34082a8f32c8b3b91037c0e0f63594b56876efdcaf130b9c183915cdcf34","photo_marker_sha256":"192de1d325d71b16977e0d8f57768e68088f846e7ad38353f68bb990a41dbbd3"},{"hotel_id":1702,"source_message_id":"515","caption_sha256":"0c45a028dac85afe7321d57f747de2fafbe249facaac64297d7e34d7aadf6ec7","photo_marker_sha256":"f4097f8a9bb00aaa52dfa2b898f02df2850f51c4abe6ced14eb814d0030b898b"},{"hotel_id":28326,"source_message_id":"347","caption_sha256":"63c2fc8c12619045803575b70ce8707c1963d095c2e408671f622fcd0582776a","photo_marker_sha256":"1f42a62113c4a4650ee52a6e92912dff4b2b1b2a7f8529e2c40fcf94bc4cbae5"},{"hotel_id":961,"source_message_id":"348","caption_sha256":"05682f0409d6efa88fe30f829c7809db819c5cc234e066ad45f9101a5326bf20","photo_marker_sha256":"f21175ae359458b31ea1fbf29fc97bdb84fd0b82534d67ae1ae49adb0a5de3a0"},{"hotel_id":1433,"source_message_id":"350","caption_sha256":"1511326322b20aaf1865f3a5c04d6e793b5ced442c7037ac5b8bd3b381057059","photo_marker_sha256":"447bdae50396ecb6e457371d844b04828fcb190a392fce4835c0b5a0c899c508"},{"hotel_id":28512,"source_message_id":"353","caption_sha256":"c60ae2e86837593caba723dd88f899b49e3fcd59b3c431542fba322b3f626244","photo_marker_sha256":"3f7a3ca5da620f598855131fded189542b959c9327a8219258a82617fd4baab8"},{"hotel_id":78905,"source_message_id":"354","caption_sha256":"b1459f226ff25eb3e73dfcfe630931912c26135f0fc049fad21d4e9b33e4e67b","photo_marker_sha256":"811429e3ee790bc5f4f36eabdf3343f141f1d366838f694d50c3680a82964dcd"},{"hotel_id":88750,"source_message_id":"356","caption_sha256":"1c1a8826e61790654fbfe3c1f2ece191dd15c27ee04478b4b180c830985b3af2","photo_marker_sha256":"c5fd3fc79c341659d1ecf1c219dade3ac5a0e7467a6960d4a8005e498c509173"},{"hotel_id":1015,"source_message_id":"368","caption_sha256":"7fe5562337e92ea5047bef9b64edf2dcd074678e08e1762f223b9ae3da702c91","photo_marker_sha256":"3ae0ac2b4e1238342b51904cabfe978b710fd7a4f7a6998581bd78aee3cc569b"},{"hotel_id":1649,"source_message_id":"369","caption_sha256":"57a924c11d78c12456ae7ed86a7a5a19fe40bfc0c082b534154ba05b7ceab4d1","photo_marker_sha256":"ee529563f8f219567fa320e9be83e320e0125ee18017c7bf9c1d19017397e82b"},{"hotel_id":28448,"source_message_id":"370","caption_sha256":"33d70862aa1fe8991e646fa82a6220f8ad6f134030cbcf5a1a46d80afa6d7d86","photo_marker_sha256":"e4b8a963ff2b14665b8ede4974c3871031fc9ecf3cbd6d600c53893dc1db5443"},{"hotel_id":1716,"source_message_id":"371","caption_sha256":"bccad8234191488f8381d7cd34a9deae53c194b60b50a36f5a5d27b0c12eb7a4","photo_marker_sha256":"6bbce3d1ce4ad591d2e33587aba00e84d3bd414446eb2fe845ed0cd433c1b770"},{"hotel_id":1026,"source_message_id":"263","caption_sha256":"bcdd22204d4290d22e263be8108f56229db3a4ee409bf6dde67f0c07e909bb0b","photo_marker_sha256":"134fc814a663fb841ca906bcdc7d0f41c92a30e2cb48893aae9e885c791f5aab"},{"hotel_id":55828,"source_message_id":"268","caption_sha256":"f666d5e9f551ed5a8b595a488ee21871697fa521444268afb8ef6d87bbd8c98e","photo_marker_sha256":"f4be5c3f8ac54889356ba32a9ded5d56adf2b1018bdd810cd80d43427562e2cd"},{"hotel_id":63833,"source_message_id":"422","caption_sha256":"9bea196adc9d07f51ea299b9eb2b52c5f0bd572ecd269738d2b05421576f7ea8","photo_marker_sha256":"33ef2be87393df54cb3fabbeb7c0aec801f361c90366055d97ca8e49f6316400"},{"hotel_id":8964,"source_message_id":"423","caption_sha256":"a6f21603260740dfd2b549cb9d908b21c3090ed3e18dfde7082c753b8250821b","photo_marker_sha256":"6c1ce5f7a9e8e4c09e474c3bf3dd9c8d3e72540a4c7ad93b77b5afd610122e95"},{"hotel_id":2651,"source_message_id":"424","caption_sha256":"98c2ae76fa747347d5eb79e08f023ad71939b87e755d6b9125e5edf751215603","photo_marker_sha256":"2e89ccbbfc3a95876257f9e0461e6544233d14dbd52383856868f09c2650c214"},{"hotel_id":2673,"source_message_id":"425","caption_sha256":"ee883f5fc4b794d803b8d2ab5e06b4c73e397a3e33c32fba078513a2324835c9","photo_marker_sha256":"643c7be30f26b9ce84e2b1c2a7a5e4d286a6f17df98ef712787933e051edb75b"},{"hotel_id":2688,"source_message_id":"427","caption_sha256":"668a89d5e51ed7af5ce7017acb7d1d137eae0b66d8b3fd315126c8d1330b3d62","photo_marker_sha256":"83b6eb44f4499e102c700b99d018f89d3276085ce0e3f3a926e64c0252d15351"},{"hotel_id":42662,"source_message_id":"430","caption_sha256":"f235e8b310fa30e11185839694ceb69a912f7f8b58a890803f952ab50dea3e10","photo_marker_sha256":"694c043a4798e5aabcad3b80671d5d4c4d31db31a8ee420c971f5c1e573d959d"},{"hotel_id":2559,"source_message_id":"509","caption_sha256":"ef64d1d01a11e54ea44ba63e1531743fc9b3d58e803ad7f5f95961122706e23c","photo_marker_sha256":"ec2a47d3c90b422b4dfaa45f49b07e13e3ec7f3015f465e8d10aabd963c27290"},{"hotel_id":61760,"source_message_id":"373","caption_sha256":"d04db13e6f2aeb7b9cb500d8a587a776bcbee7bc3a7a2d878f1eda19646d836e","photo_marker_sha256":"4fbef21b275d6cc8bf5068982f87adc82fe63a3d68ed03f5a942f33d7d571f68"},{"hotel_id":68984,"source_message_id":"192","caption_sha256":"14f83d1e357fdb7ee918b6d7cb4667f0c215123eb263fb3d495cb8059fdb85b6","photo_marker_sha256":"41be5f6da30f89e23aa117d461b3078dca89220623ff73fd3e4170b5a554f6d9"},{"hotel_id":703,"source_message_id":"193","caption_sha256":"d12d42b01a7d274721a7a562d2f3577456f7a0cd6c31ce00dd611c64fe07ae1a","photo_marker_sha256":"b43719dbe66207f7ee3ce9e329f3fd0d66ac3a38f314cc900859c654c63a29c8"},{"hotel_id":2050,"source_message_id":"196","caption_sha256":"9fdd356daa7fcfb7adefcba95e16cd607dc90053f370e43a75c61ddfafc0d606","photo_marker_sha256":"ba37499890849308f79b7bceefc2d9963b77326ec84763907dbd24d9b7f5d4de"},{"hotel_id":817,"source_message_id":"508","caption_sha256":"5a341d28b4c8efe29a0566aff6e308129c75bdc83002662afd26564fe9cd0f27","photo_marker_sha256":"8a533c6773e97ff691dfc8dd702e37b7ae5d016ed74d89814e0b45a229de14af"},{"hotel_id":116934,"source_message_id":"504","caption_sha256":"649ebfff230ec094fccefcd8e99d227a4cf9bda66e17b88a384001a50200ec79","photo_marker_sha256":"e41d5dd01513410083ec20649cf1e2930f696bd7db9873bb3f9d5b68546d2d02"},{"hotel_id":8008,"source_message_id":"506","caption_sha256":"10be212e17e2875db96623c4a5b9576604a56f741e6c0214fa383d69aec4f8ab","photo_marker_sha256":"784198488e227866d8d1bc3802c3e2567472141450e042aeb6d6cebbfca4bf2f"},{"hotel_id":71259,"source_message_id":"479","caption_sha256":"73398d6162e1d221dd2a55929a5d33988c48c5e8467250e4b8a92e253d9c3131","photo_marker_sha256":"5c34a4a1fb154886792afce2a3289e661e4a41a804fdf8e772456002153ccc1c"},{"hotel_id":81154,"source_message_id":"481","caption_sha256":"6fda2645949eea74d88a59cf736e5980b1274fd00daad23a4eec01796823457d","photo_marker_sha256":"63daaa2df8b1b06d82d8dd13976f04f7aedbae2d24949620db1aa5a73cf4ef32"},{"hotel_id":57066,"source_message_id":"260","caption_sha256":"1d956184a2433538d346798595fd5bbc5ea72aa0cec64a33d34b8bb270e02750","photo_marker_sha256":"c91640d99373bcde1a6641c0a90bbea876b6f47ab3700bc37e332d077d35d78d"},{"hotel_id":80915,"source_message_id":"499","caption_sha256":"3fbe0374a2c97252c7d6a54324bd239ff3925caa695b1b659c2e7e28354fe819","photo_marker_sha256":"24e6feef88ba11f369669f26937db715bf7882e7445c3273929085e0e6e2abca"},{"hotel_id":57064,"source_message_id":"501","caption_sha256":"20f4a38fde43de70a13ebc98694e740cda759b4787dbdc8368576b87c65907b0","photo_marker_sha256":"09a588cd43446cf12e831a3e9a69292ef2c88cfbc46185d70d2d0cf3808edaa4"},{"hotel_id":5389,"source_message_id":"516","caption_sha256":"ec0cee7787306fcba371aa19d43f5bdd9aa178105c153daaf6e03ead6b04e161","photo_marker_sha256":"16be6d61ce0e528e5499e02aacab2e0ad044b5f1c6fbc818bf0ae044b4fdfb08"},{"hotel_id":1494,"source_message_id":"361","caption_sha256":"7bc1237dd9a92179f0ac3a80f76a4758c09598aae9968a65f2020f97fa591394","photo_marker_sha256":"b612887fba43f47332a35d5b2db90e9228f206d3e29ae2635f6a16cbef6dd654"},{"hotel_id":1474,"source_message_id":"365","caption_sha256":"a5eabf7cd17d6d75710db2ceab477a03c7d9b3a15aec86657e7003d3f483e677","photo_marker_sha256":"3ca865241e445e002fbee43920e01b0a66dda5fb48b44c72b2e1a43f7c438efc"},{"hotel_id":1292,"source_message_id":"366","caption_sha256":"29feaa0d6450f590c3b2a24352bf2d6261c899ba69cce41daca6edeba51e947e","photo_marker_sha256":"7edbb09da177f78e8e54a5c3d7cf028d0184f0e3c134d12adda29dbc7863049f"},{"hotel_id":37396,"source_message_id":"358","caption_sha256":"a9e8f4cdb181ef5d23791425c76205041b33eff504cd55b4bdf98494a89a0f5c","photo_marker_sha256":"945c6e16ea243c9fee5bf9d7f23ab71c49285fb373b57c949d896ec9f4c72bc7"},{"hotel_id":9419,"source_message_id":"359","caption_sha256":"7707798b78ed3c4f1f4bb46f22025b91a64edaf6dda5a01891d936a0b120e0c2","photo_marker_sha256":"a301c3e3953cfc7da271230ee7c66b3395a824c424bfbbd7a9c2e0a6e823d585"},{"hotel_id":109655,"source_message_id":"464","caption_sha256":"cbf69c322167f6d3a6e3865b959118ddf31fdff938eb2e39a16f3a5540bf1b78","photo_marker_sha256":"0ea8114dceaf7ec3fa41359ef96e12ed528d9221793da87f76c4e5d2eb84ba89"},{"hotel_id":108942,"source_message_id":"465","caption_sha256":"23ff48cba569b04ebb62dd85e12a1f1c99d3723f3237ff4ab47b622e7d4e25b5","photo_marker_sha256":"a706cc1c14e6f81b0c56457b0227027eb24cf14cfb68d45b1fa5addb9a4e6554"},{"hotel_id":49083,"source_message_id":"460","caption_sha256":"449f67a13a0efc04bb22afd0fbf15294c549235f5a3f87458e789991d58497eb","photo_marker_sha256":"4ba0d815c426dc4cbd9e5692f7466733dd8696ed5a024a3b78225b5c560b0caa"},{"hotel_id":1198,"source_message_id":"403","caption_sha256":"592f13828f876b29c2ea590ed7e95f5226f08844d8b1bc4b089fb1aca87e4ad0","photo_marker_sha256":"0ae6df9b763bb0b01ad85ae0bfa9eeb9386468ff3422d19724b74e3b74efdb0d"},{"hotel_id":1165,"source_message_id":"405","caption_sha256":"426a34497bded047531716811d2663e8611b76b7fbd18a8c5a8a6dd1808970c9","photo_marker_sha256":"2c6de7f472e3667d59944ab6ebce451aeca8115224b313427e0767c87cf58c9a"},{"hotel_id":109786,"source_message_id":"406","caption_sha256":"db242a994b90ce8f40ba4f0592e47486a7e6ea00a04cdd1e5a1c519b1ca2b3e9","photo_marker_sha256":"3a48b492d3472957bcc24fa8a015a59f53e7d5ef8c5ef39b29a7ce7ba920c7d5"},{"hotel_id":1452,"source_message_id":"407","caption_sha256":"140252279a258535bbc7eef36b005332090df4a2bd467e6464d9b42b2e2e6e4b","photo_marker_sha256":"acc5e5e04c776ad770ee4f3d9ac47e64c44cdd189e76c013d915b28e61ab8d49"},{"hotel_id":1659,"source_message_id":"165","caption_sha256":"d94296c7ef6b8946a373093566fa936836a94fcfd39b7a3ec27cdfc2d5d8b375","photo_marker_sha256":"0b139c60dc7bddaf22859b9892e40e05186eed2247f6c587bf58ba9ca10a68cb"},{"hotel_id":21695,"source_message_id":"166","caption_sha256":"dafc7396c7dd27bf3b5e30df1aaff888d083e6c8845868dcf7da78458c859cb4","photo_marker_sha256":"8608ed7b0197d9d230a9e5fe0f000bc8bdf6edb8fef7883e5b110b5f6e1da054"},{"hotel_id":28668,"source_message_id":"167","caption_sha256":"a3df95799febf477eaaca98b14b4c897c6fc56cb6b509b05468b7f5d6bece62f","photo_marker_sha256":"267f8a5ee55f5a56ece878d02de663b18009858d1ada6f438df318e696d80fb2"},{"hotel_id":1715,"source_message_id":"170","caption_sha256":"01fc15ad32acbbdb7b250f718bf5bd8da95421a3984037156ab70b8ccb08e4b6","photo_marker_sha256":"f0e1f37e682ab3c2ea1aeb7a6ba325399f19574b4a1a2254fd4538da1e16072a"},{"hotel_id":1501,"source_message_id":"339","caption_sha256":"ace3b1df3cf75c9e8b7277c29bc6174a25bba2307fdf938f3a9410cccaf9d131","photo_marker_sha256":"0edb389f08359bb0c287047d48ffa235cc3a1dd337cc7176554dd35cb381d497"},{"hotel_id":233,"source_message_id":"56","caption_sha256":"910dde3977de56ac80b27e59ccadb623852e18a54f164384e33c48dd363cc7dc","photo_marker_sha256":"7cbb7cb7bf5333a298a93a0ee4f48e267f9439914847efe91d6d6721a4750088"},{"hotel_id":12117,"source_message_id":"51","caption_sha256":"72a3ee35febf9ba897f78f2bd8adda4912f5ed38a83da78ae0a7397712696717","photo_marker_sha256":"5a8c3dd5c2d13ba07eaa5a983a00c02ba335d92eac08a350c7d3b117c274daf4"},{"hotel_id":124,"source_message_id":"474","caption_sha256":"69ef22c86d223cc1f7dc84f19fd99f23b12c8a0db68b5c6df8a7b2a9a9f74d8e","photo_marker_sha256":"e7c194ada03199fa7499d0be5059533770e8c9d0c7f54b7ca5dd7a02481dd43a"},{"hotel_id":1962,"source_message_id":"475","caption_sha256":"b33279dc7a12a5d5bcbe62f157cd178c25f68a2d1b077abc63a7541e45a52b9b","photo_marker_sha256":"2fd996f09ad53b3065f9be8bcdfdb9ddff68e0413288abe7b9afbce5e8a73956"},{"hotel_id":134,"source_message_id":"477","caption_sha256":"7412147469d81504e3dca73ea950741dc62ab4f8576dd6c804e8072c9b6d2772","photo_marker_sha256":"2b7dbe5eac69f981261d9737966c4ebbe09066fb9abb809028d4524464fc5510"},{"hotel_id":71147,"source_message_id":"478","caption_sha256":"e1063a243385f7472e3af7fe8a1213b1dbb9f69f6abd98b062067aea747391dd","photo_marker_sha256":"9ccddc747762971aba7671eaa3c8f253859954d08d0af07900ba54406d172d68"},{"hotel_id":462,"source_message_id":"195","caption_sha256":"b3e009bdeb7f604825510792c8b76b52c00fc28edbcc43fc0111ab9850d4edcb","photo_marker_sha256":"91dcb9d26e5e1bc8e76bef4bf08b7a5ec986e1c67edb5feaf50c3f870053a1e5"},{"hotel_id":365,"source_message_id":"360","caption_sha256":"7316955ebc31955d73bdb42ee10ec99a40ca4b566e0c7b3f3fb4398f8c98d92a","photo_marker_sha256":"1b25ab409196fcb12bf5d9856d258f72eb9772157a4b5f5b06a216a6d24c980d"},{"hotel_id":264,"source_message_id":"103","caption_sha256":"beee24ddf84e40a9eee6973c08d487aeef163fb3e843e95146c96fd94b9486c4","photo_marker_sha256":"9bc5765ca48256f3d65ec40200f901c130b5fee81aa458aa40370035d6448ccc"},{"hotel_id":73342,"source_message_id":"104","caption_sha256":"46b5b7f8eb0dbcb509fe824c86a958d4ba176a80db56436d6505563f8aaecc52","photo_marker_sha256":"e3cc879d88fa2907e0cbc34fabd594534555644e29109471a99372d54058a1cc"},{"hotel_id":278,"source_message_id":"105","caption_sha256":"affebcc8bb5b088a6daa1848b922223b4282ef3467c0706a31207f21d3633843","photo_marker_sha256":"bccbf90f7e6f9e28c96750dab86d1fcb7af7cea63e4e2a77a5e1d6d77749f954"},{"hotel_id":380,"source_message_id":"250","caption_sha256":"d39c55a6d2882ad220ffbd6cd9fb315e7576a978dc68f303a732cef15c66cf27","photo_marker_sha256":"d1f4a1588d776276fdf9090ba53251fae6468646a92df8d836713f540fe5e404"},{"hotel_id":13869,"source_message_id":"108","caption_sha256":"eda0e849b19ff37b3d1e4531d8cf98a1d8ddd8ad13467ec396213d32e6caf9f0","photo_marker_sha256":"3a7a14b79f8c79fdda09e8bfa58bd7b9d2ec189a8c2801664fc1217027fd9d11"},{"hotel_id":267,"source_message_id":"109","caption_sha256":"afe34e7c0066988d19d6ff66356f3b328d985ce9d8a2349db2c7bd4a73186016","photo_marker_sha256":"34e67f2fc320a1be72e8b6d8a5323c6ee8482811c4c1d01f9596c6089d2a2106"},{"hotel_id":340,"source_message_id":"299","caption_sha256":"ae866e67671780ed54cfe2bb423cd21f7d99a738af91386fb6800e3c3cc02bae","photo_marker_sha256":"b7e4e0db02da7b82bb566b32d936c1a8a922cb3c2ff92eec76078df67c96b59f"},{"hotel_id":2514,"source_message_id":"429","caption_sha256":"a3d2cd3ab2ccce6fdf1670d448f943a3a0e98fd2dd9ea4a5d35a0cc5f090b934","photo_marker_sha256":"0f432faffc5ca494ae0adce9d5d0eb5d38dbebca08bf296c495d036250031477"},{"hotel_id":43060,"source_message_id":"511","caption_sha256":"d339ac78855db4788462e9032a51310697a60652dd7e949d82f6f09baacb717a","photo_marker_sha256":"d0d8c212e45ab9850eeac87346fa07098338c8b937239ab1d0578c448f726a69"},{"hotel_id":2536,"source_message_id":"512","caption_sha256":"ec08b8168723c9d478b4767c2d1f0bb14b2e41ce6e2757e7ecdc715483ec187c","photo_marker_sha256":"5c099ae84c74ed5318ac74c99a5540e6aa09e6a5b11ebebcf40a7bb2949c2761"},{"hotel_id":7985,"source_message_id":"372","caption_sha256":"e21a13fd15fe7d2153831abe12599c2157d5cd0287ee05c08a2e571568f0d344","photo_marker_sha256":"94e517795e7f1b4e57e5363ce9b8c57cefde23c1becd7bcd796736b8d3bff685"},{"hotel_id":2015,"source_message_id":"261","caption_sha256":"a6ffa3c5feb53d10f6b40b53e3fbb4a1ce38986b32dfe2d5983a42e1f568b474","photo_marker_sha256":"a678bdcb7973e0c9a86dafc1d91c434b25a8f27e5637c321d94c3daac0b30892"},{"hotel_id":681,"source_message_id":"505","caption_sha256":"e22965aa86409025ae40bce67e88f9d9483272c4c4cea574d09e2e2170ca1065","photo_marker_sha256":"b9cda5f2ae8f4e11804845f105ffbeac3caf4db514f15093e6975047a3bce99d"},{"hotel_id":119046,"source_message_id":"507","caption_sha256":"aa2dfcdddaee76f22d89ea5f6f00582415e206c50bf3d1ee9ae3a5f9b69b3a6e","photo_marker_sha256":"8acfa7ce731e24ae0de3491a448943cd0706174c9b9f7ff9fc6657a9ff6b12d6"},{"hotel_id":95159,"source_message_id":"294","caption_sha256":"3b25ae73f8a1c8876bfcb6a983dade12222ecec141673ca4e715ae60b75d25db","photo_marker_sha256":"24d4e8a322ae92f35eb5648a37ab96ddc6b6269faf6acb08ee162088909e19b4"},{"hotel_id":4432,"source_message_id":"247","caption_sha256":"535c1ba0b897df8cded9d23a569f4c76907cdb551cdb1d705979dc51d7394b65","photo_marker_sha256":"6a9c74afe7714e26ce4d7761fd07277b53e954575e1b47e3073e7367cb77f13e"},{"hotel_id":82567,"source_message_id":"252","caption_sha256":"443627ff703d0e863fb2e3bdb99b7d6f90cca0d887dee00882654a77fb92a730","photo_marker_sha256":"875f3b2edcc3d0f6ab78e5b6043a101224b8a7146d7317418ad89c7674e85820"},{"hotel_id":65020,"source_message_id":"292","caption_sha256":"d42236e9208d06b52ec5a0c785468b28d534cac16708293e95ea215421c33e5a","photo_marker_sha256":"b23882a00557c5f53bf6f527bc0236c5eaf0fd02c530c412d19f3fcd63065b45"},{"hotel_id":36451,"source_message_id":"482","caption_sha256":"77b550cbde229be37b91205ef09ad1493d530160c9a70dcef00fcec6cd93c271","photo_marker_sha256":"b84b8034f1321b12689a7a80ffeff2678b3fc4758b849f87e1738ec77ce0a021"},{"hotel_id":57039,"source_message_id":"502","caption_sha256":"9ebb979d0ad0bf199ef417da2b4c4b9c7c9a368058638f675901e28e7bc585cb","photo_marker_sha256":"4c730423783a1e9b7caaf1bdf130435397243d4a33235051e16e0f7e84d081d5"},{"hotel_id":65266,"source_message_id":"503","caption_sha256":"2cb019e817b6611eb109a1b1516a578f2db5a295b37546c819f76485d85ad3d9","photo_marker_sha256":"ac8f78ca1b72adcb8a7bf524069f23c70ea0fc905e22bb7ad3d8b35c7f060695"},{"hotel_id":57217,"source_message_id":"246","caption_sha256":"182318a8f7c8ce96efaa8c3b1ff16098701c828a741dd2f9741ac2e5e81f870f","photo_marker_sha256":"751a49b1123c04a4352a7c1d0d164d54c9a35af8d025b3e1a13f829356bf9638"},{"hotel_id":77625,"source_message_id":"382","caption_sha256":"df144903a8f2799c6e03e06c9b615afd81c02b9bd2591e0a2e5dac861674ca60","photo_marker_sha256":"22dcf83f07c7f3acbec2ecf47bf3add17e7616e0afa09d872b987cb8ad53a9e7"},{"hotel_id":2810,"source_message_id":"383","caption_sha256":"ea495666513d042dc55be508976232b1b501956c0a0534c8402bc456fb17ce41","photo_marker_sha256":"77255233e24036219e1d4e009076f77aff149c656e46e6fb88d5f4a617894489"}]',true,32,JSON_THROW_ON_ERROR);
+          $pdo=null;$lock=null;$acquired=null;$start=hrtime(true);$stage='runtime';
+          try{
+           requireRead(count($scope)===99,'reserve_scope_changed');runtimeRead();
            $out['resources_before']=resourcesRead();$out['resource_budget']=serverReadBudgetRead($out['resources_before']);
            requireRead($out['resource_budget']['allowed'],'server_resource_hold');
-           $prior=[];$public=[];$stage='bounded_public';
-           foreach($pairs as $hotel=>$pair){
-            $prior[$hotel]=telegramMediaOperationRead($pair['target']);
-            [$sp,$tp]=telegramPreparedPairPublicRead($pair,$prior[$hotel],static function(string $channel,string $message)use(&$rates):array{
-             $views=[];foreach(['embed','archive'] as $kind){
-              $url=$kind==='embed'?'https://t.me/'.$channel.'/'.$message.'?embed=1&mode=tme':'https://t.me/s/'.$channel.'?before='.((int)$message+1);
-              $raw=captionPublicBytes($url,$rates);
-              try{requireRead($raw['ok'],'pair_public_unavailable');$views[$kind]=parsePublicRead($raw['body'],$channel,$message);}
-              catch(Throwable $e){return ['ok'=>false,'reason'=>reasonRead($e),'http'=>$raw['http']??null,'retry_after'=>$raw['retry_after']??null];}
-             }
-             try{$v=corroborateTargetKeyboard($views['embed'],$views['archive']);
-              requireRead($views['embed']['photo_marker_sha256']===$views['archive']['photo_marker_sha256'],'public_photo_changed');
-              $v['ok']=true;return $v;
-             }catch(Throwable $e){return ['ok'=>false,'reason'=>reasonRead($e)];}
-            });$public[$hotel]=['source'=>$sp,'target'=>$tp];
-           }
            ob_start();try{require APP.'/config.php';require_once APP.'/services/ProjectConfig.php';
-           require_once APP.'/services/ChannelPostRegistryService.php';require_once APP.'/services/ChannelPostButtonTransport.php';require_once APP.'/services/ChannelPostRuntime.php';}finally{ob_end_clean();}
+            require_once APP.'/services/ChannelPostRegistryService.php';require_once APP.'/services/ChannelPostButtonTransport.php';
+            require_once APP.'/services/ChannelPostRuntime.php';}finally{ob_end_clean();}
            requireRead(ProjectConfig::projectId()==='anytour','project_changed');
            require_once APP.'/hotel-posts-telegram-main19.php';$xml=anytourTelegramFeedRead();$feed=anytourTelegramFeedOfferUrls($xml);$routes=anytourTelegramFeedDestinationPosts($feed);
-           $out['current_feed_sha256']=hash('sha256',$xml);$out['feed_count']=count($feed);
+           $out['feed_count']=count($feed);$out['feed_sha256']=hash('sha256',$xml);
            $pdo=ConversationDb::connection();$pdo->exec('SET SESSION TRANSACTION READ ONLY');$registry=new ChannelPostRegistryService($pdo);
-           $target=$registry->channel('anytour','telegram','anyru_bot','-1001845835645');
-           $source=$registry->channel('anytour','telegram','anyru_bot','-1002262666616');
-           requireRead(is_array($target)&&(int)$target['id']===6&&$target['source_key']==='tg_anytour_msk'&&is_array($source)&&(int)$source['id']===10,'channel_identity_changed');
-           $out['target_channel']=['registry_id'=>6,'chat_id'=>'-1001845835645','url'=>'https://t.me/anytour','config_version'=>(int)$target['config_version'],'button_text'=>$target['button_text'],'bot_url'=>$target['bot_url']];
-           $currentPin=null;$username=false;$stage='native_read_rights';
-           $readTransport=static function(string $platform,string $method,string $path,array $query,?array $body)use(&$currentPin,&$username,&$out):array{
-            requireRead($platform==='telegram'&&$method==='POST'&&$query===[]&&in_array($path,['getMe','getChatMember','getChat'],true)&&($path==='getMe'||(string)($body['chat_id']??'')==='-1001845835645'),'provider_read_scope_changed');
-            $r=ChannelPostApiTransport::buttonRequest($platform,$method,$path,$query,$body);
-            if(($r['http']??0)===429){$out['native_retry_after_seconds']=$r['data']['parameters']['retry_after']??null;throw new RuntimeException('provider_retry_after_hold');}
-            if($path==='getChat'){$chat=$r['data']['result']??[];$username=strtolower((string)($chat['username']??''))==='anytour';$currentPin=isset($chat['pinned_message']['message_id'])?(string)$chat['pinned_message']['message_id']:null;}
-            return $r;
-           };
-           $out['native_channel_rights']=(new ChannelPostButtonTransport($readTransport))->verifyChannel($target);
-           requireRead(!array_key_exists('native_retry_after_seconds',$out),'provider_retry_after_hold');
-           requireRead(($out['native_channel_rights']['receipt']['write_attempts']??null)===0,'read_only_transport_contract_changed');
-           $r=ChannelPostApiTransport::buttonRequest('telegram','POST','getChat',[],['chat_id'=>'-1002262666616']);
-           if(($r['http']??0)===429){$out['native_retry_after_seconds']=$r['data']['parameters']['retry_after']??null;throw new RuntimeException('provider_retry_after_hold');}
-           $chat=$r['data']['result']??[];
-           $sourceBinding=($r['http']??0)===200&&empty($r['transport_error'])&&($r['data']['ok']??null)===true&&($chat['type']??null)==='channel'&&(string)($chat['id']??'')==='-1002262666616'&&strtolower((string)($chat['username']??''))==='any_toour';
-           $out['native_public_channel_binding']=['anytour'=>$username,'any_toour'=>$sourceBinding];
-           $out['native_read_request_count']=(int)($out['native_channel_rights']['receipt']['request_count']??0)+1;
-           $stage='shared_price_lease';$path=OPERATIONS.'/monitor-price-after-collection-v1.jsonl';
-           requireRead(!is_link($path)&&is_file($path),'price_editor_lease_unknown');$lock=fopen($path,'rb');requireRead(is_resource($lock),'price_read_lease_unavailable');
-           $wait=hrtime(true);$shared=flock($lock,LOCK_SH|LOCK_NB);$acquired=$shared?hrtime(true):null;
+           $out['mysql_before']=mysqlResourcesRead($pdo);
+           $leasePath=OPERATIONS.'/monitor-price-after-collection-v1.jsonl';
+           requireRead(!is_link($leasePath)&&is_file($leasePath),'price_editor_lease_unknown');
+           $lock=fopen($leasePath,'rb');requireRead(is_resource($lock),'price_read_lease_unavailable');
+           $shared=flock($lock,LOCK_SH|LOCK_NB);$acquired=$shared?hrtime(true):null;
            $out['price_editor_shared_read_lease']=$shared;$out['preparation_during_price_hold']=!$shared;
-           $out['price_lease_wait_ms']=(int)((hrtime(true)-$wait)/1000000);runtimeRead();
-           $out['mysql_before']=mysqlResourcesRead($pdo);$pdo->beginTransaction();
-           foreach($pairs as $hotel=>$pair){
-            $stage='pair_'.$hotel;$assessment=telegramPreparedPairNativeRead($hotel,$pair,$public[$hotel],$prior[$hotel],($out['native_channel_rights']['state']??null)==='ready',$feed,$routes,
-             static fn(int $h,array $p):array=>telegramPreparedPairTargetRead($pdo,$registry,$h,$p),
-             static function(int $h,array $p)use($pdo,$registry):array{
-              if($p['source_publication']===null){$found=publicationRead($pdo,$registry,10,$p['source']);requireRead(is_array($found)&&is_int($found['publication_id']??null),'source_native_publication_unavailable');$p['source_publication']=$found['publication_id'];}
-              return telegramPreparedPairSourceRead($pdo,$registry,$h,$p);
-             },'telegramMediaOperationRead');
-            $blockers=[];$sn=null;$free=null;
-            if(($assessment['prepared_checks_pass']??false)!==true)$blockers[]=$assessment['hold_reason']??'prepared_checks_not_confirmed';
-            if(($assessment['candidate_preparation_allowed']??false)===true)$sn=publicationRead($pdo,$registry,10,$pair['source']);
-            $operation='anytour-issue1566-historical-tg-media-'.$pair['target'].'-v1';$q=$pdo->prepare('SELECT IS_FREE_LOCK(?)');$q->execute([$operation]);$free=$q->fetchColumn();$q->closeCursor();
-            if($free===false||$free===null||(int)$free!==1)$blockers[]='target_editor_busy_or_unknown';
-            if($currentPin===$pair['target'])$blockers[]='target_is_current_channel_pin';
-            if(!$username||!$sourceBinding)$blockers[]='native_public_channel_binding_not_confirmed';
-            $sp=$public[$hotel]['source'];$tp=$public[$hotel]['target'];
-            $sm=is_array($sn)&&($assessment['prepared_checks_pass']??false)===true&&$sn['current_token_resolves']===true&&!$sn['native_claim_held_or_unknown'];
-            if(!$sm)$blockers[]='source_not_confirmed';
-            $directory=OPERATIONS.'/'.$operation;
-            $admission=preparedLeaseAdmissionRead($out['price_editor_shared_read_lease'],$blockers);
-            $out['rows'][]=['hotel_id'=>$hotel,'source_message_id'=>$pair['source'],'target_message_id'=>$pair['target'],
-             'source_native'=>$sn,'target_native'=>$assessment['target_native']??null,'source_public'=>$sp,'target_public'=>$tp,
-             'source_matches'=>$sm,'historical_target_matches'=>($assessment['checks']['target_preimage']??false)===true,
-             'target_media_lock_free'=>$free!==false&&$free!==null&&(int)$free===1,'target_current_pin_matches'=>$currentPin===$pair['target'],
-             'prior_media_operation_directory_exists'=>file_exists($directory)||is_link($directory),
-             'existing_large_channel_hotel_registry_matches'=>array_merge($assessment['target_native_ids']??['unobserved'],$assessment['hotel_duplicate_publication_ids']??['unobserved']),
-             'prepared_assessment'=>$assessment,'preparation_ready'=>$admission['preparation_ready'],'preview_blockers'=>$admission['preview_blockers'],'preview_ready'=>$admission['preview_ready']];
+           $budget=hrtime(true);$pdo->beginTransaction();
+           foreach($scope as $i=>$candidate){
+            if((hrtime(true)-$budget)>2500000000){$out['remaining_unread_count']=count($scope)-$i;break;}
+            $hotel=$candidate['hotel_id'];$mid=$candidate['source_message_id'];$stage='source_'.$hotel;
+            $row=$candidate+['native_source_ready'=>false,'target_checked'=>false,'write_admission'=>false];
+            try{
+             $n=publicationRead($pdo,$registry,10,$mid);$row['source_native']=$n;
+             $q=$pdo->prepare("SELECT p.id,p.external_message_id FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id WHERE p.post_channel_id=6 AND (JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id'))=? OR JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.logical_id')) IN (?,?)) LIMIT 3");
+             $q->execute([(string)$hotel,'commercial-hotel-'.$hotel.'-v1','commercial-main-hotel-'.$hotel.'-v1']);
+             $row['existing_large_hotel_matches']=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();
+             $url='https://t.me/any_toour/'.$mid;$offer='tg_'.$hotel;
+             $row['current_source_offer_matches']=($feed[$offer]??null)===$url&&($routes[$offer]??null)===$url;
+             $row['public_caption_observation_unchanged']=is_array($n)&&($n['caption_sha256']??null)===$candidate['caption_sha256'];
+             $a=is_array($n)&&count($n['attachments']??[])===1?$n['attachments'][0]:null;
+             $checks=['native_identity'=>is_array($n)&&($n['hotel_id']??null)===$hotel&&($n['post_url']??null)===$url,
+              'current_token'=>is_array($n)&&($n['current_token_resolves']??false)===true,
+              'source_sent'=>is_array($n)&&($n['state']??null)==='sent',
+              'no_active_or_unknown'=>is_array($n)&&($n['native_claim_held_or_unknown']??true)===false,
+              'one_reusable_photo'=>is_array($a)&&($a['reusable_telegram_photo']??false)===true,
+              'one_expected_button'=>is_array($n)&&($n['one_expected_button']??false)===true,
+              'current_feed_source'=>$row['current_source_offer_matches'],
+              'not_in_large_registry'=>$row['existing_large_hotel_matches']===[]];
+             $row['checks']=$checks;$row['native_source_ready']=!in_array(false,$checks,true);
+             $row['holds']=array_keys(array_filter($checks,static fn($v)=>!$v));
+            }catch(Throwable $e){$row['hold_reason']=reasonRead($e);}
+            $out['rows'][]=$row;
            }
            $pdo->rollBack();$out['mysql_after']=mysqlResourcesRead($pdo);runtimeRead();$out['ok']=true;
           }catch(Throwable $e){$out['failure_stage']=$stage;$out['failure_reason']=reasonRead($e);}
-          finally{if($pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();if(is_resource($lock)){if($acquired!==null)$out['price_lease_held_ms']=(int)((hrtime(true)-$acquired)/1000000);if($acquired!==null)flock($lock,LOCK_UN);fclose($lock);}}
-          $out['public_retry_after_holds']=$rates;$out['resources_after']=resourcesRead();$out['read_at_utc']=gmdate(DATE_ATOM);$out['read_elapsed_ms']=(int)((hrtime(true)-$start)/1000000);
-          if($out['ok'])$out['checkpoint_sha256']=hash('sha256',jsonRead($out));echo jsonRead($out),PHP_EOL;exit($out['ok']?0:2);
+          finally{if($pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();if(is_resource($lock)){if($acquired!==null){$out['price_shared_lease_held_ms']=(int)((hrtime(true)-$acquired)/1000000);flock($lock,LOCK_UN);}fclose($lock);}}
+          $out['scope_count']=count($scope);$out['native_source_ready_count']=count(array_filter($out['rows'],static fn($r)=>$r['native_source_ready']));
+          $out['resources_after']=resourcesRead();$out['read_elapsed_ms']=(int)((hrtime(true)-$start)/1000000);$out['read_at_utc']=gmdate(DATE_ATOM);
+          $out['checkpoint_sha256']=hash('sha256',jsonRead($out));echo jsonRead($out),PHP_EOL;exit($out['ok']?0:2);
           '''
           pathlib.Path('pub/read-only.php').write_text(program+entry)
           PY
-          python3 - <<'PY'
-          import pathlib
-          s=pathlib.Path('pub/read-only.php').read_text()
-          start=s.index('function preparedLeaseAdmissionRead(')
-          end=s.index("$out=['schema'=>1",start)
-          function=s[start:end]
-          cases=r"""
-          $a=preparedLeaseAdmissionRead(true,[]);
-          if($a!==['preparation_ready'=>true,'preview_ready'=>true,'preview_blockers'=>[]])exit(2);
-          $a=preparedLeaseAdmissionRead(false,[]);
-          if($a!==['preparation_ready'=>true,'preview_ready'=>false,'preview_blockers'=>['price_shared_lease_not_acquired']])exit(3);
-          $a=preparedLeaseAdmissionRead(true,['occupied']);
-          if($a!==['preparation_ready'=>false,'preview_ready'=>false,'preview_blockers'=>['occupied']])exit(4);
-          $a=preparedLeaseAdmissionRead(false,['protected_review']);
-          if($a!==['preparation_ready'=>false,'preview_ready'=>false,'preview_blockers'=>['protected_review','price_shared_lease_not_acquired']])exit(5);
-          echo "FOUR_PRICE_PREPARATION_ADMISSION_CASES_PASS\\n";
-          """
-          pathlib.Path('pub/price-preparation-test.php').write_text('<?php\n'+function+cases)
-          PY
           php -l pub/read-only.php
-          php pub/price-preparation-test.php
       - name: Pin established SSH host continuity and authentication identity
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -242,7 +183,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read only the unchanged Hilton pair using the current fenced reader
+      - name: Read only the native source99 identities and existing duplicate bindings
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -258,9 +199,9 @@ jobs:
           python3 - <<'PY'
           import json
           d=json.load(open('pub/registry.json'))
-          assert d['operation']=='hotel_archive_telegram_ranked_registry' and d['issue']==1566
+          assert d['operation']=='hotel_telegram_reserve_source_identity_inventory' and d['issue']==1566
           assert d['production_writes']==d['provider_writes']==d['bot_starts']==0 and d['write_admission'] is False
-          print(json.dumps({'ok':d['ok'],'failure_stage':d.get('failure_stage'),'reason':d.get('failure_reason'),'rows':[{'hotel_id':r['hotel_id'],'ready':r['preview_ready'],'blockers':r['preview_blockers']} for r in d['rows']]}))
+          print(json.dumps({'ok':d['ok'],'failure_stage':d.get('failure_stage'),'reason':d.get('failure_reason'),'source_ready':d['native_source_ready_count'],'rows':len(d['rows']),'ready_pairs':d['complete_ready_pair_count'],'unread':d.get('remaining_unread_count',0)}))
           PY
           test "$status" -eq 0
       - name: Preserve the original bounded pair observation
