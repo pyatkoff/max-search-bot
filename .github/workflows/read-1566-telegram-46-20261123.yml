@@ -1,4 +1,4 @@
-name: "#1566 Continue native observation of five frozen commercial Telegram targets"
+name: "#1566 Continue native observation of thirty previously prepared commercial Telegram candidates"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -19,7 +19,7 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == '6d2d191a95cf85829a6045fedebcaec5225ab78a' &&
+      github.event.before == '1f0ab0a8024f6a473e5658026715d3b91a02c51e' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -79,6 +79,13 @@ jobs:
             if(prior9Jobs.length!==1||prior9Jobs[0].id!==138916711801||prior9Jobs[0].conclusion!=='success'||prior9Jobs[0].steps.filter(s=>s.name==='Read the nine prepared sources and historical targets without mutation'&&s.conclusion==='success').length!==1)throw Error('prior9_observation_changed')
             const prior9Artifacts=R.boundedList(await api('GET',prior9+'/artifacts?per_page=100'),'artifacts','prior9_artifacts_incomplete')
             if(prior9Artifacts.length!==1||prior9Artifacts[0].id!==14982204723||prior9Artifacts[0].size_in_bytes!==19890||prior9Artifacts[0].digest!=='sha256:cae7d3109ea5d55ae76d3d7a3e65549514c9a62b8419d99ec593a562cbe4e12f'||prior9Artifacts[0].expired)throw Error('prior9_original_changed')
+            const prior5=R.API_ROOT+'/actions/runs/45531105688'
+            const prior5Run=await api('GET',prior5)
+            R.runIdentity(prior5Run,{id:45531105688,attempt:1,head:'1f0ab0a8024f6a473e5658026715d3b91a02c51e',workflow:'.github/workflows/read-1566-telegram-46-20261123.yml',event:'push',branch:'ops/1566-telegram-46-native-read-20261123',conclusion:'success'})
+            const prior5Jobs=R.boundedList(await api('GET',prior5+'/attempts/1/jobs?per_page=100'),'jobs','prior5_jobs_incomplete')
+            if(prior5Jobs.length!==1||prior5Jobs[0].id!==138926334781||prior5Jobs[0].conclusion!=='success'||prior5Jobs[0].steps.filter(s=>s.name==='Read the five frozen sources and historical targets without mutation'&&s.conclusion==='success').length!==1)throw Error('prior5_observation_changed')
+            const prior5Artifacts=R.boundedList(await api('GET',prior5+'/artifacts?per_page=100'),'artifacts','prior5_artifacts_incomplete')
+            if(prior5Artifacts.length!==1||prior5Artifacts[0].id!==14985261108||prior5Artifacts[0].size_in_bytes!==12179||prior5Artifacts[0].digest!=='sha256:931e597d9b937ad98cdcbdbfbd6a4f6c3e050c1f79bc4de9f8d2de59c0f7ca49'||prior5Artifacts[0].expired)throw Error('prior5_original_changed')
             const observed = await R.readRecord(api)
             const resolution = await R.resolveCurrent(api, {sha:expected}, observed)
             if (!resolution.ready || resolution.repository_sha !== expected || !/^[a-f0-9]{40}$/.test(resolution.application_sha)) throw Error('accepted_release_mismatch')
@@ -94,7 +101,7 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '49765ca6bf688095fe2dbea311fa104603e0a450'
+          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = 'add19ac114d99ed1aef2bd36cac7c0596728454e'
           mkdir pub
           python3 - <<'PY'
           import os,pathlib,re
@@ -107,6 +114,38 @@ jobs:
           pathlib.Path('pub/read-only.php').write_text(program)
           PY
           php -l pub/read-only.php
+          python3 - <<'PY'
+          import pathlib,re
+          s=pathlib.Path('pub/read-only.php').read_text()
+          a=re.search(r'function publicRetryLimit\([\s\S]*?(?=\nfunction runtimeRead)',s).group()
+          b=re.search(r'function publicEvidence\([\s\S]*?(?=\nfunction publicRead)',s).group()
+          stub="""<?php
+          function reasonRead(Throwable $e): string { return $e->getMessage(); }
+          function publicRead(string $channel,string $message): array {
+           global $publicAttempts,$publicRateLimit;
+           $publicAttempts++;
+           if($message==='429') { $publicRateLimit=publicRetryLimit('17',1700000000); throw new RuntimeException('public_rate_limited'); }
+           return ['url'=>'fixture','single_photo'=>true];
+          }
+          """
+          checks="""
+          function verifyFixture(bool $ok): void { if(!$ok)throw new RuntimeException('readonly_rate_contract_failed'); }
+          verifyFixture(publicRetryLimit('17',1700000000)['resume_not_before_unix']===1700000017);
+          verifyFixture(publicRetryLimit('Tue, 14 Nov 2023 22:14:20 GMT',1700000000)['retry_after_seconds']===60);
+          verifyFixture(publicRetryLimit('0',1700000000)['retry_after_seconds']===0);
+          verifyFixture(publicRetryLimit('tomorrow',1700000000)['resume_not_before_unix']===null);
+          verifyFixture(publicRetryLimit('-1',1700000000)['retry_after_seconds']===null);
+          verifyFixture(publicRetryLimit("17\\r\\nInject",1700000000)['retry_after_raw']===null);
+          $publicAttempts=0; $publicRateLimit=null;
+          $r=publicEvidence('fixture','ok'); verifyFixture($r['ok']&&$r['http_attempts']===1&&$publicAttempts===1);
+          $r=publicEvidence('fixture','429'); verifyFixture(!$r['ok']&&$r['http_attempts']===1&&$publicAttempts===2);
+          $r=publicEvidence('fixture','remaining'); verifyFixture(!$r['ok']&&$r['http_attempts']===0&&$publicAttempts===2&&$r['reason']==='public_retry_after_held');
+          echo "READONLY_PUBLIC_429_CONTRACT=PASS\\n";
+          """
+          pathlib.Path('pub/read-rate-fixture.php').write_text(stub+a+b+checks)
+          PY
+          php pub/read-rate-fixture.php
+          rm -f pub/read-rate-fixture.php
       - name: Pin established SSH host continuity and authentication identity
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -139,7 +178,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read the five frozen sources and historical targets without mutation
+      - name: Read the thirty prepared sources and historical targets without mutation
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -158,10 +197,11 @@ jobs:
           if not d['ok']: print(json.dumps({k:d[k] for k in ('failure_stage','failure_reason') if k in d}))
           assert d['ok'] and d['operation']=='hotel_archive_telegram_ranked_registry'
           assert d['production_writes']==d['provider_writes']==d['bot_starts']==0
-          assert [r['hotel_id'] for r in d['rows']]==[14140,1402,1959,73082,8094]
-          assert [int(r['target_message_id']) for r in d['rows']]==[909,1085,526,588,567]
-          assert d['public_get_attempts']==10
-          assert all(not r['preview_ready'] and 'source_keyboard_requires_exact_review' in r['preview_blockers'] for r in d['rows'] if not (r['source_native'] or {}).get('one_expected_button',False))
+          assert [r['hotel_id'] for r in d['rows']]==[1501,2514,8964,1962,65020,36451,278,143372,7985,68984,233,66860,119046,37396,95159,57217,2931,98713,54914,4294,61591,2559,61760,1582,140013,262,71241,1292,20971,82751]
+          assert [int(r['target_message_id']) for r in d['rows']]==[1047,1058,1103,1109,1548,1584,1585,1586,1620,1651,1653,1654,1665,1679,1695,1696,1700,1705,1706,1709,1723,1724,1735,1739,1741,1742,1743,1744,1746,1748]
+          assert 0 < d['public_get_attempts'] <= 60
+          assert d['public_get_attempts']==sum(r[p]['http_attempts'] for r in d['rows'] for p in ('source_public','target_public'))
+          assert all(not r['preview_ready'] and 'prepared_target_snapshot_not_bound' in r['preview_blockers'] for r in d['rows'])
           assert isinstance(d['price_lease_held_ms'],int) and isinstance(d['read_elapsed_ms'],int)
           print(json.dumps({'checkpoint_sha256':d['checkpoint_sha256'],'read_at_utc':d['read_at_utc'],'rows':[{'hotel_id':r['hotel_id'],'target_message_id':r['target_message_id'],'preview_ready':r['preview_ready'],'blockers':r['preview_blockers'],'source_publication_id':(r['source_native'] or {}).get('publication_id'),'target_publication_id':(r['target_native'] or {}).get('publication_id')} for r in d['rows']]}))
           PY

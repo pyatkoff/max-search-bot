@@ -11,13 +11,38 @@ const APPLICATION_SHA = '__APPLICATION_SHA__';
 const REPOSITORY_SHA = '__REPOSITORY_SHA__';
 const NATIVE_RUN_ID = '__NATIVE_RUN_ID__';
 const PAIRS = [
-    14140 => ['name'=>'Stella Makadi Gardens Resort & Spa', 'source'=>'593', 'target'=>'909', 'date'=>'2024-10-23T09:01:11Z', 'rank'=>null, 'demand_platform'=>'not_measured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'EG', 'locality'=>'Хургада', 'archived_offer'=>'Ранее подобранная коммерческая фотоцель; точный preimage ещё не закреплён', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>'4bd86d9a608cf7d983d2eb348ee7d00346cb48b4d1f92127a020b3d08e0daed0', 'target_photo_marker_sha256'=>'e74ea7204eec7b05222ffdda03699ddc527a61315e8c793c420f8251be03e07b'],
-    1402 => ['name'=>'Orange County Kemer', 'source'=>'312', 'target'=>'1085', 'date'=>'2025-04-25T07:36:30Z', 'rank'=>null, 'demand_platform'=>'not_measured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TR', 'locality'=>'Кемер', 'archived_offer'=>'Ранее подобранная коммерческая фотоцель; точный preimage ещё не закреплён', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>'a6393ca8ca76927420fa22355a366883cddcb7127fd2c4f04679bdb28b8b6470', 'target_photo_marker_sha256'=>'39e13e15fbace00db4f8fd7c22214b5f26a261e8ddf595e9bb6cd8e44563df7e'],
-    1959 => ['name'=>'AMC Royal Hotel & Spa', 'source'=>'470', 'target'=>'526', 'date'=>'2024-04-02T08:20:57Z', 'rank'=>null, 'demand_platform'=>'not_measured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'EG', 'locality'=>'Хургада', 'archived_offer'=>'Ранее подобранная коммерческая фотоцель; точный preimage ещё не закреплён', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>'5c25e31660767e8621d283ecfb9eeb029aa6037057ea74049dad0a587e0f947d', 'target_photo_marker_sha256'=>'020a3f2a6ea27cae10d6eaff4ac315a33edf94d104ec718561d916ef31bd859a'],
-    73082 => ['name'=>'Hilton Abu Dhabi Yas Island', 'source'=>'1025', 'target'=>'588', 'date'=>'2024-05-01T09:28:55Z', 'rank'=>null, 'demand_platform'=>'not_measured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'AE', 'locality'=>'Абу Даби', 'archived_offer'=>'Ранее подобранная коммерческая фотоцель; точный preimage ещё не закреплён', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>'80a7b342b26fdf2f1310fc1125d5f8549c18f0cc8b350013f3d11823a033a252', 'target_photo_marker_sha256'=>'d5abd6334904eb43a00a531e64b5e812775524df8d7547e28c09087f130ec7c5'],
-    8094 => ['name'=>'Phulay Bay, a Ritz Carlton Reserve', 'source'=>'905', 'target'=>'567', 'date'=>'2024-04-22T06:59:04Z', 'rank'=>null, 'demand_platform'=>'not_measured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TH', 'locality'=>'Краби', 'archived_offer'=>'Ранее подобранная коммерческая фотоцель; точный preimage ещё не закреплён', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>'37fd47408b3e74a0dff1233df09f1f45ce5b94f3aa5a0b05c7a1f88fbffb4870', 'target_photo_marker_sha256'=>'07989c88a8f257d8580905c1b368649dca1b00099b531c173b048f0930141a4a']
+    1501 => ['name'=>'Selectum Family Resort Side', 'source'=>'339', 'target'=>'1047', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TR', 'locality'=>'Сиде', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    2514 => ['name'=>'Amwaj Rotana Jumeirah Beach', 'source'=>'429', 'target'=>'1058', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'AE', 'locality'=>'Дубай', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    8964 => ['name'=>'Rixos The Palm Dubai Hotel & Suites', 'source'=>'423', 'target'=>'1103', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'AE', 'locality'=>'Дубай', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    1962 => ['name'=>'Baron Palms Resort', 'source'=>'475', 'target'=>'1109', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'EG', 'locality'=>'Шарм-эль-Шейх', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    65020 => ['name'=>'Costabella Resort Nha Trang', 'source'=>'292', 'target'=>'1548', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'VN', 'locality'=>'Нячанг', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    36451 => ['name'=>'Edele Hotel Nha Trang', 'source'=>'482', 'target'=>'1584', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'VN', 'locality'=>'Нячанг', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    278 => ['name'=>'JAZ Belvedere', 'source'=>'105', 'target'=>'1585', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'EG', 'locality'=>'Шарм эль Шейх', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    143372 => ['name'=>'Four Points by Sheraton Nha Trang', 'source'=>'977', 'target'=>'1586', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'VN', 'locality'=>'Нячанг', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    7985 => ['name'=>'Kata Silver Sand', 'source'=>'372', 'target'=>'1620', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TH', 'locality'=>'Ката, Пхукет', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    68984 => ['name'=>'Le Meridien Khao Lak Resort & Spa', 'source'=>'192', 'target'=>'1651', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TH', 'locality'=>'Као Лак', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    233 => ['name'=>'JAZ Casa del Mar Resort', 'source'=>'56', 'target'=>'1653', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'EG', 'locality'=>'Хургада', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    66860 => ['name'=>'InterContinental Phuket Resort', 'source'=>'827', 'target'=>'1654', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TH', 'locality'=>'Пхукет', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    119046 => ['name'=>'Sugar Marina Resort Pop Kata Beach', 'source'=>'507', 'target'=>'1665', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TH', 'locality'=>'Пхукет', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    37396 => ['name'=>'Orka Lotus Beach', 'source'=>'358', 'target'=>'1679', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TR', 'locality'=>'Ичмелер', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    95159 => ['name'=>'Phuket Kata Resotel', 'source'=>'294', 'target'=>'1695', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TH', 'locality'=>'Ката', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    57217 => ['name'=>'Wyndham Grand Phu Quoc', 'source'=>'246', 'target'=>'1696', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'VN', 'locality'=>'Фукуок', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    2931 => ['name'=>'Jumeirah Zabeel Saray', 'source'=>'693', 'target'=>'1700', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'AE', 'locality'=>'Дубай', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    98713 => ['name'=>'Best Western Premier Marvella Nha Trang', 'source'=>'955', 'target'=>'1705', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'VN', 'locality'=>'Нячанг', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    54914 => ['name'=>'The Anam Cam Ranh', 'source'=>'879', 'target'=>'1706', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'VN', 'locality'=>'Камрань', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    4294 => ['name'=>'Le Méridien Phuket Mai Khao Beach Resort', 'source'=>'831', 'target'=>'1709', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TH', 'locality'=>'Пхукет', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    61591 => ['name'=>'Vinpearl Empire Nha Trang Affiliated by Meliá', 'source'=>'390', 'target'=>'1723', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'VN', 'locality'=>'Нячанг', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    2559 => ['name'=>'Fujairah Rotana Resort & Spa', 'source'=>'509', 'target'=>'1724', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'AE', 'locality'=>'Фуджейра', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    61760 => ['name'=>'Saadiyat Rotana Resort & Villas', 'source'=>'373', 'target'=>'1735', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'AE', 'locality'=>'Абу-Даби', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    1582 => ['name'=>'Voyage Belek Golf & Spa', 'source'=>'147', 'target'=>'1739', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TR', 'locality'=>'Белек', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    140013 => ['name'=>'Hyatt Regency Nha Trang', 'source'=>'976', 'target'=>'1741', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'VN', 'locality'=>'Нячанг', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    262 => ['name'=>'JAZ Aquamarine', 'source'=>'50', 'target'=>'1742', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'EG', 'locality'=>'Хургада', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    71241 => ['name'=>'Mövenpick Resort Waverly Phu Quoc', 'source'=>'884', 'target'=>'1743', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'VN', 'locality'=>'Фукуок', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    1292 => ['name'=>'Kempinski Hotel The Dome', 'source'=>'366', 'target'=>'1744', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TR', 'locality'=>'Белек', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    20971 => ['name'=>'Sugar Marina Resort Nautical Kata Beach', 'source'=>'228', 'target'=>'1746', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'TH', 'locality'=>'Пхукет', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null],
+    82751 => ['name'=>'The Anam Mui Ne', 'source'=>'950', 'target'=>'1748', 'date'=>null, 'rank'=>null, 'demand_platform'=>'existing_curated_wave_unmeasured_in_this_read', 'dialogues'=>null, 'entries'=>null, 'previous_feed_price'=>null, 'country'=>'VN', 'locality'=>'Фантьет', 'archived_offer'=>'Предварительная старая коммерческая фотоцель из #1703; exact preimage требует независимого разбора', 'archived_countries'=>[], 'different_direction'=>null, 'target_caption_sha256'=>null, 'target_photo_marker_sha256'=>null]
 ];
-const PAIR_DIGEST = '0f5803a7fa6b35290c0dd1569088a1e6e2fa77456c2a33f8c382ec8cb55cd067';
+const PAIR_DIGEST = '443b8bb599b91dc5aa368297621026854d3d3be7cdec49898997fa23f7eea658';
 
 
 function requireRead(bool $ok, string $reason): void
@@ -32,6 +57,18 @@ function reasonRead(Throwable $e): string
 {
     return get_class($e) === RuntimeException::class
         && preg_match('/\A[a-z_]{1,100}\z/D', $e->getMessage()) === 1 ? $e->getMessage() : 'read_evidence_unavailable';
+}
+function publicRetryLimit(?string $raw, int $now): array
+{
+    if ($raw !== null && (strlen($raw)>160 || preg_match('/\A[\x20-\x7E]*\z/D',$raw)!==1)) $raw=null;
+    $seconds = null;
+    if ($raw !== null && preg_match('/\A[0-9]{1,8}\z/D',$raw) === 1) $seconds=(int)$raw;
+    elseif ($raw !== null) {
+        $when=DateTimeImmutable::createFromFormat(DateTimeInterface::RFC7231,$raw,new DateTimeZone('UTC'));
+        if ($when!==false && $when->format(DateTimeInterface::RFC7231)===$raw) $seconds=max(0,$when->getTimestamp()-$now);
+    }
+    return ['observed_at_utc'=>gmdate(DATE_ATOM,$now), 'retry_after_raw'=>$raw,
+        'retry_after_seconds'=>$seconds, 'resume_not_before_unix'=>$seconds===null?null:$now+$seconds];
 }
 function runtimeRead(): void
 {
@@ -49,13 +86,24 @@ function runtimeRead(): void
 /** Fixed public GETs only; TLS verified, no redirects or retries. */
 function publicEvidence(string $channel, string $message): array
 {
-    try { return ['ok' => true] + publicRead($channel, $message); }
+    global $publicAttempts, $publicRateLimit;
+    $before = $publicAttempts;
+    if ($publicRateLimit !== null) return ['ok'=>false, 'url'=>'https://t.me/'.$channel.'/'.$message,
+        'reason'=>'public_retry_after_held', 'http_attempts'=>0, 'rate_limit'=>$publicRateLimit];
+    try {
+        $value = publicRead($channel,$message);
+        return ['ok'=>true, 'http_attempts'=>$publicAttempts-$before] + $value;
+    }
     catch (Throwable $e) {
-        return ['ok' => false, 'url' => 'https://t.me/' . $channel . '/' . $message, 'reason' => reasonRead($e)];
+        return ['ok'=>false, 'url'=>'https://t.me/'.$channel.'/'.$message,
+            'reason'=>reasonRead($e), 'http_attempts'=>$publicAttempts-$before,
+            'rate_limit'=>$publicRateLimit];
     }
 }
 function publicRead(string $channel, string $message): array
 {
+    global $publicAttempts, $publicRateLimit;
+    $retryAfter = null;
     $allowed = $channel === 'anytour' ? array_column(PAIRS, 'target')
         : ($channel === 'any_toour' ? array_column(PAIRS, 'source') : []);
     requireRead(in_array($message, $allowed, true), 'public_scope_invalid');
@@ -66,15 +114,24 @@ function publicRead(string $channel, string $message): array
     curl_setopt_array($curl, [
         CURLOPT_FOLLOWLOCATION => false, CURLOPT_SSL_VERIFYPEER => true, CURLOPT_SSL_VERIFYHOST => 2,
         CURLOPT_CONNECTTIMEOUT => 5, CURLOPT_TIMEOUT => 18, CURLOPT_USERAGENT => 'Mozilla/5.0',
+        CURLOPT_HEADERFUNCTION => static function ($unused, string $header) use (&$retryAfter): int {
+            if (stripos($header,'retry-after:') === 0) $retryAfter = substr(trim(substr($header,12)),0,160);
+            return strlen($header);
+        },
         CURLOPT_WRITEFUNCTION => static function ($unused, string $part) use (&$body): int {
             if (strlen($body) + strlen($part) > 1_000_000) return 0;
             $body .= $part;
             return strlen($part);
         },
     ]);
+    $publicAttempts++;
     $ok = curl_exec($curl) !== false && curl_errno($curl) === 0;
     $status = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
     curl_close($curl);
+    if ($status === 429) {
+        $publicRateLimit = publicRetryLimit($retryAfter,time());
+        throw new RuntimeException('public_rate_limited');
+    }
     requireRead($ok && $status === 200, 'public_post_unavailable');
     return parsePublicRead($body, $channel, $message);
 }
@@ -124,11 +181,20 @@ function parsePublicRead(string $body, string $channel, string $message): array
             'hotel_url' => preg_match('~\Ahttps://t\.me/anyru_bot\?start=p_[A-Za-z0-9_-]{8,60}\z~D', $href) === 1 ? $href : null,
             'url_sha256' => hash('sha256', $href)];
     }
+    $captionLinks = [];
+    $anchors = $xp->query('.//a[@href]', $text->item(0));
+    if ($anchors) foreach ($anchors as $anchor) {
+        if (count($captionLinks) >= 40) break;
+        $href = $anchor->getAttribute('href');
+        $captionLinks[] = ['text'=>mb_substr(trim($anchor->textContent),0,180),
+            'url_sha256'=>hash('sha256',$href),
+            'public_bot_url'=>preg_match('~\\Ahttps://t\\.me/anyru_bot\\?start=(?:tg_anytour_msk|p_[A-Za-z0-9_-]{8,60})\\z~D',$href) === 1 ? $href : null];
+    }
     return ['url' => $url, 'caption' => $caption, 'caption_sha256' => hash('sha256', $caption),
         'html_sha256' => hash('sha256', $body), 'published_at' => $dates->item(0)->getAttribute('datetime'),
         'published_unixtime' => (new DateTimeImmutable($dates->item(0)->getAttribute('datetime')))->getTimestamp(),
         'single_photo' => $single && $photoUrl !== '', 'photo_url' => $photoUrl,
-        'photo_count' => $photos->length, 'other_media_count' => $other->length,
+        'photo_count' => $photos->length, 'other_media_count' => $other->length, 'caption_links'=>$captionLinks,
         'photo_marker_sha256' => $marker !== '' ? hash('sha256', $marker) : null, 'buttons' => $buttons];
 }
 
@@ -223,6 +289,8 @@ $out = ['schema' => 1, 'issue' => 1566, 'demand_run_id' => null, 'demand_artifac
     'production_writes' => 0, 'provider_writes' => 0, 'bot_starts' => 0, 'public_get_attempts' => 0];
 $pdo = null;
 $priceLock = null;
+$publicAttempts = 0;
+$publicRateLimit = null;
 $stage = 'installed_release';
 $readStarted = hrtime(true);
 $priceLeaseAcquired = null;
@@ -231,8 +299,8 @@ try {
     foreach (PAIRS as $id => $row) {
         $data[] = [$id, (int) $row['source'], (int) $row['target'], $row['date']];
     }
-    requireRead(count($data) === 5 && count(array_unique(array_column($data, 1))) === 5
-        && count(array_unique(array_column($data, 2))) === 5
+    requireRead(count($data) === 30 && count(array_unique(array_column($data, 1))) === 30
+        && count(array_unique(array_column($data, 2))) === 30
         && !array_intersect(array_column($data, 0), [106, 109, 111, 114, 125, 132, 133, 139, 140, 150, 174, 195, 206, 231, 236, 246, 247, 260, 263, 266, 272, 287, 288, 293, 302, 358, 371, 393, 408, 415, 416, 435, 441, 454, 465, 466, 469, 483, 497, 513, 599, 632, 706, 713, 768, 800, 932, 948, 949, 954, 955, 964, 975, 996, 1013, 1032, 1035, 1055, 1105, 1260, 1344, 1451, 1960, 1972, 2470, 2493, 2588, 3405, 3415, 3452, 4091, 4181, 4270, 11791, 12107, 12111, 15693, 17595, 24909, 26844, 28460, 32342, 37668, 43676, 43689, 47025, 51238, 54605, 56092, 57028, 59114, 63191, 64895, 64914, 64918, 65877, 70048, 73343, 73974, 74503, 75100, 76588, 77914, 79071, 82106, 82606, 85417, 99713, 107938, 118475])
         && !array_intersect(array_column($data, 2), [17, 19, 23, 37, 48, 82, 192, 196, 204, 220, 224, 249, 266, 288, 316, 328, 346, 355, 372, 402, 414, 431, 455, 474, 483, 516, 540, 560, 578, 594, 603, 610, 626, 646, 702, 716, 731, 737, 755, 783, 799, 809, 819, 846, 852, 862, 867, 884, 889, 892, 894, 901, 905, 906, 908, 911, 913, 914, 915, 917, 918, 920, 923, 924, 925, 927, 928, 930, 938, 948, 949, 951, 952, 954, 955, 956, 963, 964, 969, 970, 972, 982, 983, 993, 995, 997, 999, 1001, 1003, 1012, 1016, 1018, 1020, 1034, 1037, 1042, 1043, 1046, 1049, 1051, 1052, 1055, 1057, 1059, 1063, 1069, 1074, 1083, 1087, 1090, 1092, 1095, 1098, 1101, 1110, 1128, 1131, 1148, 1150, 1207, 1227, 1292, 1312, 1380, 1469, 1484, 1570, 1588, 1652, 1678, 1754, 1760, 1779, 1780, 1782, 1784, 1787, 1788, 1789, 1790, 1792])
         && hash_equals(PAIR_DIGEST, hash('sha256', jsonRead($data))), 'input_packet_changed');
@@ -242,7 +310,8 @@ try {
     $public = [];
     foreach (PAIRS as $hotel => $pair) {
         $public[$hotel] = [publicEvidence('any_toour', $pair['source']), publicEvidence('anytour', $pair['target'])];
-        $out['public_get_attempts'] += 2;
+        $out['public_get_attempts'] = $publicAttempts;
+        $out['public_rate_limit'] = $publicRateLimit;
     }
     runtimeRead();
     require_once APP . '/hotel-posts-telegram-main19.php';
@@ -365,7 +434,7 @@ try {
             && (string) $sourceNative['hotel_id'] === (string) $hotel && !$sourceNative['native_claim_held_or_unknown']
             && count($sourceNative['attachments']) === 1 && $sourceNative['attachments'][0]['reusable_telegram_photo']
             && $sourcePublic['single_photo'] && $sourceNative['current_token_resolves'];
-        // These exact target preimages were independently reviewed in original45528209335.
+        // Thirty provisional commercial targets are observed only; none is auto-admitted.
         $targetMatches = $pair['date'] !== null && $targetPublic['ok'] &&
             $targetPublic['caption_sha256'] === $pair['target_caption_sha256']
             && $targetPublic['photo_marker_sha256'] === $pair['target_photo_marker_sha256'] && $targetPublic['published_unixtime'] === (new DateTimeImmutable($pair['date']))->getTimestamp()
@@ -378,6 +447,7 @@ try {
         $existingTg = array_values(array_filter($existing, static fn($p) => (int) $p['post_channel_id'] === 6));
         $existingMax = array_values(array_filter($existing, static fn($p) => (int) $p['post_channel_id'] === 4));
         $blockers = [];
+        $blockers[] = 'prepared_target_snapshot_not_bound';
         if (($sourceNative['one_expected_button'] ?? false) !== true) $blockers[] = 'source_keyboard_requires_exact_review';
         if ($hotel === 82567) $blockers[] = 'album_membership_caption_and_keyboard_not_admitted';
         $targetUrl = 'https://t.me/anytour/' . $pair['target'];
@@ -385,7 +455,8 @@ try {
         if (($metadata['tg_'.$hotel]['locality'] ?? null) !== $pair['locality']) $blockers[] = 'selected_catalogue_locality_changed';
         if (isset($protectedTargets[$targetUrl])) $blockers[] = 'target_used_by_live_telegram_offer';
         if ($pair['target'] === $currentPin) $blockers[] = 'target_is_current_channel_pin';
-        if (($targetPublic['buttons'] ?? null) !== []) $blockers[] = 'target_buttons_changed';
+        if (($targetPublic['ok'] ?? false) !== true) $blockers[] = 'target_keyboard_not_observed';
+        elseif (($targetPublic['buttons'] ?? null) !== []) $blockers[] = 'target_buttons_changed';
         if (!$sourceMatches) $blockers[] = 'source_snapshot_or_photo_not_confirmed';
         if (!$targetMatches) $blockers[] = 'historical_target_not_confirmed';
         if ($free === false || $free === null || (int) $free !== 1) $blockers[] = 'target_editor_busy_or_unknown';
@@ -428,6 +499,7 @@ $out['read_elapsed_ms'] = (int) ((hrtime(true) - $readStarted) / 1_000_000);
 if ($out['ok']) $out['checkpoint_sha256'] = hash('sha256', jsonRead($out));
 echo json_encode($out, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR), PHP_EOL;
 exit($out['ok'] ? 0 : 2);
+
 
 
 
