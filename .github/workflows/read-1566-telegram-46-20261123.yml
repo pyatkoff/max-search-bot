@@ -1,4 +1,4 @@
-name: "#1566 Check the original Sugar Marina album snapshots for an exact anchor"
+name: "#1566 Check final ordinary 1729 admission"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -8,7 +8,7 @@ permissions:
   actions: read
   issues: read
   pull-requests: read
-# One read-only album lookup. No provider mutation, new route or publication.
+# Exact read-only release admission; no publisher claim or business write.
 jobs:
   registry:
     if: >-
@@ -18,249 +18,17 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.event.forced == false &&
-      github.event.before == '7b888b506941073b65bc0f1c4359d8c5864b0d4d' &&
+      github.event.before == '08a9c289e0a0bc1de9a5110f2ed5ab2afc5fd35c' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 16
+    timeout-minutes: 8
     steps:
-      - name: Check out the exact candidate packet
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-          persist-credentials: false
-      - name: Check out main for the existing release verifier
+      - name: Check out accepted current main
         uses: actions/checkout@v4
         with:
           ref: 4d1ac4a25c5403223d3811e61def23040b1872e3
-          path: accepted
           persist-credentials: false
-      - name: Wait for the current original installation before accessing the private registry
-        working-directory: accepted
+      - name: Run the existing ordinary release admission
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          node - <<'NODE'
-          const fs = require('node:fs');
-          const release = require('./tools/deployment_release');
-          const api = release.makeReadApi(process.env.GITHUB_TOKEN);
-          const expected = '4d1ac4a25c5403223d3811e61def23040b1872e3';
-          async function check() {
-            for (let poll = 0; poll < 30; poll++) {
-              const current = await api('GET', release.API_ROOT + '/git/ref/heads/main');
-              if (current.object.sha !== expected) throw new Error('main_advanced');
-              const original = await api('GET', release.API_ROOT + '/actions/runs/45697913521');
-              if (original.head_sha !== expected || original.run_attempt !== 1) throw new Error('original_deploy_changed');
-              if (original.status === 'completed' && original.conclusion !== 'success') throw new Error('original_deploy_failed');
-              const closer = await api('GET', release.API_ROOT + '/actions/runs/45700105177');
-              if (closer.head_sha !== expected || closer.run_attempt !== 1) throw new Error('original_closer_changed');
-              if (closer.status === 'completed' && closer.conclusion !== 'success') throw new Error('original_closer_failed');
-              if (original.status === 'completed' && closer.status === 'completed') {
-                const before = await release.readRecord(api);
-                const accepted = release.validateRelease(before.record).release;
-                if (accepted.repository_sha === expected && accepted.application_sha === expected
-                  && accepted.release.run_id === '45697913521' && accepted.release.run_attempt === 1
-                  && accepted.closure?.binding?.pr === 1728) {
-                  const result = await release.resolveCurrent(api, {sha: expected}, before);
-                  const after = await release.readRecord(api);
-                  if (result.ready && result.repository_sha === expected && result.application_sha === expected
-                    && before.blob === after.blob && before.record_digest === after.record_digest) {
-                    fs.appendFileSync(process.env.GITHUB_ENV, 'REPOSITORY_SHA=' + expected + '\nAPPLICATION_SHA=' + expected + '\n');
-                    return;
-                  }
-                }
-              }
-              if (poll !== 29) await new Promise(resolve => setTimeout(resolve, 20000));
-            }
-            throw new Error('technical_acceptance_pending');
-          }
-          check().catch(error => { console.error(error.code || error.message); process.exitCode = 1; });
-          NODE
-      - name: Build the bounded SQL read from the pinned existing registry reader
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '9931623d23b085d2f344dde163b8d75e6982a753'
-          mkdir -p pub
-          python3 - <<'PY'
-          import os, pathlib, re
-          program = pathlib.Path('tools/direct_demand/operations/read-1566-telegram-46-20261123.php').read_text()
-          for name, pattern in [('APPLICATION_SHA', r'[a-f0-9]{40}'), ('REPOSITORY_SHA', r'[a-f0-9]{40}'), ('NATIVE_RUN_ID', r'[1-9][0-9]{0,19}')]:
-              value = os.environ['GITHUB_RUN_ID' if name == 'NATIVE_RUN_ID' else name]
-              assert re.fullmatch(pattern, value) and program.count('__' + name + '__') == 1
-              program = program.replace('__' + name + '__', value)
-          assert program.count("$out=['schema'=>1") == 1
-          prefix = program.split("$out=['schema'=>1", 1)[0]
-          entry = r'''$out = [
-              'schema'=>1, 'issue'=>1566, 'operation'=>'hotel_existing_telegram_album_anchor_observation',
-              'repository_sha'=>REPOSITORY_SHA, 'application_sha'=>APPLICATION_SHA, 'native_run_id'=>NATIVE_RUN_ID,
-              'hotel_id'=>119046, 'source_mid'=>'507', 'public_album_lead'=>'1666',
-              'production_writes'=>0, 'provider_writes'=>0, 'provider_reads'=>0, 'bot_starts'=>0,
-              'write_admission'=>false, 'ok'=>false
-          ];
-          $pdo = null;
-          $stage = 'runtime';
-          $started = hrtime(true);
-          try {
-              runtimeRead();
-              $out['resource_budget'] = serverReadBudgetRead(resourcesRead());
-              requireRead($out['resource_budget']['allowed'], 'server_resource_hold');
-              ob_start();
-              try {
-                  require APP . '/config.php';
-                  require_once APP . '/services/ProjectConfig.php';
-                  require_once APP . '/services/ChannelPostRegistryService.php';
-                  require_once APP . '/services/ChannelPostButtonTransport.php';
-              } finally {
-                  ob_end_clean();
-              }
-              requireRead(ProjectConfig::projectId() === 'anytour', 'project_changed');
-              $pdo = ConversationDb::connection();
-              $pdo->exec('SET SESSION TRANSACTION READ ONLY');
-              $registry = new ChannelPostRegistryService($pdo);
-              $out['mysql_before'] = mysqlResourcesRead($pdo);
-              $pdo->beginTransaction();
-              $stage = 'native_channels';
-              $target = $registry->channel('anytour', 'telegram', 'anyru_bot', '-1001845835645');
-              $source = $registry->channel('anytour', 'telegram', 'anyru_bot', '-1002262666616');
-              requireRead((int)($target['id'] ?? 0) === 6 && ($target['source_key'] ?? null) === 'tg_anytour_msk'
-                  && (int)($source['id'] ?? 0) === 10, 'channel_identity_changed');
-              $stage = 'source_publication';
-              $small = publicationRead($pdo, $registry, 10, '507');
-              $out['source'] = $small === null ? null : [
-                  'publication_id'=>$small['publication_id'], 'version_id'=>$small['version_id'],
-                  'hotel_id'=>$small['hotel_id'] ?? null, 'state'=>$small['state'],
-                  'token_exact'=>($small['current_token_resolves'] ?? false) && ($small['one_expected_button'] ?? false),
-                  'held_or_unknown'=>$small['native_claim_held_or_unknown'] ?? true
-              ];
-              $stage = 'target_publication';
-              $mids = array_map('strval', range(1666, 1674));
-              $marks = implode(',', array_fill(0, count($mids), '?'));
-              $numeric = $pdo->prepare("SELECT id,external_message_id FROM post_publications WHERE post_channel_id=6 AND external_message_id IN ($marks) LIMIT 10");
-              $numeric->execute($mids);
-              $out['existing_numeric_ids'] = $numeric->fetchAll(PDO::FETCH_ASSOC);
-              $duplicate = telegramPreparedPairTargetRead($pdo, $registry, 119046, ['target'=>'1666']);
-              $out['other_hotel_publications'] = $duplicate['hotel_duplicate_publication_ids'];
-              $find = $pdo->prepare("SELECT /*+ MAX_EXECUTION_TIME(1000) */ p.id,p.external_message_id AS group_key,d.external_message_id AS mid,d.state,d.desired_role "
-                  . "FROM post_publications p JOIN post_member_deliveries d ON d.publication_id=p.id "
-                  . "WHERE p.post_channel_id=6 AND p.external_message_id LIKE 'group:%' AND d.external_message_id IN ($marks) "
-                  . "ORDER BY d.external_message_id LIMIT 10");
-              $find->execute($mids);
-              $observed = $find->fetchAll(PDO::FETCH_ASSOC);
-              $out['album_group'] = null;
-              $out['album_members'] = array_map(static fn(array $row):array=>[
-                  'mid'=>$row['mid'], 'state'=>$row['state'], 'role'=>$row['desired_role']
-              ], $observed);
-              $ids = array_values(array_unique(array_column($observed, 'id')));
-              $archive = [];
-              if ($ids === []) {
-                  $paths = array_map(static fn(string $id): string => '$.metadata.telegram_album_items.m_' . $id, $mids);
-                  $f = $pdo->prepare("SELECT /*+ MAX_EXECUTION_TIME(1000) */ p.id,p.external_message_id AS group_key "
-                      . "FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id "
-                      . "WHERE p.post_channel_id=6 AND p.external_message_id LIKE 'group:%' "
-                      . "AND (JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.actual_message_id')) IN ($marks) "
-                      . "OR JSON_CONTAINS_PATH(v.snapshot_json,'one',$marks)) LIMIT 2");
-                  $f->execute([...$mids, ...$paths]);
-                  $archive = $f->fetchAll(PDO::FETCH_ASSOC);
-                  $ids = array_column($archive, 'id');
-              }
-              $out['legacy_group_snapshot_matches'] = count($archive);
-              $matchedGroup = $observed[0]['group_key'] ?? $archive[0]['group_key'] ?? null;
-              if (count($ids) === 1) {
-                  $p = $registry->publication((int)$ids[0]);
-                  requireRead(is_array($p) && $p['project_key'] === 'anytour' && $p['bot_key'] === 'anyru_bot'
-                     && (int)$p['channel']['id'] === 6 && $p['message_id'] === $matchedGroup, 'album_registry_identity_changed');
-                  $snapshot = $p['snapshot'];
-                  $anchor = ChannelPostTelegramAlbum::target($snapshot);
-                  $out['album_group'] = [
-                      'publication_id'=>$p['publication_id'], 'version_id'=>$p['version_id'], 'state'=>$p['state'],
-                      'anchor_mid'=>$anchor['metadata']['actual_message_id'] ?? null,
-                      'anchor_caption_sha256'=>hash('sha256', $anchor['text'] ?? ''),
-                      'anchor_keyboard_count'=>count($anchor['keyboard'] ?? []),
-                      'metadata_capability'=>$snapshot['metadata']['capability'] ?? null,
-                      'group_hash'=>hash('sha256', $p['message_id']),
-                  ];
-              }
-              $pdo->rollBack();
-              $out['mysql_after'] = mysqlResourcesRead($pdo);
-              runtimeRead();
-              $out['result'] = $ids === [] ? 'native_album_snapshot_unavailable'
-                  : (count($ids) !== 1 ? 'album_members_ambiguous' : 'album_registry_observed');
-              $out['ok'] = true;
-          } catch (Throwable $e) {
-              $out['failure_stage'] = $stage;
-              $out['failure_reason'] = reasonRead($e);
-          } finally {
-              if ($pdo instanceof PDO && $pdo->inTransaction()) $pdo->rollBack();
-          }
-          $out['read_elapsed_ms'] = (int)((hrtime(true) - $started) / 1000000);
-          $out['read_at_utc'] = gmdate(DATE_ATOM);
-          echo jsonRead($out), PHP_EOL;
-          exit($out['ok'] ? 0 : 2);'''
-          pathlib.Path('pub/read-only.php').write_text(prefix + entry + '\n')
-          PY
-          php -l pub/read-only.php
-      - name: Pin established SSH host continuity and authentication identity
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
-          PY
-          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
-            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
-          chmod 600 "$RUNNER_TEMP/channel_key"
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-          python3 - <<'PY'
-          import base64,hashlib,os,pathlib,subprocess
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
-          for s in scan.stdout.splitlines():
-              q=s.split()
-              if len(q)<3 or q[0].startswith('#'):continue
-              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
-              except Exception:continue
-              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
-          assert found,'HOST_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
-          print('ESTABLISHED_HOST_PIN_VERIFIED')
-          PY
-      - name: Observe only the saved source and album members
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
-                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
-                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          status=0
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json || status=$?
-          python3 - <<'PY'
-          import json
-          d=json.load(open('pub/registry.json'))
-          assert d['operation']=='hotel_existing_telegram_album_anchor_observation' and d['issue']==1566 and d['hotel_id']==119046
-          assert d['production_writes']==d['provider_writes']==d['provider_reads']==d['bot_starts']==0 and d['write_admission'] is False
-          print(json.dumps(d))
-          PY
-          test "$status" -eq 0
-      - name: Preserve the bounded album observation
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: issue-1566-telegram-album-1666-readonly
-          path: |
-            pub/registry.json
-          retention-days: 7
-          if-no-files-found: warn
+        run: node tools/release_priority.js --admit 1729 486ad11f6011ddf64d85149ee172132aaca3e012 4d1ac4a25c5403223d3811e61def23040b1872e3
