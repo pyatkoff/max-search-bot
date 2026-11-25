@@ -17,7 +17,7 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == '90d32f6d9cb2d92f565d5b08c8b77a3c6d95d1c7' &&
+      github.event.before == '9aac21501958e53c95f36f721d2d465c9411aa86' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -34,130 +34,19 @@ jobs:
           path: accepted
           persist-credentials: false
       - name: Discover public same-hotel button candidates independently of release or PRICE
-        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p pub
-          test "$(git hash-object tools/direct_demand/operations/read-1566-public-button-candidates.php)" = 'a4da55f59762b8b36de68542a2edcdee7faad039'
+          test "$(git hash-object tools/direct_demand/operations/read-1566-public-button-candidates.php)" = '20b75855c970236380a073798c9997f36fc0214e'
           php -l tools/direct_demand/operations/read-1566-public-button-candidates.php
           php tools/direct_demand/operations/read-1566-public-button-candidates.php
-      - name: Prove the current closed application for bounded read-only context
-        working-directory: accepted
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          node - <<'NODE'
-          const fs=require('node:fs');
-          const R=require('./tools/deployment_release');
-          async function check(){
-            const api=R.makeReadApi(process.env.GITHUB_TOKEN);
-            const before=await R.readRecord(api);
-            const r=R.validateRelease(before.record).release;
-            const resolved=await R.resolveCurrent(api,{sha:r.repository_sha},before);
-            if(!resolved.ready||resolved.repository_sha!==r.repository_sha
-              ||resolved.application_sha!==r.application_sha)throw Error('current_installation_not_accepted');
-            const main=(await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha;
-            const after=await R.readRecord(api);
-            if(before.blob!==after.blob||before.record_digest!==after.record_digest)throw Error('accepted_record_changed');
-            // Pure reads do not require an unrelated new main to be installed.
-            // Actual application HEAD is fenced independently before and after all host reads.
-            fs.mkdirSync('../pub',{recursive:true});
-            fs.writeFileSync('../pub/accepted-read-admission.json',JSON.stringify({read_only:true,
-              current_main_sha:main,accepted_repository_sha:r.repository_sha,application_sha:r.application_sha,
-              record_commit:before.commit,record_blob:before.blob,record_digest:before.record_digest,
-              accepted_installation_deploy:r.release.run_id,original_route_deploy:'45584366107'})+'\n');
-            fs.appendFileSync(process.env.GITHUB_ENV,'REPOSITORY_SHA='+r.repository_sha+'\nAPPLICATION_SHA='+r.application_sha+'\n');
-          }
-          check().catch(e=>{console.error('readonly_accepted_installation_refused',e.code||e.message);process.exitCode=1});
-          NODE
-      - name: Bind immutable packet to the admitted release and native run
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '00e44d500b2ab2710c8f7eb22f7bb4f750eef969'
-          mkdir -p pub
-          python3 - <<'PY'
-          import os,pathlib,re
-          p=pathlib.Path('tools/direct_demand/operations/read-1566-telegram-46-20261123.php')
-          program=p.read_text()
-          for name,pattern in [('APPLICATION_SHA',r'[a-f0-9]{40}'),('REPOSITORY_SHA',r'[a-f0-9]{40}'),('NATIVE_RUN_ID',r'[1-9][0-9]{0,19}')]:
-              value=os.environ['GITHUB_RUN_ID' if name=='NATIVE_RUN_ID' else name]
-              assert re.fullmatch(pattern,value) and program.count('__'+name+'__') == 1
-              program=program.replace('__'+name+'__',value)
-          pathlib.Path('pub/read-only.php').write_text(program)
-          PY
-          php -l pub/read-only.php
-      - name: Pin established SSH host continuity and authentication identity
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
-          PY
-          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
-            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
-          chmod 600 "$RUNNER_TEMP/channel_key"
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-          python3 - <<'PY'
-          import base64,hashlib,os,pathlib,subprocess
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
-          for s in scan.stdout.splitlines():
-              q=s.split()
-              if len(q)<3 or q[0].startswith('#'):continue
-              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
-              except Exception:continue
-              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
-          assert found,'HOST_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
-          print('ESTABLISHED_HOST_PIN_VERIFIED')
-          PY
-      - name: Read at most fifty existing pending canonical publications without rearming
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
-                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
-                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          status=0
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json || status=$?
-          python3 - <<'PY'
-          import json
-          d=json.load(open('pub/registry.json'))
-          if not d['ok']: print(json.dumps({k:d[k] for k in ('failure_stage','failure_reason') if k in d}))
-          assert d['ok'] and d['operation']=='hotel_telegram_pending_button_inventory'
-          assert d['production_writes']==d['provider_writes']==d['bot_starts']==0 and d['write_admission'] is False
-          assert len(d['rows'])<=50
-          print(json.dumps({'rows':len(d['rows']),'truncated':d['inventory_truncated'],'eligible':[r['publication_id'] for r in d['rows'] if r['canonical_zero_write_recovery_eligible']],'read_elapsed_ms':d['read_elapsed_ms']}))
-          PY
-          test "$status" -eq 0
-      - name: Remove runner connection material
-        if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
       - name: Save the bounded independent acceptance in the existing reader
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: issue-1566-telegram-ranked-preflight
           path: |
-            pub/accepted-read-admission.json
-            pub/registry.json
             pub/public-button-candidates.json
           retention-days: 7
           if-no-files-found: warn
