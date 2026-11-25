@@ -1129,7 +1129,7 @@ function makeReadApi(token,fetchImpl=globalThis.fetch,{sleep=waitForRetry}={}) {
     requireValue([TERMINAL_RECOVERY.job_id,TERMINAL_RECOVERY.continuation_job_id,TERMINAL_RECOVERY.observation_job_id,
       TERMINAL_RECOVERY.read_failure_job_id,GATE_RECOVERY.tls_job_id,UNPUBLISHED_TERMINAL_RECOVERY.job_id,UNPUBLISHED_TERMINAL_RECOVERY_1720.job_id,
       PRIOR_WAVE_RECOVERY.job_id,PRIOR_WAVE_RECOVERY.previous.verify_job_id,PUBLISHER_BODY_RECOVERY.job_id,
-      137646126584,137658227484,137707302320,137760498372,RANKED_PREWRITE_REFUSAL.job].includes(job)
+      137646126584,137658227484,137707302320,137760498372,139299134637,139313325305,RANKED_PREWRITE_REFUSAL.job].includes(job)
       || require('./partial_install_1702_forward').allowedLog(job)
       || job === require('./unstarted_1704_forward').JOB
       || [138826764785,138849924897].includes(job),'untrusted_terminal_log');
@@ -1606,6 +1606,21 @@ async function admitForwardInstallation(api,c,event) {
   const commit=await get('/commits/'+c.sha);
   requireValue(commit?.sha===c.sha&&Array.isArray(commit.parents)&&commit.parents.length>=1&&commit.parents.length<=2
     &&commit.parents.every(parent=>sha(parent.sha)),'forward_source_unconfirmed');
+  const managerPartial = '3073195685c8d57808256af6836182262f25fead';
+  if (event.before === managerPartial || commit.parents.some(parent => parent.sha === managerPartial)) {
+    requireValue(c.event === 'push' && c.attempt === 1 && event.forced === false &&
+      event.before === managerPartial && event.after === c.sha &&
+      commit.parents.length === 2 && commit.parents[0].sha === managerPartial,
+    'invalid_partial_1721_source');
+    const recovery = require('./partial_install_1721_forward');
+    const pulls = await get('/commits/' + c.sha + '/pulls?per_page=100');
+    requireValue(Array.isArray(pulls) && pulls.length === 1 &&
+      pulls[0].merge_commit_sha === c.sha && pulls[0].head?.ref === recovery.BRANCH,
+    'untrusted_1721_successor');
+    await recovery.proveForward({api,pr:pulls[0].number,head:commit.parents[1].sha,
+      phase:'installation',source:c.sha,runId:c.id,event});
+    return {expectedCheckout:managerPartial};
+  }
   const recovery1704 = require('./unstarted_1704_forward');
   if (commit.parents.some(parent => parent.sha === recovery1704.BASE) || event.before === recovery1704.BASE) {
     // Once the recovery publishes a normal receipt, no other successor of this

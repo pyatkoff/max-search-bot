@@ -218,9 +218,9 @@ jobs:
             # PR1704 failed before sync. The earlier PR1702 checkout still needs verification.
             test "$EXPECTED_CHECKOUT_SHA" = 32155b9eb2c8606b61554951bfdc988d70bbcb39
             bash tools/check_public_runtime_log_fence.sh structured_events.log
-          elif [[ "$PREVIOUS_MAIN_SHA" == 302ba66b5739e369a4df94471c8cfe9c054dd070 || "$PREVIOUS_MAIN_SHA" == 32155b9eb2c8606b61554951bfdc988d70bbcb39 || -n "$EXPECTED_CHECKOUT_SHA" ]]; then
+          elif [[ "$PREVIOUS_MAIN_SHA" == 302ba66b5739e369a4df94471c8cfe9c054dd070 || "$PREVIOUS_MAIN_SHA" == 32155b9eb2c8606b61554951bfdc988d70bbcb39 || "$PREVIOUS_MAIN_SHA" == 3073195685c8d57808256af6836182262f25fead || -n "$EXPECTED_CHECKOUT_SHA" ]]; then
             case "$PREVIOUS_MAIN_SHA" in
-              302ba66b5739e369a4df94471c8cfe9c054dd070|32155b9eb2c8606b61554951bfdc988d70bbcb39) ;;
+              302ba66b5739e369a4df94471c8cfe9c054dd070|32155b9eb2c8606b61554951bfdc988d70bbcb39|3073195685c8d57808256af6836182262f25fead) ;;
               *) exit 1 ;;
             esac
             test "$EXPECTED_CHECKOUT_SHA" = "$PREVIOUS_MAIN_SHA"
@@ -252,6 +252,14 @@ jobs:
             exit 1
           fi
           PR1702_CHECKOUT
+            elif [[ "$EXPECTED_CHECKOUT_SHA" == 3073195685c8d57808256af6836182262f25fead ]]; then
+              cat <<'PR1721_CHECKOUT'
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          if [[ "$(git rev-parse HEAD)" != 3073195685c8d57808256af6836182262f25fead ]]; then
+            echo 'PR1721 predecessor checkout changed' >&2
+            exit 1
+          fi
+          PR1721_CHECKOUT
             elif [[ -n "$EXPECTED_CHECKOUT_SHA" ]]; then
               cat <<'PR1662_CHECKOUT'
           cd /var/www/anytoour/data/www/app.anytoour.ru
