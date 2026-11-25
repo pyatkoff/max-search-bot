@@ -1,4 +1,4 @@
-name: "#1566 Read existing second reserve50 public sources without server access"
+name: "#1566 Read remaining four saved pairs publicly without server access"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -12,7 +12,7 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == 'ce650bf3b7c74615e0016e090ca66df2666962f0' &&
+      github.event.before == 'b8dc995502c097a09b87ce42ceff283e85436a5c' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
@@ -25,7 +25,7 @@ jobs:
           php-version: '8.2'
           extensions: curl, dom, mbstring
           coverage: none
-      - name: Read the second existing50 small-channel posts with bounded public GET
+      - name: Read sources and old targets of four saved preliminary pairs
         shell: bash
         run: |
           set -euo pipefail
@@ -183,15 +183,15 @@ jobs:
            if($status===429)$rates[$host]=publicRetryLimit($retry,time());return ['ok'=>$ok&&$status===200,'http'=>$status,'body'=>$body,'body_sha256'=>hash('sha256',$body),'http_attempts'=>1,'retry_after'=>$status===429?$rates[$host]:null];
           }
           
-          $scope=json_decode('[{"hotel_id":1494,"name":"Rixos Downtown Antalya","source_message_id":"361"},{"hotel_id":1474,"name":"Saturn Palace Resort","source_message_id":"365"},{"hotel_id":1292,"name":"Kempinski Hotel The Dome","source_message_id":"366"},{"hotel_id":37396,"name":"Orka Lotus Beach","source_message_id":"358"},{"hotel_id":9419,"name":"Aqua Fantasy Aquapark Hotel & Spa","source_message_id":"359"},{"hotel_id":109655,"name":"Liberty Signa","source_message_id":"464"},{"hotel_id":108942,"name":"Maxx Royal Bodrum","source_message_id":"465"},{"hotel_id":49083,"name":"The Land of Legends Kingdom","source_message_id":"460"},{"hotel_id":1198,"name":"Gloria Golf Resort","source_message_id":"403"},{"hotel_id":1165,"name":"Ela Excellence Resort Belek","source_message_id":"405"},{"hotel_id":109786,"name":"Ethno Belek","source_message_id":"406"},{"hotel_id":1452,"name":"Rixos Sungate","source_message_id":"407"},{"hotel_id":1659,"name":"TUI BLUE Sarigerme Park","source_message_id":"165"},{"hotel_id":21695,"name":"TUI BLUE Seno","source_message_id":"166"},{"hotel_id":28668,"name":"Rixos Premium Göcek","source_message_id":"167"},{"hotel_id":1715,"name":"Voyage Torba","source_message_id":"170"},{"hotel_id":1501,"name":"Selectum Family Resort Side","source_message_id":"339"},{"hotel_id":1014,"name":"Side Star Elegance","source_message_id":"345"},{"hotel_id":233,"name":"JAZ Casa del Mar Resort","source_message_id":"56"},{"hotel_id":12117,"name":"JAZ Bluemarine","source_message_id":"51"},{"hotel_id":124,"name":"Amwaj Oyoun Hotel & Resort","source_message_id":"474"},{"hotel_id":1962,"name":"Baron Palms Resort","source_message_id":"475"},{"hotel_id":134,"name":"Albatros Sharm Resort","source_message_id":"477"},{"hotel_id":71147,"name":"Parrotel Lagoon Resort","source_message_id":"478"},{"hotel_id":462,"name":"Sphinx Aqua Park Beach Resort","source_message_id":"195"},{"hotel_id":365,"name":"Parrotel Beach Resort","source_message_id":"360"},{"hotel_id":264,"name":"JAZ Dahabeya","source_message_id":"103"},{"hotel_id":73342,"name":"JAZ Soma Beach","source_message_id":"104"},{"hotel_id":278,"name":"JAZ Belvedere","source_message_id":"105"},{"hotel_id":380,"name":"Rehana Sharm Resort","source_message_id":"250"},{"hotel_id":13869,"name":"JAZ Neo Saraya Palms","source_message_id":"108"},{"hotel_id":267,"name":"Iberotel Makadi Beach by JAZ","source_message_id":"109"},{"hotel_id":340,"name":"Nubian Island","source_message_id":"299"},{"hotel_id":2514,"name":"Amwaj Rotana Jumeirah Beach","source_message_id":"429"},{"hotel_id":43060,"name":"Golden Tulip Media Hotel","source_message_id":"511"},{"hotel_id":2536,"name":"Coral Beach Resort Sharjah","source_message_id":"512"},{"hotel_id":7985,"name":"Kata Silver Sand","source_message_id":"372"},{"hotel_id":2015,"name":"Diamond Cottage Resort & Spa","source_message_id":"261"},{"hotel_id":681,"name":"Kata Sea Breeze Resort","source_message_id":"505"},{"hotel_id":119046,"name":"Sugar Marina Resort Pop Kata Beach","source_message_id":"507"},{"hotel_id":95159,"name":"Phuket Kata Resotel","source_message_id":"294"},{"hotel_id":4432,"name":"Barceló Coconut Island","source_message_id":"247"},{"hotel_id":82567,"name":"Phuket Emerald Beach Resort","source_message_id":"252"},{"hotel_id":65020,"name":"Costabella Resort Nha Trang","source_message_id":"292"},{"hotel_id":36451,"name":"Edele Hotel Nha Trang","source_message_id":"482"},{"hotel_id":57039,"name":"Amarin Resort & Spa","source_message_id":"502"},{"hotel_id":65266,"name":"Palma Phu Quoc Resort","source_message_id":"503"},{"hotel_id":57217,"name":"Wyndham Grand Phu Quoc","source_message_id":"246"},{"hotel_id":77625,"name":"Araliya Beach Resort & Spa","source_message_id":"382"},{"hotel_id":2810,"name":"Hikka Tranz by Cinnamon","source_message_id":"383"}]',true,512,JSON_THROW_ON_ERROR);
-          $out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_existing_reader_reserve50_source_public_audit','native_run_id'=>getenv('GITHUB_RUN_ID'),'run_attempt'=>1,'reader_source_sha'=>getenv('GITHUB_SHA'),'read_started_at_utc'=>gmdate(DATE_ATOM),'source_comment_id'=>7147886392,'source_block'=>'HOTEL_TG_RESERVE50_ARCHIVE_SECOND_20261125','scope_count'=>count($scope),'write_admission'=>false,'server_calls'=>0,'sql_queries'=>0,'provider_writes'=>0,'production_writes'=>0,'price_lease_acquisitions'=>0,'manager2_http_calls'=>0,'bot_starts'=>0,'public_get_attempts'=>0,'rows'=>[]];
+          $scope=json_decode('[{"hotel_id":14140,"name":"Stella Makadi Gardens Resort & Spa","role":"source","channel":"any_toour","message_id":"593"},{"hotel_id":14140,"name":"Stella Makadi Gardens Resort & Spa","role":"target","channel":"anytour","message_id":"909"},{"hotel_id":1402,"name":"ORANGE COUNTY KEMER","role":"source","channel":"any_toour","message_id":"312"},{"hotel_id":1402,"name":"ORANGE COUNTY KEMER","role":"target","channel":"anytour","message_id":"1085"},{"hotel_id":1959,"name":"AMC ROYAL HOTEL","role":"source","channel":"any_toour","message_id":"470"},{"hotel_id":1959,"name":"AMC ROYAL HOTEL","role":"target","channel":"anytour","message_id":"526"},{"hotel_id":1981,"name":"JAZ Neo Naama Bay","role":"source","channel":"any_toour","message_id":"25"},{"hotel_id":1981,"name":"JAZ Neo Naama Bay","role":"target","channel":"anytour","message_id":"957"}]',true,512,JSON_THROW_ON_ERROR);
+          $out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_existing_reader_prepared4_pair_public_audit','native_run_id'=>getenv('GITHUB_RUN_ID'),'run_attempt'=>1,'reader_source_sha'=>getenv('GITHUB_SHA'),'read_started_at_utc'=>gmdate(DATE_ATOM),'source_comment_id'=>7135746188,'scope_count'=>count($scope),'write_admission'=>false,'server_calls'=>0,'sql_queries'=>0,'provider_writes'=>0,'production_writes'=>0,'price_lease_acquisitions'=>0,'manager2_http_calls'=>0,'bot_starts'=>0,'public_get_attempts'=>0,'rows'=>[]];
           $rates=[];
           foreach($scope as $pair){
            $row=$pair+['write_admission'=>false,'native_hotel_identity_verified'=>false,'current_photo_content_verified'=>false,'target_preflight_done'=>false,'draft_reprepared'=>false];$views=[];
            foreach(['embed','archive'] as $kind){
-            $url=$kind==='embed'?'https://t.me/any_toour/'.$pair['source_message_id'].'?embed=1&mode=tme':'https://t.me/s/any_toour?before='.((int)$pair['source_message_id']+1);
+            $url=$kind==='embed'?'https://t.me/'.$pair['channel'].'/'.$pair['message_id'].'?embed=1&mode=tme':'https://t.me/s/'.$pair['channel'].'?before='.((int)$pair['message_id']+1);
             $raw=captionPublicBytes($url,$rates);$out['public_get_attempts']+=$raw['http_attempts'];
-            try{requireRead($raw['ok'],'source_public_unavailable');$views[$kind]=parsePublicRead($raw['body'],'any_toour',$pair['source_message_id']);}
+            try{requireRead($raw['ok'],'source_public_unavailable');$views[$kind]=parsePublicRead($raw['body'],$pair['channel'],$pair['message_id']);}
             catch(Throwable $e){$views[$kind]=['ok'=>false,'reason'=>reasonRead($e),'http'=>$raw['http']??null,'retry_after'=>$raw['retry_after']??null];}
             if($raw['http_attempts']>0)usleep(150000);
            }
@@ -200,17 +200,20 @@ jobs:
             $v=corroborateTargetKeyboard($views['embed'],$views['archive']);
             requireRead($views['embed']['photo_marker_sha256']===$views['archive']['photo_marker_sha256'],'source_photo_marker_changed');
             $row['public']=$v;
-            $row['checks']=['caption_date_and_keyboard_corroborated'=>true,'one_public_photo'=>$v['single_photo']===true,'one_public_hotel_button'=>count($v['buttons'])===1&&is_string($v['buttons'][0]['hotel_url']??null),'no_observed_video'=>$v['other_media_count']===0];
+            $row['checks']=['caption_date_and_keyboard_corroborated'=>true,'one_public_photo'=>$v['single_photo']===true,'keyboard_structure_allowed'=>$pair['role']==='source'?(count($v['buttons'])===1&&is_string($v['buttons'][0]['hotel_url']??null)):$v['buttons']===[],'no_observed_video'=>$v['other_media_count']===0];
+            $row['protected_content_approval']=false;
+            $row['target_review_keyword_observed']=$pair['role']==='target' && preg_match('/отзыв|впечатлен|побывал|съездил|рекомендую|мой отдых|наш отдых|менеджер/ui',$v['caption'])===1;
             $row['public_structure_verified']=!in_array(false,$row['checks'],true);
+            if($row['target_review_keyword_observed'])$row['hold_reason']='possible_protected_review_requires_preservation';
             if(!$row['public_structure_verified'])$row['hold_reason']='source_public_structure_requires_review';
            }catch(Throwable $e){$row['public_structure_verified']=false;$row['hold_reason']=reasonRead($e);$row['views']=$views;}
            $out['rows'][]=$row;
           }
-          requireRead($out['scope_count']===50&&$out['public_get_attempts']<=100,'public_scope_budget_exceeded');
+          requireRead($out['scope_count']===8&&$out['public_get_attempts']<=16,'public_scope_budget_exceeded');
           $out['public_retry_after_holds']=$rates;$out['read_at_utc']=gmdate(DATE_ATOM);
           $out['public_structure_verified_count']=count(array_filter($out['rows'],static fn($r)=>$r['public_structure_verified']));
-          file_put_contents('pub/reserve50-source-public.json',jsonRead($out)."\n");
-          echo jsonRead(['scope'=>50,'public_get_attempts'=>$out['public_get_attempts'],'public_structure_verified_count'=>$out['public_structure_verified_count'],'write_admission'=>false,'server_calls'=>0])."\n";
+          file_put_contents('pub/prepared4-pair-public.json',jsonRead($out)."\n");
+          echo jsonRead(['scope'=>8,'public_get_attempts'=>$out['public_get_attempts'],'public_structure_verified_count'=>$out['public_structure_verified_count'],'write_admission'=>false,'server_calls'=>0])."\n";
           
           PHP
           php -l /tmp/hotel-reserve50-public.php
@@ -219,6 +222,6 @@ jobs:
         if: always()
         with:
           name: issue-1566-telegram-ranked-preflight
-          path: pub/reserve50-source-public.json
+          path: pub/prepared4-pair-public.json
           retention-days: 7
           if-no-files-found: error
