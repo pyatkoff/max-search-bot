@@ -38,10 +38,11 @@ $data=ManagerHttp::body();
 $action=(string)($data['action']??'');
 $promiseAction=in_array($action,['promise_context','bind_promise','promise_operation'],true);
 if($promiseAction&&($_SERVER['REQUEST_METHOD']??'')!=='POST')ManagerHttp::respond(['ok'=>false,'error'=>'method_not_allowed'],405);
-// A secondary card read verifies the configured project without repairing it.
-if(($promiseAction||in_array($action,['detail','outcome_operation'],true))&&ManagerHttp::managerId()>0){
+// Inbox polling takes the read-only path when the configured project is healthy.
+$inboxRead=$action==='list';
+if(($inboxRead||$promiseAction||in_array($action,['detail','outcome_operation'],true))&&ManagerHttp::managerId()>0){
     try{ProjectAccessService::initializeReadOnly();}
-    catch(Throwable $ignored){ManagerHttp::respond(['ok'=>false,'error'=>'project_unavailable'],503);}
+    catch(Throwable $ignored){if(!$inboxRead)ManagerHttp::respond(['ok'=>false,'error'=>'project_unavailable'],503);}
 }
 $m=ManagerHttp::requireManager();
 ManagerHttp::requireCsrf($data);

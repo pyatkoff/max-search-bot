@@ -37,11 +37,12 @@ if($action==='login'){
     out(['ok'=>true,'manager'=>$m+['supervision_available'=>ManagerSupervisorAccessService::scopes((int)$m['id'])!==[]],'projects'=>$m['projects']??[],'csrf'=>ManagerHttp::csrf(true)]);
 }
 
-// These transcript reads need existing project metadata, never its legacy UPSERT.
-// Initialize before manager resolution can enter the shared bootstrap.
-if(in_array($action,['detail','message_target','message_search','message_context','message_materials','reply_queue_resolve','reply_queue_undo','reply_queue_receipt','media_receipt','media_cancel'],true)&&ManagerHttp::managerId()>0){
+// Healthy startup and queue polling need only the existing project metadata.
+// Preserve the legacy startup recovery if the read-only check refuses.
+$startupRead=in_array($action,['me','list','counts'],true);
+if(($startupRead||in_array($action,['detail','message_target','message_search','message_context','message_materials','reply_queue_resolve','reply_queue_undo','reply_queue_receipt','media_receipt','media_cancel'],true))&&ManagerHttp::managerId()>0){
     try{ProjectAccessService::initializeReadOnly();}
-    catch(Throwable $ignored){out(['ok'=>false,'error'=>'project_unavailable'],503);}
+    catch(Throwable $ignored){if(!$startupRead)out(['ok'=>false,'error'=>'project_unavailable'],503);}
 }
 $m=ManagerHttp::requireManager();
 $isAdmin=ManagerHttp::isAdmin($m);
