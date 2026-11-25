@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-11-25T10:17:52+00:00",
+    "generated_at": "2026-11-25T10:54:07+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -39,8 +39,8 @@
             "tours_opened": 1
         },
         "flags": {
+            "repeated_same_input": 4,
             "repeated_callback_input": 3,
-            "repeated_same_input": 3,
             "manager_requested_no_reply": 2,
             "excessive_turns": 2,
             "left_waiting_queue_without_manager_reply": 1,
@@ -58,7 +58,7 @@
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-25T10:17:52Z",
+        "sampled_at": "2026-11-25T10:54:07Z",
         "available": true,
         "error": null,
         "mode": "send",
