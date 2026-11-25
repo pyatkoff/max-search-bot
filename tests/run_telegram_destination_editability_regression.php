@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-// Load declarations only: never include the CLI observer's runtime, SQL or HTTP path.
+// Load selected declarations only; keep the CLI bootstrap and HTTP entry points unloaded.
 $readerPath = getenv('TELEGRAM_EDITABILITY_READER') ?: dirname(__DIR__)
     . '/tools/direct_demand/operations/read-1566-telegram-46-20261123.php';
 $readerSource = file_get_contents($readerPath);
@@ -9,7 +9,7 @@ if (!is_string($readerSource) || ($runtimeStart = strpos($readerSource, "\n\$out
     throw new RuntimeException('Reader declaration boundary unavailable');
 $wanted = array_fill_keys(['requireRead', 'jsonRead', 'telegramCandidatePublicRead',
     'telegramNativeEditEvidenceRead', 'telegramTargetEditabilityRead', 'receiptRead',
-    'parsePublicRead', 'albumStructureRead', 'corroborateTargetKeyboard'], false);
+    'parsePublicRead', 'albumStructureRead', 'corroborateTargetKeyboard', 'publicationRead'], false);
 $tokens = token_get_all(substr($readerSource, 0, $runtimeStart));
 for ($i = 0, $count = count($tokens); $i < $count; $i++) {
     if (!is_array($tokens[$i]) || $tokens[$i][0] !== T_FUNCTION) continue;
@@ -355,6 +355,110 @@ $emptyPath = $tempDirectory . '/empty.jsonl'; file_put_contents($emptyPath, '');
 editabilityState(telegramTargetEditabilityRead(TEST_EDIT_MID, null, receiptRead($emptyPath, TEST_EDIT_MID), [], TEST_EDIT_BOT, true),
     'operation_requires_readback', true, true, 'empty existing journal does not permit retry');
 
+// Execute the real reader SQL and canonical registry against the established
+// migration-backed SQLite fixture. No runtime configuration or registry substitute.
+require_once dirname(__DIR__) . '/services/ChannelPostRegistryService.php';
+require_once dirname(__DIR__) . '/services/ChannelPostButtonTransport.php';
+require_once __DIR__ . '/fixtures/channel_post_registry_fixture.php';
+define('OPERATIONS', $tempDirectory);
+$readDb = new PDO('sqlite::memory:', null, null,
+    [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
+createChannelPostRegistryFixture($readDb);
+$readDb->exec("INSERT INTO projects VALUES (1,'anytour','Synthetic reader fixture',1);
+    INSERT INTO conversation_sources VALUES
+        (9,1,'tg_anytour_msk','Synthetic target source','telegram',1,'manager'),
+        (10,1,'tg_hotel_source','Synthetic source channel','telegram',1,'manager');
+    INSERT INTO post_channels
+        (id,project_id,source_id,platform,bot_key,canonical_bot_username,channel_id,display_name,bot_url,button_text,is_enabled)
+    VALUES
+        (6,1,9,'telegram','anyru_bot','anyru_bot','-1001845835645','Synthetic target','https://t.me/anyru_bot','Рассчитать на мои даты',1),
+        (10,1,10,'telegram','anyru_bot','anyru_bot','-1002262666616','Synthetic source','https://t.me/anyru_bot','Рассчитать на мои даты',1)");
+$readRegistry = new ChannelPostRegistryService($readDb);
+$insertIdentity = $readDb->prepare('INSERT INTO post_publications
+    (post_channel_id,source_id,external_message_id,start_payload,current_version_id) VALUES (6,9,?,?,?)');
+$insertIdentity->execute(['9000011', 'p_' . str_repeat('r', 24), null]);
+$reservedId = (int)$readDb->lastInsertId();
+$insertIdentity->execute(['9000012', 'p_' . str_repeat('b', 24), 90009999]);
+$sqlCases = [];
+$number = 9000101;
+foreach (['unknown', 'claimed', 'write_started', 'sent_with_claim', 'historical_unknown', 'sent'] as $case) {
+    $mid = (string)$number++;
+    $raw = editabilityRaw(['message_id' => (int)$mid, 'caption' => 'Synthetic SQL reader fixture',
+        'chat' => ['id' => (int)TEST_EDIT_CHAT, 'type' => 'channel', 'username' => 'anytour']]);
+    $snapshot = ChannelPostIncomingAdapter::telegramSnapshot($raw);
+    $registered = $readRegistry->registerPublication('anytour', 'telegram', 'anyru_bot', TEST_EDIT_CHAT, $mid, $snapshot);
+    if (!is_array($registered)) throw new RuntimeException('Synthetic registry setup failed');
+    $state = $case === 'sent_with_claim' ? 'sent' : ($case === 'historical_unknown' ? 'unknown' : $case);
+    $held = in_array($case, ['claimed', 'write_started', 'sent_with_claim'], true);
+    $readDb->prepare('UPDATE post_versions SET state=?,claim_token=?,claimed_at=?,attempt_count=1,write_attempts=? WHERE id=?')
+        ->execute([$state, $held ? 'synthetic-held-claim' : null, $held ? '2020-01-01 10:00:00' : null,
+            in_array($state, ['unknown', 'write_started'], true) ? 1 : 0, $registered['version_id']]);
+    if ($case === 'historical_unknown') {
+        // A newer sent version must not erase the held outcome of an older one.
+        $readDb->prepare("INSERT INTO post_versions
+            (publication_id,version_number,content_hash,snapshot_json,state,attempt_count,write_attempts,receipt_json)
+            SELECT publication_id,2,content_hash,snapshot_json,'sent',1,0,receipt_json FROM post_versions WHERE id=?")
+            ->execute([$registered['version_id']]);
+        $version = (int)$readDb->lastInsertId();
+        $readDb->prepare('UPDATE post_publications SET current_version_id=? WHERE id=?')
+            ->execute([$version, $registered['publication_id']]);
+    }
+    $sqlCases[$case] = $mid;
+}
+function editabilityDatabaseSnapshot(PDO $pdo): string
+{
+    $tables = $pdo->query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")->fetchAll(PDO::FETCH_COLUMN);
+    $rows = [];
+    foreach ($tables as $table) {
+        if (!preg_match('/\A[a-z_]+\z/D', $table)) throw new RuntimeException('Unexpected SQLite fixture table');
+        $rows[$table] = $pdo->query('SELECT * FROM "' . $table . '" ORDER BY rowid')->fetchAll(PDO::FETCH_ASSOC);
+    }
+    return hash('sha256', jsonRead($rows));
+}
+$databaseBefore = editabilityDatabaseSnapshot($readDb);
+$changesBefore = (int)$readDb->query('SELECT total_changes()')->fetchColumn();
+$readDb->exec('PRAGMA query_only=ON');
+$reservedNative = publicationRead($readDb, $readRegistry, 6, '9000011');
+editabilityCheck($reservedNative['publication_id'] === $reservedId
+    && $reservedNative['state'] === 'unaccepted_reserved_identity'
+    && $reservedNative['accepted_message_receipt_verified'] === false
+    && $reservedNative['telegram_message']['state'] === 'unavailable',
+    'actual SQL reserve without current version is read without registry_identity_changed');
+editabilityState(telegramTargetEditabilityRead('9000011', $reservedNative, ['state' => 'absent'],
+    [], TEST_EDIT_BOT, true), 'reserved_no_retry', true, true, 'actual SQL reservation remains held');
+editabilityCheck(publicationRead($readDb, $readRegistry, 6, '90009998') === null,
+    'actual SQL missing publication remains distinct from a reservation');
+$brokenVersionHeld = false;
+try { publicationRead($readDb, $readRegistry, 6, '9000012'); }
+catch (RuntimeException $error) { $brokenVersionHeld = $error->getMessage() === 'reserved_native_observation_unavailable'; }
+editabilityCheck($brokenVersionHeld, 'broken non-null current version is not misclassified as an empty reservation');
+foreach ($sqlCases as $case => $mid) {
+    $native = publicationRead($readDb, $readRegistry, 6, $mid);
+    editabilityCheck(is_array($native) && $native['telegram_message']['state'] === 'native_snapshot'
+        && $native['current_token_resolves'] === true, 'actual registry projection and token resolution: ' . $case);
+    if ($case === 'sent') {
+        editabilityCheck($native['native_claim_held_or_unknown'] === false, 'actual sent version has no held history');
+        editabilityState(telegramTargetEditabilityRead($mid, $native, ['state' => 'absent'], [], TEST_EDIT_BOT, true),
+            'unknown_editability', false, false, 'actual sent version does not invent media editability');
+    } else {
+        editabilityCheck($native['native_claim_held_or_unknown'] === true, 'actual SQL history remains held: ' . $case);
+        editabilityState(telegramTargetEditabilityRead($mid, $native, ['state' => 'absent'], [], TEST_EDIT_BOT, true),
+            'operation_requires_readback', true, true, 'actual SQL held version: ' . $case);
+        if ($case === 'historical_unknown')
+            editabilityCheck($native['state'] === 'sent' && count($native['version_history']) === 2,
+                'non-current UNKNOWN is preserved behind a current sent version');
+    }
+}
+editabilityCheck((int)$readDb->query('PRAGMA query_only')->fetchColumn() === 1
+    && (int)$readDb->query('SELECT total_changes()')->fetchColumn() === $changesBefore
+    && editabilityDatabaseSnapshot($readDb) === $databaseBefore,
+    'actual reader and classifier perform no SQLite writes or lease expiration');
+editabilityCheck(!defined('APP') && !defined('APPLICATION_SHA') && !defined('CONVERSATION_DB_HOST')
+    && !function_exists('runtimeRead') && !function_exists('publicRead') && !function_exists('readTelegramPublicHtml'),
+    'production runtime configuration and HTTP entry points were never loaded');
+// This integration covers publicationRead plus classification only. The CLI
+// per-row source-skipping branch is intentionally not copied or executed here.
+
 $calls = [];
 $read = static function (string $channel, string $mid) use (&$calls): array {
     $calls[] = [$channel, $mid];
@@ -373,4 +477,4 @@ editabilityCheck($calls === [['any_toour', '9000002'], ['anytour', TEST_EDIT_MID
     'unknown candidate preserves the existing public source-target reads and return order');
 
 echo 'OK ' . $checks . ' destination-editability checks; historical 33 before/15 rejected/18 accepted; '
-    . "synthetic native/journal cases; provider calls 0\n";
+    . "synthetic native/journal/SQL cases; provider calls 0\n";
