@@ -83,6 +83,14 @@ const HOTEL_RANKED_CONTINUATION = Object.freeze({...HOTEL_RANKED_46,
   branch:'ops/anytour-hotel-ranked-37-continue-20261123',operation:'hotel_ranked_37_continuation'});
 const HOTEL_RANKED_RESUME = Object.freeze({...HOTEL_RANKED_46,
   branch:'ops/anytour-hotel-ranked-resume-20261124',operation:'hotel_ranked_resume'});
+// One separately approved keyboard-only control on the original rejected MID.
+// This does not re-admit the fifteen hotel transfers or change their journals.
+const HOTEL_PUBLISHER_KEYBOARD_PILOT = Object.freeze({...HOTEL_FOUR_TRANSFER,
+  branch:'ops/anytour-publisher-keyboard-1047-20261125',
+  workflow:HOTEL_RANKED_46.workflow,operation:'hotel_publisher_keyboard_pilot',
+  plan_path:'config/anytour_publisher_keyboard_pilot_20261125.json',plan_size:1026,
+  plan_blob:'72453334d2ca09dfbe690ba8310e72f6b4e168df',
+  plan_digest:'a92092aed3523efd38931a8a32f1b78db3d3946c3e449e7d4d4f0a781d1dbca1'});
 const RANKED_INPUT_BRANCH = /^ops\/anytour-hotel-ranked-plan-([0-9a-f]{64})$/;
 const RANKED_AFTER_BRANCH = /^ops\/anytour-hotel-ranked-after-([1-9][0-9]{0,15})$/;
 const RANKED_RESUME_SEED = Object.freeze({
@@ -2215,9 +2223,12 @@ async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
   if(p===HOTEL_MAX_SUGAR_TRANSFER||p===HOTEL_MAX_SUGAR_PUBLIC_RECOVERY){
     requireValue(result.application_sha===c.sha,'max_transfer_editor_not_installed');
   }
+  if(p===HOTEL_PUBLISHER_KEYBOARD_PILOT)
+    requireValue(result.application_sha===c.sha,'publisher_keyboard_editor_not_installed');
   const parent = p.parent_run_id ? await rankedParentEvidence(api, p.parent_run_id, c) : null;
   requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_transfer_branch_changed');
   return {...await finalResolution(api,c,location,result),write_operation:p.operation,
+    ...(p===HOTEL_PUBLISHER_KEYBOARD_PILOT ? {publisher_pilot_digest:p.plan_digest} : {}),
     ...(parent ? {parent_evidence:JSON.stringify(parent)} : {})};
 }
 async function approvedRankedInput(api, head, digest, branch) {
@@ -2291,6 +2302,8 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_RANKED_46.branch)return resolveRankedHotelTransfer({env,event,api});
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_RANKED_CONTINUATION.branch)return resolveRankedHotelTransfer({env,event,api},HOTEL_RANKED_CONTINUATION);
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_RANKED_RESUME.branch)return resolveRankedHotelTransfer({env,event,api},HOTEL_RANKED_RESUME);
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_PUBLISHER_KEYBOARD_PILOT.branch)
+    return resolveHotelTransfer({env,event,api},HOTEL_PUBLISHER_KEYBOARD_PILOT);
   const rankedBranch = (env.GITHUB_REF || '').replace(/^refs\/heads\//, '');
   const rankedInput = RANKED_INPUT_BRANCH.exec(rankedBranch);
   if (rankedInput) return resolveRankedHotelTransfer({env,event,api}, await approvedRankedInput(api,env.GITHUB_SHA,rankedInput[1],rankedBranch));

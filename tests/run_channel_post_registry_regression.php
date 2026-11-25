@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once dirname(__DIR__) . '/services/ChannelPostRegistryService.php';
+require_once dirname(__DIR__) . '/services/ChannelPostAutomationService.php';
 require_once dirname(__DIR__) . '/integrations/ChannelPostIncomingAdapter.php';
 require_once __DIR__ . '/fixtures/channel_post_registry_fixture.php';
 
@@ -671,5 +672,133 @@ $sourceRaceRegistry->registerPublication('anytour','telegram','anyru_bot','-1002
 postCheck('a changed source version cannot be used by pre-write CAS or completion of an obsolete approved draft',
     manualPostThrows(fn()=>$sourceRaceRegistry->assertTelegramHotelTransferReservation($sourceRaceReservation,$sourceRaceRow,$sourceRacePlan),'hotel_transfer_source_changed')
     && manualPostThrows(fn()=>$sourceRaceRegistry->completeTelegramHotelTransfer($sourceRaceReservation,$sourceRaceRow,$sourceRacePlan,$sourceRaceResponse),'hotel_transfer_source_changed'));
+
+/** Real receive/registry/worker flow; the only provider is this in-memory fixture. */
+function historicalPublisherKeyboardFixture(array $changes = []): array
+{
+    $scope = array_replace(['project'=>'anytour','bot'=>'anyru_bot','channel_id'=>'-1001845835645',
+        'channel_record'=>6,'source_id'=>9,'publication_id'=>3847,'message_id'=>'1047'], $changes);
+    $db = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    createChannelPostRegistryFixture($db);
+    $db->prepare('INSERT INTO projects VALUES (1,?,?,1)')->execute([$scope['project'],'Synthetic publisher pilot']);
+    $db->prepare('INSERT INTO conversation_sources VALUES (?,1,?,?,?,1,?)')
+        ->execute([$scope['source_id'],'tg_anytour_msk','Synthetic channel','telegram','manager']);
+    $registry = new ChannelPostRegistryService($db);
+    $config = ['project_key'=>$scope['project'],'platform'=>'telegram','bot_key'=>$scope['bot'],
+        'channel_id'=>$scope['channel_id'],'source_key'=>'tg_anytour_msk','display_name'=>'Synthetic channel',
+        'bot_url'=>'https://t.me/'.$scope['bot'],'button_text'=>'✈️ Рассчитать на мои даты','is_enabled'=>true];
+    $channel = $registry->configureChannel($config);
+    $registry->configureChannel($config + ['expected_version'=>1]);
+    $db->prepare('UPDATE post_channels SET id=? WHERE id=?')->execute([$scope['channel_record'],$channel['id']]);
+    $insert = $db->prepare('INSERT INTO post_publications (id,post_channel_id,source_id,external_message_id,start_payload) VALUES (?,?,?,?,?)');
+    $insert->execute([$scope['publication_id'],$scope['channel_record'],$scope['source_id'],$scope['message_id'],'p_'.str_repeat('A',24)]);
+    // Other rejected reservations have no version either; observing this pilot
+    // must not allocate their work or alter their existing identity/token.
+    for ($i=0; $i<14; ++$i) $insert->execute([7000+$i,$scope['channel_record'],$scope['source_id'],(string)(9000+$i),'p_'.str_pad((string)$i,24,'B')]);
+    $message = ['message_id'=>(int)$scope['message_id'],'chat'=>['id'=>(int)$scope['channel_id'],'type'=>'channel','username'=>'anytour'],
+        'date'=>1741936304,'edit_date'=>1795640000,'caption'=>'Lusso Sorgun — synthetic unchanged old publication',
+        'photo'=>[['file_id'=>'synthetic_old_photo','file_unique_id'=>'synthetic_old_unique','width'=>1000,'height'=>800]],
+        'reply_markup'=>['inline_keyboard'=>[[['text'=>'Original first →','url'=>'https://example.test/original-first']],
+            [['text'=>'Original second','url'=>'https://example.test/original-second']]]]];
+    $effects = (object)['calls'=>[],'writes'=>0];
+    $request = static function(string $platform,string $method,string $path,array $query,?array $body) use ($scope,$message,$effects): array {
+        $effects->calls[] = $path;
+        $bot = ['id'=>123456,'username'=>$scope['bot'],'is_bot'=>true];
+        if ($path === 'getMe') $result = $bot;
+        elseif ($path === 'getChatMember') $result = ['user'=>$bot,'status'=>'administrator','can_edit_messages'=>true];
+        elseif ($path === 'getChat') $result = $message['chat'];
+        elseif ($path === 'editMessageReplyMarkup') {
+            ++$effects->writes;
+            $result = array_replace($message, ['reply_markup'=>$body['reply_markup']]);
+        } else throw new LogicException('unexpected synthetic provider call');
+        return ['http'=>200,'transport_error'=>false,'data'=>['ok'=>true,'result'=>$result]];
+    };
+    $service = new ChannelPostAutomationService($registry, new ChannelPostButtonTransport($request));
+    return [$db,$registry,$service,$message,$scope,$effects];
+}
+
+[$pilotDb,$pilotRegistry,$pilotService,$pilotMessage,$pilotScope,$pilotEffects] = historicalPublisherKeyboardFixture();
+$pilotReservationBefore = $pilotDb->query('SELECT * FROM post_publications ORDER BY id')->fetchAll();
+postCheck('publisher pilot fence leaves all fifteen identity-only reservations and tokens untouched before a native update',
+    $pilotRegistry->publication(3847) === null && $pilotRegistry->pendingPublications('anytour','telegram','anyru_bot') === []
+    && $pilotService->processPending('anytour','telegram','anyru_bot') === [] && $pilotEffects->calls === []
+    && $pilotReservationBefore === $pilotDb->query('SELECT * FROM post_publications ORDER BY id')->fetchAll()
+    && (int)$pilotDb->query('SELECT COUNT(*) FROM post_versions')->fetchColumn() === 0
+    && (int)$pilotDb->query('SELECT COUNT(*) FROM post_observations')->fetchColumn() === 0);
+$pilotUpdate = ['update_id'=>771001,'edited_channel_post'=>$pilotMessage];
+$pilotReceived = $pilotService->receive('telegram',$pilotUpdate,'anytour','anyru_bot');
+$pilotNative = $pilotRegistry->publication(3847);
+postCheck('real publisher pilot native update is held without inventing Selectum hotel1501 acceptance or publisher outcome',
+    $pilotReceived['queued'] === false && $pilotReceived['state'] === 'requires_attention'
+    && $pilotNative['state'] === 'requires_attention' && $pilotNative['error_reason'] === 'publisher_keyboard_pilot_requires_review'
+    && $pilotNative['receipt'] === ['repair_kind'=>'historical_publisher_keyboard_pilot']
+    && $pilotNative['publisher_keyboard_pilot_hold'] === true && $pilotNative['manual_button_repair'] === true
+    && !isset($pilotNative['publisher']) && !isset($pilotNative['snapshot']['metadata']['hotel_catalog_id'])
+    && !isset($pilotNative['snapshot']['metadata']['hotel_transfer'])
+    && $pilotNative['snapshot']['raw_body'] === $pilotMessage && $pilotNative['snapshot']['text'] === $pilotMessage['caption']
+    && $pilotNative['start_payload'] === $pilotReservationBefore[0]['start_payload']
+    && $pilotNative['write_attempts'] === 0 && $pilotNative['attempt_count'] === 0);
+$pilotClock = $pilotDb->query('SELECT observed_revision_ms,telegram_sequence FROM post_publications WHERE id=3847')->fetch();
+postCheck('pilot keeps real native clock and other fourteen reservations without creating automatic provider work',
+    (int)$pilotClock['observed_revision_ms'] === $pilotMessage['edit_date'] * 1000 && (string)$pilotClock['telegram_sequence'] === '771001'
+    && array_slice($pilotReservationBefore,1) === $pilotDb->query('SELECT * FROM post_publications WHERE id<>3847 ORDER BY id')->fetchAll()
+    && $pilotService->processPending('anytour','telegram','anyru_bot') === [] && $pilotEffects->calls === []);
+$pilotVersionBefore = $pilotDb->query('SELECT * FROM post_versions ORDER BY id')->fetchAll();
+postCheck('pilot rejects ordinary claim, write start, completion and own-button confirmation without state changes',
+    $pilotRegistry->claimPublication(3847,$pilotNative['version_id']) === null
+    && !$pilotRegistry->markExternalWriteStarted(3847,$pilotNative['version_id'],str_repeat('c',32))
+    && !$pilotRegistry->finishPublication(3847,$pilotNative['version_id'],str_repeat('c',32),'sent')
+    && !$pilotRegistry->confirmObservedButton(3847,$pilotNative['version_id'],['verified'=>true])
+    && $pilotVersionBefore === $pilotDb->query('SELECT * FROM post_versions ORDER BY id')->fetchAll());
+$pilotDuplicate = $pilotService->receive('telegram',$pilotUpdate,'anytour','anyru_bot');
+postCheck('duplicate pilot webhook cannot allocate another version or enqueue a fallback writer',
+    $pilotDuplicate['queued'] === false && $pilotVersionBefore === $pilotDb->query('SELECT * FROM post_versions ORDER BY id')->fetchAll()
+    && $pilotService->processPending('anytour','telegram','anyru_bot') === [] && $pilotEffects->writes === 0);
+
+// Even a future uncertain or expired operation must not be reset or replayed.
+$pilotDb->prepare("UPDATE post_versions SET state='unknown',write_attempts=1,attempt_count=1,receipt_json=? WHERE id=?")
+    ->execute([json_encode(['fixture'=>'immutable unknown receipt','write_attempts'=>1]),$pilotNative['version_id']]);
+$pilotUnknownBefore = $pilotDb->query('SELECT * FROM post_versions WHERE id='.$pilotNative['version_id'])->fetch();
+postCheck('exact pilot identity excludes UNKNOWN from ordinary and reconciliation claims without modifying its receipt',
+    $pilotRegistry->pendingPublications('anytour','telegram','anyru_bot') === []
+    && $pilotRegistry->claimPublication(3847,$pilotNative['version_id'],true) === null
+    && $pilotUnknownBefore === $pilotDb->query('SELECT * FROM post_versions WHERE id='.$pilotNative['version_id'])->fetch());
+$pilotCanonical = $pilotMessage;
+$pilotCanonical['edit_date']++;
+$pilotCanonical['reply_markup'] = ['inline_keyboard'=>[[['text'=>'✈️ Рассчитать на мои даты',
+    'url'=>'https://t.me/anyru_bot?start='.$pilotNative['start_payload']]]]];
+$pilotLater = $pilotService->receive('telegram',['update_id'=>771002,'edited_channel_post'=>$pilotCanonical],'anytour','anyru_bot');
+$pilotLatest = $pilotRegistry->publication(3847);
+postCheck('later native canonical keyboard is new held evidence and never erases UNKNOWN or proves the hotel transfer',
+    $pilotLater['queued'] === false && $pilotLater['state'] === 'requires_attention'
+    && $pilotLatest['version_number'] === 2 && $pilotLatest['snapshot']['raw_body'] === $pilotCanonical
+    && !isset($pilotLatest['snapshot']['metadata']['hotel_catalog_id'])
+    && $pilotUnknownBefore === $pilotDb->query('SELECT * FROM post_versions WHERE id='.$pilotNative['version_id'])->fetch()
+    && $pilotService->processPending('anytour','telegram','anyru_bot') === [] && $pilotEffects->calls === []);
+$pilotDb->prepare("UPDATE post_versions SET state='claimed',claim_token=?,claimed_at='2000-01-01 00:00:00' WHERE id=?")
+    ->execute([str_repeat('d',32),$pilotLatest['version_id']]);
+$pilotClaimBefore = $pilotDb->query('SELECT * FROM post_versions WHERE id='.$pilotLatest['version_id'])->fetch();
+postCheck('expired pilot lease cannot become writable pending or bypass the final write boundary',
+    $pilotRegistry->pendingPublications('anytour','telegram','anyru_bot') === []
+    && !$pilotRegistry->markExternalWriteStarted(3847,$pilotLatest['version_id'],str_repeat('d',32))
+    && $pilotClaimBefore === $pilotDb->query('SELECT * FROM post_versions WHERE id='.$pilotLatest['version_id'])->fetch());
+
+[$sourceOwnerDb,$sourceOwnerRegistry,$sourceOwnerService,$sourceOwnerMessage] = historicalPublisherKeyboardFixture(['source_id'=>10]);
+$sourceOwnerReceived = $sourceOwnerService->receive('telegram',['update_id'=>771050,'edited_channel_post'=>$sourceOwnerMessage],'anytour','anyru_bot');
+postCheck('pilot fence does not rely on an independently unverified source record number',
+    $sourceOwnerReceived['queued'] === false && $sourceOwnerReceived['state'] === 'requires_attention'
+    && $sourceOwnerRegistry->pendingPublications('anytour','telegram','anyru_bot') === []);
+
+foreach (['publication_id'=>3848,'channel_record'=>7,'message_id'=>'1048',
+    'project'=>'anex','bot'=>'another_bot','channel_id'=>'-1001845835646'] as $field=>$value) {
+    [$nearDb,$nearRegistry,$nearService,$nearMessage,$nearScope,$nearEffects] = historicalPublisherKeyboardFixture([$field=>$value]);
+    $nearReceived = $nearService->receive('telegram',['update_id'=>771101,'edited_channel_post'=>$nearMessage],$nearScope['project'],$nearScope['bot']);
+    $near = $nearRegistry->publication($nearScope['publication_id']);
+    postCheck('publisher fence does not capture neighboring identity field '.$field,
+        $nearReceived['queued'] === true && $near['state'] === 'pending' && empty($near['manual_button_repair'])
+        && count($nearRegistry->pendingPublications($nearScope['project'],'telegram',$nearScope['bot'])) === 1
+        && $nearRegistry->claimPublication($nearScope['publication_id'],$near['version_id']) !== null);
+}
+
 echo 'OK ' . $passed . " channel post registry checks\n";
 

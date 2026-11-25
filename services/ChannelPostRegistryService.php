@@ -19,6 +19,7 @@ final class ChannelPostRegistryService
     private const LEASE_SECONDS = 300;
     private const MAX_SNAPSHOT_BYTES = 131072;
     private const MANUAL_TELEGRAM_REPAIR = 'aloft_public_keyboard';
+    private const HISTORICAL_PUBLISHER_KEYBOARD_HOLD = 'historical_publisher_keyboard_pilot';
 
     public function __construct(?PDO $pdo = null)
     {
@@ -678,6 +679,28 @@ final class ChannelPostRegistryService
         if ($publication['state'] !== 'requires_attention' || $publication['error_reason'] !== 'manual_approval_required') throw new RuntimeException('manual_repair_not_claimable');
     }
 
+    /**
+     * The separate publisher pilot owns only this rejected, identity-only
+     * reservation. Observing its old body is not approval of the hotel transfer.
+     * The fence allocates no version until a real observation arrives.
+     */
+    private static function historicalPublisherKeyboardHold(array $publication, array $channel): bool
+    {
+        return (int)($publication['publication_id'] ?? $publication['id'] ?? 0) === 3847
+            && ($publication['external_message_id'] ?? '') === '1047'
+            && (int)($channel['id'] ?? 0) === 6
+            && ($channel['project_key'] ?? '') === 'anytour' && ($channel['platform'] ?? '') === 'telegram'
+            && ($channel['bot_key'] ?? '') === 'anyru_bot' && ($channel['channel_id'] ?? '') === '-1001845835645';
+    }
+
+    /** Same exact identity for the existing queue's pp/pc/p SQL aliases. */
+    private static function historicalPublisherKeyboardQueueExclusion(): string
+    {
+        return "NOT (pp.id=3847 AND pp.external_message_id='1047'"
+            . " AND pc.id=6 AND p.project_key='anytour' AND pc.platform='telegram'"
+            . " AND pc.bot_key='anyru_bot' AND pc.channel_id='-1001845835645')";
+    }
+
     private static function manualPlanReceipt(array $receipt): array
     {
         if (($receipt['repair_kind'] ?? null) !== self::MANUAL_TELEGRAM_REPAIR) return [];
@@ -854,6 +877,7 @@ final class ChannelPostRegistryService
                 $publication = ['id' => (int)$this->pdo->lastInsertId(), 'current_version_id' => null];
             }
             $previous = $publication['current_version_id'] ? $this->fetch('SELECT * FROM post_versions WHERE id=? AND publication_id=?', [(int)$publication['current_version_id'], (int)$publication['id']]) : null;
+            $publisherKeyboardHold = self::historicalPublisherKeyboardHold($publication, $channel);
             $manualFence = $projectKey === 'anytour' && $platform === 'telegram' && $botKey === 'anyru_bot'
                 && $channelId === '-1001845835645' && $messageId === '1678'
                 ? $this->manualFenceReceipt((int)$publication['id']) : null;
@@ -910,6 +934,12 @@ final class ChannelPostRegistryService
                 // invalidate the reviewed public version without granting work.
                 $albumOperation = ['state'=>'requires_attention', 'write_attempts'=>0,
                     'receipt'=>$manualFence, 'reason'=>'manual_observation_changed'];
+            } elseif ($publisherKeyboardHold) {
+                // Keep the authenticated old caption/photo and update clock.
+                // No publisher outcome or prepared hotel's identity is inferred.
+                $albumOperation = ['state'=>'requires_attention', 'write_attempts'=>0,
+                    'receipt'=>['repair_kind'=>self::HISTORICAL_PUBLISHER_KEYBOARD_HOLD],
+                    'reason'=>'publisher_keyboard_pilot_requires_review'];
             }
             if ($album) {
                 $priorSnapshot = $previous ? (json_decode((string)$previous['snapshot_json'], true) ?: []) : null;
@@ -960,7 +990,8 @@ final class ChannelPostRegistryService
                     rtrim((string)$channel['bot_url'], '/') . '?start=' . rawurlencode((string)$publication['start_payload']),
                     (string)$channel['button_text']);
             // Album observations also append immutable per-member clocks when the body is unchanged.
-            if ($album || $keyboardCorrection || $manualContextChanged || !$previous || !hash_equals($previousHash, $hash)) {
+            if ($album || $keyboardCorrection || $manualContextChanged || !$previous || !hash_equals($previousHash, $hash)
+                || ($publisherKeyboardHold && $sourceEventKey !== null)) {
                 $version = $previous ? (int)$previous['version_number'] + 1 : 1;
                 $now = self::now();
                 $this->execute('INSERT INTO post_versions (publication_id,version_number,content_hash,snapshot_json,state,write_attempts,error_reason,receipt_json,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)', [(int)$publication['id'], $version, $hash, self::json($snapshot), $albumOperation['state'], $albumOperation['write_attempts'], $albumOperation['reason'], self::json($albumOperation['receipt']), $now, $now]);
@@ -1014,8 +1045,9 @@ final class ChannelPostRegistryService
         $limit = max(1, min(25, $limit));
         $cutoff = gmdate('Y-m-d H:i:s', time() - self::LEASE_SECONDS);
         $manualPattern = '%"repair_kind":"' . self::MANUAL_TELEGRAM_REPAIR . '"%';
-        if($expireLeases)$this->execute("UPDATE post_versions SET state=CASE WHEN write_attempts>0 THEN 'unknown' WHEN receipt_json LIKE ? THEN 'requires_attention' ELSE 'pending' END,claim_token=NULL,claimed_at=NULL,error_reason=CASE WHEN write_attempts=0 AND receipt_json LIKE ? THEN 'manual_approval_required' ELSE 'claim_expired' END,updated_at=? WHERE publication_id IN (SELECT pp.id FROM post_publications pp JOIN post_channels pc ON pc.id=pp.post_channel_id JOIN projects p ON p.id=pc.project_id WHERE p.project_key=? AND pc.platform=? AND pc.bot_key=?) AND state IN ('claimed','write_started') AND claimed_at<?", [$manualPattern, $manualPattern, self::now(), $projectKey, $platform, $botKey, $cutoff]);
-        $query = $this->pdo->prepare("SELECT pp.id FROM post_publications pp JOIN post_channels pc ON pc.id=pp.post_channel_id JOIN projects p ON p.id=pc.project_id JOIN conversation_sources s ON s.id=pp.source_id AND s.id=pc.source_id AND s.project_id=pc.project_id JOIN post_versions v ON v.id=pp.current_version_id WHERE p.project_key=? AND pc.platform=? AND pc.bot_key=? AND pc.is_enabled=1 AND p.is_active=1 AND s.is_active=1 AND s.channel=pc.platform AND s.handling_mode IN ('manager','ask') AND v.state IN ('pending','unknown') AND NOT EXISTS (SELECT 1 FROM post_versions fence WHERE fence.publication_id=pp.id AND fence.receipt_json LIKE ?) ORDER BY CASE WHEN v.state='pending' THEN 0 ELSE 1 END ASC,v.id ASC LIMIT " . $limit);
+        $publisherPilotExclusion = self::historicalPublisherKeyboardQueueExclusion();
+        if($expireLeases)$this->execute("UPDATE post_versions SET state=CASE WHEN write_attempts>0 THEN 'unknown' WHEN receipt_json LIKE ? THEN 'requires_attention' ELSE 'pending' END,claim_token=NULL,claimed_at=NULL,error_reason=CASE WHEN write_attempts=0 AND receipt_json LIKE ? THEN 'manual_approval_required' ELSE 'claim_expired' END,updated_at=? WHERE publication_id IN (SELECT pp.id FROM post_publications pp JOIN post_channels pc ON pc.id=pp.post_channel_id JOIN projects p ON p.id=pc.project_id WHERE p.project_key=? AND pc.platform=? AND pc.bot_key=? AND " . $publisherPilotExclusion . ") AND state IN ('claimed','write_started') AND claimed_at<?", [$manualPattern, $manualPattern, self::now(), $projectKey, $platform, $botKey, $cutoff]);
+        $query = $this->pdo->prepare("SELECT pp.id FROM post_publications pp JOIN post_channels pc ON pc.id=pp.post_channel_id JOIN projects p ON p.id=pc.project_id JOIN conversation_sources s ON s.id=pp.source_id AND s.id=pc.source_id AND s.project_id=pc.project_id JOIN post_versions v ON v.id=pp.current_version_id WHERE p.project_key=? AND pc.platform=? AND pc.bot_key=? AND pc.is_enabled=1 AND p.is_active=1 AND s.is_active=1 AND s.channel=pc.platform AND s.handling_mode IN ('manager','ask') AND v.state IN ('pending','unknown') AND " . $publisherPilotExclusion . " AND NOT EXISTS (SELECT 1 FROM post_versions fence WHERE fence.publication_id=pp.id AND fence.receipt_json LIKE ?) ORDER BY CASE WHEN v.state='pending' THEN 0 ELSE 1 END ASC,v.id ASC LIMIT " . $limit);
         $query->execute([$projectKey, $platform, $botKey, $manualPattern]);
         $rows = [];
         foreach ($query->fetchAll(PDO::FETCH_COLUMN) as $id) {
@@ -1030,6 +1062,7 @@ final class ChannelPostRegistryService
         return $this->transaction(function () use ($publicationId, $versionId, $reconcileOnly): ?array {
             $publication = $this->publication($publicationId);
             if (!$publication || $publication['version_id'] !== $versionId) return null;
+            if (self::historicalPublisherKeyboardHold($publication, $publication['channel'])) return null;
             if ($publication['platform'] === 'telegram' && $publication['channel_id'] === '-1001845835645'
                 && $publication['external_message_id'] === '1678' && $this->manualFenceReceipt($publicationId) !== null) return null;
             // Telegram albums have distinct per-member edit claims.
@@ -1170,6 +1203,7 @@ final class ChannelPostRegistryService
             $this->fetch('SELECT id FROM post_publications WHERE id=?' . $this->lock(), [$publicationId]);
             $publication = $this->publication($publicationId);
             if (!$publication || $publication['version_id'] !== $versionId) return false;
+            if (self::historicalPublisherKeyboardHold($publication, $publication['channel'])) return false;
             if (!empty($publication['manual_button_repair'])) {
                 try {
                     if ((int)$publication['attempt_count'] !== 1 || (int)$publication['write_attempts'] !== 0
@@ -1190,6 +1224,8 @@ final class ChannelPostRegistryService
         $receipt = self::receipt($receipt);
         return $this->transaction(function () use ($publicationId, $versionId, $claimToken, $state, $reason, $receipt): bool {
             $this->fetch('SELECT id FROM post_publications WHERE id=?' . $this->lock(), [$publicationId]);
+            $publication = $this->publication($publicationId);
+            if ($publication && self::historicalPublisherKeyboardHold($publication, $publication['channel'])) return false;
             $written = $this->fetch('SELECT * FROM post_versions WHERE id=? AND publication_id=?', [$versionId, $publicationId]);
             $stored = json_decode((string)($written['receipt_json'] ?? ''), true) ?: [];
             $receipt = self::retainTelegramRecoveryHistory($stored, $receipt);
@@ -1227,6 +1263,7 @@ final class ChannelPostRegistryService
     {
         $publication = $this->publication($publicationId);
         if (!$publication || $publication['version_id'] !== $versionId) return false;
+        if (self::historicalPublisherKeyboardHold($publication, $publication['channel'])) return false;
         if ($publication['platform'] === 'telegram' && $publication['channel_id'] === '-1001845835645'
             && $publication['external_message_id'] === '1678' && $this->manualFenceReceipt($publicationId) !== null) return false;
         return $this->execute("UPDATE post_versions SET state='sent',claim_token=NULL,claimed_at=NULL,error_reason='',receipt_json=?,updated_at=? WHERE id=? AND publication_id=? AND state IN ('pending','claimed','write_started','unknown')", [self::json(self::retainTelegramRecoveryHistory((array)$publication['receipt'], self::receipt($receipt))), self::now(), $versionId, $publicationId]) === 1;
@@ -1574,6 +1611,12 @@ final class ChannelPostRegistryService
                 'bot_id'=>$row['receipt']['publisher_bot_id'] ?? '', 'credential_version'=>$row['receipt']['credential_version'] ?? 0];
             $row['public_fingerprint'] = $row['receipt']['public_baseline_sha256'] ?? '';
             $row['plan_digest'] = $row['receipt']['plan_digest'] ?? '';
+        }
+        if (self::historicalPublisherKeyboardHold($row, $channel)) {
+            // Reuse receive()'s existing no-automatic-write boundary without
+            // pretending this native observation has an Aloft publisher plan.
+            $row['manual_button_repair'] = true;
+            $row['publisher_keyboard_pilot_hold'] = true;
         }
         unset($row['snapshot_json'], $row['receipt_json']);
         return $row;
