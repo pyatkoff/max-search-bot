@@ -50,7 +50,7 @@ function maxEditPlan(string $path, string $expected, ?array $approval = null): a
     $required = ['kind', 'hotel', 'hotel_name', 'target_mid', 'target_ms', 'target_url', 'target_fingerprint',
         'source_publication', 'source_version', 'source_content_hash', 'source_mid', 'source_url', 'caption'];
     maxEditNeed(is_array($plan) && array_diff($required, array_keys($plan)) === []
-        && array_diff(array_keys($plan), [...$required, 'source_aliases']) === [], 'reviewed_plan_scope_changed');
+        && array_diff(array_keys($plan), [...$required, 'source_aliases', 'target_photo_count']) === [], 'reviewed_plan_scope_changed');
     maxEditNeed($plan['kind'] === 'expired_reviewed_photo_promotion' && ($approval !== null || in_array($plan['hotel'], MAX_FIRST_GROUP, true))
         && !in_array($plan['hotel'], [174, 415], true)
         && is_int($plan['target_ms']) && $plan['target_ms'] > 0
@@ -65,6 +65,11 @@ function maxEditPlan(string $path, string $expected, ?array $approval = null): a
         && $plan['source_url'] === maxEditUrl($plan['source_mid'], HOTEL_MAX)
         && is_string($plan['target_fingerprint']) && preg_match('/\A[a-f0-9]{64}\z/D', $plan['target_fingerprint']) === 1,
         'exact_old_main_and_hotel_source_required');
+    if (isset($plan['target_photo_count'])) {
+        maxEditNeed($approval !== null && is_int($plan['target_photo_count'])
+            && $plan['target_photo_count'] >= 2 && $plan['target_photo_count'] <= 11,
+            'unapproved_target_album');
+    }
     $caption = $plan['caption'];
     maxEditNeed(is_string($caption) && trim($caption) === $caption && mb_strlen($caption) >= 60
         && mb_strlen($caption) <= 1300 && !preg_match('/(?:https?:\/\/|₽|\$|€|\b(?:RUB|USD|EUR)\b|\bруб(?:\.|лей|ля)?\b)/iu', $caption)
@@ -131,7 +136,7 @@ function maxEditTarget(PDO $pdo, array $plan): array
         && !preg_match('/(?:отзыв\s+(?:турист|гост|семь)|видеокружок|кружок менеджера)/iu', (string)$snapshot['text'])
         && maxEditExistingPublication($pdo, $plan['target_mid']) === null, 'old_promotion_changed_or_already_bound');
     $photos = maxEditPhotos($snapshot);
-    maxEditNeed(count($photos) === 1, 'ordinary_single_photo_promotion_required');
+    maxEditNeed(count($photos) === ($plan['target_photo_count'] ?? 1), 'reviewed_target_photo_count_changed');
     return $photos;
 }
 
