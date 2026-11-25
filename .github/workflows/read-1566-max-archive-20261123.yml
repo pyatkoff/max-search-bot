@@ -15,7 +15,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == '8aaa01e5ce0d6ad7a1b7d75293813119fef64ec1' && github.run_attempt == 1
+      github.event.before == '803daa16ad3cced63ef9149785265cd97d1d846b' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -30,7 +30,7 @@ jobs:
           from concurrent.futures import ThreadPoolExecutor
           from pathlib import Path
           from datetime import datetime,timezone
-          plans=json.loads('[{"id":1972,"url":"https://max.ru/anytour/AaBI6Jfvad8","title":"Moreno Horizon Spa & Resort","caption":"✈️ Туры в Moreno Horizon Spa & Resort\n📍 Хургада, Египет\nСобственный пляж, бассейны для взрослых и детей и аквапарк с горками. На территории проходят развлекательные программы."},{"id":2588,"url":"https://max.ru/anytour/AaAkdvyEBXQ","title":"Jumeirah Beach Hotel","caption":"✈️ Туры в Jumeirah Beach Hotel\n📍 Дубай, ОАЭ\nПляжный отдых с видом на Burj Al Arab. На территории есть бассейны, водные развлечения и отдельные программы для детей."},{"id":32342,"url":"https://max.ru/anytour/AZ_rrRmlYz0","title":"Vinpearl Resort & Spa Phu Quoc","caption":"✈️ Туры в Vinpearl Resort & Spa Phu Quoc\n📍 Фукуок, Вьетнам\nДо пляжа можно дойти пешком. Для отдыха с семьёй или компанией можно выбрать номер или виллу."},{"id":57028,"url":"https://max.ru/anytour/AZ9AsoswVYw","title":"Pickalbatros Aqua Park Sharm","caption":"✈️ Туры в Pickalbatros Aqua Park Sharm\n📍 Шарм-эль-Шейх, Египет\nАквапарк с детскими горками, аттракционы Midway Street и клуб Alba для детей от 4 до 12 лет."},{"id":65877,"url":"https://max.ru/anytour/AZ-d-XrfADw","title":"Vesna Hotel","caption":"✈️ Туры в Vesna Hotel\n📍 Нячанг, Вьетнам\nГородской отель для поездки с семьёй. До пляжа около 50 метров через дорогу."}]')
+          plans=json.loads(r'[{"id":1972,"url":"https://max.ru/anytour/AaBI6Jfvad8","title":"Moreno Horizon Spa & Resort","caption":"✈️ Туры в Moreno Horizon Spa & Resort\n📍 Хургада, Египет\nСобственный пляж, бассейны для взрослых и детей и аквапарк с горками. На территории проходят развлекательные программы."},{"id":2588,"url":"https://max.ru/anytour/AaAkdvyEBXQ","title":"Jumeirah Beach Hotel","caption":"✈️ Туры в Jumeirah Beach Hotel\n📍 Дубай, ОАЭ\nПляжный отдых с видом на Burj Al Arab. На территории есть бассейны, водные развлечения и отдельные программы для детей."},{"id":32342,"url":"https://max.ru/anytour/AZ_rrRmlYz0","title":"Vinpearl Resort & Spa Phu Quoc","caption":"✈️ Туры в Vinpearl Resort & Spa Phu Quoc\n📍 Фукуок, Вьетнам\nДо пляжа можно дойти пешком. Для отдыха с семьёй или компанией можно выбрать номер или виллу."},{"id":57028,"url":"https://max.ru/anytour/AZ9AsoswVYw","title":"Pickalbatros Aqua Park Sharm","caption":"✈️ Туры в Pickalbatros Aqua Park Sharm\n📍 Шарм-эль-Шейх, Египет\nАквапарк с детскими горками, аттракционы Midway Street и клуб Alba для детей от 4 до 12 лет."},{"id":65877,"url":"https://max.ru/anytour/AZ-d-XrfADw","title":"Vesna Hotel","caption":"✈️ Туры в Vesna Hotel\n📍 Нячанг, Вьетнам\nГородской отель для поездки с семьёй. До пляжа около 50 метров через дорогу."}]')
           class Page(HTMLParser):
               def __init__(self):
                   super().__init__(convert_charrefs=True)
