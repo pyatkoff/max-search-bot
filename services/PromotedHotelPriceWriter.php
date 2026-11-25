@@ -97,7 +97,7 @@ final class PromotedHotelPriceWriter
     }
 
     /** Validate the entire plan before the first native edit, including hotels held for lack of a price. */
-    public static function jobsForPlan(array $plan, string $feedHash, string $targetBytes): array
+    public static function jobsForPlan(array $plan, string $feedHash, string $targetBytes, ?int $maxPublicationId = null): array
     {
         self::need(($plan['targets_sha256'] ?? null) === hash('sha256', $targetBytes)
             && ($plan['feed_sha256'] ?? null) === $feedHash, 'price_plan_mismatch');
@@ -152,15 +152,20 @@ final class PromotedHotelPriceWriter
             unset($targets[$hotel]);
         }
         self::need($targets === [], 'price_plan_mismatch');
+        if ($maxPublicationId !== null) {
+            $jobs = array_values(array_filter($jobs, static fn(array $job): bool =>
+                $job['platform'] === 'max' && $job['publication'] === $maxPublicationId));
+            self::need(count($jobs) === 1, 'max_publication_price_not_eligible');
+        }
         return $jobs;
     }
 
-    public function run(array $plan, string $feedHash, bool $apply): array
+    public function run(array $plan, string $feedHash, bool $apply, ?int $maxPublicationId = null): array
     {
         $targetBytes = file_get_contents(self::TARGET_FILE);
         self::need(is_string($targetBytes), 'promoted_targets_unavailable');
         $out = [];
-        foreach (self::jobsForPlan($plan, $feedHash, $targetBytes) as $item) {
+        foreach (self::jobsForPlan($plan, $feedHash, $targetBytes, $maxPublicationId) as $item) {
             $block = $item['price_block'];
             unset($item['price_block']);
             $attempted = false;
