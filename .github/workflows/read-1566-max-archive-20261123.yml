@@ -1,4 +1,4 @@
-name: "Confirm native PRICE and public feed images for four attributed MAX hotels"
+name: "Confirm four posted prices after the official PRICE cycle"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -17,7 +17,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '16f00e4cc2d8a3d7deff23090ac26148ff4be486' &&
+      github.event.before == 'c2cd61b095405b66f3d9d7c6991964b51131f57d' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
