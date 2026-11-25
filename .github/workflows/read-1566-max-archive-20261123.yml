@@ -1,4 +1,4 @@
-name: "Verify both active feed images for Beach Albatros"
+name: "Verify current hotel feeds and the three remaining content issues"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -17,48 +17,163 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'ed382c4bb0d5387012222d6889eef2734794a68e' &&
+      github.event.before == 'b3547592b4bb26e26c24f8c7cadffbbf82cbda11' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
-      - name: Verify the actual Beach Albatros image in both public feeds
+      - name: Read both public XML endpoints without visiting advertising links
+        shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import datetime,hashlib,json,pathlib,re,subprocess,urllib.parse,urllib.request,xml.etree.ElementTree as ET
           from concurrent.futures import ThreadPoolExecutor
+          import base64
+          import datetime
+          from zoneinfo import ZoneInfo
+          import hashlib
+          import json
+          import urllib.request
+          import html
+          from html.parser import HTMLParser
+          import os
+          import pathlib
+          import re
+          import subprocess
+          import urllib.parse
+          import xml.etree.ElementTree as ET
 
-          def feed(key):
-              u=f"https://app.anytoour.ru/feed/hotel-posts-{key}.xml"
-              req=urllib.request.Request(u,headers={"User-Agent":"Mozilla/5.0"})
-              with urllib.request.urlopen(req,timeout=12) as r:
-                  assert r.status==200 and r.geturl()==u
-                  body=r.read(8000001)
-              assert len(body)<=8000000
-              obj=ET.fromstring(body)
-              hit=[i for i in obj.findall(".//offer") if i.get("id")=="max_132"]
-              assert len(hit)==1 and hit[0].findtext("price","")=="105167"
-              link=hit[0].findtext("picture","").strip()
-              p=urllib.parse.urlsplit(link)
-              assert p.scheme=="https" and p.port in (None,443) and p.username is None and p.password is None
-              assert re.fullmatch(r"[a-z0-9.-]+\.[a-z]{2,}",p.hostname or "") and len(link)<1500
-              return key,link
+          def read(scope):
+              url=f"https://app.anytoour.ru/feed/hotel-posts-{scope}.xml"
+              output=pathlib.Path(os.environ["RUNNER_TEMP"])/(scope+".xml")
+              proc=subprocess.run(["curl","--silent","--show-error","--connect-timeout","5","--max-time","15","--max-filesize","8000000",
+                   "--proto","=https","--write-out","%{http_code} %{time_connect} %{time_appconnect} %{time_starttransfer} %{size_download}",
+                   "--output",str(output),url],capture_output=True,text=True,timeout=18)
+              detail={"exit":proc.returncode,"http_and_timings":proc.stdout.strip()}
+              if proc.returncode or not proc.stdout.startswith("200 "):
+                  return scope,detail
+              try:
+                  data=output.read_bytes()
+                  root=ET.fromstring(data)
+                  rows=root.findall(".//offer")
+                  ids=[o.get("id") for o in rows]
+                  ids_unique=all(ids) and len(ids)==len(set(ids))
+                  expected={"max_99713":"h1_7c7cb5975c74ed29b0b444251c014bd3","max_73343":"h1_d5c8a692e27557a88b5dd2ddf469c74d","max_43689":"h1_2a8f28fdeb4e5e47932fa629571e0f86","max_139":"h1_0dd8e79eb59d7c04a8ebba12384fd9f8","max_2470":"h1_f6ff5a979401dbe0a1a4d6eb763fe29a","max_56092":"h1_f8a64964fafb102a6f0c82703205f9b2","max_59114":"h1_43c901391df4e5c2132497a01db66fca","max_63191":"h1_b0abe530d9ef80315f4ce241ee2acd1c","max_76588":"h1_a710b1b43c4287fe5e8f8c11bcb9b887","max_77914":"h1_464e4ce1c4a476d9f8a9b7e1fb3dad4a","max_106":"h1_ffd75d0ae4d3b308154fa24f436f95b7","max_111":"h1_b25fef02b0842659d3da3dbe12e66f76","max_114":"h1_17116714af190238cf991ca60d867ae6","max_2588":"h1_b0ad50d1f7b72fbb0d8d3f44d551294a","max_57028":"h1_4e6688447a8d76c946868b2d04224fd8","max_65877":"h1_12c9e98c83db2198ba35799b9e761ec7","max_63674":"h1_fb0ba4c1be60cab4c2698362dd707b81","max_64918":"h1_be282d699a6be3568fa8dacf857f3435","max_358":"h1_84170d0b84626b05e4f82e798ef57820","max_107938":"h1_ed9ec3d477ad58b72b449856143bcb23","max_954":"h1_219618e13aacd5eebce10c6c3d301998","max_73055":"h1_98f53d376cf058939ba30423419126e7","max_47025":"h1_81a68725daabfab8f9e054052abd1f34","max_12107":"h1_67ef3ba3193b1712dd26aaa72b84c53b","max_132":"h1_9012b098a7f4a0274327378f9c2ea1b1","max_469":"h1_49bc026db7ab1e7a8c362f336fb2d1eb","max_12111":"h1_55ccf842729a16e4f7db54841b6e7d5f","max_70048":"h1_671fd7c3e4c3ea3b90376b27ea865c68","max_82606":"h1_08a126f7c674d2a94bea6294042071a6","max_1344":"h1_bb9e6c662f29331b61bf6722d81d3ac4","max_260":"h1_42bde90366927f834271bb2e5a4376a2","max_2493":"h1_0881361a66855795ecc591b6056f1c69","max_3452":"h1_7dff10d97577ac44a5681487e35ba946","max_4181":"h1_a2c2bc5059137308cc19a3cf33bf7887","max_37668":"h1_ed063381a2fd22c6c44d635a92e20024","max_43676":"h1_8259ce86f3d70e7d6528537e42050138","max_64895":"h1_0279ea0e0bf95050bada0ed3aa07a034","max_73974":"h1_b029c6da4006a0b3f1169f6a71e73005","max_74503":"h1_6992e43fbd907df3327e69e934a6df63","max_1972":"h1_7cdc48f2dd799f91ad74d98b53f7c324","max_32342":"h1_832e474d233e3ff903264f8017890723"}
+                  exact={}
+                  for o in rows:
+                      oid=o.get("id")
+                      if oid not in expected:
+                          continue
+                      url=o.findtext("url","")
+                      plain=urllib.parse.unquote(url)
+                      match=re.search(r"_ctx1_([A-Za-z0-9_-]+)",plain)
+                      context=json.loads(base64.urlsafe_b64decode(match[1]+"="*(-len(match[1])%4))) if match else {}
+                      ts=re.findall(r"Цена найдена мониторингом (\d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}) МСК\.",o.findtext("description",""))
+                      stamp=datetime.datetime.strptime(ts[0],"%d.%m.%Y, %H:%M").replace(tzinfo=ZoneInfo("Europe/Moscow")) if len(ts)==1 else None
+                      freshness=datetime.datetime.now(ZoneInfo("Europe/Moscow"))-stamp if stamp else None
+                      exact[oid]={"offer_context":context.get("offer_id")==oid,"alias_preserved":context.get("post_id")==expected[oid],
+                                  "observed_msk":stamp.isoformat() if stamp else None,
+                                  "price_within_36h":freshness is not None and 0<=freshness.total_seconds()<=129600,
+                                  "url_sha256":hashlib.sha256(url.encode()).hexdigest(),
+                                  "attribution_macros":all("{"+k+"}" in plain for k in ("yclid","campaign_id","region_id")),
+                                  "price":o.findtext("price",""),"picture_present":bool(o.findtext("picture",""))}
+                  return scope,dict(detail,offers=len(ids),unique=ids_unique,exact=exact)
+              except (ET.ParseError,OSError,ValueError) as exc:
+                  return scope,dict(detail,error=type(exc).__name__)
 
-          with ThreadPoolExecutor(max_workers=2) as pool:
-              links=dict(pool.map(feed,("max","all")))
-          tested={}
-          for target in set(links.values()):
-              res=subprocess.run(["curl","--silent","--show-error","--proto","=https","--connect-timeout","5","--max-time","12",
-                  "--max-filesize","8000000","--range","0-255","--output","/dev/null","--write-out","%{http_code} %{content_type} %{size_download}",target],
-                  capture_output=True,text=True,timeout=14)
-              parts=res.stdout.strip().split(maxsplit=2)
-              status=int(parts[0]) if len(parts)==3 and parts[0].isdigit() else 0
-              media=parts[1].lower() if len(parts)==3 else ""
-              size=int(parts[2]) if len(parts)==3 and parts[2].isdigit() else 0
-              tested[target]={"url_hash":hashlib.sha256(target.encode()).hexdigest(),"status":status,"mime":media[:40],
-                  "accessible":res.returncode==0 and status in (200,206) and media.startswith("image/") and size>0}
-          result={key:tested[link] for key,link in links.items()}
-          print("BEACH_ALBATROS_FEED_IMAGE="+json.dumps({"offer":"max_132","observed_at":datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                "feeds":result,"same_image":links["max"]==links["all"],"ad_clicks":0,"writes":0},separators=(",",":")))
+          class Preview(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.meta={}
+              def handle_starttag(self, tag, attrs):
+                  if tag=="meta":
+                      d=dict(attrs)
+                      if d.get("property"):
+                          self.meta[d["property"]]=d.get("content","")
+
+          def page(entry):
+              key,url=entry
+              try:
+                  req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0","Cache-Control":"no-cache"})
+                  with urllib.request.urlopen(req,timeout=10) as r:
+                      raw=r.read(3000001)
+                      assert r.status==200 and r.geturl()==url and len(raw)<=3000000
+                  parser=Preview()
+                  parser.feed(raw.decode("utf-8"))
+                  caption=parser.meta.get("og:description","")
+                  img=parser.meta.get("og:image","").strip()
+                  return key,{"photo_preview":bool(img),"photo_sha256":hashlib.sha256(img.encode()).hexdigest() if img else None,
+                       "sultan_gardens_heading":"Sultan Gardens" in caption[:180],
+                       "literal_amp_escape":bool(re.search(r"&amp;|&#0*38;|&#x0*26;",caption,re.I)),
+                       "amp_character_present":"&" in caption,
+                       "heading":caption.splitlines()[0][:120] if caption else None}
+              except (OSError,ValueError,AssertionError):
+                  return key,{"result":"public_read_unavailable"}
+
+          with ThreadPoolExecutor(max_workers=3) as pool:
+              feeds=dict(pool.map(read,("max","all")))
+              pages=dict(pool.map(page,{"1972":"https://max.ru/anytour/AaBI6Jfvad8","32342":"https://max.ru/anytour/AZ_rrRmlYz0","469_source":"https://max.ru/channel_anytour/AaF5iOO-R8w","469_target":"https://max.ru/anytour/AZ6sX9HGLTk"}.items()))
+          print("HOTEL_FEED_RECOVERY_READ="+json.dumps({"observed_at":datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                "feeds":feeds,"public_posts":pages,"route_writes":0,"feed_writes":0,"ad_clicks":0},separators=(",",":")))
           PY
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Observe the installed app and reachability from the existing PRICE server
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'bash -se' <<'SH'
+          set -euo pipefail
+          unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          actual="$(GIT_OPTIONAL_LOCKS=0 git rev-parse --verify HEAD)"
+          printf 'INSTALLED_PRICE_APPLICATION=%s\n' "$actual"
+          case "$actual" in ad970aaa2c89ccc6eb2fcded3c56b5146fffeaf5|3073195685c8d57808256af6836182262f25fead) ;; *) exit 0 ;; esac
+          if ! GIT_OPTIONAL_LOCKS=0 git diff --quiet HEAD -- tools/apply_promoted_hotel_prices.php services/PromotedHotelPriceWriter.php config/promoted_hotel_price_targets.json; then
+            echo 'INSTALLED_PRICE_CODE_DIFFERS'
+          fi
+          for scope in max all; do
+            printf 'ORIGIN_FEED_%s=' "$scope"
+            curl --silent --show-error --connect-timeout 5 --max-time 12 --max-filesize 8000000 --proto '=https' \
+              --output /dev/null --write-out '%{http_code} %{time_appconnect} %{time_starttransfer} %{size_download}\n' \
+              "https://app.anytoour.ru/feed/hotel-posts-$scope.xml" || true
+          done
+          SH
+      - name: Remove runner-only connection material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
