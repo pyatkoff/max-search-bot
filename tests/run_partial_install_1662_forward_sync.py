@@ -15,6 +15,7 @@ BASE = "302ba66b5739e369a4df94471c8cfe9c054dd070"
 PR1702_MAIN = "32155b9eb2c8606b61554951bfdc988d70bbcb39"
 PR1692_MAIN = "cdde6f427f61bace3a5afbd943d2303f463d6531"
 PR1692_INSTALLED = "e3e1a9bdf29dd0d7530fe6b3b393f1286834d092"
+PR1721_MAIN = "3073195685c8d57808256af6836182262f25fead"
 PRODUCTION = "/var/www/anytoour/data/www/app.anytoour.ru"
 JOURNAL = "/var/www/anytoour/data/channel-post-operations/monitor-price-after-collection-v1.jsonl"
 GIT = shutil.which("git")
@@ -231,6 +232,25 @@ class ProductionSync(unittest.TestCase):
         self.calls.write_text("")
         calls = self.check_run(False, before=current_main, planned=PR1702_MAIN)
         self.assertEqual(calls, ["http", "scp", "ssh", "locked git rev-parse HEAD"])
+        self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.successor)
+
+    def test_pr1721_requires_working_https_and_the_partial_checkout(self):
+        self.pin_checkout(PR1721_MAIN)
+        self.assertEqual(self.check_run(False, before=PR1721_MAIN, planned=""), [])
+        self.assertEqual(self.check_run(False, before=PR1721_MAIN, planned=PR1721_MAIN,
+                                        responses=["timeout", "timeout"]), ["http", "http"])
+        self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), PR1721_MAIN)
+
+        self.calls.write_text("")
+        calls = self.check_run(True, before=PR1721_MAIN, planned=PR1721_MAIN)
+        self.assertEqual(calls[:4], ["http", "scp", "ssh", "locked git rev-parse HEAD"])
+        self.assertEqual(calls[-1], "http")
+        self.assertEqual(sum(c.startswith("locked git reset --hard ") for c in calls), 1)
+        self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.successor)
+
+        self.calls.write_text("")
+        self.assertEqual(self.check_run(False, before=PR1721_MAIN, planned=PR1721_MAIN),
+                         ["http", "scp", "ssh", "locked git rev-parse HEAD"])
         self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.successor)
 
     def test_pr1692_sync_from_accepted_checkout(self):
