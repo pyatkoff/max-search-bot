@@ -872,7 +872,7 @@ async function verifyReleaseRecovery() {
 
 }
 
-return verifyReleasePriority().then(verifyReleaseRecovery).then(verifyReleaseSlot).then(verifyReleaseSlotActivation).then(() => {
+return require('./ranked_data_commit_regression')(check).then(verifyReleasePriority).then(verifyReleaseRecovery).then(verifyReleaseSlot).then(verifyReleaseSlotActivation).then(() => {
   const admission = spawnSync(process.execPath, [path.resolve(__dirname, '../tools/release_priority.js'),
     '--admit', '1306', 'a'.repeat(40), 'b'.repeat(40)], {
     encoding: 'utf8', env: { GITHUB_REPOSITORY: 'pyatkoff/max-search-bot' }
@@ -884,3 +884,4 @@ return verifyReleasePriority().then(verifyReleaseRecovery).then(verifyReleaseSlo
   check(invalid.status, 1, 'incomplete CLI admission cannot fall back to CI success');
 });
 };
+
