@@ -39,6 +39,27 @@ $compile=static fn(array $native): array=>maxBatchInput($fixtureScope,hash('sha2
     $encode($native),hash('sha256',$encode($native)),$repo,$app);
 $ready=$compile($source);
 check(array_keys($ready['ready'])===$ids && empty($ready['held']),'seven fixture sources');
+$albumScope=$scope;
+$albumRows=$archive;
+$albumSource=$source;
+$albumScope['rows'][0]['target_photo_count']=3;
+$albumScope['native_source']['operation']='max_commercial_album_sources_read_only';
+$albumSource['operation']='max_commercial_album_sources_read_only';
+$albumRows['rows'][0]['media']=['image','image','image'];
+$compileAlbum=static function (array $s, array $a, array $n) use ($encode,$repo,$app): array {
+    $archiveData=$encode($a);$nativeData=$encode($n);
+    $s['archive_registry_sha256']=hash('sha256',$archiveData);
+    $rawScope=$encode($s);
+    return maxBatchInput($rawScope,hash('sha256',$rawScope),$archiveData,$nativeData,hash('sha256',$nativeData),$repo,$app);
+};
+$album=$compileAlbum($albumScope,$albumRows,$albumSource);
+check(($album['ready'][241]['plan']['target_photo_count']??null)===3,'pin exact reviewed historical album');
+$albumRows['rows'][0]['media'][1]='video';
+check($compileAlbum($albumScope,$albumRows,$albumSource)['held']===[241=>'target_changed_or_occupied'],'reject a mixed-media target');
+$albumScope['native_source']['operation']='max_seven_source_rights';
+$albumSource['operation']='max_seven_source_rights';
+check($compileAlbum($albumScope,$albumRows,$albumSource)['held']===[241=>'unapproved_target_album'],'ordinary approval never enables albums');
+
 $current=$source['rows'][0];
 $approval=$ready['ready'][241];
 maxBatchVerifyCurrent($approval,$current,2);
