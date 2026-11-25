@@ -1,4 +1,4 @@
-name: "Read the canonical MAX hotel posts for all 32 waiting MAX2 routes"
+name: "Verify the public title and photo of the existing Adam and Eve MAX post"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -17,203 +17,111 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '55373924f20566c20aabe42d57aa9a186317c5d1' &&
+      github.event.before == '5578e4b9456f00f3c257ea705054f06025558cb4' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
-      - name: Read visible prices and photo previews on the exact three MAX posts
-        continue-on-error: true
+      - name: Read both public XML endpoints without visiting advertising links
+        shell: bash
         run: |
+          set -euo pipefail
           python3 - <<'PY'
           from concurrent.futures import ThreadPoolExecutor
+          import base64
+          import datetime
+          from zoneinfo import ZoneInfo
+          import hashlib
+          import json
+          import urllib.request
+          import html
           from html.parser import HTMLParser
-          import json, re, urllib.request
+          import os
+          import pathlib
+          import re
+          import subprocess
+          import urllib.parse
+          import xml.etree.ElementTree as ET
 
-          class MaxPreview(HTMLParser):
+          def read(scope):
+              url=f"https://app.anytoour.ru/feed/hotel-posts-{scope}.xml"
+              output=pathlib.Path(os.environ["RUNNER_TEMP"])/(scope+".xml")
+              proc=subprocess.run(["curl","--silent","--show-error","--connect-timeout","5","--max-time","15","--max-filesize","8000000",
+                   "--proto","=https","--write-out","%{http_code} %{time_connect} %{time_appconnect} %{time_starttransfer} %{size_download}",
+                   "--output",str(output),url],capture_output=True,text=True,timeout=18)
+              detail={"exit":proc.returncode,"http_and_timings":proc.stdout.strip()}
+              if proc.returncode or not proc.stdout.startswith("200 "):
+                  return scope,detail
+              try:
+                  data=output.read_bytes()
+                  root=ET.fromstring(data)
+                  rows=root.findall(".//offer")
+                  ids=[o.get("id") for o in rows]
+                  ids_unique=all(ids) and len(ids)==len(set(ids))
+                  expected={"max_99713":"h1_7c7cb5975c74ed29b0b444251c014bd3","max_73343":"h1_d5c8a692e27557a88b5dd2ddf469c74d","max_43689":"h1_2a8f28fdeb4e5e47932fa629571e0f86","max_139":"h1_0dd8e79eb59d7c04a8ebba12384fd9f8","max_2470":"h1_f6ff5a979401dbe0a1a4d6eb763fe29a","max_56092":"h1_f8a64964fafb102a6f0c82703205f9b2","max_59114":"h1_43c901391df4e5c2132497a01db66fca","max_63191":"h1_b0abe530d9ef80315f4ce241ee2acd1c","max_76588":"h1_a710b1b43c4287fe5e8f8c11bcb9b887","max_77914":"h1_464e4ce1c4a476d9f8a9b7e1fb3dad4a","max_106":"h1_ffd75d0ae4d3b308154fa24f436f95b7","max_111":"h1_b25fef02b0842659d3da3dbe12e66f76","max_114":"h1_17116714af190238cf991ca60d867ae6","max_2588":"h1_b0ad50d1f7b72fbb0d8d3f44d551294a","max_57028":"h1_4e6688447a8d76c946868b2d04224fd8","max_65877":"h1_12c9e98c83db2198ba35799b9e761ec7","max_63674":"h1_fb0ba4c1be60cab4c2698362dd707b81","max_64918":"h1_be282d699a6be3568fa8dacf857f3435","max_358":"h1_84170d0b84626b05e4f82e798ef57820","max_107938":"h1_ed9ec3d477ad58b72b449856143bcb23","max_954":"h1_219618e13aacd5eebce10c6c3d301998","max_73055":"h1_98f53d376cf058939ba30423419126e7","max_47025":"h1_81a68725daabfab8f9e054052abd1f34","max_12107":"h1_67ef3ba3193b1712dd26aaa72b84c53b","max_132":"h1_9012b098a7f4a0274327378f9c2ea1b1","max_469":"h1_49bc026db7ab1e7a8c362f336fb2d1eb","max_12111":"h1_55ccf842729a16e4f7db54841b6e7d5f","max_70048":"h1_671fd7c3e4c3ea3b90376b27ea865c68","max_82606":"h1_08a126f7c674d2a94bea6294042071a6","max_1344":"h1_bb9e6c662f29331b61bf6722d81d3ac4","max_260":"h1_42bde90366927f834271bb2e5a4376a2","max_2493":"h1_0881361a66855795ecc591b6056f1c69","max_3452":"h1_7dff10d97577ac44a5681487e35ba946","max_4181":"h1_a2c2bc5059137308cc19a3cf33bf7887","max_37668":"h1_ed063381a2fd22c6c44d635a92e20024","max_43676":"h1_8259ce86f3d70e7d6528537e42050138","max_64895":"h1_0279ea0e0bf95050bada0ed3aa07a034","max_73974":"h1_b029c6da4006a0b3f1169f6a71e73005","max_74503":"h1_6992e43fbd907df3327e69e934a6df63","max_1972":"h1_7cdc48f2dd799f91ad74d98b53f7c324","max_32342":"h1_832e474d233e3ff903264f8017890723"}
+                  exact={}
+                  for o in rows:
+                      oid=o.get("id")
+                      if oid not in expected:
+                          continue
+                      url=o.findtext("url","")
+                      plain=urllib.parse.unquote(url)
+                      match=re.search(r"_ctx1_([A-Za-z0-9_-]+)",plain)
+                      context=json.loads(base64.urlsafe_b64decode(match[1]+"="*(-len(match[1])%4))) if match else {}
+                      ts=re.findall(r"Цена найдена мониторингом (\d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}) МСК\.",o.findtext("description",""))
+                      stamp=datetime.datetime.strptime(ts[0],"%d.%m.%Y, %H:%M").replace(tzinfo=ZoneInfo("Europe/Moscow")) if len(ts)==1 else None
+                      freshness=datetime.datetime.now(ZoneInfo("Europe/Moscow"))-stamp if stamp else None
+                      exact[oid]={"offer_context":context.get("offer_id")==oid,"alias_preserved":context.get("post_id")==expected[oid],
+                                  "observed_msk":stamp.isoformat() if stamp else None,
+                                  "price_within_36h":freshness is not None and 0<=freshness.total_seconds()<=129600,
+                                  "url_sha256":hashlib.sha256(url.encode()).hexdigest(),
+                                  "attribution_macros":all("{"+k+"}" in plain for k in ("yclid","campaign_id","region_id")),
+                                  "price":o.findtext("price",""),"picture_present":bool(o.findtext("picture",""))}
+                  return scope,dict(detail,offers=len(ids),unique=ids_unique,exact=exact)
+              except (ET.ParseError,OSError,ValueError) as exc:
+                  return scope,dict(detail,error=type(exc).__name__)
+
+          class Preview(HTMLParser):
               def __init__(self):
                   super().__init__(convert_charrefs=True)
                   self.meta={}
               def handle_starttag(self, tag, attrs):
                   if tag=="meta":
-                      fields=dict(attrs)
-                      if fields.get("property"):
-                          self.meta[fields["property"]]=fields.get("content","")
+                      d=dict(attrs)
+                      if d.get("property"):
+                          self.meta[d["property"]]=d.get("content","")
 
-          def inspect(row):
-              offer,url,expected=row
+          def page(entry):
+              key,url=entry
               try:
                   req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0","Cache-Control":"no-cache"})
-                  with urllib.request.urlopen(req,timeout=10) as response:
-                      raw=response.read(3000001)
-                      assert response.status==200 and response.geturl()==url and len(raw)<=3000000
-                  page=MaxPreview()
-                  page.feed(raw.decode("utf-8"))
-                  caption=page.meta.get("og:description","")
-                  prices=[re.sub(r"[^0-9]", "", amount) for amount in
-                          re.findall(r"([0-9]+(?:[ \u00a0\u202f][0-9]{3})*)\s*(?:₽|руб)",caption)]
-                  return offer,{"caption_ok":bool(caption),"heading":caption.splitlines()[0][:96] if caption else "",
-                                "photo_preview":bool(page.meta.get("og:image","")),"visible_prices":prices,
-                                "expected":expected,"matches_feed":expected in prices}
-              except (OSError,AssertionError,ValueError):
-                  return offer,{"result":"public_read_unavailable"}
+                  with urllib.request.urlopen(req,timeout=10) as r:
+                      raw=r.read(3000001)
+                      assert r.status==200 and r.geturl()==url and len(raw)<=3000000
+                  parser=Preview()
+                  parser.feed(raw.decode("utf-8"))
+                  caption=parser.meta.get("og:description","")
+                  img=parser.meta.get("og:image","").strip()
+                  image_response=None
+                  if key in ("949_source","949_target") and img:
+                      target=urllib.parse.urlsplit(img)
+                      assert target.scheme=="https" and target.port in (None,443) and target.username is None and target.password is None
+                      assert re.fullmatch(r"[a-z0-9.-]+\.[a-z]{2,}",target.hostname or "") and len(img)<1800
+                      probe=subprocess.run(["curl","--silent","--show-error","--proto","=https","--connect-timeout","4","--max-time","10","--max-filesize","8000000","--range","0-255","--output","/dev/null","--write-out","%{http_code} %{content_type} %{size_download}",img],capture_output=True,text=True,timeout=12)
+                      fields=probe.stdout.strip().split()
+                      image_response={"verified":probe.returncode==0 and len(fields)==3 and fields[0] in ("200","206") and fields[1].startswith("image/") and fields[2].isdigit() and int(fields[2])>0,
+                         "http":fields[0] if fields else None,"content_type":fields[1] if len(fields)>1 else None}
+                  return key,{"image_response":image_response,"photo_preview":bool(img),"photo_sha256":hashlib.sha256(img.encode()).hexdigest() if img else None,
+                       "sultan_gardens_heading":"Sultan Gardens" in caption[:180],
+                       "literal_amp_escape":bool(re.search(r"&amp;|&#0*38;|&#x0*26;",caption,re.I)),
+                       "amp_character_present":"&" in caption,
+                       "heading":caption.splitlines()[0][:120] if caption else None}
+              except (OSError,ValueError,AssertionError):
+                  return key,{"result":"public_read_unavailable"}
 
           with ThreadPoolExecutor(max_workers=3) as pool:
-              out=dict(pool.map(inspect,[["max_12107","https://max.ru/anytour/AZwjaZt4Kz8","138354"],["max_469","https://max.ru/anytour/AZ6sX9HGLTk","140889"],["max_12111","https://max.ru/anytour/AZ6wa60cTlw","145346"]]))
-          print("MAX_ATTRIBUTED_PUBLIC_POSTS="+json.dumps(out,ensure_ascii=False,separators=(",",":")))
+              feeds={}
+              pages=dict(pool.map(page,{"949_target":"https://max.ru/anytour/AZ_1bEjVO3Q","949_source":"https://max.ru/channel_anytour/AaG3oYrTVTI"}.items()))
+          print("HOTEL_FEED_RECOVERY_READ="+json.dumps({"observed_at":datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                "feeds":feeds,"public_posts":pages,"route_writes":0,"feed_writes":0,"ad_clicks":0},separators=(",",":")))
           PY
-      - name: Pin established SSH host continuity and authentication identity
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
-          PY
-          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
-            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
-          chmod 600 "$RUNNER_TEMP/channel_key"
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-          python3 - <<'PY'
-          import base64,hashlib,os,pathlib,subprocess
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
-          for s in scan.stdout.splitlines():
-              q=s.split()
-              if len(q)<3 or q[0].startswith('#'):continue
-              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
-              except Exception:continue
-              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
-          assert found,'HOST_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
-          print('ESTABLISHED_HOST_PIN_VERIFIED')
-          PY
-      - name: Read canonical identity, exact PRICE journal and visible content under the existing shared lease
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-        run: |
-          set -euo pipefail
-          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
-                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
-                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' <<'PHP'
-          <?php
-          declare(strict_types=1);
-          use function AnyTour\ExistingPostBatch\maxTransferRead;
-          ini_set('display_errors','0');
-          $root='/var/www/anytoour/data/www/app.anytoour.ru';
-          $base='/var/www/anytoour/data/channel-post-operations';
-          $app=trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'));
-          $out=['ok'=>false,'at'=>gmdate('c'),'application_sha'=>$app,'provider_writes'=>0,'db_writes'=>0,'rows'=>[]];
-          ob_start();
-          try {
-              if(getcwd()!==$root || !in_array($app,['fe28a6383d16139691300821dd4ce768a9c2d096','58f15d1a147353a4b807f122525d75e1f4f35c1c'],true)) throw new RuntimeException('installed_head_changed');
-              require_once $root.'/config.php';
-              require_once $root.'/services/PromotedHotelPriceWriter.php';
-              require_once $root.'/services/ChannelPostEntryService.php';
-              require_once $root.'/tools/anytour_existing_post_max_transfer.php';
-              if(ProjectConfig::projectId()!=='anytour') throw new RuntimeException('wrong_project');
-              $path=$base.'/monitor-price-after-collection-v1.jsonl';
-              $lease=is_file($path)&&!is_link($path)?fopen($path,'rb'):null;
-              if(!is_resource($lease)||!flock($lease,LOCK_SH|LOCK_NB)) throw new RuntimeException('editor_busy');
-              $db=ConversationDb::connection();
-              $db->exec('SET TRANSACTION READ ONLY');
-              $db->beginTransaction();
-              try {
-                  $registry=new ChannelPostRegistryService($db);
-                  $config=json_decode(file_get_contents($root.'/config/promoted_hotel_price_targets.json'),true,32,JSON_THROW_ON_ERROR);
-                  $pending = [];
-                  foreach (json_decode('[{"offer":"max_73343","hotel":73343,"publication_id":3832,"original_version":14408,"url":"https://max.ru/anytour/AaBnNxELfuU","mid":"mid.ffffc1752b045fed01a06737110b7ee5"},{"offer":"max_43689","hotel":43689,"publication_id":3833,"original_version":15115,"url":"https://max.ru/anytour/AaBxuxe-Jxk","mid":"mid.ffffc1752b045fed01a071bb17be2719"},{"offer":"max_139","hotel":139,"publication_id":3834,"original_version":14410,"url":"https://max.ru/anytour/AaCAxCRDffc","mid":"mid.ffffc1752b045fed01a080c424437df7"},{"offer":"max_2470","hotel":2470,"publication_id":3835,"original_version":15116,"url":"https://max.ru/anytour/AaC42fW_AY0","mid":"mid.ffffc1752b045fed01a0b8d9f5bf018d"},{"offer":"max_56092","hotel":56092,"publication_id":3836,"original_version":15117,"url":"https://max.ru/anytour/AaDD8UQLQ4U","mid":"mid.ffffc1752b045fed01a0c3f1440b4385"},{"offer":"max_59114","hotel":59114,"publication_id":3837,"original_version":14413,"url":"https://max.ru/anytour/AaDYcRGJKpQ","mid":"mid.ffffc1752b045fed01a0d87111892a94"},{"offer":"max_63191","hotel":63191,"publication_id":3838,"original_version":14414,"url":"https://max.ru/anytour/AaELd0cFVAQ","mid":"mid.ffffc1752b045fed01a10b7747055404"},{"offer":"max_76588","hotel":76588,"publication_id":3839,"original_version":14415,"url":"https://max.ru/anytour/AaEba-dgJKk","mid":"mid.ffffc1752b045fed01a11b6be76024a9"},{"offer":"max_77914","hotel":77914,"publication_id":3840,"original_version":14416,"url":"https://max.ru/anytour/AaEl-MVcT8Q","mid":"mid.ffffc1752b045fed01a125f8c55c4fc4"},{"offer":"max_106","hotel":106,"publication_id":3841,"original_version":14417,"url":"https://max.ru/anytour/AaEwSMavEQU","mid":"mid.ffffc1752b045fed01a13048c6af1105"},{"offer":"max_111","hotel":111,"publication_id":3842,"original_version":14418,"url":"https://max.ru/anytour/AaE0q57XSGk","mid":"mid.ffffc1752b045fed01a134ab9ed74869"},{"offer":"max_114","hotel":114,"publication_id":3843,"original_version":14419,"url":"https://max.ru/anytour/AaE6sgknSuc","mid":"mid.ffffc1752b045fed01a13ab209274ae7"},{"offer":"max_2588","hotel":2588,"publication_id":3825,"original_version":14401,"url":"https://max.ru/anytour/AaAkdvyEBXQ","mid":"mid.ffffc1752b045fed01a02476fc840574"},{"offer":"max_57028","hotel":57028,"publication_id":3827,"original_version":14403,"url":"https://max.ru/anytour/AZ9AsoswVYw","mid":"mid.ffffc1752b045fed019f40b28b30558c"},{"offer":"max_65877","hotel":65877,"publication_id":3828,"original_version":15114,"url":"https://max.ru/anytour/AZ-d-XrfADw","mid":"mid.ffffc1752b045fed019f9df97adf003c"},{"offer":"max_63674","hotel":63674,"publication_id":3844,"original_version":14768,"url":"https://max.ru/anytour/AaAuJeZbQAc","mid":"mid.ffffc1752b045fed01a02e25e65b4007"},{"offer":"max_64918","hotel":64918,"publication_id":3845,"original_version":14769,"url":"https://max.ru/anytour/AZxcNpG8Qfk","mid":"mid.ffffc1752b045fed019c5c3691bc41f9"},{"offer":"max_358","hotel":358,"publication_id":3846,"original_version":14770,"url":"https://max.ru/anytour/AZrE5K3jCFs","mid":"mid.ffffc1752b045fed019ac4e4ade3085b"},{"offer":"max_107938","hotel":107938,"publication_id":3862,"original_version":15118,"url":"https://max.ru/anytour/AZwEq2zVLGY","mid":"mid.ffffc1752b045fed019c04ab6cd52c66"},{"offer":"max_954","hotel":954,"publication_id":3863,"original_version":14772,"url":"https://max.ru/anytour/AZwpDhM0dC0","mid":"mid.ffffc1752b045fed019c290e1334742d"},{"offer":"max_73055","hotel":73055,"publication_id":3864,"original_version":14773,"url":"https://max.ru/anytour/AZxcpmMWNUI","mid":"mid.ffffc1752b045fed019c5ca663163542"},{"offer":"max_47025","hotel":47025,"publication_id":3869,"original_version":14781,"url":"https://max.ru/anytour/AZ82fl5vOjg","mid":"mid.ffffc1752b045fed019f367e5e6f3a38"},{"offer":"max_1972","hotel":1972,"publication_id":3824,"original_version":15604,"url":"https://max.ru/anytour/AaBI6Jfvad8","mid":"mid.ffffc1752b045fed01a048e897ef69df"},{"offer":"max_32342","hotel":32342,"publication_id":3826,"original_version":15605,"url":"https://max.ru/anytour/AZ_rrRmlYz0","mid":"mid.ffffc1752b045fed019febad19a5633d"},{"offer":"max_241","hotel":241,"publication_id":3739,"original_version":14315,"url":"https://max.ru/anytour/AZ87_EUJEiI","mid":null},{"offer":"max_15693","hotel":15693,"publication_id":3740,"original_version":14316,"url":"https://max.ru/anytour/AZ-yESbCL_Q","mid":null},{"offer":"max_293","hotel":293,"publication_id":3741,"original_version":14317,"url":"https://max.ru/anytour/AZ-3aA0tG-E","mid":null},{"offer":"max_408","hotel":408,"publication_id":3742,"original_version":14318,"url":"https://max.ru/anytour/AZ_bVraKfqs","mid":null},{"offer":"max_1260","hotel":1260,"publication_id":3744,"original_version":14320,"url":"https://max.ru/anytour/AaAQRP74HIo","mid":null},{"offer":"max_24909","hotel":24909,"publication_id":3745,"original_version":14321,"url":"https://max.ru/anytour/AZ_BkAiveNQ","mid":null},{"offer":"max_800","hotel":800,"publication_id":3722,"url":"https://max.ru/anytour/AZ7exN6EPIU","mid":null},{"offer":"max_949","hotel":949,"publication_id":3743,"original_version":14319,"url":"https://max.ru/anytour/AZ_1bEjVO3Q","mid":null}]',true,32,JSON_THROW_ON_ERROR) as $candidate) {
-                      $state = $candidate;
-                      try {
-                          $post=$registry->publication($candidate['publication_id']);
-                          $snapshot=$post['snapshot']??[];
-                          $meta=$snapshot['metadata']??[];
-                          $actualMid=$post['message_id']??$post['external_message_id']??null;
-                          $state['actual_mid']=$actualMid;
-                          $state['live_version']=$post['version_id']??null;
-                          $state['matches_identity']=($post['state']??null)==='sent'&&($post['platform']??null)==='max'
-                              &&($post['channel_id']??null)==='-68765999669267'&&($snapshot['post_url']??null)===$candidate['url']
-                              &&is_string($actualMid)&&preg_match('/\Amid\.[a-f0-9]{32}\z/D',$actualMid)===1
-                              &&($candidate['mid']===null||$actualMid===$candidate['mid'])&&(int)($meta['hotel_catalog_id']??0)===$candidate['hotel'];
-                          $state['photo_count']=count($snapshot['attachments']??[]);
-                          $state['price_bound']=count(array_filter($config,static fn($r)=>$r['platform']==='max'&&$r['hotel_id']===$candidate['hotel']
-                              &&$r['publication_id']===$candidate['publication_id']&&$r['url']===$candidate['url']))===1;
-                          if($state['matches_identity']) {
-                              $ctx=ChannelPostEntryService::resolve('max',$post['start_payload'],$registry);
-                              $state['button_context_ok']=(int)($ctx['publication_id']??0)===$candidate['publication_id']&&ChannelPostButtonTransport::buttonUrl($post)!=='';
-                          }
-                          if($state['matches_identity']&&$candidate['hotel']===949) {
-                              [$message,$native]=maxTransferRead(['message_id'=>$actualMid,'url'=>$candidate['url'],'channel_id'=>'-68765999669267']);
-                              $caption=PromotedHotelPriceWriter::maxPublicCaption(PromotedHotelPriceWriter::publicBytes($candidate['url']),$candidate['url']);
-                              $state['registry_heading']=strtok((string)($snapshot['text']??''),"\n");
-                              $state['native_heading']=strtok((string)($native['text']??''),"\n");
-                              $state['public_heading']=strtok($caption,"\n");
-                              $state['native_photo_matches']=count($native['attachments']??[])===1
-                                  &&isset($native['attachments'][0]['photo_id'])&&$native['attachments'][0]['photo_id']===($snapshot['attachments'][0]['photo_id']??null);
-                              $state['native_button_matches']=ChannelPostIncomingAdapter::containsOnlyButton($native,ChannelPostButtonTransport::buttonUrl($post),$post['channel']['button_text']);
-                          }
-                      } catch(Throwable $error) {
-                          $state['failure']=preg_match('/\A[a-z_]{3,64}\z/D',$error->getMessage())?$error->getMessage():'read_unavailable';
-                      }
-                      $pending[]=$state;
-                  }
-                  $out['pending_routes']=$pending;
-                  foreach(json_decode('[{"hotel_id":12107,"platform":"max","publication_id":3604,"url":"https://max.ru/anytour/AZwjaZt4Kz8","mid":"mid.ffffc1752b045fed019c23699b782b3f","price":"138354","observed":"2026-11-24T23:14:00+03:00"},{"hotel_id":469,"platform":"max","publication_id":3606,"url":"https://max.ru/anytour/AZ6sX9HGLTk","mid":"mid.ffffc1752b045fed019eac5fd1c62d39","price":"140889","observed":"2026-11-24T23:14:00+03:00"},{"hotel_id":12111,"platform":"max","publication_id":3607,"url":"https://max.ru/anytour/AZ6wa60cTlw","mid":"mid.ffffc1752b045fed019eb06bad1c4e5c","price":"145346","observed":"2026-11-25T10:22:00+03:00"}]',true,32,JSON_THROW_ON_ERROR) as $plan) {
-                      $id=$plan['publication_id']; $item=$plan;
-                      try {
-                          $post=$registry->publication($id);
-                          $snapshot=$post['snapshot']??[];
-                          $meta=$snapshot['metadata']??[];
-                          $item['registry_identity']=is_array($post)&&($post['platform']??null)==='max'
-                              &&($post['channel_id']??null)==='-68765999669267'
-                              &&($post['message_id']??$post['external_message_id']??null)===$plan['mid']
-                              &&($snapshot['post_url']??null)===$plan['url']&&(int)($meta['hotel_catalog_id']??0)===$plan['hotel_id'];
-                          $item['registry_state']=$post['state']??null; $item['version']=$post['version_id']??null;
-                          $bindings=array_values(array_filter($config,static fn($r)=>$r['platform']==='max'&&$r['hotel_id']===$plan['hotel_id']));
-                          $item['price_bound']=count($bindings)===1&&$bindings[0]['url']===$plan['url']&&$bindings[0]['publication_id']===$id;
-                          $item['price_observation']=$meta['promoted_price_observed_at']??null;
-                          $item['feed_observation_installed']=is_string($item['price_observation'])&&strtotime($item['price_observation'])===strtotime($plan['observed']);
-                          $receipt=$base.'/promoted-hotel-price-revisions-v1/'.$id.'.json';
-                          $j=is_file($receipt)&&!is_link($receipt)&&filesize($receipt)<=4096?json_decode(file_get_contents($receipt),true,16,JSON_THROW_ON_ERROR):[];
-                          $item['price_receipt_state']=$j['state']??null;
-                          $item['price_receipt_matches_version']=($j['hotel']??null)===$plan['hotel_id']&&($j['platform']??null)==='max'
-                              &&($j['url']??null)===$plan['url']&&($j['new_version']??null)===(int)$item['version']
-                              &&($j['next_hash']??null)===hash('sha256',(string)($snapshot['text']??''));
-                          $pub=PromotedHotelPriceWriter::maxPublicCaption(PromotedHotelPriceWriter::publicBytes($plan['url']),$plan['url']);
-                          $item['public_caption_matches_registry']=$pub===($snapshot['text']??null);
-                          $visible=[];
-                          preg_match_all('/(?:от\s+)?(\d+(?:[\s\x{00a0}\x{202f}]\d{3})*)\s*(?:₽|руб)/iu',$pub,$matches);
-                          foreach($matches[1]??[] as $digits) $visible[]=preg_replace('/\D/u','',$digits);
-                          $item['public_price_matches_feed']=in_array($plan['price'],$visible,true);
-                          $item['public_amounts']=array_slice(array_values(array_unique($visible)),0,6);
-                          if($item['registry_identity']&&$item['registry_state']==='sent') {
-                              [$msg,$seen]=maxTransferRead(['message_id'=>$plan['mid'],'url'=>$plan['url'],'channel_id'=>'-68765999669267']);
-                              $btn=ChannelPostButtonTransport::buttonUrl($post);
-                              $ctx=ChannelPostEntryService::resolve('max',$post['start_payload'],$registry);
-                              $item['native_photo_matches']=count($seen['attachments'])===1
-                                  &&isset($seen['attachments'][0]['photo_id'])
-                                  &&$seen['attachments'][0]['photo_id']===($snapshot['attachments'][0]['photo_id']??null);
-                              $item['native_caption_matches']=$seen['text']===($snapshot['text']??null);
-                              $item['native_hotel_button_matches']=$btn!==''&&ChannelPostIncomingAdapter::containsOnlyButton($seen,$btn,$post['channel']['button_text'])
-                                  &&(int)($ctx['publication_id']??0)===$id;
-                          }
-                      }catch(Throwable $e){$item['failure']=preg_match('/\A[a-z_]{3,64}\z/D',$e->getMessage())?$e->getMessage():'read_unavailable';}
-                      $out['rows'][]=$item;
-                  }
-                  $out['ok']=true;
-              }finally{$db->rollBack();flock($lease,LOCK_UN);fclose($lease);}
-          }catch(Throwable $e){$out['failure']=preg_match('/\A[a-z_]{3,64}\z/D',$e->getMessage())?$e->getMessage():'reader_unavailable';}
-          ob_end_clean();
-          echo 'MAX_FRESH_PRICE_PUBLICATIONS='.json_encode($out,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR).PHP_EOL;
-          PHP
-      - name: Remove runner-only connection material
-        if: always()
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
