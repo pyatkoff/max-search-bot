@@ -19,7 +19,7 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == 'c50c2ba66d60f99184fa92309b2b61c4563eff2e' &&
+      github.event.before == '099d6d8e776ab769c6772e4891d1f4478d593948' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -116,7 +116,7 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '695246fe384210754a5aee710306ac81f4268165'
+          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '284eb7705e4ec69db3be0f190d0af23b8514a32b'
           mkdir pub
           python3 - <<'PY'
           import os,pathlib,re
@@ -179,6 +179,17 @@ jobs:
           try{parsePublicRead(str_replace('data-post="anytour/931"','data-post="anytour/932"',$html),'anytour','931');throw new LogicException('wrong_identity_admitted');}catch(RuntimeException $e){verifyFormat($e->getMessage()==='public_identity_changed');}
           $text='<div data-post="anytour/647"><div class="tgme_widget_message_text">old commercial text</div>'.$date.'</div>';
           $r=parsePublicRead($text,'anytour','647');verifyFormat($r['photo_count']===0&&$r['other_media_count']===0&&$r['photo_marker_sha256']===null&&!$r['single_photo']);
+          $fixture='<div data-post="anytour/1047"><div class="tgme_widget_message_text">old offer</div>'.$date;
+          $embed=parsePublicRead($fixture.'</div>','anytour','1047');
+          $archive=parsePublicRead($fixture.'<a class="tgme_widget_message_inline_button" href="https://t.me/AnyTour_MSK">Contact</a></div>','anytour','1047');
+          $merged=corroborateTargetKeyboard($embed,$archive);
+          verifyFormat($embed['buttons']===[]&&$merged['target_keyboard_archive_verified']===true&&count($merged['buttons'])===1);
+          $clear=corroborateTargetKeyboard($embed,$embed);
+          verifyFormat($clear['target_keyboard_archive_verified']===true&&$clear['buttons']===[]);
+          $changed=$archive;$changed['caption_sha256']=str_repeat('0',64);
+          try{corroborateTargetKeyboard($embed,$changed);throw new LogicException('changed_caption_admitted');}catch(RuntimeException $e){verifyFormat($e->getMessage()==='target_keyboard_archive_identity_changed');}
+          try{corroborateTargetKeyboard($archive,$embed);throw new LogicException('changed_keyboard_admitted');}catch(RuntimeException $e){verifyFormat($e->getMessage()==='target_keyboard_archive_changed');}
+          echo "ARCHIVE_KEYBOARD_CONTRACT=PASS\n";
           echo "EXPLICIT_FORMAT_OBSERVATION_CONTRACT=PASS\n";
           """
           pathlib.Path('pub/read-format-fixture.php').write_text(stub+a+b+tests)

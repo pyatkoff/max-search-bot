@@ -140,14 +140,25 @@ function albumStructureRead(DOMDocument $dom, DOMXPath $xp, DOMNode $node, strin
 
 function publicRead(string $channel, string $message): array
 {
-    global $publicAttempts, $publicRateLimit;
-    $retryAfter = null;
     $allowed = $channel === 'anytour' ? array_merge(array_column(PAIRS, 'target'),['932','933','934','935','936'])
         : ($channel === 'any_toour' ? array_column(PAIRS, 'source') : []);
     requireRead(in_array($message, $allowed, true), 'public_scope_invalid');
     $url = 'https://t.me/' . $channel . '/' . $message;
+    $embedded = parsePublicRead(readTelegramPublicHtml($url . '?embed=1&mode=tme'), $channel, $message);
+    if ($channel !== 'anytour' || isset($embedded['format_observation'])) return $embedded;
+
+    // Telegram's embedded widget can omit the inline keyboard of a historical channel post.
+    $archiveUrl = 'https://t.me/s/anytour?before=' . ((int) $message + 1);
+    $archive = parsePublicRead(readTelegramPublicHtml($archiveUrl), $channel, $message);
+    return corroborateTargetKeyboard($embedded, $archive);
+}
+
+function readTelegramPublicHtml(string $url): string
+{
+    global $publicAttempts, $publicRateLimit;
+    $retryAfter = null;
     $body = '';
-    $curl = curl_init($url . '?embed=1&mode=tme');
+    $curl = curl_init($url);
     requireRead($curl !== false, 'public_transport_unavailable');
     curl_setopt_array($curl, [
         CURLOPT_FOLLOWLOCATION => false, CURLOPT_SSL_VERIFYPEER => true, CURLOPT_SSL_VERIFYHOST => 2,
@@ -171,7 +182,7 @@ function publicRead(string $channel, string $message): array
         throw new RuntimeException('public_rate_limited');
     }
     requireRead($ok && $status === 200, 'public_post_unavailable');
-    return parsePublicRead($body, $channel, $message);
+    return $body;
 }
 function parsePublicRead(string $body, string $channel, string $message): array
 {
@@ -245,6 +256,19 @@ function parsePublicRead(string $body, string $channel, string $message): array
         'photo_count' => $photos->length, 'other_media_count' => $other->length, 'caption_links'=>$captionLinks,
         'document_anchors'=>$documentAnchors, 'document_anchors_truncated'=>$documentLinks && $documentLinks->length>80,
         'photo_marker_sha256' => $marker !== '' ? hash('sha256', $marker) : null, 'buttons' => $buttons];
+}
+
+function corroborateTargetKeyboard(array $embedded, array $archive): array
+{
+    requireRead($embedded['url'] === $archive['url']
+        && $embedded['published_unixtime'] === $archive['published_unixtime']
+        && $embedded['caption_sha256'] === $archive['caption_sha256'],
+        'target_keyboard_archive_identity_changed');
+    requireRead($embedded['buttons'] === [] || $embedded['buttons'] === $archive['buttons'],
+        'target_keyboard_archive_changed');
+    $embedded['buttons'] = $archive['buttons'];
+    $embedded['target_keyboard_archive_verified'] = true;
+    return $embedded;
 }
 
 /** No raw receipt, provider file id, media token or claim token leaves the host. */
