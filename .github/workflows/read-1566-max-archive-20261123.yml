@@ -1,4 +1,4 @@
-name: "Read both registered MAX heading preimages before the 1728 installation"
+name: "Independently read both corrected MAX headings, images and buttons at their original MID"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -17,7 +17,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.event.forced == false &&
-      github.event.before == 'e3b86af5b54bf701e7219b2f4a5c5527f9cb4b12' &&
+      github.event.before == '2457f13753649f3bc907b261fdb9d0869d0fb68c' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
@@ -66,11 +66,11 @@ jobs:
           ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; cd /var/www/anytoour/data/www/app.anytoour.ru; php /dev/stdin read' <<'SOURCE'
           <?php
           declare(strict_types=1);
-          use function AnyTour\ExistingPostBatch\{editHotelExisting,publicHotelPost,readHotelMax,postPhotoIds,validHotelEditPlan};
+          use function AnyTour\ExistingPostBatch\{readHotelMax,postPhotoIds};
           ini_set('display_errors','0');
           $root='/var/www/anytoour/data/www/app.anytoour.ru';
           $ops='/var/www/anytoour/data/channel-post-operations';
-          $app='703b239adbcfb1f480265f3a7beea566f6d07002';
+          $app='4d1ac4a25c5403223d3811e61def23040b1872e3';
           $ids=[
             ['hotel'=>1972,'id'=>3824,'mid'=>'mid.ffffc1752b045fed01a048e897ef69df','url'=>'https://max.ru/anytour/AaBI6Jfvad8',
              'from'=>'Moreno Horizon Spa & Resort','to'=>'Moreno Horizon Spa and Resort'],
@@ -81,11 +81,12 @@ jobs:
           function compactHeadingError(Throwable $e):string{return preg_match('/\A[a-z_]{3,80}\z/D',$e->getMessage())?$e->getMessage():'unclassified_read_or_write';}
           ob_start();
           $status=[];
+          $originalProof=json_decode('{"1972":["ae071ebae0dcf789bb083da45bd4788b5c9f1cb96a2e9d2b44f640ccefc9d71f","e2781998d5001daa2fb2b9e86fa424cc9c8702592feb127a798bef8d2b2671e2","5ab38aa5019579051ca85c35eedbd161a0156ff3ec1afcde8812908f949726e4"],"32342":["9ce427a22d9f3a0f5c231aed3f0d7749917b93ad4c9c7683eb260dbc6d353233","64e67479a5ff2b8bd79272eaf407afb361947e8cab48ca20791e1d6462657126","79555cf85a40c5cf7d360d0e7bcbb744a620d26d8e761553742e68e858fc5806"]}',true,16,JSON_THROW_ON_ERROR);
           try {
              ensureHeading(getcwd()===$root&&trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'))===$app,'installed_head_changed');
              $mode=$argv[1]??'';
-             ensureHeading(in_array($mode,['apply','read'],true),'unknown_operation_mode');
-             $receiptAt=strtotime('2026-11-25T20:45:00+00:00');
+             ensureHeading($mode==='read','unknown_operation_mode');
+             $receiptAt=strtotime('2026-11-25T20:57:29+00:00');
              if($mode==='apply')ensureHeading($receiptAt>0&&time()>=$receiptAt&&time()-$receiptAt<=480,'route_receipt_not_fresh');
              require_once $root.'/config.php';
              require_once $root.'/tools/anytour_existing_post_batch.php';
@@ -144,7 +145,11 @@ jobs:
                       ensureHeading($button!==''&&(int)($context['publication_id']??0)===$id
                           &&(string)($context['external_message_id']??'')===$t['mid']
                           &&ChannelPostIncomingAdapter::containsOnlyButton($native,$button,$post['channel']['button_text']),'hotel_button_changed');
-                      if(str_contains($caption,$t['to'])&&!str_contains($caption,$t['from'])&&str_contains((string)$preview,$t['to'])){
+                      ensureHeading(isset($originalProof[$t['hotel']])
+                           &&$originalProof[$t['hotel']][0]===$base['photo_fingerprint']
+                           &&$originalProof[$t['hotel']][1]===$base['button_fingerprint'] ,
+                           'original_photo_or_button_fingerprint_changed');
+                      if(str_contains($caption,$t['to'])&&!str_contains($caption,$t['from'])&&str_contains((string)$preview,$t['to'])&&!str_contains((string)$preview,'&amp;')){
                          $status[]=$base+['state'=>'already_publicly_verified','provider_writes'=>0,'caption_and_button_verified'=>true,'public_heading'=>$preview];
                          continue;
                       }
@@ -153,22 +158,6 @@ jobs:
                             'journal_present'=>is_file($journal)&&filesize($journal)>0];
                          continue;
                       }
-                      ensureHeading(!is_link($journal)&&(!is_file($journal)||filesize($journal)===0),'previous_edit_needs_independent_read');
-                      if(preg_match('/\d[\d\s\x{00a0}\x{202f}]*(?:₽|руб)/iu',$caption)){
-                         $priceAt=strtotime((string)($snapshot['metadata']['promoted_price_observed_at']??''));
-                         ensureHeading($priceAt>0&&$priceAt<=time()&&time()-$priceAt<=129600,'fixed_price_not_current');
-                      }
-                      [$titleLine]=explode("\n",$caption,2);
-                      ensureHeading(str_contains($titleLine,$t['from']),'expected_original_heading_missing');
-                      $newLine=str_replace($t['from'],$t['to'],$titleLine,$changes);
-                      ensureHeading($changes===1&&!str_contains($newLine,'&'),'heading_replacement_not_exact');
-                      $next=$newLine.substr($caption,strlen($titleLine));
-                      $row=['platform'=>'max','hotel'=>$t['hotel'],'post'=>(string)$id,'mid'=>$t['mid'],'url'=>$t['url'],
-                         'button_sha'=>hash('sha256',$button),'old_caption_sha256'=>hash('sha256',$caption),'next'=>$next];
-                      ensureHeading(validHotelEditPlan($row),'editor_input_not_valid');
-                      ensureHeading(trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'))===$app,'installed_head_changed');
-                      $began=true;
-                      $status[]=$base+editHotelExisting($pdo,$registry,$row);
                    }catch(Throwable $e){
                       $state=$began&&is_file($journal)&&filesize($journal)>0?'unknown_read_before_retry':'held_before_verified_write';
                       $status[]=$base+['state'=>$state,'reason'=>compactHeadingError($e)];
