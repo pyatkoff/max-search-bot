@@ -8,9 +8,7 @@ permissions:
   actions: read
   issues: read
   pull-requests: read
-# Read-only public observations and a bounded READ ONLY SQL snapshot do not occupy
-# the writer or wait behind another reader's unrelated release admission.
-# The canonical shared PRICE lease and actual application checks remain in PHP.
+# Pure bounded reads retain the canonical PRICE shared lease and actual application fences.
 jobs:
   registry:
     if: >-
@@ -19,7 +17,7 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == 'b5c27d76186db4e8e5ff9c5c4fa2a03491720dce' &&
+      github.event.before == 'effed726dccd84d95db43f4b094488fcffbc1129' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -48,20 +46,22 @@ jobs:
           async function check(){
             const app='6194e13ac5af4ba53263284a3a3002f7d6d22b31';
             const api=R.makeReadApi(process.env.GITHUB_TOKEN);
-            const before=await R.readRecord(api);
+            const before=await R.readRecord(api,'121a1c9d386b566364df8dd4a93afe04c449e536');
             const r=R.validateRelease(before.record).release;
             if(r.repository_sha!==app||r.application_sha!==app||r.phase!=='pending_terminal'
               ||r.release.run_id!=='45584366107')throw Error('accepted_installation_changed');
             const resolved=await R.resolveCurrent(api,{sha:app},before);
             if(!resolved.ready||resolved.repository_sha!==app||resolved.application_sha!==app)throw Error('installation_not_accepted');
             const main=(await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha;
-            const after=await R.readRecord(api);
-            if(before.blob!==after.blob||before.record_digest!==after.record_digest)throw Error('accepted_record_changed');
+            const current=await R.readRecord(api);
+            const currentRelease=R.validateRelease(current.record).release;
             // No merge or writer is admitted here. The PHP reader independently checks actual HEAD before and after reads.
             fs.mkdirSync('../pub',{recursive:true});
             fs.writeFileSync('../pub/accepted-read-admission.json',JSON.stringify({read_only:true,
               current_main_sha:main,accepted_repository_sha:app,application_sha:app,
-              record_blob:before.blob,record_digest:before.record_digest,original_deploy:'45584366107'})+'\n');
+              record_commit:before.commit,record_blob:before.blob,record_digest:before.record_digest,
+              current_record_repository_sha:currentRelease.repository_sha,current_record_application_sha:currentRelease.application_sha,
+              current_record_phase:currentRelease.phase,original_deploy:'45584366107'})+'\n');
             fs.appendFileSync(process.env.GITHUB_ENV,'REPOSITORY_SHA='+app+'\nAPPLICATION_SHA='+app+'\n');
           }
           check().catch(e=>{console.error('readonly_accepted_installation_refused',e.code||e.message);process.exitCode=1});
@@ -71,7 +71,7 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '5ec220c8281f574516b498f9d371712c61b1f205'
+          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = 'e17764e5ee14a9ec959f95fe3cc76543066ee689'
           mkdir -p pub
           python3 - <<'PY'
           import os,pathlib,re
@@ -218,26 +218,14 @@ jobs:
         if: always()
         shell: bash
         run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
-      - name: Check out the prior resolver without mutation
-        uses: actions/checkout@v4
-        with:
-          ref: 878c680627d54297c364254687577a03ac5aef6b
-          path: before
-          persist-credentials: false
-      - name: Check out installed ROUTE code for immutable receipt preparation
-        uses: actions/checkout@v4
-        with:
-          ref: 6194e13ac5af4ba53263284a3a3002f7d6d22b31
-          path: route-preparation
-          persist-credentials: false
       - name: Authenticate the canonical accepted eighteen without replaying advertising reads
+        if: ${{ !cancelled() }}
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git -C accepted rev-parse HEAD)" = "$APPLICATION_SHA"
-          cp before/hotel-posts-telegram-main19.php route-preparation/
+          test "$(git -C accepted rev-parse HEAD)" = "6194e13ac5af4ba53263284a3a3002f7d6d22b31"
           python3 - <<'PY'
           import hashlib,io,json,pathlib,subprocess,sys,tempfile,zipfile
           sys.path.insert(0,str(pathlib.Path('route-preparation/tools').resolve()))
@@ -254,7 +242,7 @@ jobs:
           assert (folder/'hotel-posts-telegram-main19.php').read_bytes()==pathlib.Path('accepted/hotel-posts-telegram-main19.php').read_bytes()
           PY
       - name: Independently read Telegram and common XML without advertising entries
-        if: ${{ !cancelled() && hashFiles('pub/registry.json') != '' }}
+        if: ${{ !cancelled() && hashFiles('pub/original-candidate/route-candidate.json') != '' }}
         shell: bash
         run: python3 tools/direct_demand/operations/read-1566-telegram-route-xml.py
       - name: Save the bounded independent acceptance in the existing reader

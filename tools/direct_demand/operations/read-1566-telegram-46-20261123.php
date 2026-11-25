@@ -408,6 +408,7 @@ try {
     // All external reads precede the SQL transaction and shared PRICE lease.
     $stage='accepted_public_posts'; $public=[];
     foreach(PAIRS as $hotel=>$pair) $public[$hotel]=publicEvidence('anytour',$pair['target']);
+    $out['public_observations']=$public;
     $out['public_get_attempts']=$publicAttempts; $out['public_rate_limit']=$publicRateLimit;
     runtimeRead();
     require_once APP.'/hotel-posts-telegram-main19.php';
@@ -427,13 +428,17 @@ try {
     $out['price_lease_wait_ms']=(int)((hrtime(true)-$lockStarted)/1_000_000);
     requireRead($shared,'price_editor_busy_or_unknown'); $priceLeaseAcquired=hrtime(true);
     $out['price_editor_shared_read_lease']=true; runtimeRead();
+    $stage='initialize_registry';
     ob_start();
-    try { require APP.'/config.php'; require_once APP.'/services/ChannelPostRegistryService.php';
+    try { require APP.'/config.php'; require_once APP.'/services/ProjectConfig.php'; require_once APP.'/services/ChannelPostRegistryService.php';
         require_once APP.'/services/ChannelPostButtonTransport.php'; }
     finally {ob_end_clean();}
+    $stage='configuration_identity';
     requireRead(ProjectConfig::projectId()==='anytour','project_changed');
+    $stage='readonly_database';
     $pdo=ConversationDb::connection(); $pdo->exec('SET SESSION TRANSACTION READ ONLY');
     $registry=new ChannelPostRegistryService($pdo);
+    $stage='canonical_channels';
     $target=$registry->channel('anytour','telegram','anyru_bot','-1001845835645');
     $source=$registry->channel('anytour','telegram','anyru_bot','-1002262666616');
     requireRead(is_array($target)&&(int)$target['id']===6&&$target['source_key']==='tg_anytour_msk'
@@ -477,7 +482,7 @@ try {
     $out['mysql_resources_after']=mysqlResourcesRead($pdo); $pdo->rollBack(); runtimeRead();
     $out['verified_count']=count(array_filter($out['rows'],static fn($r)=>$r['verified']));
     $out['read_at_utc']=gmdate(DATE_ATOM); $out['ok']=true;
-} catch(Throwable $e) {$out['failure_stage']=$stage; $out['failure_reason']=reasonRead($e);}
+} catch(Throwable $e) {$out['failure_stage']=$stage; $out['failure_reason']=reasonRead($e); $out['failure_type']=get_class($e);}
 finally {
     if($pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();
     if(is_resource($priceLock)) {$out['price_lease_held_ms']=$priceLeaseAcquired===null?0:(int)((hrtime(true)-$priceLeaseAcquired)/1_000_000); flock($priceLock,LOCK_UN); fclose($priceLock);}

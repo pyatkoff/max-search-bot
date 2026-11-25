@@ -7,7 +7,6 @@ import xml.etree.ElementTree as ET
 class NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self,*args,**kwargs): return None
 
-native=json.loads(Path('pub/registry.json').read_bytes())
 candidate=json.loads(Path('pub/original-candidate/route-candidate.json').read_bytes())
 expected={r['offer_id']:r for r in candidate['changes']}
 assert len(expected)==18
