@@ -950,6 +950,8 @@ function terminalReads(base,{sleep=ms=>new Promise(r=>setTimeout(r,ms))}={}){
   api.jobLog=id=>read(()=>base.jobLog(id),'job_log');api.artifact=meta=>read(()=>base.artifact(meta),'artifact');return api;
 }
 async function resumeTerminal({env,event,api,prepare=false,proofFile=null,readOptions={}}){
+  if(env.GITHUB_REF==='refs/heads/ops/recover-pr1701-terminal-20261125')
+    return require('./release_slot_1701_recovery').resume({env,event,api,prepare,proofFile});
   if(env.GITHUB_REF==='refs/heads/'+release.PUBLISHER_BODY_RECOVERY.branch)
     return resumePublisherBodyTerminal({env,event,api,prepare,proofFile});
   if(env.GITHUB_REF==='refs/heads/'+release.PRIOR_WAVE_RECOVERY.branch)
