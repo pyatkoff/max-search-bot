@@ -2098,15 +2098,20 @@ foreach (['timeout','other_message','other_bot_attempt'] as $case) {
 }
 $pilotTmp = sys_get_temp_dir().'/publisher-keyboard-pilot-'.bin2hex(random_bytes(8)); mkdir($pilotTmp,0700);
 try {
-    foreach (['success','rejected','noop','timeout','public_changed','payload_changed'] as $case) {
+    foreach (['success','success_without_edit_date','wrong_target_without_edit_date','unchanged_keyboard_without_edit_date',
+        'rejected','noop','timeout','public_changed','payload_changed'] as $case) {
         $dir=$pilotTmp.'/'.$case;mkdir($dir,0700);file_put_contents($dir.'/receipt.jsonl',$pilotParentBytes);
         $parentSha=hash_file('sha256',$dir.'/receipt.jsonl');$writes=0;$startedBeforeRequest=false;
         $effects=['context'=>['application_sha'=>str_repeat('a',40),'native_run_id'=>'49999999999'],
             'publisher'=>['username'=>'ANYTOURBOT_bot','bot_id'=>'123456','credential_version'=>1],
             'assert'=>static function()use($dir,$parentSha):void { if(hash_file('sha256',$dir.'/receipt.jsonl')!==$parentSha)throw new RuntimeException('parent_changed'); },
-            'request'=>static function(array $payload)use(&$writes,&$startedBeforeRequest,$dir,$case,$pilotNative,$pilotRejected,$pilotNoop):array {
+            'request'=>static function(array $payload)use(&$writes,&$startedBeforeRequest,$dir,$case,$pilotNative,$pilotRejected,$pilotNoop,$pilotBefore):array {
                 $writes++;$startedBeforeRequest=str_contains(file_get_contents($dir.'/publisher-keyboard-20261125.jsonl'),'"state":"provider_edit_started"');
                 if($case==='timeout')throw new RuntimeException('provider_timeout');
+                // Telegram Message.edit_date is optional, including in edit responses.
+                if(str_ends_with($case,'_without_edit_date'))unset($pilotNative['data']['result']['edit_date']);
+                if($case==='wrong_target_without_edit_date')$pilotNative['data']['result']['message_id']=1058;
+                if($case==='unchanged_keyboard_without_edit_date')$pilotNative['data']['result']['reply_markup']=$pilotBefore['reply_markup'];
                 return $case==='rejected'?$pilotRejected:($case==='noop'?$pilotNoop:$pilotNative);
             },
             'readback'=>static function()use($case,$pilotBefore,$pilotAfter):array {
@@ -2115,7 +2120,7 @@ try {
             },'parent_unchanged'=>static function()use($dir,$parentSha):void { if(hash_file('sha256',$dir.'/receipt.jsonl')!==$parentSha)throw new RuntimeException('parent_changed'); }];
         $body=$pilotBody;if($case==='payload_changed')$body['reply_markup']['inline_keyboard'][0][0]['url']='https://t.me/other';
         $result=AnyTour\ExistingPostBatch\publisherKeyboardExecute($pilotPublicPlan,$pilotBefore,$body,$effects,$dir);
-        $expected=match($case){'success'=>'publisher_keyboard_verified','rejected'=>'provider_message_id_rejected',
+        $expected=match($case){'success','success_without_edit_date'=>'publisher_keyboard_verified','rejected'=>'provider_message_id_rejected',
             'noop'=>'message_not_modified','timeout'=>'provider_outcome_unknown','payload_changed'=>'held_before_provider',default=>'response_saved_requires_readback'};
         channelPostCheck('publisher pilot retains honest '.$case.' outcome',[$result['state'],$result['full_transfer'],$writes],[$expected,false,$case==='payload_changed'?0:1]);
         channelPostCheck('publisher pilot preserves consumed parent on '.$case,hash_file('sha256',$dir.'/receipt.jsonl'),$parentSha);

@@ -1140,7 +1140,6 @@ function publisherKeyboardResponse(array $response, array $body, array $plan): s
         && (string)($message['chat']['id'] ?? '') === '-1001845835645' && ($message['chat']['type'] ?? '') === 'channel'
         && strtolower((string)($message['chat']['username'] ?? '')) === 'anytour'
         && ($message['message_id'] ?? null) === 1047 && ($message['date'] ?? null) === $plan['target_published_unixtime']
-        && is_int($message['edit_date'] ?? null) && $message['edit_date'] > $plan['target_published_unixtime']
         && is_string($message['caption'] ?? null) && hash('sha256', $message['caption']) === $plan['target_caption_sha256']
         && !empty($message['photo']) && empty($message['media_group_id']) && !isset($message['video'])
         && !isset($message['text']) && ($message['reply_markup'] ?? null) === $body['reply_markup'],
