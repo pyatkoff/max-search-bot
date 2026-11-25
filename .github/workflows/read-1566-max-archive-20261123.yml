@@ -1,4 +1,4 @@
-name: "#1566 Inspect three eligible exact MAX price destinations"
+name: "#1566 Check scoped MAX PRICE release admission"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -19,233 +19,44 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '3715a227371f54c9e5b88086dfc3a44b83bdfa04' &&
+      github.event.before == 'f88115ac74dd876c62e46974b4977091ffd44e54' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 29
     steps:
-      - name: Checkout exact installed provenance source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: 878c680627d54297c364254687577a03ac5aef6b
           persist-credentials: false
-      - name: Verify current main and accepted application without mutations
+      - name: Await exact required checks and run existing release admission
         env:
           GITHUB_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = '878c680627d54297c364254687577a03ac5aef6b'
           node - <<'NODE'
           const R = require('./tools/deployment_release')
-          const expected = '878c680627d54297c364254687577a03ac5aef6b'
-          async function read() {
-            const api = R.makeReadApi(process.env.GITHUB_TOKEN)
-            const current = async () => (await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha
-            if (await current() !== expected) throw Error('changed_release')
-            const prior = R.API_ROOT+'/actions/runs/45373389110'
-            const archive = await api('GET',prior)
-            const receipts = await api('GET',prior+'/artifacts?per_page=30')
-            const digest = 'sha256:c46ce092bfb91935ce829c871026a1136bf465920a3caa9184604f052c55798c'
-            if (archive.id!==45373389110 || archive.head_sha!=='e1e3d25e42522639e2b82b4bdf32b155a547a184' || archive.run_attempt!==1 ||
-                archive.repository.id!==1342493152 || archive.head_branch!=='ops/1566-max-archive-inventory-20261123' ||
-                archive.status!=='completed' || archive.conclusion!=='success' || receipts.total_count!==1 ||
-                receipts.artifacts[0].id!==14910511299 || receipts.artifacts[0].digest!==digest ||
-                receipts.artifacts[0].expired || receipts.artifacts[0].name!=='issue-1566-main-max-archive-inventory') throw Error('previous_archive_unverified')
-            const {setTimeout: pause} = require('node:timers/promises')
-            for (let attempt = 0; attempt < 80; attempt++) {
-              if (await current() !== expected) throw Error('changed_release')
-              const install = await api('GET',R.API_ROOT+'/actions/runs/45564567382')
-              if (install.id !== 45564567382 || install.repository.id !== 1342493152 ||
-                  install.head_sha !== expected || install.run_attempt !== 1 ||
-                  install.event !== 'push' || install.path !== '.github/workflows/deploy.yml') throw Error('installation_identity_changed')
-              if (install.status === 'completed') {
-                if (install.conclusion !== 'success') throw Error('current_installation_failed')
-                try {
-                  const record = await R.readRecord(api)
-                  const actual = await R.resolveCurrent(api, {sha:expected}, record)
-                  if (!actual.ready || !/^[a-f0-9]{40}$/.test(actual.application_sha) ||
-                      actual.repository_sha !== expected) throw Error('accepted_release_mismatch')
-                  // This job uses the installed reader under the shared read lease.
-                  // Publisher admission remains in the write workflow.
-                  const latest = await R.readRecord(api)
-                  if (record.blob !== latest.blob || record.record_digest !== latest.record_digest ||
-                      await current() !== expected) throw Error('accepted_release_changed')
-                  require('node:fs').appendFileSync(process.env.GITHUB_ENV, 'VERIFIED_MAX_APP='+actual.application_sha+'\n')
-                  console.log('MAX15_PRICE_RELEASE_ACCEPTED='+expected)
-                  return
-                } catch (error) {
-                  if (!['release_pending','diagnostics_unconfirmed','accepted_release_mismatch'].includes(error.code || error.message)) throw error
-                }
+          const api = R.makeReadApi(process.env.GITHUB_TOKEN)
+          const {setTimeout: wait} = require('node:timers/promises')
+          async function run() {
+            const head = '1060a866a1ebdc0fd5aca25cbce59e302cd5aa47'
+            const base = '878c680627d54297c364254687577a03ac5aef6b'
+            const want = ['regression','guard']
+            for (let n = 0; n < 46; n++) {
+              const pr = await api('GET', R.API_ROOT+'/pulls/1719')
+              if (pr.state !== 'open' || pr.draft || pr.head.sha !== head || pr.base.sha !== base ||
+                  (await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha !== base) throw Error('release_source_changed')
+              const checks = (await api('GET',R.API_ROOT+'/commits/'+head+'/check-runs?per_page=50')).check_runs
+              const status = want.map(name=>checks.filter(c=>c.name===name).sort((a,b)=>b.id-a.id)[0])
+              if (status.some(c=>c?.status==='completed' && c.conclusion!=='success')) throw Error('required_check_failed')
+              if (status.every(c=>c?.status==='completed' && c.conclusion==='success')) {
+                console.log('MAX_PRICE_REQUIRED_CHECKS='+JSON.stringify(status.map(c=>c.id)))
+                return
               }
-              if (attempt < 79) await pause(18000)
+              if (n < 45) await wait(15000)
             }
-            throw Error('current_installation_timeout')
+            throw Error('required_checks_pending')
           }
-          read().catch(e=>{console.error('release_refused='+(e.code||e.message||'accepted_release_unavailable'));process.exitCode=1})
+          run().catch(e=>{console.error(e.message);process.exitCode=1})
           NODE
-      - name: Prepare narrow server read of configured MAX records only
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          mkdir pub
-          cat > pub/read-only.php <<'PHP'
-          <?php
-          declare(strict_types=1);
-          use function AnyTour\ExistingPostBatch\maxTransferRead;
-          ini_set('display_errors','0');
-          function needPriceRead(bool $ok,string $code): void { if (!$ok) throw new RuntimeException($code); }
-          function priceReadReason(Throwable $e): string {
-              return preg_match('/\A[a-z_]{3,64}\z/D',$e->getMessage())?$e->getMessage():'read_unavailable';
-          }
-          $base='/var/www/anytoour/data/channel-post-operations';
-          $root='/var/www/anytoour/data/www/app.anytoour.ru';
-          $app='VERIFIED_MAX_APPLICATION_SHA';
-          $out=['ok'=>false,'application_sha'=>$app,'provider_writes'=>0,'db_writes'=>0,'rows'=>[]];
-          ob_start();
-          try {
-              needPriceRead(getcwd()===$root && trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'))===$app,'installed_release_changed');
-              require_once $root.'/config.php';
-              require_once $root.'/services/PromotedHotelPriceWriter.php';
-              require_once $root.'/services/ChannelPostEntryService.php';
-              require_once $root.'/tools/anytour_existing_post_max_transfer.php';
-              needPriceRead(ProjectConfig::projectId()==='anytour','unexpected_project');
-              $path=$base.'/monitor-price-after-collection-v1.jsonl';
-              needPriceRead(is_file($path)&&!is_link($path),'editor_lock_unavailable');
-              $lease=fopen($path,'rb');needPriceRead(is_resource($lease)&&flock($lease,LOCK_SH|LOCK_NB),'editor_busy');
-              $db=ConversationDb::connection();$db->exec('SET TRANSACTION READ ONLY');$db->beginTransaction();
-              try {
-                  $registry=new ChannelPostRegistryService($db);
-                  $targetBytes=file_get_contents($root.'/config/promoted_hotel_price_targets.json');
-                  $config=json_decode($targetBytes,true,32,JSON_THROW_ON_ERROR);
-                  $out['configured_target_rows']=count($config);$out['config_sha256']=hash('sha256',$targetBytes);
-                  foreach (json_decode('[{"hotel_id":2588,"platform":"max","publication_id":3825,"url":"https://max.ru/anytour/AaAkdvyEBXQ","mid":"mid.ffffc1752b045fed01a02476fc840574","original_version":14401},{"hotel_id":57028,"platform":"max","publication_id":3827,"url":"https://max.ru/anytour/AZ9AsoswVYw","mid":"mid.ffffc1752b045fed019f40b28b30558c","original_version":14403},{"hotel_id":65877,"platform":"max","publication_id":3828,"url":"https://max.ru/anytour/AZ-d-XrfADw","mid":"mid.ffffc1752b045fed019f9df97adf003c","original_version":14404},{"hotel_id":73343,"platform":"max","publication_id":3832,"url":"https://max.ru/anytour/AaBnNxELfuU","mid":"mid.ffffc1752b045fed01a06737110b7ee5","original_version":14408},{"hotel_id":43689,"platform":"max","publication_id":3833,"url":"https://max.ru/anytour/AaBxuxe-Jxk","mid":"mid.ffffc1752b045fed01a071bb17be2719","original_version":14409},{"hotel_id":139,"platform":"max","publication_id":3834,"url":"https://max.ru/anytour/AaCAxCRDffc","mid":"mid.ffffc1752b045fed01a080c424437df7","original_version":14410},{"hotel_id":2470,"platform":"max","publication_id":3835,"url":"https://max.ru/anytour/AaC42fW_AY0","mid":"mid.ffffc1752b045fed01a0b8d9f5bf018d","original_version":14411},{"hotel_id":56092,"platform":"max","publication_id":3836,"url":"https://max.ru/anytour/AaDD8UQLQ4U","mid":"mid.ffffc1752b045fed01a0c3f1440b4385","original_version":14412},{"hotel_id":59114,"platform":"max","publication_id":3837,"url":"https://max.ru/anytour/AaDYcRGJKpQ","mid":"mid.ffffc1752b045fed01a0d87111892a94","original_version":14413},{"hotel_id":63191,"platform":"max","publication_id":3838,"url":"https://max.ru/anytour/AaELd0cFVAQ","mid":"mid.ffffc1752b045fed01a10b7747055404","original_version":14414},{"hotel_id":76588,"platform":"max","publication_id":3839,"url":"https://max.ru/anytour/AaEba-dgJKk","mid":"mid.ffffc1752b045fed01a11b6be76024a9","original_version":14415},{"hotel_id":77914,"platform":"max","publication_id":3840,"url":"https://max.ru/anytour/AaEl-MVcT8Q","mid":"mid.ffffc1752b045fed01a125f8c55c4fc4","original_version":14416},{"hotel_id":106,"platform":"max","publication_id":3841,"url":"https://max.ru/anytour/AaEwSMavEQU","mid":"mid.ffffc1752b045fed01a13048c6af1105","original_version":14417},{"hotel_id":111,"platform":"max","publication_id":3842,"url":"https://max.ru/anytour/AaE0q57XSGk","mid":"mid.ffffc1752b045fed01a134ab9ed74869","original_version":14418},{"hotel_id":114,"platform":"max","publication_id":3843,"url":"https://max.ru/anytour/AaE6sgknSuc","mid":"mid.ffffc1752b045fed01a13ab209274ae7","original_version":14419},{"hotel_id":99713,"platform":"max","publication_id":3620,"url":"https://max.ru/anytour/AZ_RB3FVXFc","mid":"mid.ffffc1752b045fed019fd10771555c57","original_version":11865}]',true,16,JSON_THROW_ON_ERROR) as $plan) {
-                      $item=['hotel_id'=>$plan['hotel_id'],'publication_id'=>$plan['publication_id'],'mid'=>$plan['mid'],'url'=>$plan['url']];
-                      try {
-                          $bindings=array_values(array_filter($config,static fn($r)=>$r['platform']==='max' && $r['hotel_id']===$plan['hotel_id']));
-                          $item['price_bound']=count($bindings)===1 && $bindings[0]['url']===$plan['url'] && $bindings[0]['publication_id']===$plan['publication_id'];
-                          $post=$registry->publication($plan['publication_id']);
-                          $snapshot=$post['snapshot']??[];
-                          $meta=$snapshot['metadata']??[];
-                          $item['registry_identity']=is_array($post) && ($post['platform']??null)==='max'
-                              && ($post['message_id']??$post['external_message_id']??null)===$plan['mid']
-                              && ($snapshot['post_url']??null)===$plan['url'] && (int)($meta['hotel_catalog_id']??0)===$plan['hotel_id'];
-                          $item['version']=$post['version_id']??null;$item['registry_state']=$post['state']??null;
-                          $item['last_price_observation']=$meta['promoted_price_observed_at']??null;
-                          $item['price_observation_fresh']=is_string($item['last_price_observation']) && strtotime($item['last_price_observation'])<=time() && strtotime($item['last_price_observation'])>time()-129600;
-                          if ($item['price_bound'] && $item['registry_identity'] && in_array($plan['hotel_id'], [65877, 2470, 99713], true)) {
-                              $public = PromotedHotelPriceWriter::maxPublicCaption(PromotedHotelPriceWriter::publicBytes($plan['url']), $plan['url']);
-                              $item['installed_public_reader_matches_registry'] = $public === ($snapshot['text'] ?? null);
-                          }
-                          $item['journal_state']=null;$item['journal_matches_current']=false;$item['public_caption_confirmed']=false;$item['photo_button_context_confirmed']=false;
-                          $receipt=$base.'/promoted-hotel-price-revisions-v1/'.$plan['publication_id'].'.json';
-                          if (is_file($receipt)&&!is_link($receipt)&&filesize($receipt)<=4096) {
-                              $journal=json_decode(file_get_contents($receipt),true,16,JSON_THROW_ON_ERROR);
-                              $item['journal_state']=$journal['state']??null;
-                              $item['journal_matches_current']=($journal['platform']??null)==='max' && ($journal['hotel']??null)===$plan['hotel_id']
-                                  && ($journal['url']??null)===$plan['url'] && ($journal['new_version']??null)===(int)$item['version']
-                                  && (int)$item['version']>$plan['original_version']
-                                  && ($journal['next_hash']??null)===hash('sha256',(string)($snapshot['text']??''));
-                              if ($item['price_bound']&&$item['registry_identity']&&$item['registry_state']==='sent'&&$item['journal_matches_current']&&$item['price_observation_fresh']&&$item['journal_state']==='verified') {
-                                  [$msg,$seen]=maxTransferRead(['message_id'=>$plan['mid'],'url'=>$plan['url'],'channel_id'=>'-68765999669267']);
-                                  $item['public_caption_confirmed']=PromotedHotelPriceWriter::maxPublicCaption(PromotedHotelPriceWriter::publicBytes($plan['url']), $plan['url'])===$snapshot['text'];
-                                  $btn=ChannelPostButtonTransport::buttonUrl($post);
-                                  $resolved=ChannelPostEntryService::resolve('max',$post['start_payload'],$registry);
-                                  $item['photo_button_context_confirmed']=$seen['text']===$snapshot['text']&&count($seen['attachments'])===1
-                                      && ($seen['attachments'][0]['photo_id']??null)===($snapshot['attachments'][0]['photo_id']??null)
-                                      && $btn!==''&&ChannelPostIncomingAdapter::containsOnlyButton($seen,$btn,$post['channel']['button_text'])
-                                      && (int)($resolved['publication_id']??0)===$plan['publication_id'];
-                              }
-                          }
-                          $out['rows'][]=$item;
-                      } catch(Throwable $e) { $out['rows'][]=$item+['failure'=>priceReadReason($e)]; }
-                  }
-              } finally { $db->rollBack();fclose($lease); }
-              needPriceRead(trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'))===$app,'installed_release_changed');
-              $out['observed_utc']=gmdate(DATE_ATOM);$out['ok']=true;
-          } catch(Throwable $e) { $out['failure']=priceReadReason($e); }
-          ob_end_clean();
-          echo json_encode($out,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
-          exit($out['ok']?0:2);
-          PHP
-          python3 - <<'PY'
-          import os,pathlib,re
-          p=pathlib.Path("pub/read-only.php")
-          app=os.environ["VERIFIED_MAX_APP"]
-          s=p.read_text()
-          assert re.fullmatch("[a-f0-9]{40}",app) and s.count("VERIFIED_MAX_APPLICATION_SHA")==1
-          p.write_text(s.replace("VERIFIED_MAX_APPLICATION_SHA",app))
-          PY
-          php -l pub/read-only.php
-      - name: Pin established SSH host continuity and authentication identity
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
-          PY
-          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
-            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
-          chmod 600 "$RUNNER_TEMP/channel_key"
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-          python3 - <<'PY'
-          import base64,hashlib,os,pathlib,subprocess
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
-          for s in scan.stdout.splitlines():
-              q=s.split()
-              if len(q)<3 or q[0].startswith('#'):continue
-              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
-              except Exception:continue
-              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
-          assert found,'HOST_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
-          print('ESTABLISHED_HOST_PIN_VERIFIED')
-          PY
-      - name: Read scoped PRICE configuration, canonical registry and original receipts
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
-            -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
-            -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          for attempt in 1 2 3 4 5; do
-            ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json || true
-            if ! python3 -c 'import json,sys; sys.exit(0 if json.load(open("pub/registry.json")).get("failure")=="editor_busy" else 1)' 2>/dev/null; then break; fi
-            if [[ "$attempt" -lt 5 ]]; then sleep 20; fi
-          done
-          python3 -c 'import json; d=json.load(open("pub/registry.json")); print("MAX15_INSTALLED_PRICE_READ="+json.dumps(d,ensure_ascii=False,separators=(",",":"))); assert d["ok"] and len(d["rows"])==16 and not d["provider_writes"] and not d["db_writes"]'
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD)" = 878c680627d54297c364254687577a03ac5aef6b; timeout 90s php tools/apply_promoted_hotel_prices.php --inspect; test "$(GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD)" = 878c680627d54297c364254687577a03ac5aef6b' > pub/inspect.raw
-          python3 - <<'PY'
-          import json,pathlib
-          all_lines=pathlib.Path("pub/inspect.raw").read_text().splitlines()
-          prefix="PROMOTED_HOTEL_PRICE_RESULT="
-          lines=[s[len(prefix):] for s in all_lines if s.startswith(prefix)]
-          assert len(lines)==1,"missing_native_inspect_receipt"
-          result=json.loads(lines[0])
-          assert result["mode"]=="--inspect"
-          scope={2588,57028,65877,73343,43689,139,2470,56092,59114,63191,76588,77914,106,111,114,99713}
-          rows=[{k:x[k] for k in ("hotel","publication","result","reason","public_verified") if k in x} for x in result["rows"] if x.get("platform")=="max" and x.get("hotel") in scope]
-          print("MAX15_NATIVE_PRICE_INSPECT="+json.dumps({"feed_sha256":result["feed_sha256"],"rows":rows},separators=(",",":")))
-          PY
-          rm -f pub/inspect.raw
-      - if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: max15-installed-price-readback
-          path: pub/registry.json
-          retention-days: 7
-      - if: always()
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
+          node tools/release_priority.js --admit 1719 1060a866a1ebdc0fd5aca25cbce59e302cd5aa47 878c680627d54297c364254687577a03ac5aef6b
