@@ -2890,7 +2890,41 @@ async function unstarted1704Cases() {
   assertions++;
 }
 
-async function main(){await unstarted1704Cases();await closedPrewriteOriginCases();await rankedApprovedInputCases();await rankedParentCases();await rankedResumeOriginCases();hotelRegistryReadWorkflow();await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
+async function superseded1701Cases() {
+  const recovery = require('../tools/release_slot_1701_recovery');
+  const branchRef = 'refs/heads/' + recovery.P.branch;
+  const env = {GITHUB_REPOSITORY:R.REPOSITORY, GITHUB_EVENT_NAME:'push', GITHUB_REF:branchRef,
+    GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+C.CLOSER+'@'+branchRef, GITHUB_JOB:'release-slot-recovery',
+    GITHUB_RUN_ATTEMPT:'1', GITHUB_ACTOR:'pyatkoff', GITHUB_TRIGGERING_ACTOR:'pyatkoff',
+    GITHUB_SHA:'a'.repeat(40), GITHUB_RUN_ID:'45510000000'};
+  const event = {repository:{full_name:R.REPOSITORY,id:1342493152},sender:{id:recovery.P.owner,login:'pyatkoff'},
+    ref:branchRef,after:env.GITHUB_SHA,before:'0'.repeat(40),created:true,deleted:false,forced:false};
+  assert.doesNotThrow(()=>recovery.authorizeEvent(env,event)); assertions++;
+  const calls=[];
+  const api=async (method,url)=>{calls.push([method,url]);throw Error('unexpected API call');};
+  for (const [changedEnv,changedEvent] of [
+    [{...env,GITHUB_RUN_ATTEMPT:'2'},event],
+    [{...env,GITHUB_EVENT_NAME:'workflow_dispatch'},event],
+    [env,{...event,sender:{id:1,login:'pyatkoff'}}],
+    [env,{...event,created:false,before:'b'.repeat(40)}],
+    [env,{...event,forced:true}],
+  ]) await refuses(()=>recovery.resume({env:changedEnv,event:changedEvent,api}), 'untrusted_recovery_event');
+  equal(calls,[],'untrusted recovery event cannot read or modify a publisher');
+  const retry={id:recovery.P.diagnosticRetry,status:'completed',conclusion:'failure',steps:[
+    step(R.RESOLVER_STEP,'failure'),
+    ...['Prepare evidence encryption','Prepare SSH private key','Verify deployed SHA and capture production',
+      'Publish production snapshot','Upload encrypted dialogue evidence','Upload Metrika delivery diagnostic']
+      .map(name=>step(name,'skipped'))]};
+  assert.doesNotThrow(()=>recovery.diagnosticRetry(retry)); assertions++;
+  for(const name of ['Prepare SSH private key','Publish production snapshot']) {
+    const changed=copy(retry);
+    changed.steps.find(s=>s.name===name).conclusion='success';
+    await refuses(()=>recovery.diagnosticRetry(changed),'diagnostic_retry_executed');
+  }
+  await refuses(()=>recovery.diagnosticRetry({...retry,id:1}),'diagnostic_retry_executed');
+}
+
+async function main(){await superseded1701Cases();await unstarted1704Cases();await closedPrewriteOriginCases();await rankedApprovedInputCases();await rankedParentCases();await rankedResumeOriginCases();hotelRegistryReadWorkflow();await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
   execFileSync(process.execPath,[path.join(__dirname,'run_ranked_telegram_cli_regression.js')],{stdio:'inherit'});
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_partial_install_1702_forward_regression.js')],{stdio:'inherit'});
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_partial_install_1662_forward_regression.js')],{stdio:'inherit'});
