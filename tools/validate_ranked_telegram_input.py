@@ -20,11 +20,11 @@ def sha(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
-def document(item, limit):
+def document(item, limit, root=ROOT):
     path = item["path"]
     require(re.fullmatch(r"config/anytour_[a-z0-9_]+\.json", path), "invalid plan path")
-    f = ROOT / path
-    require(f.resolve(strict=True) == f and f.stat().st_size <= limit, "invalid plan file")
+    f = root / path
+    require(f.resolve(strict=True) == f and f.is_file() and f.stat().st_size <= limit, "invalid plan file")
     raw = f.read_bytes()
     require(sha(raw) == item["sha256"], "approved bytes changed")
     return json.loads(raw), raw
@@ -91,10 +91,14 @@ def approved_input(index_sha, archive):
     approvals = [p for p in json.loads(APPROVALS.read_bytes()) if p["sha256"] == index_sha]
     require(len(approvals) == 1, "missing or ambiguous release approval")
     index, _ = document(approvals[0], 64000)
+    return checked_index(index, archive, ROOT)
+
+
+def checked_index(index, archive, root):
     require(index["schema"] == 1 and len(index["plans"]) == 1, "expected one independently executable chunk")
     by_hotel, channel = registry(archive, index)
     item = index["plans"][0]
-    plan, raw = document(item, 64000)
+    plan, raw = document(item, 64000, root)
     require(len(raw) == item["bytes"] and hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest() == item["git_blob"]
             and plan["native_preflight"] == index["native_preflight"] and 0 < len(plan["rows"]) <= 40, "approved chunk changed")
     for key in ("hotel_id", "source_message_id", "target_message_id"):
@@ -106,9 +110,29 @@ def approved_input(index_sha, archive):
                  hotels=[r["hotel_id"] for r in plan["rows"]], messages=[r["target_message_id"] for r in plan["rows"]])]
 
 
+def inspect_input(index_sha, archive, root, index_path):
+    """Check unapproved input bytes; this result never grants execution permission."""
+    require(re.fullmatch(r"[a-f0-9]{64}", index_sha) is not None, "invalid index digest")
+    require(root.is_absolute() and root.resolve(strict=True) == root and root.is_dir(),
+            "invalid inspection root")
+    index, _ = document({"path": index_path, "sha256": index_sha}, 64000, root)
+    return {"evidence_only": True, "approval_verified": False, "write_admission": False,
+            "index_sha256": index_sha, "chunks": checked_index(index, archive, root)}
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("approved_index_sha256")
     parser.add_argument("original_zip", type=Path)
+    parser.add_argument("--inspect-root", type=Path,
+                        help="Read-only preparation root; never an approval or APPLY input")
+    parser.add_argument("--inspect-index", help="Relative config index inside the preparation root")
     args = parser.parse_args()
-    print(json.dumps(approved_input(args.approved_index_sha256, args.original_zip), ensure_ascii=False))
+    if (args.inspect_root is None) != (args.inspect_index is None):
+        parser.error("--inspect-root and --inspect-index must be supplied together")
+    result = (approved_input(args.approved_index_sha256, args.original_zip)
+              if args.inspect_root is None else
+              inspect_input(args.approved_index_sha256, args.original_zip,
+                            args.inspect_root, args.inspect_index))
+    print(json.dumps(result, ensure_ascii=False))
+
