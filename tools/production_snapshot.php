@@ -213,6 +213,7 @@ try{
         $snapshot['health']['website_attribution_anomalies']=$websiteHealth['anomalies'];
     }
 
+    if($profileManagerLists)$managerResourceStart=ManagerReadProfileResources::sample($pdo);
     foreach($snapshot['managers'] as $manager){
         if(!(int)($manager['is_active']??0))continue;
         $id=(int)$manager['id'];
@@ -256,6 +257,10 @@ try{
                 'manager_id'=>$id,'login'=>$entry['login'],'reason'=>$visibilityCheck['reason'],'all'=>$entry['all'],'mine'=>$entry['mine'],'waiting'=>$entry['waiting']
             ];
         }
+    }
+
+    if($profileManagerLists){
+        $snapshot['manager_resource_profile']=ManagerReadProfileResources::summarize($managerResourceStart,ManagerReadProfileResources::sample($pdo));
     }
 
     if(tableExists($pdo,'conversations')&&tableExists($pdo,'conversation_events')&&tableExists($pdo,'messages')){
