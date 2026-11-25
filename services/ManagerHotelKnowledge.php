@@ -39,6 +39,29 @@ HOTEL;
     /** Only the retained reader supplies its complete, already validated projection. */
     public static function captureRetainedCandidate(array $candidate, string $requestScopeDigest, string $sourceGeneratedAt, string $requestCountry, int $now): array
     {
+        $capture = self::retainedCandidateCapture($requestScopeDigest, $sourceGeneratedAt, $requestCountry, $now);
+        return $capture($candidate);
+    }
+
+    /** Create one capture function for the whole retained response. */
+    public static function retainedCandidateCapture(string $requestScopeDigest, string $sourceGeneratedAt, string $requestCountry, int $now): Closure
+    {
+        $snapshot = null;
+        $resolved = false;
+        $resolve = static function () use (&$snapshot, &$resolved): ?array {
+            if (!$resolved) {
+                $resolved = true;
+                $snapshot = self::catalogueSnapshot();
+            }
+            return $snapshot;
+        };
+        return static fn(array $candidate): array => self::captureRetainedFrom($candidate, $requestScopeDigest,
+            $sourceGeneratedAt, $requestCountry, $now, $resolve);
+    }
+
+    private static function captureRetainedFrom(array $candidate, string $requestScopeDigest, string $sourceGeneratedAt,
+        string $requestCountry, int $now, Closure $resolve): array
+    {
         try {
             if ($now <= 0 || !self::hex($requestScopeDigest) || !self::retainedText($requestCountry, 400)
                 || !self::validRetainedCandidate($candidate, $sourceGeneratedAt, $now)) return self::held('selector_unavailable');
@@ -61,16 +84,78 @@ HOTEL;
                 ],
             ];
             if (!self::validRetainedSelector($selector)) return self::held('selector_unavailable');
-            return self::captureValidatedSelector($selector, $now);
+            $snapshot = $resolve();
+            return $snapshot === null ? self::held('knowledge_unavailable')
+                : self::captureFromSnapshot($snapshot, $selector, $now);
         } catch (Throwable $ignored) { return self::held('selector_unavailable'); }
+    }
+
+    /** A bundled catalogue is selected only when the active pointer is absent. */
+    private static function activeCatalogueSnapshot(string $root): ?array
+    {
+        $releases = dirname($root).'/max-search-bot-private-logs/hotel-catalogue-releases';
+        $pointer = $releases.'/current';
+        clearstatcache(true, $pointer);
+        if (!is_dir($releases) && !is_link($releases)) return file_exists($releases) ? null : [];
+        if (realpath($releases) !== $releases || !is_readable($releases) || !is_executable($releases)) return null;
+        if (@lstat($pointer) === false) return [];
+        $target = is_link($pointer) ? readlink($pointer) : false;
+        if (!is_string($target) || !preg_match('~\A'.preg_quote($releases, '~')
+            .'/([a-f0-9]{64})-([a-f0-9]{64})\z~D', $target, $identity) || realpath($target) !== $target) return null;
+        $receipt = self::read($target, 'release.json', 4096);
+        if ($receipt === null) return null;
+        try { $seal = json_decode($receipt, true, 8, JSON_THROW_ON_ERROR); }
+        catch (Throwable $ignored) { return null; }
+        if (!is_array($seal) || !self::keys($seal, ['contract','package_sha256','reader_sha256','catalogue_index_sha256'])
+            || $seal['contract'] !== 'anytour-hotel-catalogue-package-v1'
+            || $seal['package_sha256'] !== $identity[1] || $seal['reader_sha256'] !== $identity[2]
+            || !self::hex($seal['catalogue_index_sha256'])) return null;
+        $directory = $target.'/hotels';
+        $rawCatalogue = self::read($directory, 'catalogue.json', self::MAX_CATALOGUE_BYTES);
+        if ($rawCatalogue === null || !hash_equals($seal['catalogue_index_sha256'], hash('sha256', $rawCatalogue))) return null;
+        return [$directory, $rawCatalogue, $seal['reader_sha256']];
+    }
+
+    /** Resolve the active version once so later member reads cannot cross a switch. */
+    private static function catalogueSnapshot(): ?array
+    {
+        $root = dirname(__DIR__);
+        $snapshot = self::activeCatalogueSnapshot($root);
+        if ($snapshot === null) return null;
+        if ($snapshot !== []) {
+            [$directory, $rawCatalogue, $readerSha] = $snapshot;
+            return $readerSha === hash_file('sha256', __FILE__) ? [$directory, $rawCatalogue] : null;
+        }
+        $directory = $root.'/knowledge/hotels';
+        $rawCatalogue = self::read($directory, 'catalogue.json', self::MAX_CATALOGUE_BYTES);
+        return $rawCatalogue === null ? null : [$directory, $rawCatalogue];
+    }
+
+    /** Compare the candidate's checked-in reader bytes with the active receipt. */
+    public static function coreCatalogueCompatibility(string $root, string $candidateReaderSha): string
+    {
+        $installedReader = $root.'/services/ManagerHotelKnowledge.php';
+        if ($root === '/' || realpath($root) !== $root || !is_dir($root) || !self::hex($candidateReaderSha)
+            || is_link($installedReader) || !is_file($installedReader)) {
+            return 'invalid_input';
+        }
+        $snapshot = self::activeCatalogueSnapshot($root);
+        if ($snapshot === null) return 'invalid_active_catalogue';
+        if ($snapshot === []) return 'bundled';
+        return hash_equals($snapshot[2], $candidateReaderSha) ? 'compatible' : 'incompatible_reader';
     }
 
     /** Both authorized selector owners use the same complete admission pipeline. */
     private static function captureValidatedSelector(array $selector, int $now): array
     {
-        $directory = dirname(__DIR__).'/knowledge/hotels';
-        $rawCatalogue = self::read($directory, 'catalogue.json', self::MAX_CATALOGUE_BYTES);
-        if ($rawCatalogue === null) return self::held('knowledge_unavailable');
+        $snapshot = self::catalogueSnapshot();
+        return $snapshot === null ? self::held('knowledge_unavailable')
+            : self::captureFromSnapshot($snapshot, $selector, $now);
+    }
+
+    private static function captureFromSnapshot(array $snapshot, array $selector, int $now): array
+    {
+        [$directory, $rawCatalogue] = $snapshot;
         try { $catalogue = json_decode($rawCatalogue, true, 16, JSON_THROW_ON_ERROR); }
         catch (Throwable $ignored) { return self::held('manifest_invalid'); }
         [$entry, $reason] = self::catalogueBinding($catalogue, $selector,
