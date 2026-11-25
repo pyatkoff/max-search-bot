@@ -1,4 +1,4 @@
-name: "#1566 Apply fresh PRICE only to the two verified existing MAX posts"
+name: "#1566 Apply current PRICE to four active superseded prices on existing MAX posts"
 on:
   push:
     branches: [audit/1566-main-hotel-registry-20261119]
@@ -17,7 +17,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '2e400d92c85012e8adfaa5d8886a49be147a326b' &&
+      github.event.before == '90d27ff22b126cd667125d32b092687423ac4174' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -29,7 +29,7 @@ jobs:
       - name: Checkout the exact PRICE release
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ad970aaa2c89ccc6eb2fcded3c56b5146fffeaf5
+          ref: 703b239adbcfb1f480265f3a7beea566f6d07002
           persist-credentials: false
           path: accepted-release
       - name: Await the exact installed release and official end of its write slot
@@ -45,12 +45,13 @@ jobs:
           const token=process.env.GH_TOKEN;
           const api=R.makeReadApi(token);
           const wait=require('node:timers/promises').setTimeout;
-          const root=R.API_ROOT, sha='ad970aaa2c89ccc6eb2fcded3c56b5146fffeaf5', runId=45629187135;
+          const root=R.API_ROOT, sha='703b239adbcfb1f480265f3a7beea566f6d07002', runId=45687100028;
           async function check() {
-            const [head, slot, run] = await Promise.all([
+            const [head, slot, run, parallelSlot] = await Promise.all([
               api('GET',root+'/git/ref/heads/main'),
-              api('GET',root+'/issues/comments/6928374515'),
-              api('GET',root+'/actions/runs/'+runId)
+              api('GET',root+'/issues/comments/6818332618'),
+              api('GET',root+'/actions/runs/'+runId),
+              api('GET',root+'/issues/comments/6928374515')
             ]);
             if(head.object.sha!==sha || slot.user.id!==226193297 ||
                 run.id!==runId || run.repository.id!==1342493152 || run.head_sha!==sha ||
@@ -58,9 +59,9 @@ jobs:
               throw Error('release_identity_changed');
             if (run.status==='completed' && run.conclusion!=='success')
               throw Error('deployment_failed');
-            if (slot.body==='PR1719: выпуск занят' ||
-                (slot.body==='PR1719: установлено, выпуск свободен' && run.status!=='completed')) return false;
-            if (slot.body!=='PR1719: установлено, выпуск свободен') throw Error('release_slot_changed');
+            if (slot.body==='PR1727: выпуск занят' ||
+                (slot.body==='PR1727: установлено, выпуск свободен' && run.status!=='completed')) return false;
+            if (parallelSlot.user.id!==226193297 || !/^PR[0-9]+: установлено, выпуск свободен$/.test(parallelSlot.body) || slot.body!=='PR1727: установлено, выпуск свободен') throw Error('release_slot_changed');
             const record=await R.readRecord(api);
             const binding=await R.resolveCurrent(api,{sha},record);
             if (!binding.ready) return false;
@@ -118,7 +119,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Recheck release and call the installed PRICE writer for existing MAX publications 3835 and 3828
+      - name: Recheck release and call the installed PRICE writer for the four exact existing MAX publications
         env:
           GH_TOKEN: ${{ github.token }}
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -133,16 +134,16 @@ jobs:
           set -euo pipefail
           unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
           cd /var/www/anytoour/data/www/app.anytoour.ru
-          test "$(git rev-parse HEAD)" = "ad970aaa2c89ccc6eb2fcded3c56b5146fffeaf5"
+          test "$(git rev-parse HEAD)" = "703b239adbcfb1f480265f3a7beea566f6d07002"
           mode="$1"
           publication="$2"
           case "$mode/$publication" in
-            inspect/3835|inspect/3828|apply/3835|apply/3828) ;;
+            inspect/3608|apply/3608|inspect/3609|apply/3609|inspect/3610|apply/3610|inspect/3613|apply/3613) ;;
             *) exit 41 ;;
           esac
           php tools/apply_promoted_hotel_prices.php "--$mode-max-publication" "$publication"
           SH
-          for pair in 2470:3835 65877:3828; do
+          for pair in 70048:3608 82606:3609 1344:3610 3452:3613; do
             hotel="$(cut -d: -f1 <<< "$pair")"
             id="$(cut -d: -f2 <<< "$pair")"
             node pub/price-admit.cjs --once
@@ -194,7 +195,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: issue-1566-max-price-3835-and-3828
+          name: issue-1566-max-price-four-attributed
           path: pub/price-*.txt
           retention-days: 7
           if-no-files-found: ignore
