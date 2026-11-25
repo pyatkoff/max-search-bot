@@ -17,7 +17,7 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == 'effed726dccd84d95db43f4b094488fcffbc1129' &&
+      github.event.before == '02609a265e4ec254ea4bb81d3ff0a154763ddee7' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -33,7 +33,7 @@ jobs:
           ref: 6194e13ac5af4ba53263284a3a3002f7d6d22b31
           path: accepted
           persist-credentials: false
-      - name: Prove the closed installation for read-only context without waiting for unrelated main
+      - name: Prove the current closed application for bounded read-only context
         working-directory: accepted
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -44,25 +44,23 @@ jobs:
           const fs=require('node:fs');
           const R=require('./tools/deployment_release');
           async function check(){
-            const app='6194e13ac5af4ba53263284a3a3002f7d6d22b31';
             const api=R.makeReadApi(process.env.GITHUB_TOKEN);
-            const before=await R.readRecord(api,'121a1c9d386b566364df8dd4a93afe04c449e536');
+            const before=await R.readRecord(api);
             const r=R.validateRelease(before.record).release;
-            if(r.repository_sha!==app||r.application_sha!==app||r.phase!=='pending_terminal'
-              ||r.release.run_id!=='45584366107')throw Error('accepted_installation_changed');
-            const resolved=await R.resolveCurrent(api,{sha:app},before);
-            if(!resolved.ready||resolved.repository_sha!==app||resolved.application_sha!==app)throw Error('installation_not_accepted');
+            const resolved=await R.resolveCurrent(api,{sha:r.repository_sha},before);
+            if(!resolved.ready||resolved.repository_sha!==r.repository_sha
+              ||resolved.application_sha!==r.application_sha)throw Error('current_installation_not_accepted');
             const main=(await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha;
-            const current=await R.readRecord(api);
-            const currentRelease=R.validateRelease(current.record).release;
-            // No merge or writer is admitted here. The PHP reader independently checks actual HEAD before and after reads.
+            const after=await R.readRecord(api);
+            if(before.blob!==after.blob||before.record_digest!==after.record_digest)throw Error('accepted_record_changed');
+            // Pure reads do not require an unrelated new main to be installed.
+            // Actual application HEAD is fenced independently before and after all host reads.
             fs.mkdirSync('../pub',{recursive:true});
             fs.writeFileSync('../pub/accepted-read-admission.json',JSON.stringify({read_only:true,
-              current_main_sha:main,accepted_repository_sha:app,application_sha:app,
+              current_main_sha:main,accepted_repository_sha:r.repository_sha,application_sha:r.application_sha,
               record_commit:before.commit,record_blob:before.blob,record_digest:before.record_digest,
-              current_record_repository_sha:currentRelease.repository_sha,current_record_application_sha:currentRelease.application_sha,
-              current_record_phase:currentRelease.phase,original_deploy:'45584366107'})+'\n');
-            fs.appendFileSync(process.env.GITHUB_ENV,'REPOSITORY_SHA='+app+'\nAPPLICATION_SHA='+app+'\n');
+              accepted_installation_deploy:r.release.run_id,original_route_deploy:'45584366107'})+'\n');
+            fs.appendFileSync(process.env.GITHUB_ENV,'REPOSITORY_SHA='+r.repository_sha+'\nAPPLICATION_SHA='+r.application_sha+'\n');
           }
           check().catch(e=>{console.error('readonly_accepted_installation_refused',e.code||e.message);process.exitCode=1});
           NODE
@@ -71,7 +69,7 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = 'e17764e5ee14a9ec959f95fe3cc76543066ee689'
+          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = 'd5305ff389930216f4b2b0f649bd13bfe30454e0'
           mkdir -p pub
           python3 - <<'PY'
           import os,pathlib,re

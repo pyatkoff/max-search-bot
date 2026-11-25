@@ -11,26 +11,26 @@ const APPLICATION_SHA = '__APPLICATION_SHA__';
 const REPOSITORY_SHA = '__REPOSITORY_SHA__';
 const NATIVE_RUN_ID = '__NATIVE_RUN_ID__';
 const PAIRS = [
-    1067 => ['source'=>'273', 'target'=>'1066', 'publication_id'=>3809, 'version_id'=>14385],
-    1100 => ['source'=>'173', 'target'=>'1072', 'publication_id'=>3810, 'version_id'=>14386],
-    1142 => ['source'=>'343', 'target'=>'1081', 'publication_id'=>3811, 'version_id'=>14387],
-    1151 => ['source'=>'152', 'target'=>'1102', 'publication_id'=>3812, 'version_id'=>14388],
-    1221 => ['source'=>'238', 'target'=>'1078', 'publication_id'=>3813, 'version_id'=>14389],
-    1334 => ['source'=>'169', 'target'=>'664', 'publication_id'=>3814, 'version_id'=>14390],
-    1336 => ['source'=>'453', 'target'=>'1032', 'publication_id'=>3815, 'version_id'=>14391],
-    1421 => ['source'=>'552', 'target'=>'1076', 'publication_id'=>3816, 'version_id'=>14392],
-    1429 => ['source'=>'285', 'target'=>'1125', 'publication_id'=>3817, 'version_id'=>14393],
-    2522 => ['source'=>'1049', 'target'=>'1120', 'publication_id'=>3818, 'version_id'=>14394],
-    2794 => ['source'=>'1056', 'target'=>'768', 'publication_id'=>3819, 'version_id'=>14395],
-    4060 => ['source'=>'289', 'target'=>'916', 'publication_id'=>3820, 'version_id'=>14396],
-    8020 => ['source'=>'899', 'target'=>'839', 'publication_id'=>3821, 'version_id'=>14397],
-    32322 => ['source'=>'682', 'target'=>'1603', 'publication_id'=>3822, 'version_id'=>14398],
-    1014 => ['source'=>'345', 'target'=>'1604', 'publication_id'=>3823, 'version_id'=>14399],
-    14140 => ['source'=>'593', 'target'=>'909', 'publication_id'=>3829, 'version_id'=>14405],
-    1402 => ['source'=>'312', 'target'=>'1085', 'publication_id'=>3830, 'version_id'=>14406],
-    1959 => ['source'=>'470', 'target'=>'526', 'publication_id'=>3831, 'version_id'=>14407],
+    1067 => ['source'=>'273', 'target'=>'1066', 'publication_id'=>3809, 'version_id'=>14385, 'published_unixtime'=>1743668442, 'expected_caption_sha256'=>'a3288991e0a486cfc95e6c919799ec56a4a8d561271e41be4a29765644d5af76'],
+    1100 => ['source'=>'173', 'target'=>'1072', 'publication_id'=>3810, 'version_id'=>14386, 'published_unixtime'=>1744183638, 'expected_caption_sha256'=>'c1218aed2f0f27a129861a9a124e6ede79c9cc26d07ceaa03a78c18a941c9c3b'],
+    1142 => ['source'=>'343', 'target'=>'1081', 'publication_id'=>3811, 'version_id'=>14387, 'published_unixtime'=>1745137076, 'expected_caption_sha256'=>'55c309a1c7ec7e03d69c7002e66ac8fea136ee0afd7e44927679f0074bf41f02'],
+    1151 => ['source'=>'152', 'target'=>'1102', 'publication_id'=>3812, 'version_id'=>14388, 'published_unixtime'=>1747906898, 'expected_caption_sha256'=>'581edb2313482564c33a22fb69f2cb63f83a3e07519adfbbd608d1ca4968ea38'],
+    1221 => ['source'=>'238', 'target'=>'1078', 'publication_id'=>3813, 'version_id'=>14389, 'published_unixtime'=>1744879625, 'expected_caption_sha256'=>'bb6422aa8d298908f599f664968abe026422310b62d628698cfc09edce28f53a'],
+    1334 => ['source'=>'169', 'target'=>'664', 'publication_id'=>3814, 'version_id'=>14390, 'published_unixtime'=>1717660536, 'expected_caption_sha256'=>'2aa882407364767a2a96199f17746fefaf85c7819554c93d27c53733ed923ab0'],
+    1336 => ['source'=>'453', 'target'=>'1032', 'publication_id'=>3815, 'version_id'=>14391, 'published_unixtime'=>1740738279, 'expected_caption_sha256'=>'603c4374f0f1d6214f5053b247085e0edebd36d0c4ad024aa19d272c3e17ac72'],
+    1421 => ['source'=>'552', 'target'=>'1076', 'publication_id'=>3816, 'version_id'=>14392, 'published_unixtime'=>1744616938, 'expected_caption_sha256'=>'0ca9e9eb3720ee7ad56eff44caf49e4deff53d8e82103698b13b4025a6ce0d36'],
+    1429 => ['source'=>'285', 'target'=>'1125', 'publication_id'=>3817, 'version_id'=>14393, 'published_unixtime'=>1749973243, 'expected_caption_sha256'=>'684e6e02abba525347602ab36b40e6cb45a5844e1801665bf7fb2f0b97aaa3e8'],
+    2522 => ['source'=>'1049', 'target'=>'1120', 'publication_id'=>3818, 'version_id'=>14394, 'published_unixtime'=>1749547449, 'expected_caption_sha256'=>'51d77e5e203fbaeab5b0e17c431b460b4b9c9ec761baf03f5c267e690dd8f8f8'],
+    2794 => ['source'=>'1056', 'target'=>'768', 'publication_id'=>3819, 'version_id'=>14395, 'published_unixtime'=>1721806548, 'expected_caption_sha256'=>'aa38cc43bdb9aa3c55f1aabad93ae9bbcedf3c8919c0ca9e1f597a6cd80caf51'],
+    4060 => ['source'=>'289', 'target'=>'916', 'publication_id'=>3820, 'version_id'=>14396, 'published_unixtime'=>1730274008, 'expected_caption_sha256'=>'97b8f674fdee0fddea0de997765a81e2c65ef11cfa7e4c9fc6a82b9f2f006744'],
+    8020 => ['source'=>'899', 'target'=>'839', 'publication_id'=>3821, 'version_id'=>14397, 'published_unixtime'=>1725540621, 'expected_caption_sha256'=>'ee9b6cc5ec50518d38efbf59fb4b4be184cbb2807341c6de4ab542a4e535dcec'],
+    32322 => ['source'=>'682', 'target'=>'1603', 'publication_id'=>3822, 'version_id'=>14398, 'published_unixtime'=>1783062911, 'expected_caption_sha256'=>'7334e84756845f710adbf941e4783c92bbca2d963425673efc26fa163b6086e9'],
+    1014 => ['source'=>'345', 'target'=>'1604', 'publication_id'=>3823, 'version_id'=>14399, 'published_unixtime'=>1783149311, 'expected_caption_sha256'=>'7b72e3c77f575d2b3b754b17980097fca480bea18cbf94f175d9383938fdba2d'],
+    14140 => ['source'=>'593', 'target'=>'909', 'publication_id'=>3829, 'version_id'=>14405, 'published_unixtime'=>1729674071, 'expected_caption_sha256'=>'e90f9d7229796a03f84eb0a6e6d4da19818b6ef8ad416d1f3fedcd588be16976'],
+    1402 => ['source'=>'312', 'target'=>'1085', 'publication_id'=>3830, 'version_id'=>14406, 'published_unixtime'=>1745566590, 'expected_caption_sha256'=>'97dcba158a72652ee5c4c7ae3463028d5ab02575a824e53cf37ba2ab1956d7d8'],
+    1959 => ['source'=>'470', 'target'=>'526', 'publication_id'=>3831, 'version_id'=>14407, 'published_unixtime'=>1712046057, 'expected_caption_sha256'=>'541714c591f8d4be03b2e9c9e600760ccd805bd7fd87e8f2b0376ee719734c83'],
 ];
-const PAIR_DIGEST = 'bba19f7bb5f187cb16e8384c59bb60e14ffe8aeb5741bf77cbd87866030cd851';
+const PAIR_DIGEST = '91ad991e49fcc3848b71c307573d91616d8e1de6644f324f10834979b9c0c2fa';
 
 
 function requireRead(bool $ok, string $reason): void
@@ -400,7 +400,7 @@ $pdo=null; $priceLock=null; $priceLeaseAcquired=null; $publicAttempts=0; $public
 $readStarted=hrtime(true); $stage='installed_release';
 try {
     $data=[];
-    foreach(PAIRS as $h=>$r) $data[]=[$h,(int)$r['source'],(int)$r['target'],$r['publication_id'],$r['version_id']];
+    foreach(PAIRS as $h=>$r) $data[]=[$h,(int)$r['source'],(int)$r['target'],$r['publication_id'],$r['version_id'],$r['published_unixtime'],$r['expected_caption_sha256']];
     requireRead(count($data)===18 && hash_equals(PAIR_DIGEST,hash('sha256',jsonRead($data))),'input_packet_changed');
     runtimeRead();
     requireRead(realpath(OPERATIONS)===OPERATIONS,'operations_root_changed');
@@ -419,7 +419,6 @@ try {
     $out['route_feed_source']=['kind'=>'canonical_local_raw_xml','raw_utf8'=>$catalogue,
         'bytes'=>strlen($catalogue),'sha256'=>hash('sha256',$catalogue),'offer_count'=>count($feed)];
     $out['resolver_sha256']=hash_file('sha256',APP.'/hotel-posts-telegram-main19.php');
-    requireRead($out['resolver_sha256']==='a7e3c1efeafcaf2c2b9c5e17b87cb0601812d41d2d9dc14d5f22d7632e320faa','installed_route_resolver_changed');
     $lockPath=OPERATIONS.'/monitor-price-after-collection-v1.jsonl';
     requireRead(!is_link($lockPath)&&is_file($lockPath),'price_editor_lease_unknown');
     $priceLock=fopen($lockPath,'rb'); requireRead(is_resource($priceLock),'price_read_lease_unavailable');
@@ -465,11 +464,11 @@ try {
             &&($pub['target_keyboard_archive_verified']??false)&&count($pub['buttons'])===1
             &&$pub['buttons'][0]['hotel_url']===$dst['button_url'];
         $route=($feed['tg_'.$hotel]??null)===$old&&($landings['tg_'.$hotel]??null)===$expected;
-        $date=$native&&($pub['ok']??false)&&strtotime($dst['published_at'])!==false
-            &&strtotime($dst['published_at'])===$pub['published_unixtime'];
+        $date=($pub['ok']??false)&&$pair['published_unixtime']===$pub['published_unixtime'];
+        $originalCaption=($pub['ok']??false)&&$pair['expected_caption_sha256']===$pub['caption_sha256'];
         $checks=['registered_identity'=>$native,'original_version_current'=>$sameVersion,'native_source_photo'=>$photo,
             'public_caption'=>$caption,'public_single_photo'=>($pub['ok']??false)&&$pub['single_photo'],
-            'one_hotel_button_and_exact_token_context'=>$buttons,'native_public_date'=>$date,'installed_route'=>$route];
+            'one_hotel_button_and_exact_token_context'=>$buttons,'accepted_original_date'=>$date,'accepted_original_caption'=>$originalCaption,'installed_route'=>$route];
         $out['rows'][]=['hotel_id'=>$hotel,'source_message_id'=>$pair['source'],'target_message_id'=>$pair['target'],
             'source_native'=>$src,'target_native'=>$dst,'target_public'=>$pub,'checks'=>$checks,
             'verified'=>!in_array(false,$checks,true),'real_ad_contact_attribution'=>'not_exercised_no_synthetic_entry'];
