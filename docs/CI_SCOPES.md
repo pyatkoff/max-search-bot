@@ -63,6 +63,25 @@ checkout, so the existing fresh final priority/publication check still applies.
 The existing release order remains necessary before pushing a prepared candidate
 to an open PR; this early guard does not reserve the next release window.
 
+## Append-only hotel catalogue PRs
+
+The `hotel-catalogue-data` backend is selected only against the current main
+snapshot and only for regular JSON. The index must pin modified or newly
+appended shards, existing bindings must survive in their original order and
+each appended binding must reference a distinct newly added bundle. Existing
+bundle edits, removals, renames, mixed diffs and unavailable evidence retain
+the complete backend. Changes to this CI policy also exercise the scoped job
+while retaining the full backend.
+
+The required checks retain architecture, dialogue, website, diagnostics,
+inventory, syntax, guard and release priority. The dedicated catalogue job
+reads the full pinned catalogue through the current binding and bundle
+validation, runs the hotel HTTP permission, manager AI and retained Search3
+consumer suites, and replaces the unrelated Manager group plus the unchanged
+native MySQL matrix and Apple publisher check for this shape. The same
+aggregate must receive success from the catalogue job. The shared deployment,
+runtime release claims and installed reader stay on their ordinary paths.
+
 ## Tour-selection component
 
 The `tour-selection` scope accepts regular-file modifications within the exact

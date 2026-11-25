@@ -58,7 +58,7 @@ def verify(document):
           'each matrix job requires its own hosted runner and service')
     check(job['needs'] == 'change-scope' and job['if'] == (
         "(needs.change-scope.outputs.mode == 'full' && "
-        "needs.change-scope.outputs.backend != 'workspace-style') || "
+        "needs.change-scope.outputs.backend == 'full') || "
         "(needs.change-scope.outputs.mode == 'tour-selection' && "
         "needs.change-scope.outputs.backend != 'selection-style')"),
         'existing full/component selection must remain unchanged')
