@@ -19,7 +19,7 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == '29a040d113dd1024e498a9e01ea3665c29bb8768' &&
+      github.event.before == '38a9855c25c7c71da7b20c0a1d4df2f58e3f4035' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -116,7 +116,7 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '4234d7d4d8dafb753a1d1cfbdf3cfde606df0f0e'
+          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '9930a98a0619cc9197f4fab7fbc921832da63b16'
           mkdir pub
           python3 - <<'PY'
           import os,pathlib,re
@@ -193,7 +193,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read fifteen saved MESSAGE_ID_INVALID outcomes without replay
+      - name: Observe fifteen reserved rejected identities and original responses without replay
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}

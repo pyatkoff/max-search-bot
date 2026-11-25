@@ -275,6 +275,17 @@ function publicationRead(PDO $pdo, ChannelPostRegistryService $registry, int $ch
     $ids = $q->fetchAll(PDO::FETCH_COLUMN);
     requireRead(count($ids) <= 1, 'registry_identity_ambiguous');
     if ($ids === []) return null;
+    if ($channel === 6) {
+        // Failed original reserved identities have no accepted native message receipt.
+        // Observe them without treating a reservation as a sent publication or loosening a write gate.
+        requireRead(in_array((int)$ids[0], range(3847,3861),true),'unexpected_target_registry_identity');
+        $observed=$pdo->prepare('SELECT p.id AS publication_id,p.external_message_id,v.state,v.attempt_count,v.write_attempts,v.claim_token IS NOT NULL AS has_claim FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id WHERE p.id=? AND p.post_channel_id=6');
+        $observed->execute([(int)$ids[0]]);$native=$observed->fetch(PDO::FETCH_ASSOC);
+        requireRead(is_array($native),'reserved_native_observation_unavailable');
+        return ['publication_id'=>(int)$ids[0],'state'=>'unaccepted_reserved_identity','persisted_native'=>$native,
+            'accepted_message_receipt_verified'=>false,
+            'content_edit_journal'=>receiptRead(OPERATIONS.'/issue-1566-edit-existing-'.(int)$ids[0].'.jsonl')];
+    }
     $p = $registry->publication((int) $ids[0]);
     requireRead(is_array($p) && $p['project_key'] === 'anytour' && $p['platform'] === 'telegram'
         && $p['bot_key'] === 'anyru_bot' && $p['message_id'] === $message
@@ -545,6 +556,7 @@ try {
             'source_locality' => $pair['locality'], 'current_catalogue_price_raw' => $metadata['tg_'.$hotel]['price'] ?? null, 'previous_target_offer' => $pair['archived_offer'], 'archived_countries' => $pair['archived_countries'], 'different_direction' => $pair['different_direction'],
             'source_matches' => $sourceMatches,
             'historical_target_matches' => $targetMatches,
+            'target_public_preimage_unchanged' => $pair['date'] !== null && ($targetPublic['ok']??false) && $targetPublic['caption_sha256']===$pair['target_caption_sha256'] && $targetPublic['photo_marker_sha256']===$pair['target_photo_marker_sha256'] && $targetPublic['published_unixtime']===(new DateTimeImmutable($pair['date']))->getTimestamp(),
             'preview_blockers' => $blockers, 'preview_ready' => $blockers === []];
     }
     $out['mysql_resources_after'] = mysqlResourcesRead($pdo);
