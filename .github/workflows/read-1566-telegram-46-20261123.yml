@@ -1,18 +1,23 @@
 name: "#1566 Validate existing reader resource budget without production load"
 on:
   push:
-    branches: [ops/1566-telegram-46-native-read-20261123]
+    branches: [ops/1566-telegram-46-native-read-20261123, draft/telegram-editability-evidence-20261125]
     paths: ['.github/workflows/read-1566-telegram-46-20261123.yml']
 permissions:
   contents: read
 jobs:
   registry:
+    name: guard
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
-      github.event.before == '5386be53bb46e8f8a0391263e3c0453f3826aa26' &&
+      github.event.created == false && github.event.forced == false &&
+      ((github.ref == 'refs/heads/draft/telegram-editability-evidence-20261125' &&
+        github.event.before == '11cb129fc5b34ba20a2e6093e01c975b911a11e0') ||
+       (github.ref == 'refs/heads/ops/1566-telegram-46-native-read-20261123' &&
+        github.event.before == 'ba2af666c9aef8fce80a937712558bff6dc1674c')) &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -21,6 +26,16 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
+      - name: Reject retired host references in the exact reader tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          retired="anytour"".online"
+          if git grep -n -F "$retired" -- .; then
+            echo 'Retired host reference found in tracked source' >&2
+            exit 1
+          fi
+          echo 'RETIRED_DOMAIN_REFERENCES=0'
       - name: Lint the same bounded reader without SSH, database or provider calls
         shell: bash
         run: |
