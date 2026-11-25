@@ -19,37 +19,88 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == '16647d7f5cb89523600aa79cea7126a17b169d43' &&
+      github.event.before == 'ed08736be6546cc67cfa1acf4ab4b45c35889ec5' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 40
     steps:
-      - name: Check out the exact existing release admission code
+      - name: Check out the exact installation and existing ROUTE verifier
         uses: actions/checkout@v4
         with:
-          ref: 878c680627d54297c364254687577a03ac5aef6b
+          ref: 6194e13ac5af4ba53263284a3a3002f7d6d22b31
+          fetch-depth: 2
           persist-credentials: false
-      - name: Wait for the original source checks and verify ordinary ROUTE release admission
+      - name: Wait for the ordinary deployment and accepted release
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           GITHUB_TOKEN: ${{ github.token }}
-          EXPECTED_ROUTE_HEAD: e97ca8ac147cee8fd2db9149994d7026ca5378cc
+          EXPECTED_APP: 6194e13ac5af4ba53263284a3a3002f7d6d22b31
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "878c680627d54297c364254687577a03ac5aef6b"
-          for run in 45582243573 45582243537; do
-            while true; do
-              result="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" --jq '[.head_sha, .event, (.run_attempt|tostring), .status, (.conclusion // "-")] | @tsv')"
-              IFS=$'\t' read -r head event attempt status conclusion <<< "$result"
-              test "$head" = "$EXPECTED_ROUTE_HEAD"
-              test "$event" = 'pull_request'
-              test "$attempt" = '1'
-              if [[ "$status" == 'completed' ]]; then
-                test "$conclusion" = 'success'
-                break
-              fi
-              sleep 20
-            done
+          test "$(git rev-parse HEAD)" = "$EXPECTED_APP"
+          while true; do
+            item="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/45584366107" --jq '[.head_sha, .event, (.run_attempt|tostring), .status, (.conclusion // "-")] | @tsv')"
+            IFS=$'\t' read -r head event attempt status conclusion <<< "$item"
+            test "$head" = "$EXPECTED_APP"
+            test "$event" = 'push'
+            test "$attempt" = '1'
+            if [[ "$status" == 'completed' ]]; then
+              test "$conclusion" = 'success'
+              break
+            fi
+            sleep 25
           done
-          node tools/release_priority.js --admit 1699 "$EXPECTED_ROUTE_HEAD" 878c680627d54297c364254687577a03ac5aef6b
+          while true; do
+            slot="$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/6818332618" --jq .body)"
+            if [[ "$slot" == 'PR1699: установлено, выпуск свободен' ]]; then
+              break
+            fi
+            test "$slot" = 'PR1699: выпуск занят'
+            sleep 25
+          done
+          node - <<'NODE'
+          const {verifyPreviousRelease} = require('./tools/release_priority')
+          verifyPreviousRelease({repository:process.env.GITHUB_REPOSITORY,baseSha:process.env.EXPECTED_APP},process.env.GITHUB_TOKEN)
+            .then(()=>console.log('ROUTE_ACCEPTED_RELEASE_VERIFIED'))
+            .catch(error=>{ console.error('route_release_read_refused', error.code || error.message);process.exitCode=1 })
+          NODE
+      - name: Verify the eighteen public advertising destinations
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p pub/route-read/manifests
+          git show HEAD^1:hotel-posts-telegram-main19.php > pub/route-read/before.php
+          curl --silent --show-error --fail --proto '=https' --max-time 25 --max-filesize 4000000 \
+            --output pub/route-read/current.xml 'https://app.anytoour.ru/feed/hotel-posts-telegram.xml'
+          python3 - <<'PY'
+          import json,pathlib,sys,tempfile
+          sys.path.insert(0,'tools')
+          from merge_ranked_telegram_routes import stage_original
+          root=pathlib.Path('pub/route-read').resolve()
+          for run in ('45533991881','45534197709','45538372322'):
+              with tempfile.TemporaryDirectory() as tmp:
+                  data=stage_original(run,root/'current.xml',pathlib.Path(tmp))
+              (root/'manifests'/f'{run}.json').write_text(json.dumps(data,ensure_ascii=False),encoding='utf-8')
+          PY
+          python3 tools/verify_installed_telegram_routes.py --before pub/route-read/before.php \
+            --after hotel-posts-telegram-main19.php --feed pub/route-read/current.xml --manifests pub/route-read/manifests \
+            --deploy-run-id 45584366107 --installed-sha 6194e13ac5af4ba53263284a3a3002f7d6d22b31 --output pub/route-read/ad-readback.json
+          python3 - <<'PY'
+          import json,pathlib
+          d=json.loads(pathlib.Path('pub/route-read/ad-readback.json').read_bytes())
+          expected=set(["tg_1067","tg_1100","tg_1142","tg_1151","tg_1221","tg_1334","tg_1336","tg_1421","tg_1429","tg_2522","tg_2794","tg_4060","tg_8020","tg_32322","tg_1014","tg_14140","tg_1402","tg_1959"])
+          assert d['verified_count']==d['selected_count']==18 and {r['offer_id'] for r in d['accepted_changes']}==expected
+          assert d['failed_offers']==d['unbound_changes']==[]
+          print(json.dumps({'verified':d['verified_count'],'offers':sorted(expected),'checked_at':d['checked_at_utc']}))
+          PY
+      - name: Save public advertising evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: installed-ranked-routes-45584366107-read
+          path: pub/route-read/ad-readback.json
+          retention-days: 14
+          if-no-files-found: warn
