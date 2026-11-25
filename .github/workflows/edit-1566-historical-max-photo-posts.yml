@@ -17,10 +17,10 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '12b7a16d91500ee027e175618c53ed87362d4d68' &&
+      github.event.before == '1288da57b66eea768b9df99aa4706cdd2eeb0850' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 24
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -29,7 +29,7 @@ jobs:
       - name: Checkout the release used by the original source audit
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 4980fac645b5e81878b1280fc3ea079b1b187623
+          ref: 60003591337ff2ebf74a2e5fe6d79c92c0a6137e
           persist-credentials: false
           path: accepted-release
       - name: Bind the same three plans to the accepted release and fresh native artifact
@@ -48,15 +48,15 @@ jobs:
           const {setTimeout:wait}=require('node:timers/promises')
           const {writeFileSync}=require('node:fs')
           async function run() {
-            const main='4980fac645b5e81878b1280fc3ea079b1b187623', root=R.API_ROOT, id=45588255112
-            for(let n=0;n<68;n++) {
+            const main='60003591337ff2ebf74a2e5fe6d79c92c0a6137e', root=R.API_ROOT, id=45591032787
+            for(let n=0;n<108;n++) {
               if ((await api('GET',root+'/git/ref/heads/main')).object.sha!==main) throw Error('main_changed')
               const x=await api('GET',root+'/actions/runs/'+id)
-              if(x.repository.id!==1342493152||x.head_sha!=='fa9ec3612d6a15f7bd52212fe141c50241f51aa5'||x.run_attempt!==1||x.event!=='push'||x.path!=='.github/workflows/read-1566-max-archive-20261123.yml') throw Error('native_run_changed')
+              if(x.repository.id!==1342493152||x.head_sha!=='f5d033ec4f99363c9b26eb0243a687ce6d46d515'||x.run_attempt!==1||x.event!=='push'||x.path!=='.github/workflows/read-1566-max-archive-20261123.yml') throw Error('native_run_changed')
               if(x.status==='completed') {
                 if(x.conclusion!=='success') throw Error('native_read_failed')
                 const slot=await api('GET',root+'/issues/comments/6928374515')
-                if(slot.user.id!==226193297||slot.body!=='PR1711: установлено, выпуск свободен') throw Error('publisher_busy_or_changed')
+                if(slot.user.id!==226193297||slot.body!=='PR1709: установлено, выпуск свободен') throw Error('publisher_busy_or_changed')
                 const artifact=await api('GET',root+'/actions/runs/'+id+'/artifacts?per_page=30')
                 const jobs=await api('GET',root+'/actions/runs/'+id+'/attempts/1/jobs?per_page=100')
                 const z=artifact.artifacts[0], j=jobs.jobs[0]
@@ -68,7 +68,7 @@ jobs:
                 writeFileSync('pub/live-binding.json',JSON.stringify({job:j.id,artifact:z.id,digest:z.digest.slice(7),slot:slot.body,app:actual.application_sha,main}))
                 return
               }
-              if(n<67)await wait(15000)
+              if(n<107)await wait(15000)
             }
             throw Error('native_read_timeout')
           }
@@ -102,8 +102,8 @@ jobs:
               assert re.fullmatch('[a-f0-9]{64}',proof['original_legacy_identity_sha256'])
               r['original_legacy_identity_sha256']=proof['original_legacy_identity_sha256']
           digest=hashlib.sha256(content).hexdigest()
-          scope['native_source']={'operation':read['operation'],'run_id':45588255112,'attempt':1,'job_id':b['job'],'artifact_id':b['artifact'],
-              'zip_sha256':b['digest'],'json_sha256':digest,'repository_sha':b['main'],'application_sha':b['app'],'workflow_head':'fa9ec3612d6a15f7bd52212fe141c50241f51aa5'}
+          scope['native_source']={'operation':read['operation'],'run_id':45591032787,'attempt':1,'job_id':b['job'],'artifact_id':b['artifact'],
+              'zip_sha256':b['digest'],'json_sha256':digest,'repository_sha':b['main'],'application_sha':b['app'],'workflow_head':'f5d033ec4f99363c9b26eb0243a687ce6d46d515'}
           scope['publisher']['body']=b['slot']
           scope['price_review']['source_versions']=[{'hotel_id':r['hotel_id'],'version':r['source_version'],'stored_price_observation':r['observed_source_price_stamp']} for r in read['rows']]
           scope['price_review']['checked_utc']=read['observed_utc']
@@ -116,7 +116,18 @@ jobs:
       - name: Verify the receipts, current release and existing publisher before credentials
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node tools/direct_demand/operations/max-existing-photo/admit.js
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if output="$(node tools/direct_demand/operations/max-existing-photo/admit.js 2>&1)"; then
+              printf '%s\n' "$output"
+              exit 0
+            fi
+            printf '%s\n' "$output"
+            if [[ "$output" != "record_changed" || "$attempt" == 3 ]]; then exit 1; fi
+            sleep 4
+          done
       - name: Verify the existing editor and stage the three matched plans
         shell: bash
         env:
@@ -209,7 +220,18 @@ jobs:
       - name: Recheck the publisher immediately before transferring the sealed plans
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node tools/direct_demand/operations/max-existing-photo/admit.js
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if output="$(node tools/direct_demand/operations/max-existing-photo/admit.js 2>&1)"; then
+              printf '%s\n' "$output"
+              exit 0
+            fi
+            printf '%s\n' "$output"
+            if [[ "$output" != "record_changed" || "$attempt" == 3 ]]; then exit 1; fi
+            sleep 4
+          done
       - name: Edit only each verified existing ID and capture its independent receipt
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
