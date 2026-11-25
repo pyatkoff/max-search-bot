@@ -13,7 +13,7 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == '7dbe2a00c2ea7e80e3068853c2de7985ba8d2cf0' &&
+      github.event.before == '910329fef2f8279542266d94487a9fd0de44a32c' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -27,6 +27,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p pub
+          test -d pub && test -w pub
           cat > /tmp/pilot-public.php <<'PHP'
           <?php
           declare(strict_types=1);
@@ -221,12 +223,12 @@ jobs:
             $row['semantic_protection_review_complete']=false;
            }catch(Throwable $e){$row['hold_reason']=reasonRead($e);$row['views']=$views;}
            $out['rows'][]=$row;
-           file_put_contents('pub/target50-public.json',jsonRead($out)."\n");
+           requireRead(file_put_contents('pub/target50-public.json',jsonRead($out)."\n")!==false,'observation_save_failed');
           }
           $out['read_at_utc']=gmdate(DATE_ATOM);$out['retry_after_holds']=$rates;
           $out['structure_only_candidate_count']=count(array_filter($out['rows'],static fn($r)=>($r['structure_only_candidate']??false)===true));
-          file_put_contents('pub/target50-public.json',jsonRead($out)."\n");
-          echo jsonRead(['observed'=>count($out['rows']),'structure_candidates'=>$out['structure_only_candidate_count'],'write_admission'=>false])."\n";
+          requireRead(file_put_contents('pub/target50-public.json',jsonRead($out)."\n")!==false,'observation_save_failed');
+          echo jsonRead(['observed'=>count($out['rows']),'structure_candidates'=>$out['structure_only_candidate_count'],'write_admission'=>false,'retry_after_holds'=>$rates,'holds'=>array_map(static fn($r)=>['mid'=>$r['target_message_id'],'hold'=>$r['hold_reason']??null,'structure'=>$r['structure_only_candidate']??false],$out['rows'])])."\n";
           PHP
           php -l /tmp/pilot-public.php
           php /tmp/pilot-public.php
