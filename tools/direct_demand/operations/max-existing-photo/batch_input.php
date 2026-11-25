@@ -18,7 +18,7 @@ function maxBatchInput(string $approvedBytes, string $approvedHash, string $arch
     maxEditNeed(($archive['ok'] ?? false) === true && $archive['history_complete'] === true && $archive['price_content_shared_lease'] === true
         && $archive['native_run_id'] === $scope['archive_run_id'] && $archive['production_writes'] === 0 && $archive['provider_writes'] === 0, 'invalid_archive');
     $sourceOperation = $scope['native_source']['operation'] ?? 'max_seven_source_rights';
-    maxEditNeed(in_array($sourceOperation, ['max_seven_source_rights', 'max_five_ranked_read_only', 'max_next_twelve_read_only', 'max_next_nine_read_only', 'max_three_matched_candidates_read_only'], true), 'invalid_native_operation');
+    maxEditNeed(in_array($sourceOperation, ['max_seven_source_rights', 'max_five_ranked_read_only', 'max_next_twelve_read_only', 'max_next_nine_read_only', 'max_three_matched_candidates_read_only', 'max_commercial_album_sources_read_only'], true), 'invalid_native_operation');
     maxEditNeed(($source['ok'] ?? false) === true && $source['operation'] === $sourceOperation
         && $source['application_sha'] === $release && $source['repository_sha'] === $sourceRef && $source['archive_run'] === (int)$scope['archive_run_id']
         && $source['provider_writes'] === 0 && $source['db_writes'] === 0 && $source['bot_starts'] === 0, 'invalid_native_evidence');
@@ -47,7 +47,11 @@ function maxBatchInput(string $approvedBytes, string $approvedHash, string $arch
         $id = $row['hotel_id'];
         try {
             $target = $targets[$row['target_mid']] ?? null;
-            maxEditNeed(is_array($target) && $target['registered'] === false && $target['media'] === ['image']
+            $photoCount = $row['target_photo_count'] ?? 1;
+            maxEditNeed(is_int($photoCount) && $photoCount >= 1 && $photoCount <= 11
+                && ($photoCount === 1 || $sourceOperation === 'max_commercial_album_sources_read_only'),
+                'unapproved_target_album');
+            maxEditNeed(is_array($target) && $target['registered'] === false && $target['media'] === array_fill(0, $photoCount, 'image')
                 && $target['keyboard_present'] === false && $target['linked_message'] === false
                 && $target['published_ms'] === $row['target_ms'] && $target['url'] === $row['target_url']
                 && hash_equals($row['target_fingerprint'], $target['fingerprint']), 'target_changed_or_occupied');
@@ -61,6 +65,9 @@ function maxBatchInput(string $approvedBytes, string $approvedHash, string $arch
                 'target_fingerprint'=>$row['target_fingerprint'], 'source_publication'=>$row['source_id'],
                 'source_version'=>$observed['source_version'],'source_content_hash'=>$observed['source_content_sha256'],
                 'source_mid'=>$row['source_mid'],'source_url'=>$row['source_url'],'caption'=>$caption];
+            if ($photoCount > 1) {
+                $plan['target_photo_count'] = $photoCount;
+            }
             if ($displayName !== $row['name']) {
                 $plan['source_aliases'] = [$row['name']];
             }
