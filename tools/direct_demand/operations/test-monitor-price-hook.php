@@ -820,10 +820,10 @@ $monitorMode=true;eval($pinSelection);$monitorPins=$accepted;
 hook_test_check($legacyPins['services/ChannelPostAutomationService.php']==='f5975ab95de5f45e087eb7a0f768f566c5bca648'
     &&$legacyPins['services/ChannelPostRegistryService.php']==='a407757b9ac54a9e286900d34385d519d22b8c84','legacy_manual_pin_scope_changed');
 hook_test_check(count($monitorPins)===23
-    &&$monitorPins['integrations/ChannelPostApiTransport.php']==='5d992794c8d7b9645942c8b1bd7b78ece4441811'
+    &&$monitorPins['integrations/ChannelPostApiTransport.php']==='62fe4f4505be2273bd11a34985f6dfeeae10c651'
     &&$monitorPins['services/ChannelPostAutomationService.php']==='9914ff7af27ab714204f7478a75a5dd971de152d'
     &&$monitorPins['services/ChannelPostButtonTransport.php']==='2dffadf8679caf6e9ed364a45ecfc44f7eb67388'
-    &&$monitorPins['services/ChannelPostRegistryService.php']==='567cb89591ea24fc4cfef98288b6afb5900d91db'
+    &&$monitorPins['services/ChannelPostRegistryService.php']==='c34c4758411c4879a9c6d94b99412e557a906bcd'
     &&$monitorPins['services/ChannelPostReconciliationService.php']==='1fa260e9720a8421227ecbe740bfbe33a42e398d','reviewed_pr1657_monitor_pins_missing');
 $bundlePath=tempnam(sys_get_temp_dir(),'monitor-pin-test-');
 try {
@@ -859,6 +859,18 @@ foreach(['services/ChannelPostAutomationService.php'=>'f5975ab95de5f45e087eb7a0f
     'services/ChannelPostReconciliationService.php'=>'43133f576845c14446102dedfffb7f0de2d4ba1c'] as $path=>$oldPin){
     $runtimeFixturePins=$monitorPins;$runtimeFixturePins[$path]=$oldPin;
     hook_test_reject(static fn()=>hook_test_runtime(),'superseded_surface_accepted_'.$path);
+}
+
+foreach([
+    'integrations/ChannelPostApiTransport.php'=>'5d992794c8d7b9645942c8b1bd7b78ece4441811',
+    'services/ChannelPostRegistryService.php'=>'567cb89591ea24fc4cfef98288b6afb5900d91db',
+] as $path=>$previousPin){
+    $runtimeFixturePins=$monitorPins;$runtimeFixturePins[$path]=$previousPin;
+    hook_test_reject(static fn()=>hook_test_runtime(),'pre_pr1732_surface_accepted_'.$path);
+}
+foreach($ads19Roster['rows'] as $row){
+    $telegramPath=parse_url($row['posts']['telegram'],PHP_URL_PATH);
+    hook_test_check($telegramPath!=='/anytour/1047','publisher_keyboard_pilot_in_price_roster');
 }
 
 // Preserve the older pre-PR1612 Registry rejection as a separate historical case.

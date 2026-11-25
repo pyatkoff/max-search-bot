@@ -114,14 +114,14 @@ try {
     if($monitorMode)$accepted=array_replace($accepted,[
         // Reviewed PR1572 entry annotations and PR1612 explicit recovery compatibility.
         // Legacy manual pins above remain unchanged; only scheduled monitoring admits these bytes.
-        // PR1649 adds the separately fenced Aloft /1678 button repair. PRICE retains
-        // the ordinary identities and only accepts these exact reviewed runtime files.
-        'integrations/ChannelPostApiTransport.php'=>'5d992794c8d7b9645942c8b1bd7b78ece4441811',
+        // The /1678 repair and PR1732's /1047 keyboard pilot use separately fenced paths.
+        // PRICE retains the ordinary identities and admits these exact runtime files.
+        'integrations/ChannelPostApiTransport.php'=>'62fe4f4505be2273bd11a34985f6dfeeae10c651',
         'services/ChannelPostAutomationService.php'=>'9914ff7af27ab714204f7478a75a5dd971de152d',
         'services/ChannelPostEntryService.php'=>'67495424fdf415b489240e7115e9efedfb1d5c3b',
         'services/ConversationRecordClock.php'=>'8f1d5b9a4888174a0867408594a164fc776ddbe4',
         'services/ChannelPostButtonTransport.php'=>'2dffadf8679caf6e9ed364a45ecfc44f7eb67388',
-        'services/ChannelPostRegistryService.php'=>'567cb89591ea24fc4cfef98288b6afb5900d91db',
+        'services/ChannelPostRegistryService.php'=>'c34c4758411c4879a9c6d94b99412e557a906bcd',
         'services/ChannelPostReconciliationService.php'=>'1fa260e9720a8421227ecbe740bfbe33a42e398d',
         'services/MaxTransport.php'=>'2cb4f8786b4704a8e62a3a9c40dc2cc73dad6159',
         'services/ProjectConfig.php'=>'63c17c8103412f8cff8cdcc4bbb062e744106af9',
