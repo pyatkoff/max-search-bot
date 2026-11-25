@@ -1,4 +1,4 @@
-name: "HOTEL: verify the Radisson Blu reserve photo post"
+name: "HOTEL: verify three exact MAX hotel sources and destinations"
 on:
   push:
     branches: [audit/anytour-hotel-ads-20261117]
@@ -19,7 +19,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '49f0c05ac64ff4077549748230bf0d97688b5d6c' &&
+      github.event.before == '88c14f4648e20ec7c8b955b3f971883d8dbe5474' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 18
@@ -72,7 +72,7 @@ jobs:
                   if (record.blob !== latest.blob || record.record_digest !== latest.record_digest ||
                       await current() !== expected) throw Error('accepted_release_changed')
                   require('node:fs').appendFileSync(process.env.GITHUB_ENV, 'VERIFIED_MAX_APP='+actual.application_sha+'\n')
-                  console.log('MAX_RADISSON_RESERVE_RELEASE_ACCEPTED='+expected)
+                  console.log('MAX_THREE_BOUND_CANDIDATES_RELEASE_ACCEPTED='+expected)
                   return
                 } catch (error) {
                   if (!['release_pending','diagnostics_unconfirmed','accepted_release_mismatch'].includes(error.code || error.message)) throw error
@@ -84,7 +84,7 @@ jobs:
           }
           read().catch(e=>{console.error('release_refused='+(e.code||e.message||'accepted_release_unavailable'));process.exitCode=1})
           NODE
-      - name: Prepare the exact Radisson Blu source and reserve target
+      - name: Prepare three existing MAX source and target pairs
         shell: bash
         run: |
           set -euo pipefail
@@ -156,7 +156,7 @@ jobs:
               return $result;
           }
           $root='/var/www/anytoour/data/www/app.anytoour.ru';$expected='VERIFIED_MAX_APPLICATION_SHA';
-          $out=['ok'=>false,'operation'=>'max_radisson_reserve_read_only','repository_sha'=>'d8a0d794321ea89d8ac62205a22079656aa73d6a','application_sha'=>$expected,
+          $out=['ok'=>false,'operation'=>'max_three_matched_candidates_read_only','repository_sha'=>'d8a0d794321ea89d8ac62205a22079656aa73d6a','application_sha'=>$expected,
               'archive_run'=>45373389110,'db_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,'rows'=>[]];
           function installedHere(string $root, string $expected): bool {
               return PHP_SAPI==='cli' && getcwd()===$root && trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'))===$expected
@@ -193,12 +193,12 @@ jobs:
           PHP
           python3 - <<'PYBIND'
           import json,os,pathlib,re
-          plans=json.loads("[{\"hotel_id\":63674,\"source_id\":643,\"source_url\":\"https://max.ru/channel_anytour/AaG2erwGCro\",\"target_url\":\"https://max.ru/anytour/AaAuJeZbQAc\",\"target_mid\":\"mid.ffffc1752b045fed01a02e25e65b4007\",\"target_ms\":1787480630875,\"target_fingerprint\":\"8fb9c0628fcea7df16218bd61670ac1221142da93f95545d710ffee84de529f3\",\"name\":\"Radisson Blu Resort Phu Quoc\"}]")
+          plans=json.loads("[{\"hotel_id\":63674,\"source_id\":643,\"source_url\":\"https://max.ru/channel_anytour/AaG2erwGCro\",\"target_url\":\"https://max.ru/anytour/AaAuJeZbQAc\",\"target_mid\":\"mid.ffffc1752b045fed01a02e25e65b4007\",\"target_ms\":1787480630875,\"target_fingerprint\":\"8fb9c0628fcea7df16218bd61670ac1221142da93f95545d710ffee84de529f3\",\"name\":\"Radisson Blu Resort Phu Quoc\"},{\"hotel_id\":64918,\"name\":\"You & Me Maldives\",\"source_id\":2255,\"source_url\":\"https://max.ru/channel_anytour/AaHryMfSWo0\",\"target_mid\":\"mid.ffffc1752b045fed019c5c3691bc41f9\",\"target_url\":\"https://max.ru/anytour/AZxcNpG8Qfk\",\"target_ms\":1771073606076,\"target_fingerprint\":\"2eeb6d206073e689cb4f81ef68a4e33c407d8d19fd008c7b60c9fefae99b21b6\"},{\"hotel_id\":358,\"name\":\"Rixos Sharm El Sheikh\",\"source_id\":215,\"source_url\":\"https://max.ru/channel_anytour/AaGd4bFlag4\",\"target_mid\":\"mid.ffffc1752b045fed019ac4e4ade3085b\",\"target_url\":\"https://max.ru/anytour/AZrE5K3jCFs\",\"target_ms\":1764239912419,\"target_fingerprint\":\"d5620d2a739981dc2d6edb18fd55a1dfb705c2b7dba53116281d4224b9fea5ca\"}]")
           path=pathlib.Path('pub/read-only.php')
           source=path.read_text()
           app=os.environ['VERIFIED_MAX_APP']
           assert re.fullmatch('[a-f0-9]{40}',app) and source.count('VERIFIED_MAX_APPLICATION_SHA')==source.count('__MAX_ROWS_JSON__')==1
-          assert len(plans)==len({r['hotel_id'] for r in plans})==len({r['target_mid'] for r in plans})==1
+          assert len(plans)==len({r['hotel_id'] for r in plans})==len({r['target_mid'] for r in plans})==3
           source=source.replace('VERIFIED_MAX_APPLICATION_SHA',app)
           for start in range(0,len(plans),4):
               data=json.dumps(plans[start:start+4],ensure_ascii=False,separators=(',',':'))
@@ -238,7 +238,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read the Radisson Blu source and old target
+      - name: Read three source and destination pairs under the shared lease
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -258,8 +258,8 @@ jobs:
           done
           python3 - <<'PY'
           import json,pathlib
-          output={"operation":"max_radisson_reserve_read_only","provider_writes":0,"db_writes":0,"bot_starts":0,"groups":[],"rows":[]}
-          planned=[[63674]]
+          output={"operation":"max_three_matched_candidates_read_only","provider_writes":0,"db_writes":0,"bot_starts":0,"groups":[],"rows":[]}
+          planned=[[63674,64918,358]]
           for index,ids in enumerate(planned,1):
               try:
                   part=json.loads(pathlib.Path(f'pub/native-{index}.json').read_bytes())
@@ -275,19 +275,19 @@ jobs:
                   assert output.setdefault(key,part[key])==part[key]
               output["groups"].append({"ids":ids,"read_utc":part["read_utc"]})
               output["rows"].extend(part["rows"])
-          output["ok"]=len(output["rows"])==1
+          output["ok"]=len(output["rows"])==3
           pathlib.Path("pub/registry.json").write_text(json.dumps(output,ensure_ascii=False))
-          print("MAX_RADISSON_RESERVE_GROUPS="+json.dumps(output["groups"]))
-          print("MAX_RADISSON_RESERVE_BLOCKERS="+json.dumps([[row["hotel_id"],row["blockers"]] for row in output["rows"]]))
+          print("MAX_THREE_BOUND_CANDIDATES_GROUPS="+json.dumps(output["groups"]))
+          print("MAX_THREE_BOUND_CANDIDATES_BLOCKERS="+json.dumps([[row["hotel_id"],row["blockers"]] for row in output["rows"]]))
           if output["ok"]:
-              print("MAX_RADISSON_RESERVE_ROW="+json.dumps(output["rows"][0],ensure_ascii=False))
+              print("MAX_THREE_BOUND_CANDIDATES_ROW="+json.dumps(output["rows"],ensure_ascii=False))
           if not output["ok"]: raise SystemExit(2)
           PY
       - name: Save bounded match evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: max-radisson-reserve-source-rights
+          name: max-three-matched-source-rights
           path: pub/registry.json
           retention-days: 7
           if-no-files-found: warn
