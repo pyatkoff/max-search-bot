@@ -18,10 +18,20 @@ function maxBatchInput(string $approvedBytes, string $approvedHash, string $arch
     maxEditNeed(($archive['ok'] ?? false) === true && $archive['history_complete'] === true && $archive['price_content_shared_lease'] === true
         && $archive['native_run_id'] === $scope['archive_run_id'] && $archive['production_writes'] === 0 && $archive['provider_writes'] === 0, 'invalid_archive');
     $sourceOperation = $scope['native_source']['operation'] ?? 'max_seven_source_rights';
-    maxEditNeed(in_array($sourceOperation, ['max_seven_source_rights', 'max_five_ranked_read_only'], true), 'invalid_native_operation');
+    maxEditNeed(in_array($sourceOperation, ['max_seven_source_rights', 'max_five_ranked_read_only', 'max_next_twelve_read_only'], true), 'invalid_native_operation');
     maxEditNeed(($source['ok'] ?? false) === true && $source['operation'] === $sourceOperation
         && $source['application_sha'] === $release && $source['repository_sha'] === $sourceRef && $source['archive_run'] === (int)$scope['archive_run_id']
         && $source['provider_writes'] === 0 && $source['db_writes'] === 0 && $source['bot_starts'] === 0, 'invalid_native_evidence');
+    if ($sourceOperation === 'max_next_twelve_read_only') {
+        // The authenticated reader only includes groups after checking the editor right in each native response.
+        $groups = $source['groups'] ?? [];
+        maxEditNeed(count($groups) === 3, 'invalid_native_reader_groups');
+        foreach ($groups as $group) {
+            maxEditNeed(isset($group['read_utc']) && !isset($group['failure']) && count($group['ids'] ?? []) === 4, 'invalid_native_reader_group');
+        }
+        maxEditNeed(array_merge(...array_column($groups, 'ids')) === array_column($source['rows'], 'hotel_id'), 'invalid_native_reader_membership');
+        $source['target_editor_rights'] = true;
+    }
     maxEditNeed(($source['target_editor_rights'] ?? null) === true && (is_int($source['channel_config_version'] ?? null) || is_string($source['channel_config_version'] ?? null))
         && filter_var($source['channel_config_version'], FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]) !== false, 'main_channel_edit_not_ready');
     $rows = $scope['rows'];
@@ -44,11 +54,16 @@ function maxBatchInput(string $approvedBytes, string $approvedHash, string $arch
             $observed = $native[$id] ?? [];
             maxBatchValidateNativeRow($row, $observed);
             $caption = $row['caption_without_price'];
-            $plan = ['kind'=>'expired_reviewed_photo_promotion', 'hotel'=>$id, 'hotel_name'=>$row['name'],
+            $displayName = $row['display_name'] ?? $row['name'];
+            maxEditNeed($displayName === $row['name'] || $displayName === str_replace(' & ', ' and ', $row['name']), 'invalid_display_hotel_name');
+            $plan = ['kind'=>'expired_reviewed_photo_promotion', 'hotel'=>$id, 'hotel_name'=>$displayName,
                 'target_mid'=>$row['target_mid'],'target_ms'=>$row['target_ms'],'target_url'=>$row['target_url'],
                 'target_fingerprint'=>$row['target_fingerprint'], 'source_publication'=>$row['source_id'],
                 'source_version'=>$observed['source_version'],'source_content_hash'=>$observed['source_content_sha256'],
                 'source_mid'=>$row['source_mid'],'source_url'=>$row['source_url'],'caption'=>$caption];
+            if ($displayName !== $row['name']) {
+                $plan['source_aliases'] = [$row['name']];
+            }
             $out['ready'][$id] = ['plan'=>$plan, 'sha256'=>hash('sha256', maxEditJson($plan)),
                 'source_photo_sha256'=>$observed['source_photo_sha256'], 'source_caption_sha256'=>$observed['source_caption_sha256'],
                 'config_version'=>(int)$source['channel_config_version'], 'approved_row'=>$row];

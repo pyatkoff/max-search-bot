@@ -1,0 +1,268 @@
+{
+  "version": 1,
+  "archive_run_id": "45373389110",
+  "archive_sha256": "c46ce092bfb91935ce829c871026a1136bf465920a3caa9184604f052c55798c",
+  "archive_registry_sha256": "c65efd90090ab8669c0d7646d44d8927ea3658c39673696d2e147685f3ec7568",
+  "rows": [
+    {
+      "hotel_id": 73343,
+      "name": "The Grand Palace",
+      "source_id": 1253,
+      "source_url": "https://max.ru/channel_anytour/AaHQ_ZjzcEA",
+      "source_mid": "mid.ffffb6caf0606fed01a1d0fd98f37040",
+      "target_url": "https://max.ru/anytour/AaBnNxELfuU",
+      "target_mid": "mid.ffffc1752b045fed01a06737110b7ee5",
+      "target_ms": 1788438057227,
+      "target_fingerprint": "f2941e0561a6b769be868554dd9cf0b30501b59bbee90ba74460bb49d8ced2a8",
+      "original_legacy_identity_sha256": "52bf1329a3e552d89529bc1b240502b8575c6aaed9a3ff22d750dbcccd58f024",
+      "caption_without_price": "✈️ Туры в The Grand Palace\n📍 Хургада, Египет\nПляжный отдых вдвоём в отеле 18+. Песчаный пляж, бассейны и просторные Junior Suite. Есть категория с выходом в общий бассейн."
+    },
+    {
+      "hotel_id": 43689,
+      "name": "Fusion Resort Cam Ranh",
+      "source_id": 1912,
+      "source_url": "https://max.ru/channel_anytour/AaHqSql-Q40",
+      "source_mid": "mid.ffffb6caf0606fed01a1ea4aa97e438d",
+      "target_url": "https://max.ru/anytour/AaBxuxe-Jxk",
+      "target_mid": "mid.ffffc1752b045fed01a071bb17be2719",
+      "target_ms": 1788614481854,
+      "target_fingerprint": "94291066bd05573d38af7b11884da2fa35a9519b2d65655bfe03f455c0566fc9",
+      "original_legacy_identity_sha256": "79403cf2e1b3754b1317b0f6b6c9edca24d5f066ef5cc971cb496882f2699e35",
+      "caption_without_price": "✈️ Туры в Fusion Resort Cam Ranh\n📍 Камрань, Вьетнам\nСьюты и виллы для спокойного отдыха у моря. Рядом песчаный пляж, на территории — спа и бассейны. Для детей есть отдельный бассейн и игровая площадка."
+    },
+    {
+      "hotel_id": 139,
+      "name": "Brayka Bay Resort",
+      "source_id": 367,
+      "source_url": "https://max.ru/channel_anytour/AaGjHF7dGOQ",
+      "source_mid": "mid.ffffb6caf0606fed01a1a31c5edd18e4",
+      "target_url": "https://max.ru/anytour/AaCAxCRDffc",
+      "target_mid": "mid.ffffc1752b045fed01a080c424437df7",
+      "target_ms": 1788866733123,
+      "target_fingerprint": "51279825e0ba5c5ae369640991984d58a8f36f29219dc1f093a1b7062072406c",
+      "original_legacy_identity_sha256": "a56f2358ccbd23e7bd9dc0ed13d5ce0b21930c27f20c389e656a7c2a558b7a6a",
+      "caption_without_price": "✈️ Туры в Brayka Bay Resort\n📍 Марса-Алам, Египет\nСобственный песчаный пляж в бухте, сады и пальмы на территории. Для семейного отдыха есть бассейны и занятия для детей."
+    },
+    {
+      "hotel_id": 2470,
+      "name": "Sun Siyam Olhuveli",
+      "source_id": 1468,
+      "source_url": "https://max.ru/channel_anytour/AaHlf5z_ODQ",
+      "source_mid": "mid.ffffb6caf0606fed01a1e57f9cff3834",
+      "target_url": "https://max.ru/anytour/AaC42fW_AY0",
+      "target_mid": "mid.ffffc1752b045fed01a0b8d9f5bf018d",
+      "target_ms": 1789807687103,
+      "target_fingerprint": "737aabd9ac6837e47e3d2e0f768f2386db5a93c11d24203be57d092b5f410c8a",
+      "original_legacy_identity_sha256": "2ee1236d1296ef9f24a752506555ddd5d03f9f2de6ab681c192202aa5569bc34",
+      "caption_without_price": "✈️ Туры в Sun Siyam Olhuveli\n📍 Южный Мале, Мальдивы\nПляжи, бассейны и водные развлечения. Для семей есть детский клуб и подходящие номера и виллы. Отдельная зона Romance предназначена для взрослых."
+    },
+    {
+      "hotel_id": 56092,
+      "name": "Gravity Hotel & Aqua Park Hurghada",
+      "source_id": 283,
+      "source_url": "https://max.ru/channel_anytour/AaGeilyCad0",
+      "source_mid": "mid.ffffb6caf0606fed01a19e8a5c8269dd",
+      "target_url": "https://max.ru/anytour/AaDD8UQLQ4U",
+      "target_mid": "mid.ffffc1752b045fed01a0c3f1440b4385",
+      "target_ms": 1789993763851,
+      "target_fingerprint": "3daf2a678a4fd0557ea60a9aaf72478cd1d3acb28722867566d6264b5ffa223e",
+      "original_legacy_identity_sha256": "f9a989f2a9b606336b5b534307ce5a230a57b5111f9d52200afdf266029af10f",
+      "caption_without_price": "✈️ Туры в Gravity Hotel and Aqua Park Hurghada\n📍 Хургада, Египет\nСобственный пляж у лагуны и аквапарк с десятью горками. Помимо основного ресторана работают итальянский La Piazza и азиатский Akina.",
+      "display_name": "Gravity Hotel and Aqua Park Hurghada"
+    },
+    {
+      "hotel_id": 59114,
+      "name": "Akdora Elite Hotel & Spa",
+      "source_id": 1374,
+      "source_url": "https://max.ru/channel_anytour/AaHcqEDjA3Y",
+      "source_mid": "mid.ffffb6caf0606fed01a1dca840e30376",
+      "target_url": "https://max.ru/anytour/AaDYcRGJKpQ",
+      "target_mid": "mid.ffffc1752b045fed01a0d87111892a94",
+      "target_ms": 1790337683849,
+      "target_fingerprint": "29e99e1737fe183e5c13269cfde5ea8b5eb3376d512efced12a2863b7c436243",
+      "original_legacy_identity_sha256": "bab7cf2ae726b257097b07e5586f2b21deca435689994799053dd4c8f5c52b31",
+      "caption_without_price": "✈️ Туры в Akdora Elite Hotel and Spa\n📍 Сиде, Турция\nДо собственного песчаного пляжа около 300 м. На территории открытые бассейны и спа. Рядом стройка, возможен шум.",
+      "display_name": "Akdora Elite Hotel and Spa"
+    },
+    {
+      "hotel_id": 63191,
+      "name": "Jumeirah Saadiyat Island",
+      "source_id": 1496,
+      "source_url": "https://max.ru/channel_anytour/AaHlgTobEZw",
+      "source_mid": "mid.ffffb6caf0606fed01a1e5813a1b119c",
+      "target_url": "https://max.ru/anytour/AaELd0cFVAQ",
+      "target_mid": "mid.ffffc1752b045fed01a10b7747055404",
+      "target_ms": 1791193728773,
+      "target_fingerprint": "46e816edf55ef86c71d58b25e78ea26d26fe5ee87444f2d2fba87d50b3d136af",
+      "original_legacy_identity_sha256": "a8182db4f62ebd0a2a4ac2f0d76e8407fb60c15112ed5e79b1a21660cbd91051",
+      "caption_without_price": "✈️ Туры в Jumeirah Saadiyat Island\n📍 Саадият, Абу-Даби, ОАЭ\nПесчаный пляж, бассейны и просторные номера. Для детей и подростков есть отдельные клубы, для взрослых — спа и рестораны у моря."
+    },
+    {
+      "hotel_id": 76588,
+      "name": "Liu Resorts",
+      "source_id": 718,
+      "source_url": "https://max.ru/channel_anytour/AaG2zkytfiM",
+      "source_mid": "mid.ffffb6caf0606fed01a1b6ce4cad7e23",
+      "target_url": "https://max.ru/anytour/AaEba-dgJKk",
+      "target_mid": "mid.ffffc1752b045fed01a11b6be76024a9",
+      "target_ms": 1791461418848,
+      "target_fingerprint": "f5725724b78bb616225f2171dc4878201c1cd842aa4d7f3d96bf3f58f03c03dd",
+      "original_legacy_identity_sha256": "4badb66291610e50ab5124eb67a52c72a9bf969a1a77603db32a656abadedc08",
+      "caption_without_price": "✈️ Туры в Liu Resorts\n📍 Сиде, Турция\nСобственный песчаный пляж примерно в 300 м. В Breeze выступают живые группы и диджеи. Для поездки вдвоём можно рассмотреть Superior Corner с видом на море."
+    },
+    {
+      "hotel_id": 77914,
+      "name": "Sunrise Tucana Resort",
+      "source_id": 181,
+      "source_url": "https://max.ru/channel_anytour/AaGc6ZyuFlA",
+      "source_mid": "mid.ffffb6caf0606fed01a19ce99cae1650",
+      "target_url": "https://max.ru/anytour/AaEl-MVcT8Q",
+      "target_mid": "mid.ffffc1752b045fed01a125f8c55c4fc4",
+      "target_ms": 1791638422876,
+      "target_fingerprint": "db6e6af8df6138f132a927485f4b72b7864399866bfe21d9d066254a51974873",
+      "original_legacy_identity_sha256": "8d4ba079aa6268260f5087dcab2779082308211bd400e823bf086cdbfde20fc3",
+      "caption_without_price": "✈️ Туры в Sunrise Tucana Resort\n📍 Хургада, Египет\nСобственный пляж и рестораны с обслуживанием по меню. Для отдыха с детьми есть клуб для ребят от 3 до 12 лет."
+    },
+    {
+      "hotel_id": 106,
+      "name": "Aladdin Beach Resort",
+      "source_id": 1042,
+      "source_url": "https://max.ru/channel_anytour/AaG3snxOWfo",
+      "source_mid": "mid.ffffb6caf0606fed01a1b7b27c4e59fa",
+      "target_url": "https://max.ru/anytour/AaEwSMavEQU",
+      "target_mid": "mid.ffffc1752b045fed01a13048c6af1105",
+      "target_ms": 1791811438255,
+      "target_fingerprint": "0907be808fe30854293c6edf63c403c4221fc7801909e927404474658fd70dc2",
+      "original_legacy_identity_sha256": "48a66bdc68037f2c31ba6f844b1af9ea2ba0197167766bf473d74aedc0052dd6",
+      "caption_without_price": "✈️ Туры в Aladdin Beach Resort\n📍 Хургада, Египет\nОтель на первой линии с песчано-галечным пляжем. По вечерам проходят шоу и выступают музыканты."
+    },
+    {
+      "hotel_id": 111,
+      "name": "Pickalbatros Palace Resort Hurghada",
+      "source_id": 355,
+      "source_url": "https://max.ru/channel_anytour/AaGisi-ve3Q",
+      "source_mid": "mid.ffffb6caf0606fed01a1a2b22faf7b74",
+      "target_url": "https://max.ru/anytour/AaE0q57XSGk",
+      "target_mid": "mid.ffffc1752b045fed01a134ab9ed74869",
+      "target_ms": 1791885024983,
+      "target_fingerprint": "28cdc2545fb89806feee400a6acb5cb892db1c9c0e6c17b87bae69c984c70d16",
+      "original_legacy_identity_sha256": "ce68d271e3f8cdb99649d296ff3e8cc092579a4b0d278ac2969620e5d9ac7796",
+      "caption_without_price": "✈️ Туры в Pickalbatros Palace Resort Hurghada\n📍 Хургада, Египет\nСобственный пляж, четыре бассейна и пять детских горок для ребят от 4 до 12 лет. Два бассейна подогревают с ноября по апрель в зависимости от погоды."
+    },
+    {
+      "hotel_id": 114,
+      "name": "Ali Baba Palace",
+      "source_id": 1043,
+      "source_url": "https://max.ru/channel_anytour/AaG3soUIZh0",
+      "source_mid": "mid.ffffb6caf0606fed01a1b7b28508661d",
+      "target_url": "https://max.ru/anytour/AaE6sgknSuc",
+      "target_mid": "mid.ffffc1752b045fed01a13ab209274ae7",
+      "target_ms": 1791986108711,
+      "target_fingerprint": "f490eaff0990f02815f154b52aa6c0f8955211f348768498c0eaffc2cb28e0e3",
+      "original_legacy_identity_sha256": "3bc57bf282332540f333fc71444bcdd8724d88ef1e9cf28e1ba870d7709d37b5",
+      "caption_without_price": "✈️ Туры в Ali Baba Palace\n📍 Хургада, Египет\nСобственный песчаный пляж. У входа в море встречается галька, поэтому для купания удобно взять специальную обувь."
+    }
+  ],
+  "native_source": {
+    "operation": "max_next_twelve_read_only",
+    "run_id": 45541081505,
+    "attempt": 1,
+    "job_id": 138959464966,
+    "workflow_head": "9a5340c27476b96afe94b9c29bea3483a1b451d5",
+    "artifact_id": 14988933074,
+    "zip_sha256": "cb8854ec006b81bb14246162a114f81ec93cc224c9fe808eda8f5e284ac8b49a",
+    "json_sha256": "0853d351734156f6b80fed326f2cbe7892e47fec24baac299437bbc245d5aeaa",
+    "repository_sha": "21b8e93418be0357cc2c7858cd1b0d970a62f4a7",
+    "application_sha": "21b8e93418be0357cc2c7858cd1b0d970a62f4a7"
+  },
+  "route_readback": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 45541157404,
+    "job_id": 138959723457,
+    "observed_utc": "2026-11-25T03:36:48+00:00",
+    "write_calls": 0
+  },
+  "price_review": {
+    "mode": "caption_without_fixed_price",
+    "source_versions": [
+      {
+        "hotel_id": 73343,
+        "version": 14019,
+        "stored_price_record": 0,
+        "stored_price_observation": "Цена найдена мониторингом 20.11.2026, 03:49 МСК. Стоимость и наличие могут измениться."
+      },
+      {
+        "hotel_id": 43689,
+        "version": 12792,
+        "stored_price_record": 0,
+        "stored_price_observation": "Цена найдена мониторингом 19.11.2026, 20:16 МСК. Стоимость и наличие могут измениться."
+      },
+      {
+        "hotel_id": 139,
+        "version": 13592,
+        "stored_price_record": 0,
+        "stored_price_observation": "Цена найдена мониторингом 20.11.2026, 03:49 МСК. Стоимость и наличие могут измениться."
+      },
+      {
+        "hotel_id": 2470,
+        "version": 13413,
+        "stored_price_record": 98448,
+        "stored_price_observation": "Цена найдена мониторингом 20.11.2026, 00:55 МСК. Стоимость и наличие могут измениться."
+      },
+      {
+        "hotel_id": 56092,
+        "version": 12862,
+        "stored_price_record": 0,
+        "stored_price_observation": "Цена найдена мониторингом 19.11.2026, 20:19 МСК. Стоимость и наличие могут измениться."
+      },
+      {
+        "hotel_id": 59114,
+        "version": 13824,
+        "stored_price_record": 9223372036854775807,
+        "stored_price_observation": "Цена найдена мониторингом 20.11.2026, 07:52 МСК. Стоимость и наличие могут измениться."
+      },
+      {
+        "hotel_id": 63191,
+        "version": 13736,
+        "stored_price_record": 3,
+        "stored_price_observation": "Цена найдена мониторингом 20.11.2026, 03:46 МСК. Стоимость и наличие могут измениться."
+      },
+      {
+        "hotel_id": 76588,
+        "version": 13262,
+        "stored_price_record": 0,
+        "stored_price_observation": "Цена найдена мониторингом 20.11.2026, 00:01 МСК. Стоимость и наличие могут измениться."
+      },
+      {
+        "hotel_id": 77914,
+        "version": 13544,
+        "stored_price_record": 0,
+        "stored_price_observation": "Цена найдена мониторингом 20.11.2026, 03:50 МСК. Стоимость и наличие могут измениться."
+      },
+      {
+        "hotel_id": 106,
+        "version": 14169,
+        "stored_price_record": 0,
+        "stored_price_observation": "Цена найдена мониторингом 20.11.2026, 20:48 МСК. Стоимость и наличие могут измениться."
+      },
+      {
+        "hotel_id": 111,
+        "version": 13865,
+        "stored_price_record": 0,
+        "stored_price_observation": "Цена найдена мониторингом 20.11.2026, 22:18 МСК. Стоимость и наличие могут измениться."
+      },
+      {
+        "hotel_id": 114,
+        "version": 14055,
+        "stored_price_record": 0,
+        "stored_price_observation": "Цена найдена мониторингом 20.11.2026, 05:17 МСК. Стоимость и наличие могут измениться."
+      }
+    ],
+    "checked_utc": "2026-11-25T03:36:18+00:00"
+  },
+  "publisher": {
+    "comment_id": 6928374515,
+    "body": "PR1714: установлено, выпуск свободен",
+    "owner_id": 226193297
+  }
+}
