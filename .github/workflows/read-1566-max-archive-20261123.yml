@@ -1,4 +1,4 @@
-name: "Screen fresh unassigned MAX photoposts and verify the Anantara PRICE result"
+name: "Keep archive and PRICE readbacks independent of feed timeouts"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -15,7 +15,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.actor == 'pyatkoff' && github.event.created == false &&
-      github.event.before == '3a9195debcfbeb703a220895871f5a40a61d3010' &&
+      github.event.before == '099d9050d9a73a5a2da0a6f585336afa2d572688' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -88,7 +88,7 @@ jobs:
 
           def read(url, limit):
               request = Request(url, headers={"User-Agent": "Mozilla/5.0", "Cache-Control": "no-cache"})
-              with urlopen(request, timeout=12) as response:
+              with urlopen(request, timeout=9) as response:
                   assert response.geturl() == url and response.status == 200
                   data = response.read(limit + 1)
               assert len(data) <= limit
@@ -132,6 +132,15 @@ jobs:
                        "name":o.findtext("name",""),"path":urlsplit(href).path}
               return name, {"count":len(ids),"rows":result}
 
+          def recover(args):
+              name,url=args
+              for _ in range(2):
+                  try:
+                      return feed((name,url))
+                  except (OSError,ValueError,AssertionError,ET.ParseError) as error:
+                      reason=type(error).__name__
+              return name,{"error":reason}
+
           singles=[r for r in rows if r["status"]=="needs_content_and_route_review"]
           albums=[r for r in rows if not r["registered"] and not r["keyboard_present"] and not r["linked_message"]
                   and 2<=len(r["media"])<=10 and set(r["media"])=={"image"}]
@@ -139,8 +148,11 @@ jobs:
           assert all(not r["registered"] and not r["keyboard_present"] and not r["linked_message"] for r in singles)
           with ThreadPoolExecutor(max_workers=4) as pool:
               candidates=list(pool.map(inspect,singles+albums))
-              feeds=dict(pool.map(feed,[("max","https://app.anytoour.ru/feed/hotel-posts-max.xml"),("all","https://app.anytoour.ru/feed/hotel-posts-all.xml")]))
+              feeds=dict(pool.map(recover,[("max","https://app.anytoour.ru/feed/hotel-posts-max.xml"),("all","https://app.anytoour.ru/feed/hotel-posts-all.xml")]))
+          try:
               m=page("https://max.ru/anytour/AZ_RB3FVXFc")
+          except (OSError,ValueError,AssertionError) as error:
+              m={"error":type(error).__name__}
           public_description=m.get("og:description","")
           print("MAX_FRESH_ARCHIVE_SCREEN="+json.dumps({"archive_run":run["id"], "messages":len(rows),
               "screened_singles":len(singles),"screened_albums":len(albums),
@@ -148,7 +160,7 @@ jobs:
               "unavailable":[r["url"] for r in candidates if r["screen"]=="public_read_unavailable"],
               "candidates":[r for r in candidates if r["screen"]=="commercial_candidate"],
               "feeds":feeds,"anantara":{"name_confirmed":"Anantara" in public_description,
-              "price_lines":[l.strip()[:130] for l in public_description.splitlines() if "₽" in l or "руб" in l.lower()][:3],
+              "error":m.get("error"),"price_lines":[l.strip()[:130] for l in public_description.splitlines() if "₽" in l or "руб" in l.lower()][:3],
               "image_present":bool(m.get("og:image"))},"writes":0,"ad_clicks":0,
               "observed_utc":datetime.datetime.now(datetime.timezone.utc).isoformat()},ensure_ascii=False,separators=(",",":")))
           PY
