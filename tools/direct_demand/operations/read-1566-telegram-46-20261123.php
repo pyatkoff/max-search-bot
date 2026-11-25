@@ -44,6 +44,7 @@ function resourcesRead(): array
         $result['memory_kb'][$name] = is_string($memory) && preg_match('/^'. $name .':\s+([0-9]+) kB$/m', $memory, $m) ? (int)$m[1] : null;
     }
     $stat = @file_get_contents('/proc/stat', false, null, 0, 32768);
+    $result['cpu_count']=is_string($stat)?preg_match_all('/^cpu[0-9]+\s/m',$stat):null;
     $result['cpu_ticks'] = is_string($stat) && preg_match('/^cpu\s+([0-9 ]+)$/m',$stat,$m)
         ? array_map('intval', preg_split('/\s+/',trim($m[1]))) : null;
     $load = @file_get_contents('/proc/loadavg', false, null, 0, 256);
@@ -72,6 +73,16 @@ function mysqlResourcesRead(PDO $pdo): array
         foreach ($rows as $row) if (preg_match('/\A[0-9]+\z/D',(string)$row['Value'])) $values[$row['Variable_name']] = (int)$row['Value'];
         return ['state'=>'observed','values'=>$values];
     } catch (Throwable $e) { return ['state'=>'unavailable']; }
+}
+
+function serverReadBudgetRead(array $resources): array
+{
+    $cpus=$resources['cpu_count']??null;$load=$resources['load_average'][0]??null;
+    $known=is_int($cpus)&&$cpus>0&&$cpus<=1024&&(is_float($load)||is_int($load))&&is_finite((float)$load)&&$load>=0;
+    $limit=$known?1.5*$cpus:null;
+    return ['allowed'=>$known&&$load<=$limit,'cpu_count'=>$cpus,'load_one_minute'=>$load,
+        'max_load_one_minute'=>$limit,'reason'=>$known&&$load<=$limit?'bounded_read_allowed':'server_resource_hold',
+        'write_admission'=>false,'public_preparation_on_runner_independent'=>true];
 }
 
 function runtimeRead(): void
@@ -225,7 +236,7 @@ $pdo=null;$lock=null;$acquired=null;$stage='installed_runtime';$start=hrtime(tru
 try{
  runtimeRead();requireRead(realpath(OPERATIONS)===OPERATIONS,'operations_root_changed');
  foreach(INSTALLED_BLOBS as $path=>$expected){$lines=[];exec('GIT_OPTIONAL_LOCKS=0 git rev-parse '.escapeshellarg('HEAD:'.$path).' 2>/dev/null',$lines,$status);$actual=implode("\n",$lines);requireRead($status===0&&$actual===$expected,'installed_keyboard_guard_source_changed');$worktree=null;if($path==='tools/anytour_existing_post_batch.php'){$lines=[];exec('GIT_OPTIONAL_LOCKS=0 git hash-object -- '.escapeshellarg($path).' 2>/dev/null',$lines,$status);$worktree=implode("\n",$lines);requireRead($status===0&&$worktree===$expected,'installed_keyboard_guard_changed');}$out['installed_blobs'][$path]=['installed_git_blob'=>$actual,'actual_editor_worktree_blob'=>$worktree];}
- $out['resources_before']=resourcesRead();$stage='public_caption_read';
+ $out['resources_before']=resourcesRead();$out['resource_budget']=serverReadBudgetRead($out['resources_before']);requireRead($out['resource_budget']['allowed'],'server_resource_hold');$stage='public_caption_read';
  // Independent public reads precede both SQL transaction and shared PRICE lease.
  foreach(SMALL_CAPTION_SCOPE as $hotel=>$ids)foreach(['telegram','max'] as $platform){$url=$platform==='telegram'?'https://t.me/any_toour/'.$ids[$platform].'?embed=1&mode=tme':'https://max.ru/channel_anytour/'.$ids[$platform];$r=captionPublicBytes($url,$rates);$row=['hotel_id'=>$hotel,'platform'=>$platform,'url'=>$url,'http'=>$r['http']??null,'http_attempts'=>$r['http_attempts'],'raw_sha256'=>$r['body_sha256']??null,'retry_after'=>$r['retry_after']??null,'ok'=>false];
   if($r['ok'])try{if($platform==='telegram'){$seen=parsePublicRead($r['body'],'any_toour',$ids[$platform]);$row['public']=$seen;$row['ok']=true;}else{require_once APP.'/services/PromotedHotelPriceWriter.php';$caption=PromotedHotelPriceWriter::maxPublicCaption($r['body']);$row['caption']=$caption;$row['caption_sha256']=hash('sha256',$caption);$row['native_photo_button_verified']=false;$row['ok']=true;}}catch(Throwable $e){$row['hold_reason']=reasonRead($e);}else$row['hold_reason']=$r['reason']??'public_caption_unavailable';$out['public_rows'][]=$row;

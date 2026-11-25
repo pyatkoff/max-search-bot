@@ -1,14 +1,10 @@
-name: "#1566 Same-hotel public button candidates and canonical pending read"
+name: "#1566 Validate existing reader resource budget without production load"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
     paths: ['.github/workflows/read-1566-telegram-46-20261123.yml']
 permissions:
   contents: read
-  actions: read
-  issues: read
-  pull-requests: read
-# Pure bounded reads retain the canonical PRICE shared lease and actual application fences.
 jobs:
   registry:
     if: >-
@@ -16,207 +12,49 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
-      github.event.created == false &&
-      github.event.before == '9871f39a9c59f007a4c4617b5892e45571bdb207' &&
+      github.event.before == '5386be53bb46e8f8a0391263e3c0453f3826aa26' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 5
     steps:
-      - name: Check out the exact candidate packet
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Check out main for the existing release verifier
-        uses: actions/checkout@v4
-        with:
-          ref: 60003591337ff2ebf74a2e5fe6d79c92c0a6137e
-          path: accepted
-          persist-credentials: false
-      - name: Prove the current closed application for bounded read-only context
-        working-directory: accepted
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+      - name: Lint the same bounded reader without SSH, database or provider calls
         shell: bash
         run: |
           set -euo pipefail
-          node - <<'NODE'
-          const fs=require('node:fs');
-          const R=require('./tools/deployment_release');
-          async function check(){
-            const api=R.makeReadApi(process.env.GITHUB_TOKEN);
-            const before=await R.readRecord(api);
-            const r=R.validateRelease(before.record).release;
-            let technicalAcceptanceComplete=false,terminalHold=null;
-            try {
-              const resolved=await R.resolveCurrent(api,{sha:r.repository_sha},before);
-              if(!resolved.ready||resolved.repository_sha!==r.repository_sha
-                ||resolved.application_sha!==r.application_sha)throw Error('current_installation_not_accepted');
-              technicalAcceptanceComplete=true;
-            } catch(error) {
-              // Read-only observation of this exact already-installed original.
-              // This does not close the release, release its claim, or admit any WRITE.
-              if(r.kind!=='installed'||r.phase!=='pending_terminal'
-                ||r.repository_sha!=='84c8422b39c755b5c7ad396f05a58cf5870c9bec'
-                ||r.application_sha!==r.repository_sha||r.release.run_id!=='45596624619'
-                ||r.release.run_attempt!==1||r.closure.run_id!=='45599238649'
-                ||r.closure.binding.pr!==1720||r.closure.binding.comment_id!==6818332618
-                ||r.closure.binding.owner_id!==226193297
-                ||r.closure.binding.head_sha!=='07c88cfafc1e4fb71a367e7717efd47f0a285494'
-                ||r.closure.binding.updated_at!=='2026-11-25T10:35:18Z')throw error;
-              await R.deploymentProof(api,R.installationReceipt(before.record));
-              await R.requireOps(api,r.application_sha);
-              for(const gate of r.closure.gates){
-                const run=await api('GET',R.API_ROOT+'/actions/runs/'+gate.run_id);
-                R.runIdentity(run,{id:gate.run_id,attempt:1,head:r.repository_sha,
-                  workflow:gate.path,conclusion:gate.conclusion});
-              }
-              const closer=await api('GET',R.API_ROOT+'/actions/runs/45599238649');
-              R.runIdentity(closer,{id:'45599238649',attempt:1,head:r.repository_sha,
-                workflow:'.github/workflows/modeled-conversion-value-export.yml',event:'workflow_run',conclusion:'failure'});
-              const jobs=await api('GET',R.API_ROOT+'/actions/runs/45599238649/attempts/1/jobs?per_page=100');
-              const original=jobs.jobs.filter(j=>j.name==='release-slot');
-              if(original.length!==1||original[0].id!==139153402201||original[0].conclusion!=='failure'
-                ||original[0].steps.filter(s=>s.name==='Prepare the exact release proof before terminal publication'&&s.conclusion==='failure').length!==1
-                ||original[0].steps.filter(s=>s.name===R.TERMINAL_STEP&&s.conclusion==='skipped').length!==1)throw Error('original_terminal_changed');
-              // The controller already read the original completed job log; no unsupported native log capability is widened.
-              const publisher=await api('GET',R.API_ROOT+'/issues/comments/6818332618');
-              if(publisher.body!=='PR1720: выпуск занят'||publisher.updated_at!=='2026-11-25T10:35:18Z'
-                ||publisher.user?.id!==226193297)throw Error('original_publisher_changed');
-              terminalHold='diagnostics_write_unknown';
-            }
-            const main=(await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha;
-            const after=await R.readRecord(api);
-            if(before.blob!==after.blob||before.record_digest!==after.record_digest)throw Error('accepted_record_changed');
-            // Pure reads do not require an unrelated new main to be installed.
-            // Actual application HEAD is fenced independently before and after all host reads.
-            fs.mkdirSync('../pub',{recursive:true});
-            fs.writeFileSync('../pub/accepted-read-admission.json',JSON.stringify({read_only:true,
-              current_main_sha:main,observed_repository_sha:r.repository_sha,application_sha:r.application_sha,
-              technical_acceptance_complete:technicalAcceptanceComplete,write_admission:false,terminal_hold:terminalHold,
-              controller_original_job_log_sha256:'3e14e699d66d5c4075df04e88740fc5513506ecce8686099fa5f416bde1e4c3a',controller_original_job_id:139153402201,
-              record_commit:before.commit,record_blob:before.blob,record_digest:before.record_digest,
-              original_installation_deploy:r.release.run_id,original_guard_pr:1720})+'\n');
-            fs.appendFileSync(process.env.GITHUB_ENV,'REPOSITORY_SHA='+r.repository_sha+'\nAPPLICATION_SHA='+r.application_sha+'\n');
-          }
-          check().catch(e=>{console.error('readonly_accepted_installation_refused',e.code||e.message);process.exitCode=1});
-          NODE
-      - name: Bind immutable packet to the admitted release and native run
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '3e8f36b1e20dbb53ef684b2089478cc6e1588e2a'
+          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '1ac773f9d91cfc9b971fd46f6566d3190a4beb8b'
+          php -l tools/direct_demand/operations/read-1566-telegram-46-20261123.php
           mkdir -p pub
-          python3 - <<'PY'
-          import os,pathlib,re
-          p=pathlib.Path('tools/direct_demand/operations/read-1566-telegram-46-20261123.php')
-          program=p.read_text()
-          for name,pattern in [('APPLICATION_SHA',r'[a-f0-9]{40}'),('REPOSITORY_SHA',r'[a-f0-9]{40}'),('NATIVE_RUN_ID',r'[1-9][0-9]{0,19}')]:
-              value=os.environ['GITHUB_RUN_ID' if name=='NATIVE_RUN_ID' else name]
-              assert re.fullmatch(pattern,value) and program.count('__'+name+'__') == 1
-              program=program.replace('__'+name+'__',value)
-          pathlib.Path('pub/read-only.php').write_text(program)
-          PY
-          php -l pub/read-only.php
-      - name: Pin established SSH host continuity and authentication identity
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
-          PY
-          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
-            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
-          chmod 600 "$RUNNER_TEMP/channel_key"
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-          python3 - <<'PY'
-          import base64,hashlib,os,pathlib,subprocess
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
-          for s in scan.stdout.splitlines():
-              q=s.split()
-              if len(q)<3 or q[0].startswith('#'):continue
-              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
-              except Exception:continue
-              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
-          assert found,'HOST_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
-          print('ESTABLISHED_HOST_PIN_VERIFIED')
-          PY
-      - name: Verify installed #1720 bytes and read existing small caption contexts without edits
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
-                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
-                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          status=0
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json || status=$?
-          python3 - <<'PY'
-          import json
-          d=json.load(open('pub/registry.json'))
-          if not d['ok']: print(json.dumps({k:d[k] for k in ('failure_stage','failure_reason') if k in d}))
-          assert d['ok'] and d['operation']=='hotel_1720_installed_read_and_existing_small_caption_context'
-          assert d['production_writes']==d['provider_writes']==d['bot_starts']==0 and d['write_admission'] is False
-          assert len(d['native_rows'])==3 and len(d['public_rows'])==6
-          print(json.dumps({'installed_blobs':d['installed_blobs'],'public_ok':sum(r['ok'] for r in d['public_rows']),'native_ok':sum(r['ok'] for r in d['native_rows']),'read_elapsed_ms':d['read_elapsed_ms']}))
-          PY
-          test "$status" -eq 0
-      - name: Read four current source and target covers for the two preserved preliminary pairs
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PYIMAGES'
-          import json,pathlib,urllib.request,urllib.parse,urllib.error,hashlib,re
-          d=json.load(open('pub/registry.json')); folder=pathlib.Path('pub/pair-photos');folder.mkdir(exist_ok=True);out=[];held=set()
-          for hotel in ('8094','73082'):
-              for which in ('source','target'):
-                  row={'hotel_id':int(hotel),'kind':which,'ok':False}
-                  try:
-                      p=d['pair_public'][hotel][which];assert p.get('ok') and p.get('single_photo')
-                      url=p['photo_url'];u=urllib.parse.urlsplit(url)
-                      assert u.scheme=='https' and not u.username and not u.password and not u.port and re.fullmatch(r'(?:[a-z0-9-]+\.)*(?:telesco\.pe|cdn-telegram\.org|telegram-cdn\.org)',u.hostname or '')
-                      assert u.hostname not in held
-                      class NoRedirect(urllib.request.HTTPRedirectHandler):
-                          def redirect_request(self,*args,**kwargs):return None
-                      try:
-                          with urllib.request.build_opener(NoRedirect()).open(urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'}),timeout=15) as response:
-                              assert response.status==200
-                              raw=response.read(4000001);assert 0<len(raw)<=4000000 and raw[:3]==b'\xff\xd8\xff'
-                      except urllib.error.HTTPError as e:
-                          if e.code==429:held.add(u.hostname);row['retry_after']=e.headers.get('Retry-After')
-                          raise
-                      name=hotel+'-'+which+'.jpg';(folder/name).write_bytes(raw);row.update(ok=True,file=name,bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest())
-                  except Exception:row['hold_reason']='public_photo_unavailable_or_rate_held'
-                  out.append(row)
-          pathlib.Path('pub/pair-photo-readback.json').write_text(json.dumps({'provider_writes':0,'photos':out}))
-          print(json.dumps({'downloaded':sum(r['ok'] for r in out),'expected':4}))
-          PYIMAGES
-      - name: Remove runner connection material
+          python3 - <<'PYFIX'
+          from pathlib import Path
+          s=Path('tools/direct_demand/operations/read-1566-telegram-46-20261123.php').read_text()
+          a=s.index('function serverReadBudgetRead(');b=s.index('function runtimeRead()',a)
+          fn=s[a:b]
+          tests="""
+          function checkBudget(bool $ok):void{if(!$ok)throw new RuntimeException('resource_budget_contract_failed');}
+          checkBudget(serverReadBudgetRead(['cpu_count'=>4,'load_average'=>[65.2]])['allowed']===false);
+          checkBudget(serverReadBudgetRead(['cpu_count'=>4,'load_average'=>[2.66]])['allowed']===true);
+          checkBudget(serverReadBudgetRead(['cpu_count'=>null,'load_average'=>[2.66]])['allowed']===false);
+          checkBudget(serverReadBudgetRead(['cpu_count'=>4,'load_average'=>null])['allowed']===false);
+          checkBudget(serverReadBudgetRead(['cpu_count'=>4,'load_average'=>[INF]])['allowed']===false);
+          checkBudget(serverReadBudgetRead(['cpu_count'=>4,'load_average'=>[-1]])['allowed']===false);
+          checkBudget(serverReadBudgetRead(['cpu_count'=>4,'load_average'=>[6]])['allowed']===true);
+          checkBudget(serverReadBudgetRead(['cpu_count'=>4,'load_average'=>[6.01]])['allowed']===false);
+          echo json_encode(['ok'=>true,'operation'=>'offline_existing_reader_resource_budget','checks'=>8,'production_writes'=>0,'provider_calls'=>0]),PHP_EOL;
+          """
+          Path('pub/budget-test.php').write_text('<?php\n'+fn+tests)
+          assert s.index("requireRead($out['resource_budget']['allowed'],'server_resource_hold')")<s.index("$stage='public_caption_read'")<s.index("$pdo->beginTransaction()")
+          PYFIX
+          php pub/budget-test.php > pub/resource-budget.json
+          cat pub/resource-budget.json
+          rm pub/budget-test.php
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
-      - name: Save the bounded independent acceptance in the existing reader
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: issue-1566-telegram-ranked-preflight
-          path: |
-            pub/accepted-read-admission.json
-            pub/registry.json
-            pub/pair-photo-readback.json
-            pub/pair-photos/*.jpg
+          path: pub/resource-budget.json
           retention-days: 7
           if-no-files-found: warn
