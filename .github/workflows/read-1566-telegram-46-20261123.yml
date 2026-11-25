@@ -19,7 +19,7 @@ jobs:
       github.actor == 'pyatkoff' &&
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
-      github.event.before == '2aa7016eb30969127b4670968ce8725794036644' &&
+      github.event.before == '46054867f569649a2c6ef59590b73123f894fab6' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -276,9 +276,47 @@ jobs:
         if: always()
         shell: bash
         run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" pub/read-only.php
-
-
-
-
-
+      - name: Check out the existing ROUTE builder
+        uses: actions/checkout@v4
+        with:
+          ref: acf414301ac2f5bdab52e3de0e968b538d2c2dd1
+          path: route-preparation
+          persist-credentials: false
+      - name: Prepare the eighteen already verified routes from canonical receipts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C accepted rev-parse HEAD)" = "$REPOSITORY_SHA"
+          test "$(git -C route-preparation rev-parse HEAD)" = "acf414301ac2f5bdab52e3de0e968b538d2c2dd1"
+          cp accepted/hotel-posts-telegram-main19.php route-preparation/
+          cp accepted/config/anytour_ranked_* route-preparation/config/
+          python3 - <<'PY'
+          import hashlib,json,pathlib
+          d=json.loads(pathlib.Path('pub/registry.json').read_bytes())
+          feed=d['route_feed_source']
+          raw=feed['raw_utf8'].encode('utf-8')
+          assert d['ok'] and d['production_writes']==d['provider_writes']==0
+          assert len(raw)==feed['bytes'] and hashlib.sha256(raw).hexdigest()==feed['sha256']==d['current_feed_sha256']
+          pathlib.Path('pub/route-feed.xml').write_bytes(raw)
+          PY
+          python3 route-preparation/tools/merge_ranked_telegram_routes.py \
+            "$PWD/pub/route-feed.xml" "$PWD/pub/route-candidate" 45533991881 45534197709 45538372322
+          php -l pub/route-candidate/hotel-posts-telegram-main19.php
+          python3 - <<'PY'
+          import json,pathlib
+          d=json.loads(pathlib.Path('pub/route-candidate/route-candidate.json').read_bytes())
+          expected=set(["tg_1067","tg_1100","tg_1142","tg_1151","tg_1221","tg_1334","tg_1336","tg_1421","tg_1429","tg_2522","tg_2794","tg_4060","tg_8020","tg_32322","tg_1014","tg_14140","tg_1402","tg_1959"])
+          assert len(d['changes'])==18 and {r['offer_id'] for r in d['changes']}==expected
+          assert d['already_configured']==d['held']==[] and d['feed']['offers']==1055 and d['feed']['unchanged']==1037
+          print(json.dumps({'candidate':d['resolver'],'feed':d['feed'],'changes':d['changes'],'source_runs':[r['public']['run_id'] for r in d['receipts']]},ensure_ascii=False))
+          PY
+      - name: Save prepared routes for the existing ROUTE owner
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-1566-telegram-routes-18-candidate
+          path: pub/route-candidate/
+          retention-days: 7
+          if-no-files-found: error
 
