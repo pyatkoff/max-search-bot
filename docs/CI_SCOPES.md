@@ -410,3 +410,10 @@ not an end-to-end latency guarantee.
 Manual runs and production deployment verification retain the canonical full
 suite. No branch rule, application behavior, runtime configuration, data,
 migrations or authorization policy is changed.
+
+
+### Production verification for append-only hotel dossiers
+
+The existing production verifier keeps one installer. Its bounded catalogue profile requires an original main push, the exact first parent, an authenticated closed installation and operations record for that parent, and the same positive append-only proof used in PR CI. The current main and receipt are read again before selecting the profile. Manual runs, mixed changes, or missing evidence use the full verification profile.
+
+The data profile runs the shared catalogue, HTTP, AI and MCP checks in the required application job. Inventory, architecture, syntax, dialogue, website, diagnostics and the ordinary installation, provenance and terminal gates still run. An unrelated Manager2 suite no longer blocks this proven data-only installation. The release mechanism still uses the shared production checkout and lock.
