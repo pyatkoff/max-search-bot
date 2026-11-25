@@ -197,6 +197,7 @@ jobs:
           public_holds={
               'public_post_missing','public_identity_changed',
               'transfer_source_public_changed','transfer_target_public_changed',
+              'transfer_target_keyboard_changed',
           }
           for i,row in enumerate(rows):
               assert row['url']=='https://t.me/anytour/'+item['messages'][i]
