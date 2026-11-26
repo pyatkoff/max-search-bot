@@ -13,7 +13,7 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == 'ff69d87dfd8f66d14d20db889268a662da1ab036' &&
+      github.event.before == '25147cfb950c4f114df0fc15bc688bd06814e264' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -23,7 +23,7 @@ jobs:
           php-version: '8.2'
           extensions: curl, dom, mbstring
           coverage: none
-      - name: Read nine previously unread actual archive windows without enumerating nonexistent message IDs
+      - name: Read sixteen previously unread actual archive windows without enumerating nonexistent message IDs
         shell: bash
         run: |
           set -euo pipefail
@@ -186,7 +186,7 @@ jobs:
            'native_run_id'=>getenv('GITHUB_RUN_ID'),'reader_source_sha'=>getenv('GITHUB_SHA'),'write_admission'=>false,
            'provider_writes'=>0,'production_writes'=>0,'server_calls'=>0,'sql_queries'=>0,'rows'=>[],'windows'=>[]];
           $seen=[];
-          foreach([150,250,350,500,600,750,850,1050,1150]as $before){
+          foreach([973,1023,1079,1130,1179,1240,1280,1320,1380,1420,1475,1520,1575,1620,1680,1728]as $before){
            $r=captionPublicBytes('https://t.me/s/anytour?before='.$before,$rates);
            $window=['before'=>$before,'http'=>$r['http'],'body_sha256'=>$r['body_sha256'],'retry_after'=>$r['retry_after']??null];
            if(!$r['ok']){$window['hold_reason']='archive_window_unavailable';$out['windows'][]=$window;continue;}
