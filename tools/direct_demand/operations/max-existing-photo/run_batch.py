@@ -11,6 +11,7 @@ SHARED_UNAVAILABLE = {
     "main_channel_edit_not_ready", "max_transfer_channel_configuration_changed",
 }
 PREPARATION_CONTRACT = "anytour-max-transfer-preparation-v1"
+ROUTE_READ_IDENTITY = {"run_id", "job_id", "observed_utc"}
 
 
 def call(cmd):
@@ -125,6 +126,33 @@ def stage_binding(stage):
             for name in ("scope.json", "native-targets.json", "native-source.json")}
 
 
+def editorial_scope(raw):
+    scope = json.loads(raw)
+    route = scope["route_readback"]
+    if not isinstance(route, dict) or not ROUTE_READ_IDENTITY.issubset(route):
+        raise ValueError("invalid_route_read_identity")
+    scope["route_readback"] = {key: value for key, value in route.items()
+                              if key not in ROUTE_READ_IDENTITY}
+    return json.dumps(scope, sort_keys=True, separators=(",", ":"))
+
+
+def inputs_match(prepared, stage):
+    current = stage_binding(stage)
+    if prepared == current:
+        return True
+    if (not isinstance(prepared, dict) or set(prepared) != set(current)
+            or any(prepared[name] != current[name] for name in current if name != "scope.json")):
+        return False
+    try:
+        with (stage / "preparation-scope.json").open("rb") as source:
+            previous = source.read(256_001)
+        if len(previous) > 256_000 or hashlib.sha256(previous).hexdigest() != prepared["scope.json"]:
+            return False
+        return editorial_scope(previous) == editorial_scope((stage / "scope.json").read_bytes())
+    except (OSError, ValueError, KeyError, TypeError):
+        return False
+
+
 def read_preparation(file, digest, stage):
     with file.open("rb") as stream:
         raw = stream.read(128_001)
@@ -132,7 +160,7 @@ def read_preparation(file, digest, stage):
         raise ValueError("preparation_digest_mismatch")
     receipt = json.loads(raw)
     if (receipt.get("contract") != PREPARATION_CONTRACT or receipt.get("provider_writes") != 0
-            or receipt.get("input_sha256") != stage_binding(stage)):
+            or not inputs_match(receipt.get("input_sha256"), stage)):
         raise ValueError("preparation_input_changed")
     return receipt["rows"]
 

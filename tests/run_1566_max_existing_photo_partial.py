@@ -112,7 +112,44 @@ with tempfile.TemporaryDirectory() as directory:
         else:
             raise AssertionError("Changed native inputs were accepted")
 
+    (stage / "native-source.json").write_text("{}")
+    scope_file = stage / "scope.json"
+    route_scope = {"rows": [{"hotel_id": 466, "target_mid": "original"}],
+                   "route_readback": {"repository": "pyatkoff/tour-max", "run_id": 41, "job_id": 42,
+                                      "observed_utc": "2026-11-26T22:21:51+00:00", "write_calls": 0}}
+    scope_file.write_text(json.dumps(route_scope))
+    original_scope = stage / "preparation-scope.json"
+    original_scope.write_bytes(scope_file.read_bytes())
+    receipt.write_text(json.dumps({"contract": module.PREPARATION_CONTRACT, "provider_writes": 0,
+                                  "input_sha256": module.stage_binding(stage), "rows": prepared}))
+    digest = hashlib.sha256(receipt.read_bytes()).hexdigest()
+    route_scope["route_readback"].update(run_id=43, job_id=44, observed_utc="2026-11-26T22:36:00+00:00")
+    scope_file.write_text(json.dumps(route_scope))
+    assert module.read_preparation(receipt, digest, stage) == prepared
+    for key, value in (("target_mid", "changed"), ("write_calls", 1)):
+        changed = json.loads(scope_file.read_text())
+        if key == "target_mid":
+            changed["rows"][0][key] = value
+        else:
+            changed["route_readback"][key] = value
+        scope_file.write_text(json.dumps(changed))
+        try:
+            module.read_preparation(receipt, digest, stage)
+        except ValueError as error:
+            assert str(error) == "preparation_input_changed"
+        else:
+            raise AssertionError("An editorial or route policy change reused an old checkpoint")
+        scope_file.write_text(json.dumps(route_scope))
+    original_scope.write_text("{}")
+    try:
+        module.read_preparation(receipt, digest, stage)
+    except ValueError as error:
+        assert str(error) == "preparation_input_changed"
+    else:
+        raise AssertionError("An unbound original scope reused a checkpoint")
+
 print("Read-only preparation, separated apply and receipt integrity passed")
+print("A new MAX2 route receipt can reuse preparation; changed post, route policy and original scope cannot")
 
 with tempfile.TemporaryDirectory() as directory:
     stage = pathlib.Path(directory)
@@ -184,7 +221,7 @@ exports.readRecord = async () => {throw Error('writer_rechecked_current_release'
         ("authorize-write", "1", "writer_rechecked_current_release"),
         ("", "1", "invalid_admission_mode"),
     ]:
-        environment = dict(os.environ, MAX_ARCHIVE_ID="15032515599", MAX_NATIVE_ID="22",
+        environment = dict(os.environ, MAX_ARCHIVE_ID="15032515599", MAX_NATIVE_ID="22", MAX_PREPARED_ARTIFACT_ID="",
                            MAX_REPOSITORY_SHA="d" * 40, TEST_MODE=mode, TEST_FREE=free,
                            TEST_ARCHIVE_HEAD=archive_head)
         result = subprocess.run(["node", admission, mode], cwd=stage, env=environment,

@@ -8,6 +8,8 @@ from pathlib import Path
 import re
 import zipfile
 
+from run_batch import read_preparation
+
 
 def require(condition, reason):
     if not condition:
@@ -53,6 +55,22 @@ def stage_scope(scope_file, approved_digest, archive_file, native_file, stage):
     entry.write_text(code)
 
 
+def stage_preparation(file, expected, stage):
+    encoded = read_verified(file, expected, 1_000_000)
+    with zipfile.ZipFile(BytesIO(encoded)) as archive:
+        members = archive.namelist()
+        require(len(members) == 3 and set(members) == {"manifest.json", "batch-plan.json", "preparation.json"},
+                "unexpected preparation ZIP members")
+        for name, target, limit in (("manifest.json", "preparation-scope.json", 256_000),
+                                    ("preparation.json", "preparation.json", 128_000)):
+            member = archive.getinfo(name)
+            require(0 < member.file_size <= limit, f"{name}: invalid preparation member size")
+            (stage / target).write_bytes(archive.read(member))
+    receipt = stage / "preparation.json"
+    rows = read_preparation(receipt, digest(receipt.read_bytes()), stage)
+    print("MAX_REUSED_NATIVE_CHECKPOINTS=" + str(sum(row["state"] == "ready_read_only" for row in rows)))
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("scope", type=Path)
@@ -60,5 +78,9 @@ if __name__ == "__main__":
     parser.add_argument("archive", type=Path)
     parser.add_argument("native", type=Path)
     parser.add_argument("stage", type=Path)
+    parser.add_argument("--preparation", nargs=2, metavar=("ZIP", "SHA256"))
     args = parser.parse_args()
     stage_scope(args.scope, args.digest, args.archive, args.native, args.stage)
+    if args.preparation is not None:
+        file, expected = args.preparation
+        stage_preparation(Path(file), expected, args.stage)

@@ -17,6 +17,11 @@ env:
   MAX_REPOSITORY_SHA: e1511db16f24822d1271ab5e444ca859997be31e
   MAX_ARCHIVE_ID: '15032515599'
   MAX_NATIVE_ID: '15157790578'
+  MAX_PREPARED_RUN_ID: '45905321489'
+  MAX_PREPARED_JOB_ID: '140200559142'
+  MAX_PREPARED_ARTIFACT_ID: '15157232663'
+  MAX_PREPARED_SOURCE: a22a869e398a542e710339d872659b3373ceabd3
+  MAX_PREPARED_ZIP_SHA: 93a117db097ab4b0ebd761878d417c63bdfc0122e149f4f1b911fbe9b9426706
 jobs:
   validate_source:
     if: github.event_name == 'pull_request'
@@ -50,7 +55,9 @@ jobs:
           install -m600 "$src"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php} pub/stage/
           gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_ARCHIVE_ID/zip" > pub/old.zip
           gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_NATIVE_ID/zip" > pub/native.zip
-          python3 "$src/stage_approved_scope.py" "packet/$MAX_PACKET_PATH" "$MAX_PACKET_SHA" pub/old.zip pub/native.zip pub/stage
+          gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_PREPARED_ARTIFACT_ID/zip" > pub/prepared.zip
+          python3 "$src/stage_approved_scope.py" "packet/$MAX_PACKET_PATH" "$MAX_PACKET_SHA" pub/old.zip pub/native.zip pub/stage \
+            --preparation pub/prepared.zip "$MAX_PREPARED_ZIP_SHA"
           php -l pub/stage/batch_entry.php
           native_sha="$(sha256sum pub/stage/native-source.json | cut -d' ' -f1)"
           php pub/stage/editor.php --batch-plan pub/stage/native-targets.json pub/stage/native-source.json \
@@ -68,7 +75,7 @@ jobs:
       github.event_name == 'push' && github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'a22a869e398a542e710339d872659b3373ceabd3' &&
+      github.event.before == '6f952b59cb76e0e564b68273c9afcca590a5431f' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -145,10 +152,15 @@ jobs:
               &&native.attempt===1&&scope.route_readback.write_calls===0,'scope_evidence_identity_changed')
             const mode=process.argv[2]
             if(mode==='verify-originals'){
-              await Promise.all([
+              const originalReads=[
                 receipt(Number(scope.archive_run_id),'3a9195debcfbeb703a220895871f5a40a61d3010','.github/workflows/read-1566-max-archive-20261123.yml',139261677044,Number(process.env.MAX_ARCHIVE_ID),scope.archive_sha256,'issue-1566-main-max-archive-inventory'),
                 receipt(native.run_id,native.workflow_head,'.github/workflows/read-1566-old-ordinary-max-posts.yml',native.job_id,Number(process.env.MAX_NATIVE_ID),native.zip_sha256,'max-commercial-album-sources')
-              ])
+              ]
+              if(process.env.MAX_PREPARED_ARTIFACT_ID) originalReads.push(receipt(
+                Number(process.env.MAX_PREPARED_RUN_ID),process.env.MAX_PREPARED_SOURCE,
+                '.github/workflows/read-1566-old-ordinary-max-posts.yml',Number(process.env.MAX_PREPARED_JOB_ID),
+                Number(process.env.MAX_PREPARED_ARTIFACT_ID),process.env.MAX_PREPARED_ZIP_SHA,'issue-1566-max-native-prepare-proof'))
+              await Promise.all(originalReads)
               return
             }
             check(mode==='authorize-write','invalid_admission_mode')
@@ -163,7 +175,12 @@ jobs:
           tool=workflow-source/tools/direct_demand/operations/max-existing-photo
           install -m600 "$src"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php} pub/stage/
           install -m600 "$tool/run_batch.py" pub/stage/
-          python3 "$tool/stage_approved_scope.py" pub/manifest.json "$MAX_PACKET_SHA" pub/old.zip pub/native.zip pub/stage
+          preparation=()
+          if [[ -n "$MAX_PREPARED_ARTIFACT_ID" ]]; then
+            gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_PREPARED_ARTIFACT_ID/zip" > pub/prepared.zip
+            preparation=(--preparation pub/prepared.zip "$MAX_PREPARED_ZIP_SHA")
+          fi
+          python3 "$tool/stage_approved_scope.py" pub/manifest.json "$MAX_PACKET_SHA" pub/old.zip pub/native.zip pub/stage "${preparation[@]}"
           php -l pub/stage/batch_entry.php
           native_sha="$(sha256sum pub/stage/native-source.json | cut -d' ' -f1)"
           app="$(python3 -c 'import json; print(json.load(open("pub/manifest.json"))["native_source"]["application_sha"])')"
@@ -193,13 +210,19 @@ jobs:
           esac
           SH
           tar -C pub/stage -cf pub/approved.tar editor.php batch_input.php batch_entry.php observe_pair.php scope.json native-targets.json native-source.json run_batch.py execute.sh
+          if [[ -n "$MAX_PREPARED_ARTIFACT_ID" ]]; then
+            tar -C pub/stage -rf pub/approved.tar preparation-scope.json
+            install -m600 pub/stage/preparation.json pub/preparation.json
+          fi
       - name: Pin established SSH host continuity and authentication identity
+        if: env.MAX_PREPARED_ARTIFACT_ID == ''
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
           KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
         run: bash workflow-source/tools/direct_demand/operations/max-existing-photo/run_remote_batch.sh pin-host
       - name: Prepare native checkpoints without editing posts
+        if: env.MAX_PREPARED_ARTIFACT_ID == ''
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
