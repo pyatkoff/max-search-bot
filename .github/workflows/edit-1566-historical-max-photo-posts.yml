@@ -149,7 +149,6 @@ jobs:
           const root=R.API_ROOT
           const scope=JSON.parse(require('node:fs').readFileSync('pub/manifest.json','utf8'))
           const native=scope.native_source
-          const app=native.repository_sha
           function check(ok,reason){if(!ok)throw Error(reason)}
           async function requireWriteAdmission(){
             const fresh=Date.parse(scope.route_readback.observed_utc)
@@ -157,11 +156,14 @@ jobs:
             const [main,hotelSlot,releaseSlot]=await Promise.all([api('GET',root+'/git/ref/heads/main'),
               api('GET',root+'/issues/comments/6818332618'),api('GET',root+'/issues/comments/6682640708')])
             const free=slot=>slot.user.id===226193297&&/^PR[1-9][0-9]*: установлено, выпуск свободен$/.test(slot.body)
-            check(main.object.sha===app&&app===process.env.MAX_REPOSITORY_SHA&&free(hotelSlot)&&free(releaseSlot),'shared_release_changed')
+            const repository=main.object?.sha
+            check(typeof repository==='string'&&/^[a-f0-9]{40}$/.test(repository)
+              &&native.repository_sha===process.env.MAX_REPOSITORY_SHA&&free(hotelSlot)&&free(releaseSlot),'shared_release_changed')
             const record=await R.readRecord(api)
-            const current=await R.resolveCurrent(api,{sha:app},record)
-            check(current.ready&&current.repository_sha===app&&current.application_sha===native.application_sha,'current_release_changed')
-            await P.verifyPreviousRelease({repository:R.REPOSITORY,baseSha:app},process.env.GITHUB_TOKEN,fetch)
+            const current=await R.resolveCurrent(api,{sha:repository},record)
+            check(current.ready===true&&current.repository_sha===repository&&current.application_sha===native.application_sha
+              &&(repository===native.repository_sha||current.kind==='application_unchanged'),'current_release_changed')
+            await P.verifyPreviousRelease({repository:R.REPOSITORY,baseSha:repository},process.env.GITHUB_TOKEN,fetch)
           }
           async function receipt(id,head,path,jobId,artifactId,digest,name){
             const base=root+'/actions/runs/'+id

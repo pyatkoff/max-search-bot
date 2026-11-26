@@ -188,18 +188,20 @@ with tempfile.TemporaryDirectory() as directory:
     (pub / "manifest.json").write_text(json.dumps({
         "archive_run_id": "45630394590", "archive_sha256": "a" * 64,
         "native_source": {"attempt": 1, "artifact_id": 22, "run_id": 23, "job_id": 24,
-                          "workflow_head": "b" * 40, "zip_sha256": "c" * 64, "repository_sha": "d" * 40},
+                          "workflow_head": "b" * 40, "zip_sha256": "c" * 64,
+                          "repository_sha": "d" * 40, "application_sha": "d" * 40},
         "route_readback": {"write_calls": 0, "observed_utc": now},
     }))
     (tool / "deployment_release.js").write_text("""
 const {native_source: native, archive_sha256: archiveDigest} = require('../pub/manifest.json')
 exports.API_ROOT = '/repo'
+exports.REPOSITORY = 'test/max'
 exports.makeReadApi = () => async (_, endpoint) => {
   const archive = endpoint.includes('/actions/runs/45630394590')
   if (!endpoint.includes('/actions/runs/')) {
     if (process.env.TEST_MODE === 'verify-originals') throw Error('preparation_accessed_live_slot')
     const slot = process.env.TEST_FREE === '1' ? 'PR1748: установлено, выпуск свободен' : 'PR1748: выпуск занят'
-    return {object:{sha:native.repository_sha},user:{id:226193297},body:slot}
+    return {object:{sha:process.env.TEST_REPOSITORY},user:{id:226193297},body:slot}
   }
   const id = archive ? 45630394590 : native.run_id
   const head = archive ? process.env.TEST_ARCHIVE_HEAD : native.workflow_head
@@ -213,24 +215,45 @@ exports.makeReadApi = () => async (_, endpoint) => {
   return {id,head_sha:head,path,repository:{id:1342493152},actor:{id:226193297},
     event:'push',run_attempt:1,status:'completed',conclusion:'success'}
 }
-exports.readRecord = async () => {throw Error('writer_rechecked_current_release')}
+exports.readRecord = async () => ({identity:'current-release-record'})
+exports.resolveCurrent = async (api, input, record) => {
+  if (input.sha !== process.env.TEST_REPOSITORY || record.identity !== 'current-release-record')
+    throw Error('unexpected_release_resolution')
+  return {ready:process.env.TEST_KIND !== 'pending', kind:process.env.TEST_KIND,
+    repository_sha:process.env.TEST_ACCEPTED_REPOSITORY, application_sha:process.env.TEST_APPLICATION}
+}
 """)
-    (tool / "release_priority.js").write_text("")
-    for mode, free, expected_error in [
-        ("verify-originals", "0", ""),
-        ("authorize-write", "0", "shared_release_changed"),
-        ("authorize-write", "1", "writer_rechecked_current_release"),
-        ("", "1", "invalid_admission_mode"),
+    (tool / "release_priority.js").write_text("""
+exports.verifyPreviousRelease = async ({repository, baseSha}) => {
+  if (repository !== 'test/max' || baseSha !== process.env.TEST_REPOSITORY) throw Error('wrong_release_priority_base')
+  console.log('current_release_admitted')
+}
+""")
+    installed = "d" * 40
+    later = "e" * 40
+    for mode, free, repository, accepted_repo, application, kind, expected_error in [
+        ("verify-originals", "0", later, later, installed, "pending", ""),
+        ("authorize-write", "0", installed, installed, installed, "installed", "shared_release_changed"),
+        ("authorize-write", "1", installed, installed, installed, "installed", ""),
+        ("authorize-write", "1", later, later, installed, "application_unchanged", ""),
+        ("authorize-write", "1", later, later, installed, "pending", "current_release_changed"),
+        ("authorize-write", "1", later, later, later, "installed", "current_release_changed"),
+        ("authorize-write", "1", later, later, installed, "installed", "current_release_changed"),
+        ("authorize-write", "1", later, installed, installed, "application_unchanged", "current_release_changed"),
+        ("", "1", installed, installed, installed, "installed", "invalid_admission_mode"),
     ]:
         environment = dict(os.environ, MAX_ARCHIVE_ID="15032515599", MAX_NATIVE_ID="22", MAX_PREPARED_ARTIFACT_ID="",
-                           MAX_REPOSITORY_SHA="d" * 40, TEST_MODE=mode, TEST_FREE=free,
-                           TEST_ARCHIVE_HEAD=archive_head)
+                           MAX_REPOSITORY_SHA=installed, TEST_MODE=mode, TEST_FREE=free,
+                           TEST_ARCHIVE_HEAD=archive_head, TEST_REPOSITORY=repository,
+                           TEST_ACCEPTED_REPOSITORY=accepted_repo, TEST_APPLICATION=application, TEST_KIND=kind)
         result = subprocess.run(["node", admission, mode], cwd=stage, env=environment,
                                 capture_output=True, text=True, check=False)
         assert (result.returncode == 0) == (not expected_error), result.stderr
         assert result.stderr.strip() == expected_error, result.stderr
+        if mode == "authorize-write" and not expected_error:
+            assert result.stdout.strip() == "current_release_admitted", result.stdout
 
-print("MAX preparation reads evidence while the release slot is occupied; write still requires admission")
+print("MAX preparation ignores the release slot; writing accepts only a confirmed unchanged application")
 
 editor_tools = root / "tools/direct_demand/operations/max-existing-photo"
 sys.path.insert(0, str(editor_tools))
