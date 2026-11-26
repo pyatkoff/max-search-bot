@@ -1,4 +1,4 @@
-name: "#1566 Reconcile original zero-attempt1535 hold without replay"
+name: "#1566 Read three saved commercial video candidates for full protected-content review"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -6,207 +6,209 @@ on:
 permissions:
   contents: read
   actions: read
-  issues: read
-  pull-requests: read
-# Bounded reads of the same two prepared pairs; no provider writes; strict actual application fences.
 jobs:
   registry:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 &&
-      github.actor == 'pyatkoff' &&
-      github.event.sender.id == 226193297 &&
-      github.event.created == false &&
-      github.event.forced == false &&
-      github.event.before == 'a9875e954bfa594ef8c7f109509f05b348fb560b' &&
+      github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
+      github.event.created == false && github.event.forced == false &&
+      github.event.before == 'baa2bc54d64b9aa4c90264f64eb97ff43467313d' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
-      - name: Check out the exact candidate packet
-        uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
         with:
-          ref: ${{ github.sha }}
-          persist-credentials: false
-      - name: Check out main for the existing release verifier
-        uses: actions/checkout@v4
-        with:
-          ref: 69e41c8011b4c67692f631cf435dd20d90676c72
-          path: accepted
-          persist-credentials: false
-      - name: Authenticate original1737 terminal before bounded host observation
-        working-directory: accepted
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+          php-version: '8.2'
+          extensions: curl, dom, mbstring
+          coverage: none
+      - name: Read four actual archive windows without enumerating nonexistent message IDs
         shell: bash
         run: |
           set -euo pipefail
-          node - <<'NODE'
-          const fs=require('node:fs'),R=require('./tools/deployment_release');
-          async function check(){
-            const api=R.makeReadApi(process.env.GITHUB_TOKEN);
-            const deadline=Date.now()+25*60*1000;
-            for(;;){
-              const p=await api('GET',R.API_ROOT+'/issues/comments/6818332618');
-              const main=(await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha;
-              if(p.user?.id!==226193297||main!=='69e41c8011b4c67692f631cf435dd20d90676c72')throw Error('current1737_authority_changed');
-              if(p.body==='PR1737: установлено, выпуск свободен'){await new Promise(r=>setTimeout(r,5000));break;}
-              if(p.body!=='PR1737: выпуск занят'||p.updated_at!=='2026-11-26T04:34:19Z')throw Error('original1737_publisher_changed');
-              if(Date.now()>=deadline)throw Error('original1737_terminal_pending');
-              await new Promise(r=>setTimeout(r,20000));
-            }
-            const before=await R.readRecord(api);
-            const r=R.validateRelease(before.record).release;
-            const expected='69e41c8011b4c67692f631cf435dd20d90676c72';
-            if(r.repository_sha!==expected||r.application_sha!==expected||r.kind!=='installed'
-              ||r.release.run_id!=='45756160505'||r.release.run_attempt!==1
-              ||r.closure?.binding?.pr!==1737
-              ||r.closure?.binding?.comment_id!==6818332618
-              ||r.closure?.binding?.owner_id!==226193297
-              ||r.closure?.binding?.head_sha!=='dd1265b9a163341fad6c3fd896d5c6400901c7d3'
-              ||r.closure?.binding?.updated_at!=='2026-11-26T04:34:19Z')throw Error('original1737_changed');
-            const resolved=await R.resolveCurrent(api,{sha:expected},before);
-            if(!resolved.ready||resolved.repository_sha!==expected||resolved.application_sha!==expected)
-              throw Error('original1737_not_canonically_accepted');
-            const main=(await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha;
-            const after=await R.readRecord(api);
-            if(before.blob!==after.blob||before.record_digest!==after.record_digest)throw Error('accepted_record_changed');
-            fs.mkdirSync('../pub',{recursive:true});
-            fs.writeFileSync('../pub/accepted-read-admission.json',JSON.stringify({read_only:true,
-              current_main_sha:main,observed_repository_sha:expected,application_sha:expected,
-              technical_acceptance_complete:true,write_admission:false,canonical:resolved,
-              record_commit:before.commit,record_blob:before.blob,record_digest:before.record_digest,
-              original_installation_deploy:'45756160505',original_closer:r.closure.run_id,
-              original_guard_pr:1737,checked_at_utc:new Date().toISOString()})+'\n');
-            fs.appendFileSync(process.env.GITHUB_ENV,'REPOSITORY_SHA='+expected+'\nAPPLICATION_SHA='+expected+'\n');
-          }
-          check().catch(e=>{console.error('readonly_accepted_installation_refused',e.code||e.message);process.exitCode=1});
-          NODE
-      - name: Bind immutable packet to the admitted release and native run
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '9931623d23b085d2f344dde163b8d75e6982a753'
           mkdir -p pub
-          python3 - <<'PY'
-          import os,pathlib,re
-          p=pathlib.Path('tools/direct_demand/operations/read-1566-telegram-46-20261123.php')
-          program=p.read_text()
-          for name,pattern in [('APPLICATION_SHA',r'[a-f0-9]{40}'),('REPOSITORY_SHA',r'[a-f0-9]{40}'),('NATIVE_RUN_ID',r'[1-9][0-9]{0,19}')]:
-              value=os.environ['GITHUB_RUN_ID' if name=='NATIVE_RUN_ID' else name]
-              assert re.fullmatch(pattern,value) and program.count('__'+name+'__') == 1
-              program=program.replace('__'+name+'__',value)
-          # Execute the reviewed reader helpers for the same two prepared pairs.
-          # Preserve candidate holds, read-only SQL and the shared PRICE lease.
-          assert program.count("$out=['schema'=>1") == 1
-          program=program[:program.index("$out=['schema'=>1")]
-          entry=r'''function preparedLeaseAdmissionRead(bool $shared,array $blockers):array {
-           $prepared=$blockers===[];
-           if(!$shared)$blockers[]='price_shared_lease_not_acquired';
-           return ['preparation_ready'=>$prepared,'preview_ready'=>$blockers===[],'preview_blockers'=>$blockers];
+          test -d pub && test -w pub
+          cat > /tmp/pilot-public.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          function requireRead(bool $ok, string $reason): void
+          {
+              if (!$ok) throw new RuntimeException($reason);
           }
-          $out=['schema'=>1,'issue'=>1566,'operation'=>'reconcile_original_zero_attempt1535','ok'=>false,'native_run_id'=>NATIVE_RUN_ID,'application_sha'=>APPLICATION_SHA,'repository_sha'=>REPOSITORY_SHA,'original_write_run'=>'45758492641','original_write_artifact'=>15088507770,'write_admission'=>false,'production_writes'=>0,'provider_writes'=>0,'bot_starts'=>0];
-          $pdo=null;$rates=[];
-          try{
-           runtimeRead();$out['resources_before']=resourcesRead();$out['resource_budget']=serverReadBudgetRead($out['resources_before']);requireRead($out['resource_budget']['allowed'],'server_resource_hold');
-           $out['prior_media_operation']=telegramMediaOperationRead('1535');
-           $views=[];foreach(['embed','archive']as $kind){$url=$kind==='embed'?'https://t.me/anytour/1535?embed=1&mode=tme':'https://t.me/s/anytour?before=1536';$b=captionPublicBytes($url,$rates);requireRead($b['ok'],'public_unavailable');$views[$kind]=parsePublicRead($b['body'],'anytour','1535');}
-           $out['target_public']=corroborateTargetKeyboard($views['embed'],$views['archive']);
-           $p=$out['target_public'];$out['original_target_unchanged']=$p['caption_sha256']==='8c546998e843d99ff780e22da62800b5c8bdbdf86ec4ba801721957d10258082'&&$p['photo_marker_sha256']==='4e3493162ca9997a077c8c96c24fbe6890957437ca4ba1ba02c9d1ae1ac20937'&&$p['published_unixtime']===1778584470&&$p['buttons']===[]&&$p['single_photo'];
-           ob_start();try{require APP.'/config.php';require_once APP.'/services/ProjectConfig.php';require_once APP.'/services/ChannelPostRegistryService.php';require_once APP.'/services/ChannelPostRuntime.php';require_once APP.'/services/ChannelPostButtonTransport.php';require_once APP.'/config/anytour_ranked_transfer_scope_20261123.php';}finally{ob_end_clean();}
-           requireRead(ProjectConfig::projectId()==='anytour','project_changed');$pdo=ConversationDb::connection();$pdo->exec('SET SESSION TRANSACTION READ ONLY');$registry=new ChannelPostRegistryService($pdo);$pdo->beginTransaction();
-           $out['target_native']=publicationRead($pdo,$registry,6,'1535');$out['source_native']=publicationRead($pdo,$registry,10,'61');$pdo->rollBack();
-           $plan=json_decode(file_get_contents(APP.'/config/anytour_ranked_pairs_45754450166.json'),true,64,JSON_THROW_ON_ERROR);$row=$plan['rows'][0];unset($row['price_template'],$row['source_photo_marker_sha256']);
-           $keys=AnyTourRankedHotelTransfer46::REGISTRY_FIELDS;$canonical=array_replace(array_fill_keys($keys,null),$row);
-           $out['pure_order_control']=['original_keys'=>array_keys($row),'canonical_keys'=>$keys,'same_values'=>$row==$canonical,'strict_original_authorizer_accepts'=>$row===$canonical,'strict_canonical_authorizer_accepts'=>$canonical===array_replace(array_fill_keys($keys,null),$canonical),'provider_calls'=>0,'reserve_calls'=>0];
-           runtimeRead();$out['ok']=true;
-          }catch(Throwable $e){$out['failure_reason']=reasonRead($e);}finally{if($pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();}
-          $out['retry_after_holds']=$rates;$out['read_at_utc']=gmdate(DATE_ATOM);echo jsonRead($out),PHP_EOL;exit($out['ok']?0:2);
-          '''
-          pathlib.Path('pub/read-only.php').write_text(program+entry)
-          PY
-          python3 - <<'PY'
-          import pathlib
-          s=pathlib.Path('pub/read-only.php').read_text()
-          start=s.index('function preparedLeaseAdmissionRead(')
-          end=s.index("$out=['schema'=>1",start)
-          function=s[start:end]
-          cases=r"""
-          $a=preparedLeaseAdmissionRead(true,[]);
-          if($a!==['preparation_ready'=>true,'preview_ready'=>true,'preview_blockers'=>[]])exit(2);
-          $a=preparedLeaseAdmissionRead(false,[]);
-          if($a!==['preparation_ready'=>true,'preview_ready'=>false,'preview_blockers'=>['price_shared_lease_not_acquired']])exit(3);
-          $a=preparedLeaseAdmissionRead(true,['occupied']);
-          if($a!==['preparation_ready'=>false,'preview_ready'=>false,'preview_blockers'=>['occupied']])exit(4);
-          $a=preparedLeaseAdmissionRead(false,['protected_review']);
-          if($a!==['preparation_ready'=>false,'preview_ready'=>false,'preview_blockers'=>['protected_review','price_shared_lease_not_acquired']])exit(5);
-          echo "FOUR_PRICE_PREPARATION_ADMISSION_CASES_PASS\\n";
-          """
-          pathlib.Path('pub/price-preparation-test.php').write_text('<?php\n'+function+cases)
-          PY
-          php -l pub/read-only.php
-          php pub/price-preparation-test.php
-      - name: Pin established SSH host continuity and authentication identity
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          function jsonRead(array $value): string
+          {
+              return json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+          }
+          function reasonRead(Throwable $e): string
+          {
+              return get_class($e) === RuntimeException::class
+                  && preg_match('/\A[a-z_]{1,100}\z/D', $e->getMessage()) === 1 ? $e->getMessage() : 'read_evidence_unavailable';
+          }
+          function publicRetryLimit(?string $raw, int $now): array
+          {
+              if ($raw !== null && (strlen($raw)>160 || preg_match('/\A[\x20-\x7E]*\z/D',$raw)!==1)) $raw=null;
+              $seconds = null;
+              if ($raw !== null && preg_match('/\A[0-9]{1,8}\z/D',$raw) === 1) $seconds=(int)$raw;
+              elseif ($raw !== null) {
+                  $when=DateTimeImmutable::createFromFormat(DateTimeInterface::RFC7231,$raw,new DateTimeZone('UTC'));
+                  if ($when!==false && $when->format(DateTimeInterface::RFC7231)===$raw) $seconds=max(0,$when->getTimestamp()-$now);
+              }
+              return ['observed_at_utc'=>gmdate(DATE_ATOM,$now), 'retry_after_raw'=>$raw,
+                  'retry_after_seconds'=>$seconds, 'resume_not_before_unix'=>$seconds===null?null:$now+$seconds];
+          }
+          function albumStructureRead(DOMDocument $dom, DOMXPath $xp, DOMNode $node, string $url, string $message, string $body): array
+          {
+              $cls=static fn(string $c):string=>'contains(concat(" ",normalize-space(@class)," ")," '.$c.' ")';
+              $texts=$xp->query('.//*['.$cls('tgme_widget_message_text').']',$node);
+              $photos=$xp->query('.//*['.$cls('tgme_widget_message_photo_wrap').']',$node);
+              $other=$xp->query('.//video|.//audio|.//*['.$cls('tgme_widget_message_video_thumb').' or '.$cls('tgme_widget_message_roundvideo').']',$node);
+              $videos=$xp->query('.//video|.//*['.$cls('tgme_widget_message_video_thumb').']',$node);
+              $roundVideos=$xp->query('.//*['.$cls('tgme_widget_message_roundvideo').']',$node);
+              $times=$xp->query('.//time[@datetime]',$node);
+              $links=$xp->query('.//a[@href]',$node);
+              requireRead($texts&&$photos&&$other&&$times&&$links&&$texts->length<=6&&$photos->length<=6&&$other->length<=6&&$times->length<=6&&$links->length<=100,'album_structure_unbounded');
+              $captions=[];foreach($texts as $text){$html='';foreach($text->childNodes as $child)$html.=$dom->saveHTML($child);
+                  $plain=html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i',"\n",$html)),ENT_QUOTES|ENT_HTML5,'UTF-8');
+                  requireRead(mb_check_encoding($plain,'UTF-8')&&mb_strlen($plain,'UTF-8')<=12000,'album_text_unbounded');
+                  $captions[]=['text'=>$plain,'sha256'=>hash('sha256',$plain),'owner_data_post'=>$node->getAttribute('data-post')];}
+              $dates=[];foreach($times as $time)$dates[]=$time->getAttribute('datetime');
+              $members=[];$buttons=[];foreach($links as $link){$href=$link->getAttribute('href');
+                  if(preg_match('~\Ahttps://t\.me/anytour/(931|932|933|934|935|936)(?:\?[^\s<>]*)?\z~D',$href,$m))$members[]=$m[1];
+                  if(str_contains(' '.$link->getAttribute('class').' ',' tgme_widget_message_inline_button '))$buttons[]=['text'=>mb_substr(trim($link->textContent),0,180),'url_sha256'=>hash('sha256',$href)];}
+              $caption=count($captions)===1?$captions[0]['text']:null;
+              return ['url'=>$url,'caption'=>$caption,'caption_sha256'=>$caption===null?null:hash('sha256',$caption),'html_sha256'=>hash('sha256',$body),
+                  'published_at'=>count($dates)===1?$dates[0]:null,'published_unixtime'=>count($dates)===1?(new DateTimeImmutable($dates[0]))->getTimestamp():null,
+                  'single_photo'=>false,'photo_url'=>'','photo_marker_sha256'=>null,'photo_count'=>$photos->length,'other_media_count'=>$other->length,
+                  'video_count'=>$videos->length,'roundvideo_count'=>$roundVideos->length,'buttons'=>$buttons,
+                  'format_observation'=>['requested_mid'=>$message,'root_data_post'=>$node->getAttribute('data-post'),'caption_nodes'=>$captions,'dates'=>$dates,
+                      'linked_album_mids'=>array_values(array_unique($members)),'caption_mid_confirmed'=>false,'native_album_membership_confirmed'=>false,'keyboard_admission_confirmed'=>false]];
+          }
+          
+          function parsePublicRead(string $body, string $channel, string $message): array
+          {
+              $url = 'https://t.me/' . $channel . '/' . $message;
+              $doc = new DOMDocument('1.0', 'UTF-8');
+              $prior = libxml_use_internal_errors(true);
+              try { $loaded = $doc->loadHTML($body, LIBXML_NONET); }
+              finally { libxml_clear_errors(); libxml_use_internal_errors($prior); }
+              requireRead($loaded, 'public_post_invalid');
+              $xp = new DOMXPath($doc);
+              $nodes = $xp->query('//*[@data-post="' . $channel . '/' . $message . '"]');
+              requireRead($nodes && $nodes->length === 1, 'public_identity_changed');
+              $node = $nodes->item(0);
+              if($channel==='anytour' && in_array($message,['931','932','933','934','935','936'],true)) return albumStructureRead($doc,$xp,$node,$url,$message,$body);
+              $cls = static fn(string $c): string => 'contains(concat(" ",normalize-space(@class)," ")," ' . $c . ' ")';
+              $text = $xp->query('.//*[' . $cls('tgme_widget_message_text') . ']', $node);
+              $photos = $xp->query('.//*[' . $cls('tgme_widget_message_photo_wrap') . ']', $node);
+              $dates = $xp->query('.//time[@datetime]', $node);
+              $other = $xp->query('.//video|.//audio|.//*[' . $cls('tgme_widget_message_video_thumb')
+                  . ' or ' . $cls('tgme_widget_message_roundvideo') . ' or ' . $cls('tgme_widget_message_grouped') . ']', $node);
+              $videos = $xp->query('.//video|.//*['.$cls('tgme_widget_message_video_thumb').']', $node);
+              $roundVideos = $xp->query('.//*['.$cls('tgme_widget_message_roundvideo').']', $node);
+              requireRead($text && $photos && $dates && $other && $text->length === 1 && $dates->length === 1,
+                  'public_caption_or_date_unavailable');
+              $html = '';
+              foreach ($text->item(0)->childNodes as $child) $html .= $doc->saveHTML($child);
+              $caption = html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i', "\n", $html)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+              requireRead($caption !== '' && mb_check_encoding($caption, 'UTF-8') && mb_strlen($caption, 'UTF-8') <= 12000,
+                  'public_caption_invalid');
+              $single = $photos->length === 1 && $other->length === 0;
+              $photo = $single ? $photos->item(0) : null;
+              $marker = $photo ? trim($photo->getAttribute('class')) : '';
+              $photoUrl = '';
+              if ($photo && $photo->getAttribute('href') === $url
+                  && preg_match('/(?:^|\s)[0-9]{5,}(?:_[0-9]+)?(?:\s|$)/D', $marker) === 1
+                  && preg_match('~background-image:\s*url\([\'"]?(https://[^\'")]+)[\'"]?\)~', $photo->getAttribute('style'), $match) === 1) {
+                  $parsed = parse_url($match[1]);
+                  if (is_array($parsed) && ($parsed['scheme'] ?? '') === 'https'
+                      && preg_match('/\A(?:[a-z0-9-]+\.)*(?:cdn-telegram\.org|telegram-cdn\.org|telesco\.pe)\z/D', $parsed['host'] ?? '') === 1
+                      && !isset($parsed['user']) && !isset($parsed['pass']) && !isset($parsed['port'])) $photoUrl = $match[1];
+              }
+              $buttons = [];
+              $links = $xp->query('.//a[' . $cls('tgme_widget_message_inline_button') . ']', $node);
+              requireRead($links && $links->length <= 20, 'public_keyboard_unbounded');
+              foreach ($links as $link) {
+                  $href = $link->getAttribute('href');
+                  $buttons[] = ['text' => trim($link->textContent),
+                      'hotel_url' => preg_match('~\Ahttps://t\.me/anyru_bot\?start=p_[A-Za-z0-9_-]{8,60}\z~D', $href) === 1 ? $href : null,
+                      'url_sha256' => hash('sha256', $href)];
+              }
+              $captionLinks = [];
+              $anchors = $xp->query('.//a[@href]', $text->item(0));
+              if ($anchors) foreach ($anchors as $anchor) {
+                  if (count($captionLinks) >= 40) break;
+                  $href = $anchor->getAttribute('href');
+                  $captionLinks[] = ['text'=>mb_substr(trim($anchor->textContent),0,180),
+                      'url_sha256'=>hash('sha256',$href),
+                      'public_bot_url'=>preg_match('~\\Ahttps://t\\.me/anyru_bot\\?start=(?:tg_anytour_msk|p_[A-Za-z0-9_-]{8,60})\\z~D',$href) === 1 ? $href : null];
+              }
+              $documentAnchors = [];
+              $documentLinks = $xp->query('//a[@href]');
+              if ($documentLinks) foreach ($documentLinks as $anchor) {
+                  if (count($documentAnchors) >= 80) break;
+                  $href = $anchor->getAttribute('href');
+                  $documentAnchors[] = ['text'=>mb_substr(trim($anchor->textContent),0,180),
+                      'class'=>substr($anchor->getAttribute('class'),0,256), 'url_sha256'=>hash('sha256',$href),
+                      'public_start_url'=>preg_match('~\Ahttps://t\.me/[A-Za-z0-9_]{5,32}\?start=[A-Za-z0-9_-]{1,128}\z~D',$href)===1 ? $href : null];
+              }
+              return ['url' => $url, 'caption' => $caption, 'caption_sha256' => hash('sha256', $caption),
+                  'html_sha256' => hash('sha256', $body), 'published_at' => $dates->item(0)->getAttribute('datetime'),
+                  'published_unixtime' => (new DateTimeImmutable($dates->item(0)->getAttribute('datetime')))->getTimestamp(),
+                  'single_photo' => $single && $photoUrl !== '', 'photo_url' => $photoUrl,
+                  'photo_count' => $photos->length, 'other_media_count' => $other->length,
+                  'video_count'=>$videos->length, 'roundvideo_count'=>$roundVideos->length, 'caption_links'=>$captionLinks,
+                  'document_anchors'=>$documentAnchors, 'document_anchors_truncated'=>$documentLinks && $documentLinks->length>80,
+                  'photo_marker_sha256' => $marker !== '' ? hash('sha256', $marker) : null, 'buttons' => $buttons];
+          }
+          
+          function corroborateTargetKeyboard(array $embedded, array $archive): array
+          {
+              requireRead($embedded['url'] === $archive['url']
+                  && $embedded['published_unixtime'] === $archive['published_unixtime']
+                  && $embedded['caption_sha256'] === $archive['caption_sha256'],
+                  'target_keyboard_archive_identity_changed');
+              requireRead($embedded['buttons'] === [] || $embedded['buttons'] === $archive['buttons'],
+                  'target_keyboard_archive_changed');
+              $embedded['buttons'] = $archive['buttons'];
+              $embedded['target_keyboard_archive_verified'] = true;
+              return $embedded;
+          }
+          
+          
+          function captionPublicBytes(string $url,array &$rates,int $limit=1000000):array{
+           $host=(string)parse_url($url,PHP_URL_HOST);if(isset($rates[$host]))return ['ok'=>false,'reason'=>'public_retry_after_held','retry_after'=>$rates[$host],'http_attempts'=>0];
+           $body='';$retry=null;$c=curl_init($url);curl_setopt_array($c,[CURLOPT_FOLLOWLOCATION=>false,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,CURLOPT_CONNECTTIMEOUT=>5,CURLOPT_TIMEOUT=>15,CURLOPT_USERAGENT=>'Mozilla/5.0',CURLOPT_HEADERFUNCTION=>static function($c,string $line)use(&$retry):int{if(stripos($line,'retry-after:')===0)$retry=trim(substr($line,12));return strlen($line);},CURLOPT_WRITEFUNCTION=>static function($c,string $chunk)use(&$body,$limit):int{if(strlen($body)+strlen($chunk)>$limit)return 0;$body.=$chunk;return strlen($chunk);}]);$ok=curl_exec($c)!==false&&curl_errno($c)===0;$status=(int)curl_getinfo($c,CURLINFO_HTTP_CODE);curl_close($c);
+           if($status===429)$rates[$host]=publicRetryLimit($retry,time());return ['ok'=>$ok&&$status===200,'http'=>$status,'body'=>$body,'body_sha256'=>hash('sha256',$body),'http_attempts'=>1,'retry_after'=>$status===429?$rates[$host]:null];
+          }
+          
+$rates=[];$out=['issue'=>1566,'operation'=>'existing_reader_video_protection_review','native_run_id'=>getenv('GITHUB_RUN_ID'),'reader_source_sha'=>getenv('GITHUB_SHA'),'write_admission'=>false,'provider_writes'=>0,'server_calls'=>0,'sql_queries'=>0,'rows'=>[]];
+          foreach(['1541','1557','1711'] as $mid){
+           $raw=captionPublicBytes('https://t.me/s/anytour?before='.((int)$mid+1),$rates);requireRead($raw['ok'],'public_unavailable');
+           $dom=new DOMDocument();libxml_use_internal_errors(true);requireRead($dom->loadHTML($raw['body'],LIBXML_NONET),'public_invalid');libxml_clear_errors();$xp=new DOMXPath($dom);$nodes=$xp->query('//*[@data-post="anytour/'.$mid.'"]');requireRead($nodes&&$nodes->length===1,'public_identity_changed');$node=$nodes->item(0);
+           $ts=$xp->query('.//*[contains(concat(" ",normalize-space(@class)," ")," tgme_widget_message_text ")]',$node);requireRead($ts&&$ts->length===1,'caption_unconfirmed');$html='';foreach($ts->item(0)->childNodes as $child)$html.=$dom->saveHTML($child);$caption=html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i',"\n",$html)),ENT_QUOTES|ENT_HTML5,'UTF-8');
+           $times=$xp->query('.//time[@datetime]',$node);requireRead($times&&$times->length===1,'date_unconfirmed');$date=(new DateTimeImmutable($times->item(0)->getAttribute('datetime')))->getTimestamp();
+           $vs=$xp->query('.//video[@src]',$node);requireRead($vs&&$vs->length>=1&&$vs->length<=2,'video_unconfirmed');$urls=[];foreach($vs as $v)$urls[]=$v->getAttribute('src');$urls=array_values(array_unique($urls));requireRead(count($urls)===1,'multiple_media');$url=$urls[0];requireRead(parse_url($url,PHP_URL_SCHEME)==='https'&&parse_url($url,PHP_URL_HOST)==='cdn4.telesco.pe','media_host_changed');
+           $file='pub/video-'.$mid.'.mp4';$h=fopen($file,'xb');requireRead(is_resource($h),'media_file_unavailable');$bytes=0;$retry=null;$c=curl_init($url);curl_setopt_array($c,[CURLOPT_FOLLOWLOCATION=>false,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,CURLOPT_CONNECTTIMEOUT=>5,CURLOPT_TIMEOUT=>50,CURLOPT_USERAGENT=>'Mozilla/5.0',CURLOPT_HEADERFUNCTION=>static function($c,string $line)use(&$retry):int{if(stripos($line,'retry-after:')===0)$retry=trim(substr($line,12));return strlen($line);},CURLOPT_WRITEFUNCTION=>static function($c,string $b)use($h,&$bytes):int{if($bytes+strlen($b)>30000000)return 0;$n=fwrite($h,$b);if($n===false)return 0;$bytes+=$n;return $n;}]);$ok=curl_exec($c)!==false&&curl_errno($c)===0;$status=(int)curl_getinfo($c,CURLINFO_HTTP_CODE);curl_close($c);fclose($h);if($status===429){$rates['cdn4.telesco.pe']=publicRetryLimit($retry,time());throw new RuntimeException('public_retry_after_hold');}requireRead($ok&&$status===200&&$bytes>0,'media_download_unconfirmed');
+           $out['rows'][]=['message_id'=>$mid,'url'=>'https://t.me/anytour/'.$mid,'caption'=>$caption,'caption_sha256'=>hash('sha256',$caption),'published_unixtime'=>$date,'html_sha256'=>$raw['body_sha256'],'media'=>['path'=>'video-'.$mid.'.mp4','bytes'=>$bytes,'sha256'=>hash_file('sha256',$file)],'content_review_complete'=>false,'native_format_admitted'=>false];
+          }
+          $out['retry_after_holds']=$rates;$out['read_at_utc']=gmdate(DATE_ATOM);file_put_contents('pub/video-protection-review.json',jsonRead($out)."\n");echo jsonRead(['downloaded'=>count($out['rows']),'provider_writes'=>0])."\n";
+          PHP
+          php -l /tmp/pilot-public.php
+          php /tmp/pilot-public.php
+      - name: Record full video and audio stream metadata
         shell: bash
         run: |
           set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
-          PY
-          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
-            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
-          chmod 600 "$RUNNER_TEMP/channel_key"
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-          python3 - <<'PY'
-          import base64,hashlib,os,pathlib,subprocess
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
-          for s in scan.stdout.splitlines():
-              q=s.split()
-              if len(q)<3 or q[0].startswith('#'):continue
-              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
-              except Exception:continue
-              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
-          assert found,'HOST_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
-          print('ESTABLISHED_HOST_PIN_VERIFIED')
-          PY
-      - name: Read existing TV265 and commercial target1535 without provider writes
-        env:
-          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
-                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
-                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          status=0
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json || status=$?
-          python3 - <<'PY'
-          import json
-          d=json.load(open('pub/registry.json'))
-          assert d['operation']=='reconcile_original_zero_attempt1535' and d['issue']==1566
-          assert d['production_writes']==d['provider_writes']==d['bot_starts']==0 and d['write_admission'] is False
-          print(json.dumps({'ok':d['ok'],'reason':d.get('failure_reason'),'target_unchanged':d.get('original_target_unchanged'),'order':d.get('pure_order_control')}))
-          PY
-          test "$status" -eq 0
-      - name: Preserve the original bounded pair observation
+          for mid in 1541 1557 1711; do
+            ffprobe -v error -show_format -show_streams -of json "pub/video-$mid.mp4" > "pub/probe-$mid.json"
+          done
+      - name: Preserve the independent public result and actual photos
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: issue-1566-telegram-ranked-preflight
-          path: |
-            pub/registry.json
+          path: pub/*
           retention-days: 7
-          if-no-files-found: warn
+          if-no-files-found: error
 
