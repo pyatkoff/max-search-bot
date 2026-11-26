@@ -76,8 +76,11 @@ preg_match('/^      - name: Require the complete deployment verification\\n(.*?)
 $sourceGate = $sourceGateRows[1] ?? '';
 manifestCheck('deployment retains distinct source checks, aggregate and install jobs',
     $uniqueJobs && $inventoryJob !== '' && $syntaxJob !== '' && $groupsJob !== '' && $verifyJob !== '' && $deployJob !== '');
-manifestCheck('deployment preflight runs architecture once with inventory first',
-    str_contains($inventoryJob, 'php tests/run_required_group.php architecture "$DEPLOY_CHECK_PROFILE"')
+manifestCheck('deployment routes the full architecture suite to three lanes and keeps inventory first in core',
+    substr_count($inventoryJob, 'php tests/run_required_group.php architecture ci-apple-coverage') === 1
+    && substr_count($groupsJob, 'php tests/run_required_group.php architecture ci-architecture-core') === 1
+    && substr_count($groupsJob, 'php tests/run_required_group.php architecture ci-apple-device') === 1
+    && substr_count($inventoryJob, 'php tests/run_required_group.php architecture "$DEPLOY_CHECK_PROFILE"') === 1
     && ($manifest['architecture'][0] ?? null) === 'php tests/run_required_checks_inventory_regression.php');
 
 $include = [];
@@ -107,7 +110,7 @@ manifestCheck('architecture and application lanes run independently with bounded
     && str_contains($groupsJob, 'for check_group in $DEPLOY_CHECK_GROUPS; do')
     && str_contains($groupsJob, 'php tests/run_required_group.php "$check_group"'));
 manifestCheck('deployment observer profile retains every application and diagnostics group',
-    str_contains($groupsJob, 'full:application|full:diagnostics|hotel-catalogue-data:diagnostics|telegram-public-observer:application|telegram-public-observer:diagnostics) ;;')
+    str_contains($groupsJob, 'hotel-catalogue-data:diagnostics|telegram-public-observer:application|telegram-public-observer:diagnostics) ;;')
     && in_array('php tests/run_channel_post_automation_regression.php', $manifest['manager'], true));
 manifestCheck('deployment syntax still covers every non-vendor PHP file',
     str_contains($syntaxJob, "run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l"));

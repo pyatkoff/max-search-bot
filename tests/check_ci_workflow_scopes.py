@@ -433,7 +433,7 @@ check(production_scope['run'] == 'node tools/deploy_hotel_catalogue_scope.js'
       and dj['verify-syntax']['outputs'] == {'profile':'${{ steps.hotel_scope.outputs.profile }}'},
       'production catalogue scope is selected by one fatal, read-only source gate')
 production_inventory = next(s for s in dj['verify-inventory']['steps']
-                            if s.get('name') == 'Verify required inventory and architecture')
+                            if s.get('name') == 'Run assigned architecture checks')
 production_group = next(s for s in dj['verify-groups']['steps'] if s.get('name') == 'Run every required group in this lane')
 check(all(dj[job]['needs'] == 'verify-syntax' for job in ['verify-inventory','verify-groups'])
       and production_inventory['env']['DEPLOY_CHECK_PROFILE'] == profile_output
@@ -448,6 +448,7 @@ with tempfile.TemporaryDirectory() as stub_dir:
         '#!/usr/bin/env bash\nset -eu\n'
         'if [[ "$1" == tests/run_required_group.php ]]; then\n'
         '  shift\n  printf "%s\\n" "$*"\n'
+        '  if [[ "$*" == "${FAIL_CHECK:-}" ]]; then exit 17; fi\n'
         'else\n  printf "catalogue:%s\\n" "$1"\nfi\n'
     )
     php_stub.chmod(0o755)
@@ -465,21 +466,30 @@ with tempfile.TemporaryDirectory() as stub_dir:
             env={**probe_env, 'BACKEND_PROFILE':profile, 'REQUIRED_CHECK_GROUP':group})
         check(probe.returncode == 0 and probe.stdout.strip() == expected,
               'required group command for '+profile+'/'+group)
-    for profile in ['full','hotel-catalogue-data','']:
+    for profile, expected in [
+        ('full','architecture ci-apple-coverage'),
+        ('hotel-catalogue-data','architecture hotel-catalogue-data'),
+        ('telegram-public-observer','architecture telegram-public-observer'),
+        ('unknown', None),
+        ('', None),
+    ]:
         probe = subprocess.run(['bash','-e','-c',production_inventory['run']], capture_output=True, text=True,
             env={**probe_env, 'DEPLOY_CHECK_PROFILE':profile})
-        check((probe.returncode == 1 and not probe.stdout) if not profile else
-              (probe.returncode == 0 and probe.stdout.strip() == 'architecture '+profile),
+        check((probe.returncode == 1 and not probe.stdout) if expected is None else
+              (probe.returncode == 0 and probe.stdout.strip() == expected),
               'production architecture command for '+profile)
     for profile, lane, groups, expected in [
-        ('full','application','dialogue website manager',['dialogue','website','manager']),
+        ('full','application','dialogue website manager',
+            ['architecture ci-architecture-core','dialogue','website','manager']),
         ('hotel-catalogue-data','application','dialogue website manager',
             ['dialogue','website','catalogue:tests/run_manager_ai_draft_context_regression.php',
              'catalogue:tests/run_manager_ai_draft_context_regression.php',
              'catalogue:tests/run_manager_ai_draft_service_regression.php',
              'catalogue:tests/run_manager_preparation_mcp_regression.php']),
-        ('full','diagnostics','diagnostics',['diagnostics']),
+        ('full','diagnostics','diagnostics',['architecture ci-apple-device','diagnostics']),
         ('hotel-catalogue-data','diagnostics','diagnostics',['diagnostics']),
+        ('telegram-public-observer','application','dialogue website manager',['dialogue','website','manager']),
+        ('telegram-public-observer','diagnostics','diagnostics',['diagnostics']),
         ('','application','dialogue website manager',None),
         ('unknown','diagnostics','diagnostics',None),
     ]:
@@ -489,6 +499,16 @@ with tempfile.TemporaryDirectory() as stub_dir:
         check((probe.returncode == 1 and not probe.stdout) if expected is None else
               (probe.returncode == 0 and probe.stdout.splitlines() == expected),
               'actual deployment command routing for '+profile+'/'+lane)
+    for step, lane, groups, failed in [
+        (production_inventory, '', '', 'architecture ci-apple-coverage'),
+        (production_group, 'application', 'dialogue website manager', 'architecture ci-architecture-core'),
+        (production_group, 'diagnostics', 'diagnostics', 'architecture ci-apple-device'),
+    ]:
+        probe = subprocess.run(['bash','-e','-c',step['run']], capture_output=True, text=True,
+            env={**probe_env, 'DEPLOY_CHECK_PROFILE':'full', 'DEPLOY_CHECK_LANE':lane,
+                 'DEPLOY_CHECK_GROUPS':groups, 'FAIL_CHECK':failed})
+        check(probe.returncode == 17 and probe.stdout.splitlines() == [failed],
+              'failed architecture lane stops its production job: '+failed)
 check(dj['verify']['needs'] == 'deploy', 'verification cannot precede installation')
 vs = dj['verify']['steps']
 admit = next(i for i,s in enumerate(vs) if s.get('id') == 'admission')
@@ -534,5 +554,3 @@ check("format('monitor-proof:v1:{0}:{1}', github.event.workflow_run.id, github.e
       'activation provenance follows the exact original monitor')
 
 print(f'PASS {checks} workflow selection and gate cases')
-
-
