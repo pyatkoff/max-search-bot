@@ -145,6 +145,40 @@ HOTEL;
         return hash_equals($snapshot[2], $candidateReaderSha) ? 'compatible' : 'incompatible_reader';
     }
 
+    /** The CLI publisher checks typed approvals and new bundles before switching the pointer. */
+    public static function validateReleaseAdditions(string $directory, array $members): bool
+    {
+        if (PHP_SAPI !== 'cli' || !$members || !array_is_list($members)) return false;
+        $rawIndex = self::read($directory, 'catalogue.json', self::MAX_CATALOGUE_BYTES);
+        if ($rawIndex === null) return false;
+        try {
+            $catalogue = json_decode($rawIndex, true, 16, JSON_THROW_ON_ERROR);
+            $shards = [];
+            [, $reason] = self::catalogueBinding($catalogue, ['source_identity'=>null],
+                static function (string $file) use ($directory, &$shards): ?string {
+                    return $shards[$file] = self::read($directory, $file, self::MAX_MANIFEST_BYTES);
+                });
+            if ($reason !== 'binding_unresolved') return false;
+            $remaining = array_fill_keys($members, true);
+            if (count($remaining) !== count($members)) return false;
+            foreach ($shards as $bytes) {
+                $manifest = json_decode($bytes, true, 24, JSON_THROW_ON_ERROR);
+                foreach ($manifest['bindings'] as $entry) {
+                    $name = $entry['bundle_file'];
+                    if (!isset($remaining[$name])) continue;
+                    $bundle = self::read($directory, $name, self::MAX_REFERENCE_BYTES);
+                    if ($bundle === null || !hash_equals($entry['bundle_sha256'], hash('sha256', $bundle))
+                        || !self::validBundle(json_decode($bundle, true, 32, JSON_THROW_ON_ERROR),
+                            $entry['accepted_binding'], $entry['binding_revision'])) return false;
+                    unset($remaining[$name]);
+                }
+            }
+            return !$remaining;
+        } catch (Throwable $ignored) {
+            return false;
+        }
+    }
+
     /** Both authorized selector owners use the same complete admission pipeline. */
     private static function captureValidatedSelector(array $selector, int $now): array
     {

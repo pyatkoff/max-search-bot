@@ -193,6 +193,8 @@ function stageVersion(root, {receipt, staged}) {
   }
 }
 
+module.exports = {CONTRACT, INDEX, MAX_PACKAGE, digest, readFile, readSnapshot, snapshotSeal, verifyPackage, stageVersion};
+
 function main(args) {
   const [action, current, reader, inputs, last, releases] = args;
   const actionArity = {build:5, verify:5, stage:6};
@@ -224,9 +226,11 @@ function main(args) {
   }
 }
 
-try {
-  process.stdout.write(JSON.stringify(main(process.argv.slice(2))) + '\n');
-} catch (error) {
-  process.stderr.write((error.code || error.message) + '\n');
-  process.exitCode = 1;
+if (require.main === module) {
+  try {
+    process.stdout.write(JSON.stringify(main(process.argv.slice(2))) + '\n');
+  } catch (error) {
+    process.stderr.write((error.code || error.message) + '\n');
+    process.exitCode = 1;
+  }
 }

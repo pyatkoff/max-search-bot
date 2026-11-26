@@ -153,9 +153,43 @@ preserves each member byte, reserves the version without replacing an existing
 directory, and writes the readiness seal after the members. A duplicate stage
 fails with `EEXIST`. The active pointer is untouched.
 
-Independent content approvals, the full typed checks in
-`ManagerHotelKnowledge` and production release admission are needed for
-activation.
+Activation uses the separately admitted package digest. The working publisher
+checks the installed application and reader before using the package.
+
+## Activate and roll back through the HOTEL publisher
+
+Run the CLI under the existing HOTEL publisher account with the canonical
+checkout path and the SHA from the accepted installation receipt. Pass
+`bundled` for the first release or the exact currently selected version. Copy
+the expected archive SHA from the independent HOTEL content approval. It
+must cover the previous snapshot, the exact reader and the new content.
+The CLI does not create production authority or approve hotel research.
+
+```sh
+node tools/hotel_catalogue_release.js activate \
+  "$APP" "$APP_SHA" "$PREVIOUS_VERSION" "$PACKAGE" "$APPROVED_SHA256" "$OPERATION"
+node tools/hotel_catalogue_release.js rollback \
+  "$APP" "$APP_SHA" "$ACTIVATION_OPERATION" "$ROLLBACK_OPERATION"
+```
+
+Activation uses the same `operation.lock` as the core installer. It verifies
+the approved append against the actual active snapshot and reader. It stages
+the verified bytes directly or checks an existing staged version against them.
+The reader validates the catalogue bindings and added bundles with its typed
+rules before the pointer changes. Running a separate `stage` is optional when
+the publisher uses `activate`. Each operation records the exact application,
+reader, previous and selected catalogue versions and snapshot hashes in
+`operations/<operation>.json` outside the web root.
+
+The pointer is swapped atomically. Keep the archive and operation arguments
+until the receipt is available. If interrupted after writing `pending.json`,
+repeat that exact operation; it finishes the recorded transition or returns the
+same receipt without switching again. A different mutation stops while that
+operation is pending. Rollback requires a new operation ID, checks that the
+recorded version is still selected and restores the verified prior snapshot.
+An activation previously rolled back cannot alter a subsequent activation of
+the same bytes. For a first activation, rollback returns to the checkout
+catalogue if its snapshot hash still matches.
 
 ## Read a selected immutable version
 
@@ -172,13 +206,11 @@ The retained Search3 reader pins the version for all references in one response,
 including an unavailable catalogue. A later response resolves the current version.
 An invalid published pointer or receipt holds the affected references.
 
-The hotel regression exercises preparation, version selection and rollback
-using the editor publisher's existing lock and atomic pointer primitives in
-an isolated directory. The public reader returns original approved references
-before publication, data from the new snapshot after publication and the old
-references after rollback. It also tests a reader already pinned to the prior
-snapshot, corruption and rollback replay. The fixture does not authorize a
-production pointer.
+The hotel regression exercises the CLI against a private isolated checkout.
+The reader returns original approved references before activation, data from
+the new snapshot after activation and the old references after rollback. It
+also tests the common lock, recovery with an already selected version,
+corruption, replay and a reader already pinned to the prior snapshot.
 
 ## Check an active catalogue against an incoming core
 

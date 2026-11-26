@@ -19,8 +19,8 @@ const secondPackage = path.join(root, 'second.json');
 const problemPackage = path.join(root, 'modified.json');
 let checks = 0;
 
-function assertCommand(args, expectedError) {
-  const result = spawnSync(process.execPath, [runner, ...args], {encoding:'utf8', timeout:5000});
+function assertCommand(args, expectedError, program = runner, env = process.env) {
+  const result = spawnSync(process.execPath, [program, ...args], {encoding:'utf8', timeout:5000, env});
   assert.ifError(result.error);
   assert.equal(result.status, expectedError ? 1 : 0, result.stderr);
   ++checks;
@@ -108,6 +108,75 @@ git reset --hard "$2"`;
   switchTo(accepted, 1, /invalid_lock/);
 }
 
+function checkCataloguePublisher(base, candidate, prepared) {
+  const workspace = path.join(root, 'publisher');
+  const app = path.join(workspace, 'app');
+  const releases = path.join(workspace, 'max-search-bot-private-logs', 'hotel-catalogue-releases');
+  const bin = path.join(workspace, 'bin');
+  const pointer = path.join(releases, 'current');
+  const bundled = path.join(app, 'knowledge', 'hotels');
+  const actualReader = path.join(app, 'services', 'ManagerHotelKnowledge.php');
+  for (const folder of [releases, path.dirname(bundled), path.dirname(actualReader), bin]) {
+    fs.mkdirSync(folder, {recursive:true, mode:0o700});
+  }
+  fs.cpSync(base, bundled, {recursive:true});
+  fs.copyFileSync(reader, actualReader);
+  const git = (...args) => {
+    const result = spawnSync('git', args, {cwd:app, encoding:'utf8', timeout:5000});
+    assert.equal(result.status, 0, result.stderr);
+    return result.stdout.trim();
+  };
+  git('init', '-q', '--object-format=sha1');
+  git('add', 'knowledge', 'services');
+  git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'baseline');
+  const head = git('rev-parse', 'HEAD');
+  const lock = path.join(releases, 'operation.lock');
+  // The PHP integration fixture uses the real reader. Here also prove that the
+  // parent still holds the checkout lock while a child validates the candidate.
+  fs.writeFileSync(path.join(bin, 'php'), [
+    '#!/bin/bash',
+    '[[ "$1" == -r && -d "$4" ]] || exit 11',
+    'if flock --nonblock "$FIXTURE_LOCK" true; then exit 12; fi',
+    '[[ "$(cat)" == "$FIXTURE_ADDITIONS" ]] || exit 13',
+    '[[ "$FIXTURE_REJECT" == 0 ]]',
+  ].join('\n') + '\n', {mode:0o700});
+  const env = {...process.env, PATH:bin + path.delimiter + process.env.PATH,
+    FIXTURE_LOCK:lock, FIXTURE_ADDITIONS:'["anytour-20-fixture.json"]', FIXTURE_REJECT:'0'};
+  const publisher = path.resolve(__dirname, '../tools/hotel_catalogue_release.js');
+  const exec = (args, error, overrides) => assertCommand(args, error, publisher, {...env, ...overrides});
+  const first = ['activate', app, head, 'bundled', packageFile, prepared.package_sha256, 'activate-first'];
+  exec(['activate', app, '0'.repeat(40), ...first.slice(3)], /catalogue_application_changed/);
+  exec(first, /catalogue_typed_validation_failed/, {FIXTURE_REJECT:'1'});
+  assert.equal(fs.existsSync(pointer), false);
+  const firstReceipt = exec(first);
+  assert.equal(fs.readlinkSync(pointer), path.join(releases, firstReceipt.to));
+  const pending = path.join(releases, 'pending.json');
+  const receipt = path.join(releases, 'operations', 'activate-first.json');
+  fs.renameSync(receipt, pending); // Lost response after pointer change, before the receipt link.
+  exec([...first.slice(0, -1), 'activate-foreign'], /catalogue_release_pending/);
+  const before = fs.lstatSync(pointer).ino;
+  assert.deepEqual(exec(first), firstReceipt);
+  assert.equal(fs.lstatSync(pointer).ino, before);
+  exec([...first.slice(0, -2), '0'.repeat(64), 'activate-first'], /catalogue_operation_id_reused/);
+  const third = snapshot('publisher-third', [10, 20, 30]);
+  const archive = path.join(workspace, 'third.json');
+  const later = assertCommand(['build', candidate, reader, third, archive]);
+  const next = ['activate', app, head, firstReceipt.to, archive, later.package_sha256, 'activate-next'];
+  const nextReceipt = exec(next, undefined, {FIXTURE_ADDITIONS:'["anytour-30-fixture.json"]'});
+  const reverse = ['rollback', app, head, 'activate-next', 'rollback-next'];
+  const reverseReceipt = exec(reverse);
+  assert.equal(reverseReceipt.to, firstReceipt.to);
+  assert.equal(fs.readlinkSync(pointer), path.join(releases, firstReceipt.to));
+  const rollbackReceipt = path.join(releases, 'operations', 'rollback-next.json');
+  fs.renameSync(rollbackReceipt, pending);
+  assert.deepEqual(exec(reverse), reverseReceipt);
+  assert.deepEqual(exec(reverse), reverseReceipt);
+  exec([...next.slice(0, -1), 'activate-again'], undefined, {FIXTURE_ADDITIONS:'["anytour-30-fixture.json"]'});
+  exec([...reverse.slice(0, -1), 'rollback-stale'], /catalogue_activation_already_rolled_back/);
+  assert.equal(fs.readlinkSync(pointer), path.join(releases, nextReceipt.to));
+  assert.equal(git('rev-parse', 'HEAD'), head);
+}
+
 try {
   fs.writeFileSync(reader, '<?php // fixture reader v1');
   fs.writeFileSync(otherReader, '<?php // fixture reader v2');
@@ -115,6 +184,7 @@ try {
   const candidate = snapshot('candidate', [10, 20]);
   const replaced = snapshot('replacement', [20, 30]);
   const receipt = assertCommand(['build', base, reader, candidate, packageFile]);
+  checkCataloguePublisher(base, candidate, receipt);
   assert.equal(receipt.file_count, 4);
   assert.notEqual(receipt.previous_catalogue_sha256, receipt.catalogue_sha256);
   assert.equal(fs.statSync(packageFile).mode & 0o777, 0o600);
