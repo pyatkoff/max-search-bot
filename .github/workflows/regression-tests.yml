@@ -94,6 +94,7 @@ jobs:
     if: (needs.change-scope.outputs.mode == 'full' && (needs.change-scope.outputs.backend == 'full' || needs.change-scope.outputs.backend == 'telegram-public-observer')) || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')
     # Each matrix job owns a fresh MySQL service and runner. Never run these
     # destructive fixtures concurrently against one shared database.
+    # Keep development-work and hotel-work in different jobs to balance native execution time.
     strategy:
       fail-fast: false
       max-parallel: 3
@@ -134,6 +135,8 @@ jobs:
           case "$MYSQL_TEST_GROUP" in
             replies)
               php tests/run_manager_prepared_reply_regression.php
+              php tests/mysql/development-work-queue.php
+              php tests/mysql/development-work-events.php
               ;;
             migrations)
               php tests/mysql/manager-preparation-migrations.php
@@ -146,8 +149,6 @@ jobs:
             queues)
               php tests/mysql/hotel-work-queue.php
               php tests/mysql/hotel-work-events.php
-              php tests/mysql/development-work-queue.php
-              php tests/mysql/development-work-events.php
               ;;
             regional-access)
               php tests/mysql/manager-regional-routing.php --required-native

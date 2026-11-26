@@ -15,7 +15,11 @@ import tempfile
 import yaml
 
 GROUPS = {
-    'replies': ['tests/run_manager_prepared_reply_regression.php'],
+    'replies': [
+        'tests/run_manager_prepared_reply_regression.php',
+        'tests/mysql/development-work-queue.php',
+        'tests/mysql/development-work-events.php',
+    ],
     'migrations': [
         'tests/mysql/manager-preparation-migrations.php',
         'tests/mysql/manager-reply-queue.php',
@@ -27,8 +31,6 @@ GROUPS = {
     'queues': [
         'tests/mysql/hotel-work-queue.php',
         'tests/mysql/hotel-work-events.php',
-        'tests/mysql/development-work-queue.php',
-        'tests/mysql/development-work-events.php',
     ],
     'regional-access': ['tests/mysql/manager-regional-routing.php --required-native'],
 }
