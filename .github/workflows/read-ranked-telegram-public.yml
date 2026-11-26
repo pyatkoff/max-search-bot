@@ -9,6 +9,7 @@ on:
       - ops/anytour-hotel-ranked-resume-20261124
       - 'ops/anytour-hotel-ranked-after-*'
       - 'ops/anytour-hotel-ranked-plan-*'
+      - 'ops/anytour-hotel-ranked-data-*'
 permissions:
   contents: read
   actions: read
@@ -53,6 +54,10 @@ jobs:
               index_sha=${NATIVE_BRANCH#ops/anytour-hotel-ranked-plan-}
               [[ "$index_sha" =~ ^[a-f0-9]{64}$ ]]
               operation=hotel_ranked_approved_input ;;
+            ops/anytour-hotel-ranked-data-*)
+              index_sha=${NATIVE_BRANCH#ops/anytour-hotel-ranked-data-}
+              [[ "$index_sha" =~ ^[a-f0-9]{64}$ ]]
+              operation=hotel_ranked_approved_input ;;
             ops/anytour-hotel-ranked-37-continue-20261123) operation=hotel_ranked_37_continuation ;;
             ops/anytour-hotel-ranked-resume-20261124) operation=hotel_ranked_resume ;;
             ops/anytour-hotel-ranked-after-*)
@@ -64,9 +69,24 @@ jobs:
             *) exit 2 ;;
           esac
           index_sha=${index_sha:-30d58e6649877a0eb07deb7e2fddcfa99c92081aac5fbef8c3c2b1d7a4a92833}
+          data_root=""
+          if [[ "$NATIVE_BRANCH" == ops/anytour-hotel-ranked-data-* ]]; then
+            data_root="$RUNNER_TEMP/ranked-data"
+            export RANKED_DATA_ROOT="$data_root"
+            index=$(python3 - "$index_sha" "$data_root" <<'PY'
+          import os, pathlib, sys
+          sys.path.insert(0,'tools')
+          from collect_ranked_route_manifests import api
+          from prepare_ranked_telegram_routes import materialize_ranked_data
+          print(materialize_ranked_data(api, os.environ['NATIVE_REPOSITORY_SHA'], sys.argv[1], pathlib.Path(sys.argv[2]))['path'])
+          PY
+            )
+            printf 'RANKED_DATA_ROOT=%s\nRANKED_INDEX_SHA=%s\n' "$data_root" "$index_sha" >> "$GITHUB_ENV"
+          else
           index=$(jq -er --arg sha "$index_sha" '[.[] | select(.sha256==$sha)] | select(length==1) | .[0].path' config/anytour_ranked_approved_indexes.json)
+          fi
           [[ "$index" =~ ^config/anytour_[a-z0-9_]+\.json$ ]]
-          printf '%s  %s\n' "$index_sha" "$index" | sha256sum --check --status
+          printf '%s  %s\n' "$index_sha" "${data_root:+$data_root/}$index" | sha256sum --check --status
           export RANKED_APPROVED_INDEX="$index"
           printf 'RANKED_APPROVED_INDEX=%s\n' "$index" >> "$GITHUB_ENV"
           gh api "$run/attempts/1/jobs?per_page=100" > "$RUNNER_TEMP/native-jobs.json"
@@ -92,7 +112,8 @@ jobs:
           import json, os, pathlib, zipfile
           receipt = pathlib.Path(os.environ['RUNNER_TEMP'], 'native')
           receipt.mkdir()
-          plans = json.loads(pathlib.Path(os.environ['RANKED_APPROVED_INDEX']).read_bytes())['plans']
+          index_root = pathlib.Path(os.environ.get('RANKED_DATA_ROOT') or '.')
+          plans = json.loads((index_root / os.environ['RANKED_APPROVED_INDEX']).read_bytes())['plans']
           names = {'summary.json'} | {f"{kind}-{p['sha256']}.json" for p in plans for kind in ('check', 'result')}
           with zipfile.ZipFile(receipt.parent / 'native.zip') as archive:
               if sorted(archive.namelist()) != sorted(names):

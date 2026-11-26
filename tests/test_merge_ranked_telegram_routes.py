@@ -1,3 +1,6 @@
+import base64
+import hashlib
+import json
 import sys
 import tempfile
 import unittest
@@ -6,7 +9,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 from merge_ranked_telegram_routes import combine
-from prepare_ranked_telegram_routes import RESOLVER
+from prepare_ranked_telegram_routes import RESOLVER, digest, materialize_ranked_data
+
+
+def git_blob(contents):
+    return hashlib.sha1(f"blob {len(contents)}\0".encode() + contents).hexdigest()
 
 
 def row(hotel, source, target):
@@ -59,6 +66,33 @@ class OwnerBatch(unittest.TestCase):
     def test_duplicate_native_run_requires_reconciliation(self):
         with self.assertRaisesRegex(ValueError, "same native run"):
             combine(self.feed, [package(1, []), package(1, [])], self.resolver)
+
+    def test_detached_route_packet_is_recovered_from_exact_source(self):
+        source = 'a' * 40
+        list_path = 'config/anytour_ranked_approved_indexes.json'
+        index_path = 'config/anytour_packet_index.json'
+        plan_path = 'config/anytour_packet_plan.json'
+        plan = b'{"rows":[{"hotel_id":8001}]}'
+        index = json.dumps({'schema':1, 'plans':[{'path':plan_path,'bytes':len(plan),
+                           'sha256':digest(plan), 'git_blob':git_blob(plan)}]}).encode()
+        expected = {'path':index_path,'sha256':digest(index)}
+        contents = {list_path:json.dumps([expected]).encode(), index_path:index, plan_path:plan}
+
+        def api(path):
+            relative, ref = path.removeprefix('contents/').split('?ref=')
+            self.assertEqual(ref, source)
+            raw = contents[relative]
+            return {'type':'file','path':relative,'encoding':'base64','size':len(raw),
+                    'content':base64.b64encode(raw).decode(), 'sha':git_blob(raw)}
+
+        root = Path(self.work.name, 'detached')
+        self.assertEqual(materialize_ranked_data(api, source, digest(index), root), expected)
+        self.assertEqual((root / plan_path).read_bytes(), plan)
+        contents[plan_path] += b' '
+        bad = Path(self.work.name, 'changed')
+        with self.assertRaisesRegex(ValueError, 'ranked data plan changed'):
+            materialize_ranked_data(api, source, digest(index), bad)
+        self.assertFalse(bad.exists())
 
 
 if __name__ == "__main__":

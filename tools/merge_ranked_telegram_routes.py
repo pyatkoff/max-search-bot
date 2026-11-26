@@ -18,7 +18,7 @@ import tempfile
 import zipfile
 
 from collect_ranked_route_manifests import api, OBSERVER, REPO
-from prepare_ranked_telegram_routes import ROOT, RESOLVER, project, require
+from prepare_ranked_telegram_routes import ROOT, RESOLVER, materialize_ranked_data, project, require
 
 WRITER = ".github/workflows/edit-1566-ranked-46-historical-telegram.yml"
 
@@ -84,16 +84,23 @@ def stage_original(run_id, feed, folder):
     receipt, archive = artifact(native, "issue-1566-hotel-ranked-46-transfer")
     require(str(receipt["id"]) == report["artifact_id"] and receipt["digest"] == "sha256:" + report["artifact_sha256"],
             "native archive differs from independently observed archive")
-    registry = json.loads((ROOT / "config/anytour_ranked_approved_indexes.json").read_bytes())
-    if report["write_operation"] == "hotel_ranked_approved_input":
-        branch = native["head_branch"]
-        prefix = "ops/anytour-hotel-ranked-plan-"
-        require(branch.startswith(prefix), "approved plan branch invalid")
-        approved = [item for item in registry if item["sha256"] == branch[len(prefix):]]
+    branch = native["head_branch"]
+    data_prefix = "ops/anytour-hotel-ranked-data-"
+    root = ROOT
+    if branch.startswith(data_prefix):
+        require(report["write_operation"] == "hotel_ranked_approved_input", "invalid detached writer operation")
+        root = folder / "ranked-data"
+        approved = [materialize_ranked_data(api, native["head_sha"], branch[len(data_prefix):], root)]
     else:
-        approved = [item for item in registry if item["path"] == "config/anytour_ranked_46_20261123.json"]
+        registry = json.loads((ROOT / "config/anytour_ranked_approved_indexes.json").read_bytes())
+        if report["write_operation"] == "hotel_ranked_approved_input":
+            prefix = "ops/anytour-hotel-ranked-plan-"
+            require(branch.startswith(prefix), "approved plan branch invalid")
+            approved = [item for item in registry if item["sha256"] == branch[len(prefix):]]
+        else:
+            approved = [item for item in registry if item["path"] == "config/anytour_ranked_46_20261123.json"]
     require(len(approved) == 1, "index no longer approved")
-    index_file = ROOT / approved[0]["path"]
+    index_file = root / approved[0]["path"]
     index = index_file.read_bytes()
     require(hashlib.sha256(index).hexdigest() == approved[0]["sha256"], "approved index changed")
     names = {"summary.json"}
@@ -107,6 +114,8 @@ def stage_original(run_id, feed, folder):
                NATIVE_PARENT_RUN_ID=report.get("parent_run_id", ""), RECEIPT_ID=str(receipt["id"]),
                RECEIPT_SHA256=report["artifact_sha256"], GITHUB_RUN_ID=run_id, GITHUB_SHA=observer["head_sha"],
                PUBLIC_ARTIFACT_ID=str(pub["id"]), PUBLIC_ARTIFACT_DIGEST=pub["digest"])
+    if root != ROOT:
+        env.update(RANKED_DATA_ROOT=str(root), RANKED_INDEX_SHA=approved[0]["sha256"])
     output = folder / "candidate"
     subprocess.run([sys.executable, ROOT / "tools/prepare_ranked_telegram_routes.py", feed, report_file, output],
                    env=env, check=True)
