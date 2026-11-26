@@ -269,6 +269,56 @@ foreach ([$extra, $missing, $wrongType, $wrongValue] as $invalid) {
     }
     throw new RuntimeException('A changed registry row passed');
 }
+
+$approvals = json_decode(file_get_contents('config/anytour_ranked_approved_indexes.json'), true, 8, JSON_THROW_ON_ERROR);
+foreach ($approvals as $approval) {
+    $indexBytes = file_get_contents($approval['path']);
+    $index = json_decode($indexBytes, true, 32, JSON_THROW_ON_ERROR);
+    foreach ($index['plans'] as $item) {
+        $planBytes = file_get_contents($item['path']);
+        $fromBytes = AnyTourRankedHotelTransfer46::profileFromBytes($indexBytes, $approval['sha256'], $planBytes, $item['sha256']);
+        if ($fromBytes !== AnyTourRankedHotelTransfer46::profile($item['sha256'])) {
+            throw new RuntimeException('Independent profile disagrees with the installed plan');
+        }
+    }
+}
+
+$indexBytes = file_get_contents('config/anytour_ranked_index_45754450166.json');
+$index = json_decode($indexBytes, true, 32, JSON_THROW_ON_ERROR);
+$plan = json_decode($raw, true, 32, JSON_THROW_ON_ERROR);
+$plan['operation'] .= '_separate_packet_test';
+$separatePlan = json_encode($plan, JSON_THROW_ON_ERROR);
+$separateDigest = hash('sha256', $separatePlan);
+$index['plans'][0]['sha256'] = $separateDigest;
+$index['plans'][0]['bytes'] = strlen($separatePlan);
+$index['plans'][0]['git_blob'] = sha1('blob '.strlen($separatePlan)."\0".$separatePlan);
+$separateIndex = json_encode($index, JSON_THROW_ON_ERROR);
+$separateIndexDigest = hash('sha256', $separateIndex);
+$separate = AnyTourRankedHotelTransfer46::profileFromBytes($separateIndex, $separateIndexDigest, $separatePlan, $separateDigest);
+if ($separate['operation'] !== $plan['operation'] || AnyTourRankedHotelTransfer46::profile($separateDigest) !== null) {
+    throw new RuntimeException('Parsing an independent packet must not approve production writes');
+}
+foreach ([
+    [$separateIndex.' ', $separateIndexDigest, $separatePlan, $separateDigest],
+    [$separateIndex, $separateIndexDigest, $separatePlan.' ', $separateDigest]
+] as $changed) {
+    try {
+        AnyTourRankedHotelTransfer46::profileFromBytes(...$changed);
+    } catch (RuntimeException $error) {
+        if ($error->getMessage() === 'transfer_approved_plan_changed') continue;
+        throw $error;
+    }
+    throw new RuntimeException('Changed packet bytes passed');
+}
+
+$index['plans'][] = $index['plans'][0];
+$ambiguous = json_encode($index, JSON_THROW_ON_ERROR);
+try {
+    AnyTourRankedHotelTransfer46::profileFromBytes($ambiguous, hash('sha256', $ambiguous), $separatePlan, $separateDigest);
+    throw new RuntimeException('Ambiguous plan entry passed');
+} catch (RuntimeException $error) {
+    if ($error->getMessage() !== 'transfer_ranked_plan_manifest_changed') throw $error;
+}
 `], {cwd: root, encoding: 'utf8'});
   if (registryOrder.error) throw registryOrder.error;
   assert.equal(registryOrder.status, 0, registryOrder.stderr);

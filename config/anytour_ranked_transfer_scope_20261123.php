@@ -36,7 +36,7 @@ final class AnyTourRankedHotelTransfer46
     ];
 
 
-    /** Only immutable, release-installed HOTEL indices can nominate plans. */
+    /** Only immutable, release-installed HOTEL indices enable the current writer. */
     public static function profile(string $digest): ?array
     {
         if (isset(self::SPECIAL_PLANS[$digest])) return self::SPECIAL_PLANS[$digest];
@@ -46,43 +46,87 @@ final class AnyTourRankedHotelTransfer46
 
         $approvals = json_decode(file_get_contents(__DIR__.'/anytour_ranked_approved_indexes.json'), true, 8, JSON_THROW_ON_ERROR);
         foreach ($approvals as $approval) {
-            $index = self::document($approval['path'], $approval['sha256'], 64000);
+            $indexBytes = self::read($approval['path']);
+            $index = self::decode($indexBytes, $approval['sha256']);
             foreach ($index['plans'] as $item) {
                 if ($item['sha256'] !== $digest) continue;
-                $plan = self::document($item['path'], $digest, 64000);
-                if (($plan['native_preflight'] ?? null) !== $index['native_preflight'] || !is_array($plan['rows'])
-                    || !array_is_list($plan['rows']) || !$plan['rows']) throw new RuntimeException('transfer_ranked_native_proof_changed');
-                $pairs = []; $sources = []; $targets = [];
-                foreach ($plan['rows'] as $row) {
-                    $hotel = $row['hotel_id']; $source = $row['source_message_id']; $target = $row['target_message_id'];
-                    if (!is_int($hotel) || $hotel < 1 || !is_string($source) || !is_string($target)
-                        || !preg_match('/\A[1-9][0-9]{0,9}\z/D', $source) || !preg_match('/\A[1-9][0-9]{0,9}\z/D', $target)
-                        || isset($pairs[$hotel]) || isset($targets[$target]) || isset($sources[$source]))
-                        throw new RuntimeException('transfer_plan_row_identity');
-                    $identity = [];
-                    foreach (self::REGISTRY_FIELDS as $key) $identity[$key] = $row[$key];
-                    $pairs[$hotel] = ['source'=>$source, 'source_publication'=>$row['source_publication_id'],
-                        'target'=>$target, 'date'=>$row['target_published_unixtime'],
-                        'registry_sha256'=>hash('sha256', json_encode($identity, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)),
-                        'caption_sha256'=>$row['next_caption_sha256'], 'file_id_sha256'=>$row['source_file_id_sha256']];
-                    $sources[$source] = $targets[$target] = true;
-                }
-                return $profiles[$digest] = ['path'=>$item['path'], 'operation'=>$plan['operation'],
-                    'native_preflight'=>$index['native_preflight'], 'approved_index_sha256'=>$approval['sha256'], 'pairs'=>$pairs];
+                return $profiles[$digest] = self::profileFromBytes(
+                    $indexBytes, $approval['sha256'], self::read($item['path']), $digest
+                );
             }
         }
         return null;
     }
 
-    private static function document(string $path, string $digest, int $limit): array
+    /** Derive a profile from immutable bytes. The caller must establish approval. */
+    public static function profileFromBytes(string $indexBytes, string $indexDigest, string $planBytes, string $planDigest): array
     {
-        if (!preg_match('~\Aconfig/anytour_[a-z0-9_]+\.json\z~D', $path))
-            throw new RuntimeException('transfer_ranked_path_invalid');
+        $index = self::decode($indexBytes, $indexDigest);
+        $plan = self::decode($planBytes, $planDigest);
+        if (($index['schema'] ?? null) !== 1 || !is_array($index['plans'] ?? null) || !array_is_list($index['plans'])) {
+            throw new RuntimeException('transfer_ranked_index_invalid');
+        }
+        $matching = array_values(array_filter($index['plans'], static fn($item): bool =>
+            is_array($item) && ($item['sha256'] ?? null) === $planDigest));
+        $item = $matching[0] ?? [];
+        if (count($matching) !== 1 || !self::validPath($item['path'] ?? null)
+            || ($item['bytes'] ?? null) !== strlen($planBytes)
+            || ($item['git_blob'] ?? null) !== sha1('blob '.strlen($planBytes)."\0".$planBytes)) {
+            throw new RuntimeException('transfer_ranked_plan_manifest_changed');
+        }
+        $proof = $index['native_preflight'] ?? null;
+        if (!is_array($proof) || ($plan['native_preflight'] ?? null) !== $proof
+            || !is_string($plan['operation'] ?? null) || $plan['operation'] === ''
+            || !is_array($plan['rows'] ?? null) || !array_is_list($plan['rows']) || !$plan['rows']) {
+            throw new RuntimeException('transfer_ranked_native_proof_changed');
+        }
+        $pairs = []; $sources = []; $targets = [];
+        foreach ($plan['rows'] as $row) {
+            $hotel = $row['hotel_id'] ?? null;
+            $source = $row['source_message_id'] ?? null;
+            $target = $row['target_message_id'] ?? null;
+            if (!is_int($hotel) || $hotel < 1 || !is_string($source) || !is_string($target)
+                || !preg_match('/\A[1-9][0-9]{0,9}\z/D', $source) || !preg_match('/\A[1-9][0-9]{0,9}\z/D', $target)
+                || isset($pairs[$hotel]) || isset($targets[$target]) || isset($sources[$source])) {
+                throw new RuntimeException('transfer_plan_row_identity');
+            }
+            $identity = [];
+            foreach (self::REGISTRY_FIELDS as $key) {
+                if (!array_key_exists($key, $row)) throw new RuntimeException('transfer_ranked_registry_field_missing');
+                $identity[$key] = $row[$key];
+            }
+            $pairs[$hotel] = ['source'=>$source, 'source_publication'=>$row['source_publication_id'],
+                'target'=>$target, 'date'=>$row['target_published_unixtime'],
+                'registry_sha256'=>hash('sha256', json_encode($identity, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)),
+                'caption_sha256'=>$row['next_caption_sha256'], 'file_id_sha256'=>$row['source_file_id_sha256']];
+            $sources[$source] = $targets[$target] = true;
+        }
+        return ['path'=>$item['path'], 'operation'=>$plan['operation'], 'native_preflight'=>$proof,
+            'approved_index_sha256'=>$indexDigest, 'pairs'=>$pairs];
+    }
+
+    private static function validPath(mixed $path): bool
+    {
+        return is_string($path) && preg_match('~\Aconfig/anytour_[a-z0-9_]+\.json\z~D', $path) === 1;
+    }
+
+    private static function read(string $path): string
+    {
+        if (!self::validPath($path)) throw new RuntimeException('transfer_ranked_path_invalid');
         $path = dirname(__DIR__).'/'.$path;
         if (realpath($path) !== $path || !is_file($path)) throw new RuntimeException('transfer_plan_unavailable');
-        $raw = file_get_contents($path, false, null, 0, $limit + 1);
-        if (!is_string($raw) || strlen($raw) > $limit || !hash_equals($digest, hash('sha256', $raw)))
+        $raw = file_get_contents($path, false, null, 0, 64001);
+        if (!is_string($raw)) throw new RuntimeException('transfer_plan_unavailable');
+        return $raw;
+    }
+
+    private static function decode(string $raw, string $digest): array
+    {
+        if (strlen($raw) > 64000 || !hash_equals($digest, hash('sha256', $raw))) {
             throw new RuntimeException('transfer_approved_plan_changed');
-        return json_decode($raw, true, 32, JSON_THROW_ON_ERROR);
+        }
+        $value = json_decode($raw, true, 32, JSON_THROW_ON_ERROR);
+        if (!is_array($value)) throw new RuntimeException('transfer_ranked_document_invalid');
+        return $value;
     }
 }
