@@ -100,7 +100,7 @@ jobs:
         run: |
           set -euo pipefail
           case "$DEPLOY_CHECK_PROFILE:$DEPLOY_CHECK_LANE" in
-            full:application|full:diagnostics|hotel-catalogue-data:diagnostics) ;;
+            full:application|full:diagnostics|hotel-catalogue-data:diagnostics|telegram-public-observer:application|telegram-public-observer:diagnostics) ;;
             hotel-catalogue-data:application) DEPLOY_CHECK_GROUPS='dialogue website' ;;
             *) exit 1 ;;
           esac

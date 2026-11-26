@@ -73,7 +73,7 @@ for name, jobs in [('workspace-v2-visual-qa.yml',['selection','firefox-history',
 for job in ['required','prepared-mysql','appleservice39-mysql']:
     check('change-scope' in regression[job]['needs'],job+' awaits canonical selector')
 check(regression['required']['if'] == "needs.change-scope.outputs.mode == 'full' || needs.change-scope.outputs.mode == 'tour-selection'", 'every selection profile retains architecture')
-check(regression['prepared-mysql']['if'] == "(needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'full') || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')", 'native groups keep full scope except proven unchanged backends')
+check(regression['prepared-mysql']['if'] == "(needs.change-scope.outputs.mode == 'full' && (needs.change-scope.outputs.backend == 'full' || needs.change-scope.outputs.backend == 'telegram-public-observer')) || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')", 'the observer retains all shared native MySQL groups')
 expected_exclude = "${{ fromJSON(((needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style') || (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'workspace-style')) && '[{\"group\":\"dialogue\"},{\"group\":\"website\"},{\"group\":\"manager\"},{\"group\":\"diagnostics\"}]' || (needs.change-scope.outputs.backend == 'hotel-catalogue-data' && '[{\"group\":\"manager\"}]') || '[]') }}"
 check(regression['required']['strategy']['matrix'] == {
     'group':['architecture','dialogue','website','manager','diagnostics'], 'exclude':expected_exclude},
@@ -81,7 +81,9 @@ check(regression['required']['strategy']['matrix'] == {
 pr_required = next(s for s in regression['required']['steps'] if s.get('name') == 'Run required group')
 check(pr_required['env']['BACKEND_PROFILE'] == '${{ needs.change-scope.outputs.backend }}'
       and pr_required['env']['REQUIRED_CHECK_GROUP'] == '${{ matrix.group }}'
-      and not pr_required.get('if') and not pr_required.get('continue-on-error'),
+      and not pr_required.get('if') and not pr_required.get('continue-on-error')
+      and '"$BACKEND_PROFILE" == telegram-public-observer' in pr_required['run']
+      and 'php tests/run_required_group.php architecture "$BACKEND_PROFILE"' in pr_required['run'],
       'PR architecture uses the proven profile without skipping the required group')
 check(source_gate['env']['BACKEND_PROFILE'] == '${{ needs.change-scope.outputs.backend }}', 'aggregate uses the actual backend selection')
 hotel_job = regression['hotel-catalogue']
@@ -104,7 +106,7 @@ check(source_gate['env']['HOTEL_RESULT'] == '${{ needs.hotel-catalogue.result }}
       source_gate['env']['HOTEL_PROOF'] == '${{ needs.change-scope.outputs.hotel-proof }}',
       'hotel proof uses only actual canonical outputs')
 pilot_mysql = regression['appleservice39-mysql']
-check(pilot_mysql['if'] == regression['prepared-mysql']['if']
+check(pilot_mysql['if'] == "(needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'full') || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')"
       and pilot_mysql['needs'] == 'change-scope'
       and pilot_mysql['runs-on'] == 'ubuntu-latest'
       and pilot_mysql['timeout-minutes'] == 8
@@ -130,6 +132,11 @@ check(pilot_steps[2]['run'] == 'php tests/mysql/appleservice39-publisher.php'
       'actual migration and independent claim workers execute on the isolated fixture')
 check(source_gate['env']['APPLESERVICE39_MYSQL_RESULT'] == '${{ needs.appleservice39-mysql.result }}',
       'required aggregate consumes the actual pilot native job result')
+observer_gate = source_gate['run'].split('full:telegram-public-observer)', 1)[-1].split(';;', 1)[0]
+check('test "$REQUIRED_RESULT" = success' in observer_gate
+      and 'test "$PREPARED_MYSQL_RESULT" = success' in observer_gate
+      and 'test "$APPLESERVICE39_MYSQL_RESULT" = skipped' in observer_gate,
+      'observer excludes the pilot native fixture and keeps the whole shared stack')
 check('native-mysql' not in load('publish-appleservice39-pilot.yml')['jobs'],
       'pilot native fixture has one mandatory aggregate owner')
 scope_document = load('ci-change-scope.yml')

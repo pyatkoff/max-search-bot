@@ -97,6 +97,23 @@ const HOTEL_CI_PROOF_PATHS = new Set([
   'tools/check_hotel_catalogue_scope.sh',
 ]);
 
+const TELEGRAM_PUBLIC_OBSERVER_PATHS = new Set([
+  'tools/verify_ranked_telegram_public.php',
+  'tests/ranked_telegram_public_cases.php',
+]);
+
+function telegramPublicObserverOnly(changes) {
+  if (!Array.isArray(changes) || changes.length === 0) return false;
+  const paths = new Set();
+  return changes.every(change => {
+    if (!TELEGRAM_PUBLIC_OBSERVER_PATHS.has(change?.path) || paths.has(change.path) ||
+        change.status !== 'M' || change.oldMode !== '100644' ||
+        change.newMode !== '100644' || change.previousPath !== undefined) return false;
+    paths.add(change.path);
+    return true;
+  });
+}
+
 // Classify only a positive, bounded append. The ordinary reader in the
 // mandatory data job verifies Git pins, duplicate identities and every bundle.
 function hotelCatalogueAddition(changes, read) {
@@ -400,10 +417,13 @@ function selectScope(env = process.env) {
     const workspaceStyle = !snapshotFallback && result.mode === 'full' && workspaceStyleOnlyChanges(changes);
     const hotelData = !snapshotFallback && baseRef === 'main' && result.mode === 'full' &&
       hotelCatalogueAddition(changes, (side, file) => git(['show', `${side === 'base' ? base : head}:${file}`]));
+    const telegramObserver = !snapshotFallback && baseRef === 'main' && result.mode === 'full' &&
+      telegramPublicObserverOnly(changes);
     return { ...result,
-      reason: hotelData ? 'bounded_hotel_catalogue_addition' : workspaceStyle ? 'bounded_workspace_style_only' : result.reason,
+      reason: telegramObserver ? 'bounded_telegram_public_observer' : hotelData ? 'bounded_hotel_catalogue_addition' : workspaceStyle ? 'bounded_workspace_style_only' : result.reason,
       backend: result.mode === 'tour-selection' && selectionStyleOnlyChanges(changes) ? 'selection-style' :
-        workspaceStyle ? 'workspace-style' : hotelData ? 'hotel-catalogue-data' : 'full',
+        workspaceStyle ? 'workspace-style' : hotelData ? 'hotel-catalogue-data' :
+        telegramObserver ? 'telegram-public-observer' : 'full',
       proveTourSelection: result.mode === 'full' && changes.some(change => TOUR_CI_PROOF_PATHS.has(change.path)),
       proveHotelCatalogue: result.mode === 'full' && changes.some(change => HOTEL_CI_PROOF_PATHS.has(change.path)) };
   } catch (_) { return full('diff_unavailable'); }
@@ -423,4 +443,4 @@ if (require.main === module) {
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
 
-module.exports = { TOUR_SELECTION_PATHS, classifyChanges, parseRawDiff, oauthSpecOnlyChange, editorManifestVersionOnlyChange, publicManifestVersionOnlyChange, classifySelectionCompanionChanges, selectionStyleOnlyChanges, workspaceStyleOnlyChanges, hotelCatalogueAddition, selectScope };
+module.exports = { TOUR_SELECTION_PATHS, classifyChanges, parseRawDiff, oauthSpecOnlyChange, editorManifestVersionOnlyChange, publicManifestVersionOnlyChange, classifySelectionCompanionChanges, selectionStyleOnlyChanges, workspaceStyleOnlyChanges, hotelCatalogueAddition, telegramPublicObserverOnly, selectScope };

@@ -3,11 +3,12 @@
 
 const fs = require('node:fs');
 const {execFileSync} = require('node:child_process');
-const {hotelCatalogueAddition, parseRawDiff} = require('./ci_change_scope');
+const {hotelCatalogueAddition, telegramPublicObserverOnly, parseRawDiff} = require('./ci_change_scope');
 const release = require('./deployment_release');
 
 const FULL = 'full';
 const HOTEL = 'hotel-catalogue-data';
+const TELEGRAM_OBSERVER = 'telegram-public-observer';
 const MAIN = 'refs/heads/main';
 
 async function selectDeployScope({env, event, git, acceptedBaseline}) {
@@ -24,8 +25,15 @@ async function selectDeployScope({env, event, git, acceptedBaseline}) {
   try {
     if (git(['rev-parse', 'HEAD']).trim() !== after || git(['rev-parse', after + '^1']).trim() !== before) return FULL;
     const changes = parseRawDiff(git(['diff', '--raw', '-z', '--no-renames', '--no-abbrev', before, after]));
-    if (!hotelCatalogueAddition(changes, (side, path) => git(['show', (side === 'base' ? before : after) + ':' + path]))) return FULL;
-    return await acceptedBaseline(before, after) === true ? HOTEL : FULL;
+    let profile;
+    if (telegramPublicObserverOnly(changes)) {
+      profile = TELEGRAM_OBSERVER;
+    } else if (hotelCatalogueAddition(changes, (side, path) => git(['show', (side === 'base' ? before : after) + ':' + path]))) {
+      profile = HOTEL;
+    } else {
+      return FULL;
+    }
+    return await acceptedBaseline(before, after) === true ? profile : FULL;
   } catch (_) {
     return FULL;
   }

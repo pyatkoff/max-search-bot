@@ -84,6 +84,23 @@ native MySQL matrix and Apple publisher check for this shape. The same
 aggregate must receive success from the catalogue job. The shared deployment,
 runtime release claims and installed reader stay on their ordinary paths.
 
+## AnyTour Telegram public readback
+
+The `telegram-public-observer` backend covers ordinary edits to
+`tools/verify_ranked_telegram_public.php` and
+`tests/ranked_telegram_public_cases.php` against current main. Additions,
+deletions, mode changes and changes to any other file use full verification.
+Production additionally requires the same authenticated installed parent and
+first-attempt push provenance as the hotel catalogue checks.
+
+This backend retains inventory, syntax, all five shared groups (including
+the Telegram readback regression under manager), and shared native MySQL
+regressions in PR CI. It omits the four AppleService39 publisher scenarios
+and the AppleService39 native publisher fixture in PR CI. AppleService39
+changes and shared runtime, schema, authorization, or workflow changes
+still receive full checks. The release and its health checks continue
+through the existing deploy workflow.
+
 ## Tour-selection component
 
 The `tour-selection` scope accepts regular-file modifications within the exact

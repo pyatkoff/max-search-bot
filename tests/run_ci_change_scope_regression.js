@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { execFileSync, spawnSync } = require('node:child_process');
-const { classifyChanges, parseRawDiff, oauthSpecOnlyChange, editorManifestVersionOnlyChange, hotelCatalogueAddition } = require('../tools/ci_change_scope');
+const { classifyChanges, parseRawDiff, oauthSpecOnlyChange, editorManifestVersionOnlyChange, hotelCatalogueAddition, telegramPublicObserverOnly } = require('../tools/ci_change_scope');
 const { selectDeployScope } = require('../tools/deploy_hotel_catalogue_scope');
 const selector = path.resolve(__dirname, '../tools/ci_change_scope.js');
 const oauth = 'manager/ai-oauth.php';
@@ -59,6 +59,27 @@ const addedIndex = hotelIndexValue([pin(hotelManifest,'b')]);
 const modifyHotel = path => ({ path:hotelDir+path, status:'M', oldMode:'100644', newMode:'100644' });
 const addHotel = path => ({ path:hotelDir+path, status:'A', oldMode:'000000', newMode:'100644' });
 const hotelChanges = [modifyHotel(hotelIndex),modifyHotel(hotelManifest),addHotel(hotelBundle)];
+const telegramObserver = 'tools/verify_ranked_telegram_public.php';
+const telegramObserverCases = 'tests/ranked_telegram_public_cases.php';
+const modifiedFile = path => ({path,status:'M',oldMode:'100644',newMode:'100644'});
+const telegramChanges = [modifiedFile(telegramObserver),modifiedFile(telegramObserverCases)];
+check(telegramPublicObserverOnly(telegramChanges),true,'the historical observer-only pair is isolated');
+for (const mixedPath of [
+  'tools/anytour_existing_post_batch.php', 'assets/project-funnel.js',
+  'manager/api.php', 'resources/project-funnel/appleservice39.json',
+  '.github/workflows/deploy.yml', 'migrations/999.php',
+]) {
+  check(telegramPublicObserverOnly([...telegramChanges,modifiedFile(mixedPath)]),false,'mixed production sources stay full');
+}
+for (const changes of [
+  [], [undefined], [telegramChanges[0],telegramChanges[0]],
+  [{...telegramChanges[0],status:'A',oldMode:'000000'}],
+  [{...telegramChanges[0],status:'D',newMode:'000000'}],
+  [{...telegramChanges[0],previousPath:'tools/old.php'}],
+  [{...telegramChanges[0],newMode:'100755'}],
+]) {
+  check(telegramPublicObserverOnly(changes),false,'unrecognised observer diffs stay full');
+}
 const hotelFixture = {
   base: { [hotelIndex]:originalIndex, [hotelManifest]:hotelManifestValue([originalBinding]) },
   head: { [hotelIndex]:addedIndex, [hotelManifest]:hotelManifestValue([originalBinding, addedBinding]) },
@@ -422,6 +443,9 @@ try {
   put(hotelDir+hotelIndex,JSON.stringify(originalIndex));
   put(hotelDir+hotelManifest,JSON.stringify(hotelFixture.base[hotelManifest]));
   git(['add','-A']); git(['commit','-qm','hotel catalogue base']);
+  put(telegramObserver,'original public observer\n');
+  put(telegramObserverCases,'original public observer tests\n');
+  git(['add','-A']); git(['commit','-qm','Telegram observer base']);
   const dataBase = git(['rev-parse','HEAD']);
   git(['update-ref','refs/remotes/origin/main',dataBase]);
   put(hotelDir+hotelIndex,JSON.stringify(addedIndex));
@@ -433,6 +457,16 @@ try {
   check(lastBackend,'hotel-catalogue-data','native Git diff selects only the hotel data backend');
   check(run(dataEvent,{GITHUB_EVENT_NAME:'workflow_dispatch'}),'full','manual event remains full');
   check(lastBackend,undefined,'manual workflow never selects a component profile');
+  git(['reset','--hard','-q',dataBase]);
+  put(telegramObserver,'changed public observer\n');
+  put(telegramObserverCases,'changed public observer tests\n');
+  git(['add','-A']); git(['commit','-qm','Telegram observer-only proposal']);
+  check(run(mainEvent(dataBase,git(['rev-parse','HEAD']))),'full','observer retains the shared workflow mode');
+  check(lastBackend,'telegram-public-observer','exact native Git diff selects only the observer backend');
+  put('tools/anytour_existing_post_batch.php','shared writer change\n');
+  git(['add','-A']); git(['commit','-qm','mixed observer and writer proposal']);
+  check(run(mainEvent(dataBase,git(['rev-parse','HEAD']))),'full','mixed observer keeps the shared workflow mode');
+  check(lastBackend,'full','a writer change cannot use the observer backend');
   git(['reset', '--hard', '-q', integratedHead]);
 
   const brokenHead = git(['rev-parse', 'HEAD']);
@@ -480,6 +514,12 @@ async function productionCatalogueScope() {
     {git:gitFixture([...hotelChanges,{path:'manager/api.php',status:'M',oldMode:'100644',newMode:'100644'}])},
   ])check(await selectDeployScope({...ctx,...denied}),'full','manual, mixed or ambiguous production source keeps full coverage');
   check(reads,1,'only the exact clean data source consults authenticated installation evidence');
+  const observer = {...ctx,git:gitFixture(telegramChanges)};
+  check(await selectDeployScope(observer),'telegram-public-observer','observer-only push with an accepted exact parent');
+  check(await selectDeployScope({...observer,acceptedBaseline:async()=>false}),'full','observer with unproven parent stays full');
+  check(await selectDeployScope({...observer,env:{...env,GITHUB_RUN_ATTEMPT:'2'}}),'full','observer reattempt stays full');
+  check(await selectDeployScope({...observer,git:gitFixture([...telegramChanges,modifiedFile('tools/anytour_existing_post_batch.php')])}),'full','mixed observer release stays full');
+  check(reads,2,'a mixed or repeated observer release cannot use baseline evidence');
 }
 productionCatalogueScope().then(() => require('./release_lifecycle_regression')(check)).then(() => {
   process.stdout.write('CI scope, release priority and release slot regression: ' + assertions + ' assertions passed\n');

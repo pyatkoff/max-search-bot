@@ -45,9 +45,10 @@ manifestCheck('canonical full runner still performs PHP syntax validation', strp
 manifestCheck('group runner loads metadata catalog', strpos($groupRunner, "required_checks_catalog.php") !== false && strpos($groupRunner, "if (\$group === 'all')") !== false);
 manifestCheck('group runner records per-check duration and machine-readable result', strpos($groupRunner, 'duration_ms') !== false && strpos($groupRunner, 'CHECK_RESULT ') !== false && strpos($groupRunner, 'REQUIRED_CHECK_REPORT') !== false);
 manifestCheck('PR workflow has matrix groups', strpos($workflow, 'matrix:') !== false && strpos($workflow, 'group: [architecture, dialogue, website, manager, diagnostics]') !== false);
-manifestCheck('PR workflow executes the canonical runner for both architecture profiles',
+manifestCheck('PR workflow executes the canonical runner for its required groups and scoped architecture',
     str_contains($workflow, 'php tests/run_required_group.php "$REQUIRED_CHECK_GROUP"')
-    && str_contains($workflow, 'php tests/run_required_group.php architecture hotel-catalogue-data'));
+    && str_contains($workflow, 'php tests/run_required_group.php architecture "$BACKEND_PROFILE"')
+    && str_contains($workflow, '"$BACKEND_PROFILE" == telegram-public-observer'));
 manifestCheck('PR workflow preserves all final regression gates including native MySQL', strpos($workflow, 'regression:') !== false && strpos($workflow, 'name: regression') !== false && strpos($workflow, 'needs: [change-scope, inventory, php-syntax, required, prepared-mysql, appleservice39-mysql, hotel-catalogue, oauth]') !== false && strpos($workflow, 'test "$PREPARED_MYSQL_RESULT" = success') !== false && strpos($workflow, 'test "$APPLESERVICE39_MYSQL_RESULT" = success') !== false && strpos($workflow, 'test "$HOTEL_RESULT" = success') !== false && strpos($workflow, 'php tests/mysql/appleservice39-publisher.php') !== false);
 manifestCheck('PR workflow persists required-check timing artifacts', strpos($workflow, 'REQUIRED_CHECK_REPORT:') !== false && strpos($workflow, 'actions/upload-artifact@v4') !== false && strpos($workflow, 'required-check-report-') !== false);
 
@@ -103,6 +104,9 @@ manifestCheck('architecture and application lanes run independently with bounded
     && str_contains($groupsJob, 'DEPLOY_CHECK_GROUPS: ${{ matrix.groups }}')
     && str_contains($groupsJob, 'for check_group in $DEPLOY_CHECK_GROUPS; do')
     && str_contains($groupsJob, 'php tests/run_required_group.php "$check_group"'));
+manifestCheck('deployment observer profile retains every application and diagnostics group',
+    str_contains($groupsJob, 'full:application|full:diagnostics|hotel-catalogue-data:diagnostics|telegram-public-observer:application|telegram-public-observer:diagnostics) ;;')
+    && in_array('php tests/run_channel_post_automation_regression.php', $manifest['manager'], true));
 manifestCheck('deployment syntax still covers every non-vendor PHP file',
     str_contains($syntaxJob, "run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l"));
 

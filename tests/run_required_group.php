@@ -16,13 +16,14 @@ if (!is_array($catalog) || $catalog === []) {
 
 $group = (string)($argv[1] ?? 'all');
 $profile = (string)($argv[2] ?? 'full');
-if ($profile !== 'full' && !($group === 'architecture' && $profile === 'hotel-catalogue-data')) {
+$architectureProfiles = ['hotel-catalogue-data', 'telegram-public-observer'];
+if ($profile !== 'full' && !($group === 'architecture' && in_array($profile, $architectureProfiles, true))) {
     fwrite(STDERR, "Invalid required-check profile for {$group}\n");
     exit(2);
 }
 
 // These tests exercise the AppleService39 publisher and its own data.
-// Keep every other architecture check and the catalogue's consumer checks.
+// All other architecture checks are required by both component profiles.
 $applePublisherChecks = [
     'php tests/run_appleservice39_publisher_regression.php',
     'php tests/run_appleservice39_search_publisher_regression.php',
@@ -66,7 +67,7 @@ foreach ($groups as $name) {
 
         $command = (string)$check['command'];
         $id = (string)$check['id'];
-        if ($profile === 'hotel-catalogue-data' && in_array($command, $applePublisherChecks, true)) {
+        if ($profile !== 'full' && in_array($command, $applePublisherChecks, true)) {
             echo "CHECK_EXCLUDED {$id} ({$profile})\n";
             continue;
         }

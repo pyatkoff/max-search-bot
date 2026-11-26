@@ -161,6 +161,52 @@ function runCases(): void
     $all = inspectPublic($candidates, $digest, fn(string $id): string => $pages[$id]);
     verify('all matching HTML pages accepted', $all['public_verified'] === count($successfulRows));
 
+    [$delayedPlan, $delayedNative] = $candidates[0];
+    $previousCaption = 'Original commercial post';
+    $delayedPlan['target_caption_sha256'] = hash('sha256', $previousCaption);
+    $delayedPlan['target_photo_marker_sha256'] = hash('sha256', 'tgme_widget_message_photo_wrap 88888888');
+    $previousPage = publicPageFixture(array_replace($delayedPlan, ['next_caption'=>$previousCaption]), $delayedNative);
+    $previousPage = str_replace('99999999', '88888888', $previousPage);
+    $previousPage = preg_replace('~<a class="tgme_widget_message_inline_button"[^>]*>.*?</a>~', '', $previousPage);
+
+    $delayedCandidates = $candidates;
+    $delayedCandidates[0] = [$delayedPlan, $delayedNative];
+    $attempts = [];
+    $waits = [];
+    $recordWait = static function (int $seconds) use (&$waits): void { $waits[] = $seconds; };
+    $readDelayed = static function (string $message) use ($pages, $previousPage, $delayedNative, &$attempts): string {
+        $attempts[$message] = ($attempts[$message] ?? 0) + 1;
+        if ($message === $delayedNative['message_id'] && $attempts[$message] === 1) return $previousPage;
+        return $pages[$message];
+    };
+    $afterPropagation = inspectPublic($delayedCandidates, $digest, $readDelayed, $recordWait);
+    verify('only the exact earlier snapshot is read again and then admitted',
+        $afterPropagation['public_verified'] === count($candidates) && $waits === [30]
+        && $attempts[$delayedNative['message_id']] === 2 && array_sum($attempts) === count($candidates) + 1
+        && $afterPropagation['results'][0]['earlier_public_html_sha256'] === [hash('sha256', $previousPage)]);
+
+    $waits = [];
+    $remaining = inspectPublic([[$delayedPlan, $delayedNative]], $digest, fn(): string => $previousPage, $recordWait);
+    verify('old snapshot stays unverified after four bounded rechecks',
+        $remaining['public_verified'] === 0 && $remaining['public_unverified'] === 1 && $waits === [30, 45, 60, 60]
+        && count($remaining['results'][0]['earlier_public_html_sha256']) === 4);
+
+    $waits = [];
+    $unexpected = inspectPublic([[$delayedPlan, $delayedNative]], $digest,
+        fn(): string => str_replace($previousCaption, 'Another update', $previousPage), $recordWait);
+    verify('a different caption and old photo do not trigger retries',
+        $unexpected['public_verified'] === 0 && $waits === [] && !isset($unexpected['results'][0]['earlier_public_html_sha256']));
+
+    $waits = []; $reads = 0;
+    $unavailableAfterOld = inspectPublic([[$delayedPlan, $delayedNative]], $digest,
+        static function () use ($previousPage, &$reads): string {
+            if (++$reads === 1) return $previousPage;
+            throw new RuntimeException('public_history_unavailable');
+        }, $recordWait);
+    verify('a refused later read stops further waits and keeps the prior evidence',
+        $unavailableAfterOld['public_verified'] === 0 && $reads === 2 && $waits === [30]
+        && count($unavailableAfterOld['results'][0]['earlier_public_html_sha256']) === 1);
+
     $thirdMessage = $successfulRows[2]['target_message_id'];
     $readWithFailure = static function (string $message) use ($pages, $thirdMessage): string {
         if ($message === $thirdMessage) throw new RuntimeException('public_history_unavailable');
