@@ -10,7 +10,7 @@ permissions:
   pull-requests: read
 jobs:
   admission:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == 'd38679bb0fbd11b26ad74a20163b400055b63cc8' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == 'c5d256c04dc69fd3e2fa739262f58f59b4e55071' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 31
     steps:
@@ -32,8 +32,8 @@ jobs:
           }
           const deadline = Date.parse('2026-11-26T18:56:49Z');
           while (Date.now() < deadline) {
-            const result = await read('actions/runs/45875869712');
-            if (result.head_sha !== '57968251e8c158c6660981f22a012d3208e946cf' || result.event !== 'pull_request') throw Error('Source run changed');
+            const result = await read('actions/runs/45876289847');
+            if (result.head_sha !== 'fd4b4e43a1927b43365b2113bc91c18a3472e26e' || result.event !== 'pull_request') throw Error('Source run changed');
             if (result.status === 'completed') {
               if (result.conclusion !== 'success') throw Error('Required CI: ' + result.conclusion);
               process.exit(0);
@@ -45,4 +45,4 @@ jobs:
       - name: Fresh ordinary release admission for PR1723
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node tools/release_priority.js --admit 1723 57968251e8c158c6660981f22a012d3208e946cf d38679bb0fbd11b26ad74a20163b400055b63cc8
+        run: node tools/release_priority.js --admit 1723 fd4b4e43a1927b43365b2113bc91c18a3472e26e d38679bb0fbd11b26ad74a20163b400055b63cc8
