@@ -1,4 +1,4 @@
-name: "#1566 Prepare three ranked Telegram transfers"
+name: "#1566 Prepare five ranked Telegram transfers"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -18,7 +18,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.event.forced == false &&
-      github.event.before == '60b7aaf4441af456733b4b07f28fd3cfa137ccea' && github.run_attempt == 1
+      github.event.before == 'b7c346253f03463ac1757464d1dbbfc95d09ba1b' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -115,7 +115,7 @@ jobs:
               program=program.replace('__'+name+'__',value)
           baseline = os.environ['RANKED_BASELINE_CURRENT']
           assert baseline in ('0', '1')
-          # Execute the reviewed reader helpers for the three exact pairs below.
+          # Execute the reviewed reader helpers for the five exact pairs below.
           # Preserve candidate holds, read-only SQL and the shared PRICE lease.
           assert program.count("$out=['schema'=>1") == 1
           program=program[:program.index("$out=['schema'=>1")]
@@ -131,12 +131,16 @@ jobs:
            'baseline_current_for_writer'=>__RANKED_BASELINE_CURRENT__,'rows'=>[]];
           $pdo=null;$lock=null;$acquired=null;$rates=[];$start=hrtime(true);$stage='runtime';
           $pairs=[
-           1096=>['source'=>'302','source_publication'=>703,'target'=>'743','target_date'=>1720786286,
-            'target_caption'=>'9a88cffcaf33c34b55bb9f0fdb305293c5b1f257d3f4400df1b0d9370c019cb8','target_photo'=>'6cccc168e0d17038412fc598bf3d30980247aaa4f0bafb3ba3c51a86317fc4d7'],
-           1257=>['source'=>'251','source_publication'=>596,'target'=>'865','target_date'=>1726832184,
-            'target_caption'=>'335a062aa572c9928913b15ec2d8984a622850eac7361b46427108cfda572f71','target_photo'=>'d247ab8a936e228655bf8fd8b234abe3b8b281d03ffbf12a04e33d94b04e2a4e'],
-           1149=>['source'=>'741','source_publication'=>1632,'target'=>'890','target_date'=>1728041035,
-            'target_caption'=>'1ec0795474b7e3fed4e8ee20c2c17ae63f3c66f09492d513c514b142706db073','target_photo'=>'45f2652b6923f3e047c29a3ae29907e3b2a219e7ec0cf0beb044fca27dab4598'],
+           1033=>['source'=>'212','source_publication'=>522,'target'=>'698','target_date'=>1718972936,
+            'target_caption'=>'78e51f6af7323136c7d589d517255c98c2b0a0eaedbe919d4e4f214c079c3db6','target_photo'=>'36692edee3ff9f16a19337bd3cd9ded53dbe2c94ff6c3c08857688670a9b0073'],
+           1143=>['source'=>'235','source_publication'=>571,'target'=>'738','target_date'=>1720610094,
+            'target_caption'=>'480393b1013e48dbeb93d84a9839a7b5a6d78aab17da7dcbf6be39f09b352ed8','target_photo'=>'2197f235f5636998e10d60f2df7e32be0281a42e17f8ea6ac7c155f78bd9a6f9'],
+           1420=>['source'=>'540','source_publication'=>1202,'target'=>'769','target_date'=>1721822583,
+            'target_caption'=>'e496bdc899f072bdf52cba716dcc6d77089d13f3da55df3b409c444d56b0583b','target_photo'=>'48fbba0d8cdc267068e895f43fdd9bedb0a86002e900a8e6586db5159c647ec1'],
+           1196=>['source'=>'440','source_publication'=>978,'target'=>'860','target_date'=>1726661395,
+            'target_caption'=>'99f7d13a44f1acdba6fb8a26581d2a83b2f777ea36c82791709f125286243bee','target_photo'=>'f862e2a0082cd4b935f041595dc8fe3940dc689b991cf71ee38f24361e5f2248'],
+           1246=>['source'=>'351','source_publication'=>799,'target'=>'885','target_date'=>1727868280,
+            'target_caption'=>'cc12bc6ae610a788962672eacf936ba763bb3759ba5187306ca2669faafb2be2','target_photo'=>'92f66badf99186cd7caec4b9b5b5fabbf63a2654744d838e265c6856f39be6e7'],
           ];
           try {
            runtimeRead();requireRead(realpath(OPERATIONS)===OPERATIONS,'operations_root_changed');
@@ -298,7 +302,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read three existing Telegram pairs without provider writes
+      - name: Read five existing Telegram pairs without provider writes
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
