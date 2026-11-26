@@ -347,7 +347,15 @@ function monitor_price_validate_text(string $text,array $price):void {
 /** Feed accepts only a completed two-channel journal from the existing editor. */
 function monitor_price_confirmed_journal(array $journal,array $binding,int $now):array {
     monitor_price_require(($journal['complete']??false)===true&&isset($journal['monitor_snapshot'])&&is_array($journal['monitor_snapshot']),'monitor_posts_not_confirmed');
-    $price=monitor_price_observation($journal['monitor_snapshot'],(int)($binding['tourvisor_hotel_id']??0),$now,false);
+    $snapshot=$journal['monitor_snapshot'];
+    $generated=monitor_price_time($snapshot['generatedAt']??null);
+    monitor_price_require($generated<=$now+60,'monitor_price_expired');
+    // Revalidate the complete export as it existed when the editor selected the minimum.
+    $price=monitor_price_observation($snapshot,(int)($binding['tourvisor_hotel_id']??0),$generated,false);
+    // The confirmed caption contains only this observation. Alternatives may expire
+    // after the posts were written and cannot invalidate this still-current price.
+    $observed=monitor_price_time($price['observed_at']);
+    monitor_price_require($observed<=$now&&$now-$observed<$snapshot['observationWindowHours']*3600,'monitor_price_expired');
     monitor_price_require(($journal['operation']??'')===monitor_price_operation($price)&&($binding['operation']??'')===$journal['operation']
         &&is_string($binding['manifest_hash']??null)&&hash_equals($journal['manifest_hash']??'',$binding['manifest_hash']),'monitor_journal_binding_changed');
     $expectedBinding=$binding;unset($expectedBinding['operation'],$expectedBinding['manifest_hash']);

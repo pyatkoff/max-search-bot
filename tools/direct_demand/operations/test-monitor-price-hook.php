@@ -62,6 +62,49 @@ monitor_price_require(monitor_hook_known_failure($checked,['tour_id'=>'known-tou
 
 // Targeted no-write terminal cases use retained fixture bytes; no runtime, database or API.
 function hook_test_check(bool $ok,string $name):void { global $cases;monitor_price_require($ok,$name);$cases++; }
+// A confirmed pair can finish its XML while only an unselected offer expires.
+$expiryRow=$roster['rows'][0];
+$expiryHotel=$expiryRow['tourvisor_hotel_id'];
+$expirySource=null;
+foreach($handoff['hotels'] as $sample){
+    if((int)$sample['tourvisorHotelId']===$expiryHotel){$expirySource=$sample['source'];break;}
+}
+if($expirySource===null){
+    $sample=$handoff['hotels'][0];
+    $expiryHotel=(int)$sample['tourvisorHotelId'];
+    $expirySource=$sample['source'];
+    foreach($roster['rows'] as $row)if($row['tourvisor_hotel_id']===$expiryHotel){$expiryRow=$row;break;}
+}
+hook_test_check(is_array($expirySource)&&$expiryRow['tourvisor_hotel_id']===$expiryHotel,'confirmed_expiry_fixture_missing');
+$expirySource['observationWindowHours']=36;
+$export=monitor_price_time($expirySource['generatedAt']);
+$selected=$expirySource['item']['offers'][0];
+$selected['ageSecondsAtExport']=10;
+$selected['expiresAt']=gmdate('c',$export+900);
+$alternative=$selected;
+$alternative['recordId']=$selected['recordId']===str_repeat('c',64)?str_repeat('d',64):str_repeat('c',64);
+$alternative['price']=$selected['price']+1;
+$alternative['ageSecondsAtExport']=36*3600-1;
+$alternative['expiresAt']=gmdate('c',$export+1);
+$expirySource['item']['offers']=[$selected,$alternative];
+$publishedPrice=monitor_price_observation($expirySource,$expiryHotel,$export);
+$expiryBinding=['tourvisor_hotel_id'=>$expiryHotel,'posts'=>$expiryRow['posts']];
+$expiryOp=monitor_price_operation($publishedPrice);
+$expiryManifest=str_repeat('a',64);
+$expiryJournal=['complete'=>true,'operation'=>$expiryOp,'manifest_hash'=>$expiryManifest,
+    'feed_binding'=>$expiryBinding,'monitor_snapshot'=>$expirySource,'posts'=>[]];
+foreach(['max','telegram'] as $channel){
+    $caption=monitor_hook_draft($expiryRow['templates'][$channel],$publishedPrice);
+    $expiryJournal['posts'][]=['state'=>'confirmed','receipt'=>['state'=>'sent','platform'=>$channel,
+        'existing_message_reused'=>true,'body_photo_button_verified'=>true,'monitor_price'=>$publishedPrice,
+        'text'=>$caption,'text_sha256'=>hash('sha256',$caption),'post_url'=>$expiryRow['posts'][$channel]]];
+}
+$expiryBinding+=['operation'=>$expiryOp,'manifest_hash'=>$expiryManifest];
+hook_test_check(monitor_price_confirmed_journal($expiryJournal,$expiryBinding,$export+2)['price']===$publishedPrice,
+    'confirmed_price_blocked_by_expired_alternative');
+hook_test_reject(static fn()=>monitor_price_confirmed_journal($expiryJournal,$expiryBinding,$export+36*3600-10),
+    'confirmed_selected_price_accepted_at_cutoff');
+
 $snapshotStart=strpos($publicationDriver,'function hook_snapshot_batch(');
 $snapshotEnd=strpos($publicationDriver,'function hook_output_and_exit(',$snapshotStart===false?0:$snapshotStart);
 hook_test_check($snapshotStart!==false&&$snapshotEnd!==false,'hook_snapshot_reader_source_missing');
