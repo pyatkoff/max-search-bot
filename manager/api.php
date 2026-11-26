@@ -37,11 +37,12 @@ if($action==='login'){
     out(['ok'=>true,'manager'=>$m+['supervision_available'=>ManagerSupervisorAccessService::scopes((int)$m['id'])!==[]],'projects'=>$m['projects']??[],'csrf'=>ManagerHttp::csrf(true)]);
 }
 
-// These transcript reads need existing project metadata, never its legacy UPSERT.
-// Initialize before manager resolution can enter the shared bootstrap.
-if(in_array($action,['detail','message_target','message_search','message_context','message_materials','reply_queue_resolve','reply_queue_undo','reply_queue_receipt','media_receipt','media_cancel'],true)&&ManagerHttp::managerId()>0){
+// Healthy startup and queue polling need only the existing project metadata.
+// Preserve the legacy startup recovery if the read-only check refuses.
+$startupRead=in_array($action,['me','list','counts'],true);
+if(($startupRead||in_array($action,['detail','message_target','message_search','message_context','message_materials','reply_queue_resolve','reply_queue_undo','reply_queue_receipt','media_receipt','media_cancel'],true))&&ManagerHttp::managerId()>0){
     try{ProjectAccessService::initializeReadOnly();}
-    catch(Throwable $ignored){out(['ok'=>false,'error'=>'project_unavailable'],503);}
+    catch(Throwable $ignored){if(!$startupRead)out(['ok'=>false,'error'=>'project_unavailable'],503);}
 }
 $m=ManagerHttp::requireManager();
 $isAdmin=ManagerHttp::isAdmin($m);
@@ -89,20 +90,20 @@ if($action==='save_source'){
 if($action==='list'){
     require_once $baseDir.'/services/ManagerAiInboxStatusService.php';
     $queue=(string)($data['queue']??'waiting');
-    if(!$isAdmin&&$queue==='all'&&!ManagerAvailabilityService::isWorking((int)$m['id'])) {
-        $rows=ManagerConversationService::list((int)$m['id'],'mine',100,(string)($data['project_key']??'*'));
-        out(['ok'=>true,'conversations'=>ManagerConversationService::displayRows(ManagerAiInboxStatusService::decorate($rows,(int)$m['id']))]);
-    }
-    $rows=ManagerConversationService::list((int)$m['id'],$queue,100,(string)($data['project_key']??'*'),$isAdmin?(string)($data['manager_filter']??''):'');
+    $actor=(int)$m['id'];
+    session_write_close();
+    $rows=ManagerConversationService::list($actor,$queue,100,(string)($data['project_key']??'*'),$isAdmin?(string)($data['manager_filter']??''):'');
     $rows=ManagerQueueProjectionService::actionableRows($queue,$rows);
-    out(['ok'=>true,'conversations'=>ManagerConversationService::displayRows(ManagerAiInboxStatusService::decorate($rows,(int)$m['id']))]);
+    $rows=ManagerConversationService::displayRows(ManagerAiInboxStatusService::decorate($rows,$actor));
+    ManagerHttp::revalidateSession($actor,(string)$data['csrf']);
+    out(['ok'=>true,'conversations'=>$rows]);
 }
 if($action==='counts'){
     $projectKey=(string)($data['project_key']??'*');
     // Auth and CSRF are captured; these read-only projections must not hold
-    // the account's session lock while three bounded queue lists are loaded.
+    // the account's session lock while bounded queue lists are loaded.
     session_write_close();
-    out(['ok'=>true,'counts'=>ManagerQueueProjectionService::counts((int)$m['id'],$projectKey)]);
+    out(['ok'=>true,'counts'=>ManagerQueueProjectionService::counts((int)$m['id'],$projectKey,($data['scope']??null)==='inbox_tabs',is_string($data['only_tab']??null)?$data['only_tab']:null)]);
 }
 if($action==='detail'){
     $conversationId=(int)($data['conversation_id']??0);
@@ -117,7 +118,7 @@ if($action==='detail'){
     // card, newer transcript or reply requests behind SQL/media hydration.
     session_write_close();
     try{
-        $d=ManagerConversationService::detail($conversationId,(int)$m['id'],$beforeId,200,false,$openUnread);
+        $d=ManagerConversationService::detail($conversationId,(int)$m['id'],$beforeId,200,false,$openUnread,$beforeId===0);
         if($d){
             $d['messages']=ManagerMessageMediaService::hydrate((array)($d['messages']??[]));
         }
@@ -242,7 +243,6 @@ if(in_array($action,['reply_queue_resolve','reply_queue_undo','reply_queue_recei
     out($result,!empty($result['ok'])?200:($error==='forbidden'?403:(in_array($error,['invalid_request','operation_mismatch'],true)?422:409)));
 }
 if($action==='take'){
-    if(!$isAdmin&&!ManagerAvailabilityService::isWorking((int)$m['id'])) out(['ok'=>false,'error'=>'not_working','error_message'=>'Смена выключена. Начните смену, чтобы взять диалог.'],409);
     out(ManagerConversationService::takeResult((int)($data['conversation_id']??0),(int)$m['id']));
 }
 if($action==='reassign_manager'){
@@ -275,6 +275,7 @@ if($action==='send_receipt'||$action==='cancel_send_attempt'){
     if(array_key_exists('expected_manager_id',$data)&&(!is_int($data['expected_manager_id'])||$data['expected_manager_id']!==(int)$m['id']))out(['ok'=>false,'error'=>'actor_changed'],409);
     $id=$data['operation_id']??null;$conversationId=$data['conversation_id']??null;
     if(!is_string($id)||!is_int($conversationId))out(['ok'=>false,'error'=>'invalid_send_attempt'],400);
+    if(session_status()===PHP_SESSION_ACTIVE)session_write_close();
     $result=$action==='send_receipt'?ManagerSendAttemptService::receipt((int)$m['id'],$conversationId,$id):ManagerSendAttemptService::cancel((int)$m['id'],$conversationId,$id);
     out($result,isset($result['attempt'])?200:409);
 }
@@ -290,6 +291,8 @@ if($action==='send'){
     }
     if(array_key_exists('operation_id',$data)){
         if(!is_string($data['operation_id'])||!is_int($data['conversation_id']??null)||!is_string($data['text']??null))out(['ok'=>false,'error'=>'invalid_send_attempt'],400);
+        // The operation journal serializes replay. A slow provider must not lock the manager's other requests.
+        if(session_status()===PHP_SESSION_ACTIVE)session_write_close();
         $result=ManagerOutboundService::sendAttempt($data['conversation_id'],(int)$m['id'],$data['operation_id'],$data['text'],$draftId,$calculation);
         out($result,isset($result['attempt'])?200:409);
     }

@@ -17,7 +17,6 @@ final class ManagerReplyQueueService
         $alias=self::alias($alias);$type=$mysql?self::json($alias.'.metadata_json','$.type'):"JSON_EXTRACT(CASE WHEN JSON_VALID($alias.metadata_json) THEN $alias.metadata_json ELSE '{}' END,'$.type')";
         return "$alias.direction='inbound' AND $alias.sender_type='customer' AND COALESCE($type,'message') NOT IN ('callback','start','bot_started')";
     }
-    private static function maximum(string $a,string $b): string {return "(CASE WHEN ($a)>($b) THEN ($a) ELSE ($b) END)";}
     private static function manualSql(string $alias,string $field): string
     {
         $value=self::json('rq.payload_json','$.current.'.$field);
@@ -31,9 +30,13 @@ final class ManagerReplyQueueService
         $legacy=$request?"COALESCE((SELECT MAX(re.id) FROM conversation_events re WHERE re.conversation_id=$alias.id AND re.event_type='waiting_manager' AND re.created_at<=ro.created_at),0)":'ro.id';
         return "COALESCE((SELECT MAX(CASE WHEN $present IS NULL THEN $legacy WHEN $present=1 THEN CAST(COALESCE($cutoff,0) AS UNSIGNED) ELSE 0 END) FROM messages ro WHERE ro.conversation_id=$alias.id AND ro.direction='outbound' AND ro.sender_type='manager'),0)";
     }
-    private static function cutoffSql(string $alias,bool $request): string
+    private static function cutoffSql(string $alias,bool $request,bool $mysql): string
     {
-        return self::maximum(self::manualSql($alias,$request?'through_request_event_id':'through_message_id'),self::sentSql($alias,$request));
+        // Both scalar reads produce numeric IDs, with zero for an absent boundary.
+        $manual=self::manualSql($alias,$request?'through_request_event_id':'through_message_id');
+        $sent=self::sentSql($alias,$request);
+        $maximum=$mysql?'GREATEST':'MAX';
+        return "$maximum($manual,$sent)";
     }
     private static function requestSql(string $alias): string
     {
@@ -49,17 +52,41 @@ final class ManagerReplyQueueService
     }
     public static function neededSql(string $alias='c',bool $mysql=true): string
     {
-        $alias=self::alias($alias);$message=self::cutoffSql($alias,false);$request=self::cutoffSql($alias,true);
+        $alias=self::alias($alias);$message=self::cutoffSql($alias,false,$mysql);$request=self::cutoffSql($alias,true,$mysql);
         $suspended=ManagerDeliveryStateService::activeSuspensionSql($alias);$human=self::humanSql('ri');
-        $sql="($alias.status IN ('manager','waiting_manager') AND NOT ($suspended) AND (".self::legacyWaitingSql($alias).' OR '.self::requestSql($alias).">$request OR EXISTS(SELECT 1 FROM messages ri WHERE ri.conversation_id=$alias.id AND $human AND ri.id>$message)))";
+        // Only the newest genuine inbound can exceed the resolved message ID.
+        // Compare after its indexed lookup so older rows never repeat the cutoff calculation.
+        $latestHuman="(SELECT ri.id FROM messages ri WHERE ri.conversation_id=$alias.id AND $human ORDER BY ri.id DESC LIMIT 1)";
+        $sql="($alias.status IN ('manager','waiting_manager') AND NOT ($suspended) AND (".self::legacyWaitingSql($alias).' OR '.self::requestSql($alias).">$request OR COALESCE($latestHuman>$message,0)))";
         return $mysql?$sql:str_replace('JSON_UNQUOTE(','(',$sql);
     }
-    public static function waitStartedSql(string $alias='c',bool $mysql=true): string
+    public static function supportsCorrelatedBoundary(PDO $pdo): bool
     {
-        $alias=self::alias($alias);$request=self::requestSql($alias);$resolved=self::cutoffSql($alias,true);$message=self::cutoffSql($alias,false);
+        $driver=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        if($driver==='sqlite')return true;
+        if($driver!=='mysql')return false;
+        try{$version=(string)$pdo->getAttribute(PDO::ATTR_SERVER_VERSION);}
+        catch(Throwable $ignored){return false;}
+        return stripos($version,'mariadb')===false
+            && preg_match('/\A(\d+\.\d+\.\d+)/',$version,$match)===1
+            && version_compare($match[1],'8.0.14','>=');
+    }
+    public static function waitStartedSql(string $alias='c',bool $mysql=true,bool $materializeBoundary=false): string
+    {
+        return '(CASE WHEN '.self::neededSql($alias,$mysql).' THEN '.self::pendingWaitStartedSql($alias,$mysql,$materializeBoundary).' ELSE NULL END)';
+    }
+    /** The caller has already established that this conversation needs a reply. */
+    public static function pendingWaitStartedSql(string $alias='c',bool $mysql=true,bool $materializeBoundary=false): string
+    {
+        $alias=self::alias($alias);$request=self::requestSql($alias);$resolved=self::cutoffSql($alias,true,$mysql);$message=self::cutoffSql($alias,false,$mysql);
         $requestClock=ConversationRecordClock::sql('s.payload_json',$mysql);$messageClock=ConversationRecordClock::sql('s.metadata_json',$mysql);$human=self::humanSql('s');
+        // A scalar cutoff inside the message filter can rescan all old replies
+        // for every genuine inbound. Materialize one cutoff per conversation.
+        $incoming=$materializeBoundary
+            ? "FROM (SELECT $message AS resolved_id LIMIT 1) reply_boundary CROSS JOIN messages s WHERE s.conversation_id=$alias.id AND $human AND s.id>reply_boundary.resolved_id"
+            : "FROM messages s WHERE s.conversation_id=$alias.id AND $human AND s.id>$message";
         // Before the first reply the manager's request starts the clock, not earlier bot collection.
-        $sql='(CASE WHEN '.self::neededSql($alias).' THEN CASE WHEN '.self::legacyWaitingSql($alias)." THEN NULL WHEN $request>$resolved THEN (SELECT $requestClock FROM conversation_events s WHERE s.id=$request AND s.conversation_id=$alias.id) ELSE (SELECT $messageClock FROM messages s WHERE s.conversation_id=$alias.id AND $human AND s.id>$message ORDER BY s.id LIMIT 1) END ELSE NULL END)";
+        $sql='(CASE WHEN '.self::legacyWaitingSql($alias)." THEN NULL WHEN $request>$resolved THEN (SELECT $requestClock FROM conversation_events s WHERE s.id=$request AND s.conversation_id=$alias.id) ELSE (SELECT $messageClock $incoming ORDER BY s.id LIMIT 1) END)";
         return $mysql?$sql:str_replace('JSON_UNQUOTE(','(',$sql);
     }
     public static function decorate(array $rows,?int $now=null): array
@@ -86,12 +113,15 @@ final class ManagerReplyQueueService
         }
         $q=$pdo->prepare($sql);$q->execute($args);return array_map('intval',$q->fetch(PDO::FETCH_ASSOC));
     }
-    public static function snapshot(int $actor,int $conversationId): array
+    public static function snapshot(int $actor,int $conversationId,?array &$conversationContext=null): array
     {
+        $captureContext=$conversationContext!==null;
+        if($captureContext)$conversationContext=[];
         $pdo=ConversationDb::connection();$manager=self::actor($pdo,$actor);$c=$manager?ManagerConversationService::visibleConversation($conversationId,$actor):null;
         if(!$c)return self::error('forbidden');$view=self::view($pdo,$manager,$c);
         $fresh=ManagerConversationService::visibleConversation($conversationId,$actor);$freshManager=self::actor($pdo,$actor);
         if(!$fresh||!$freshManager||self::context($fresh,$freshManager)!==self::context($c,$manager))return self::error('forbidden');
+        if($captureContext)$conversationContext=$fresh;
         return ['ok'=>true,'reply_queue'=>$view];
     }
     public static function operation(int $actor,int $conversationId,string $operationId): array
@@ -157,7 +187,7 @@ final class ManagerReplyQueueService
     {
         $cid=(int)$c['id'];$state=self::state($pdo,$cid);$frontier=self::frontiers($cid);
         $mysql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
-        $q=$pdo->prepare('SELECT CASE WHEN '.self::neededSql('c',$mysql).' THEN 1 ELSE 0 END AS needed,'.self::waitStartedSql('c',$mysql).' AS reply_wait_started_unix FROM conversations c WHERE c.id=?');$q->execute([$cid]);$row=self::decorate([$q->fetch(PDO::FETCH_ASSOC)])[0];
+        $q=$pdo->prepare('SELECT CASE WHEN '.self::neededSql('c',$mysql).' THEN 1 ELSE 0 END AS needed,'.self::waitStartedSql('c',$mysql,self::supportsCorrelatedBoundary($pdo)).' AS reply_wait_started_unix FROM conversations c WHERE c.id=?');$q->execute([$cid]);$row=self::decorate([$q->fetch(PDO::FETCH_ASSOC)])[0];
         $resolution=$state['current'];if($resolution){$q=$pdo->prepare('SELECT display_name,login FROM managers WHERE id=?');$q->execute([$resolution['actor_id']]);$name=$q->fetch(PDO::FETCH_ASSOC);$resolution['actor_name']=(string)(($name['display_name']??'')?:($name['login']??'Сотрудник'));}
         $can=self::canMutate($manager,$c);
         return ['schema'=>1,'context'=>self::context($c,$manager),'version'=>$state['version'],'needed'=>(bool)$row['needed'],'customer_message_id'=>$frontier['customer_message_id'],'request_event_id'=>$frontier['request_event_id'],'manager_message_id'=>$frontier['manager_message_id'],'queue_event_id'=>$frontier['queue_event_id'],

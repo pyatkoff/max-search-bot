@@ -135,6 +135,31 @@ final class ChannelPostReconciliationService
     }
 
 
+    /** Authorized original-receipt confirmation; zero provider calls in both modes. */
+    public function confirmTelegramOriginalEdit(array $identity, int $publicationId, int $versionId, int $configVersion, array $evidence, string $expectedDigest = '', bool $apply = false): array
+    {
+        $started=false;
+        try {
+            if(($identity['platform']??'')!=='telegram'||!is_string($identity['project_key']??null)||!is_string($identity['bot_key']??null)
+                ||$publicationId<=0||$versionId<=0||$configVersion<=0)throw new RuntimeException('exact_original_edit_target_required');
+            $p=$this->registry->publication($publicationId);
+            if(!$p||$p['platform']!=='telegram'||$p['project_key']!==$identity['project_key']||$p['bot_key']!==$identity['bot_key']
+                ||$p['version_id']!==$versionId)throw new RuntimeException('target_publication_changed');
+            if((int)$p['channel']['config_version']!==$configVersion)throw new RuntimeException('channel_configuration_changed');
+            $digest=hash('sha256',json_encode(['publication'=>$p,'evidence'=>$evidence],JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR));
+            if(($apply||$expectedDigest!=='')&&(!preg_match('/\A[a-f0-9]{64}\z/D',$expectedDigest)||!hash_equals($digest,$expectedDigest)))throw new RuntimeException('original_edit_binding_changed');
+            $started=$apply;
+            $current=$this->registry->confirmTelegramEditReadFailure($p,$evidence,$apply);
+            return ['ok'=>true,'state'=>$apply?'sent':'preview','publication_id'=>$publicationId,'version_id'=>$versionId,
+                'config_version'=>$configVersion,'confirmation_digest'=>$digest,'content_hash'=>$current['content_hash'],
+                'database_writes'=>$apply?1:0,'provider_calls'=>0,'provider_writes'=>0];
+        } catch(Throwable $e) {
+            $known=['exact_original_edit_target_required','target_publication_changed','channel_configuration_changed','original_edit_binding_changed','original_edit_confirmation_not_eligible','original_edit_observation_changed'];
+            $reason=in_array($e->getMessage(),$known,true)?$e->getMessage():'reconciliation_unavailable';
+            return ['ok'=>false,'state'=>$started&&$reason==='reconciliation_unavailable'?'unknown':'requires_attention','reason'=>$reason,'provider_calls'=>0,'provider_writes'=>0];
+        }
+    }
+
     private function verify(array $channel): void
     {
         $check=$this->transport->verifyChannel($channel);

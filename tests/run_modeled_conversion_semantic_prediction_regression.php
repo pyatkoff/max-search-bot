@@ -60,9 +60,9 @@ function semanticPredictionReverseObjects(array $value):array
     return$value;
 }
 
-function semanticPredictionFreezeFixture(array $messages):array
+function semanticPredictionFreezeFixture(array $messages,string $platform='telegram'):array
 {
-    $now=1793002000;$subject=['project_key'=>'anytour','platform'=>'telegram','customer_key'=>'7','conversation_id'=>'9'];
+    $now=1793002000;$subject=['project_key'=>'anytour','platform'=>$platform,'customer_key'=>'7','conversation_id'=>'9'];
     $scope=$subject+['episode_key'=>'unresolved-prefix:9'];$rows=[];$evidence=[];
     foreach($messages as$i=>$message){
         $id=(string)($i+1);$role=$message['role']??'customer';$at=$now+$i*10;
@@ -186,6 +186,43 @@ $tests['illustrative priors distinguish request meaning and seller intent']=stat
     semanticPredictionAssert($agency['stage']==='agency_purchase_intent'&&$agency['base_probability']===0.5,'agency prior');
     $logistics=semanticPredictionRun([['text'=>'Подберите тур в Турцию на 7 ночей.'],['text'=>'Где офис? Как оплатить картой?']]);
     semanticPredictionAssert($logistics['stage']==='concrete_request','logistics became seller intent');
+};
+$tests['hotel star ranges preserve independent calendar evidence and genuine hotel interest']=static function():void{
+    require_once dirname(__DIR__).'/services/ModeledConversionValueContract.php';
+    foreach(['И 3/4 звезд?','Нужно 1/2 звезды','Есть варианты 3/4 звезды?','Только 4/5*','Категория 3/4★','Отель 3* или 4/5*','**Категория 3/4** звезды','Подойдёт 4/5⭐️','Категория 3 / 4 звёзды']as$text){
+        semanticPredictionAssert(ModeledConversionTextSignals::criteriaFamilies($text)===['requirements'],
+            'hotel star range supplied a calendar criterion');
+    }
+    foreach(['Вылет **4/5**','Вылет *4/5*','**Вылет 4/5**']as$text){
+        semanticPredictionAssert(ModeledConversionTextSignals::criteriaFamilies($text)===['dates'],
+            'paired emphasis hid a calendar date or introduced a hotel category');
+    }
+    foreach(['**Отель 3/4* с вылетом 4/5**','Категория 3/4 звезды, заезд 11/12/2027.','Заезд 3/4, отель 3/4 звезды',
+        'На 8 ночей нужен отель 4/5*','Категория 3/4 звезды, вылет с 09.12 по 16.12.']as$text){
+        semanticPredictionAssert(ModeledConversionTextSignals::criteriaFamilies($text)===['dates','requirements'],
+            'rating masked a separate date or duration in the same turn');
+    }
+    $freeze=static function(array $messages):array{
+        [$case,$w,$doc]=semanticPredictionFreezeFixture($messages,'max');
+        $clock=strtotime($doc['requested_at']);$w+=ModeledConversionEarlyForecast::freeze($case,$w,$doc,null,$clock,null,true);
+        $w['deal_value_prediction']=ModeledConversionDealValue::freeze($w,$case);
+        return [$w,ModeledConversionValueContract::candidate($w,$w['subject'],$clock-3600,$clock)];
+    };
+    [$w,$candidate]=$freeze([['text'=>'И 3/4 звезд?']]);
+    semanticPredictionAssert($w['semantic_prediction']['current_request_anchor']===null&&$candidate===null,
+        'bare rating question created a standalone financial candidate');
+    [$w,$candidate]=$freeze([['text'=>'Подберите отель 3/4 звезды.']]);
+    semanticPredictionAssert($w['semantic_prediction']['stage']==='substantive_dialogue'
+        &&$w['semantic_prediction']['features']['criteria_families']===['requirements']
+        &&($candidate['stage']??null)==='interest'&&$candidate['value']===500,
+        'explicit hotel interest was lost or promoted to a two-criterion financial request');
+
+    [$w]=$freeze([['text'=>'Подберите тур с 10.03 по 19.03.'],['text'=>'Покажете варианты 3/4 звезды?']]);
+    $p=$w['semantic_prediction'];$refs=array_column($p['evidence'],'source_ref','feature');
+    semanticPredictionAssert($p['current_request_anchor']==='journal:1'&&$p['stage']==='concrete_request'
+        &&$p['features']['criteria_families']===['dates','requirements']
+        &&($refs['criteria_dates']??null)==='journal:1'&&($refs['criteria_requirements']??null)==='journal:2',
+        'later hotel rating replaced the evidence for an independently supplied travel period');
 };
 $tests['bounded criteria handle countries outside canonical narrow vocabulary']=static function():void{
     $p=semanticPredictionRun([['text'=>'Испания в июле, 2 взрослых, бюджет 200 тысяч.']]);
@@ -427,6 +464,89 @@ $tests['invalid source clocks and cursor cannot enter a prediction']=static func
 };
 
 
+$tests['same-conditions price question after original manager package continues advertising search']=static function():void{
+    $request=['text'=>'Ищем тур.'];
+    $quote=['role'=>'manager','text'=>"06.03, 9н, Example North 4*, HB, 120 000 RUB\nГород A → Город B\n"
+        ."09.03, 9н, Example South 4*, HB, 130 000 RUB\nГород A → Город B"];
+    $reply=['text'=>'Найдётся что-нибудь в ту же страну на тот же срок дешевле?'];
+    $run=static function(array $messages,bool $advertising=true,?int $edited=null):array{
+        [$case,$wrapper,$document]=semanticPredictionFreezeFixture($messages,'max');
+        foreach($case['rows']as&$row)if((int)$row['journal_id']===$edited)$row['source_version_no']=2;
+        unset($row);
+        return ModeledConversionEarlyForecast::freeze($case,$wrapper,$document,null,strtotime($document['requested_at'])+1,null,$advertising);
+    };
+    $before=$run([$request,$quote])['semantic_prediction'];
+    $after=$run([$request,$quote,$reply]);
+    $p=$after['semantic_prediction'];
+    semanticPredictionAssert(!$before['features']['price_alternative_continued_search']&&$p['features']['price_alternative_continued_search']
+        &&$p['stage']===$before['stage']&&$p['current_request_anchor']===$before['current_request_anchor']
+        &&$p['stage']==='substantive_dialogue'&&$p['estimated_probability']>$before['estimated_probability'],
+        'same-term search or existing stage lost');
+    semanticPredictionAssert($after['early_forecast']['early_quality']['specific_option_discussions']===[]
+        &&$p['outcome_observations']===[]&&in_array('expert_dialogue_continued_offer_search',$p['reasons'],true)
+        &&in_array('journal:3',array_column($p['evidence'],'source_ref'),true),'created an exact offer or outcome');
+    $second=['text'=>'Можно подобрать предложение туда же на столько же ночей, только бюджетнее?'];
+    semanticPredictionAssert($run([$request,$quote,$second])['semantic_prediction']['features']['price_alternative_continued_search'],'alternative question form');
+    foreach([
+        [$request,$reply],[$request,$quote,['text'=>'Да.']],[$request,$quote,['text'=>'Есть что-нибудь дешевле?']],
+        [$request,$quote,['text'=>'Есть туда же вариант дешевле на другой срок?']],
+        [$request,$quote,['text'=>'Можно найти билет туда же на тот же срок дешевле?']],
+        [$request,$quote,['text'=>'Есть аренда авто туда же на тот же срок дешевле?']],
+        [$request,$quote,['text'=>'Есть полис туда же на тот же срок дешевле?']],
+        [$request,$quote,['text'=>'Можно подобрать визу туда же на тот же срок дешевле?']],
+        [$request,$quote,['text'=>'Найдётся тур туда же на тот же срок у другого агентства дешевле?']],
+        [$request,$quote,['text'=>'Если полетим, есть в ту же страну на тот же срок дешевле?']],
+        [$request,$quote,['text'=>'«Найдётся в ту же страну на тот же срок дешевле?»']],
+        [$request,$quote,['text'=>'Напишите позже.'],$reply],[$request,$quote,['role'=>'manager','text'=>'Сменим тему.'],$reply],
+        [$request,['role'=>'manager','text'=>'Только перелёт 45 000 RUB.'], $reply],
+        [$request,['text'=>$quote['text']],$reply],[$request,$quote,['role'=>'manager','text'=>$reply['text']]],
+        [$request,$quote,['text'=>'unavailable','admitted'=>false],$reply],[$quote,$reply],
+    ]as$messages){
+        semanticPredictionAssert(!$run($messages)['semantic_prediction']['features']['price_alternative_continued_search'],'unbound price question');
+    }
+    foreach(['matching','foreign','unknown']as$receipt){
+        [$case,$wrapper,$document]=semanticPredictionFreezeFixture([$request,$quote,['text'=>'receipt','admitted'=>false],$reply],'max');
+        foreach($case['rows']as&$row){
+            if($row['journal_id']!=='3')continue;
+            $row['source_kind']=$row['snapshot']['source_kind']='event';
+            $snapshot=&$row['snapshot'];
+            $snapshot['source_timestamp_basis']='canonical_recording_unix_v1';
+            if($receipt==='foreign')$snapshot['conversation_id']='22';
+            $payload=ConversationRecordClock::stamp(['project_key'=>'anytour','channel'=>'max'],$snapshot['source_created_at_unix']);
+            $snapshot['payload']=['event_type'=>$receipt==='unknown'?'unrecognized_receipt':'manager_message',
+                'actor_type'=>'manager','payload_json'=>json_encode($payload,JSON_THROW_ON_ERROR)];
+            unset($snapshot);
+        }
+        unset($row);
+        $result=ModeledConversionEarlyForecast::freeze($case,$wrapper,$document,null,strtotime($document['requested_at'])+1,null,true);
+        $signal=$result['semantic_prediction'];
+        semanticPredictionAssert($signal['features']['price_alternative_continued_search']===($receipt==='matching'),'package receipt scope: '.$receipt);
+        if($receipt==='matching'){
+            semanticPredictionAssert($signal['current_request_anchor']==='journal:1'
+                &&in_array('journal:4',array_column($signal['evidence'],'source_ref'),true),'service receipt changed customer evidence');
+        }
+    }
+    foreach([2,3]as$linked){
+        foreach(['{"type":"message","linked_message":{"type":"reply"}}','invalid']as$raw){
+            [$case,$wrapper,$document]=semanticPredictionFreezeFixture([$request,$quote,$reply],'max');
+            foreach($case['rows']as&$row)if((int)$row['journal_id']===$linked)$row['snapshot']['payload']['metadata_json']=$raw;
+            unset($row);
+            $result=ModeledConversionEarlyForecast::freeze($case,$wrapper,$document,null,strtotime($document['requested_at'])+1,null,true);
+            semanticPredictionAssert(!$result['semantic_prediction']['features']['price_alternative_continued_search'],'linked or opaque source metadata');
+        }
+    }
+    foreach([-10,86401]as$shift){
+        $parts=semanticPredictionFreezeFixture([$request,$quote,$reply],'max');
+        $parts[1]['offer_journey']=['offers'=>[]];
+        [$case,$wrapper,$document]=semanticPredictionOfferMoveTimes($parts,[3=>$shift]);
+        $result=ModeledConversionEarlyForecast::freeze($case,$wrapper,$document,null,strtotime($document['requested_at'])+1,null,true);
+        semanticPredictionAssert(!$result['semantic_prediction']['features']['price_alternative_continued_search'],'ambiguous or stale quote time');
+    }
+    foreach([2,3]as$edited){
+        semanticPredictionAssert(!$run([$request,$quote,$reply],true,$edited)['semantic_prediction']['features']['price_alternative_continued_search'],'edited source');
+    }
+    semanticPredictionAssert(!$run([$request,$quote,$reply],false)['semantic_prediction']['features']['price_alternative_continued_search'],'changed baseline model');
+};
 $tests['real freeze connects admitted offer events without losing the current request']=static function():void{
     $parts=semanticPredictionOfferFixture('Fixture Beach A дорого, найдите дешевле с таким же пляжем',[],
         'Подберите тур в Турцию на 7 ночей.');
@@ -672,6 +792,14 @@ $tests['legacy immutable numeric digests remain valid without current-code downg
         ini_set('serialize_precision','14');
         $current=$p;$current['prediction_digest']=semanticPredictionLegacyDigest($current);
         semanticPredictionAssert(!ModeledConversionSemanticPrediction::digestMatches($current),'current model accepted legacy codec downgrade');
+        foreach(['4e4d7c6908bf8246db08917de1b46dbdc904099b0c95afb92273f833b8c3ab42',
+            '110bcfc73c7971ed59b6e73db2da9dca6fa7c8e32dbb82520e22525f9ed7037c']as$installed){
+            $previous=$p;$previous['model_sha256']=$installed;
+            $previous['prediction_digest']=ModeledConversionSemanticPrediction::digest($previous);
+            semanticPredictionAssert(ModeledConversionSemanticPrediction::digestMatches($previous),'previous installed canonical profile lost');
+            $previous['prediction_digest']=semanticPredictionLegacyDigest($previous);
+            semanticPredictionAssert(!ModeledConversionSemanticPrediction::digestMatches($previous),'previous installed producer admitted an unsupported codec');
+        }
         $changed=$p;$changed['estimated_probability']+=0.00000001;
         semanticPredictionAssert(!ModeledConversionSemanticPrediction::digestMatches($changed)
             &&ModeledConversionSemanticPrediction::digest($changed)!==$p['prediction_digest'],'small current tamper lost by canonical codec');
@@ -738,7 +866,7 @@ $tests['deal value uses seven percent commission and immutable budget evidence']
         'value'=>['minimum'=>200000,'maximum'=>200000,'currency'=>'RUB','unit'=>'party_total'],'references'=>[$r]];
     $w['deal_value_prediction']=ModeledConversionDealValue::freeze($w,$case);
     $v=$w['deal_value_prediction'];
-    semanticPredictionAssert($v['version']==='early_deal_commission_7pct_v2'
+    semanticPredictionAssert($v['version']==='early_deal_commission_7pct_v3'
         &&$v['rules_sha256']===hash_file('sha256',dirname(__DIR__).'/services/ModeledConversionDealValue.php')
         &&$v['deal_amount_rub']['point']===200000&&$v['commission_estimate_rub']===14000
         &&$v['full_value_base_rub']===14000&&$v['value_rub']===1167&&$v['early_window']==='first_hour'
@@ -767,8 +895,10 @@ $tests['frozen monetary V1 keeps its exact rules hash and original arithmetic']=
         ['cap_rub'=>25000,'unknown_base_rub'=>25000,'unknown_base_basis'=>'existing_25000_fallback']
         &&ModeledConversionDealValue::policy('early_deal_commission_7pct_v2')===
         ['cap_rub'=>100000,'unknown_base_rub'=>10000,'unknown_base_basis'=>'provisional_commission_10000']
-        &&ModeledConversionDealValue::policy('early_deal_commission_7pct_v3')===null,'versioned monetary policies');
-    // Synthetic frozen V1 capsules with fixed digests; never rebuild them with the V2 producer.
+        &&ModeledConversionDealValue::policy('early_deal_commission_7pct_v3')===
+        ['cap_rub'=>100000,'unknown_base_rub'=>10000,'unknown_base_basis'=>'provisional_commission_10000']
+        &&ModeledConversionDealValue::policy('early_deal_commission_7pct_v4')===null,'versioned monetary policies');
+    // Synthetic frozen V1 capsules with fixed digests; never rebuild them with a newer producer.
     $legacy=['version'=>'early_deal_commission_7pct_v1',
         'rules_sha256'=>'f4f205793ce51a18f7268292df3e0362b152869d60c71a5bc9c62017ca136593',
         'subject'=>semanticPredictionSubject(),'semantic_prediction_digest'=>str_repeat('a',64),
@@ -810,7 +940,7 @@ $tests['frozen monetary V1 keeps its exact rules hash and original arithmetic']=
         ModeledConversionDealValue::saved($wrapper+['deal_value_prediction'=>$reseal($capsule)])===null,
         'resealed V1 cannot change its version/hash pair or monetary policy');
 };
-$tests['monetary V2 refines the provisional base and caps known commission without a minimum']=static function():void{
+$tests['monetary V3 retains the provisional base and caps known commission without a minimum']=static function():void{
     $make=static function(?int $price):array{
         $text='Подберите тур в Турцию на 7 ночей.'.($price===null?'':' Бюджет '.$price.' рублей на всех.');
         [$case,$w,$doc]=semanticPredictionFreezeFixture([['text'=>$text]]);
@@ -840,7 +970,101 @@ $tests['monetary V2 refines the provisional base and caps known commission witho
         $bad=$unknown;$bad['deal_value_prediction']=array_replace($bad['deal_value_prediction'],$change);
         unset($bad['deal_value_prediction']['deal_digest']);
         $bad['deal_value_prediction']['deal_digest']=ModeledConversionSemanticPrediction::digest($bad['deal_value_prediction']);
-        semanticPredictionAssert(ModeledConversionDealValue::saved($bad)===null,'V2 accepted a legacy hash or unknown-price policy');
+        semanticPredictionAssert(ModeledConversionDealValue::saved($bad)===null,'V3 accepted a legacy hash or unknown-price policy');
+    }
+};
+$tests['frozen monetary V2 retains exact source identity and original amounts']=static function():void{
+    // Literal synthetic V2 capsules, sealed once by the V2 contract, never re-frozen by V3.
+    $unknown=['version'=>'early_deal_commission_7pct_v2',
+        'rules_sha256'=>'8a35e248d8237b9042d6aa94eca975c00aae8ae2dc6b3ef42c61b50ee4273669',
+        'subject'=>semanticPredictionSubject(),'semantic_prediction_digest'=>str_repeat('a',64),
+        'current_request_anchor'=>'journal:1','profile_prediction_at'=>'2026-11-14T00:01:00Z',
+        'input_cutoff_at'=>'2026-11-14T00:01:00Z','frozen_at'=>'2026-11-14T00:01:00Z',
+        'commission_rate'=>0.07,'currency'=>'RUB','status'=>'estimated','reason'=>'deal_price_unknown_provisional_base',
+        'early_window'=>'first_hour','age_seconds'=>60,
+        'deal_amount_rub'=>['low'=>null,'high'=>null,'point'=>null,'basis'=>'unknown','source_kind'=>'unknown','source_refs'=>[]],
+        'commission_estimate_rub'=>null,'full_value_base_rub'=>10000,'base_basis'=>'provisional_commission_10000',
+        'estimated_probability'=>0.083333,'value_rub'=>833,'payment_hold_observed'=>false,
+        'calibration_status'=>'expert_estimate_not_calibrated','price_verified'=>false,'trip_identity'=>'unverified',
+        'export_allowed'=>false,'model_calls'=>0,'conversion_uploads'=>0,
+        'deal_digest'=>'4b23f70f0114e202312b2c18fa6e739724c9c16fb44a54be2dfb15370b87ae70'];
+    $known=$unknown;$known['reason']='stage_dialogue_and_estimated_commission';
+    $known['deal_amount_rub']=['low'=>200000,'high'=>200000,'point'=>200000,
+        'basis'=>'customer_budget_range_proxy','source_kind'=>'customer_budget','source_refs'=>['journal:1']];
+    $known['commission_estimate_rub']=14000;$known['full_value_base_rub']=14000;
+    $known['base_basis']='estimated_commission_7pct_capped';$known['value_rub']=1167;
+    $known['deal_digest']='14d73b5f89b85958f3cdf3eff5ff6d2d491d7b8e4e560b2f76c713396b88a5c9';
+    $wrapper=['access_status'=>'allowed','subject'=>semanticPredictionSubject(),'semantic_prediction'=>[
+        'prediction_digest'=>str_repeat('a',64),'current_request_anchor'=>'journal:1',
+        'profile_prediction_at'=>'2026-11-14T00:01:00Z','input_cutoff_at'=>'2026-11-14T00:01:00Z',
+        'frozen_at'=>'2026-11-14T00:01:00Z','status'=>'predicted','estimated_probability'=>0.083333]];
+    foreach([$unknown,$known]as$capsule){
+        $w=$wrapper+['deal_value_prediction'=>$capsule];$before=json_encode($w,JSON_THROW_ON_ERROR);
+        semanticPredictionAssert(ModeledConversionDealValue::saved($w)===$capsule
+            &&json_encode($w,JSON_THROW_ON_ERROR)===$before,'frozen V2 was repriced resealed or rejected');
+    }
+    $reseal=static function(array $v):array{unset($v['deal_digest']);$v['deal_digest']=ModeledConversionSemanticPrediction::digest($v);return$v;};
+    foreach([
+        ['rules_sha256'=>str_repeat('b',64)],
+        ['rules_sha256'=>hash_file('sha256',dirname(__DIR__).'/services/ModeledConversionDealValue.php')],
+        ['rules_sha256'=>'f4f205793ce51a18f7268292df3e0362b152869d60c71a5bc9c62017ca136593'],
+        ['version'=>'early_deal_commission_7pct_v4'],
+        ['full_value_base_rub'=>25000,'value_rub'=>2083],
+    ]as$change)semanticPredictionAssert(ModeledConversionDealValue::saved($wrapper+[
+        'deal_value_prediction'=>$reseal(array_replace($unknown,$change))])===null,
+        'V2 accepted another generation hash an unknown version or changed arithmetic');
+};
+$tests['monetary V3 selects the latest time eligible publication before the customer anchor']=static function():void{
+    [$case,$w,$doc]=semanticPredictionFreezeFixture([['text'=>'earlier publication','admitted'=>false],
+        ['text'=>'Подберите тур в Турцию на 7 ночей, 2 взрослых.'],['text'=>'later publication','admitted'=>false]]);
+    foreach($case['rows']as&$row){
+        if(!in_array($row['journal_id'],['1','3'],true))continue;
+        $price=$row['journal_id']==='1'?200000:500000;
+        $row['source_kind']=$row['snapshot']['source_kind']='event';
+        $row['snapshot']['payload']=['event_type'=>'channel_post_entry','actor_type'=>'customer',
+            '_modeled_price_context'=>['version'=>'entry_price_context_v1','captured_at_unix'=>$row['observed_at_unix'],
+                'range'=>['low'=>$price,'high'=>$price,'point'=>$price,'unit'=>'party_total',
+                    'party_size'=>2,'basis'=>'advertised_range_proxy']]];
+    }unset($row);
+    // The monetary reader consumes the unchanged admitted human request; entry neutrality has separate adapter tests.
+    $human=$case;$human['rows']=array_values(array_filter($human['rows'],static fn(array $r):bool=>$r['source_kind']==='message'));
+    $w=array_replace($w,ModeledConversionEarlyForecast::freeze($human,$w,$doc,null,strtotime($doc['requested_at']),null,true));
+    $w['profile']['party']['total']=['status'=>'known','value'=>2];
+    $beforeCase=$case;$beforeCase['rows']=array_values(array_filter($case['rows'],static fn(array $r):bool=>$r['journal_id']!=='3'));
+    $before=ModeledConversionDealValue::freeze($w,$beforeCase);$after=ModeledConversionDealValue::freeze($w,$case);
+    semanticPredictionAssert($before['deal_amount_rub']['point']===200000&&$after['deal_amount_rub']===$before['deal_amount_rub']
+        &&$after['full_value_base_rub']===14000&&$after['value_rub']===1167
+        &&$after['current_request_anchor']==='journal:2'&&$after['value_rub']===$before['value_rub'],
+        'a later publication hid the earlier usable price or changed the request value');
+    $reversed=$case;$reversed['rows']=array_reverse($case['rows']);
+    semanticPredictionAssert(ModeledConversionDealValue::freeze($w,$reversed)===$after,'publication row order changed the selected time eligible price');
+    $laterOnly=$case;$laterOnly['rows']=array_values(array_filter($case['rows'],static fn(array $r):bool=>$r['journal_id']!=='1'));
+    $late=ModeledConversionDealValue::freeze($w,$laterOnly);
+    semanticPredictionAssert($late['deal_amount_rub']['point']===null&&$late['full_value_base_rub']===10000
+        &&$late['value_rub']===833,'a post-anchor publication became current request price');
+    foreach([86400,86401]as$age){
+        $aged=$case;
+        foreach($aged['rows']as&$row)if($row['journal_id']==='1'){
+            $row['snapshot']['source_created_at_unix']=1793002010-$age;
+            $row['observed_at_unix']=$row['snapshot']['source_created_at_unix']+1;
+            $row['snapshot']['payload']['_modeled_price_context']['captured_at_unix']=$row['observed_at_unix'];
+        }unset($row);
+        $v=ModeledConversionDealValue::freeze($w,$aged);
+        semanticPredictionAssert($v['deal_amount_rub']['point']===($age===86400?200000:null),
+            'publication lookback boundary changed '.$age);
+    }
+    foreach(['party','unit','range','source','fence']as$guard){
+        $bad=$case;
+        foreach($bad['rows']as&$row)if($row['journal_id']==='1'){
+            if($guard==='party')$row['snapshot']['payload']['_modeled_price_context']['range']['party_size']=3;
+            elseif($guard==='unit')$row['snapshot']['payload']['_modeled_price_context']['range']['unit']='night';
+            elseif($guard==='range')$row['snapshot']['payload']['_modeled_price_context']['range']['low']=600000;
+            elseif($guard==='source')$row['snapshot']['customer_key']='99';
+            else$row['journal_id']='9999';
+        }unset($row);
+        $v=ModeledConversionDealValue::freeze($w,$bad);
+        semanticPredictionAssert($v['deal_amount_rub']['point']===null&&$v['value_rub']===833,
+            'time filtering loosened publication '.$guard.' guard');
     }
 };
 $tests['publication estimate distinguishes total party nightly foreign and unknown basis']=static function():void{
@@ -937,6 +1161,286 @@ $tests['bot questions cannot renew old customer criteria across a day']=static f
         'a fresh AI question prolonged an old party criterion past 24 hours');
 };
 
+
+$tests['destination only replies retain one family without inventing purchase intent']=static function():void{
+    foreach(['ОАЭ','Дубай','Тунис','Кипр','Греция','Испания','Италия','Вьетнам','Индонезия',
+        'Бали','Куба','Шри-Ланка','Гоа','Сочи','Абхазия']as$text){
+        $p=semanticPredictionRun([['text'=>$text]]);
+        semanticPredictionAssert($p['stage']==='substantive_dialogue'&&$p['base_probability']===0.05
+            &&$p['current_request_anchor']==='journal:1'
+            &&$p['features']['criteria_families']===['destination']
+            &&$p['outcome_observations']===[],'country-only promoted beyond interest: '.$text);
+    }
+};
+$tests['destination survives a fresh explicit reply after unread content without bridging old criteria']=static function():void{
+    $p=semanticPredictionRun([
+        ['text'=>'С 12.02 по 19.02'],['barrier'=>true],['text'=>'ОАЭ'],['text'=>'Отель'],
+        ['text'=>'2 взрослых'],['text'=>'На 7 ночей']]);
+    semanticPredictionAssert($p['stage']==='concrete_request'&&$p['base_probability']===0.083333
+        &&$p['current_request_anchor']==='journal:3'
+        &&$p['features']['criteria_families']===['dates','destination','party']
+        &&$p['outcome_observations']===[],'fresh country reply lost or became purchase');
+    $destination=array_values(array_filter($p['evidence'],static fn(array $e):bool=>$e['feature']==='criteria_destination'));
+    semanticPredictionAssert(count($destination)===1&&$destination[0]['source_ref']==='journal:3',
+        'destination evidence did not point to the fresh country reply');
+    foreach($p['evidence']as$e)semanticPredictionAssert($e['source_ref']!=='journal:1',
+        'criteria before unread content were reused');
+    $p=semanticPredictionRun([['text'=>'2 взрослых, 7 ночей'],['barrier'=>true],['text'=>'ОАЭ']]);
+    semanticPredictionAssert($p['stage']==='substantive_dialogue'&&$p['current_request_anchor']==='journal:3'
+        &&$p['features']['criteria_families']===['destination'],'country bridged old party or dates');
+    $p=semanticPredictionRun([['text'=>'ОАЭ'],['barrier'=>true],['text'=>'Да']]);
+    semanticPredictionAssert($p['estimated_probability']===null&&$p['current_request_anchor']===null,
+        'unknown entry barrier preserved old destination through an acknowledgment');
+};
+$tests['new destination lexicon preserves word clause actor and clock admission guards']=static function():void{
+    foreach(['Мы колебались.','Пришлите сочинение.','Это многоаспектный вопрос.',
+        'ОАЭ не рассматриваю.','Не ОАЭ.','«ОАЭ»','> Дубай',
+        'В прошлом году были в ОАЭ.','Если выберем ОАЭ.']as$text){
+        $p=semanticPredictionRun([['text'=>$text]]);
+        semanticPredictionAssert($p['estimated_probability']===null&&$p['current_request_anchor']===null,
+            'destination guard promoted: '.$text);
+    }
+    $p=semanticPredictionRun([['role'=>'manager','text'=>'ОАЭ']]);
+    semanticPredictionAssert($p['estimated_probability']===null&&$p['current_request_anchor']===null,
+        'manager destination promoted');
+    $at=strtotime('2026-11-01T00:00:00Z');
+    foreach([['forwarded'=>true],['forwarded'=>null],['role_verified'=>false],
+        ['direction'=>'outbound'],['created_at'=>null]]as$override){
+        $p=semanticPredictionNew();
+        $r=ArchiveResearchSemanticExtractor::step(array_replace([
+            'source_ref'=>'journal:1','created_at'=>$at,'read_status'=>'available','text'=>'ОАЭ',
+            'role'=>'customer','direction'=>'inbound','role_verified'=>true,'text_minimized'=>true,
+            'forwarded'=>false,'media'=>[],'media_contents_read'=>false,
+            'selection_links_unread'=>false,'links_redacted'=>false],$override),
+            ArchiveResearchSemanticExtractor::initialState());
+        $p->observeMessage('customer','ОАЭ','journal:1',$at,$at+1,1,$r);
+        $v=$p->finish(semanticPredictionLegacy());
+        semanticPredictionAssert($v['estimated_probability']===null&&$v['current_request_anchor']===null,
+            'destination source/clock guard promoted: '.json_encode($override,JSON_THROW_ON_ERROR));
+    }
+};
+
+
+$tests['canonical source date questions add context only and reject surrounding prose']=static function():void{
+    require_once dirname(__DIR__).'/services/SourceQualificationPrompt.php';
+    foreach([false,true]as$greet)foreach(['','VINPEARL RESORT NHA TRANG']as$hotel){
+        $text=SourceQualificationPrompt::text(['date','adults','children'],$hotel,$greet);
+        semanticPredictionAssert(ModeledConversionQuestionnaireContext::field($text)==='date','actual source date prompt not recognized');
+    }
+    semanticPredictionAssert(ModeledConversionQuestionnaireContext::field(MissingFieldQuestionService::question('date'))==='date','ordinary date prompt not recognized');
+    foreach(['Цитата: Когда планируете отдых? Можно указать примерные даты.',
+        'Оплачено. Когда планируете отдых? Можно указать примерные даты.',
+        'Когда планируете отдых? Можно указать примерные даты. Сколько человек?',
+        "Помогу подобрать тур в Отель.\nКогда планируете отдых? Можно указать примерные даты."]as$text)
+        semanticPredictionAssert(ModeledConversionQuestionnaireContext::field($text)===null,'arbitrary date-question wrapper admitted');
+};
+$tests['literal date answers validate the calendar using the recorded clock only']=static function():void{
+    $at=strtotime('2026-11-01T00:00:00Z');
+    foreach(['5 декабря на 8 дней','17.02.27 - 03.03.27','20.11.2026','С 18.04.27 по 02.05.27',
+        '20/11/2026','5 ДЕКАБРЯ на 8 ночей','29 февраля']as$text)
+        semanticPredictionAssert(ModeledConversionQuestionnaireContext::accepts('date',$text,$at),'literal date rejected: '.$text);
+    foreach(['31 февраля','32 декабря','20.13.2026','29.02.2027','20.10.2026','03.03.27 - 17.02.27',
+        '20.11 - 25.11.2026','5 декабря на 29 дней','5 декабря на 0 дней','8 дней',
+        'Если получится, 5 декабря на 8 дней','В прошлом году 5 декабря на 8 дней',
+        'Не 5 декабря','5 декабря?','5 декабря или 7 декабря','20.07..2027','https://example.test/20.11.2026']as$text)
+        semanticPredictionAssert(!ModeledConversionQuestionnaireContext::accepts('date',$text,$at),'ambiguous or invalid date admitted: '.$text);
+    semanticPredictionAssert(!ModeledConversionQuestionnaireContext::accepts('date','20.11.2026')
+        &&!ModeledConversionQuestionnaireContext::accepts('date','20.11.2026',0),'unknown customer clock accepted');
+    semanticPredictionAssert(ModeledConversionQuestionnaireContext::accepts('date','20.11.2026',strtotime('2026-11-19T20:59:59Z'))
+        &&!ModeledConversionQuestionnaireContext::accepts('date','20.11.2026',strtotime('2026-11-20T21:00:00Z')),
+        'explicit past-date comparison did not use the recorded Moscow day');
+};
+$tests['date then party establishes one concrete request without engagement inflation']=static function():void{
+    require_once dirname(__DIR__).'/services/SourceQualificationPrompt.php';
+    $at=strtotime('2026-11-01T00:00:00Z');
+    foreach(['5 декабря на 8 дней','17.02.27 - 03.03.27','20.11.2026']as$text){
+        $p=semanticPredictionNew();$state=ArchiveResearchSemanticExtractor::initialState();
+        $answer=static function(string $text,string $ref,int $time)use($p,&$state):void{
+            $r=semanticPredictionResult($text,'customer',$ref,$time,$state);
+            $p->observeMessage('customer',$text,$ref,$time,$time+1,1,$r);
+        };
+        $p->observeServiceQuestion(SourceQualificationPrompt::text(['date','adults'],'VINPEARL RESORT NHA TRANG',false),'journal:1',$at,$at+1,1);
+        semanticPredictionAssert($p->finish(semanticPredictionLegacy())['features']['criteria_families']===[],'date question invented customer criteria');
+        $answer($text,'journal:2',$at+10);
+        $one=$p->finish(semanticPredictionLegacy());
+        semanticPredictionAssert($one['status']==='insufficient_context'&&$one['current_request_anchor']===null
+            &&$one['features']['criteria_families']===['dates'],'one date or duration became two independent families');
+        $p->observeServiceQuestion('Из какого города планируете вылет?','journal:3',$at+20,$at+21,1);
+        $answer('Москва','journal:4',$at+30);
+        $p->observeServiceQuestion('Сколько будет взрослых туристов?','journal:5',$at+40,$at+41,1);
+        $answer('2','journal:6',$at+50);
+        $p->observeServiceQuestion('Будут дети? Если да — сколько?','journal:7',$at+60,$at+61,1);
+        $answer('Нет','journal:8',$at+70);
+        $v=$p->finish(semanticPredictionLegacy());
+        semanticPredictionAssert($v['stage']==='concrete_request'&&$v['current_request_anchor']==='journal:2'
+            &&$v['features']['criteria_families']===['dates','party']
+            &&$v['estimated_probability']===0.083333&&$v['hypothesis_odds_multiplier']===1.0
+            &&$v['features']['meaningful_customer_turns']===0&&$v['outcome_observations']===[]
+            &&$v['features']['explicit_decline']===false,'date-conditioned answer changed intent or weights');
+    }
+};
+$tests['date question cannot bypass actor time or unsafe context guards']=static function():void{
+    $at=strtotime('2026-11-01T00:00:00Z');
+    foreach(['quoted_or_relayed','past_trip','conditional','context_barrier','unknown_time','reversed_clock','manager','barrier','revised_question']as$kind){
+        $p=semanticPredictionNew();$state=ArchiveResearchSemanticExtractor::initialState();
+        $p->observeServiceQuestion('Какая ориентировочная дата вылета?','journal:1',$at,$at+1,$kind==='revised_question'?2:1);
+        if($kind==='barrier')$p->barrier();
+        $role=$kind==='manager'?'manager':'customer';
+        $r=semanticPredictionResult('5 декабря на 8 дней',$role,'journal:2',$at+10,$state);
+        if(!in_array($kind,['manager','barrier','revised_question'],true))$r['flags'][$kind]=true;
+        $p->observeMessage($role,'5 декабря на 8 дней','journal:2',$at+10,$at+11,1,$r);
+        $p->observeServiceQuestion('Сколько будет взрослых туристов?','journal:3',$at+20,$at+21,1);
+        $r=semanticPredictionResult('2','customer','journal:4',$at+30,$state);
+        $p->observeMessage('customer','2','journal:4',$at+30,$at+31,1,$r);
+        $v=$p->finish(semanticPredictionLegacy());
+        semanticPredictionAssert($v['status']==='insufficient_context'&&$v['current_request_anchor']===null,'unsafe date crossed a guard: '.$kind);
+    }
+};
+
+$tests['recorded departure alternatives do not turn a prior date into a destination request']=static function():void{
+    require_once dirname(__DIR__).'/services/SourceQualificationPrompt.php';
+    $date=SourceQualificationPrompt::text(['date','adults'],'',true);
+    $city=MissingFieldQuestionService::question('city');
+    $adults=MissingFieldQuestionService::question('adults');
+    $country=MissingFieldQuestionService::question('country');
+    $q=static fn(string $text):array=>['text'=>$text,'role'=>'ai','admitted'=>false];
+    $run=static function(array $messages):array{
+        [$case,$wrapper,$document]=semanticPredictionFreezeFixture($messages,'max');
+        foreach($case['rows']as&$row){
+            $message=$messages[(int)$row['journal_id']-1];
+            $snap=&$row['snapshot'];
+            if(($message['role']??null)==='ai'){
+                $snap['source_timestamp_basis']='canonical_recording_unix_v1';
+                $snap['payload']['direction']='outbound';$snap['payload']['sender_type']='ai';
+                $snap['payload']['metadata_json']=json_encode(ConversationRecordClock::stamp(
+                    ['type'=>'message'],$snap['source_created_at_unix']),JSON_THROW_ON_ERROR);
+            }elseif(isset($message['metadata']))$snap['payload']['metadata_json']=$message['metadata'];
+            if(isset($message['version']))$row['source_version_no']=$message['version'];
+            unset($snap);
+        }
+        unset($row);
+        $packet=ModeledConversionEarlyForecast::freeze($case,$wrapper,$document,null,strtotime($document['requested_at'])+1,null,true);
+        return $packet['semantic_prediction'];
+    };
+    foreach(['Казань/Египет','Казань / 15.12','Сочи / ','Сочи/Пермь?',"Сочи\n/Пермь",
+        'Сочи / Томск, двое взрослых','Сочи / Турция в июле']as$ambiguous)
+        semanticPredictionAssert(!ModeledConversionQuestionnaireContext::departureAlternatives($ambiguous),'an incomplete or mixed answer was interpreted as departure alternatives');
+    foreach(['Сочи / СОЧИ','Сочи/Уфа/Пермь/Омск/Братск']as$known){
+        $v=$run([$q($city),['text'=>$known]]);
+        semanticPredictionAssert($v['features']['criteria_families']===[]&&$v['current_request_anchor']===null,
+            'a repeated or longer list of known departure names became a destination request');
+    }
+    $answer=['text'=>'Казань / Сочи / Пермь'];
+    $prefix=[$q($date),['text'=>'04.12 - 14.12'],$q($city),$answer];
+    $v=$run($prefix);
+    semanticPredictionAssert($v['current_request_anchor']===null&&$v['stage']===null
+        &&$v['features']['criteria_families']===['dates'],'departure alternatives created a request or erased the earlier date');
+    $v=$run([...$prefix,$q($city),['text'=>'Пермь'],$q($adults),['text'=>'3']]);
+    semanticPredictionAssert($v['stage']==='concrete_request'&&$v['current_request_anchor']==='journal:2'
+        &&$v['features']['criteria_families']===['dates','party']&&$v['features']['meaningful_customer_turns']===0
+        &&$v['outcome_observations']===[],'later real party and date did not retain their own evidence');
+    foreach($v['evidence']as$e)semanticPredictionAssert(in_array($e['source_ref'],['journal:2','journal:8'],true),'departure became positive evidence');
+    $v=$run([$q($city),$answer,$q($country),['text'=>'Египет'],$q($adults),['text'=>'2']]);
+    semanticPredictionAssert($v['current_request_anchor']==='journal:4'
+        &&$v['features']['criteria_families']===['destination','party'],'neutral alternatives became the anchor for later independently established criteria');
+    $origin=$run([$q($city),['text'=>'Шармэльшейх']]);
+    semanticPredictionAssert($origin['current_request_anchor']===null&&$origin['features']['criteria_families']===[],
+        'a compound resort given as the departure city became a trip destination');
+    $v=$run([$q($country),['text'=>'Сочи']]);
+    semanticPredictionAssert($v['features']['criteria_families']===['destination'],'country question lost its ordinary destination');
+    $mixed=$run([$q($city),['text'=>'Казань / Сочи, подберите тур в Египет на 9 ночей']]);
+    semanticPredictionAssert(in_array('destination',$mixed['features']['criteria_families'],true)
+        &&in_array('dates',$mixed['features']['criteria_families'],true),'compound request lost its explicit conditions');
+    foreach([[$answer],[$q($city),['text'=>'unavailable','admitted'=>false],$answer],
+        [$q($city),$answer+['version'=>2]],
+        [$q($city),$answer+['metadata'=>'{"type":"message","linked_message":{"type":"reply"}}']]]as$unbound){
+        $v=$run($unbound);
+        semanticPredictionAssert(in_array('destination',$v['features']['criteria_families'],true),'an unbound city list was consumed as a reply to the bot');
+    }
+};
+
+$tests['standalone compound resort is one customer criterion at the observed cutoff']=static function():void{
+    require_once dirname(__DIR__).'/services/ModeledConversionValueContract.php';
+    semanticPredictionAssert(ModeledConversionSemanticPrediction::RESORT_HINTS_SHA256===hash_file('sha256',dirname(__DIR__).'/services/DestinationHintService.php'),
+        'update the dictionary fingerprint in the assessed model before changing resort hints');
+    $project=static function(array $messages,array $deltas=[],?int $edited=null,?string $metadata=null):array{
+        $parts=semanticPredictionFreezeFixture($messages,'max');
+        if($deltas!==[]){
+            $parts[1]['offer_journey']=['offers'=>[]];
+            $parts=semanticPredictionOfferMoveTimes($parts,$deltas);
+        }
+        [$case,$wrapper,$document]=$parts;
+        foreach($case['rows']as&$row){
+            $message=$messages[(int)$row['journal_id']-1];
+            if(!empty($message['opaque'])||!empty($message['receipt'])){
+                $row['source_kind']=$row['snapshot']['source_kind']='event';
+                $row['snapshot']['payload']=['event_type'=>'unrecognized_receipt','actor_type'=>'system','payload_json'=>'{}'];
+                if(!empty($message['receipt'])){
+                    $row['snapshot']['source_timestamp_basis']='canonical_recording_unix_v1';
+                    $data=ConversationRecordClock::stamp(['project_key'=>'anytour','channel'=>'max'],$row['snapshot']['source_created_at_unix']);
+                    $row['snapshot']['payload']=['event_type'=>'manager_message','actor_type'=>'manager','payload_json'=>json_encode($data,JSON_THROW_ON_ERROR)];
+                }
+            }
+            if((int)$row['journal_id']===$edited)$row['source_version_no']=2;
+            if($metadata!==null)$row['snapshot']['payload']['metadata_json']=$metadata;
+        }
+        unset($row);
+        $clock=strtotime($document['requested_at'])+1;
+        $wrapper+=ModeledConversionEarlyForecast::freeze($case,$wrapper,$document,null,$clock,null,true);
+        $wrapper['deal_value_prediction']=ModeledConversionDealValue::freeze($wrapper,$case);
+        return [$wrapper['semantic_prediction'],ModeledConversionValueContract::candidate($wrapper,$wrapper['subject'],$clock-7*86400,$clock)];
+    };
+    $run=static fn(...$args):array=>$project(...$args)[0];
+    // Different exact spellings use one dictionary. Free-text country hints keep their existing separators and priority.
+    $answer=['text'=>'Шармэльшейх'];
+    foreach(['Шармэльшейх','Шарм-эль-Шейх','Шарм эль Шейх','Марсаалам','КАО-ЛАК']as$name)
+        semanticPredictionAssert(DestinationHintService::isStandaloneCompoundResort($name),'complete resort name missed');
+    semanticPredictionAssert(DestinationHintService::countryFromText('Шармэльшейх')===''
+        &&DestinationHintService::countryFromText('Выбор между Пхукетом и Шарм-эль-Шейхом: Шарм и Као-Лак')==='Египет'
+        &&DestinationHintService::seedCountry([],'Посмотрим Марсаалам',[])===['country'=>'Египет']
+        &&DestinationHintService::seedCountry(['country'=>'Турция'],'Марсаалам',[])===['country'=>'Турция'],
+        'public country hint or seeding behavior changed');
+
+    $opaque=['text'=>'fixture','admitted'=>false,'opaque'=>true];
+    $receipt=['text'=>'fixture','admitted'=>false,'receipt'=>true];
+    $origin=['role'=>'manager','text'=>'Из какого именно аэропорта возвращаетесь?'];
+    $prompt=['role'=>'manager','text'=>'Какой курорт предпочитаете?'];
+    $prefix=[['text'=>'Семьёй на 8 ночей'],$opaque,$prompt];
+    [$after,$candidate]=$project([...$prefix,$answer],[4=>190000]);
+    $refs=array_column($after['evidence'],'source_ref','feature');
+    semanticPredictionAssert($run($prefix)['current_request_anchor']===null&&$after['status']==='predicted'
+        &&$after['stage']==='substantive_dialogue'&&$after['estimated_probability']===0.05
+        &&$after['features']['meaningful_customer_turns']===1&&$after['features']['criteria_families']===['destination']
+        &&$after['current_request_anchor']==='journal:4'&&($refs['criteria_destination']??null)==='journal:4'
+        &&$after['outcome_observations']===[]&&($candidate['rank']??null)===1&&$candidate['stage']==='interest'
+        &&$candidate['source_ref']==='journal:4'&&$candidate['value']===500,'fresh resort did not produce independently evidenced interest');
+    $later=['role'=>'manager','text'=>'Отправила варианты для сравнения.'];
+    $reset=$run([...$prefix,$answer,$opaque,$later],[4=>190000,5=>190000,6=>190000]);
+    semanticPredictionAssert($reset['current_request_anchor']===null&&$reset['estimated_probability']===null,
+        'a later manager selection restored a barrier-cleared customer request');
+    $old=$run([['text'=>'Семьёй на 8 ночей'],$prompt,$answer],[3=>190000]);
+    semanticPredictionAssert($old['current_request_anchor']==='journal:3'&&$old['stage']==='substantive_dialogue'
+        &&$old['features']['meaningful_customer_turns']===1&&$old['features']['criteria_families']===['destination']
+        &&array_unique(array_column($old['evidence'],'source_ref'))===['journal:3'],'stale criteria carried into standalone resort');
+
+    foreach([[$prompt],[$answer+['role'=>'manager']],
+        [['text'=>'Не Шармэльшейх']],[['text'=>'«Шармэльшейх»']],[['text'=>'Шармэльшейх или Као-Лак']],
+        [['text'=>'Из Шармэльшейха']],[['text'=>'Шарм']],
+        [$origin,$answer],[$origin,$receipt,$answer],[$origin,$opaque,$answer],
+        [['role'=>'manager','text'=>'С какого курорта вы летите обратно?'],$answer],
+        [['role'=>'manager','text'=>'Вы вылетаете из Хургады или из Марса-Алама?'],$answer],
+        [['role'=>'manager','text'=>'Где получали багаж?'],$answer]]as$negative){
+        [$p,$candidate]=$project($negative);
+        semanticPredictionAssert($candidate===null&&!in_array('destination',$p['features']['criteria_families'],true)
+            &&$p['current_request_anchor']===null,'an ambiguous, relayed or outbound message became a destination');
+    }
+    $fresh=$run([$origin,$receipt,['text'=>'Спасибо.'],$prompt,$answer]);
+    semanticPredictionAssert($fresh['current_request_anchor']==='journal:5'&&$fresh['features']['criteria_families']===['destination'],
+        'a consumed departure question blocked a later independent destination reply');
+    foreach([$run([$answer],[],1),$run([$answer],[],null,'{"linked_message":{"type":"reply"}}'),
+        $run([$answer],[],null,'{"forwarded":true}')]as$p)
+        semanticPredictionAssert($p['estimated_probability']===null,'non-original resort source admitted');
+};
 
 $failures=0;
 set_error_handler(static function(int $severity,string $message,string $file,int $line):never{

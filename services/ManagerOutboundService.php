@@ -8,7 +8,7 @@ require_once __DIR__ . '/ConversationRecorder.php';
 require_once __DIR__ . '/MetrikaConversionGoalService.php';
 require_once __DIR__ . '/ProjectMaxMessengerFactory.php';
 require_once __DIR__ . '/ManagerReplyQueueService.php';
-require_once __DIR__ . '/../integrations/TelegramMessengerAdapter.php';
+require_once __DIR__ . '/ProjectTelegramMessengerFactory.php';
 require_once __DIR__ . '/../integrations/WebsiteMessengerAdapter.php';
 
 class ManagerOutboundService
@@ -75,7 +75,7 @@ class ManagerOutboundService
             }
 
             if ($channel === 'max') $adapter = ProjectMaxMessengerFactory::forConversation($c,'manager');
-            elseif ($channel === 'telegram') $adapter = new TelegramMessengerAdapter(null, 'manager', false);
+            elseif ($channel === 'telegram') $adapter = ProjectTelegramMessengerFactory::forConversation($c,'manager');
             elseif ($channel === 'website') $adapter = new WebsiteMessengerAdapter('manager', false);
             else return false;
             if (!$adapter) return self::connectionNotConfigured($channel,$projectKey);
@@ -110,7 +110,7 @@ class ManagerOutboundService
                 if ($projectKey === ProjectConfig::projectId()) MetrikaConversionGoalService::managerReply($conversationId);
                 return true;
             }
-            return self::recordFailure($conversationId,$managerId,$channel,(string)$c['project_key']);
+            return self::recordFailure($conversationId,$managerId,$channel,(string)$c['project_key'],[],$adapter);
         } finally {
             if($locked) ManagerSendGuardService::release($conversationId,$managerId);
         }
@@ -151,7 +151,7 @@ class ManagerOutboundService
             if($suspended){self::$lastFailure=$suspended;return false;}
         }
         $type=self::attachmentTypeForMime($mimeType);
-        $adapter=$channel==='max'?ProjectMaxMessengerFactory::forConversation($c,'manager'):new TelegramMessengerAdapter(null,'manager',false);
+        $adapter=$channel==='max'?ProjectMaxMessengerFactory::forConversation($c,'manager'):ProjectTelegramMessengerFactory::forConversation($c,'manager');
         if(!$adapter)return self::connectionNotConfigured($channel,$projectKey);
         if($accepted!==null&&!self::calculationDispatchIdentity($c,$calculationIdentity))return false;
         $safeCaption=trim($caption)!==''?htmlspecialchars(trim($caption),ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8'):'';
@@ -174,7 +174,7 @@ class ManagerOutboundService
             if($projectKey===ProjectConfig::projectId())MetrikaConversionGoalService::managerReply($conversationId);
             return true;
         }
-        return self::recordFailure($conversationId,$managerId,$channel,(string)$c['project_key'],['media_type'=>$type]);
+        return self::recordFailure($conversationId,$managerId,$channel,(string)$c['project_key'],['media_type'=>$type],$adapter);
     }
 
     private static function mediaNotDispatched(string $reason): bool
@@ -199,11 +199,14 @@ class ManagerOutboundService
         return false;
     }
 
-    private static function recordFailure(int $conversationId,int $managerId,string $channel,string $projectKey,array $extra=[]): bool
+    private static function recordFailure(int $conversationId,int $managerId,string $channel,string $projectKey,array $extra=[],?object $adapter=null): bool
     {
         $failure=['category'=>'unknown','http_code'=>0,'message'=>'Сообщение не доставлено'];
         if($channel==='max' && class_exists('MaxTransport')){
             $transportFailure=MaxTransport::lastError();
+            if(is_array($transportFailure))$failure=array_merge($failure,$transportFailure);
+        } elseif($channel==='telegram' && $adapter!==null && method_exists($adapter,'lastFailure')) {
+            $transportFailure=$adapter->lastFailure();
             if(is_array($transportFailure))$failure=array_merge($failure,$transportFailure);
         }
         $failure=array_merge($failure,$extra,['channel'=>$channel,'project_key'=>$projectKey]);
@@ -232,6 +235,7 @@ class ManagerOutboundService
     {
         switch((string)($failure['category']??'unknown')){
             case 'connection_unavailable': return 'Сообщение не отправлено: подключение бота этого проекта недоступно.';
+            case 'provider_rejected': return 'Сообщение не отправлено: Telegram отклонил запрос. Проверьте текст и подключение бота перед новой отправкой.';
             case 'not_dispatched': return ($failure['reason']??'')==='file_unavailable'
                 ? 'Отправка файла не началась: не удалось прочитать вложение.'
                 : 'Отправка файла не началась: диалог изменился или недоступен. Проверьте диалог перед новой отправкой.';

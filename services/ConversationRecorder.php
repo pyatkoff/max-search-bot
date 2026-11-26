@@ -77,6 +77,13 @@ class ConversationRecorder
                     foreach (['delivery_key','bot_key','repair_context'] as $key) {
                         if (isset($incoming[$key])) $payload[$key] = $incoming[$key];
                     }
+                    // An Apple MAX start retains only a finite provenance class. Never
+                    // persist the raw native start parameter, which may contain opaque data.
+                    if ($projectKey === 'appleservice39'
+                        && in_array($incoming['repair_start_class'] ?? null,
+                            ['recognized','empty','unrecognized_apple','other'], true)) {
+                        $payload['repair_start_class'] = $incoming['repair_start_class'];
+                    }
                 }
                 return self::eventForConversation($conversationId, 'bot_started', $payload, 'system');
             }

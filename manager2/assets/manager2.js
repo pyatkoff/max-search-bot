@@ -276,7 +276,13 @@
     const route=hero.querySelector('.leadRoute');
     const tripDetails=root.querySelector('[data-trip-details]'),requestContext=root.querySelector('.leadRequestContext');
     const readonly=sales.querySelector('.leadReadonly');if(readonly)extra.appendChild(readonly);
+    // The saved repair request is the reason for the contact: show it before tasks.
+    if(requestContext&&window.WorkspaceV2LeadCard?.requestKind(p,c)==='device_repair')root.insertBefore(requestContext,tasks);
+    // Keep the current owner visible without moving or replacing the bound reassignment editor.
+    const assignedName=String(c?.manager_name||p.handoff?.manager_name||'').trim();
+    if(assignedName){const ownerSummary=document.createElement('div');ownerSummary.className='leadOwnerSummary';ownerSummary.textContent='Ответственный: '+assignedName;hero.appendChild(ownerSummary)}
     root.insertBefore(tasks,hero.nextSibling);root.insertBefore(sales,tasks.nextSibling);
+    if(requestContext&&window.WorkspaceV2LeadCard?.requestKind(p,c)==='device_repair')root.insertBefore(requestContext,tasks);
     if(window.WorkspaceV2LeadCard?.requestKind(p,c)==='travel'){
       const tripPanel=document.createElement('section');tripPanel.className='leadPanel m2TripPanel';
       const trip=p.trip||{},budget=budgetFact(trip),adults=String(trip.adults??'').trim(),children=String(trip.children??'').trim();
@@ -343,6 +349,18 @@
     const activity=el.querySelector('.leadActivityTime'),formatted=formatInboxActivity(c.last_message_at||c.started_at||'',now);
     if(activity){if(formatted){activity.textContent=formatted.text;activity.title='Последняя активность: '+formatted.exact;activity.setAttribute('aria-label',activity.title);if(activity.parentElement!==line)line?.appendChild(activity)}else activity.remove()}
   }
+  let pendingInboxOpen=null;
+  function openInboxRow(id,openLead){
+    const conversation=window.WorkspaceV2Conversation,generation=conversation.getOpenGeneration(),auth=S.authGeneration;
+    if(pendingInboxOpen?.id===id&&pendingInboxOpen.generation===generation&&pendingInboxOpen.auth===auth)return pendingInboxOpen.promise;
+    const promise=openLead(),next=conversation.getOpenGeneration();
+    // A refused navigation (for example an unsaved task) never supersedes the current read.
+    if(next===generation)return promise;
+    const attempt={id,generation:next,auth,promise};pendingInboxOpen=attempt;
+    const settle=()=>{if(pendingInboxOpen===attempt)pendingInboxOpen=null;};
+    Promise.resolve(promise).then(settle,settle);
+    return promise;
+  }
   function enhanceInbox(rows,{changedNodes}={}){
     const searchToggle=$('m2InboxSearchToggle'),search=$('leadSearch'),searchRow=document.querySelector('.inboxSearchRow');
     if(searchToggle&&search&&searchRow){
@@ -396,7 +414,7 @@
       if(Number(c.id)===Number(S.current))open.setAttribute('aria-current','true');
       while(el.firstChild)open.appendChild(el.firstChild);
       el.onclick=null;el.onkeydown=null;el.removeAttribute('aria-label');el.removeAttribute('aria-describedby');el.setAttribute('role','listitem');el.removeAttribute('tabindex');
-      open.onclick=openLead;if(avatar)el.appendChild(avatar);el.appendChild(open);
+      open.onclick=()=>openInboxRow(Number(c.id),openLead);if(avatar)el.appendChild(avatar);el.appendChild(open);
     });
     syncPersonalChrome($('pwLane'));
   }
@@ -625,7 +643,7 @@
     let tools=$('m2SalesTools');
     if(!tools){
       tools=document.createElement('section');tools.id='m2SalesTools';tools.className='m2SalesTools';tools.setAttribute('aria-label','Область продаж');
-      tools.innerHTML='<div class="m2SalesFilters"><label id="m2SalesScopeLabel" for="m2SalesScope">Клиенты<select id="m2SalesScope"><option value="mine">Мои</option><option value="team">Команда</option></select></label><label for="m2SalesProject">Проект<select id="m2SalesProject"></select></label><label for="m2SalesStage">Этап<select id="m2SalesStage"></select></label><label for="m2SalesTask">Следующий шаг<select id="m2SalesTask"><option value="">Все обращения</option><option value="overdue">Просроченные задачи</option><option value="none">Без следующего шага</option></select></label><label for="m2SalesOutcome">Результат<select id="m2SalesOutcome"><option value="open">Активные обращения</option><option value="won">Бронирования</option><option value="lost">Отказы</option><option value="">Все результаты</option></select></label></div><button id="m2SalesLayout" type="button">Показать доску</button><p id="m2SalesCoverage" role="status"></p>';
+      tools.innerHTML='<div class="m2SalesFilters"><label id="m2SalesScopeLabel" for="m2SalesScope">Клиенты<select id="m2SalesScope"><option value="mine">Мои</option><option value="team">Команда</option></select></label><label for="m2SalesProject">Проект<select id="m2SalesProject"></select></label><label for="m2SalesStage">Этап<select id="m2SalesStage"></select></label><label for="m2SalesTask">Следующий шаг<select id="m2SalesTask"><option value="">Все обращения</option><option value="overdue">Просроченные задачи</option><option value="none">Без следующего шага</option></select></label><label for="m2SalesOutcome">Результат<select id="m2SalesOutcome"><option value="open">Активные обращения</option><option value="won">Продажи</option><option value="lost">Отказы</option><option value="">Все результаты</option></select></label></div><button id="m2SalesLayout" type="button">Показать доску</button><p id="m2SalesCoverage" role="status"></p>';
       head.appendChild(tools);
       for(const id of ['m2SalesScope','m2SalesProject','m2SalesStage','m2SalesTask','m2SalesOutcome'])$(id).onchange=()=>{
         salesScope=S.manager?.role==='admin'&&$('m2SalesScope').value==='team'?'team':'mine';

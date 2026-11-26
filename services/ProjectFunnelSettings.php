@@ -65,6 +65,10 @@ final class ProjectFunnelSettings
         foreach(($metric['goal_match']??[])as$event=>$match)if(!in_array($match,['exact','contain'],true)||($match==='contain'&&!isset($metric['goal_ids'][$event])))$fail();
         if(isset($data['prediction'])){
             $model=$data['prediction'];
+            if(is_array($model)&&($model['basis']??null)==='owner_assumption'){
+                self::ownerPrediction($model);
+                return $data;
+            }
             if(!is_array($model)||!is_int($model['version']??null)||$model['version']<1||$model['version']>1000000
                 ||!is_string($model['model_id']??null)||!preg_match('/\A[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}\z/D',$model['model_id'])
                 ||!is_string($model['evidence_sha256']??null)||!preg_match('/\A[a-f0-9]{64}\z/D',$model['evidence_sha256'])
@@ -77,6 +81,40 @@ final class ProjectFunnelSettings
         }
         return $data;
     }
+
+    /** An explicit business assumption is not empirical calibration and has no invented expiry. */
+    private static function ownerPrediction(array $model): void
+    {
+        $fail=static function(): never {throw new InvalidArgumentException('invalid_funnel_settings');};
+        $fields=['basis','model_id','version','approved_at_unix','evidence_sha256','evidence','probability','price_basis','prices'];
+        if(count($model)!==count($fields)||array_diff(array_keys($model),$fields)
+            ||!is_int($model['version']??null)||$model['version']<1||$model['version']>1000000
+            ||!is_string($model['model_id']??null)||!preg_match('/\A[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}\z/D',$model['model_id'])
+            ||!is_int($model['approved_at_unix']??null)||$model['approved_at_unix']<946684800||$model['approved_at_unix']>4102444800
+            ||!is_string($model['evidence_sha256']??null)||!preg_match('/\A[a-f0-9]{64}\z/D',$model['evidence_sha256'])
+            ||!is_array($model['evidence']??null)||!$model['evidence']||array_is_list($model['evidence'])
+            ||(!is_int($model['probability']??null)&&!is_float($model['probability']??null))
+            ||!is_finite((float)$model['probability'])||$model['probability']<=0||$model['probability']>=1
+            ||($model['price_basis']??null)!=='listed_service_price'
+            ||!is_array($model['prices']??null)||!array_is_list($model['prices'])||!$model['prices']||count($model['prices'])>1000)$fail();
+        try{$evidence=json_encode($model['evidence'],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR,16);}
+        catch(Throwable $error){$fail();}
+        if(strlen($evidence)>32768||!hash_equals($model['evidence_sha256'],hash('sha256',$evidence)))$fail();
+        $seen=[];
+        foreach($model['prices']as$price){
+            if(!is_array($price)||count($price)!==4||array_diff(array_keys($price),['model','service','amount_rub','source_id']))$fail();
+            foreach(['model'=>160,'service'=>240]as$key=>$limit){
+                if(!is_string($price[$key]??null)||$price[$key]===''||trim($price[$key])!==$price[$key]
+                    ||strlen($price[$key])>$limit||preg_match('/[\p{C}<>&]/u',$price[$key])!==0)$fail();
+            }
+            if(!is_string($price['amount_rub']??null)||!preg_match('/\A[1-9][0-9]{0,7}\.[0-9]{2}\z/D',$price['amount_rub'])
+                ||!is_string($price['source_id']??null)||!preg_match('/\A[A-Za-z0-9][A-Za-z0-9_.:-]{0,190}\z/D',$price['source_id']))$fail();
+            $key=$price['model']."\0".$price['service'];
+            if(isset($seen[$key]))$fail();
+            $seen[$key]=true;
+        }
+    }
+
     public static function publicClient(array $settings): array
     {
         return ['brand'=>$settings['brand'],'project'=>$settings['project_key'],'channel_url'=>$settings['channel_url'],'counter_id'=>$settings['metrika']['mode']==='off'?'':$settings['metrika']['counter_id']];

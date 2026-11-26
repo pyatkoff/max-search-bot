@@ -9,6 +9,8 @@ canonicalizeManagerUrl();
 const S={csrf:'',manager:null,projects:[],filterSources:[],filterManagers:[],filterOptionsReady:false,current:0,queue:'waiting',viewMode:'list',leadProjectFilter:'*',leadSourceFilter:0,leadManagerFilter:'',leadStageFilter:'',leadTagFilter:0,leadOutcomeFilter:'',leadTaskFilter:'',leadSearch:'',pipeline:{stages:[],tags:[],outcomes:{},closeReasons:{}},detail:null,searchTimer:null,authExpired:false,authGeneration:0,workspaceBound:false,booting:false};
 let catalogReady=Promise.resolve();
 let logoutFlight=null;
+let tokenCheck=null;
+let initialIdentity=null;
 const $=id=>document.getElementById(id);
 function esc(v){const d=document.createElement('div');d.textContent=v??'';return d.innerHTML}
 function showFatal(message){const box=$('inboxList');if(box){box.innerHTML=`<div class="empty"><strong>${esc(message)}</strong></div>`}const composer=$('composer');if(composer)composer.classList.add('hidden')}
@@ -24,9 +26,14 @@ function ensureAuthRecovery(){
   overlay=document.createElement('div');
   overlay.id='managerAuthRecovery';
   overlay.className='managerAuthRecovery hidden';
-  overlay.innerHTML=`<div class="managerAuthCard" role="dialog" aria-modal="true" aria-labelledby="managerAuthTitle"><div class="managerAuthBrand">AnyTour</div><h2 id="managerAuthTitle">Вход для менеджера</h2><p id="managerAuthMessage" class="managerAuthMessage">Войдите в кабинет, чтобы открыть диалоги и задачи.</p><form id="managerAuthForm"><label for="managerAuthLogin">Логин</label><input id="managerAuthLogin" name="login" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required><label for="managerAuthPassword">Пароль</label><input id="managerAuthPassword" name="password" type="password" autocomplete="current-password" required><div id="managerAuthError" class="managerAuthError hidden" role="alert"></div><button id="managerAuthSubmit" type="submit">Войти</button></form></div>`;
+  overlay.innerHTML=`<div class="managerAuthCard" role="dialog" aria-modal="true" aria-labelledby="managerAuthTitle"><div class="managerAuthBrand">AnyTour</div><h2 id="managerAuthTitle">Вход для менеджера</h2><p id="managerAuthMessage" class="managerAuthMessage">Войдите в кабинет, чтобы открыть диалоги и задачи.</p><form id="managerAuthForm"><label for="managerAuthLogin">Логин</label><input id="managerAuthLogin" name="login" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required><label for="managerAuthPassword">Пароль</label><input id="managerAuthPassword" name="password" type="password" autocomplete="current-password" required><div id="managerAuthError" class="managerAuthError hidden" role="alert"></div><button id="managerAuthSubmit" type="submit">Войти</button></form><button id="managerAuthRetry" type="button" class="hidden">Проверить снова</button><button id="managerAuthChooseLogin" type="button" class="hidden">Войти с паролем</button></div>`;
   document.body.appendChild(overlay);
   $('managerAuthForm').addEventListener('submit',async e=>{e.preventDefault();await loginFromRecovery()});
+  $('managerAuthRetry').onclick=()=>{if(tokenCheck)void verifyChangedToken(tokenCheck)};
+  $('managerAuthChooseLogin').onclick=()=>{
+    if(!tokenCheck||tokenCheck.pending)return;
+    tokenCheck=null;showAuthRecovery('Введите логин и пароль.');$('managerAuthLogin').focus();
+  };
   return overlay;
 }
 function showAuthRecovery(message=''){
@@ -44,7 +51,13 @@ window.WorkspaceV2InternalNotes?.suspend();
   window.WorkspaceV2Inbox?.clearAiStatuses?.();
   const overlay=ensureAuthRecovery();
   const recovering=!!S.manager?.id;
-  $('managerAuthMessage').textContent=message||(recovering?'Сессия менеджера истекла. Войдите снова, чтобы продолжить.':'Войдите в кабинет, чтобы открыть диалоги и задачи.');
+  const checking=tokenCheck?.generation===S.authGeneration&&!S.logoutPending?tokenCheck:null;
+  if(!checking)tokenCheck=null;
+  $('managerAuthTitle').textContent=checking?'Проверка сеанса':'Вход для менеджера';
+  $('managerAuthForm').classList.toggle('hidden',!!checking);
+  $('managerAuthRetry').classList.toggle('hidden',!checking||checking.pending);
+  $('managerAuthChooseLogin').classList.toggle('hidden',!checking||checking.pending);
+  $('managerAuthMessage').textContent=message||(checking?(checking.pending?'Проверяем сеанс…':'Не удалось проверить сеанс.'):recovering?'Сессия менеджера истекла. Войдите снова, чтобы продолжить.':'Войдите в кабинет, чтобы открыть диалоги и задачи.');
   $('managerAuthSubmit').textContent=recovering?'Войти и продолжить':'Войти';
   $('managerAuthError').classList.add('hidden');
   $('managerAuthError').textContent='';
@@ -61,14 +74,56 @@ async function request(url,action,data={},options={}){
   if(S.logoutPending)throw new Error('logout_pending');
   if(S.authExpired){showAuthRecovery();throw new Error('unauthorized')}
   const generation=S.authGeneration;
-  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action,csrf:S.csrf,...data}),...(options.signal?{signal:options.signal}:{})});
+  return readResponse(post(url,action,data,options),generation,options);
+}
+function post(url,action,data,options){
+  return fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({action,csrf:S.csrf,...data}),...(options.signal?{signal:options.signal}:{})});
+}
+async function readResponse(response,generation,options={}){
+  const r=await response;
   const j=await r.json().catch(()=>({ok:false,error:'invalid_response'}));
   if(generation!==S.authGeneration)return{ok:false,error:'stale_session'};
   // A read owner can revoke an obsolete response before global auth handling.
   if(options.isCurrent&&!options.isCurrent(r))return{ok:false,error:'stale_context'};
   if(r.status===401){showAuthRecovery();throw new Error('unauthorized')}
+  if(r.status===403&&j?.error==='csrf'){
+    void recoverChangedToken();
+    return{...j,ok:false,http_status:r.status};
+  }
   if(!r.ok)return{...j,ok:false,http_status:r.status};
   return j;
+}
+function recoverChangedToken(){
+  if(S.authExpired||S.logoutPending)return;
+  const check={managerId:Number(S.manager?.id||0),token:S.csrf,generation:S.authGeneration+1,pending:false};
+  tokenCheck=check;
+  void verifyChangedToken(check);
+}
+async function readSessionIdentity(){
+  const controller=typeof AbortController==='function'?new AbortController():null;
+  let timer;
+  try{
+    const read=post('api.php','me',{},{signal:controller?.signal}).then(async response=>({status:response.status,me:response.ok?await response.json():null}));
+    const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>{controller?.abort();reject(new Error('identity_timeout'))},12000)});
+    return await Promise.race([read,timeout]);
+  }finally{clearTimeout(timer)}
+}
+async function verifyChangedToken(check){
+  if(tokenCheck!==check||check.pending)return;
+  check.pending=true;showAuthRecovery();
+  const current=()=>tokenCheck===check&&S.authExpired&&S.authGeneration===check.generation&&!S.logoutPending;
+  try{
+    // Verify identity; never replay the rejected command. The selected chat
+    // still passes its ordinary authorization read before composing resumes.
+    const {status,me}=await readSessionIdentity();
+    if(!current())return;
+    if(status===401){tokenCheck=null;showAuthRecovery();return}
+    if(me?.ok&&Number(me.manager?.id)>0&&typeof me.csrf==='string'&&me.csrf){
+      if(Number(me.manager.id)!==check.managerId){tokenCheck=null;showAuthRecovery('Аккаунт этой вкладки изменился. Войдите снова.');return}
+      if(me.csrf!==check.token){tokenCheck=null;await resumeAuthenticated(me);return}
+    }
+  }catch(error){}
+  if(current()){check.pending=false;showAuthRecovery('Не удалось подтвердить сеанс. Проверьте соединение и повторите.')}
 }
 const api=(action,data={},options)=>request('api.php',action,data,options);
 const pipe=(action,data={},options)=>request('pipeline-api.php',action,data,options);
@@ -126,15 +181,23 @@ window.WorkspaceV2InternalNotes?.activate(S.manager?.id);
 function filterScope(){return JSON.stringify([S.queue,S.leadProjectFilter,S.leadSourceFilter,S.leadManagerFilter,S.leadStageFilter,S.leadTagFilter,S.leadOutcomeFilter,S.leadTaskFilter,S.leadSearch])}
 async function loadCatalog(){
   const generation=S.authGeneration;
-  const [cat,filterOptions]=await Promise.all([pipe('catalog').catch(()=>null),pipe('filter_options').catch(()=>null)]);
-  if(generation!==S.authGeneration||S.authExpired)return;
-  if(cat?.ok)S.pipeline={stages:cat.stages||[],tags:cat.tags||[],outcomes:cat.outcomes||{},closeReasons:cat.close_reasons||{}};
-  if(filterOptions?.ok&&filterOptions.filters){const f=filterOptions.filters;S.projects=Array.isArray(f.projects)?f.projects:S.projects;S.filterSources=Array.isArray(f.sources)?f.sources:[];S.filterManagers=Array.isArray(f.managers)?f.managers:[];S.filterOptionsReady=true}else{S.filterSources=[];S.filterManagers=[];S.filterOptionsReady=false}
-  const previousScope=filterScope();
-  window.WorkspaceV2Filters?.render();
-  // Only a removed/invalid saved criterion needs a new list. Metadata arriving
-  // late must not reopen the conversation or replace the reply editor.
-  if(previousScope!==filterScope())void window.WorkspaceV2Inbox?.load({preserveScroll:true}).catch(()=>{});
+  // Card editors need the catalog, independently of the Inbox directories.
+  const ready=pipe('catalog').catch(()=>null).then(cat=>{
+    if(generation!==S.authGeneration||S.authExpired)return;
+    if(cat?.ok)S.pipeline={stages:cat.stages||[],tags:cat.tags||[],outcomes:cat.outcomes||{},closeReasons:cat.close_reasons||{}};
+  });
+  const filters=pipe('filter_options').catch(()=>null);
+  // Reconcile saved list criteria once both metadata reads have settled.
+  void Promise.all([ready,filters]).then(([,filterOptions])=>{
+    if(generation!==S.authGeneration||S.authExpired)return;
+    if(filterOptions?.ok&&filterOptions.filters){const f=filterOptions.filters;S.projects=Array.isArray(f.projects)?f.projects:S.projects;S.filterSources=Array.isArray(f.sources)?f.sources:[];S.filterManagers=Array.isArray(f.managers)?f.managers:[];S.filterOptionsReady=true}else{S.filterSources=[];S.filterManagers=[];S.filterOptionsReady=false}
+    const previousScope=filterScope();
+    window.WorkspaceV2Filters?.render();
+    // Only a removed/invalid saved criterion needs a new list. Metadata arriving
+    // late must not reopen the conversation or replace the reply editor.
+    if(previousScope!==filterScope())void window.WorkspaceV2Inbox?.load({preserveScroll:true}).catch(()=>{});
+  }).catch(()=>{});
+  return ready;
 }
 async function applyCustomerName(name,context){
   const current=window.WorkspaceV2Conversation?.captureReplyContext?.();
@@ -210,7 +273,11 @@ async function resumeAuthenticated(me){
   // Native push registration and its health request must not hold the Inbox or
   // a recovered conversation behind a slow/unavailable notification provider.
   void refreshNotificationHealth(generation,managerId);
-  await window.WorkspaceV2Inbox?.load({preserveScroll:true}).catch(()=>{});
+  const inbox=window.WorkspaceV2Inbox?.load({preserveScroll:true}).catch(()=>{});
+  // A restored or recovered chat is authorized by its own detail request.
+  // An explicit notification keeps its existing startup order.
+  const restoringChat=!notificationId&&(conversationId||(savedConversationId&&!S.current));
+  await (restoringChat?undefined:inbox);
   if(!stillAuthenticated())return;
   // Keep the explicit target through expiry before startup becomes usable.
   if(notificationId&&notificationConversationId()===notificationId)notificationUrl();
@@ -223,6 +290,7 @@ async function loginFromRecovery(){
   const login=$('managerAuthLogin').value.trim(),password=$('managerAuthPassword').value;
   const submit=$('managerAuthSubmit'),error=$('managerAuthError');
   if(!login||!password)return;
+  tokenCheck=null;
   const submitLabel=submit.textContent;
   const generation=S.authGeneration;
   submit.disabled=true;submit.textContent='Входим…';error.classList.add('hidden');
@@ -239,11 +307,22 @@ async function boot(){
   if(S.booting)return;
   S.booting=true;
   try{
-    const me=await api('me');
+    const firstRead=initialIdentity;
+    initialIdentity=null;
+    const generation=firstRead?.generation??S.authGeneration;
+    const me=await (firstRead?readResponse(firstRead.response,generation):api('me')).catch(()=>null);
+    if(generation!==S.authGeneration)return;
     if(!me?.ok){if(!S.authExpired)showStartupFailure();return}
     await resumeAuthenticated(me);
   }catch(e){if(!S.authExpired)showStartupFailure()}
   finally{S.booting=false}
+}
+// Start only the first identity read while the Manager2 feature scripts load.
+if(document.currentScript?.hasAttribute('data-early-identity')){
+  const response=post('api.php','me',{},{});
+  // A fast rejection is consumed by boot's normal retry UI once modules are ready.
+  response.catch(()=>{});
+  initialIdentity={response,generation:S.authGeneration};
 }
 window.WorkspaceV2={S,$,esc,api,pipe,request,notificationEvents,statusText,outcomeText,formatWait,val,tripField,boot,logout,showFatal,showAuthRecovery,showStartupFailure,openNotificationConversation,discardNotificationIntent,whenCatalogReady:()=>catalogReady};
 })();

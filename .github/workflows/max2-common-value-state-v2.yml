@@ -1,0 +1,66 @@
+name: MAX2 common V2 - finite state operation
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Change only the separate common V2 state; no business tick is invoked
+        type: choice
+        required: true
+        default: status
+        options: ["status", "activate", "off", "collect", "send"]
+      expected_application_sha:
+        description: Exact accepted installed application SHA
+        type: string
+        required: true
+      expected_epoch:
+        description: Exact observed V2 activation epoch; blank for initial activate or status
+        type: string
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+  issues: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  state:
+    if: >-
+      github.repository == 'pyatkoff/max-search-bot' && github.ref == 'refs/heads/main' &&
+      github.actor == 'pyatkoff' && github.triggering_actor == 'pyatkoff' &&
+      github.event_name == 'workflow_dispatch' && github.run_attempt == '1'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Check the finite carrier without native access
+        run: python3 -B tests/run_max2_common_value_state_operation_v2_regression.py
+      - name: Resolve accepted repository and application
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 -B tools/max2_common_value_state_operation_v2.py --prepare
+      - name: Execute one source-bound new-state operation
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          STANDBY_DEPLOY_SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          STANDBY_DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          STANDBY_DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: python3 -B tools/max2_common_value_state_operation_v2.py --execute
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: max2-common-value-state-v2-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/max2-common-value-state-result.json
+          if-no-files-found: ignore
+          retention-days: 90

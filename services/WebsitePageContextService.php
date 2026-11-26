@@ -22,13 +22,31 @@ class WebsitePageContextService
         return true;
     }
 
-    public static function forChat(int $chatId): array
+    public static function forChat(int $chatId, ?string &$outcome = null): array
     {
+        $outcome = 'not_attempted_invalid_chat';
         if ($chatId <= 0) return [];
         try {
             $q = ConversationDb::connection()->prepare('SELECT page_url,page_title,context_json,updated_at FROM website_page_context WHERE chat_id=? LIMIT 1');
-            $q->execute([$chatId]);
+            $executed = $q->execute([$chatId]);
             $row = $q->fetch();
+            // Inspect the already executed statement, never repeat the query.
+            // Keep the original execute -> fetch -> return path even when a
+            // non-throwing PDO boundary reports an execution/fetch failure.
+            $readFailed = $executed === false;
+            $statusAvailable = true;
+            try {
+                $sqlState = $q->errorCode();
+                if ($sqlState === null) {
+                    $statusAvailable = false;
+                } else {
+                    if (preg_match('/\A[0-9A-Z]{5}\z/', $sqlState) !== 1) $statusAvailable = false;
+                    elseif (!in_array(substr($sqlState, 0, 2), ['00', '01', '02'], true)) $readFailed = true;
+                }
+            } catch (Throwable $ignored) {
+                $statusAvailable = false;
+            }
+            $outcome = $readFailed ? 'read_failed' : ($statusAvailable ? 'not_found' : 'not_recorded');
             if (!$row) return [];
             $result = [
                 'page_url'=>(string)$row['page_url'],
@@ -37,8 +55,13 @@ class WebsitePageContextService
             ];
             $structured = json_decode((string)($row['context_json'] ?? ''), true);
             if (is_array($structured) && $structured) $result['structured'] = $structured;
+            if (!$readFailed && $statusAvailable) {
+                $outcome = trim($result['page_url']) === '' && trim($result['page_title']) === '' && empty($result['structured'])
+                    ? 'empty' : 'available';
+            }
             return $result;
         } catch (Throwable $e) {
+            $outcome = 'read_failed';
             return [];
         }
     }

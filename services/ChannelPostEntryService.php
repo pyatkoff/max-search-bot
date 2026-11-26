@@ -85,15 +85,41 @@ final class ChannelPostEntryService
         } catch (Throwable $ignored) {return true;}
     }
 
-    public static function record(string $platform,$chatId,?array $resolved,string $eventKey=''): ?array
+    public static function record(string $platform,$chatId,?array $resolved,string $eventKey='',?array $preservedEntry=null): ?array
     {
         $conversation=self::conversation($platform,$chatId);
         if (!$conversation) return null;
         try {
             $registry=new ChannelPostRegistryService();
-            return $resolved
-                ?$registry->recordEntry((int)$conversation['id'],$resolved,$eventKey)
+            $preserved=$resolved?self::preservedEntry($platform,$conversation,$resolved,$preservedEntry):null;
+            $record=$resolved
+                ?$registry->recordEntry((int)$conversation['id'],$resolved,$eventKey,false,$preserved)
                 :$registry->recordUnavailableEntry((int)$conversation['id'],(string)$conversation['project_key'],$platform,$eventKey);
+            // MAX2 V2 observes only this already committed canonical entry.
+            try {
+                if (is_array($record) && is_array($resolved) && is_file(__DIR__.'/Max2CommonValueRuntimeV2.php')) {
+                    require_once __DIR__.'/Max2CommonValueRuntimeV2.php';
+                    Max2CommonValueRuntimeV2::captureEntry($record,$conversation,$resolved,$eventKey);
+                }
+            } catch (Throwable $ignoredMax2Value) { /* Preserve the original entry result. */ }
+            return $record;
         } catch (Throwable $ignored) {return null;}
+    }
+
+    /** Only the immediate AnyTour MAX policy receipt may annotate this same source entry. */
+    private static function preservedEntry(string $platform,array $conversation,array $resolved,?array $receipt): ?array
+    {
+        if($platform!=='max'||ProjectConfig::projectId()!=='anytour'
+            ||($conversation['project_key']??null)!=='anytour'||($conversation['channel']??null)!=='max'
+            ||($resolved['project_key']??null)!=='anytour'||($resolved['platform']??null)!=='max'
+            ||$receipt===null||count($receipt)!==4
+            ||array_diff(array_keys($receipt),['version','conversation_id','start_event_id','source_key'])!==[]
+            ||($receipt['version']??null)!==1||!is_string($receipt['conversation_id']??null)
+            ||preg_match('/\A[1-9][0-9]{0,19}\z/D',$receipt['conversation_id'])!==1
+            ||$receipt['conversation_id']!==(string)($conversation['id']??'')
+            ||!is_string($receipt['start_event_id']??null)||preg_match('/\A[1-9][0-9]{0,19}\z/D',$receipt['start_event_id'])!==1
+            ||!is_string($receipt['source_key']??null)||preg_match('/\A[A-Za-z0-9_.:\/-]{1,191}\z/D',$receipt['source_key'])!==1
+            ||$receipt['source_key']!==($resolved['source_key']??null))return null;
+        return $receipt;
     }
 }

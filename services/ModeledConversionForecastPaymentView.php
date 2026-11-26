@@ -27,6 +27,7 @@ final class ModeledConversionForecastPaymentView
             .'<header><a class="brand" href="/manager2/admin.php">AnyTour · администрирование</a><span>Закрытый просмотр</span></header><main>'
             .'<h1>Ранний прогноз → свидетельства оплаты</h1><p class="lead">Первая сохранённая оценка по запросу и последующие сведения об оплате.</p>'
             .'<nav><a href="/manager/assigned-value.php?view=delivery">Начисления и мониторинг</a> · '
+            .'<a href="/manager/assigned-value.php?view=forecast-summary">Сводка ранних прогнозов</a> · '
             .'<a href="/manager/assigned-value.php?view=acquisition">От вступления до обращения</a></nav>'
             .'<form method="get" action="/manager/assigned-value.php"><input type="hidden" name="view" value="forecast-payments">'
             .'<label>По день включительно<input type="date" name="date" value="'.self::e($date).'" required></label><label>Период<select name="period">';

@@ -736,11 +736,11 @@ $schema=ManagerAiDraftService::responseSchema();
 draftCheck('strict schema rejects unknown fields and requires every result field',$schema['additionalProperties']===false
     && $schema['required']===array_keys($schema['properties']) && count($schema['required'])===9);
 $body=ManagerDraftClient::requestBody(ManagerAiDraftService::instructions(),draftContext());
-draftCheck('manager drafts default to GPT-6.1 Sol with explicit low reasoning',
-    $body['model']==='gpt-6.1-sol' && $body['reasoning']===['effort'=>'low'] && $body['service_tier']==='default');
+draftCheck('manager drafts default to GPT-6.2 Sol with explicit medium reasoning',
+    $body['model']==='gpt-6.2-sol' && $body['reasoning']===['effort'=>'medium'] && $body['service_tier']==='default');
 $isolated=draftProfileFixture(['OPENAI_MODEL'=>'synthetic-legacy-bot-model']);
 draftCheck('legacy bot model cannot alter the manager draft profile',
-    ($isolated['body']['model']??null)==='gpt-6.1-sol' && ($isolated['body']['reasoning']??null)===['effort'=>'low']
+    ($isolated['body']['model']??null)==='gpt-6.2-sol' && ($isolated['body']['reasoning']??null)===['effort'=>'medium']
     && ($isolated['body']['service_tier']??null)==='default');
 $overridden=draftProfileFixture(['OPENAI_MODEL'=>'synthetic-legacy-bot-model','MANAGER_AI_DRAFT_MODEL'=>'synthetic-manager-model',
     'MANAGER_AI_DRAFT_REASONING'=>'high','MANAGER_AI_DRAFT_SERVICE_TIER'=>'default']);

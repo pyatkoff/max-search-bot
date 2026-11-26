@@ -46,6 +46,19 @@ class NeedProgressionService
             ];
         }
 
+        // Native input is recorded before its own collector runs. If another
+        // recorded customer message already answers this exact child question,
+        // leave the prompt to that newer turn rather than sending stale text.
+        if (($missing[0] ?? '') === 'children'
+            && SourceHandlingService::newerQueuedChildAnswer($chatId)) {
+            return [
+                'complete' => false,
+                'missing' => $missing,
+                'next_field' => 'children',
+                'deferred_to_newer_input' => true,
+            ];
+        }
+
         MissingFieldQuestionService::sendForMissing($chatId, $missing, $questionOptions);
         return [
             'complete' => false,

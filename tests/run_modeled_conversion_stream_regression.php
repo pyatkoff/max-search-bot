@@ -513,7 +513,7 @@ function modeledDenseProfileAssertions(PDO $p,callable $check):void
     modeledProfileCatchUpAssertions($p,$check);
 }
 
-/** Ordinary ticks finitely upgrade saved old-model scopes without rewriting their early packets. */
+/** Ordinary ticks finitely upgrade saved old-assessment scopes without rewriting their early packets. */
 function modeledProfileReassessmentAssertions(PDO $p,callable $check):void
 {
     if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
@@ -554,6 +554,8 @@ function modeledProfileReassessmentAssertions(PDO $p,callable $check):void
             ->execute([json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),str_repeat('0',64),'legacy',$now+3,$row['id']]);
     }
     $old=$p->query('SELECT id,observed_at_unix,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    // Same semantic model, older extractor/source namespace: this saved packet must also upgrade once.
+    $namespaceOnlyOld=$p->query("SELECT id,observed_at_unix,journal_cursor,profile_json FROM modeled_conversion_profile_versions WHERE conversation_id='11' ORDER BY id DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
     $cursor=(string)$p->query("SELECT journal_cursor FROM modeled_conversion_profiles_state WHERE project_key='anytour'")->fetchColumn();
     $journal=$p->query('SELECT id,revision_hash,snapshot_json FROM modeled_conversion_stream_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
     try{$profiles->tick($now+4,static function(){throw new RuntimeException('fixture_reassessment_rollback');});$rolled=false;}catch(Throwable $e){$rolled=$e->getMessage()==='fixture_reassessment_rollback';}
@@ -561,7 +563,7 @@ function modeledProfileReassessmentAssertions(PDO $p,callable $check):void
         $rolled&&(int)$p->query('SELECT COUNT(*) FROM modeled_conversion_profile_versions')->fetchColumn()===10
         &&(string)$p->query("SELECT journal_cursor FROM modeled_conversion_profiles_state WHERE project_key='anytour'")->fetchColumn()===$cursor);
     $repair=$profiles->tick($now+5);
-    $check('idle ordinary tick reassesses eight old scopes with no new capture or cursor reset',
+    $check('idle ordinary tick reassesses eight old-assessment scopes with no new capture or cursor reset',
         $repair['processed_revisions']===0&&$repair['profiles_written']===8&&$repair['reassessment']['written']===8
         &&$repair['journal_rows_read']<=500&&$repair['payload_bytes']<=1048576
         &&(string)$p->query("SELECT journal_cursor FROM modeled_conversion_profiles_state WHERE project_key='anytour'")->fetchColumn()===$cursor);
@@ -576,11 +578,26 @@ function modeledProfileReassessmentAssertions(PDO $p,callable $check):void
     $check('fresh scopes keep the eight-scope priority and repair fills only caught-up spare capacity',
         $fresh['profiles_written']===8&&$fresh['pending_revisions']===1&&$fresh['reassessment']['written']===0
         &&$fresh['reassessment']['awaiting_fresh_cursor']===true
-        &&$last['profiles_written']===2&&$last['reassessment']['written']===1&&$last['pending_revisions']===0);
+        &&$last['profiles_written']===3&&$last['reassessment']['written']===2&&$last['pending_revisions']===0
+        &&$fresh['journal_rows_read']<=500&&$last['journal_rows_read']<=500
+        &&$fresh['payload_bytes']<=1048576&&$last['payload_bytes']<=1048576);
+    $namespaceOnlyNow=modeledProfileLatest($p,'11');
+    $namespaceOnlyId=(string)$p->query("SELECT MAX(id) FROM modeled_conversion_profile_versions WHERE conversation_id='11'")->fetchColumn();
+    $repeat=$profiles->tick($now+9);
     $check('finite cohort larger than one batch is fully checkpointed and repeated ticks add no versions',
-        (int)$p->query("SELECT COUNT(*) FROM modeled_conversion_profile_versions WHERE assessment_kind='repair'")->fetchColumn()===9
-        &&$profiles->tick($now+9)['profiles_written']===0
-        &&(int)$p->query("SELECT COUNT(*) FROM modeled_conversion_profile_versions WHERE conversation_id='11'")->fetchColumn()===1);
+        (int)$p->query("SELECT COUNT(*) FROM modeled_conversion_profile_versions WHERE assessment_kind='repair'")->fetchColumn()===10
+        &&$repeat['profiles_written']===0);
+    $namespaceOnlySaved=$p->prepare('SELECT id,observed_at_unix,journal_cursor,profile_json FROM modeled_conversion_profile_versions WHERE id=?');
+    $namespaceOnlySaved->execute([$namespaceOnlyOld['id']]);
+    $check('a namespace-only upgrade preserves the saved earlier JSON and completes exactly once',
+        $namespaceOnlySaved->fetch(PDO::FETCH_ASSOC)===$namespaceOnlyOld
+        &&($namespaceOnlyNow['semantic_prediction']['model_sha256']??null)===json_decode($namespaceOnlyOld['profile_json'],true,128,JSON_THROW_ON_ERROR)['semantic_prediction']['model_sha256']
+        &&($namespaceOnlyNow['semantic_prediction']['model_sha256']??null)===hash_file('sha256',dirname(__DIR__).'/services/ModeledConversionSemanticPrediction.php')
+        &&($namespaceOnlyNow['processing']['assessment_namespace']??null)===$namespace
+        &&($namespaceOnlyNow['processing']['assessment_kind']??null)==='repair'
+        &&(string)$p->query("SELECT MAX(id) FROM modeled_conversion_profile_versions WHERE conversation_id='11'")->fetchColumn()===$namespaceOnlyId
+        &&(int)$p->query("SELECT COUNT(*) FROM modeled_conversion_profile_versions WHERE conversation_id='11'")->fetchColumn()===2);
+    $namespaceOnlySaved->closeCursor();
     $unchanged=$p->query('SELECT id,observed_at_unix,profile_json FROM modeled_conversion_profile_versions ORDER BY id LIMIT 10')->fetchAll(PDO::FETCH_ASSOC);
     $check('repair preserves every old forecast JSON, id, timestamp and captured source revision',
         $old===$unchanged&&$journal===array_slice($p->query('SELECT id,revision_hash,snapshot_json FROM modeled_conversion_stream_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),0,count($journal)));
@@ -606,7 +623,7 @@ function modeledProfileReassessmentAssertions(PDO $p,callable $check):void
     $check('latest captured outcome and nonsemantic fixtures cannot become a restored positive forecast',
         $known['reassessment']['written']===1&&$paidNow['semantic_prediction']['status']==='known_outcome'
         &&$paidNow['semantic_prediction']['estimated_probability']===null
-        &&(int)$p->query("SELECT COUNT(*) FROM modeled_conversion_profile_versions WHERE conversation_id='11'")->fetchColumn()===1);
+        &&(int)$p->query("SELECT COUNT(*) FROM modeled_conversion_profile_versions WHERE conversation_id='11'")->fetchColumn()===2);
     // A long dialogue keeps the ordinary canonical latest-50 window and its warning.
     // Total historical length is not an additional monetary admission rule.
     require_once dirname(__DIR__).'/services/ModeledConversionValueContract.php';
@@ -642,6 +659,134 @@ function modeledProfileReassessmentAssertions(PDO $p,callable $check):void
         $deniedReceipt['reassessment']['written']===1&&$deniedNow['access_status']==='denied'
         &&$deniedNow['semantic_prediction']['status']==='access_denied'
         &&ModeledConversionValueContract::candidate($deniedNow,$deniedNow['subject'],$since,time())===null);
+    // This existing entry point also runs on native MySQL without another runner.
+    modeledProfileReassessmentCatchUpAssertions($p,$check);
+}
+
+/** Reuse the same finite scheduled phase for saturated current-generation repairs. */
+function modeledProfileReassessmentCatchUpAssertions(PDO $p,callable $check):void
+{
+    $now=time()-120;
+    $setup=static function(int $count=40,int $refs=1)use($p,$now):array{
+        modeledStreamSchema($p);modeledProfileSchema($p);
+        $source=new ModeledConversionStream($p);$profiles=new ModeledConversionProfiles($p);
+        modeledStreamMessage($p,10,11);$source->start($now);
+        modeledStreamMessage($p,11,11,'Подберите тур в Турцию на 7 ночей, 2 взрослых');
+        $source->tick($now+1);$profiles->start();
+        $snap=json_decode($p->query("SELECT snapshot_json FROM modeled_conversion_stream_versions WHERE source_kind='message' AND source_id=11 ORDER BY id DESC LIMIT 1")->fetchColumn(),true,64,JSON_THROW_ON_ERROR);
+        for($i=0;$i<$count;$i++)for($j=0;$j<$refs;$j++){
+            if($i===0&&$j===0)continue;
+            $x=$snap;$x['source_id']=(string)(400000+$i*50+$j);
+            $x['customer_key']=$x['conversation_id']=$i===0?'11':(string)(6999+$i);
+            if($refs>1){
+                $metadata=json_decode($x['payload']['metadata_json']??'{}',true,512,JSON_THROW_ON_ERROR);
+                $metadata['fixture_padding']=str_repeat('x',6000);
+                $x['payload']['metadata_json']=json_encode($metadata,JSON_THROW_ON_ERROR);
+            }
+            modeledProfileAppend($p,$x,$now+2);
+        }
+        do{$receipt=$profiles->tick($now+3);}while($receipt['pending_revisions']>0);
+        // Coherent fixture-only old source generation; semantic model itself is unchanged.
+        foreach($p->query('SELECT id,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)as$row){
+            $v=json_decode($row['profile_json'],true,128,JSON_THROW_ON_ERROR);
+            $v['processing']['assessment_namespace']=str_repeat('0',64);$v['processing']['assessment_kind']='legacy';
+            $p->prepare('UPDATE modeled_conversion_profile_versions SET profile_json=?,assessment_namespace=?,assessment_kind=?,observed_at_unix=? WHERE id=?')
+                ->execute([json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),str_repeat('0',64),'legacy',$now+3,$row['id']]);
+        }
+        return [$profiles,$snap];
+    };
+    $rows=static fn():array=>$p->query('SELECT id,observed_at_unix,journal_cursor,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $repairs=static fn():int=>(int)$p->query("SELECT COUNT(*) FROM modeled_conversion_profile_versions WHERE assessment_kind='repair'")->fetchColumn();
+    $journal=static fn():array=>$p->query('SELECT id,revision_hash,snapshot_json FROM modeled_conversion_stream_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $cursor=static fn():string=>(string)$p->query("SELECT journal_cursor FROM modeled_conversion_profiles_state WHERE project_key='anytour'")->fetchColumn();
+    $clockCalls=0;$clock=static function()use(&$clockCalls,$now):int{$clockCalls++;return $now+5;};
+    $monotonic=static fn():int=>0;
+    [$profiles,$snap]=$setup();$old=$rows();$sourceRows=$journal();$beforeCursor=$cursor();$receipts=[];
+    $r=ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic,
+        static function(array $receipt)use(&$receipts):void{$receipts[]=$receipt;});
+    $bounded=count($receipts)===4;
+    foreach($receipts as$receipt)$bounded=$bounded&&$receipt['processed_revisions']===0
+        &&$receipt['profiles_written']===8&&$receipt['reassessment']['written']===8
+        &&$receipt['pending_revisions']===0&&$receipt['journal_rows_read']<=500&&$receipt['payload_bytes']<=1048576;
+    $check('one ordinary phase reassesses thirty two of forty stale-namespace scopes without a fifth batch',
+        $clockCalls===4&&count($rows())===72&&$repairs()===32&&$bounded&&$cursor()===$beforeCursor);
+    $check('scheduled reassessment preserves every early packet and captured source revision',
+        $old===array_slice($rows(),0,40)&&$sourceRows===$journal());
+    $first=$rows();$clockCalls=0;
+    ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic);
+    $check('the next ordinary phase finishes the old cohort once and stops on empty work',
+        $clockCalls===2&&count($rows())===80&&$repairs()===40&&$first===array_slice($rows(),0,72));
+    $complete=$rows();$clockCalls=0;
+    $r=ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic);
+    $check('completed scheduled reassessment performs one idle check without new versions or source work',
+        $clockCalls===1&&$r['status']==='idle'&&$rows()===$complete&&$sourceRows===$journal());
+
+    // Real admitted-size messages make each fifty-source scope fit alone, but not all four together.
+    [$profiles,$snap]=$setup(4,50);$old=$rows();$sourceRows=$journal();$receipts=[];$clockCalls=0;
+    ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic,
+        static function(array $receipt)use(&$receipts):void{$receipts[]=$receipt;});
+    $check('positive partial repair continues after shared byte admission defers another eligible scope',
+        $clockCalls===2&&count($receipts)===2&&$receipts[0]['profiles_written']<8
+        &&$receipts[0]['reassessment']['written']>0&&$receipts[0]['reassessment']['deferred_budget']>0
+        &&$receipts[1]['reassessment']['written']>0&&$repairs()===4
+        &&count($rows())===count($old)+4&&$old===array_slice($rows(),0,count($old))
+        &&$sourceRows===$journal());
+    $bounded=true;foreach($receipts as$receipt)$bounded=$bounded&&$receipt['profiles_written']<=8
+        &&$receipt['journal_rows_read']<=500&&$receipt['payload_bytes']<=1048576;
+    $check('partial resource repair keeps the same per-batch bounds without rereading native sources',$bounded);
+
+    // Fresh captured inputs appearing between repair batches retain the existing FIFO priority.
+    [$profiles,$snap]=$setup();$old=$rows();$sourceRows=$journal();$receipts=[];$clockCalls=0;
+    ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic,
+        static function(array $receipt)use($p,$snap,$now,&$receipts):void{
+            $receipts[]=$receipt;
+            if(count($receipts)!==1)return;
+            for($i=0;$i<9;$i++){
+                $x=$snap;$x['source_id']=(string)(500000+$i);
+                $x['customer_key']=$x['conversation_id']=$i===0?'7000':(string)(8000+$i);
+                if($i===0)$x['payload']['text']='Я оплатил тур';
+                modeledProfileAppend($p,$x,$now+4);
+            }
+        });
+    $paid=modeledProfileLatest($p,'7000');
+    $check('fresh input between repair batches is indexed first and spare reassessment resumes only at its fence',
+        $clockCalls===4&&count($receipts)===4&&count($rows())===72
+        &&$receipts[0]['reassessment']['written']===8
+        &&$receipts[1]['processed_revisions']===8&&$receipts[1]['pending_revisions']===1
+        &&$receipts[1]['reassessment']['written']===0&&$receipts[1]['reassessment']['awaiting_fresh_cursor']===true
+        &&$receipts[2]['processed_revisions']===1&&$receipts[2]['pending_revisions']===0
+        &&$receipts[2]['reassessment']['written']===7&&$receipts[2]['reassessment']['awaiting_fresh_cursor']===false
+        &&$receipts[3]['processed_revisions']===0&&$receipts[3]['reassessment']['written']===8);
+    $check('continued reassessment uses the new captured payment instead of restoring an old positive prefix',
+        $paid['semantic_prediction']['status']==='known_outcome'
+        &&$paid['semantic_prediction']['estimated_probability']===null
+        &&$old===array_slice($rows(),0,40)&&$sourceRows===array_slice($journal(),0,40));
+    $bounded=true;foreach($receipts as$receipt)$bounded=$bounded&&$receipt['profiles_written']<=8
+        &&$receipt['journal_rows_read']<=500&&$receipt['payload_bytes']<=1048576;
+    $check('mixed fresh and repair continuation retains every per-batch scope row and byte bound',$bounded);
+
+    [$profiles,$snap]=$setup();$old=$rows();$sourceRows=$journal();$clockCalls=0;$attempts=0;
+    try{
+        ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic,
+            static function()use(&$attempts):void{if(++$attempts===2)throw new RuntimeException('second_reassessment_rollback');});
+        $failed=false;
+    }catch(Throwable $e){$failed=$e->getMessage()==='second_reassessment_rollback';}
+    $check('a failed second repair batch retains the first commit and starts no retry or third batch',
+        $failed&&$attempts===2&&$clockCalls===2&&count($rows())===48&&$repairs()===8
+        &&$old===array_slice($rows(),0,40)&&$sourceRows===$journal());
+    $first=$rows();$clockCalls=0;$monotonicCalls=0;
+    $deadline=static function()use(&$monotonicCalls):int{
+        return [0,4000000000,5000000000][min($monotonicCalls++,2)];
+    };
+    ModeledConversionStream::profileCatchUp($profiles,$clock,$deadline);
+    $check('repair continuation shares the existing five second soft deadline before another transaction',
+        $clockCalls===2&&$monotonicCalls===3&&count($rows())===64&&$repairs()===24
+        &&$first===array_slice($rows(),0,48));
+    $committed=$rows();$clockCalls=0;
+    ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic);
+    $check('the next ordinary phase completes rollback and deadline work without replaying committed repairs',
+        count($rows())===80&&$repairs()===40&&$clockCalls===3
+        &&$committed===array_slice($rows(),0,64)&&$sourceRows===$journal());
 }
 
 /** The actual admitted PHP/Python writer must retain a genuine request across canonical AI output. */
@@ -812,6 +957,104 @@ function modeledObservationalProfileAssertions(PDO $p,callable $check):void
     }finally{$connection->setValue(null,$previousConnection);}
 }
 
+
+/** Real source prompt and recorder inputs pass through the existing journal/Python/immutable writer. */
+function modeledDateQuestionProfileAssertions(PDO $p,callable $check):void
+{
+    require_once dirname(__DIR__).'/services/SourceQualificationPrompt.php';
+    modeledStreamSchema($p);modeledProfileSchema($p);
+    $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+    // Keep this isolated derived journal within one ID width: real same-second inputs
+    // must not exercise the unrelated lexical 9/10 tie boundary in this date fixture.
+    if($mysql)$p->exec('ALTER TABLE modeled_conversion_stream_versions AUTO_INCREMENT=100');
+    else $p->exec("INSERT INTO sqlite_sequence(name,seq) VALUES('modeled_conversion_stream_versions',99)");
+    $id=$mysql?'BIGINT PRIMARY KEY AUTO_INCREMENT':'INTEGER PRIMARY KEY AUTOINCREMENT';
+    $p->exec('ALTER TABLE customer_channels ADD external_chat_id VARCHAR(40)');
+    $p->exec('ALTER TABLE customer_channels ADD username VARCHAR(80)');
+    foreach(['source_id BIGINT','status VARCHAR(32) DEFAULT \'ai\'','external_chat_id VARCHAR(40)','last_message_at DATETIME']as$column)
+        $p->exec('ALTER TABLE conversations ADD '.$column);
+    $p->exec("UPDATE conversations SET source_id=1,external_chat_id='9011' WHERE id=11");
+    $p->exec("UPDATE conversations SET source_id=2,external_chat_id='9010' WHERE id=10");
+    $p->exec('DROP TABLE messages');$p->exec('DROP TABLE conversation_events');
+    $p->exec('CREATE TABLE messages(id '.$id.',conversation_id BIGINT,direction VARCHAR(16),sender_type VARCHAR(16),sender_id VARCHAR(40),channel VARCHAR(16),external_message_id VARCHAR(80),text MEDIUMTEXT,metadata_json MEDIUMTEXT,created_at DATETIME DEFAULT CURRENT_TIMESTAMP)');
+    $p->exec('CREATE TABLE conversation_events(id '.$id.',conversation_id BIGINT,event_type VARCHAR(64),actor_type VARCHAR(16),payload_json TEXT,created_at DATETIME DEFAULT CURRENT_TIMESTAMP)');
+    $p->exec('CREATE TABLE projects(id BIGINT PRIMARY KEY,project_key VARCHAR(40),is_active INT)');
+    $p->exec("INSERT INTO projects VALUES(1,'anytour',1)");
+    $p->exec('CREATE TABLE conversation_sources(id BIGINT PRIMARY KEY,project_id BIGINT,source_key VARCHAR(80),is_active INT)');
+    $p->exec("INSERT INTO conversation_sources VALUES(1,1,'max:default',1),(2,1,'telegram:default',1)");
+    $restore=[];
+    foreach([[ConversationDb::class,'pdo',$p],[ProjectConfig::class,'config',['id'=>'anytour']],
+        [RoutingAccessService::class,'schemaReady',true],[ProjectAccessService::class,'schemaReady',true],
+        [ConversationRecorder::class,'wizardInput',null],[ConversationRecorder::class,'wizardReceipts',[]],
+        [ConversationRecorder::class,'wizardReceiptReason','input_unavailable']]as[$class,$property,$value]){
+        $reflection=new ReflectionProperty($class,$property);$restore[]=[$reflection,$reflection->getValue()];$reflection->setValue(null,$value);
+    }
+    $fetch=$p->getAttribute(PDO::ATTR_DEFAULT_FETCH_MODE);$p->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,PDO::FETCH_ASSOC);
+    if(!$mysql)$p->sqliteCreateFunction('NOW',static fn():string=>gmdate('Y-m-d H:i:s'));
+    try{
+        $started=time()-2;$source=new ModeledConversionStream($p);$profiles=new ModeledConversionProfiles($p);
+        $source->start($started);$profiles->start();
+        $incoming=['platform'=>'max','type'=>'message','source_key'=>'max:default',
+            'user'=>['external_user_id'=>'9011','chat_id'=>'9011']];
+        $prompt=SourceQualificationPrompt::text(['date','adults','children'],'VINPEARL RESORT NHA TRANG',false);
+        $check('date continuity records the real source prompt and literal customer date',
+            ConversationRecorder::outboundForConversation(11,'max',$prompt)
+            &&ConversationRecorder::inbound($incoming+['message_id'=>'fixture-date-answer','text'=>'5 декабря на 8 дней']));
+        $dateId=(string)$p->query("SELECT id FROM messages WHERE external_message_id='fixture-date-answer'")->fetchColumn();
+        $source->tick(time());$profiles->tick(time());$partial=modeledProfileLatest($p);
+        $first=$p->query('SELECT id,profile_json FROM modeled_conversion_profile_versions ORDER BY id LIMIT 1')->fetch(PDO::FETCH_ASSOC);
+        $check('date continuity saves a partial dates family without an anchor or inflated engagement',
+            $partial['semantic_prediction']['status']==='insufficient_context'
+            &&$partial['semantic_prediction']['current_request_anchor']===null
+            &&$partial['semantic_prediction']['features']['criteria_families']===['dates']
+            &&$partial['semantic_prediction']['features']['meaningful_customer_turns']===0
+            &&$partial['semantic_prediction']['outcome_observations']===[]);
+        foreach([['Из какого города планируете вылет?','Москва','city'],
+            ['Сколько будет взрослых туристов?','2','adults'],
+            ['Будут дети? Если да — сколько?','Нет','children']]as[$question,$answer,$key])
+            $check('date continuity records canonical question and literal answer '.$key,
+                ConversationRecorder::outboundForConversation(11,'max',$question)
+                &&ConversationRecorder::inbound($incoming+['message_id'=>'fixture-date-'.$key,'text'=>$answer]));
+        $check('date continuity records the canonical handoff message',
+            ConversationRecorder::outboundForConversation(11,'max','Запрос передан менеджеру. Он ответит в этом чате.'));
+        // Existing typed receipt producer only; no handoff, customer delivery or provider action.
+        $choice=new ReflectionMethod(SourceHandlingService::class,'recordChoice');
+        $choice->invoke(null,'max','9011','manager','source_needs_complete');
+        $source->tick(time());
+        $nativeBefore=$p->query('SELECT id,metadata_json FROM messages ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+        $journalBefore=$p->query('SELECT id,snapshot_json FROM modeled_conversion_stream_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+        $tables=['messages','conversation_events','conversations','customer_channels','advertising_visit_observations'];
+        foreach($tables as$table)$p->exec('ALTER TABLE '.$table.' RENAME TO unavailable_'.$table);
+        try{$receipt=$profiles->tick(time());}finally{
+            foreach(array_reverse($tables)as$table)$p->exec('ALTER TABLE unavailable_'.$table.' RENAME TO '.$table);
+        }
+        $saved=modeledProfileLatest($p);$prediction=$saved['semantic_prediction'];
+        $lookup=$p->prepare("SELECT id FROM modeled_conversion_stream_versions WHERE source_kind='message' AND source_id=? AND version_no=1");
+        $lookup->execute([$dateId]);$dateRef='journal:'.$lookup->fetchColumn();$lookup->closeCursor();
+        $check('date continuity actual writer joins dates and party into the unchanged concrete prior',
+            $receipt['profiles_written']===1&&$prediction['status']==='predicted'
+            &&$prediction['stage']==='concrete_request'&&$prediction['current_request_anchor']===$dateRef
+            &&$prediction['base_probability']===0.083333&&$prediction['estimated_probability']===0.083333
+            &&in_array($prediction['hypothesis_odds_multiplier'],[1,1.0],true)
+            &&$prediction['features']['criteria_families']===['dates','party']
+            &&$prediction['features']['meaningful_customer_turns']===0&&$prediction['current_customer_turn_count']===4
+            &&$prediction['outcome_observations']===[]&&$prediction['features']['explicit_decline']===false);
+        $check('date continuity AI hotel text and handoff add no seller choice or payment evidence',
+            $saved['contextual_signals']['goal_counts']['agency_purchase_intent']===0
+            &&$saved['contextual_signals']['goal_counts']['general_purchase_intent']===0
+            &&$saved['contextual_signals']['goal_counts']['payment_self_report']===0
+            &&$saved['contextual_signals']['coverage']['prediction_source_continuity']['preserved_handoff_receipts']===1);
+        $check('date continuity leaves the first saved profile and all recorded source bytes unchanged',
+            $p->query('SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.(int)$first['id'])->fetchColumn()===$first['profile_json']
+            &&$p->query('SELECT id,metadata_json FROM messages ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)===$nativeBefore
+            &&$p->query('SELECT id,snapshot_json FROM modeled_conversion_stream_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)===$journalBefore);
+    }finally{
+        foreach(array_reverse($restore)as[$reflection,$value])$reflection->setValue(null,$value);
+        $p->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,$fetch);
+        foreach(['conversation_sources','projects']as$table)$p->exec('DROP TABLE '.$table);
+    }
+}
+
 /** Both SQLite and the existing native MySQL helper execute the actual wizard producer chain. */
 function modeledWizardProfileAssertions(PDO $p,callable $check):void
 {
@@ -825,6 +1068,7 @@ function modeledWizardProfileAssertions(PDO $p,callable $check):void
     require_once dirname(__DIR__).'/services/ConversationRecorder.php';
     require_once dirname(__DIR__).'/services/SourceHandlingService.php';
     require_once dirname(__DIR__).'/services/ModeledConversionValueContract.php';
+    modeledDateQuestionProfileAssertions($p,$check);
     $check('wizard continuity actual fixture uses the canonical PDO storage',RuntimeStorage::usesMysql());
     modeledStreamSchema($p);modeledProfileSchema($p);
     $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';

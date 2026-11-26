@@ -22,7 +22,7 @@ try{
         'save'=>ManagerRequestProfileService::save($actor,$cid,$input),
         'operation'=>ManagerRequestProfileService::operation($actor,$cid,is_string($input['operation_id']??null)?$input['operation_id']:''),
         default=>['ok'=>false,'error'=>'unknown_action']};
-    if(!session_start(['read_and_close'=>true])||ManagerHttp::managerId()!==$actor||!ManagerRequestContext::validCsrf((string)$input['csrf']))ManagerHttp::respond(['ok'=>false,'error'=>'unauthorized'],401);
+    ManagerHttp::revalidateSession($actor,(string)$input['csrf']);
     $status=!empty($result['ok'])?200:match($result['error']??''){'forbidden'=>403,'conflict','context_changed','operation_mismatch'=>409,'profile_unavailable','history_unavailable'=>503,default=>422};
     ManagerHttp::respond($result+['viewer_id'=>$actor],$status);
 }catch(Throwable $ignored){ManagerHttp::respond(['ok'=>false,'error'=>'profile_unavailable'],503);}

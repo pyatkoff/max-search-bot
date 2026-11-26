@@ -136,7 +136,7 @@ final class ArchiveResearchSemanticExtractor
                 if(!$relay&&!$old&&self::hit('(?:как|чем)\s+оплат|форм\pL*\s+оплат|наличн\pL*|картой|рассроч\pL*|кредит',$clause)){
                     $goals['payment_terms_question']=true;$rules['payment_terms_question']='payment_terms_only';
                 }
-                if(!$relay&&!$old&&!self::deniedInterest($clause)&&self::hit('вылет|ночей|ночи|взросл\pL*|реб[её]н\pL*|детей|бюджет|отел[ья]|питани\pL*|пляж|Турци\pL*|Египет|Таиланд|Мальдив\pL*',$clause)){
+                if(!$relay&&!$old&&!self::deniedInterest($clause)&&self::hit('вылет|ночей|ночи|взросл\pL*|реб[её]н\pL*|детей|бюджет|отел[ья]|питани\pL*|пляж|Турци\pL*|Египет|Таиланд|Мальдив\pL*|(?<!\pL)(?:ОАЭ|Дуба[йи]\pL*|Тунис\pL*|Кипр\pL*|Греци\pL*|Испани\pL*|Итали\pL*|Вьетнам\pL*|Индонези\pL*|Бали|Куб[ауе]|Шри[- ]Ланк\pL*|Гоа|Сочи|Абхази\pL*)(?!\pL)',$clause)){
                     $goals['substantive_interest']=true;$rules['substantive_interest']='customer_trip_conditions';
                 }
                 if($direct&&$s['q']==='criteria'&&self::hit('\A\s*(?:[0-9][0-9 ,–\-]*|двое|трое|двое\s+взрослых|июнь|июль|август|сентябрь|октябрь|ноябрь|декабрь|январь|февраль|март|апрель|май)\s*[.!]?\s*\z',$clause)){

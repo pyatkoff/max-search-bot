@@ -698,10 +698,21 @@ for(const width of [390,1440])test('Manager2 saved tour choice stays in the clie
 });
 
 for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,height:900},{width:1440,height:900},{width:390,height:420}]){
-  for(const action of ['catalog','filter_options'])test(`Manager2 startup metadata ${action} does not hold reply readiness at ${viewport.width}x${viewport.height}`,async({page})=>{
+  for(const action of ['catalog','filter_options'])test(`Manager2 startup metadata ${action} does not hold reply readiness at ${viewport.width}x${viewport.height}`,async({page,browserName})=>{
     await page.setViewportSize(viewport);
     const s=await setup(page,{holdMetadata:action,waitForInbox:false});await readyBeforeMetadata(page,s,action);
     if(action==='catalog')await expect(page.locator('#leadStage')).toHaveCount(0);
+    const note='Ручная заметка до загрузки фильтров';
+    if(action==='filter_options'){
+      await expect(page.locator('#leadStage option')).toHaveCount(stages.length);
+      await expect(page.locator('#leadStage')).toHaveValue('working');
+      await showCard(page);
+      const saleDetails=page.locator('#leadCard .m2SaleDetails');
+      if(await saleDetails.getAttribute('open')===null)await saleDetails.locator(':scope > summary').click();
+      await expect(saleDetails).toHaveAttribute('open','');await page.locator('#leadOutcomeNote').fill(note);
+      expect(s.metadataPending()).toBe(1);await noOverflow(page);
+      await capture(page,browserName,viewport.width,'card-before-filters-'+viewport.height);await showChat(page);
+    }
     const draft='Черновик до загрузки справочника';await page.locator('#replyText').fill(draft);
     await page.locator('#replyFile').setInputFiles({name:'held-metadata.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic attachment, never uploaded or sent')});
     await expect(page.locator('#mediaSelection')).toContainText('held-metadata.txt');
@@ -717,6 +728,7 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
       await expect(page.locator('#leadOutcome option')).toHaveCount(3);await expect(page.locator('#leadOutcome')).toHaveValue('open');
     }
     await expect(page.locator('#replyText')).toHaveValue(draft);await expect(page.locator('#mediaSelection')).toHaveText(attachment);
+    if(action==='filter_options')await expect(page.locator('#leadOutcomeNote')).toHaveValue(note);
     await expect(page.locator('#replyText')).toBeFocused();await expect(page.locator('#replyText')).toBeEnabled();
     expect(await page.evaluate(()=>WorkspaceV2.S.current)).toBe(11);
     expect(s.calls.filter(call=>call.action==='list')).toHaveLength(before.lists);
@@ -942,10 +954,37 @@ for(const width of [390,430])for(const role of ['manager','admin'])test('Manager
 });
 for(const width of [390,430])test('Manager2 My Plan orders actions and deadlines independently of Inbox '+width,async({page,browserName})=>{
   await page.setViewportSize({width,height:900});const s=await setup(page);s.setInboxRow(11,{awaiting_manager_reply:1});s.setInboxRow(12,{next_task_title:'Позвонить по договорённости',next_task_due_state:'overdue',next_task_due_at_utc:'2026-10-13 09:00:00'});
+  await openLead(page,11);await editorReady(page);
+  const draft='Подготовлен ответ перед переходом в мой план';await page.locator('#replyText').fill(draft);
+  await page.locator('#replyFile').setInputFiles({name:'plan-navigation.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic navigation fixture')});
+  const media=await settledMediaSelectionText(page);
+  await expect.poll(()=>page.evaluate(()=>WorkspaceV2Media.captureSelection()?.rows.length||0)).toBe(1);
+  // The canonical picker clears its input; retain the actual selected File.
+  await page.evaluate(()=>{window.mobilePlanProof={file:WorkspaceV2Media.captureSelection().rows[0].row.file,composer:document.getElementById('composer'),reply:document.getElementById('replyText'),input:document.getElementById('replyFile')};document.getElementById('replyText').blur()});
+  expect(await page.evaluate(()=>mobilePlanProof.file instanceof File)).toBe(true);
+  const plan=page.locator('.m2Rail > [data-m2-nav=tasks]');
+  const checkConversationNavigation=async()=>{
+    await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','conversation');await expect(plan).toBeVisible();await expect(plan).toBeEnabled();
+    await editorGeometry(page);await expect.poll(()=>page.locator('#conversationZone').evaluate(el=>el.getAnimations().filter(animation=>animation.playState==='running').length)).toBe(0);
+    const geometry=await plan.evaluate(el=>{
+      const button=el.getBoundingClientRect(),rail=el.closest('.m2Rail').getBoundingClientRect(),composer=document.getElementById('composer').getBoundingClientRect(),messages=document.getElementById('messages').getBoundingClientRect(),hit=document.elementFromPoint(button.left+button.width/2,button.top+button.height/2);
+      return {buttonHeight:button.height,buttonLeft:button.left,buttonRight:button.right,buttonTop:button.top,buttonBottom:button.bottom,railTop:rail.top,railBottom:rail.bottom,composerTop:composer.top,composerBottom:composer.bottom,messagesBottom:messages.bottom,width:innerWidth,height:innerHeight,hit:!!hit&&(hit===el||el.contains(hit))};
+    });
+    expect(geometry.hit,'My Plan is reachable directly from the conversation').toBe(true);expect(geometry.buttonHeight).toBeGreaterThanOrEqual(48);
+    expect(geometry.buttonLeft).toBeGreaterThanOrEqual(0);expect(geometry.buttonRight).toBeLessThanOrEqual(geometry.width+1);
+    expect(geometry.buttonTop).toBeGreaterThanOrEqual(geometry.railTop-1);expect(geometry.buttonBottom).toBeLessThanOrEqual(geometry.railBottom+1);expect(geometry.railBottom).toBeLessThanOrEqual(geometry.height+1);
+    expect(geometry.composerBottom,'navigation leaves room for the composer').toBeLessThanOrEqual(geometry.railTop+1);expect(geometry.messagesBottom).toBeLessThanOrEqual(geometry.composerTop+1);
+    await controlsInsideVisualViewport(page,['replyText','m2ReplyExpand','sendReply']);await noOverflow(page);
+  };
+  await checkConversationNavigation();
   const before=s.calls.filter(call=>call.path==='/manager/pipeline-api.php'&&call.action==='list').length;
-  await page.locator('[data-m2-nav=tasks]').click();await expect(page.locator('#assistantList [data-assistant-client]')).toHaveCount(2);expect(s.calls.filter(call=>call.path==='/manager/pipeline-api.php'&&call.action==='list')).toHaveLength(before);await expect(page.locator('#filtersPanel')).not.toBeVisible();await expect(page.locator('#assistantTitle')).toHaveText('Мой план');
+  await plan.click();await expect(page.locator('#assistantList [data-assistant-client]')).toHaveCount(2);expect(s.calls.filter(call=>call.path==='/manager/pipeline-api.php'&&call.action==='list')).toHaveLength(before);await expect(page.locator('#filtersPanel')).not.toBeVisible();await expect(page.locator('#assistantTitle')).toHaveText('Мой план');
   const first=page.locator('[data-assistant-client="11"]'),second=page.locator('[data-assistant-client="12"]');await expect(first).toContainText('Разобрать сообщение клиента');await expect(second).toContainText('Позвонить по договорённости');await expect(second).toContainText('12:00');expect(await page.locator('[data-assistant-client]').evaluateAll(items=>items.map(item=>item.dataset.assistantClient))).toEqual(['11','12']);
   await page.locator('[data-assistant-filter=tasks]').click();await expect(first).toBeVisible();await expect(second).toBeVisible();await page.locator('[data-assistant-filter=waiting]').click();await expect(page.locator('[data-assistant-client]')).toHaveCount(0);await page.locator('[data-assistant-filter=actions]').click();await expect(first).toBeVisible();await capture(page,browserName,width,'my-plan-next-actions');await noOverflow(page);
+  await page.locator('#assistantClose').click();await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-m2-section','dialogues');await expect(page.locator('#workspaceRoot')).toHaveAttribute('data-mobile-screen','inbox');
+  await openLead(page,11);await editorReady(page);await expect(page.locator('#replyText')).toHaveValue(draft);await expect(page.locator('#mediaSelection')).toHaveText(media);
+  expect(await page.evaluate(()=>({current:Number(WorkspaceV2.S.current),file:WorkspaceV2Media.captureSelection().rows[0].row.file===mobilePlanProof.file,composer:document.getElementById('composer')===mobilePlanProof.composer,reply:document.getElementById('replyText')===mobilePlanProof.reply,input:document.getElementById('replyFile')===mobilePlanProof.input}))).toEqual({current:11,file:true,composer:true,reply:true,input:true});
+  await checkConversationNavigation();await capture(page,browserName,width,'my-plan-direct-return');
   expect(s.calls.filter(call=>['send','create_task','set_stage','set_outcome'].includes(call.action))).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
 
@@ -1506,7 +1545,7 @@ for(const viewport of [{width:390,height:420},{width:1440,height:900}])test('Man
   const d=route.request().postDataJSON();if(!['send','send_receipt','detail'].includes(d.action))return route.fallback();expect(d.csrf).toBe('synthetic-csrf');expect(d.conversation_id).toBe(11);
   if(d.action==='send'){sends.push(d);return route.abort('failed')}
   if(d.action==='detail')return detailFails?route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false})}):route.fallback();
-  receipts.push(d);return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:false,attempt:{state:'rejected'},failure:{category:'attempt_context_changed'}})});
+  receipts.push(d);return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,attempt:{state:'rejected'},failure:{category:'attempt_context_changed'}})});
  });
  await page.locator('#replyText').fill('Исходный ответ');await page.locator('#sendReply').click();await expect(page.locator('#sendReply')).toHaveText('Проверить отправку');
  await page.locator('#replyText').fill('Сохранённый новый текст');await page.locator('#replyFile').setInputFiles({name:'retained-context.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=','base64')});await expect(page.locator('.mediaSelectedItem')).toHaveCount(1);const url=await page.locator('.mediaPreview img').getAttribute('src');

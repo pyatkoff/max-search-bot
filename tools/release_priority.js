@@ -82,13 +82,13 @@ function decidePriority(pulls, context) {
   };
 }
 
-async function readJson(repository, resource, token, fetchImpl) {
+async function readJson(repository, resource, token, fetchImpl, raw = false) {
   if (!token || typeof fetchImpl !== 'function') refusal('missing_read_capability');
   const controller = new AbortController();
   const deadline = setTimeout(() => controller.abort(), 10000);
   try {
     const response = await fetchImpl('https://api.github.com/repos/' + repository + '/' + resource, {
-      headers: { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + token,
+      headers: { Accept: raw ? 'application/vnd.github.raw+json' : 'application/vnd.github+json', Authorization: 'Bearer ' + token,
         'X-GitHub-Api-Version': '2022-11-28' },
       redirect: 'error', signal: controller.signal
     });
@@ -173,7 +173,235 @@ async function continuePublisher(pulls, context, expected, token, fetchImpl) {
     publisher_comment: expected.comment_id, publisher_acquired_at: expected.updated_at };
 }
 
-async function runGuard({ env, readEvent, fetchImpl, admission, now = Date.now() }) {
+// The original closer for PR1630 finished without a publisher binding. Only
+// PR1631 can use the original installation and explicitly skipped terminal.
+const UNBOUND_PREDECESSOR = Object.freeze({
+  source: 'c9b4d97a945f88e068b71a9af6c948013434e050',
+  head: '204afa0f455a227536f62196eb4f84762fe416b3',
+  blob: '0ec2cf21fa655fc52670d701142529747f5361d3',
+  deploy: 44587916300,
+  closer: 44590757092,
+  closerJob: 135795803154,
+  pullUpdatedAt: '2026-11-19T18:26:59Z',
+});
+
+async function verifyUnboundPredecessor(api, location, native) {
+  const R = require('./deployment_release');
+  const C = require('./release_slot_close');
+  const p = UNBOUND_PREDECESSOR;
+  const get = resource => api('GET', R.API_ROOT + resource);
+  const assertOriginalPull = async () => {
+    const pull = await get('/pulls/1630');
+    if (pull?.number !== 1630 || pull.head?.sha !== p.head || pull.updated_at !== p.pullUpdatedAt ||
+        C.binding(pull, p.source) !== null) refusal('previous_unbound_pull_changed');
+  };
+  const r = R.validateRelease(location.record).release;
+  if (location.blob !== p.blob || r.kind !== 'installed' || native.id !== p.deploy ||
+      native.run_attempt !== 1 || native.head_commit?.id !== p.source ||
+      typeof native.head_commit.message !== 'string' || native.head_commit.message.includes(C.ACTIVATION.marker))
+    refusal('previous_unbound_installation_changed');
+  await assertOriginalPull();
+  await R.authenticatePublication(api, location);
+  await R.requireOps(api, p.source);
+
+  const c = { sha: p.source, deploy: p.deploy, run: p.closer, configure: 'skipped',
+    activation: false, skippedTerminal: true };
+  const snapshot = await C.selectReleaseRuns(await get('/actions/runs?head_sha=' + p.source + '&per_page=100'), c, get);
+  if (snapshot.waiting || C.gateState(snapshot.runs, c) !== 'ready') refusal('previous_unbound_gates_pending');
+  const activation = snapshot.runs.workflow_runs.find(run => run.path === R.PREFIX + C.ACTIVATION.file && run.event === 'workflow_run');
+  const monitor = snapshot.runs.workflow_runs.find(run => run.path === R.PREFIX + 'modeled-conversion-monitor.yml' && run.event === 'workflow_run');
+  const readJobs = run => get('/actions/runs/' + run + '/attempts/1/jobs?per_page=100');
+  C.verifyActivation(await readJobs(activation.id), activation, c, monitor.id);
+  const response = await readJobs(p.closer);
+  const jobs = R.boundedList(response, 'jobs', 'previous_unbound_jobs_incomplete');
+  if (jobs.length !== 3 || jobs.some(job => job.run_id !== p.closer || job.run_attempt !== 1 ||
+      job.head_sha !== p.source || job.status !== 'completed' || !Array.isArray(job.steps)))
+    refusal('previous_unbound_jobs_incomplete');
+  C.verifyConfigure(response, c);
+  const recovery = jobs.find(job => job.name === 'release-slot-recovery');
+  const configure = jobs.find(job => job.name === 'configure');
+  const closer = jobs.find(job => job.name === 'release-slot');
+  if (configure.steps.length !== 0 || recovery?.conclusion !== 'skipped' || recovery.steps.length !== 0 ||
+      closer?.id !== p.closerJob || closer.conclusion !== 'success') refusal('previous_unbound_closer_changed');
+  const steps = [
+    ['Prepare the exact release proof before terminal publication', 'success'],
+    [R.TERMINAL_BINDING_STEP, 'skipped'],
+    [R.TERMINAL_STEP, 'skipped'],
+  ];
+  let previous = 0;
+  for (const [name, conclusion] of steps) {
+    const matches = closer.steps.filter(step => step.name === name);
+    if (matches.length !== 1 || matches[0].status !== 'completed' || matches[0].conclusion !== conclusion ||
+        !Number.isSafeInteger(matches[0].number) || matches[0].number <= previous)
+      refusal('previous_unbound_terminal_changed');
+    previous = matches[0].number;
+  }
+  const artifacts = R.boundedList(await get('/actions/runs/' + p.closer + '/artifacts?per_page=100'),
+    'artifacts', 'previous_unbound_artifacts_incomplete');
+  if (artifacts.length) refusal('previous_unbound_publication_found');
+
+  await assertOriginalPull();
+  const fresh = await R.readRecord(api);
+  if (fresh.blob !== location.blob || fresh.record_digest !== location.record_digest)
+    refusal('previous_release_changed');
+  if ((await get('/git/ref/heads/main'))?.object?.sha !== p.source) refusal('base_changed');
+}
+
+// Final admission alone authenticates the previous technical release. Ordinary
+// source CI must remain independent of an unrelated production wait.
+async function verifyPreviousRelease(context, token, fetchImpl) {
+  const R = require('./deployment_release');
+  const C = require('./release_slot_close');
+  if (context.repository !== R.REPOSITORY) refusal('unsupported_release_repository');
+  const api = async (method, resource, body, raw = false) => {
+    if (method !== 'GET' || body !== undefined || !resource.startsWith(R.API_ROOT + '/'))
+      refusal('invalid_release_read');
+    return readJson(context.repository, resource.slice(R.API_ROOT.length + 1), token, fetchImpl, raw);
+  };
+  // Reuse the canonical pinned-log reader and its bounded signed-URL policy.
+  // Final admission is a single fresh read: it never retries temporary failures.
+  const logReader = R.makeReadApi(token, fetchImpl);
+  logReader.transientReads = false;
+  api.jobLog = logReader.jobLog;
+  if (context.baseSha === '3073195685c8d57808256af6836182262f25fead') {
+    const target = await api('GET', R.API_ROOT + '/pulls/' + context.prNumber);
+    const recovery = require('./partial_install_1721_forward');
+    if (target?.head?.ref === recovery.BRANCH) {
+      const proof = await recovery.proveForward({api,pr:context.prNumber,head:context.headSha,
+        phase:context.publisher ? 'after_handoff' : 'before_handoff'});
+      if (context.publisher && (proof.binding.comment_id !== context.publisher.comment_id ||
+        proof.binding.owner_id !== context.publisher.owner_id ||
+        proof.binding.updated_at !== context.publisher.updated_at)) refusal('forward_publisher_changed');
+      return;
+    }
+  }
+  const recovery1704 = require('./unstarted_1704_forward');
+  if (context.baseSha === recovery1704.BASE) {
+    const target = await api('GET', R.API_ROOT + '/pulls/' + context.prNumber);
+    if (target?.head?.ref === recovery1704.BRANCH) {
+      const proof = await recovery1704.proveUnstarted1704Forward({
+        api,pr:context.prNumber,head:context.headSha,
+        phase:context.publisher ? 'after_handoff' : 'before_handoff'
+      });
+      if (context.publisher && (proof.binding.comment_id !== context.publisher.comment_id ||
+        proof.binding.owner_id !== context.publisher.owner_id ||
+        proof.binding.updated_at !== context.publisher.updated_at)) refusal('forward_publisher_changed');
+      return;
+    }
+  }
+  const unstarted = R.UNSTARTED_FORWARD_1692;
+  if (context.prNumber === unstarted.successor && context.baseSha === unstarted.sha) {
+    const proof = await R.proveUnstartedForward({api, pr: context.prNumber, head: context.headSha,
+      previousPr: unstarted.pr, phase: context.publisher ? 'after_handoff' : 'before_handoff'});
+    if (context.publisher && (proof.binding.comment_id !== context.publisher.comment_id ||
+      proof.binding.owner_id !== context.publisher.owner_id ||
+      proof.binding.updated_at !== context.publisher.updated_at)) refusal('forward_publisher_changed');
+    return;
+  }
+  const partial1702 = context.prNumber === 1704 && context.baseSha === '32155b9eb2c8606b61554951bfdc988d70bbcb39';
+  if (partial1702 || (context.prNumber === 1667 && context.baseSha === '302ba66b5739e369a4df94471c8cfe9c054dd070')) {
+    const prove = partial1702 ? require('./partial_install_1702_forward').provePartialInstall1702Forward :
+      require('./partial_install_1662_forward').provePartialInstall1662Forward;
+    const proof = await prove({
+      api, pr: context.prNumber, head: context.headSha,
+      phase: context.publisher ? 'after_handoff' : 'before_handoff'
+    });
+    if (context.publisher && (proof.binding.comment_id !== context.publisher.comment_id ||
+        proof.binding.owner_id !== context.publisher.owner_id ||
+        proof.binding.updated_at !== context.publisher.updated_at)) refusal('forward_publisher_changed');
+    return;
+  }
+  if (context.baseSha === 'b3386d558f72e9eb80acefad9e87b1ab91b4426f') {
+    const target = await api('GET', R.API_ROOT + '/pulls/' + context.prNumber);
+    const {BRANCH, proveExhaustedVerify1664Forward} = require('./exhausted_verify_1664_forward');
+    if (target?.head?.ref === BRANCH) {
+      api.artifact = logReader.artifact;
+      const proof = await proveExhaustedVerify1664Forward({api,pr:context.prNumber,head:context.headSha,
+        phase:context.publisher ? 'after_handoff' : 'before_handoff'});
+      if (context.publisher && (proof.binding.comment_id !== context.publisher.comment_id ||
+          proof.binding.owner_id !== context.publisher.owner_id ||
+          proof.binding.updated_at !== context.publisher.updated_at)) refusal('forward_publisher_changed');
+      return;
+    }
+  }
+  const runs = R.boundedList(await api('GET', R.API_ROOT +
+    '/actions/workflows/deploy.yml/runs?head_sha=' + context.baseSha + '&branch=main&per_page=100'),
+    'workflow_runs', 'incomplete_previous_deployments');
+  if (runs.length !== 1) refusal('ambiguous_previous_deployment');
+  const native = runs[0];
+  R.runIdentity(native, { id: native.id, attempt: native.run_attempt, head: context.baseSha,
+    workflow: R.DEPLOY, event: 'push' });
+  if (![1, 2].includes(native.run_attempt)) refusal('untrusted_previous_deployment');
+  const location = await R.readRecord(api);
+  const r = R.validateRelease(location.record).release;
+  if (r.repository_sha !== context.baseSha || r.release.run_id !== String(native.id) ||
+      r.release.run_attempt !== native.run_attempt || r.release.event !== 'push')
+    refusal('previous_release_source_changed');
+  let binding;
+  let terminal;
+  if (r.phase !== 'pending_terminal') {
+    const recovery = require('./release_slot_1701_recovery');
+    if (context.baseSha === recovery.P.sha) {
+      binding = await recovery.verifyClosed(api, location);
+      terminal = recovery.TERMINAL;
+    } else {
+      if (context.prNumber !== 1631 || context.baseSha !== UNBOUND_PREDECESSOR.source)
+        refusal('previous_release_unclosed');
+      await verifyUnboundPredecessor(api, location, native);
+      return;
+    }
+  } else {
+    // Authenticate the original native terminal and supported recovery lineage.
+    const resolved = await R.resolveCurrent(api, { sha: context.baseSha }, location);
+    if (resolved.ready !== true || resolved.repository_sha !== context.baseSha ||
+        resolved.application_sha !== r.application_sha) refusal('previous_release_unconfirmed');
+    binding = await R.currentBinding(api, context.baseSha);
+    const bound = binding && Object.fromEntries(['pr', 'head_sha', 'comment_id', 'owner_id', 'updated_at']
+      .map(key => [key, binding[key]]));
+    if (!binding || !R.same(bound, r.closure.binding)) refusal('previous_binding_changed');
+    terminal = r.closure.expected_terminal;
+  }
+  const path = R.API_ROOT + '/issues/comments/' + binding.comment_id;
+  // A completed shared publisher can already belong to this exact next PR.
+  // Its old native terminal remains authoritative; validate the new acquisition
+  // against the current PR rather than demanding the old free text reappear.
+  const shared = context.publisher?.comment_id === binding.comment_id;
+  if (shared && context.publisher.owner_id !== binding.owner_id) refusal('previous_publisher_changed');
+  const verifyAcquisition = async () => {
+    if (!shared) return;
+    pinnedPublisher(context.publisher, context.now);
+    verifyPublisherBinding(await api('GET', R.API_ROOT + '/pulls/' + context.prNumber),
+      context, context.publisher);
+  };
+  const verifyRecord = value => {
+    if (shared) verifyPublisherRecord(value, context, context.publisher);
+    else if (C.recordState(value, binding) !== 'released' ||
+        value.body !== terminal) refusal('previous_publisher_unclosed');
+  };
+  await verifyAcquisition();
+  const record = await api('GET', path);
+  verifyRecord(record);
+  const fresh = await R.readRecord(api);
+  if (fresh.blob !== location.blob || fresh.record_digest !== location.record_digest)
+    refusal('previous_release_changed');
+  const last = await api('GET', path);
+  verifyRecord(last);
+  if (last.body !== record.body || last.updated_at !== record.updated_at)
+    refusal('previous_publisher_changed');
+  await verifyAcquisition();
+  // A different candidate record can also change during the long old-release proof.
+  if (context.publisher) {
+    pinnedPublisher(context.publisher, context.now);
+    verifyPublisherBinding(await api('GET', R.API_ROOT + '/pulls/' + context.prNumber),
+      context, context.publisher);
+    verifyPublisherRecord(await api('GET', R.API_ROOT + '/issues/comments/' + context.publisher.comment_id),
+      context, context.publisher);
+  }
+  if ((await api('GET', R.API_ROOT + '/git/ref/heads/main'))?.object?.sha !== context.baseSha)
+    refusal('base_changed');
+}
+
+async function runGuard({ env, readEvent, fetchImpl, admission, now = Date.now(), clock = () => performance.now() }) {
   // Manual validation remains full validation, but cannot grant a merge.
   if (!admission && env.GITHUB_EVENT_NAME === 'workflow_dispatch') {
     return { allowed: true, reason: 'manual_checks_only', holder_pr: null, expires_at: null };
@@ -194,16 +422,36 @@ async function runGuard({ env, readEvent, fetchImpl, admission, now = Date.now()
   if (!validRepository(context.repository) ||
       !Number.isSafeInteger(context.prNumber) || !SHA.test(context.headSha || '') ||
       !SHA.test(context.baseSha || '')) refusal('invalid_context');
+  if (typeof clock !== 'function') refusal('invalid_clock');
+  const started = clock();
+  if (!Number.isFinite(started)) refusal('invalid_clock');
   const continuing = admission && Object.prototype.hasOwnProperty.call(admission, 'publisher');
   if (continuing) pinnedPublisher(admission.publisher, now);
   const main = await readJson(context.repository, 'git/ref/heads/main', env.GITHUB_TOKEN, fetchImpl);
   if (main?.object?.sha !== context.baseSha) refusal('base_changed');
   const pulls = await readOpenPulls(context.repository, env.GITHUB_TOKEN, fetchImpl);
-  return continuing ? continuePublisher(pulls, context, admission.publisher, env.GITHUB_TOKEN, fetchImpl) :
+  const decision = continuing ? await continuePublisher(pulls, context, admission.publisher, env.GITHUB_TOKEN, fetchImpl) :
     decidePriority(pulls, context);
+  if (admission && decision.allowed) {
+    await verifyPreviousRelease(context, env.GITHUB_TOKEN, fetchImpl);
+    // The predecessor proof can take time. Refresh the existing priority rules
+    // rather than admitting a superseded target or ignoring a new reservation.
+    const fresh = await readOpenPulls(context.repository, env.GITHUB_TOKEN, fetchImpl);
+    const elapsed = clock() - started;
+    if (!Number.isFinite(elapsed) || elapsed < 0 || !Number.isFinite(context.now + elapsed)) refusal('invalid_clock');
+    // Keep the supplied absolute clock, advancing it only by monotonic elapsed
+    // time so proof latency cannot preserve an expired or reject a fresh claim.
+    const finalContext = { ...context, now: context.now + elapsed };
+    const final = continuing ? await continuePublisher(fresh, finalContext, admission.publisher, env.GITHUB_TOKEN, fetchImpl) :
+      decidePriority(fresh, finalContext);
+    if ((await readJson(context.repository, 'git/ref/heads/main', env.GITHUB_TOKEN, fetchImpl))?.object?.sha !== context.baseSha)
+      refusal('base_changed');
+    return final;
+  }
+  return decision;
 }
 
-module.exports = { claimFor, decidePriority, readOpenPulls, runGuard, MAX_WINDOW_MS };
+module.exports = { claimFor, decidePriority, readOpenPulls, runGuard, verifyPreviousRelease, MAX_WINDOW_MS };
 if (typeof require === 'function' && require.main === module) {
   // --admit is the read-only last check before the existing publisher/CAS merge.
   // It has no merge permission and does not acquire a deployment lease.

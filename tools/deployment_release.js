@@ -41,9 +41,130 @@ const PUSH_OPERATIONS = new Set(['max-shadow-delivery.yml','repair-lead-receiver
   'restore-live-runtime.yml','restore-route-cache.yml','sync-legacy-lead-receiver.yml'].map(p=>PREFIX+p));
 const MANUAL_OPERATIONS = new Set([...DIRECT,...PUSH_OPERATIONS,
   PREFIX+'max-owner-avatar-probe.yml',PREFIX+'max-owner-tour-preview.yml',PREFIX+'telegram-webhook-status.yml',
-  PREFIX+'setup-appleservice39-connection.yml',PREFIX+'publish-appleservice39-pilot.yml']);
+  PREFIX+'setup-appleservice39-connection.yml',PREFIX+'publish-appleservice39-pilot.yml',
+  PREFIX+'max2-common-value-state-v2.yml']);
 const SCHEDULES = new Map([[PREFIX+'live-session-diagnostics.yml','25 * * * *'],
   [PREFIX+'modeled-conversion-monitor.yml','2-59/5 * * * *']]);
+const HOTEL_REGISTRY_READ = Object.freeze({branch:'ops/anytour-hotel-four-read-20261123',
+  workflow:PREFIX+'read-1566-main-hotel-registry.yml',job:'registry',operation:'hotel_four_registry',
+  owner:'pyatkoff',owner_id:226193297,repository_id:1342493152});
+const MAX2_HOLD_PAIR_READ = Object.freeze({branch:'ops/max2-hold-pair-read-20261123',
+  workflow:PREFIX+'max2-hold-pair-read.yml',job:'diagnose',operation:'max2_hold_pair_20261123',
+  owner:'pyatkoff',owner_id:226193297,repository_id:1342493152});
+const HOTEL_FOUR_TRANSFER = Object.freeze({branch:'ops/anytour-hotel-four-apply-20261123',
+  workflow:PREFIX+'edit-1566-historical-telegram-with-channel-default.yml',job:'transfer',operation:'hotel_four_transfer',
+  owner:'pyatkoff',owner_id:226193297,repository_id:1342493152,
+  plan_path:'config/anytour_existing_post_transfer_four_20261123.json',plan_size:11972,
+  plan_blob:'648e68b7395fcab65c321448b1a6a68554de17dc',
+  plan_digest:'fdda41801951a033715b5ca5d567ef348f2ee885ab40074d35dfa8151d52de56'});
+const HOTEL_NEXT_TRANSFER = Object.freeze({...HOTEL_FOUR_TRANSFER,
+  branch:'ops/anytour-hotel-next-apply-20261123',
+  workflow:PREFIX+'edit-1566-next-historical-telegram.yml',operation:'hotel_next_transfer',
+  plan_path:'config/anytour_existing_post_transfer_next_20261123.json',plan_size:5520,
+  plan_blob:'297bed885e03f3422e624ac3dff6fd873e689135',
+  plan_digest:'30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d'});
+const HOTEL_MAX_SUGAR_TRANSFER = Object.freeze({...HOTEL_FOUR_TRANSFER,
+  branch:'ops/anytour-max-sugar-marina-800-apply-20261123',
+  workflow:PREFIX+'edit-1566-max-sugar-marina.yml',operation:'hotel_max_sugar_transfer',
+  plan_path:'config/anytour_existing_post_transfer_max_800.json',plan_size:1387,
+  plan_blob:'34a610598ddd0db2213851ef12af7b3347931d3a',
+  plan_digest:'536eac513fc1491363b27d9a909043abfb3ef6fece67245327d1e49eac1f2ab6'});
+const HOTEL_MAX_SUGAR_PUBLIC_RECOVERY = Object.freeze({...HOTEL_MAX_SUGAR_TRANSFER,
+  branch:'ops/anytour-max-sugar-marina-800-recover-public-caption-20261124',operation:'hotel_max_sugar_public_recovery'});
+const ORIGINAL_MAX_SUGAR_PUBLIC_FAILURE = Object.freeze({
+  run:45286514435,job:138084128385,sha:'cb63be5342d575cf6515a1f5ea408b186a5908d9',
+  artifact:14872141610,digest:'sha256:f3bbc4498062ab72dd7bedae5b9b415ca2874761aedfbbad221dadc179ff9420'});
+const HOTEL_RANKED_46 = Object.freeze({...HOTEL_FOUR_TRANSFER,
+  branch:'ops/anytour-hotel-ranked-46-apply-20261123',workflow:PREFIX+'edit-1566-ranked-46-historical-telegram.yml',operation:'hotel_ranked_46_transfer',
+  plan_path:'config/anytour_ranked_46_20261123.json',plan_size:712,plan_blob:'f3e0d4ee289f189eb5c43aaf85f8024c3de801ba',
+  plan_digest:'30d58e6649877a0eb07deb7e2fddcfa99c92081aac5fbef8c3c2b1d7a4a92833',native_run:'45175721919',native_artifact:14818587717,
+  native_zip_bytes:94348,native_zip_digest:'cf776ab108e8b023aaf6217fa1d5e43dce6047d462e2c96295cc94175332d0cc'});
+const HOTEL_RANKED_CONTINUATION = Object.freeze({...HOTEL_RANKED_46,
+  branch:'ops/anytour-hotel-ranked-37-continue-20261123',operation:'hotel_ranked_37_continuation'});
+const HOTEL_RANKED_RESUME = Object.freeze({...HOTEL_RANKED_46,
+  branch:'ops/anytour-hotel-ranked-resume-20261124',operation:'hotel_ranked_resume'});
+// One separately approved keyboard-only control on the original rejected MID.
+// This does not re-admit the fifteen hotel transfers or change their journals.
+const HOTEL_PUBLISHER_KEYBOARD_PILOT = Object.freeze({...HOTEL_FOUR_TRANSFER,
+  branch:'ops/anytour-publisher-keyboard-1047-20261125',
+  workflow:HOTEL_RANKED_46.workflow,operation:'hotel_publisher_keyboard_pilot',
+  plan_path:'config/anytour_publisher_keyboard_pilot_20261125.json',plan_size:1026,
+  plan_blob:'72453334d2ca09dfbe690ba8310e72f6b4e168df',
+  plan_digest:'a92092aed3523efd38931a8a32f1b78db3d3946c3e449e7d4d4f0a781d1dbca1'});
+// A distinct, prospectively admitted media intent for one final-refused target.
+// This does not reopen the keyboard pilot or any old transfer branch/journal.
+const HOTEL_PUBLISHER_MEDIA_PILOT = Object.freeze({...HOTEL_FOUR_TRANSFER,
+  branch:'ops/anytour-publisher-media-1058-20261126',
+  workflow:HOTEL_RANKED_46.workflow,operation:'hotel_publisher_media_pilot',
+  plan_path:'config/anytour_publisher_media_pilot_20261126.json',plan_size:1694,
+  plan_blob:'132f0a237b36f955a6558e932596dd4cc2de410b',
+  plan_digest:'9369f02e77625e5e37308861980694f835d383f473cf7a6ea38dc23a31951feb'});
+const PUBLISHER_MEDIA_ORIGINALS = Object.freeze([
+  {kind:'original_final_refusal',run:45567178733,job:139044728610,
+    sha:'878c680627d54297c364254687577a03ac5aef6b',workflow:HOTEL_RANKED_46.workflow,
+    branch:'ops/anytour-hotel-ranked-plan-c8a4b60e6b9fd340f08b94faae3ae048d5a3cbc2ba3148aba82591315bf39141',
+    job_name:'transfer',conclusion:'failure',artifact:15000950069,size:2690,
+    artifact_name:'issue-1566-hotel-ranked-46-transfer',
+    digest:'sha256:9c910eea8d09bc86d7a17a807d34d662820a0b17098342593698c7e36b2c6c42',
+    steps:[['Resolve accepted repository and application','success'],
+      ['Require exact APPLY admission before loading credentials','success'],
+      ['Pin established SSH host continuity and authentication identity','success'],
+      ['Apply the installed editor once and retain its original receipts','failure'],
+      ['Save the original sanitized transfer result','success'],['Remove runner connection material','success']]},
+  {kind:'native_parent_read',run:45781107685,job:139776508251,
+    sha:'7e9e591c56d4839e0f843aa691ce5349702cf0dc',workflow:PREFIX+'read-1566-telegram-46-20261123.yml',
+    branch:'ops/1566-telegram-46-native-read-20261123',job_name:'registry',conclusion:'success',
+    artifact:15098640815,size:3523,artifact_name:'issue-1566-telegram-ranked-preflight',
+    digest:'sha256:9ee64987657aa7d09bde0390675f261e4826523290902e71e6e354a730df3fcc',
+    steps:[['Authenticate original1737 terminal before bounded host observation','success'],
+      ['Bind immutable packet to the admitted release and native run','success'],
+      ['Pin established SSH host continuity and authentication identity','success'],
+      ['Read existing2514 source429, target1058 and prior rejected journal without writes','success'],
+      ['Preserve the original bounded pair observation','success']]},
+  {kind:'independent_public_photo_read',run:45781368978,job:139777380374,
+    sha:'f26b7a38577a9ddd5120bae96debf6756bd14b3b',workflow:PREFIX+'read-1566-telegram-46-20261123.yml',
+    branch:'ops/1566-telegram-46-native-read-20261123',job_name:'registry',conclusion:'success',
+    artifact:15098636191,size:228029,artifact_name:'issue-1566-telegram-ranked-preflight',
+    digest:'sha256:035b1274ca5c433bb33ba9fd6f6749f0dc23eff8d2b83f1dfc7983cccf7180d4',
+    steps:[['Read four actual archive windows without enumerating nonexistent message IDs','success'],
+      ['Preserve the independent public result and actual photos','success']]}
+]);
+const PUBLISHER_KEYBOARD_PREWRITE_REFUSAL = Object.freeze({
+  run:45716283534,job:139563054439,sha:'58f15d1a147353a4b807f122525d75e1f4f35c1c',
+  artifact:15070650654,size:1094,
+  digest:'sha256:0412466a22de61baaeae4849c6d52d9ee9f74542014e6a4df495f5ddbdc23c9b'});
+// The second original also stopped before the credential lease/provider call.
+// Admit only its authenticated, known prewrite failure, not a general retry.
+const PUBLISHER_KEYBOARD_ACTOR_PREWRITE_REFUSAL = Object.freeze({
+  run:45724986458,job:139592437693,sha:'c1a445f48fd514b9a4f883faecd20e5ecf1bc4fb',
+  artifact:15074131951,size:1101,
+  digest:'sha256:36bbd6257202d88dbee445b67b24c32282892d37b4db02762967aceb9bc69dc2'});
+const RANKED_INPUT_BRANCH = /^ops\/anytour-hotel-ranked-plan-([0-9a-f]{64})$/;
+const RANKED_AFTER_BRANCH = /^ops\/anytour-hotel-ranked-after-([1-9][0-9]{0,15})$/;
+const RANKED_RESUME_SEED = Object.freeze({
+  run:45372056681, job:138368539666, sha:'e3e1a9bdf29dd0d7530fe6b3b393f1286834d092',
+  artifact:14909137840, digest:'sha256:3f0e0462ddd4fd0ab0e186de8e2b17f4f92752cd5700525f54e9cf9f0dd3034c'});
+const RANKED_PREWRITE_REFUSAL = Object.freeze({
+  branch:'ops/anytour-hotel-ranked-after-45372056681', run:45403460387, job:138477791041,
+  sha:'dca4085f9a63ac1e7a5179c2a9b1b20febce4f82'
+});
+const RANKED_CHUNK_DIGEST = '12d7accbf56f3a5a159ac08209168e34b34c3bcd61fdac15702b432eaa7864ce';
+const ORIGINAL_RANKED_CONTINUATION = Object.freeze({
+  run:45321557294,job:138201073452,sha:'fdcbf29f831b68005295dfa398ecb5878d94e6c7',
+  artifact:14887229025,digest:'sha256:14741cf575a1999287fbd8c2b73ceb9a8c2146edeb3ad8a345d173bf8bd34b81'});
+const ORIGINAL_RANKED_TRANSFER = Object.freeze({
+  run:45277253456,job:138052141297,sha:'0689691b5aa4b8cd5fbf2f3629d9e9dc76df7e9b',
+  artifact:14868735835,digest:'sha256:d861a07884fb09aaeb917cc0f2991e4dad9a20768f138ecbf7d708293aa8c76e'});
+const HOTEL_REMAINING_TRANSFER = Object.freeze({...HOTEL_NEXT_TRANSFER,
+  branch:'ops/anytour-hotel-remaining-apply-20261123',operation:'hotel_remaining_transfer'});
+const HOTEL_STELLA_ALTERNATE = Object.freeze({...HOTEL_NEXT_TRANSFER,
+  branch:'ops/anytour-hotel-stella-alternate-apply-20261123',operation:'hotel_stella_alternate_transfer',
+  plan_path:'config/anytour_stella_alternate_20261123.json',plan_size:2005,plan_blob:'f186b48375251a66226a9d2b81de4d0638e93c8e',plan_digest:'c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab'});
+const HOTEL_PREWRITE_RESUME = Object.freeze({...HOTEL_STELLA_ALTERNATE,
+  branch:'ops/anytour-hotel-prewrite-resume-20261124',operation:'hotel_prewrite_resume'});
+const ORIGINAL_NEXT_TRANSFER = Object.freeze({
+  run:45235830990,job:137907167978,sha:'bb7d0bde64092cbd24a69084e651ff44336ba8b5',
+  artifact:14850280926,digest:'sha256:8df0ba31b546c644f800a71324d959c8ebdaa1a0801ffdc2f0d8ef5cebf3034c'});
 const sha = v => typeof v === 'string' && /^[0-9a-f]{40}$/.test(v);
 const digest64 = v => typeof v === 'string' && /^[0-9a-f]{64}$/.test(v);
 const positive = v => (typeof v === 'string' && /^[1-9][0-9]{0,15}$/.test(v)
@@ -254,8 +375,123 @@ const UNPUBLISHED_TERMINAL_RECOVERY=Object.freeze({
   owner_id:226193297,updated_at:'2026-11-13T15:47:04Z',
   original_code:'5b81f5e8f4e2d98aff760fc5d093f2d8f7d8ea88'
 });
+// Exact same-owner continuation of1720; the1529 incident pins stay immutable.
+const UNPUBLISHED_TERMINAL_RECOVERY_1720=Object.freeze({
+  branch:'ops/recover-pr1720-terminal-20261125',sha:'84c8422b39c755b5c7ad396f05a58cf5870c9bec',
+  deploy:'45596624619',run_id:'45599238649',job_id:139153402201,
+  commit:'632833c51b869146d3998aac12a263afa85df06b',blob:'ff525900c47086bfd4621c15bf18b268a5408782',
+  record_digest:'eeeda54350fb008b3a16b168b7add4f250e60bd037c658aa2d861a73eefb16b4',
+  pending_commit:'ba97340e6cee700940e19c02b1d05e44afaffee0',pending_blob:'d8ba24e9c6eca71e6a20a347d49b073080ff9bb8',
+  pending_digest:'6c232503d124c1ba29e7208e7d9c8026211932793d5dc0c7d760d39c0e0c4c4f',
+  pr:1720,head_sha:'07c88cfafc1e4fb71a367e7717efd47f0a285494',comment_id:6818332618,
+  owner_id:226193297,updated_at:'2026-11-25T10:35:18Z',
+  original_code:'02bd4ab1625289911ecd7c40f310ccbd21d01d63'
+});
+function unpublishedTerminalProfile(r){
+  const run=r?.closure?.recovery?.original_run_id;
+  const p=[UNPUBLISHED_TERMINAL_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY_1720].find(p=>p.run_id===run);
+  requireValue(!!p,'invalid_unpublished_terminal_recovery');return p;
+}
+function unpublishedTerminalProfileForRef(ref){
+  return [UNPUBLISHED_TERMINAL_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY_1720]
+    .find(p=>ref==='refs/heads/'+p.branch)||null;
+}
+// Owner-transferred one-time metadata reconciliation of the 1596/1597 overlap.
+// Installation and failed original executions remain immutable.
+const PRIOR_WAVE_RECOVERY=Object.freeze({
+  branch:'ops/recover-pr1597-terminal-20261117',sha:'fd9b28dab2147f13f3b0d0f7f856b14392b141d2',
+  deploy:'44079440323',run_id:'44081722753',job_id:134033721866,
+  commit:'af7ee5c9aad44951cda9fd6b3f61f7947c232d44',blob:'dfc7eef713d4b6ab7f606420002f96c544e9e937',
+  record_digest:'3ffb405894009e90885b68cb3db652240d4a587c0547674d8ca6cc1c9ada65c3',
+  pr:1597,head_sha:'46f2ab2c01fcf1da5cea2d2f0c042fbbc0a676ff',comment_id:6928374515,
+  owner_id:226193297,updated_at:'2026-11-17T12:01:41Z',original_code:'39efce1e243ce68b2170a3f3a645b12f03496cd3',
+  old_children:Object.freeze([44079622025,44079621974,44079622090,44079622065,44079621931,44079621993,44079622033,44079622034,44079634544]),
+  previous:Object.freeze({sha:'c45b29452f8909eb190a04c6a54645400bb87c11',deploy:'44077678956',
+    verify_job_id:134026179047,pr:1596,head_sha:'96fd2b5ef87a8592cfc324308a72232b39e2a545',
+    comment_id:6682640708,owner_id:226193297,updated_at:'2026-11-17T11:49:29Z',
+    terminal:'PR1596: замещено PR1597; исходная проверка не завершена, выпуск свободен'})
+});
+// Owner-approved metadata-only continuation of PR1643's exact body-format refusal.
+// Ordinary recordState remains strict; these pins do not authorize another incident.
+const PUBLISHER_BODY_RECOVERY=Object.freeze({
+  branch:'ops/recover-pr1643-terminal-20261121',sha:'cabc34b7166994c65816ec8c81e48895ea889683',
+  deploy:'44912653990',run_id:'44914105188',job_id:136875917604,
+  commit:'d8b5805dc9699dcc3169aa4005fe1fa6155b1f86',blob:'0b02cdb005a8e9d60cfb0a3ffdccd3d2174c474d',
+  record_digest:'0b1d28a99159afad6409d30cd630596413d9502f95294a88d8ead388556777a5',
+  pr:1643,head_sha:'de603d8c5b53a5dbf3e972e166da96c42c4e5500',comment_id:7063060212,
+  owner_id:226193297,updated_at:'2026-11-21T14:11:18Z',
+  body_bytes:2956,body_sha256:'2f9cda3b8ccc67f1d1838b2a42e6ac3d37300e7aa37c1527354563cc7f7fb130',
+  original_code:'612d124bd14378ceaffad6e691dbcc03597ea910',
+  priority_code:'3c1b228d36785546d71fb9e21c68ee4b03961619',
+  source_files:Object.freeze(['tools/deployment_release.js','tools/release_slot_close.js','tools/release_priority.js',
+    'tests/run_deployment_release_regression.js',CLOSER]),
+  changed_files:Object.freeze(['tools/deployment_release.js','tools/release_slot_close.js',
+    'tests/run_deployment_release_regression.js',CLOSER,PREFIX+'max2-common-value-state-v2.yml',
+    'tests/run_max2_common_value_state_operation_v2_regression.py','tests/max2_common_v2/fixtures.json',
+    'resources/max2-common-v2/release-manifest.json','tests/check_ci_workflow_scopes.py'])
+});
+function publisherBodyRecovery(r){
+  const x=r.closure?.recovery,p=PUBLISHER_BODY_RECOVERY;
+  requireValue(keys(x,['kind','source_sha','source_files','original_commit','original_blob','original_record_digest',
+    'original_run_id','original_job_id','publisher_body_sha256','publisher_body_bytes'])&&x.kind==='publisher_body_format_v1'
+    &&sha(x.source_sha)&&x.source_sha!==p.sha&&keys(x.source_files,p.source_files)
+    &&Object.values(x.source_files).every(sha)&&x.source_files['tools/release_priority.js']===p.priority_code
+    &&r.repository_sha===p.sha&&r.application_sha===p.sha&&r.kind==='installed'
+    &&r.release.run_id===p.deploy&&r.release.run_attempt===1&&r.release.event==='push'
+    &&r.closure.job==='release-slot-recovery'&&r.closure.run_id!==p.run_id
+    &&x.original_commit===p.commit&&x.original_blob===p.blob&&x.original_record_digest===p.record_digest
+    &&x.original_run_id===p.run_id&&x.original_job_id===p.job_id
+    &&x.publisher_body_sha256===p.body_sha256&&x.publisher_body_bytes===p.body_bytes
+    &&r.observation===null&&r.observation_producer===null&&r.baseline_eligible===false
+    &&same(r.closure.binding,{pr:p.pr,head_sha:p.head_sha,comment_id:p.comment_id,
+      owner_id:p.owner_id,updated_at:p.updated_at}),'invalid_publisher_body_recovery');return x;
+}
+async function publisherBodySource(api,source,expected=null,{local=false}={}){
+  const p=PUBLISHER_BODY_RECOVERY,get=q=>api('GET',API_ROOT+q);
+  requireValue(sha(source)&&source!==p.sha&&(local===true||keys(expected,p.source_files)),
+    'publisher_recovery_source_unproved');
+  const relation=await get('/compare/'+p.sha+'...'+source+'?per_page=1');
+  requireValue(relation?.status==='ahead'&&relation.merge_base_commit?.sha===p.sha
+    &&Array.isArray(relation.files)&&relation.files.length===p.changed_files.length
+    &&same(relation.files.map(f=>f.filename).sort(),[...p.changed_files].sort())
+    &&relation.files.every(f=>f.status==='modified'&&!f.previous_filename),'publisher_recovery_source_changed');
+  const ci=boundedList(await get('/actions/runs?head_sha='+source+'&per_page=100'),
+    'workflow_runs','incomplete_recovery_ci');
+  for(const [name,file]of [['Regression tests','regression-tests.yml'],['Retired domain guard','retired-domain-guard.yml']]){
+    const rows=ci.filter(r=>r.path===PREFIX+file&&r.event==='pull_request');
+    requireValue(rows.length===1&&rows[0].name===name&&rows[0].head_sha===source
+      &&rows[0].head_repository?.full_name===REPOSITORY&&rows[0].run_attempt===1
+      &&rows[0].status==='completed'&&rows[0].conclusion==='success','recovery_ci_unconfirmed');
+  }
+  const pins={};
+  for(const name of p.source_files){
+    const item=await get('/contents/'+name+'?ref='+source);
+    requireValue(item?.type==='file'&&item.path===name&&sha(item.sha)
+      &&Number.isSafeInteger(item.size)&&item.size>0&&item.size<=512*1024,'publisher_recovery_source_unproved');
+    pins[name]=item.sha;
+    if(local){
+      const file=path.resolve(__dirname,'..',name),info=fs.lstatSync(file);
+      requireValue(info.isFile()&&!info.isSymbolicLink()&&info.size===item.size
+        &&gitBlob(fs.readFileSync(file))===item.sha,'publisher_recovery_checkout_changed');
+    }
+  }
+  requireValue(pins['tools/release_priority.js']===p.priority_code
+    &&(expected===null||same(pins,expected)),'publisher_recovery_source_changed');return pins;
+}
+function priorWaveRecovery(r){
+  const x=r.closure?.recovery,p=PRIOR_WAVE_RECOVERY;
+  requireValue(keys(x,['kind','source_sha','original_commit','original_blob','original_record_digest',
+    'original_run_id','original_job_id','superseded'])&&x.kind==='prior_failed_wave_v1'
+    &&sha(x.source_sha)&&x.source_sha!==p.sha&&r.repository_sha===p.sha&&r.kind==='installed'
+    &&r.release.run_id===p.deploy&&r.release.run_attempt===1&&r.closure.job==='release-slot-recovery'
+    &&r.closure.run_id!==p.run_id&&x.original_commit===p.commit&&x.original_blob===p.blob
+    &&x.original_record_digest===p.record_digest&&x.original_run_id===p.run_id&&x.original_job_id===p.job_id
+    &&same(x.superseded,p.previous)&&same(r.closure.binding,{pr:p.pr,head_sha:p.head_sha,
+      comment_id:p.comment_id,owner_id:p.owner_id,updated_at:p.updated_at}),
+    'invalid_prior_wave_recovery');return x;
+}
 function unpublishedTerminalRecovery(r){
-  const x=r.closure?.recovery,p=UNPUBLISHED_TERMINAL_RECOVERY;
+  const x=r.closure?.recovery,p=unpublishedTerminalProfile(r);
   requireValue(keys(x,['kind','source_sha','original_commit','original_blob','original_record_digest',
     'original_run_id','original_job_id'])&&x.kind==='unpublished_terminal_v1'&&sha(x.source_sha)&&x.source_sha!==p.sha
     &&r.repository_sha===p.sha&&r.kind==='installed'&&r.release.run_id===p.deploy&&r.release.run_attempt===1
@@ -266,7 +502,9 @@ function unpublishedTerminalRecovery(r){
       owner_id:p.owner_id,updated_at:p.updated_at}),'invalid_unpublished_terminal_recovery');return x;
 }
 function recoveryBranch(r){
-  return r.closure?.recovery?.kind==='unpublished_terminal_v1'?UNPUBLISHED_TERMINAL_RECOVERY.branch:TERMINAL_RECOVERY.branch;
+  if(r.closure?.recovery?.kind==='publisher_body_format_v1')return PUBLISHER_BODY_RECOVERY.branch;
+  if(r.closure?.recovery?.kind==='prior_failed_wave_v1')return PRIOR_WAVE_RECOVERY.branch;
+  return r.closure?.recovery?.kind==='unpublished_terminal_v1'?unpublishedTerminalProfile(r).branch:TERMINAL_RECOVERY.branch;
 }
 function gateRecovery(r){
   const x=r.closure?.recovery,p=GATE_RECOVERY;
@@ -281,6 +519,8 @@ function gateRecovery(r){
       owner_id:p.owner_id,updated_at:p.updated_at}),'invalid_gate_recovery');return x;
 }
 function terminalRecovery(r){
+  if(r.closure?.recovery?.kind==='publisher_body_format_v1')return publisherBodyRecovery(r);
+  if(r.closure?.recovery?.kind==='prior_failed_wave_v1')return priorWaveRecovery(r);
   if(r.closure?.recovery?.kind==='unpublished_terminal_v1')return unpublishedTerminalRecovery(r);
   if(r.closure?.recovery?.kind==='unstarted_tls_v1')return gateRecovery(r);
   const x=r.closure?.recovery,p=TERMINAL_RECOVERY;
@@ -519,7 +759,7 @@ async function authenticatePublication(api,location,{closed=false,diagnosticsHea
   }
   if(r.phase==='pending_terminal'){
     const origin='deploy-proof:v1:'+r.release.run_id+':'+r.release.run_attempt;
-    if(r.closure.recovery)await authenticateFailedTerminal(api,record);
+    if(r.closure.recovery)await authenticateFailedTerminal(api,record,{closed});
     else requireValue(run.display_title===origin||(run.display_title===undefined
       &&run.name==='Configure AnyTour modeled value goal'),'terminal_origin_mismatch');
   }
@@ -533,11 +773,36 @@ async function authenticatePublication(api,location,{closed=false,diagnosticsHea
   return {commit:location.commit,blob:location.blob,record_digest:location.record_digest,
     producer_run_id:producer.run_id,producer_run_attempt:producer.run_attempt};
 }
-async function authenticateFailedTerminal(api,record){
+async function authenticateFailedTerminal(api,record,{closed=false}={}){
+  if(record.repository_release?.closure?.recovery?.kind==='publisher_body_format_v1'){
+    const r=validateRelease(record).release,x=publisherBodyRecovery(r),p=PUBLISHER_BODY_RECOVERY;
+    const proof=await failedPublisherBodyTerminal(api),restored=clone(record),C=require('./release_slot_close');
+    restored.repository_release.phase='pending_closure';restored.repository_release.closure=null;
+    requireValue(same(restored,proof.original.record),'original_publisher_body_record_changed');
+    requireValue(same(C.gateReferences(proof.snapshot),r.closure.gates),'gates_changed');
+    await publisherBodySource(api,x.source_sha,x.source_files);
+    const native=await api('GET',API_ROOT+'/actions/runs/'+r.closure.run_id);
+    runIdentity(native,{id:r.closure.run_id,attempt:1,head:x.source_sha,workflow:CLOSER,event:'push',
+      branch:p.branch,completed:closed});
+    requireValue(native.actor?.id===p.owner_id&&native.triggering_actor?.id===p.owner_id,
+      'publisher_continuation_owner_changed');
+    // A later PR can lawfully acquire the same publisher. Historical completion
+    // is proved by the original digest-bound native terminal step below;
+    // current ownership remains the unchanged release-priority admission's job.
+    return proof;
+  }
+  if(record.repository_release?.closure?.recovery?.kind==='prior_failed_wave_v1'){
+    const r=validateRelease(record).release;priorWaveRecovery(r);
+    const proof=await failedPriorWaveTerminal(api),restored=clone(record);
+    restored.repository_release.phase='pending_closure';restored.repository_release.closure=null;
+    requireValue(same(restored,proof.original.record),'original_prior_wave_record_changed');
+    const C=require('./release_slot_close');
+    requireValue(same(C.gateReferences(proof.snapshot),r.closure.gates),'gates_changed');return proof;
+  }
   if(record.repository_release?.closure?.recovery?.kind==='unpublished_terminal_v1'){
-    const r=validateRelease(record).release,p=UNPUBLISHED_TERMINAL_RECOVERY;
+    const r=validateRelease(record).release,p=unpublishedTerminalProfile(r);
     unpublishedTerminalRecovery(r);
-    const original=await failedUnpublishedTerminal(api);
+    const original=await failedUnpublishedTerminal(api,p);
     const restored=clone(record);delete restored.repository_release.closure.recovery;
     restored.repository_release.closure.run_id=p.run_id;restored.repository_release.closure.job='release-slot';
     requireValue(same(restored,original.record),'original_unpublished_record_changed');return {original};
@@ -601,8 +866,128 @@ function failedGateJobs(tlsJobs,closeJobs){
     &&closer.steps.every(s=>s===prepare||['success','skipped'].includes(s.conclusion)),'failed_terminal_executed');
   return {tls,closer};
 }
-async function failedUnpublishedTerminal(api){
-  const p=UNPUBLISHED_TERMINAL_RECOVERY,get=path=>api('GET',API_ROOT+path),C=require('./release_slot_close');
+async function failedPublisherBodyTerminal(api){
+  const p=PUBLISHER_BODY_RECOVERY,get=q=>api('GET',API_ROOT+q),C=require('./release_slot_close');
+  const original=await readRecord(api,p.commit);
+  requireValue(original.blob===p.blob&&original.record_digest===p.record_digest,
+    'original_publisher_body_record_changed');
+  const r=validateRelease(original.record).release;
+  requireValue(r.repository_sha===p.sha&&r.application_sha===p.sha&&r.phase==='pending_closure'
+    &&r.kind==='installed'&&r.release.run_id===p.deploy&&r.release.run_attempt===1&&r.release.event==='push'
+    &&r.closure===null&&r.observation===null&&r.observation_producer===null&&r.baseline_eligible===false,
+    'original_publisher_body_record_changed');
+  await authenticatePublication(api,original);await deploymentProof(api,installationReceipt(original.record));
+  const run=await get('/actions/runs/'+p.run_id);
+  runIdentity(run,{id:p.run_id,attempt:1,head:p.sha,workflow:CLOSER,event:'workflow_run',conclusion:'failure'});
+  requireValue(run.display_title==='deploy-proof:v1:'+p.deploy+':1','failed_terminal_origin_changed');
+  const raw=await get('/actions/runs/'+p.run_id+'/attempts/1/jobs?per_page=100');
+  const jobs=boundedList(raw,'jobs','incomplete_failed_terminal_jobs'),rows=jobs.filter(j=>j.id===p.job_id&&j.name==='release-slot');
+  requireValue(jobs.length===3&&rows.length===1&&rows[0].run_id===Number(p.run_id)&&rows[0].run_attempt===1
+    &&rows[0].head_sha===p.sha&&rows[0].status==='completed'&&rows[0].conclusion==='failure'
+    &&Array.isArray(rows[0].steps),'failed_terminal_not_original');
+  const own=rows[0],one=(name,result)=>{const ss=own.steps.filter(s=>s.name===name);
+    requireValue(ss.length===1&&ss[0].status==='completed'&&ss[0].conclusion===result,'failed_terminal_executed');return ss[0];};
+  const prepare=one('Prepare the exact release proof before terminal publication','failure');
+  const upload=one(TERMINAL_BINDING_STEP,'skipped'),terminal=one(TERMINAL_STEP,'skipped');
+  requireValue(prepare.number<upload.number&&upload.number<terminal.number
+    &&own.steps.every(s=>s===prepare||['success','skipped'].includes(s.conclusion)),'failed_terminal_executed');
+  requireValue(['configure','release-slot-recovery'].every(name=>{
+    const ss=jobs.filter(j=>j.name===name);return ss.length===1&&ss[0].run_id===Number(p.run_id)
+      &&ss[0].head_sha===p.sha&&ss[0].run_attempt===1&&ss[0].status==='completed'
+      &&ss[0].conclusion==='skipped'&&Array.isArray(ss[0].steps)&&ss[0].steps.length===0;
+  }),'configuration_executed');
+  requireValue(boundedList(await get('/actions/runs/'+p.run_id+'/artifacts?per_page=100'),
+    'artifacts','incomplete_failed_terminal_artifacts').length===0,'original_terminal_already_published');
+  requireValue((await get('/contents/tools/release_slot_close.js?ref='+p.sha))?.sha===p.original_code,
+    'original_terminal_source_changed');
+  requireValue(typeof api.jobLog==='function','original_terminal_log_unavailable');
+  const bytes=await api.jobLog(p.job_id);
+  requireValue(Buffer.isBuffer(bytes)&&bytes.length>0&&bytes.length<=2*1024*1024
+    &&Buffer.from(bytes.toString('utf8')).equals(bytes),'original_terminal_log_unavailable');
+  const lines=bytes.toString('utf8').split(/\r?\n/).filter(l=>/^\d{4}-\d\d-\d\dT[0-9:.]+Z release_slot=/.test(l));
+  requireValue(lines.length===1&&lines[0].endsWith('Z release_slot=held reason=record_changed'),'failed_terminal_reason_changed');
+  const b=C.binding(await get('/pulls/'+p.pr),p.sha);
+  requireValue(b&&same(C.bindingSnapshot(b),{pr:p.pr,head_sha:p.head_sha,comment_id:p.comment_id,
+    owner_id:p.owner_id,updated_at:p.updated_at}),'binding_changed');
+  const c={sha:p.sha,deploy:Number(p.deploy),run:Number(p.run_id),configure:'skipped',activation:false,
+    terminalRecovery:true,publisherBodyRecovery:true};
+  const snapshot=await C.selectReleaseRuns(await get('/actions/runs?head_sha='+p.sha+'&per_page=100'),c,get);
+  requireValue(!snapshot.waiting&&C.gateState(snapshot.runs,c)==='ready','gates_changed');
+  C.verifyConfigure(raw,c);
+  const a=snapshot.runs.workflow_runs.find(x=>x.path===PREFIX+C.ACTIVATION.file&&x.event==='workflow_run');
+  const aj=await get('/actions/runs/'+a.id+'/attempts/1/jobs?per_page=100');
+  C.verifyActivation(aj,a,c,snapshot.runs.workflow_runs.find(x=>x.path===PREFIX+'modeled-conversion-monitor.yml'&&x.event==='workflow_run')?.id);
+  requireValue(aj.jobs[0].steps.length===0,'activation_executed');
+  return {original,snapshot:snapshot.runs,binding:b};
+}
+async function failedPriorWaveTerminal(api){
+  const p=PRIOR_WAVE_RECOVERY,q=p.previous,get=path=>api('GET',API_ROOT+path),C=require('./release_slot_close');
+  const original=await readRecord(api,p.commit);
+  requireValue(original.blob===p.blob&&original.record_digest===p.record_digest,'original_prior_wave_record_changed');
+  const r=validateRelease(original.record).release;
+  requireValue(r.repository_sha===p.sha&&r.phase==='pending_closure'&&r.kind==='installed'
+    &&r.release.run_id===p.deploy&&r.release.run_attempt===1,'original_prior_wave_record_changed');
+  await authenticatePublication(api,original);await deploymentProof(api,installationReceipt(original.record));
+  const run=await get('/actions/runs/'+p.run_id);
+  runIdentity(run,{id:p.run_id,attempt:1,head:p.sha,workflow:CLOSER,event:'workflow_run',conclusion:'failure'});
+  requireValue(run.display_title==='deploy-proof:v1:'+p.deploy+':1','failed_terminal_origin_changed');
+  const raw=await get('/actions/runs/'+p.run_id+'/attempts/1/jobs?per_page=100');
+  const jobs=boundedList(raw,'jobs','incomplete_failed_terminal_jobs'),rows=jobs.filter(j=>j.id===p.job_id&&j.name==='release-slot');
+  requireValue(jobs.length===3&&rows.length===1&&rows[0].run_id===Number(p.run_id)&&rows[0].run_attempt===1
+    &&rows[0].head_sha===p.sha&&rows[0].status==='completed'&&rows[0].conclusion==='failure'
+    &&Array.isArray(rows[0].steps),'failed_terminal_not_original');
+  const own=rows[0],one=(name,result)=>{const ss=own.steps.filter(s=>s.name===name);
+    requireValue(ss.length===1&&ss[0].status==='completed'&&ss[0].conclusion===result,'failed_terminal_executed');return ss[0];};
+  const prepare=one('Prepare the exact release proof before terminal publication','failure');
+  const upload=one(TERMINAL_BINDING_STEP,'skipped'),terminal=one(TERMINAL_STEP,'skipped');
+  requireValue(prepare.number<upload.number&&upload.number<terminal.number
+    &&own.steps.every(s=>s===prepare||['success','skipped'].includes(s.conclusion)),'failed_terminal_executed');
+  requireValue(['configure','release-slot-recovery'].every(name=>{
+    const ss=jobs.filter(j=>j.name===name);return ss.length===1&&ss[0].run_id===Number(p.run_id)
+      &&ss[0].head_sha===p.sha&&ss[0].run_attempt===1&&ss[0].status==='completed'
+      &&ss[0].conclusion==='skipped'&&Array.isArray(ss[0].steps)&&ss[0].steps.length===0;
+  }),'configuration_executed');
+  requireValue(boundedList(await get('/actions/runs/'+p.run_id+'/artifacts?per_page=100'),
+    'artifacts','incomplete_failed_terminal_artifacts').length===0,'original_terminal_already_published');
+  requireValue((await get('/contents/tools/release_slot_close.js?ref='+p.sha))?.sha===p.original_code,'original_terminal_source_changed');
+  requireValue(typeof api.jobLog==='function','original_terminal_log_unavailable');
+  const exactLog=async(job,reason)=>{
+    const bytes=await api.jobLog(job);
+    requireValue(Buffer.isBuffer(bytes)&&bytes.length>0&&bytes.length<=2*1024*1024
+      &&Buffer.from(bytes.toString('utf8')).equals(bytes),'original_terminal_log_unavailable');
+    const lines=bytes.toString('utf8').split(/\r?\n/).filter(l=>/^\d{4}-\d\d-\d\dT[0-9:.]+Z release_slot=/.test(l));
+    requireValue(lines.length===1&&lines[0].endsWith('Z release_slot=held reason='+reason),'failed_terminal_reason_changed');
+  };
+  await exactLog(p.job_id,'ambiguous_run');await exactLog(q.verify_job_id,'main_changed');
+  const previous=await get('/actions/runs/'+q.deploy);
+  runIdentity(previous,{id:q.deploy,attempt:1,head:q.sha,workflow:DEPLOY,event:'push',conclusion:'failure'});
+  const priorJobs=boundedList(await get('/actions/runs/'+q.deploy+'/attempts/1/jobs?per_page=100'),
+    'jobs','previous_deploy_jobs_incomplete');
+  requireValue(priorJobs.filter(j=>j.name==='verify'&&j.id===q.verify_job_id&&j.run_id===Number(q.deploy)
+    &&j.head_sha===q.sha&&j.run_attempt===1&&j.status==='completed'&&j.conclusion==='failure').length===1,
+    'previous_deploy_jobs_untrusted');
+  const previousBinding=C.binding(await get('/pulls/'+q.pr),q.sha);
+  requireValue(previousBinding&&same(C.bindingSnapshot(previousBinding),{pr:q.pr,head_sha:q.head_sha,
+    comment_id:q.comment_id,owner_id:q.owner_id,updated_at:q.updated_at}),'previous_binding_changed');
+  const c={sha:p.sha,deploy:Number(p.deploy),run:Number(p.run_id),configure:'skipped',activation:false,
+    terminalRecovery:true,priorWaveRecovery:true};
+  const rawSnapshot=await get('/actions/runs?head_sha='+p.sha+'&per_page=100');
+  const withoutOld=await C.selectPreviousFailedWave(rawSnapshot,c,get);
+  const removed=rawSnapshot.workflow_runs.filter(x=>!withoutOld.workflow_runs.some(y=>y.id===x.id)).map(x=>x.id).sort((a,b)=>a-b);
+  requireValue(same(removed,[...p.old_children].sort((a,b)=>a-b)),'original_previous_wave_missing');
+  const snapshot=await C.selectReleaseRuns(withoutOld,c,get);
+  // The classifier positively authenticates all nine exact old children and failed parent.
+  requireValue(!snapshot.waiting&&C.gateState(snapshot.runs,c)==='ready','gates_changed');
+  C.verifyConfigure(raw,c);
+  const a=snapshot.runs.workflow_runs.find(x=>x.path===PREFIX+C.ACTIVATION.file&&x.event==='workflow_run');
+  const aj=await get('/actions/runs/'+a.id+'/attempts/1/jobs?per_page=100');
+  C.verifyActivation(aj,a,c,snapshot.runs.workflow_runs.find(x=>x.path===PREFIX+'modeled-conversion-monitor.yml'&&x.event==='workflow_run')?.id);
+  requireValue(aj.jobs[0].steps.length===0,'activation_executed');
+  return {original,snapshot:snapshot.runs,previousBinding};
+}
+async function failedUnpublishedTerminal(api,p=UNPUBLISHED_TERMINAL_RECOVERY){
+  requireValue(p===UNPUBLISHED_TERMINAL_RECOVERY||p===UNPUBLISHED_TERMINAL_RECOVERY_1720,'invalid_unpublished_terminal_recovery');
+  const get=path=>api('GET',API_ROOT+path),C=require('./release_slot_close');
   const original=await readRecord(api,p.commit),pending=await readRecord(api,p.pending_commit);
   requireValue(original.blob===p.blob&&original.record_digest===p.record_digest
     &&pending.blob===p.pending_blob&&pending.record_digest===p.pending_digest,'original_unpublished_record_changed');
@@ -639,7 +1024,7 @@ async function failedUnpublishedTerminal(api){
   const lines=bytes.toString('utf8').split(/\r?\n/).filter(l=>/^\d{4}-\d\d-\d\dT[0-9:.]+Z release_slot=/.test(l));
   requireValue(lines.length===1&&lines[0].endsWith('Z release_slot=held reason=diagnostics_write_unknown'),'failed_terminal_reason_changed');
   const c={sha:p.sha,deploy:Number(p.deploy),run:Number(p.run_id),configure:'skipped',activation:false,
-    terminalRecovery:true,unpublishedRecovery:true};
+    terminalRecovery:true,unpublishedRecovery:true,unpublishedRecoveryPr:p.pr};
   const snapshot=await C.selectReleaseRuns(await get('/actions/runs?head_sha='+p.sha+'&per_page=100'),c,get);
   requireValue(!snapshot.waiting&&C.gateState(snapshot.runs,c)==='ready'
     &&same(C.gateReferences(snapshot.runs),r.closure.gates),'gates_changed');
@@ -798,7 +1183,12 @@ function makeReadApi(token,fetchImpl=globalThis.fetch,{sleep=waitForRetry}={}) {
   };
   api.jobLog=async job=>{
     requireValue([TERMINAL_RECOVERY.job_id,TERMINAL_RECOVERY.continuation_job_id,TERMINAL_RECOVERY.observation_job_id,
-      TERMINAL_RECOVERY.read_failure_job_id,GATE_RECOVERY.tls_job_id,UNPUBLISHED_TERMINAL_RECOVERY.job_id].includes(job),'untrusted_terminal_log');
+      TERMINAL_RECOVERY.read_failure_job_id,GATE_RECOVERY.tls_job_id,UNPUBLISHED_TERMINAL_RECOVERY.job_id,UNPUBLISHED_TERMINAL_RECOVERY_1720.job_id,
+      PRIOR_WAVE_RECOVERY.job_id,PRIOR_WAVE_RECOVERY.previous.verify_job_id,PUBLISHER_BODY_RECOVERY.job_id,
+      137646126584,137658227484,137707302320,137760498372,139299134637,139313325305,RANKED_PREWRITE_REFUSAL.job].includes(job)
+      || require('./partial_install_1702_forward').allowedLog(job)
+      || job === require('./unstarted_1704_forward').JOB
+      || [138826764785,138849924897].includes(job),'untrusted_terminal_log');
     const response=await request('https://api.github.com'+API_ROOT+'/actions/jobs/'+job+'/logs',headers(false),'manual',2*1024*1024);
     if(Buffer.isBuffer(response))return response;
     let url;try{url=new URL(response.headers.get('location'));}catch{throw new Refusal('invalid_log_redirect');}
@@ -1001,14 +1391,375 @@ async function acceptedBaseline(api,location) {
     'baseline_runtime_mismatch');
   return baseline;
 }
+// One finite forward release after PR1600 failed before acquiring credentials.
+// No retry, dispatch, installation receipt or publisher mutation is performed here.
+const UNSTARTED_FORWARD = {
+  sha:"970e1bab10e44b2ab8148e609840be8630f5d5db",
+  head_sha:"c1d34ae37aca71377c4b63541f0f92e137b3e296",
+  pr:1600,
+  deploy:"44100865685",
+  comment_id:6928374515,
+  owner_id:226193297,
+  updated_at:"2026-11-17T14:13:31Z",
+  workflow_blob:"ea398626670c37c70f4eace3c503f813cc3d2c18",
+  application_sha:"fd9b28dab2147f13f3b0d0f7f856b14392b141d2",
+  commit:"876c980f329b01b6720dc7272ce5f36434b8ad41",
+  blob:"4e8fc7a4d6fd0cab85dfb830428a0cdbaaaf5a4f",
+  record_digest:"1399ed7731510e27878ccadf4f375d6bb2bea990d7bc86543356e1252054ae7e",
+  jobs: [
+    {id:134100184310,name:"verify-inventory",conclusion:"success",steps:[
+      ["Set up job","success"],
+      ["Checkout exact verification SHA","success"],
+      ["Setup PHP","success"],
+      ["Verify required inventory and architecture","success"],
+      ["Post Checkout exact verification SHA","success"],
+      ["Complete job","success"],
+    ]},
+    {id:134100184973,name:"verify-syntax",conclusion:"success",steps:[
+      ["Set up job","success"],
+      ["Checkout exact verification SHA","success"],
+      ["Setup PHP","success"],
+      ["PHP syntax check","success"],
+      ["Post Checkout exact verification SHA","success"],
+      ["Complete job","success"],
+    ]},
+    {id:134104653686,name:"verify / diagnostics",conclusion:"success",steps:[
+      ["Set up job","success"],
+      ["Checkout exact verification SHA","success"],
+      ["Setup PHP","success"],
+      ["Run every required group in this lane","success"],
+      ["Post Checkout exact verification SHA","success"],
+      ["Complete job","success"],
+    ]},
+    {id:134104653810,name:"verify / application",conclusion:"failure",steps:[
+      ["Set up job","success"],
+      ["Checkout exact verification SHA","success"],
+      ["Setup PHP","success"],
+      ["Run every required group in this lane","failure"],
+      ["Post Checkout exact verification SHA","success"],
+      ["Complete job","success"],
+    ]},
+    {id:134106119021,name:"deploy",conclusion:"failure",steps:[
+      ["Set up job","success"],
+      ["Require the complete deployment verification","failure"],
+      ["Checkout exact deployment SHA","skipped"],
+      ["Verify deployment SHA is current main","skipped"],
+      ["Resolve original accepted installation and complete release intent","skipped"],
+      ["Prepare canonical SSH private key","skipped"],
+      ["Select installation or prove the unchanged application without mutation","skipped"],
+      ["Build exact deployment bundle","skipped"],
+      ["Sync canonical production checkout","skipped"],
+      ["Apply database migrations and fence the old hotel contour","skipped"],
+      ["Reconcile canonical MAX webhook ownership","skipped"],
+      ["Ensure Metrika offline uploader cron","skipped"],
+      ["Apply profile and retain exact diagnostic snapshot","skipped"],
+      ["Fail failed installation","failure"],
+      ["Complete job","success"],
+    ]},
+    {id:134106202492,name:"verify",conclusion:"skipped",steps:[
+    ]},
+  ],
+  children: [
+    {"id":44102603173,"path":".github/workflows/modeled-pipeline-monitor-activation.yml","title":"monitor-proof:v1:44102585963:1"},
+    {"id":44102586106,"path":".github/workflows/max-tls-preflight.yml","title":"deploy-proof:v1:44100865685:1"},
+    {"id":44102585970,"path":".github/workflows/telegram-production-health.yml","title":"deploy-proof:v1:44100865685:1"},
+    {"id":44102586115,"path":".github/workflows/tour-selection-host.yml","title":"deploy-proof:v1:44100865685:1"},
+    {"id":44102585963,"path":".github/workflows/modeled-conversion-monitor.yml","title":"deploy-proof:v1:44100865685:1"},
+    {"id":44102585935,"path":".github/workflows/live-session-diagnostics.yml","title":"deploy-proof:v1:44100865685:1"},
+    {"id":44102586276,"path":".github/workflows/modeled-conversion-value-export.yml","title":"deploy-proof:v1:44100865685:1"},
+    {"id":44102586451,"path":".github/workflows/publish-conversation-diagnostics.yml","title":"deploy-proof:v1:44100865685:1"},
+    {"id":44102585942,"path":".github/workflows/max-production-health.yml","title":"deploy-proof:v1:44100865685:1"},
+  ],
+};
+// The six source/installer job shapes are identical to the pre-install refusal in #1600.
+const UNSTARTED_FORWARD_1692 = Object.freeze({
+  pr: 1692, sha: 'cdde6f427f61bace3a5afbd943d2303f463d6531', head_sha: '13de19b7bf1902bdc67e4043c6c06b89cbacf7e9',
+  deploy: '45374266796', workflow_blob: '8163abe000ce5cef2b6e241a078663c89686b11b',
+  owner_id: 226193297, comment_id: 6818332618, updated_at: '2026-11-24T10:21:01Z',
+  application_sha: 'e3e1a9bdf29dd0d7530fe6b3b393f1286834d092', commit: '5635a6177635039d2668c8136ada5b33ca2265f2',
+  blob: 'fa6873d0b19c66c29ab254c80fdf3a03346e092c', record_digest: '0d78c6aec0f0ba2f48a48a938587416bbcaa1cb5b6b85c2bd36a700cef415950',
+  successor: 1694, branch: 'prep/1566-telegram-routes-resume-45372056681',
+  route_blob: 'a15fe913a429d2d54d3cc3b5c9b309a4f680361e',
+  fixture_blob: '85798fb368ee5c277f1da727048d56b0193d0839',
+  jobs: UNSTARTED_FORWARD.jobs.map(job => ({...job, id: ({
+    "verify-inventory": 138376135258,
+    "verify-syntax": 138376135783,
+    "verify / application": 138381768941,
+    "verify / diagnostics": 138381769132,
+    "deploy": 138382987719,
+    "verify": 138383083777
+  })[job.name]})),
+  children: [
+    [45376252183, 'modeled-pipeline-monitor-activation.yml', 'monitor-proof:v1:45376226512:1'],
+    [45376226363, 'telegram-production-health.yml', 'deploy-proof:v1:45374266796:1'],
+    [45376226320, 'max-production-health.yml', 'deploy-proof:v1:45374266796:1'],
+    [45376226512, 'modeled-conversion-monitor.yml', 'deploy-proof:v1:45374266796:1'],
+    [45376226248, 'max-tls-preflight.yml', 'deploy-proof:v1:45374266796:1'],
+    [45376226352, 'publish-conversation-diagnostics.yml', 'deploy-proof:v1:45374266796:1'],
+    [45376226674, 'modeled-conversion-value-export.yml', 'deploy-proof:v1:45374266796:1'],
+    [45376226258, 'live-session-diagnostics.yml', 'deploy-proof:v1:45374266796:1'],
+    [45376226560, 'tour-selection-host.yml', 'deploy-proof:v1:45374266796:1']
+  ].map(([id, file, title]) => ({id, path: PREFIX + file, title}))
+});
+
+function unstartedPin(previousPr) {
+  if (previousPr === 1692) return UNSTARTED_FORWARD_1692;
+  requireValue(previousPr === 1600, 'unknown_unstarted_predecessor');
+  return UNSTARTED_FORWARD;
+}
+
+async function requireRouteForwardSource(get, target, installation) {
+  const p = UNSTARTED_FORWARD_1692;
+  requireValue(target.number === p.successor && target.head.ref === p.branch, 'forward_successor_changed');
+  const route = 'hotel-posts-telegram-main19.php';
+  const fixture = 'tests/run_manager_push_subscription_http_regression.php';
+  const paths = ['.github/workflows/deploy.yml', route, 'resources/max2-common-v2/release-manifest.json',
+    'tests/run_deployment_release_regression.js', fixture, 'tests/run_partial_install_1662_forward_sync.py',
+    'tools/deployment_release.js', 'tools/release_priority.js'];
+  const changes = await get('/pulls/' + p.successor + '/files?per_page=100');
+  requireValue(Array.isArray(changes) && changes.length === paths.length
+    && same(changes.map(f => f.filename).sort(), paths)
+    && changes.every(f => f.status === 'modified' && sha(f.sha))
+    && changes.find(f => f.filename === route).sha === p.route_blob
+    && changes.find(f => f.filename === fixture).sha === p.fixture_blob, 'forward_source_scope_changed');
+  const runs = boundedList(await get('/actions/runs?head_sha=' + target.head.sha + '&per_page=100'),
+    'workflow_runs', 'forward_source_checks_incomplete');
+  for (const [workflow, id] of [['regression-tests.yml', 340550044], ['retired-domain-guard.yml', 348353174]]) {
+    const path = PREFIX + workflow;
+    const matches = runs.filter(r => r.event === 'pull_request' && r.head_branch === p.branch
+      && (r.path === path || r.workflow_id === id));
+    requireValue(matches.length === 1 && positive(matches[0].id), 'forward_source_checks_missing');
+    for (const r of [matches[0], await get('/actions/runs/' + matches[0].id)]) {
+      runIdentity(r, {id: matches[0].id, attempt: 1, head: target.head.sha,
+        branch: p.branch, workflow: path, event: 'pull_request'});
+      requireValue(r.workflow_id === id && r.repository?.id === 1342493152 && r.head_repository?.id === 1342493152
+        && Array.isArray(r.pull_requests) && ((installation && r.pull_requests.length === 0) ||
+        (r.pull_requests.length === 1 && r.pull_requests[0].number === target.number &&
+        r.pull_requests[0].head?.sha === target.head.sha && r.pull_requests[0].head?.ref === p.branch &&
+        r.pull_requests[0].base?.ref === 'main' && r.pull_requests[0].head?.repo?.id === 1342493152 &&
+        r.pull_requests[0].base?.repo?.id === 1342493152)), 'forward_source_check_changed');
+    }
+  }
+}
+
+function forwardMarker(pr,head,previousPr=1600) {
+  const body=pr?.body;
+  requireValue(typeof body==='string'&&body.length<=65536,'invalid_forward_marker');
+  const matches=[...body.matchAll(/<!-- release-forward-unstarted:v1 (\{[^\r\n]*\}) -->/g)];
+  requireValue((body.match(/<!--\s*release-forward-unstarted:/g)||[]).length===1&&matches.length===1,
+    'invalid_forward_marker');
+  let m;try{m=JSON.parse(matches[0][1]);}catch{throw new Refusal('invalid_forward_marker');}
+  const p=unstartedPin(previousPr);
+  requireValue(keys(m,['previous_pr','previous_sha','previous_run_id','head_sha'])&&m.previous_pr===p.pr
+    &&m.previous_sha===p.sha&&m.previous_run_id===p.deploy&&sha(head)&&m.head_sha===head,
+    'invalid_forward_marker');return m;
+}
+async function proveUnstartedDeployment(api,previousPr=1600) {
+  const p=unstartedPin(previousPr),get=path=>api('GET',API_ROOT+path);
+  const old=await get('/actions/runs/'+p.deploy);
+  runIdentity(old,{id:p.deploy,attempt:1,head:p.sha,workflow:DEPLOY,event:'push',conclusion:'failure'});
+  requireValue(old.head_commit?.id===p.sha,'forward_original_changed');
+  requireValue((await get('/contents/'+DEPLOY+'?ref='+p.sha))?.sha===p.workflow_blob,'forward_source_changed');
+  const jobs=boundedList(await get('/actions/runs/'+p.deploy+'/jobs?filter=all&per_page=100'),'jobs','forward_jobs_incomplete');
+  requireValue(jobs.length===p.jobs.length&&new Set(jobs.map(j=>j.id)).size===jobs.length,'forward_jobs_incomplete');
+  for(const expected of p.jobs){
+    const j=jobs.find(j=>j.id===expected.id);
+    requireValue(j&&j.name===expected.name&&j.run_id===Number(p.deploy)&&j.run_attempt===1
+      &&j.head_sha===p.sha&&j.status==='completed'&&j.conclusion===expected.conclusion&&Array.isArray(j.steps)
+      &&j.steps.every(s=>s.status==='completed')&&same(j.steps.map(s=>[s.name,s.conclusion]),expected.steps),
+      'forward_installation_not_unstarted');
+  }
+  const artifacts=boundedList(await get('/actions/runs/'+p.deploy+'/artifacts?per_page=100'),'artifacts','forward_artifacts_incomplete');
+  requireValue(artifacts.length===0,'forward_original_published');
+  const runs=boundedList(await get('/actions/runs?head_sha='+p.sha+'&per_page=100'),'workflow_runs','forward_runs_incomplete');
+  requireValue(new Set(runs.map(r=>r.id)).size===runs.length,'forward_runs_incomplete');
+  const deploys=runs.filter(r=>r.path===DEPLOY);
+  requireValue(deploys.length===1&&deploys[0].id===Number(p.deploy)&&deploys[0].run_attempt===1
+    &&deploys[0].status==='completed'&&deploys[0].conclusion==='failure','forward_deploy_replayed');
+  const children=runs.filter(r=>r.event==='workflow_run');
+  requireValue(children.length===p.children.length,'forward_tail_incomplete');
+  const childNames={
+    'max-tls-preflight.yml':['strict-tls-preflight'],'max-production-health.yml':['inspect'],
+    'telegram-production-health.yml':['inspect'],'publish-conversation-diagnostics.yml':['publish'],
+    'live-session-diagnostics.yml':['publish'],'tour-selection-host.yml':['host','independent-editor'],
+    'modeled-conversion-monitor.yml':['monitor'],'modeled-pipeline-monitor-activation.yml':['activate'],
+    'modeled-conversion-value-export.yml':['configure','release-slot','release-slot-recovery']};
+  for(const expected of p.children){
+    const r=children.find(r=>r.id===expected.id);
+    runIdentity(r,{id:String(expected.id),attempt:1,head:p.sha,workflow:expected.path,event:'workflow_run',conclusion:'skipped'});
+    requireValue(r.head_commit?.id===p.sha&&r.display_title===expected.title,'forward_tail_changed');
+    const js=boundedList(await get('/actions/runs/'+r.id+'/attempts/1/jobs?per_page=100'),'jobs','forward_tail_jobs_incomplete');
+    const names=childNames[expected.path.slice(PREFIX.length)];
+    requireValue(js.length===names.length&&same(js.map(j=>j.name).sort(),[...names].sort())
+      &&new Set(js.map(j=>j.id)).size===js.length&&js.every(j=>positive(j.id)&&j.run_id===r.id&&j.run_attempt===1
+        &&j.head_sha===p.sha&&j.status==='completed'&&j.conclusion==='skipped'&&Array.isArray(j.steps)&&j.steps.length===0),
+      'forward_tail_executed');
+  }
+  return {previous_pr:p.pr,previous_sha:p.sha,previous_run_id:p.deploy,installation:'not_started'};
+}
+async function proveUnstartedForward({api,pr,head,phase,source,previousPr=1600}) {
+  const p=unstartedPin(previousPr),C=require('./release_slot_close'),get=path=>api('GET',API_ROOT+path);
+  requireValue(['before_handoff','after_handoff','installation'].includes(phase)&&positive(pr)&&pr!==p.pr&&sha(head),
+    'invalid_forward_context');
+  const installation=phase==='installation',main=installation?source:p.sha;
+  requireValue(sha(main)&&(await get('/git/ref/heads/main'))?.object?.sha===main,'main_changed');
+  const target=await get('/pulls/'+pr);
+  requireValue(target?.number===pr&&target.head?.sha===head&&target.head?.repo?.full_name===REPOSITORY
+    &&target.base?.ref==='main'&&target.base.repo?.full_name===REPOSITORY
+    &&(installation?target.merged===true&&target.state==='closed'&&target.merge_commit_sha===source:
+      target.state==='open'&&target.draft===false&&target.base.sha===p.sha),'forward_pull_changed');
+  forwardMarker(target,head,p.pr);
+  if (p.pr === 1692) await requireRouteForwardSource(get, target, installation);
+  const original=C.binding(await get('/pulls/'+p.pr),p.sha);
+  requireValue(original&&same(C.bindingSnapshot(original),{pr:p.pr,head_sha:p.head_sha,comment_id:p.comment_id,
+    owner_id:p.owner_id,updated_at:p.updated_at}),'forward_original_binding_changed');
+  let binding=original;
+  if(phase!=='before_handoff'){
+    // Open forward PR uses the identical canonical binding parser without claiming it is merged.
+    binding=C.binding(installation?target:{...target,merged:true,state:'closed',merge_commit_sha:p.sha},main);
+    requireValue(binding&&binding.comment_id===p.comment_id&&binding.owner_id===p.owner_id
+      &&Date.parse(binding.updated_at)>Date.parse(p.updated_at),'forward_owner_changed');
+  }
+  requireValue(C.recordState(await get('/issues/comments/'+p.comment_id),binding)==='active','forward_publisher_changed');
+  if(installation){
+    const commit=await get('/commits/'+source);
+    requireValue(commit?.sha===source&&Array.isArray(commit.parents)&&commit.parents.length===2
+      &&commit.parents[0]?.sha===p.sha&&commit.parents[1]?.sha===head,'forward_not_direct_successor');
+  }
+  const evidence=await proveUnstartedDeployment(api,p.pr);
+  const location=await readRecord(api);
+  requireValue(location.blob===p.blob&&location.record_digest===p.record_digest,
+    'forward_accepted_record_changed');
+  await requireAncestry(api,p.commit,location.commit);
+  const accepted=await resolveCurrent(api,{sha:p.application_sha},location);
+  await requireOps(api,p.application_sha);
+  requireValue(accepted.ready===true&&accepted.perform_actions===true&&accepted.application_sha===p.application_sha,
+    'forward_original_application_unaccepted');
+  requireValue((await get('/git/ref/heads/main'))?.object?.sha===main,'main_changed');
+  requireValue(C.recordState(await get('/issues/comments/'+p.comment_id),binding)==='active','forward_publisher_changed');
+  const freshTarget=await get('/pulls/'+pr);
+  const snapshot=pr=>({number:pr.number,state:pr.state,merged:pr.merged,draft:pr.draft??null,merge_commit_sha:pr.merge_commit_sha??null,
+    head:{sha:pr.head?.sha??null,repository:pr.head?.repo?.full_name??null},
+    base:{ref:pr.base?.ref??null,sha:pr.base?.sha??null,repository:pr.base?.repo?.full_name??null}});
+  requireValue(same(snapshot(freshTarget),snapshot(target))&&same(forwardMarker(freshTarget,head,p.pr),forwardMarker(target,head,p.pr)),
+    'forward_pull_changed');
+  const freshOriginal=C.binding(await get('/pulls/'+p.pr),p.sha);
+  requireValue(same(C.bindingSnapshot(freshOriginal),C.bindingSnapshot(original)),'forward_original_binding_changed');
+  if(phase!=='before_handoff'){
+    const freshBinding=C.binding(installation?freshTarget:{...freshTarget,merged:true,state:'closed',merge_commit_sha:p.sha},main);
+    requireValue(same(C.bindingSnapshot(freshBinding),C.bindingSnapshot(binding)),'forward_owner_changed');
+  }
+  runIdentity(await get('/actions/runs/'+p.deploy),{id:p.deploy,attempt:1,head:p.sha,workflow:DEPLOY,event:'push',conclusion:'failure'});
+  const latest=await readRecord(api);
+  requireValue(latest.blob===p.blob&&latest.record_digest===p.record_digest,'forward_accepted_record_changed');
+  await requireAncestry(api,p.commit,latest.commit);
+  requireValue((await get('/git/ref/heads/main'))?.object?.sha===main,'main_changed');
+  requireValue(C.recordState(await get('/issues/comments/'+p.comment_id),binding)==='active','forward_publisher_changed');
+  return {...evidence,phase,head_sha:head,binding:C.bindingSnapshot(binding),application_sha:accepted.application_sha};
+}
+async function admitForwardInstallation(api,c,event) {
+  const get=path=>api('GET',API_ROOT+path);
+  const commit=await get('/commits/'+c.sha);
+  requireValue(commit?.sha===c.sha&&Array.isArray(commit.parents)&&commit.parents.length>=1&&commit.parents.length<=2
+    &&commit.parents.every(parent=>sha(parent.sha)),'forward_source_unconfirmed');
+  const managerPartial = '3073195685c8d57808256af6836182262f25fead';
+  if (event.before === managerPartial || commit.parents.some(parent => parent.sha === managerPartial)) {
+    requireValue(c.event === 'push' && c.attempt === 1 && event.forced === false &&
+      event.before === managerPartial && event.after === c.sha &&
+      commit.parents.length === 2 && commit.parents[0].sha === managerPartial,
+    'invalid_partial_1721_source');
+    const recovery = require('./partial_install_1721_forward');
+    const pulls = await get('/commits/' + c.sha + '/pulls?per_page=100');
+    requireValue(Array.isArray(pulls) && pulls.length === 1 &&
+      pulls[0].merge_commit_sha === c.sha && pulls[0].head?.ref === recovery.BRANCH,
+    'untrusted_1721_successor');
+    await recovery.proveForward({api,pr:pulls[0].number,head:commit.parents[1].sha,
+      phase:'installation',source:c.sha,runId:c.id,event});
+    return {expectedCheckout:managerPartial};
+  }
+  const recovery1704 = require('./unstarted_1704_forward');
+  if (commit.parents.some(parent => parent.sha === recovery1704.BASE) || event.before === recovery1704.BASE) {
+    // Once the recovery publishes a normal receipt, no other successor of this
+    // failed source can enter the special path again.
+    requireValue(c.event === 'push' && c.attempt === 1 && event.forced === false &&
+      event.before === recovery1704.BASE && event.after === c.sha &&
+      commit.parents.length === 2 && commit.parents[0].sha === recovery1704.BASE,
+    'invalid_unstarted_1704_source');
+    const pulls = await get('/commits/' + c.sha + '/pulls?per_page=100');
+    requireValue(Array.isArray(pulls) && pulls.length === 1 && pulls[0].merge_commit_sha === c.sha &&
+      pulls[0].head?.ref === recovery1704.BRANCH, 'untrusted_1704_successor');
+    const proof = await recovery1704.proveUnstarted1704Forward({api,pr:pulls[0].number,
+      head:commit.parents[1].sha,phase:'installation',source:c.sha,runId:c.id,event});
+    return {expectedCheckout:proof.expected_checkout_sha};
+  }
+  const routePartial = '32155b9eb2c8606b61554951bfdc988d70bbcb39';
+  if (commit.parents.some(parent => parent.sha === routePartial) || event.before === routePartial) {
+    requireValue(c.event === 'push' && c.attempt === 1 && event.forced === false && event.before === routePartial
+      && event.after === c.sha && commit.parents.length === 2 && commit.parents[0].sha === routePartial,
+      'invalid_partial_forward_source');
+    const {provePartialInstall1702Forward} = require('./partial_install_1702_forward');
+    await provePartialInstall1702Forward({api, pr:1704, head:commit.parents[1].sha,
+      phase:'installation', source:c.sha, runId:c.id, event});
+    return {expectedCheckout:routePartial};
+  }
+  // Only PR1667 may succeed the pinned partially installed #1662 on the first main push.
+  const partialBase='302ba66b5739e369a4df94471c8cfe9c054dd070';
+  if(commit.parents.some(parent=>parent.sha===partialBase)||event.before===partialBase){
+    requireValue(c.event==='push'&&c.attempt===1&&event.forced===false&&event.before===partialBase
+      &&event.after===c.sha&&commit.parents.length===2&&commit.parents[0].sha===partialBase,
+      'invalid_partial_forward_source');
+    const {provePartialInstall1662Forward}=require('./partial_install_1662_forward');
+    await provePartialInstall1662Forward({api,pr:1667,head:commit.parents[1].sha,
+      phase:'installation',source:c.sha,runId:c.id,event});
+    return {expectedCheckout:partialBase};
+  }
+  const failedVerifyBase='b3386d558f72e9eb80acefad9e87b1ab91b4426f';
+  if(commit.parents.some(parent=>parent.sha===failedVerifyBase)||event.before===failedVerifyBase){
+    requireValue(c.event==='push'&&c.attempt===1&&event.forced===false&&event.before===failedVerifyBase
+      &&event.after===c.sha&&commit.parents.length===2&&commit.parents[0].sha===failedVerifyBase,
+      'invalid_exhausted_verify_forward_source');
+    const pulls=await get('/commits/'+c.sha+'/pulls?per_page=100');
+    requireValue(Array.isArray(pulls)&&pulls.length<100,'incomplete_pulls');
+    const merged=pulls.filter(pr=>pr.merge_commit_sha===c.sha&&pr.state==='closed');
+    requireValue(merged.length===1,'ambiguous_pull');
+    const {proveExhaustedVerify1664Forward}=require('./exhausted_verify_1664_forward');
+    return proveExhaustedVerify1664Forward({api,pr:merged[0].number,head:commit.parents[1].sha,
+      phase:'installation',source:c.sha,runId:c.id,event});
+  }
+  const p = event.before === UNSTARTED_FORWARD_1692.sha || commit.parents.some(x => x.sha === UNSTARTED_FORWARD_1692.sha)
+    ? UNSTARTED_FORWARD_1692 : UNSTARTED_FORWARD;
+  // Only the immediate successor of the fixed failed source is in scope.
+  if(!commit.parents.some(parent=>parent.sha===p.sha)){
+    requireValue(event.before!==p.sha,'forward_not_direct_successor');return;
+  }
+  requireValue(c.event==='push'&&c.attempt===1&&event.forced===false&&event.before===p.sha
+    &&event.after===c.sha,'untrusted_forward_installation');
+  const pulls=await get('/commits/'+c.sha+'/pulls?per_page=100');
+  requireValue(Array.isArray(pulls)&&pulls.length<100,'incomplete_pulls');
+  const selected=pulls.filter(pr=>pr.merge_commit_sha===c.sha&&pr.state==='closed');
+  requireValue(selected.length===1,'ambiguous_pull');
+  const runs=boundedList(await get('/actions/runs?head_sha='+c.sha+'&per_page=100'),'workflow_runs','forward_runs_incomplete');
+  const deploys=runs.filter(r=>r.path===DEPLOY);
+  requireValue(deploys.length===1&&String(deploys[0].id)===c.id&&deploys[0].run_attempt===1,
+    'forward_deploy_replayed');
+  const proof = await proveUnstartedForward({api,pr:selected[0].number,head:selected[0].head.sha,
+    phase:'installation',source:c.sha,previousPr:p.pr});
+  return p.pr === 1692 ? {...proof,expectedCheckout:p.application_sha} : proof;
+}
+
 async function planDeployment({env,event,api,repository=process.cwd(),compare=v2}) {
   const c=await sourceContext(env,event,api,DEPLOY);
   requireValue(c.attempt===1&&c.job==='deploy'&&['push','workflow_dispatch'].includes(c.event),'untrusted_deployment_context');
   if(c.event==='push')requireValue(event.ref==='refs/heads/main'&&event.after===c.sha&&typeof event.forced==='boolean','untrusted_push');
+  const forward=await admitForwardInstallation(api,c,event);
   const location=await readRecord(api),result={schema:1,protocol:'anytour-deployment-plan-v1',repository:REPOSITORY,
     repository_sha:c.sha,run_id:c.id,run_attempt:1,event:c.event,plan:'install',application_sha:c.sha,
     source:{commit:location.commit,blob:location.blob,record_digest:location.record_digest},
     baseline:null,installation:null,content:contentSummary(null,c.sha,c.sha),intent_scan:{status:'unknown'}};
+  if(forward?.expectedCheckout){
+    // This single successor performs its own full installation and receives the ordinary installed receipt.
+    return {...result,expected_checkout_sha:forward.expectedCheckout};
+  }
   if(c.event==='workflow_dispatch'||event.forced||Object.keys(event.inputs||{}).length){
     result.intent_scan={status:'explicit_intent'};return result;
   }
@@ -1172,6 +1923,528 @@ async function finalResolution(api,c,location,result) {
   requireValue((await api('GET',API_ROOT+'/git/ref/heads/main'))?.object?.sha===c.sha,'main_changed');
   return result;
 }
+/** One initial owner push admits only the two original MAX2 HOLD observations. */
+async function resolveMax2HoldPairRead({env,event,api}) {
+  const p=MAX2_HOLD_PAIR_READ,ref='refs/heads/'+p.branch;
+  requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF===ref
+    &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+p.workflow+'@'+ref
+    &&env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_JOB===p.job
+    &&env.GITHUB_RUN_ATTEMPT==='1'&&sha(env.GITHUB_SHA)&&positive(env.GITHUB_RUN_ID)
+    &&env.GITHUB_ACTOR===p.owner&&env.GITHUB_TRIGGERING_ACTOR===p.owner
+    &&event?.repository?.full_name===REPOSITORY&&event.repository.id===p.repository_id
+    &&event.sender?.id===p.owner_id&&event.sender.login===p.owner
+    &&event.ref===ref&&event.after===env.GITHUB_SHA&&event.before==='0'.repeat(40)
+    &&event.created===true&&event.deleted===false&&event.forced===false,
+    'untrusted_max2_hold_pair_read');
+  const c={sha:env.GITHUB_SHA,id:String(env.GITHUB_RUN_ID),attempt:1,event:'push',workflow:p.workflow,job:p.job};
+  requireValue((await api('GET',API_ROOT+'/git/ref/heads/main'))?.object?.sha===c.sha,'main_changed');
+  const branchPath=API_ROOT+'/git/ref/heads/'+p.branch;
+  requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'max2_hold_pair_read_branch_changed');
+  const run=await api('GET',API_ROOT+'/actions/runs/'+c.id);
+  runIdentity(run,{id:c.id,attempt:1,head:c.sha,workflow:p.workflow,event:'push',completed:false,branch:p.branch});
+  // The run summary may lag its already assigned native job below.
+  requireValue(['queued','in_progress'].includes(run.status),'workflow_not_active');
+  requireValue(run.actor?.id===p.owner_id&&run.actor.login===p.owner
+    &&run.triggering_actor?.id===p.owner_id&&run.triggering_actor.login===p.owner,
+    'foreign_max2_hold_pair_read_actor');
+  const jobs=boundedList(await api('GET',API_ROOT+'/actions/runs/'+c.id+'/attempts/1/jobs?per_page=100'),
+    'jobs','max2_hold_pair_read_jobs_incomplete');
+  requireValue(jobs.length===1&&jobs[0].name===p.job&&jobs[0].run_id===run.id&&jobs[0].run_attempt===1
+    &&jobs[0].head_sha===c.sha&&jobs[0].status==='in_progress'&&jobs[0].conclusion===null
+    &&positive(jobs[0].runner_id),'max2_hold_pair_read_job_not_active');
+  const runs=boundedList(await api('GET',API_ROOT+'/actions/workflows/'+p.workflow.slice(PREFIX.length)
+    +'/runs?branch='+encodeURIComponent(p.branch)+'&per_page=100'),
+    'workflow_runs','max2_hold_pair_read_inventory_incomplete');
+  requireValue(runs.length===1&&String(runs[0].id)===c.id,'max2_hold_pair_read_replay_forbidden');
+  runIdentity(runs[0],{id:c.id,attempt:1,head:c.sha,workflow:p.workflow,event:'push',completed:false,branch:p.branch});
+  const location=await readRecord(api),result=await resolveCurrent(api,c,location);
+  requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
+  requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'max2_hold_pair_read_branch_changed');
+  return {...await finalResolution(api,c,location,result),read_operation:p.operation};
+}
+/** One initial owner push admits only the four-hotel observation, before SSH. */
+async function resolveHotelRegistryRead({env,event,api}) {
+  const p=HOTEL_REGISTRY_READ,ref='refs/heads/'+p.branch;
+  requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF===ref
+    &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+p.workflow+'@'+ref
+    &&env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_JOB===p.job
+    &&env.GITHUB_RUN_ATTEMPT==='1'&&sha(env.GITHUB_SHA)&&positive(env.GITHUB_RUN_ID)
+    &&env.GITHUB_ACTOR===p.owner&&env.GITHUB_TRIGGERING_ACTOR===p.owner
+    &&event?.repository?.full_name===REPOSITORY&&event.repository.id===p.repository_id
+    &&event.sender?.id===p.owner_id&&event.sender.login===p.owner
+    &&event.ref===ref&&event.after===env.GITHUB_SHA&&event.before==='0'.repeat(40)
+    &&event.created===true&&event.deleted===false&&event.forced===false,
+    'untrusted_hotel_registry_read');
+  const c={sha:env.GITHUB_SHA,id:String(env.GITHUB_RUN_ID),attempt:1,event:'push',workflow:p.workflow,job:p.job};
+  requireValue((await api('GET',API_ROOT+'/git/ref/heads/main'))?.object?.sha===c.sha,'main_changed');
+  const branchPath=API_ROOT+'/git/ref/heads/'+p.branch;
+  requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_registry_read_branch_changed');
+  const run=await api('GET',API_ROOT+'/actions/runs/'+c.id);
+  runIdentity(run,{id:c.id,attempt:1,head:c.sha,workflow:p.workflow,event:'push',completed:false,branch:p.branch});
+  requireValue(run.status==='in_progress','workflow_not_active');
+  requireValue(run.actor?.id===p.owner_id&&run.actor.login===p.owner
+    &&run.triggering_actor?.id===p.owner_id&&run.triggering_actor.login===p.owner,
+    'foreign_hotel_registry_read_actor');
+  // A newly created ref alone is not one-use evidence: deleting and recreating it
+  // must not turn a previous observation into another admitted operation.
+  const runs=boundedList(await api('GET',API_ROOT+'/actions/workflows/'+p.workflow.slice(PREFIX.length)
+    +'/runs?branch='+encodeURIComponent(p.branch)+'&per_page=100'),
+    'workflow_runs','hotel_registry_read_inventory_incomplete');
+  requireValue(runs.length===1&&String(runs[0].id)===c.id,'hotel_registry_read_replay_forbidden');
+  runIdentity(runs[0],{id:c.id,attempt:1,head:c.sha,workflow:p.workflow,event:'push',completed:false,branch:p.branch});
+  const location=await readRecord(api),result=await resolveCurrent(api,c,location);
+  requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
+  requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_registry_read_branch_changed');
+  return {...await finalResolution(api,c,location,result),read_operation:p.operation};
+}
+/** The reviewed plan is data, not user consent. Only a separate first owner push
+ * can select the existing editor; this resolver itself performs GETs only. */
+async function proveOriginalHotelTransfer(api,p,original,artifactName) {
+  const {run,job,sha:head,artifact,digest:artifactDigest}=original;
+  const [source,jobs,proof]=await Promise.all([
+    api('GET',API_ROOT+'/actions/runs/'+run),
+    api('GET',API_ROOT+'/actions/runs/'+run+'/attempts/1/jobs?per_page=100'),
+    api('GET',API_ROOT+'/actions/artifacts/'+artifact)
+  ]);
+  runIdentity(source,{id:run,attempt:1,head,workflow:p.workflow,event:'push',branch:p.branch,conclusion:'failure'});
+  requireValue(source.actor?.id===p.owner_id&&source.triggering_actor?.id===p.owner_id,'original_hotel_transfer_actor_changed');
+  const rows=boundedList(jobs,'jobs','original_hotel_transfer_jobs_incomplete');
+  requireValue(rows.length===1&&rows[0].id===job&&rows[0].run_id===run&&rows[0].head_sha===head&&
+    rows[0].run_attempt===1&&rows[0].name===p.job&&rows[0].status==='completed'&&rows[0].conclusion==='failure'
+    &&Array.isArray(rows[0].steps),'original_hotel_transfer_job_changed');
+  for(const [name,outcome] of [
+    ['Apply the installed editor once and retain its original receipts','failure'],
+    ['Save the original sanitized transfer result','success']]){
+    const steps=rows[0].steps.filter(step=>step.name===name);
+    requireValue(steps.length===1&&steps[0].status==='completed'&&steps[0].conclusion===outcome,
+      'original_hotel_transfer_result_changed');
+  }
+  requireValue(proof?.id===artifact&&proof.digest===artifactDigest&&proof.name===artifactName
+    &&proof.workflow_run?.id===run&&proof.workflow_run.head_sha===head
+    &&proof.workflow_run.head_branch===p.branch,'original_hotel_transfer_artifact_changed');
+  return proof;
+}
+
+async function proveRankedResumeOriginal(api) {
+  const p=ORIGINAL_RANKED_CONTINUATION;
+  const artifact=await proveOriginalHotelTransfer(api,HOTEL_RANKED_CONTINUATION,p,'issue-1566-hotel-ranked-46-transfer');
+  requireValue(artifact.expired===false&&artifact.size_in_bytes===4063,'ranked_resume_artifact_unavailable');
+}
+
+// Only this immutable original stopped before credentials, provider access or a write receipt.
+async function proveRankedPrewriteHistory(api, runs, current) {
+  const p=RANKED_PREWRITE_REFUSAL, profile=HOTEL_RANKED_46;
+  const prior=runs.find(run=>run.id===p.run), next=runs.find(run=>String(run.id)===String(current.id));
+  requireValue(runs.length===2 && prior && next && Number(current.id)>p.run && current.sha!==p.sha,
+    'ranked_prewrite_history_changed');
+  runIdentity(prior,{id:p.run,attempt:1,head:p.sha,workflow:profile.workflow,event:'push',branch:p.branch,conclusion:'failure'});
+  requireValue(prior.repository?.id===profile.repository_id && prior.head_repository?.id===profile.repository_id
+    && prior.actor?.id===profile.owner_id && prior.triggering_actor?.id===profile.owner_id
+    && next.head_sha===current.sha && next.head_branch===p.branch && next.run_attempt===1,
+    'ranked_prewrite_origin_changed');
+  const path=API_ROOT+'/actions/runs/'+p.run;
+  const [jobList,artifactList]=await Promise.all([api('GET',path+'/attempts/1/jobs?per_page=100'),
+    api('GET',path+'/artifacts?per_page=100')]);
+  const jobs=boundedList(jobList,'jobs','ranked_prewrite_jobs_changed');
+  const job=jobs[0];
+  requireValue(jobs.length===1 && job.id===p.job && job.run_id===p.run && job.run_attempt===1
+    && job.head_sha===p.sha && job.name===profile.job && job.status==='completed' && job.conclusion==='failure'
+    && Array.isArray(job.steps) && boundedList(artifactList,'artifacts','ranked_prewrite_artifacts_changed').length===0,
+    'ranked_prewrite_proof_changed');
+  for(const [name,conclusion] of [
+    ['Check out the native run source','success'], ['Resolve accepted repository and application','failure'],
+    ['Require exact APPLY admission before loading credentials','skipped'],
+    ['Pin established SSH host continuity and authentication identity','skipped'],
+    ['Apply the installed editor once and retain its original receipts','skipped'],
+    ['Save the original sanitized transfer result','success']
+  ]) {
+    const steps=job.steps.filter(step=>step.name===name);
+    requireValue(steps.length===1 && steps[0].status==='completed' && steps[0].conclusion===conclusion,
+      'ranked_prewrite_steps_changed');
+  }
+  requireValue(typeof api.jobLog==='function','ranked_prewrite_log_unavailable');
+  const log=await api.jobLog(p.job);
+  requireValue(Buffer.isBuffer(log) && log.toString('utf8').split(/\r?\n/).filter(line=>
+    /^\d{4}-\d\d-\d\dT[\d:.]+Z deployment_release=refused reason=invalid_output$/.test(line)).length===1,
+    'ranked_prewrite_reason_changed');
+  await requireAncestry(api,p.sha,current.sha);
+  return next;
+}
+
+// The pinned ZIPs record respectively keyboard_unsupported and
+// administrator_ambiguous before publisherKeyboardExecute at their immutable
+// sources. This is a single forward recovery after two known prewrite stops.
+async function provePublisherKeyboardPrewriteHistory(api,runs,current,before=PUBLISHER_KEYBOARD_PREWRITE_REFUSAL.sha) {
+  const first=PUBLISHER_KEYBOARD_PREWRITE_REFUSAL,second=PUBLISHER_KEYBOARD_ACTOR_PREWRITE_REFUSAL;
+  const profile=HOTEL_PUBLISHER_KEYBOARD_PILOT;
+  requireValue(before===first.sha||before===second.sha,'publisher_keyboard_prewrite_history_changed');
+  const parents=before===second.sha?[first,second]:[first];
+  const next=runs.find(run=>String(run.id)===String(current.id));
+  const priors=parents.map(p=>runs.find(run=>run.id===p.run));
+  requireValue(runs.length===parents.length+1&&priors.every(Boolean)&&next
+    &&parents.every(p=>Number(current.id)>p.run&&current.sha!==p.sha),
+    'publisher_keyboard_prewrite_history_changed');
+  for(const [i,p] of parents.entries()){
+    runIdentity(priors[i],{id:p.run,attempt:1,head:p.sha,workflow:profile.workflow,event:'push',branch:profile.branch,conclusion:'failure'});
+  }
+  requireValue([...priors,next].every(run=>run.repository?.id===profile.repository_id
+    &&run.head_repository?.id===profile.repository_id&&run.actor?.id===profile.owner_id
+    &&run.actor.login===profile.owner&&run.triggering_actor?.id===profile.owner_id
+    &&run.triggering_actor.login===profile.owner)
+    &&next.head_sha===current.sha&&next.head_branch===profile.branch&&next.run_attempt===1,
+    'publisher_keyboard_prewrite_origin_changed');
+  for(const p of parents){
+    await provePublisherKeyboardPrewriteReceipt(api,p,profile,current);
+  }
+  return next;
+}
+async function provePublisherKeyboardPrewriteReceipt(api,p,profile,current) {
+  const original=API_ROOT+'/actions/runs/'+p.run;
+  const [jobList,artifactList]=await Promise.all([
+    api('GET',original+'/attempts/1/jobs?per_page=100'),api('GET',original+'/artifacts?per_page=100')]);
+  const jobs=boundedList(jobList,'jobs','publisher_keyboard_prewrite_jobs_changed'),job=jobs[0];
+  requireValue(jobs.length===1&&job.id===p.job&&job.run_id===p.run&&job.run_attempt===1
+    &&job.head_sha===p.sha&&job.name===profile.job&&job.status==='completed'&&job.conclusion==='failure'
+    &&Array.isArray(job.steps),'publisher_keyboard_prewrite_proof_changed');
+  for(const [name,conclusion] of [
+    ['Check out the native run source','success'],['Resolve accepted repository and application','success'],
+    ['Require exact APPLY admission before loading credentials','success'],
+    ['Pin established SSH host continuity and authentication identity','success'],
+    ['Apply the installed editor once and retain its original receipts','failure'],
+    ['Save the original sanitized transfer result','success'],['Remove runner connection material','success']]){
+    const steps=job.steps.filter(step=>step.name===name);
+    requireValue(steps.length===1&&steps[0].status==='completed'&&steps[0].conclusion===conclusion,
+      'publisher_keyboard_prewrite_steps_changed');
+  }
+  const artifacts=boundedList(artifactList,'artifacts','publisher_keyboard_prewrite_artifacts_changed'),artifact=artifacts[0];
+  requireValue(artifacts.length===1&&artifact.id===p.artifact&&artifact.expired===false
+    &&artifact.size_in_bytes===p.size&&artifact.digest===p.digest
+    &&artifact.name==='issue-1566-hotel-ranked-46-transfer'
+    &&artifact.workflow_run?.id===p.run&&artifact.workflow_run.head_sha===p.sha
+    &&artifact.workflow_run.head_branch===profile.branch
+    &&artifact.workflow_run.repository_id===profile.repository_id
+    &&artifact.workflow_run.head_repository_id===profile.repository_id,
+    'publisher_keyboard_prewrite_artifact_changed');
+  await requireAncestry(api,p.sha,current.sha);
+}
+
+/** Authenticate historical evidence, never reinterpret its preflight as ready. */
+async function provePublisherMediaEvidence(api,current) {
+  const profile=HOTEL_PUBLISHER_MEDIA_PILOT;
+  requireValue(sha(current.sha)&&positive(current.id)
+    &&PUBLISHER_MEDIA_ORIGINALS.every(p=>Number(current.id)>p.run&&current.sha!==p.sha),
+    'publisher_media_evidence_context_changed');
+  const observed=await Promise.all(PUBLISHER_MEDIA_ORIGINALS.map(async p=>{
+    const original=API_ROOT+'/actions/runs/'+p.run;
+    return await Promise.all([api('GET',original),api('GET',original+'/attempts/1/jobs?per_page=100'),
+      api('GET',original+'/artifacts?per_page=100')]);
+  }));
+  for(const [i,p] of PUBLISHER_MEDIA_ORIGINALS.entries()){
+    const [run,jobList,artifactList]=observed[i];
+    runIdentity(run,{id:p.run,attempt:1,head:p.sha,workflow:p.workflow,event:'push',branch:p.branch,conclusion:p.conclusion});
+    requireValue(run.repository?.id===profile.repository_id&&run.head_repository?.id===profile.repository_id
+      &&run.actor?.id===profile.owner_id&&run.actor.login===profile.owner
+      &&run.triggering_actor?.id===profile.owner_id&&run.triggering_actor.login===profile.owner,
+      'publisher_media_evidence_origin_changed');
+    const jobs=boundedList(jobList,'jobs','publisher_media_evidence_jobs_changed'),job=jobs[0];
+    requireValue(jobs.length===1&&job.id===p.job&&job.run_id===p.run&&job.run_attempt===1
+      &&job.head_sha===p.sha&&job.name===p.job_name&&job.status==='completed'&&job.conclusion===p.conclusion
+      &&Array.isArray(job.steps),'publisher_media_evidence_job_changed');
+    for(const [name,conclusion] of p.steps){
+      const steps=job.steps.filter(step=>step.name===name);
+      requireValue(steps.length===1&&steps[0].status==='completed'&&steps[0].conclusion===conclusion,
+        'publisher_media_evidence_steps_changed');
+    }
+    const failures=job.steps.filter(step=>step.conclusion==='failure');
+    requireValue(job.steps.every(step=>step.status==='completed'
+      &&['success','skipped','failure'].includes(step.conclusion))
+      &&failures.length===(p.conclusion==='failure'?1:0)
+      &&(failures.length===0||failures[0].name==='Apply the installed editor once and retain its original receipts'),
+      'publisher_media_evidence_steps_changed');
+    const artifacts=boundedList(artifactList,'artifacts','publisher_media_evidence_artifacts_changed'),artifact=artifacts[0];
+    requireValue(artifacts.length===1&&artifact.id===p.artifact&&artifact.expired===false
+      &&artifact.size_in_bytes===p.size&&artifact.digest===p.digest&&artifact.name===p.artifact_name
+      &&artifact.workflow_run?.id===p.run&&artifact.workflow_run.head_sha===p.sha
+      &&artifact.workflow_run.head_branch===p.branch&&artifact.workflow_run.repository_id===profile.repository_id
+      &&artifact.workflow_run.head_repository_id===profile.repository_id,'publisher_media_evidence_artifact_changed');
+  }
+  await requireAncestry(api,PUBLISHER_MEDIA_ORIGINALS[0].sha,current.sha);
+  return {schema:1,kind:'publisher_media_original_evidence_v1',message_id:'1058',hotel_id:2514,
+    historical_preflight_write_admission:false,
+    originals:PUBLISHER_MEDIA_ORIGINALS.map(p=>({kind:p.kind,run_id:String(p.run),run_attempt:1,
+      source_sha:p.sha,artifact_id:String(p.artifact),artifact_sha256:p.digest.slice(7)}))};
+}
+
+/** Follow the native runs back to the authorized first resume. Each parent has
+ * exactly one canonical branch per predecessor. No target IDs come from the ref. */
+async function rankedParentEvidence(api, parentId, current) {
+  const profile = HOTEL_RANKED_RESUME;
+  const seed = RANKED_RESUME_SEED;
+  let id = parentId, childId = current.id, descendant = current.sha, evidence;
+  for (let depth = 0; depth < 37; depth++) {
+    requireValue(positive(id) && Number(id) < Number(childId), 'ranked_parent_chain_invalid');
+    const path = API_ROOT + '/actions/runs/' + id;
+    const source = await api('GET', path);
+    const first = Number(id) === seed.run;
+    const previous = RANKED_AFTER_BRANCH.exec(source?.head_branch);
+    requireValue(first || previous !== null, 'ranked_parent_branch_invalid');
+    runIdentity(source, {id, attempt:1, head:first ? seed.sha : source.head_sha, workflow:profile.workflow,
+      event:'push', branch:first ? profile.branch : source.head_branch, conclusion:'failure'});
+    requireValue(sha(source.head_sha) && source.repository?.id === profile.repository_id
+      && source.head_repository?.id === profile.repository_id && source.actor?.id === profile.owner_id
+      && source.triggering_actor?.id === profile.owner_id, 'ranked_parent_source_untrusted');
+    await requireAncestry(api, source.head_sha, descendant);
+    const historyPath = API_ROOT + '/actions/workflows/' + profile.workflow.slice(PREFIX.length)
+      + '/runs?branch=' + encodeURIComponent(source.head_branch) + '&per_page=100';
+    const [history, jobs] = await Promise.all([api('GET', historyPath), api('GET', path + '/attempts/1/jobs?per_page=100')]);
+    const original = boundedList(history, 'workflow_runs', 'ranked_parent_recreated');
+    const transfers = boundedList(jobs, 'jobs', 'ranked_parent_job_invalid');
+    const job = transfers[0];
+    if(source.head_branch===RANKED_PREWRITE_REFUSAL.branch && original.length>1) {
+      await proveRankedPrewriteHistory(api,original,{id,sha:source.head_sha});
+    } else {
+      requireValue(original.length === 1 && String(original[0].id) === String(id), 'ranked_parent_recreated');
+    }
+    requireValue(transfers.length === 1 && positive(job.id) && (!first || job.id === seed.job)
+      && job.run_id === Number(id) && job.run_attempt === 1 && job.name === profile.job
+      && job.head_sha === source.head_sha && job.status === 'completed' && job.conclusion === 'failure'
+      && Array.isArray(job.steps), 'ranked_parent_job_invalid');
+    for (const [name, outcome] of [
+      ['Resolve accepted repository and application', 'success'],
+      ['Require exact APPLY admission before loading credentials', 'success'],
+      ['Apply the installed editor once and retain its original receipts', 'failure'],
+      ['Save the original sanitized transfer result', 'success']
+    ]) {
+      const steps = job.steps.filter(step => step.name === name);
+      requireValue(steps.length === 1 && steps[0].status === 'completed' && steps[0].conclusion === outcome,
+        'ranked_parent_steps_invalid');
+    }
+    if (depth === 0) {
+      const all = boundedList(await api('GET', path + '/artifacts?per_page=100'), 'artifacts', 'ranked_parent_artifacts_invalid');
+      const artifact = all[0];
+      requireValue(all.length === 1 && positive(artifact.id) && artifact.expired === false
+        && artifact.name === 'issue-1566-hotel-ranked-46-transfer'
+        && artifact.workflow_run?.id === Number(id) && artifact.workflow_run.head_sha === source.head_sha
+        && artifact.workflow_run.repository_id === profile.repository_id && artifact.workflow_run.head_branch === source.head_branch
+        && Number.isSafeInteger(artifact.size_in_bytes) && artifact.size_in_bytes > 0 && artifact.size_in_bytes <= MAX_ARCHIVE
+        && /^sha256:[0-9a-f]{64}$/.test(artifact.digest)
+        && (!first || (artifact.id === seed.artifact && artifact.digest === seed.digest)), 'ranked_parent_artifact_invalid');
+      const bytes = await api.artifact(artifact);
+      const digest = artifact.digest.slice(7);
+      requireValue(Buffer.isBuffer(bytes) && bytes.length === artifact.size_in_bytes
+        && crypto.createHash('sha256').update(bytes).digest('hex') === digest, 'artifact_digest_mismatch');
+      const chunk = RANKED_CHUNK_DIGEST;
+      const receipt = archiveJson(bytes, 'result-' + chunk + '.json');
+      const summary = archiveJson(bytes, 'summary.json')[chunk];
+      const check = archiveJson(bytes, 'check-' + chunk + '.json');
+      requireValue(receipt.native_run_id === String(id) && receipt.application_sha === source.head_sha
+        && receipt.plan_sha256 === chunk && check.plan_sha256 === chunk && summary?.state === 'partial_requires_readback'
+        && (first || (receipt.parent_run_id === previous[1] && check.parent_run_id === previous[1])),
+        'ranked_parent_receipt_invalid');
+      evidence = {parent_run_id:String(id), parent_application_sha:source.head_sha, parent_artifact_sha256:digest,
+        receipt, summary, check};
+    }
+    if (first) return evidence;
+    childId = id;
+    id = previous[1];
+    descendant = source.head_sha;
+  }
+  throw new Refusal('ranked_parent_chain_invalid');
+}
+
+/** A proved zero-write predecessor is distinct from every reserved/UNKNOWN row. */
+async function proveClosedPrewriteOriginal(api) {
+  const p={run:45349080956,job:138290722061,sha:'8d723f1c08f094fd845c7c34da29607fc294ff46',artifact:14898229789,
+    digest:'sha256:9245b40e6ebd9a0ff0f4e3f37870d2d410b9d5b5805bd648138e1421676f6259'};
+  const original=await proveOriginalHotelTransfer(api,HOTEL_STELLA_ALTERNATE,p,'issue-1566-hotel-next-transfer');
+  requireValue(original.expired===false&&original.size_in_bytes===634,'prewrite_original_artifact_unavailable');
+  const [source,jobs,proof]=await Promise.all([
+    api('GET',API_ROOT+'/actions/runs/45349424365'),
+    api('GET',API_ROOT+'/actions/runs/45349424365/attempts/1/jobs?per_page=100'),
+    api('GET',API_ROOT+'/actions/artifacts/14898804239')]);
+  runIdentity(source,{id:45349424365,attempt:1,head:'162e2653e5617ff28f48a9168ccc62ac34a55006',
+    workflow:PREFIX+'read-1566-stella-alternate-candidates.yml',event:'push',branch:'audit/1566-next-release-admission-1664'});
+  requireValue(source.actor?.id===HOTEL_STELLA_ALTERNATE.owner_id&&source.triggering_actor?.id===HOTEL_STELLA_ALTERNATE.owner_id,'prewrite_read_actor_changed');
+  const rows=boundedList(jobs,'jobs','prewrite_read_jobs_incomplete'),job=rows[0];
+  requireValue(rows.length===1&&job.id===138291848487&&job.run_id===45349424365&&job.run_attempt===1
+    &&job.head_sha===source.head_sha&&job.name==='read'&&job.status==='completed'&&job.conclusion==='success'
+    &&Array.isArray(job.steps)&&job.steps.some(s=>s.name==='Read existing archive posts, registry, and current ads'
+      &&s.status==='completed'&&s.conclusion==='success'),'prewrite_read_job_changed');
+  requireValue(proof.id===14898804239&&proof.expired===false&&proof.size_in_bytes===738
+    &&proof.name==='stella925-original-readback'
+    &&proof.digest==='sha256:9b071432b9713f8ca46a4820ae2f8ed719f9a39d1cf20206b68e30ba7deda4a9'
+    &&proof.workflow_run?.id===45349424365&&proof.workflow_run.head_sha===source.head_sha
+    &&proof.workflow_run.head_branch===source.head_branch,'prewrite_read_artifact_changed');
+}
+
+function proveOriginalNextTransfer(api) {
+  return proveOriginalHotelTransfer(api,HOTEL_NEXT_TRANSFER,ORIGINAL_NEXT_TRANSFER,'issue-1566-hotel-next-transfer');
+}
+
+async function proveOriginalMaxPublicFailure(api) {
+  const {run,job,sha:head,artifact,digest:artifactDigest}=ORIGINAL_MAX_SUGAR_PUBLIC_FAILURE;
+  const p=HOTEL_MAX_SUGAR_TRANSFER;
+  const [source,jobs,list]=await Promise.all([
+    api('GET',API_ROOT+'/actions/runs/'+run),
+    api('GET',API_ROOT+'/actions/runs/'+run+'/attempts/1/jobs?per_page=100'),
+    api('GET',API_ROOT+'/actions/runs/'+run+'/artifacts?per_page=100')
+  ]);
+  runIdentity(source,{id:run,attempt:1,head,workflow:p.workflow,event:'push',branch:p.branch,conclusion:'failure'});
+  requireValue(source.actor?.id===p.owner_id&&source.triggering_actor?.id===p.owner_id,'original_max_transfer_actor_changed');
+  const rows=boundedList(jobs,'jobs','original_max_transfer_jobs_incomplete');
+  const prior=rows[0];
+  requireValue(rows.length===1&&prior.id===job&&prior.run_id===run&&prior.head_sha===head
+    &&prior.run_attempt===1&&prior.name===p.job&&prior.status==='completed'&&prior.conclusion==='failure'
+    &&Array.isArray(prior.steps),'original_max_transfer_job_changed');
+  for(const [name,outcome] of [
+    ['Require exact APPLY admission before loading credentials','success'],
+    ['Apply the installed editor once and retain its original receipts','failure'],
+    ['Save the original sanitized transfer result','success']]){
+    const steps=prior.steps.filter(step=>step.name===name);
+    requireValue(steps.length===1&&steps[0].status==='completed'&&steps[0].conclusion===outcome,
+      'original_max_transfer_result_changed');
+  }
+  const proofs=boundedList(list,'artifacts','original_max_transfer_artifacts_incomplete');
+  const saved=proofs[0];
+  requireValue(proofs.length===1&&saved.id===artifact&&saved.digest===artifactDigest
+    &&saved.name==='issue-1566-max-sugar-marina-transfer'&&saved.size_in_bytes===808
+    &&saved.workflow_run?.id===run&&saved.workflow_run.head_sha===head
+    &&saved.workflow_run.head_branch===p.branch&&!saved.expired,'original_max_transfer_artifact_changed');
+}
+
+async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
+  const ref='refs/heads/'+p.branch;
+  const rankedRecovery=p.branch===RANKED_PREWRITE_REFUSAL.branch && event?.created===false
+    && event.before===RANKED_PREWRITE_REFUSAL.sha;
+  const publisherRecovery=p===HOTEL_PUBLISHER_KEYBOARD_PILOT&&event?.created===false
+    &&[PUBLISHER_KEYBOARD_PREWRITE_REFUSAL.sha,PUBLISHER_KEYBOARD_ACTOR_PREWRITE_REFUSAL.sha].includes(event.before);
+  const recovery=rankedRecovery||publisherRecovery;
+  requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF===ref
+    &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+p.workflow+'@'+ref
+    &&env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_JOB===p.job
+    &&env.GITHUB_RUN_ATTEMPT==='1'&&sha(env.GITHUB_SHA)&&positive(env.GITHUB_RUN_ID)
+    &&env.GITHUB_ACTOR===p.owner&&env.GITHUB_TRIGGERING_ACTOR===p.owner
+    &&event?.repository?.full_name===REPOSITORY&&event.repository.id===p.repository_id
+    &&event.sender?.id===p.owner_id&&event.sender.login===p.owner
+    &&event.ref===ref&&event.after===env.GITHUB_SHA&&event.deleted===false&&event.forced===false
+    &&((event.before==='0'.repeat(40)&&event.created===true)||recovery),
+    'untrusted_hotel_four_transfer');
+  const c={sha:env.GITHUB_SHA,id:String(env.GITHUB_RUN_ID),attempt:1,event:'push',workflow:p.workflow,job:p.job};
+  requireValue((await api('GET',API_ROOT+'/git/ref/heads/main'))?.object?.sha===c.sha,'main_changed');
+  const branchPath=API_ROOT+'/git/ref/heads/'+p.branch;
+  requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_transfer_branch_changed');
+  const run=await api('GET',API_ROOT+'/actions/runs/'+c.id);
+  runIdentity(run,{id:c.id,attempt:1,head:c.sha,workflow:p.workflow,event:'push',completed:false,branch:p.branch});
+  requireValue(run.status==='in_progress','workflow_not_active');
+  requireValue(run.actor?.id===p.owner_id&&run.actor.login===p.owner
+    &&run.triggering_actor?.id===p.owner_id&&run.triggering_actor.login===p.owner,'foreign_hotel_transfer_actor');
+  const runs=boundedList(await api('GET',API_ROOT+'/actions/workflows/'+p.workflow.slice(PREFIX.length)
+    +'/runs?branch='+encodeURIComponent(p.branch)+'&per_page=100'),
+    'workflow_runs','hotel_transfer_inventory_incomplete');
+  const currentRun=publisherRecovery ? await provePublisherKeyboardPrewriteHistory(api,runs,c,event.before)
+    : rankedRecovery ? await proveRankedPrewriteHistory(api,runs,c) : runs[0];
+  requireValue((recovery || runs.length===1) && String(currentRun?.id)===c.id,'hotel_transfer_replay_forbidden');
+  runIdentity(currentRun,{id:c.id,attempt:1,head:c.sha,workflow:p.workflow,event:'push',completed:false,branch:p.branch});
+  const jobs=boundedList(await api('GET',API_ROOT+'/actions/runs/'+c.id+'/attempts/1/jobs?per_page=100'),
+    'jobs','hotel_transfer_jobs_incomplete');
+  const own=jobs.filter(j=>j.name===p.job);
+  requireValue(own.length===1&&positive(own[0].id)&&own[0].run_id===Number(c.id)&&own[0].run_attempt===1
+    &&own[0].head_sha===c.sha&&own[0].status==='in_progress'&&own[0].conclusion===null,
+    'hotel_transfer_job_unconfirmed');
+  // Bind the exact immutable GitHub source bytes, not a mutable ref, filename,
+  // local summary or the historical reader's successful execution alone.
+  const item=await api('GET',API_ROOT+'/contents/'+p.plan_path+'?ref='+c.sha);
+  requireValue(item?.type==='file'&&item.path===p.plan_path&&item.sha===p.plan_blob
+    &&item.encoding==='base64'&&item.size===p.plan_size&&typeof item.content==='string','hotel_transfer_plan_changed');
+  const encoded=item.content.replace(/\n/g,'');
+  requireValue(/^[A-Za-z0-9+/]*={0,2}$/.test(encoded),'hotel_transfer_plan_changed');
+  const bytes=Buffer.from(encoded,'base64');
+  requireValue(bytes.length===p.plan_size&&bytes.toString('base64')===encoded&&gitBlob(bytes)===p.plan_blob
+    &&crypto.createHash('sha256').update(bytes).digest('hex')===p.plan_digest,'hotel_transfer_plan_changed');
+  if(p===HOTEL_REMAINING_TRANSFER)await proveOriginalNextTransfer(api);
+  if(p===HOTEL_RANKED_CONTINUATION||p===HOTEL_RANKED_RESUME)await proveOriginalHotelTransfer(api,HOTEL_RANKED_46,ORIGINAL_RANKED_TRANSFER,'issue-1566-hotel-ranked-46-transfer');
+  if(p===HOTEL_RANKED_RESUME)await proveRankedResumeOriginal(api);
+  if(p===HOTEL_PREWRITE_RESUME)await proveClosedPrewriteOriginal(api);
+  if(p===HOTEL_MAX_SUGAR_PUBLIC_RECOVERY)await proveOriginalMaxPublicFailure(api);
+  if(p===HOTEL_STELLA_ALTERNATE){
+    const proof=runIdentity(await api('GET',API_ROOT+'/actions/runs/45275242345'),{
+      id:45275242345,attempt:1,head:'68b789067a576da57cf7ec16533f658e437f6e3c',
+      workflow:PREFIX+'read-1566-stella-alternate-candidates.yml',
+      event:'push',branch:'audit/1566-next-release-admission-1664'});
+    requireValue(proof.actor?.id===p.owner_id&&proof.triggering_actor?.id===p.owner_id,'foreign_stella_alternate_preflight');
+  }
+  const location=await readRecord(api),result=await resolveCurrent(api,c,location);
+  requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
+  if(p===HOTEL_RANKED_RESUME||p===HOTEL_PREWRITE_RESUME||p.parent_run_id||p.native_source)requireValue(result.application_sha===c.sha,'hotel_resume_editor_not_installed');
+  if(p===HOTEL_MAX_SUGAR_TRANSFER||p===HOTEL_MAX_SUGAR_PUBLIC_RECOVERY){
+    requireValue(result.application_sha===c.sha,'max_transfer_editor_not_installed');
+  }
+  if(p===HOTEL_PUBLISHER_KEYBOARD_PILOT)
+    requireValue(result.application_sha===c.sha,'publisher_keyboard_editor_not_installed');
+  if(p===HOTEL_PUBLISHER_MEDIA_PILOT)
+    requireValue(result.application_sha===c.sha,'publisher_media_editor_not_installed');
+  const parent = p===HOTEL_PUBLISHER_MEDIA_PILOT ? await provePublisherMediaEvidence(api,c)
+    : p.parent_run_id ? await rankedParentEvidence(api, p.parent_run_id, c) : null;
+  requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_transfer_branch_changed');
+  return {...await finalResolution(api,c,location,result),write_operation:p.operation,
+    ...([HOTEL_PUBLISHER_KEYBOARD_PILOT,HOTEL_PUBLISHER_MEDIA_PILOT].includes(p) ? {publisher_pilot_digest:p.plan_digest} : {}),
+    ...(parent ? {parent_evidence:JSON.stringify(parent)} : {})};
+}
+async function approvedRankedInput(api, head, digest, branch) {
+  requireValue(sha(head) && RANKED_INPUT_BRANCH.exec(branch)?.[1]===digest
+    && digest!==HOTEL_RANKED_46.plan_digest,'ranked_input_not_approved');
+  const read = async path => {
+    const item = await api('GET',API_ROOT+'/contents/'+path+'?ref='+head);
+    requireValue(item?.type==='file' && item.path===path && item.encoding==='base64'
+      && Number.isSafeInteger(item.size) && item.size>0 && item.size<=64000 && typeof item.content==='string','ranked_input_changed');
+    const encoded=item.content.replace(/\n/g,''), bytes=Buffer.from(encoded,'base64');
+    requireValue(bytes.toString('base64')===encoded && bytes.length===item.size && gitBlob(bytes)===item.sha,'ranked_input_changed');
+    return {document:parseJson(bytes), blob:item.sha, bytes:item.size, digest:crypto.createHash('sha256').update(bytes).digest('hex')};
+  };
+  const approvals=(await read('config/anytour_ranked_approved_indexes.json')).document;
+  requireValue(Array.isArray(approvals),'ranked_input_not_approved');
+  const entries=approvals.filter(row=>row?.sha256===digest);
+  requireValue(entries.length===1 && /^config\/anytour_[a-z0-9_]+\.json$/.test(entries[0].path),'ranked_input_not_approved');
+  const item=await read(entries[0].path), index=item.document, proof=index.native_preflight, source=index.native_source;
+  requireValue(item.digest===digest && index.schema===1 && Array.isArray(index.plans) && index.plans.length===1
+    && /^[a-f0-9]{64}$/.test(index.plans[0].sha256) && index.plans[0].sha256!==RANKED_CHUNK_DIGEST
+    && proof?.run_attempt===1 && typeof proof.run_id==='string' && positive(proof.run_id)
+    && Number.isSafeInteger(proof.artifact_id) && positive(proof.artifact_id) && sha(source?.head_sha)
+    && positive(source.job_id) && typeof source.step==='string' && /^[a-zA-Z0-9 ,.()_-]{1,150}$/.test(source.step)
+    && /^[a-zA-Z0-9_-]{1,100}$/.test(source.artifact_name) && /^[0-9a-f]{64}$/.test(proof.artifact_zip_sha256)
+    && Number.isSafeInteger(index.native_zip_bytes) && index.native_zip_bytes>0 && index.native_zip_bytes<=MAX_ARCHIVE,
+    'ranked_input_proof_invalid');
+  return {...HOTEL_RANKED_46, branch, operation:'hotel_ranked_approved_input', plan_path:entries[0].path,
+    plan_size:item.bytes, plan_blob:item.blob, plan_digest:digest, native_run:proof.run_id, native_artifact:proof.artifact_id,
+    native_zip_bytes:index.native_zip_bytes, native_zip_digest:proof.artifact_zip_sha256, native_source:source};
+}
+async function resolveRankedHotelTransfer(inputs,p=HOTEL_RANKED_46) {
+  const run = await inputs.api('GET', API_ROOT+'/actions/runs/'+p.native_run);
+  runIdentity(run, {id:p.native_run, attempt:1, head:p.native_source?.head_sha || 'db1157a5091ff0f708d7825acf6ca4e1dc9a5339',
+    workflow:PREFIX+'read-1566-telegram-46-20261123.yml', event:'push',
+    branch:'ops/1566-telegram-46-native-read-20261123'});
+  requireValue(run.repository?.full_name===REPOSITORY && run.repository.id===p.repository_id
+    && run.head_repository?.id===p.repository_id && run.actor?.login===p.owner && run.actor?.id===p.owner_id
+    && run.triggering_actor?.login===p.owner && run.triggering_actor?.id===p.owner_id,'ranked_native_actor_changed');
+  const artifacts = boundedList(await inputs.api('GET',API_ROOT+'/actions/runs/'+p.native_run+'/artifacts?per_page=100'),
+    'artifacts','ranked_native_artifact_inventory_incomplete');
+  const artifact = artifacts[0];
+  requireValue(artifacts.length===1 && artifact.id===p.native_artifact
+    && artifact.name===(p.native_source?.artifact_name || 'issue-1566-telegram-46-preflight') && artifact.expired===false
+    && artifact.digest==='sha256:'+p.native_zip_digest && artifact.size_in_bytes===p.native_zip_bytes
+    && String(artifact.workflow_run?.id)===p.native_run && artifact.workflow_run.repository_id===p.repository_id
+    && artifact.workflow_run.head_sha===run.head_sha && artifact.workflow_run.head_branch===run.head_branch,'ranked_native_original_not_confirmed');
+  if(p.native_source) {
+    const jobs=boundedList(await inputs.api('GET',API_ROOT+'/actions/runs/'+p.native_run+'/attempts/1/jobs?per_page=100'),
+      'jobs','ranked_native_job_unverified');
+    const job=jobs[0], step=job?.steps?.filter(entry=>entry.name===p.native_source.step);
+    requireValue(jobs.length===1 && job.id===p.native_source.job_id && job.name==='registry'
+      && job.run_id===run.id && job.run_attempt===1 && job.head_sha===run.head_sha && job.status==='completed'
+      && job.conclusion==='success' && step?.length===1 && step[0].status==='completed' && step[0].conclusion==='success',
+      'ranked_native_job_unverified');
+  }
+  return {...await resolveHotelTransfer(inputs,p), ranked_index_digest:p.plan_digest, ranked_artifact_id:String(p.native_artifact)};
+}
 async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms)),now=()=>performance.now()}) {
   if(env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_REF==='refs/heads/'+GATE_RECOVERY.branch){
     const x=await gateContinuationContext({env,event,api,workflow:GATE_RECOVERY.tls_workflow,job:'strict-tls-preflight'});
@@ -1179,6 +2452,28 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
     requireValue(current.blob===x.original.blob&&current.record_digest===GATE_RECOVERY.record_digest,'deployment_result_changed');
     return resolution(x.source,GATE_RECOVERY.sha,'installed');
   }
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_REGISTRY_READ.branch)return resolveHotelRegistryRead({env,event,api});
+  if(env.GITHUB_REF==='refs/heads/'+MAX2_HOLD_PAIR_READ.branch)return resolveMax2HoldPairRead({env,event,api});
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_FOUR_TRANSFER.branch)return resolveHotelTransfer({env,event,api});
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_NEXT_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_NEXT_TRANSFER);
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_MAX_SUGAR_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_MAX_SUGAR_TRANSFER);
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_MAX_SUGAR_PUBLIC_RECOVERY.branch)return resolveHotelTransfer({env,event,api},HOTEL_MAX_SUGAR_PUBLIC_RECOVERY);
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_RANKED_46.branch)return resolveRankedHotelTransfer({env,event,api});
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_RANKED_CONTINUATION.branch)return resolveRankedHotelTransfer({env,event,api},HOTEL_RANKED_CONTINUATION);
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_RANKED_RESUME.branch)return resolveRankedHotelTransfer({env,event,api},HOTEL_RANKED_RESUME);
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_PUBLISHER_KEYBOARD_PILOT.branch)
+    return resolveHotelTransfer({env,event,api},HOTEL_PUBLISHER_KEYBOARD_PILOT);
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_PUBLISHER_MEDIA_PILOT.branch)
+    return resolveHotelTransfer({env,event,api},HOTEL_PUBLISHER_MEDIA_PILOT);
+  const rankedBranch = (env.GITHUB_REF || '').replace(/^refs\/heads\//, '');
+  const rankedInput = RANKED_INPUT_BRANCH.exec(rankedBranch);
+  if (rankedInput) return resolveRankedHotelTransfer({env,event,api}, await approvedRankedInput(api,env.GITHUB_SHA,rankedInput[1],rankedBranch));
+  const rankedAfter = RANKED_AFTER_BRANCH.exec(rankedBranch);
+  if (rankedAfter) return resolveRankedHotelTransfer({env,event,api},
+    {...HOTEL_RANKED_46, branch:rankedBranch, operation:'hotel_ranked_unreached', parent_run_id:rankedAfter[1]});
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_REMAINING_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_REMAINING_TRANSFER);
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_STELLA_ALTERNATE.branch)return resolveHotelTransfer({env,event,api},HOTEL_STELLA_ALTERNATE);
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_PREWRITE_RESUME.branch)return resolveHotelTransfer({env,event,api},HOTEL_PREWRITE_RESUME);
   const startedAt=now();
   const c=await sourceContext(env,event,api);
   requireValue(c.attempt===1,'consumer_rerun_forbidden');
@@ -1226,12 +2521,18 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
 
 /** One fixed owner-authorised publication push, before any SSH/provider access. */
 async function resolvePublicationOperation({env,event,api}) {
-  const branch='ops/appleservice39-coverage-20261112',ref='refs/heads/'+branch;
+  const coverageBranch='ops/appleservice39-coverage-20261112';
+  const deviceBranch='ops/appleservice39-device-v1-20261119';
+  const deviceRecoveryBranch='ops/appleservice39-device-recovery-20261119';
+  const telegramCatalogueBranch='ops/appleservice39-telegram-catalogue-20261119';
+  const ref=env.GITHUB_REF;
+  const operations=new Map([[coverageBranch,'coverage_batch'],[deviceBranch,'device_batch'],[deviceRecoveryBranch,'device_recovery'],[telegramCatalogueBranch,'telegram_catalogue']]);
+  const branch=[...operations.keys()].find(name=>ref==='refs/heads/'+name);
   const workflow=PREFIX+'publish-appleservice39-pilot.yml';
   const predecessor='c5c0276d94337eee130467716c9794176b2ab25a',predecessorRun=43186776772;
   const initial=event?.before==='0'.repeat(40)&&event?.created===true;
-  const recovery=event?.before===predecessor&&event?.created===false&&event?.after!==predecessor;
-  requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF===ref
+  const recovery=branch===coverageBranch&&event?.before===predecessor&&event?.created===false&&event?.after!==predecessor;
+  requireValue(branch!==undefined&&env.GITHUB_REPOSITORY===REPOSITORY
     &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+workflow+'@'+ref
     &&env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_JOB==='publish'
     &&env.GITHUB_RUN_ATTEMPT==='1'&&sha(env.GITHUB_SHA)&&positive(env.GITHUB_RUN_ID)
@@ -1260,10 +2561,25 @@ async function resolvePublicationOperation({env,event,api}) {
     const relation=await api('GET',API_ROOT+'/compare/'+predecessor+'...'+c.sha+'?per_page=1');
     requireValue(relation?.status==='ahead'&&relation.merge_base_commit?.sha===predecessor,'publication_source_not_descendant');
   }
+  if(branch===deviceRecoveryBranch){
+    // This run observes the existing device requests. The ledger separately fences
+    // every create and never reopens the original iPhone 18 request.
+    const originalSha='8299a835d9b896c57dd4ffb9b34db75f613b3de0',originalRun=44436183201;
+    const original=await api('GET',API_ROOT+'/actions/runs/'+originalRun);
+    runIdentity(original,{id:originalRun,attempt:1,head:originalSha,workflow,event:'push',branch:deviceBranch,conclusion:'failure'});
+    const job=await api('GET',API_ROOT+'/actions/jobs/135269278628');
+    const failures=Array.isArray(job?.steps)?job.steps.filter(step=>step.conclusion==='failure'):[];
+    requireValue(job?.id===135269278628&&job.run_id===originalRun&&job.name==='publish'&&job.status==='completed'
+      &&job.conclusion==='failure'&&failures.length===1&&failures[0].name==='Run the installed fixed pilot operation once',
+      'device_original_operation_unproven');
+    const relation=await api('GET',API_ROOT+'/compare/'+originalSha+'...'+c.sha+'?per_page=1');
+    requireValue(relation?.status==='ahead'&&relation.merge_base_commit?.sha===originalSha,'publication_source_not_descendant');
+  }
   const location=await readRecord(api);
   const result=await resolveCurrent(api,c,location);
   requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
-  return finalResolution(api,c,location,result);
+  const admitted=await finalResolution(api,c,location,result);
+  return {...admitted,publication_operation:operations.get(branch)};
 }
 
 async function resolveEditor({env,event,api,repositorySha,applicationSha}) {
@@ -1291,8 +2607,10 @@ function argumentsOf(argv,commands) {
 }
 function outputs(value){for(const [key,v]of Object.entries(value)){
   requireValue(/^[a-z_]+$/.test(key)&&!/[\r\n]/.test(String(v)),'invalid_output');process.stdout.write(key+'='+String(v)+'\n');}}
-module.exports={REPOSITORY,API_ROOT,PREFIX,DEPLOY,CLOSER,HOST,RECORD_PATH,PUBLICATION_FILE,PUBLICATION_PROTOCOL,
-  TERMINAL_RECOVERY,GATE_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY,terminalRecovery,gateRecovery,
+module.exports={provePublisherMediaEvidence,provePublisherKeyboardPrewriteHistory,proveRankedPrewriteHistory,approvedRankedInput,rankedParentEvidence,proveClosedPrewriteOriginal,proveRankedResumeOriginal,proveOriginalNextTransfer,PUBLISHER_BODY_RECOVERY,publisherBodyRecovery,publisherBodySource,failedPublisherBodyTerminal,
+  UNSTARTED_FORWARD,UNSTARTED_FORWARD_1692,forwardMarker,proveUnstartedDeployment,proveUnstartedForward,admitForwardInstallation,REPOSITORY,API_ROOT,PREFIX,DEPLOY,CLOSER,HOST,RECORD_PATH,PUBLICATION_FILE,PUBLICATION_PROTOCOL,
+  TERMINAL_RECOVERY,GATE_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY,UNPUBLISHED_TERMINAL_RECOVERY_1720,unpublishedTerminalProfile,unpublishedTerminalProfileForRef,PRIOR_WAVE_RECOVERY,
+  priorWaveRecovery,failedPriorWaveTerminal,terminalRecovery,gateRecovery,
   unpublishedTerminalRecovery,recoveryBranch,failedUnpublishedTerminal,authenticateFailedTerminal,
   failedGateJobs,failedGateEvidence,gateContinuationContext,continuationTls,
   CONTENT_POLICY,FINGERPRINT_PROTOCOL,RESOLVER_STEP,TERMINAL_STEP,MAX_RECORD,MAX_API,MAX_ARCHIVE,INSTALL_STAGES,OPS_STAGES,
@@ -1319,7 +2637,9 @@ if(require.main===module){
     }
     if(args.command==='plan-deployment'){
       requireValue(keys(args,['command','output']),'invalid_arguments');const result=await planDeployment(common);saveJson(args.output,result);
-      outputs({plan:result.plan,application_sha:result.application_sha,plan_file:args.output});return;
+      const fields={plan:result.plan,application_sha:result.application_sha,plan_file:args.output};
+      if(result.expected_checkout_sha)fields.expected_checkout_sha=result.expected_checkout_sha;
+      outputs(fields);return;
     }
     if(args.command==='admit-unchanged'){
       requireValue(keys(args,['command','plan','observation','output']),'invalid_arguments');
@@ -1331,4 +2651,5 @@ if(require.main===module){
     saveJson(args.output,await wrapInstalled({...common,installation:readJson(args.installation)}));
   })().catch(e=>{process.stderr.write('deployment_release=refused reason='+(e instanceof Refusal?e.code:'internal_failure')+'\n');process.exitCode=1;});
 }
+
 

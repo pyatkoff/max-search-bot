@@ -29,14 +29,14 @@ namespace PushRecipientFixture;
 use \ConversationDb;use \RoutingAccessService;use \ManagerPriorityService;
 use \ManagerPushConnectionService;use \ManagerPushPresentation;use \ManagerPushContext;
 use \RuntimeException;use \Throwable;
-function openssl_pkey_new(array$options){return \openssl_pkey_new($options+['config'=>$GLOBALS['push_access_config']]);}
+function openssl_pkey_new(array$options){if(!empty($GLOBALS['push_access_keys']))return \openssl_pkey_get_private(array_shift($GLOBALS['push_access_keys']));return \openssl_pkey_new($options+['config'=>$GLOBALS['push_access_config']]);}
 function openssl_pkey_export($key,&$output,?string$passphrase=null,array$options=[]):bool{return \openssl_pkey_export($key,$output,$passphrase,$options+['config'=>$GLOBALS['push_access_config']]);}
 function openssl_sign(string$data,&$signature,$key,$algorithm):bool{
     if($GLOBALS['beforeProvider']!==null){$callback=$GLOBALS['beforeProvider'];$GLOBALS['beforeProvider']=null;$callback();}
     return \openssl_sign($data,$signature,$key,$algorithm);
 }
 function curl_init(string$endpoint){return$endpoint;}
-function curl_setopt_array($handle,array$options):bool{return true;}
+function curl_setopt_array($handle,array$options):bool{$GLOBALS['push_access_wire']=$options;return true;}
 function curl_exec($handle){$GLOBALS['requests'][]=$handle;return '';}
 function curl_getinfo($handle,int$option){return 201;}
 function curl_error($handle):string{return '';}
@@ -57,18 +57,34 @@ try{
     $pdo->exec('CREATE TABLE manager_priority_rules(id INTEGER PRIMARY KEY,manager_id INTEGER,rule_type TEXT,rule_value TEXT,bonus INTEGER,is_active INTEGER,comment TEXT);
         CREATE TABLE manager_push_installations(id INTEGER PRIMARY KEY,manager_id INTEGER,revision INTEGER,enabled INTEGER);
         CREATE TABLE manager_push_subscriptions(id INTEGER PRIMARY KEY,manager_id INTEGER,installation_id INTEGER,revision INTEGER,intent_revision INTEGER,is_active INTEGER,endpoint TEXT,p256dh TEXT,auth_secret TEXT,last_success_at TEXT,last_error_at TEXT,last_error TEXT)');
-    // A public-only synthetic P-256 point whose X starts with zero. OpenSSL
-    // exposes that coordinate as 31 bytes; Web Push still requires all 32.
-    $client=openssl_pkey_get_public(<<<'PUBLIC_KEY'
------BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEAB/HGJkkYMDJVccBDvmq6edwSsVM
-3WWvn7iBGAJBx30EhmZEIZPMrWmDYce/LeHB2q32MDCq3zVynFaAAmS1YQ==
------END PUBLIC KEY-----
-PUBLIC_KEY);
+    // Public synthetic scalars 379 (short X) and 43 (short Y), never credentials.
+    $shortX=<<<'KEY'
+-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAXuhRANCAAQAVUOJSvPQDtfXQKvb11yWsGh3t4fb
+X3Dup4uQqNfACrtMhaPY6invqvokQGkS3YTVsU3DK/ZW72xr1YpdlD+S
+-----END PRIVATE KEY-----
+KEY;
+    $shortY=<<<'KEY'
+-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAACuhRANCAASYauJQbx/xBNBCMIYdj0tJj0vExtAJ
+sw91RNwSm4LSjQA8zMCmRg4K4yik2X08e2HYb8YonBifJSURDEQbsH6X
+-----END PRIVATE KEY-----
+KEY;
+    $client=openssl_pkey_get_private($shortX);
     $details=openssl_pkey_get_details($client);
     $public="\x04".str_pad($details['ec']['x'],32,"\0",STR_PAD_LEFT).str_pad($details['ec']['y'],32,"\0",STR_PAD_LEFT);
     pushAccessCheck('Synthetic subscription retains the leading zero of its valid P-256 point',
-        strlen($details['ec']['x'])===31&&bin2hex($public)==='04001fc718992460c0c955c7010ef9aae9e7704ac54cdd65af9fb881180241c77d048666442193ccad698361c7bf2de1c1daadf63030aadf35729c56800264b561');
+        strlen($details['ec']['x'])===31&&strlen($public)===65&&bin2hex($public)==='04005543894af3d00ed7d740abdbd75c96b06877b787db5f70eea78b90a8d7c00abb4c85a3d8ea29efaafa24406912dd84d5b14dc32bf656ef6c6bd58a5d943f92');
+    $point=new ReflectionMethod(\PushRecipientFixture\ManagerPushService::class,'p256PublicPoint');$point->setAccessible(true);
+    $yDetails=openssl_pkey_get_details(openssl_pkey_get_private($shortY));
+    pushAccessCheck('Both short-X and short-Y native keys serialize to exact SEC1 points',strlen($yDetails['ec']['y'])===31&&$point->invoke(null,$details['ec'])===$public&&strlen($point->invoke(null,$yDetails['ec']))===65);
+    foreach([[],['x'=>'','y'=>'a'],['x'=>'a','y'=>''],['x'=>str_repeat('a',33),'y'=>'a'],['x'=>'a','y'=>str_repeat('a',33)],['x'=>1,'y'=>'a']]as$i=>$bad){
+        $rejected=false;try{$point->invoke(null,$bad);}catch(RuntimeException$e){$rejected=$e->getMessage()==='invalid_p256_coordinates';}
+        pushAccessCheck('Malformed coordinate shape fails closed '.$i,$rejected);
+    }
+    $GLOBALS['push_access_keys']=[$shortY,$shortX];
     $encode=static fn(string$v):string=>rtrim(strtr(base64_encode($v),'+/','-_'),'=');
     $insert=$pdo->prepare('INSERT INTO manager_push_subscriptions(id,manager_id,installation_id,revision,intent_revision,is_active,endpoint,p256dh,auth_secret) VALUES(?,?,?,1,1,1,?,?,?)');
     foreach([7,8,9]as$id){$pdo->exec('INSERT INTO manager_push_installations VALUES('.$id.','.$id.',1,1)');$insert->execute([$id,$id,$id,'https://synthetic-push.invalid/'.$id,$encode($public),$encode(str_repeat('a',16))]);}
@@ -80,6 +96,31 @@ PUBLIC_KEY);
     $target=static function(int$id=101,int$manager=7)use(&$requests):array{$requests=[];$result=\PushRecipientFixture\ManagerPushService::notifyManager($manager,$id,'Synthetic task','Synthetic reminder');return[$requests,$result];};
     $expected=static fn(int$id):array=>ManagerPriorityService::notificationSelectionForConversation($id)['selected_manager_ids'];
     pushAccessCheck('Active assigned manager remains canonical in singleton batch diagnostics and push',RoutingAccessService::canSeeConversation(7,$assigned)&&count(RoutingAccessService::visibleConversations(7,[$assigned]))===1&&$expected(101)===[7]&&$notify()===['https://synthetic-push.invalid/7']);
+    $saved=file_get_contents($directory.'/.runtime/manager_push_vapid.php');
+    $cfg=\PushRecipientFixture\ManagerPushService::vapid();
+    pushAccessCheck('Short-Y VAPID generation persists canonical public key and reuses saved credentials',
+        $cfg['public_key']===$encode($point->invoke(null,$yDetails['ec']))&&file_get_contents($directory.'/.runtime/manager_push_vapid.php')===$saved&&$GLOBALS['push_access_keys']===[]);
+    // Independently decrypt native AES-GCM using the subscription private key.
+    $decrypt=static function(array$wire)use($client,$public):?string{
+        $body=$wire[CURLOPT_POSTFIELDS]??'';if(strlen($body)<102||ord($body[20])!==65||unpack('N',substr($body,16,4))[1]!==4096)return null;
+        $serverPub=substr($body,21,65);if($serverPub[0]!=="\x04")return null;
+        $pem="-----BEGIN PUBLIC KEY-----\n".chunk_split(base64_encode(hex2bin('3059301306072A8648CE3D020106082A8648CE3D030107034200').$serverPub),64,"\n")."-----END PUBLIC KEY-----\n";
+        $server=openssl_pkey_get_public($pem);if(!$server)return null;
+        $shared=openssl_pkey_derive($server,$client,32);if($shared===false)return null;
+        $prk=hash_hmac('sha256',$shared,str_repeat('a',16),true);
+        $ikm=hash_hmac('sha256',"WebPush: info\0".$public.$serverPub."\x01",$prk,true);
+        $prk=hash_hmac('sha256',$ikm,substr($body,0,16),true);
+        $cek=substr(hash_hmac('sha256',"Content-Encoding: aes128gcm\0\x01",$prk,true),0,16);
+        $nonce=substr(hash_hmac('sha256',"Content-Encoding: nonce\0\x01",$prk,true),0,12);
+        $plain=openssl_decrypt(substr($body,86,-16),'aes-128-gcm',$cek,OPENSSL_RAW_DATA,$nonce,substr($body,-16),'');
+        return is_string($plain)?$plain:null;
+    };
+    $wire=$GLOBALS['push_access_wire'];$plain=$decrypt($wire);
+    pushAccessCheck('Short-X ephemeral point produces a decryptable native Web Push payload',$plain!==null&&str_ends_with($plain,"\x02")&&is_array(json_decode(substr($plain,0,-1),true)));
+    $wire[CURLOPT_POSTFIELDS][strlen($wire[CURLOPT_POSTFIELDS])-1]=chr(ord($wire[CURLOPT_POSTFIELDS][strlen($wire[CURLOPT_POSTFIELDS])-1])^1);
+    pushAccessCheck('Tampered native Web Push authentication tag is rejected',$decrypt($wire)===null);
+    $GLOBALS['push_access_keys']=[$shortY];$again=$notify();
+    pushAccessCheck('Short-Y ephemeral point also decrypts without rotating saved VAPID credentials',$again===['https://synthetic-push.invalid/7']&&$decrypt($GLOBALS['push_access_wire'])!==null&&file_get_contents($directory.'/.runtime/manager_push_vapid.php')===$saved&&$GLOBALS['push_access_keys']===[]);
     $pdo->exec('UPDATE managers SET is_active=0 WHERE id=7');
     pushAccessCheck('Disabled assigned account cannot pass singleton receiving or batch ACL',!RoutingAccessService::canSeeConversation(7,$assigned)&&!RoutingAccessService::canReceiveConversation(7,$assigned)&&RoutingAccessService::visibleConversations(7,[$assigned])===[]);
     pushAccessCheck('Disabled owner is absent from diagnostics and actual conversation push',$expected(101)===[]&&$notify()===[]);
@@ -89,7 +130,7 @@ PUBLIC_KEY);
     $pdo->exec('INSERT INTO manager_projects VALUES(7,1);UPDATE managers SET is_working=0 WHERE id=7');
     pushAccessCheck('Own assigned notifications remain available off shift',$expected(101)===[7]&&$notify()===['https://synthetic-push.invalid/7']);
     $closed=$target(103);pushAccessCheck('An accessible own closed task still notifies its off-shift manager',$closed[0]===['https://synthetic-push.invalid/7']&&$closed[1]['delivered']===1);
-    pushAccessCheck('A waiting unassigned sales task remains eligible off shift while ordinary queue push stays off',!RoutingAccessService::canSeeConversation(7,$waiting)&&$target(102)[0]===['https://synthetic-push.invalid/7']&&!in_array('https://synthetic-push.invalid/7',$notify(102),true));
+    pushAccessCheck('Off-shift waiting stays visible and eligible for reminders while new-queue push stays off',RoutingAccessService::canSeeConversation(7,$waiting)&&$target(102)[0]===['https://synthetic-push.invalid/7']&&!in_array('https://synthetic-push.invalid/7',$notify(102),true));
     pushAccessCheck('An accessible AI unassigned sales task remains eligible off shift',$target(104)[0]===['https://synthetic-push.invalid/7']);
     $pdo->exec('UPDATE conversations SET source_id=2 WHERE id=101;DELETE FROM manager_group_members WHERE manager_id=7 AND group_id=10');
     pushAccessCheck('Own assignment and reminder purpose cannot bypass revoked source membership',$expected(101)===[]&&$notify()===[]&&$target()[0]===[]);

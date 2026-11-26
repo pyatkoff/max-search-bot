@@ -426,6 +426,58 @@ foreach (['max', 'telegram'] as $platform) {
     channelPostCheck($platform . ' unsupported ' . $unsupportedType . ' does not call provider', count($provider->calls), 0);
     channelPostCheck($platform . ' unsupported ' . $unsupportedType . ' not fake queued success', $r['queued'], false);
 }
+
+$aloftVideo = [
+    'chat' => ['id' => '-1001845835645', 'username' => 'anytour', 'type' => 'channel'],
+    'message_id' => 1207,
+    'date' => 1758623277,
+    'caption' => "Aloft Palm Jumeirah\n📍 Дубай, ОАЭ\n\n💰 От 89 843 ₽ за двоих\nЦена найдена мониторингом 19.11.2026, 04:01 МСК.",
+    'video' => ['file_id' => 'first-video-file-id', 'file_unique_id' => 'stable-video-identity'],
+];
+$aloftSnapshot = ChannelPostIncomingAdapter::telegramSnapshot($aloftVideo);
+channelPostCheck('the approved Aloft caption keeps its contextual hotel and native video identity',
+    [$aloftSnapshot['metadata']['capability'], $aloftSnapshot['metadata']['hotel_catalog_id'],
+        $aloftSnapshot['attachments'][0]['file_unique_id'], $aloftSnapshot['post_url']],
+    ['supported', 61159, 'stable-video-identity', 'https://t.me/anytour/1207']);
+$aloftProvider = new FixturePostProvider($aloftVideo);
+$aloftProvider->bot = 'anyru_bot';
+$aloftTransport = new ChannelPostButtonTransport([$aloftProvider, 'request']);
+$aloftOperation = [
+    'platform' => 'telegram', 'external_message_id' => '1207', 'start_payload' => 'p_aloftfixture',
+    'snapshot' => $aloftSnapshot,
+    'channel' => ['channel_id' => '-1001845835645', 'bot_key' => 'anyru_bot',
+        'bot_url' => 'https://t.me/anyru_bot', 'is_enabled' => true, 'post_mode' => 'append_button'],
+];
+$aloftResult = $aloftTransport->attempt($aloftOperation, static fn(): bool => true);
+channelPostCheck('Aloft keyboard edit verifies once and never sends replacement video or caption',
+    [$aloftResult['state'], $aloftProvider->writes(), array_keys(end($aloftProvider->calls)['body']),
+        $aloftProvider->message['video'], $aloftProvider->message['caption']],
+    ['sent', 1, ['chat_id', 'message_id', 'reply_markup'], $aloftVideo['video'], $aloftVideo['caption']]);
+$renewedAloft = $aloftVideo;
+$renewedAloft['video']['file_id'] = 'renewed-video-file-id';
+channelPostCheck('the same Aloft video survives file credential renewal',
+    ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::telegramSnapshot($renewedAloft)),
+    ChannelPostIncomingAdapter::contentFingerprint($aloftSnapshot));
+$renewedAloft['video']['file_unique_id'] = 'different-video';
+channelPostCheck('a substituted Aloft video cannot confirm preservation',
+    ChannelPostIncomingAdapter::contentFingerprint(ChannelPostIncomingAdapter::telegramSnapshot($renewedAloft))
+        !== ChannelPostIncomingAdapter::contentFingerprint($aloftSnapshot));
+$wrongChannel = $aloftVideo['chat'];
+$wrongChannel['id'] = '-1001845835646';
+foreach ([
+    'different channel' => ['chat' => $wrongChannel],
+    'different post' => ['message_id' => 1043],
+    'changed publication date' => ['date' => 1758623278],
+    'old offer' => ['caption' => 'Aloft Palm Jumeirah. Прежнее предложение'],
+    'bundled video' => ['media_group_id' => 'album'],
+    'unstable provider file' => ['video' => ['file_id' => 'first-video-file-id']],
+] as $scopeName => $patch) {
+    $snapshot = ChannelPostIncomingAdapter::telegramSnapshot(array_replace($aloftVideo, $patch));
+    channelPostCheck('archive video remains unsupported for ' . $scopeName,
+        [$snapshot['metadata']['capability_reason'], isset($snapshot['metadata']['hotel_catalog_id'])],
+        ['unsupported_media', false]);
+}
+
 [$store, $provider, $transport, $service] = channelPostScenario($fixtures['telegram'], 'telegram');
 $album = $fixtures['telegram']; $album['media_group_id'] = 'album-91';
 $one = channelPostReceive($service, $album, 'telegram'); $album['message_id'] = 62; $album['photo'][1]['file_unique_id'] = 'next-photo';
@@ -919,6 +971,1495 @@ foreach(['max','telegram'] as $platform){
     $r2=channelPostReceive($service2,$newWrong,$platform,true);
     $service2->processPublication('anytour',$platform,$platform==='max'?'id9704048781_1_bot':'Any_tour_bot',$r2['publication_id'],$r2['version_id']);
     channelPostCheck($platform.' newer wrong-keyboard event cannot reset ambiguous write',[$provider2->writes(),$actualRegistry->publication($r2['publication_id'])['state']],[1,'unknown']);
+}
+
+// Public HTML and provider-shaped synthetic responses for the one manual repair.
+// No Telegram credentials or network calls are used by these cases.
+$aloftHtml = <<<'HTML'
+<div class="tgme_widget_message" data-post="anytour/1678">
+<a class="tgme_widget_message_video_player" href="https://t.me/anytour/1678"><video src="https://cdn4.telesco.pe/file/fixture1678.mp4?token=temporary"></video><time class="message_video_duration">0:28</time></a>
+<div class="tgme_widget_message_text"><b>Отель Aloft Palm Jumeirah</b><br>Сохранить <tg-emoji><i><b>📎</b></i></tg-emoji> подпись &amp; пробелы.</div>
+<a class="tgme_widget_message_date" href="https://t.me/anytour/1678"><time datetime="2026-08-11T11:51:56+00:00">11:51</time></a>
+<div class="tgme_widget_message_inline_keyboard"><div class="tgme_widget_message_inline_row"><a class="tgme_widget_message_inline_button url_button" href="https://t.me/AnyTour_MSK">Менеджер</a></div></div>
+</div>
+HTML;
+$aloftPublic = ChannelPostIncomingAdapter::aloftPublicSnapshot($aloftHtml);
+$aloftHash = ChannelPostIncomingAdapter::aloftPublicFingerprint($aloftPublic);
+channelPostCheck('Aloft public parser preserves plain caption and honest provenance',
+    [$aloftPublic['text'], $aloftPublic['title'], $aloftPublic['metadata']['observation_kind'], $aloftPublic['metadata']['capability'], $aloftPublic['raw_body']],
+    ["Отель Aloft Palm Jumeirah\nСохранить 📎 подпись & пробелы.", 'Aloft Palm Jumeirah', 'public_read', 'requires_attention', []]);
+channelPostCheck('Aloft public media never invents native IDs or retains signed credentials',
+    $aloftPublic['attachments'], [['type'=>'video', 'provider'=>'telegram', 'duration'=>28, 'public_media_path'=>'/file/fixture1678.mp4']]);
+$aloftNormalized = $aloftPublic; $aloftNormalized['media_group_id'] = ''; $aloftNormalized['metadata']['checked_at'] = 'later';
+channelPostCheck('Aloft preview hash survives recording time and registry normalization',
+    ChannelPostIncomingAdapter::aloftPublicFingerprint($aloftNormalized), $aloftHash);
+foreach ([
+    str_replace('data-post="anytour/1678"', 'data-post="anytour/1207"', $aloftHtml),
+    $aloftHtml.$aloftHtml, str_replace('2026-08-11T', '2026-08-12T', $aloftHtml),
+    str_replace('0:28', '0:29', $aloftHtml), str_replace('Aloft Palm Jumeirah', 'Another hotel', $aloftHtml),
+    str_replace('<video ', '<a class="tgme_widget_message_photo_wrap"></a><video ', $aloftHtml),
+    str_replace('data-post=', 'data-group="album" data-post=', $aloftHtml),
+    str_replace('https://cdn4.telesco.pe', 'https://cdn4.telesco.pe.evil.test', $aloftHtml),
+] as $index=>$invalidHtml) {
+    $denied = false;
+    try { ChannelPostIncomingAdapter::aloftPublicSnapshot($invalidHtml); }
+    catch (InvalidArgumentException $e) { $denied = true; }
+    channelPostCheck('Aloft malformed or different public target rejected '.$index, $denied);
+}
+foreach (['text', 'media', 'keyboard'] as $field) {
+    $changed = $aloftPublic;
+    if ($field === 'text') $changed['text'] .= ' Changed';
+    elseif ($field === 'media') $changed['attachments'][0]['public_media_path'] = '/file/changed.mp4';
+    else $changed['keyboard'][0][0]['url'] = 'https://t.me/another_bot';
+    channelPostCheck('Aloft plan detects changed '.$field, ChannelPostIncomingAdapter::aloftPublicFingerprint($changed) !== $aloftHash);
+}
+$changed = $aloftPublic; $changed['keyboard'] = [];
+channelPostCheck('Aloft body comparison excludes only replaceable public keyboard',
+    ChannelPostIncomingAdapter::aloftPublicContentFingerprint($changed), ChannelPostIncomingAdapter::aloftPublicContentFingerprint($aloftPublic));
+$aloftPublisher = ['username'=>'ANYTOURBOT_bot', 'bot_id'=>'123456789', 'credential_version'=>3];
+$aloftChannel = ['project_key'=>'anytour', 'platform'=>'telegram', 'channel_id'=>'-1001845835645',
+    'bot_key'=>'anyru_bot', 'canonical_bot_username'=>'anyru_bot', 'bot_url'=>'https://t.me/anyru_bot',
+    'button_text'=>'Рассчитать на мои даты', 'is_enabled'=>1, 'post_mode'=>'append_button', 'config_version'=>7];
+$aloftOperation = ['publication_id'=>901, 'version_id'=>902, 'project_key'=>'anytour', 'platform'=>'telegram',
+    'bot_key'=>'anyru_bot', 'external_message_id'=>'1678', 'start_payload'=>'p_'.str_repeat('A',24),
+    'channel'=>$aloftChannel, 'snapshot'=>$aloftPublic, 'state'=>'claimed', 'write_attempts'=>0,
+    'write_attempted'=>false, 'claim_token'=>str_repeat('a',32), 'manual_button_repair'=>true,
+    'publisher'=>$aloftPublisher, 'receipt'=>['repair_kind'=>'aloft_public_keyboard',
+        'publisher_username'=>'ANYTOURBOT_bot', 'publisher_bot_id'=>'123456789', 'credential_version'=>3,
+        'channel_config_version'=>7, 'public_baseline_sha256'=>$aloftHash, 'plan_digest'=>str_repeat('b',64)]];
+$aloftNative = ['chat'=>['id'=>-1001845835645, 'type'=>'channel', 'username'=>'anytour'], 'message_id'=>1678,
+    'date'=>1786449116, 'caption'=>$aloftPublic['text'],
+    'video'=>['duration'=>28, 'file_id'=>'native-video-file', 'file_unique_id'=>'native-video-unique']];
+function aloftFixtureTransport(array $message, string $mode='success'): array {
+    $provider = (object)['calls'=>[], 'writes'=>0, 'message'=>$message, 'mode'=>$mode];
+    $request = static function (string $platform,string $method,string $path,array $query,?array $body) use ($provider): array {
+        $provider->calls[] = compact('platform','method','path','query','body');
+        $ok = static fn(array $result): array => ['http'=>200, 'data'=>['ok'=>true, 'result'=>$result], 'transport_error'=>false];
+        $me = ['id'=>$provider->mode === 'wrong_id' ? 987654321 : 123456789, 'is_bot'=>true,
+            'username'=>$provider->mode === 'wrong_publisher' ? 'anyru_bot' : 'ANYTOURBOT_bot'];
+        if ($path === 'getMe') return $ok($me);
+        if ($path === 'getChatMember') return $ok(['user'=>$me, 'status'=>'administrator', 'can_edit_messages'=>$provider->mode !== 'no_rights']);
+        if ($path === 'getChat') return $ok(['id'=>-1001845835645, 'type'=>$provider->mode === 'wrong_chat' ? 'supergroup' : 'channel', 'username'=>'anytour']);
+        if ($path !== 'editMessageReplyMarkup') throw new RuntimeException('unexpected fixture method');
+        $provider->writes++;
+        $provider->message['reply_markup'] = $body['reply_markup'];
+        if ($provider->mode === 'timeout') throw new RuntimeException('synthetic lost response');
+        if ($provider->mode === 'rejected') return ['http'=>400, 'data'=>['ok'=>false, 'error_code'=>400,
+            'description'=>'Bad Request: MESSAGE_ID_INVALID sensitive-not-for-receipt'], 'transport_error'=>false];
+        if ($provider->mode === 'bare_true') return ['http'=>200, 'data'=>['ok'=>true, 'result'=>true], 'transport_error'=>false];
+        if ($provider->mode === 'mixed_keyboard') $provider->message['reply_markup']['inline_keyboard'][] = [['text'=>'Other', 'url'=>'https://example.test/']];
+        return $ok($provider->message);
+    };
+    return [new ChannelPostButtonTransport($request), $provider];
+}
+[$aloftTransport, $aloftProvider] = aloftFixtureTransport($aloftNative);
+$proof = $aloftTransport->verifyPublisher($aloftChannel, $aloftPublisher);
+channelPostCheck('Aloft publisher verifies separately from destination in three read-only calls',
+    [$proof['state'], array_column($aloftProvider->calls,'path'), $aloftProvider->writes],
+    ['ready', ['getMe','getChatMember','getChat'], 0]);
+$defaultAttempt = (new ChannelPostButtonTransport())->attempt($aloftOperation, static fn(): bool=>true);
+channelPostCheck('Aloft manual operation refuses default token transport before any call',
+    [$defaultAttempt['reason'], $defaultAttempt['receipt']['request_count']], ['publisher_transport_required', 0]);
+foreach (['wrong_id','wrong_publisher','no_rights','wrong_chat'] as $mode) {
+    [$transport, $provider] = aloftFixtureTransport($aloftNative, $mode);
+    $result = $transport->attempt($aloftOperation, static fn(): bool=>true);
+    channelPostCheck('Aloft publisher proof blocks '.$mode, [$result['state'], $provider->writes], ['requires_attention',0]);
+}
+foreach (['marker','claim','target','destination','public_provenance','digest','credential'] as $field) {
+    $operation = $aloftOperation;
+    if ($field === 'marker') unset($operation['manual_button_repair']);
+    elseif ($field === 'claim') $operation['state'] = 'pending';
+    elseif ($field === 'target') $operation['external_message_id'] = '1207';
+    elseif ($field === 'destination') $operation['channel']['bot_url'] = 'https://t.me/ANYTOURBOT_bot';
+    elseif ($field === 'public_provenance') $operation['snapshot']['metadata']['capability'] = 'supported';
+    elseif ($field === 'digest') $operation['snapshot']['text'] .= ' changed';
+    else $operation['publisher']['credential_version']++;
+    [$transport,$provider] = aloftFixtureTransport($aloftNative);
+    $result = $transport->attempt($operation, static fn(): bool=>true);
+    channelPostCheck('Aloft stale or unapproved '.$field.' makes zero calls', [$result['state'],count($provider->calls)], ['requires_attention',0]);
+}
+[$transport,$provider] = aloftFixtureTransport($aloftNative);
+$claims = 0;
+$claim = static function () use (&$claims): bool { return ++$claims === 1; };
+$result = $transport->attempt($aloftOperation, $claim);
+channelPostCheck('Aloft exact approved operation verifies one native keyboard edit',
+    [$result['state'], $provider->writes, array_column($provider->calls,'path')], ['sent',1,['getMe','getChatMember','getChat','editMessageReplyMarkup']]);
+$body = $provider->calls[3]['body'];
+channelPostCheck('Aloft native write has only fixed identity and one destination button',
+    $body, ['chat_id'=>'-1001845835645','message_id'=>'1678','reply_markup'=>['inline_keyboard'=>[[
+        ['text'=>'Рассчитать на мои даты','url'=>'https://t.me/anyru_bot?start=p_'.str_repeat('A',24)],
+    ]]]]);
+channelPostCheck('Aloft receipt distinguishes public comparison from missing native before identity',
+    [$result['receipt']['verified'], $result['receipt']['body_unchanged_by_method'], $result['receipt']['public_caption_matched'],
+        $result['receipt']['publication_date_matched'], $result['receipt']['media_type_duration_matched'],
+        $result['receipt']['native_media_identity_before_verified'], $result['receipt']['native_video_unique_id'],
+        $result['receipt']['plan_digest'], strlen($result['receipt']['provider_result_sha256'])],
+    [true,true,true,true,true,false,'native-video-unique',str_repeat('b',64),64]);
+$repeat = $transport->attempt($aloftOperation, $claim);
+channelPostCheck('Aloft durable before-write refusal prevents replay', [$repeat['reason'],$provider->writes], ['write_claim_or_config_changed',1]);
+foreach (['identity','caption','date','duration','file_id','unique_id','album','photo','mixed_keyboard','bare_true','timeout','rejected'] as $case) {
+    $native = $aloftNative;
+    if ($case === 'identity') $native['message_id'] = 1207;
+    elseif ($case === 'caption') $native['caption'] .= ' changed';
+    elseif ($case === 'date') $native['date']++;
+    elseif ($case === 'duration') $native['video']['duration'] = 29;
+    elseif ($case === 'file_id') unset($native['video']['file_id']);
+    elseif ($case === 'unique_id') unset($native['video']['file_unique_id']);
+    elseif ($case === 'album') $native['media_group_id'] = 'another-album';
+    elseif ($case === 'photo') $native['photo'] = [];
+    [$transport,$provider] = aloftFixtureTransport($native, $case);
+    $result = $transport->attempt($aloftOperation, static fn(): bool=>true);
+    channelPostCheck('Aloft native '.$case.' is never fabricated as verified',
+        [$result['state'],$provider->writes,isset($result['receipt']['verified'])], [$case === 'rejected' ? 'requires_attention' : 'unknown',1,false]);
+    if ($case === 'rejected') channelPostCheck('Aloft native rejection is normalized without raw provider detail',
+        [$result['receipt']['telegram_error_code'],$result['receipt']['telegram_error_reason'],str_contains(json_encode($result),'sensitive-not-for-receipt')],
+        [400,'message_id_invalid',false]);
+    $written = $aloftOperation; $written['write_attempts'] = 1; $written['write_attempted'] = true; $written['state'] = 'unknown';
+    $callsBefore = count($provider->calls);
+    $again = $transport->attempt($written, static fn(): bool=>true, true);
+    channelPostCheck('Aloft written '.$case.' never retries during reconciliation',
+        [$again['state'],$provider->writes,count($provider->calls)], ['unknown',1,$callsBefore]);
+}
+
+// Exercise the existing registry, writer and orchestration together. Each case
+// owns an isolated database; provider replies and public HTML remain synthetic.
+function aloftManualScenario(string $html, array $native, string $mode='success'): array {
+    $pdo = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    createChannelPostRegistryFixture($pdo);
+    $pdo->exec("INSERT INTO projects VALUES(1,'anytour','AnyTour',1);
+        INSERT INTO conversation_sources VALUES(9,1,'tg_anytour_msk','Telegram Москва','telegram',1,'manager')");
+    $registry = new ChannelPostRegistryService($pdo);
+    $registry->configureChannel(['project_key'=>'anytour', 'platform'=>'telegram', 'bot_key'=>'anyru_bot',
+        'canonical_bot_username'=>'anyru_bot', 'channel_id'=>'-1001845835645', 'source_key'=>'tg_anytour_msk',
+        'display_name'=>'AnyTour Москва', 'bot_url'=>'https://t.me/anyru_bot', 'button_text'=>'✈️ Рассчитать на мои даты', 'is_enabled'=>true]);
+    [$transport,$provider] = aloftFixtureTransport($native,$mode);
+    $public = (object)['html'=>$html,'reads'=>0,'hook'=>null];
+    $reader = static function () use ($public): string {
+        $public->reads++;
+        if ($public->hook !== null) ($public->hook)($public->reads);
+        return $public->html;
+    };
+    return [$pdo,$registry,$provider,$public,new ChannelPostAutomationService($registry,$transport,$reader)];
+}
+[$manualDb,$manualRegistry,$manualProvider,$manualPublic,$manualService] = aloftManualScenario($aloftHtml,$aloftNative);
+$inspected = $manualService->inspectManualTelegramButton($aloftPublisher);
+channelPostCheck('Aloft inspect reads publisher and public post without creating a publication',
+    [$inspected['ok'],$inspected['state'],$manualProvider->writes,(int)$manualDb->query('SELECT COUNT(*) FROM post_publications')->fetchColumn()],
+    [true,'inspected',0,0]);
+$prepared = $manualService->prepareManualTelegramButton($aloftPublisher);
+$plan = $prepared['preview'] ?? [];
+channelPostCheck('Aloft service prepares the exact held preview with its own hotel URL',
+    [$prepared['ok'],$plan['state']??null,$plan['reason']??null,$plan['source_id']??null,$plan['hotel_id']??null,
+        $plan['plan_matches']??null,$manualProvider->writes,isset($plan['button_url']) && preg_match('~\Ahttps://t\.me/anyru_bot\?start=p_[A-Za-z0-9_-]{24}\z~D',$plan['button_url'])===1],
+    [true,'requires_attention','manual_approval_required',9,61159,true,0,true]);
+channelPostCheck('Aloft public preview never invents native diagnostic fields',
+    array_key_exists('native_diagnostics', $plan['observation']) && $plan['observation']['native_diagnostics'] === null);
+$row = $manualRegistry->manualTelegramButtonPublication();
+$resolved = $manualRegistry->resolveToken('anytour','telegram','anyru_bot',$row['start_payload']);
+require_once dirname(__DIR__).'/services/SourceQualificationPrompt.php';
+channelPostCheck('Aloft own token enters the existing hotel qualification flow',
+    SourceQualificationPrompt::publicationContext($resolved)['hotel_name'], 'Aloft Palm Jumeirah');
+channelPostCheck('Aloft prepared token resolves only its original publication and hotel context',
+    [$resolved['external_message_id'],$resolved['source_key'],$resolved['snapshot']['title'],$resolved['snapshot']['metadata']['hotel_catalog_id'],
+        $manualRegistry->resolveToken('anytour','telegram','ANYTOURBOT_bot',$row['start_payload'])],
+    ['1678','tg_anytour_msk','Aloft Palm Jumeirah',61159,null]);
+$same = $manualService->prepareManualTelegramButton($aloftPublisher);
+channelPostCheck('Aloft repeated preparation keeps the exact token and version',
+    [$same['preview']['button_url'],$same['preview']['version_id'],(int)$manualDb->query('SELECT COUNT(*) FROM post_versions')->fetchColumn()],
+    [$plan['button_url'],$plan['version_id'],1]);
+$calls = count($manualProvider->calls);
+$manualService->processPending('anytour','telegram','anyru_bot');
+$manualService->processPublication('anytour','telegram','anyru_bot',$plan['publication_id'],$plan['version_id']);
+channelPostCheck('Aloft ordinary workers cannot consume the held manual preview',
+    [count($manualProvider->calls),$manualProvider->writes,$manualRegistry->manualTelegramButtonPublication()['state']],
+    [$calls,0,'requires_attention']);
+foreach (['digest','publication','version','credential'] as $case) {
+    $binding=$aloftPublisher;$id=$plan['publication_id'];$version=$plan['version_id'];$digest=$plan['plan_digest'];
+    if ($case==='digest') $digest=str_repeat('f',64);
+    elseif ($case==='publication') $id++;
+    elseif ($case==='version') $version++;
+    else $binding['credential_version']++;
+    $refused=$manualService->applyManualTelegramButton($binding,$id,$version,$digest);
+    channelPostCheck('Aloft changed approval '.$case.' stops before provider and claim',
+        [$refused['ok'],$refused['reason'],count($manualProvider->calls),$manualRegistry->manualTelegramButtonPublication()['attempt_count']],
+        [false,'manual_preview_changed',$calls,0]);
+}
+$revoked=$manualService->applyManualTelegramButton($aloftPublisher,$plan['publication_id'],$plan['version_id'],$plan['plan_digest'],
+    static fn():bool=>false);
+channelPostCheck('Aloft authorization revoked after public read cannot consume the approved plan',
+    [$revoked['reason'],$manualRegistry->manualTelegramButtonPublication()['attempt_count'],count($manualProvider->calls),$manualDb->inTransaction()],
+    ['forbidden',0,$calls,false]);
+$applied=$manualService->applyManualTelegramButton($aloftPublisher,$plan['publication_id'],$plan['version_id'],$plan['plan_digest']);
+$saved=$manualRegistry->manualTelegramButtonPublication();
+channelPostCheck('Aloft exact approval uses one durable existing edit and saves the native receipt',
+    [$applied['ok'],$applied['state'],$manualProvider->writes,$saved['state'],$saved['write_attempts'],
+        $saved['receipt']['verified']??false,$saved['receipt']['native_media_identity_before_verified']??null],
+    [true,'sent',1,'sent',1,true,false]);
+$afterCalls=count($manualProvider->calls);
+$again=$manualService->applyManualTelegramButton($aloftPublisher,$plan['publication_id'],$plan['version_id'],$plan['plan_digest']);
+$manualService->processPending('anytour','telegram','anyru_bot');
+channelPostCheck('Aloft confirmed POST replay cannot make a second provider call',
+    [$again['ok'],$manualProvider->writes,count($manualProvider->calls)], [false,1,$afterCalls]);
+
+// Presentation reads an already stored successor. The large private sentinels
+// must not enter its bounded DTO, nor can reading it repair the original state.
+$diagnosticMessage = $aloftNative;
+$diagnosticMessage['message_id'] = '1678';
+$diagnosticMessage['chat']['id'] = '-1001845835645';
+$diagnosticMessage['chat']['username'] = 'AnyTour';
+$diagnosticMessage['date'] = '1786449116';
+$diagnosticMessage['edit_date'] = 1786449216;
+$diagnosticMessage['caption'] = str_replace("\n", "\r\n", $aloftNative['caption']);
+$diagnosticMessage['text'] = null;
+$diagnosticMessage['photo'] = [];
+$diagnosticMessage['video']['duration'] = 28.5;
+$diagnosticMessage['video']['file_id'] = 'private_native_file_'.str_repeat('f', 900);
+$diagnosticMessage['video']['file_unique_id'] = 'private-native-unique:invalid';
+$diagnosticMessage['private_token'] = 'private_bot_token:'.str_repeat('t', 8192);
+$diagnosticMessage['reply_markup']['inline_keyboard'] = [[[
+    'text'=>'✈️ Рассчитать на мои даты', 'url'=>$plan['button_url'],
+    'callback_data'=>'private_callback_'.str_repeat('c', 8192),
+    'private_unknown_key'=>'private_unknown_value_'.str_repeat('v', 8192),
+]]];
+$diagnosticReceived = $manualService->receive('telegram', ['update_id'=>123456, 'edited_channel_post'=>$diagnosticMessage], 'anytour', 'anyru_bot');
+$diagnosticBefore = $manualRegistry->manualTelegramButtonPublication();
+$diagnosticCalls = [count($manualProvider->calls), $manualProvider->writes, $manualPublic->reads];
+$manualDb->exec('PRAGMA query_only=ON');
+$diagnosticStatus = $manualService->manualTelegramButtonStatus();
+$diagnosticAfter = $manualRegistry->manualTelegramButtonPublication();
+$manualDb->exec('PRAGMA query_only=OFF');
+$diagnostic = $diagnosticStatus['observation']['native_diagnostics'];
+channelPostCheck('Aloft stored native diagnostics preserve actual public scalar types and caption bytes',
+    [$diagnostic['message_id'], $diagnostic['chat_id'], $diagnostic['chat_type'], $diagnostic['chat_username'],
+        $diagnostic['date'], $diagnostic['video_duration'], $diagnostic['caption'], $diagnostic['text_key_present']],
+    [['present'=>true,'type'=>'string','value'=>'1678'], ['present'=>true,'type'=>'string','value'=>'-1001845835645'],
+        ['present'=>true,'type'=>'string','value'=>'channel'], ['present'=>true,'type'=>'string','value'=>'AnyTour'],
+        ['present'=>true,'type'=>'string','value'=>'1786449116'], ['present'=>true,'type'=>'double','value'=>28.5],
+        ['present'=>true,'type'=>'string','byte_length'=>strlen($diagnosticMessage['caption']), 'sha256'=>hash('sha256',$diagnosticMessage['caption'])], true]);
+$diagnosticJson = json_encode($diagnostic, JSON_THROW_ON_ERROR);
+channelPostCheck('Aloft native diagnostic DTO exposes bounded field facts without credentials or callback values',
+    [$diagnostic['video_file_id'], $diagnostic['video_file_unique_id'], $diagnostic['alternative_media_keys'], $diagnostic['keyboard'],
+        strlen($diagnosticJson) < 4096, str_contains($diagnosticJson, 'private_'), str_contains($diagnosticJson, 'private-native')],
+    [['present'=>true,'type'=>'string','byte_length'=>strlen($diagnosticMessage['video']['file_id']),'valid'=>true],
+        ['present'=>true,'type'=>'string','byte_length'=>strlen($diagnosticMessage['video']['file_unique_id']),'valid'=>false], ['photo'],
+        ['present'=>true,'type'=>'array','row_count'=>1,'rows_are_list'=>true,'single_row_button_count'=>1,'single_row_is_list'=>true,
+            'only_button_key_count'=>4,'only_button_keys'=>['text','url','callback_data'],'other_button_key_count'=>1], true, false, false]);
+channelPostCheck('Aloft native diagnostic status is query-only and preserves both immutable versions without provider reads',
+    [$diagnosticReceived['reason']??'', $diagnosticBefore === $diagnosticAfter,
+        [count($manualProvider->calls), $manualProvider->writes, $manualPublic->reads] === $diagnosticCalls,
+        $diagnosticStatus['state'], $diagnosticStatus['write_attempts'], $diagnosticStatus['original_attempt']['version_id'],
+        $diagnosticStatus['original_attempt']['state'], $diagnosticStatus['original_attempt']['write_attempts']],
+    ['manual_repair_requires_review', true, true, 'requires_attention', 0, $plan['version_id'], 'sent', 1]);
+
+foreach (['public_before_claim','public_before_write','config_before_write','native_before_write','timeout'] as $case) {
+    [$db,$registry,$provider,$public,$service] = aloftManualScenario($aloftHtml,$aloftNative,$case==='timeout'?'timeout':'success');
+    $preview=$service->prepareManualTelegramButton($aloftPublisher)['preview'];
+    if ($case==='public_before_claim') $public->html=str_replace('Сохранить','Новая подпись: сохранить',$aloftHtml);
+    else $public->hook=static function (int $read) use ($case,$public,$db,$service,$aloftNative): void {
+        if ($read!==3) return;
+        if ($case==='public_before_write') $public->html=str_replace('Сохранить','Новая подпись: сохранить',$public->html);
+        elseif ($case==='config_before_write') $db->exec('UPDATE post_channels SET config_version=config_version+1');
+        elseif ($case==='native_before_write') {
+            $message=$aloftNative;$message['caption'].=' новый текст';$message['edit_date']=$message['date']+100;
+            $service->receive('telegram',['update_id'=>12345,'edited_channel_post'=>$message],'anytour','anyru_bot');
+        }
+    };
+    $outcome=$service->applyManualTelegramButton($aloftPublisher,$preview['publication_id'],$preview['version_id'],$preview['plan_digest']);
+    $expectedWrites=$case==='timeout'?1:0;
+    channelPostCheck('Aloft '.$case.' cannot produce false success or an unsafe edit',
+        [$outcome['ok'],$provider->writes], [false,$expectedWrites]);
+    $beforeCalls=count($provider->calls);
+    $service->processPending('anytour','telegram','anyru_bot');
+    $current=$registry->manualTelegramButtonPublication();
+    $service->processPublication('anytour','telegram','anyru_bot',$current['publication_id'],$current['version_id']);
+    $service->applyManualTelegramButton($aloftPublisher,$preview['publication_id'],$preview['version_id'],$preview['plan_digest']);
+    channelPostCheck('Aloft '.$case.' stays fenced from all repeat writes',
+        [$provider->writes,count($provider->calls)], [$expectedWrites,$beforeCalls]);
+    if ($case==='timeout') channelPostCheck('Aloft lost response retains UNKNOWN and durable attempt',
+        [$current['state'],$current['write_attempts']], ['unknown',1]);
+}
+
+// Execute the actual integration with provider I/O intercepted in a namespace.
+// No application secrets are loaded and native curl can never contact Telegram.
+foreach (['CURLOPT_SSL_VERIFYPEER','CURLOPT_SSL_VERIFYHOST','CURLOPT_RETURNTRANSFER','CURLOPT_FOLLOWLOCATION',
+    'CURLOPT_CONNECTTIMEOUT','CURLOPT_TIMEOUT','CURLOPT_CUSTOMREQUEST','CURLOPT_HTTPHEADER',
+    'CURLOPT_WRITEFUNCTION','CURLOPT_POSTFIELDS','CURLINFO_HTTP_CODE','CURLINFO_TOTAL_TIME'] as $index => $constant) {
+    define('HotelMediaApiFixture\\'.$constant, 20000 + $index);
+}
+$GLOBALS['hotel_media_http'] = [];
+eval(<<<'FIXTURE'
+namespace HotelMediaApiFixture;
+const TELEGRAM_BOT_TOKEN = '123456:fixture_deployment_token_only';
+function extension_loaded(string $name): bool { return $name === 'curl'; }
+function defined(string $name): bool { return $name === 'TELEGRAM_BOT_TOKEN' || \defined($name); }
+function curl_init(string $url): object { return (object)['url'=>$url,'options'=>[]]; }
+function curl_setopt_array(object $handle, array $options): bool { $handle->options=$options; return true; }
+function curl_exec(object $handle): bool {
+    $GLOBALS['hotel_media_http'][]=['url'=>$handle->url,'options'=>$handle->options];
+    if (!empty($GLOBALS['hotel_media_fixture_timeout'])) return false;
+    ($handle->options[CURLOPT_WRITEFUNCTION])($handle,
+        $GLOBALS['hotel_media_fixture_response'] ?? '{"ok":true,"result":{"message_id":862}}');
+    return true;
+}
+function curl_getinfo(object $handle, int $option): int|float {
+    if ($option === CURLINFO_TOTAL_TIME) return 15.012;
+    return empty($GLOBALS['hotel_media_fixture_timeout']) ? ($GLOBALS['hotel_media_fixture_http'] ?? 200) : 0;
+}
+function curl_errno(object $handle): int { return empty($GLOBALS['hotel_media_fixture_timeout']) ? 0 : 28; }
+function curl_close(object $handle): void {}
+FIXTURE);
+$hotelTransportSource = (string)file_get_contents(__DIR__.'/../integrations/ChannelPostApiTransport.php');
+$hotelTransportSource = preg_replace('/\A<\?php\s*declare\(strict_types=1\);\s*/', '', $hotelTransportSource, 1, $replaced);
+channelPostCheck('hotel transport fixture retains the actual integration body', $replaced, 1);
+$hotelTransportSource = str_replace('__DIR__', var_export(dirname(__DIR__).'/integrations', true), $hotelTransportSource);
+eval('namespace HotelMediaApiFixture; use \MaxTlsConfig; use \CURLStringFile; '.$hotelTransportSource);
+
+$hotelMediaBody = [
+    'media'=>['type'=>'photo','media'=>'AgACAgIAAxkBAAIB_fixture_photo_1',
+        'caption'=>"✈️ Туры в проверенный отель\nСохранённая фотография.",'caption_entities'=>[]],
+    'reply_markup'=>['inline_keyboard'=>[[['text'=>'✈️ Рассчитать на мои даты',
+        'url'=>'https://t.me/anyru_bot?start=p_'.str_repeat('A',24)]]]],
+];
+foreach (['862','328','1083','288'] as $mid) {
+    channelPostCheck('hotel media builds exact fixed target '.$mid,
+        HotelMediaApiFixture\ChannelPostApiTransport::hotelMediaPayload('-1001845835645',$mid,$hotelMediaBody),
+        ['chat_id'=>'-1001845835645','message_id'=>(int)$mid]+$hotelMediaBody);
+}
+channelPostCheck('hotel media pure preparation performs no HTTP', $GLOBALS['hotel_media_http'], []);
+$hotelMediaResult = HotelMediaApiFixture\ChannelPostApiTransport::hotelMediaRequest('-1001845835645','862',$hotelMediaBody);
+$hotelWire = $GLOBALS['hotel_media_http'][0];
+channelPostCheck('hotel media performs exactly one deployment-bot editMessageMedia',
+    [$hotelMediaResult['http'],$hotelMediaResult['transport_error'],count($GLOBALS['hotel_media_http']),$hotelWire['url'],
+        json_decode($hotelWire['options'][HotelMediaApiFixture\CURLOPT_POSTFIELDS],true)],
+    [200,false,1,'https://api.telegram.org/bot'.HotelMediaApiFixture\TELEGRAM_BOT_TOKEN.'/editMessageMedia',
+        ['chat_id'=>'-1001845835645','message_id'=>862]+$hotelMediaBody]);
+channelPostCheck('hotel media preserves strict TLS, no redirects and original deadlines',
+    array_map(static fn($key)=>$hotelWire['options'][$key], [
+        HotelMediaApiFixture\CURLOPT_SSL_VERIFYPEER,HotelMediaApiFixture\CURLOPT_SSL_VERIFYHOST,
+        HotelMediaApiFixture\CURLOPT_FOLLOWLOCATION,HotelMediaApiFixture\CURLOPT_CONNECTTIMEOUT,
+        HotelMediaApiFixture\CURLOPT_TIMEOUT,HotelMediaApiFixture\CURLOPT_CUSTOMREQUEST]),
+    [true,2,false,2,15,'POST']);
+$GLOBALS['hotel_media_fixture_timeout'] = true;
+$attemptCount = count($GLOBALS['hotel_media_http']);
+$timeoutResult = HotelMediaApiFixture\ChannelPostApiTransport::hotelMediaRequest('-1001845835645','862',$hotelMediaBody);
+channelPostCheck('uncertain hotel media edit saves numeric transport facts after exactly one attempt',
+    [$timeoutResult, count($GLOBALS['hotel_media_http']) - $attemptCount],
+    [['http'=>0, 'data'=>null, 'transport_error'=>true, 'curl_errno'=>28, 'elapsed_ms'=>15012], 1]);
+$ordinary = HotelMediaApiFixture\ChannelPostApiTransport::buttonRequest('telegram','POST','getMe',[],[]);
+$ordinaryWire = end($GLOBALS['hotel_media_http']);
+channelPostCheck('ordinary Telegram calls retain their time budget and response shape',
+    [$ordinaryWire['options'][HotelMediaApiFixture\CURLOPT_CONNECTTIMEOUT], $ordinaryWire['options'][HotelMediaApiFixture\CURLOPT_TIMEOUT], $ordinary],
+    [2,6,['http'=>0, 'data'=>null, 'transport_error'=>true]]);
+unset($GLOBALS['hotel_media_fixture_timeout']);
+
+$hotelMediaDeny = static function(string $case, array $body, string $channel='-1001845835645', string $mid='862'): void {
+    $before=count($GLOBALS['hotel_media_http']);
+    channelPostCheck('hotel media rejects '.$case.' before HTTP',
+        [HotelMediaApiFixture\ChannelPostApiTransport::hotelMediaPayload($channel,$mid,$body),
+            HotelMediaApiFixture\ChannelPostApiTransport::hotelMediaRequest($channel,$mid,$body),
+            count($GLOBALS['hotel_media_http'])],
+        [null,['http'=>0,'data'=>null,'transport_error'=>true],$before]);
+};
+foreach (['1678','1207','455','0862',"862\n",'-862'] as $mid) $hotelMediaDeny('target '.$mid,$hotelMediaBody,'-1001845835645',$mid);
+$hotelMediaDeny('source channel',$hotelMediaBody,'-1001234567890');
+$hotelMediaDeny('MAX channel',$hotelMediaBody,'-68765999669267');
+foreach (['video','document','animation'] as $type) {
+    $bad=$hotelMediaBody;$bad['media']['type']=$type;$hotelMediaDeny('media type '.$type,$bad);
+}
+foreach (['','https://example.test/photo.jpg','http://example.test/photo.jpg','attach://photo',
+    'file:///tmp/photo.jpg','/tmp/photo.jpg','file id',"file\0id",str_repeat('A',1025)] as $i=>$file) {
+    $bad=$hotelMediaBody;$bad['media']['media']=$file;$hotelMediaDeny('non-reusable file '.$i,$bad);
+}
+foreach ([''," \n",'caption'."\0",'caption'."\t",'caption'."\r",'caption'."\u{0085}",
+    'caption'."\xC3\x28",str_repeat('A',1025),str_repeat('😀',513)] as $i=>$caption) {
+    $bad=$hotelMediaBody;$bad['media']['caption']=$caption;$hotelMediaDeny('invalid caption '.$i,$bad);
+}
+foreach ([str_repeat('Я',1024),str_repeat('😀',512)] as $caption) {
+    $boundary=$hotelMediaBody;$boundary['media']['caption']=$caption;
+    channelPostCheck('hotel caption accepts exactly 1024 UTF16 units',
+        HotelMediaApiFixture\ChannelPostApiTransport::hotelMediaPayload('-1001845835645','862',$boundary),
+        ['chat_id'=>'-1001845835645','message_id'=>862]+$boundary);
+}
+foreach ([null,'[]',[['type'=>'bold','offset'=>0,'length'=>1]]] as $i=>$entities) {
+    $bad=$hotelMediaBody;$bad['media']['caption_entities']=$entities;$hotelMediaDeny('caption entities '.$i,$bad);
+}
+foreach ([
+    'https://t.me/ANYTOURBOT_bot?start=p_'.str_repeat('A',24),
+    'https://t.me.evil.test/anyru_bot?start=p_'.str_repeat('A',24),
+    'http://t.me/anyru_bot?start=p_'.str_repeat('A',24),
+    'https://t.me/anyru_bot?start=p_'.str_repeat('A',23),
+    'https://t.me/anyru_bot?start=p_'.str_repeat('A',25),
+    'https://t.me/anyru_bot?start=p_'.str_repeat('A',24).'&extra=1',
+] as $i=>$url) {
+    $bad=$hotelMediaBody;$bad['reply_markup']['inline_keyboard'][0][0]['url']=$url;$hotelMediaDeny('noncanonical bot URL '.$i,$bad);
+}
+foreach (['',' ',str_repeat('A',129),"button\ntext","button\u{0085}","\xC3\x28"] as $i=>$text) {
+    $bad=$hotelMediaBody;$bad['reply_markup']['inline_keyboard'][0][0]['text']=$text;$hotelMediaDeny('invalid button text '.$i,$bad);
+}
+foreach (['body','media','markup','button','row','keyboard','album','media_shape','markup_shape','button_shape'] as $case) {
+    $bad=$hotelMediaBody;
+    if ($case==='body') $bad['chat_id']='-1001845835645';
+    elseif ($case==='media') $bad['media']['parse_mode']='HTML';
+    elseif ($case==='markup') $bad['reply_markup']['resize_keyboard']=true;
+    elseif ($case==='button') $bad['reply_markup']['inline_keyboard'][0][0]['callback_data']='other';
+    elseif ($case==='row') $bad['reply_markup']['inline_keyboard'][0][]=$bad['reply_markup']['inline_keyboard'][0][0];
+    elseif ($case==='keyboard') $bad['reply_markup']['inline_keyboard'][]=$bad['reply_markup']['inline_keyboard'][0];
+    elseif ($case==='album') $bad['media']=[$bad['media'],$bad['media']];
+    elseif ($case==='media_shape') $bad['media']='photo';
+    elseif ($case==='markup_shape') $bad['reply_markup']='inline_keyboard';
+    else $bad['reply_markup']['inline_keyboard'][0][0]='button';
+    $hotelMediaDeny('extra or malformed '.$case,$bad);
+}
+
+$hotelDenied=['http'=>0,'data'=>null,'transport_error'=>true];
+$hotelFullBody=['chat_id'=>'-1001845835645','message_id'=>862]+$hotelMediaBody;
+$publisherFixtureToken='654321:'.str_repeat('B',24);
+$before=count($GLOBALS['hotel_media_http']);
+channelPostCheck('generic button transport does not acquire a media route',
+    HotelMediaApiFixture\ChannelPostApiTransport::buttonRequest('telegram','POST','editMessageMedia',[],$hotelFullBody),$hotelDenied);
+channelPostCheck('caption transport still excludes replacement media',
+    HotelMediaApiFixture\ChannelPostApiTransport::captionRequest('telegram','-1001845835645','862',$hotelMediaBody),$hotelDenied);
+channelPostCheck('saved publisher cannot use the media route',
+    HotelMediaApiFixture\ChannelPostApiTransport::publisherButtonRequest($publisherFixtureToken,'POST','editMessageMedia',[],$hotelFullBody),$hotelDenied);
+$publisherKeyboard=['chat_id'=>'-1001845835645','message_id'=>862,'reply_markup'=>$hotelMediaBody['reply_markup']];
+channelPostCheck('saved publisher keyboard remains limited to Aloft 1678',
+    HotelMediaApiFixture\ChannelPostApiTransport::publisherButtonRequest($publisherFixtureToken,'POST','editMessageReplyMarkup',[],$publisherKeyboard),$hotelDenied);
+channelPostCheck('existing transport boundaries reject before all HTTP',count($GLOBALS['hotel_media_http']),$before);
+$captionOnly=['caption'=>$hotelMediaBody['media']['caption'],'caption_entities'=>[],'reply_markup'=>$hotelMediaBody['reply_markup']];
+HotelMediaApiFixture\ChannelPostApiTransport::captionRequest('telegram','-1001845835645','862',$captionOnly);
+channelPostCheck('existing caption route keeps its exact method and body',
+    [count($GLOBALS['hotel_media_http']),$GLOBALS['hotel_media_http'][$before]['url'],
+        json_decode($GLOBALS['hotel_media_http'][$before]['options'][HotelMediaApiFixture\CURLOPT_POSTFIELDS],true)],
+    [$before+1,'https://api.telegram.org/bot'.HotelMediaApiFixture\TELEGRAM_BOT_TOKEN.'/editMessageCaption',
+        ['chat_id'=>'-1001845835645','message_id'=>862]+$captionOnly]);
+$publisherKeyboard['message_id']=1678;
+HotelMediaApiFixture\ChannelPostApiTransport::publisherButtonRequest($publisherFixtureToken,'POST','editMessageReplyMarkup',[],$publisherKeyboard);
+channelPostCheck('existing publisher route still edits only the accepted keyboard with its saved credential',
+    [count($GLOBALS['hotel_media_http']),$GLOBALS['hotel_media_http'][$before+1]['url'],
+        json_decode($GLOBALS['hotel_media_http'][$before+1]['options'][HotelMediaApiFixture\CURLOPT_POSTFIELDS],true)],
+    [$before+2,'https://api.telegram.org/bot'.$publisherFixtureToken.'/editMessageReplyMarkup',$publisherKeyboard]);
+
+// Exercise the real editor's durable once-only flow; only its internal effects
+// are fixtures. Requiring the CLI file does not bootstrap or invoke its runner.
+require_once __DIR__.'/../tools/anytour_existing_post_batch.php';
+$nextTransferRaw = file_get_contents(__DIR__.'/../'.AnyTour\ExistingPostBatch\NEXT_TRANSFER_PLAN_FILE);
+$nextTransfer = AnyTour\ExistingPostBatch\transferPlanFromBytes($nextTransferRaw, '30f93518da51279979f7669538f7c09f6096733e9423f755dc21981af821b98d', true);
+channelPostCheck('next fixed hotel transfer carries no old price and preserves exact destinations',
+    [array_column($nextTransfer['rows'], 'target_message_id'), array_column($nextTransfer['rows'], 'price_record_id'),
+        $nextTransfer['monitor_source_url']],
+    [['1588','997','1101'], [null,null,null], null]);
+channelPostCheck('new public post scope is only available to the next fixed transfer',
+    [AnyTour\ExistingPostBatch\transferPublicAllowed('anytour', '1588'),
+        AnyTour\ExistingPostBatch\transferPublicAllowed('anytour', '1588', true),
+        AnyTour\ExistingPostBatch\transferPublicAllowed('anytour', '862', true)], [false,true,false]);
+$remainingTransfer = AnyTour\ExistingPostBatch\selectRemainingTransferRows($nextTransfer);
+channelPostCheck('continuation selects only the two untouched posts',
+    [array_column($remainingTransfer['rows'],'hotel_id'),array_column($remainingTransfer['rows'],'target_message_id')],
+    [[408,466],['997','1101']]);
+$rankedDigest = AnyTour\ExistingPostBatch\RANKED_ORIGINAL_PLAN;
+$rankedRaw = file_get_contents(__DIR__.'/../config/anytour_ranked_46_20261123_01.json');
+$rankedPlan = AnyTour\ExistingPostBatch\transferPlanFromBytes($rankedRaw, $rankedDigest, $rankedDigest);
+$rankedTail = AnyTour\ExistingPostBatch\selectRankedContinuationRows($rankedPlan, $rankedDigest);
+$rankedRow = $rankedTail['rows'][0];
+foreach (['occupied'=>[0,false],'occupied string'=>['0',false],'acquired'=>[1,true],'acquired string'=>['1',true],
+    'NULL'=>[null,'transfer_target_lock_unconfirmed'],'SQL failure'=>[false,'transfer_target_lock_unconfirmed'],
+    'unexpected result'=>[2,'transfer_target_lock_unconfirmed']] as $case=>[$reply,$expected]) {
+    try { $observed=AnyTour\ExistingPostBatch\transferTargetLockAcquired($reply); }
+    catch (RuntimeException $e) { $observed=$e->getMessage(); }
+    channelPostCheck('ranked destination lock '.$case,$observed,$expected);
+}
+$targetDb = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+$targetDb->sqliteCreateFunction('JSON_UNQUOTE',static fn($value)=>$value);
+$targetDb->exec('CREATE TABLE post_publications (id INTEGER, post_channel_id INTEGER, external_message_id TEXT,current_version_id INTEGER)');
+$targetDb->exec('CREATE TABLE post_versions (id INTEGER, publication_id INTEGER,snapshot_json TEXT)');
+foreach (['empty'=>null,'same hotel'=>'transfer_hotel_already_in_large_channel','same post'=>'transfer_target_identity_exists'] as $case=>$expected) {
+    if ($case==='same hotel') {
+        $targetDb->exec("INSERT INTO post_publications VALUES(1,6,'99999',1)");
+        $targetDb->prepare('INSERT INTO post_versions VALUES(1,1,?)')->execute([json_encode(['metadata'=>['hotel_catalog_id'=>(string)$rankedRow['hotel_id']]])]);
+    } elseif ($case==='same post') {
+        $targetDb->prepare('INSERT INTO post_publications VALUES(2,6,?,NULL)')->execute([$rankedRow['target_message_id']]);
+    }
+    $reason=null;
+    try { AnyTour\ExistingPostBatch\transferNoTarget($targetDb,$rankedRow); }
+    catch (RuntimeException $e) { $reason=$e->getMessage(); }
+    channelPostCheck('ranked destination inventory '.$case,$reason,$expected);
+}
+$sameSource = ['project_key'=>'anytour','platform'=>'telegram','bot_key'=>'anyru_bot','channel_id'=>'-1002262666616',
+    'channel'=>['id'=>10],'message_id'=>$rankedRow['source_message_id'],'state'=>'sent',
+    'publication_id'=>$rankedRow['source_publication_id'],'version_id'=>$rankedRow['source_version_id'] + 1,
+    'snapshot'=>['metadata'=>['hotel_catalog_id'=>$rankedRow['hotel_id']]]];
+foreach (['newer'=>[[],true],'unchanged'=>[['version_id'=>$rankedRow['source_version_id']],false],
+    'wrong hotel'=>[['snapshot'=>[]],false],'wrong source'=>[['publication_id'=>0],false],
+    'wrong channel'=>[['channel_id'=>'another'],false],'missing version'=>[['version_id'=>null],false]] as $case=>[$change,$expected]) {
+    channelPostCheck('independent source hold: '.$case,
+        AnyTour\ExistingPostBatch\transferSourceRevisionAdvanced(array_replace($sameSource, $change), $rankedRow), $expected);
+}
+$runContext = ['native_run_id'=>'12345','application_sha'=>str_repeat('a',40),
+    'continuation_of_ranked_run_id'=>AnyTour\ExistingPostBatch\RANKED_ORIGINAL_RUN];
+$lostResult = ['hotel_id'=>$rankedRow['hotel_id'],'message_id'=>$rankedRow['target_message_id'],
+    'ok'=>false,'state'=>'response_saved_completion_requires_readback','reason'=>'hotel_transfer_response_unconfirmed',
+    'provider_write_attempts'=>1,'reserved_publication_id'=>40];
+$lostRequest = ['chat_id'=>'-1001845835645','message_id'=>(int)$rankedRow['target_message_id']];
+$evidence = [
+    ['state'=>'intent_saved','operation'=>AnyTour\ExistingPostBatch\transferProfileOperation($rankedDigest),
+        'row'=>$rankedRow,'execution'=>$runContext,'plan_sha256'=>$rankedDigest],
+    ['state'=>'identity_reserved','plan_sha256'=>$rankedDigest,'reservation'=>['publication_id'=>40]],
+    ['state'=>'request_prepared','request'=>$lostRequest,'request_sha256'=>hash('sha256',json_encode($lostRequest))],
+    ['state'=>'provider_edit_started','provider_write_attempts'=>1],
+    ['state'=>'provider_response_saved','response'=>['http'=>0,'data'=>null,'transport_error'=>true]],
+    $lostResult,
+];
+foreach (['complete'=>[null,[],true],'wrong run'=>[0,['execution'=>[]],false],
+    'wrong target'=>[0,['row'=>[]],false],'wrong plan'=>[0,['plan_sha256'=>'foreign'],false],
+    'missing request digest'=>[2,['request_sha256'=>''],false], 'two requests'=>[3,['provider_write_attempts'=>2],false],
+    'API отказ'=>[4,['response'=>['http'=>403,'data'=>null,'transport_error'=>false]],false],
+    'changed terminal'=>[5,['reserved_publication_id'=>77],false],'missing terminal'=>[5,null,false]] as $case=>[$index,$change,$expected]) {
+    $rows = $evidence;
+    if ($index !== null && $change === null) array_pop($rows);
+    elseif ($index !== null) $rows[$index] = array_replace($rows[$index],$change);
+    $receipt = tmpfile();
+    foreach ($rows as $event) AnyTour\ExistingPostBatch\transferJournal($receipt,$event);
+    channelPostCheck('durable isolated transport failure: '.$case,
+        AnyTour\ExistingPostBatch\transferTransportLossRecorded($receipt,$rankedRow,$rankedDigest,$runContext,$lostResult), $expected);
+    foreach ([true,false] as $healthy) {
+        $pings = 0;
+        $effects = ['context'=>$runContext,'recheck_after_transport_loss'=>static function () use (&$pings,$healthy): void {
+            ++$pings;
+            if (!$healthy) throw new RuntimeException('transfer_native_rights_unconfirmed');
+        }];
+        $observed = AnyTour\ExistingPostBatch\transferCheckSharedAccess($receipt,$rankedRow,$rankedDigest,$effects,$lostResult);
+        channelPostCheck('shared check after '.$case.' '.($healthy ? 'healthy' : 'unavailable'),
+            [$pings,$observed['shared_access_rechecked'] ?? false,$observed['shared_access_error'] ?? null,$observed['ok']],
+            [$expected ? 1 : 0,$expected && $healthy,$expected && !$healthy ? 'transfer_native_rights_unconfirmed' : null,false]);
+    }
+    fclose($receipt);
+}
+channelPostCheck('no-price HOTEL input excludes the previous monitor quote with a valid caption digest',
+    [AnyTour\ExistingPostBatch\transferCaptionOmitsMonitorPrice("Пляж\n💰 От 108 689 ₽ за двоих"),
+     AnyTour\ExistingPostBatch\transferCaptionOmitsMonitorPrice("Цена найдена мониторингом 19.11.2026, 09:18 МСК."),
+     AnyTour\ExistingPostBatch\transferCaptionOmitsMonitorPrice('В ресторане H2O ужинают под водой.')], [false,false,true]);
+$pricePath = tempnam(sys_get_temp_dir(), 'hotel-price-lease-');
+$owner = fopen($pricePath, 'rb'); $worker = fopen($pricePath, 'rb');
+try {
+    flock($owner, LOCK_SH);
+    channelPostCheck('data plan waits for the established PRICE owner without taking its lock',
+        AnyTour\ExistingPostBatch\acquireRankedPriceLease($worker,$pricePath,10),false);
+    flock($owner, LOCK_UN);
+    channelPostCheck('data plan acquires the same free inode before any row',
+        AnyTour\ExistingPostBatch\acquireRankedPriceLease($worker,$pricePath,10),true);
+    flock($worker,LOCK_UN);
+    rename($pricePath,$pricePath.'.old'); touch($pricePath);
+    try {AnyTour\ExistingPostBatch\acquireRankedPriceLease($worker,$pricePath,10); $reason = 'allowed';}
+    catch (RuntimeException $e) {$reason=$e->getMessage();}
+    channelPostCheck('an exchanged PRICE inode never grants a write',$reason,'transfer_price_lease_unknown');
+} finally {
+    fclose($worker); fclose($owner); unlink($pricePath);
+    if (is_file($pricePath.'.old')) unlink($pricePath.'.old');
+}
+// A later HOTEL plan can isolate one journaled timeout only against its own installed receipt.
+$indexPath = __DIR__.'/../config/anytour_ranked_index_45387052894.json';
+$newIndex = json_decode(file_get_contents($indexPath), true, 16, JSON_THROW_ON_ERROR);
+$newDigest = $newIndex['plans'][0]['sha256'];
+$newBytes = file_get_contents(__DIR__.'/../'.$newIndex['plans'][0]['path']);
+$newPlan = AnyTour\ExistingPostBatch\transferPlanFromBytes($newBytes, $newDigest, $newDigest);
+$newRow = $newPlan['rows'][0];
+$newContext = ['native_run_id'=>'12345', 'application_sha'=>str_repeat('a',40), 'approved_index_sha256'=>hash_file('sha256',$indexPath)];
+$newResult = array_replace($lostResult, ['hotel_id'=>$newRow['hotel_id'], 'message_id'=>$newRow['target_message_id']]);
+$newRequest = array_replace($lostRequest, ['message_id'=>(int)$newRow['target_message_id']]);
+$events = $evidence;
+$events[0] = array_replace($events[0], ['execution'=>$newContext, 'operation'=>$newPlan['operation'], 'row'=>$newRow, 'plan_sha256'=>$newDigest]);
+$events[1]['plan_sha256'] = $newDigest;
+$events[2] = array_replace($events[2], ['request'=>$newRequest, 'request_sha256'=>hash('sha256', json_encode($newRequest))]);
+$events[5] = $newResult;
+$file = tmpfile();
+foreach ($events as $event) AnyTour\ExistingPostBatch\transferJournal($file, $event);
+foreach (['release-approved'=>$newContext, 'foreign approval'=>array_replace($newContext,['approved_index_sha256'=>str_repeat('b',64)]),
+    'missing run'=>array_diff_key($newContext,['native_run_id'=>true])] as $case=>$context) {
+    channelPostCheck('data plan journal '.$case, AnyTour\ExistingPostBatch\transferTransportLossRecorded(
+        $file,$newRow,$newDigest,$context,$newResult), $case==='release-approved');
+}
+fclose($file);
+$existingDir = sys_get_temp_dir().'/ranked-previous-operation-'.bin2hex(random_bytes(10));
+mkdir($existingDir,0700);
+try {
+    $cases=['authentic uncertain'=>null,'prior success'=>'success','false success'=>'false_success',
+        'foreign run'=>'foreign_run','foreign app'=>'foreign_app','broken final'=>'truncated',
+        'request changed'=>'changed_request','unconfirmed provider reply'=>'foreign_response',
+        'symlink'=>'link','missing journal'=>'missing'];
+    foreach ($cases as $case=>$change) {
+        $events=$evidence;
+        if ($change==='success' || $change==='false_success') {
+            $events[5]=array_replace($lostResult,['state'=>'native_and_registry_verified','ok'=>true,'publication_id'=>40,
+                'hotel_id_verified'=>true,'original_message_id_and_date_preserved'=>true,'photo_caption_button_verified'=>true]);
+            if ($change==='success') $events[4]['response']=['http'=>200,'transport_error'=>false,
+                'data'=>['ok'=>true,'result'=>['message_id'=>(int)$rankedRow['target_message_id']]]];
+        } elseif ($change==='truncated') array_pop($events);
+        elseif ($change==='changed_request') $events[2]['request']['message_id']=0;
+        elseif ($change==='foreign_response') $events[4]['response']['http']=401;
+        $path=$existingDir.'/receipt.jsonl';
+        $fixture=$change==='link' ? $existingDir.'/other.jsonl' : $path;
+        if ($change!=='missing') {
+            $journal=fopen($fixture,'x+b');
+            foreach ($events as $event) AnyTour\ExistingPostBatch\transferJournal($journal,$event);
+            fclose($journal);
+            if ($change==='link') symlink($fixture,$path);
+        }
+        try {
+            $prior=AnyTour\ExistingPostBatch\transferCurrentRunJournal($existingDir,$rankedRow,$rankedDigest,
+                $change==='foreign_run' ? '12346' : $runContext['native_run_id'],
+                $change==='foreign_app' ? str_repeat('b',40) : $runContext['application_sha']);
+            $observed=[$prior['reason'],$prior['prior_terminal_state'],$prior['prior_journal_sha256']===hash_file('sha256',$path)];
+        } catch (Throwable $error) { $observed=$error->getMessage(); }
+        $expected=$change===null || $change==='success' ? ['transfer_current_run_journal_requires_readback',
+            $change===null ? 'response_saved_completion_requires_readback' : 'native_and_registry_verified',true] : 'transfer_previous_operation_do_not_replay';
+        channelPostCheck('existing per-target operation: '.$case,$observed,$expected);
+        if (is_link($path) || file_exists($path)) unlink($path);
+        if ($change==='link') unlink($fixture);
+    }
+} finally { rmdir($existingDir); }
+// Synthetic closed predecessor on real files; never a live provider receipt.
+$resumeDir=sys_get_temp_dir().'/ranked-cross-run-'.bin2hex(random_bytes(10));mkdir($resumeDir,0700);
+try {
+    foreach (['unknown','success','changed_run','changed_app','partial','active','failed_readback','missing_version'] as $case) {
+        $events=$evidence;
+        if (in_array($case,['success','failed_readback','missing_version'],true)) {
+            $events[4]['response']=['http'=>200,'transport_error'=>false,'data'=>['ok'=>true,'result'=>['message_id'=>(int)$rankedRow['target_message_id']]]];
+            $events[5]=array_replace($lostResult,['state'=>'native_and_registry_verified','ok'=>true,'publication_id'=>40,'version_id'=>41,
+                'hotel_id_verified'=>true,'original_message_id_and_date_preserved'=>true,'photo_caption_button_verified'=>true]);
+        }
+        if($case==='missing_version')unset($events[5]['version_id']);
+        if($case==='partial')array_pop($events);
+        $path=$resumeDir.'/receipt.jsonl';$h=fopen($path,'x+b');
+        foreach($events as $event)AnyTour\ExistingPostBatch\transferJournal($h,$event);
+        if($case==='active')flock($h,LOCK_EX|LOCK_NB);else fclose($h);
+        $origin=['native_run_id'=>$case==='changed_run'?'999999':$runContext['native_run_id'],
+            'application_sha'=>$case==='changed_app'?str_repeat('b',40):$runContext['application_sha']];
+        $reads=0;$before=hash_file('sha256',$path);
+        try {
+            $prior=AnyTour\ExistingPostBatch\transferResumePrior($resumeDir,$rankedRow,$rankedDigest,$origin,
+                static function(array $original)use(&$reads,$case):void{++$reads;if($original['prior_publication_id']!==40||$original['prior_version_id']!==41)throw new RuntimeException('original_identity_changed');if($case==='failed_readback')throw new RuntimeException('transfer_resume_route_unconfirmed');});
+            $observed=[$prior['reason'],$prior['prior_terminal_state'],$prior['prior_public_readback_verified'],$reads];
+        }catch(Throwable $e){$observed=$e->getMessage();}
+        $expected=in_array($case,['success','failed_readback'],true)
+            ?['transfer_previous_run_journal_requires_readback','native_and_registry_verified',$case==='success',1]
+            :($case==='unknown'?['transfer_previous_run_journal_requires_readback','response_saved_completion_requires_readback',false,0]
+            :($case==='missing_version'?'transfer_resume_prior_identity_invalid':'transfer_previous_operation_do_not_replay'));
+        channelPostCheck('cross-run exact closed predecessor: '.$case,$observed,$expected);
+        channelPostCheck('cross-run original journal unchanged: '.$case,hash_file('sha256',$path),$before);
+        if($case==='active')fclose($h);unlink($path);
+    }
+}finally{rmdir($resumeDir);}
+
+// An explicit zero-write continuation cannot select another plan or reuse the old execution identity.
+foreach ([['wrong_plan',str_repeat('d',64),'999999',str_repeat('b',40),false],
+    ['old_run','c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab','45349080956',str_repeat('b',40),false],
+    ['old_application','c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab','999999','8d723f1c08f094fd845c7c34da29607fc294ff46',false],
+    ['ranked_resume','c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab','999999',str_repeat('b',40),true]] as [$case,$digest,$run,$app,$ranked]) {
+    $reason=null;
+    try { AnyTour\ExistingPostBatch\applyTransferPlan(__DIR__,$digest,$app,$run,$digest,false,$ranked,false,true); }
+    catch (RuntimeException $e) { $reason=$e->getMessage(); }
+    channelPostCheck('zero-write continuation rejects before runtime: '.$case,$reason,'transfer_closed_prewrite_scope_invalid');
+}
+
+channelPostCheck('ranked continuation selects exactly 37 untouched original rows',
+    [$rankedTail['operation'], count($rankedTail['rows']), $rankedTail['rows'],
+        array_intersect(['224','249','266'], array_column($rankedTail['rows'], 'target_message_id'))],
+    [AnyTour\ExistingPostBatch\RANKED_CONTINUATION_OPERATION, 37, array_slice($rankedPlan['rows'], 3), []]);
+$invalidRankedPlan = $rankedPlan;
+[$invalidRankedPlan['rows'][1], $invalidRankedPlan['rows'][2]] = [$rankedPlan['rows'][2], $rankedPlan['rows'][1]];
+foreach ([[$invalidRankedPlan, $rankedDigest], [$rankedPlan, str_repeat('0',64)]] as [$candidate, $digest]) {
+    $reason = null;
+    try { AnyTour\ExistingPostBatch\selectRankedContinuationRows($candidate, $digest); }
+    catch (RuntimeException $e) { $reason = $e->getMessage(); }
+    channelPostCheck('ranked continuation refuses changed prefix or plan digest', $reason, 'transfer_ranked_continuation_scope_invalid');
+}
+$rejectedTransfer = ['http'=>400,'transport_error'=>false,
+    'data'=>['ok'=>false,'error_code'=>400,'description'=>'Bad Request: MESSAGE_ID_INVALID']];
+$firstTransferEvents = [
+    ['state'=>'intent_saved','operation'=>AnyTour\ExistingPostBatch\NEXT_TRANSFER_OPERATION,
+        'row'=>$nextTransfer['rows'][0],'plan_sha256'=>hash('sha256',$nextTransferRaw),
+        'execution'=>['native_run_id'=>AnyTour\ExistingPostBatch\ORIGINAL_NEXT_TRANSFER_RUN,
+            'application_sha'=>AnyTour\ExistingPostBatch\ORIGINAL_NEXT_TRANSFER_APP]],
+    ['state'=>'identity_reserved'],['state'=>'request_prepared'],
+    ['state'=>'provider_edit_started','provider_write_attempts'=>1],
+    ['state'=>'provider_response_saved','response'=>$rejectedTransfer],
+    ['state'=>'response_saved_completion_requires_readback','provider_write_attempts'=>1],
+];
+AnyTour\ExistingPostBatch\requireOriginalNextTransferRejection($firstTransferEvents,$nextTransfer['rows'][0],hash('sha256',$nextTransferRaw));
+$firstTransferEvents[4]['response']['transport_error'] = true;
+try {
+    AnyTour\ExistingPostBatch\requireOriginalNextTransferRejection($firstTransferEvents,$nextTransfer['rows'][0],hash('sha256',$nextTransferRaw));
+    channelPostCheck('uncertain Telegram response stops the continuation', false);
+} catch (RuntimeException $error) {
+    channelPostCheck('uncertain Telegram response stops the continuation', $error->getMessage(), 'transfer_original_rejection_unconfirmed');
+}
+$stellaPlanRaw = file_get_contents(__DIR__.'/../config/anytour_stella_alternate_20261123.json');
+$stellaDigest = 'c71a7e945c0978910267ecb729dd25449a45b66e5fa4874c669c7592fae27aab';
+$stellaAlternate = AnyTour\ExistingPostBatch\transferPlanFromBytes($stellaPlanRaw, $stellaDigest, $stellaDigest);
+channelPostCheck('alternate Stella plan preserves the approved source, photo, and caption',
+    $stellaAlternate['rows'], [array_replace($nextTransfer['rows'][2], [
+        'target_message_id'=>'925', 'target_published_unixtime'=>1731241439,
+        'target_caption_sha256'=>'f73587cf7dcc1fafa3c303bd8948dbafbdf3fc8ae07992acf5472e8f0d6a220e',
+        'target_photo_marker_sha256'=>'00581a7eaa9f78288dfc78567412b44ab4cd8b12ba195548a2cb3272f5a6573e',
+    ])]);
+channelPostCheck('alternate Stella plan only allows the new target',
+    [AnyTour\ExistingPostBatch\transferPublicAllowed('anytour', '925', $stellaDigest),
+        AnyTour\ExistingPostBatch\transferPublicAllowed('anytour', '1101', $stellaDigest),
+        AnyTour\ExistingPostBatch\transferPublicAllowed('anytour', '997', $stellaDigest)], [true,false,false]);
+// Load the same tracked dependency path as applyTransferPlan, without its runtime
+// bootstrap. This synthetic saved export is test data, never native evidence.
+require_once __DIR__.'/../tools/direct_demand/operations/monitor-price-hook-contract.php';
+$transferPriceNow = strtotime('2026-11-23T08:00:00Z');
+$transferPriceRecord = hash('sha256','synthetic hotel transfer price');
+$transferPriceTemplate = "✈️ Туры в Тестовый отель\n📍 Турция · Анталья\n\nУзнать стоимость тура\n\n"
+    ."💰 [Минимальная актуальная цена тура — подтвердить перед выпуском]\n"
+    .'[Город вылета · даты · ночи · состав туристов · номер · питание · время проверки]';
+$transferPriceCaption = "✈️ Туры в Тестовый отель\n📍 Турция · Анталья\n\nУзнать стоимость тура\n\n"
+    ."💰 От 87 006 ₽ за двоих\n✈️ Вылет из Москвы 26.11.2026 · 5 ночей\n👥 2 взрослых\n"
+    ."🛏 standard room\n🍽 Всё включено\n"
+    .'Цена найдена мониторингом 23.11.2026, 10:00 МСК. Стоимость и наличие могут измениться.';
+$transferPriceRow = ['hotel_id'=>17595,'price_record_id'=>$transferPriceRecord,
+    'price_template'=>$transferPriceTemplate,'next_caption'=>$transferPriceCaption,
+    'next_caption_sha256'=>hash('sha256',$transferPriceCaption)];
+$transferPricePlan = ['monitor_source_url'=>AnyTour\ExistingPostBatch\TRANSFER_MONITOR_URL];
+$transferPriceExport = ['ok'=>true,'format'=>'anytour-hotel-monitor-prices-v1',
+    'generatedAt'=>gmdate(DATE_ATOM,$transferPriceNow),'identityNamespace'=>'tourvisor',
+    'source'=>'scheduled_monitor','observationWindowHours'=>36,
+    'timeBasis'=>'database-relative; stored observation timezone is not asserted',
+    'supplierRequests'=>0,'writes'=>0,
+    'scope'=>['tourvisorHotelIds'=>[17595,358,393,1260],'departureId'=>1,'adults'=>2,
+        'childrenCount'=>0,'currency'=>'RUB','nightsFrom'=>5,'nightsTo'=>14,
+        'dateFrom'=>'2026-11-24','dateTo'=>'2027-10-31'],
+    'items'=>[['tourvisorHotelId'=>17595,'state'=>'observed','offers'=>[[
+        'tourvisorHotelId'=>17595,'tourId'=>'synthetic-transfer-tour','recordId'=>$transferPriceRecord,
+        'departureId'=>1,'departureDate'=>'2026-11-26','nights'=>5,'adults'=>2,'childrenCount'=>0,
+        'price'=>87006,'currency'=>'RUB','roomType'=>'standard room','mealId'=>7,
+        'source'=>'scheduled_monitor','priceKind'=>'listing_observation',
+        'currentPriceVerified'=>false,'fullPackagePriceVerified'=>false,'availabilityVerified'=>false,
+        'fuelIncluded'=>null,'ageSecondsAtExport'=>3600,'expiresAt'=>gmdate(DATE_ATOM,$transferPriceNow+900),
+    ]]]]];
+$transferPrice = AnyTour\ExistingPostBatch\transferPrice($transferPricePlan,$transferPriceRow,$transferPriceExport,$transferPriceNow);
+channelPostCheck('real hotel editor loads its deployed pure contracts and reproduces the approved caption',
+    [$transferPrice['record_id'],$transferPrice['price'],$transferPrice['observed_at'],
+        monitor_hook_draft($transferPriceTemplate,$transferPrice)],
+    [$transferPriceRecord,87006,'2026-11-23T07:00:00Z',$transferPriceCaption]);
+foreach (['changed_price','changed_record','expired_export','expired_observation'] as $case) {
+    $export=$transferPriceExport;$now=$transferPriceNow;
+    if ($case==='changed_price') $export['items'][0]['offers'][0]['price']=87007;
+    if ($case==='changed_record') $export['items'][0]['offers'][0]['recordId']=hash('sha256','another synthetic price');
+    if ($case==='expired_export') $now+=900;
+    if ($case==='expired_observation') $export['items'][0]['offers'][0]['ageSecondsAtExport']=36*3600;
+    $reason=null;
+    try { AnyTour\ExistingPostBatch\transferPrice($transferPricePlan,$transferPriceRow,$export,$now); }
+    catch (RuntimeException $error) { $reason=$error->getMessage(); }
+    channelPostCheck('real hotel editor refuses '.$case.' through the loaded price contract',$reason,
+        str_starts_with($case,'changed_')?'transfer_price_or_caption_changed':'monitor_price_expired');
+}
+$transferFixtureRoot = sys_get_temp_dir().'/channel-hotel-control-'.bin2hex(random_bytes(10));
+if (!mkdir($transferFixtureRoot,0700)) throw new RuntimeException('fixture_operations_creation_failed');
+$transferFixtureRoot = realpath($transferFixtureRoot);
+$transferFixtureDirectories = [];
+$transferReceiptRead = static function(string $path): array {
+    $lines=file($path,FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES);
+    if (!is_array($lines)) throw new RuntimeException('fixture_receipt_missing');
+    return array_map(static fn($line)=>json_decode($line,true,64,JSON_THROW_ON_ERROR),$lines);
+};
+$historicalPost = '<div data-post="anytour/862"><div class="tgme_widget_message_text">Old offer</div>'
+    .'<time datetime="2024-09-19T12:22:11+00:00"></time>';
+$historicalWidget = AnyTour\ExistingPostBatch\parseTransferPublic($historicalPost.'</div>', 'anytour', '862');
+$historicalArchive = AnyTour\ExistingPostBatch\parseTransferPublic($historicalPost
+    .'<a class="tgme_widget_message_inline_button" href="https://t.me/AnyTour_MSK">Contact</a></div>', 'anytour', '862');
+AnyTour\ExistingPostBatch\transferGuardTargetKeyboard($historicalWidget, $historicalWidget);
+foreach ([
+    [$historicalWidget, $historicalArchive, 'transfer_target_keyboard_changed'],
+    [$historicalArchive, $historicalWidget, 'transfer_target_keyboard_changed'],
+    [$historicalWidget, array_replace($historicalWidget, ['published_unixtime'=>1]), 'transfer_target_public_changed'],
+] as [$embedded, $archive, $expectedHold]) {
+    $result = null;
+    try { AnyTour\ExistingPostBatch\transferGuardTargetKeyboard($embedded, $archive); }
+    catch (RuntimeException $error) { $result = $error->getMessage(); }
+    channelPostCheck('historical Telegram archive gate '.$expectedHold, $result, $expectedHold);
+}
+
+$rankedPublicPrewriteReasons = [
+    'public_identity_changed'=>true,
+    'transfer_source_public_changed'=>true,
+    'transfer_target_public_changed'=>true,
+    'transfer_target_keyboard_changed'=>true,
+    'public_post_missing'=>true,
+    'transfer_read_unavailable'=>false,
+];
+$transferScenario = static function(string $case) use ($transferFixtureRoot,&$transferFixtureDirectories,$transferReceiptRead,$hotelMediaBody,$rankedPublicPrewriteReasons): array {
+    $operations=$transferFixtureRoot.'/'.$case;
+    if (!mkdir($operations,0700)) throw new RuntimeException('fixture_case_creation_failed');
+    $transferFixtureDirectories[]=$operations;
+    $row=['hotel_id'=>17595,'target_message_id'=>'862','source_message_id'=>'455'];
+    $digest=str_repeat('d',64);
+    $receipt=$operations.'/anytour-issue1566-historical-tg-media-862-v1/receipt.jsonl';
+    $reservation=['publication_id'=>901,'version_id'=>902,'button_url'=>$hotelMediaBody['reply_markup']['inline_keyboard'][0][0]['url']];
+    $response=$case==='request_timeout' ? ['http'=>0,'data'=>null,'transport_error'=>true]
+        : ['http'=>200,'data'=>['ok'=>true,'result'=>['message_id'=>862,'caption'=>$hotelMediaBody['media']['caption']]],'transport_error'=>false];
+    $saved=['state'=>'sent','message_id'=>'862','publication_id'=>901,'version_id'=>902,
+        'content_hash'=>str_repeat('c',64),'snapshot'=>['metadata'=>['hotel_catalog_id'=>17595]],
+        'start_payload'=>'p_'.str_repeat('A',24),'channel'=>['bot_url'=>'https://t.me/anyru_bot']];
+    $evidence=['source_caption_sha256'=>str_repeat('e',64),'selected_record_id'=>str_repeat('f',64)];
+    $state=(object)['calls'=>[],'requests'=>0,'completions'=>0,'runtime'=>0,'started_before_request'=>false,
+        'completion_receipts'=>[],'request_bodies'=>[],'reservation_arguments'=>[]];
+    $effects=[
+        'reserve'=>static function() use ($state,$reservation): array {
+            $state->calls[]='reserve';return $reservation;
+        },
+        'prepare'=>static function(array $received) use ($case,$state,$hotelMediaBody,$evidence,$rankedPublicPrewriteReasons): array {
+            $state->calls[]='prepare';$state->reservation_arguments[]=$received;
+            if ($case==='source_advanced_after_reservation') throw new RuntimeException('transfer_source_revision_advanced');
+            if (array_key_exists($case,$rankedPublicPrewriteReasons)) throw new RuntimeException($case);
+            $body=$hotelMediaBody;
+            if ($case==='invalid_payload') $body['media']['type']='video';
+            if ($case==='invalid_prepared') return ['body'=>$body];
+            return ['body'=>$body,'evidence'=>$evidence];
+        },
+        'assert'=>static function(array $received) use ($case,$state): void {
+            $state->calls[]='assert';$state->reservation_arguments[]=$received;
+            if ($case==='prewrite_cas') throw new RuntimeException('hotel_transfer_source_changed');
+        },
+        'request'=>static function(array $body) use ($case,$state,$receipt,$transferReceiptRead,$response) {
+            $state->calls[]='request';++$state->requests;$state->request_bodies[]=$body;
+            $events=$transferReceiptRead($receipt);$last=end($events);
+            $state->started_before_request=($last['state']??null)==='provider_edit_started'
+                && ($last['provider_write_attempts']??null)===1;
+            if ($case==='request_throw') throw new RuntimeException('fixture_request_failed');
+            return $case==='invalid_response' ? null : $response;
+        },
+        'complete'=>static function(array $received,array $native) use ($case,$state,$receipt,$transferReceiptRead,$saved): array {
+            $state->calls[]='complete';++$state->completions;$state->reservation_arguments[]=$received;
+            $events=$transferReceiptRead($receipt);
+            $responses=array_values(array_filter($events,static fn($event)=>($event['state']??null)==='provider_response_saved'));
+            $last=end($events);
+            $state->completion_receipts[]=['response'=>$native,'saved_response'=>$responses[0]['response']??null,
+                'saved_count'=>count($responses),'last_state'=>$last['state']??null];
+            if (($case==='complete_busy' && $state->completions<3) || $case==='complete_busy_exhausted') {
+                throw new RuntimeException('hotel_transfer_native_claim_busy');
+            }
+            if ($case==='request_timeout') throw new RuntimeException('hotel_transfer_provider_outcome_unknown');
+            if ($case==='complete_drift') throw new RuntimeException('hotel_transfer_native_identity_changed');
+            if ($case==='complete_error') throw new LogicException('private fixture failure details');
+            if ($case==='complete_unknown') $saved['state']='unknown';
+            if ($case==='complete_wrong_hotel') $saved['snapshot']['metadata']['hotel_catalog_id']=358;
+            return $saved;
+        },
+        'runtime'=>static function() use ($case,$state): void {
+            $state->calls[]='runtime';++$state->runtime;
+            if (($case==='prewrite_runtime' && $state->runtime===1) || ($case==='runtime_after_response' && $state->runtime===2)) {
+                throw new RuntimeException('transfer_runtime_changed');
+            }
+        },
+        'context'=>['native_run_id'=>'fixture-run','application_sha'=>str_repeat('a',40)],
+    ];
+    // A context is optional and must not be necessary for a successful control flow.
+    if ($case==='complete_busy') unset($effects['context']);
+    if ($case==='source_advanced_after_reservation' || array_key_exists($case,$rankedPublicPrewriteReasons)) {
+        $effects['context']['continuation_of_ranked_run_id']=AnyTour\ExistingPostBatch\RANKED_ORIGINAL_RUN;
+    }
+    $result=AnyTour\ExistingPostBatch\transferExecuteRow($row,$digest,$effects,$operations);
+    $events=$transferReceiptRead($receipt);
+    $beforeReplay=clone $state;$beforeHash=hash_file('sha256',$receipt);
+    $replay=AnyTour\ExistingPostBatch\transferExecuteRow($row,$digest,$effects,$operations);
+    return compact('result','replay','events','state','beforeReplay','beforeHash','receipt','response','reservation','evidence','effects');
+};
+$transferExpected=[
+    'success'=>[true,'native_and_registry_verified',null,1,1],
+    'source_advanced_after_reservation'=>[false,'held_before_provider','transfer_source_revision_advanced',0,0],
+    'prewrite_cas'=>[false,'held_before_provider','hotel_transfer_source_changed',0,0],
+    'invalid_payload'=>[false,'held_before_provider','transfer_media_payload_invalid',0,0],
+    'invalid_prepared'=>[false,'held_before_provider','transfer_prepared_evidence_invalid',0,0],
+    'prewrite_runtime'=>[false,'held_before_provider','transfer_runtime_changed',0,0],
+    'request_throw'=>[false,'provider_outcome_unknown','fixture_request_failed',1,0],
+    'invalid_response'=>[false,'provider_outcome_unknown','transfer_provider_response_invalid',1,0],
+    'request_timeout'=>[false,'response_saved_completion_requires_readback','hotel_transfer_provider_outcome_unknown',1,1],
+    'complete_busy'=>[true,'native_and_registry_verified',null,1,3],
+    'complete_busy_exhausted'=>[false,'response_saved_completion_requires_readback','hotel_transfer_native_claim_busy',1,3],
+    'complete_unknown'=>[false,'response_saved_completion_requires_readback','transfer_completion_unconfirmed',1,1],
+    'complete_wrong_hotel'=>[false,'response_saved_completion_requires_readback','transfer_completion_unconfirmed',1,1],
+    'complete_drift'=>[false,'response_saved_completion_requires_readback','hotel_transfer_native_identity_changed',1,1],
+    'complete_error'=>[false,'response_saved_completion_requires_readback','transfer_verification_failed',1,1],
+    'runtime_after_response'=>[false,'response_saved_completion_requires_readback','transfer_runtime_changed',1,0],
+];
+foreach ($rankedPublicPrewriteReasons as $reason=>$canContinue) {
+    $transferExpected[$reason]=[false,'held_before_provider',$reason,0,0];
+    channelPostCheck('real hotel editor classifies '.$reason.' before reserving a target',
+        AnyTour\ExistingPostBatch\transferLocalPublicHold($reason),$canContinue);
+}
+try {
+    foreach ($transferExpected as $case=>$expected) {
+        $flow=$transferScenario($case);$state=$flow['state'];$result=$flow['result'];
+        if (array_key_exists($case,$rankedPublicPrewriteReasons)) {
+            channelPostCheck('public pre-write refusal '.$case.' keeps reservation and zero attempts',
+                [$result['local_prewrite_hold_recorded']??false,$result['reserved_publication_id'],$state->requests],
+                [$rankedPublicPrewriteReasons[$case],901,0]);
+        }
+        if ($case==='source_advanced_after_reservation') {
+            channelPostCheck('durable late source change holds its reservation with zero provider attempts',
+                [$result['source_revision_hold_recorded'] ?? false,$result['reserved_publication_id'],$result['provider_write_attempts']],
+                [true,901,0]);
+        }
+        channelPostCheck('real hotel editor '.$case.' has exact outcome and bounded effects',
+            [$result['ok'],$result['state'],$result['reason']??null,$state->requests,$state->completions],$expected);
+        channelPostCheck('real hotel editor '.$case.' refuses replay without effects or journal changes',
+            [$flow['replay']['ok'],$flow['replay']['state'],$flow['replay']['reason'],$flow['replay']['provider_write_attempts'],
+                (array)$state,hash_file('sha256',$flow['receipt'])],
+            [false,'held_before_provider','transfer_previous_operation_do_not_replay',0,(array)$flow['beforeReplay'],$flow['beforeHash']]);
+        $events=$flow['events'];$states=array_column($events,'state');
+        channelPostCheck('real hotel editor '.$case.' retains its durable terminal evidence',
+            [$events[0]['state'],end($states),$result['provider_write_attempts']],
+            ['intent_saved',$expected[1],$expected[3]]);
+        if ($state->requests>0) channelPostCheck('real hotel editor '.$case.' marks the single attempt before request',
+            [$state->started_before_request,$state->request_bodies], [true,[$hotelMediaBody]]);
+        if ($state->completions>0) {
+            channelPostCheck('real hotel editor '.$case.' fsyncs native response before every completion',
+                $state->completion_receipts,array_fill(0,$state->completions,[
+                    'response'=>$flow['response'],'saved_response'=>$flow['response'],'saved_count'=>1,
+                    'last_state'=>'provider_response_saved']));
+        }
+        if (str_starts_with($expected[1],'response_saved_')) {
+            $responses=array_values(array_filter($events,static fn($event)=>($event['state']??null)==='provider_response_saved'));
+            channelPostCheck('real hotel editor '.$case.' keeps the original response for readback',
+                [count($responses),$responses[0]['response']??null], [1,$flow['response']]);
+        }
+        if ($case==='success') {
+            channelPostCheck('real hotel editor executes the required order without a second writer',
+                $state->calls,['reserve','prepare','runtime','assert','request','runtime','complete','runtime']);
+            channelPostCheck('real hotel editor persists exact request, evidence and execution context',
+                [$states,$events[2]['request'],$events[2]['evidence'],$events[0]['execution'],
+                    $events[2]['request_sha256'],$state->reservation_arguments,$result['button_url']],
+                [['intent_saved','identity_reserved','request_prepared','provider_edit_started','provider_response_saved','native_and_registry_verified'],
+                    $hotelFullBody,$flow['evidence'],$flow['effects']['context'],
+                    hash('sha256',json_encode($hotelFullBody,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)),
+                    array_fill(0,3,$flow['reservation']),$hotelMediaBody['reply_markup']['inline_keyboard'][0][0]['url']]);
+        }
+        if ($case==='complete_busy') channelPostCheck('real hotel editor retries only busy completion with optional context absent',
+            [$state->calls,$events[0]['execution']], [
+                ['reserve','prepare','runtime','assert','request','runtime','complete','complete','complete','runtime'],[]]);
+    }
+} finally {
+    // Remove only the exact files/directories this fixture created; never recurse
+    // or follow links through a runtime-supplied path.
+    foreach (array_reverse($transferFixtureDirectories) as $operations) {
+        $operation=$operations.'/anytour-issue1566-historical-tg-media-862-v1';
+        $receipt=$operation.'/receipt.jsonl';
+        if (is_file($receipt) && !is_link($receipt)) unlink($receipt);
+        if (is_dir($operation) && !is_link($operation)) rmdir($operation);
+        if (is_dir($operations) && !is_link($operations)) rmdir($operations);
+    }
+    if (is_dir($transferFixtureRoot) && !is_link($transferFixtureRoot)) rmdir($transferFixtureRoot);
+}
+channelPostCheck('real hotel editor fixtures remove only their isolated operation directories',!file_exists($transferFixtureRoot));
+
+require_once __DIR__ . '/../tools/anytour_existing_post_max_transfer.php';
+$maxTransferPlan = \AnyTour\ExistingPostBatch\maxTransferPlan(dirname(__DIR__), \AnyTour\ExistingPostBatch\MAX_TRANSFER_DIGEST);
+channelPostCheck('MAX transfer plan binds just Sugar Marina and one unchanged old address', [
+    $maxTransferPlan['hotel_id'], $maxTransferPlan['source']['url'], $maxTransferPlan['target']['url'],
+    preg_match('/[0-9₽]/u', $maxTransferPlan['text']),
+], [800, 'https://max.ru/channel_anytour/AaG2GG5XH2I', 'https://max.ru/anytour/AZ7exN6EPIU', 0]);
+try {
+    \AnyTour\ExistingPostBatch\maxTransferPlan(dirname(__DIR__), str_repeat('0', 64));
+    channelPostCheck('MAX transfer rejects a different plan digest', false);
+} catch (RuntimeException $error) {
+    channelPostCheck('MAX transfer rejects a different plan digest', $error->getMessage(), 'max_transfer_plan_not_approved');
+}
+channelPostCheck('MAX transfer rejects any other historical post before native I/O',
+    ChannelPostApiTransport::maxHotelTransferRequest('-68765999669267', 'mid.ffffc1752b045fed019edec4de843c86',
+        $maxTransferPlan['text'], 'fixture', 'Рассчитать на мои даты', 'https://max.ru/fixture_bot?start=p_'.str_repeat('a', 24)),
+    ['http'=>0, 'data'=>null, 'transport_error'=>true]);
+
+
+$maxRecoveryTarget = $maxTransferPlan['target'];
+$oldPublicEnvelope = '<script>message:{id:116775577486376060,link:'
+    .json_encode($maxRecoveryTarget['url'], JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)
+    .',createdAt:"2026-06-19T07:25:04.516Z",updatedAt:null,text:"Sugar Marina\nA &amp; B"}</script>';
+channelPostCheck('MAX transfer reads the full primary caption from the current public envelope',
+    AnyTour\ExistingPostBatch\maxTransferPublicCaption($oldPublicEnvelope, $maxRecoveryTarget), "Sugar Marina\nA & B");
+foreach ([
+    str_replace('2026-06-19T07:25:04.516Z', '2026-06-19T07:25:04.517Z', $oldPublicEnvelope),
+    str_replace('/AZ7exN6EPIU', '/other', $oldPublicEnvelope),
+] as $wrongPublicEnvelope) {
+    try {
+        AnyTour\ExistingPostBatch\maxTransferPublicCaption($wrongPublicEnvelope, $maxRecoveryTarget);
+        channelPostCheck('MAX transfer refuses mismatched public identity', true, false);
+    } catch (RuntimeException $error) {
+        channelPostCheck('MAX transfer refuses mismatched public identity', $error->getMessage(), 'max_transfer_public_identity_changed');
+    }
+}
+$originalMaxFields = ['operation'=>AnyTour\ExistingPostBatch\MAX_TRANSFER_OPERATION, 'hotel_id'=>800, 'ok'=>false,
+    'provider_write_attempts'=>0, 'supplier_requests'=>0, 'bot_starts'=>0,
+    'target_url'=>$maxRecoveryTarget['url'], 'plan_sha256'=>AnyTour\ExistingPostBatch\MAX_TRANSFER_DIGEST,
+    'application_sha'=>AnyTour\ExistingPostBatch\MAX_TRANSFER_ORIGINAL_APPLICATION,
+    'native_run_id'=>AnyTour\ExistingPostBatch\MAX_TRANSFER_ORIGINAL_RUN];
+$maxStartLine = json_encode(['state'=>'preflight_started'] + $originalMaxFields, JSON_THROW_ON_ERROR)."\n";
+$maxHeldLine = json_encode(['state'=>'hold', 'reason'=>'max_public_caption_unavailable'] + $originalMaxFields, JSON_THROW_ON_ERROR)."\n";
+channelPostCheck('MAX recovery accepts the exact attempt with no write or reservation',
+    AnyTour\ExistingPostBatch\maxTransferOriginalNoWrite($maxStartLine.$maxHeldLine, $maxRecoveryTarget),
+    hash('sha256', $maxStartLine.$maxHeldLine));
+try {
+    AnyTour\ExistingPostBatch\maxTransferOriginalNoWrite(
+        $maxStartLine.str_replace('"provider_write_attempts":0', '"provider_write_attempts":1', $maxHeldLine), $maxRecoveryTarget);
+    channelPostCheck('MAX recovery refuses a previous write attempt', true, false);
+} catch (RuntimeException $error) {
+    channelPostCheck('MAX recovery refuses a previous write attempt', $error->getMessage(), 'max_transfer_original_journal_invalid');
+}
+
+require_once __DIR__ . '/support/ranked-unreached.php';
+\AnyTour\Tests\RankedUnreached\run($rankedTail, $rankedDigest);
+require_once __DIR__ . '/ranked_telegram_public_cases.php';
+\AnyTour\Tests\RankedPublicReadback\runCases();
+
+// The original publisher pilot changes only one existing label. It does not
+// reopen a consumed media operation, register a hotel, or start a generic worker.
+$pilotPlan = AnyTour\ExistingPostBatch\publisherKeyboardPlan(dirname(__DIR__), AnyTour\ExistingPostBatch\PUBLISHER_KEYBOARD_DIGEST);
+channelPostCheck('publisher pilot selects only the newly approved single target',
+    [$pilotPlan['message_id'], $pilotPlan['publication_id'], $pilotPlan['publisher'], $pilotPlan['full_transfer']],
+    ['1047',3847,'ANYTOURBOT_bot',false]);
+$pilotRefuses = static function (string $label, callable $call, string $reason): void {
+    try { $call(); channelPostCheck($label, 'accepted', $reason); }
+    catch (RuntimeException $e) { channelPostCheck($label, $e->getMessage(), $reason); }
+};
+$pilotRefuses('publisher pilot refuses a different approval',
+    static fn()=>AnyTour\ExistingPostBatch\publisherKeyboardPlan(dirname(__DIR__), str_repeat('0',64)),
+    'publisher_pilot_approval_changed');
+// The real account reader must select the approved login even when other
+// administrators are active. The database is an isolated in-memory fixture.
+$pilotActorDb = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+$pilotActorDb->exec("CREATE TABLE managers(id INTEGER PRIMARY KEY,login TEXT COLLATE NOCASE,role TEXT,is_active INTEGER);
+    CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT,is_active INTEGER);
+    CREATE TABLE manager_projects(manager_id INTEGER,project_id INTEGER);
+    INSERT INTO managers VALUES (1,'other_admin','admin',1),(2,'manager','admin',1),(3,'elsewhere','admin',1);
+    INSERT INTO projects VALUES (1,'anytour',1),(2,'apple',1);
+    INSERT INTO manager_projects VALUES (1,1),(2,1),(3,2)");
+$pilotActorDb->exec('PRAGMA query_only=ON');
+$pilotAclIds = [];
+$pilotAcl = static function(int $id) use (&$pilotAclIds): bool { $pilotAclIds[]=$id; return $id===2; };
+channelPostCheck('publisher pilot selects only the confirmed owner among multiple administrators',
+    AnyTour\ExistingPostBatch\publisherKeyboardActor($pilotActorDb,$pilotAcl),2);
+channelPostCheck('publisher pilot validates only the selected account ACL',$pilotAclIds,[2]);
+$pilotRefuses('publisher pilot rejects an account whose current ACL is absent',
+    static fn()=>AnyTour\ExistingPostBatch\publisherKeyboardActor($pilotActorDb,static fn(int $id):bool=>false),
+    'publisher_pilot_owner_access_unconfirmed');
+foreach (["UPDATE managers SET is_active=0 WHERE id=2",
+    "UPDATE managers SET role='manager' WHERE id=2",
+    "DELETE FROM manager_projects WHERE manager_id=2",
+    "UPDATE managers SET login='MANAGER' WHERE id=2",
+    "UPDATE projects SET is_active=0 WHERE id=1",
+    "INSERT INTO managers VALUES (4,'manager','admin',1); INSERT INTO manager_projects VALUES (4,1)"] as $invalidActorSql) {
+    $pilotActorDb->exec('PRAGMA query_only=OFF');
+    $pilotActorDb->beginTransaction();
+    $pilotActorDb->exec($invalidActorSql);
+    $pilotActorDb->exec('PRAGMA query_only=ON');
+    $pilotRefuses('publisher pilot never substitutes another administrator: '.$invalidActorSql,
+        static fn()=>AnyTour\ExistingPostBatch\publisherKeyboardActor($pilotActorDb,static fn(int $id):bool=>true),
+        'publisher_pilot_owner_account_unconfirmed');
+    $pilotActorDb->exec('PRAGMA query_only=OFF');
+    $pilotActorDb->rollBack();
+}
+$pilotActorDb->exec('PRAGMA query_only=ON');
+$pilotPublicPlan = $pilotPlan;
+$pilotCaption = 'Old Lusso Sorgun offer, unchanged by this keyboard experiment.';
+$pilotPhotoClass = 'tgme_widget_message_photo_wrap 123456789';
+$pilotPublicPlan['target_caption_sha256'] = hash('sha256', $pilotCaption);
+$pilotPublicPlan['target_photo_marker_sha256'] = hash('sha256', $pilotPhotoClass);
+$pilotHtml = static function (string $label = 'Менеджер', bool $keyboard = true) use ($pilotCaption, $pilotPhotoClass): string {
+    return '<html><head><meta charset="UTF-8"></head><body><div data-post="anytour/1047">'
+        .'<div class="tgme_widget_message_text">'.$pilotCaption.'</div>'
+        .'<a class="'.$pilotPhotoClass.'" href="https://t.me/anytour/1047" style="background-image:url(https://cdn4.telesco.pe/photo.jpg)"></a>'
+        .'<time datetime="2025-03-14T07:11:44+00:00"></time>'
+        .($keyboard ? '<div class="tgme_widget_message_inline_keyboard"><div class="tgme_widget_message_inline_row">'
+            .'<a class="tgme_widget_message_inline_button url_button" href="https://t.me/AnyTour_MSK">'.$label.'</a>'
+            .'<a class="tgme_widget_message_inline_button url_button" href="https://t.me/Any_tour_bot?start=old">Другие туры</a>'
+            .'</div></div>' : '').'</div></body></html>';
+};
+$pilotBefore = AnyTour\ExistingPostBatch\publisherKeyboardPublic($pilotHtml(), $pilotHtml('Менеджер', false), $pilotPublicPlan);
+$pilotBody = AnyTour\ExistingPostBatch\publisherKeyboardBody($pilotBefore, $pilotPublicPlan);
+$pilotAfter = AnyTour\ExistingPostBatch\publisherKeyboardPublic($pilotHtml('Менеджер →'), $pilotHtml('Менеджер', false), $pilotPublicPlan);
+channelPostCheck('publisher pilot observes the keyboard hidden by embed', $pilotBefore['reply_markup'],
+    ['inline_keyboard'=>[[['text'=>'Менеджер','url'=>'https://t.me/AnyTour_MSK'],
+        ['text'=>'Другие туры','url'=>'https://t.me/Any_tour_bot?start=old']]]]);
+channelPostCheck('publisher pilot preserves URLs and changes exactly the first label', $pilotBody,
+    ['chat_id'=>'-1001845835645','message_id'=>1047,'reply_markup'=>['inline_keyboard'=>[[
+        ['text'=>'Менеджер →','url'=>'https://t.me/AnyTour_MSK'],['text'=>'Другие туры','url'=>'https://t.me/Any_tour_bot?start=old']]]]]);
+// Actual MID1047 DOM from read-only run45718436590/artifact15071411390.
+// Its node bytes are retained verbatim with the archive's UTF-8 document metadata.
+// The old parser rejected this ordinary URL button solely for its confirm handler.
+$pilotRealHtml = file_get_contents(__DIR__.'/fixtures/telegram-publisher-1047-public.html');
+$pilotRealBefore = AnyTour\ExistingPostBatch\publisherKeyboardPublic($pilotRealHtml, $pilotRealHtml, $pilotPlan);
+channelPostCheck('publisher pilot accepts the real Telegram confirmation wrapper', $pilotRealBefore['reply_markup'],
+    ['inline_keyboard'=>[[['text'=>'СВЯЗАТЬСЯ С МЕНЕДЖЕРОМ 📱','url'=>'https://t.me/AnyTour_MSK']]]]);
+channelPostCheck('real public button keeps its exact URL and only gains the approved label suffix',
+    AnyTour\ExistingPostBatch\publisherKeyboardBody($pilotRealBefore,$pilotPlan),
+    ['chat_id'=>'-1001845835645','message_id'=>1047,'reply_markup'=>['inline_keyboard'=>[[
+        ['text'=>'СВЯЗАТЬСЯ С МЕНЕДЖЕРОМ 📱 →','url'=>'https://t.me/AnyTour_MSK']]]]]);
+foreach ([
+    'unknown onclick'=>str_replace("return confirm('Open this link?\\n\\n'+this.href);",'return otherAction();',$pilotRealHtml),
+    'confirmation without URL type'=>str_replace('inline_button url_button','inline_button',$pilotRealHtml),
+    'confirmation with non-HTTPS URL'=>str_replace('href="https://t.me/AnyTour_MSK"','href="javascript:otherAction()"',$pilotRealHtml),
+] as $label=>$html) $pilotRefuses('real publisher button refuses '.$label,
+    static fn()=>AnyTour\ExistingPostBatch\publisherKeyboardPublic($html,$pilotRealHtml,$pilotPlan),
+    'publisher_pilot_keyboard_unsupported');
+foreach ([
+    'hidden row'=>str_replace('tgme_widget_message_inline_row','other_row',$pilotHtml()),
+    'callback'=>str_replace('https://t.me/AnyTour_MSK','javascript:callback()',$pilotHtml()),
+    'untyped HTTPS button'=>str_replace('inline_button url_button','inline_button',$pilotHtml()),
+    'non-URL'=>str_replace('href="https://t.me/AnyTour_MSK"','data-copy="unknown"',$pilotHtml()),
+    'unknown button'=>str_replace('</div></div></div>', '<span class="tgme_widget_message_inline_button">Unknown</span></div></div></div>', $pilotHtml()),
+] as $label=>$html) $pilotRefuses('publisher pilot refuses '.$label,
+    static fn()=>AnyTour\ExistingPostBatch\publisherKeyboardPublic($html,$pilotHtml('Менеджер',false),$pilotPublicPlan),
+    'publisher_pilot_keyboard_unsupported');
+$pilotRefuses('publisher pilot refuses changed public caption',
+    static fn()=>AnyTour\ExistingPostBatch\publisherKeyboardPublic(str_replace($pilotCaption,'changed',$pilotHtml()),$pilotHtml(),$pilotPublicPlan),
+    'publisher_pilot_preimage_changed');
+$pilotRefuses('publisher pilot refuses a duplicate label change',
+    static fn()=>AnyTour\ExistingPostBatch\publisherKeyboardBody($pilotAfter,$pilotPublicPlan), 'publisher_pilot_already_changed');
+$pilotNative = ['http'=>200,'transport_error'=>false,'data'=>['ok'=>true,'result'=>[
+    'chat'=>['id'=>-1001845835645,'type'=>'channel','username'=>'anytour'],'message_id'=>1047,
+    'date'=>1741936304,'edit_date'=>1795648800,'caption'=>$pilotCaption,
+    'photo'=>[['file_id'=>'native_publisher_photo','file_unique_id'=>'same_photo']],
+    'reply_markup'=>$pilotBody['reply_markup']]]];
+channelPostCheck('native pilot acceptance stays distinct from transfer completion',
+    AnyTour\ExistingPostBatch\publisherKeyboardResponse($pilotNative,$pilotBody,$pilotPublicPlan), 'native_keyboard_edit_accepted');
+$pilotRejected = ['http'=>400,'transport_error'=>false,'data'=>['ok'=>false,'error_code'=>400,'description'=>'Bad Request: MESSAGE_ID_INVALID']];
+$pilotNoop = $pilotRejected; $pilotNoop['data']['description'] = 'Bad Request: message is not modified: specified new content and reply markup are exactly the same';
+channelPostCheck('publisher pilot retains exact Telegram rejection',
+    AnyTour\ExistingPostBatch\publisherKeyboardResponse($pilotRejected,$pilotBody,$pilotPublicPlan), 'provider_message_id_rejected');
+channelPostCheck('publisher pilot does not call a no-op a successful edit',
+    AnyTour\ExistingPostBatch\publisherKeyboardResponse($pilotNoop,$pilotBody,$pilotPublicPlan), 'message_not_modified');
+$pilotEvents = [
+    ['state'=>'intent_saved','execution'=>['native_run_id'=>$pilotPlan['parent_run_id'],'application_sha'=>$pilotPlan['parent_application_sha']],
+        'plan_sha256'=>$pilotPlan['parent_plan_sha256'],'row'=>['target_message_id'=>'1047']],
+    ['state'=>'identity_reserved','reservation'=>['publication_id'=>3847,'target_message_id'=>'1047']],
+    ['state'=>'request_prepared'],['state'=>'provider_edit_started','provider_write_attempts'=>1],
+    ['state'=>'provider_response_saved','response'=>$pilotRejected],['state'=>'provider_message_id_rejected','provider_write_attempts'=>1],
+];
+$pilotParentBytes = implode("\n", array_map(static fn(array $x):string=>json_encode($x, JSON_THROW_ON_ERROR), $pilotEvents))."\n";
+$pilotParentPlan = $pilotPlan; $pilotParentPlan['parent_receipt_sha256'] = hash('sha256',$pilotParentBytes);
+channelPostCheck('publisher pilot authenticates the original definite rejection',
+    AnyTour\ExistingPostBatch\publisherKeyboardParent($pilotParentBytes,$pilotParentPlan), ['publication_id'=>3847,'target_message_id'=>'1047']);
+foreach (['timeout','other_message','other_bot_attempt'] as $case) {
+    $badEvents=$pilotEvents;
+    if($case==='timeout')$badEvents[4]['response']=['http'=>0,'transport_error'=>true,'data'=>null];
+    elseif($case==='other_message')$badEvents[0]['row']['target_message_id']='1058';
+    else $badEvents[0]['execution']['native_run_id']='45567178734';
+    $raw=implode("\n",array_map(static fn(array $x):string=>json_encode($x, JSON_THROW_ON_ERROR),$badEvents))."\n";
+    $p=$pilotParentPlan;$p['parent_receipt_sha256']=hash('sha256',$raw);
+    $pilotRefuses('publisher pilot cannot reinterpret '.$case.' as original rejection',
+        static fn()=>AnyTour\ExistingPostBatch\publisherKeyboardParent($raw,$p),'publisher_pilot_parent_unconfirmed');
+}
+$pilotTmp = sys_get_temp_dir().'/publisher-keyboard-pilot-'.bin2hex(random_bytes(8)); mkdir($pilotTmp,0700);
+try {
+    foreach (['success','success_without_edit_date','wrong_target_without_edit_date','unchanged_keyboard_without_edit_date',
+        'rejected','noop','timeout','public_changed','payload_changed'] as $case) {
+        $dir=$pilotTmp.'/'.$case;mkdir($dir,0700);file_put_contents($dir.'/receipt.jsonl',$pilotParentBytes);
+        $parentSha=hash_file('sha256',$dir.'/receipt.jsonl');$writes=0;$startedBeforeRequest=false;
+        $effects=['context'=>['application_sha'=>str_repeat('a',40),'native_run_id'=>'49999999999'],
+            'publisher'=>['username'=>'ANYTOURBOT_bot','bot_id'=>'123456','credential_version'=>1],
+            'assert'=>static function()use($dir,$parentSha):void { if(hash_file('sha256',$dir.'/receipt.jsonl')!==$parentSha)throw new RuntimeException('parent_changed'); },
+            'request'=>static function(array $payload)use(&$writes,&$startedBeforeRequest,$dir,$case,$pilotNative,$pilotRejected,$pilotNoop,$pilotBefore):array {
+                $writes++;$startedBeforeRequest=str_contains(file_get_contents($dir.'/publisher-keyboard-20261125.jsonl'),'"state":"provider_edit_started"');
+                if($case==='timeout')throw new RuntimeException('provider_timeout');
+                // Telegram Message.edit_date is optional, including in edit responses.
+                if(str_ends_with($case,'_without_edit_date'))unset($pilotNative['data']['result']['edit_date']);
+                if($case==='wrong_target_without_edit_date')$pilotNative['data']['result']['message_id']=1058;
+                if($case==='unchanged_keyboard_without_edit_date')$pilotNative['data']['result']['reply_markup']=$pilotBefore['reply_markup'];
+                return $case==='rejected'?$pilotRejected:($case==='noop'?$pilotNoop:$pilotNative);
+            },
+            'readback'=>static function()use($case,$pilotBefore,$pilotAfter):array {
+                if($case==='public_changed')throw new RuntimeException('publisher_pilot_preimage_changed');
+                return in_array($case,['rejected','noop'],true)?$pilotBefore:$pilotAfter;
+            },'parent_unchanged'=>static function()use($dir,$parentSha):void { if(hash_file('sha256',$dir.'/receipt.jsonl')!==$parentSha)throw new RuntimeException('parent_changed'); }];
+        $body=$pilotBody;if($case==='payload_changed')$body['reply_markup']['inline_keyboard'][0][0]['url']='https://t.me/other';
+        $result=AnyTour\ExistingPostBatch\publisherKeyboardExecute($pilotPublicPlan,$pilotBefore,$body,$effects,$dir);
+        $expected=match($case){'success','success_without_edit_date'=>'publisher_keyboard_verified','rejected'=>'provider_message_id_rejected',
+            'noop'=>'message_not_modified','timeout'=>'provider_outcome_unknown','payload_changed'=>'held_before_provider',default=>'response_saved_requires_readback'};
+        channelPostCheck('publisher pilot retains honest '.$case.' outcome',[$result['state'],$result['full_transfer'],$writes],[$expected,false,$case==='payload_changed'?0:1]);
+        if ($case === 'public_changed') channelPostCheck('public read failure retains the accepted Telegram answer',
+            $result['native_state'] ?? null, 'native_keyboard_edit_accepted');
+        if (in_array($case,['timeout','wrong_target_without_edit_date'],true))
+            channelPostCheck('unconfirmed '.$case.' has no invented native acceptance', isset($result['native_state']), false);
+        channelPostCheck('publisher pilot preserves consumed parent on '.$case,hash_file('sha256',$dir.'/receipt.jsonl'),$parentSha);
+        if($case==='payload_changed')continue;
+        channelPostCheck('publisher pilot durable marker precedes '.$case.' HTTP',$startedBeforeRequest);
+        $journalSha=hash_file('sha256',$dir.'/publisher-keyboard-20261125.jsonl');
+        $again=AnyTour\ExistingPostBatch\publisherKeyboardExecute($pilotPublicPlan,$pilotBefore,$pilotBody,$effects,$dir);
+        channelPostCheck('publisher pilot refuses replay after '.$case,
+            [$again['reason'],$writes,hash_file('sha256',$dir.'/publisher-keyboard-20261125.jsonl')],
+            ['publisher_pilot_previous_attempt_do_not_replay',1,$journalSha]);
+    }
+} finally {
+    foreach(glob($pilotTmp.'/*') as $dir){foreach(glob($dir.'/*') as $file)unlink($file);rmdir($dir);}rmdir($pilotTmp);
+}
+
+// The exact new media intent reuses the rejected parent's identity and saved
+// JPEG. The actual transport above has only curl I/O intercepted; no live call.
+$mediaPilotPlan = AnyTour\ExistingPostBatch\publisherMediaPlan(dirname(__DIR__), AnyTour\ExistingPostBatch\PUBLISHER_MEDIA_DIGEST);
+$mediaPilotPhoto = file_get_contents(dirname(__DIR__).'/'.$mediaPilotPlan['photo_path']);
+channelPostCheck('publisher media pins the original hotel, target, reservation and approved bytes',
+    [$mediaPilotPlan['hotel_id'],$mediaPilotPlan['target_message_id'],$mediaPilotPlan['publication_id'],
+        $mediaPilotPlan['source_publication_id'],strlen($mediaPilotPhoto),hash('sha256',$mediaPilotPhoto),
+        hash('sha256',$mediaPilotPlan['parent_row']['next_caption'])],
+    [2514,'1058',3848,952,$mediaPilotPlan['photo_bytes'],$mediaPilotPlan['photo_sha256'],$mediaPilotPlan['next_caption_sha256']]);
+$pilotRefuses('publisher media refuses a different approval',
+    static fn()=>AnyTour\ExistingPostBatch\publisherMediaPlan(dirname(__DIR__),str_repeat('0',64)),
+    'publisher_media_approval_changed');
+$mediaReservation = ['publication_id'=>3848,'target_message_id'=>'1058','source_id'=>6,
+    'start_payload'=>'p_'.str_repeat('M',24),'button_url'=>'https://t.me/anyru_bot?start=p_'.str_repeat('M',24),
+    'row_digest'=>str_repeat('b',64)];
+$mediaBody = AnyTour\ExistingPostBatch\publisherMediaBody($mediaPilotPlan,$mediaReservation,$mediaPilotPhoto);
+channelPostCheck('publisher media body uploads approved bytes with the existing hotel context, never a cross-bot file ID',
+    [$mediaBody['chat_id'],$mediaBody['message_id'],$mediaBody['media'],$mediaBody['reply_markup'],
+        hash('sha256',base64_decode($mediaBody['photo']['base64'],true)),$mediaBody['photo']['sha256']],
+    ['-1001845835645','1058',['type'=>'photo','media'=>'attach://hotel_photo',
+        'caption'=>$mediaPilotPlan['parent_row']['next_caption'],'caption_entities'=>[]],
+        ['inline_keyboard'=>[[['text'=>'✈️ Рассчитать на мои даты','url'=>$mediaReservation['button_url']]]]],
+        $mediaPilotPlan['photo_sha256'],$mediaPilotPlan['photo_sha256']]);
+$pilotRefuses('publisher media refuses changed source image bytes',
+    static fn()=>AnyTour\ExistingPostBatch\publisherMediaBody($mediaPilotPlan,$mediaReservation,$mediaPilotPhoto.'x'),
+    'publisher_media_photo_changed');
+
+// Synthetic six-event journal tests parser boundaries, not production approval.
+$mediaParentEvents = [
+    ['state'=>'intent_saved','execution'=>['native_run_id'=>$mediaPilotPlan['parent_run_id'],
+        'application_sha'=>$mediaPilotPlan['parent_application_sha']],
+        'plan_sha256'=>$mediaPilotPlan['parent_plan_sha256'],'row'=>$mediaPilotPlan['parent_row']],
+    ['state'=>'identity_reserved','reservation'=>$mediaReservation],['state'=>'request_prepared'],
+    ['state'=>'provider_edit_started','provider_write_attempts'=>1],
+    ['state'=>'provider_response_saved','response'=>$pilotRejected],
+    ['state'=>'provider_message_id_rejected','provider_write_attempts'=>1],
+];
+$mediaJournalBytes = static fn(array $events):string => implode("\n",array_map(
+    static fn(array $event):string=>json_encode($event,JSON_THROW_ON_ERROR),$events))."\n";
+$mediaParentBytes = $mediaJournalBytes($mediaParentEvents);
+$mediaParentPlan = $mediaPilotPlan;
+$mediaParentPlan['parent_receipt_sha256'] = hash('sha256',$mediaParentBytes);
+channelPostCheck('publisher media authenticates the final rejected parent without creating another reservation',
+    AnyTour\ExistingPostBatch\publisherMediaParent($mediaParentBytes,$mediaParentPlan),$mediaReservation);
+$pilotRefuses('publisher media refuses altered parent bytes',
+    static fn()=>AnyTour\ExistingPostBatch\publisherMediaParent($mediaParentBytes."\n",$mediaParentPlan),
+    'publisher_media_parent_changed');
+foreach (['unknown_response','other_run','other_application','other_row','other_reservation','second_attempt','missing_terminal'] as $case) {
+    $events=$mediaParentEvents;
+    if($case==='unknown_response')$events[4]['response']=['http'=>0,'transport_error'=>true,'data'=>null];
+    elseif($case==='other_run')$events[0]['execution']['native_run_id']='45567178734';
+    elseif($case==='other_application')$events[0]['execution']['application_sha']=str_repeat('0',40);
+    elseif($case==='other_row')$events[0]['row']['hotel_id']=2515;
+    elseif($case==='other_reservation')$events[1]['reservation']['publication_id']=3847;
+    elseif($case==='second_attempt')$events[3]['provider_write_attempts']=2;
+    else array_pop($events);
+    $raw=$mediaJournalBytes($events);$plan=$mediaParentPlan;$plan['parent_receipt_sha256']=hash('sha256',$raw);
+    $pilotRefuses('publisher media cannot reinterpret '.$case.' as the admitted parent',
+        static fn()=>AnyTour\ExistingPostBatch\publisherMediaParent($raw,$plan),'publisher_media_parent_unconfirmed');
+}
+
+$mediaPublicPlan=$mediaParentPlan;
+$mediaOldCaption='The original old commercial hotel offer.';
+$mediaOldPhotoClass='tgme_widget_message_photo_wrap 123456789';
+$mediaNewPhotoClass='tgme_widget_message_photo_wrap 987654321';
+$mediaPublicPlan['target_caption_sha256']=hash('sha256',$mediaOldCaption);
+$mediaPublicPlan['target_photo_marker_sha256']=hash('sha256',$mediaOldPhotoClass);
+$mediaHtml=static function(string $caption,string $photoClass,?array $markup)use($mediaPublicPlan):string{
+    $html='<html><head><meta charset="UTF-8"></head><body><div data-post="anytour/1058">'
+        .'<div class="tgme_widget_message_text">'.str_replace("\n",'<br>',htmlspecialchars($caption,ENT_QUOTES|ENT_HTML5,'UTF-8')).'</div>'
+        .'<a class="'.$photoClass.'" href="https://t.me/anytour/1058" style="background-image:url(https://cdn4.telesco.pe/file/fixture.jpg)"></a>'
+        .'<time datetime="'.gmdate('c',$mediaPublicPlan['target_published_unixtime']).'"></time>';
+    foreach($markup['inline_keyboard']??[] as $row)foreach($row as $button)
+        $html.='<a class="tgme_widget_message_inline_button url_button" href="'.htmlspecialchars($button['url'],ENT_QUOTES|ENT_HTML5,'UTF-8').'">'
+            .htmlspecialchars($button['text'],ENT_QUOTES|ENT_HTML5,'UTF-8').'</a>';
+    return $html.'</div></body></html>';
+};
+$mediaOldArchive=$mediaHtml($mediaOldCaption,$mediaOldPhotoClass,$mediaPublicPlan['target_keyboard']);
+$mediaOldEmbed=$mediaHtml($mediaOldCaption,$mediaOldPhotoClass,null);
+$mediaBefore=AnyTour\ExistingPostBatch\publisherMediaPublic($mediaOldArchive,$mediaOldEmbed,$mediaPublicPlan);
+channelPostCheck('publisher media admits only the saved old URL keyboard even when embed hides it',
+    $mediaBefore['reply_markup'],$mediaPublicPlan['target_keyboard']);
+$mediaNewArchive=$mediaHtml($mediaBody['media']['caption'],$mediaNewPhotoClass,$mediaBody['reply_markup']);
+$mediaNewEmbed=$mediaHtml($mediaBody['media']['caption'],$mediaNewPhotoClass,null);
+$mediaAfter=AnyTour\ExistingPostBatch\publisherMediaPublic($mediaNewArchive,$mediaNewEmbed,$mediaPublicPlan,$mediaBody);
+channelPostCheck('publisher media readback requires new caption, hotel CTA and original date',
+    [$mediaAfter['caption_sha256'],$mediaAfter['reply_markup'],$mediaAfter['published_unixtime']],
+    [$mediaPublicPlan['next_caption_sha256'],$mediaBody['reply_markup'],$mediaPublicPlan['target_published_unixtime']]);
+foreach (['caption','photo','date','keyboard','extra_button'] as $case) {
+    $archive=$mediaOldArchive;
+    if($case==='caption')$archive=str_replace($mediaOldCaption,'Different caption',$archive);
+    elseif($case==='photo')$archive=str_replace($mediaOldPhotoClass,$mediaNewPhotoClass,$archive);
+    elseif($case==='date')$archive=str_replace(gmdate('c',$mediaPublicPlan['target_published_unixtime']),gmdate('c',$mediaPublicPlan['target_published_unixtime']+1),$archive);
+    elseif($case==='keyboard')$archive=str_replace('https://t.me/AnyTour_MSK','https://t.me/Other_Manager',$archive);
+    else $archive=str_replace('</div></body>',
+        '<a class="tgme_widget_message_inline_button url_button" href="https://t.me/other">Other</a></div></body>',$archive);
+    $pilotRefuses('publisher media refuses changed old '.$case,
+        static fn()=>AnyTour\ExistingPostBatch\publisherMediaPublic($archive,$mediaOldEmbed,$mediaPublicPlan),
+        in_array($case,['keyboard','extra_button'],true)?'publisher_media_public_keyboard_changed':'publisher_media_public_content_changed');
+}
+$pilotRefuses('publisher media cannot accept a stale public post as the new media result',
+    static fn()=>AnyTour\ExistingPostBatch\publisherMediaPublic($mediaOldArchive,$mediaOldEmbed,$mediaPublicPlan,$mediaBody),
+    'publisher_media_public_content_changed');
+
+$mediaPublisher=['username'=>'ANYTOURBOT_bot','bot_id'=>'123456','credential_version'=>1];
+$mediaEvidence=AnyTour\ExistingPostBatch\publisherMediaEvidence($mediaParentPlan,$mediaBody,$mediaPublisher,'49999999998');
+$mediaRequestIdentity=$mediaBody;unset($mediaRequestIdentity['photo']);
+$mediaRequestIdentity['upload_sha256']=$mediaParentPlan['photo_sha256'];
+channelPostCheck('publisher media evidence binds saved publisher, parent and exact request without embedding the image',
+    $mediaEvidence,['schema'=>1,'publisher'=>$mediaPublisher,'native_run_id'=>'49999999998',
+        'parent_receipt_sha256'=>$mediaParentPlan['parent_receipt_sha256'],'upload_sha256'=>$mediaParentPlan['photo_sha256'],
+        'request_sha256'=>hash('sha256',json_encode($mediaRequestIdentity,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))]);
+$mediaNative=['http'=>200,'transport_error'=>false,'data'=>['ok'=>true,'result'=>[
+    'chat'=>['id'=>-1001845835645,'type'=>'channel','username'=>'anytour'],'message_id'=>1058,
+    'date'=>$mediaParentPlan['target_published_unixtime'],'edit_date'=>1795680000,
+    'caption'=>$mediaBody['media']['caption'],'caption_entities'=>[],
+    'photo'=>[['file_id'=>'publisher_only_new_file_id','file_unique_id'=>'new_photo_identity','width'=>800,'height'=>600]],
+    'reply_markup'=>$mediaBody['reply_markup']]]];
+channelPostCheck('publisher media accepts the native method result without inventing registry completion',
+    AnyTour\ExistingPostBatch\publisherMediaResponse($mediaNative,$mediaBody,$mediaParentPlan),'native_media_edit_accepted');
+$mediaReorderedNative=$mediaNative;
+$mediaExpectedButton=$mediaBody['reply_markup']['inline_keyboard'][0][0];
+$mediaReorderedNative['data']['result']['reply_markup']['inline_keyboard'][0][0]=[
+    'url'=>$mediaExpectedButton['url'],'text'=>$mediaExpectedButton['text']];
+channelPostCheck('publisher media accepts Telegram JSON button member order without changing values or types',
+    AnyTour\ExistingPostBatch\publisherMediaResponse($mediaReorderedNative,$mediaBody,$mediaParentPlan),'native_media_edit_accepted');
+channelPostCheck('publisher media retains a definite MESSAGE_ID_INVALID rejection',
+    AnyTour\ExistingPostBatch\publisherMediaResponse($pilotRejected,$mediaBody,$mediaParentPlan),'provider_message_id_rejected');
+foreach (['wrong_mid','changed_date','changed_caption','changed_keyboard','wrong_button_url','wrong_button_type',
+    'extra_button_field','missing_edit_date','album'] as $case) {
+    $native=$mediaNative;
+    if($case==='wrong_mid')$native['data']['result']['message_id']=1047;
+    elseif($case==='changed_date')$native['data']['result']['date']++;
+    elseif($case==='changed_caption')$native['data']['result']['caption']='Changed';
+    elseif($case==='changed_keyboard')$native['data']['result']['reply_markup']=$mediaPublicPlan['target_keyboard'];
+    elseif($case==='wrong_button_url')$native['data']['result']['reply_markup']['inline_keyboard'][0][0]['url']='https://t.me/anyru_bot?start=p_'.str_repeat('Z',24);
+    elseif($case==='wrong_button_type')$native['data']['result']['reply_markup']['inline_keyboard'][0][0]['url']=true;
+    elseif($case==='extra_button_field')$native['data']['result']['reply_markup']['inline_keyboard'][0][0]['callback_data']='other_action';
+    elseif($case==='missing_edit_date')unset($native['data']['result']['edit_date']);
+    else $native['data']['result']['media_group_id']='other_group';
+    $pilotRefuses('publisher media refuses unconfirmed native '.$case,
+        static fn()=>AnyTour\ExistingPostBatch\publisherMediaResponse($native,$mediaBody,$mediaParentPlan),
+        'publisher_media_response_unconfirmed');
+}
+
+$mediaSavedToken='123456:fixture_saved_publisher_token_only';
+$GLOBALS['hotel_media_fixture_response']=json_encode($mediaNative['data'],JSON_THROW_ON_ERROR);
+$mediaWireBefore=count($GLOBALS['hotel_media_http']);
+$mediaWireResult=HotelMediaApiFixture\ChannelPostApiTransport::publisherMediaPilotRequest(
+    $mediaSavedToken,'POST','editMessageMedia',[],$mediaBody);
+$mediaWire=end($GLOBALS['hotel_media_http']);$mediaParts=$mediaWire['options'][HotelMediaApiFixture\CURLOPT_POSTFIELDS];
+channelPostCheck('publisher media actual transport sends one saved-bot multipart edit',
+    [$mediaWireResult['http'],$mediaWireResult['transport_error'],$mediaWireResult['data'],
+        count($GLOBALS['hotel_media_http'])-$mediaWireBefore,$mediaWire['url'],array_keys($mediaParts)],
+    [200,false,$mediaNative['data'],1,'https://api.telegram.org/bot'.$mediaSavedToken.'/editMessageMedia',
+        ['chat_id','message_id','media','reply_markup','hotel_photo']]);
+channelPostCheck('publisher media multipart carries genuine CURLStringFile bytes and canonical hotel context',
+    [$mediaParts['hotel_photo'] instanceof CURLStringFile,hash('sha256',$mediaParts['hotel_photo']->data),
+        $mediaParts['hotel_photo']->postname,$mediaParts['hotel_photo']->mime,
+        json_decode($mediaParts['media'],true),json_decode($mediaParts['reply_markup'],true),
+        $mediaWire['options'][HotelMediaApiFixture\CURLOPT_HTTPHEADER]],
+    [true,$mediaPilotPlan['photo_sha256'],'hotel.jpg','image/jpeg',$mediaBody['media'],$mediaBody['reply_markup'],['Accept: application/json']]);
+channelPostCheck('publisher media multipart keeps strict TLS, no redirects and a bounded request',
+    array_map(static fn($key)=>$mediaWire['options'][$key],[HotelMediaApiFixture\CURLOPT_SSL_VERIFYPEER,
+        HotelMediaApiFixture\CURLOPT_SSL_VERIFYHOST,HotelMediaApiFixture\CURLOPT_FOLLOWLOCATION,
+        HotelMediaApiFixture\CURLOPT_CONNECTTIMEOUT,HotelMediaApiFixture\CURLOPT_TIMEOUT]),[true,2,false,2,15]);
+foreach (['file_id','remote_url','photo_digest','another_mid','extra_field','extra_button'] as $case) {
+    $bad=$mediaBody;
+    if($case==='file_id')$bad['media']['media']='anyru_bot_scoped_file_id';
+    elseif($case==='remote_url')$bad['media']['media']='https://example.test/other.jpg';
+    elseif($case==='photo_digest')$bad['photo']['sha256']=str_repeat('0',64);
+    elseif($case==='another_mid')$bad['message_id']='1047';
+    elseif($case==='extra_field')$bad['disable_notification']=true;
+    else $bad['reply_markup']['inline_keyboard'][0][]=$bad['reply_markup']['inline_keyboard'][0][0];
+    $before=count($GLOBALS['hotel_media_http']);
+    channelPostCheck('publisher media transport refuses '.$case.' before HTTP',
+        [HotelMediaApiFixture\ChannelPostApiTransport::publisherMediaPilotRequest($mediaSavedToken,'POST','editMessageMedia',[],$bad),
+            count($GLOBALS['hotel_media_http'])], [['http'=>0,'data'=>null,'transport_error'=>true],$before]);
+}
+unset($GLOBALS['hotel_media_fixture_response']);
+
+$mediaTmp=sys_get_temp_dir().'/publisher-media-pilot-'.bin2hex(random_bytes(8));mkdir($mediaTmp,0700);
+try {
+    foreach(['success','success_recompressed','reordered_native','payload_changed','source_changed','late_source_changed','rejected','timeout','transport_throw',
+        'webhook_pending','public_stale','public_photo_mismatch','public_photo_unverified','native_wrong_target'] as $case) {
+        $dir=$mediaTmp.'/'.$case;mkdir($dir,0700);file_put_contents($dir.'/receipt.jsonl',$mediaParentBytes);
+        $parentSha=hash_file('sha256',$dir.'/receipt.jsonl');$writes=0;$completions=0;$reads=0;$asserts=0;$startedBeforeRequest=false;
+        $native=$case==='reordered_native'?$mediaReorderedNative:$mediaNative;
+        if($case==='native_wrong_target')$native['data']['result']['message_id']=1047;
+        $GLOBALS['hotel_media_fixture_response']=json_encode(($case==='rejected'?$pilotRejected:$native)['data'],JSON_THROW_ON_ERROR);
+        $GLOBALS['hotel_media_fixture_http']=$case==='rejected'?400:200;
+        $GLOBALS['hotel_media_fixture_timeout']=$case==='timeout';
+        $httpBefore=count($GLOBALS['hotel_media_http']);
+        $effects=['context'=>['application_sha'=>str_repeat('a',40),'native_run_id'=>'49999999998'],
+            'publisher'=>$mediaPublisher,'reservation'=>$mediaReservation,
+            'source_pin'=>['version_id'=>13679,'content_hash'=>str_repeat('c',64)],
+            'assert'=>static function()use($case,&$asserts,$dir,$parentSha):void{
+                $asserts++;
+                if(hash_file('sha256',$dir.'/receipt.jsonl')!==$parentSha)throw new RuntimeException('publisher_media_parent_changed');
+                if($case==='source_changed'||($case==='late_source_changed'&&$asserts===2))throw new RuntimeException('publisher_media_source_changed');
+            },
+            'request'=>static function(array $payload)use(&$writes,&$startedBeforeRequest,$case,$dir,$mediaSavedToken):array{
+                $writes++;$journal=file_get_contents($dir.'/publisher-media-20261126.jsonl');
+                $startedBeforeRequest=str_contains($journal,'"state":"provider_edit_started"');
+                if($case==='transport_throw')throw new RuntimeException('provider_timeout');
+                return HotelMediaApiFixture\ChannelPostApiTransport::publisherMediaPilotRequest($mediaSavedToken,'POST','editMessageMedia',[],$payload);
+            },
+            // SQL adoption is covered by the registry suite. This boundary
+            // independently refuses a missing genuine webhook.
+            'complete'=>static function(array $response,array $evidence)use(&$completions,$case,$mediaEvidence):array{
+                $completions++;
+                if($evidence!==$mediaEvidence)throw new RuntimeException('publisher_media_evidence_changed');
+                if($case==='webhook_pending')throw new RuntimeException('publisher_media_native_observation_required');
+                return ['publication_id'=>3848,'version_id'=>19000,'state'=>'sent','message_id'=>'1058',
+                    'content_hash'=>str_repeat('d',64),'snapshot'=>['metadata'=>['hotel_catalog_id'=>2514]]];
+            },
+            'readback'=>static function(array $body)use(&$reads,$case,$mediaPublicPlan,$mediaOldArchive,$mediaOldEmbed,$mediaNewArchive,$mediaNewEmbed):array{
+                $reads++;
+                AnyTour\ExistingPostBatch\publisherMediaPublic($case==='public_stale'?$mediaOldArchive:$mediaNewArchive,
+                    $case==='public_stale'?$mediaOldEmbed:$mediaNewEmbed,$mediaPublicPlan,$body);
+                if($case==='public_photo_mismatch')throw new RuntimeException('publisher_media_public_photo_unconfirmed');
+                return ['public_photo_verified'=>$case!=='public_photo_unverified',
+                    'public_photo_sha256'=>$case==='success_recompressed'?str_repeat('e',64):$body['photo']['sha256'],
+                    'public_photo_matches_uploaded_bytes'=>$case!=='success_recompressed'];
+            },
+            'parent_unchanged'=>static function()use($dir,$parentSha):void{
+                if(hash_file('sha256',$dir.'/receipt.jsonl')!==$parentSha)throw new RuntimeException('publisher_media_parent_changed');
+            }];
+        $body=$mediaBody;if($case==='payload_changed')$body['media']['caption']='Unapproved replacement';
+        $result=AnyTour\ExistingPostBatch\publisherMediaExecute($mediaParentPlan,$mediaBefore,$body,$effects,$dir);
+        $zero=in_array($case,['payload_changed','source_changed','late_source_changed'],true);
+        $success=in_array($case,['success','success_recompressed','reordered_native'],true);
+        $acceptedNative=in_array($case,['success','success_recompressed','reordered_native','webhook_pending','public_stale','public_photo_mismatch','public_photo_unverified'],true);
+        $expected=match($case){'success','success_recompressed','reordered_native'=>'native_and_registry_verified','payload_changed','source_changed','late_source_changed'=>'held_before_provider',
+            'rejected'=>'provider_message_id_rejected','transport_throw'=>'provider_outcome_unknown',default=>'response_saved_requires_readback'};
+        channelPostCheck('publisher media keeps honest '.$case.' outcome and exact provider count',
+            [$result['state'],$result['ok'],$result['full_transfer'],$result['provider_write_attempts'],$writes,
+                count($GLOBALS['hotel_media_http'])-$httpBefore],
+            [$expected,$success,$success,$zero?0:1,$zero?0:1,($zero||$case==='transport_throw')?0:1]);
+        channelPostCheck('publisher media completes only confirmed native '.$case,
+            [$completions,$reads],[$acceptedNative?1:0,in_array($case,['success','success_recompressed','reordered_native','public_stale','public_photo_mismatch','public_photo_unverified'],true)?1:0]);
+        if($success)channelPostCheck('publisher media reports observed JPEG bytes honestly for '.$case,
+            [$result['public_photo_verified'],$result['public_photo_sha256'],$result['public_photo_matches_uploaded_bytes']],
+            [true,$case==='success_recompressed'?str_repeat('e',64):$mediaPilotPlan['photo_sha256'],$case!=='success_recompressed']);
+        channelPostCheck('publisher media preserves the rejected parent byte-for-byte on '.$case,
+            hash_file('sha256',$dir.'/receipt.jsonl'),$parentSha);
+        if($acceptedNative)channelPostCheck('publisher media retains native acceptance after '.$case,
+            $result['native_state']??null,'native_media_edit_accepted');
+        if(in_array($case,['timeout','transport_throw','native_wrong_target'],true))
+            channelPostCheck('publisher media does not invent native acceptance after '.$case,isset($result['native_state']),false);
+        if(!$zero)channelPostCheck('publisher media journal marker precedes '.$case.' provider call',$startedBeforeRequest);
+        $journal=$dir.'/publisher-media-20261126.jsonl';
+        if(!file_exists($journal)) {
+            channelPostCheck('publisher media '.$case.' leaves no consumed intent before admission',
+                in_array($case,['payload_changed','source_changed'],true));
+            continue;
+        }
+        $journalSha=hash_file('sha256',$journal);$httpAfter=count($GLOBALS['hotel_media_http']);
+        $again=AnyTour\ExistingPostBatch\publisherMediaExecute($mediaParentPlan,$mediaBefore,$mediaBody,$effects,$dir);
+        channelPostCheck('publisher media cannot replay '.$case.' or mutate its saved outcome',
+            [$again['reason'],$writes,count($GLOBALS['hotel_media_http']),hash_file('sha256',$journal)],
+            ['publisher_media_previous_attempt_do_not_replay',$zero?0:1,$httpAfter,$journalSha]);
+    }
+} finally {
+    unset($GLOBALS['hotel_media_fixture_response'],$GLOBALS['hotel_media_fixture_http'],$GLOBALS['hotel_media_fixture_timeout']);
+    foreach(glob($mediaTmp.'/*') as $dir){foreach(glob($dir.'/*') as $file)unlink($file);rmdir($dir);}rmdir($mediaTmp);
 }
 
 echo 'Channel post automation: ' . $passed . ' passed, ' . $failed . ' failed' . PHP_EOL;

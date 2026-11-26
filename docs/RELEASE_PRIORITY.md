@@ -1,5 +1,24 @@
 # Ready release priority
 
+## Fixed reconciliation of overlapping PR1596 and PR1597
+
+The owner transferred the blocked work from the full Manager2 chat. The fixed
+`ops/recover-pr1597-terminal-20261117` initial push is a metadata-only continuation,
+not a deployment retry or general permission to free another publisher. Its
+`prior_failed_wave_v1` record authenticates exact original failures, pending
+installation receipt, nine skipped old children, current mandatory gates and both
+unchanged bindings. Native source CI and independent review precede its only run.
+
+PR1596 is explicitly superseded with its original verification incomplete; it is
+never labelled installed-and-verified. The final existing recovery step updates
+that record and reads it back before updating PR1597. Unknown or partial writes
+stop without replay. A complete terminal requires both actual readbacks and the
+successful native final step; the source records and failed runs are immutable.
+Consumers validate the saved lineage rather than demanding that reused publisher
+comments remain unchanged forever. Neither this continuation nor the future-wave
+classifier authorizes moving main while the existing publisher is still held.
+
+
 ## Explicit continuation of the PR1505 pre-write read refusal
 
 The original PR1505 installation and every original required gate succeeded.
@@ -119,6 +138,61 @@ On refusal, the existing owner keeps the same task. No new coordinator, chat,
 publisher or status loop is needed. After admission, retain the fresh shared
 publisher lease, branch protection, head CAS and all release gates. Revalidate
 main if it changed before the operation; do not force a merge.
+
+### Authenticate the previous technical release before another merge
+
+Final `--admit` runs the existing canonical deployment resolver for the exact
+current base after its priority/publisher decision allows the candidate.
+Ordinary PR source CI retains its existing priority-only decision.
+
+The read-only fence requires one original successful main-push Deploy, its
+matching diagnostics receipt, the authenticated digest-bound terminal execution,
+and the exact merged PR binding with its released issue1122 publisher. It reuses
+the canonical installation and terminal-recovery validation, including already
+supported typed continuations; an original failed run is never relabelled.
+A pending record, active or failed original, ambiguous/incomplete history,
+missing publication, held or changed publisher, changed diagnostics/main, or
+an unavailable API stops admission. A different project's free record cannot
+substitute. No installer, closer, check, business operation or write is started.
+
+When the same completed publisher has already been acquired by this exact next
+PR, admission authenticates its new pinned owner/version and current PR binding
+in addition to the previous native terminal. It never requires the old free text
+to replace the valid current acquisition. A different owner, changed binding or
+version still refuses. Before acquisition the previous publisher must be free.
+
+The final readback pins the same installation record and publisher version,
+then refreshes main. Existing publisher serialization and expected-head merge
+remain mandatory; these read-only snapshots do not claim atomic GitHub exclusion.
+This preventive fence cannot recover the already-held releases in issue1599.
+
+For the specific PR1630 → PR1631 transition, authenticate the original PR1630
+installation when its successful closer found no publisher binding. The
+read-only admission requires the pinned diagnostics blob, all original
+mandatory gates, and the original closer with terminal publication and slot
+release both skipped. It creates no PR1630 binding, terminal artifact or server
+installation. PR1631 still requires its own ordinary binding before merge and
+its own original completion receipt with technical gates.
+
+### Reconciliation of the superseded PR1701 slot
+
+The original PR1701 Deploy 45499396729 stopped before credentials after main
+advanced. Only the subsequent original Deploy 45501864193 installed both PR1701
+and PR1706. PR1706 had no publisher binding, so the original closer completed
+with the proof upload and terminal write explicitly skipped.
+
+The existing serialized recovery job admits one initial owner push of
+`ops/recover-pr1701-terminal-20261125` at its exact CI-checked source. It
+authenticates the original installation, the binding from PR1701, the skipped
+old downstream wave, the original successful diagnostics and the later refused
+diagnostic attempt. The recovery binds its proof digest to the native job,
+publishes the proof artifact, and makes one terminal write to the original
+publisher. The original application receipt remains readable by the deployed
+resolvers. No installation, business job or diagnostic rerun is part of recovery.
+
+Final admission on the exact PR1706 base independently authenticates that native
+proof and the publisher readback before allowing a fresh ordinary claim.
+Ambiguous reads or any unknown write stop recovery and do not authorize a retry.
 
 ### Continuing an already admitted publisher
 

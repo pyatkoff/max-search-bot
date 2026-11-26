@@ -38,10 +38,11 @@ $data=ManagerHttp::body();
 $action=(string)($data['action']??'');
 $promiseAction=in_array($action,['promise_context','bind_promise','promise_operation'],true);
 if($promiseAction&&($_SERVER['REQUEST_METHOD']??'')!=='POST')ManagerHttp::respond(['ok'=>false,'error'=>'method_not_allowed'],405);
-// A secondary card read verifies the configured project without repairing it.
-if(($promiseAction||in_array($action,['detail','outcome_operation'],true))&&ManagerHttp::managerId()>0){
+// Inbox polling takes the read-only path when the configured project is healthy.
+$inboxRead=$action==='list';
+if(($inboxRead||$promiseAction||in_array($action,['detail','outcome_operation'],true))&&ManagerHttp::managerId()>0){
     try{ProjectAccessService::initializeReadOnly();}
-    catch(Throwable $ignored){ManagerHttp::respond(['ok'=>false,'error'=>'project_unavailable'],503);}
+    catch(Throwable $ignored){if(!$inboxRead)ManagerHttp::respond(['ok'=>false,'error'=>'project_unavailable'],503);}
 }
 $m=ManagerHttp::requireManager();
 ManagerHttp::requireCsrf($data);
@@ -65,8 +66,7 @@ if($promiseAction){
             'promise_context'=>ManagerPromiseTaskService::context($actor,$cid,$command['task_id'],$command['source_message_id'],$command['kind']),
             'bind_promise'=>ManagerPromiseTaskService::bind($actor,$cid,$command),
             'promise_operation'=>ManagerPromiseTaskService::operation($actor,$cid,$command['operation_id'])};
-        if(!session_start(['read_and_close'=>true])||ManagerHttp::managerId()!==$actor
-            ||!ManagerHttp::validCsrf((string)$data['csrf']))ManagerHttp::respond(['ok'=>false,'error'=>'unauthorized'],401);
+        ManagerHttp::revalidateSession($actor,(string)$data['csrf']);
         $status=!empty($result['ok'])?200:match($result['error']??''){
             'forbidden'=>403,'task_not_found'=>404,
             'profile_changed','context_changed','source_changed','profile_source_changed','binding_conflict','operation_mismatch','task_closed'=>409,
@@ -75,8 +75,24 @@ if($promiseAction){
     }catch(Throwable $ignored){ManagerHttp::respond(['ok'=>false,'error'=>'storage_unavailable'],503);}
 }
 
-if($action==='catalog')ManagerHttp::respond(['ok'=>true,'stages'=>SalesPipelineService::stages(true),'tags'=>SalesPipelineService::tags(true),'outcomes'=>SalesPipelineService::outcomeOptions(),'close_reasons'=>SalesPipelineService::closeReasonOptions(true)]);
-if($action==='filter_options')ManagerHttp::respond(['ok'=>true,'filters'=>ManagerWorkspaceFilterService::snapshot((int)$m['id'])]);
+if ($action === 'catalog' || $action === 'filter_options') {
+    $actor = (int)$m['id'];
+    // Chat requests use the same session. Release it while building the startup directories.
+    session_write_close();
+    if ($action === 'catalog') {
+        $directory = [
+            'stages'=>SalesPipelineService::stages(true),
+            'tags'=>SalesPipelineService::tags(true),
+            'outcomes'=>SalesPipelineService::outcomeOptions(),
+            'close_reasons'=>SalesPipelineService::closeReasonOptions(true),
+        ];
+    } else {
+        $directory = ['filters' => ManagerWorkspaceFilterService::snapshot($actor)];
+    }
+
+    ManagerHttp::revalidateSession($actor,(string)$data['csrf']);
+    ManagerHttp::respond(['ok' => true] + $directory);
+}
 if($action==='admin_catalog'){ManagerHttp::requireAdmin($m);ManagerHttp::respond(['ok'=>true,'catalog'=>SalesPipelineCatalogAdminService::snapshot()]);}
 if($action==='save_stage'){ManagerHttp::requireAdmin($m);$r=SalesPipelineCatalogAdminService::saveStage($data,(int)$m['id']);ManagerHttp::respond($r,pipelineCatalogSaveStatus($r));}
 if($action==='save_tag'){ManagerHttp::requireAdmin($m);$r=SalesPipelineCatalogAdminService::saveTag($data,(int)$m['id']);ManagerHttp::respond($r,pipelineCatalogSaveStatus($r));}
@@ -88,18 +104,27 @@ if($action==='list'){
     // loaders perform their own fresh visibility checks without session writes.
     // A slow Inbox read must not serialize transcript or reply requests.
     session_write_close();
-    $rows=ManagerConversationService::list((int)$m['id'],$queue,200,(string)($data['project_key']??'*'),$managerFilter,(string)($data['lead_stage_key']??''),(int)($data['lead_tag_id']??0));
+    $projectKey=(string)($data['project_key']??'*');
+    $stageKey=(string)($data['lead_stage_key']??'');$tagId=(int)($data['lead_tag_id']??0);
+    $rows=ManagerConversationService::list((int)$m['id'],$queue,200,$projectKey,$managerFilter,$stageKey,$tagId);
+    $rows=ManagerQueueProjectionService::actionableRows($queue,$rows);
+    $extra=[];
+    if(($data['include_queue_count']??false)===true&&in_array($queue,['waiting','mine'],true)
+        &&$managerFilter===''&&$stageKey===''&&$tagId===0){
+        // Later filters affect the displayed list. Tab counts always use the whole project queue.
+        $extra['queue_count']=['queue'=>$queue,'project_key'=>$projectKey]+ManagerQueueProjectionService::summarize($queue,$rows);
+    }
     $sourceId=(int)($data['source_id']??0);
     if($sourceId===-1)$rows=array_values(array_filter($rows,static fn($r):bool=>(int)($r['source_id']??0)<=0));
     elseif($sourceId>0)$rows=array_values(array_filter($rows,static fn($r):bool=>(int)($r['source_id']??0)===$sourceId));
-    $rows=ManagerQueueProjectionService::actionableRows($queue,$rows);
-    $rows=ManagerLeadInboxService::decorate($rows,(int)$m['id']);
+    $outcome=(string)($data['lead_outcome']??'');$search=(string)($data['search']??'');
     $taskFilter=(string)($data['lead_task_filter']??'');
-    $rows=ManagerLeadInboxService::filter($rows,(string)($data['lead_outcome']??''),(string)($data['search']??''),$taskFilter);
+    $rows=ManagerLeadInboxService::decoratePageCandidates($rows,(int)$m['id'],$queue,$outcome,$search,$taskFilter,100);
+    $rows=ManagerLeadInboxService::filter($rows,$outcome,$search,$taskFilter);
     if($queue==='mine')$rows=ManagerLeadInboxService::sortMine($rows);
     foreach($rows as &$row)$row['can_edit_pipeline']=ManagerHttp::canEditConversation($row,$m);
     unset($row);
-    ManagerHttp::respond(['ok'=>true,'conversations'=>ManagerConversationService::displayRows(array_slice($rows,0,100))]);
+    ManagerHttp::respond(['ok'=>true,'conversations'=>ManagerConversationService::displayRows(array_slice($rows,0,100))]+$extra);
 }
 
 $id=(int)($data['conversation_id']??0);

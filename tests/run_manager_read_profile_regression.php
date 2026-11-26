@@ -222,13 +222,65 @@ function readProfileProjectSafety(PDO $pdo, string $driver): void
     readProfileCheck($driver . ': injected connection, schema readiness and synthetic project config are restored', $connectionProperty->getValue() === $oldConnection && $readyProperty->getValue() === $oldReady && $configProperty->getValue() === $oldConfig);
 }
 
+function readProfileResourceWindow(PDO $pdo, string $driver): void
+{
+    $first = ManagerReadProfileResources::sample($pdo);
+    $statement = $pdo->query('SELECT 1');
+    $value = $statement->fetchColumn();
+    $statement->closeCursor();
+    $second = ManagerReadProfileResources::sample($pdo);
+    $window = ManagerReadProfileResources::summarize($first, $second);
+    if (PHP_OS_FAMILY === 'Linux' && is_readable('/proc/stat')) {
+        readProfileCheck($driver . ': actual Linux aggregate CPU ticks can be read', is_int($first['cpu_ticks']['total']??null) && ($first['cpu_ticks']['total']??0) > 0 && ($first['cpu_ticks']['idle']??-1) >= 0);
+    }
+    $meminfo = PHP_OS_FAMILY === 'Linux' ? (string)@file_get_contents('/proc/meminfo', false, null, 0, 4096) : '';
+    if (str_contains($meminfo, 'MemAvailable:')) {
+        $memory = $window['host']['memory_available_pct'];
+        readProfileCheck($driver . ': available memory is parsed from real Linux counters', is_float($memory['before']) && is_float($memory['after']) && $memory['before'] >= 0 && $memory['before'] <= 100 && $memory['after'] >= 0 && $memory['after'] <= 100);
+    }
+    $mysql = $window['mysql'];
+    $expectedRunning = $driver === 'mysql' ? is_int($mysql['gauges']['threads_running']['before']) : $mysql['gauges']['threads_running']['before'] === null;
+    $expectedLocks = $driver === 'mysql' ? is_int($mysql['global_counter_deltas']['innodb_row_lock_waits']) : $mysql['global_counter_deltas']['innodb_row_lock_waits'] === null;
+    readProfileCheck($driver . ': read-only resource samples use the existing PDO, with unsupported MySQL status explicit', (int)$value === 1 && $expectedRunning && $expectedLocks && !$pdo->inTransaction() && $window['elapsed_ms'] >= 0);
+}
+
+function readProfileResourceFixtures(): void
+{
+    $first = [
+        'monotonic_ns'=>1_000_000, 'sampled_at_utc'=>'2026-01-01T00:00:00+00:00',
+        'mysql_status'=>['uptime'=>80,'threads_running'=>2,'innodb_row_lock_waits'=>3,'innodb_row_lock_time'=>100,'private_canary'=>82],
+        'cpu_ticks'=>['total'=>800,'idle'=>500], 'memory_available_pct'=>49.5,
+    ];
+    $last = [
+        'monotonic_ns'=>20_000_000, 'sampled_at_utc'=>'2026-01-01T00:00:00+00:00',
+        'mysql_status'=>['uptime'=>81,'threads_running'=>4,'innodb_row_lock_waits'=>5,'innodb_row_lock_time'=>103,'private_canary'=>85],
+        'cpu_ticks'=>['total'=>1000,'idle'=>600], 'memory_available_pct'=>46.5,
+    ];
+    $window = ManagerReadProfileResources::summarize($first, $last);
+    $mysql = $window['mysql'];
+    readProfileCheck('resource window exposes CPU and memory with the native sample interval', $window['elapsed_ms'] === 19.0 && $window['host']['cpu_non_idle_pct'] === 50.0 && $window['host']['memory_available_pct'] === ['before'=>49.5,'after'=>46.5]);
+    readProfileCheck('resource window allowlists counters, preserves unknown and reports global lock wait deltas', $mysql['gauges']['threads_running'] === ['before'=>2,'after'=>4] && $mysql['global_counter_deltas']['innodb_row_lock_waits'] === 2 && $mysql['global_counter_deltas']['innodb_row_lock_time'] === 3 && $mysql['global_counter_deltas']['slow_queries'] === null && !str_contains(json_encode($window, JSON_THROW_ON_ERROR), 'private_canary'));
+
+    $last['mysql_status']['innodb_row_lock_waits'] = 1;
+    $window = ManagerReadProfileResources::summarize($first, $last);
+    readProfileCheck('a decreasing counter does not masquerade as zero contention', $window['mysql']['global_counter_deltas']['innodb_row_lock_waits'] === null && $window['mysql']['global_counter_deltas']['innodb_row_lock_time'] === 3);
+    $last['mysql_status']['uptime'] = 1;
+    $last['cpu_ticks'] = ['total'=>700,'idle'=>400];
+    $window = ManagerReadProfileResources::summarize($first, $last);
+    readProfileCheck('observed server restart and invalid CPU delta leave unavailable comparison values explicit', $window['mysql']['global_counter_deltas']['innodb_row_lock_time'] === null && $window['host']['cpu_non_idle_pct'] === null);
+}
+
 try {
+    readProfileResourceFixtures();
     $snapshotSource = (string)file_get_contents(dirname(__DIR__) . '/tools/production_snapshot.php');
     $publisherSource = (string)file_get_contents(dirname(__DIR__) . '/.github/workflows/publish-conversation-diagnostics.yml');
     readProfileCheck('snapshot profiling is a strict opt-in CLI flag and helper loading stays conditional', str_contains($snapshotSource, '$profileManagerLists=in_array(\'--profile-manager-lists\',$argv??[],true);') && str_contains($snapshotSource, 'if($profileManagerLists)require_once $baseDir.\'/tools/manager-read-profile.php\';'));
     $readOnlyInit = strpos($snapshotSource,'if($profileManagerLists)ProjectAccessService::initializeReadOnly();');
     $canonicalConnection = strpos($snapshotSource,'$pdo=ConversationDb::connection();');
     $firstCapture = strpos($snapshotSource,'ManagerReadProfile::capture(');
+    $resourceStart = strpos($snapshotSource,'if($profileManagerLists)$managerResourceStart=ManagerReadProfileResources::sample($pdo);');
+    $resourceEnd = strpos($snapshotSource,'ManagerReadProfileResources::summarize($managerResourceStart,ManagerReadProfileResources::sample($pdo))');
+    readProfileCheck('the opt-in resource samples bracket canonical list probes once over the existing connection', $resourceStart !== false && $resourceEnd !== false && $resourceStart < $firstCapture && $resourceEnd > strrpos($snapshotSource,'ManagerReadProfile::capture(') && substr_count($snapshotSource,'ManagerReadProfileResources::sample($pdo)') === 2);
     readProfileCheck('opt-in read-only project initialization precedes every canonical list capture on the existing PDO', $readOnlyInit !== false && $canonicalConnection !== false && $firstCapture !== false && $canonicalConnection < $readOnlyInit && $readOnlyInit < $firstCapture);
     foreach (['all','mine','waiting'] as $queue) {
         $call = 'ManagerConversationService::list($id,\'' . $queue . '\',200,\'*\')';
@@ -242,6 +294,7 @@ try {
 
     if (!in_array('sqlite', PDO::getAvailableDrivers(), true)) { throw new RuntimeException('SQLite PDO driver is required'); }
     $sqlite = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    readProfileResourceWindow($sqlite, 'sqlite');
     readProfileFixture($sqlite, 'sqlite'); readProfileRun($sqlite, 'sqlite'); readProfileProjectSafety($sqlite,'sqlite');
     readProfilePersistent(new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_PERSISTENT=>true]), 'sqlite');
 
@@ -251,6 +304,7 @@ try {
         if (!in_array('mysql', PDO::getAvailableDrivers(), true)) { throw new RuntimeException('Configured native MySQL PDO driver is required'); }
         $pdo = new PDO($dsn, (string)(getenv('MANAGER_READ_PROFILE_TEST_MYSQL_USER') ?: 'root'), (string)(getenv('MANAGER_READ_PROFILE_TEST_MYSQL_PASSWORD') ?: ''), [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC, PDO::ATTR_EMULATE_PREPARES=>false, PDO::ATTR_PERSISTENT=>false]);
         if ($pdo->query('SELECT DATABASE()')->fetchColumn() !== 'manager_read_profile_test' || (int)$pdo->query('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()')->fetchColumn() !== 0) { throw new RuntimeException('Refusing non-empty native read profile fixture'); }
+        readProfileResourceWindow($pdo, 'mysql');
         readProfileFixture($pdo, 'mysql'); readProfileRun($pdo, 'mysql'); readProfileProjectSafety($pdo,'mysql');
         readProfilePersistent(new PDO($dsn, (string)(getenv('MANAGER_READ_PROFILE_TEST_MYSQL_USER') ?: 'root'), (string)(getenv('MANAGER_READ_PROFILE_TEST_MYSQL_PASSWORD') ?: ''), [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_EMULATE_PREPARES=>false, PDO::ATTR_PERSISTENT=>true]), 'mysql');
     } else { echo "SKIP native MySQL fixture is not configured locally; dedicated CI must configure it\n"; }

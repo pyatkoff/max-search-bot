@@ -78,6 +78,21 @@ class AiMessageHandler
                     }
                 }
 
+                // "Any date" after a previously remembered month/range must not
+                // spin through the model and ask for an exact day again. Give
+                // the two honest routes without mutating other trip needs.
+                if (in_array('date', $missingNow, true)
+                    && preg_match('/\A\s*(?:без\s+разницы|любая\s+дата|любые\s+даты|(?:в\s+)?любой\s+день|любое\s+число|всё\s+равно|не\s+важно)\s*[.!]?\s*\z/ui', $userText) === 1
+                    && ($pendingFlexible = PendingMonthStore::get($chat_id)) !== []) {
+                    $isRange = !empty($pendingFlexible['requires_clarification']);
+                    MissingFieldQuestionService::send($chat_id, 'date', [
+                        'ambiguous_months'=>$isRange && empty($pendingFlexible['month']),
+                        'ambiguous_range'=>$isRange && !empty($pendingFlexible['month']),
+                        'flexible_month'=>!$isRange,
+                    ]);
+                    return;
+                }
+
                 // Если сейчас не хватает возраста детей, короткий ответ проходит через
                 // общий deterministic resolver/application/progression pipeline.
                 if (!$compoundFieldAnswer && in_array('child_ages', $missingNow, true)) {
@@ -109,6 +124,36 @@ class AiMessageHandler
                         ? ['ambiguous_months'=>true] : ['ambiguous_range'=>true];
                     MissingFieldQuestionService::send($chat_id, 'date', $dateQuestion);
                     return;
+                }
+
+                // A flexible month is a valid travel preference, not an agreed
+                // literal departure day. Preserve independently stated facts,
+                // but do not seed the local Moscow fallback or invent a date.
+                if (!empty($dateContext['month_only']) && in_array('date', $missingNow, true)
+                    && preg_match('/(?:любая\s+дата|любые\s+даты|любой\s+день|любое\s+число|даты\s+гибкие|без\s+разницы\s+когда)/ui', $userText) === 1) {
+                    $explicitParams = LocalAiFallbackService::parameters($userText, $current);
+                    unset($explicitParams['city'], $explicitParams['date']);
+                    if ($explicitParams !== []) NeedApplicationService::applyParameters($chat_id, $explicitParams);
+                    MissingFieldQuestionService::send($chat_id, 'date', ['flexible_month'=>true]);
+                    return;
+                }
+
+                // An unsupported named departure must never be replaced by
+                // the implicit Moscow default in ordinary (non-hotel) intake.
+                // Let recognized trip facts, resort hints and questions retain
+                // their existing parser/AI routes.
+                if (($missingNow[0] ?? '') === 'city' && !$departure
+                    && DepartureCityResolver::isUnresolvedCityLikeAnswer($userText)
+                    // A recognized active city may have lost a concurrent write;
+                    // leave that case on its original overlap/recovery path.
+                    && DepartureCityResolver::resolveFieldValue($userText) === false
+                    && DestinationHintService::countryFromText($userText) === '') {
+                    $otherFacts = LocalAiFallbackService::parameters($userText, $current);
+                    unset($otherFacts['city']);
+                    if ($otherFacts === []) {
+                        MissingFieldQuestionService::send($chat_id, 'city', ['unresolved_city'=>true]);
+                        return;
+                    }
                 }
 
                 // Сначала классифицируем сообщение. Полноценные запросы по-прежнему

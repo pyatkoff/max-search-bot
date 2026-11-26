@@ -47,15 +47,17 @@ final class AppleService39PilotPublisher
     {
         self::check(in_array($operation, ['inspect','prepare','publish','finalize','pin','reconcile','landing_inspect','landing_prepare','landing_apply','landing_reconcile',
             'search_inspect','search_prepare','search_apply','search_reconcile',
-            'coverage_inspect','coverage_prepare','coverage_apply','coverage_reconcile'], true), 'unsupported_pilot_operation');
+            'coverage_inspect','coverage_prepare','coverage_apply','coverage_reconcile',
+            'device_inspect','device_prepare','device_apply','device_reconcile','device_observe','device_resume'], true), 'unsupported_pilot_operation');
         $this->readbackDiagnostics = [];
-        $this->coverageActive = str_starts_with($operation, 'coverage_');
+        $devices = str_starts_with($operation, 'device_');
+        $this->coverageActive = str_starts_with($operation, 'coverage_') || $devices;
         $binding = $this->preflight();
         $this->store->assertBinding($binding);
-        if (str_starts_with($operation, 'coverage_')) {
-            $this->coverageActive = true;
+        if ($this->coverageActive) {
             self::check($this->searchRevision !== null && $this->catalogueRevision !== null, 'coverage_parent_incomplete');
-            return (new AppleService39CoveragePublisher($this->store, $this->transport, new AppleService39CoverageRevision(), [
+            $revision = $devices ? new AppleService39DeviceRevision() : new AppleService39CoverageRevision();
+            return (new AppleService39CoveragePublisher($this->store, $this->transport, $revision, [
                 'parents'=>function (?array $menu): array {
                     $value = $this->searchSnapshot(false, $menu);
                     self::check($this->readbackDiagnostics === [], 'coverage_parent_changed');
@@ -74,7 +76,14 @@ final class AppleService39PilotPublisher
                 'feed'=>function (array $addresses): array {
                     require_once __DIR__.'/ProjectFunnelEntry.php';
                     $settings = ProjectFunnelSettings::load($this->connection);
-                    self::check(is_array($settings) && count($settings['posts']) === 67, 'coverage_feed_incomplete');
+                    // Certify the original 69-post revision's 67 advertising cards independently of later additions.
+                    $coveragePosts = array_diff_key($addresses, ['models-index'=>true,'services-index'=>true]);
+                    self::check(is_array($settings) && count($coveragePosts) === 67
+                        && array_diff_key($coveragePosts, $settings['posts']) === [], 'coverage_feed_incomplete');
+                    $settings['posts'] = array_intersect_key($settings['posts'], $coveragePosts);
+                    if (isset($settings['feed_presentation'])) {
+                        $settings['feed_presentation'] = array_intersect_key($settings['feed_presentation'], $coveragePosts);
+                    }
                     $entry = new ProjectFunnelEntry($this->pdo, $this->connection, $settings);
                     $routes = [];
                     foreach ($settings['posts'] as $id=>$item) {
@@ -322,7 +331,8 @@ final class AppleService39PilotPublisher
             if (!in_array($row['state'], ['write_started','unknown'], true)) continue;
             // The successor has its own exact source/image GET predicate in this publisher.
             if (AppleService39PilotPublicationStore::isSearchOperation($row['post_key'], $row['operation'], $row['request'])
-                || AppleService39CoverageRevision::isOperation($row['post_key'], $row['operation'], $row['request'])) continue;
+                || AppleService39CoverageRevision::isOperation($row['post_key'], $row['operation'], $row['request'])
+                || AppleService39DeviceRevision::isOperation($row['post_key'], $row['operation'], $row['request'])) continue;
             if (in_array($row['operation'], ['create','links'], true) && is_string($row['external_message_id']) && $row['external_message_id'] !== '') {
                 $post = $this->manifest->post($row['post_key']);
                 $response = null; $readback = null;
@@ -497,7 +507,8 @@ final class AppleService39PilotPublisher
         $priorCount = 0;
         foreach ($this->store->rows() as $row) {
             if ($searchSuccessor && (AppleService39PilotPublicationStore::isSearchOperation($row['post_key'], $row['operation'], $row['request'])
-                || ($this->coverageActive && AppleService39CoverageRevision::isOperation($row['post_key'], $row['operation'], $row['request'])))) continue;
+                || ($this->coverageActive && (AppleService39CoverageRevision::isOperation($row['post_key'], $row['operation'], $row['request'])
+                    || AppleService39DeviceRevision::isOperation($row['post_key'], $row['operation'], $row['request']))))) continue;
             if ($row['operation'] === AppleService39CatalogueRevision::OPERATION) continue;
             self::check(in_array($row['operation'], ['upload','create','links','pin','landing_upload','landing_edit'], true)
                 && $row['state'] === 'verified' && (int)$row['write_attempts'] === 1, 'catalogue_parent_incomplete');
@@ -815,7 +826,8 @@ final class AppleService39PilotPublisher
         $parentRows = [];
         $posts = array_column($this->searchRevision->posts(), null, 'id');
         foreach ($this->store->rows() as $row) {
-            if (AppleService39CoverageRevision::isOperation($row['post_key'], $row['operation'], $row['request'])) {
+            if (AppleService39CoverageRevision::isOperation($row['post_key'], $row['operation'], $row['request'])
+                || AppleService39DeviceRevision::isOperation($row['post_key'], $row['operation'], $row['request'])) {
                 self::check($this->coverageActive, 'search_superseded');
                 continue;
             }

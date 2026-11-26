@@ -97,6 +97,7 @@ function forecastSavedReceiptAssertions(PDO $pdo,callable $check,?callable $rpcR
                 $proven['available']&&$proven['processed_upload_row']
                 &&$proven['per_receipt_visit_linkage']==='unique_visit_reconciled'
                 &&($proven['visit_evidence']['checked_at']??null)===$at
+                &&!array_key_exists('reason',$proven['visit_evidence'])
                 &&($proven['visit_evidence']['visit_started_at']??null)===$visit
                 &&($proven['visit_evidence']['visit_goal_reaches']??null)===1
                 &&!str_contains(json_encode($proven,JSON_THROW_ON_ERROR),'value_rub')
@@ -114,6 +115,26 @@ function forecastSavedReceiptAssertions(PDO $pdo,callable $check,?callable $rpcR
                 return (new ModeledConversionValueDeliveryReader($pdo,$guard,new ModeledConversionStatusBudget()))->savedReceiptStatus($ref,$now);
             });}catch(DomainException $expected){$deniedAfterProof=true;}
             $check('authorization revoked after saved proof suppresses the complete private result',$deniedAfterProof&&$calls===3);
+            $unverified=$proof;
+            $unverified['events'][0]['linkage']='unverified';
+            $unverified['events'][0]['visit_started_at']=null;
+            $unverified['events'][0]['visit_goal_reaches']=null;
+            $safeReasons=true;
+            foreach(['other_receipts_unavailable','visit_report_unavailable','no_unique_goal_visit',
+                'goal_count_or_value_mismatch','outside_visit_window','private-fixture-880001',null]as$reason){
+                if($reason===null)unset($unverified['events'][0]['reason']);
+                else $unverified['events'][0]['reason']=$reason;
+                $writer->invoke(null,$path,$unverified);clearstatcache(true,$path);
+                $outcome=$read($ref);$evidence=$outcome['visit_evidence']??[];
+                $expectReason=$reason!==null&&$reason!=='private-fixture-880001';
+                $safeReasons=$safeReasons&&($outcome['processed_upload_row']??false)
+                    &&($evidence['linkage']??null)==='unverified'&&($evidence['checked_at']??null)===$at
+                    &&($expectReason?($evidence['reason']??null)===$reason:!array_key_exists('reason',$evidence))
+                    &&!array_key_exists('visit_goal_value_rub',$evidence)
+                    &&!str_contains(json_encode($outcome,JSON_THROW_ON_ERROR),'880001')
+                    &&$outcome['provider_requests']===0&&$outcome['conversion_uploads']===0;
+            }
+            $check('an exact processed receipt returns only supported saved unverified reasons',$safeReasons);
             $proof['events'][0]['fingerprint']=str_repeat('e',64);$writer->invoke(null,$path,$proof);clearstatcache(true,$path);
             $changed=$read($ref);
             $check('a wrong saved fingerprint keeps primary processing but never invents visit linkage',

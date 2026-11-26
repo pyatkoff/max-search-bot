@@ -130,9 +130,10 @@ function gateState(snapshot, c, pending = []) {
   const own = runs.filter(r => r.path === CLOSER && r.event === 'workflow_run');
   requireValue(own.length === 1 && own[0].id === c.run, 'ambiguous_closer');
   validRun(own[0], c, CLOSER, 'workflow_run', 'Configure AnyTour modeled value goal', origin('modeled-conversion-value-export.yml'));
-  if(c.terminalRecovery)requireValue(String(own[0].id)===(c.unpublishedRecovery?release.UNPUBLISHED_TERMINAL_RECOVERY.run_id:
+  if(c.terminalRecovery)requireValue(String(own[0].id)===(c.publisherBodyRecovery?release.PUBLISHER_BODY_RECOVERY.run_id:c.priorWaveRecovery?release.PRIOR_WAVE_RECOVERY.run_id:c.unpublishedRecovery?(c.unpublishedRecoveryPr===1720?release.UNPUBLISHED_TERMINAL_RECOVERY_1720:release.UNPUBLISHED_TERMINAL_RECOVERY).run_id:
     c.gateRecovery?release.GATE_RECOVERY.run_id:release.TERMINAL_RECOVERY.run_id)
     &&own[0].status==='completed'&&own[0].conclusion==='failure','original_terminal_not_failed');
+  else if (c.skippedTerminal) requireValue(own[0].status === 'completed' && own[0].conclusion === 'success', 'original_terminal_not_skipped');
   else requireValue(own[0].status === 'in_progress' && own[0].conclusion === null, 'closer_not_active');
   return waiting ? 'waiting' : 'ready';
 }
@@ -180,8 +181,146 @@ async function selectReleaseRuns(snapshot,c,get) {
       &&j.head_sha===c.sha&&j.status==='completed'&&j.conclusion==='skipped'
       &&Array.isArray(j.steps)&&j.steps.length===0,'independent_activation_executed');
   }
-  return {runs:await selectRecoveryRuns({...snapshot,total_count:selected.length,workflow_runs:selected},c,get),waiting,pending};
+  const scoped=await selectPreviousFailedWave({...snapshot,total_count:selected.length,workflow_runs:selected},c,get);
+  return {runs:await selectRecoveryRuns(scoped,c,get),waiting,pending};
 }
+
+// Filter a previous failed deployment's nine strictly authenticated zero-step children.
+// GitHub attributes workflow_run children to the current main SHA, even when
+// their triggering Deploy came from an older main SHA. A title mismatch alone
+// never authorizes exclusion: authenticate the older parent, source ancestry,
+// original failed verification and every skipped/zero-step child.
+async function selectPreviousFailedWave(snapshot,c,get) {
+  if(c.recovery)return snapshot; // Existing same-deploy attempt2 owns its wave rules.
+  const runs=snapshot?.workflow_runs;
+  requireValue(Array.isArray(runs)&&snapshot.total_count===runs.length&&runs.length<100
+    &&new Set(runs.map(r=>r.id)).size===runs.length,'incomplete_runs');
+  const gates=REQUIRED.filter(([file,event])=>event==='workflow_run'&&file!==ACTIVATION.file);
+  const permitted=new Map(gates.map(([file,event,name])=>[PREFIX+file,name]));
+  const currentTitle='deploy-proof:v1:'+c.deploy+':1';
+  const foreign=runs.filter(r=>r.event==='workflow_run'&&permitted.has(r.path)
+    &&typeof r.display_title==='string'&&r.display_title!==currentTitle);
+  if(!foreign.length)return snapshot;
+  const titles=new Set(foreign.map(r=>r.display_title));
+  requireValue(titles.size===1,'ambiguous_previous_wave');
+  const matched=/^deploy-proof:v1:([1-9][0-9]*):1$/.exec([...titles][0]);
+  const oldId=matched?Number(matched[1]):NaN;
+  requireValue(id(oldId)&&oldId!==c.deploy,'untrusted_previous_wave');
+  requireValue(foreign.length===gates.length
+    &&new Set(foreign.map(r=>r.path)).size===gates.length,'incomplete_previous_wave');
+  // An old failed deploy has two more zero-step children: the skipped closer
+  // and an activation bound to its skipped monitor. Require both exact origins.
+  const oldTitle=[...titles][0];
+  const oldMonitor=foreign.find(r=>r.path===PREFIX+'modeled-conversion-monitor.yml');
+  requireValue(id(oldMonitor?.id),'incomplete_previous_wave');
+  const oldCloser=runs.filter(r=>r.path===CLOSER&&r.event==='workflow_run'
+    &&r.display_title===oldTitle);
+  const oldActivationTitle='monitor-proof:v1:'+oldMonitor.id+':1';
+  const oldActivation=runs.filter(r=>r.path===PREFIX+ACTIVATION.file&&r.event==='workflow_run'
+    &&r.display_title===oldActivationTitle);
+  requireValue(oldCloser.length===1,'incomplete_previous_closer');
+  requireValue(oldActivation.length===1,'incomplete_previous_activation');
+  const currentDeploy=runs.filter(r=>r.path===PREFIX+'deploy.yml'&&r.event==='push');
+  requireValue(currentDeploy.length===1,'ambiguous_run');
+  validRun(currentDeploy[0],c,PREFIX+'deploy.yml','push','Deploy production');
+  requireValue(currentDeploy[0].id===c.deploy&&currentDeploy[0].status==='completed'
+    &&currentDeploy[0].conclusion==='success','current_deploy_changed');
+  const old=await get('/actions/runs/'+oldId);
+  requireValue(old?.id===oldId&&old.path===PREFIX+'deploy.yml'&&old.name==='Deploy production'
+    &&old.event==='push'&&old.head_branch==='main'
+    &&old.head_repository?.full_name===REPOSITORY&&old.run_attempt===1
+    &&sha(old.head_sha)&&old.head_sha!==c.sha&&old.head_commit?.id===old.head_sha
+    &&old.status==='completed'&&old.conclusion==='failure'
+    &&stamp(old.created_at)&&stamp(old.updated_at)
+    &&Date.parse(old.created_at)<Date.parse(currentDeploy[0].created_at)
+    &&Date.parse(old.updated_at)>=Date.parse(old.created_at),'untrusted_previous_deploy');
+  const relation=await get('/compare/'+old.head_sha+'...'+c.sha);
+  requireValue(relation?.status==='ahead'&&relation.merge_base_commit?.sha===old.head_sha
+    &&Number.isSafeInteger(relation.ahead_by)&&relation.ahead_by>0
+    &&relation.behind_by===0,'previous_deploy_not_ancestor');
+  const parentJobs=await get('/actions/runs/'+oldId+'/attempts/1/jobs?per_page=100');
+  const jobNames=['verify-syntax','verify-inventory','verify / application',
+    'verify / diagnostics','deploy','verify'];
+  requireValue(Array.isArray(parentJobs?.jobs)&&parentJobs.total_count===jobNames.length
+    &&parentJobs.jobs.length===jobNames.length
+    &&new Set(parentJobs.jobs.map(j=>j.name)).size===jobNames.length
+    &&jobNames.every(name=>parentJobs.jobs.some(j=>j.name===name)),'previous_deploy_jobs_incomplete');
+  for(const job of parentJobs.jobs) {
+    requireValue(id(job.id)&&job.run_id===oldId&&job.run_attempt===1
+      &&job.head_sha===old.head_sha&&job.status==='completed'
+      &&job.conclusion===(job.name==='verify'?'failure':'success'),'previous_deploy_jobs_untrusted');
+  }
+  const verification=parentJobs.jobs.find(j=>j.name==='verify');
+  const steps=verification.steps;
+  const denied=['Prepare canonical SSH private key','Verify installed production checks',
+    'Download exact installed diagnostic snapshot','Publish verification stage status',
+    'Remove acknowledged diagnostic snapshot'];
+  requireValue(Array.isArray(steps)
+    &&steps.some(s=>s.name==='Admit only unfinished verification without installation'
+      &&s.conclusion==='failure')
+    &&denied.every(name=>steps.some(s=>s.name===name&&s.conclusion==='skipped'))
+    &&steps.filter(s=>s.conclusion==='failure').every(s=>
+      ['Admit only unfinished verification without installation',
+        'Require complete installed verification'].includes(s.name)),
+    'previous_verification_executed');
+  const expectedJobs=new Map([
+    ['max-tls-preflight.yml',['strict-tls-preflight']],
+    ['max-production-health.yml',['inspect']],
+    ['telegram-production-health.yml',['inspect']],
+    ['publish-conversation-diagnostics.yml',['publish']],
+    ['live-session-diagnostics.yml',['publish']],
+    ['tour-selection-host.yml',['host','independent-editor']],
+    ['modeled-conversion-monitor.yml',['monitor']]
+  ]);
+  const ignored=new Set();
+  for(const child of foreign) {
+    validRun(child,c,child.path,'workflow_run',permitted.get(child.path),titles.values().next().value);
+    requireValue(child.status==='completed'&&child.conclusion==='skipped'
+      &&child.head_commit?.id===c.sha&&stamp(child.created_at)
+      &&Date.parse(child.created_at)>=Date.parse(old.updated_at),'previous_wave_executed');
+    const file=child.path.slice(PREFIX.length),names=expectedJobs.get(file);
+    requireValue(Array.isArray(names),'unclassified_gate');
+    const receipt=await get('/actions/runs/'+child.id+'/attempts/1/jobs?per_page=100');
+    requireValue(Array.isArray(receipt?.jobs)&&receipt.total_count===names.length
+      &&receipt.jobs.length===names.length
+      &&new Set(receipt.jobs.map(j=>j.name)).size===names.length
+      &&names.every(name=>receipt.jobs.some(j=>j.name===name)),
+      'previous_wave_jobs_incomplete');
+    requireValue(receipt.jobs.every(j=>id(j.id)&&j.run_id===child.id&&j.run_attempt===1
+      &&j.head_sha===c.sha&&j.status==='completed'&&j.conclusion==='skipped'
+      &&Array.isArray(j.steps)&&j.steps.length===0),'previous_wave_executed');
+    ignored.add(child.id);
+  }
+  // Never discard the older closer or activation without their own native
+  // completed/skipped jobs proving no step ran and no protected mutation began.
+  const additional=[
+    {run:oldCloser[0],path:CLOSER,origin:oldTitle,name:'Configure AnyTour modeled value goal',
+      names:['configure','release-slot','release-slot-recovery'],
+      kind:'previous_closer',parentTime:Date.parse(old.updated_at)},
+    {run:oldActivation[0],path:PREFIX+ACTIVATION.file,origin:oldActivationTitle,
+      name:ACTIVATION.name,names:['activate'],
+      kind:'previous_activation',parentTime:Date.parse(oldMonitor.updated_at)}
+  ];
+  for(const proof of additional){
+    validRun(proof.run,c,proof.path,'workflow_run',proof.name,proof.origin);
+    requireValue(proof.run.status==='completed'&&proof.run.conclusion==='skipped'
+      &&proof.run.head_commit?.id===c.sha&&Number.isFinite(proof.parentTime)
+      &&Date.parse(proof.run.created_at)>=proof.parentTime,proof.kind+'_executed');
+    const receipt=await get('/actions/runs/'+proof.run.id+'/attempts/1/jobs?per_page=100');
+    requireValue(Array.isArray(receipt?.jobs)&&receipt.total_count===proof.names.length
+      &&receipt.jobs.length===proof.names.length
+      &&new Set(receipt.jobs.map(j=>j.name)).size===proof.names.length
+      &&proof.names.every(name=>receipt.jobs.some(j=>j.name===name)),
+      proof.kind+'_jobs_incomplete');
+    requireValue(receipt.jobs.every(j=>id(j.id)&&j.run_id===proof.run.id&&j.run_attempt===1
+      &&j.head_sha===c.sha&&j.status==='completed'&&j.conclusion==='skipped'
+      &&Array.isArray(j.steps)&&j.steps.length===0),proof.kind+'_executed');
+    ignored.add(proof.run.id);
+  }
+  const selected=runs.filter(r=>!ignored.has(r.id));
+  return {...snapshot,total_count:selected.length,workflow_runs:selected};
+}
+
 function recordState(record, b) {
   requireValue(record?.id === b.comment_id && record.user?.id === b.owner_id
     && record.issue_url === 'https://api.github.com/repos/' + REPOSITORY + '/issues/1122'
@@ -384,12 +523,13 @@ function trustedAttempt(run,c,attempt,event='push') {
     run.head_sha===c.sha&&run.head_commit?.id===c.sha&&run.run_attempt===attempt&&
     stamp(run.created_at)&&stamp(run.run_started_at)&&stamp(run.updated_at),'untrusted_deployment_attempt');
 }
-function deploymentHistory(history,first,current,c,admitting=false) {
+function deploymentHistory(history,first,current,c,admitting=false,exhausted=false) {
+  requireValue(!exhausted||!admitting,'invalid_verification_history_mode');
   trustedAttempt(first,c,1);trustedAttempt(current,c,2);
   requireValue(first.status==='completed'&&first.conclusion==='failure'&&
     Date.parse(first.updated_at)<Date.parse(current.run_started_at),'original_attempt_not_failed');
   requireValue(admitting?current.status==='in_progress'&&current.conclusion===null:
-    current.status==='completed'&&current.conclusion==='success','invalid_recovery_attempt');
+    current.status==='completed'&&current.conclusion===(exhausted?'failure':'success'),'invalid_recovery_attempt');
   requireValue(Array.isArray(history?.jobs)&&history.total_count===history.jobs.length&&history.jobs.length<100&&
     history.jobs.every(j=>j&&typeof j==='object'&&!Array.isArray(j))&&
     new Set(history.jobs.map(j=>j.id)).size===history.jobs.length,'incomplete_deployment_jobs');
@@ -409,7 +549,16 @@ function deploymentHistory(history,first,current,c,admitting=false) {
   const old=at('verify',1),latest=at('verify',2);
   requireValue(old.status==='completed'&&old.conclusion==='failure','original_verification_not_failed');
   requireValue(admitting?latest.status==='in_progress'&&latest.conclusion===null:
-    latest.status==='completed'&&latest.conclusion==='success','recovery_not_confirmed');
+    latest.status==='completed'&&latest.conclusion===(exhausted?'failure':'success'),'recovery_not_confirmed');
+  if(exhausted){
+    const matches={check:'failure',download:'skipped',status:'success',publication:'success',cleanup:'skipped'};
+    for(const job of [old,latest]){
+      for(const [key,result] of Object.entries(matches)){
+        requireValue(stepResult(job,VERIFY_STEPS[key])===result,'unclassified_exhausted_verification');
+      }
+    }
+    return {firstVerifyId:old.id,latestVerifyId:latest.id};
+  }
   const results=Object.fromEntries(Object.entries(VERIFY_STEPS).map(([key,name])=>[key,stepResult(old,name)]));
   requireValue(results.check!=='success'||results.download!=='skipped','unclassified_original_verification');
   requireValue(results.cleanup!=='success'||(results.download==='success'&&results.status==='success'),'invalid_original_verification');
@@ -801,7 +950,13 @@ function terminalReads(base,{sleep=ms=>new Promise(r=>setTimeout(r,ms))}={}){
   api.jobLog=id=>read(()=>base.jobLog(id),'job_log');api.artifact=meta=>read(()=>base.artifact(meta),'artifact');return api;
 }
 async function resumeTerminal({env,event,api,prepare=false,proofFile=null,readOptions={}}){
-  if(env.GITHUB_REF==='refs/heads/'+release.UNPUBLISHED_TERMINAL_RECOVERY.branch)
+  if(env.GITHUB_REF==='refs/heads/ops/recover-pr1701-terminal-20261125')
+    return require('./release_slot_1701_recovery').resume({env,event,api,prepare,proofFile});
+  if(env.GITHUB_REF==='refs/heads/'+release.PUBLISHER_BODY_RECOVERY.branch)
+    return resumePublisherBodyTerminal({env,event,api,prepare,proofFile});
+  if(env.GITHUB_REF==='refs/heads/'+release.PRIOR_WAVE_RECOVERY.branch)
+    return resumePriorWaveTerminal({env,event,api,prepare,proofFile});
+  if(release.unpublishedTerminalProfileForRef(env.GITHUB_REF))
     return resumeUnpublishedTerminal({env,event,api,prepare,proofFile});
   if(event?.before===release.GATE_RECOVERY.before)
     return resumeGateTerminal({env,event,api,prepare,proofFile});
@@ -950,8 +1105,177 @@ async function resumeGateTerminal({env,event,api,prepare=false,proofFile=null,
   let back;try{back=await get('/issues/comments/'+p.comment_id);}catch{throw new Refusal('write_unknown');}
   requireValue(back?.id===p.comment_id&&back.body===x.b.released,'write_unknown');return 'released';
 }
+function publisherBodyRecord(record,b){
+  const p=release.PUBLISHER_BODY_RECOVERY;
+  requireValue(release.same(bindingSnapshot(b),{pr:p.pr,head_sha:p.head_sha,comment_id:p.comment_id,
+    owner_id:p.owner_id,updated_at:p.updated_at})&&record?.id===p.comment_id&&record.user?.id===p.owner_id
+    &&record.issue_url==='https://api.github.com/repos/'+REPOSITORY+'/issues/1122'
+    &&['OWNER','MEMBER','COLLABORATOR'].includes(record.author_association),'foreign_record');
+  requireValue(record.updated_at===p.updated_at&&typeof record.body==='string'
+    &&Buffer.byteLength(record.body,'utf8')===p.body_bytes
+    &&require('node:crypto').createHash('sha256').update(record.body,'utf8').digest('hex')===p.body_sha256,
+    'publisher_body_changed');return 'active';
+}
+async function resumePublisherBodyTerminal({env,event,api,prepare=false,proofFile=null}){
+  const p=release.PUBLISHER_BODY_RECOVERY,root=release.API_ROOT,get=q=>api('GET',root+q);
+  const ref='refs/heads/'+p.branch,source=env.GITHUB_SHA,runId=env.GITHUB_RUN_ID;
+  requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_REF===ref
+    &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+CLOSER+'@'+ref&&env.GITHUB_JOB==='release-slot-recovery'
+    &&env.GITHUB_RUN_ATTEMPT==='1'&&env.GITHUB_ACTOR==='pyatkoff'&&env.GITHUB_TRIGGERING_ACTOR==='pyatkoff'
+    &&sha(source)&&source!==p.sha&&/^[1-9][0-9]*$/.test(runId||'')&&id(Number(runId))
+    &&event?.repository?.full_name===REPOSITORY&&event.repository.id===1342493152
+    &&event.sender?.id===p.owner_id&&event.sender.login==='pyatkoff'
+    &&event.ref===ref&&event.after===source&&event.before==='0'.repeat(40)
+    &&event.created===true&&event.deleted===false&&event.forced===false,'untrusted_publisher_body_continuation');
+  const main=async()=>requireValue((await get('/git/ref/heads/main'))?.object?.sha===p.sha,'main_changed');
+  await main();
+  const native=await get('/actions/runs/'+runId);
+  release.runIdentity(native,{id:runId,attempt:1,head:source,workflow:CLOSER,event:'push',branch:p.branch,completed:false});
+  requireValue(['queued','in_progress'].includes(native.status)&&native.conclusion===null
+    &&native.actor?.id===p.owner_id&&native.triggering_actor?.id===p.owner_id,'publisher_continuation_not_active');
+  const jobs=release.boundedList(await get('/actions/runs/'+runId+'/attempts/1/jobs?per_page=100'),
+    'jobs','incomplete_publisher_continuation_jobs');
+  const own=jobs.filter(j=>j.name==='release-slot-recovery');
+  requireValue(jobs.length===3&&own.length===1&&own[0].run_id===native.id&&own[0].run_attempt===1
+    &&own[0].head_sha===source&&own[0].status==='in_progress'&&own[0].conclusion===null
+    &&id(own[0].runner_id)&&Array.isArray(own[0].steps)
+    &&['configure','release-slot'].every(name=>{const rows=jobs.filter(j=>j.name===name);return rows.length===1
+      &&rows[0].run_id===native.id&&rows[0].run_attempt===1&&rows[0].head_sha===source
+      &&rows[0].status==='completed'&&rows[0].conclusion==='skipped'&&Array.isArray(rows[0].steps)&&rows[0].steps.length===0;}),
+    'publisher_continuation_not_active');
+  const runs=release.boundedList(await get('/actions/workflows/modeled-conversion-value-export.yml/runs?branch='+p.branch+'&event=push&per_page=100'),
+    'workflow_runs','incomplete_continuation_runs');
+  requireValue(runs.length===1&&String(runs[0].id)===runId&&runs[0].head_sha===source
+    &&runs[0].run_attempt===1,'replayed_terminal_continuation');
+  requireValue((await get('/git/ref/heads/'+p.branch))?.object?.sha===source,'publisher_recovery_source_changed');
+  const sourceFiles=await release.publisherBodySource(api,source,null,{local:true});
+  const proof=await release.failedPublisherBodyTerminal(api),original=proof.original,b=proof.binding;
+  const active=async()=>{
+    await main();
+    requireValue(release.same(bindingSnapshot(binding(await get('/pulls/'+p.pr),p.sha)),bindingSnapshot(b)),'binding_changed');
+    requireValue(publisherBodyRecord(await get('/issues/comments/'+p.comment_id),b)==='active','publisher_body_changed');
+  };
+  await active();await release.requireOps(api,p.sha);
+  const record=release.clone(original.record),r=record.repository_release;
+  // Preserve the optional runtime observation as unobserved; no new baseline is asserted.
+  r.phase='pending_terminal';
+  r.closure={run_id:runId,run_attempt:1,job:'release-slot-recovery',terminal_step:release.TERMINAL_STEP,
+    binding:bindingSnapshot(b),expected_terminal:b.released,gates:gateReferences(proof.snapshot),
+    recovery:{kind:'publisher_body_format_v1',source_sha:source,source_files:sourceFiles,
+      original_commit:p.commit,original_blob:p.blob,original_record_digest:p.record_digest,
+      original_run_id:p.run_id,original_job_id:p.job_id,publisher_body_sha256:p.body_sha256,publisher_body_bytes:p.body_bytes}};
+  release.validateRelease(record);
+  const location=await release.readRecord(api);
+  if(prepare){
+    requireValue(location.blob===p.blob&&location.record_digest===p.record_digest,'prepared_result_changed');
+    await release.requireAncestry(api,p.commit,location.commit);await active();
+    const saved=await publishDiagnostics(api,record,location);
+    if(proofFile)release.saveJson(proofFile,release.publicationProof(record,saved,runId,1));
+    return {publication_artifact:release.publicationName('pending_terminal',runId,1),
+      publication_file:proofFile||'',record_digest:release.digest(record)};
+  }
+  requireValue(env.PREPARED_RECORD_DIGEST===release.digest(record)&&release.same(location.record,record),'prepared_result_changed');
+  await release.authenticatePublication(api,location);
+  const lastProof=await release.failedPublisherBodyTerminal(api);
+  requireValue(release.same(gateReferences(lastProof.snapshot),r.closure.gates),'gates_changed');
+  const last=await release.readRecord(api);
+  requireValue(last.blob===location.blob&&last.record_digest===location.record_digest,'deployment_result_changed');
+  await release.requireOps(api,p.sha);await active();
+  // One final PATCH to the original record; no short-BUSY normalization or second publisher.
+  let written;try{written=await api('PATCH',root+'/issues/comments/'+p.comment_id,{body:b.released});}
+  catch{throw new Refusal('write_unknown');}
+  requireValue(written?.id===p.comment_id&&written.body===b.released,'write_unknown');
+  try{const back=await get('/issues/comments/'+p.comment_id);
+    requireValue(recordState(back,b)==='released','write_unknown');}
+  catch{throw new Refusal('write_unknown');}return 'released';
+}
+async function resumePriorWaveTerminal({env,event,api,prepare=false,proofFile=null}){
+  const p=release.PRIOR_WAVE_RECOVERY,root=release.API_ROOT,get=path=>api('GET',root+path);
+  const ref='refs/heads/'+p.branch,source=env.GITHUB_SHA;
+  requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_REF===ref
+    &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+CLOSER+'@'+ref&&env.GITHUB_JOB==='release-slot-recovery'
+    &&env.GITHUB_RUN_ATTEMPT==='1'&&sha(source)&&source!==p.sha&&/^[1-9][0-9]*$/.test(env.GITHUB_RUN_ID||'')
+    &&event?.repository?.full_name===REPOSITORY&&event.ref===ref&&event.after===source
+    &&event.before==='0'.repeat(40)&&event.created===true&&event.deleted===false&&event.forced===false,
+    'untrusted_unpublished_terminal_continuation');
+  const main=async()=>requireValue((await get('/git/ref/heads/main'))?.object?.sha===p.sha,'main_changed');
+  await main();
+  const runId=String(env.GITHUB_RUN_ID),native=await get('/actions/runs/'+runId);
+  release.runIdentity(native,{id:runId,attempt:1,head:source,workflow:CLOSER,event:'push',branch:p.branch,completed:false});
+  requireValue(['queued','in_progress'].includes(native.status)&&native.actor?.id===p.owner_id,'unpublished_continuation_not_active');
+  const nativeJobs=release.boundedList(await get('/actions/runs/'+runId+'/attempts/1/jobs?per_page=100'),
+    'jobs','incomplete_unpublished_continuation_jobs');
+  const own=nativeJobs.filter(j=>j.name==='release-slot-recovery');
+  requireValue(nativeJobs.length===3&&own.length===1&&own[0].run_id===native.id&&own[0].run_attempt===1
+    &&own[0].head_sha===source&&own[0].status==='in_progress'&&own[0].conclusion===null&&id(own[0].runner_id)
+    &&['configure','release-slot'].every(n=>{const rows=nativeJobs.filter(j=>j.name===n);return rows.length===1
+      &&rows[0].run_id===native.id&&rows[0].head_sha===source&&rows[0].status==='completed'
+      &&rows[0].conclusion==='skipped'&&Array.isArray(rows[0].steps)&&rows[0].steps.length===0;}),'unpublished_continuation_not_active');
+  const branchRuns=release.boundedList(await get('/actions/workflows/modeled-conversion-value-export.yml/runs?branch='+p.branch+'&event=push&per_page=100'),
+    'workflow_runs','incomplete_continuation_runs');
+  requireValue(branchRuns.length===1&&String(branchRuns[0].id)===runId&&branchRuns[0].head_sha===source
+    &&branchRuns[0].run_attempt===1,'replayed_terminal_continuation');
+  requireValue((await get('/git/ref/heads/'+p.branch))?.object?.sha===source,'recovery_source_changed');
+  const relation=await get('/compare/'+p.sha+'...'+source+'?per_page=1');
+  requireValue(relation?.status==='ahead'&&relation.merge_base_commit?.sha===p.sha,'recovery_source_changed');
+  const ci=release.boundedList(await get('/actions/runs?head_sha='+source+'&per_page=100'),
+    'workflow_runs','incomplete_recovery_ci');
+  for(const [name,path]of [['Regression tests',PREFIX+'regression-tests.yml'],['Retired domain guard',PREFIX+'retired-domain-guard.yml']]){
+    const rows=ci.filter(r=>r.name===name&&r.event==='pull_request');
+    requireValue(rows.length===1&&rows[0].path===path&&rows[0].head_sha===source&&rows[0].head_repository?.full_name===REPOSITORY
+      &&rows[0].run_attempt===1&&rows[0].status==='completed'&&rows[0].conclusion==='success','recovery_ci_unconfirmed');
+  }
+  const proof=await release.failedPriorWaveTerminal(api),original=proof.original;
+  const pr=await get('/pulls/'+p.pr),b=binding(pr,p.sha),q=p.previous;
+  requireValue(b&&release.same(bindingSnapshot(b),{pr:p.pr,head_sha:p.head_sha,comment_id:p.comment_id,
+    owner_id:p.owner_id,updated_at:p.updated_at}),'binding_changed');
+  const previous={...proof.previousBinding,released:q.terminal};
+  const active=async(oldReleased=false)=>{
+    await main();
+    requireValue(release.same(bindingSnapshot(binding(await get('/pulls/'+p.pr),p.sha)),bindingSnapshot(b)), 'binding_changed');
+    requireValue(release.same(bindingSnapshot(binding(await get('/pulls/'+q.pr),q.sha)),bindingSnapshot(previous)), 'previous_binding_changed');
+    requireValue(recordState(await get('/issues/comments/'+p.comment_id),b)==='active','prepared_terminal_already_released');
+    requireValue(recordState(await get('/issues/comments/'+q.comment_id),previous)===(oldReleased?'released':'active'),
+      'previous_publisher_changed');
+  };
+  await active();await release.requireOps(api,p.sha);
+  const record=release.clone(original.record),r=record.repository_release;
+  r.phase='pending_terminal';
+  r.closure={run_id:runId,run_attempt:1,job:'release-slot-recovery',terminal_step:release.TERMINAL_STEP,
+    binding:bindingSnapshot(b),expected_terminal:b.released,gates:gateReferences(proof.snapshot),
+    recovery:{kind:'prior_failed_wave_v1',source_sha:source,original_commit:p.commit,original_blob:p.blob,
+      original_record_digest:p.record_digest,original_run_id:p.run_id,original_job_id:p.job_id,superseded:release.clone(q)}};
+  release.validateRelease(record);
+  const location=await release.readRecord(api);
+  if(prepare){
+    requireValue(location.blob===p.blob&&location.record_digest===p.record_digest,'prepared_result_changed');
+    await release.requireAncestry(api,p.commit,location.commit);await active();
+    const saved=await publishDiagnostics(api,record,location);
+    if(proofFile)release.saveJson(proofFile,release.publicationProof(record,saved,runId,1));
+    return {publication_artifact:release.publicationName('pending_terminal',runId,1),publication_file:proofFile||'',record_digest:release.digest(record)};
+  }
+  requireValue(env.PREPARED_RECORD_DIGEST===release.digest(record)&&release.same(location.record,record),'prepared_result_changed');
+  await release.authenticatePublication(api,location);
+  const lastProof=await release.failedPriorWaveTerminal(api);
+  requireValue(release.same(gateReferences(lastProof.snapshot),r.closure.gates),'gates_changed');
+  const last=await release.readRecord(api);
+  requireValue(last.blob===location.blob&&last.record_digest===location.record_digest,'deployment_result_changed');
+  await release.requireOps(api,p.sha);await active();
+  // Ordered, not atomic: an unknown first mutation must never release the current slot.
+  const finish=async(bound,body)=>{
+    let written;try{written=await api('PATCH',root+'/issues/comments/'+bound.comment_id,{body});}
+    catch{throw new Refusal('write_unknown');}
+    requireValue(written?.id===bound.comment_id&&written.body===body,'write_unknown');
+    let back;try{back=await get('/issues/comments/'+bound.comment_id);}catch{throw new Refusal('write_unknown');}
+    requireValue(recordState(back,{...bound,released:body})==='released','write_unknown');
+  };
+  await finish(previous,q.terminal);
+  // Recheck current main and both bindings/records after the earlier superseded write.
+  await active(true);
+  await finish(b,b.released);return 'released';
+}
 async function resumeUnpublishedTerminal({env,event,api,prepare=false,proofFile=null}){
-  const p=release.UNPUBLISHED_TERMINAL_RECOVERY,root=release.API_ROOT,get=path=>api('GET',root+path);
+  const p=release.unpublishedTerminalProfileForRef(env.GITHUB_REF)||release.UNPUBLISHED_TERMINAL_RECOVERY,root=release.API_ROOT,get=path=>api('GET',root+path);
   const ref='refs/heads/'+p.branch,source=env.GITHUB_SHA;
   requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_REF===ref
     &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+CLOSER+'@'+ref&&env.GITHUB_JOB==='release-slot-recovery'
@@ -981,7 +1305,7 @@ async function resumeUnpublishedTerminal({env,event,api,prepare=false,proofFile=
     requireValue(rows.length===1&&rows[0].path===path&&rows[0].head_sha===source&&rows[0].head_repository?.full_name===REPOSITORY
       &&rows[0].run_attempt===1&&rows[0].status==='completed'&&rows[0].conclusion==='success','recovery_ci_unconfirmed');
   }
-  const original=await release.failedUnpublishedTerminal(api),pr=await get('/pulls/'+p.pr),b=binding(pr,p.sha);
+  const original=await release.failedUnpublishedTerminal(api,p),pr=await get('/pulls/'+p.pr),b=binding(pr,p.sha);
   requireValue(b&&release.same(bindingSnapshot(b),original.record.repository_release.closure.binding),'binding_changed');
   const active=async()=>requireValue(recordState(await get('/issues/comments/'+p.comment_id),b)==='active','prepared_terminal_already_released');
   await active();await release.requireOps(api,p.sha);await main();
@@ -1001,7 +1325,7 @@ async function resumeUnpublishedTerminal({env,event,api,prepare=false,proofFile=
   requireValue(env.PREPARED_RECORD_DIGEST===release.digest(record)&&release.same(location.record,record),'prepared_result_changed');
   await release.authenticatePublication(api,location);
   // Every original gate and binding is read again before the one terminal write.
-  await release.failedUnpublishedTerminal(api);
+  await release.failedUnpublishedTerminal(api,p);
   requireValue(release.same(bindingSnapshot(binding(await get('/pulls/'+p.pr),p.sha)),r.closure.binding),'binding_changed');
   const last=await release.readRecord(api);
   requireValue(last.blob===location.blob&&last.record_digest===location.record_digest,'deployment_result_changed');
@@ -1012,8 +1336,9 @@ async function resumeUnpublishedTerminal({env,event,api,prepare=false,proofFile=
   let back;try{back=await get('/issues/comments/'+p.comment_id);}catch{throw new Refusal('write_unknown');}
   requireValue(back?.id===p.comment_id&&back.body===b.released,'write_unknown');return 'released';
 }
-module.exports = { REQUIRED, CLOSER, ACTIVATION, context, binding, gateState, recordState, verifyTelemetry,
-  resumeUnpublishedTerminal,
+module.exports = { REQUIRED, CLOSER, ACTIVATION, context, binding, gateState, selectPreviousFailedWave, recordState, verifyTelemetry,
+  publisherBodyRecord,resumePublisherBodyTerminal,
+  resumeUnpublishedTerminal,resumePriorWaveTerminal,
   recoveryLog,resumeTerminal,resumeGateTerminal,terminalReads,
   verifyConfigure, verifyActivation, closeRelease, makeApi, INSTALL_JOBS, VERIFY_STEPS, stepResult, copiedExecution,
   deploymentHistory, admitVerification, selectRecoveryRuns, selectReleaseRuns, stageStatus, bindingSnapshot, gateReferences,
@@ -1063,5 +1388,6 @@ if (typeof require === 'function' && require.main === module) {
     process.exitCode = 1;
   });
 }
+
 
 

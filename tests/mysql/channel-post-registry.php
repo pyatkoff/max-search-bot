@@ -196,4 +196,140 @@ $write=$registry->claimPublication($discovered['publication_id'],$discovered['ve
 $stillUnknown=$otherRegistry->registerProviderObservation('anytour','id9704048781_1_bot',$currentChannel,$provider,(int)$seed['enabled_since_ms']);
 nativePostCheck('native provider discovery never resets an ambiguous provider write', $stillUnknown['state']==='unknown'&&$stillUnknown['version_id']===$discovered['version_id']&&$stillUnknown['write_attempts']===1);
 
+// The same existing-identity media contract on real InnoDB and two sessions.
+function nativeTransferReject(callable $operation, string $reason): bool
+{
+    try { $operation(); } catch (RuntimeException $error) { return $error->getMessage() === $reason; }
+    return false;
+}
+function nativeTransferFixture(PDO $db, ChannelPostRegistryService $service, int $hotel): array
+{
+    $config = ['project_key'=>'anytour','platform'=>'telegram','bot_key'=>'anyru_bot',
+        'channel_id'=>'-1001845835645','source_key'=>'tg_anytour_msk','display_name'=>'Large fixture',
+        'bot_url'=>'https://t.me/anyru_bot','button_text'=>'Рассчитать на мои даты','is_enabled'=>true];
+    if (!$service->channel('anytour','telegram','anyru_bot','-1001845835645')) {
+        $service->configureChannel($config);
+        $service->configureChannel($config+['expected_version'=>1]);
+    }
+    $sourceChannel = $service->channel('anytour','telegram','anyru_bot','-1002262666616')
+        ?? $service->configureChannel(array_replace($config,['channel_id'=>'-1002262666616','display_name'=>'Source fixture']));
+    $pairs = [17595=>['455',1003,'862',1726731731],358=>['65',211,'328',1705145228],
+        393=>['85',247,'1083',1745392994],1260=>['548',1220,'288',1703918786]];
+    [$sourceMid,$sourceId,$targetMid,$date] = $pairs[$hotel];
+    $token = 'p_'.str_pad('nativeSource'.$hotel,24,'x');
+    $db->prepare('INSERT INTO post_publications (id,post_channel_id,source_id,external_message_id,start_payload) VALUES (?,?,?,?,?)')
+        ->execute([$sourceId,(int)$sourceChannel['id'],12,$sourceMid,$token]);
+    $message = ['chat'=>['id'=>-1002262666616,'type'=>'channel','username'=>'any_toour'],'message_id'=>(int)$sourceMid,
+        'date'=>1700000000,'caption'=>'Original source '.$hotel,
+        'photo'=>[['file_id'=>'native-source-file-'.$hotel,'file_unique_id'=>'native-source-unique-'.$hotel,'width'=>1000,'height'=>1000]],
+        'reply_markup'=>['inline_keyboard'=>[[['text'=>$config['button_text'],'url'=>$config['bot_url'].'?start='.$token]]]]];
+    $snapshot = ChannelPostIncomingAdapter::telegramSnapshot($message);
+    $snapshot['content_hash'] = ChannelPostIncomingAdapter::contentFingerprint($snapshot);
+    $snapshot['metadata']['hotel_catalog_id'] = $hotel;
+    $snapshot['metadata']['source_event_id'] = 'native-transfer-source-'.$hotel;
+    $source = $service->registerPublication('anytour','telegram','anyru_bot','-1002262666616',$sourceMid,$snapshot);
+    $service->confirmObservedButton($sourceId,$source['version_id'],['verified'=>true,'button_verified'=>true]);
+    $caption = 'Approved fresh hotel '.$hotel."\n123 456 ₽";
+    $row = ['hotel_id'=>$hotel,'source_message_id'=>$sourceMid,'source_publication_id'=>$sourceId,
+        'source_version_id'=>$source['version_id'],'source_content_hash'=>$source['content_hash'],
+        'source_caption_sha256'=>hash('sha256',$message['caption']),
+        'source_file_id_sha256'=>hash('sha256',$message['photo'][0]['file_id']),
+        'source_file_unique_id_sha256'=>hash('sha256',$message['photo'][0]['file_unique_id']),
+        'target_message_id'=>$targetMid,'target_published_unixtime'=>$date,'target_caption_sha256'=>hash('sha256','original target'),
+        'target_photo_marker_sha256'=>hash('sha256','target-photo'),'target_config_version'=>2,
+        'next_caption'=>$caption,'next_caption_sha256'=>hash('sha256',$caption),'button_text'=>$config['button_text'],
+        'bot_url'=>$config['bot_url'],'price_record_id'=>hash('sha256','native-approved-quote-'.$hotel)];
+    return [$row,hash('sha256','native-transfer-plan-'.$hotel),$message];
+}
+function nativeTransferResponse(array $reservation, array $row, array $source): array
+{
+    return ['http'=>200,'transport_error'=>false,'data'=>['ok'=>true,'result'=>[
+        'chat'=>['id'=>-1001845835645,'type'=>'channel','username'=>'anytour'],'message_id'=>(int)$row['target_message_id'],
+        'date'=>$row['target_published_unixtime'],'edit_date'=>1795396000,'caption'=>$row['next_caption'],'photo'=>$source['photo'],
+        'reply_markup'=>['inline_keyboard'=>[[['text'=>$row['button_text'],'url'=>$reservation['button_url']]]]]]]];
+}
+function nativeTransferObserve(ChannelPostRegistryService $service, array $response, bool $confirm): array
+{
+    $event = ChannelPostIncomingAdapter::fromUpdate('telegram',['update_id'=>990000+(int)$response['data']['result']['message_id'],'edited_channel_post'=>$response['data']['result']]);
+    $snapshot = $event['snapshot']; $snapshot['content_hash'] = ChannelPostIncomingAdapter::contentFingerprint($snapshot);
+    $post = $service->registerPublication('anytour','telegram','anyru_bot','-1001845835645',$event['external_message_id'],$snapshot);
+    if ($confirm) $service->confirmObservedButton($post['publication_id'],$post['version_id'],['event_id'=>$event['source_event_id'],'verified'=>true]);
+    return $service->publication($post['publication_id']);
+}
+$approveTransfer = static fn(array $row,string $digest): bool => true;
+[$nativeTransferRow,$nativeTransferPlan,$nativeTransferSource] = nativeTransferFixture($pdo,$registry,17595);
+$secondPdo->exec('SET SESSION innodb_lock_wait_timeout=1');
+$competingReservationBlocked = false;
+$reserveWithCompetitor = static function (array $row,string $digest) use ($otherRegistry,&$competingReservationBlocked,$approveTransfer): bool {
+    try { $otherRegistry->reserveTelegramHotelTransfer($row,$digest,$approveTransfer); }
+    catch (PDOException $error) { $competingReservationBlocked = (int)($error->errorInfo[1]??0) === 1205; }
+    return $competingReservationBlocked;
+};
+$nativeReservation = $registry->reserveTelegramHotelTransfer($nativeTransferRow,$nativeTransferPlan,$reserveWithCompetitor);
+nativePostCheck('native overlapping reservation sessions serialize at the canonical lock and allocate one identity only',
+    $competingReservationBlocked && (int)$pdo->query("SELECT COUNT(*) FROM post_publications WHERE external_message_id='862' AND post_channel_id=".$nativeReservation['post_channel_id'])->fetchColumn()===1
+    && nativeTransferReject(fn()=>$otherRegistry->reserveTelegramHotelTransfer($nativeTransferRow,$nativeTransferPlan,$approveTransfer),'hotel_transfer_identity_exists'));
+nativePostCheck('native reserved identity creates no current version and cannot enter the ordinary queue or token route',
+    $otherRegistry->publication($nativeReservation['publication_id'])===null
+    && $otherRegistry->resolveToken('anytour','telegram','anyru_bot',$nativeReservation['start_payload'])===null
+    && !in_array($nativeReservation['publication_id'],array_column($otherRegistry->pendingPublications('anytour','telegram','anyru_bot'),'publication_id'),true)
+    && $otherRegistry->assertTelegramHotelTransferReservation($nativeReservation,$nativeTransferRow,$nativeTransferPlan)===$nativeReservation);
+$nativeMediaResponse = nativeTransferResponse($nativeReservation,$nativeTransferRow,$nativeTransferSource);
+$sourceSnapshotBefore = $pdo->query('SELECT snapshot_json FROM post_versions WHERE id='.$nativeTransferRow['source_version_id'])->fetchColumn();
+$nativeTransferDone = $otherRegistry->completeTelegramHotelTransfer($nativeReservation,$nativeTransferRow,$nativeTransferPlan,$nativeMediaResponse);
+$versionCountBeforeRepeat = (int)$pdo->query('SELECT COUNT(*) FROM post_versions')->fetchColumn();
+$nativeTransferAgain = $registry->completeTelegramHotelTransfer($nativeReservation,$nativeTransferRow,$nativeTransferPlan,$nativeMediaResponse);
+nativePostCheck('native independent completion is sent once, source immutable and a second connection completion read-only',
+    $nativeTransferDone['state']==='sent' && $nativeTransferDone['write_attempts']===0 && $nativeTransferDone['snapshot']['metadata']['hotel_catalog_id']===17595
+    && !isset($nativeTransferDone['receipt']['content_preserved']) && $nativeTransferAgain['already_completed']
+    && $nativeTransferDone['version_id']===$nativeTransferAgain['version_id']
+    && $versionCountBeforeRepeat===(int)$pdo->query('SELECT COUNT(*) FROM post_versions')->fetchColumn()
+    && $sourceSnapshotBefore===$pdo->query('SELECT snapshot_json FROM post_versions WHERE id='.$nativeTransferRow['source_version_id'])->fetchColumn());
+$lateNativeTransfer = nativeTransferObserve($otherRegistry,$nativeMediaResponse,true);
+nativePostCheck('native late own webhook cannot replace hotel binding or create another button operation',
+    $lateNativeTransfer['version_id']===$nativeTransferDone['version_id'] && $lateNativeTransfer['state']==='sent'
+    && $lateNativeTransfer['snapshot']['metadata']['hotel_catalog_id']===17595);
+
+[$nativeRaceRow,$nativeRacePlan,$nativeRaceSource] = nativeTransferFixture($pdo,$registry,358);
+$nativeRaceReservation = $registry->reserveTelegramHotelTransfer($nativeRaceRow,$nativeRacePlan,$approveTransfer);
+$nativeRaceResponse = nativeTransferResponse($nativeRaceReservation,$nativeRaceRow,$nativeRaceSource);
+$nativeRacePost = nativeTransferObserve($otherRegistry,$nativeRaceResponse,true);
+$pinnedBeforeAdoption = $otherRegistry->recordEntry(101,$nativeRacePost,'native-before-hotel-adoption');
+$oldSnapshotBeforeAdoption = $pdo->query('SELECT snapshot_json FROM post_versions WHERE id='.$nativeRacePost['version_id'])->fetchColumn();
+$clockBeforeAdoption = $pdo->query('SELECT observed_revision_ms,telegram_sequence FROM post_publications WHERE id='.$nativeRacePost['publication_id'])->fetch();
+$nativeRaceDone = $registry->completeTelegramHotelTransfer($nativeRaceReservation,$nativeRaceRow,$nativeRacePlan,$nativeRaceResponse);
+nativePostCheck('native competing webhook-first completion appends binding while retaining genuine clocks and pinned entry history',
+    $nativeRaceDone['version_number']===2 && $nativeRaceDone['snapshot']['metadata']['hotel_catalog_id']===358
+    && $clockBeforeAdoption===$pdo->query('SELECT observed_revision_ms,telegram_sequence FROM post_publications WHERE id='.$nativeRacePost['publication_id'])->fetch()
+    && $oldSnapshotBeforeAdoption===$pdo->query('SELECT snapshot_json FROM post_versions WHERE id='.$nativeRacePost['version_id'])->fetchColumn()
+    && $registry->managerContext(101,'anytour')['current']['version_id']===$nativeRacePost['version_id'] && $pinnedBeforeAdoption!==null);
+
+[$nativeBusyRow,$nativeBusyPlan,$nativeBusySource] = nativeTransferFixture($pdo,$registry,393);
+$nativeBusyReservation = $registry->reserveTelegramHotelTransfer($nativeBusyRow,$nativeBusyPlan,$approveTransfer);
+$nativeBusyResponse = nativeTransferResponse($nativeBusyReservation,$nativeBusyRow,$nativeBusySource);
+$nativeBusyPost = nativeTransferObserve($otherRegistry,$nativeBusyResponse,false);
+$nativeBusyClaim = $otherRegistry->claimPublication($nativeBusyPost['publication_id'],$nativeBusyPost['version_id']);
+nativePostCheck('native active zero-write claim is distinguished without stealing it or replacing the version',
+    nativeTransferReject(fn()=>$registry->completeTelegramHotelTransfer($nativeBusyReservation,$nativeBusyRow,$nativeBusyPlan,$nativeBusyResponse),'hotel_transfer_native_claim_busy')
+    && $registry->publication($nativeBusyPost['publication_id'])['claim_token']===$nativeBusyClaim['claim_token']);
+$otherRegistry->finishPublication($nativeBusyPost['publication_id'],$nativeBusyPost['version_id'],$nativeBusyClaim['claim_token'],'sent','observed_in_channel_update',['verified'=>true]);
+nativePostCheck('native completion-only reread succeeds after the observer commits its zero-write finish',
+    $registry->completeTelegramHotelTransfer($nativeBusyReservation,$nativeBusyRow,$nativeBusyPlan,$nativeBusyResponse)['state']==='sent');
+
+[$nativeUnknownRow,$nativeUnknownPlan,$nativeUnknownSource] = nativeTransferFixture($pdo,$registry,1260);
+$nativeUnknownReservation = $registry->reserveTelegramHotelTransfer($nativeUnknownRow,$nativeUnknownPlan,$approveTransfer);
+$nativeUnknownResponse = nativeTransferResponse($nativeUnknownReservation,$nativeUnknownRow,$nativeUnknownSource);
+$nativeUnknownPost = nativeTransferObserve($otherRegistry,$nativeUnknownResponse,false);
+$nativeUnknownClaim = $otherRegistry->claimPublication($nativeUnknownPost['publication_id'],$nativeUnknownPost['version_id']);
+$otherRegistry->markExternalWriteStarted($nativeUnknownPost['publication_id'],$nativeUnknownPost['version_id'],$nativeUnknownClaim['claim_token']);
+nativePostCheck('native completion cannot absorb an independently started write',
+    nativeTransferReject(fn()=>$registry->completeTelegramHotelTransfer($nativeUnknownReservation,$nativeUnknownRow,$nativeUnknownPlan,$nativeUnknownResponse),'hotel_transfer_target_held'));
+$otherRegistry->finishPublication($nativeUnknownPost['publication_id'],$nativeUnknownPost['version_id'],$nativeUnknownClaim['claim_token'],'unknown','native-unknown');
+$unknownBeforeAdoption = $pdo->query('SELECT * FROM post_versions WHERE publication_id='.$nativeUnknownPost['publication_id'])->fetchAll();
+nativePostCheck('native UNKNOWN is durable across completion attempts from another connection',
+    nativeTransferReject(fn()=>$registry->completeTelegramHotelTransfer($nativeUnknownReservation,$nativeUnknownRow,$nativeUnknownPlan,$nativeUnknownResponse),'hotel_transfer_target_held')
+    && $unknownBeforeAdoption===$pdo->query('SELECT * FROM post_versions WHERE publication_id='.$nativeUnknownPost['publication_id'])->fetchAll());
+
+require_once dirname(__DIR__).'/fixtures/channel_post_zero_write_recovery.php';
+runChannelPostZeroWriteRecoveryChecks($pdo, 'nativePostCheck', $secondPdo);
 echo 'NATIVE CHANNEL POST MYSQL OK (' . $passed . " checks)\n";

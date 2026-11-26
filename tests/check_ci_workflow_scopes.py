@@ -22,7 +22,7 @@ def check(condition, message):
 
 def gate_passes(job, env, step_name=None):
     step = next(s for s in job['steps'] if s.get('name') == step_name) if step_name else job['steps'][-1]
-    return subprocess.run(['bash', '-e', '-c', step['run']], env={**os.environ, **env}, capture_output=True).returncode == 0
+    return subprocess.run(['bash', '-e', '-c', step['run']], env={**os.environ, 'HOTEL_PROOF':'false', 'HOTEL_RESULT':'skipped', **env}, capture_output=True).returncode == 0
 
 # Required regression owns PR policy validation. Known companions omit only
 # the identical selftest prelude, never their selector or native checks.
@@ -44,7 +44,7 @@ for filename in ['regression-tests.yml', 'workspace-sound.yml', 'channel-post-co
     check(concurrency.get('cancel-in-progress') == "${{ github.event_name == 'pull_request' }}", 'only superseded PRs may be cancelled: ' + filename)
     check(concurrency.get('group') == "ci-${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('run-{0}-{1}', github.run_id, github.run_attempt) }}", 'PR/workflow isolation and unique manual runs required: ' + filename)
 
-check(set(regression['regression']['needs']) == {'change-scope','inventory','php-syntax','required','prepared-mysql','appleservice39-mysql','oauth'}, 'regression must await all branches')
+check(set(regression['regression']['needs']) == {'change-scope','inventory','php-syntax','required','prepared-mysql','appleservice39-mysql','hotel-catalogue','oauth'}, 'regression must await all branches')
 # Source-result aggregation and mutable release admission are separate steps.
 # Exercise every old truth-table case below against the source gate, while the
 # existing Node policy suite executes admission/failure behavior with API fixtures.
@@ -72,12 +72,29 @@ for name, jobs in [('workspace-v2-visual-qa.yml',['selection','firefox-history',
 for job in ['required','prepared-mysql','appleservice39-mysql']:
     check('change-scope' in regression[job]['needs'],job+' awaits canonical selector')
 check(regression['required']['if'] == "needs.change-scope.outputs.mode == 'full' || needs.change-scope.outputs.mode == 'tour-selection'", 'every selection profile retains architecture')
-check(regression['prepared-mysql']['if'] == "(needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend != 'workspace-style') || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')", 'only audited styling may omit unchanged MySQL coverage')
-expected_exclude = "${{ fromJSON(((needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style') || (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'workspace-style')) && '[{\"group\":\"dialogue\"},{\"group\":\"website\"},{\"group\":\"manager\"},{\"group\":\"diagnostics\"}]' || '[]') }}"
+check(regression['prepared-mysql']['if'] == "(needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'full') || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')", 'native groups keep full scope except proven unchanged backends')
+expected_exclude = "${{ fromJSON(((needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style') || (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'workspace-style')) && '[{\"group\":\"dialogue\"},{\"group\":\"website\"},{\"group\":\"manager\"},{\"group\":\"diagnostics\"}]' || (needs.change-scope.outputs.backend == 'hotel-catalogue-data' && '[{\"group\":\"manager\"}]') || '[]') }}"
 check(regression['required']['strategy']['matrix'] == {
     'group':['architecture','dialogue','website','manager','diagnostics'], 'exclude':expected_exclude},
-    'styling excludes exactly four unchanged server groups; other profiles keep all five')
+    'catalogue excludes unrelated Manager2 tests and styling retains its existing matrix')
 check(source_gate['env']['BACKEND_PROFILE'] == '${{ needs.change-scope.outputs.backend }}', 'aggregate uses the actual backend selection')
+hotel_job = regression['hotel-catalogue']
+check(hotel_job['needs'] == 'change-scope' and hotel_job['if'] ==
+      "needs.change-scope.outputs.backend == 'hotel-catalogue-data' || needs.change-scope.outputs.hotel-proof == 'true'",
+      'hotel job runs for exact data and rules commissioning')
+check(hotel_job['permissions'] == {'contents':'read'} and
+      all(not s.get('if') and not s.get('continue-on-error', False) for s in hotel_job['steps']),
+      'hotel data verification stays read-only and fatal')
+hotel_commands = hotel_job['steps'][-1]['run'].splitlines()
+check(hotel_commands == [
+    'php tests/run_manager_ai_draft_context_regression.php --hotel-knowledge-read',
+    'php tests/run_manager_ai_draft_context_regression.php --hotel-knowledge-http',
+    'php tests/run_manager_ai_draft_service_regression.php',
+    'php tests/run_manager_preparation_mcp_regression.php',
+], 'exact catalogue, HTTP, AI and MCP consumer regressions are mandatory')
+check(source_gate['env']['HOTEL_RESULT'] == '${{ needs.hotel-catalogue.result }}' and
+      source_gate['env']['HOTEL_PROOF'] == '${{ needs.change-scope.outputs.hotel-proof }}',
+      'hotel proof uses only actual canonical outputs')
 pilot_mysql = regression['appleservice39-mysql']
 check(pilot_mysql['if'] == regression['prepared-mysql']['if']
       and pilot_mysql['needs'] == 'change-scope'
@@ -274,6 +291,19 @@ for mode,profile in itertools.product(['oauth','full','tour-selection','','unkno
           == ((mode == 'tour-selection' and profile == 'selection-style') or (mode == 'full' and profile == 'workspace-style')),
           'a styling result cannot certify another or missing profile')
 
+hotel_valid = {**style_valid, 'CI_MODE':'full', 'BACKEND_PROFILE':'hotel-catalogue-data',
+               'HOTEL_PROOF':'false', 'HOTEL_RESULT':'success'}
+check(gate_passes(aggregate,hotel_valid,'Require every gate'),'exact hotel data profile retains mandatory consumer proof')
+for field in ['HOTEL_RESULT','HOTEL_PROOF','REQUIRED_RESULT','PREPARED_MYSQL_RESULT','APPLESERVICE39_MYSQL_RESULT','CI_MODE']:
+    for value in ['success','failure','skipped','cancelled','full','true','false','']:
+        check(gate_passes(aggregate,{**hotel_valid,field:value},'Require every gate') == (value == hotel_valid[field]),
+              'invalid or absent hotel scope evidence must fail: '+field+'='+value)
+commission = {**hotel_valid, 'BACKEND_PROFILE':'full', 'HOTEL_PROOF':'true',
+              'PREPARED_MYSQL_RESULT':'success','APPLESERVICE39_MYSQL_RESULT':'success'}
+check(gate_passes(aggregate,commission,'Require every gate'),'rule changes require full and hotel commissioning evidence')
+check(not gate_passes(aggregate,{**commission,'HOTEL_RESULT':'skipped'},'Require every gate'),
+      'full rule changes cannot skip hotel commissioning evidence')
+
 # Independently exercise the source-result gate for the new backend profile.
 # Its browser mode remains full; existing full visual truth tables still apply.
 workspace_valid = {**style_valid,'CI_MODE':'full','BACKEND_PROFILE':'workspace-style'}
@@ -312,9 +342,9 @@ for mode,proof,full,oauth,tour_result in [('tour-selection','false','skipped','s
 tail_workflow = load('modeled-conversion-value-export.yml')
 tail_events = tail_workflow.get('on', tail_workflow.get(True))
 check(set(tail_events) == {'workflow_run', 'workflow_dispatch', 'push'}, 'only the bounded native terminal continuation adds a trigger')
-check(tail_events['push'] == {'branches':['ops/recover-pr1505-terminal-20261112', 'ops/recover-pr1529-terminal-20261113']}, 'terminal continuations use only the two fixed owner branches, no timer')
+check(tail_events['push'] == {'branches':['ops/recover-pr1505-terminal-20261112', 'ops/recover-pr1529-terminal-20261113', 'ops/recover-pr1597-terminal-20261117', 'ops/recover-pr1643-terminal-20261121', 'ops/recover-pr1701-terminal-20261125', 'ops/recover-pr1720-terminal-20261125']}, 'terminal continuations use only the six fixed owner branches, no timer')
 recovery = tail_workflow['jobs']['release-slot-recovery']
-check(recovery['if'] == "github.event_name == 'push' && (github.ref == 'refs/heads/ops/recover-pr1505-terminal-20261112' || github.ref == 'refs/heads/ops/recover-pr1529-terminal-20261113')", 'terminal continuation cannot run as a normal deploy tail or manual dispatch')
+check(recovery['if'] == "github.event_name == 'push' && (github.ref == 'refs/heads/ops/recover-pr1505-terminal-20261112' || github.ref == 'refs/heads/ops/recover-pr1529-terminal-20261113' || github.ref == 'refs/heads/ops/recover-pr1597-terminal-20261117' || github.ref == 'refs/heads/ops/recover-pr1643-terminal-20261121' || github.ref == 'refs/heads/ops/recover-pr1701-terminal-20261125' || github.ref == 'refs/heads/ops/recover-pr1720-terminal-20261125')", 'terminal continuation cannot run as a normal deploy tail or manual dispatch')
 check(recovery['permissions'] == {'contents':'write','actions':'read','pull-requests':'read','issues':'write'}, 'continuation keeps metadata-only authority')
 check(recovery['timeout-minutes'] == 8, 'continuation has a finite metadata deadline')
 check(recovery['steps'][0]['with'] == {'ref':'${{ github.sha }}','persist-credentials':False}, 'continuation loads its genuine source')
@@ -419,4 +449,5 @@ check("format('monitor-proof:v1:{0}:{1}', github.event.workflow_run.id, github.e
       'activation provenance follows the exact original monitor')
 
 print(f'PASS {checks} workflow selection and gate cases')
+
 

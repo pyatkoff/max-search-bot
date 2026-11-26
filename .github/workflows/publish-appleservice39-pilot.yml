@@ -2,7 +2,7 @@ name: Publish approved AppleService39 pilot
 
 on:
   push:
-    branches: [ops/appleservice39-coverage-20261112]
+    branches: [ops/appleservice39-coverage-20261112, ops/appleservice39-device-v1-20261119, ops/appleservice39-device-recovery-20261119, ops/appleservice39-telegram-catalogue-20261119]
   pull_request:
     branches: [main]
     paths:
@@ -14,6 +14,12 @@ on:
       - 'resources/appleservice39/catalogue-v1/**'
       - 'resources/appleservice39/search-intent-v1/**'
       - 'resources/appleservice39/coverage-v1/**'
+      - 'resources/appleservice39/device-v1/**'
+      - 'services/AppleService39DeviceRevision.php'
+      - 'services/AppleService39Telegram*.php'
+      - 'resources/appleservice39/telegram-catalogue-v1/**'
+      - 'tests/run_appleservice39_telegram_device_publisher_regression.php'
+      - 'tests/run_appleservice39_device_publisher_regression.php'
       - 'services/AppleService39Coverage*.php'
       - 'tests/run_appleservice39_coverage_regression.php'
       - 'resources/project-funnel/appleservice39.json'
@@ -32,7 +38,7 @@ on:
       operation:
         description: Fixed reviewed pilot operation; unknown outcomes never repeat a write
         type: choice
-        options: [inspect, prepare, publish, finalize, pin, reconcile, landing_inspect, landing_prepare, landing_apply, landing_reconcile, search_inspect, search_prepare, search_apply, search_reconcile, coverage_inspect, coverage_prepare, coverage_apply, coverage_reconcile]
+        options: [inspect, prepare, publish, finalize, pin, reconcile, landing_inspect, landing_prepare, landing_apply, landing_reconcile, search_inspect, search_prepare, search_apply, search_reconcile, coverage_inspect, coverage_prepare, coverage_apply, coverage_reconcile, device_observe]
         required: true
         default: inspect
       expected_application_sha:
@@ -69,9 +75,11 @@ jobs:
           php tests/run_appleservice39_search_plan_regression.php
           php tests/run_appleservice39_search_publisher_regression.php
           php tests/run_appleservice39_coverage_regression.php
+          php tests/run_appleservice39_device_publisher_regression.php
+          php tests/run_appleservice39_telegram_device_publisher_regression.php
 
   publish:
-    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'push' && github.ref == 'refs/heads/ops/appleservice39-coverage-20261112')
+    if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'push' && (github.ref == 'refs/heads/ops/appleservice39-coverage-20261112' || github.ref == 'refs/heads/ops/appleservice39-device-v1-20261119' || github.ref == 'refs/heads/ops/appleservice39-device-recovery-20261119' || github.ref == 'refs/heads/ops/appleservice39-telegram-catalogue-20261119'))
     needs: regression
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -93,7 +101,7 @@ jobs:
           set -euo pipefail
           test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
           case "$GITHUB_EVENT_NAME:$GITHUB_REF" in
-            workflow_dispatch:refs/heads/main|push:refs/heads/ops/appleservice39-coverage-20261112) ;;
+            workflow_dispatch:refs/heads/main|push:refs/heads/ops/appleservice39-coverage-20261112|push:refs/heads/ops/appleservice39-device-v1-20261119|push:refs/heads/ops/appleservice39-device-recovery-20261119|push:refs/heads/ops/appleservice39-telegram-catalogue-20261119) ;;
             *) exit 2 ;;
           esac
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
@@ -112,8 +120,8 @@ jobs:
 
       - name: Validate the exact fixed operation before deployment credentials
         env:
-          OPERATION: ${{ github.event_name == 'push' && 'coverage_batch' || inputs.operation }}
-          CHANNEL_ID: ${{ github.event_name == 'push' && '-80917954947727' || inputs.channel_id }}
+          OPERATION: ${{ github.event_name == 'push' && steps.release.outputs.publication_operation || inputs.operation }}
+          CHANNEL_ID: ${{ github.ref == 'refs/heads/ops/appleservice39-telegram-catalogue-20261119' && '@appleservice39' || github.event_name == 'push' && '-80917954947727' || inputs.channel_id }}
           EXPECTED_APPLICATION_SHA: ${{ github.event_name == 'push' && steps.release.outputs.application_sha || inputs.expected_application_sha }}
           WORKFLOW_SHA: ${{ github.sha }}
           REPOSITORY_SHA: ${{ steps.release.outputs.repository_sha }}
@@ -124,8 +132,17 @@ jobs:
         run: |
           set -euo pipefail
           [[ "$EXPECTED_APPLICATION_SHA" =~ ^[0-9a-f]{40}$ ]]
-          [[ "$CHANNEL_ID" =~ ^-[1-9][0-9]{0,18}$ ]]
-          case "$OPERATION" in inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_prepare|landing_apply|landing_reconcile|search_inspect|search_prepare|search_apply|search_reconcile|coverage_inspect|coverage_prepare|coverage_apply|coverage_reconcile|coverage_batch) ;; *) exit 2 ;; esac
+          if [[ "$OPERATION" != telegram_catalogue ]]; then
+            [[ "$CHANNEL_ID" =~ ^-[1-9][0-9]{0,18}$ ]]
+          fi
+          case "$OPERATION" in
+            telegram_catalogue) [[ "$GITHUB_EVENT_NAME:$GITHUB_REF:$CHANNEL_ID" == 'push:refs/heads/ops/appleservice39-telegram-catalogue-20261119:@appleservice39' ]] ;;
+            device_batch) [[ "$GITHUB_EVENT_NAME:$GITHUB_REF:$CHANNEL_ID" == 'push:refs/heads/ops/appleservice39-device-v1-20261119:-80917954947727' ]] ;;
+            device_recovery) [[ "$GITHUB_EVENT_NAME:$GITHUB_REF:$CHANNEL_ID" == 'push:refs/heads/ops/appleservice39-device-recovery-20261119:-80917954947727' ]] ;;
+            device_observe) [[ "$GITHUB_EVENT_NAME:$GITHUB_REF:$CHANNEL_ID" == 'workflow_dispatch:refs/heads/main:-80917954947727' ]] ;;
+            inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_prepare|landing_apply|landing_reconcile|search_inspect|search_prepare|search_apply|search_reconcile|coverage_inspect|coverage_prepare|coverage_apply|coverage_reconcile|coverage_batch) ;;
+            *) exit 2 ;;
+          esac
           test "$RELEASE_READY" = true
           test "$PERFORM_ACTIONS" = true
           test "$WORKFLOW_SHA" = "$REPOSITORY_SHA"
@@ -154,23 +171,40 @@ jobs:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
           EXPECTED_APPLICATION_SHA: ${{ github.event_name == 'push' && steps.release.outputs.application_sha || inputs.expected_application_sha }}
-          OPERATION: ${{ github.event_name == 'push' && 'coverage_batch' || inputs.operation }}
-          CHANNEL_ID: ${{ github.event_name == 'push' && '-80917954947727' || inputs.channel_id }}
+          OPERATION: ${{ github.event_name == 'push' && steps.release.outputs.publication_operation || inputs.operation }}
+          CHANNEL_ID: ${{ github.ref == 'refs/heads/ops/appleservice39-telegram-catalogue-20261119' && '@appleservice39' || github.event_name == 'push' && '-80917954947727' || inputs.channel_id }}
         shell: bash
         run: |
           set -euo pipefail
           [[ "$EXPECTED_APPLICATION_SHA" =~ ^[0-9a-f]{40}$ ]]
-          [[ "$CHANNEL_ID" =~ ^-[1-9][0-9]{0,18}$ ]]
-          case "$OPERATION" in inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_prepare|landing_apply|landing_reconcile|search_inspect|search_prepare|search_apply|search_reconcile|coverage_inspect|coverage_prepare|coverage_apply|coverage_reconcile|coverage_batch) ;; *) exit 2 ;; esac
+          if [[ "$OPERATION" != telegram_catalogue ]]; then
+            [[ "$CHANNEL_ID" =~ ^-[1-9][0-9]{0,18}$ ]]
+          fi
+          case "$OPERATION" in
+            telegram_catalogue) [[ "$GITHUB_EVENT_NAME:$GITHUB_REF:$CHANNEL_ID" == 'push:refs/heads/ops/appleservice39-telegram-catalogue-20261119:@appleservice39' ]] ;;
+            device_batch) [[ "$GITHUB_EVENT_NAME:$GITHUB_REF:$CHANNEL_ID" == 'push:refs/heads/ops/appleservice39-device-v1-20261119:-80917954947727' ]] ;;
+            device_recovery) [[ "$GITHUB_EVENT_NAME:$GITHUB_REF:$CHANNEL_ID" == 'push:refs/heads/ops/appleservice39-device-recovery-20261119:-80917954947727' ]] ;;
+            device_observe) [[ "$GITHUB_EVENT_NAME:$GITHUB_REF:$CHANNEL_ID" == 'workflow_dispatch:refs/heads/main:-80917954947727' ]] ;;
+            inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_prepare|landing_apply|landing_reconcile|search_inspect|search_prepare|search_apply|search_reconcile|coverage_inspect|coverage_prepare|coverage_apply|coverage_reconcile|coverage_batch) ;;
+            *) exit 2 ;;
+          esac
           remote="$DEPLOY_USER@$DEPLOY_HOST"
           ssh_options=(-i "$RUNNER_TEMP/appleservice39_pilot_deploy_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o StrictHostKeyChecking=no)
-          if [[ "$OPERATION" == coverage_batch ]]; then
-            for stage in coverage_inspect coverage_prepare coverage_apply coverage_reconcile; do
+          case "$OPERATION" in
+            coverage_batch) stages=(coverage_inspect coverage_prepare coverage_apply coverage_reconcile) ;;
+            device_batch) stages=(device_inspect device_prepare device_apply device_reconcile) ;;
+            device_recovery) stages=(device_observe device_resume device_observe) ;;
+            *) stages=() ;;
+          esac
+          if (( ${#stages[@]} )); then
+            for stage in "${stages[@]}"; do
               command="cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/publish_appleservice39_pilot.php $stage --expected-sha=$EXPECTED_APPLICATION_SHA --channel-id=$CHANNEL_ID"
               result=0
               ssh "${ssh_options[@]}" "$remote" "$command" || result=$?
               if [[ "$result" != 0 ]]; then
-                inspection="cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/publish_appleservice39_pilot.php coverage_inspect --expected-sha=$EXPECTED_APPLICATION_SHA --channel-id=$CHANNEL_ID"
+                # An observation failure carries no permission to continue or repeat it.
+                if [[ "$stage" == device_observe ]]; then exit "$result"; fi
+                inspection="cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/publish_appleservice39_pilot.php ${stages[0]} --expected-sha=$EXPECTED_APPLICATION_SHA --channel-id=$CHANNEL_ID"
                 ssh "${ssh_options[@]}" "$remote" "$inspection" || true
                 exit "$result"
               fi
@@ -180,7 +214,7 @@ jobs:
           command="cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/publish_appleservice39_pilot.php $OPERATION --expected-sha=$EXPECTED_APPLICATION_SHA --channel-id=$CHANNEL_ID"
           result=0
           ssh "${ssh_options[@]}" "$remote" "$command" || result=$?
-          if [[ "$result" != 0 && "$OPERATION" != inspect && "$OPERATION" != landing_inspect && "$OPERATION" != search_inspect ]]; then
+          if [[ "$result" != 0 && "$OPERATION" != inspect && "$OPERATION" != landing_inspect && "$OPERATION" != search_inspect && "$OPERATION" != device_observe && "$OPERATION" != telegram_catalogue ]]; then
             # A lost result permits one inspection, never a repeated mutation.
             inspection_mode=inspect
             if [[ "$OPERATION" == landing_* ]]; then inspection_mode=landing_inspect; fi

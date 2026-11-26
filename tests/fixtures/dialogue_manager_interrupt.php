@@ -15,7 +15,10 @@ class DiagnosticLogger { public static $events=[]; public static function log(..
 class ConversationRecorder { public static $incoming=[],$events=[]; public static function inbound($incoming){self::$incoming[]=$incoming;} public static function eventByChat(...$args){self::$events[]=$args;} }
 class ConversationAttributionService { public static function syncByChat(...$args){} }
 class MetrikaConversionGoalService { public static function managerRequest($id){return false;} public static function observeIncoming(...$args){} public static function customerActivity(...$args){} public static function customerReplyAfterManager(...$args){} }
-class SourceHandlingService { public static function handle($incoming){return false;} }
+class SourceHandlingService {
+    public static function handle($incoming){return false;}
+    public static function qualifyingTurn($chatId): bool {return false;}
+}
 class ManagerPushService { public static $calls=[]; public static function notifyConversation(...$args){self::$calls[]=$args;} }
 class ManagerAvailabilityService { public static $hours=true; public static function withinWorkingHours($now=null){return self::$hours;} public static function anyWorkingForConversation($conversation){return true;} }
 class ManagerRequestService { public static function prepare(...$args){return ['back_callback'=>'back_check','online_text'=>'manager day','working_wait_text'=>'manager waiting','outside_hours_text'=>'manager night'];} }

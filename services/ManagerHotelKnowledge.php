@@ -198,6 +198,7 @@ HOTEL;
             || count($manifest['bindings']) > 32) return [null, 'manifest_invalid'];
         $found = null; $identities = []; $hotels = [];
         $retained = self::validRetainedSelector($selector);
+        $selectorKey = null;
         foreach ($manifest['bindings'] as $entry) {
             if (!is_array($entry) || !self::keys($entry, ['status','source_identity','accepted_source_names','accepted_binding','binding_revision','bundle_file','bundle_sha256','approval'])
                 || ($entry['status'] ?? null) !== 'accepted' || !self::validSourceIdentity($entry['source_identity'] ?? null)
@@ -220,9 +221,8 @@ HOTEL;
             // Country labels cannot authorize a different source namespace.
             if ((string)$local['id'] !== $entry['source_identity']['hotel']
                 || (self::SOURCE_COUNTRIES[$entry['source_identity']['country']] ?? null) !== $core['identity_anchor']['country']) return [null, 'manifest_invalid'];
-            $matches = $retained
-                ? self::canonical($core['hotel_ref']) === self::canonical($selector['hotel_ref'])
-                : self::canonical($entry['source_identity']) === self::canonical($selector['source_identity']);
+            $selectorKey ??= self::canonical($retained ? $selector['hotel_ref'] : $selector['source_identity']);
+            $matches = ($retained ? $hotelKey : $sourceKey) === $selectorKey;
             if ($matches) {
                 if ($retained && $core['identity_anchor']['country'] !== self::retainedCountry($selector['provenance']['request_country'])) {
                     return [null, 'source_country_mismatch'];
@@ -246,10 +246,9 @@ HOTEL;
             || !array_is_list($core['accepted_chain']) || count($core['accepted_chain']) !== 3
             || !is_array($core['identity_anchor'] ?? null) || !is_array($core['proofs'] ?? null)) return false;
         $anchor = $core['identity_anchor'];
-        if (!self::keys($anchor, ['research_source_id','research_source_record_sha256','official_url','address','country','city'])
-            || !self::identifier($anchor['research_source_id'] ?? null) || !self::hex($anchor['research_source_record_sha256'] ?? null)
+        if (!self::identifier($anchor['research_source_id'] ?? null) || !self::hex($anchor['research_source_record_sha256'] ?? null)
             || !self::httpsUrl($anchor['official_url'] ?? null) || !self::text($anchor['address'] ?? null, 500)
-            || !self::text($anchor['country'] ?? null, 80) || !self::text($anchor['city'] ?? null, 160)
+            || !self::text($anchor['country'] ?? null, 80) || !self::validLocality($anchor)
             || count($core['proofs']) < 3 || count($core['proofs']) > 10) return false;
         foreach ($core['proofs'] as $name=>$hash) {
             if (!is_string($name) || !preg_match('/\A[a-z0-9]+(?:[-_.][a-z0-9]+)*\.(?:raw|json)\z/D', $name) || !self::hex($hash)) return false;
@@ -263,6 +262,25 @@ HOTEL;
             && self::id($chain[1]['catalog_revision'] ?? null)
             && ($chain[2]['namespace'] ?? null) === 'local-tv' && self::id($chain[2]['id'] ?? null)
             && self::id($chain[2]['catalog_revision'] ?? null);
+    }
+
+    /** An unversioned city core keeps its original canonical bytes and exact shape. */
+    private static function validLocality(array $anchor): bool
+    {
+        $common = ['research_source_id','research_source_record_sha256','official_url','address','country'];
+        if (!array_key_exists('schema_version', $anchor)) {
+            return self::keys($anchor, [...$common, 'city']) && self::text($anchor['city'] ?? null, 160);
+        }
+        if (!self::keys($anchor, [...$common, 'schema_version','locality','property_atoll_label','postal_code'])
+            || $anchor['schema_version'] !== 'resort_island_anchor_v1' || $anchor['country'] !== 'Maldives'
+            || !self::text($anchor['property_atoll_label'], 160)
+            || ($anchor['postal_code'] !== null && !self::text($anchor['postal_code'], 32))) return false;
+        $place = $anchor['locality'];
+        return is_array($place) && self::keys($place, ['kind','name','admin_atoll','authority_source_id','authority_source_record_sha256'])
+            && $place['kind'] === 'resort_island' && self::text($place['name'], 160) && self::text($place['admin_atoll'], 160)
+            && self::identifier($place['authority_source_id']) && self::hex($place['authority_source_record_sha256'])
+            && $place['authority_source_id'] !== $anchor['research_source_id']
+            && $place['authority_source_record_sha256'] !== $anchor['research_source_record_sha256'];
     }
 
     private static function validApproval($approval): bool
@@ -301,7 +319,7 @@ HOTEL;
                 || (!self::text($source['limitations'] ?? null, 2000) && ($source['limitations'] ?? null) !== '')
                 || !array_key_exists('publication_date', $source) || !self::dateOrNull($source['publication_date'])
                 || !self::date($source['retrieved_on'] ?? null)) return false;
-            $sources[$source['id']] = true;
+            $sources[$source['id']] = $source;
         }
         $claims = [];
         foreach ($bundle['facts'] as $fact) {
@@ -323,6 +341,19 @@ HOTEL;
                 if (!self::hex($hashes[$record['id']] ?? null)
                     || !hash_equals($hashes[$record['id']], hash('sha256', self::canonical($record)))) return false;
             }
+        }
+        $anchor = $core['identity_anchor'];
+        if (isset($anchor['locality'])) {
+            $propertyId = $anchor['research_source_id'];
+            $place = $anchor['locality'];
+            $authorityId = $place['authority_source_id'];
+            $hashes = $bundle['record_hashes']['sources'];
+            if (($hashes[$propertyId] ?? null) !== $anchor['research_source_record_sha256']
+                || ($hashes[$authorityId] ?? null) !== $place['authority_source_record_sha256']
+                || $sources[$propertyId]['kind'] !== 'official' || $sources[$authorityId]['kind'] !== 'official'
+                || $sources[$propertyId]['url'] !== $anchor['official_url']
+                || strtolower(parse_url($sources[$authorityId]['url'], PHP_URL_HOST))
+                    === strtolower(parse_url($anchor['official_url'], PHP_URL_HOST))) return false;
         }
         return true;
     }

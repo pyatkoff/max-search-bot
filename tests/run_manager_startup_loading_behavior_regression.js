@@ -20,6 +20,65 @@ function renderedIds(h){
   return h.ids.get('inboxList').querySelectorAll('.leadItem').map(node=>Number(node.dataset.conversationId));
 }
 
+test('one early Manager2 identity read authorizes the first Inbox only after boot',async()=>{
+  const held=deferred(),h=createHarness({inbox:true,earlyIdentity:()=>held.promise});
+  assert.deepEqual(h.calls.map(call=>call.action),['me']);
+  held.resolve(response(h.identity));await new Promise(setImmediate);
+  assert.equal(h.W.S.manager,null);assert.deepEqual(h.calls.map(call=>call.action),['me']);
+  withRows(h);await Promise.all([h.W.boot(),h.W.boot()]);
+  assert.equal(h.calls.filter(call=>call.action==='me').length,1);
+  assert.equal(h.W.S.manager.id,7);assert.equal(renderedIds(h).length,200);
+});
+
+test('early 401 opens recovery at boot and a fresh login can use the workspace',async()=>{
+  const h=createHarness({inbox:true,earlyIdentity:()=>response({ok:false},401)});
+  await new Promise(setImmediate);assert.equal(h.W.S.authExpired,false);
+  await h.W.boot();assert.equal(h.W.S.authExpired,true);assert.deepEqual(h.calls.map(call=>call.action),['me']);
+  withRows(h);await h.login();assert.equal(h.W.S.authExpired,false);assert.equal(renderedIds(h).length,200);
+  assert.equal(h.calls.filter(call=>call.action==='me').length,1);
+});
+
+test('reload restores the authorized chat and its draft while the Inbox is still loading',async()=>{
+  const previous=createHarness({inbox:true});await previous.start();await previous.draft('Saved before reload');
+  const h=createHarness({inbox:true,storage:previous.storage}),list=deferred(),detail=deferred(),requested=deferred();
+  h.setHook((url,r)=>{
+    if(r.action==='list')return list.promise;
+    if(url==='api.php'&&r.action==='detail'){requested.resolve();return detail.promise;}
+  });
+  const boot=h.start({open:false});
+  try{
+    await within(requested.promise);
+    assert.equal(h.calls[0].action,'me');assert.equal(h.W.S.current,0);
+    assert.equal(h.ids.get('replyText').value,'');assert.equal(hidden(h),true);
+    detail.resolve(response({ok:true,conversation:h.conversation,messages:[]}));await within(boot);
+    assert.equal(h.W.S.current,101);assert.equal(h.ids.get('replyText').value,'Saved before reload');
+    assert.equal(hidden(h),false);assertNoMutations(h);
+  }finally{
+    detail.resolve(response({ok:true,conversation:h.conversation,messages:[]}));
+    list.resolve(response({ok:true,conversations:[]}));
+    await boot;
+  }
+  assert.equal(h.W.S.current,101);
+});
+
+for(const failure of ['forbidden','network'])test('early '+failure+' is retried only on explicit boot',async()=>{
+  const read=()=>failure==='network'?Promise.reject(new Error('offline')):response({ok:false},403);
+  const h=createHarness({inbox:true,earlyIdentity:read});await new Promise(setImmediate);
+  await h.W.boot();assert.equal(h.W.S.manager,null);assert.deepEqual(h.calls.map(call=>call.action),['me']);
+  assert.ok(h.ids.get('managerStartupRetry'));withRows(h);await h.W.boot();
+  assert.equal(h.calls.filter(call=>call.action==='me').length,2);assert.equal(renderedIds(h).length,200);
+});
+
+for(const failure of [false,true])test('a late early identity cannot overwrite a recovered account, rejected='+failure,async()=>{
+  const held=deferred(),h=createHarness({inbox:true,earlyIdentity:()=>held.promise});
+  h.W.showAuthRecovery();h.setIdentity({...h.identity,manager:{...h.identity.manager,id:8}});withRows(h);await h.login();
+  const initialRows=h.ids.get('inboxList').querySelectorAll('.leadItem');
+  held.resolve(failure?Promise.reject(new Error('offline')):response(h.identity));
+  await h.W.boot();assert.equal(h.W.S.manager.id,8);assert.equal(h.W.S.authExpired,false);
+  assert.equal(h.ids.get('inboxList').querySelectorAll('.leadItem')[0],initialRows[0]);assert.ok(!h.ids.get('managerStartupRetry'));
+  assert.equal(h.calls.filter(call=>call.action==='me').length,1);
+});
+
 for(const action of ['catalog','filter_options'])for(const mobile of [false,true])test(action+' never settling does not block Inbox or an authorized reply, mobile='+mobile,async()=>{
   const h=createHarness({inbox:true,mobile}),held=deferred();
   h.setHook((url,r)=>r.action===action?held.promise:r.action==='list'?response({ok:true,conversations:liveRows()}):null);
@@ -47,6 +106,43 @@ test('secondary card waits for catalog options without delaying the transcript, 
   held.resolve(response({ok:true,stages:[{stage_key:'working',display_name:'В работе'}]}));await new Promise(setImmediate);
   assert.equal(cards.length,1);assert.equal(cards[0].id,102);assert.equal(cards[0].stages[0].stage_key,'working');
   assert.equal(h.ids.get('replyText').value,'Current draft');assertNoMutations(h);
+});
+
+for(const mobile of [false,true])for(const status of [200,500])test('ready catalog renders the card before held filter options, mobile='+mobile+', status='+status,async()=>{
+  const h=createHarness({inbox:true,mobile}),held=deferred(),cards=[],renders=[];
+  h.window.WorkspaceV2Filters={bind(){},render(options={}){renders.push(options);}};
+  h.window.WorkspaceV2LeadCard.render=(lead,conversation)=>cards.push({lead,conversation,stages:h.W.S.pipeline.stages});
+  h.setHook((url,r)=>{
+    if(r.action==='catalog')return response({ok:true,stages:[{stage_key:'working',display_name:'Working catalog'}],tags:[{id:1,display_name:'Family'}],outcomes:{open:'Open'}});
+    if(r.action==='filter_options')return held.promise;
+    if(r.action==='list')return response({ok:true,conversations:liveRows(2)});
+    return null;
+  });
+  await within(h.start());await new Promise(setImmediate);
+  assert.equal(cards.length,1,'The already-authorized card must not wait for Inbox filter options');
+  assert.equal(cards[0].conversation.id,101);assert.equal(cards[0].stages[0].stage_key,'working');
+  assert.equal(h.W.S.filterOptionsReady,false);assert.equal(renders.length,1);assert.equal(renders[0].pending,true);
+  await h.draft('Exact unsent reply before filters');const file={name:'retained-card.txt'};h.setFile(file);
+  const card=cards[0],listCount=h.calls.filter(r=>r.action==='list').length,detailCount=h.calls.filter(r=>r.action==='detail').length;
+  held.resolve(response(status===200?{ok:true,filters:{projects:[],sources:[],managers:[]}}:{ok:false},status));await new Promise(setImmediate);
+  assert.equal(cards.length,1);assert.equal(cards[0],card);assert.equal(renders.length,2);
+  assert.equal(h.W.S.filterOptionsReady,status===200);assert.equal(h.ids.get('replyText').value,'Exact unsent reply before filters');assert.equal(h.getFile(),file);
+  assert.equal(h.calls.filter(r=>r.action==='list').length,listCount);assert.equal(h.calls.filter(r=>r.action==='detail').length,detailCount);
+  for(const action of ['catalog','filter_options'])assert.equal(h.calls.filter(r=>r.action===action).length,1);
+  assert.equal(hidden(h),false);assertNoMutations(h);
+});
+
+test('early filter options keep one reconciliation after the card catalog becomes ready',async()=>{
+  const h=createHarness({inbox:true}),held=deferred(),cards=[],renders=[];
+  h.window.WorkspaceV2Filters={bind(){},render(options={}){renders.push(options);}};
+  h.window.WorkspaceV2LeadCard.render=(lead,conversation)=>cards.push({lead,conversation,stages:h.W.S.pipeline.stages});
+  h.setHook((url,r)=>r.action==='catalog'?held.promise:null);
+  await within(h.start());await new Promise(setImmediate);
+  assert.equal(cards.length,0);assert.equal(h.W.S.filterOptionsReady,false);assert.equal(renders.length,1);
+  held.resolve(response({ok:true,stages:[{stage_key:'working',display_name:'Working catalog'}]}));await new Promise(setImmediate);
+  assert.equal(cards.length,1);assert.equal(cards[0].stages[0].stage_key,'working');assert.equal(h.W.S.filterOptionsReady,true);assert.equal(renders.length,2);
+  for(const action of ['catalog','filter_options'])assert.equal(h.calls.filter(r=>r.action===action).length,1);
+  assertNoMutations(h);
 });
 
 test('a previously initialized core without the optional catalog signal still opens an authorized transcript',async()=>{

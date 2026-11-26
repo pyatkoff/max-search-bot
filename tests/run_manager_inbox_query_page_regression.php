@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__.'/fixtures/regional_access_schema.php';
 
 require_once dirname(__DIR__).'/services/ManagerConversationService.php';
+require_once dirname(__DIR__).'/services/ManagerQueueProjectionService.php';
 
 /** Run the real service SQL; adapt only MySQL scalar syntax for SQLite. */
 final class InboxQueryPdo extends PDO
@@ -208,7 +209,13 @@ $projectCountRows=static function(array $rows,string $queue)use($countFields):ar
     return array_map(static fn(array $row):array=>array_intersect_key($row,array_flip($fields)),$rows);
 };
 $pdo->executions=0;$pdo->listWork=[];$pdo->annotations=0;$fullCountRows=[];
-foreach(['waiting','requested','mine'] as $queue)$fullCountRows[$queue]=ManagerConversationService::list(7,$queue,200,'anytour');
+foreach(['waiting','requested','mine'] as $queue){
+    $fullCountRows[$queue]=ManagerConversationService::list(7,$queue,200,'anytour');
+    if($queue==='waiting'||$queue==='mine'){
+        $listSql=str_replace('JSON_UNQUOTE(','(',$pdo->lastListSql);
+        queryPageCheck("{$queue} list reuses its canonical reply decision for the wait clock",substr_count($listSql,ManagerReplyQueueService::neededSql('c',false))===1);
+    }
+}
 $fullCountWork=['sql'=>$pdo->executions,'list'=>$pdo->listWork,'annotations'=>$pdo->annotations];
 echo 'COUNT_WORK before '.json_encode($fullCountWork,JSON_THROW_ON_ERROR)."\n";
 queryPageCheck('dedicated counter projection is available',is_callable([ManagerConversationService::class,'queueCountRows']));
@@ -221,6 +228,19 @@ if(is_callable([ManagerConversationService::class,'queueCountRows'])){
     $countWork=['sql'=>$pdo->executions,'list'=>$pdo->listWork,'annotations'=>$pdo->annotations];
     queryPageCheck('counter SQL omits display annotations and reduces executions and transferred values',$countWork['annotations']===0&&$countWork['sql']<$fullCountWork['sql']&&array_sum(array_column($countWork['list'],'value_bytes'))<array_sum(array_column($fullCountWork['list'],'value_bytes')));
     echo 'COUNT_WORK after '.json_encode($countWork,JSON_THROW_ON_ERROR)."\n";
+    $pdo->listWork=[];$tabs=ManagerQueueProjectionService::counts(7,'anytour',true);
+    queryPageCheck('standalone inbox tabs read both complete candidate pages',count($pdo->listWork)===2);
+    foreach(['waiting'=>'mine','mine'=>'waiting'] as $current=>$other){
+        $pdo->executions=0;$pdo->listWork=[];$rows=ManagerConversationService::list(7,$current,200,'anytour');
+        $listQueries=$pdo->executions;
+        $fromList=ManagerQueueProjectionService::summarize($current,ManagerQueueProjectionService::actionableRows($current,$rows));
+        $missing=ManagerQueueProjectionService::counts(7,'anytour',true,$other);
+        queryPageCheck($current.' complete authorized page and one fresh complementary read reproduce both badges',
+            count($rows)>100&&$fromList===$tabs[$current]&&$missing===[$other=>$tabs[$other]]&&count($pdo->listWork)===2);
+        $complementQueries=$pdo->executions-$listQueries;
+        $pdo->executions=0;ManagerQueueProjectionService::counts(7,'anytour',true);
+        echo 'COMBINED_QUEUE_READS '.json_encode(['queue'=>$current,'rows'=>count($rows),'previous_sql'=>$listQueries+$pdo->executions,'new_sql'=>$listQueries+$complementQueries])."\n";
+    }
     foreach([['manager',1,'*'],['manager',0,'anytour'],['admin',1,'anytour'],['manager',1,'other']] as [$role,$working,$project]){
         $db->prepare('UPDATE managers SET role=?,is_working=? WHERE id=7')->execute([$role,$working]);
         foreach(['waiting','requested','mine'] as $queue){
@@ -241,7 +261,6 @@ if(is_callable([ManagerConversationService::class,'queueCountRows'])){
 
 // The working New queue is personal even for an administrator. Administrative
 // All/attention views remain available; this selection must never reassign leads.
-require_once dirname(__DIR__).'/services/ManagerQueueProjectionService.php';
 $db->exec('DELETE FROM conversations; DELETE FROM messages; DELETE FROM conversation_events; DELETE FROM manager_conversation_reads; DELETE FROM conversation_lead_tags; DELETE FROM lead_stage_history');
 foreach([[101,null,'waiting_manager',1],[102,7,'manager',2],[103,8,'manager',3],[104,7,'manager',1]] as [$id,$owner,$status,$unread]){
     $at='2026-10-14 10:00:'.str_pad((string)($id-100),2,'0',STR_PAD_LEFT);

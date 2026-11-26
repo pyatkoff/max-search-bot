@@ -1,0 +1,227 @@
+{
+  "binding_revision": "dc2ff7764e02f65096ab47c5d2345a0500ce50c9a912784babf58882f4581ab3",
+  "coverage": {
+    "available_prepared_claim_count": 8,
+    "basis": "All whole source facts from the immutable reviewed LOCAL26 package; not independent AI content admission.",
+    "complete": false,
+    "selected_claim_count": 8
+  },
+  "facts": [
+    {
+      "aspect": "beachfront_location_and_layout",
+      "declared": true,
+      "hotel_key": "EXP010",
+      "id": "A4609-F01",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Hua Hin beach / low-rise gardens and ponds",
+        "kind": "location"
+      },
+      "source_ids": [
+        "A4609-home"
+      ],
+      "text": "Курорт расположен прямо у пляжа Хуахина; невысокие корпуса, сады и пруды оформлены в стиле тайской деревни.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "category_pool_and_terrace_features",
+      "declared": true,
+      "hotel_key": "EXP010",
+      "id": "A4609-F02",
+      "kind": "official_declared",
+      "scope": {
+        "key": "rooms/suites; pool access and private pools only in selected categories",
+        "kind": "accommodation_listing"
+      },
+      "source_ids": [
+        "A4609-home"
+      ],
+      "text": "Предлагаются номера и люксы с балконами или террасами; отдельные категории имеют выход к бассейну, некоторые люксы — собственный бассейн.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "pool_age_zones",
+      "declared": true,
+      "hotel_key": "EXP010",
+      "id": "A4609-F03",
+      "kind": "official_declared",
+      "scope": {
+        "key": "main pool all ages / Lagoon Pool adults-only; no numeric age inferred",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "A4609-home",
+        "A4609-leisure"
+      ],
+      "text": "Основной бассейн доступен гостям всех возрастов; Lagoon Pool предназначен только для взрослых.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "child_facilities",
+      "declared": true,
+      "hotel_key": "EXP010",
+      "id": "A4609-F04",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Little Farmer club / Mini Farm",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "A4609-home",
+        "A4609-leisure"
+      ],
+      "text": "Для семей предусмотрены детский клуб Little Farmer и Mini Farm.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "sport_activities",
+      "declared": true,
+      "hotel_key": "EXP010",
+      "id": "A4609-F05",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Active Zone / Muay Thai / tennis / pickleball",
+        "kind": "facility"
+      },
+      "source_ids": [
+        "A4609-leisure"
+      ],
+      "text": "Зона Active Zone включает занятия муай-тай, теннис и пиклбол.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "spa",
+      "declared": true,
+      "hotel_key": "EXP010",
+      "id": "A4609-F06",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Anantara Spa",
+        "kind": "facility"
+      },
+      "source_ids": [
+        "A4609-home"
+      ],
+      "text": "В отеле работает Anantara Spa.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "beachfront_dining",
+      "declared": true,
+      "hotel_key": "EXP010",
+      "id": "A4609-F07",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Sea Fire Salt",
+        "kind": "dining"
+      },
+      "source_ids": [
+        "A4609-home"
+      ],
+      "text": "Ресторан и бар Sea Fire Salt расположен у пляжа.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "bangkok_transfer",
+      "declared": true,
+      "hotel_key": "EXP010",
+      "id": "A4609-F08",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Bangkok to Hua Hin / airport car transfer on request",
+        "kind": "transfer_route"
+      },
+      "source_ids": [
+        "A4609-contact"
+      ],
+      "text": "Отель указывает около трёх часов езды из Бангкока и предлагает автомобильный трансфер из аэропорта по запросу.",
+      "valid_at_travel": "unverified"
+    }
+  ],
+  "hotel_ref": {
+    "catalog": "anytour",
+    "id": 4609
+  },
+  "material_limits": {
+    "identity_admission": "Цепочка legacy_catalog 2948 → AnyTour 4609 (ревизия 2) → local-tv 2948 (ревизия 2) и это целое досье независимо приняты решением ACCEPT_LOCAL19_BOUNDED_CONSUMER_IDENTITY_AND_CONTENT_ADMISSION по сохранённым оригинальным доказательствам. Native LOCAL остаётся pending, source_json=NULL; приёмка досье не означает приёмку нового native/provider source. Реальная Library приёмка, установка в справочник, чтение с реальным разрешённым selector и использование ИИ подтверждаются отдельно; runtime_admission_verified=false.",
+    "original_notes_ru": [
+      "Доступ к бассейну и собственный бассейн описаны только для отдельных категорий; Club-привилегии не распространены на все номера.",
+      "Разделены бассейн для всех возрастов и Lagoon Pool только для взрослых; точный минимальный возраст второго бассейна не придуман.",
+      "Оценка времени автомобильного пути ориентировочная; возможность безопасного купания в море и включение занятий в тариф не заявляются."
+    ],
+    "recommendation_boundary": "Заявления об аудитории отеля не являются независимой оценкой качества или гарантией пригодности конкретному туристу.",
+    "scope": "Каждое целое утверждение применяется только к указанному объекту, категории, услуге, сезону или маршруту. Обещания тарифа, цены, наличия и будущей работы не добавлены.",
+    "temporal": "Сохранены сведения и дата чтения 22.11.2026. Текущая или будущая работа услуг не проверялась; срок действия и дата публикации не выдуманы."
+  },
+  "price_authority": "none",
+  "project_key": "anytour",
+  "record_hashes": {
+    "claims": {
+      "A4609-F01": "37741b7672ce84918d8cbeab9a2f99ca7f41789c988e5e5fdfa4e6cfc0ad4c4a",
+      "A4609-F02": "cc234c03b2cbaed53767471342d23ea021940b923882ac3a5d8f4fdd0ae68ac8",
+      "A4609-F03": "ede6de24168bac629529348ff69a728f447edf1e09927df9e5ddc9adc6bf36c8",
+      "A4609-F04": "f31154e2983d84e4086236e67ff843b76c3740bd9bb49a9185f2bd25e7ad251d",
+      "A4609-F05": "8878a11c233d33816b504e613bc2d5dc2bb9a519cc843f8d39de552e8ca2eef1",
+      "A4609-F06": "bc10b3ccdf5580b9c7c28dbbb1ebffaa4817b6619b0a37906ca8cba519d836fb",
+      "A4609-F07": "ed6ae9961067a71c89800843779710bbe5187873e6614e099463b0c534c2f758",
+      "A4609-F08": "3e56550662914b9efb361b168d47234cb842b9c5b3bd6d0fb04681d69261e675"
+    },
+    "sources": {
+      "A4609-contact": "122a71fcf7ce0a2687f51fa69fc4947c4f14389cd33e42475dc9febed568ea7e",
+      "A4609-home": "c9d3a529129fb3727931f86fc97c21e1b762593af3d0cf4251342394df0b80e9",
+      "A4609-leisure": "c28f9b12c4a9586b475e6e2b6f971beec3544c305a6b503db9fe26c16f753b72"
+    }
+  },
+  "research_hotel_key": "EXP010",
+  "runtime_admission_verified": false,
+  "schema_version": "hotel_reference_v1",
+  "sources": [
+    {
+      "capture_bytes": 231750,
+      "capture_format": "raw_html",
+      "capture_sha256": "bbbf4b2b57eb74379b4e035c6018ec19a3370ed07e40f10c43abac266826c515",
+      "hotel_key": "EXP010",
+      "id": "A4609-home",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: A4609-F01, A4609-F02, A4609-F03, A4609-F04, A4609-F06, A4609-F07. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:40.689291+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Hua Hin Hotels | Anantara Hua Hin Resort Official Site",
+      "url": "https://www.anantara.com/en/hua-hin"
+    },
+    {
+      "capture_bytes": 213636,
+      "capture_format": "raw_html",
+      "capture_sha256": "c950589f6e75d47b3abb15207390738b68f5ee75db7186e6660bedf04aecb3c4",
+      "hotel_key": "EXP010",
+      "id": "A4609-leisure",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: A4609-F03, A4609-F04, A4609-F05. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:59:04.133144+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Things To Do In Hua Hin Thailand | Leisure at Anantara",
+      "url": "https://www.anantara.com/en/hua-hin/leisure"
+    },
+    {
+      "capture_bytes": 159319,
+      "capture_format": "raw_html",
+      "capture_sha256": "e6e55060564f007dd4674313638235055a91ae7d8b840b52dc8517b1e719405f",
+      "hotel_key": "EXP010",
+      "id": "A4609-contact",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: A4609-F08. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:59:04.173230+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Resort in Hua Hin | Contact Anantara Hua Hin Resort",
+      "url": "https://www.anantara.com/en/hua-hin/contact"
+    }
+  ],
+  "status": "SEALED_AUTHORING_DATA_ONLY",
+  "trusted_selector_required": true
+}

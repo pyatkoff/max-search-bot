@@ -28,7 +28,20 @@ final class ModeledConversionTextSignals
             'budget'=>'бюджет\pL*|\d[\d ,.]*\s*(?:тыс(?:яч\pL*)?|руб\pL*|₽|доллар\pL*|евро)|до\s+\d+\s*[$€]',
             'requirements'=>'вс[её]\s+включено|ультра\s+вс[её]|первая\s+лини\pL*|первой\s+лини\pL*|песчан\pL*\s+пляж|подогрева\pL*\s+бассейн|аквапарк|детск\pL*\s+(?:клуб|меню)|[345]\s*(?:зв[её]зд\pL*|\*)|без\s+пересад\pL*',
         ];
-        $out=[];foreach($rules as$family=>$pattern)if(self::hit($pattern,$text))$out[]=$family;return$out;
+        $categoryText=$calendarText=$text;$starRanges=0;
+        if(str_contains($text,'/')){
+            $range='[1-5](?:\h*/\h*[1-5])+';
+            // Closing Markdown emphasis in “*departure 4/5*” is not a hotel star.
+            $categoryText=preg_replace('~(?<![\pL\pN*])(\*{1,3})(?![\s*])((?:(?!\1)[^\r\n])*?(?<![\d./])'.$range.')\1(?!\*)~u','$2',$text)??$text;
+            // Remove only marked categories. Independent dates and durations keep their original source.
+            $calendarText=preg_replace('~(?<![\d./])'.$range.'\h*(?:зв[её]зд\pL*|[*★⭐])~iu',' ',$categoryText,-1,$starRanges)??$categoryText;
+        }
+        $out=[];
+        foreach($rules as$family=>$pattern){
+            $input=match($family){'dates'=>$calendarText,'requirements'=>$categoryText,default=>$text};
+            if(($family==='requirements'&&$starRanges>0)||self::hit($pattern,$input))$out[]=$family;
+        }
+        return $out;
     }
     private static function hit(string $pattern,string $text):bool{return preg_match('~'.$pattern.'~iu',$text)===1;}
 }

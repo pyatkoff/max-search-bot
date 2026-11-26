@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/AppleService39CoverageRevision.php';
+require_once __DIR__.'/AppleService39DeviceRevision.php';
 
 /** Durable one-attempt state; no provider call and no runtime schema creation. */
 final class AppleService39PilotPublicationStore
@@ -8,6 +9,7 @@ final class AppleService39PilotPublicationStore
     private PDO $pdo;
     private ?AppleService39SearchIntentRevision $searchRevision = null;
     private ?string $searchBaseSha256 = null;
+    private ?array $deviceOriginalCreates = null;
     public function __construct(PDO $pdo) { $this->pdo = $pdo; }
 
     public function campaign(): ?array
@@ -73,8 +75,8 @@ final class AppleService39PilotPublicationStore
 
     public function prepare(string $post, string $operation, array $request): array
     {
-        if (!preg_match('/\A[a-z][a-z0-9_-]{0,55}\z/D', $post) || !in_array($operation, ['upload','create','links','pin','landing_upload','landing_edit','catalogue_v1','search_v1_upload','search_v1_edit','coverage_upload','coverage_menu'], true)) throw new RuntimeException('invalid_pilot_operation');
-        if (AppleService39CoverageRevision::isOperation($post, $operation, $request)) $this->validateCoverageRequest($post, $operation, $request);
+        if (!preg_match('/\A[a-z][a-z0-9_-]{0,55}\z/D', $post) || !in_array($operation, ['upload','create','links','pin','landing_upload','landing_edit','catalogue_v1','search_v1_upload','search_v1_edit','coverage_upload','coverage_menu',AppleService39DeviceRevision::UPLOAD], true)) throw new RuntimeException('invalid_pilot_operation');
+        if ($this->isPublicationRevision($post, $operation, $request)) $this->validatePublicationRequest($post, $operation, $request);
         if (self::isSearchOperation($post, $operation, $request)) $this->validateSearchRequest($post, $operation, $request);
         $json = self::json($request); $hash = hash('sha256', $json);
         $row = $this->operation($post, $operation);
@@ -96,8 +98,8 @@ final class AppleService39PilotPublicationStore
     public function claim(array $row): bool
     {
         if ($this->pdo->inTransaction()) throw new RuntimeException('pilot_requires_autocommit');
-        if (AppleService39CoverageRevision::isOperation($row['post_key'], $row['operation'], $row['request'])) {
-            $this->validateCoverageRequest($row['post_key'], $row['operation'], $row['request']);
+        if ($this->isPublicationRevision($row['post_key'], $row['operation'], $row['request'])) {
+            $this->validatePublicationRequest($row['post_key'], $row['operation'], $row['request']);
             $current = $this->operation($row['post_key'], $row['operation']);
             if (!$current || (int)$current['id'] !== (int)$row['id'] || $current['request'] !== $row['request']
                 || $current['payload_sha256'] !== $row['payload_sha256']) throw new RuntimeException('pilot_operation_changed');
@@ -220,10 +222,11 @@ final class AppleService39PilotPublicationStore
                 throw new RuntimeException('search_image_receipt_required');
             }
         }
-        if ($state === 'verified' && AppleService39CoverageRevision::isOperation($current['post_key'], $current['operation'], $current['request'])) {
-            $this->validateCoverageRequest($current['post_key'], $current['operation'], $current['request']);
-            if ($current['operation'] === AppleService39CoverageRevision::UPLOAD) $this->coverageUpload($outcome);
-            else {
+        if ($state === 'verified' && $this->isPublicationRevision($current['post_key'], $current['operation'], $current['request'])) {
+            $this->validatePublicationRequest($current['post_key'], $current['operation'], $current['request']);
+            if (in_array($current['operation'], [AppleService39CoverageRevision::UPLOAD,AppleService39DeviceRevision::UPLOAD], true)) {
+                $this->validatePublicationUpload($outcome, $current['request']['source_sha256']);
+            } else {
                 if (!is_array($receipt) || ($outcome['readback'] ?? null) !== true
                     || ($outcome['revision_sha256'] ?? null) !== $current['request']['revision_sha256']
                     || !is_string($current['public_url'])
@@ -365,7 +368,7 @@ final class AppleService39PilotPublicationStore
     {
         $parents = [];
         foreach ($this->rows() as $row) {
-            if (AppleService39CoverageRevision::isOperation($row['post_key'], $row['operation'], $row['request'])) continue;
+            if ($this->isPublicationRevision($row['post_key'], $row['operation'], $row['request'])) continue;
             if ($row['state'] !== 'verified' || (int)$row['write_attempts'] !== 1) throw new RuntimeException('coverage_parent_incomplete');
             $parents[] = $row;
         }
@@ -426,16 +429,27 @@ final class AppleService39PilotPublicationStore
             || $upload['request'] !== $this->coverageRequest(AppleService39CoverageRevision::COVER, AppleService39CoverageRevision::UPLOAD)) {
             throw new RuntimeException('coverage_images_not_prepared');
         }
-        $this->coverageUpload($upload['outcome']);
+        $this->validatePublicationUpload($upload['outcome'], $revision->assetSha());
         $plan = $revision->plan($post, $upload['outcome'], $addresses);
         return $request + ['upload_operation_id'=>(int)$upload['id'], 'upload_request_sha256'=>$upload['payload_sha256'],
             'upload_token_sha256'=>hash('sha256', $upload['outcome']['token']),
             'body'=>$plan['body'], 'native_text'=>$plan['native_text'], 'native_markup'=>$plan['native_markup']];
     }
 
-    private function validateCoverageRequest(string $post, string $operation, array $request): void
+    /** Only the fixed original 69 published post IDs may precede this device packet. */
+    private function deviceOriginalCreates(): array
     {
-        if ($request !== $this->coverageRequest($post, $operation)) throw new RuntimeException('invalid_coverage_operation');
+        if ($this->deviceOriginalCreates !== null) return $this->deviceOriginalCreates;
+        $original = AppleService39PilotManifest::installed();
+        $search = new AppleService39SearchIntentRevision($original);
+        $coverage = new AppleService39CoverageRevision();
+        $expected = array_merge(array_column($original->posts(), 'id'), $coverage->order());
+        foreach ($search->posts() as $card) {
+            if ($card['action'] === 'create_new') $expected[] = $card['id'];
+        }
+        $ids = array_fill_keys($expected,true);
+        if (count($ids) !== 69) throw new RuntimeException('device_parent_incomplete');
+        return $this->deviceOriginalCreates = $ids;
     }
 
     /**
@@ -467,7 +481,7 @@ final class AppleService39PilotPublicationStore
         $parents = []; $addresses = []; $mids = []; $operations = [];
         foreach ($rows as $row) {
             $operations[$row['post_key']."\0".$row['operation']] = $row;
-            if (!AppleService39CoverageRevision::isOperation($row['post_key'], $row['operation'], $row['request'])) {
+            if (!$this->isPublicationRevision($row['post_key'], $row['operation'], $row['request'])) {
                 if ($row['state'] !== 'verified' || (int)$row['write_attempts'] !== 1) throw new RuntimeException('coverage_parent_incomplete');
                 $parents[] = $row;
             }
@@ -511,7 +525,7 @@ final class AppleService39PilotPublicationStore
                         + array_slice($base, 2, null, true);
                     if (!$upload || $upload['state'] !== 'verified' || (int)$upload['write_attempts'] !== 1
                         || $upload['request'] !== $uploadRequest) throw new RuntimeException('coverage_images_not_prepared');
-                    $this->coverageUpload($upload['outcome']);
+                    $this->validatePublicationUpload($upload['outcome'], $revision->assetSha());
                     $uploadValidated = true;
                 }
                 $plan = $revision->plan($post, $upload['outcome'], $addresses);
@@ -527,17 +541,105 @@ final class AppleService39PilotPublicationStore
             || $this->campaign() !== $campaign || $this->rows() !== $rows) throw new RuntimeException('coverage_revision_changed');
     }
 
-    private function coverageUpload(array $outcome): void
+    /** Bind the verified history used to prepare this device batch. */
+    public function deviceParentDigest(): string
+    {
+        $missing = $this->deviceOriginalCreates();
+        $requiresCover = $requiresMenu = true;
+        $parents = [];
+        $devicePrepared = false;
+        foreach ($this->rows() as $row) {
+            $post = $row['post_key']; $op = $row['operation'];
+            if (AppleService39DeviceRevision::isOperation($post, $op, $row['request'])) {
+                $devicePrepared = true;
+                continue;
+            }
+            // The existing pin may have been verified in place without sending a pin request.
+            $observedPin = $post === 'menu' && $op === 'pin' && (int)$row['write_attempts'] === 0
+                && ($row['outcome']['already_present'] ?? null) === true && ($row['outcome']['readback'] ?? null) === true;
+            if ($row['state'] !== 'verified' || ((int)$row['write_attempts'] !== 1 && !$observedPin)) {
+                throw new RuntimeException('device_parent_incomplete');
+            }
+            if ($op === 'create') {
+                if (!isset($missing[$post])) throw new RuntimeException('device_parent_incomplete');
+                unset($missing[$post]);
+            } elseif ($post === AppleService39CoverageRevision::COVER && $op === AppleService39CoverageRevision::UPLOAD) {
+                $requiresCover = false;
+            } elseif ($post === 'menu' && $op === AppleService39CoverageRevision::MENU) {
+                $requiresMenu = false;
+            }
+            // The services index formatting was verified after this batch's
+            // upload plan was pinned. Its permalink, photo and CTA are unchanged.
+            if ($devicePrepared && $post === 'pl3-services-index' && $op === 'links'
+                && ($row['request']['revision'] ?? null) === 'labelled-services-links-20261119'
+                && ($row['request']['target_post'] ?? null) === 'services-index'
+                && ($row['request']['message_id'] ?? null) === $row['external_message_id']
+                && ($row['request']['url'] ?? null) === $row['public_url']
+                && ($row['outcome']['readback'] ?? null) === true
+                && ($row['outcome']['native_labelled_links'] ?? null) === 18
+                && ($row['outcome']['photo_preserved'] ?? null) === true
+                && ($row['outcome']['single_cta_preserved'] ?? null) === true) {
+                continue;
+            }
+            $parents[] = $row;
+        }
+        if ($missing || $requiresCover || $requiresMenu) throw new RuntimeException('device_parent_incomplete');
+        return hash('sha256', json_encode($parents, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+    }
+
+    /** Generate from installed reviewed assets and an exact verified upload of the same post. */
+    public function deviceRequest(string $post, string $operation): array
+    {
+        $revision = new AppleService39DeviceRevision();
+        if (!in_array($post, $revision->order(), true)
+            || !in_array($operation, [AppleService39DeviceRevision::UPLOAD,'create'], true)) throw new RuntimeException('invalid_device_operation');
+        $campaign = $this->campaign();
+        if (!$campaign || $campaign['project_key'] !== 'appleservice39'
+            || $campaign['bot_key'] !== 'id390521129062_bot' || $campaign['channel_id'] !== '-80917954947727'
+            || $campaign['manifest_sha256'] !== AppleService39PilotManifest::installed()->sha256()) {
+            throw new RuntimeException('device_parent_incomplete');
+        }
+        $revision->artwork($post);
+        $request = ['revision'=>AppleService39DeviceRevision::KEY, 'revision_sha256'=>$revision->sha256(),
+            'post_id'=>$post, 'source_sha256'=>$revision->assetSha($post), 'parent_operations_sha256'=>$this->deviceParentDigest()];
+        if ($operation === AppleService39DeviceRevision::UPLOAD) return $request;
+        $upload = $this->operation($post, AppleService39DeviceRevision::UPLOAD);
+        if (!$upload || $upload['state'] !== 'verified' || (int)$upload['write_attempts'] !== 1
+            || $upload['request'] !== $request || $upload['payload_sha256'] !== hash('sha256', self::json($request))) {
+            throw new RuntimeException('device_images_not_prepared');
+        }
+        $this->validatePublicationUpload($upload['outcome'], $request['source_sha256']);
+        $plan = $revision->plan($post, $upload['outcome']);
+        return $request + ['upload_operation_id'=>(int)$upload['id'], 'upload_request_sha256'=>$upload['payload_sha256'],
+            'upload_token_sha256'=>hash('sha256', $upload['outcome']['token']),
+            'body'=>$plan['body'], 'native_text'=>$plan['native_text'], 'native_markup'=>$plan['native_markup']];
+    }
+
+    private function isPublicationRevision(string $post, string $operation, array $request): bool
+    {
+        return AppleService39CoverageRevision::isOperation($post, $operation, $request)
+            || AppleService39DeviceRevision::isOperation($post, $operation, $request);
+    }
+
+    private function validatePublicationRequest(string $post, string $operation, array $request): void
+    {
+        if (AppleService39DeviceRevision::isOperation($post, $operation, $request)) {
+            if ($request !== $this->deviceRequest($post, $operation)) throw new RuntimeException('invalid_device_operation');
+        } elseif ($request !== $this->coverageRequest($post, $operation)) throw new RuntimeException('invalid_coverage_operation');
+    }
+
+    private function validatePublicationUpload(array $outcome, string $assetSha): void
     {
         if (array_keys($outcome) !== ['photo_id','token'] || !is_string($outcome['photo_id'])
             || !preg_match('/\A[0-9]{1,19}\z/D', $outcome['photo_id']) || !is_string($outcome['token'])
             || $outcome['token'] === '' || strlen($outcome['token']) > 4096
             || preg_match('/[\x00-\x20\x7f]/', $outcome['token'])) throw new RuntimeException('invalid_coverage_upload');
         foreach ($this->rows() as $other) {
-            if (!in_array($other['operation'], ['upload','landing_upload','search_v1_upload'], true)
+            if (!in_array($other['operation'], ['upload','landing_upload','search_v1_upload',
+                AppleService39CoverageRevision::UPLOAD,AppleService39DeviceRevision::UPLOAD], true)
                 || ($other['outcome']['token'] ?? null) !== $outcome['token']) continue;
-            // Deliberate sharing is allowed only for this exact already-approved neutral image.
-            if (($other['request']['source_sha256'] ?? null) !== (new AppleService39CoverageRevision())->assetSha()) {
+            // The provider may return the same token when the reviewed bytes are identical.
+            if (($other['request']['source_sha256'] ?? null) !== $assetSha) {
                 throw new RuntimeException('coverage_upload_collision');
             }
         }
@@ -557,8 +659,11 @@ final class AppleService39PilotPublicationStore
             $expected = $base + ['request_sha256'=>$row['payload_sha256'], 'revision_sha256'=>$r['revision_sha256'],
                 'parent_operation_id'=>$r['parent_operation_id'], 'parent_image_receipt_sha256'=>$r['parent_image_receipt_sha256']];
         } else throw new RuntimeException('invalid_coverage_image_receipt');
-        if ($receipt !== $expected || !is_string($base['photo_id'])
-            || !preg_match('/\A[1-9][0-9]{0,18}\z/D', $base['photo_id'])) throw new RuntimeException('invalid_coverage_image_receipt');
+        $photo = $base['photo_id'];
+        $valid = AppleService39DeviceRevision::isOperation($row['post_key'], $row['operation'], $r)
+            ? AppleService39DeviceRevision::validNativePhotoId($photo)
+            : is_string($photo) && preg_match('/\A[1-9][0-9]{0,18}\z/D', $photo) === 1;
+        if ($receipt !== $expected || !$valid) throw new RuntimeException('invalid_coverage_image_receipt');
     }
 
     public function rememberCoverageImageReceipt(array $row, array $receipt): void
@@ -566,11 +671,11 @@ final class AppleService39PilotPublicationStore
         if ($this->pdo->inTransaction()) throw new RuntimeException('pilot_requires_autocommit');
         $current = $this->operation($row['post_key'], $row['operation']);
         if (!$current || (int)$current['id'] !== (int)$row['id'] || $current['payload_sha256'] !== $row['payload_sha256']
-            || !AppleService39CoverageRevision::isOperation($current['post_key'], $current['operation'], $current['request'])
+            || !$this->isPublicationRevision($current['post_key'], $current['operation'], $current['request'])
             || !in_array($current['state'], ['write_started','unknown'], true) || (int)$current['write_attempts'] !== 1) {
             throw new RuntimeException('invalid_coverage_image_receipt');
         }
-        $this->validateCoverageRequest($current['post_key'], $current['operation'], $current['request']);
+        $this->validatePublicationRequest($current['post_key'], $current['operation'], $current['request']);
         $this->validateCoverageImageReceipt($current, $receipt);
         $old = $current['outcome']['image_receipt'] ?? null;
         if ($old !== null) {

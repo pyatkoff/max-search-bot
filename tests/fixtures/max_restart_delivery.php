@@ -16,6 +16,11 @@ class ConversationRecorder {
         $pdo=ConversationDb::connection();$q=$pdo->prepare("SELECT id FROM conversations WHERE project_key=? AND channel=? AND external_chat_id=? AND status<>'closed' ORDER BY id DESC LIMIT 1");$q->execute([ProjectConfig::projectId(),$channel,(string)$chat]);$id=(int)$q->fetchColumn();if(!$id)return false;
         $q=$pdo->prepare('INSERT INTO conversation_events(conversation_id,event_type,actor_type,payload_json) VALUES(?,?,?,?)');return $q->execute([$id,$type,$actor,json_encode($payload)]);
     }
+    public static function eventForConversation(int $id,string $type,array $payload=[],string $actor='system'):bool{
+        if($id<=0)return false;
+        $q=ConversationDb::connection()->prepare('INSERT INTO conversation_events(conversation_id,event_type,actor_type,payload_json) VALUES(?,?,?,?)');
+        return $q->execute([$id,$type,$actor,json_encode($payload)]);
+    }
     public static function outboundForConversation($id,$channel,$text,$sender,$senderId,$meta,$external=''){
         $q=ConversationDb::connection()->prepare("INSERT INTO messages(conversation_id,direction,sender_type,text) VALUES(?,'outbound',?,?)");return $q->execute([$id,$sender,$text]);
     }
@@ -50,7 +55,7 @@ PHP;
 file_put_contents($tmp.'/bootstrap.php',$bootstrap);
 foreach(['ConversationDb','ProjectConfig','DiagnosticLogger','SourceHandlingService','ConversationRecorder','ManagerConversationService','ManagerPushService','ManagerSendGuardService','MetrikaConversionGoalService','ProjectMaxMessengerFactory'] as $name)file_put_contents($tmp.'/services/'.$name.'.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
 foreach(['MaxMessengerAdapter','TelegramMessengerAdapter','WebsiteMessengerAdapter'] as $name)file_put_contents($tmp.'/integrations/'.$name.'.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
-foreach(['MaxStartSourcePolicy','ManagerDeliveryStateService','ManagerOutboundService','ManagerReplyQueueService','ConversationRecordClock'] as $name)copy($root.'/services/'.$name.'.php',$tmp.'/services/'.$name.'.php');
+foreach(['MaxStartSourcePolicy','ManagerDeliveryStateService','ManagerOutboundService','ProjectTelegramMessengerFactory','ManagerReplyQueueService','ConversationRecordClock'] as $name)copy($root.'/services/'.$name.'.php',$tmp.'/services/'.$name.'.php');
 $pass=0;$fail=0;
 function restartCheck(string $name,$actual,$expected):void{global $pass,$fail;if($actual===$expected){$pass++;echo 'PASS '.$name.PHP_EOL;}else{$fail++;echo 'FAIL '.$name.' expected='.json_encode($expected).' actual='.json_encode($actual).PHP_EOL;}}
 function restartEvent(int $id,string $type,array $payload=[],string $actor='system'):void{ConversationControlService::event($id,$type,$actor,7,$payload);}

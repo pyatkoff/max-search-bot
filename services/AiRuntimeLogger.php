@@ -27,9 +27,9 @@ class AiRuntimeLogger
         return self::file('ai_debug.log', $prepare);
     }
 
-    public static function errorFile(): string
+    public static function errorFile(bool $prepare = true): string
     {
-        return self::file('ai_errors.log');
+        return self::file('ai_errors.log', $prepare);
     }
 
     private static function append(string $name, string $message): bool

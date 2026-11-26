@@ -4,10 +4,12 @@ declare(strict_types=1);
 /** Pure monetary projection of admitted evidence; estimates are not a quote, income or bank receipt. */
 final class ModeledConversionDealValue
 {
-    public const VERSION='early_deal_commission_7pct_v2';
+    public const VERSION='early_deal_commission_7pct_v3';
     public const COMMISSION_RATE=0.07;
     public const CAP=100000;
     public const UNKNOWN_BASE=10000;
+    private const V2_VERSION='early_deal_commission_7pct_v2';
+    private const V2_RULES_SHA256='8a35e248d8237b9042d6aa94eca975c00aae8ae2dc6b3ef42c61b50ee4273669';
     private const LEGACY_VERSION='early_deal_commission_7pct_v1';
     private const LEGACY_RULES_SHA256='f4f205793ce51a18f7268292df3e0362b152869d60c71a5bc9c62017ca136593';
 
@@ -16,7 +18,7 @@ final class ModeledConversionDealValue
     {
         return match($version){
             self::LEGACY_VERSION=>['cap_rub'=>25000,'unknown_base_rub'=>25000,'unknown_base_basis'=>'existing_25000_fallback'],
-            self::VERSION=>['cap_rub'=>self::CAP,'unknown_base_rub'=>self::UNKNOWN_BASE,'unknown_base_basis'=>'provisional_commission_10000'],
+            self::V2_VERSION,self::VERSION=>['cap_rub'=>self::CAP,'unknown_base_rub'=>self::UNKNOWN_BASE,'unknown_base_basis'=>'provisional_commission_10000'],
             default=>null,
         };
     }
@@ -86,7 +88,9 @@ final class ModeledConversionDealValue
             $ref='journal:'.($row['journal_id']??'');$payload=$s['payload']??[];
             $rows[$ref]=$row;
             if(($row['source_kind']??null)==='event'&&($payload['event_type']??null)==='channel_post_entry'
-                &&($payload['actor_type']??null)==='customer'){
+                &&($payload['actor_type']??null)==='customer'
+                &&$anchor!==null&&$at<=$anchor&&$anchor-$at<=86400){
+                // Select only time-eligible entries; a later post cannot hide the request's earlier price.
                 $context=$payload['_modeled_price_context']??null;
                 if(is_array($context)&&($context['version']??null)==='entry_price_context_v1'
                     &&($context['captured_at_unix']??null)===$available
@@ -179,7 +183,12 @@ final class ModeledConversionDealValue
         if(!is_array($v)||!is_array($p)||($wrapper['access_status']??null)!=='allowed'||strlen(json_encode($v))>8192
             ||!is_string($v['version']??null))return null;
         $policy=self::policy($v['version']);
-        $rulesSha256=$v['version']===self::VERSION?hash_file('sha256',__FILE__):self::LEGACY_RULES_SHA256;
+        $rulesSha256=match($v['version']){
+            self::VERSION=>hash_file('sha256',__FILE__),
+            self::V2_VERSION=>self::V2_RULES_SHA256,
+            self::LEGACY_VERSION=>self::LEGACY_RULES_SHA256,
+            default=>null,
+        };
         if($policy===null||($v['rules_sha256']??null)!==$rulesSha256
             ||!self::sameSubject($v['subject']??null,$wrapper['subject']??null)||($v['semantic_prediction_digest']??null)!==($p['prediction_digest']??null)
             ||($v['commission_rate']??null)!==self::COMMISSION_RATE||($v['currency']??null)!=='RUB'

@@ -189,21 +189,91 @@ jobs:
         id: sync
         if: steps.bundle.outcome == 'success'
         continue-on-error: true
+        timeout-minutes: 45
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
           EXPECTED_SHA: ${{ github.sha }}
+          EXPECTED_CHECKOUT_SHA: ${{ steps.release_plan.outputs.expected_checkout_sha }}
+          PREVIOUS_MAIN_SHA: ${{ github.event.before }}
         shell: bash
         run: |
           set -euo pipefail
           key_file="$RUNNER_TEMP/deploy_key"
           bundle_file="$RUNNER_TEMP/production-deploy.bundle"
           remote_bundle="/tmp/max-search-production-$EXPECTED_SHA.bundle"
-          ssh_opts=(-i "$key_file" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10)
+          ssh_opts=(-i "$key_file" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -o ServerAliveInterval=15 -o ServerAliveCountMax=4)
+          sync_script="$RUNNER_TEMP/production-sync-with-monitor-lock.sh"
+          PREVIOUS_MAIN_SHA="${PREVIOUS_MAIN_SHA:-}"
+          EXPECTED_CHECKOUT_SHA="${EXPECTED_CHECKOUT_SHA:-}"
+          if [[ "$PREVIOUS_MAIN_SHA" == b3386d558f72e9eb80acefad9e87b1ab91b4426f || "$EXPECTED_CHECKOUT_SHA" == b3386d558f72e9eb80acefad9e87b1ab91b4426f ]]; then
+            test "$PREVIOUS_MAIN_SHA" = b3386d558f72e9eb80acefad9e87b1ab91b4426f
+            test "$EXPECTED_CHECKOUT_SHA" = "$PREVIOUS_MAIN_SHA"
+            ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(git rev-parse HEAD)" = b3386d558f72e9eb80acefad9e87b1ab91b4426f; php tools/search_destination_smoke.php --http'
+          elif [[ "$PREVIOUS_MAIN_SHA" == cdde6f427f61bace3a5afbd943d2303f463d6531 || "$EXPECTED_CHECKOUT_SHA" == e3e1a9bdf29dd0d7530fe6b3b393f1286834d092 ]]; then
+            # PR1692 advanced main before installation began; production still runs PR1685.
+            test "$PREVIOUS_MAIN_SHA" = cdde6f427f61bace3a5afbd943d2303f463d6531
+            test "$EXPECTED_CHECKOUT_SHA" = e3e1a9bdf29dd0d7530fe6b3b393f1286834d092
+          elif [[ "$PREVIOUS_MAIN_SHA" == c3307bb811aefaa964c78f855b4d5e405fd606fb ]]; then
+            # PR1704 failed before sync. The earlier PR1702 checkout still needs verification.
+            test "$EXPECTED_CHECKOUT_SHA" = 32155b9eb2c8606b61554951bfdc988d70bbcb39
+            bash tools/check_public_runtime_log_fence.sh structured_events.log
+          elif [[ "$PREVIOUS_MAIN_SHA" == 302ba66b5739e369a4df94471c8cfe9c054dd070 || "$PREVIOUS_MAIN_SHA" == 32155b9eb2c8606b61554951bfdc988d70bbcb39 || "$PREVIOUS_MAIN_SHA" == 3073195685c8d57808256af6836182262f25fead || -n "$EXPECTED_CHECKOUT_SHA" ]]; then
+            case "$PREVIOUS_MAIN_SHA" in
+              302ba66b5739e369a4df94471c8cfe9c054dd070|32155b9eb2c8606b61554951bfdc988d70bbcb39|3073195685c8d57808256af6836182262f25fead) ;;
+              *) exit 1 ;;
+            esac
+            test "$EXPECTED_CHECKOUT_SHA" = "$PREVIOUS_MAIN_SHA"
+            bash tools/check_public_runtime_log_fence.sh structured_events.log
+          fi
+          {
+            cat tools/deploy_monitor_lock.sh
+            if [[ "$EXPECTED_CHECKOUT_SHA" == b3386d558f72e9eb80acefad9e87b1ab91b4426f ]]; then
+              cat <<'PR1664_CHECKOUT'
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          if [[ "$(git rev-parse HEAD)" != b3386d558f72e9eb80acefad9e87b1ab91b4426f ]]; then
+            echo 'PR1664 predecessor checkout changed' >&2
+            exit 1
+          fi
+          PR1664_CHECKOUT
+            elif [[ "$EXPECTED_CHECKOUT_SHA" == e3e1a9bdf29dd0d7530fe6b3b393f1286834d092 ]]; then
+              cat <<'PR1692_CHECKOUT'
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          if [[ "$(git rev-parse HEAD)" != e3e1a9bdf29dd0d7530fe6b3b393f1286834d092 ]]; then
+            echo 'PR1692 predecessor checkout changed' >&2
+            exit 1
+          fi
+          PR1692_CHECKOUT
+            elif [[ "$EXPECTED_CHECKOUT_SHA" == 32155b9eb2c8606b61554951bfdc988d70bbcb39 ]]; then
+              cat <<'PR1702_CHECKOUT'
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          if [[ "$(git rev-parse HEAD)" != 32155b9eb2c8606b61554951bfdc988d70bbcb39 ]]; then
+            echo 'PR1702 predecessor checkout changed' >&2
+            exit 1
+          fi
+          PR1702_CHECKOUT
+            elif [[ "$EXPECTED_CHECKOUT_SHA" == 3073195685c8d57808256af6836182262f25fead ]]; then
+              cat <<'PR1721_CHECKOUT'
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          if [[ "$(git rev-parse HEAD)" != 3073195685c8d57808256af6836182262f25fead ]]; then
+            echo 'PR1721 predecessor checkout changed' >&2
+            exit 1
+          fi
+          PR1721_CHECKOUT
+            elif [[ -n "$EXPECTED_CHECKOUT_SHA" ]]; then
+              cat <<'PR1662_CHECKOUT'
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          if [[ "$(git rev-parse HEAD)" != 302ba66b5739e369a4df94471c8cfe9c054dd070 ]]; then
+            echo 'PR1662 predecessor checkout changed' >&2
+            exit 1
+          fi
+          PR1662_CHECKOUT
+            fi
+            printf '%s\n' "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; if ! git diff --quiet || ! git diff --cached --quiet; then echo 'ERROR: tracked production drift detected'; git status --short; rm -f '$remote_bundle'; exit 1; fi; git fetch '$remote_bundle' HEAD; git cat-file -e '$EXPECTED_SHA^{commit}'; git reset --hard '$EXPECTED_SHA'; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; php tools/structured_runtime_log_smoke.php; rm -f '$remote_bundle'; echo production_sha=\$(git rev-parse HEAD)"
+          } > "$sync_script"
           scp "${ssh_opts[@]}" "$bundle_file" "$DEPLOY_USER@$DEPLOY_HOST:$remote_bundle"
-          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; if ! git diff --quiet || ! git diff --cached --quiet; then echo 'ERROR: tracked production drift detected'; git status --short; rm -f '$remote_bundle'; exit 1; fi; git fetch '$remote_bundle' HEAD; git cat-file -e '$EXPECTED_SHA^{commit}'; git reset --hard '$EXPECTED_SHA'; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; php tools/structured_runtime_log_smoke.php; rm -f '$remote_bundle'; echo production_sha=\$(git rev-parse HEAD)"
-          status="$(curl --max-time 15 -sS -o /dev/null -I -w '%{http_code}' 'https://app.anytoour.ru/structured_events.log')"
-          case "$status" in 403|404) ;; *) echo "Public structured log containment failed: HTTP $status" >&2; exit 1;; esac
+          ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'bash -s' < "$sync_script"
+          bash tools/check_public_runtime_log_fence.sh structured_events.log
 
       - name: Apply database migrations and fence the old hotel contour
         id: migration
@@ -524,8 +594,7 @@ jobs:
           php tools/structured_runtime_log_smoke.php --check-only
           CHECK_REMOTE
           for path in ai_debug.log handlers/ai_debug.log handlers/ai_errors.log tmp_in.txt tmp_out.txt structured_events.log; do
-            status="$(curl --max-time 15 -sS -o /dev/null -I -w '%{http_code}' "https://app.anytoour.ru/$path")"
-            case "$status" in 403|404) ;; *) echo "Public runtime log containment failed for $path: HTTP $status" >&2; exit 1;; esac
+            bash tools/check_public_runtime_log_fence.sh "$path"
           done
 
       - name: Download exact installed diagnostic snapshot

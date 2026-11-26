@@ -10,29 +10,33 @@ class ManagerQueueProjectionService
         return ManagerDeliveryStateService::withoutSuspendedRecipients($rows);
     }
 
-    public static function counts(int $managerId,string $projectKey='*'): array
+    /** Rows must be the whole authorized, capped queue for this project. */
+    public static function summarize(string $queue,array $rows): array
     {
-        $rawWaiting=ManagerConversationService::notificationWaitingRows($managerId,$projectKey);
-        $operationalWaiting=ManagerConversationService::queueCountRows($managerId,'waiting',$projectKey);
-        $requested=ManagerConversationService::queueCountRows($managerId,'requested',$projectKey);
-        $mine=ManagerConversationService::queueCountRows($managerId,'mine',$projectKey);
-        $waiting=self::actionableRows('waiting',$operationalWaiting);
+        $unread=0;
+        foreach($rows as $row){
+            if($queue!=='waiting'||empty($row['manager_id']))$unread+=(int)($row['unread_count']??0);
+        }
+        return ['count'=>count($rows),'unread'=>$unread];
+    }
 
-        $waitingUnread=array_filter($waiting,static function($row){return empty($row['manager_id']);});
+    public static function counts(int $managerId,string $projectKey='*',bool $inboxTabsOnly=false,?string $onlyTab=null): array
+    {
+        if($inboxTabsOnly&&in_array($onlyTab,['waiting','mine'],true)){
+            $rows=ManagerConversationService::queueCountRows($managerId,$onlyTab,$projectKey);
+            return [$onlyTab=>self::summarize($onlyTab,self::actionableRows($onlyTab,$rows))];
+        }
+        $rawWaiting=$inboxTabsOnly?[]:ManagerConversationService::notificationWaitingRows($managerId,$projectKey);
+        $operationalWaiting=ManagerConversationService::queueCountRows($managerId,'waiting',$projectKey);
+        $requested=$inboxTabsOnly?[]:ManagerConversationService::queueCountRows($managerId,'requested',$projectKey);
+        $mine=ManagerConversationService::queueCountRows($managerId,'mine',$projectKey);
         $out=[
-            'waiting'=>[
-                'count'=>count($waiting),
-                'unread'=>array_sum(array_map(static function($row){return(int)($row['unread_count']??0);},$waitingUnread)),
-            ],
-            'requested'=>[
-                'count'=>count($requested),
-                'unread'=>array_sum(array_map(static function($row){return(int)($row['unread_count']??0);},$requested)),
-            ],
-            'mine'=>[
-                'count'=>count($mine),
-                'unread'=>array_sum(array_map(static function($row){return(int)($row['unread_count']??0);},$mine)),
-            ],
+            'waiting'=>self::summarize('waiting',self::actionableRows('waiting',$operationalWaiting)),
+            'requested'=>self::summarize('requested',$requested),
+            'mine'=>self::summarize('mine',$mine),
         ];
+
+        if($inboxTabsOnly)return ['waiting'=>$out['waiting'],'mine'=>$out['mine']];
 
         // Preserve the existing notification badge contract: it is the unique
         // unread-message total across the raw waiting + mine projections. The

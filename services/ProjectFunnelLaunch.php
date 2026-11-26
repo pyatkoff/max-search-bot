@@ -47,8 +47,9 @@ final class ProjectFunnelLaunch
         return $out;
     }
     /** The official MAX two-step HMAC; verified identity does not prove ownership of a paid click. */
-    public static function verify(string $raw,string $token,int $now): array
+    public static function verify(string $raw,string $token,int $now,string $platform='max'): array
     {
+        if(!in_array($platform,['max','telegram'],true))throw new InvalidArgumentException('invalid_platform');
         if($token==='')throw new RuntimeException('connection_unavailable');$pairs=self::pairs($raw);$hash=$pairs['hash']??'';
         if(!preg_match('/\A[0-9a-f]{64}\z/Di',$hash))throw new InvalidArgumentException('invalid_signature');unset($pairs['hash']);ksort($pairs,SORT_STRING);
         $lines=[];foreach($pairs as$key=>$value)$lines[]=$key.'='.$value;
@@ -62,6 +63,6 @@ final class ProjectFunnelLaunch
         if(isset($pairs['start_param'],$pairs['startapp'])&&$pairs['start_param']!==$pairs['startapp'])throw new InvalidArgumentException('conflicting_start');
         $start=$pairs['start_param']??$pairs['startapp']??'';
         return ['external_user_id'=>(string)$id,'auth_date'=>(int)$date,'start_param'=>$start,'payload'=>self::parse($start),
-            'visit_id'=>'max1_'.hash_hmac('sha256',implode("\n",$lines),$token)];
+            'visit_id'=>($platform==='telegram'?'tg1_':'max1_').hash_hmac('sha256',implode("\n",$lines),$token)];
     }
 }

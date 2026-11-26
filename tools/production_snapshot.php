@@ -24,6 +24,7 @@ require_once $baseDir.'/services/ManagerPushHealth.php';
 require_once $baseDir.'/services/HandoffIntegrityHealth.php';
 require_once $baseDir.'/services/WebsiteAttributionHealth.php';
 require_once $baseDir.'/services/AdminProjectAccessHealth.php';
+require_once $baseDir.'/services/AiInvocationMetadataSnapshot.php';
 
 function tableExists(PDO $pdo,string $table):bool{
     $q=$pdo->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?');$q->execute([$table]);return(int)$q->fetchColumn()>0;
@@ -114,6 +115,9 @@ try{
         'ok'=>true,
         'generated_at'=>gmdate('c'),
         'production'=>['sha'=>$sha,'branch'=>$branch],
+        // Metadata only. This private collection is never composed/published;
+        // the existing encrypted projector supplies independent capture aliases.
+        'ai_invocation_metadata_private'=>AiInvocationMetadataSnapshot::collect(),
         'manager_mcp_discovery'=>ManagerPreparationMcpDiagnostics::snapshot(),
         'manager_preparation'=>(new ManagerPreparationMcpService($pdo))->preparationHealth(),
         'database'=>['name'=>$ping['database']??null,'host'=>$ping['host']??null,'latency_ms'=>$ping['latency_ms']??null],
@@ -209,6 +213,7 @@ try{
         $snapshot['health']['website_attribution_anomalies']=$websiteHealth['anomalies'];
     }
 
+    if($profileManagerLists)$managerResourceStart=ManagerReadProfileResources::sample($pdo);
     foreach($snapshot['managers'] as $manager){
         if(!(int)($manager['is_active']??0))continue;
         $id=(int)$manager['id'];
@@ -252,6 +257,10 @@ try{
                 'manager_id'=>$id,'login'=>$entry['login'],'reason'=>$visibilityCheck['reason'],'all'=>$entry['all'],'mine'=>$entry['mine'],'waiting'=>$entry['waiting']
             ];
         }
+    }
+
+    if($profileManagerLists){
+        $snapshot['manager_resource_profile']=ManagerReadProfileResources::summarize($managerResourceStart,ManagerReadProfileResources::sample($pdo));
     }
 
     if(tableExists($pdo,'conversations')&&tableExists($pdo,'conversation_events')&&tableExists($pdo,'messages')){

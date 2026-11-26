@@ -434,10 +434,39 @@
     if(target.closest('[data-connections-refresh]')){event.preventDefault();void loadConnections();return;}
     const button=target.closest('[data-enable-push]');if(!button)return;event.preventDefault();void enable(document.getElementById('notificationStatus'));
   }
+  async function confirmVisibleArrival(event){
+    const port=event.ports?.[0];
+    if(!port)return;
+    let active=true;
+    const close=()=>{active=false;clearTimeout(timer);port.close();};
+    const timer=setTimeout(close,1000);
+    try{
+      const page=new URL(document.URL),worker=new URL('/manager/sw.js',page);
+      if(!event.isTrusted||event.origin!==page.origin||event.source?.scriptURL!==worker.href||
+          (page.pathname!=='/manager2/'&&page.pathname!=='/manager2/index.php'))return close();
+      const scope=new URL('./',worker).href;
+      const registration=await navigator.serviceWorker.getRegistration(scope);
+      if(!active)return;
+      if(registration?.scope!==scope||registration.active!==event.source)return close();
+      const conversation=window.WorkspaceV2Conversation,captured=conversation?.capturePushTarget?.();
+      if(!captured){port.postMessage({});return close();}
+      port.onmessage=reply=>{
+        if(!active)return;
+        close();
+        const id=reply.data?.incomingMessageId;
+        if(registration.active===event.source&&Number.isSafeInteger(id)&&id>0)conversation.refreshFromPush(captured,id);
+      };
+      port.postMessage({actor:captured.managerId,target:captured.conversationId});
+    }catch(error){close();}
+  }
   document.addEventListener('click',handleSetupClick);
   // Navigation belongs to the workspace even while native push setup is pending
   // or unavailable. Bind once at module load, independently of repeated init().
-  try{navigator.serviceWorker?.addEventListener('message',event=>{const data=event.data||{};if(data.type==='OPEN_CONVERSATION')window.WorkspaceV2?.openNotificationConversation?.(Number(data.conversationId));});}catch(error){/* A restricted worker must not prevent the workspace from loading. */}
+  try{navigator.serviceWorker?.addEventListener('message',event=>{
+    const data=event.data||{};
+    if(data.type==='OPEN_CONVERSATION')window.WorkspaceV2?.openNotificationConversation?.(Number(data.conversationId));
+    if(data.type==='CHECK_VISIBLE_ARRIVAL')void confirmVisibleArrival(event);
+  });}catch(error){/* A restricted worker must not prevent the workspace from loading. */}
   async function init(){if(initialized)return;initialized=true;if(!('serviceWorker' in navigator))return;try{const registered=await withTimeout(registeredWorker(),10000,'service_worker_register_timeout');await readyRegistration(registered);}catch(error){console.warn('Workspace V2 service worker registration failed',error);}}
   window.WorkspaceV2Notifications={refresh,init,enable,maybeRecoverGranted,readyRegistration,openConnections};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else refresh();

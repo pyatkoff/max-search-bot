@@ -119,6 +119,66 @@ $count=0;
 try {ManagerTelegramMediaService::open(array_replace($attachment,['size'=>ManagerTelegramMediaService::MAX_BYTES+1]),static function()use(&$count){$count++;return null;});throw new RuntimeException('oversized file accepted');}
 catch(RuntimeException $e){mediaEqual($e->getCode(),413,'large file has explicit limit error');}
 mediaEqual($count,0,'known oversized file never calls Telegram');
+
+require_once __DIR__.'/../services/ProjectClientCredentialStore.php';
+$tmp=realpath(sys_get_temp_dir()).'/apple-private-media-'.bin2hex(random_bytes(8));
+mkdir($tmp,0700);
+DiagnosticLogger::setFile($tmp.'/fixture.log');
+try {
+    $pdo->exec("ALTER TABLE conversation_sources ADD COLUMN channel TEXT;
+        ALTER TABLE conversation_sources ADD COLUMN handling_mode TEXT;
+        ALTER TABLE conversations ADD COLUMN metadata_json TEXT;
+        CREATE TABLE project_telegram_bot_connections(project_id INTEGER PRIMARY KEY,bot_id TEXT,credentials_json TEXT,version INTEGER,webhook_state TEXT,webhook_started_at INTEGER);
+        INSERT INTO projects VALUES (5,'appleservice39','AppleService39',1);
+        INSERT INTO manager_projects VALUES (7,5);
+        INSERT INTO customers VALUES (12,'Apple test','','');
+        INSERT INTO customer_channels VALUES (13,12,'appleservice39','telegram','881','881','');
+        INSERT INTO conversation_sources(id,project_id,source_key,is_active,display_name,channel,handling_mode)
+          VALUES(5,5,'telegram:appleservice39-main',1,'Apple Telegram','telegram','manager');
+        INSERT INTO conversations(id,customer_id,customer_channel_id,project_key,source_id,channel,status,manager_id,external_chat_id,metadata_json)
+          VALUES(19,12,13,'appleservice39',5,'telegram','manager',7,'881','{\"telegram_bot_id\":\"654321\"}')");
+    $testToken='654321:'.str_repeat('C',30);
+    $vault=new ProjectClientCredentialStore($tmp.'/apple-telegram-credentials');
+    $vault->initialize(true);
+    $secret=$vault->seal('appleservice39','telegram:654321',['token'=>$testToken,'webhook_secret'=>str_repeat('a',64)]);
+    $pdo->prepare('INSERT INTO project_telegram_bot_connections(project_id,bot_id,credentials_json,version) VALUES(?,?,?,1)')->execute([5,'654321',$secret]);
+    $photo=$meta['attachments'][0];
+    $photo['telegram_file_id']='apple-fixture-photo';
+    $saved=['bot_key'=>'654321','source_key'=>'telegram:appleservice39-main','attachments'=>[$photo]];
+    $pdo->prepare("INSERT INTO messages(id,conversation_id,channel,direction,metadata_json) VALUES(21,19,'telegram','inbound',?)")
+        ->execute([json_encode($saved,JSON_THROW_ON_ERROR)]);
+    mediaEqual(ManagerTelegramMediaService::attachment(21,0,7),null,'generic AI attachment reader keeps its previous access');
+    mediaEqual(ManagerTelegramMediaService::attachment(21,0,8,true),null,'an unauthorized manager cannot select an Apple image');
+    $lookup=ManagerTelegramMediaService::attachment(21,0,7,true);
+    mediaEqual($lookup,['apple_manager_lookup'=>[21,0,7]],'private viewer receives only a server lookup');
+    $calls=[];
+    $file=ManagerTelegramMediaService::open($lookup+['telegram_file_id'=>'foreign-supplied'],$fetch);
+    mediaEqual($file['mime'],'image/png','Apple photo opens via the protected file viewer');
+    fclose($file['stream']);
+    mediaEqual($calls[0],['https://api.telegram.org/bot'.$testToken.'/getFile',['file_id'=>'apple-fixture-photo'],65536],'photo uses the stored Apple bot and saved file reference');
+    mediaEqual($calls[1][0],'https://api.telegram.org/file/bot'.$testToken.'/photos/file_1.jpg','Apple download uses its own bot');
+    foreach ([
+        'access revoked'=>"DELETE FROM manager_projects WHERE manager_id=7 AND project_id=5",
+        'private identity changed'=>"UPDATE customer_channels SET external_user_id='777' WHERE id=13",
+        'source changed'=>"UPDATE conversation_sources SET source_key='telegram:other' WHERE id=5",
+        'message moved'=>"UPDATE messages SET conversation_id=9 WHERE id=21",
+        'message bot changed'=>"UPDATE messages SET metadata_json=REPLACE(metadata_json,'654321','654322') WHERE id=21",
+        'message source changed'=>"UPDATE messages SET metadata_json=REPLACE(metadata_json,'appleservice39-main','other') WHERE id=21",
+    ] as $case=>$mutation) {
+        $pdo->beginTransaction();
+        $pdo->exec($mutation);
+        $calls=[];
+        mediaEqual(ManagerTelegramMediaService::open($lookup,$fetch),null,$case.' denies the saved lookup');
+        mediaEqual(count($calls),0,$case.' never calls Telegram');
+        $pdo->rollBack();
+    }
+} finally {
+    DiagnosticLogger::setFile('');
+    @unlink($tmp.'/apple-telegram-credentials/master.key');
+    @rmdir($tmp.'/apple-telegram-credentials');
+    @unlink($tmp.'/fixture.log');
+    @rmdir($tmp);
+}
 $endpoint=file_get_contents(__DIR__.'/../manager/media-file.php');
 mediaEqual(strpos($endpoint,"'/config.php'")<strpos($endpoint,'ManagerHttp::requireManager()'),true,'endpoint configures DB before authenticated lookup');
 mediaEqual(strpos($endpoint,'ManagerHttp::requireManager()')<strpos($endpoint,'ManagerTelegramMediaService::attachment'),true,'endpoint authenticates before media lookup');

@@ -182,6 +182,54 @@ $pdo=fixture(501);$response=apiDetail(['conversation_id'=>1]);check('actual API 
 check('latest replied detail explicitly clears panel-only context',array_key_exists('handoff_context',$response['body'])&&$response['body']['handoff_context']===null);
 $pageQueries=array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT id,direction,sender_type,text,created_at,sender_id FROM messages'));$hydrateQueries=array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT id,channel,direction,metadata_json'));check('API fetches one bounded page and one bounded hydration query',count($pageQueries)===1&&count($hydrateQueries)===1&&count(array_values($hydrateQueries)[0]['args'])===200);
 
+
+// Reuse only the context already accepted by the canonical queue snapshot.
+// The transcript and media reads stay identical, including readonly supervisors.
+function historyVisibilityQueries(HistoryFixturePdo $pdo): array
+{
+    return array_values(array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT c.id,c.project_key,c.source_id,c.channel,')));
+}
+$pdo=fixture(501);$legacy=ManagerConversationService::detail(1,1);
+$legacyMessages=ManagerMessageMediaService::hydrate($legacy['messages']);$legacyVisibility=count(historyVisibilityQueries($pdo));
+$pdo->executed=[];$reused=ManagerConversationService::detail(1,1,0,200,false,false,true);
+$reusedMessages=ManagerMessageMediaService::hydrate($reused['messages']);
+check('latest context reuse preserves the entire direct DTO and hydrated messages',$reused===$legacy&&$reusedMessages===$legacyMessages);
+check('latest context reuse removes only the duplicate visibility pass',$legacyVisibility===3&&count(historyVisibilityQueries($pdo))===2&&cursor($pdo)===0&&$pdo->readWrites===0);
+$mediaReads=array_values(array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT id,channel,direction,metadata_json')));
+check('context reuse keeps the original bounded message and media reads',count(transcriptPageQueries($pdo))===1&&count($mediaReads)===1&&count($mediaReads[0]['args'])===200);
+$context=[];$queue=ManagerReplyQueueService::snapshot(1,1,$context);
+check('validated snapshot context is internal and does not change the public queue DTO',!empty($queue['ok'])&&array_keys($queue)===['ok','reply_queue']&&(int)($context['id']??0)===1&&$queue===ManagerReplyQueueService::snapshot(1,1));
+$pdo->executed=[];$older=ManagerConversationService::detail(1,1,302,200,false,false,true);
+check('older detail keeps one visibility pass without queue-context capture',ids($older)===range(102,301)&&count(historyVisibilityQueries($pdo))===1&&!array_key_exists('reply_queue',$older)&&$pdo->readWrites===0);
+
+$pdo=fixture(5);
+$pdo->exec("UPDATE managers SET role='manager' WHERE id=2;
+INSERT INTO manager_projects VALUES(2,1);
+ALTER TABLE conversation_sources ADD COLUMN project_id INTEGER;
+ALTER TABLE conversation_sources ADD COLUMN channel TEXT;
+ALTER TABLE conversation_sources ADD COLUMN is_active INTEGER;
+ALTER TABLE conversation_sources ADD COLUMN primary_group_id INTEGER;
+ALTER TABLE conversation_sources ADD COLUMN fallback_mode TEXT;
+ALTER TABLE conversation_sources ADD COLUMN fallback_group_id INTEGER;
+ALTER TABLE conversation_sources ADD COLUMN fallback_after_minutes INTEGER;
+CREATE TABLE manager_group_members(manager_id INTEGER,group_id INTEGER);
+CREATE TABLE manager_supervision(manager_id INTEGER,project_id INTEGER,enabled INTEGER,version INTEGER,include_unsourced INTEGER);
+CREATE TABLE manager_supervision_sources(manager_id INTEGER,project_id INTEGER,source_id INTEGER);
+INSERT INTO conversation_sources(id,display_name,project_id,channel,is_active,primary_group_id,fallback_mode,fallback_group_id,fallback_after_minutes) VALUES(99,'Restricted source',1,'telegram',1,123,'none',0,0);
+UPDATE conversations SET source_id=99 WHERE id=1;
+INSERT INTO manager_supervision VALUES(2,1,1,1,0);
+INSERT INTO manager_supervision_sources VALUES(2,1,99);");
+$supervised=ManagerConversationService::visibleConversation(1,1,true);
+check('supervisor fixture denies ordinary routing access to its restricted source',$supervised!==null&&!ManagerConversationAccessPolicy::canView(2,$supervised));
+check('supervisor fixture grants explicit readonly access to the same source',ManagerSupervisorAccessService::canRead(2,$supervised));
+$legacy=ManagerConversationService::detail(1,2);$reused=ManagerConversationService::detail(1,2,0,200,false,false,true);
+check('explicit employee supervisor keeps the complete readonly transcript fallback',$legacy!==null&&$reused===$legacy&&!empty($reused['supervisor_read'])&&$reused['reply_queue']===null&&ids($reused)===range(1,5)&&cursor($pdo,2)===0&&$pdo->readWrites===0);
+$context=['private'=>'stale'];$queue=ManagerReplyQueueService::snapshot(2,1,$context);
+check('queue denial clears stale context without denying an explicit supervisor read',empty($queue['ok'])&&$context===[]&&ManagerConversationService::detail(1,2,0,200,false,false,true)!==null);
+$pdo->exec('DELETE FROM manager_supervision WHERE manager_id=2');$pdo->executed=[];
+$denied=apiDetail(['conversation_id'=>1],2);
+check('revoked supervisor grant blocks optimized API before transcript or media read',$denied['status']===404&&transcriptPageQueries($pdo)===[]&&array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT id,channel,direction,metadata_json'))===[]&&$pdo->readWrites===0);
+
 // The same server receipt must display the same instant despite mixed DB wall clocks.
 $pdo=fixture(6);
 $recordedUnix=(new DateTimeImmutable('2026-11-04T07:26:00Z'))->getTimestamp();

@@ -49,9 +49,9 @@ class ManagerConversationService
     }
 
     /** Read state is independent of a recorded manager reply. Callbacks are not customer messages. */
-    public static function awaitingManagerReplySql(string $conversationAlias='c'): string
+    public static function awaitingManagerReplySql(string $conversationAlias='c',bool $mysql=true): string
     {
-        return ManagerReplyQueueService::neededSql($conversationAlias);
+        return ManagerReplyQueueService::neededSql($conversationAlias,$mysql);
     }
 
     private static function formatWaitAge(int $seconds): string
@@ -68,7 +68,8 @@ class ManagerConversationService
     private static function queuePredicate(string $queue,int $managerId,bool $isAdmin,array &$args,bool $rawWaiting=false): string
     {
         if($queue==='attention'||$queue==='waiting'){
-            $sql=$rawWaiting?"((c.status='waiting_manager' AND c.manager_id IS NULL) OR ".self::awaitingFirstReplySql('c').')':self::awaitingManagerReplySql('c');
+            $mysql=ConversationDb::connection()->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+            $sql=$rawWaiting?"((c.status='waiting_manager' AND c.manager_id IS NULL) OR ".self::awaitingFirstReplySql('c').')':self::awaitingManagerReplySql('c',$mysql);
             if($queue==='waiting'||!$isAdmin){$sql.=' AND (c.manager_id IS NULL OR c.manager_id=?)';$args[]=$managerId;}
             return '('.$sql.')';
         }
@@ -115,6 +116,7 @@ class ManagerConversationService
         }else{
             $projectKey=self::resolveProject($managerId,$projectKey);if($projectKey==='')return[];$where[]='c.project_key=?';$args[]=$projectKey;
         }
+        $mysql=ConversationDb::connection()->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
         $queues=$personalFilters['queues']??null;
         if(array_key_exists('queues',$personalFilters)){
             if(!is_array($queues)||!array_is_list($queues)||!$queues||count($queues)>4||count(array_unique($queues,SORT_REGULAR))!==count($queues))throw new InvalidArgumentException('Invalid personal queues');
@@ -167,7 +169,7 @@ class ManagerConversationService
             if($source>0){$where[]='c.source_id=?';$args[]=$source;}
             elseif($source===-1)$where[]='(c.source_id IS NULL OR c.source_id<=0)';
             if(isset($personalFilters['reply_needed'])&&!is_bool($personalFilters['reply_needed']))throw new InvalidArgumentException('Invalid personal reply filter');
-            if(!empty($personalFilters['reply_needed']))$where[]=self::awaitingManagerReplySql('c');
+            if(!empty($personalFilters['reply_needed']))$where[]=self::awaitingManagerReplySql('c',$mysql);
             if(array_key_exists('ids',$personalFilters)){
                 $ids=$personalFilters['ids'];
                 if(!is_array($ids)||!array_is_list($ids)||count($ids)>2000)throw new InvalidArgumentException('Invalid personal IDs');
@@ -180,9 +182,8 @@ class ManagerConversationService
         $mid=(int)$managerId;
         $requestSql=self::latestManagerRequestSql('c');
         $awaitingSql=self::awaitingFirstReplySql('c');
-        $replySql=self::awaitingManagerReplySql('c');
+        $replySql=self::awaitingManagerReplySql('c',$mysql);
         $replyProjection='CASE WHEN '.$replySql.' THEN 1 ELSE 0 END';
-        $currentWaitSql=ManagerReplyQueueService::waitStartedSql('c',ConversationDb::connection()->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql');
         $currentWaitOrder=in_array($queue,['waiting','attention'],true)&&!$rawWaiting;
         if(!$isAdmin)$where[]=RegionalRoutingScopeService::candidatePredicate($managerId,'c',$args,(array)($manager['projects']??[]));
         $whereSql=implode(' AND ',$where);
@@ -204,6 +205,16 @@ class ManagerConversationService
             // Other request-ranked queues keep their original query path.
             $fromSql='FROM (SELECT c.id FROM conversations c JOIN customers cu ON cu.id=c.customer_id WHERE '.$whereSql.' ORDER BY '.$orderSql.' LIMIT 200) inbox_page JOIN conversations c ON c.id=inbox_page.id JOIN customers cu ON cu.id=c.customer_id';
             $predicateSql='';
+        }
+        $materializeBoundary=ManagerReplyQueueService::supportsCorrelatedBoundary(ConversationDb::connection());
+        if($currentWaitOrder){
+            // The queue predicate already excludes resolved and suspended conversations.
+            $replyProjection='1';
+            $currentWaitSql=ManagerReplyQueueService::pendingWaitStartedSql('c',$mysql,$materializeBoundary);
+        }elseif($queue==='mine'){
+            $currentWaitSql='(CASE WHEN inbox_page.awaiting_manager_reply=1 THEN '.ManagerReplyQueueService::pendingWaitStartedSql('c',$mysql,$materializeBoundary).' ELSE NULL END)';
+        }else{
+            $currentWaitSql=ManagerReplyQueueService::waitStartedSql('c',$mysql,$materializeBoundary);
         }
         $unreadProjection='(SELECT COUNT(*) FROM messages um WHERE um.conversation_id=c.id AND '.ManagerReadService::messageSql('um').' AND um.id>COALESCE((SELECT rr.last_read_message_id FROM manager_conversation_reads rr WHERE rr.manager_id='.$mid.' AND rr.conversation_id=c.id LIMIT 1),0)) AS unread_count ';
         if($countsOnly){
@@ -299,6 +310,7 @@ class ManagerConversationService
     public static function requestKind(array $conversation): string
     {
         $project=(string)($conversation['project_key']??'');
+        if($project==='appleservice39'&&($conversation['channel']??'')==='telegram')return 'device_repair';
         if(ProjectMaxConnection::isLegacyProject($project))return 'travel';
         try{
             $connection=ProjectMaxConnection::resolve($project);
@@ -315,6 +327,10 @@ class ManagerConversationService
     /** A bounded projection from this already-authorized conversation only. */
     private static function repairContext(array $conversation): ?array
     {
+        if(($conversation['project_key']??null)==='appleservice39'&&($conversation['channel']??null)==='telegram'){
+            $context=self::repairEntryContext($conversation);
+            return $context!==null?['model'=>$context['model'],'service'=>$context['service']]:null;
+        }
         if((string)($conversation['channel']??'')!=='max'
             ||ProjectMaxConnection::isLegacyConversation($conversation)
             ||ProjectMaxConnection::resolve((string)($conversation['project_key']??''))===null)return null;
@@ -338,6 +354,10 @@ class ManagerConversationService
     /** Read projection only. The caller must first use visibleConversation for the current manager. */
     public static function repairEntryContext(array $conversation): ?array
     {
+        if(($conversation['project_key']??null)==='appleservice39'&&($conversation['channel']??null)==='telegram'){
+            require_once __DIR__.'/AppleService39TelegramIngress.php';
+            return AppleService39TelegramIngress::managerContext($conversation);
+        }
         if (($conversation['channel'] ?? '') !== 'max' || ProjectMaxConnection::isLegacyConversation($conversation)) return null;
         $connection = ProjectMaxConnection::resolve((string)($conversation['project_key'] ?? ''));
         if ($connection === null) return null;
@@ -401,15 +421,23 @@ class ManagerConversationService
             'post_url'=>$url ?? '', 'reply'=>['state'=>$intent['state'],'text'=>$intent['text']]];
     }
 
-    public static function detail(int $conversationId,int $managerId,int $beforeId=0,int $limit=200,bool $markRead=false,bool $openUnread=false): ?array
+    public static function detail(int $conversationId,int $managerId,int $beforeId=0,int $limit=200,bool $markRead=false,bool $openUnread=false,bool $reuseQueueContext=false): ?array
     {
         if($beforeId<0)throw new InvalidArgumentException('invalid_history_cursor');
         $limit=max(1,min(200,$limit));
         ManagerReadService::ensureSchema();
-        $conversation=self::visibleConversation($conversationId,$managerId,true);if(!$conversation)return null;
         // Capture the displayed action's frontier BEFORE fetching the transcript:
         // an inbound arriving between reads must never be silently resolved.
-        $replyQueue=$beforeId===0?ManagerReplyQueueService::snapshot($managerId,$conversationId):null;
+        if($reuseQueueContext&&$beforeId===0){
+            $conversationContext=[];
+            $replyQueue=ManagerReplyQueueService::snapshot($managerId,$conversationId,$conversationContext);
+            // A queue denial may still allow the existing read-only supervisor view.
+            $conversation=!empty($replyQueue['ok'])?$conversationContext:self::visibleConversation($conversationId,$managerId,true);
+            if(!$conversation)return null;
+        }else{
+            $conversation=self::visibleConversation($conversationId,$managerId,true);if(!$conversation)return null;
+            $replyQueue=$beforeId===0?ManagerReplyQueueService::snapshot($managerId,$conversationId):null;
+        }
         $supervisorRead=(int)($conversation['manager_id']??0)!==$managerId&&ManagerSupervisorAccessService::canRead($managerId,$conversation);
         $pdo=ConversationDb::connection();
         $sql='SELECT id,direction,sender_type,text,created_at,sender_id FROM messages WHERE conversation_id=?'.($beforeId>0?' AND id<?':'').' ORDER BY id DESC LIMIT '.($limit+1);

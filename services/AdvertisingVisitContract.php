@@ -56,8 +56,11 @@ final class AdvertisingVisitContract
                 foreach (['post_ref','offer_ref'] as $key) if (!is_string($row[$key]) || !preg_match('/\A[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}\z/D',$row[$key])) self::fail($key);
                 if (!is_string($row['context_json']) || strlen($row['context_json'])>8192) self::fail('context_json');
                 try {$context=json_decode($row['context_json'],true,8,JSON_THROW_ON_ERROR);} catch(Throwable $e) {self::fail('context_json');}
+                $postUrlPattern = $scope['platform'] === 'telegram'
+                    ? '~\Ahttps://t\.me/[A-Za-z0-9_]{3,100}/[1-9][0-9]{0,18}\z~D'
+                    : '~\Ahttps://max\.ru/[A-Za-z0-9_]{3,100}/[A-Za-z0-9_-]{1,191}\z~D';
                 if (!is_array($context) || array_keys($context)!==['post_url','post_title','profile_sha256']
-                    || !is_string($context['post_url']) || !preg_match('~\Ahttps://max\.ru/[A-Za-z0-9_]{3,100}/[A-Za-z0-9_-]{1,191}\z~D',$context['post_url'])
+                    || !is_string($context['post_url']) || !preg_match($postUrlPattern,$context['post_url'])
                     || !is_string($context['post_title']) || $context['post_title']==='' || strlen($context['post_title'])>1000 || preg_match('/[\x00-\x1f<>]/',$context['post_title'])
                     || !is_string($context['profile_sha256']) || !preg_match('/\A[a-f0-9]{64}\z/D',$context['profile_sha256'])) self::fail('context_json');
             }

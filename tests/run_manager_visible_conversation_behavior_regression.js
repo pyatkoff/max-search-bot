@@ -19,6 +19,7 @@ async function setup(options={}){
  return Object.assign(h,{arrive(value=[first,next]){messages=value},handoff(value){handoff=value},ownership(value){conversation={...conversation,...value}},failure(value){failure=value},intercept(value){hook=value}});
 }
 const detailCount=h=>h.calls.filter(r=>r.url==='api.php'&&r.action==='detail').length;
+const countRequests=h=>h.calls.filter(r=>r.action==='counts').length;
 
 test('opening a long owned chat positions the latest message after the composer becomes visible',async()=>{
  const h=createHarness(),box=h.ids.get('messages');let top=0;
@@ -48,6 +49,56 @@ test('focus and visible-tab events use the existing refresh path; hidden tabs ma
  const h=await setup();h.arrive();h.events.get('focus')();await flush();assert.equal(h.W.S.detail.messages.length,2);
  h.document.visibilityState='hidden';const count=h.calls.length;h.events.get('focus')();h.documentEvents.get('visibilitychange')();assert.equal(await h.C.refreshVisible(),false);await flush();assert.equal(h.calls.length,count);
  h.arrive([first,next,{...next,id:3}]);h.document.visibilityState='visible';h.documentEvents.get('visibilitychange')();await flush();assert.equal(h.W.S.detail.messages.length,3);
+});
+
+for(const mobile of [false,true])test('open chat updates on consecutive ticks while one Inbox is still pending, mobile='+mobile,async()=>{
+ const h=await setup({mobile}),pending=deferred();
+ let now=Date.now();h.loadAsset('manager-time.js',{Date:class extends Date{static now(){return now}}});
+ h.intercept((url,r)=>r.action==='list'?pending.promise:null);
+ await h.draft('Keep editing');const file={name:'keep.txt'};h.setFile(file);
+ const lists=listCount(h),details=detailCount(h),counts=countRequests(h);
+ try{
+  h.arrive();h.timers[0].fn();await flush();
+  assert.equal(h.W.S.detail.messages.at(-1).id,2,'the first update waits for the Inbox');
+  h.events.get('focus')();h.documentEvents.get('visibilitychange')();await flush();
+  assert.equal(detailCount(h),details+1);
+  now+=15000;h.arrive([first,next,{...next,id:3}]);h.timers[0].fn();await flush();
+  assert.equal(h.W.S.detail.messages.at(-1).id,3,'the next tick waits for the same Inbox');
+  assert.equal(detailCount(h),details+2);assert.equal(listCount(h),lists+1);assert.equal(countRequests(h),counts);
+  assert.equal(h.ids.get('replyText').value,'Keep editing');assert.equal(h.getFile(),file);assertNoMutations(h);
+ }finally{pending.resolve(response({ok:true,conversations:[h.conversation]}));await flush()}
+ assert.equal(detailCount(h),details+2,'a late list must not trigger another chat read');
+ assert.equal(countRequests(h),counts+1);
+});
+
+test('Inbox failure leaves the authorized active chat usable and counts untouched',async()=>{
+ const h=await setup(),counts=countRequests(h);
+ h.intercept((url,r)=>r.action==='list'?response({ok:false},500):null);
+ h.arrive();h.timers[0].fn();await flush();
+ assert.equal(h.W.S.detail.messages.at(-1).id,2);assert.equal(countRequests(h),counts);
+ assert.equal(h.window.WorkspaceV2Inbox.getLoadedSelectionStatus(),'unavailable');
+ assert.equal(hidden(h),false);assertNoMutations(h);
+});
+
+test('access loss in chat locks the composer before the held list completes',async()=>{
+ const h=await setup(),pending=deferred();
+ await h.draft('Private draft');h.setFile({name:'own.txt'});
+ h.intercept((url,r)=>r.action==='list'?pending.promise:url==='api.php'&&r.action==='detail'?response({ok:false},403):null);
+ try{
+  h.timers[0].fn();await flush();
+  assert.equal(h.ids.get('sendReply').disabled,true);assert.equal(h.ids.get('replyText').value,'');assert.equal(h.getFile(),null);
+ }finally{pending.resolve(response({ok:true,conversations:[]}));await flush()}
+ assert.equal(h.ids.get('sendReply').disabled,true);assertNoMutations(h);
+});
+
+test('Inbox session expiry fences a concurrent chat response and does not refresh counts',async()=>{
+ const h=await setup(),list=deferred(),chat=deferred(),counts=countRequests(h),details=detailCount(h);
+ h.intercept((url,r)=>r.action==='list'?list.promise:url==='api.php'&&r.action==='detail'?chat.promise:null);
+ try{
+  h.timers[0].fn();await flush();assert.equal(detailCount(h),details+1);
+  list.resolve(response({ok:false},401));await flush();assert.equal(h.W.S.authExpired,true);
+ }finally{list.resolve(response({ok:false},401));chat.resolve(response({ok:true,conversation:h.conversation,messages:[first,next]}));await flush()}
+ assert.ok((h.W.S.detail?.messages||[]).every(m=>m.id!==2));assert.equal(countRequests(h),counts);assertNoMutations(h);
 });
 
 test('mobile inbox and lead overlay never fetch read-marking detail; transcript does',async()=>{
@@ -157,6 +208,62 @@ test('only one visible refresh runs while its protected detail is pending',async
  pending.resolve(response({ok:true,conversation:h.conversation,messages:[first,next]}));assert.equal(await firstRefresh,true);
 });
 
+test('a matched push reads only the already visible conversation once and preserves its draft',async()=>{
+ const h=await setup(),ctx=h.C.capturePushTarget(),before=detailCount(h),lists=listCount(h),counts=countRequests(h);
+ await h.draft('Still editing');const file={name:'keep.png'};h.setFile(file);h.arrive();
+ assert.equal(ctx.conversationId,101);assert.equal(h.C.refreshFromPush(ctx,1),false);
+ assert.equal(h.C.refreshFromPush(ctx,2),true);assert.equal(h.C.refreshFromPush(ctx,2),false);await flush();
+ assert.equal(h.W.S.detail.messages.at(-1).id,2);assert.equal(h.C.refreshFromPush(ctx,2),false);
+ assert.equal(detailCount(h),before+1);assert.equal(listCount(h),lists);assert.equal(countRequests(h),counts);
+ assert.equal(h.ids.get('replyText').value,'Still editing');assert.equal(h.getFile(),file);assertNoMutations(h);
+});
+
+for(const snapshotIncludesArrival of [true,false])test('coalesce a burst behind an earlier snapshot, includes arrival='+snapshotIncludesArrival,async()=>{
+ const h=await setup(),ctx=h.C.capturePushTarget(),held=deferred(),before=detailCount(h),third={...next,id:3};
+ h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?held.promise:null);
+ const poll=h.C.refreshVisible();await flush();
+ for(let i=0;i<40;i++){
+   assert.equal(h.C.refreshFromPush(ctx,2),i===0);
+   assert.equal(h.C.refreshFromPush(ctx,3),i===0);
+ }
+ assert.equal(detailCount(h),before+1);
+ h.intercept(null);h.arrive([first,next,third]);held.resolve(response({ok:true,conversation:h.conversation,messages:snapshotIncludesArrival?[first,next,third]:[first,next]}));
+ assert.equal(await poll,true);await flush();
+ assert.equal(detailCount(h),before+(snapshotIncludesArrival?1:2));assert.equal(h.W.S.detail.messages.at(-1).id,3);assertNoMutations(h);
+});
+
+test('new events received during a push read share one follow-up even beyond the bounded deduplication window',async()=>{
+ const h=await setup(),ctx=h.C.capturePushTarget(),held=deferred(),before=detailCount(h);
+ h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?held.promise:null);
+ h.C.refreshFromPush(ctx,2);await flush();
+ for(let id=3;id<203;id++)h.C.refreshFromPush(ctx,id);
+ assert.equal(detailCount(h),before+1);
+ h.intercept(null);h.arrive([first,next,{...next,id:202}]);held.resolve(response({ok:true,conversation:h.conversation,messages:[first,next]}));
+ await flush();assert.equal(detailCount(h),before+2);assert.equal(h.W.S.detail.messages.at(-1).id,202);assertNoMutations(h);
+});
+
+test('an expired, changed, hidden, unowned or no longer selected chat cannot consume an arrival',async()=>{
+ const h=await setup({mobile:true}),ctx=h.C.capturePushTarget(),before=detailCount(h),S=h.W.S;
+ assert.equal(h.C.refreshFromPush({...ctx,managerId:99},2),false);
+ assert.equal(h.C.refreshFromPush({...ctx,conversationId:99},2),false);
+ assert.equal(h.C.refreshFromPush({...ctx,openGeneration:ctx.openGeneration+1},2),false);
+ S.logoutPending=true;assert.equal(h.C.refreshFromPush(ctx,2),false);S.logoutPending=false;
+ S.authExpired=true;assert.equal(h.C.refreshFromPush(ctx,2),false);S.authExpired=false;
+ S.authGeneration++;assert.equal(h.C.refreshFromPush(ctx,2),false);S.authGeneration--;
+ h.document.visibilityState='hidden';assert.equal(h.C.capturePushTarget(),null);h.document.visibilityState='visible';
+ const owner=S.detail.conversation.manager_id;S.detail.conversation.manager_id=99;assert.equal(h.C.capturePushTarget(),null);S.detail.conversation.manager_id=owner;
+ h.window.WorkspaceV2Mobile.showInbox({historyMode:'none'});assert.equal(h.C.refreshFromPush(ctx,2),false);
+ assert.equal(detailCount(h),before);assertNoMutations(h);
+});
+
+test('an arrival pending behind lost access cannot retry, repaint or navigate',async()=>{
+ const h=await setup(),ctx=h.C.capturePushTarget(),held=deferred(),before=detailCount(h);
+ h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?held.promise:null);
+ const poll=h.C.refreshVisible();await flush();assert.equal(h.C.refreshFromPush(ctx,2),true);
+ held.resolve(response({ok:false},403));assert.equal(await poll,false);await flush();
+ assert.equal(detailCount(h),before+1);assert.equal(h.C.capturePushTarget(),null);assert.equal(h.W.S.current,101);assertNoMutations(h);
+});
+
 test('navigation in progress blocks polling and late old refresh cannot overwrite the new conversation',async()=>{
  const h=await setup(),old=deferred(),navigation=deferred();h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?(r.conversation_id===101?old.promise:navigation.promise):null);
  const refresh=h.C.refreshVisible();await flush();const opening=h.C.open(102);await flush();assert.equal(await h.C.refreshVisible(),false);
@@ -167,6 +274,138 @@ test('response arriving after mobile Back is discarded without changing screen o
  const h=await setup({mobile:true}),pending=deferred();h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?pending.promise:null);const refresh=h.C.refreshVisible();await flush();h.window.WorkspaceV2Mobile.showInbox({historyMode:'none'});
  pending.resolve(response({ok:true,conversation:h.conversation,messages:[first,next]}));assert.equal(await refresh,false);assert.equal(h.W.S.detail.messages.length,1);assert.equal(h.window.WorkspaceV2Mobile.getScreen(),'inbox');
 });
+test('a rotated session token verifies the same manager before restoring an owned draft',async()=>{
+ const h=await setup(),check=deferred();await h.draft('Unsent text');const file={name:'draft.png'};h.setFile(file);
+ let failDetail=true;
+ h.intercept((url,r)=>{
+  if(url==='api.php'&&r.action==='me')return check.promise;
+  if(url==='api.php'&&r.action==='detail'&&failDetail){failDetail=false;return response({ok:false,error:'csrf'},403)}
+ });
+ assert.equal(await h.C.refreshVisible(),false);assert.equal(h.W.S.authExpired,true);assert.equal(hidden(h),true);
+ assert.equal(h.C.getSavedSelection(),101);assert.equal(h.ids.get('replyText').value,'Unsent text');
+ assert.equal(h.ids.get('managerAuthForm').classList.contains('hidden'),true);
+ check.resolve(response({...h.identity,csrf:'fresh-token'}));await flush();await flush();await flush();
+ assert.equal(h.W.S.authExpired,false);assert.equal(h.W.S.csrf,'fresh-token');assert.equal(h.W.S.current,101);assert.equal(hidden(h),false);
+ assert.equal(h.ids.get('replyText').value,'Unsent text');assert.equal(h.getFile(),file);assertNoMutations(h);
+});
+
+for(const checkResult of ['expired','other account','unchanged token'])test('a rejected '+checkResult+' identity check keeps the workspace locked',async()=>{
+ const h=await setup();await h.draft('Private reply');
+ h.intercept((url,r)=>{
+  if(url==='api.php'&&r.action==='detail')return response({ok:false,error:'csrf'},403);
+  if(url==='api.php'&&r.action==='me'){
+   if(checkResult==='expired')return response({ok:false,error:'unauthorized'},401);
+   if(checkResult==='other account')return response({...h.identity,manager:{...h.identity.manager,id:8},csrf:'other-token'});
+   return response(h.identity);
+  }
+ });
+ await h.C.refreshVisible();await flush();assert.equal(h.W.S.authExpired,true);assert.equal(hidden(h),true);assert.equal(h.W.S.manager.id,h.identity.manager.id);assertNoMutations(h);
+ assert.equal(h.ids.get('managerAuthForm').classList.contains('hidden'),checkResult==='unchanged token');
+});
+
+test('signing in as a different manager discards the previous attempt and selection',async()=>{
+ const h=await setup();await h.draft('Previous manager private reply');const other={...h.identity,manager:{...h.identity.manager,id:8},csrf:'second-account-token'};
+ h.intercept((url,r)=>{
+  if(url!=='api.php')return;
+  if(r.action==='send')return response({ok:false},502);
+  if(r.action==='detail')return response({ok:false,error:'csrf'},403);
+  if(r.action==='me'||r.action==='login')return response(other);
+ });
+ await h.C.sendReply();await h.C.refreshVisible();await flush();
+ assert.equal(h.W.S.authExpired,true);assert.equal(h.ids.get('managerAuthForm').classList.contains('hidden'),false);
+ const details=detailCount(h);await h.login();assert.equal(h.W.S.manager.id,8);assert.equal(h.W.S.current,0);assert.equal(h.C.getSavedSelection(),0);
+ assert.equal(h.ids.get('replyText').value,'');assert.equal(detailCount(h),details);assert.equal(h.calls.filter(r=>r.action==='send').length,1);assert.equal(h.calls.filter(r=>r.action==='send_receipt').length,0);
+});
+
+test('an unavailable identity check keeps the login form hidden and preserves a fenced send across retry',async()=>{
+ const h=await setup();await h.draft('Unconfirmed synthetic reply');const check=deferred();let identityReads=0;
+ h.intercept((url,r)=>{
+  if(url!=='api.php')return;
+  if(r.action==='send')return response({ok:false},502);
+  if(r.action==='detail'&&r.csrf!=='fresh-token')return response({ok:false,error:'csrf'},403);
+  if(r.action==='me')return ++identityReads===1?response({ok:false,error:'session_unavailable'},503):check.promise;
+ });
+ await h.C.sendReply();assert.equal(h.ids.get('sendReply').textContent,'Проверить отправку');
+ await h.C.refreshVisible();await flush();
+ const form=h.ids.get('managerAuthForm'),retry=h.ids.get('managerAuthRetry');
+ assert.equal(h.W.S.authExpired,true);assert.equal(form.classList.contains('hidden'),true);assert.equal(retry.classList.contains('hidden'),false);
+ retry.onclick();await flush();assert.equal(form.classList.contains('hidden'),true);
+ check.resolve(response({...h.identity,csrf:'fresh-token'}));await flush();await flush();await flush();
+ assert.equal(h.W.S.authExpired,false);assert.equal(h.W.S.current,101);assert.equal(h.ids.get('replyText').value,'Unconfirmed synthetic reply');
+ assert.equal(h.ids.get('sendReply').textContent,'Проверить отправку');assert.equal(h.calls.filter(r=>r.action==='send').length,1);
+});
+
+for(const checkResult of ['unavailable','unchanged token'])test('a manager can explicitly sign in after '+checkResult+' without losing an uncertain send',async()=>{
+ const h=await setup();await h.draft('Keep the original pending attempt');let failedLogin=true,failedDetail=true;
+ h.intercept((url,r)=>{
+  if(url!=='api.php')return;
+  if(r.action==='send')return response({ok:false},502);
+  if(r.action==='detail'&&failedDetail){failedDetail=false;return response({ok:false,error:'csrf'},403)}
+  if(r.action==='me')return checkResult==='unavailable'?response({ok:false,error:'session_unavailable'},503):response(h.identity);
+  if(r.action==='login')return failedLogin?response({ok:false,error:'invalid_credentials'},401):response({...h.identity,csrf:'new-token'});
+ });
+ await h.C.sendReply();const original=h.calls.find(r=>r.action==='send').operation_id;
+ await h.C.refreshVisible();await flush();
+ const choose=h.ids.get('managerAuthChooseLogin'),form=h.ids.get('managerAuthForm');
+ assert.equal(form.classList.contains('hidden'),true);assert.equal(choose.classList.contains('hidden'),false);
+ assert.equal(h.calls.some(r=>r.action==='login'),false);
+ choose.onclick();assert.equal(form.classList.contains('hidden'),false);assert.equal(choose.classList.contains('hidden'),true);
+ await h.login();assert.equal(h.W.S.authExpired,true);assert.equal(hidden(h),true);assert.equal(h.ids.get('managerAuthError').textContent,'Неверный логин или пароль.');
+ assert.equal(h.ids.get('replyText').value,'Keep the original pending attempt');
+ failedLogin=false;await h.login();assert.equal(h.W.S.authExpired,false);assert.equal(h.W.S.current,101);
+ assert.equal(h.ids.get('sendReply').textContent,'Проверить отправку');assert.equal(h.calls.filter(r=>r.action==='send').length,1);
+ await h.C.sendReply();
+ assert.equal(h.calls.filter(r=>r.action==='send').length,1);assert.equal(h.calls.find(r=>r.action==='send_receipt').operation_id,original);
+});
+
+test('a refreshed token reauthorizes the active transcript while its Inbox is pending',async()=>{
+ const h=await setup(),list=deferred();let rejected=false,reauthorized=false;
+ h.intercept((url,r)=>{
+  if(r.action==='list')return list.promise;
+  if(url!=='api.php')return;
+  if(r.action==='me')return response({...h.identity,csrf:'fresh-token'});
+  if(r.action==='detail'&&!rejected){rejected=true;return response({ok:false,error:'csrf'},403)}
+  if(r.action==='detail'&&r.csrf==='fresh-token')reauthorized=true;
+ });
+ try{
+  await h.C.refreshVisible();await flush();await flush();await flush();assert.equal(reauthorized,true);
+  assert.equal(h.W.S.authExpired,false);assert.equal(h.C.hasReadAccess(),true);assert.equal(hidden(h),false);assertNoMutations(h);
+ }finally{list.resolve(response({ok:true,conversations:[]}));await flush()}
+});
+
+test('a stalled identity check offers a retry; its late response cannot change the recovered session',async()=>{
+ const h=await setup(),late=deferred();let checks=0,deadline=null;
+ h.loadAsset('manager-time.js',{setTimeout(fn,ms){if(ms===12000)deadline=fn;return 1},clearTimeout(){}});
+ h.intercept((url,r)=>{
+  if(url!=='api.php')return;
+  if(r.action==='detail'&&r.csrf!=='fresh-token')return response({ok:false,error:'csrf'},403);
+  if(r.action==='me')return ++checks===1?late.promise:response({...h.identity,csrf:'fresh-token'});
+ });
+ await h.C.refreshVisible();await flush();assert.equal(typeof deadline,'function');deadline();await flush();
+ const retry=h.ids.get('managerAuthRetry');assert.equal(retry.classList.contains('hidden'),false);assert.equal(h.ids.get('managerAuthForm').classList.contains('hidden'),true);
+ retry.onclick();await flush();await flush();await flush();assert.equal(h.W.S.authExpired,false);
+ late.resolve(response({ok:false,error:'unauthorized'},401));await flush();assert.equal(h.W.S.authExpired,false);assert.equal(h.C.getSavedSelection(),101);assertNoMutations(h);
+});
+
+test('a refreshed token cannot reopen a chat whose access has been revoked',async()=>{
+ const h=await setup();await h.draft('Private reply');h.setFile({name:'private.png'});
+ h.intercept((url,r)=>{
+  if(url==='api.php'&&r.action==='me')return response({...h.identity,csrf:'fresh-token'});
+  if(url==='api.php'&&r.action==='detail')return r.csrf==='fresh-token'?response({ok:false,error:'not_found'},404):response({ok:false,error:'csrf'},403);
+ });
+ await h.C.refreshVisible();await flush();await flush();await flush();
+ assert.equal(h.W.S.authExpired,false);assert.equal(h.C.hasReadAccess(),false);assert.equal(hidden(h),true);
+ assert.equal(h.C.getSavedSelection(),0);assert.equal(h.ids.get('replyText').value,'');assert.equal(h.getFile(),null);assertNoMutations(h);
+});
+
+test('a token rejection on send keeps the original attempt fenced after identity recovery',async()=>{
+ const h=await setup();const check=deferred();await h.draft('Unsent reply after token rotation');
+ h.intercept((url,r)=>url==='api.php'&&r.action==='send'?response({ok:false,error:'csrf'},403):url==='api.php'&&r.action==='me'?check.promise:null);
+ await h.C.sendReply();assert.equal(h.W.S.authExpired,true);assert.equal(hidden(h),true);check.resolve(response({...h.identity,csrf:'fresh-token'}));await flush();await flush();await flush();
+ assert.equal(h.W.S.authExpired,false);assert.equal(h.W.S.current,101);assert.equal(h.ids.get('replyText').value,'Unsent reply after token rotation');
+ assert.equal(h.calls.filter(r=>r.action==='send').length,1);assert.equal(h.calls.filter(r=>r.action==='send_receipt').length,0);
+});
+
 for(const status of [403,404])test('fresh '+status+' access loss locks replies and removes cached text without sending',async()=>{
  const h=await setup();await h.draft('Private unsent reply');h.setFile({name:'private.png'});h.intercept((url,r)=>url==='api.php'&&r.action==='detail'?response({ok:false},status):null);
  assert.equal(await h.C.refreshVisible(),false);assert.equal(hidden(h),true);assert.equal(h.ids.get('sendReply').disabled,true);assert.equal(h.ids.get('replyText').value,'');assert.equal(h.getFile(),null);assert.equal(h.C.getSavedSelection(),0);assert.equal(h.W.S.detail.messages.length,1);

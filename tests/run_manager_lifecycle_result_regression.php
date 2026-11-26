@@ -119,14 +119,16 @@ try{
     foreach([0,-1,true,1.5,[],'16extra'] as $id){$r=$request(['action'=>'lifecycle_state','conversation_id'=>$id,'csrf'=>$base['csrf']],$cookie);lifecycleCheck('HTTP malformed state identity cannot select a different conversation '.json_encode($id),$r['status']===404&&$r['body']['error']==='unavailable');}
     $refusalBefore=lifecycleFixtureSnapshot($httpDb);
     foreach([['take',12,'owned_elsewhere'],['release',12,'not_owned'],['close',13,'closed'],['reopen',16,'state_changed']] as [$action,$id,$reason]){$r=$request(['action'=>$action,'conversation_id'=>$id,'csrf'=>$base['csrf']],$cookie);lifecycleCheck('HTTP '.$action.' preserves200 and adds exact refusal',$r['status']===200&&$r['body']['ok']===false&&$r['body']['error']===$reason&&is_string($r['body']['error_message'])&&lifecycleFixtureSnapshot($httpDb)===$refusalBefore);}
-    $off=$request([],'',4)['cookie'];$r=$request(['action'=>'take','conversation_id'=>11,'csrf'=>$base['csrf']],$off);
-    lifecycleCheck('HTTP off-shift take keeps409 and does not write or start shift',$r['status']===409&&$r['body']['error']==='not_working'&&$r['body']['error_message']!==''&&lifecycleFixtureSnapshot($httpDb)===$refusalBefore);
+    $off=$request([],'',4)['cookie'];$r=$request(['action'=>'take','conversation_id'=>15,'csrf'=>$base['csrf']],$off);
+    lifecycleCheck('HTTP off-shift manual take succeeds without starting notifications',
+        $r['status']===200&&$r['body']===['ok'=>true]&&(int)$httpDb->query('SELECT manager_id FROM conversations WHERE id=15')->fetchColumn()===4
+        &&(int)$httpDb->query('SELECT is_working FROM managers WHERE id=4')->fetchColumn()===0);
     $r=$request(['action'=>'take','conversation_id'=>11,'manager_id'=>2,'csrf'=>$base['csrf']],$cookie);
     lifecycleCheck('HTTP success ignores injected actor and owns exact requested conversation',$r['status']===200&&$r['body']===['ok'=>true]&&(int)$httpDb->query('SELECT manager_id FROM conversations WHERE id=11')->fetchColumn()===1);
     $r=$request(['action'=>'take','conversation_id'=>11,'csrf'=>$base['csrf']],$cookie);
     lifecycleCheck('HTTP repeated successful take inserts assignment and event once',$r['body']===['ok'=>true]&&(int)$httpDb->query('SELECT COUNT(*) FROM manager_assignments WHERE conversation_id=11')->fetchColumn()===1&&(int)$httpDb->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=11 AND event_type='manager_taken'")->fetchColumn()===1);
-    $admin=$request([],'',3)['cookie'];$r=$request(['action'=>'take','conversation_id'=>15,'csrf'=>$base['csrf']],$admin);
-    lifecycleCheck('HTTP administrator keeps existing off-shift take exception',$r['status']===200&&$r['body']===['ok'=>true]&&(int)$httpDb->query('SELECT manager_id FROM conversations WHERE id=15')->fetchColumn()===3&&(int)$httpDb->query('SELECT is_working FROM managers WHERE id=3')->fetchColumn()===0);
+    $admin=$request([],'',3)['cookie'];$r=$request(['action'=>'take','conversation_id'=>17,'csrf'=>$base['csrf']],$admin);
+    lifecycleCheck('HTTP administrator retains scoped manual take while off shift',$r['status']===200&&$r['body']===['ok'=>true]&&(int)$httpDb->query('SELECT manager_id FROM conversations WHERE id=17')->fetchColumn()===3&&(int)$httpDb->query('SELECT is_working FROM managers WHERE id=3')->fetchColumn()===0);
     $protected=lifecycleFixtureSnapshot($httpDb,['managers','manager_projects','messages','manager_conversation_reads']);
     $eventCount=(int)$httpDb->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn();
     $httpDb->exec("CREATE TRIGGER reject_http_lifecycle_event BEFORE INSERT ON conversation_events BEGIN SELECT RAISE(FAIL,'Synthetic HTTP late event failure'); END");

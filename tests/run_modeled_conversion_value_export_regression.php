@@ -597,6 +597,9 @@ function modeledValueAssertions(PDO $p,callable $check):void
 
     modeledValuePredictionAssertions($p,$check);
     modeledValuePolicyTransitionAssertions($p,$check);
+    modeledValueMonetaryV3CompatibilityAssertions($p,$check);
+    modeledValueProducerTransitionAssertions($p,$check);
+    modeledValueDepartureAssertions($p,$check);
     modeledPriceLossAssertions($p,$check);
     modeledValueCatchUpAssertions($p,$check);
     modeledValueFailureRetentionAssertions($p,$check);
@@ -1512,7 +1515,7 @@ function modeledValuePolicyTransitionAssertions(PDO $p,callable $check):void
     $original=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
     $profileBefore=$p->query('SELECT profile_json FROM modeled_conversion_profile_versions ORDER BY id LIMIT 1')->fetchColumn();
     $check('unknown price reserves probability times the new 10000 provisional commission base',
-        $unknown['deal_value_prediction']['version']==='early_deal_commission_7pct_v2'
+        $unknown['deal_value_prediction']['version']==='early_deal_commission_7pct_v3'
         &&$unknown['deal_value_prediction']['deal_amount_rub']['point']===null
         &&$unknown['deal_value_prediction']['commission_estimate_rub']===null
         &&$unknown['deal_value_prediction']['full_value_base_rub']===10000
@@ -1578,6 +1581,253 @@ function modeledValuePolicyTransitionAssertions(PDO $p,callable $check):void
         &&$rows[0]['state']==='unknown'&&$wire->posts===$posts&&$wire->gets===$gets);
 }
 
+
+/** Construct synthetic V2 capsules before their first save; never rewrite an existing forecast. */
+function modeledValueFrozenV2Fixture(array $wrapper):array
+{
+    $value=$wrapper['deal_value_prediction'];
+    $value['version']='early_deal_commission_7pct_v2';
+    $value['rules_sha256']='8a35e248d8237b9042d6aa94eca975c00aae8ae2dc6b3ef42c61b50ee4273669';
+    unset($value['deal_digest']);$value['deal_digest']=ModeledConversionSemanticPrediction::digest($value);
+    $wrapper['deal_value_prediction']=$value;return$wrapper;
+}
+function modeledValueMonetaryV3CompatibilityAssertions(PDO $p,callable $check):void
+{
+    $now=1793671000;$gate=static fn(string $chat):bool=>true;
+    $rows=static fn():array=>$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $sum=static fn():int=>(int)$p->query('SELECT COALESCE(SUM(value_rub),0) FROM max_channel_conversion_outbox')->fetchColumn();
+    $profile=static fn():string=>(string)$p->query('SELECT profile_json FROM modeled_conversion_profile_versions ORDER BY id LIMIT 1')->fetchColumn();
+    modeledValueSchema($p);$scope=modeledValueBinding($p,753);
+    $wire=new ModeledValueTestWire($now-86400);$wire->visitAt=$now-60;$api=$wire->api();
+    $lookup=new ModeledValueTestLookup();$lookup->observedAt=$now-60;
+    $control=new ModeledConversionValueExport($p);
+    $control->configure('create-goal',$api,$now-500);$control->configure('enable',$api,$now-500);
+    $old=modeledValueFrozenV2Fixture(modeledExpertWrapper($scope,$now,200000));modeledValueSave($p,$old);
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);$before=$rows();$oldProfile=$profile();
+    $check('the ordinary sender still reads a pinned frozen V2 capsule at its original value',
+        ModeledConversionDealValue::saved($old)===$old['deal_value_prediction']
+        &&$wire->posts===1&&$sum()===1167&&count($before)===1&&$before[0]['state']==='accepted'
+        &&(int)$before[0]['value_rub']===1167&&str_contains($wire->csv[0],',1167,RUB'));
+    $fresh=modeledExpertWrapper($scope,$now+1,200000);modeledValueSave($p,$fresh);
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+1,$gate);
+    $check('a new V3 snapshot at the same target value cannot re-award or resend the reserved V2 amount',
+        $fresh['deal_value_prediction']['version']==='early_deal_commission_7pct_v3'
+        &&$wire->posts===1&&$sum()===1167&&$rows()===$before&&$profile()===$oldProfile);
+    modeledValueSave($p,$fresh);ModeledConversionValueExport::tick($p,$lookup,$api,$now+2,$gate);
+    $check('a repeated V3 snapshot leaves both the V2 ledger row and frozen profile byte-exact',
+        $wire->posts===1&&$rows()===$before&&$profile()===$oldProfile);
+    $bad=$old;$bad['deal_value_prediction']['rules_sha256']=hash_file('sha256',dirname(__DIR__).'/services/ModeledConversionDealValue.php');
+    unset($bad['deal_value_prediction']['deal_digest']);
+    $bad['deal_value_prediction']['deal_digest']=ModeledConversionSemanticPrediction::digest($bad['deal_value_prediction']);
+    $check('a V2 capsule with a different source hash cannot fall back to another positive financial contract',
+        ModeledConversionValueContract::candidate($bad,$scope,$now-500,$now+2)===null);
+
+    // V2 priced references must still cap a later V3 unknown-price estimate.
+    modeledValueSchema($p);$scope=modeledValueBinding($p,754);
+    $wire=new ModeledValueTestWire($now-86400);$wire->visitAt=$now-60;$api=$wire->api();
+    $lookup=new ModeledValueTestLookup();$lookup->observedAt=$now-60;
+    $control=new ModeledConversionValueExport($p);
+    $control->configure('create-goal',$api,$now-500);$control->configure('enable',$api,$now-500);
+    $old=modeledValueFrozenV2Fixture(modeledExpertWrapper($scope,$now,100000));modeledValueSave($p,$old);
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);$before=$rows();$oldProfile=$profile();
+    $stronger=modeledUnknownPriceWrapper(modeledExpertWrapper($scope,$now+1,100000,true));
+    $expected=(int)round($stronger['semantic_prediction']['estimated_probability']*7000);
+    modeledValueSave($p,$stronger);ModeledConversionValueExport::tick($p,$lookup,$api,$now+1,$gate);
+    $after=$rows();$audit=$p->query("SELECT basis_json FROM modeled_conversion_price_audit WHERE action='rebased' ORDER BY outbox_id DESC LIMIT 1")->fetchColumn();
+    $basis=is_string($audit)?json_decode($audit,true,32,JSON_THROW_ON_ERROR):null;
+    $check('price continuity uses the unchanged V2 priced base for a genuinely stronger V3 forecast',
+        count($before)===1&&(int)$before[0]['value_rub']===583
+        &&$expected>583&&$sum()===$expected&&$wire->posts===2&&count($after)===2
+        &&$after[0]===$before[0]&&(int)$after[1]['value_rub']===$expected-583
+        &&str_contains(end($wire->csv),','.($expected-583).',RUB')
+        &&$stronger['deal_value_prediction']['full_value_base_rub']===10000
+        &&$stronger['deal_value_prediction']['deal_amount_rub']['point']===null
+        &&is_array($basis)&&$basis['reference_deal_rub']===100000&&$basis['reference_base_rub']===7000
+        &&$basis['applied_base_rub']===7000&&$profile()===$oldProfile);
+    modeledValueSave($p,$stronger);ModeledConversionValueExport::tick($p,$lookup,$api,$now+2,$gate);
+    $check('the later V3 replay preserves the V2 price and all reserved amounts without duplicate sending',
+        $wire->posts===2&&$rows()===$after&&$profile()===$oldProfile);
+}
+
+/** Freeze actual admitted originals and run the ordinary collector on successive prefixes. */
+function modeledValueDepartureAssertions(PDO $p,callable $check):void
+{
+    modeledValueSchema($p);$now=1793672000;$subject=modeledValueBinding($p,757);
+    $wire=new ModeledValueTestWire();$control=new ModeledConversionValueExport($p);$api=$wire->api();
+    $control->configure('create-goal',$api,$now-500);$control->configure('enable',$api,$now-500);
+    $collect=static fn():int=>$control->collect(ModeledConversionValueExport::settings($p),$now+10,static fn(string $chat):bool=>true);
+    $rows=static fn():array=>$p->query('SELECT value_rub,value_stage,event_unix FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $freeze=static function(array $messages)use($subject,$now):array{
+        $rows=[];$evidence=[];
+        foreach($messages as$i=>[$role,$text]){
+            $id=(string)($i+1);$ref='journal:'.$id;$at=$now-200+$i*10;$available=$at+1;
+            $meta=ConversationRecordClock::stamp(['type'=>'message'],$at);
+            $rows[]=['journal_id'=>$id,'source_kind'=>'message','source_id'=>$id,'source_version_no'=>1,'observed_at_unix'=>$available,
+                'snapshot'=>$subject+['source_kind'=>'message','source_id'=>$id,'source_status'=>'present','payload_status'=>'copied',
+                    'source_created_at_unix'=>$at,'source_timestamp_basis'=>'canonical_recording_unix_v1',
+                    'payload'=>['text'=>$text,'direction'=>$role==='customer'?'inbound':'outbound','sender_type'=>$role,
+                        'metadata_json'=>json_encode($meta,JSON_THROW_ON_ERROR)]]];
+            if($role==='ai')continue;
+            $r=['source'=>'message','id'=>$ref,'at'=>gmdate('Y-m-d\TH:i:s\Z',$at),'available_at'=>gmdate('Y-m-d\TH:i:s\Z',$available)];
+            $evidence[]=['id'=>'message:'.$ref,'kind'=>$role.'_message','subject'=>$subject,'at'=>$r['at'],
+                'available_at'=>$r['available_at'],'references'=>[$r]];
+        }
+        $clock=$now-200+count($messages)*10;$cutoff=gmdate('Y-m-d\TH:i:s\Z',$clock);$cursor=(string)count($messages);
+        $doc=['requested_at'=>$cutoff,'journal_cursor'=>$cursor,'source_fence_journal_id'=>$cursor];
+        $case=['subject'=>$subject,'rows'=>$rows,'window_limited'=>false,'access_denied'=>false];
+        $w=['subject'=>$subject,'access_status'=>'allowed','journal_cursor'=>$cursor,'source_fence_journal_id'=>$cursor,
+            'processing'=>['source_sha256'=>hash_file('sha256',dirname(__DIR__).'/services/ModeledConversionProfiles.php')],
+            'profile'=>['prediction_at'=>$cutoff,'observation_input'=>['subject'=>$subject,'prediction_at'=>$cutoff,'evidence'=>$evidence]]];
+        $w+=ModeledConversionEarlyForecast::freeze($case,$w,$doc,null,$clock,null,true);
+        $w['deal_value_prediction']=ModeledConversionDealValue::freeze($w,$case);
+        return $w;
+    };
+    $neutral=[['ai','Какая ориентировочная дата вылета?'],['customer','06.12 - 16.12'],
+        ['ai','Из какого города планируете вылет?'],['customer','Пермь / Сочи / Братск']];
+    $prefix=$freeze($neutral);modeledValueSave($p,$prefix);
+    $check('neutral departure list does not award fallback interest against an empty reserve',
+        $prefix['semantic_prediction']['stage']===null&&$prefix['semantic_prediction']['features']['criteria_families']===['dates']
+        &&$prefix['contextual_signals']['goal_counts']['substantive_interest']===0&&$collect()===0&&$rows()===[]);
+    $criteria=[...$neutral,['ai','Сколько будет взрослых туристов?'],['customer','2']];
+    $request=$freeze($criteria);modeledValueSave($p,$request);$first=$collect();$after=$rows();
+    $check('independent party and date award their original specific request once',
+        $first===1&&count($after)===1&&$after[0]['value_stage']==='specific_request'&&(int)$after[0]['value_rub']===833
+        &&(int)$after[0]['event_unix']===strtotime($request['contextual_signals']['frozen_at']));
+    $payment=$freeze([...$criteria,['customer','Подберите тур в Египет.'],['customer','Я оплатила тур.']]);
+    $interest=array_values(array_filter($payment['contextual_signals']['events'],static fn(array $e):bool=>$e['goal']==='substantive_interest'));
+    modeledValueSave($p,$payment);$next=$collect();$paid=$rows();
+    $check('independent interest and direct payment survive the exact neutral source filter',
+        in_array('journal:7',array_column($interest,'source_ref'),true)&&!in_array('journal:4',array_column($interest,'source_ref'),true)
+        &&$next===1&&count($paid)===2&&$paid[0]===$after[0]&&$paid[1]['value_stage']==='payment_report'
+        &&(int)$paid[1]['value_rub']===10000-833&&(int)$paid[1]['event_unix']===strtotime($payment['contextual_signals']['frozen_at']));
+    foreach([$prefix,$request,$payment]as$replay)modeledValueSave($p,$replay);
+    $profiles=static fn():array=>$p->query('SELECT id,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $frozen=$profiles();
+    $check('repeated neutral and later forecasts cannot duplicate the reservation or change frozen evidence',
+        $collect()===0&&$collect()===0&&$rows()===$paid&&$profiles()===$frozen&&$wire->posts===0);
+}
+
+/** Exercise the last installed producer from immutable fixture rows through ordinary collection. */
+function modeledValueProducerTransitionAssertions(PDO $p,callable $check):void
+{
+    modeledValueSchema($p);$now=1793672000;$scope=modeledValueBinding($p,755);
+    $wire=new ModeledValueTestWire($now-86400);$api=$wire->api();$control=new ModeledConversionValueExport($p);
+    $control->configure('create-goal',$api,$now-500);$control->configure('enable',$api,$now-500);
+    $collect=static fn():int=>$control->collect(ModeledConversionValueExport::settings($p),$now+10,static fn(string $chat):bool=>true);
+    $rows=static fn():array=>$p->query('SELECT id,value_rub,value_stage,target,event_unix FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $profiles=static fn():array=>$p->query('SELECT id,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $adapter='a4345e27853b63d30313485134a7a2b2ce92ec11eec860fdc2f79f804f4d46e5';
+    $model='a5f3a1500da36dc34ad05a7961928ad237687930c1f8322bffe298bf5dcf17e6';
+    $seal=static function(array $w,string $adapterHash,string $modelHash):array{
+        $w['contextual_signals']['adapter_sha256']=$adapterHash;
+        $pred=&$w['semantic_prediction'];$pred['model_sha256']=$modelHash;
+        $pred['prediction_digest']=ModeledConversionSemanticPrediction::digest($pred);
+        $money=&$w['deal_value_prediction'];$money['semantic_prediction_digest']=$pred['prediction_digest'];
+        unset($money['deal_digest']);$money['deal_digest']=ModeledConversionSemanticPrediction::digest($money);
+        return$w;
+    };
+    $forecast=modeledExpertWrapper($scope,$now,200000);
+    $paid=modeledExpertWrapper($scope,$now+1,200000,false,true,null,true);
+    $currentAdapter=$forecast['contextual_signals']['adapter_sha256'];$currentModel=$forecast['semantic_prediction']['model_sha256'];
+    $preDepartureAdapter='e5c303338fff38c48351881143842894563669484d8dfeb8aef9fbfaa03b62f2';
+    $preDepartureModel='4e4d7c6908bf8246db08917de1b46dbdc904099b0c95afb92273f833b8c3ab42';
+    $preResortModel='110bcfc73c7971ed59b6e73db2da9dca6fa7c8e32dbb82520e22525f9ed7037c';
+    $unknown=str_repeat('f',64);
+    foreach([[$unknown,$model],[$adapter,$unknown],[$adapter,$currentModel],[$preDepartureAdapter,$currentModel],
+        [$preDepartureAdapter,$preResortModel]]as[$a,$m]){
+        // A valid seal by itself permits neither a prediction nor a direct payment fallback.
+        modeledValueSave($p,$seal($forecast,$a,$m));modeledValueSave($p,$seal($paid,$a,$m));
+        $check('unknown or mixed producer never reserves a financial row',$collect()===0&&$rows()===[]);
+    }
+    $previous=$seal($forecast,$adapter,$model);
+    $broken=$previous;$broken['deal_value_prediction']['value_rub']++;modeledValueSave($p,$broken);
+    $withoutMoney=$previous;unset($withoutMoney['deal_value_prediction']);modeledValueSave($p,$withoutMoney);
+    $badPayment=$seal($paid,$adapter,$model);$badPayment['semantic_prediction']['prediction_digest']=str_repeat('f',64);modeledValueSave($p,$badPayment);
+    $held=$seal(modeledExpertWrapper($scope,$now+1,200000,false,true),$adapter,$model);modeledValueSave($p,$held);
+    $check('pinned previous producer requires valid frozen money and preserves the hold guard',$collect()===0&&$rows()===[]);
+    modeledValueSave($p,$previous);$forecastId=(string)$p->lastInsertId();
+    $before=$profiles();$created=$collect();$first=$rows();
+    $savedValue=$previous['deal_value_prediction']['value_rub'];
+    $check('previous advertising forecast reaches the ledger once at the original value and clock',
+        $created===1&&count($first)===1&&(int)$first[0]['value_rub']===$savedValue
+        &&$first[0]['value_stage']==='specific_request'&&(int)$first[0]['event_unix']===$now
+        &&$first[0]['target']===ModeledConversionValueContract::predictionKey($forecastId)&&$before===$profiles());
+    $previousPayment=$seal($paid,$adapter,$model);modeledValueSave($p,$previousPayment);$paidId=(string)$p->lastInsertId();
+    $before=$profiles();$created=$collect();$both=$rows();
+    $check('previous posted payment adds only its original commission above the existing reservation',
+        $created===1&&count($both)===2&&$both[0]===$first[0]&&$both[1]['value_stage']==='payment_report'
+        &&$both[1]['target']===ModeledConversionValueContract::predictionKey($paidId)
+        &&(int)$both[1]['event_unix']===$now+1&&(int)$both[1]['value_rub']===$previousPayment['deal_value_prediction']['full_value_base_rub']-$savedValue
+        &&$before===$profiles());
+    foreach([$previous,$previousPayment,$paid]as$repeat)modeledValueSave($p,$repeat);
+    $before=$profiles();
+    $check('repeated old and current versions do not duplicate reservations or alter frozen snapshots',
+        $collect()===0&&$collect()===0&&$rows()===$both&&$profiles()===$before&&$wire->posts===0);
+
+    // A current adapter previously admitted validated saved money from an earlier model.
+    $other=modeledValueBinding($p,756);
+    $storedForecast=$seal(modeledExpertWrapper($other,$now+3,350000),$currentAdapter,$model);
+    $storedPayment=$seal(modeledExpertWrapper($other,$now+4,350000,false,true,null,true),$currentAdapter,$model);
+    modeledValueSave($p,$storedForecast);modeledValueSave($p,$storedPayment);$frozen=$profiles();
+    $created=$collect();$after=$rows();$v=$storedForecast['deal_value_prediction']['value_rub'];
+    $check('a current adapter keeps validated earlier model forecasts and their genuine payment delta',
+        $created===2&&count($after)===4&&array_slice($after,0,2)===$both
+        &&$after[2]['value_stage']==='specific_request'&&(int)$after[2]['value_rub']===$v
+        &&$after[3]['value_stage']==='payment_report'&&(int)$after[3]['value_rub']===$storedPayment['deal_value_prediction']['full_value_base_rub']-$v
+        &&$collect()===0&&$profiles()===$frozen&&$rows()===$after);
+
+    $static=modeledValueWrapper($other,$now+5,'concrete_request');
+    $static['contextual_signals']['adapter_sha256']=$preDepartureAdapter;
+    $static['semantic_prediction']['model_sha256']=$preDepartureModel;
+    $static['semantic_prediction']['prediction_digest']=ModeledConversionSemanticPrediction::digest($static['semantic_prediction']);
+    $staticCandidate=ModeledConversionValueContract::candidate($static,$other,$now-500,$now+10);
+    $static['semantic_prediction']['model_sha256']=$model;
+    $static['semantic_prediction']['prediction_digest']=ModeledConversionSemanticPrediction::digest($static['semantic_prediction']);
+    $check('formerly current stage-only fallback checks its own installed model',
+        ($staticCandidate['rank']??null)===2&&ModeledConversionValueContract::candidate($static,$other,$now-500,$now+10)===null);
+
+    $eventOnly=modeledValueWrapper($other,$now+5);
+    $eventOnly['contextual_signals']['adapter_sha256']=$preDepartureAdapter;
+    $check('a genuine event from the formerly current adapter keeps its original stage-only value',
+        (ModeledConversionValueContract::candidate($eventOnly,$other,$now-500,$now+10)['value']??null)===ModeledConversionValueContract::VALUES[1]);
+
+    foreach([$preDepartureModel,$model]as$i=>$sealedModel){
+        $binding=modeledValueBinding($p,759+$i);
+        $earlier=$seal(modeledExpertWrapper($binding,$now+5,150000),$preDepartureAdapter,$sealedModel);
+        $genuine=$seal(modeledExpertWrapper($binding,$now+6,150000,false,true,null,true),$preDepartureAdapter,$sealedModel);
+        $held=$seal(modeledExpertWrapper($binding,$now+5,150000,false,true),$preDepartureAdapter,$sealedModel);
+        $before=$rows();modeledValueSave($p,$held);
+        $check('formerly current adapter retains the payment hold',$collect()===0&&$rows()===$before);
+        modeledValueSave($p,$earlier);modeledValueSave($p,$genuine);$unchanged=$profiles();
+        $created=$collect();$new=array_slice($rows(),count($before));$original=$earlier['deal_value_prediction']['value_rub'];
+        $check('formerly current adapter preserves valid frozen V3 forecasts and confirmed nonpredicted payment at original amounts and clocks',
+            $genuine['semantic_prediction']['status']==='known_outcome'&&$created===2&&count($new)===2
+            &&$new[0]['value_stage']==='specific_request'&&(int)$new[0]['value_rub']===$original&&(int)$new[0]['event_unix']===$now+5
+            &&$new[1]['value_stage']==='payment_report'&&(int)$new[1]['value_rub']===$genuine['deal_value_prediction']['full_value_base_rub']-$original
+            &&(int)$new[1]['event_unix']===$now+6&&$profiles()===$unchanged);
+        $reserved=$rows();modeledValueSave($p,$earlier);modeledValueSave($p,$genuine);
+        $check('replaying formerly current producer preserves the reserve',$collect()===0&&$rows()===$reserved);
+    }
+    $legacyScope=modeledValueBinding($p,761);
+    $stageOnly=modeledValueWrapper($legacyScope,$now+6,'concrete_request');
+    $stageOnly['processing']['source_sha256']='722a0064f46f7f03fc78b3a8c830b136a6fd143029dad01f143b0651fafec21d';
+    $stageOnly['contextual_signals']['adapter_sha256']='2d0135423e2034c41aa693ff1a01a2c2821943bef7d5b450993c4599bc088cdf';
+    $stageOnly['semantic_prediction']['model_sha256']=$preResortModel;
+    $stageOnly['semantic_prediction']['prediction_digest']=ModeledConversionSemanticPrediction::digest($stageOnly['semantic_prediction']);
+    $unknownStage=$stageOnly;$unknownStage['semantic_prediction']['model_sha256']=$unknown;
+    $unknownStage['semantic_prediction']['prediction_digest']=ModeledConversionSemanticPrediction::digest($unknownStage['semantic_prediction']);
+    $brokenStage=$stageOnly;$brokenStage['semantic_prediction']['prediction_digest']=$unknown;
+    $before=$rows();modeledValueSave($p,$unknownStage);modeledValueSave($p,$brokenStage);
+    $check('unknown and corrupt stage-only models do not qualify under the installed adapter',$collect()===0&&$rows()===$before);
+    modeledValueSave($p,$stageOnly);$frozen=$profiles();$created=$collect();$oldOnly=array_slice($rows(),count($before));
+    $check('installed processor and previous model keep the signed stage-only amount once',
+        $created===1&&count($oldOnly)===1&&$oldOnly[0]['value_stage']==='specific_request'
+        &&(int)$oldOnly[0]['event_unix']===$now+6&&(int)$oldOnly[0]['value_rub']===ModeledConversionValueContract::VALUES[2]
+        &&$profiles()===$frozen);
+    modeledValueSave($p,$stageOnly);$reserved=$rows();
+    $check('a repeated prior stage-only forecast does not grow its reserve',$collect()===0&&$rows()===$reserved&&$wire->posts===0);
+
+}
 
 function modeledPriceLossAssertions(PDO $p,callable $check):void
 {

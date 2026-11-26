@@ -24,6 +24,13 @@ function repairEntryIntent(PDO $pdo, int $conversationId): array
     return repairEntryPayload($pdo,$conversationId)['repair_entry_reply'] ?? [];
 }
 
+function repairLatestStartEvidence(PDO $pdo, int $conversationId): array
+{
+    $q = $pdo->prepare("SELECT payload_json FROM conversation_events WHERE conversation_id=? AND event_type='bot_started' ORDER BY id DESC LIMIT 1");
+    $q->execute([$conversationId]);
+    return json_decode((string)$q->fetchColumn(),true) ?: [];
+}
+
 $catalog = AppleService39PilotCatalog::entries();
 repairCheck('catalog contains exactly the fifteen reviewed repair entries', count($catalog) === 15);
 foreach ($catalog as $entry) {
@@ -90,6 +97,10 @@ $first = $handle('appleservice39',repairStart(7001));
 $apple = repairConversation($pdo,'appleservice39',7001);
 $context = json_decode((string)$apple['metadata_json'],true);
 repairCheck('pilot start persists into the shared queue', $first['status'] === 200 && $apple['status'] === 'waiting_manager');
+$initialEvidence = repairLatestStartEvidence($pdo,(int)$apple['id']);
+repairCheck('recognized Apple start stores only finite source class and funnel outcome', ($initialEvidence['repair_start_class']??null)==='recognized'
+    && in_array($initialEvidence['repair_funnel_attempt']??null,['recorded','not_recorded','publication_pending','writer_error'],true)
+    && !array_key_exists('start_payload',$initialEvidence) && !array_key_exists('payload',$initialEvidence));
 repairCheck('reviewed model and service survive without invented post URL', $context['repair_context'] === ['model'=>'iPhone X','service'=>'Замена аккумулятора','entry_code'=>'as39_x_battery'] && !isset($context['repair_context']['post_url']));
 repairCheck('platform start is an event and never a fake customer message', (int)$pdo->query('SELECT COUNT(*) FROM messages WHERE conversation_id='.(int)$apple['id']." AND direction='inbound'")->fetchColumn() === 0);
 repairCheck('bot reply uses Apple brand reviewed price and a service-specific question', count($sent) === 1
@@ -118,6 +129,9 @@ $owned = repairConversation($pdo,'appleservice39',7001);
 repairCheck('explicit fresh repair entry replies without changing assigned manager or routing', $owned['status'] === 'manager' && (int)$owned['manager_id'] === 88 && $owned['source_id'] === $apple['source_id'] && count($sent) === $count+1);
 $count = count($sent);
 $handle('appleservice39',repairStart(7001,'unknown_payload',1800000000002));
+$otherEvidence = repairLatestStartEvidence($pdo,(int)$apple['id']);
+repairCheck('unknown native entry records other class without raw payload', ($otherEvidence['repair_start_class']??null)==='other'
+    && !str_contains(json_encode($otherEvidence),'unknown_payload'));
 repairCheck('unknown start preserves known model and service', (json_decode((string)repairConversation($pdo,'appleservice39',7001)['metadata_json'],true)['repair_context'] ?? null) === $context['repair_context']);
 $handle('appleservice39',repairMessage(7001,'photo_mid',[['type'=>'image','payload'=>['token'=>'synthetic-photo-token']]]));
 repairCheck('media archive receives exact project and conversation', end($archives) === ['photo_mid','appleservice39',(int)$apple['id']] && count($sent) === $count);
@@ -134,7 +148,14 @@ repairCheck('upgraded conversation projects the requested repair context', (json
 repairCheck('entry retry does not repeat its reply or handoff', $handle('appleservice39',$entry)['result'] === 'duplicate' && count($sent) === $count+1 && count($notifications) === $pushCount);
 $count = count($sent);
 $handle('appleservice39',repairStart(7004,'',1800000000101));
+$emptyEvidence = repairLatestStartEvidence($pdo,(int)$generic['id']);
+repairCheck('empty Apple start records only an empty class', ($emptyEvidence['repair_start_class']??null)==='empty'
+    && !isset($emptyEvidence['repair_funnel_attempt']));
 $handle('appleservice39',repairStart(7004,'as39_repair-iphone-17-ultra-display',1800000000102));
+$invalidEvidence = repairLatestStartEvidence($pdo,(int)$generic['id']);
+repairCheck('unrecognized Apple start is distinct from empty and never persists its raw code',
+    ($invalidEvidence['repair_start_class']??null)==='unrecognized_apple'
+    && !str_contains(json_encode($invalidEvidence),'as39_repair-iphone-17-ultra-display'));
 repairCheck('empty or unknown reentry remains quiet in an existing conversation', count($sent) === $count && count($notifications) === $pushCount);
 $newEntry = repairStart(7004,'as39_repair-iphone-15-pro-max-display',1800000000103);
 $handle('appleservice39',$newEntry);
@@ -891,6 +912,163 @@ foreach(['service-battery-replacement'=>'Замена аккумулятора',
 }
 repairCheck('unreviewed iPhone17 service remains unavailable',
     AppleService39PilotCatalog::modelServicePayload('model-iphone-17','service-home-button-repair')===null);
+
+// An existing coverage service must survive navigation within the same device.
+// These expected labels are fixed independently of the catalogue implementation.
+$coverageContextServices = [
+    'service-charging-port-replacement'=>'Замена разъёма зарядки',
+    'service-microphone-replacement'=>'Ремонт микрофона',
+    'service-loudspeaker-replacement'=>'Ремонт внешнего динамика',
+    'service-front-camera-replacement'=>'Ремонт передней камеры',
+    'service-home-button-repair'=>'Ремонт кнопки Home',
+    'service-power-button-repair'=>'Ремонт кнопки включения',
+    'service-antenna-repair'=>'Ремонт антенн и связи',
+    'service-software-recovery'=>'Восстановление ПО iPhone',
+    'service-diagnostics'=>'Диагностика iPhone',
+    'service-housing-repair'=>'Ремонт и замена корпуса',
+];
+$coverageContextPdo = repairFixture(); $coverageContextSent = []; $coverageContextNotices = [];
+$coverageContextFactory = static function () use (&$coverageContextSent): MaxMessengerAdapter {
+    return new MaxMessengerAdapter(static function ($chat, string $text) use (&$coverageContextSent): string {
+        $coverageContextSent[] = $text;
+        return 'isolated_coverage_context_'.count($coverageContextSent);
+    },null,'system',null,false);
+};
+$coverageContextHandle = static function (array $update) use ($coverageContextFactory,&$coverageContextNotices): array {
+    return RepairMaxWebhookService::handle('appleservice39',str_repeat('a',32),$update,$coverageContextFactory,
+        static function (int $id) use (&$coverageContextNotices): void { $coverageContextNotices[] = $id; });
+};
+$coverageContextEvents = static function (int $id) use ($coverageContextPdo): array {
+    return $coverageContextPdo->query("SELECT id,payload_json FROM conversation_events WHERE conversation_id=$id AND event_type='bot_started' ORDER BY id")->fetchAll();
+};
+$coverageContextUser = 9700; $coverageContextTime = 1800000300000;
+foreach ($coverageContextServices as $post=>$service) {
+    $user = ++$coverageContextUser; $time = ($coverageContextTime += 10);
+    $sentBefore = count($coverageContextSent); $noticesBefore = count($coverageContextNotices);
+    $coverageContextHandle(repairStart($user,'as39_model-iphone-8',$time));
+    $conversation = repairConversation($coverageContextPdo,'appleservice39',$user);
+    $id = (int)$conversation['id'];
+    $coverageContextPdo->exec("UPDATE conversations SET status='manager',manager_id=88 WHERE id=$id");
+    $result = $coverageContextHandle(repairStart($user,'as39_'.$post,$time+1));
+    $conversation = repairConversation($coverageContextPdo,'appleservice39',$user);
+    $selected = ['model'=>'iPhone 8','service'=>$service,'entry_code'=>'as39_'.$post];
+    repairCheck('coverage service entry captures the selected device and canonical service '.$post,
+        $result['status'] === 200 && json_decode($conversation['metadata_json'],true)['repair_context'] === $selected
+        && repairEntryPayload($coverageContextPdo,$id)['repair_context'] === $selected
+        && str_contains(end($coverageContextSent),'iPhone 8') && str_contains(end($coverageContextSent),$service)
+        && !str_contains(end($coverageContextSent),'Какая у вас модель'));
+    $oldEvents = $coverageContextEvents($id);
+
+    $menuStart = repairStart($user,'as39_menu',$time+2);
+    $result = $coverageContextHandle($menuStart);
+    $menuContext = ['model'=>'iPhone 8','service'=>$service,'entry_code'=>'as39_menu'];
+    repairCheck('menu keeps the selected coverage service in its captured reply '.$post,
+        $result['status'] === 200
+        && json_decode(repairConversation($coverageContextPdo,'appleservice39',$user)['metadata_json'],true)['repair_context'] === $selected
+        && repairEntryPayload($coverageContextPdo,$id)['repair_context'] === $menuContext
+        && str_contains(end($coverageContextSent),'iPhone 8') && str_contains(end($coverageContextSent),$service)
+        && !str_contains(end($coverageContextSent),'Какая у вас модель'));
+
+    $sameStart = repairStart($user,'as39_model-iphone-8',$time+3);
+    $result = $coverageContextHandle($sameStart);
+    $sameContext = ['model'=>'iPhone 8','service'=>$service,'entry_code'=>'as39_model-iphone-8'];
+    repairCheck('same model reentry retains the selected coverage service '.$post,
+        $result['status'] === 200
+        && json_decode(repairConversation($coverageContextPdo,'appleservice39',$user)['metadata_json'],true)['repair_context'] === $sameContext
+        && repairEntryPayload($coverageContextPdo,$id)['repair_context'] === $sameContext
+        && str_contains(end($coverageContextSent),$service)
+        && !str_contains(end($coverageContextSent),'Расскажите, что произошло'));
+
+    $result = $coverageContextHandle(repairStart($user,'as39_model-iphone-11',$time+4));
+    $differentContext = ['model'=>'iPhone 11','service'=>'','entry_code'=>'as39_model-iphone-11'];
+    $conversation = repairConversation($coverageContextPdo,'appleservice39',$user);
+    repairCheck('another model does not inherit the old coverage repair '.$post,
+        $result['status'] === 200 && json_decode($conversation['metadata_json'],true)['repair_context'] === $differentContext
+        && repairEntryPayload($coverageContextPdo,$id)['repair_context'] === $differentContext
+        && str_contains(end($coverageContextSent),'iPhone 11') && !str_contains(end($coverageContextSent),$service));
+    $events = $coverageContextEvents($id);
+    repairCheck('coverage navigation preserves historical answers and the existing manager '.$post,
+        array_slice($events,0,count($oldEvents)) === $oldEvents
+        && count($events) === 5 && count($coverageContextSent) === $sentBefore+5
+        && $conversation['status'] === 'manager' && (int)$conversation['manager_id'] === 88
+        && (int)$conversation['source_id'] === 21 && count($coverageContextNotices) === $noticesBefore+1
+        && (int)$coverageContextPdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=$id AND event_type='waiting_manager'")->fetchColumn() === 1);
+    $menuReplay = $coverageContextHandle($menuStart); $sameReplay = $coverageContextHandle($sameStart);
+    repairCheck('historical coverage entry replay is quiet after the device changes '.$post,
+        $menuReplay['result'] === 'duplicate' && $sameReplay['result'] === 'duplicate'
+        && count($coverageContextSent) === $sentBefore+5 && count($coverageContextNotices) === $noticesBefore+1
+        && $coverageContextEvents($id) === $events
+        && repairConversation($coverageContextPdo,'appleservice39',$user)['metadata_json'] === $conversation['metadata_json']);
+}
+
+$coverageContextHandle(repairStart(9720,'as39_service-microphone-replacement',1800000300200));
+$partialConversation = repairConversation($coverageContextPdo,'appleservice39',9720);
+$coverageContextHandle(repairStart(9720,'as39_menu',1800000300201));
+repairCheck('service-only menu entry retains its known service without inventing a model',
+    repairEntryPayload($coverageContextPdo,(int)$partialConversation['id'])['repair_context']
+        === ['model'=>'','service'=>'Ремонт микрофона','entry_code'=>'as39_menu']
+    && repairConversation($coverageContextPdo,'appleservice39',9720)['metadata_json'] === $partialConversation['metadata_json']);
+
+foreach (['Ремонт микрофона','Ремонт микрофона ','Непроверенная услуга'] as $index=>$storedService) {
+    $user = 9730+$index; $time = 1800000300300+$index*10;
+    $coverageContextHandle(repairStart($user,'as39_model-iphone-8',$time));
+    $conversation = repairConversation($coverageContextPdo,'appleservice39',$user);
+    $id = (int)$conversation['id']; $metadata = json_decode($conversation['metadata_json'],true);
+    $metadata['repair_context'] += ['price'=>'999999','price_text'=>'invented-price','post_url'=>'https://invalid.example/forged'];
+    $metadata['repair_context']['service'] = $storedService;
+    $coverageContextPdo->prepare('UPDATE conversations SET metadata_json=? WHERE id=?')
+        ->execute([json_encode($metadata,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),$id]);
+    $expectedService = $index === 0 ? 'Ремонт микрофона' : '';
+    foreach (['as39_menu','as39_model-iphone-8'] as $step=>$payload) {
+        $coverageContextHandle(repairStart($user,$payload,$time+$step+1));
+        $event = repairEntryPayload($coverageContextPdo,$id);
+        repairCheck('coverage context accepts exact labels only and never carries mutable prices '.$index.' '.$payload,
+            $event['repair_context'] === ['model'=>'iPhone 8','service'=>$expectedService,'entry_code'=>$payload]
+            && !str_contains(end($coverageContextSent),'999999') && !str_contains(end($coverageContextSent),'invented-price')
+            && !str_contains(end($coverageContextSent),'invalid.example')
+            && !str_contains(end($coverageContextSent),'Непроверенная услуга'));
+    }
+}
+
+require_once dirname(__DIR__).'/services/ManagerConversationService.php';
+$deviceCategories = [
+    'device-iphone-18'=>['iPhone 18',''], 'device-ipad'=>['iPad',''],
+    'device-macbook'=>['MacBook',''], 'device-apple-watch'=>['Apple Watch','Замена стекла Apple Watch'],
+];
+$categoryUser = 9800;
+foreach ($deviceCategories as $postId=>[$deviceName,$serviceName]) {
+    $user = ++$categoryUser;
+    $payload = AppleService39PilotCatalog::landingPayloadForPost($postId);
+    repairCheck('category has its own MAX start '.$postId, $payload === 'as39_'.$postId);
+    $coverageContextHandle(repairStart($user,'as39_x_battery',1800000400000));
+    $start = repairStart($user,$payload,1800000400001);
+    $result = $coverageContextHandle($start);
+    $conversation = repairConversation($coverageContextPdo,'appleservice39',$user);
+    $intent = repairEntryIntent($coverageContextPdo,(int)$conversation['id']);
+    $manager = ManagerConversationService::repairEntryContext($conversation);
+    repairCheck('category reaches the existing manager with the selected device '.$postId,
+        $result['status'] === 200 && $conversation['status'] === 'waiting_manager'
+        && $intent['post_id'] === $postId && $intent['entry_code'] === $payload && $intent['state'] === 'delivered'
+        && ($manager['model'] ?? null) === $deviceName && $manager['service'] === $serviceName && $manager['post_url'] === ''
+        && $manager['reply']['text'] === end($coverageContextSent) && str_contains($manager['reply']['text'],$deviceName)
+        && !str_contains($manager['reply']['text'],'аккумулятор') && !str_contains($manager['reply']['text'],'₽'));
+    if ($postId === 'device-apple-watch') {
+        repairCheck('Apple Watch glass enquiry keeps the selected repair without an iPhone price',
+            str_contains($manager['reply']['text'],'стекла') && str_contains($manager['reply']['text'],'касания')
+            && !str_contains($manager['reply']['text'],'iPhone'));
+    }
+    $sentBefore = count($coverageContextSent);
+    repairCheck('category replay is quiet '.$postId,
+        $coverageContextHandle($start)['result'] === 'duplicate' && count($coverageContextSent) === $sentBefore);
+    $coverageContextHandle(repairStart($user,'as39_menu',1800000400002));
+    repairCheck('menu retains device category without asking about an iPhone repair '.$postId,
+        repairEntryPayload($coverageContextPdo,(int)$conversation['id'])['repair_context']
+            === ['model'=>$deviceName,'service'=>$serviceName,'entry_code'=>'as39_menu']
+        && str_contains(end($coverageContextSent),$deviceName) && !str_contains(end($coverageContextSent),'телефоном'));
+}
+repairCheck('other device keys and other companies remain outside the Apple category routes',
+    AppleService39PilotCatalog::landingPayloadForPost('device-unknown') === null
+    && AppleService39PilotCatalog::resolve('repair_two',AppleService39PilotCatalog::BOT,'as39_device-ipad') === null);
 
 echo 'TOTAL '.$passed.' passed'.PHP_EOL;
 

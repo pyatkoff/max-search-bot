@@ -1,0 +1,242 @@
+{
+  "binding_revision": "6636ebce27d572d580f695d307828b8ff48a39f9bd47ee599fc71bdf35091dda",
+  "coverage": {
+    "available_prepared_claim_count": 8,
+    "basis": "All whole source facts from the immutable reviewed LOCAL26 package; not independent AI content admission.",
+    "complete": false,
+    "selected_claim_count": 8
+  },
+  "facts": [
+    {
+      "aspect": "location_and_private_beach",
+      "declared": true,
+      "hotel_key": "EXP093",
+      "id": "JUM4533-F1",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Jumeirah Road / Umm Suqeim 3 / Dubai",
+        "kind": "location"
+      },
+      "source_ids": [
+        "JUM4533-S1"
+      ],
+      "text": "Отель находится на Jumeirah Road в районе Umm Suqeim 3, Дубай; на официальной странице указан собственный пляж.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "balcony_and_connecting_room_categories",
+      "declared": true,
+      "hotel_key": "EXP093",
+      "id": "JUM4533-F2",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Ocean Deluxe Balcony / Two Bedroom Ocean Family Room",
+        "kind": "room_categories"
+      },
+      "source_ids": [
+        "JUM4533-S2"
+      ],
+      "text": "В категории Ocean Deluxe Balcony предусмотрен балкон; Two Bedroom Ocean Family Room состоит из двух сообщающихся Ocean Deluxe Rooms.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "room_suite_and_villa_inventory",
+      "declared": true,
+      "hotel_key": "EXP093",
+      "id": "JUM4533-F3",
+      "kind": "official_declared",
+      "scope": {
+        "key": "rooms / one-, two-, three-bedroom suites / Al Bahar villas",
+        "kind": "accommodation_listing"
+      },
+      "source_ids": [
+        "JUM4533-S2"
+      ],
+      "text": "Размещение включает номера, люксы с одной, двумя или тремя спальнями и отдельные виллы Al Bahar.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "villa_pool_terrace_and_butler",
+      "declared": true,
+      "hotel_key": "EXP093",
+      "id": "JUM4533-F4",
+      "kind": "official_declared",
+      "scope": {
+        "key": "One Bedroom Al Bahar Villa",
+        "kind": "room_category"
+      },
+      "source_ids": [
+        "JUM4533-S2"
+      ],
+      "text": "У One Bedroom Al Bahar Villa есть собственная терраса с бассейном и услуги персонального дворецкого.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "child_club",
+      "declared": true,
+      "hotel_key": "EXP093",
+      "id": "JUM4533-F5",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Jumeirah Circle Kids Club",
+        "kind": "facility"
+      },
+      "source_ids": [
+        "JUM4533-S1"
+      ],
+      "text": "Для детей указан Jumeirah Circle Kids Club.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "spa_and_sports",
+      "declared": true,
+      "hotel_key": "EXP093",
+      "id": "JUM4533-F6",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Talise Spa / J Club",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "JUM4533-S1"
+      ],
+      "text": "В перечне оздоровительной и спортивной инфраструктуры названы Talise Spa и J Club.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "named_dining_venues",
+      "declared": true,
+      "hotel_key": "EXP093",
+      "id": "JUM4533-F7",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Aila’s Table / Nuska Beach",
+        "kind": "dining"
+      },
+      "source_ids": [
+        "JUM4533-S1",
+        "JUM4533-S3"
+      ],
+      "text": "Среди ресторанов отеля названы Aila’s Table и Nuska Beach.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "pool_redevelopment_notice",
+      "declared": true,
+      "hotel_key": "EXP093",
+      "id": "JUM4533-F8",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Leisure / Executive / Family Pools; 18 November 2026 announcement, early-2027 plan",
+        "kind": "dated_facility_update"
+      },
+      "source_ids": [
+        "JUM4533-S3"
+      ],
+      "text": "В официальной публикации от 18.11.2026 сообщается о переустройстве Leisure, Executive и Family Pools с планом представить обновления в начале 2027 года.",
+      "valid_at_travel": "unverified"
+    }
+  ],
+  "hotel_ref": {
+    "catalog": "anytour",
+    "id": 4533
+  },
+  "material_limits": {
+    "identity_admission": "Цепочка legacy_catalog 2588 → AnyTour 4533 (ревизия 2) → local-tv 2588 (ревизия 2) и это целое досье независимо приняты решением ACCEPT_LOCAL19_BOUNDED_CONSUMER_IDENTITY_AND_CONTENT_ADMISSION по сохранённым оригинальным доказательствам. Native LOCAL остаётся pending, source_json=NULL; приёмка досье не означает приёмку нового native/provider source. Реальная Library приёмка, установка в справочник, чтение с реальным разрешённым selector и использование ИИ подтверждаются отдельно; runtime_admission_verified=false.",
+    "original_notes_ru": [
+      "По JUM4533-S3 (официальная новость от 18.11.2026) Leisure, Executive и Family Pools находятся в процессе обновления; заявленный ориентир открытия обновлённых зон — начало 2027 года. Точный график работ и доступность отдельных бассейнов на даты проживания не установлены. В описание не включено обещание доступности всех бассейнов.",
+      "JUM4533-S1 и JUM4533-S3 упоминают доступ в Wild Wadi, тогда как актуальные официальные страницы Al Qasr, Mina Al Salam и Dar Al Masyaf в этом пакете содержат сообщение о временном закрытии. Доступ в аквапарк не включён в предлагаемое описание; перед будущим использованием такого утверждения потребуется отдельная проверка.",
+      "Фотография общего вида получена из официальной медиатеки; её дата съёмки не установлена. Она не доказывает отсутствие строительных работ на 22.11.2026."
+    ],
+    "recommendation_boundary": "Заявления об аудитории отеля не являются независимой оценкой качества или гарантией пригодности конкретному туристу.",
+    "scope": "Каждое целое утверждение применяется только к указанному объекту, категории, услуге, сезону или маршруту. Обещания тарифа, цены, наличия и будущей работы не добавлены.",
+    "temporal": "Сохранены сведения и дата чтения 22.11.2026. Текущая или будущая работа услуг не проверялась; срок действия и дата публикации не выдуманы."
+  },
+  "price_authority": "none",
+  "project_key": "anytour",
+  "record_hashes": {
+    "claims": {
+      "JUM4533-F1": "a081a8903b1942f424e08069e765119964299d0bff9f8c2fcfea6ba2987967ac",
+      "JUM4533-F2": "10dd423bec35316c69018a217803251c120e6ceb9bcac0a77fc3bd65c7e1d01f",
+      "JUM4533-F3": "780af9d6a8644d213e378ac18716a99bfc68b90f5640a112cc454ca15d0360d3",
+      "JUM4533-F4": "676acaf2c8375fdfc1ad4e3a535437b12a981069f8ed65ebe74d5f2ee6934960",
+      "JUM4533-F5": "afccccb94e94ec1d8814a64b9f8037b38d47f9545d3d38a121d1f16cd67c0100",
+      "JUM4533-F6": "4f7b60d31c0d9b42e2fffa372b10d08a65a80f9ead86c540cc2b3659858b2f3c",
+      "JUM4533-F7": "b5f86a1aca845938b3cc27982e875a8c07dc24f181ff664a25b8693b8fa191e3",
+      "JUM4533-F8": "a91baead264166bdb86b1373259fbbb3120b4f9546dbeeeff97d61fd97eae19a"
+    },
+    "sources": {
+      "JUM4533-S1": "8f3df734b62cbb92761489cb2075622a1c9ac36bf3a0b061e0f12a2229f85bd3",
+      "JUM4533-S2": "7e8a8df0518b1d75ac2e9290f801bc631a23adc0ca57f0e382f0749eed2b4db7",
+      "JUM4533-S3": "a6acb701325ec9071bc12755872f90194418502914a36f4bc952a1388200ae22",
+      "JUM4533-S4": "9c7cb3131a807e8300732bd6d69a6c2f0b87c01690c453781b5b7e68d5710812"
+    }
+  },
+  "research_hotel_key": "EXP093",
+  "runtime_admission_verified": false,
+  "schema_version": "hotel_reference_v1",
+  "sources": [
+    {
+      "capture_bytes": 695498,
+      "capture_format": "raw_html",
+      "capture_sha256": "db662031cee31d4e409b5c99fc35260b249242d0425d35564e9e6f9320deaa4e",
+      "hotel_key": "EXP093",
+      "id": "JUM4533-S1",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: JUM4533-F1, JUM4533-F5, JUM4533-F6, JUM4533-F7. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:22.365141+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Book your stay with Jumeirah Beach Hotel in Dubai",
+      "url": "https://www.jumeirah.com/en/stay/dubai/jumeirah-beach-hotel"
+    },
+    {
+      "capture_bytes": 442206,
+      "capture_format": "raw_html",
+      "capture_sha256": "59c5038b8d4db41e3276633f3310ebf0049f14662c15d78c7bbe59ce40360c82",
+      "hotel_key": "EXP093",
+      "id": "JUM4533-S2",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: JUM4533-F2, JUM4533-F3, JUM4533-F4. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:59:11.006116+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Rooms, Suites and Villas at Jumeirah Beach Hotel | Jumeirah",
+      "url": "https://www.jumeirah.com/en/stay/dubai/jumeirah-beach-hotel/accommodation"
+    },
+    {
+      "capture_bytes": 77377,
+      "capture_format": "raw_html",
+      "capture_sha256": "20f07949121a9d4d6d85d5a5a334dd133569f03fe04d8305484c622acf50a411",
+      "hotel_key": "EXP093",
+      "id": "JUM4533-S3",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: JUM4533-F7, JUM4533-F8. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T10:00:32.347127+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Jumeirah Beach Hotel Reimagines the Family Resort Experience Ahead of Its 30th Anniversary | Jumeirah Media Hub |",
+      "url": "https://mediahub.jumeirah.com/jumeirah-beach-hotel-reimagines-the-family-resort-experience-ahead-of-its-30th-anniversary/?lang=eng"
+    },
+    {
+      "capture_bytes": 60834,
+      "capture_format": "raw_html",
+      "capture_sha256": "f33e2acadb93eb8a63e9bd75fd89edfe72cbdaa7a88908d3c5a05156e83c14df",
+      "hotel_key": "EXP093",
+      "id": "JUM4533-S4",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Дополнительная официальная страница из исходного пакета; ни один из 206 текстовых фактов прямо не ссылается на эту запись. Не является новым основанием для фактов.",
+      "retrieved_at_utc": "2026-11-22T10:00:32.678728+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Jumeirah Beach Hotel | Jumeirah Media Hub |",
+      "url": "https://mediahub.jumeirah.com/section/our-destinations/middle-east/dubai/jumeirah-beach-hotel/?lang=eng"
+    }
+  ],
+  "status": "SEALED_AUTHORING_DATA_ONLY",
+  "trusted_selector_required": true
+}

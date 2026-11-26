@@ -16,6 +16,15 @@ class ManagerPushService
         catch (Throwable $e) { return str_replace('.', '', uniqid('', true)); }
     }
 
+    /** OpenSSL omits leading zero octets; SEC1 P-256 coordinates are fixed-width. */
+    private static function p256PublicPoint(array $ec): string
+    {
+        $x=$ec['x']??null; $y=$ec['y']??null;
+        if(!is_string($x)||!is_string($y)||strlen($x)<1||strlen($x)>32||strlen($y)<1||strlen($y)>32)
+            throw new RuntimeException('invalid_p256_coordinates');
+        return "\x04".str_pad($x,32,"\0",STR_PAD_LEFT).str_pad($y,32,"\0",STR_PAD_LEFT);
+    }
+
     private static function configPath(): string { return dirname(__DIR__) . '/.runtime/manager_push_vapid.php'; }
 
     public static function vapid(): array
@@ -30,9 +39,8 @@ class ManagerPushService
         if(!$key) throw new RuntimeException('cannot_generate_vapid');
         $pem=''; openssl_pkey_export($key,$pem);
         $d=openssl_pkey_get_details($key); $ec=(array)($d['ec']??[]);
-        $x=(string)($ec['x']??''); $y=(string)($ec['y']??'');
-        if(strlen($x)!==32||strlen($y)!==32) throw new RuntimeException('invalid_vapid_key');
-        $cfg=['private_pem'=>$pem,'public_key'=>self::b64u("\x04".$x.$y),'subject'=>'mailto:admin@anytoour.ru'];
+        $public=self::p256PublicPoint($ec);
+        $cfg=['private_pem'=>$pem,'public_key'=>self::b64u($public),'subject'=>'mailto:admin@anytoour.ru'];
         $tmp=$path.'.tmp.'.bin2hex(random_bytes(4));
         file_put_contents($tmp,"<?php\nreturn ".var_export($cfg,true).";\n",LOCK_EX); @chmod($tmp,0600); rename($tmp,$path);
         return $cfg;
@@ -144,6 +152,11 @@ class ManagerPushService
         foreach(['project_key','channel']as$field)if((string)($current[$field]??'')!==(string)($expected[$field]??''))return false;
         if(!$taskReminder&&(string)$current['status']!==(string)$expected['status'])return false;
         $managerId=(int)($sub['manager_id']??0);
+        // The final send-time fence must remain even if the shift changed after recipient selection.
+        if(!$taskReminder&&(string)$current['status']==='waiting_manager'){
+            $actor=\ManagerAuthService::byId($managerId);
+            if(!$actor||(!\ManagerAuthService::isAdmin($actor)&&!\ManagerAuthService::isWorking($actor)))return false;
+        }
         if(!($taskReminder?RoutingAccessService::canNotifyTaskOwner($managerId,$current):RoutingAccessService::canSeeConversation($managerId,$current)))return false;
         return ManagerPushConnectionService::isCurrent($pdo,$sub);
     }
@@ -155,7 +168,8 @@ class ManagerPushService
         $clientPub=self::b64ud((string)$sub['p256dh']); $auth=self::b64ud((string)$sub['auth_secret']);
         if(strlen($clientPub)!==65||strlen($auth)<16) throw new RuntimeException('invalid_subscription_key');
         $server=openssl_pkey_new(['private_key_type'=>OPENSSL_KEYTYPE_EC,'curve_name'=>'prime256v1']);
-        $sd=openssl_pkey_get_details($server); $sec=(array)($sd['ec']??[]); $serverPub="\x04".(string)$sec['x'].(string)$sec['y'];
+        if(!$server) throw new RuntimeException('cannot_generate_ephemeral');
+        $sd=openssl_pkey_get_details($server); $sec=(array)($sd['ec']??[]); $serverPub=self::p256PublicPoint($sec);
         $clientPem="-----BEGIN PUBLIC KEY-----\n".chunk_split(base64_encode(hex2bin('3059301306072A8648CE3D020106082A8648CE3D030107034200').$clientPub),64,"\n")."-----END PUBLIC KEY-----\n";
         $clientKey=openssl_pkey_get_public($clientPem); if(!$clientKey) throw new RuntimeException('bad_client_key');
         $shared=openssl_pkey_derive($clientKey,$server,32); if($shared===false) throw new RuntimeException('ecdh_failed');

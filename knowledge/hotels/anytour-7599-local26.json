@@ -1,0 +1,197 @@
+{
+  "binding_revision": "4d4dcdc39b9330fca31749d0e6f9a6cdf07933a166f9a660d2df056c9a5bf940",
+  "coverage": {
+    "available_prepared_claim_count": 7,
+    "basis": "All whole source facts from the immutable reviewed LOCAL26 package; not independent AI content admission.",
+    "complete": false,
+    "selected_claim_count": 7
+  },
+  "facts": [
+    {
+      "aspect": "atoll_location",
+      "declared": true,
+      "hotel_key": "EXP041",
+      "id": "F1",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Lhaviyani Atoll",
+        "kind": "location"
+      },
+      "source_ids": [
+        "kom-group",
+        "kom-web"
+      ],
+      "text": "Расположен в атолле Лавияни.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "property_minimum_age",
+      "declared": true,
+      "hotel_key": "EXP041",
+      "id": "F2",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Komandoo guests aged 18+",
+        "kind": "property"
+      },
+      "source_ids": [
+        "kom-group"
+      ],
+      "text": "Курорт принимает гостей от18лет.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "airport_transfer_duration",
+      "declared": true,
+      "hotel_key": "EXP041",
+      "id": "F3",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Velana airport to Komandoo by seaplane",
+        "kind": "transfer_route"
+      },
+      "source_ids": [
+        "kom-group",
+        "kom-web"
+      ],
+      "text": "Указан трансфер гидросамолётом от Веланы около40минут.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "villa_categories",
+      "declared": true,
+      "hotel_key": "EXP041",
+      "id": "F4",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Beach Villa / Jacuzzi Beach Villa / overwater Jacuzzi categories",
+        "kind": "accommodation_listing"
+      },
+      "source_ids": [
+        "kom-group",
+        "kom-web"
+      ],
+      "text": "Есть Beach Villa, Jacuzzi Beach Villa и водные категории с джакузи.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "house_reef_and_diving",
+      "declared": true,
+      "hotel_key": "EXP041",
+      "id": "F5",
+      "kind": "official_declared",
+      "scope": {
+        "key": "island house reef / snorkelling / diving",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "kom-group",
+        "kom-web"
+      ],
+      "text": "У острова есть домашний риф; предлагаются сноркелинг и дайвинг.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "spa",
+      "declared": true,
+      "hotel_key": "EXP041",
+      "id": "F6",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Duniye Spa",
+        "kind": "facility"
+      },
+      "source_ids": [
+        "kom-web"
+      ],
+      "text": "На официальном сайте представлен Duniye Spa.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "declared_adult_orientation",
+      "declared": true,
+      "hotel_key": "EXP041",
+      "id": "F7",
+      "kind": "official_declared",
+      "scope": {
+        "key": "official adults-only positioning for couples and friends",
+        "kind": "property"
+      },
+      "source_ids": [
+        "kom-group",
+        "kom-web"
+      ],
+      "text": "Взрослый формат рассчитан на пары и компании друзей.",
+      "valid_at_travel": "unverified"
+    }
+  ],
+  "hotel_ref": {
+    "catalog": "anytour",
+    "id": 7599
+  },
+  "material_limits": {
+    "identity_admission": "Цепочка legacy_catalog 2458 → AnyTour 7599 (ревизия 2) → local-tv 2458 (ревизия 2) и это целое досье независимо приняты решением ACCEPT_LOCAL19_BOUNDED_CONSUMER_IDENTITY_AND_CONTENT_ADMISSION по сохранённым оригинальным доказательствам. Native LOCAL остаётся pending, source_json=NULL; приёмка досье не означает приёмку нового native/provider source. Реальная Library приёмка, установка в справочник, чтение с реальным разрешённым selector и использование ИИ подтверждаются отдельно; runtime_admission_verified=false.",
+    "original_notes_ru": [
+      "Возраст18+ подтверждён официальной страницей группы. Это не детский или семейный с детьми курорт.",
+      "Два прямых запроса страниц komandoo.com вернули HTTP202 с короткой challenge-страницей. Эти байты не использованы как факты. Основной HTML и фотографии получены с официальной страницы Crown & Champa Resorts; отдельно сохранён доступный через web официальный текст Komandoo.",
+      "Условия включения питания, дайвинга, спа и трансфера в цену не утверждаются."
+    ],
+    "recommendation_boundary": "Заявления об аудитории отеля не являются независимой оценкой качества или гарантией пригодности конкретному туристу.",
+    "scope": "Каждое целое утверждение применяется только к указанному объекту, категории, услуге, сезону или маршруту. Обещания тарифа, цены, наличия и будущей работы не добавлены.",
+    "temporal": "Сохранены сведения и дата чтения 22.11.2026. Текущая или будущая работа услуг не проверялась; срок действия и дата публикации не выдуманы."
+  },
+  "price_authority": "none",
+  "project_key": "anytour",
+  "record_hashes": {
+    "claims": {
+      "F1": "12784a1223877b314470dfdb19b6617bd077e169ac5706e9dc0ae10fd19d709c",
+      "F2": "31f77c0ebaccd7ae1e4ef82b4f672dc9204eff89c78479dde00f22f3383ba9c1",
+      "F3": "a5bf1a461d8d295bec1ba2647b87f0a5ee18ed221ac2d6314b0c2c505602510b",
+      "F4": "299ec899a2260fbf03c8af10fed102b05cf07bac88b55339a77f52bb897277a3",
+      "F5": "f66bb3af3ed2d05937a813d6d3afeee76c80f1105165c718e9de80ee66d6ebe1",
+      "F6": "779735c6502663f16a8201df704afec7adb975475c0f3e0e6546930787daf230",
+      "F7": "3b23f80fde48dc420ecc2dd77289085a130c9a489dac58a8ddc19310a1cd28ba"
+    },
+    "sources": {
+      "kom-group": "fb84e309df1aae5374ebe4ae5dd61b0c8e37ed543b586dd510c9e4db00981d7a",
+      "kom-web": "7bc333ba85e9530c2001dad34f3f2f7453e3c8249b0ae5e6a198c9be663039dc"
+    }
+  },
+  "research_hotel_key": "EXP041",
+  "runtime_admission_verified": false,
+  "schema_version": "hotel_reference_v1",
+  "sources": [
+    {
+      "capture_bytes": 148517,
+      "capture_format": "raw_html",
+      "capture_sha256": "fdb39c7aa845afb0aecfceac7d77f1bd4c7126cf8242eb54a813b3a77e3f23bd",
+      "hotel_key": "EXP041",
+      "id": "kom-group",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: F1, F2, F3, F4, F5, F7. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T10:01:03.448319+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Komandoo Maldives | Leading Adults-only Maldives Resort",
+      "url": "https://www.crownandchamparesorts.com/our-resorts/komandoo.html"
+    },
+    {
+      "capture_bytes": 6002,
+      "capture_format": "retrieved_web_text_not_origin_html",
+      "capture_sha256": "167f4ae3522e0576fd4c94666b8078438b14a923b4e571a791f0547ccc366bbe",
+      "hotel_key": "EXP041",
+      "id": "kom-web",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены. Origin HTML returned challenge202; rejected. This separate hash covers the actual retrieved web text, not origin HTML.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: F1, F3, F4, F5, F6, F7. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:32+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Komandoo official home — retrieved web text",
+      "url": "https://www.komandoo.com/"
+    }
+  ],
+  "status": "SEALED_AUTHORING_DATA_ONLY",
+  "trusted_selector_required": true
+}

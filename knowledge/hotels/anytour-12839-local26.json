@@ -1,0 +1,227 @@
+{
+  "binding_revision": "8059924e9795a05b89634893b847f14d270063841c965dcc7fd4387efb2281e6",
+  "coverage": {
+    "available_prepared_claim_count": 8,
+    "basis": "All whole source facts from the immutable reviewed LOCAL26 package; not independent AI content admission.",
+    "complete": false,
+    "selected_claim_count": 8
+  },
+  "facts": [
+    {
+      "aspect": "mountain_location",
+      "declared": true,
+      "hotel_key": "EXP029",
+      "id": "A12839-F01",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Jebel Akhdar / Hajar mountains near Nizwa",
+        "kind": "location"
+      },
+      "source_ids": [
+        "A12839-home",
+        "A12839-contact"
+      ],
+      "text": "Курорт находится на Джебель-Ахдар в горах Хаджар, недалеко от Низвы на северо-востоке Омана.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "room_balconies_and_views",
+      "declared": true,
+      "hotel_key": "EXP029",
+      "id": "A12839-F02",
+      "kind": "official_declared",
+      "scope": {
+        "key": "rooms; canyon-view balconies",
+        "kind": "accommodation_listing"
+      },
+      "source_ids": [
+        "A12839-home"
+      ],
+      "text": "Номера имеют собственные балконы и виды на каньон.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "villa_bedrooms_and_pools",
+      "declared": true,
+      "hotel_key": "EXP029",
+      "id": "A12839-F03",
+      "kind": "official_declared",
+      "scope": {
+        "key": "one-/two-/three-bedroom villas; garden or canyon location",
+        "kind": "accommodation_listing"
+      },
+      "source_ids": [
+        "A12839-home"
+      ],
+      "text": "Виллы с одной, двумя и тремя спальнями располагаются в саду или у каньона и имеют собственные бассейны.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "pools",
+      "declared": true,
+      "hotel_key": "EXP029",
+      "id": "A12839-F04",
+      "kind": "official_declared",
+      "scope": {
+        "key": "temperature-controlled infinity pool / separate child pool",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "A12839-leisure"
+      ],
+      "text": "Есть панорамный бассейн с регулируемой температурой воды и отдельный детский бассейн.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "spa_hammam_and_fitness",
+      "declared": true,
+      "hotel_key": "EXP029",
+      "id": "A12839-F05",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Anantara Spa / hammam / fitness centre",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "A12839-home",
+        "A12839-leisure"
+      ],
+      "text": "На территории работают Anantara Spa с хаммамом и фитнес-центр.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "child_and_teen_clubs",
+      "declared": true,
+      "hotel_key": "EXP029",
+      "id": "A12839-F06",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Asfour Kids Club / Jabal Teens Club",
+        "kind": "facilities"
+      },
+      "source_ids": [
+        "A12839-leisure"
+      ],
+      "text": "Для детей работает Asfour Kids’ Club, для подростков — Jabal Teens’ Club.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "viewpoint_and_walks",
+      "declared": true,
+      "hotel_key": "EXP029",
+      "id": "A12839-F07",
+      "kind": "official_declared",
+      "scope": {
+        "key": "Diana’s Point / walking routes",
+        "kind": "activities"
+      },
+      "source_ids": [
+        "A12839-leisure"
+      ],
+      "text": "Для знакомства с окрестностями представлены смотровая площадка Diana’s Point и прогулочные маршруты.",
+      "valid_at_travel": "unverified"
+    },
+    {
+      "aspect": "mountain_access_requirements",
+      "declared": true,
+      "hotel_key": "EXP029",
+      "id": "A12839-F08",
+      "kind": "official_declared",
+      "scope": {
+        "key": "mountain checkpoint; 4x4 and documents / hotel transfers",
+        "kind": "access_route"
+      },
+      "source_ids": [
+        "A12839-contact"
+      ],
+      "text": "Для въезда на гору требуется автомобиль 4x4 и документы на контрольном пункте; отель организует трансферы от подножия и из Маската.",
+      "valid_at_travel": "unverified"
+    }
+  ],
+  "hotel_ref": {
+    "catalog": "anytour",
+    "id": 12839
+  },
+  "material_limits": {
+    "identity_admission": "Цепочка legacy_catalog 61241 → AnyTour 12839 (ревизия 2) → local-tv 61241 (ревизия 2) и это целое досье независимо приняты решением ACCEPT_LOCAL19_BOUNDED_CONSUMER_IDENTITY_AND_CONTENT_ADMISSION по сохранённым оригинальным доказательствам. Native LOCAL остаётся pending, source_json=NULL; приёмка досье не означает приёмку нового native/provider source. Реальная Library приёмка, установка в справочник, чтение с реальным разрешённым selector и использование ИИ подтверждаются отдельно; runtime_admission_verified=false.",
+    "original_notes_ru": [
+      "В исходной канонической карточке регион указан как «Маскат». Этот реквизит не изменяется; описание отражает официальное фактическое расположение возле Низвы в горах Хаджар.",
+      "Требование автомобиля 4x4 сохранено; точное время пути из Маската не обещается.",
+      "Отель горный; пляжная инфраструктура не приписывается. Бассейн на первом фото не объявлен общим без подтверждения категории кадра."
+    ],
+    "recommendation_boundary": "Заявления об аудитории отеля не являются независимой оценкой качества или гарантией пригодности конкретному туристу.",
+    "scope": "Каждое целое утверждение применяется только к указанному объекту, категории, услуге, сезону или маршруту. Обещания тарифа, цены, наличия и будущей работы не добавлены.",
+    "temporal": "Сохранены сведения и дата чтения 22.11.2026. Текущая или будущая работа услуг не проверялась; срок действия и дата публикации не выдуманы."
+  },
+  "price_authority": "none",
+  "project_key": "anytour",
+  "record_hashes": {
+    "claims": {
+      "A12839-F01": "8ecfc05d4967b1331edbb719b000cae332c5f2076b959b80a733a34047d40e9f",
+      "A12839-F02": "b9272ee306582bf1c92c4e34757ad15ed06295d840c8fccbca1598a50c5c5065",
+      "A12839-F03": "6ccbadd7e681360894c08a290102e896b9e18e0aa59f59ba893b489d061d523c",
+      "A12839-F04": "18ef58eab64a1c7f704dc762926c26b839480e734f62e663d8d290b73082332e",
+      "A12839-F05": "2348da06685290c1f0a5c01d0219409c7507e0107997befbafdb0e789366d317",
+      "A12839-F06": "55c75bd9460b8b776f32e9198b41adcf7cd941510290c0db7459b0525c1d9125",
+      "A12839-F07": "a5a43eaff2f588448c4bdcaec12c30f39a15672a150327941f1a80afa263dcd9",
+      "A12839-F08": "ba62015b66ca22df17197664c17569461acd5f9da5daff380963da375a92b331"
+    },
+    "sources": {
+      "A12839-contact": "ff72e55154ba632424712069e6b3b23ff4eaca8e5996d479bdfa93a4e566ee09",
+      "A12839-home": "e0f2743c9d3490c9402f03e957e2e0da4ec3467771cd95dbfa7cc4df6260f0ca",
+      "A12839-leisure": "ee1fcab691ee17ae60431e75fd21266192f163888bc9dbb812a3c42f206c7fb9"
+    }
+  },
+  "research_hotel_key": "EXP029",
+  "runtime_admission_verified": false,
+  "schema_version": "hotel_reference_v1",
+  "sources": [
+    {
+      "capture_bytes": 216616,
+      "capture_format": "raw_html",
+      "capture_sha256": "4812a11d6ddfc91659923da9a72a681a1d5dab22430fdd4120fa4722b9d041ce",
+      "hotel_key": "EXP029",
+      "id": "A12839-home",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: A12839-F01, A12839-F02, A12839-F03, A12839-F05. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:58:40.674368+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Oman Resort | Anantara Al Jabal Al Akhdar | Official Site",
+      "url": "https://www.anantara.com/en/jabal-akhdar"
+    },
+    {
+      "capture_bytes": 174160,
+      "capture_format": "raw_html",
+      "capture_sha256": "452b84e9b4ce4a36a7cef9a478a23276126682426d3d57176b118ac8f1d568a7",
+      "hotel_key": "EXP029",
+      "id": "A12839-leisure",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: A12839-F04, A12839-F05, A12839-F06, A12839-F07. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:59:07.556693+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Attractions in Nizwa | Leisure| Anantara Al Jabal Al Akdhar",
+      "url": "https://www.anantara.com/en/jabal-akhdar/leisure"
+    },
+    {
+      "capture_bytes": 160584,
+      "capture_format": "raw_html",
+      "capture_sha256": "dfe48fb2c2d7db6f21af8d5327588f5be88d9712a12185393a118052b8ab11f5",
+      "hotel_key": "EXP029",
+      "id": "A12839-contact",
+      "kind": "official",
+      "limitations": "Сведения являются заявлениями официального источника; дата чтения не равна дате публикации. Действие услуг на даты поездки, тариф, наличие и включение услуг не подтверждены.",
+      "publication_date": null,
+      "read_scope": "Сохранённые разделы официальной страницы, использованные в исходных фактах: A12839-F01, A12839-F08. Полный сайт не исследован.",
+      "retrieved_at_utc": "2026-11-22T09:59:07.648849+00:00",
+      "retrieved_on": "2026-11-22",
+      "title": "Nizwa Hotel | Location of Anantara Al Jabal Resort Oman",
+      "url": "https://www.anantara.com/en/jabal-akhdar/contact"
+    }
+  ],
+  "status": "SEALED_AUTHORING_DATA_ONLY",
+  "trusted_selector_required": true
+}

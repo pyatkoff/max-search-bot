@@ -70,7 +70,7 @@ function as39CoverageSuccess(array $fixture, ?callable $beforeMenu = null): void
         '69 single CTAs coexist with deliberate same-source neutral-cover reuse');
     foreach (array_slice($provider->requests,$requestOffset) as $request) {
         if ($request['method'] === 'POST' && parse_url($request['url'],PHP_URL_PATH) === '/messages') {
-            as39Expect(($request['body']['notify'] ?? null) === false,'new publication batch explicitly avoids channel notification flood');
+            as39Expect(!array_key_exists('notify', $request['body']), 'MAX channel create omits the unsupported notify field');
         }
         if ($request['method'] === 'PUT') as39Expect(array_keys($request['body']) === ['text','format'],
             'original menu update omits image, keyboard and pin fields');

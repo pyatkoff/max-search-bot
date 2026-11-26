@@ -47,11 +47,29 @@ function restoreCalculation(value){const link=calculationLink(value);return link
 function validAttempt(value){return value&&validAiDraftId(value.id)&&typeof value.text==='string'&&value.text.trim().length>0&&value.text.length<=maxStoredDraftLength&&Number.isSafeInteger(value.version)&&value.version>0}
 function pendingAttempt(id=S.current){return drafts.get(Number(id))?.attempt||null}
 function newAttemptId(){const bytes=new Uint8Array(16);window.crypto.getRandomValues(bytes);return [...bytes].map(b=>b.toString(16).padStart(2,'0')).join('')}
-function showPendingAttempt(state='unknown'){
-  setReplyStatus(state==='not_found'?'Подтверждение пока не найдено. Это не означает, что сообщение не доставлено.':'Отправка не подтверждена. Проверьте результат этой попытки; повторная отправка заблокирована.','error');
-  if(state==='not_found'){
+function showPendingAttempt(state='unknown',{checked=false,error=''}={}){
+  const errors={timeout:'Сервер не ответил за 20 секунд.',network:'Нет связи с сервером.',forbidden:'Нет доступа к проверке этой отправки. Обновите переписку.',unavailable:'Сервер временно недоступен.',invalid:'Сервер вернул неполный ответ.'};
+  const message=error?'Не удалось проверить отправку. '+(errors[error]||errors.invalid)+' Черновик сохранён; повторная отправка заблокирована.':state==='not_found'?'Подтверждение пока не найдено. Это не означает, что сообщение не доставлено.':checked?(state==='processing'?'Проверили: отправка отмечена как незавершённая. Окончательного результата пока нет.':'Проверили: результат исходной отправки пока неизвестен.')+' Черновик сохранён; повторная отправка заблокирована.':'Отправка не подтверждена. Проверьте результат этой попытки; повторная отправка заблокирована.';
+  setReplyStatus(message,'error');
+  if(state==='not_found'&&!error){
     const button=document.createElement('button');button.type='button';button.textContent='Отменить непринятую попытку';button.onclick=()=>sendReply('cancel_send_attempt');button.addEventListener('mousedown',e=>{if(e.button===0)e.preventDefault()});$('replyStatus')?.appendChild(button);
   }
+}
+async function waitForAttemptResponse(start,isCurrent,controller=null){
+  let active=true,timer=null;
+  try{
+    const deadline=new Promise((resolve,reject)=>{timer=setTimeout(()=>{active=false;reject(new Error('attempt_response_timeout'));controller?.abort()},20000)});
+    return await Promise.race([start({isCurrent:()=>active&&isCurrent(),signal:controller?.signal}),deadline]);
+  }finally{active=false;if(timer!==null)clearTimeout(timer)}
+}
+function readSendReceipt(data,isCurrent){
+  const controller=typeof AbortController==='function'?new AbortController():null;
+  return waitForAttemptResponse(options=>api('send_receipt',data,options),isCurrent,controller);
+}
+function sendReceiptError(result){
+  if(result?.http_status===403||['forbidden','send_attempt_mismatch'].includes(result?.error))return 'forbidden';
+  if(Number(result?.http_status)>=500||result?.error==='send_attempt_unavailable')return 'unavailable';
+  return 'invalid';
 }
 
 function removeReplySession(){try{sessionStorage.removeItem(replySessionKey)}catch(e){}}
@@ -109,6 +127,8 @@ function applyInteractionState(){applyComposerState();applyActionState();renderL
 // A failed request is not proof that the recipient did not receive the message.
 // Keep explicit server reasons, but never turn a transport uncertainty into a retry instruction.
 function sendFailureNotice(failure,fallback=''){
+  if(failure?.category==='provider_rejected')return 'Мессенджер отклонил сообщение. Оно не отправлено. Черновик сохранён.';
+  if(failure?.category==='connection_unavailable')return 'Сообщение не отправлено: подключение бота недоступно. Черновик сохранён.';
   if(failure?.category==='not_dispatched'&&failure.http_code===0&&['file_unavailable','context_changed'].includes(failure.reason))return String(failure.notice||fallback||'Отправка файла не началась. Проверьте диалог перед новой отправкой.');
   if(['suspended','blocked','unavailable','unsupported'].includes(failure?.category)){
     const notice=String(failure.notice||fallback||failure.error_message||'');
@@ -449,6 +469,32 @@ function loadOlder(){return window.WorkspaceV2History?.loadOlder()||Promise.reso
 function renderHeader(c){renderHandoffContext();const name=c.display_name||'Турист';$('conversationTitle').textContent=name;if(window.WorkspaceV2CustomerAvatar)window.WorkspaceV2CustomerAvatar.setInitials($('conversationAvatar'),initials(name));else $('conversationAvatar').textContent=initials(name);const state=$('conversationState');state.textContent=statusText(c.status);state.className='conversationState '+String(c.status||'');const origin=[c.source_name,(c.channel||'').toUpperCase()].filter(Boolean).join(' · ');$('conversationMeta').textContent=[origin,c.manager_name?`Менеджер: ${c.manager_name}`:''].filter(Boolean).join(' · ');window.WorkspaceV2CustomerName?.enhanceHeader(c);window.WorkspaceV2CustomerAvatar?.enhanceHeader(c);W.HandoffCancellation?.render($('handoffCancellation'),!accessLost&&!S.authExpired&&c.status==='ai'&&Number(c.id)===Number(S.detail?.conversation?.id)?S.detail?.handoff_cancellation:null);window.WorkspaceV2AiDraft?.sync();window.WorkspaceV2Assistant?.sync(c);window.WorkspaceV2TourSelection?.sync(c);window.WorkspaceV2MessageNavigation?.sync(c);window.WorkspaceV2ConversationMaterials?.syncContext();window.WorkspaceV2ClientEvents?.enhanceCard(c);window.WorkspaceV2ReplyQueue?.sync(c)}
 function clearCurrentReply(target){drafts.delete(target);persistReplySession();$('replyText').value='';autoGrow();window.WorkspaceV2Media?.clear()}
 function canRefreshVisible(){const mobile=window.WorkspaceV2Mobile;return !!S.current&&Number(S.detail?.conversation?.id)===Number(S.current)&&!!S.manager?.id&&!S.authExpired&&!busy&&!opening&&!lifecycleBlocked()&&document.visibilityState!=='hidden'&&(!mobile?.isMobile()||mobile.getScreen?.()==='conversation')}
+// Match a push only to a conversation the manager is already viewing.
+function capturePushTarget(){
+  if(!canRefreshVisible()||accessLost||S.logoutPending)return null;
+  const conversation=S.detail.conversation,box=$('messages');
+  if(conversation.status!=='manager'||Number(conversation.manager_id)!==Number(S.manager.id)||!box||(box.getClientRects&&!box.getClientRects().length))return null;
+  return historyContext();
+}
+let pushScope=null;
+const PUSH_EVENT_LIMIT=128;
+function containsMessage(id){return S.detail?.messages?.some(message=>Number(message.id)===id);}
+function refreshFromPush(captured,messageId){
+  const current=capturePushTarget();
+  if(!current||!validId(messageId)||!Object.keys(current).every(key=>current[key]===captured?.[key])||containsMessage(messageId))return false;
+  const key=JSON.stringify(current);
+  if(pushScope?.key!==key)pushScope={key,seen:new Set()};
+  if(pushScope.seen.has(messageId))return false;
+  pushScope.seen.add(messageId);
+  if(pushScope.seen.size>PUSH_EVENT_LIMIT)pushScope.seen.delete(pushScope.seen.values().next().value);
+  if(refreshPending?.key===key){
+    // The active read may already have taken its snapshot. Group arrivals
+    // behind it and read again only when the returned history missed one.
+    const arrivals=refreshPending.arrivals??=new Set();
+    if(arrivals.size<PUSH_EVENT_LIMIT)arrivals.add(messageId);else refreshPending.overflow=true;
+  }else void refreshVisible();
+  return true;
+}
 async function refreshVisible(){
   if(!canRefreshVisible())return false;
   // A different confirmed context may proceed before an obsolete read settles.
@@ -457,6 +503,7 @@ async function refreshVisible(){
   const target=Number(S.current),generation=openSeq,epoch=refreshEpoch,owner=Number(S.manager.id),authGeneration=S.authGeneration;
   const stillCurrent=()=>canRefreshVisible()&&Number(S.current)===target&&openSeq===generation&&refreshEpoch===epoch&&Number(S.manager?.id)===owner&&S.authGeneration===authGeneration;
   const flight={key};refreshPending=flight;
+  let accepted=false;
   try{
     const d=await api('detail',{conversation_id:target},{isCurrent:stillCurrent});
     if(!stillCurrent())return false;
@@ -476,9 +523,14 @@ async function refreshVisible(){
     if(actionsChanged)renderActions(c);
     if(choicesChanged)window.WorkspaceV2TourChoices?.enhanceCard(c);
     if(Number(c.manager_id)!==Number(S.manager.id)||c.status!=='manager')clearCurrentReply(target);
-    acceptReadPage(d);window.WorkspaceV2RequestProfile?.refresh();void window.WorkspaceV2History?.recoverGap?.();return true;
+    acceptReadPage(d);window.WorkspaceV2RequestProfile?.refresh();void window.WorkspaceV2History?.recoverGap?.();accepted=true;return true;
   }catch(e){if(stillCurrent())setRefreshStatus('Не удалось обновить переписку. Показаны последние загруженные сообщения.');return false}
-  finally{if(refreshPending===flight)refreshPending=null}
+  finally{
+    if(refreshPending===flight){
+      refreshPending=null;
+      if(accepted&&flight.arrivals&&stillCurrent()&&capturePushTarget()&&(flight.overflow||[...flight.arrivals].some(id=>!containsMessage(id))))void refreshVisible();
+    }
+  }
 }
 function renderLeadLoading(c){
   const root=$('leadCard');if(!root)return;
@@ -579,7 +631,7 @@ async function nextWaiting(){
   if(!next){setLoadStatus('В загруженной подборке больше нет клиентов, которые ждут ответа.','success');return false}
   return open(Number(next.id));
 }
-function renderActions(c){const root=$('conversationActions'),locked=$('composerLocked'),composer=$('composer');root.innerHTML='';const own=Number(c.manager_id)===Number(S.manager.id)&&c.status==='manager',canTake=(c.status==='waiting_manager'||c.status==='ai')&&!c.manager_id&&(S.manager.role==='admin'||S.manager.is_working),suspended=deliverySuspended();if(canTake)action('Взять','primary',()=>change('take'));if(own){action('Передать боту','',()=>change('release'));action('Закрыть обращение','',()=>change('close'))}if(c.status==='closed')action('Переоткрыть','primary',()=>change('reopen'));composer.classList.toggle('hidden',!own||accessLost);locked.classList.toggle('hidden',own&&!suspended&&!accessLost);if(accessLost)locked.textContent='Доступ к диалогу изменился. Выберите доступный диалог в списке.';else if(!own){if(c.status==='closed')locked.innerHTML='<strong>Диалог закрыт.</strong> Переоткройте его, чтобы продолжить общение.';else if(canTake)locked.innerHTML='<strong>Чтобы ответить клиенту, возьмите диалог.</strong> Переписку можно читать без назначения.';else if(c.manager_name)locked.innerHTML=`Диалог сейчас у менеджера <strong>${W.esc(c.manager_name)}</strong>.`;else locked.innerHTML='Ответ сейчас недоступен для этого диалога.'}else if(suspended){locked.innerHTML='<strong>Отправка временно заблокирована.</strong> Клиент недоступен в MAX; дождитесь нового входящего сообщения.'}else locked.textContent='';if((S.detail?.owner_read===true&&S.manager.role==='admin')||(S.detail?.supervisor_read===true&&c.status==='manager'&&!own)){const preview=action('AI','primary',()=>window.WorkspaceV2AiDraft?.openSupervisor());preview.setAttribute('aria-label','AI · Просмотр');preview.title=S.detail?.owner_read?'AI · Режим владельца':'AI · Просмотр руководителя'}window.Manager2Presentation?.enhanceConversationActions(root);window.WorkspaceV2PromiseTasks?.decorate();applyInteractionState();autoGrow()}
+function renderActions(c){const root=$('conversationActions'),locked=$('composerLocked'),composer=$('composer');root.innerHTML='';const own=Number(c.manager_id)===Number(S.manager.id)&&c.status==='manager',canTake=(c.status==='waiting_manager'||c.status==='ai')&&!c.manager_id,suspended=deliverySuspended();if(canTake)action('Взять','primary',()=>change('take'));if(own){action('Передать боту','',()=>change('release'));action('Закрыть обращение','',()=>change('close'))}if(c.status==='closed')action('Переоткрыть','primary',()=>change('reopen'));composer.classList.toggle('hidden',!own||accessLost);locked.classList.toggle('hidden',own&&!suspended&&!accessLost);if(accessLost)locked.textContent='Доступ к диалогу изменился. Выберите доступный диалог в списке.';else if(!own){if(c.status==='closed')locked.innerHTML='<strong>Диалог закрыт.</strong> Переоткройте его, чтобы продолжить общение.';else if(canTake)locked.innerHTML='<strong>Чтобы ответить клиенту, возьмите диалог.</strong> Переписку можно читать без назначения.';else if(c.manager_name)locked.innerHTML=`Диалог сейчас у менеджера <strong>${W.esc(c.manager_name)}</strong>.`;else locked.innerHTML='Ответ сейчас недоступен для этого диалога.'}else if(suspended){locked.innerHTML='<strong>Отправка временно заблокирована.</strong> Клиент недоступен в MAX; дождитесь нового входящего сообщения.'}else locked.textContent='';if((S.detail?.owner_read===true&&S.manager.role==='admin')||(S.detail?.supervisor_read===true&&c.status==='manager'&&!own)){const preview=action('AI','primary',()=>window.WorkspaceV2AiDraft?.openSupervisor());preview.setAttribute('aria-label','AI · Просмотр');preview.title=S.detail?.owner_read?'AI · Режим владельца':'AI · Просмотр руководителя'}window.Manager2Presentation?.enhanceConversationActions(root);window.WorkspaceV2PromiseTasks?.decorate();applyInteractionState();autoGrow()}
 function action(text,cl,fn){const b=document.createElement('button');b.className='actionBtn '+cl;b.type='button';b.dataset.conversationLifecycle='1';b.textContent=text;b.disabled=busy||accessLost;b.onclick=fn;$('conversationActions').appendChild(b);return b}
 const lifecycleCopy={take:{loading:'Берём диалог…',success:'Диалог назначен вам',error:'Не удалось взять диалог'},release:{loading:'Передаём диалог боту…',success:'Диалог передан боту',error:'Не удалось передать диалог боту'},close:{loading:'Закрываем диалог…',success:'Диалог закрыт',error:'Не удалось закрыть диалог'},reopen:{loading:'Переоткрываем диалог…',success:'Диалог снова в работе',error:'Не удалось переоткрыть диалог'}};
 const lifecycleReasons={
@@ -661,11 +713,20 @@ async function change(a){
   }catch(e){if(feedbackCurrent())showLifecycleIssue(flight,confirmed?copy.success+'. Переписка пока не обновлена. Проверьте состояние перед следующим действием.':lifecycleUnknown,confirmed?'confirmed':'unknown')}
   finally{if(timer)clearTimeout(timer);if(lifecycleFlight===flight){lifecycleFlight=null;setBusy(false)}if(feedbackCurrent()&&lifecycleBlocked()&&(document.activeElement===flight.opener||document.activeElement===document.body&&flight.fromActions))$('conversationLifecycleStatus')?.querySelector('button')?.focus({preventScroll:true})}
 }
+function sendBusyControl(){
+  let held=false;
+  return value=>{
+    if(held===value)return;
+    held=value;setBusy(held);
+  };
+}
 async function sendReply(reconcileAction='send_receipt'){
   if(busy||(deliverySuspended()&&!pendingAttempt()))return;
   if(window.WorkspaceV2Media?.isRestoring?.())return;
   if(opening)return;
   if(accessLost||S.authExpired||lifecycleBlocked())return;
+  // Each delivery releases only its own controls, including its late finally.
+  const setBusy=sendBusyControl();
   const owner=replySessionOwner;let draftText=$('replyText').value;
   const target=Number(S.current||0),generation=openSeq,text=$('replyText').value.trim();let attempt=pendingAttempt(target),hasFile=!attempt&&window.WorkspaceV2Media?.hasFile();
   // Explicit send intent owns the text even when transport later refuses it.
@@ -679,7 +740,7 @@ async function sendReply(reconcileAction='send_receipt'){
   const sameTarget=()=>sameSession()&&Number(S.current)===target;
   const currentAttempt=()=>sameTarget()&&openSeq===generation;
   if(!target||(!text&&!hasFile&&!attempt))return;
-  const reconcile=!!attempt;let calculation=null;
+  const reconcile=!!attempt,receiptRead=reconcile&&reconcileAction!=='cancel_send_attempt';let calculation=null;
   if(!attempt&&window.WorkspaceV2PromiseCalculation){
     calculation=await window.WorkspaceV2PromiseCalculation.beforeSend();
     if(calculation?.allow!==true||!currentAttempt()||$('replyText').value!==draftText||!!window.WorkspaceV2Media?.hasFile()!==!!hasFile||calculation.matches&&calculation.matches()!==true)return;
@@ -699,10 +760,17 @@ async function sendReply(reconcileAction='send_receipt'){
     let j;
     try{
       if(hasFile)j=await (calculation?.media?window.WorkspaceV2Media.send(text,calculation.media):window.WorkspaceV2Media.send(text));
-      else if(reconcile)j=await api(reconcileAction==='cancel_send_attempt'?reconcileAction:'send_receipt',{conversation_id:target,operation_id:attempt.id,...(calculationAttempt(attempt)?{expected_manager_id:manager}:{})},{isCurrent:currentAttempt});
-      else j=await api('send',{conversation_id:target,text,operation_id:attempt.id,...(validAiDraftId(aiDraftId)?{ai_draft_id:aiDraftId}:{}),...(calculationLink(attempt)?{...calculationLink(attempt),expected_manager_id:manager}:{})},{isCurrent:currentAttempt});
+      else if(receiptRead)j=await readSendReceipt({conversation_id:target,operation_id:attempt.id,...(calculationAttempt(attempt)?{expected_manager_id:manager}:{})},currentAttempt);
+      else if(reconcile)j=await api('cancel_send_attempt',{conversation_id:target,operation_id:attempt.id,...(calculationAttempt(attempt)?{expected_manager_id:manager}:{})},{isCurrent:currentAttempt});
+      // Bound the UI wait only. The single original POST keeps its persisted operation ID and is never aborted or replayed.
+      else j=await waitForAttemptResponse(options=>api('send',{conversation_id:target,text,operation_id:attempt.id,...(validAiDraftId(aiDraftId)?{ai_draft_id:aiDraftId}:{}),...(calculationLink(attempt)?{...calculationLink(attempt),expected_manager_id:manager}:{})},options),currentAttempt);
     }catch(e){
-      if(currentAttempt()){if(attempt)showPendingAttempt();else setReplyStatus(sendFailureNotice(null),'error');}
+      if(receiptRead){if(currentAttempt())showPendingAttempt('unknown',{error:e?.message==='attempt_response_timeout'?'timeout':'network'});}
+      else if(currentAttempt()){if(attempt)showPendingAttempt();else setReplyStatus(sendFailureNotice(null),'error');}
+      return;
+    }
+    if(receiptRead&&(j?.ok!==true||j?.attempt?.kind==='media'||!['confirmed','rejected','cancelled','processing','unknown','not_found'].includes(j?.attempt?.state))){
+      if(currentAttempt())showPendingAttempt('unknown',{error:sendReceiptError(j)});
       return;
     }
     if(attempt){
@@ -727,7 +795,7 @@ async function sendReply(reconcileAction='send_receipt'){
         if(state==='cancelled'){if(currentAttempt())setReplyStatus('Непринятая попытка отменена. Текст и файлы сохранены; отправьте их явно.');return}
         if(state==='confirmed')j={...j,ok:true};
         else j={...j,ok:false};
-      }else{if(currentAttempt()){if(j?.failure&&S.detail?.conversation){S.detail.delivery_failure=j.failure;renderDeliveryFailure(j.failure,j.error_message);renderActions(S.detail.conversation)}showPendingAttempt(state)}return}
+      }else{if(currentAttempt()){if(j?.failure&&S.detail?.conversation){S.detail.delivery_failure=j.failure;renderDeliveryFailure(j.failure,j.error_message);renderActions(S.detail.conversation)}showPendingAttempt(state,{checked:receiptRead})}return}
     }
     // A multi-file attempt may have delivered an earlier file before a later
     // rejection/unknown result. Consume only a confirmed caption and refresh
@@ -742,6 +810,7 @@ async function sendReply(reconcileAction='send_receipt'){
         try{const refreshing=open(target,{stickToBottom:true,mobileHistory:'none',preserveAttachment:true,preserveHistory:true,...(calculation?.media||calculationAttempt(attempt)?{protectTaskDraft:true}:{})});refreshGeneration=openSeq;await refreshing}catch(e){}
         if(sameTarget()&&openSeq===refreshGeneration)setMediaReplyStatus(j.error_message||'Часть файлов отправлена. Проверьте оставшиеся вложения.','error',j.media_operation_id);
       }
+      setBusy(false);
       if(sameSession())try{await window.WorkspaceV2Inbox?.load({preserveScroll:true})}catch(e){}
       return;
     }
@@ -765,6 +834,7 @@ async function sendReply(reconcileAction='send_receipt'){
       }catch(e){}
       if(sameTarget()&&openSeq===refreshGeneration)setReplyStatus(refreshed?'Отправлено':'Отправлено. Переписку пока не удалось обновить.','success');
     }
+    setBusy(false);
     // Inbox owns its refresh errors; they are not message-delivery failures.
     if(sameSession())try{await window.WorkspaceV2Inbox?.load({preserveScroll:true})}catch(e){}
   }finally{setBusy(false);window.WorkspaceV2PromiseCalculation?.afterSend(calculationLink(attempt)?.calculation_intent_id||calculation?.media?.intentId,manager,target)}
@@ -792,5 +862,5 @@ function bind(){
   reply.addEventListener('keydown',e=>{if(!e.isComposing&&e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();form.requestSubmit()}});
   document.querySelectorAll('.quickReplies [data-reply]').forEach(b=>b.onclick=()=>addQuickReply(b.dataset.reply))
 }
-window.WorkspaceV2Conversation={syncComposer:applyInteractionState,pendingCalculation:intentId=>{const a=pendingAttempt();return !!calculationAttempt(a)&&(!intentId||a.calculationIntentId===intentId)},hasReadAccess:()=>!accessLost&&!S.authExpired,renderHandoffContext,invalidateMessageAccess:loseHistoryAccess,renderMessageContext,canNavigateMessages:()=>isCurrentHistory(historyContext()),acceptReadPage,bind,open,cancelPendingOpen,refreshVisible,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,settleMediaFeedback,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,captureQuickReplyReplacement,canReplaceQuickReply,insertQuickReply,insertAiDraft,previewAiDraft,discardAiPreview,aiDraftPreview,openSearch,nextWaiting};
+window.WorkspaceV2Conversation={syncComposer:applyInteractionState,pendingCalculation:intentId=>{const a=pendingAttempt();return !!calculationAttempt(a)&&(!intentId||a.calculationIntentId===intentId)},hasReadAccess:()=>!accessLost&&!S.authExpired,renderHandoffContext,invalidateMessageAccess:loseHistoryAccess,renderMessageContext,canNavigateMessages:()=>isCurrentHistory(historyContext()),acceptReadPage,bind,open,cancelPendingOpen,refreshVisible,capturePushTarget,refreshFromPush,captureRefreshContext:historyContext,activateReplySession,rememberSelection,getSavedSelection:()=>savedSelection,getOpenGeneration:()=>openSeq,suspendForAuthRecovery,resetForIdentityChange,refreshLeadData,renderMessages,loadOlder,renderHeader,renderDeliveryFailure,messageTime,sendReply,settleMediaFeedback,saveDraft,restoreDraft,setLoadStatus,captureReplyContext,captureQuickReplyReplacement,canReplaceQuickReply,insertQuickReply,insertAiDraft,previewAiDraft,discardAiPreview,aiDraftPreview,openSearch,nextWaiting};
 })();

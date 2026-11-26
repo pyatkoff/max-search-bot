@@ -114,6 +114,11 @@ class CardSessionStatement extends PDOStatement {
             $this->rows=[['needed'=>in_array((int)$args[0],[46,47,48],true)?1:0,'reply_wait_started_unix'=>null]];return true;
         }
         if(str_starts_with($sql,'SELECT p.id,p.project_key,p.display_name,COALESCE(ra.regional_scope_required,0) AS regional_scope_required FROM projects p JOIN manager_projects ')){$this->rows=[['id'=>1,'project_key'=>'fixture','display_name'=>'Fixture','regional_scope_required'=>0]];return true;}
+        if(str_starts_with($sql,'SELECT s.id,s.source_key,s.display_name,s.channel,p.project_key,p.display_name AS project_name ')){
+            cardFixtureGate('filter_options');
+            if($args===['fixture'])$this->rows=[['id'=>3,'source_key'=>'test','display_name'=>'Test source','channel'=>'max','project_key'=>'fixture','project_name'=>'Fixture']];
+            return true;
+        }
         if(str_starts_with($sql,'SELECT 1 FROM manager_projects mp JOIN projects ')){$this->rows=in_array($args[1],['fixture','repair_fixture','general_fixture','unconfigured_fixture','invalid_fixture'],true)?[[1]]:[];return true;}
         if(str_contains($sql,' AS unread_count ')){cardFixtureGate(($GLOBALS['action']??'')==='counts'?'counts':'list');return true;}
         if(str_starts_with($sql,'SELECT id,direction,sender_type,text,created_at,sender_id FROM messages ')){$customer=in_array((int)$args[0],[46,47,48],true);$this->rows=[['id'=>101,'direction'=>$customer?'inbound':'outbound','sender_type'=>$customer?'customer':'manager','text'=>'Synthetic transcript &amp; retained','created_at'=>'2026-10-25 10:00:00','sender_id'=>null]];return true;}
@@ -150,6 +155,10 @@ function cardFixtureGate(string $kind):void {
     while(!is_file($directory.'/'.$kind.'.release')){if(microtime(true)>$deadline)throw new RuntimeException('Held fixture timeout');usleep(1000);}
 }
 class SalesPipelineService {
+    static function stages(bool $activeOnly):array{cardFixtureGate('catalog');return [['stage_key'=>'new']];}
+    static function tags(bool $activeOnly):array{return [['id'=>3]];}
+    static function outcomeOptions():array{return ['open'=>'Open'];}
+    static function closeReasonOptions(bool $activeOnly):array{return ['other'=>'Other'];}
     static function conversationSnapshot($id):array{cardFixtureGate('read');return ['stage'=>null,'stage_history'=>[],'tags'=>[],'outcome'=>['outcome'=>'open']];}
     static function setStage(...$args):bool{cardFixtureGate('write');return true;}
     static function decorateConversationRows(array $rows):array{return $rows;}
@@ -160,7 +169,7 @@ PHP);
     file_put_contents($tmp.'/manager/fixture-session.php', <<<'PHP'
 <?php
 require_once __DIR__.'/lib/ManagerHttp.php';session_id((string)$_GET['session']);ManagerHttp::startJson();
-$_SESSION['manager_id']=(int)$_GET['manager'];$_SESSION['csrf']='fixture-csrf';ManagerHttp::respond(['ok'=>true]);
+$_SESSION['manager_id']=(int)$_GET['manager'];$_SESSION['csrf']=isset($_GET['rotate'])?'fixture-rotated':'fixture-csrf';ManagerHttp::respond(['ok'=>true]);
 PHP);
     file_put_contents($tmp.'/manager/fixture-transcript.php', <<<'PHP'
 <?php
@@ -281,6 +290,22 @@ PHP);
     cardCheck('card reads release the session before secondary loaders',array_filter($loads,static fn($row)=>$row['action']==='detail'&&$row['kind']==='read'&&$row['active'])===[]&&count(array_filter($loads,static fn($row)=>$row['kind']==='write'&&$row['active']))===1);
     cardCheck('Inbox list releases the session before loading rows',count(array_filter($loads,static fn($row)=>$row['action']==='list'&&$row['kind']==='list'))===3&&array_filter($loads,static fn($row)=>$row['action']==='list'&&$row['active'])===[]);
     cardCheck('queue counts release the session before all four bounded list reads',count(array_filter($loads,static fn($row)=>$row['action']==='counts'&&$row['kind']==='counts'))===12&&array_filter($loads,static fn($row)=>$row['action']==='counts'&&$row['active'])===[]);
+    $tabs=cardRequest($second,'/manager/api.php',['action'=>'counts','scope'=>'inbox_tabs','project_key'=>'fixture','csrf'=>'fixture-csrf'],$cookies['own']);
+    $tabLoads=array_slice(file($tmp.'/loads.jsonl',FILE_IGNORE_NEW_LINES),count($loads));
+    $expectedTabs=array_intersect_key($counts['body']['counts'],['waiting'=>true,'mine'=>true]);
+    cardCheck('Manager2 tabs receive the same badges with just two unlocked queue reads',$tabs['status']===200&&$tabs['body']===['ok'=>true,'counts'=>$expectedTabs]&&count($tabLoads)===2&&array_filter($tabLoads,static function($line){$load=json_decode($line,true);return $load['kind']!=='counts'||$load['active'];})===[]);
+    foreach(['waiting'=>'mine','mine'=>'waiting']as$queue=>$other){
+        $base=['csrf'=>'fixture-csrf','project_key'=>'fixture'];
+        $before=count(file($tmp.'/loads.jsonl'));
+        $receipt=cardRequest($second,'/manager/pipeline-api.php',$base+['action'=>'list','queue'=>$queue,'include_queue_count'=>true],$cookies['own']);
+        $complement=cardRequest($second,'/manager/api.php',$base+['action'=>'counts','scope'=>'inbox_tabs','only_tab'=>$other],$cookies['own']);
+        $newLoads=array_slice(file($tmp.'/loads.jsonl'),$before);
+        cardCheck($queue.' list and complementary counts execute two authorized queue reads',$receipt['status']===200&&
+            $receipt['body']['queue_count']===['queue'=>$queue,'project_key'=>'fixture']+$expectedTabs[$queue]
+            &&$complement['body']===['ok'=>true,'counts'=>[$other=>$expectedTabs[$other]]]&&count($newLoads)===2);
+    }
+    $filtered=cardRequest($second,'/manager/pipeline-api.php',$base+['action'=>'list','queue'=>'waiting','include_queue_count'=>true,'lead_stage_key'=>'qualified'],$cookies['own']);
+    cardCheck('a SQL-filtered list cannot issue an incomplete global tab count',$filtered['status']===200&&!isset($filtered['body']['queue_count']));
     $queries=array_map(static fn($line)=>json_decode($line,true),file($tmp.'/queries.jsonl',FILE_IGNORE_NEW_LINES));
     cardCheck('card conversation visibility is checked while session is still locked',array_filter($queries,static fn($row)=>($row['path']??'')==='/manager/pipeline-api.php'&&str_starts_with($row['sql'],'SELECT c.id,c.project_key,c.source_id,c.channel,')&&str_ends_with($row['sql'],'WHERE c.id=? LIMIT 1')&&!$row['active'])===[]);
 
@@ -321,16 +346,30 @@ PHP);
         $observed=cardObservedRequest($second,'/manager/api.php',['action'=>'detail','conversation_id'=>$id,'csrf'=>$csrf],$cookie);$result=$observed['response'];
         cardCheck($label.' transcript stays denied without project writes',$result['status']===$status&&!isset($result['body']['messages'])&&!isset($result['body']['conversation'])&&!isset($result['body']['request_kind'])&&$observed['project_writes']===0&&($label!=='anonymous'||$observed['queries']===[]));
     }
+    $startupCases=[
+        ['manager startup','/manager/api.php',['action'=>'me'],'manager'],
+        ['classic queue','/manager/api.php',['action'=>'list','queue'=>'all'],'conversations'],
+        ['queue badges','/manager/api.php',['action'=>'counts','scope'=>'inbox_tabs'],'counts'],
+        ['lead inbox','/manager/pipeline-api.php',['action'=>'list','queue'=>'all'],'conversations'],
+    ];
+    foreach($startupCases as [$label,$path,$input,$field]){
+        file_put_contents($projectFile,json_encode($readyProject));$before=file_get_contents($projectFile);
+        $observed=cardObservedRequest($second,$path,$input+['csrf'=>'fixture-csrf','project_key'=>'fixture'],$cookies['own']);
+        $result=$observed['response'];$body=$result['body'];
+        $authorized=$result['status']===200&&($body['ok']??false)===true&&is_array($body[$field]??null);
+        if($field==='manager')$authorized=$authorized&&($body['manager']['id']??null)===7&&($body['csrf']??null)==='fixture-csrf';
+        cardCheck($label.' reads the authorized payload without locking the project row',$authorized&&
+            $observed['project_writes']===0&&$observed['bootstrap_queries']===1&&file_get_contents($projectFile)===$before);
+    }
     foreach(['wrong_name','inactive','missing','lookup_failure']as$state){
         $project=$state==='missing'?null:$readyProject;if($state==='wrong_name')$project['display_name']='Operator-owned name';if($state==='inactive')$project['is_active']=0;if($state==='lookup_failure')$project['read_error']=true;
         foreach([0,2,3,4,5]as$index){[$label,$path,$input]=$readCases[$index];file_put_contents($projectFile,json_encode($project));$before=file_get_contents($projectFile);
             $observed=cardObservedRequest($second,$path,$input+['csrf'=>'fixture-csrf'],$cookies['own']);$result=$observed['response'];
             cardCheck($state.' '.$label.' fails closed without repair',$result['status']===503&&$result['body']===['ok'=>false,'error'=>'project_unavailable']&&$observed['project_writes']===0&&file_get_contents($projectFile)===$before);
         }
-        // The existing startup boundary intentionally keeps its legacy bootstrap;
-        // a failed read cannot leak read-only readiness into another request.
+        // Startup still takes its existing repair path after read-only admission refuses.
         $recovery=cardObservedRequest($second,'/manager/api.php',['action'=>'me'],$cookies['own']);
-        cardCheck($state.' retains the legacy startup lifecycle',$recovery['response']['status']===200&&$recovery['response']['body']['manager']['id']===7&&$recovery['response']['body']['csrf']==='fixture-csrf'&&$recovery['project_writes']===1&&$recovery['bootstrap_queries']===2);
+        cardCheck($state.' retains the legacy startup lifecycle',$recovery['response']['status']===200&&$recovery['response']['body']['manager']['id']===7&&$recovery['response']['body']['csrf']==='fixture-csrf'&&$recovery['project_writes']===1&&$recovery['bootstrap_queries']===3);
         $again=cardObservedRequest($second,'/manager/pipeline-api.php',['action'=>'detail','conversation_id'=>42,'csrf'=>'fixture-csrf'],$cookies['own']);
         cardCheck($state.' next read independently validates recovered metadata',$again['response']['status']===200&&!empty($again['response']['body']['ok'])&&$again['project_writes']===0&&$again['bootstrap_queries']===1);
     }
@@ -338,9 +377,102 @@ PHP);
     cardCheck('acknowledgement action keeps legacy bootstrap and invalid-input guard',$write['response']['status']===422&&$write['response']['body']['error']==='invalid_read_ack'&&$write['project_writes']===1);
     $unknown=cardObservedRequest($second,'/manager/api.php',['action'=>'detail_extra','csrf'=>'fixture-csrf'],$cookies['own']);
     cardCheck('read action matching is exact and leaves other dispatch unchanged',$unknown['response']['status']===400&&$unknown['project_writes']===1);
+
+    // Open the real transcript while one startup directory is still loading.
+    // The parent controls the release, so completion order is the assertion.
+    $directorySamples=[];
+    foreach(['catalog','filter_options'] as $action){
+        $request=['action'=>$action,'csrf'=>'fixture-csrf'];
+        $entered=$tmp.'/'.$action.'.entered';
+        $release=$tmp.'/'.$action.'.release';
+        for($cycle=0;$cycle<3;$cycle++){
+            @unlink($entered);@unlink($release);
+            $held=cardStart($first,'/manager/pipeline-api.php',$request,$cookies['own'],$action);
+            cardWait($entered);
+            $detail=cardStart($second,'/manager/api.php',$data+['open_unread'=>true],$cookies['own']);
+            $completed=cardPoll($detail,0.75);
+            $observedMs=round((hrtime(true)-$detail['start'])/1e6,2);
+            touch($release);
+            $directory=cardFinish($held);$transcript=cardFinish($detail);
+            cardCheck("chat opens before held $action ($cycle)",$completed);
+            $directoryBody=$directory['body'];
+            $expected=$action==='catalog'
+                ?['ok'=>true,'stages'=>[['stage_key'=>'new']],'tags'=>[['id'=>3]],'outcomes'=>['open'=>'Open'],'close_reasons'=>['other'=>'Other']]
+                :['ok'=>true,'filters'=>['projects'=>[['id'=>1,'project_key'=>'fixture','display_name'=>'Fixture','regional_scope_required'=>0]],
+                    'sources'=>[['id'=>3,'source_key'=>'test','display_name'=>'Test source','channel'=>'max','project_key'=>'fixture','project_name'=>'Fixture']],'managers'=>[]]];
+            cardCheck("$action and real chat retain their authorized data ($cycle)",$directory['status']===200&&$directoryBody===$expected
+                &&$transcript['status']===200&&($transcript['body']['conversation']['id']??null)===42
+                &&($transcript['body']['messages'][0]['text']??null)==='Synthetic transcript & retained');
+            $directorySamples[]=['directory'=>$action,'chat_completed_before_release'=>$completed,'chat_observation_ms'=>$observedMs];
+        }
+        foreach([['anonymous','',401],['inactive',$cookies['inactive'],401],['bad CSRF',$cookies['own'],403]] as [$label,$cookie,$status]){
+            $before=count(file($tmp.'/loads.jsonl'));
+            $denied=cardRequest($second,'/manager/pipeline-api.php',
+                ['action'=>$action,'csrf'=>$label==='bad CSRF'?'wrong':'fixture-csrf'],$cookie);
+            cardCheck("$label cannot load $action",$denied['status']===$status&&empty($denied['body']['ok'])
+                &&count(file($tmp.'/loads.jsonl'))===$before);
+        }
+        // Same CSRF/new manager and same manager/new CSRF exercise both fences.
+        $session=bin2hex(random_bytes(16));$cookie='anytour_manager_panel='.$session;
+        $seedPath='/manager/fixture-session.php?session='.$session.'&manager=';
+        $seed=cardRequest($second,$seedPath.'7');
+        if($seed['status']!==200)throw new RuntimeException('Cannot seed directory-change session');
+        @unlink($entered);@unlink($release);
+        $held=cardStart($first,'/manager/pipeline-api.php',$request,$cookie,$action);
+        cardWait($entered);
+        $change=cardStart($second,$seedPath.($action==='catalog'?'9':'7&rotate=1'));
+        $changedBefore=cardPoll($change,0.75);
+        touch($release);
+        $changed=cardFinish($change);$late=cardFinish($held);
+        cardCheck("late $action with a changed session returns no directory",$changedBefore&&$changed['status']===200
+            &&$late['status']===($action==='catalog'?401:403)&&$late['body']===['ok'=>false,'error'=>$action==='catalog'?'unauthorized':'csrf']);
+    }
+    echo 'SYNTHETIC_DIRECTORY_CHAT_HTTP '.json_encode($directorySamples,JSON_THROW_ON_ERROR)."\n";
+
+    $fallback=['action'=>'list','queue'=>'waiting','project_key'=>'fixture','csrf'=>'fixture-csrf'];
+    $chat=['action'=>'detail','conversation_id'=>42,'csrf'=>'fixture-csrf'];
+    $fallbackSamples=[];
+    for($cycle=0;$cycle<3;$cycle++){
+        @unlink($tmp.'/list.entered');@unlink($tmp.'/list.release');
+        $held=cardStart($first,'/manager/api.php',$fallback,$cookies['own'],'list');
+        cardWait($tmp.'/list.entered');
+        $detail=cardStart($second,'/manager/api.php',$chat,$cookies['own']);
+        $completed=cardPoll($detail,0.75);
+        $elapsed=round((hrtime(true)-$detail['start'])/1e6,2);
+        touch($tmp.'/list.release');
+        $list=cardFinish($held);$transcript=cardFinish($detail);
+        cardCheck("real chat opens while fallback list is held ($cycle)",$completed&&$transcript['status']===200
+            &&($transcript['body']['messages'][0]['text']??null)==='Synthetic transcript & retained');
+        cardCheck("fallback returns the original authorized list ($cycle)",$list['status']===200&&$list['body']===['ok'=>true,'conversations'=>[]]);
+        $fallbackSamples[]=['chat_before_fallback_release'=>$completed,'chat_observation_ms'=>$elapsed];
+    }
+    echo 'SYNTHETIC_FALLBACK_CHAT_HTTP '.json_encode($fallbackSamples,JSON_THROW_ON_ERROR)."\n";
+    foreach(['9','7&rotate=1'] as $changedIdentity){
+        $session=bin2hex(random_bytes(16));$cookie='anytour_manager_panel='.$session;
+        $seedPath='/manager/fixture-session.php?session='.$session.'&manager=';
+        if(cardRequest($second,$seedPath.'7')['status']!==200)throw new RuntimeException('Cannot seed fallback-change session');
+        @unlink($tmp.'/list.entered');@unlink($tmp.'/list.release');
+        $held=cardStart($first,'/manager/api.php',$fallback,$cookie,'list');
+        cardWait($tmp.'/list.entered');
+        $change=cardStart($second,$seedPath.$changedIdentity);
+        $changedBefore=cardPoll($change,0.75);
+        touch($tmp.'/list.release');
+        $changed=cardFinish($change);$late=cardFinish($held);
+        cardCheck("a changed account or CSRF withholds the late fallback list ($changedIdentity)",$changedBefore&&$changed['status']===200
+            &&$late['status']===($changedIdentity==='7&rotate=1'?403:401)&&$late['body']===['ok'=>false,'error'=>$changedIdentity==='7&rotate=1'?'csrf':'unauthorized']);
+    }
+    @unlink($tmp.'/list.entered');@unlink($tmp.'/list.release');
+    $held=cardStart($first,'/manager/api.php',$fallback,$cookies['own'],'list');
+    cardWait($tmp.'/list.entered');
+    rename($tmp.'/sessions',$tmp.'/sessions-paused');
+    try{
+        touch($tmp.'/list.release');$late=cardFinish($held);
+        cardCheck('session storage failing after the read withholds rows without expiring the login',
+            $late['status']===503&&$late['body']===['ok'=>false,'error'=>'session_unavailable']);
+    }finally{rename($tmp.'/sessions-paused',$tmp.'/sessions');}
 } catch(Throwable $error){cardCheck('bounded actual HTTP/session fixture completes',false);echo $error->getMessage()."\n";if(is_file($tmp.'/server.log'))echo substr((string)file_get_contents($tmp.'/server.log'),-4000);}
 finally {
-    if(is_dir($tmp)){touch($tmp.'/read.release');touch($tmp.'/write.release');touch($tmp.'/list.release');touch($tmp.'/counts.release');}
+    if(is_dir($tmp)){touch($tmp.'/read.release');touch($tmp.'/write.release');touch($tmp.'/list.release');touch($tmp.'/counts.release');touch($tmp.'/catalog.release');touch($tmp.'/filter_options.release');}
     foreach($streams as$stream)if(is_resource($stream))fclose($stream);
     foreach($servers as$server){proc_terminate($server['process']);proc_close($server['process']);}
     if(is_dir($tmp))cardRemove($tmp);
