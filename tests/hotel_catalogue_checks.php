@@ -1,10 +1,12 @@
 <?php
 declare(strict_types=1);
 require_once dirname(__DIR__).'/services/ManagerHotelKnowledge.php';
+require_once __DIR__.'/hotel_resort_island_reader_checks.php';
 
 /** Synthetic capacity checks; no research, approvals, provider or database writes. */
 function hotelCatalogueChecks(): void
 {
+    hotelResortIslandReaderChecks();
     $canonicalMethod = new ReflectionMethod(ManagerHotelKnowledge::class, 'canonical');
     $canonical = static fn($v): string => $canonicalMethod->invoke(null, $v);
     $lookup = new ReflectionMethod(ManagerHotelKnowledge::class, 'catalogueBinding');
