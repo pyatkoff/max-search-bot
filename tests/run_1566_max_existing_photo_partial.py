@@ -4,6 +4,7 @@ import json
 import os
 import pathlib
 import subprocess
+import sys
 import tarfile
 import tempfile
 import textwrap
@@ -230,3 +231,64 @@ exports.readRecord = async () => {throw Error('writer_rechecked_current_release'
         assert result.stderr.strip() == expected_error, result.stderr
 
 print("MAX preparation reads evidence while the release slot is occupied; write still requires admission")
+
+editor_tools = root / "tools/direct_demand/operations/max-existing-photo"
+sys.path.insert(0, str(editor_tools))
+from stage_approved_scope import replace_route_read, verify_activation, verify_adopted_publisher
+
+activation_path = "tools/direct_demand/operations/max-existing-photo/max-route-readback.json"
+parent, head = "b" * 40, "c" * 40
+activation = {"sha": head, "parents": [{"sha": parent}],
+              "files": [{"filename": activation_path, "status": "modified"}]}
+verify_activation(activation, parent, head, activation_path)
+for rejected in [
+    {**activation, "parents": [{"sha": head}]},
+    {**activation, "files": activation["files"] + [{"filename": ".github/workflows/edit.yml", "status": "modified"}]},
+    {**activation, "files": [{"filename": activation_path, "status": "removed"}]},
+]:
+    try:
+        verify_activation(rejected, parent, head, activation_path)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("A non-data activation passed validation")
+
+comparison = {"status": "ahead", "behind_by": 0, "merge_base_commit": {"sha": parent},
+              "files": [{"filename": activation_path},
+                        {"filename": ".github/workflows/read-1566-old-ordinary-max-posts.yml"}]}
+verify_adopted_publisher(comparison, parent, activation_path)
+for rejected in [
+    {**comparison, "merge_base_commit": {"sha": head}},
+    {**comparison, "files": comparison["files"] + [{"filename": "tools/publisher.py"}]},
+]:
+    try:
+        verify_adopted_publisher(rejected, parent, activation_path)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Publisher drift passed validation")
+
+approved_scope = {"rows": [{"hotel_id": 466, "target_mid": "target", "text": "Approved"}],
+                  "route_readback": {"repository": "pyatkoff/tour-max", "write_calls": 0,
+                                     "run_id": 1, "job_id": 2, "observed_utc": "2026-11-26T22:42:39+00:00"}}
+activation_route = {"targets": [{"offer_id": "max_466", "target_mid": "target"}],
+                    "run_id": 3, "job_id": 4, "observed_utc": "2026-11-26T22:46:39+00:00"}
+replace_route_read(approved_scope, activation_route)
+assert approved_scope["rows"] == [{"hotel_id": 466, "target_mid": "target", "text": "Approved"}]
+assert approved_scope["route_readback"] == {
+    "repository": "pyatkoff/tour-max", "write_calls": 0, "run_id": 3, "job_id": 4,
+    "observed_utc": "2026-11-26T22:46:39+00:00"
+}
+for rejected in [
+    {**activation_route, "targets": [{"offer_id": "max_466", "target_mid": "other"}]},
+    {**activation_route, "write_calls": 1},
+    {**activation_route, "job_id": False},
+]:
+    try:
+        replace_route_read(approved_scope, rejected)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("A different target or route policy passed activation")
+
+print("MAX activation accepts one data-only commit for the approved route targets")

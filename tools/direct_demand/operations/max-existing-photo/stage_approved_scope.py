@@ -1,6 +1,7 @@
 """Materialize exact MAX editor inputs from an approved scope and original receipts."""
 
 import argparse
+from datetime import datetime, timedelta
 import hashlib
 from io import BytesIO
 import json
@@ -18,6 +19,42 @@ def require(condition, reason):
 
 def digest(data):
     return hashlib.sha256(data).hexdigest()
+
+
+def verify_activation(commit, before, head, path):
+    require(commit.get("sha") == head and [row["sha"] for row in commit.get("parents", [])] == [before],
+            "activation requires a direct push of one commit")
+    files = commit.get("files", [])
+    require(len(files) == 1 and files[0]["filename"] == path and files[0]["status"] in {"added", "modified"},
+            "activation must change only the MAX2 route evidence file")
+
+
+def verify_adopted_publisher(comparison, reviewed, activation_path):
+    require(comparison.get("status") == "ahead" and comparison.get("behind_by") == 0
+            and comparison.get("merge_base_commit", {}).get("sha") == reviewed,
+            "activation is outside the accepted publisher history")
+    files = {row["filename"] for row in comparison.get("files", [])}
+    allowed = {activation_path, ".github/workflows/read-1566-old-ordinary-max-posts.yml"}
+    require(activation_path in files and files.issubset(allowed),
+            "publisher code changed since the accepted PR")
+
+
+def replace_route_read(scope, route):
+    require(isinstance(route, dict) and set(route) == {"targets", "run_id", "job_id", "observed_utc"},
+            "unexpected MAX2 route evidence fields")
+    targets = [{"offer_id": "max_" + str(row["hotel_id"]), "target_mid": row["target_mid"]}
+               for row in scope["rows"]]
+    require(route["targets"] == targets, "MAX2 route evidence targets differ from the approved scope")
+    require(all(type(route[key]) is int and route[key] > 0 for key in ("run_id", "job_id")),
+            "invalid MAX2 route run or job")
+    timestamp = route["observed_utc"]
+    require(isinstance(timestamp, str) and "T" in timestamp
+            and datetime.fromisoformat(timestamp).utcoffset() == timedelta(0), "invalid MAX2 route time")
+    readback = scope["route_readback"]
+    require(readback["repository"] == "pyatkoff/tour-max" and readback["write_calls"] == 0,
+            "invalid approved MAX2 read policy")
+    for key in ("run_id", "job_id", "observed_utc"):
+        readback[key] = route[key]
 
 
 def read_verified(file, expected, limit):
@@ -38,12 +75,20 @@ def registry_zip(file, expected_zip, expected_json):
     return data
 
 
-def stage_scope(scope_file, approved_digest, archive_file, native_file, stage):
+def stage_scope(scope_file, approved_digest, archive_file, native_file, stage, route_file=None):
     encoded = read_verified(scope_file, approved_digest, 256_000)
     scope = json.loads(encoded)
     native = scope["native_source"]
     archive_bytes = registry_zip(archive_file, scope["archive_sha256"], scope["archive_registry_sha256"])
     native_bytes = registry_zip(native_file, native["zip_sha256"], native["json_sha256"])
+
+    if route_file is not None:
+        with route_file.open("rb") as stream:
+            route_bytes = stream.read(16_001)
+        require(len(route_bytes) <= 16_000, "MAX2 route evidence file is too large")
+        replace_route_read(scope, json.loads(route_bytes))
+        encoded = (json.dumps(scope, ensure_ascii=False, indent=2) + "\n").encode()
+        approved_digest = digest(encoded)
 
     entry = stage / "batch_entry.php"
     code, count = re.subn(r"(const MAX_BATCH_SCOPE_SHA256 = ')[a-f0-9]{64}(')",
@@ -79,8 +124,9 @@ if __name__ == "__main__":
     parser.add_argument("native", type=Path)
     parser.add_argument("stage", type=Path)
     parser.add_argument("--preparation", nargs=2, metavar=("ZIP", "SHA256"))
+    parser.add_argument("--route-readback", type=Path)
     args = parser.parse_args()
-    stage_scope(args.scope, args.digest, args.archive, args.native, args.stage)
+    stage_scope(args.scope, args.digest, args.archive, args.native, args.stage, args.route_readback)
     if args.preparation is not None:
         file, expected = args.preparation
         stage_preparation(Path(file), expected, args.stage)

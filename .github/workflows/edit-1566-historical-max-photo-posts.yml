@@ -4,7 +4,7 @@ on:
     branches: [audit/1566-main-hotel-registry-20261119]
   push:
     branches: [audit/1566-main-hotel-registry-20261119]
-    paths: ['.github/workflows/edit-1566-historical-max-photo-posts.yml']
+    paths: ['tools/direct_demand/operations/max-existing-photo/max-route-readback.json']
 permissions:
   contents: read
   actions: read
@@ -22,6 +22,7 @@ env:
   MAX_PREPARED_ARTIFACT_ID: '15157232663'
   MAX_PREPARED_SOURCE: a22a869e398a542e710339d872659b3373ceabd3
   MAX_PREPARED_ZIP_SHA: 93a117db097ab4b0ebd761878d417c63bdfc0122e149f4f1b911fbe9b9426706
+  MAX_ACTIVATION_PATH: tools/direct_demand/operations/max-existing-photo/max-route-readback.json
 jobs:
   validate_source:
     if: github.event_name == 'pull_request'
@@ -50,21 +51,25 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          before="$(gh api "/repos/$GITHUB_REPOSITORY/git/ref/heads/audit/1566-main-hotel-registry-20261119" --jq .object.sha)"
-          pinned="$(sed -nE "s/^[[:space:]]*github\\.event\\.before == '([a-f0-9]{40})' &&$/\\1/p" .github/workflows/edit-1566-historical-max-photo-posts.yml)"
-          if [[ ! "$before" =~ ^[a-f0-9]{40}$ || "$before" != "$pinned" ]]; then
-            printf 'MAX publisher predecessor mismatch: branch=%s workflow=%s\n' "$before" "$pinned" >&2
-            exit 1
-          fi
-          printf 'MAX_PUBLISHER_PREDECESSOR=%s\n' "$before"
           src=tools/direct_demand/operations/max-existing-photo
           mkdir -p pub/stage
           install -m600 "$src"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php} pub/stage/
           gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_ARCHIVE_ID/zip" > pub/old.zip
           gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_NATIVE_ID/zip" > pub/native.zip
           gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_PREPARED_ARTIFACT_ID/zip" > pub/prepared.zip
+          python3 - "packet/$MAX_PACKET_PATH" <<'PYTHON'
+          from datetime import datetime, timedelta
+          import json, pathlib, sys
+          scope=json.loads(pathlib.Path(sys.argv[1]).read_bytes())
+          route=scope["route_readback"]
+          refreshed={"targets":[{"offer_id":"max_"+str(row["hotel_id"]),"target_mid":row["target_mid"]}
+                                for row in scope["rows"]],
+                     "run_id":route["run_id"]+1,"job_id":route["job_id"]+1,
+                     "observed_utc":(datetime.fromisoformat(route["observed_utc"])+timedelta(seconds=1)).isoformat()}
+          pathlib.Path("pub/test-route-readback.json").write_text(json.dumps(refreshed))
+          PYTHON
           python3 "$src/stage_approved_scope.py" "packet/$MAX_PACKET_PATH" "$MAX_PACKET_SHA" pub/old.zip pub/native.zip pub/stage \
-            --preparation pub/prepared.zip "$MAX_PREPARED_ZIP_SHA"
+            --preparation pub/prepared.zip "$MAX_PREPARED_ZIP_SHA" --route-readback pub/test-route-readback.json
           php -l pub/stage/batch_entry.php
           native_sha="$(sha256sum pub/stage/native-source.json | cut -d' ' -f1)"
           php pub/stage/editor.php --batch-plan pub/stage/native-targets.json pub/stage/native-source.json \
@@ -82,7 +87,6 @@ jobs:
       github.event_name == 'push' && github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'a22a869e398a542e710339d872659b3373ceabd3' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -116,11 +120,26 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GH_TOKEN: ${{ github.token }}
+          MAX_ACTIVATION_PARENT: ${{ github.event.before }}
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           mkdir -p pub/stage
+          tool=workflow-source/tools/direct_demand/operations/max-existing-photo
+          gh api "/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA" > pub/activation.json
+          reviewed="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/1747" --jq 'select(.merged == true and .base.ref == "audit/1566-main-hotel-registry-20261119") | .merge_commit_sha')"
+          [[ "$reviewed" =~ ^[a-f0-9]{40}$ ]]
+          gh api "/repos/$GITHUB_REPOSITORY/compare/$reviewed...$GITHUB_SHA" > pub/approved-diff.json
+          export MAX_REVIEWED_PUBLISHER="$reviewed"
+          PYTHONPATH="$tool" python3 - <<'PYTHON'
+          import json, os, pathlib
+          from stage_approved_scope import verify_activation, verify_adopted_publisher
+          commit=json.loads(pathlib.Path("pub/activation.json").read_bytes())
+          comparison=json.loads(pathlib.Path("pub/approved-diff.json").read_bytes())
+          verify_activation(commit, os.environ["MAX_ACTIVATION_PARENT"], os.environ["GITHUB_SHA"], os.environ["MAX_ACTIVATION_PATH"])
+          verify_adopted_publisher(comparison, os.environ["MAX_REVIEWED_PUBLISHER"], os.environ["MAX_ACTIVATION_PATH"])
+          PYTHON
           install -m600 "packet/$MAX_PACKET_PATH" pub/manifest.json
           printf '%s  %s\n' "$MAX_PACKET_SHA" pub/manifest.json | sha256sum --check --strict
           cat > pub/admit.cjs <<'NODE'
@@ -179,7 +198,6 @@ jobs:
           gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_ARCHIVE_ID/zip" > pub/old.zip
           gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_NATIVE_ID/zip" > pub/native.zip
           src=approved-editor/tools/direct_demand/operations/max-existing-photo
-          tool=workflow-source/tools/direct_demand/operations/max-existing-photo
           install -m600 "$src"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php} pub/stage/
           install -m600 "$tool/run_batch.py" pub/stage/
           preparation=()
@@ -187,7 +205,9 @@ jobs:
             gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_PREPARED_ARTIFACT_ID/zip" > pub/prepared.zip
             preparation=(--preparation pub/prepared.zip "$MAX_PREPARED_ZIP_SHA")
           fi
-          python3 "$tool/stage_approved_scope.py" pub/manifest.json "$MAX_PACKET_SHA" pub/old.zip pub/native.zip pub/stage "${preparation[@]}"
+          python3 "$tool/stage_approved_scope.py" pub/manifest.json "$MAX_PACKET_SHA" pub/old.zip pub/native.zip pub/stage \
+            --route-readback "workflow-source/$MAX_ACTIVATION_PATH" "${preparation[@]}"
+          install -m600 pub/stage/scope.json pub/manifest.json
           php -l pub/stage/batch_entry.php
           native_sha="$(sha256sum pub/stage/native-source.json | cut -d' ' -f1)"
           app="$(python3 -c 'import json; print(json.load(open("pub/manifest.json"))["native_source"]["application_sha"])')"
