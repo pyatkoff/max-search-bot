@@ -95,8 +95,12 @@ def run_batch(scope, plan, visit, emit, prepared=None):
         elif stop is not None:
             response = {"state": "untouched", "reason": stop}
         else:
-            response = (preparation_row(hotel, visit("--batch-check", hotel, None))
-                        if checkpoints is None else checkpoints[hotel])
+            if checkpoints is None:
+                response = visit("--batch-check", hotel, None)
+                if response.get("state") == "ready_read_only":
+                    response = preparation_row(hotel, response)
+            else:
+                response = checkpoints[hotel]
             if response.get("state") == "ready_read_only":
                 response = visit("--batch-apply", hotel, response["checkpoint_sha256"])
             state = response.get("state")
