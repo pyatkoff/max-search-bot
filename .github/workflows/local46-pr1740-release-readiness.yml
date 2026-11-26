@@ -1,0 +1,137 @@
+name: LOCAL46 PR1740 release admission and Anantara reader check
+on:
+  push:
+    branches: [ops/local46-pr1740-release-admission-20261126]
+    paths: ['.github/workflows/local46-pr1740-release-readiness.yml']
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+jobs:
+  dossier-reader:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == 'a491c8abd5c1af826afbb9b817b3d9ab09a2a502' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 61e05da2e6bcf88082a9a6bb46858d05040a603f
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring
+          coverage: none
+      - name: Exercise both reader entry points for the two Anantara dossiers
+        run: |
+          test "$(git rev-parse HEAD)" = '61e05da2e6bcf88082a9a6bb46858d05040a603f'
+          php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          
+          require 'services/ManagerHotelKnowledge.php';
+          
+          function parseFile(string $path): array
+          {
+              return json_decode(file_get_contents($path), true, 32, JSON_THROW_ON_ERROR);
+          }
+          
+          $directory = 'knowledge/hotels/';
+          $controls = [3639 => 'United Arab Emirates', 7902 => 'Vietnam'];
+          $now = time();
+          $stamp = gmdate('Y-m-d\TH:i:s\Z', $now);
+          $results = [];
+          foreach (parseFile($directory . 'catalogue.json')['shards'] as $shard) {
+              foreach (parseFile($directory . $shard['file'])['bindings'] as $entry) {
+                  $id = $entry['accepted_binding']['hotel_ref']['id'];
+                  if (!isset($controls[$id])) {
+                      continue;
+                  }
+                  $country = $controls[$id];
+                  $name = $entry['accepted_source_names'][0];
+                  $sourceDigest = hash('sha256', 'controlled-reader-source-' . $id);
+                  $requestDigest = hash('sha256', 'controlled-reader-request-' . $id);
+                  $inquiry = ManagerHotelKnowledge::capture([
+                      'project_key' => 'anytour',
+                      'source_identity' => $entry['source_identity'],
+                      'selected_hotel' => $name,
+                      'selected_room' => 'Controlled room',
+                      'provenance' => [
+                          'message_id' => 1, 'event_id' => 1,
+                          'publication_sha256' => $requestDigest, 'source_sha256' => $sourceDigest,
+                      ],
+                  ], $now);
+                  $retained = ManagerHotelKnowledge::captureRetainedCandidate([
+                      'hotel' => ['anytour_hotel_id' => $id, 'name' => $name, 'category' => null, 'country' => $country, 'region' => null],
+                      'provider' => 'tourvisor', 'operator_raw' => null, 'offer_digest' => hash('sha256', 'controlled-offer-' . $id),
+                      'source_scope_digest' => $sourceDigest, 'checkin' => gmdate('Y-m-d', $now + 86400), 'nights' => 7,
+                      'party' => ['adults' => 2, 'children' => 0, 'child_ages' => []],
+                      'room_raw' => null, 'meal_raw' => null, 'placement_raw' => null,
+                      'price' => ['amount' => '1', 'currency' => 'RUB', 'basis' => 'whole_party',
+                          'source_listing_state' => 'legacy_ready_estimate', 'source_final_price_verified' => false,
+                          'current_price_verified' => false, 'refresh_required' => true],
+                      'observed_at' => $stamp, 'last_seen_at' => $stamp, 'expires_at' => gmdate('Y-m-d\TH:i:s\Z', $now + 3600),
+                      'availability' => 'unverified', 'booking_enabled' => false, 'photos_read' => false,
+                  ], $requestDigest, $stamp, $country, $now);
+                  $bundle = parseFile($directory . $entry['bundle_file']);
+                  foreach (['inquiry' => $inquiry, 'retained' => $retained] as $mode => $result) {
+                      if (($result['status'] ?? null) !== 'available' || ($result['hotel_ref'] ?? null) !== ['catalog' => 'anytour', 'id' => $id]) {
+                          throw new RuntimeException($id . '/' . $mode . ': ' . ($result['reason'] ?? 'unexpected identity'));
+                      }
+                      foreach (['facts', 'sources', 'coverage', 'record_hashes', 'material_limits'] as $field) {
+                          if (($result[$field] ?? null) !== $bundle[$field]) {
+                              throw new RuntimeException($id . '/' . $mode . ': unexpected ' . $field);
+                          }
+                      }
+                  }
+                  $results[$id] = ['modes' => ['inquiry', 'retained'], 'facts' => count($bundle['facts']), 'sources' => count($bundle['sources'])];
+              }
+          }
+          if (count($results) !== 2 || array_sum(array_column($results, 'facts')) !== 19 || array_sum(array_column($results, 'sources')) !== 18) {
+              throw new RuntimeException('Unexpected dossier totals');
+          }
+          echo json_encode(['controlled_installed_source_read' => $results], JSON_THROW_ON_ERROR) . PHP_EOL;
+          PHP
+  release-admission:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == 'a491c8abd5c1af826afbb9b817b3d9ab09a2a502' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: a491c8abd5c1af826afbb9b817b3d9ab09a2a502
+          persist-credentials: false
+      - name: Wait for existing native verification and publisher
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JS'
+          const root = 'https://api.github.com/repos/pyatkoff/max-search-bot/';
+          const headers = { Authorization: 'Bearer ' + process.env.GITHUB_TOKEN, Accept: 'application/vnd.github+json' };
+          const deadline = Date.now() + 21 * 60_000;
+          async function get(path) {
+            const response = await fetch(root + path, { headers, signal: AbortSignal.timeout(10000) });
+            if (!response.ok) throw Error('GitHub read: HTTP ' + response.status);
+            return response.json();
+          }
+          while (Date.now() < deadline) {
+            const [prior, regression, slot] = await Promise.all([
+              get('actions/runs/45804092269'),
+              get('actions/runs/45804442411'),
+              get('issues/comments/6818332618')
+            ]);
+            if (prior.head_sha !== 'a491c8abd5c1af826afbb9b817b3d9ab09a2a502' || regression.head_sha !== '25456d1aa95e45a2f29c060d14322b84be5e91ed') throw Error('Pinned run changed');
+            for (const run of [prior, regression]) {
+              if (run.status === 'completed' && run.conclusion !== 'success') throw Error(run.name + ': ' + run.conclusion);
+            }
+            if (prior.conclusion === 'success' && regression.conclusion === 'success' &&
+                slot.body === 'PR1739: установлено, выпуск свободен') process.exit(0);
+            await new Promise(resolve => setTimeout(resolve, 60_000));
+          }
+          throw Error('Timed out waiting for existing installation, slot, and required CI');
+          JS
+      - name: Fresh ordinary release admission for PR1740
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/release_priority.js --admit 1740 25456d1aa95e45a2f29c060d14322b84be5e91ed a491c8abd5c1af826afbb9b817b3d9ab09a2a502
