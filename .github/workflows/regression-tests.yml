@@ -55,9 +55,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        group: [architecture, dialogue, website, manager, diagnostics]
+        group: [architecture, apple-coverage, apple-device, dialogue, website, manager, diagnostics]
         # Only an exact audited styling profile may omit unchanged server owners.
-        exclude: ${{ fromJSON(((needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style') || (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'workspace-style')) && '[{"group":"dialogue"},{"group":"website"},{"group":"manager"},{"group":"diagnostics"}]' || (needs.change-scope.outputs.backend == 'hotel-catalogue-data' && '[{"group":"manager"}]') || '[]') }}
+        exclude: ${{ fromJSON(((needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style') || (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'workspace-style')) && '[{"group":"dialogue"},{"group":"website"},{"group":"manager"},{"group":"diagnostics"}]' || (needs.change-scope.outputs.backend == 'hotel-catalogue-data' && '[{"group":"manager"},{"group":"apple-coverage"},{"group":"apple-device"}]') || (needs.change-scope.outputs.backend == 'telegram-public-observer' && '[{"group":"apple-coverage"},{"group":"apple-device"}]') || '[]') }}
     runs-on: ubuntu-latest
     name: required / ${{ matrix.group }}
     steps:
@@ -77,6 +77,10 @@ jobs:
         run: |
           if [[ "$REQUIRED_CHECK_GROUP" == architecture && ( "$BACKEND_PROFILE" == hotel-catalogue-data || "$BACKEND_PROFILE" == telegram-public-observer ) ]]; then
             php tests/run_required_group.php architecture "$BACKEND_PROFILE"
+          elif [[ "$REQUIRED_CHECK_GROUP" == architecture ]]; then
+            php tests/run_required_group.php architecture ci-architecture-core
+          elif [[ "$REQUIRED_CHECK_GROUP" == apple-coverage || "$REQUIRED_CHECK_GROUP" == apple-device ]]; then
+            php tests/run_required_group.php architecture "ci-$REQUIRED_CHECK_GROUP"
           else
             php tests/run_required_group.php "$REQUIRED_CHECK_GROUP"
           fi

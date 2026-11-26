@@ -74,16 +74,18 @@ for job in ['required','prepared-mysql','appleservice39-mysql']:
     check('change-scope' in regression[job]['needs'],job+' awaits canonical selector')
 check(regression['required']['if'] == "needs.change-scope.outputs.mode == 'full' || needs.change-scope.outputs.mode == 'tour-selection'", 'every selection profile retains architecture')
 check(regression['prepared-mysql']['if'] == "(needs.change-scope.outputs.mode == 'full' && (needs.change-scope.outputs.backend == 'full' || needs.change-scope.outputs.backend == 'telegram-public-observer')) || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')", 'the observer retains all shared native MySQL groups')
-expected_exclude = "${{ fromJSON(((needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style') || (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'workspace-style')) && '[{\"group\":\"dialogue\"},{\"group\":\"website\"},{\"group\":\"manager\"},{\"group\":\"diagnostics\"}]' || (needs.change-scope.outputs.backend == 'hotel-catalogue-data' && '[{\"group\":\"manager\"}]') || '[]') }}"
+expected_exclude = "${{ fromJSON(((needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style') || (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'workspace-style')) && '[{\"group\":\"dialogue\"},{\"group\":\"website\"},{\"group\":\"manager\"},{\"group\":\"diagnostics\"}]' || (needs.change-scope.outputs.backend == 'hotel-catalogue-data' && '[{\"group\":\"manager\"},{\"group\":\"apple-coverage\"},{\"group\":\"apple-device\"}]') || (needs.change-scope.outputs.backend == 'telegram-public-observer' && '[{\"group\":\"apple-coverage\"},{\"group\":\"apple-device\"}]') || '[]') }}"
 check(regression['required']['strategy']['matrix'] == {
-    'group':['architecture','dialogue','website','manager','diagnostics'], 'exclude':expected_exclude},
+    'group':['architecture','apple-coverage','apple-device','dialogue','website','manager','diagnostics'], 'exclude':expected_exclude},
     'catalogue excludes unrelated Manager2 tests and styling retains its existing matrix')
 pr_required = next(s for s in regression['required']['steps'] if s.get('name') == 'Run required group')
 check(pr_required['env']['BACKEND_PROFILE'] == '${{ needs.change-scope.outputs.backend }}'
       and pr_required['env']['REQUIRED_CHECK_GROUP'] == '${{ matrix.group }}'
       and not pr_required.get('if') and not pr_required.get('continue-on-error')
       and '"$BACKEND_PROFILE" == telegram-public-observer' in pr_required['run']
-      and 'php tests/run_required_group.php architecture "$BACKEND_PROFILE"' in pr_required['run'],
+      and 'php tests/run_required_group.php architecture "$BACKEND_PROFILE"' in pr_required['run']
+      and 'php tests/run_required_group.php architecture ci-architecture-core' in pr_required['run']
+      and 'php tests/run_required_group.php architecture "ci-$REQUIRED_CHECK_GROUP"' in pr_required['run'],
       'PR architecture uses the proven profile without skipping the required group')
 check(source_gate['env']['BACKEND_PROFILE'] == '${{ needs.change-scope.outputs.backend }}', 'aggregate uses the actual backend selection')
 hotel_job = regression['hotel-catalogue']
@@ -452,8 +454,11 @@ with tempfile.TemporaryDirectory() as stub_dir:
     probe_env = {**os.environ, 'PATH': stub_dir + os.pathsep + os.environ['PATH']}
     for profile, group, expected in [
         ('hotel-catalogue-data','architecture','architecture hotel-catalogue-data'),
-        ('full','architecture','architecture'),
-        ('workspace-style','architecture','architecture'),
+        ('full','architecture','architecture ci-architecture-core'),
+        ('full','apple-coverage','architecture ci-apple-coverage'),
+        ('full','apple-device','architecture ci-apple-device'),
+        ('workspace-style','architecture','architecture ci-architecture-core'),
+        ('telegram-public-observer','architecture','architecture telegram-public-observer'),
         ('hotel-catalogue-data','website','website'),
     ]:
         probe = subprocess.run(['bash','-e','-c',pr_required['run']], capture_output=True, text=True,
