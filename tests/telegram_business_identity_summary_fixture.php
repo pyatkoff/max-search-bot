@@ -5,7 +5,7 @@ if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require_once dirname(__DIR__).'/services/ArchiveResearchReadService.php';
 require_once __DIR__.'/run_advertising_visits_regression.php';
 
-/** Synthetic fixtures only; retain SQL structure without logging parameter values. */
+/** Shared required archive fixture; retain SQL structure without logging parameter values. */
 final class TelegramBusinessIdentityTraceStatement extends PDOStatement
 {
     public static array $queries=[];

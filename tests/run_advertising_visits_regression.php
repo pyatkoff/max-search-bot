@@ -181,6 +181,17 @@ function advertisingVisitEntryContextAssertions(PDO $pdo, callable $check, int $
     $check('click projection retains completeness sentinel', $repo->entryContextCandidates($scope,$peer,2,$read,true)===['complete'=>false,'rows'=>[]]);
     $update=$pdo->prepare('UPDATE advertising_visit_observations SET yclid=? WHERE source_key=? AND source_cursor=?');
     foreach(['0','01','1e3','１２３',"123\n",str_repeat('9',41)]as$i=>$invalid){
+        // The canonical native column is ASCII VARCHAR(40). These two invalid
+        // values are refused by MySQL before the read-only projection can see them.
+        if($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'&&in_array($i,[3,5],true)){
+            $beforeClick=$pdo->query("SELECT yclid FROM advertising_visit_observations WHERE source_key='entry-context' AND source_cursor='1'")->fetchColumn();
+            $refused=false;
+            try{$update->execute([$invalid,'entry-context','1']);}
+            catch(PDOException $error){$refused=(int)($error->errorInfo[1]??0)===($i===3?1366:1406);}
+            $check('native schema refuses invalid click before projection '.$i,$refused
+                &&$pdo->query("SELECT yclid FROM advertising_visit_observations WHERE source_key='entry-context' AND source_cursor='1'")->fetchColumn()===$beforeClick);
+            continue;
+        }
         $update->execute([$invalid,'entry-context','1']);
         $rows=$repo->entryContextCandidates($scope,$peer,3,$read,true)['rows'];
         $check('malformed click presence remains unknown '.$i,count(array_filter($rows,static fn(array $row):bool=>$row['yclid_present']===null))===1);

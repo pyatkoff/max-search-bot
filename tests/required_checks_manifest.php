@@ -395,7 +395,6 @@ return [
         'php tests/run_max_channel_attribution.php',
         'php tests/run_telegram_dialogue_conversions_regression.php',
         'php tests/run_advertising_visits_regression.php',
-        'php tests/run_telegram_business_identity_summary_regression.php',
         'php tests/run_advertising_visit_transport_regression.php',
         'php tests/run_advertising_signals_regression.php',
         'php tests/run_modeled_conversion_stream_regression.php',

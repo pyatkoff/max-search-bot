@@ -1313,4 +1313,7 @@ if(realpath((string)($_SERVER['SCRIPT_FILENAME']??''))===__FILE__){
     if(!extension_loaded('pdo_sqlite'))throw new RuntimeException('archive_fixture_sqlite_required');
     archiveResearchReadRegression(new PDO('sqlite::memory:'));
     archiveNativeContentRoundtripRegression();
+    require_once __DIR__.'/telegram_business_identity_summary_fixture.php';
+    $identityChecks=telegramBusinessIdentityAssertions(new PDO('sqlite::memory:'));
+    echo 'Business identity summary SQLite checks: '.$identityChecks." passed.\n";
 }

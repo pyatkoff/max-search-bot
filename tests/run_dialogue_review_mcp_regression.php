@@ -559,7 +559,7 @@ try{
         (int)$pdo->query('SELECT total_changes()')->fetchColumn()===$nativeChanges);
     // Exercise the fixed Business entry through the real grant boundary and reader.
     // The shared disposable fixture supplies only synthetic metadata and visits.
-    require_once __DIR__.'/run_telegram_business_identity_summary_regression.php';
+    require_once __DIR__.'/telegram_business_identity_summary_fixture.php';
     telegramBusinessIdentityAssertions($pdo,static function(array $f)use($pdo,$oauth,$client,$qualityScope,$archiveScope,$forecastScope,$clock,&$now):void{
         $now=$f['now'];
         $pdo->exec('ALTER TABLE projects ADD COLUMN display_name TEXT');

@@ -19,7 +19,7 @@ try {
     require_once dirname(__DIR__).'/run_archive_research_read_regression.php';
     archiveResearchReadRegression($archiveResearchNativePdo);
     echo "PASS native MySQL archive research read-only admission, paging and unchanged data\n";
-    require_once dirname(__DIR__).'/run_telegram_business_identity_summary_regression.php';
+    require_once dirname(__DIR__).'/telegram_business_identity_summary_fixture.php';
     $identityChecks=telegramBusinessIdentityAssertions($archiveResearchNativePdo);
     echo 'PASS native MySQL Business identity summary '.$identityChecks." checks\n";
 } catch (Throwable $archiveResearchError) {
