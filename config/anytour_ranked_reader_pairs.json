@@ -29,15 +29,6 @@
       "target_photo_marker_sha256": "7106f630428387c4854b227d376172223081ffb421e5ebae4b0afba896b1404b"
     },
     {
-      "hotel_id": 28512,
-      "source_mid": "353",
-      "source_publication_id": 801,
-      "target_mid": "1461",
-      "target_published_unixtime": 1772958185,
-      "target_caption_sha256": "66a5fc4da0a62aca4d71b6561be0df7dd08bb6cde68f7135a5d3715165f781c9",
-      "target_photo_marker_sha256": "2d1d2e329678856de4f3f231d27cb2376bc1ad44042148a7a8be117d8515c3cf"
-    },
-    {
       "hotel_id": 78905,
       "source_mid": "354",
       "source_publication_id": 802,
