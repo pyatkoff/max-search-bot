@@ -18,9 +18,10 @@ final class AnyTourPublisherBotConnection
     private $request;
     private $publisherRequest;
     private $publisherKeyboardPilotRequest;
+    private $publisherMediaPilotRequest;
 
     public function __construct(?string $root = null, ?callable $request = null, ?callable $publisherRequest = null,
-        ?callable $publisherKeyboardPilotRequest = null)
+        ?callable $publisherKeyboardPilotRequest = null, ?callable $publisherMediaPilotRequest = null)
     {
         $checkout = realpath(dirname(__DIR__));
         if ($checkout === false) throw new RuntimeException('storage_unavailable');
@@ -32,6 +33,8 @@ final class AnyTourPublisherBotConnection
         $this->publisherRequest = $publisherRequest ?? [ChannelPostApiTransport::class, 'publisherButtonRequest'];
         $this->publisherKeyboardPilotRequest = $publisherKeyboardPilotRequest
             ?? [ChannelPostApiTransport::class, 'publisherKeyboardPilotRequest'];
+        $this->publisherMediaPilotRequest = $publisherMediaPilotRequest
+            ?? [ChannelPostApiTransport::class, 'publisherMediaPilotRequest'];
     }
 
     public function mayConfigure(int $actor, bool $locked = false): bool
@@ -277,6 +280,34 @@ final class AnyTourPublisherBotConnection
         };
         return $this->publisherLease($actor, $version, $operation, $allowWrite, $check,
             $this->publisherKeyboardPilotRequest);
+    }
+
+    /**
+     * One exact 1058 photo edit through the saved publisher. The existing editor
+     * owns approval, original refusal lineage, reservation and durable journal.
+     * The photo is frozen as verified bytes, never a file ID from another bot.
+     */
+    public function withPublisherMediaPilot(int $actor, int $version, array $exactBody, callable $operation,
+        bool $allowWrite = false): array
+    {
+        if (ChannelPostApiTransport::publisherMediaPilotPayload($exactBody) === null)
+            throw new RuntimeException('publisher_operation_forbidden');
+        // This internal payload carries base64 photo bytes. Freeze nested
+        // references as well as the caption, keyboard and attachment digest.
+        $exactBody = json_decode(json_encode($exactBody, JSON_THROW_ON_ERROR), true, 16, JSON_THROW_ON_ERROR);
+        $check = static function (string $platform, string $method, string $path, array $query, ?array $body,
+            string $botId) use ($exactBody): bool {
+            if ($path === 'editMessageMedia') {
+                if ($platform !== 'telegram' || $method !== 'POST' || $query !== [] || $body !== $exactBody)
+                    throw new RuntimeException('publisher_operation_forbidden');
+                return true;
+            }
+            if (!in_array($path, ['getMe', 'getChat', 'getChatMember'], true))
+                throw new RuntimeException('publisher_operation_forbidden');
+            return self::publisherWrite($platform, $method, $path, $query, $body, $botId);
+        };
+        return $this->publisherLease($actor, $version, $operation, $allowWrite, $check,
+            $this->publisherMediaPilotRequest);
     }
 
     private function publisherLease(int $actor, int $version, callable $operation, bool $allowWrite,

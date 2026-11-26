@@ -1297,12 +1297,13 @@ function curl_setopt_array(object $handle, array $options): bool { $handle->opti
 function curl_exec(object $handle): bool {
     $GLOBALS['hotel_media_http'][]=['url'=>$handle->url,'options'=>$handle->options];
     if (!empty($GLOBALS['hotel_media_fixture_timeout'])) return false;
-    ($handle->options[CURLOPT_WRITEFUNCTION])($handle,'{"ok":true,"result":{"message_id":862}}');
+    ($handle->options[CURLOPT_WRITEFUNCTION])($handle,
+        $GLOBALS['hotel_media_fixture_response'] ?? '{"ok":true,"result":{"message_id":862}}');
     return true;
 }
 function curl_getinfo(object $handle, int $option): int|float {
     if ($option === CURLINFO_TOTAL_TIME) return 15.012;
-    return empty($GLOBALS['hotel_media_fixture_timeout']) ? 200 : 0;
+    return empty($GLOBALS['hotel_media_fixture_timeout']) ? ($GLOBALS['hotel_media_fixture_http'] ?? 200) : 0;
 }
 function curl_errno(object $handle): int { return empty($GLOBALS['hotel_media_fixture_timeout']) ? 0 : 28; }
 function curl_close(object $handle): void {}
@@ -1311,7 +1312,7 @@ $hotelTransportSource = (string)file_get_contents(__DIR__.'/../integrations/Chan
 $hotelTransportSource = preg_replace('/\A<\?php\s*declare\(strict_types=1\);\s*/', '', $hotelTransportSource, 1, $replaced);
 channelPostCheck('hotel transport fixture retains the actual integration body', $replaced, 1);
 $hotelTransportSource = str_replace('__DIR__', var_export(dirname(__DIR__).'/integrations', true), $hotelTransportSource);
-eval('namespace HotelMediaApiFixture; use \MaxTlsConfig; '.$hotelTransportSource);
+eval('namespace HotelMediaApiFixture; use \MaxTlsConfig; use \CURLStringFile; '.$hotelTransportSource);
 
 $hotelMediaBody = [
     'media'=>['type'=>'photo','media'=>'AgACAgIAAxkBAAIB_fixture_photo_1',
@@ -2191,6 +2192,274 @@ try {
     }
 } finally {
     foreach(glob($pilotTmp.'/*') as $dir){foreach(glob($dir.'/*') as $file)unlink($file);rmdir($dir);}rmdir($pilotTmp);
+}
+
+// The exact new media intent reuses the rejected parent's identity and saved
+// JPEG. The actual transport above has only curl I/O intercepted; no live call.
+$mediaPilotPlan = AnyTour\ExistingPostBatch\publisherMediaPlan(dirname(__DIR__), AnyTour\ExistingPostBatch\PUBLISHER_MEDIA_DIGEST);
+$mediaPilotPhoto = file_get_contents(dirname(__DIR__).'/'.$mediaPilotPlan['photo_path']);
+channelPostCheck('publisher media pins the original hotel, target, reservation and approved bytes',
+    [$mediaPilotPlan['hotel_id'],$mediaPilotPlan['target_message_id'],$mediaPilotPlan['publication_id'],
+        $mediaPilotPlan['source_publication_id'],strlen($mediaPilotPhoto),hash('sha256',$mediaPilotPhoto),
+        hash('sha256',$mediaPilotPlan['parent_row']['next_caption'])],
+    [2514,'1058',3848,952,$mediaPilotPlan['photo_bytes'],$mediaPilotPlan['photo_sha256'],$mediaPilotPlan['next_caption_sha256']]);
+$pilotRefuses('publisher media refuses a different approval',
+    static fn()=>AnyTour\ExistingPostBatch\publisherMediaPlan(dirname(__DIR__),str_repeat('0',64)),
+    'publisher_media_approval_changed');
+$mediaReservation = ['publication_id'=>3848,'target_message_id'=>'1058','source_id'=>6,
+    'start_payload'=>'p_'.str_repeat('M',24),'button_url'=>'https://t.me/anyru_bot?start=p_'.str_repeat('M',24),
+    'row_digest'=>str_repeat('b',64)];
+$mediaBody = AnyTour\ExistingPostBatch\publisherMediaBody($mediaPilotPlan,$mediaReservation,$mediaPilotPhoto);
+channelPostCheck('publisher media body uploads approved bytes with the existing hotel context, never a cross-bot file ID',
+    [$mediaBody['chat_id'],$mediaBody['message_id'],$mediaBody['media'],$mediaBody['reply_markup'],
+        hash('sha256',base64_decode($mediaBody['photo']['base64'],true)),$mediaBody['photo']['sha256']],
+    ['-1001845835645','1058',['type'=>'photo','media'=>'attach://hotel_photo',
+        'caption'=>$mediaPilotPlan['parent_row']['next_caption'],'caption_entities'=>[]],
+        ['inline_keyboard'=>[[['text'=>'✈️ Рассчитать на мои даты','url'=>$mediaReservation['button_url']]]]],
+        $mediaPilotPlan['photo_sha256'],$mediaPilotPlan['photo_sha256']]);
+$pilotRefuses('publisher media refuses changed source image bytes',
+    static fn()=>AnyTour\ExistingPostBatch\publisherMediaBody($mediaPilotPlan,$mediaReservation,$mediaPilotPhoto.'x'),
+    'publisher_media_photo_changed');
+
+// Synthetic six-event journal tests parser boundaries, not production approval.
+$mediaParentEvents = [
+    ['state'=>'intent_saved','execution'=>['native_run_id'=>$mediaPilotPlan['parent_run_id'],
+        'application_sha'=>$mediaPilotPlan['parent_application_sha']],
+        'plan_sha256'=>$mediaPilotPlan['parent_plan_sha256'],'row'=>$mediaPilotPlan['parent_row']],
+    ['state'=>'identity_reserved','reservation'=>$mediaReservation],['state'=>'request_prepared'],
+    ['state'=>'provider_edit_started','provider_write_attempts'=>1],
+    ['state'=>'provider_response_saved','response'=>$pilotRejected],
+    ['state'=>'provider_message_id_rejected','provider_write_attempts'=>1],
+];
+$mediaJournalBytes = static fn(array $events):string => implode("\n",array_map(
+    static fn(array $event):string=>json_encode($event,JSON_THROW_ON_ERROR),$events))."\n";
+$mediaParentBytes = $mediaJournalBytes($mediaParentEvents);
+$mediaParentPlan = $mediaPilotPlan;
+$mediaParentPlan['parent_receipt_sha256'] = hash('sha256',$mediaParentBytes);
+channelPostCheck('publisher media authenticates the final rejected parent without creating another reservation',
+    AnyTour\ExistingPostBatch\publisherMediaParent($mediaParentBytes,$mediaParentPlan),$mediaReservation);
+$pilotRefuses('publisher media refuses altered parent bytes',
+    static fn()=>AnyTour\ExistingPostBatch\publisherMediaParent($mediaParentBytes."\n",$mediaParentPlan),
+    'publisher_media_parent_changed');
+foreach (['unknown_response','other_run','other_application','other_row','other_reservation','second_attempt','missing_terminal'] as $case) {
+    $events=$mediaParentEvents;
+    if($case==='unknown_response')$events[4]['response']=['http'=>0,'transport_error'=>true,'data'=>null];
+    elseif($case==='other_run')$events[0]['execution']['native_run_id']='45567178734';
+    elseif($case==='other_application')$events[0]['execution']['application_sha']=str_repeat('0',40);
+    elseif($case==='other_row')$events[0]['row']['hotel_id']=2515;
+    elseif($case==='other_reservation')$events[1]['reservation']['publication_id']=3847;
+    elseif($case==='second_attempt')$events[3]['provider_write_attempts']=2;
+    else array_pop($events);
+    $raw=$mediaJournalBytes($events);$plan=$mediaParentPlan;$plan['parent_receipt_sha256']=hash('sha256',$raw);
+    $pilotRefuses('publisher media cannot reinterpret '.$case.' as the admitted parent',
+        static fn()=>AnyTour\ExistingPostBatch\publisherMediaParent($raw,$plan),'publisher_media_parent_unconfirmed');
+}
+
+$mediaPublicPlan=$mediaParentPlan;
+$mediaOldCaption='The original old commercial hotel offer.';
+$mediaOldPhotoClass='tgme_widget_message_photo_wrap 123456789';
+$mediaNewPhotoClass='tgme_widget_message_photo_wrap 987654321';
+$mediaPublicPlan['target_caption_sha256']=hash('sha256',$mediaOldCaption);
+$mediaPublicPlan['target_photo_marker_sha256']=hash('sha256',$mediaOldPhotoClass);
+$mediaHtml=static function(string $caption,string $photoClass,?array $markup)use($mediaPublicPlan):string{
+    $html='<html><head><meta charset="UTF-8"></head><body><div data-post="anytour/1058">'
+        .'<div class="tgme_widget_message_text">'.str_replace("\n",'<br>',htmlspecialchars($caption,ENT_QUOTES|ENT_HTML5,'UTF-8')).'</div>'
+        .'<a class="'.$photoClass.'" href="https://t.me/anytour/1058" style="background-image:url(https://cdn4.telesco.pe/file/fixture.jpg)"></a>'
+        .'<time datetime="'.gmdate('c',$mediaPublicPlan['target_published_unixtime']).'"></time>';
+    foreach($markup['inline_keyboard']??[] as $row)foreach($row as $button)
+        $html.='<a class="tgme_widget_message_inline_button url_button" href="'.htmlspecialchars($button['url'],ENT_QUOTES|ENT_HTML5,'UTF-8').'">'
+            .htmlspecialchars($button['text'],ENT_QUOTES|ENT_HTML5,'UTF-8').'</a>';
+    return $html.'</div></body></html>';
+};
+$mediaOldArchive=$mediaHtml($mediaOldCaption,$mediaOldPhotoClass,$mediaPublicPlan['target_keyboard']);
+$mediaOldEmbed=$mediaHtml($mediaOldCaption,$mediaOldPhotoClass,null);
+$mediaBefore=AnyTour\ExistingPostBatch\publisherMediaPublic($mediaOldArchive,$mediaOldEmbed,$mediaPublicPlan);
+channelPostCheck('publisher media admits only the saved old URL keyboard even when embed hides it',
+    $mediaBefore['reply_markup'],$mediaPublicPlan['target_keyboard']);
+$mediaNewArchive=$mediaHtml($mediaBody['media']['caption'],$mediaNewPhotoClass,$mediaBody['reply_markup']);
+$mediaNewEmbed=$mediaHtml($mediaBody['media']['caption'],$mediaNewPhotoClass,null);
+$mediaAfter=AnyTour\ExistingPostBatch\publisherMediaPublic($mediaNewArchive,$mediaNewEmbed,$mediaPublicPlan,$mediaBody);
+channelPostCheck('publisher media readback requires new caption, hotel CTA and original date',
+    [$mediaAfter['caption_sha256'],$mediaAfter['reply_markup'],$mediaAfter['published_unixtime']],
+    [$mediaPublicPlan['next_caption_sha256'],$mediaBody['reply_markup'],$mediaPublicPlan['target_published_unixtime']]);
+foreach (['caption','photo','date','keyboard','extra_button'] as $case) {
+    $archive=$mediaOldArchive;
+    if($case==='caption')$archive=str_replace($mediaOldCaption,'Different caption',$archive);
+    elseif($case==='photo')$archive=str_replace($mediaOldPhotoClass,$mediaNewPhotoClass,$archive);
+    elseif($case==='date')$archive=str_replace(gmdate('c',$mediaPublicPlan['target_published_unixtime']),gmdate('c',$mediaPublicPlan['target_published_unixtime']+1),$archive);
+    elseif($case==='keyboard')$archive=str_replace('https://t.me/AnyTour_MSK','https://t.me/Other_Manager',$archive);
+    else $archive=str_replace('</div></body>',
+        '<a class="tgme_widget_message_inline_button url_button" href="https://t.me/other">Other</a></div></body>',$archive);
+    $pilotRefuses('publisher media refuses changed old '.$case,
+        static fn()=>AnyTour\ExistingPostBatch\publisherMediaPublic($archive,$mediaOldEmbed,$mediaPublicPlan),
+        in_array($case,['keyboard','extra_button'],true)?'publisher_media_public_keyboard_changed':'publisher_media_public_content_changed');
+}
+$pilotRefuses('publisher media cannot accept a stale public post as the new media result',
+    static fn()=>AnyTour\ExistingPostBatch\publisherMediaPublic($mediaOldArchive,$mediaOldEmbed,$mediaPublicPlan,$mediaBody),
+    'publisher_media_public_content_changed');
+
+$mediaPublisher=['username'=>'ANYTOURBOT_bot','bot_id'=>'123456','credential_version'=>1];
+$mediaEvidence=AnyTour\ExistingPostBatch\publisherMediaEvidence($mediaParentPlan,$mediaBody,$mediaPublisher,'49999999998');
+$mediaRequestIdentity=$mediaBody;unset($mediaRequestIdentity['photo']);
+$mediaRequestIdentity['upload_sha256']=$mediaParentPlan['photo_sha256'];
+channelPostCheck('publisher media evidence binds saved publisher, parent and exact request without embedding the image',
+    $mediaEvidence,['schema'=>1,'publisher'=>$mediaPublisher,'native_run_id'=>'49999999998',
+        'parent_receipt_sha256'=>$mediaParentPlan['parent_receipt_sha256'],'upload_sha256'=>$mediaParentPlan['photo_sha256'],
+        'request_sha256'=>hash('sha256',json_encode($mediaRequestIdentity,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))]);
+$mediaNative=['http'=>200,'transport_error'=>false,'data'=>['ok'=>true,'result'=>[
+    'chat'=>['id'=>-1001845835645,'type'=>'channel','username'=>'anytour'],'message_id'=>1058,
+    'date'=>$mediaParentPlan['target_published_unixtime'],'edit_date'=>1795680000,
+    'caption'=>$mediaBody['media']['caption'],'caption_entities'=>[],
+    'photo'=>[['file_id'=>'publisher_only_new_file_id','file_unique_id'=>'new_photo_identity','width'=>800,'height'=>600]],
+    'reply_markup'=>$mediaBody['reply_markup']]]];
+channelPostCheck('publisher media accepts the native method result without inventing registry completion',
+    AnyTour\ExistingPostBatch\publisherMediaResponse($mediaNative,$mediaBody,$mediaParentPlan),'native_media_edit_accepted');
+$mediaReorderedNative=$mediaNative;
+$mediaExpectedButton=$mediaBody['reply_markup']['inline_keyboard'][0][0];
+$mediaReorderedNative['data']['result']['reply_markup']['inline_keyboard'][0][0]=[
+    'url'=>$mediaExpectedButton['url'],'text'=>$mediaExpectedButton['text']];
+channelPostCheck('publisher media accepts Telegram JSON button member order without changing values or types',
+    AnyTour\ExistingPostBatch\publisherMediaResponse($mediaReorderedNative,$mediaBody,$mediaParentPlan),'native_media_edit_accepted');
+channelPostCheck('publisher media retains a definite MESSAGE_ID_INVALID rejection',
+    AnyTour\ExistingPostBatch\publisherMediaResponse($pilotRejected,$mediaBody,$mediaParentPlan),'provider_message_id_rejected');
+foreach (['wrong_mid','changed_date','changed_caption','changed_keyboard','wrong_button_url','wrong_button_type',
+    'extra_button_field','missing_edit_date','album'] as $case) {
+    $native=$mediaNative;
+    if($case==='wrong_mid')$native['data']['result']['message_id']=1047;
+    elseif($case==='changed_date')$native['data']['result']['date']++;
+    elseif($case==='changed_caption')$native['data']['result']['caption']='Changed';
+    elseif($case==='changed_keyboard')$native['data']['result']['reply_markup']=$mediaPublicPlan['target_keyboard'];
+    elseif($case==='wrong_button_url')$native['data']['result']['reply_markup']['inline_keyboard'][0][0]['url']='https://t.me/anyru_bot?start=p_'.str_repeat('Z',24);
+    elseif($case==='wrong_button_type')$native['data']['result']['reply_markup']['inline_keyboard'][0][0]['url']=true;
+    elseif($case==='extra_button_field')$native['data']['result']['reply_markup']['inline_keyboard'][0][0]['callback_data']='other_action';
+    elseif($case==='missing_edit_date')unset($native['data']['result']['edit_date']);
+    else $native['data']['result']['media_group_id']='other_group';
+    $pilotRefuses('publisher media refuses unconfirmed native '.$case,
+        static fn()=>AnyTour\ExistingPostBatch\publisherMediaResponse($native,$mediaBody,$mediaParentPlan),
+        'publisher_media_response_unconfirmed');
+}
+
+$mediaSavedToken='123456:fixture_saved_publisher_token_only';
+$GLOBALS['hotel_media_fixture_response']=json_encode($mediaNative['data'],JSON_THROW_ON_ERROR);
+$mediaWireBefore=count($GLOBALS['hotel_media_http']);
+$mediaWireResult=HotelMediaApiFixture\ChannelPostApiTransport::publisherMediaPilotRequest(
+    $mediaSavedToken,'POST','editMessageMedia',[],$mediaBody);
+$mediaWire=end($GLOBALS['hotel_media_http']);$mediaParts=$mediaWire['options'][HotelMediaApiFixture\CURLOPT_POSTFIELDS];
+channelPostCheck('publisher media actual transport sends one saved-bot multipart edit',
+    [$mediaWireResult['http'],$mediaWireResult['transport_error'],$mediaWireResult['data'],
+        count($GLOBALS['hotel_media_http'])-$mediaWireBefore,$mediaWire['url'],array_keys($mediaParts)],
+    [200,false,$mediaNative['data'],1,'https://api.telegram.org/bot'.$mediaSavedToken.'/editMessageMedia',
+        ['chat_id','message_id','media','reply_markup','hotel_photo']]);
+channelPostCheck('publisher media multipart carries genuine CURLStringFile bytes and canonical hotel context',
+    [$mediaParts['hotel_photo'] instanceof CURLStringFile,hash('sha256',$mediaParts['hotel_photo']->data),
+        $mediaParts['hotel_photo']->postname,$mediaParts['hotel_photo']->mime,
+        json_decode($mediaParts['media'],true),json_decode($mediaParts['reply_markup'],true),
+        $mediaWire['options'][HotelMediaApiFixture\CURLOPT_HTTPHEADER]],
+    [true,$mediaPilotPlan['photo_sha256'],'hotel.jpg','image/jpeg',$mediaBody['media'],$mediaBody['reply_markup'],['Accept: application/json']]);
+channelPostCheck('publisher media multipart keeps strict TLS, no redirects and a bounded request',
+    array_map(static fn($key)=>$mediaWire['options'][$key],[HotelMediaApiFixture\CURLOPT_SSL_VERIFYPEER,
+        HotelMediaApiFixture\CURLOPT_SSL_VERIFYHOST,HotelMediaApiFixture\CURLOPT_FOLLOWLOCATION,
+        HotelMediaApiFixture\CURLOPT_CONNECTTIMEOUT,HotelMediaApiFixture\CURLOPT_TIMEOUT]),[true,2,false,2,15]);
+foreach (['file_id','remote_url','photo_digest','another_mid','extra_field','extra_button'] as $case) {
+    $bad=$mediaBody;
+    if($case==='file_id')$bad['media']['media']='anyru_bot_scoped_file_id';
+    elseif($case==='remote_url')$bad['media']['media']='https://example.test/other.jpg';
+    elseif($case==='photo_digest')$bad['photo']['sha256']=str_repeat('0',64);
+    elseif($case==='another_mid')$bad['message_id']='1047';
+    elseif($case==='extra_field')$bad['disable_notification']=true;
+    else $bad['reply_markup']['inline_keyboard'][0][]=$bad['reply_markup']['inline_keyboard'][0][0];
+    $before=count($GLOBALS['hotel_media_http']);
+    channelPostCheck('publisher media transport refuses '.$case.' before HTTP',
+        [HotelMediaApiFixture\ChannelPostApiTransport::publisherMediaPilotRequest($mediaSavedToken,'POST','editMessageMedia',[],$bad),
+            count($GLOBALS['hotel_media_http'])], [['http'=>0,'data'=>null,'transport_error'=>true],$before]);
+}
+unset($GLOBALS['hotel_media_fixture_response']);
+
+$mediaTmp=sys_get_temp_dir().'/publisher-media-pilot-'.bin2hex(random_bytes(8));mkdir($mediaTmp,0700);
+try {
+    foreach(['success','success_recompressed','reordered_native','payload_changed','source_changed','late_source_changed','rejected','timeout','transport_throw',
+        'webhook_pending','public_stale','public_photo_mismatch','public_photo_unverified','native_wrong_target'] as $case) {
+        $dir=$mediaTmp.'/'.$case;mkdir($dir,0700);file_put_contents($dir.'/receipt.jsonl',$mediaParentBytes);
+        $parentSha=hash_file('sha256',$dir.'/receipt.jsonl');$writes=0;$completions=0;$reads=0;$asserts=0;$startedBeforeRequest=false;
+        $native=$case==='reordered_native'?$mediaReorderedNative:$mediaNative;
+        if($case==='native_wrong_target')$native['data']['result']['message_id']=1047;
+        $GLOBALS['hotel_media_fixture_response']=json_encode(($case==='rejected'?$pilotRejected:$native)['data'],JSON_THROW_ON_ERROR);
+        $GLOBALS['hotel_media_fixture_http']=$case==='rejected'?400:200;
+        $GLOBALS['hotel_media_fixture_timeout']=$case==='timeout';
+        $httpBefore=count($GLOBALS['hotel_media_http']);
+        $effects=['context'=>['application_sha'=>str_repeat('a',40),'native_run_id'=>'49999999998'],
+            'publisher'=>$mediaPublisher,'reservation'=>$mediaReservation,
+            'source_pin'=>['version_id'=>13679,'content_hash'=>str_repeat('c',64)],
+            'assert'=>static function()use($case,&$asserts,$dir,$parentSha):void{
+                $asserts++;
+                if(hash_file('sha256',$dir.'/receipt.jsonl')!==$parentSha)throw new RuntimeException('publisher_media_parent_changed');
+                if($case==='source_changed'||($case==='late_source_changed'&&$asserts===2))throw new RuntimeException('publisher_media_source_changed');
+            },
+            'request'=>static function(array $payload)use(&$writes,&$startedBeforeRequest,$case,$dir,$mediaSavedToken):array{
+                $writes++;$journal=file_get_contents($dir.'/publisher-media-20261126.jsonl');
+                $startedBeforeRequest=str_contains($journal,'"state":"provider_edit_started"');
+                if($case==='transport_throw')throw new RuntimeException('provider_timeout');
+                return HotelMediaApiFixture\ChannelPostApiTransport::publisherMediaPilotRequest($mediaSavedToken,'POST','editMessageMedia',[],$payload);
+            },
+            // SQL adoption is covered by the registry suite. This boundary
+            // independently refuses a missing genuine webhook.
+            'complete'=>static function(array $response,array $evidence)use(&$completions,$case,$mediaEvidence):array{
+                $completions++;
+                if($evidence!==$mediaEvidence)throw new RuntimeException('publisher_media_evidence_changed');
+                if($case==='webhook_pending')throw new RuntimeException('publisher_media_native_observation_required');
+                return ['publication_id'=>3848,'version_id'=>19000,'state'=>'sent','message_id'=>'1058',
+                    'content_hash'=>str_repeat('d',64),'snapshot'=>['metadata'=>['hotel_catalog_id'=>2514]]];
+            },
+            'readback'=>static function(array $body)use(&$reads,$case,$mediaPublicPlan,$mediaOldArchive,$mediaOldEmbed,$mediaNewArchive,$mediaNewEmbed):array{
+                $reads++;
+                AnyTour\ExistingPostBatch\publisherMediaPublic($case==='public_stale'?$mediaOldArchive:$mediaNewArchive,
+                    $case==='public_stale'?$mediaOldEmbed:$mediaNewEmbed,$mediaPublicPlan,$body);
+                if($case==='public_photo_mismatch')throw new RuntimeException('publisher_media_public_photo_unconfirmed');
+                return ['public_photo_verified'=>$case!=='public_photo_unverified',
+                    'public_photo_sha256'=>$case==='success_recompressed'?str_repeat('e',64):$body['photo']['sha256'],
+                    'public_photo_matches_uploaded_bytes'=>$case!=='success_recompressed'];
+            },
+            'parent_unchanged'=>static function()use($dir,$parentSha):void{
+                if(hash_file('sha256',$dir.'/receipt.jsonl')!==$parentSha)throw new RuntimeException('publisher_media_parent_changed');
+            }];
+        $body=$mediaBody;if($case==='payload_changed')$body['media']['caption']='Unapproved replacement';
+        $result=AnyTour\ExistingPostBatch\publisherMediaExecute($mediaParentPlan,$mediaBefore,$body,$effects,$dir);
+        $zero=in_array($case,['payload_changed','source_changed','late_source_changed'],true);
+        $success=in_array($case,['success','success_recompressed','reordered_native'],true);
+        $acceptedNative=in_array($case,['success','success_recompressed','reordered_native','webhook_pending','public_stale','public_photo_mismatch','public_photo_unverified'],true);
+        $expected=match($case){'success','success_recompressed','reordered_native'=>'native_and_registry_verified','payload_changed','source_changed','late_source_changed'=>'held_before_provider',
+            'rejected'=>'provider_message_id_rejected','transport_throw'=>'provider_outcome_unknown',default=>'response_saved_requires_readback'};
+        channelPostCheck('publisher media keeps honest '.$case.' outcome and exact provider count',
+            [$result['state'],$result['ok'],$result['full_transfer'],$result['provider_write_attempts'],$writes,
+                count($GLOBALS['hotel_media_http'])-$httpBefore],
+            [$expected,$success,$success,$zero?0:1,$zero?0:1,($zero||$case==='transport_throw')?0:1]);
+        channelPostCheck('publisher media completes only confirmed native '.$case,
+            [$completions,$reads],[$acceptedNative?1:0,in_array($case,['success','success_recompressed','reordered_native','public_stale','public_photo_mismatch','public_photo_unverified'],true)?1:0]);
+        if($success)channelPostCheck('publisher media reports observed JPEG bytes honestly for '.$case,
+            [$result['public_photo_verified'],$result['public_photo_sha256'],$result['public_photo_matches_uploaded_bytes']],
+            [true,$case==='success_recompressed'?str_repeat('e',64):$mediaPilotPlan['photo_sha256'],$case!=='success_recompressed']);
+        channelPostCheck('publisher media preserves the rejected parent byte-for-byte on '.$case,
+            hash_file('sha256',$dir.'/receipt.jsonl'),$parentSha);
+        if($acceptedNative)channelPostCheck('publisher media retains native acceptance after '.$case,
+            $result['native_state']??null,'native_media_edit_accepted');
+        if(in_array($case,['timeout','transport_throw','native_wrong_target'],true))
+            channelPostCheck('publisher media does not invent native acceptance after '.$case,isset($result['native_state']),false);
+        if(!$zero)channelPostCheck('publisher media journal marker precedes '.$case.' provider call',$startedBeforeRequest);
+        $journal=$dir.'/publisher-media-20261126.jsonl';
+        if(!file_exists($journal)) {
+            channelPostCheck('publisher media '.$case.' leaves no consumed intent before admission',
+                in_array($case,['payload_changed','source_changed'],true));
+            continue;
+        }
+        $journalSha=hash_file('sha256',$journal);$httpAfter=count($GLOBALS['hotel_media_http']);
+        $again=AnyTour\ExistingPostBatch\publisherMediaExecute($mediaParentPlan,$mediaBefore,$mediaBody,$effects,$dir);
+        channelPostCheck('publisher media cannot replay '.$case.' or mutate its saved outcome',
+            [$again['reason'],$writes,count($GLOBALS['hotel_media_http']),hash_file('sha256',$journal)],
+            ['publisher_media_previous_attempt_do_not_replay',$zero?0:1,$httpAfter,$journalSha]);
+    }
+} finally {
+    unset($GLOBALS['hotel_media_fixture_response'],$GLOBALS['hotel_media_fixture_http'],$GLOBALS['hotel_media_fixture_timeout']);
+    foreach(glob($mediaTmp.'/*') as $dir){foreach(glob($dir.'/*') as $file)unlink($file);rmdir($dir);}rmdir($mediaTmp);
 }
 
 echo 'Channel post automation: ' . $passed . ' passed, ' . $failed . ' failed' . PHP_EOL;

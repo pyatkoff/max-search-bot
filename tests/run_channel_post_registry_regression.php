@@ -800,5 +800,220 @@ foreach (['publication_id'=>3848,'channel_record'=>7,'message_id'=>'1048',
         && $nearRegistry->claimPublication($nearScope['publication_id'],$near['version_id']) !== null);
 }
 
+// The existing approved-packet API supplies a synthetic source lineage. These
+// are database/provider fixtures, never evidence of a real publisher operation.
+function publisherMediaRegistryFixture(bool $advanceSource = true): array
+{
+    $db = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    createChannelPostRegistryFixture($db);
+    $db->exec("INSERT INTO projects VALUES (1,'anytour','Synthetic media pilot',1);
+        INSERT INTO conversation_sources VALUES (9,1,'tg_anytour_msk','Large','telegram',1,'manager'),(10,1,'tg_hotel_source','Small','telegram',1,'manager');");
+    $registry = new ChannelPostRegistryService($db);
+    $config = ['project_key'=>'anytour','platform'=>'telegram','bot_key'=>'anyru_bot','channel_id'=>'-1001845835645',
+        'source_key'=>'tg_anytour_msk','display_name'=>'Synthetic target','bot_url'=>'https://t.me/anyru_bot',
+        'button_text'=>'✈️ Рассчитать на мои даты','is_enabled'=>true];
+    $targetChannel = $registry->configureChannel($config);
+    $registry->configureChannel($config + ['expected_version'=>1]);
+    $db->prepare('UPDATE post_channels SET id=6 WHERE id=?')->execute([$targetChannel['id']]);
+    $sourceChannel = $registry->configureChannel(array_replace($config,
+        ['channel_id'=>'-1002262666616','source_key'=>'tg_hotel_source','display_name'=>'Synthetic source']));
+    $db->prepare('UPDATE post_channels SET id=10 WHERE id=?')->execute([$sourceChannel['id']]);
+    $db->exec("INSERT INTO post_publications (id,post_channel_id,source_id,external_message_id,start_payload) VALUES
+        (952,10,10,'429','p_ABCDEFGHIJKLMNOPQRSTUVWX')");
+    $sourceMessage = ['chat'=>['id'=>-1002262666616,'type'=>'channel','username'=>'any_toour'], 'message_id'=>429,
+        'date'=>1794081258,'caption'=>'Synthetic source before PRICE',
+        'photo'=>[['file_id'=>'synthetic_source_anyru_file','file_unique_id'=>'synthetic_source_unique','width'=>600,'height'=>600]],
+        'reply_markup'=>['inline_keyboard'=>[[['text'=>$config['button_text'],
+            'url'=>'https://t.me/anyru_bot?start=p_ABCDEFGHIJKLMNOPQRSTUVWX']]]]];
+    $saveSource = static function(array $message, int $sequence) use ($registry): array {
+        $event = ChannelPostIncomingAdapter::fromUpdate('telegram', ['update_id'=>$sequence,'edited_channel_post'=>$message]);
+        $snapshot = $event['snapshot']; $snapshot['content_hash'] = ChannelPostIncomingAdapter::contentFingerprint($snapshot);
+        $snapshot['metadata']['hotel_catalog_id'] = 2514;
+        $source = $registry->registerPublication('anytour','telegram','anyru_bot','-1002262666616','429',$snapshot);
+        $registry->confirmObservedButton(952,$source['version_id'],['verified'=>true,'button_verified'=>true]);
+        return $registry->publication(952);
+    };
+    $sourceMessage['edit_date'] = 1795670000;
+    $initialSource = $saveSource($sourceMessage, 661001);
+    $approved = json_decode(file_get_contents(dirname(__DIR__).'/config/anytour_ranked_pairs_45552458333.json'), true, 64, JSON_THROW_ON_ERROR);
+    $original = array_values(array_filter($approved['rows'], static fn(array $row): bool => $row['hotel_id'] === 2514))[0];
+    $row = array_intersect_key($original, array_fill_keys(AnyTourRankedHotelTransfer46::REGISTRY_FIELDS, true));
+    $row = array_replace($row, ['source_version_id'=>$initialSource['version_id'],'source_content_hash'=>$initialSource['content_hash'],
+        'source_caption_sha256'=>hash('sha256',$sourceMessage['caption']),
+        'source_file_id_sha256'=>hash('sha256',$sourceMessage['photo'][0]['file_id']),
+        'source_file_unique_id_sha256'=>hash('sha256',$sourceMessage['photo'][0]['file_unique_id'])]);
+    $planBytes = json_encode(['schema'=>1,'operation'=>'synthetic_publisher_media_parent','native_preflight'=>['fixture'=>true],
+        'rows'=>[$row]], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
+    $digest = hash('sha256', $planBytes);
+    if (AnyTourRankedHotelTransfer46::profile($digest) === null) {
+        $indexBytes = json_encode(['schema'=>1,'native_preflight'=>['fixture'=>true], 'plans'=>[[
+            'path'=>'config/anytour_publisher_media_registry_fixture.json','sha256'=>$digest,'bytes'=>strlen($planBytes),
+            'git_blob'=>sha1('blob '.strlen($planBytes)."\0".$planBytes)]]],JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
+        AnyTourRankedHotelTransfer46::acceptPacket($indexBytes,hash('sha256',$indexBytes),$planBytes,$digest);
+    }
+    $db->exec("UPDATE sqlite_sequence SET seq=3847 WHERE name='post_publications'");
+    $reservation = $registry->reserveTelegramHotelTransfer($row,$digest,static fn(): bool => true);
+    if ($advanceSource) {
+        $sourceMessage['caption'] = 'Synthetic source after PRICE; same hotel and photo';
+        $sourceMessage['edit_date']++;
+        $sourceMessage['photo'][0]['file_id'] = 'synthetic_new_anyru_file_id';
+        $saveSource($sourceMessage, 661002);
+    }
+    $source = $registry->publication(952);
+    $photo = $source['snapshot']['attachments'][0];
+    $pin = ['version_id'=>$source['version_id'],'content_hash'=>$source['content_hash'],
+        'caption_sha256'=>hash('sha256',$source['snapshot']['text']),
+        'file_id_sha256'=>hash('sha256',$photo['telegram_file_id']),
+        'file_unique_id_sha256'=>hash('sha256',$photo['file_unique_id'])];
+    // A newly uploaded image may have a new unique ID. Its file_id in this
+    // response belongs to ANYTOURBOT, while the webhook below belongs to anyru.
+    $response = ['http'=>200,'transport_error'=>false,'data'=>['ok'=>true,'result'=>[
+        'chat'=>['id'=>-1001845835645,'type'=>'channel','username'=>'anytour'], 'message_id'=>1058,
+        'date'=>1742976715,'edit_date'=>1795700000,'caption'=>$row['next_caption'],
+        'photo'=>[['file_id'=>'synthetic_ANYTOURBOT_only_file','file_unique_id'=>'synthetic_uploaded_unique','width'=>600,'height'=>600]],
+        'reply_markup'=>['inline_keyboard'=>[[['text'=>$row['button_text'],'url'=>$reservation['button_url']]]]]]]];
+    $upload = '3364da0d8257468c9f2933d042dfc7b5d5b7ca705d2ca1564b328966257bbe58';
+    $request = ['chat_id'=>'-1001845835645','message_id'=>'1058',
+        'media'=>['type'=>'photo','media'=>'attach://hotel_photo','caption'=>$row['next_caption'],'caption_entities'=>[]],
+        'reply_markup'=>$response['data']['result']['reply_markup'],'upload_sha256'=>$upload];
+    $evidence = ['schema'=>1,'publisher'=>['username'=>'ANYTOURBOT_bot','bot_id'=>'777000111','credential_version'=>4],
+        'native_run_id'=>'88888888888',
+        'parent_receipt_sha256'=>'b30bddac7fb9ddcb40e2f41c44bec8988e7fc0e98ddb3a0ca9f825e38492aeb0',
+        'upload_sha256'=>$upload,'request_sha256'=>hash('sha256',json_encode($request,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))];
+    return [$db,$registry,$row,$digest,$reservation,$pin,$response,$evidence,$saveSource,$sourceMessage];
+}
+function publisherMediaWebhook(ChannelPostRegistryService $registry, array $response): array
+{
+    $native = $response;
+    $native['data']['result']['photo'][0]['file_id'] = 'synthetic_anyru_webhook_file';
+    return hotelTransferObserve($registry,$native,false,662001);
+}
+[$mediaDb,$mediaRegistry,$mediaRow,$mediaPlan,$mediaReservation,$mediaPin,$mediaResponse,$mediaEvidence,$mediaSaveSource,$mediaSourceMessage] = publisherMediaRegistryFixture();
+$mediaBefore = $mediaDb->query('SELECT * FROM post_publications WHERE id=3848')->fetch();
+postCheck('publisher media admits current PRICE source revision while preserving original reservation and parent row',
+    $mediaPin['version_id'] > $mediaRow['source_version_id']
+    && $mediaRegistry->assertPublisherMediaPilotReservation($mediaReservation,$mediaRow,$mediaPlan,$mediaPin) === $mediaReservation
+    && $mediaBefore === $mediaDb->query('SELECT * FROM post_publications WHERE id=3848')->fetch()
+    && (int)$mediaDb->query('SELECT COUNT(*) FROM post_versions WHERE publication_id=3848')->fetchColumn() === 0);
+postCheck('publisher media never invents a canonical observation from its alternative bot response',
+    manualPostThrows(fn()=>$mediaRegistry->completePublisherMediaPilot($mediaReservation,$mediaRow,$mediaPlan,$mediaPin,$mediaResponse,$mediaEvidence),
+        'publisher_media_native_observation_required') && $mediaBefore === $mediaDb->query('SELECT * FROM post_publications WHERE id=3848')->fetch());
+foreach (['upload_sha256','parent_receipt_sha256','request_sha256'] as $field) {
+    $bad = $mediaEvidence; $bad[$field] = str_repeat('f',64);
+    postCheck('publisher media rejects altered proof '.$field,
+        manualPostThrows(fn()=>$mediaRegistry->completePublisherMediaPilot($mediaReservation,$mediaRow,$mediaPlan,$mediaPin,$mediaResponse,$bad),'publisher_media_evidence_invalid'));
+}
+foreach (['username'=>'other_bot','bot_id'=>'invalid','credential_version'=>0] as $field=>$value) {
+    $bad = $mediaEvidence; $bad['publisher'][$field] = $value;
+    postCheck('publisher media validates publisher evidence '.$field,
+        manualPostThrows(fn()=>$mediaRegistry->completePublisherMediaPilot($mediaReservation,$mediaRow,$mediaPlan,$mediaPin,$mediaResponse,$bad),'publisher_media_evidence_invalid'));
+}
+foreach (['message_id'=>1059,'date'=>1742976716,'caption'=>'Changed caption','media_group_id'=>'unexpected-album'] as $field=>$value) {
+    $bad = $mediaResponse; $bad['data']['result'][$field] = $value;
+    postCheck('publisher media response rejects changed '.$field,
+        manualPostThrows(fn()=>$mediaRegistry->completePublisherMediaPilot($mediaReservation,$mediaRow,$mediaPlan,$mediaPin,$bad,$mediaEvidence),'publisher_media_response_unconfirmed'));
+}
+$wrongSourcePin = $mediaPin; $wrongSourcePin['file_unique_id_sha256'] = hash('sha256','another-photo');
+postCheck('publisher media refuses source photo changes before write admission',
+    manualPostThrows(fn()=>$mediaRegistry->assertPublisherMediaPilotReservation($mediaReservation,$mediaRow,$mediaPlan,$wrongSourcePin),'publisher_media_source_pin_invalid'));
+$wrongSourcePin = $mediaPin; $wrongSourcePin['version_id']++;
+postCheck('publisher media source revision CAS is checked in the database',
+    manualPostThrows(fn()=>$mediaRegistry->assertPublisherMediaPilotReservation($mediaReservation,$mediaRow,$mediaPlan,$wrongSourcePin),'hotel_transfer_source_changed'));
+$wrongReservation = $mediaReservation; $wrongReservation['publication_id'] = 3849;
+postCheck('publisher media cannot redirect its existing reservation to a neighboring identity',
+    manualPostThrows(fn()=>$mediaRegistry->assertPublisherMediaPilotReservation($wrongReservation,$mediaRow,$mediaPlan,$mediaPin),'publisher_media_reservation_changed'));
+$mediaNative = publisherMediaWebhook($mediaRegistry,$mediaResponse);
+$nativeSnapshot = $mediaNative['snapshot'];
+$nativeClock = $mediaDb->query('SELECT observed_revision_ms,telegram_sequence,start_payload FROM post_publications WHERE id=3848')->fetch();
+postCheck('publisher media recheck after a native observation cannot authorize another provider attempt',
+    manualPostThrows(fn()=>$mediaRegistry->assertPublisherMediaPilotReservation($mediaReservation,$mediaRow,$mediaPlan,$mediaPin),'publisher_media_reservation_changed'));
+$mediaComplete = $mediaRegistry->completePublisherMediaPilot($mediaReservation,$mediaRow,$mediaPlan,$mediaPin,$mediaResponse,$mediaEvidence);
+postCheck('publisher media adopts matching genuine anyru webhook and keeps the bot scoped file ID',
+    $mediaComplete['state'] === 'sent' && $mediaComplete['already_completed'] === false
+    && $mediaComplete['snapshot']['attachments'] === $nativeSnapshot['attachments']
+    && $mediaComplete['snapshot']['attachments'][0]['telegram_file_id'] === 'synthetic_anyru_webhook_file'
+    && $mediaComplete['snapshot']['raw_body'] === $nativeSnapshot['raw_body']
+    && $mediaComplete['snapshot']['metadata']['source_event_id'] === $nativeSnapshot['metadata']['source_event_id']
+    && $mediaComplete['snapshot']['metadata']['hotel_catalog_id'] === 2514
+    && $mediaComplete['receipt']['file_id_bot_key'] === 'anyru_bot'
+    && $mediaComplete['receipt']['publisher_evidence'] === $mediaEvidence
+    && $mediaComplete['start_payload'] === $mediaReservation['start_payload']
+    && $mediaNative['version_id'] === $mediaComplete['receipt']['adopted_from_version_id']
+    && $nativeClock === $mediaDb->query('SELECT observed_revision_ms,telegram_sequence,start_payload FROM post_publications WHERE id=3848')->fetch());
+$allAfter = $mediaDb->query('SELECT * FROM post_versions WHERE publication_id=3848 ORDER BY id')->fetchAll();
+$mediaSourceMessage['caption'] = 'Later PRICE update after completed publisher operation'; $mediaSourceMessage['edit_date']++;
+$mediaSaveSource($mediaSourceMessage,661003);
+$mediaAgain = $mediaRegistry->completePublisherMediaPilot($mediaReservation,$mediaRow,$mediaPlan,$mediaPin,$mediaResponse,$mediaEvidence);
+postCheck('publisher media completion is read only when already accepted even after source PRICE advances',
+    $mediaAgain['already_completed'] === true && $mediaAgain['version_id'] === $mediaComplete['version_id']
+    && $allAfter === $mediaDb->query('SELECT * FROM post_versions WHERE publication_id=3848 ORDER BY id')->fetchAll());
+postCheck('publisher media accepted hotel context resolves through the original anyru token',
+    $mediaRegistry->resolveToken('anytour','telegram','anyru_bot',$mediaReservation['start_payload'])['snapshot']['metadata']['hotel_catalog_id'] === 2514);
+
+foreach (['missing_event','missing_sequence','changed_photo','changed_caption','unknown','claimed','source_advanced'] as $case) {
+    [$db,$service,$row,$plan,$reservation,$pin,$response,$evidence,$save,$sourceMessage] = publisherMediaRegistryFixture();
+    if ($case === 'missing_event') {
+        $message = $response['data']['result']; $message['photo'][0]['file_id'] = 'synthetic_anyru_webhook_file';
+        $snapshot = ChannelPostIncomingAdapter::telegramSnapshot($message);
+        $snapshot['content_hash'] = ChannelPostIncomingAdapter::contentFingerprint($snapshot);
+        $native = $service->registerPublication('anytour','telegram','anyru_bot','-1001845835645','1058',$snapshot);
+    } else $native = publisherMediaWebhook($service,$response);
+    if ($case === 'missing_sequence') {
+        $snapshot = $native['snapshot']; unset($snapshot['metadata']['source_sequence_scope']);
+        $db->prepare('UPDATE post_versions SET snapshot_json=? WHERE id=?')->execute([json_encode($snapshot),$native['version_id']]);
+    } elseif ($case === 'changed_photo' || $case === 'changed_caption') {
+        $changed = $response;
+        if ($case === 'changed_photo') $changed['data']['result']['photo'][0]['file_unique_id'] = 'another_actual_photo';
+        else $changed['data']['result']['caption'] = 'Different hotel or caption';
+        hotelTransferObserve($service,$changed,false,662002);
+    } elseif ($case === 'unknown') {
+        $db->prepare("UPDATE post_versions SET state='unknown',write_attempts=1,receipt_json=? WHERE id=?")
+            ->execute([json_encode(['immutable_unknown'=>true]),$native['version_id']]);
+    } elseif ($case === 'claimed') {
+        $db->prepare("UPDATE post_versions SET state='claimed',claim_token=?,claimed_at=? WHERE id=?")
+            ->execute([str_repeat('d',32),gmdate('Y-m-d H:i:s'),$native['version_id']]);
+    } elseif ($case === 'source_advanced') {
+        $sourceMessage['caption'] = 'PRICE advanced before completion'; $sourceMessage['edit_date']++;
+        $save($sourceMessage,661003);
+    }
+    $before = $db->query('SELECT * FROM post_versions WHERE publication_id=3848 ORDER BY id')->fetchAll();
+    $identity = $db->query('SELECT * FROM post_publications WHERE id=3848')->fetch();
+    postCheck('publisher media leaves unconfirmed or held state untouched: '.$case,
+        manualPostThrows(fn()=>$service->completePublisherMediaPilot($reservation,$row,$plan,$pin,$response,$evidence))
+        && $before === $db->query('SELECT * FROM post_versions WHERE publication_id=3848 ORDER BY id')->fetchAll()
+        && $identity === $db->query('SELECT * FROM post_publications WHERE id=3848')->fetch());
+}
+
+foreach ([['hotel_catalog_id'=>2514], ['hotel_catalog_id'=>'2514'],
+    ['logical_id'=>'commercial-hotel-2514-v1'], ['logical_id'=>'commercial-main-hotel-2514-v1'],
+    ['logical_id'=>'commercial-amwaj-rotana-2514-v1']] as $index=>$duplicateIdentity) {
+    [$db,$service,$row,$plan,$reservation,$pin,$response,$evidence] = publisherMediaRegistryFixture();
+    $otherMessage = $response['data']['result']; $otherMessage['message_id'] = 1060;
+    $otherEvent = ChannelPostIncomingAdapter::fromUpdate('telegram', ['update_id'=>663001,'edited_channel_post'=>$otherMessage]);
+    $otherSnapshot = $otherEvent['snapshot'];
+    $otherSnapshot['metadata'] = array_replace($otherSnapshot['metadata'],$duplicateIdentity);
+    $otherSnapshot['content_hash'] = ChannelPostIncomingAdapter::contentFingerprint($otherSnapshot);
+    $service->registerPublication('anytour','telegram','anyru_bot','-1001845835645','1060',$otherSnapshot);
+    $before = $db->query('SELECT * FROM post_publications ORDER BY id')->fetchAll();
+    $refusedBeforeWrite = manualPostThrows(fn()=>$service->assertPublisherMediaPilotReservation($reservation,$row,$plan,$pin),
+        'publisher_media_hotel_already_in_channel');
+    $beforeUnchanged = $before === $db->query('SELECT * FROM post_publications ORDER BY id')->fetchAll();
+    publisherMediaWebhook($service,$response);
+    $before = $db->query('SELECT * FROM post_versions ORDER BY id')->fetchAll();
+    postCheck('publisher media freshly rejects another large-channel hotel identity '.$index,
+        $refusedBeforeWrite && $beforeUnchanged
+        && manualPostThrows(fn()=>$service->completePublisherMediaPilot($reservation,$row,$plan,$pin,$response,$evidence),
+            'publisher_media_hotel_already_in_channel')
+        && $before === $db->query('SELECT * FROM post_versions ORDER BY id')->fetchAll());
+}
+$mediaCurrentSource = $mediaRegistry->publication(952);
+$mediaDb->prepare("UPDATE post_versions SET state='claimed',claim_token=?,claimed_at=? WHERE id=?")
+    ->execute([str_repeat('e',32),gmdate('Y-m-d H:i:s'),$mediaCurrentSource['version_id']]);
+$claimedSourceBefore = $mediaDb->query('SELECT * FROM post_versions WHERE publication_id=952 ORDER BY id')->fetchAll();
+postCheck('publisher media accepted receipt stays idempotent without clearing a later source claim',
+    $mediaRegistry->completePublisherMediaPilot($mediaReservation,$mediaRow,$mediaPlan,$mediaPin,$mediaResponse,$mediaEvidence)['already_completed'] === true
+    && $claimedSourceBefore === $mediaDb->query('SELECT * FROM post_versions WHERE publication_id=952 ORDER BY id')->fetchAll()
+    && $allAfter === $mediaDb->query('SELECT * FROM post_versions WHERE publication_id=3848 ORDER BY id')->fetchAll());
+
 echo 'OK ' . $passed . " channel post registry checks\n";
 

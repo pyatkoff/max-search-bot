@@ -1,7 +1,7 @@
 name: "#1566 Apply approved ranked Telegram hotel transfers"
 on:
   push:
-    branches: [ops/anytour-hotel-ranked-46-apply-20261123, ops/anytour-hotel-ranked-37-continue-20261123, ops/anytour-hotel-ranked-resume-20261124, "ops/anytour-hotel-ranked-after-*", "ops/anytour-hotel-ranked-plan-*", "ops/anytour-hotel-ranked-data-*", ops/anytour-publisher-keyboard-1047-20261125]
+    branches: [ops/anytour-hotel-ranked-46-apply-20261123, ops/anytour-hotel-ranked-37-continue-20261123, ops/anytour-hotel-ranked-resume-20261124, "ops/anytour-hotel-ranked-after-*", "ops/anytour-hotel-ranked-plan-*", "ops/anytour-hotel-ranked-data-*", ops/anytour-publisher-keyboard-1047-20261125, ops/anytour-publisher-media-1058-20261126]
 permissions:
   contents: read
   actions: read
@@ -72,6 +72,8 @@ jobs:
           case "$GITHUB_REF:$WRITE_OPERATION" in
             refs/heads/ops/anytour-publisher-keyboard-1047-20261125:hotel_publisher_keyboard_pilot)
               check=--check-publisher-keyboard-pilot ;;
+            refs/heads/ops/anytour-publisher-media-1058-20261126:hotel_publisher_media_pilot)
+              check=--check-publisher-media-pilot ;;
             refs/heads/ops/anytour-hotel-ranked-46-apply-20261123:hotel_ranked_46_transfer|refs/heads/ops/anytour-hotel-ranked-plan-*:hotel_ranked_approved_input)
               check=--check-ranked-transfer-plan ;;
             refs/heads/ops/anytour-hotel-ranked-data-*:hotel_ranked_approved_input)
@@ -99,7 +101,7 @@ jobs:
           mkdir pub
           # The resolver authenticates this native evidence before SSH credentials are available.
           printf '%s' "$PARENT_EVIDENCE" > "$RUNNER_TEMP/ranked-parent.json"
-          if [[ "$WRITE_OPERATION" == hotel_publisher_keyboard_pilot ]]; then
+          if [[ "$WRITE_OPERATION" == hotel_publisher_keyboard_pilot || "$WRITE_OPERATION" == hotel_publisher_media_pilot ]]; then
             test "$APPLICATION_SHA" = "$GITHUB_SHA"
             [[ "$PILOT_SHA" =~ ^[a-f0-9]{64}$ ]]
             printf '%s\n' "$PILOT_SHA" > "$RUNNER_TEMP/ranked-digests"
@@ -109,11 +111,18 @@ jobs:
           digest=os.environ['PILOT_SHA']
           checked=json.loads(pathlib.Path('pub/check-'+digest+'.json').read_bytes())
           assert checked.get('ok') is True and checked.get('mode')=='offline_plan_check'
-          assert checked.get('operation')=='hotel_publisher_keyboard_pilot' and checked.get('plan_sha256')==digest
-          assert checked.get('message_id')=='1047' and checked.get('full_transfer') is False
+          operation=os.environ['WRITE_OPERATION']
+          mid='1058' if operation=='hotel_publisher_media_pilot' else '1047'
+          assert checked.get('operation')==operation and checked.get('plan_sha256')==digest
+          assert checked.get('message_id')==mid and checked.get('full_transfer') is False
+          if operation=='hotel_publisher_media_pilot':
+              assert checked.get('full_transfer_requested') is True and checked.get('hotel_id')==2514
+              parent=json.loads(os.environ['PARENT_EVIDENCE'])
+              assert parent.get('kind')=='publisher_media_original_evidence_v1'
+              assert parent.get('historical_preflight_write_admission') is False
           assert all(type(checked.get(k)) is int and checked[k]==0 for k in ('production_writes','provider_writes'))
           pathlib.Path('pub/summary.json').write_text(json.dumps({digest:{'state':'not_started',
-              'message_ids':['1047'],'operation':'hotel_publisher_keyboard_pilot','full_transfer':False}}))
+              'message_ids':[mid],'operation':operation,'full_transfer':False}}))
           PY
             exit 0
           fi
@@ -223,6 +232,8 @@ jobs:
           suffix=""
           if [[ "$GITHUB_REF" == refs/heads/ops/anytour-publisher-keyboard-1047-20261125 ]]; then
             apply=--apply-publisher-keyboard-pilot
+          elif [[ "$GITHUB_REF" == refs/heads/ops/anytour-publisher-media-1058-20261126 ]]; then
+            apply=--apply-publisher-media-pilot
           elif [[ "$GITHUB_REF" == refs/heads/ops/anytour-hotel-ranked-37-continue-20261123 ]]; then
             apply=--apply-ranked-continuation
           elif [[ "$GITHUB_REF" == refs/heads/ops/anytour-hotel-ranked-resume-20261124 ]]; then
@@ -256,6 +267,26 @@ jobs:
           p=pathlib.Path('pub/result-'+digest+'.json')
           assert 0<p.stat().st_size<=1000000,'original_result_missing_or_unbounded_requires_readback'
           d=json.loads(p.read_bytes())
+          if os.environ['GITHUB_REF']=='refs/heads/ops/anytour-publisher-media-1058-20261126':
+              assert state['operation']==d.get('operation')=='hotel_publisher_media_pilot'
+              assert state['message_ids']==['1058'] and state.get('full_transfer') is False
+              assert d.get('plan_sha256')==digest and d.get('message_id')=='1058' and d.get('hotel_id')==2514
+              assert d.get('full_transfer_requested') is True and type(d.get('full_transfer')) is bool
+              assert d.get('native_run_id')==os.environ['GITHUB_RUN_ID'] and d.get('application_sha')==os.environ['APPLICATION_SHA']
+              assert all(type(d.get(k)) is int and d[k]==0 for k in ('supplier_requests','bot_starts'))
+              writes=d.get('provider_write_attempts')
+              assert type(writes) is int and 0<=writes<=1 and type(d.get('ok')) is bool
+              ok=status==0 and d['ok'] is True
+              if ok:
+                  assert writes==1 and d.get('state')=='native_and_registry_verified' and d['full_transfer'] is True
+                  assert all(d.get(k) is True for k in ('hotel_id_verified','photo_caption_button_verified','original_message_id_and_date_preserved'))
+              else:
+                  assert d['full_transfer'] is False
+              state.update(state='complete' if ok else 'held_requires_readback',provider_state=d.get('state'),
+                  provider_write_attempts=writes,full_transfer=d['full_transfer'])
+              summary.write_text(json.dumps(states))
+              print(json.dumps(state))
+              raise SystemExit(0 if ok else 'publisher_media_held_do_not_replay')
           if os.environ['GITHUB_REF']=='refs/heads/ops/anytour-publisher-keyboard-1047-20261125':
               assert state['operation']==d.get('operation')=='hotel_publisher_keyboard_pilot'
               assert state['message_ids']==['1047'] and state.get('full_transfer') is False
