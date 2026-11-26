@@ -102,7 +102,6 @@ const PUBLISHER_KEYBOARD_ACTOR_PREWRITE_REFUSAL = Object.freeze({
   artifact:15074131951,size:1101,
   digest:'sha256:36bbd6257202d88dbee445b67b24c32282892d37b4db02762967aceb9bc69dc2'});
 const RANKED_INPUT_BRANCH = /^ops\/anytour-hotel-ranked-plan-([0-9a-f]{64})$/;
-const RANKED_DATA_BRANCH = /^ops\/anytour-hotel-ranked-data-([0-9a-f]{64})$/;
 const RANKED_AFTER_BRANCH = /^ops\/anytour-hotel-ranked-after-([1-9][0-9]{0,15})$/;
 const RANKED_RESUME_SEED = Object.freeze({
   run:45372056681, job:138368539666, sha:'e3e1a9bdf29dd0d7530fe6b3b393f1286834d092',
@@ -2246,9 +2245,7 @@ async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
     &&((event.before==='0'.repeat(40)&&event.created===true)||recovery),
     'untrusted_hotel_four_transfer');
   const c={sha:env.GITHUB_SHA,id:String(env.GITHUB_RUN_ID),attempt:1,event:'push',workflow:p.workflow,job:p.job};
-  const repositorySha=(await api('GET',API_ROOT+'/git/ref/heads/main'))?.object?.sha;
-  requireValue(sha(repositorySha) && (p.data_only ? repositorySha!==c.sha : repositorySha===c.sha),'main_changed');
-  const applicationContext={...c,sha:repositorySha};
+  requireValue((await api('GET',API_ROOT+'/git/ref/heads/main'))?.object?.sha===c.sha,'main_changed');
   const branchPath=API_ROOT+'/git/ref/heads/'+p.branch;
   requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_transfer_branch_changed');
   const run=await api('GET',API_ROOT+'/actions/runs/'+c.id);
@@ -2291,24 +2288,9 @@ async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
       event:'push',branch:'audit/1566-next-release-admission-1664'});
     requireValue(proof.actor?.id===p.owner_id&&proof.triggering_actor?.id===p.owner_id,'foreign_stella_alternate_preflight');
   }
-  if (p.data_only) {
-    const commit=await api('GET',API_ROOT+'/git/commits/'+c.sha);
-    requireValue(commit?.sha===c.sha && Array.isArray(commit.parents) && commit.parents.length===1
-      && commit.parents[0].sha===repositorySha,'ranked_data_parent_changed');
-    const comparison=await api('GET',API_ROOT+'/compare/'+repositorySha+'...'+c.sha);
-    const files=comparison?.files;
-    const expected=new Map([[p.plan_path,'added'],[p.data_plan_path,'added'],
-      ['config/anytour_ranked_approved_indexes.json','modified']]);
-    requireValue(comparison?.status==='ahead' && comparison.total_commits===1
-      && comparison.merge_base_commit?.sha===repositorySha && Array.isArray(files)
-      && files.length===expected.size && new Set(files.map(file=>file.filename)).size===expected.size
-      && files.every(file=>expected.get(file.filename)===file.status),'ranked_data_scope_changed');
-    requireValue(p.data_native_application===repositorySha && p.data_native_repository===repositorySha,
-      'ranked_data_native_base_changed');
-  }
-  const location=await readRecord(api),result=await resolveCurrent(api,applicationContext,location);
+  const location=await readRecord(api),result=await resolveCurrent(api,c,location);
   requireValue(result.ready===true&&result.perform_actions===true,'release_pending');
-  if(p===HOTEL_RANKED_RESUME||p===HOTEL_PREWRITE_RESUME||p.parent_run_id||p.native_source)requireValue(result.application_sha===repositorySha,'hotel_resume_editor_not_installed');
+  if(p===HOTEL_RANKED_RESUME||p===HOTEL_PREWRITE_RESUME||p.parent_run_id||p.native_source)requireValue(result.application_sha===c.sha,'hotel_resume_editor_not_installed');
   if(p===HOTEL_MAX_SUGAR_TRANSFER||p===HOTEL_MAX_SUGAR_PUBLIC_RECOVERY){
     requireValue(result.application_sha===c.sha,'max_transfer_editor_not_installed');
   }
@@ -2316,14 +2298,12 @@ async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
     requireValue(result.application_sha===c.sha,'publisher_keyboard_editor_not_installed');
   const parent = p.parent_run_id ? await rankedParentEvidence(api, p.parent_run_id, c) : null;
   requireValue((await api('GET',branchPath))?.object?.sha===c.sha,'hotel_transfer_branch_changed');
-  return {...await finalResolution(api,applicationContext,location,result),write_operation:p.operation,
-    ...(p.data_only ? {ranked_data_sha:c.sha, ranked_data_index_path:p.plan_path} : {}),
+  return {...await finalResolution(api,c,location,result),write_operation:p.operation,
     ...(p===HOTEL_PUBLISHER_KEYBOARD_PILOT ? {publisher_pilot_digest:p.plan_digest} : {}),
     ...(parent ? {parent_evidence:JSON.stringify(parent)} : {})};
 }
 async function approvedRankedInput(api, head, digest, branch) {
-  const dataOnly=RANKED_DATA_BRANCH.exec(branch)?.[1]===digest;
-  requireValue(sha(head) && (dataOnly || RANKED_INPUT_BRANCH.exec(branch)?.[1]===digest)
+  requireValue(sha(head) && RANKED_INPUT_BRANCH.exec(branch)?.[1]===digest
     && digest!==HOTEL_RANKED_46.plan_digest,'ranked_input_not_approved');
   const read = async path => {
     const item = await api('GET',API_ROOT+'/contents/'+path+'?ref='+head);
@@ -2346,13 +2326,7 @@ async function approvedRankedInput(api, head, digest, branch) {
     && /^[a-zA-Z0-9_-]{1,100}$/.test(source.artifact_name) && /^[0-9a-f]{64}$/.test(proof.artifact_zip_sha256)
     && Number.isSafeInteger(index.native_zip_bytes) && index.native_zip_bytes>0 && index.native_zip_bytes<=MAX_ARCHIVE,
     'ranked_input_proof_invalid');
-  if (dataOnly) requireValue(typeof index.plans[0].path==='string'
-    && /^config\/anytour_[a-z0-9_]+\.json$/.test(index.plans[0].path)
-    && index.plans[0].path!==entries[0].path && sha(proof.application_sha) && sha(proof.repository_sha),
-    'ranked_data_plan_invalid');
   return {...HOTEL_RANKED_46, branch, operation:'hotel_ranked_approved_input', plan_path:entries[0].path,
-    ...(dataOnly ? {data_only:true, data_plan_path:index.plans[0].path,
-      data_native_application:proof.application_sha, data_native_repository:proof.repository_sha} : {}),
     plan_size:item.bytes, plan_blob:item.blob, plan_digest:digest, native_run:proof.run_id, native_artifact:proof.artifact_id,
     native_zip_bytes:index.native_zip_bytes, native_zip_digest:proof.artifact_zip_sha256, native_source:source};
 }
@@ -2402,7 +2376,7 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_PUBLISHER_KEYBOARD_PILOT.branch)
     return resolveHotelTransfer({env,event,api},HOTEL_PUBLISHER_KEYBOARD_PILOT);
   const rankedBranch = (env.GITHUB_REF || '').replace(/^refs\/heads\//, '');
-  const rankedInput = RANKED_INPUT_BRANCH.exec(rankedBranch) || RANKED_DATA_BRANCH.exec(rankedBranch);
+  const rankedInput = RANKED_INPUT_BRANCH.exec(rankedBranch);
   if (rankedInput) return resolveRankedHotelTransfer({env,event,api}, await approvedRankedInput(api,env.GITHUB_SHA,rankedInput[1],rankedBranch));
   const rankedAfter = RANKED_AFTER_BRANCH.exec(rankedBranch);
   if (rankedAfter) return resolveRankedHotelTransfer({env,event,api},

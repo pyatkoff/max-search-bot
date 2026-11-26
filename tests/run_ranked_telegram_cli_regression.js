@@ -367,7 +367,8 @@ try {
   const workflow = fs.readFileSync(path.join(root, editor), 'utf8');
   const command = 'node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"';
   assert.ok(workflow.includes(command));
-  assert.ok(workflow.includes(command.replace('node tools/', 'node .trusted-editor/tools/')));
+  const detachedCommand = 'node tools/resolve_ranked_telegram_packet.js >> "$GITHUB_OUTPUT"';
+  assert.ok(workflow.includes(detachedCommand.replace('node tools/', 'node .trusted-editor/tools/')));
   const field = name => {
     const ref = workflow.match(new RegExp('^ +'+name+': \\$\\{\\{ steps\\.release\\.outputs\\.([a-z_0-9]+) \\}\\}$','m'));
     assert.ok(ref, 'Missing workflow input ' + name);
@@ -420,7 +421,7 @@ try {
       const output = path.join(temp,'detached-' + scenario), eventPath = output + '.json';
       fs.writeFileSync(eventPath, JSON.stringify({repository,sender:owner,ref,after:dataHead,
         before:'0'.repeat(40),created:true,deleted:false,forced:false}));
-      const child = spawnSync('bash',['-eu','-c',command],{cwd:root,encoding:'utf8',env:{
+      const child = spawnSync('bash',['-eu','-c',detachedCommand],{cwd:root,encoding:'utf8',env:{
         PATH:process.env.PATH, NODE_OPTIONS:'--require ' + JSON.stringify(preload),
         RANKED_CLI_FIXTURE:'detached:' + scenario,
         GITHUB_TOKEN:'offline-fixture', GITHUB_OUTPUT:output, GITHUB_EVENT_PATH:eventPath,

@@ -46,7 +46,7 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "$GITHUB_REF" == refs/heads/ops/anytour-hotel-ranked-data-* ]]; then
-            node .trusted-editor/tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"
+            node .trusted-editor/tools/resolve_ranked_telegram_packet.js >> "$GITHUB_OUTPUT"
           else
             node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"
           fi
