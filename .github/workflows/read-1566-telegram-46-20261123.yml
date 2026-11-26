@@ -44,7 +44,7 @@ jobs:
 
           MANIFEST = 'config/anytour_ranked_reader_pairs.json'
           WORKFLOW = '.github/workflows/read-1566-telegram-46-20261123.yml'
-          BOOTSTRAP_PARENT = 'bd9e192954812a317ac7f115ffbaa63a9d4fbc35'
+          WORKFLOW_UPGRADE_PARENT = '230e98c1371c9039bce1d370a9ea4b811d9d7c4c'
           FIELDS = {
               'hotel_id', 'source_mid', 'source_publication_id', 'target_mid',
               'target_published_unixtime', 'target_caption_sha256', 'target_photo_marker_sha256',
@@ -69,7 +69,7 @@ jobs:
               assert git('rev-list', '--parents', '-n', '1', head).split() == [head, before]
               changes = set(git('diff-tree', '--no-commit-id', '--no-renames', '--name-status', '-r',
                                 before, head).splitlines())
-              expected = ({'A\t' + MANIFEST, 'M\t' + WORKFLOW} if before == BOOTSTRAP_PARENT
+              expected = ({'M\t' + MANIFEST, 'M\t' + WORKFLOW} if before == WORKFLOW_UPGRADE_PARENT
                           else {'M\t' + MANIFEST})
               assert changes == expected, 'unexpected commit scope'
               assert re.fullmatch(r'100644 blob [a-f0-9]{40}\t' + re.escape(MANIFEST) + r'\n',
@@ -206,6 +206,27 @@ jobs:
            if(!$baselineCurrent)$blockers[]='accepted_application_not_current_for_writer';
            return ['preparation_ready'=>$prepared,'preview_ready'=>$blockers===[],'preview_blockers'=>$blockers];
           }
+          function assertTelegramPriceLeaseInode($file, string $path): void {
+           clearstatcache(true,$path);
+           $current=lstat($path);
+           $opened=fstat($file);
+           requireRead(!is_link($path)&&is_array($current)&&is_array($opened)
+             &&$current['dev']===$opened['dev']&&$current['ino']===$opened['ino'],'price_editor_lease_unknown');
+          }
+          function acquireTelegramSharedPriceLease($file, string $path, int $waitMs): bool {
+           $deadline=hrtime(true)+$waitMs*1000000;
+           do {
+            assertTelegramPriceLeaseInode($file,$path);
+            if(flock($file,LOCK_SH|LOCK_NB,$wouldBlock)){
+             assertTelegramPriceLeaseInode($file,$path);
+             return true;
+            }
+            requireRead($wouldBlock===1,'price_editor_lease_unknown');
+            $remaining=$deadline-hrtime(true);
+            if($remaining<=0)return false;
+            usleep(min(500000,max(1,intdiv($remaining,1000))));
+           }while(true);
+          }
           $out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_archive_telegram_ranked_registry','ok'=>false,
            'repository_sha'=>REPOSITORY_SHA,'application_sha'=>APPLICATION_SHA,'native_run_id'=>NATIVE_RUN_ID,'native_run_attempt'=>1,
            'production_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,'write_admission'=>false,
@@ -277,7 +298,9 @@ jobs:
            $out['native_read_request_count']=(int)($out['native_channel_rights']['receipt']['request_count']??0)+1;
            $stage='shared_price_lease';$path=OPERATIONS.'/monitor-price-after-collection-v1.jsonl';
            requireRead(!is_link($path)&&is_file($path),'price_editor_lease_unknown');$lock=fopen($path,'rb');requireRead(is_resource($lock),'price_read_lease_unavailable');
-           $wait=hrtime(true);$shared=flock($lock,LOCK_SH|LOCK_NB);$acquired=$shared?hrtime(true):null;
+           $wait=hrtime(true);$waitMs=$out['baseline_current_for_writer']?60000:0;
+           $shared=acquireTelegramSharedPriceLease($lock,$path,$waitMs);$acquired=$shared?hrtime(true):null;
+           $out['price_lease_wait_budget_ms']=$waitMs;
            $out['price_editor_shared_read_lease']=$shared;$out['preparation_during_price_hold']=!$shared;
            $out['price_lease_wait_ms']=(int)((hrtime(true)-$wait)/1000000);runtimeRead();
            $out['mysql_before']=mysqlResourcesRead($pdo);$pdo->beginTransaction();
