@@ -10,7 +10,7 @@ permissions:
   pull-requests: read
 jobs:
   registry:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == 'ee2f5878addbd88d07cfb0268e4df3e7b8df2fe0' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == '97bdfa856dde03bcd8767939656aaad91187ee90' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -21,4 +21,4 @@ jobs:
       - name: Fresh ordinary admission1737 with original1736 canonical terminal
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node tools/release_priority.js --admit 1737 dd1265b9a163341fad6c3fd896d5c6400901c7d3 c35c354220f7e30cd639672015b52d5f11c767a1
+        run: node tools/release_priority.js --admit 1737 dd1265b9a163341fad6c3fd896d5c6400901c7d3 c35c354220f7e30cd639672015b52d5f11c767a1 --publisher 6818332618 226193297 2026-11-26T04:34:19Z
