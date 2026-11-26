@@ -1,4 +1,4 @@
-name: "Read both live hotel XML feeds and the three existing large MAX posts"
+name: "Verify the original PRICE revisions after the overnight batch"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -17,7 +17,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '0d72915b8e8dc743575e566ea32a34a00003b554' &&
+      github.event.before == '57656011e499b24441be86236d09ad29f0dc6620' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -218,7 +218,7 @@ jobs:
           $out=['ok'=>false,'at'=>gmdate('c'),'application_sha'=>$app,'provider_writes'=>0,'db_writes'=>0,'rows'=>[]];
           ob_start();
           try {
-              if(getcwd()!==$root || !in_array($app,['53c7a0c0a9162ab31a88325790be52df2c2ecbde'],true)) throw new RuntimeException('installed_head_changed');
+              if(getcwd()!==$root || !in_array($app,['c35c354220f7e30cd639672015b52d5f11c767a1'],true)) throw new RuntimeException('installed_head_changed');
               require_once $root.'/config.php';
               require_once $root.'/services/PromotedHotelPriceWriter.php';
               require_once $root.'/services/ChannelPostEntryService.php';
