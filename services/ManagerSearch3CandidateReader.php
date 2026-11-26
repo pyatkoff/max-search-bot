@@ -285,11 +285,12 @@ final class ManagerSearch3CandidateReader
     /** Optional whole references never displace or reorder the bounded base candidates. */
     private static function enrichHotelReferences(array $result,int $now): array
     {
+        $capture=ManagerHotelKnowledge::retainedCandidateCapture($result['request']['scope_digest'],
+            $result['source_generated_at'],$result['request']['country'],$now);
         foreach ($result['candidates'] as $index=>$candidate) {
             $reason='response_budget';
             try {
-                $reference=ManagerHotelKnowledge::captureRetainedCandidate($candidate,$result['request']['scope_digest'],
-                    $result['source_generated_at'],$result['request']['country'],$now);
+                $reference=$capture($candidate);
                 $with=$result;
                 $with['candidates'][$index]['hotel_reference']=$reference;
                 if (self::fitsOutput($with)) {$result=$with;continue;}
