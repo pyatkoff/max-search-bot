@@ -13,7 +13,7 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == 'baa2bc54d64b9aa4c90264f64eb97ff43467313d' &&
+      github.event.before == 'e6ec246dea1fc3e122e8e0cfb9ce5691b5e317e6' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -182,7 +182,7 @@ jobs:
            if($status===429)$rates[$host]=publicRetryLimit($retry,time());return ['ok'=>$ok&&$status===200,'http'=>$status,'body'=>$body,'body_sha256'=>hash('sha256',$body),'http_attempts'=>1,'retry_after'=>$status===429?$rates[$host]:null];
           }
           
-$rates=[];$out=['issue'=>1566,'operation'=>'existing_reader_video_protection_review','native_run_id'=>getenv('GITHUB_RUN_ID'),'reader_source_sha'=>getenv('GITHUB_SHA'),'write_admission'=>false,'provider_writes'=>0,'server_calls'=>0,'sql_queries'=>0,'rows'=>[]];
+          $rates=[];$out=['issue'=>1566,'operation'=>'existing_reader_video_protection_review','native_run_id'=>getenv('GITHUB_RUN_ID'),'reader_source_sha'=>getenv('GITHUB_SHA'),'write_admission'=>false,'provider_writes'=>0,'server_calls'=>0,'sql_queries'=>0,'rows'=>[]];
           foreach(['1541','1557','1711'] as $mid){
            $raw=captionPublicBytes('https://t.me/s/anytour?before='.((int)$mid+1),$rates);requireRead($raw['ok'],'public_unavailable');
            $dom=new DOMDocument();libxml_use_internal_errors(true);requireRead($dom->loadHTML($raw['body'],LIBXML_NONET),'public_invalid');libxml_clear_errors();$xp=new DOMXPath($dom);$nodes=$xp->query('//*[@data-post="anytour/'.$mid.'"]');requireRead($nodes&&$nodes->length===1,'public_identity_changed');$node=$nodes->item(0);
