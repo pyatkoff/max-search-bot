@@ -1,4 +1,4 @@
-name: "#1566 Resolve the precise Rixos source and candidate MID in the existing registry"
+name: "#1566 Verify the exact Rixos pair on the newly installed application"
 on:
   push:
     branches: [audit/1566-main-hotel-registry-20261119]
@@ -15,7 +15,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == '1505a5312d8ef1482c7067f161f39bdbf8a64f5b' && github.run_attempt == 1
+      github.event.before == 'ca301b432629498821f1957c703963ba28846bd1' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 7
     steps:
@@ -28,7 +28,7 @@ jobs:
           declare(strict_types=1);
           ini_set('display_errors','0');
           ini_set('log_errors','0');
-          $app = '62d98b1f896eb8a5a3c26c8ab49baec55367eb76';
+          $app = 'aceadeddd35a89307a9a307e891214d9c0be2af6';
           $target = 'mid.ffffc1752b045fed019aca84b9721cb5';
           $source = 'mid.ffffb6caf0606fed01a1d46c23c52cc7';
           $result = ['ok'=>false,'installed_sha'=>$app,'write_admission'=>false,'writes'=>0,
