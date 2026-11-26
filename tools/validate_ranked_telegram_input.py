@@ -145,7 +145,8 @@ def git_blob(raw):
     return hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest()
 
 
-def verify_git_scope(repo, application_sha, data_sha, index_path, index_blob, index_sha, plans):
+def verify_git_scope(repo, application_sha, data_sha, index_path, index_blob, index_sha, plans,
+                     *, allow_ranked_approval_append=True):
     """Compare immutable Git objects; callers still need authenticated revisions."""
     for commit in (application_sha, data_sha):
         require(re.fullmatch(r"[a-f0-9]{40}", commit) is not None
@@ -172,6 +173,7 @@ def verify_git_scope(repo, application_sha, data_sha, index_path, index_blob, in
     approval_path = "config/anytour_ranked_approved_indexes.json"
     approval_change = changes.pop(approval_path, None)
     if approval_change is not None:
+        require(allow_ranked_approval_append, "Git approval list change outside the transfer data")
         require(approval_path not in blobs and approval_change[0] == "100644"
                 and approval_change[3] == "M", "invalid Git approval list change")
         previous = json.loads(git_output(repo, "cat-file", "blob", approval_change[1]))

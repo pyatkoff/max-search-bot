@@ -9,6 +9,7 @@ return [
         'php tests/run_autopilot_operating_contract_regression.php',
         'php tests/run_autopilot_snapshot_regression.php',
         'php tests/run_architecture_inventory_regression.php',
+        'python3 tests/test_verify_max_photo_packet.py',
         'php tests/run_workspace_v2_visual_qa_contract_regression.php',
         'node tests/run_manager2_visual_gate_regression.js',
         'node tests/run_manager2_visual_selection_regression.js',
